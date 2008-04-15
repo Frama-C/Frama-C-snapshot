@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -out -input -deps -pdg-debug -pdg
+   OPT: -val -out -input -deps -pdg-debug -pdg -journal-disable
 */
 
 int ** top_input() ;
@@ -27,10 +27,10 @@ int f2 (void) {
 
 int strlen(char* p ) {
   char* q ;
-  int k = 0; 
-  
+  int k = 0;
+
   for (q = p; *q ; q++) k++ ;
-  
+
   return k;
 }
 
@@ -40,5 +40,3 @@ int main (char *p_str[]) {
   i += f2 ();
   return strlen (p_str[i]);
 }
-
-

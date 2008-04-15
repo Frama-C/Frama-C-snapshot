@@ -19,7 +19,22 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: norm.ml,v 1.87 2008/07/11 13:28:14 uid570 Exp $ *)
+(* $Id: norm.ml,v 1.112 2008/11/19 17:41:56 uid570 Exp $ *)
+
+(* TODO:
+
+   - In both retyping phases that add a level of indirection to locals:
+       - Retype variables of structure type
+       - Retype variables and fields whose address is taken
+     If the returned value dereferences a local, take the returned value in
+     a temporary before deallocating memory for the local variable and
+     returning. Mostly an issue of consistency: since it is a local variable
+     involved, it is retyped as a reference and no check is issued for
+     validity of dereference.
+     See ex roux3.c from Jessie test base.
+     Thanks to Pierre Roux for noting this.
+
+*)
 
 (* Import from Cil *)
 open Cil_types
@@ -28,44 +43,11 @@ open Cilutil
 open Ast_info
 open Extlib
 
+open Visitor
+
 (* Utility functions *)
 open Common
 open Integer
-
-
-(*****************************************************************************)
-(* Rename entities to avoid conflicts with Jessie predefined names.          *)
-(*****************************************************************************)
-
-class renameEntities =
-object
-
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ()) as super
-
-  method vannotation = function
-    | Dpredicate_reads(info,_poly,_params,_)
-    | Dpredicate_def(info,_poly,_params,_) ->
-	info.p_name <- unique_name info.p_name;
-	DoChildren
-    | Dlogic_reads(info,_poly,_params,_rt,_)
-    | Dlogic_def(info,_poly,_params,_rt,_) ->
-	info.l_name <- unique_name info.l_name;
-	DoChildren
-    | Dtype_annot info | Dinvariant info ->
-	info.p_name <- unique_name info.p_name;
-	DoChildren
-    | Dlemma(name,is_axiom,labels,poly,property) ->
-	let lem = Dlemma(unique_name name,is_axiom,labels,poly,property) in
-	ChangeDoChildrenPost(lem, fun x -> x)
-    | Dtype _ -> DoChildren (* TODO: when FS#338 corrected *)
-
-end
-
-let rename_entities file =
-  let visitor = new renameEntities in
-  visitCilFile (visitor :> cilVisitor) file
-
 
 (*****************************************************************************)
 (* Retype variables of array type.                                           *)
@@ -79,6 +61,8 @@ class retypeArrayVariables =
 
   (* Variables originally of array type *)
   let varset = ref VarinfoSet.empty in
+  let lvarset = ref LogicVarSet.empty in
+
   (* Correspondance between variables and "straw" variables, that are used to
    * replace the variable after some changes have been made on the AST,
    * so that further exploration does not change it anymore. The "straw"
@@ -86,10 +70,16 @@ class retypeArrayVariables =
    *)
   let var_to_strawvar = VarinfoHashtbl.create 17 in
   let strawvar_to_var = VarinfoHashtbl.create 17 in
+  let lvar_to_strawlvar = LogicVarHashtbl.create 17 in
+  let strawlvar_to_lvar = LogicVarHashtbl.create 17 in
+
   (* Variables to allocate *)
   let allocvarset = ref VarinfoSet.empty in
+  let alloclvarset = ref LogicVarSet.empty in
+
   (* Remember original array type even after variable modified *)
   let var_to_array_type : typ VarinfoHashtbl.t = VarinfoHashtbl.create 0 in
+  let lvar_to_array_type = LogicVarHashtbl.create 17 in
 
   (* As the rule would be reentrant, do not rely on the fact it is idempotent,
    * and rather change the variable into its "straw" counterpart, as it is
@@ -100,14 +90,14 @@ class retypeArrayVariables =
   let preaction_lval (host,off as lv) =
     match host with
       | Var v ->
-	  if VarinfoSet.mem v !varset then
+	  if VarinfoSet.mem v !varset then begin
 	    let strawv = VarinfoHashtbl.find var_to_strawvar v in
 	    let host = Mem(mkInfo(Lval(Var strawv,NoOffset))) in
 	    let off =
 	      lift_offset (VarinfoHashtbl.find var_to_array_type v) off
 	    in
 	    host, off
-	  else
+	  end else
 	    lv (* For terms, also corresponds to the case for Result *)
       | Mem _ -> lv
   in
@@ -124,7 +114,7 @@ class retypeArrayVariables =
 
   let rec preaction_expr e = match e with
     | StartOf(Var v,off) ->
-	if VarinfoSet.mem v !varset then
+	if VarinfoSet.mem v !varset then begin
 	  let ty = VarinfoHashtbl.find var_to_array_type v in
 	  let strawv = VarinfoHashtbl.find var_to_strawvar v in
 	  match lift_offset ty off with
@@ -135,9 +125,9 @@ class retypeArrayVariables =
 	    | Index _ | Field _ ->
 		(* Field with address taken treated separately *)
 		StartOf(Mem(Lval(Var strawv,NoOffset)),off)
-	else e
+	end else e
     | AddrOf(Var v,off) ->
-	if VarinfoSet.mem v !varset then
+	if VarinfoSet.mem v !varset then begin
 	  let ty = VarinfoHashtbl.find var_to_array_type v in
 	  let strawv = VarinfoHashtbl.find var_to_strawvar v in
 	  match lift_offset ty off with
@@ -148,7 +138,7 @@ class retypeArrayVariables =
 	    | Index _ | Field _ ->
 		(* Field with address taken treated separately *)
 		AddrOf(Mem(Lval(Var strawv,NoOffset)),off)
-	else e
+	end else e
     | BinOp(PlusPI,e1,e2,opty) ->
 	begin match stripInfo e1 with
 	  | StartOf(Var v,off) ->
@@ -178,6 +168,162 @@ class retypeArrayVariables =
 	end
     | _ -> e
   in
+
+(*
+  let preaction_tlval (host,off as lv) =
+    match host with
+        TVar v when LogicVarSet.mem v !lvarset ->
+          let strawv = LogicVarHashtbl.find lvar_to_strawlvar v in
+          let host =
+            TMem(
+              mkterm (TLval (TVar strawv,TNoOffset)) strawv.lv_type locUnknown)
+          in
+          let off =
+            lift_toffset
+              (LogicVarHashtbl.find lvar_to_array_type v) off
+          in host,off
+      | TVar _ | TResult | TMem _ -> lv
+  in let preaction_tslval (host,off as lv) =
+    match host with
+        TSVar v when LogicVarSet.mem v !lvarset ->
+          let strawv = LogicVarHashtbl.find lvar_to_strawlvar v in
+          let host = TSMem(TSLval(TSVar strawv,TSNoOffset)) in
+          let off =
+            lift_tsoffset
+              (LogicVarHashtbl.find lvar_to_array_type v) off
+          in host,off
+      | TSVar _ | TSResult | TSMem _ -> lv
+  in let postaction_tlval (host,off as lv) =
+    match host with
+        TVar strawv ->
+          begin try
+            let v = LogicVarHashtbl.find strawlvar_to_lvar strawv in
+            TVar v, off
+          with Not_found -> lv end
+      | TMem _ | TResult -> lv
+  in let postaction_tslval (host,off as lv) =
+    match host with
+        TSVar strawv ->
+          begin try
+            let v = LogicVarHashtbl.find strawlvar_to_lvar strawv in
+            TSVar v, off
+          with Not_found -> lv end
+      | TSMem _ | TSResult -> lv
+  in let rec preaction_term t = match t.term_node with
+      TStartOf(TVar v,off) when LogicVarSet.mem v !lvarset ->
+        let ty = LogicVarHashtbl.find lvar_to_array_type v in
+        let strawv = LogicVarHashtbl.find lvar_to_strawlvar v in
+        let tlval = { t with term_node = TLval(TVar strawv, TNoOffset);
+                        term_type = strawv.lv_type}
+        in begin
+          match lift_toffset ty off with
+              TNoOffset -> tlval
+            | TIndex(ie,TNoOffset) ->
+              let ptrty = TPtr(element_type ty,[]) in
+              { t with
+                  term_type = Ctype ptrty;
+                  term_node = TBinOp(PlusPI,tlval,ie)}
+            | TIndex _ | TField _ ->
+                { t with term_node = TStartOf(TMem(tlval),off) }
+        end
+    | TAddrOf(TVar v, off) when LogicVarSet.mem v !lvarset ->
+         let ty = LogicVarHashtbl.find lvar_to_array_type v in
+        let strawv = LogicVarHashtbl.find lvar_to_strawlvar v in
+        let tlval = { t with term_node = TLval(TVar strawv, TNoOffset);
+                        term_type = strawv.lv_type}
+        in begin
+          match lift_toffset ty off with
+              TIndex(ie,TNoOffset) ->
+                let ptrty = TPtr(element_type ty,[]) in
+                { t with
+                  term_type = Ctype ptrty;
+                  term_node = TBinOp(PlusPI,tlval,ie)}
+            | TNoOffset -> assert false
+            | TIndex _ | TField _ ->
+                { t with term_node = TAddrOf(TMem tlval, off) }
+        end
+    | TBinOp(PlusPI,({term_node = TStartOf(TVar v,off)} as e1),e2)
+        when LogicVarSet.mem v !lvarset ->
+        let ty = LogicVarHashtbl.find lvar_to_array_type v in
+        let e1 = preaction_term e1 in
+        let ty = typeTermOffset (Ctype ty) off in
+        let subty = direct_element_type (force_app_term_type (fun x -> x) ty)
+        in
+        let e2 =
+          if isArrayType subty then
+            let siz = array_size subty in
+            { e2 with term_node = TBinOp(Mult,e2, constant_term locUnknown siz)}
+          else e2
+        in { t with term_node = TBinOp(PlusPI,e1,e2) }
+     | TConst _ | TLval _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
+    | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _
+    | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _ | Tif _
+    | Told _ | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
+    | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _ | Ttsets _ -> t
+
+  in let rec preaction_tsets t = match t with
+      TSStartOf(TSVar v,off) when LogicVarSet.mem v !lvarset ->
+        let ty = LogicVarHashtbl.find lvar_to_array_type v in
+        let strawv = LogicVarHashtbl.find lvar_to_strawlvar v in
+        let tslval = TSLval(TSVar strawv, TSNoOffset) in
+        begin
+          match lift_tsoffset ty off with
+              TSNoOffset -> tslval
+            | TSIndex(ie,TSNoOffset) -> TSAdd_index(tslval,ie)
+            | TSRange(ie1,ie2,TSNoOffset) -> TSAdd_range(tslval,ie1,ie2)
+            | TSIndex _ | TSField _ | TSRange _ -> TSStartOf(TSMem(tslval),off)
+        end
+    | TSAddrOf(TSVar v, off) when LogicVarSet.mem v !lvarset ->
+         let ty = LogicVarHashtbl.find lvar_to_array_type v in
+         let strawv = LogicVarHashtbl.find lvar_to_strawlvar v in
+         let tlval = TSLval(TSVar strawv, TSNoOffset)
+         in begin
+          match lift_tsoffset ty off with
+              TSIndex(ie,TSNoOffset) -> TSAdd_index(tlval,ie)
+            | TSRange(ie1,ie2,TSNoOffset) -> TSAdd_range(tlval,ie1,ie2)
+            | TSNoOffset -> assert false
+            | TSIndex _ | TSField _ | TSRange _ -> TSAddrOf(TSMem tlval, off)
+        end
+    | TSAdd_index(TSStartOf(TSVar v,off) as e1,e2)
+        when LogicVarSet.mem v !lvarset ->
+        let ty = LogicVarHashtbl.find lvar_to_array_type v in
+        let e1 = preaction_tsets e1 in
+        let ty = typeTsetsOffset (Ctype ty) off in
+        let subty = direct_element_type (force_app_term_type (fun x -> x) ty)
+        in
+        if isArrayType subty then
+          let siz = array_size subty in
+          let e2 =
+            { e2 with term_node = TBinOp(Mult,e2,constant_term locUnknown siz)}
+          in TSAdd_index(e1,e2)
+        else t
+    | TSAdd_range(TSStartOf(TSVar v,off) as e1,e2,e3)
+        when LogicVarSet.mem v !lvarset ->
+        let ty = LogicVarHashtbl.find lvar_to_array_type v in
+        let e1 = preaction_tsets e1 in
+        let ty = typeTsetsOffset (Ctype ty) off in
+        let subty = direct_element_type (force_app_term_type (fun x -> x) ty)
+        in
+        if isArrayType subty then
+          let siz = array_size subty in
+          let e2 =
+            opt_map
+              (fun e2 ->
+                 { e2 with term_node =
+                     TBinOp(Mult,e2,constant_term locUnknown siz)}) e2
+          in
+          let e3 =
+            opt_map
+              (fun e3 ->
+                 { e3 with term_node =
+                     TBinOp(Mult,e3,constant_term locUnknown siz)}) e3
+          in
+          TSAdd_range(e1,e2,e3)
+        else t
+    | TSLval _ | TSStartOf _ | TSAddrOf _ | TSConst _ | TSAdd_index _
+    | TSAdd_range _ | TSCastE _ | TSat _ | TSapp _ -> t
+in
+*)
 object(self)
 
   inherit Visitor.generic_frama_c_visitor
@@ -204,44 +350,48 @@ object(self)
 	      mkTRefArray(elemty,size,[]);
 	    end
 	  else
-	    (* Plain pointer type *)
-	    TPtr(elemty,[]);
+	    (* Plain pointer type to array with zero size *)
+	    TPtr(v.vtype,[]);
 	in
 	attach_globaction (fun () -> v.vtype <- newty);
 	(* Create a "straw" variable for this variable, with the correct type *)
  	let strawv = makePseudoVar newty in
 	VarinfoHashtbl.add var_to_strawvar v strawv;
-	VarinfoHashtbl.add strawvar_to_var strawv v
+	VarinfoHashtbl.add strawvar_to_var strawv v;
       end;
-    SkipChildren
-
-  method vquantifiers vl =
-    List.iter (fun v ->
-		 (* Only iterate on logic variable with C type *)
-		 if app_term_type (fun _ -> true) false v.lv_type then
-		   match v.lv_origin with
-		     | None ->
-			 assert false (* Not expected with current implem *)
-		     | Some v -> ignore (self#vvdec v)
-		 else ()
-	      ) vl;
     DoChildren
 
-  method vlogic_var v =
-    if app_term_type isArrayType false v.lv_type then
-      begin match v.lv_origin with
-	| None -> assert false (* Not expected with current implem *)
-	| Some cv ->
-	    let strawv = VarinfoHashtbl.find var_to_strawvar cv in
-	    assert (not (isArrayType strawv.vtype));
-	    v.lv_type <- Ctype strawv.vtype
+  method vlogic_var_decl lv =
+    if not (LogicVarHashtbl.mem lvar_to_strawlvar lv) &&
+      app_term_type isArrayType false lv.lv_type then
+      begin
+        LogicVarHashtbl.add lvar_to_array_type lv
+          (force_app_term_type (fun x -> x) lv.lv_type);
+        let elemty = force_app_term_type element_type lv.lv_type in
+        lvarset := LogicVarSet.add lv !lvarset;
+        let newty =
+          if force_app_term_type array_size lv.lv_type > 0L then
+            begin
+              let size =
+                constant_expr (force_app_term_type array_size lv.lv_type)
+              in alloclvarset := LogicVarSet.add lv !alloclvarset;
+              mkTRefArray(elemty,size,[])
+            end
+          else TPtr(elemty,[])
+        in attach_globaction (fun () -> lv.lv_type <- Ctype newty);
+        let strawlv = match lv.lv_origin with
+            None -> make_temp_logic_var (Ctype newty)
+          | Some v -> cvar_to_lvar (VarinfoHashtbl.find var_to_strawvar v)
+        in
+        LogicVarHashtbl.add lvar_to_strawlvar lv strawlv;
+        LogicVarHashtbl.add strawlvar_to_lvar strawlv lv
       end;
-    SkipChildren
+      DoChildren
 
-  method vglob_aux = function
+  method vglob_aux g = match g with
     | GVar(v,_init,loc) ->
 	(* Make sure variable declaration is treated before definition *)
-	ignore (visitCilVarDecl (self :> cilVisitor) v);
+	ignore (visitFramacVarDecl (self:>frama_c_visitor) v);
 	if VarinfoSet.mem v !allocvarset then
 	  (* Allocate memory for new reference variable *)
 	  let ty = VarinfoHashtbl.find var_to_array_type v in
@@ -257,23 +407,24 @@ object(self)
 	      constant_term v.vdecl (size - 1L))
 	  in
 	  let globinv =
-            { p_name = unique_name ("valid_" ^ v.vname);
-              p_profile = [];
-              p_labels = [ LogicLabel "Here" ];
-              p_body = PDefinition (predicate v.vdecl p)}
+            { l_name = unique_logic_name ("valid_" ^ v.vname);
+	      l_tparams = [];
+	      l_type = None;
+              l_profile = [];
+              l_labels = [ LogicLabel "Here" ];
+              l_body = LBpred (predicate v.vdecl p)}
 	  in
-          attach_globaction (fun () -> Logic_env.add_predicate globinv);
-	  attach_global (GAnnot(Dinvariant globinv,v.vdecl))
-	else ();
-	DoChildren
+          attach_globaction (fun () -> Logic_env.add_logic_function globinv);
+	  ChangeTo [g;GAnnot(Dinvariant globinv,v.vdecl)]
+	else DoChildren
     | GVarDecl _ | GFun _ | GAnnot _ -> DoChildren
     | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
     | GEnumTag _ | GAsm _ | GPragma _ | GText _ -> SkipChildren
 
   method vfunc f =
     (* First change type of local array variables *)
-    List.iter (ignore $ visitCilVarDecl (self :> cilVisitor)) f.slocals;
-    List.iter (ignore $ visitCilVarDecl (self :> cilVisitor)) f.sformals;
+    List.iter (ignore $ visitFramacVarDecl (self:>frama_c_visitor)) f.slocals;
+    List.iter (ignore $ visitFramacVarDecl (self:>frama_c_visitor)) f.sformals;
     (* Then allocate/deallocate memory for those that need it *)
     List.iter (fun v ->
       if VarinfoSet.mem v !allocvarset then
@@ -290,23 +441,28 @@ object(self)
     ChangeDoChildrenPost (preaction_lval lv, postaction_lval)
 
   method vterm_lval =
-    do_on_term_lval (Some preaction_lval,Some postaction_lval)
+    do_on_term_lval (Some preaction_lval, Some postaction_lval)
 
   method vtsets_lval =
-    do_on_tsets_lval (Some preaction_lval,Some postaction_lval)
+    do_on_tsets_lval (Some preaction_lval, Some postaction_lval)
 
   method vexpr e =
     ChangeDoChildrenPost (preaction_expr e, fun x -> x)
 
   method vterm =
-    do_on_term (Some preaction_expr,None)
+    do_on_term (Some preaction_expr, None)
 
   method vtsets_elem =
-    do_on_tsets_elem (Some preaction_expr,None)
+    do_on_tsets_elem (Some preaction_expr, None)
 
 end
 
 let retype_array_variables file =
+  (* Enforce the prototype of malloc to exist before visiting anything.
+     It might be useful for allocation pointers from arrays
+  *)
+  ignore (Common.malloc_function ());
+  ignore (Common.free_function ());
   let visitor = new retypeArrayVariables in
   visit_and_push_statements visit_and_update_globals visitor file
 
@@ -389,9 +545,11 @@ object
 	    end
 	| Ctype _ | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ -> ty
     in
-    function
+    let rec annot = function
+(*
       | Dpredicate_reads(_name,_poly,params,_)
-      | Dpredicate_def(_name,_poly,params,_) ->
+      | Dpredicate_def(_name,_poly,params,_) 
+      | Dinductive_def(_name,_poly,params,_) ->
 	  List.iter var params;
 	  DoChildren
       | Dlogic_reads(info,poly,params,rt,tlocs) ->
@@ -404,13 +562,28 @@ object
 	  let rt = return_type rt in
 	  ChangeDoChildrenPost
 	    (Dlogic_def(name,poly,params,rt,t), fun x -> x)
+      | Dlogic_axiomatic(name,poly,params,rt,axioms) ->
+	  List.iter var params;
+	  let rt = return_type rt in
+	  ChangeDoChildrenPost
+	    (Dlogic_axiomatic(name,poly,params,rt,axioms), fun x -> x)
+*)
+      | Dfun_or_pred li ->
+	  List.iter var li.l_profile;
+	  begin
+	    match li.l_type with
+	      | None -> DoChildren
+	      | Some rt ->
+		  let li' = { li with l_type = Some (return_type rt)}  in
+		  ChangeDoChildrenPost (Dfun_or_pred li', fun x -> x)
+	  end
       | Dtype_annot annot ->
-	  begin match (List.hd annot.p_profile).lv_type with
+	  begin match (List.hd annot.l_profile).lv_type with
 	    | Ctype ty when isStructOrUnionType ty ->
 		change_this_type := true;
-		this_name := (List.hd annot.p_profile).lv_name;
+		this_name := (List.hd annot.l_profile).lv_name;
 		let annot = { annot with
-                                p_profile = [{ (List.hd annot.p_profile) with
+                                l_profile = [{ (List.hd annot.l_profile) with
                                                  lv_type = Ctype(mkTRef ty)}];
 		}
                 in
@@ -420,6 +593,9 @@ object
                 DoChildren
 	  end
       | Dtype _ | Dlemma _ | Dinvariant _ -> DoChildren
+      | Daxiomatic _ -> DoChildren (* FIXME: correct ? *)
+
+    in annot
 
   method vterm_lval tlv =
     ChangeDoChildrenPost (tlv, postaction_term_lval)
@@ -429,7 +605,7 @@ object
      * terms and tsets are converted to expressions. Here there is no
      * environment for untranslated sub-trees in the AST that still need
      * to be transformed. Still, for simplicity, we do so instead of calling
-     * [visitCilTerm] and returning [ChangeTo...]
+     * [visitFramacTerm] and returning [ChangeTo...]
      *)
     let postaction_tslval tslv =
       let tlv = !Db.Properties.Interp.force_tsets_lval_to_term_lval tslv in
@@ -498,12 +674,14 @@ end
 
 let retype_logic_functions file =
   let visitor = new retypeLogicFunctions in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 
 (*****************************************************************************)
 (* Expand structure copying through parameter, return or assignment.         *)
 (*****************************************************************************)
+
+let return_vars = VarinfoHashtbl.create 17
 
 (* parameter:
  * - if function defined, add local copy variable of structure type
@@ -521,7 +699,8 @@ class expandStructAssign () =
 
   let pairs = ref [] in
   let new_return_type = ref None in
-  let curFundec : fundec ref = ref dummyFunDec in
+  let return_var = ref None in
+  let curFundec : fundec ref = ref (emptyFunction "@dummy@") in
 
   let postaction_term_lval (host,off) =
     let host = match host with
@@ -533,10 +712,9 @@ class expandStructAssign () =
 	  end
       | TVar v ->
 	  begin match v.lv_origin with
-	  | None ->
+	  | None -> host
 	      (* TODO: recognize \result variable, and change its use if
 		 of reference type here. *)
-	      TVar v (* logic var *)
 	  | Some cv ->
 	      try
 		let newv = List.assoc cv !pairs in
@@ -553,6 +731,65 @@ class expandStructAssign () =
     in
     host, off
   in
+
+  let rec expand_assign lv e ty loc =
+    match unrollType ty with
+      | TComp(mcomp,_) ->
+	  let field fi =
+	    let newlv = addOffsetLval (Field(fi,NoOffset)) lv in
+	    let newe = match e with
+	      | Lval elv -> Lval(addOffsetLval (Field(fi,NoOffset)) elv)
+	      | _ ->
+		  (* Other possibilities like [CastE] should have been
+		     transformed at this point. *)
+		  assert false
+	    in
+	    expand_assign newlv newe fi.ftype loc
+	  in
+	  List.flatten (List.map field mcomp.cfields)
+      | TArray _ ->
+	  let elem i =
+	    let cste = constant_expr i in
+	    let newlv = addOffsetLval (Index(cste,NoOffset)) lv in
+	    let newe = match e with
+	      | Lval elv -> Lval (addOffsetLval (Index(cste,NoOffset)) elv)
+	      | _ ->
+		  (* Other possibilities like [CastE] should have been
+		     transformed at this point. *)
+		  assert false
+	    in
+	    expand_assign newlv newe (direct_element_type ty) loc
+	  in
+	  let rec all_elem acc i =
+	    if i >= 0L then all_elem (elem i @ acc) (i - 1L) else acc
+	  in
+	  assert (not (is_reference_type ty));
+	  all_elem [] (direct_array_size ty - 1L)
+      | _ -> [Set (lv, e, loc)]
+  in
+
+  let rec expand lv ty loc =
+    match unrollType ty with
+      | TComp(mcomp,_) ->
+	  let field fi =
+	    let newlv = addOffsetLval (Field(fi,NoOffset)) lv in
+	    expand newlv fi.ftype loc
+	  in
+	  List.flatten (List.map field mcomp.cfields)
+      | TArray _ ->
+	  let elem i =
+	    let cste = constant_expr i in
+	    let newlv = addOffsetLval (Index(cste,NoOffset)) lv in
+	    expand newlv (direct_element_type ty) loc
+	  in
+	  let rec all_elem acc i =
+	    if i >= 0L then all_elem (elem i @ acc) (i - 1L) else acc
+	  in
+	  assert (not (is_reference_type ty));
+	  all_elem [] (direct_array_size ty - 1L)
+      | _ -> [ lv ]
+  in
+
 object
 
   inherit Visitor.generic_frama_c_visitor
@@ -574,12 +811,10 @@ object
     in
     function
       | GVarDecl(_spec,v,_attr) ->
-	  (* No problem with calling [retype_func] more than once, since
-	   * subsequent calls do nothing.
-	   *)
 	  if isFunctionType v.vtype && not v.vdefined then retype_func v;
-	  SkipChildren
-      | GFun _ | GAnnot _ -> DoChildren
+	  DoChildren
+      | GFun _
+      | GAnnot _ -> DoChildren
       | GVar _  | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
       | GEnumTag _ | GAsm _ | GPragma _ | GText _ -> SkipChildren
 
@@ -604,67 +839,92 @@ object
     let locvl = List.flatten locvl in
     f.slocals <- locvl @ f.slocals;
     setFormals f formvl;
-    (* Change return type. *)
+    (* Add local variable for return *)
     let rt = getReturnType f.svar.vtype in
+    if isStructOrUnionType rt then
+      let rv = makeTempVar !curFundec rt in
+      return_var := Some rv;
+      VarinfoHashtbl.add return_vars rv ()
+    else
+      return_var := None;
+    (* Change return type. *)
     new_return_type :=
       if isStructOrUnionType rt then Some(mkTRef rt) else None;
     let rt = if isStructOrUnionType rt then mkTRef rt else rt in
     setReturnType f rt;
     DoChildren
 
+  method vbehavior b =
+    let lval lv = expand lv (typeOfLval lv) locUnknown in
+    let tsets_elem = function
+      | TSLval tslv ->
+	  let lv,env = 
+	    !Db.Properties.Interp.force_tsets_lval_to_lval 
+	      (Common.get_result_type ()) tslv 
+	  in
+	  let lvlist = lval lv in
+	  let tslvlist =
+	    List.map (!Db.Properties.Interp.force_back_lval_to_tsets_lval env)
+	      lvlist
+	  in
+	  List.map (fun
+		      tslv -> TSLval tslv
+		   ) tslvlist
+      | TSStartOf _
+      | TSConst _
+      | TSAdd_index _ (* TODO *)
+      | TSAdd_range _ (* TODO *)
+      | TSCastE _
+      | TSat _
+      | TSAddrOf _
+      | TSapp _ as tselem -> [ tselem ]
+    in
+    let tsets = function
+      | TSSingleton tselem ->
+	  List.map (fun tselem -> TSSingleton tselem) (tsets_elem tselem)
+      | TSEmpty
+      | TSUnion _ (* TODO *)
+      | TSInter _ (* TODO *)
+      | TSComprehension _ as ts -> [ ts ]
+    in
+    let zone = function
+      | Location idts ->
+	  List.map (fun ts -> Location { idts with its_content = ts })
+	    (tsets idts.its_content)
+      | Nothing -> [ Nothing ]
+    in
+    let assign (z,froms) =
+      let zl = zone z in
+      let froms = List.flatten (List.map zone froms) in
+      List.map (fun z -> z, froms) zl
+    in
+    b.b_assigns <- List.flatten (List.map assign b.b_assigns);
+    DoChildren
+
   method vstmt_aux s = match s.skind with
     | Return(Some e,loc) ->
 	(* Type of [e] has not been changed by retyping formals and return. *)
 	if isStructOrUnionType (typeOf e) then
-	  match e with
-	    | Lval lv ->
-		let skind = Return(Some(Cabs2cil.mkAddrOfAndMark lv),loc) in
-		ChangeTo { s with skind = skind; }
-	    | _ -> assert false (* Should not be possible *)
+(* 	  match e with *)
+(* 	    | Lval lv -> *)
+(* 		let skind = Return(Some(Cabs2cil.mkAddrOfAndMark lv),loc) in *)
+(* 		ChangeTo { s with skind = skind; } *)
+(* 	    | _ -> assert false (\* Should not be possible *\) *)
+	  let lv = Var(the !return_var),NoOffset in
+	  let ret = mkStmt (Return(Some(Cabs2cil.mkAddrOfAndMark lv),loc)) in
+	  let assigns = expand_assign lv e (typeOf e) loc in
+	  let assigns = List.map (fun i -> mkStmt(Instr i)) assigns in
+	  let block = Block (mkBlock (assigns @ [ret])) in
+	  ChangeTo { s with skind = block }
 	else SkipChildren
     | _ -> DoChildren
 
   method vinst =
-    let rec expand lv e ty loc =
-      match unrollType ty with
-	| TComp(mcomp,_) ->
-	    let field fi =
-	      let newlv = addOffsetLval (Field(fi,NoOffset)) lv in
-	      let newe = match e with
-		| Lval elv -> Lval(addOffsetLval (Field(fi,NoOffset)) elv)
-		| _ ->
-		    (* Other possibilities like [CastE] should have been
-		       transformed at this point. *)
-		    assert false
-	      in
-	      expand newlv newe fi.ftype loc
-	    in
-	    List.flatten (List.map field mcomp.cfields)
-	| TArray _ ->
-	    let elem i =
-	      let cste = constant_expr i in
-	      let newlv = addOffsetLval (Index(cste,NoOffset)) lv in
-	      let newe = match e with
-		| Lval elv -> Lval (addOffsetLval (Index(cste,NoOffset)) elv)
-		| _ ->
-		    (* Other possibilities like [CastE] should have been
-		       transformed at this point. *)
-		    assert false
-	      in
-	      expand newlv newe (direct_element_type ty) loc
-	    in
-	    let rec all_elem acc i =
-	      if i >= 0L then all_elem (elem i @ acc) (i - 1L) else acc
-	    in
-	    assert (not (is_reference_type ty));
-	    all_elem [] (direct_array_size ty - 1L)
-	| _ -> [Set (lv, e, loc)]
-    in
     function
       | Set(lv,e,loc) ->
 	  (* Type of [e] has not been changed by retyping formals and return. *)
 	  if isStructOrUnionType (typeOf e) then
-	    ChangeTo (expand lv e (typeOf e) loc)
+	    ChangeTo (expand_assign lv e (typeOf e) loc)
 	  else SkipChildren
       | Call(lvo,callee,args,loc) ->
 	  let args = List.map (fun arg ->
@@ -723,7 +983,8 @@ end
 
 let expand_struct_assign file =
   let visitor = new expandStructAssign () in
-  visit_and_push_statements visitCilFile visitor file
+  visit_and_store_result_type visitFramacFile
+    (visit_and_push_statements_visitor visitor) file
 
 
 (*****************************************************************************)
@@ -746,6 +1007,7 @@ let expand_struct_assign file =
 class retypeStructVariables =
 
   let varset = ref VarinfoSet.empty in
+  let lvarset = ref LogicVarSet.empty in
 
   let postaction_lval (host,off) =
     let host = match host with
@@ -758,6 +1020,43 @@ class retypeStructVariables =
     in
     host, off
   in
+  let postaction_tlval (host,off) =
+    let add_deref host v =
+      TMem(mkterm (TLval (host,TNoOffset)) v.lv_type locUnknown)
+    in
+    let host = match host with
+      | TVar v ->
+	  if LogicVarSet.mem v !lvarset then
+            add_deref host v
+	  else
+	    opt_app
+	      (fun cv ->
+		 if VarinfoSet.mem cv !varset then
+		   add_deref host v
+		 else host
+	      ) host v.lv_origin
+      | TMem _ | TResult -> host
+    in
+    host, off
+  in
+  let postaction_tslval (host,off) =
+    let add_deref host =
+      TSMem(TSLval(host,TSNoOffset))
+    in
+    let host = match host with
+      | TSVar v ->
+	  if LogicVarSet.mem v !lvarset then
+	    add_deref host
+	  else
+	    opt_app
+	      (fun cv ->
+		 if VarinfoSet.mem cv !varset then
+		   add_deref host
+		 else host
+	      ) host v.lv_origin
+      | TSMem _ | TSResult -> host
+    in host,off
+in
 object(self)
 
   inherit Visitor.generic_frama_c_visitor
@@ -769,33 +1068,33 @@ object(self)
 	v.vtype <- mkTRef v.vtype;
 	varset := VarinfoSet.add v !varset
       end;
-    SkipChildren
+    DoChildren
 
   method vquantifiers vl =
     List.iter (fun v ->
 		 (* Only iterate on logic variable with C type *)
 		 if app_term_type (fun _ -> true) false v.lv_type then
 		   match v.lv_origin with
-		     | None ->
-			 assert false (* Not expected with current implem *)
+		     | None -> ()
 		     | Some v -> ignore (self#vvdec v)
 		 else ()
 	      ) vl;
     DoChildren
 
-  method vlogic_var v =
-    (* Only iterate on logic variable with C type *)
-    if app_term_type (fun _ -> true) false v.lv_type then
-      match v.lv_origin with
-	| None ->
-	    assert false (* Not expected with current implem *)
-	| Some v -> ChangeTo (cvar_to_lvar v)
-    else SkipChildren
+  method vlogic_var_decl v =
+    let newty =
+      app_term_type
+	(fun ty ->
+	   Ctype (if isStructOrUnionType ty then mkTRef ty else ty))
+	v.lv_type v.lv_type
+    in
+    v.lv_type <- newty;
+    DoChildren
 
   method vglob_aux = function
     | GVar (_,_,_) as g ->
 	let postaction = function
-	  | GVar (v,_,_) ->
+	  | [GVar (v,_,_)] ->
 	      if VarinfoSet.mem v !varset then
 		(* Allocate memory for new reference variable *)
 		let ast = mkalloc_statement v (pointed_type v.vtype) v.vdecl in
@@ -808,44 +1107,45 @@ object(self)
 		    constant_term v.vdecl 0L)
 		in
 	        let globinv =
-                  { p_name = unique_name ("valid_" ^ v.vname);
-                    p_profile = [];
-                    p_labels = [ LogicLabel "Here" ];
-                    p_body = PDefinition (predicate v.vdecl p)}
+                  { l_name = unique_logic_name ("valid_" ^ v.vname);
+		    l_tparams = [];
+		    l_type = None;
+                    l_profile = [];
+                    l_labels = [ LogicLabel "Here" ];
+                    l_body = LBpred (predicate v.vdecl p)}
 	        in
-                attach_globaction (fun () -> Logic_env.add_predicate globinv);
-	        attach_global (GAnnot(Dinvariant globinv,v.vdecl))
-	      else ();
-	      g
+                attach_globaction (fun () -> Logic_env.add_logic_function globinv);
+	        [g; GAnnot(Dinvariant globinv,v.vdecl)]
+	      else [g]
 	  | _ -> assert false
 	in
-	ChangeDoChildrenPost ([g], List.map postaction)
+	ChangeDoChildrenPost ([g], postaction)
     | GVarDecl _ | GFun _ | GAnnot _ -> DoChildren
     | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
     | GEnumTag _ | GAsm _ | GPragma _ | GText _ -> SkipChildren
 
   method vfunc f =
     (* First change type of local structure variables *)
-    List.iter (ignore $ visitCilVarDecl (self :> cilVisitor)) f.slocals;
-    List.iter (ignore $ visitCilVarDecl (self :> cilVisitor)) f.sformals;
+    List.iter (ignore $ visitFramacVarDecl (self:>frama_c_visitor)) f.slocals;
+    List.iter (ignore $ visitFramacVarDecl (self:>frama_c_visitor)) f.sformals;
     (* Then allocate/deallocate memory for those that need it *)
     List.iter (fun v ->
       if VarinfoSet.mem v !varset then
 	let ast = mkalloc_statement v (pointed_type v.vtype) v.vdecl in
 	add_pending_statement ~beginning:true ast;
-	let fst = mkfree_statement v v.vdecl in
-	add_pending_statement ~beginning:false fst
+	(* do not deallocate variable used in returning a structure *)
+	if not (VarinfoHashtbl.mem return_vars v) then
+	  let fst = mkfree_statement v v.vdecl in
+	  add_pending_statement ~beginning:false fst
     ) f.slocals;
     DoChildren
 
   method vlval lv =
     ChangeDoChildrenPost (lv, postaction_lval)
 
-  method vterm_lval =
-    do_on_term_lval (None,Some postaction_lval)
+  method vterm_lval lv = ChangeDoChildrenPost(lv, postaction_tlval)
 
-  method vtsets_lval =
-    do_on_tsets_lval (None,Some postaction_lval)
+  method vtsets_lval lv = ChangeDoChildrenPost(lv, postaction_tslval)
 
   method vexpr e =
     (* Renormalize the expression tree. *)
@@ -897,12 +1197,16 @@ let retype_struct_variables file =
 class retypeAddressTaken =
 
   let varset = ref VarinfoSet.empty in
+  let lvarset = ref LogicVarSet.empty in
   let fieldset = ref FieldinfoSet.empty in
 
   let retypable_var v =
     v.vaddrof
     && not (isArrayType v.vtype)
     && not (is_reference_type v.vtype)
+  in
+  let retypable_lvar v =
+    match v.lv_origin with None -> false | Some v -> retypable_var v
   in
   (* Only retype fields with base/pointer type, because fields of
    * struct/union type will be retyped in any case later on.
@@ -921,6 +1225,12 @@ class retypeAddressTaken =
 	varset := VarinfoSet.add v !varset
       end
   in
+  let retype_lvar v =
+    if retypable_lvar v then begin
+      v.lv_type <- Ctype (force_app_term_type mkTRef v.lv_type);
+      lvarset := LogicVarSet.add v !lvarset
+    end
+  in
   let retype_field fi =
     if retypable_field fi then
       begin
@@ -938,8 +1248,7 @@ class retypeAddressTaken =
 	      assert (isPointerType v.vtype);
 	      Mem(mkInfo(Lval(Var v,NoOffset)))
 	    end
-	  else
-	    Var v
+	  else host
       | Mem _e -> host
     in
     (* Field retyped can only appear as the last offset, as it is of
@@ -956,11 +1265,60 @@ class retypeAddressTaken =
 	host,off
   in
 
+  let postaction_tlval (host,off) =
+    let add_deref host ty =
+      force_app_term_type (fun ty -> assert (isPointerType ty)) ty;
+      TMem(mkterm (TLval (host,TNoOffset)) ty locUnknown)
+    in
+    let host = match host with
+      | TVar v ->
+	  if LogicVarSet.mem v !lvarset then
+	    add_deref host v.lv_type
+	  else
+	    opt_app
+	      (fun cv ->
+		 if VarinfoSet.mem cv !varset then
+		   add_deref host (Ctype cv.vtype)
+		 else host
+	      ) host v.lv_origin
+      | TResult | TMem _ -> host
+    in match lastTermOffset off with
+      | TField (fi,_) ->
+          if FieldinfoSet.mem fi !fieldset then
+            (TMem(Logic_const.mk_dummy_term
+                    (TLval(host,off)) fi.ftype),TNoOffset)
+          else host,off
+      | TIndex _ | TNoOffset -> host,off
+  in
+  let postaction_tslval (host,off) =
+    let add_deref host =
+      TSMem (TSLval(host,TSNoOffset))
+    in
+    let host = match host with
+      | TSVar v ->
+	  if LogicVarSet.mem v !lvarset then
+	    add_deref host
+	  else
+	    opt_app
+	      (fun cv ->
+		 if VarinfoSet.mem cv !varset then
+		   add_deref host
+		 else host
+	      ) host v.lv_origin
+      | TSResult | TSMem _ -> host
+    in match lastTsetsOffset off with
+      | TSField (fi,_) ->
+          if FieldinfoSet.mem fi !fieldset then
+            (TSMem(TSLval(host,off)), TSNoOffset)
+          else host,off
+      | TSIndex _ | TSRange _ | TSNoOffset -> host,off
+  in
+
   let postaction_expr e = match e with
     | AddrOf(Var _v,NoOffset) ->
 	assert false (* Host should have been turned into [Mem] *)
-    | AddrOf(Mem e,NoOffset) ->
-	e
+    | AddrOf(Mem e1,NoOffset) ->
+	e1
     | AddrOf(_host,off) ->
 	begin match lastOffset off with
 	  | Field(fi,_) ->
@@ -975,19 +1333,34 @@ class retypeAddressTaken =
     | _ -> e
   in
 
+  let postaction_term t = match t.term_node with
+    | TAddrOf((TVar _ | TResult), TNoOffset) -> assert false
+    | TAddrOf(TMem t1,TNoOffset) -> t1
+    | TAddrOf(_,off) ->
+        begin match lastTermOffset off with
+          | TField(fi,_) ->
+              if FieldinfoSet.mem fi !fieldset then assert false
+              else t
+          | TIndex _ -> t
+          | TNoOffset -> assert false (*unreachable*)
+        end
+    | _ -> t
+  in
+  let postaction_tsets t = match t with
+    | TSAddrOf((TSVar _ | TSResult), TSNoOffset) -> assert false
+    | TSAddrOf(TSMem t1,TSNoOffset) -> t1
+    | TSAddrOf(_,off) ->
+        begin match lastTsetsOffset off with
+          | TSField(fi,_) ->
+              if FieldinfoSet.mem fi !fieldset then assert false
+              else t
+          | TSIndex _ | TSRange _ -> t
+          | TSNoOffset -> assert false (*unreachable*)
+        end
+    | _ -> t
+  in
   let varpairs : (varinfo * varinfo) list ref = ref [] in
-
-  let logicReplace = object
-    inherit nopCilVisitor as super
-    method vlogic_var lv =
-      match lv.lv_origin with
-	| None -> SkipChildren
-	| Some cv ->
-	    try
-	      let fv = List.assoc cv !varpairs in
-	      ChangeTo (cvar_to_lvar fv)
-	    with Not_found -> SkipChildren
-  end in
+  let in_funspec = ref false in
 object
 
   inherit Visitor.generic_frama_c_visitor
@@ -1039,8 +1412,10 @@ object
 	begin
 	  let ast = mkalloc_statement v (pointed_type v.vtype) v.vdecl in
 	  add_pending_statement ~beginning:true ast;
-	  let fst = mkfree_statement v v.vdecl in
-	  add_pending_statement ~beginning:false fst
+	  (* do not deallocate variable used in returning a structure *)
+	  if not (VarinfoHashtbl.mem return_vars v) then
+	    let fst = mkfree_statement v v.vdecl in
+	    add_pending_statement ~beginning:false fst
 	end;
       (* allocate/deallocate formals *)
       begin try
@@ -1054,29 +1429,40 @@ object
 	add_pending_statement ~beginning:true assign
       with Not_found -> () end
     ) f.slocals;
-
     DoChildren
 
   method vspec funspec =
-    ChangeDoChildrenPost (visitCilFunspec logicReplace funspec, fun x -> x)
+    in_funspec := true;
+    ChangeDoChildrenPost (funspec, fun x -> in_funspec := false; x)
 
-  method vlval lv =
-    ChangeDoChildrenPost (lv, postaction_lval)
+  method vlogic_var_use v =
+    if !in_funspec then
+      match v.lv_origin with
+	| None -> SkipChildren
+	| Some cv ->
+	    try
+	      let fv = List.assoc cv !varpairs in
+	      ChangeTo (cvar_to_lvar fv)
+	    with Not_found -> SkipChildren
+    else
+      begin
+	if retypable_lvar v then retype_lvar v;
+	DoChildren
+      end
 
-  method vterm_lval =
-    do_on_term_lval (None,Some postaction_lval)
+  method vlogic_var_decl v = if retypable_lvar v then retype_lvar v; DoChildren
 
-  method vtsets_lval =
-    do_on_tsets_lval (None,Some postaction_lval)
+  method vlval lv = ChangeDoChildrenPost (lv, postaction_lval)
 
-  method vexpr e =
-    ChangeDoChildrenPost(e, postaction_expr)
+  method vterm_lval lv = ChangeDoChildrenPost (lv, postaction_tlval)
 
-  method vterm =
-    do_on_term (None,Some postaction_expr)
+  method vtsets_lval lv = ChangeDoChildrenPost (lv, postaction_tslval)
 
-  method vtsets_elem =
-    do_on_tsets_elem (None,Some postaction_expr)
+  method vexpr e = ChangeDoChildrenPost(e, postaction_expr)
+
+  method vterm t = ChangeDoChildrenPost(t,postaction_term)
+
+  method vtsets_elem t = ChangeDoChildrenPost(t,postaction_tsets)
 
 end
 
@@ -1229,8 +1615,8 @@ object
 end
 
 let retype_fields file =
-  let visitor = new retypeFields in
-  visitCilFile (visitor :> cilVisitor) file
+  let visitor = new retypeFields in 
+  visit_and_store_result_type visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -1247,16 +1633,16 @@ object
     | Ttype ty -> ChangeTo ({ t with term_node = Ttype(TPtr(ty,[])) })
     | _ -> DoChildren
 
-end 
+end
 
 let retype_type_tags file =
-  let visitor = new retypeTypeTags in
-  visitCilFile (visitor :> cilVisitor) file
-
+  let visitor = new retypeTypeTags in visitFramacFile visitor file
 
 (*****************************************************************************)
 (* Retype pointers to base types.                                            *)
 (*****************************************************************************)
+
+let debugtab = Hashtbl.create 0
 
 (* Retype pointer to base type T to pointer to struct S with:
  * - if T is [TVoid], no field in S
@@ -1277,11 +1663,8 @@ class retypeBasePointer =
     let wrapper_name = name ^ "P" in
     let field_name = name ^ "M" in
     let compinfo =
-      mkCompInfo true wrapper_name
-	(fun _ ->
-	   if isVoidType ty then [] else
-	     [field_name,ty,None,[],locUnknown]
-	) []
+      if isVoidType ty then mkStructEmpty wrapper_name
+      else mkStructSingleton wrapper_name field_name ty
     in
     let tdef = GCompTag(compinfo,locUnknown) in
     let tdecl = TComp(compinfo,[]) in
@@ -1306,7 +1689,7 @@ object(self)
       auto_type_wrappers := TypeSet.add wrapper_type !auto_type_wrappers;
       (* Treat newly constructed type *)
       let store_current_global = !currentGlobal in
-      ignore (visitCilGlobal (self :> cilVisitor) wrapper_def);
+      ignore (visitFramacGlobal (self:>frama_c_visitor) wrapper_def);
       currentGlobal := store_current_global;
       (* Return the wrapper type *)
       wrapper_type
@@ -1363,7 +1746,8 @@ object(self)
   method private postaction_lval lv =
     match lv with
       | Var _, NoOffset -> lv
-      | Var _, _ -> assert false
+      | Var _, _ -> 
+	  assert false
       | Mem e, NoOffset ->
 	  begin match self#wrap_type_if_needed (typeOf e) with
 	    | Some newtyp ->
@@ -1374,15 +1758,18 @@ object(self)
 		newlv
 	    | None -> lv
 	  end
-      | Mem e, (Index _ as off) ->
+      | Mem e, (Index(ie,_) as off) ->
 	  if is_last_offset off then
-	    match
-	      self#wrap_type_if_needed (TPtr(pointed_type (typeOf e),[]))
-	    with
+	    match self#wrap_type_if_needed (typeOf e) with
 	      | Some newtyp ->
 		  let newfi = get_unique_field (pointed_type newtyp) in
-		  let newlv = addOffsetLval (Field (newfi, NoOffset)) lv in
-		  (* Check new left-value is well-typed. *)
+		  let newlv =
+		    if is_array_reference_type newtyp then
+		      lv
+		    else
+		      Mem(BinOp(PlusPI,e,ie,newtyp)), NoOffset
+		  in
+		  let newlv = addOffsetLval (Field (newfi, NoOffset)) newlv in
 (* 		  begin try ignore (typeOfLval newlv) with _ -> assert false end; *)
 		  newlv
 	      | None -> lv
@@ -1409,14 +1796,10 @@ object(self)
     else
       ChangeTo ty
 
-  method vvrbl v =
-    v.vtype <- visitCilType (self :> cilVisitor) v.vtype;
-    DoChildren
-
   method vglob_aux =
     let retype_return v =
       let retyp = getReturnType v.vtype in
-      let newtyp = visitCilType (self :> cilVisitor) retyp in
+      let newtyp = visitFramacType (self:>frama_c_visitor) retyp in
       if newtyp != retyp then setReturnTypeVI v newtyp
     in
     function
@@ -1430,10 +1813,11 @@ object(self)
 	  retype_return f.svar;
 	  DoChildren
       | GVarDecl (_, v, _) ->
-	  (* No problem with calling [retype_return] more than once. *)
-	  if isFunctionType v.vtype then retype_return v;
+	  if isFunctionType v.vtype && not v.vdefined then
+	    retype_return v;
 	  DoChildren
-      | GVar _ | GAnnot _ -> DoChildren
+      | GVar _
+      | GAnnot _ -> DoChildren
       | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GAsm _ | GPragma _ | GText _  -> SkipChildren
 
@@ -1450,7 +1834,8 @@ end
 
 let retype_base_pointer file =
   let visitor = new retypeBasePointer in
-  visit_and_update_globals (visitor :> cilVisitor) file
+  visit_and_store_result_type visit_and_update_globals
+    (visitor :> frama_c_visitor) file
 
 
 (*****************************************************************************)
@@ -1459,7 +1844,7 @@ let retype_base_pointer file =
 
 class removeUselessCasts =
   let preaction_expr etop =
-    match etop with
+    match stripInfo etop with
       | CastE(ty,e) ->
 	  let ety = typeOf e in
 	  if isPointerType ty && isPointerType ety then
@@ -1496,31 +1881,41 @@ end
 
 let remove_useless_casts file =
   let visitor = new removeUselessCasts in
-  visitCilFile (visitor :> cilVisitor) file
+  visit_and_store_result_type visitFramacFile visitor file
 
 
 (*****************************************************************************)
-(* Translate unions into inheritance.                                        *)
+(* Translate union fields into structures                                    *)
 (*****************************************************************************)
 
-let type_to_parent_type = Hashtbl.create 0
+let generated_union_types = TypeHashtbl.create 0
 
 class translateUnions =
-  let field_to_equiv_type : typ FieldinfoHashtbl.t = FieldinfoHashtbl.create 0 in
-  let field_type_to_equiv_type : (typsig * typsig,typ) Hashtbl.t = Hashtbl.create 0 in
-  let new_field_type pt ptname fi =
-    let tname = fi.fname ^ "P_sub_" ^ (type_name pt) in
-    let fname = fi.fname ^ "M_sub_" ^ (type_name pt) in
-    let mcomp = mkCompInfo true tname
-      (fun _ -> [ (fname, fi.ftype, None, [], !currentLoc) ]) []
-    in
-    let tdef = GCompTag (mcomp, !currentLoc) in
+  let field_to_equiv_type : typ FieldinfoHashtbl.t
+      = FieldinfoHashtbl.create 0
+  in
+  let new_field_type fi =
+    let tname = unique_name (fi.fname ^ "P") in
+    let fname = unique_name (fi.fname ^ "M") in
+    let padding = the fi.fpadding_in_bits in
+    let mcomp =
+      mkStructSingleton ~padding tname fname fi.ftype in
+    let tdef = GCompTag (mcomp, CurrentLoc.get ()) in
     let tdecl = TComp (mcomp, []) in
-    Hashtbl.add type_to_parent_type mcomp.cname ptname;
+    TypeHashtbl.add generated_union_types tdecl ();
     FieldinfoHashtbl.add field_to_equiv_type fi tdecl;
-    (* Only one possible field of one type allowed in union. *)
-    Hashtbl.add field_type_to_equiv_type (typeSig pt,typeSig fi.ftype) tdecl;
+    fi.ftype <- tdecl;
     tdef
+  in
+
+  let postaction_offset = function
+    | Field(fi,off) as off' ->
+	begin try
+	  let ty = FieldinfoHashtbl.find field_to_equiv_type fi in
+	  let newfi = get_unique_field ty in
+	  Field(fi,Field(newfi,off))
+	with Not_found -> off' end
+    | off -> off
   in
 object
 
@@ -1530,68 +1925,27 @@ object
   method vglob_aux = function
     | GCompTag (compinfo,_) as g when not compinfo.cstruct ->
 	let fields = compinfo.cfields in
-	compinfo.cfields <- [];
-	compinfo.cstruct <- true;
-	let field fi =
-	  new_field_type (TComp (compinfo, [])) compinfo.cname fi
-	in
+	let field fi = new_field_type fi in
 	let fty = List.map field fields in
 	ChangeTo (g::fty)
     | GFun _ | GAnnot _ | GVar _ | GVarDecl _ -> DoChildren
     | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
     | GEnumTag _ | GAsm _ | GPragma _ | GText _ -> SkipChildren
 
-  (* VP 2008-02-11: What about term_lval and tsets_lval? *)
-  method vlval = function
-    | Var _, NoOffset -> SkipChildren
-    | Var _, _ -> assert false
-    | Mem _, (NoOffset | Index(_,NoOffset)) ->
-	DoChildren
-    | Mem e, Field (fi,off) ->
-	assert (off = NoOffset);
-	begin try
-	  let ty = FieldinfoHashtbl.find field_to_equiv_type fi in
-	  let ptrty = TPtr (ty, []) in
-	  let newfi = get_unique_field ty in
-	  let caste = CastE(ptrty,e) in
-	  ChangeDoChildrenPost((Mem caste, Field(newfi,NoOffset)),fun x -> x)
-	with Not_found -> DoChildren end
-    | Mem e, Index (ie, Field (fi,off)) ->
-	assert (off = NoOffset);
-	begin try
-	  let ty = FieldinfoHashtbl.find field_to_equiv_type fi in
-	  let ptrty = TPtr (ty, []) in
-	  let newfi = get_unique_field ty in
-	  let caste = CastE(ptrty,e) in
-	  let adde = BinOp(PlusPI,caste,ie,ptrty) in
-	  ChangeDoChildrenPost((Mem adde, Field(newfi,NoOffset)),fun x -> x)
-	with Not_found -> DoChildren end
-    | Mem _, Index _ ->
-	Errormsg.s (bug "bad at loc %a@." d_loc !currentLoc)
+  method voffs off =
+    ChangeDoChildrenPost(off,postaction_offset)
 
-(*   method vpredicate = function *)
-(*     | PInstanceOf(t,ty) -> *)
-(* 	begin match t.term_type with *)
-(* 	| Ctype origty -> *)
-(* 	    if is_reference_type origty then *)
-(* 	      let scety = pointed_type origty in *)
-(* 	      try *)
-(* 		let newty = Hashtbl.find field_type_to_equiv_type *)
-(* 		  (typeSig scety,typeSig ty) in *)
-(* 		ChangeTo(PInstanceOf(t,TPtr(newty,[]))) *)
-(* 	      with Not_found -> *)
-(* 		Errormsg.s (bug "pbm type : %a,%a@." *)
-(*                        !Ast_printer.d_type scety !Ast_printer.d_type ty) *)
-(* 	    else Errormsg.s (bug "pbm type : %a@." !Ast_printer.d_type origty) *)
-(* 	| _ -> assert false *)
-(* 	end *)
-(*     | _ -> DoChildren *)
+  method vterm_offset =
+    do_on_term_offset (None, Some postaction_offset)
+
+  method vtsets_offset =
+    do_on_tsets_offset (None, Some postaction_offset)
 
 end
 
 let translate_unions file =
   let visitor = new translateUnions in
-  visitCilFile (visitor :> cilVisitor) file
+  visit_and_store_result_type visitFramacFile visitor file
 
 (*****************************************************************************)
 (* Remove array address.                                                     *)
@@ -1626,7 +1980,7 @@ end
 
 let remove_array_address file =
   let visitor = new removeArrayAddress in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -1636,11 +1990,6 @@ let remove_array_address file =
 open Pervasives
 
 let normalize file =
-  if checking then check_types file;
-  (* Rename entities to avoid conflicts with Jessie predefined names. *)
-  if Cmdline.Debug.get () >= 1 then
-    Format.printf "Rename entities@.";
-  rename_entities file;
   if checking then check_types file;
   (* Retype variables of array type. *)
   (* order: before [expand_struct_assign] and any other pass which calls
@@ -1681,18 +2030,17 @@ let normalize file =
     Format.printf "Expand structure copying through assignment@.";
   expand_struct_assign file;
   if checking then check_types file;
+  (* Translate union fields into structures. *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Translate union fields into structures@.";
+  translate_unions file;
+  if checking then check_types file;
   (* Retype fields of type structure and array. *)
   (* order: after [expand_struct_assign] and [retype_address_taken]
    * before [translate_unions] *)
   if Cmdline.Debug.get () >= 1 then
     Format.printf "Retype fields of type structure and array@.";
   retype_fields file;
-  if checking then check_types file;
-  (* Translate unions into inheritance. *)
-  (*
-    No union and cast for the moment.
-    translate_unions file;
-  *)
   if checking then check_types file;
   (* Retype fields of type structure and array. *)
   (* order: after [translate_unions] *)
@@ -1726,6 +2074,6 @@ let normalize file =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.. -j bin/toplevel.byte"
 End:
 *)

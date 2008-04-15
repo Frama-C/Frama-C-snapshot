@@ -15,7 +15,7 @@
 
 // because \offset is not yet recognized as a logical token
 // But offset is not supposed to be a keyword. This is in the standard library.
-/*@ logic size_t offset(char* p) reads \empty; */
+/*@ logic size_t offset(char* p); */
 
 #define DEFAULT_BLOCK_SIZE 1000
 

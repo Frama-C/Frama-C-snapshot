@@ -37,7 +37,7 @@ sig
   type y
   type widen_hint
 
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
 
   val tag : t -> int
 
@@ -126,7 +126,7 @@ sig
     (** Iter on the contents of offsetmap of given size *)
 end
 
-module Make(V : Lattice_With_Isotropy.S) :
+module Make(V : Lattice_With_Isotropy.S):
   S with type y = V.t and type widen_hint = V.widen_hint
 
 

@@ -19,10 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cil_state.mli,v 1.8 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: cil_state.mli,v 1.15 2008/12/10 12:53:14 uid568 Exp $ *)
 
 (** Access to the Cil AST dealing with projects. 
-    @plugin developer guide *)
+    @plugin development guide *)
+
+module UntypedFiles: 
+  Computation.OPTION_REF_OUTPUT with type data = Cabs.file list
+  (** The list of untyped AST that have been parsed. *)
 
 exception Bad_Initialisation of string
   (** May be raised by {!file} above. *)
@@ -34,14 +38,27 @@ val file: unit -> Cil_types.file
       @raise Bad_Initialization if neither {!File.init_from_c_files}
       nor {!File.init_project_from_cil_file} nor {!File.init_from_cmdline} was
       called before. 
-      @plugin developer guide *)
+      @plugin development guide *)
+
+val compute: unit -> unit
+  (** Enforce the computation of the AST
+  *)
+
+val is_computed: unit -> bool
+  (** @return true if the AST has been computed. *)
 
 val self: Project.Computation.t
-  (** The state kind associated to the cil AST. *)
+  (** The state kind associated to the cil AST. 
+      @plugin development guide *)
+
+val depend: Project.Computation.t -> unit
+  (** Add a dependency toward [self] *)
 
 val set_file: Cil_types.file -> unit
   (** Should not be used by casual users. *)
 
+val set_default_initialization: (unit -> unit) -> unit
+  
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

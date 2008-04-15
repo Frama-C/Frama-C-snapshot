@@ -1,7 +1,7 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main g
-  OPT: -memory-footprint 1 -val -deps -out -input  -main h
+  OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main h -journal-disable
 */
 int * f (int *r) {
   return r;
@@ -17,4 +17,3 @@ void g() {
 void h() {
   q = f(&y);
 }
-

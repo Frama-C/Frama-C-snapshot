@@ -31,7 +31,7 @@ open Abstract_interp
 let sizeofchar () = Int.of_int (bitsSizeOf charType)
 
 (** [sizeof(char* )] in bits *)
-let sizeofpointer () =  bitsSizeOf !upointType
+let sizeofpointer () =  bitsSizeOf theMachine.upointType
 
 let warn_if_zero ty r =
   if r = 0 then
@@ -72,7 +72,7 @@ let is_signed_int_enum_pointer ty =
   match unrollType ty with
   | TInt (k,_) -> Cil.isSigned k
   | TPtr _ -> false
-  | TEnum _ -> !enum_are_signed
+  | TEnum _ -> theMachine.enum_are_signed
   | TFloat _ | TFun _ | TBuiltin_va_list _
   | TVoid _ | TArray _ | TComp _
   | TNamed _  -> raise Neither_Int_Nor_Enum_Nor_Pointer

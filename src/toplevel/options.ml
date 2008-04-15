@@ -19,6 +19,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* $Id: options.ml,v 1.88 2008/12/03 13:50:49 uid562 Exp $ *)
+
 open Format
 
 module At_exit : sig
@@ -29,33 +31,32 @@ end = struct
   let () = at_exit apply
 end
 
+let warn_if_any_files msg =
+  if Cmdline.Files.is_set () then begin
+    Cil.log
+      "Warning: ignoring source files specified on command line while %s."
+      msg;
+    Cmdline.Files.clear ()
+  end
+
 module Actions : sig
   val apply: unit -> unit
   val load: unit -> unit
 end = struct
 
   module Hook = Hook.Make(struct end)
-
-    (* CIL initialization and customization *)
-  let boot_cil () =
-    Cil.initCIL ();
-    Cabs2cil.forceRLArgEval := false;
-    Cil.lineDirectiveStyle := None;
-    (*  Cil.lineDirectiveStyle := Some LinePreprocessorInput;*)
-    Cil.printCilAsIs := Cmdline.Debug.get () > 0;
-    Mergecil.ignore_merge_conflicts := true;
-    Cil.useLogicalOperators := false; (* do not use lazy LAND and LOR *)
-    Pretty.flushOften := true
-
-  let apply () =
-    Hook.apply ();
-    if not (Cmdline.LoadState.is_set ()) then boot_cil ()
+  let apply () = Hook.apply ()
 
   let version () =
     if Cmdline.PrintVersion.get () then
       Format.printf "Version: %s@\nCompilation date: %s@\nFrama-C library path: %s (may be overridden with FRAMAC_SHARE variable)@."
 	Version.version Version.date Version.dataroot
   let () = Hook.extend version
+
+  let print_path () =
+    if Cmdline.PrintShare.get () then
+      (Format.printf "%s" Version.dataroot; exit 0)
+  let () = Hook.extend print_path
 
   let time () =
     let filename = Cmdline.Time.get () in
@@ -92,25 +93,13 @@ end = struct
   let load () =
     let filename = Cmdline.LoadState.get () in
     if filename <> "" then begin
-      if Cmdline.Files.is_set () then
-	Cil.log "Warning: ignoring source files specified on command line while loading.";
-      try Project.load_all filename
+      warn_if_any_files "loading";
+      try
+	Project.load_all filename
       with Project.IOError s ->
 	Cil.log "Problem when loading: %s.@.Exiting.@." s;
 	exit 2
     end
-
-  let machdep () =
-    (match Cmdline.Machdep.get () with
-    | "" -> ()
-    | "x86_16" -> let module M = Machdep.DEFINE(Machdep_x86_16) in ()
-    | "x86_32" -> let module M = Machdep.DEFINE(Machdep_x86_32) in ()
-    | "x86_64" -> let module M = Machdep.DEFINE(Machdep_x86_64) in ()
-    | "ppc_32" -> let module M = Machdep.DEFINE(Machdep_ppc_32) in ()
-    | "ppc_32_diab" -> let module M = Machdep.DEFINE(Machdep_ppc_32_diab) in ()
-    | s -> Format.printf "Unsupported machine %s@." s; exit 1)
-
-  let () = Hook.extend machdep
 
 end
 
@@ -145,8 +134,6 @@ let usage () =
           (usage ^ "\n\nPLUGINS BUILT:") l
   in
   plugins ^ "\n\nAVAILABLE OPTIONS:"
-
-let add_file f = Cmdline.Files.set (f :: Cmdline.Files.get ())
 
 let section name =
   "", Arg.Unit (fun () -> assert false), "\n*** " ^ String.uppercase name
@@ -188,6 +175,8 @@ let () = add_cmdline
 
     "-version", Arg.Unit Cmdline.PrintVersion.on, ": print version information";
 
+    "-print-path", Arg.Unit Cmdline.PrintShare.on, ": print Frama-C share path";
+
     "-no-unicode",
     Arg.Unit Cmdline.UseUnicode.off,
     ": do not use utf8 in messages";
@@ -213,19 +202,20 @@ let () = add_cmdline
     "filename : when printing code, redirects the output to file [filename].";
 
     "-lib-entry",
-    Arg.Unit (fun () -> Cmdline.LibEntry.unsafe_set true),
+    Arg.Unit Cmdline.LibEntry.on,
     ": run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point name.";
 
     "-main",
-    Arg.String Cmdline.MainFunction.unsafe_set,
+    Arg.String Cmdline.MainFunction.set,
     "name : set to name the entry point for analysis. Use -lib-entry if this is not for a complete application. Defaults to main";
 
     "-machdep",
     Arg.String Cmdline.Machdep.set,
-    "machine : use [machine] as the current machine dependent configuration.";
+    "machine : use [machine] as the current machine dependent configuration. \
+     Use -machdep help to see the list of available machines.";
 
     "-msvc",
-    Arg.Set Cil.msvcMode,
+    Arg.Unit (fun () -> Cil.set_msvcMode true),
     ": switch to MSVC mode. Default mode is gcc.";
 
     "-debug",
@@ -301,8 +291,32 @@ let add_plugin ~name ~descr
   | None -> ()
   | Some f -> Init_Hook.extend f
 
+(* Options of dynamic. Should be in [dynamic.ml] but cannot because this
+   file uses [Dynamic]. *)
+let () =
+  if Dynamic.is_dynlink_available then
+    let  options =
+      [ "-add-path",
+	Arg.String Cmdline.Dynamic.AddPath.add_set,
+	"path : add a search path for dynamic plugins";
+	"-load-module",
+	Arg.String Cmdline.Dynamic.LoadModule.add_set,
+	"module : load a module dynamically" ]
+    in
+    let debug =
+      ["-debug",
+       Arg.Int Cmdline.Dynamic.Debug.set,
+       " n : set the level of dynamic debug to n"]
+    in
+    add_plugin
+      ~shortname:"dynamic"
+      ~name:"dynamic (experimental)"
+      ~descr:"interface for dynamic plugins"
+      ~debug
+      options
+
 let build_debug_options plugin options =
-  let name = "-"^plugin^"-debug" in
+  let name = "-" ^ plugin ^ "-debug" in
   let parse_debug s =
     let argv =
       Array.of_list (Sys.argv.(0)::(Str.split (Str.regexp "[ \t;]+") s))
@@ -313,15 +327,15 @@ let build_debug_options plugin options =
           (fun s ->
 	     raise
 	       (Arg.Bad (Format.sprintf "Invalid argument to %S:'%S'" name s)))
-          ("This is the list of internal options of " ^name ^ ".")
+          ("This is the list of internal options of " ^ name ^ ".")
       with
-        | Arg.Bad mesg -> Format.eprintf "%s@." mesg;exit 2
+        | Arg.Bad mesg -> Format.eprintf "%s@." mesg;exit 3
         | Arg.Help mesg -> Format.eprintf "%s@." mesg;exit 0)
   in
   name,
   Arg.String parse_debug,
   ("sub-options: use '" ^ name
-   ^ " -help' to get information about internal sub-options of " ^ plugin)
+   ^ " -help' to get information about sub-options")
 
 let parse_cmdline () =
   (* Execute plugin actions registered with "~plugin_init" *)
@@ -338,40 +352,77 @@ let parse_cmdline () =
       [ section "HELP" ]
       !available_sections
   in
-  Arg.parse (!cmdline_to_parse @ cmdline) add_file (usage());
+  Arg.parse (!cmdline_to_parse @ cmdline) Cmdline.Files.add (usage());
   Actions.apply ()
 
 let init_from_options =
   let first_run = ref true in
   fun () ->
+    let option_name = "Journal_loader.load" in
     let res =
-      if Cmdline.LoadState.is_set () then begin
-        At_exit.clear ();
-	let old_save = Cmdline.SaveState.get () in
-	Actions.load ();
-	Cmdline.set_selected_options ();
-	(* do not remember -save set by -load, nor current -load *)
-	Cmdline.SaveState.set old_save;
-	Cmdline.LoadState.set "";
-        (* Execute predefined actions set by options *)
-        Actions.apply ();
+      (* Load a journal if required *)
+      let is_journal_set =
+	try Cmdline.Dynamic.Apply.String.is_set option_name
+	with FunTbl.Not_Registered _ ->
+	  if Dynamic.is_loaded "Journal_loader" then begin
+	    Format.eprintf
+	      "Error: Function \"%s\" not registered. Please report.@."
+	      option_name
+	  (*  exit 1*)
+	  end;
+	  false
+      in
+      let error msg =
+	Format.eprintf "Error while loading journal: %s@." msg;
+	exit 1
+      in
+      if is_journal_set then begin
+	warn_if_any_files "loading journal";
+	(try
+	   let path = Cmdline.Dynamic.Apply.String.get option_name in
+	   if Cmdline.Debug.get () > 0 then
+	     Format.eprintf "Loading journal \"%s\"@." path;
+	   if Cmdline.LoadState.is_set () then
+	     Cil.log
+	       "Warning: ignoring option '-load' while loading a journal.";
+	   (try
+	      Dynamic.apply
+		"Journal_loader.load"
+		(Type.func Type.string Type.unit)
+		path
+	    with Journal.LoadingError msg -> error msg)
+	 with FunTbl.Not_Registered s -> error (s^" not registered"));
 	true
       end else
-	not !first_run
+	(* Load a state if required *)
+	if Cmdline.LoadState.is_set () then begin
+	  At_exit.clear ();
+	  let old_save = Cmdline.SaveState.get () in
+	  Actions.load ();
+	  Cmdline.set_selected_options ();
+	  (* do not remember -save set by -load, nor current -load *)
+	  Cmdline.SaveState.set old_save;
+	  Cmdline.LoadState.set "";
+	  (* Execute predefined actions set by options *)
+	  Actions.apply ();
+	  true
+	end else
+	  not !first_run
     in
     first_run := false;
+    if Cmdline.SaveState.is_set () then Messages_manager.enable_collect ();
     (* Execute plugin actions registered with "~init" *)
     List.iter
       (fun x ->
 	 try
-           x.config ();
-           if Cmdline.Debug.get () > 0 then
+	   x.config ();
+	   if Cmdline.Debug.get () > 0 then
              Printf.eprintf "%s registered\n%!" x.name;
 	 with exn ->
-           Printf.eprintf
+	   Printf.eprintf
              "Warning, configuration of %s failed:\n%s\n%!"
              x.name (Printexc.to_string exn);
-           raise exn
+	   raise exn
       )
       !available_plugins;
     res

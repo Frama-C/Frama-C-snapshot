@@ -195,7 +195,9 @@ let categorizePragmas file =
               [] -> ()  (* ordinary prototype. *)
             | [Attr("alias", [AStr othername])] ->
                 H.add keepers.defines othername ()
-           | _ -> E.s (error "Bad alias attribute at %a" d_loc !currentLoc)
+            | _ ->
+		E.s
+		  (error "Bad alias attribute at %a" d_loc (CurrentLoc.get ()))
         end
 
       (*** Begin CCured-specific checks:  ***)
@@ -355,15 +357,16 @@ let isExportedRoot global =
       else if v.vstorage = Static then
         not !rmUnusedStatic, "static function"
       else if v.vinline && v.vstorage != Extern
-              && (!msvcMode || !rmUnusedInlines) then
+              && (theMachine.msvcMode || !rmUnusedInlines) then
         false, "inline function"
       else
 	true, "other function"
   end
   | GVarDecl(_,v,_) when hasAttribute "alias" v.vattr ->
       true, "has GCC alias attribute"
-  | GVarDecl(spec,_,_) when not (Cil.is_empty_funspec spec) ->
+(*  | GVarDecl(spec,_,_) when not (Cil.is_empty_funspec spec) ->
       true, "has formal spec"
+*)
   | GAnnot _ -> true, "global annotation"
   | _ ->
       false, "neither function nor variable nor annotation"
@@ -435,7 +438,7 @@ class markReachableVisitor
 	SkipChildren
 
   method vinst = function
-      Asm (_, tmpls, _, _, _, _) when !msvcMode ->
+      Asm (_, tmpls, _, _, _, _) when theMachine.msvcMode ->
           (* If we have inline assembly on MSVC, we cannot tell which locals
            * are referenced. Keep thsem all *)
         (match !currentFunc with
@@ -493,8 +496,7 @@ class markReachableVisitor
 
   method vexpr (e: exp) =
     match e with
-      Const (CEnum (_, _, ei)) -> ei.ereferenced <- true;
-                                  DoChildren
+      Const (CEnum {eihost = ei}) -> ei.ereferenced <- true; DoChildren
     | _ -> DoChildren
 
   method vtype typ =
@@ -554,6 +556,7 @@ class markReachableVisitor
       SkipChildren
     else
       DoChildren
+
 end
 
 
@@ -624,39 +627,55 @@ let labelsToKeep (ll: label list) : (string * location * bool) * label list =
         let newlabel', rest' = loop newlabel rest in
         newlabel', (if keepl then l :: rest' else rest')
   in
-  loop ("", locUnknown, false) ll
+  loop ("", Cilutil.locUnknown, false) ll
 
-class markUsedLabels (labelMap: (string, unit) H.t) = object
+class markUsedLabels (labelMap: (string, unit) H.t) =
+let keep_label dest =
+  let (ln, _, _), _ = labelsToKeep !dest.labels in
+  if ln = "" then
+    (Format.eprintf "@[dest: %a@\n@]@." Cil.d_stmt !dest;
+     E.s (E.bug "rmtmps: destination statement does not have labels"));
+  (* Mark it as used *)
+  H.replace labelMap ln ()
+in
+let keep_label_logic =
+  function LogicLabel _ -> () | StmtLabel dest -> keep_label dest
+in
+object
   inherit nopCilVisitor
 
   method vstmt (s: stmt) =
     match s.skind with
-      Goto (dest, _) ->
-        let (ln, _, _), _ = labelsToKeep !dest.labels in
-        if ln = "" then
-          (Format.eprintf "@[dest: %a@\n@]@." Cil.d_stmt !dest;
-          E.s (E.bug "rmtmps: destination of statement does not have labels"));
-        (* Mark it as used *)
-        H.replace labelMap ln ();
-        DoChildren
-
+      Goto (dest, _) -> keep_label dest; DoChildren
     | _ -> DoChildren
 
   method vterm_node t =
     begin
       match t with
-      | Tat (_,lab) ->
-	  let ln =
-	    match lab with
-	      | LogicLabel s -> s
-	      | StmtLabel dest ->
-		  let (ln, _, _), _ = labelsToKeep !dest.labels in
-		  if ln = "" then
-		    Cil.error "label of \\at not resolved";
-		  ln
-	  in
-	  (* Mark it as used *)
-	  H.replace labelMap ln ()
+      | Tat (_,lab) -> keep_label_logic lab
+      | Tapp(_,labs,_) ->
+          let labs = snd (List.split labs) in List.iter keep_label_logic labs
+      | _ -> ()
+    end;
+    DoChildren
+
+
+  method vtsets_elem t =
+    begin
+      match t with
+      | TSat (_,lab) -> keep_label_logic lab
+      | TSapp(_,labs,_) ->
+          let labs = snd (List.split labs) in List.iter keep_label_logic labs
+      | _ -> ()
+    end;
+    DoChildren
+
+  method vpredicate t =
+    begin
+      match t with
+      | Pat (_,lab) -> keep_label_logic lab
+      | Papp(_,labs,_) ->
+          let labs = snd (List.split labs) in List.iter keep_label_logic labs
       | _ -> ()
     end;
     DoChildren
@@ -720,50 +739,49 @@ let uninteresting =
   Str.regexp pattern
 
 
-let removeUnmarked file =
+let removeUnmarked isRoot file =
   let removedLocals = ref [] in
 
   let filterGlobal global =
-    match global with
-    (* unused global types, variables, and functions are simply removed *)
-    | GType ({treferenced = false}, _)
-    | GCompTag ({creferenced = false}, _)
-    | GCompTagDecl ({creferenced = false}, _)
-    | GEnumTag ({ereferenced = false}, _)
-    | GEnumTagDecl ({ereferenced = false}, _)
-    | GVar ({vreferenced = false}, _, _)
-    | GFun ({svar = {vreferenced = false}}, _) ->
-(*	trace (dprintf "removing global: %a\n" d_shortglobal global);*)
-	false
-    | GVarDecl (spec,{vreferenced = false}, _) when Cil.is_empty_funspec spec
-        -> false (* we always keep declarations with a spec. *)
+    (match global with
+         (* unused global types, variables, and functions are simply removed *)
+       | GType ({treferenced = false}, _)
+       | GCompTag ({creferenced = false}, _)
+       | GCompTagDecl ({creferenced = false}, _)
+       | GEnumTag ({ereferenced = false}, _)
+       | GEnumTagDecl ({ereferenced = false}, _)
+       | GVar ({vreferenced = false}, _, _)
+       | GFun ({svar = {vreferenced = false}}, _) ->
+           (*	trace (dprintf "removing global: %a\n" d_shortglobal global);*)
+	   false
+       | GVarDecl (_,{vreferenced = false}, _) -> false
 
-    (* retained functions may wish to discard some unused locals *)
-    | GFun (func, _) ->
-	let rec filterLocal local =
-	  if not local.vreferenced then
-	    begin
-	      (* along the way, record the interesting locals that were removed *)
-	      let name = local.vname in
-	      trace (dprintf "removing local: %s\n" name);
-	      if not (Str.string_match uninteresting name 0) then
-		removedLocals := (func.svar.vname ^ "::" ^ name) :: !removedLocals;
-	    end;
-	  local.vreferenced
-	in
-	func.slocals <- List.filter filterLocal func.slocals;
-        (* We also want to remove unused labels. We do it all here, including
-         * marking the used labels *)
-        let usedLabels:(string, unit) H.t = H.create 13 in
-        ignore (visitCilBlock (new markUsedLabels usedLabels) func.sbody);
-        (* And now we scan again and we remove them *)
-        ignore (visitCilBlock (new removeUnusedLabels usedLabels) func.sbody);
-	true
+       (* retained functions may wish to discard some unused locals *)
+       | GFun (func, _) ->
+	   let rec filterLocal local =
+	     if not local.vreferenced then
+	       begin
+	         (* along the way, record the interesting locals that were removed *)
+	         let name = local.vname in
+	         trace (dprintf "removing local: %s\n" name);
+	         if not (Str.string_match uninteresting name 0) then
+		   removedLocals := (func.svar.vname ^ "::" ^ name) :: !removedLocals;
+	       end;
+	     local.vreferenced
+	   in
+	   func.slocals <- List.filter filterLocal func.slocals;
+           (* We also want to remove unused labels. We do it all here, including
+            * marking the used labels *)
+           let usedLabels:(string, unit) H.t = H.create 13 in
+           ignore (visitCilBlock (new markUsedLabels usedLabels) func.sbody);
+           (* And now we scan again and we remove them *)
+           ignore (visitCilBlock (new removeUnusedLabels usedLabels) func.sbody);
+	   true
 
     (* all other globals are retained *)
     | _ ->
 (*	trace (dprintf "keeping global: %a\n" d_shortglobal global);*)
-	true
+	true) || (isRoot global)
   in
   file.globals <- List.filter filterGlobal file.globals;
   !removedLocals
@@ -809,7 +827,7 @@ let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
       markReachable file isRoot;
 
       (* take out the trash *)
-      let removedLocals = removeUnmarked file in
+      let removedLocals = removeUnmarked isRoot file in
 
       (* print which original source variables were removed *)
       if false && removedLocals != [] then

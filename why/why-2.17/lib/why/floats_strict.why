@@ -1,0 +1,233 @@
+
+(* Jessie prelude for floating-point arithmetic, strict mode *)
+
+type mode
+
+logic nearest_even, to_zero, up, down, nearest_away : mode
+
+parameter rounding_mode : mode ref
+
+(* generic precision floats *)
+
+type float_format
+
+logic Single, Double, Quad : float_format
+
+(* [gen_float] denotes the type of generic floats *)
+
+type gen_float
+
+logic round_float : float_format, mode, real -> real
+
+logic float_value : gen_float -> real
+logic exact_value : gen_float -> real
+logic model_value : gen_float -> real
+
+logic max_gen_float : float_format -> real
+(*
+axiom max_single : max_gen_float(Single) = (* (2 - 2^-23)*2^127 *)
+   340282346638528859811704183484516925440.0
+
+axiom max_double : max_gen_float(Double) = 111111.0 (* (2 - 2^-52)*2^1023 *)
+*)
+
+(* un faux axiom: pour f=Single, m=nearest_even et r=0.1 
+axiom a1: forall f:float_format. forall m:mode. forall r:real. 
+          float_value(gen_float_of_real(f,m,r))=r
+
+Deux vrais axioms ??:
+axiom a2: forall f:float_format. forall m:mode. forall r:real. 
+          (exists x:gen_float. r==float_value(x)) -> 
+          float_value(gen_float_of_real(f,m,r))=r
+
+axiom a3: forall f:float_format. forall m:mode.forall x:gen_float.
+          eq_gen_float(gen_float_of_real(f,m,float_value(x)),x)  
+*)
+
+
+(* binary operations *)
+
+parameter gen_float_of_real : 
+  f:float_format -> m:mode -> x:real ->
+  { abs_real(round_float(f,m,x)) <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,x) 
+    and exact_value(result) = x
+    and model_value(result) = x }
+
+parameter add_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> y:gen_float -> 
+  { abs_real(round_float(f,m,float_value(x)+float_value(y))) 
+    <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,float_value(x)+float_value(y))
+    and 
+    exact_value(result) = exact_value(x)+exact_value(y)
+    and 
+    model_value(result) = model_value(x)+model_value(y)
+  }
+
+parameter sub_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> y:gen_float -> 
+  { abs_real(round_float(f,m,float_value(x)-float_value(y))) 
+    <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,float_value(x)-float_value(y))
+    and 
+    exact_value(result) = exact_value(x)-exact_value(y)
+    and 
+    model_value(result) = model_value(x)-model_value(y)
+  }
+
+parameter mul_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> y:gen_float -> 
+  { abs_real(round_float(f,m,float_value(x)*float_value(y))) 
+    <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,float_value(x)*float_value(y))
+    and 
+    exact_value(result) = exact_value(x)*exact_value(y)
+    and 
+    model_value(result) = model_value(x)*model_value(y)
+  }
+
+parameter div_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> y:gen_float -> 
+  { float_value(y) <> 0.0 
+    and 
+    abs_real(round_float(f,m,float_value(x)/float_value(y))) <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,float_value(x)/float_value(y))
+    and 
+    exact_value(result) = exact_value(x)/exact_value(y)
+    and 
+    model_value(result) = model_value(x)/model_value(y)
+  }
+
+(* on pourrait enlever abs_real *)
+
+parameter sqrt_gen_float_requires : 
+  f:float_format -> m:mode -> x:gen_float -> 
+  { float_value(x) >= 0.0 
+    and 
+    abs_real(round_float(f,m,sqrt_real(float_value(x))))<= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,sqrt_real(float_value(x)))
+    and 
+    exact_value(result) = sqrt_real(exact_value(x))
+    and 
+    model_value(result) = sqrt_real(model_value(x))
+  }
+
+parameter sqrt_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> 
+  {  }
+  gen_float
+  { float_value(result) = round_float(f,m,sqrt_real(float_value(x)))
+    and 
+    exact_value(result) = sqrt_real(exact_value(x))
+    and 
+    model_value(result) = sqrt_real(model_value(x))
+  }
+
+parameter neg_gen_float_requires : 
+  f:float_format -> m:mode -> x:gen_float -> 
+  { abs_real(round_float(f,m,neg_real(float_value(x)))) <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,neg_real(float_value(x)))
+    and 
+    exact_value(result) = neg_real(exact_value(x))
+    and 
+    model_value(result) = neg_real(model_value(x))
+  }
+
+parameter neg_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> 
+  {  }
+  gen_float
+  { float_value(result) = round_float(f,m,neg_real(float_value(x)))
+    and 
+    exact_value(result) = neg_real(exact_value(x))
+    and 
+    model_value(result) = neg_real(model_value(x))
+  }
+
+parameter abs_gen_float_requires : 
+  f:float_format -> m:mode -> x:gen_float -> 
+  { abs_real(round_float(f,m,abs_real(float_value(x)))) <= max_gen_float(f) }
+  gen_float
+  { float_value(result) = round_float(f,m,abs_real(float_value(x)))
+    and 
+    exact_value(result) = abs_real(exact_value(x))
+    and 
+    model_value(result) = abs_real(model_value(x))
+  }
+
+parameter abs_gen_float : 
+  f:float_format -> m:mode -> x:gen_float -> 
+  {  }
+  gen_float
+  { float_value(result) = round_float(f,m,abs_real(float_value(x)))
+    and 
+    exact_value(result) = abs_real(exact_value(x))
+    and 
+    model_value(result) = abs_real(model_value(x))
+  }
+
+function gen_round_error(g:gen_float) : real = 
+	 abs_real(float_value(g) - exact_value(g))
+
+function gen_total_error(g:gen_float) : real = 
+	 abs_real(float_value(g) - model_value(g))
+
+parameter set_model : x:gen_float ref -> y:real ->
+  { } 
+  unit writes x
+  { float_value(x) = float_value(x@)
+    and exact_value(x) = exact_value(x@)
+    and model_value(x) = y }
+
+
+parameter lt_gen_float :
+  x:gen_float -> y:gen_float -> 
+  {} bool { if result then float_value(x) < float_value(y) else float_value(x) >= float_value(y) }
+parameter le_gen_float :
+  x:gen_float -> y:gen_float -> 
+  {} bool { if result then float_value(x) <= float_value(y) else float_value(x) > float_value(y) }
+parameter gt_gen_float :
+  x:gen_float -> y:gen_float -> 
+  {} bool { if result then float_value(x) > float_value(y) else float_value(x) <= float_value(y) }
+parameter ge_gen_float :
+  x:gen_float -> y:gen_float -> 
+  {} bool { if result then float_value(x) >= float_value(y) else float_value(x) < float_value(y) }
+parameter eq_gen_float :
+  x:gen_float -> y:gen_float -> 
+  {} bool { if result then float_value(x) = float_value(y) else float_value(x) <> float_value(y) }
+parameter neq_gen_float :
+  x:gen_float -> y:gen_float -> 
+  {} bool { if result then float_value(x) <> float_value(y) else float_value(x) = float_value(y) }
+
+
+(* conversions *)
+
+(*
+logic double_of_single : single -> double
+logic single_of_double : mode, double -> single
+
+logic quad_of_single : single -> quad
+logic single_of_quad : mode, quad -> single
+
+logic quad_of_double : double -> quad
+logic double_of_quad : mode, quad -> double
+*)
+
+parameter cast_gen_float : f:float_format -> m:mode -> x:gen_float ->
+   { abs_real(round_float(f,m,float_value(x))) <= max_gen_float(f) }
+   gen_float
+   { float_value(result) = round_float(f,m,float_value(x)) 
+     and exact_value(result) = exact_value(x)
+     and model_value(result) = model_value(x) }
+
+(* any function *)
+
+parameter any_gen_float : float_format -> { } gen_float { }

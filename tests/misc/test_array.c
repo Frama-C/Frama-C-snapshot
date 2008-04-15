@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main g
+  OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
 */
 int j;
 int t[10];
@@ -14,4 +14,3 @@ void g(int i){
   j=1;
   return;
 }
-

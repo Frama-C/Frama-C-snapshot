@@ -40,7 +40,14 @@ class do_it = object(self)
 
   method vstmt s =
     current_stmt <- Kstmt s;
-    DoChildren
+    match s.skind with
+        UnspecifiedSequence seq ->
+          List.iter
+            (fun (stmt,_,_) ->
+               ignore(visitCilStmt (self:>cilVisitor) stmt))
+          seq;
+          SkipChildren
+      | _ -> super#vstmt s
 
   method join new_ =
     outs <- Zone.join new_ outs;
@@ -92,7 +99,7 @@ let statement stmt =
 module Internals =
   Kf_state.Make
     (struct
-       let name = Project.Computation.Name.make "internal_outs"
+       let name = "internal_outs"
        let dependencies = [ Value.self ]
      end)
 
@@ -180,7 +187,7 @@ let externalize kf x =
 module Externals =
   Kf_state.Make
     (struct
-       let name = Project.Computation.Name.make "external_outs"
+       let name = "external_outs"
        let dependencies = [ Internals.self ]
      end)
 

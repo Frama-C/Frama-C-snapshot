@@ -39,7 +39,7 @@
 (**************************************************************************)
 
 (** The Abstract Syntax of CIL.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 (**************************** WARNING ***************************************)
 (* Remember to reflect any change here into the visitor and pretty-printer  *)
@@ -76,12 +76,12 @@ type file =
           main to call it. *)
     }
 (** Top-level representation of a C source file.
-    @plugin developer guide  *)
+    @plugin development guide  *)
 
 (** The main type for representing global declarations and definitions. A list
     of these form a CIL file. The order of globals in the file is generally
     important.
-    @plugin developer guide *)
+    @plugin development guide *)
 and global =
   | GType of typeinfo * location
     (** A typedef. All uses of type names (through the [TNamed] constructor)
@@ -305,7 +305,7 @@ and attrparam =
 (** The definition of a structure or union type. Use {!Cil.mkCompInfo} to
  * make one and use {!Cil.copyCompInfo} to copy one (this ensures that a new
  * key is assigned and that the fields have the right pointers to parents.).
-    @plugin developer guide *)
+    @plugin development guide *)
 and compinfo = {
     mutable cstruct: bool;
    (** True if struct, False if union *)
@@ -339,7 +339,7 @@ and compinfo = {
  * the field (stored along with the type of the field). *)
 
 (** Information about a struct/union field.
-    @plugin developer guide *)
+    @plugin development guide *)
 and fieldinfo = {
     mutable fcomp: compinfo;
      (** The host structure that contains this field. There can be only one
@@ -384,13 +384,12 @@ and fieldinfo = {
  * of these. *)
 
 (** Information about an enumeration.
-    @plugin developer guide *)
+    @plugin development guide *)
 and enuminfo = {
     mutable ename: string;
     (** The name. Always non-empty. *)
-    mutable eitems: (string * exp * location) list;
-    (** Items with names and values. This list should be non-empty. The item
-     * values must be compile-time constants. *)
+    mutable eitems: enumitem list;
+    (** Items. The list must be non-empty *)
     mutable eattr: attributes;
     (** The attributes that are defined at the same time as the enumeration
      * type. These attributes can be supplemented individually at each
@@ -399,12 +398,17 @@ and enuminfo = {
     (** True if used. Initially set to false*)
 }
 
-(** {b Enumerations.} Information about an enumeration. This is shared by all
- * references to an enumeration. Make sure you have a [GEnumTag] for each of
- * of these. *)
+and enumitem =
+    { mutable einame: string; (** the name, always non-empty. *)
+      mutable eival: exp; (** value of the item.
+                               Must be a compile-time constant *)
+      mutable eihost: enuminfo; (** the host enumeration in which the
+                                    item is declared. *)
+      eiloc: location;
+    }
 
 (** Information about a defined type.
-    @plugin developer guide *)
+    @plugin development guide *)
 and typeinfo = {
     mutable tname: string;
     (** The name. Can be empty only in a [GType] when introducing a composite
@@ -443,13 +447,16 @@ and a new unique identifier
 *)
 
 (** Information about a variable.
-    @plugin developer guide *)
+    @plugin development guide *)
 and varinfo = {
     mutable vname: string;
     (** The name of the variable. Cannot be empty. It is primarily your
      * responsibility to ensure the uniqueness of a variable name. For local
      * variables {!Cil.makeTempVar} helps you ensure that the name is unique.
      *)
+
+    vorig_name: string;
+    (** the original name of the variable. Need not be unique. *)
 
     mutable vtype: typ;
     (** The declared type of the variable. *)
@@ -511,6 +518,9 @@ and varinfo = {
 
     vlogic: bool;
     (** False if this variable is a C variable. *)
+
+    mutable vlogic_var_assoc: logic_var option
+      (** logic variable representing this variable in the logic world*)
 }
 
 (** Storage-class information *)
@@ -626,8 +636,8 @@ and constant =
      * SizeOfStr. *)
   | CWStr of int64 list
     (** Wide character string constant. Note that the local interpretation
-     * of such a literal depends on {!Cil.wcharType} and {!Cil.wcharKind}.
-     * Such a constant has type pointer to {!Cil.wcharType}. The
+     * of such a literal depends on {!Cil.theMachine.wcharType} and {!Cil.theMachine.wcharKind}.
+     * Such a constant has type pointer to {!Cil.theMachine.wcharType}. The
      * escape characters in the string have not been "interpreted" in
      * the sense that L"A\xabcd" remains "A\xabcd" rather than being
      * represented as the wide character list with two elements: 65 and
@@ -639,9 +649,8 @@ and constant =
   | CReal of float * fkind * string option
      (** Floating point constant. Give the fkind (see ISO 6.4.4.2) and also
       * the textual representation, if available. *)
-  | CEnum of exp * string * enuminfo
-     (** An enumeration constant with the given value, name, from the given
-      * enuminfo.
+  | CEnum of enumitem
+     (** An enumeration constant
       * Use [Cillower.lowerEnumVisitor] to replace these with integer
       * constants. *)
 
@@ -756,7 +765,7 @@ and lhost =
   * kinds of lvalues and its effect is that it advances the starting address
   * of the lvalue and changes the denoted type, essentially focussing to some
   * smaller lvalue that is contained in the original one.
-    @plugin developer guide *)
+    @plugin development guide *)
 and offset =
   | NoOffset          (** No offset. Can be applied to any lvalue and does
                         * not change either the starting address or the type.
@@ -826,7 +835,7 @@ manipulate formals you should use the provided functions
 {!Cil.makeFormalVar} and {!Cil.setFormals}.
 *)
 (** Function definitions.
-    @plugin developer guide *)
+    @plugin development guide *)
 and fundec =
     { mutable svar:     varinfo;
          (** Holds the name and type as a variable, so we can refer to it
@@ -870,7 +879,6 @@ and block =
      mutable bstmts: stmt list;       (** The statements comprising the block*)
    }
 
-
 (** {b Statements}.
 CIL statements are the structural elements that make the CFG. They are
 represented using the type {!Cil_types.stmt}. Every
@@ -889,7 +897,7 @@ default. Instead you must explicitly use the functions
 
 *)
 (** Statements.
-    @plugin developer guide *)
+    @plugin development guide *)
 and stmt = {
     mutable labels: label list;
     (** Whether the statement starts with some labels, case statements or
@@ -968,19 +976,32 @@ and stmtkind =
     (** Just a block of statements. Use it as a way to keep some block
      * attributes local *)
 
-  | UnspecifiedSequence of block
-    (** statements whose order of execution is not specified by ISO/C.
-        This is important for the order of side effects during evaluation of
-        expressions.
-        At this time this feature is experimental and may miss some
-        unspecified sequences.
-        In case you do not care about this feature just handle it like a block.
-    *)
+  | UnspecifiedSequence of (stmt * lval list * lval list) list
+      (** statements whose order of execution is not specified by
+          ISO/C.  This is important for the order of side effects
+          during evaluation of expressions. Each statement comes
+          together with a list of lval that are written during its
+          evaluation, together with the lval that are read.
+          Note that this include only a subset of the affectations
+          of the statement.  Namely, the
+          temporary variables generated by cil are excluded (i.e.  it
+          is assumed that the "compilation" is correct). In addition,
+          side effects caused by function applications are not taken
+          into account in the list. For a single statement, the written lvals
+          are supposed to be ordered (or their order of evaluation doesn't
+          matter), so that an alarm should be emitted only if the lvals read by
+          a statement overlap with the lvals written (or read) by another
+          statement of the sequence.
 
+          At this time this feature is
+          experimental and may miss some unspecified sequences.
+
+          In case you do not care about this feature just handle it
+          like a block (see {!Cil.block_from_unspecified_sequence})  *)
   | TryFinally of block * block * location
-    (** On MSVC we support structured exception handling. This is what you
-     * might expect. Control can get into the finally block either from the
-     * end of the body block, or if an exception is thrown. *)
+      (** On MSVC we support structured exception handling. This is what you
+       * might expect. Control can get into the finally block either from the
+       * end of the body block, or if an exception is thrown. *)
 
   | TryExcept of block * (instr list * exp) * block * location
     (** On MSVC we support structured exception handling. The try/except
@@ -1053,8 +1074,8 @@ and instr =
 (** Describes a location in a source file *)
 and location = Lexing.position * Lexing.position
 
-(* Type signatures. Two types are identical iff they have identical
- * signatures *)
+(** Type signatures. Two types are identical iff they have identical
+    signatures *)
 and typsig =
     TSArray of typsig * int64 option * attribute list
   | TSPtr of typsig * attribute list
@@ -1099,16 +1120,21 @@ and tsets_lval = tsets_lhost * tsets_offset
 and tsets_elem =
   | TSLval of tsets_lval (** location. *)
   | TSStartOf of tsets_lval (** start of an array. *)
+  | TSAddrOf of tsets_lval (** (set of) addresses. *)
   | TSConst of constant (** An integer constant. *)
   | TSAdd_index of tsets_elem * term (** an element plus a given term. *)
   | TSAdd_range of tsets_elem * term option * term option
       (** an element plus a term in a given range. *)
   | TSCastE of typ * tsets_elem (** cast *)
-  | TSAt of tsets_elem * logic_label (** the element must be evaluated at
+  | TSat of tsets_elem * logic_label (** the element must be evaluated at
                                       a particular program point. *)
+  | TSapp of logic_info * (logic_label * logic_label) list * term list
+      (** application of a function returning a tsets
+          (NB: the tset is not necessarily a singleton). *)
+
 (** offset of a tset element *)
 and tsets_offset =
-    TSNo_offset (** no further offset*)
+    TSNoOffset (** no further offset*)
   | TSIndex of term * tsets_offset (** index *)
   | TSRange of term option * term option * tsets_offset
       (** index in a given range. *)
@@ -1173,6 +1199,11 @@ and term_node =
       (** functional update of a field. *)
   | Ttypeof of term (** type tag for a term. *)
   | Ttype of typ (** type tag for a C type. *)
+  | Ttsets of tsets
+      (** set of lval seen as a term. Note that a term t used where a tset is
+          expected will be considered as [TSets(TSSingleton t)] (unless it has
+          type [tsets<a>] of course)
+       *)
 
 (** lvalue: base address and offset. *)
 and term_lval =
@@ -1191,16 +1222,24 @@ and term_offset =
       (** access to the field of a compound type. *)
   | TIndex of term * term_offset
       (** index. *)
-(** description of a logic function.
-@plugin developer guide *)
+(** description of a logic function or predicate.
+@plugin development guide *)
 and logic_info = {
   mutable l_name : string; (** name of the function. *)
-  mutable l_type : logic_type; (** return type. *)
-  mutable l_profile : logic_var list; (** type of the arguments. *)
   l_labels : logic_label list; (** label arguments of the function. *)
-  mutable l_reads : tsets list; (** read accesses performed by the function. *)
-  mutable l_definition: term option; (** body of the function. *)
+  l_tparams : string list; (** type parameters *)
+  mutable l_type : logic_type option; (** return type. None for predicates *)
+  mutable l_profile : logic_var list; (** type of the arguments. *)
+  mutable l_body : logic_body; (** body of the function. *)
 }
+
+and logic_body =
+  | LBreads of tsets list (** read accesses performed by a function. *)
+  | LBterm of term (** direct definition of a function. *)
+  | LBpred of predicate named (** direct definition of a predicate. *)
+  | LBinductive of 
+      (string * logic_label list * string list * predicate named) list 
+	(** inductive definition *)
 
 (** description of a logic type*)
 and logic_type_info =
@@ -1209,12 +1248,12 @@ and logic_type_info =
       (* will be expanded when dealing with concrete types *)
 
 (** description of a logic variable
-@plugin developer guide *)
+@plugin development guide *)
 and logic_var = {
-  lv_name : string; (** name of the variable. *)
-  lv_id : int; (** unique identifier *)
+  mutable lv_name : string; (** name of the variable. *)
+  mutable lv_id : int; (** unique identifier *)
   mutable lv_type : logic_type; (** type of the variable. *)
-  lv_origin : varinfo option (** when the logic variable stems from a
+  mutable lv_origin : varinfo option (** when the logic variable stems from a
                               C variable, set to the original C variable.
                               *)
 }
@@ -1239,8 +1278,9 @@ and relation = Rlt | Rgt | Rle | Rge | Req | Rneq
 and predicate =
   | Pfalse (** always-false predicate. *)
   | Ptrue (** always-true predicate. *)
-  | Papp of predicate_info * (logic_label * logic_label) list * term list
+  | Papp of logic_info * (logic_label * logic_label) list * term list
       (** application of a predicate. *)
+  | Pseparated of tsets list
   | Prel of relation * term * term
       (** comparison of two terms. *)
   | Pand of predicate named * predicate named
@@ -1285,15 +1325,16 @@ and predicate =
   | Psubtype of term * term
       (** First term is a type tag that is a subtype of the second. *)
 
+(* replaced by logic_info
 (** Description of a predicate
-    @plugin developer guide *)
+    @plugin development guide *)
 and predicate_info = {
   mutable p_name : string; (** name of the predicate. *)
   mutable p_profile : logic_var list; (** arguments of the predicate. *)
   p_labels : logic_label list; (** label arguments. *)
   mutable p_body : predicate_body (** definition. *)
 }
-
+*)
 (** predicate with an unique identifier.
 Use [Logic_const.new_predicate] to create fresh predicates *)
 and identified_predicate = {
@@ -1303,10 +1344,12 @@ and identified_predicate = {
   ip_content: predicate; (** the predicate itself*)
 }
 
+(*
 (** definition of a predicate *)
 and predicate_body =
   | PReads of tsets list (** read accesses performed by the predicate. *)
   | PDefinition of predicate named (** body of the predicate. *)
+*)
 
 (*  Polymorphic types shared with parsed trees (Logic_ptree) *)
 (** variant of a loop or a recursive function. Type shared with Logic_ptree. *)
@@ -1395,24 +1438,31 @@ and 'term pragma =
   | Slice_pragma of 'term slice_pragma
   | Impact_pragma of 'term impact_pragma
 
+(**  Annotation status *)
+and validity = True | False | Maybe
+and annot_checked_status = { mutable emitter : string;
+                             mutable valid : validity }
+and annotation_status = | Unknown (*  Nothing was ever tried to check it *)
+                   | Checked of annot_checked_status (* Something was tried *)
+and annot_status = { mutable status : annotation_status }
 (** all annotations that can be found in the code.
     Type shared with Logic_ptree. *)
 and ('term, 'pred, 'spec_pred, 'locs) code_annot =
-  | AAssert of (string list * 'pred) 
-      (** assertion to be checked. The list of strings is the list of 
+  | AAssert of string list * 'pred * annot_status
+      (** assertion to be checked. The list of strings is the list of
 	  behaviors to which this assertion applies. *)
   | AAssume of 'pred (** assertion assumed to be true *)
   | AStmtSpec of ('term, 'spec_pred, 'locs) spec (** statement contract. *)
-  | AInvariant of (string list * bool * 'pred)
-      (** code invariant. The list of strings is the list of 
-	  behaviors to which this invariant applies. 
+  | AInvariant of string list * bool * 'pred
+      (** code invariant. The list of strings is the list of
+	  behaviors to which this invariant applies.
 	  The boolean flag is true for normal loop invariants
           and false for invariant-as-assertions.*)
-  | AVariant of 'term variant (** variant. Note that
+  | AVariant of 'term variant (** loop variant. Note that
                                   there can be at most one variant
                                   associated to a given statement
                                *)
-  | AAssigns of 'locs assigns (** assignment *)
+  | AAssigns of 'locs assigns (** loop assigns *)
   | APragma of 'term pragma (** pragma. *)
 
 (** function contract. *)
@@ -1432,16 +1482,23 @@ and funbehavior = (identified_predicate,identified_tsets) behavior
 
 (** global annotations, not attached to a statement or a function. *)
 and global_annotation =
+  | Dfun_or_pred of logic_info
+  | Daxiomatic of string * global_annotation list
+(*
   | Dpredicate_reads of
-      predicate_info * string list
+      logic_info * string list
       * logic_var list * tsets list
         (** declaration of a predicate.
             [Dpredicate_info(infos,type_vars,profile,reads)]
          *)
   | Dpredicate_def of
-      predicate_info * string list * logic_var list *
+      logic_info * string list * logic_var list *
         predicate named
         (** definition of a predicate. *)
+  | Dinductive_def of
+      logic_info * string list * logic_var list *
+        (string * predicate named) list
+        (** inductive definition of a predicate. *)
   | Dlogic_reads of
       logic_info * string list *
         logic_var list * logic_type * tsets list
@@ -1452,14 +1509,19 @@ and global_annotation =
       logic_info * string list *
         logic_var list * logic_type * term
         (** definition of a logic function. *)
+  | Dlogic_axiomatic of
+      logic_info * string list *
+        logic_var list * logic_type * (string * predicate named) list
+        (** definition of a logic function. *)
+*)
   | Dtype of string * string list (** declaration of a logic type. *)
   | Dlemma of string * bool * logic_label list * string list * predicate named
       (** definition of a lemma. The boolean flag is true if the property.
             should be taken as an axiom and false if it must be proved.
          *)
-  | Dinvariant of predicate_info
+  | Dinvariant of logic_info
       (** global invariant. The predicate does not have any argument. *)
-  | Dtype_annot of predicate_info
+  | Dtype_annot of logic_info
       (** type invariant. The predicate has exactly one argument. *)
 
 type kinstr =

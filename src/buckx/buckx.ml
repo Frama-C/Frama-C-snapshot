@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007                                                    *)
+(*  Copyright (C) 2007-2008                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,9 +21,9 @@
 
 module MemoryFootprint = 
   Computation.Ref
-    (struct include Datatype.Int let default = 2 end)
+    (struct include Datatype.Int let default () = 2 end)
     (struct 
-       let name = Project.Computation.Name.make "Buckx.MemoryFootprint" 
+       let name = "Buckx.MemoryFootprint" 
        let dependencies = [] 
      end)
 
@@ -50,7 +50,7 @@ module type S = sig
   val pretty_debug : Format.formatter -> t -> int -> unit
 end;;
 
-(*
+
 module MakeBig(H:WeakHashable) = 
 struct
   module W = Weak.Make(H)
@@ -70,9 +70,9 @@ struct
   let shallow_copy t = ref (!t)
   let overwrite ~old ~fresh = old := !fresh
 end
-*)  
+  
 
- 
+(* 
 exception Full
 
 let debug = false
@@ -343,8 +343,8 @@ struct
     let current = Array1.get fat (base + index) in
     Array1.set fat (base + int_of_char free) current;
     Array1.set fat (base + index) free;
-    assert (not (Weak.check data (k * data_size + int_of_char free)));
     let pos_data = k * data_size + int_of_char free in
+    assert (not (Weak.check data pos_data));
     Weak.set data pos_data (Some d);
     Array1.set h pos_data full_hash
       
@@ -411,7 +411,11 @@ struct
 	    let data_index = k * data_size + next in
 	    let hash_elt = Array1.get hashes data_index in
 	    if hash_elt <> full_hash
-	    then loop next
+	    then begin
+		if Weak.check data data_index
+		then loop next
+		else shorten chain next
+	      end
 	    else begin
               match Weak.get_copy data data_index with
               | Some v ->
@@ -627,16 +631,15 @@ struct
 	mutable shift : int ;
 	mutable need_to_resize : bool }
 
-        (* [BM/VP] TODO: use the fmt *)
-  let pretty_debug _fmt t k = 
-    Array.iter 
+   let pretty_debug fmt t k = 
+     Array.iter 
       (fun t -> 
-	 Format.printf "%a@."  (fun fmt t -> M.pretty_debug_buckx fmt t k) t) 
+      Format.fprintf fmt "%a@."  (fun fmt t -> M.pretty_debug_buckx fmt t k) t) 
       t.tables
-
-  let pretty _fmt t =
-    Array.iter
-      (fun t -> Format.printf "%a@." M.pretty t)
+   
+   let pretty fmt t =
+     Array.iter
+      (fun t -> Format.fprintf fmt "%a@." M.pretty t)
       t.tables
 
   type data = M.data
@@ -807,8 +810,8 @@ struct
 
 end
 
-
+*)
 
 let () =
   let gc_params = Gc.get () in
-  Gc.set { gc_params with Gc.minor_heap_size = 65536 };
+  Gc.set { gc_params with Gc.minor_heap_size = 2 lsl 18 };

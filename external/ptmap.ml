@@ -30,6 +30,10 @@
      structure which defines endianness. Here is the interface which 
      must be adhered to by such a structure. *)
 
+let counter = ref 0
+
+let hashconsingtable_counter = ref 0
+
 module Endianness = struct
 
   module type S = sig
@@ -138,12 +142,14 @@ sig
   val tag : t -> int
   val equal : t -> t -> bool
   val pretty : Format.formatter -> t -> unit
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
 end
 
-module Make (X : Endianness.S) (V : Tagged_type)
-    (Initial_Values:sig val v : (int*V.t) list list end) =
-  struct
+module Make
+  (X : Endianness.S)
+  (V : Tagged_type)
+  (Initial_Values: sig val v : (int * V.t) list list end) =
+struct
 
     (* Patricia trees are maps whose keys are integers. *)
 
@@ -212,7 +218,7 @@ module Make (X : Endianness.S) (V : Tagged_type)
 
     type tt = t
 
-    let name = Project.Datatype.Name.extend "ptmap" V.Datatype.name
+    let name = Project.Datatype.extend_name "ptmap" V.Datatype.name
 
     module PatriciaHashtbl =
       Hashtbl.Make
@@ -231,16 +237,9 @@ module Make (X : Endianness.S) (V : Tagged_type)
 	  let t = tag x in
 	  Format.fprintf fmt "(h:%d" t;
           Format.fprintf fmt ")@."
-	let id = Project.Datatype.Name.get name
+	let id = name
       end)
     
-    module Rehash_Table = struct
-      let table = PatriciaHashtbl.create 17
-      let add =  PatriciaHashtbl.add table
-      let find = PatriciaHashtbl.find table
-      let clear () =  PatriciaHashtbl.clear table
-    end
-
     let table = PatriciaWeakHashtbl.create (1069 lsl 4)
 
     (* [iter f m] invokes [f k x], in turn, for each binding
@@ -249,54 +248,55 @@ module Make (X : Endianness.S) (V : Tagged_type)
 
     let empty = Empty
 
-    let current_low = ref 1
+    let current_tag_before_initial_values = 1
+    let current_tag = ref current_tag_before_initial_values
+    let current_table = ref 0
 
     let wrap r =
-      let c_l = !current_low in
+      assert (r <> Empty); (* Empty is not allocated *)
       let result = PatriciaWeakHashtbl.merge table r in
+      (* NB: r must be a freshly created value otherwise the 
+	 "[result == r] => a new entry has been allocated in [table]"
+	 implication does not work *)
       if result == r 
-      then begin
-	let new_current_low = succ c_l in
-	current_low := new_current_low;
-      end;
+      then incr current_tag;
       result
 
+    let project_offset () =
+      try
+	100000 * (1 + ((Project.hash (Project.current ())) mod 999))
+      with 
+	Project.NoProject -> 0
+
     let wrap_Leaf k v =
-      let new_tr = Leaf (k, v, !current_low) in
+      let new_tr = Leaf (k, v, !current_tag ) in
       wrap new_tr
 
     let wrap_Branch p m l r =
-      let new_tr = Branch (p, m, l, r, !current_low) in
+      let new_tr = Branch (p, m, l, r, !current_tag ) in
       wrap new_tr
 
     let rec rehash t =
 (*      Format.printf "rehash got:%d@\n=======@\n%a@." (tag t) pretty t;*)
-      try
-	let result = Rehash_Table.find t in
-        (*Format.printf "Found:%d@\n=======@\n.@." (tag result) (*pretty result*);*)
-        result
-      with Not_found ->
-	let res = 
-	  match t with
-	    Empty -> t
-	  | Leaf (k, v, _) -> let v = V.Datatype.rehash v in wrap_Leaf k v
-	  | Branch (p, m, l, r, _) ->
-	      let l = rehash l in
-	      let r = rehash r in
-	      wrap_Branch p m l r
-	in
-	Rehash_Table.add t res;
-	res
-
+      let res = 
+	match t with
+	  Empty -> t
+	| Leaf (k, v, _) -> let v = V.Datatype.rehash v in wrap_Leaf k v
+	| Branch (p, m, l, r, _) ->
+	    let l = rehash l in
+	    let r = rehash r in
+	    wrap_Branch p m l r
+      in
+      res
+	
     let rehash_initial t =
       match t with
 	Empty -> ()
       | Leaf (_, _, _) ->
-	  let ht = wrap t in
-	  assert (t == ht);
+	  let ht = PatriciaWeakHashtbl.merge table t in
+	  assert (t == ht)
       | Branch _ -> assert false (* NOT USEFUL YET although it theoretically 
 				    could be*)
-
     (* [find k m] looks up the value associated to the key [k] in the map [m],
        and raises [Not_found] if no value is bound to [k].
 
@@ -305,6 +305,7 @@ module Make (X : Endianness.S) (V : Tagged_type)
        query for a non-existent key shall be detected only when finally
        reaching a leaf, rather than higher up in the tree. This strategy is
        better when (most) queries are expected to be successful. *)
+
     let rec find key htr =
       match htr with
       | Empty ->
@@ -395,7 +396,7 @@ module Make (X : Endianness.S) (V : Tagged_type)
       fine_add (fun _old_binding new_binding -> new_binding) k d m
 
     let initial_values =
-      let r=      List.map
+      let r = List.map
 	(fun l ->
           let r = (List.fold_left (fun acc (k,v) -> add k v acc) empty l)
           in
@@ -403,8 +404,8 @@ module Make (X : Endianness.S) (V : Tagged_type)
           r)
 	Initial_Values.v
       in
-(*      Cil.log "initial values of %s:@." id;
-	List.iter (fun x -> Cil.log "value = %a (%d)@." pretty x (tag x)) r;*)
+(*  Format.printf "initial values of %s:@." id;
+    List.iter (fun x -> Cil.log "value = %a (%d)@." pretty x (Obj.magic x)) r;*)
       r
 
     let rehash_initial_values () =
@@ -412,8 +413,71 @@ module Make (X : Endianness.S) (V : Tagged_type)
 	rehash_initial
 	initial_values
 
+  let current_tag_after_initial_values = !current_tag
+
+  module HashconsingPseudoDatatype = Project.Datatype.Register
+    (struct
+       type t = PatriciaWeakHashtbl.t * (int ref) * (int ref)
+       let rehash _ = assert false (* this datatype is not saved to disk *)
+       let copy _ = assert false (* TODO: think! share between similar 
+				 projects, or not share? *)
+       let name = 
+	 Project.Datatype.extend_name 
+	   "hashconsing_table_datatype" 
+	   name 
+     end)
+
+  module State = Project.Computation.Register(HashconsingPseudoDatatype)
+    (struct
+      type t = HashconsingPseudoDatatype.t
+      let set (t,c,ct) = 
+	PatriciaWeakHashtbl.overwrite ~old:table ~fresh:t;
+	current_tag := !c;
+	current_table := !ct
+      let get () =
+	PatriciaWeakHashtbl.shallow_copy table, 
+	ref (!current_tag), 
+	ref (!current_table)
+      let clear (_t,c,_ct as w) =
+	let save = get () in
+	set w;
+	PatriciaWeakHashtbl.clear table;
+	rehash_initial_values ();
+	c := current_tag_after_initial_values;
+	set save
+
+      let create () =
+	let save = get () in
+	let new_table = PatriciaWeakHashtbl.create 1 in
+	current_tag := current_tag_before_initial_values;
+	PatriciaWeakHashtbl.overwrite ~old:table ~fresh:new_table;
+	incr hashconsingtable_counter;
+	current_table := !hashconsingtable_counter;
+	rehash_initial_values ();
+	let result = get () in
+	set save;
+	result
+
+    end)
+    (struct 
+      let name = 
+	incr counter ; 
+	name ^ " hashconsing_table " ^ (string_of_int !counter)
+      let dependencies = [ Cil_state.self ]
+    end)
+      
+  let () = State.do_not_save ()
+
+
+
+
+
+
+
+
+
     let wrap_Leaf k v =
-      let new_tr = Leaf (k, v, !current_low) in
+      let new_tr = Leaf (k, v, !current_tag) in
       let result = wrap new_tr in
       assert 
 	(List.for_all 
@@ -684,27 +748,6 @@ module Make (X : Endianness.S) (V : Tagged_type)
       add m
 
       exception Found of t
-
-
-    let equal_semantic htr1 htr2 =
-      (* - do not use the toplevel tag
-	 - do not assume that subtrees are already shared.
-	 Here, a partial implementation that should work with current cases *)
-      match htr1, htr2 with
-	Empty, Empty -> true
-      | Leaf(k1, v1,_), Leaf(k2, v2,_) ->
-	  k1 = k2 && (V.equal v1 v2)
-      | Branch _, Branch _ -> assert false
-      | _, _ -> false
-
-
-      let factor_initial_values x =
-	try
-	  List.iter
-	    (fun ini -> if equal_semantic ini x then raise (Found ini))
-	    initial_values;
-	  x
-	with Found ini -> ini
 
     let symetric_merge ~cache ~decide_none ~decide_some =
       let symetric_fine_add k d m =
@@ -1073,20 +1116,19 @@ module Make (X : Endianness.S) (V : Tagged_type)
 	in
 	traverse m
 
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = tt
-	 let before_load = rehash_initial_values
-	 let after_load = Rehash_Table.clear
-	 let rehash = rehash
-	 let copy _ = assert false (* TODO *)
-	 let name = name
-	 let dependencies = [ V.Datatype.self ]
-       end)
+  module Datatype = Project.Datatype.Register
+    (struct
+       type t = tt
+       let rehash = rehash
+       let copy _ = assert false (* TODO *)
+       let name = name
+     end)
 
+  let () = 
+    Datatype.register_comparable ~hash:tag ();
+    Project.register_before_load_hook rehash_initial_values
 	    
-  end 
+end 
 
 (*i ----------------------------------------------------------------------- i*)
 (*s \mysection{Instantiating the functor} *)
@@ -1098,6 +1140,7 @@ module Big = Make(Endianness.Big)
 module Generic
   (X:sig 
      type t 
+     val name : string
      val id : t -> int 
      val pretty : Format.formatter -> t -> unit 
    end)
@@ -1116,17 +1159,20 @@ struct
 	X.pretty k
 	V.pretty v
 
-    module Datatype = 
-      Project.Datatype.Register
+    module Datatype = struct
+      include Project.Datatype.Register
 	(struct
 	   type t = key * V.t
-	   let after_load () = ()
-	   let before_load () = ()
 	   let copy (k, v) = k, V.Datatype.copy v
 	   let rehash (k, v) = k, V.Datatype.rehash v
-	   let name = Project.Datatype.Name.extend "G" V.Datatype.name
-	   let dependencies = [ V.Datatype.self ]
+	   let name = 
+	     Project.Datatype.extend_name 
+	       ("G[" ^ X.name ^ "]") 
+	       V.Datatype.name
 	 end)
+      let () = register_comparable ~hash:tag ~equal ()
+    end
+
   end
 
   module Initial_Values = 

@@ -27,16 +27,19 @@ module type Lattice_with_rehash = Lattice_With_Diff
 
 module Make
   (K : Key)
+    (Top_Param : Lattice_Set with type O.elt=K.t)
   (V : Lattice_with_rehash)
   (L:sig val v : (K.t * V.t) list list end)
   (Null_Behavior:sig val zone:bool end)
   =
 struct
-  module Top_Param = Make_Lattice_Set(K)
+(*  module Top_Param = Make_Hashconsed_Lattice_Set(K) *)
 
   module M = (* Mergemap.Make (K) *)
     Ptmap.Generic(K)(V)(struct let v = [] :: [K.null,V.top]::L.v end)
 
+  module Top_Param = Top_Param
+ 
   type map_t = M.t
   type t = Top of Top_Param.t * Origin.t | Map of map_t
   type tt = t
@@ -172,7 +175,7 @@ struct
 
 		  let n = succ !check_join_assert in
 		  check_join_assert := n;
-		   n land 63 <> 0  || 
+		  n land 63 <> 0  || 
 		(let merge_key k v acc =
 		  M.add k (V.join v (find_or_bottom k mm2)) acc
 		in
@@ -356,9 +359,9 @@ struct
     with Is_not_included -> false
     in
     assert
-      ( let n = succ !check_is_included_assert in
-	check_is_included_assert := n;
-      n land 63 <> 0 ||
+      (let n = succ !check_is_included_assert in
+       check_is_included_assert := n;
+       n land 63 <> 0 ||
       (let mee = meet m1 m2 in
        let eq = equal mee m1  in
        if (eq <> new_)
@@ -404,7 +407,7 @@ struct
   let intersects m1 m2 =
     let result =
       match m1,m2 with
-      | Top _, Top _ -> true (* NULL is implicitly always in both *)
+      | Top (_,_), Top (_,_) -> true	  
       | Top _, (Map _ as m) | (Map _ as m), Top _ -> not (equal m bottom)
       | Map m1, Map m2 ->
 	  let intersects_in_m1 k v2 =
@@ -567,17 +570,16 @@ struct
   let fold_enum_by_base f m acc =
     fold_i (fun k v acc -> f (inject k v) acc) m acc
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
-	 let after_load () = ()
-	 let before_load () = ()
-	 let name = Project.Datatype.Name.extend "map_lattice" V.Datatype.name
-	 let dependencies = [ M.Datatype.self ]
+	 let name = Project.Datatype.extend_name "map_lattice" V.Datatype.name
        end)
+    let () = register_comparable ~hash ~equal ()
+  end
 
 end
 

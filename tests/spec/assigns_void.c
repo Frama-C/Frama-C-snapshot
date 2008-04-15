@@ -1,6 +1,6 @@
 /* run.config
- OPT: -print
- OPT: -val -main g -print -no-annot
+ OPT: -print -journal-disable
+ OPT: -val -main g -print -no-annot -journal-disable
  */
 //@ assigns *x;
 void f(void *x);

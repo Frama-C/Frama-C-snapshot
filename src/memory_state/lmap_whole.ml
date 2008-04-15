@@ -47,7 +47,7 @@ sig
 
     type instanciation = Location_Bytes.t BaseMap.t
 
-    module Datatype : Project.Datatype.OUTPUT with type t = t
+    module Datatype : Project.Datatype.S with type t = t
 
     val inject : Base.t -> LOffset.t -> t
 
@@ -167,19 +167,28 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y =
 
     let rehash = Extlib.opt_map LBase.Datatype.rehash
 
-    let name = Project.Datatype.Name.extend "Lmap_whole" LOffset.Datatype.name
+    let name = Project.Datatype.extend_name "Lmap_whole" LOffset.Datatype.name
 
-    module Datatype =
-      Project.Datatype.Register
+    let equal m1 m2 = match m1, m2 with
+      None, None -> true
+    | None, Some _ | Some _, None -> false
+    | Some m1, Some m2 -> m1 == m2
+
+    let hash m = match m with 
+    | None -> 0
+    | Some m -> LBase.tag m
+
+    module Datatype = struct
+      include Project.Datatype.Register
 	(struct
 	   type tt = t
 	   type t = tt
 	   let copy _ = assert false (* TODO *)
 	   let rehash = rehash
-	   include Datatype.Nop
 	   let name = name
-	   let dependencies = [ LBase.Datatype.self ]
 	 end)
+      let () = register_comparable ~hash ~equal ()
+    end
 
     let top = empty
 
@@ -209,11 +218,6 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y =
     let is_empty = function
 	None -> assert false
       | Some m -> LBase.is_empty m
-
-    let equal m1 m2 = match m1, m2 with
-      None, None -> true
-    | None, Some _ | Some _, None -> false
-    | Some m1, Some m2 -> m1 == m2
 
   let filter_base f m =
     match m with None -> None

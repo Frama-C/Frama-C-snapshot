@@ -140,7 +140,7 @@ let mk_fct_crit fi crit =
 
 let mk_fct_user_crit fi crit = mk_fct_crit fi (T.CcUserMark crit)
 
-let mk_crit_fct_top fi = mk_fct_user_crit fi T.CuTop
+let mk_crit_fct_top fi m = mk_fct_user_crit fi (T.CuTop m)
 let mk_crit_fct_user_select fi select = mk_fct_user_crit fi (T.CuSelect select)
 
 let mk_crit_prop_persit_marks fi node_marks = 
@@ -177,7 +177,7 @@ let mk_crit_mark_calls fi_caller to_call mark =
     in
     let select = List.map stmt_mark call_stmts in
       T.CuSelect select
-  with PdgTypes.Pdg.Top -> T.CuTop
+  with PdgTypes.Pdg.Top -> T.CuTop mark
   in 
     mk_fct_user_crit fi_caller select
 
@@ -240,7 +240,7 @@ let print_ndm fmt (nodes, ndm_list) =
 
 let print_f_crit fmt f_crit =
   match f_crit with 
-    | T.CuTop -> Format.fprintf fmt "top"
+    | T.CuTop m -> Format.fprintf fmt "top(%a)" Marks.pretty_mark m
     | T.CuSelect to_select -> print_sel_marks_list fmt to_select
 
 let print_crit fmt crit =
@@ -264,7 +264,8 @@ let print_crit fmt crit =
       | T.CcChangeCall (call,f)
         -> let fname = match f with
           | T.CallSlice ff -> SlicingMacros.ff_name ff
-          | T.CallSrc _ -> "(src)"
+          | T.CallSrc (Some fi) -> ("(src:"^( SlicingMacros.fi_name fi)^")")
+          | T.CallSrc None -> "(src)"
         in Format.fprintf fmt "change_call for call %d -> %s" 
              call.Cil_types.sid fname
       | T.CcPropagate nl -> 

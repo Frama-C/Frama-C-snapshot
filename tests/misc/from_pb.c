@@ -1,13 +1,13 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main0
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main1
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main2
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main3
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main4
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main4bis
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main5
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main5bis
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main0 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main1 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main2 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main3 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main4 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main4bis -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main5 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main5bis -journal-disable
 */
 
 int k,i,j,x,c,d,T[10];
@@ -43,7 +43,7 @@ void main3(){
 void main4()
 {
   if (c)
-    { 
+    {
       T[0]=i;
       T[2]=j;
     }
@@ -57,7 +57,7 @@ void main4()
 void main4bis()
 {
   if (c)
-    { 
+    {
       T[0]=k;
     }
   else
@@ -70,7 +70,7 @@ void main4bis()
 void main5()
 {
   if (c)
-    { 
+    {
       T[0]=i;
       T[1]=j;
     }
@@ -84,7 +84,7 @@ void main5()
 void main5bis()
 {
   if (c)
-    { 
+    {
       T[0]=k;
     }
   else

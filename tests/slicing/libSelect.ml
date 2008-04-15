@@ -50,7 +50,7 @@ let extract_and_print project =
 (*--------------------------*)
 let project_number = ref 0
 
-let mk_project () = project_number := !project_number + 1 ; S.Project.mk_project ("slicing_" ^ (string_of_int !project_number))
+let mk_project () = project_number := !project_number + 1 ; !S.Project.mk_project ("slicing_" ^ (string_of_int !project_number))
 
 let apply project = !S.Request.apply_next_internal project; print_project project
 

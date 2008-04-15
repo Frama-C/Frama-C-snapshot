@@ -21,7 +21,7 @@
 
 (** Default printers of Frama-C. Initialized with Cil default printers, and
     updated by the {!Printer} module.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 

@@ -21,11 +21,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgTypes.mli,v 1.39 2008/07/09 11:26:38 uid530 Exp $*)
+(* $Id: pdgTypes.mli,v 1.42 2008/11/18 12:13:41 uid568 Exp $*)
 
 (** This module defines the types that are used to store the PDG of a
     function. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 exception Pdg_Internal_Error of string
 
@@ -81,7 +81,7 @@ module Node :
     val pretty_list : Format.formatter -> t list -> unit
     val pretty_with_part : 
           Format.formatter -> (t * Locations.Zone.t option) -> unit
-    module Datatype: Project.Datatype.OUTPUT with type t = t
+    module Datatype: Project.Datatype.S with type t = t
   end
 
 module NodeSet : sig
@@ -153,18 +153,17 @@ module Pdg :
     exception Bottom
 
     type t
-    module Datatype : Project.Datatype.OUTPUT with type t = t
-      (** @plugin developer guide *)
+    module Datatype : Project.Datatype.S with type t = t
+      (** @plugin development guide *)
 
     (** @param name of the function associated with that PDG *)
-    val top : string -> t
-    val bottom : string -> t
+    val top : Kernel_function.t -> t
+    val bottom : Kernel_function.t -> t
 
     val is_top : t -> bool
     val is_bottom : t -> bool
 
-    val get_var_fct : t -> Cil_types.varinfo
-    val get_fct_name : t -> string
+    val get_kf : t -> Kernel_function.t
 
     val iter_nodes : (Node.t -> unit) -> t -> unit
 
@@ -193,7 +192,7 @@ module InternalPdg :
 
     (** [make fundec graph states index] *)
     val make :
-      Cil_types.varinfo -> G.t -> t_data_state Inthash.t -> t_index -> t
+      Kernel_function.t -> G.t -> t_data_state Inthash.t -> t_index -> t
 
     val get_states : t -> t_data_state Inthash.t 
 

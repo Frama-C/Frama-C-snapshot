@@ -35,7 +35,7 @@ module type S = sig
   type y
   type widen_hint
 
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
 
   val tag : t -> int
 
@@ -122,7 +122,8 @@ module type S = sig
 
   val iter_contents : (y -> unit) -> t -> Int.t -> unit
     (** Iter on the contents of offsetmap of given size *)
-end
+  end
+
 
 module Build(V:Lattice_With_Isotropy.S) =
 struct
@@ -288,7 +289,7 @@ struct
  let extract_bits ~with_alarms ~start ~stop ~modu v =
    assert (Int.le start stop && Int.le stop modu);
    let start,stop =
-     if !Cil.little_endian then
+     if Cil.theMachine.Cil.little_endian then
        start,stop
      else
        let mmodu = Int.pred modu in
@@ -299,14 +300,15 @@ struct
  let merge_bits ~offset ~length ~value ~total_length acc =
    assert ( let total_length_i = Int.of_int total_length in
 	    Int.le (Int.add length offset) total_length_i);
-   if !Cil.little_endian then
+   if Cil.theMachine.Cil.little_endian then
      V.little_endian_merge_bits ~offset ~value ~total_length acc
    else
      V.big_endian_merge_bits ~offset ~value ~total_length ~length acc
 
  (* Assumes one wants a value from V.t
-   TODO : this could merge consecutive values or
-   even compute a subvalue. *)
+   This merges consecutive values when singleton integers and 
+   coonversely extract bits the best it can when it has to.
+    Could perhaps be improved. *)
  let find ~with_alarms ((bi,ei) as i) m =
    assert (Int.le bi ei);
    let concerned_intervals =
@@ -648,8 +650,7 @@ struct
   let unsafe_join, widen =
     let ex_singletons = ref [] in
     let ex_singletons_card = ref 0 in
-    let generic (f:size:Int.t -> offs:Int.t option ->
-V.t -> V.t -> V.t) m1 m2 =
+    let generic (f:size:Int.t -> offs:Int.t option -> V.t -> V.t -> V.t) m1 m2 =
       let r = if m1 == m2 then m1 else
         begin
           Int_Interv_Map.fold
@@ -898,7 +899,6 @@ V.t -> V.t -> V.t) m1 m2 =
          assert false
        end; true);
     singletons, r1
-
 
   let add_approximate_including_spaces mn mx r m size v existing_offsetmap =
     let treat_itv (b,e as itv) (rem,modu,value as vv) acc=
@@ -1402,7 +1402,8 @@ V.t -> V.t -> V.t) m1 m2 =
         
 end
 
-module Make(V:Lattice_With_Isotropy.S) = struct
+module Make(V:Lattice_With_Isotropy.S) =
+ struct
 
   module M=Build(V)
   type t =
@@ -1430,8 +1431,10 @@ module Make(V:Lattice_With_Isotropy.S) = struct
 		   let id = "offsetmap"
                    end)
 
- let table = OffsetmapHashtbl.create 1379
- let current_tag = ref 0 ;;
+(* the state of the hashconsing structure *)
+  let table = OffsetmapHashtbl.create 1379
+  let current_tag = ref 0 ;;
+
 
 
   let wrap x =
@@ -1469,76 +1472,90 @@ module Make(V:Lattice_With_Isotropy.S) = struct
       end;
     result
 
-
-    module rec PatriciaReHashtbl : Hashtbl.S with type key = tt =
-      Hashtbl.Make
-	(struct
-           type t = tt
-           let equal a b =
-             assert (let result = a.tag = b.tag in result = (a == b));
-             a == b
-           let hash = tag
-	 end)
-
-    and Rehash_Table : sig val find : tt -> t
-                           val add : t -> t -> unit
-                           val clear : unit -> unit
-    end = struct
-      let table = PatriciaReHashtbl.create 17
-      let add =  PatriciaReHashtbl.add table
-      let find = PatriciaReHashtbl.find table
-      let clear () =  PatriciaReHashtbl.clear table
-    end
-
   let rehash x =
-    try
-      Rehash_Table.find x
-    with Not_found ->
-      let rv =
-	Int_Interv_Map.map (function r,m,v -> r, m, V.Datatype.rehash v) x.v
-      in
-      let result = wrap rv in
-      Rehash_Table.add x result;
-      result
+    let rv = 
+      Int_Interv_Map.map (function r,m,v -> r, m, V.Datatype.rehash v) x.v
+    in
+    let result = wrap rv in
+    result
 
- let empty = wrap M.empty
+(* initial values go here *)
+  let empty = wrap M.empty
 
- let rehash_initial_values () =
-   assert (empty == OffsetmapHashtbl.merge table empty) ;
-   5
+(* end of initial values *)
+  let current_tag_after_initial_values = !current_tag
 
- module Datatype =
-   Project.Datatype.Register
+  let rehash_initial_values () =
+    let re_empty = OffsetmapHashtbl.merge table empty in
+    assert (empty == re_empty)
+
+  module HashconsingPseudoDatatype = Project.Datatype.Register
+    (struct
+       type t = OffsetmapHashtbl.t * (int ref)
+       let rehash _ = assert false (* this datatype is not saved to disk *)
+       let copy _ = assert false (* TODO: think! share between similar 
+				 projects, or not share? *)
+       let name = id ^ " hashconsing_table_datatype"
+     end)
+
+  module State = Project.Computation.Register(HashconsingPseudoDatatype)
+    (struct
+      type t = HashconsingPseudoDatatype.t
+      let set (t,c) = 
+	OffsetmapHashtbl.overwrite ~old:table ~fresh:t;
+	current_tag := !c
+      let get () =
+	OffsetmapHashtbl.shallow_copy table, ref (!current_tag)
+      let clear (t,c as w) =
+	let save = get () in
+	set w;
+	OffsetmapHashtbl.clear t;
+	rehash_initial_values ();
+	c := current_tag_after_initial_values;
+	set save
+      let create () =
+	let save = get () in
+	clear (table, current_tag);
+	let result = get () in
+	set save;
+	result
+    end)
+    (struct 
+      let name = id ^ "hashconsing_table" 
+      let dependencies = [ Cil_state.self ]
+    end)
+      
+  let () = State.do_not_save ()
+
+ module Datatype = struct
+   include Project.Datatype.Register
      (struct
 	type t = tt
 	let rehash = rehash
 	let copy _ = assert false (* TODO *)
-	let before_load () = current_tag := rehash_initial_values ()
-	let after_load = Rehash_Table.clear
-	let name = Project.Datatype.Name.make id
-	let dependencies = [ V.Datatype.self ]
+	let before_load () = () 
+	let name = id
       end)
+   let () = 
+     register_comparable ~hash:tag ~equal:equal_internal ();
+ end
 
- let equal o1 o2 = o1 == o2
+ let equal = (==)
 
- module Symcacheable =
- struct
+ module Symcacheable = struct
    type t = tt
    let hash = tag
    let equal = (==)
    let sentinel = empty
  end
 
- module R =
- struct
+ module R = struct
    type t = (Int.t * Int.t) list * tt
    let sentinel = [], empty
  end
 
  module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)(R)
-
  let () = Project.register_todo_on_clear SymetricCache.clear
-
 
  let join  m1 m2 =
    if m1 == m2 then [],m1

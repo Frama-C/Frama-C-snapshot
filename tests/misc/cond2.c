@@ -1,7 +1,7 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main zero_ou_un_0
-  OPT: -memory-footprint 1 -val -deps -out -input  -main un_1
+  OPT: -memory-footprint 1 -val -deps -out -input  -main zero_ou_un_0 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main un_1 -journal-disable
 
 */
 
@@ -36,7 +36,7 @@ void zero_ou_un_0 (void) {
   x = Gx ? 0 : 2 ; ;
   if (x != 1)
       u = 1;
-  
+
 }
 
 int un_1 (void) {
@@ -69,4 +69,3 @@ int un_1 (void) {
       u = 1;
   return u;
 }
-  

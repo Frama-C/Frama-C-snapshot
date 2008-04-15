@@ -12,7 +12,7 @@
 include LibSelect;;
 
 let proj_name = "slicing_merge";;
-let project = S.Project.mk_project proj_name;;
+let project = mk_project () ;;
 
 let kf_init = Globals.Functions.find_def_by_name "init";;
 let kf_add = Globals.Functions.find_def_by_name "add";;

@@ -1,0 +1,107 @@
+floatbis[radix:above(1)]: THEORY
+
+BEGIN
+  IMPORTING float@float[radix]
+
+  b  : VAR Format
+  r  : VAR real
+
+  RND_Zero(b)(x:real): (Fcanonic?(b)) =
+     if (0 <= x) 
+        then RND_Min(b)(x)
+        else RND_Max(b)(x)
+     endif
+
+  RND_AFZClosest(b)(x:real): (Fcanonic?(b)) =
+   if     abs(RND_Min(b)(x)-x) < abs(RND_Max(b)(x)-x) then RND_Min(b)(x)
+    elsif abs(RND_Max(b)(x)-x) < abs(RND_Min(b)(x)-x) then RND_Max(b)(x)
+    elsif RND_Min(b)(x)=RND_Max(b)(x)::real then RND_Min(b)(x)
+    elsif (0 <= x) then RND_Max(b)(x)
+    else  RND_Min(b)(x)
+   endif
+
+
+  RND_Zero_isToZero: lemma ToZero?(b)(r,RND_Zero(b)(r))
+  RND_AClosest_isAFZclosest : lemma AFZClosest?(b)(r,RND_AFZClosest(b)(r))
+
+END floatbis
+
+
+
+whyfloat: THEORY
+
+BEGIN
+  IMPORTING reals@sqrt
+  IMPORTING floatbis[2]
+
+
+  mode: TYPE = { nearest_even, to_zero, up, down, nearest_away }
+
+
+  % IEEE-754 DOUBLE PRECISION
+  bdouble: Format = (# Prec :=53, dExp :=1074 #)
+
+  double: TYPE = [# float:(Fcanonic?(bdouble)), 
+                    d_to_exact:real, d_to_model:real #] 
+ 
+  d_to_r(f:double):real = FtoR(float(f))
+  double_round_error(f:double):real = abs(d_to_exact(f) - d_to_r(f))
+  double_total_error(f:double):real = abs(d_to_model(f) - d_to_r(f))
+  double_set_model(f:double)(r:real):double = 
+           (# float:=float(f), d_to_exact:=d_to_exact(f),
+              d_to_model:=r #)
+
+  r_to_d_aux(m:mode)(r,r1,r2:real):double =
+    cases m of
+      nearest_even:(# float:= RND_EClosest(bdouble)(r),
+           d_to_exact:=r1, d_to_model:= r2 #), 
+      up:          (# float:= RND_Max(bdouble)(r),
+           d_to_exact:=r1, d_to_model:= r2 #),
+      down:        (# float:= RND_Min(bdouble)(r),
+           d_to_exact:=r1, d_to_model:= r2 #),
+      to_zero:     (# float:= RND_Zero(bdouble)(r),
+           d_to_exact:=r1, d_to_model:= r2 #),
+      nearest_away:(# float:= RND_AFZClosest(bdouble)(r),
+           d_to_exact:=r1, d_to_model:= r2 #)
+    endcases
+
+  r_to_d(m:mode,r:real):double = r_to_d_aux(m)(r,r,r)
+
+  add_double(m:mode,f1,f2:double):double =
+     r_to_d_aux(m)(d_to_r(f1)+d_to_r(f2), 
+                  d_to_exact(f1)+d_to_exact(f2),
+                  d_to_model(f1)+d_to_model(f2))
+
+  sub_double(m:mode,f1,f2:double):double =
+     r_to_d_aux(m)(d_to_r(f1)-d_to_r(f2), 
+                  d_to_exact(f1)-d_to_exact(f2),
+                  d_to_model(f1)-d_to_model(f2))
+
+  mul_double(m:mode,f1,f2:double):double =
+     r_to_d_aux(m)(d_to_r(f1)*d_to_r(f2), 
+                  d_to_exact(f1)*d_to_exact(f2),
+                  d_to_model(f1)*d_to_model(f2))
+
+  div_double(m:mode,f1:double,f2:double | d_to_r(f2) /= 0 
+          AND d_to_exact(f2) /= 0 AND d_to_model(f2) /= 0):double =
+     r_to_d_aux(m)(d_to_r(f1)/d_to_r(f2), 
+                  d_to_exact(f1)/d_to_exact(f2),
+                  d_to_model(f1)/d_to_model(f2))
+
+  sqrt_double(m:mode,f1:double | d_to_r(f1) >= 0 
+          AND d_to_exact(f1) >= 0 AND d_to_model(f1) >= 0):double =
+     r_to_d_aux(m)(sqrt(d_to_r(f1)), 
+                   sqrt(d_to_exact(f1)),
+                   sqrt(d_to_model(f1)))
+
+  neg_double(m:mode,f1:double):double =
+      (# float:= Fopp(float(f1)),
+         d_to_exact:=-d_to_exact(f1), d_to_model:= -d_to_model(f1) #) 
+
+  abs_double(m:mode,f1:double):double =
+      (# float:= Fabs(float(f1)),
+         d_to_exact:=abs(d_to_exact(f1)), d_to_model:= abs(d_to_model(f1)) #) 
+
+  max_double:real = ((2-2^(-52))*2^1023)
+
+END whyfloat

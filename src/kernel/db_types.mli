@@ -19,11 +19,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: db_types.mli,v 1.40 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: db_types.mli,v 1.42 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Type definitions for [Db] module. Each plugin may add its additional
     types. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 open Cil
@@ -38,13 +38,12 @@ type cil_function =
           specification [spec] and arguments [args], at location [loc]. As
           with the [TFun] constructor of {!Cil_types.typ}, the arg list is
           optional, to distinguish [void f()] ([None]) from
-          [void f(void)] ([Some []]).
-       *)
+          [void f(void)] ([Some []]). *)
 
 type rooted_code_annotation =
   | User of code_annotation
   | AI of Alarms.t*code_annotation
-  | WP of Fol.decl list * int (** formula * unique id *)
+  | WP of Fol.decl list * int      (** formula * unique id *)
 
 type 'a before_after = Before of 'a | After of 'a
 
@@ -53,7 +52,7 @@ type stmts_graph = Graph.Imperative.Digraph.Concrete(Cilutil.StmtComparable).t
 (** Except field [fundec], do not used the other fields directly.
     Prefer to use {!Kernel_function.find_return}, {!Kernel_function.get_spec} 
     and {!Stmts_graph.stmt_can_reach}. 
-    @plugin developer guide *)
+    @plugin development guide *)
 type kernel_function = {
   fundec : cil_function;
   mutable return_stmt : stmt option;

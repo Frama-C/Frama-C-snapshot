@@ -19,29 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ast_info.ml,v 1.28 2008/07/02 08:07:07 uid570 Exp $ *)
+(* $Id: ast_info.ml,v 1.36 2008/11/18 16:37:29 uid562 Exp $ *)
 
 open Db_types
 open Cil_types
+open Cilutil
 open Cil
 
 let pretty_vname fmt vi = !Ast_printer.d_ident fmt vi.vname
-
-let before_after_content = function Before x | After x -> x
-
-let lift_annot_func f x a =
-  match before_after_content a with
-      WP _ -> x
-    | User p | AI (_,p) -> f p
-
-let lift_annot_list_func f l =
-  let add l x =
-    match before_after_content x with
-        WP _ -> l
-      | User p | AI(_,p) -> p :: l
-  in
-  let l' = List.fold_left add [] l in
-  f (List.rev l')
 
 (* ************************************************************************** *)
 (** {2 Expressions} *)
@@ -53,7 +38,7 @@ let is_integral_const = function
 
 let rec possible_value_of_integral_const = function
   | CInt64 (i,_,_) -> Some i
-  | CEnum (e,_,_) -> possible_value_of_integral_expr e
+  | CEnum {eival = e} -> possible_value_of_integral_expr e
   | CChr c -> Some (Int64.of_int (Char.code c))
   | _ -> None
 
@@ -78,6 +63,12 @@ let rec is_null_expr e = match stripInfo e with
   | Const c when is_integral_const c ->
       value_of_integral_const c = Int64.zero
   | CastE(_,e) -> is_null_expr e
+  | _ -> false
+
+let rec is_non_null_expr e = match stripInfo e with
+  | Const c when is_integral_const c ->
+      value_of_integral_const c <> Int64.zero
+  | CastE(_,e) -> is_non_null_expr e
   | _ -> false
 
 (* ************************************************************************** *)
@@ -110,7 +101,7 @@ let is_trivial_term v =
 let is_trivial_named_predicate p = is_trivial_predicate p.content
 
 let is_trivial_annotation = function
-  | AAssert (_,a)
+  | AAssert (_,a,_)
   | AAssume a -> is_trivial_named_predicate a
   | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _ | AAssigns _ -> false
 
@@ -165,6 +156,32 @@ let predicate loc p =
   }
 
 (* ************************************************************************** *)
+(** {2 Annotations} *)
+(* ************************************************************************** *)
+
+let before_after_content = function Before x | After x -> x
+
+let lift_annot_func f x a = match before_after_content a with
+  | WP _ -> x
+  | User p | AI (_,p) -> f p
+
+let lift_annot_list_func f l =
+  let add l x = match before_after_content x with
+    | WP _ -> l
+    | User p | AI(_,p) -> p :: l
+  in
+  let l' = List.fold_left add [] l in
+  f (List.rev l')
+
+module Datatype_Annotation =
+  Project.Datatype.Imperative
+    (struct
+       type t = rooted_code_annotation before_after
+       let copy _ = assert false (* TODO *)
+       let name = "rooted_code_annotation before_after"
+     end)
+
+(* ************************************************************************** *)
 (** {2 Statements} *)
 (* ************************************************************************** *)
 
@@ -179,7 +196,7 @@ let get_sid s = match s with
     statement.*)
 let rec loc_stmt s = match s.skind with
 | Instr i -> get_instrLoc i
-| Block {bstmts=s::_} | UnspecifiedSequence {bstmts=s::_} -> loc_stmt s
+| Block {bstmts=s::_} | UnspecifiedSequence ((s,_,_)::_) -> loc_stmt s
 | Return (_,location)
 | Goto (_,location)
 | Break location
@@ -189,7 +206,7 @@ let rec loc_stmt s = match s.skind with
 | Loop (_,_, location,_,_)
 | TryFinally (_,_,location)
 | TryExcept (_,_,_,location) -> location
-| Block {bstmts=[]} | UnspecifiedSequence {bstmts=[]} -> locUnknown
+| Block {bstmts=[]} | UnspecifiedSequence [] -> locUnknown
 
 let mkassign lv e loc = Set(lv,e,loc)
 
@@ -219,7 +236,7 @@ module Function = struct
     (not v.vglob) && ((is_formal v fundec) || (is_local v fundec))
 
   let is_formal_of_prototype v vi =
-    let formals = try getFormalsDecl vi.vid with Not_found -> [] in
+    let formals = try getFormalsDecl vi with Not_found -> [] in
     List.exists (fun x -> x.vid = v.vid) formals
 
   let is_definition = function
@@ -231,6 +248,7 @@ module Function = struct
     | Declaration (_,vi,_, _) -> vi
 
   let get_name f = (get_vi f).vname
+  let get_id f = (get_vi f).vid
 
 end
 

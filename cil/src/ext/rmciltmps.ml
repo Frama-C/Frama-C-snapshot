@@ -662,7 +662,7 @@ let ae_lv_fwd_subst data sid e fd nofrm =
   (e', !ae_lval_to_exp_change)
 
 let ae_simp_fwd_subst data e nofrm =
-  ae_lv_fwd_subst data (-1) e dummyFunDec nofrm
+  ae_lv_fwd_subst data (-1) e (emptyFunction "@dummy@") nofrm
 
 let ae_tmp_to_const_change = ref false
 let ae_tmp_to_const eh _sid vi _fd nofrm =
@@ -936,7 +936,7 @@ class unusedRemoverClass : cilVisitor = object
     inherit nopCilVisitor
 
   val mutable unused_set = UD.VS.empty
-  val mutable cur_func = dummyFunDec
+  val mutable cur_func = emptyFunction "@dummy@"
 
   (* figure out which locals aren't used *)
   method vfunc f =
@@ -1070,7 +1070,9 @@ class unusedRemoverClass : cilVisitor = object
       Instr il ->
 	(*let newil = List.filter good_instr [il] in
 	let newil' = List.map call_fixer newil in*)
-	stm.skind <- Instr (if good_instr il then call_fixer il else Skip locUnknown);
+	stm.skind <- 
+	  Instr (if good_instr il then call_fixer il 
+		 else Skip Cilutil.locUnknown);
 	SkipChildren
     | _ -> DoChildren
 

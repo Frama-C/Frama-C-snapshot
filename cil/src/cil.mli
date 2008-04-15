@@ -48,11 +48,11 @@
 
 (** CIL original API documentation is available as
   * an html version at http://manju.cs.berkeley.edu/cil.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 
 (** Call this function to perform some initialization. Call if after you have
- * set {!Cil.msvcMode}.  *)
+ * set [Cil.msvcMode].  *)
 val initCIL: unit -> unit
 
 
@@ -70,21 +70,89 @@ val cilVersionRevision: int
  * the name of a preprocessed C file and will return the top-level data
  * structure that describes a whole source file. By default the parsing and
  * elaboration into CIL is done as for GCC source. If you want to use MSVC
- * source you must set the {!Cil.msvcMode} to [true] and must also invoke the
+ * source you must set the [Cil.msvcMode] to [true] and must also invoke the
  * function [Frontc.setMSVCMode: unit -> unit]. *)
 
 open Cil_types
 
-val theMachine : mach ref
+type theMachine = private
+    { (** Whether the pretty printer should print output for the MS VC
+	  compiler. Default is GCC *)
+      mutable msvcMode: bool;
+      (** Whether to use the logical operands LAnd and LOr. By default, do not
+	  use them because they are unlike other expressions and do not
+	  evaluate both of their operands *)
+      mutable useLogicalOperators: bool;
+      mutable theMachine: mach;
+      mutable lowerConstants: bool; (** Do lower constants (default true) *)
+      mutable insertImplicitCasts: bool; (** Do insert implicit casts
+					     (default true) *)
+      (** Whether the machine is little endian. *)
+      mutable little_endian: bool;
+      (** Whether "char" is unsigned. *)
+      mutable char_is_unsigned: bool;
+      (** Whether the compiler generates assembly labels by prepending "_" to
+	  the identifier. That is, will function foo() have the label "foo", or
+	  "_foo"? *)
+      mutable underscore_name: bool;
+      (** Wether enum are signed or not. *)
+      mutable enum_are_signed: bool;
+      mutable stringLiteralType: typ;
+      (** An unsigned integer type that fits pointers. Depends on
+	  [Cil.msvcMode] *)
+      mutable upointType: typ;
+      mutable wcharKind: ikind; (** An integer type that fits wchar_t. *)
+      mutable wcharType: typ;
+      mutable ptrdiffKind: ikind; (** An integer type that fits ptrdiff_t. *)
+      mutable ptrdiffType: typ;
+      mutable typeOfSizeOf: typ; (** An integer type that is the type of
+				      sizeof. *)
+      mutable kindOfSizeOf: ikind (** The integer kind of
+				      {!Cil.typeOfSizeOf}. *)
+    }
+
+val theMachine : theMachine
   (** Current machine description *)
 
-(** {b Lowering Options} *)
+val selfMachine: Project.Computation.t
 
-val lowerConstants: bool ref
-    (** Do lower constants (default true) *)
+val set_msvcMode: bool -> unit
+  (** Must be called before {!Cil.initCIL}. *)
 
-val insertImplicitCasts: bool ref
-    (** Do insert implicit casts (default true) *)
+(** Styles of printing line directives *)
+type lineDirectiveStyle =
+  | LineComment                (** Before every element, print the line
+                                * number in comments. This is ignored by
+                                * processing tools (thus errors are reproted
+                                * in the CIL output), but useful for
+                                * visual inspection *)
+  | LineCommentSparse          (** Like LineComment but only print a line
+                                * directive for a new source line *)
+  | LinePreprocessorInput      (** Use #line directives *)
+  | LinePreprocessorOutput     (** Use # nnn directives (in gcc mode) *)
+
+type miscState =
+    { (** How to print line directives *)
+      mutable lineDirectiveStyle: lineDirectiveStyle option;
+      (** Whether we print something that will only be used as input to our own
+	  parser. In that case we are a bit more liberal in what we print *)
+      mutable print_CIL_Input: bool;
+      (** Whether to print the CIL as they are, without trying to be smart and
+	  print nicer code. Normally this is false, in which case the pretty
+	  printer will turn the while(1) loops of CIL into nicer loops, will not
+	  print empty "else" blocks, etc. These is one case howewer in which if
+	  you turn this on you will get code that does not compile: if you use
+	  varargs the __builtin_va_arg function will be printed in its internal
+	  form. *)
+      mutable printCilAsIs: bool;
+      (** The length used when wrapping output lines. Setting this variable to
+	  a large integer will prevent wrapping and make #line directives more
+	  accurate. *)
+      mutable lineLength: int;
+      (** Emit warnings when truncating integer constants (default true) *)
+      mutable warnTruncate: bool }
+
+val miscState: miscState
 
 (** To be able to add/remove features easily, each feature should be package
    * as an interface with the following interface. These features should be *)
@@ -146,21 +214,23 @@ val setFunctionTypeMakeFormals: fundec -> typ -> unit
  * {!Cil.makeTempVar}. *)
 val setMaxId: fundec -> unit
 
-(** A dummy function declaration handy when you need one as a placeholder. It
- * contains inside a dummy varinfo. *)
-val dummyFunDec: fundec
+val selfFormalsDecl: Project.Computation.t
+  (** state of the table associating formals to each prototype. *)
+
+val makeFormalsVarDecl: (string * typ * attributes) -> varinfo
+  (** creates a new varinfo for the parameter of a prototype. *)
 
 (** Update the formals of a function declaration from its identifier and its
     type. For a function definition, use {!Cil.setFormals}.
     Do nothing if the type is not a function type or if the list of
     argument is empty.
  *)
-val setFormalsDecl: id:int -> typ -> unit
+val setFormalsDecl: varinfo -> typ -> unit
 
 (** replace to formals of a function declaration with the given
     list of varinfo.
 *)
-val unsafeSetFormalsDecl: int -> varinfo list -> unit
+val unsafeSetFormalsDecl: varinfo -> varinfo list -> unit
 
 (** Get the formals of a function declaration registered with
     {!Cil.setFormalsDecl}.
@@ -168,7 +238,7 @@ val unsafeSetFormalsDecl: int -> varinfo list -> unit
     the case for prototypes with an empty list of arguments.
     See {!Cil.setFormalsDecl})
 *)
-val getFormalsDecl: id:int -> varinfo list
+val getFormalsDecl: varinfo -> varinfo list
 
 (** A dummy file *)
 val dummyFile: file
@@ -253,15 +323,9 @@ val invalidStmt: stmt
   *
   * This map replaces [gccBuiltins] and [msvcBuiltins] in previous
   * versions of CIL.*)
-val builtinFunctions : (string, typ * typ list * bool) Hashtbl.t
-
-(** @deprecated.  For compatibility with older programs, these are
-  aliases for {!Cil.builtinFunctions} *)
-val gccBuiltins: (string, typ * typ list * bool) Hashtbl.t
-
-(** @deprecated.  For compatibility with older programs, these are
-  aliases for {!Cil.builtinFunctions} *)
-val msvcBuiltins: (string, typ * typ list * bool) Hashtbl.t
+module BuiltinFunctions :
+  Computation.HASHTBL_OUTPUT with type key = string
+			     and type data = typ * typ list * bool
 
 (** This is used as the location of the prototypes of builtin functions. *)
 val builtinLoc: location
@@ -304,8 +368,7 @@ val foldLeftCompound:
     initl: (offset * init) list ->
     acc: 'a -> 'a
 
-
-(** {b Values for manipulating types} *)
+(** {2 Values for manipulating types} *)
 
 (** void *)
 val voidType: typ
@@ -334,16 +397,6 @@ val charType: typ
 (** char * *)
 val charPtrType: typ
 
-(** wchar_t (depends on architecture) and is set when you call
- * {!Cil.initCIL}. *)
-val wcharKind: ikind ref
-val wcharType: typ ref
-
-(** ptrdiff_t (depends on architecture) and is set when you call
- * {!Cil.initCIL}. *)
-val ptrdiffKind: ikind ref
-val ptrdiffType: typ ref
-
 (** char const * *)
 val charConstPtrType: typ
 
@@ -358,18 +411,6 @@ val uintPtrType: typ
 
 (** double *)
 val doubleType: typ
-
-(** An unsigned integer type that fits pointers. Depends on {!Cil.msvcMode}
- *  and is set when you call {!Cil.initCIL}. *)
-val upointType: typ ref
-
-(** An unsigned integer type that is the type of sizeof. Depends on
- * {!Cil.msvcMode} and is set when you call {!Cil.initCIL}.  *)
-val typeOfSizeOf: typ ref
-
-(** The integer kind of {!Cil.typeOfSizeOf}.
- *  Set when you call {!Cil.initCIL}.  *)
-val kindOfSizeOf: ikind ref
 
 (** Returns true if and only if the given integer type is signed. *)
 val isSigned: ikind -> bool
@@ -427,6 +468,14 @@ val separateStorageModifiers: attribute list -> attribute list * attribute list
 (** True if the argument is a character type (i.e. plain, signed or unsigned) *)
 val isCharType: typ -> bool
 
+(** True if the argument is a pointer to a character type
+    (i.e. plain, signed or unsigned) *)
+val isCharPtrType: typ -> bool
+
+(** True if the argument is an array of a character type
+    (i.e. plain, signed or unsigned) *)
+val isCharArrayType: typ -> bool
+
 (** True if the argument is a logic integral type (i.e. integer or enum) *)
 val isIntegralType: typ -> bool
 
@@ -437,9 +486,11 @@ val isLogicIntegralType: logic_type -> bool
 (** True if the argument is a floating point type *)
 val isFloatingType: typ -> bool
 
-(** True if the argument is a logic floating point type, either C or
-    mathematical one *)
-val isLogicFloatingType: logic_type -> bool
+(** True if the argument is a floating point type *)
+val isLogicFloatType: logic_type -> bool
+
+(** True if the argument is a C floating point type or logic 'real' type *)
+val isLogicRealOrFloatType: logic_type -> bool
 
 (** True if the argument is an arithmetic type (i.e. integer, enum or
     floating point *)
@@ -449,11 +500,14 @@ val isArithmeticType: typ -> bool
     floating point, either C or mathematical one *)
 val isLogicArithmeticType: logic_type -> bool
 
-(**True if the argument is a pointer type *)
+(** True if the argument is a pointer type *)
 val isPointerType: typ -> bool
 
+(** True if the argument is the type for reified C types *)
+val isTypeTagType: logic_type -> bool
+
 (** True if the argument is a function type.
-    @plugin developer guide *)
+    @plugin development guide *)
 val isFunctionType: typ -> bool
 
 (** Obtain the argument list ([] if None) *)
@@ -574,13 +628,26 @@ val makeTempVar: fundec -> ?name:string -> ?descr:string ->
     is unique. [logic] defaults to [false]. *)
 val makeGlobalVar: ?logic:bool -> string -> typ -> varinfo
 
-(** Make a shallow copy of a [varinfo] and assign a new identifier *)
+(** Make a shallow copy of a [varinfo] and assign a new identifier.
+    If the original varinfo has an associated logic var, it is copied too and
+    associated to the copied varinfo
+ *)
 val copyVarinfo: varinfo -> string -> varinfo
 
+val set_vid: varinfo -> unit
+  (** Set the vid of the given varinfo with a fresh id. *)
 
-(** Generate a new variable ID. This will be different than any variable ID
- * that is generated by {!Cil.makeLocalVar} and friends *)
-val newVID: unit -> int
+val new_raw_id: unit -> int
+  (** Generate a new ID. This will be different than any variable ID
+      that is generated by {!Cil.makeLocalVar} and friends.
+      Must not be used for setting vid: use {!set_vid} instead. *)
+
+val varinfo_from_vid: int -> varinfo
+  (** @return the varinfo corresponding to the given id.
+      @raise Not_found if the given id does not match any varinfo. *)
+
+val varinfos_self: Project.Computation.t
+  (** State of the varinfos table. *)
 
 (** Returns the last offset in the chain. *)
 val lastOffset: offset -> offset
@@ -693,21 +760,20 @@ val isConstantOffset: offset -> bool
     constant with value zero *)
 val isZero: exp -> bool
 
-(** True if the given term is [\null]*)
+(** True if the term is the constant 0 *)
+val isLogicZero: term -> bool
+
+(** True if the given term is [\null] or a constant null pointer*)
 val isLogicNull: term -> bool
 
-(* CEA: moved from cabs2cil.ml, as they are needed in logic_typing.ml
-    (from which cabs2cil depends, so that it is not possible to simply
-     add them in cabs2cil.mli)
-*)
+val get_status : code_annotation -> annot_status
+
 (** gives the value of a wide char literal. *)
 val reduce_multichar: Cil_types.typ -> int64 list -> int64
 
 (** gives the value of a char literal. *)
 val interpret_character_constant:
   int64 list -> Cil_types.constant * Cil_types.typ
-
-(*/CEA*)
 
 (** Given the character c in a (CChr c), sign-extend it to 32 bits.
   (This is the official way of interpreting character constants, according to
@@ -799,7 +865,7 @@ val map_under_info: (exp -> exp) -> exp -> exp
 val app_under_info: (exp -> unit) -> exp -> unit
 
 (** Compute the type of an expression.
-    @plugin developer guide *)
+    @plugin development guide *)
 val typeOf: exp -> typ
 
 val typeOf_pointed : typ -> typ
@@ -817,9 +883,10 @@ val parseInt: string -> exp
 (**********************************************)
 (** {b Values for manipulating statements} *)
 
-(** Construct a statement, given its kind. Initialize the [sid] field to -1,
+(** Construct a statement, given its kind. Initialize the [sid] field to -1
+    if [valid_sid] is false, or to a valid sid if [valid_sid] is true,
     and [labels], [succs] and [preds] to the empty list *)
-val mkStmt: stmtkind -> stmt
+val mkStmt: ?valid_sid:bool -> stmtkind -> stmt
 
 (* make the [new_stmtkind] changing the CFG relatively to [ref_stmt] *)
 val mkStmtCfg: before:bool -> new_stmtkind:stmtkind -> ref_stmt:stmt -> stmt
@@ -862,6 +929,9 @@ val mkForIncr:  iter:varinfo -> first:exp -> stopat:exp -> incr:exp
 val mkFor: start:stmt list -> guard:exp -> next: stmt list ->
                                        body: stmt list -> stmt list
 
+(** creates a block with empty attributes from an unspecified sequence. *)
+val block_from_unspecified_sequence:
+  (stmt * lval list * lval list) list -> block
 
 (**************************************************)
 (** {b Values for manipulating attributes} *)
@@ -960,7 +1030,7 @@ exception NotAnAttrParam of exp
 
 (** Different visiting actions. 'a will be instantiated with [exp], [instr],
     etc.
-    @plugin developer guide *)
+    @plugin development guide *)
 type 'a visitAction =
     SkipChildren                        (** Do not visit the children. Return
                                             the node as it is. *)
@@ -970,6 +1040,11 @@ type 'a visitAction =
                                             (use == test) *)
   | ChangeTo of 'a                      (** Replace the expression with the
                                             given one *)
+  | ChangeToPost of 'a * ('a -> 'a)
+      (** applies the expression to the function
+          and gives back the result. Useful to insert some actions in
+          an inheritance chain
+       *)
   | ChangeDoChildrenPost of 'a * ('a -> 'a) (** First consider that the entire
                                            exp is replaced by the first
                                            parameter. Then continue with
@@ -983,11 +1058,11 @@ type visitor_behavior
   (** How the visitor should behave in front of mutable fields: in
       place modification or copy of the structure. This type is abstract.
       Use one of the two values below in your classes.
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val inplace_visit: unit -> visitor_behavior
   (** In-place modification. Behavior of the original cil visitor.
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val copy_visit: unit -> visitor_behavior
   (** Makes fresh copies of the mutable structures.
@@ -997,7 +1072,7 @@ val copy_visit: unit -> visitor_behavior
       AST. This allows for instance to copy a function with its
       formals and local variables, and to keep the references to other
       globals in the function's body.
-      @plugin developer guide *)
+      @plugin development guide *)
 
 (** true iff the behavior is a copy behavior. *)
 val is_copy_behavior: visitor_behavior -> bool
@@ -1009,10 +1084,10 @@ val reset_behavior_varinfo: visitor_behavior -> unit
   *)
 val reset_behavior_compinfo: visitor_behavior -> unit
 val reset_behavior_enuminfo: visitor_behavior -> unit
+val reset_behavior_enumitem: visitor_behavior -> unit
 val reset_behavior_typeinfo: visitor_behavior -> unit
 val reset_behavior_stmt: visitor_behavior -> unit
 val reset_behavior_logic_info: visitor_behavior -> unit
-val reset_behavior_predicate_info: visitor_behavior -> unit
 val reset_behavior_fieldinfo: visitor_behavior -> unit
 
 val get_varinfo: visitor_behavior -> varinfo -> varinfo
@@ -1021,11 +1096,12 @@ val get_varinfo: visitor_behavior -> varinfo -> varinfo
   *)
 val get_compinfo: visitor_behavior -> compinfo -> compinfo
 val get_enuminfo: visitor_behavior -> enuminfo -> enuminfo
+val get_enumitem: visitor_behavior -> enumitem -> enumitem
 val get_typeinfo: visitor_behavior -> typeinfo -> typeinfo
 val get_stmt: visitor_behavior -> stmt -> stmt
 val get_logic_info: visitor_behavior -> logic_info -> logic_info
-val get_predicate_info: visitor_behavior -> predicate_info -> predicate_info
 val get_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
+val get_logic_var: visitor_behavior -> logic_var -> logic_var
 
 val get_original_varinfo: visitor_behavior -> varinfo -> varinfo
   (** retrieve the original representative of a given copy of a varinfo
@@ -1033,12 +1109,12 @@ val get_original_varinfo: visitor_behavior -> varinfo -> varinfo
   *)
 val get_original_compinfo: visitor_behavior -> compinfo -> compinfo
 val get_original_enuminfo: visitor_behavior -> enuminfo -> enuminfo
+val get_original_enumitem: visitor_behavior -> enumitem -> enumitem
 val get_original_typeinfo: visitor_behavior -> typeinfo -> typeinfo
 val get_original_stmt: visitor_behavior -> stmt -> stmt
 val get_original_logic_info: visitor_behavior -> logic_info -> logic_info
-val get_original_predicate_info:
-  visitor_behavior -> predicate_info -> predicate_info
 val get_original_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
+val get_original_logic_var: visitor_behavior -> logic_var -> logic_var
 
 val set_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   (** change the representative of a given varinfo in the current
@@ -1047,12 +1123,25 @@ val set_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   *)
 val set_compinfo: visitor_behavior -> compinfo -> compinfo -> unit
 val set_enuminfo: visitor_behavior -> enuminfo -> enuminfo -> unit
+val set_enumitem: visitor_behavior -> enumitem -> enumitem -> unit
 val set_typeinfo: visitor_behavior -> typeinfo -> typeinfo -> unit
 val set_stmt: visitor_behavior -> stmt -> stmt -> unit
 val set_logic_info: visitor_behavior -> logic_info -> logic_info -> unit
-val set_predicate_info:
-  visitor_behavior -> predicate_info -> predicate_info -> unit
 val set_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
+val set_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
+
+val set_orig_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
+  (** change the reference of a given new varinfo in the current
+      state of the visitor. Use with care
+  *)
+val set_orig_compinfo: visitor_behavior -> compinfo -> compinfo -> unit
+val set_orig_enuminfo: visitor_behavior -> enuminfo -> enuminfo -> unit
+val set_orig_enumitem: visitor_behavior -> enumitem -> enumitem -> unit
+val set_orig_typeinfo: visitor_behavior -> typeinfo -> typeinfo -> unit
+val set_orig_stmt: visitor_behavior -> stmt -> stmt -> unit
+val set_orig_logic_info: visitor_behavior -> logic_info -> logic_info -> unit
+val set_orig_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
+val set_orig_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
 
 (** A visitor interface for traversing CIL trees. Create instantiations of
  * this type by specializing the class {!nopCilVisitor}. Each of the
@@ -1065,14 +1154,14 @@ val set_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
  * doing, you should probably inherit from the
  * {!Visitor.generic_frama_c_visitor} instead of {!genericCilVisitor} or
  *   {!nopCilVisitor}
-    @plugin developer guide *)
+    @plugin development guide *)
 class type cilVisitor = object
   method behavior: visitor_behavior
     (** the kind of behavior expected for the behavior *)
 
   method vfile: file -> file visitAction
     (** visit a whole file.
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vvdec: varinfo -> varinfo visitAction
     (** Invoked for each variable declaration. The subtrees to be traversed
@@ -1083,20 +1172,20 @@ class type cilVisitor = object
      * in a function definition will be traversed twice, once as part of the
      * function type and second as part of the formals in a function
      * definition.
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vvrbl: varinfo -> varinfo visitAction
     (** Invoked on each variable use. Here only the [SkipChildren] and
      * [ChangeTo] actions make sense since there are no subtrees. Note that
      * the type and attributes of the variable are not traversed for a
      * variable use.
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vexpr: exp -> exp visitAction
     (** Invoked on each expression occurrence. The subtrees are the
      * subexpressions, the types (for a [Cast] or [SizeOf] expression) or the
      * variable use.
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vlval: lval -> lval visitAction
     (** Invoked on each lvalue occurrence *)
@@ -1105,7 +1194,7 @@ class type cilVisitor = object
     (** Invoked on each offset occurrence that is *not* as part
       * of an initializer list specification, i.e. in an lval or
       * recursively inside an offset.
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vinitoffs: offset -> offset visitAction
     (** Invoked on each offset appearing in the list of a
@@ -1122,26 +1211,37 @@ class type cilVisitor = object
      * sharing with [Goto] and [Case] statements that point to the original
      * statement. If you use the [ChangeTo] action then you should take care
      * of preserving that sharing yourself.
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vblock: block -> block visitAction     (** Block. *)
   method vfunc: fundec -> fundec visitAction    (** Function definition.
                                                     Replaced in place. *)
   method vglob: global -> global list visitAction
     (** Global (vars, types, etc.)
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method vinit: varinfo -> offset -> init -> init visitAction
                                                 (** Initializers for globals,
                                                  * pass the global where this
                                                  * occurs, and the offset *)
-  method vtype: typ -> typ visitAction          (** Use of some type. Note
-                                                 * that for structure/union
-                                                 * and enumeration types the
-                                                 * definition of the
-                                                 * composite type is not
-                                                 * visited. Use [vglob] to
-                                                 * visit it.  *)
+  method vtype: typ -> typ visitAction
+    (** Use of some type. For typedef, struct, union and enum, the visit is
+        done once at the global defining the type. Thus, children of
+        [TComp], [TEnum] and [TNamed] are not visited again.
+     *)
+
+  method vcompinfo: compinfo -> compinfo visitAction
+    (** declaration of a struct/union *)
+
+  method venuminfo: enuminfo -> enuminfo visitAction
+    (** declaration of an enumeration *)
+
+  method vfieldinfo: fieldinfo -> fieldinfo visitAction
+    (** visit the declaration of a field of a structure or union *)
+
+  method venumitem: enumitem -> enumitem visitAction
+    (** visit the declaration of an enumeration item *)
+
   method vattr: attribute -> attribute list visitAction
     (** Attribute. Each attribute can be replaced by a list *)
   method vattrparam: attrparam -> attrparam visitAction
@@ -1159,8 +1259,22 @@ class type cilVisitor = object
   method unqueueInstr: unit -> instr list
 
   method current_stmt: stmt option
+    (** link to the current statement being visited.
+
+        {b NB:} for copy visitor, the stmt is the original one (use
+        [get_stmt] to obtain the corresponding copy)
+     *)
+
   method push_stmt : stmt -> unit
   method pop_stmt : stmt -> unit
+
+  method current_func: fundec option
+    (** link to the current function being visited.
+
+        {b NB:} for copy visitors, the fundec is the original one.
+     *)
+  method set_current_func: fundec -> unit
+  method reset_current_func: unit -> unit
 
   method vlogic_type: logic_type -> logic_type visitAction
 
@@ -1188,7 +1302,9 @@ class type cilVisitor = object
 
   method vlogic_info_use: logic_info -> logic_info visitAction
 
-  method vlogic_var: logic_var -> logic_var visitAction
+  method vlogic_var_decl: logic_var -> logic_var visitAction
+
+  method vlogic_var_use: logic_var -> logic_var visitAction
 
   method vquantifiers: quantifiers -> quantifiers visitAction
 
@@ -1196,9 +1312,13 @@ class type cilVisitor = object
 
   method vpredicate_named: predicate named -> predicate named visitAction
 
+(*
   method vpredicate_info_decl: predicate_info -> predicate_info visitAction
+*)
 
+(*
   method vpredicate_info_use: predicate_info -> predicate_info visitAction
+*)
 
   method vbehavior: funbehavior -> funbehavior visitAction
 
@@ -1221,11 +1341,11 @@ class type cilVisitor = object
 
   (** fill the global environment tables at the end of a full copy in a
       new project.
-      @plugin developer guide *)
+      @plugin development guide *)
   method fill_global_tables: unit
 
   (** get the queue of actions to be performed at the end of a full copy.
-      @plugin developer guide *)
+      @plugin development guide *)
   method get_filling_actions: (unit -> unit) Queue.t
 
   (** Used at the beginning of the visit of a whole file to update
@@ -1248,24 +1368,24 @@ class nopCilVisitor: cilVisitor
     mechanism}
     @param vis the visitor performing the needed transformations. The open
     type allows for extensions to Cil to be visited by the same mechanisms.
-    @param a generator for a visitor of the same type of the current one that
-    performs a deep copy of the AST. Needed when the visitAction is
-    [SkipChildren] or [ChangeTo] and [vis] is a copy visitor (we need to finish
-    the copy anyway)
+    @param deepCopyVisitor a generator for a visitor of the same type
+    of the current one that performs a deep copy of the AST.
+    Needed when the visitAction is [SkipChildren] or [ChangeTo] and [vis]
+    is a copy visitor (we need to finish the copy anyway)
     @param copy function that may return a copy of the actual node.
     @param action the visiting function for the current node
     @param children what to do on the children of the current node
     @param node the current node
 *)
 val doVisit:
-  (#cilVisitor as 'visit) ->
+  'visit ->
   ('a -> 'a) ->
   ('a -> 'a visitAction) ->
   ('visit -> 'a -> 'a) -> 'a -> 'a
 
 (** same as above, but can return a list of nodes *)
 val doVisitList:
-  (#cilVisitor as 'visit) ->
+  'visit ->
   ('a -> 'a) ->
   ('a -> 'a list visitAction) ->
   ('visit -> 'a -> 'a) -> 'a -> 'a list
@@ -1275,19 +1395,19 @@ val doVisitList:
 (** Visit a file. This will will re-cons all globals TWICE (so that it is
  * tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
  * not change the list of globals.
-    @plugin developer guide *)
+    @plugin development guide *)
 val visitCilFileCopy: cilVisitor -> file -> file
 
 (** Same thing, but the result is ignored. The given visitor must thus be
     an inplace visitor. Nothing is done if the visitor is a copy visitor.
-    @plugin developer guide *)
+    @plugin development guide *)
 val visitCilFile: cilVisitor -> file -> unit
 
 (** A visitor for the whole file that does not change the globals (but maybe
  * changes things inside the globals). Use this function instead of
  * {!Cil.visitCilFile} whenever appropriate because it is more efficient for
  * long files.
-    @plugin developer guide *)
+    @plugin development guide *)
 val visitCilFileSameGlobals: cilVisitor -> file -> unit
 
 (** Visit a global *)
@@ -1339,6 +1459,9 @@ val visitCilAssigns:
 
 val visitCilFunspec: cilVisitor -> funspec -> funspec
 
+val visitCilBehavior: cilVisitor -> funbehavior -> funbehavior
+val visitCilBehaviors: cilVisitor -> funbehavior list -> funbehavior list
+
 val visitCilLogicType: cilVisitor -> logic_type -> logic_type
 
 val visitCilPredicate: cilVisitor -> predicate -> predicate
@@ -1355,7 +1478,9 @@ val visitCilTerm: cilVisitor -> term -> term
 
 val visitCilTermOffset: cilVisitor -> term_offset -> term_offset
 
+(*
 val visitCilPredicateInfo: cilVisitor -> predicate_info -> predicate_info
+*)
 
 val visitCilLogicInfo: cilVisitor -> logic_info -> logic_info
 
@@ -1366,53 +1491,9 @@ val visitCilLogicInfo: cilVisitor -> logic_info -> logic_info
 
 val is_skip: stmtkind -> bool
 
-(** Whether the pretty printer should print output for the MS VC compiler.
-   Default is GCC. After you set this function you should call {!Cil.initCIL}. *)
-val msvcMode: bool ref
-
-
-(** Whether to use the logical operands LAnd and LOr. By default, do not use
- * them because they are unlike other expressions and do not evaluate both of
- * their operands *)
-val useLogicalOperators: bool ref
-
-
 (** A visitor that does constant folding. Pass as argument whether you want
  * machine specific simplifications to be done, or not. *)
 val constFoldVisitor: bool -> cilVisitor
-
-(** Styles of printing line directives *)
-type lineDirectiveStyle =
-  | LineComment                (** Before every element, print the line
-                                * number in comments. This is ignored by
-                                * processing tools (thus errors are reproted
-                                * in the CIL output), but useful for
-                                * visual inspection *)
-  | LineCommentSparse          (** Like LineComment but only print a line
-                                * directive for a new source line *)
-  | LinePreprocessorInput      (** Use # nnn directives (in gcc mode) *)
-  | LinePreprocessorOutput     (** Use #line directives *)
-
-(** How to print line directives *)
-val lineDirectiveStyle: lineDirectiveStyle option ref
-
-(** Whether we print something that will only be used as input to our own
- * parser. In that case we are a bit more liberal in what we print *)
-val print_CIL_Input: bool ref
-
-(** Whether to print the CIL as they are, without trying to be smart and
-  * print nicer code. Normally this is false, in which case the pretty
-  * printer will turn the while(1) loops of CIL into nicer loops, will not
-  * print empty "else" blocks, etc. These is one case howewer in which if you
-  * turn this on you will get code that does not compile: if you use varargs
-  * the __builtin_va_arg function will be printed in its internal form. *)
-val printCilAsIs: bool ref
-
-(** The length used when wrapping output lines.  Setting this variable to
-  * a large integer will prevent wrapping and make #line directives more
-  * accurate.
-  *)
-val lineLength: int ref
 
 (** Return the string 's' if we're printing output for gcc, suppres
  *  it if we're printing for CIL to parse back in.  the purpose is to
@@ -1425,7 +1506,7 @@ val forgcc: string -> string
 (** A reference to the current location. If you are careful to set this to
  * the current location then you can use some built-in logging functions that
  * will print the location. *)
-val currentLoc: location ref
+module CurrentLoc: Computation.REF_OUTPUT with type data = location
 
 (** A reference to the current global being visited *)
 val currentGlobal: global ref
@@ -1456,7 +1537,7 @@ a corresponding function that pretty-prints an element of that type:
 (** Pretty-print a location *)
 val d_loc: Format.formatter -> location -> unit
 
-(** Pretty-print the {!Cil.currentLoc} *)
+(** Pretty-print the [(Cil.CurrentLoc.get ())] *)
 val d_thisloc: Format.formatter -> unit
 
 (** Pretty-print an integer of a given kind *)
@@ -1643,7 +1724,9 @@ class type cilPrinter = object
 
   method pPredicate_named: Format.formatter -> predicate named -> unit
 
+(*
   method pPredicate_info_use: Format.formatter -> predicate_info -> unit
+*)
 
   method pBehavior: Format.formatter -> funbehavior -> unit
 
@@ -1656,6 +1739,8 @@ class type cilPrinter = object
      *)
   method pAssigns:
     string -> Format.formatter -> identified_tsets assigns -> unit
+
+  method pStatus : Format.formatter -> Cil_types.annot_status -> unit
 
   method pCode_annot: Format.formatter -> code_annotation -> unit
 
@@ -1789,6 +1874,7 @@ val d_tsets_elem:  Format.formatter -> tsets_elem -> unit
 val d_tsets_lhost:  Format.formatter -> tsets_lhost -> unit
 val d_tsets_offset: Format.formatter -> tsets_offset -> unit
 
+val d_status: Format.formatter -> annot_status -> unit
 val d_predicate_named: Format.formatter -> predicate named -> unit
 val d_code_annotation: Format.formatter -> code_annotation -> unit
 val d_funspec: Format.formatter -> funspec -> unit
@@ -1818,47 +1904,49 @@ val d_file: cilPrinter -> Format.formatter -> file -> unit
  * the code. use {!Errormsg.bug} and {!Errormsg.unimp} if you do not want
  * that *)
 
-(** Like {!Errormsg.bug} except that {!Cil.currentLoc} is also printed *)
+(** Like {!Errormsg.bug} except that [(Cil.CurrentLoc.get ())] is also printed *)
 val bug: ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 (** Raises [Errormsg.Error] after printing *)
 val fatal_unimp: ('a, Format.formatter, unit, 'b) format4 -> 'a
 val fatal_error: ('a, Format.formatter, unit, 'b) format4 -> 'a
 
-(** Like {!Errormsg.unimp} except that {!Cil.currentLoc}is also printed *)
+(** Like {!Errormsg.unimp} except that [(Cil.CurrentLoc.get ())]is also printed *)
 val unimp: ('a, Format.formatter, unit, unit) format4 -> 'a
 
 (**  Like {!Errormsg.error} except that this full location is given
      [(file, line, byte_start_on_line, byte_stop_on_line)]  *)
 val error_loc: string*int*int*int -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
-(** Like {!Errormsg.error} except that {!Cil.currentLoc} is also printed *)
+(** Like {!Errormsg.error} except that [(Cil.CurrentLoc.get ())] is also printed *)
 val error: ('a, Format.formatter, unit, unit) format4 -> 'a
 
 (** Like {!Cil.error} except that it explicitly takes a location argument,
- * instead of using the {!Cil.currentLoc} *)
+ * instead of using the [(Cil.CurrentLoc.get ())] *)
 val errorLoc: location -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
-(** Like {!Errormsg.warn} except that {!Cil.currentLoc} is also printed *)
+(** Like {!Errormsg.warn} except that [(Cil.CurrentLoc.get ())] is also printed *)
 val warn: ('a, Format.formatter, unit, unit) format4 -> 'a
 
-(** Like {!Errormsg.warnOpt} except that {!Cil.currentLoc} is also printed.
+(** Like {!Errormsg.warnOpt} except that [(Cil.CurrentLoc.get ())] is also printed.
  * This warning is printed only of {!Errormsg.warnFlag} is set. *)
 val warnOpt: ('a, Format.formatter, unit, unit) format4 -> 'a
 
-(** Like {!Errormsg.warn} except that {!Cil.currentLoc} and context
+(** Like {!Errormsg.warn} except that [(Cil.CurrentLoc.get ())] and context
     is also printed *)
 val warnContext: ('a, Format.formatter, unit, unit) format4 -> 'a
 
-(** Like {!Errormsg.warn} except that {!Cil.currentLoc} and context is also
+(** Like {!Errormsg.warn} except that [(Cil.CurrentLoc.get ())] and context is also
  * printed. This warning is printed only of {!Errormsg.warnFlag} is set. *)
 val warnContextOpt: ('a, Format.formatter, unit, unit) format4 -> 'a
 
 (** Like {!Cil.warn} except that it explicitly takes a location argument,
- * instead of using the {!Cil.currentLoc} *)
+ * instead of using the [(Cil.CurrentLoc.get ())] *)
 val warnLoc: location -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
 val log: ('a, Format.formatter, unit, unit) format4 -> 'a
+
+val logLoc: location -> ('a, Format.formatter, unit, unit) format4 -> 'a
 
 val fprintfList :
   sep:((Format.formatter -> 'a list -> unit) -> 'a list -> unit,
@@ -1967,33 +2055,6 @@ val alignOf_int: typ -> int
  * this after you call {!Cil.initCIL}. *)
 val bitsOffset: typ -> offset -> int * int
 
-
-(** Whether "char" is unsigned. Set after you call {!Cil.initCIL} *)
-val char_is_unsigned: bool ref
-
-(** Whether the machine is little endian. Set after you call {!Cil.initCIL} *)
-val little_endian: bool ref
-
-(** Whether the compiler generates assembly labels by prepending "_" to the
-    identifier. That is, will function foo() have the label "foo", or "_foo"?
-    Set after you call {!Cil.initCIL} *)
-val underscore_name: bool ref
-
-(** Wether enum are signed or not *)
-val enum_are_signed: bool ref
-
-(** Represents a location that cannot be determined *)
-val locUnknown: location
-
-(** Return the location of an instruction *)
-val get_instrLoc: instr -> location
-
-(** Return the location of a global, or locUnknown *)
-val get_globalLoc: global -> location
-
-(** Return the location of a statement, or locUnknown *)
-val get_stmtLoc: stmtkind -> location
-
 (** Generate an {!Cil_types.exp} to be used in case of errors. *)
 val dExp:string -> exp
 
@@ -2050,27 +2111,15 @@ type formatArg =
 
 val d_formatarg : Format.formatter -> formatArg -> unit
 
-(** Emit warnings when truncating integer constants (default true) *)
-val warnTruncate: bool ref
-
 val stmt_of_instr_list : ?loc:location -> instr list -> stmtkind
-
-module Instr : sig
-  type t = kinstr
-  val compare: t -> t -> int
-  val equal: t -> t -> bool
-  val hash: t -> int
-  val pretty:  Format.formatter -> t -> unit
-end
-
-module InstrMapl : Cilutil.Mapl with type key = kinstr
 
 val pretty_loc : Format.formatter -> kinstr -> unit
 val pretty_loc_simply : Format.formatter -> kinstr -> unit
 
-module InstrHashtbl : Hashtbl.S with type key = kinstr
 
-(** Convert a C variable into the corresponding logic variable *)
+(** Convert a C variable into the corresponding logic variable.
+    The returned logic variable is unique for a given C variable.
+ *)
 val cvar_to_lvar : varinfo -> logic_var
 
 (** Create a fresh logical variable giving its name and type. *)
@@ -2080,7 +2129,7 @@ val make_logic_var : string -> logic_type -> logic_var
 val make_temp_logic_var: logic_type -> logic_var
 
 (** The constant logic term zero.
-    @plugin developer guide *)
+    @plugin development guide *)
 val lzero : ?loc:location -> unit -> term
 
 (** The given constant logic term *)
@@ -2089,21 +2138,18 @@ val lconstant : ?loc:location -> Int64.t -> term
 (** Bind all free variables with an universal quantifier *)
 val close_predicate : predicate named -> predicate named
 
-module VarinfoSet : (Set.S with type elt = varinfo)
-
 (** extract [varinfo] elements from an [exp] *)
-val extract_varinfos_from_exp : exp -> VarinfoSet.t
+val extract_varinfos_from_exp : exp -> Cilutil.VarinfoSet.t
 
 (** extract [varinfo] elements from an [lval] *)
-val extract_varinfos_from_lval : lval -> VarinfoSet.t
-
-module LogicVarSet : (Set.S with type elt = logic_var)
+val extract_varinfos_from_lval : lval -> Cilutil.VarinfoSet.t
 
 (** extract [logic_var] elements from a [term] *)
-val extract_free_logicvars_from_term : term -> LogicVarSet.t
+val extract_free_logicvars_from_term : term -> Cilutil.LogicVarSet.t
 
 (** extract [logic_var] elements from a [predicate] *)
-val extract_free_logicvars_from_predicate : predicate named -> LogicVarSet.t
+val extract_free_logicvars_from_predicate :
+  predicate named -> Cilutil.LogicVarSet.t
 
 (** creates a visitor that will replace in place uses of var in the first
     list by their counterpart in the second list.

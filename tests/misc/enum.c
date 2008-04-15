@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f
+  OPT: -memory-footprint 1 -val -deps -out -input  -main f -journal-disable
 */
 typedef enum counter {ZERO,ONE,TWO};
 
@@ -11,5 +11,5 @@ void f(void)
   for(j=0;j<2;j++)
     i[j] = 1;
 
- 
+
 }

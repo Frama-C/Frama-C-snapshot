@@ -19,12 +19,16 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: builtin.c,v 1.15 2008/06/26 07:46:00 uid568 Exp $ */
+/* $Id: builtin.c,v 1.16 2008/11/21 09:19:53 uid527 Exp $ */
 
-static volatile int Frama_C_entropy_source;
+int Frama_C_entropy_source;
+
+//@ assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+void Frama_C_update_entropy(void);
 
 int Frama_C_nondet(int a, int b)
 {
+  Frama_C_update_entropy();
   return Frama_C_entropy_source ? a : b;
 }
 
@@ -36,6 +40,7 @@ void *Frama_C_nondet_ptr(void *a, void *b)
 int Frama_C_interval(int min, int max)
 {
   int r,aux;
+  Frama_C_update_entropy();
   aux = Frama_C_entropy_source;
   if ((aux>=min) && (aux <=max))
     r = aux;
@@ -46,6 +51,7 @@ int Frama_C_interval(int min, int max)
 
 float Frama_C_float_interval(float min, float max)
 {
+  Frama_C_update_entropy();
   return Frama_C_entropy_source ? min : max;
 }
 
@@ -56,16 +62,16 @@ static float f;
 
 void Frama_C_builtin_examples(void)
 {
-  /* choix non-déterministe entre deux entiers */
+  /* non-determinist choice between two integers */
   ex1 = Frama_C_nondet(17, 42);
 
-  /* choix non-déterministe entre deux pointeurs */
+  /* non-determinist choice between two pointers */
   ex3 = Frama_C_nondet_ptr(&ex1, &ex2);
 
-  /* intervalle d'entiers */
+  /* integers interval */
   ex2 = Frama_C_interval(17, 42);
 
-  /* intervalle de flottants */ 
+  /* floats interval */
   f = Frama_C_float_interval(1.0, 5.0);
 }
 #endif

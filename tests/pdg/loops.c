@@ -1,14 +1,14 @@
 /* run.config
    GCC:
-   OPT: -lib-entry -main simple -pdg-debug "-fct-pdg simple"
-   OPT: -lib-entry -main simple_with_break -pdg-debug "-fct-pdg simple_with_break"
-   OPT: -lib-entry -main infinite -pdg-debug "-fct-pdg infinite"
-   OPT: -lib-entry -main infinite2 -pdg-debug "-fct-pdg infinite2"
-   OPT: -lib-entry -main maybe_infinite -pdg-debug "-fct-pdg maybe_infinite"
-   OPT: -lib-entry -main two_infinite_loops -pdg-debug "-fct-pdg two_infinite_loops"
-   OPT: -lib-entry -main loop_with_goto -pdg-debug "-fct-pdg loop_with_goto"
-   OPT: -lib-entry -main non_natural_loop -pdg-debug "-fct-pdg non_natural_loop"
-   OPT: -lib-entry -main dead_code -pdg-debug "-fct-pdg dead_code"
+   OPT: -lib-entry -main simple -pdg-debug "-fct-pdg simple" -journal-disable
+   OPT: -lib-entry -main simple_with_break -pdg-debug "-fct-pdg simple_with_break" -journal-disable
+   OPT: -lib-entry -main infinite -pdg-debug "-fct-pdg infinite" -journal-disable
+   OPT: -lib-entry -main infinite2 -pdg-debug "-fct-pdg infinite2" -journal-disable
+   OPT: -lib-entry -main maybe_infinite -pdg-debug "-fct-pdg maybe_infinite" -journal-disable
+   OPT: -lib-entry -main two_infinite_loops -pdg-debug "-fct-pdg two_infinite_loops" -journal-disable
+   OPT: -lib-entry -main loop_with_goto -pdg-debug "-fct-pdg loop_with_goto" -journal-disable
+   OPT: -lib-entry -main non_natural_loop -pdg-debug "-fct-pdg non_natural_loop" -journal-disable
+   OPT: -lib-entry -main dead_code -pdg-debug "-fct-pdg dead_code" -journal-disable
 
 
 

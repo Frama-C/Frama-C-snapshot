@@ -1,12 +1,12 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main1
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main2
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main3
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main4
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main5
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main6
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main7
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main1 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main2 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main3 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main4 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main5 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main6 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main7 -journal-disable
 */
 
 char s1[]="hello, world";

@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -lib-entry -main f -slice-calls send -slice-print
-   OPT: -lib-entry -main g -slice-calls nothing -slice-print
+   OPT: -lib-entry -main f -slice-calls send -slice-print -journal-disable
+   OPT: -lib-entry -main g -slice-calls nothing -slice-print -journal-disable
    */
 
 void nothing (void);
@@ -43,4 +43,3 @@ void g (void) {
   nothing ();
   d = 3;
 }
-

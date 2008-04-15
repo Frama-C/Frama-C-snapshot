@@ -39,6 +39,7 @@ val find_stmt_and_blocks_nodes : t_pdg -> Cil_types.stmt -> t_node list
 val find_location_nodes_at_stmt : 
   t_pdg -> Cil_types.stmt -> before:bool -> t_loc -> t_nodes_and_undef
 val find_location_nodes_at_end : t_pdg -> t_loc -> t_nodes_and_undef
+val find_location_nodes_at_begin : t_pdg -> t_loc -> t_nodes_and_undef
 val find_label_node : t_pdg -> Cil_types.stmt -> Cil_types.label -> t_node
 val find_decl_var_node : t_pdg -> Cil_types.varinfo -> t_node
 val find_input_node : t_pdg -> int -> t_node

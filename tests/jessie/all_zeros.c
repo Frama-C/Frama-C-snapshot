@@ -22,10 +22,10 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* v‚rifie que t[0..n-1] ne contient que des 0 */
+/* checks that t[0..n-1] contain only zeros */
 
 /*@ requires \valid_range(t,0,n) && n >= 0;
-    ensures \result <==> \forall int i; 0<=i<n ==> t[i]==0; */
+    ensures \result <==> \forall integer i; 0<=i<n ==> t[i]==0; */
 int all_zeros(int t[], int n) {
   /*@ loop invariant 0 <= n <= \at(n,Pre) && \forall int i; n<=i<\at(n,Pre) ==> t[i]==0;
       loop variant n; */
@@ -34,10 +34,10 @@ int all_zeros(int t[], int n) {
 }
 
 /*@ requires \valid_range(t,0,n) && n >= 0;
-  ensures \result <==> \forall int i; 0<=i<n ==> t[i]==0; */
+  ensures \result <==> \forall integer i; 0<=i<n ==> t[i]==0; */
 int all_zeros_1(int t[], int n) {
   int k = 0;
-  /*@ loop invariant 0 <= k <= n && \forall int i; 0<=i<k ==> t[i]==0;
+  /*@ loop invariant 0 <= k <= n && \forall integer i; 0<=i<k ==> t[i]==0;
     @ loop variant n-k;
    */
   while (k<n && !t[k++]);
@@ -45,10 +45,10 @@ int all_zeros_1(int t[], int n) {
 }
 
 /*@ requires \valid_range(t,0,n) && n >= 0;
-    ensures \result <==> \forall int i; 0<=i<n ==> t[i]==0; */
+    ensures \result <==> \forall integer i; 0<=i<n ==> t[i]==0; */
 int all_zeros_0(int t[], int n) {
   int k;
-  /*@ loop invariant 0 <= k <= n && \forall int i; 0<=i<k ==> t[i]==0;
+  /*@ loop invariant 0 <= k <= n && \forall integer i; 0<=i<k ==> t[i]==0;
     @ loop variant n-k;
    */
   for (k = 0; k < n; k++) if (t[k]) return 0;

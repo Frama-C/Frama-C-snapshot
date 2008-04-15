@@ -31,21 +31,19 @@
 
 /**** misc ************************************************************/
 
-//@ axiom div2_1: \forall int x; 0 <= x ==> 0 <= x/2 <= x;
+//@ lemma div2_1: \forall int x; 0 <= x ==> 0 <= x/2 <= x;
 
 /**** bags ************************************************************/
 
-//@ type bag;
-
-//@ logic bag empty_bag();
-
-//@ logic bag singleton_bag(integer x);
-
-//@ logic bag union_bag(bag b1, bag b2);
-
-//@ logic bag add_bag(integer x, bag b) = union_bag(b, singleton_bag(x)) ;
-
-//@ logic integer occ_bag(integer x, bag b);
+/*@ axiomatic Bag {
+  type bag;
+  logic bag empty_bag;
+  logic bag singleton_bag(integer x);
+  logic bag union_bag(bag b1, bag b2);
+  logic bag add_bag(integer x, bag b) = union_bag(b, singleton_bag(x)) ;
+  logic integer occ_bag(integer x, bag b);
+}
+*/
 
 /*@ predicate is_max_bag(bag b, integer m) =
   @   occ_bag(m, b) >= 1 &&
@@ -55,69 +53,59 @@
 
 /**** trees ************************************************************/
 
-//@ type tree;
-
-//@ logic tree Empty();
-
-//@ logic tree Node(tree l, integer x, tree r);
-
-//@ logic bag bag_of_tree(tree t);
-
-/*@ axiom bag_of_tree_def_1:
-  @   bag_of_tree(Empty()) == empty_bag();
-  @*/
-
-/*@ axiom bag_of_tree_def_2:
-  @   \forall tree l; \forall int x; \forall tree r;
-  @     bag_of_tree(Node(l, x, r)) ==
-  @     add_bag(x, union_bag(bag_of_tree(l), bag_of_tree(r)));
+/*@ axiomatic Tree {
+  @   type tree;
+  @   logic tree Empty;
+  @   logic tree Node(tree l, integer x, tree r);
+  @   logic bag bag_of_tree(tree t);
+  @   axiom bag_of_tree_def_1:
+  @     bag_of_tree(Empty) == empty_bag;
+  @   axiom bag_of_tree_def_2:
+  @     \forall tree l; \forall integer x; \forall tree r;
+  @       bag_of_tree(Node(l, x, r)) ==
+  @         add_bag(x, union_bag(bag_of_tree(l), bag_of_tree(r)));
+  @ }
   @*/
 
 /*** heap property *******************************************************/
 
-//@ predicate is_heap(tree t);
-
-//@ axiom is_heap_def_1: is_heap(Empty());
-
-//@ axiom is_heap_def_2: \forall integer x; is_heap(Node(Empty(), x, Empty()));
-
-/*@ axiom is_heap_def_3:
-  @   \forall tree ll; \forall int lx; \forall tree lr; \forall int x;
-  @     x >= lx ==> is_heap(Node(ll, lx, lr)) ==>
-  @     is_heap(Node(Node(ll, lx, lr), x, Empty()));
-  @*/
-
-/*@ axiom is_heap_def_4:
-  @   \forall tree rl; \forall int rx; \forall tree rr; \forall int x;
-  @     x >= rx ==> is_heap(Node(rl, rx, rr)) ==>
-  @     is_heap(Node(Empty(), x, Node(rl, rx, rr)));
-  @*/
-
-/*@ axiom is_heap_def_5:
-  @   \forall tree ll; \forall int lx; \forall tree lr;
-  @   \forall int x;
-  @   \forall tree rl; \forall int rx; \forall tree rr;
-  @     x >= lx ==> is_heap(Node(ll, lx, lr)) ==>
-  @     x >= rx ==> is_heap(Node(rl, rx, rr)) ==>
-  @     is_heap(Node(Node(ll, lx, lr), x, Node(rl, rx, rr)));
+/*@ axiomatic IsHeap {
+  @   predicate is_heap(tree t);
+  @   axiom is_heap_def_1: is_heap(Empty);
+  @   axiom is_heap_def_2:
+  @     \forall integer x; is_heap(Node(Empty, x, Empty));
+  @   axiom is_heap_def_3:
+  @     \forall tree ll,lr; \forall integer lx, x;
+  @       x >= lx ==> is_heap(Node(ll, lx, lr)) ==>
+  @       is_heap(Node(Node(ll, lx, lr), x, Empty));
+  @   axiom is_heap_def_4:
+  @     \forall tree rl,rr; \forall integer rx,x;
+  @        x >= rx ==> is_heap(Node(rl, rx, rr)) ==>
+  @         is_heap(Node(Empty, x, Node(rl, rx, rr)));
+  @   axiom is_heap_def_5:
+  @     \forall tree ll,lr,rl,rr; \forall integer lx, x, rx;
+  @       x >= lx ==> is_heap(Node(ll, lx, lr)) ==>
+  @       x >= rx ==> is_heap(Node(rl, rx, rr)) ==>
+  @       is_heap(Node(Node(ll, lx, lr), x, Node(rl, rx, rr)));
+  @ }
   @*/
 
 /**** trees encoded in arrays *********************************************/
 
-//@ logic tree tree_of_array{L}(int *t, integer root, integer bound) reads t[..];
-
-/*@ axiom tree_of_array_def_1{L}:
-  @   \forall int *t; \forall integer root; \forall integer bound;
-  @     root >= bound ==> tree_of_array(t, root, bound) == Empty();
-  @*/
-
-/*@ axiom tree_of_array_def_2{L}:
-  @   \forall int *t; \forall integer root; \forall integer bound;
-  @     0 <= root < bound ==>
-  @     tree_of_array(t, root, bound) ==
-  @     Node(tree_of_array(t, 2*root+1, bound),
-  @          t[root],
-  @          tree_of_array(t, 2*root+2, bound));
+/*@ axiomatic TreeOfArray {
+  @   logic tree tree_of_array{L}(int *t, integer root, integer bound);
+  @      // reads t[..];
+  @   axiom tree_of_array_def_1{L}:
+  @     \forall int *t; \forall integer root, bound;
+  @       root >= bound ==> tree_of_array(t, root, bound) == Empty;
+  @   axiom tree_of_array_def_2{L}:
+  @     \forall int *t; \forall integer root, bound;
+  @      0 <= root < bound ==>
+  @      tree_of_array(t, root, bound) ==
+  @       Node(tree_of_array(t, 2*root+1, bound),
+  @            t[root],
+  @            tree_of_array(t, 2*root+2, bound));
+  @ }
   @*/
 
 /**** the heap and its model **********************************************/
@@ -130,16 +118,16 @@ int size = 0;
 
 /*@ global invariant size_inv : 0 <= size < MAXSIZE; */
 
-//@ global invariant is_heap: is_heap(tree_of_array(heap, 0, size));
+//@ global invariant is_heap_inv: is_heap(tree_of_array(heap, 0, size));
 
-//@ logic bag model{L}() = bag_of_tree(tree_of_array(heap, 0, size));
+//@ logic bag model{L} = bag_of_tree(tree_of_array(heap, 0, size));
 
 /**** the code ************************************************************/
 
 /*@ assigns
   @   size;
   @ ensures
-  @   model() == empty_bag();
+  @   model == empty_bag;
   @*/
 void clear() {
   size = 0;
@@ -150,7 +138,7 @@ void clear() {
   @ assigns
   @    heap[..], size;
   @ ensures
-  @   model() == add_bag(x, \old(model()));
+  @   model == add_bag(x, \old(model));
   @*/
 void push(int x) {
   int i = size;
@@ -158,11 +146,11 @@ void push(int x) {
     @   0 <= i <= size &&
     @   (i == size ==>
     @      is_heap(tree_of_array(heap, 0, size)) &&
-    @      model() == model{Pre}()) &&
+    @      model == model{Pre}) &&
     @   (i < size ==>
     @      is_heap(tree_of_array(heap, 0, size+1)) &&
     @      bag_of_tree(tree_of_array(heap, 0, size+1)) ==
-    @      add_bag(heap[i], \at(model(),Pre)));
+    @      add_bag(heap[i], \at(model,Pre)));
     @ loop assigns
     @   heap[..];
     @ loop variant
@@ -184,7 +172,7 @@ void push(int x) {
   @ assigns
   @   \nothing;
   @ ensures
-  @   is_max_bag(model(), \result);
+  @   is_max_bag(model, \result);
   @*/
 int max() {
   return heap[0];
@@ -196,8 +184,8 @@ int max() {
   @    heap[..], size;
   @ ensures
   @   size == \old(size) -  1 &&
-  @   is_max_bag(\old(model()), \result) &&
-  @   \old(model()) == add_bag(\result, model());
+  @   is_max_bag(\old(model), \result) &&
+  @   \old(model) == add_bag(\result, model);
   @*/
 int pop() {
   int res = heap[0];

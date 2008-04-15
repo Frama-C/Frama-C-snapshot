@@ -1,6 +1,6 @@
 typedef struct { int i; } T;
 
-/*@ axiom toto{L}:
+/*@ lemma toto{L}:
   @  \forall T t; t.i == 0;
   @*/
 

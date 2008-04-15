@@ -19,20 +19,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annotations.ml,v 1.39 2008/07/11 06:36:05 uid570 Exp $ *)
+(* $Id: annotations.ml,v 1.42 2008/10/03 13:09:16 uid568 Exp $ *)
+
 open Cil_types
 open Db_types
 open Cil
 
 module AnnotState =
-  Kernel_computation.StmtHashtbl
-    (Project.Datatype.Imperative
-       (struct
-	  type t = rooted_code_annotation before_after list ref
-	  let copy _ = assert false  (* TODO if required *)
-	end))
+  Cil_computation.StmtHashtbl
+    (Datatype.Ref(Datatype.List(Ast_info.Datatype_Annotation)))
     (struct
-       let name = Project.Computation.Name.make ("Annotations")
+       let name = "Annotations"
        let size = 17
        let dependencies = [ Cil_state.self ]
      end)
@@ -44,11 +41,11 @@ let add stmt a =
   with Not_found -> AnnotState.add stmt (ref [ a ])
 
 let add_assert stmt ~before a =
-  let a = User (Logic_const.new_code_annotation (AAssert ([],a))) in
+  let a = User (Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown}))) in
   add stmt (if before then Before a else After a)
 
 let add_alarm stmt ~before alarm a =
-  let a = AI (alarm,Logic_const.new_code_annotation (AAssert ([],a))) in
+  let a = AI (alarm,Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown}))) in
   add stmt (if before then Before a else After a)
 
 let reset_stmt = AnnotState.remove

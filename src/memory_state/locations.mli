@@ -19,10 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: locations.mli,v 1.71 2008/06/05 15:18:48 uid527 Exp $ *)
+(* $Id: locations.mli,v 1.75 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Memory locations. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 open Cil
@@ -31,7 +31,7 @@ open Abstract_value
 open BaseUtils
 
 (** Association between varids and offsets in byte. 
-    @plugin developer guide *)
+    @plugin development guide *)
 module Location_Bytes : sig
 
   module M : sig
@@ -100,7 +100,6 @@ module Location_Bytes : sig
   val top_leaf_origin : unit -> t
 
   val topify_with_origin : Origin.t -> t -> t
-  val get_bases : M.t -> Top_Param.O.t
   val is_included_actual_generic :
     BaseUtils.BaseSet.t ->
     BaseUtils.BaseSet.t ref -> t BaseUtils.BaseMap.t ref -> t -> t -> unit
@@ -120,10 +119,14 @@ module Location_Bytes : sig
   val remove_escaping_locals : Cil_types.fundec -> t -> t
     (**  TODO: merge with above function *)
 
+  val contains_adresses_of_any_locals : t -> bool
+    (** [contains_adresses_of_any_locals loc] returns [true] iff [loc] contains
+	the adress of a local variable or of a formal variable. *)
+
 end
 
 (** Association between varids and offsets in bits. 
-    @plugin developer guide *)
+    @plugin development guide *)
 module Location_Bits : sig
 
   module M : sig
@@ -137,7 +140,7 @@ module Location_Bits : sig
 
   type t = Top of Top_Param.t * Origin.t | Map of M.t
 
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
 
   val top : t
   val bottom : t
@@ -196,11 +199,12 @@ module Location_Bits : sig
   val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
   val is_in_set : set:Top_Param.O.t -> Base.t -> bool
   val fold_bases : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val get_bases : t -> Top_Param.t
 
 end
 
 (** Association between varids and ranges of bits. 
-    @plugin developer guide *)
+    @plugin development guide *)
 module Zone : sig
 
 (*  module M : Mergemap.S with type key = Base.t
@@ -252,6 +256,12 @@ module Zone : sig
 
   val pretty : Format.formatter -> t -> unit
   val intersects : t -> t -> bool
+
+(** Assuming that [z1] and [z2] only contain valid bases, 
+   [valid_intersects z1 z2] returns true iff [z1] and [z2] have a valid
+    intersection. *)
+  val valid_intersects : t -> t -> bool
+
   type widen_hint
   val widen : widen_hint -> t -> t -> t
     (*   val compare : t -> t -> int *)
@@ -273,6 +283,8 @@ module Zone : sig
     (** [fold_bases] folds also bases of [Top bases].
 	@raise Error_Top in the case [Top Top]. *)
 
+  val get_bases : t -> Top_Param.t
+    
   val fold_i : (Base.t -> Int_Intervals.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold_i f l acc] folds [l] by base.
 	@raise Error_Top in the cases [Top Top], [Top bases]. *)
@@ -294,7 +306,7 @@ module Zone : sig
     projection:(Base.t -> Abstract_value.Int_Intervals.t) ->
     joiner:('b -> 'b -> 'b) -> empty:'b -> t -> 'b
 
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
 
   (** {3 Lmap_bitwise utilities} *)
 
@@ -309,7 +321,7 @@ end
 (** {2 Locations} *)
 
 (** A {!Location_Bits.t} and a size in bits. 
-    @plugin developer guide *)
+    @plugin development guide *)
 type location = private {
   loc : Location_Bits.t;
   size : Int_Base.t;
@@ -342,7 +354,7 @@ val loc_without_size_to_loc :
 val loc_bits_to_loc : Cil_types.lval -> Location_Bits.t -> location
 
 val valid_enumerate_bits : location -> Zone.t
-  (** @plugin developer guide *)
+  (** @plugin development guide *)
 
 val loc_of_varinfo : varinfo -> location
 val loc_of_base : Base.t -> location

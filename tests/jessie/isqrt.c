@@ -1,9 +1,7 @@
 // Integer square root, from Hacker's Delight page 203
 // (see http://www.hackersdelight.org/)
 
-#include <limits.h>
-
-//@ axiom asr_max_int: \forall integer s; 0 <= s <= 30 ==> 1 <= (INT_MAX >> s);
+//@ lemma asr_max_int: \forall integer s; 0 <= s <= 30 ==> 1 <= (INT_MAX >> s);
 
 int isqrt(unsigned x) {
    unsigned x1;
@@ -27,7 +25,7 @@ int isqrt(unsigned x) {
    return g0;
 }
 
-/* 
+/*
 Local Variables:
 compile-command: "LC_ALL=C PPC_OPTIONS=\"-jessie-int-model exact\" make isqrt"
 End:

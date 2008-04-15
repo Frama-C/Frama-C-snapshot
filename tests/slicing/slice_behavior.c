@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -slice-assert f -slice-print -slicing-level 0
+   OPT: -val -slice-assert f -slice-print -slicing-level 0 -journal-disable
 */
 /*@ requires a > 0; */
 int f(int a) {

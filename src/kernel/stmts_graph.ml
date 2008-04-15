@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: stmts_graph.ml,v 1.21 2008/04/09 14:14:28 uid568 Exp $ *)
+(* $Id: stmts_graph.ml,v 1.23 2008/10/13 12:56:47 uid530 Exp $ *)
 
 open Cil_types
 open Cil
@@ -129,15 +129,15 @@ let get_graph kf = match kf.stmts_graph with
       f
 
 let stmt_can_reach kf s1 s2 =
-  if Cmdline.Debug.get () > 0 || Cmdline.Pdg.Verbosity.get () > 0 then
+  if Cmdline.Debug.get () > 1 || Cmdline.Pdg.Verbosity.get () > 0 then
     Format.printf "CHECK PATH %d->%d@\n" s1.sid s2.sid;
   check_path (get_graph kf) s1 s2
 
 module Reachable_Stmts = 
-  Kernel_computation.StmtHashtbl
-    (Kernel_datatype.Stmt)
+  Cil_computation.StmtHashtbl
+    (Cil_datatype.Stmt)
     (struct
-       let name = Project.Computation.Name.make "reachable_stmts"
+       let name = "reachable_stmts"
        let size = 97
        let dependencies = [ Cil_state.self ]
      end)

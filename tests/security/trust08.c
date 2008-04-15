@@ -1,5 +1,5 @@
-/* run.config:
-   OPT: -security-slicing -slice-print -security-lattice strong -lib-entry
+/* run.config
+   OPT: -security-slicing -slice-print -security-lattice strong -lib-entry -journal-disable
 */
 
 /*@ requires security_status(s) == public; */

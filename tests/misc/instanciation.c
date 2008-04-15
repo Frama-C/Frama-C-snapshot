@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -mem-exec f -absolute-valid-range 0x200-0x199
-   OPT: -memory-footprint 1 -val -deps -out -input -mem-exec f -main main1 -absolute-valid-range 0x200-0x199
-   OPT: -memory-footprint 1 -val -main main2 -mem-exec g -absolute-valid-range 0x200-0x199
+   OPT: -memory-footprint 1 -val -deps -out -input -mem-exec f -absolute-valid-range 0x200-0x199 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -mem-exec f -main main1 -absolute-valid-range 0x200-0x199 -journal-disable
+   OPT: -memory-footprint 1 -val -main main2 -mem-exec g -absolute-valid-range 0x200-0x199 -journal-disable
 
 */
 

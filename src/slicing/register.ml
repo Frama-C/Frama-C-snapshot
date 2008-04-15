@@ -46,7 +46,7 @@ let pretty_list pretty fmt l = List.iter (pretty fmt) l
 
 let print_select fmt db_select =
   let db_fvar, select = db_select in
-    Format.fprintf fmt "In %a : %a@\n"
+    Format.fprintf fmt "In %a : %a@."
       Ast_info.pretty_vname db_fvar Act.print_f_crit select
 
 let get_select_kf (fvar, _select) = Globals.Functions.get fvar
@@ -55,7 +55,7 @@ let check_db_select fvar db_select =
   let db_fvar, select = db_select in
   if db_fvar.vid <> fvar.vid then
     begin
-      Format.printf "slice name = %s <> select = %a@\n"
+      Format.printf "slice name = %s <> select = %a@."
         (fvar.vname) print_select db_select;
       raise (Invalid_argument
            "This selection doesn't belong to the given function");
@@ -63,7 +63,7 @@ let check_db_select fvar db_select =
   fvar, select
 
 let empty_db_select kf = (Kernel_function.get_vi kf, T.CuSelect [])
-let top_db_select kf = (Kernel_function.get_vi kf, T.CuTop)
+let top_db_select kf m = (Kernel_function.get_vi kf, T.CuTop m)
 let check_kf_db_select kf = check_db_select (Kernel_function.get_vi kf)
 let check_fi_db_select fi = check_db_select (M.fi_svar fi)
 let check_ff_db_select ff = check_db_select (M.ff_svar ff)
@@ -72,23 +72,30 @@ let bottom_msg kf =
   Cil.log "[slicing] bottom PDG for function '%s': ignore selection"
     (Kernel_function.get_name kf)
 
-let select_pdg_nodes kf ?(select=empty_db_select kf) nodes mark =
-  if M.debug1 () then
-    Format.printf "[slicing] select_pdg_nodes@\n" ;
+let basic_add_select kf select nodes ?(undef) nd_marks =
   let fvar, sel = check_kf_db_select kf select in
   match sel with
-    | T.CuTop -> select
+    | T.CuTop _ -> select
     | T.CuSelect sel ->
         let pdg = !Db.Pdg.get kf in
         let nodes = 
           List.map (fun n -> (n, None) (*TODO: add z_part ? *)) nodes in
-        let nd_marks = Act.build_node_and_dpds_selection mark in
+        (* let nd_marks = Act.build_node_and_dpds_selection mark in *)
         (* let nd_marks = Act.build_simple_node_selection mark in *)
         let crit = [(nodes, nd_marks)] in
-        let sel =
-          Act.translate_crit_to_select pdg ~to_select:sel crit  in
+        let sel = Act.translate_crit_to_select pdg ~to_select:sel crit  in
+        let sel = match undef with None -> sel
+          | Some (undef, mark) ->
+              PdgMarks.add_undef_in_to_select sel undef mark in
         let sel = T.CuSelect sel in
           (fvar, sel)
+
+let select_pdg_nodes kf ?(select=empty_db_select kf) nodes mark =
+  M.debug 1 "[slicing] select_pdg_nodes@." ;
+  let nd_marks = Act.build_node_and_dpds_selection mark in
+  try basic_add_select kf select nodes nd_marks
+  with Db.Pdg.Top | Db.Pdg.Bottom -> 
+      assert false (* if we have node, we must have a pdg somewhere ! *)
 
 let mk_select pdg sel nodes undef mark =
   let nd_marks = Act.build_simple_node_selection mark in
@@ -99,14 +106,13 @@ let mk_select pdg sel nodes undef mark =
     sel
 
 let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
-  if M.debug1 () then
-    Format.printf "[slicing] select_stmt_zone %a %s stmt %d (m=%a)@\n"
+  M.debug 1 "[slicing] select_stmt_zone %a %s stmt %d (m=%a)@."
       Locations.Zone.pretty loc
       (if before then "before" else "after") stmt.sid
        SlicingMarks.pretty_mark mark;
   let fvar, sel = check_kf_db_select kf select in
   match sel with
-    | T.CuTop -> select
+    | T.CuTop _ -> select
     | T.CuSelect sel ->
         try
           let pdg = !Db.Pdg.get kf in
@@ -121,32 +127,42 @@ let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
                       (if before then "before" else "after") stmt.sid
           in Format.printf "Nothing to select for %s@." msg;
              select
-          | Db.Pdg.Top -> top_db_select kf
+          | Db.Pdg.Top -> top_db_select kf mark
           | Db.Pdg.Bottom -> bottom_msg kf; select
 
 
 (** this one is similar to [select_stmt_zone] with the return statement
 * when the function is defined, but it can also be used for undefined functions. *)
-let select_output_zone kf ?(select=empty_db_select kf) loc mark =
-  if M.debug1 () then
-    Format.printf "[slicing] select_output_zone %a (m=%a)@\n"
-      Locations.Zone.pretty loc SlicingMarks.pretty_mark mark;
+let select_in_out_zone ~at_end ~use_undef kf select loc mark =
+  M.debug 1 "[slicing] select zone %a (m=%a) at %s of %a@."
+      Locations.Zone.pretty loc SlicingMarks.pretty_mark mark
+      (if at_end then "end" else "begin") Kernel_function.pretty_name kf;
   let fvar, sel = check_kf_db_select kf select in
   match sel with
-    | T.CuTop -> select
+    | T.CuTop _ -> select
     | T.CuSelect sel ->
         try
           let pdg = !Db.Pdg.get kf in
-          let nodes, undef = !Db.Pdg.find_location_nodes_at_end pdg loc in
+          let find = 
+            if at_end then !Db.Pdg.find_location_nodes_at_end 
+            else !Db.Pdg.find_location_nodes_at_begin in
+          let nodes, undef = find pdg loc in
+          let undef = if use_undef then undef else None in
           let sel = mk_select pdg sel nodes undef mark in
             (fvar, sel)
         with
-          | Db.Pdg.NotFound ->
-              Format.printf "Nothing to select for %a@."
-                Locations.Zone.pretty loc;
-              select
-          | Db.Pdg.Top -> top_db_select kf
+          | Db.Pdg.NotFound -> assert false 
+          | Db.Pdg.Top -> top_db_select kf mark
           | Db.Pdg.Bottom -> bottom_msg kf; select
+
+let select_zone_at_end kf  ?(select=empty_db_select kf) loc mark =
+  select_in_out_zone ~at_end:true ~use_undef:true kf select loc mark
+
+let select_modified_output_zone kf  ?(select=empty_db_select kf) loc mark =
+  select_in_out_zone ~at_end:true ~use_undef:false kf select loc mark
+
+let select_zone_at_entry kf  ?(select=empty_db_select kf) loc mark =
+  select_in_out_zone ~at_end:false ~use_undef:true kf select loc mark
 
 let stmt_nodes_to_select pdg stmt =
   let stmt_nodes =
@@ -172,74 +188,74 @@ let stmt_nodes =
             stmt_nodes
   in
         *)
-      if M.debug2 () then
-        Format.printf "   add_stmt_nodes on stmt %d (%a)@\n" stmt.sid
+      M.debug 2 "   add_stmt_nodes on stmt %d (%a)@." stmt.sid
           (fun fmt l -> List.iter (!Db.Pdg.pretty_node true fmt) l)
           stmt_nodes;
       stmt_nodes
 
 let select_stmt_computation kf ?(select=empty_db_select kf) stmt mark =
-  if M.debug1 () then
-    Format.printf "[slicing] select_stmt_computation on stmt %d@\n" stmt.sid;
-  let fvar, sel = check_kf_db_select kf select in
-  match sel with
-    | T.CuTop -> select
-    | T.CuSelect sel ->
-        try
-          let pdg = !Db.Pdg.get kf in
-          let stmt_nodes = stmt_nodes_to_select pdg stmt in
-          let stmt_nodes = List.map (fun n -> (n, None)) stmt_nodes in
-          let nd_marks = Act.build_node_and_dpds_selection mark in
-          let crit = [(stmt_nodes, nd_marks)] in
-          let sel =
-            Act.translate_crit_to_select pdg ~to_select:sel crit in
-          let sel = T.CuSelect sel in
-            (fvar, sel)
-        with Db.Pdg.Top -> top_db_select kf
-          | Db.Pdg.Bottom -> bottom_msg kf; select
+  M.debug 1 "[slicing] select_stmt_computation on stmt %d@." stmt.sid;
+    try
+      let pdg = !Db.Pdg.get kf in
+      let stmt_nodes = stmt_nodes_to_select pdg stmt in
+      let nd_marks = Act.build_node_and_dpds_selection mark in
+        basic_add_select kf select stmt_nodes nd_marks
+    with Db.Pdg.Top -> top_db_select kf mark
+      | Db.Pdg.Bottom -> bottom_msg kf; select
 
 (** marking a call node means that a [choose_call] will have to decide that to
  * call according to the slicing-level, but anyway, the call will be visible.
  *)
 let select_minimal_call kf ?(select=empty_db_select kf) stmt m =
-  if M.debug1 () then
-    Format.printf "[slicing] select_minimal_call@\n";
-  let fvar, sel = check_kf_db_select kf select in
-  match sel with
-    | T.CuTop -> select
-    | T.CuSelect sel ->
-        try
-          let pdg = !Db.Pdg.get kf in
-          let call = check_call stmt true in
-          let call_node = (!Db.Pdg.find_call_ctrl_node pdg call, None) in
-          let nd_marks = Act.build_simple_node_selection m in
-          let crit = [([call_node], nd_marks)] in
-          let sel =
-            Act.translate_crit_to_select pdg ~to_select:sel crit in
-          let sel = T.CuSelect sel in
-            (fvar, sel)
-        with Db.Pdg.Top -> top_db_select kf
-          | Db.Pdg.Bottom -> bottom_msg kf; select
+  M.debug 1 "[slicing] select_minimal_call@.";
+    try 
+      let pdg = !Db.Pdg.get kf in
+      let call = check_call stmt true in
+      let call_node = !Db.Pdg.find_call_ctrl_node pdg call in
+      let nd_marks = Act.build_simple_node_selection m in
+        basic_add_select kf select [call_node] nd_marks
+    with Db.Pdg.Top -> top_db_select kf m
+      | Db.Pdg.Bottom -> bottom_msg kf; select
 
-let select_stmt_ctrl kf stmt =
-  if M.debug1 () then
-    Format.printf "[slicing] select_stmt_ctrl of sid:%d@\n" stmt.sid;
-  let fvar = Kernel_function.get_vi kf in
+let select_stmt_ctrl kf ?(select=empty_db_select kf) stmt =
+  M.debug 1 "[slicing] select_stmt_ctrl of sid:%d@." stmt.sid;
+  let mark = SlicingMarks.mk_user_mark ~ctrl:true ~data:false ~addr:false in
   try
     let pdg = !Db.Pdg.get kf in
     let stmt_nodes = !Db.Pdg.find_simple_stmt_nodes pdg stmt in
-    let stmt_nodes = List.map (fun n -> (n, None)) stmt_nodes in
-    let mark = SlicingMarks.mk_user_mark ~ctrl:true ~data:false ~addr:false in
     let nd_marks = Act.build_ctrl_dpds_selection mark in
-    let sel = Act.translate_crit_to_select pdg [(stmt_nodes, nd_marks)] in
-    let sel = T.CuSelect sel in
-      (fvar, sel)
-  with Db.Pdg.Top -> top_db_select kf
+      basic_add_select kf select stmt_nodes nd_marks
+  with Db.Pdg.Top -> top_db_select kf mark
     | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
+
+let select_entry_point kf ?(select=empty_db_select kf) mark =
+  M.debug 1 "[slicing] select_entry_point of %a@." 
+      Kernel_function.pretty_name kf;
+  try
+    let pdg = !Db.Pdg.get kf in
+    let node = !Db.Pdg.find_entry_point_node pdg in
+    let nd_marks = Act.build_simple_node_selection mark in
+      basic_add_select kf select [node] nd_marks
+  with Db.Pdg.Top -> top_db_select kf mark
+    | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
+
+let select_return kf ?(select=empty_db_select kf) mark =
+  M.debug 1 "[slicing] select_return of %a@." 
+      Kernel_function.pretty_name kf;
+  try
+    let pdg = !Db.Pdg.get kf in
+    let node = !Db.Pdg.find_ret_output_node pdg in
+    let nd_marks = Act.build_simple_node_selection mark in
+      basic_add_select kf select [node] nd_marks
+  with 
+    | Db.Pdg.NotFound -> (* unreachable ? *) select
+    | Db.Pdg.Top -> top_db_select kf mark
+    | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
+
 
 let merge_select select1 select2 =
   let select = match select1, select2 with
-      | T.CuTop, _ | _, T.CuTop -> T.CuTop
+      | T.CuTop m, _ | _, T.CuTop m -> T.CuTop m
       | T.CuSelect select1, T.CuSelect select2 ->
           (* TODO : we can probably do better...*)
           T.CuSelect (select1 @ select2)
@@ -327,23 +343,20 @@ let call_min_f_in_caller proj ~caller ~to_call =
 let is_already_selected ff db_select =
   let _, select = check_ff_db_select ff db_select in
     match select with
-      | T.CuTop -> assert false
+      | T.CuTop _ -> assert false
       | T.CuSelect to_select ->
           (* let pdg = !Db.Pdg.get (Globals.Functions.get fvar) in *)
           let new_marks = Fct_slice.filter_already_in ff to_select in
-            if M.debug1 () then
-              Format.printf "[slicing] is_already_selected %a ?@\n"
+            M.debug 1 "[slicing] is_already_selected %a ?@."
                 !Db.Slicing.Select.pretty db_select;
             let ok = if new_marks = [] then true else false in
-              if M.debug1 () then
-                if ok then Format.printf "\t--> yes@\n"
-                else Format.printf "\t--> no (missing %a)@\n"
+              if ok then M.debug 1 "\t--> yes@."
+              else M.debug 1 "\t--> no (missing %a)@."
                        Act.print_sel_marks_list new_marks;
               ok
 
 let add_ff_selection proj ff db_select =
-  if M.debug1 () then
-    Format.printf "[slicing:add_ff_selection] %a to %s@\n"
+  M.debug 1 "[slicing:add_ff_selection] %a to %s@."
       !Db.Slicing.Select.pretty db_select (M.ff_name ff);
   let _, select = check_ff_db_select ff db_select in
       SlicingProject.add_fct_ff_filter proj ff select
@@ -351,8 +364,7 @@ let add_ff_selection proj ff db_select =
 (** add a persistant selection to the function.
 * This might change its slicing level in order to call slices later on. *)
 let add_fi_selection proj db_select =
-  if M.debug1 () then
-    Format.printf "[slicing:add_fi_selection] %a@\n"
+  M.debug 1 "[slicing:add_fi_selection] %a@."
                       !Db.Slicing.Select.pretty db_select;
   let kf = get_select_kf db_select in
   let fi = M.get_kf_fi proj kf in
@@ -361,8 +373,7 @@ let add_fi_selection proj db_select =
     match M.fi_slicing_level fi with
       |  T.DontSlice |  T.DontSliceButComputeMarks ->
           M.change_fi_slicing_level fi  T.MinNbSlice;
-          if M.debug1 () then
-            Format.printf "[slicing] changing %s slicing level to %s@\n"
+          M.debug 1 "[slicing] changing %s slicing level to %s@."
               (M.fi_name fi)
               (M.str_level_option (M.fi_slicing_level fi))
 
@@ -405,36 +416,78 @@ let dot_project ~filename ~title project =
   PrintSlice.build_dot_project filename title project
 
 let create_slice =
-  if M.debug1 () then Format.printf "[slicing] create_slice@\n";
+  M.debug 1 "[slicing] create_slice@.";
   SlicingProject.create_slice
 let copy_slice _proj ff =
-  if M.debug1 () then Format.printf "[slicing] copy_slice@\n";
+  M.debug 1 "[slicing] copy_slice@.";
   Fct_slice.copy_slice ff
 let split_slice =
-  if M.debug1 () then Format.printf "[slicing] split_slice@\n";
+  M.debug 1 "[slicing] split_slice@.";
   SlicingProject.split_slice
 let merge_slices proj ff_1 ff_2 ~replace =
-  if M.debug1 () then Format.printf "[slicing] merge_slices@\n";
+  M.debug 1 "[slicing] merge_slices@.";
   SlicingProject.merge_slices proj ff_1 ff_2 replace
 let remove_slice =
-  if M.debug1 () then Format.printf "[slicing] remove_slice@\n";
+  M.debug 1 "[slicing] remove_slice@.";
   SlicingProject.remove_ff
 
 let apply_next_action =
-  if M.debug1 () then Format.printf "[slicing] apply_next_action@\n";
+  M.debug 1 "[slicing] apply_next_action@.";
   SlicingProject.apply_next_action
 
 let apply_all_actions =
-  if M.debug1 () then Format.printf "[slicing] apply_all_actions@\n";
+  M.debug 1 "[slicing] apply_all_actions@.";
   SlicingProject.apply_all_actions
 
+(** Global data managment *)
+
+
+type t_project_management = 
+    SlicingTypes.sl_project list * SlicingTypes.sl_project option
+
+module P =
+  Computation.Ref
+    (struct
+       include Project.Datatype.Imperative
+	 (struct
+	    type t = t_project_management
+	    let copy _ = assert false (* TODO: deep copy *)
+	    let name = "t_project_management"
+	  end)
+       let default () = [], None
+     end)
+    (struct
+       let name = "Slicing.Project"
+       let dependencies = [ ] (* others delayed below *)
+     end)
+
+let get_all () = let all,_current = P.get () in all
+let get_project () = let _all,current = P.get () in current
+let set_project proj_opt = P.set (get_all (),  proj_opt)
+let mk_project name =
+  !Db.Value.compute () ;
+  let project = (SlicingProject.mk_project name) in
+  let all,current = P.get () in
+    P.set ((project :: all), current);
+    project
 
 (** {2 Initialisation of the slicing plugin } *)
 
-(** Register external functions into Db.
-  *)
 let () =
-  Db.Slicing.Project.create_internal := SlicingProject.mk_project;
+  Options.register_plugin_init
+    (fun () ->
+       let add = Project.Computation.add_dependency P.self in
+         add !Db.Pdg.self;
+         add !Db.Inputs.self_external;
+         add !Db.Outputs.self_external)
+
+(** Register external functions into Db.  *)
+let () =
+  Db.Slicing.self := P.self;
+  Db.Slicing.Project.mk_project := mk_project;
+  Db.Slicing.Project.get_all := get_all;
+  Db.Slicing.Project.get_project := get_project;
+  Db.Slicing.Project.set_project := set_project;
   Db.Slicing.Project.get_name := SlicingProject.get_name;
   Db.Slicing.Project.pretty := SlicingProject.print_project_and_worklist ;
   Db.Slicing.Project.print_dot := dot_project ;
@@ -445,10 +498,15 @@ let () =
   Db.Slicing.Project.change_slicing_level := M.change_slicing_level ;
 
   Db.Slicing.Select.select_stmt_internal := select_stmt_computation ;
+  Db.Slicing.Select.select_entry_point_internal := select_entry_point;
+  Db.Slicing.Select.select_return_internal := select_return;
   Db.Slicing.Select.select_min_call_internal := select_minimal_call ;
   Db.Slicing.Select.select_stmt_ctrl_internal := select_stmt_ctrl ;
   Db.Slicing.Select.select_stmt_zone_internal := select_stmt_zone ;
-  Db.Slicing.Select.select_output_zone_internal := select_output_zone ;
+  Db.Slicing.Select.select_zone_at_entry_point_internal := select_zone_at_entry ;
+  Db.Slicing.Select.select_zone_at_end_internal := select_zone_at_end ;
+  Db.Slicing.Select.select_modified_output_zone_internal := 
+                    select_modified_output_zone ;
   Db.Slicing.Select.select_pdg_nodes_internal := select_pdg_nodes ;
 
   Db.Slicing.Select.empty_selects := empty_selects ;
@@ -522,7 +580,49 @@ let () =
   Db.Slicing.Mark.is_ctrl := SlicingMarks.is_ctrl_mark ;
   Db.Slicing.Mark.is_addr := SlicingMarks.is_addr_mark ;
   Db.Slicing.Mark.is_data := SlicingMarks.is_data_mark ;
+  Db.Slicing.Mark.is_data := SlicingMarks.is_data_mark ;
+  Db.Slicing.Mark.get_from_src_func := Fct_slice.get_mark_from_src_fun;
+
 ;;
+
+let main fmt =
+  if Cmdline.Slicing.is_on () then begin
+    Format.fprintf fmt "@\n[slicing] in progress...@.";
+
+    (* have to do the value analysis before the selections
+     * because some functions use its results,
+     * and the value analysis is not launched automatically. *)
+    !Db.Value.compute ();
+
+    let project = !Db.Slicing.Project.mk_project "Slicing" in
+    !Db.Slicing.Project.set_project (Some project);
+    !Db.Slicing.Request.add_persistent_cmdline project;
+
+    (* Apply all pending requests. *)
+    if Cmdline.Slicing.Mode.Verbose.get () > 2 then
+      Format.fprintf fmt "[slicing] requests:@\n %a@\n"
+	!Db.Slicing.Request.pretty project ;
+    !Db.Slicing.Request.apply_all_internal project;
+
+    if Cmdline.Slicing.Mode.Callers.get () then
+      !Db.Slicing.Slice.remove_uncalled project;
+
+    let sliced_project =
+      !Db.Slicing.Project.extract 
+	(!Db.Slicing.Project.get_name project ^ " export") 
+	project
+    in
+    if Cmdline.Slicing.Print.get () then begin
+      File.pretty (Cmdline.CodeOutput.get_fmt ()) ~prj:sliced_project;
+      if Cmdline.Slicing.Mode.Verbose.get () > 0 then
+        Format.fprintf fmt "Slicing result :@. %a@."
+          !Db.Slicing.Project.pretty project
+    end;
+
+    Format.fprintf fmt "@\n====== SLICED CODE COMPUTED ======@.";
+  end
+
+let () = Db.Main.extend main
 
 (** Register the plugin options *)
 let () =
@@ -534,8 +634,15 @@ let () =
 
       "-slice-undef-functions",
       Arg.Unit Cmdline.Slicing.Mode.SliceUndef.on,
-      ": allow the use of the -slicing-level option for calls to undefined functions\n"
-      ^"\t(by default, don't slice the prototype of undefined functions)";
+      ": "
+      ^ (if Cmdline.Slicing.Mode.SliceUndef.get () then "by default, " else "")
+      ^ "allow the use of the -slicing-level option for calls to undefined functions";
+      
+      "-no-slice-undef-functions",
+      Arg.Unit Cmdline.Slicing.Mode.SliceUndef.off,
+      ": "
+      ^ (if Cmdline.Slicing.Mode.SliceUndef.get () then "" else "by default, ")
+      ^ "don't slice the prototype of undefined functions";
 
       "-slicing-level",
       Arg.Int (fun n -> match n with

@@ -201,3 +201,7 @@ val finishParsing: unit -> unit (* Call this function to finish parsing and
                                  * close the input channel *)
 
 
+(* This reference contains the first filename encountered in a #line directive.
+   It is reset to [None]  by [startParsing*] functions.
+*)
+val first_filename_encountered: string option ref

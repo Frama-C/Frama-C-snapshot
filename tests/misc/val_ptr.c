@@ -1,9 +1,9 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -main f
-   OPT: -memory-footprint 1 -val -deps -out -input -main f1
-   OPT: -memory-footprint 1 -val -deps -out -input -main f3
-   OPT: -memory-footprint 1 -val -deps -out -input -main f2
+   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f1 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f3 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f2 -journal-disable
 */
 int i,j,x,k,l,m,n,d,a,b,c;
 int *p;
@@ -53,4 +53,3 @@ void f2(int c)
     j = *p;
 
 }
-

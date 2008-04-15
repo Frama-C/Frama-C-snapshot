@@ -24,19 +24,40 @@ open Abstract_value
 
 type itv = Int.t * Int.t
 
-module Make 
-  (V:sig 
-    include Abstract_interp.Lattice 
-    val tag: t -> int
-   end) =
+module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) =
 struct
+
   open Abstract_interp
 
   type t = Map of (bool*V.t) Int_Interv_Map.t | Degenerate of V.t
 
+  let tag x = match x with
+    | Degenerate v -> 571 + V.tag v
+    | Map map -> 
+	Int_Interv_Map.fold 
+	  (fun k (_b, v) acc -> Int_Interv.hash k + V.tag v * 3 + 5 * acc)
+	  map
+	  0
+
   let empty = Map Int_Interv_Map.empty
 
   let degenerate v = Degenerate v
+
+	
+  let equal_map mm1 mm2 =
+    ( try
+	Int_Interv_Map.equal
+          (fun (bx,x) (by,y) -> (bx = by) && V.equal x y )
+          mm1 mm2
+      with Int_Interv.Cannot_compare_intervals -> false )
+
+  let equal m1 m2 =
+    match m1, m2 with
+      Degenerate v1, Degenerate v2 ->
+	V.equal v1 v2 
+    | Map mm1, Map mm2 ->
+	equal_map mm1 mm2
+    | Map _, Degenerate _ | Degenerate _, Map _ -> false
 
   let pretty_with_type typ fmt m =
     match m with
@@ -72,23 +93,20 @@ struct
     | Map t ->
 	Map (Int_Interv_Map.map (fun (b,v) -> b,(V.Datatype.rehash v)) t)
 
-  let rehash_initial_values () = 
-    List.iter (fun x -> ignore (rehash x)) [ empty ]
+  let name = Project.Datatype.extend_name "offsetmap_bitwise" V.Datatype.name
 
-  let name = Project.Datatype.Name.extend "offsetmap_bitwise" V.Datatype.name
-
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type tt = t
 	 type t = tt
-	 let copy x = x
+	 let copy x = x (* immutable datatype *)
 	 let rehash = rehash
-	 let before_load = rehash_initial_values
-	 let after_load () = ()
 	 let name = name 
-	 let dependencies = [ V.Datatype.self ] 
        end)
+    let () = 
+      register_comparable ~hash:tag ~equal ();
+  end
 
   let is_empty m =
     match m with
@@ -267,21 +285,6 @@ struct
       | Degenerate v -> Degenerate (snd (f (true,v)))
       | Map m ->
           Map (map_map f m)
-	
-  let equal_map mm1 mm2 =
-    ( try
-	Int_Interv_Map.equal
-          (fun (bx,x) (by,y) -> (bx = by) && V.equal x y )
-          mm1 mm2
-      with Int_Interv.Cannot_compare_intervals -> false )
-
-  let equal m1 m2 =
-    match m1, m2 with
-      Degenerate v1, Degenerate v2 ->
-	V.equal v1 v2 
-    | Map mm1, Map mm2 ->
-	equal_map mm1 mm2
-    | Map _, Degenerate _ | Degenerate _, Map _ -> false
 
 (*  let check_contiguity m = 
     let id = map (fun x -> x) m in
@@ -658,13 +661,5 @@ struct
 
   let copy ~f from start stop =
     copy_paste ~f from start stop Int.zero empty
-
-  let tag x = match x with
-    | Degenerate v -> 571 + V.tag v
-    | Map map -> 
-	Int_Interv_Map.fold 
-	  (fun k (_b, v) acc -> Int_Interv.hash k + V.tag v * 3 + 5 * acc)
-	  map
-	  0
 
 end

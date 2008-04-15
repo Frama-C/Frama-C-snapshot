@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -ulevel 8
+   OPT: -security-analysis -ulevel 8 -journal-disable
    */
 
 //#define GCC
@@ -37,8 +37,8 @@ unsigned int my_strlen(const char *s)
 }
 
 /*@ requires security_status(addr) == public; */
-void send_addr(const ip_address addr, const char *txt) 
-#ifdef GCC 
+void send_addr(const ip_address addr, const char *txt)
+#ifdef GCC
 {
   int i;
   printf("%s", txt);
@@ -50,8 +50,8 @@ void send_addr(const ip_address addr, const char *txt)
 #endif
 
 /*@ requires security_status(data) == public; */
-void send_data(const char *data, const char *txt) 
-#ifdef GCC 
+void send_data(const char *data, const char *txt)
+#ifdef GCC
 {
   printf("%s%s", txt, data);
 }
@@ -63,7 +63,7 @@ void send_msg(const msg *msg) {
   send_addr(msg->src,  "source = ");
   send_addr(msg->dst,  "dest   = ");
   send_data(msg->data, "msg    = ");
-#ifdef GCC  
+#ifdef GCC
   printf("\n");
 #endif
 }

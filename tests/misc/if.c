@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -main main
-   OPT: -memory-footprint 1 -val -deps -main main6
+   OPT: -memory-footprint 1 -val -deps -out -input -main main -journal-disable
+   OPT: -memory-footprint 1 -val -deps -main main6 -journal-disable
    */
 int G,H,J;
 int *p, *q;
@@ -94,4 +94,3 @@ int main6(int c, int d)
   // G isn't modified
   return 1;
 }
-

@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f_precis
+  OPT: -memory-footprint 1 -val -deps -out -input  -main f_precis -journal-disable
 */
 struct st1 {
  int a;
@@ -101,24 +101,24 @@ void f_precis(int x, int i, int j, int k, int l, int m){
 /* ---------------------------  */
 /*   Structures et tableaux     */
 /* ---------------------------  */
- 
+
   s1.d[1]          = x;
 
   s2.d[i]          = x;
-  
+
 /* ---------  */
 /*  Pointeurs */
 /* ---------  */
-  
+
   p                = &a;
 
   *p               = x;
 
   *p               = *p + x;
-  
+
   q = (int*)0;
   r = (int*)0;
-  
+
   *q               = p;
 
   **r              = a;
@@ -126,64 +126,64 @@ void f_precis(int x, int i, int j, int k, int l, int m){
   p2               = &tab1[2];
 
   p3               = &tab1[i];
-  
+
   b                = *(p3+2);
 
   p4               = p;
-  
-  p5               = (int *) 0x1000; 
+
+  p5               = (int *) 0x1000;
 
   p6 = (int*)0;
 
   *p6              = *(int *) 0x1000 + i;
 
   p7               = p2 + 1;
-  
+
 /*  p8                = p2 - i; */
-  
+
   s = (int*)0;
 
-  *s               = (int *) 0x1000; 
+  *s               = (int *) 0x1000;
 
   t = (int*)0;
  (*t)[i]           = 2;
 
 /* ---------  */
 
-  s8.b             = &a;                       
+  s8.b             = &a;
 
-  *(s8.b)          = x;                        
-  
-  s1.c             = &s2;                      
+  *(s8.b)          = x;
 
-  s1.c->a          = x;                        
+  s1.c             = &s2;
 
-  s1.c->b          = s8;                       
+  s1.c->a          = x;
 
-  s1.c->b.a        = x;                        
+  s1.c->b          = s8;
 
-  s1.c->b.b        = &a;                      
+  s1.c->b.a        = x;
 
-  *(s1.c->b.b)     = x;                        
+  s1.c->b.b        = &a;
 
-  s1.c->c          = &s2;                       
+  *(s1.c->b.b)     = x;
 
-  s1.c->c->a       = x;                        
+  s1.c->c          = &s2;
+
+  s1.c->c->a       = x;
 
   s1.c->c->b       = s8;
-                          
-  s1.c->c->b.a     = x; 
-                         
+
+  s1.c->c->b.a     = x;
+
   s1.c->c->b.b     = &a;
-                         
-  *(s1.c->c->b.b)  = x;  
-                        
-  s1.c->c->c       = &s2; 
-                       
-  s1.c->c->c->a    = x;                        
+
+  *(s1.c->c->b.b)  = x;
+
+  s1.c->c->c       = &s2;
+
+  s1.c->c->c->a    = x;
 
   s4.e[tabst[tab1[i+j]].a].a = *(tab2[k] + s5.e[tabst2[tab3[l] + m].a].b);
- 
+
 /*------------------------------*/
 /* Clauses From attendues       */
 /*------------------------------*/

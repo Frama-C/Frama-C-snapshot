@@ -128,7 +128,6 @@ begin
   let cabs = parse_to_cabs_inner fname in
   if !E.hadErrors then 
     E.s (E.error "There were parsing errors in %s\n" fname);
-
   (* and apply the patch file, return transformed file *)
   let patched = match !patchFile with
 
@@ -159,7 +158,6 @@ begin
       )
     | None -> cabs
   in
-
   (* print it ... *)
   (match !out with
     Some o -> begin
@@ -194,8 +192,13 @@ and parse_to_cabs_inner (fname : string) =
     E.hadErrors := false;
     let lexbuf = Clexer.init fname in
     let cabs = Stats.time "parse" (Cparser.file (Whitetrack.wraplexer clexer)) lexbuf in
+(*    Cprint.print_defs cabs;*)
     Whitetrack.setFinalWhite (Clexer.get_white ());
     Clexer.finish ();
+    let fname = match !E.first_filename_encountered with 
+      | None -> fname 
+      | Some f -> f
+    in
     (fname, cabs)
   with (Sys_error msg) -> begin
     ignore (E.log "Cannot open %s : %s\n" fname msg);
@@ -266,7 +269,7 @@ let parse fname =
     let cil = Stats.time "conv" Cabs2cil.convFile cabs in
     if !doPrintProtos then (printPrototypes cabs);
     (*Cil.dumpFile Cil.defaultCilPrinter stdout "behue" cil;*)
-    cil
+    cil,cabs
 
 
 

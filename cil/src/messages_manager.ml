@@ -42,28 +42,29 @@ open Errormsg
 open Cil_types
 open Format
 
-type message = 
+type message =
     { m_file : string;
       m_line : int;
       m_msg : string;
       m_severity : [ `Warning | `Error | `Info ] }
 
-module Warn_table = 
+module Warn_table =
   Computation.Make_Hashtbl
     (Inthash)
-    (Project.Datatype.Persistent(struct type t = message end))
-    (struct 
-       let name = Project.Computation.Name.make "warn_table"
-       let size = 17 
-       let dependencies = [] 
+    (Project.Datatype.Persistent
+       (struct type t = message let name = "message" end))
+    (struct
+       let name = "warn_table"
+       let size = 17
+       let dependencies = []
      end)
 
-module Warn_counter = 
+module Warn_counter =
   Computation.Ref
-    (struct include Datatype.Int let default = 0 end)
-    (struct 
-       let name = Project.Computation.Name.make "warn_counter" 
-       let dependencies = [] 
+    (struct include Datatype.Int let default () = 0 end)
+    (struct
+       let name = "warn_counter"
+       let dependencies = []
      end)
 
 let depend s = Warn_table.depend s; Warn_counter.depend s
@@ -73,7 +74,7 @@ let current_file = ref ""
 let current_line = ref (-1)
 let current_severity = ref `Warning
 
-let clear () = 
+let clear () =
   Warn_table.clear ();
   Warn_counter.clear ()
 
@@ -83,78 +84,70 @@ let level_to_string l = match l with
 | `Warning -> "Warning"
 | _ -> "Unknown"
 
-let err_formatter = ref Format.err_formatter 
+let err_formatter = ref Format.err_formatter
 
 let std_formatter () = err_formatter := Format.err_formatter
 
 let collect = ref false
+let on_stderr = ref true
 
-let collect_formatter = 
+let string_of_severity = function
+  | `Warning -> "Warning"
+  | `Error -> "Error"
+  | `Info -> "Info"
+  | _ -> "Log"
+
+let collect_formatter =
   let fmt_emit s  start length =
     Buffer.add_substring current_warn s start length
   in
-  let fmt_flush () = 
+  let fmt_flush () =
     let m = Buffer.contents current_warn in
     Buffer.clear current_warn;
-    if !collect then 
-      let message = {m_file = !current_file;
-                     m_line = !current_line;
-                     m_msg = m;
-                     m_severity = !current_severity}
-      in
-      begin 
-	let c = Warn_counter.get () in
-        Warn_table.add c message;
-        Warn_counter.set (succ c)
-      end
-    else 
-      begin 
-        Format.pp_print_string Format.err_formatter m;
-        Format.pp_print_newline  Format.err_formatter ()
-      end
-    
-      
-    (*    printf "Got msg %d@." !warn_counter; *)
+    let message =
+      { m_file = !current_file; m_line = !current_line;
+        m_severity = !current_severity; m_msg = m }
+    in
+    if !collect then begin
+      let c = Warn_counter.get () in
+      Warn_table.add c message;
+      Warn_counter.set (succ c)
+    end;
+    if !on_stderr then
+      Format.fprintf Format.err_formatter "%s:%d: %s: %s@."
+	message.m_file
+	message.m_line
+	(string_of_severity message.m_severity)
+	message.m_msg
+      (*    printf "Got msg %d@." !warn_counter; *)
   in
   Format.make_formatter fmt_emit fmt_flush
 
 let () = pp_set_tags collect_formatter true
-let () = 
-  pp_set_formatter_tag_functions 
+let () =
+  pp_set_formatter_tag_functions
     collect_formatter
-    {(pp_get_formatter_tag_functions collect_formatter ()) with
-       mark_open_tag = (fun s ->
-                          (match s with 
-                          | "Warning" -> 
-                              current_severity := `Warning;
-                              if !collect then ""
-                              else s
-                          | "Error" -> 
-                              current_severity := `Error;
-                              if !collect then ""
-                              else s
-                          | "Info" -> 
-                              current_severity := `Info;
-                              if !collect then ""
-                              else s
-                          | _ -> 
-                              try 
-                                let file,loc = 
-                                  Scanf.sscanf s "%d:%s"
-                                    (fun d s -> s,d)
-                                in
-                                current_line := loc;
-                                current_file := file;
-                                if !collect then ""
-                                else file^":"^(string_of_int loc)
-                              with Scanf.Scan_failure _ -> "")^
-                       (if !collect then "" else ": "));
-       mark_close_tag = fun _s -> "";
-    }
+    { (pp_get_formatter_tag_functions collect_formatter ()) with
+	mark_open_tag = (fun s ->
+			   (match s with
+			    | "Warning" -> current_severity := `Warning
+                            | "Error" -> current_severity := `Error
+                            | "Info" -> current_severity := `Info
+                            | _ ->
+				try
+				  let file,loc =
+                                    Scanf.sscanf s "%d:%s" (fun d s -> s,d)
+				  in
+				  current_line := loc;
+				  current_file := file
+				with Scanf.Scan_failure _ ->
+				  ());
+			   "");
+	mark_close_tag = fun _s -> "" }
 
-(*let () = 
-  at_exit 
-    (fun () -> 
+(*let () =
+  at_exit
+    (fun () ->
       let co = open_out_bin "err.html" in
       let fmt = formatter_of_out_channel co in
       fprintf fmt "<TABLE BORDER=\"3\" CELLSPACING=\"1\" CELLPADDING=\"1\">
@@ -165,13 +158,19 @@ let () =
       close_out co)
 *)
 
-
 let enable_collect () = collect := true
+let disable_stderr () = on_stderr := false
 
-let d_loc fmt f = 
-  fprintf fmt "@{<%d:%s>@}" (fst f).Lexing.pos_lnum (fst f).Lexing.pos_fname 
+let d_loc fmt f =
+  fprintf fmt "@{<%d:%s>@}" (fst f).Lexing.pos_lnum (fst f).Lexing.pos_fname
 
-let emit loc _level fstring = 
+let emit loc level fstring =
   fprintf collect_formatter
-    ("@[%a@{<Warning>@}@[" ^^ fstring ^^ "@]@]@?") 
-    d_loc loc
+    ("@[%a%a@}@[" ^^ fstring ^^ "@]@]@?")
+    d_loc loc pp_open_tag (string_of_severity level)
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

@@ -21,34 +21,29 @@
 
 open Locations
 
-module Zone_with_empty_default =
- struct
+module Zone_with_empty_default = struct
   include Zone
-   let default _base _b _e = bottom
-   let defaultall _base = bottom
+  let default _base _b _e = bottom
+  let defaultall _base = bottom
 end
 
-module Lmap_bitwise_with_empty_default = 
-  struct
-    include Lmap_bitwise.Make_bitwise (Zone_with_empty_default)
-    let pretty fmt v = 
-      let already_printed = ref [] in
-      let counter = ref 0 in
-      let folder _key (_b,value) () = 
-        if not (List.memq value !already_printed) then 
-          begin 
-            Format.fprintf fmt 
-              "@[Zone %d: @[{%a}@];@\n@]" 
-              !counter 
-              Zone_with_empty_default.pretty value;
-            incr counter;
-            already_printed := value::!already_printed;
-          end
-      in
-      try 
-        fold folder v ()
-      with Cannot_fold -> 
+module Lmap_bitwise_with_empty_default = struct
+  include Lmap_bitwise.Make_bitwise(Zone_with_empty_default)
+  let pretty fmt v = 
+    let already_printed = ref [] in
+    let counter = ref 0 in
+    let folder _key (_b,value) () = 
+      if not (List.memq value !already_printed) then begin 
         Format.fprintf fmt 
-          "@[Zone 0: @[{ALL VARIABLES}@];@\n@]" 
-
+          "@[Zone %d: @[{%a}@];@\n@]" 
+          !counter 
+          Zone_with_empty_default.pretty value;
+        incr counter;
+        already_printed := value::!already_printed;
+      end
+    in
+    try 
+      fold folder v ()
+    with Cannot_fold -> 
+      Format.fprintf fmt "@[Zone 0: @[{ALL VARIABLES}@];@\n@]" 
   end

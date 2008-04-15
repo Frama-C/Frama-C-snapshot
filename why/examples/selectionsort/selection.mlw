@@ -11,7 +11,7 @@ let selection () =
     while !i < (array_length_ t)-1 do
       (* t[0..i-1] is already sorted *)
       { invariant 0 <= i <= array_length(t)-1 and
-	          sorted_array(t, 0, i-1) and permut(t, t@init) and
+	          sorted_array(t, 0, i-1) and permutation(t, t@init) and
 	          forall k,l:int. 0 <= k < i ->
 		    i <= l < array_length(t) -> t[k] <= t[l]
 	variant array_length(t) - i }
@@ -33,7 +33,7 @@ let selection () =
       i := !i + 1
     done
   end
-  { sorted_array(t, 0, array_length(t)-1) and permut(t, t@) }
+  { sorted_array(t, 0, array_length(t)-1) and permutation(t, t@) }
 
 (*
 Local Variables: 

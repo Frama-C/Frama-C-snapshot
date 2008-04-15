@@ -156,13 +156,14 @@ module Int_Intervals = struct
   let name = "int_intervals"
 
   module IntIntervalsHashtbl =
-    Buckx.MakeBig(struct
-                    type t = tt
-                    let equal = equal_internal
-                    let hash = hash_internal
-		    let pretty = pretty
-		    let id = name
-                  end)
+    Buckx.MakeBig
+      (struct
+         type t = tt
+         let equal = equal_internal
+         let hash = hash_internal
+	 let pretty = pretty
+	 let id = name
+       end)
  
   let table = IntIntervalsHashtbl.create 1379 
   let current_tag = ref 0 ;;
@@ -171,23 +172,14 @@ module Int_Intervals = struct
 
   let wrap x = 
     let tag = !current_tag in
-
     let new_i = 
       { h = Unhashconsed_Int_Intervals.hash x;
         v = x;
         tag = tag}
     in
     let result = IntIntervalsHashtbl.merge table new_i in
-    if result.tag = tag
-    then begin
-     let new_current = succ tag in
-     if new_current = 0
-     then begin
-	 Format.printf "An internal limit of the analyser has been reached. The solutions are to report to the developers, or to use the 64-bit version of this software@.";
-	 exit 1;
-       end;
-     current_tag := new_current;
-      end;
+    if result == new_i
+    then current_tag := succ tag;
     result
 
   let rehash x = 
@@ -208,16 +200,64 @@ module Int_Intervals = struct
   let narrow x y = wrap (Unhashconsed_Int_Intervals.narrow x.v y.v)
   let widen wh x y = wrap (Unhashconsed_Int_Intervals.widen wh x.v y.v)
 
-
   let equal x y = x == y
 
+(* initial values go here *)
   let top = wrap Unhashconsed_Int_Intervals.top
   let bottom = wrap Unhashconsed_Int_Intervals.bottom
 
+(* end of initial values *)
+
+(*  
+ THERE IS ONLY ONE HASHCONSING TABLE FOR Int_intervals.
+   IT IS SHARED BETWEEN PROJECTS
+
+  let current_tag_after_initial_values = !current_tag
+
   let rehash_initial_values () =
-    assert (equal top (IntIntervalsHashtbl.merge table top));
-    assert (equal bottom (IntIntervalsHashtbl.merge table bottom));
-    5
+    let re_top = IntIntervalsHashtbl.merge table top in
+    assert (equal top re_top);
+    let re_bottom = IntIntervalsHashtbl.merge table bottom in
+    assert (equal bottom re_bottom)
+    
+  module HashconsingPseudoDatatype = Project.Datatype.Register
+    (struct
+       type t = IntIntervalsHashtbl.t * (int ref)
+       let rehash _ = assert false (* this datatype is not saved to disk *)
+       let copy _ = assert false (* TODO: think! share between similar 
+				 projects, or not share? *)
+       let name = name ^ " hashconsing_table_datatype"
+     end)
+
+  module State = Project.Computation.Register(HashconsingPseudoDatatype)
+    (struct
+      type t = HashconsingPseudoDatatype.t
+      let set (t,c) = 
+	IntIntervalsHashtbl.overwrite ~old:table ~fresh:t;
+	current_tag := !c
+      let get () =
+	IntIntervalsHashtbl.shallow_copy table, ref (!current_tag)
+      let clear (t,c as w) =
+	let save = get () in
+	set w;
+	IntIntervalsHashtbl.clear t;
+	rehash_initial_values ();
+	c := current_tag_after_initial_values;
+	set save
+      let create () =
+	let save = get () in
+	clear (table, current_tag);
+	let result = get () in
+	set save;
+	result
+    end)
+    (struct 
+      let name = name ^ "hashconsing_table" 
+      let dependencies = [ Cil_state.self ]
+    end)
+      
+  let () = State.do_not_save ()
+*)
 
   let cardinal_zero_or_one x = 
     Unhashconsed_Int_Intervals.cardinal_zero_or_one x.v
@@ -258,17 +298,16 @@ module Int_Intervals = struct
   let inject_bounds b e = 
     wrap (Unhashconsed_Int_Intervals.inject_bounds b e)
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct 
 	 type t = tt
 	 let rehash = rehash
-	 let before_load () = ()
-	 let after_load () = () (* TODO PC: utiliser une table de rehashage *)
 	 let copy _ = assert false (* TODO *)
-	 let name = Project.Datatype.Name.make "Int_Intervals"
-	 let dependencies = []
+	 let name = "Int_Intervals"
        end)
+    let () = register_comparable ~hash ~equal ()
+  end
 
 end
 

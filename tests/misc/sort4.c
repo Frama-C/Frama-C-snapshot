@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -lib-entry -main sort4_1
-  OPT: -memory-footprint 1 -val -deps -out -input  -lib-entry -main sort4_4
-  OPT: -memory-footprint 1 -val -deps -out -input  -lib-entry -main sort4_3
+  OPT: -memory-footprint 1 -val -deps -out -input  -lib-entry -main sort4_1 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -lib-entry -main sort4_4 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -lib-entry -main sort4_3 -journal-disable
 */
 
 /* sort 4 integers */

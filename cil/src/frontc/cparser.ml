@@ -353,7 +353,7 @@ let in_ghost s =
     inherit Cabsvisit.nopCabsVisitor
     method vstmt s =
       s.stmt_ghost <- true;
-      Cabsvisit.DoChildren
+      Cil.DoChildren
   end
   in
   ignore (Cabsvisit.visitCabsStatement ghost_me s)

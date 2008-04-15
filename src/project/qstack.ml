@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: qstack.ml,v 1.2 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: qstack.ml,v 1.3 2008/08/28 09:22:49 uid528 Exp $ *)
 
 module type DATA = sig
   type t
@@ -65,6 +65,11 @@ module Make(D: DATA) = struct
   let filter f t =
     let l = List.find_all f t.last in
     List.fold_right (fun x acc -> if f x then x :: acc else acc) t.first l
+
+  let find f t =
+    try List.find f t.last 
+    with Not_found -> 
+      List.find f (List.rev t.first)
 
   (* the returned boolean is a flag which is [true] when removing occurs. *)
   let remove_from_list x =

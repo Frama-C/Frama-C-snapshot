@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-analysis
+   OPT: -security-analysis -journal-disable
    */
 
 /**********************/

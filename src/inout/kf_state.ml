@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kf_state.ml,v 1.13 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: kf_state.ml,v 1.14 2008/10/03 13:09:16 uid568 Exp $ *)
 
 module type S = sig
   type data
@@ -34,7 +34,7 @@ module type INFO = sig
     (** Additional dependencies of the built state. *)
 end
 
-module Build(X:Datatype.INPUT)(Info:Signature.NAME_DPDS) = struct
+module Build(X:Project.Datatype.S)(Info:Signature.NAME_DPDS) = struct
   
   include Kernel_function.Make_Table(X)(struct include Info let size = 97 end)
 

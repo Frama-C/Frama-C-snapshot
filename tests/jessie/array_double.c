@@ -7,7 +7,10 @@ T_CompositionPage Page;
 
 //void StrCpy(char* s);
 
-//@ predicate eq_message{L}(char *s, integer m);
+/*@ axiomatic EqMessage {
+  @   predicate eq_message{L}(char *s, integer m);
+  @ }
+  @*/
 
 void f();
 

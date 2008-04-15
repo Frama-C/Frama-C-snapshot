@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -slice-print -slice-pragma g
-   OPT: -slice-print -slice-assert g
-   OPT: -slice-print -slice-assert main
-   OPT: -slice-print -slice-return g
+   OPT: -slice-print -slice-pragma g -journal-disable
+   OPT: -slice-print -slice-assert g -journal-disable
+   OPT: -slice-print -slice-assert main -journal-disable
+   OPT: -slice-print -slice-return g -journal-disable
  */
 
 int X1, X2 ;
@@ -22,7 +22,7 @@ int g() {
   int y ;
   /* Note: y is not initialised by g. */
   /* Note: GCC without optimization gives X1 == y. */
-  printf ("%d\n", y); 
+  printf ("%d\n", y);
   //@slice pragma expr y ;
   //@assert X1 == y ;
   return y;

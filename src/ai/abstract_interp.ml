@@ -51,13 +51,13 @@ module type Lattice = sig
   val cardinal_zero_or_one: t -> bool
 
   (** [cardinal_less_than t v ]
-      @raise Not_less_than whenever the cardinal of [t] is higher than [v]
-  *)
+      @raise Not_less_than whenever the cardinal of [t] is higher than [v] *)
   val cardinal_less_than: t -> int -> int
 
   val tag : t -> int
 
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
+
 end
 
 module type Lattice_With_Diff = sig
@@ -104,7 +104,7 @@ module type Lattice_Base = sig
 end
 
 module type Lattice_Set = sig
-  module O: Set.S
+  module O: Ptset.S
   type tt = private Set of O.t | Top
   include Lattice with type t = tt and type widen_hint = O.t
   val hash : t -> int
@@ -124,7 +124,7 @@ module type Value = sig
   val pretty: Format.formatter -> t -> unit
   val compare : t -> t -> int
   val hash: t -> int
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
 end
 
 module type Arithmetic_Value = sig
@@ -180,8 +180,7 @@ module type Arithmetic_Value = sig
   val extract_bits : with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
 end
 
-module Make_Lattice_Set(V:Value):(Lattice_Set with type O.elt=V.t)=
-struct
+module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
   exception Error_Top
   exception Error_Bottom
   module O = Set.Make(V)
@@ -332,20 +331,194 @@ struct
   | Top -> true
   | Set s -> O.mem v s
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
-	 let copy _ = assert false (* TODO *)
+	 let copy _ = assert false
 	 let rehash x = match x with
 	   | Top -> x
-	   | Set set ->
-	       inject
-		 (O.fold (fun x -> O.add (V.Datatype.rehash x)) set O.empty)
-	 include Datatype.Nop
-	 let name = Project.Datatype.Name.extend "lattice_set" V.Datatype.name
-	 let dependencies = [ V.Datatype.self ]
+	   | Set s ->
+	       inject (O.fold (fun x -> O.add (V.Datatype.rehash x)) s O.empty)
+	 let name = Project.Datatype.extend_name "lattice_set" V.Datatype.name
        end)
+    let () = register_comparable ~hash:tag ~equal ~compare ()
+  end
+
+end
+
+module type Value_With_Id = sig
+  include Value
+  val id: t -> int
+  val name : string
+end
+
+module Make_Hashconsed_Lattice_Set(V:Value_With_Id)
+  : Lattice_Set with type O.elt=V.t =
+struct
+  exception Error_Top
+  exception Error_Bottom
+  module O = Ptset.Make(V)
+  type tt = Set of O.t | Top
+  type t = tt = Set of O.t | Top
+  type y = O.t
+  type widen_hint = O.t
+
+  let bottom = Set O.empty
+  let top = Top
+
+  let hash c =
+    match c with
+      Top -> 12373
+    | Set s ->
+	let f v acc =
+	  67 * acc + (V.hash v)
+	in
+	O.fold f s 17
+
+  let tag = hash
+
+  let equal e1 e2 = 
+    if e1==e2 then true
+    else
+      match e1,e2 with
+      | Top,_ | _, Top -> false
+      | Set e1,Set e2 -> O.equal e1 e2
+
+  let widen _wh _t1 t2 = (* [wh] isn't used *)
+    t2
+
+  (** This is exact *)
+  let meet v1 v2 =
+    if v1 == v2 then v1 else
+      match v1,v2 with
+      | Top, v | v, Top -> v
+      | Set s1 , Set s2 -> Set (O.inter s1 s2)
+
+  (** This is exact *)
+  let narrow = meet
+
+  (** This is exact *)
+  let join v1 v2 =
+    if v1 == v2 then v1 else
+      match v1,v2 with
+      | Top, _ | _, Top -> Top
+      | Set s1 , Set s2 ->
+          let u = O.union s1 s2 in
+          Set u
+
+  (** This is exact *)
+  let link = join
+
+  let cardinal_less_than s n =
+    match s with
+      Top -> raise Not_less_than
+    | Set s ->
+	let c = O.cardinal s in
+	if  c > n
+	then raise Not_less_than;
+	c
+
+  let cardinal_zero_or_one s =
+    try
+      ignore (cardinal_less_than s 1) ; true
+    with Not_less_than -> false
+
+  let inject s = Set s
+  let inject_singleton e = inject (O.singleton e)
+  let empty = inject O.empty
+
+  let transform f = fun t1 t2 ->
+    match t1,t2 with
+      | Top, _ | _, Top -> Top
+      | Set v1, Set v2 -> Set (f v1 v2)
+
+  let map_set f s =
+    O.fold
+      (fun v -> O.add (f v))
+      s
+      O.empty
+
+  let apply2 f s1 s2 =
+    let distribute_on_elements f s1 s2 =
+      O.fold
+        (fun v -> O.union (map_set (f v) s2))
+        s1
+        O.empty
+    in
+    transform (distribute_on_elements f) s1 s2
+
+  let apply1 f s = match s with
+    | Top -> top
+    | Set s -> Set(map_set f s)
+
+  let pretty fmt t =
+    match t with
+      | Top -> Format.fprintf fmt "TopSet"
+      | Set s ->
+          if O.is_empty s then Format.fprintf fmt "BottomSet"
+          else begin
+            Format.fprintf fmt "@[{@[%a@]}@]"
+              (fun fmt s ->
+		 O.iter
+                   (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
+          end
+
+  let is_included t1 t2 =
+    (t1 == t2) ||
+      match t1,t2 with
+      | _,Top -> true
+      | Top,_ -> false
+      | Set s1,Set s2 -> O.subset s1 s2
+
+  let is_included_exn v1 v2 =
+    if not (is_included v1 v2) then raise Is_not_included
+
+  let intersects t1 t2 =
+    let b = match t1,t2 with
+      | _,Top | Top,_ -> true
+      | Set s1,Set s2 ->
+          O.exists (fun e -> O.mem e s2) s1
+    in
+    (* Format.printf
+       "[Lattice_Set]%a intersects %a: %b @\n"
+       pretty t1 pretty t2 b;*)
+    b
+
+  let fold f elt init =
+    match elt with
+      | Top -> raise Error_Top
+      | Set v -> O.fold f v init
+
+
+  let iter f elt =
+    match elt with
+      | Top -> raise Error_Top
+      | Set v -> O.iter f v
+
+  let project o = match o with
+    | Top -> raise Error_Top
+    | Set v -> v
+
+  let mem v s = match s with
+  | Top -> true
+  | Set s -> O.mem v s
+
+
+  module Datatype = struct
+    include Project.Datatype.Register
+      (struct
+	 type t = tt
+	 let copy _ = assert false
+	 let rehash x = match x with
+	   | Top -> x
+	   | Set s ->
+	       inject (O.fold (fun x -> O.add (V.Datatype.rehash x)) s O.empty)
+	 let name = Project.Datatype.extend_name 
+	     "hashconsed_lattice_set" V.Datatype.name
+       end)
+    let () = register_comparable ~hash:tag ~equal ()
+  end
 
 end
 
@@ -1779,8 +1952,8 @@ module Make_Lattice_Mod
       let max2 = max_int v2 in
       f min1 max1 min2 max2
 
-    module Datatype =
-      Project.Datatype.Register
+    module Datatype = struct
+      include Project.Datatype.Register
 	(struct
 	  type t = tt
 	  let copy _ = assert false (* TODO *)
@@ -1788,18 +1961,17 @@ module Make_Lattice_Mod
 	  | Set set ->
 	      inject_set
 		(O.fold (fun x -> O.add (V.Datatype.rehash x)) set O.empty)
-	  | Float _ as f -> f
-		(*	       inject_float ((F.Datatype.rehash f1) (F.Datatype.rehash f2)*)
+	  | Float _f -> x (*TODO inject_float (F.Datatype.rehash f) *)
 	  | Top(mn, mx, r, modu) ->
 	      inject_top
 		(Extlib.opt_map V.Datatype.rehash mn)
 		(Extlib.opt_map V.Datatype.rehash mx)
 		(V.Datatype.rehash r)
 		(V.Datatype.rehash modu)
-	  include Datatype.Nop
-	  let name = Project.Datatype.Name.extend "lattice_mod" V.Datatype.name
-	  let dependencies = [ V.Datatype.self ]
+	  let name = Project.Datatype.extend_name "lattice_mod" V.Datatype.name
 	end)
+      let () = register_comparable ~hash ~equal ()
+    end
 
   end
 
@@ -1816,19 +1988,22 @@ struct
   let pretty fmt (a,b) =
     Format.fprintf fmt "(%a,%a)" V.pretty a W.pretty b
 
-  module Datatype =
-    Project.Datatype.Register
+  let hash (b,e) = V.hash b + 1351 * (W.hash e)
+  let equal a b  = compare a b = 0
+
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	type tt = t
 	type t = tt
 	let copy _ = assert false (* TODO *)
 	let rehash (v, w) = V.Datatype.rehash v, W.Datatype.rehash w
-	include Datatype.Nop
 	let name =
-	  Project.Datatype.Name.extend2 "lattice_pair"
-	    V.Datatype.name W.Datatype.name
-	let dependencies = [ V.Datatype.self; W.Datatype.self ]
+	  Project.Datatype.extend_name2 
+	    "lattice_pair" V.Datatype.name W.Datatype.name
       end)
+    let () = register_comparable ~hash ~equal ()
+  end
 
 end
 
@@ -1873,7 +2048,7 @@ struct
     Top -> 667
   | Set l ->
       List.fold_left
-	(fun acc (b,e) -> 371 * acc + (V.hash b) + 1351 * (V.hash e))
+	(fun acc p -> 371 * acc + Interval.hash p)
 	443
 	l
 
@@ -2069,25 +2244,25 @@ struct
 
   let narrow = meet
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash x = match x with
 	   | Top -> x
 	   | Set l -> inject (List.map Interval.Datatype.rehash l)
-	 include Datatype.Nop
 	 let name =
-	   Project.Datatype.Name.extend "lattice_interval_set"
-	     Interval.Datatype.name
-	 let dependencies = [ Interval.Datatype.self ]
+	   Project.Datatype.extend_name 
+	     "lattice_interval_set" Interval.Datatype.name
        end)
+    let () = register_comparable ~hash ~equal ()
+  end
 
 end
 
-module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t)=
-struct
+module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
+
   type l = V.t
   type tt = Top | Bottom | Value of l
   type t = tt
@@ -2182,18 +2357,18 @@ struct
 
   let intersects t1 t2 = not (equal (meet t1 t2) Bottom)
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash x = match x with
 	   | Top | Bottom -> x
 	   | Value v -> inject (V.Datatype.rehash v)
-	 include Datatype.Nop
-	 let name = Project.Datatype.Name.extend "lattice_base" V.Datatype.name
-	 let dependencies = [ V.Datatype.self ]
+	 let name = Project.Datatype.extend_name "lattice_base" V.Datatype.name
        end)
+    let () = register_comparable ~hash:tag ~equal ()
+  end
 
 end
 
@@ -2432,32 +2607,34 @@ module type Key = sig
   val null : t
   val hash : t -> int
   val id : t -> int
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  val name : string
+  module Datatype : Project.Datatype.S with type t = t
 end
 
-module VarinfoSetLattice = Make_Lattice_Set
+module VarinfoSetLattice = Make_Hashconsed_Lattice_Set
   (struct
-     type t = Cil_types.varinfo
-     module Datatype = Kernel_datatype.Varinfo
-     let compare v1 v2 = compare v1.Cil_types.vid v2.Cil_types.vid
-     let pretty fmt v = Format.fprintf fmt "@[%a@]"
-       !Ast_printer.d_ident v.Cil_types.vname
-     let hash v = v.Cil_types.vid
+     open Cil_types
+     type t = varinfo
+     module Datatype = Cil_datatype.Varinfo
+     let compare v1 v2 = compare v1.vid v2.vid
+     let pretty fmt v = 
+       Format.fprintf fmt "@[%a@]" !Ast_printer.d_ident v.vname
+     let hash v = v.vid
+     let id v = v.vid
+     let name = "varinfo"
    end)
 
 module LocationSetLattice = struct
   include Make_Lattice_Set
     (struct
        type t = Cil_types.location
-       module Datatype = Kernel_datatype.Location
+       module Datatype = Cil_datatype.Location
        let compare = Pervasives.compare
-       let pretty fmt (b,e) =
+       let pretty fmt (b,_e) =
          Format.fprintf fmt "@[%s:%d@]" b.Lexing.pos_fname b.Lexing.pos_lnum
-       let hash (b,e) = Hashtbl.hash (b.Lexing.pos_fname,b.Lexing.pos_lnum)
+       let hash (b,_e) = Hashtbl.hash (b.Lexing.pos_fname,b.Lexing.pos_lnum)
      end)
-
-  let currentloc_singleton () =
-   inject_singleton !Cil.currentLoc
+  let currentloc_singleton () = inject_singleton (Cil.CurrentLoc.get ())
 end
 
 module type Collapse = sig
@@ -2465,9 +2642,10 @@ module type Collapse = sig
 end
 
 (** If [C.collapse] then [L1.Bottom,_ = _,L2.Bottom = Bottom] *)
-module Make_Lattice_Product (L1:Lattice) (L2:Lattice) (C:Collapse):
+module Make_Lattice_Product(L1:Lattice)(L2:Lattice)(C:Collapse):
   (Lattice_Product with type t1 =  L1.t and type t2 = L2.t) =
 struct
+
   exception Error_Top
   exception Error_Bottom
   type t1 = L1.t
@@ -2590,8 +2768,8 @@ struct
   let transform _f (_l1,_ll1) (_l2,_ll2) =
     raise (Invalid_argument "Abstract_interp.Make_Lattice_Product.transform")
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
@@ -2599,12 +2777,12 @@ struct
 	   | Bottom -> x
 	   | Product(v1, v2) ->
 	       inject (L1.Datatype.rehash v1) (L2.Datatype.rehash v2)
-	 include Datatype.Nop
 	 let name =
-	   Project.Datatype.Name.extend2 "lattice_product"
-	     L1.Datatype.name L2.Datatype.name
-	 let dependencies = [ L1.Datatype.self; L2.Datatype.self ]
+	   Project.Datatype.extend_name2 
+	     "lattice_product" L1.Datatype.name L2.Datatype.name
        end)
+    let () = register_comparable ~hash:tag ~equal ()
+  end
 
 end
 
@@ -2731,8 +2909,8 @@ struct
 
   let transform _f _u _v = assert false
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = sum
 	 let copy _ = assert false (* TODO *)
@@ -2740,11 +2918,11 @@ struct
 	   | Top | Bottom -> x
 	   | T1 v -> inject_t1 (L1.Datatype.rehash v)
 	   | T2 v -> inject_t2 (L2.Datatype.rehash v)
-	 include Datatype.Nop
 	 let name =
-	   Project.Datatype.Name.extend2 "lattice_sum"
+	   Project.Datatype.extend_name2 "lattice_sum"
 	     L1.Datatype.name L2.Datatype.name
-	 let dependencies = [ L1.Datatype.self; L2.Datatype.self ]
        end)
+    let () = register_comparable ~hash:tag ~equal ()
+  end
 
 end

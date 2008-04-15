@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main F2
+  OPT: -memory-footprint 1 -val -deps -out -input  -main F2 -journal-disable
 */
 
 struct T1 {
@@ -124,13 +124,13 @@ extern T8 G5 ;
 extern T10 G6 ;
 extern unsigned char G7[(unsigned short)161] ;
 void F1(T2 *V1 , T2 *V2 , unsigned short const   V3 ,
-        unsigned short const   V4 ) 
-{ 
-  
+        unsigned short const   V4 )
+{
+
   {if ((int )V1->M2 != 0)
    {if ((int )V1->M2 == 2) {G7[V3] = (unsigned char)1;}
     else {G7[V3] = (unsigned char)0;}
-   
+
    V1->M2 = (unsigned short)1;
    if ((int )V2->M2 == 0)
    {G7[V4] = (unsigned char)0;
@@ -145,22 +145,22 @@ void F1(T2 *V1 , T2 *V2 , unsigned short const   V3 ,
    else {G7[V3] = (unsigned char)0;
    V2->M2 = (unsigned short )((int )V2->M2 != 0);
    G7[V4] = (unsigned char )V2->M2;}
-  
+
   return;}
 
 }
-void F2(unsigned short V8 ) 
+void F2(unsigned short V8 )
 { unsigned short V5 ;
   unsigned short V6 ;
   unsigned short V7 ;
-  
+
   {G5.M75 = (unsigned short )G3;
   if ((int )V8 == 0) {if ((((int )G6.M97[0] & 1) == 1) == 1)
                       {G5.M91.M4 = (unsigned short)0;
                       G5.M91.M5 = (unsigned short)1;}
                       else {G5.M91.M4 = (unsigned short )(((int )G6.M96[0] & 1) == 1);
                       G5.M91.M5 = (unsigned short)0;}
-    
+
     V6 = (unsigned short)0;
     V7 = (unsigned short)2;
     V5 = (unsigned short)0;
@@ -170,14 +170,13 @@ void F2(unsigned short V8 )
                           else {G5.M90[V5].M4 = (unsigned short )G1;
                           if ((int )G5.M90[V5].M4 == 1) {V6 = (unsigned short )(
                                                          (int )V6 + 1);}
-                          
+
                           G5.M90[V5].M5 = (unsigned short)0;}
-      
+
       V7 = (unsigned short )(2 * (int )V7);
       V5 = (unsigned short )((int )V5 + 1);}
     }
-  
+
   return;}
 
 }
-

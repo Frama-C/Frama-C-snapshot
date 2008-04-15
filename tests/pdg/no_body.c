@@ -1,6 +1,6 @@
 /* run.config
 *    GCC:
-*    OPT: -pdg-debug "-fct-pdg main" -inout
+*    OPT: -pdg-debug "-fct-pdg main" -inout -journal-disable
 */
 /*
  * ledit bin/toplevel.top  tests/slicing/no_body.c -pdg-debug "-fct-pdg main"

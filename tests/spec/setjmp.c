@@ -1,4 +1,4 @@
-/* run.config:
+/* run.config
    DONTRUN: syntactically incorrect include
 */
 #ifndef PTEST

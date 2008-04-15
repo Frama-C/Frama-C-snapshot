@@ -2,25 +2,24 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007                                                    *)
+(*  Copyright (C) 2007-2008                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, either version 3 of the License, or (at your option)      *)
-(*  any later version.                                                    *)
+(*  Foundation, version 2.1.                                              *)
 (*                                                                        *)
 (*  It is distributed in the hope that it will be useful,                 *)
 (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public Licence version 3 for more details  *)
-(*  (enclosed in the file licences/LGPLv3).                               *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: rangemap.mli,v 1.2 2008/05/30 08:29:49 uid568 Exp $ *)
+(* $Id: rangemap.mli,v 1.4 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Association tables over ordered types.
 
@@ -32,7 +31,7 @@
     The implementation uses balanced binary trees, and therefore searching
     and insertion take time logarithmic in the size of the map. 
     
-    @plugin developer guide *)
+    @plugin development guide *)
 
 module type OrderedType = 
   sig

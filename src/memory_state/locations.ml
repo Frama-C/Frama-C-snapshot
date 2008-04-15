@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: locations.ml,v 1.79 2008/06/13 16:54:15 uid528 Exp $ *)
+(* $Id: locations.ml,v 1.84 2008/10/10 13:27:07 uid527 Exp $ *)
 
 open Cil_types
 open Cil
@@ -37,15 +37,16 @@ module Initial_Values = struct
 	    [] ]
 end
 
+module BaseSetLattice = Make_Hashconsed_Lattice_Set(Base)
+
 module MapLattice =
-  Map_Lattice.Make(Base)(Ival)(Initial_Values)(struct let zone = false end)
+  Map_Lattice.Make(Base)(BaseSetLattice)(Ival)(Initial_Values)(struct let zone = false end)
 
 module Location_Bytes = struct
 
   include MapLattice
 
-  type z =
-      t =
+  type z = t =
     | Top of Top_Param.t * Origin.t
     | Map of M.t
 
@@ -85,6 +86,11 @@ module Location_Bytes = struct
      pretty v
      pretty result;*)
    result
+
+ let get_bases m =
+   match m with
+   | Top(top_param,_) -> top_param
+   | Map m -> Top_Param.inject (get_bases m)
 
  let under_topify v =
      match v with
@@ -193,7 +199,8 @@ module Location_Bytes = struct
        true
 
 
-  let remove_escaping_locals fundec v =
+ (**  TODO: merge with above function *)
+   let remove_escaping_locals fundec v =
     match v with
     | Top (Top_Param.Top,_) -> v
     | Top (Top_Param.Set topparam,orig) ->
@@ -210,6 +217,28 @@ module Location_Bytes = struct
           m
           m)
 
+ let contains_adresses_of_any_locals =
+   let f base _offsets = Base.is_any_formal_or_local base
+   in
+   let projection _base = Ival.top in
+   let cached_f =
+     cached_fold
+       ~cache:("loc_top_any_locals", 777)
+       ~f
+       ~projection
+       ~joiner:(||)
+       ~empty:false
+   in
+   fun loc ->
+     try
+       cached_f loc
+     with Error_Top ->
+       assert (match loc with
+       | Top (Top_Param.Top,_) -> true
+       | Top (Top_Param.Set _top_param,_orig) ->
+	   false
+       | Map _ -> false);
+       true
 
 end
 
@@ -219,7 +248,7 @@ module Zone = struct
 
   module Initial_Values = struct let v = [ [] ] end
 
-  include Map_Lattice.Make(Base)(Int_Intervals)(Initial_Values)
+  include Map_Lattice.Make(Base)(BaseSetLattice)(Int_Intervals)(Initial_Values)
   (struct let zone = true end)
 
   let default varid bi ei = inject varid (Int_Intervals.inject [bi,ei])
@@ -250,6 +279,32 @@ module Zone = struct
   let id = "Zone"
 
   let tag = hash
+
+
+  exception Found_inter
+
+  let valid_intersects m1 m2 =
+    let result =
+      match m1,m2 with
+      | Map _, Map _ -> 
+	  intersects m1 m2 
+      | Top (toparam, _), m | m, Top (toparam, _) ->
+	  (equal m bottom) ||
+	    let f base () =
+	      if Top_Param.is_included (Top_Param.inject_singleton base) toparam
+	      then raise Found_inter
+	    in
+	    try
+	      fold_bases f m ();
+	      false
+	    with Found_inter | Error_Top -> true
+    in
+    result
+
+ let get_bases m =
+   match m with
+   | Top(top_param,_) -> top_param
+   | Map m -> Top_Param.inject (get_bases m)
 
 end
 
@@ -505,6 +560,7 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
   in
     (*  Format.printf "valid_enumerate_bits leads to %a@\n" Zone.pretty result;*)
     result
+
 
 (** [valid_part l] is an over-approximation of the valid part
    of the location [l] *)

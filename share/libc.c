@@ -19,7 +19,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: libc.c,v 1.22 2008/06/26 07:46:00 uid568 Exp $ */
+/* $Id: libc.c,v 1.23 2008/08/07 15:20:48 uid568 Exp $ */
 
 #include "libc.h"
 
@@ -32,6 +32,7 @@ void* memcpy(void* region1, const void* region2, size_t n)
   return region1;
 }
 #else
+static int cpt = 0;
 void* memcpy(void* region1, const void* region2, size_t n)
 {
   const char* first = (const char*)region2;
@@ -39,6 +40,7 @@ void* memcpy(void* region1, const void* region2, size_t n)
   char* result = (char*)region1;
   while (first != last)
     *region1++ = *first++;
+  if (cpt++ % 100) Frama_C_dump_each();
   return result;
 }
 #endif

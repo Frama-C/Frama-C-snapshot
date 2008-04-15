@@ -36,7 +36,7 @@ module M = SlicingMacros
 
 (** API function : see {!val: Db.Slicing.Project.mk_project}.  *)
 let mk_project name = 
-  if M.info ()   then Format.printf "[slicing] make slicing project '%s'@\n" name;
+  M.debug 0 "[slicing] make slicing project '%s'@." name;
   { T.name = name ;
     T.application = Project.current () ;
     T.functions = Cilutil.VarinfoHashtbl.create 17; 
@@ -139,7 +139,7 @@ let get_slice_callers ff = List.map (fun (ff, _) -> ff) ff.T.ff_called_by
 (** @raise Not_found if there is no slice with this number in this function.*)
 let find_ff fi num = 
   List.find (fun ff -> ff.T.ff_id = num) fi.T.fi_slices
-
+    
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Adding requests } *)
 
@@ -169,8 +169,8 @@ let add_fct_src_filter proj fi to_select =
     | T.CuSelect select -> 
         let filter = SlicingActions.mk_crit_fct_user_select fi select in
           add_filter proj filter
-    | T.CuTop ->
-        let filter = SlicingActions.mk_crit_fct_top fi in 
+    | T.CuTop m ->
+        let filter = SlicingActions.mk_crit_fct_top fi m in 
           add_filter proj filter
 
     (*
@@ -181,11 +181,11 @@ let add_fct_src_filters proj fi actions =
 let add_fct_ff_filter proj ff to_select =
   match to_select with
       | T.CuSelect [] -> 
-          if M.debug1 () then Format.printf "\t(ignored empty selection)@\n"
+          M.debug 1 "\t(ignored empty selection)@."
       | T.CuSelect select -> 
           let filter = SlicingActions.mk_ff_user_select ff select in
             add_filter proj filter 
-      | T.CuTop -> assert false
+      | T.CuTop _ -> assert false
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Print} *)
@@ -222,7 +222,8 @@ let print_project och proj =
     match globs with
     | [] -> ()
     | glob :: tail -> print glob ; print_globs tail
-  in let source = Cil_state.file () in
+  in 
+  let source = Cil_state.file () in
   let global_decls = source.Cil_types.globals in
   print_globs global_decls
 
@@ -230,12 +231,12 @@ let print_final_project proj filename =
   match proj.T.actions with [] ->
     let file = open_out filename in
     let fmt = Format.formatter_of_out_channel file in
-    Format.fprintf fmt "%a@\n" print_project proj
+    Format.fprintf fmt "%a@." print_project proj
   | _ -> raise (Invalid_argument ("Impossible to produce the final project "^
                   "because the worklist is not empty"))
 
 let print_proj_worklist fmt proj = 
-  Format.fprintf fmt "Slicing project worklist [%s/%s] =@\n%a@.@\n"
+  Format.fprintf fmt "Slicing project worklist [%s/%s] =@\n%a@.@."
          (Project.name proj.T.application)
          proj.T.name
          SlicingActions.print_list_crit proj.T.actions
@@ -271,6 +272,42 @@ let apply_appli_crit proj appli_crit =
     | _ ->
         Extlib.not_yet_implemented "This slicing criterion on application"
 
+(** Add persistent the marks [node_marks] in [fi] and also add the marks
+* to existing slices if any.
+* If the propagation is ON, some actions are generated to propagate the
+* persistent marks to the callers, and other actions are generated to
+* make all the calls to [fi] visible.
+* If there is no slice for [fi] we create a new one 
+* if it is the original request.
+* It will be automatically created with the persistent marks.
+* If it is a propagation, no need to create a new slice
+* because it will be created when the call will be selected anyway. 
+* *)
+let add_persistante_marks proj fi node_marks orig propagate actions =
+  let new_fi_marks, actions = 
+    Fct_slice.add_marks_to_fi proj fi node_marks propagate actions 
+  in
+  let actions = match M.fi_slices fi with 
+    | [] -> (* no slice *)
+        let actions = 
+          if orig then
+            let _ff, new_actions = Fct_slice.make_new_ff fi true in
+              (* TODO catch NoPdg and mark fi as Top *)
+              new_actions @ actions 
+          else actions
+        in actions
+    | slices -> 
+        let add_filter acc ff =
+          let a = SlicingActions.mk_ff_user_select ff node_marks in a::acc
+        in
+          List.fold_left add_filter actions slices 
+  in
+  let actions = 
+    if propagate && new_fi_marks then
+      let a = SlicingActions.mk_appli_select_calls fi in actions @ [a]
+    else actions
+  in actions
+
 let apply_fct_action proj fct_crit =
   match fct_crit.T.cf_fct with 
   | T.FctSliced ff ->
@@ -278,7 +315,7 @@ let apply_fct_action proj fct_crit =
       let new_filters = 
         match fct_crit.T.cf_info with
         | T.CcUserMark (T.CuSelect crit) -> apply_fct_crit ff crit
-        | T.CcUserMark (T.CuTop) -> assert false (* impossible on ff ! *)
+        | T.CcUserMark (T.CuTop _) -> assert false (* impossible on ff ! *)
         | T.CcChangeCall (call, f) ->
             Fct_slice.apply_change_call proj ff call f 
         | T.CcChooseCall call ->
@@ -293,83 +330,55 @@ let apply_fct_action proj fct_crit =
          | T.CcExamineCalls marks ->
              Fct_slice.apply_examine_calls ff marks
       in 
-        if M.debug2 () then 
-          Format.printf "[apply_fct_action] result =\n%a"
+        M.debug 4 "[apply_fct_action] result =\n%a"
             PrintSlice.print_marked_ff ff;
         new_filters
    | T.FctSrc fi -> (* the marks have to be added to all slices *)
        let propagate = Cmdline.Slicing.Mode.Callers.get () in
        match fct_crit.T.cf_info with
          | T.CcUserMark (T.CuSelect to_select) -> 
-             let filters = 
-               Fct_slice.add_marks_to_fi proj fi to_select propagate [] 
-             in
-             let add_filter acc ff =
-               let a = SlicingActions.mk_ff_user_select ff to_select in
-                 a::acc
-             in
-             let filters = List.fold_left add_filter filters (M.fi_slices fi) in
-             let filters = match M.fi_slices fi with 
-               | [] -> 
-                   (* if we had no slice for this function, create a new one.
-                   * It will be created with the persistent marks *)
-                   let _ff, actions = Fct_slice.make_new_ff fi true in
-                     filters @ actions
-               | _ -> filters
-             in filters
-         | T.CcUserMark (T.CuTop) -> 
-             if M.info() then
-               Format.printf "[slicing warning] unable to slice %s (-> TOP)@\n"
+             add_persistante_marks proj fi to_select true propagate [] 
+         | T.CcUserMark (T.CuTop m) -> 
+             M.debug 0 "[slicing warning] unable to slice %s (-> TOP)@."
                  (M.fi_name fi);
-             fi.T.fi_top <- true;
              let filters = call_src_and_remove_all_ff proj fi in
-             if propagate 
-             then
-               let call_filter = SlicingActions.mk_appli_select_calls fi in
-                 call_filter::filters
-             else []
+             Fct_slice.add_top_mark_to_fi fi m propagate filters
          | T.CcPropagate node_marks ->
-             Fct_slice.add_marks_to_fi proj fi node_marks propagate [] 
+             add_persistante_marks proj fi node_marks false propagate [] 
          | T.CcExamineCalls _
          | _ -> 
 	     Extlib.not_yet_implemented 
 	       "This slicing criterion on source function"
        
-
 (** apply [filter] and return a list of generated filters *)
 let apply_action proj filter =
-  if M.debug1 () then
-    Format.printf "[slicing] apply_action : %a@\n" 
-      SlicingActions.print_crit filter;
+  M.debug 1 "[slicing] apply_action : %a@." SlicingActions.print_crit filter;
   let new_filters = 
     try match filter with  
       | T.CrFct fct_crit -> 
           begin
             try (apply_fct_action proj fct_crit)
             with PdgTypes.Pdg.Bottom -> 
-              if M.debug1 () then
-                Format.printf 
-                  "[slicing] apply_action : ABORTED (PDG is bottom)@\n" ;
+              M.debug 1 "[slicing] apply_action : ABORTED (PDG is bottom)@." ;
               []
           end
     | T.CrAppli appli_crit ->
           apply_appli_crit proj appli_crit
     with Not_found -> (* catch unprocessed Not_found here *) assert false
   in 
-    if M.debug1 () then 
-      Format.printf "[slicing] %d generated filters : %a@\n" 
+    M.debug 1 "[slicing] %d generated filters : %a@." 
         (List.length new_filters)
         SlicingActions.print_list_crit new_filters;
     new_filters
 
 let get_next_filter proj =
   match proj.T.actions with
-    | [] -> if M.debug2 () then Format.printf "No more filter@\n"; 
+    | [] -> M.debug 2 "No more filter@."; 
             raise Not_found
     | f :: tail -> proj.T.actions <- tail; f
 
 let apply_next_action proj = 
-  if M.debug2 () then Format.printf "apply_next_action@\n";
+  M.debug 2 "apply_next_action@.";
   let filter = get_next_filter proj in
   let new_filters = apply_action proj filter in
     proj.T.actions <- new_filters @ proj.T.actions
@@ -378,21 +387,20 @@ let apply_all_actions proj =
   let nb_actions = List.length proj.T.actions in
   let rec apply actions = match actions with [] -> ()
     | a::actions -> 
-        if M.debug2 () then Format.printf "apply sub action@\n";
+        M.debug 2 "apply sub action@.";
         let new_filters = apply_action proj a in
           apply new_filters;
           apply actions
   in
   let rec apply_user n = 
     try let a = get_next_filter proj in
-      if M.info () then
-        Format.printf "[slicing] apply actions: %d/%d@\n" n nb_actions;
+      M.debug 1 "[slicing] apply actions: %d/%d@." n nb_actions;
       let new_filters = apply_action proj a in
         apply new_filters;
         apply_user (n+1)
     with Not_found ->
-      if M.info () && nb_actions > 0 then 
-        Format.printf "[slicing] apply %d actions : done@\n" nb_actions
+      if nb_actions > 0 then 
+        M.debug 1 "[slicing] apply %d actions : done@." nb_actions
   in apply_user 1 
 
 

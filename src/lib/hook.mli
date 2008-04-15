@@ -2,25 +2,24 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007                                                    *)
+(*  Copyright (C) 2007-2008                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, either version 3 of the License, or (at your option)      *)
-(*  any later version.                                                    *)
+(*  Foundation, version 2.1.                                              *)
 (*                                                                        *)
 (*  It is distributed in the hope that it will be useful,                 *)
 (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public Licence version 3 for more details  *)
-(*  (enclosed in the file licences/LGPLv3).                               *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: hook.mli,v 1.2 2008/03/25 15:54:05 uid568 Exp $ *)
+(* $Id: hook.mli,v 1.4 2008/11/04 10:05:05 uid568 Exp $ *)
 
 (** Hook builder. A hook is a bunch of functions which can be extended and
     applied at any program point. *)
@@ -35,7 +34,9 @@ module type S = sig
     (** Add a new function to the hook. *)
 
   val apply: param -> unit
-    (** Apply all the functions of the hook on the given parameter. *)
+    (** Apply all the functions of the hook on the given parameter. 
+	These functions are applied from the least recently entered to the most
+	recently entered. *)
 
   val is_empty: unit -> bool
     (** Is no function already registered in the hook? *)

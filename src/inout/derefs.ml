@@ -67,7 +67,7 @@ let statement stmt =
 module Internals = 
   Kf_state.Make
     (struct 
-       let name = Project.Computation.Name.make "internal derefs" 
+       let name = "internal derefs" 
        let dependencies = [ Value.self ]
      end)
 
@@ -108,7 +108,7 @@ let externalize _return fundec x =
 module Externals = 
   Kf_state.Make
     (struct 
-       let name = Project.Computation.Name.make "external_derefs" 
+       let name = "external_derefs" 
        let dependencies = [ Internals.self ]
      end)
 

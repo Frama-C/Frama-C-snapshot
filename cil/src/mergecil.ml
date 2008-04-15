@@ -303,10 +303,17 @@ let eEq: (int * string, enuminfo node) H.t = H.create 111 (* Enums *)
 let tEq: (int * string, typeinfo node) H.t = H.create 111 (* Type names*)
 let iEq: (int * string, varinfo node) H.t = H.create 111 (* Inlines *)
 
+(*
 let pEq: (int * string, predicate_info node) H.t = H.create 111 (* Predicates *)
+*)
 let lfEq: (int * string, logic_info node) H.t = H.create 111 (* Logic functions *)
-let ltEq: (int * string, logic_type_info node) H.t = H.create 111 (* Logic types *)
+let ltEq: (int * string, (string * logic_type_info) node) H.t = H.create 111 (* Logic types *)
 let lcEq: (int * string, logic_ctor_info node) H.t = H.create 111 (* Logic constructors *)
+
+let laEq: (int * string, (string * global_annotation list) node) H.t = H.create 111
+  (* Axiomatics *)
+let llEq: (int * string, (string * (bool * logic_label list * string list *
+                          predicate named)) node) H.t = H.create 111
 
 exception NotHere
 let translate table data get_info =
@@ -346,15 +353,19 @@ let iSyn: (string, varinfo node) H.t = H.create 111 (* Inlines *)
 let sSyn: (string, compinfo node) H.t = H.create 111
 let eSyn: (string, enuminfo node) H.t = H.create 111
 let tSyn: (string, typeinfo node) H.t = H.create 111
+(*
 let pSyn: (string, predicate_info node) H.t = H.create 111
+*)
 let lfSyn: (string, logic_info node) H.t = H.create 111
-let ltSyn: (string, logic_type_info node) H.t = H.create 111
+let ltSyn: (string, (string * logic_type_info) node) H.t = H.create 111
 let lcSyn: (string, logic_ctor_info node) H.t = H.create 111
+let laSyn: (string, (string * global_annotation list) node) H.t = H.create 111
+let llSyn: (string, (string * (bool * logic_label list * string list *
+                                 predicate named)) node) H.t = H.create 111
 
 (** A global environment for variables. Put in here only the non-static
   * variables, indexed by their name.  *)
 let vEnv : (string, varinfo node) H.t = H.create 111
-
 
 (* A set of inline functions indexed by their printout ! *)
 let inlineBodies : (string, varinfo node) H.t = H.create 111
@@ -419,7 +430,7 @@ let mergeSpec vi_ref vi_disc spec =
     let spec = try
       let alpha =
         Cil.create_alpha_renaming
-          (Cil.getFormalsDecl vi_disc.vid) (Cil.getFormalsDecl vi_ref.vid)
+          (Cil.getFormalsDecl vi_disc) (Cil.getFormalsDecl vi_ref)
       in
       try
         Cil.visitCilFunspec alpha spec
@@ -496,33 +507,51 @@ let init ?(all=true) () =
   H.clear emittedVarDefn;
 
   H.clear originalVarNames;
-  if all then Logic_env.reset_all_tables ()
+  if all then Logic_env.prepare_tables ()
 
-let global_annot_pass1 l g = match g with
-| Dpredicate_reads (pi,_,_,_)  | Dpredicate_def (pi,_,_,_) ->
+let rec global_annot_pass1 l g = match g with
+(*
+| Dpredicate_reads (pi,_,_,_)
+| Dinductive_def(pi,_,_,_)
+| Dpredicate_def (pi,_,_,_) ->
     ignore (getNode pEq pSyn !currentFidx pi.p_name pi
               (Some (l, !currentDeclIdx)))
 
-| Dlogic_def (li, _, _, _, _)|Dlogic_reads (li, _, _, _, _) ->
+| Dlogic_def (li, _, _, _, _)
+| Dlogic_axiomatic(li, _, _ , _ , _)
+ | Dlogic_reads (li, _, _, _, _) ->
     let mynode = getNode lfEq lfSyn !currentFidx li.l_name li None in
     (* NB: in case of mix decl/def it is the decl location that is taken. *)
     if mynode.nloc = None then
       ignore (getNode lfEq lfSyn !currentFidx li.l_name li
-                (Some (l, !currentDeclIdx)))
+               (Some (l, !currentDeclIdx)))
+*)
+| Daxiomatic(id,decls) ->
+    ignore (getNode laEq laSyn !currentFidx id (id,decls)
+              (Some (l,!currentDeclIdx)));
+     List.iter (global_annot_pass1 l) decls
+| Dfun_or_pred li ->
+    (* FIXME: this is a copy of above, is it still correct for predicate ? *)
+    let mynode = getNode lfEq lfSyn !currentFidx li.l_name li None in
+    (* NB: in case of mix decl/def it is the decl location that is taken. *)
+    if mynode.nloc = None then
+      ignore (getNode lfEq lfSyn !currentFidx li.l_name li
+               (Some (l, !currentDeclIdx)))
 
 | Dtype_annot pi ->
-    ignore (getNode pEq pSyn !currentFidx pi.p_name pi
+    ignore (getNode lfEq lfSyn !currentFidx pi.l_name pi
               (Some (l, !currentDeclIdx)))
 | Dinvariant pi  ->
-    ignore (getNode pEq pSyn !currentFidx pi.p_name pi
+    ignore (getNode lfEq lfSyn !currentFidx pi.l_name pi
               (Some (l, !currentDeclIdx)))
 | Dtype (n, vars) ->
     let pi = { nb_params = List.length vars } in
-    ignore (getNode ltEq ltSyn !currentFidx n pi
+    ignore (getNode ltEq ltSyn !currentFidx n (n,pi)
               (Some (l, !currentDeclIdx)))
 
-| Dlemma _ -> ()
-
+| Dlemma (n,is_ax,labs,typs,st) ->
+    ignore (getNode llEq llSyn !currentFidx n (n,(is_ax,labs,typs,st))
+              (Some (l, !currentDeclIdx)))
 
 
 
@@ -538,7 +567,7 @@ let intEnumInfo =
 (* And add it to the equivalence graph *)
 let intEnumInfoNode =
   getNode eEq eSyn 0 intEnumInfo.ename intEnumInfo
-                     (Some (locUnknown, 0))
+                     (Some (Cilutil.locUnknown, 0))
 
     (* Combine the types. Raises the Failure exception with an error message.
      * isdef says whether the new type is for a definition *)
@@ -562,7 +591,7 @@ let rec combineTypes (what: combineWhat)
         if oldk == k then oldk else
         (* GCC allows a function definition to have a more precise integer
          * type than a prototype that says "int" *)
-        if not !msvcMode && oldk = IInt && bitsSizeOf t <= 32
+        if not theMachine.msvcMode && oldk = IInt && bitsSizeOf t <= 32
            && (what = CombineFunarg || what = CombineFunret)
         then
           k
@@ -581,7 +610,7 @@ let rec combineTypes (what: combineWhat)
         if oldk == k then oldk else
         (* GCC allows a function definition to have a more precise integer
          * type than a prototype that says "double" *)
-        if not !msvcMode && oldk = FDouble && k = FFloat
+        if not theMachine.msvcMode && oldk = FDouble && k = FFloat
            && (what = CombineFunarg || what = CombineFunret)
         then
           k
@@ -731,12 +760,12 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
      * it later with the new fields.
      * GN: 7/10/04, I could not find when is "later", so I added it below *)
     if len <> 0 && old_len <> 0 && old_len <> len then (
-      let curLoc = !currentLoc in     (* d_global blows this away.. *)
+      let curLoc = CurrentLoc.get () in     (* d_global blows this away.. *)
      (* (trace "merge" (P.dprintf "different # of fields\n%d: %a\n%d: %a\n"
                                 old_len  d_global (GCompTag(oldci,locUnknown))
                                     len  d_global (GCompTag(ci,locUnknown))
                      ));*)
-      currentLoc := curLoc;
+      CurrentLoc.set curLoc;
       let msg = Printf.sprintf
 	  "(different number of fields in %s and %s: %d != %d.)"
 	  oldci.cname ci.cname old_len len in
@@ -774,8 +803,8 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
           fprintf_to_string
             "\n\tFailed assumption that %s and %s are isomorphic %s@?%a@?%a"
             (compFullName oldci) (compFullName ci) reason
-            dn_global (GCompTag(oldci,locUnknown))
-            dn_global (GCompTag(ci,locUnknown))
+            dn_global (GCompTag(oldci,Cilutil.locUnknown))
+            dn_global (GCompTag(ci,Cilutil.locUnknown))
         in
         raise (Failure msg)
       end)
@@ -812,11 +841,11 @@ and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
       (* We check that they are defined in the same way. This is a fairly
       * conservative check. *)
       List.iter2
-        (fun (old_iname, old_iv, _) (iname, iv, _) ->
-          if old_iname <> iname then
+        (fun old_item item ->
+          if old_item.einame <> item.einame then
             raise (Failure "(different names for enumeration items)");
           let samev =
-            match constFold true old_iv, constFold true iv with
+            match constFold true old_item.eival, constFold true item.eival with
               Const(CInt64(oldi, _, _)), Const(CInt64(i, _, _)) -> oldi = i
             | _ -> false
           in
@@ -876,16 +905,19 @@ let static_var_visitor = object
     method vvrbl vi = if vi.vstorage = Static then raise Exit; DoChildren
   end
 
+(*
 let has_static_ref_predicate pred_info =
   try
     ignore (visitCilPredicateInfo static_var_visitor pred_info); false
   with Exit -> true
+*)
 
 let has_static_ref_logic_function lf_info =
   try
     ignore (visitCilLogicInfo static_var_visitor lf_info); false
   with Exit -> true
 
+(*
 let matchPredicateInfo oldfidx oldpi fidx pi =
   let oldtnode = getNode pEq pSyn oldfidx oldpi.p_name oldpi None in
   let    tnode = getNode pEq pSyn    fidx pi.p_name    pi None in
@@ -913,6 +945,7 @@ let matchPredicateInfo oldfidx oldpi fidx pi =
     end else
       error "invalid multiple predicate declarations %s" pi.p_name
   end
+*)
 
 let matchLogicInfo oldfidx oldpi fidx pi =
   let oldtnode = getNode lfEq lfSyn oldfidx oldpi.l_name oldpi None in
@@ -934,6 +967,7 @@ let matchLogicInfo oldfidx oldpi fidx pi =
       else
         oldtnode.nrep <- tnode.nrep
     end else
+(*
       match oldpi.l_definition, pi.l_definition with
         | None, None | Some _, Some _ ->
             error "invalid multiple logic function declarations %s" pi.l_name
@@ -944,16 +978,28 @@ let matchLogicInfo oldfidx oldpi fidx pi =
         | Some _, None ->
             Logic_const.merge_logic_reads oldtnode.nrep.ndata tnode.nrep.ndata;
             tnode.nrep <- oldtnode.nrep;
+*)
+      error "invalid multiple logic function declarations %s" pi.l_name
   end
 
-let matchLogicType _oldfidx _oldpi _fidx _pi =
-(*  let oldtnode = getNode lfEq lfSyn oldfidx oldpi.l_name oldpi None in
-  let    tnode = getNode lfEq lfSyn fidx pi.l_name pi None in
+let matchLogicType oldfidx (oldid, _ as oldnode) fidx (id, _ as node) =
+  let oldtnode = getNode ltEq ltSyn oldfidx oldid oldnode None in
+  let    tnode = getNode ltEq ltSyn fidx oldid node None in
   if oldtnode == tnode then (* We already know they are the same *)
     ()
-  else begin*)
-    error "invalid multiple logic type declarations"
-(*  end*)
+  else begin
+    let (_,oldty) = oldtnode.ndata in
+    let oldfidx = oldtnode.nfidx in
+    let (_,ty) = tnode.ndata in
+    let fidx = tnode.nfidx in
+    if oldty.nb_params = ty.nb_params then begin
+      if oldfidx < fidx then
+        tnode.nrep <- oldtnode.nrep
+      else
+        oldtnode.nrep <- tnode.nrep
+    end else
+      error "invalid multiple logic type declarations %s" id
+  end
 
 let matchLogicCtor oldfidx oldpi fidx pi =
   let oldtnode = getNode lcEq lcSyn oldfidx oldpi.ctor_name oldpi None in
@@ -964,7 +1010,45 @@ let matchLogicCtor oldfidx oldpi fidx pi =
     error "invalid multiple logic constructors declarations %s" pi.ctor_name
   end
 
+let matchLogicAxiomatic oldfidx (oldid,_ as oldnode) fidx (id,_ as node) =
+  let oldanode = getNode laEq laSyn oldfidx oldid oldnode None in
+  let anode = getNode laEq laSyn fidx id node None in
+  if oldanode == anode then
+    ()
+  else begin
+    let (_,oldax) = oldanode.ndata in
+    let oldaidx = oldanode.nfidx in
+    let (_,ax) = anode.ndata in
+    let aidx = anode.nfidx in
+    if Logic_const.is_same_axiomatic oldax ax then begin
+      if oldaidx < aidx then
+        anode.nrep <- oldanode.nrep
+      else
+        oldanode.nrep <- anode.nrep
+    end else
+      error "invalid multiple axiomatic declarations %s" id
+  end
 
+let matchLogicLemma oldfidx (oldid, _ as oldnode) fidx (id, _ as node) =
+  let oldlnode = getNode llEq llSyn oldfidx oldid oldnode None in
+  let lnode = getNode llEq llSyn fidx id node None in
+  if oldlnode == lnode then ()
+  else begin
+    let (oldid,(oldax,oldlabs,oldtyps,oldst)) = oldlnode.ndata in
+    let oldfidx = oldlnode.nfidx in
+    let (id,(ax,labs,typs,st)) = lnode.ndata in
+    let fidx = lnode.nfidx in
+    if Logic_const.is_same_global_annotation
+      (Dlemma (oldid,oldax,oldlabs,oldtyps,oldst))
+      (Dlemma (id,ax,labs,typs,st))
+    then begin
+      if oldfidx < fidx then
+        lnode.nrep <- oldlnode.nrep
+      else
+        oldlnode.nrep <- lnode.nrep
+    end else
+      error "invalid multiple lemmas or axioms  declarations for %s" id
+  end
 
 (* Scan all files and do two things *)
 (* 1. Initialize the alpha renaming tables with the names of the globals so
@@ -987,7 +1071,7 @@ let rec oneFilePass1 (f:file) : unit =
    * with the same name have been encountered before and we merge those types
    * *)
   let matchVarinfo (vi: varinfo) (l: location * int) =
-    ignore (Alpha.registerAlphaName vtAlpha None vi.vname !currentLoc);
+    ignore (Alpha.registerAlphaName vtAlpha None vi.vname (CurrentLoc.get ()));
     (* Make a node for it and put it in vEq *)
     let vinode = mkSelfNode vEq vSyn !currentFidx vi.vname vi (Some l) in
     try
@@ -1053,7 +1137,7 @@ let rec oneFilePass1 (f:file) : unit =
   List.iter
     (function
       | GVarDecl (_,vi, l) | GVar (vi, _, l) ->
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           vi.vreferenced <- false;
           if vi.vstorage <> Static then begin
@@ -1061,7 +1145,7 @@ let rec oneFilePass1 (f:file) : unit =
           end
 
       | GFun (fdec, l) ->
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           (* Save the names of the formal arguments *)
           let _, args, _, _ = splitFunctionTypeVI fdec.svar in
@@ -1118,7 +1202,7 @@ let rec oneFilePass1 (f:file) : unit =
                     (Some (l, !currentDeclIdx)))
 
       | GAnnot (gannot,l) ->
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           global_annot_pass1 l gannot
       | _ -> ())
@@ -1224,6 +1308,7 @@ class renameVisitorClass = object (self)
           ChangeTo vi'
     end
 
+(*
   method vpredicate_info_use pi =
     match findReplacement true pEq !currentFidx pi.p_name with
         None -> DoChildren
@@ -1243,6 +1328,7 @@ class renameVisitorClass = object (self)
                       pi.p_name
                       !currentFidx pi'.p_name oldfidx);
           ChangeTo pi'
+*)
 
   method vlogic_info_use li =
     match findReplacement true lfEq !currentFidx li.l_name with
@@ -1462,8 +1548,11 @@ let collect_type_vars l =
   List.iter (fun x -> ignore(visitCilLogicType vis x.lv_type)) l;
   !tvars
 
-let global_annot_pass2 g = match g with
-| GAnnot ((Dpredicate_reads(pi,_,_,_)|Dpredicate_def (pi,_,_,_)),_) ->
+let rec logic_annot_pass2 ~in_axiomatic g a = match a with
+(*
+| GAnnot ((Dinductive_def(pi,_,_,_)|
+           Dpredicate_reads(pi,_,_,_)|
+           Dpredicate_def (pi,_,_,_)),_) ->
     begin
       match findReplacement true pEq !currentFidx pi.p_name with
       | None ->
@@ -1472,6 +1561,17 @@ let global_annot_pass2 g = match g with
       | Some _ -> ()
     end
 | GAnnot(Dlogic_def (li,_,_,_,_),_) ->
+    begin
+      match findReplacement true lfEq !currentFidx li.l_name with
+      | None ->
+          mergePushGlobals (visitCilGlobal renameVisitor g);
+          (* The function may have been added in the global env by
+             a preceding declaration. *)
+          if not (Logic_env.is_logic_function li.l_name) then
+            Logic_env.add_logic_function li
+      | Some _ -> ()
+    end
+| GAnnot(Dlogic_axiomatic(li,_,_,_,_),_) ->
     begin
       match findReplacement true lfEq !currentFidx li.l_name with
       | None ->
@@ -1499,34 +1599,66 @@ let global_annot_pass2 g = match g with
           Logic_env.add_logic_function li';
       | _ -> ()
     end
-| GAnnot (Dtype(n,_),_) ->
+*)
+
+| Dfun_or_pred li ->
+    begin
+      match findReplacement true lfEq !currentFidx li.l_name with
+	| None ->
+	    if not in_axiomatic then
+              mergePushGlobals (visitCilGlobal renameVisitor g);
+            Logic_env.add_logic_function li;
+	| Some _ -> ()
+	    (* FIXME: should we perform same actions
+	       as the case Dlogic_reads above ? *)
+    end
+| Dtype(n,_) ->
     begin
       match findReplacement true ltEq !currentFidx n with
       | None ->
-          mergePushGlobals (visitCilGlobal renameVisitor g);
-          Logic_env.add_logic_type n (H.find ltEq (!currentFidx,n)).ndata
+	  if not in_axiomatic then
+            mergePushGlobals (visitCilGlobal renameVisitor g);
+          Logic_env.add_logic_type n (snd (H.find ltEq (!currentFidx,n)).ndata)
       | Some _ -> ()
     end
-| GAnnot (Dinvariant {p_name = n},_) ->
+| Dinvariant {l_name = n} ->
     begin
-      match findReplacement true pEq !currentFidx n with
+      match findReplacement true lfEq !currentFidx n with
       | None ->
+	  assert (not in_axiomatic);
           mergePushGlobals (visitCilGlobal renameVisitor g);
-          Logic_env.add_predicate (H.find pEq (!currentFidx,n)).ndata
+          Logic_env.add_logic_function (H.find lfEq (!currentFidx,n)).ndata
       | Some _ -> ()
     end
-| GAnnot (Dtype_annot n,_) ->
+| Dtype_annot n ->
     begin
-      match findReplacement true pEq !currentFidx n.p_name with
+      match findReplacement true lfEq !currentFidx n.l_name with
       | None ->
-          mergePushGlobals (visitCilGlobal renameVisitor g);
-          Logic_env.add_predicate (H.find pEq (!currentFidx,n.p_name)).ndata
+          let g = visitCilGlobal renameVisitor g in
+	  if not in_axiomatic then
+            mergePushGlobals g;
+          Logic_env.add_logic_function (H.find lfEq (!currentFidx,n.l_name)).ndata
       | Some _ -> ()
     end
-| GAnnot (Dlemma _,_) as g ->
-    mergePushGlobals (visitCilGlobal renameVisitor g)
-| _ -> assert false
+| Dlemma (n,_,_,_,_) ->
+    begin
+      match findReplacement true llEq !currentFidx n with
+          None ->
+            if not in_axiomatic then
+              mergePushGlobals (visitCilGlobal renameVisitor g)
+        | Some _ -> ()
+    end
+| Daxiomatic(n,l) ->
+    begin
+      match findReplacement true laEq !currentFidx n with
+          None ->
+            assert (not in_axiomatic);
+            mergePushGlobals (visitCilGlobal renameVisitor g);
+            List.iter (logic_annot_pass2 ~in_axiomatic:true g) l
+        | Some _ -> ()
+    end
 
+let global_annot_pass2 g a = logic_annot_pass2 ~in_axiomatic:false g a
 
 (* sm: First attempt at a semantic checksum for function bodies.
  * Ideally, two function's checksums would be equal only when their
@@ -1543,7 +1675,8 @@ begin
     (* strategy is to just throw a lot of prime numbers into the
      * computation in hopes of avoiding accidental collision.. *)
     match s.skind with
-    | UnspecifiedSequence blk -> 131*(stmtListSum blk.bstmts) + 127
+    | UnspecifiedSequence seq ->
+        131*(stmtListSum (List.map (fun (x,_,_) -> x) seq)) + 127
     | Instr _ -> 13 + 67
     | Return(_) -> 17
     | Goto(_) -> 19
@@ -1710,17 +1843,24 @@ let oneFilePass2 (f: file) =
       else begin
         (* Maybe it is static. Rename it then *)
         if vi.vstorage = Static then begin
-          let newName, _ = A.newAlphaName vtAlpha None vi.vname !currentLoc in
-          (* Remember the original name *)
+          let newName, _ =
+	    A.newAlphaName vtAlpha None vi.vname (CurrentLoc.get ())
+	  in
+          let formals_decl =
+            try ignore (Cil.getFormalsDecl vi); true
+            with Not_found -> false
+          in
+	  (* Remember the original name *)
           H.add originalVarNames newName vi.vname;
           if debugMerge then ignore (log "renaming %s at %a to %s\n"
                                            vi.vname
                                            d_loc vloc
                                            newName);
           vi.vname <- newName;
-          vi.vid <- newVID ();
           vi.vreferenced <- true;
-          vi
+          set_vid vi;
+          if formals_decl then Cil.setFormalsDecl vi vi.vtype;
+	  vi
         end else begin
           (* Find the representative *)
           match findReplacement true vEq !currentFidx vi.vname with
@@ -1735,7 +1875,7 @@ let oneFilePass2 (f: file) =
     try
       match g with
       | GVarDecl (spec,vi, l) as g ->
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           let vi' = processVarinfo vi l in
           if vi != vi' then begin
@@ -1750,7 +1890,7 @@ let oneFilePass2 (f: file) =
           end
 
       | GVar (vi, init, l) ->
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           let vi' = processVarinfo vi l in
           (* We must keep this definition even if we reuse this varinfo,
@@ -1793,13 +1933,13 @@ let oneFilePass2 (f: file) =
             mergePushGlobals (visitCilGlobal renameVisitor (GVar(vi', init, l)))
 
       | GFun (fdec, l) as g ->
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           (* We apply the renaming *)
           let vi = processVarinfo fdec.svar l in
           if fdec.svar != vi then begin
             (try
-              add_alpha_renaming vi (Cil.getFormalsDecl vi.vid) fdec.sformals;
+              add_alpha_renaming vi (Cil.getFormalsDecl vi) fdec.sformals;
             with Not_found -> ());
             fdec.svar <- vi
           end;
@@ -1838,8 +1978,8 @@ let oneFilePass2 (f: file) =
           if fdec'.svar.vinline && mergeInlines then begin
             let printout =
               (* Temporarily turn of printing of lines *)
-              let oldprintln = !lineDirectiveStyle in
-              lineDirectiveStyle := None;
+              let oldprintln = miscState.lineDirectiveStyle in
+              miscState.lineDirectiveStyle <- None;
               (* Temporarily set the name to all functions in the same way *)
               let newname = fdec'.svar.vname in
               fdec'.svar.vname <- "@@alphaname@@";
@@ -1875,7 +2015,7 @@ let oneFilePass2 (f: file) =
                   "%a"
                   d_global g'
               in
-              lineDirectiveStyle := oldprintln;
+              miscState.lineDirectiveStyle <- oldprintln;
               fdec'.svar.vname <- newname;
               if mergeInlinesWithAlphaConvert then begin
                 (* Do the locals in reverse order *)
@@ -1975,7 +2115,7 @@ let oneFilePass2 (f: file) =
           end
 
       | GCompTag (ci, l) as g -> begin
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           if ci.creferenced then
             ()
@@ -1994,7 +2134,7 @@ let oneFilePass2 (f: file) =
                          ci.cname !currentFidx);
                 end);
                 let newname, _ =
-                  A.newAlphaName sAlpha None ci.cname !currentLoc in
+                  A.newAlphaName sAlpha None ci.cname (CurrentLoc.get ()) in
                 ci.cname <- newname;
                 ci.creferenced <- true;
                 ci.ckey <- H.hash (compFullName ci);
@@ -2010,7 +2150,7 @@ let oneFilePass2 (f: file) =
           end
       end
       | GEnumTag (ei, l) as g -> begin
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           if ei.ereferenced then
             ()
@@ -2018,18 +2158,17 @@ let oneFilePass2 (f: file) =
             match findReplacement true eEq !currentFidx ei.ename with
               None -> (* We must rename it *)
                 let newname, _ =
-                  A.newAlphaName eAlpha None ei.ename !currentLoc in
+                  A.newAlphaName eAlpha None ei.ename (CurrentLoc.get ()) in
                 ei.ename <- newname;
                 ei.ereferenced <- true;
                 (* And we must rename the items to using the same name space
                  * as the variables *)
-                ei.eitems <-
-                   List.map
-                     (fun (n, i, loc) ->
-                       let newname, _ =
-                         A.newAlphaName vtAlpha None n !currentLoc in
-                       newname, i, loc)
-                     ei.eitems;
+                List.iter
+                  (fun item ->
+                     let newname,_= A.newAlphaName vtAlpha None item.einame
+                       item.eiloc
+                     in item.einame <- newname)
+                ei.eitems;
                 mergePushGlobals (visitCilGlobal renameVisitor g);
             | Some (_ei', _) -> (* Drop this since we are reusing it from
                                 * before *)
@@ -2037,9 +2176,9 @@ let oneFilePass2 (f: file) =
           end
       end
       | GCompTagDecl (ci, l) -> begin
-          currentLoc := l; (* This is here just to introduce an undefined
-                            * structure. But maybe the structure was defined
-                            * already.  *)
+          CurrentLoc.set l; (* This is here just to introduce an undefined
+                             * structure. But maybe the structure was defined
+                             * already.  *)
           (* Do not increment currentDeclIdx because it is not incremented in
            * pass 1*)
           if H.mem emittedCompDecls ci.cname then
@@ -2052,7 +2191,7 @@ let oneFilePass2 (f: file) =
       end
 
       | GEnumTagDecl (_ei, l) ->
-          currentLoc := l;
+          CurrentLoc.set l;
           (* Do not increment currentDeclIdx because it is not incremented in
            * pass 1*)
           (* Keep it as a declaration *)
@@ -2060,7 +2199,7 @@ let oneFilePass2 (f: file) =
 
 
       | GType (ti, l) as g -> begin
-          currentLoc := l;
+          CurrentLoc.set l;
           incr currentDeclIdx;
           if ti.treferenced then
             ()
@@ -2068,7 +2207,7 @@ let oneFilePass2 (f: file) =
             match findReplacement true tEq !currentFidx ti.tname with
               None -> (* We must rename it and keep it *)
                 let newname, _ =
-                  A.newAlphaName vtAlpha None ti.tname !currentLoc in
+                  A.newAlphaName vtAlpha None ti.tname (CurrentLoc.get ()) in
                 ti.tname <- newname;
                 ti.treferenced <- true;
                 mergePushGlobals (visitCilGlobal renameVisitor g);
@@ -2077,10 +2216,10 @@ let oneFilePass2 (f: file) =
                   ()
           end
         end
-      | GAnnot (_, l) as g ->
-          currentLoc := l;
+      | GAnnot (a, l) as g ->
+          CurrentLoc.set l;
           incr currentDeclIdx;
-          global_annot_pass2 g
+          global_annot_pass2 g a
       | g -> mergePushGlobals (visitCilGlobal renameVisitor g)
   with e -> begin
     log
@@ -2180,11 +2319,14 @@ let merge (files: file list) (newname: string) : file =
     doMergeSynonyms eSyn eEq matchEnumInfo;
     doMergeSynonyms tSyn tEq matchTypeInfo;
 
+(*
     doMergeSynonyms pSyn pEq matchPredicateInfo;
+*)
     doMergeSynonyms lfSyn lfEq matchLogicInfo;
     doMergeSynonyms ltSyn ltEq matchLogicType;
     doMergeSynonyms lcSyn lcEq matchLogicCtor;
-
+    doMergeSynonyms laSyn laEq matchLogicAxiomatic;
+    doMergeSynonyms llSyn llEq matchLogicLemma;
 
     if mergeInlines then begin
       (* Copy all the nodes from the iEq to vEq as well. This is needed
@@ -2222,5 +2364,13 @@ let merge (files: file list) (newname: string) : file =
   init ~all:false (); (* Make the GC happy BUT KEEP some tables *)
   (* We have made many renaming changes and sometimes we have just guessed a
    * name wrong. Make sure now that the local names are unique. *)
-  uniqueVarNames res;
-  res
+    uniqueVarNames res;
+  if !Errormsg.hadErrors then begin
+    Format.eprintf "Error during linking@.";
+    { fileName = newname;
+      globals = [];
+      globinit = None;
+      globinitcalled = false }
+  end else begin
+    res
+  end

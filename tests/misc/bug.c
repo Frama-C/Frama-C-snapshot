@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f
+  OPT: -memory-footprint 1 -val -deps -out -input  -main f -journal-disable
 */
 
 void f(unsigned short typemess)
@@ -12,9 +12,9 @@ void f(unsigned short typemess)
 
  if (typemess == (unsigned short)0 )
  {
-  
+
    goto L;
-  
+
    goto L;
    }
  L:;

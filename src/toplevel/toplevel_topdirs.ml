@@ -29,11 +29,11 @@ let add_top dir =
 
 let src_dir = 
   [ "ai"; "buckx"; "constant_propagation"; "cxx_types";
-    "from"; "gui"; "impact"; "inout"; "jessie"; "kernel"; "lib";
+    "from"; "gui"; "impact"; "inout"; "jessie"; "journal"; "kernel"; "lib";
     "logic"; "memory_state"; "misc"; "modular_dependencies"; "occurrence";
-    "pdg"; "pdg_types"; "postdominators"; "project"; "scope"; "security";
-    "semantic_callgraph"; "slicing"; "slicing_types"; "sparecode"; "toplevel";
-    "users"; "value"; "wp" ]
+    "pdg"; "pdg_types"; "phantom"; "postdominators"; "project"; "scope"; 
+    "security"; "semantic_callgraph"; "slicing"; "slicing_types"; "sparecode"; 
+    "toplevel"; "users"; "value"; "wp" ]
 
 let () = 
   List.iter (fun s -> add_top (Filename.concat "src" s)) src_dir;

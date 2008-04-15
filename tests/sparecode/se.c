@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -sparecode-analysis -lib-entry -main Se
+   OPT: -sparecode-analysis -lib-entry -main Se -journal-disable
 */
 int glob;
 

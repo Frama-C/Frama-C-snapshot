@@ -12,10 +12,7 @@
 (* We just add one state at this time *)
 module StateA = 
   Computation.Ref
-    (struct include Datatype.Int let default = 0 end)
-    (struct
-       let name = Project.Computation.Name.make "Project.Test.StateA"
-       let dependencies = []
-     end)
+    (struct include Datatype.Int let default () = 0 end)
+    (struct let name = "Project.Test.StateA" let dependencies = [] end)
 
 let () = StateA.set 10

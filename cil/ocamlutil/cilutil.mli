@@ -39,7 +39,7 @@
 (**************************************************************************)
 
 (** A bunch of generally useful functions.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 
@@ -96,6 +96,10 @@ val list_init : int -> (int -> 'a) -> 'a list
 
 (** Find the first element in a list that returns Some *)
 val list_find_first: 'a list -> ('a -> 'b option) -> 'b option
+
+val list_last: 'a list -> 'a
+  (** Returns the last element of a list; O(N), tail recursive.
+      @raise Invalid_argument on an empty list. *)
 
 (** mapNoCopy is like map but avoid copying the list if the function does not
  * change the elements *)
@@ -190,11 +194,15 @@ val tryFinally:
 val valOf : 'a option -> 'a
 
 val out_some : 'a option -> 'a
-  (** @plugin developer guide *)
+  (** @plugin development guide *)
 
 val opt_map: ('a -> 'b) -> 'a option -> 'b option
 
 val opt_bind: ('a -> 'b option) -> 'a option -> 'b option
+
+val opt_app: ('a -> 'b) -> 'b -> 'a option -> 'b
+
+val opt_iter: ('a -> unit) -> 'a option -> unit
 
 (**
  * An accumulating for loop.
@@ -362,6 +370,18 @@ end
    pointers. *)
 val equals: 'a -> 'a -> bool
 
+(** Represents a location that cannot be determined *)
+val locUnknown: location
+
+(** Return the location of an instruction *)
+val get_instrLoc: instr -> location
+
+(** Return the location of a global, or locUnknown *)
+val get_globalLoc: global -> location
+
+(** Return the location of a statement, or locUnknown *)
+val get_stmtLoc: stmtkind -> location
+
 module StringMap : Map.S with type key = String.t
 module StringSet : Set.S with type elt = String.t
 
@@ -437,7 +457,6 @@ sig
 
 end
 
-
 module Mapl_Make (X:Map.OrderedType) : Mapl with type key = X.t
 
 module IntMapl : sig
@@ -448,6 +467,18 @@ module IntMapl : sig
   val find : key -> 'a map -> 'a list
 end
 
+module Instr : sig
+  type t = kinstr
+  val compare: t -> t -> int
+  val equal: t -> t -> bool
+  val hash: t -> int
+  val pretty:  Format.formatter -> t -> unit
+  val loc: t -> location
+end
+
+module InstrMapl : Mapl with type key = kinstr
+module InstrHashtbl : Hashtbl.S with type key = kinstr
+
 (** [Map] indexed by [Cil_types.stmt] with a customizable pretty printer *)
 module StmtMap :
 sig include Map.S with type key = Cil_types.stmt
@@ -455,7 +486,7 @@ sig include Map.S with type key = Cil_types.stmt
 end
 
 (** [Set] of [Cil_types.stmt] with a pretty printer.
-    @plugin developer guide *)
+    @plugin development guide *)
 module StmtSet : sig include Set.S with type elt = Cil_types.stmt
     val pretty : Format.formatter ->  t -> unit
 end
@@ -463,7 +494,7 @@ end
 module StmtComparable : Graph.Sig.COMPARABLE with type t = Cil_types.stmt
 
 (** [Hashtbl] of [Cil_types.stmt] with a pretty printer.
-    @plugin developer guide *)
+    @plugin development guide *)
 module StmtHashtbl : sig include Hashtbl.S with type key = Cil_types.stmt
     val pretty : Format.formatter ->  'a t  -> unit
 end
@@ -478,6 +509,7 @@ module VarinfoComparable : sig
 end
 module VarinfoHashtbl : Hashtbl.S with type key = Cil_types.varinfo
 module VarinfoMap : Map.S with type key = Cil_types.varinfo
+module VarinfoSet : Set.S with type elt = Cil_types.varinfo
 
 module LogicVarComparable : sig
   type t = logic_var
@@ -485,7 +517,11 @@ module LogicVarComparable : sig
   val hash: t -> int
   val equal: t -> t -> bool
 end
+
 module LogicVarHashtbl : Hashtbl.S with type key = Cil_types.logic_var
+module LogicVarMap: Map.S with type key = Cil_types.logic_var
+module LogicVarSet: Set.S with type elt = Cil_types.logic_var
+
 
 module FieldinfoComparable : sig
   type t = fieldinfo
@@ -505,8 +541,21 @@ module TypeComparable : sig
   val hash: t -> int
   val equal: t -> t -> bool
 end
+
 module TypeHashtbl : Hashtbl.S with type key = Cil_types.typ
 module TypeSet : Set.S with type elt = Cil_types.typ
+
+module LvalComparable: sig
+  type t = lval
+  val compare: t -> t -> int
+(* uneeded and not implemented for now *)
+(*  val hash: t -> int
+  val equal: t -> t -> bool
+*)
+end
+
+(* module LvalHashtbl: Hashtbl.S with type key = Cil_types.lval *)
+module LvalSet: Set.S with type elt = Cil_types.lval
 
 val printStages : bool ref
 

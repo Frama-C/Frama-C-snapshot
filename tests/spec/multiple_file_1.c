@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -print tests/spec/multiple_file_2.c
+   OPT: -print tests/spec/multiple_file_2.c -journal-disable
 */
 
 /* see bug #43 */

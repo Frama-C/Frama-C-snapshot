@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -semantic-const-folding
-   OPT: -memory-footprint 1 -semantic-const-folding -cast-from-constant -semantic-const-fold add3 -main init
+   OPT: -memory-footprint 1 -val -deps -out -input -semantic-const-folding -journal-disable
+   OPT: -memory-footprint 1 -semantic-const-folding -cast-from-constant -semantic-const-fold add3 -main init -journal-disable
 */
 int x,y,z;
 int TAB[10];
@@ -53,7 +53,7 @@ int init (int v) {
   int sept = 7;
   x = v;
   y = sept;
-  z = add3 (x, y, zero); // TODO: add3(x, 7, 0); z = 12; 
+  z = add3 (x, y, zero); // TODO: add3(x, 7, 0); z = 12;
   int z1 = z ;
   return zero ;
 }
@@ -71,12 +71,12 @@ void main(int a) {
 
   int b = init(5);  // TODO: init(5); b = 0;
   z = add3 (a, 0, 0);
-  
+
   int *p = test_ptr (y);
   //@ assert *p == 7 ;
   int *q = a?p:&y;
   int yy = *q;
   //@ assert a==0 ==> q==&y ;
   //@ assert *q == 7 ;
-  
+
 }

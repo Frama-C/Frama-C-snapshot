@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input
-   OPT: -memory-footprint 1 -val -deps -out -input -main f
+   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
 */
 
 
@@ -18,5 +18,5 @@ void f(int i) {
 void main () {
   t[2] = 77;
   f(2);
-  
+
 }

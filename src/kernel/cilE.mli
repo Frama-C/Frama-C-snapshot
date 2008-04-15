@@ -20,7 +20,7 @@
 (**************************************************************************)
 
 (** Cil Extension for Frama-C.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 (** Display a localized warning only once per location and per message. *)
 val warn_once : ('a, Format.formatter, unit, unit) format4 -> 'a
@@ -30,7 +30,7 @@ val log_once : ('a, Format.formatter, unit, unit) format4 -> 'a
 (*val compact_body : Cil_types.fundec -> unit*)
 
 (* Restore correct gotos after a statement substitution *)
-val update_gotos : 
+val update_gotos :
   Cil_types.stmt Cilutil.StmtMap.t -> Cil_types.block -> Cil_types.block
 
 type syntactic_context =
@@ -38,6 +38,8 @@ type syntactic_context =
   | SyBinOp of Cil_types.binop * Cil_types.exp * Cil_types.exp
   | SyUnOp of  Cil_types.exp
   | SyMem of  Cil_types.lval
+  | SySep of Cil_types.exp * Cil_types.exp
+      (** assert that two locations must be separated *)
 
 val start_stmt : Cil_types.kinstr -> unit
 val end_stmt : unit -> unit
@@ -46,7 +48,7 @@ val current_stmt : unit -> Cil_types.kinstr
 val set_syntactic_context : syntactic_context -> unit
 val get_syntactic_context : unit -> Cil_types.kinstr*syntactic_context
 
-type alarm_behavior = 
+type alarm_behavior =
     Aignore  (* pretend that the problematic values do not happen *)
     | Alog (* log the alarm using the global variable that has been set
 	     with set_syntactic_context, and continue,
@@ -55,7 +57,7 @@ type alarm_behavior =
 	(* call function -- in a future version, more information will be
 	   passed to the function *)
 
-type warn_mode = {unspecified:alarm_behavior; 
+type warn_mode = {unspecified:alarm_behavior;
                   others: alarm_behavior;
                   imprecision_tracing:alarm_behavior}
 
@@ -71,6 +73,10 @@ val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit
 val warn_uninitialized : warn_mode -> unit
 val warn_escapingaddr : warn_mode -> unit
+(** warning to be emitted when two incompatible accesses to a location are
+    done in unspecified order. Must be called in a [SyNone] or [SySep] context.
+*)
+val warn_separated : warn_mode -> unit
 
 (*
 Local Variables:

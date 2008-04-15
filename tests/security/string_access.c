@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry -main check_and_send -slice-print
-   OPT: -security-slicing -lib-entry -main check_and_send -security-lattice strong -slice-print
+   OPT: -security-slicing -lib-entry -main check_and_send -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main check_and_send -security-lattice strong -slice-print -journal-disable
 */
 
 /*@ requires security_status(data) == public; */

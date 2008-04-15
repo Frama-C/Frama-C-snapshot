@@ -19,7 +19,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: malloc.c,v 1.22 2008/06/30 14:39:46 uid530 Exp $ */
+/* $Id: malloc.c,v 1.23 2008/10/03 11:09:19 uid562 Exp $ */
 
 /* This file is part of the Frama-C framework.
    It must be included in all files calling malloc of free as it defines macros.
@@ -60,8 +60,8 @@ extern void*Frama_C_alloc_infinite(const char *);
 #define FRAMA_C_VALID 1
 #define FRAMA_C_FREED 2
 
-static void *Frama_C_malloc_at_pos(size_t size,const char* file) {
-  static counter = 0;
+ static void *Frama_C_malloc_at_pos(size_t size,const char* file) {
+   static counter = 0;
   counter++;
   char *base = Frama_C_alloc_infinite(file);
   char *tag = Frama_C_alloc_infinite(base);

@@ -19,9 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: users_register.ml,v 1.14 2008/05/30 08:29:49 uid568 Exp $ *)
+(* $Id: users_register.ml,v 1.17 2008/11/18 12:13:41 uid568 Exp $ *)
 
-(**  @plugin developer guide *)
+(**  @plugin development guide *)
 
 open Db
 
@@ -29,7 +29,7 @@ module Users =
   Kernel_function.Make_Table
     (Kernel_function.Set.Datatype)
     (struct 
-       let name = Project.Computation.Name.make "Users" 
+       let name = "Users" 
        let size = 17 
        let dependencies = [ Value.self ]
      end)
@@ -48,6 +48,23 @@ let call_for_users (_state, call_stack) =
 	     user)
       in
       List.iter treat_element tail
+
+let main fmt =
+  if Cmdline.ForceUsers.get () then begin
+    Format.fprintf fmt "@\n====== DISPLAYING USERS ======@.";
+    !Db.Semantic_Callgraph.topologically_iter_on_functions
+      (fun kf ->
+	 try
+	   Format.fprintf fmt "%a: @[%a@]@\n"
+	     Kernel_function.pretty_name kf
+	     Kernel_function.Set.pretty (!Db.Users.get kf)
+	 with Not_found -> 
+	   () (* k is not called during analysis *))
+    ;
+    Format.fprintf fmt "@\n====== END OF USERS ======@."
+  end
+
+let () = Db.Main.extend main
 
 let init () =
   if Cmdline.ForceUsers.get () then

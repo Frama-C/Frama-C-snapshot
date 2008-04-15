@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main0
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main1
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main2
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main0 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main1 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main main2 -journal-disable
 */
 
 int X,c,u,v,w,G;

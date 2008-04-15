@@ -42,9 +42,8 @@
 open Pretty
 open Cil_types
 open Cil
+open Cilutil
 module E = Errormsg
-
-let lu = locUnknown
 
 (* If you have trouble try to reproduce the problem on a smaller type. Try 
  * limiting the maxNesting and integerKinds *)
@@ -73,8 +72,8 @@ let addStatement (s: stmt) = statements := s :: !statements
 let getStatements () = List.rev !statements
 
 (* Keep here the main function *)
-let main: fundec ref = ref dummyFunDec
-let mainRetVal: varinfo ref = ref dummyFunDec.svar
+let main: fundec ref = ref (emptyFunction "@dummy@")
+let mainRetVal: varinfo ref = ref (!main.svar)
 
 let assertId = ref 0 
 let addAssert (b: exp) (extra: stmt list) : unit = 
@@ -82,21 +81,22 @@ let addAssert (b: exp) (extra: stmt list) : unit =
   addStatement (mkStmt (If(UnOp(LNot, b, intType),
                            mkBlock (extra @ 
                                     [mkStmt (Return (Some (integer !assertId),
-                                                     lu))]),
-                           mkBlock [], lu)))
+                                                     locUnknown))]),
+                           mkBlock [], locUnknown)))
 
 let addSetRetVal (b: exp) (extra: stmt list) : unit = 
   addStatement 
-    (mkStmt (If(UnOp(LNot, b, intType),
-                mkBlock (extra @ 
-                         [mkStmtOneInstr (Set(var !mainRetVal, one, lu))]),
-                mkBlock [], lu)))
+    (mkStmt 
+       (If(UnOp(LNot, b, intType),
+           mkBlock 
+	     (extra@[mkStmtOneInstr (Set(var !mainRetVal, one, locUnknown))]),
+           mkBlock [], locUnknown)))
 
 
 let printfFun: fundec = 
   let fdec = emptyFunction "printf" in
-  fdec.svar.vtype <- 
-     TFun(intType, Some [ ("format", charPtrType, [])], true, []);
+  fdec.svar.vtype <-
+    TFun(intType, Some [ ("format", charPtrType, [])], true, []);
   fdec
 
 
@@ -129,7 +129,7 @@ let checkSizeOfFun: fundec =
 
 let doPrintf format args = 
   mkStmtOneInstr (Call(None, Lval(var printfFun.svar),
-                       (Const(CStr format)) :: args, lu))
+                       (Const(CStr format)) :: args, locUnknown))
 
 
 (* Select among the choices, each with a given weight *)
@@ -189,7 +189,7 @@ let mkCompType (iss: bool) =
                   (if w = 0 then missingFieldName else fname), Some w
                 end
               in
-              (fname', ft, width, [], lu) :: mkFields (i + 1) 
+              (fname', ft, width, [], locUnknown) :: mkFields (i + 1) 
             end
           in
           mkFields 0)
@@ -197,7 +197,7 @@ let mkCompType (iss: bool) =
     in
     decr currentNesting;
     (* Register it with the file *)
-    addGlobal (GCompTag(ci, lu));
+    addGlobal (GCompTag(ci, locUnknown));
     TComp(ci, [])
   end
 
@@ -224,10 +224,10 @@ let testSizeOf () =
     let t = select !typeChoices in
     (* Create a global with that type *)
     let g = makeGlobalVar (newName "g") t in
-    addGlobal (GVar(g, {init=None}, lu));
+    addGlobal (GVar(g, {init=None}, locUnknown));
     addStatement (mkStmtOneInstr(Call(None, Lval(var memsetFun.svar),
                                       [ mkAddrOrStartOf (var g); zero;
-                                        SizeOfE(Lval(var g))], lu)));
+                                        SizeOfE(Lval(var g))], locUnknown)));
     try
 (*      if i = 0 then ignore (E.log "0: %a\n" d_plaintype t); *)
       let bsz = 
@@ -269,15 +269,15 @@ let testSizeOf () =
               match lvt with
                 TFloat (FFloat, _) -> 
                   Set((Mem (mkCast (AddrOf lv) intPtrType), NoOffset),
-                      v, lu)
+                      v, locUnknown)
               | TFloat (FDouble, _) -> 
                   Set((Mem (mkCast (AddrOf lv) 
                               (TPtr(TInt(IULongLong, []), []))), NoOffset),
-                      mkCast v (TInt(IULongLong, [])), lu)
+                      mkCast v (TInt(IULongLong, [])), locUnknown)
 
               | (TPtr _ | TInt((IULongLong|ILongLong), _)) -> 
-                  Set(lv, mkCast v lvt, lu)
-              | _ -> Set(lv, v, lu)
+                  Set(lv, mkCast v lvt, locUnknown)
+              | _ -> Set(lv, v, locUnknown)
             in
             let ucharPtrType = TPtr(TInt(IUChar, []), []) in
             let s = 
@@ -290,7 +290,7 @@ let testSizeOf () =
                                  integer start; 
                                       integer width;
                                       (Const(CStr(fprintf_to_string "%a"
-                                                    d_lval lv)))],lu);
+                                                    d_lval lv)))],locUnknown);
                           setLv zero]) in
             addStatement s
       in
@@ -300,7 +300,7 @@ let testSizeOf () =
       let s = mkStmtOneInstr (Call(None, Lval(var checkSizeOfFun.svar),
                                    [ SizeOfE (Lval (var g));
                                      integer (bitsSizeOf t);
-                                     mkString g.vname ], lu)) in
+                                     mkString g.vname ], locUnknown)) in
       addStatement s;
 (*      ignore (E.log "10\n"); *)
     with _ -> ()
@@ -364,13 +364,13 @@ let createFile () =
   !main.svar.vtype <- TFun(intType, None, false, []);
   mainRetVal := makeGlobalVar "retval" intType;
 
-  addGlobal (GVar(!mainRetVal, {init=None}, lu));
+  addGlobal (GVar(!mainRetVal, {init=None}, locUnknown));
   addGlobal (GText("#include \"testcil.h\"\n"));
-  addStatement (mkStmtOneInstr(Set(var !mainRetVal, zero, lu)));
+  addStatement (mkStmtOneInstr(Set(var !mainRetVal, zero, locUnknown)));
 
   (* Add prototype for printf *)
-  addGlobal (GVar(printfFun.svar, {init=None}, lu));
-  addGlobal (GVar(memsetFun.svar, {init=None}, lu));
+  addGlobal (GVar(printfFun.svar, {init=None}, locUnknown));
+  addGlobal (GVar(memsetFun.svar, {init=None}, locUnknown));
 
   (* now fill in the composites and the code of main. For simplicity we add 
    * the statements of main in reverse order *)
@@ -379,11 +379,11 @@ let createFile () =
 
 
   (* Now add a return 0 at the end *)
-  addStatement (mkStmt (Return(Some (Lval(var !mainRetVal)), lu)));
+  addStatement (mkStmt (Return(Some (Lval(var !mainRetVal)), locUnknown)));
   
   
   (* Add main at the end *)
-  addGlobal (GFun(!main, lu));
+  addGlobal (GFun(!main, locUnknown));
   !main.sbody.bstmts <- getStatements ();
 
   (* Now build the CIL.file *)

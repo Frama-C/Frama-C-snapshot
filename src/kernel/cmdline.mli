@@ -19,18 +19,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cmdline.mli,v 1.144 2008/07/01 13:23:22 uid530 Exp $ *)
+(* $Id: cmdline.mli,v 1.181 2008/12/09 15:24:13 uid562 Exp $ *)
 
 (** Bunch of values which may be initialize through command line.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 val get_selection: unit -> Project.Selection.t
-  (** Selection of all the options. 
-      @plugin developer guide *)
+  (** Selection of all the options.
+      @plugin development guide *)
 
 val get_selection_context: unit -> Project.Selection.t
   (** Selection of all the options which define the context of analyses. *)
-  
+
 val nb_selected_options: unit -> int
   (** Numbers of selected options. *)
 
@@ -45,6 +45,7 @@ type kind = private
   | Int of int option_accessor
   | String of string option_accessor
   | StringSet of string option_accessor (* Comma separated string list *)
+  | StringList of string option_accessor (* Comma separated string list *)
 
 type t = (* private *) kind * string
 
@@ -52,8 +53,8 @@ val iter_on_options: (t -> unit) -> unit
 
 (** {2 Signatures} *)
 
-(** Generic outputs signatures of options. 
-    @plugin developer guide *)
+(** Generic outputs signatures of options.
+    @plugin development guide *)
 module type S = sig
 
   type t
@@ -75,10 +76,14 @@ module type S = sig
 
   val equal: t -> t -> bool
 
+    (**/**)
+  val unsafe_set: t -> unit
+    (** Set but without clearing the dependencies.*)
+    (**/**)
 end
 
-(** Signature for a boolean option. 
-    @plugin developer guide *)
+(** Signature for a boolean option.
+    @plugin development guide *)
 module type BOOL = sig
 
   include S with type t = bool
@@ -91,8 +96,8 @@ module type BOOL = sig
 
 end
 
-(** Signature for an integer option. 
-    @plugin developer guide *)
+(** Signature for an integer option.
+    @plugin development guide *)
 module type INT = sig
 
   include S with type t = int
@@ -102,33 +107,40 @@ module type INT = sig
 end
 
 (** Signature for a string option.
-    @plugin developer guide *)
+    @plugin development guide *)
 module type STRING = S with type t = string
 
-(** Signature for a string set option. *)
-module type STRING_SET = sig
+(** Signature for a generic set of strings option. *)
+module type GEN_STRING_SET = sig
 
-  include S with type t = Cilutil.StringSet.t
+  include S
 
   val set_set: string -> unit
     (** Set each sub-string (separated by "[ \t]*,[ \t]*" regexp)
         to the set option. *)
-
+  val get_set: ?sep:string -> unit -> string
+    (** Get a string which concatenates each string in the set with a
+	white space separation. *)
   val add: string -> unit
     (** Add a string to the string set option. *)
-  val remove: string -> unit
-    (** Remove a string from the option. *)
   val add_set: string -> unit
     (** Add each sub-string (separated by "[ \t]*,[ \t]*" regexp)
         to the set option. *)
+  val iter: (string -> unit) -> unit
+  val fold: (string -> 'a -> 'a) -> 'a -> 'a
+end
+
+module type STRING_SET = sig
+  include GEN_STRING_SET with type t = Cilutil.StringSet.t
+  val is_empty: unit -> bool
+  val remove: string -> unit
+    (** Remove a string from the option. *)
   val remove_set: string -> unit
     (** Remove each sub-string (separated by "[ \t]*,[ \t]*" regexp)
         from the option. *)
-
-  val is_empty: unit -> bool
-  val iter: (string -> unit) -> unit
-
 end
+
+module type STRING_LIST = GEN_STRING_SET with type t = string list
 
 (** {3 Complex values indexed by strings} *)
 
@@ -148,6 +160,72 @@ module type COMPLEX_VALUE = sig
   val default_val: t (** the default value *)
   val default_key: string (** the default index *)
   val name: string (** name of the option *)
+  val fun_ty: t Type.t
+end
+
+(** {3 Interface for dynamic plugins} *)
+
+(** Use this module for options of dynamic plugins. *)
+module Dynamic : sig
+
+  (** Functors for registering options of dynamic plugins. *)
+  module Register : sig
+    module False(X : sig val name : string end) : BOOL
+      (** @plugin development guide *)
+    module True(X : sig val name : string end) : BOOL
+    module Zero (X : sig val name : string end) : INT
+      (** @plugin development guide *)
+    module EmptyString(X : sig val name : string end) : STRING
+    module StringSet(X: sig val name: string end) : STRING_SET
+  end
+
+  (** Module to use for applying functions register by one the
+      functors of [Register]. *)
+  module Apply : sig
+
+    (** Common options *)
+    module type Common = sig
+      type t
+      val get: string -> t
+      val set: string -> t -> unit
+      val clear: string -> unit -> unit
+      val is_set: string  -> bool
+    end
+
+    (** Boolean options. *)
+    module Bool: sig
+      include Common with type t = bool
+      val on: string -> unit -> unit
+      val off : string -> unit -> unit
+    end
+
+    (** Integer options. *)
+    module Int : sig
+      include Common with type t = int
+      val incr : string -> unit -> unit
+    end
+
+    (** String options *)
+    module String : Common with type t = string
+
+    (** StringSet options. *)
+    module StringSet : sig
+      include Common with type t = Cilutil.StringSet.t
+      val add : string -> string  -> unit
+      val add_set : string -> string -> unit
+      val is_empty : string -> bool
+      val iter :string -> (string -> unit) -> unit
+      val fold: string -> (string -> 'a -> 'a) -> 'a -> 'a
+    end
+
+  end
+
+  (** Options for configurating dynamic loading *)
+
+  module Debug : INT
+  module AddPath : STRING_SET
+  module LoadModule : STRING_SET
+
 end
 
 (** {2 Options} *)
@@ -155,75 +233,98 @@ end
 (** {3 General Options} *)
 
 module PrintVersion: BOOL
-module CodeOutput : STRING
+module PrintShare: BOOL
+module CodeOutput : sig
+  include STRING
+  val get_fmt: unit -> Format.formatter
+end
 module UseUnicode: BOOL
 module SaveState: STRING
 module LoadState: STRING
 module Time: STRING
 module Quiet: BOOL
-  
+
 module MainFunction: sig
   include STRING
-  val unsafe_set: string -> unit (** Not for casual users. *)
+  val unsafe_set: t -> unit (** Not for casual users. *)
 end
+
 module LibEntry: sig
   include BOOL
   val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
+module Machdep: sig
+  include STRING
+    (** If [set] is called, then {!File.prepare_from_c_files} must be
+	called for well preparing the AST. *)
+  val unsafe_set: t -> unit (** Not for casual users. *)
+end
+
 module Debug: INT
+
+(** {3 Journalization} *)
+module Journal: sig
+  module Disable: BOOL
+  module Name: STRING
+end
 
 (** {3 Syntactic Tools} *)
 
 module PrintCode : BOOL
-  
+
 module SimplifyCfg: BOOL
   (** Call Cil.prepareCFG on all functions. Removes
       break, continue and switch statemement *)
-  
+
 module KeepSwitch: BOOL
   (** Allows to keep switch statements, even if -simplify-cfg is used. *)
-  
+
 module PrintComments: BOOL
 module UnrollingLevel: INT
 module Constfold: BOOL
 module Obfuscate: BOOL
-module Machdep: STRING
 
 module Metrics: sig
   module Print: BOOL (** Pretty print metrics on stdout *)
   module Dump: STRING (** Pretty print metrics on the given file *)
   val is_on: unit -> bool (** Have metrics to be computed? *)
 end
-  
+
+module WarnUnspecifiedOrder: BOOL
+  (** Warns for unspecified sequences containing at least one writes *)
+
 (** {3 Callgraph} *)
 
 module CallgraphFilename: STRING
 module CallgraphInitFunc: STRING_SET
-  
+module Semantic_Callgraph: sig module Dump : BOOL end
+
 (** {3 Files} *)
 
 module CppCommand: STRING
-module CppExtraArgs: STRING
+module CppExtraArgs: STRING_SET
 module ReadAnnot: BOOL
 module PreprocessAnnot: BOOL
 
-(** @plugin developer guide *)
 module Files: sig
-  include S with type t = string list
+  include STRING_LIST
   module Check: BOOL
   module Copy: BOOL
+  module Orig_name: BOOL
 end
 
 (** {3 Memzones} *)
 
 module ForceMemzones: BOOL
-  
+
 (** Occurrence *)
+
 module Occurrence : sig
   module Debug: INT
   module Print: BOOL
 end
+
 
 (** {3 Value Analysis} *)
 
@@ -234,10 +335,10 @@ module FloatDigits: INT
 module PropagateTop: BOOL
 module ArrayPrecisionLevel: INT
 module SemanticUnrollingLevel: INT
-  (** @plugin developer guide *)
+  (** @plugin development guide *)
 
 module WideningLevel: INT
-  
+
 module MinValidAbsoluteAddress: S with type t = Abstract_interp.Int.t
 module MaxValidAbsoluteAddress: S with type t = Abstract_interp.Int.t
   (** Absolute address out of this range are considered as
@@ -247,12 +348,17 @@ module MaxValidAbsoluteAddress: S with type t = Abstract_interp.Int.t
 module AutomaticContextMaxDepth: INT
 module AutomaticContextMaxWidth: INT
 module AllocatedContextValid: BOOL
-module IgnoreOverflow: BOOL  
+module IgnoreOverflow: BOOL
+
+module IgnoreUnspecified: BOOL
+  (** ignore alarms related to read/write accesses in UnspecifiedSequence.
+      default to false. *)
+
 module UnsafeArrays: BOOL
 
 module KeepOnlyLastRun: BOOL
   (** Keep only last run of value analysis. This is a debugging option. *)
-  
+
 module UseRelations: BOOL
 module MemoryFootprint: INT
 module WidenVariables: STRING_SET
@@ -261,10 +367,10 @@ module WidenVariables: STRING_SET
 
 module ForceDeps: BOOL
 module ForceCallDeps: BOOL
-  
+
 (** Users *)
 module ForceUsers: BOOL
-  (** @plugin developer guide *)
+  (** @plugin development guide *)
 
 (** Constant Propagation *)
 module Constant_Propagation: sig
@@ -277,13 +383,18 @@ end
 
 module ForceOut: BOOL
 module ForceInput: BOOL
+module ForceInputWithFormals: BOOL
 module ForceInout: BOOL
 module ForceDeref: BOOL
 module ForceAccessPath: BOOL
 
 (** {3 WP} *)
 
-module WpCfg: BOOL
+module Wp : sig
+  module Cfg: BOOL
+  module Post: BOOL
+  module Debug: INT
+end
 
 (** Security *)
 module Security: sig
@@ -331,6 +442,7 @@ end
 (** Jessie *)
 module Jessie : sig
   module ProjectName: STRING
+  module Behavior: STRING
   module Analysis: BOOL
   module Gui: BOOL
   module WhyOpt: STRING_SET
@@ -338,26 +450,34 @@ module Jessie : sig
   type int_model = IMexact | IMbounded | IMmodulo
   module IntModel: INDEXED_VAL with type value = int_model
   module GenOnly: BOOL
+  module GenGoals: BOOL
+  module SepRegions: BOOL
+  module StdStubs: BOOL
+  module InferAnnot: STRING
+  module AbsDomain: STRING
+  module Atp: STRING
+  module CpuLimit: INT
+  module HintLevel: INT
 end
 
 (** Program Dependence Graph *)
 module Pdg : sig
 
   module BuildAll: BOOL
-    (** @plugin developer guide *)
+    (** @plugin development guide *)
 
   module BuildFct: STRING_SET
-    (** @plugin developer guide *)
+    (** @plugin development guide *)
 
   module PrintBw: BOOL
   module DotBasename: STRING
-    (** @plugin developer guide *)
+    (** @plugin development guide *)
 
   module DotPostdomBasename: STRING
-    (** @plugin developer guide *)
+    (** @plugin development guide *)
 
   module Verbosity: INT
-    (** @plugin developer guide *)
+    (** @plugin development guide *)
 
 end
 
@@ -367,6 +487,8 @@ module Sparecode : sig
     (** Whether to perform spare code detection or not. *)
   module NoAnnot : BOOL
     (** don't keep more things to keep all reachable annotations. *)
+  module GlobDecl : BOOL
+    (** remove unused global types and variables *)
 end
 
 (** Slicing *)
@@ -397,7 +519,7 @@ end
 
 module MonospaceFontName: STRING
 module GeneralFontName: STRING
-  (** @plugin developer guide *)
+  (** @plugin development guide *)
 
 (** {3 Miel} *)
 
@@ -419,6 +541,20 @@ module PrintCxx: BOOL
 
 module Unmangling: INDEXED_VAL with type value = string -> string
 
+(** Aorai plugin (ltl_to_acsl) *)
+module Ltl_to_acsl : sig
+  module Analysis : BOOL
+  module Ltl_File : STRING
+  module OnlyToLTL : BOOL
+  module Promela_File : STRING
+  module Output_Spec : BOOL
+  module Verbose : BOOL
+  module Output_C_File : STRING
+  module OnlyFromPromela : BOOL
+  module Dot : BOOL
+  module AbstractInterpretation : BOOL
+  module AdvanceAbstractInterpretation  : BOOL
+end
 
 
 (*

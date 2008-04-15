@@ -12,29 +12,31 @@
 int x2, y2;
 
 //@ global invariant first_octant : 0 <= y2 <= x2;
-//@ axiom ax_first_octant{Here} : 0 <= y2 <= x2;
+//  axiom ax_first_octant{Here} : 0 <= y2 <= x2;
 
-//@ logic integer abs(integer x);
-
-/*@ axiom abs_def: 
-  @   \forall int x; (x >= 0 && abs(x) == x) || (x <= 0 && abs(x) == -x);
+/*@ axiomatic Abs {
+  @   logic integer abs(integer x);
+  @   axiom abs_def: 
+  @     \forall integer x; 
+  @       (x >= 0 && abs(x) == x) || (x <= 0 && abs(x) == -x);
+  @ }
   @*/
 
-/*@ predicate best{Here}(int x, int y) =
-  @   \forall int yp; abs(x2 * y - x * y2) <= abs (x2 * yp - x * y2)
+/*@ predicate best{Here}(integer x, integer y) =
+  @   \forall integer yp; abs(x2 * y - x * y2) <= abs (x2 * yp - x * y2)
   @ ; */
 
-/*@ predicate Invariant{Here}(int x, int y, int e) =
+/*@ predicate Invariant{Here}(integer x, integer y, integer e) =
   @   e == 2 * (x + 1) * y2 - (2 * y + 1) * x2 &&
   @   2 * (y2 - x2) <= e <= 2 * y2
   @ ; */
 
-/*@ axiom invariant_is_ok{Here} : 
-  @  \forall int x, int y, int e; Invariant(x,y,e) ==> best(x,y);
+/*@ lemma invariant_is_ok{Here} : 
+  @  \forall integer x, y, e; Invariant(x,y,e) ==> best(x,y);
   @*/
 
-//@ axiom z_ring_0 : \forall int a, int b, int c; a * (b+c) == a*b + a*c;
-//@ axiom z_ring_1 : \forall int a, int b, int c; (b+c) * a == b*a + c*a;
+//@ lemma z_ring_0 : \forall integer a, b, c; a * (b+c) == a*b + a*c;
+//@ lemma z_ring_1 : \forall integer a, b, c; (b+c) * a == b*a + c*a;
 
 void bresenham() {
   int x = 0;

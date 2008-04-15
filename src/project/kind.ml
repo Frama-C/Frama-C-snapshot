@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kind.ml,v 1.8 2008/07/11 09:18:50 uid568 Exp $ *)
+(* $Id: kind.ml,v 1.12 2008/09/19 07:55:05 uid568 Exp $ *)
 
 type how =
   | Do_Not_Select_Dependencies
@@ -33,6 +33,8 @@ module type SELECTION = sig
   val add: kind -> how -> t -> t
   val singleton : kind -> how -> t
   val remove: kind -> t -> t
+  val iter: (kind -> how -> unit) -> t -> unit
+  val fold: (kind -> how -> 'a -> 'a) -> t -> 'a -> 'a
 end
 
 let version = ref ""
@@ -47,7 +49,7 @@ module Make
 struct
 
   module V = struct
-    type t = { label: T.t; mutable mark: int }
+    type t = { mutable label: T.t; mutable mark: int }
     let create x = { label = x; mark = 0 }
     let compare x y = 
       String.compare (T.kind_name x.label) (T.kind_name y.label)
@@ -76,7 +78,6 @@ struct
 
   let nb_kinds () = D.nb_vertex deps
 
-  exception Circular of D.V.t * D.V.t
   exception DependencyAlreadyExists of string * string
 
   let add_dependency k1 k2 =
@@ -84,7 +85,6 @@ struct
       (* do not check with -noassert *)
       if D.mem_edge deps k2 k1 then 
 	raise (DependencyAlreadyExists(node_name k1, node_name k2));
-      if D.mem_edge deps k1 k2 then raise (Circular(k1, k2));
       true);
     D.add_edge deps k2 k1
      
@@ -133,17 +133,8 @@ struct
     
   module Topological = Graph.Topological.Make(D)
 
-  let digest () = 
-    (*let names = 
-      Topological.fold 
-	(fun v acc -> 
-(*	   Format.printf "digest for %s@." (node_name v);*)
-	   node_name v ^ acc) 
-	deps 
-	"" 
-    in*)
-    (*Digest.string (!version ^ names)*)
-    Digest.string !version
+  (* Unused at this time *)
+  let digest () = Digest.string !version
 
   module Selection = struct
     type kind = V.t
@@ -156,6 +147,8 @@ struct
     let remove = M.remove
     let find k v = try Some (M.find k v) with Not_found -> None
     let singleton s d = M.add s d M.empty
+    let iter = M.iter
+    let fold = M.fold
   end
 
   let iter f p = iter (fun v -> f (value v) p)

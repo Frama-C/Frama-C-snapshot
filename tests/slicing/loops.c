@@ -1,37 +1,37 @@
 /* run.config
-   OPT: -slice-print -deps -lib-entry -main f1 -slice-pragma f1
-   OPT: -slice-print -deps -lib-entry -main f1 -slice-assert f1
-   OPT: -slice-print -deps -lib-entry -main f2 -slice-pragma f2
-   OPT: -slice-print -deps -lib-entry -main f2 -slice-assert f2
-   OPT: -slice-print -deps -main test_infinite_loop_3 -slice-value G
-   OPT: -slice-print -deps -main test_infinite_loop_4 -slice-value G
-   OPT: -slice-print -deps -main test_infinite_loop_5 -slice-value G
-   OPT: -slice-print -deps -main loop -slice-value Z 
-   OPT: -slice-print -deps -slice-calls loop
-   OPT: -slice-print -deps -slice-pragma loop
-   OPT: -slice-print -deps -slice-assert loop
-   OPT: -slice-print -deps -main loop -slice-rd Y
-   OPT: -slice-print -deps -main loop -slice-rd Z
-   OPT: -slice-print -deps -main loop -slice-wr Y
-   OPT: -slice-print -deps -main loop -slice-wr Z 
-   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-pragma stop_f1
-   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-assert stop_f1
-   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-pragma stop_f2
-   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-assert stop_f2 
-   OPT: -slice-print -deps -slice-value Z 
-   OPT: -slice-print -deps -slice-rd Y
-   OPT: -slice-print -deps -slice-rd Z
-   OPT: -slice-print -deps -slice-wr Y
-   OPT: -slice-print -deps -slice-wr Z
+   OPT: -slice-print -deps -lib-entry -main f1 -slice-pragma f1 -journal-disable
+   OPT: -slice-print -deps -lib-entry -main f1 -slice-assert f1 -journal-disable
+   OPT: -slice-print -deps -lib-entry -main f2 -slice-pragma f2 -journal-disable
+   OPT: -slice-print -deps -lib-entry -main f2 -slice-assert f2 -journal-disable
+   OPT: -slice-print -deps -main test_infinite_loop_3 -slice-value G -journal-disable
+   OPT: -slice-print -deps -main test_infinite_loop_4 -slice-value G -journal-disable
+   OPT: -slice-print -deps -main test_infinite_loop_5 -slice-value G -journal-disable
+   OPT: -slice-print -deps -main loop -slice-value Z  -journal-disable
+   OPT: -slice-print -deps -slice-calls loop -journal-disable
+   OPT: -slice-print -deps -slice-pragma loop -journal-disable
+   OPT: -slice-print -deps -slice-assert loop -journal-disable
+   OPT: -slice-print -deps -main loop -slice-rd Y -journal-disable
+   OPT: -slice-print -deps -main loop -slice-rd Z -journal-disable
+   OPT: -slice-print -deps -main loop -slice-wr Y -journal-disable
+   OPT: -slice-print -deps -main loop -slice-wr Z  -journal-disable
+   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-pragma stop_f1 -journal-disable
+   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-assert stop_f1 -journal-disable
+   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-pragma stop_f2 -journal-disable
+   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-assert stop_f2  -journal-disable
+   OPT: -slice-print -deps -slice-value Z  -journal-disable
+   OPT: -slice-print -deps -slice-rd Y -journal-disable
+   OPT: -slice-print -deps -slice-rd Z -journal-disable
+   OPT: -slice-print -deps -slice-wr Y -journal-disable
+   OPT: -slice-print -deps -slice-wr Z -journal-disable
 
-   
-   
+
+
  */
 
 int f1 (int c) {
   int x = 0, s = 0;
   if (c) {
-    while(1) { /* infinite loop */ 
+    while(1) { /* infinite loop */
       s++;
       //@ assert s > 0 ;
       }
@@ -63,11 +63,11 @@ void stop(void) __attribute__ ((noreturn)) ;
 int stop_f1 (int c) {
   int x = 0, s = 0;
   if (c) {
-    while(s < c) { 
+    while(s < c) {
       s++;
       //@ assert s > 0 ;
       }
-    stop () ; /* never returns */ 
+    stop () ; /* never returns */
     }
   else
     x = 1;
@@ -161,7 +161,7 @@ void test_infinite_loop_5 (int ctrl1, int ctrl2, int no_ctrl,
           * and not a semantical difference
           * since the previous statement "G += no_data" is dead.
           */
-      if (ctrl2) 
+      if (ctrl2)
         G += data2 ;
     }
   return;
@@ -173,7 +173,7 @@ int X, Y, Z ;
 void loop (int cond) {
   if (cond) {
     int c = 0 ;
-    while (1) {
+    /*@ loop pragma WIDEN_HINTS X, 10, 100 ; */ while (1) {
       //@ slice pragma ctrl ;
       if (c) {
         X++;
@@ -185,16 +185,21 @@ void loop (int cond) {
     }
   Z = Y ; // dead code with -main main
 }
-
-void main () {
+/*---------------------*/
+/*@ assigns *p \from p, y, Z ;
+ */
+void may_write_Y_from_Z (int * p, int y) ;
+void test_assigns (int * p, int y) { if (y < Z) *p = y + Z; }
+/*---------------------*/
+void main (int y) {
   int no_ctrl = 1 ;
   Z = 0;
   if (no_ctrl)
     Z = X ;
+  may_write_Y_from_Z (&Y, y) ;
   if (C1) {
     int cond = C2 ;
     loop (cond) ;
     }
 }
 /*-------------------------------------------*/
-  

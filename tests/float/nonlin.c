@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -slevel 30 -val -cpp-command "gcc -C -E -I. " share/builtin.c 
+   OPT: -memory-footprint 1 -slevel 30 -val -cpp-command "gcc -C -E -I. " share/builtin.c -journal-disable
 */
 
 #include "share/builtin.h"
@@ -12,16 +12,16 @@ void main()
   b = Frama_C_float_interval(0.0, 1.0);
   c = 7.0;
   r1 = a + (b * (c - a));
-  /*@ assert 
-       (5.0 <= a <= 5.2) 
-    || (5.2 <= a <= 5.4) 
-    || (5.4 <= a <= 5.6) 
-    || (5.6 <= a <= 5.8) 
-    || (5.8 <= a <= 6.0) 
-    || (6.0 <= a <= 6.2) 
-    || (6.2 <= a <= 6.4) 
-    || (6.4 <= a <= 6.6) 
-    || (6.6 <= a <= 6.8) 
+  /*@ assert
+       (5.0 <= a <= 5.2)
+    || (5.2 <= a <= 5.4)
+    || (5.4 <= a <= 5.6)
+    || (5.6 <= a <= 5.8)
+    || (5.8 <= a <= 6.0)
+    || (6.0 <= a <= 6.2)
+    || (6.2 <= a <= 6.4)
+    || (6.4 <= a <= 6.6)
+    || (6.6 <= a <= 6.8)
     || (6.8 <= a <= 7.0) ; */
 
   r2 = a + (b * (c - a));

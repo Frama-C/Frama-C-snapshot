@@ -1,15 +1,15 @@
 /* run.config
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 1
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 2
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 3
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 1 -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 2 -journal-disable
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 3 -journal-disable
 */
 int G,H,I;
 

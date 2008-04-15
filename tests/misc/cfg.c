@@ -1,3 +1,7 @@
+/* run.config
+   DONTRUN: cannot find entry point: main
+*/
+
 struct bar {
      int x;
 };

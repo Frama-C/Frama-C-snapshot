@@ -25,14 +25,15 @@ open Cil_types
 open Cil
 open Cilutil
 open Db_types
+open Visitor
 
 let fresh =
   let counter = ref (-1) in
   fun () ->
     decr counter;
     Label (Format.sprintf "unrolling_%d_loop" (- !counter),
-            !currentLoc,
-            false)
+           (CurrentLoc.get ()),
+           false)
 
 (* Deep copy of a statement taking care of local gotos and labels. *)
 let rec copy_stmt break_continue_must_change label_table stmt =
@@ -70,12 +71,12 @@ and copy_stmtkind break_continue_must_change label_tbl stkind =
   match stkind with
     |(Instr _ | Return _ | Goto _) as keep -> keep,label_tbl
     | If (exp,bl1,bl2,loc) ->
-        currentLoc:=loc;
+        CurrentLoc.set loc;
         let new_block1,label_tbl = copy_block break_continue_must_change label_tbl bl1 in
         let new_block2,label_tbl = copy_block break_continue_must_change label_tbl bl2 in
         If(exp,new_block1,new_block2,loc),label_tbl
     | Loop (a,bl,loc,_,_) ->
-        currentLoc:=loc;
+        CurrentLoc.set loc;
         let new_block,label_tbl =
           copy_block
             None (* from now on break and continue can be kept *)
@@ -88,11 +89,15 @@ and copy_stmtkind break_continue_must_change label_tbl stkind =
           copy_block break_continue_must_change label_tbl bl
         in
         Block (new_block),label_tbl
-    | UnspecifiedSequence bl ->
-        let new_block,label_tbl =
-          copy_block break_continue_must_change label_tbl bl
+    | UnspecifiedSequence seq ->
+        let new_seq,label_tbl =
+          List.fold_left
+            (fun (seq,label_tbl) (stmt,writes,reads) ->
+               let stmt,label_tbl =
+                 copy_stmt break_continue_must_change label_tbl stmt
+               in (stmt,writes,reads)::seq, label_tbl) ([],label_tbl) seq
         in
-        Block (new_block),label_tbl
+        UnspecifiedSequence (List.rev new_seq),label_tbl
     | Break loc ->
         (match break_continue_must_change with
           | None -> stkind
@@ -129,7 +134,7 @@ class do_it (times:int) = object
     current_function <- Some (Globals.Functions.get fundec.svar);
     DoChildren
 
-  method vstmt s = match s.skind with
+  method vstmt_aux s = match s.skind with
     | Loop _ ->
         let annot = Annotations.get s in
         let pragmas =
@@ -138,21 +143,17 @@ class do_it (times:int) = object
         let filter (b,_ as elt) p =
           match (b,p) with
             | false, Unroll_level {term_node=TConst (CInt64(v,_,_))} ->
-                (try (true, Int64.to_int v)
-                 with _ ->
-                   ignore (CilE.warn_once
-                             "skipping non integer unrolling directive");
-                   elt)
+                true, Int64.to_int v
             | true, Unroll_level _ ->
                 ignore (CilE.warn_once "ignoring unrolling directive (directive already defined)");
-                      elt
-                  | _, _ ->
-                      elt
+                elt
+            | _, _ ->
+                elt
         in
         let (_, number) = List.fold_left filter (false, times) pragmas in
         let f s = match s.skind with
           | Loop(_,block,loc,_,_) ->
-              currentLoc:=loc;
+              CurrentLoc.set loc;
               let break_label = fresh () in
               let break_lbl_stmt = mkEmptyStmt () in
               break_lbl_stmt.labels <- [break_label];
@@ -195,4 +196,4 @@ end
 
 let compute nb file =
   let visitor = new do_it(nb)
-  in visitCilFileSameGlobals (visitor:>Cil.cilVisitor) file
+  in visitFramacFileSameGlobals visitor file

@@ -31,7 +31,7 @@ let quick_rec =
        	 (quick_rec t l (p-1));
 	 (quick_rec t (p+1) r)
        end)
-    { sorted_array(t, l, r) and sub_permut(l, r, t, t@) }
+    { sorted_array(t, l, r) and permut(t, t@, l, r) }
 
 (* At last, the main program, which is just a call to [quick_rec] *)
 
@@ -39,4 +39,4 @@ let quicksort =
   fun (t:int array) ->
     {}
     (quick_rec t 0 ((array_length_ t)-1))
-    { sorted_array(t, 0, array_length(t)-1) and permut(t, t@) }
+    { sorted_array(t, 0, array_length(t)-1) and permutation(t, t@) }

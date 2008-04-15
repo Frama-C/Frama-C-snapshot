@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/merge.opt
    CMD: tests/slicing/merge.opt
-   OPT: -deps -slicing-level 3
+   OPT: -deps -slicing-level 3 -journal-disable
 */
 
 int G1, G2, G3;

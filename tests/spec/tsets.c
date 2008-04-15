@@ -9,3 +9,13 @@ struct bli { baz bli; };
 
 /*@ assigns x[0..3] \from y->bli[0..3]; */
 int g(baz x,struct bli* y);
+
+int main() {
+  struct foo x;
+  baz y;
+  struct bli z;
+  f(&x);
+  g(y,&z);
+  /*@ assert \separated(&x,&y[2]); */
+  return 0;
+}

@@ -1,18 +1,18 @@
 
+#ifndef NULL
 #define NULL 0
+#endif /* NULL */
 
 typedef struct _List {
   int elem;
   struct _List *next;
 } List;
 
-/*@ predicate is_list{L}(List *x) =
-  @   x == 0 || \valid(x) && is_list(x->next);
-  @*/
-
-/*@ logic integer list_length{L}(List *x) = 
-  @   x == NULL ? 0 : 1 + list_length(x->next);
-  @*/
+/*@ axiomatic IsList {
+  @ predicate is_list{L}(List *x);
+  @ logic integer list_length{L}(List *x);
+  @ }
+  @ */
 
 /* axiom list_def{L}: 
   @   \forall List *x; is_list(x) ==> list_length(x) >= 0;

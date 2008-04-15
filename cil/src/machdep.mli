@@ -38,15 +38,26 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-val gcc : Cil_types.mach ref 
-val msvc : Cil_types.mach ref 
-val gccHas__builtin_va_list : bool ref
-val __thread_is_keyword : bool ref
+open Cil_types
 
-(** Apply this funtor to set all the above references at once *)
-module DEFINE(M:sig val gcc : Cil_types.mach 
-                    val msvc : Cil_types.mach  
-                    val gccHas__builtin_va_list : bool
-                    val __thread_is_keyword : bool
-              end) : sig end
+type t = private 
+    { mutable gcc: mach; 
+      mutable msvc: mach; 
+      mutable gccHas__builtin_va_list: bool; 
+      mutable __thread_is_keyword: bool }
+
+val state: t
+
+(** Apply this funtor to set all the above references at once.
+    Set the machine of the current project only after the call of
+    {!Cil.initCIL}: this functor application has no effect if {!Cil.initCIL}
+    is not called after the application. *)
+module DEFINE
+  (M:sig 
+     val gcc : Cil_types.mach 
+     val msvc : Cil_types.mach  
+     val gccHas__builtin_va_list : bool
+     val __thread_is_keyword : bool
+   end) : 
+sig end
 

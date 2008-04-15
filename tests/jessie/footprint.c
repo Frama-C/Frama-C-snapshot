@@ -1,5 +1,10 @@
 
-//@ predicate p{L}(int *x) reads *x;
+/*@ axiomatic P { 
+  @  predicate p{L}(int *x);
+  @   // reads *x;
+  @ axiom p_footprint{L} : \forall int* x; p(x) && *x ==> p(x) && *x;
+  @ }
+  @*/
 
 /*@ requires \valid_range(x,0,1) && p(x);
   @ assigns *(x+1);

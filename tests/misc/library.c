@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main main -context-depth 3
+   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main main -context-depth 3 -journal-disable
 */
 int f_int(int x);
 int *f_star_int(int x);

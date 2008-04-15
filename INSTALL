@@ -11,14 +11,14 @@ See below for more detailed instructions.
 1) Requirements
 
 - GNU make version 3.81
-- Objective Caml 3.10.2
-- Gtk 2.x and GtkSourceView 1.x
+- Objective Caml 3.10.2 ; 
+  Caml 3.11 is required for compiling dynamic plugins with ocamlopt 
+- Gtk (>= 2.4) and GtkSourceView 1.x
 - lablgtk 2.10.1
 
 Note that by default the Why platform is installed together with Frama-C (if the
 jessie plugin is enabled), and might overwrite an existing why
-installation. The versions of Why prior to 2.13 included are not compatible
-with Frama-C.
+installation. Notice that Why verion 2.17 is actually required.
 
 2) Configuration
 
@@ -36,7 +36,7 @@ If you are under Cygwin, use
    "CYGWIN=nobinmode ./configure --prefix C:/windows/path/with/direct/slash".
 
 If you have a compatible Why platform version (> 2.13) installed, using
-      "./configure --with-why-dir=no"
+      "./configure --with-whydir=no"
 will not overwrite your Why platform installation.
 
 

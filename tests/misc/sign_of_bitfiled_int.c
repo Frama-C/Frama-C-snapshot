@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -cpp-command "gcc -C -E -DPTEST" 
-   OPT: -machdep ppc_32 -val -cpp-command "gcc -C -E -DPTEST"
+   OPT: -val -cpp-command "gcc -C -E -DPTEST"  -journal-disable
+   OPT: -machdep ppc_32 -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
 */
 
 
@@ -14,9 +14,9 @@ int main () {
   bf.u --;
   bf.c --;
   int_inside_bitfield_is_unsigned = (bf.u > bf.c) ;
-  
+
 #ifndef PTEST
-  printf("int_inside_bitfield_is_unsigned = %d\n", 
+  printf("int_inside_bitfield_is_unsigned = %d\n",
          int_inside_bitfield_is_unsigned);
 #endif
   return int_inside_bitfield_is_unsigned ;

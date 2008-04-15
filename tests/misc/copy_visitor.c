@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -files-debug "-check -copy" -val -print
+   OPT: -files-debug "-check -copy" -val -print -journal-disable
  */
 struct S {
   int a;

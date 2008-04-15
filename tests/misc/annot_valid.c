@@ -23,10 +23,10 @@ int main (int u) {
   //@ assert \valid(c+4);
     break;
   case 6:
-  //@ assert p < c;
+  //@ assert (char *)p < c;
     break;
   case 7:
-  //@ assert p <= (char*)1;
+  //@ assert p <= (int*)1;
     break;
   case 8:
   //@ assert (int)p == 3;

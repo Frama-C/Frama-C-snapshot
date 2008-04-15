@@ -20,7 +20,6 @@
 (**************************************************************************)
 
 let show () =
-  try 
   let dialog = 
     GWindow.about_dialog 
       ~name:"ValViewer" 
@@ -30,6 +29,7 @@ let show () =
                 "Claude Marché";
                 "Benjamin Monate"; 
                 "Yannick Moy";
+                "Anne Pacalet";
                 "Virgile Prévosto";
                 "Julien Signoles";
                ]
@@ -38,20 +38,23 @@ let show () =
 Cil is under BSD
 Ocamlgraph is under LGPL v2
 Analysis plugins are LGPL v2.1"
-      ~website:"http://www.frama-c.cea.fr/"
+      ~website:"http://frama-c.cea.fr/"
       ~website_label:"Questions and support"
+      (* [JS 6 October 2008] the following line breaks compilation, of course.
+	 ~icon:*)
       ~version:(Version.version^" compiled on "^Version.date)
       ()
   in
-(*  Buggy labgtk2 prevents this from working...
+(*  Buggy labgtk2 prevents this from working...*)
     ignore 
     (dialog#connect#response 
        ~callback:(fun _ -> try 
                     dialog#coerce#destroy ()
-                    with Not_found -> ()));*)
-
+                    with Not_found -> ()));
+  try 
   ignore (dialog#run ())
-  with Not_found -> () (* raised because of a buggy lablgtk2 *)
+  with Not_found | Failure "dialog destroyed" -> (* raised because of a buggy lablgtk2 *)
+    ()
 
 (** Register this dialog in main window menu bar *)
 let () = 
@@ -69,5 +72,7 @@ let () =
           </menu>
           </menubar></ui>"
        in
-       ignore (window#ui_manager#add_ui_from_string location))
-  
+       let _ = window#ui_manager#add_ui_from_string location in
+       let help_item = window#ui_manager#get_widget "/MenuBar/HelpMenu" in
+       let help_item =  GtkMenu.MenuItem.cast help_item#as_widget in
+       GtkMenu.MenuItem.set_right_justified help_item true)

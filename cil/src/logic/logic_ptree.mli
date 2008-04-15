@@ -47,6 +47,8 @@ type quantifiers = (logic_type * string) list
 type constant =
     IntConstant of string (** integer constant *)
   | FloatConstant of string (** real constant *)
+  | StringConstant of string (** string constant *)
+  | WStringConstant of string (** wide string constant *)
 
 (** comparison operators. *)
 type relation = Lt | Gt | Le | Ge | Eq | Neq
@@ -118,6 +120,8 @@ and lexpr_node =
           of [p] is valid.*)
   | PLvalid_range of lexpr * lexpr * lexpr
       (** same as [PLvalid_index], but for a range of indices. *)
+  | PLseparated of lexpr list
+      (** separation predicate. *)
   | PLfresh of lexpr (** expression points to a newly allocated block. *)
   | PLnamed of string * lexpr (** named expression. *)
   | PLsubtype of lexpr * lexpr
@@ -134,33 +138,34 @@ and lexpr_node =
       (** empty set. *)
 
 (** type invariant. *)
-type type_annot =  {inv_name: string; 
-                    this_type : logic_type; 
+type type_annot =  {inv_name: string;
+                    this_type : logic_type;
                     this_name: string; (** name of its argument. *)
                     inv: lexpr
                    }
 
 (** global declarations. *)
 type decl =
-  | LDlogic_reads of
-      string * string list * string list *
-        logic_type * (logic_type * string) list * lexpr list
-        (**
-            [LDlogic_reads(name,labels,type_params,
-           return_type, parameters, reads_tsets)] represents the declaration
-           of logic function [name] whose return type is [return_type] and
-           arguments are [parameters]. Its label arguments are [labels].
-           Polymorphic functions have their type parameters in [type_params].
-           Read accesses are given in [read_tsets].
-         *)
   | LDlogic_def of
       string * string list * string list *
 	logic_type * (logic_type * string) list * lexpr
         (** [LDlogic_def(name,labels,type_params,
                          return_type, parameters, definition)]
-            represents the definition of a logic function. It has the same
-            arguments as [LDlogic_reads], except that read accesses are
-            replaced by the [definition] of the function.*)
+            represents the definition of a logic function [name] whose
+	    return type is [return_type] and arguments are [parameters].
+	    Its label arguments are [labels]. Polymorphic functions have
+	    their type parameters in [type_params]. [definition] is the
+	    body of the defined function.*)
+  | LDlogic_reads of
+      string * string list * string list *
+        logic_type * (logic_type * string) list * lexpr list
+        (** OBSOLETE ???
+            [LDlogic_reads(name,labels,type_params,
+           return_type, parameters, reads_tsets)] represents the declaration
+           of logic function.  It has the same
+            arguments as [LDlogic_def], except that the definition is
+           abstracted to a set of read accesses in [read_tsets].
+         *)
   | LDtype of string * string list(** new logic type and its parameters *)
   | LDpredicate_reads of
       string * string list * string list *
@@ -177,6 +182,11 @@ type decl =
             [LDlogic_def] except that it has no [return_type].
 
          *)
+  | LDinductive_def of string * string list * string list *
+      (logic_type * string) list * (string * string list * string list * lexpr) list
+        (** [LDinductive_def(name,labels,type_params, parameters, indcases)]
+            represents an inductive definition of a new predicate.
+         *)
   | LDlemma of string * bool * string list * string list * lexpr
       (** LDlemma(name,is_axiom,labels,type_params,property) represents
           a lemma or an axiom [name].
@@ -185,6 +195,9 @@ type decl =
           [type_params] the list of type parameters. Last, [property] is the
           statement of the lemma.
        *)
+  | LDaxiomatic of string * decl list
+        (** [LDaxiomatic(id,decls)]
+            represents a block of axiomatic definitions.*)
   | LDinvariant of string * lexpr (** global invariant. *)
   | LDtype_annot of type_annot    (** type invariant. *)
 

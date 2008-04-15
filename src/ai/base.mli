@@ -19,6 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+val name : string
 type cell_class_attributes
 
 type validity = 
@@ -49,6 +50,7 @@ val id : t -> int
 val is_aligned_by : t -> Abstract_interp.Int.t -> bool
 val validity : t -> validity
 val is_formal_or_local : t -> Cil_types.fundec -> bool
+val is_any_formal_or_local : t -> bool
 val is_formal_of_prototype : t -> Cil_types.varinfo -> bool
 val is_local: t -> Cil_types.fundec -> bool
 val is_hidden_variable : t -> bool
@@ -58,4 +60,4 @@ val create_logic :  Cil_types.varinfo -> validity -> t
 val create_initialized :  Cil_types.varinfo -> validity -> t
 val create_string : string -> t
 
-module Datatype: Project.Datatype.OUTPUT with type t = t
+module Datatype: Project.Datatype.S with type t = t

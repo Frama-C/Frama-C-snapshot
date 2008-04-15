@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -I. " share/builtin.c 
+   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -I. " share/builtin.c -journal-disable
 */
 
 #include "share/builtin.h"

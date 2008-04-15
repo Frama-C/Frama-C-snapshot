@@ -1,5 +1,5 @@
 /* run.config
-*    OPT: -lib-entry -main g -pdg-debug "-fct-pdg g -dot-pdg tests/pdg/doc"
+*    OPT: -lib-entry -main g -pdg-debug "-fct-pdg g -dot-pdg tests/pdg/doc" -journal-disable
 */
 /* To build the svg file:
  * dot -Tsvg tests/pdg/doc.g.dot > tests/pdg/doc.g.svg
@@ -16,5 +16,3 @@ int g (void) {
    T[x] = 0;
  return x;
 }
-
-  

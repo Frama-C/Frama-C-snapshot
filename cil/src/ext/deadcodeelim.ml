@@ -393,7 +393,7 @@ class uselessInstrElim : cilVisitor = object
         let ildatlst' = List.filter test ildatlst in
         let (newil,_) = List.split ildatlst' in
         newil
-      with [] -> Skip locUnknown | [x] -> x | _ -> assert false
+      with [] -> Skip Cilutil.locUnknown | [x] -> x | _ -> assert false
     in
 
     match RD.getRDs stm.sid with

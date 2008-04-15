@@ -1,9 +1,9 @@
 /*@ type foo<a>; */
 
 /* should be rejected (free type variable) */
-/*@ logic integer bad(foo<a> x) reads x; */
+/*@ logic integer bad(foo<a> x); */
 
-/*@ logic integer f<a>(foo<a> x) reads x; */
+/*@ logic integer f<a>(foo<a> x); */
 
 /*@ logic integer g<a>(foo<a> x, foo<a> y); */
 

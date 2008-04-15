@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/mark_all_slices.opt
    CMD: tests/slicing/mark_all_slices.opt
-   OPT: -deps -slicing-level 0 -slicing-debug -no-slice-callers
+   OPT: -deps -slicing-level 0 -slicing-debug -no-slice-callers -journal-disable
 */
 int A, B, C, D;
 int A2, B2, C2, D2;

@@ -19,21 +19,23 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* $Id: design.mli,v 1.37 2008/11/18 12:13:41 uid568 Exp $ *)
+
 (** The extensible GUI.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Db_types
 open Cil_types
 
 (** This is the type of extension points for the GUI.
-    @plugin developer guide *)
+    @plugin development guide *)
 class type main_window_extension_points = object
   (** Use this to add menu entries.
       The default layout to enhance is
       "<ui>
       <menubar name='MenuBar'>
-       <menu action='FileMenu'>
-       </menu>
+       <menu action='FileMenu'></menu>
+       <menu action='ViewMenu'></menu>
       </menubar>
 
       <toolbar name='ToolBar'>
@@ -46,7 +48,8 @@ class type main_window_extension_points = object
 
       </ui>"
       
-      Here is an example to add a menu entry "Dummy Entry" under the File menu in object o:
+      Here is an example to add a menu entry "Dummy Entry" under the 
+      File menu in object o:
       [
       (* First create the action associated to the entry ... *)
       GAction.add_action "DummyAction" ~label:"Dumm_y Entry" 
@@ -66,6 +69,9 @@ class type main_window_extension_points = object
   method file_tree : Filetree.t
     (** The tree containing the list of files and functions *)
 
+  method file_tree_view : GTree.view
+    (** The tree view containing the list of files and functions *)
+
   method toplevel : main_window_extension_points
     (** The whole GUI aka self *)
 
@@ -78,7 +84,7 @@ class type main_window_extension_points = object
 
   method source_viewer : GSourceView.source_view
     (** The [GText.view] showing the AST. 
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method display_globals : global list -> GSourceView.source_buffer
     (** Display globals in a memoized buffer [b]. 
@@ -93,7 +99,7 @@ class type main_window_extension_points = object
         localizable. 
         If the button 3 is released, the first argument is popped as a 
         contextual menu. 
-	@plugin developer guide *)
+	@plugin development guide *)
 
   method register_source_highlighter :
     (GSourceView.source_buffer -> Pretty_source.localizable -> 
@@ -102,11 +108,32 @@ class type main_window_extension_points = object
     (** register an highlighting function to run on a given localizable 
         between start and stop in the given buffer. 
         Priority of [Gtext.tags] is used to decide which tag is rendered on 
-        top of the other. *)
+        top of the other. 
+	@plugin development guide *)
+
+  method register_launcher :
+    (unit -> (string*GObj.widget option*(unit-> unit) option*(unit-> unit) option)) -> unit
+    (** [register_launcher f] registers a configurator and launcher.
+        [f] shall return a 4-uple looking like
+        ("Configuration panel name",
+        widget containing a configuration panel,
+        function to call when configurations are updated
+        function to call to launch the functionality)
+        
+    *)
+
+  method register_panel :
+    (main_window_extension_points -> (string * GObj.widget *(unit-> unit) option)) -> unit
+    (** [register_panel f] registers a panel in GUI.
+        [f self] returns the name of the panel to create, 
+        the widget containing the panel and a function to be called on refresh.
+    *)
 
   method rehighlight : unit -> unit
-    (** Force to rehilight the current displayed buffer but does not
-        erase previous highlighting. *)
+    (** Force to rehilight the current displayed buffer. 
+        Plugins should call this method whenever they have changed the states on
+        which the function given to [register_source_highlighter] have been updated.
+    *)
 
   method scroll : Pretty_source.localizable -> unit
     (** Scroll to the given localizable in the current buffer if possible. *)
@@ -143,8 +170,14 @@ class type main_window_extension_points = object
   method general : Pango.font_description
     (** The general font to be used by all plugins *)
 
-  method info : 'a. ('a, Format.formatter, unit) format -> 'a
+  method error : 'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format -> 'a
+    (** Popup a modal dialog displaying an error message *)
+
+  method push_info : 'a. ('a, Format.formatter, unit) format -> 'a
     (** Pretty print a temporary information in the status bar *)
+  method pop_info : unit -> unit
+    (** Remove last temporary information in the status bar *)
+
 end
 
 class main_window : unit -> main_window_extension_points
@@ -152,11 +185,17 @@ class main_window : unit -> main_window_extension_points
 val register_extension : (main_window_extension_points -> unit) -> unit
   (** Register an extension to the main GUI. It will be invoked at
       initialization time.
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val register_reset_extension : (main_window_extension_points -> unit) -> unit
   (** Register a function to be called whenever the main GUI reset method is
       called. *)
+
+
+val apply_on_selected : (Pretty_source.localizable -> unit) -> unit
+  (** [apply_on_selected f] applies [f] to the currently selected 
+      [Pretty_source.localizable]. Does nothing if nothing is selected. *)
+
 
 (*
 Local Variables:

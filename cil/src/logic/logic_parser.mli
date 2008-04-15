@@ -1,7 +1,7 @@
 type token =
   | IDENTIFIER of (string)
-  | STRING_LITERAL of (string)
   | TYPENAME of (string)
+  | STRING_LITERAL of (bool*string)
   | CONSTANT of (Logic_ptree.constant)
   | LPAR
   | RPAR
@@ -33,6 +33,7 @@ type token =
   | AND
   | OR
   | NOT
+  | SEPARATED
   | TRUE
   | FALSE
   | OLD
@@ -77,11 +78,14 @@ type token =
   | READS
   | LOGIC
   | PREDICATE
+  | INDUCTIVE
+  | AXIOMATIC
   | AXIOM
   | LEMMA
   | LBRACE
   | RBRACE
   | GHOST
+  | CASE
   | VOID
   | CHAR
   | SIGNED

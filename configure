@@ -674,12 +674,15 @@ OBJEXT
 CPP
 GREP
 EGREP
-has
+HAS_LABLGLADECC
+HAS_CAMLP4O
+HAS_LTLTOBA
 VERBOSEMAKE
 OCAMLGRAPH
 OCAMLGRAPH_LOCAL
 OCAMLBEST
 OCAMLVERSION
+LOWER_THAN_311
 OCAMLLIB
 OCAMLWIN32
 CAMLP4O
@@ -696,12 +699,14 @@ LOCAL_MACHDEP
 HAS_LABLGTK
 HAS_GTKSOURCEVIEW
 HAS_LEGACY_GTKSOURCEVIEW
+HAS_GNOMECANVAS
+HAS_LABLGTK_CUSTOM_MODEL
 LABLGLADECC
-HAS_LABLGLADECC
 JCCMO
 JCCMX
 JESSIE_LOCAL
 JESSIE_INCLUDES
+ENABLE_SYNTACTIC_CALLGRAPH
 ENABLE_CONSTANT_PROPAGATION
 ENABLE_CXX
 ENABLE_FROM
@@ -709,7 +714,9 @@ ENABLE_GUI
 ENABLE_IMPACT
 ENABLE_INOUT
 ENABLE_JESSIE
+ENABLE_JOURNAL_LOADER
 WHYDISTRIB
+ENABLE_METRICS
 ENABLE_MIEL
 ENABLE_OCCURRENCE
 ENABLE_PDG
@@ -722,6 +729,7 @@ ENABLE_SPARECODE
 ENABLE_USERS
 ENABLE_VALUE
 ENABLE_WP
+ENABLE_LTL_TO_ACSL
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -1306,6 +1314,8 @@ Optional Features:
   --enable-unsupported-ocaml
     attempt to compile even against unsupported ocaml version
   --enable-localmachdep    enable local machdep configuration
+  --enable-syntactic_callgraph
+                          support for callgraph plugin (default: yes)
   --enable-constant_propagation
                           support for constant propagation plugin (default: yes)
   --enable-cxx            support for cxx plugin (default: no)
@@ -1314,6 +1324,9 @@ Optional Features:
   --enable-impact         support for impact plugin (default: yes)
   --enable-inout          support for inout analysis (default: yes)
   --enable-jessie         support for jessie plugin (default: yes)
+  --enable-journal_loader
+                          support journal loading (default: yes)
+  --enable-metrics        support for metrics analysis (default: yes)
   --enable-miel           support for miel plugin (default: no)
   --enable-occurrence     support for occurrence analysis (default: yes)
   --enable-pdg            support for pdg plugin (default: yes)
@@ -1328,6 +1341,9 @@ Optional Features:
   --enable-users          support for users analysis (default: yes)
   --enable-value          support for value analysis (default: yes)
   --enable-wp             support for wp plugin (default: yes)
+  --enable-ltl_to_acsl    support for Aorai plugin (ltl to acsl conversion) (default: yes)
+  --enable-custommodel
+     use a custom tree model in GUI. Need to have a recent lablgtk version
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1922,6 +1938,7 @@ fi
 
 # we extract Ocaml version number and library path
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
+LOWER_THAN_311="yes"
 echo $ECHO_N "ocaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
   3.09.3*) echo "${ECHO_T}Good!";;
@@ -1944,7 +1961,9 @@ case $OCAMLVERSION in
            exit 2;
          fi
          ;;
-  3.*) echo "${ECHO_T}Good!";;
+  3.10*) echo "${ECHO_T}Good!";;
+  3.1*) LOWER_THAN_311=no;
+  	echo "${ECHO_T}Good!";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
@@ -2010,6 +2029,14 @@ echo "${ECHO_T}differs from ocamlc; ocamlopt discarded." >&6; }
 echo "${ECHO_T}ok" >&6; }
 	    OCAMLBEST=opt
 	fi
+fi
+
+if test "$OCAMLBEST" = "opt"; then
+   LIB_SUFFIX=cmxa
+   OBJ_SUFFIX=cmx;
+else
+   LIB_SUFFIX=cma
+   OBJ_SUFFIX=cmo;
 fi
 
 # checking for ocamlc.opt
@@ -2471,9 +2498,9 @@ fi
    if test "$OCAMLGRAPH_EXISTS" == "no"; then
       OCAMLGRAPH_TEST=$OCAMLLIB
       OCAMLGRAPH=
-      as_ac_File=`echo "ac_cv_file_$OCAMLGRAPH_TEST/graph.cmo" | $as_tr_sh`
-{ echo "$as_me:$LINENO: checking for $OCAMLGRAPH_TEST/graph.cmo" >&5
-echo $ECHO_N "checking for $OCAMLGRAPH_TEST/graph.cmo... $ECHO_C" >&6; }
+      as_ac_File=`echo "ac_cv_file_$OCAMLGRAPH_TEST/graph.$OBJ_SUFFIX" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $OCAMLGRAPH_TEST/graph.$OBJ_SUFFIX" >&5
+echo $ECHO_N "checking for $OCAMLGRAPH_TEST/graph.$OBJ_SUFFIX... $ECHO_C" >&6; }
 if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
@@ -2481,7 +2508,7 @@ else
   { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
 echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
    { (exit 1); exit 1; }; }
-if test -r "$OCAMLGRAPH_TEST/graph.cmo"; then
+if test -r "$OCAMLGRAPH_TEST/graph.$OBJ_SUFFIX"; then
   eval "$as_ac_File=yes"
 else
   eval "$as_ac_File=no"
@@ -4860,6 +4887,11 @@ REQUIRE_WHYJC=
 USE_WHYJC=
 HAS_WHYJC=
 
+REQUIRE_APRON=
+USE_APRON=
+HAS_APRON=no
+
+
 # Tool declarations
 ####################
 
@@ -4873,9 +4905,94 @@ REQUIRE_CAMLP4O=
 USE_CAMLP4O=
 HAS_CAMLP4O=
 
+
+LTLTOBA=
+REQUIRE_LTLTOBA=
+USE_LTLTOBA=
+HAS_LTLTOBA=
+
+
 ### Now plugin declarations
 
+PLUGINS_FORCE_LIST=
 
+
+
+# syntactic callgraph
+#####################
+
+
+
+
+
+
+default=yes
+{ echo "$as_me:$LINENO: checking for src/syntactic_callgraph" >&5
+echo $ECHO_N "checking for src/syntactic_callgraph... $ECHO_C" >&6; }
+if test "${ac_cv_file_src_syntactic_callgraph+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "src/syntactic_callgraph"; then
+  ac_cv_file_src_syntactic_callgraph=yes
+else
+  ac_cv_file_src_syntactic_callgraph=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_src_syntactic_callgraph" >&5
+echo "${ECHO_T}$ac_cv_file_src_syntactic_callgraph" >&6; }
+if test $ac_cv_file_src_syntactic_callgraph = yes; then
+  plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+FORCE=no
+
+# Check whether --enable-PLUGIN_NAME was given.
+if test "${enable_syntactic_callgraph+set}" = set; then
+  enableval=$enable_syntactic_callgraph; ENABLE=$enableval;
+  FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
+then
+{ { echo "$as_me:$LINENO: error: syntactic_callgraph is not available" >&5
+echo "$as_me: error: syntactic_callgraph is not available" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+up=`upper syntactic_callgraph`
+eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
+eval ENABLE_$up=\$ENABLE
+
+echo "syntactic_callgraph... $ENABLE"
+
+
+if test "$ENABLE_SYNTACTIC_CALLGRAPH" == "yes"; then
+  USE_GNOMECANVAS=${USE_GNOMECANVAS}" syntactic_callgraph"
+  USE_LABLGTK=${USE_LABLGTK}" syntactic_callgraph"
+fi
 
 # constant propagation
 ######################
@@ -4920,6 +5037,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: constant_propagation is not available" >&5
@@ -4928,6 +5059,7 @@ echo "$as_me: error: constant_propagation is not available" >&2;}
 fi
 up=`upper constant_propagation`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "constant_propagation... $ENABLE"
@@ -4976,6 +5108,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: cxx is not available" >&5
@@ -4984,6 +5130,7 @@ echo "$as_me: error: cxx is not available" >&2;}
 fi
 up=`upper cxx`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "cxx... $ENABLE"
@@ -5037,6 +5184,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: from is not available" >&5
@@ -5045,6 +5206,7 @@ echo "$as_me: error: from is not available" >&2;}
 fi
 up=`upper from`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "from... $ENABLE"
@@ -5093,6 +5255,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: gui is not available" >&5
@@ -5101,6 +5277,7 @@ echo "$as_me: error: gui is not available" >&2;}
 fi
 up=`upper gui`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "gui... $ENABLE"
@@ -5153,6 +5330,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: impact is not available" >&5
@@ -5161,6 +5352,7 @@ echo "$as_me: error: impact is not available" >&2;}
 fi
 up=`upper impact`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "impact... $ENABLE"
@@ -5209,6 +5401,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: inout is not available" >&5
@@ -5217,6 +5423,7 @@ echo "$as_me: error: inout is not available" >&2;}
 fi
 up=`upper inout`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "inout... $ENABLE"
@@ -5265,6 +5472,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: jessie is not available" >&5
@@ -5273,14 +5494,158 @@ echo "$as_me: error: jessie is not available" >&2;}
 fi
 up=`upper jessie`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "jessie... $ENABLE"
 
 
 if test "$ENABLE_JESSIE" == "yes"; then
-   REQUIRE_WHYJC=${REQUIRE_WHYJC}" jessie"
+  REQUIRE_WHYJC=${REQUIRE_WHYJC}" jessie"
+  USE_APRON=${USE_APRON}" jessie"
 fi
+
+# journal_loader
+#################
+
+
+
+
+
+
+default=yes
+{ echo "$as_me:$LINENO: checking for src/journal_loader" >&5
+echo $ECHO_N "checking for src/journal_loader... $ECHO_C" >&6; }
+if test "${ac_cv_file_src_journal_loader+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "src/journal_loader"; then
+  ac_cv_file_src_journal_loader=yes
+else
+  ac_cv_file_src_journal_loader=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_src_journal_loader" >&5
+echo "${ECHO_T}$ac_cv_file_src_journal_loader" >&6; }
+if test $ac_cv_file_src_journal_loader = yes; then
+  plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+FORCE=no
+
+# Check whether --enable-PLUGIN_NAME was given.
+if test "${enable_journal_loader+set}" = set; then
+  enableval=$enable_journal_loader; ENABLE=$enableval;
+  FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
+then
+{ { echo "$as_me:$LINENO: error: journal_loader is not available" >&5
+echo "$as_me: error: journal_loader is not available" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+up=`upper journal_loader`
+eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
+eval ENABLE_$up=\$ENABLE
+
+echo "journal_loader... $ENABLE"
+
+
+# metrics
+#########
+
+
+
+
+
+
+default=yes
+{ echo "$as_me:$LINENO: checking for src/metrics" >&5
+echo $ECHO_N "checking for src/metrics... $ECHO_C" >&6; }
+if test "${ac_cv_file_src_metrics+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "src/metrics"; then
+  ac_cv_file_src_metrics=yes
+else
+  ac_cv_file_src_metrics=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_src_metrics" >&5
+echo "${ECHO_T}$ac_cv_file_src_metrics" >&6; }
+if test $ac_cv_file_src_metrics = yes; then
+  plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+FORCE=no
+
+# Check whether --enable-PLUGIN_NAME was given.
+if test "${enable_metrics+set}" = set; then
+  enableval=$enable_metrics; ENABLE=$enableval;
+  FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
+then
+{ { echo "$as_me:$LINENO: error: metrics is not available" >&5
+echo "$as_me: error: metrics is not available" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+up=`upper metrics`
+eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
+eval ENABLE_$up=\$ENABLE
+
+echo "metrics... $ENABLE"
+
 
 # miel
 ######
@@ -5325,6 +5690,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: miel is not available" >&5
@@ -5333,6 +5712,7 @@ echo "$as_me: error: miel is not available" >&2;}
 fi
 up=`upper miel`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "miel... $ENABLE"
@@ -5386,6 +5766,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: occurrence is not available" >&5
@@ -5394,9 +5788,14 @@ echo "$as_me: error: occurrence is not available" >&2;}
 fi
 up=`upper occurrence`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "occurrence... $ENABLE"
+
+
+# occurrence_dyn
+#################
 
 
 # pdg
@@ -5442,6 +5841,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: pdg is not available" >&5
@@ -5450,6 +5863,7 @@ echo "$as_me: error: pdg is not available" >&2;}
 fi
 up=`upper pdg`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "pdg... $ENABLE"
@@ -5498,6 +5912,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: postdominators is not available" >&5
@@ -5506,6 +5934,7 @@ echo "$as_me: error: postdominators is not available" >&2;}
 fi
 up=`upper postdominators`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "postdominators... $ENABLE"
@@ -5554,6 +5983,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: scope is not available" >&5
@@ -5562,6 +6005,7 @@ echo "$as_me: error: scope is not available" >&2;}
 fi
 up=`upper scope`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "scope... $ENABLE"
@@ -5610,6 +6054,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: security is not available" >&5
@@ -5618,6 +6076,7 @@ echo "$as_me: error: security is not available" >&2;}
 fi
 up=`upper security`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "security... $ENABLE"
@@ -5666,6 +6125,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: semantic_callgraph is not available" >&5
@@ -5674,6 +6147,7 @@ echo "$as_me: error: semantic_callgraph is not available" >&2;}
 fi
 up=`upper semantic_callgraph`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "semantic_callgraph... $ENABLE"
@@ -5722,6 +6196,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: slicing is not available" >&5
@@ -5730,6 +6218,7 @@ echo "$as_me: error: slicing is not available" >&2;}
 fi
 up=`upper slicing`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "slicing... $ENABLE"
@@ -5778,6 +6267,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: sparecode is not available" >&5
@@ -5786,6 +6289,7 @@ echo "$as_me: error: sparecode is not available" >&2;}
 fi
 up=`upper sparecode`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "sparecode... $ENABLE"
@@ -5834,6 +6338,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: users is not available" >&5
@@ -5842,6 +6360,7 @@ echo "$as_me: error: users is not available" >&2;}
 fi
 up=`upper users`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "users... $ENABLE"
@@ -5890,6 +6409,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: value is not available" >&5
@@ -5898,6 +6431,7 @@ echo "$as_me: error: value is not available" >&2;}
 fi
 up=`upper value`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "value... $ENABLE"
@@ -5946,6 +6480,20 @@ else
 
 fi
 
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 { { echo "$as_me:$LINENO: error: wp is not available" >&5
@@ -5954,9 +6502,87 @@ echo "$as_me: error: wp is not available" >&2;}
 fi
 up=`upper wp`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "wp... $ENABLE"
+
+
+
+# Aorai : ltl_to_acsl
+#####################
+
+
+
+
+
+
+default=yes
+{ echo "$as_me:$LINENO: checking for src/ltl_to_acsl" >&5
+echo $ECHO_N "checking for src/ltl_to_acsl... $ECHO_C" >&6; }
+if test "${ac_cv_file_src_ltl_to_acsl+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "src/ltl_to_acsl"; then
+  ac_cv_file_src_ltl_to_acsl=yes
+else
+  ac_cv_file_src_ltl_to_acsl=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_src_ltl_to_acsl" >&5
+echo "${ECHO_T}$ac_cv_file_src_ltl_to_acsl" >&6; }
+if test $ac_cv_file_src_ltl_to_acsl = yes; then
+  plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+FORCE=no
+
+# Check whether --enable-PLUGIN_NAME was given.
+if test "${enable_ltl_to_acsl+set}" = set; then
+  enableval=$enable_ltl_to_acsl; ENABLE=$enableval;
+  FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
+then
+{ { echo "$as_me:$LINENO: error: ltl_to_acsl is not available" >&5
+echo "$as_me: error: ltl_to_acsl is not available" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+up=`upper ltl_to_acsl`
+eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
+eval ENABLE_$up=\$ENABLE
+
+echo "ltl_to_acsl... $ENABLE"
+
+#if test "$ENABLE_LTL_TO_ACSL" == "yes"; then
+#   REQUIRE_LTLTOBA=${REQUIRE_LTLTOBA}" ltl_to_acsl"
+#fi
+
 
 
 #####################################################
@@ -5965,34 +6591,497 @@ echo "wp... $ENABLE"
 
 new_section "configure tools and libraries used by some plugins"
 
-has=
-
 # 1st param: uppercase name of the library
 # 2nd param: file which must exist. This parameter can be a list of files.
 # In this case, they will be tried in turn until one of them exists. The
 # name of the file found will be put in the variable SELECTED_$1
 # 3d  param: warning to display if problem
-configure_library () {
-  VAR=$1
-  PROG=$2
-  eval require=\$REQUIRE_$1
-  eval use=\$USE_$1
-  msg=$3
 
-  if test -n "$require" -o -n "$use"; then
-    has=no
-    for file in $PROG; do
-      as_ac_File=`echo "ac_cv_file_$file" | $as_tr_sh`
-{ echo "$as_me:$LINENO: checking for $file" >&5
-echo $ECHO_N "checking for $file... $ECHO_C" >&6; }
+
+# 1st param: uppercase name of the program
+# 2nd param: program which must exist. See comment on configure_library()
+# on how to deal with multiple choices for a given program.
+# 3d  param: warning to display if problem
+
+
+# elsa
+######
+
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_ELSA" -o -n "$USE_ELSA"; then
+    HAS_ELSA=no
+    if test "$HAS_ELSA" != "yes"; then
+          { echo "$as_me:$LINENO: checking for cxx_elsa" >&5
+echo $ECHO_N "checking for cxx_elsa... $ECHO_C" >&6; }
+if test "${ac_cv_file_cxx_elsa+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for cxx_elsa existence when cross compiling" >&5
+echo "$as_me: error: cannot check for cxx_elsa existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "cxx_elsa"; then
+  ac_cv_file_cxx_elsa=yes
+else
+  ac_cv_file_cxx_elsa=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_cxx_elsa" >&5
+echo "${ECHO_T}$ac_cv_file_cxx_elsa" >&6; }
+if test $ac_cv_file_cxx_elsa = yes; then
+  HAS_ELSA=yes
+else
+  HAS_ELSA=no
+fi
+
+          if test "$HAS_ELSA" == "yes"; then SELECTED_ELSA=cxx_elsa
+          fi
+       fi
+
+    if test "$HAS_ELSA" == "no"; then
+      { echo "$as_me:$LINENO: WARNING:
+  sources of cxx_elsa are not present in this directory.
+  Please check them out from the cvs repository." >&5
+echo "$as_me: WARNING:
+  sources of cxx_elsa are not present in this directory.
+  Please check them out from the cvs repository." >&2;}
+      if test "$REQUIRE_ELSA" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_ELSA"
+        for p in $REQUIRE_ELSA; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but cxx_elsa missing." >&5
+echo "$as_me: error: $p requested but cxx_elsa missing." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ cxx_elsa\)"
+        done
+      fi
+      if test "$USE_ELSA" != ""; then
+        echo "plugins not fully functional:
+ $USE_ELSA"
+        for p in $USE_ELSA; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ cxx_elsa\)"
+          fi
+        done
+      fi
+      echo
+    fi
+  fi
+
+
+
+
+
+
+
+
+
+REQUIRE_CCPARSE=
+USE_CCPARSE=
+HAS_CCPARSE=
+if test "$has" == "yes"; then
+  USE_CCPARSE="$REQUIRE_ELSA$USE_ELSA"
+fi
+
+
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_CCPARSE" -o -n "$USE_CCPARSE"; then
+    HAS_CCPARSE=no
+    if test "$HAS_CCPARSE" != "yes"; then
+          { echo "$as_me:$LINENO: checking for cxx_elsa/elsa-2006.06.11/elsa/ccparse" >&5
+echo $ECHO_N "checking for cxx_elsa/elsa-2006.06.11/elsa/ccparse... $ECHO_C" >&6; }
+if test "${ac_cv_file_cxx_elsa_elsa_2006_06_11_elsa_ccparse+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for cxx_elsa/elsa-2006.06.11/elsa/ccparse existence when cross compiling" >&5
+echo "$as_me: error: cannot check for cxx_elsa/elsa-2006.06.11/elsa/ccparse existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "cxx_elsa/elsa-2006.06.11/elsa/ccparse"; then
+  ac_cv_file_cxx_elsa_elsa_2006_06_11_elsa_ccparse=yes
+else
+  ac_cv_file_cxx_elsa_elsa_2006_06_11_elsa_ccparse=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_cxx_elsa_elsa_2006_06_11_elsa_ccparse" >&5
+echo "${ECHO_T}$ac_cv_file_cxx_elsa_elsa_2006_06_11_elsa_ccparse" >&6; }
+if test $ac_cv_file_cxx_elsa_elsa_2006_06_11_elsa_ccparse = yes; then
+  HAS_CCPARSE=yes
+else
+  HAS_CCPARSE=no
+fi
+
+          if test "$HAS_CCPARSE" == "yes"; then SELECTED_CCPARSE=cxx_elsa/elsa-2006.06.11/elsa/ccparse
+          fi
+       fi
+
+    if test "$HAS_CCPARSE" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: elsa seems to be uncompiled. Please run 'make elsa'." >&5
+echo "$as_me: WARNING: elsa seems to be uncompiled. Please run 'make elsa'." >&2;}
+      if test "$REQUIRE_CCPARSE" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_CCPARSE"
+        for p in $REQUIRE_CCPARSE; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but cxx_elsa/elsa-2006.06.11/elsa/ccparse missing." >&5
+echo "$as_me: error: $p requested but cxx_elsa/elsa-2006.06.11/elsa/ccparse missing." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ cxx_elsa/elsa-2006.06.11/elsa/ccparse\)"
+        done
+      fi
+      if test "$USE_CCPARSE" != ""; then
+        echo "plugins not fully functional:
+ $USE_CCPARSE"
+        for p in $USE_CCPARSE; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ cxx_elsa/elsa-2006.06.11/elsa/ccparse\)"
+          fi
+        done
+      fi
+      echo
+    fi
+  fi
+
+
+
+
+
+
+
+
+
+# lablglade
+###########
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_LABLGLADECC" -o -n "$USE_LABLGLADECC"; then
+    for FILE_CCPARSE in lablgladecc2; do
+     HAS_LABLGLADECC=
+    # Extract the first word of "$FILE_CCPARSE", so it can be a program name with args.
+set dummy $FILE_CCPARSE; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_HAS_LABLGLADECC+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$HAS_LABLGLADECC"; then
+  ac_cv_prog_HAS_LABLGLADECC="$HAS_LABLGLADECC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_HAS_LABLGLADECC="yes"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAS_LABLGLADECC" && ac_cv_prog_HAS_LABLGLADECC="no"
+fi
+fi
+HAS_LABLGLADECC=$ac_cv_prog_HAS_LABLGLADECC
+if test -n "$HAS_LABLGLADECC"; then
+  { echo "$as_me:$LINENO: result: $HAS_LABLGLADECC" >&5
+echo "${ECHO_T}$HAS_LABLGLADECC" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+      if test "$HAS_LABLGLADECC" == "yes"; then SELECTED_VAR=$FILE_CCPARSE break; fi
+      done
+    if test "$HAS_LABLGLADECC" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: lablgladecc2 not found." >&5
+echo "$as_me: WARNING: lablgladecc2 not found." >&2;}
+      if test "$REQUIRE_LABLGLADECC" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_LABLGLADECC"
+        for p in $REQUIRE_LABLGLADECC; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but lablgladecc2 missing." >&5
+echo "$as_me: error: $p requested but lablgladecc2 missing." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ lablgladecc2\)"
+        done
+      fi
+      if test "$USE_LABLGLADECC" != ""; then
+        echo "plugins not fully functional:
+ $USE_LABLGLADECC"
+        for p in $USE_LABLGLADECC; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ lablgladecc2\)"
+          fi
+        done
+      fi
+      echo
+    else
+        LABLGLADECC=lablgladecc2
+    fi
+  fi
+
+
+
+
+
+
+
+
+# camlp4o
+###########
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_CAMLP4O" -o -n "$USE_CAMLP4O"; then
+    for FILE_CCPARSE in camlp4o; do
+     HAS_CAMLP4O=
+    # Extract the first word of "$FILE_CCPARSE", so it can be a program name with args.
+set dummy $FILE_CCPARSE; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_HAS_CAMLP4O+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$HAS_CAMLP4O"; then
+  ac_cv_prog_HAS_CAMLP4O="$HAS_CAMLP4O" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_HAS_CAMLP4O="yes"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAS_CAMLP4O" && ac_cv_prog_HAS_CAMLP4O="no"
+fi
+fi
+HAS_CAMLP4O=$ac_cv_prog_HAS_CAMLP4O
+if test -n "$HAS_CAMLP4O"; then
+  { echo "$as_me:$LINENO: result: $HAS_CAMLP4O" >&5
+echo "${ECHO_T}$HAS_CAMLP4O" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+      if test "$HAS_CAMLP4O" == "yes"; then SELECTED_VAR=$FILE_CCPARSE break; fi
+      done
+    if test "$HAS_CAMLP4O" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: camlp4o not found." >&5
+echo "$as_me: WARNING: camlp4o not found." >&2;}
+      if test "$REQUIRE_CAMLP4O" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_CAMLP4O"
+        for p in $REQUIRE_CAMLP4O; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but camlp4o missing." >&5
+echo "$as_me: error: $p requested but camlp4o missing." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ camlp4o\)"
+        done
+      fi
+      if test "$USE_CAMLP4O" != ""; then
+        echo "plugins not fully functional:
+ $USE_CAMLP4O"
+        for p in $USE_CAMLP4O; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ camlp4o\)"
+          fi
+        done
+      fi
+      echo
+    else
+        CAMLP4O=camlp4o
+    fi
+  fi
+
+
+
+
+
+
+
+
+# ltl2ba library
+################
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_LTLTOBA" -o -n "$USE_LTLTOBA"; then
+    for FILE_CCPARSE in ltl2ba; do
+     HAS_LTLTOBA=
+    # Extract the first word of "$FILE_CCPARSE", so it can be a program name with args.
+set dummy $FILE_CCPARSE; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_prog_HAS_LTLTOBA+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if test -n "$HAS_LTLTOBA"; then
+  ac_cv_prog_HAS_LTLTOBA="$HAS_LTLTOBA" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_HAS_LTLTOBA="yes"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_HAS_LTLTOBA" && ac_cv_prog_HAS_LTLTOBA="no"
+fi
+fi
+HAS_LTLTOBA=$ac_cv_prog_HAS_LTLTOBA
+if test -n "$HAS_LTLTOBA"; then
+  { echo "$as_me:$LINENO: result: $HAS_LTLTOBA" >&5
+echo "${ECHO_T}$HAS_LTLTOBA" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+      if test "$HAS_LTLTOBA" == "yes"; then SELECTED_VAR=$FILE_CCPARSE break; fi
+      done
+    if test "$HAS_LTLTOBA" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: ltl2ba not found." >&5
+echo "$as_me: WARNING: ltl2ba not found." >&2;}
+      if test "$REQUIRE_LTLTOBA" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_LTLTOBA"
+        for p in $REQUIRE_LTLTOBA; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but ltl2ba missing." >&5
+echo "$as_me: error: $p requested but ltl2ba missing." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ ltl2ba\)"
+        done
+      fi
+      if test "$USE_LTLTOBA" != ""; then
+        echo "plugins not fully functional:
+ $USE_LTLTOBA"
+        for p in $USE_LTLTOBA; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ ltl2ba\)"
+          fi
+        done
+      fi
+      echo
+    else
+        LTLTOBA=ltl2ba
+    fi
+  fi
+
+
+
+
+
+
+
+
+# lablgtk2
+##########
+
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_LABLGTK" -o -n "$USE_LABLGTK"; then
+    HAS_LABLGTK=no
+    if test "$HAS_LABLGTK" != "yes"; then
+          as_ac_File=`echo "ac_cv_file_$OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX" >&5
+echo $ECHO_N "checking for $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX... $ECHO_C" >&6; }
 if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot check for $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX existence when cross compiling" >&5
+echo "$as_me: error: cannot check for $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX existence when cross compiling" >&2;}
    { (exit 1); exit 1; }; }
-if test -r "$file"; then
+if test -r "$OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX"; then
   eval "$as_ac_File=yes"
 else
   eval "$as_ac_File=no"
@@ -6002,189 +7091,70 @@ ac_res=`eval echo '${'$as_ac_File'}'`
 	       { echo "$as_me:$LINENO: result: $ac_res" >&5
 echo "${ECHO_T}$ac_res" >&6; }
 if test `eval echo '${'$as_ac_File'}'` = yes; then
-  has=yes
+  HAS_LABLGTK=yes
 else
-  has=no
+  HAS_LABLGTK=no
 fi
 
-      if test "$has" == "yes"; then eval SELECTED_$VAR=$file break; fi
-    done
-    if test "$has" == "no"; then
-      { echo "$as_me:$LINENO: WARNING: $msg" >&5
-echo "$as_me: WARNING: $msg" >&2;}
-      if test "$require" != ""; then
+          if test "$HAS_LABLGTK" == "yes"; then SELECTED_LABLGTK=$OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX
+          fi
+       fi
+
+    if test "$HAS_LABLGTK" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: lablgtk2/lablgtk.$LIB_SUFFIX not found." >&5
+echo "$as_me: WARNING: lablgtk2/lablgtk.$LIB_SUFFIX not found." >&2;}
+      if test "$REQUIRE_LABLGTK" != ""; then
         echo "plugins disabled:
- $require"
-        for p in $require; do
+ $REQUIRE_LABLGTK"
+        for p in $REQUIRE_LABLGTK; do
 	  fp=FORCE_`upper "$p"`
 	  if eval test "\$$fp" == "yes"; then
-	    { { echo "$as_me:$LINENO: error: $p requested but $PROG missing." >&5
-echo "$as_me: error: $p requested but $PROG missing." >&2;}
+	    { { echo "$as_me:$LINENO: error: $p requested but $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX missing." >&5
+echo "$as_me: error: $p requested but $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX missing." >&2;}
    { (exit 1); exit 1; }; }
 	  fi
           ep=ENABLE_`upper "$p"`
-	  eval $ep="no\ \(see\ warning\ about\ \$PROG\)"
+	  eval $ep="no\ \(see\ warning\ about\ $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX\)"
         done
       fi
-      if test "$use" != ""; then
+      if test "$USE_LABLGTK" != ""; then
         echo "plugins not fully functional:
- $use"
-        for p in $use; do
+ $USE_LABLGTK"
+        for p in $USE_LABLGTK; do
           ep=ENABLE_`upper "$p"`
 	  eval eep="\$$ep"
 	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ \$PROG\)"
+	    eval $ep="partial\ \(see\ warning\ about\ $OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX\)"
           fi
         done
       fi
       echo
     fi
   fi
-  eval HAS_$VAR=$has
-}
 
-# 1st param: uppercase name of the program
-# 2nd param: program which must exist. See comment on configure_livrary()
-# on how to deal with multiple choices for a given program.
-# 3d  param: warning to display if problem
-configure_tool () {
-  VAR=$1
-  PROG=$2
-  eval require=\$REQUIRE_$1
-  eval use=\$USE_$1
-  msg=$3
 
-  if test -n "$require" -o -n "$use"; then
-    for file in $PROG; do
-     has=
-     # Extract the first word of "$file", so it can be a program name with args.
-set dummy $file; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_has+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
+
+
+
+
+
+
+
+HAS_LABLGTK_CUSTOM_MODEL=no
+# Check whether --enable-custommodel was given.
+if test "${enable_custommodel+set}" = set; then
+  enableval=$enable_custommodel; HAS_LABLGTK_CUSTOM_MODEL=yes
 else
-  if test -n "$has"; then
-  ac_cv_prog_has="$has" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_has="yes"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_has" && ac_cv_prog_has="no"
-fi
-fi
-has=$ac_cv_prog_has
-if test -n "$has"; then
-  { echo "$as_me:$LINENO: result: $has" >&5
-echo "${ECHO_T}$has" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
+  HAS_LABLGTK_CUSTOM_MODEL=no
 fi
 
 
-      if test "$has" == "yes"; then eval SELECTED_$VAR=$file break; fi
-      done
-    if test "$has" == "no"; then
-      { echo "$as_me:$LINENO: WARNING: $msg" >&5
-echo "$as_me: WARNING: $msg" >&2;}
-      if test "$require" != ""; then
-        echo "plugins disabled:
- $require"
-        for p in $require; do
-	  fp=FORCE_`upper "$p"`
-	  if eval test "\$$fp" == "yes"; then
-	    { { echo "$as_me:$LINENO: error: $p requested but $PROG missing." >&5
-echo "$as_me: error: $p requested but $PROG missing." >&2;}
-   { (exit 1); exit 1; }; }
-	  fi
-          ep=ENABLE_`upper "$p"`
-	  eval $ep="no\ \(see\ warning\ about\ \$PROG\)"
-        done
-      fi
-      if test "$use" != ""; then
-        echo "plugins not fully functional:
- $use"
-        for p in $use; do
-          ep=ENABLE_`upper "$p"`
-	  eval eep="\$$ep"
-	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ \$PROG\)"
-          fi
-        done
-      fi
-      echo
-    else
-      eval $VAR=$PROG
-    fi
-  fi
-  eval HAS_$VAR=$has
-}
-
-# elsa
-######
-configure_library \
-  ELSA \
-  cxx_elsa \
-  "
-  sources of cxx_elsa are not present in this directory.
-  Please check them out from the cvs repository."
-
-REQUIRE_CCPARSE=
-USE_CCPARSE=
-HAS_CCPARSE=
-if test "$has" == "yes"; then
-  USE_CCPARSE="$REQUIRE_ELSA$USE_ELSA"
-fi
-
-configure_library \
-  CCPARSE \
-  cxx_elsa/elsa-2006.06.11/elsa/ccparse \
-  "elsa seems to be uncompiled. Please run 'make elsa'."
-
-# lablglade
-###########
-configure_tool \
-  LABLGLADECC \
-  lablgladecc2 \
-  "lablgladecc2 not found."
-
-# camlp4o
-###########
-configure_tool \
-  CAMLP4O \
-  camlp4o \
-  "camlp4o not found."
-
-# lablgtk2
-##########
-configure_library \
-  LABLGTK \
-  $OCAMLLIB/lablgtk2/lablgtk.cma \
-  "lablgtk2 not found."
-
+# Gtksourceview
+###############
 REQUIRE_GTKSOURCEVIEW=
 USE_GTKSOURCEVIEW=
 HAS_GTKSOURCEVIEW=
 FORCE_GTKSOURCEVIEW="yes"
-
-#AC_ARG_ENABLE(gtksourceview,
-#  [  --enable-gtksourceview  uses lablgtksourceview for the gui
-#                          (default: auto-detected)],
-#     FORCE_GTKSOURCEVIEW=$enableval,
-#     FORCE_GTKSOURCEVIEW="no")
 
 if test "$FORCE_GTKSOURCEVIEW" == "yes"; then
   REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
@@ -6195,17 +7165,204 @@ else
   fi
 fi
 
-configure_library \
-  GTKSOURCEVIEW \
-  "$OCAMLLIB/lablgtk2/lablgtksourceview.cma \
-   $OCAMLLIB/lablgtksourceview/lablgtksourceview.cma" \
-  "lablgtksourceview not found"
+
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_GTKSOURCEVIEW" -o -n "$USE_GTKSOURCEVIEW"; then
+    HAS_GTKSOURCEVIEW=no
+    if test "$HAS_GTKSOURCEVIEW" != "yes"; then
+          as_ac_File=`echo "ac_cv_file_$OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX" >&5
+echo $ECHO_N "checking for $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX existence when cross compiling" >&5
+echo "$as_me: error: cannot check for $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  HAS_GTKSOURCEVIEW=yes
+else
+  HAS_GTKSOURCEVIEW=no
+fi
+
+          if test "$HAS_GTKSOURCEVIEW" == "yes"; then SELECTED_GTKSOURCEVIEW=$OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX
+          fi
+       fi
+       if test "$HAS_GTKSOURCEVIEW" != "yes"; then
+          as_ac_File=`echo "ac_cv_file_$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX" >&5
+echo $ECHO_N "checking for $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX existence when cross compiling" >&5
+echo "$as_me: error: cannot check for $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  HAS_GTKSOURCEVIEW=yes
+else
+  HAS_GTKSOURCEVIEW=no
+fi
+
+          if test "$HAS_GTKSOURCEVIEW" == "yes"; then SELECTED_GTKSOURCEVIEW=$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX
+          fi
+       fi
+
+    if test "$HAS_GTKSOURCEVIEW" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: lablgtksourceview.$LIB_SUFFIX not found" >&5
+echo "$as_me: WARNING: lablgtksourceview.$LIB_SUFFIX not found" >&2;}
+      if test "$REQUIRE_GTKSOURCEVIEW" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_GTKSOURCEVIEW"
+        for p in $REQUIRE_GTKSOURCEVIEW; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX" >&5
+echo "$as_me: error: $p requested but $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX" >&2;}
+   { (exit $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX missing.); exit $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX missing.; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX,$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX\)"
+        done
+      fi
+      if test "$USE_GTKSOURCEVIEW" != ""; then
+        echo "plugins not fully functional:
+ $USE_GTKSOURCEVIEW"
+        for p in $USE_GTKSOURCEVIEW; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ $OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX,$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX\)"
+          fi
+        done
+      fi
+      echo
+    fi
+  fi
+
+
+
+
+
+
+
+
 
 case $SELECTED_GTKSOURCEVIEW in
-$OCAMLLIB/lablgtksourceview/lablgtksourceview.cma)
+$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX)
   HAS_LEGACY_GTKSOURCEVIEW=yes
   ;;
 esac
+
+# Gnomecanvas
+#############
+
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_GNOMECANVAS" -o -n "$USE_GNOMECANVAS"; then
+    HAS_GNOMECANVAS=no
+    if test "$HAS_GNOMECANVAS" != "yes"; then
+          as_ac_File=`echo "ac_cv_file_$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX" >&5
+echo $ECHO_N "checking for $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX existence when cross compiling" >&5
+echo "$as_me: error: cannot check for $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  HAS_GNOMECANVAS=yes
+else
+  HAS_GNOMECANVAS=no
+fi
+
+          if test "$HAS_GNOMECANVAS" == "yes"; then SELECTED_GNOMECANVAS=$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX
+          fi
+       fi
+
+    if test "$HAS_GNOMECANVAS" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: lablgnomecanvas.$LIB_SUFFIX not found" >&5
+echo "$as_me: WARNING: lablgnomecanvas.$LIB_SUFFIX not found" >&2;}
+      if test "$REQUIRE_GNOMECANVAS" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_GNOMECANVAS"
+        for p in $REQUIRE_GNOMECANVAS; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX missing." >&5
+echo "$as_me: error: $p requested but $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX missing." >&2;}
+   { (exit 1); exit 1; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX\)"
+        done
+      fi
+      if test "$USE_GNOMECANVAS" != ""; then
+        echo "plugins not fully functional:
+ $USE_GNOMECANVAS"
+        for p in $USE_GNOMECANVAS; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ $OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX\)"
+          fi
+        done
+      fi
+      echo
+    fi
+  fi
+
+
+
+
+
+
+
+
 
 # why/jc library
 ################
@@ -6221,12 +7378,223 @@ else
 fi
 
 
-configure_library \
-  WHYJC \
-  "$WHYDISTRIB/jc $OCAMLLIB/jessie" \
-  "why not found."
 
-if test "$has" == "yes" -a "$REQUIRE_WHYJC" != ""; then
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_WHYJC" -o -n "$USE_WHYJC"; then
+    HAS_WHYJC=no
+    if test "$HAS_WHYJC" != "yes"; then
+          as_ac_File=`echo "ac_cv_file_$WHYDISTRIB/jc" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $WHYDISTRIB/jc" >&5
+echo $ECHO_N "checking for $WHYDISTRIB/jc... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for $WHYDISTRIB/jc existence when cross compiling" >&5
+echo "$as_me: error: cannot check for $WHYDISTRIB/jc existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$WHYDISTRIB/jc"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  HAS_WHYJC=yes
+else
+  HAS_WHYJC=no
+fi
+
+          if test "$HAS_WHYJC" == "yes"; then SELECTED_WHYJC=$WHYDISTRIB/jc
+          fi
+       fi
+       if test "$HAS_WHYJC" != "yes"; then
+          as_ac_File=`echo "ac_cv_file_$OCAMLLIB/jessie/jc.$OBJ_SUFFIX" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $OCAMLLIB/jessie/jc.$OBJ_SUFFIX" >&5
+echo $ECHO_N "checking for $OCAMLLIB/jessie/jc.$OBJ_SUFFIX... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for $OCAMLLIB/jessie/jc.$OBJ_SUFFIX existence when cross compiling" >&5
+echo "$as_me: error: cannot check for $OCAMLLIB/jessie/jc.$OBJ_SUFFIX existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$OCAMLLIB/jessie/jc.$OBJ_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  HAS_WHYJC=yes
+else
+  HAS_WHYJC=no
+fi
+
+          if test "$HAS_WHYJC" == "yes"; then SELECTED_WHYJC=$OCAMLLIB/jessie/jc.$OBJ_SUFFIX
+          fi
+       fi
+
+    if test "$HAS_WHYJC" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: why not found" >&5
+echo "$as_me: WARNING: why not found" >&2;}
+      if test "$REQUIRE_WHYJC" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_WHYJC"
+        for p in $REQUIRE_WHYJC; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but $WHYDISTRIB/jc" >&5
+echo "$as_me: error: $p requested but $WHYDISTRIB/jc" >&2;}
+   { (exit $OCAMLLIB/jessie/jc.$OBJ_SUFFIX missing.); exit $OCAMLLIB/jessie/jc.$OBJ_SUFFIX missing.; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ $WHYDISTRIB/jc,$OCAMLLIB/jessie/jc.$OBJ_SUFFIX\)"
+        done
+      fi
+      if test "$USE_WHYJC" != ""; then
+        echo "plugins not fully functional:
+ $USE_WHYJC"
+        for p in $USE_WHYJC; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ $WHYDISTRIB/jc,$OCAMLLIB/jessie/jc.$OBJ_SUFFIX\)"
+          fi
+        done
+      fi
+      echo
+    fi
+  fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if test -n "$REQUIRE_APRON" -o -n "$USE_APRON"; then
+    HAS_APRON=no
+    if test "$HAS_APRON" != "yes"; then
+          { echo "$as_me:$LINENO: checking for /usr/local/lib/apron.a" >&5
+echo $ECHO_N "checking for /usr/local/lib/apron.a... $ECHO_C" >&6; }
+if test "${ac_cv_file__usr_local_lib_apron_a+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for /usr/local/lib/apron.a existence when cross compiling" >&5
+echo "$as_me: error: cannot check for /usr/local/lib/apron.a existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/usr/local/lib/apron.a"; then
+  ac_cv_file__usr_local_lib_apron_a=yes
+else
+  ac_cv_file__usr_local_lib_apron_a=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file__usr_local_lib_apron_a" >&5
+echo "${ECHO_T}$ac_cv_file__usr_local_lib_apron_a" >&6; }
+if test $ac_cv_file__usr_local_lib_apron_a = yes; then
+  HAS_APRON=yes
+else
+  HAS_APRON=no
+fi
+
+          if test "$HAS_APRON" == "yes"; then SELECTED_APRON=/usr/local/lib/apron.a
+          fi
+       fi
+       if test "$HAS_APRON" != "yes"; then
+          { echo "$as_me:$LINENO: checking for /usr/lib/apron.a" >&5
+echo $ECHO_N "checking for /usr/lib/apron.a... $ECHO_C" >&6; }
+if test "${ac_cv_file__usr_lib_apron_a+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for /usr/lib/apron.a existence when cross compiling" >&5
+echo "$as_me: error: cannot check for /usr/lib/apron.a existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/usr/lib/apron.a"; then
+  ac_cv_file__usr_lib_apron_a=yes
+else
+  ac_cv_file__usr_lib_apron_a=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file__usr_lib_apron_a" >&5
+echo "${ECHO_T}$ac_cv_file__usr_lib_apron_a" >&6; }
+if test $ac_cv_file__usr_lib_apron_a = yes; then
+  HAS_APRON=yes
+else
+  HAS_APRON=no
+fi
+
+          if test "$HAS_APRON" == "yes"; then SELECTED_APRON=/usr/lib/apron.a
+          fi
+       fi
+
+    if test "$HAS_APRON" == "no"; then
+      { echo "$as_me:$LINENO: WARNING: apron not found" >&5
+echo "$as_me: WARNING: apron not found" >&2;}
+      if test "$REQUIRE_APRON" != ""; then
+        echo "plugins disabled:
+ $REQUIRE_APRON"
+        for p in $REQUIRE_APRON; do
+	  fp=FORCE_`upper "$p"`
+	  if eval test "\$$fp" == "yes"; then
+	    { { echo "$as_me:$LINENO: error: $p requested but /usr/local/lib/apron.a" >&5
+echo "$as_me: error: $p requested but /usr/local/lib/apron.a" >&2;}
+   { (exit /usr/lib/apron.a missing.); exit /usr/lib/apron.a missing.; }; }
+	  fi
+          ep=ENABLE_`upper "$p"`
+	  eval $ep="no\ \(see\ warning\ about\ /usr/local/lib/apron.a,/usr/lib/apron.a\)"
+        done
+      fi
+      if test "$USE_APRON" != ""; then
+        echo "plugins not fully functional:
+ $USE_APRON"
+        for p in $USE_APRON; do
+          ep=ENABLE_`upper "$p"`
+	  eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ /usr/local/lib/apron.a,/usr/lib/apron.a\)"
+          fi
+        done
+      fi
+      echo
+    fi
+  fi
+
+
+
+
+
+
+
+
+
+if test "$HAS_WHYJC" == "yes" -a "$REQUIRE_WHYJC" != ""; then
   case $SELECTED_WHYJC in
   $WHYDISTRIB/jc)
     JCCMO=$WHYDISTRIB/jc/jc.cmo
@@ -6235,7 +7603,10 @@ if test "$has" == "yes" -a "$REQUIRE_WHYJC" != ""; then
     JESSIE_INCLUDES="-I $WHYDISTRIB/src -I $WHYDISTRIB/jc"
     (cd $WHYDISTRIB && ./configure --prefix=$prefix --datarootdir=$datarootdir \
       --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
-      --mandir=$mandir)
+      --mandir=$mandir --enable-apron=$HAS_APRON) || ENABLE_JESSIE=no
+    if test "$ENABLE_JESSIE" == "no"; then
+       INFO_JESSIE=" (configuration of Why failed)"
+    fi
     ;;
   $OCAMLLIB/jessie)
     JCCMO=$SELECTED_WHYJC/jc.cmo
@@ -6280,7 +7651,7 @@ REQUIRE_VALUE="constant_propagation from inout occurrence pdg scope security \
 # a bit ugly... Probably optimizable
 
 # First, initialize some variables
-for fp in ${!FORCE*}; do
+for fp in ${PLUGINS_FORCE_LIST}; do
   if test "$fp" != "FORCE_GTKSOURCEVIEW"; then
     plugin=`echo $fp | sed -e "s/FORCE_\(.*\)/\1/" `
     TODOLIST=$TODOLIST" "$plugin
@@ -6431,7 +7802,7 @@ compute_dependency () {
 compute_dependency
 
 # Compute INFO_* and exported ENABLE_* from previously computed ENABLE_*
-for fp in ${!FORCE*}; do
+for fp in ${PLUGINS_FORCE_LIST}; do
   if test "$fp" != "FORCE_GTKSOURCEVIEW"; then
     plugin=`echo $fp | sed -e "s/FORCE_\(.*\)/\1/" `
     ep=ENABLE_$plugin
@@ -6448,6 +7819,14 @@ done
 ############################
 # Substitutions to perform #
 ############################
+
+
+
+
+
+
+
+
 
 
 
@@ -6707,7 +8086,7 @@ if test "x$as_myself" = x; then
   as_myself=$0
 fi
 if test ! -f "$as_myself"; then
-  echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
+  echo "$as_myself: error: cannot find myself; rerun with an absolute FILE_APRON name" >&2
   { (exit 1); exit 1; }
 fi
 
@@ -6839,28 +8218,28 @@ else
   as_expr=false
 fi
 
-rm -f conf$$ conf$$.exe conf$$.file
+rm -f conf$$ conf$$.exe conf$$.FILE_APRON
 if test -d conf$$.dir; then
-  rm -f conf$$.dir/conf$$.file
+  rm -f conf$$.dir/conf$$.FILE_APRON
 else
   rm -f conf$$.dir
   mkdir conf$$.dir
 fi
-echo >conf$$.file
-if ln -s conf$$.file conf$$ 2>/dev/null; then
+echo >conf$$.FILE_APRON
+if ln -s conf$$.FILE_APRON conf$$ 2>/dev/null; then
   as_ln_s='ln -s'
   # ... but there are two gotchas:
   # 1) On MSYS, both `ln -s file dir' and `ln file dir' fail.
   # 2) DJGPP < 2.04 has no symlinks; `ln -s' creates a wrapper executable.
   # In both cases, we have to default to `cp -p'.
-  ln -s conf$$.file conf$$.dir 2>/dev/null && test ! -f conf$$.exe ||
+  ln -s conf$$.FILE_APRON conf$$.dir 2>/dev/null && test ! -f conf$$.exe ||
     as_ln_s='cp -p'
-elif ln conf$$.file conf$$ 2>/dev/null; then
+elif ln conf$$.FILE_APRON conf$$ 2>/dev/null; then
   as_ln_s=ln
 else
   as_ln_s='cp -p'
 fi
-rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
+rm -f conf$$ conf$$.exe conf$$.dir/conf$$.FILE_APRON conf$$.FILE_APRON
 rmdir conf$$.dir 2>/dev/null
 
 if mkdir -p . 2>/dev/null; then
@@ -6906,7 +8285,7 @@ exec 6>&1
 # report actual input values of CONFIG_FILES etc. instead of their
 # values after options handling.
 ac_log="
-This file was extended by $as_me, which was
+This FILE_APRON was extended by $as_me, which was
 generated by GNU Autoconf 2.61.  Invocation command line was
 
   CONFIG_FILES    = $CONFIG_FILES
@@ -6994,7 +8373,7 @@ do
     echo "$ac_cs_version"; exit ;;
   --debug | --debu | --deb | --de | --d | -d )
     debug=: ;;
-  --file | --fil | --fi | --f )
+  --FILE_APRON | --fil | --fi | --f )
     $ac_shift
     CONFIG_FILES="$CONFIG_FILES $ac_optarg"
     ac_need_defaults=false;;
@@ -7187,12 +8566,15 @@ OBJEXT!$OBJEXT$ac_delim
 CPP!$CPP$ac_delim
 GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
-has!$has$ac_delim
+HAS_LABLGLADECC!$HAS_LABLGLADECC$ac_delim
+HAS_CAMLP4O!$HAS_CAMLP4O$ac_delim
+HAS_LTLTOBA!$HAS_LTLTOBA$ac_delim
 VERBOSEMAKE!$VERBOSEMAKE$ac_delim
 OCAMLGRAPH!$OCAMLGRAPH$ac_delim
 OCAMLGRAPH_LOCAL!$OCAMLGRAPH_LOCAL$ac_delim
 OCAMLBEST!$OCAMLBEST$ac_delim
 OCAMLVERSION!$OCAMLVERSION$ac_delim
+LOWER_THAN_311!$LOWER_THAN_311$ac_delim
 OCAMLLIB!$OCAMLLIB$ac_delim
 OCAMLWIN32!$OCAMLWIN32$ac_delim
 CAMLP4O!$CAMLP4O$ac_delim
@@ -7209,20 +8591,17 @@ LOCAL_MACHDEP!$LOCAL_MACHDEP$ac_delim
 HAS_LABLGTK!$HAS_LABLGTK$ac_delim
 HAS_GTKSOURCEVIEW!$HAS_GTKSOURCEVIEW$ac_delim
 HAS_LEGACY_GTKSOURCEVIEW!$HAS_LEGACY_GTKSOURCEVIEW$ac_delim
+HAS_GNOMECANVAS!$HAS_GNOMECANVAS$ac_delim
+HAS_LABLGTK_CUSTOM_MODEL!$HAS_LABLGTK_CUSTOM_MODEL$ac_delim
 LABLGLADECC!$LABLGLADECC$ac_delim
-HAS_LABLGLADECC!$HAS_LABLGLADECC$ac_delim
 JCCMO!$JCCMO$ac_delim
 JCCMX!$JCCMX$ac_delim
 JESSIE_LOCAL!$JESSIE_LOCAL$ac_delim
 JESSIE_INCLUDES!$JESSIE_INCLUDES$ac_delim
+ENABLE_SYNTACTIC_CALLGRAPH!$ENABLE_SYNTACTIC_CALLGRAPH$ac_delim
 ENABLE_CONSTANT_PROPAGATION!$ENABLE_CONSTANT_PROPAGATION$ac_delim
 ENABLE_CXX!$ENABLE_CXX$ac_delim
 ENABLE_FROM!$ENABLE_FROM$ac_delim
-ENABLE_GUI!$ENABLE_GUI$ac_delim
-ENABLE_IMPACT!$ENABLE_IMPACT$ac_delim
-ENABLE_INOUT!$ENABLE_INOUT$ac_delim
-ENABLE_JESSIE!$ENABLE_JESSIE$ac_delim
-WHYDISTRIB!$WHYDISTRIB$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -7264,6 +8643,13 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+ENABLE_GUI!$ENABLE_GUI$ac_delim
+ENABLE_IMPACT!$ENABLE_IMPACT$ac_delim
+ENABLE_INOUT!$ENABLE_INOUT$ac_delim
+ENABLE_JESSIE!$ENABLE_JESSIE$ac_delim
+ENABLE_JOURNAL_LOADER!$ENABLE_JOURNAL_LOADER$ac_delim
+WHYDISTRIB!$WHYDISTRIB$ac_delim
+ENABLE_METRICS!$ENABLE_METRICS$ac_delim
 ENABLE_MIEL!$ENABLE_MIEL$ac_delim
 ENABLE_OCCURRENCE!$ENABLE_OCCURRENCE$ac_delim
 ENABLE_PDG!$ENABLE_PDG$ac_delim
@@ -7276,11 +8662,12 @@ ENABLE_SPARECODE!$ENABLE_SPARECODE$ac_delim
 ENABLE_USERS!$ENABLE_USERS$ac_delim
 ENABLE_VALUE!$ENABLE_VALUE$ac_delim
 ENABLE_WP!$ENABLE_WP$ac_delim
+ENABLE_LTL_TO_ACSL!$ENABLE_LTL_TO_ACSL$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 14; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 22; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -7374,8 +8761,8 @@ echo "$as_me: error: Invalid tag $ac_tag." >&2;}
 	   [\\/$]*) false;;
 	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
 	   esac ||
-	   { { echo "$as_me:$LINENO: error: cannot find input file: $ac_f" >&5
-echo "$as_me: error: cannot find input file: $ac_f" >&2;}
+	   { { echo "$as_me:$LINENO: error: cannot find input FILE_APRON: $ac_f" >&5
+echo "$as_me: error: cannot find input FILE_APRON: $ac_f" >&2;}
    { (exit 1); exit 1; }; };;
       esac
       ac_file_inputs="$ac_file_inputs $ac_f"
@@ -7713,6 +9100,13 @@ chmod a-w Makefile
 
 new_section "summary: plugins available"
 
+if test "$LOWER_THAN_311" == yes ; then
+  { echo "$as_me:$LINENO: WARNING: Dynamic plugins in native mode are disabled." >&5
+echo "$as_me: WARNING: Dynamic plugins in native mode are disabled." >&2;}
+fi
+
+{ echo "$as_me:$LINENO: syntactic callgraph  : $ENABLE_SYNTACTIC_CALLGRAPH$INFO_SYNTACTIC_CALLGRAPH" >&5
+echo "$as_me: syntactic callgraph  : $ENABLE_SYNTACTIC_CALLGRAPH$INFO_SYNTACTIC_CALLGRAPH" >&6;}
 { echo "$as_me:$LINENO: constant propagation : $ENABLE_CONSTANT_PROPAGATION$INFO_CONSTANT_PROPAGATION" >&5
 echo "$as_me: constant propagation : $ENABLE_CONSTANT_PROPAGATION$INFO_CONSTANT_PROPAGATION" >&6;}
 { echo "$as_me:$LINENO: cxx                  : $ENABLE_CXX$INFO_CXX" >&5
@@ -7727,6 +9121,10 @@ echo "$as_me: impact               : $ENABLE_IMPACT$INFO_IMPACT" >&6;}
 echo "$as_me: inout                : $ENABLE_INOUT$INFO_INOUT" >&6;}
 { echo "$as_me:$LINENO: jessie               : $ENABLE_JESSIE$INFO_JESSIE" >&5
 echo "$as_me: jessie               : $ENABLE_JESSIE$INFO_JESSIE" >&6;}
+{ echo "$as_me:$LINENO: journal loader       : $ENABLE_JOURNAL_LOADER$INFO_JOURNAL_LOADER" >&5
+echo "$as_me: journal loader       : $ENABLE_JOURNAL_LOADER$INFO_JOURNAL_LOADER" >&6;}
+{ echo "$as_me:$LINENO: metrics              : $ENABLE_METRICS$INFO_METRICS" >&5
+echo "$as_me: metrics              : $ENABLE_METRICS$INFO_METRICS" >&6;}
 { echo "$as_me:$LINENO: miel                 : $ENABLE_MIEL$INFO_MIEL" >&5
 echo "$as_me: miel                 : $ENABLE_MIEL$INFO_MIEL" >&6;}
 { echo "$as_me:$LINENO: occurrence           : $ENABLE_OCCURRENCE$INFO_OCCURRENCE" >&5
@@ -7751,3 +9149,5 @@ echo "$as_me: users                : $ENABLE_USERS$INFO_USERS" >&6;}
 echo "$as_me: value                : $ENABLE_VALUE$INFO_VALUE" >&6;}
 { echo "$as_me:$LINENO: wp                   : $ENABLE_WP$INFO_WP" >&5
 echo "$as_me: wp                   : $ENABLE_WP$INFO_WP" >&6;}
+{ echo "$as_me:$LINENO: ltl to acsl          : $ENABLE_LTL_TO_ACSL$INFO_LTL_TO_ACSL" >&5
+echo "$as_me: ltl to acsl          : $ENABLE_LTL_TO_ACSL$INFO_LTL_TO_ACSL" >&6;}

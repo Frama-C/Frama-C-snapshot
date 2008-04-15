@@ -23,8 +23,18 @@
 
 open Cil_types
 
-(* fwd ref to Cil.currentLoc... See cil.ml *)
-let dloc = ref (ref (Lexing.dummy_pos,Lexing.dummy_pos))
+(* fwd ref to [Cil.CurrentLoc]... See cil.ml *)
+module CurrentLoc = 
+  Computation.Ref
+    (struct
+       include Cil_datatype.Location
+       let default () = Lexing.dummy_pos, Lexing.dummy_pos
+     end)
+    (struct 
+       let dependencies = [] 
+       let name = "CurrentLoc"
+     end)
+
 let error (b,e) fstring =
   let f fmt =
     Format.kfprintf (fun _ -> raise Errormsg.Error) fmt (fstring ^^ "@\n@]")
@@ -39,34 +49,31 @@ let error (b,e) fstring =
 module LogicInfo =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.logic_info let copy _ = assert false end))
+    (Cil_datatype.Logic_Info)
     (struct
-       let name = Project.Computation.Name.make "logic functions table"
+       let name = "logic functions table"
        let dependencies = []
        let size = 17
      end)
 
+(*
 module PredicateInfo =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.predicate_info let copy _ = assert false end))
+    (Cil_datatype.Predicate_Info)
     (struct
-       let name = Project.Computation.Name.make "predicate table"
+       let name = "predicate table"
        let dependencies = []
        let size = 17
      end)
+*)
 
 module LogicTypeInfo =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.logic_type_info
-               let copy _ = assert false
-        end))
+    (Cil_datatype.Logic_Type_Info)
     (struct
-       let name = Project.Computation.Name.make "logic types table"
+       let name = "logic types table"
        let dependencies = []
        let size = 17
      end)
@@ -74,26 +81,23 @@ module LogicTypeInfo =
 module LogicCtorInfo =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.logic_ctor_info
-               let copy _ = assert false
-        end))
+    (Cil_datatype.Logic_Ctor_Info)
     (struct
-       let name = Project.Computation.Name.make "logic contructors table"
+       let name = "logic contructors table"
        let dependencies = []
        let size = 17
      end)
 
 (* We depend from Cil_state, but it is initialized after Logic_typing... *)
 let init_dependencies comp =
-  LogicInfo.depend comp; PredicateInfo.depend comp;
+  LogicInfo.depend comp; (* PredicateInfo.depend comp; *)
   LogicTypeInfo.depend comp; LogicCtorInfo.depend comp
 
 let is_logic_function = LogicInfo.mem
 let find_logic_function = LogicInfo.find
 let add_logic_function l =
   if is_logic_function l.l_name then
-    error !(!dloc) "logic function %s already declared" l.l_name;
+    error (CurrentLoc.get ()) "predicate or logic function %s already declared" l.l_name;
   LogicInfo.add l.l_name l
 
 let remove_logic_function = LogicInfo.remove
@@ -103,111 +107,122 @@ let find_logic_type = LogicTypeInfo.find
 let add_logic_type t infos =
   if is_logic_type t
     (* type variables hide type definitions on their scope *)
-  then error !(!dloc) "logic type %s already declared" t
+  then error (CurrentLoc.get ()) "logic type %s already declared" t
   else LogicTypeInfo.add t infos
 
 let is_logic_ctor = LogicCtorInfo.mem
 let find_logic_ctor = LogicCtorInfo.find
 let add_logic_ctor c infos =
   if is_logic_ctor c
-  then error !(!dloc) "logic constructor %s already declared" c
+  then error (CurrentLoc.get ()) "logic constructor %s already declared" c
   else LogicCtorInfo.add c infos
 
+(*
 let is_predicate = PredicateInfo.mem
 let find_predicate = PredicateInfo.find
 let add_predicate pred_info =
   if is_predicate pred_info.p_name then
-    error !(!dloc) "predicate %s already declared" pred_info.p_name;
+    error (CurrentLoc.get ()) "predicate %s already declared" pred_info.p_name;
   PredicateInfo.add pred_info.p_name pred_info
+let remove_predicate = PredicateInfo.remove
+*)
 
 module LogicBuiltin =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.logic_info
-               let copy c = { c with l_name = c.l_name}
-        end))
+    (Cil_datatype.Logic_Info)
     (struct
-       let name = Project.Computation.Name.make "builtin logic functions table"
+       let name = "builtin logic functions table"
        let dependencies = []
        let size = 17
      end)
+let () = LogicInfo.depend LogicBuiltin.self
 
+(*
 module PredicateBuiltin =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.predicate_info
-               let copy c = { c with p_name = c.p_name }  end))
+    (Cil_datatype.Predicate_Info)
     (struct
-       let name = Project.Computation.Name.make "builtin predicate table"
+       let name = "builtin predicate table"
        let dependencies = []
        let size = 17
      end)
+let () = PredicateInfo.depend PredicateBuiltin.self
+*)
 
 module LogicTypeBuiltin =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.logic_type_info
-               let copy c = {nb_params = c.nb_params}
-        end))
+    (Cil_datatype.Logic_Type_Info)
     (struct
-       let name = Project.Computation.Name.make "builtin logic types table"
+       let name = "builtin logic types table"
        let dependencies = []
        let size = 17
      end)
+let () = LogicTypeInfo.depend LogicTypeBuiltin.self
 
 module LogicCtorBuiltin =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Project.Datatype.Imperative
-       (struct type t = Cil_types.logic_ctor_info
-               let copy c = { c with ctor_name = c.ctor_name}
-        end))
+    (Cil_datatype.Logic_Ctor_Info)
     (struct
-       let name = Project.Computation.Name.make
-         "builtin logic contructors table"
+       let name = "builtin logic contructors table"
        let dependencies = []
        let size = 17
      end)
+let () = LogicCtorInfo.depend LogicCtorBuiltin.self
+
+let builtin_states =
+  let add x = Project.Selection.add x Kind.Do_Not_Select_Dependencies in
+  add LogicBuiltin.self 
+(*
+    (add PredicateBuiltin.self
+*)
+       (add LogicTypeBuiltin.self 
+	  (add LogicCtorBuiltin.self Project.Selection.empty))
 
 let add_builtin_logic_function li =
-  try
-    add_logic_function (LogicBuiltin.find li.l_name)
-  with Not_found ->
+  if not (LogicBuiltin.mem li.l_name) then begin
     LogicBuiltin.add li.l_name li;
     add_logic_function li
+  end
 
+(*
 let add_builtin_predicate pi =
-  try
-    add_predicate (PredicateBuiltin.find pi.p_name)
-  with Not_found ->
+  if not (PredicateBuiltin.mem pi.p_name) then begin
     PredicateBuiltin.add pi.p_name pi;
     add_predicate pi
+  end
+*)
 
 let add_builtin_logic_type name infos =
-  try
-    add_logic_type name (LogicTypeBuiltin.find name)
-  with Not_found ->
+  if not (LogicTypeBuiltin.mem name) then begin
     LogicTypeBuiltin.add name infos;
     add_logic_type name infos
+  end
 
 let add_builtin_logic_ctor name infos =
-  try
-    add_logic_ctor name (LogicCtorBuiltin.find name)
-  with Not_found ->
+  if not (LogicCtorBuiltin.mem name) then begin
     LogicCtorBuiltin.add name infos;
     add_logic_ctor name infos
+  end
 
 module Builtins=Hook.Make(struct type t = unit end)
 
-let reset_all_tables () =
+let prepare_tables () =
   LogicCtorInfo.clear ();
   LogicTypeInfo.clear ();
+(*
   PredicateInfo.clear ();
+*)
   LogicInfo.clear ();
-  Builtins.apply ()
+  LogicCtorBuiltin.iter LogicCtorInfo.add;
+  LogicTypeBuiltin.iter LogicTypeInfo.add;
+(*
+  PredicateBuiltin.iter PredicateInfo.add;
+*)
+  LogicBuiltin.iter LogicInfo.add
 
 (*
   Local Variables:

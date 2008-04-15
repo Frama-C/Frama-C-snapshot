@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annot.mli,v 1.10 2008/07/09 11:26:38 uid530 Exp $ *)
+(* $Id: annot.mli,v 1.13 2008/10/20 14:32:10 uid526 Exp $ *)
 
 (** find the nodes needed for the annotation :
 * the first list correspond to control dependancies,
@@ -33,6 +33,20 @@ val find_code_annot_nodes :
   before:bool -> Cil_types.stmt -> Cil_types.code_annotation ->
   PdgTypes.Node.t list 
   * ((PdgTypes.Node.t * Locations.Zone.t option) list  * Locations.Zone.t option)
+
+val find_fun_precond_nodes :
+      PdgTypes.Pdg.t -> Cil_types.predicate ->
+  (PdgTypes.Node.t * Locations.Zone.t option) list  * Locations.Zone.t option
+ 
+val find_fun_postcond_nodes :
+      PdgTypes.Pdg.t -> Cil_types.predicate ->
+  (PdgTypes.Node.t * Locations.Zone.t option) list  * Locations.Zone.t option
+ 
+val find_fun_variant_nodes :
+      PdgTypes.Pdg.t -> Cil_types.term ->
+  (PdgTypes.Node.t * Locations.Zone.t option) list  * Locations.Zone.t option
+ 
+ 
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

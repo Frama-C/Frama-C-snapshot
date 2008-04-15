@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kinstr.ml,v 1.17 2008/04/18 14:29:35 uid568 Exp $ *)
+(* $Id: kinstr.ml,v 1.19 2008/11/21 09:19:53 uid527 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -55,28 +55,27 @@ module type Kinstr_S = sig
     -> Locations.Zone.t * kernel_function list
 end
 
-let lval_to_loc_with_deps_state ~with_alarms ~skip_base_deps state ~deps lv =
-  let deps, r =
-    (if skip_base_deps then
-       lval_to_loc_with_offset_deps_only
-     else lval_to_loc_with_deps)
+let lval_to_loc_with_deps_state ~with_alarms state ~deps lv =
+  let state, deps, r =
+    lval_to_loc_with_deps
       ~with_alarms
       ~deps
+      ~reduce_valid_index:(not (Cmdline.UnsafeArrays.get()))
       state
       lv
   in
-  Zone.out_some_or_bottom deps, r
+  state, Zone.out_some_or_bottom deps, r
 
-let lval_to_loc_with_deps ~with_alarms ~skip_base_deps kinstr ~deps lv =
+let lval_to_loc_with_deps ~with_alarms  kinstr ~deps lv =
   CilE.start_stmt kinstr;
   let state = Db.Value.noassert_get_state kinstr in
   let result =
-    lval_to_loc_with_deps_state ~with_alarms ~skip_base_deps state ~deps lv in
+    lval_to_loc_with_deps_state ~with_alarms  state ~deps lv in
   CilE.end_stmt ();
   result
 
-let lval_to_loc_with_deps_state ~skip_base_deps state ~deps lv =
-  lval_to_loc_with_deps_state ~with_alarms:warn_none_mode ~skip_base_deps state ~deps lv
+let lval_to_loc_with_deps_state  state ~deps lv =
+  lval_to_loc_with_deps_state ~with_alarms:warn_none_mode  state ~deps lv
 
 let lval_to_loc_kinstr kinstr ~with_alarms lv =
   CilE.start_stmt kinstr;
@@ -164,11 +163,13 @@ let lval_to_offsetmap  kinstr lv ~with_alarms =
 
 let () =
   Value.lval_to_loc_with_deps :=
-    (fun s ~with_alarms ~skip_base_deps ->
-       lval_to_loc_with_deps ~with_alarms ~skip_base_deps s);
+    (fun s ~with_alarms ~deps lval -> 
+      let _, deps, r = lval_to_loc_with_deps ~with_alarms s ~deps lval in
+      deps, r);
   Value.lval_to_loc_with_deps_state :=
-    (fun s ~skip_base_deps ->
-       lval_to_loc_with_deps_state ~skip_base_deps s);
+    (fun s ~deps lval -> 
+      let _, deps, r = lval_to_loc_with_deps_state s ~deps lval in
+      deps, r);
   Value.expr_to_kernel_function := expr_to_kernel_function;
   Value.expr_to_kernel_function_state := expr_to_kernel_function_state;
   Value.lval_to_loc := lval_to_loc_kinstr;
@@ -178,7 +179,10 @@ let () =
   Value.lval_to_offsetmap := lval_to_offsetmap;
   Value.assigns_to_zone_inputs_state := assigns_to_zone_inputs_state;
   Value.eval_expr := eval_expr;
-  Value.eval_lval := eval_lval;
+  Value.eval_lval := 
+    (fun ~with_alarms deps state lval ->
+      let _, deps, r = eval_lval  ~with_alarms deps state lval in
+      deps, r)
 
 (*
 Local Variables:

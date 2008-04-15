@@ -19,24 +19,26 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: alarms.mli,v 1.12 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: alarms.mli,v 1.15 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Alarm Database.
-    @plugin developer guide *)
+    @plugin development guide *)
 
-type t = 
+type t =
   | Division_alarm
   | Memory_alarm
   | Shift_alarm
   | Pointer_compare_alarm
   | Using_nan_or_infinite_alarm
   | Result_is_nan_or_infinite_alarm
+  | Separation_alarm
+  | Other_alarm
 
 val pretty : Format.formatter -> t -> unit
 val register: Cil_types.kinstr -> t -> Cil_types.code_annotation -> bool
 val clear: unit -> unit
 val fold: (Cil_types.kinstr -> (t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
-val fold_kinstr: Cil_types.kinstr -> ((t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a 
+val fold_kinstr: Cil_types.kinstr -> ((t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
 
 val self: Project.Computation.t
 

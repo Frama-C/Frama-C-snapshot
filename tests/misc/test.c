@@ -1,7 +1,7 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main inst_F6 -absolute-valid-range 0x200-0x199
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f
+  OPT: -memory-footprint 1 -val -deps -out -input  -main inst_F6 -absolute-valid-range 0x200-0x199 -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main f -journal-disable
 */
 void inst_F6(int *v,int n){ int t[3]; t[1] = 4;
  int i,j,ecart,tmp;

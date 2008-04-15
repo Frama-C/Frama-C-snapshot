@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -out -input -deps
+   OPT: -memory-footprint 1 -val -out -input -deps -journal-disable
  */
 int base0=7;
 int base1=1;
@@ -47,7 +47,7 @@ void f(void)
   (i_auIoSlot[i].ioCtrl_p[1])->inDriverStatus = 0;
   for(j = 0; j < 2; j++) {
     (i_auIoSlot[i].ioCtrl_p[j])->inDriverStatus = 1;
-    
+
     }
- 
+
 }

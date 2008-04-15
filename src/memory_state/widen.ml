@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen.ml,v 1.37 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: widen.ml,v 1.39 2008/10/03 13:09:17 uid568 Exp $ *)
 
 open Cil
 open Cil_types
@@ -28,6 +28,7 @@ open Db_types
 open Abstract_value
 open BaseUtils
 open Cilutil
+open Visitor
 
 class widen_visitor kf init_widen_hints (init_enclosing_loop_info:(Cil_types.stmt list * StmtSet.t) option) =
 object (* visit all sub-expressions from [kf] definition *)
@@ -45,7 +46,7 @@ object (* visit all sub-expressions from [kf] definition *)
         (* Format.printf "Look at widening variables.\n" ; *)
         let visitor = new widen_visitor kf widen_hints enclosing_loop_info
         in
-        ignore (visitCilBlock (visitor :> nopCilVisitor) bl);
+        ignore (visitFramacBlock visitor bl);
         SkipChildren
       in
       begin match s.skind with
@@ -228,7 +229,7 @@ let compute_widen_hints kf _s default_widen_hints = (* [s] isn't used yet *)
             begin
               let widen_hints = ref default_widen_hints
               in let visitor = new widen_visitor kf widen_hints None
-              in ignore (visitCilFunction (visitor :> nopCilVisitor) fd) ;
+              in ignore (visitFramacFunction visitor fd) ;
                 !widen_hints
             end
     end
@@ -238,7 +239,7 @@ module Hints =
   Kernel_function.Make_Table
     (Widen_type.Datatype)
     (struct
-       let name = Project.Computation.Name.make "Widen.Hints"
+       let name = "Widen.Hints"
        let size = 97
        let dependencies = [ Cil_state.self ]
      end)

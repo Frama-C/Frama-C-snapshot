@@ -1,7 +1,7 @@
 
 open LibSelect;;
 
-let project = S.Project.mk_project "slicing1";;
+let project = mk_project () ;;
 
 let kf_main = Globals.Functions.find_def_by_name "main";;
 let kf_f = Globals.Functions.find_def_by_name "f";;
@@ -31,10 +31,11 @@ let f_slice_names kf src_called fnum =
 
 let proj2 = !S.Project.extract "slicing_result" ~f_slice_names project;;
 Project.set_current proj2;;
-Format.printf "After Slicing :@." ; File.pretty ~prj:proj2 fmt;;
+Format.printf "After Slicing :@." ; File.pretty fmt;;
 
-(*
+
 open Cil_types;;
+(*
 let infos = object
   inherit Cil.nopCilVisitor
   method vfunc { svar = v } =
@@ -56,9 +57,9 @@ Cil.visitCilFile infos new_cil_file (* the cil file after slicing *);;
 
 !Db.Value.compute ();;
 let all = Cilutil.StringSet.empty;;
-let proj3 = !Db.Constant_Propagation.run_propagation all ~cast_intro:true;;
+let proj3 = !Db.Constant_Propagation.get all ~cast_intro:true;;
 Project.set_current proj3;;
 Format.printf "After Constant propagation :@." ; File.pretty ~prj:proj3 fmt;;
 
-let proj4 = !Db.Sparecode.run ~select_annot:true ~select_slice_pragma:true;;
+let proj4 = !Db.Sparecode.get ~select_annot:true ~select_slice_pragma:true;;
 Format.printf "After Sparecode :@." ; File.pretty ~prj:proj4 fmt;;

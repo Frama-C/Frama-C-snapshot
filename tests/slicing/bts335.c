@@ -1,5 +1,5 @@
 /* run.config
-   DONTRUN: -slice-pragma g -calldeps -slicing-level 3
+   OPT: -slice-pragma g -calldeps -slicing-level 3
 */
 
 /*

@@ -252,7 +252,8 @@ let rec computeDeepUseDefStmtKind ?(acc_used=VS.empty)
       !varUsed, !varDefs
   | TryExcept _ | TryFinally _ -> !varUsed, !varDefs
   | Block b -> handle_block b
-  | UnspecifiedSequence b -> handle_block b
+  | UnspecifiedSequence seq -> handle_block
+      (block_from_unspecified_sequence seq)
 
 let computeUseLocalTypes ?(acc_used=VS.empty)
                          (fd : fundec)

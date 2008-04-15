@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x2D-0x30
+   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x2D-0x30 -journal-disable
 */
 
 

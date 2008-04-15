@@ -50,9 +50,15 @@ val apply_add_marks :
 val add_marks_to_fi : 
                      SlicingTypes.Internals.t_project  -> 
                      SlicingTypes.Internals.t_fct_info  -> 
-                      SlicingTypes.Internals.t_fct_base_criterion ->
-                      bool -> t_crit list ->
-                      t_crit list
+                     SlicingTypes.Internals.t_fct_base_criterion ->
+                     bool -> t_crit list ->
+                     bool * t_crit list
+
+val add_top_mark_to_fi : 
+                     SlicingTypes.Internals.t_fct_info  -> 
+                     SlicingTypes.Internals.t_pdg_mark ->
+                     bool -> t_crit list ->
+                     t_crit list
 
 val check_outputs_before_change_call :  SlicingTypes.Internals.t_project ->
                   t_fct_slice -> SlicingTypes.Internals.t_call_id ->
@@ -93,6 +99,8 @@ val get_label_mark : t_fct_slice -> Cil_types.stmt -> Cil_types.label -> t_mark
 val get_param_mark : t_fct_slice -> int -> t_mark
 val get_local_var_mark : t_fct_slice -> Cil_types.varinfo -> t_mark
 val get_input_loc_under_mark : t_fct_slice -> Locations.Zone.t -> t_mark
+  
+val get_mark_from_src_fun : SlicingTypes.Internals.t_project -> Kernel_function.t -> t_mark
 
 val merge_inputs_m1_mark : t_fct_slice -> t_mark
 

@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module BaseSet = 
+module BaseSet = (* TODO: use patricia trees instead of Set *)
 struct
   include Set.Make (Base)
 

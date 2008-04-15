@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -main f
-   OPT: -memory-footprint 1 -val -deps -out -input -main fonc1
-   OPT: -memory-footprint 1 -val -deps -out -input -main fonc2
+   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main fonc1 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main fonc2 -journal-disable
 */
 int f (int a, int b,int c){
   int w,d;
@@ -17,8 +17,8 @@ int fonc1 (int a, int b){
   v1.x = a+b;
   w =  v1.x;
   if (a) {
-    struct t1 { int x; int y;} v2; 
-    struct t2 { int x; int y;} v3; 
+    struct t1 { int x; int y;} v2;
+    struct t2 { int x; int y;} v3;
     v2.x = a;
     v3.x = b;
     w = w + v2.x + v3.x;
@@ -34,7 +34,7 @@ int fonc2 (int a, int b){
   return w;
 }
 
-struct Tstr { int a; int b; }; 
+struct Tstr { int a; int b; };
 
 int h (struct Tstr * ps) {
   return ps->a;
@@ -50,4 +50,4 @@ int i (int x, int y) {
   return ptr(&g);
   s.a = 0;
   return h(&s);
-} 
+}

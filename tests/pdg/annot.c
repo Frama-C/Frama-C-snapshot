@@ -1,6 +1,6 @@
 /* run.config
-  OPT: -pdg-debug "-fct-pdg f1;-verbose;-verbose" -main f1
-  OPT: -pdg-debug "-fct-pdg loop;-verbose;-verbose" -main loop
+  OPT: -pdg-debug "-fct-pdg f1;-verbose;-verbose" -main f1 -journal-disable
+  OPT: -pdg-debug "-fct-pdg loop;-verbose;-verbose" -main loop -journal-disable
 */
 
 int G;

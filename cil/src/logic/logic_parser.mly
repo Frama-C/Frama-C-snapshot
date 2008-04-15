@@ -49,17 +49,18 @@
 
 %}
 
-%token <string> IDENTIFIER STRING_LITERAL TYPENAME
+%token <string> IDENTIFIER TYPENAME
+%token <bool*string> STRING_LITERAL
 %token <Logic_ptree.constant> CONSTANT
 %token LPAR RPAR IF ELSE COLON COLON2 COLONCOLON DOT DOTDOT DOTDOTDOT
 %token INT INTEGER REAL FLOAT LT GT LE GE EQ NE COMMA ARROW EQUAL
-%token FORALL EXISTS IFF IMPLIES AND OR NOT
+%token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AT RESULT BLOCK_LENGTH BASE_ADDR
 %token VALID VALID_INDEX VALID_RANGE FRESH DOLLAR
 %token QUESTION MINUS PLUS STAR AMP SLASH PERCENT LSQUARE RSQUARE EOF
 %token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT SEMICOLON NULL EMPTY
 %token REQUIRES ENSURES ASSIGNS LOOP NOTHING SLICE IMPACT PRAGMA FROM
-%token READS LOGIC PREDICATE AXIOM LEMMA LBRACE RBRACE GHOST
+%token READS LOGIC PREDICATE INDUCTIVE AXIOMATIC AXIOM LEMMA LBRACE RBRACE GHOST CASE
 %token VOID CHAR SIGNED UNSIGNED SHORT LONG DOUBLE STRUCT ENUM UNION
 %token BSUNION INTER
 %token LTCOLON COLONGT TYPE BEHAVIOR BEHAVIORS ASSUMES COMPLETE DISJOINT
@@ -69,7 +70,7 @@
 %token TYPEOF BSTYPE
 
 %right prec_named
-%nonassoc IDENTIFIER TYPENAME
+%nonassoc IDENTIFIER TYPENAME SEPARATED
 %nonassoc prec_forall prec_exists prec_lambda
 %right QUESTION prec_question
 %right IMPLIES IFF
@@ -133,6 +134,15 @@ lexpr_rel:
       }
 
 lexpr_inner:
+  | string {
+      let (is_wide,content) = $1 in
+      let cst = if is_wide then
+        WStringConstant content
+      else
+        StringConstant content
+      in
+      info (PLconstant cst)
+    }
   | NOT lexpr_inner { info (PLnot $2) }
   | TRUE { info PLtrue }
   | FALSE { info PLfalse }
@@ -166,6 +176,8 @@ lexpr_inner:
   | RESULT { info PLresult }
   | identifier LPAR ne_lexpr_list RPAR
       { info (PLapp ($1, [], $3)) }
+  | SEPARATED LPAR ne_lexpr_list RPAR
+      { info (PLseparated $3) }
   | identifier LBRACE ne_tvar_list RBRACE LPAR ne_lexpr_list RPAR
       { info (PLapp ($1, $3, $6)) }
   | identifier LBRACE ne_tvar_list RBRACE
@@ -184,10 +196,10 @@ lexpr_inner:
   | lexpr_inner COLONGT lexpr_inner %prec prec_cast
       { info (PLcoercionE ($1, $3)) }
   | TYPEOF LPAR lexpr RPAR { info (PLtypeof $3) }
-  | BSTYPE LPAR type_spec_not_id RPAR { info (PLtype $3) }
+  | BSTYPE LPAR type_spec_not_id STAR RPAR { info (PLtype $3) }
     /* tsets */
   | EMPTY { info PLempty }
-  | UNION LPAR lexpr_list RPAR { info (PLunion $3) }
+  | BSUNION LPAR lexpr_list RPAR { info (PLunion $3) }
   | INTER LPAR lexpr_list RPAR { info (PLinter $3) }
   | LBRACE lexpr PIPE binders RBRACE
       {info (PLcomprehension ($2,$4,None)) }
@@ -196,6 +208,14 @@ lexpr_inner:
     /* Functional update */
   | LBRACE lexpr FOR identifier EQUAL lexpr RBRACE { info (PLupdate($2,$4,$6)) }
 ;
+
+string:
+    STRING_LITERAL { $1 }
+  | string STRING_LITERAL {
+      let (is_wide,prefix) = $1 in
+      let (is_wide2,suffix) = $2 in
+      (is_wide || is_wide2, prefix ^ suffix)
+    }
 
 relation:
   | LT    { Lt }
@@ -417,7 +437,7 @@ abs_spec_bis:
 
 stars:
 | STAR       { fun t -> LTpointer t }
-| STAR stars { fun t -> $2 (LTpointer t) }
+| stars STAR { fun t -> $1 (LTpointer t) }
 ;
 
 tabs:
@@ -501,9 +521,11 @@ full_parameter:
 enter_kw_c_mode parameter exit_kw_c_mode { $2 }
 ;
 
+/*
 full_tsets:
 enter_kw_c_mode tsets exit_kw_c_mode  { $2 }
 ;
+*/
 
 full_ne_lexpr_list:
 enter_kw_c_mode ne_lexpr_list exit_kw_c_mode { $2 }
@@ -574,7 +596,8 @@ behaviors_or_default:
 | simple_behavior_body behaviors
     { let (terminates,(assumes,ensures,assigns)) = $1 in
       let behaviors =
-        if assumes <> [] || ensures <> [] || assigns <> [] then
+        if (*TODO: enforce to have a default behavior true || *)
+           assumes <> [] || ensures <> [] || assigns <> [] then
           { b_name = "default";b_assumes = assumes;
             b_ensures = ensures;
             b_assigns = assigns} :: $2
@@ -667,9 +690,9 @@ decreases:
 code_annotation:
   slice_pragma     { APragma (Slice_pragma $1) }
 | impact_pragma    { APragma (Impact_pragma $1) }
-| FOR ne_full_identifier_list COLON ASSERT full_lexpr SEMICOLON 
-      { AAssert ($2,$5) }
-| ASSERT full_lexpr SEMICOLON    { AAssert ([],$2) }
+| FOR ne_full_identifier_list COLON ASSERT full_lexpr SEMICOLON
+      { AAssert ($2,$5,{status=Cil_types.Unknown}) }
+| ASSERT full_lexpr SEMICOLON    { AAssert ([],$2,{status=Cil_types.Unknown}) }
 | INVARIANT full_lexpr SEMICOLON { AInvariant ([],false,$2) }
 ;
 
@@ -683,7 +706,7 @@ loop_pragma:
       match $3 with
         | [level] -> Unroll_level level
         | _ -> raise(
-            Not_well_formed(loc(),"usage: loop pragma unroll n;"))
+            Not_well_formed(loc(),"usage: loop pragma UNROLL n;"))
     else if $2 = "WIDEN_VARIABLES" then
       Widen_variables $3
     else if $2 = "WIDEN_HINTS" then
@@ -731,6 +754,7 @@ location:
 | lexpr { $1 }
 ;
 
+/*
 logic_decl:
 | LOGIC full_logic_type poly_id LPAR full_parameters RPAR
   { let (id,labels,tvars) = $3 in
@@ -738,6 +762,7 @@ logic_decl:
 | LOGIC full_logic_type poly_id
   { let (id,labels,tvars) = $3 in
     ($2,id,labels, tvars,[]) }
+*/
 
 poly_id:
 | full_identifier { ($1,[],[]) }
@@ -751,41 +776,100 @@ identifier:
 
 opt_parameters:
 | /*epsilon*/ { [] }
+| parameters { $1 }
+;
+
+parameters:
 | LPAR full_parameters RPAR { $2 }
 ;
+
 decl:
-| logic_decl SEMICOLON
-    { let (rt, id, labels, tvars, args) = $1 in
-      LDlogic_reads (id, labels, tvars, rt, args, []) }
-| logic_decl READS full_tsets SEMICOLON
-    { let (rt, id, labels, tvars, args) = $1 in
-      LDlogic_reads (id, labels, tvars, rt, args, $3) }
-| logic_decl EQUAL full_lexpr SEMICOLON
-    { let (rt, id, labels, tvars, args) = $1 in
-      LDlogic_def (id, labels, tvars, rt, args, $3) }
-| TYPE poly_id SEMICOLON
-    { let (id,labels,tvars) = $2 in
-      assert (labels = []);
-      LDtype(id,tvars) }
-| PREDICATE poly_id opt_parameters SEMICOLON
-    { let (id,labels,tvars) = $2 in
-      LDpredicate_reads (id, labels, tvars, $3, []) }
-| PREDICATE poly_id opt_parameters READS tsets SEMICOLON
-    { let (id,labels,tvars) = $2 in
-      LDpredicate_reads (id, labels, tvars, $3, $5) }
-| PREDICATE poly_id opt_parameters EQUAL full_lexpr SEMICOLON
-    { let (id,labels,tvars) = $2 in
-      LDpredicate_def (id, labels, tvars, $3, $5) }
-| AXIOM poly_id COLON full_lexpr SEMICOLON
-    { let (id,labels,tvars) = $2 in
-      LDlemma (id, true, labels, tvars, $4) }
-| LEMMA poly_id COLON full_lexpr SEMICOLON
-    { let (id,labels,tvars) = $2 in
-      LDlemma (id, false, labels, tvars, $4) }
+| logic_def  { $1 }
+| deprecated_logic_decl
+    { $1 }
 | GLOBAL INVARIANT full_identifier COLON full_lexpr SEMICOLON
     { LDinvariant ($3, $5) }
 | type_annot {LDtype_annot $1}
 ;
+
+logic_def:
+/* logic function definition */
+| LOGIC full_logic_type poly_id opt_parameters EQUAL full_lexpr SEMICOLON
+    { let (id, labels, tvars) = $3 in
+      LDlogic_def (id, labels, tvars, $2, $4, $6) }
+/* predicate definition */
+| PREDICATE poly_id opt_parameters EQUAL full_lexpr SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      LDpredicate_def (id, labels, tvars, $3, $5) }
+/* inductive predicate definition */
+| INDUCTIVE poly_id parameters LBRACE indcases RBRACE
+    { let (id,labels,tvars) = $2 in
+      LDinductive_def(id, labels, tvars, $3, $5) }
+| LEMMA poly_id COLON full_lexpr SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      LDlemma (id, false, labels, tvars, $4) }
+| AXIOMATIC identifier LBRACE logic_decls RBRACE
+    { LDaxiomatic($2,$4) }
+;
+
+deprecated_logic_decl:
+/* OBSOLETE: logic function declaration */
+| LOGIC full_logic_type poly_id opt_parameters SEMICOLON
+    { let (id, labels, tvars) = $3 in
+      Format.eprintf "Warning: deprecated logic declaration '%s', should be declared inside an axiomatic block@." id;
+      LDlogic_reads (id, labels, tvars, $2, $4, []) }
+/* OBSOLETE: predicate declaration */
+| PREDICATE poly_id opt_parameters SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      Format.eprintf "Warning: deprecated logic declaration `%s', should be declared inside an axiomatic block@." id;
+      LDpredicate_reads (id, labels, tvars, $3, []) }
+/* OBSOLETE: type declaration */
+| TYPE poly_id SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      assert (labels = []);
+      Format.eprintf "Warning: deprecated logic type declaration `%s', should be declared inside an axiomatic block@." id;
+      LDtype(id,tvars) }
+;
+
+
+logic_decls:
+| /* epsilon */
+    { [] }
+| logic_decl logic_decls
+    { $1::$2 }
+;
+
+logic_decl:
+| logic_def  { $1 }
+/* logic function declaration */
+| LOGIC full_logic_type poly_id opt_parameters SEMICOLON
+    { let (id, labels, tvars) = $3 in
+      LDlogic_reads (id, labels, tvars, $2, $4, []) }
+/* predicate declaration */
+| PREDICATE poly_id opt_parameters SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      LDpredicate_reads (id, labels, tvars, $3, []) }
+/* type declaration */
+| TYPE poly_id SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      assert (labels = []);
+      LDtype(id,tvars) }
+;
+/* axiom */
+| AXIOM poly_id COLON full_lexpr SEMICOLON
+    { let (id,labels,tvars) = $2 in
+      LDlemma (id, true, labels, tvars, $4) }
+;
+
+
+indcases:
+| /* epsilon */
+    { [] }
+| CASE poly_id COLON lexpr SEMICOLON indcases
+    { let (id,labels,tvars) = $2 in
+      (id,labels,tvars,$4)::$6 }
+;
+
 
 ne_tvar_list:
 | full_identifier { [$1] }
@@ -937,6 +1021,7 @@ wildcard:
 | LAMBDA { () }
 | TYPEOF { () }
 | BSTYPE { () }
+| SEPARATED { () }
 ;
 
 %%

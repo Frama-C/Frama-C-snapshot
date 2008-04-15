@@ -19,21 +19,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: boot.ml,v 1.19 2008/06/02 14:54:23 uid528 Exp $ *)
+(* $Id: boot.ml,v 1.33 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Frama-C Entry Point (last linked module).
-    @plugin developer guide *)
+    @plugin development guide *)
 
-(** Register options for debugging project *)
+(* ************************************************************************* *)
+(** Registering options for debugging project *)
+(* ************************************************************************* *)
 
 let dump_dependencies () =
-  let except =
-    Project.Selection.remove Cmdline.MainFunction.self
-      (Project.Selection.remove Cmdline.LibEntry.self
-	 (Cmdline.get_selection ()))
+  let _except =
+    Project.Selection.remove Cmdline.Machdep.self
+      (Project.Selection.remove Cmdline.MainFunction.self
+	 (Project.Selection.remove Cmdline.LibEntry.self
+	    (Cmdline.get_selection ())))
   in
-  Project.Computation.dump_dependencies ~except "computation_dependencies.dot";
-  Project.Datatype.dump_dependencies "datatype_dependencies.dot"
+  Project.Computation.dump_dependencies (*~except*) 
+    "computation_dependencies.dot"
 
 let project_debug =
     [ "-debug", 
@@ -44,19 +47,65 @@ let project_debug =
 
 let () = Options.add_cmdline ~name:"project" ~debug:project_debug []
 
-(** Boot Frama-C *)
+(* Journal options *)
+let () = 
+  Options.add_cmdline 
+    ~name:"journalization"
+    [ "-journal-disable",
+      Arg.Unit Cmdline.Journal.Disable.on,
+      ": do not output any journal";
+      "-journal-name",
+      Arg.String Cmdline.Journal.Name.set,
+      ": set the filename of the journal (do not write any extension)";
+    ]
 
-(* Additional internal state dependencies *)
+(* ************************************************************************* *)
+(** Adding some internal state dependencies *)
+(* ************************************************************************* *)
+
 let () =
   Project.Computation.add_dependency Alarms.self Db.Value.self;
   Binary_cache.MemoryFootprint.depend Cmdline.MemoryFootprint.self;
-  Buckx.MemoryFootprint.depend Cmdline.MemoryFootprint.self
+  Buckx.MemoryFootprint.depend Cmdline.MemoryFootprint.self;
+  List.iter 
+    Cil_state.depend 
+    [ Cmdline.SimplifyCfg.self;
+      Cmdline.KeepSwitch.self;
+      Cmdline.UnrollingLevel.self;
+      Cmdline.Constfold.self;
+      Cmdline.ReadAnnot.self;
+      Cmdline.PreprocessAnnot.self ]
+
+(* ************************************************************************* *)
+(** Booting Frama-C *)
+(* ************************************************************************* *)
+
+(* Customisation of non-projectified CIL parameters.
+   (projectified CIL parameters must be initialised with {!Cil.initCIL}). *)
+let boot_cil () =
+  Cabs2cil.forceRLArgEval := false;
+  Cil.miscState.Cil.lineDirectiveStyle <- None;
+  (*  Cil.lineDirectiveStyle := Some LinePreprocessorInput;*)
+  Cil.miscState.Cil.printCilAsIs <- Cmdline.Debug.get () > 0;
+  Mergecil.ignore_merge_conflicts := true;
+  Pretty.flushOften := true
 
 (* Main: let's go! *)
 let () =
+  File.cxx_suffixes := Db.Cxx.suffixes;
   Kind.version := Version.version;
+  boot_cil ();
   Sys.catch_break true;
+  !Dynamic.include_all_module ();
+  Journal.start ();
+  at_exit Journal.write;
   Options.parse_cmdline ();
+  if Cmdline.Journal.Disable.get () then begin
+    Journal.clear ~restart:false ();
+    Journal.stop ()
+  end;
+  if Cmdline.Journal.Name.is_set () then 
+    Journal.set_name (Cmdline.Journal.Name.get ());
   Options.initialize_toplevels ()
 
 (*

@@ -45,6 +45,7 @@ module Mark : sig
   val mk_adc : bool -> bool -> bool -> t
 
   val is_bottom : t -> bool
+  val is_top : t -> bool
   val is_included : t -> t -> bool
 
   (** Total order over the marks. Used only for sorting... 
@@ -86,6 +87,7 @@ end = struct
   let addr = T.Cav (D.make ~a:true ())
 
   let is_bottom m = (m = bottom)
+  let is_top m = (m = top)
 
   (** Total order over the marks. Used only for sorting... *)
   let compare m1 m2 = Pervasives.compare m1 m2
@@ -166,6 +168,7 @@ module MarkPair = struct
   let user_mark m = Mark.merge m.T.m1 m.T.m2
 
   let is_bottom m = (Mark.is_bottom (user_mark m))
+  let is_top m = (Mark.is_top m.T.m1) && (Mark.is_top m.T.m2)
 
   let is_ctrl m = (Mark.is_included Mark.ctrl (user_mark m))
   let is_addr m = (Mark.is_included Mark.addr (user_mark m))
@@ -356,7 +359,7 @@ module F_SigMarks (M : T_Mark) = struct
   *)
   let get_input_loc_under_mark cm loc =
     if debug then
-      Format.printf "get_input_loc_under_mark of %a@\n"
+      Format.printf "get_input_loc_under_mark of %a@."
         Locations.Zone.pretty loc;
     assert (not (Locations.Zone.equal Locations.Zone.bottom loc));
     let do_in (marked_inputs, marks) (in_loc, m) =
@@ -378,7 +381,7 @@ module F_SigMarks (M : T_Mark) = struct
       else M.bottom
     in
       if debug then
-        Format.printf "get_input_loc_under_mark : m = %a@\n"
+        Format.printf "get_input_loc_under_mark : m = %a@."
           M.pretty m;
       m
 
@@ -495,6 +498,16 @@ module F_SigMarks (M : T_Mark) = struct
               result (*missing_marks, more_inputs*)
         | None -> (* called function need no inputs ? *) ([], false)
 
+  let get_marked_out_zone call_marks =
+    let add (out0, out_zone) (out_key, m_out)  =
+      if MarkPair.is_bottom m_out then (out0, out_zone)
+      else match out_key with
+            | PdgIndex.Signature.OutRet -> true, out_zone
+            | PdgIndex.Signature.OutLoc z ->
+                out0, Locations.Zone.join out_zone z
+    in Signature.fold_all_outputs add  (false, Locations.Zone.bottom) call_marks
+
+
 end
 
 (** The mark associated with a call stmt is composed of 
@@ -516,6 +529,7 @@ let mk_user_mark ~data ~addr ~ctrl =
   else mk_user_spare
 
 let is_bottom_mark = MarkPair.is_bottom
+let is_top_mark = MarkPair.is_top
 let is_spare_mark = MarkPair.is_spare
 let is_ctrl_mark = MarkPair.is_ctrl
 let is_addr_mark = MarkPair.is_addr
@@ -552,6 +566,7 @@ let check_called_output_marks = SigMarks.check_called_output_marks
 *)
 let check_input_marks = SigMarks.check_input_marks
 let check_called_input_marks = SigMarks.check_called_input_marks
+let get_marked_out_zone = SigMarks.get_marked_out_zone
 let pretty_sig = SigMarks.pretty
 
 

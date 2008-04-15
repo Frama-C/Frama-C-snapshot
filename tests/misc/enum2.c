@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main sizeof_enum1
+  OPT: -memory-footprint 1 -val -deps -out -input  -main sizeof_enum1 -journal-disable
 */
 
 #define BIT_DE_SIGNE_1 (0x98765432)
@@ -24,4 +24,4 @@ int sizeof_enum1 (void) {
   int res = sizeof (E1);
   printf ("sizeof_enum1 = %d\n", res);
   return res; /* WARN : ppc->4 ; gcc->8 */
-} 
+}

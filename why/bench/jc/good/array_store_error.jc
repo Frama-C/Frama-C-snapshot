@@ -1,0 +1,26 @@
+
+
+type T = {
+     integer f;
+}
+
+tag U = T with {
+     real g;
+}
+
+
+type Tarray = {
+     T[..] Tmemory;
+}
+
+type Uarray = {
+     U[..] Umemory;
+}
+
+unit f() {
+ var Uarray[0..9] Up = new Uarray[10];
+ var Tarray[0..9] Tp = Up;
+}
+
+
+

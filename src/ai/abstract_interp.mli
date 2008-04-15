@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** @plugin developer guide *)
+(** @plugin development guide *)
 
 (** Raised by [cardinal_less_than] *)
 exception Not_less_than
@@ -27,8 +27,9 @@ exception Not_less_than
 exception Is_not_included
 
 (** Generic lattice.
-    @plugin developer guide *)
+    @plugin development guide *)
 module type Lattice = sig
+
   exception Error_Top
   exception Error_Bottom
   type t (** type of element of the lattice *)
@@ -63,7 +64,8 @@ module type Lattice = sig
 
   val tag : t -> int
 
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
+
 end
 
 module type Lattice_With_Diff = sig
@@ -110,7 +112,7 @@ module type Lattice_Base = sig
 end
 
 module type Lattice_Set = sig
-  module O: Set.S
+  module O: Ptset.S
   type tt = private Set of O.t | Top
   include Lattice with type t = tt and type widen_hint = O.t
   val hash : t -> int
@@ -130,7 +132,7 @@ module type Value = sig
   val pretty: Format.formatter -> t -> unit
   val compare : t -> t -> int
   val hash: t -> int
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
 end
 
 module type Arithmetic_Value = sig
@@ -280,7 +282,7 @@ module Int : sig
 
 end
 
-module Make_Lattice_Base (V : Value) : (Lattice_Base with type l = V.t)
+module Make_Lattice_Base (V : Value) : Lattice_Base with type l = V.t
 
 module Make_Lattice_Mod
   (V:Arithmetic_Value)
@@ -424,7 +426,16 @@ sig
   val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
 end
 
-module Make_Lattice_Set (V : Value) : (Lattice_Set with type O.elt=V.t)
+module Make_Lattice_Set (V : Value) : Lattice_Set with type O.elt=V.t
+
+module type Value_With_Id = sig
+  include Value
+  val id: t -> int
+  val name : string
+end
+
+module Make_Hashconsed_Lattice_Set (V : Value_With_Id) 
+  : Lattice_Set with type O.elt=V.t
 
 module LocationSetLattice : 
 sig include Lattice_Set with type O.elt = Cil_types.location
@@ -440,7 +451,8 @@ sig
   val null : t
   val hash : t -> int
   val id : t -> int
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  val name : string
+  module Datatype : Project.Datatype.S with type t = t
 end
 
 module VarinfoSetLattice : Lattice_Set with type O.elt = Cil_types.varinfo

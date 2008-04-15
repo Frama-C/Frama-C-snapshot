@@ -21,9 +21,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let info() = Cmdline.Debug.get() >= 1 || Cmdline.Pdg.Verbosity.get () >= 1
-let debug1() = Cmdline.Debug.get() > 1 || Cmdline.Pdg.Verbosity.get () > 1
-let debug2() = Cmdline.Debug.get() > 2 || Cmdline.Pdg.Verbosity.get () > 2
+let has_debug n = 
+  Cmdline.Debug.get () >= n ||
+  Cmdline.Pdg.Verbosity.get () > n
+
+let debug n format = Debug.debug_f (has_debug n) format
 
 let bug msg = raise (PdgTypes.Pdg_Internal_Error msg)
 
@@ -31,10 +33,11 @@ let cbug cond msg = if not cond then bug msg
 
 let pretty_node fmt n = PdgTypes.Node.pretty fmt n
 
-let pdg_name pdg =
-  let var = (PdgTypes.Pdg.get_var_fct pdg) in var.Cil_types.vname
+let get_pdg_kf pdg = PdgTypes.Pdg.get_kf pdg
 
-let get_pdg_kf pdg = Globals.Functions.get (PdgTypes.Pdg.get_var_fct pdg)
+let pdg_name pdg =
+  Kernel_function.get_name (get_pdg_kf pdg)
+
 
 (*
 Local Variables:

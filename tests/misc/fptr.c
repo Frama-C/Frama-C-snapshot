@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out 
-   OPT: -memory-footprint 1 -val -deps -out -main main_uninit
-   OPT: -memory-footprint 1 -val -deps -out -main main_alarm
+   OPT: -memory-footprint 1 -val -deps -out  -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -main main_uninit -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -main main_alarm -journal-disable
 */
 int R=77;
 
@@ -63,4 +63,3 @@ int main_alarm(int c)
   PTR_FCT p = c ? &h : &hh;
   return (*p)(1/c);
 }
-

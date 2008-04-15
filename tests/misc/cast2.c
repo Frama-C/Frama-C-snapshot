@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main g
+  OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
 */
 
 extern int any_int(void);

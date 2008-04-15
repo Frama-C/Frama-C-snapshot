@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -slevel 100 -memory-footprint 1 -cpp-command "gcc -C -E -DPTEST "
+   OPT: -val -slevel 100 -memory-footprint 1 -cpp-command "gcc -C -E -DPTEST " -journal-disable
 */
 
 #ifndef PTEST
@@ -27,13 +27,13 @@ int main(void)
 	  *(short*)p = c;
 	  p += sizeof(short);
 	}
-      else 
+      else
       	{
 	  *(int*)p = c;
 	  p += sizeof(int);
 	}
     }
-  
+
   for (p_int = (int*) s; p_int < (int*)(s+S); p_int++)
     {
       s_int = 11 * s_int + *p_int;
@@ -48,4 +48,3 @@ int main(void)
   */
   return 0;
 }
-  

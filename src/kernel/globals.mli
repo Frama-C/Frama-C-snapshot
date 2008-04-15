@@ -19,10 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: globals.mli,v 1.16 2008/07/11 12:44:15 uid568 Exp $ *)
+(* $Id: globals.mli,v 1.25 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Operations on globals.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 open Db_types
@@ -30,11 +30,14 @@ open Db_types
 (** Globals variables. *)
 module Vars: sig
 
+  (** {2 Getters} *)
+
+  val find: varinfo -> initinfo
+
   (** {2 Iterators} *)
 
   val iter: (varinfo -> initinfo -> unit) -> unit
   val fold: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
-  val find: varinfo -> initinfo
 
   (** {2 Setters} *)
 
@@ -49,11 +52,17 @@ end
 (* ************************************************************************* *)
 (** Functions. *)
 module Functions: sig
+  
+  (** Should not be used.
+      Used [Kernel_function.Datatype] instead. *)
+  module KF_Datatype: Project.Datatype.S with type t = kernel_function
 
   (** {2 Getters} *)
 
   val get: varinfo -> kernel_function
     (** @raise Not_found if the given varinfo has not a function type. *)
+  val get_params: kernel_function -> varinfo list
+  val get_vi: kernel_function -> varinfo
 
   val get_glob_init: ?main_name:string -> file -> kernel_function
     (** @return the internal function for global initializations. *)
@@ -61,7 +70,7 @@ module Functions: sig
   (** {2 Searching} *)
 
   val find_by_name : string -> kernel_function
-  (** @raise Not_found if there is no function of this name. *)
+    (** @raise Not_found if there is no function of this name. *)
 
   val find_def_by_name : string -> kernel_function
     (** @raise Not_found if there is no function definition of this name. *)
@@ -76,9 +85,13 @@ module Functions: sig
 
   (** {2 Setters} *)
 
-  val add: cil_function -> unit
+  val add: cil_function -> unit 
+    (**TODO: remove this function and replace all calls by: *)
+
   val replace_by_declaration: funspec -> varinfo -> location -> unit
+
   val replace_by_definition: funspec -> fundec -> location -> unit
+    (**TODO: do not take a funspec as argument *)
 
 end
 
@@ -90,7 +103,8 @@ module Annotations: sig
     (** The state kind corresponding to the table of global annotations. *)
 
   (** {2 Getters} *)
-    val get_all: unit -> (global_annotation * bool) list
+
+  val get_all: unit -> (global_annotation * bool) list
 
   (** {2 Iterators} *)
 
@@ -111,8 +125,8 @@ end
 (** Globals associated to filename. *)
 module FileIndex : sig
 
-  val find : filename:string -> global list
-    (** Global list for valviewer *)
+  val find : filename:string -> string * (global list)
+    (** Global list for valviewer. The file name to duisplay is returned. *)
 
   val get_globals : filename:string -> (varinfo * initinfo) list
     (** Global variables of the given module for the kernel user interface *)
@@ -123,7 +137,8 @@ module FileIndex : sig
   val kernel_function_of_local_var_or_param_varinfo :
     varinfo -> (kernel_function * bool)
     (** kernel_function where the local variable or formal parameter is
-	declared. The boolean result is true for a formal parameter. *)
+	declared. The boolean result is true for a formal parameter. 
+	@raise Not_found if the varinfo is a global one. *)
 
   val get_files: unit -> string list
     (** Get the files list containing globals. *)
@@ -148,7 +163,7 @@ val set_entry_point : string -> bool -> unit
       is [false] and [Cmdline.LibEntry] to [name] if [lib] is [true].
       Moreover, clear the results of all the analysis which depend on
       [Cmdline.MainFunction] or [Cmdline.LibEntry].
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val has_entry_point: unit -> bool
   (** @return true if the analysis has an entry-point, false otherwise. *)

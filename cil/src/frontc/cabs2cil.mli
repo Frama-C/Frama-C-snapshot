@@ -57,8 +57,16 @@ val allowDuplication: bool ref
 val typeForInsertedVar: (Cil_types.typ -> Cil_types.typ) ref
 
 (** Like [typeForInsertedVar], but for casts.
-  * Casts in the source code are exempt from this hook. *)
-val typeForInsertedCast: (Cil_types.typ -> Cil_types.typ) ref
+    [typeForInsertedCast expr original_type destination_type]
+    returns the type into which [expr], which has type [original_type] and
+    whose type must be converted into [destination_type], must be casted.
+
+    By default, returns [destination_type].
+
+    This applies only to implicit casts. Casts already present
+    in the source code are exempt from this hook. *)
+val typeForInsertedCast:
+  (Cil_types.exp -> Cil_types.typ -> Cil_types.typ -> Cil_types.typ) ref
 
 (** [fresh_global prefix] creates a variable name not clashing with any other
     globals and starting with [prefix] *)
@@ -74,7 +82,9 @@ val conditionalConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 val arithmeticConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 val integralPromotion : Cil_types.typ -> Cil_types.typ
 
-val blockInitializer : Cil_types.varinfo -> Cabs.init_expression ->
+val blockInitializer :
+  Cilutil.LvalSet.t ->
+  Cil_types.varinfo -> Cabs.init_expression ->
   Cil_types.block * Cil_types.init * Cil_types.typ
 
 (** Returns a block of statements equivalent to the initialization [init]
@@ -93,8 +103,8 @@ val setDoTransformWhile : unit -> unit
     in forward ingoing gotos (from the if-branch to the else-branch). *)
 val setDoAlternateConditional : unit -> unit
 
-(** If called, sets a flag so that translation of assignments as 
-    sub-expressions returns the right-hand-side rather than 
+(** If called, sets a flag so that translation of assignments as
+    sub-expressions returns the right-hand-side rather than
     the left-hand-side. *)
 val setDoAlternateAssign : unit -> unit
 

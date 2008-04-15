@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry -main f -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry -main f1 -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry -main f2 -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry -main f3 -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry -main f -slicing-level 3 -security-lattice strong -slice-print
+   OPT: -security-slicing -lib-entry -main f -slicing-level 3 -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main f1 -slicing-level 3 -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main f2 -slicing-level 3 -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main f3 -slicing-level 3 -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main f -slicing-level 3 -security-lattice strong -slice-print -journal-disable
 */
 
 void do_something(int a, int b);

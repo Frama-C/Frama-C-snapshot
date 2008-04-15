@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -deps
+   OPT: -val -deps -journal-disable
 */
 
 int e;

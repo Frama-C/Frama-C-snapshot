@@ -1,9 +1,9 @@
 /* run.config
    GCC:
-   OPT: -slice-print -calldeps -slice-return send1
-   OPT: -slice-print -calldeps -slice-return send2
-   OPT: -slice-print -calldeps -slice-return send3
-   OPT: -slice-print -calldeps -slice-return send4
+   OPT: -slice-print -calldeps -slice-return send1 -journal-disable
+   OPT: -slice-print -calldeps -slice-return send2 -journal-disable
+   OPT: -slice-print -calldeps -slice-return send3 -journal-disable
+   OPT: -slice-print -calldeps -slice-return send4 -journal-disable
 
 
 

@@ -27,7 +27,6 @@ exception Slicing_Internal_Error of string
 exception ChangeCallErr of string
 exception PtrCallExpr
 exception CantRemoveCalledFf
-exception ExternalFunction of string
 exception WrongSlicingLevel
 
 (** raised when someone tries to build more than one slice for the entry point.
@@ -92,7 +91,7 @@ type t_call_id =  Cil_types.stmt
 and t_fct_info = { 
   fi_kf : Db_types.kernel_function;
   fi_def : Cil_types.fundec option;
-  mutable fi_top : bool;
+  mutable fi_top : t_pdg_mark option;
           (** indicates if the function is maked top (=> src visible) *)
   mutable fi_level_option : t_level_option;
           (** level of specialisation for this function *)
@@ -102,7 +101,8 @@ and t_fct_info = {
           (** the list of the slices already computed for this function. *)
   mutable fi_next_ff_num : int;
           (** the number to assign to the next slice. *)
-  mutable f_called_by : t_called_by; (** calls in slices that call source fct *)
+  mutable f_called_by : t_called_by; 
+          (** calls in slices that call source fct *)
 }
 and 
   (** to represent where a function is called. *)
@@ -177,7 +177,8 @@ type t_node_or_dpds = CwNode | CwAddrDpds | CwDataDpds | CwCtrlDpds
 type t_fct_user_crit = 
   (* | CuNodes of (t_pdg_node list * (t_node_or_dpds * t_pdg_mark) list) list *)
   | CuSelect of t_pdg_mark PdgMarks.t_select
-  | CuTop
+  | CuTop of t_pdg_mark (** the function has probably no PDG,
+                            but we nonetheless give a mark to propagate *)
 
 (** kinds of actions that can be apply to a function *)
 type t_fct_crit = 

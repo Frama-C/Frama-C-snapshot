@@ -1,15 +1,15 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input 
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main3
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main4 -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main5
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main6 -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main7  -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main8  -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main9  -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main10  -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main11  -absolute-valid-range 0-0xFF
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main12  -absolute-valid-range 0-0xFF
+   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main3 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main4 -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main5 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main6 -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main7  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main8  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main9  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main10  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main11  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input  -main main12  -absolute-valid-range 0-0xFF -journal-disable
 
 */
 void f(char*x,int*y) {
@@ -98,7 +98,7 @@ void main3()
       z = u;
     }
 
- 
+
   PTR1 = & ( p2 [(c+1)?0:((c+2)?1:2)] );
   PTR2 = PTR1+1;
   *PTR1 = (c+10) ? 96 : (c+11) ? 97 : 98;
@@ -220,11 +220,11 @@ void main8(int c)
 
   tx = c?2:3;
   ty = tx+1;
-  tz = ty+2;       
+  tz = ty+2;
 
-  tz1 = tz==ty+2;  
-  tz2 = tz==tx+3;  
-  tz3 = tx==ty-1;  
+  tz1 = tz==ty+2;
+  tz2 = tz==tx+3;
+  tz3 = tx==ty-1;
 
   A = c ? 3 : 4;
   B = A + 1;
@@ -261,7 +261,7 @@ void main9(int c)
 }
 
 void main10(int c)
-{ 
+{
   PTR1 = &q[1];
   *PTR1 = 33;
   while (c)
@@ -274,7 +274,7 @@ void main10(int c)
 }
 
 void main11(int c)
-{ 
+{
   PTR1 = &q[1];
   *PTR1 = 33;
   while (c)
@@ -302,4 +302,3 @@ void main12 (int c) {
     U.i = t + 2;
   else { L: goto L; }
 }
- 

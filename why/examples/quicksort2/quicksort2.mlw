@@ -26,7 +26,7 @@ let rec quick_rec (t:int array) (l,r:int) : unit { variant 1+r-l } =
       while !i <= r do
 	{ invariant (forall j:int. l < j <= m -> t[j] < v)
                 and (forall j:int. m < j <  i -> t[j] >= v)
-                and sub_permut(l, r, t, t@L)
+                and permut(t, t@L, l, r)
                 and t[l] = v and l <= m < i and i <= r + 1
           variant 1 + r - i }
         if t[!i] < v then begin m := !m + 1; (swap t !i !m) end;
@@ -36,14 +36,14 @@ let rec quick_rec (t:int array) (l,r:int) : unit { variant 1+r-l } =
       (quick_rec t l (!m - 1));
       (quick_rec t (!m + 1) r)
     end
-  { sorted_array(t, l, r) and sub_permut(l, r, t, t@) }
+  { sorted_array(t, l, r) and permut(t, t@, l, r) }
 
 (* At last, the main program, which is just a call to [quick_rec] *)
 
 let quicksort (t:int array) =
   {} 
   (quick_rec t 0 ((array_length_ t)-1))
-  { sorted_array(t, 0, array_length(t)-1) and permut(t, t@) }
+  { sorted_array(t, 0, array_length(t)-1) and permutation(t, t@) }
 
 (*
 Local Variables: 

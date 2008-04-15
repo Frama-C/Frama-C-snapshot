@@ -19,20 +19,53 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** The tree containing the list of modules and functions together with dynamic columns *)
+
 class type t =  object 
   method model : GTree.model_filter
+
   method set_file_attribute: 
     ?strikethrough:bool -> ?visible:bool -> ?text:string -> string -> unit
+    (** Manually set some attributes of the given filename. *)
+
   method set_global_attribute: 
     ?strikethrough:bool -> ?visible:bool -> ?text:string -> Cil_types.varinfo -> unit
+    (** Manually set some attributes of the given variable. *)
+
   method add_select_function : 
     (was_activated:bool -> activating:bool -> Cil_types.global list -> unit) -> unit
+    (** Register a callback that is called whenever an element of the file tree 
+        is selected or unselected. *)
+    
+  method append_pixbuf_column: 
+    title:string -> (Cil_types.global list -> GTree.cell_properties_pixbuf list) -> unit
+    (** [append_pixbuf_column title f] appends a new column with name [title] to the 
+        file tree and register [f] as a callback computing the list of properties 
+        for this column. Do not forget that properties need to be set and unset.
+        Selects the given variable in the tree view and run the associated callbacks. *)
+
   method select_global : Cil_types.varinfo -> unit
+    (** Selects the given variable in the tree view and run the associated callbacks. *)
+
   method view : GTree.view
+    (** The tree view associated in which the file tree is packed. *)
+
   method reset : unit -> t
+    (** Resynchronize the tree view with the current project state. 
+        This is called by the generic reset extension of {!Design} and shall
+        not be called by other plugins.
+    *)
+
+  (**/**)
+  method reset_dynamic_columns : 
+    (GTree.view -> Cil_types.global list GTree.column -> unit) list -> unit
+    (** Internal use only for legacy filetree mode *)
+  (**/**)
+
 end
 
 val make : GTree.view -> t
+(** Create a file tree packed in the given tree_view. *)
 
 (*
 Local Variables:

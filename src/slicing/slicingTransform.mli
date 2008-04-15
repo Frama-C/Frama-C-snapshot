@@ -25,11 +25,19 @@
 
 (** Apply the actions still waiting in the project 
 * and transform the program (CIL AST) using slicing results 
-* Can optionally specify how to name the sliced functions.
-* *)
-val extract : string -> ?f_slice_names:(Db_types.kernel_function -> bool  -> int -> string)
-              -> Db.Slicing.Project.t -> Project.t
+* Can optionally specify how to name the sliced functions using [f_slice_names].
+* (see db.mli)
+*)
+val extract : string -> 
+  ?f_slice_names:(Db_types.kernel_function -> bool  -> int -> string)
+  -> Db.Slicing.Project.t -> Project.t
   
 (** Return [true] if the source function is called 
 * (even indirectly via transitivity) from a [Slice.t]. *)
-val is_src_fun_called : Db.Slicing.Project.t -> Db_types.kernel_function -> bool
+val is_src_fun_called : 
+    Db.Slicing.Project.t -> Db_types.kernel_function -> bool
+  
+(** Return [true] if the source function is visible 
+* (even indirectly via transitivity) from a [Slice.t]. *)
+val is_src_fun_visible : 
+    Db.Slicing.Project.t -> Db_types.kernel_function -> bool

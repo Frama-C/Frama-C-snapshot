@@ -3,7 +3,7 @@
 */
 #include "multiple_include.h"
 
-/*@ logic integer li = 42; */
+/* @ logic integer li = 42; */
 
 /*@ ensures p(\result); */
 int foo() { return i; }

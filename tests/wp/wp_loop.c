@@ -1,5 +1,15 @@
 int X,c;
-void main () {
+
+void infinite (void) {
+  int s = 0;
+  if (c) {
+    while (1)
+      s++;
+  }
+  //@ assert c == 0;
+}
+
+void loops () {
   if (c) X=0;
     X=3;
 
@@ -16,4 +26,9 @@ void main () {
   X=1;
   //@ assert X == 1;
 
+}
+
+void main (void) {
+  loops ();
+  infinite ();
 }

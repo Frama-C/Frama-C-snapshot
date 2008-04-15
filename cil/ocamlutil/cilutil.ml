@@ -38,6 +38,8 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
+open Cil_types
+
 (** Utility functions for Coolaid *)
 module E = Errormsg
 module H = Hashtbl
@@ -182,6 +184,11 @@ let rec list_iter3 f xs ys zs =
   | _ -> invalid_arg "Util.list_iter3"
   end
 ;;
+
+let rec list_last = function
+  | [] -> invalid_arg "Cilutil.list_last"
+  | [ a ] -> a
+  | _ :: tl -> list_last tl
 
 let rec get_some_option_list (xs : 'a option list) : 'a list =
   begin match xs with
@@ -423,6 +430,10 @@ let valOf : 'a option -> 'a = function
 let opt_map f = function None -> None | Some x -> Some (f x)
 
 let opt_bind f = function None -> None | Some x -> f x
+
+let opt_app f default = function None -> default | Some x -> f x
+
+let opt_iter f = function None -> () | Some x -> f x
 
 (**
  * An accumulating for loop.
@@ -861,6 +872,47 @@ end
 let equals x1 x2 : bool =
   (compare x1 x2) = 0
 
+let locUnknown = Lexing.dummy_pos,Lexing.dummy_pos
+
+let get_instrLoc = function
+  | Set(_, _, loc)
+  | Call(_, _, _, loc)
+  | Asm(_, _, _, _, _, loc)
+  | Skip loc -> loc
+  | Code_annot (_,loc) -> loc
+
+let get_globalLoc = function
+  | GFun(_,l) -> (l)
+  | GType(_,l) -> (l)
+  | GEnumTag(_,l) -> (l)
+  | GEnumTagDecl(_,l) -> (l)
+  | GCompTag(_,l) -> (l)
+  | GCompTagDecl(_,l) -> (l)
+  | GVarDecl(_,_,l) -> (l)
+  | GVar(_,_,l) -> (l)
+  | GAsm(_,l) -> (l)
+  | GPragma(_,l) -> (l)
+  | GAnnot (_,l) -> l
+  | GText(_) -> locUnknown
+
+let rec get_stmtLoc = function
+  | Instr hd -> get_instrLoc(hd)
+  | Return(_, loc) -> loc
+  | Goto(_, loc) -> loc
+  | Break(loc) -> loc
+  | Continue(loc) -> loc
+  | If(_, _, _, loc) -> loc
+  | Switch (_, _, _, loc) -> loc
+  | Loop (_, _, loc, _, _) -> loc
+  | Block b ->
+      (match b.bstmts with
+      | [] -> locUnknown
+      | stmt :: _ -> get_stmtLoc stmt.skind)
+  | UnspecifiedSequence ((s,_,_)::_) -> get_stmtLoc s.skind
+  | UnspecifiedSequence [] -> locUnknown
+  | TryFinally (_, _, l) -> l
+  | TryExcept (_, _, _, l) -> l
+
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
@@ -1014,12 +1066,51 @@ module KinstrComparable = struct
   | Kglobal,Kglobal -> 0
   | Kglobal,_ -> 1
   | _,Kglobal -> -1
-  | Kstmt a, Kstmt b -> StmtComparable.compare a b 
+  | Kstmt a, Kstmt b -> StmtComparable.compare a b
 
   let hash = function Kglobal -> 0 |  Kstmt s -> StmtComparable.hash s
   let equal a b = compare a b = 0
 
 end
+
+
+module Instr = struct
+
+  type t = kinstr
+
+  let pretty fmt = function
+    | Kstmt s -> Format.fprintf fmt "Kstmt %d" s.sid
+    | Kglobal -> Format.fprintf fmt "Kglobal"
+
+  let compare i1 i2 =
+    match i1, i2 with
+    | Kglobal, Kglobal -> 0
+    | Kglobal, _ -> 1
+    | _, Kglobal -> -1
+    | Kstmt s1, Kstmt s2 -> Pervasives.compare s1.sid s2.sid
+
+  let equal t1 t2 = (compare t1 t2) = 0
+
+  let hash i =
+    match i with
+      Kglobal -> 1 lsl 29
+    | Kstmt s -> s.sid
+
+  let instr_loc = function
+    | Skip l -> l
+    | Set (_,_,l) -> l
+    | Call (_,_,_,l) -> l
+    | Asm (_,_,_,_,_,l) -> l
+    | Code_annot (_,l) -> l
+
+  let loc = function
+    | Kstmt st -> get_stmtLoc st.skind
+    | Kglobal -> assert false
+
+end
+
+module InstrMapl = Mapl_Make(Instr)
+module InstrHashtbl = Hashtbl.Make(Instr)
 
 (** [Map] indexed by [Cil_types.stmt] with a customizable pretty printer *)
 module StmtMap = struct
@@ -1050,6 +1141,7 @@ end
 
 module VarinfoHashtbl = Hashtbl.Make(VarinfoComparable)
 module VarinfoMap = Map.Make(VarinfoComparable)
+module VarinfoSet = Set.Make(VarinfoComparable)
 
 module LogicVarComparable = struct
   type t = logic_var
@@ -1059,6 +1151,8 @@ module LogicVarComparable = struct
 end
 
 module LogicVarHashtbl = Hashtbl.Make(LogicVarComparable)
+module LogicVarSet = Set.Make(LogicVarComparable)
+module LogicVarMap = Map.Make(LogicVarComparable)
 
 module FieldinfoComparable = struct
   type t = fieldinfo
@@ -1085,6 +1179,118 @@ end
 
 module TypeHashtbl = Hashtbl.Make(TypeComparable)
 module TypeSet = Set.Make(TypeComparable)
+
+let compare_chain cmp x1 x2 next arg =
+  let res = cmp x1 x2 in if res = 0 then next arg else res
+
+let compare_fieldinfo = FieldinfoComparable.compare
+
+let compare_typ = TypeComparable.compare
+
+let rec compare_constant c1 c2 =
+  match (c1,c2) with
+      CInt64(v1,k1,_), CInt64(v2,k2,_) ->
+        compare_chain Pervasives.compare v1 v2
+          (Pervasives.compare k1) k2
+    | CStr s1, CStr s2 -> Pervasives.compare s1 s2
+    | CWStr s1, CWStr s2 -> Pervasives.compare s1 s2
+    | CChr c1, CChr c2 -> Pervasives.compare c1 c2
+    | CReal (f1,k1,_), CReal(f2,k2,_) ->
+        compare_chain Pervasives.compare f1 f2
+          (Pervasives.compare k1) k2
+    | CEnum e1, CEnum e2 -> Pervasives.compare e1.einame e2.einame
+    | (CInt64 _, (CStr _ | CWStr _ | CChr _ | CReal _ | CEnum _)) -> 1
+    | (CStr _, (CWStr _ | CChr _ | CReal _ | CEnum _)) -> 1
+    | (CWStr _, (CChr _ | CReal _ | CEnum _)) -> 1
+    | (CChr _, (CReal _ | CEnum _)) -> 1
+    | (CReal _, CEnum _) -> 1
+    | (CStr _ | CWStr _ | CChr _ | CReal _ | CEnum _),
+       (CInt64 _ | CStr _ | CWStr _ | CChr _ | CReal _) -> -1
+
+and compare_exp e1 e2 =
+  match e1,e2 with
+      Const c1, Const c2 -> compare_constant c1 c2
+    | Lval l1, Lval l2 -> compare_lval l1 l2
+    | SizeOf t1, SizeOf t2 -> compare_typ t1 t2
+    | SizeOfE e1, SizeOfE e2 -> compare_exp e1 e2
+    | SizeOfStr s1, SizeOfStr s2 -> String.compare s1 s2
+    | AlignOf t1, AlignOf t2 -> compare_typ t1 t2
+    | AlignOfE e1, AlignOfE e2 -> compare_exp e1 e2
+    | UnOp(u1,e1,t1), UnOp(u2,e2,t2) ->
+        compare_chain Pervasives.compare u1 u2
+          (compare_chain compare_exp e1 e2 (compare_typ t1)) t2
+    | BinOp(b1,fop1,sop1,t1), BinOp(b2,fop2,sop2,t2) ->
+        compare_chain Pervasives.compare b1 b2
+          (compare_chain compare_exp fop1 fop2
+             (compare_chain compare_exp sop1 sop2
+                (compare_typ t1))) t2
+    | CastE(t1,e1), CastE(t2,e2) ->
+        compare_chain compare_typ t1 t2 (compare_exp e1) e2
+    | AddrOf l1, AddrOf l2 -> compare_lval l1 l2
+    | StartOf l1,StartOf l2 -> compare_lval l1 l2
+    | Info(e1,_), Info(e2,_) ->
+        (* context of translation from logic is irrelevant*)
+        compare_exp e1 e2
+    | (Const _,
+       (Lval _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
+       | AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _
+       | Info _)) -> 1
+    | (Lval _,
+       (SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _
+       | UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
+    | (SizeOf _,
+       (SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ | UnOp _
+       | BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
+    | (SizeOfE _,
+       (SizeOfStr _ | AlignOf _ | AlignOfE _ | UnOp _ | BinOp _ | CastE _
+       | AddrOf _ | StartOf _ | Info _)) -> 1
+    | (SizeOfStr _,
+       (AlignOf _ | AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _
+       | StartOf _ | Info _)) -> 1
+    | (AlignOf _,
+       (AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _
+       | StartOf _ | Info _)) -> 1
+    | (AlignOfE _,
+       (UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
+    | (UnOp _, (BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
+    | (BinOp _, (CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
+    | (CastE _, (AddrOf _ | StartOf _ | Info _)) -> 1
+    | (AddrOf _, (StartOf _ | Info _)) -> 1
+    | (StartOf _, Info _) -> 1
+    | ((Lval _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
+       | AlignOfE _ | UnOp _ | BinOp _ | CastE _
+       | AddrOf _ | StartOf _ | Info _),
+       (Const _ | Lval _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
+       | AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _))
+      -> -1
+
+and compare_lval (h1,o1) (h2,o2) =
+  compare_chain compare_lhost h1 h2 (compare_offset o1) o2
+
+and compare_lhost h1 h2 =
+  match h1,h2 with
+      Var v1, Var v2 -> Pervasives.compare v1.vid v2.vid
+    | Mem e1, Mem e2 -> compare_exp e1 e2
+    | Var _, Mem _ -> 1
+    | Mem _, Var _ -> -1
+
+and compare_offset o1 o2 =
+  match o1,o2 with
+      NoOffset, NoOffset -> 0
+    | Field(f1,o1), Field(f2,o2) ->
+        compare_chain compare_fieldinfo f1 f2 (compare_offset o1) o2
+    | Index(e1,o1), Index(e2,o2) ->
+        compare_chain compare_exp e1 e2 (compare_offset o1) o2
+    | (NoOffset, (Field _ | Index _)) -> 1
+    | (Field _, Index _) -> 1
+    | ((Field _ | Index _), (NoOffset | Field _ )) -> -1
+
+module LvalComparable = struct
+  type t = Cil_types.lval
+  let compare = compare_lval
+end
+
+module LvalSet = Set.Make(LvalComparable)
 
 let flush_all () =
   Format.printf "@?";

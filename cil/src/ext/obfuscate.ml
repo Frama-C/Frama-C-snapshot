@@ -45,7 +45,7 @@ class renamer prefix dictionary = object
   val prefix = prefix
   val mutable index = 0
 
-  method fresh (name:string) = 
+  method fresh (name:string) =
     index <- index + 1;
     let fresh = prefix ^ string_of_int index in
     Hashtbl.add dictionary fresh name;
@@ -61,39 +61,38 @@ class obfuscateVisitor dictionary = object
   val local = new renamer "V" dictionary
   val functions = new renamer "F" dictionary
 
-  method vglob global = 
+  method vglob global =
     begin match global with
-    | GCompTag (ci,_) | GCompTagDecl (ci,_)-> 
-        ci.cname <- typ#fresh ci.cname;
-        List.iter (fun fi -> fi.fname <- field#fresh fi.fname) ci.cfields
-     | GEnumTag (ei,_) | GEnumTagDecl (ei,_)-> 
-        ei.ename <- typ#fresh ei.ename;
-        ei.eitems <- 
-          List.map (fun (n,e,l) -> (enum#fresh n,e,l)) ei.eitems
-    | GType (ty,_) -> 
+    | GType (ty,_) ->
         ty.tname <- typ#fresh ty.tname;
 
-    | GVarDecl (_spec, ({vtype = TFun (t,Some l, b,att)} as vi),_) -> 
+    | GVarDecl (_spec, ({vtype = TFun (t,Some l, b,att)} as vi),_) ->
         let fresh_l = List.map (fun (n,t,a) -> (var#fresh n,t,a)) l in
         vi.vtype <- TFun (t,Some fresh_l, b,att)
     | _ -> ()
     end;
     DoChildren
 
-  method vvdec vi = 
-    if isFunctionType vi.vtype then 
+  method vcompinfo ci =  ci.cname <- typ#fresh ci.cname; DoChildren
+
+  method vfieldinfo fi = fi.fname <- field#fresh fi.fname; DoChildren
+
+  method venuminfo ei = ei.ename <- typ#fresh ei.ename; DoChildren
+
+  method venumitem ei = ei.einame <- enum#fresh ei.einame; DoChildren
+
+  method vvdec vi =
+    if isFunctionType vi.vtype then
       begin if vi.vname <> "main" then vi.vname <- functions#fresh vi.vname end
     else
-      vi.vname <- 
+      vi.vname <-
         if vi.vglob then var#fresh vi.vname
         else local#fresh vi.vname;
     DoChildren
 end
 
-let obfuscate file = 
+let obfuscate file =
   let dictionary = Hashtbl.create 7 in
   let v = new obfuscateVisitor dictionary in
   visitCilFile (v:>cilVisitor) file;
   dictionary
-  
-    

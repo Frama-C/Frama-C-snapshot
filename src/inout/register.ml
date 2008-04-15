@@ -19,14 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.5 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: register.ml,v 1.6 2008/09/04 11:10:50 uid527 Exp $ *)
 
 let () =
   Options.add_plugin 
     ~name:"inout (experimental)" 
     ~descr:"analysis of inputs and outputs of functions"
-    [ Context.option; Inputs.option; Outputs.option; Derefs.option;
-      Access_path.option ]
+    ( [ Context.option;  Outputs.option; Derefs.option;
+      Access_path.option ] @ Inputs.options )
 
 (*
 Local Variables:

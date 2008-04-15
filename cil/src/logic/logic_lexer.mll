@@ -77,8 +77,10 @@
         "assigns", ASSIGNS, false;
         "assumes", ASSUMES, false;
         "axiom", AXIOM, false;
+        "axiomatic", AXIOMATIC, false;
         "behavior", BEHAVIOR, false;
         "behaviors", BEHAVIORS, false;
+	"case", CASE, true;
         "char", CHAR, true;
         "complete", COMPLETE, false;
         "decreases", DECREASES, false;
@@ -90,6 +92,7 @@
         "float", FLOAT, true;
         "for", FOR, true;
         "if", IF, true;
+	"inductive", INDUCTIVE, false;
         "int", INT, true;
         "integer", INTEGER, true;
         "invariant", INVARIANT, false;
@@ -150,6 +153,7 @@
         "\\old", OLD;
         "\\product", IDENTIFIER "\\product";
         "\\result", RESULT;
+        "\\separated", SEPARATED;
         "\\sum", IDENTIFIER "\\sum";
         "\\true", TRUE;
         "\\type", BSTYPE;
@@ -245,7 +249,7 @@ rule token = parse
         let b = Buffer.create 5 in
         Buffer.add_string b prelude;
         let lbf = Lexing.from_string content in
-        chr b lbf
+        CONSTANT (IntConstant (chr b lbf ^ "'"))
       }
   | rD+ rE rFS?             { CONSTANT (FloatConstant (lexeme lexbuf)) }
   | rD* "." rD+ (rE)? rFS?  { CONSTANT (FloatConstant (lexeme lexbuf)) }
@@ -255,8 +259,8 @@ rule token = parse
   | (rD+ as n) ".."         { lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos - 2;
                               CONSTANT (IntConstant n) }
 
-  | 'L'? '"' [^ '"''\n']* '"'   { STRING_LITERAL (lexeme lexbuf) }
-
+  | 'L'? '"' as prelude (([^'"''\n']|"\\\"")+ as content) '"'
+      { STRING_LITERAL (prelude.[0] = 'L',content) }
   | '#'                     { hash lexbuf }
   | "==>"                   { IMPLIES }
   | "<==>"                  { IFF }
@@ -350,8 +354,7 @@ and chr buffer = parse
              | '\\' -> '\\'
              | _ -> assert false
           ); chr buffer lexbuf}
-  | eof { Buffer.add_char buffer '\'';
-          CONSTANT (IntConstant (Buffer.contents buffer)) }
+  | eof { Buffer.contents buffer }
   | _  { Buffer.add_string buffer (lexeme lexbuf); chr buffer lexbuf }
 
 and hash = parse
@@ -429,7 +432,9 @@ and endline = parse
       | Error ((b,e), m) ->
           Cil.error_loc (
 	    lb.lex_curr_p.Lexing.pos_fname,
-	    lb.lex_curr_p.Lexing.pos_lnum,b,e)
+	    lb.lex_curr_p.Lexing.pos_lnum,
+            b - lb.lex_curr_p.Lexing.pos_bol,
+            e - lb.lex_curr_p.Lexing.pos_bol)
             "%s@."
             m;
           Logic_const.exit_kw_c_mode ();

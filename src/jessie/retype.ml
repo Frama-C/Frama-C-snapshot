@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: retype.ml,v 1.3 2008/07/01 17:02:50 uid570 Exp $ *)
+(* $Id: retype.ml,v 1.7 2008/10/20 09:41:35 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -27,6 +27,8 @@ open Cil
 open Cilutil
 open Ast_info
 open Extlib
+
+open Visitor
 
 (* Utility functions *)
 open Common
@@ -45,7 +47,7 @@ object
 
   method vexpr = function
     | CastE(ty,e) ->
-	if isPointerType ty then 
+	if isPointerType ty then
 	  match stripCastsAndInfo e with
 	    | Lval(_host,off) ->
 		begin match lastOffset off with
@@ -53,7 +55,7 @@ object
 		      if isIntegralType fi.ftype
 			&& bits_sizeof ty = bits_sizeof fi.ftype then
 			  FieldinfoHashtbl.replace
-			    cast_field_to_type fi fi.ftype 
+			    cast_field_to_type fi fi.ftype
 		      else ()
 		  | _ -> ()
 		end
@@ -61,7 +63,7 @@ object
 	else ();
 	DoChildren
     | _ -> DoChildren
-    
+
 end
 
 class retypeIntField
@@ -71,7 +73,7 @@ class retypeIntField
     | Lval(_host,off) ->
 	begin match lastOffset off with
 	  | Field(fi,_) ->
-	      begin try 
+	      begin try
 		CastE(FieldinfoHashtbl.find cast_field_to_type fi,e)
 	      with Not_found -> e end
 	  | _ -> e
@@ -83,7 +85,7 @@ object
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit ()) as super
 
-  method vglob_aux = function 
+  method vglob_aux = function
     | GCompTag (compinfo,_) ->
 	let fields = compinfo.cfields in
 	let field fi =
@@ -105,28 +107,28 @@ end
 let retype_int_field file =
   let cast_field_to_type = FieldinfoHashtbl.create 17 in
   let visitor = new collectIntField cast_field_to_type in
-  visitCilFile (visitor :> cilVisitor) file;
+  visitFramacFile visitor file;
   let visitor = new retypeIntField cast_field_to_type in
-  visitCilFile (visitor :> cilVisitor) file
+  visit_and_store_result_type visitFramacFile visitor file
 
 
 (*****************************************************************************)
 (* Organize structure types in hierarchy.                                    *)
 (*****************************************************************************)
 
-(* By default, elements should become representant only if they are 
+(* By default, elements should become representant only if they are
  * "preferred" according to function [prefer]. Otherwise, decided by ranking.
  *)
 module UnionFind
   (Elem :
     sig type t
 	val equal : t -> t -> bool
-	val prefer : t -> t -> int 
+	val prefer : t -> t -> int
     end)
   (ElemSet : Set.S with type elt = Elem.t)
   (ElemTable : Hashtbl.S with type key = Elem.t) =
 struct
-  
+
   let table = ElemTable.create 73
   let ranks = ElemTable.create 73
 
@@ -143,7 +145,7 @@ struct
   let unify e1 e2 =
     let r1 = repr e1 and r2 = repr e2 in
     if Elem.equal r1 r2 then ()
-    else 
+    else
       (* Start with preference as defined by function [prefer]. *)
       let pref = Elem.prefer r1 r2 in
       let k1 = rank r1 and k2 = rank r2 in
@@ -163,7 +165,7 @@ struct
 	  ElemTable.replace table r1 r2
 	else if k2 < k1 then
 	  ElemTable.replace table r2 r1
-	else 
+	else
 	  begin
 	    ElemTable.replace table r1 r2;
 	    ElemTable.replace ranks r2 (k2 + 1)
@@ -198,7 +200,7 @@ module FieldElem = struct include FieldinfoComparable let prefer _ _ = 1 end
 module FieldUnion = UnionFind(FieldElem)(FieldinfoSet)(FieldinfoHashtbl)
 
 let add_field_representant fi1 fi2 =
-  FieldUnion.unify fi1 fi2 
+  FieldUnion.unify fi1 fi2
 
 module TypeElem = struct include TypeComparable let prefer _ _ = 0 end
 module TypeUnion = UnionFind(TypeElem)(TypeSet)(TypeHashtbl)
@@ -227,7 +229,7 @@ let rec subtype ty parentty =
 (*     | NodeVar v1,NodeVar v2 -> VarinfoComparable.equal v1 v2 *)
 (*     | NodeField f1,NodeField f2 -> FieldinfoComparable.equal f1 f2 *)
 (*     | NodeType ty1,NodeType ty2 -> TypeComparable.equal ty1 ty2 *)
-	  
+
 (*   let compare n1 n2 = match n1,n2 with *)
 (*     | NodeVar v1,NodeVar v2 -> VarinfoComparable.compare v1 v2 *)
 (*     | NodeVar _,_ -> -1 *)
@@ -248,7 +250,7 @@ let rec subtype ty parentty =
 (* module NodeUnion = UnionFind(Node)(NodeHashtbl)(NodeSet) *)
 
 let sub_list l n =
-  let rec aux acc n l = 
+  let rec aux acc n l =
     if n = 0 then acc else
       match l with [] -> assert false | x::r -> aux (x::acc) (n-1) r
   in
@@ -259,13 +261,13 @@ class createStructHierarchy =
     (* Extract info from types *)
     let compinfo1 = match unrollType (pointed_type ty1) with
       | TComp(compinfo,_attr) -> compinfo
-      | _ -> assert false 
+      | _ -> assert false
     in
     let sty1 = TComp(compinfo1,[]) in
     let fields1 = compinfo1.cfields in
     let compinfo2 = match unrollType (pointed_type ty2) with
       | TComp(compinfo,_attr) -> compinfo
-      | _ -> assert false 
+      | _ -> assert false
     in
     let fields2 = compinfo2.cfields in
     let sty2 = TComp(compinfo2,[]) in
@@ -281,7 +283,7 @@ class createStructHierarchy =
       (sub_list fields1 minlen) (sub_list fields2 minlen)
     in
     let prefix = List.rev prefix in
-    if complete then 
+    if complete then
       if List.length prefix = List.length fields1 then
 	(* [ty2] subtype of [ty1] *)
 	add_inheritance_relation sty2 sty1
@@ -291,8 +293,8 @@ class createStructHierarchy =
     else
       begin
 	(* Neither one is subtype of the other *)
-	add_inheritance_relation sty1 !Common.struct_type_for_void;
-	add_inheritance_relation sty2 !Common.struct_type_for_void
+(* 	add_inheritance_relation sty1 !Common.struct_type_for_void; *)
+(* 	add_inheritance_relation sty2 !Common.struct_type_for_void *)
       end
   in
 object
@@ -317,8 +319,8 @@ object
 
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit ()) as super
-    
-    
+
+
 
 end
 
@@ -326,10 +328,10 @@ let create_struct_hierarchy file =
   let struct_fields ty =
     match unrollType ty with
       | TComp(compinfo,_attr) -> compinfo.cfields
-      | _ -> assert false 
+      | _ -> assert false
   in
   let num_fields ty = List.length (struct_fields ty) in
-  let compare_num_fields ty1 ty2 = 
+  let compare_num_fields ty1 ty2 =
     Pervasives.compare (num_fields ty1) (num_fields ty2)
   in
   let subtype ty1 ty2 =
@@ -346,15 +348,15 @@ let create_struct_hierarchy file =
     List.iter (fun cls ->
 		 let types = TypeSet.elements cls in
 		 let types = List.sort compare_num_fields types in
-		 let root,types = 
+		 let root,types =
 		   match types with [] -> assert false | a::r -> a,r
 		 in
 		 (* First element is new root *)
 		 TypeHashtbl.remove type_to_parent_type root;
-		 List.iter 
+		 List.iter
 		   (fun ty ->
 		      add_inheritance_relation ty root;
-		      List.iter 
+		      List.iter
 			(fun party ->
 			   if subtype ty party then
 			     add_inheritance_relation ty party
@@ -369,12 +371,12 @@ let create_struct_hierarchy file =
 			List.iter2 add_field_representant subfields1 fields2
 		     ) type_to_parent_type
   in
-  
+
   let visitor = new createStructHierarchy in
-  visitCilFile (visitor :> cilVisitor) file;
+  visitFramacFile visitor file;
   compute_hierarchy ();
   let visitor = new exploitStructHierarchy in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -396,6 +398,6 @@ let retype file =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j byte"
+compile-command: "LC_ALL=C make -C ../.. -j bin/toplevel.byte"
 End:
 *)

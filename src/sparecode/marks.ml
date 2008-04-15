@@ -3,7 +3,9 @@
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2008                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -14,13 +16,10 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  See the GNU Lesser General Public License version v2.1                *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-let debug1() = Cmdline.Debug.get() >= 1
-let debug2() = Cmdline.Debug.get() >= 2
 
 module BoolMark = struct
   type prop_mode = Glob | Loc
@@ -32,7 +31,7 @@ module BoolMark = struct
 
   let mk glob = if glob then (true,Glob) else (true, Loc)
 
-  let merge (b1,p1) (b2,p2) = 
+  let merge (b1,p1) (b2,p2) =
     let b = b1 || b2 in
     let p = match p1, p2 with
       | Glob, _ | _, Glob -> Glob
@@ -49,15 +48,15 @@ module BoolMark = struct
   let is_bottom b = (b = bottom)
 
   let pretty fmt (b,p) =
-    Format.fprintf fmt "%s(%s)" 
-         (if b then "true" else "false") 
+    Format.fprintf fmt "%s(%s)"
+         (if b then "true" else "false")
          (match p with Glob -> "Glob" | Loc -> "Loc")
 end
 
-(** when we first compute marks to select outputs, 
+(** when we first compute marks to select outputs,
 * we don't immediately propagate input marks to the calls,
 * because some calls may be useless and we don't want to compute
-* their inputs. We will check calls later on. 
+* their inputs. We will check calls later on.
 * But when we select annotations, we want to preserve all the calls that can
 * lead to them : so, we propagate...
 * *)
@@ -68,16 +67,17 @@ module Config = struct
     include BoolMark
   end
 
-    let mark_to_prop_to_caller_input call _pdg node m =
-      match m with 
+    let mark_to_prop_to_caller_input call_opt pdg_caller sel_elem m =
+      match m with
         | true, M.Glob -> Some m
         | true, M.Loc ->
-            call_in_to_check := (call, node, m) :: !call_in_to_check;
+            call_in_to_check := 
+            (pdg_caller, call_opt, sel_elem, m) :: !call_in_to_check;
             None
         | _ -> assert false (* marque invisible ??? *)
 
-    let mark_to_prop_to_called_output _call _pdg _node m = 
-      match m with 
+    let mark_to_prop_to_called_output _call _pdg _node m =
+      match m with
         | true, M.Glob -> Some (true, M.Loc)
         | true, M.Loc -> Some m
         | _ -> assert false (* marque invisible ??? *)
@@ -105,14 +105,14 @@ let rec key_visible fm key =
   with PdgIndex.NotFound -> false
 and
 (** the call is visible if its control node is visible *)
-    call_visible fm call = 
+    call_visible fm call =
     let key = PdgIndex.Key.call_ctrl_key call in
       key_visible fm key
     (*
   try
     let _, call_sgn = PdgIndex.FctIndex.find_call fm call in
     let test old_v (_, m) = old_v || (mark_visible fm m) in
-    let visible = 
+    let visible =
     let visible = PdgIndex.Signature.fold_all_outputs test false call_sgn in
       visible
   with PdgIndex.NotFound -> false
@@ -145,17 +145,23 @@ let rec add_pdg_selection to_select pdg sel_mark = match to_select with
 let rec process_call_inputs proj =
   let rec process (to_select, unused) todo = match todo with
     | [] -> (to_select, unused)
-    | (call, sel, m) as e :: calls ->
-        let _, kf_caller = Kernel_function.find_from_sid call.Cil_types.sid in
-        let fm = get_marks proj kf_caller in
-        let fm = match fm with | None -> assert false | Some fm -> fm in
-        let res =
-          if call_visible fm call then
-            let pdg_caller = !Db.Pdg.get kf_caller in
-            let to_select = add_pdg_selection to_select pdg_caller (sel, m) in
-              (to_select, unused)
-          else
-              (to_select, e::unused)
+    | (pdg_caller, call, sel, m) as e :: calls ->
+        let kf_caller = PdgTypes.Pdg.get_kf pdg_caller in
+        let visible = match call with
+          | Some call ->
+              let fm = get_marks proj kf_caller in
+              let fm = match fm with | None -> assert false | Some fm -> fm in
+                call_visible fm call
+          | None -> (* let see if the function is visible or not *)
+              assert (PdgTypes.Pdg.is_top pdg_caller);
+              match  get_marks proj kf_caller with 
+                | None -> false
+                | Some _fm -> true 
+        in
+        let res = if visible then
+            let to_select = add_pdg_selection to_select pdg_caller (sel, m) 
+            in (to_select, unused)
+          else (to_select, e::unused)
         in process res calls
   in
   let to_select, new_list = process ([], []) !call_in_to_check in
@@ -164,25 +170,25 @@ let rec process_call_inputs proj =
              (* nothing more to mark : finished ! we can forget [new_list] *)
       | _ ->
           call_in_to_check := new_list;
-          List.iter (fun (pdg, sel) -> select_pdg_elements proj pdg sel) 
+          List.iter (fun (pdg, sel) -> select_pdg_elements proj pdg sel)
                     to_select;
           process_call_inputs proj
 
 
 let add_node_to_select glob to_select z_opt node =
-  PdgMarks.add_to_select to_select 
+  PdgMarks.add_to_select to_select
            (PdgMarks.mk_select_node ~z_opt node) (BoolMark.mk glob)
 
 let add_nodes_and_undef_to_select glob (ctrl_nodes, (data_nodes, undef)) to_select =
   let to_select =
-    List.fold_left 
+    List.fold_left
       (fun s n -> add_node_to_select glob s None n) to_select ctrl_nodes
   in
   let to_select =
-    List.fold_left 
+    List.fold_left
       (fun s (n,z_opt) -> add_node_to_select glob s z_opt n) to_select data_nodes
   in
-  let to_select = 
+  let to_select =
     PdgMarks.add_undef_in_to_select to_select undef (BoolMark.mk glob)
   in to_select
 
@@ -203,8 +209,7 @@ class annot_visitor ~filter pdg = object (self)
       try
         let stmt = Cilutil.valOf self#current_stmt in
         let before = self#is_annot_before in
-          if debug1 () then
-            Format.printf "[sparecode] selecting annotation : %a @."
+            Debug.debug 1 "[sparecode] selecting annotation : %a @."
               !Ast_printer.d_code_annotation annot;
         let nodes_and_co =
           !Db.Pdg.find_code_annot_nodes pdg before stmt annot in
@@ -216,8 +221,7 @@ end
 let select_all_outputs proj kf =
   let pdg = !Db.Pdg.get kf in
   let outputs = !Db.Outputs.get_external kf in
-  if debug1 () then
-    Format.printf "[sparecode] selecting output zones %a@."
+    Debug.debug 1 "[sparecode] selecting output zones %a@."
       Locations.Zone.pretty outputs;
   try
   let nodes, undef = !Db.Pdg.find_location_nodes_at_end pdg outputs in
@@ -234,8 +238,7 @@ let select_all_outputs proj kf =
 let select_annotations ~select_annot ~select_slice_pragma proj =
   let visit_fun kf =
     try
-      if debug1 () then
-        Format.printf "[sparecode] look for annotations in function %s@."
+        Debug.debug 1 "[sparecode] look for annotations in function %s@."
           (Kernel_function.get_name kf);
       let filter annot = match annot.Cil_types.annot_content with
         | Cil_types.APragma (Cil_types.Slice_pragma _) -> select_slice_pragma
@@ -243,12 +246,12 @@ let select_annotations ~select_annot ~select_slice_pragma proj =
       let f = Kernel_function.get_definition kf in
       let pdg = !Db.Pdg.get kf in
       let visit = new annot_visitor ~filter pdg in
-        ignore (Cil.visitCilFunction (visit:>Cil.cilVisitor) f);
+        ignore (Visitor.visitFramacFunction (visit:>Visitor.frama_c_visitor) f);
       let to_select = visit#get_select in
         select_pdg_elements proj pdg to_select
     with Kernel_function.No_Definition ->
       () (* nothing to do *)
-  in 
+  in
     Globals.Functions.iter visit_fun
 
 let select_entry_point proj kf =
@@ -258,8 +261,7 @@ let select_entry_point proj kf =
     select_pdg_elements proj pdg to_select
 
 let finalize proj =
-  if debug1 () then
-    Format.printf "[sparecode] finalize (process call inputs) @.";
+    Debug.debug 1 "[sparecode] finalize (process call inputs) @.";
   process_call_inputs proj;
   assert (!call_in_to_check = [])
 
@@ -267,8 +269,7 @@ let finalize proj =
 let select_usefull_things ~select_annot ~select_slice_pragma kf_entry =
   let proj = ProjBoolMarks.empty in
   assert (!call_in_to_check = []);
-  if debug1 () then
-    Format.printf "[sparecode] selecting function %s outputs and entry point@."
+    Debug.debug 1 "[sparecode] selecting function %s outputs and entry point@."
       (Kernel_function.get_name kf_entry);
   select_entry_point proj kf_entry;
   select_all_outputs proj kf_entry;

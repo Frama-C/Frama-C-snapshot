@@ -1,20 +1,20 @@
 /* cf bug 298 */
-/*@ axiom bidon{Here} :
+/*@ lemma bidon{Here} :
   @   \forall int *t; ! (t[0] > 0);
   @*/
 
-/*@ axiom bidon1{Here} :
+/*@ lemma bidon1{Here} :
   @   \forall int *t; ! t[0] == 0;
   @*/
 
-/*@ axiom bidon2{Here} :
+/*@ lemma bidon2{Here} :
   @   \forall int *t; (! t[0]) == 0;
   @*/
 
-/*@ axiom bidon3{Here} :
+/*@ lemma bidon3{Here} :
   @   \forall int *t; ! t[0] >= 0;
   @*/
 
-/*@ axiom bidon4{Here}:
+/*@ lemma bidon4{Here}:
   @   \forall int *t; (! t[0]) < 0;
   @*/

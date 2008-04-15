@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry -main f -security-lattice weak
-   OPT: -security-analysis -lib-entry -main f -security-lattice strong
+   OPT: -security-analysis -lib-entry -main f -security-lattice weak -journal-disable
+   OPT: -security-analysis -lib-entry -main f -security-lattice strong -journal-disable
    */
 
 // #define GCC
@@ -50,8 +50,8 @@ int f() {
 		 donc alarme si dep de ctrl */
     send(a);  /* emission non securisee : alarme declenchee */
     send(*c); /* emission non securisee : alarme declenchee */
-    send(t);  /* emission non securisee : faille toujours declenchee 
-		 (car pas de dependance envers tests <> NULL: 
+    send(t);  /* emission non securisee : faille toujours declenchee
+		 (car pas de dependance envers tests <> NULL:
 		 b et c ne peuvent être NULL. */
   }
   return 0;

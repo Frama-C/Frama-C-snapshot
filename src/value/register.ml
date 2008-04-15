@@ -27,13 +27,81 @@ open Abstract_interp
 let () = Cmdline.max_valid_absolute_address := Utils.memory_size ()
 *)
 
+let main fmt =
+  let not_quiet = not (Cmdline.Quiet.get ()) in
+  (* Memoization of context free functions *)
+  let mem_functions = Cmdline.MemFunctions.get () in
+  if Cmdline.MemExecAll.get ()
+    || not (Cilutil.StringSet.is_empty mem_functions)
+  then begin
+    if not_quiet then Format.fprintf fmt "====== MEMOIZING FUNCTIONS ======@.";
+    Globals.Functions.iter
+      (fun kf ->
+	 let name = Kernel_function.get_name kf in
+	 if Kernel_function.is_definition kf &&
+	   (Cmdline.MemExecAll.get () 
+	    || Cilutil.StringSet.mem name mem_functions)
+	 then begin
+	   if not_quiet then 
+	     Format.fprintf fmt "== function %a@." 
+	       Kernel_function.pretty_name kf;
+	   try
+	     !Db.Value.memoize kf
+           with Db.Value.Aborted ->
+	     Format.fprintf fmt "Cannot memoize %a: Analysis degenerated@."
+	       Kernel_function.pretty_name kf;
+	     exit 1
+	 end)
+  end;
+  (* Value computations *)
+  if Cmdline.ForceValues.get () then begin
+    !Db.Value.compute ();
+    (* !Db.Outputs.compute (kf()); *)
+    if not_quiet then 
+      begin
+        !Db.Scope.check_asserts ();
+        Format.fprintf fmt "@\n====== VALUES COMPUTED ======@.";
+      end
+  end;
+  (* Computing others results and displaying results *)
+  if Cmdline.ForceOut.get ()
+    || Cmdline.ForceInput.get ()
+    || Cmdline.ForceInputWithFormals.get ()
+    || Cmdline.ForceInout.get ()
+    || Cmdline.ForceDeref.get ()
+    || Cmdline.ForceValues.get ()
+  then begin
+    !Db.Semantic_Callgraph.topologically_iter_on_functions
+      (fun kf ->
+	 if Kernel_function.is_definition kf then begin
+	   let result display compute =
+	     (if not_quiet then display fmt else compute) kf
+	   in
+	   if Cmdline.ForceOut.get () then 
+	     result !Db.Outputs.display !Db.Outputs.compute;
+	   if Cmdline.ForceInput.get () then
+	     result !Db.Inputs.display !Db.Inputs.compute;
+	   if Cmdline.ForceInputWithFormals.get () then
+	     if not_quiet then !Db.Inputs.display_with_formals fmt kf
+             (*else  !Db.Inputs.compute_with_formals) kf *) ;
+	   if Cmdline.ForceInout.get () then
+	     result !Db.InOutContext.display !Db.InOutContext.compute;
+	   if Cmdline.ForceDeref.get () then
+	     result !Db.Derefs.display !Db.Derefs.compute;
+	   if not_quiet && Cmdline.ForceValues.get () then
+	     Db.Value.display fmt kf;
+	 end)
+  end
+
+let () = Db.Main.extend main
+
 let () =
   Options.add_plugin ~name:"value analysis" ~descr:"" ~shortname:"val"
     [
       "-val",
       Arg.Unit Cmdline.ForceValues.on,
       ": force values computations";
-      
+
       "-mem-exec",
       Arg.String Cmdline.MemFunctions.add,
       "name: do not unroll calls to function name (experimental)"
@@ -53,7 +121,7 @@ let () =
       "-propagate-top",
       Arg.Unit Cmdline.PropagateTop.on,
       ": do not stop value analysis even if state is degenerating";
-      
+
       "-plevel",
       Arg.Int Cmdline.ArrayPrecisionLevel.set,
       Format.sprintf "n : use n as the precision level for arrays accesses. Array accesses are precise as long as the interval for the index contains less than n values. (defaults to %d)"
@@ -72,8 +140,8 @@ let () =
              ,"name : widen only on the specified variable name"
              ;
       *)
-      
-     
+
+
      "-absolute-valid-range",
       Arg.String (fun s ->
                     try Scanf.sscanf s "%Li-%Li"
@@ -104,6 +172,9 @@ let () =
       Arg.Unit Cmdline.IgnoreOverflow.on
        ,": assume that arithmetic operations never overflow"
      ;
+     "-no-unspecified-access",
+      Arg.Unit Cmdline.IgnoreUnspecified.on,
+      Format.sprintf ": assume that all read/write accesses occuring in unspecified order are separated (defaults to %b)" (Cmdline.IgnoreUnspecified.get());
      "-unsafe-arrays",
      Arg.Unit Cmdline.UnsafeArrays.on
        ,": do not assume that accesses to arrays are in bounds."

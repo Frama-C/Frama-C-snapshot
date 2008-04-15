@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgMarks.ml,v 1.32 2008/07/09 11:26:38 uid530 Exp $ *)
+(* $Id: pdgMarks.ml,v 1.33 2008/09/10 09:00:50 uid530 Exp $ *)
 
 (** This file provides useful things to help to associate an information
 * (called mark) to PDG elements and to propagate it across the
@@ -43,7 +43,9 @@ type t_select_elem =
   | SelIn of Locations.Zone.t
 
 type 'tm t_select = (t_select_elem * 'tm) list
-type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_select) list
+
+type 'tm t_pdg_select_info = SelList of  'tm t_select | SelTopMarks of 'tm list
+type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_pdg_select_info) list
 
 type 'tm t_info_caller_inputs = (Signature.t_in_key * 'tm) list 
 
@@ -91,15 +93,14 @@ module type T_Fct = sig
   type t = PdgTypes.Pdg.t * t_idx
 
   val create : PdgTypes.Pdg.t -> t
-  val get_idx : t -> t_idx
+  val get_idx : t -> t_idx 
 
   type t_mark_info_inter = t_mark t_info_inter
 
   val empty_to_prop : t_mark_info_inter
 
   val mark_and_propagate :
-    t -> ?to_prop:t_mark_info_inter -> t_mark t_select -> 
-    t_mark_info_inter
+    t -> ?to_prop:t_mark_info_inter -> t_mark t_select -> t_mark_info_inter
 end
 
 
@@ -130,8 +131,9 @@ module F_Fct (M : T_Mark)
 
   let empty_to_prop = ([], [])
 
-  let create pdg = (pdg, FctIndex.create 100)
-                            (* TODO Pdg.get_index_size pdg *)
+  let create pdg = 
+    let idx = (FctIndex.create 100) (* TODO Pdg.get_index_size pdg *)
+    in (pdg, idx)
 
   let get_idx (_pdg, idx) = idx
 
@@ -206,16 +208,16 @@ module F_Fct (M : T_Mark)
             then (c, add_out_key l out_key)::tl
             else (c, l)::(add_out tl call out_key)
     in
-      match key with
-        | Key.SigCallKey (call, Signature.Out out_key) -> 
-            let in_marks, out_marks = to_prop in
-            let call = Key.call_from_id call in
-            let new_out_marks = add_out out_marks call out_key in
-              (in_marks, new_out_marks)
-        | Key.SigKey (Signature.In in_key) -> 
-            let to_prop = add_in_to_to_prop to_prop in_key mark in
-              to_prop
-        | _ -> (* nothing to do *) to_prop
+            match key with
+              | Key.SigCallKey (call, Signature.Out out_key) -> 
+                  let in_marks, out_marks = to_prop in
+                  let call = Key.call_from_id call in
+                  let new_out_marks = add_out out_marks call out_key in
+                    (in_marks, new_out_marks)
+              | Key.SigKey (Signature.In in_key) -> 
+                  let to_prop = add_in_to_to_prop to_prop in_key mark in
+                    to_prop
+              | _ -> (* nothing to do *) to_prop
 
 
   (** mark the nodes and their dependencies with the given mark.
@@ -289,7 +291,7 @@ end
 
 type 't_mark t_m2m =  t_select_elem -> 't_mark -> 't_mark option
 type 't_mark t_call_m2m =  
-    Cil_types.stmt -> PdgTypes.Pdg.t -> 't_mark t_m2m
+    Cil_types.stmt option -> PdgTypes.Pdg.t -> 't_mark t_m2m
 
 module type T_Config = sig
   module M : sig

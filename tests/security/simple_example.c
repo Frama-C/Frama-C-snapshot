@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry -main f -security-lattice weak
-   OPT: -security-analysis -lib-entry -main f -security-lattice strong
+   OPT: -security-analysis -lib-entry -main f -security-lattice weak -journal-disable
+   OPT: -security-analysis -lib-entry -main f -security-lattice strong -journal-disable
    */
 
 /*@ requires security_status(x) == public; */

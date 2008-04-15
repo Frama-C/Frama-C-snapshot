@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: gtk_helper.ml,v 1.16 2008/06/25 08:31:13 uid528 Exp $ *)
+(* $Id: gtk_helper.ml,v 1.26 2008/12/16 10:02:59 uid526 Exp $ *)
 
 (** Generic Gtk helpers. *)
 
@@ -57,8 +57,10 @@ let cleanup_all_tags b =
   Cilutil.StringSet.iter (fun s -> b#remove_tag_by_name s ~start ~stop) tags
   with Not_found -> ()
 
-let make_tag buffer ~name l = 
-  let buffer = (buffer:>GText.buffer) in
+let make_tag (buffer:< tag_table : Gtk.text_tag_table;
+              create_tag : ?name:string -> GText.tag_property list -> GText.tag ; .. >)
+    ~name l 
+    = 
   match GtkText.TagTable.lookup buffer#tag_table name with
   | None -> 
       let oid = Oo.id buffer in
@@ -82,15 +84,13 @@ let expand_to_path (treeview:GTree.view) path =
     treeview#expand_row path
   done
 
-let make_formatter t = 
+let make_formatter ?(flush= fun () -> ()) t = 
   let t = (t:>GText.buffer) in
   let fmt_emit s start length =
     let subs = String.sub s start length in
     t#insert subs
   in
-  let fmt_flush () = ()
-  in
-  Format.make_formatter fmt_emit fmt_flush
+  Format.make_formatter fmt_emit flush
 
 let redirect fmt (t:#GText.buffer) = 
   let fmt_emit s start length =
@@ -136,9 +136,9 @@ let make_string_list ~packing =
   in
   let get_all () = 
     let l = ref [] in
-    model#foreach (fun _ row -> 
+    model#foreach (fun _ row ->
 		     l := model#get ~row ~column ::!l ;
-		     true);
+		     false);
       !l
   in
   let view = GTree.view ~model ~reorderable:true ~packing () in
@@ -174,6 +174,122 @@ let string_selector completions packing =
   entry
 (*  (GEdit.combo ~popdown_strings:completions ~packing ())#entry *)
 
+type 'a chooser = GPack.box -> string -> (unit -> 'a) -> ('a -> unit) -> (unit -> unit)
+
+let on_bool (container:GPack.box) label get set = 
+  let result = ref (get()) in
+  let button = GButton.check_button 
+    ~label
+    ~packing:container#pack
+    ~active:!result
+    ()
+  in
+  ignore 
+    (button#connect#toggled 
+       ~callback:
+       (fun () -> result := button#active));
+  (fun () -> set !result)
+
+
+let on_bool_radio (container:GPack.box) label_true label_false get set = 
+  let result = ref (get()) in
+  let container = GPack.hbox ~packing:container#pack () in
+  let label_true = GButton.radio_button
+    ~label:label_true
+    ~packing:container#pack
+    ~active:!result
+    ()
+  in
+  let _label_false = GButton.radio_button
+    ~group:label_true#group
+    ~label:label_false
+    ~packing:container#pack
+    ~active:(not !result)
+    ()
+  in
+  ignore 
+    (label_true#connect#toggled 
+       ~callback:
+       (fun () -> result := label_true#active));
+  (fun () -> set !result)
+
+let range_selector (container:GPack.box) ~label ~lower ~upper set get =
+    let container = GPack.hbox ~packing:container#pack () in
+    let x = GEdit.spin_button ~digits:0 ~packing:(container#pack ~padding:10)() in
+    x#adjustment#set_bounds ~lower:(float lower) ~upper:(float upper) ~step_incr:1. ();
+    x#adjustment#set_value (float (get ()));
+    ignore 
+      (x#connect#value_changed 
+	 ~callback:
+         (fun () -> set x#value_as_int));
+    ignore (GMisc.label ~line_wrap:true ~text:label ~xalign:0. ~packing:container#pack ());
+    (fun () -> x#adjustment#set_value (float (get ())))
+
+let on_int ?(lower=0) ?(upper=max_int) ?(sensitive=(fun () -> true)) (container:GPack.box) label  get set = 
+  let result = ref (get()) in
+  let make_spin ~label ~value =
+    let container = GPack.hbox ~packing:container#pack () in
+    let x = GEdit.spin_button ~digits:0 ~packing:container#pack () in
+    x#adjustment#set_bounds ~lower:(float lower) ~upper:(float upper) ~step_incr:1. ();
+    x#adjustment#set_value (float value);
+    ignore 
+      (x#connect#value_changed 
+	 ~callback:
+         (fun () -> result := x#value_as_int));
+    let l = GMisc.label ~line_wrap:true ~text:label ~xalign:0. ~packing:container#pack ()
+    in x,l  
+  in
+  let (x,l) = make_spin ~label ~value:!result
+  in (fun () ->
+        l#misc#set_sensitive (sensitive ()) ;
+        x#misc#set_sensitive (sensitive ()) ;
+        set !result)
+
+
+let on_string ?(validator=(fun _ -> true)) (container:GPack.box) label get set = 
+  let result = ref (get ()) in 
+  let container = GPack.hbox ~packing:container#pack () in
+  let entry = GEdit.entry ~packing:container#pack ~text:!result () in
+  let callback _ = 
+    let text =  entry#text in 
+    if validator text
+    then result := text
+    else entry#set_text !result;
+    false 
+  in
+  ignore (entry#event#connect#focus_out ~callback);
+  ignore (GMisc.label ~line_wrap:true ~packing:container#pack ~text:label ());
+  (fun () -> set !result)
+      
+let on_string_set (container:GPack.box) label get set = 
+  let result = ref (get ()) in
+  let container = GPack.hbox ~packing:container#pack () in
+  let entry = GEdit.entry ~packing:container#pack ~text:!result () in
+  let callback _ = result := entry#text; false in
+  ignore (entry#event#connect#focus_out ~callback);
+  ignore (GMisc.label ~line_wrap:true ~packing:container#pack ~text:(label^" (list)") ());
+  (fun () -> set !result)
+
+let on_string_completion 
+    ?(validator=(fun _ -> true)) completions (container:GPack.box) label get set = 
+  let result = ref (get()) in
+  let box = GPack.hbox ~packing:container#pack () in
+  let entry = string_selector completions box#pack in
+  ignore (GMisc.label ~packing:box#pack ~text:label ());
+  let () = entry#set_text !result in
+  let callback _ = 
+    let text =  entry#text in 
+    if validator text
+    then result := text
+    else entry#set_text !result;
+    false 
+  in  
+  ignore (entry#event#connect#focus_out ~callback);
+  (fun () -> set !result)
+  
+
+let place_paned (paned:GPack.paned) factor = 
+  paned#set_position (int_of_float (float (paned#max_position - paned#min_position)*.factor))
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

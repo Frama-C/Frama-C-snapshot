@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kf_state.ml,v 1.18 2008/04/01 09:25:22 uid568 Exp $ *)
+(* $Id: kf_state.ml,v 1.19 2008/10/03 13:09:17 uid568 Exp $ *)
 
 open Db
 open Cil_types
@@ -33,7 +33,7 @@ module Is_Called =
   Kernel_function.Make_Table
     (Datatype.Bool)
     (struct 
-       let name = Project.Computation.Name.make "is_called" 
+       let name = "is_called" 
        let dependencies = [ Value.self ]
        let size = 17
      end)
@@ -54,14 +54,9 @@ module KernelFunctionMap = Map.Make(Kernel_function)
 
 module Callers = 
   Kernel_function.Make_Table
-    (Datatype.Make_Map
-       (KernelFunctionMap)
-       (struct 
-	  include Kernel_datatype.StmtSet 
-	  let compare = Cilutil.StmtSet.compare 
-	end))
+    (Datatype.Make_Map(KernelFunctionMap)(Cil_datatype.StmtSet))
     (struct 
-       let name = Project.Computation.Name.make "Callers"
+       let name = "Callers"
        let dependencies = [ Value.self ]
        let size = 17
      end)
@@ -97,7 +92,7 @@ module Never_Terminates =
   Kernel_function.Make_Table
     (Datatype.Bool)
     (struct 
-       let name = Project.Computation.Name.make "Never_Terminates" 
+       let name = "Never_Terminates" 
        let size = 17
        let dependencies = [ Value.self ]
      end)

@@ -39,7 +39,7 @@
 (**************************************************************************)
 
 (** Hashtable with integer keys.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 type key = int
 type 'a t

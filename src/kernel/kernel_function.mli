@@ -19,21 +19,27 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_function.mli,v 1.12 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: kernel_function.mli,v 1.17 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Operations on kernel function. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
+open Db_types
 
 (* ************************************************************************* *)
 (** {2 Kernel functions are comparable and hashable} *)
 (* ************************************************************************* *)
 
-type t = Db_types.kernel_function
+type t = kernel_function
 val compare : t -> t -> int
 val equal : t -> t -> bool
 val hash : t -> int
+
+(** Datatype for a kernel function. 
+    @plugin development guide *)
+module Datatype: Project.Datatype.S with type t = kernel_function
+
 
 (* ************************************************************************* *)
 (** {2 Searching} *)
@@ -44,7 +50,7 @@ val find_from_sid : int -> stmt * t
       Complexity: the first call to this function is linear in the size of
       the cil file.
       @raise Not_found if there is no statement with such an identifier. 
-      @plugin developer guide *)
+      @plugin development guide *)
 
 exception No_Statement
 val find_first_stmt : t -> stmt
@@ -70,13 +76,16 @@ val returns_void : t -> bool
 (** {2 Getters} *)
 (* ************************************************************************* *)
 
-val dummy: t
+val dummy: unit -> t
 val get_vi : t -> varinfo
+val get_id: t -> int
 val get_name : t -> string
 val get_type : t -> typ
+val get_return_type : t -> typ
 val get_location: t -> Cil_types.location
 val get_global : t -> global
 val get_formals : t -> varinfo list
+val get_locals : t -> varinfo list
 
 exception No_Definition
 val get_definition : t -> fundec
@@ -118,8 +127,8 @@ val populate_spec: (t -> unit) ref
 (* ************************************************************************* *)
 
 (** Hashtable indexed by kernel functions and dealing with project. 
-    @plugin developer guide *)
-module Make_Table(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS):
+    @plugin development guide *)
+module Make_Table(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS):
   Computation.HASHTBL_OUTPUT with type key = t and type data = Data.t
 
 (** Set of kernel functions. *)
@@ -127,12 +136,17 @@ module Set : sig
 
   include Set.S with type elt = t
 
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
     (** Datatype corresponding to a set of kernel functions. *)
 
   val pretty : Format.formatter -> t -> unit
     (** Pretty print a set of kernel functions. *)
 
+end
+
+(** Datatype for a queue of kernel functions. *)
+module Queue: sig
+  module Datatype: Project.Datatype.S with type t = kernel_function Queue.t
 end
 
 (* ************************************************************************* *)

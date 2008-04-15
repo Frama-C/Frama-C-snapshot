@@ -26,19 +26,31 @@ type t =
 type tt = t
 open Locations
 
-module Datatype =
-  Project.Datatype.Register
+module Datatype = struct
+  include Project.Datatype.Register
     (struct
        type t = tt
        let rehash x =
-	 { over_inputs_if_termination = 
-	     Zone.Datatype.rehash x.over_inputs_if_termination;
-	   under_outputs_if_termination =
-	     Zone.Datatype.rehash x.under_outputs_if_termination;
-	   over_inputs =
-	     Zone.Datatype.rehash x.over_inputs }
-       include Datatype.Nop
+         let a = Zone.Datatype.rehash x.over_inputs_if_termination in
+         let b = Zone.Datatype.rehash x.under_outputs_if_termination in
+         let c = Zone.Datatype.rehash x.over_inputs in
+	 { over_inputs_if_termination = a;
+	   under_outputs_if_termination = b; over_inputs = c}
        let copy _ = assert false (* TODO *)
-       let name = Project.Datatype.Name.make "Inout" 
-       let dependencies = [ Zone.Datatype.self ] 
+       let name = "inout" 
      end)
+  let hash 
+      { over_inputs_if_termination = a; 
+        under_outputs_if_termination = b; 
+        over_inputs = c} = 
+    Zone.tag a + 17 * Zone.tag b + 587 * Zone.tag c
+  let equal 
+      { over_inputs_if_termination = a; 
+        under_outputs_if_termination = b; 
+        over_inputs = c} 
+      { over_inputs_if_termination = a'; 
+        under_outputs_if_termination = b'; 
+        over_inputs = c'} = 
+    Zone.equal a a' && Zone.equal b b' && Zone.equal c c'
+  let () = register_comparable ~hash ~equal ()
+end

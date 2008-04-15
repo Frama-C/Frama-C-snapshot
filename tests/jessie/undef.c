@@ -14,8 +14,7 @@
  *
  ***************************************************************/
 
-#include <limits.h>
-#include <stddef.h>
+#include "../../share/jessie/jessie_machine_prolog.h"
 
 /***************************************************************/
 
@@ -209,7 +208,7 @@ shift_left_unsigned_safe (unsigned x, unsigned y)
 
 /***************************************************************/
 
-/* 
+/*
  * N.B. it is implementation defined what happens when a signed int
  * with negative value is right shifted
  */
@@ -333,7 +332,7 @@ stack_access_wrong (void)
 }
 
 /***************************************************************/
-/* function pointer miscast 
+/* function pointer miscast
    (must abuse union to bypass compiler
    checks)
 */

@@ -25,15 +25,17 @@
 
 open Cil_types
 
-(** forward reference to current location (see {!Cil.currentLoc})*)
-val dloc: location ref ref
+(** forward reference to current location (see {!Cil.CurrentLoc})*)
+module CurrentLoc: Computation.REF_OUTPUT with type data = location
 
 (** {2 Global Tables} *)
 module LogicInfo: Computation.HASHTBL_OUTPUT
   with type key = string and type data = Cil_types.logic_info
 
+(*
 module PredicateInfo: Computation.HASHTBL_OUTPUT
   with type key = string and type data = Cil_types.predicate_info
+*)
 
 module LogicTypeInfo: Computation.HASHTBL_OUTPUT
   with type key = string and type data = Cil_types.logic_type_info
@@ -41,16 +43,20 @@ module LogicTypeInfo: Computation.HASHTBL_OUTPUT
 module LogicCtorInfo: Computation.HASHTBL_OUTPUT
   with type key = string and type data = Cil_types.logic_ctor_info
 
+val builtin_states: Project.Selection.t
 
 (** {2 Shortcuts to the functions of the modules above} *)
 
-(** reset all internal tables. *)
-val reset_all_tables : unit -> unit
+(** Prepare all internal tables before their uses:
+    clear all tables except builtins. *)
+val prepare_tables : unit -> unit
 
 (** {3 Add an user-defined object} *)
 
 val add_logic_function: logic_info -> unit
+(*
 val add_predicate: predicate_info -> unit
+*)
 val add_logic_type: string -> logic_type_info -> unit
 val add_logic_ctor: string -> logic_ctor_info -> unit
 
@@ -67,24 +73,33 @@ module Builtins: sig
 end
 
 val add_builtin_logic_function: logic_info -> unit
+(*
 val add_builtin_predicate: predicate_info -> unit
+*)
 val add_builtin_logic_type: string -> logic_type_info -> unit
 val add_builtin_logic_ctor: string -> logic_ctor_info -> unit
 
 (** {3 searching the environment} *)
 val find_logic_function: string -> logic_info
+(*
 val find_predicate: string -> predicate_info
+*)
 val find_logic_type: string -> logic_type_info
 val find_logic_ctor: string -> logic_ctor_info
 
 (** {3 tests of existence} *)
 val is_logic_function: string -> bool
+(*
 val is_predicate: string -> bool
+*)
 val is_logic_type: string -> bool
 val is_logic_ctor: string -> bool
 
 (** {3 removing} *)
 val remove_logic_function: string -> unit
+(*
+val remove_predicate: string -> unit
+*)
 
 (** {2 Internal use} *)
 (** Used to postpone dependency of Lenv global tables wrt Cil_state, which

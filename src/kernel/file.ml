@@ -19,13 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: file.ml,v 1.85 2008/07/03 12:48:20 uid528 Exp $ *)
+(* $Id: file.ml,v 1.115 2008/12/16 09:05:08 uid562 Exp $ *)
 
 open Cil_types
 open Cil
 open Cilutil
 open Db_types
 open Extlib
+open Visitor
 
 type t =
   | NeedCPP of
@@ -36,6 +37,17 @@ type t =
   | NoCPP of string (** filename of a preprocessed [.c] *)
   | CPLUSPLUS of string (** c++ file. Can only be analysed if C++ extension
                             is loaded. *)
+module T = struct
+  let repr = Type.make "File.t" (NoCPP "")
+  let pretty fmt t =
+    match t with
+    | NoCPP s -> Format.fprintf fmt "@[(NoCPP %S)@]" s
+    | CPLUSPLUS s -> Format.fprintf fmt "@[(CPLUSPLUS %S)@]" s
+    | NeedCPP (a,b) -> Format.fprintf fmt "@[(NeedCPP (%S,%S))@]" a b
+  let () =
+    Journal.register_printer repr pretty;
+    Journal.List.register_printer repr
+end
 
 let check_suffixes f =
   List.fold_left (fun flag suf -> flag || Filename.check_suffix f suf) false
@@ -78,29 +90,31 @@ module Files : sig
   val get: unit -> t list
   val register: t list -> unit
   val pre_register: t -> unit
+  val is_computed: unit -> bool
 end = struct
 
-  module Already =
-    Computation.Ref
-      (struct include Datatype.Bool let default = false end)
-      (struct
-	 let dependencies = []
-	 let name = Project.Computation.Name.make "already files"
-       end)
+  let name = "File.t"
 
   module S =
     Computation.Ref
       (struct
 	 include
 	   Datatype.List
-	   (Project.Datatype.Persistent(struct type tt = t type t = tt end))
-	   (* actually strings are immutable here *)
-	 let default = []
+	   (Project.Datatype.Persistent
+	      (* actually strings are immutable here *)
+	      (struct type tt = t type t = tt let name = name end))
+	 let default () = []
        end)
       (struct
-	 let dependencies = []
-	 let name = Project.Computation.Name.make "files"
+	 let dependencies = [ Cmdline.CppCommand.self;
+                              Cmdline.CppExtraArgs.self;
+                              Cmdline.Files.self;
+                            ]
+	 let name = name
        end)
+
+  let () = Project.Computation.add_dependency Cil_state.self S.self
+  let () = Project.Computation.add_dependency Cil_state.UntypedFiles.self S.self
 
   (* Allow to register files in advance, e.g. prolog files for plugins *)
   let pre_register file =
@@ -108,14 +122,14 @@ end = struct
     S.set (prev_files @ [file])
 
   let register files =
-    if Already.get () then
-      raise (Cil_state.Bad_Initialisation "Too many initializations");
-    Already.set true;
+    if S.is_computed () then
+      raise (Cil_state.Bad_Initialisation "[File.register] Too many initializations");
     let prev_files = S.get () in
-    S.set (prev_files @ files)
+    S.set (prev_files @ files);
+    S.mark_as_computed ()
 
   let get = S.get
-
+  let is_computed () = S.is_computed ()
 end
 
 let get_all = Files.get
@@ -184,16 +198,17 @@ let parse = function
 	         shell metacharacters *)
 	      (Filename.quote out_file) (Filename.quote in_file)
       in
-      ignore (Errormsg.log "[preprocessing] running %s %s\n" cmdl f);
-      if Sys.command (cmd
-                        ((Cmdline.CppExtraArgs.get()) ^ " " ^
-                           (if Cmdline.ReadAnnot.get() &&
-                              Cmdline.PreprocessAnnot.get() then "-dD" else ""))
-                        f ppf) <> 0 then
+      let supp_args =
+	(Cmdline.CppExtraArgs.get_set ~sep:" " ()) ^ " " ^
+          (if Cmdline.ReadAnnot.get() &&
+             Cmdline.PreprocessAnnot.get() then "-dD" else "")
+      in
+      Format.printf "@[[preprocessing] running %s %s %s@]@." cmdl supp_args f;
+      if Sys.command (cmd supp_args f ppf) <> 0 then
         begin
           Format.eprintf "Failed to run: %s\n\t
            You may set the CPP environment variable to select the proper preprocessor command ...\n\t\
-           or use the -cpp-command program argument.@\n%!" (cmd "" f ppf);
+           or use the -cpp-command program argument.@\n%!" (cmd supp_args f ppf);
           begin try (Sys.remove ppf) with Sys_error _ -> () end
         end;
       let ppf =
@@ -212,16 +227,16 @@ let parse = function
 
 let files_to_cil files =
   (*
-    Warning : parsing and merging must occur in the very same order.
-    Orelse scope tables build by module Scope will no be consistant
-    with the renaming done by Mergecil.merge
+    Parsing and merging must occur in the very same order. Otherwise the order of
+    files on the command line will not be consistantly handled.
   *)
-  Format.printf "Parsing@\n";
-  let files =
+  Format.printf "Parsing@.";
+  let files,cabs =
     List.fold_left
-      (fun acc f ->
+      (fun (accf,accc as acc) f ->
          try
-	   parse f :: acc
+	   let f,c = parse f in
+           f::accf,c::accc
          with
            Frontc.ParseError _ | Errormsg.Error
                when Cmdline.Debug.get () <= 1
@@ -229,9 +244,10 @@ let files_to_cil files =
              ->
                Format.eprintf "Skipping file %S that has errors.@." (name f);
                acc)
-      []
+      ([],[])
       files
   in
+  Cil_state.UntypedFiles.set cabs;
   let files = List.rev files in
   if Cmdline.Debug.get() > 5 then
     List.iter
@@ -241,9 +257,19 @@ let files_to_cil files =
       files;
 
   (* Clean up useless parts *)
-  Format.printf "Cleaning unused parts@\n";
+  Format.printf "Cleaning unused parts@.";
   Rmtmps.rmUnusedStatic := false; (* a command line option will be available*)
-  let () = List.iter Rmtmps.removeUnusedTemps files in
+  (* remove unused functions. However, we keep declarations that have a spec,
+     since they might be merged with another one which is used. If this is not
+     the case, these declarations will be removed after Mergecil.merge.
+   *)
+  let keep_spec g =
+    Rmtmps.isDefaultRoot g ||
+      (match g with
+           GVarDecl(spec,_,_) -> not (is_empty_funspec spec)
+         | _ -> false)
+  in
+  List.iter (Rmtmps.removeUnusedTemps ~isRoot:keep_spec) files;
 
   if Cmdline.Debug.get() > 5 then
     List.iter
@@ -251,7 +277,7 @@ let files_to_cil files =
                    annotations tables are not filled yet. *)
          List.iter (Cil.d_global Format.std_formatter) f.globals)
       files;
-  Format.printf "Symbolic link@\n";
+  Format.printf "Symbolic link@.";
   let merged_file = Mergecil.merge files "whole_program" in
   (* dumpFile defaultCilPrinter stdout p; *)
   if !Errormsg.hadErrors then
@@ -264,6 +290,52 @@ let files_to_cil files =
                    annotations tables are not filled yet. *)
          List.iter(Cil.d_global Format.std_formatter) f.globals)
       files;
+  (* Get rid of leaf functions that have a spec but are not called
+     anywhere. *)
+  Rmtmps.removeUnusedTemps merged_file;
+  if Cmdline.WarnUnspecifiedOrder.get() then begin
+    let check_unspec = object
+      inherit Cil.nopCilVisitor
+      method vstmt s =
+        (match s.skind with
+             UnspecifiedSequence [] | UnspecifiedSequence [ _ ] -> ()
+           | UnspecifiedSequence seq ->
+               let my_stmt_print =
+                 object(self)
+                   inherit Cil.defaultCilPrinterClass as super
+                   method pStmt fmt = function
+                     | {skind = UnspecifiedSequence seq} ->
+                         Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep
+                           (fun fmt (s,w,r) ->
+                              Format.fprintf fmt
+                                "/*@ %a@ <-@ %a@ */@\n%a"
+                                (Pretty_utils.pp_list
+                                   ~sep: Pretty_utils.space_sep self#pLval) w
+                                (Pretty_utils.pp_list
+                                   ~sep: Pretty_utils.space_sep self#pLval) r
+                                self#pStmt s) fmt seq
+                     | s -> super#pStmt fmt s
+                 end
+               in
+               let has_writes, has_reads =
+                 List.fold_left
+                   (fun (has_writes,has_reads) (_,w,r) ->
+                      let my_writes,my_reads =
+                        match (w,r) with
+                          | [], [] -> 0, false
+                          | _::_, _ -> 1, false
+                          | [], _::_ -> 0, true
+                      in has_writes + my_writes, has_reads || my_reads)
+                   (0, false) seq
+                 in if has_writes > 1 || has_writes = 1 && has_reads then
+                   CilE.warn_once
+                     "Unspecified sequence with side effect:@\n%a@\n"
+                     (Cil.printStmt my_stmt_print) s
+           | _ -> ());
+        DoChildren
+    end
+    in Cil.visitCilFileSameGlobals check_unspec merged_file
+  end;
   merged_file
 
 let synchronize_source_annot kf =
@@ -276,15 +348,18 @@ let synchronize_source_annot kf =
           method vstmt st =
             let stmt, father = match super#current_stmt with
               | Some stmt ->
-                  super#pop_stmt stmt ;
-                  let father = super#current_stmt
-                  in super#push_stmt stmt ; stmt, father
-              | None -> assert(false) in
-            let is_in_same_block () =
-              match !block_with_user_annots,father with
-                | None, None -> true
-                | Some block, Some stmt_father when block == stmt_father -> true
-                | _, _ -> false in
+                  super#pop_stmt stmt;
+                  let father = super#current_stmt in
+		  super#push_stmt stmt;
+		  stmt, father
+              | None ->
+		  assert false
+	    in
+            let is_in_same_block () = match !block_with_user_annots,father with
+              | None, None -> true
+              | Some block, Some stmt_father when block == stmt_father -> true
+              | _, _ -> false
+	    in
             let synchronize_user_annot annot =
               (*Format.printf "Synchronize to stmt:%d@." st.sid; *)
 	      Annotations.add st (Before (User annot))
@@ -359,7 +434,7 @@ let synchronize_source_annot kf =
                     super#vstmt st
         end
         in
-          ignore (visitCilFunction visitor fd)
+        ignore (visitCilFunction visitor fd)
     | Declaration _ -> ()
 
 let register_global = function
@@ -377,7 +452,7 @@ let register_global = function
   | GVarDecl (spec, ({vtype=TFun (_,_,_,_) } as f),loc) ->
       (* global prototypes *)
       let args =
-        try Some (Cil.getFormalsDecl f.vid) with Not_found -> None
+        try Some (Cil.getFormalsDecl f) with Not_found -> None
       in
       Globals.Functions.add (Db_types.Declaration(spec,f,args,loc))
   | GVarDecl (_spec(*TODO*), ({vstorage=Extern} as vi),_) ->
@@ -414,12 +489,13 @@ let cleanup file =
 
     method vstmt_aux st =
       self#remove_lexical_annotations st;
-      let loc = Cil.get_stmtLoc st.skind in
+      let loc = Cilutil.get_stmtLoc st.skind in
       if Annotations.get st <> [] || st.labels <> [] then
         keep_stmt <- Cilutil.StmtSet.add st keep_stmt;
       match st.skind with
           Block b ->
-            let b' = Cil.visitCilBlock (self :> Cil.cilVisitor) b in
+            (* queue is flushed afterwards*)
+            let b' = Cil.visitCilBlock (self:>cilVisitor) b in
             (match b'.bstmts with
                  [] ->
                    changed <- true;
@@ -467,7 +543,7 @@ let cleanup file =
            Cfg.computeFileCFG f; f end
          else f)
   end
-  in Cil.visitCilFileSameGlobals (visitor :> Cil.cilVisitor) file
+  in visitFramacFileSameGlobals visitor file
 
 let check_visitor : Cil.cilVisitor =
 object
@@ -504,11 +580,26 @@ object
 
 end
 
+let print_renaming: Cil.cilVisitor =
+object
+  inherit Cil.nopCilVisitor
+    method vvdec v =
+      if v.vname <> v.vorig_name then begin
+        Cil.logLoc v.vdecl
+          "Variable %s has been renamed to %s" v.vorig_name v.vname
+      end;
+      DoChildren
+
+end
+
 let prepare_cil_file file =
   Format.printf "Starting semantical analysis@.";
   computeCFG file;
   if Cmdline.Files.Check.get() then begin
    Cil.visitCilFileSameGlobals check_visitor file;
+  end;
+  if Cmdline.Files.Orig_name.get () then begin
+    Cil.visitCilFileSameGlobals print_renaming file
   end;
   (* Compute the list of functions and their CFG *)
   List.iter register_global file.globals;
@@ -519,8 +610,7 @@ let prepare_cil_file file =
   Unroll_loops.compute (Cmdline.UnrollingLevel.get ()) file;
   Cfg.clearFileCFG ~clear_id:false file;
   Cfg.computeFileCFG file;
-  Cil_state.set_file file;
-  Cg.dump ()
+  Cil_state.set_file file
 
 let init_project_from_cil_file prj file =
   Project.copy
@@ -539,6 +629,7 @@ let init_project_from_cil_file prj file =
    identified bugs.
  *)
 class check_file: Visitor.frama_c_visitor  =
+let check_error fmt = Cil.error ("[AST Integrity Check]@ " ^^ fmt) in
 object(self)
   inherit Visitor.generic_frama_c_visitor (Project.current())
     (Cil.inplace_visit())
@@ -546,7 +637,60 @@ object(self)
   val known_code_annot_id = Hashtbl.create 7
   val known_fields = FieldinfoHashtbl.create 7
   val known_stmts = StmtHashtbl.create 7
+  val known_vars = VarinfoHashtbl.create 7
+  val known_logic_vars = LogicVarHashtbl.create 7
   val mutable labelled_stmt = []
+
+  method vvdec v =
+    VarinfoHashtbl.add known_vars v v;
+    match v.vlogic_var_assoc with
+        None -> DoChildren
+      | Some { lv_origin = Some v'} when v == v' -> DoChildren
+      | Some lv ->
+          Errormsg.s
+            (check_error "C variable %a is not properly referenced by its \
+                          associated logic variable %a"
+               !Ast_printer.d_ident v.vname !Ast_printer.d_ident lv.lv_name)
+
+  method vvrbl v =
+    (try
+       if VarinfoHashtbl.find known_vars v != v then
+         Errormsg.s
+           (check_error "variable %a is not shared between definition and use"
+           !Ast_printer.d_ident v.vname)
+    with Not_found ->
+      Errormsg.s
+        (check_error "variable %a is not declared" !Ast_printer.d_ident v.vname)
+    );
+    DoChildren
+
+  method vlogic_var_decl lv =
+    LogicVarHashtbl.add known_logic_vars lv lv;
+    match lv.lv_origin with
+        None -> DoChildren
+      | Some { vlogic_var_assoc = Some lv' } when lv == lv' -> DoChildren
+      | Some v ->
+          Errormsg.s
+            (check_error
+               "logic variable %a is not properly referenced by the original \
+                C variable %a"
+               !Ast_printer.d_ident lv.lv_name !Ast_printer.d_ident v.vname
+            )
+
+  method vlogic_var_use v =
+    (try
+       if LogicVarHashtbl.find known_logic_vars v != v then
+         Errormsg.s
+           (check_error
+              "logic variable %a is not shared between definition and use"
+              !Ast_printer.d_ident v.lv_name)
+     with Not_found ->
+       Errormsg.s
+         (check_error "logic variable %a is not declared"
+            !Ast_printer.d_ident  v.lv_name))
+    ;
+    DoChildren
+
 
   method vfunc f =
     labelled_stmt <- [];
@@ -556,20 +700,20 @@ object(self)
         (fun stmt ->
            try if StmtHashtbl.find known_stmts stmt != stmt then
              Errormsg.s
-               (Cil.error
-                  "[AST Integrity Check] Label %a in function %s \
+               (check_error
+                  "Label %a in function %s \
                    is not linked to the correct statement"
-                  Cil.d_stmt ({stmt with skind =
-                                     Instr (Skip (Cil.get_stmtLoc stmt.skind))
-                                 })
+                  Cil.d_stmt
+		  {stmt with skind =
+		      Instr (Skip (Cilutil.get_stmtLoc stmt.skind)) }
                   f.svar.vname)
            with Not_found ->
              Errormsg.s
-               (Cil.error
-                  "[AST Integrity Check] Label %a in function %s \
+               (check_error
+                  "Label %a in function %s \
                    does not refer to an existing statement"
                   Cil.d_stmt ({stmt with skind =
-                                  Instr (Skip (Cil.get_stmtLoc stmt.skind))
+                                  Instr (Skip (Cilutil.get_stmtLoc stmt.skind))
                               })
                   f.svar.vname))
         labelled_stmt;
@@ -588,7 +732,7 @@ object(self)
 
   method vcode_annot ca =
     if Hashtbl.mem known_code_annot_id ca.annot_id then
-      Errormsg.s (Cil.error  "[AST integrity check] duplicated code annotation")
+      Errormsg.s (check_error "duplicated code annotation")
     else Hashtbl.add known_code_annot_id ca.annot_id (); DoChildren
 
   method voffs = function
@@ -600,13 +744,14 @@ object(self)
             if not (fi == FieldinfoHashtbl.find known_fields fi)
             then
               Errormsg.s
-                (Cil.error "[AST Integrity Check] field %s of type %s is not \
-                            shared between declaration and use"
+                (check_error
+                   "field %s of type %s is not \
+                    shared between declaration and use"
                    fi.fname fi.fcomp.cname)
           with Not_found ->
-            Errormsg.s (Cil.error "[AST Integrity Check] field %s of \
-                                   type %s is unbound in the AST"
-                          fi.fname fi.fcomp.cname)
+            Errormsg.s
+              (check_error "field %s of type %s is unbound in the AST"
+                 fi.fname fi.fcomp.cname)
         end;
         DoChildren
 
@@ -619,19 +764,19 @@ object(self)
             if not (fi == FieldinfoHashtbl.find known_fields fi)
             then
               Errormsg.s
-                (Cil.error "[AST Integrity Check] field %s of type %s is not \
-                            shared between declaration and use"
+                (check_error "field %s of type %s is not \
+                              shared between declaration and use"
                    fi.fname fi.fcomp.cname)
           with Not_found ->
-            Errormsg.s (Cil.error "[AST Integrity Check] field %s of \
-                                   type %s is unbound in the AST"
+            Errormsg.s (check_error
+                          "field %s of type %s is unbound in the AST"
                           fi.fname fi.fcomp.cname)
         end;
         DoChildren
 
   method vtsets_offset =
     function
-      TSNo_offset -> DoChildren
+      TSNoOffset -> DoChildren
     | TSIndex _ | TSRange _ -> DoChildren
     | TSField(fi,_) ->
         begin
@@ -639,18 +784,18 @@ object(self)
             if not (fi == FieldinfoHashtbl.find known_fields fi)
             then
               Errormsg.s
-                (Cil.error "[AST Integrity Check] field %s of type %s is not \
-                            shared between declaration and use"
+                (check_error "field %s of type %s is not \
+                              shared between declaration and use"
                    fi.fname fi.fcomp.cname)
           with Not_found ->
-            Errormsg.s (Cil.error "[AST Integrity Check] field %s of \
-                                   type %s is unbound in the AST"
-                          fi.fname fi.fcomp.cname)
+            Errormsg.s
+              (check_error "field %s of type %s is unbound in the AST"
+                 fi.fname fi.fcomp.cname)
         end;
         DoChildren
 
   method vtsets_elem = function
-    | TSAt(_,StmtLabel l) -> labelled_stmt <- !l::labelled_stmt; DoChildren
+    | TSat(_,StmtLabel l) -> labelled_stmt <- !l::labelled_stmt; DoChildren
     | _ -> DoChildren
 
   method vterm t =
@@ -670,30 +815,59 @@ object(self)
         List.iter
           (fun x -> FieldinfoHashtbl.add known_fields x x) c.cfields;
         DoChildren
+    | GVarDecl(_,v,_) when Cil.isFunctionType v.vtype ->
+        (match Cil.splitFunctionType v.vtype with
+             (_,None,_,_) -> ()
+           | (_,Some l,_,_) ->
+               try
+                 let l' = Cil.getFormalsDecl v in
+                 if List.length l <> List.length l' then
+                   Errormsg.s
+                     (check_error
+                        "prototype %a has %d arguments but is associated to \
+                         %d formals in FormalsDecl" !Ast_printer.d_ident v.vname
+                        (List.length l) (List.length l'))
+                 else
+                   let l'' =
+                     Kernel_function.get_formals
+                       (Globals.Functions.get v)
+                   in
+                   if List.length l' <> List.length l'' then
+                     Errormsg.s
+                       (check_error
+                          "mismatch between FormalsDecl and Globals.Functions \
+                           on prototype %a." !Ast_printer.d_ident v.vname)
+               with Not_found ->
+                 Errormsg.s
+                   (check_error
+                      "prototype %a(%d) has no associated \
+                       parameters in FormalsDecl" !Ast_printer.d_ident v.vname
+                      v.vid
+                   )
+        );
+        DoChildren
     | _ -> DoChildren
 
   method vpredicate = function
       Pat(_,StmtLabel l) ->  labelled_stmt <- !l::labelled_stmt; DoChildren
     | _ -> DoChildren
 
+(*
   method vpredicate_info_decl pi =
-    if Cmdline.Debug.get() > 0 then
-      Printf.eprintf "visiting decl of %s\n" pi.p_name;
     (try
-       if Logic_env.find_predicate pi.p_name != pi then
+       if Logic_env.find_logic_function pi.l_name != pi then
          Errormsg.s
            (Cil.error "[AST Integrity Check] predicate %a information is \
                             not shared between declaration and use"
-              !Ast_printer.d_ident pi.p_name)
+              !Ast_printer.d_ident pi.l_name)
      with Not_found ->
        Errormsg.s
          (Cil.error "[AST Integrity Check] predicate %a has no information"
-            !Ast_printer.d_ident pi.p_name));
+            !Ast_printer.d_ident pi.l_name));
     DoChildren
+*)
 
   method vlogic_info_decl li =
-    if Cmdline.Debug.get() > 0 then
-      Printf.eprintf "visiting decl of %s\n" li.l_name;
     (try if Logic_env.find_logic_function li.l_name !=  li then
        Errormsg.s
          (Cil.error "[AST Integrity Check] logic function %a information is \
@@ -705,23 +879,21 @@ object(self)
             !Ast_printer.d_ident li.l_name));
     DoChildren
 
+(*
   method vpredicate_info_use pi =
-    if Cmdline.Debug.get() > 0 then
-      Printf.eprintf "visiting use of %s\n" pi.p_name;
-    (try if  Logic_env.find_predicate pi.p_name !=  pi then
+    (try if  Logic_env.find_logic_function pi.l_name !=  pi then
        Errormsg.s
          (Cil.error "[AST Integrity Check] predicate %a information is \
                             not shared between declaration and use"
-            !Ast_printer.d_ident pi.p_name)
+            !Ast_printer.d_ident pi.l_name)
      with Not_found ->
        Errormsg.s
          (Cil.error "[AST Integrity Check] predicate %a has no information"
-            !Ast_printer.d_ident pi.p_name));
+            !Ast_printer.d_ident pi.l_name));
     DoChildren
+*)
 
   method vlogic_info_use li =
-    if Cmdline.Debug.get() > 0 then
-      Printf.eprintf "visiting use of %s\n" li.l_name;
     (try if Logic_env.find_logic_function li.l_name !=  li then
        Errormsg.s
          (Cil.error "[AST Integrity Check] logic function %a information is \
@@ -735,21 +907,82 @@ object(self)
 
 end
 
-let init_project_from_visitor_aux ?(files_copy=false) prj visitor =
+(* items in the machdeps list are of the form
+   (machine, (is_public, action_when_selected))
+   where
+   - machine is the machine name
+   - is_public is true if the machine is public (shown in -machdeps help)
+   - action_when_selected is the action to perform when the corresponding
+   machine is set as current (i.e. defining the right architecture via
+   Machdep.DEFINE)
+*)
+let machdeps =
+  [ ("x86_16", (true,
+                fun () -> let module M = Machdep.DEFINE(Machdep_x86_16) in ()));
+    ("x86_32", (true,
+                fun () -> let module M = Machdep.DEFINE(Machdep_x86_32) in ()));
+    ("x86_64", (true,
+                fun () -> let module M = Machdep.DEFINE(Machdep_x86_64) in ()));
+    ("ppc_32", (true,
+                fun () -> let module M = Machdep.DEFINE(Machdep_ppc_32) in ()));
+    ("ppc_32_diab", (false,
+                     fun () -> let module M =
+                       Machdep.DEFINE(Machdep_ppc_32_diab) in ()));
+  ]
+
+let set_machdep () = match Cmdline.Machdep.get () with
+  | "" -> ()
+  | s when List.exists (fun x -> fst x = s) machdeps ->
+      (snd (List.assoc s machdeps)) ()
+(*  | "x86_16" -> let module M = Machdep.DEFINE(Machdep_x86_16) in ()
+  | "x86_32" -> let module M = Machdep.DEFINE(Machdep_x86_32) in ()
+  | "x86_64" -> let module M = Machdep.DEFINE(Machdep_x86_64) in ()
+  | "ppc_32" -> let module M = Machdep.DEFINE(Machdep_ppc_32) in ()
+  | "ppc_32_diab" -> let module M = Machdep.DEFINE(Machdep_ppc_32_diab) in ()
+*)
+  | s ->
+      if s <> "help" then
+        Format.printf "Unsupported machine %s. Try one of" s
+      else
+        Format.printf "Supported machines are";
+      List.iter
+        (fun (x,(public,_)) -> if public then Format.printf " %s" x) machdeps;
+      Format.printf ".@.";
+      exit (if s = "help" then 0 else 1)
+
+let cil_init () =
+  set_machdep ();
+  Cil.initCIL ();
+  Logic_env.Builtins.apply ();
+  Logic_env.prepare_tables ()
+
+let prepare_from_c_files () =
+  cil_init ();
+  let files = Files.get () in (* Allow pre-registration of prolog files *)
+  let cil = files_to_cil files in
+  prepare_cil_file cil
+
+let init_project_from_visitor_aux ?(pure_copy=false) prj visitor =
   let except =
-    let sel =
-(*      if files_copy then*) Project.Selection.empty(* else Cmdline.get_selection () *)
-    in
-    Project.Selection.add Cil_state.self Kind.Select_Dependencies sel
+    if pure_copy then
+      Project.Selection.add Cil.BuiltinFunctions.self Kind.Select_Dependencies
+        (Project.Selection.singleton Cil_state.self Kind.Select_Dependencies)
+    else
+      Project.Selection.add
+        Cil.selfMachine Kind.Select_Dependencies
+        (Project.Selection.singleton Cmdline.Files.self
+           Kind.Select_Dependencies)
   in
   Project.copy ~except prj;
-  if not files_copy then begin
+  if not pure_copy then begin
     let temp = Project.create "temp" in
     Project.copy ~only:(Cmdline.get_selection ()) ~src:temp prj;
     Project.remove ~project:temp ()
   end;
   let visitor =  (visitor prj :> Cil.cilVisitor) in
+  (* queue of visitor is filled below *)
   let set_annotation annot = visitCilAnnotation visitor annot in
+  Project.on prj cil_init ();
   Project.on
     ~only:(Project.Selection.singleton Globals.Annotations.self
              Kind.Do_Not_Select_Dependencies)
@@ -778,11 +1011,11 @@ let init_project_from_visitor_aux ?(files_copy=false) prj visitor =
 
 let init_from_c_files files =
   (* Fill logic tables with builtins *)
-  Logic_env.Builtins.apply ();
-  Files.register files;
-  let files = Files.get () in (* Allow pre-registration of prolog files *)
-  let cil = files_to_cil files in
-  prepare_cil_file cil
+  (match files with
+  | [] -> ()
+  | _ ->
+      Files.register files);
+  prepare_from_c_files ()
 
 let init_from_cmdline () =
   let files = List.map (fun s -> from_filename s) (Cmdline.Files.get ()) in
@@ -793,12 +1026,35 @@ let init_from_cmdline () =
     end;
     if Cmdline.Files.Copy.get () then begin
       let prj = Project.create "debug_copy_prj" in
-      init_project_from_visitor_aux ~files_copy:true
+      init_project_from_visitor_aux ~pure_copy:true
 	prj (new Visitor.frama_c_copy);
       Project.set_current prj;
     end;
   with Cil_state.Bad_Initialisation s ->
     Format.eprintf "Bad initialisation: %s@." s; assert false
+
+let init_from_cmdline =
+  Journal.register
+    "File.init_from_cmdline"
+    (Type.func Type.unit Type.unit)
+    init_from_cmdline
+
+let init_from_c_files =
+  Journal.register
+    "File.init_from_c_files"
+    (Type.func (Type.list T.repr) Type.unit)
+    init_from_c_files
+
+let prepare_from_c_files =
+  Journal.register
+    "File.prepare_from_c_files"
+    (Type.func Type.unit Type.unit)
+    prepare_from_c_files
+
+let () = Cil_state.set_default_initialization
+  (fun () ->
+     if Files.is_computed () then prepare_from_c_files ()
+     else init_from_cmdline ())
 
 let pretty ?(prj=Project.current ()) fmt =
   Project.on
@@ -821,7 +1077,9 @@ let () =
     ~debug:["-check", Arg.Unit Cmdline.Files.Check.on,
               "performs consistency checks over cil files";
             "-copy", Arg.Unit Cmdline.Files.Copy.on,
-            "always perform a copy of the original AST before analysis begin"
+            "always perform a copy of the original AST before analysis begin";
+            "-orig-name", Arg.Unit Cmdline.Files.Orig_name.on,
+            "prints a message each time a variable is renamed."
            ]
     [ "-cpp-command",
       Arg.String Cmdline.CppCommand.set,
@@ -832,7 +1090,7 @@ let () =
        %1 and %2 can be used into CPP string to mark the position of \
        <source file> and <preprocessed file> respectively.";
       "-cpp-extra-args",
-      Arg.String Cmdline.CppExtraArgs.set,
+      Arg.String Cmdline.CppExtraArgs.add,
       "additional arguments passed to the preprocessor while preprocessing \
        the C code but not while preprocessing annotations.";
       "-no-annot",
@@ -845,7 +1103,12 @@ let () =
       "-pp-annot",
       Arg.Unit Cmdline.PreprocessAnnot.on,
       ": pre-process annotations (if they are read).";
-]
+      "-warn-unspecified-order",
+      Arg.Unit Cmdline.WarnUnspecifiedOrder.on,
+      Format.sprintf
+        ": warns for side effects occuring in unspecified order (default: %b)"
+        (Cmdline.WarnUnspecifiedOrder.get());
+    ]
 
 (*
 Local Variables:

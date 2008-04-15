@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -out -deps -main main
-   OPT: -memory-footprint 1 -val -out -deps -main origin
+   OPT: -memory-footprint 1 -val -out -deps -main main -journal-disable
+   OPT: -memory-footprint 1 -val -out -deps -main origin -journal-disable
 
 
 */
@@ -67,7 +67,7 @@ void origin_uninitialized_2(int c1, int c2) {
   if (c1)
     pi = &a ;
   pun2 = pi;
-  
+
   if (c2)
     qun2 = pun2 + i;
 }
@@ -81,10 +81,10 @@ void local_escape_1(int arg)
   esc2 = (int) &local1;
   esc3 = - (int) &arg;
   esc4 = random ? esc2 : 12;
-  local2 = (int) &local1;  
+  local2 = (int) &local1;
   esc5 = (int) &esc1;
 }
-  
+
 
 void main(int c1, int c2)
 {
@@ -117,15 +117,14 @@ struct st {
 struct st origin (int c0) {
   struct st r;
   int *q1, *q2;
-  
+
   r.c = f() ;
   r.i = c0 ;
-  r.p = *(int *) (&v.c + 3); 
+  r.p = *(int *) (&v.c + 3);
   q1 =           *(int**)(2 + (char *) v.t);
   q2 = c0 ? q1 : *(int**)(3 + (char *) v.t);
-  r.t[0] = q2 ;  
+  r.t[0] = q2 ;
   r.t[1] = (int *)(- (int)&x) ;
   return r;
 }
 /************************************/
-  

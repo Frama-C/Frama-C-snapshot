@@ -40,7 +40,7 @@
  * *)
 
 (**/**)
-
+open Cilutil
 open Cil_types
 
 module T = SlicingTypes.Internals
@@ -73,7 +73,6 @@ module CallInfo : sig
 
   val something_visible : t -> bool
   val some_visible_out : t -> bool
-  val is_topin_visible : t -> bool
 
   val remove_called_by : T.t_project -> t_call_id -> t -> unit
   val is_call_to_change : t -> T.t_called_fct option -> bool
@@ -120,7 +119,7 @@ end = struct
 
   let something_visible ci = Marks.something_visible (get_sig ci)
 
-  let is_topin_visible ci = Marks.is_topin_visible (get_sig ci)
+  (* let is_topin_visible ci = Marks.is_topin_visible (get_sig ci) *)
 
   let some_visible_out ci = Marks.some_visible_out (get_sig ci)
 
@@ -157,7 +156,7 @@ end = struct
       | e :: called_by -> if (M.same_ff_call call_id e) then called_by
         else e::(remove called_by)
     in
-      if M.debug2 () then Format.printf "-> remove old_called@\n";
+      M.debug 2 "-> remove old_called@.";
       let old_called = get_f_called call_info in
       match old_called with
         | None -> ()
@@ -177,14 +176,14 @@ end = struct
   * [call] in [ff] is changed in order to call [to_call]. If some function was
   * previously called, update its [called_by] information. *)
   let change_call proj ff_marks call_id to_call =
-    if M.debug2 () then Format.printf "CallInfo.change_call@\n";
+    M.debug 2 "CallInfo.change_call@.";
     let call_info = get_info_call call_id in
     let something_to_do = is_call_to_change call_info to_call in
     if something_to_do then
       begin
-        if M.debug2 () then Format.printf "-> remove old_called@\n";
+        M.debug 2 "-> remove old_called@.";
         let _ = remove_called_by proj call_id call_info in
-        if M.debug2 () then Format.printf "-> add new_called@\n";
+        M.debug 2 "-> add new_called@.";
         let _ = match to_call with
         | None -> () (* nothing to do *)
         | Some f ->
@@ -255,8 +254,10 @@ module FctMarks : sig
   val mark_and_propagate     : t -> ?to_prop:t_to_prop ->
       t_mark PdgMarks.t_select -> t_to_prop
 
+  val mark_spare_nodes       : t_fct_slice -> t_node list -> t_to_prop
+
   (** add a [Spare] mark to all the input nodes of the call and propagate *)
-  val mark_spare_nodes       : t_fct_slice -> T.t_call_id -> t_to_prop
+  val mark_spare_call_nodes       : t_fct_slice -> T.t_call_id -> t_to_prop
 
   (** Mark the output nodes can be made visible due to marks in their
    * dependencies. This can occurs if, for instance,
@@ -418,6 +419,7 @@ end = struct
  *        a persistant input mark is not considered as a new input.
  * *)
   let marks_for_caller_inputs pdg_caller old_marks call to_prop fi_to_call =
+    assert (not (PdgTypes.Pdg.is_top pdg_caller));
     let in_info, _ = to_prop in
     let new_input = ref false in
     let m2m s m =
@@ -427,9 +429,7 @@ end = struct
       in
       let old_m = get_mark old_marks key in
       let new_m = Marks.missing_input_mark ~call:old_m ~called:m in
-        if M.debug2 () then
-          Format.printf
-            "marks_for_caller_inputs for %a : old=%a new=%a -> %a@\n"
+        M.debug 2 "marks_for_caller_inputs for %a : old=%a new=%a -> %a@."
             !Db.Pdg.pretty_key key Marks.pretty_mark old_m Marks.pretty_mark m
             Marks.pretty_mark
             (match new_m with None -> Marks.bottom_mark | Some m -> m);
@@ -458,25 +458,25 @@ end = struct
         | None -> call_out_marks
         | Some (ff_call, call) ->
             let pdg = M.get_ff_pdg ff_call in
-        let spare = Marks.mk_gen_spare in
-        let rec add2 marks n =
-          match !Db.Pdg.node_key n with
-            | PdgIndex.Key.SigCallKey (_, n_key) ->
-               begin
-                match n_key with
-                  | (PdgIndex.Signature.In _) -> marks
-                  | (PdgIndex.Signature.Out key) ->
+            let spare = Marks.mk_gen_spare in
+            let rec add2 marks n =
+              match !Db.Pdg.node_key n with
+                | PdgIndex.Key.SigCallKey (_, (PdgIndex.Signature.In _)) ->
+                    marks
+                | PdgIndex.Key.SigCallKey (_, (PdgIndex.Signature.Out key)) ->
+                    begin
                       match marks with
                         | [] -> [(key, spare)]
                         | (k, m):: marks ->
-                        if PdgIndex.Signature.equal_out_key k key then
-                          let m = if Marks.is_bottom_mark m then spare else m
-                          in (k, m):: marks
-                          else (k, m)::(add2 marks n)
-                end
-            | _ -> assert false
-        in
-          PdgTypes.Pdg.fold_call_nodes add2 call_out_marks pdg call
+                            if PdgIndex.Signature.equal_out_key k key then
+                              let m =
+                                if Marks.is_bottom_mark m then spare else m
+                              in (k, m):: marks
+                            else (k, m)::(add2 marks n)
+                    end
+                | _ -> assert false
+            in
+              PdgTypes.Pdg.fold_call_nodes add2 call_out_marks pdg call
 
   let check_called_marks new_call_marks ff_called =
     let ff_marks = get_ff_marks ff_called in
@@ -489,22 +489,32 @@ end = struct
           * even if the data is not entirely defined by the function,
           * it has already been taken into account in the "from". *)
           None
-      | PdgMarks.SelNode (n, _z_opt) -> (* TODO : something to do for z_opt ?*)
+      | PdgMarks.SelNode (n, _z_opt) ->
           let nkey = !Db.Pdg.node_key n in
+            (*
+          let nkey = match z_opt with None -> nkey
+            | Some z -> match nkey with
+                | PdgIndex.Key.SigCallKey
+                    (call_id, (PdgIndex.Signature.Out _)) ->
+                    let call = PdgIndex.Key.call_from_id call_id in
+                     PdgIndex.Key.call_output_key call z
+                | _ -> nkey
+          in
+      *)
           let old_m = get_mark ff_marks nkey in
           let m_opt = Marks.missing_output_mark ~call:m ~called:old_m in
-          let _ = match m_opt with
+          let new_out = match m_opt with
             | Some _new_m when Marks.is_bottom_mark old_m ->
-                new_output := true
-            | _ -> ()
+                new_output := true; true
+            | _ -> (); false
           in
-            if M.debug2 () then
-              Format.printf "check_called_marks for %a : old=%a new=%a -> %a@\n"
-                !Db.Pdg.pretty_key nkey
-                Marks.pretty_mark old_m
-                Marks.pretty_mark m
-                Marks.pretty_mark
-                (match m_opt with None -> Marks.bottom_mark | Some m -> m);
+            M.debug 2 "check_called_marks for %a : old=%a new=%a -> %a %s@."
+              !Db.Pdg.pretty_key nkey
+              Marks.pretty_mark old_m
+              Marks.pretty_mark m
+              Marks.pretty_mark
+              (match m_opt with None -> Marks.bottom_mark | Some m -> m)
+              (if new_out then "(new out)" else "");
             m_opt
     in let new_called_marks =
       Pdg.Register.call_out_marks_to_called ff_pdg m2m new_call_marks
@@ -512,11 +522,9 @@ end = struct
 
   let persistant_in_marks_to_prop fi to_prop  =
     let in_info, _ = to_prop in
-    if M.debug2 () then
-      Format.printf "[persistant_marks_to_prop] from %s@\n" (M.fi_name fi);
+    M.debug 2 "[persistant_marks_to_prop] from %s@." (M.fi_name fi);
     let m2m _call _pdg_caller _n m =
-      (* if M.debug2 () then
-        Format.printf "  in_m2m %a in %s ?@\n"
+      (* M.debug 2 "  in_m2m %a in %s ?@."
           PdgIndex.Key.pretty (!Db.Pdg.node_key n) (M.pdg_name pdg_caller); *)
       Marks.missing_input_mark ~call:Marks.bottom_mark ~called:m
     in
@@ -529,14 +537,14 @@ end = struct
     let fm = get_ff_marks ff in
     let add_if_new acc (n, m) =
       let nkey = match n with
-        | PdgMarks.SelNode (n, _z_opt) -> 
-            (* TODO : somthing to do for z_opt ? *)
+        | PdgMarks.SelNode (n, _z_opt) ->
+            (* TODO : something to do for z_opt ? *)
             !Db.Pdg.node_key n
         | PdgMarks.SelIn l -> PdgIndex.Key.implicit_in_key l
       in
       let oldm = get_mark fm nkey in
       let newm = Marks.minus_marks m oldm in
-      (* Format.printf "get_new_marks for %a : old=%a new=%a -> %a@\n"
+      (* Format.printf "get_new_marks for %a : old=%a new=%a -> %a@."
         !Db.Pdg.pretty_key nkey Marks.pretty_mark oldm
         Marks.pretty_mark m Marks.pretty_mark newm; *)
       if not (Marks.is_bottom_mark newm) then (n, newm)::acc else acc
@@ -546,18 +554,21 @@ end = struct
   * We have to check that all the associated nodes and
   * the dependencies of these nodes are, at least, marked as 'spare'.
   *)
-  let mark_spare_nodes ff call =
+  let mark_spare_nodes ff nodes =
     let ff_marks = get_ff_marks ff in
-    let pdg, _ = ff_marks  in
     let m_spare = Marks.mk_gen_spare in
-    let nodes = !Db.Pdg.find_simple_stmt_nodes pdg call in
-    let node_marks = 
+    let node_marks =
       List.map (fun n -> (PdgMarks.mk_select_node n, m_spare)) nodes in
     let to_prop = mark_and_propagate ff_marks node_marks in
       to_prop
 
+  let mark_spare_call_nodes ff call =
+    let pdg = M.get_ff_pdg ff in
+    let nodes = !Db.Pdg.find_simple_stmt_nodes pdg call in
+    mark_spare_nodes ff nodes
+
    (** TODO :
-   * this function should disapear when the parameter declarations will
+   * this function should disappear when the parameter declarations will
    * be handled... *)
   let mark_visible_inputs ff_marks to_prop =
     let pdg, _ = ff_marks  in
@@ -574,8 +585,7 @@ end = struct
           let marks = check_in_params (n+1) params in
             if not (Marks.is_bottom_mark m) then
               begin
-                if M.debug2 () then
-                  Format.printf "check_visible_inputs %a -> %a@\n"
+                M.debug 2 "check_visible_inputs %a -> %a@."
                     (!Db.Pdg.pretty_node true) node Marks.pretty_mark m;
                 PdgMarks.add_node_to_select marks (node, None) m
               end
@@ -593,8 +603,7 @@ end = struct
         let m = Marks.inter_marks dpds_marks in
           if not (Marks.is_bottom_mark m) then
             begin
-              if M.debug2 () then
-                Format.printf "check_visible_outputs %a -> %a@\n"
+              M.debug 2 "check_visible_outputs %a -> %a@."
                   (!Db.Pdg.pretty_node true) out_node Marks.pretty_mark m;
               let select = PdgMarks.add_node_to_select [] (out_node, None) m in
               let to_prop = mark_and_propagate ff_marks select in
@@ -612,13 +621,13 @@ end = struct
           with PdgIndex.CallStatement -> assert false
         with PdgIndex.NotFound -> Marks.bottom_mark
       in
-        Format.fprintf fmt "%a : %a@\n" (!Db.Pdg.pretty_node true) node
+        Format.fprintf fmt "%a : %a@." (!Db.Pdg.pretty_node true) node
           Marks.pretty_mark m
     in
       !Db.Pdg.iter_nodes print_node pdg
 
   let debug_marked_ff fmt ff =
-    Format.fprintf fmt "Print slice = %s@\n" (M.ff_name ff);
+    Format.fprintf fmt "Print slice = %s@." (M.ff_name ff);
     let ff_marks =  ff.T.ff_marks in
       debug_ff_marks fmt ff_marks
 
@@ -647,18 +656,18 @@ let pretty_node_marks fmt marks =
 
 let check_outputs call_id called_ff add_spare =
   let (ff_call, call) = call_id in
-  if M.debug2 () then
-    Format.printf "[slicing] check %s outputs for call %d in %s@\n"
+  M.debug 2 "[slicing] check %s outputs for call %d in %s@."
       (M.ff_name called_ff) call.sid (M.ff_name ff_call);
   let call_info = CallInfo.get_info_call call_id in
   let spare_info = if add_spare then Some call_id else None in
   let out_call = FctMarks.get_call_output_marks ~spare_info call_info in
   let new_marks, more = FctMarks.check_called_marks out_call called_ff in
-    (*
-  if M.debug2 () then
-    Format.printf "[slicing:check_outputs] need : %a@\n"
-      pretty_node_marks new_marks;
-  *)
+
+  M.debug 2
+    (*    Format.printf "[slicing:check_outputs] need : %a@."
+      pretty_node_marks new_marks;*)
+    "[slicing:check_outputs] %d more marks. %s more outputs@."
+    (List.length new_marks) (if more then "some" else "no");
   (new_marks, more)
 
 
@@ -694,25 +703,25 @@ let check_ff_called ff call new_marks_in_call_outputs ff_called =
   * @return a list of actions if needed.
   *)
 let examine_calls ff new_marks_in_call_outputs =
-  if M.debug2 () then Format.printf "examine_calls@\n";
+  M.debug 2 "examine_calls@.";
   let process_this_call call call_info filter_list =
     if CallInfo.something_visible call_info then
       begin
-      if M.debug2 () then Format.printf "  examine visible call %d@\n" call.sid;
+      M.debug 2 "  examine visible call %d@." call.sid;
       let f_called = CallInfo.get_f_called call_info in
       let filter_list = match f_called with
         | None ->
             (* have to chose a function to call here *)
-            if M.debug2 () then Format.printf "  -> add choose_call@\n";
+            M.debug 2 "  -> add choose_call@.";
             (Act.mk_crit_choose_call ff call) :: filter_list
         | Some (T.CallSrc _) ->
             (* the source function compute every outputs, so nothing to do *)
-            if M.debug2 () then Format.printf "  -> source called : nothing to do@\n";
+            M.debug 2 "  -> source called : nothing to do@.";
             filter_list
         | Some (T.CallSlice ff_called) ->
             (* call to a sliced function : check if it's still ok,
             * or create new [missing_output] action  *)
-            if M.debug2 () then Format.printf "  -> slice called -> check@\n";
+            M.debug 2 "  -> slice called -> check@.";
             let new_filter =
               check_ff_called ff call new_marks_in_call_outputs ff_called
             in match new_filter with None -> filter_list
@@ -721,7 +730,7 @@ let examine_calls ff new_marks_in_call_outputs =
       end
     else (* the call is not visible : nothing to do *)
       begin
-        if M.debug2 () then Format.printf "  invisible call -> OK@\n";
+        M.debug 2 "  invisible call -> OK@.";
         filter_list
       end
   in FctMarks.fold_calls process_this_call ff []
@@ -734,8 +743,6 @@ let examine_calls ff new_marks_in_call_outputs =
 * selection : if the new slice marks will be modified just after that,
 * it is not useful to do [examine_calls], but if it is finished,
 * we must generate those actions to choose the calls.
-* @raise SlicingTypes.ExternalFunction if the function has no source code,
-*        because there cannot be any slice for it.
     @raise SlicingTypes.NoPdg  (see [new_slice])
 *)
 let make_new_ff fi build_actions =
@@ -747,7 +754,7 @@ let make_new_ff fi build_actions =
     let new_filters =
       (if build_actions && some_marks then examine_calls ff [] else [])
     in
-      if M.debug1 () then Format.printf "[make_new_ff] = %s@\n" (M.ff_name ff);
+      M.debug 1 "[make_new_ff] = %s@." (M.ff_name ff);
       (ff, new_filters)
   in
   let fname = M.fi_name fi in
@@ -781,6 +788,8 @@ let add_missing_inputs_actions ff calls to_prop actions =
       | _ -> assert false
     in
     let pdg_caller = M.get_ff_pdg ff_call in
+      assert (not (PdgTypes.Pdg.is_top pdg_caller));
+      (* we cannot have a top pdg here, because it is a sliced pdg *)
     let old_marks = FctMarks.get_ff_marks ff_call in
     let missing_inputs =
       FctMarks.marks_for_caller_inputs pdg_caller old_marks call to_prop fi
@@ -791,11 +800,11 @@ let add_missing_inputs_actions ff calls to_prop actions =
             Act.mk_crit_missing_inputs ff_call call missing_inputs in
             new_action :: actions
   in let actions = List.fold_left check_call actions calls in
-  if M.debug2 () then
+  if M.has_debug 2 then
     begin
     match actions with
-    | [] -> Format.printf "no missing input@\n"
-    |  _ -> Format.printf "add_missing_inputs_actions@\n"
+    | [] -> Format.printf "no missing input@."
+    |  _ -> Format.printf "add_missing_inputs_actions@."
     end;
   actions
 
@@ -807,17 +816,17 @@ let add_missing_inputs_actions ff calls to_prop actions =
 * They will by  used during the applications.
 * *)
 let after_marks_modifications ff to_prop =
-  if M.debug2 () then Format.printf "before after_marks_modifications@\n";
-  if M.debug2 () then Format.printf "%a@\n" FctMarks.debug_marked_ff ff;
+  M.debug 2 "before after_marks_modifications@.";
+  M.debug 2 "%a@." FctMarks.debug_marked_ff ff;
   let new_filters = [] in
   let calls = M.get_calls_to_ff ff in
   let new_filters = add_missing_inputs_actions ff calls to_prop new_filters in
   let call_outputs = FctMarks.marks_for_call_outputs to_prop in
   let new_filters = (Act.mk_crit_examines_calls ff call_outputs)::new_filters in
-  if M.debug2 () then
+  if M.has_debug 2 then
     begin match new_filters with
-    | [] -> Format.printf "[after_marks_modifications] no new filters@\n"
-    | _ -> Format.printf "[after_marks_modifications] some new filters@\n";
+    | [] -> Format.printf "[after_marks_modifications] no new filters@."
+    | _ -> Format.printf "[after_marks_modifications] some new filters@.";
     end;
   new_filters
 
@@ -827,7 +836,7 @@ let apply_examine_calls ff call_outputs = examine_calls ff call_outputs
 * Dont't use it alone because it doesn't take care of the calls and so on.
 * See [apply_add_marks] or [add_marks_to_fi] for higher level functions. *)
 let add_marks fct_marks nodes_marks =
-  if M.debug2 () then Format.printf "add_marks@\n";
+  M.debug 2 "add_marks@.";
   let to_prop = FctMarks.mark_and_propagate fct_marks nodes_marks in
   FctMarks.mark_visible_output fct_marks;
   let to_prop = FctMarks.mark_visible_inputs fct_marks to_prop in
@@ -837,8 +846,7 @@ let add_marks fct_marks nodes_marks =
   * @return a list of the filters to add to the worklist.
 *)
 let apply_add_marks ff nodes_marks =
-  if M.debug3 () then
-    Format.printf "apply_add_marks@\n-BEFORE:@\n%a" FctMarks.debug_marked_ff ff;
+  M.debug 3 "apply_add_marks@\n-BEFORE:@\n%a" FctMarks.debug_marked_ff ff;
   (*let pdg = M.get_ff_pdg ff in*)
   let to_prop = add_marks (FctMarks.get_ff_marks ff) nodes_marks in
   let new_filters = after_marks_modifications ff to_prop in
@@ -857,26 +865,30 @@ let filter_already_in ff selection =
 * for the same reason (if we mark [x = g ();] in [f], we don't necessarily want
 * all versions of [g] to have a visible [return] for instance).
 **)
-let prop_persistant_marks proj fi to_prop prop_to_callers actions =
-  if prop_to_callers then
-    let pdg_node_marks = FctMarks.persistant_in_marks_to_prop fi to_prop in
-    let add_act acc (pdg, node_marks) =
-      let kf = M.get_pdg_kf pdg in
-      let fi = M.get_kf_fi proj kf in
-      let a = Act.mk_crit_prop_persit_marks fi node_marks in
-        a::acc
-    in List.fold_left add_act actions pdg_node_marks
-  else actions
+let prop_persistant_marks proj fi to_prop actions =
+  let pdg_node_marks = FctMarks.persistant_in_marks_to_prop fi to_prop in
+  let add_act acc (pdg, node_marks) =
+    let kf = M.get_pdg_kf pdg in
+    let fi = M.get_kf_fi proj kf in
+    let a =
+      match node_marks with
+        | PdgMarks.SelList node_marks ->
+            Act.mk_crit_prop_persit_marks fi node_marks
+        | PdgMarks.SelTopMarks marks ->
+            assert (PdgTypes.Pdg.is_top pdg);
+            let m = Marks.merge_marks marks in
+              Act.mk_crit_fct_top fi m
+    in a::acc
+  in List.fold_left add_act actions pdg_node_marks
 
 (** add the marks to the persistent marks to be used when new slices will be
 * created. The actions to add the marks to the existing slices are generated
-* in slicingProject. If it is the first persistent selection for this function,
+* in slicingProject.
+* If it is the first persistent selection for this function,
 * and [propagate=true], also generates the actions to make every calls to this
-* function visible.
-* @raise SlicingTypes.ExternalFunction if the function has no source code,
-*        because there cannot be any slice for it. *)
+* function visible. *)
 let add_marks_to_fi proj fi nodes_marks propagate actions =
-  if M.debug2 () then Format.printf "add_marks_to_fi (persistant)@\n";
+  M.debug 2 "add_marks_to_fi (persistant)@.";
   let marks, are_new_marks =
     match FctMarks.fi_marks fi with
       | Some m -> m, false
@@ -885,52 +897,135 @@ let add_marks_to_fi proj fi nodes_marks propagate actions =
             init_marks, true
   in
   let to_prop = add_marks marks nodes_marks in
-    (*
-  let actions = 
-    if FctMarks.is_visible_top_input fi
-  then begin
-    Pourquoi faudrait-il faire un traitement spécial dans ce cas ???
-    if M.debug1 () then
-      Format.printf "... top input in %s@\n" (M.fi_name fi);
-    (Act.mk_crit_fct_top fi)::actions
-  end
-  else *)
-    let actions = if propagate && are_new_marks then
-      (* (not are_new_marks), the calls must already be selected *)
-      (Act.mk_appli_select_calls fi)::actions else actions
-    in prop_persistant_marks proj fi to_prop propagate actions
+  let actions = if propagate
+                then prop_persistant_marks proj fi to_prop actions
+                else actions
+  in are_new_marks, actions
+
+let add_top_mark_to_fi fi m propagate actions =
+  let new_top = match fi.T.fi_top with
+    | None -> fi.T.fi_top <- Some m; true
+    | Some old_m -> fi.T.fi_top <- Some (Marks.merge_marks [old_m; m]); false
+  in
+  let actions = if propagate && new_top then
+    (Act.mk_appli_select_calls fi)::actions else actions
+  in actions
 
 (** {3 Choosing the function to call} *)
 
 (** Build a new action [ChangeCall] (if needed) *)
 let add_change_call_action ff call call_info f_to_call actions =
-  if M.debug2 () then
-    Format.printf "[slicing] add_change_call_action : ";
-  let add_change_call = CallInfo.is_call_to_change call_info (Some f_to_call)
+  M.debug 2 "[slicing] add_change_call_action : ";
+  let add_change_call =
+    CallInfo.is_call_to_change call_info (Some f_to_call)
   in
     if add_change_call then
       begin
         let change_call_action = Act.mk_crit_change_call ff call f_to_call in
-        if M.debug2 () then Format.printf "%a@\n"
-                              Act.print_crit change_call_action;
+          M.debug 2 "%a@." Act.print_crit change_call_action;
           change_call_action :: actions
       end
     else
       begin
-        if M.debug2 () then Format.printf "not needed@\n";
+        M.debug 2 "not needed@.";
         actions
       end
+(*
+(** This function doesn't use the PDG call dependencies on purpose !
+* See explanations in [add_spare_call_inputs] *)
+let get_called_needed_input called_kf need_out0 needed_out_zone =
+  let froms = !Db.From.get called_kf in
+  let from_table = froms.Function_Froms.deps_table in
+  let acc_in_zones out (default, from_out) in_zones =
+    if  Locations.Zone.valid_intersects needed_out_zone out then
+      let in_zones = Locations.Zone.join in_zones from_out in
+      let in_zones =
+        if default then Locations.Zone.join in_zones out else in_zones
+      in in_zones
+    else
+      in_zones
+  in
+  let in_zones =
+    Lmap_bitwise.From_Model.fold acc_in_zones from_table Locations.Zone.bottom
+  in
+  let in_zones =
+    if need_out0 then
+      let from0 = froms.Function_Froms.deps_return in
+      let z_return = Lmap_bitwise.From_Model.LOffset.collapse from0 in
+        Locations.Zone.join in_zones z_return
+    else in_zones
+  in in_zones
+
+let get_call_in_nodes called_kf call_info called_in_zone =
+  let (ff_caller, call_stmt) = CallInfo.get_call_id call_info in
+  let pdg_caller = M.get_ff_pdg ff_caller in
+  let pdg_idx = PdgTypes.InternalPdg.get_index pdg_caller in
+  let _, pdg_sig_call = PdgIndex.FctIndex.find_call pdg_idx call_stmt in
+  (* In the input zones, we have the formal parameters, not the arguments *)
+  let param_list = Kernel_function.get_formals called_kf in
+  let check_param (n, nodes, called_in_zone) param =
+    let param_loc = Locations.loc_of_varinfo param in
+    let param_zone = Locations.valid_enumerate_bits param_loc in
+    let nodes, called_in_zone =
+      if Locations.Zone.valid_intersects param_zone called_in_zone then
+        let node = PdgIndex.Signature.find_input pdg_sig_call n in
+        let called_in_zone =  Locations.Zone.diff called_in_zone param_zone in
+          ((node, None)::nodes, called_in_zone)
+      else
+          (nodes, called_in_zone)
+    in (n+1, nodes, called_in_zone)
+  in
+  let _, nodes, in_zone =
+    List.fold_left check_param (1, [], called_in_zone) param_list
+  in
+  let impl_in_nodes, undef = !Db.Pdg.find_location_nodes_at_stmt
+                               pdg_caller call_stmt ~before:true in_zone
+  in (nodes @ impl_in_nodes), undef
+
+(** This function is used to prevent [choose_precise_slice] from looping
+* (see #335) because sometimes, when the [-calldeps] option is used,
+* the dependencies of the call in the PDG are more precise than what we
+* can get by slicing, and so, when we ask for the most precise slice,
+* we always reject the result.
+* So, when [choose_precise_slice] build a new slice for a call,
+* we first add some spare marks to the inputs of the call that are needed
+* by the marked outputs according to the froms of the called function.
+* The computed function won't be rejected then because we will
+* have to add some marks, but no new inputs. *)
+let add_spare_call_inputs called_kf call_info =
+  let (ff_caller, _call) = CallInfo.get_call_id call_info in
+  M.debug 2 "[slicing] add_spare_call_inputs in %s@." (M.ff_name ff_caller);
+  let sig_call = CallInfo.get_call_sig call_info in
+  let out0, marked_out_zone = Marks.get_marked_out_zone sig_call in
+  let called_in_zone = get_called_needed_input called_kf out0 marked_out_zone in
+    M.debug 2 "\tneed %a inputs : %a@." Kernel_function.pretty_name called_kf
+      Locations.Zone.pretty called_in_zone;
+  let needed_nodes, undef =
+    get_call_in_nodes called_kf call_info called_in_zone in
+  let m_spare = Marks.mk_gen_spare in
+  let to_select =
+    List.fold_left
+      (fun marks n -> PdgMarks.add_node_to_select marks n m_spare)
+      [] needed_nodes
+  in
+  let to_select = PdgMarks.add_undef_in_to_select to_select undef m_spare in
+  let actions = apply_add_marks ff_caller to_select in
+  actions
+  *)
 
 (** choose among the already computed slice if there is a function that computes
-* just enought outputs (what ever their marks are). If not, create a new one *)
+* just enough outputs (what ever their marks are). If not, create a new one *)
 let choose_precise_slice fi_to_call call_info =
-  let (caller, call) = CallInfo.get_call_id call_info in
-  let pdg_caller = M.get_ff_pdg caller in
-  let caller_marks = FctMarks.get_ff_marks caller in
   let out_call = FctMarks.get_call_output_marks call_info in
   let rec find slices = match slices with
     |  [] ->
-        make_new_ff fi_to_call true
+        let ff, actions = make_new_ff fi_to_call true in
+          (*
+        let called_kf = M.get_fi_kf fi_to_call in
+        let new_actions = add_spare_call_inputs called_kf call_info in
+        let actions = new_actions @ actions in
+    *)
+          ff, actions
     | ff :: slices ->
         let _missing_outputs, more_outputs =
           FctMarks.check_called_marks out_call ff
@@ -938,16 +1033,18 @@ let choose_precise_slice fi_to_call call_info =
           if more_outputs
           then (* not enough outputs in [ff] *)
             begin
-              if M.debug2 () then
-                Format.printf
-                  "[choose_precise_slice] %s ? not enought outputs@\n"
+              M.debug 2 "[choose_precise_slice] %s ? not enought outputs@."
                   (M.ff_name ff);
               find slices
             end
           else
             begin
+              (*
               let ff_marks = FctMarks.get_ff_marks ff in
               let input_marks = FctMarks.get_all_input_marks ff_marks in
+              let (caller, call) = CallInfo.get_call_id call_info in
+              let pdg_caller = M.get_ff_pdg caller in
+              let caller_marks = FctMarks.get_ff_marks caller in
               let _ , more_inputs =
                 FctMarks.marks_for_caller_inputs pdg_caller caller_marks
                   call input_marks fi_to_call
@@ -955,18 +1052,14 @@ let choose_precise_slice fi_to_call call_info =
                 if more_inputs
                 then (* [ff] needs too many inputs *)
                   begin
-                    if M.debug2 () then
-                      Format.printf
-                        "[choose_precise_slice] %s ? too many inputs@\n"
+                    M.debug 2 "[choose_precise_slice] %s ? too many inputs@."
                         (M.ff_name ff);
                     find slices
                   end
                 else
+                  *)
                   begin
-                    if M.debug2 () then
-                      Format.printf
-                        "[choose_precise_slice] %s ? ok@\n"
-                        (M.ff_name ff);
+                    M.debug 2 "[choose_precise_slice] %s ? ok@." (M.ff_name ff);
                     ff , []
                   end
             end
@@ -977,13 +1070,9 @@ let choose_precise_slice fi_to_call call_info =
 (** choose the function to call according to the slicing level of the function
  * to call *)
 let choose_f_to_call fbase_to_call call_info =
-  if M.debug2 () then Format.printf "choose_f_to_call@\n";
-  (*
-  let sig_call = CallInfo.get_sig call_info in
-  let _m_call = CallInfo.get_call_mark call_info in
-  *)
+  M.debug 2 "choose_f_to_call@.";
   let choose_min_slice fi_to_call =
-    if M.debug2 () then Format.printf "MinimizeNbSlice -> choose_min_slice@\n";
+    M.debug 2 "MinimizeNbSlice -> choose_min_slice@.";
     let slices = M.fi_slices fi_to_call in
       match slices with
         | [] -> make_new_ff fi_to_call true
@@ -992,7 +1081,7 @@ let choose_f_to_call fbase_to_call call_info =
 	    Extlib.not_yet_implemented "choose_min_slice with several slices"
   in
   let choose_full_slice fi_to_call =
-    if M.debug2 () then Format.printf "PropagateMarksOnly -> choose_full_slice@\n";
+    M.debug 2 "PropagateMarksOnly -> choose_full_slice@.";
       match M.fi_slices fi_to_call with
         | [] -> make_new_ff fi_to_call true
                (* the signature is computed in [apply_choose_call]
@@ -1002,26 +1091,21 @@ let choose_f_to_call fbase_to_call call_info =
             Extlib.not_yet_implemented "choose_full_slice with several slices"
   in
   let to_call, new_filters = match fbase_to_call with
-    | None -> (* if we don't know the called function :
-                 either it is a call through a pointer or an external or
-                         variadic function.
-                 we don't try to slice it : we keep the source call *)
-        if M.debug1 () then
-          Format.printf "[slicing] unknown called function : keep src@\n";
-        T.CallSrc None, []
-    | Some fi_to_call when CallInfo.is_topin_visible call_info ->
-        Cil.log "[slicing] top input visible for %s : call source function"
-          (M.fi_name fi_to_call);
+    | None ->
+        (* if we don't know the called function :
+           either it is a call through a pointer or an external or
+           variadic function
+               => we don't try to slice it, so we keep the source call *)
+        M.debug 1 "[slicing] unknown called function : keep src@.";
         T.CallSrc None, []
     | Some fi_to_call ->
         try
           let slicing_level = M.fi_slicing_level fi_to_call in
-            if M.debug1 () then
-              Format.printf "[slicing] choose_call with level %s@\n"
+            M.debug 1 "[slicing] choose_call with level %s@."
                 (M.str_level_option slicing_level);
             match slicing_level with
             | T.DontSlice ->
-                if M.debug2 () then Format.printf "DontSliceCalls -> call src@\n";
+                M.debug 2 "DontSliceCalls -> call src@.";
                 T.CallSrc fbase_to_call, []
             | T.DontSliceButComputeMarks ->
                 let ff_to_call, new_filters = choose_full_slice fi_to_call in
@@ -1063,7 +1147,7 @@ let check_called_outputs call_id ff actions =
 *   build an action to add outputs to it.
 * *)
 let apply_choose_call proj ff call =
-  if M.debug2 () then Format.printf "apply_choose_call for call-%d@\n" call.sid;
+  M.debug 2 "apply_choose_call for call-%d@." call.sid;
   let call_id = ff, call in
   let call_info = CallInfo.get_info_call (ff, call) in
     if ((CallInfo.get_f_called call_info) = None) then
@@ -1081,15 +1165,13 @@ let apply_choose_call proj ff call =
           in actions
         else
           begin
-            if M.debug2 () then
-              Format.printf "  -> invisible call : nothing to do @\n";
+            M.debug 2 "  -> invisible call : nothing to do @.";
             []
           end
       end
     else
       begin
-        if M.debug2 () then
-          Format.printf "  -> already call something : nothing to do@\n";
+        M.debug 2 "  -> already call something : nothing to do@.";
         []
       end
 
@@ -1098,15 +1180,14 @@ let apply_choose_call proj ff call =
 (** propagate the [input_marks] in the inputs of [call] in [ff]. *)
 let modif_call_inputs ff _call input_marks =
   (*
-  if M.debug1 () then
-    Format.printf "[slicing] modif_call_inputs : %a@\n"
+  M.debug 1 "[slicing] modif_call_inputs : %a@."
           pretty_node_marks input_marks;
   *)
   add_marks (FctMarks.get_ff_marks ff) input_marks
 
 (** [modif_call_inputs] and then, check the calls and the callers *)
 let apply_modif_call_inputs ff call missing_inputs =
-  if M.debug2 () then Format.printf "apply_modif_call_inputs@\n";
+  M.debug 2 "apply_modif_call_inputs@.";
   let input_marks, _more_inputs = missing_inputs in
   let to_prop = modif_call_inputs ff call input_marks in
   let new_filters = after_marks_modifications ff to_prop in
@@ -1117,8 +1198,7 @@ let apply_modif_call_inputs ff call missing_inputs =
 * or to call another function. *)
 let apply_missing_inputs proj ff call missing_inputs =
   let _input_marks, more_inputs = missing_inputs in
-  if M.debug1 () then
-    Format.printf "[slicing] apply_missing_inputs (%s) @\n"
+  M.debug 1 "[slicing] apply_missing_inputs (%s) @."
           (if more_inputs then "more" else "marks");
   (*
   let rec visible_top in_marks = match in_marks with
@@ -1132,7 +1212,7 @@ let apply_missing_inputs proj ff call missing_inputs =
   in let is_top_visible = visible_top input_marks in
   *)
   let level = M.ff_slicing_level ff in
-    if (* is_top_visible || *) (more_inputs && level = T.MaxNbSlice) then
+    if more_inputs && level = T.MaxNbSlice then
       (* if adding marks doesn't change the visibility of the inputs,
       * let's keep the same called function. If it adds visible inputs,
       * let's choose another one *)
@@ -1149,14 +1229,13 @@ let apply_missing_inputs proj ff call missing_inputs =
 * function [g] or to change it.
 *)
 let apply_missing_outputs proj ff call output_marks more_outputs =
-  if M.debug2 () then Format.printf "apply_missing_outputs@\n";
+  M.debug 2 "apply_missing_outputs@.";
   let ff_g = match CallInfo.get_call_f_called (ff, call) with
       | Some (T.CallSlice g) -> g
       | _ -> (* we shouldn't be here *) assert false
   in
   let g_slicing_level = M.ff_slicing_level ff_g in
-    if more_outputs && g_slicing_level = T.MaxNbSlice
-    then
+    if more_outputs && g_slicing_level = T.MaxNbSlice then
       begin
         (* the easiest way is to ignore the called function and to use
         * [choose_call] *)
@@ -1176,23 +1255,22 @@ let apply_missing_outputs proj ff call output_marks more_outputs =
 * @raise ChangeCallErr if [f_to_call] doesn't compute enought outputs.
 *)
 let apply_change_call proj ff call f_to_call =
-  if M.debug1 () then
-    Format.printf "[slicing] apply_change_call@\n";
+  M.debug 1 "[slicing] apply_change_call@.";
   let pdg = M.get_ff_pdg ff in
   let to_call, to_prop =
     match f_to_call with
       | T.CallSlice ff_to_call ->
-          let to_call_sig = FctMarks.get_sgn ff_to_call in
+          (* let to_call_sig = FctMarks.get_sgn ff_to_call in
           let top = match to_call_sig with None -> false
             | Some to_call_sig -> Marks.is_topin_visible to_call_sig
           in
           if top then begin
             Cil.log "[slicing] top input in %s -> call source function"
               (M.ff_name ff_to_call);
-            let to_prop = FctMarks.mark_spare_nodes ff call in
+            let to_prop = FctMarks.mark_spare_call_nodes ff call in
               T.CallSrc (Some (M.ff_fi ff_to_call)), to_prop
           end
-          else begin
+          else *) begin
             let f = match check_outputs (ff, call) ff_to_call false with
               | ([], false) -> f_to_call
               | _ -> raise (SlicingTypes.ChangeCallErr
@@ -1210,7 +1288,7 @@ let apply_change_call proj ff call f_to_call =
               f, to_prop
           end
       | T.CallSrc _ ->
-          let to_prop = FctMarks.mark_spare_nodes ff call in
+          let to_prop = FctMarks.mark_spare_call_nodes ff call in
           f_to_call, to_prop
   in
     FctMarks.change_call proj ff call (Some to_call);
@@ -1297,7 +1375,7 @@ let get_stmt_mark ff stmt =
   with PdgIndex.NotFound ->
     match stmt.Cil_types.skind with
     | Cil_types.Block _ | Cil_types.UnspecifiedSequence _ ->
-        (* block are always visible for syntaxic reasons *)
+        (* block are always visible for syntactic reasons *)
         Marks.mk_gen_spare
     | _ -> Marks.bottom_mark
 
@@ -1320,11 +1398,57 @@ let get_input_loc_under_mark ff loc =
   in Marks.get_input_loc_under_mark ff_sig loc
 
 (*-----------------------------------------------------------------------*)
+(** {2 Getting the source function marks} *)
+
+exception StopMerging
+
+let merge_fun_callers get_list get_value merge is_top acc proj kf =
+  if is_top acc then acc
+  else begin
+    let acc = ref acc in
+    let table = ref VarinfoSet.empty in
+      try
+        let merge m =
+          acc := merge m !acc ;
+          if is_top !acc then
+            raise StopMerging (* acceleration when top is reached *)
+        in
+        let rec merge_fun_callers kf =
+          let merge_fun_caller (kf,_) = merge_fun_callers kf in
+          let vf = Kernel_function.get_vi kf in
+            if VarinfoSet.mem vf !table
+            then () (* no way to add something, the [kf] contribution is already accumulated. *)
+            else
+              begin
+                table := VarinfoSet.add vf !table ;
+                List.iter (fun x -> merge (get_value x)) (get_list proj kf) ;
+                List.iter merge_fun_caller (!Db.Value.callers kf)
+              end
+        in merge_fun_callers kf ;
+          !acc
+      with StopMerging -> !acc
+  end
+
+(** The mark [m] related to all statements of a source function [kf].
+    Property : [is_bottom (get_from_func proj kf) = not (Project.is_called proj kf) ] *)
+let get_mark_from_src_fun proj kf =
+  let kf_entry, _library = Globals.entry_point () in
+    if !Db.Slicing.Project.is_called proj kf_entry then
+      Marks.mk_user_mark ~data:true ~addr:true ~ctrl:true
+    else
+      let directly_called proj kf = (M.get_kf_fi proj kf).T.f_called_by in
+      let get_call_mark (ff,stmt) = get_stmt_mark ff stmt in
+      let merge m1 m2 = Marks.merge_marks [m1 ; m2] in
+      let is_top = Marks.is_top_mark in
+      let bottom = Marks.bottom_mark in
+        merge_fun_callers directly_called get_call_mark merge is_top bottom proj kf
+
+(*-----------------------------------------------------------------------*)
 (** {2 Printing} (see also {!PrintSlice}) *)
 
 let print_ff_sig fmt ff =
   Format.fprintf fmt "%s : " (M.ff_name ff);
   match FctMarks.get_sgn ff with
-    | None -> Format.fprintf fmt "<not computed>@\n"
-    | Some s -> Format.fprintf fmt "%a@\n" Marks.pretty_sig s
+    | None -> Format.fprintf fmt "<not computed>@."
+    | Some s -> Format.fprintf fmt "%a@." Marks.pretty_sig s
 (*-----------------------------------------------------------------------*)

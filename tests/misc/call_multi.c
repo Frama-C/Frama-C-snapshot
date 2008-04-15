@@ -1,3 +1,6 @@
+/* run.config
+   STDOPT: +"-warn-unspecified-order"
+*/
 int uppol2(int al1,int al2,int plt,int plt1,int plt2)
 {
     long int wd2,wd4;

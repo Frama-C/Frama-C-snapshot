@@ -211,6 +211,7 @@ let dummyinfo =
     }
 
 let current = ref dummyinfo
+let first_filename_encountered = ref None
 
 let setHLine (l: int) : unit =
     !current.hline <- l
@@ -219,7 +220,7 @@ let setHFile (f: string) : unit =
 
 let rem_quotes str = String.sub str 1 ((String.length str) - 2)
 
-(* Change \ into / in file names. To avoid complications with escapes 
+(* Change \ into / in file names. To avoid complications with escapes
    [BM] DO NOT USE this function. It mutates [str] and does not take care of its length. *)
 (*let cleanFileName str =
   let str1 =
@@ -270,13 +271,14 @@ let startParsing ?(useBasename=true) (fname: string) =
       hfile = ""; hline = 0;
       num_errors = 0 } in
   (* Initialize lexer buffer. *)
-  lexbuf.Lexing.lex_curr_p <- 
-    { Lexing.pos_fname = i.fileName; 
+  lexbuf.Lexing.lex_curr_p <-
+    { Lexing.pos_fname = i.fileName;
       Lexing.pos_lnum  = 1;
-      Lexing.pos_bol   = 0; 
+      Lexing.pos_bol   = 0;
       Lexing.pos_cnum  = 0
     };
   current := i;
+  first_filename_encountered := None;
   lexbuf
 
 let startParsingFromString ?(file="<string>") ?(line=1) (str: string) =
@@ -290,6 +292,7 @@ let startParsingFromString ?(file="<string>") ?(line=1) (str: string) =
       num_errors = 0 }
   in
   current := i;
+  first_filename_encountered := None;
   lexbuf
 
 let finishParsing () =
@@ -303,7 +306,7 @@ let newline () =
   (* Update lexer buffer. *)
   let update_newline_loc lexbuf =
     let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <- 
+    lexbuf.Lexing.lex_curr_p <-
       { pos with
 	Lexing.pos_lnum = pos.Lexing.pos_lnum + 1;
 	Lexing.pos_bol = pos.Lexing.pos_cnum;
@@ -323,7 +326,7 @@ let setCurrentLine (i: int) =
   (* Update lexer buffer. *)
   let update_line_loc lexbuf line absolute chars =
     let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <- 
+    lexbuf.Lexing.lex_curr_p <-
       { pos with
 	Lexing.pos_lnum = if absolute then line else pos.Lexing.pos_lnum + line;
 	Lexing.pos_bol = pos.Lexing.pos_cnum - chars;
@@ -337,12 +340,14 @@ let setCurrentFile (n: string) =
   (* Update lexer buffer. *)
   let update_file_loc lexbuf file =
     let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <- 
+    lexbuf.Lexing.lex_curr_p <-
       { pos with
 	Lexing.pos_fname = file;
       }
   in
   update_file_loc !current.lexbuf n;
+  (if !first_filename_encountered = None 
+   then first_filename_encountered:=Some n);
   (* Default CIL location update. *)
   !current.fileName <- (*cleanFileName*) n
 

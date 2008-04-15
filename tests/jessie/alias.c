@@ -22,20 +22,20 @@
 /*                                                                        */
 /**************************************************************************/
 
-/*@ requires \valid(x) && \valid(y) ;
+/*@ requires \valid(x) && \valid(y)  && \valid(z) ;
   @ ensures \result == 0;
   @*/
-int f(int *x, int *y) {
+int f(int *x, int *y, int *z) {
   *x = 0;
   *y = 1;
-  return *x;
+  return *z;
 }
 
 
 int  p[1];
 
 int main() {
-  return f(p,p);
+  return f(p,p,p);
 }
 
 /* 

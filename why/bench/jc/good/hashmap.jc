@@ -1,0 +1,94 @@
+# InvariantPolicy = Arguments
+
+// mathematical Fib function
+
+logic integer math_fib(integer n)
+axiom fib0 : math_fib(0) == 1
+axiom fib1 : math_fib(1) == 1
+axiom fibn : \forall integer n; n >= 2 ==> 
+   math_fib(n) == math_fib(n-1) + math_fib(n-2)
+
+
+// structure to store long integers
+type Long = {
+  integer value; 
+  invariant long_inv(self) = self.value < 9223372036854775808;
+}
+
+// logic mappings from integer to Long
+logic type mapping
+logic Long[..] access(mapping m, integer n)
+logic mapping update(mapping m, integer key, Long[..] l) 
+axiom access_update_eq:
+  \forall mapping m; \forall integer key; \forall Long[..] l ;
+      access(update(m,key,l),key) == l
+axiom access_update_neq:
+  \forall mapping m; \forall integer key1, key2; \forall Long[..] l ;
+     key1 != key2 ==>
+        access(update(m,key1,l),key2) == access(m,key2) 
+  
+logic mapping empty_mapping
+
+logic containsKey(mapping m, integer key)
+
+axiom containsKey_empty:
+  \forall integer key; ! containsKey(empty_mapping,key)
+
+axiom containsKey_update_eq:
+   \forall mapping m; \forall integer key; \forall Long[..] l; 
+      containsKey(update(m,key,l),key)
+
+axiom containsKey_update_any:
+  \forall mapping m; \forall integer key1, key2; \forall Long[..] l; 
+     containsKey(m,key1) ==> containsKey(update(m,key2,l),key1)
+
+
+
+
+// abstract view of a hashmap with key = integer and data = Long
+type HashMap = { 
+ mapping hashmap_model; //model
+}
+
+unit HashMap_put(HashMap[..] this, integer x, Long[..] y)
+ behavior default:
+  assigns this.hashmap_model;
+  ensures 
+   this.hashmap_model == update(\old(this.hashmap_model),x,y);
+;
+
+Long[..] HashMap_get(HashMap[..] this, integer x)
+ behavior key_found:
+   assigns \nothing;
+   ensures \result != null ==>
+     containsKey(this.hashmap_model,x) &&
+     \result == access(this.hashmap_model,x) ;
+ behavior null_found:
+   assumes containsKey(this.hashmap_model,x);
+   assigns \nothing;
+   ensures access(this.hashmap_model,x) == null ;
+;
+
+type FibMemo = {
+  HashMap[0] memo;
+  invariant fib_inv(self) =
+      \forall integer x; containsKey(self.memo.hashmap_model,x) ==>
+        access(self.memo.hashmap_model,x) != null &&
+        access(self.memo.hashmap_model,x).value == math_fib(x);
+}
+
+
+integer fib(FibMemo[0] this, integer n) 
+  requires 0 <= n && n <= 92 ;
+  behavior default:
+    ensures \result == math_fib(n);
+  {       
+	if (n <= 1) then return 1; 
+	var Long[..] x = HashMap_get(this.memo,n);
+	if (x != null) then return x.value;
+	x = new Long[0];
+	x.value = fib(this,n-1) + fib(this,n-2);
+	HashMap_put(this.memo,n,x); 
+	return x.value;
+    }
+

@@ -1,6 +1,6 @@
 /* run.config
  *    GCC:
- *    OPT: -pdg-debug "-fct-pdg main" -inout
+ *    OPT: -pdg-debug "-fct-pdg main" -inout -journal-disable
  *
  */
 

@@ -24,15 +24,11 @@ open Abstract_value
 
 type itv = Int.t * Int.t
 
-module Make
-  (V:sig 
-     include Abstract_interp.Lattice 
-     val tag: t -> int
-   end) :
-sig
+module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
+
   type t
 
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
   val empty : t
   val degenerate : V.t -> t
   val pretty_with_type : Cil_types.typ option -> Format.formatter -> t -> unit

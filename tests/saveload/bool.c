@@ -1,8 +1,8 @@
 /* run.config
    EXECNOW: BIN bool.sav LOG bool_sav.res LOG bool_sav.err ./bin/toplevel.opt -save ./tests/saveload/result/bool.sav -val ./tests/saveload/bool.c > tests/saveload/result/bool_sav.res 2> tests/saveload/result/bool_sav.err
-   OPT: -load ./tests/saveload/result/bool.sav -out -input -deps -memory-footprint 1 
-   OPT: -load ./tests/saveload/result/bool.sav -val -main main
-   OPT: -load ./tests/saveload/result/bool.sav
+   OPT: -load ./tests/saveload/result/bool.sav -out -input -deps -memory-footprint 1  -journal-disable
+   OPT: -load ./tests/saveload/result/bool.sav -val -main main -journal-disable
+   OPT: -load ./tests/saveload/result/bool.sav -journal-disable
  */
 
 #include<stdbool.h>

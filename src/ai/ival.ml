@@ -20,7 +20,7 @@
 (**************************************************************************)
 
 (** Arithmetic lattices.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Abstract_interp
 

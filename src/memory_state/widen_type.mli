@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen_type.mli,v 1.14 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: widen_type.mli,v 1.15 2008/10/03 13:09:17 uid568 Exp $ *)
 open BaseUtils
   
 type t
@@ -47,4 +47,4 @@ val add_var_hints : Cil_types.stmt -> BaseSet.t -> t -> t
 (** widen hints from a [Cil_types.stmt, Base] *)
 val hints_from_keys : Cil_types.stmt -> t -> (BaseSet.t * (Base.t -> Locations.Location_Bytes.widen_hint))
 
-module Datatype : Project.Datatype.OUTPUT with type t = t
+module Datatype : Project.Datatype.S with type t = t

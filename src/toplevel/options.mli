@@ -19,8 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* $Id: options.mli,v 1.28 2008/11/18 12:13:41 uid568 Exp $ *)
+
 (** Options and plugins for Frama-C.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 val add_cmdline:
   ?name:string ->
@@ -68,17 +70,14 @@ val add_plugin:
         A new section of name [name] is automatically added (see {!add_cmdline})
         into the command line description. 
 
-	@plugin developer guide *)
+	@plugin development guide *)
 
 val has_plugin: string -> bool
   (** [has_plugin name] is [true] iff the plugin [name] has already been
       registered. *)
 
 val usage: unit -> string
-  (** Return an usage string, with the list of currently installed plug-ins.*)
-
-val add_file: string -> unit
-  (** Add a new file to parse. *)
+  (** Return an usage string, with the list of currently installed plug-ins.*) 
 
 val parse_cmdline: unit -> unit
   (** Parse the command line arguments and performs the configuration of the
@@ -86,7 +85,7 @@ val parse_cmdline: unit -> unit
 
 val register_plugin_init: (unit -> unit) -> unit
   (** Register an action to perform at plugin initialization time. 
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val initialize_toplevels: unit -> unit
   (** Function called at startup, i.e. toplevels *)

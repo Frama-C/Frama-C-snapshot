@@ -19,10 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap.mli,v 1.67 2008/06/26 07:43:40 uid568 Exp $ i*)
+(*i $Id: lmap.mli,v 1.71 2008/11/18 12:13:41 uid568 Exp $ i*)
 
 (** Functors making map indexed by locations.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Abstract_interp
 open Abstract_value
@@ -48,7 +48,7 @@ sig
 
     type instanciation = Location_Bytes.t BaseMap.t
 
-    module Datatype : Project.Datatype.OUTPUT with type t = t
+    module Datatype : Project.Datatype.S with type t = t
 
     val inject : Base.t -> loffset -> t
 
@@ -65,6 +65,7 @@ sig
     val join : t -> t -> t
     val is_included : t -> t -> bool
     val equal : t -> t -> bool
+    val hash : t -> int
     val is_included_actual_generic :
       Zone.t -> t -> t -> instanciation
 
@@ -85,6 +86,10 @@ sig
     (** @raise Not_found if the varid is not present in the map. *)
     val find_base : Base.t -> t -> loffset
 
+    (** Removes the base if it is present. Does nothing otherwise. *)
+    val remove_base : Base.t -> t -> t
+      
+
     (** [copy_paste src dst state] returns a modified version of [state] in
         which everything present in [src] has been copied onto [dst]. [src] and
         [dst] must have the same size. The write operation is exact iff [dst]
@@ -101,7 +106,7 @@ sig
     val copy_offsetmap : Locations.location -> t -> loffset option
 
     val compute_actual_final_from_generic :
-      t -> t -> Locations.Zone.t -> instanciation -> t
+      t -> t -> Locations.Zone.t -> instanciation -> t*Location_Bits.Top_Param.t
 
     val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 

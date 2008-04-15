@@ -107,6 +107,7 @@ fi
 
 # we extract Ocaml version number and library path
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
+LOWER_THAN_311="yes"
 echo $ECHO_N "ocaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
   3.09.3*) echo "${ECHO_T}Good!";;
@@ -129,7 +130,9 @@ case $OCAMLVERSION in
            exit 2;
          fi
          ;;
-  3.*) echo "${ECHO_T}Good!";;
+  3.10*) echo "${ECHO_T}Good!";;
+  3.1*) LOWER_THAN_311=no;
+  	echo "${ECHO_T}Good!";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
@@ -154,6 +157,14 @@ else
 	    AC_MSG_RESULT(ok)
 	    OCAMLBEST=opt
 	fi
+fi
+
+if test "$OCAMLBEST" = "opt"; then
+   LIB_SUFFIX=cmxa
+   OBJ_SUFFIX=cmx;
+else
+   LIB_SUFFIX=cma
+   OBJ_SUFFIX=cmo;
 fi
 
 # checking for ocamlc.opt
@@ -265,7 +276,7 @@ if test "$OCAMLGRAPH_EXISTS" == "no"; then
    if test "$OCAMLGRAPH_EXISTS" == "no"; then
       OCAMLGRAPH_TEST=$OCAMLLIB
       OCAMLGRAPH=
-      AC_CHECK_FILE($OCAMLGRAPH_TEST/graph.cmo,OCAMLGRAPH_EXISTS=yes)
+      AC_CHECK_FILE($OCAMLGRAPH_TEST/graph.$OBJ_SUFFIX,OCAMLGRAPH_EXISTS=yes)
    fi
 
    if test "$OCAMLGRAPH_EXISTS" == "no"; then
@@ -468,6 +479,11 @@ REQUIRE_WHYJC=
 USE_WHYJC=
 HAS_WHYJC=
 
+REQUIRE_APRON=
+USE_APRON=
+HAS_APRON=no
+
+
 # Tool declarations
 ####################
 
@@ -481,7 +497,16 @@ REQUIRE_CAMLP4O=
 USE_CAMLP4O=
 HAS_CAMLP4O=
 
+
+LTLTOBA=
+REQUIRE_LTLTOBA=
+USE_LTLTOBA=
+HAS_LTLTOBA=
+
+
 ### Now plugin declarations
+
+PLUGINS_FORCE_LIST=
 
 define([check_plugin],
 [
@@ -502,16 +527,42 @@ AC_ARG_ENABLE(
   FORCE=$enableval,
   ENABLE=$default
 )
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
 AC_MSG_ERROR([PLUGIN_NAME is not available])
 fi
 up=`upper PLUGIN_NAME`
 eval FORCE_$up=\$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
 eval ENABLE_$up=\$ENABLE
 
 echo "PLUGIN_NAME... $ENABLE"
 ])
+
+# syntactic callgraph
+#####################
+
+check_plugin(syntactic_callgraph, src/syntactic_callgraph,
+             [support for callgraph plugin], yes)
+
+if test "$ENABLE_SYNTACTIC_CALLGRAPH" == "yes"; then
+  USE_GNOMECANVAS=${USE_GNOMECANVAS}" syntactic_callgraph"
+  USE_LABLGTK=${USE_LABLGTK}" syntactic_callgraph"
+fi
 
 # constant propagation
 ######################
@@ -559,8 +610,19 @@ check_plugin(inout,src/inout,[support for inout analysis],yes)
 check_plugin(jessie,src/jessie,[support for jessie plugin],yes)
 
 if test "$ENABLE_JESSIE" == "yes"; then
-   REQUIRE_WHYJC=${REQUIRE_WHYJC}" jessie"
+  REQUIRE_WHYJC=${REQUIRE_WHYJC}" jessie"
+  USE_APRON=${USE_APRON}" jessie"
 fi
+
+# journal_loader
+#################
+
+check_plugin(journal_loader,src/journal_loader,[support journal loading],yes)
+
+# metrics
+#########
+
+check_plugin(metrics,src/metrics,[support for metrics analysis],yes)
 
 # miel
 ######
@@ -576,6 +638,12 @@ fi
 ############
 
 check_plugin(occurrence,src/occurrence,[support for occurrence analysis],yes)
+
+# occurrence_dyn
+#################
+
+dnl check_plugin(occurrence_dyn,src/occurrence_dyn,
+dnl 	[support for occurrence analysis (full dynamic)],yes)
 
 # pdg
 #####
@@ -629,121 +697,146 @@ check_plugin(value,src/value,[support for value analysis],yes)
 
 check_plugin(wp,src/wp,[support for wp plugin],yes)
 
+
+# Aorai : ltl_to_acsl
+#####################
+
+check_plugin(ltl_to_acsl,src/ltl_to_acsl,[support for Aorai plugin (ltl to acsl conversion)],yes)
+#if test "$ENABLE_LTL_TO_ACSL" == "yes"; then
+#   REQUIRE_LTLTOBA=${REQUIRE_LTLTOBA}" ltl_to_acsl"
+#fi
+
+
+
 #####################################################
 # Check for tools/libraries requirements of plugins #
 #####################################################
 
 new_section "configure tools and libraries used by some plugins"
 
-has=
-
 # 1st param: uppercase name of the library
 # 2nd param: file which must exist. This parameter can be a list of files.
 # In this case, they will be tried in turn until one of them exists. The
 # name of the file found will be put in the variable SELECTED_$1
 # 3d  param: warning to display if problem
-configure_library () {
-  VAR=$1
-  PROG=$2
-  eval require=\$REQUIRE_$1
-  eval use=\$USE_$1
-  msg=$3
-
-  if test -n "$require" -o -n "$use"; then
+define([configure_library],
+[
+  m4_define([VAR],[$1])
+  m4_define([SELECTED_VAR],[SELECTED_$1])
+  m4_define([PROG],[$2])
+  m4_define([require],[$REQUIRE_$1])
+  m4_define([use],[$USE_$1])
+  m4_define([msg],[$3])
+  m4_define([has],[HAS_$1])
+  m4_define([file],[FILE_$1])
+  if test -n "require" -o -n "use"; then
     has=no
-    for file in $PROG; do
-      AC_CHECK_FILE($file,has=yes,has=no)
-      if test "$has" == "yes"; then eval SELECTED_$VAR=$file break; fi
-    done
+    m4_foreach(file,[PROG],
+       [if test "$has" != "yes"; then
+          AC_CHECK_FILE(file,has=yes,has=no)
+          if test "$has" == "yes"; then SELECTED_VAR=file
+          fi
+       fi]
+       )
     if test "$has" == "no"; then
-      AC_MSG_WARN([$msg])
-      if test "$require" != ""; then
+      AC_MSG_WARN(msg)
+      if test "require" != ""; then
         echo "plugins disabled:
- $require"
-        for p in $require; do
+ require"
+        for p in require; do
 	  fp=FORCE_`upper "$p"`
 	  if eval test "\$$fp" == "yes"; then
-	    AC_MSG_ERROR([$p requested but $PROG missing.])
+	    AC_MSG_ERROR($p requested but PROG missing.)
 	  fi
           ep=ENABLE_`upper "$p"`
-	  eval $ep="no\ \(see\ warning\ about\ \$PROG\)"
+	  eval $ep="no\ \(see\ warning\ about\ PROG\)"
         done
       fi
-      if test "$use" != ""; then
+      if test "use" != ""; then
         echo "plugins not fully functional:
- $use"
-        for p in $use; do
+ use"
+        for p in use; do
           ep=ENABLE_`upper "$p"`
 	  eval eep="\$$ep"
 	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ \$PROG\)"
+	    eval $ep="partial\ \(see\ warning\ about\ PROG\)"
           fi
         done
       fi
       echo
     fi
   fi
-  eval HAS_$VAR=$has
-}
+  undefine([SELECTED_VAR])
+  undefine([VAR])
+  undefine([PROG])
+  undefine([require])
+  undefine([use])
+  undefine([msg])
+  undefine([has])
+])
 
 # 1st param: uppercase name of the program
-# 2nd param: program which must exist. See comment on configure_livrary()
+# 2nd param: program which must exist. See comment on configure_library()
 # on how to deal with multiple choices for a given program.
 # 3d  param: warning to display if problem
-configure_tool () {
-  VAR=$1
-  PROG=$2
-  eval require=\$REQUIRE_$1
-  eval use=\$USE_$1
-  msg=$3
+define([configure_tool],
+[
+  define([VAR],[$1])
+  define([PROG],[$2])
+  define([require],[$REQUIRE_$1])
+  define([use],[$USE_$1])
+  define([msg],[$3])
+  define([has],[HAS_$1])
 
-  if test -n "$require" -o -n "$use"; then
-    for file in $PROG; do
+  if test -n "require" -o -n "use"; then
+    for file in PROG; do
      has=
-     AC_CHECK_PROG(has,$file,yes,no)
-      if test "$has" == "yes"; then eval SELECTED_$VAR=$file break; fi
+    AC_CHECK_PROG(has,$file,yes,no)
+      if test "$has" == "yes"; then SELECTED_VAR=$file break; fi
       done
     if test "$has" == "no"; then
-      AC_MSG_WARN([$msg])
-      if test "$require" != ""; then
+      AC_MSG_WARN([msg])
+      if test "require" != ""; then
         echo "plugins disabled:
- $require"
-        for p in $require; do
+ require"
+        for p in require; do
 	  fp=FORCE_`upper "$p"`
 	  if eval test "\$$fp" == "yes"; then
-	    AC_MSG_ERROR([$p requested but $PROG missing.])
+	    AC_MSG_ERROR([$p requested but PROG missing.])
 	  fi
           ep=ENABLE_`upper "$p"`
-	  eval $ep="no\ \(see\ warning\ about\ \$PROG\)"
+	  eval $ep="no\ \(see\ warning\ about\ PROG\)"
         done
       fi
-      if test "$use" != ""; then
+      if test "use" != ""; then
         echo "plugins not fully functional:
- $use"
-        for p in $use; do
+ use"
+        for p in use; do
           ep=ENABLE_`upper "$p"`
 	  eval eep="\$$ep"
 	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ \$PROG\)"
+	    eval $ep="partial\ \(see\ warning\ about\ PROG\)"
           fi
         done
       fi
       echo
     else
-      eval $VAR=$PROG
+        VAR=PROG
     fi
   fi
-  eval HAS_$VAR=$has
-}
+  undefine([VAR])
+  undefine([PROG])
+  undefine([require])
+  undefine([use])
+  undefine([msg])
+  undefine([has])
+])
 
 # elsa
 ######
-configure_library \
-  ELSA \
-  cxx_elsa \
-  "
+configure_library([ELSA],[cxx_elsa],[
   sources of cxx_elsa are not present in this directory.
-  Please check them out from the cvs repository."
+  Please check them out from the cvs repository.])
 
 REQUIRE_CCPARSE=
 USE_CCPARSE=
@@ -752,42 +845,39 @@ if test "$has" == "yes"; then
   USE_CCPARSE="$REQUIRE_ELSA$USE_ELSA"
 fi
 
-configure_library \
-  CCPARSE \
-  cxx_elsa/elsa-2006.06.11/elsa/ccparse \
-  "elsa seems to be uncompiled. Please run 'make elsa'."
+configure_library([CCPARSE],
+  [cxx_elsa/elsa-2006.06.11/elsa/ccparse],
+  [elsa seems to be uncompiled. Please run 'make elsa'.])
 
 # lablglade
 ###########
-configure_tool \
-  LABLGLADECC \
-  lablgladecc2 \
-  "lablgladecc2 not found."
+configure_tool([LABLGLADECC],[lablgladecc2],[lablgladecc2 not found.])
 
 # camlp4o
 ###########
-configure_tool \
-  CAMLP4O \
-  camlp4o \
-  "camlp4o not found."
+configure_tool([CAMLP4O],[camlp4o],[camlp4o not found.])
+
+# ltl2ba library
+################
+configure_tool([LTLTOBA],[ltl2ba],[ltl2ba not found.])
 
 # lablgtk2
 ##########
-configure_library \
-  LABLGTK \
-  $OCAMLLIB/lablgtk2/lablgtk.cma \
-  "lablgtk2 not found."
+configure_library([LABLGTK],[$OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX],
+                  [lablgtk2/lablgtk.$LIB_SUFFIX not found.])
 
+HAS_LABLGTK_CUSTOM_MODEL=no
+AC_ARG_ENABLE(custommodel,
+[  --enable-custommodel
+     use a custom tree model in GUI. Need to have a recent lablgtk version],
+HAS_LABLGTK_CUSTOM_MODEL=yes,HAS_LABLGTK_CUSTOM_MODEL=no)
+
+# Gtksourceview
+###############
 REQUIRE_GTKSOURCEVIEW=
 USE_GTKSOURCEVIEW=
 HAS_GTKSOURCEVIEW=
 FORCE_GTKSOURCEVIEW="yes"
-
-#AC_ARG_ENABLE(gtksourceview,
-#  [  --enable-gtksourceview  uses lablgtksourceview for the gui
-#                          (default: auto-detected)],
-#     FORCE_GTKSOURCEVIEW=$enableval,
-#     FORCE_GTKSOURCEVIEW="no")
 
 if test "$FORCE_GTKSOURCEVIEW" == "yes"; then
   REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
@@ -798,17 +888,20 @@ else
   fi
 fi
 
-configure_library \
-  GTKSOURCEVIEW \
-  "$OCAMLLIB/lablgtk2/lablgtksourceview.cma \
-   $OCAMLLIB/lablgtksourceview/lablgtksourceview.cma" \
-  "lablgtksourceview not found"
+configure_library([GTKSOURCEVIEW],
+                  [$OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX,$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX],
+                  [lablgtksourceview.$LIB_SUFFIX not found])
 
 case $SELECTED_GTKSOURCEVIEW in
-$OCAMLLIB/lablgtksourceview/lablgtksourceview.cma)
+$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX)
   HAS_LEGACY_GTKSOURCEVIEW=yes
   ;;
 esac
+
+# Gnomecanvas
+#############
+configure_library([GNOMECANVAS],[$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX],
+                  [lablgnomecanvas.$LIB_SUFFIX not found])
 
 # why/jc library
 ################
@@ -821,12 +914,15 @@ AC_ARG_WITH(
   WHYDISTRIB=WHY_DEFAULT
 )
 
-configure_library \
-  WHYJC \
-  "$WHYDISTRIB/jc $OCAMLLIB/jessie" \
-  "why not found."
+configure_library([WHYJC],
+                  [$WHYDISTRIB/jc,$OCAMLLIB/jessie/jc.$OBJ_SUFFIX],
+                  [why not found])
 
-if test "$has" == "yes" -a "$REQUIRE_WHYJC" != ""; then
+configure_library([APRON],
+	          [/usr/local/lib/apron.a,/usr/lib/apron.a],
+		  [apron not found])
+
+if test "$HAS_WHYJC" == "yes" -a "$REQUIRE_WHYJC" != ""; then
   case $SELECTED_WHYJC in
   $WHYDISTRIB/jc)
     JCCMO=$WHYDISTRIB/jc/jc.cmo
@@ -835,7 +931,10 @@ if test "$has" == "yes" -a "$REQUIRE_WHYJC" != ""; then
     JESSIE_INCLUDES="-I $WHYDISTRIB/src -I $WHYDISTRIB/jc"
     (cd $WHYDISTRIB && ./configure --prefix=$prefix --datarootdir=$datarootdir \
       --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
-      --mandir=$mandir)
+      --mandir=$mandir --enable-apron=$HAS_APRON) || ENABLE_JESSIE=no
+    if test "$ENABLE_JESSIE" == "no"; then
+       INFO_JESSIE=" (configuration of Why failed)"
+    fi
     ;;
   $OCAMLLIB/jessie)
     JCCMO=$SELECTED_WHYJC/jc.cmo
@@ -879,7 +978,7 @@ REQUIRE_VALUE="constant_propagation from inout occurrence pdg scope security \
 # a bit ugly... Probably optimizable
 
 # First, initialize some variables
-for fp in ${!FORCE*}; do
+for fp in ${PLUGINS_FORCE_LIST}; do
   if test "$fp" != "FORCE_GTKSOURCEVIEW"; then
     plugin=`echo $fp | sed -e "s/FORCE_\(.*\)/\1/" `
     TODOLIST=$TODOLIST" "$plugin
@@ -1025,7 +1124,7 @@ compute_dependency () {
 compute_dependency
 
 # Compute INFO_* and exported ENABLE_* from previously computed ENABLE_*
-for fp in ${!FORCE*}; do
+for fp in ${PLUGINS_FORCE_LIST}; do
   if test "$fp" != "FORCE_GTKSOURCEVIEW"; then
     plugin=`echo $fp | sed -e "s/FORCE_\(.*\)/\1/" `
     ep=ENABLE_$plugin
@@ -1049,6 +1148,7 @@ AC_SUBST(OCAMLGRAPH)
 AC_SUBST(OCAMLGRAPH_LOCAL)
 AC_SUBST(OCAMLBEST)
 AC_SUBST(OCAMLVERSION)
+AC_SUBST(LOWER_THAN_311)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLWIN32)
 AC_SUBST(CAMLP4O)
@@ -1068,13 +1168,17 @@ AC_SUBST(datarootdir)
 AC_SUBST(HAS_LABLGTK)
 AC_SUBST(HAS_GTKSOURCEVIEW)
 AC_SUBST(HAS_LEGACY_GTKSOURCEVIEW)
+AC_SUBST(HAS_GNOMECANVAS)
+AC_SUBST(HAS_LABLGTK_CUSTOM_MODEL)
 AC_SUBST(LABLGLADECC)
 AC_SUBST(HAS_LABLGLADECC)
+AC_SUBST(HAS_LTLTOBA)
 AC_SUBST(JCCMO)
 AC_SUBST(JCCMX)
 AC_SUBST(JESSIE_LOCAL)
 AC_SUBST(JESSIE_INCLUDES)
 
+AC_SUBST(ENABLE_SYNTACTIC_CALLGRAPH)
 AC_SUBST(ENABLE_CONSTANT_PROPAGATION)
 AC_SUBST(ENABLE_CXX)
 AC_SUBST(ENABLE_FROM)
@@ -1082,9 +1186,12 @@ AC_SUBST(ENABLE_GUI)
 AC_SUBST(ENABLE_IMPACT)
 AC_SUBST(ENABLE_INOUT)
 AC_SUBST(ENABLE_JESSIE)
+AC_SUBST(ENABLE_JOURNAL_LOADER)
 AC_SUBST(WHYDISTRIB)
+AC_SUBST(ENABLE_METRICS)
 AC_SUBST(ENABLE_MIEL)
 AC_SUBST(ENABLE_OCCURRENCE)
+dnl AC_SUBST(ENABLE_OCCURRENCE_DYN)
 AC_SUBST(ENABLE_PDG)
 AC_SUBST(ENABLE_POSTDOMINATORS)
 AC_SUBST(ENABLE_SCOPE)
@@ -1095,6 +1202,7 @@ AC_SUBST(ENABLE_SPARECODE)
 AC_SUBST(ENABLE_USERS)
 AC_SUBST(ENABLE_VALUE)
 AC_SUBST(ENABLE_WP)
+AC_SUBST(ENABLE_LTL_TO_ACSL)
 
 ################################################
 # Finally create the Makefile from Makefile.in #
@@ -1112,6 +1220,11 @@ chmod a-w Makefile
 
 new_section "summary: plugins available"
 
+if test "$LOWER_THAN_311" == yes ; then
+  AC_MSG_WARN(Dynamic plugins in native mode are disabled.)
+fi
+
+AC_MSG_NOTICE([syntactic callgraph  : $ENABLE_SYNTACTIC_CALLGRAPH$INFO_SYNTACTIC_CALLGRAPH])
 AC_MSG_NOTICE([constant propagation : $ENABLE_CONSTANT_PROPAGATION$INFO_CONSTANT_PROPAGATION])
 AC_MSG_NOTICE([cxx                  : $ENABLE_CXX$INFO_CXX])
 AC_MSG_NOTICE([from                 : $ENABLE_FROM$INFO_FROM])
@@ -1119,8 +1232,11 @@ AC_MSG_NOTICE([gui                  : $ENABLE_GUI$INFO_GUI])
 AC_MSG_NOTICE([impact               : $ENABLE_IMPACT$INFO_IMPACT])
 AC_MSG_NOTICE([inout                : $ENABLE_INOUT$INFO_INOUT])
 AC_MSG_NOTICE([jessie               : $ENABLE_JESSIE$INFO_JESSIE])
+AC_MSG_NOTICE([journal loader       : $ENABLE_JOURNAL_LOADER$INFO_JOURNAL_LOADER])
+AC_MSG_NOTICE([metrics              : $ENABLE_METRICS$INFO_METRICS])
 AC_MSG_NOTICE([miel                 : $ENABLE_MIEL$INFO_MIEL])
 AC_MSG_NOTICE([occurrence           : $ENABLE_OCCURRENCE$INFO_OCCURRENCE])
+dnl AC_MSG_NOTICE([occurrence dynamic   : $ENABLE_OCCURRENCE_DYN$INFO_OCCURRENCE_DYN])
 AC_MSG_NOTICE([pdg                  : $ENABLE_PDG$INFO_PDG])
 AC_MSG_NOTICE([postdominators       : $ENABLE_POSTDOMINATORS$INFO_POSTDOMINATORS])
 AC_MSG_NOTICE([scope                : $ENABLE_SCOPE$INFO_SCOPE])
@@ -1131,3 +1247,4 @@ AC_MSG_NOTICE([spare code           : $ENABLE_SPARECODE$INFO_SPARECODE])
 AC_MSG_NOTICE([users                : $ENABLE_USERS$INFO_USERS])
 AC_MSG_NOTICE([value                : $ENABLE_VALUE$INFO_VALUE])
 AC_MSG_NOTICE([wp                   : $ENABLE_WP$INFO_WP])
+AC_MSG_NOTICE([ltl to acsl          : $ENABLE_LTL_TO_ACSL$INFO_LTL_TO_ACSL])

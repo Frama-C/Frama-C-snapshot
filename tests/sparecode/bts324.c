@@ -1,19 +1,19 @@
 /* run.config
-   OPT: -sparecode-analysis
-   OPT: -sparecode-analysis -main main_bis
-   OPT: -sparecode-analysis -main main_ter
-   
+   OPT: -sparecode-analysis -journal-disable
+   OPT: -sparecode-analysis -main main_bis -journal-disable
+   OPT: -sparecode-analysis -main main_ter -journal-disable
+
 */
 
 
 int i0, o0;
- 
+
 /*@ assigns i0, o0 ; */
 void loop_body () ;
- 
+
 /*@ assigns *p_res; */
 void init (int * p_res) ;
- 
+
 int is_ko = -1;
 void main () {
   init (&is_ko);
@@ -39,4 +39,3 @@ void main_ter () {
       loop_body () ;
       }
 }
-

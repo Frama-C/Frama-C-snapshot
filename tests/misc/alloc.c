@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input 
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x100-0x200 -main main_abs
+   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x100-0x200 -main main_abs -journal-disable
 */
 
 #define FRAMA_C_MALLOC_INDIVIDUAL
@@ -20,7 +20,7 @@ void main(int c)
   if (!c++) t[10] = 0;
   t[0] = t[9] = 'o';
   *p = 'k';
-  
+
   q = malloc(4);
   r = - (int) q;
   *r = *(r+1);

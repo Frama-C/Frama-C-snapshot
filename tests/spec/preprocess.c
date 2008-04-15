@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -pp-annot -val
+   OPT: -pp-annot -val -journal-disable
 */
 
 int x = 1;

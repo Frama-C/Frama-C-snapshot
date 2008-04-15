@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -val -main f share/builtin.c
-   OPT: -val -main f2
-   OPT: -val -main main
+   OPT: -val -main f share/builtin.c -journal-disable
+   OPT: -val -main f2 -journal-disable
+   OPT: -val -main loop -journal-disable
 */
 /*
  * bin/viewer.byte -main f tests/scope/scope.c -val share/builtin.c
@@ -20,7 +20,7 @@ int f (int x, int y, Tstr s) {
   int * p;
   int i;
   if (x > 0) {
-    p =  &x; 
+    p =  &x;
     a = 0;
     s.a = 3;
     i =  Frama_C_interval (5, 15);
@@ -33,9 +33,9 @@ int f (int x, int y, Tstr s) {
     T[i] = 2;
   }
   i = 0;
-  x = 3;
-  y = 2;
-  /* It can be interesting to see that selecting T[i] 
+  x = 5;
+  y = 10;
+  /* It can be interesting to see that selecting T[i]
    * is not the same than selecting T[0] even if i=0 */
   *p = i;
   x = 4;

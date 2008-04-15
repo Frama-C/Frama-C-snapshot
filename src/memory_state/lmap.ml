@@ -47,7 +47,7 @@ sig
 
     type instanciation = Location_Bytes.t BaseMap.t
 
-    module Datatype : Project.Datatype.OUTPUT with type t = t
+    module Datatype : Project.Datatype.S with type t = t
 
     val inject : Base.t -> loffset -> t
 
@@ -66,6 +66,7 @@ sig
   val join : t -> t -> t
   val is_included : t -> t -> bool
   val equal : t -> t -> bool
+  val hash : t -> int
   val is_included_actual_generic :
     Zone.t -> t -> t -> instanciation
 
@@ -86,12 +87,15 @@ sig
   (* Raises [Not_found] if the varid is not present in the map *)
   val find_base : Base.t -> t -> loffset
 
+  val remove_base : Base.t -> t -> t
+
   val copy_paste : location -> location -> t -> t
   val paste_offsetmap :  loffset -> Location_Bits.t -> Int.t -> Int.t -> t -> t
 
   val copy_offsetmap : Locations.location -> t -> loffset option
   val compute_actual_final_from_generic : 
-    t -> t -> Locations.Zone.t -> instanciation -> t
+    t -> t -> Locations.Zone.t -> instanciation -> t*Location_Bits.Top_Param.t
+
   val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 
   (* Raises [Invalid_argument "Lmap.fold"] if one location is not aligned
@@ -171,25 +175,35 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
 
     type t = LBase.t option (* [None] is bottom *)
 
+
+    let equal m1 m2 = match m1, m2 with
+      None, None -> true
+    | None, Some _ | Some _, None -> false
+    | Some m1, Some m2 -> m1 == m2
+
     type instanciation = Location_Bytes.t BaseMap.t
 
     let empty = Some LBase.empty
 
     let rehash = Extlib.opt_map LBase.Datatype.rehash
 
-    let name = Project.Datatype.Name.extend "Lmap" LOffset.Datatype.name
+    let name = Project.Datatype.extend_name "Lmap" LOffset.Datatype.name
 
-    module Datatype =
-      Project.Datatype.Register
+    let hash = function 
+      | None -> 0
+      | Some m -> LBase.tag m
+
+    module Datatype = struct
+      include Project.Datatype.Register
 	(struct
 	   type tt = t
 	   type t = tt
 	   let copy _ = assert false (* TODO *)
 	   let rehash = rehash
-	   include Datatype.Nop
 	   let name = name
-	   let dependencies = [ LBase.Datatype.self ]
 	 end)
+      let () = register_comparable ~hash ~equal ()
+    end
 
     let top = empty
 
@@ -221,11 +235,6 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
 	None -> assert false
       | Some m -> LBase.is_empty m
 
-    let equal m1 m2 = match m1, m2 with
-      None, None -> true
-    | None, Some _ | Some _, None -> false
-    | Some m1, Some m2 -> m1 == m2
-
   let filter_base f m =
     match m with None -> None
     | Some m ->
@@ -240,12 +249,15 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
       | None -> raise Not_found
       | Some m -> LBase.find vi m
 
+  let remove_base (vi:LBase.key) (m:t) =
+    match m with
+    | None -> m
+    | Some m -> Some (LBase.remove vi m)
+
   let is_reachable t =
     match t with
       None -> false
     | Some _ -> true
-
-
 
   let pretty_without_null fmt m =
     Format.fprintf fmt "@[";
@@ -997,70 +1009,83 @@ let is_included =
   let compute_actual_final_from_generic
       actual_orig generic_final filter instanciation =
     match generic_final with
-    | None -> None (* the called function does not terminate *)
+    | None -> 
+        None,  (* the called function does not terminate *)
+        Location_Bits.Top_Param.bottom
     | Some generic_finalcontent ->
         let actual_orig = Cilutil.out_some actual_orig in
         try
-          Some
-            (Zone.fold_i
-               (fun base itvs acc ->
-                  let new_offsetmap =
-		    LBase.find_or_default base generic_finalcontent
-                  in
-		  if Base.is_hidden_variable base
-		  then
-		    let instance =
-		      try
-			BaseMap.find base instanciation
-		      with Not_found ->
-			Format.printf "Internal error: hidden variable %a appears in generic state but not in instanciation@."
-			Base.pretty base;
-			assert false
-		    in
-		    let instance_bits = loc_bytes_to_loc_bits instance in
-		    begin try
-		      let instance_base, instance_offset =
-			Location_Bits.find_lonely_binding instance_bits
-		      in
-		      let instance_offset = Ival.project_int instance_offset in
-		      let original_offsetmap =
-			LBase.find_or_default instance_base actual_orig
-                      in
-		      let shifted_original =
-			LOffset.shift (Int.neg instance_offset)
-			  original_offsetmap
-		      in
-		      let merged_offsetmap =
-			LOffset.merge_by_itv
-			  shifted_original
-			  new_offsetmap
-			  itvs
-		      in
-		      let shifted_back_result =
-			LOffset.shift
-			  instance_offset
-			  merged_offsetmap
-		      in
-	(*	      Format.printf "caffg: shifted original:%a@\nnew:%a@\nresult:%a@\n"
-			(LOffset.pretty None) shifted_original
-			(LOffset.pretty None) new_offsetmap
-			(LOffset.pretty None) shifted_back_result; *)
-		      LBase.add instance_base shifted_back_result acc
-		    with Not_found | Ival.Not_Singleton_Int ->
-		      assert false (* TODO: is it possible to be more general?*)
-		    end
-		  else begin
-                    let original_offsemap =
-		      LBase.find_or_default base actual_orig
-                    in
-                    let merged_offsetmap =
-                      LOffset.merge_by_itv original_offsemap new_offsetmap itvs
-                    in
-                    LBase.add base merged_offsetmap acc
-		  end)
-               filter
-               actual_orig)
-        with Zone.Error_Top -> generic_final (* [filter] is [top] *)
+          let result, clobbered = 
+            Zone.fold_i
+            (fun base itvs (acc,clobbered_acc) ->
+               let new_offsetmap =
+		 LBase.find_or_default base generic_finalcontent
+               in
+	       let new_acc = 
+                 if Base.is_hidden_variable base
+		 then
+		   let instance =
+		     try
+		       BaseMap.find base instanciation
+		     with Not_found ->
+		       Format.printf 
+                         "Internal error: hidden variable %a appears in generic state but not in instanciation@."
+			 Base.pretty base;
+		       assert false
+		   in
+		   let instance_bits = loc_bytes_to_loc_bits instance in
+		   begin try
+		     let instance_base, instance_offset =
+		       Location_Bits.find_lonely_binding instance_bits
+		     in
+		     let instance_offset = Ival.project_int instance_offset in
+		     let original_offsetmap =
+		       LBase.find_or_default instance_base actual_orig
+                     in
+		     let shifted_original =
+		       LOffset.shift (Int.neg instance_offset)
+			 original_offsetmap
+		     in
+		     let merged_offsetmap =
+		       LOffset.merge_by_itv
+			 shifted_original
+			 new_offsetmap
+			 itvs
+		     in
+		     let shifted_back_result =
+		       LOffset.shift
+			 instance_offset
+			 merged_offsetmap
+		     in
+	             (*	      Format.printf "caffg: shifted original:%a@\nnew:%a@\nresult:%a@\n"
+			      (LOffset.pretty None) shifted_original
+			      (LOffset.pretty None) new_offsetmap
+			      (LOffset.pretty None) shifted_back_result; *)
+		     LBase.add instance_base shifted_back_result acc
+		   with Not_found | Ival.Not_Singleton_Int ->
+		     assert false (* TODO: is it possible to be more general?*)
+		   end
+		 else begin
+                   let original_offsemap =
+		     LBase.find_or_default base actual_orig
+                   in
+                   let merged_offsetmap =
+                     LOffset.merge_by_itv original_offsemap new_offsetmap itvs
+                   in
+                   LBase.add base merged_offsetmap acc
+		 end
+               in
+               new_acc,
+               Location_Bits.Top_Param.join 
+                 (Location_Bits.Top_Param.inject_singleton base)
+                 clobbered_acc)
+            filter
+            (actual_orig,Location_Bits.Top_Param.bottom)
+          in
+          Some result, clobbered
+        with Zone.Error_Top -> 
+          generic_final, (* [filter] is [top] *)
+          Location_Bits.Top_Param.top
 
 
   let reciprocal_image base m = (*: Base.t -> t -> Zone.t*Location_Bits.t*)

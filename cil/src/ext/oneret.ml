@@ -80,6 +80,7 @@
  * want to insert some finalizer code, since you have a precise place where
  * to put it *)
 open Cil_types
+open Cilutil
 open Cil
 open Pretty
 
@@ -126,8 +127,8 @@ let oneret (f: fundec) : unit =
           let rec setLastLoc = function
             | [] -> ()
             | {skind=Block b} :: [] -> setLastLoc b.bstmts
-            | {skind=UnspecifiedSequence b}::[] ->
-                setLastLoc b.bstmts
+            | {skind=UnspecifiedSequence seq}::[] ->
+                setLastLoc (List.map (fun (x,_,_) -> x) seq)
             | {skind=s} :: [] -> lastloc := get_stmtLoc s
             | {skind=_s} :: l -> setLastLoc l
           in setLastLoc f.sbody.bstmts; !lastloc
@@ -200,8 +201,15 @@ let oneret (f: fundec) : unit =
     | ({skind=Block b} as s) :: rests ->
         s.skind <- Block (scanBlock false b);
         s :: scanStmts mainbody rests
-    | ({skind = UnspecifiedSequence b} as s) :: rests ->
-        s.skind <- UnspecifiedSequence (scanBlock false b);
+    | ({skind = UnspecifiedSequence seq} as s) :: rests ->
+        s.skind <-
+          UnspecifiedSequence
+          (List.concat
+             (List.map (fun (s,w,r) ->
+                          let res = scanStmts false [s] in
+                          (List.hd res,w,r)::
+                            (List.map (fun x -> x,[],[]) (List.tl res)))
+                seq));
         s::scanStmts mainbody rests
     | ({skind=(Goto _ | Instr _ | Continue _ | Break _
                | TryExcept _ | TryFinally _)} as s)

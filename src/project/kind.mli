@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kind.mli,v 1.6 2008/05/30 08:29:49 uid568 Exp $ *)
+(* $Id: kind.mli,v 1.11 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Kind (roughly speaking, a type used as first-class-value for Project). 
 
@@ -27,7 +27,7 @@
     set of kinds dealing with their dependencies. *)
 
 (** How to select the dependencies when a kind is added to a selection. 
-    @plugin developer guide *)
+    @plugin development guide *)
 type how =
   | Do_Not_Select_Dependencies
       (** Only select the kind, and not its dependencies. *)
@@ -54,12 +54,15 @@ module type SELECTION = sig
 
   val singleton : kind -> how -> t
     (** [singleton k h] is equivalent to [add k h empty]. 
-	@plugin developer guide *)
+	@plugin development guide *)
 
   val remove: kind -> t -> t
     (** [remove k s] removes [k] of [s]. Each dependency [d] of [k] is also
 	removed if [d] was not added using [add] (but only selected when [k]
 	was added). *)
+
+  val iter: (kind -> how -> unit) -> t -> unit
+  val fold: (kind -> how -> 'a -> 'a) -> t -> 'a -> 'a
 
 end
 
@@ -97,9 +100,6 @@ sig
   val value: t -> T.t
     (** Inverse of [create]. *)
 
-  exception Circular of t * t
-    (** May be raised by [add_dependency]. *)
-
   exception DependencyAlreadyExists of string * string
     (** May be raised by [add_dependency]. *)
    
@@ -107,24 +107,32 @@ sig
     (** [add_dependency k1 k2] indicates that the kind [k1] depends on the kind
 	[k2], that is an action of the kind [k2] must be done before one of the
 	kind [k1].
-	@raise Circular if there is a circular dependency between two kinds.
 	@raise DependencyAlreadyExists if such a dependency already exists. *)
 
   val iter: (T.t -> 'a -> unit) -> 'a -> unit
     (** [iter f x] applies [f k x] for each kind [k] of type [t]. Order of
 	applications is not specified. *)
 
+  val apply_in_order:
+    Selection.t -> Selection.t -> (t -> 'a -> 'a) -> 'a -> 'a
+    (** [apply_in_order only except f x] folds [f] for of each kind of type [t] 
+	(or for each kind specified by [only] and [except] if one of them is 
+	non-empty), begining to [acc] and following a topological order of 
+	kinds dependencies. *)
+
   val iter_in_order: 
     Selection.t -> Selection.t -> (T.t -> 'a -> unit) -> 'a -> unit
-    (** [iter_in_order f x] applies [f k x] for each kind [k] of type
-	[t], following a topological order of kinds dependencies. *)
+    (** [iter_in_order only except f x] applies [f v x] for each kind value [v] 
+	of type [T.t] (or for each kind specified by [only] and 
+	[except] if one of them is non-empty), following the same order as 
+	apply_in_order. *)
 
   val fold_in_order:
     Selection.t -> Selection.t -> (T.t -> 'a -> 'a) -> 'a -> 'a
-    (** [fold_in_order only except f acc] folds [f] for each kind [k] of type
-	[t] (or for each kind specified by [only] and [except] if one of them
-	is non-empty), begining to [acc] and following a topological order of
-	kinds dependencies. *)
+    (** [fold_in_order only except f acc] folds [f v x] for each kind value [v]
+	of type [T.t] (or for each kind specified by [only] and 
+	[except] if one of them is non-empty), begining to [acc] and following 
+	the same order as apply_in_order. *)
 
   val digest: unit -> Digest.t
     (** Checksum of kinds of type [t]. *)

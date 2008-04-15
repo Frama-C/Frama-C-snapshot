@@ -43,14 +43,20 @@ class do_it = object(self)
 
   method vstmt s =
     current_stmt <- Kstmt s;
-    DoChildren
+    match s.skind with
+      | UnspecifiedSequence seq ->
+          List.iter
+            (fun (stmt,_,_) ->
+               ignore (visitCilStmt (self:>cilVisitor) stmt))
+            seq;
+          SkipChildren (* do not visit the additional lvals *)
+      | _ -> super#vstmt s
 
   method vlval lv =
     let deps,loc =
       !Value.lval_to_loc_with_deps
         ~with_alarms:CilE.warn_none_mode
 	~deps:Zone.bottom
-	~skip_base_deps:false
 	current_stmt lv
     in
     let bits_loc = valid_enumerate_bits loc in
@@ -63,7 +69,6 @@ class do_it = object(self)
       !Value.lval_to_loc_with_deps
         ~with_alarms:CilE.warn_none_mode
 	~deps:Zone.bottom
-	~skip_base_deps:true
 	current_stmt
 	lv
     in
@@ -107,7 +112,6 @@ class do_it = object(self)
 	  !Value.lval_to_loc_with_deps
             ~with_alarms:CilE.warn_none_mode
 	    ~deps:Zone.bottom
-	    ~skip_base_deps:false
 	    current_stmt lv
 	in
 	self#join deps;
@@ -130,7 +134,7 @@ let expr stmt e =
 module Internals =
   Kf_state.Make
     (struct
-       let name = Project.Computation.Name.make "internal_inputs"
+       let name = "internal_inputs"
        let dependencies = [ Value.self ]
      end)
 
@@ -174,34 +178,50 @@ let externalize fundec =
         (fun v -> not (Base.is_formal_or_local v fundec))
   | Declaration (_,vd,_,_) ->
       Zone.filter_base
-        (fun v -> not (Base.is_formal_of_prototype v vd))
+        (fun v -> not (Base.is_formal_of_prototype v vd)) 
+
+
 
 module Externals =
   Kf_state.Make
     (struct
-       let name = Project.Computation.Name.make "external_inputs"
+       let name = "external_inputs"
        let dependencies = [ Internals.self ]
      end)
 
 let get_external =
   Externals.memo (fun kf -> externalize kf.fundec (get_internal kf))
 
-let compute_external kf = ignore (get_external kf)
+let remove_locals_keep_formals fundec =
+  match fundec with
+  | Definition (fundec,_) ->
+      Zone.filter_base
+	 (fun v -> not (Base.is_local v fundec))
+  | Declaration _ -> (fun v -> v)
 
-(* unused:
-let pretty_internal fmt kf =
-  match kf.internal_inputs with
-  | Some o ->
-      Format.fprintf fmt "@[Inputs (internal) for function %s:@\n@[<hov 2>  %a@]@]@\n"
-        (get_name kf)
-        Zone.pretty o
-  | None -> ()
-*)
+module With_formals =
+  Kf_state.Make
+    (struct
+       let name = "with_formals_inputs"
+       let dependencies = [ Internals.self ]
+     end)
+
+let get_with_formals =
+  With_formals.memo 
+    (fun kf -> remove_locals_keep_formals kf.fundec (get_internal kf))
+
+
+let compute_external kf = ignore (get_external kf)
 
 let pretty_external fmt kf =
   Format.fprintf fmt "@[Inputs for function %a:@\n@[<hov 2>  %a@]@]@\n"
     Kernel_function.pretty_name kf
     Zone.pretty (get_external kf)
+
+let pretty_with_formals fmt kf =
+  Format.fprintf fmt "@[Inputs (with formals) for function %a:@\n@[<hov 2>  %a@]@]@\n"
+    Kernel_function.pretty_name kf
+    Zone.pretty (get_with_formals kf)
 
 (* unused:
 let display () = iter_on_functions (pretty_internal Format.std_formatter)
@@ -210,18 +230,25 @@ let display () = iter_on_functions (pretty_internal Format.std_formatter)
 let () =
   Db.Inputs.self_internal := Internals.self;
   Db.Inputs.self_external := Externals.self;
+  Db.Inputs.self_with_formals := With_formals.self;
   Db.Inputs.get_internal := get_internal;
   Db.Inputs.get_external := get_external;
+  Db.Inputs.get_with_formals := get_with_formals;
   Db.Inputs.compute := compute_external;
   Db.Inputs.display := pretty_external;
+  Db.Inputs.display_with_formals := pretty_with_formals;
   Db.Inputs.statement := statement;
   Db.Inputs.expr := expr
 
-let option =
-  "-input",
+let options =
+  ["-input",
   Arg.Unit Cmdline.ForceInput.on,
-  ": force display of operational inputs computed in a linear pass. Locals and function parameters are not displayed"
+  ": force display of operational inputs computed in a linear pass. Locals and function parameters are not displayed";
 
+   "-input_with_formals",
+  Arg.Unit Cmdline.ForceInputWithFormals.on,
+  ": force display of operational inputs computed in a linear pass. Function parameters are displayed, locals are not.";
+  ]
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry -main f -slevel 4
-   OPT: -security-analysis -lib-entry -main g
+   OPT: -security-analysis -lib-entry -main f -slevel 4 -journal-disable
+   OPT: -security-analysis -lib-entry -main g -journal-disable
    */
 
 //#define GCC
@@ -25,20 +25,15 @@ void f() {
   int i;
   x = malloc(sizeof(int));
 
-  for (i = 0; i < 4; i++) 
+  for (i = 0; i < 4; i++)
     t[i] = i;
 
   *(t+3) = (int /*@ public */) *(t+2);
   *x = t[3];
 
-// see BTS#273
-/*   while (i>0) { */
-/*     i--; */
-/*     send(t[i]); */
-/*   } */
-
   while (i>0) {
     i--;
+    //    send(t[i]); // see BTS#273
   }
 
   send(t[0]);

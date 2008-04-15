@@ -19,55 +19,43 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: datatype.mli,v 1.9 2008/06/23 14:12:08 uid568 Exp $ *)
+(* $Id: datatype.mli,v 1.17 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Datatype implementations and builders. 
     Provide ways to implement signature [Project.Datatype.OUTPUT] without
     directly apply functor [Project.Datatype.Register]. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
-(** Implementation of [before_load] and [after_load] when those functions do
-    nothing special. 
-    @plugin developer guide *)
-module Nop : sig
-  val before_load: unit -> unit
-  val after_load : unit -> unit
-end
+open Project.Datatype
 
-(** @plugin developer guide *)
-module Int: Project.Datatype.OUTPUT with type t = int
+module Unit: S with type t = unit
 
-(** @plugin developer guide *)
-module Bool: Project.Datatype.OUTPUT with type t = bool
+(** @plugin development guide *)
+module Int: S with type t = int
 
-module String: Project.Datatype.OUTPUT with type t = string
-module BigInt : Project.Datatype.OUTPUT with type t = Big_int.big_int
+(** @plugin development guide *)
+module Bool: S with type t = bool
+
+module String: S with type t = string
+module BigInt : S with type t = Big_int.big_int
 
 (** {2 Builders} *)
 
-(** Input signature of builders: all the builders depend on another datatype
-    which have to implement this signature. *)
-module type INPUT = sig
-  include Project.Datatype.INPUT
-  val self : Project.Datatype.t
-end
-
 (** {3 References} *)
 
-(** @plugin developer guide *)
-module Ref(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t ref
+(** @plugin development guide *)
+module Ref(Data:S) : S with type t = Data.t ref
 
-module Option(Data:INPUT) :
-  Project.Datatype.OUTPUT with type t = Data.t option
+(** @plugin development guide *)
+module Option(Data:S) : S with type t = Data.t option
 
-module OptionRef(Data:INPUT) :
-  Project.Datatype.OUTPUT with type t = Data.t option ref
+module OptionRef(Data:S) : S with type t = Data.t option ref
 
 (** {3 Lists} *)
 
 (** Generic functor building a list of data. 
-    @plugin developer guide *)
-module List(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t list
+    @plugin development guide *)
+module List(Data:S) : S with type t = Data.t list
 
 (** {3 Hashtables} *)
 
@@ -77,20 +65,16 @@ module type HASHTBL = sig
   type 'a t
   val create: int -> 'a t
   val iter: (key -> 'a -> unit) -> 'a t -> unit
+  val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
   val add: 'a t -> key -> 'a -> unit
   val replace: 'a t -> key -> 'a -> unit
   val length: 'a t -> int
+  val find_all: 'a t -> key -> 'a list
 end
 
-module Make_Hashtbl(H: HASHTBL)(Data:INPUT) :
-  Project.Datatype.OUTPUT with type t = Data.t H.t
+module Make_Hashtbl(H: HASHTBL)(Data:S) : S with type t = Data.t H.t
 
 (** {3 Sets} *)
-
-module type SET_INPUT = sig
-  include INPUT
-  val compare: t -> t -> int
-end
 
 (** Sub-signature of [Set.S]. *)
 module type SET = sig
@@ -103,16 +87,15 @@ module type SET = sig
 end
 
 (** Generic functor building a set datatype. *)
-module Make_Set(Set:SET)(Data:INPUT with type t = Set.elt) :
-  Project.Datatype.OUTPUT with type t = Set.t
+module Make_Set(Set:SET)(Data:S with type t = Set.elt) :
+  S with type t = Set.t
 
 (** Generic functor building a datatype for a reference on a set. *)
-module Make_SetRef(Set:SET)(Data:INPUT with type t = Set.elt) :
-  Project.Datatype.OUTPUT with type t = Set.t ref
+module Make_SetRef(Set:SET)(Data:S with type t = Set.elt) :
+  S with type t = Set.t ref
 
 (** Functor building a set datatype. *)
-module Set(Data:sig include INPUT val compare:t -> t -> int end) : 
-  Project.Datatype.OUTPUT with type t = Set.Make(Data).t
+module Set(Data: S) : S with type t = Set.Make(Data).t
 
 (** {3 Maps} *)
 
@@ -126,18 +109,22 @@ module type MAP = sig
 end
 
 (** Generic functor building a map datatype. *)
-module Make_Map(Map:MAP)(Data:INPUT) :
-  Project.Datatype.OUTPUT with type t = Data.t Map.t
+module Make_Map(Map:MAP)(Data:S) : S with type t = Data.t Map.t
 
 (** {3 Queues} *)
 
-module Queue(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t Queue.t
+module Queue(Data:S) : S with type t = Data.t Queue.t
 
 (** {3 Tuples} *)
 
-(** @plugin developer guide *)
-module Couple(D1:INPUT)(D2:INPUT) : 
-  Project.Datatype.OUTPUT with type t = D1.t * D2.t
+(** @plugin development guide *)
+module Couple(D1:S)(D2:S) : S with type t = D1.t * D2.t
+
+module Triple(D1:S)(D2:S)(D3:S) : S with type t = D1.t * D2.t * D3.t
+
+(** {3 Project} *)
+
+module Project : S with type t = Project.t
 
 (*
 Local Variables:

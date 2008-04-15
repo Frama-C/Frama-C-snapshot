@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -simplify-cfg -keep-switch -val -files-debug -check
-   OPT: -simplify-cfg -val -files-debug -check
+   OPT: -simplify-cfg -keep-switch -val -files-debug -check -journal-disable
+   OPT: -simplify-cfg -val -files-debug -check -journal-disable
 */
 
 int main(int x, int y) {

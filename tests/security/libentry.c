@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry -main f -security-propagate-assertions
-   OPT: -security-analysis -lib-entry -main g -security-propagate-assertions
-   OPT: -security-analysis -lib-entry -main h -security-propagate-assertions
+   OPT: -security-analysis -lib-entry -main f -security-propagate-assertions -journal-disable
+   OPT: -security-analysis -lib-entry -main g -security-propagate-assertions -journal-disable
+   OPT: -security-analysis -lib-entry -main h -security-propagate-assertions -journal-disable
    */
 
 /*@ requires security_status(x) == public; */

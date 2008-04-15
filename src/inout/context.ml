@@ -169,7 +169,6 @@ module Computer (REACH:sig
            function of [deps]. *)
         !Value.lval_to_loc_with_deps
            ~with_alarms:CilE.warn_none_mode
-          ~skip_base_deps:false
           ~deps:j
           kinstr
           k
@@ -392,7 +391,7 @@ let compute_internal_using_cfg kf =
 module Internals =
   Kf_state.Context
     (struct
-       let name = Project.Computation.Name.make "internal_inouts"
+       let name = "internal_inouts"
        let dependencies = [ Value.self ]
      end)
 
@@ -434,7 +433,7 @@ let externalize fundec =
 module Externals =
   Kf_state.Context
     (struct
-       let name = Project.Computation.Name.make "external_inouts"
+       let name = "external_inouts"
        let dependencies = [ Internals.self ]
      end)
 

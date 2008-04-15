@@ -19,24 +19,31 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: builtin.h,v 1.16 2008/06/26 07:46:00 uid568 Exp $ */
+/* $Id: builtin.h,v 1.17 2008/11/21 09:19:53 uid527 Exp $ */
 
 #ifndef Frama_C_BUILTIN
 #define Frama_C_BUILTIN
 #include "libc.h"
-/*@ assigns \result \from a, b;
+
+extern int Frama_C_entropy_source;
+
+/*@ assigns \result \from a, b, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 int Frama_C_nondet(int a, int b);
 
-/*@ assigns \result \from a, b;
+/*@ assigns \result \from a, b, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 void *Frama_C_nondet_ptr(void *a, void *b);
 
-/*@ assigns \result \from min, max;
+/*@ assigns \result \from min, max, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 int Frama_C_interval(int min, int max);
 
-/*@ assigns \result \from min, max;
+/*@ assigns \result \from min, max, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 float Frama_C_float_interval(float min, float max);
 

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -inout
+   OPT: -val -inout -journal-disable
 */
 /*@ ensures \result == (int)(5 * x);
 */

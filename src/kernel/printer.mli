@@ -19,11 +19,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-
 (** This pretty printer prints the annotations from Db but not the one
     in the code. It contains mutable values and therefore must not be used
     to pretty print more than once a given object.
-    @plugin developer guide *)
-
-
+    @plugin development guide *)
 class print : unit -> Cil.cilPrinter

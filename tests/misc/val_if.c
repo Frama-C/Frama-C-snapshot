@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -main f
-   OPT: -memory-footprint 1 -val -deps -out -input -main f1
-   OPT: -memory-footprint 1 -val -deps -out -input -main f2
+   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f1 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f2 -journal-disable
 */
 int i,j,x,k,l,m,n,d;
 void f(int c){
@@ -38,7 +38,7 @@ void f2(int c) {
     }
 
   if (x <= 1 || x>=3  )
-    { x = 2; 
+    { x = 2;
     j = x;
       }
   else { x++ ; k = x;};

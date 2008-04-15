@@ -1,5 +1,5 @@
-/*run.config:
-  OPT: -lib-entry -main main -val
+/*run.config
+  OPT: -lib-entry -main main -val -journal-disable
  */
 int G;
 

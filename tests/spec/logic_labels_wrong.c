@@ -6,8 +6,12 @@ int x;
 // wrong: label missing
 //@ predicate p(int t[]) = t[0];
 
-// wrong: label missing
-//@ predicate q(int t[]) reads t[..];
+/*@ axiomatic Q {
+  @   predicate q(int t[]);
+  @   //wrong: label missing
+  @   axiom q_ax: \forall int t[]; t[0] == 0 ==> q(t);
+  @ }
+  @*/
 
 void f() {
 

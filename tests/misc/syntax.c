@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -ulevel 22
+   OPT: -memory-footprint 1 -val -deps -out -input -ulevel 22 -journal-disable
 */
 
 // #include <stdio.h>

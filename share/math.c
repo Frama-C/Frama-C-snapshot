@@ -17,9 +17,7 @@
 /*  See the GNU Lesser General Public License version 2.1                 */
 /*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
-/**************************************************************************
-/
-/* $Id: math.c,v 1.10 2008/06/26 07:46:00 uid568 Exp $ */
+/**************************************************************************/
 
 /*@ assigns \result \from x; */
 double Frama_C_cos(double x);

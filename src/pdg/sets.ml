@@ -65,13 +65,12 @@ let rec add_stmt_nodes pdg nodes s =
     List.fold_left (add_stmt_nodes pdg) node_list blk.bstmts
   in
     match s.skind with
-      | Switch (_,blk,_,_) | Loop (_, blk, _, _, _) | Block blk
-      | UnspecifiedSequence blk
-        ->
-          if M.debug2 () then
-            Format.printf
-              "   select_stmt_computation on composed stmt %d@\n" s.sid;
+      | Switch (_,blk,_,_) | Loop (_, blk, _, _, _) | Block blk ->
+          M.debug 2 "   select_stmt_computation on composed stmt %d@." s.sid;
           add_block_stmts_nodes nodes blk
+      | UnspecifiedSequence seq ->
+          M.debug 2 "   select_stmt_computation on composed stmt %d@." s.sid;
+          add_block_stmts_nodes nodes (Cil.block_from_unspecified_sequence seq)
       | If (_,bthen,belse,_) ->
           let nodes = add_block_stmts_nodes nodes bthen in
             add_block_stmts_nodes nodes belse
@@ -102,7 +101,6 @@ let find_top_input_node pdg =
 
 let find_loc_nodes pdg state loc =
   let nodes, undef = State.get_loc_nodes state loc in
-  let nodes = List.fold_left (fun acc n -> n::acc) [] nodes in
   let nodes, undef = match undef with
     | Some undef ->
       let state = get_init_state pdg in
@@ -148,6 +146,20 @@ let find_location_nodes_at_stmt pdg stmt ~before loc =
 
 let find_location_nodes_at_end pdg loc =
   find_loc_nodes pdg (get_last_state pdg) loc
+
+(* be carreful that begin is different from init because 
+* init_state only contains implicit inputs
+* while begin contains only formal arguments *)
+let find_location_nodes_at_begin pdg loc =
+  let kf = M.get_pdg_kf pdg in
+  let stmts = 
+    try let f = Kernel_function.get_definition kf in f.sbody.bstmts
+    with Kernel_function.No_Definition -> []
+  in 
+  let state = match stmts with 
+    | [] -> get_last_state pdg
+    | stmt::_ -> get_stmt_state pdg stmt
+  in find_loc_nodes pdg state loc
 
 let find_label_node pdg label_stmt label =
   let key = K.label_key label_stmt label in
@@ -286,7 +298,7 @@ let direct_dpds pdg node =  filter_nodes (P.get_all_direct_dpds pdg node)
 
 (** gives the list of nodes that the given node depends on,
     with a given kind of dependency. *)
-let direct_x_dpds dpd_type pdg node = 
+let direct_x_dpds dpd_type pdg node =
   filter_nodes (P.get_x_direct_dpds dpd_type pdg node)
 
 let direct_data_dpds = direct_x_dpds D.Data
@@ -327,10 +339,10 @@ let find_nodes_all_addr_dpds = find_nodes_all_x_dpds D.Addr
 (** {3 Forward} build sets of the nodes that depend on given nodes *)
 
 (** @return the list of nodes that directly depend on the given node *)
-let direct_uses pdg node = 
+let direct_uses pdg node =
   filter_nodes (P.get_all_direct_codpds pdg node)
 
-let direct_x_uses dpd_type pdg node = 
+let direct_x_uses dpd_type pdg node =
   filter_nodes (P.get_x_direct_codpds dpd_type pdg node)
 
 let direct_data_uses = direct_x_uses D.Data
@@ -351,7 +363,7 @@ let all_uses pdg nodes =
 
 (** build a list of all the nodes that are related 'somehow' to the given
     nodes. It is a kind of transitive closure of [all_uses] U [all_dpds]. *)
-let all_related_nodes pdg nodes = 
+let all_related_nodes pdg nodes =
   custom_related_nodes (get_both_dpds pdg) nodes
 
 (** @return the call outputs nodes [out] such that
@@ -360,8 +372,7 @@ let all_related_nodes pdg nodes =
   *)
 let find_call_out_nodes_to_select pdg_called called_selected_nodes
                                   pdg_caller call_stmt  =
-  if  M.debug2  () then
-    Format.printf "[pdg:find_call_out_nodes_to_select] for call sid:%d@\n"
+  M.debug 2  "[pdg:find_call_out_nodes_to_select] for call sid:%d@."
       call_stmt.sid;
   let _, call_sgn = FI.find_call (PI.get_index pdg_caller) call_stmt in
   let called_selected_nodes_set =
@@ -371,14 +382,13 @@ let find_call_out_nodes_to_select pdg_called called_selected_nodes
       (* undef can be ignored in this case because it is taken into account in
        * the call part. *)
     let intersect =
-      List.exists 
+      List.exists
         (fun (n,_z) -> PdgTypes.NodeSet.mem n called_selected_nodes_set)
         called_out_nodes
     in
       if intersect then
         begin
-          if  M.debug2  () then
-            Format.printf "\t+ n_%a@\n" Macros.pretty_node call_out_node;
+          M.debug 2  "\t+ n_%a@." Macros.pretty_node call_out_node;
           call_out_node::acc
         end
       else acc
@@ -387,8 +397,7 @@ let find_call_out_nodes_to_select pdg_called called_selected_nodes
 
 let find_in_nodes_to_select_for_this_call
       pdg_caller caller_selected_nodes call_stmt pdg_called =
-  if  M.debug2  () then
-    Format.printf "[pdg:find_in_nodes_to_select_for_this_call] for call sid:%d@\n"
+  M.debug 2  "[pdg:find_in_nodes_to_select_for_this_call] for call sid:%d@."
       call_stmt.sid;
   let sgn = FI.sgn (PI.get_index pdg_called) in
   let caller_selected_nodes_set =
@@ -399,14 +408,13 @@ let find_in_nodes_to_select_for_this_call
       (* undef can be ignored in this case because it is taken into account in
        * the call part. *)
     let intersect =
-      List.exists 
+      List.exists
         (fun (n,_z) -> PdgTypes.NodeSet.mem n caller_selected_nodes_set)
         caller_nodes
     in
       if intersect then
         begin
-          if  M.debug2  () then
-            Format.printf "\t+ n_%a@\n" Macros.pretty_node in_node;
+          M.debug 2  "\t+ n_%a@." Macros.pretty_node in_node;
           in_node::acc
         end
       else acc

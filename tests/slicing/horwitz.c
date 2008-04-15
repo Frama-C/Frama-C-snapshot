@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/horwitz.opt
    CMD: tests/slicing/horwitz.opt
-   OPT: -deps -slicing-level 0
+   OPT: -deps -slicing-level 0 -journal-disable
 */
 
 /* bin/toplevel.opt -deps -val tests/slicing/horwitz.c */

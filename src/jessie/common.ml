@@ -19,13 +19,15 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: common.ml,v 1.34 2008/07/11 13:28:14 uid570 Exp $ *)
+(* $Id: common.ml,v 1.59 2008/11/19 17:41:56 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
 open Cil
 open Cilutil
 open Ast_info
+open Extlib
+open Visitor
 
 (* Utility functions *)
 open Format
@@ -50,6 +52,9 @@ let is_unknown_location loc =
 (* Types                                                                     *)
 (*****************************************************************************)
 
+(* type for ghost variables until integer is a valid type for ghosts *)
+let almost_integer_type = TInt(ILongLong,[])
+
 let struct_type_for_void = ref voidType
 
 (* Query functions on types *)
@@ -60,7 +65,9 @@ let app_term_type f default = function
 
 let force_app_term_type f = function
   | Ctype typ -> f typ
-  | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ -> assert false
+  | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ as ty ->
+      Format.printf "Unexpected non-C type %a@." !Ast_printer.d_logic_type ty;
+      assert false
 
 let get_unique_field ty = match unrollType ty with
   | TComp(compinfo,_) ->
@@ -76,16 +83,20 @@ let get_struct_name = function
   | TComp(compinfo,_) -> compinfo.cname
   | _ -> assert false
 
+let get_struct_info = function
+  | TComp(compinfo,_) -> compinfo
+  | _ -> assert false
+
 (* Integral types *)
 
 let size_in_bytes ik =
   let size = function
     | IBool -> assert false
     | IChar | ISChar | IUChar -> 1 (* Cil assumes char is one byte *)
-    | IInt | IUInt -> !theMachine.sizeof_int
-    | IShort | IUShort -> !theMachine.sizeof_short
-    | ILong | IULong -> !theMachine.sizeof_long
-    | ILongLong | IULongLong -> !theMachine.sizeof_longlong
+    | IInt | IUInt -> theMachine.theMachine.sizeof_int
+    | IShort | IUShort -> theMachine.theMachine.sizeof_short
+    | ILong | IULong -> theMachine.theMachine.sizeof_long
+    | ILongLong | IULongLong -> theMachine.theMachine.sizeof_longlong
   in
   size ik
 
@@ -93,18 +104,21 @@ let integral_type_size_in_bytes ty =
   match unrollType ty with
     | TInt(IBool,_attr) -> assert false (* TODO *)
     | TInt(ik,_attr) -> size_in_bytes ik
-    | TEnum _ -> !theMachine.sizeof_enum
+    | TEnum _ -> theMachine.theMachine.sizeof_enum
     | _ -> assert false
 
 let integral_type_size_in_bits ty =
   integral_type_size_in_bytes ty * 8
 
-let min_value_of_integral_type ty =
+let min_value_of_integral_type ?bitsize ty =
   let min_of signed size_in_bytes =
+    let numbits = 
+      match bitsize with Some siz -> siz | None -> size_in_bytes * 8
+    in
     if signed then
       Big_int.minus_big_int
 	(Big_int.power_int_positive_int 2
-	  (size_in_bytes * 8 - 1))
+	  (numbits - 1))
     else Big_int.zero_big_int
   in
   match unrollType ty with
@@ -112,39 +126,54 @@ let min_value_of_integral_type ty =
     | TInt(ik,_attr) ->
 	min_of (isSigned ik) (size_in_bytes ik)
     | TEnum _ ->
-	min_of !theMachine.enum_are_signed !theMachine.sizeof_enum
+	min_of
+	  theMachine.theMachine.Cil_types.enum_are_signed
+	  theMachine.theMachine.sizeof_enum
     | _ -> assert false
 
-let max_value_of_integral_type ty =
+let max_value_of_integral_type ?bitsize ty =
   let max_of signed size_in_bytes =
+    let numbits = 
+      match bitsize with Some siz -> siz | None -> size_in_bytes * 8
+    in
     if signed then
       Big_int.pred_big_int
 	(Big_int.power_int_positive_int 2
-	  (size_in_bytes * 8 - 1))
+	  (numbits - 1))
     else
       Big_int.pred_big_int
 	(Big_int.power_int_positive_int 2
-	  (size_in_bytes * 8))
+	  numbits)
   in
   match unrollType ty with
     | TInt(IBool,_attr) -> Big_int.unit_big_int
     | TInt(ik,_attr) ->
 	max_of (isSigned ik) (size_in_bytes ik)
     | TEnum _ ->
-	max_of !theMachine.enum_are_signed !theMachine.sizeof_enum
+	max_of
+	  theMachine.theMachine.Cil_types.enum_are_signed
+	  theMachine.theMachine.sizeof_enum
     | _ -> assert false
 
-let name_of_integral_type ty =
+let all_integral_types = Hashtbl.create 5
+
+let name_of_integral_type ?bitsize ty =
   let name_it signed size_in_bytes =
-    (if signed then "" else "u") ^ "int"
-    ^ (string_of_int (size_in_bytes * 8))
+    let numbits = 
+      match bitsize with Some siz -> siz | None -> size_in_bytes * 8
+    in
+    let name = (if signed then "" else "u") ^ "int" ^ (string_of_int numbits) in
+    Hashtbl.replace all_integral_types name (ty,numbits);
+    name
   in
   match unrollType ty with
     | TInt(IBool,_attr) -> "_bool"
     | TInt(ik,_attr) ->
 	name_it (isSigned ik) (size_in_bytes ik)
     | TEnum _ ->
-	name_it !theMachine.enum_are_signed !theMachine.sizeof_enum
+	name_it
+	  theMachine.theMachine.Cil_types.enum_are_signed
+	  theMachine.theMachine.sizeof_enum
     | _ -> assert false
 
 (* Reference type *)
@@ -215,6 +244,22 @@ let reference_of_array ty =
   assert (isArrayType ty);
   reftype ty
 
+(* Wrappers on [mkCompInfo] that update size/offset of fields *)
+
+let mkStructEmpty stname =
+  mkCompInfo true stname (fun _ -> []) []
+
+let mkStructSingleton ?(padding=0) stname finame fitype =
+  let compinfo =
+    mkCompInfo true stname
+      (fun _ -> [finame,fitype,None,[],CurrentLoc.get ()]) []
+  in
+  let fi = get_unique_field (TComp(compinfo,[])) in
+  fi.fsize_in_bits <- Some (bitsSizeOf fitype);
+  fi.foffset_in_bits <- Some 0;
+  fi.fpadding_in_bits <- Some padding;
+  compinfo
+
 (* Locally use 64 bits integers *)
 open Integer
 
@@ -232,12 +277,20 @@ let bits_sizeof ty =
 	    (bug "Function pointer type %a not allowed" !Ast_printer.d_type ty)
       | TNamed _ -> assert false (* Removed by call to [unrollType] *)
       | TComp(compinfo,_attr) ->
+	  let size_from_field fi = 
+	    match 
+	      fi.foffset_in_bits, fi.fsize_in_bits, fi.fpadding_in_bits
+	    with
+	      | Some off, Some siz, Some padd -> 
+		  Int64.of_int off + Int64.of_int siz + Int64.of_int padd
+	      | _ -> assert false
+	  in	    
 	  if compinfo.cstruct then
-	    List.fold_left
-	      (fun acc fi -> acc + (rec_size fi.ftype)) 0L compinfo.cfields
+	    match List.rev compinfo.cfields with
+	      | [] -> 0L
+	      | fi :: _ -> size_from_field fi
 	  else
-	    List.fold_left max 0L
-	      (List.map (fun fi -> rec_size fi.ftype) compinfo.cfields)
+	    List.fold_left max 0L (List.map size_from_field compinfo.cfields)
       | TEnum _ | TVoid _ | TInt _ | TFloat _ | TBuiltin_va_list _ ->
 	  Int64.of_int (bitsSizeOf ty)
   in
@@ -251,35 +304,91 @@ open Pervasives
 (* Names                                                                     *)
 (*****************************************************************************)
 
+(* Predefined entities *)
+
+let name_of_valid_string = "valid_string"
+let name_of_valid_wstring = "valid_wstring"
+let name_of_strlen = "strlen"
+let name_of_wcslen = "wcslen"
+let name_of_assert = "assert"
+let name_of_free = "free"
+let name_of_malloc = "malloc"
+let name_of_calloc = "calloc"
+let name_of_realloc = "realloc"
+
+let predefined_name =
+  [ (* coding functions *)
+    name_of_assert; name_of_malloc; name_of_calloc; name_of_realloc; 
+    name_of_free;
+  ]
+
+let is_predefined_name s = List.mem s predefined_name
+
+let is_assert_function v = isFunctionType v.vtype && v.vname = name_of_assert
+let is_free_function v = isFunctionType v.vtype && v.vname = name_of_free
+let is_malloc_function v = isFunctionType v.vtype && v.vname = name_of_malloc
+let is_calloc_function v = isFunctionType v.vtype && v.vname = name_of_calloc
+let is_realloc_function v = isFunctionType v.vtype && v.vname = name_of_realloc
+
 (* Name management *)
 
-let unique_name =
+let unique_name_generator is_exception =
   let unique_names = Hashtbl.create 127 in
-  function s ->
-    try
-      let s = if s = "" then "unnamed" else s in
-      let count = Hashtbl.find unique_names s in
-      incr count;
-      s ^ "_" ^ (string_of_int !count)
-    with Not_found ->
-      Hashtbl.add unique_names s (ref 0); s
+  let rec aux s =
+    if is_exception s then s else
+      try
+	let s = if s = "" then "unnamed" else s in
+	let count = Hashtbl.find unique_names s in
+	let s = s ^ "_" ^ (string_of_int !count) in
+	if Hashtbl.mem unique_names s then
+	  aux s
+	else
+	  (Hashtbl.add unique_names s (ref 0);
+	   incr count; s)
+      with Not_found ->
+	Hashtbl.add unique_names s (ref 0); s
+  in aux
+
+let unique_name = unique_name_generator is_predefined_name
+let unique_logic_name = unique_name_generator (fun _ -> false)
 
 let unique_name_if_empty s =
   if s = "" then unique_name "unnamed" else s
 
-let reserved_names = 
-  [ "and"; "as"; "assert"; "assigns"; "assumes"; "axiom"; "behavior"; 
-    "boolean"; "break"; "case"; "default"; "catch"; "continue"; "do";
-    "else"; "ensures"; "end"; "exception"; "false"; "finally"; "for";
-    "free"; "goto"; "if"; "in"; "integer"; "invariant"; "lemma"; "let"; 
-    "logic"; "match"; "new"; "null"; "of"; "pack"; "reads"; "real";
-    "rep"; "requires"; "return"; "switch"; "tag"; "then"; "throw"; 
-    "throws"; "true"; "try"; "type"; "unit"; "unpack"; "variant"; "var";
-    "while"; "with" ]
-    
-let () = List.iter 
-  (fun n -> let un = unique_name n in assert (n = un)) reserved_names
-  
+(* Jessie reserved names *)
+
+let jessie_reserved_names =
+  [
+    (* a *) "and"; "as"; "assert"; "assigns"; "assumes"; "axiom";
+    (* b *) "behavior"; "boolean"; "break";
+    (* c *) "case"; "catch"; "continue";
+    (* d *) "default"; "do";
+    (* e *) "else"; "end"; "ensures"; "exception";
+    (* f *) "false"; "finally"; "for"; "free";
+    (* g *) "goto";
+    (* i *) "if"; "in"; "integer"; "invariant";
+    (* l *) "lemma"; "let"; "logic";
+    (* m *) "match";
+    (* n *) "new"; "null";
+    (* o *) "of";
+    (* p *) "pack";
+    (* r *) "reads"; "real"; "rep"; "requires"; "return";
+    (* s *) "switch";
+    (* t *) "tag"; "then"; "throw"; "throws"; "true"; "try"; "type";
+    (* u *) "unit"; "unpack";
+    (* v *) "var"; "variant";
+    (* w *) "while"; "with";
+  ]
+
+let () = List.iter (ignore $ unique_name) jessie_reserved_names
+let () = List.iter (ignore $ unique_logic_name) jessie_reserved_names
+
+let reserved_name name =
+  if List.mem name jessie_reserved_names then name else unique_name name
+
+let reserved_logic_name name =
+  if List.mem name jessie_reserved_names then name else unique_logic_name name
+
 (* Type name *)
 
 let string_explode s =
@@ -311,6 +420,16 @@ let type_name ty =
   fprintf str_formatter "%a" !Ast_printer.d_type ty;
   let name = flush_str_formatter () in
   filter_alphanumeric name [('*','x')] '_'
+
+let name_of_padding_type = reserved_logic_name "padding"
+
+let name_of_string_declspec = "valid_string"
+
+let name_of_hint_assertion = "hint"
+
+let name_of_safety_behavior = "safety"
+
+let name_of_default_behavior = "default"
 
 
 (*****************************************************************************)
@@ -367,7 +486,7 @@ let do_and_update_globals action file =
   attach_detach_mode := false
 
 let visit_and_update_globals visitor file =
-  do_and_update_globals (visitCilFile visitor) file
+  do_and_update_globals (visitFramacFile visitor) file
 
 (* Visitor for adding statements in front of the body *)
 
@@ -410,14 +529,11 @@ object
     adding_statement_mode := true;
     assert (!pending_statements_at_beginning = []);
     assert (!pending_statements_at_end = []);
-
+    let change c = fun f -> adding_statement_mode:=false; c f in
     match visitor#vfunc f with
-      | SkipChildren ->
-	  adding_statement_mode := false;
-	  SkipChildren
-      | ChangeTo f' ->
-	  adding_statement_mode := false;
-	  ChangeTo f'
+      | SkipChildren -> ChangeToPost(f, change (fun x -> x))
+      | ChangeTo f' -> ChangeToPost (f', change (fun x -> x))
+      | ChangeToPost(f',action) -> ChangeToPost(f', change action)
       | DoChildren ->
 	  let postaction_func f =
 	    insert_pending_statements f;
@@ -470,12 +586,15 @@ object
   method vterm_offset = visitor#vterm_offset
   method vlogic_info_decl = visitor#vlogic_info_decl
   method vlogic_info_use = visitor#vlogic_info_use
-  method vlogic_var = visitor#vlogic_var
+  method vlogic_var_decl = visitor#vlogic_var_decl
+  method vlogic_var_use = visitor#vlogic_var_use
   method vquantifiers = visitor#vquantifiers
   method vpredicate = visitor#vpredicate
   method vpredicate_named = visitor#vpredicate_named
+(*
   method vpredicate_info_decl = visitor#vpredicate_info_decl
   method vpredicate_info_use = visitor#vpredicate_info_use
+*)
   method vbehavior = visitor#vbehavior
   method vspec = visitor#vspec
   method vassigns = visitor#vassigns
@@ -487,9 +606,12 @@ object
 
 end
 
+let visit_and_push_statements_visitor visitor =
+  new proxy_frama_c_visitor visitor
+
 let visit_and_push_statements visit visitor file =
   let visitor = new proxy_frama_c_visitor visitor in
-  visit (visitor :> cilVisitor) file
+  visit visitor file
 
 (* Visitor for tracing computation *)
 
@@ -578,16 +700,21 @@ object
   method vterm_offset = visitor#vterm_offset
   method vlogic_info_decl = visitor#vlogic_info_decl
   method vlogic_info_use = visitor#vlogic_info_use
-  method vlogic_var lv =
+  method vlogic_var_decl lv =
     Format.printf "%a@." !Ast_printer.d_logic_var lv;
-    visitor#vlogic_var lv
+    visitor#vlogic_var_decl lv
+  method vlogic_var_use lv =
+    Format.printf "%a@." !Ast_printer.d_logic_var lv;
+    visitor#vlogic_var_use lv
   method vquantifiers = visitor#vquantifiers
   method vpredicate = visitor#vpredicate
   method vpredicate_named p =
     Format.printf "%a@." !Ast_printer.d_predicate_named p;
     visitor#vpredicate_named p
+(*
   method vpredicate_info_decl = visitor#vpredicate_info_decl
   method vpredicate_info_use = visitor#vpredicate_info_use
+*)
   method vbehavior = visitor#vbehavior
   method vspec funspec =
     Format.printf "%a@." !Ast_printer.d_funspec funspec;
@@ -623,21 +750,199 @@ let visit_until_convergence visitor file =
   change := true;
   while !change do
     change := false;
-    visitCilFile visitor file;
+    visitFramacFile visitor file;
   done
 
 (* Visitor methods for sharing preaction/postaction between exp/term/tsets *)
 
+let result_type = ref voidType
+let get_result_type () = !result_type
+
+class do_on_exp_frama_c_visitor (visitor : Visitor.frama_c_visitor) =
+
+  let do_on_visit m ty f =
+    result_type := (match ty with Some ty -> ty | None -> voidType);
+    let change c = fun f -> result_type := voidType; c f in
+    match m f with
+      | SkipChildren 
+      | ChangeTo _ as action -> action
+      | ChangeToPost(f',action) -> ChangeToPost(f', change action)
+      | DoChildren ->
+	  let postaction_func f =
+	    result_type := voidType;
+	    f
+	  in
+	  ChangeDoChildrenPost (f, postaction_func)
+      | ChangeDoChildrenPost (f', action) ->
+	  let postaction_func f =
+	    let f = action f in
+	    result_type := voidType;
+	    f
+	  in
+	  ChangeDoChildrenPost (f', postaction_func)
+  in
+  let do_on_visit_list m ty f =
+    result_type := (match ty with Some ty -> ty | None -> voidType);
+    let change c = fun f -> result_type := voidType; c f in
+    match m f with
+      | SkipChildren 
+      | ChangeTo _ as action -> action
+      | ChangeToPost(f',action) -> ChangeToPost(f', change action)
+      | DoChildren ->
+	  let postaction_func f =
+	    result_type := voidType;
+	    f
+	  in
+	  ChangeDoChildrenPost ([f], postaction_func)
+      | ChangeDoChildrenPost (f', action) ->
+	  let postaction_func f =
+	    let f = action f in
+	    result_type := voidType;
+	    f
+	  in
+	  ChangeDoChildrenPost (f', postaction_func)
+  in
+object
+
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+
+  (* Modify visitor on functions so that it updates the result type *)
+  method vglob_aux g = 
+    match g with
+      | GVarDecl(_,v,_) when isFunctionType v.vtype ->
+	  do_on_visit_list visitor#vglob_aux (Some (getReturnType v.vtype)) g
+      | GFun(f,_) ->
+	  do_on_visit_list 
+	    visitor#vglob_aux (Some (getReturnType f.svar.vtype)) g
+      | _ -> visitor#vglob_aux g
+
+  method vlogic_info_decl f = 
+    do_on_visit visitor#vlogic_info_decl 
+      (match f.l_type with
+	 | None -> None
+	 | Some t -> app_term_type (fun x -> Some x) None t) f
+
+  (* Inherit all other visitors *)
+
+  (* Methods introduced by the Frama-C visitor *)
+  method vfile = visitor#vfile
+  method vrooted_code_annotation = visitor#vrooted_code_annotation
+  method vstmt_aux = visitor#vstmt_aux
+
+  (* Methods from Cil visitor for coding constructs *)
+  method vfunc = visitor#vfunc
+  method vblock = visitor#vblock
+  method vvrbl = visitor#vvrbl
+  method vvdec = visitor#vvdec
+  method vexpr = visitor#vexpr
+  method vlval = visitor#vlval
+  method voffs = visitor#voffs
+  method vinitoffs = visitor#vinitoffs
+  method vinst = visitor#vinst
+  method vinit = visitor#vinit
+  method vtype = visitor#vtype
+  method vattr = visitor#vattr
+  method vattrparam = visitor#vattrparam
+
+  (* Methods from Cil visitor for logic constructs *)
+  method vlogic_type = visitor#vlogic_type
+  method vtsets_lhost = visitor#vtsets_lhost
+  method vtsets_elem = visitor#vtsets_elem
+  method vtsets_lval = visitor#vtsets_lval
+  method vtsets_offset = visitor#vtsets_offset
+  method vtsets = visitor#vtsets
+  method vterm = visitor#vterm
+  method vterm_node = visitor#vterm_node
+  method vterm_lval = visitor#vterm_lval
+  method vterm_lhost = visitor#vterm_lhost
+  method vterm_offset = visitor#vterm_offset
+  method vlogic_info_use = visitor#vlogic_info_use
+  method vlogic_var_decl = visitor#vlogic_var_decl
+  method vlogic_var_use = visitor#vlogic_var_use
+  method vquantifiers = visitor#vquantifiers
+  method vpredicate = visitor#vpredicate
+  method vpredicate_named = visitor#vpredicate_named
+(*
+  method vpredicate_info_decl = visitor#vpredicate_info_decl
+  method vpredicate_info_use = visitor#vpredicate_info_use
+*)
+  method vbehavior = visitor#vbehavior
+  method vspec = visitor#vspec
+  method vassigns = visitor#vassigns
+  method vloop_pragma = visitor#vloop_pragma
+  method vslice_pragma = visitor#vslice_pragma
+  method vzone = visitor#vzone
+  method vcode_annot = visitor#vcode_annot
+  method vannotation = visitor#vannotation
+
+end
+
+let store_result_type_visitor visitor =
+  new do_on_exp_frama_c_visitor visitor
+
+let visit_and_store_result_type visit visitor file =
+  let visitor = new do_on_exp_frama_c_visitor visitor in
+  visit visitor file
+
+let do_on_term_offset (preaction_offset,postaction_offset) tlv =
+  let preaction_toffset tlv =
+    match preaction_offset with None -> tlv | Some preaction_offset ->
+      let lv,env = 
+	!Db.Properties.Interp.force_term_offset_to_offset 
+	  (get_result_type ()) tlv
+      in
+      let lv = preaction_offset lv in
+      !Db.Properties.Interp.force_back_offset_to_term_offset env lv
+  in
+  let postaction_toffset tlv =
+    match postaction_offset with None -> tlv | Some postaction_offset ->
+      let lv,env = 
+	!Db.Properties.Interp.force_term_offset_to_offset 
+	  (get_result_type ()) tlv
+      in
+      let lv = postaction_offset lv in
+      !Db.Properties.Interp.force_back_offset_to_term_offset env lv
+  in
+  ChangeDoChildrenPost (preaction_toffset tlv, postaction_toffset)
+
+let do_on_tsets_offset (preaction_offset,postaction_offset) tslv =
+  let preaction_tsoffset tslv =
+    match preaction_offset with None -> tslv | Some preaction_offset ->
+      let lv,env = 
+	!Db.Properties.Interp.force_tsets_offset_to_offset 
+	  (get_result_type ()) tslv 
+      in
+      let lv = preaction_offset lv in
+      !Db.Properties.Interp.force_back_offset_to_tsets_offset env lv
+  in
+  let postaction_tsoffset tslv =
+    match postaction_offset with None -> tslv | Some postaction_offset ->
+      let lv,env = 
+	!Db.Properties.Interp.force_tsets_offset_to_offset 
+	  (get_result_type ()) tslv
+      in
+      let lv = postaction_offset lv in
+      !Db.Properties.Interp.force_back_offset_to_tsets_offset env lv
+  in
+  ChangeDoChildrenPost (preaction_tsoffset tslv, postaction_tsoffset)
+
 let do_on_term_lval (preaction_lval,postaction_lval) tlv =
   let preaction_tlval tlv =
     match preaction_lval with None -> tlv | Some preaction_lval ->
-      let lv,env = !Db.Properties.Interp.force_term_lval_to_lval tlv in
+      let lv,env = 
+	!Db.Properties.Interp.force_term_lval_to_lval 
+	  (get_result_type ()) tlv 
+      in
       let lv = preaction_lval lv in
       !Db.Properties.Interp.force_back_lval_to_term_lval env lv
   in
   let postaction_tlval tlv =
     match postaction_lval with None -> tlv | Some postaction_lval ->
-      let lv,env = !Db.Properties.Interp.force_term_lval_to_lval tlv in
+      let lv,env =
+	!Db.Properties.Interp.force_term_lval_to_lval 
+	  (get_result_type ()) tlv 
+      in
       let lv = postaction_lval lv in
       !Db.Properties.Interp.force_back_lval_to_term_lval env lv
   in
@@ -646,13 +951,19 @@ let do_on_term_lval (preaction_lval,postaction_lval) tlv =
 let do_on_tsets_lval (preaction_lval,postaction_lval) tslv =
   let preaction_tslval tslv =
     match preaction_lval with None -> tslv | Some preaction_lval ->
-      let lv,env = !Db.Properties.Interp.force_tsets_lval_to_lval tslv in
+      let lv,env = 
+	!Db.Properties.Interp.force_tsets_lval_to_lval 
+	  (get_result_type ()) tslv
+      in
       let lv = preaction_lval lv in
       !Db.Properties.Interp.force_back_lval_to_tsets_lval env lv
   in
   let postaction_tslval tslv =
     match postaction_lval with None -> tslv | Some postaction_lval ->
-      let lv,env = !Db.Properties.Interp.force_tsets_lval_to_lval tslv in
+      let lv,env =
+	!Db.Properties.Interp.force_tsets_lval_to_lval 
+	  (get_result_type ()) tslv
+      in
       let lv = postaction_lval lv in
       !Db.Properties.Interp.force_back_lval_to_tsets_lval env lv
   in
@@ -661,13 +972,19 @@ let do_on_tsets_lval (preaction_lval,postaction_lval) tslv =
 let do_on_term (preaction_expr,postaction_expr) t =
   let preaction_term t =
     match preaction_expr with None -> t | Some preaction_expr ->
-      let e,env = !Db.Properties.Interp.force_term_to_exp t in
+      let e,env =
+	!Db.Properties.Interp.force_term_to_exp 
+	  (get_result_type ()) t
+      in
       let e = map_under_info preaction_expr e in
       !Db.Properties.Interp.force_back_exp_to_term env e
   in
   let postaction_term t =
     match postaction_expr with None -> t | Some postaction_expr ->
-      let e,env = !Db.Properties.Interp.force_term_to_exp t in
+      let e,env =
+	!Db.Properties.Interp.force_term_to_exp 
+	  (get_result_type ()) t
+      in
       let e = map_under_info postaction_expr e in
       !Db.Properties.Interp.force_back_exp_to_term env e
   in
@@ -676,15 +993,36 @@ let do_on_term (preaction_expr,postaction_expr) t =
 let do_on_tsets_elem (preaction_expr,postaction_expr) ts =
   let preaction_tselem ts =
     match preaction_expr with None -> ts | Some preaction_expr ->
-      let e,env = !Db.Properties.Interp.force_tsets_elem_to_exp ts in
+      let e,env = 
+	!Db.Properties.Interp.force_tsets_elem_to_exp 
+	  (get_result_type ()) ts
+      in
       let e = preaction_expr e in
       !Db.Properties.Interp.force_back_exp_to_tsets_elem env e
   in
   let postaction_tselem ts =
     match postaction_expr with None -> ts | Some postaction_expr ->
-      let e,env = !Db.Properties.Interp.force_tsets_elem_to_exp ts in
+      let e,env =
+	!Db.Properties.Interp.force_tsets_elem_to_exp 
+	  (get_result_type ()) ts
+      in
       let e = postaction_expr e in
       !Db.Properties.Interp.force_back_exp_to_tsets_elem env e
+  in
+  ChangeDoChildrenPost (preaction_tselem ts, postaction_tselem)
+
+let do_on_tsets_elem_through_term (preaction_term,postaction_term) ts =
+  let preaction_tselem ts =
+    match preaction_term with None -> ts | Some preaction_term ->
+      let t = !Db.Properties.Interp.force_tsets_elem_to_term ts in
+      let t = preaction_term t in
+      !Db.Properties.Interp.force_back_term_to_tsets_elem t
+  in
+  let postaction_tselem ts =
+    match postaction_term with None -> ts | Some postaction_term ->
+      let t = !Db.Properties.Interp.force_tsets_elem_to_term ts in
+      let t = postaction_term t in
+      !Db.Properties.Interp.force_back_term_to_tsets_elem t
   in
   ChangeDoChildrenPost (preaction_tselem ts, postaction_tselem)
 
@@ -698,6 +1036,9 @@ let checking = true
 let print_to_stdout file =
   (* Printer takes into account annotations *)
   dumpFile (new Printer.print ()) stdout "stdout" file
+
+let stop file =
+  print_to_stdout file; ignore(exit 1)
 
 class checkTypes =
   let preaction_expr e = ignore (typeOf e); e in
@@ -722,8 +1063,11 @@ object
 end
 
 let check_types file =
+  (* check types *)
   let visitor = new checkTypes in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file;
+  (* check general consistency *)
+(*   Cil.visitCilFile (new File.check_file :> Cil.cilVisitor) file *)
 
 class check_file: Visitor.frama_c_visitor  =
 object(self)
@@ -785,7 +1129,7 @@ object(self)
 
   method private check_tsets_offset tsoff =
     begin match tsoff with
-	TSNo_offset | TSIndex _ | TSRange _ -> ()
+	TSNoOffset | TSIndex _ | TSRange _ -> ()
       | TSField(fi,_) ->
           begin
             try
@@ -822,7 +1166,16 @@ end
 (* Miscellaneous                                                             *)
 (*****************************************************************************)
 
+(* Queries *)
+
+let is_base_addr t = match (stripTermCasts t).term_node with
+  | Tbase_addr _ -> true
+  | _ -> false
+
 (* Smart constructors *)
+
+(* Redefine statement constructor of CIL to create them with valid sid *)
+let mkStmt = mkStmt ~valid_sid:true
 
 let mkterm tnode ty loc =
   {
@@ -830,6 +1183,24 @@ let mkterm tnode ty loc =
     term_loc = loc;
     term_type = ty;
     term_name = []
+  }
+
+let term_of_var v =
+  let lv = cvar_to_lvar v in
+  if app_term_type isArrayType false lv.lv_type then
+    let ptrty =
+      TPtr(force_app_term_type element_type lv.lv_type,[])
+    in
+    mkterm (TStartOf(TVar lv,TNoOffset)) (Ctype ptrty) v.vdecl
+  else
+    mkterm (TLval(TVar lv,TNoOffset)) lv.lv_type v.vdecl
+
+let mkpred pnode loc =
+  {
+    ip_name = [];
+    ip_loc = loc;
+    ip_id = Logic_const.fresh_predicate_id ();
+    ip_content = pnode;
   }
 
 let mkInfo e =
@@ -893,29 +1264,79 @@ let rec lift_offset ty = function
       else off
   | off -> off
 
-(* Predefined entities *)
+let change_idx idx1 idx siz =
+  let boff =
+    Logic_const.mk_dummy_term (TBinOp(Mult,idx1,constant_term locUnknown siz))
+      intType
+  in
+  Logic_const.mk_dummy_term (TBinOp(PlusA,boff,idx)) intType
 
-let name_of_offset_min = "offset_min"
-let name_of_offset_max = "offset_max"
+let rec lift_toffset ty off =
+  match off with
+      TIndex(idx1,(TIndex _ as suboff)) ->
+        let subty = direct_element_type ty in
+        let siz = array_size subty in
+        begin match lift_toffset subty suboff with
+            | TIndex(idx,off) -> TIndex(change_idx idx1 idx siz,off)
+            | TField _ | TNoOffset -> assert false
+        end
+    | TIndex(idx1,TNoOffset) ->
+        let subty = direct_element_type ty in
+        if isArrayType subty then
+          let siz = array_size subty in
+          TIndex(change_idx idx1 (constant_term locUnknown 0L) siz, TNoOffset)
+        else off
+    | TIndex _ | TField _ | TNoOffset -> off
 
-let name_of_assert = "assert"
-let name_of_free = "free"
-let name_of_malloc = "malloc"
-let name_of_calloc = "calloc"
-
-let jessie_memory_model =
-  [ (* logic functions *)
-    name_of_offset_min; name_of_offset_max;
-    (* coding functions *)
-    name_of_assert; name_of_malloc; name_of_calloc; name_of_free;
-  ]
-
-let in_jessie_memory_model s = List.mem s jessie_memory_model
-
-let is_assert_function v = isFunctionType v.vtype && v.vname = name_of_assert
-let is_free_function v = isFunctionType v.vtype && v.vname = name_of_free
-let is_malloc_function v = isFunctionType v.vtype && v.vname = name_of_malloc
-let is_calloc_function v = isFunctionType v.vtype && v.vname = name_of_calloc
+let rec lift_tsoffset ty off =
+  match off with
+    | TSIndex(idx1,((TSIndex _ | TSRange _) as suboff)) ->
+        let subty = direct_element_type ty in
+        let siz = array_size subty in
+        begin match lift_tsoffset subty suboff with
+            TSIndex(idx,off) -> TSIndex(change_idx idx1 idx siz,off)
+          | TSRange(idxl,idxh,off) ->
+              TSRange(opt_map (fun x -> change_idx idx1 x siz) idxl,
+                      opt_map (fun x -> change_idx idx1 x siz) idxh,off)
+          | TSNoOffset | TSField _ -> assert false
+        end
+    | TSRange(idx1,idx2,((TSIndex _ | TSRange _) as suboff)) ->
+        let subty = direct_element_type ty in
+        let siz = array_size subty in
+        begin match lift_tsoffset subty suboff with
+            TSIndex(idx,off) ->
+              TSRange(
+                opt_map (fun x -> change_idx x idx siz) idx1 ,
+                opt_map (fun x -> change_idx x idx siz) idx2, off)
+          | TSRange(idxl,idxh,off) ->
+              TSRange(
+                opt_bind (fun x ->
+                           (opt_map (fun y -> change_idx x y siz) idxl)) idx1,
+                opt_bind (fun x ->
+                           (opt_map (fun y -> change_idx x y siz) idxh)) idx2,
+                off)
+          | TSNoOffset | TSField _ -> assert false
+        end
+    | TSIndex(idx,TSNoOffset) ->
+        let subty = direct_element_type ty in
+        if isArrayType subty then
+          let siz = array_size subty in
+          TSIndex(change_idx idx (constant_term locUnknown 0L) siz, TSNoOffset)
+        else off
+    | TSRange(idx1,idx2,TSNoOffset) ->
+        let subty = direct_element_type ty in
+        if isArrayType subty then
+          let siz = array_size subty in
+          TSRange(
+            opt_map
+              (fun x -> change_idx x (constant_term locUnknown 0L) siz)
+              idx1,
+            opt_map
+              (fun x -> change_idx x (constant_term locUnknown 0L) siz)
+              idx2,
+            TSNoOffset)
+        else off
+    | TSRange _ | TSIndex _ | TSNoOffset | TSField _ -> off
 
 (* Allocation/deallocation *)
 
@@ -929,17 +1350,13 @@ let malloc_function () =
 	(Cil_state.file ()) "malloc" (TFun(voidPtrType,params,false,[]))
     in
     let behav = {
-      b_name = "malloc_default";
+      b_name = name_of_default_behavior;
       b_assumes = [];
       b_ensures = [];
-      b_assigns = [];
+      b_assigns = [ Nothing,[] ];
     } in
     let spec = { (empty_funspec ()) with spec_behavior = [behav]; } in
-    (* No easy way to create a [fundec] from a [varinfo] in order to create
-     * an adequate list of parameter [varinfo]. Pass [None] for now.
-     *)
-    Globals.Functions.add
-      (Db_types.Declaration(spec,f,None,locUnknown));
+    Globals.Functions.replace_by_declaration spec f locUnknown;
     f
 
 let free_function () =
@@ -951,11 +1368,14 @@ let free_function () =
       findOrCreateFunc
 	(Cil_state.file ()) "free" (TFun(voidType,params,false,[]))
     in
-    (* No easy way to create a [fundec] from a [varinfo] in order to create
-     * an adequate list of parameter [varinfo]. Pass [None] for now.
-     *)
-    Globals.Functions.add
-      (Db_types.Declaration(empty_funspec (),f,None,locUnknown));
+    let behav = {
+      b_name = name_of_default_behavior;
+      b_assumes = [];
+      b_ensures = [];
+      b_assigns = [ Nothing,[] ];
+    } in
+    let spec = { (empty_funspec ()) with spec_behavior = [behav]; } in
+    Globals.Functions.replace_by_declaration spec f locUnknown;
     f
 
 let mkalloc v ty loc =
@@ -982,6 +1402,6 @@ let mkfree_statement v loc = mkStmt (Instr(mkfree v loc))
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.. -j bin/toplevel.byte"
 End:
 *)

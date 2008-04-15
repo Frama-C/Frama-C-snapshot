@@ -21,11 +21,14 @@
 
 type t
 
-val make : packing:(GObj.widget -> unit) -> callback:(string -> int -> unit) -> t
+val make : 
+  packing:(GObj.widget -> unit) -> callback:(string -> int -> unit) -> t
 
 (*val set_font : t -> Pango.font_description -> unit*)
 
-val append : t -> Messages_manager.message -> on_select:(Messages_manager.message -> unit) -> unit
+val append : 
+  t -> Messages_manager.message -> 
+  on_select:(Messages_manager.message -> unit) -> unit
 
 val clear : t -> unit
 

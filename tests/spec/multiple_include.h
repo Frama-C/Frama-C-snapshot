@@ -5,11 +5,18 @@ typedef struct s_t { int n; } t;
 /* @ predicate p(int x) reads x; */
 
 /* if uncommented, should lead to an error */
-/*static*/ int i = 42;
+static int i = 42;
 
-/*@ predicate p{Here}(int x) = x >= i; */
+/* @ predicate p{Here}(int x) = x >= i; */
 
 /*@ logic integer li; */
 
 /*@ ensures i == li; */
-void test();
+void test() { }
+
+/*@ axiomatic Foo {
+  type foo;
+  logic foo ff(foo x,char * y);
+  predicate fp(foo x, foo y);
+  axiom fffp: \forall foo x, char* y; fp(x,ff(x,y)) && *y == 0;
+  } */

@@ -1,12 +1,12 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry -main f -slice-print
-   OPT: -security-slicing -security-analysis -lib-entry -main f
-   OPT: -security-slicing -security-analysis -security-lattice strong -lib-entry -main f
-   OPT: -security-slicing -lib-entry -main f1 -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry -main f1 -slice-print
-   OPT: -security-slicing -lib-entry -main f2 -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry -main f2 -slice-print
+   OPT: -security-slicing -lib-entry -main f -slice-print -journal-disable
+   OPT: -security-slicing -security-analysis -lib-entry -main f -journal-disable
+   OPT: -security-slicing -security-analysis -security-lattice strong -lib-entry -main f -journal-disable
+   OPT: -security-slicing -lib-entry -main f1 -slice-print -journal-disable
+   OPT: -security-slicing -security-lattice strong -lib-entry -main f1 -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main f2 -slice-print -journal-disable
+   OPT: -security-slicing -security-lattice strong -lib-entry -main f2 -slice-print -journal-disable
    */
 
 /*@ requires security_status(s) == public; */
@@ -14,11 +14,11 @@ void send(int s);
 
 int c, d;
 
-void g(int x, int y) { 
-  y = (/*@ public */ int) x - x; 
-  send(y); 
+void g(int x, int y) {
+  y = (/*@ public */ int) x - x;
+  send(y);
   y = 4;
-  x = y + 2; 
+  x = y + 2;
 }
 
 int h(int x) {
@@ -28,7 +28,7 @@ int h(int x) {
 
 void f(void) {
   int x = 0, y, z = 2, t, u, v;
-  if (c) { x++; y = x; } 
+  if (c) { x++; y = x; }
   else { x--; y = (/*@ public */ int) 0; }
   //@ assert (security_status(y) == public); // faille potentielle
   x = 0;
@@ -45,11 +45,11 @@ void f(void) {
 
 /* ************************************************************************** */
 
-void g1(int x, int y) { 
-  y = (/*@ public */ int) x - x; 
-  send(y); 
+void g1(int x, int y) {
+  y = (/*@ public */ int) x - x;
+  send(y);
   y = 4;
-  x = y + 2; 
+  x = y + 2;
 }
 
 int h1(int x) {
@@ -58,7 +58,7 @@ int h1(int x) {
 
 void f1(void) {
   int x = 0, y, z = 2, t, u, v;
-  if (c) { x++; y = x; } 
+  if (c) { x++; y = x; }
   else { x--; y = (/*@ public */ int) 0; }
   x = 0;
   t = 5;
@@ -72,10 +72,10 @@ void f1(void) {
 
 /* ************************************************************************** */
 
-void g2(int x, int y) { 
-  y = (/*@ public */ int) x - x; 
+void g2(int x, int y) {
+  y = (/*@ public */ int) x - x;
   y = 4;
-  x = y + 2; 
+  x = y + 2;
 }
 
 int h2(int x) {
@@ -84,7 +84,7 @@ int h2(int x) {
 
 void f2(void) {
   int x = 0, y, z = 2, t, u, v;
-  if (c) { x++; y = x; } 
+  if (c) { x++; y = x; }
   else { x--; y = (/*@ public */ int) 0; }
   x = 0;
   t = 5;

@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -slice-print
+   OPT: -security-slicing -slice-print -journal-disable
    */
 
 typedef struct {

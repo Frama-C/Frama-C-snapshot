@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: memzone.ml,v 1.21 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: memzone.ml,v 1.23 2008/11/06 13:03:28 uid568 Exp $ *)
 
 open Memzone_type
 open Cil_types
@@ -38,78 +38,87 @@ class do_it = object(self)
   method set_state s = state <- s
 
   method result = memzones
-   
+
   method join accessed =
     let there = Lmap_bitwise_with_empty_default.find memzones accessed in
     let union = Zone_with_empty_default.join there accessed in
-    memzones <- 
+    memzones <-
       Lmap_bitwise_with_empty_default.add_binding ~exact:true
       memzones
       union
       union
 
-  method vstmt s = 
-    match s.skind with 
+  method vstmt s =
+    match s.skind with
     | Instr _ -> DoChildren
-    | Switch (exp, _, _, _) 
+    | Switch (exp, _, _, _)
     | If (exp, _, _, _)
-    | TryExcept (_, (_,exp), _, _) -> 
+    | TryExcept (_, (_,exp), _, _) ->
         ignore (self#vexpr exp);
         SkipChildren
     | Return ((None|Some (Lval (Var _,_))),_)
-    | TryFinally (_, _, _) 
+    | TryFinally (_, _, _)
     | Block _ | UnspecifiedSequence _
-    | Loop (_, _, _, _, _) 
-    | Continue _|Break _|Goto (_, _) -> SkipChildren 
+    | Loop (_, _, _, _, _)
+    | Continue _|Break _|Goto (_, _) -> SkipChildren
     | Return _ -> assert false
 
   method vlval (base,_offset as lv) =
     begin match base with
       | Var _host -> ()
-      | Mem e -> 
+      | Mem e ->
           let r = !Value.eval_expr ~with_alarms:CilE.warn_none_mode state e in
           (*Format.printf "Got Mem:%a@\n" Location_Bytes.pretty r;*)
-	  self#join 
+	  self#join
 	    (valid_enumerate_bits
 	       (loc_without_size_to_loc lv r))
     end;
-    DoChildren 
+    DoChildren
 
 (*TODO
-  method vexp exp = 
-    begin match exp with 
-    | Binop (e1,e2,Eq,_) -> 
+  method vexp exp =
+    begin match exp with
+    | Binop (e1,e2,Eq,_) ->
         let v1 = Cvalue.eval_expr ~with_alarms:false state e1 in
         let v2 = Cvalue.eval_expr ~with_alarms:false state e2 in
   FAIRE UNE LOC AVEC TOUTE LA BASE PUIS JOIN
   | _ -> ()
     end;
     DoChildren
-*)        
+*)
 end
-  
+
 
 let computer = new do_it
 let compute () = computer#result
-let on_values kinstr state = 
+let on_values kinstr state =
   if Cmdline.ForceMemzones.get () then begin
-    match kinstr with 
+    match kinstr with
     | Kglobal -> ()
-    | Kstmt s -> 
-        (*Format.printf "GOT(%d):%a@\n" 
+    | Kstmt s ->
+        (*Format.printf "GOT(%d):%a@\n"
           s.sid Relations_type.Model.pretty state;*)
         computer#set_state state;
         ignore (visitCilStmt (computer:>cilVisitor) s)
   end
-    
-let () = 
+
+let () =
   Db.Memzone.compute := compute;
   Db.Memzone.pretty := Lmap_bitwise_with_empty_default.pretty
 (*  ; Db.Value.register_record_value_callback on_values : le type a changé
    pascal 07/2007*)
 
-let () = 
-  Options.add_plugin 
+let main fmt =
+  if Cmdline.ForceMemzones.get () then begin
+    Format.fprintf fmt
+      "@[Memory zones:@\n @[%a@]@]"
+      !Db.Memzone.pretty (!Db.Memzone.compute ())
+  end
+
+let () = Db.Main.extend main
+
+let () =
+  Options.add_plugin
     ~name:"memzones (experimental)" ~shortname:"memzones"
     ~descr:""
     ["-memzones",

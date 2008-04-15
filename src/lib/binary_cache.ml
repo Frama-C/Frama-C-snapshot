@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007                                                    *)
+(*  Copyright (C) 2007-2008                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,9 +21,9 @@
 
 module MemoryFootprint = 
   Computation.Ref
-    (struct include Datatype.Int let default = 2 end)
+    (struct include Datatype.Int let default () = 2 end)
     (struct 
-       let name = Project.Computation.Name.make "Binary_cache.MemoryFootprint" 
+       let name = "Binary_cache.MemoryFootprint" 
        let dependencies = [] 
      end)
 

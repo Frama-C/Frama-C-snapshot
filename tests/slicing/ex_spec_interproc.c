@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/ex_spec_interproc.opt
    CMD: tests/slicing/ex_spec_interproc.opt
-   OPT: -deps
+   OPT: -deps -journal-disable
 */
 
 int X, Y;
@@ -17,7 +17,7 @@ int Z;
 
 int f (int a, int b, int c, int d, int e) {
   int r;
-  a++; b++; c++; d++; e++; 
+  a++; b++; c++; d++; e++;
   r = g (a, b, c);
   Z = g (r, d, e);
   return X;

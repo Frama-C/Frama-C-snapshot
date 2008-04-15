@@ -21,5 +21,5 @@
 
 (** Computations of non functionnal inputs. *)
 
-val option: string * Arg.spec * string
+val options: (string * Arg.spec * string) list
  

@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -main f
+   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
 */
 int T[20],*b;
 

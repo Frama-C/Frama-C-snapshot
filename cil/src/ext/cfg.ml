@@ -137,8 +137,8 @@ and cfgBlock  (blk: block)
 and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) =
   if s.sid = -1 then s.sid <- Cil.Sid.next ();
   nodeList := s :: !nodeList; (* Future traversals can be made in linear time. e.g.  *)
-  if s.succs <> [] then 
-    bug "CFG must be cleared before being computed! '%a' of %d" d_stmt s 
+  if s.succs <> [] then
+    bug "CFG must be cleared before being computed! '%a' of %d" d_stmt s
       (List.length s.succs);
   let addSucc (n: stmt) =
     if not (List.memq n s.succs) then s.succs <- n::s.succs;
@@ -184,7 +184,9 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
       cfgBlock blk1 next break cont;
       cfgBlock blk2 next break cont
 
-  | UnspecifiedSequence b
+  | UnspecifiedSequence seq ->
+      addBlockSucc (block_from_unspecified_sequence seq);
+      cfgBlock (block_from_unspecified_sequence seq) next break cont
   | Block b ->
       addBlockSucc b;
       cfgBlock b next break cont

@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: qstack.mli,v 1.2 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: qstack.mli,v 1.3 2008/08/28 09:22:49 uid528 Exp $ *)
 
 (** Mutable stack in which it is possible to add data at the end
     and to manage non top elements. 
@@ -63,6 +63,10 @@ module Make(D: DATA) : sig
     (** Return all data of the stack satisfying the specified predicate. 
 	The order of the data in the input stack is preserved.
 	Not tail recursive. *)
+
+  val find: (D.t -> bool) -> t -> D.t
+    (** Return the first data of the stack satisfying the specified predicate. 
+        @raise Not_found *)
     
   val remove: D.t -> t -> unit
     (** Remove an element from the stack. 

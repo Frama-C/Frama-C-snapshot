@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: globals.ml,v 1.26 2008/06/10 17:32:36 uid528 Exp $ *)
+(* $Id: globals.ml,v 1.34 2008/10/09 11:40:37 uid570 Exp $ *)
 
 open Cil_types
+open Cilutil
 open Db_types
 open Cil
 open Ast_info
@@ -33,10 +34,10 @@ open Ast_info
 module Vars = struct
 
   include
-    Kernel_computation.VarinfoHashtbl
-    (Kernel_datatype.InitInfo)
+    Cil_computation.VarinfoHashtbl
+    (Cil_datatype.InitInfo)
     (struct
-       let name = Project.Computation.Name.make "Globals.Vars"
+       let name = "Globals.Vars"
        let dependencies = [ Cil_state.self ]
        let size = 17
      end)
@@ -60,11 +61,31 @@ end
 
 module Functions = struct
 
-  module State =
-    Kernel_computation.VarinfoHashtbl
-      (Kernel_datatype.KernelFunction)
+  module KF_Datatype = struct
+    include Project.Datatype.Register
       (struct
-	 let name = Project.Computation.Name.make "Functions"
+	 type t = kernel_function
+	 let rehash x =
+           match x.fundec with
+           | Definition _ | Declaration (_,_,None,_)-> x
+           | Declaration (_,v,Some args,_) ->
+               Cil.unsafeSetFormalsDecl v args;
+	       x
+	 let copy _ = assert false (* TODO: deep copy *)
+	 let name = "kernel_function"
+       end)
+    let id kf = Ast_info.Function.get_id kf.fundec
+    let hash = id
+    let equal = (==)
+    let compare k1 k2 = Pervasives.compare (id k1) (id k2)
+    let () = register_comparable ~hash ~equal ~compare ()
+  end
+
+  module State =
+    Cil_computation.VarinfoHashtbl
+      (KF_Datatype)
+      (struct
+	 let name = "Functions"
 	 let dependencies = [ Cil_state.self ]
 	 let size = 17
        end)
@@ -72,16 +93,15 @@ module Functions = struct
   let init_kernel_function f spec =
     { fundec = f; return_stmt = None;
       spec = {spec with spec_variant = spec.spec_variant};
-      stmts_graph = None
-    }
+      stmts_graph = None }
 
   let register_declaration action spec v l =
     let args =
-      try Some (getFormalsDecl v.vid)
+      try Some (getFormalsDecl v)
       with Not_found ->
         try
-          setFormalsDecl v.vid v.vtype;
-          Some (getFormalsDecl v.vid)
+          setFormalsDecl v v.vtype;
+          Some (getFormalsDecl v)
         with Not_found ->
           None (* function with 0 arg. See
                   setFormalsDecl code for details *)
@@ -126,8 +146,19 @@ module Functions = struct
 
   let get vi =
     if not (is_function_type vi) then raise Not_found;
-    let add v = add_declaration (empty_funspec ()) v locUnknown in
+    let add v = add_declaration (empty_funspec ()) v Cilutil.locUnknown in
     State.memo add vi
+
+  let get_params kf =
+    match kf.fundec with
+      | Definition(f,_loc) -> f.sformals
+      | Declaration(_spec,_v,params,_loc) ->
+	  match params with None -> [] | Some ls -> ls
+
+  let get_vi kf =
+    match kf.fundec with
+      | Definition(f,_loc) -> f.svar
+      | Declaration(_spec,v,_params,_loc) -> v
 
   (* Similar to [Cil.getGlobInit], except it registers the newly created
    * function
@@ -138,7 +169,7 @@ module Functions = struct
       | None ->
 	  (* Create a function by calling [Cil.getGlobInit] and register it *)
 	  let gif = getGlobInit ~main_name fl in
-	  add (Definition(gif,locUnknown));
+	  add (Definition (gif, Cilutil.locUnknown));
 	  get gif.svar
 
   exception Found_kf of kernel_function
@@ -192,6 +223,8 @@ end
 
 module Annotations = struct
 
+  let name = "GlobalAnnotations"
+
   module State =
     Computation.Ref
       (struct
@@ -199,11 +232,12 @@ module Annotations = struct
 	   (struct
 	      type t =  (Cil_types.global_annotation * bool) list
 	      let copy _ = assert false (* TODO *)
+	      let name = name
 	    end)
-	 let default = []
+	 let default () = []
        end)
       (struct
-	 let name = Project.Computation.Name.make "GlobalAnnotations"
+	 let name = name
 	 let dependencies = [ Cil_state.self ]
        end)
 
@@ -232,16 +266,19 @@ end
 
 module FileIndex = struct
 
+  let name = "FileIndex"
+
   module S =
     Computation.Hashtbl
       (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
       (Project.Datatype.Imperative
 	 (struct
-	    type t = global list
+	    type t = string * (global list)
 	    let copy _ = assert false (* TODO: deep copy *)
+	    let name = name
 	  end))
       (struct
-	 let name = Project.Computation.Name.make "FileIndex"
+	 let name = name
 	 let dependencies = [ Cil_state.self ]
 	 let size = 7
        end)
@@ -251,18 +288,15 @@ module FileIndex = struct
       iterGlobals
         (Cil_state.file ())
         (fun glob ->
-	  let file = (fst (get_globalLoc glob)).Lexing.pos_fname in
+	  let file = (fst (Cilutil.get_globalLoc glob)).Lexing.pos_fname in
 	   let f = Filename.basename file in
 	   if Cmdline.Debug.get () > 0 then
-             Format.printf "Indexing in file %s the global in %s: %a@."
-               f file !Ast_printer.d_global glob;
+             Format.printf "Indexing in file %s the global in %s@."
+               f file;
 	   ignore
-	     (S.memo ~change:(fun l -> glob :: l) (fun _ -> [ glob ]) f))
+	     (S.memo ~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) file))
     in
-    Computation.apply_once
-      (Project.Computation.Name.make "FileIndex.compute")
-      [ S.self ]
-      compute
+    Computation.apply_once "FileIndex.compute" [ S.self ] compute
 
   let get_files () =
     compute ();
@@ -270,7 +304,10 @@ module FileIndex = struct
 
   let find ~filename =
     compute ();
-    List.rev (S.find (Filename.basename filename))
+    let find f = let f,l = S.find f in f, List.rev l in
+    try
+      find (Filename.basename filename)
+    with Not_found -> find filename
 
   (** get all global variables as (varinfo, initinfo) list with only one
       occurence of a varinfo *)
@@ -295,7 +332,7 @@ module FileIndex = struct
            in match is_glob_var glob with
              | None -> acc
              | Some vi -> VarinfoSet.add vi acc)
-        (S.find filename)
+        (snd (S.find filename))
         VarinfoSet.empty
     in
     VarinfoSet.fold (fun vi acc -> (vi, Vars.find vi) :: acc) varinfo_set []
@@ -320,7 +357,7 @@ module FileIndex = struct
            in match is_func glob with
              | None -> acc
              | Some vi -> VarinfoSet.add vi acc)
-        (S.find filename)
+        (snd (S.find filename))
         VarinfoSet.empty
     in
     VarinfoSet.fold (fun vi acc -> Functions.get vi :: acc) varinfo_set []
@@ -339,7 +376,7 @@ module FileIndex = struct
         | _ -> false
     in
     let file = (fst x.Cil_types.vdecl).Lexing.pos_fname in
-    match List.find pred (S.find file) with
+    match List.find pred (snd (S.find file)) with
     | Cil_types.GFun (fundec, _) ->
 	Functions.get fundec.Cil_types.svar, !is_param
     | _ -> assert (false)
@@ -353,7 +390,7 @@ end
 exception No_such_entry_point of string
 
 let entry_point () =
-  let kf_name, lib = 
+  let kf_name, lib =
     Cmdline.MainFunction.get (),
     Cmdline.LibEntry.get ()
   in

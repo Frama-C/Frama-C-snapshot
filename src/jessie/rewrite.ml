@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: rewrite.ml,v 1.51 2008/07/11 06:36:05 uid570 Exp $ *)
+(* $Id: rewrite.ml,v 1.87 2008/11/24 16:09:49 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -28,8 +28,211 @@ open Cilutil
 open Ast_info
 open Extlib
 
+open Db_types
+open Visitor
+
 (* Utility functions *)
 open Common
+
+(*****************************************************************************)
+(* Adds a default behavior for all functions                                 *)
+(*****************************************************************************)
+
+class add_default_behavior =
+  object(self)
+    inherit Visitor.generic_frama_c_visitor (Project.current())
+      (Cil.inplace_visit())
+    method vspec s =
+      if not (List.exists (fun x -> x.b_name = Common.name_of_default_behavior)
+                s.spec_behavior)
+      then begin
+        s.spec_behavior <-
+          { b_name = name_of_default_behavior;
+            b_assigns = [];
+            b_assumes = [];
+            b_ensures = [];
+          } :: s.spec_behavior
+      end;
+      SkipChildren
+
+    method vcode_annot _ = SkipChildren
+
+    method vfile f =
+      let init = Globals.Functions.get_glob_init f in
+      ignore (visitFramacFunspec (self:>Visitor.frama_c_visitor) init.spec);
+      DoChildren
+  end
+
+let add_default_behavior f =
+  let vis = new add_default_behavior in Visitor.visitFramacFile vis f
+
+
+(*****************************************************************************)
+(* Rename entities to avoid conflicts with Jessie predefined names.          *)
+(*****************************************************************************)
+
+class renameEntities
+  (add_variable : varinfo -> unit) (add_logic_variable : logic_var -> unit) =
+  let types = TypeHashtbl.create 17 in
+  let add_field fi =
+    fi.fname <- unique_name fi.fname
+  in
+  let add_type ty =
+    if TypeHashtbl.mem types ty then () else
+      let compinfo = get_struct_info ty in
+      compinfo.cname <- unique_name compinfo.cname;
+      List.iter add_field compinfo.cfields;
+      TypeHashtbl.add types ty ()
+  in
+object
+
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+
+  method vfunc f =
+    List.iter add_variable f.slocals;
+    DoChildren
+
+  method vglob_aux = function
+    | GCompTag(compinfo,_loc) 
+    | GCompTagDecl(compinfo,_loc) ->
+	add_type (TComp(compinfo,[]));
+	SkipChildren
+    | GVarDecl _ | GVar _ | GFun _ | GAnnot _ | GType _
+    | GEnumTagDecl _ | GEnumTag _ | GAsm _ | GPragma _ | GText _ ->
+	DoChildren
+
+(* UNCOMMENT WHEN SHARING RESTORED (FS#385) *)
+
+(*   method vpredicate = function *)
+(*     | Pforall(vars,_p) | Pexists(vars,_p) -> *)
+(* 	List.iter add_logic_variable vars; *)
+(* 	DoChildren *)
+(*     | _ -> DoChildren *)
+
+  method vterm t = match t.term_node with
+    | Tlambda(vars,_t1) ->
+	List.iter add_logic_variable vars;
+	DoChildren
+    | _ -> DoChildren
+
+  method vtsets = function
+    | TSComprehension(_ts,vars,_p) ->
+	List.iter add_logic_variable vars;
+	DoChildren
+    | _ -> DoChildren
+
+  method vlogic_var_use v =
+    let postaction v =
+      (* Restore consistency between C variable name and logical name *)
+      opt_app (fun cv -> v.lv_name <- cv.vname) () v.lv_origin; v
+    in
+    ChangeDoChildrenPost(v,postaction)
+end
+
+let rename_entities file =
+  let add_variable v =
+    v.vname <- unique_name v.vname;
+    match v.vlogic_var_assoc with
+      | None -> ()
+      | Some lv -> lv.lv_name <- v.vname
+  in
+  let add_logic_variable v =
+    assert (v.lv_origin  = None);
+    v.lv_name <- unique_logic_name v.lv_name
+  in
+  Globals.Vars.iter (fun v _init -> add_variable v);
+  Globals.Functions.iter
+    (fun kf ->
+       add_variable (Globals.Functions.get_vi kf);
+       List.iter add_variable (Globals.Functions.get_params kf));
+  Globals.Annotations.replace_all 
+    (fun annot gen -> 
+       let rec replace_annot annot = match annot with
+(*
+	 | Dpredicate_reads _
+	 | Dpredicate_def _
+	 | Dinductive_def _
+	 | Dlogic_reads _
+	 | Dlogic_axiomatic _
+	 | Dlogic_def _ -> annot
+*)
+	 | Dfun_or_pred _ -> annot
+	 | Daxiomatic(id, l) -> Daxiomatic(id, List.map replace_annot l)
+	 | Dtype(name,args) ->
+	     Dtype(unique_logic_name name, List.map unique_logic_name args)
+	 | Dlemma(name,is_axiom,labels,poly,property) ->
+	     Dlemma(unique_logic_name name,is_axiom,labels,poly,property)
+	 | Dtype_annot info | Dinvariant info ->
+	     info.l_name <- unique_logic_name info.l_name;
+	     annot
+       in replace_annot annot,gen
+    );
+  Logic_env.LogicInfo.iter
+    (fun name _f ->
+       let new_name = unique_logic_name name in
+       if new_name <> name then
+	 begin
+	   let info = Logic_env.find_logic_function name in
+	   info.l_name <- new_name;
+	   Logic_env.remove_logic_function name;
+	   Logic_env.add_logic_function info;
+	   List.iter add_logic_variable info.l_profile
+	 end);
+ (*
+ Logic_env.PredicateInfo.iter
+    (fun name _p ->
+       let new_name = unique_logic_name name in
+       if new_name <> name then
+	 begin
+	   let info = Logic_env.find_predicate name in
+	   info.p_name <- new_name;
+	   Logic_env.remove_predicate name;
+	   Logic_env.add_predicate info
+	 end);
+ *)
+  let visitor = new renameEntities (add_variable) (add_logic_variable) in
+  visitFramacFile visitor file
+
+
+(*****************************************************************************)
+(* Fill offset/size information in fields                                    *)
+(*****************************************************************************)
+
+class fillOffsetSizeInFields =
+object
+
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+
+  method vglob_aux = function
+    | GCompTag(compinfo,_loc) ->
+	let basety = TComp(compinfo,[]) in
+	let field fi nextoff =
+	  let size_in_bits = 
+	    match fi.fbitfield with
+	      | Some siz -> siz
+	      | None -> bitsSizeOf fi.ftype 
+	  in
+	  let offset_in_bits = fst (bitsOffset basety (Field(fi,NoOffset))) in
+	  let padding_in_bits = nextoff - (offset_in_bits + size_in_bits) in
+	  assert (padding_in_bits >= 0);
+	  fi.fsize_in_bits <- Some size_in_bits;
+	  fi.foffset_in_bits <- Some offset_in_bits;
+	  fi.fpadding_in_bits <- Some padding_in_bits;
+	  if compinfo.cstruct then
+	    offset_in_bits
+	  else nextoff (* union type *)
+	in
+	ignore(List.fold_right field compinfo.cfields (bitsSizeOf basety));
+	SkipChildren
+    | _ -> SkipChildren
+
+end
+
+let fill_offset_size_in_fields file =
+  let visitor = new fillOffsetSizeInFields in
+  visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -65,7 +268,7 @@ end
 
 let replace_addrof_array file =
   let visitor = new replaceAddrofArray in
-  visit_and_update_globals (visitor :> cilVisitor) file
+  visit_and_update_globals visitor file
 
 
 (*****************************************************************************)
@@ -97,19 +300,60 @@ class replaceStringConstants =
   in
   let wstring_var () =
     let name = unique_name "__wstring_" in
-    makeGlobalVar name (array_type !wcharType)
+    makeGlobalVar name (array_type theMachine.wcharType)
+(*     makeGlobalVar name (array_type (TInt(IUShort,[]))) *)
   in
 
-  let make_glob v inite =
+  let make_glob ~wstring v size inite =
     (* Apply translation from initializer in primitive AST to block of code,
      * simple initializer and type.
      *)
-    let b,init,ty = Cabs2cil.blockInitializer v inite in
+    let b,init,ty = Cabs2cil.blockInitializer Cilutil.LvalSet.empty v inite in
     (* Precise the array type *)
     v.vtype <- ty;
     (* Attach global variable and code for global initialization *)
     List.iter attach_globinit b.bstmts;
-    attach_global (GVar(v,{init=Some init},!currentLoc));
+    attach_global (GVar(v,{init=Some init},CurrentLoc.get ()));
+    (* Define a global string invariant *)
+    let validstring =
+      try 
+	if wstring then
+	  Logic_env.find_logic_function name_of_valid_wstring
+	else
+	  Logic_env.find_logic_function name_of_valid_string
+      with Not_found -> assert false
+    in
+    let strlen = Logic_env.find_logic_function name_of_strlen in
+    let strlen_type =
+      match strlen.l_type with Some t -> t | None -> assert false
+    in
+    let wcslen = Logic_env.find_logic_function name_of_wcslen in
+    let wcslen_type =
+      match wcslen.l_type with Some t -> t | None -> assert false
+    in
+    let pstring = 
+      Papp(validstring,[],[variable_term v.vdecl (cvar_to_lvar v)]) 
+    in
+    let tv = term_of_var v in
+    let strsize = 
+      if wstring then 
+	mkterm (Tapp(wcslen,[],[tv])) wcslen_type v.vdecl 
+      else
+	mkterm (Tapp(strlen,[],[tv])) strlen_type v.vdecl 
+    in
+    let size = constant_term locUnknown (Int64.of_int size) in
+    let psize = Prel(Req,strsize,size) in
+    let p = Pand(predicate v.vdecl pstring,predicate v.vdecl psize) in
+    let globinv =
+      { l_name = unique_logic_name ("valid_" ^ v.vname);
+	l_tparams = [];
+	l_type = None;
+        l_profile = [];
+        l_labels = [ LogicLabel "Here" ];
+        l_body = LBpred (predicate v.vdecl p)}
+    in
+    attach_globaction (fun () -> Logic_env.add_logic_function globinv);
+    attach_global (GAnnot(Dinvariant globinv,v.vdecl));
     v
   in
 object
@@ -121,13 +365,17 @@ object
     | Const(CStr s) ->
 	let v =
 	  findOrAdd string_to_var s
-	    (fun s -> make_glob (string_var s) (string_cabs_init s))
+	    (fun s -> 
+	       make_glob ~wstring:false (string_var s) (String.length s) 
+		 (string_cabs_init s))
 	in
 	ChangeTo (StartOf(Var v,NoOffset))
     | Const(CWStr ws) ->
 	let v =
 	  findOrAdd wstring_to_var ws
-	    (fun ws -> make_glob (wstring_var ()) (wstring_cabs_init ws))
+	    (fun ws -> 
+	       make_glob ~wstring:true (wstring_var ()) (List.length ws - 1) 
+		 (wstring_cabs_init ws))
 	in
 	ChangeTo (StartOf(Var v,NoOffset))
     | _ -> DoChildren
@@ -148,7 +396,7 @@ end
 
 let replace_string_constants file =
   let visitor = new replaceStringConstants in
-  visit_and_update_globals (visitor :> cilVisitor) file
+  visit_and_update_globals visitor file
 
 
 (*****************************************************************************)
@@ -179,7 +427,7 @@ let gather_initialization file =
 	in
 	(* Too big currently, postpone until useful *)
 	ignore s;
-(* 	List.iter attach_globinit s; *)
+(*  	List.iter attach_globinit s; *)
 	iinfo.init <- None
       )) file
 
@@ -192,7 +440,8 @@ class rewritePointerCompare =
   let preaction_expr = function
     | BinOp((Lt | Gt | Le | Ge | Eq | Ne as op),e1,e2,ty)
 	when isPointerType (typeOf e1) && not (is_null_expr e2) ->
-	BinOp(op,BinOp(MinusPP,e1,e2,!ptrdiffType),constant_expr 0L,ty)
+	BinOp(op,BinOp(MinusPP,e1,e2,theMachine.ptrdiffType),
+	      constant_expr 0L,ty)
     | e -> e
   in
 object
@@ -206,14 +455,18 @@ object
   method vterm =
     do_on_term (Some preaction_expr,None)
 
+  method vtsets_elem =
+    do_on_tsets_elem (Some preaction_expr,None)
+
   method vpredicate = function
     | Prel(rel,t1,t2)
 	when app_term_type isPointerType false t1.term_type
-	  && not (is_null_term t2) ->
+	  && not (is_null_term t1 || is_null_term t2
+		  || is_base_addr t1 || is_base_addr t2) ->
 	let loc = range_loc t1.term_loc t2.term_loc in
 	let tsub = {
 	  term_node = TBinOp(MinusPP,t1,t2);
-	  term_type = Ctype !ptrdiffType;
+	  term_type = Ctype theMachine.ptrdiffType;
 	  term_loc = loc;
 	  term_name = [];
 	} in
@@ -225,7 +478,7 @@ end
 
 let rewrite_pointer_compare file =
   let visitor = new rewritePointerCompare in
-  visitCilFile (visitor :> cilVisitor) file
+  visit_and_store_result_type visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -257,10 +510,10 @@ let rec destruct_pointer e = match stripInfo e with
   | CastE(ty,e) ->
       let ety = typeOf e in
       if isPointerType ty && isPointerType ety
-	&& (typeSig (typeRemoveAttributes ["const";"volatile"] 
+	&& (typeSig (typeRemoveAttributes ["const";"volatile"]
 		       (unrollType (pointed_type ty)))
-	    = 
-	    typeSig (typeRemoveAttributes ["const";"volatile"] 
+	    =
+	    typeSig (typeRemoveAttributes ["const";"volatile"]
 		       (unrollType (pointed_type ety)))) then
 (* 	&& bitsSizeOf(pointed_type ty) = bitsSizeOf(pointed_type ety) then *)
 	  destruct_pointer e
@@ -273,7 +526,7 @@ class collectCursorPointers
   (assigned_vars : VarinfoSet.t ref) (* variable is assigned (for formals) *)
   (ignore_vars : VarinfoSet.t ref) (* ignore info on these variables *) =
 
-  let curFundec : fundec ref = ref dummyFunDec in
+  let curFundec : fundec ref = ref (emptyFunction "@dummy@") in
 
   let candidate_var v =
     not v.vglob
@@ -304,34 +557,39 @@ class collectCursorPointers
 
   (* Interpret difference of pointers as a hint that one is an cursor
    * of the other. *)
-  let preaction_expr x = match x with
-    | BinOp(MinusPP,e1,e2,_) when isPointerType (typeOf e1) ->
-	begin match destruct_pointer e1,destruct_pointer e2 with
-	  | Some(v1,_),Some(v2,_) ->
-	      begin try
-		let vb1 = VarinfoHashtbl.find cursor_to_base v1 in
-		let vb2 = VarinfoHashtbl.find cursor_to_base v2 in
-		if not (VarinfoComparable.equal vb1 vb2)
-		  && vb1.vformal && vb2.vformal then
-		  (* One formal is an offset from the other. Choose the first
-		   * one in the list of parameters as base.
-		   *)
-		  let vbbase,vboff =
-		    match
-		      List.fold_left (fun acc v ->
-			match acc with Some _ -> acc | None ->
-		      	  if VarinfoComparable.equal v vb1 then Some(vb1,vb2)
-			  else if VarinfoComparable.equal v vb2 then Some(vb2,vb1)
-			  else None
-		      ) None !curFundec.sformals
-		    with None -> assert false | Some pair -> pair
-		  in
-		  VarinfoHashtbl.add formal_to_base vboff vbbase
-		else ()
-	      with Not_found -> () end
-	  | _ -> ()
-	end
-    | _ -> ()
+  let preaction_expr x =
+    begin match x with
+      | BinOp(MinusPP,e1,e2,_) when isPointerType (typeOf e1) ->
+	  begin match destruct_pointer e1,destruct_pointer e2 with
+	    | Some(v1,_),Some(v2,_) ->
+		begin try
+		  let vb1 = VarinfoHashtbl.find cursor_to_base v1 in
+		  let vb2 = VarinfoHashtbl.find cursor_to_base v2 in
+		  if not (VarinfoComparable.equal vb1 vb2)
+		    && vb1.vformal && vb2.vformal then
+		      (* One formal is an offset from the other.
+			 Choose the first one in the list of parameters
+			 as base. *)
+		      let vbbase,vboff =
+			match
+			  List.fold_left
+			    (fun acc v ->
+			       match acc with Some _ -> acc | None ->
+		      		 if VarinfoComparable.equal v vb1 then
+				   Some(vb1,vb2)
+				 else if VarinfoComparable.equal v vb2 then
+				   Some(vb2,vb1)
+				 else None
+			    ) None !curFundec.sformals
+			with None -> assert false | Some pair -> pair
+		      in
+		      VarinfoHashtbl.add formal_to_base vboff vbbase
+		  else ()
+		with Not_found -> () end
+	    | _ -> ()
+	  end
+      | _ -> ()
+    end; x
   in
 object
 
@@ -384,17 +642,11 @@ object
     | Asm _ | Skip _ | Code_annot _ -> SkipChildren
 
   method vexpr e =
-    preaction_expr e; DoChildren
+    ignore(preaction_expr e); DoChildren
 
-  method vterm t =
-    let e,_ = !Db.Properties.Interp.force_term_to_exp t in
-    app_under_info preaction_expr e;
-    DoChildren
+  method vterm = do_on_term (Some preaction_expr, None)
 
-  method vtsets_elem ts =
-    let e,_ = !Db.Properties.Interp.force_tsets_elem_to_exp ts in
-    app_under_info preaction_expr e;
-    DoChildren
+  method vtsets_elem = do_on_tsets_elem (Some preaction_expr, None)
 
 end
 
@@ -418,7 +670,8 @@ class rewriteCursorPointers
       let vb = VarinfoHashtbl.find cursor_to_base v in
       if VarinfoHashtbl.mem formal_to_base vb then
 	let voff2 = VarinfoHashtbl.find cursor_to_offset vb in
-	BinOp(PlusA,Lval(Var voff,NoOffset),Lval(Var voff2,NoOffset),!ptrdiffType)
+	BinOp(PlusA,Lval(Var voff,NoOffset),Lval(Var voff2,NoOffset),
+	      theMachine.ptrdiffType)
       else Lval(Var voff,NoOffset)
   in
   (* Find basis for variable [v] *)
@@ -456,21 +709,21 @@ class rewriteCursorPointers
                   | None,None -> None
                   | Some off,None | None,Some off -> Some off
                   | Some off1,Some off2 ->
-                      Some(BinOp(PlusA,off1,off2,!ptrdiffType))
+                      Some(BinOp(PlusA,off1,off2,theMachine.ptrdiffType))
                 in
                 let offopt2 = match v2offopt,offopt2 with
                   | None,None -> None
                   | Some off,None | None,Some off -> Some off
                   | Some off1,Some off2 ->
-                      Some(BinOp(PlusA,off1,off2,!ptrdiffType))
+                      Some(BinOp(PlusA,off1,off2,theMachine.ptrdiffType))
                 in
                 match offopt1,offopt2 with
                   | Some off1,Some off2 ->
-		      BinOp(MinusA,off1,off2,!ptrdiffType)
+		      BinOp(MinusA,off1,off2,theMachine.ptrdiffType)
                   | Some off1,None ->
 		      off1
                   | None,Some off2 ->
-	              UnOp(Neg,off2,!ptrdiffType)
+	              UnOp(Neg,off2,theMachine.ptrdiffType)
                   | None,None ->
 		      constant_expr 0L
               else e
@@ -497,7 +750,7 @@ object
     let local v =
       if VarinfoHashtbl.mem cursor_to_base v && not (isArrayType v.vtype) then
 	let name = unique_name ("__jc_off_" ^ v.vname) in
-	let voff = makeLocalVar f ~insert:true name !ptrdiffType in
+	let voff = makeLocalVar f ~insert:true name almost_integer_type in
 	VarinfoHashtbl.add cursor_to_offset v voff
     in
     let formal v =
@@ -510,8 +763,9 @@ object
 	  let initst =
 	    mkStmt(
 	      Instr(Set((Var voff,NoOffset),
-	      BinOp(MinusPP,Lval(Var v,NoOffset),lval_base vb,!ptrdiffType),
-	      !currentLoc)))
+	      BinOp(MinusPP,Lval(Var v,NoOffset),lval_base vb,
+		    theMachine.ptrdiffType),
+			CurrentLoc.get())))
 	  in
 	  add_pending_statement ~beginning:true initst
 	end
@@ -522,7 +776,9 @@ object
 	  local v; (* Create an offset variable for this formal *)
 	  let voff = VarinfoHashtbl.find cursor_to_offset v in
 	  let initst =
-	    mkStmt(Instr(Set((Var voff,NoOffset),constant_expr 0L,!currentLoc)))
+	    mkStmt(Instr(Set((Var voff,NoOffset),
+			     constant_expr 0L,
+			     CurrentLoc.get ())))
 	  in
 	  add_pending_statement ~beginning:true initst
 	end
@@ -543,13 +799,9 @@ object
 	    let eoff = match destruct_pointer e with
 	      | None -> assert false
 	      | Some(v2,Some e) ->
-		  (* Only recognize self-assignment for formals *)
-		  assert (VarinfoComparable.equal v v2);
-		  begin try BinOp(PlusA,expr_offset v2,e,!ptrdiffType)
+		  begin try BinOp(PlusA,expr_offset v2,e,almost_integer_type)
 		  with Not_found -> assert false end
 	      | Some(v2,None) ->
-		  (* Only recognize self-assignment for formals *)
-		  assert (VarinfoComparable.equal v v2);
 		  begin try expr_offset v2
 		  with Not_found -> assert false end
 	    in
@@ -566,7 +818,7 @@ object
 	    let eoff = match destruct_pointer e with
 	      | None -> assert false
 	      | Some(v2,Some e) ->
-		  begin try BinOp(PlusA,expr_offset v2,e,!ptrdiffType)
+		  begin try BinOp(PlusA,expr_offset v2,e,almost_integer_type)
 		  with Not_found -> e end
 	      | Some(v2,None) ->
 		  begin try expr_offset v2
@@ -606,7 +858,7 @@ let rewrite_cursor_pointers file =
     new collectCursorPointers
       cursor_to_base formal_to_base assigned_vars ignore_vars
   in
-  visit_until_convergence (visitor :> cilVisitor) file;
+  visit_and_store_result_type visit_until_convergence visitor file;
 
   (* Normalize the information *)
   let rec transitive_basis v =
@@ -630,7 +882,8 @@ let rewrite_cursor_pointers file =
     new rewriteCursorPointers
       cursor_to_base formal_to_base !assigned_vars
   in
-  visit_and_push_statements visitCilFile visitor file
+  visit_and_store_result_type visitFramacFile
+    (visit_and_push_statements_visitor visitor) file
 
 
 (*****************************************************************************)
@@ -646,13 +899,13 @@ let rec destruct_integer = function
 	| Some(v,None) ->
 	    begin match op with
 	      | PlusA -> Some(v,Some e2)
-	      | MinusA -> Some(v,Some(UnOp(Neg,e2,typeOf e2)))
+	      | MinusA -> Some(v,Some(UnOp(Neg,e2,almost_integer_type)))
 	      | _ -> assert false
 	    end
 	| Some(v,Some off) ->
 	    begin match op with
-	      | PlusA -> Some(v,Some(BinOp(PlusA,off,e2,typeOf e2)))
-	      | MinusA -> Some(v,Some(BinOp(MinusA,off,e2,typeOf e2)))
+	      | PlusA -> Some(v,Some(BinOp(PlusA,off,e2,almost_integer_type)))
+	      | MinusA -> Some(v,Some(BinOp(MinusA,off,e2,almost_integer_type)))
 	      | _ -> assert false
 	    end
       end
@@ -755,6 +1008,20 @@ class rewriteCursorIntegers
 	with Not_found -> e end
     | _ -> e
   in
+  let postaction_term t = match t.term_node with
+    | TLval(TVar { lv_origin = Some v },TNoOffset) ->
+	begin try
+	  let vb = VarinfoHashtbl.find cursor_to_base v in
+	  let voff = VarinfoHashtbl.find cursor_to_offset v in
+	  let vt1 = term_of_var vb in
+	  let vt2 = term_of_var voff in
+	  let addt =
+	    mkterm (TBinOp(PlusA,vt1,vt2)) Linteger t.term_loc
+	  in
+	  mkterm (TCastE(v.vtype,addt)) t.term_type t.term_loc
+	with Not_found -> t end
+    | _ -> t
+  in
 object
 
   inherit Visitor.generic_frama_c_visitor
@@ -764,7 +1031,7 @@ object
     let local v =
       if VarinfoHashtbl.mem cursor_to_base v then
 	let name = unique_name ("__jc_off_" ^ v.vname) in
-	let voff = makeLocalVar f ~insert:true name intType in
+	let voff = makeLocalVar f ~insert:true name almost_integer_type in
 	VarinfoHashtbl.add cursor_to_offset v voff
     in
     let formal v =
@@ -775,7 +1042,9 @@ object
 	  local v; (* Create an offset variable for this formal *)
 	  let voff = VarinfoHashtbl.find cursor_to_offset v in
 	  let initst =
-	    mkStmt(Instr(Set((Var voff,NoOffset),constant_expr 0L,!currentLoc)))
+	    mkStmt(Instr(Set((Var voff,NoOffset),
+			     constant_expr 0L,
+			     CurrentLoc.get ())))
 	  in
 	  add_pending_statement ~beginning:true initst
 	  end
@@ -797,7 +1066,7 @@ object
 	    | Some(v2,Some e) ->
 		begin try
 		  let voff2 = VarinfoHashtbl.find cursor_to_offset v2 in
-		  BinOp(PlusA,Lval(Var voff2,NoOffset),e,intType)
+		  BinOp(PlusA,Lval(Var voff2,NoOffset),e,almost_integer_type)
 		with Not_found -> e end
 	    | Some(v2,None) ->
 		begin try
@@ -813,11 +1082,11 @@ object
   method vexpr e =
     ChangeDoChildrenPost (e,postaction_expr)
 
-  method vterm =
-    do_on_term (None,Some postaction_expr)
+  method vterm t =
+    ChangeDoChildrenPost (t,postaction_term)
 
   method vtsets_elem =
-    do_on_tsets_elem (None,Some postaction_expr)
+    do_on_tsets_elem_through_term (None,Some postaction_term)
 
   method vspec _sp =
     (* Do not modify the function contract, where offset variables
@@ -838,7 +1107,7 @@ let rewrite_cursor_integers file =
     new collectCursorIntegers
       cursor_to_base assigned_vars ignore_vars
   in
-  visit_until_convergence (visitor :> cilVisitor) file;
+  visit_until_convergence visitor file;
 
   (* Normalize the information *)
   VarinfoSet.iter
@@ -851,245 +1120,428 @@ let rewrite_cursor_integers file =
   let visitor =
     new rewriteCursorIntegers cursor_to_base !assigned_vars
   in
-  visit_and_push_statements visitCilFile visitor file
+  visit_and_store_result_type visitFramacFile
+    (visit_and_push_statements_visitor visitor) file
 
 
 (*****************************************************************************)
 (* Annotate code with strlen.                                                *)
 (*****************************************************************************)
 
-class annotateCodeStrlen
-  (fstrlen : logic_info) (foffset_min : logic_info) (foffset_max : logic_info) =
+(* All annotations are added as hints, by no means they should be trusted
+   blindly, but they can be used if they are also proved *)
+
+class annotateCodeStrlen(strlen : logic_info) =
+
+  (* Store correspondance from temporaries to the corresponding string access *)
+
+  let temps = VarinfoHashtbl.create 17 in
+
+  (* Recognize access or test of string *)
 
   (* TODO: extend applicability of [destruct_string_access]. *)
-  let lval_destruct_string_access = function
-    | Mem e,NoOffset when isCharType(pointed_type(typeOf e)) ->
+  let lval_destruct_string_access ~through_tmp = function
+    | Mem e, NoOffset when isCharPtrType(typeOf e) ->
 	begin match destruct_pointer e with
 	  | None -> None
 	  | Some(v,Some off) -> Some(v,off)
-	  | Some(_,None) -> None
+	  | Some(v,None) -> Some(v,constant_expr 0L)
 	end
-    | Var v,Index(i,NoOffset) -> Some (v,i)
+    | Var v, off ->
+	if isCharPtrType v.vtype then
+	  match off with
+	    | Index(i,NoOffset) -> Some (v,i)
+	    | NoOffset
+	    | Index _
+	    | Field _ -> None
+	else if isCharArrayType v.vtype then
+	  match off with
+	    | Index(i,NoOffset) -> Some (v,i)
+	    | NoOffset
+	    | Index _
+	    | Field _ -> None
+	else if through_tmp then
+	  try Some(VarinfoHashtbl.find temps v) with Not_found -> None
+	else None
     | _ -> None
   in
-  let rec destruct_string_access = function
-    | Lval lv -> lval_destruct_string_access lv
-    | CastE(_,e) -> destruct_string_access e
-    | _ -> None
+  let rec destruct_string_access ?(through_tmp=false) ?(through_cast=false) =
+    function
+      | Lval lv -> lval_destruct_string_access ~through_tmp lv
+      | CastE(_,e) ->
+	  if through_cast then
+	    destruct_string_access ~through_tmp ~through_cast e
+	  else None
+      | _ -> None
   in
-  let rec destruct_string_test ?(neg=false) = function
-    | UnOp(LNot,e,_) ->
-	destruct_string_test ~neg:(not neg) e
-    | BinOp(Ne,e1,e2,_) when is_null_expr e2 ->
-	destruct_string_test ~neg e1
-    | BinOp(Eq,e1,e2,_) when is_null_expr e2 ->
-	destruct_string_test ~neg:(not neg) e1
-    | e ->
-	match destruct_string_access e with
-	  | Some(v,off) -> Some(neg,v,off)
-	  | None -> None
+  let destruct_string_test ?(neg=false) e =
+    let rec aux ~neg = function
+      | UnOp(LNot,e,_) -> aux ~neg:(not neg) e
+      | BinOp(Ne,e1,e2,_) when is_null_expr e2 -> aux ~neg e1
+      | BinOp(Ne,e2,e1,_) when is_null_expr e2 -> aux ~neg e1
+      | BinOp(Eq,e1,e2,_) when is_null_expr e2 -> aux ~neg:(not neg) e1
+      | BinOp(Eq,e2,e1,_) when is_null_expr e2 -> aux ~neg:(not neg) e1
+      | e ->
+	  match
+	    destruct_string_access ~through_tmp:true ~through_cast:true e
+	  with
+	    | Some(v,off) -> Some(neg,v,off)
+	    | None -> None
+    in match e with
+      | BinOp(Eq,e1,e2,_) when is_non_null_expr e2 -> false, aux ~neg e1
+      | BinOp(Eq,e2,e1,_) when is_non_null_expr e2 -> false, aux ~neg e1
+      | _ -> true, aux ~neg e
   in
-  let asrt_to_insert = StmtHashtbl.create 0 in
-  let add_pending_asrt pend_asrt stmt =
-    try
-      let pendls = StmtHashtbl.find asrt_to_insert stmt in
-      StmtHashtbl.replace asrt_to_insert stmt (pend_asrt :: pendls)
-    with Not_found ->
-      StmtHashtbl.replace asrt_to_insert stmt [pend_asrt]
+
+  (* Generate appropriate assertion *)
+
+  let strlen_type =
+    match strlen.l_type with Some t -> t | None -> assert false
   in
-  let attach_pending_asrt stmt =
-    try
-      let al = StmtHashtbl.find asrt_to_insert stmt in
-      List.iter (Annotations.add_assert stmt ~before:true) al
-    with Not_found -> ()
+
+  let within_bounds ~strict v off =
+    let rel1 =
+      Logic_const.new_predicate (Logic_const.prel (Rle,lzero(),off))
+    in
+    let tv = term_of_var v in
+    let app2 = mkterm (Tapp(strlen,[],[tv])) strlen_type  v.vdecl in
+    let op = if strict then Rlt else Rle in
+    let rel2 =
+      Logic_const.new_predicate (Logic_const.prel (op,off,app2))
+    in
+    let app =
+      Logic_const.new_predicate
+	(Logic_const.pand (Logic_const.pred_of_id_pred rel1,
+			   Logic_const.pred_of_id_pred rel2))
+    in
+    Logic_const.pred_of_id_pred
+      { app with ip_name = [ name_of_hint_assertion ] }
+  in
+  let reach_upper_bound ~loose v off =
+    let tv = term_of_var v in
+    let app = mkterm (Tapp(strlen,[],[tv])) strlen_type v.vdecl in
+    let op = if loose then Rle else Req in
+    let rel =
+      Logic_const.new_predicate (Logic_const.prel (op,app,off))
+    in
+    Logic_const.pred_of_id_pred
+      { rel with ip_name = [ name_of_hint_assertion ] }
   in
 object(self)
 
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit ()) as super
 
-  method vfunc f =
-    let strings = List.filter
-      (fun v -> hasAttribute "string" (typeAttrs v.vtype)) f.sformals
-    in
-    let string_reqs =
-      List.map (fun v ->
-	let lv = cvar_to_lvar v in
-	let tv =
-	  if app_term_type isArrayType false lv.lv_type then
-	    let ptrty = 
-	      TPtr(force_app_term_type element_type lv.lv_type,[])
-	    in
-	    mkterm (TStartOf(TVar lv,TNoOffset)) (Ctype ptrty) v.vdecl 
-	  else
-	    mkterm (TLval(TVar lv,TNoOffset)) lv.lv_type v.vdecl 
-	in
-	let tstrlen = Tapp(fstrlen,[],[tv]) in
-	let tstrlen = mkterm tstrlen fstrlen.l_type v.vdecl in
-	let pstrlen = {
-	  name = [];
-	  loc = Lexing.dummy_pos,Lexing.dummy_pos;
-	  content = Prel(Rge,tstrlen,constant_term !currentLoc 0L);
-	} in
-	let toffset_min = Tapp(foffset_min,[], [tv]) in
-	let toffset_min = mkterm toffset_min foffset_min.l_type v.vdecl in
-	let poffset_min = {
-	  name = [];
-	  loc = Lexing.dummy_pos,Lexing.dummy_pos;
-	  content = Prel(Rle,toffset_min,constant_term !currentLoc 0L);
-	} in
-	let toffset_max = Tapp(foffset_max,[],[tv]) in
-	let toffset_max = mkterm toffset_max foffset_max.l_type v.vdecl in
-	let poffset_max = {
-	  name = [];
-	  loc = Lexing.dummy_pos,Lexing.dummy_pos;
-	  content = Prel(Rle,tstrlen,toffset_max);
-	} in
-	let pand =  Logic_const.unamed (Pand(poffset_min,poffset_max)) in
-        Logic_const.new_predicate (Logic_const.unamed (Pand(pstrlen,pand)))
-      ) strings
-    in
-    f.sspec.spec_requires <- string_reqs @ f.sspec.spec_requires;
-    DoChildren
-
   method vexpr e =
-    begin match destruct_string_access e with
-      | None -> ()
-      | Some(v,off) ->
-	  if hasAttribute "string" (typeAttrs v.vtype) then
-	    let toff = !Db.Properties.Interp.force_exp_to_term locUnknown off in
-	    let lv = cvar_to_lvar v in
-	    let tv =
-	      if app_term_type isArrayType false lv.lv_type then
-		let ptrty = 
-		  TPtr(force_app_term_type element_type lv.lv_type,[])
-		in
-		mkterm (TStartOf(TVar lv,TNoOffset)) (Ctype ptrty) v.vdecl 
-	      else
-		mkterm (TLval(TVar lv,TNoOffset)) lv.lv_type v.vdecl 
-	    in
-	    let tstrlen = Tapp(fstrlen,[], [tv]) in
-	    let tstrlen = mkterm tstrlen fstrlen.l_type v.vdecl in
-	    let supp = {
-	      name = ["hint"];
-	      loc = Lexing.dummy_pos,Lexing.dummy_pos;
-	      content = Prel(Rge,tstrlen,toff);
-	    } in
-	    let cur_stmt = the self#current_stmt in
-	    add_pending_asrt supp cur_stmt
+    begin match destruct_string_access e with None -> () | Some(v,off) ->
+      if hasAttribute name_of_string_declspec (typeAttrs v.vtype) then
+	(* A string should be accessed within its bounds *)
+	let off =
+	  !Db.Properties.Interp.force_exp_to_term locUnknown off
+	in
+	let app = within_bounds ~strict:false v off in
+	let cur_stmt = the self#current_stmt in
+	Annotations.add_alarm cur_stmt ~before:true Alarms.Other_alarm app
     end;
     DoChildren
 
   method vstmt_aux s =
     let preaction s = match s.skind with
       | If(e,tbl,fbl,_loc) ->
-	  begin match destruct_string_test e with
-	    | None -> s
-	    | Some(neg,v,off) ->
-		let toff = !Db.Properties.Interp.force_exp_to_term locUnknown off in
-		let lv = cvar_to_lvar v in
-		let tv =
-		  if app_term_type isArrayType false lv.lv_type then
-		    let ptrty = 
-		      TPtr(force_app_term_type element_type lv.lv_type,[])
-		    in
-		    mkterm (TStartOf(TVar lv,TNoOffset)) (Ctype ptrty) v.vdecl 
+	  begin match destruct_string_test e with _,None -> ()
+	    | test_to_null,Some(neg,v,off) ->
+		if hasAttribute name_of_string_declspec (typeAttrs v.vtype)
+		then
+		  (* A string should be tested within its bounds, and
+		     depending on the result, the offset is either before
+		     or equal to the length of the string *)
+		  let off =
+		    !Db.Properties.Interp.force_exp_to_term locUnknown off
+		  in
+		  let rel1 = within_bounds ~strict:true v off in
+		  let supst = mkStmt(Instr(Skip(CurrentLoc.get()))) in
+		  Annotations.add_alarm
+		    supst ~before:true Alarms.Other_alarm rel1;
+
+		  let rel2 = reach_upper_bound ~loose:false v off in
+		  let eqst = mkStmt(Instr(Skip(CurrentLoc.get()))) in
+		  Annotations.add_alarm
+		    eqst ~before:true Alarms.Other_alarm rel2;
+
+		  (* Rather add skip statement as blocks may be empty *)
+		  if neg then
+		    begin
+		      fbl.bstmts <- supst :: fbl.bstmts;
+		      if test_to_null then tbl.bstmts <- eqst :: tbl.bstmts
+		    end
 		  else
-		    mkterm (TLval(TVar lv,TNoOffset)) lv.lv_type v.vdecl 
-		in
-		let tstrlen = Tapp(fstrlen,[],[tv]) in
-		let tstrlen = mkterm tstrlen fstrlen.l_type v.vdecl in
-		let supp = {
-		  name = ["hint"];
-		  loc = Lexing.dummy_pos,Lexing.dummy_pos;
-		  content = Prel(Rgt,tstrlen,toff);
-		} in
-		let supa = Logic_const.new_code_annotation(AAssert([],supp)) in
-		let eqp = {
-		  name = ["hint"];
-		  loc = Lexing.dummy_pos,Lexing.dummy_pos;
-		  content = Prel(Req,tstrlen,toff);
-		} in
-		let eqa = Logic_const.new_code_annotation(AAssert([],eqp)) in
-		let supst = mkStmt(Instr(Code_annot(supa,!currentLoc))) in
-		let eqst = mkStmt(Instr(Code_annot(eqa,!currentLoc))) in
-		if neg then
-		  begin
-		    fbl.bstmts <- supst :: fbl.bstmts;
-		    tbl.bstmts <- eqst :: tbl.bstmts
-		  end
-		else
-		  begin
-		    tbl.bstmts <- supst :: tbl.bstmts;
-		    fbl.bstmts <- eqst :: fbl.bstmts
-		  end;
-		s
-	  end
+		    begin
+		      tbl.bstmts <- supst :: tbl.bstmts;
+		      if test_to_null then fbl.bstmts <- eqst :: fbl.bstmts
+		    end
+	  end; s
+      | Instr(Set(lv,e,_loc)) when is_null_expr e ->
+	  if Cmdline.Jessie.HintLevel.get () > 1 then
+	    match lval_destruct_string_access ~through_tmp:true lv with
+	      | None -> ()
+	      | Some(v,off) ->
+		  let off =
+		    !Db.Properties.Interp.force_exp_to_term locUnknown off
+		  in
+		  (* Help ATP with proving the bound on [strlen(v)] by
+		     asserting the obvious equality *)
+		  let lv' = !Db.Properties.Interp.force_lval_to_term_lval
+		    locUnknown lv
+		  in
+		  let e' = !Db.Properties.Interp.force_exp_to_term
+		    locUnknown e
+		  in
+		  let lvt = mkterm (TLval lv') strlen_type locUnknown in
+		  let rel =
+		    Logic_const.new_predicate (Logic_const.prel (Req,lvt,e'))
+		  in
+		  let prel = Logic_const.pred_of_id_pred
+		    { rel with ip_name = [ name_of_hint_assertion ] }
+		  in
+		  Annotations.add_alarm
+		    s ~before:false Alarms.Other_alarm prel;
+		  (* Further help ATP by asserting that index should be 
+		     positive *)
+(* 		  let rel = *)
+(* 		    Logic_const.new_predicate  *)
+(* 		      (Logic_const.prel (Rle,lzero(),off)) *)
+(* 		  in *)
+(* 		  let prel = Logic_const.pred_of_id_pred *)
+(* 		    { rel with ip_name = [ name_of_hint_assertion ] } *)
+(* 		  in *)
+(* 		  Annotations.add_alarm *)
+(* 		    s ~before:false Alarms.Other_alarm prel; *)
+		  (* If setting a character to zero in a buffer, this should
+		     be the new length of a string *)
+		  let rel = reach_upper_bound ~loose:true v off in
+		  Annotations.add_alarm
+		    s ~before:false Alarms.Other_alarm rel
+	  else ();
+	  s
+      | Instr(Set((Var v1,NoOffset),e,_loc)) ->
+	  begin match
+	    destruct_string_access ~through_tmp:true ~through_cast:true e
+	  with
+	    | None -> ()
+	    | Some(v2,off) -> VarinfoHashtbl.add temps v1 (v2,off)
+	  end; s
       | _ -> s
     in
-    let postaction s =
-      let posts = match s.skind with
-	| Instr(Set(lv,e,_)) when is_null_expr e ->
-	    begin match lval_destruct_string_access lv with
-	      | None -> s
-	      | Some(v,off) ->
-		  let toff = !Db.Properties.Interp.force_exp_to_term locUnknown off in
-		  let lv = cvar_to_lvar v in
-		  let tv = 
-		    if app_term_type isArrayType false lv.lv_type then
-		      let ptrty = 
-			TPtr(force_app_term_type element_type lv.lv_type,[])
-		      in
-		      mkterm (TStartOf(TVar lv,TNoOffset)) (Ctype ptrty) v.vdecl 
-		    else
-		      mkterm (TLval(TVar lv,TNoOffset)) lv.lv_type v.vdecl 
-		  in
-		  let tstrlen = Tapp(fstrlen,[],[tv]) in
-		  let tstrlen = mkterm tstrlen fstrlen.l_type v.vdecl in
-		  let toffset_min = Tapp(foffset_min,[],[tv]) in
-		  let toffset_min =
-		    mkterm toffset_min foffset_min.l_type v.vdecl in
-		  let supp = {
-		    name = ["hint"];
-		    loc = Lexing.dummy_pos,Lexing.dummy_pos;
-		    content = Prel(Rge,tstrlen,toffset_min);
-		  } in
-		  let supa = Logic_const.new_code_annotation(AAssert([],supp)) in
-		  let supst = mkStmt(Instr(Code_annot(supa,!currentLoc))) in
-		  let infp = {
-		    name = ["hint"];
-		    loc = Lexing.dummy_pos,Lexing.dummy_pos;
-		    content = Prel(Rle,tstrlen,toff);
-		  } in
-		  let infa = Logic_const.new_code_annotation(AAssert([],infp)) in
-		  let infst = mkStmt(Instr(Code_annot(infa,!currentLoc))) in
-		  mkStmt(Block(mkBlock[s;supst;infst]))
-	    end
-	| _ -> s
-      in
-      attach_pending_asrt s;
-      posts
-    in
-    ChangeDoChildrenPost(preaction s,postaction)
+    ChangeDoChildrenPost(preaction s,fun x -> x)
 
-end
+ end
 
 let annotate_code_strlen file =
-  let find_logic_info (f:file) (name:string) : logic_info option =
-    let rec search = function
-      | GAnnot(Dlogic_reads(info,_poly,_params,_ty,_reads),_) :: _
-          when info.l_name = name -> Some info
-      | _ :: rest -> search rest (* tail recursive *)
-      | [] -> None
-    in
-    search f.globals
-  in
-  match find_logic_info file "strlen" with None -> () | Some fstrlen ->
-  match find_logic_info file "offset_min" with None -> () | Some foffset_min ->
-  match find_logic_info file "offset_max" with None -> () | Some foffset_max ->
-    let visitor = new annotateCodeStrlen fstrlen foffset_min foffset_max in
-    visitCilFile (visitor :> cilVisitor) file
+  try
+    let strlen = Logic_env.find_logic_function name_of_strlen in
+    let visitor = new annotateCodeStrlen strlen in
+    visitFramacFile visitor file
+  with Not_found -> assert false
 
+
+(*****************************************************************************)
+(* Annotate functions from declspec.                                         *)
+(*****************************************************************************)
+
+open Genlex
+
+class annotateFunFromDeclspec =
+
+  let recover_from_attr_param params attrparam =
+    let rec aux = function
+      | AInt i ->
+	  constant_term locUnknown (Int64.of_int i)
+      | AUnOp(Neg,AInt i) ->
+	  constant_term locUnknown (Int64.of_int (-i))
+      | AStr s
+      | ACons(s,[]) ->
+	  begin try
+	    let v = List.find (fun v -> v.vname = s) params in
+	    term_of_var v
+	  with Not_found -> failwith "No recovery" end
+      | ABinOp(bop,attr1,attr2) ->
+	  mkterm (TBinOp(bop,aux attr1,aux attr2)) Linteger locUnknown
+      | ACons _
+      | ASizeOf _
+      | ASizeOfE _
+      | ASizeOfS _
+      | AAlignOf _
+      | AAlignOfE _
+      | AAlignOfS _
+      | AUnOp _
+      | ADot _
+      | AStar _
+      | AAddrOf _
+      | AIndex _
+      | AQuestion _ -> failwith "No recovery" (* Not yet supported *)
+    in
+    aux attrparam
+  in
+  let recover_from_attribute params attr =
+    match attr with
+      | Attr(name,attrparams) ->
+	  begin try
+	    Some(name, List.map (recover_from_attr_param params) attrparams)
+	  with Failure "No recovery" -> None end
+      | AttrAnnot _ -> None
+  in
+
+  (* Add precondition based on declspec on parameters *)
+  let annotate_var params acc v =
+    List.fold_left
+      (fun acc attr ->
+	 match recover_from_attribute params attr with
+	   | None -> acc
+	   | Some(name,args) ->
+	       if name = "valid" || name = "valid_range" then
+		 let p = match name with
+		   | "valid" ->
+		       assert (args = []);
+		       let ts =
+			 TSSingleton
+			   (TSLval(TSVar(cvar_to_lvar v),TSNoOffset))
+		       in
+		       Pvalid(ts)
+		   | "valid_range" ->
+		       let t1,t2 = match args with
+			 | [ t1; t2 ] -> t1,t2
+			 | _ -> assert false
+		       in
+		       Pvalid_range(term_of_var v,t1,t2)
+		   | _ -> assert false
+		 in
+		 let app =
+		   Logic_const.new_predicate (Logic_const.unamed p)
+		 in
+		 app :: acc
+	       else
+		 try
+		   let p = Logic_env.find_logic_function name in
+		   assert (List.length p.l_profile = List.length(args) + 1);
+		   assert (List.length p.l_labels <= 1);
+		   let args = term_of_var v :: args in
+		   let app =
+		     Logic_const.new_predicate
+		       (Logic_const.unamed (Papp(p,[],args)))
+		   in
+		   app :: acc
+		 with Not_found -> acc
+      ) acc (typeAttrs v.vtype)
+  in
+
+  let annotate_fun v =
+    let funspec = Kernel_function.get_spec (Globals.Functions.get v) in
+    let params = Globals.Functions.get_params (Globals.Functions.get v) in
+    let return_ty = getReturnType v.vtype in
+
+    let req =
+      List.fold_left (annotate_var params) funspec.spec_requires params
+    in
+    funspec.spec_requires <- req;
+
+    let default_behavior =
+      List.find
+        (fun x -> x.b_name = name_of_default_behavior) funspec.spec_behavior
+    in
+    let ens =
+      List.fold_left
+	(fun acc attr ->
+	   match recover_from_attribute params attr with
+	     | None -> acc
+	     | Some(name,args) ->
+		 if name = "valid" || name = "valid_range" then
+		   let p = match name with
+		     | "valid" ->
+			 assert (args = []);
+			 let ts =
+			   TSSingleton(TSLval(TSResult,TSNoOffset))
+			 in
+			 Pvalid(ts)
+		     | "valid_range" ->
+			 let t1,t2 = match args with
+			   | [ t1; t2 ] -> t1,t2
+			   | _ -> assert false
+			 in
+			 let res =
+			   mkterm
+			     (TLval(TResult,TNoOffset))
+			     (Ctype return_ty) v.vdecl
+			 in
+			 Pvalid_range(res,t1,t2)
+		     | _ -> assert false
+		   in
+		   let app =
+		     Logic_const.new_predicate (Logic_const.unamed p)
+		   in
+		   app :: acc
+		 else
+		   try
+		     let p = Logic_env.find_logic_function name in
+		     assert (List.length p.l_profile = List.length(args) + 1);
+		     assert (List.length p.l_labels <= 1);
+		     let res =
+		       mkterm
+			 (TLval(TResult,TNoOffset)) (Ctype return_ty) v.vdecl
+		     in
+		     let args = res :: args in
+		     let app =
+		       Logic_const.new_predicate
+			 (Logic_const.unamed (Papp(p,[],args)))
+		     in
+		     app :: acc
+		   with Not_found -> acc
+	) default_behavior.b_ensures (typeAttrs return_ty)
+    in
+    default_behavior.b_ensures <- ens;
+  in
+object
+
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+
+  method vglob_aux = function
+    | GFun(f,_) ->
+	annotate_fun f.svar;
+	SkipChildren
+    | GVarDecl(_,v,_)
+    | GVar(v,_,_) as g ->
+	if isFunctionType v.vtype && not v.vdefined then
+	  (annotate_fun v; SkipChildren)
+	else
+    	  let inv = annotate_var [] [] v in
+	  let postaction gl =
+	    match inv with [] -> gl | _ ->
+	      (* Define a global string invariant *)
+	      let inv =
+		List.map (fun p -> Logic_const.unamed p.ip_content) inv
+	      in
+	      let p = Logic_const.new_predicate (Logic_const.pands inv) in
+	      let globinv =
+		{ l_name = unique_logic_name ("valid_" ^ v.vname);
+		  l_tparams = [];
+		  l_type = None;
+		  l_profile = [];
+		  l_labels = [ LogicLabel "Here" ];
+		  l_body = LBpred (predicate v.vdecl p.ip_content)}
+	      in
+	      attach_globaction (fun () -> Logic_env.add_logic_function globinv);
+	      gl @ [GAnnot(Dinvariant globinv,v.vdecl)]
+	  in
+	  ChangeDoChildrenPost ([g], postaction)
+    | GAnnot _ -> DoChildren
+    | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
+    | GEnumTag _ | GAsm _ | GPragma _ | GText _ ->
+	SkipChildren
+end
+
+let annotate_fun_from_declspec file =
+  let visitor = new annotateFunFromDeclspec in
+  visit_and_update_globals visitor file
 
 (*****************************************************************************)
 (* Annotate code with overflow checks.                                       *)
@@ -1155,10 +1607,10 @@ object(self)
 	 * than the maximal value for the type right shifted by its right
 	 * operand.
 	 *)
-	let max_int = Int64.of_string
-	    (Big_int.string_of_big_int (max_value_of_integral_type ty1))
-	in
 	if is_left_shift && isSignedInteger ty1 then
+	  let max_int = Int64.of_string
+	    (Big_int.string_of_big_int (max_value_of_integral_type ty1))
+	  in
 	  begin match possible_value_of_integral_expr e2' with
 	    | Some i when i >= 0L && i < 64L ->
 		(* Only use optimization where [Int64.shift_right] is
@@ -1190,7 +1642,7 @@ end
 
 let annotate_overflow file =
   let visitor = new annotateOverflow in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -1205,14 +1657,30 @@ object
 
   method vtype ty =
     if isVoidPtrType ty then
-      ChangeTo charPtrType
+      let attr = typeAttr ty in
+      ChangeTo (typeAddAttributes attr charPtrType)
+    else if isCharType ty then
+      (* All (un)signed chars changed into char for now ... *)
+      let attr = typeAttr ty in
+      ChangeTo (typeAddAttributes attr charType)
     else DoChildren
 
 end
 
+class debugVoid =
+object
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+  method vtsets_elem ts = match ts with
+    | TSLval(TSResult,_) -> DoChildren
+    | _ ->
+	assert (not (app_term_type isVoidPtrType false (typeOfTsetsElem ts)));
+	DoChildren
+end
+
 let rewrite_void_pointer file =
   let visitor = new rewriteVoidPointer in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 
 (*****************************************************************************)
@@ -1250,11 +1718,37 @@ let rewrite_void_pointer file =
 (* let rewrite_titi file = *)
 (*   let table = VarinfoHashtbl.create 17 in *)
 (*   let visitor = new collectTiti table in *)
-(*   visitCilFile (visitor :> cilVisitor) file; *)
+(*   visitFramacFile (visitor :> cilVisitor) file; *)
 (*   let visitor = new rewriteTiti table in *)
-(*   visit_and_push_statements visitCilFile visitor file *)
+(*   visit_and_push_statements visitFramacFile visitor file *)
 
 let rewrite file =
+  if checking then check_types file;
+  (* adds a behavior named [name_of_default_behavior] to all functions if
+     it does not already exist.
+   *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Adding default behavior to all functions@.";
+  add_default_behavior file;
+  if checking then check_types file;
+  (* Annotate functions from declspec. *)
+  (* Before [rename_entities] so that original parameter names are available *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Annotate functions from declspec@.";
+  annotate_fun_from_declspec file;
+  if checking then check_types file;
+  (* Rename entities to avoid conflicts with Jessie predefined names.
+     Should be performed before any call to [Cil.cvar_to_lvar] destroys
+     sharing among logic variables.
+  *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Rename entities@.";
+  rename_entities file;
+  if checking then check_types file;
+  (* Fill offset/size information in fields *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Fill offset/size information in fields@.";
+  fill_offset_size_in_fields file;
   if checking then check_types file;
   (* Replace addrof array with startof. *)
   if Cmdline.Debug.get () >= 1 then
@@ -1273,33 +1767,46 @@ let rewrite file =
   gather_initialization file;
   if checking then check_types file;
   (* Rewrite comparison of pointers into difference of pointers. *)
+  if Cmdline.Jessie.InferAnnot.get () <> "" then
+    begin
+      if Cmdline.Debug.get () >= 1 then
+	Format.printf
+	  "Rewrite comparison of pointers into difference of pointers@.";
+      rewrite_pointer_compare file;
+      if checking then check_types file
+    end;
+  (* Rewrite type void* and (un)signed char* into char*. *)
   if Cmdline.Debug.get () >= 1 then
-    Format.printf "Rewrite comparison of pointers into difference of pointers@.";
-  rewrite_pointer_compare file;
-  if checking then check_types file;
-  (* Rewrite type void* into char*. *)
-(*
-   No cast allowed for the moment.
-   rewrite_void_pointer file;
-*)
+    Format.printf "Rewrite type void* and (un)signed char* into char*@.";
+  rewrite_void_pointer file;
   if checking then check_types file;
   (* Rewrite cursor pointers into offsets from base pointers. *)
   (* order: after [rewrite_pointer_compare] *)
-  if Cmdline.Debug.get () >= 1 then
-    Format.printf "Rewrite cursor pointers into offsets from base pointers@.";
-  rewrite_cursor_pointers file;
-  if checking then check_types file;
+  if Cmdline.Jessie.InferAnnot.get () <> "" then
+    begin
+      if Cmdline.Debug.get () >= 1 then
+	Format.printf
+	  "Rewrite cursor pointers into offsets from base pointers@.";
+      rewrite_cursor_pointers file;
+      if checking then check_types file
+    end;
   (* Rewrite cursor integers into offsets from base integers. *)
-(*
-  Comment out until bug on hashtbl solved, e.g. on [undef.c]
-  rewrite_cursor_integers file;
-*)
-  if checking then check_types file;
+  if Cmdline.Jessie.InferAnnot.get () <> "" then
+    begin
+      if Cmdline.Debug.get () >= 1 then
+	Format.printf 
+	  "Rewrite cursor integers into offsets from base integers@.";
+      rewrite_cursor_integers file;
+      if checking then check_types file
+    end;
   (* Annotate code with strlen. *)
-  if Cmdline.Debug.get () >= 1 then
-    Format.printf "Annotate code with strlen@.";
-  annotate_code_strlen file;
-  if checking then check_types file;
+  if Cmdline.Jessie.HintLevel.get () > 0 then
+    begin 
+      if Cmdline.Debug.get () >= 1 then
+	Format.printf "Annotate code with strlen@.";
+      annotate_code_strlen file;
+      if checking then check_types file
+    end;
   (* Annotate code with overflow checks. *)
   if Cmdline.Debug.get () >= 1 then
     Format.printf "Annotate code with overflow checks@.";
@@ -1309,6 +1816,6 @@ let rewrite file =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.. -j bin/toplevel.byte"
 End:
 *)

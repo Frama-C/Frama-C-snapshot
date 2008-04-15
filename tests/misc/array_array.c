@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input
-   OPT: -memory-footprint 1 -val -deps -out -input -main main2
-   OPT: -memory-footprint 1 -val -deps -out -input -main main3
+   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main main2 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main main3 -journal-disable
 */
 
 
@@ -27,12 +27,12 @@ void main() {
     CEA_I(i);
     v[0][i].snd=1;}
   while (i-- > -1);
-  
+
   v[0][i].fst = 0;
 }
 
 
-void main2(void) 
+void main2(void)
 { struct S (*v)[3] ;
   int i ;
   int tmp___0 = 0;

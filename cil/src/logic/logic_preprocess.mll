@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*$Id: logic_preprocess.mll,v 1.18 2008/07/02 13:33:17 uid528 Exp $*)
+(*$Id: logic_preprocess.mll,v 1.20 2008/11/20 07:44:31 uid562 Exp $*)
 {
   open Lexing
   type state = NORMAL | SLASH | INCOMMENT
@@ -131,7 +131,7 @@ rule main cpp outfile = parse
       make_newline();
       main cpp outfile lexbuf
     }
-  | "/*"  ([^ '*' '\n'] as c) {
+  | "/*"  (_ as c) {
       if c = !Clexer.annot_char then begin
         is_newline:=CHAR;
         begin_annot_line := ! curr_line;
@@ -139,15 +139,23 @@ rule main cpp outfile = parse
         maybe_ghost cpp outfile lexbuf
       end else begin
         output_string outfile (lexeme lexbuf);
-        comment cpp outfile lexbuf;
+        if c = '\n' then make_newline();
+        Buffer.add_string beg_of_line "   ";
+        comment cpp outfile c lexbuf;
       end}
-  | "//"  ([^ '*' '\n'] as c) {
+  | "//"  (_ as c) {
       if c = !Clexer.annot_char then begin
         Buffer.clear buf;
         begin_annot_line := !curr_line;
         is_newline:=CHAR;
         maybe_oneline_ghost cpp outfile lexbuf
-      end else begin
+      end
+      else if c = '\n' then begin
+        make_newline ();
+        output_string outfile (lexeme lexbuf);
+        main cpp outfile lexbuf
+      end
+      else begin
         output_string outfile (lexeme lexbuf);
         oneline_comment cpp outfile lexbuf;
       end}
@@ -212,18 +220,22 @@ and annot cpp outfile = parse
   | _ as c { is_newline := CHAR;
              Buffer.add_char buf c; annot cpp outfile lexbuf }
 
-and comment cpp outfile =
+and comment cpp outfile c =
 parse
-    "*/" {
-      Buffer.add_string beg_of_line "  ";
+    "/" {
+      Buffer.add_char beg_of_line ' ';
       output_string outfile (lexeme lexbuf);
-      main cpp outfile lexbuf }
+      if c = '*' then
+        main cpp outfile lexbuf
+      else
+        comment cpp outfile '/' lexbuf
+      }
   | '\n' { make_newline (); output_char outfile '\n';
-           comment cpp outfile lexbuf }
+           comment cpp outfile '\n' lexbuf }
   | _ as c {
       Buffer.add_char beg_of_line ' ';
       output_char outfile c;
-      comment cpp outfile lexbuf}
+      comment cpp outfile c lexbuf}
 
 and oneline_annot cpp outfile = parse
     "\n"|eof {

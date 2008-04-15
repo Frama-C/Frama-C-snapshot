@@ -19,10 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: file.mli,v 1.12 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: file.mli,v 1.15 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Frama-c preprocessing and Cil AST initialization. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 type t =
   | NeedCPP of string * string 
@@ -56,18 +56,23 @@ val from_filename: ?cpp:string -> string -> t
 
 class check_file: Visitor.frama_c_visitor
 
+val prepare_from_c_files: unit -> unit
+  (** Initialize the AST of the current project according to the current
+      filename list.
+      @raise File_types.Bad_Initialization if called more than once. *)
+
 val init_from_c_files: t list -> unit
   (** Initialize the cil file representation of the current project.
       Should be called at most once per project.
       @raise File_types.Bad_Initialization if called more than once. 
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val init_project_from_cil_file: Project.t -> Cil_types.file -> unit
   (** Initialize the cil file representation with the given file for the
       given project from the current one.
       Should be called at most once per project.
       @raise File_types.Bad_Initialization if called more than once. 
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val init_project_from_visitor:
   Project.t -> (Project.t -> Visitor.frama_c_visitor) -> unit
@@ -75,14 +80,14 @@ val init_project_from_visitor:
       The visitor is responsible to avoid sharing between old file and new
       file (i.e. it should use {!Cil.copy_visit} at some point.
       @raise File_types.Bad_Initialization if called more than once. 
-      @plugin developer guide *)
+      @plugin development guide *)
 
 val init_from_cmdline: unit -> unit
   (** Initialize the cil file representation with the file given on the
       command line.
       Should be called at most once per project.
       @raise File_types.Bad_Initialization if called more than once. 
-      @plugin developer guide *)
+      @plugin development guide *)
 
 (* ************************************************************************* *)
 (** {2 Pretty printing} *)
@@ -100,7 +105,7 @@ val pretty : ?prj:Project.t -> Format.formatter -> unit
 (* ************************************************************************* *)
 
 val cxx_suffixes: string list ref
-val parse_cplusplus: (string -> Cil_types.file) ref
+val parse_cplusplus: (string -> Cil_types.file*Cabs.file) ref
 
 (*
 Local Variables:

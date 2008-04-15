@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -security-lattice weak -security-propagate-assertions
+   OPT: -security-analysis -security-lattice weak -security-propagate-assertions -journal-disable
    */
 
 void main() {
@@ -8,5 +8,5 @@ void main() {
   int a = 5;
   //@ assert security_status(x) == public;
   //@ assert security_status(a) == public; // alarm
-  //@ assert security_status(a) == public; 
+  //@ assert security_status(a) == public;
 }

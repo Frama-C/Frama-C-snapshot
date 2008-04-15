@@ -19,10 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annotations.mli,v 1.23 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: annotations.mli,v 1.24 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Annotations associated with a kinstr. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 open Db_types

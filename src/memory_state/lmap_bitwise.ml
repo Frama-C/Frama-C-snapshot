@@ -30,7 +30,7 @@ sig
   type y
   type t
 
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
 
   module LOffset :
   sig
@@ -48,12 +48,16 @@ sig
     val empty : t
     val is_empty: t->bool
     val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-    module Datatype: Project.Datatype.OUTPUT with type t = t
+    val equal : t -> t -> bool
+    val tag : t -> int
+    module Datatype: Project.Datatype.S with type t = t
   end
 
   val pretty : Format.formatter -> t -> unit
   val empty : t
   val join : t -> t -> t
+  val equal : t -> t -> bool
+  val hash : t -> int
 
   val is_included : t -> t -> bool
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
@@ -96,23 +100,32 @@ module Make_bitwise (V:With_default) = struct
 
   exception Cannot_fold
 
-  let name = Project.Datatype.Name.extend "Lmap_bitwise" LOffset.Datatype.name
+  let name = Project.Datatype.extend_name "Lmap_bitwise" LOffset.Datatype.name
 
   let rehash = function
     | Top -> Top
     | Map x -> Map (LBase.Datatype.rehash x)
 
-  module Datatype =
-    Project.Datatype.Register
+  let hash = function
+    | Top -> 0
+    | Map x -> LBase.tag x
+
+  let equal a b = match a,b with
+  | Top,Top -> true
+  | Top,_|_,Top -> false
+  | Map m1, Map m2 -> LBase.equal m1 m2
+
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type tt = t
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
-	 include Datatype.Nop
 	 let name = name
-	 let dependencies = [ LBase.Datatype.self ]
        end)
+    let () = register_comparable ~hash ~equal ()
+  end
 
   let fold f m acc =
     match m with
@@ -571,7 +584,7 @@ module Make_bitwise (V:With_default) = struct
 
 end
 
-module From_Model = Make_bitwise (Locations.Zone)
+module From_Model = Make_bitwise(Locations.Zone)
 
 (*
 Local Variables:

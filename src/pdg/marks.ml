@@ -28,8 +28,8 @@ open PdgIndex
  * a function inputs [in_marks]. 
  *)
 let in_marks_to_caller pdg call m2m ?(rqs=[]) in_marks =
-  let add_n_m acc n z_opt m = 
-    let select = PdgMarks.mk_select_node ~z_opt n in
+  let add_n_m acc n _z_opt m = 
+    let select = PdgMarks.mk_select_node ~z_opt:None n in
     match m2m select m with 
       | None -> acc
       | Some m -> PdgMarks.add_to_select acc select m
@@ -54,28 +54,38 @@ let in_marks_to_caller pdg call m2m ?(rqs=[]) in_marks =
   in List.fold_left build rqs in_marks
 
 (** some new input marks has been added in a called function.
- * Build the list of what is to be propagated in the callers. *)
+ * Build the list of what is to be propagated in the callers. 
+ * Be careful that some Pdg can be top : in that case, a list of mark is
+ * returned (Beware that m2m has NOT been called in that case).
+ * *)
 let translate_in_marks pdg_called in_new_marks 
        ?(m2m=fun _ _ _ m -> Some m) other_rqs =
-    let kf_called = Globals.Functions.get (Pdg.get_var_fct pdg_called) in
+    let kf_called = Pdg.get_kf pdg_called in
     let translate pdg rqs call = 
-      in_marks_to_caller pdg call (m2m call pdg) ~rqs in_new_marks
+      in_marks_to_caller pdg call (m2m (Some call) pdg) ~rqs in_new_marks
     in
-    let build acc (caller, _) =
-      let pgd_caller = !Db.Pdg.get caller in
-      let call_stmts = !Db.Pdg.find_call_stmts ~caller kf_called in
+    let build rqs (caller, _) =
+      let pdg_caller = !Db.Pdg.get caller in
       let caller_rqs = 
-        List.fold_left (translate pgd_caller) [] call_stmts in
-        (pgd_caller, caller_rqs)::acc
-    in let rqs = 
-      List.fold_left build other_rqs (!Db.Value.callers kf_called) in
-      rqs (* TODO : more intelligent merge *)
+        try 
+        let call_stmts = !Db.Pdg.find_call_stmts ~caller kf_called in
+          (* TODO : more intelligent merge ? *)
+        let rqs = List.fold_left (translate pdg_caller) [] call_stmts in
+          PdgMarks.SelList rqs
+      with PdgTypes.Pdg.Top -> 
+        let marks = List.fold_left (fun acc (_, m) -> m::acc) [] in_new_marks 
+        in PdgMarks.SelTopMarks marks (* #345 *)
+    in
+      (pdg_caller, caller_rqs)::rqs
+    in 
+    let res = List.fold_left build other_rqs (!Db.Value.callers kf_called) in
+      res
 
 let call_out_marks_to_called called_pdg m2m ?(rqs=[]) out_marks =
   let build rqs (out_key, m) =
     let nodes, undef = Sets.find_output_nodes called_pdg out_key in
     let sel = 
-      List.map (fun (n, z_opt) -> PdgMarks.mk_select_node ~z_opt n) nodes in
+      List.map (fun (n, _z_opt) -> PdgMarks.mk_select_node ~z_opt:None n) nodes in
     let sel = match undef with None -> sel
       | Some undef -> (PdgMarks.mk_select_undef_zone undef)::sel
     in
@@ -92,12 +102,14 @@ let translate_out_mark _pdg m2m other_rqs (call, l) =
   let add_list l_out_m rqs called_kf =
     try
       let called_pdg = !Db.Pdg.get called_kf in
-      let m2m = m2m call called_pdg in
+      let m2m = m2m (Some call) called_pdg in
       let node_marks = 
         call_out_marks_to_called called_pdg m2m ~rqs:[] l_out_m
-      in (called_pdg, node_marks)::rqs
+      in (called_pdg, PdgMarks.SelList node_marks)::rqs
     with PdgTypes.Pdg.Top ->
-      (* no PDG for this function : forget the new marks *)
+      (* no PDG for this function : forget the new marks 
+      * because anyway, the source function will be called.
+      * *)
       rqs
   in
   let all_called = Db.Value.call_to_kernel_function call in
@@ -122,7 +134,9 @@ let translate_out_mark _pdg m2m other_rqs (call, l) =
         other_rqs =
     let in_marks, out_marks = new_marks in
     let other_rqs = translate_in_marks pdg in_marks ~m2m:in_m2m other_rqs in
+    let rqs = 
       List.fold_left (translate_out_mark pdg out_m2m) other_rqs out_marks
+    in rqs
 
 
 (** To also use interprocedural propagation, the user can instantiate this
@@ -145,17 +159,15 @@ module F_Proj (C : PdgMarks.T_Config) :
 
   let empty = Cilutil.VarinfoHashtbl.create 10
 
-  let pdg_fvar pdg = PdgTypes.Pdg.get_var_fct pdg
-
   let find_marks proj fct_var =
     try let f = Cilutil.VarinfoHashtbl.find proj fct_var in Some (F.get_idx f)
     with Not_found -> None
 
   let get proj pdg =
-    let fct_var = pdg_fvar pdg in
+    let kf = PdgTypes.Pdg.get_kf pdg in
+    let fct_var = Kernel_function.get_vi kf in
     try Cilutil.VarinfoHashtbl.find proj fct_var
     with Not_found -> 
-      let kf = Globals.Functions.get fct_var in
       let pdg = !Db.Pdg.get kf in
       let info = F.create pdg in
         Cilutil.VarinfoHashtbl.add proj fct_var info; 
@@ -166,10 +178,12 @@ module F_Proj (C : PdgMarks.T_Config) :
   * *)
   let apply_fct_rqs proj (pdg, mark_list) other_rqs =
     match mark_list with 
-      | [] -> (* don't want to build the marks when calling [get]
-                if there is nothing to do... *) 
+      | PdgMarks.SelList [] 
+      | PdgMarks.SelTopMarks [] -> 
+          (* don't want to build the marks when calling [get]
+             if there is nothing to do... *) 
           other_rqs
-      | _ ->
+      | PdgMarks.SelList mark_list ->
           let fm = get proj pdg in
           let to_prop = F.mark_and_propagate fm mark_list in 
           let rqs = translate_marks_to_prop pdg to_prop 
@@ -177,6 +191,8 @@ module F_Proj (C : PdgMarks.T_Config) :
                       ~out_m2m:C.mark_to_prop_to_called_output
                       other_rqs in
             rqs
+      | PdgMarks.SelTopMarks _marks -> (* TODO #345 *)
+          Extlib.not_yet_implemented "mark propagation in Top PDG"
 
   (** Add the marks to the pdg nodes and also apply all the produced requests
   * to do the interprocedural propagation. *)
@@ -186,7 +202,5 @@ module F_Proj (C : PdgMarks.T_Config) :
       | rq :: tl_rqs -> 
           let new_rqs = apply_fct_rqs proj rq tl_rqs in 
             apply_all new_rqs
-    in apply_all [(pdg, node_marks)]
+    in apply_all [(pdg, PdgMarks.SelList node_marks)]
 end
-
-

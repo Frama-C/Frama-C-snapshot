@@ -19,9 +19,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cilE.ml,v 1.57 2008/07/11 06:36:05 uid570 Exp $ *)
-(* Cil extensions *)
+(* $Id: cilE.ml,v 1.65 2008/10/20 15:25:30 uid525 Exp $ *)
+
+(** Cil extensions for Frama-C *)
+
 open Cil_types
+open Cilutil
 open Cil
 open Db_types
 
@@ -42,21 +45,25 @@ let warn_once : ('a,Format.formatter, unit, unit) format4 -> 'a =
 *)
 
 let add_predicate p =
-  if not (Logic_env.PredicateInfo.mem p.p_name) then
-    Logic_env.add_builtin_predicate p
+  if not (Logic_env.LogicInfo.mem p.l_name) then
+    Logic_env.add_builtin_logic_function p
 
 let init_builtins () =
   add_predicate  {
-    p_name = "pointer_comparable";
-    p_profile = []; (* TODO: build this one somewhere else*)
-    p_body = PReads []; (* TODO: give an explicit definition *)
-    p_labels = [];
+    l_name = "pointer_comparable";
+    l_tparams = [];
+    l_type = None;
+    l_profile = []; (* TODO: build this one somewhere else*)
+    l_labels = [];
+    l_body = LBreads []; (* TODO: give an explicit definition *)
   };
   add_predicate {
-    p_name = "result_finite_float";
-    p_profile = []; (* TODO: build this one somewhere else*)
-    p_body = PReads []; (* TODO: give an explicit definition *)
-    p_labels = [];
+    l_name = "result_finite_float";
+    l_tparams = [];
+    l_type = None;
+    l_profile = []; (* TODO: build this one somewhere else*)
+    l_labels = [];
+    l_body = LBreads []; (* TODO: give an explicit definition *)
   }
 
 let () = Logic_env.Builtins.extend init_builtins
@@ -68,11 +75,10 @@ let warn_once fmt =
       (function fmt ->
 	Format.pp_print_flush fmt ();
 	let fmt = Buffer.contents b in
-	if not (Hashtbl.mem warn_h (fmt,!Cil.currentLoc))
-	then begin
-	    Hashtbl.add warn_h (fmt,!Cil.currentLoc) ();
-	    Cil.warn "%s" fmt
-	  end)
+	if not (Hashtbl.mem warn_h (fmt,Cil.CurrentLoc.get ())) then begin
+	  Hashtbl.add warn_h (fmt,Cil.CurrentLoc.get ()) ();
+	  Cil.warn "%s" fmt
+	end)
       bfmt fmt
 
 let (log_h:(string,unit) Hashtbl.t) = Hashtbl.create 1789
@@ -205,6 +211,7 @@ type syntactic_context =
   | SyBinOp of Cil_types.binop * Cil_types.exp * Cil_types.exp
   | SyUnOp of  Cil_types.exp
   | SyMem of  Cil_types.lval
+  | SySep of Cil_types.exp * Cil_types.exp
 
 let syntactic_context = ref SyNone
 let set_syntactic_context e =
@@ -232,6 +239,9 @@ let set_syntactic_context e =
 
 let get_syntactic_context () = current_stmt (),!syntactic_context
 
+let value_analysis_alarm_status () =
+  {status = Checked{emitter="value analysis"; valid = Maybe}}
+
 type alarm_behavior = Aignore | Alog | Acall of (unit -> unit)
 type warn_mode = {unspecified:alarm_behavior; others: alarm_behavior;
                   imprecision_tracing:alarm_behavior}
@@ -250,13 +260,15 @@ let warn_div warn_mode =
       begin
 	match get_syntactic_context () with
 	| _,SyNone -> ()
-	| _,SyUnOp _ | _,SyMem _ -> assert false
+	| _,(SyUnOp _ | SyMem _ | SySep _) -> assert false
 	| ki,SyBinOp ((Div|Mod),_,exp_d) ->
 	    let lexpr = Logic_const.expr_to_term exp_d in
 	    let annotation =
               Logic_const.new_code_annotation
 		(AAssert ([],
-			  Logic_const.unamed (Prel (Rneq,lexpr, lzero())))) in
+			  Logic_const.unamed (Prel (Rneq,lexpr, lzero())),
+                          value_analysis_alarm_status ()))
+            in
 	    if Alarms.register ki Alarms.Division_alarm annotation then
               Cil.warn
 		"division by zero: %a" !Ast_printer.d_code_annotation annotation
@@ -271,7 +283,7 @@ let warn_shift warn_mode size =
       begin
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,SyUnOp _ | _,SyMem _ -> assert false
+    | _,(SyUnOp _ | SyMem _ | SySep _)-> assert false
     | ki,SyBinOp ((Shiftrt | Shiftlt),_,exp_d) ->
 	let lexpr = Logic_const.expr_to_term exp_d in
 	let annotation =
@@ -281,7 +293,8 @@ let warn_shift warn_mode size =
 		 Logic_const.pand
                     (Logic_const.unamed (Prel (Rge,lexpr, lzero())),
                     Logic_const.unamed
-                      (Prel (Rlt,lexpr, lconstant (Int64.of_int size))))))
+                      (Prel (Rlt,lexpr, lconstant (Int64.of_int size)))),
+                 value_analysis_alarm_status ()))
 	in
 	if Alarms.register ki Alarms.Shift_alarm annotation then
           Cil.warn "invalid shift: %a" !Ast_printer.d_code_annotation annotation;
@@ -299,14 +312,16 @@ let warn_mem warn_mode msg =
 
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,SyBinOp _ | _,SyUnOp _ -> assert false
+    | _,(SyBinOp _ | SyUnOp _ | SySep _) -> assert false
     | ki,SyMem lv_d ->
         let term = mkAddrOrStartOf lv_d in
         let lexpr = Logic_const.expr_to_tsets_elem term in
         let annotation =
           Logic_const.new_code_annotation
             (AAssert ([],
-		      Logic_const.unamed (Pvalid (TSSingleton lexpr)))) in
+		      Logic_const.unamed (Pvalid (TSSingleton lexpr)),
+                      value_analysis_alarm_status ()))
+        in
         if Alarms.register ki Alarms.Memory_alarm annotation then
           Cil.warn
             "out of bounds %s. @[%a@]" msg !Ast_printer.d_code_annotation annotation;
@@ -323,15 +338,16 @@ let warn_index warn_mode msg =
       begin
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,SyMem _
-    | _,SyUnOp _ -> assert false
+    | _,(SyMem _ | SyUnOp _ | SySep _) -> assert false
     | ki ,SyBinOp (IndexPI,e1,e2) ->
         let lexpr = Logic_const.expr_to_term e1 in
         let rexpr = Logic_const.expr_to_term e2 in
         let p0 = Logic_const.prel(Rle, lzero(), lexpr) in
         let p1 = Logic_const.prel(Rlt, lexpr, rexpr) in
         let p = Logic_const.pand (p0,p1) in
-        let annotation = Logic_const.new_code_annotation (AAssert ([],p)) in
+        let annotation =
+          Logic_const.new_code_annotation (AAssert ([],p,value_analysis_alarm_status ()))
+        in
         if Alarms.register ki Alarms.Memory_alarm annotation then
           Cil.warn
             "%s out of bounds index. @[%a@]"
@@ -344,7 +360,7 @@ let warn_mem_read warn_mode = warn_mem warn_mode "read"
 let warn_mem_write warn_mode = warn_mem warn_mode "write"
 
 let comparable_pointers t1 t2 =
-  let pi = Logic_env.find_predicate "pointer_comparable" in
+  let pi = Logic_env.find_logic_function "pointer_comparable" in
   Papp (pi, [], [t1;t2])
 
 let warn_pointer_comparison warn_mode =
@@ -355,24 +371,23 @@ let warn_pointer_comparison warn_mode =
       begin
   match get_syntactic_context () with
   | _,SyNone -> ()
-  | _,SyUnOp _ | _,SyMem _ -> assert false
+  | _,(SyUnOp _ | SyMem _ | SySep _) -> assert false
   | ki,SyBinOp ((Eq|Ne|Ge|Le|Gt|Lt),exp_l,exp_r) ->
       let lexpr_l = Logic_const.expr_to_term exp_l in
       let lexpr_r = Logic_const.expr_to_term exp_r in
       let annotation =
         Logic_const.new_code_annotation
           (AAssert ([],
-		    Logic_const.unamed (comparable_pointers lexpr_l lexpr_r))) in
+		    Logic_const.unamed (comparable_pointers lexpr_l lexpr_r),
+                    value_analysis_alarm_status ())) in
       if Alarms.register ki Alarms.Pointer_compare_alarm annotation then
-        ignore
-          (Cil.warn
-             "pointer comparison: %a" !Ast_printer.d_code_annotation annotation)
+	warn "pointer comparison: %a" !Ast_printer.d_code_annotation annotation
   | _,SyBinOp(_,_,_) ->
       assert false
 end
 
 let result_nan_infinite _op t1 t2 =
-  let pi = Logic_env.find_predicate "result_finite_float" in
+  let pi = Logic_env.find_logic_function "result_finite_float" in
   Papp (pi, [], [t1;t2])
 
 let warn_result_nan_infinite warn_mode =
@@ -383,19 +398,20 @@ let warn_result_nan_infinite warn_mode =
       begin
   match get_syntactic_context () with
   | _,SyNone -> ()
-  | _,SyUnOp _ | _,SyMem _ -> assert false
+  | _,(SyUnOp _ | SyMem _ | SySep _) -> assert false
   | ki,SyBinOp (_op, exp_l, exp_r) ->
       let lexpr_l = Logic_const.expr_to_term exp_l in
       let lexpr_r = Logic_const.expr_to_term exp_r in
       let op = lexpr_l in (* TODO: use op *)
       let annotation =
         Logic_const.new_code_annotation
-          (AAssert ([],
-		    Logic_const.unamed (result_nan_infinite op lexpr_l lexpr_r))) in
+          (AAssert
+	     ([],
+	      Logic_const.unamed (result_nan_infinite op lexpr_l lexpr_r),
+              value_analysis_alarm_status ())) in
       if Alarms.register ki Alarms.Result_is_nan_or_infinite_alarm annotation
       then
-        ignore
-          (Cil.warn "float operation: %a" !Ast_printer. d_code_annotation annotation)
+        warn "float operation: %a" !Ast_printer. d_code_annotation annotation
 end
 
 let warn_uninitialized warn_mode =
@@ -406,7 +422,7 @@ let warn_uninitialized warn_mode =
       begin
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,SyBinOp _ | _,SyUnOp _ -> assert false
+    | _,(SyBinOp _ | SyUnOp _ | SySep _) -> assert false
     | _,SyMem lv_d ->
         warn_once "(TODO: emit a proper alarm) accessing uninitialized left-value: %a" d_lval lv_d
       end
@@ -419,11 +435,36 @@ let warn_escapingaddr warn_mode =
       begin
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,SyBinOp _ | _,SyUnOp _ -> assert false
+    | _,(SyBinOp _ | SyUnOp _ | SySep _) -> assert false
     | _,SyMem lv_d ->
         warn_once "(TODO: emit a proper alarm) accessing left-value that contains escaping addresses : %a" d_lval lv_d
       end
 
+let warn_separated warn_mode =
+  match warn_mode.unspecified with
+      Aignore -> ()
+    | Acall f -> f()
+    | Alog ->
+        begin
+          match get_syntactic_context () with
+            | _,SyNone -> ()
+            | _,(SyBinOp _ | SyUnOp _ | SyMem _ ) -> assert false
+            | ki,SySep(lv1,lv2) ->
+                let llv1 = Logic_const.expr_to_tsets_elem lv1 in
+                let llv2 = Logic_const.expr_to_tsets_elem lv2 in
+                let tlv1 = TSSingleton llv1 in
+                let tlv2 = TSSingleton llv2 in
+                let alarm =
+                  Logic_const.pseparated ~loc:(Instr.loc ki) [tlv1; tlv2]
+                in let annotation =
+                  Logic_const.new_code_annotation
+                    (AAssert([],alarm,value_analysis_alarm_status ()))
+                in
+                if Alarms.register ki Alarms.Separation_alarm annotation then
+                warn
+                  "multiple accesses in unspecified order. \
+                   assert \\separated(%a,%a);" d_exp lv1 d_exp lv2
+        end
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

@@ -21,8 +21,8 @@
 
 open Cil
 open Cil_types
+open Db
 exception Cannot_expand
-
 
 (** This visitor also performs a deep copy. *)
 class propagate project fnames ~cast_intro = object(self)
@@ -39,7 +39,7 @@ class propagate project fnames ~cast_intro = object(self)
   method vfunc fundec =
     let name = fundec.svar.vname in
     operate <-
-      (Cilutil.StringSet.is_empty fnames || Cilutil.StringSet.mem name fnames);
+      Cilutil.StringSet.is_empty fnames || Cilutil.StringSet.mem name fnames;
     if operate then
       Format.printf "[constant propagation] for function %s@."
         (fundec.svar.vname);
@@ -74,7 +74,7 @@ class propagate project fnames ~cast_intro = object(self)
                      else raise Cannot_expand
                    | _ -> exp
            in
-           let evaled = !Db.Value.access_expr ki expr in
+           let evaled = !Value.access_expr ki expr in
            let k,m = Cvalue_type.V.find_lonely_binding evaled in
              begin
                match k with
@@ -125,7 +125,7 @@ class propagate project fnames ~cast_intro = object(self)
                        Format.printf "Replacing %a with %a@."
                          !Ast_printer.d_exp expr
                          !Ast_printer.d_exp change_to;
-                     ChangeTo change_to
+                     ChangeDoChildrenPost (change_to, fun x -> x)
                | Base.Null ->
                    let e =
                      begin
@@ -157,7 +157,7 @@ class propagate project fnames ~cast_intro = object(self)
                        Format.printf "Replacing %a with %a @."
                          !Ast_printer.d_exp expr
                          !Ast_printer.d_exp change_to;
-                     ChangeTo change_to
+                     ChangeDoChildrenPost(change_to,fun x -> x)
                | Base.Cell_class _ | Base.String _
                | Base.Var _ | Base.Initialized_Var _ -> DoChildren
 
@@ -172,15 +172,59 @@ class propagate project fnames ~cast_intro = object(self)
 
 end
 
-let run_propagation fnames ~cast_intro =
-  !Db.Value.compute ();
-  let fresh_project = Project.create "propagated" in
-  File.init_project_from_visitor
-    fresh_project
-    (fun prj -> new propagate prj fnames cast_intro);
-  let ctx = Cmdline.get_selection_context () in
-  Project.copy ~only:ctx fresh_project;
-  fresh_project
+module Result =
+  Computation.Hashtbl
+    (struct
+       type t = Cilutil.StringSet.t * bool
+       let hash = Hashtbl.hash
+       let equal (s1,b1) (s2,b2) = b1 = b2 && Cilutil.StringSet.equal s1 s2
+     end)
+    (Datatype.Project)
+    (struct
+       let size = 7
+       let name = "Constant_Propagation"
+       let dependencies = [ Value.self ]
+     end)
+
+let journalized_get =
+  let get fnames cast_intro =
+    Result.memo
+      (fun _ ->
+	 !Value.compute ();
+	 let fresh_project = Project.create "propagated" in
+	 File.init_project_from_visitor
+	   fresh_project
+	   (fun prj -> new propagate prj fnames cast_intro);
+	 let ctx = Cmdline.get_selection_context () in
+	 Project.copy ~only:ctx fresh_project;
+	 fresh_project)
+      (fnames, cast_intro)
+  in
+  Journal.register
+    "!Db.Constant_Propagation.get"
+    (Type.func Kernel_type.string_set (Type.func Type.bool Project.repr))
+    get
+
+(* add labels *)
+let get fnames ~cast_intro = journalized_get fnames cast_intro
+
+let main fmt =
+  let force_semantic_folding =
+    Cmdline.Constant_Propagation.SemanticConstFolding.get ()
+    || not (Cilutil.StringSet.is_empty
+	      (Cmdline.Constant_Propagation.SemanticConstFold.get ()))
+  in
+  if force_semantic_folding then begin
+    Format.fprintf fmt "@\n[constant propagation] in progress...@.";
+    let fnames = Cmdline.Constant_Propagation.SemanticConstFold.get () in
+    let cast_intro = Cmdline.Constant_Propagation.CastIntro.get () in
+    let propagated = !Db.Constant_Propagation.get fnames cast_intro in
+    if Cmdline.Constant_Propagation.SemanticConstFolding.get () then
+      File.pretty (Cmdline.CodeOutput.get_fmt ()) ~prj:propagated;
+    Format.fprintf fmt "@\n====== CONSTANT PROPAGATED ======@.";
+  end
+
+let () = Db.Main.extend main
 
 let options =
   [ "-semantic-const-folding",
@@ -197,12 +241,11 @@ let options =
   ]
 
 let () =
-  Db.Constant_Propagation.run_propagation := run_propagation;
+  Db.register ~journalize:None Db.Constant_Propagation.get get;
   Options.add_plugin
     ~name:"semantic constant folding"
     ~descr:"propagates semantically constants"
     options
-
 
 (*
 Local Variables:

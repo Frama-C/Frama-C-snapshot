@@ -22,7 +22,7 @@
 (**************************************************************************)
 
 (** Logic typing and logic environment.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 
@@ -44,20 +44,27 @@ module Make
       val find_type : string -> typ
       val find_label : string -> stmt ref
 
-      val remove_logic_function : string -> unit  
+      val remove_logic_function : string -> unit
       val add_logic_function: logic_info -> unit
+(*
       val add_predicate: predicate_info -> unit
+*)
       val add_logic_type: string -> logic_type_info -> unit
       val add_logic_ctor: string -> logic_ctor_info -> unit
 
       val find_logic_function: string -> logic_info
+(*
       val find_predicate: string -> predicate_info
+*)
       val find_logic_type: string -> logic_type_info
       val find_logic_ctor: string -> logic_ctor_info
 
     end) :
 sig
 
+  (** type-checks a term. The optional boolean is true by default and indicates
+      whether arrays automatically decay as pointer to their first element.
+   *)
   val term : Lenv.t -> Logic_ptree.lexpr -> term
 
   val predicate : Lenv.t -> Logic_ptree.lexpr -> predicate named
@@ -65,17 +72,26 @@ sig
   val code_annot : Logic_ptree.code_annot -> code_annotation
 
   val type_annot :
-    location -> Logic_ptree.type_annot -> predicate_info
+    location -> Logic_ptree.type_annot -> logic_info
 
   val annot : location -> Logic_ptree.decl -> global_annotation
 
   val funspec :
-    id:int -> formals:(varinfo list) option -> typ -> Logic_ptree.spec ->
-    funspec
+    varinfo -> (varinfo list) option -> typ -> Logic_ptree.spec -> funspec
 
 end
 
-val make_here_label : unit -> Lenv.t
+(** append the Old label in the environment *)
+val append_old_and_post_labels: Lenv.t -> Lenv.t
+
+(** appends the Here label in the environment *)
+val append_here_label: Lenv.t -> Lenv.t
+
+(** creates an environment containing only the "Pre" label *)
+val make_pre_label: unit -> Lenv.t
+
+(** creates an environment containing only the "Here" label *)
+val make_here_label: unit -> Lenv.t
 
 (*
 Local Variables:

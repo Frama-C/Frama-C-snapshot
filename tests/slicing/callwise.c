@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -calldeps -slice-return main -slicing-level 2 -slice-print
+   OPT: -calldeps -slice-return main -slicing-level 2 -slice-print -journal-disable
 */
 
 int a = 1, b = 1, c = 1, d = 1, *p;
@@ -27,7 +27,7 @@ int fs163_main (int n) {
   fs163_f (&C, 2);
   fs163_f (&T[0], 0);
   fs163_f (&T[1], 1);
-  for (int i=0; i<5; i++) 
+  for (int i=0; i<5; i++)
     fs163_f (&T[i],i);
 
   return T[3];

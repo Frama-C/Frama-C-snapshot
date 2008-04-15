@@ -20,7 +20,7 @@
 (**************************************************************************)
 
 (** Kernel User Interface. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 module Varinfo : sig
 (** Varinfo to identify C functions and C variables. *)

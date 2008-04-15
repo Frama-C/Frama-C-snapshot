@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap_whole.mli,v 1.12 2008/06/12 14:26:18 uid528 Exp $ i*)
+(*i $Id: lmap_whole.mli,v 1.13 2008/10/03 13:09:16 uid568 Exp $ i*)
 
 (** Functor making map for whole values with locations as keys *)
 
@@ -49,7 +49,7 @@ sig
 
     type instanciation = Location_Bytes.t BaseMap.t
 
-    module Datatype : Project.Datatype.OUTPUT with type t = t
+    module Datatype : Project.Datatype.S with type t = t
 
     val inject : Base.t -> LOffset.t -> t
 

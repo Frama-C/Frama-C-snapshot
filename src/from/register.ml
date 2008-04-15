@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.71 2008/06/26 11:45:11 uid528 Exp $ *)
+(* $Id: register.ml,v 1.77 2008/11/06 13:03:28 uid568 Exp $ *)
 
 open Cil_types
 open Cil
@@ -36,7 +36,7 @@ module Functionwise_Dependencies =
   Kernel_function.Make_Table
     (Function_Froms.Datatype)
     (struct
-       let name = Project.Computation.Name.make "functionwise_from"
+       let name = "functionwise_from"
        let size = 97
        let dependencies = [ Value.self ]
      end)
@@ -46,10 +46,10 @@ let () =
   Db.From.is_computed := Functionwise_Dependencies.mem
 
 module Callwise_Dependencies =
-  Kernel_computation.InstrHashtbl
+  Cil_computation.InstrHashtbl
     (Function_Froms.Datatype)
     (struct
-       let name = Project.Computation.Name.make "callwise_from"
+       let name = "callwise_from"
        let size = 97
        let dependencies = [ Value.self ]
      end)
@@ -62,7 +62,6 @@ module type Values_To_Use_Sig = sig
   val lval_to_loc_with_deps :
     (Cil_types.kinstr ->
       with_alarms:CilE.warn_mode ->
-      skip_base_deps:bool ->
       deps:Locations.Zone.t ->
       Cil_types.lval -> Locations.Zone.t * Locations.location) ref
   val expr_to_kernel_function :
@@ -109,7 +108,6 @@ struct
     | AddrOf lv  | StartOf lv ->
         let deps, _ = !Values_To_Use.lval_to_loc_with_deps
           ~with_alarms:CilE.warn_none_mode
-          ~skip_base_deps:true
           ~deps:Zone.bottom
           instr
           lv
@@ -136,7 +134,6 @@ struct
     let deps,looking_for =
       !Values_To_Use.lval_to_loc_with_deps
 	~with_alarms:CilE.warn_none_mode
-	~skip_base_deps:false
 	~deps:Zone.bottom
 	instr
 	lv
@@ -377,7 +374,6 @@ struct
            those address are function of [deps]. *)
         !Values_To_Use.lval_to_loc_with_deps
           ~with_alarms:CilE.warn_none_mode
-          ~skip_base_deps:false
           ~deps:Zone.bottom
           kinstr
           k
@@ -496,7 +492,6 @@ struct
                               let deps, loc =
 				!Values_To_Use.lval_to_loc_with_deps
                                   ~with_alarms:CilE.warn_none_mode
-                                  ~skip_base_deps:false
                                   ~deps:Zone.bottom
                                   kinstr
                                   lv
@@ -584,7 +579,6 @@ struct
                                !Values_To_Use.lval_to_loc_with_deps
                                  ~with_alarms:CilE.warn_none_mode
 				 ~deps:Zone.bottom
-                                 ~skip_base_deps:false
                                  (Kstmt return)
                                  v
                              in
@@ -750,11 +744,10 @@ let compute_using_prototype_for_state state kf =
 	    in
             let treat_ret_assign acc (out,ins) =
               try
-                let coffs =
-                  match out with
-                      Location out ->
-                        !Properties.Interp.tsets_to_offset out.its_content
-                    | Nothing -> []
+                let coffs = match out with
+                    Location out ->
+                      !Properties.Interp.tsets_to_offset out.its_content
+                  | Nothing -> []
                 in
                 List.fold_left
                   (fun acc coff ->
@@ -800,7 +793,7 @@ let compute_using_prototype kf =
   compute_using_prototype_for_state state kf
 
 let compute_and_return kf =
-  let call_site_loc = !currentLoc in
+  let call_site_loc = CurrentLoc.get () in
   log
     "[from] computing for function %a%s"
     Kernel_function.pretty_name kf
@@ -819,7 +812,7 @@ let compute_and_return kf =
   in
   Recording_To_Do.record_kf kf result;
   log "[from] done for function %a" Kernel_function.pretty_name kf;
-  currentLoc := call_site_loc;
+  CurrentLoc.set call_site_loc;
   result
 
 let compute kf =
@@ -949,10 +942,9 @@ let record_for_individual_froms (call_stack, instrstates) =
 	    with Not_found -> Relations_type.Model.bottom
 
       (* TODO: This should be better factored with Kinstr ! *)
-	  let lval_to_loc_with_deps kinstr ~with_alarms:_
-	      ~skip_base_deps ~deps lv =
+	  let lval_to_loc_with_deps kinstr ~with_alarms:_ ~deps lv =
 	    let state = get_state kinstr in
-            !Db.Value.lval_to_loc_with_deps_state state ~skip_base_deps
+            !Db.Value.lval_to_loc_with_deps_state state
 	      ~deps lv
 
       let lval_to_loc_with_deps = ref lval_to_loc_with_deps
@@ -1000,9 +992,8 @@ let record_for_individual_froms (call_stack, instrstates) =
 	call_froms_stack := tail;
 	merge_call_froms table call_site froms
 
-    | _ -> () (* the entry point, probably *)
-
-
+    | _ ->  (* the entry point, probably *)
+        Callwise_Dependencies.mark_as_computed ()
   end
 
 let () =
@@ -1066,7 +1057,63 @@ let display fmt =
          Kernel_function.pretty_name k !Db.From.pretty k);
     Format.fprintf fmt "@]"
 
+let force_compute_all () =
+  !Db.Value.compute ();
+  !Db.Semantic_Callgraph.topologically_iter_on_functions
+    (fun kf ->
+       if Kernel_function.is_definition kf && !Db.Value.is_called kf
+       then !Db.From.compute kf)
+
+let force_compute_all_calldeps ()=
+  if Db.Value.is_computed () then
+    Project.clear
+      ~only:(Project.Selection.singleton Db.Value.self Kind.Select_Dependencies)
+      ();
+  !Db.Value.compute ()
+
+let main fmt =
+  let not_quiet = not (Cmdline.Quiet.get ()) in
+  if Cmdline.ForceDeps.get () then begin
+    !Db.From.compute_all ();
+    if not_quiet then begin
+      !Db.From.display fmt;
+      Format.fprintf fmt "@\n====== DEPENDENCIES COMPUTED ======@."
+    end
+  end;
+  if Cmdline.ForceCallDeps.get () then !Db.From.compute_all_calldeps ();
+  if not_quiet && Cmdline.ForceCallDeps.get () then begin
+    Format.fprintf fmt "@\n====== DISPLAYING CALLWISE DEPENDENCIES ======@.";
+    !Db.From.Callwise.iter
+      (fun ki d ->
+         let id,typ =
+	   match ki with
+	   | Cil_types.Kglobal ->
+               "entry point", 
+	       Kernel_function.get_type (fst (Globals.entry_point ()))
+	   | Cil_types.Kstmt s ->
+               string_of_int s.Cil_types.sid,
+               match Db.Value.call_to_kernel_function s with
+               | [] -> assert false
+               | f :: _ -> Kernel_function.get_type f
+         in
+	 Format.fprintf fmt "@[call %s:@ %a@\n@]"
+	   id (Function_Froms.pretty_with_type typ) d);
+    Format.fprintf fmt "@\n====== END OF CALLWISE DEPENDENCIES ======@."
+  end
+
+let () = Db.Main.extend main
+
 let () =
+  Db.register_compute "From.compute_all"
+    [Functionwise_Dependencies.self]
+    Db.From.compute_all
+    force_compute_all;
+  Db.register_guarded_compute
+    "From.compute_all_calldeps"
+    Callwise_Dependencies.is_computed
+    Db.From.compute_all_calldeps
+    force_compute_all_calldeps;
+
   Db.From.display := display;
   Db.From.Callwise.iter := Callwise_Dependencies.iter;
   Db.From.Callwise.find := Callwise_Dependencies.find

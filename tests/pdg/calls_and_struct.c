@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -deps -input -out -inout -pdg-debug -pdg
+   OPT: -deps -input -out -inout -pdg-debug -pdg -journal-disable
    */
 
 struct Tstr { int a; int b; int c; };
@@ -17,7 +17,7 @@ int f (struct Tstr s) {
 int asgn_struct (void) {
  struct Tstr s = S;
  return s.a; /* \result FROM S{.a; .b; .c; }; */
-} 
+}
 
 int main () {
   int a = asgn_struct ();

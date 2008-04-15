@@ -47,6 +47,7 @@ open Cabshelper
 open Trace
 open Pretty
 open Cabsvisit
+open Cil
 
 (* binding of a unification variable to a syntactic construct *)
 type binding =
@@ -169,7 +170,7 @@ class substitutor (bindings : binding list) = object(self)
       )
     | _ -> DoChildren
   end
-  
+
   (* use of a name *)
   method vvar (s:string) : string =
   begin
@@ -221,7 +222,7 @@ class substitutor (bindings : binding list) = object(self)
                   match (self#findBinding name) with
                   | BSpecifier(_, replacement) -> (
                       (trace "patchDebug" (dprintf "replacing pattern %s\n" name));
-                      replacement                                                  
+                      replacement
                     )
                   | _ -> raise (BadBind ("wrong type: " ^ name))
                 )
@@ -261,7 +262,7 @@ let unifyExprFwd : (expression -> expression -> binding list) ref
 
 (* substitution for expressions *)
 let substExpr (bindings : binding list) (expr : expression) : expression =
-begin            
+begin
   if verbose then
     (trace "patchDebug" (dprintf "substExpr with %d bindings\n" (List.length bindings)));
   (printExpr expr);
@@ -567,7 +568,7 @@ begin
     (unifySpecifiers spec1 spec2) @
       (unifyList list1 list2 unifyNameExprOpt)
   )
-    | _ -> 
+    | _ ->
         (* no match *)
         if verbose then (
           (trace "patchDebug" (dprintf "mismatching during type annotation\n"));

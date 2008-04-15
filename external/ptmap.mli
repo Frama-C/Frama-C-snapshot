@@ -12,7 +12,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: ptmap.mli,v 1.1 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: ptmap.mli,v 1.4 2008/10/10 13:27:07 uid527 Exp $ *)
 
 module type Tagged_type =
 sig
@@ -20,12 +20,18 @@ sig
   val tag : t -> int
   val equal : t -> t -> bool
   val pretty : Format.formatter -> t -> unit
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
 end
 
 module Generic 
-  (X:sig type t val id : t -> int val pretty : Format.formatter -> t -> unit end) 
-  (V : Tagged_type) (Initial_Values : sig val v : (X.t*V.t) list list end) :
+  (X:sig 
+    type t
+    val name : string
+    val id: t -> int
+    val pretty: Format.formatter -> t -> unit
+  end) 
+  (V : Tagged_type) 
+  (Initial_Values : sig val v : (X.t*V.t) list list end) :
 sig 
   
   type t
@@ -78,15 +84,16 @@ sig
     f:(key -> V.t -> 'b) ->
     joiner:('b -> 'b -> 'b) -> empty:'b -> t -> 'b
 
-  val cached_map :    
+  val cached_map :
     cache:string * int ->
     f:(key -> V.t -> V.t) -> t -> t
 
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
+
 end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C .. -j"
 End:
 *)

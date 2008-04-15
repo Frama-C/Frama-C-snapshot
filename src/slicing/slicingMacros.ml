@@ -33,18 +33,12 @@ module T = SlicingTypes.Internals
 
 exception Break
 
-let debug = false
-
 (**/**)
 
 (** {2 Debug and utils} *)
 
-let debug = false
-
-let info() = Cmdline.Slicing.Mode.Verbose.get () >= 1
-let debug1() = Cmdline.Slicing.Mode.Verbose.get () > 1
-let debug2() = Cmdline.Slicing.Mode.Verbose.get () > 2
-let debug3() = Cmdline.Slicing.Mode.Verbose.get () > 3
+let has_debug n = Debug.has_debug Cmdline.Slicing.Mode.Verbose.get n
+let debug n format = Debug.debug_f (has_debug n) format
 
 let cbug assert_cond msg = 
   if not assert_cond then raise (SlicingTypes.Slicing_Internal_Error msg)
@@ -102,7 +96,7 @@ let get_kf_fi proj kf =
     let new_fi = { 
       T.fi_kf = kf;
       T.fi_def = fi_def;
-      T.fi_top = false;
+      T.fi_top = None;
       T.fi_level_option = get_default_level_option is_def;
       T.fi_init_marks = None ; 
       T.fi_slices = [] ; 
@@ -139,7 +133,7 @@ let f_name f = match f with
 let ff_src_name ff = fi_name (ff_fi ff)
 
 let pdg_name pdg = 
-  let var = (PdgTypes.Pdg.get_var_fct pdg) in var.Cil_types.vname
+  Kernel_function.get_name ( PdgTypes.Pdg.get_kf pdg)
 
 (** {4 getting [kernel_function]} *)
 
@@ -147,7 +141,7 @@ let get_fi_kf fi = fi.T.fi_kf
 
 let get_ff_kf ff =  let fi = ff_fi ff in get_fi_kf fi
 
-let get_pdg_kf pdg = Globals.Functions.get (PdgTypes.Pdg.get_var_fct pdg)
+let get_pdg_kf pdg = PdgTypes.Pdg.get_kf pdg
 
 (** {4 getting PDG} *)
 
@@ -234,6 +228,10 @@ let is_src_fun_called proj kf =
   let fi = get_kf_fi proj kf in
   match fi.T.f_called_by with [] -> false | _ -> true
 
+let is_src_fun_visible proj kf =
+  let is_fi_top fi = match fi.T.fi_top with None -> false | Some _ -> true 
+  in is_src_fun_called proj kf || is_fi_top (get_kf_fi proj kf)
+    
 let get_calls_to_ff ff = ff.T.ff_called_by
 
 let get_calls_to_src fi = fi.T.f_called_by

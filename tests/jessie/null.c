@@ -6,7 +6,9 @@ int* f() {
   return p;
 }
 
+#ifndef NULL
 #define NULL ((void*)0)
+#endif /* NULL */
 
 //@ ensures \result == \null;
 int* g() {

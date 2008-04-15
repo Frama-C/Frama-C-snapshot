@@ -19,6 +19,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* $Id: pretty_source.ml,v 1.31 2008/10/03 13:09:16 uid568 Exp $ *)
+
 open Format
 open Cil_types
 open Db_types
@@ -31,6 +33,14 @@ type localizable =
   | PLval of (kernel_function option * kinstr * lval)
   | PTermLval of (kernel_function option*  kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
+
+module Localizable_Datatype =
+  Project.Datatype.Imperative
+    (struct 
+       type t = localizable 
+       let copy _ = assert false (* TODO *)
+       let name = "localizable"
+     end)
 
 module Locs:sig
   val add: int * int -> localizable -> unit
@@ -46,7 +56,7 @@ end = struct
                hiliter : unit -> unit
              }
   let locs = ref { table = Hashtbl.create 97;
-               hiliter = (fun () -> assert false)
+               hiliter = (fun () -> ())
              }
   let hilite () = !locs.hiliter ()
   let create h =
@@ -194,9 +204,9 @@ let equal_localizable l1 l2 =
   match l1,l2 with
   | PStmt (_,ki1), PStmt (_,ki2) -> ki1.sid = ki2.sid
   | PLval (_,ki1,lv1), PLval (_,ki2,lv2) ->
-      Cil.Instr.equal ki1 ki2 && lv1 == lv2
+      Cilutil.Instr.equal ki1 ki2 && lv1 == lv2
   | PTermLval (_,ki1,lv1), PTermLval (_,ki2,lv2) ->
-      Cil.Instr.equal ki1 ki2 && Logic_const.is_same_tlval lv1 lv2
+      Cilutil.Instr.equal ki1 ki2 && Logic_const.is_same_tlval lv1 lv2
 	(* [JS 21/01/08:] term_lval are not shared: cannot use == *)
   | PVDecl (_,v1), PVDecl (_,v2) ->
       v1.vid == v2.vid
@@ -213,9 +223,9 @@ let locate_localizable loc =
 let localizable_from_locs ~file ~line =
   let loc_localizable = function
     | PStmt (_,st) | PLval (_,Kstmt st,_) | PTermLval(_,Kstmt st,_) ->
-        Cil.get_stmtLoc st.skind
+        Cilutil.get_stmtLoc st.skind
     | PVDecl (_,vi) -> vi.vdecl
-    | _ -> Cil.locUnknown
+    | _ -> Cilutil.locUnknown
   in
   let r = ref [] in
   Locs.iter
@@ -325,11 +335,14 @@ let display_source globals
     List.iter
       (fun g ->
          incr counter;
-         if !counter >= 5000 then raise (Failure "");
+         if !counter > 20 then raise (Failure "");
          display_global g)
       globals;
   with Failure "" ->
-    Format.fprintf gtk_fmt "@.<<Skipping end of file>>@.";
+    Format.fprintf 
+      gtk_fmt 
+      "@.<<Cannot display more than %d globals at a time. Skipping end of file>>@." 
+      !counter;
   end;
   (*  Format.printf "Displayed globals@.";*)
 
@@ -363,6 +376,7 @@ let display_source globals
         false));
 
   hlt ()
+
 
 (*
 Local Variables:

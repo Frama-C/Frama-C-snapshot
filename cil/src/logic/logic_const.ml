@@ -24,7 +24,7 @@
 open Cil_types
 
 (** Constructors and utility functions for the logic.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 (** {1 Identification Numbers} *)
 
@@ -161,7 +161,7 @@ match (p2.content,p3.content) with
 | _, Ptrue -> p2
 | _,_ -> unamed ~loc (Piff (p2,p3))
 
-(** @plugin developer guide *)
+(** @plugin development guide *)
 let prel ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (a,b,c) =
   unamed ~loc (Prel(a,b,c))
 
@@ -187,14 +187,26 @@ let pvalid_range ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,q,r) =
 let psubtype ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,q) =
   unamed ~loc (Psubtype (p,q))
 
+let pseparated  ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) seps =
+  unamed ~loc (Pseparated seps)
+
+(** {2 terms} *)
+let taddrof ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) lv typ =
+  match lv with
+    | TMem h, TNoOffset -> h
+    | _ -> { term_node = TAddrOf lv;
+             term_type = typ;
+             term_name = [];
+             term_loc = loc}
+
 (** {1 From C to logic}*)
 
-(** @plugin developer guide *)
+(** @plugin development guide *)
 let mk_dummy_term e ctyp =
   { term_node = e ; term_loc = Lexing.dummy_pos,Lexing.dummy_pos;
     term_type = Ctype ctyp; term_name = []}
 
-(** @plugin developer guide *)
+(** @plugin development guide *)
 let rec expr_to_term e =
   let result = match e with
   | Const c -> TConst c
@@ -213,7 +225,7 @@ let rec expr_to_term e =
   in
   mk_dummy_term result (Cil.typeOf e)
 
-(** @plugin developer guide *)
+(** @plugin development guide *)
 and lval_to_term_lval (host,offset) =
   host_to_term_host host,offset_to_term_offset offset
 and host_to_term_host = function
@@ -234,29 +246,7 @@ let rec expr_to_tsets_elem = function
   | SizeOfStr _ -> assert false
   | StartOf lv -> TSStartOf (lval_to_tsets_lval lv)
   | AddrOf (h, off) ->
-      let (oth,last) = Cil.removeOffset off in
-      (match last with
-           Index(e,NoOffset) ->
-             TSAdd_index
-               (TSStartOf (host_to_tsets_host h,offset_to_tsets_offset oth),
-                expr_to_term e)
-         | NoOffset ->
-            TSAdd_index
-               (TSStartOf (host_to_tsets_host h,offset_to_tsets_offset oth),
-                Cil.lzero())
-         | Field(f,NoOffset) ->
-             let (size, _) = Cil.bitsOffset (TComp (f.fcomp,[])) last in
-             let bits_char = Cil.bitsSizeOf Cil.charType in
-             assert (size mod bits_char = 0);
-             let size = size / bits_char in
-             TSCastE(TPtr(f.ftype,[]),
-                     TSAdd_index
-                       (TSCastE(Cil.charPtrType,
-                                expr_to_tsets_elem
-                                  (Cil.mkAddrOf (h,oth))),
-                        Cil.lconstant (Int64.of_int size)))
-         | _ -> assert false
-      )
+      TSAddrOf(host_to_tsets_host h, offset_to_tsets_offset off)
   | CastE (ty,e) ->  TSCastE (ty,expr_to_tsets_elem e)
   | BinOp ((PlusPI|IndexPI), l, r, _) ->
       TSAdd_index(expr_to_tsets_elem l,expr_to_term r)
@@ -275,11 +265,64 @@ and host_to_tsets_host = function
   | Mem e ->
       TSMem (expr_to_tsets_elem e)
 and offset_to_tsets_offset = function
-  | NoOffset -> TSNo_offset
+  | NoOffset -> TSNoOffset
   | Index (e,off) -> TSIndex (expr_to_term e,offset_to_tsets_offset off)
   | Field (fi,off) -> TSField(fi,offset_to_tsets_offset off)
 
 (** {1 Various utilities} *)
+
+let rec remove_term_offset o =
+  match o with
+      TNoOffset -> TNoOffset, TNoOffset
+    | TIndex(_,TNoOffset) | TField(_,TNoOffset)-> TNoOffset, o
+    | TIndex(e,o) ->
+        let (oth,last) = remove_term_offset o in TIndex(e,oth), last
+    | TField(f,o) ->
+        let (oth,last) = remove_term_offset o in TField(f,oth), last
+
+let rec term_to_tsets_elem t =
+  match t.term_node with
+    | TConst c -> TSConst c
+    | TLval lv -> TSLval (term_lval_to_tsets_lval lv)
+    | TBinOp((PlusPI|IndexPI),l,r) ->
+        TSAdd_index(term_to_tsets_elem l, r)
+    | TBinOp(MinusPI,l,r) ->
+        TSAdd_index(term_to_tsets_elem l,
+                    { r with term_node = TUnOp(Neg,r)})
+    | TCastE(typ,term) -> TSCastE(typ, term_to_tsets_elem term)
+    | TAddrOf lv -> TSAddrOf(term_lval_to_tsets_lval lv)
+    | TStartOf lv -> TSStartOf (term_lval_to_tsets_lval lv)
+    | Tapp(f,labs,args) -> TSapp(f,labs,args)
+    | Told t -> TSat(term_to_tsets_elem t,LogicLabel "old")
+    | Tnull -> TSCastE(Cil.voidPtrType,TSConst(CInt64 (Int64.zero,IULong,None)))
+    | Tat (t,l) -> TSat(term_to_tsets_elem t, l)
+    | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
+    | Tlambda _ | TDataCons _ | Tif _ | Tbase_addr _ | Tblock_length _
+    | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCoerce _ | TCoerceE _
+    | TUpdate _ | Ttypeof _ | Ttype _
+        ->
+        Cil.errorLoc
+          t.term_loc "cannot convert term %a to tset element" Cil.d_term t;
+          raise Errormsg.Error
+    | Ttsets _ -> assert false (* should have been captured before *)
+
+and term_lval_to_tsets_lval (h,o) =
+  (term_host_to_tsets_host h, term_offset_to_tsets_offset o)
+
+and term_host_to_tsets_host = function
+    TVar v -> TSVar v
+  | TResult -> TSResult
+  | TMem e -> TSMem (term_to_tsets_elem e)
+
+and term_offset_to_tsets_offset = function
+    TNoOffset -> TSNoOffset
+  | TField(f,o) -> TSField(f,term_offset_to_tsets_offset o)
+  | TIndex(t,o) -> TSIndex(t, term_offset_to_tsets_offset o)
+
+let term_to_tsets t =
+  match t.term_node with
+      Ttsets set -> set
+    | _ -> TSSingleton (term_to_tsets_elem t)
 
 let bound_var v = Cil.make_logic_var v.lv_name v.lv_type
 
@@ -311,7 +354,7 @@ let rec tsets_contains_result = function
   | TSComprehension(t,_,_) -> tsets_contains_result t
 
 and tsets_elem_contains_result = function
-  | TSLval lv | TSStartOf lv -> tsets_lval_contains_result lv
+  | TSLval lv | TSStartOf lv | TSAddrOf lv -> tsets_lval_contains_result lv
   | TSAdd_index(lh,i) ->
       tsets_elem_contains_result lh || contains_result i
   | TSAdd_range(lh,low,high) ->
@@ -320,7 +363,8 @@ and tsets_elem_contains_result = function
       in tsets_elem_contains_result lh || opt_contains low || opt_contains high
   | TSConst _ -> false
   | TSCastE(_,elem) -> tsets_elem_contains_result elem
-  | TSAt(l,_) -> tsets_elem_contains_result l
+  | TSat(l,_) -> tsets_elem_contains_result l
+  | TSapp (_,_,args) -> List.exists contains_result args
 
 and tsets_lval_contains_result (h,o) =
       tsets_lhost_contains_result h || tsets_offset_contains_result o
@@ -331,7 +375,7 @@ and tsets_lhost_contains_result = function
   | TSMem t -> tsets_elem_contains_result t
 
 and tsets_offset_contains_result = function
-    TSNo_offset -> false
+    TSNoOffset -> false
   | TSIndex (t,o) -> contains_result t || tsets_offset_contains_result o
   | TSRange(low,high,o) ->
       let opt_contains = function None -> false
@@ -343,7 +387,7 @@ and tsets_offset_contains_result = function
     @raise Not_found if the predicate is only declared
  *)
 let get_pred_body pi =
-  match pi.p_body with PDefinition p -> p | _ -> raise Not_found
+  match pi.l_body with LBpred p -> p | _ -> raise Not_found
 
 (** true if the given term is a lvalue denoting result or part of it *)
 let is_result t = match t.term_node with
@@ -367,13 +411,15 @@ let is_same_logic_label l1 l2 =
 
 let rec tsets_elem_is_result = function
   | TSLval(TSResult,_) -> true
-  | TSStartOf _ -> assert false
+  | TSStartOf _ -> false
       (* According to ISO, a function can't return an array *)
   | TSLval _ | TSConst _ -> false
+  | TSAddrOf _ -> false
   | TSAdd_range(t,_,_) -> tsets_elem_is_result t
   | TSAdd_index (t,_) -> tsets_elem_is_result t
   | TSCastE(_,elem) -> tsets_elem_is_result elem
-  | TSAt(l,_) -> tsets_elem_is_result l
+  | TSat(l,_) -> tsets_elem_is_result l
+  | TSapp _ -> false
 
 (** [true] if all the tsets denotes result or part of it*)
 let rec tsets_is_result = function
@@ -402,13 +448,23 @@ let is_same_var v1 v2 =
   v1.lv_name = v2.lv_name &&
   is_same_type v1.lv_type v2.lv_type
 
+(*
 let is_same_type_info ti1 ti2 = ti1.nb_params = ti2.nb_params
+*)
+
+let is_same_string s1 s2  = s1 = s2
 
 let  is_same_logic_signature l1 l2 =
   l1.l_name = l2.l_name &&
-  is_same_type l1.l_type l2.l_type &&
+  is_same_opt is_same_type l1.l_type l2.l_type &&
+  is_same_list is_same_string l1.l_tparams l2.l_tparams &&
   is_same_list is_same_var l1.l_profile l2.l_profile &&
   is_same_list is_same_logic_label l1.l_labels l2.l_labels
+
+let is_same_logic_ctor_info ci1 ci2 =
+  ci1.ctor_name = ci2.ctor_name &&
+  is_same_type ci1.ctor_type ci2.ctor_type &&
+  is_same_list is_same_type ci1.ctor_params ci2.ctor_params
 
 let rec is_same_term t1 t2 =
   match t1.term_node, t2.term_node with
@@ -453,16 +509,37 @@ let rec is_same_term t1 t2 =
 	is_same_term t1 t2
     | Ttype ty1, Ttype ty2 ->
 	Cilutil.equals (Cil.typeSig ty1) (Cil.typeSig ty2)
+    | Ttsets tset1, Ttsets tset2 ->
+        is_same_tsets tset1 tset2
+    | TDataCons(ci1,prms1), TDataCons(ci2,prms2) ->
+        is_same_logic_ctor_info ci1 ci2 &&
+          is_same_list is_same_term prms1 prms2
     | (TConst _ | TLval _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
       | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _
       | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
       | Tif _ | Told _ | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
-      | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _),_ -> false
+      | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
+      | Ttsets _
+      ),_ -> false
 
 and is_same_logic_info l1 l2 =
   is_same_logic_signature l1 l2 &&
-  is_same_list is_same_tsets l1.l_reads l2.l_reads &&
-  is_same_opt is_same_term l1.l_definition l2.l_definition
+  is_same_logic_body l1.l_body l2.l_body
+
+and is_same_logic_body b1 b2 =
+  match b1,b2 with
+    | LBreads l1, LBreads l2 -> is_same_list is_same_tsets l1 l2
+    | LBterm t1, LBterm t2 -> is_same_term t1 t2
+    | LBpred p1, LBpred p2 -> is_same_named_predicate p1 p2
+    | LBinductive l1, LBinductive l2 -> is_same_list is_same_indcase l1 l2
+    | (LBinductive _ | LBpred _ | LBterm _ | LBreads _), _ ->
+	false
+
+and is_same_indcase (id1,labs1,typs1,p1) (id2,labs2,typs2,p2) =
+  id1 = id2 && 
+  is_same_list is_same_logic_label labs1 labs2 &&
+  is_same_list (=) typs1 typs2 && 
+  is_same_named_predicate p1 p2
 
 and is_same_tlval (h1,o1) (h2,o2) =
   is_same_lhost h1 h2 && is_same_offset o1 o2
@@ -492,7 +569,7 @@ and is_same_tsets_lhost h1 h2 =
 
 and is_same_tsets_offset o1 o2 =
   match o1,o2 with
-      TSNo_offset, TSNo_offset -> true
+      TSNoOffset, TSNoOffset -> true
     | TSIndex(t1,o1), TSIndex(t2,o2) ->
         is_same_term t1 t2 && is_same_tsets_offset o1 o2
     | TSRange(l1,h1,o1), TSRange(l2,h2,o2) ->
@@ -500,7 +577,7 @@ and is_same_tsets_offset o1 o2 =
           is_same_tsets_offset o1 o2
     | TSField(f1,o1), TSField(f2,o2) ->
         f1.fname = f2.fname && is_same_tsets_offset o1 o2
-    | (TSNo_offset | TSIndex _ | TSRange _ | TSField _),_ -> false
+    | (TSNoOffset | TSIndex _ | TSRange _ | TSField _),_ -> false
 
 and is_same_tsets_lval (h1,o1) (h2,o2) =
   is_same_tsets_lhost h1 h2 && is_same_tsets_offset o1 o2
@@ -508,6 +585,7 @@ and is_same_tsets_lval (h1,o1) (h2,o2) =
 and is_same_tsets_elem e1 e2 = match e1,e2 with
     TSLval lv1, TSLval lv2 -> is_same_tsets_lval lv1 lv2
   | TSStartOf lv1, TSStartOf lv2 -> is_same_tsets_lval lv1 lv2
+  | TSAddrOf lv1, TSAddrOf lv2 -> is_same_tsets_lval lv1 lv2
   | TSConst c1, TSConst c2 -> c1 = c2
   | TSAdd_index(t1,i1), TSAdd_index(t2,i2) ->
       is_same_tsets_elem t1 t2 && is_same_term i1 i2
@@ -517,10 +595,16 @@ and is_same_tsets_elem e1 e2 = match e1,e2 with
   | TSCastE(t1,e1), TSCastE(t2,e2) ->
         Cilutil.equals (Cil.typeSig t1) (Cil.typeSig  t2) &&
       is_same_tsets_elem e1 e2
-  | TSAt(t1,l1), TSAt(t2,l2) ->
+  | TSat(t1,l1), TSat(t2,l2) ->
       is_same_tsets_elem t1 t2 && is_same_logic_label l1 l2
+  | TSapp(f1,labs1,args1), TSapp(f2, labs2, args2) ->
+      (try
+        is_same_logic_signature f1 f2 &&
+        List.for_all2 (fun l1 l2 -> l1 = l2) labs1 labs2 &&
+        List.for_all2 is_same_term args1 args2
+       with Invalid_argument _ -> false)
   | (TSLval _ | TSStartOf _ | TSConst _ | TSAdd_index _
-    | TSAdd_range _ | TSCastE _ | TSAt _),_ -> false
+    | TSAdd_range _ | TSCastE _ | TSat _ | TSapp _ | TSAddrOf _),_ -> false
 
 and is_same_tsets t1 t2 =
   match t1,t2 with
@@ -542,20 +626,15 @@ and is_same_predicate p1 p2 =
     | Pfalse, Pfalse -> true
     | Ptrue, Ptrue -> true
     | Papp(i1,labels1,args1), Papp(i2,labels2,args2) ->
-        is_same_predicate_signature i1 i2 &&
+        is_same_logic_signature i1 i2 &&
         List.for_all2 (fun l1 l2 -> l1 = l2) labels1 labels2 &&
         List.for_all2 is_same_term args1 args2
     | Prel(r1,lt1,rt1), Prel(r2,lt2,rt2) ->
         r1 = r2 && is_same_term lt1 lt2 && is_same_term rt1 rt2
     | Pand(lp1,rp1), Pand(lp2,rp2) | Por(lp1,rp1), Por(lp2,rp2)
-    | Pxor (lp1,rp1), Pxor(lp2,rp2) ->
-        is_same_named_predicate lp1 lp2 && is_same_named_predicate rp1 rp2
-    | Pimplies(lp1,rp1), Pimplies(lp2,rp2) ->
-        is_same_named_predicate lp1 lp2 &&
-          is_same_named_predicate rp1 rp2
+    | Pxor (lp1,rp1), Pxor(lp2,rp2) | Pimplies(lp1,rp1), Pimplies(lp2,rp2)
     | Piff(lp1,rp1), Piff(lp2,rp2) ->
-        is_same_named_predicate lp1 lp2 &&
-          is_same_named_predicate rp1 rp2
+        is_same_named_predicate lp1 lp2 && is_same_named_predicate rp1 rp2
     | Pnot p1, Pnot p2 ->
         is_same_named_predicate p1 p2
     | Pif (c1,t1,e1), Pif(c2,t2,e2) ->
@@ -580,29 +659,38 @@ and is_same_predicate p1 p2 =
     | Pfresh t1, Pfresh t2 -> is_same_term t1 t2
     | Psubtype(lt1,rt1), Psubtype(lt2,rt2) ->
         is_same_term lt1 lt2 && is_same_term rt1 rt2
+    | Pseparated(seps1), Pseparated(seps2) ->
+        (try List.for_all2 is_same_tsets seps1 seps2
+         with Invalid_argument _ -> false)
     | (Pfalse | Ptrue | Papp _ | Prel _ | Pand _ | Por _ | Pimplies _
       | Piff _ | Pnot _ | Pif _ | Plet _ | Pforall _ | Pexists _
       | Pold _ | Pat _ | Pvalid _ | Pvalid_index _ | Pvalid_range _
-      | Pfresh _ | Psubtype _ | Pxor _
+      | Pfresh _ | Psubtype _ | Pxor _ | Pseparated _
       ), _ -> false
 
 and is_same_named_predicate pred1 pred2 =
   pred1.name = pred2.name && is_same_predicate pred1.content pred2.content
 
+(*
 and is_same_predicate_signature p1 p2 =
   p1.p_name = p2.p_name &&
   is_same_list is_same_var p1.p_profile p2.p_profile &&
   is_same_list is_same_logic_label p1.p_labels p2.p_labels
+*)
 
+(*
 and is_same_predicate_info p1 p2 =
   is_same_predicate_signature p1 p2 &&
   is_same_predicate_body p1.p_body p2.p_body
+*)
 
+(*
 and is_same_predicate_body p1 p2 =
   match p1,p2 with
       PReads ts1, PReads ts2 -> is_same_list is_same_tsets ts1 ts2
     | PDefinition p1, PDefinition p2 -> is_same_named_predicate p1 p2
     | (PReads _ | PDefinition _),_ -> false
+*)
 
 let is_same_identified_predicate p1 p2 =
   is_same_list (=) p1.ip_name p2.ip_name &&
@@ -646,6 +734,26 @@ let is_same_spec spec1 spec2 =
   && spec1.spec_complete_behaviors = spec2.spec_complete_behaviors
   && spec1.spec_disjoint_behaviors = spec2.spec_disjoint_behaviors
 
+let rec is_same_global_annotation ga1 ga2 =
+  match (ga1,ga2) with
+    | Dfun_or_pred li1, Dfun_or_pred li2 -> is_same_logic_info li1 li2
+    | Daxiomatic (id1,ga1), Daxiomatic (id2,ga2) ->
+        id1 = id2 && is_same_list is_same_global_annotation ga1 ga2
+    | Dtype (t1,l1), Dtype(t2,l2) -> t1 = t2 && is_same_list (=) l1 l2
+    | Dlemma(n1,ax1,labs1,typs1,st1), Dlemma(n2,ax2,labs2,typs2,st2) ->
+        n1 = n2 && ax1 = ax2 &&
+        is_same_list is_same_logic_label labs1 labs2 &&
+        is_same_list (=) typs1 typs2 && is_same_named_predicate st1 st2
+    | Dinvariant li1, Dinvariant li2 -> is_same_logic_info li1 li2
+    | Dtype_annot li1, Dtype_annot li2 -> is_same_logic_info li1 li2
+    | (Dfun_or_pred _ | Daxiomatic _ | Dtype _ | Dlemma _
+      | Dinvariant _ | Dtype_annot _),
+        (Dfun_or_pred _ | Daxiomatic _ | Dtype _ | Dlemma _
+        | Dinvariant _ | Dtype_annot _) -> false
+
+let is_same_axiomatic ax1 ax2 =
+  is_same_list is_same_global_annotation ax1 ax2
+
 let merge_assigns old_assigns fresh_assigns =
   match old_assigns , fresh_assigns with
       [], [] -> []
@@ -657,12 +765,14 @@ let merge_assigns old_assigns fresh_assigns =
         old_assigns
     | l1, l2 -> l1 @ l2
 
+(* a discuter ??
 let merge_logic_reads old fresh =
   if not (is_same_list is_same_tsets old.l_reads fresh.l_reads) then
     old.l_reads <-
       List.fold_left
       (fun l x -> if List.exists (is_same_tsets x) l then l else x::l)
       old.l_reads fresh.l_reads
+*)
 
 let merge_funspec old_spec fresh_spec =
   if is_same_spec old_spec fresh_spec ||

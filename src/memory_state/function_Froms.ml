@@ -52,20 +52,27 @@ let pretty_with_type typ fmt { deps_return = r; deps_table = t } =
       Lmap_bitwise.From_Model.pretty t
       (Lmap_bitwise.From_Model.LOffset.pretty_with_type (Some rt_typ)) r
 
+let hash { deps_return = dr ; deps_table = dt } = 
+  Lmap_bitwise.From_Model.hash dt + 197*Lmap_bitwise.From_Model.LOffset.tag dr
 
-module Datatype =
-  Project.Datatype.Register
+let equal 
+    { deps_return = dr ; deps_table = dt } 
+    { deps_return = dr' ; deps_table = dt' } =
+  Lmap_bitwise.From_Model.equal dt dt' 
+  && Lmap_bitwise.From_Model.LOffset.equal dr dr'
+
+module Datatype = struct
+  include Project.Datatype.Register
     (struct
        type tt = t
        type t = tt
+       open Lmap_bitwise
        let copy _ = assert false (* TODO: deep copy *)
        let rehash x =
-	 { deps_return =
-             Lmap_bitwise.From_Model.LOffset.Datatype.rehash x.deps_return;
-	   deps_table = Lmap_bitwise.From_Model.Datatype.rehash x.deps_table }
-       include Datatype.Nop
-       let name = Project.Datatype.Name.make "function_froms"
-       let dependencies =
-	 [ Lmap_bitwise.From_Model.LOffset.Datatype.self;
-           Lmap_bitwise.From_Model.Datatype.self ]
+         let dr = From_Model.LOffset.Datatype.rehash x.deps_return in
+         let dt = From_Model.Datatype.rehash x.deps_table in
+         { deps_return = dr ; deps_table = dt }
+       let name = "function_froms"
      end)
+  let () = register_comparable ~equal ~hash ()
+end

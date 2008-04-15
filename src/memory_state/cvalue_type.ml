@@ -277,7 +277,7 @@ module V = struct
              end
 	  end
 
-  let arithmetic_function ~with_alarms info f e1 e2 = 
+  let import_function ~topify_arith_origin ~with_alarms info f e1 e2 = 
     try
       let v1 = find_ival e1 in
       let v2 = find_ival e2 in
@@ -294,6 +294,9 @@ module V = struct
                  pretty e2
            | _ -> ());
       join (topify_arith_origin e1) (topify_arith_origin e2)
+
+
+  let arithmetic_function = import_function ~topify_arith_origin
 
   let unary_arithmetic_function  ~with_alarms info f e1 = 
     try
@@ -331,7 +334,7 @@ module V = struct
       arithmetic_function ~with_alarms "/" Ival.div e1 e2
     end
       
-  let shift_left ~with_alarms ~size e1 e2 = 
+  let shift_left ~topify_arith_origin ~with_alarms ~size e1 e2 = 
     let size_int = Int.of_int size in
     let valid_range = 
       inject_ival (Ival.inject_range (Some Int.zero) (Some (Int.pred size_int))) 
@@ -355,7 +358,11 @@ module V = struct
             then warn_shift with_alarms size;
             try 
               let e2 = inject_ival (M.find Base.null m) in
-              arithmetic_function ~with_alarms "<<" (Ival.shift_left ~size:size_int) e1 e2
+              import_function 
+		~topify_arith_origin
+		~with_alarms 
+		"<<" 
+		(Ival.shift_left ~size:size_int) e1 e2
             with Not_found -> 
               join (topify_arith_origin e1) (topify_arith_origin e2)
           end
@@ -415,7 +422,7 @@ module V = struct
 	with Not_based_on_null -> 
 	  join (topify_arith_origin e1) (topify_arith_origin e2)
 
-  let bitwise_or ~size e1 e2 =
+  let bitwise_or ~topify_arith_origin ~size e1 e2 =
     try
       let v1 = find_ival e1 in
       let v2 = find_ival e2 in
@@ -445,8 +452,10 @@ module V = struct
     assert (Int.le (Int.add length offset) total_length_i);
     let result = 
       bitwise_or
+	~topify_arith_origin:topify_misaligned_read_origin
 	~size:total_length
 	(shift_left 
+	    ~topify_arith_origin:topify_misaligned_read_origin
 	    ~with_alarms:warn_none_mode
 	    ~size:total_length
 	    value
@@ -465,8 +474,10 @@ module V = struct
   let little_endian_merge_bits ~total_length ~value ~offset acc =
     let result = 
       bitwise_or
+	~topify_arith_origin:topify_misaligned_read_origin
         ~size:total_length
         (shift_left 
+	    ~topify_arith_origin:topify_misaligned_read_origin
            ~with_alarms:warn_none_mode
            ~size:total_length
            value
@@ -486,6 +497,9 @@ module V = struct
         
   let anisotropic_cast ~size v = 
     if all_values ~size v then topify_arith_origin v else v
+
+  let bitwise_or = bitwise_or ~topify_arith_origin
+  let shift_left = shift_left ~topify_arith_origin
 
 end
 
@@ -601,19 +615,21 @@ module V_Or_Uninitialized = struct
   let hash = tag
 
   type tt = t
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
-	 let rehash t = {initialized=t.initialized;
-			 no_escaping_adr=t.no_escaping_adr;
-                         v = V.Datatype.rehash t.v}
-	 let after_load () = ()
-	 let before_load () = ()
-	 let name = Project.Datatype.Name.make id
-	 let dependencies = [ V.Datatype.self ]
+	 let rehash t = 
+           let rehashed_v = V.Datatype.rehash t.v in
+           {initialized=t.initialized; 
+            no_escaping_adr=t.no_escaping_adr; 
+            v = rehashed_v }
+	 let name = id
        end)
+    let () = register_comparable ~hash:tag ~equal ()
+  end
+
   module Top_Param = V.Top_Param
 
   let is_isotropic t = V.is_isotropic t.v

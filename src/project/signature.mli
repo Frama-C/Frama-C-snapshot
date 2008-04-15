@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: signature.mli,v 1.2 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: signature.mli,v 1.3 2008/10/03 13:09:17 uid568 Exp $ *)
 
 module type NAME = sig val name: string end
 
@@ -33,7 +33,7 @@ end
 (** {2 Signatures to provide to some computation builders} *)
 
 module type NAME_DPDS = sig
-  val name: Project.Computation.Name.t
+  val name: string
     (** Name of the generated internal state. *)
   val dependencies: Project.Computation.t list
     (** Dependencies of the generated internal state. *)

@@ -31,7 +31,7 @@ let dloc = Lexing.dummy_pos,Lexing.dummy_pos
 let error (b,e) fstring =
   let f fmt =
     kfprintf (fun _ ->
-                currentLoc := (b,e);
+                CurrentLoc.set (b,e);
                 raise Errormsg.Error) fmt (fstring ^^ "@\n@]")
   in
   kfprintf f err_formatter
@@ -42,6 +42,119 @@ let error (b,e) fstring =
     (e.Lexing.pos_cnum - b.Lexing.pos_bol)
 
 let loc_join (b,_) (_,e) = (b,e)
+
+let unescape s =
+  let b = Buffer.create (String.length s) in
+    Logic_lexer.chr b (Lexing.from_string s)
+
+let wcharlist_of_string s =
+  let res = ref [] in
+  let i = ref 0 in
+  let rec treat_escape_octal n nb_pass =
+    if nb_pass > 2 then res:= n::!res
+    else if !i >= String.length s then res:= n::!res
+    else match s.[!i] with
+        x when '0' <= x && x <= '9' ->
+          incr i;
+          treat_escape_octal
+            (Int64.add (Int64.mul (Int64.of_int 8) n)
+               (Int64.of_int (Char.code x - Char.code '0'))) (nb_pass + 1)
+      | _ -> res:= n::!res
+  in
+  let rec treat_escape_hexa n =
+    if !i >= String.length s then res:= n::!res
+    else match s.[!i] with
+        x when '0' <= x && x <= '9' ->
+          incr i;
+          treat_escape_hexa
+            (Int64.add (Int64.mul (Int64.of_int 16) n)
+               (Int64.of_int (Char.code x - Char.code '0')))
+      | x when 'A' <= x && x <= 'F' ->
+          incr i;
+          treat_escape_hexa
+            (Int64.add (Int64.mul (Int64.of_int 16) n)
+               (Int64.of_int (Char.code x - Char.code 'A' + 10)))
+      | x when 'a' <= x && x <= 'f' ->
+          incr i;
+          treat_escape_hexa
+            (Int64.add (Int64.mul (Int64.of_int 16) n)
+               (Int64.of_int (Char.code x - Char.code 'a' + 10)))
+      | _ -> res:= n::!res
+  in
+  let treat_escape_sequence () =
+    if !i >= String.length s then
+      Cil.warn "Ill-formed escape sequence in wide string"
+    else begin
+      match s.[!i] with
+          x when '0' <= x && x <= '9' ->
+            treat_escape_octal Int64.zero 0
+        | 'x' -> incr i; treat_escape_hexa Int64.zero
+        | 'a' -> incr i; res:= Int64.of_int 7::!res
+        | 'b' -> incr i; res:= Int64.of_int 8::!res
+        | 'f' -> incr i; res:= Int64.of_int 12::!res
+        | 'n' -> incr i; res:= Int64.of_int (Char.code '\n') :: !res
+        | 'r' -> incr i; res:=Int64.of_int (Char.code '\r')::!res
+        | 't' -> incr i; res:= Int64.of_int (Char.code '\t') ::!res
+        | '\'' -> incr i; res:=Int64.of_int (Char.code '\'')::!res
+        | '"' -> incr i; res:= Int64.of_int (Char.code '"') ::!res
+        | '?' -> incr i; res:= Int64.of_int (Char.code '?') ::!res
+        | '\\' -> incr i; res:= Int64.of_int (Char.code '\\')::!res
+        | c -> incr i; Cil.warn "Ill-formed escape sequence in wide string";
+            res:= Int64.of_int (Char.code c) :: !res
+    end
+  in
+  while (!i < String.length s) do
+    match s.[!i] with
+      | '\\' -> incr i; treat_escape_sequence ()
+      | c -> res := Int64.of_int (Char.code c)::!res; incr i
+  done;
+  List.rev (!res)
+
+(* Normal form of a location set: union of comprehension of terms *)
+let normalize_location loc =
+  let rec aux transf pl =
+    let new_term t = { pl with lexpr_node = t } in
+    match pl.lexpr_node with
+      | PLvar _ | PLresult | PLempty -> transf pl
+      | PLat (elem,lab) ->
+          aux (fun x -> transf (new_term (PLat(x,lab)))) elem
+      | PLunop(Ustar,pl) -> aux
+          (fun x -> transf (new_term (PLunop(Ustar,x)))) pl
+      | PLbinop(pl1, Badd, pl2) ->
+          let pl1' = aux (fun x -> x) pl1 in
+          aux (fun x -> transf (new_term (PLbinop(pl1',Badd,x)))) pl2
+      | PLdot(pl1,field) ->
+          aux (fun x -> transf (new_term (PLdot (x,field)))) pl1
+      | PLarrow(pl1,field) ->
+          aux (fun x -> transf (new_term (PLarrow (x,field)))) pl1
+      | PLarrget(pl1,pl2) ->
+          let pl1' = aux (fun x -> x) pl1 in
+          aux (fun x -> transf (new_term (PLarrget(pl1',x)))) pl2
+      | PLcomprehension(pl,quant,pred) ->
+          new_term
+            (PLcomprehension (aux transf pl, quant, pred))
+      | PLunion pls ->
+          let pls = List.map (aux transf) pls in
+          new_term (PLunion pls)
+      | PLinter pls ->
+          let pls = List.map (aux transf) pls in
+          new_term (PLinter pls)
+      (* Grammar forbids to have union or comprehension inside
+         those expr.
+       *)
+      | PLapp _ | PLconstant _ | PLunop _ | PLbinop _ | PLold _
+      | PLbase_addr _ | PLnull | PLcast _ | PLcoercion _ | PLcoercionE _
+      | PLfalse | PLtrue | PLrel _ | PLand _ | PLor _ | PLxor _
+      | PLnot _ | PLif _ | PLblock_length _   | PLrange _ | PLupdate _
+      | PLlambda _ | PLtypeof _ | PLtype _ ->
+          transf pl
+            (* tsets are terms, not predicates *)
+      | PLimplies _ | PLiff _ | PLforall _ | PLexists _ | PLvalid _
+      | PLvalid_index _ | PLvalid_range _ | PLfresh _ | PLnamed _
+      | PLsubtype _ | PLsizeof _ | PLsizeofE _ | PLseparated _ ->
+          error pl.lexpr_loc "expecting tsets and not a predicate"
+  in
+  aux (fun x -> x) loc
 
 (* Logical environments *)
 
@@ -55,6 +168,7 @@ type t = {
   type_vars: Cil_types.logic_type Smap.t;
   logic_labels: Cil_types.logic_label Smap.t;
   current_logic_label: Cil_types.logic_label option;
+  is_post_state: bool
 }
 
 let empty = {
@@ -62,7 +176,12 @@ let empty = {
   type_vars = Smap.empty;
   logic_labels = Smap.empty;
   current_logic_label = None;
+  is_post_state = false
 }
+let enter_post_state env = { env with is_post_state = true }
+
+let exit_post_state env = { env with is_post_state = false }
+
 let add_var v var env =
   { env with local_vars = Smap.add v var env.local_vars }
 let find_var v env = Smap.find v env.local_vars
@@ -74,13 +193,30 @@ let find_type_var v env = Smap.find v env.type_vars
 let add_logic_label l lab env =
   { env with logic_labels = Smap.add l lab env.logic_labels }
 let find_logic_label l env = Smap.find l env.logic_labels
+
 let set_current_logic_label lab env =
-  { env with current_logic_label = Some lab }
+  let env =
+    { env with current_logic_label = Some lab }
+  in match lab with
+      LogicLabel "Post" -> enter_post_state env
+    | LogicLabel ("Pre" | "Old") | StmtLabel _ -> exit_post_state env
+    | LogicLabel "Here" -> env
+    | LogicLabel _ -> exit_post_state env
 end
 
 let append_here_label env =
   let env = Lenv.add_logic_label "Here" (LogicLabel "Here") env in
   Lenv.set_current_logic_label (LogicLabel "Here") env
+
+let make_pre_label () = Lenv.add_logic_label "Pre" (LogicLabel "Pre") Lenv.empty
+
+let append_old_and_post_labels env =
+  Lenv.add_logic_label "Post" (LogicLabel "Post")
+    (Lenv.add_logic_label "Old" (LogicLabel "Old") env)
+
+let append_post_label env =
+  Lenv.add_logic_label "Post" (LogicLabel "Post") env
+
 let make_here_label () =
   append_here_label Lenv.empty
 
@@ -94,14 +230,18 @@ module Make
       val find_comp_type : kind:string -> string -> typ
       val find_type : string -> typ
       val find_label : string -> stmt ref
-      val remove_logic_function : string -> unit  
+      val remove_logic_function : string -> unit
       val add_logic_function: logic_info -> unit
+(*
       val add_predicate: predicate_info -> unit
+*)
       val add_logic_type: string -> logic_type_info -> unit
       val add_logic_ctor: string -> logic_ctor_info -> unit
 
       val find_logic_function: string -> logic_info
+(*
       val find_predicate: string -> predicate_info
+*)
       val find_logic_type: string -> logic_type_info
       val find_logic_ctor: string -> logic_ctor_info
 
@@ -112,8 +252,10 @@ struct
     try ignore (C.find_logic_ctor c);true with Not_found -> false
   let is_logic_function c =
     try ignore (C.find_logic_function c);true with Not_found -> false
+(*
   let is_predicate c =
     try ignore (C.find_predicate c);true with Not_found -> false
+*)
 
 
 let prefix p s =
@@ -160,7 +302,7 @@ let type_of_tsfield loc f = function
 	    | [] ->
 		raise Exit
 	    | fid :: _ when fid.fname = f ->
-		TSField(fid, TSNo_offset), Ctype fid.ftype
+		TSField(fid, TSNoOffset), Ctype fid.ftype
 	    | fid :: rest
 		when prefix C.annonCompFieldName fid.fname ->
 		  begin match Cil.unrollType fid.ftype with
@@ -210,15 +352,14 @@ let array_to_ptr ty =
         Ctype(TPtr(aux ty,length_attr))
     | ty -> ty
 
-let check_non_void_ptr loc typ =
+let is_non_void_ptr loc typ =
   match unroll_type typ with
       Ctype (TPtr(ty,_) | TArray(ty,_,_)) ->
-        if Cil.isVoidType ty then
-          error loc
-            "can not access location with a pointer to void. \
-             Cast it to (char*) first. "
-        else ()
+        not (Cil.isVoidType ty)
     | _ -> error loc "not a pointer or array type"
+
+let check_non_void_ptr loc typ =
+  if not (is_non_void_ptr loc typ) then error loc "expecting a non-void pointer"
 
 let rec partial_unif loc env t1 t2 =
   match unroll_type t1, unroll_type t2 with
@@ -233,7 +374,6 @@ let rec partial_unif loc env t1 t2 =
       List.fold_left2 (partial_unif loc) env l1 l2
   | _,_ -> error loc "incompatible types"
 
-let c_addr = Ltype ("base_addr",[])
 let c_int = Ctype (TInt (IInt, []))
 let c_float = Ctype (TFloat (FDouble, []))
 let c_void_star = Ctype (TPtr (TVoid [], []))
@@ -299,7 +439,7 @@ let rec add_offset toadd = function
   | TIndex(e, offset) -> TIndex(e, add_offset toadd offset)
 
 let rec add_tsoffset toadd = function
-   | TSNo_offset -> toadd
+   | TSNoOffset -> toadd
    | TSField(fid, offset) -> TSField(fid, add_tsoffset toadd offset)
    | TSIndex(e, offset) -> TSIndex(e, add_tsoffset toadd offset)
    | TSRange(l,h,offset) -> TSRange(l,h,add_tsoffset toadd offset)
@@ -319,13 +459,8 @@ let mk_tsmem loc typ t ofs =
   check_non_void_ptr loc typ;
   match t with
       TSStartOf lv -> add_offset_tslval (TSIndex(Cil.lzero(),ofs)) lv
+    | TSAddrOf lv -> add_offset_tslval ofs lv
     | _ -> TSMem t, ofs
-
-let rec is_zero t = match t.term_node with
-  | TConst (CInt64 (n,_,_)) -> n = 0L
-  | TConst (CChr c) -> Char.code c = 0
-  | TCastE(_, t) -> is_zero t
-  | _ -> false
 
 let is_arithmetic_type = function
   | Ctype ty -> Cil.isArithmeticType ty
@@ -351,7 +486,7 @@ let is_boolean_type = function
 let mk_AddrOf lval =
   match lval with
     TMem e, TNoOffset -> e.term_node
-  | b, TIndex(z, TNoOffset) when is_zero z ->
+  | b, TIndex(z, TNoOffset) when isLogicZero z ->
       TStartOf (b, TNoOffset)(* array *)
   | _ -> TAddrOf lval
 
@@ -372,50 +507,109 @@ let mkAddrOfAndMark ((b, off) as lval) : term_node =
   end;
   mk_AddrOf lval
 
+let mk_TSAddrOf lval =
+  match lval with
+      TSMem e, TSNoOffset -> e
+    | b, TSIndex(z, TSNoOffset) when isLogicZero z ->
+        TSStartOf (b, TSNoOffset)(* array *)
+    | _ -> TSAddrOf lval
+
+let mk_TSAddrOfAndMark ((b,off) as lval) =
+  begin match lastTsetsOffset off with
+      TSNoOffset ->
+        (match b with
+             TSVar vi ->
+               begin match vi.lv_origin with
+                 | Some vi when not (isArrayType vi.vtype) ->
+                     vi.vaddrof <- true
+                 | Some _ | None -> ()
+               end
+           | _ -> ())
+    | TSIndex _ | TSRange _ -> ()
+    | TSField (fi,_) -> fi.faddrof <- true
+  end;
+  mk_TSAddrOf lval
+
+(* compute type signature and removes unnecessary attributes *)
+let type_sig_logic ty =
+  let doattr = Cil.dropAttributes ["const"; "restrict"; "declspec" ] in
+  typeSigWithAttrs doattr ty
+
 let c_mk_cast e oldt newt =
-  (* let oldt = Cil.typeRemoveAttributes ["const"] oldt in
-  let newt = Cil.typeRemoveAttributes ["const"] newt in *)
-  if Cilutil.equals (Cil.typeSig oldt) (Cil.typeSig newt) then begin
+  if Cilutil.equals (type_sig_logic oldt) (type_sig_logic newt) then begin
     e
   end else begin
     (* Watch out for constants *)
-    match newt, e.term_node with
-      | TInt(newik, []), TConst (CInt64(i, _, _)) ->
-	  { e with term_node = TConst (CInt64 (i, newik, None)) }
-      | _ ->
-          { e with term_node = TCastE (newt, e); term_type = Ctype newt }
+    if isPointerType newt && isLogicNull e && not (isLogicZero e) then e
+    else
+      match newt, e.term_node with
+        | TInt(newik, []), TConst (CInt64(i, _, _)) ->
+	    { e with term_node = TConst (CInt64 (i, newik, None)) }
+        | _ ->
+            { e with term_node = TCastE (newt, e); term_type = Ctype newt }
   end
 
+let is_same_ptr_type ctyp1 ctyp2 =
+  (isArrayType ctyp1 || isPointerType ctyp1) &&
+    (isArrayType ctyp2 || isPointerType ctyp2) &&
+    (Cilutil.equals (type_sig_logic (typeOf_pointed ctyp1))
+       (type_sig_logic (typeOf_pointed ctyp2)))
+
+let is_same_logic_ptr_type ty1 ty2 =
+  match (ty1,ty2) with
+      Ctype t1, Ctype t2 -> is_same_ptr_type t1 t2
+    | _ -> false
+
+let is_implicit_pointer_conversion term ctyp1 ctyp2 =
+  (isArrayType ctyp1 || isPointerType ctyp1) &&
+    (isVoidPtrType ctyp2 ||
+       ((isArrayType ctyp2 || isPointerType ctyp2) &&
+          (Cilutil.equals
+             (type_sig_logic (typeOf_pointed ctyp1))
+             (type_sig_logic (typeOf_pointed ctyp2))
+           || isLogicNull term)))
+
 let mk_cast e newt =
+  let loc = e.term_loc in
   if Logic_const.is_same_type e.term_type newt then e
   else begin
     match e.term_type, newt with
       | Ctype oldt, Ctype newt ->
           c_mk_cast e oldt newt
-      | t1, Ltype ("boolean",[]) when is_integral_type t1 -> e
+      | t1, Ltype ("boolean",[]) when is_integral_type t1 ->
+          { e with
+              term_node = TBinOp(Cil_types.Ne,e,lzero ~loc ());
+              term_type = Ltype("boolean",[]) }
+      | Ctype ty1 , Ltype("set",[ Ctype ty2 ])
+          when is_implicit_pointer_conversion e ty1 ty2 ->
+          { e with term_node =
+              Ttsets (Logic_const.term_to_tsets e) }
       | Linteger, Linteger | Lreal, Lreal -> e
+      | Linteger, Ctype t when is_pointer_type newt && isLogicNull e ->
+          c_mk_cast e intType t
       | Linteger, Ctype _ | Lreal, Ctype _ ->
-          error e.term_loc "invalid implicit cast from %a to C type %a"
+          error loc "invalid implicit cast from %a to C type %a"
             d_logic_type e.term_type d_logic_type newt
       | Ctype t, Linteger when Cil.isIntegralType t ->
           { e with term_type = Linteger}
-      | Ctype t, Lreal when isFloatingType t -> { e with term_type = Lreal }
+      | Ctype t, Lreal when isFloatingType t ->
+	  e (* { e with term_type = Lreal } *)
       | Ctype _, (Lreal | Linteger) ->
-          error e.term_loc "invalid implicit cast from %a to logic type %a"
+          error loc "invalid implicit cast from %a to logic type %a"
             d_logic_type e.term_type d_logic_type newt
       | Linteger, Lreal | Lreal, Linteger ->
-          error e.term_loc
+          error loc
             "invalid cast between real and integer. \
          Use conversion functions instead"
       | Ltype _, _ | _, Ltype _
       | Lvar _,_ | _,Lvar _
       | Larrow _,_ | _,Larrow _ ->
-          error e.term_loc "invalid cast from %a to %a"
+          error loc "invalid cast from %a to %a"
             d_logic_type e.term_type d_logic_type newt
   end
 
 let rec c_cast_to ot nt e =
-  if Cilutil.equals (Cil.typeSig ot) (Cil.typeSig nt) then
+  if Cilutil.equals (type_sig_logic ot) (type_sig_logic nt) then
     (ot, e)
   else begin
     let result = (nt, mk_cast e (Ctype nt)) in
@@ -424,14 +618,14 @@ let rec c_cast_to ot nt e =
       | _, TNamed(r, _) -> c_cast_to ot r.ttype e
       | TInt(_ikindo,_), TInt(_ikindn,_) ->
           result
-      | TPtr (_told, _), TPtr(_tnew, _) -> result
       | TInt _, TPtr _ -> result
       | TPtr _, TInt _ -> result
-      | TArray _, TPtr _ -> result
-      | TArray(t1,_,_), TArray(t2,None,_)
-	when Cil.typeSig t1 = Cil.typeSig t2 ->
-	  (nt, e)
-      | TPtr _, TArray(_,_,_) -> (nt, e)
+      | ((TArray (told,_,_) | TPtr (told,_)),
+         (TPtr (tnew,_) | TArray(tnew,_,_)))
+          when Cilutil.equals (type_sig_logic told) (type_sig_logic tnew)
+          -> result
+      | (TPtr _ | TArray _), (TPtr _ | TArray _)
+          when isLogicNull e -> result
       | TEnum _, TInt _ -> result
       | TFloat _, (TInt _|TEnum _) -> result
       | (TInt _|TEnum _), TFloat _ -> result
@@ -460,7 +654,8 @@ let instantiate_app loc oterm nt env =
   let ot = oterm.term_type in
   let rec implicit_conversion ot nt = match ot, nt with
   | Ctype ty1, Ctype ty2 ->
-      if Cilutil.equals (typeSig ty1) (typeSig ty2) then
+      if Cilutil.equals (type_sig_logic ty1) (type_sig_logic ty2)
+      then
         ot, oterm
       else
         let sz1 = bitsSizeOf ty1 in
@@ -469,11 +664,7 @@ let instantiate_app loc oterm nt env =
               (sz1 < sz2
                || (sz1 = sz2 && (isSignedInteger ty1 = isSignedInteger ty2))
               ))
-          || ((isArrayType ty1 || isPointerType ty1) && isVoidPtrType ty2)
-          || ((isArrayType ty1 || isPointerType ty1) &&
-              (isArrayType ty2 || isPointerType ty2) &&
-              (Cilutil.equals (typeSig (typeOf_pointed ty1)) (typeSig (typeOf_pointed ty2))
-               || isLogicNull oterm))
+          || is_implicit_pointer_conversion oterm ty1 ty2
           || (match unrollType ty1, unrollType ty2 with
               | (TFloat (f1,_), TFloat (f2,_)) ->
                   f1 <= f2 (*[BM] relies on internal representation of OCaml constant
@@ -486,6 +677,11 @@ let instantiate_app loc oterm nt env =
             d_type ty1 d_type ty2
   | Ctype ty, Linteger when Cil.isIntegralType ty -> Linteger, oterm
   | Ctype (TFloat _), Lreal -> Lreal, oterm
+   (* Integer 0 is also a valid pointer. *)
+  | Linteger, Ctype ty when Cil.isPointerType ty && isLogicNull oterm ->
+      nt, { oterm with
+              term_node = TCastE(ty,oterm);
+              term_type = nt }
   | Ltype (t1,l1), Ltype (t2,l2) when t1 = t2 ->
       let l = List.map2 (fun x y -> fst (implicit_conversion x y)) l1 l2 in
       Ltype(t1,l),oterm
@@ -554,13 +750,15 @@ let integral_promotion = function
   | Linteger -> Linteger
   | Ltype _ | Lreal | Lvar _ | Larrow _ | Ctype _ -> assert false
 
-let arithmetic_conversion ty1 ty2 = match ty1, ty2 with
+let arithmetic_conversion ty1 ty2 =
+match ty1, ty2 with
 | Ctype ty1, Ctype ty2 ->
     if isIntegralType ty1 && isIntegralType ty2
     then Linteger
     else Lreal
 | (Linteger, Ctype t | Ctype t, Linteger) when isIntegralType t ->
     Linteger
+| Linteger, Ctype _ | Ctype _ , Linteger -> Lreal
 | Lreal, Ctype ty | Ctype ty, Lreal ->
     (match Cil.unrollType ty with TFloat _ -> Lreal | _ -> assert false)
 | Linteger, Linteger -> Linteger
@@ -573,7 +771,14 @@ let conditional_conversion loc t1 t2 = match t1, t2 with
       Linteger
     else if isArithmeticType ty1 && isArithmeticType ty2 then
       Lreal
-    else
+    else if is_same_ptr_type ty1 ty2 then
+      Ctype (C.conditionalConversion ty1 ty2)
+    else if
+      (isPointerType ty1 || isArrayType ty1) &&
+        (isPointerType ty2 || isArrayType ty2)
+    then error loc "types %a and %a are not convertible"
+      d_type ty1 d_type ty2
+    else (* pointer to integer conversion *)
       Ctype (C.conditionalConversion ty1 ty2)
 | (Linteger, Ctype t | Ctype t, Linteger) when Cil.isIntegralType t
     ->
@@ -613,8 +818,8 @@ let parseInt s =
     | 'L' -> (* L'wide_char' *)
         let content = String.sub s 2 (String.length s - 3) in
         let tokens = explode content in
-        let value = Cil.reduce_multichar !Cil.wcharType tokens in
-        Cil.kinteger64 !Cil.wcharKind value
+        let value = Cil.reduce_multichar Cil.theMachine.Cil.wcharType tokens in
+        Cil.kinteger64 Cil.theMachine.Cil.wcharKind value
     | '\'' -> (* 'char' *)
         let content = String.sub s 1 (String.length s - 2) in
         let tokens = explode content in
@@ -673,7 +878,12 @@ let add_quantifiers loc q env =
 let rec term env t =
   match t.lexpr_node with
   | PLnamed(name,t) ->
-      let t = term env t in { t with term_name = name :: t.term_name }
+      let t = term env t in
+      { t with term_name = name :: t.term_name }
+  | PLcomprehension _ | PLunion _ | PLinter _ | PLempty | PLrange _ ->
+      let typ, tset = type_tset env t in
+      { term_node = Ttsets tset; term_loc = t.lexpr_loc; term_type = typ;
+        term_name = [] }
   | _ ->
       let t', ty = term_node env t.lexpr_loc t.lexpr_node in
       { term_node = t'; term_loc=t.lexpr_loc; term_type=ty; term_name = [] }
@@ -721,11 +931,16 @@ and term_node env loc pl =
 	try
 	  TConst(CReal(float_of_string baseint, kind, Some str)),
 	  Lreal
-	with e ->
+	with Failure _ as e ->
           ignore (Errormsg.log "float_of_string %s (%s)\n" str
 		    (Printexc.to_string e));
           TConst(CStr "booo CONS_FLOAT"), Lreal
       end
+  | PLconstant (StringConstant s) ->
+      TConst (CStr (unescape s)), Ctype Cil.charPtrType
+  | PLconstant (WStringConstant s) ->
+      TConst (CWStr (wcharlist_of_string s)),
+      Ctype (TPtr(Cil.theMachine.wcharType,[]))
   | PLvar x ->
       begin
 	try
@@ -733,9 +948,9 @@ and term_node env loc pl =
 	with Not_found ->
           try
 	    let info = C.find_var x in
-            (match info.lv_origin with
-             | Some lv when lv.vglob -> ignore (find_current_label loc env)
-             | _ -> ());
+(*             (match info.lv_origin with *)
+(*              | Some lv when lv.vglob -> ignore (find_current_label loc env) *)
+(*              | _ -> ()); *)
 	    TLval (TVar info, TNoOffset), info.lv_type
 	  with Not_found ->
 	    try
@@ -747,7 +962,9 @@ and term_node env loc pl =
 	    with Not_found ->
 	      try
                 let info = C.find_logic_function x in
-                Tapp(info,[],[]), info.l_type
+		match info.l_type with
+		  | Some t -> Tapp(info,[],[]), t
+		  | None -> error loc "%s is not a logic variable" x
               with Not_found ->
                 error loc "unbound logic variable %s" x
       end
@@ -759,7 +976,9 @@ and term_node env loc pl =
 	 let label_assoc =
 	   labels_assoc loc f env.Lenv.current_logic_label info.l_labels labels
 	 in
-	 Tapp (info, label_assoc, tl), info.l_type
+	 match info.l_type with
+	   | Some t -> Tapp (info, label_assoc, tl), t
+	   | None -> error loc "symbol %s is a predicate not a function" f
        with Not_found ->
 	 error loc "unbound function %s" f)
   | PLunop (Ubw_not, t) ->
@@ -769,7 +988,7 @@ and term_node env loc pl =
       let t = type_num_term env t in
       TUnOp (Neg, t), logic_arithmetic_promotion t.term_type
   | PLunop (Ustar, t) ->
-      let _lab = find_current_label loc env in
+(*       let _lab = find_current_label loc env in *)
       (* memory access need a current label to have some semantics *)
       let t = term env t in
       begin match t.term_type with
@@ -855,7 +1074,7 @@ and term_node env loc pl =
       updated, s.term_type
 
   | PLarrow (t, f) ->
-      let _lab = find_current_label loc env in
+(*       let _lab = find_current_label loc env in *)
       (* memory access need a current label to have some semantics *)
       let t = term env t in
       begin match t.term_type with
@@ -871,7 +1090,7 @@ and term_node env loc pl =
 	  error loc "invalid type argument of `->': %a" d_logic_type t
       end
   | PLarrget (t1, t2) ->
-      let _lab = find_current_label loc env in
+(*       let _lab = find_current_label loc env in *)
       (* memory access need a current label to have some semantics *)
       let t1 = term env t1 in
       let t2 = term env t2 in
@@ -900,8 +1119,9 @@ and term_node env loc pl =
       let t1 = type_bool_term env t1 in
       let t2 = term env t2 in
       let t3 = term env t3 in
-      Tif (t1, t2, t3),
-      conditional_conversion loc t2.term_type t3.term_type
+      let ty = conditional_conversion loc t2.term_type t3.term_type in
+      Tif (t1, mk_cast t2 ty, mk_cast t3 ty), ty
+
   | PLold t ->
       let _lab = find_old_label loc env in
       let t = term env t in
@@ -914,12 +1134,12 @@ and term_node env loc pl =
       Tat (t, lab), t.term_type
   | PLbase_addr t ->
       let t = term env t in
-      (match t.term_type with
-       | Ctype (TArray _ | TPtr _) -> Tbase_addr t, c_addr
+      (match unroll_type t.term_type with
+       | Ctype (TArray _ | TPtr _) -> Tbase_addr t, Ctype Cil.charPtrType
        | _ -> error loc "subscripted value is neither array nor pointer")
   | PLblock_length t ->
       let t = term env t in
-      (match t.term_type with
+      (match unroll_type t.term_type with
        | Ctype (TArray _ | TPtr _) ->
            check_non_void_ptr t.term_loc t.term_type;
            Tblock_length t, c_int
@@ -958,12 +1178,14 @@ and term_node env loc pl =
       | _ when is_arithmetic_type ty1 && is_arithmetic_type ty2 ->
           let tr = arithmetic_conversion ty1 ty2 in
 	  TBinOp(binop_of_rel op,mk_cast t1 tr,mk_cast t2 tr)
-      | _ when is_pointer_type ty1 && is_pointer_type ty2 ->
-	  TBinOp(binop_of_rel op, t1,t2)
-      | Eq | Neq when is_pointer_type ty1 && is_zero t2 ->
-	  TBinOp (binop_of_rel op, t1, mk_cast (Cil.lzero ~loc ()) ty1)
-      | Eq | Neq when is_pointer_type ty2 && is_zero t1 ->
-	  TBinOp (binop_of_rel op, mk_cast (Cil.lzero ~loc ()) ty2, t2)
+      | Eq | Neq when is_pointer_type ty1 && isLogicNull t2 ->
+	  TBinOp (binop_of_rel op, t1, mk_cast t2 ty1)
+      | Eq | Neq when is_pointer_type ty2 && isLogicNull t1 ->
+	  TBinOp (binop_of_rel op, mk_cast t1 ty2, t2)
+      | _ when is_pointer_type ty1 && is_pointer_type ty2 &&
+          is_same_logic_ptr_type ty1 ty2 ->
+          let ty = conditional_conversion loc ty1 ty2 in
+          TBinOp (binop_of_rel op,  mk_cast t1 ty, mk_cast t2 ty)
       | Eq | Neq ->
 	  let ty = conditional_conversion loc ty1 ty2 in
 	  TBinOp (binop_of_rel op, mk_cast t1 ty, mk_cast t2 ty)
@@ -1000,17 +1222,17 @@ and term_node env loc pl =
       end
   | PLvalid _ | PLvalid_index _ | PLvalid_range _ | PLfresh _
   | PLexists _ | PLforall _  | PLimplies _ | PLiff _
-  | PLxor _
-  | PLsubtype _ ->
+  | PLxor _ | PLsubtype _ | PLseparated _ ->
       error loc "syntax error (expression expected but predicate found)"
   | PLcomprehension _ | PLunion _ | PLinter _ | PLempty | PLrange _ ->
-      error loc "syntax error (expression expected but tsets found)"
+      assert false
   in
   match typed_term_node, unroll_type typ with
-  | (TLval lval|TCastE(_, {term_node = TLval lval})), Ctype (TArray (t,_,_)) ->
-      TStartOf lval, Ctype (TPtr(t,[]))
-  | _, Ctype (TArray (_,_,_)) -> assert false
-  | _ -> typed_term_node,typ
+    | (TLval lval|TCastE(_, {term_node = TLval lval})),
+      Ctype (TArray (t,_,_)) ->
+        TStartOf lval, Ctype (TPtr(t,[]))
+    | _, Ctype (TArray (_,_,_)) -> assert false
+    | _ -> typed_term_node,typ
 
 and type_int_term env t =
   let tt = term env t in
@@ -1022,7 +1244,7 @@ and type_bool_term env t =
   let tt = term env t in
   if not (is_boolean_type tt.term_type) then
     error t.lexpr_loc "boolean expected but %a found" d_logic_type tt.term_type;
-  tt
+  mk_cast tt (Ltype ("boolean",[]))
 
 and type_int_term_option env = Cilutil.opt_map (type_int_term env)
 
@@ -1032,13 +1254,8 @@ and type_num_term env t =
     error t.lexpr_loc "integer or float expected";
   tt
 
-and type_num_pointer_term env t =
-  let tt = term env t in
-  if not (is_arithmetic_type tt.term_type || is_pointer_type tt.term_type) then
-    error t.lexpr_loc "integer, float or pointer expected";
-  tt
-    (* only for C lvalue. Use logic_term_lval below for cases where any
-       (C and purely logical) lval can happen *)
+(* only for C lvalue. Use logic_term_lval below for cases where any
+   (C and purely logical) lval can happen *)
 and term_lval env t =
   let t = term env t in
   match t.term_node, t.term_type with
@@ -1081,7 +1298,7 @@ and type_terms env loc at tl =
   snd (type_list env (at, tl))
 
 (* Typing predicates *)
-let rec tsets_lval env pl =
+and tsets_lval ?(array_as_ptr=true) env pl =
   let loc = pl.lexpr_loc in
   let elem,typ =
     match pl.lexpr_node with
@@ -1096,11 +1313,11 @@ let rec tsets_lval env pl =
           begin
 	    try
 	      let lv = Lenv.find_var x env in
-              TSLval (TSVar lv, TSNo_offset),lv.lv_type
+              TSLval (TSVar lv, TSNoOffset),lv.lv_type
 	    with Not_found ->
 	      try
 	        let info = C.find_var x in
-	        TSLval (TSVar info, TSNo_offset),info.lv_type
+	        TSLval (TSVar info, TSNoOffset),info.lv_type
 	      with Not_found ->
                 try
 	          let e,t = C.find_enum_tag x in
@@ -1117,14 +1334,21 @@ let rec tsets_lval env pl =
                   error loc "unbound logic variable %s" x
           end
       | PLunop(Ustar,e) ->
-	  let _lab = find_current_label loc env in
+(* 	  let _lab = find_current_label loc env in *)
 	  (* memory access need a current label to have some semantics *)
           let e,typ = tsets_lval env e in
-          begin match typ with
+          begin match unroll_type typ with
               Ctype (TPtr(ty,_) | TArray(ty,_,_)) ->
-                TSLval(mk_tsmem loc typ e TSNo_offset), Ctype ty
+                TSLval(mk_tsmem loc typ e TSNoOffset), Ctype ty
             | _ ->
                 error loc "cannot dereference a non-pointer value"
+          end
+      | PLunop(Uamp,e) ->
+          let e,typ = tsets_lval env e in
+          begin match e,typ with
+              (TSLval lv | TSStartOf lv), Ctype ty ->
+                mk_TSAddrOfAndMark lv, Ctype(TPtr(ty,[]))
+            | _ -> error loc "cannot take the address of %a" d_tsets_elem e
           end
       | PLbinop (t,Badd,{ lexpr_node = PLrange(low,high)})
       | PLbinop({lexpr_node = PLrange(low,high)},Badd,t) ->
@@ -1161,7 +1385,7 @@ let rec tsets_lval env pl =
           in
           t_dot_x, f_type
       | PLarrow (t, f) ->
-	  let _lab = find_current_label loc env in
+(* 	  let _lab = find_current_label loc env in *)
 	  (* memory access need a current label to have some semantics *)
           let elem,typ = tsets_lval env t in
           begin match typ with
@@ -1179,13 +1403,13 @@ let rec tsets_lval env pl =
           end
       | PLarrget(t,{lexpr_node = PLrange(low,high)})
       | PLarrget({lexpr_node = PLrange(low,high)},t) ->
-	  let _lab = find_current_label loc env in
+(* 	  let _lab = find_current_label loc env in *)
 	  (* memory access need a current label to have some semantics *)
           let elem,typ = tsets_lval env t in
           let low = Cilutil.opt_map (type_int_term env) low in
           let high = Cilutil.opt_map (type_int_term env) high in
           let content_type =
-            match typ with
+            match unroll_type typ with
                 Ctype (TPtr (ty,_) | TArray (ty,_,_)) -> Ctype ty
               | _ -> error loc "subscripted value is neither array nor pointer"
           in
@@ -1194,15 +1418,15 @@ let rec tsets_lval env pl =
             match elem with
                 TSStartOf array ->
                   TSLval(add_offset_tslval
-                           (TSRange(low,high,TSNo_offset)) array),
+                           (TSRange(low,high,TSNoOffset)) array),
                   content_type
             | _  ->
                 TSLval(mk_tsmem loc typ
-                         (TSAdd_range(elem,low,high)) TSNo_offset),
+                         (TSAdd_range(elem,low,high)) TSNoOffset),
                 content_type
           end
       | PLarrget (t1, t2) ->
-	  let _lab = find_current_label loc env in
+(* 	  let _lab = find_current_label loc env in *)
 	  (* memory access need a current label to have some semantics *)
           let t'1, t'2, ptr_type =
             try
@@ -1227,15 +1451,18 @@ let rec tsets_lval env pl =
           in
           begin match t'1 with
             | TSStartOf array ->
-	        TSLval (add_offset_tslval (TSIndex (t'2, TSNo_offset)) array)
+	        TSLval (add_offset_tslval (TSIndex (t'2, TSNoOffset)) array)
             | _ ->
-	        TSLval (mk_tsmem loc ptr_type
-                          (TSAdd_index(t'1,t'2)) TSNo_offset)
+                let addr =
+                  if isLogicZero t'2 then t'1
+                  else TSAdd_index(t'1,t'2)
+                in
+                  TSLval (mk_tsmem loc ptr_type addr TSNoOffset)
           end,
           Ctype tres
   | PLresult ->
       (try let t = Lenv.find_var "\\result" env in
-       TSLval(TSResult,TSNo_offset), t.lv_type
+       TSLval(TSResult,TSNoOffset), t.lv_type
        with Not_found -> error loc "\\result meaningless")
   | PLcast (ty, t) ->
       let t,_ = tsets_lval env t in
@@ -1248,74 +1475,69 @@ let rec tsets_lval env pl =
       let lab = find_logic_label loc.lexpr_loc env l in
       let env = Lenv.set_current_logic_label lab env in
       let elem,typ = tsets_lval env loc in
-      TSAt(elem,lab), typ
-
+      TSat(elem,lab), typ
+  | PLapp _ -> let t = term env pl in
+    (match t.term_type with
+       | Ltype ("set",[typ]) -> Logic_const.term_to_tsets_elem t, typ
+       | _ -> error loc "syntax error (location expected but term found)")
   | PLvalid _ | PLvalid_index _ | PLvalid_range _ | PLfresh _
   | PLexists _ | PLforall _ | PLnot _ | PLimplies _ | PLiff _
   | PLor _ | PLxor _ | PLand _
-  | PLsubtype _ | PLtrue | PLfalse ->
+  | PLsubtype _ | PLtrue | PLfalse | PLseparated _ ->
       error loc "syntax error (location expected but predicate found)"
   | PLcomprehension _ | PLunion _ | PLinter _ | PLempty | PLrange _ ->
       error loc "syntax error (single location expected but tsets found)"
-  | PLapp _ | PLunop _ | PLbinop _ | PLold _ | PLbase_addr _ | PLblock_length _
+  | PLunop _ | PLbinop _ | PLold _ | PLbase_addr _ | PLblock_length _
   | PLnull | PLcoercion _ | PLcoercionE _ | PLrel _ | PLif _ | PLnamed _
-  | PLconstant _ | PLsizeof _ | PLsizeofE _ | PLupdate _ | PLlambda _ 
+  | PLconstant _ | PLsizeof _ | PLsizeofE _ | PLupdate _ | PLlambda _
   | PLtypeof _ | PLtype _ ->
       error loc "syntax error (location expected but term found)"
  in
-  match elem, unroll_type typ with
-  | (TSLval lval|TSCastE(_, TSLval lval)), Ctype (TArray (t,_,_)) ->
-      TSStartOf lval, Ctype (TPtr(t,[]))
-  | _, Ctype (TArray (_,_,_)) -> assert false
-  | _ -> elem,typ
+  if array_as_ptr then
+    match elem, unroll_type typ with
+      | (TSLval lval|TSCastE(_, TSLval lval)), Ctype (TArray (t,_,_)) ->
+          TSStartOf lval, Ctype (TPtr(t,[]))
+      | _, Ctype (TArray (_,_,_)) -> assert false
+      | _ -> elem,typ
+  else elem,typ
 
-(* Normal form of a location set: union of comprehension of terms *)
-let normalize_location loc =
-  let rec aux transf pl =
-    let new_term t = { pl with lexpr_node = t } in
-    match pl.lexpr_node with
-      | PLvar _ | PLresult | PLempty -> transf pl
-      | PLat (elem,lab) ->
-          aux (fun x -> transf (new_term (PLat(x,lab)))) elem
-      | PLunop(Ustar,pl) -> aux
-          (fun x -> transf (new_term (PLunop(Ustar,x)))) pl
-      | PLbinop(pl1, Badd, pl2) ->
-          let pl1' = aux (fun x -> x) pl1 in
-          aux (fun x -> transf (new_term (PLbinop(pl1',Badd,x)))) pl2
-      | PLdot(pl1,field) ->
-          aux (fun x -> transf (new_term (PLdot (x,field)))) pl1
-      | PLarrow(pl1,field) ->
-          aux (fun x -> transf (new_term (PLarrow (x,field)))) pl1
-      | PLarrget(pl1,pl2) ->
-          let pl1' = aux (fun x -> x) pl1 in
-          aux (fun x -> transf (new_term (PLarrget(pl1',x)))) pl2
-      | PLcomprehension(pl,quant,pred) ->
-          new_term
-            (PLcomprehension (aux transf pl, quant, pred))
-      | PLunion pls ->
-          let pls = List.map (aux transf) pls in
-          new_term (PLunion pls)
-      | PLinter pls ->
-          let pls = List.map (aux transf) pls in
-          new_term (PLinter pls)
-      (* Grammar forbids to have union or comprehension inside
-         those expr.
-       *)
-      | PLapp _ | PLconstant _ | PLunop _ | PLbinop _ | PLold _
-      | PLbase_addr _ | PLnull | PLcast _ | PLcoercion _ | PLcoercionE _
-      | PLfalse | PLtrue | PLrel _ | PLand _ | PLor _ | PLxor _
-      | PLnot _ | PLif _ | PLblock_length _   | PLrange _ | PLupdate _
-      | PLlambda _ | PLtypeof _ | PLtype _ ->
-          transf pl
-            (* tsets are terms, not predicates *)
-      | PLimplies _ | PLiff _ | PLforall _ | PLexists _ | PLvalid _
-      | PLvalid_index _ | PLvalid_range _ | PLfresh _ | PLnamed _
-      | PLsubtype _ | PLsizeof _ | PLsizeofE _ ->
-          error pl.lexpr_loc "expecting tsets and not a predicate"
-  in
-  aux (fun x -> x) loc
+and type_tset ?(array_as_ptr=true) env loc0 =
+  let loc = normalize_location loc0 in
+  let rec aux env loc =
+    match loc.lexpr_node with
+        PLcomprehension(t,quant,pred) ->
+          let q, env' = add_quantifiers loc0.lexpr_loc quant env in
+          let typ, v = aux env' t in
+          let p = match pred with
+              None -> None
+            | Some p -> Some (predicate env' p)
+          in typ, TSComprehension(v,q,p)
+      | PLunion locs ->
+          let ls = List.map (aux env) locs in
+          let typs, tsets = List.split ls in
+          let typ = match typs with
+              hd :: tl when
+                List.for_all (fun x -> Logic_const.is_same_type x hd) tl ->
+                  hd
+            | _ -> Ltype("set", [ Ctype Cil.voidPtrType ])
+          in
+          typ, TSUnion(tsets)
+      | PLinter locs ->
+          let ls = List.map (aux env) locs in
+          let typs, tsets = List.split ls in
+          let typ = match typs with
+              hd :: tl when
+                List.for_all (fun x -> Logic_const.is_same_type x hd) tl ->
+                  hd
+            | _ -> Ltype("set", [ Ctype Cil.voidPtrType ])
+          in
+          typ, TSInter(tsets)
+      | PLempty -> Ltype("set", [ Ctype Cil.voidPtrType ]), TSEmpty
+      | _ -> let (v,typ) = tsets_lval ~array_as_ptr env loc in
+        (Ltype ("set", [ typ ]), TSSingleton v)
+  in aux env loc
 
-let boolean_to_predicate env p0 =
+and boolean_to_predicate env p0 =
   let loc = p0.lexpr_loc in
   let t = term env p0 in
   (match t.term_type with
@@ -1332,30 +1554,6 @@ let boolean_to_predicate env p0 =
           })
    | Ltype _ | Lvar _ | Larrow _ ->
        error p0.lexpr_loc "expecting a predicate and not a term")
-
-
-let rec type_tset ?(check_type=fun _ ->()) env loc0 =
-  let loc = normalize_location loc0 in
-  let rec aux env loc =
-    match loc.lexpr_node with
-        PLcomprehension(t,quant,pred) ->
-          let q, env' = add_quantifiers loc0.lexpr_loc quant env in
-          let v = aux env' t in
-          let p = match pred with
-              None -> None
-            | Some p -> Some (predicate env' p)
-          in TSComprehension(v,q,p)
-      | PLunion locs ->
-          let ls = List.map (aux env) locs in
-          TSUnion(ls)
-      | PLinter locs ->
-          let ls = List.map (aux env) locs in
-          TSInter(ls)
-      | PLempty -> TSEmpty
-      | _ -> let (v,typ) = tsets_lval env loc in
-        check_type typ;
-        TSSingleton v
-  in aux env loc
 
 and predicate env p0 =
   let loc = p0.lexpr_loc in
@@ -1380,17 +1578,17 @@ and predicate env p0 =
       begin match op with
 	| _ when is_arithmetic_type ty1 && is_arithmetic_type ty2 ->
 	    binop (type_binop op) (arithmetic_conversion ty1 ty2)
-	| _ when is_pointer_type ty1 && is_pointer_type ty2 ->
+	| Eq | Neq when is_pointer_type ty1 && isLogicNull t2 ->
 	    prel ~loc:p0.lexpr_loc
-	      (type_binop op, t1, t2)
-	| Eq | Neq when is_pointer_type ty1 && is_zero t2 ->
-	    let tr = ty1 (* Ctype !Cil.upointType *) in
+	      (type_binop op, t1, mk_cast t2 ty1)
+	| Eq | Neq when is_pointer_type ty2 && isLogicNull t1 ->
 	    prel ~loc:p0.lexpr_loc
-	      (type_binop op, t1, mk_cast (Cil.lzero ~loc ()) tr)
-	| Eq | Neq when is_pointer_type ty2 && is_zero t1 ->
-	    let tr = ty2 (* Ctype !Cil.upointType *) in
-	    prel ~loc:p0.lexpr_loc
-	      (type_binop op, mk_cast (Cil.lzero ~loc ()) tr, t2)
+	      (type_binop op, mk_cast t1 ty2, t2)
+        | _ when is_pointer_type ty1 && is_pointer_type ty2 &&
+            is_same_logic_ptr_type ty1 ty2 ->
+            let ty = conditional_conversion p0.lexpr_loc ty1 ty2 in
+            prel ~loc:p0.lexpr_loc
+	      (type_binop op, mk_cast t1 ty, mk_cast t2 ty)
 	| Eq | Neq ->
 	    let ty = conditional_conversion loc ty1 ty2 in
 	    prel ~loc:p0.lexpr_loc (type_binop op, mk_cast t1 ty, mk_cast t2 ty)
@@ -1409,20 +1607,27 @@ and predicate env p0 =
       piff ~loc:p0.lexpr_loc (predicate env p1, predicate env p2)
   | PLnot p ->
       (match (predicate env p) with
-	 | {content = Prel (Cil_types.Rneq, t, z)} when is_zero z ->
+	 | {content = Prel (Cil_types.Rneq, t, z)} when isLogicZero z ->
 	     prel ~loc:p0.lexpr_loc (Cil_types.Req, t, Cil.lzero ~loc ())
 	 | p -> pnot ~loc:p0.lexpr_loc p)
-  | PLapp (p, labels, tl) when is_predicate p ->
-      let info = C.find_predicate p in
-      let labels = List.map (find_logic_label p0.lexpr_loc env) labels in
-      let tl = type_terms env p0.lexpr_loc info.p_profile tl in
-      let label_assoc =
-	labels_assoc loc p env.Lenv.current_logic_label info.p_labels labels
-      in
-      papp ~loc:p0.lexpr_loc (info, label_assoc, tl)
-  | PLapp (p,_, _) when not (is_logic_function p ||
-                               is_logic_ctor p) ->
-      error p0.lexpr_loc "unknown predicate %s" p
+  | PLapp (p, labels, tl) ->
+      begin try
+	let info = C.find_logic_function p in
+	match info.l_type with
+	  | None ->
+	      let labels =
+		List.map (find_logic_label p0.lexpr_loc env) labels
+	      in
+	      let tl = type_terms env p0.lexpr_loc info.l_profile tl in
+	      let label_assoc =
+		labels_assoc loc p env.Lenv.current_logic_label
+		  info.l_labels labels
+	      in
+	      papp ~loc:p0.lexpr_loc (info, label_assoc, tl)
+	  | Some _ -> boolean_to_predicate env p0
+      with Not_found ->
+	error p0.lexpr_loc "unknown predicate %s" p
+      end
   (* see below for implicit conversion of terms into predicate *)
   | PLif (t, p1, p2) ->
       begin try
@@ -1450,8 +1655,16 @@ and predicate env p0 =
       if is_pointer_type t.term_type then pfresh ~loc:p0.lexpr_loc (t)
       else error tloc "subscripted value is neither array nor pointer"
   | PLvalid (t) ->
-      let t = type_tset ~check_type:(check_non_void_ptr t.lexpr_loc) env t in
-      pvalid ~loc:p0.lexpr_loc t
+      let loc = t.lexpr_loc in
+      let typ, t = type_tset env t in
+      (match typ with
+           Ltype ("set", [ typ ]) ->
+             if is_non_void_ptr loc typ then pvalid ~loc:p0.lexpr_loc t
+             else
+               error loc
+                 "can not access location with a pointer to void. \
+                  Cast it to (char*) first. "
+         | _ -> assert false)
   | PLvalid_index (t,a) ->
       let t = term env t in
       let a = type_int_term env a in
@@ -1473,14 +1686,15 @@ and predicate env p0 =
       pat ~loc:p0.lexpr_loc (predicate env p, lab)
   | PLvar x ->
       (try
-         let info = C.find_predicate x in
-         papp ~loc:p0.lexpr_loc (info,[],[])
+         let info = C.find_logic_function x in
+	 match info.l_type with
+	   | None -> papp ~loc:p0.lexpr_loc (info,[],[])
+	   | Some _ -> boolean_to_predicate env p0
        with Not_found -> boolean_to_predicate env p0)
-  | PLapp _
   | PLcast _ | PLblock_length _ | PLbase_addr _ | PLarrget _ | PLarrow _
   | PLdot _ | PLbinop _ | PLunop _ | PLconstant _
   | PLnull | PLresult | PLcoercion _ | PLcoercionE _ | PLsizeof _
-  | PLsizeofE _ | PLupdate _ | PLlambda _ 
+  | PLsizeofE _ | PLupdate _ | PLlambda _
   | PLtypeof _ | PLtype _ -> boolean_to_predicate env p0
   | PLrange _ ->
       error p0.lexpr_loc "cannot use operator .. within a predicate"
@@ -1490,6 +1704,10 @@ and predicate env p0 =
       let t = term env t in
       let tc = term env tc in
       psubtype ~loc:p0.lexpr_loc (t,tc)
+  | PLseparated seps ->
+      let seps = List.map (type_tset env) seps in
+      let _, seps = List.split seps in
+      pseparated ~loc:p0.lexpr_loc seps
   | PLcomprehension _ | PLunion _ | PLinter _ | PLempty ->
       error p0.lexpr_loc "expecting a predicate and not tsets"
 
@@ -1512,24 +1730,38 @@ let logic_term_lhost env t =
     | _ -> error t.lexpr_loc "not a lhost"
         (*FIXME:update tsets type to support e.g. t[0..2]->x *)
 
-
 let type_zone env =
   function
       Nothing -> Nothing
-    | Location a -> Location (Logic_const.new_location (type_tset env a))
+    | Location a ->
+        let typ,tset = type_tset ~array_as_ptr:false env a in
+        (match typ with
+             Ltype("set",[Ctype t]) ->
+               if Cil.isArrayType t then
+                 error a.lexpr_loc
+                   "expected memory location, got an array. Use a[..] to \
+                    denote all the elements of array a"
+           | Ltype ("set", [Lvar _ | Linteger | Lreal | Larrow _]) ->
+               error a.lexpr_loc
+                 "expected memory location, got a set of logical values"
+           | Ctype _ | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ ->
+               assert false (* we have a tset here *)
+        );
+        Location (Logic_const.new_location tset)
 
 let get_zone_loc = function
-    Nothing -> Cil.locUnknown
+    Nothing -> Cilutil.locUnknown
   | Location l -> l.lexpr_loc
 
 let type_assign env (a,f) =
   let ta = type_zone env a in
-    (match ta with
-         Location ta ->
-           if Logic_const.tsets_contains_result ta.its_content &&
-             not (Logic_const.tsets_is_result ta.its_content) then
-               error (get_zone_loc a) "invalid \\result in location"
-       | Nothing -> ());
+(* Yannick: [assigns *\at(\result,Post)] should be allowed *)
+(*     (match ta with *)
+(*          Location ta -> *)
+(*            if Logic_const.tsets_contains_result ta.its_content && *)
+(*              not (Logic_const.tsets_is_result ta.its_content) then *)
+(*                error (get_zone_loc a) "invalid \\result in location" *)
+(*        | Nothing -> ()); *)
   let tf =
     List.map
       (fun d ->
@@ -1556,11 +1788,13 @@ let type_annot loc ti =
   let v = Cil.make_logic_var ti.this_name this_type in
   let env = Lenv.add_var ti.this_name v env in
   let body = predicate env ti.inv in
-  let infos = {p_name = ti.inv_name;
-               p_profile = [v];
-	       p_labels = [LogicLabel "Here"];
-               p_body = PDefinition body}
-  in C.add_predicate infos; infos
+  let infos = {l_name = ti.inv_name;
+	       l_tparams = [];
+	       l_type = None;
+               l_profile = [v];
+	       l_labels = [LogicLabel "Here"];
+               l_body = LBpred body}
+  in C.add_logic_function infos; infos
 
 let type_spec result env s =
   let env = append_here_label env in
@@ -1571,13 +1805,14 @@ let type_spec result env s =
 	let v = Cil.make_logic_var "\\result" ty in
 	Lenv.add_var "\\result" v env
   in
+  let assigns_env = append_old_and_post_labels env_with_result in
   let post_state_env =
-    Lenv.add_logic_label "Old" (LogicLabel "Old") env_with_result in
+    Lenv.enter_post_state assigns_env in
   let b = List.map
     (fun {b_assigns= ba;
           b_name = bn; b_ensures=be;
           b_assumes= bas} ->
-       {b_assigns= List.map (type_assign post_state_env) ba;
+       {b_assigns= List.map (type_assign assigns_env) ba;
         b_name = bn;
         b_ensures= List.map (id_predicate post_state_env) be;
         b_assumes= List.map (id_predicate env) bas})
@@ -1594,7 +1829,8 @@ let type_spec result env s =
     spec_disjoint_behaviors = s.spec_disjoint_behaviors;
   }
 
-let funspec ~id ~formals typ s =
+let funspec vi formals typ s =
+  let env = make_pre_label () in
   try
     let log_return_typ = match typ with
     | TFun (TVoid _ , _, _, _) -> None
@@ -1606,26 +1842,16 @@ let funspec ~id ~formals typ s =
     let env =
       match formals with
         | None -> (* This is the spec of a function declaration *)
-         (* begin match typ with
-          | TFun (_, None, _, _) -> Lenv.empty
-          | TFun (_ , Some all_formals, _, _) ->
-	      (* JS : TODO *)
-              let add_formal env (n,t,_) =
-                Lenv.add n (Cil.make_logic_var n (Ctype t)) env
-              in
-              List.fold_left add_formal Lenv.empty all_formals
-          | _ -> assert false
-          end *)
             let add_formal env v =
                 Lenv.add_var v.vname (Cil.cvar_to_lvar v) env
             in
             (try
-               List.fold_left add_formal Lenv.empty (Cil.getFormalsDecl id)
-             with Not_found -> Lenv.empty)
+               List.fold_left add_formal env (Cil.getFormalsDecl vi)
+             with Not_found -> env)
       | Some formals ->
           let add_formal env v =
             Lenv.add_var v.vname (Cil.cvar_to_lvar v) env in
-          List.fold_left add_formal Lenv.empty formals
+          List.fold_left add_formal env formals
     in type_spec log_return_typ env s
   with Not_found -> Cil.empty_funspec ()
 
@@ -1637,13 +1863,11 @@ let impact_pragma env = function
     IPexpr t -> IPexpr (term env t)
   | IPstmt as ip -> ip
 
-let code_annot_env =
-  let env = make_here_label () in
-  Lenv.add_logic_label "Pre" (LogicLabel "Pre") env
+let code_annot_env = append_here_label (make_pre_label())
 
 let code_annot ca =
   let annot = match ca with
-    | AAssert (behav,p) -> AAssert (behav,predicate code_annot_env p)
+    | AAssert (behav,p,s) -> AAssert (behav,predicate code_annot_env p,s)
     | AAssume p -> AAssume (predicate code_annot_env p)
     | APragma (Impact_pragma sp) ->
 	APragma (Impact_pragma (impact_pragma code_annot_env sp))
@@ -1682,7 +1906,7 @@ let init_type_variables loc l =
    a logic function are bound in a parameter's type
    (p being the list of formals). type-checking error otherwise
 *)
-let check_polymorphism loc t p =
+let check_polymorphism loc ?return_type p =
   let obj known_vars =
     let update_known_vars s = known_vars:= Cilutil.StringSet.add s !known_vars
     in object inherit Cil.nopCilVisitor
@@ -1693,7 +1917,7 @@ let check_polymorphism loc t p =
   in let rt_vars = ref Cilutil.StringSet.empty
   in let prm_vars = ref Cilutil.StringSet.empty
   in
-  ignore (Cil.visitCilLogicType (obj rt_vars) t);
+  ignore(Cilutil.opt_map (Cil.visitCilLogicType (obj rt_vars)) return_type);
   List.iter
     (fun v -> ignore (Cil.visitCilLogicType (obj prm_vars) v.lv_type)) p;
   if not (Cilutil.StringSet.subset (!rt_vars) (!prm_vars)) then
@@ -1722,45 +1946,49 @@ let annot_env loc labels poly =
   in
   labels,env
 
-let annot loc annot =
-  Cil.currentLoc:= loc;
-  match annot with
+let logic_decl loc f labels poly ?return_type p =
+  let labels,env = annot_env loc labels poly in
+  let t = match return_type with
+    | None -> None;
+    | Some t -> Some (logic_type loc env t)
+  in
+  let p, env = formals loc env p in
+  check_polymorphism loc ?return_type:t p;
+  let info =
+    {l_name = f;
+     l_tparams = poly;
+     l_profile = p;
+     l_type = t;
+     l_labels = labels;
+     l_body = LBreads []; (* temporarily *)
+    }
+  in
+  if is_logic_function f then begin
+    let old_info = C.find_logic_function f in
+    if Logic_const.is_same_logic_info old_info info then begin
+      (* disabled
+	 Logic_const.merge_logic_reads old_info info;
+      *)
+      env, old_info
+    end
+    else
+       error loc "logic function %s has incompatible declarations" f
+  end else begin
+    C.add_logic_function info;
+    env,info
+  end
+
+let rec annot loc a =
+  Cil.CurrentLoc.set loc;
+  match a with
     | LDlogic_reads (f, labels, poly, t, p, l) ->
-        let labels,env = annot_env loc labels poly in
-        let t = logic_type loc env t in
-        let p, env = formals loc env p in
-        check_polymorphism loc t p;
-        let l = List.map (type_tset env) l in
-        let info =
-          {l_name = f;
-           l_profile = p;
-           l_type = t;
-           l_reads= l;
-	   l_labels = labels;
-           l_definition = None}
-        in
-        let info =
-          if is_logic_function f then begin
-            let old_info = C.find_logic_function f in
-            if Logic_const.is_same_logic_signature old_info info then begin
-              Logic_const.merge_logic_reads old_info info; old_info
-            end else
-              error loc "logic function %s has incompatible declarations" f
-          end else begin
-            C.add_logic_function info;
-            info
-          end
-        in
-        Dlogic_reads (info, poly, p, t, l)
+	let env,info = logic_decl loc f labels poly ~return_type:t p in
+	let l = List.map (fun x -> snd (type_tset env x)) l in
+	info.l_body <- LBreads l;
+        Dfun_or_pred info
     | LDlogic_def(f, labels, poly,t,p,e) ->
-        let labels,env = annot_env loc labels poly in
-        let t = logic_type loc env t in
-        let p, env = formals loc env p in
-        check_polymorphism loc t p;
-        let info =
-          { l_name = f; l_profile = p; l_type = t; l_labels = labels;
-            l_reads = []; l_definition = None (*for the time being*)}
-        in
+	let env,info = logic_decl loc f labels poly ~return_type:t p in
+(* disabled, cf above in [logic_decl]
         let info,redefinition =
           if is_logic_function f then begin
             let old_info = C.find_logic_function f in
@@ -1774,28 +2002,56 @@ let annot loc annot =
           end else begin
             C.add_logic_function info; info,false
           end
-        in
-        (try 
+*)
+	let redefinition = false in
+	let rt = match info.l_type with
+	  | None -> assert false
+	  | Some t -> t
+	in
+        (try
           let e = term env e in
-          let _,new_typ,new_term = instantiate_app loc e t env in
-          if Logic_const.is_same_type new_typ t then begin
-            info.l_definition <- Some new_term;
-            Dlogic_def (info,poly,p,t,e)
+          let _,new_typ,new_term = instantiate_app loc e rt env in
+          if Logic_const.is_same_type new_typ rt then begin
+            info.l_body <- LBterm new_term;
+            Dfun_or_pred info
           end else
-            error loc "return type of logic function %s is %a but %a was expected" 
-              f d_logic_type new_typ d_logic_type t
-         with Errormsg.Error as e when not redefinition -> 
+            error loc "return type of logic function %s is %a but %a was expected"
+              f d_logic_type new_typ d_logic_type rt
+         with Errormsg.Error as e when not redefinition ->
            C.remove_logic_function f; raise e)
+    | LDaxiomatic(id,decls) ->
+(*
+	Format.eprintf "Typing axiomatic %s@." id;
+*)
+	let l = List.map (annot loc) decls in
+	Daxiomatic(id,l)
+
+(*
+    | LDlogic_axiomatic(f, labels, poly,t,p,axioms) ->
+	let env,info = logic_decl loc f labels poly ~return_type:t p in
+	let redefinition = false in
+        (try
+          let l =
+	    List.map
+	      (fun (id,e) -> (id, predicate env e)) axioms
+	  in
+	  info.l_body <- LBaxiomatic l;
+          Dfun_or_pred info
+         with Errormsg.Error as e when not redefinition ->
+           C.remove_logic_function f; raise e)
+*)
 
     | LDpredicate_reads (f, labels, poly, p, l) ->
-        let labels,env = annot_env loc labels poly in
-        let p, env = formals loc env p in
-        let l = List.map (type_tset env) l in
-        let info = {p_name = f; p_profile = p; p_body = PReads l;
-		    p_labels = labels}
-        in C.add_predicate info;
-        Dpredicate_reads (info, poly, p, l)
+	let env,info = logic_decl loc f labels poly p in
+	let l = List.map (fun x -> snd (type_tset env x)) l in
+	info.l_body <- LBreads l;
+        Dfun_or_pred info
     | LDpredicate_def (f, labels, poly, p, e) ->
+	let env,info = logic_decl loc f labels poly p in
+	let e = predicate env e in
+        info.l_body <- LBpred e;
+	Dfun_or_pred info
+(*
         let labels,env = annot_env loc labels poly in
         let p, env = formals loc env p in
         (* allow recursive definitions *)
@@ -1809,6 +2065,37 @@ let annot loc annot =
         let e = predicate env e in
         pinfo.p_body <- PDefinition e;
         Dpredicate_def (pinfo, poly, p, e)
+*)
+    | LDinductive_def (f, labels, poly, p, indcases) ->
+	let _env,info = logic_decl loc f labels poly p in
+	(* env is ignored: because params names are indeed useless...*)
+        let l =
+	  List.map
+	    (fun (id,labels,poly,e) -> 
+               let labels,env = annot_env loc labels poly in
+	       (id, labels, poly, predicate env e)) indcases
+	in
+        info.l_body <- LBinductive l;
+	Dfun_or_pred info
+
+(*
+        let labels,env = annot_env loc labels poly in
+        let p, env = formals loc env p in
+        (* allow recursive definitions *)
+        let pinfo =
+          {p_name = f;
+           p_profile = p;
+	   p_labels = labels;
+           p_body = PReads [] (* updated in 3 lines *)};
+        in
+        C.add_predicate pinfo;
+        let l =
+	  List.map
+	    (fun (id,e) -> (id, predicate env e)) indcases
+	in
+        (* TODO pinfo.p_body <- PDefinition e; *)
+        Dinductive_def (pinfo, poly, p, l)
+*)
     | LDtype(s,l) ->
         ignore (init_type_variables loc l);
         C.add_logic_type s {nb_params = (List.length l)}; Dtype (s,l)
@@ -1819,11 +2106,14 @@ let annot loc annot =
         let env = make_here_label () in
         let p = predicate env e in
         let infos =
-          {p_name = s;
-           p_profile = [];
-	   p_labels = [LogicLabel "Here"];
-           p_body = PDefinition p}
-        in C.add_predicate infos; Dinvariant infos
+          {l_name = s;
+	   l_type = None;
+	   l_tparams = [];
+           l_profile = [];
+	   l_labels = [LogicLabel "Here"];
+           l_body = LBpred p}
+        in C.add_logic_function infos;
+	Dinvariant infos
     | LDtype_annot l ->
         Dtype_annot (type_annot loc l)
 

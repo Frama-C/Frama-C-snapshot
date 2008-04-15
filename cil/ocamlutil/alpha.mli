@@ -63,7 +63,7 @@ type 'a alphaTableData
  * information will be in reverse order in which the action occurred. Returns 
  * the new name and, if different from the lookupname, the location of the 
  * previous occurrence. This function knows about the location implicitly 
- * from the {!Cil.currentLoc}. *)
+ * from the [(Cil.CurrentLoc.get ())]. *)
 val newAlphaName: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t ->
                   undolist: 'a undoAlphaElement list ref option ->
                   lookupname:string -> data:'a -> string * 'a

@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: alarms.ml,v 1.16 2008/04/08 12:42:58 uid568 Exp $ *)
+(* $Id: alarms.ml,v 1.19 2008/10/07 09:27:47 uid570 Exp $ *)
 
 open Cil_types
 open Cil
@@ -31,6 +31,8 @@ type t =
   | Pointer_compare_alarm
   | Using_nan_or_infinite_alarm
   | Result_is_nan_or_infinite_alarm
+  | Separation_alarm
+  | Other_alarm
 
 let pretty fmt al =
   Format.fprintf fmt "alarm caused by a%s"
@@ -40,10 +42,13 @@ let pretty fmt al =
   | Shift_alarm -> " shift"
   | Pointer_compare_alarm -> " pointer comparison"
   | Using_nan_or_infinite_alarm -> "n unknown float value"
-  | Result_is_nan_or_infinite_alarm -> "n overflow or nan float computation")
+  | Result_is_nan_or_infinite_alarm -> "n overflow or nan float computation"
+  | Separation_alarm ->
+      "incompatible accesses to the same zone in unspecified order"
+  | Other_alarm -> " safety concern")
 
-module AlarmSet =
-  Set.Make
+module AlarmSet = struct
+  include Set.Make
     (struct
        type t' = t
        type t = t'*Cil_types.code_annotation
@@ -56,20 +61,15 @@ module AlarmSet =
              l'.annot_content
              (*WILL PROBABLY LOOP ON TYPES*)
      end)
+  let name = "alarmSet"
+end
 
 (*let (tbl:AlarmSet.t InstrHashtbl.t) = InstrHashtbl.create 7*)
 
-module S = Project.Datatype.Persistent(AlarmSet)
-
-module Alarms = 
-  Kernel_computation.InstrHashtbl
-    (S)
-    (struct 
-       let name = 
-         Project.Computation.Name.make "alarms"
-       let dependencies = []
-       let size = 7 
-     end)
+module Alarms =
+  Cil_computation.InstrHashtbl
+    (Project.Datatype.Persistent(AlarmSet))
+    (struct let name = "alarms" let dependencies = [] let size = 7 end)
 
 let self = Alarms.self
 

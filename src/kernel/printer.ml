@@ -85,7 +85,7 @@ class print () = object(self)
        then begin
          declared_globs <- IntSet.add vi.vid declared_globs;
          (* pretty prints the spec, but not for built-ins*)
-         if not (Hashtbl.mem Cil.builtinFunctions vi.vname) then
+         if not (Cil.BuiltinFunctions.mem vi.vname) then
            self#pretty_funspec fmt kf
        end
      with Not_found -> ());
@@ -127,7 +127,7 @@ class print () = object(self)
 
   method pAnnotatedStmt next fmt s =
     if false then (* CEA: to debug location setting *)
-      (let loc = fst (get_stmtLoc s.skind) in
+      (let loc = fst (Cilutil.get_stmtLoc s.skind) in
       Format.fprintf fmt "/*Loc=%s:%d*/" loc.Lexing.pos_fname loc.Lexing.pos_lnum);
     (* print the labels *)
     fprintfList ~sep:"@\n" (fun fmt l -> self#pLabel fmt l) fmt s.labels;

@@ -22,7 +22,7 @@
 (** Information about version of Frama-C.
     
     The body of this module is generated from Makefile.in.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 (** Version identifier *)
 val version : string
@@ -32,3 +32,9 @@ val date : string
 
 (** Directory for architecture independent files *)
 val dataroot : string
+
+(** Static plugins *)
+val static_plugins : string list
+
+(** Staic gui plugins *)
+val static_gui_plugins : string list

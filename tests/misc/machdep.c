@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -DPTEST" 
-   OPT: -memory-footprint 1 -machdep x86_64 -val -cpp-command "gcc -C -E -DPTEST"
+   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -DPTEST"  -journal-disable
+   OPT: -memory-footprint 1 -machdep x86_64 -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
 */
 
 #ifndef PTEST
@@ -22,7 +22,7 @@ int test1 () {
 }
 
 int main() {
-  
+
   return test1() ;
-  
+
 }

@@ -1,15 +1,15 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -slevel 8 -calldeps -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -pp-annot  -slice-print
-   OPT: -security-slicing -slevel 8 -calldeps -main main2 -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main2 -pp-annot  -slice-print
-   OPT: -security-slicing -slevel 8 -calldeps -main main3 -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main3 -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -calldeps -main main4 -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main4 -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -calldeps -main main5 -pp-annot -slice-print
-   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main5 -pp-annot -slice-print
+   OPT: -security-slicing -slevel 8 -calldeps -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -pp-annot  -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -calldeps -main main2 -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main2 -pp-annot  -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -calldeps -main main3 -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main3 -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -calldeps -main main4 -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main4 -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -calldeps -main main5 -pp-annot -slice-print -journal-disable
+   OPT: -security-slicing -slevel 8 -security-lattice strong -calldeps -main main5 -pp-annot -slice-print -journal-disable
    */
 
 //#define GCC

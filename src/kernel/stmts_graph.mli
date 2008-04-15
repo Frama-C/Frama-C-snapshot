@@ -19,10 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: stmts_graph.mli,v 1.10 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: stmts_graph.mli,v 1.11 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Statements graph. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Db_types
 open Cil_types

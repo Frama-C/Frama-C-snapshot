@@ -298,7 +298,11 @@ module Node = struct
 
   module Datatype = 
     Project.Datatype.Imperative
-      (struct type t = G.V.t let copy _ = assert false (* TODO *) end)
+      (struct 
+	 type t = G.V.t 
+	 let copy _ = assert false (* TODO *) 
+	 let name = "pdg_node"
+       end)
 
   let pretty_list fmt l = 
     List.iter (fun n -> Format.fprintf fmt " %a" pretty n) l
@@ -320,7 +324,7 @@ end
 
 (** set of nodes of the graph *)
 module NodeSetLattice = struct
-  include Abstract_interp.Make_Lattice_Set (Node)
+  include Abstract_interp.Make_Lattice_Set(Node)
   type t_elt = O.elt
   let tag = hash
   let default _v _a _b : t = empty
@@ -449,47 +453,57 @@ module Pdg = struct
                    (** The nodes which are associated the each element.
                      * There is only one node for simple statements,
                      * but there are several for a call for instance. *)
-  type t_def = { var_fct : Cil_types.varinfo;
-             graph : G.t ;
-             states : t_data_state Inthash.t ;
-             index : t_index ;
-           }
+  type t_def = { 
+    graph : G.t ;
+    states : t_data_state Inthash.t ;
+    index : t_index ;
+  }
 
-  type t = PdgDef of t_def | PdgTop of string | PdgBottom of string
+  type t_body = PdgDef of t_def | PdgTop | PdgBottom
 
-  (* [JS 2008/02/28] quite strange that it has ever worked because it used
-     hashconsed values (at least Locations.Zone.t) *)
+  type t = Db_types.kernel_function * t_body
+
   module Datatype =
-    Project.Datatype.Imperative
+    Project.Datatype.Register
       (struct
 	 type tt = t
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
+	 let name = "Pdg"
+	 let rehash (kf, b) = 
+	   Kernel_function.Datatype.rehash kf,
+	   match b with 
+	   | PdgTop | PdgBottom -> b
+	   | PdgDef p -> 
+	       let states = Inthash.create (Inthash.length p.states) in
+	       Inthash.iter
+		 (fun k v -> 
+		    Inthash.replace states k 
+		      { v with under_outputs =
+			  Locations.Zone.Datatype.rehash v.under_outputs })
+		 p.states;
+	       PdgDef { p with states = states }
        end)
 
-  let make vf graph states index =
-    let pdg = { var_fct = vf; graph = graph; 
-                states = states; index = index ;
-    } in PdgDef pdg
+  let make kf graph states index =
+    let body = { graph = graph; states = states; index = index ; } in 
+      (kf, PdgDef body)
 
-  let top fct_name = PdgTop fct_name
-  let bottom fct_name = PdgBottom fct_name
+  let top kf = (kf, PdgTop)
+  let bottom kf = (kf, PdgBottom)
 
-  let is_top pdg = match pdg with PdgTop _ -> true | _ -> false
-  let is_bottom pdg = match pdg with PdgBottom _ -> true | _ -> false
+  let is_top pdg = match snd pdg with PdgTop -> true | _ -> false
+  let is_bottom pdg = match snd pdg with PdgBottom -> true | _ -> false
 
-  let get_pdg pdg = match pdg with
+  let get_pdg_body pdg = match snd pdg with
     | PdgDef pdg -> pdg 
-    | PdgTop _ -> raise Top 
-    | PdgBottom _ -> raise Bottom
+    | PdgTop -> raise Top 
+    | PdgBottom -> raise Bottom
 
-  let get_fct_name pdg = match pdg with
-    | PdgTop name | PdgBottom name -> name
-    | PdgDef pdg -> pdg.var_fct.vname
-  let get_var_fct pdg = let pdg = get_pdg pdg in  pdg.var_fct
-  let get_graph pdg = let pdg = get_pdg pdg in  pdg.graph
-  let get_states pdg = let pdg = get_pdg pdg in  pdg.states
-  let get_index pdg = let pdg = get_pdg pdg in  pdg.index
+  let get_kf pdg = fst pdg
+  let get_graph pdg = let pdg = get_pdg_body pdg in  pdg.graph
+  let get_states pdg = let pdg = get_pdg_body pdg in  pdg.states
+  let get_index pdg = let pdg = get_pdg_body pdg in  pdg.index
 
   let iter_nodes f pdg = G.iter_vertex f (get_graph pdg)
 
@@ -509,7 +523,7 @@ module Pdg = struct
       with a given kind of dependency.
     *)
   let get_x_direct_edges ~co dpd_type_opt pdg node =
-    let pdg = get_pdg pdg in
+    let pdg = get_pdg_body pdg in
     let is_dpd_ok e = match dpd_type_opt with None -> true 
       | Some k -> DpdZone.is_dpd k (G.E.label e) 
     in

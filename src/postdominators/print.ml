@@ -20,6 +20,7 @@
 (**************************************************************************)
 
 open Cil_types
+open Cilutil
 
 let debug = false
 
@@ -27,7 +28,7 @@ let pretty_stmt fmt s =
   let key = PdgIndex.Key.stmt_key s in !Db.Pdg.pretty_key fmt key
 
 module Printer = struct 
-  type t = string * (Cilutil.StmtSet.t option Cil.InstrHashtbl.t)
+  type t = string * (StmtSet.t option InstrHashtbl.t)
   module V = struct
     type t = Cil_types.stmt * bool
     let pretty fmt v = pretty_stmt fmt v
@@ -38,15 +39,14 @@ module Printer = struct
     let dst e = snd e
   end
 
-
   let iter_vertex f (_, graph) = 
     let do_s ki postdom = 
       let s = match ki with Kstmt s -> s | _  -> assert false in
       if debug then Cil.log "iter_vertex %d : %a\n" s.sid V.pretty s; 
       let has_postdom = match postdom with None -> false | _ -> true in
       f (s, has_postdom)
-    in Cil.InstrHashtbl.iter do_s graph
-
+    in 
+    InstrHashtbl.iter do_s graph
 
   let iter_edges_e f (_, graph) =
     let do_s ki postdom = 
@@ -54,8 +54,8 @@ module Printer = struct
       match postdom with None -> ()
       | Some postdom ->
         let do_edge p = f ((s, true), (p, true)) in
-          Cilutil.StmtSet.iter do_edge postdom
-    in Cil.InstrHashtbl.iter do_s graph
+          StmtSet.iter do_edge postdom
+    in InstrHashtbl.iter do_s graph
 
 
   let vertex_name (s, _) = string_of_int s.sid
@@ -83,18 +83,19 @@ module PostdomGraph = Graph.Graphviz.Dot(Printer)
 
 let get_postdom kf graph s =
   try 
-    match Cil.InstrHashtbl.find graph (Kstmt s) with 
-      | None -> Cilutil.StmtSet.empty 
-      | Some l -> l
+    match InstrHashtbl.find graph (Kstmt s) with 
+    | None -> StmtSet.empty 
+    | Some l -> l
   with Not_found -> 
     try 
       let postdom = !Db.Postdominators.stmt_postdominators kf s in
-      let postdom = Cilutil.StmtSet.remove s postdom in
-      if debug then Cil.log "postdom for %d:%a = %a\n" 
-                            s.sid pretty_stmt s Cilutil.StmtSet.pretty postdom;
-        Cil.InstrHashtbl.add graph (Kstmt s) (Some postdom); postdom
+      let postdom = StmtSet.remove s postdom in
+      if debug then 
+	Cil.log "postdom for %d:%a = %a\n" 
+          s.sid pretty_stmt s StmtSet.pretty postdom;
+      InstrHashtbl.add graph (Kstmt s) (Some postdom); postdom
     with Db.Postdominators.Top ->
-      Cil.InstrHashtbl.add graph (Kstmt s) None;
+      InstrHashtbl.add graph (Kstmt s) None;
       raise Db.Postdominators.Top
 
 (** [s_postdom] are [s] postdominators, including [s].
@@ -104,22 +105,25 @@ let get_postdom kf graph s =
 *)
 let reduce kf graph s =
   let remove p s_postdom =
-    if Cilutil.StmtSet.mem p s_postdom 
+    if StmtSet.mem p s_postdom 
     then 
       try
         let p_postdom = get_postdom kf graph p in
-        let s_postdom = Cilutil.StmtSet.diff s_postdom p_postdom
+        let s_postdom = StmtSet.diff s_postdom p_postdom
         in s_postdom
       with Db.Postdominators.Top -> assert false 
                                    (* p postdom s -> cannot be top *)
     else s_postdom (* p has already been removed from s_postdom *)
-  in try
+  in 
+  try
     let postdom = get_postdom kf graph s in
-    let postdom = Cilutil.StmtSet.fold remove postdom postdom in
-      if debug then Cil.log "new postdom for %d:%a = %a\n" 
-                            s.sid pretty_stmt s Cilutil.StmtSet.pretty postdom;
-      Cil.InstrHashtbl.replace graph (Kstmt s) (Some postdom)
-  with Db.Postdominators.Top -> ()
+    let postdom = StmtSet.fold remove postdom postdom in
+      if debug then 
+	Cil.log "new postdom for %d:%a = %a\n" 
+          s.sid pretty_stmt s StmtSet.pretty postdom;
+    InstrHashtbl.replace graph (Kstmt s) (Some postdom)
+  with Db.Postdominators.Top -> 
+    ()
 
 let rec build_reduced_graph kf graph stmts = 
   List.iter (reduce kf graph) stmts
@@ -130,11 +134,11 @@ let build_dot filename kf =
     | Db_types.Declaration _ -> invalid_arg
                          "[postdominators] cannot compute for a leaf function"
   in
-  let graph = Cil.InstrHashtbl.create (List.length stmts) in
+  let graph = InstrHashtbl.create (List.length stmts) in
   let _ = build_reduced_graph kf graph stmts in
   let name = Kernel_function.get_name kf in 
-  let title = ("Postdominators for function "^name) in
+  let title = "Postdominators for function " ^ name in
   let file = open_out filename in
-    PostdomGraph.output_graph file (title, graph);
-    close_out file
+  PostdomGraph.output_graph file (title, graph);
+  close_out file
 

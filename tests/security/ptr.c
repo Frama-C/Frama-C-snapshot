@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry -main f -slice-print
-   OPT: -security-slicing -lib-entry -main g -slice-print
-   OPT: -security-slicing -lib-entry -main h -slice-print
-   OPT: -security-slicing -lib-entry -main toto -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry -main toto -slice-print
+   OPT: -security-slicing -lib-entry -main f -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main g -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main h -slice-print -journal-disable
+   OPT: -security-slicing -lib-entry -main toto -slice-print -journal-disable
+   OPT: -security-slicing -security-lattice strong -lib-entry -main toto -slice-print -journal-disable
    */
 
 /* ************************************************************************* */

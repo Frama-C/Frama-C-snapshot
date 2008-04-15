@@ -38,17 +38,17 @@ let pretty_node fmt n =
     let key = N.elem_key n in pretty_key fmt key
 
 let pretty_nodes fmt nodes =
-  let pretty_node n = Format.fprintf fmt "%a@\n" pretty_node n
+  let pretty_node n = Format.fprintf fmt "%a@." pretty_node n
   in List.iter pretty_node nodes
 
 let pretty_pdg_graph ?(bw=false) fmt graph =
   let iter = if bw then G.iter_pred_e else G.iter_succ_e in
-  let print_node n =  Format.fprintf fmt "%a@\n" pretty_node n in
+  let print_node n =  Format.fprintf fmt "%a@." pretty_node n in
   let print_dpd d =
     let dpd_kind = G.E.label d in
-    if bw then Format.fprintf fmt "  <-%a- %d@\n" G.pretty_edge_label dpd_kind
+    if bw then Format.fprintf fmt "  <-%a- %d@." G.pretty_edge_label dpd_kind
                  (N.elem_id (G.E.src d))
-    else Format.fprintf fmt "  -%a-> %d@\n" G.pretty_edge_label dpd_kind
+    else Format.fprintf fmt "  -%a-> %d@." G.pretty_edge_label dpd_kind
                  (N.elem_id (G.E.dst d))
   in
   let print_node_and_dpds n =
@@ -60,8 +60,8 @@ let pretty_pdg ?(bw=false) fmt pdg =
   try
     let graph = PdgTypes.InternalPdg.get_graph pdg in
     pretty_pdg_graph ~bw fmt graph;
-  with PdgTypes.Pdg.Top -> Format.fprintf fmt "Top PDG@\n"
-    |  PdgTypes.Pdg.Bottom -> Format.fprintf fmt "Bottom PDG@\n"
+  with PdgTypes.Pdg.Top -> Format.fprintf fmt "Top PDG@."
+    |  PdgTypes.Pdg.Bottom -> Format.fprintf fmt "Bottom PDG@."
 
 (*-----------------------------------------------------------------------*)
 module Printer = struct
@@ -221,7 +221,9 @@ let build_dot filename pdg =
 
 (** build the .dot file and put it in [pdg function name.dot]  *)
 let build_dot_file pdg =
-  let filename = ((PdgTypes.Pdg.get_fct_name pdg) ^ ".dot") in
+  let kf = PdgTypes.Pdg.get_kf pdg in
+  let fct_name = Kernel_function.get_name kf in
+  let filename = (fct_name ^ ".dot") in
     build_dot filename pdg;
     filename
 
@@ -229,7 +231,7 @@ let build_dot_file pdg =
   let build_fct_pdg_dot_file proj kf  =
     let pdg = get_pdg proj kf in
     let dot_filename = Pdg.build_dot_file pdg in
-      Format.printf "[pdg] dot file generated in %s@\n" dot_filename;
+      Format.printf "[pdg] dot file generated in %s@." dot_filename;
       dot_filename
 
   let show_fct_pdg_dot_file proj kf =

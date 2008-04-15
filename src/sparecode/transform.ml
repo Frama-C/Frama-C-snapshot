@@ -3,7 +3,9 @@
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2008                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -14,17 +16,13 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  See the GNU Lesser General Public License version v2.1                *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Cil_types
 open Cil
-
-let debug1() = Cmdline.Debug.get() >= 1
-let debug2() = Cmdline.Debug.get() >= 2
-
 
 module BoolInfo = struct
   type t_proj = Marks.t_proj
@@ -34,6 +32,8 @@ module BoolInfo = struct
     match Marks.get_marks project kf with
       | None -> []
       | Some fm -> [fm]
+
+  let body_visible _fm = true
 
   let param_visible fm n =
     let key = PdgIndex.Key.param_key n () in
@@ -46,6 +46,26 @@ module BoolInfo = struct
   let annotation_visible _fm _stmt ~before:_ _annot = 
     (* all the annotation should have been selected by the analysis *)
     true
+
+  let fun_precond_visible _fm _p = 
+    (* TODO : we say that they are removed in order to get correct results,
+    * but in fact, we should select them ! *)
+    false
+
+  let fun_postcond_visible _fm _p = 
+    (* TODO : we say that they are removed in order to get correct results,
+    * but in fact, we should select them ! *)
+    false
+
+  let fun_variant_visible _fm _p = 
+    (* TODO : we say that they are removed in order to get correct results,
+    * but in fact, we should select them ! *)
+    false
+
+  let fun_assign_visible _fm _p = 
+    (* TODO : we say that they are removed in order to get correct results,
+    * but in fact, we should select them ! *)
+    false
 
   let res_call_visible fm call_stmt =
     let key = PdgIndex.Key.call_outret_key call_stmt in
@@ -77,8 +97,7 @@ module BoolInfo = struct
         | _ ->
             let stmt_key = PdgIndex.Key.stmt_key stmt in
             let visible = Marks.key_visible fm stmt_key in
-              if debug2 () then 
-                Format.printf "[sparecode] inst_visible : %a -> %s@\n"
+                Debug.debug 2 "[sparecode] inst_visible : %a -> %s@\n"
                   !Db.Pdg.pretty_key stmt_key 
                   (if visible then "true" else "false");
               visible

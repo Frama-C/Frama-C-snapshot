@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgMarks.mli,v 1.29 2008/07/09 11:26:38 uid530 Exp $ *)
+(* $Id: pdgMarks.mli,v 1.30 2008/09/10 09:00:50 uid530 Exp $ *)
 
 (** This module provides elements to mapped information (here called 'marks')
 * to PDG elements and propagate it along the dependencies. 
@@ -83,7 +83,8 @@ val add_undef_in_to_select :
 
 (** we sometime need a list of [t_select] associated with its pdg 
 * when dealing with several functions at one time. *)
-type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_select) list
+type 'tm t_pdg_select_info = SelList of  'tm t_select | SelTopMarks of 'tm list
+type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_pdg_select_info) list
 
 (** Represent the information to propagate from a function inputs 
 * to its calls. Notice that the input keys don't necessarily correspond to nodes
@@ -102,13 +103,15 @@ type 'tm t_info_called_outputs =
 type 'tm t_info_inter = 'tm t_info_caller_inputs * 'tm t_info_called_outputs
 
 module type T_Fct = sig
+
   type t_mark
   type t_call_info
   type t_idx = (t_mark, t_call_info) PdgIndex.FctIndex.t
+
   type t = PdgTypes.Pdg.t * t_idx
 
   val create : PdgTypes.Pdg.t -> t
-  val get_idx : t -> t_idx
+  val get_idx : t -> t_idx 
 
   type t_mark_info_inter = t_mark t_info_inter
 
@@ -124,7 +127,7 @@ module F_Fct (M : T_Mark) :
 type 't_mark t_m2m =  t_select_elem -> 't_mark -> 't_mark option
 
 type 't_mark t_call_m2m =  
-    Cil_types.stmt -> PdgTypes.Pdg.t -> 't_mark t_m2m
+    Cil_types.stmt option -> PdgTypes.Pdg.t -> 't_mark t_m2m
 
 (** this is the type of the functor dedicated to interprocedural propagation.
 * It is defined in PDG pluggin *)
@@ -149,6 +152,7 @@ module type T_Config = sig
   * and the pdg is the one of the caller in which the call is.
   * If it returns [None], the propagation is stopped.
   * A simple propagation can be done by returning [Some m]. 
+  * The [call] parameter can be [None] when the caller has a Top PDG.
   * *)
   val mark_to_prop_to_caller_input : M.t t_call_m2m
 

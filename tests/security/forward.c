@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -security-lattice strong -lib-entry -main h
+   OPT: -security-analysis -security-lattice strong -lib-entry -main h -journal-disable
    */
 
 /*@ requires security_status(s) == public; */

@@ -32,18 +32,20 @@ type cell_class_attributes =
       cvolatile : bool ;
     }
 
+let name = "base"
 
 type validity =
   | All
   | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
   | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
 
-type t = | Var of varinfo*validity
-         | Initialized_Var of varinfo*validity
-             (** base that is implicitely initialized. *)
-	 | Null (** base for adresses like [(int* )0x123] *)
-         | String of int*string (** String constants *)
-	 | Cell_class of cell_class_attributes (** a class of memory cells *)
+type t = 
+  | Var of varinfo*validity
+  | Initialized_Var of varinfo*validity
+      (** base that is implicitely initialized. *)
+  | Null (** base for adresses like [(int* )0x123] *)
+  | String of int*string (** String constants *)
+  | Cell_class of cell_class_attributes (** a class of memory cells *)
 
 let invalid = Known(Int.one, Int.zero)
 
@@ -145,6 +147,11 @@ let is_aligned_by b alignment =
     | String _ -> Int.is_one alignment
     | Cell_class _ -> assert false
 
+let is_any_formal_or_local v =
+  match v with
+  | Var (v,_) | Initialized_Var (v,_) -> not v.vlogic && not v.vglob
+  | Null | String _ | Cell_class _  -> false
+
 let is_formal_or_local v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
@@ -168,7 +175,12 @@ let validity_from_type v =
   let max_valid = Bit_utils.sizeof_vid v in
   match max_valid with
   | Int_Base.Bottom -> assert false
-  | Int_Base.Top -> All
+  | Int_Base.Top -> 
+      (* TODO: 
+	 if (some configuration option) 
+	 then Unknown (Int.zero, Bit_utils.max_bit_address ())
+	 else *)
+      invalid
   | Int_Base.Value size when Int.gt size Int.zero ->
       (*Format.printf "Got %a for %s@\n" Int.pretty size v.vname;*)
       Known (Int.zero,Int.pred size)
@@ -190,24 +202,32 @@ let create_initialized varinfo validity =
 
 type base = t
 
-module Datatype =
-  Project.Datatype.Imperative
-    (struct type t = base let copy _ = assert false (* TODO *) end)
-
-let name = "LiteralStrings"
-
 module LiteralStrings =
   Computation.Hashtbl
+    (Datatype.String)
+    ((* The function [copy] is used here but persistent strings are not
+	required. *)
+      Project.Datatype.Imperative
+	(struct 
+	   type t = base 
+	   let copy = function 
+	     | String _ as b -> b
+	     | _ -> assert false
+	   let name = "LiteralStrings"
+	 end))
     (struct
-       include String
-       let hash = Hashtbl.hash
-       let equal = Pervasives.(=)
-     end)
-    (Project.Datatype.Persistent(struct type t = base end))
-    (struct
-       let name = Project.Computation.Name.make name
+       let name = name
        let dependencies = []
        let size = 17
      end)
 
-let create_string s = LiteralStrings.memo (fun _ -> String (newVID (),s)) s
+let create_string s =
+  LiteralStrings.memo (fun _ -> String (Cil.new_raw_id (), s)) s
+
+module Datatype =
+  Project.Datatype.Imperative
+    (struct 
+       type t = base 
+       let copy _ = assert false (* TODO if required *) 
+       let name = "base" 
+     end)

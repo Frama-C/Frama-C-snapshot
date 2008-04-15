@@ -19,25 +19,23 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: loop.ml,v 1.11 2008/04/11 14:38:06 uid528 Exp $ *)
+(* $Id: loop.ml,v 1.12 2008/10/03 13:09:16 uid568 Exp $ *)
 
 open Cil_types
 open Db_types
 open Cilutil
 open Cil
 
+let name = "natural_loops"
+
 module Natural_Loops =
   Kernel_function.Make_Table
-    (Project.Datatype.Imperative
-       (struct
-	  type t = (stmt * stmt list) list
-	  let copy _ = assert false (* TODO: deep copy *)
-	end))
+    (Datatype.List
+       (Datatype.Couple(Cil_datatype.Stmt)(Datatype.List(Cil_datatype.Stmt))))
     (struct
-       let name = Project.Computation.Name.make "Natural_Loops"
+       let name = name
        let size = 97
        let dependencies = [ Cil_state.self ]
-	 (* [TODO JS 2007/10/05:] change it! *)
      end)
 
 let pretty_natural_loops fmt kf loops =
@@ -57,7 +55,9 @@ let get_naturals kf =
 	 | Declaration _ ->
 	     []
 	 | Definition (cilfundec,_) ->
-	     let dbg = Cmdline.Debug.get () > 0 || Cmdline.Pdg.Verbosity.get() > 0 in
+	     let dbg = 
+	       Cmdline.Debug.get () > 0 || Cmdline.Pdg.Verbosity.get() > 0 
+	     in
              if dbg then
                Format.printf "COMPUTE NATURAL LOOPS FOR %S@." (Kernel_function.get_name kf);
 	     let dominators = Dominators.computeIDom cilfundec in
@@ -111,7 +111,8 @@ let while_for_natural_loop kf stmt =
       List.iter (fun x -> Format.printf "B_edge:%d " x.sid) be;
       List.iter (fun x -> Format.printf "Preds:%d " x.sid) stmt.preds;
       let non_looping_pred =
-        List.filter (fun pred -> not (List.mem pred be)) stmt.preds in
+        List.filter (fun pred -> not (List.mem pred be)) stmt.preds 
+      in
       match non_looping_pred with
       | [x] -> x
       | _ ->
@@ -123,7 +124,8 @@ let compute_allstmt_block block =
     val mutable allstmts = StmtSet.empty
     method allstmts = allstmts
     inherit nopCilVisitor as super
-    method vstmt s = allstmts <- StmtSet.add s allstmts;
+    method vstmt s = 
+      allstmts <- StmtSet.add s allstmts;
       DoChildren
   end
   in
@@ -143,11 +145,11 @@ let compute_loops_stmts kf =
   end
   in
   (try
-     ignore
-       (visitCilFunction
-	  (visitor :> cilVisitor)
-	  (Kernel_function.get_definition kf));
-   with Kernel_function.No_Definition -> ());
+     ignore 
+       (visitCilFunction 
+	  (visitor :> cilVisitor) (Kernel_function.get_definition kf));
+   with Kernel_function.No_Definition -> 
+     ());
   tbl
 
 exception No_such_while
@@ -156,11 +158,11 @@ exception No_such_while
 let get_loop_stmts =
   let module S =
     Kernel_function.Make_Table
-      (Kernel_datatype.InstrHashtbl(Kernel_datatype.StmtSet))
+      (Cil_datatype.InstrHashtbl(Cil_datatype.StmtSet))
       (struct
-	 let name = Project.Computation.Name.make "LoopStmts"
+	 let name = "LoopStmts"
 	 let size = 97
-	 let dependencies = [ Cil_state.self ] (* JS 2007/08/30: is it ok? *)
+	 let dependencies = [ Cil_state.self ]
        end)
   in
   fun kf loop_stmt ->

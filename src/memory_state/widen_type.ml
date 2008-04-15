@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen_type.ml,v 1.20 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: widen_type.ml,v 1.21 2008/10/03 13:09:17 uid568 Exp $ *)
 
 open Cil
 open Cil_types
@@ -126,4 +126,5 @@ let default =
   add_num_hints None Default Ival.Widen_Hints.default_widen_hints empty
     
 module Datatype =
-  Project.Datatype.Persistent(struct type tt = t type t = tt end)
+  Project.Datatype.Persistent
+    (struct type tt = t type t = tt let name = "widen_type" end)

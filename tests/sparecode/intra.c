@@ -1,16 +1,16 @@
 /* run.config
-   OPT: -sparecode-analysis
-   OPT: -slicing-level 2 -slice-return main -slice-print
-   OPT: -main main2 -sparecode-analysis
-   OPT: -main main2 -slice-return main2 -slice-print
-   OPT: -main main2 -slice-return main2 -slice-assert f10 -slice-print
+   OPT: -sparecode-analysis -journal-disable
+   OPT: -slicing-level 2 -slice-return main -slice-print -journal-disable
+   OPT: -main main2 -sparecode-analysis -journal-disable
+   OPT: -main main2 -slice-return main2 -slice-print -journal-disable
+   OPT: -main main2 -slice-return main2 -slice-assert f10 -slice-print -journal-disable
 */
 
 /* Waiting for results such as:
  * spare code analysis removes statements having variables with
  * prefix "spare_"
  *
- * slicing analysis removes statement having variables with 
+ * slicing analysis removes statement having variables with
  * prefix "spare_" and "any_"
  */
 
@@ -18,7 +18,7 @@ int G;
 
 int tmp (int a) {
   int x = a;
-  //@ assert x == a ; 
+  //@ assert x == a ;
   int w = 1;
   //@ assert w == 1 ; // w is not spare or else
                       // the assertion should be removed !
@@ -91,10 +91,10 @@ int main (int noreturn, int halt) {
       stop () ;
     else
       while (1);
-    //@ assert \false ; // What should be done with 
+    //@ assert \false ; // What should be done with
                         // assertions related to dead code?
     }
-  
+
   return res + G + x;
 }
 

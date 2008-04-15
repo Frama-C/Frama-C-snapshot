@@ -1,3 +1,7 @@
+/* run.config
+   DONTRUN: cast between real and integer no working yet
+*/
+
 void f(char*x,int*y) {
   (*x)++;
   *x++;
@@ -98,7 +102,7 @@ void main3()
       v2 = PTR3 - PTR1;
      }
   else{
-  L: goto L;
+    while (1);
   }
 }
 
@@ -286,7 +290,7 @@ void main12 (int c) {
   U.ll = ll1 + 1;
   if (c+2)
     U.i = t + 2;
-  else { L: goto L; }
+  else { while (1); }
 }
  
 /* 

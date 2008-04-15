@@ -41,7 +41,7 @@
 (** A framework for data flow analysis for CIL code.  Before using 
     this framework, you must initialize the Control-flow Graph for your
     program, e.g using [Cfg.computeFileCFG]. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 type 't action = 
     Default (** The default action *)
@@ -111,7 +111,7 @@ module type ForwardsTransfer = sig
 
   val doInstr: Cil_types.stmt -> Cil_types.instr -> t -> t action
   (** The (forwards) transfer function for an instruction. The 
-   * {!Cil.currentLoc} is set before calling this. The default action is to 
+   * [(Cil.CurrentLoc.get ())] is set before calling this. The default action is to 
    * continue with the state unchanged. *)
 
   val doGuard: Cil_types.stmt -> Cil_types.exp -> t -> t guardaction
@@ -125,7 +125,7 @@ module type ForwardsTransfer = sig
     *)
 
   val doStmt: Cil_types.stmt -> t -> t stmtaction
-  (** The (forwards) transfer function for a statement. The {!Cil.currentLoc} 
+  (** The (forwards) transfer function for a statement. The [(Cil.CurrentLoc.get ())] 
    * is set before calling this. The default action is to do the instructions
    * in this statement, if applicable, and continue with the successors. *)
 
@@ -187,14 +187,14 @@ module type BackwardsTransfer = sig
 
 
   val doStmt: Cil_types.stmt -> t action
-  (** The (backwards) transfer function for a branch. The {!Cil.currentLoc} is 
+  (** The (backwards) transfer function for a branch. The [(Cil.CurrentLoc.get ())] is 
    * set before calling this. If it returns None, then we have some default 
    * handling. Otherwise, the returned data is the data before the branch 
    * (not considering the exception handlers) *)
 
   val doInstr: Cil_types.stmt -> Cil_types.instr -> t -> t action
   (** The (backwards) transfer function for an instruction. The 
-   * {!Cil.currentLoc} is set before calling this. If it returns None, then we 
+   * [(Cil.CurrentLoc.get ())] is set before calling this. If it returns None, then we 
    * have some default handling. Otherwise, the returned data is the data 
    * before the branch (not considering the exception handlers) *)
 

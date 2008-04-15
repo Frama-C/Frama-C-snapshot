@@ -1,4 +1,4 @@
-(* $Id: docgen.ml,v 1.6 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: docgen.ml,v 1.7 2008/11/18 12:13:40 uid568 Exp $ *)
 
 open Odoc_module
 
@@ -298,7 +298,7 @@ class gen = object (self)
         incr Odoc_info.errors
 
   method html_of_plugin_developer_guide _t = 
-    "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plugin-developer-guide.pdf\">Plugin Developer Guide</a></b> for additional details."
+    "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plug-in_development_guide.pdf\">Plugin Development Guide</a></b> for additional details."
 
   initializer 
     tag_functions <- 

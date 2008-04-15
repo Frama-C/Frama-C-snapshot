@@ -19,16 +19,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: project.mli,v 1.11 2008/05/30 08:29:49 uid568 Exp $ *)
+(* $Id: project.mli,v 1.28 2008/12/12 12:46:33 uid581 Exp $ *)
 
-(** Projects management. 
+(** Projects management.
 
     A project groups together all the internal states of Frama-C. An internal
     state is roughly the result of a computation which depends of an AST. It is
     possible to have many projects at the same time. For registering a new
-    state in the Frama-C projects, apply the functor {!Computation.Register}. 
+    state in the Frama-C projects, apply the functor {!Computation.Register}.
 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 val set_debug_level: int -> unit
   (** Set the level of debug: 0 = no level; 1 = small debugging messages and so
@@ -39,14 +39,21 @@ val set_debug_level: int -> unit
 (* ************************************************************************* *)
 
 type t
-  (** Type of a project. 
-      @plugin developer guide *)
+  (** Type of a project.
+      @plugin development guide *)
 
-type project = t 
+type project = t
     (** Alias for the project type. *)
 
+val repr: t Type.t
+  (** Identifier for type [t]. *)
+
+val dummy: t
+  (** A dummy project: should only be used to initialized reference but must
+      never be put something inside. *)
+
 (* ************************************************************************* *)
-(** {2 Kinds dealing with Project} 
+(** {2 Kinds dealing with Project}
 
     There are two kinds of kinds in Frama-C: datatypes and computations. They
     are merely used for theirs dependencies:
@@ -65,128 +72,121 @@ module type KIND = sig
     (** Type of kinds. *)
 
   val dummy : t
-    (** A dummy kind. 
-	@plugin developer guide *)
+    (** A dummy kind.
+	@plugin development guide *)
 
   val name: t -> string
     (** Name of a kind. *)
-
-  exception Circular_Dependency of t * t
-    (** May be raised by [add_dependency]. *)
 
   val add_dependency: t -> t -> unit
     (** [add_dependency k1 k2] indicates that the state kind [k1] depends on
 	the state kind [k2], that is an action of the state kind [k2] must be
 	done before one of the state kind [k1]. Actions are cleaning, copying,
-	loading and saving. 
-	@raise Circular_Dependency if there is a circular dependency between
-	two state kinds. 
-	@plugin developer guide *)
+	loading and saving.
+	@plugin development guide *)
 
 end
 
-(** Signature for building names. 
-    Such names are required in input of registering functors. *)
-module type NAME = sig
+val identity: 'a -> 'a
+  (** The identity function. *)
 
-  type t
-    (** Type of a name. 
-	@plugin developer guide *)
-
-  exception AlreadyExists of string
-    (** May be raised by [make]. *)
-
-  val make: string -> t
-    (** [make s] create a new name [s]. 
-	@raise AlreadyExists if such a name already exists. 
-	@plugin developer guide *)
-
-  val extend: string -> t -> t
-    (** [extend s n] extends [s] by [n] in order to build a name of
-	the form [s(n)]. *)
-
-  val extend2: string -> t -> t -> t
-    (** [extend s n1 n2] extends [s] by [n1] and [n2] in order to build a name
-	of the form [s(n1,n2)]. *)
-
-  val get: t -> string
-    (** Return a string corresponding to the name. *)
-
-end
+val is_identity: ('a -> 'a) -> bool
+  (** @return true iff the given function is (physically) {!identity}. *)
 
 (** Datatype implementation and how to register them. *)
 module Datatype : sig
 
-  include KIND
-    (** Common operations. *)
-
-  module Name: NAME
-    (** Name implementation for datatypes. *)
-
-  (** Input signature of {!Datatype.Register}. *)
   module type INPUT = sig
-
-    val dependencies : t list 
-      (** Dependencies of this datatype. *)
 
     type t
       (** The datatype to register. *)
-
-    val before_load: unit -> unit
-      (** Action to perform before loading a project (related to this
-	  datatype). 
-	  @plugin developer guide *) 
-
-    val after_load: unit -> unit
-      (** Action to perform after loading a project (related to this
-	  datatype). 
-	  @plugin developer guide *)
 
     val rehash: t -> t
       (** How to rehashcons the datatype. *)
 
     val copy: t -> t
-      (** How to deeply copy the datatype. *)
+      (** How to deeply copy the datatype.
+	  The following invariant must hold: forall (p:t), copy s != s. *)
 
-    val name: Name.t
-      (** Name of the datatype. Has to be different of all other existing
-	  names. *)
+    val name: string
+      (** Name of the datatype.
+	  Have to be different of others registered datatypes. *)
 
   end
 
   (** Output of {!Datatype.Register}. *)
-  module type OUTPUT = sig
-
-    val self: t
-      (** The kind of the registered datatype. *)
-
-    val depend: t -> unit
-      (** [depend k] adds a dependencies from [k] to [me]. *)
+  module type S = sig
 
     include INPUT
       (** Exportation of inputs (easier use of [Datatype.Register]). *)
 
+    val register_comparable:
+      ?compare:(t -> t -> int) ->
+      ?equal:(t -> t -> bool) ->
+      ?hash:(t -> int) ->
+      ?physical_hash:(t -> int) ->
+      unit -> unit
+      (** Allow to register a specific [compare], [equal], [hash] and
+	  [physical_hash] functions for the datatype.
+
+	  [hash] and [equal] have to be compatible, that is:
+	  forall x y, equal x y ==> hash x = hash y.
+
+	  [physical_hash] has to be compatible with physical equality (==),
+	  that is:
+	  forall x y, x == y ==> physical_hash x = physical_hash y.
+
+	  - default value for [compare] is [Pervasives.compare];
+	  - default value for [equal] is [fun x y -> compare x y = 0] if
+	  [compare] is provided; (=) otherwise.
+	  - default value for [hash] is Hashtbl.hash;
+	  - default value for [physical_hash] is [hash] if it is provided;
+	  [Hashtbl.hash] otherwise.
+
+	  Never call [registered_comparable] is equivalent to call
+	  [register_comparable ()].
+
+	  Note that, as usual in ocaml, the default values for [equal] and
+	  [hash] are not compatible for all datastructures (though for the most
+	  ones). *)
+
+    val is_comparable_set: unit -> bool
+      (** @return false if [register_comparable] has never been called. *)
+
+    (** {3 Access to the functions registered by [registered_comparable]} *)
+
+    val hash: t -> int
+    val physical_hash: t -> int
+    val equal: t -> t -> bool
+    val compare: t -> t -> int
+
   end
 
-  (** Register a new kind of datatype by side-effects. 
-      @plugin developer guide *)
-  module Register(Datatype:INPUT) : OUTPUT with type t = Datatype.t
+  (** Register a new kind of datatype by side-effects.
+      @plugin development guide *)
+  module Register(Datatype:INPUT) : S with type t = Datatype.t
 
-  (** Register a single datatype, not affected by hashconsing. 
-      @plugin developer guide *)
-  module Imperative(X:sig type t val copy: t -> t end) : 
-    OUTPUT with type t = X.t
+  (** Register a single datatype, not affected by hashconsing.
+      @plugin development guide *)
+  module Imperative(X:sig type t val copy: t -> t val name: string end) :
+    S with type t = X.t
 
-  (** Register a single datatype, not affected by hashconsing and copying. 
-      @plugin developer guide *)
-  module Persistent(X:sig type t end) : OUTPUT with type t = X.t
+  (** Register a single datatype, not affected by hashconsing and copying.
+      @plugin development guide *)
+  module Persistent(X:sig type t val name: string end) :
+    S with type t = X.t
 
-  val dump_dependencies: string -> unit
-    (** Debugging purpose. *)
+  (** {3 Create a name from predefined ones}
+
+      See module {!Namespace}. *)
+
+  val extend_name: string -> string -> string
+  val extend_name2: string -> string -> string -> string
+  val extend_name3: string -> string -> string -> string -> string
 
 end
 
-(** Internal state (aka Computation) representation and how to register them. 
+(** Internal state (aka Computation) representation and how to register them.
     An internal state contains the result of a computation. *)
 module Computation : sig
 
@@ -195,9 +195,6 @@ module Computation : sig
 
   type selection
     (** Just an alias for [Project.Selection.t]. *)
-
-  module Name: NAME
-    (** Name implementation for internal states. *)
 
   (** Main input signature of {!Computation.Register}. *)
   module type INPUT = sig
@@ -213,8 +210,8 @@ module Computation : sig
     val clear: t -> unit
       (** How to clear a state. After cleaning, the state should be
 	  observationaly the same that after its creation (see invariant 2
-	  below). 
-	  @plugin developer guide *)
+	  below).
+	  @plugin development guide *)
 
     val get: unit -> t
       (** How to access to the current state. Be aware of invariants 3 and 4
@@ -226,27 +223,25 @@ module Computation : sig
 
   (** The four following invariants must hold.
       {ol
-      {- [create () != create ()]}
+      {- [create ()] returns a fresh value}
+      {- forall [(p:t)] [copy p] returns a fresh value}
       {- forall [(p:t)], [create () = (clear p; set p; get ())]}
-      {- forall [(p:t)], [set p; p == get ()]}
-      {- forall [(p1:t),(p2:t)], 
-      [set p1; let p = get () in set p2; p != get ()]}
-      }
-  *)
+      {- forall [(p1:t),(p2:t)] such that [p1 != p2], [(set p1; get ()) != s2]}
+      } *)
   end
 
   (** Some additional informations used by {!Computation.Register}. *)
   module type INFO = sig
-    val name: Name.t (** Name of the datatype. *)
-    val dependencies : t list (** Dependencies of this datatype. *)
+    val name: string (** Name of the internal state. *)
+    val dependencies : t list (** Dependencies of this internal state. *)
   end
 
   (** Output signature of {!Computation.Register}. *)
-  module type OUTPUT = sig 
+  module type OUTPUT = sig
 
     val self: t
-      (** The kind of the registered state. 
-	  @plugin developer guide *)
+      (** The kind of the registered state.
+	  @plugin development guide *)
 
     val select: Kind.how -> selection -> selection
       (** [select sel] add the registered state to the given selection in a
@@ -263,10 +258,15 @@ module Computation : sig
       (** Returns [true] iff the registered state will not change again for the
 	  given project (default is [current ()]). *)
 
+    val do_not_save: unit -> unit
+      (** Call this function if the registered state must not be save/load
+	  on/from disk. When loading, a new state (generated using [create]) is
+	  used instead. *)
+
     (** Exportation of some inputs (easier use of [Computation.Register]). *)
 
-    module Datatype: Datatype.OUTPUT
-    val name: Name.t
+    module Datatype: Datatype.S
+    val name: string
 
   end
 
@@ -274,23 +274,23 @@ module Computation : sig
       side-effect.
       [Datatype] represents the datatype of a state, [State] explains how to
       deal with a state and [Info] mainly details the dependencies of the
-      computation (i.e. what computations should be done before this one). 
-      @plugin developer guide *)
+      computation (i.e. what computations should be done before this one).
+      @plugin development guide *)
   module Register
-    (Datatype: Datatype.OUTPUT)
+    (Datatype: Datatype.S)
     (State: INPUT with type t = Datatype.t)
-    (Info: INFO) 
+    (Info: INFO)
     : OUTPUT with module Datatype = Datatype
 
-  val dump_dependencies: 
+  val dump_dependencies:
     ?only:selection -> ?except:selection -> string -> unit
     (** Debugging purpose only. *)
 
 end
 
-(** Selection of kinds of computation. 
-    @plugin developer guide *)
-module Selection : Kind.SELECTION with type kind = Computation.t 
+(** Selection of kinds of computation.
+    @plugin development guide *)
+module Selection : Kind.SELECTION with type kind = Computation.t
 				  and type t = Computation.selection
 
 (* ************************************************************************* *)
@@ -299,17 +299,24 @@ module Selection : Kind.SELECTION with type kind = Computation.t
 
 val create: string -> t
   (** Create a new project with the given name and attach it after the existing
-      projects (so the current project, if existing, is unchanged). 
-      The given name may be already used by another project. 
-      @plugin developer guide *)
+      projects (so the current project, if existing, is unchanged).
+      The given name may be already used by another project.
+      @plugin development guide *)
+
+val register_create_hook: (t -> unit) -> unit
+  (** [register_create_hook f] adds a hook on function [create]: each time a
+      new project [p] is created, [f p] is applied.
+
+      The order in which hooks are applied is the same than the order in which
+      hooks are registered. *)
 
 exception NoProject
   (** May be raised by [current]. *)
 
 val current: unit -> t
-  (** The current project. 
-      @raise NoProject if there is no project. 
-      @plugin developer guide *)
+  (** The current project.
+      @raise NoProject if there is no project.
+      @plugin development guide *)
 
 val is_current: t -> bool
   (** Check whether the given project is the current one or not. *)
@@ -327,24 +334,42 @@ val clear_all: unit -> unit
 (** {3 Inputs/Outputs} *)
 
 exception IOError of string
-  (** @plugin developer guide *)
+  (** @plugin development guide *)
 
 val save_all: string -> unit
-  (** Save all the projects in a file. 
-      @raise IOError a project cannot be saved. *)
+  (** Save all the projects in a file.
+      @raise IOError a project cannot be saved.
+  *)
 
 val load_all: string -> unit
   (** Load all the projects from a file.
       For each project to load, the specification is the same than
       {!Project.load}.
-      @raise IOError if a project cannot be loaded. 
-      @plugin developer guide *)
+      @raise IOError if a project cannot be loaded.
+      @plugin development guide *)
+
+val register_before_load_hook: (unit -> unit) -> unit
+  (** [register_before_load_hook f] adds a hook called just before loading
+      **each project** (more precisely, the project exists but is empty while
+      the hook is applied): if [n] projects are on disk, the same hook will be
+      called [n] times (one call by project).
+
+      Besides, for each project, the order in which the hooks are applied is
+      the same than the order in which hooks are registered. *)
+
+val register_after_load_hook: (unit -> unit) -> unit
+  (** [register_before_load_hook f] adds a hook called just after loading
+      **each project**: if [n] projects are on disk, the same hook will be
+      called [n] times (one call by project).
+
+      Besides, for each project, the order in which the hooks are applied is
+      the same than the order in which hooks are registered. *)
 
 (* ************************************************************************* *)
-(** {2 Operations on one project} 
+(** {2 Operations on one project}
 
     Most operations have two optional arguments, called [only] and [except] of
-    type [selection]. 
+    type [selection].
     - If [only] is specified, only the selected state kinds are copied.
     - If [except] is specified, those selected state kinds are not copied (even
     if they are also selected by [only]).
@@ -359,25 +384,39 @@ val unique_name: t -> string
   (** Return a project name based on {!name} but different of each others
       [unique_name]. *)
 
+val from_unique_name: string -> t
+  (** Return a project based on {!unique_name}.
+      @raise Not_found if no project has this unique name.
+  *)
+
 val set_current: ?only:Selection.t -> ?except:Selection.t -> t -> unit
   (** Set the current project with the given one.
-      @raise Invalid_argument if the given project does not exist anymore. 
-      @plugin developer guide *)
+      @raise Invalid_argument if the given project does not exist anymore.
+      @plugin development guide *)
 
-val on: 
+val register_after_set_current_hook: user_only:bool -> (unit -> unit) -> unit
+  (** [register_after_set_current_hook f] adds a hook on function
+      {!set_current}.
+      - If [user_only] is [true], then each time {!set_current} is directly
+      called by an user of this library, [f ()] is applied.
+      - If [user_only] is [false], then each time {!set_current} is applied
+      (even indirectly through {!Project.on}), [f ()] is applied.
+      The order in which each hook is applied is unspecified. *)
+
+val on:
   ?only:Selection.t -> ?except:Selection.t -> t -> ('a -> 'b) -> 'a -> 'b
-  (** [on p f x] sets the current project to [p], computes [f x] then 
+  (** [on p f x] sets the current project to [p], computes [f x] then
       restores the current project. You should use this function if you use a
-      project different of [current ()]. 
-      @plugin developer guide *)
+      project different of [current ()].
+      @plugin development guide *)
 
-val copy: 
+val copy:
   ?only:Selection.t -> ?except:Selection.t -> ?src:t -> t -> unit
   (** Copy a project into another one. Default project for [src] is [current
-      ()]. Replace the destination by [src]. 
-      @plugin developer guide *)
+      ()]. Replace the destination by [src].
+      @plugin development guide *)
 
-val clear: 
+val clear:
   ?only:Selection.t -> ?except:Selection.t -> ?project:t -> unit -> unit
   (** Clear the given project. Default project is [current ()]. All the
       internal states of the given project are now empty (wrt the action
@@ -399,15 +438,15 @@ val hash: t -> int
 
 (** {3 Inputs/Outputs} *)
 
-val save: 
+val save:
   ?only:Selection.t -> ?except:Selection.t -> ?project:t -> string -> unit
-  (** Save a given project in a file. Default project is [current ()]. 
-      @raise IOError if the project cannot be saved. 
-      @plugin developer guide *)
+  (** Save a given project in a file. Default project is [current ()].
+      @raise IOError if the project cannot be saved.
+      @plugin development guide *)
 
-val load: 
+val load:
   ?only:Selection.t -> ?except:Selection.t -> name:string -> string -> t
-  (** Load a file into a new project given by its name. 
+  (** Load a file into a new project given by its name.
       More precisely, [load only except name file]:
       {ol
       {- creates a new project;}
@@ -418,8 +457,8 @@ val load:
       {- performs all the registered [after_load] actions.}
       }
       @raise IOError if the project cannot be loaded
-      @return the new project containing the loaded data. 
-      @plugin developer guide *)
+      @return the new project containing the loaded data.
+      @plugin development guide *)
 
 (*
   Local Variables:

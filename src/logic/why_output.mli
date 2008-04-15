@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: why_output.mli,v 1.10 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: why_output.mli,v 1.12 2008/11/28 16:34:34 uid530 Exp $ *)
 (** Why interface *)
 
 open Fol
@@ -33,7 +33,12 @@ val predicate : formatter -> predicate -> unit
 val decl : formatter -> decl -> unit
 
 (** Output to file [file] the given predicate in why syntax *)
-val output : ?prelude:string -> file:string -> decl list -> unit
+val output : string option -> file:string -> decl list -> unit
+
+(** [prove basename prelude p] 
+* First call [output] (see above) and generate a tmp file with
+* [basename] and then call why, and then ergo *)
+val prove : string -> string option -> decl list -> unit
 
 (*                      
 Local Variables:

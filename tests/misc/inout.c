@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -inout -deps -main inout_11_0
-   OPT: -memory-footprint 1 -inout -deps -main inout_11_3
-   OPT: -memory-footprint 1 -inout -deps -main never_terminate
-   OPT: -memory-footprint 1 -inout -deps -main may_not_terminate
-   OPT: -memory-footprint 1 -inout -deps -main call_may_not_terminate
+   OPT: -memory-footprint 1 -inout -deps -main inout_11_0 -journal-disable
+   OPT: -memory-footprint 1 -inout -deps -main inout_11_3 -journal-disable
+   OPT: -memory-footprint 1 -inout -deps -main never_terminate -journal-disable
+   OPT: -memory-footprint 1 -inout -deps -main may_not_terminate -journal-disable
+   OPT: -memory-footprint 1 -inout -deps -main call_may_not_terminate -journal-disable
 */
 
 int Xt, Xs, Xs_I, Ys, Ys_I, Z, I;
@@ -64,4 +64,3 @@ void may_not_terminate (int i1, int i2, int i3, int i4, int i5_nt, int es, int e
 void call_may_not_terminate (int j1, int j2, int j3, int j4, int j5, int c1, int c2) {
   may_not_terminate(j1, j2, j3, j4, j5, c1, c2) ;
 }
-

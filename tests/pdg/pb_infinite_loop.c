@@ -1,13 +1,13 @@
 /* run.config
    GCC:
-   OPT: -main test_infinite_loop -pdg-debug "-fct-pdg test_infinite_loop"
-   OPT: -main test_infinite_loop_2 -pdg-debug "-fct-pdg test_infinite_loop_2"
-   OPT: -main test_exit -pdg-debug "-fct-pdg test_exit"
+   OPT: -main test_infinite_loop -pdg-debug "-fct-pdg test_infinite_loop" -journal-disable
+   OPT: -main test_infinite_loop_2 -pdg-debug "-fct-pdg test_infinite_loop_2" -journal-disable
+   OPT: -main test_exit -pdg-debug "-fct-pdg test_exit" -journal-disable
 */
 
 /* This test is a problem at the moment because the postdominators are Top
    for the points from which there is no path to the exit.
-   It means that we cannot compute the control dependencies in the 
+   It means that we cannot compute the control dependencies in the
    infinite loops...
 */
 
@@ -49,4 +49,3 @@ int test_exit (int c) {
     return 0;
   }
 }
-

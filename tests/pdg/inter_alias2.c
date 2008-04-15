@@ -1,9 +1,9 @@
 /* run.config
  *    GCC:
- *       OPT: -val
- *       OPT: -calldeps -pdg-debug "-fct-pdg incr_ptr"
- *       OPT: -calldeps -pdg-debug "-fct-pdg f1"
- *       OPT: -calldeps -pdg-debug "-fct-pdg f2"
+ *       OPT: -val -journal-disable
+ *       OPT: -calldeps -pdg-debug "-fct-pdg incr_ptr" -journal-disable
+ *       OPT: -calldeps -pdg-debug "-fct-pdg f1" -journal-disable
+ *       OPT: -calldeps -pdg-debug "-fct-pdg f2" -journal-disable
  */
 void incr_ptr (int *p) {
   *p += 1;

@@ -38,20 +38,24 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(** Type of emittable message *) 
+(** Type of emittable message *)
 type message = { m_file : string;
                  m_line : int;
                  m_msg : string;
                  m_severity : [ `Warning | `Error | `Info ] }
 
-val emit: 
-  Cil_types.location -> [>`Warning] -> 
+val emit:
+  Cil_types.location -> [>`Warning|`Error|`Info] ->
   ('a, Format.formatter, unit, unit) format4 -> 'a
-  (** Emit a located message. 
-      Messages other than [`Warning] are pretty printed as [`Unknown] *)
+  (** Emit a located message.
+      Severity other than the ones in the polymorphic variant are pretty
+      printed as [`Log] *)
 
 val enable_collect: unit -> unit
   (** Activate the message collector *)
+
+val disable_stderr: unit -> unit
+  (** Do not display messages on stderr *)
 
 val iter: (int -> message -> unit) -> unit
 val clear: unit -> unit

@@ -20,7 +20,7 @@
 (**************************************************************************)
 
 (** Functors making map indexed by zone.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Abstract_interp
 open Abstract_value
@@ -29,12 +29,12 @@ open BaseUtils
 
 exception Bitwise_cannot_copy
 
-module type Location_map_bitwise =
-sig
+module type Location_map_bitwise = sig
+
   type y
   type t
 
-  module Datatype: Project.Datatype.OUTPUT with type t = t
+  module Datatype: Project.Datatype.S with type t = t
 
   module LOffset :
   sig type t
@@ -51,11 +51,15 @@ sig
       val empty : t
       val is_empty: t->bool
       val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-      module Datatype: Project.Datatype.OUTPUT with type t = t
+      val equal : t -> t -> bool
+      val tag : t -> int
+      module Datatype: Project.Datatype.S with type t = t
   end
   val pretty : Format.formatter -> t -> unit
   val empty : t
   val join : t -> t -> t
+  val equal : t -> t -> bool
+  val hash : t -> int
   val is_included : t -> t -> bool
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
 

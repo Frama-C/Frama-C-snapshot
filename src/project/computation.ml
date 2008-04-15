@@ -19,16 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: computation.ml,v 1.8 2008/06/19 14:42:45 uid568 Exp $ *)
+(* $Id: computation.ml,v 1.15 2008/11/18 12:13:41 uid568 Exp $ *)
 
 module type HASHTBL = sig
   include Datatype.HASHTBL
   val clear: 'a t -> unit
   val find: 'a t -> key -> 'a
-  val find_all: 'a t -> key -> 'a list
   val remove: 'a t -> key -> unit
   val mem: 'a t -> key -> bool
-  val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 end
 
 module type HASHTBL_OUTPUT = sig
@@ -38,10 +36,11 @@ module type HASHTBL_OUTPUT = sig
   val replace: key -> data -> unit 
   val add: key -> data -> unit
   val clear: unit -> unit
+  val length: unit -> int
   val iter: (key -> data -> unit) -> unit
   val fold: (key -> data -> 'a -> 'a) -> 'a -> 'a
   val memo: ?change:(data -> data) -> (key -> data) -> key -> data
-    (** @plugin developer guide *)
+    (** @plugin development guide *)
   val find: key -> data
   val find_all: key -> data list
   val unsafe_find: key -> data
@@ -50,7 +49,7 @@ module type HASHTBL_OUTPUT = sig
 end
 
 module Make_Hashtbl
-  (H:HASHTBL)(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS) = 
+  (H:HASHTBL)(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS) = 
 struct
 
   type key = H.key
@@ -72,6 +71,7 @@ struct
   (Info)
 
   let clear () = H.clear !state
+  let length () = H.length !state
   let replace key v = H.replace !state key v
   let add key v = H.add !state key v
   let find key = H.find !state key
@@ -97,8 +97,8 @@ end
 module Hashtbl(Key:Hashtbl.HashedType) = Make_Hashtbl(Hashtbl.Make(Key))
 
 module type REF_INPUT = sig
-  include Datatype.INPUT
-  val default: t
+  include Project.Datatype.S
+  val default: unit -> t
 end
 
 module type REF_OUTPUT = sig
@@ -113,7 +113,7 @@ module Ref(Data:REF_INPUT)(Info:Signature.NAME_DPDS) = struct
 
   type data = Data.t
 
-  let create () = ref Data.default
+  let create () = ref (Data.default ())
   let state = ref (create ())
 
   include Project.Computation.Register
@@ -121,7 +121,7 @@ module Ref(Data:REF_INPUT)(Info:Signature.NAME_DPDS) = struct
   (struct
      type t = data ref
      let create = create
-     let clear tbl = tbl := Data.default
+     let clear tbl = tbl := Data.default ()
      let get () = !state
      let set x = state := x
    end)
@@ -129,7 +129,7 @@ module Ref(Data:REF_INPUT)(Info:Signature.NAME_DPDS) = struct
 
   let set v = !state := v
   let get () = !(!state)
-  let clear () = !state := Data.default
+  let clear () = !state := Data.default ()
 
 end
 
@@ -140,7 +140,8 @@ module type OPTION_REF_OUTPUT = sig
   val may: (data -> unit) -> unit
 end
 
-module OptionRef(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) = struct
+module OptionRef
+  (Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) = struct
 
   type data = Data.t
 
@@ -201,13 +202,13 @@ end
 
 module Make_SetRef
   (Set:SET)
-  (Data:Datatype.SET_INPUT with type t = Set.elt)
+  (Data:Project.Datatype.S with type t = Set.elt)
   (Info:Signature.NAME_DPDS) = 
 struct
   include Ref
     (struct 
        include Datatype.Make_Set(Set)(Data)
-       let default = Set.empty
+       let default () = Set.empty
      end)
     (Info)
   type elt = Set.elt
@@ -219,7 +220,7 @@ struct
   let iter f = apply (Set.iter f)
 end
 
-module SetRef(Data:Datatype.SET_INPUT) = Make_SetRef(Set.Make(Data))(Data)
+module SetRef(Data:Project.Datatype.S) = Make_SetRef(Set.Make(Data))(Data)
 
 (** {3 Queue} *)
 
@@ -230,7 +231,7 @@ module type QUEUE = sig
   val is_empty: unit -> bool
 end
 
-module Queue(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) = struct
+module Queue(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) = struct
 
   type elt = Data.t
       
@@ -253,12 +254,19 @@ module Queue(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) = struct
 
 end
 
+(** {3 Project itself} *)
+
+module Project(Info:Signature.NAME_DPDS) = 
+  Ref 
+    (struct include Datatype.Project let default () = Project.dummy end)
+    (Info)
+
 (** {3 Apply Once} *)
 
 let apply_once name dep f =
   let module First = 
     Ref
-      (struct include Datatype.Bool let default = true end)
+      (struct include Datatype.Bool let default () = true end)
       (struct let dependencies = dep let name = name end)
   in 
   (fun () ->

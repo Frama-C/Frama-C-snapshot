@@ -1,6 +1,27 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2008                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
 (** the options to launch the toplevel with if the test file is not
      annotated with test options *)
-let default_options = "-val -out -input -deps"
+let default_options = "-val -out -input -deps -journal-disable"
 
 let () =
   Unix.putenv "FRAMAC_SHARE" (Filename.concat Filename.current_dir_name "share");
@@ -20,6 +41,10 @@ let opt_to_byte =
   let opt = Str.regexp "[.]opt$" in
   function toplevel ->
     Str.global_replace opt ".byte" toplevel
+
+let execnow_opt_to_byte =
+  let opt = Str.regexp "tests/\\(.+\\)[.]opt\\($\\|[ \t]\\)" in
+  fun cmd -> Str.global_replace opt "tests/\\1.byte\\2" cmd
 
 let base_path = Filename.current_dir_name
 (*    (Filename.concat
@@ -125,10 +150,11 @@ type config =
       dc_execnow    : execnow list; (** command to be launched before
                                          the toplevel(s)
                                      *)
-      (*dc_toplevel   : string; (** full path of the toplevel used *)*)
+      dc_default_toplevel   : string;
+      (** full path of the default toplevel. *)
       dc_filter     : string option; (** optional filter to apply to
 			      standard output *)
-      dc_toplevels    : (string * string) list; 
+      dc_toplevels    : (string * string) list;
       (** troplevel full path and options to launch the toplevel on *)
       dc_dont_run   : bool;
     }
@@ -137,6 +163,7 @@ let default_config =
   { dc_test_regexp = test_file_regexp ;
     dc_execnow = [];
     dc_filter = None ;
+    dc_default_toplevel = toplevel_path;
     dc_toplevels = [ toplevel_path, default_options ];
     dc_dont_run = false;
   }
@@ -165,32 +192,61 @@ let launch command_string =
 let scan_execnow dir (s:string) =
   let rec aux (s:execnow) =
     try
-      Scanf.sscanf s.ex_cmd "%[ ]LOG %[A-Za-z0-9_',+=:.] %s@\n"
-	(fun _ name cmd ->
+      Scanf.sscanf s.ex_cmd "%_[ ]LOG%_[ ]%[A-Za-z0-9_',+=:.\\-]%_[ ]%s@\n"
+	(fun name cmd ->
 	   aux { s with ex_cmd = cmd; ex_log = name :: s.ex_log })
     with Scanf.Scan_failure _ ->
       try
-	Scanf.sscanf s.ex_cmd "%[ ]BIN %[A-Za-z0-9.] %s@\n"
-	  (fun _ name cmd ->
+	Scanf.sscanf s.ex_cmd "%_[ ]BIN%_[ ]%[A-Za-z0-9_.\\-]%_[ ]%s@\n"
+	  (fun name cmd ->
 	     aux { s with ex_cmd = cmd; ex_bin = name :: s.ex_bin })
       with Scanf.Scan_failure _ ->
 	s
   in
   aux { ex_cmd = s; ex_log = []; ex_bin = []; ex_dir = dir }
 
+(* the default toplevel for the current level of options. *)
+let current_default_toplevel = ref toplevel_path
+
+let make_custom_opts stdopts s =
+  let rec aux opts s =
+    try
+      Scanf.sscanf s "%_[ ]%1[+\\-]%_[ ]\"%s@\"%_[ ]%s@\n"
+        (fun c opt rem ->
+           match c with
+               "+" -> aux (opt :: opts) rem
+             | "-" -> aux (List.filter (fun x -> x <> opt) opts) rem
+             | _ -> assert false (* format of scanned string disallow it *))
+    with
+        Scanf.Scan_failure _ ->
+          if s <> "" then
+            lock_eprintf "unknown STDOPT configuration string: %s\n%!" s;
+          opts
+      | End_of_file -> opts
+  in
+  let opts =
+    aux (Str.split (Str.regexp " ") stdopts) s
+  in List.fold_left (fun s x -> s ^ " " ^ x) "" opts
+
 (* how to process options *)
-let config_options =
-  let last_toplevel = ref toplevel_path in
+let config_options stdopts =
+  let last_toplevel = ref !current_default_toplevel in
   [ "CMD",
     (fun _ s (current,rev_toplevels) ->
        last_toplevel := make_toplevel_path s;
-       current, rev_toplevels);
+       { current with dc_default_toplevel = !last_toplevel}, rev_toplevels);
 
     "OPT",
     (fun _ s (current,rev_toplevels) ->
        let t = !last_toplevel, s in
-       last_toplevel := toplevel_path;
+       last_toplevel := !current_default_toplevel;
        current, (t::rev_toplevels) );
+
+    "STDOPT",
+    (fun _ s (current, rev_toplevels) ->
+       let t = !last_toplevel, make_custom_opts stdopts s in
+       last_toplevel := !current_default_toplevel;
+       current, (t::rev_toplevels));
 
     "FILEREG",
     (fun _ s (current,rev_toplevels) ->
@@ -213,12 +269,21 @@ let config_options =
     "EXECNOW",
     (fun dir s (current,rev_toplevels)->
        let execnow = scan_execnow dir s in
-       { current with dc_execnow = execnow::current.dc_execnow  }, 
+       { current with dc_execnow = execnow::current.dc_execnow  },
        rev_toplevels);
   ]
 
+let make_std_opts default =
+  let rec find_last = function
+      [] -> ""
+    | [_,opts] -> opts
+    | _::tl -> find_last tl
+  in find_last default.dc_toplevels
+
 let scan_options dir scan_buffer default =
   let r = ref (default, [])  in
+  current_default_toplevel := default.dc_default_toplevel;
+  let config_options = config_options (make_std_opts default) in
   let treat_line s =
     try
       Scanf.sscanf s "%[ *]%[A-Za-z0-9]:%s@\n"
@@ -256,13 +321,21 @@ let scan_test_file default dir f =
   in
     if exists_as_file then begin
         let scan_buffer = Scanf.Scanning.from_file f in
-          try
-            Scanf.bscanf scan_buffer "/* run.config%s@\n" (fun _ -> ());
-            scan_options dir scan_buffer default
-          with
-            | End_of_file
-            | Scanf.Scan_failure _ ->
-                default
+	let rec scan_config () =
+	  (* space in format string matches any number of whitespace *)
+          Scanf.bscanf scan_buffer " /* run.config%s "
+	    (fun name ->
+	       if not
+		 (!special_config = "" && name = ""
+		     || name = "_" ^ !special_config)
+	       then
+		 (ignore (scan_options dir scan_buffer default);
+		  scan_config ()))
+	in
+        try
+	  scan_config ();
+          scan_options dir scan_buffer default
+        with End_of_file | Scanf.Scan_failure _ -> default
       end else
       (* if the file has disappeared, don't try to run it... *)
       { default with dc_dont_run = true }
@@ -337,7 +410,7 @@ let name_without_extension command =
     (Filename.chop_extension command.file)
   with
     Invalid_argument _ ->
-      failwith ("Ce nom de fichier de test ne comporte pas d'extension: " ^
+      failwith ("This test file does not have any extension: " ^
 		   command.file)
 
 let gen_prefix s cmd =
@@ -386,15 +459,24 @@ let update_toplevel_command command =
   in
   ignore (launch command_string)
 
-let update_command = function
-    Toplevel cmd -> update_toplevel_command cmd
-  | Target _ -> assert false
-
 let update_log_files dir file =
   let command_string =
     "mv " ^ make_result_file dir file ^ " " ^ make_oracle_file dir file
   in
   ignore (launch command_string)
+
+let rec update_command = function
+    Toplevel cmd -> update_toplevel_command cmd
+  | Target (execnow,cmds) ->
+      List.iter (update_log_files execnow.ex_dir) execnow.ex_log;
+      Queue.iter update_command cmds
+
+let remove_execnow_results execnow =
+  List.iter
+    (fun f ->
+       try Unix.unlink (make_result_file execnow.ex_dir f)
+       with Unix.Unix_error _ -> ())
+    (execnow.ex_bin @ execnow.ex_log)
 
 let do_command command =
   match command with
@@ -421,22 +503,20 @@ let do_command command =
       end
   | Target (execnow, cmds) ->
       if !behavior = Update then begin
-	List.iter (update_log_files execnow.ex_dir) execnow.ex_log;
-        Queue.iter update_command cmds
+        update_command command
       end else
         begin
           let res =
             if !behavior <> Examine then begin
-	      let filenames =
-		List.fold_left
-		  (fun s f -> s ^ " " ^ make_result_file execnow.ex_dir f)
-		  ""
-		  (execnow.ex_bin @ execnow.ex_log)
-	      in
-	      (* TODO this should be done with Unix.unlink *)
-	      ignore (launch ("rm" ^ filenames ^ " 2> /dev/null"));
+              remove_execnow_results execnow;
 	      Mutex.lock shared.lock_target;
-	      let r = launch execnow.ex_cmd in
+              let cmd =
+                if !use_byte then
+                  execnow_opt_to_byte execnow.ex_cmd
+                else
+                  execnow.ex_cmd
+              in
+	      let r = launch cmd in
 	      Mutex.unlock shared.lock_target;
 	      r
             end else
@@ -458,7 +538,7 @@ let do_command command =
 	    end
           end
 	  else begin
-	    let treat_cmd = function
+	    let rec treat_cmd = function
 		Toplevel cmd ->
 		  shared.summary_run <- shared.summary_run + 1;
 		  let log_prefix = log_prefix cmd in
@@ -466,14 +546,17 @@ let do_command command =
 		    Unix.unlink (log_prefix ^ ".res.log ")
 		  with Unix.Unix_error _ -> ()
 		  end;
-	      | Target _ -> assert false
+	      | Target (execnow,cmds) ->
+                  shared.summary_run <- succ shared.summary_run;
+                  remove_execnow_results execnow;
+                  Queue.iter treat_cmd cmds
 	    in
 	    Queue.iter treat_cmd cmds;
             Queue.push (Target_error execnow) shared.diffs;
             Condition.signal shared.diff_available
           end;
           unlock()
-        end      
+        end
 
 let log_ext = function Res -> ".res" | Err -> ".err"
 
@@ -717,13 +800,17 @@ let dispatcher () =
       then begin
 	(match config.dc_execnow with
 	 | hd :: tl ->
-	     List.iter 
-	       (fun s -> 
-		  Queue.push (Target (s, Queue.create ())) shared.commands)
-	       (List.rev tl);
-	     let subworkqueue = Queue.create () in
-	     List.iter (treat_option subworkqueue) config.dc_toplevels;
-	     Queue.push (Target (hd, subworkqueue)) shared.commands
+             let subworkqueue = Queue.create () in
+             List.iter (treat_option subworkqueue) config.dc_toplevels;
+             let target =
+               List.fold_left
+                 (fun current_target execnow ->
+                    let subworkqueue = Queue.create () in
+                    Queue.add current_target subworkqueue;
+                    Target(execnow,subworkqueue))
+                 (Target(hd,subworkqueue)) tl
+             in
+	     Queue.push target shared.commands
          | [] ->
              List.iter
 	       (treat_option shared.commands)
@@ -774,3 +861,9 @@ let () =
     lock_printf "%% Diffs finished. Summary:@\nRun = %d@\nOk  = %d of %d@."
       shared.summary_run shared.summary_ok shared.summary_log;
   exit 0;
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C .. ptests"
+End:
+*)

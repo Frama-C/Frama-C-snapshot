@@ -5,7 +5,7 @@
 module S = Db.Slicing;;
 open LibSelect;;
 
-let project = !S.Project.create_internal "slicing" ;;
+let project = mk_project () ;;
 
 let pretty_pdg fmt kf = !Db.Pdg.pretty fmt (!Db.Pdg.get kf);;
 

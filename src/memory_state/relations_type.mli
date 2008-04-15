@@ -35,7 +35,7 @@ module type Model_S = sig
   type t
   type widen_hint = Cvalue_type.Model.widen_hint
   type cluster
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
 
   (** {3 ...} *)
 
@@ -71,7 +71,7 @@ module type Model_S = sig
   val clear_state_from_locals : Cil_types.fundec -> t -> t
 
   val compute_actual_final_from_generic :
-    t -> t -> Zone.t -> Cvalue_type.Model.instanciation -> t
+    t -> t -> Zone.t -> Cvalue_type.Model.instanciation -> t*Location_Bits.Top_Param.t
 
   val is_included_by_location_enum :  t -> t -> Zone.t -> bool
 

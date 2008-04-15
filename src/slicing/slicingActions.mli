@@ -53,7 +53,7 @@ type t_criterion = SlicingTypes.Internals.t_criterion
 
 val mk_fct_crit : t_fct_info -> t_fct_crit -> t_criterion
 val mk_crit_fct_user_select : t_fct_info -> t_select -> t_criterion
-val mk_crit_fct_top : t_fct_info -> t_criterion
+val mk_crit_fct_top : t_fct_info -> t_mark -> t_criterion
 val mk_crit_prop_persit_marks : t_fct_info -> t_select -> t_criterion
 val mk_ff_user_select : t_fct_slice -> t_select -> t_criterion
 val mk_crit_choose_call : t_fct_slice -> t_call_id -> t_criterion

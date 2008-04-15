@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: why_output.ml,v 1.17 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: why_output.ml,v 1.20 2008/11/28 16:34:34 uid530 Exp $ *)
 
 open Fol
 open Format
@@ -54,7 +54,7 @@ let constant fmt = function
 let rec term fmt = function
   | Tconst c ->
       constant fmt c
-  | Tvar id ->
+  | Tdata id ->
       fprintf fmt "%s" id
   | Tapp (id, []) ->
       fprintf fmt "%s" id
@@ -112,10 +112,12 @@ let decl fmt = function
   | Type (t) ->
       fprintf fmt "@[type %a@]@\n" pure_type t
 
-let output ?prelude ~file p =
+let output prelude ~file p =
+  Format.printf "[why_output] exporting in %s@." file;
   let c = open_out file in
   begin match prelude with
     | Some f ->
+        Format.printf "\t with predule %s@." f;
 	let cin = open_in f in
 	begin try
 	  while true do output_char c (input_char cin) done
@@ -128,7 +130,34 @@ let output ?prelude ~file p =
   fprintf fmt "@[%a@]@." (print_list newline decl) p;
   close_out c
 
-
+let prove basename prelude p =
+  let dir_ok dirname =
+    try let d = Unix.opendir dirname in Unix.closedir d; true
+    with Unix.Unix_error (Unix.ENOENT, "opendir",_) -> false
+  in
+  let whylib = String.escaped (Filename.concat Version.dataroot "why") in
+    if dir_ok whylib then
+      begin
+        Unix.putenv "WHYLIB" whylib;
+        Format.printf "[why_output] setenv WHYLIB %s@." whylib;
+        let prelude = match prelude with None -> None
+          | Some prelude -> Some (Filename.concat whylib prelude)
+        in
+        let why_file = Filename.temp_file basename ".why" in
+          output prelude ~file:why_file p;
+          Format.printf "[?] call 'why' on %s@." why_file;
+          if Sys.command (sprintf "why --why %s" why_file) <> 0 then
+            Format.printf "Could not run why.@."
+          else begin
+            let base = Filename.chop_extension why_file in
+            let ergo_file = (base^"_why.why") in
+              Format.printf "[?] call 'ergo' on %s@." ergo_file;
+              if Sys.command (sprintf "ergo %s" ergo_file) <> 0 then
+                Format.printf "Could not run ergo.@."
+          end
+      end
+    else
+      Format.printf "Could not find 'why' library in %s." whylib
 
 (*
 Local Variables:

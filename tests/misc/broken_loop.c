@@ -1,11 +1,11 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main loop
+  OPT: -memory-footprint 1 -val -deps -out -input  -main loop -journal-disable
 */
 int X;
 
 void loop(int d) {
-  
+
   if(d) ; else ;
   goto L;
   X=0;

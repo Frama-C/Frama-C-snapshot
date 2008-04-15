@@ -42,7 +42,7 @@
     This will fill in the [preds] and [succs] fields of {!Cil.stmt}
 
     This is required for several other extensions, such as {!Dataflow}.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil
 open Cil_types

@@ -27,9 +27,9 @@ let compute kf =
   pdg
 
 let pretty ?(bw=false) fmt pdg =
-    let fct_name = PdgTypes.Pdg.get_fct_name pdg in
+    let kf = PdgTypes.Pdg.get_kf pdg in
     Format.fprintf fmt "@[[pdg RESULT for %s] :@]@\n@[%a@]"
-      fct_name (Print.pretty_pdg ~bw) pdg
+      (Kernel_function.get_name kf) (Print.pretty_pdg ~bw) pdg
 
 let pretty_node short =
   if short then PdgTypes.Node.pretty
@@ -39,13 +39,13 @@ let pretty_key = Print.pretty_key
 
 let print_dot pdg filename =
   Print.build_dot filename pdg;
-  Format.printf "[pdg] dot file generated in %s@\n" filename
+  Format.printf "[pdg] dot file generated in %s@." filename
 
 module Tbl =
   Kernel_function.Make_Table
     (PdgTypes.Pdg.Datatype)
     (struct
-       let name = Project.Computation.Name.make "Pdg.State"
+       let name = "Pdg.State"
        let dependencies = [] (* postponed *)
        let size = 97
     end)
@@ -69,6 +69,7 @@ let () =
   Db.Pdg.find_stmt_and_blocks_nodes := Sets.find_stmt_and_blocks_nodes;
   Db.Pdg.find_stmt_node := Sets.find_stmt_node;
   Db.Pdg.find_location_nodes_at_stmt := Sets.find_location_nodes_at_stmt;
+  Db.Pdg.find_location_nodes_at_begin := Sets.find_location_nodes_at_begin;
   Db.Pdg.find_location_nodes_at_end := Sets.find_location_nodes_at_end;
   Db.Pdg.find_call_ctrl_node := Sets.find_call_ctrl_node;
   Db.Pdg.find_call_input_node := Sets.find_call_num_input_node;
@@ -81,6 +82,8 @@ let () =
   Db.Pdg.find_call_stmts := Sets.find_call_stmts;
 
   Db.Pdg.find_code_annot_nodes := Annot.find_code_annot_nodes;
+  Db.Pdg.find_fun_precond_nodes := Annot.find_fun_precond_nodes;
+  Db.Pdg.find_fun_postcond_nodes := Annot.find_fun_postcond_nodes;
 
   Db.Pdg.find_call_out_nodes_to_select := Sets.find_call_out_nodes_to_select;
   Db.Pdg.find_in_nodes_to_select_for_this_call := 
@@ -123,6 +126,33 @@ let translate_in_marks = Marks.translate_in_marks
 
 module F_Proj (C : PdgMarks.T_Config) = Marks.F_Proj (C)
 
+let main fmt =
+  let force_pdg = 
+    Cmdline.Pdg.BuildAll.get ()
+    || not (Cilutil.StringSet.is_empty (Cmdline.Pdg.BuildFct.get ()))
+  in
+  if force_pdg then begin
+    Format.fprintf fmt "@\n[pdg] in progress...@.";
+    let do_kf_pdg kf =
+      let fname = Kernel_function.get_name kf in
+      if Cmdline.Pdg.BuildAll.get () ||
+	Cilutil.StringSet.mem fname (Cmdline.Pdg.BuildFct.get ())
+      then begin
+	let pdg = !Db.Pdg.get kf in
+        let bw  = Cmdline.Pdg.PrintBw.get () in
+	Format.fprintf fmt "@[%a@]@." (!Db.Pdg.pretty ~bw) pdg;
+	if Cmdline.Pdg.DotBasename.get () <> "" then
+          !Db.Pdg.extract pdg
+	    (Cmdline.Pdg.DotBasename.get ()^"."^fname^".dot")
+      end
+    in
+    !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
+    if Cmdline.Pdg.BuildAll.get () then
+      Format.fprintf fmt "@\n====== PDG GRAPH COMPUTED ======@.";
+  end
+
+let () = Db.Main.extend main
+
 (** Register options for this computation *)
 let () =
   Options.add_plugin ~name:"Program Dependence Graph (experimental)"
@@ -155,7 +185,7 @@ let () =
     [ ]
 
 (*
-Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
-End:
+  Local Variables:
+  compile-command: "LC_ALL=C make -C ../.. -j"
+  End:
 *)

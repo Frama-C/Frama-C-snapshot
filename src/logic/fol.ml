@@ -35,41 +35,50 @@ type constant =
   | ConstUnit
   | ConstFloat of string
 
-type term =
-  | Tconst of constant
-  | Tvar of string
-  | Tapp of string * term list
-  | Tif of term * term * term
+type var = string
 
-type predicate =
+type 'd d_term =
+  | Tconst of constant
+  | Tdata of 'd
+  | Tapp of string * 'd d_term list
+  | Tif of 'd d_term * 'd d_term * 'd d_term
+
+type term = var d_term
+
+type 't t_pred =
   | Pvar of string
-  | Papp of string * term list
+  | Papp of string * 't list
   | Ptrue
   | Pfalse
-  | Pimplies of predicate * predicate
-  | Pif of term * predicate * predicate
-  | Pand of predicate * predicate
-  | Por of predicate * predicate
-  | Pxor of predicate * predicate
-  | Piff of predicate * predicate
-  | Pnot of predicate
-  | Pforall of string * pure_type * predicate
-  | Pexists of string * pure_type * predicate
-  | Pnamed of string * predicate
+  | Pimplies of 't t_pred * 't t_pred
+  | Pif of 't * 't t_pred * 't t_pred
+  | Pand of 't t_pred * 't t_pred
+  | Por of 't t_pred * 't t_pred
+  | Pxor of 't t_pred * 't t_pred
+  | Piff of 't t_pred * 't t_pred
+  | Pnot of 't t_pred
+  | Pforall of string * pure_type * 't t_pred
+  | Pexists of string * pure_type * 't t_pred
+  | Pnamed of string * 't t_pred
 
-type decl =
+type 'd d_pred = ('d d_term) t_pred
+type predicate = term t_pred
+
+type 't gen_decl =
   | Function of string * pure_type list * pure_type
   | Predicate of string * pure_type list
-  | Axiom of string * predicate
-  | Goal of string * predicate
+  | Axiom of string * 't t_pred
+  | Goal of string * 't t_pred
   | Type of pure_type
 
-let pand = function
+type decl = term gen_decl
+
+let pand (p1, p2) = match p1, p2 with
   | Ptrue, p2 -> p2
   | p1, Ptrue -> p1
   | p1, p2 -> Pand (p1, p2)
 
-let pands = List.fold_right (fun p1 p2 -> pand (p1, p2))
+let pands l p = List.fold_right (fun p1 p2 -> pand (p1, p2)) l p
 
 let pimplies = function
   | Ptrue, p2 -> p2
@@ -101,12 +110,11 @@ let pxor = function
   | Pfalse, p | p, Pfalse -> p
   | p,p' -> Pxor(p,p')
 
-let pors = List.fold_right (fun p1 p2 -> por (p1, p2))
+let pors l p = List.fold_right (fun p1 p2 -> por (p1, p2)) l p
 
 let pif = function
   | (_,Ptrue, Ptrue ) -> Ptrue
   | (_,Pfalse, Pfalse ) -> Pfalse
-
 
   | (c,Ptrue,p ) -> por ((term_to_predicate c),p)
 
@@ -121,45 +129,61 @@ let pif = function
 let piff = function p,p' -> Piff (p,p')
 let papp = function p,p' -> Papp (p,p')
 
-let rec subst_in_term x fresh t = match t with
-| Tconst _ -> t
-| Tvar v -> if v = x then fresh else t
-| Tapp (n,tl) ->
-    Tapp(n,List.map (subst_in_term x fresh) tl)
-| Tif (t1,t2,t3) -> Tif(subst_in_term x fresh t1,
-                        subst_in_term x fresh t2,
-                        subst_in_term x fresh t3)
 
-let rec subst_in_predicate x fresh p =
-  let subst_pred = subst_in_predicate x fresh in
-  let subst_term = subst_in_term x fresh in
+let rec change_exp_in_pred do_exp quantif_do_exp p =
+  let subst_pred = change_exp_in_pred do_exp quantif_do_exp in
   match p with
-  | Pvar _ | Ptrue | Pfalse -> p
-
-  | Pif (t,p1,p2) -> pif (subst_term t,
-                          subst_pred p1,
-                          subst_pred p2)
+  | Ptrue -> Ptrue
+    | Pfalse -> Pfalse 
+  | Pvar v -> Pvar v
+  | Pif (t,p1,p2) -> 
+      Pif (do_exp t, subst_pred p1, subst_pred p2)
   | Pnot p -> pnot (subst_pred p)
-  | Pforall (v,pt,p') ->
-      if x = v then p else
-        Pforall (v,pt,subst_pred p')
-  | Pexists (v,pt,p') ->
-      if x = v then p else
-        Pexists (v,pt,subst_pred p')
-  | Pnamed (n,p) ->
-     Pnamed (n,subst_pred p)
-  | Pimplies (p1,p2) ->
-      pimplies (subst_pred p1,subst_pred p2)
-  | Pand (p1,p2) ->
-      pand (subst_pred p1,subst_pred p2)
-  | Por (p1,p2) ->
-      por (subst_pred p1,subst_pred p2)
-  | Pxor(p1,p2) ->
-      pxor (subst_pred p1, subst_pred p2)
-  | Piff (p1,p2) ->
-      piff (subst_pred p1,subst_pred p2)
-  | Papp (n,t)
-    -> papp (n,List.map subst_term t)
+  | Pforall (v,pt,p') -> 
+      let f = quantif_do_exp do_exp v in
+        Pforall (v,pt,change_exp_in_pred f quantif_do_exp p')
+  | Pexists (v,pt,p') -> 
+      let f = quantif_do_exp do_exp v in
+        Pforall (v,pt,change_exp_in_pred f quantif_do_exp p')
+  | Pnamed (n,p) -> Pnamed (n,subst_pred p)
+  | Pimplies (p1,p2) -> pimplies (subst_pred p1,subst_pred p2)
+  | Pand (p1,p2) -> pand (subst_pred p1,subst_pred p2)
+  | Por (p1,p2) -> por (subst_pred p1,subst_pred p2)
+  | Pxor(p1,p2) -> pxor (subst_pred p1, subst_pred p2)
+  | Piff (p1,p2) -> piff (subst_pred p1,subst_pred p2)
+  | Papp (n,t) -> papp (n,List.map do_exp t)
+
+let rec change_data_in_exp do_data t = match t with
+| Tconst c -> Tconst c
+| Tdata v -> do_data v
+| Tapp (n,tl) -> Tapp(n, List.map (change_data_in_exp do_data) tl)
+| Tif (t1,t2,t3) -> Tif(change_data_in_exp do_data t1,
+                        change_data_in_exp do_data t2,
+                        change_data_in_exp do_data t3)
+
+let change_data_in_pred do_data quantif_do_data p =
+  let do_exp e = change_data_in_exp do_data e in
+  let quantif_do_exp f_exp v = 
+    let f_data = fun d -> f_exp (Tdata d) in
+    let new_f_data = quantif_do_data f_data v in
+    let new_f_exp = change_data_in_exp new_f_data in
+      new_f_exp
+  in
+    change_exp_in_pred do_exp quantif_do_exp p
+
+let translate_data_in_pred do_data p =
+  let do_exp e = change_data_in_exp do_data e in
+  let quantif_do_exp f_exp _ = f_exp in
+    change_exp_in_pred do_exp quantif_do_exp p
+
+let subst_vars_in_predicate f_x_exp_opt p =
+  let do_data d = match f_x_exp_opt d with | Some e -> e | None -> Tdata d in
+  let quantif_do_data f v = 
+    (fun d -> if d = v then Tdata d else f d) in
+    change_data_in_pred do_data quantif_do_data p
+
+let subst_in_predicate x exp p =
+  subst_vars_in_predicate (fun v -> if v = x then Some exp else None) p
 
 let fresh_name =
   let counter = ref 0 in
@@ -178,19 +202,19 @@ let plet x ty t p =
         let x' = fresh_name x in
         Pforall (x', ty,
 	         Pimplies
-                   (Papp ("eq", [Tvar x'; t]),
+                   (Papp ("eq", [Tdata x'; t]),
 		    Pforall (x, ty,
 			     Pimplies
-                               (Papp ("eq", [Tvar x; Tvar x']),
+                               (Papp ("eq", [Tdata x; Tdata x']),
 			        p))))
   end
 
 let pforall (x,ty,p) =
   let fresh = fresh_name x in
-  let p = subst_in_predicate x (Tvar fresh) p in
+  let p = subst_in_predicate x (Tdata fresh) p in
   Pforall(fresh, ty, p)
 
 let pexists (x,ty,p) =
   let fresh = fresh_name x in
-  let p = subst_in_predicate x (Tvar fresh) p in
+  let p = subst_in_predicate x (Tdata fresh) p in
   Pexists(fresh, ty, p)

@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main simple
+  OPT: -memory-footprint 1 -val -deps -out -input  -main simple -journal-disable
 */
 int simple (int a, int b){
   int w;

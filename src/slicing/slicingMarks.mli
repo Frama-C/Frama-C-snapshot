@@ -31,6 +31,7 @@ val mk_gen_spare : t_mark
 val mk_user_spare : t_mark
 
 val is_bottom_mark : t_mark -> bool
+val is_top_mark : t_mark -> bool
 val is_spare_mark : t_mark -> bool
 val is_ctrl_mark : t_mark -> bool
 val is_addr_mark : t_mark -> bool
@@ -77,5 +78,6 @@ val check_input_marks : t_sig_marks ->
 val check_called_input_marks : t_sig_marks -> t_sig_marks option -> 
                                 (PdgIndex.Signature.t_in_key * t_mark) list * bool
                                 *)
+val get_marked_out_zone : t_sig_marks -> bool * Locations.Zone.t
 val pretty_sig : Format.formatter -> t_sig_marks -> unit
 

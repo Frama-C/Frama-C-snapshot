@@ -60,6 +60,11 @@ let is_oneline_ghost () = !one_line_ghost
 let enter_oneline_ghost () = one_line_ghost := true
 let exit_oneline_ghost () = one_line_ghost := false
 
+let ghost_code = ref false
+let is_ghost_code () = !ghost_code
+let enter_ghost_code () = ghost_code := true
+let exit_ghost_code () = ghost_code := false
+
 (* string -> unit *)
 let addComment c =
   let l = currentLoc() in
@@ -69,7 +74,7 @@ let addComment c =
 (* track whitespace for the current token *)
 let white = ref ""
 
-let addWhite lexbuf = 
+let addWhite lexbuf =
   if !Whitetrack.enabled then
     let w = Lexing.lexeme lexbuf in
     white := !white ^ w
@@ -222,7 +227,7 @@ let init_lexicon _ =
       ("__builtin_offsetof", fun loc -> BUILTIN_OFFSETOF loc);
       (* On some versions of GCC __thread is a regular identifier *)
       ("__thread", fun loc ->
-                      if !Machdep.__thread_is_keyword then
+                      if Machdep.state.Machdep.__thread_is_keyword then
                          THREAD loc
                        else
                          IDENT ("__thread", loc));
@@ -581,7 +586,6 @@ rule initial =
 |		hexnum			{CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
 |		octnum			{CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
 |		intnum			{CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
-|               "*/"                    { RGHOST }
 |		"!quit!"		{EOF}
 |		"..."			{ELLIPSIS}
 |		"+="			{PLUS_EQ}
@@ -608,7 +612,10 @@ rule initial =
 |		"->"			{ARROW}
 |		'+'				{PLUS (currentLoc ())}
 |		'-'				{MINUS (currentLoc ())}
-|		'*'				{STAR (currentLoc ())}
+|		'*'
+                    { if is_ghost_code () then might_end_ghost lexbuf
+                      else
+                        STAR (currentLoc ())}
 |		'/'				{SLASH}
 |		'%'				{PERCENT}
 |		'!'			{EXCLAM (currentLoc ())}
@@ -660,6 +667,11 @@ rule initial =
     else EOF
   }
 |		_			{E.parse_error "Invalid symbol"}
+
+and might_end_ghost = parse
+  | '/' { exit_ghost_code(); RGHOST }
+  | "" { STAR (currentLoc()) }
+
 and comment = parse
   |  "*/"                       { addWhite lexbuf; [] }
   |  '\n'                       { E.newline (); comment lexbuf }
@@ -779,7 +791,9 @@ and msasmnobrace = parse
 and annot_first_token = parse
   | "ghost" {
       if is_oneline_ghost () then E.parse_error "nested ghost code";
-      Buffer.clear buf; LGHOST
+      Buffer.clear buf;
+      enter_ghost_code ();
+      LGHOST
     }
   | ' '|'@'|'\t'|'\r' as c { Buffer.add_char buf c; annot_first_token lexbuf }
   | '\n' { E.newline(); Buffer.add_char buf '\n'; annot_first_token lexbuf }
@@ -805,3 +819,8 @@ and annot_one_line_logic = parse
 {
 
 }
+
+(* Local-Variables:
+   compile-command: make -C ../../..
+   End:
+*)

@@ -36,7 +36,7 @@ let find_sub_stmts st = match st.skind with
 | If(_,bl1,bl2,_) | TryExcept (bl1, _, bl2, _)
 | TryFinally (bl1, bl2, _) -> bl1.bstmts@bl2.bstmts
 | Block bl | Loop (_,bl, _, _, _) | Switch (_, bl, _, _) ->  bl.bstmts
-| UnspecifiedSequence bl -> bl.bstmts
+| UnspecifiedSequence seq -> List.map (fun (x,_,_) -> x) seq
 | Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _  -> []
 
 let str_call_sig ff call fmt =
@@ -45,16 +45,16 @@ let str_call_sig ff call fmt =
       let called, sgn = PdgIndex.FctIndex.find_call ff_marks call in
       let print_called fmt = match called with
         | None
-        | Some (None) -> Format.fprintf fmt "/* undetermined call */@\n"
+        | Some (None) -> Format.fprintf fmt "/* undetermined call */@."
         | Some (Some (T.CallSlice ff)) ->
-            Format.fprintf fmt "/* call to %a */@\n"
+            Format.fprintf fmt "/* call to %a */@."
               Fct_slice.print_ff_sig ff
         | Some (Some(T.CallSrc _)) ->
-            Format.fprintf fmt "/* call to source function */@\n"
+            Format.fprintf fmt "/* call to source function */@."
       in
         Format.fprintf fmt "/* sig call : %a */@\n%t"
                            SlicingMarks.pretty_sig sgn print_called
-    with Db.Pdg.NotFound -> Format.fprintf fmt "/* invisible call */@\n"
+    with Db.Pdg.NotFound -> Format.fprintf fmt "/* invisible call */@."
 
 open Pretty
 class printerClass optional_ff = object(self)
@@ -121,8 +121,7 @@ end
 
 
 let print_fct_from_pdg fmt ?ff pdg  =
-  let var_fct = PdgTypes.Pdg.get_var_fct pdg in
-  let kf = Globals.Functions.get var_fct in
+  let kf = PdgTypes.Pdg.get_kf pdg in
   let fct = Kernel_function.get_definition kf in
   let loc = Lexing.dummy_pos,Lexing.dummy_pos in
   let glob = Cil_types.GFun (fct, loc) in (* TODO : make it cleaner *)
@@ -130,7 +129,7 @@ let print_fct_from_pdg fmt ?ff pdg  =
   Cil.printGlobal printer fmt glob
 
 let print_marked_ff fmt ff =
-  Format.fprintf fmt "Print slice = %a@\n" Fct_slice.print_ff_sig ff;
+  Format.fprintf fmt "Print slice = %a@." Fct_slice.print_ff_sig ff;
   let pdg = M.get_ff_pdg ff in print_fct_from_pdg fmt pdg ?ff:(Some ff)
 
 let print_original_glob fmt glob =

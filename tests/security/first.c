@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -security-lattice weak
+   OPT: -security-analysis -security-lattice weak -journal-disable
    */
 
 #define FRAMA_C_MALLOC_INDIVIDUAL

@@ -32,7 +32,7 @@ let tsets_to_tsets =
 
 let assigns_from_prototype vi =
   (*Format.printf "looking for %s prototype@." vi.vname;*)
-  let formals = try let formals = getFormalsDecl vi.vid in
+  let formals = try let formals = getFormalsDecl vi in
   (* Do ignore anonymous names *)
   List.filter (fun vi -> vi.vname <> "") formals
   with Not_found -> [] (* this may happen for function pointer used as formal parameters.*)
@@ -42,7 +42,7 @@ let assigns_from_prototype vi =
     List.partition (fun vi -> isPointerType vi.vtype) formals in
   (* Remove pointer to pointer types and pointer to void *)
   let pointer_args =
-    List.filter (fun vi -> not (isVoidPtrType vi.vtype 
+    List.filter (fun vi -> not (isVoidPtrType vi.vtype
                                 || isPointerType (typeOf_pointed vi.vtype))) pointer_args
   in
   let get_length full_typ =
@@ -65,14 +65,14 @@ let assigns_from_prototype vi =
             (TSSingleton(
                TSLval(
                  TSMem(
-                   TSAdd_range(TSLval(TSVar(cvar_to_lvar v),TSNo_offset),
+                   TSAdd_range(TSLval(TSVar(cvar_to_lvar v),TSNoOffset),
                                Some (wrap_const 0),
-                               Some (wrap_const (length - 1)))),TSNo_offset)))
+                               Some (wrap_const (length - 1)))),TSNoOffset)))
       | _ ->
 (*           let loc = vi.vdecl.byte, vi.vdecl.byte+1 in *)
-          let cell = TSLval((TSVar(cvar_to_lvar v),TSNo_offset)) in
+          let cell = TSLval((TSVar(cvar_to_lvar v),TSNoOffset)) in
           Logic_const.new_location
-            (TSSingleton(TSLval(TSMem cell,TSNo_offset)))
+            (TSSingleton(TSLval(TSMem cell,TSNoOffset)))
   in
   let to_assign =
     List.map
@@ -96,7 +96,7 @@ let assigns_from_prototype vi =
        @(List.map
            (fun v ->
               Logic_const.new_location
-                (TSSingleton(TSLval(TSVar (cvar_to_lvar v),TSNo_offset))))
+                (TSSingleton(TSLval(TSVar (cvar_to_lvar v),TSNoOffset))))
            basic_args))
   in
   let arguments =
@@ -107,10 +107,11 @@ let assigns_from_prototype vi =
     | TVoid _ -> (* assigns all pointer args from basic args and content of pointer args *)
         arguments
     | _ -> (* assigns result from basic args and content of pointer args *)
-        (Location
+        ((Location
            (Logic_const.new_location
-              (TSSingleton(
-                 TSLval(TSResult,TSNo_offset)))), inputs)::arguments
+              (TSSingleton
+                 (TSat
+                    (TSLval(TSResult,TSNoOffset),LogicLabel "Post"))))), inputs)::arguments
   in
   match deps with [] -> [Nothing,[]] | l -> l
 

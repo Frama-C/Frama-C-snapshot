@@ -19,7 +19,7 @@
 #                                                                        #
 ##########################################################################
 
-# $Id: Makefile.plugin,v 1.61 2008/07/03 13:54:22 uid568 Exp $
+# $Id: Makefile.plugin,v 1.73 2008/12/10 12:53:14 uid568 Exp $
 #
 ###############################################################################
 #
@@ -34,6 +34,9 @@
 # PLUGIN_TYPES_CMO The .cmo files containing the types definitions
 # PLUGIN_GUI_CMO The .cmo files to be linked with the graphical interface
 # PLUGIN_HAS_MLI Set it to yes if your plugin has a .mli
+# PLUGIN_GUI_HAS_MLI Set it to yes if the GUI of your plugin has a .mli
+# PLUGIN_DYNAMIC Set it to yes if the plugin is only dynamically linked with
+# 		Frama-C.
 # PLUGIN_HAS_EXT_DOC (yes/no) Plugin has a pdf manual
 # PLUGIN_BFLAGS Additional options for the bytecode compiler
 # PLUGIN_OFLAGS Additional options for the native compiler
@@ -147,6 +150,8 @@ ifneq ("$(PLUGIN_ENABLE)","no")
 # The .cm* files list
 PLUGIN_CMO:= $(patsubst %, $(PLUGIN_DIR)/%.cmo, $(PLUGIN_CMO))
 PLUGIN_CMX:= $(PLUGIN_CMO:.cmo=.cmx)
+
+
 PLUGIN_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_CMI)) \
 	$(PLUGIN_CMO:.cmo=.cmi)
 
@@ -154,13 +159,35 @@ PLUGIN_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_CMI)) \
 PLUGIN_GUI_CMO:= $(patsubst %, $(PLUGIN_DIR)/%.cmo, $(PLUGIN_GUI_CMO))
 PLUGIN_GUI_CMX:= $(PLUGIN_GUI_CMO:.cmo=.cmx)
 
+PLUGIN_GUI_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_CMI)) \
+	$(PLUGIN_CMO:.cmo=.cmi)
+
 # The packing files
 TARGET_CMO:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME).cmo
 TARGET_CMX:= $(TARGET_CMO:.cmo=.cmx)
+ifeq ("$(LOWER_THAN_311) $(PLUGIN_DYNAMIC)","no yes")
+TARGET_CMX:= $(TARGET_CMO:.cmo=.cmxs)
+endif
+
+#The packing gui files
+ifneq ("$(PLUGIN_GUI_CMO)","")
+
+TARGET_GUI_CMO:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME)_gui.cmo
+
+TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
+ifeq ("$(LOWER_THAN_311) $(PLUGIN_DYNAMIC)","no yes")
+TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmxs)
+endif
+
+endif
 
 # Some meta-variables for compilation flags
 NAME_BFLAGS :=$(PLUGIN_NAME)_BFLAGS
 NAME_OFLAGS :=$(PLUGIN_NAME)_OFLAGS
+TARGET_OFLAGS := $(PLUGIN_NAME)_TARGET_OFLAGS
+NAME_GUI_BFLAGS := $(PLUGIN_NAME)_gui_BFLAGS
+NAME_GUI_OFLAGS := $(PLUGIN_NAME)_gui_OFLAGS
+TARGET_GUI_OFLAGS:= $(PLUGIN_NAME)_gui_TARGET_OFLAGS
 NAME_DEPFLAGS :=$(PLUGIN_NAME)_DEPFLAGS
 NAME_DOCFLAGS :=$(PLUGIN_NAME)_DOCFLAGS
 
@@ -171,11 +198,25 @@ $(PLUGIN_NAME)_CMX:=$(PLUGIN_CMX)
 $(PLUGIN_NAME)_CMI:=$(PLUGIN_CMI)
 $(PLUGIN_NAME)_GENERATED:=$(PLUGIN_GENERATED)
 
+# gui variable
+$(PLUGIN_NAME)_gui_CMO:=$(PLUGIN_GUI_CMO)
+$(PLUGIN_NAME)_gui_CMX:=$(PLUGIN_GUI_CMX)
+$(PLUGIN_NAME)_gui_CMI:=$(PLUGIN_GUI_CMI)
+
 # Set the compilation flags for the plugin
 $(NAME_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS)
 $(NAME_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS)
+$(NAME_GUI_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS)
+$(NAME_GUI_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS)
 $(NAME_DEPFLAGS):= -I $(PLUGIN_DIR) $(PLUGIN_DEPFLAGS)
 $(NAME_DOCFLAGS):= $(PLUGIN_DOCFLAGS)
+
+$(TARGET_OFLAGS):=-pack
+$(TARGET_GUI_OFLAGS):=-pack
+ifeq ("$(LOWER_THAN_311) $(PLUGIN_DYNAMIC)", "no yes")
+$(TARGET_OFLAGS):=-shared
+$(TARGET_GUI_OFLAGS):=-shared
+endif
 
 # Add dependencies wrt other plugins for cmx.
 $(PLUGIN_CMX): $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
@@ -185,7 +226,7 @@ $(PLUGIN_CMO) $(PLUGIN_CMI): BFLAGS:=$($(NAME_BFLAGS))
 $(PLUGIN_CMX): OFLAGS:=$($(NAME_OFLAGS)) -for-pack $(PLUGIN_NAME)
 
 $(PLUGIN_GUI_CMO): BFLAGS:=$($(NAME_BFLAGS))
-$(PLUGIN_GUI_CMX): OFLAGS:=$($(NAME_OFLAGS))
+$(PLUGIN_GUI_CMX): OFLAGS:=$($(NAME_OFLAGS)) -for-pack $(PLUGIN_NAME)_gui
 
 
 # Now build the targets. Depend on the presence of a plugin interface.
@@ -207,7 +248,7 @@ $(TARGET_MLI): $(PLUGIN_MLI)
 	$(ECHO) "(* This module was generated automatically by code in Makefile and $< *)" > $@; \
 	$(ECHO) "#1 \"$<\"" >> $@; \
 	$(CAT) $< >> $@; \
-	chmod a-w $@)
+	$(CHMOD_RO) $@)
 
 $(PLUGIN_NAME)_MLI:=$(TARGET_MLI)
 
@@ -221,8 +262,10 @@ $(TARGET_CMX): $(PLUGIN_CMX) $(TARGET_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(call QUIET,'$(N_PACKING) $@') \
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
-	  $($(basename $(notdir $@))_CMX)
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	$($(basename $(notdir $@))_TARGET_OFLAGS) \
+	$($(basename $(notdir $@))_CMX)
+
 
 #########
 else
@@ -241,10 +284,71 @@ $(TARGET_CMX): $(PLUGIN_CMX) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(call QUIET,'$(N_PACKING) $@') \
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	$($(basename $(notdir $@))_TARGET_OFLAGS) \
+	$($(basename $(notdir $@))_CMX)
+
+endif # PLUGIN_HAS_MLI
+
+
+
+
+ifneq ("$(PLUGIN_GUI_CMO)","")
+ifeq ("$(PLUGIN_GUI_HAS_MLI)","yes")
+# packing gui files with signature
+#####################################
+
+PLUGIN_GUI_MLI:= $(PLUGIN_DIR)/$(PLUGIN_NAME)_gui.mli
+TARGET_GUI_MLI:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME)_gui.mli
+TARGET_GUI_CMI:= $(TARGET_GUI_MLI:.mli=.cmi)
+
+PLUGIN_GENERATED_LIST+= $(TARGET_GUI_MLI)
+
+$(TARGET_GUI_MLI): $(PLUGIN_GUI_MLI)
+	$(call QUIET,'$(N_MAKING) $@') \
+	($(RM) $@; \
+	$(ECHO) "(* This module was generated automatically by code in Makefile and $< *)" > $@; \
+	$(ECHO) "#1 \"$<\"" >> $@; \
+	$(CAT) $< >> $@; \
+	$(CHMOD_RO) $@)
+
+$(PLUGIN_NAME)_gui_MLI:=$(TARGET_GUI_MLI)
+
+$(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) $(TARGET_GUI_CMI) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
+	$(call QUIET,'$(N_PACKING) $@') \
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	  $($(basename $(notdir $@))_CMO)
+
+$(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_GUI_CMI) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
+	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+	$(call QUIET,'$(N_PACKING) $@') \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
+	  $($(basename $(notdir $@))_CMX)
+else
+# packing gui files without signature
+#####################################
+
+PLUGIN_GUI_MLI:=
+$(PLUGIN_NAME)_gui_MLI:=
+
+$(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
+	$(call QUIET,'$(N_PACKING) $@') \
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	  $($(basename $(notdir $@))_CMO)
+
+$(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
+	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+	$(call QUIET,'$(N_PACKING) $@') \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_CMX)
 endif
-
+endif
 
 #########
 
@@ -354,8 +458,10 @@ define COMPILE_TESTS_ML_FILES
 # names using $(PLUGIN_NAME) in the body of the rule.
 .PHONY:$$(PLUGIN_NAME)_TESTS_TMP_$(1)
 
+# Strictly speaking, it does not depend on all cmx, but it is safer that way
+# need to launch ocamldep on tests directories to be more precise...
 tests/$(1)/%.cmx: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
-	    tests/$(1)/%.ml $$(TARGET_CMX) $$(GEN_OPT_LIBS)
+	    tests/$(1)/%.ml $$(ALL_CMX) $$(GEN_OPT_LIBS)
 	$$(OCAMLOPT) -c $$(OFLAGS) \
 		$$(addprefix -I tests/,\
 			$$($$(patsubst %_TESTS_TMP_$(1),%_TESTS_DIRS, $$<))) \
@@ -365,7 +471,7 @@ tests/$(1)/%.cmx: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
 tests/$(1)/%.opt: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
 	     $$($$(PLUGIN_NAME)_TESTS_LIB) \
 	     tests/$(1)/%.cmx \
-             $$(ALL_CMX) $$(STARTUPCMX) $$(GEN_OPT_LIBS)
+             bin/toplevel.opt$$(EXE)
 	$$(OCAMLOPT) $$(OFLAGS) -o $$@ \
 		$$(addprefix -I tests/,\
 			$$($$(patsubst %_TESTS_TMP_$(1),%_TESTS_DIRS, $$<))) \
@@ -373,8 +479,9 @@ tests/$(1)/%.opt: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
 		$$($$(patsubst %_TESTS_TMP_$(1),%_TESTS_LIB, $$<)) \
 		$$(STARTUPCMX) $$(patsubst %.opt,%.cmx,$$@)
 
+# See above for the dependency on all cmi
 tests/$(1)/%.cmo: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
-	    tests/$(1)/%.ml $$(TARGET_CMO) $$(GEN_BYTE_LIBS)
+	    tests/$(1)/%.ml $$(ALL_CMI) $$(GEN_BYTE_LIBS)
 	$$(OCAMLC) -c $$(BFLAGS) \
 		$$(addprefix -I tests/,\
 			$$($$(patsubst %_TESTS_TMP_$(1),%_TESTS_DIRS, $$<))) \
@@ -384,7 +491,7 @@ tests/$(1)/%.cmo: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
 tests/$(1)/%.byte: $$(PLUGIN_NAME)_TESTS_TMP_$(1) \
 	     $$($$(PLUGIN_NAME)_TESTS_LIB_BYTE) \
 	     tests/$(1)/%.cmo \
-             $$(ALL_CMO) $$(STARTUPCMO) $$(GEN_BYTE_LIBS)
+             bin/toplevel.byte$$(EXE)
 	$$(OCAMLC) $$(BFLAGS) -o $$@ \
 		$$(addprefix -I tests/,\
 			$$($$(patsubst %_TESTS_TMP_$(1),%_TESTS_DIRS, $$<))) \
@@ -403,21 +510,27 @@ $(foreach d,$(PLUGIN_TESTS_DIRS),$(eval $(call COMPILE_TESTS_ML_FILES,$d)))
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO: $(PLUGIN_GENERATED)
 	$(call QUIET,'$(N_DEP) $(dir $@).depend') \
-	$(OCAMLDEP) \
+	($(RM) $(dir $@).depend; \
+	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
 	    $($(patsubst %_DEP_REDO,%_DEPFLAGS,$(basename $(notdir $@)))) \
-            $(INCLUDES_FOR_OCAMLDEP) $(dir $@)*.mli $(dir $@)*.ml \
+	    $(dir $@)*.mli $(dir $@)*.ml \
 	    $(foreach d, $($(patsubst %_DEP_REDO,%_DEPFLAGS_TEST,$(basename $(notdir $@)))), -I $d $d/*.ml $d/*.mli) \
-              > $(dir $@).depend
+              > $(dir $@).depend; \
+	$(CHMOD_RO) $(dir $@).depend)
 
 # Otherwise do it only if necessary
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(PLUGIN_MLI)
 	$(call QUIET,'$(N_DEP) $(dir $@).depend') \
-	($(OCAMLDEP) $($(basename $(notdir $@))FLAGS) \
-            $(INCLUDES_FOR_OCAMLDEP) $(dir $@)*.mli $(dir $@)*.ml \
+	($(RM) $(dir $@).depend; \
+	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
+	    $($(basename $(notdir $@))FLAGS) \
+	    $(dir $@)*.mli $(dir $@)*.ml \
 	    $($(patsubst %_DEP,%_MLI, $(basename $(notdir $@))))\
 	    $(foreach d, $($(basename $(notdir $@))FLAGS_TEST), -I $d $d/*.ml $d/*.mli) \
               > $(dir $@).depend; \
-	touch $@) # Do not recompute dependances each times
+	touch $@; \
+	$(CHMOD_RO) $(dir $@).depend; )
+# touch above = Do not recompute dependances each times
 
 ############
 # Cleaning #
@@ -439,15 +552,41 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
 	$(RM) $(DOC_DIR)/plugin.css)
 
 # Global lists seen in Makefile.in
+ifeq ($(PLUGIN_DYNAMIC),yes)
+#dynamic plugin
+PLUGIN_DYN_EXISTS:="yes"
+PLUGIN_DYN_LIST += $(PLUGIN_DIR)/$(PLUGIN_NAME)
+PLUGIN_DYN_CMO_LIST += $(TARGET_CMO)
+PLUGIN_DYN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
+ifeq ($(ENABLE_GUI),"yes")
+PLUGIN_DYN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
+endif
 
-PLUGIN_LIST 	+= $(PLUGIN_DIR)/$(PLUGIN_NAME)
+ifneq ($(LOWER_THAN_311),yes)
+PLUGIN_DYN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
+PLUGIN_DYN_CMX_LIST	+= $(TARGET_CMX)
+ifeq ($(ENABLE_GUI),"yes")
+PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
+endif
+endif
+
+else
+# Normal plugin
+PLUGIN_LIST += $(PLUGIN_DIR)/$(PLUGIN_NAME)
 PLUGIN_CMO_LIST	+= $(TARGET_CMO)
 PLUGIN_CMX_LIST	+= $(TARGET_CMX)
+PLUGIN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
+PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
+PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
+PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
+
+endif
+
+PLUGIN_GENERATED_LIST += $(PLUGIN_GENERATED)
 PLUGIN_INTERNAL_CMO_LIST += $(PLUGIN_CMO)
 PLUGIN_INTERNAL_CMX_LIST += $(PLUGIN_CMX)
-PLUGIN_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
-PLUGIN_GENERATED_LIST += $(PLUGIN_GENERATED)
 PLUGIN_DOC_LIST += $(PLUGIN_NAME)_DOC
+
 endif
 
 # Reset each "local" plugin variable
@@ -462,8 +601,13 @@ PLUGIN_DEPFLAGS:=
 PLUGIN_DOCFLAGS:=
 PLUGIN_GENERATED:=
 PLUGIN_HAS_MLI:=
+PLUGIN_GUI_HAS_MLI:=
+PLUGIN_DYNAMIC:=
 PLUGIN_TYPES_CMO:=
 PLUGIN_GUI_CMO:=
+PLUGIN_GUI_CMX:=
+TARGET_GUI_CMO:=
+TARGET_GUI_CMX:=
 PLUGIN_UNDOC:=
 PLUGIN_TYPES_TODOC:=
 PLUGIN_INTRO:=

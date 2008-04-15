@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input
-   OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_1
-   OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_2
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_1
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_2
+   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_1 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_2 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_1 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_2 -journal-disable
 */
 extern const int G;
 extern int H;
@@ -33,25 +33,25 @@ int main () {
  * Les valeurs initiales des autres variables sont d'une valeur inderterminée, mais
  * dépendant de leur type.
  */
-int cste const = 10 ; 
+int cste const = 10 ;
 int var        = 3 ;
 
 int input_value_of_cste, output_value_of_cste ;
 
 void semantique_const_1 (void) {
   input_value_of_cste = cste ;
-  
+
   cste = var ;
-  
+
   output_value_of_cste = cste ;
-  
+
 }
 
 void semantique_const_2 (void) {
   const int cste = 10 ;
   input_value_of_cste = cste ;
-  
+
   cste = var ;
-  
+
   output_value_of_cste = cste ;
 }

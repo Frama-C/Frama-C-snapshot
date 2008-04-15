@@ -1,6 +1,3 @@
-/*run.config
-DONTRUN: invalid pointer access. Check with Benjamin the intended behavior.
-*/
 struct Tb { int b ; } ;
 struct Ta {
   struct Tb *a ;

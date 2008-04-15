@@ -1,17 +1,17 @@
 /* run.config
-  OPT: -deps -slice-print -slice-return main
-  OPT: -deps -slice-print -slice-return SizeOf_1 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOf_2 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_pt1 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_pt2 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_pt3 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_pt_deref_1 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_tab_1 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_pt_tab_1 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_pt_tab_2 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-return SizeOfE_tab_acces_1 -slicing-debug -no-slice-callers
-  OPT: -deps -slice-print -slice-pragma main
-  OPT: -deps -slice-print -slice-assert main
+  OPT: -deps -slice-print -slice-return main -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOf_1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOf_2 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_pt1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_pt2 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_pt3 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_pt_deref_1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_tab_1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_pt_tab_1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_pt_tab_2 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-return SizeOfE_tab_acces_1 -slicing-debug -no-slice-callers -journal-disable
+  OPT: -deps -slice-print -slice-pragma main -journal-disable
+  OPT: -deps -slice-print -slice-assert main -journal-disable
 */
 struct St { int i, *p, tab[5] ; } st ;
 

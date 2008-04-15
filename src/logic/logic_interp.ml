@@ -29,6 +29,7 @@ open Db_types
 open Logic_typing
 open Extlib
 open Ast_info
+open Visitor
 
 exception Error of Cil_types.location * string
 
@@ -36,13 +37,10 @@ let error loc s = raise (Error (loc, s))
 
 let find_var kf stmt file x =
   let vi =
-    let rec lookup = function
-      | [] -> raise Not_found
-      | vi :: r -> if vi.vname = x then vi else lookup r
-    in
+    let lookup = List.find (fun vi -> vi.vname = x) in
     let rec lookup_global = function
       | [] -> raise Not_found
-      | (GVar (vi,_,_) | GVarDecl (_,vi,_)) :: _ when vi.vname = x -> vi
+      | (GVar (vi,_,_) | GVarDecl (_,vi,_ )) :: _ when vi.vname = x -> vi
       | _ :: r -> lookup_global r
     in
     let fd = Kernel_function.get_definition kf in
@@ -179,8 +177,30 @@ let add_opaque_var v env =
 
 let add_opaque_term_lhost lhost env =
   let v = makePseudoVar voidType in
-  let env = { env with term_lhosts = VarinfoMap.add v lhost env.term_lhosts; } in
+  let env =
+    { env with term_lhosts = VarinfoMap.add v lhost env.term_lhosts; }
+  in
   Var v, env
+
+let add_opaque_result ty env =
+  let pv = makePseudoVar ty in
+  let env =
+    { env with term_lhosts = VarinfoMap.add pv TResult env.term_lhosts; }
+  in
+  Var pv, env
+
+let add_opaque_var' v env =
+  let ty = match v.lv_type with Ctype ty -> ty | _ -> assert false in
+  let pv = makePseudoVar ty in
+  let env = { env with vars = VarinfoMap.add pv v env.vars; } in
+  Var pv, env
+
+let add_opaque_result' ty env =
+  let pv = makePseudoVar ty in
+  let env =
+    { env with tsets_lhosts = VarinfoMap.add pv TSResult env.tsets_lhosts; }
+  in
+  Var pv, env
 
 let add_opaque_tsets_elem ts env =
   let v = makePseudoVar voidType in
@@ -194,75 +214,75 @@ let add_opaque_tsets_lhost lhost env =
   in
   Var v, env
 
-let rec force_term_to_exp t =
+let rec force_term_to_exp ~result_type t =
   let e,env = match t.term_node with
     | TLval tlv ->
-	let lv,env = force_term_lval_to_lval tlv in
+	let lv,env = force_term_lval_to_lval ~result_type tlv in
 	Lval lv, env
     | TAddrOf tlv ->
-	let lv,env = force_term_lval_to_lval tlv in
+	let lv,env = force_term_lval_to_lval ~result_type tlv in
 	AddrOf lv, env
     | TStartOf tlv ->
-	let lv,env = force_term_lval_to_lval tlv in
+	let lv,env = force_term_lval_to_lval ~result_type tlv in
 	StartOf lv, env
     | TSizeOfE t' ->
-	let e,env = force_term_to_exp t' in
+	let e,env = force_term_to_exp ~result_type t' in
 	SizeOfE e, env
     | TAlignOfE t' ->
-	let e,env = force_term_to_exp t' in
+	let e,env = force_term_to_exp ~result_type t' in
 	AlignOfE e, env
     | TUnOp(unop,t') ->
-	let e,env = force_term_to_exp t' in
+	let e,env = force_term_to_exp ~result_type t' in
 	UnOp(unop,e,logic_type_to_typ t.term_type), env
     | TBinOp(binop,t1,t2) ->
-	let e1,env1 = force_term_to_exp t1 in
-	let e2,env2 = force_term_to_exp t2 in
+	let e1,env1 = force_term_to_exp ~result_type t1 in
+	let e2,env2 = force_term_to_exp ~result_type t2 in
 	let env = merge_term_env env1 env2 in
 	BinOp(binop,e1,e2,logic_type_to_typ t.term_type), env
     | TSizeOfStr string -> SizeOfStr string, empty_term_env
     | TConst constant -> Const constant, empty_term_env
     | TCastE(ty,t') ->
-	let e,env = force_term_to_exp t' in
+	let e,env = force_term_to_exp ~result_type t' in
 	CastE(ty,e), env
     | TAlignOf ty -> AlignOf ty, empty_term_env
     | TSizeOf ty -> SizeOf ty, empty_term_env
     | Tapp _ | TDataCons _ | Tif _ | Told _ | Tat _ | Tbase_addr _
     | Tblock_length _ | Tnull | TCoerce _ | TCoerceE _ | TUpdate _
-    | Tlambda _ | Ttypeof _ | Ttype _
+    | Tlambda _ | Ttypeof _ | Ttype _ | Ttsets _
         ->
 	add_opaque_term t empty_term_env
   in
   Info(e,exp_info_of_term t), env
 
-and force_term_lval_to_lval (lhost,toff) =
-  let lhost,env1 = force_term_lhost_to_lhost lhost in
-  let off,env2 = force_term_offset_to_offset toff in
+and force_term_lval_to_lval ~result_type (lhost,toff) =
+  let lhost,env1 = force_term_lhost_to_lhost ~result_type lhost in
+  let off,env2 = force_term_offset_to_offset ~result_type toff in
   let env = merge_term_env env1 env2 in
   (lhost,off), env
 
-and force_term_lhost_to_lhost lhost = match lhost with
+and force_term_lhost_to_lhost ~result_type lhost = match lhost with
   | TVar v ->
       begin match v.lv_origin with
 	| Some v -> Var v, empty_term_env
-	| None -> 
-	    begin match v.lv_type with 
+	| None ->
+	    begin match v.lv_type with
 	      | Ctype _ty -> add_opaque_var v empty_term_env
 	      | _ -> add_opaque_term_lhost lhost empty_term_env
 	    end
       end
   | TMem t ->
-      let e,env = force_term_to_exp t in
+      let e,env = force_term_to_exp ~result_type t in
       Mem e, env
-  | TResult -> add_opaque_term_lhost lhost empty_term_env
+  | TResult -> add_opaque_result result_type empty_term_env
 
-and force_term_offset_to_offset = function
+and force_term_offset_to_offset ~result_type = function
   | TNoOffset -> NoOffset, empty_term_env
   | TField(fi,toff) ->
-      let off,env = force_term_offset_to_offset toff in
+      let off,env = force_term_offset_to_offset ~result_type toff in
       Field(fi,off), env
   | TIndex(t,toff) ->
-      let e,env1 = force_term_to_exp t in
-      let off,env2 = force_term_offset_to_offset toff in
+      let e,env1 = force_term_to_exp ~result_type t in
+      let off,env2 = force_term_offset_to_offset ~result_type toff in
       let env = merge_term_env env1 env2 in
       Index(e,off), env
 
@@ -330,13 +350,13 @@ and force_back_offset_to_term_offset env = function
 
 and force_back_lhost_to_term_lhost env = function
   | Var v ->
-      begin try 
+      begin try
 	let logv = VarinfoMap.find v env.vars in
 	logv.lv_type <- Ctype v.vtype;
 	TVar logv
-      with Not_found -> 
+      with Not_found ->
 	try VarinfoMap.find v env.term_lhosts
-	with Not_found -> TVar(cvar_to_lvar v) 
+	with Not_found -> TVar(cvar_to_lvar v)
       end
   | Mem e -> TMem(force_back_exp_to_term env e)
 
@@ -436,7 +456,8 @@ let rec force_exp_to_predicate loc e =
   }
 
 let rec force_exp_to_assertion loc e =
-  Logic_const.new_code_annotation(AAssert([],force_exp_to_predicate loc e))
+  Logic_const.new_code_annotation
+    (AAssert([], force_exp_to_predicate loc e, {status=Unknown}))
 
 (* Transform range in tsets into comprehension, and back when possible *)
 
@@ -483,7 +504,7 @@ object
 	  let vt = variable_term locUnknown v in
 	  ChangeDoChildrenPost (TSAdd_index(ts,vt), fun x -> x)
       | TSLval _ | TSStartOf _ | TSConst _ | TSAdd_index _
-      | TSCastE _ | TSAt _ ->
+      | TSCastE _ | TSat _ | TSapp _ | TSAddrOf _ ->
 	  DoChildren
 
   method vtsets_offset tsoff =
@@ -493,14 +514,14 @@ object
 	  add_range v t1opt t2opt;
 	  let vt = variable_term locUnknown v in
 	  ChangeDoChildrenPost (TSIndex(vt,tsoff'), fun x -> x)
-      | TSNo_offset | TSIndex _ | TSField _ ->
+      | TSNoOffset | TSIndex _ | TSField _ ->
 	  DoChildren
 
 end
 
 let from_range_to_comprehension behavior prj file =
   let visitor = new fromRangeToComprehension behavior prj in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 class fromComprehensionToRange behavior prj =
 
@@ -560,10 +581,11 @@ object(self)
     | TSComprehension(ts,[v],popt) ->
 	let index_vars = index_variables_of_tset ts in
 	(* Only accept for now comprehension on index variables *)
-	assert (LogicVarSet.mem v index_vars);
-	let t1opt,t2opt = bounds_of_variable v popt in
-	add_range v t1opt t2opt;
-	ChangeTo (visitCilTsets (self :> cilVisitor) ts)
+	if LogicVarSet.mem v index_vars then begin
+	  let t1opt,t2opt = bounds_of_variable v popt in
+	  add_range v t1opt t2opt;
+          ChangeTo (visitCilTsets (self :> cilVisitor) ts)
+        end else DoChildren
     | TSComprehension _ | TSSingleton _ | TSEmpty | TSUnion _ | TSInter _ ->
 	DoChildren
 
@@ -582,7 +604,7 @@ object(self)
 	    ChangeDoChildrenPost (ts, fun x -> x)
 	  with Not_found -> DoChildren end
       | TSAdd_index _ | TSLval _ | TSStartOf _ | TSConst _ | TSAdd_range _
-      | TSCastE _ | TSAt _ ->
+      | TSCastE _ | TSat _ | TSapp _ | TSAddrOf _ ->
 	  DoChildren
 
   method vtsets_offset tsoff =
@@ -593,29 +615,32 @@ object(self)
 	    let tsoff = TSRange(t1opt,t2opt,tsoff') in
 	    ChangeDoChildrenPost (tsoff, fun x -> x)
 	  with Not_found -> DoChildren end
-      | TSIndex _ | TSRange _ | TSNo_offset | TSField _ ->
+      | TSIndex _ | TSRange _ | TSNoOffset | TSField _ ->
 	  DoChildren
 
 end
 
 let from_comprehension_to_range behavior prj file =
   let visitor = new fromComprehensionToRange behavior prj in
-  visitCilFile (visitor :> cilVisitor) file
+  visitFramacFile visitor file
 
 (* Force conversion from tsets to expr *)
 
-let rec force_tsets_elem_to_exp ts =
+let rec force_tsets_elem_to_exp ~result_type ts =
   match ts with
     | TSLval tslv ->
-	let lv,env = force_tsets_lval_to_lval tslv in
+	let lv,env = force_tsets_lval_to_lval ~result_type tslv in
 	Lval lv, env
     | TSStartOf tslv ->
-	let lv,env = force_tsets_lval_to_lval tslv in
+	let lv,env = force_tsets_lval_to_lval ~result_type tslv in
 	StartOf lv, env
+    | TSAddrOf tslv ->
+        let lv, env = force_tsets_lval_to_lval ~result_type tslv in
+        AddrOf lv, env
     | TSConst constant -> Const constant, empty_term_env
     | TSAdd_index(ts',t) ->
-	let e1,env1 = force_tsets_elem_to_exp ts' in
-	let e2,env2 = force_term_to_exp t in
+	let e1,env1 = force_tsets_elem_to_exp ~result_type ts' in
+	let e2,env2 = force_term_to_exp ~result_type t in
 	let env = merge_term_env env1 env2 in
 	BinOp(PlusPI,e1,e2,logic_type_to_typ (typeOfTsetsElem ts')), env
     | TSAdd_range(_ts',_t1opt,_t2opt) ->
@@ -625,35 +650,39 @@ let rec force_tsets_elem_to_exp ts =
 	 *)
 	assert false
     | TSCastE(ty,ts') ->
-	let e,env = force_tsets_elem_to_exp ts' in
+	let e,env = force_tsets_elem_to_exp ~result_type ts' in
 	CastE(ty,e), env
-    | TSAt _ -> add_opaque_tsets_elem ts empty_term_env
+    | TSat _ | TSapp _ -> add_opaque_tsets_elem ts empty_term_env
 
-and force_tsets_lval_to_lval (lhost,toff) =
-  let lhost,env1 = force_tsets_lhost_to_lhost lhost in
-  let off,env2 = force_tsets_offset_to_offset toff in
+and force_tsets_lval_to_lval ~result_type (lhost,toff) =
+  let lhost,env1 = force_tsets_lhost_to_lhost ~result_type lhost in
+  let off,env2 = force_tsets_offset_to_offset ~result_type toff in
   let env = merge_term_env env1 env2 in
   (lhost,off), env
 
-and force_tsets_lhost_to_lhost lhost = match lhost with
+and force_tsets_lhost_to_lhost ~result_type lhost = match lhost with
   | TSVar v ->
       begin match v.lv_origin with
 	| Some v -> Var v, empty_term_env
-	| None -> add_opaque_tsets_lhost lhost empty_term_env
+	| None ->
+	    begin match v.lv_type with
+	      | Ctype _ty -> add_opaque_var' v empty_term_env
+	      | _ -> add_opaque_tsets_lhost lhost empty_term_env
+	    end
       end
   | TSMem ts ->
-      let e,env = force_tsets_elem_to_exp ts in
+      let e,env = force_tsets_elem_to_exp ~result_type ts in
       Mem e, env
-  | TSResult -> add_opaque_tsets_lhost lhost empty_term_env
+  | TSResult -> add_opaque_result' result_type empty_term_env
 
-and force_tsets_offset_to_offset = function
-  | TSNo_offset -> NoOffset, empty_term_env
+and force_tsets_offset_to_offset ~result_type = function
+  | TSNoOffset -> NoOffset, empty_term_env
   | TSField(fi,tsoff) ->
-      let off,env = force_tsets_offset_to_offset tsoff in
+      let off,env = force_tsets_offset_to_offset ~result_type tsoff in
       Field(fi,off), env
   | TSIndex(t,tsoff) ->
-      let e,env1 = force_term_to_exp t in
-      let off,env2 = force_tsets_offset_to_offset tsoff in
+      let e,env1 = force_term_to_exp ~result_type t in
+      let off,env2 = force_tsets_offset_to_offset ~result_type tsoff in
       let env = merge_term_env env1 env2 in
       Index(e,off), env
   | TSRange(_t1opt,_t2opt,_tsoff) ->
@@ -681,15 +710,16 @@ let rec force_back_exp_to_tsets_elem env e =
 	  force_back_exp_to_term env e2)
     | CastE(ty,e) -> TSCastE(ty,force_back_exp_to_tsets_elem env e)
     | StartOf lv -> TSStartOf(force_back_lval_to_tsets_lval env lv)
+    | AddrOf lv -> TSAddrOf(force_back_lval_to_tsets_lval env lv)
     | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ | UnOp _
-    | BinOp _ | AddrOf _ ->
+    | BinOp _ ->
 	(* Transformation of expression obtained through conversion from tsets
 	 * should not generate parts that are not convertible back.
 	 *)
 	assert false
 
 and force_back_offset_to_tsets_offset env = function
-  | NoOffset -> TSNo_offset
+  | NoOffset -> TSNoOffset
   | Field(fi,off) ->
       TSField(fi,force_back_offset_to_tsets_offset env off)
   | Index(idx,off) ->
@@ -699,8 +729,14 @@ and force_back_offset_to_tsets_offset env = function
 
 and force_back_lhost_to_tsets_lhost env = function
   | Var v ->
-      begin try VarinfoMap.find v env.tsets_lhosts
-      with Not_found -> TSVar(cvar_to_lvar v) end
+      begin try
+	let logv = VarinfoMap.find v env.vars in
+	logv.lv_type <- Ctype v.vtype;
+	TSVar logv
+      with Not_found ->
+	try VarinfoMap.find v env.tsets_lhosts
+	with Not_found -> TSVar(cvar_to_lvar v)
+      end
   | Mem e -> TSMem(force_back_exp_to_tsets_elem env e)
 
 and force_back_lval_to_tsets_lval env (host,off) =
@@ -717,6 +753,9 @@ let rec force_tsets_elem_to_term ts =
     | TSStartOf tslv ->
 	let tlv = force_tsets_lval_to_term_lval tslv in
 	TStartOf tlv
+    | TSAddrOf tslv ->
+        let tlv = force_tsets_lval_to_term_lval tslv in
+        TAddrOf tlv
     | TSConst constant -> TConst constant
     | TSAdd_index(ts',t) ->
 	let t' = force_tsets_elem_to_term ts' in
@@ -730,9 +769,10 @@ let rec force_tsets_elem_to_term ts =
     | TSCastE(ty,ts') ->
 	let t' = force_tsets_elem_to_term ts' in
 	TCastE(ty,t')
-    | TSAt(ts',lab) ->
+    | TSat(ts',lab) ->
 	let t' = force_tsets_elem_to_term ts' in
 	Tat(t',lab)
+    | TSapp (f,labs,args) -> Tapp(f, labs, args)
   in
   {
     term_node = tnode; (* Terms generated have only a correct node *)
@@ -752,7 +792,7 @@ and force_tsets_lhost_to_term_lhost lhost = match lhost with
   | TSResult -> TResult
 
 and force_tsets_offset_to_term_offset = function
-  | TSNo_offset -> TNoOffset
+  | TSNoOffset -> TNoOffset
   | TSField(fi,tsoff) ->
       let toff = force_tsets_offset_to_term_offset tsoff in
       TField(fi,toff)
@@ -774,20 +814,23 @@ let rec force_back_term_to_tsets_elem t =
     | TLval tlv -> TSLval(force_back_term_lval_to_tsets_lval tlv)
     | TBinOp(PlusPI,t1,t2) ->
 	TSAdd_index(force_back_term_to_tsets_elem t1,t2)
+    | Tapp(f,labs,args) -> TSapp(f,labs,args)
     | TCastE(ty,t) -> TSCastE(ty,force_back_term_to_tsets_elem t)
     | TStartOf tlv -> TSStartOf(force_back_term_lval_to_tsets_lval tlv)
+    | TAddrOf tlv -> TSAddrOf(force_back_term_lval_to_tsets_lval tlv)
+    | Tat(t,lab) -> TSat(force_back_term_to_tsets_elem t,lab)
+
     | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ | TUnOp _
-    | TBinOp _ | TAddrOf _
-    | TCoerceE _ | TCoerce _ | Tblock_length _ | Tbase_addr _ |Tat _ | Told _
-    | Tif _ | TDataCons _ | Tapp _ | Tnull | TUpdate _ | Tlambda _ 
-    | Ttypeof _ | Ttype _ ->
+    | TBinOp _ | TCoerceE _ | TCoerce _ | Tblock_length _ | Tbase_addr _
+    | Told _ | Tif _ | TDataCons _ | Tnull | TUpdate _ | Tlambda _
+    | Ttypeof _ | Ttype _ | Ttsets _ ->
 	(* Transformation of term obtained through conversion from tsets
 	 * should not generate parts that are not convertible back.
 	 *)
 	assert false
 
 and force_back_term_offset_to_tsets_offset = function
-  | TNoOffset -> TSNo_offset
+  | TNoOffset -> TSNoOffset
   | TField(fi,toff) ->
       TSField(fi,force_back_term_offset_to_tsets_offset toff)
   | TIndex(idx,toff) ->
@@ -810,11 +853,11 @@ let logic_var_to_var { lv_origin = lv } =
     | Some lv -> lv
 
 (* let term_to_exp t =  *)
-(*   let e,env = force_term_to_exp t in *)
+(*   let e,env = force_term_to_exp ~result_type t in *)
 (*   if is_empty_term_env env then e else error_lval () *)
 
 (* let term_lval_to_lval tlv = *)
-(*   let lv,env = force_term_lval_to_lval tlv in  *)
+(*   let lv,env = force_term_lval_to_lval ~result_type tlv in  *)
 (*   if is_empty_term_env env then lv else error_lval () *)
 
 (* let term_lhost_to_lhost lhost = *)
@@ -849,7 +892,7 @@ and term_to_exp {term_node = lnode ; term_type = ltype} =
   | TAlignOf typ -> AlignOf typ
   | TSizeOf typ -> SizeOf typ
   (* additional constructs *)
-  | Tapp _ | Tlambda _
+  | Tapp _ | Tlambda _ | Ttsets _
   | TDataCons _
   | Tif _
   | Told _
@@ -860,11 +903,15 @@ and term_to_exp {term_node = lnode ; term_type = ltype} =
   | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
     -> error_lval ()
 
-let term_to_lval t =
+let rec term_to_lval t =
   match t.term_node with
   | TLval lv -> term_lval_to_lval lv
   | TAddrOf lv -> term_lval_to_lval lv
   | TStartOf lv -> term_lval_to_lval lv
+  | Ttsets tset ->
+      (match tsets_to_lval tset with
+           [ e ] -> e
+         |  _ -> error_lval())
   (* additional constructs *)
   | TSizeOfE _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TSizeOfStr _
   | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _ | Told _
@@ -873,14 +920,14 @@ let term_to_lval t =
   | Ttypeof _ | Ttype _ ->
       error_lval ()
 
-let create_offset_list kind low high o =
+and create_offset_list kind low high o =
   let rec aux acc i =
     if Int64.compare i low < 0 then acc
     else
       aux (Index (Const (CInt64 (i,kind,None)), o)::acc) (Int64.pred i)
   in aux [] high
 
-let create_index_list base kind typ low high =
+and create_index_list base kind typ low high =
   let rec aux acc i =
     if Int64.compare i low < 0 then acc
       else
@@ -888,8 +935,8 @@ let create_index_list base kind typ low high =
           (Int64.pred i)
   in aux [] high
 
-let rec tsets_offset_to_offset = function
-  | TSNo_offset -> [NoOffset]
+and tsets_offset_to_offset = function
+  | TSNoOffset -> [NoOffset]
   | TSIndex(idx,o) ->
       let idx = term_to_exp idx in
       List.map (fun x -> Index(idx,x)) (tsets_offset_to_offset o)
@@ -910,9 +957,10 @@ let rec tsets_offset_to_offset = function
   | TSField(fi,o) ->
       List.map(fun x -> Field(fi,x)) (tsets_offset_to_offset o)
 
-let rec tsets_elem_to_exp = function
+and tsets_elem_to_exp = function
     TSLval lv -> List.map (fun x -> Lval x) (tsets_lval_to_lval lv)
   | TSStartOf lv -> List.map (fun x -> StartOf x) (tsets_lval_to_lval lv)
+  | TSAddrOf lv -> List.map (fun x -> AddrOf x) (tsets_lval_to_lval lv)
   | TSConst c -> [Const c]
   | TSAdd_index(base,idx) ->
       let typ = Cil.typeOfTsetsElem base in
@@ -944,7 +992,7 @@ let rec tsets_elem_to_exp = function
       end
   | TSCastE(typ,e) ->
       List.map (fun x -> Cil.mkCast x typ) (tsets_elem_to_exp e)
-  | TSAt(_,_) -> error_lval ()
+  | TSat(_,_) | TSapp _ -> error_lval ()
 
 and tsets_lval_to_lval (h,o) =
   let h = tsets_lhost_to_lhost h in
@@ -957,21 +1005,24 @@ and tsets_lhost_to_lhost = function
   | TSResult -> error_lval()
   | TSMem e -> List.map (fun x -> Mem x) (tsets_elem_to_exp e)
 
-let tsets_elem_to_lval lv =
+and tsets_elem_to_lval lv =
   let lvs = tsets_elem_to_exp lv in
   List.map (function Lval lv | StartOf lv -> lv | _ -> error_lval()) lvs
 
-let tsets_elem_to_offset h = function
+and tsets_elem_to_offset h = function
     TSLval(h',o) | TSStartOf (h',o) ->
       (match h with None -> Some h', tsets_offset_to_offset o
          | Some h when Logic_const.is_same_tsets_lhost h h' ->
              Some h, tsets_offset_to_offset o
          | Some _ -> error_lval()
       )
-  | TSAdd_index _ | TSAdd_range _ | TSConst _ | TSCastE _ | TSAt _ ->
+  | TSat ((TSLval(TSResult,_)) as lv,LogicLabel "Post") ->
+      tsets_elem_to_offset h lv
+  | TSAddrOf _
+  | TSAdd_index _ | TSAdd_range _ | TSConst _ | TSCastE _ | TSat _ | TSapp _ ->
       error_lval()
 
-let tsets_to_offset loc =
+and tsets_to_offset loc =
   let rec aux b loc =
     match loc with
         TSSingleton lv -> tsets_elem_to_offset b lv
@@ -982,7 +1033,7 @@ let tsets_to_offset loc =
       | TSComprehension _ | TSInter _ -> error_lval()
   in snd (aux None loc)
 
-let rec tsets_to_lval loc =
+and tsets_to_lval loc =
   match loc with
       TSSingleton lv -> tsets_elem_to_lval lv
     | TSUnion locs ->
@@ -992,7 +1043,7 @@ let rec tsets_to_lval loc =
     | TSComprehension(_t1,_quant,_pred) ->  error_lval()
         (*TODO: interpret comprehension, at least some simple patterns *)
 
-let rec tsets_to_exp loc =
+and tsets_to_exp loc =
   match loc with
       TSSingleton lv -> tsets_elem_to_exp lv
     | TSUnion locs ->
@@ -1004,35 +1055,45 @@ let rec tsets_to_exp loc =
 
 (** Utilities to identify [Locations.Zone.t] involved into [rooted_code_annotation]. *)
 module To_zone : sig
+  type t_ctx = Properties.Interp.To_zone.t_ctx
+  val mk_ctx_func_contrat: kernel_function -> state_opt:bool option -> t_ctx
+  val mk_ctx_stmt_contrat: kernel_function -> stmt -> state_opt:bool option -> t_ctx
+  val mk_ctx_stmt_annot: kernel_function -> stmt -> before:bool -> t_ctx
   type t = Properties.Interp.To_zone.t
   type t_decl = VarinfoSet.t
   type t_pragmas = Properties.Interp.To_zone.t_pragmas
-  val from_stmt_term: term -> before:bool -> (stmt * kernel_function) -> (t list * t_decl)
+  val from_term: term -> t_ctx -> (t list * t_decl)
     (** Entry point to get zones
-        needed to evaluate the [term] at this [stmt]. *)
-  val from_stmt_terms: term list -> before:bool -> (stmt * kernel_function) -> (t list * t_decl)
+        needed to evaluate the [term] relative to the [ctx] of interpretation. *)
+  val from_terms: term list -> t_ctx -> (t list * t_decl)
     (** Entry point to get zones
-        needed to evaluate the list of [terms] at this [stmt]. *)
-  val from_stmt_pred: predicate named -> before:bool -> (stmt * kernel_function) -> (t list * t_decl)
+        needed to evaluate the list of [terms] relative to the [ctx] of interpretation. *)
+  val from_pred: predicate named -> t_ctx -> (t list * t_decl)
     (** Entry point to get zones
-        needed to evaluate the [predicate] at this [stmt]. *)
-  val from_stmt_preds: predicate named list -> before:bool -> (stmt * kernel_function) -> (t list * t_decl)
+        needed to evaluate the [predicate] relative to the [ctx] of interpretation. *)
+  val from_preds: predicate named list -> t_ctx -> (t list * t_decl)
     (** Entry point to get zones
-        needed to evaluate the list of [predicates] at this [stmt]. *)
+        needed to evaluate the list of [predicates] relative to the [ctx] of interpretation. *)
+  val from_zone: identified_tsets zone -> t_ctx -> (t list * t_decl)
+    (** Entry point to get zones
+        needed to evaluate the list of [predicates] relative to the [ctx] of interpretation. *)
+  val from_zones: identified_tsets zone list -> t_ctx -> (t list * t_decl)
+    (** Entry point to get zones
+        needed to evaluate the list of [predicates] relative to the [ctx] of interpretation. *)
   val from_stmt_annot: code_annotation -> before:bool -> (stmt * kernel_function) -> (t list * t_decl) * t_pragmas
     (** Entry point to get zones
-        needed to evaluate annotations of this [stmt]. *)
+        needed to evaluate code annotations of this [stmt]. *)
   val from_stmt_annots:
     ((rooted_code_annotation before_after) -> bool) option ->
     (stmt * kernel_function) -> (t list * t_decl) * t_pragmas
     (** Entry point to get zones
-        needed to evaluate annotations of this [stmt]. *)
+        needed to evaluate code annotations of this [stmt]. *)
   val from_func_annots:
     ((stmt -> unit) -> kernel_function -> unit) ->
     ((rooted_code_annotation before_after) -> bool) option ->
     kernel_function -> (t list * t_decl) * t_pragmas
     (** Entry point to get zones
-        needed to evaluate annotations of this [kf]. *)
+        needed to evaluate code annotations of this [kf]. *)
   val code_annot_filter:
     (rooted_code_annotation before_after) -> ai:bool ->
     user_assert:bool -> slicing_pragma:bool ->
@@ -1040,6 +1101,10 @@ module To_zone : sig
     (** To quickly build a annotation filter *)
   end
   = struct
+    type t_ctx = Properties.Interp.To_zone.t_ctx
+    let mk_ctx_func_contrat kf ~state_opt = {Properties.Interp.To_zone.state_opt=state_opt ; ki_opt=None ; kf=kf}
+    let mk_ctx_stmt_contrat kf ki ~state_opt = {Properties.Interp.To_zone.state_opt=state_opt ; ki_opt=Some(ki,false) ; kf=kf}
+    let mk_ctx_stmt_annot kf ki ~before = {Properties.Interp.To_zone.state_opt=Some before ; ki_opt=Some(ki,true) ; kf=kf}
     type t = Properties.Interp.To_zone.t
     type t_decl = VarinfoSet.t
     type t_pragmas = Properties.Interp.To_zone.t_pragmas
@@ -1101,120 +1166,269 @@ module To_zone : sig
     let extract_locals_from_pred pred =
       extract_locals (extract_free_logicvars_from_predicate pred)
 
-    class populate_zone before ki kf =
+    type abs_label = | AbsLabel_here
+                     | AbsLabel_pre
+                     | AbsLabel_post
+                     | AbsLabel_stmt of stmt
+    class populate_zone before_opt ki_opt kf =
+      (* interpretation from the
+       * - pre-state if  [before_opt=Some true]
+       * - post-state if [before_opt=Some false]
+       * - pre-state with possible reference to the post-state if [before_opt=None]
+       * of a property relative to
+       * - the contract of function [kf] when [ki_opt=None]
+       * othewise [ki_opt=Some(ki, code_annot)],
+       * - the contract of the statement [ki] when [code_annot=false]
+       * - the annotation of the statement [ki] when [code_annot=true]
+       *)
       object(self)
         inherit
           Visitor.generic_frama_c_visitor  (Project.current())
             (Cil.inplace_visit())
-        val mutable current_ki = ki
-        val mutable current_before = before
+        val mutable current_label = AbsLabel_here
 
-        method private change_ki: 'a. stmt -> 'a -> 'a visitAction =
-          fun ki x ->
-          let old_ki = current_ki in
-          let old_before = before in
-          current_ki <- ki;
-          current_before <- true;
+        method private get_ctrl_point () =
+          let get_fct_entry_point () =
+            (* TODO: to replace by true, None *)
+            true, (try Some (Kernel_function.find_first_stmt kf)
+                   with Kernel_function.No_Statement -> None)  (* raised when [kf] has no code. *)
+          in
+          let get_ctrl_point dft =
+            let before = Extlib.may_map (fun before -> before) ~dft before_opt in
+              match ki_opt with
+                | None -> (* function contract *)
+
+                    if before then get_fct_entry_point ()
+                    else before, None
+                      (* statement contract *)
+                | Some (ki,_) ->  (* statement contract and code annotation *)
+                    before, Some ki
+          in
+          let result = match current_label with
+            | AbsLabel_stmt stmt -> true, Some stmt
+            | AbsLabel_pre -> get_fct_entry_point ()
+            | AbsLabel_here -> get_ctrl_point true
+            | AbsLabel_post -> get_ctrl_point false
+          in (* TODO: the method should be able to return result directly *)
+            match result with
+              | current_before, Some current_ki -> current_before, current_ki
+              | _ -> raise (Extlib.NotYetImplemented "[logic_interp] clause related to a function contract")
+
+        method private change_label: 'a.abs_label -> 'a -> 'a visitAction =
+          fun label x ->
+          let old_label = current_label in
+          current_label <- label;
           ChangeDoChildrenPost
-            (x,fun x -> current_ki <- old_ki; current_before <- old_before; x)
+            (x,fun x -> current_label <- old_label; x)
+
+        method private change_label_to_here: 'a.'a -> 'a visitAction =
+          fun x ->
+            self#change_label AbsLabel_here x
+
+        method private change_label_to_old: 'a.'a -> 'a visitAction =
+         fun x ->
+          match ki_opt,before_opt with
+              (* function contract *)
+            | None,Some true -> failwith ("The use of the label Old is forbiden inside clauses related the pre-state of function contracts.")
+            | None,None
+            | None,Some false -> self#change_label AbsLabel_pre x (* refers to the pre-state of the contract. *)
+                (* statement contract *)
+            | Some (_ki,false),Some true  -> failwith ("The use of the label Old is forbiden inside clauses related the pre-state of statement contracts.")
+            | Some (ki,false),None
+            | Some (ki,false),Some false  -> self#change_label (AbsLabel_stmt ki) x (* refers to the pre-state of the contract. *)
+                (* code annotation *)
+            | Some (_ki,true),None
+            | Some (_ki,true),Some _ -> self#change_label AbsLabel_pre x (* refers to the pre-state of the function contract. *)
+
+        method private change_label_to_post: 'a.'a -> 'a visitAction =
+         fun x -> (* allowed when [before_opt=None] for function/statement contracts *)
+          match ki_opt,before_opt with
+              (* function contract *)
+            | None,Some _ -> failwith ("Function contract where the use of the label Post is forbiden.")
+            | None,None -> self#change_label AbsLabel_post x (* refers to the post-state of the contract. *)
+                (* statement contract *)
+            | Some (_ki,false),Some _  -> failwith ("Statement contract where the use of the label Post is forbiden.")
+            | Some (_ki,false),None -> self#change_label AbsLabel_post x (* refers to the pre-state of the contract. *)
+                (* code annotation *)
+            | Some (_ki,true), _ -> failwith ("The use of the label Post is forbiden inside code annotations.")
+
+        method private change_label_to_pre: 'a.'a -> 'a visitAction =
+         fun x ->
+          match ki_opt with
+              (* function contract *)
+            | None -> failwith ("The use of the label Pre is forbiden inside function contracts.")
+                (* statement contract *)
+                (* code annotation *)
+            | Some _ -> self#change_label AbsLabel_pre x (* refers to the pre-state of the function contract. *)
+
+        method private change_label_to_stmt: 'a.stmt -> 'a -> 'a visitAction =
+          fun stmt x ->
+          match ki_opt with
+              (* function contract *)
+            | None -> failwith ("the use of C labels is forbiden inside clauses related function contracts.")
+                (* statement contract *)
+                (* code annotation *)
+            | Some _ -> self#change_label (AbsLabel_stmt stmt) x (* refers to the state at the C label of the statement [stmt]. *)
 
         method vpredicate p = match p with
-            Pold _ | Pat (_, LogicLabel "Pre") ->
-              self#change_ki (Kernel_function.find_first_stmt kf) p
-          | Pat (_, StmtLabel st) -> self#change_ki !st p
+          | Pold _ | Pat (_, LogicLabel "Old") -> self#change_label_to_old p
+          | Pat (_, LogicLabel "Here") -> self#change_label_to_here p
+          | Pat (_, LogicLabel "Pre") -> self#change_label_to_pre p
+          | Pat (_, LogicLabel "Post") -> self#change_label_to_post p
+          | Pat (_, StmtLabel st) -> self#change_label_to_stmt !st p
           | Pat (_,LogicLabel s) ->
               failwith ("unknown logic label" ^ s)
-          | Pfresh _ -> assert false (*VP: can't we do something better? *)
+          | Pfresh _ -> 
+              raise (Extlib.NotYetImplemented ("[logic_interp] \\fresh()"))
+              (* assert false *) (*VP: can't we do something better? *)
           | _ -> DoChildren
 
         method vterm t =
           match t.term_node with
               TAddrOf _ | TLval _ | TStartOf _  ->
-                let exp = !Db.Properties.Interp.term_to_exp t in
-                let loc =
+                let exp = try (* to be removed *)
+                  !Db.Properties.Interp.term_to_exp t
+                with Invalid_argument str ->
+                  raise (Extlib.NotYetImplemented ("[logic_interp] "^ str))
+                in
+                let current_before, current_ki = self#get_ctrl_point () in
+                let loc = try (* to be removed *)
                   !Db.From.find_deps_no_transitivity (Kstmt current_ki) exp
+                with Invalid_argument str ->
+                  raise (Extlib.NotYetImplemented ("[logic_interp] "^ str))
                 in add_result current_before current_ki loc; SkipChildren
-            | Told _ | Tat(_,LogicLabel "Pre") ->
-                self#change_ki (Kernel_function.find_first_stmt kf) t
-            | Tat(_,StmtLabel st) -> self#change_ki !st t
+            | Told _ | Tat (_, LogicLabel "Old") -> self#change_label_to_old t
+            | Tat (_, LogicLabel "Here") -> self#change_label_to_here t
+            | Tat (_, LogicLabel "Pre") -> self#change_label_to_pre t
+            | Tat (_, LogicLabel "Post") -> self#change_label_to_post t
+           | Tat (_, StmtLabel st) -> self#change_label_to_stmt !st t
             | Tat(_,LogicLabel s) ->
                 failwith ("unknown logic label" ^ s)
             | _ -> DoChildren
 
         method vtsets_elem t =
           match t with
-              TSAt(_,LogicLabel "Pre") ->
-                self#change_ki (Kernel_function.find_first_stmt kf) t
-            | TSAt(_,StmtLabel st) -> self#change_ki !st t
-            | TSAt(_,LogicLabel s) ->
+            | TSat (_, LogicLabel "Old") -> self#change_label_to_old t
+            | TSat (_, LogicLabel "Here") -> self#change_label_to_here t
+            | TSat (_, LogicLabel "Pre") -> self#change_label_to_pre t
+            | TSat (_, LogicLabel "Post") -> self#change_label_to_post t
+            | TSat (_, StmtLabel st) -> self#change_label_to_stmt !st t
+            | TSat(_,LogicLabel s) ->
                 failwith ("unknown logic label" ^ s)
             | _ ->
-                let exps = !Db.Properties.Interp.tsets_elem_to_exp t in
+                let exps = try (* to be removed *)
+                  !Db.Properties.Interp.tsets_elem_to_exp t
+                with Invalid_argument str ->
+                  raise (Extlib.NotYetImplemented ("[logic_interp] "^ str))
+                in
+                let current_before, current_ki = self#get_ctrl_point () in
                 List.iter
                   (fun e ->
-                     let loc =
+                     let loc = try (* to be removed *)
                        !Db.From.find_deps_no_transitivity (Kstmt current_ki) e
+                     with Invalid_argument str ->
+                       raise (Extlib.NotYetImplemented ("[logic_interp] "^ str))
                      in add_result current_before current_ki loc) exps;
                 SkipChildren
       end
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the [term]. *)
-    let from_stmt_term  term ~before (ki, kf) =
-      ignore(
-        Cil.visitCilTerm (new populate_zone before ki kf:>Cil.cilVisitor) term);
+        needed to evaluate the [term]
+        relative to the [ctx] of interpretation. *)
+    let from_term term ctx =
+      ignore(visitFramacTerm (new populate_zone
+                                ctx.Properties.Interp.To_zone.state_opt
+                                ctx.Properties.Interp.To_zone.ki_opt
+                                ctx.Properties.Interp.To_zone.kf) term);
       get_result ()
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the list of [terms]. *)
-    let from_stmt_terms terms ~before (ki, kf) =
+        needed to evaluate the list of [terms]
+        relative to the [ctx] of interpretation. *)
+    let from_terms terms ctx =
       let f x =
-        ignore(
-          Cil.visitCilTerm (new populate_zone before ki kf:>Cil.cilVisitor) x)
+        ignore(visitFramacTerm (new populate_zone
+                                  ctx.Properties.Interp.To_zone.state_opt
+                                  ctx.Properties.Interp.To_zone.ki_opt
+                                  ctx.Properties.Interp.To_zone.kf) x)
       in
-      List.iter f terms;
+        List.iter f terms;
+        get_result ()
+
+    (** Entry point to get the list of [ki] * [Locations.Zone.t]
+        needed to evaluate the [pred]
+        relative to the [ctx] of interpretation. *)
+    let from_pred pred ctx =
+      ignore(visitFramacPredicateNamed
+               (new populate_zone
+                  ctx.Properties.Interp.To_zone.state_opt
+                  ctx.Properties.Interp.To_zone.ki_opt
+                  ctx.Properties.Interp.To_zone.kf) pred);
       get_result ()
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the [pred]. *)
-    let from_stmt_pred pred ~before (ki, kf) =
-      ignore(visitCilPredicateNamed
-               (new populate_zone before ki kf:>Cil.cilVisitor) pred);
-      get_result ()
-
-    (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the list of [preds]. *)
-    let from_stmt_preds preds ~before (ki, kf) =
+        needed to evaluate the list of [preds]
+        relative to the [ctx] of interpretation. *)
+    let from_preds preds ctx =
       let f pred =
-        ignore(Cil.visitCilPredicateNamed
-                 (new populate_zone before ki kf:>Cil.cilVisitor) pred)
+        ignore(visitFramacPredicateNamed
+                 (new populate_zone ctx.Properties.Interp.To_zone.state_opt
+                    ctx.Properties.Interp.To_zone.ki_opt
+                    ctx.Properties.Interp.To_zone.kf) pred)
       in
-      List.iter f preds;
+        List.iter f preds;
+        get_result ()
+
+    (** Entry point to get the list of [ki] * [Locations.Zone.t]
+        needed to evaluate the list of [zones]
+        relative to the [ctx] of interpretation. *)
+    let from_zone zone ctx =
+      begin
+        match zone with
+            Nothing -> ()
+          | Location tset ->
+              ignore(
+                visitFramacTsets
+                  (new populate_zone ctx.Properties.Interp.To_zone.state_opt
+                     ctx.Properties.Interp.To_zone.ki_opt
+                     ctx.Properties.Interp.To_zone.kf) tset.its_content)
+      end ;
       get_result ()
 
-    let get_zone_from_annot a before (ki,kf) loop_ki =
+    (** Entry point to get the list of [ki] * [Locations.Zone.t]
+        needed to evaluate the list of [zones]
+        relative to the [ctx] of interpretation. *)
+    let from_zones zones ctx =
+      let f zone =
+        match zone with
+            Nothing -> ()
+          | Location tset ->
+              ignore(
+                visitFramacTsets
+                  (new populate_zone ctx.Properties.Interp.To_zone.state_opt
+                     ctx.Properties.Interp.To_zone.ki_opt
+                     ctx.Properties.Interp.To_zone.kf) tset.its_content)
+      in
+        List.iter f zones;
+        get_result ()
+
+   (** Used by annotations entry points. *)
+    let get_zone_from_annot a before (ki,kf) loop_body_opt =
       let get_zone_from_term x =
-        ignore(
-          Cil.visitCilTerm (new populate_zone before ki kf :> Cil.cilVisitor) x)
+        ignore(visitFramacTerm (new populate_zone (Some before) (Some (ki,true)) kf) x)
       and get_zone_from_pred x =
-        ignore(Cil.visitCilPredicateNamed
-                 (new populate_zone before ki kf :> Cil.cilVisitor) x)
+        ignore(visitFramacPredicateNamed (new populate_zone (Some before) (Some (ki,true)) kf) x)
       in match a with
       | APragma (Slice_pragma (SPexpr term) | Impact_pragma (IPexpr term)) ->
+            (* to preserve the interpretation of the pragma *)
             get_zone_from_term term;
+            (* to select the declaration of the variables *)
             locals := VarinfoSet.union (extract_locals_from_term term) !locals;
-            (* The value of an expression at a program point
-             * doesn't depend on the attached statement...
-               pragmas:= { !pragmas with Properties.Interp.To_zone.stmt =
-                Cilutil.StmtSet.add ki !pragmas.Properties.Interp.To_zone.stmt}
-            * *)
-            (* ... but we need at least the control of the branch to be visible
-             * See this with Patrick [Anne. 28/02/08]
-             * It's OK. [Patrick. 25/06/08].
-             * *)
+            (* to select the reachability of the pragma *)
             pragmas := { !pragmas with Properties.Interp.To_zone.ctrl =
                Cilutil.StmtSet.add ki !pragmas.Properties.Interp.To_zone.ctrl }
         | APragma (Slice_pragma SPctrl) ->
+            (* to select the reachability of the pragma *)
             pragmas :=
               { !pragmas with
                   Properties.Interp.To_zone.ctrl =
@@ -1222,41 +1436,64 @@ module To_zone : sig
                     !pragmas.Properties.Interp.To_zone.ctrl
               }
         | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
+            (* to preserve the effect of the statement *)
             pragmas :=
               { !pragmas with
                   Properties.Interp.To_zone.stmt =
                   Cilutil.StmtSet.add ki
                     !pragmas.Properties.Interp.To_zone.stmt}
-        | AAssert (_behav,pred) ->
+        | AAssert (_behav,pred,_) ->
+            (* to preserve the interpretation of the assertion *)
             get_zone_from_pred pred;
-            locals :=
-              VarinfoSet.union (extract_locals_from_pred pred) !locals
+            (* to select the declaration of the variables *)
+            locals := VarinfoSet.union (extract_locals_from_pred pred) !locals
         | AAssume pred ->
+            (* to preserve the interpretation of the assume clause *)
             get_zone_from_pred pred;
-            locals :=
-              VarinfoSet.union (extract_locals_from_pred pred) !locals
-        | AInvariant (_behav,true,pred) ->
+            (* to select the declaration of the variables *)
+            locals := VarinfoSet.union (extract_locals_from_pred pred) !locals
+        | AInvariant (_behav,true,pred) -> (* loop invariant *)
+            (* to preserve the interpretation of the loop invariant *)
             ignore(
-              visitCilPredicateNamed
-                (new populate_zone true
-                   (Extlib.the loop_ki) kf:> Cil.cilVisitor)
-                pred)
-        | AInvariant (_behav,false,pred) ->
+              visitFramacPredicateNamed
+                (new populate_zone (Some true) (Some (Extlib.the loop_body_opt, true)) kf) pred)
+        | AInvariant (_behav,false,pred) -> (* code invariant *)
+            (* to preserve the interpretation of the code invariant *)
             get_zone_from_pred pred;
-            locals :=
-              VarinfoSet.union (extract_locals_from_pred pred) !locals
+            (* to select the declaration of the variables *)
+            locals := VarinfoSet.union (extract_locals_from_pred pred) !locals
         | AVariant (term,_) ->
+            (* to preserve the interpretation of the variant *)
             ignore(
-              visitCilTerm
-                (new populate_zone true
-                   (Extlib.the loop_ki) kf :> Cil.cilVisitor)
-                term)
-        | APragma (Loop_pragma _) -> ()
-        | AAssigns _ -> ()
-        | AStmtSpec _ -> assert false
-            (* code_annot_filter must reject it, or else TODO *)
+              visitFramacTerm
+                (new populate_zone (Some true) (Some (Extlib.the loop_body_opt, true)) kf) term)
+        | APragma (Loop_pragma (Unroll_level term)) ->
+            (* to select the declaration of the variables *)
+            locals := VarinfoSet.union (extract_locals_from_term term) !locals
+        | APragma (Loop_pragma (Widen_hints terms))
+        | APragma (Loop_pragma (Widen_variables terms)) ->
+            (* to select the declaration of the variables *)
+            List.iter (fun term ->
+                         locals := VarinfoSet.union (extract_locals_from_term term) !locals)
+              terms
+        | AAssigns (zone,deps) -> (* loop assigns *)
+            (* to preserve the effect of the loop body *)
+            pragmas := { !pragmas with Properties.Interp.To_zone.stmt =
+                Cilutil.StmtSet.add ki !pragmas.Properties.Interp.To_zone.stmt};
+            (* to preserve the interpretation of the locations *)
+            List.iter (fun zone ->
+                         match zone with
+                             Nothing -> ()
+                           | Location tset ->
+                               ignore(
+                                 visitFramacTsets
+                                   (new populate_zone (Some true) (Some (Extlib.the loop_body_opt, true)) kf) tset.its_content))
+              (zone::deps)
+        | AStmtSpec _ -> (* TODO *)
+            raise (Extlib.NotYetImplemented "[logic_interp] statement contract")
 
-    let get_zone_from_annotation a stmt loop_ki =
+   (** Used by annotations entry points. *)
+    let get_zone_from_annotation a stmt loop_body_opt =
       let before,a = match a with
         | Before a -> true, a
         | After a -> false, a
@@ -1264,22 +1501,22 @@ module To_zone : sig
       match a with
         | WP _ -> assert false
             (* code_annot_filter must reject it, or else TODO *)
-        | User a -> get_zone_from_annot a.annot_content before stmt loop_ki
-        | AI (_,a) -> get_zone_from_annot a.annot_content before stmt loop_ki
+        | User a -> get_zone_from_annot a.annot_content before stmt loop_body_opt
+        | AI (_,a) -> get_zone_from_annot a.annot_content before stmt loop_body_opt
 
     (** Used by annotations entry points. *)
     let get_from_stmt_annots code_annot_filter ((ki, _kf) as stmt) =
       match code_annot_filter with
       | Some code_annot_filter ->
           let code_annot_list = Annotations.get ki in
-          let loop_ki = match ki.skind with
-              Loop(_,{bstmts=loop_entry::_},_,_,_) -> Some loop_entry
+          let loop_body_opt = match ki.skind with
+              Loop(_,{bstmts=body::_},_,_,_) -> Some body
             | _ -> None
           in
           List.iter
             (fun a ->
                if code_annot_filter a then
-                 get_zone_from_annotation a stmt loop_ki)
+                 get_zone_from_annotation a stmt loop_body_opt)
             code_annot_list
       | None -> ()
 
@@ -1293,19 +1530,19 @@ module To_zone : sig
       get_zone_from_annot annot.annot_content before stmt real_ki
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the annotations related to this [stmt]. *)
+        needed to evaluate the code annotations related to this [stmt]. *)
     let from_stmt_annot annot ~before stmt =
       from_ki_annot annot ~before stmt;
       get_annot_result ()
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the annotations related to this [stmt]. *)
+        needed to evaluate the code annotations related to this [stmt]. *)
     let from_stmt_annots code_annot_filter stmt =
       get_from_stmt_annots code_annot_filter stmt ;
       get_annot_result ()
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
-        needed to evaluate the annotations related to this [kf]. *)
+        needed to evaluate the code annotations related to this [kf]. *)
     let from_func_annots iter_on_kf_stmt code_annot_filter kf =
       let from_stmt_annots ki =
         get_from_stmt_annots code_annot_filter (ki, kf)
@@ -1322,11 +1559,12 @@ module To_zone : sig
         match a with
           | APragma (Slice_pragma _) -> slicing_pragma
           | AAssume _ | AAssert _ -> user_assert
-          | AInvariant _ -> loop_inv
-              (*TODO: distinguish both kinds of invariants?*)
           | AVariant _ -> loop_var
-          | AAssigns _ | APragma (Loop_pragma _)
-          | AStmtSpec _ | APragma (Impact_pragma _) -> others
+          | AInvariant(_behav,true,_pred) -> loop_inv
+          | AInvariant(_,false,_)
+          | AAssigns _
+          | APragma (Loop_pragma _)| APragma (Impact_pragma _) -> others
+          | AStmtSpec _  (* TODO: statement contract *) -> false
       in match a with
         | WP _ -> others
         | User a -> code_annot_filter a.annot_content
@@ -1344,6 +1582,8 @@ let () =
   Properties.Interp.force_back_exp_to_term := force_back_exp_to_term;
   Properties.Interp.force_term_lval_to_lval := force_term_lval_to_lval;
   Properties.Interp.force_back_lval_to_term_lval := force_back_lval_to_term_lval;
+  Properties.Interp.force_term_offset_to_offset := force_term_offset_to_offset;
+  Properties.Interp.force_back_offset_to_term_offset := force_back_offset_to_term_offset;
 
   Properties.Interp.force_exp_to_term := force_exp_to_term;
   Properties.Interp.force_lval_to_term_lval := force_lval_to_term_lval;
@@ -1357,6 +1597,8 @@ let () =
   Properties.Interp.force_back_exp_to_tsets_elem := force_back_exp_to_tsets_elem;
   Properties.Interp.force_tsets_lval_to_lval := force_tsets_lval_to_lval;
   Properties.Interp.force_back_lval_to_tsets_lval := force_back_lval_to_tsets_lval;
+  Properties.Interp.force_tsets_offset_to_offset := force_tsets_offset_to_offset;
+  Properties.Interp.force_back_offset_to_tsets_offset := force_back_offset_to_tsets_offset;
 
   Properties.Interp.force_tsets_elem_to_term := force_tsets_elem_to_term;
   Properties.Interp.force_back_term_to_tsets_elem := force_back_term_to_tsets_elem;
@@ -1370,10 +1612,13 @@ let () =
   Properties.Interp.tsets_elem_to_lval := tsets_elem_to_lval;
   Properties.Interp.tsets_to_exp:= tsets_to_exp;
   Properties.Interp.tsets_elem_to_exp:= tsets_elem_to_exp;
-  Properties.Interp.To_zone.from_stmt_term := To_zone.from_stmt_term;
-  Properties.Interp.To_zone.from_stmt_terms := To_zone.from_stmt_terms;
-  Properties.Interp.To_zone.from_stmt_pred := To_zone.from_stmt_pred;
-  Properties.Interp.To_zone.from_stmt_preds := To_zone.from_stmt_preds;
+  Properties.Interp.To_zone.mk_ctx_func_contrat := To_zone.mk_ctx_func_contrat;
+  Properties.Interp.To_zone.mk_ctx_stmt_contrat := To_zone.mk_ctx_stmt_contrat;
+  Properties.Interp.To_zone.mk_ctx_stmt_annot := To_zone.mk_ctx_stmt_annot;
+  Properties.Interp.To_zone.from_term := To_zone.from_term;
+  Properties.Interp.To_zone.from_terms := To_zone.from_terms;
+  Properties.Interp.To_zone.from_pred := To_zone.from_pred;
+  Properties.Interp.To_zone.from_preds := To_zone.from_preds;
   Properties.Interp.To_zone.from_stmt_annot := To_zone.from_stmt_annot;
   Properties.Interp.To_zone.from_stmt_annots := To_zone.from_stmt_annots;
   Properties.Interp.To_zone.from_func_annots := To_zone.from_func_annots;

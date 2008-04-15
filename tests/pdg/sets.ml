@@ -30,7 +30,7 @@ let y_zone = Locations.valid_enumerate_bits (Locations.loc_of_varinfo y);;
 
 let y_at_11_nodes, undef = (* y=5 *)
   !Pdg.find_location_nodes_at_stmt
-    pdg (fst (Kernel_function.find_from_sid 10)) ~before:false y_zone;;
+    pdg (fst (Kernel_function.find_from_sid 11)) ~before:false y_zone;;
 
 assert (undef = None);;
 let y_at_11_nodes = List.map (fun (n,_z) -> n) y_at_11_nodes;;

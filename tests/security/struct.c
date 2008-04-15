@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -security-lattice weak -security-propagate-assertions
+   OPT: -security-analysis -security-lattice weak -security-propagate-assertions -journal-disable
 */
 
 //#define GCC

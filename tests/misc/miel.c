@@ -1,3 +1,6 @@
+/* run.config
+   DONTRUN: cannot find entry point: main
+*/
 
 void g() { j();
 }

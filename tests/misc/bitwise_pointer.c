@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -inout
+   OPT: -memory-footprint 1 -val -deps -out -input -inout -journal-disable
 */
 
 char t[100]={0,1,2,3,4,5,6,7,8,9};
@@ -23,4 +23,3 @@ void main(void)
   *p1 = 5;
   x1 = *p1;
 }
-  

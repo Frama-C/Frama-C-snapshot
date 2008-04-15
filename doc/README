@@ -4,7 +4,5 @@ The manuals directory contains the following manuals
  * acsl-implementation is a copy of the ACSL design document enhanced with
    some implementation-specific remarks. In particular, it explains which
    features are not currently supported by Frama-C
- * frama-c-architecture is a brief description of the internal architecture
-   of Frama-C.
- * frama-c-manual describes the use of frama-c
+ * frama-c-manual-en describes the use of frama-c
  * plugin-dev gives all the information needed to develop a plugin for Frama-C

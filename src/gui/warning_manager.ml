@@ -20,9 +20,11 @@
 (**************************************************************************)
 
 open Messages_manager
-type t = { widget: GTree.view;
-           append : message -> unit;
-           clear : unit -> unit;}
+
+type t = 
+    { widget: GTree.view;
+      append : message -> unit;
+      clear : unit -> unit;}
 
 let make ~packing ~callback = 
   let cols = new GTree.column_list in
@@ -49,9 +51,17 @@ let make ~packing ~callback =
   in
   let view:GTree.view = GTree.view ~packing:sc#add () in
   let model = message_list_list_store#coerce in
+  let severity_renderer = GTree.cell_renderer_pixbuf [] in
   let file_renderer = GTree.cell_renderer_text [] in
   let line_renderer = GTree.cell_renderer_text [] in
   let message_renderer = GTree.cell_renderer_text [] in
+  let m_severity_renderer renderer (model:GTree.model) iter =
+    let severity = model#get ~row:iter ~column:message_list_severity_col in
+    renderer#set_properties (match severity with 
+			       | `Error -> [`STOCK_ID "gtk-dialog-error"]
+			       | `Info -> [`STOCK_ID "gtk-dialog-info"]
+			       | `Warning -> [`STOCK_ID  "gtk-dialog-warning"])
+  in
   let m_file_renderer renderer (model:GTree.model) iter =
     let name = model#get ~row:iter ~column:message_list_file_col in
     renderer#set_properties [`TEXT name]
@@ -64,6 +74,9 @@ let make ~packing ~callback =
     let name = model#get ~row:iter ~column:message_list_message_col in
     renderer#set_properties [`TEXT name]
   in
+  let severity_col_view = GTree.view_column
+    ~title:"Severity"
+    ~renderer:(severity_renderer, []) () in
   let file_col_view = GTree.view_column
     ~title:"Filename"
     ~renderer:(file_renderer, []) () in
@@ -73,6 +86,8 @@ let make ~packing ~callback =
   let message_col_view = GTree.view_column
     ~title:"Message"
     ~renderer:(message_renderer, []) () in
+  severity_col_view#set_cell_data_func
+    severity_renderer (m_severity_renderer severity_renderer) ;
   file_col_view#set_cell_data_func
     file_renderer (m_file_renderer file_renderer) ;
   line_col_view#set_cell_data_func
@@ -80,6 +95,7 @@ let make ~packing ~callback =
   message_col_view#set_cell_data_func
     message_renderer (m_message_renderer message_renderer) ;
 
+  ignore (view#append_column severity_col_view) ;
   ignore (view#append_column file_col_view) ;
   ignore (view#append_column line_col_view) ;
   ignore (view#append_column message_col_view) ;

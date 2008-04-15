@@ -6,10 +6,10 @@ f[b]=d%--g,d/=g--,--b;d*=b);}
 
 ******/
 
-/*@ axiom simplify_dumb_1 : 2800 % 14 == 0; */
-/*@ axiom simplify_dumb_2 : \forall int c; c*2>0 ==> c*2>1; */
-/*@ axiom simplify_dumb_3 : \forall int c; c%14==0 ==> (c-14)%14==0; */
-/*@ axiom simplify_dumb_4 : \forall int c; c%14==0 ==> c>0 ==> c>=14; */
+/*@ lemma simplify_dumb_1 : 2800 % 14 == 0; */
+/*@ lemma simplify_dumb_2 : \forall integer c; c*2>0 ==> c*2>1; */
+/*@ lemma simplify_dumb_3 : \forall integer c; c%14==0 ==> (c-14)%14==0; */
+/*@ lemma simplify_dumb_4 : \forall integer c; c%14==0 ==> c>0 ==> c>=14; */
 
 void print4(int);
 

@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/simple_intra_slice.opt
    CMD: tests/slicing/simple_intra_slice.opt
-   OPT: -deps -slicing-level 0 -slicing-debug -no-slice-callers
+   OPT: -deps -slicing-level 0 -slicing-debug -no-slice-callers -journal-disable
 */
 int Unknown;
 int G;
@@ -27,7 +27,7 @@ int f2 (void) {
 int f3 (int c) {
   int a = 1, b = 2;
   int x = 0;
-  if (c > Unknown) 
+  if (c > Unknown)
     x = b;
   else
     G = a;
@@ -37,7 +37,7 @@ int f3 (int c) {
 int f4 (int c) {
   int a = 1, b = 2;
   int x = 0;
-  if (c > Unknown) 
+  if (c > Unknown)
     G = a;
   else
     x = b;

@@ -38,20 +38,32 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-let gcc = ref Machdep_x86_32.gcc
-let msvc = ref Machdep_x86_32.msvc
-let gccHas__builtin_va_list = ref true
-let __thread_is_keyword = ref true
+(* $Id: machdep.ml,v 1.9 2008/07/21 17:50:56 uid568 Exp $ *)
 
-module DEFINE(M:sig val gcc : Cil_types.mach 
-                    val msvc : Cil_types.mach  
-                    val gccHas__builtin_va_list : bool
-                    val __thread_is_keyword : bool
-              end) = 
+open Cil_types
+
+type t =
+    { mutable gcc: mach; 
+      mutable msvc: mach; 
+      mutable gccHas__builtin_va_list: bool; 
+      mutable __thread_is_keyword: bool }
+
+let state = 
+  { gcc = Machdep_x86_32.gcc; msvc = Machdep_x86_32.msvc;
+    gccHas__builtin_va_list = true; __thread_is_keyword = true }
+
+module DEFINE
+  (M:sig 
+     val gcc : Cil_types.mach 
+     val msvc : Cil_types.mach  
+     val gccHas__builtin_va_list : bool
+     val __thread_is_keyword : bool
+   end) = 
 struct
-  gcc := M.gcc;
-  msvc := M.msvc;
-  gccHas__builtin_va_list := M.gccHas__builtin_va_list;
-  __thread_is_keyword := M.__thread_is_keyword;
+  let () =
+    state.gcc <- M.gcc;
+    state.msvc <- M.msvc;
+    state.gccHas__builtin_va_list <- M.gccHas__builtin_va_list;
+    state.__thread_is_keyword <- M.__thread_is_keyword;
 end  
 

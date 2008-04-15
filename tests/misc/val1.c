@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -main h
-   OPT: -memory-footprint 1 -val -deps -out -input -main g
-   OPT: -memory-footprint 1 -val -deps -out -input -main f
+   OPT: -memory-footprint 1 -val -deps -out -input -main h -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main g -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
 
 */
 
@@ -25,4 +25,3 @@ void h() {
   z2= x2+y2;
 //  while (1) {  z2 = z2 + 1;}
 }
-

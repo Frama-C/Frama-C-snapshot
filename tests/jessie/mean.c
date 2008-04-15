@@ -2,7 +2,7 @@
 /* right way to compute the mean of two integers without overflow
    (extracted from binary_search.c) */
 
-//@ axiom mean_1 : \forall int x; 0 <= x ==> 0 <= x/2 <= x;
+//@ lemma mean_1 : \forall int x; 0 <= x ==> 0 <= x/2 <= x;
 
 //@ requires 0 <= l <= r ;
 int mean(int l, int r) {

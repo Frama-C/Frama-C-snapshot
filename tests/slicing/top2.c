@@ -1,6 +1,6 @@
 /* run.config
-* OPT: -slicing-level 2 -slice-pragma main -slice-print
-* OPT: -slicing-level 2 -slice-return main -slice-print
+* OPT: -slicing-level 2 -slice-pragma main -slice-print -journal-disable
+* OPT: -slicing-level 2 -slice-return main -slice-print -journal-disable
 */
 
 
@@ -10,10 +10,10 @@ typedef struct {int a; int b; } Ts;
 Ts S;
 
 int f(void) {
- volatile int i=0;   
+ volatile int i=0;
  int v;
 
- v = tab[i];                               
+ v = tab[i];
 
  G = X;
 
@@ -25,4 +25,4 @@ int main(void) {
  G += 1 ;
  //@ slice pragma expr G ;
  return x;
-} 
+}

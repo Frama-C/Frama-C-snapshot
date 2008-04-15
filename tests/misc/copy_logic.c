@@ -1,10 +1,10 @@
 /* run.config
-   OPT: -files-debug "-check -copy" -val -print
+   OPT: -files-debug "-check -copy" -val -print -journal-disable
  */
 
-/*@ predicate p(int x) reads x; */
+/*@ predicate p(int x); */
 /*@ predicate q(int x) = x == 42; */
-/*@ logic int f (int y) reads y; */
+/*@ logic int f (int y); */
 /*@ logic integer g (int x) = x + 42; */
 
 int main (int x) {

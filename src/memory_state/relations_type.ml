@@ -54,8 +54,8 @@ module Cluster = struct
 	virtual_to_real : Location_Bits.t }
 
   let compare x y = Pervasives.compare x.id y.id
-
   let equal x y = x.id = y.id
+  let hash t = t.id
 
   let rel_at_least_2 ~rel ~size =
     try
@@ -161,6 +161,9 @@ module Cluster = struct
     try
       H.find rehash_table c
     with Not_found ->
+      (* [JS -> PC] does not work if c.id or !cluster_counter is negative.
+	 See at the top of ocamlgraph/src/blocks.ml for a correct 
+	 version ;-) *) 
       cluster_counter := max c.id !cluster_counter;
       let c' =
 	{ c with
@@ -173,20 +176,16 @@ module Cluster = struct
       c'
 
   module Datatype = struct
-    let compare = compare
     include Project.Datatype.Register
-    (struct
-       type t = tt
-       let rehash = rehash
-       let copy _ = assert false (* TODO *)
-       let before_load = Extlib.nop
-       let after_load () = H.clear rehash_table
-       let name = Project.Datatype.Name.make "Cluster"
-       let dependencies =
-	 [ V_Offsetmap_For_Relations.Datatype.self;
-	   Relation_between.Datatype.self;
-	   Location_Bits.Datatype.self ]
-     end)
+      (struct
+	 type t = tt
+	 let rehash = rehash
+	 let copy _ = assert false (* TODO *)
+	 let name = "Cluster"
+       end)
+    let () = 
+      register_comparable ~compare ~equal ~hash ();
+      Project.register_after_load_hook (fun () -> H.clear rehash_table)
   end
 
 end
@@ -209,21 +208,6 @@ struct
     | No_cluster | Bottom_cluster as x -> x
     | Cluster c -> Cluster (Cluster.rehash c)
 
-  let id = "Cluster_info"
-
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = cluster_info
-	 let copy _ = assert false (* TODO *)
-	 let rehash = rehash
-	 include Datatype.Nop
-	 let name = Project.Datatype.Name.make id
-	 let dependencies = [ Cluster.Datatype.self ]
-       end)
-
-  let project _ = assert false
-
   let hash v =
     match v with
       No_cluster -> 1975
@@ -231,6 +215,33 @@ struct
     | Cluster c -> c.Cluster.id
 
   let tag = hash
+
+  let compare x y =
+    match x, y with
+      No_cluster, No_cluster | Bottom_cluster, Bottom_cluster -> 0
+    | No_cluster, _ -> 1
+    | _, No_cluster -> -1
+    | Bottom_cluster, _ -> 1
+    | _, Bottom_cluster -> -1
+    | Cluster c1, Cluster c2 -> compare c1.Cluster.id c2.Cluster.id
+
+  let equal x y = compare x y = 0
+
+  let id = "Cluster_info"
+
+  module Datatype = struct
+    include Project.Datatype.Register
+      (struct
+	 type t = cluster_info
+	 let copy _ = assert false (* TODO *)
+	 let rehash = rehash
+	 let name = id
+       end)
+    let () = register_comparable ~hash ~equal ()
+  end
+
+  let project _ = assert false
+
 
   let join x y =
     match x, y with
@@ -271,16 +282,6 @@ struct
   let of_char _ = top
 
   let bottom = Bottom_cluster
-  let compare x y =
-    match x, y with
-      No_cluster, No_cluster | Bottom_cluster, Bottom_cluster -> 0
-    | No_cluster, _ -> 1
-    | _, No_cluster -> -1
-    | Bottom_cluster, _ -> 1
-    | _, Bottom_cluster -> -1
-    | Cluster c1, Cluster c2 -> compare c1.Cluster.id c2.Cluster.id
-
-  let equal x y = compare x y = 0
 
   exception Error_Bottom
   exception Error_Top
@@ -678,7 +679,7 @@ module type Model_S = sig
   type t
   type widen_hint = Model.widen_hint
   type cluster
-  module Datatype : Project.Datatype.OUTPUT with type t = t
+  module Datatype : Project.Datatype.S with type t = t
   val rehash: t -> t
   val is_reachable : t -> bool
   val pretty : Format.formatter -> t -> unit
@@ -707,7 +708,7 @@ module type Model_S = sig
   val filter_base : (Base.t -> bool) -> t -> t
   val clear_state_from_locals : Cil_types.fundec -> t -> t
   val compute_actual_final_from_generic :
-    t -> t -> Zone.t -> Model.instanciation -> t
+    t -> t -> Zone.t -> Model.instanciation -> t*Location_Bits.Top_Param.t
   val is_included_by_location_enum :  t -> t -> Zone.t -> bool
 
   val find_mem : location -> Int_Base.t ->
@@ -889,6 +890,8 @@ module Model : Model_S = struct
 	Participation_Map.Datatype.rehash b.participation_map;
       all_clusters = ClusterSet.Datatype.rehash b.all_clusters }
 
+  let hash (a, _b) = Model.hash a (*+ 97*hash b*)
+
   let filter_base_tt f a =
     ClusterSet.fold
       (fun cl acc -> try add_new_cluster (Cluster.filter_base f cl) acc
@@ -901,14 +904,23 @@ module Model : Model_S = struct
     filter_base_tt f a'
 
 
-  let clear_state_from_locals fundec state =
+  let clear_state_from_locals fundec (state,r) =
+    let locals = List.map Base.create_varinfo fundec.Cil_types.slocals in
+    let formals = List.map Base.create_varinfo fundec.Cil_types.sformals in
+    let cleanup acc v = Cvalue_type.Model.remove_base v acc in
+    let result = List.fold_left cleanup state locals in
+    List.fold_left cleanup result formals,
+    filter_base_tt (fun v -> not (Base.is_formal_or_local v fundec)) r
+(*
+    List.iter cleanup 
       filter_base
       (fun v -> not (Base.is_formal_or_local v fundec))
       state
+*)
 
   let compute_actual_final_from_generic (a,_a') (b,_b') loc instanciation =
-    Model.compute_actual_final_from_generic a b loc instanciation,
-    empty_tt
+    let a,b = Model.compute_actual_final_from_generic a b loc instanciation in
+    (a,empty_tt),b
 
   let is_included_by_location_enum (a,_a') (b,_b') loc =
     Model.is_included_by_location_enum a b loc
@@ -1552,19 +1564,16 @@ module Model : Model_S = struct
 
   type tt = t
 
-  module Datatype =
-    Project.Datatype.Register
+  module Datatype = struct
+    include Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
-	 include Datatype.Nop
-	 let name = Project.Datatype.Name.make "Relations_type.Model.State"
-	 let dependencies =
-	   [ Model.Datatype.self;
-	     ClusterSet.Datatype.self;
-	     Participation_Map.Datatype.self ]
+	 let name = "Relations_type.Model.State"
        end)
+    let () = register_comparable ~hash ~equal ()
+  end
 
 end
 

@@ -1,14 +1,14 @@
 /* run.config
-   OPT: -sparecode-analysis
-   OPT: -sparecode-analysis -main main_bis
-   OPT: -sparecode-analysis -sparecode-no-annot
+   OPT: -sparecode-analysis -journal-disable
+   OPT: -sparecode-analysis -main main_bis -journal-disable
+   OPT: -sparecode-analysis -sparecode-no-annot -journal-disable
 */
 
 int ki[2], k ;
 int f (int vi, int i) {
   static int si[2] = 0, so[2] = 0;
   int vo = so[i]/k + ki[i]*(vi - si[i]) ;
-  
+
   so[i] = vo ;
   si[i] = vi ;
   return vo ;
@@ -45,7 +45,7 @@ void main (int c) {
       }
 
 }
-  
+
 
 void main_bis (int c) {
   init (& is_ok);
@@ -55,5 +55,3 @@ void main_bis (int c) {
       }
 
 }
-  
-

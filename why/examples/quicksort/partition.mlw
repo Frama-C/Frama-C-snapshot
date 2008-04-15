@@ -28,7 +28,14 @@ let swap =
 
 (* partition *)
 
-external logic partition_p : int farray, int, int, int -> prop
+predicate array_le(a:int farray, l:int, r:int, v:int) =
+  forall i:int. l <= i <= r -> a[i] <= v
+
+predicate array_ge(a:int farray, l:int, r:int, v:int) =
+  forall i:int. l <= i <= r -> v <= a[i] 
+
+predicate partition_p(a:int farray, l:int, r:int, p:int) =
+  l <= p <= r and array_le(a, l, p-1, a[p]) and array_ge(a, p+1, r, a[p])
 
 let partition (t:int array)(l,r:int) =
     { 0 <= l < r and r < array_length(t) }
@@ -41,7 +48,7 @@ let partition (t:int array)(l,r:int) =
       	{ invariant l+1 <= i <= r and j <= r
                  and array_le(t, l+1, i-1, pv)
 		 and array_ge(t, j+1, r, pv)
-		 and sub_permut(l, r, t, t@init)
+		 and permut(t, t@init, l, r)
                  and t[l]=t@init[l] as Inv
           variant array_length(t)+2+j-i }
         L:
@@ -70,5 +77,5 @@ let partition (t:int array)(l,r:int) =
        end) 
     end)
     { l <= result <= r and 
-      partition_p(t, l, r, result) and sub_permut(l, r, t, t@) }
+      partition_p(t, l, r, result) and permut(t, t@, l, r) }
 

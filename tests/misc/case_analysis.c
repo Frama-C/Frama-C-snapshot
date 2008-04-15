@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -slevel 30
+   OPT: -memory-footprint 1 -val -slevel 30 -journal-disable
 */
 
 int sq,s;
@@ -12,7 +12,7 @@ void main(int c)
   r = s;
   //@ assert s >= 0 || s < 0 ;
   sq = s * s;
-  
+
   //@ assert r >= 0.0 || r < 0.0 ;
   rq = r * r;
 }

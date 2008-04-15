@@ -239,7 +239,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
 
     (** Process a statement *)
     let processStmt (s: stmt) : unit =
-      currentLoc := get_stmtLoc s.skind;
+      CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
       if !T.debug then
         log "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
 
@@ -261,7 +261,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
           in
           (* Do the instructions in order *)
           let handleInstruction (state: T.t) (i: instr) : T.t =
-            currentLoc := get_instrLoc i;
+            CurrentLoc.set (Cilutil.get_instrLoc i);
 
             (* Now handle the instruction itself *)
             let s' =
@@ -284,7 +284,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
             | TryExcept _ | TryFinally _
             | Switch _ | Loop _ | Return _ | Block _ -> curr
           in
-          currentLoc := get_stmtLoc s.skind;
+          CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
 
           (* Handle If guards *)
           let succsToReach = match s.skind with
@@ -453,14 +453,14 @@ module type BackwardsTransfer = sig
 
 
   val doStmt: stmt -> t action
-  (** The (backwards) transfer function for a branch. The {!Cil.currentLoc} is
+  (** The (backwards) transfer function for a branch. The {!Cil.CurrentLoc} is
    * set before calling this. If it returns None, then we have some default
    * handling. Otherwise, the returned data is the data before the branch
    * (not considering the exception handlers) *)
 
   val doInstr: stmt -> instr -> t -> t action
   (** The (backwards) transfer function for an instruction. The
-   * {!Cil.currentLoc} is set before calling this. If it returns None, then we
+   * {!Cil.CurrentLoc} is set before calling this. If it returns None, then we
    * have some default handling. Otherwise, the returned data is the data
    * before the branch (not considering the exception handlers) *)
 
@@ -487,7 +487,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
 
 
       (* Find the state before the branch *)
-      currentLoc := get_stmtLoc s.skind;
+      CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
       let d: T.t =
         match T.doStmt s with
            Done d -> d
@@ -509,7 +509,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
                    (* Now scan the instructions in reverse order. This may
                     * Stack_overflow on very long blocks ! *)
                    let handleInstruction (i: instr) (state: T.t) : T.t =
-                     currentLoc := get_instrLoc i;
+                     CurrentLoc.set (Cilutil.get_instrLoc i);
                      (* First handle the instruction itself *)
                      let action = T.doInstr s i state in
                      match action with

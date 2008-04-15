@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input tests/idct/idct.c share/math.c
+   OPT: -val -deps -out -input tests/idct/idct.c share/math.c -journal-disable
 */
 /* IEEE_1180_1990: a testbed for IDCT accuracy
  * Copyright (C) 2001  Renaud Pacalet

@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -impact-pragma f -lib-entry -main f -impact-print
+   OPT: -impact-pragma f -lib-entry -main f -impact-print -journal-disable
    */
 
 int P,c;
@@ -12,7 +12,7 @@ int f(int *x) {
   *y = 4;
   int a = *x + 2;
   *y = 2;
-  if (c) 
+  if (c)
     return *x;
   else {
     y = P;

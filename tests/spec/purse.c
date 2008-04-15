@@ -29,10 +29,7 @@ typedef struct purse {
 
 //@ predicate purse_inv{L}(purse *p) = \valid(p) && p->balance >= 0 ;
 
-//@ predicate purse_inv_abstract{L}(purse *p) reads p->balance;
-
-
-/*@ requires purse_inv_abstract(p) && purse_inv(p) && s >= 0;
+/*@ requires purse_inv(p) && s >= 0;
   @ assigns p->balance;
   @ ensures purse_inv(p) && p->balance == \old(p->balance) + s ;
   @*/

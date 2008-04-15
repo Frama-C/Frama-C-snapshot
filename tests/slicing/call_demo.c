@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -slice-print -slice-calls call1
-   OPT: -slice-print -slice-calls call2
+   OPT: -slice-print -slice-calls call1 -journal-disable
+   OPT: -slice-print -slice-calls call2 -journal-disable
 */
 
 //@ assigns \result \from v;
@@ -19,7 +19,7 @@ void main (int n) {
   int i;
   int sum = 0;
   int product = 1;
-  
+
   for(i = 0; i < n; ++i)
     oper (& sum, & product, i);
 

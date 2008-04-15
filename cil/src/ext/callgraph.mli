@@ -39,7 +39,7 @@
 (**************************************************************************)
 
 (** Compute a static call graph.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 (* module maintainer: scott *)
 (* see copyright notice at end of this file *)

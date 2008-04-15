@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cmdline.ml,v 1.177 2008/07/04 09:34:09 uid524 Exp $ *)
+(* $Id: cmdline.ml,v 1.222 2008/12/09 15:24:13 uid562 Exp $ *)
 
 (** Bunch of values which may be initialized through command line. *)
 
@@ -66,6 +66,7 @@ module type S = sig
   val is_set: unit -> bool
   include Project.Computation.OUTPUT
   val equal: t -> t -> bool
+  val unsafe_set: t -> unit
 end
 
 type 'a option_accessor = {get : unit -> 'a ; set : 'a -> unit }
@@ -75,18 +76,25 @@ type kind =
   | Int of int option_accessor
   | String of string option_accessor
   | StringSet of string option_accessor
-
+  | StringList of string option_accessor
 
 type t = kind * string
-
+(*
+type tree =
+  | Node of tree list * string
+  | Leaf of kind * string * string
+*)
 let options : t list ref = ref []
 let iter_on_options f = List.iter f !options
+
+let register_dynamic = ref false
 
 module Build
   (X:sig
      type t
-     val default: t
+     val default: unit -> t
      val name: string
+     val fun_ty: t Type.t
      val equal: t -> t -> bool
    end)
   : S with type t = X.t =
@@ -99,7 +107,7 @@ struct
        let equal = X.equal
      end)
     (struct
-       let name = Project.Computation.Name.make X.name
+       let name = X.name
        let dependencies = []
      end)
 
@@ -107,15 +115,46 @@ struct
 
   let () = add_option select
 
-  let is_set () = not (X.equal X.default (get ()))
+  let is_set () = not (X.equal (X.default ()) (get ()))
 
-  let set x =
+  let unsafe_set x =
     if not (X.equal x (get ())) then begin
       set x;
-      if is_set () then Selected_Options.extend (fun () -> set x)
+      Selected_Options.extend (fun () -> set x)
     end
 
-  let clear () = set X.default
+  let force_set x =
+    let do_set x =
+      set x;
+      Project.clear
+	~only:(Project.Selection.singleton
+		 self
+		 Kind.Only_Select_Dependencies)
+        ()
+    in
+      do_set x;
+      (*TODO: change this hack BTS 352 *)
+      if X.name<>"Files" then Selected_Options.extend (fun () -> do_set x)
+
+  let force_set =
+    Journal.register
+      ~use_apply:!register_dynamic
+      ("Cmdline." ^ X.name ^ ".set") (* Journalization is prettier with .set
+                                        than with force_set *)
+      (Type.func X.fun_ty Type.unit)
+      force_set
+
+  let set x =
+    if not (X.equal x (get ())) then force_set x
+
+  let unsafe_set =
+    Journal.register
+      ~use_apply:!register_dynamic
+      ("Cmdline." ^ X.name ^ ".unsafe_set")
+      (Type.func X.fun_ty Type.unit)
+      unsafe_set
+
+  let clear () = set (X.default ())
   let equal = X.equal
 
 end
@@ -128,20 +167,32 @@ module type BOOL = sig
   val off: unit -> unit
 end
 
-module Bool(X:sig val default: bool val name: string end) = struct
-  include Build(struct type t = bool include X let equal = (=) end)
+module Bool
+  (X:sig
+     val default: bool
+     val name: string
+   end) =
+struct
+  include Build
+    (struct
+       type t = bool
+       let default () = X.default
+       let name = X.name
+       let equal = (=)
+       let fun_ty = Type.bool
+     end)
   let on () = set true
   let off () = set false
-  let () =
-    options := 
-      (Bool{get=get;set=set}, Project.Computation.Name.get name) :: !options
+  let () = options := (Bool{get=get;set=set}, name) :: !options
 end
 
-(** Build a boolean option initialized to [false]. *)
+(** Build a boolean option initialized to [false].
+    @plugin development guide *)
 module False(X: sig val name: string end) =
   Bool(struct include X let default = false end)
 
-(** Build a boolean option initialized to [true]. *)
+(** Build a boolean option initialized to [true].
+    @plugin development guide *)
 module True(X: sig val name: string end) =
   Bool(struct include X let default = true end)
 
@@ -152,16 +203,28 @@ module type INT = sig
   val incr: unit -> unit
 end
 
-(** Build an integer option. *)
-module Int(X: sig val default: int val name: string end) = struct
-  include Build(struct type t = int include X let equal = (=) end)
+(** Build an integer option.
+    @plugin development guide *)
+module Int
+  (X: sig
+     val default: int
+     val name: string
+   end) =
+struct
+  include Build
+    (struct
+       type t = int
+       let default () = X.default
+       let name = X.name
+       let equal = (=)
+       let fun_ty = Type.int
+     end)
   let incr () = set (succ (get ()))
-  let () =
-    options := 
-      (Int{get=get;set=set}, Project.Computation.Name.get name) :: !options
+  let () = options := (Int{get=get;set=set}, name) :: !options
 end
 
-(** Build an integer option initialized to [0]. *)
+(** Build an integer option initialized to [0].
+    @plugin development guide *)
 module Zero(X: sig val name: string end) =
   Int(struct include X let default = 0 end)
 
@@ -169,41 +232,55 @@ module Zero(X: sig val name: string end) =
 
 module type STRING = S with type t = string
 
-(** Build a string option. *)
-module String(X: sig val default: string val name: string end) = struct 
-  include Build(struct type t = string include X let equal = (=) end)
-  let () =
-    options := 
-      (String{get=get;set=set}, Project.Computation.Name.get name) :: !options
+(** Build a string option.
+    @plugin development guide *)
+module String(X: sig val default: string val name: string end) = struct
+  include Build
+    (struct
+       type t = string
+       let name = X.name
+       let default () = X.default
+       let equal = (=)
+       let fun_ty = Type.string
+     end)
+  let () = options := (String{get=get;set=set}, name) :: !options
 end
 
-(** Build a string option initialized to [""]. *)
+(** Build a string option initialized to [""].
+    @plugin development guide *)
 module EmptyString(X: sig val name: string end) =
   String(struct include X let default = "" end)
 
-(** {3 String set} *)
+(** {3 String set and string list} *)
+
+module type GEN_STRING_SET = sig
+  include S
+  val set_set: string -> unit
+  val get_set: ?sep:string -> unit -> string
+  val add: string -> unit
+  val add_set: string -> unit
+  val iter: (string -> unit) -> unit
+  val fold: (string -> 'a -> 'a) -> 'a -> 'a
+end
 
 module type STRING_SET = sig
-  include S with type t = Cilutil.StringSet.t
-  val set_set: string -> unit
-
-  val add: string -> unit
-  val remove: string -> unit
-  val add_set: string -> unit
-  val remove_set: string -> unit
+  include GEN_STRING_SET with type t = Cilutil.StringSet.t
   val is_empty: unit -> bool
-  val iter: (string -> unit) -> unit
+  val remove: string -> unit
+  val remove_set: string -> unit
 end
+
+module type STRING_LIST = GEN_STRING_SET with type t = string list
 
 (** Build an option as a set of strings, initialized to the empty set. *)
 module StringSet(X: sig val name: string end) = struct
   open Cilutil
-  include Build(struct
-		  type t = StringSet.t
-		  let default = StringSet.empty
-		  let name = X.name
-		  let equal = StringSet.equal
-		end)
+  include Build
+    (struct
+       let default () = StringSet.empty
+       include StringSet include X let fun_ty = Kernel_type.string_set
+     end)
+
   let add x = set (StringSet.add x (get ()))
   let remove x = set (StringSet.remove x (get()))
 
@@ -213,16 +290,51 @@ module StringSet(X: sig val name: string end) = struct
   let set_set x = set_and_split x StringSet.empty
   let add_set x = set_and_split x (get ())
 
-  let get_set () = 
-    Cilutil.StringSet.fold (fun s acc -> if acc<>"" then s^", "^acc else s) (get ()) ""
+  let get_set ?(sep=", ") () =
+    StringSet.fold
+      (fun s acc -> if acc<>"" then s^sep^acc else s) (get ()) ""
 
   let remove_set x =
     set (List.fold_right StringSet.remove (split_set x) (get()))
   let is_empty () = StringSet.is_empty (get ())
   let iter f = StringSet.iter f (get ())
+  let fold f acc = StringSet.fold f (get ()) acc
 
-  let () =
-    options := (StringSet{get=get_set;set=set_set}, Project.Computation.Name.get name) :: !options
+  let () = options := (StringSet{get=(fun () -> get_set ());set=set_set}, name) :: !options
+
+end
+
+(** Build an option as a list of strings, initialized to the empty list. *)
+module StringList(X: sig val name: string end) = struct
+  include Build
+    (struct
+       let default () = []
+       include X
+       let fun_ty = Type.list Type.string
+       type t = string list
+       let equal = (=)
+     end)
+
+  let add =
+    Journal.register
+      ("Cmdline." ^ X.name ^ ".add")
+      (Type.func Type.string Type.unit)
+      (fun x -> set (x :: (get ())))
+
+  let split_set = Str.split (Str.regexp "[ \t]*,[ \t]*")
+
+  let set_and_split x acc =
+    set (List.fold_right (fun a b -> a::b) (split_set x) acc)
+  let set_set x = set_and_split x []
+  let add_set x = set_and_split x (get ())
+
+  let get_set ?(sep=", ") () =
+    List.fold_right
+      (fun s acc -> if acc<>"" then s^sep^acc else s) (get ()) ""
+  let iter f = List.iter f (get ())
+  let fold f acc = List.fold_right f (get ()) acc
+
+  let () = options := (StringList{get=(fun () -> get_set ());set=set_set}, name) :: !options
 
 end
 
@@ -243,8 +355,10 @@ module type COMPLEX_VALUE = sig
   val default_val: t (** the default value *)
   val default_key: string (** the default index *)
   val name: string (** name of the associated state *)
+  val fun_ty: t Type.t
 end
 
+(** @plugin development guide *)
 module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
 
   type value = V.t
@@ -257,18 +371,15 @@ module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
 
   let curr_choice = ref (create())
 
-  module StateAux =
-  struct
-    let name = Project.Computation.Name.make V.name
+  module StateAux = struct
+    let name = V.name
     let create = create
 
     type t = string ref
 
-    let before_load () = ()
-    let after_load () = ()
     let get () = !curr_choice
     let set s =
-      if s <> get () then
+      if s != get () then
 	if Hashtbl.mem options !s then
           curr_choice:=s
 	else
@@ -276,10 +387,10 @@ module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
             "Warning: %s: identifier %s is not a valid index for this option. \
          Option is unchanged.\n" V.name !s
 
-    let dependencies = []
-    let copy s = ref (!s)
+    let copy s = ref !s
     let rehash s = copy s
     let clear tbl = tbl:= V.default_key
+    let dependencies = []
   end
 
   let equal = (=)
@@ -309,17 +420,145 @@ module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
   let clear () = !curr_choice:=V.default_key
   let is_set () = !(!curr_choice) <> V.default_key
 
+  let unsafe_set = set
+
+end
+
+(** {3 Interface for dynamic plugins} *)
+
+module Dynamic = struct
+
+  module L = List
+  open Type
+  module List = L (* [List] of stdlib hides the one of [Type]. *)
+
+  let tbl = FunTbl.create 97
+
+  module Register = struct
+
+    let register_common sign name get set clear is_set=
+      FunTbl.register tbl (name ^ ".get") (func unit sign) get;
+      FunTbl.register tbl (name ^ ".set") (func sign unit) set;
+      FunTbl.register tbl (name ^ ".clear") (func unit unit) clear;
+      FunTbl.register tbl (name ^ ".is_set")(func unit bool) is_set
+
+    let register_int name on off =
+      FunTbl.register tbl (name ^ ".on") (func unit unit) on;
+      FunTbl.register tbl (name ^ ".off") (func unit unit) off
+
+    module False(X: sig val name: string end)= struct
+      let () = register_dynamic := true
+      include Bool(struct include X let default = false end)
+      let () = register_dynamic := false
+      let () =
+	register_common bool X.name get set clear is_set;
+	(* register BOOL fonctions *)
+	register_int X.name on off
+    end
+
+    module True(X: sig val name: string end)= struct
+      let () = register_dynamic := true
+      include Bool(struct include X let default = true end)
+      let () = register_dynamic := false
+      let () =
+	register_common bool X.name get set clear is_set;
+	(* register BOOL fonctions *)
+	register_int X.name on off
+    end
+
+    module Zero(X: sig val name: string end) = struct
+      let () = register_dynamic := true
+      include Int(struct include X let default = 0 end)
+      let () = register_dynamic := false
+      let () =
+	register_common int X.name get set clear is_set;
+	(* register INT fonctions *)
+	FunTbl.register tbl (X.name ^ ".incr") (func unit unit)  incr
+    end
+
+    module EmptyString(X: sig val name: string end) = struct
+      let () = register_dynamic := true
+      include String(struct include X let default = "" end)
+      let () = register_dynamic := false
+      let () = register_common string X.name get set clear is_set
+    end
+
+    module StringSet(X: sig val name: string end) = struct
+      let () = register_dynamic := true
+      include StringSet(X)
+      let () = register_dynamic := false
+      let () =
+	register_common Kernel_type.string_set X.name get set clear is_set;
+	(*register STRING_SET functions *)
+	FunTbl.register tbl (X.name ^ ".add") (func string unit) add;
+	FunTbl.register tbl (X.name ^ ".add_set") (func string unit) add_set;
+	FunTbl.register tbl (X.name ^ ".is_empty") (func unit bool) is_empty;
+	FunTbl.register tbl (X.name ^ ".iter") (func (func string unit) unit) iter
+    end
+
+  end
+
+  module Apply = struct
+
+    module type Common = sig
+      type t
+      val get: string -> t
+      val set: string -> t  -> unit
+      val clear: string -> unit -> unit
+      val is_set: string  -> bool
+    end
+
+    module Common (X: sig type common val sign : common Type.t end ) = struct
+      type t = X.common
+      let sign = X.sign
+      let get name = FunTbl.apply tbl (name^".get") (func unit sign) ()
+      let set name = FunTbl.apply tbl (name^".set") (func sign unit)
+      let clear name = FunTbl.apply tbl (name^".clear") (func unit unit)
+      let is_set name = FunTbl.apply tbl (name^".is_set") (func unit bool) ()
+    end
+
+    module Bool = struct
+     include Common (struct type common= bool let sign = bool end )
+      let on name = FunTbl.apply tbl (name^".on")  (func unit unit)
+      let off name = FunTbl.apply tbl (name^".off") (func unit unit)
+    end
+
+    module Int = struct
+      include Common (struct type common= int let sign = int end )
+      let incr name =  FunTbl.apply tbl (name^".incr") (func unit unit)
+    end
+
+    module String = Common (struct type common= string let sign = string end )
+
+    module StringSet = struct
+      include Common (struct
+			type common = Cilutil.StringSet.t
+			let sign = Kernel_type.string_set
+		      end )
+      let add name = FunTbl.apply tbl (name^".add") (func string unit)
+      let add_set name = FunTbl.apply tbl (name^".add_set") (func string unit)
+      let is_empty name = FunTbl.apply tbl (name^".is_empty") (func unit bool) ()
+      let iter name = FunTbl.apply tbl (name^".iter") (func (func string unit) unit)
+      let fold _name = assert false
+    end
+
+  end
+
+  module Debug = Zero(struct let name = "Dynamic.Debug" end)
+  module AddPath = StringSet(struct let name = "Dynamic.AddPath" end)
+  module LoadModule = StringSet(struct let name = "Dynamic.LoadModule" end)
+
 end
 
 (* ************************************************************************* *)
 (** {2 Options} *)
 (* ************************************************************************* *)
 
-module Debug = Zero(struct let name = "Cmdline.debug" end)
-module Quiet = False(struct let name = "Cmdline.quiet" end)
+module Debug = Zero(struct let name = "Debug" end)
+module Quiet = False(struct let name = "Quiet" end)
 
 module UseUnicode = struct
-  include True(struct let name = "Cmdline.use unicode" end)
+  include True(struct let name = "UseUnicode" end)
   let set b =
     set b;
     Cil.print_utf8 := b
@@ -327,134 +566,171 @@ module UseUnicode = struct
   let off () = set false
 end
 
-module Obfuscate = False(struct let name = "Cmdline.obfuscate" end)
+module Obfuscate = False(struct let name = "Obfuscate" end)
 
 module Metrics = struct
-  module Print = False(struct let name = "pretty print metrics on stdout" end)
-  module Dump = 
-    EmptyString(struct let name = "pretty print metrics in a file" end)
+  module Print = False(struct let name = "Metrics.Print" end)
+  module Dump =
+    EmptyString(struct let name = "Metrics.Dump" end)
   let is_on () = Print.is_set () || Dump.is_set ()
 end
 
-module ForceDeps = False(struct let name = "Cmdline.force deps" end)
-module ForceCallDeps = False(struct let name = "Cmdline.force call deps" end)
-module ForceUsers = False(struct let name = "Cmdline.force users" end)
-module ForceMemzones = False(struct let name = "Cmdline.force memzones" end)
-module ForceValues = False(struct let name = "Cmdline.force values" end)
-module ForceOut = False(struct let name = "Cmdline.force out" end)
-module ForceInput = False(struct let name = "Cmdline.force input" end)
-module ForceInout = False(struct let name = "Cmdline.force inout" end)
-module ForceDeref = False(struct let name = "Cmdline.force deref" end)
+module WarnUnspecifiedOrder =
+  False(struct let name = "WarnUnspecifiedOrder" end)
+
+module ForceDeps = False(struct let name = "ForceDeps" end)
+module ForceCallDeps = False(struct let name = "ForceCallDeps" end)
+module ForceUsers = False(struct let name = "ForceUsers" end)
+module ForceMemzones = False(struct let name = "ForceMemzones" end)
+module ForceValues = False(struct let name = "ForceValues" end)
+module ForceOut = False(struct let name = "ForceOut" end)
+module ForceInput = False(struct let name = "ForceInput" end)
+module ForceInputWithFormals =
+  False(struct let name = "ForceInputWithFormals" end)
+module ForceInout = False(struct let name = "ForceInout" end)
+module ForceDeref = False(struct let name = "ForceDeref" end)
 module ForceAccessPath =
-  False(struct let name = "Cmdline.force access path" end)
-module UnsafeArrays = False(struct let name = "Cmdline.unsafe arrays" end)
+  False(struct let name = "ForceAccessPath" end)
+module UnsafeArrays = False(struct let name = "UnsafeArrays" end)
 
 module WideningLevel =
-  Int(struct let default = 3 let name = "Cmdline.widening level" end)
-module UnrollingLevel = Zero(struct let name = "Cmdline.unrolling level" end)
+  Int(struct let default = 3 let name = "WideningLevel" end)
+module UnrollingLevel = Zero(struct let name = "UnrollingLevel" end)
 module SemanticUnrollingLevel =
-  Zero(struct let name = "Cmdline.SemanticUnrollingLevel" end)
+  Zero(struct let name = "SemanticUnrollingLevel" end)
 module ArrayPrecisionLevel =
-  Int(struct let default = 200 let name = "Cmdline.ArrayPrecisionLevel" end)
+  Int(struct let default = 200 let name = "ArrayPrecisionLevel" end)
 
-module MainFunction = struct
-  include
-    String(struct let default = "main" let name = "Cmdline.MainFunction" end)
-  let unsafe_set = set
-  let set x =
-    if not (equal x (get ())) then begin
-      set x;
-      Project.clear
-	~only:(Project.Selection.singleton self Kind.Only_Select_Dependencies)
-	()
-    end
-(*  let () = depend Cil_state.self *)
+module MainFunction = String(struct let default = "main" let name = "MainFunction" end)
+
+module LibEntry = Bool(struct let name = "LibEntry" let default = false end)
+
+module Machdep = struct
+  include EmptyString(struct let name = "Machdep" end)
+  let () = Project.Computation.add_dependency Cil.selfMachine self
 end
 
-module LibEntry = struct
-  include Bool(struct let name = "Cmdline.LibEntry" let default = false end)
-  let unsafe_set = set
-  let set x =
-    if not (equal x (get ())) then begin
-      set x;
-      Project.clear
-	~only:(Project.Selection.singleton self Kind.Only_Select_Dependencies)
-	()
-    end
-(*  let () = depend Cil_state.self *)
+module PrintCode = False(struct let name = "PrintCode" end)
+module PrintComments = False(struct let name = "PrintComments" end)
+module CodeOutput = struct
+
+  include EmptyString(struct let name = "CodeOutput" end)
+
+  let state = ref (Format.std_formatter, stdout)
+  let get_fmt () = fst !state
+
+  let close () =
+    let fmt, cout = !state in
+    Format.pp_print_flush fmt ();
+    if get () <> "" then close_out cout
+
+  let () = at_exit close
+
+  (* overide [set] *)
+  let set out_cmdline =
+    set out_cmdline;
+    close ();
+    let new_state =
+      if out_cmdline = "" then
+	Format.std_formatter, stdout
+      else
+	try
+	  let out = open_out out_cmdline in
+          let fmt = Format.formatter_of_out_channel out in
+          fmt, out
+	with Sys_error s ->
+          Format.printf
+            "Warning: could not open %s for code output:\n%s.\n\
+I will output the code on stdout instead@."
+            out_cmdline s;
+          Format.std_formatter, stdout
+    in
+    state := new_state
+
+  let unsafe_set _ = assert false
+  let clear () = set ""
+
+  let () =
+    Project.register_after_set_current_hook ~user_only:false
+      (fun () -> (* set [state] to the right value *) set (get ()))
+
 end
 
-module PrintCode = False(struct let name = "Cmdline.PrintCode" end)
-module PrintComments = False(struct let name = "Cmdline.PrintComments" end)
-module CodeOutput = EmptyString(struct let name = "Cmdline.CodeOutput" end)
+module PrintVersion = False(struct let name = "PrintVersion" end)
+module PrintShare = False(struct let name = "PrintShare" end)
+module Time = EmptyString(struct let name = "Time" end)
 
-module PrintVersion = False(struct let name = "Cmdline.PrintVersion" end)
-module Time = EmptyString(struct let name = "Cmdline.Time" end)
-module Machdep = EmptyString(struct let name = "Cmdline.Machdep" end)
-module SaveState = EmptyString(struct let name = "Cmdline.SaveState" end)
-module LoadState = EmptyString(struct let name = "Cmdline.LoadState" end)
+module SaveState = EmptyString(struct let name = "SaveState" end)
+module LoadState = EmptyString(struct let name = "LoadState" end)
 
 module CallgraphFilename =
-  EmptyString(struct let name = "Cmdline.callgraph filename" end)
+  EmptyString(struct let name = "CallgraphFilename" end)
 module CallgraphInitFunc =
-  StringSet(struct let name = "Cmdline.callgraph init func" end)
+  StringSet(struct let name = "CallgraphInitFunc" end)
+module Semantic_Callgraph= struct
+  module Dump = False(struct let name = "Semantic_Callgraph.Dump" end)
+end
+
 module AlcoolPrintLocations =
-  False(struct let name = "Cmdline.alcool print locations" end)
+  False(struct let name = "AlcoolPrintLocations" end)
 module AlcoolExtraction =
-  EmptyString(struct let name = "Cmdline.alcool extraction" end)
+  EmptyString(struct let name = "AlcoolExtraction" end)
 module PointersExtraction =
-  EmptyString(struct let name = "Cmdline.pointers extraction" end)
+  EmptyString(struct let name = "PointersExtraction" end)
 module XmlPointersExtraction =
-  EmptyString(struct let name = "Cmdline.XML pointers extraction" end)
+  EmptyString(struct let name = "XmlPointersExtraction" end)
 module RawExtraction =
-  EmptyString(struct let name = "Cmdline.raw extraction" end)
+  EmptyString(struct let name = "RawExtraction" end)
 module PromelaExtraction =
-  EmptyString(struct let name = "Cmdline.promela extraction" end)
-module Relevant = False(struct let name = "Cmdline.relevant" end)
-module Report = EmptyString(struct let name = "Cmdline.report" end)
+  EmptyString(struct let name = "PromelaExtraction" end)
+module Relevant = False(struct let name = "Relevant" end)
+module Report = EmptyString(struct let name = "Report" end)
 module ConstFuncArrays =
-  False(struct let name = "Cmdline.Const func arrays" end)
-module IgnoreOverflow = False(struct let name = "Cmdline.ignore overflow" end)
-module MemFunctions = StringSet(struct let name = "Cmdline.mem functions" end)
+  False(struct let name = "ConstFuncArrays" end)
+module IgnoreOverflow = False(struct let name = "IgnoreOverflow" end)
+module IgnoreUnspecified = False(struct let name = "IgnoreUnspecified" end)
+module MemFunctions = StringSet(struct let name = "MemFunctions" end)
 module WidenVariables =
-  StringSet(struct let name = "Cmdline.widen variables" end)
-module ReadAnnot = True(struct let name = "read annotations" end)
+  StringSet(struct let name = "WidenVariables" end)
+module ReadAnnot = True(struct let name = "ReadAnnot" end)
 module PreprocessAnnot =
-  False(struct let name = "preprocess annotations" end)
+  False(struct let name = "PreprocessAnnot" end)
 module CppCommand =
-  EmptyString(struct let name = "cpp command" end)
+  EmptyString(struct let name = "CppCommand" end)
 module CppExtraArgs =
-  EmptyString(struct let name = "cpp extra arguments" end)
-module WpCfg = False(struct let name = "Cmdline.wp cfg" end)
+  StringSet(struct let name = "CppExtraArgs" end)
+module Wp = struct
+  module Cfg = False(struct let name = "Wp.Cfg" end)
+  module Post = False(struct let name = "Wp.Post" end)
+  module Debug = Zero(struct let name = "Wp.Debug" end)
+end
 module MielSpecFilename =
-  EmptyString(struct let name = "Cmdline.miel spec filename" end)
-module PropagateTop = False(struct let name = "Cmdline.propagate top" end)
-module LeafFuncReturnInt =
-  False(struct let name = "Cmdline.leaf func return int" end)
+  EmptyString(struct let name = "MielSpecFilename" end)
+module PropagateTop = False(struct let name = "PropagateTop" end)
 
 module AutomaticContextMaxDepth =
-  Int(struct let name = "Cmdline.AutomaticContextMaxDepth" let default = 2 end)
+  Int(struct let name = "AutomaticContextMaxDepth" let default = 2 end)
 
 module AutomaticContextMaxWidth =
-  Int(struct let name = "Cmdline.AutomaticContextMaxWidth" let default = 2 end)
+  Int(struct let name = "AutomaticContextMaxWidth" let default = 2 end)
 
 module AllocatedContextValid =
-  False(struct let name = "Cmdline.allocated contex valid" end)
+  False(struct let name = "AllocatedContextValid" end)
 
-module MemExecAll = False(struct let name = "Cmdline.mem exec all" end)
+module MemExecAll = False(struct let name = "MemExecAll" end)
 
-module UseRelations = True(struct let name = "Cmdline.use relations" end)
+module UseRelations = True(struct let name = "UseRelations" end)
   (* This can be set to false to debug value analysis without relations *)
 
-module SimplifyCfg = False(struct let name = "Cmdline.simplify cfg" end)
+module SimplifyCfg = False(struct let name = "SimplifyCfg" end)
 
-module KeepSwitch = False(struct let name = "Cmdline.keep switch" end)
+module KeepSwitch = False(struct let name = "KeepSwitch" end)
 
 module KeepOnlyLastRun =
-  False(struct let name = "Cmdline.keep only last run" end)
+  False(struct let name = "KeepOnlyLastRun" end)
 
 module MemoryFootprint = struct
-  include Int(struct let name = "Cmdline.memory footprint" let default = 2 end)
+  include Int(struct let name = "MemoryFootprint" let default = 2 end)
   let set x =
     if not (equal x (get ())) then begin
       Binary_cache.MemoryFootprint.set x;
@@ -464,81 +740,68 @@ module MemoryFootprint = struct
 end
 
 module FloatDigits =
-  Int(struct let name = "Cmdline.float digits" let default = 4 end)
+  Int(struct let name = "FloatDigits" let default = 4 end)
 
 module Files = struct
-  module M =
-  Build(struct
-	  type t = string list
-	  let name = "Cmdline.Files"
-	  let default = []
-	  let equal = (=)
-	end)
-  include M
-  module Check =
-    False
-      (struct
-         let name = "Debug option: performs various integrity checks on the AST"
-       end)
-  module Copy =
-    False
-      (struct
-         let name = "Debug option: makes a copy of the initial \
-                     state before starting the real analyses"
-       end)
+  include StringList(struct let name = "Files" end)
+  module Check = False(struct let name = "Debug.Check" end)
+  module Copy = False(struct let name = "Debug.Copy" end)
+  module Orig_name = False(struct let name = "Debug.Orig_name" end)
 end
 
 (** All absolute address are invalid *)
 module MinValidAbsoluteAddress =
   Build(struct
 	  type t = Abstract_interp.Int.t
-	  let default = Abstract_interp.Int.one
-	  let name = "Cmdline.min valid absolute address"
+	  let default () = Abstract_interp.Int.zero
+	  let name = "MinValidAbsoluteAddress"
 	  let equal = Abstract_interp.Int.equal
+	  let fun_ty = Kernel_type.big_int
 	end)
 
 module MaxValidAbsoluteAddress =
   Build(struct
 	  type t = Abstract_interp.Int.t
-	  let default = Abstract_interp.Int.zero
-	  let name = "Cmdline.max valid absolute address"
+	  let default () = Abstract_interp.Int.minus_one
+	  let name = "MaxValidAbsoluteAddress"
 	  let equal = Abstract_interp.Int.equal
+	  let fun_ty = Kernel_type.big_int
 	end)
 
 (** {3 Viewer options} *)
 
 module MonospaceFontName =
   String(struct
-	   let default = "Monospace 12"
-	   let name = "Cmdline.MonospaceFontName"
+	   let default = "Monospace,Lucida Sans Unicode,Sans"
+	   let name = "MonospaceFontName"
 	 end)
 
 module GeneralFontName =
   String(struct
-	   let default = "Helvetica,Lucida Sans Unicode,Sans 10"
-	   let name = "Cmdline.GeneralFontName"
+	   let default = "Helvetica,Lucida Sans Unicode,Sans"
+	   let name = "GeneralFontName"
 	 end)
 
 (** {3 Security options} *)
 
 module Security = struct
 
-  module Analysis = False(struct let name = "Cmdline.Security.Analysis" end)
+  module Analysis = False(struct let name = "Security.Analysis" end)
   module Lattice =
     String(struct
-	     let name = "Cmdline.Security.Lattice"
+	     let name = "Security.Lattice"
 	     let default = "weak"
 	   end)
   module PropagateAssertions =
-    False(struct let name = "Cmdline.Security.PropagateAssertions" end)
-  module Slicing = False(struct let name = "Cmdline.Security.Slicing" end)
+    False(struct let name = "Security.PropagateAssertions" end)
+  module Slicing = False(struct let name = "Security.Slicing" end)
 
   let is_on () = Analysis.get () || Slicing.get ()
 
   module LogicAnnotation =
-    EmptyString(struct let name = "Cmdline.Security.LogicAnnotation" end)
+    EmptyString(struct let name = "Security.LogicAnnotation" end)
 
-  module Debug = Zero(struct let name = "Cmdline.Security.Debug" end)
+  module Debug = Zero(struct let name = "Security.Debug" end)
 
   let get_selection_after_slicing () =
     let add s = Project.Selection.add s Kind.Do_Not_Select_Dependencies in
@@ -550,53 +813,84 @@ module Security = struct
 end
 
 module Impact = struct
-  module Pragma = StringSet(struct let name = "Cmdline.Impact.Pragma" end)
-  module Print = False(struct let name = "Cmdline.Impact.Print" end)
-  module Slicing = False(struct let name = "Cmdline.Impact.Slicing" end)
+  module Pragma = StringSet(struct let name = "Impact.Pragma" end)
+  module Print = False(struct let name = "Impact.Print" end)
+  module Slicing = False(struct let name = "Impact.Slicing" end)
   let is_on () = not (Pragma.is_empty ())
 end
 
 (** {3 Jessie options} *)
 
 module Jessie = struct
-  module ProjectName = EmptyString(struct let name = "Cmdline.jessie project name" end)
-  module Analysis = False(struct let name = "Cmdline.jessie analysis" end)
-  module Gui = False(struct let name = "Cmdline.jessie gui" end)
-  module JcOpt = StringSet(struct let name = "Cmdline.jessie jc opt" end)
-  module WhyOpt = StringSet(struct let name = "Cmdline.jessie why opt" end)
+  module ProjectName = EmptyString(struct let name = "Jessie.ProjectName" end)
+  module Behavior = EmptyString(struct let name = "Jessie.Behavior" end)
+  module Analysis = False(struct let name = "Jessie.Analysis" end)
+  module Gui = False(struct let name = "Jessie.Gui" end)
+  module JcOpt = StringSet(struct let name = "Jessie.JcOpt" end)
+  module WhyOpt = StringSet(struct let name = "Jessie.WhyOpt" end)
+
   type int_model = IMexact | IMbounded | IMmodulo
+  let int_model = Type.make "int_model" IMmodulo
+  let () =
+    Journal.register_printer
+      int_model
+      (fun fmt im ->
+	 Format.fprintf fmt "%s"
+	   (match im with
+	    | IMexact -> "IMexact"
+	    | IMbounded -> "IMbounded"
+	    | IMmodulo -> "IMmodulo"))
+
   module IntModel =
     IndexedVal(
       struct
 	type t = int_model
 	let default_val = IMbounded
 	let default_key = "bounded"
-	let name = "Cmdline.jessie int model"
+	let name = "Jessie.IntModel"
+	let fun_ty = int_model
       end)
   let () = IntModel.add_choice "exact" IMexact
   let () = IntModel.add_choice "modulo" IMmodulo
-  module GenOnly = False(struct let name = "Cmdline.jessie gen only" end)
+  module GenOnly = False(struct let name = "Jessie.GenOnly" end)
+  module GenGoals = False(struct let name = "Jessie.GenGoals" end)
+  module SepRegions = True(struct let name = "Jessie.SepRegions" end)
+  module StdStubs = False(struct let name = "Jessie.StdStubs" end)
+  module InferAnnot = EmptyString(struct let name = "Jessie.InferAnnot" end)
+  module CpuLimit = Zero(struct let name = "Jessie.CpuLimit" end)
+  module AbsDomain =
+    String(struct
+	     let name = "Jessie.AbsDomain"
+	     let default = "poly"
+	   end)
+  module Atp =
+    String(struct
+	     let name = "Jessie.Atp"
+	     let default = "simplify"
+	   end)
+  module HintLevel = Zero(struct let name = "Jessie.InsertHints" end)
 end
 
 (** {3 PDG options} *)
 
 module Pdg = struct
-  module BuildAll = False(struct let name = "Cmdline.build pdg" end)
-  module BuildFct = StringSet(struct let name = "Cmdline.build fct pdg" end)
-  module PrintBw = False(struct let name = "Cmdline.pdg print codpds" end)
+  module BuildAll = False(struct let name = "Pdg.BuildAll" end)
+  module BuildFct = StringSet(struct let name = "Pdg.BuildFct" end)
+  module PrintBw = False(struct let name = "Pdg.PrintBw" end)
   module DotBasename =
-    EmptyString(struct let name = "Cmdline.pdg dot basename" end)
+    EmptyString(struct let name = "Pdg.DotBasename" end)
   module DotPostdomBasename =
-    EmptyString(struct let name = "Cmdline.pdg postdominators dot basename" end)
+    EmptyString(struct let name = "Pdg.DotPostdomBasename" end)
   module Verbosity =
-    Int (struct let name = "Pdg verbosity level" let default = 0 end)
+    Int (struct let name = "Pdg.Verbosity" let default = 0 end)
 end
 
 (** {2 Sparecode options} *)
 
 module Sparecode = struct
-  module Analysis = False(struct let name = "Cmdline.sparecode analysis" end)
-  module NoAnnot = False(struct let name = "Cmdline.sparecode no annot" end)
+  module Analysis = False(struct let name = "Sparecode.Analysis" end)
+  module NoAnnot = False(struct let name = "Sparecode.NoAnnot" end)
+  module GlobDecl = False(struct let name = "Sparecode.GlobDecl" end)
 end
 
 
@@ -604,30 +898,30 @@ end
 
 module Slicing = struct
   module Select = struct
-    module Calls =  StringSet(struct let name = "Cmdline.slice calls" end)
-    module Return = StringSet(struct let name = "Cmdline.slice return" end)
-    module Threat = StringSet(struct let name = "Cmdline.slice threat" end)
-    module Assert = StringSet(struct let name = "Cmdline.slice assert" end)
+    module Calls =  StringSet(struct let name = "Slicing.Select.Calls" end)
+    module Return = StringSet(struct let name = "Slicing.Select.Return" end)
+    module Threat = StringSet(struct let name = "Slicing.Select.Threat" end)
+    module Assert = StringSet(struct let name = "Slicing.Select.Assert" end)
     module LoopInv =
-      StringSet(struct let name = "Cmdline.slice loop invariant" end)
+      StringSet(struct let name = "Slicing.Select.LoopInv" end)
     module LoopVar =
-      StringSet(struct let name = "Cmdline.slice loop variant" end)
-    module Pragma = StringSet(struct let name = "Cmdline.slice pragma" end)
+      StringSet(struct let name = "Slicing.Select.LoopVar" end)
+    module Pragma = StringSet(struct let name = "Slicing.Select.Pragma" end)
     module RdAccess =
-      StringSet(struct let name = "Cmdline.slice read access" end)
+      StringSet(struct let name = "Slicing.Select.RdAccess" end)
     module WrAccess =
-      StringSet(struct let name = "Cmdline.slice write access" end)
-    module Value = StringSet(struct let name = "Cmdline.slice value" end)
+      StringSet(struct let name = "Slicing.Select.WrAccess" end)
+    module Value = StringSet(struct let name = "Slicing.Select.Value" end)
   end
   module Mode = struct
-    module Verbose = Zero(struct let name = "Cmdline.slice verbosity" end)
-    module Callers = True(struct let name = "Cmdline.slice callers" end)
+    module Verbose = Zero(struct let name = "Slicing.Mode.Verbosity" end)
+    module Callers = True(struct let name = "Slicing.Mode.Callers" end)
     module Calls =
-      Int(struct let name = "Cmdline.how to slice calls" let default = 2 end)
+      Int(struct let name = "Slicing.Mode.Calls" let default = 2 end)
     module SliceUndef =
-      False(struct let name = "Cmdline.slice undefined functions" end)
+      False(struct let name = "Slicing.Mode.SliceUndef" end)
   end
-  module Print = False(struct let name = "Cmdline.print sliced code" end)
+  module Print = False(struct let name = "Slicing.Print" end)
   let is_on () =
     not (Select.Calls.is_empty ()
 	 && Select.Return.is_empty ()
@@ -643,18 +937,18 @@ end
 
 (** {3 Constant propagation options} *)
 
-module Constfold = False(struct let name = "Cmdline.constfold" end)
+module Constfold = False(struct let name = "Constfold" end)
 module Constant_Propagation = struct
   module SemanticConstFolding =
     False
       (struct
-         let name = "Cmdline.Constant_Propagation.SemanticConstFolding"
+         let name = "Constant_Propagation.SemanticConstFolding"
        end)
   module SemanticConstFold =
     StringSet
-      (struct let name = "Cmdline.Constant_Propagation.SemanticConstFold" end)
+      (struct let name = "Constant_Propagation.SemanticConstFold" end)
   module CastIntro =
-    False(struct let name = "Cmdline.Constant_Propagation.CastIntro" end)
+    False(struct let name = "Constant_Propagation.CastIntro" end)
 end
 
 (** {3 Cxx options} *)
@@ -665,10 +959,11 @@ module Unmangling: INDEXED_VAL with type value = string -> string =
       type t = string->string
       let default_val = fun x -> x
       let default_key = "id"
-      let name = "Cmdline.unmangling option"
+      let name = "Unmangling"
+      let fun_ty = Type.func Type.string Type.string
     end)
 
-module PrintCxx = False(struct let name = "pretty-print cxx files" end)
+module PrintCxx = False(struct let name = "PrintCxx" end)
 
 (** {3 Occurrence} *)
 
@@ -677,23 +972,72 @@ module Occurrence = struct
   module Print = False(struct let name = "Occurrence.Print" end)
 end
 
+(** {3 Journalization] *)
+module Journal = struct
+  module Disable = False(struct let name = "Journal.Disable" end)
+  module Name = struct
+    include String
+      (struct
+	 let name = "Journal.Name"
+	 let default = Journal.get_name ()
+       end)
+  end
+end
+
 (** {2 Options which define context of analyses } *)
 
 let get_selection_context () =
   let a o = Project.Selection.add o Kind.Do_Not_Select_Dependencies in
-  let sel_ctx = Project.Selection.empty in
+  let has_dependencies o =
+    try
+      Project.Selection.iter
+	(fun _ -> raise Exit)
+	(Project.Selection.singleton o Kind.Only_Select_Dependencies);
+      false
+    with Exit ->
+      true
+  in
+  (* automatically select all options which have some dependencies:
+     they have an impact of some analysis. *)
+  let sel_ctx =
+    Project.Selection.fold
+      (fun o _ acc -> if has_dependencies o then a o acc else acc)
+      (get_selection ())
+      Project.Selection.empty
+  in
   (* Value analysis *)
-  let sel_ctx = a MinValidAbsoluteAddress.self sel_ctx in
-  let sel_ctx = a MaxValidAbsoluteAddress.self sel_ctx in
-  let sel_ctx = a AutomaticContextMaxDepth.self sel_ctx in
-  let sel_ctx = a AllocatedContextValid.self sel_ctx in
-  let sel_ctx = a IgnoreOverflow.self sel_ctx in
-  let sel_ctx = a UnsafeArrays.self sel_ctx in
+  let sel_ctx = a WideningLevel.self sel_ctx in
+  let sel_ctx = a FloatDigits.self sel_ctx in
   (* General options *)
-  let sel_ctx = a Machdep.self sel_ctx in
-  let sel_ctx = a LibEntry.self sel_ctx in
-  a MainFunction.self sel_ctx
-  
+  ((a Dynamic.Debug.self) $
+   (a Dynamic.AddPath.self) $
+   (a Dynamic.LoadModule.self) $
+   (a UseUnicode.self) $
+   (a Quiet.self) $
+   (a Debug.self) $
+   (a Journal.Disable.self) $
+   (a Files.Check.self) $
+   (a Files.Copy.self))
+    sel_ctx
+
+
+(** Aorai plug-in (ltl_to_acsl) *)
+module Ltl_to_acsl = struct
+  module Analysis =  False(struct let name = "Cmdline.Ltl_to_acsl.Analysis If true, then the Aorai plug-in is used" end)
+  module Ltl_File =  EmptyString(struct let name = "Cmdline.Ltl_to_acsl.Ltl_File File containing LTL property" end)
+  module OnlyToLTL = False(struct let name = "Cmdline.Ltl_to_acsl.OnlyToLTL" end)
+  module Promela_File = EmptyString(struct let name = "Cmdline.Ltl_to_acsl.Promela_File File into which the LTL formula has to be generated" end)
+  module Output_Spec = False(struct let name = "Cmdline.Ltl_to_acsl.Ltl_Spec" end)
+  module Verbose = False(struct let name = "Cmdline.Ltl_to_acsl.Verbose" end)
+  module Output_C_File = EmptyString(struct let name = "Cmdline.Ltl_to_acsl.Ltl_C_File Annotated C code generated" end)
+  module OnlyFromPromela = False(struct let name = "Cmdline.Ltl_to_acsl.OnlyFromPromela" end)
+  module Dot = False(struct let name = "Cmdline.Ltl_to_acsl.Dot" end)
+
+  module AbstractInterpretation = False(struct let name = "Cmdline.Ltl_to_acsl.AbstractInterpretation" end)
+  module AdvanceAbstractInterpretation  = False(struct let name = "Cmdline.Ltl_to_acsl.AdvanceAbstractInterpretation" end)
+end
+
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

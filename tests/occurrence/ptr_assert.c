@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -occurrence
+   OPT: -occurrence -journal-disable
 */
 
 int x, y;

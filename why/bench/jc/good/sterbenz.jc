@@ -1,0 +1,279 @@
+
+/*
+lemma l1: 0.5 <= 1.0 && 1.0 <= 2.0
+
+
+double test1()
+  behavior default: 
+   ensures (\result :> real) == 7.0;
+{ 
+return ((2.0 * 3.5) :> double);
+}
+*/
+
+
+
+/* real x et x :> double dans jessie -> 
+                           x:real et gen_float_of_real(Double,nearest_even,x) dans why
+                           cas strict: 1 OP: no overflow
+   double x, double y  et (x op y) où op in {+,-,*,/} dans jessie ->
+                     x:gen_float, y:gen_float et op_gen_float(Double,nearest_even,x,y) dans why
+                     cas strict: 1 OP: no overflow si op in {+,-,*} et 2 OP si op=/ 
+
+
+double test1bis()
+  behavior default: 
+   ensures (\result :> real) == 7.0;
+{ 
+ return (2.0 :>double) * (3.5 :> double);
+
+}
+
+float test2()
+  behavior default: 
+   ensures (\result :> real) == 0.100000001490116119384765625;
+{ 
+return (0.1 :> float);
+}
+
+
+
+double diff(double x, double y)
+behavior default:
+	assumes (y:> real)/2.0 <= (x :> real) 
+	         && (x:>real) <= 2.0*(y :> real); 
+        ensures (\result :> real) == (x :> real) - (y :> real);
+{
+  return ((x :> real) - (y :> real)) :> double;
+}
+
+
+double diffbis(double x, double y)
+behavior default:
+	assumes (y:> real)/2.0 <= (x :> real) 
+	         && (x:>real) <= 2.0*(y :> real); 
+        ensures (\result :> real) == (x :> real) - (y :> real);
+{
+  return (x - y);
+}
+*/
+
+
+
+
+
+
+
+/* racine polynome */
+
+float poly(float x) 
+  behavior default:
+	assumes x :> real == \real_sqrt(2.0)/2.0;
+	ensures \result :> real == 0.0;
+{
+return (2.0 :> float)*x*x-(1.0 :> float);
+}
+
+
+
+
+
+/* moncos */
+
+axiomatic axo {
+logic real cos(real x)
+/* logic real exp(real x)*/
+logic real power(real x, integer n)
+}
+
+float moncos(float x) 
+behavior default:
+	assumes \real_abs(x :> real) <= 1.0/32.0;
+	ensures \real_abs((\result :> real) - cos(x :> real)) <= power(2.0,-23);
+{
+  return (1.0 :> float) - x*x*(0.5 :>float);
+}
+
+/*
+/* monexp */
+
+double monexp(double x) 
+behavior default:
+	assumes \real_abs(x :> real) <= power(2.0,-3);
+        ensures \real_abs((\result :> real) - exp(x :> real)) <= power(2.0,-23);
+{
+  return (1.0 :> double)+x*((1.0:>double)+x/(2.0:>double));
+}
+*/
+
+
+
+
+/* double x et sqrt_double(x) dans jessie -> 
+   sqrt_gen_float(Double,earest_even,x) dans why
+   cas strict: 2 OP: no overflow et float_value(x) > 0.0
+
+
+lemma sqrt_def : \forall real x; x>= 0.0 ==> \real_sqrt(x)*\real_sqrt(x) == x
+
+lemma sqrt_def2 : \forall real x;  x>= 0.0 ==> \real_sqrt(x*x) == x
+
+lemma l2 : 4.0 == 2.0 * 2.0
+
+lemma l3 : 2.0 >= 0.0
+
+
+real testsqrt()
+  behavior default: 
+   ensures \result == 2.0;
+{ 
+  return \real_sqrt(4.0); 
+}
+
+
+double testsqrt_double()
+  behavior default: 
+   ensures \result :>real == 2.0;
+{ 
+  return \double_sqrt(4.0 :>double); 
+}
+*/
+
+
+
+
+
+
+/* double x et abs_double(x) dans jessie -> 
+   abs_gen_float(Double,earest_even,x) dans why
+   cas strict: 1 OP: no overflow 
+
+real testabs()
+  behavior default: 
+   ensures \result == 2.0;
+{ 
+  return \real_abs(-2.0); 
+}
+
+
+double testabs_double()
+  behavior default: 
+   ensures (\result :> real) == 2.0;
+{ 
+  return \double_abs((-2.0) :>double); 
+}
+
+*/
+
+
+
+
+
+
+/* double x et neg_double(x) dans jessie -> 
+   neg_gen_float(Double,earest_even,x) dans why
+   cas strict: 1 OP: no overflow 
+
+double testneg()
+  behavior default: 
+   ensures (\result :> real) == 2.0;
+{ 
+  return \neg_double((-2.0) :>double); 
+}
+
+*/
+
+
+
+
+
+
+/* double x, double y et op_double(x,y) dans jessie où op in {lt,le,gt,ge,eq,neq} ->
+           op_gen_float(x,y) dans why                  
+
+boolean testlt()
+  behavior default: 
+   ensures \result == true;
+{ 
+  return ((2.0 :>double) < (3.0 :>double)); 
+}
+
+boolean testltfloat()
+  behavior default: 
+   ensures \result == true;
+{ 
+  return ((2.0 :>float) < (3.0 :>float)); 
+}
+*/
+
+
+
+
+
+
+/* double x et x:>float dans jessie -> cast_gen_float(Single,nearest_even,x) dans why
+
+
+float testcast(double x)
+ behavior default: 
+   ensures \result :>real == 2.0;
+{
+return (2.0 :>double):>float;
+}
+*/
+
+
+
+
+
+/* double x alors 
+   \is_plus_infinity_double(x) dans jessie ->
+                      \is_plus_infinity_gen_float(Double,x) dans why
+   \is_nan_double(x) dans jessie -> 
+                      \is_nan_gen_float(Double,x) dans why
+   \is_finite_double(x) dans jessie -> 
+                      \is_finite_gen_float(Double,x) dans why
+
+
+double test3(double x)
+behavior default :
+  assumes \is_plus_infinity_double(x);  
+  ensures \result :> real == 0.0; 
+{ 
+return ((3.0:>double)/x);
+}
+
+
+double test4()
+behavior default :
+   ensures \is_plus_infinity_double(\result); 
+{ 
+return (1.0 :> double)/(0.0 :double);  
+}
+
+
+double test5(double x,double y)
+behavior default :
+  assumes \is_plus_infinity_double(x) && \is_plus_infinity_double(y);  
+  ensures \is_nan_double(\result);
+{ 
+return (x-y);
+}
+
+
+double test6(double x,double y)
+behavior default :
+  assumes (x :>real) == 0.0 && (y :>real) == 0.0;  
+  ensures \is_nan_double(\result);
+{ 
+return (x/y);
+}
+
+
+double test7()
+behavior default :
+  ensures \is_finite_double(\result);
+{
+return 2.0:>double;
+}
+*/

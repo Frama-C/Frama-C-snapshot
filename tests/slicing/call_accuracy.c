@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -calldeps -slice-return main -slicing-level 3 -slice-print
+   OPT: -calldeps -slice-return main -slicing-level 3 -slice-print -journal-disable
  */
 int f_cond (int c, int a, int b) {
   ++a;
@@ -56,7 +56,7 @@ int test_struct (void) {
   S2 = S1 ;
   S2.a = 4 ; // <- best can be done.
   return S2.b ;
-  
+
 }
 int main (int x, int y, int z) {
   int r1 = test_struct () ;

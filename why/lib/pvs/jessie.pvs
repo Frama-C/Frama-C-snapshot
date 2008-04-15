@@ -1,0 +1,407 @@
+
+jessie: THEORY
+BEGIN
+
+  IMPORTING why
+
+  IMPORTING jessie_bw_ops, jessie_pointers, jessie_memory, jessie_psets, jessie_tags 
+
+END jessie
+
+jessie_bw_ops: THEORY
+BEGIN
+
+ bw_compl: [int -> int]
+
+ bw_and: [int, int -> int]
+
+ bw_xor: [int, int -> int]
+
+ bw_or: [int, int -> int]
+
+ lsl: [int, int -> int]
+
+ lsr: [int, int -> int]
+
+ asr: [int, int -> int]
+
+ %% Why axiom bw_and_not_null
+ bw_and_not_null: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (bw_and(a, b) /= 0 IMPLIES a /= 0 AND b /= 0)))
+
+ %% Why axiom lsl_left_positive_returns_positive
+ lsl_left_positive_returns_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES 0 <= lsl(a, b))))
+
+ %% Why axiom lsl_left_positive_monotone
+ lsl_left_positive_monotone: AXIOM
+   (FORALL (a1: int):
+   (FORALL (a2: int):
+   (FORALL (b: int):
+   (0 <= a1 AND (a1 <= a2 AND 0 <= b) IMPLIES
+   lsl(a1, b) <= lsl(a2, b)))))
+
+ %% Why axiom lsr_left_positive_returns_positive
+ lsr_left_positive_returns_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES 0 <= lsr(a, b))))
+
+ %% Why axiom lsr_left_positive_decreases
+ lsr_left_positive_decreases: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES lsr(a, b) <= a)))
+
+ %% Why axiom asr_positive_on_positive
+ asr_positive_on_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES 0 <= asr(a, b))))
+
+ %% Why axiom asr_decreases_on_positive
+ asr_decreases_on_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES asr(a, b) <= a)))
+
+ %% Why axiom asr_lsr_same_on_positive
+ asr_lsr_same_on_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES asr(a, b) = lsr(a, b))))
+
+ %% Why axiom lsl_of_lsr_decreases_on_positive
+ lsl_of_lsr_decreases_on_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES lsl(lsr(a, b), b) <= a)))
+
+ %% Why axiom lsr_of_lsl_identity_on_positive
+ lsr_of_lsl_identity_on_positive: AXIOM
+   (FORALL (a: int):
+   (FORALL (b: int):
+   (0 <= a AND 0 <= b IMPLIES lsr(lsl(a, b), b) = a)))
+
+END jessie_bw_ops
+
+jessie_pointers: THEORY
+BEGIN
+
+ address : TYPE+ 
+
+ pointer : TYPE = [address,int] 
+
+ same_block(p:pointer)(q:pointer): bool = p`1 = q`1
+
+ null_address : address
+
+ null : pointer = (null_address,0)
+
+ alloc_table: TYPE = {f:[address -> int] | f(null_address) = -1}
+
+ offset_min(a:alloc_table,p:pointer) : int = -p`2
+
+ offset_max(a:alloc_table,p:pointer) : int = a(p`1) - p`2 - 1
+
+ valid(a:alloc_table)(p:pointer) : bool =
+   offset_min(a, p) <= 0 AND 
+   offset_max(a, p) >= 0
+
+ %% Why axiom null_not_valid
+ null_not_valid: LEMMA
+   (FORALL (a: alloc_table): NOT valid(a)(null))
+
+ %% Why axiom null_pointer
+ null_pointer: LEMMA
+   (FORALL (a: alloc_table):
+   offset_min(a, null) >= 0 AND
+   offset_max(a, null) <= -2)
+
+ %% Why logic alloc_extends (at2 extends at1)
+ alloc_extends(at1,at2:alloc_table) : bool =
+   FORALL (p:(valid(at1))) : at1(p`1) = at2(p`1)
+
+ %% Why axiom alloc_extends_offset_min
+ alloc_extends_offset_min: LEMMA
+   (FORALL (a1: alloc_table):
+   (FORALL (a2: alloc_table):
+   (alloc_extends(a1, a2) IMPLIES
+   (FORALL (p: pointer): offset_min(a1, p) = offset_min(a2, p)))))
+
+ %% Why axiom alloc_extends_offset_max
+ alloc_extends_offset_max: LEMMA
+   (FORALL (a1: alloc_table):
+   (FORALL (a2: alloc_table):
+   (alloc_extends(a1, a2) IMPLIES
+   (FORALL (p:(valid(a1))): offset_max(a1, p) = offset_max(a2, p)))))
+
+
+ shift(p:pointer,i:int) : (same_block(p)) = (p`1,p`2+i)
+
+
+
+ %%%%%%% sub_pointer %%%%%%%%%%%%%
+
+ sub_pointer(p:pointer, q:(same_block(p))) : int = p`2 - q`2
+
+ %% Why axiom sub_pointer_shift
+ sub_pointer_shift: LEMMA
+   (FORALL (p: pointer):
+   (FORALL (q: (same_block(p))): p = shift(q, sub_pointer(p, q))))
+
+ %% Why axiom sub_pointer_self
+ sub_pointer_self: LEMMA
+   FORALL (p: pointer): sub_pointer(p, p) = 0
+
+ %% Why axiom sub_pointer_zero
+ sub_pointer_zero: LEMMA
+   (FORALL (p: pointer):
+   (FORALL (q: (same_block(p))):
+   (sub_pointer(p, q) = 0 IMPLIES p = q)))
+
+ %% Why axiom sub_pointer_shift_left
+ sub_pointer_shift_left: LEMMA
+   (FORALL (p: pointer):
+   (FORALL (q: (same_block(p))):
+   (FORALL (i: int):
+   sub_pointer(shift(p, i), q) = sub_pointer(p, q) + i)))
+
+ %% Why axiom sub_pointer_shift_right
+ sub_pointer_shift_right: LEMMA
+   (FORALL (p: pointer):
+   (FORALL (q: (same_block(p))):
+   (FORALL (i: int):
+   sub_pointer(p, shift(q, i)) = sub_pointer(p, q) - i)))
+
+
+ %% [CM] eq_pointer_bool: MACRO [pointer, pointer -> bool]
+
+ %% [CM] neq_pointer_bool: [pointer, pointer -> bool]
+
+
+ %%%%%%% sets of pointers %%%%%%%%%%%%%
+
+ pset: TYPE = set[pointer] 
+
+ pset_empty: MACRO pset = emptyset % [CM]
+
+ pset_singleton: MACRO [pointer -> pset] = singleton % [CM]
+
+ pset_union: MACRO [pset, pset -> pset] = union % [CM]
+
+ pset_disjoint : MACRO [pset, pset -> bool] = disjoint? % [CM]
+
+ pset_all(ps:pset) : pset = 
+   {a:pointer | EXISTS (p:(ps),i:int) : a=shift(p,i)}
+
+ pset_range(ps:pset,i,j:int) : pset =
+   {a:pointer | EXISTS (p:(ps),k:subrange(i,j)) : a=shift(p,k)}
+
+ pset_range_left(ps:pset,i:int) : pset =
+   {a:pointer | EXISTS (p:(ps),k:upfrom(i)) : a=shift(p,i)}
+
+ pset_range_right(ps:pset,i:int) : pset =
+   {a:pointer | EXISTS (p:(ps),k:upto(i)) : a=shift(p,i)}
+
+ in_pset: MACRO [pointer, pset -> bool] = member % [CM]
+
+ %% Why logic valid_pset
+ valid_pset(a:alloc_table)(ps:pset) : bool = 
+   FORALL (p:(ps)) : valid(a)(p)
+
+ %% Why axiom in_pset_empty
+ %% [CM] in_pset_empty: AXIOM
+ %% [CM]  (FORALL (p: pointer): NOT in_pset(p, pset_empty))
+
+ %% Why axiom in_pset_singleton
+ %% [CM] in_pset_singleton: AXIOM
+ %% [CM]   (FORALL (p: pointer):
+ %% [CM]   (FORALL (q: pointer):
+ %% [CM]   (in_pset(p, pset_singleton(q)) IFF p = q)))
+
+ %% Why axiom in_pset_union
+ %% [CM] in_pset_union: AXIOM
+ %% [CM]   (FORALL (p: pointer):
+ %% [CM]   (FORALL (s1: pset):
+ %% [CM]   (FORALL (s2: pset):
+ %% [CM]   (in_pset(p, pset_union(s1, s2)) IFF in_pset(p, s1) OR
+ %% [CM]   in_pset(p, s2)))))
+
+ %% Why axiom valid_pset_empty
+ valid_pset_empty: LEMMA
+   (FORALL (a: alloc_table): valid_pset(a)(pset_empty))
+
+ %% Why axiom valid_pset_singleton
+ valid_pset_singleton: LEMMA
+   (FORALL (a: alloc_table):
+   (FORALL (p: pointer):
+   (valid_pset(a)(pset_singleton(p)) IFF valid(a)(p))))
+
+ %% Why axiom valid_pset_range
+ valid_pset_range: LEMMA
+   (FORALL (a: alloc_table):
+   (FORALL (q: pset):
+   (FORALL (c: int):
+   (FORALL (d: int):
+   (valid_pset(a)(pset_range(q, c, d)) IFF
+   (FORALL (i: int):
+   (FORALL (r: pointer):
+   (in_pset(r, q) AND (c <= i AND i <= d) IMPLIES
+   valid(a)(shift(r, i))))))))))
+
+ %% Why axiom valid_pset_union
+ valid_pset_union: LEMMA
+   (FORALL (a: alloc_table):
+   (FORALL (s1: pset):
+   (FORALL (s2: pset):
+   (valid_pset(a)(pset_union(s1, s2)) IFF valid_pset(a)(s1) AND
+   valid_pset(a)(s2)))))
+
+
+END jessie_pointers
+
+
+jessie_memory[A: TYPE+]: THEORY
+BEGIN
+
+ IMPORTING jessie_pointers
+
+ memory: TYPE = ARRAY[pointer -> A] % [CM]
+
+ %% Why logic select
+ %% [CM] select: [memory, pointer -> A]
+ select(m:memory,p:pointer) : MACRO A = m(p) % [CM]
+
+ %% Why logic store
+ %% [CM] store: [memory, pointer, A -> memory] % [CM]
+ store(m:memory,p:pointer,a:A) : MACRO memory = m WITH [(p) := a]
+
+ not_assigns(a:alloc_table, m1:memory, m2:memory,
+             l:pset) : bool =
+   (FORALL (p: pointer):
+   (valid(a)(p) AND NOT in_pset(p, l) IMPLIES
+   select(m2, p) = select(m1, p)))
+
+ %% Why axiom select_store_eq
+ %% [CM] select_store_eq: AXIOM
+ %% [CM]  (FORALL (m: memory):
+ %% [CM]  (FORALL (p: pointer):    % [CM]
+ %% [CM]  (FORALL (a: A):
+ %% [CM]  (select(store(m, p, a), p) = a))))
+
+ %% Why axiom select_store_neq
+ select_store_neq: AXIOM
+   (FORALL (m: memory):
+   (FORALL (p1: pointer):
+   (FORALL (p2: pointer):
+   (FORALL (a: A):
+   (p1 /= p2 IMPLIES
+   select(store(m, p1, a), p2) = select(m, p2))))))
+
+ %% Why axiom not_assigns_refl
+ not_assigns_refl: LEMMA
+   (FORALL (a: alloc_table):
+   (FORALL (m: memory):
+   (FORALL (l: pset): not_assigns(a, m, m, l))))
+
+ %% Why axiom not_assigns_trans
+ not_assigns_trans: LEMMA
+   (FORALL (a: alloc_table):
+   (FORALL (m1: memory):
+   (FORALL (m2: memory):
+   (FORALL (m3: memory):
+   (FORALL (l: pset):
+   (not_assigns(a, m1, m2, l) IMPLIES
+   (not_assigns(a, m2, m3, l) IMPLIES not_assigns(a, m1, m3, l))))))))
+
+END jessie_memory
+
+jessie_psets : THEORY
+BEGIN
+
+ IMPORTING jessie_memory
+
+ %% Why logic pset_deref
+ pset_deref(m:memory[pointer],q:pset) : pset =
+   {p:pointer | EXISTS (r:(q)): p = select(m,r) }
+
+ %% Why axiom in_pset_deref
+ in_pset_deref: LEMMA
+   (FORALL (p: pointer):
+   (FORALL (m: memory[pointer]):
+   (FORALL (q: pset):
+   (in_pset(p, pset_deref(m, q)) IFF
+   (EXISTS (r: pointer): in_pset(r, q) AND
+    p = select(m, r))))))
+
+ %% Why axiom valid_pset_deref
+ valid_pset_deref: LEMMA
+   (FORALL (a: alloc_table):
+   (FORALL (m: memory[pointer]):
+   (FORALL (q: pset):
+   (valid_pset(a)(pset_deref(m, q)) IFF
+   (FORALL (r: pointer):
+   (FORALL (p: pointer):
+   (in_pset(r, q) AND p = select(m, r) IMPLIES
+   valid(a)(p))))))))
+
+END jessie_psets
+
+
+jessie_tags : THEORY
+BEGIN
+
+ IMPORTING jessie_pointers, jessie_memory
+
+ tag_id: TYPE = string
+
+ tag_table: TYPE = [pointer -> tag_id]
+
+ int_of_tag: [tag_id -> int]
+
+ typeof(tt:tag_table,p:pointer) : tag_id = tt(p)
+
+ parenttag: [tag_id, tag_id -> bool]
+
+ subtag(ti1,ti2:tag_id) : INDUCTIVE bool =
+   ti1 = ti2 OR
+   EXISTS (ti:tag_id) : subtag(ti1,ti) AND parenttag(ti,ti2)
+
+ subtag_bool: MACRO [tag_id, tag_id -> bool] = subtag
+
+ instanceof(tt:tag_table, p:pointer, ti:tag_id) : bool =
+   subtag(typeof(tt, p), ti)
+
+ downcast(tt:tag_table,p:pointer,ti:tag_id|instanceof(tt,p,ti)) : pointer =
+   p 
+
+ bottom_tag: tag_id
+
+ root_tag(t:tag_id) : bool = parenttag(t, bottom_tag)
+
+ %% Why axiom bottom_tag_axiom
+ bottom_tag_axiom: AXIOM
+   (FORALL (t: tag_id): subtag(t, bottom_tag))
+
+ %% Why axiom root_subtag
+ root_subtag: AXIOM
+   (FORALL (a: tag_id):
+   (FORALL (b: tag_id):
+   (FORALL (c: tag_id):
+   (root_tag(a) IMPLIES
+   (root_tag(b) IMPLIES
+   (a /= b IMPLIES (subtag(c, a) IMPLIES NOT subtag(c, b))))))))
+
+ fully_packed(tag_table:tag_table, mutable:memory[tag_id],
+              this:pointer) : bool =
+   select(mutable, this) = typeof(tag_table, this)
+
+END jessie_tags
+
+
+

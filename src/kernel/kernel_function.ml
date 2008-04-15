@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_function.ml,v 1.15 2008/05/27 21:55:35 uid528 Exp $ *)
+(* $Id: kernel_function.ml,v 1.20 2008/11/05 16:18:02 uid530 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -28,16 +28,14 @@ open Db_types
 (** {2 Getters} *)
 (* ************************************************************************* *)
 
-let dummy = 
-  { fundec = Definition (Cil.dummyFunDec, Cil.locUnknown); 
+let dummy () = 
+  { fundec = Definition (Cil.emptyFunction "@dummy@", Cilutil.locUnknown); 
     return_stmt = None; 
     spec = Cil.empty_funspec ();
     stmts_graph = None }
 
-let get_vi kf = match kf.fundec with
-  | Definition (d, _) -> d.svar
-  | Declaration (_,vi,_, _) -> vi
-
+let get_vi kf = Ast_info.Function.get_vi kf.fundec 
+let get_id kf = (get_vi kf).vid
 let get_name kf = (get_vi kf).vname
 
 let get_location kf = 
@@ -46,6 +44,8 @@ let get_location kf =
   | Declaration (_,vi,_, _) -> vi.vdecl
 
 let get_type kf = (get_vi kf).vtype
+
+let get_return_type kf = Cil.getReturnType (get_type kf)
 
 let get_global f = match f.fundec with
   | Definition (d, loc) -> GFun(d,loc)
@@ -56,6 +56,10 @@ let get_formals f = match f.fundec with
   | Declaration(_, _, None, _) -> []
   | Declaration(_,_,Some args,_) -> args
 
+let get_locals f = match f.fundec with
+  | Definition(d, _) -> d.slocals
+  | Declaration(_, _, _, _) -> []
+
 exception No_Definition
 let get_definition kf = match kf.fundec with
   | Definition (f,_) -> f
@@ -65,13 +69,9 @@ let get_definition kf = match kf.fundec with
 (** {2 Kernel functions are comparable} *)
 (* ************************************************************************* *)
 
-module Comparable = struct
-  type t = kernel_function
-  let equal = (==)
-  let hash kf = Hashtbl.hash (get_vi kf).vid
-  let compare t1 t2 = Pervasives.compare (get_vi t1).vid (get_vi t2).vid
-end
-include Comparable
+module D = Datatype
+module Datatype = Globals.Functions.KF_Datatype
+include Datatype
 
 (* ************************************************************************* *)
 (** {2 Searching} *)
@@ -79,10 +79,10 @@ include Comparable
 
 module Kf =
   Computation.OptionRef
-    (Kernel_datatype.IntHashtbl
-       (Datatype.Couple(Kernel_datatype.KernelFunction)(Kernel_datatype.Stmt)))
+    (Cil_datatype.IntHashtbl
+       (D(*atatype*).Couple(Datatype)(Cil_datatype.Stmt)))
     (struct
-       let name = Project.Computation.Name.make "KF"
+       let name = "KF"
        let dependencies = [ Cil_state.self ]
      end)
 
@@ -94,8 +94,7 @@ let compute () =
        let visitor = object(self)
 	 inherit Cil.nopCilVisitor
 	 val mutable current_kf = None
-	 method kf =
-	   match current_kf with None -> assert false | Some kf -> kf
+	 method kf = match current_kf with None -> assert false | Some kf -> kf
 	 method vstmt s =
 	   Inthash.add h s.sid (self#kf, s);
 	   Cil.DoChildren
@@ -235,13 +234,17 @@ let pretty_name fmt kf = Ast_info.pretty_vname fmt (get_vi kf)
 (** {2 Collections} *)
 (* ************************************************************************* *)
 
-module Make_Table = Computation.Hashtbl(Comparable)
+module Make_Table = Computation.Hashtbl(Datatype)
 
 module Set = struct
-  module S = Set.Make(Comparable)
+  module S = Set.Make(Datatype)
   include S
-  module Datatype = Datatype.Make_Set(S)(Kernel_datatype.KernelFunction)
+  module Datatype = D.Make_Set(S)(Datatype)
   let pretty fmt = iter (fun kf -> pretty_name fmt kf; Format.printf "@ ")
+end
+
+module Queue = struct
+  module Datatype = D.Queue(Datatype)
 end
 
 (* ************************************************************************* *)

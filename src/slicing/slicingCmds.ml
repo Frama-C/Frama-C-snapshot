@@ -28,6 +28,7 @@
 
 exception Unknown_data of string
 open Cil
+open Cilutil
 open Cil_types
 open Db
 open Db_types
@@ -108,15 +109,18 @@ struct
   let is_call_to ki kf =
     List.exists (fun caller -> caller == kf) (get_called_funcs ki)
 
-  let get_rw_zone ki =
+  (** Get directly read/writen [Zone.t] by the statement.
+    * i.e. directly means when [ki] is a call,
+      it doesn't don't look at the assigns clause of the called function. *)
+  let get_rw_zone ki = (* returns [Zone.t read],[Zone.t writen] *)
     assert (Db.Value.is_computed ());
     let lval_process read_zone kstmt lv =
+      (* returns [read_zone] joined to [Zone.t read] by [lv], [Zone.t writen] by [lv] *)
       let deps, looking_for =
         (* The modified locationss are [looking_for], those address are
            function of [deps]. *)
         !Db.Value.lval_to_loc_with_deps
            ~with_alarms:CilE.warn_none_mode
-          ~skip_base_deps:false
           ~deps:read_zone
           kstmt
           lv
@@ -124,23 +128,31 @@ struct
     in match ki.skind with
       | Switch (exp,_,_,_)
       | If (exp,_,_,_) ->
+          (* returns  [Zone.t read] by condition [exp], [Zone.bottom] *)
           !Db.From.find_deps_no_transitivity (Kstmt ki) exp, Locations.Zone.bottom
       | Instr (Set (lv,exp,_)) ->
-          let kstmt = Kstmt ki in
-          let read_zone = !Db.From.find_deps_no_transitivity kstmt exp
-          in lval_process read_zone kstmt lv
+          (* returns  [Zone.t read] by [exp, lv], [Zone.t writen] by [lv] *)
+         let kstmt = Kstmt ki in
+          let read_zone = !Db.From.find_deps_no_transitivity kstmt exp in
+            lval_process read_zone kstmt lv
       | Instr (Call (lvaloption,funcexp,argl,_)) ->
+          (* returns  [Zone.t read] by [lvaloption, funcexp, argl], [Zone.t writen] by [lvaloption] *)
           let kstmt = Kstmt ki in
           let read_zone = !Db.From.find_deps_no_transitivity kstmt funcexp in
-          let read_zone = List.fold_right (fun arg inputs ->
-                                             let arg_inputs = !Db.From.find_deps_no_transitivity kstmt arg
-	                                     in Locations.Zone.join inputs arg_inputs)
-	    argl read_zone in
-            (match lvaloption with
-               | None ->read_zone , Locations.Zone.bottom
-               | Some lv -> lval_process read_zone kstmt lv)
+          let add_args arg inputs =
+	    Locations.Zone.join inputs (!Db.From.find_deps_no_transitivity kstmt arg) in
+          let read_zone = List.fold_right add_args argl read_zone in
+          let read_zone,write_zone =
+            match lvaloption with
+              | None ->read_zone , Locations.Zone.bottom
+              | Some lv -> lval_process read_zone kstmt lv
+          in read_zone,write_zone
       | _ -> Locations.Zone.bottom, Locations.Zone.bottom
 
+  (** Look at intersection of [rd_zone_opt]/[wr_zone_opt] with the
+      directly read/writen [Zone.t] by the statement.
+    * i.e. directly means when [ki] is a call,
+      it doesn't don't look at the assigns clause of the called function. *)
   let is_rw_zone (rd_zone_opt, wr_zone_opt) ki =
     let rd_zone, wr_zone = get_rw_zone ki in
     let inter_zone zone_opt zone =
@@ -212,22 +224,44 @@ let select_stmt set ~spare ki kf =
   let selection = !Db.Slicing.Select.select_stmt_internal kf ki stmt_mark
   in add_to_selection set selection
 
-let select_entry_point set ~spare kf  ~outputs=
-  let stmt_mark =
-    !Db.Slicing.Mark.make ~data:(not spare) ~addr:(not spare) ~ctrl:(not spare) in
-  let pdg = !Db.Pdg.get kf in
-  let ctrl = !Db.Pdg.find_entry_point_node pdg in
-  let nodes = ctrl :: (if outputs
-                       then
-                         let outputs = !Db.Outputs.get_external kf in
-                         let nodes, _undef =
-                           !Db.Pdg.find_location_nodes_at_end pdg outputs
-                         in
-                         let nodes = List.map (fun (n,_z) -> n) nodes in
-                           try (!Db.Pdg.find_ret_output_node pdg) :: nodes
-                           with Db.Pdg.NotFound -> nodes
-                       else []) in
-    !Db.Slicing.Select.select_pdg_nodes set stmt_mark nodes kf 
+(** Add a selection to the entrance of the function [kf]
+    and add a selection to its return if [~return] is true
+    and add a selection to [~inputs] parts of its inputs
+    and add a selection to [~ouputs] parts of its outputs*)
+let select_entry_point_and_some_inputs_outputs set ~mark kf ~return ~outputs ~inputs =
+  (* Format.printf "@[select_entry_point_and_some_inputs_outputs %a@]@." Kernel_function.pretty_name kf ; *)
+  let set = let selection = !Db.Slicing.Select.select_entry_point_internal kf mark in
+    add_to_selection set selection
+  in
+  let set =
+    if (Locations.Zone.equal Locations.Zone.bottom outputs)
+    then set
+    else let selection = !Db.Slicing.Select.select_modified_output_zone_internal kf outputs mark in
+      add_to_selection set selection
+  in
+  let set =
+    if (Locations.Zone.equal Locations.Zone.bottom inputs)
+    then set
+    else let selection = !Db.Slicing.Select.select_zone_at_entry_point_internal kf inputs mark in
+      add_to_selection set selection
+  in if return
+    then let selection = !Db.Slicing.Select.select_return_internal kf mark in
+      add_to_selection set selection
+    else set
+
+(** Add a selection to the entrance of the function [kf]
+    and add a selection to its outputs if [~outputs] is true *)
+let select_entry_point set ~spare kf ~outputs =
+  if !Db.Value.is_called kf then
+    let mark =
+      !Db.Slicing.Mark.make ~data:(not spare) ~addr:(not spare) ~ctrl:(not spare)
+    in
+      assert (!Db.Value.is_called kf) ; (* otherwise [!Db.Outputs.get_external kf] gives weird results *)
+      select_entry_point_and_some_inputs_outputs set ~mark kf
+        ~return:outputs
+        ~outputs:(if outputs then !Db.Outputs.get_external kf else Locations.Zone.bottom)
+        ~inputs:Locations.Zone.bottom
+  else set
 
 (** Registered as a slicing selection function:
     Add a selection of calls to a [kf]. *)
@@ -252,7 +286,7 @@ let select_min_call set ~spare ki kf =
     let selection = !Db.Slicing.Select.select_min_call_internal kf ki stmt_mark in
       add_to_selection set selection
 
- 
+
 (** Registered as a slicing selection function:
     Add a selection of calls to a [kf]. *)
 let select_func_calls_into set ~spare kf =
@@ -273,7 +307,7 @@ let select_func_calls_into set ~spare kf =
 (** Registered as a slicing selection function:
     Add selection of function ouputs. *)
 let select_func_zone set mark zone kf =
-  let selection = !Db.Slicing.Select.select_output_zone_internal kf zone mark
+  let selection = !Db.Slicing.Select.select_zone_at_end_internal kf zone mark
   in add_to_selection set selection
 
 (** Registered as a slicing selection function:
@@ -283,12 +317,12 @@ let select_func_return set ~spare kf =
     let ki = Kernel_function.find_return kf
     in select_stmt set ~spare ki kf
   with Kernel_function.No_Definition ->
-    (* let zone = Value.find_return_loc kf : this zone doesn't exist... *)
-    let pdg = !Db.Pdg.get kf in
-    let out0_node = !Db.Pdg.find_ret_output_node pdg in
     let mark = !Db.Slicing.Mark.make
-                    ~data:(not spare) ~addr:(not spare) ~ctrl:(not spare) in
-      select_pdg_nodes set mark [out0_node] kf
+      ~data:(not spare) ~addr:(not spare) ~ctrl:(not spare)
+    in
+      select_entry_point_and_some_inputs_outputs set ~mark kf
+        ~return:true ~outputs:Locations.Zone.bottom
+        ~inputs:Locations.Zone.bottom
 
 (** Registered as a slicing selection function:
     Add a selection of the statement reachability.
@@ -300,7 +334,7 @@ let select_stmt_ctrl set ~spare ki kf =
   in add_to_selection set selection
 
 (** Registered as a slicing selection function:
-    Add a selections of data relative to a statement.
+    Add a selection of data relative to a statement.
     Note: add also a transparent selection on the whole statement. *)
 let select_stmt_zone set mark zone ~before ki kf =
   let selection =
@@ -309,9 +343,15 @@ let select_stmt_zone set mark zone ~before ki kf =
   in select_stmt_ctrl set ~spare:true ki kf
 
 (** Registered as a slicing selection function:
-    Add a selections of data relative to a statement.
+    Add a selection of data relative to a statement.
+    Variables of [lval_str] string are bounded
+    relatively to the scope of the statement [~scope].
+    The interpretation of the address of the lvalues is
+    done just before the execution of the statement [~eval].
+    The selection preserve the value of these lvalues before
+    or after (c.f. boolean [~before]) the statement [ki].
     Note: add also a transparent selection on the whole statement. *)
-let select_stmt_lval set mark lval_str ~before ki kf =
+let select_stmt_lval set mark lval_str ~before ki ~scope ~eval kf =
   assert (Db.Value.is_computed ());
   if Cilutil.StringSet.is_empty lval_str
   then set
@@ -319,16 +359,26 @@ let select_stmt_lval set mark lval_str ~before ki kf =
     let zone =
       Cilutil.StringSet.fold
         (fun lval_str acc ->
-           let ki = Kernel_function.find_first_stmt kf in
-           let lval_term = !Db.Properties.Interp.lval kf ki lval_str in
+           let lval_term = !Db.Properties.Interp.lval kf scope lval_str in
            let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
-           let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt ki) lval in
+           let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt eval) lval in
            let zone = Locations.valid_enumerate_bits loc
            in Locations.Zone.join zone acc)
         lval_str Locations.Zone.bottom
     in select_stmt_zone set mark zone ~before ki kf
 
-let select_lval_rw set mark ~rd ~wr _ki kf ki_opt=
+(** Add a selection of data relative to read/write accesses.
+    Interpret the [~rd] lvalues and the [~wr] lvalues from [~scope], [~eval]
+    statements of [kf]:
+    - Variables of [lval_str] string are bounded
+      relatively to the scope of the statement [~scope].
+    - The interpretation of the address of the lvalues is
+      done just before the execution of the statement [~eval].
+    Find read/write accesses from the whole project if [ki_opt]=None.
+    Otherwise, restrict the research among the direct effect of [ki_opt] statement.
+    i.e. when [ki_opt] is a call, the selection doesn't look at the assigns clause
+    of a call. *)
+let select_lval_rw set mark ~rd ~wr ~scope ~eval kf ki_opt=
   assert (Db.Value.is_computed ());
    let zone_option lval_str =
     if Cilutil.StringSet.is_empty lval_str
@@ -337,47 +387,81 @@ let select_lval_rw set mark ~rd ~wr _ki kf ki_opt=
       let zone =
         Cilutil.StringSet.fold
           (fun lval_str acc ->
-             let ki = Kernel_function.find_first_stmt kf in
-             let lval_term = !Db.Properties.Interp.lval kf ki lval_str in
+             let lval_term = !Db.Properties.Interp.lval kf scope lval_str in
              let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
-             let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt ki) lval in
+             let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt eval) lval in
              let zone = Locations.valid_enumerate_bits loc
              in Locations.Zone.join zone acc)
           lval_str Locations.Zone.bottom
       in (* Format.printf "@\nselect_lval_rw sid=%d zone=%a@." ki.sid Locations.Zone.pretty zone; *)
         Some zone
-   in match (zone_option rd), (zone_option wr) with
+   in
+   let zone_rd_opt = zone_option rd in
+   let zone_wr_opt = zone_option wr
+   in match zone_rd_opt, zone_wr_opt with
      | None, None -> set
      | (_, _) as zone_option_rw ->
          let ac = ref set in
-         let iter kf ki =
+         let select_rw_from_stmt kf ki =
            let rd_zone_opt, wr_zone_opt = Kinstr.is_rw_zone zone_option_rw ki in
-           let select ~before zone_opt =
+           let select_zpne ~before zone_opt =
              match zone_opt with
                | None -> !ac
                | Some zone ->
                    (* Format.printf "@\nselect_lval_rw sid=%d before=%b zone=%a@." ki.sid before Locations.Zone.pretty zone; *)
                    select_stmt_zone !ac mark zone ~before ki kf ;
            in
-             ac := select ~before:true rd_zone_opt ;
-             ac := select ~before:false wr_zone_opt
+             ac := select_zpne ~before:true rd_zone_opt ;
+             ac := select_zpne ~before:false wr_zone_opt
          in (match ki_opt with
-               | Some ki -> iter kf ki
+               | Some ki -> select_rw_from_stmt kf ki
                | None ->
 		   Globals.Functions.iter
 		     (fun kf ->
-                        if Kernel_function.is_definition kf
-			  && !Db.Value.is_called kf
-			then
-			  Kinstr.iter_from_func (iter kf) kf;));
-           (* !Db.Slicing.Select.iter_selects_internal
-              (fun sel -> Format.printf "@\nselect_lval_rw sel=%a" !Db.Slicing.Select.pretty sel) !ac; *)
+                        if !Db.Value.is_called kf then
+                          if Kernel_function.is_definition kf
+			  then (* Called function with source code: just looks at its stmt *)
+			    Kinstr.iter_from_func (select_rw_from_stmt kf) kf
+                          else begin (* Called function without source code: looks at its effect *)
+                            let select_inter_zone fsel zone_opt zone =
+                              match zone_opt with
+                                | None -> ()
+                                | Some zone_requested ->
+                                    (* Format.printf "@\nselect_lval_rw zone_req=%a zone=%a@."
+                                       Locations.Zone.pretty zone_requested
+                                       Locations.Zone.pretty zone; *)
+                                    if Locations.Zone.intersects zone_requested zone
+                                    then let inter = Locations.Zone.narrow zone_requested zone
+                                    in fsel inter
+                                    else () in
+                            let select_wr outputs =
+                              ac := select_entry_point_and_some_inputs_outputs !ac ~mark kf
+                                ~return:false ~outputs ~inputs:Locations.Zone.bottom
+                            and select_rd inputs =
+                              ac := select_entry_point_and_some_inputs_outputs !ac ~mark kf
+                                ~return:false ~inputs ~outputs:Locations.Zone.bottom
+
+                            in
+                              assert (!Db.Value.is_called kf) ; (* otherwise [!Db.Outputs.get_external kf] gives weird results *)
+                              select_inter_zone select_wr zone_wr_opt (!Db.Outputs.get_external kf) ;
+                              select_inter_zone select_rd zone_rd_opt (!Db.Inputs.get_external kf)
+                          end
+                     ));
            !ac
 
 (** Registered as a slicing selection function:
-    Add a selections of data relative to a statement.
-    Note: add also a transparent selection on the whole statement. *)
-let select_stmt_lval_rw set mark ~rd ~wr ki kf = select_lval_rw set mark ~rd ~wr ki kf (Some ki)
+    Add a selection of rw accesses to lvalues relative to a statement.
+    Variables of [~rd] and [~wr] string are bounded
+    relatively to the scope of the statement [~scope].
+    The interpretation of the address of the lvalues is
+    done just before the execution of the statement [~eval].
+    The selection preserve the [~rd] and ~[wr] accesses
+    directly contained into the statement [ki].
+    i.e. when [ki] is a call, the selection doesn't look at
+    the assigns clause of the called function.
+    Note: add also a transparent selection on the whole statement.*)
+let select_stmt_lval_rw set mark ~rd ~wr ki ~scope ~eval kf =
+  select_lval_rw set mark ~rd ~wr ~scope ~eval kf (Some ki)
 
 (**
     Add a selection of the declaration of [vi]. *)
@@ -391,7 +475,7 @@ let select_decl_var set mark vi kf =
 
 let select_ZoneAnnot_pragmas set ~spare pragmas kf =
   let set =
-    Cilutil.StmtSet.fold  (* selection related to //@ slice pragma stmt *)
+    Cilutil.StmtSet.fold  (* selection related to statement assign and //@ slice pragma stmt *)
       (fun ki' acc -> select_stmt acc ~spare ki' kf)
       pragmas.Properties.Interp.To_zone.stmt set
   in Cilutil.StmtSet.fold  (* selection related to //@ slice pragma ctrl/expr *)
@@ -411,14 +495,14 @@ let select_ZoneAnnot_zones_decl_vars set mark (zones,decl_vars) kf =
     Add selection of the annotations related to a statement.
     Note: add also a transparent selection on the whole statement. *)
 let select_stmt_pred set mark pred ~before ki kf =
-  let zones_decl_vars = !Properties.Interp.To_zone.from_stmt_pred pred ~before (ki, kf)
+  let zones_decl_vars = !Properties.Interp.To_zone.from_pred pred (!Properties.Interp.To_zone.mk_ctx_stmt_annot kf ki ~before)
   in select_ZoneAnnot_zones_decl_vars set mark zones_decl_vars kf
 
 (** Registered as a slicing selection function:
     Add selection of the annotations related to a statement.
     Note: add also a transparent selection on the whole statement. *)
 let select_stmt_term set mark term ~before ki kf =
-  let zones_decl_vars = !Properties.Interp.To_zone.from_stmt_term term ~before (ki, kf)
+  let zones_decl_vars = !Properties.Interp.To_zone.from_term term (!Properties.Interp.To_zone.mk_ctx_stmt_annot kf ki ~before)
   in select_ZoneAnnot_zones_decl_vars set mark zones_decl_vars kf
 
 (** Registered as a slicing selection function:
@@ -445,8 +529,7 @@ let select_stmt_annots set mark ~spare ~ai ~user_assert
   in select_ZoneAnnot_zones_decl_vars set mark zones_decl_vars kf
 
 (** Registered as a slicing selection function:
-    Add a selection of the annotations related to a statement.
-    Note: add also a transparent selection on the whole statement. *)
+    Add a selection of the annotations related to a function. *)
 let select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var kf =
   let zones_decl_vars,pragmas =
     !Properties.Interp.To_zone.from_func_annots Kinstr.iter_from_func
@@ -459,23 +542,35 @@ let select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_in
   in select_ZoneAnnot_zones_decl_vars set mark zones_decl_vars kf
 
 (** Registered as a slicing selection function:
-    Add selection of function ouputs. *)
+    Add selection of function ouputs.
+    Variables of [lval_str] string are bounded
+    relatively to the scope of the first statement of [kf].
+    The interpretation of the address of the lvalues is
+    done just before the execution of the first statement [kf].
+    The selection preserve the value of these lvalues before
+    execution of the return statement.  *)
 let select_func_lval set mark lval_str kf =
   if Cilutil.StringSet.is_empty lval_str
   then set
   else
+    let ki_scope_eval = Kernel_function.find_first_stmt kf in
     let ki = Kernel_function.find_return kf in
-    select_stmt_lval set mark lval_str ~before:false ki kf
+    select_stmt_lval set mark lval_str ~before:false ki ~scope:ki_scope_eval ~eval:ki_scope_eval kf
 
 (** Registered as a slicing selection function:
-    Add selection of function ouputs. *)
-let select_func_lval_rw set mark ~rd ~wr kf =
+    Add a selection of data relative to read/write accesses.
+    Interpret the [~rd] lvalues and the [~wr] lvalues from [~scope], [~eval] statements of [kf]:
+    - Variables of [lval_str] string are bounded
+      relatively to the scope of the statement [~scope].
+    - The interpretation of the address of the lvalues is
+      done just before the execution of the statement [~eval].
+    Find read/write accesses from the whole project if [ki_opt]=None. *)
+let select_func_lval_rw set mark ~rd ~wr ~scope ~eval kf =
   if Cilutil.StringSet.is_empty rd &&
     Cilutil.StringSet.is_empty wr
   then set
   else
-    let ki = Kernel_function.find_return kf in
-    select_lval_rw set mark ~rd ~wr ki kf None
+    select_lval_rw set mark ~rd ~wr ~scope ~eval kf None
 
 (** Registered as a slicing request function:
     Add selections to all concerned slices, as slicing requests and apply them,
@@ -520,7 +615,7 @@ let add_persistent_selection project set =
     Note:
     - the function begins by applying the remaining internal requests.
     - the requests added for the last kernel function are not applied. *)
-let add_persistent_cmdline project = 
+let add_persistent_cmdline project =
   let top_mark = !Db.Slicing.Mark.make ~addr:true ~ctrl:true ~data:true in
   let selection = ref (!Db.Slicing.Select.empty_selects ()) in
     Globals.Functions.iter
@@ -529,39 +624,39 @@ let add_persistent_cmdline project =
 	   if Cilutil.StringSet.mem (Kernel_function.get_name kf) (opt ()) then
 	     selection := select !selection ~spare:false kf
 	 in
-           
+
 	   add_selection
 	     Cmdline.Slicing.Select.Return.get
              !Db.Slicing.Select.select_func_return;
-           
+
 	         add_selection
 	           Cmdline.Slicing.Select.Calls.get
 	           !Db.Slicing.Select.select_func_calls_to;
-                 
+
 	         add_selection
 	           Cmdline.Slicing.Select.Pragma.get
 	           (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
 		      ~ai:false ~user_assert:false ~slicing_pragma:true
 		      ~loop_inv:false ~loop_var:false);
-                 
+
 	         add_selection
 	           Cmdline.Slicing.Select.Threat.get
                    (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
 		      ~ai:true ~user_assert:false ~slicing_pragma:false
 		      ~loop_inv:false ~loop_var:false);
-                 
+
 	         add_selection
 	           Cmdline.Slicing.Select.Assert.get
                    (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
 		      ~ai:false ~user_assert:true ~slicing_pragma:false
 		      ~loop_inv:false ~loop_var:false);
-                 
+
 	         add_selection
 	           Cmdline.Slicing.Select.LoopInv.get
                    (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
 		      ~ai:false ~user_assert:false ~slicing_pragma:false
 		      ~loop_inv:true ~loop_var:false);
-                 
+
 	         add_selection
 	           Cmdline.Slicing.Select.LoopVar.get
                    (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
@@ -582,18 +677,20 @@ let add_persistent_cmdline project =
       (* fprintf fmt "@\n[-slice-value] Select %s at end of the entry point %a@."
          lval_str Db.pretty_name kf; *)
       let kf = fst (Globals.entry_point ()) in
+      let ki_scope_eval = Kernel_function.find_first_stmt kf in
 	selection := !Db.Slicing.Select.select_func_lval !selection top_mark
 	  (Cmdline.Slicing.Select.Value.get ()) kf;
-	selection := !Db.Slicing.Select.select_func_lval_rw !selection
-	  top_mark (Cmdline.Slicing.Select.RdAccess.get ())
-	  (Cmdline.Slicing.Select.WrAccess.get ()) kf ;
+	selection := !Db.Slicing.Select.select_func_lval_rw !selection top_mark
+	  ~rd:(Cmdline.Slicing.Select.RdAccess.get ())
+	  ~wr:(Cmdline.Slicing.Select.WrAccess.get ())
+          ~scope:ki_scope_eval ~eval:ki_scope_eval kf ;
         Cmdline.Slicing.Select.Value.clear () ;
         Cmdline.Slicing.Select.RdAccess.clear () ;
         Cmdline.Slicing.Select.WrAccess.clear () ;
     end;
     !Db.Slicing.Request.add_persistent_selection project !selection
-    
-    
+
+
 let apply_all project ~propagate_to_callers =
   assert (not propagate_to_callers) ;
   try

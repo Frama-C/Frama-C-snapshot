@@ -57,24 +57,19 @@ enum Buch_OpStatusList buch_CurOpStatus  = buch_Called;
 //* 
 //**************** 
 //* Axiomatized transitions automata
-/*@ logic integer buch_Trans_Start(integer tr) reads tr;
- */
-/*@ axiom buch_Trans_Start0: (buch_Trans_Start(0) == 0);
- */
-/*@ axiom buch_Trans_Start1: (buch_Trans_Start(1) == 0);
- */
-/*@ axiom buch_Trans_Start2: (buch_Trans_Start(2) == 1);
- */
-/*@ logic integer buch_Trans_Stop(integer tr) reads tr;
- */
-/*@ axiom buch_Trans_Stop0: (buch_Trans_Stop(0) == 0);
- */
-/*@ axiom buch_Trans_Stop1: (buch_Trans_Stop(1) == 1);
- */
-/*@ axiom buch_Trans_Stop2: (buch_Trans_Stop(2) == 1);
- */
-/*@
-predicate buch_Trans_Cond_param{L}(integer _buch_numTrans, integer _buch_op,
+/*@ axiomatic Automata {
+  @  logic integer buch_Trans_Start(integer tr);
+  @   axiom buch_Trans_Start0: (buch_Trans_Start(0) == 0);
+  @   axiom buch_Trans_Start1: (buch_Trans_Start(1) == 0);
+  @   axiom buch_Trans_Start2: (buch_Trans_Start(2) == 1);
+  @  logic integer buch_Trans_Stop(integer tr);
+  @   axiom buch_Trans_Stop0: (buch_Trans_Stop(0) == 0);
+  @   axiom buch_Trans_Stop1: (buch_Trans_Stop(1) == 1);
+  @   axiom buch_Trans_Stop2: (buch_Trans_Stop(2) == 1);
+  @ }
+  @*/
+
+/*@ predicate buch_Trans_Cond_param{L}(integer _buch_numTrans, integer _buch_op,
                                integer _buch_status)
          =
          (((_buch_numTrans == 0) ==> (status == 0)) &&
@@ -82,12 +77,14 @@ predicate buch_Trans_Cond_param{L}(integer _buch_numTrans, integer _buch_op,
           ((_buch_op == op_op) && (_buch_status == buch_Terminated)))
          && ((_buch_numTrans == 2) ==> \true)));
  */
+
 /*@
 predicate buch_Trans_Cond{L}(integer _buch_numTrans) =
          buch_Trans_Cond_param{L}(_buch_numTrans, buch_CurOperation,
                               buch_CurOpStatus);
 
 */
+
 //* 
 //**************** 
 //* Safety invariants

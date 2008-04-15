@@ -2,25 +2,24 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007                                                    *)
+(*  Copyright (C) 2007-2008                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, either version 3 of the License, or (at your option)      *)
-(*  any later version.                                                    *)
+(*  Foundation, version 2.1.                                              *)
 (*                                                                        *)
 (*  It is distributed in the hope that it will be useful,                 *)
 (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public Licence version 3 for more details  *)
-(*  (enclosed in the file licences/LGPLv3).                               *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: hook.ml,v 1.2 2008/03/25 15:54:05 uid568 Exp $ *)
+(* $Id: hook.ml,v 1.4 2008/11/04 10:05:05 uid568 Exp $ *)
 
 module type S = sig
   type param
@@ -35,7 +34,15 @@ module Build(P:sig type t end) = struct
   type param = P.t
   let hooks = Queue.create ()
   let extend f = Queue.add f hooks
+
   let apply arg = Queue.iter (fun f -> f arg) hooks
+    (* [JS 06 October 2008] the following code iter in reverse order without
+       changing the order of the queue itself.
+      
+       let list = ref [] in
+       Queue.iter (fun f -> list := f :: !list) hooks;
+       List.iter (fun f -> f arg) !list *)
+
   let is_empty () = Queue.is_empty hooks
   let clear () = Queue.clear hooks
   let length () = Queue.length hooks

@@ -1,18 +1,16 @@
 /* various specification of max function
  */
 
-/*@ predicate is_max{L}(integer max, int t[], integer length)
-  @   reads t[..]; 
-  @*/
-
-/*@ axiom max_gt{L}:
-  @   \forall integer max, int t[], integer length, integer i;
-  @   is_max(max,t,length) ==> 0 <= i < length ==> t[i] <= max;
-  @*/
-
-/*@ axiom max_eq{L}:
-  @   \forall integer max, int t[], integer length;
-  @   is_max(max, t, length) ==> \exists integer i; t[i] == max;
+/*@ axiomatic IsMax {
+  @  predicate is_max{L}(integer max, int t[], integer length);
+  @     // reads t[..]; 
+  @  axiom max_gt{L}:
+  @    \forall int t[], integer max, length, i;
+  @      is_max(max,t,length) ==> 0 <= i < length ==> t[i] <= max;
+  @  axiom max_eq{L}:
+  @    \forall int t[], integer max, length;
+  @    is_max(max, t, length) ==> \exists integer i; t[i] == max;
+  @ }
   @*/
 
 /*@ requires \valid_range(t,0,n-1);

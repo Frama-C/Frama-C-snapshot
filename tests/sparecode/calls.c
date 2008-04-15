@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -sparecode-analysis
-   OPT: -slicing-level 2 -slice-return main -slice-print
+   OPT: -sparecode-analysis -journal-disable
+   OPT: -slicing-level 2 -slice-return main -slice-print -journal-disable
 */
 int G;
 

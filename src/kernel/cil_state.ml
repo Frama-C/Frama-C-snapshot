@@ -19,29 +19,51 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cil_state.ml,v 1.8 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: cil_state.ml,v 1.16 2008/10/03 13:09:16 uid568 Exp $ *)
+
+
+module UntypedFiles =
+  Computation.OptionRef
+    (Cil_datatype.UntypedFiles)
+    (struct
+       let name = "Untyped AST"
+       let dependencies = [ Cil.selfMachine ] (* delayed until file.ml *)
+     end)
 
 include
   Computation.OptionRef
-    (Kernel_datatype.File)
+    (Cil_datatype.File)
     (struct
-       let name = Project.Computation.Name.make "cil_file"
-       let dependencies = []
+       let name = "AST"
+       let dependencies = [ Cil.selfMachine ] (* delayed until boot.ml *)
      end)
 
-let () = Messages_manager.depend self; Logic_env.init_dependencies self
+let () =
+  Messages_manager.depend self;
+  Logic_env.init_dependencies self;
+  Project.Computation.add_dependency Cil.varinfos_self self;
+  Project.Computation.add_dependency Cil.selfFormalsDecl self
 
 exception Bad_Initialisation of string
 
-let file () =
-  memo (fun () -> raise (Bad_Initialisation "Cil file not initialized"))
+let default_initialization =
+  ref (fun () -> raise (Bad_Initialisation "Cil file not initialized"))
+
+let set_default_initialization f =
+  default_initialization := f
+
+let compute () = !default_initialization ()
+
+let file () = memo (fun () -> compute (); get ())
+
+let is_computed () = is_computed ()
 
 let set_file file =
   let change old_file =
     if old_file == file then old_file
-    else raise (Bad_Initialisation "Too many initialization")
+    else raise (Bad_Initialisation "Too many initializations of the AST")
   in
-  ignore (memo ~change (fun () -> file))
+  ignore (memo ~change (fun () -> mark_as_computed (); file))
 
 (*
 Local Variables:

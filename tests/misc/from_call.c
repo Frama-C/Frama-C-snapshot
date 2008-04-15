@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -calldeps -users -val
+   OPT: -memory-footprint 1 -calldeps -users -val -journal-disable
 */
 
 int a,b,c,d;
@@ -83,7 +83,3 @@ void main(int r)
   T1 = access_tab(1);
   T2 = access_tab(2);
 }
-
-
-
-

@@ -19,9 +19,11 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: norm.mli,v 1.10 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: norm.mli,v 1.11 2008/07/31 08:33:10 uid570 Exp $ *)
 
-val type_to_parent_type : (string,string) Hashtbl.t
+open Cilutil
+
+val generated_union_types : unit TypeHashtbl.t
 
 (* performs similar normalization tasks as Caduceus *)
 val normalize : Cil_types.file -> unit

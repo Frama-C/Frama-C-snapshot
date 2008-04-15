@@ -19,19 +19,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: computation.mli,v 1.6 2008/06/19 14:42:45 uid568 Exp $ *)
+(* $Id: computation.mli,v 1.13 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** Internal state builders. 
     Provide ways to implement signature [Project.Computation.OUTPUT] without
     directly apply functor [Project.Computation.Register]. 
     Depending on the builder, also provide some additional useful
     information. 
-    @plugin developer guide *)
+    @plugin development guide *)
 
 (** {3 Useful operations} *)
 
 val apply_once: 
-  Project.Computation.Name.t -> Project.Computation.t list -> (unit -> unit) -> 
+  string -> Project.Computation.t list -> (unit -> unit) -> 
   (unit -> unit) * Project.Computation.t
     (** [apply_once name dep f] returns a closure applying [f] only once and the
 	state internally used. [name] and [dep] are respectively the name and
@@ -45,8 +45,8 @@ val apply_once:
 
 (** Signature of the stored data. *)
 module type REF_INPUT = sig
-  include Datatype.INPUT
-  val default: t
+  include Project.Datatype.S
+  val default: unit -> t
 end
 
 (** Output signature of [Ref]. *)
@@ -62,7 +62,7 @@ module type REF_OUTPUT = sig
     (** Reset the reference to its default value. *)
 end
 
-(** @plugin developer guide *)
+(** @plugin development guide *)
 module Ref(Data:REF_INPUT)(Info:Signature.NAME_DPDS) 
   : REF_OUTPUT with type data = Data.t
 
@@ -77,7 +77,7 @@ module type OPTION_REF_OUTPUT = sig
   val may: (data -> unit) -> unit
 end
 
-module OptionRef(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) : 
+module OptionRef(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) : 
   OPTION_REF_OUTPUT with type data = Data.t
 
 (** {3 Hashtables} *)
@@ -86,10 +86,8 @@ module type HASHTBL = sig
   include Datatype.HASHTBL
   val clear: 'a t -> unit
   val find: 'a t -> key -> 'a
-  val find_all: 'a t -> key -> 'a list
   val remove: 'a t -> key -> unit
   val mem: 'a t -> key -> bool
-  val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 end
 
 (** Output signature of builders of hashtables. *)
@@ -103,6 +101,8 @@ module type HASHTBL_OUTPUT = sig
     (** Add a new binding. The previous one is only hidden. *)
   val clear: unit -> unit
     (** Clear the table. *)
+  val length: unit -> int
+    (** Length of the table. *)
   val iter: (key -> data -> unit) -> unit
   val fold: (key -> data -> 'a -> 'a) -> 'a -> 'a
   val memo: ?change:(data -> data) -> (key -> data) -> key -> data
@@ -124,11 +124,13 @@ module type HASHTBL_OUTPUT = sig
 end
 
 module Make_Hashtbl
-  (H:HASHTBL)(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS) :
+  (H:HASHTBL)(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS) :
   HASHTBL_OUTPUT with type key = H.key and type data = Data.t
 
 module Hashtbl
-  (Key:Hashtbl.HashedType)(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS) :
+  (Key:Hashtbl.HashedType)
+  (Data:Project.Datatype.S)
+  (Info:Signature.NAME_SIZE_DPDS) :
   HASHTBL_OUTPUT with type key = Key.t and type data = Data.t
 
 (** {3 References on a set} *)
@@ -158,11 +160,11 @@ end
 
 module Make_SetRef
   (Set:SET)
-  (Data:Datatype.SET_INPUT with type t = Set.elt)
+  (Data:Project.Datatype.S with type t = Set.elt)
   (Info:Signature.NAME_DPDS) :
   SET_REF_OUTPUT with type elt = Data.t
 
-module SetRef(Data:Datatype.SET_INPUT)(Info:Signature.NAME_DPDS)
+module SetRef(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS)
   : SET_REF_OUTPUT with type elt = Data.t
 
 (** {3 Queue} *)
@@ -174,8 +176,13 @@ module type QUEUE = sig
   val is_empty: unit -> bool
 end
 
-module Queue(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) 
+module Queue(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) 
   : QUEUE with type elt = Data.t
+
+(** {3 Project itself} *)
+
+module Project(Info:Signature.NAME_DPDS) 
+  : REF_OUTPUT with type data = Project.t
 
 (*
 Local Variables:

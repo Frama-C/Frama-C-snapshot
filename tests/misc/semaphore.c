@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main g
+  OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
 */
 int Sa;
 int Sb;
@@ -12,7 +12,7 @@ void f (void)
 
   if (c)
     P (Sa);
-  
+
   P (Sa);
   P (Sb);
 
@@ -23,7 +23,7 @@ void f (void)
 void g (void)
 {
   int c = -25;
-  
+
 
   while (c--)
     while (c)
@@ -33,7 +33,7 @@ void g (void)
         }
   P (Sb);
   P (Sa);
-  
+
   V (Sa);
   V (Sb);
 

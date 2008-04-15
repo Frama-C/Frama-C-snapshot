@@ -49,6 +49,11 @@ module type T_RemoveInfo = sig
   (** tells if the n-th formal parameter is visible. *)
   val param_visible : t_fct -> int -> bool
 
+  (** tells if the body of a function definition is visible.
+  * True is most cases, but can be defined to be false when we want to export
+  * only the declaration of a function instead of its definition *)
+  val body_visible : t_fct -> bool
+
   (** tells if the local variable is visible. *)
   val loc_var_visible : t_fct -> Cil_types.varinfo -> bool
 
@@ -62,6 +67,11 @@ module type T_RemoveInfo = sig
       (before when the flag is true, after otherwise) is visible. *)
   val annotation_visible: t_fct -> Cil_types.stmt -> before:bool ->
                           Cil_types.code_annotation -> bool
+
+  val fun_precond_visible : t_fct -> Cil_types.predicate -> bool
+  val fun_postcond_visible : t_fct -> Cil_types.predicate -> bool
+  val fun_variant_visible : t_fct -> Cil_types.term -> bool
+  val fun_assign_visible : t_fct -> Cil_types.identified_tsets Cil_types.assigns -> bool
 
   (** [called_info] will be called only if the call statement is visible.
   * If it returns [None], the source call will be visible,

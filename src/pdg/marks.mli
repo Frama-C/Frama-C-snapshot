@@ -37,7 +37,8 @@ val in_marks_to_caller : PdgTypes.Pdg.t -> Cil_types.stmt ->
   't_mark PdgMarks.t_select 
 
 (** translate the input information part returned by [mark_and_propagate] 
-* using [in_marks_to_caller] for each call. (see above) *)
+* using [in_marks_to_caller] for each call. (see above) 
+* *)
 val translate_in_marks :
       PdgTypes.Pdg.t 
      -> 't_mark PdgMarks.t_info_caller_inputs 
@@ -57,7 +58,8 @@ val call_out_marks_to_called : PdgTypes.Pdg.t ->
 
 (** use both [translate_in_marks] and [call_out_marks_to_called] 
 * to translate the information provided by [mark_and_propagate]
-* info selection on other functions. *)
+* info selection on other functions. 
+ * *)
 val translate_marks_to_prop : 
       PdgTypes.Pdg.t -> 't_mark PdgMarks.t_info_inter
      -> ?in_m2m:('t_mark PdgMarks.t_call_m2m)

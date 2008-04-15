@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main g
-  OPT: -val -deps -out -input  -main h
-  OPT: -val -deps -out -input  -main f
+  OPT: -val -deps -out -input  -main g -journal-disable
+  OPT: -val -deps -out -input  -main h -journal-disable
+  OPT: -val -deps -out -input  -main f -journal-disable
 */
 struct Tstr;
 extern int X;

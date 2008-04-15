@@ -19,29 +19,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ast_info.mli,v 1.22 2008/05/30 08:29:48 uid568 Exp $ *)
+(* $Id: ast_info.mli,v 1.26 2008/11/18 12:13:41 uid568 Exp $ *)
 
 (** AST manipulation utilities.
-    @plugin developer guide *)
+    @plugin development guide *)
 
 open Cil_types
 open Db_types
 
 val pretty_vname: Format.formatter -> Cil_types.varinfo -> unit
 
+(* ************************************************************************** *)
+(** {2 Annotations} *)
+(* ************************************************************************** *)
+
 val before_after_content: 'a before_after -> 'a
 
-(** lifts a function that operates on code_annotation up to the
-    annotations used in Db. Uses the second argument as result for a
-    WP annotation.
-*)
 val lift_annot_func:
   (code_annotation -> 'a) -> 'a -> rooted_code_annotation before_after -> 'a
+  (** lifts a function that operates on code_annotation up to the
+      annotations used in Db. Uses the second argument as result for a
+      WP annotation. *)
 
-(** lifts a function taking lists of code_annotation up to the annotations
- lists in Db. Ignores WP annotations. *)
 val lift_annot_list_func:
-  (code_annotation list -> 'a) -> rooted_code_annotation before_after list -> 'a
+  (code_annotation list -> 'a) -> 
+  rooted_code_annotation before_after list -> 'a
+  (** lifts a function taking lists of code_annotation up to the annotations
+      lists in Db. Ignores WP annotations. *)
+
+module Datatype_Annotation: 
+  Project.Datatype.S with type t = rooted_code_annotation before_after
 
 (* ************************************************************************** *)
 (** {2 Expressions} *)
@@ -54,6 +61,7 @@ val value_of_integral_const: constant -> int64
 val value_of_integral_expr: exp -> int64
 val constant_expr: int64 -> exp
 val is_null_expr: exp -> bool
+val is_non_null_expr: exp -> bool
 
 (* ************************************************************************** *)
 (** {2 Logical terms} *)
@@ -134,6 +142,7 @@ module Function: sig
   val is_definition: cil_function -> bool
   val get_vi: cil_function -> varinfo
   val get_name: cil_function -> string
+  val get_id: cil_function -> int
 end
 
 (* ************************************************************************** *)
