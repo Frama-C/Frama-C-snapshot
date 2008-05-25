@@ -1,0 +1,94 @@
+# InvariantPolicy = Arguments
+
+
+/*
+
+hand-made translation from Java program
+
+class Point { 
+  int x,y; 
+
+  void move(int dx, int dy) {
+    x += dx;
+    y += dy;
+  } 
+}
+
+class ColoredPoint extends Point { 
+  int col; 
+
+  void move(int dx, int dy) {
+    col = col > 0 ? col-1 : 0;
+    super.move(dx,dy);
+  }
+
+}
+
+*/
+
+type Point = { integer x; integer y; }
+
+tag ColoredPoint = Point with { integer col; }
+
+
+unit Point_move(Point[0] this, integer dx, integer dy) 
+  behavior x_moved:
+    ensures this.x == \old(this.x)+dx;
+  behavior y_moved:
+    ensures this.y == \old(this.y)+dy;
+{
+    this.x += dx;
+    this.y += dy;
+}
+
+unit ColoredPoint_move(ColoredPoint[0] this, integer dx, integer dy) 
+  behavior x_moved:
+    ensures this.x == \old(this.x)+dx;
+  behavior y_moved:
+    ensures this.y == \old(this.y)+dy;
+  behavior col_decreased_if_positive:
+    assumes this.col > 0;
+    ensures this.col == \old(this.col) - 1;
+{
+    this.col = (if this.col > 0 then this.col-1 else 0);
+    Point_move(this,dx,dy);
+}
+
+unit move(Point[0] this, integer dx, integer dy) 
+  behavior x_moved:
+    ensures this.x == \old(this.x)+dx;
+  behavior y_moved:
+    ensures this.y == \old(this.y)+dy;
+  behavior col_decreased:
+    assumes 
+      this <: ColoredPoint && (this :> ColoredPoint).col > 0;
+    ensures 
+      (this :> ColoredPoint).col == \old((this :> ColoredPoint).col) - 1;
+{
+    if this <: ColoredPoint then
+	ColoredPoint_move(this :> ColoredPoint,dx,dy)
+    else Point_move(this,dx,dy);
+}
+	
+unit test1(ColoredPoint[0] p) 
+  behavior ok:
+    ensures p.x == 10 && p.y == 20 && p.col == 99;
+{
+    p.x = 0;
+    p.y = 0;
+    p.col = 100;
+    move(p,10,20);
+}
+ 
+
+   
+
+
+
+    
+/*
+Local Variables: 
+mode: java
+compile-command: "make point"
+End: 
+*/

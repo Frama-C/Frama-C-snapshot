@@ -1,0 +1,187 @@
+environ
+ vocabulary WHY, INT_1, ARYTM, ARYTM_1, AFINSQ_1, FINSEQ_1, FUNCT_1,
+  FUNCT_4, MARGREL1, ALGSTR_1, RELAT_1, BOOLE, XCMPLX_0, FINSEQ_7;
+ notation TARSKI, XBOOLE_0, SUBSET_1, INT_1, XREAL_0, ARYTM_0, XCMPLX_0,
+  FUNCT_1, REAL_1, MARGREL1, ALGSTR_1, NAT_1, AFINSQ_1;
+ constructors INT_1, AFINSQ_1, MARGREL1, ALGSTR_1, CQC_LANG, NAT_1;
+ clusters INT_1, MARGREL1, XREAL_0, ARYTM_0, XCMPLX_0;
+ requirements REAL, NUMERALS, BOOLE, SUBSET, ARITHM;
+ theorems INT_1, XCMPLX_1, REAL_1, AXIOMS, SQUARE_1, MARGREL1,
+  TARSKI, FUNCT_1, ORDINAL1, FUNCT_7;
+
+begin :: if-then-else
+
+definition
+ let b be Element of BOOLEAN;
+ let x,y be set;
+ func if-then-else(b,x,y) -> set means :Def1:
+  b = TRUE & it = x or b = FALSE & it = y;
+ existence
+ proof
+  b = TRUE or b = FALSE by MARGREL1:39;
+  hence thesis;
+ end;
+ uniqueness by MARGREL1:38;
+end;
+
+definition
+ let A be set;
+ let b be Element of BOOLEAN;
+ let x,y be Element of A;
+ redefine func if-then-else(b,x,y) -> Element of A;
+ coherence by Def1;
+end;
+
+definition
+ let b be Element of BOOLEAN;
+ let x,y be Integer;
+ redefine func if-then-else(b,x,y) -> Integer;
+ coherence by Def1;
+end;
+
+theorem for x,y being set holds
+ if-then-else(TRUE,x,y) = x by Def1;
+
+theorem for x,y being set holds
+ if-then-else(FALSE,x,y) = y by Def1;
+
+theorem for b being Element of BOOLEAN, x being set holds
+ if-then-else(b,x,x) = x by Def1;
+
+begin :: redefining the array funcs to have the right types
+
+definition
+ let A be set;
+ attr A is zero_containing means :Def2:
+  0 in A;
+end;
+
+definition
+ cluster zero_containing -> non empty set;
+ coherence by Def2;
+end;
+
+definition
+ cluster {0} -> zero_containing;
+ coherence
+ proof
+  0 in {0} by TARSKI:def 1;
+  hence thesis by Def2;
+ end;
+end;
+
+definition
+ cluster BOOLEAN -> zero_containing;
+ coherence
+ proof
+  0 in {0,1} by TARSKI:def 2;
+  hence thesis by Def2,MARGREL1:def 12;
+ end;
+end;
+
+definition
+ cluster INT -> zero_containing;
+ coherence
+ proof
+  0 is Element of INT by INT_1:def 2;
+  hence thesis by Def2;
+ end;
+end;
+
+definition
+ cluster REAL -> zero_containing;
+ coherence by Def2;
+end;
+
+definition
+ cluster zero_containing set;
+ existence
+ proof
+  take {0};
+  thus thesis;
+ end;
+end;
+
+definition
+ let A be zero_containing set;
+ let a be XFinSequence of A;
+ let i be number;
+ redefine func a.i -> Element of A;
+ coherence
+ proof
+A1: rng a c= A by ORDINAL1:def 8;
+  per cases;
+  suppose i in dom a;
+   then a.i in rng a by FUNCT_1:12;
+   hence thesis by A1;
+  suppose not i in dom a;
+   then a.i = {} by FUNCT_1:def 4;
+   hence thesis by Def2;
+ end;
+end;
+
+definition
+ let A be non empty set;
+ let a be XFinSequence of A;
+ let i be number;
+ let x be Element of A;
+ redefine func a+*(i,x) -> XFinSequence of A;
+ coherence
+ proof
+  per cases;
+  suppose i in dom a;
+   then reconsider i' = i as Nat;
+   Replace(a,i',x) is XFinSequence of A;
+   hence thesis;
+  suppose not i in dom a;
+   hence thesis by FUNCT_7:def 3;
+ end;
+end;
+
+definition
+ let a be XFinSequence of INT;
+ let i be number;
+ let x be Integer;
+ redefine func a+*(i,x) -> XFinSequence of INT;
+ coherence
+ proof
+  reconsider x' = x as Element of INT by INT_1:def 2;
+  a+*(i,x') is XFinSequence of INT;
+  hence thesis;
+ end;
+end;
+
+begin :: a few handy lemmas (are they already somewhere else in MML?)
+
+ reserve i,j for integer number;
+ reserve a,b,c for complex number;
+
+theorem Th4: i <= j iff i < j + 1
+proof
+ hereby
+  assume
+A1: i <= j;
+  j + 0 < j + 1 by REAL_1:67;
+  hence i < j + 1 by A1,AXIOMS:22;
+ end;
+ thus thesis by INT_1:20;
+end;
+
+theorem Th5: i < j iff i <= j - 1
+proof
+ j = (j - 1) + 1 by XCMPLX_1:27;
+ hence thesis by Th4;
+end;
+
+theorem Th6: i < j + 1 iff i < j or i = j
+proof
+ (i < j + 1 iff i <= j) & (i <= j iff i < j or i = j) by Th4,AXIOMS:21;
+ hence thesis;
+end;
+
+theorem Th7: (a + c) + (b - c) = a + b
+proof
+ thus a + c + (b - c) = a + (b - c + c) by XCMPLX_1:1
+  .= a + b by XCMPLX_1:27;
+end;
+

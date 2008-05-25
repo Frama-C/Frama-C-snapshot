@@ -1,0 +1,48 @@
+
+type int_array
+
+logic length : int_array -> int
+
+logic acc : int_array, int -> int
+
+logic upd : int_array, int, int -> int_array
+
+axiom access_update : 
+  forall t : int_array. forall i : int. forall v : int.
+  acc(upd(t,i,v), i) = v
+
+axiom access_update_neq : 
+  forall t : int_array. forall i : int. forall j : int. forall v : int.
+  i <> j -> acc(upd(t,i,v), j) = acc(t,j)
+
+axiom length_update :
+  forall t:int_array. forall i:int. forall v:int.
+    length(upd(t,i,v)) = length(t)
+
+logic exch : int_array, int_array, int, int -> prop
+
+axiom exch_def :
+  forall t1:int_array. forall t2:int_array. forall i:int. forall j:int.
+    exch(t1,t2,i,j) <-> 
+    (length(t1) = length(t2) and
+    acc(t1,i) = acc(t2,j) and acc(t2,i) = acc(t1,j) and
+    forall k:int. (k <> i and k <> j) -> acc(t1,k) = acc(t2,k))
+
+goal test : 
+  forall i: int.
+  forall j: int.
+  forall t: int_array.
+  ((0 <= i and i < length(t)) and 0 <= j and j < length(t)) ->
+  (0 <= i and i < length(t)) ->
+  forall result: int.
+  result = acc(t, i) ->
+  (0 <= j and j < length(t)) ->
+  forall result0: int.
+  result0 = acc(t, j) ->
+  (0 <= i and i < length(t)) ->
+  forall t0: int_array.
+  t0 = upd(t, i, result0) ->
+  (0 <= j and j < length(t0)) ->
+  forall t1: int_array.
+  t1 = upd(t0, j, result) ->
+  exch(t1, t, i, j)

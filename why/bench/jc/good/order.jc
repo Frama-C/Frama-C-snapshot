@@ -1,0 +1,43 @@
+
+
+
+integer f1(unit x) 
+   behavior ok:
+	ensures \result == 0;
+{
+  var integer x = 0;
+  x += x++;
+  return x;
+}
+
+integer f2(unit x) 
+   behavior ok:
+	ensures \result == 1;
+{
+  var integer x = 0;
+  x += ++x;
+  return x;
+}
+
+
+type T = {
+    integer i;
+}
+
+
+unit f3(T[0..1] p) 
+   behavior ok:
+	ensures p.i == \old(p.i) && (p+1).i == \old((p+1).i)+1;
+{
+    var T[..] q = p;
+    (q = q+1).i += 1;
+    assert q == p+1;
+}
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make order"
+End: 
+*/

@@ -1,0 +1,15 @@
+{2 Overview}
+
+See how to use the plugin in the 
+{{:../../www/src/scope.html}user documentation}.
+
+(see also {{:../../scope/scope.txt}there} for a discussion on how we arrived to
+those definitions)
+
+{2 Inside the plugin}
+
+The code of this plugin is quite simple. It is only composed of :
+- {!module:Datascope_gui} that handles the GUI part,
+- and {!module:Datascope} that makes the computations.
+Some explanations can be found in the code.
+

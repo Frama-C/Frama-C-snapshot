@@ -1,0 +1,30 @@
+{1 _PluginName_ module}
+
+{2 Introduction}
+
+This is the {b internal} documentation of the _PluginName_ module.
+
+Look at {{:../../index.html}Frama-C} to have an overview of the whole tool, 
+including the {{:../html/Db._PluginName_.html}API of this module}.
+
+While browsing the documentation, you will jump from public parts
+to internal parts. So, the internal documentation have a light yellow
+background (like this page) in order that you can recognize them.
+
+Indexes :
+{{:index_modules.html}Modules} ({{:modules-all.ps}internal graph},
+{{:modules.ps} external graph}),
+{{:index_types.html}Types} ({{:types.ps}graph}),
+{{:index_values.html}Values},
+{{:index_exceptions.html}Exceptions}.
+
+(You are invited to use
+{{:http://zvtm.sourceforge.net/zgrviewer.html}zgrviewer}
+to view the .dot graphs because they are to big to be seen in image formats
+(jpg or png)).
+
+If your browser know how to deal with SVG format 
+(for instance, firefox >= 1.5),
+you can also have a look at the {{:modules.svg}relations between the files}
+of the _PluginName_ module, and click on the nodes to go directly to their
+documentation.

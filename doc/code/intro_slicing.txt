@@ -1,0 +1,86 @@
+
+{2 Overview}
+
+To have more details about what we are trying to do,
+you may have a look to the 
+{{:../../slicing/index.html}specification} report (in French).
+
+The internal types module ({!module:SlicingTypes.Internals})
+can give a pretty good idea of the kind of objects that we deal with in this
+module. 
+
+You can also find some general information below.
+
+{3 Project}
+
+The project was the global repository of the results obtained so far.
+If is mainly composed of 
+a list of actions waiting to be applied,
+and the already computed slices.
+
+More precisely, see its type definition
+{!type:SlicingTypes.Internals.t_project} 
+if you want to know what it is composed of,
+and the module {!module:SlicingProject} of the functions to handle it.
+
+{3 Program Dependence Graph}
+
+This computation is not part of this module anymore.
+See the {{:../html/Db.Pdg.html}API of Pdg module}.
+
+It is enough to know that the PDG of a function is a graph composed
+of nodes that represent the elements of a function (declarations, statements,
+and so on) and of edges that represent the dependencies relations between those
+elements.
+
+{3 Sliced function}
+
+A sliced function contains a mapping between the PDG nodes of a function
+and the some marks that are computed by the application of the actions.
+It also has a mapping between the function calls and the function called by the
+slice that can be either some other slices, or the source function
+(or nothing if the call is invisible in that slice).
+
+There can be more than one slice for a source function.
+
+See their type {!type:SlicingTypes.Internals.t_fct_slice},
+and the associated functions in {!module:Fct_slice}.
+
+See also {!module:SlicingMarks}
+for more information about the low level marks computation.
+
+{3 Actions}
+
+The actions are the way of giving an order to modify the current application.
+
+There are many kinds of actions, but only one is really used to build the
+slice which is a list of nodes from the PDG of a function,
+and their associated marks. 
+All the other actions dealing with the marks are first decomposed
+before being applied.
+
+Some other actions are can be used to manage the interprocedural part,
+ie. which slice to call where.
+
+See the top type {!type:SlicingTypes.Internals.t_criterion} or
+the functions in {!module:SlicingActions}.
+
+{3 Options}
+
+The propagation of the marks to the function call depend on a
+{!type:SlicingTypes.Internals.t_call_option}.
+Chosing this level makes it possible to obtain a more or less precise result.
+
+{3 High level commands}
+
+The module {!module:SlicingCmds} is a bit external because it only uses
+the {{:../html/Db.Pdg.html}slicing API} to define higher level function
+that are only a composition of the basic functions.
+
+{3 Producing a result }
+
+When there are non more actions in the task list,
+the project can be exported. This is done in
+{!module:SlicingTransform} module
+by building a new CIL application.
+

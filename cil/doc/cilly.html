@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.06">
+
+<base target="main">
+<TITLE>
+ The CIL Driver
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="attributes.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="ciltoc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="cil009.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H2><A NAME="htoc15">8</A>&nbsp;&nbsp;The CIL Driver</H2><A NAME="sec-driver"></A><BR>
+<BR>
+We have packaged CIL as an application <TT>cilly</TT> that contains certain
+example modules, such as <TT>logwrites.ml</TT> (a module
+that instruments code to print the addresses of memory locations being
+written). Normally, you write another module like that, add command-line
+options and an invocation of your module in <TT>src/main.ml</TT>. Once you compile
+CIL you will obtain the file <TT>obj/cilly.asm.exe</TT>. <BR>
+<BR>
+We wrote a driver for this executable that makes it easy to invoke your
+analysis on existing C code with very little manual intervention. This driver
+is <TT>bin/cilly</TT> and is quite powerful. Note that the <TT>cilly</TT> script
+is configured during installation with the path where CIL resides. This means
+that you can move it to any place you want. <BR>
+<BR>
+A simple use of the driver is:
+<PRE>
+bin/cilly -D HAPPY_MOOD -I myincludes hello.c -o hello
+</PRE>
+ This performs the following actions: 
+<UL><LI>
+preprocessing using the -D and -I arguments with the resulting file left in <TT>hello.i</TT>, 
+<LI>the invocation of the <TT>cilly.asm</TT> application which parses <TT>hello.i</TT>
+converts it to CIL and the pretty-prints it to <TT>hellocil.c</TT>
+<LI>another round of preprocessing with the result placed in <TT>hellocil.i</TT>
+<LI>the true compilation with the result in <TT>hellocil.o</TT>
+<LI>a linking phase with the result in <TT>hello</TT>
+</UL>
+Note that <TT>cilly</TT> behaves like the <TT>gcc</TT> compiler with the additional
+effect that CIL sees all the source code. This makes it easy
+to use it with existing <TT>Makefiles</TT>:
+<PRE>
+make CC="bin/cilly" LD="bin/cilly"
+</PRE>
+ <TT>cilly</TT> can also behave as the Microsoft Visual C compiler, if the first
+ argument is <TT>--mode=MSVC</TT>:
+<PRE>
+bin/cilly --mode=MSVC /D HAPPY_MOOD /I myincludes hello.c /Fe hello.exe
+</PRE>
+ (This in turn will pass a <TT>--MSVC</TT> flag to the underlying <TT>cilly.asm</TT>
+ process which will make it understand the Microsoft Visual C extensions)<BR>
+<BR>
+<TT>cilly</TT> can also behave as the archiver <TT>ar</TT>, if it is passed an
+argument <TT>--mode=AR</TT>. Note that only the <TT>cr</TT> mode is supported (create a
+new archive and replace all files in there). Note that the previous version of
+the archive is lost. <BR>
+<BR>
+Furthermore, <TT>cilly</TT> allows you to pass some arguments on to the
+underlying <TT>cilly.asm</TT> process. As a general rule all arguments that start
+with <TT>--</TT> and that <TT>cilly</TT> itself does not process, are passed on. For
+example, 
+<PRE>
+bin/cilly --dologwrites -D HAPPY_MOOD -I myincludes hello.c -o hello.exe
+</PRE>
+ will produce a file <TT>hellocil.c</TT> that prints all the memory addresses
+written by the application. <BR>
+<BR>
+The most powerful feature of <TT>cilly</TT> is that it can collect all the
+sources in your project, merge them into one file and then apply CIL. This
+makes it a breeze to do whole-program analysis and transformation. All you
+have to do is to pass the <TT>--merge</TT> flag to <TT>cilly</TT>:
+<PRE>
+make CC="bin/cilly --dologwrites --merge"
+</PRE>
+ You can even leave some files untouched:
+<PRE>
+make CC="bin/cilly --dologwrites --merge --leavealone=foo --leavealone=bar"
+</PRE>
+ This will merge all the files except those with the basename <TT>foo</TT> and
+<TT>bar</TT>. Those files will be compiled as usual and then linked in at the very
+end. <BR>
+<BR>
+The sequence of actions performed by <TT>cilly</TT> depends on whether merging
+is turned on or not:
+<UL><LI>
+If merging is off
+ <OL type=1><LI>
+ For every file <TT>file.c</TT> to compile
+ <OL type=a><LI>
+ Preprocess the file with the given arguments to 
+ produce <TT>file.i</TT>
+ <LI>Invoke <TT>cilly.asm</TT> to produce a <TT>filecil.c</TT>
+ <LI>Preprocess to <TT>filecil.i</TT>
+ <LI>Invoke the underlying compiler to produce <TT>filecil.o</TT>
+ </OL>
+ <LI>Link the resulting objects
+ </OL>
+<LI>If merging is on
+ <OL type=1><LI>
+ For every file <TT>file.c</TT> to compile
+ <OL type=a><LI>
+ Preprocess the file with the given arguments to 
+ produce <TT>file.i</TT>
+ <LI>Save the preprocessed source as <TT>file.o</TT>
+ </OL>
+ <LI>When linking executable <TT>hello.exe</TT>, look at every object 
+ file that must be linked and see if it actually 
+ contains preprocessed source. Pass all those files to a 
+ special merging application (described in
+ Section&nbsp;<A HREF="merger.html#sec-merger">14</A>) to produce <TT>hello.exe_comb.c</TT>
+ <LI>Invoke <TT>cilly.asm</TT> to produce a <TT>hello.exe_combcil.c</TT>
+ <LI>Preprocess to <TT>hello.exe_combcil.i</TT>
+ <LI>Invoke the underlying compiler to produce <TT>hello.exe_combcil.o</TT>
+ <LI>Invoke the actual linker to produce <TT>hello.exe</TT>
+ </OL>
+</UL>
+Note that files that you specify with <TT>--leavealone</TT> are not merged and
+never presented to CIL. They are compiled as usual and then are linked in at
+the end. <BR>
+<BR>
+And a final feature of <TT>cilly</TT> is that it can substitute copies of the
+system's include files:
+<PRE>
+make CC="bin/cilly --includedir=myinclude"
+</PRE>
+ This will force the preprocessor to use the file <TT>myinclude/xxx/stdio.h</TT>
+(if it exists) whenever it encounters <TT>#include &lt;stdio.h&gt;</TT>. The <TT>xxx</TT> is
+a string that identifies the compiler version you are using. This modified
+include files should be produced with the patcher script (see
+Section&nbsp;<A HREF="patcher.html#sec-patcher">15</A>).<BR>
+<BR>
+<A NAME="toc7"></A>
+<H3><A NAME="htoc16">8.1</A>&nbsp;&nbsp;<TT>cilly</TT> Options</H3>
+Among the options for the <TT>cilly</TT> you can put anything that can normally
+go in the command line of the compiler that <TT>cilly</TT> is impersonating.
+<TT>cilly</TT> will do its best to pass those options along to the appropriate
+subprocess. In addition, the following options are supported (a complete and
+up-to-date list can always be obtained by running <TT>cilly --help</TT>):
+<UL><LI>
+<TT>--mode=mode</TT> This must be the first argument if present. It makes
+<TT>cilly</TT> behave as a given compiled. The following modes are recognized: 
+ <UL><LI>
+ GNUCC - the GNU C Compiler. This is the default.
+ <LI>MSVC - the Microsoft Visual C compiler. Of course, you should
+ pass only MSVC valid options in this case. 
+ <LI>AR - the archiver <TT>ar</TT>. Only the mode <TT>cr</TT> is supported and
+ the original version of the archive is lost. 
+ </UL>
+<LI><TT>--help</TT> Prints a list of the options supported.
+<LI><TT>--verbose</TT> Prints lots of messages about what is going on.
+<LI><TT>--stages</TT> Less than <TT>--verbose</TT> but lets you see what <TT>cilly</TT>
+ is doing. 
+<LI><TT>--merge</TT> This tells <TT>cilly</TT> to first attempt to collect into one
+source file all of the sources that make your application, and then to apply
+<TT>cilly.asm</TT> on the resulting source. The sequence of actions in this case is
+described above and the merger itself is described in Section&nbsp;<A HREF="merger.html#sec-merger">14</A>.<BR>
+<BR>
+<LI><TT>--leavealone=xxx</TT>. Do not merge and do not present to CIL the files
+whose basename is "xxx". These files are compiled as usual and linked in at
+the end. 
+<LI><TT>--includedir=xxx</TT>. Override the include files with those in the given
+directory. The given directory is the same name that was given an an argument
+to the patcher (see Section&nbsp;<A HREF="patcher.html#sec-patcher">15</A>). In particular this means that
+that directory contains subdirectories named based on the current compiler
+version. The patcher creates those directories. 
+<LI><TT>--usecabs</TT>. Do not CIL, but instead just parse the source and print
+its AST out. This should looked like the preprocessed file. This is useful
+when you suspect that the conversion to CIL phase changes the meaning of the
+program. 
+<LI><FONT COLOR=blue>--save-temps=xxx</FONT>. Temporary files are preserved in the xxx directory.
+<LI><FONT COLOR=blue>--save-temps</FONT>. Temporay files are preserved in the current directory.
+</UL>
+<A NAME="toc8"></A>
+<H3><A NAME="htoc17">8.2</A>&nbsp;&nbsp;<TT>cilly.asm</TT> Options</H3>
+All of the options that start with <TT>--</TT> and are not understood by
+<TT>cilly</TT> are passed on to <TT>cilly.asm</TT>. The following options are
+supported:
+<UL><LI>
+<TT>--out &lt;xxx&gt;</TT>. The name of the pretty-printed file.
+<LI><TT>--verbose</TT>. Print lots of random stuff. This is passed on from
+<TT>cilly</TT>.
+<LI><TT>-help</TT>. Print the help. Actually <TT>cilly</TT> will do this if you
+ pass it <TT>--help</TT>. 
+<LI><TT>--check</TT>. Run a consistency check over the CIL after every operation. 
+<LI><TT>--MSVC</TT>. Enable the MSVC extensions and pretty-print for consumption
+by MSVC.
+<LI><TT>--warnall</TT>. Print all the warnings.
+<LI><TT>--log=xxx</TT>. Set <TT>xxx</TT> to be the name of the log file for the CIL
+application. By default <TT>stderr</TT> is used.
+<LI><TT>--keepunused</TT>. Do not attempt to remove the unused variables and
+ types from CIL. 
+<LI><TT>--noPrintLn</TT>. Do not print line numbers.
+<LI><TT>--commPrintLn</TT>. Print line numbers but in comments.
+<LI><TT>--printCilAsIs</TT>. Do not attempt to simplify the program while
+ printing. If this is turned on, then all loops will be printed as
+ ``while(1)'', as they are in the internal language.
+<LI><TT>--extrafiles &lt;xxx&gt;</TT>. Give the name of a text file that contains
+whitespace-separated named of additional files to process.<BR>
+<BR>
+<LI><TT>--dologcalls</TT>. Insert code in the processed source to print the name of
+functions as are called. Implemented in <TT>src/ext/logcalls.ml</TT>.
+<LI><TT>--dologwrites</TT>. Insert code in the processed source to print the
+address of all memory writes. Implemented in <TT>src/ext/logwrites.ml</TT>.
+<LI><TT>--dooneRet</TT>. Make each function have at most one 'return'.
+Implemented in <TT>src/ext/oneret.ml</TT>. 
+<LI><TT>--dostackGuard</TT>. Instrument function calls and returns to
+maintain a separate stack for return addresses. Implemeted in
+<TT>src/ext/heapify.ml</TT>. 
+<LI><TT>--domakeCFG</TT>. Make the program look more like a CFG. Implemented
+in <TT>src/cil.ml</TT>. 
+<LI><TT>--dopartial</TT>. Do interprocedural partial evaluation and
+constant folding. Implemented in <TT>src/ext/partial.ml</TT>. 
+<LI><TT>--dosimpleMem</TT>. Simplify all memory expressions. Implemented in
+<TT>src/ext/simplemem.ml</TT>. <BR>
+<BR>
+For an up-to-date list of available options, run <TT>cilly.asm --help</TT>. </UL>
+<HR>
+<A HREF="attributes.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="ciltoc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="cil009.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

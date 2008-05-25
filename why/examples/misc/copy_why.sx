@@ -1,0 +1,56 @@
+(BG_PUSH (FORALL (t i v) (EQ (array_length (store t i v)) (array_length t))))
+
+;; DO NOT EDIT BELOW THIS LINE
+
+;; copy_po_1, Why obligation from file "copy.c", characters 156-159
+(FORALL (n)
+(FORALL (t1)
+(FORALL (t2)
+(IMPLIES (AND (>= (array_length t1) n) (>= (array_length t2) n))
+(FORALL (i)
+(IMPLIES (EQ i n)
+(FORALL (Variant1)
+(FORALL (i1)
+(FORALL (t2_0)
+(IMPLIES (EQ Variant1 i1)
+(IMPLIES (AND (>= (array_length t2_0) n)
+         (AND (<= i1 n)
+         (FORALL (k)
+         (IMPLIES (AND (<= i1 k) (< k n)) (EQ (select t2_0 k) (select t1 k))))))
+(IMPLIES (EQ |@true| |@true|)
+(FORALL (c_aux_2)
+(IMPLIES (EQ c_aux_2 i1)
+(FORALL (i2)
+(IMPLIES (EQ i2 (- i1 1))
+(AND
+(IMPLIES (> c_aux_2 0)
+(FORALL (result)
+(IMPLIES (EQ result i2)
+(AND
+(AND
+(FORALL (t2)
+(IMPLIES (EQ t2 (store t2_0 result (select t1 i2)))
+(AND
+(AND (>= (array_length t2) n)
+(AND (<= i2 n)
+(FORALL (k)
+(IMPLIES (AND (<= i2 k) (< k n)) (EQ (select t2 k) (select t1 k))))))
+(AND (<= 0 i1) (< i2 i1)))))
+(AND (<= 0 result) (< result (array_length t2_0))))
+(AND (<= 0 i2) (< i2 (array_length t1)))))))
+(IMPLIES (<= c_aux_2 0)
+(FORALL (k)
+(IMPLIES (AND (<= 0 k) (< k n)) (EQ (select t2_0 k) (select t1 k))))))))))))))))))))))
+
+;; copy_po_2, Why obligation from file "copy.c", characters 185-281
+(FORALL (n)
+(FORALL (t1)
+(FORALL (t2)
+(IMPLIES (AND (>= (array_length t1) n) (>= (array_length t2) n))
+(FORALL (i)
+(IMPLIES (EQ i n)
+(AND (>= (array_length t2) n)
+(AND (<= i n)
+(FORALL (k)
+(IMPLIES (AND (<= i k) (< k n)) (EQ (select t2 k) (select t1 k))))))))))))
+

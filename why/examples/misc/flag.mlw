@@ -1,0 +1,43 @@
+
+(** Dijkstra's "Dutch national flag" *)
+
+external type color
+
+external logic blue, white, red : color
+
+external parameter eq_blue  : c:color -> {} bool { if result then c=blue else c<>blue }
+external parameter eq_white : c:color -> {} bool { if result then c=white else c<>white }
+
+logic N : int
+parameter t : color array
+
+external logic monochrome : color farray, int, int, color -> prop
+
+let dutch_flag () = 
+  { array_length(t) = N }
+  let b = ref 0 in
+  let i = ref 0 in
+  let r = ref N in
+  begin
+  while !i < !r do
+     { invariant 0 <= b <= i and i <= r <= N and
+	         monochrome(t,0,b,blue) and 
+	         monochrome(t,b,i,white) and 
+	         monochrome(t,r,N,red) and
+		 array_length(t) = N
+       variant r - i }
+     if (eq_blue t[!i]) then begin
+       let u = t[!b] in begin t[!b] := t[!i]; t[!i] := u end;
+       b := !b + 1;
+       i := !i + 1
+     end else if (eq_white t[!i]) then
+       i := !i + 1
+     else begin
+       r := !r - 1;
+       let u = t[!r] in begin t[!r] := t[!i]; t[!i] := u end
+     end
+  done
+  { monochrome(t,0,b,blue) and 
+    monochrome(t,b,r,white) and 
+    monochrome(t,r,N,red) }
+  end

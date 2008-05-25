@@ -1,0 +1,14 @@
+integer f() {
+    var integer x = 0;
+    (L:
+    x++);
+    assert (\at(x, L) == 0);
+    return x;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make label"
+End: 
+*/

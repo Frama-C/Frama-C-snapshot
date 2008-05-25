@@ -1,0 +1,6 @@
+Partition.vo: Partition.v ../../lib/coq/Why.vo
+Quicksort.vo: Quicksort.v ../../lib/coq/Why.vo ./Partition.vo
+partition_valid.vo: partition_valid.v ../../lib/coq/Why.vo ./partition_why.vo
+partition_why.vo: partition_why.v ../../lib/coq/Why.vo ./Partition.vo
+quicksort_valid.vo: quicksort_valid.v ../../lib/coq/Why.vo ./partition_valid.vo ./quicksort_why.vo
+quicksort_why.vo: quicksort_why.v ../../lib/coq/Why.vo ./Partition.vo ./Quicksort.vo ./partition_why.vo

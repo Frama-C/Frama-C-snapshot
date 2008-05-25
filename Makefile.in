@@ -1,0 +1,1944 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2008                                               #
+#    CEA   (Commissariat à l'Énergie Atomique)                           #
+#    INRIA (Institut National de Recherche en Informatique et en         #
+#           Automatique)                                                 #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version v2.1                #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+###################################
+# Global variables from configure #
+###################################
+
+VERBOSEMAKE?=@VERBOSEMAKE@
+ifeq ($(VERBOSEMAKE),yes)
+ QUIET =
+else
+ QUIET = @echo $(1) &&
+endif
+
+prefix	= @prefix@
+datarootdir= @datarootdir@
+datadir = @datadir@/frama-c
+exec_prefix= @exec_prefix@
+BINDIR	= @bindir@
+
+# where to install the man page
+MANDIR	=@mandir@
+
+# other variables set by ./configure
+OCAMLC  = @OCAMLC@
+OCAMLOPT= @OCAMLOPT@
+OCAMLDEP= @OCAMLDEP@ -slash
+OCAMLLEX= @OCAMLLEX@
+OCAMLYACC= @OCAMLYACC@
+OCAMLMKTOP= @OCAMLMKTOP@
+OCAMLLIB= @OCAMLLIB@
+OCAMLBEST= @OCAMLBEST@
+OCAMLDOC= @OCAMLDOC@
+OCAMLVERSION = @OCAMLVERSION@
+CAMLP4O = @CAMLP4O@
+CAMLP4OOF= @CAMLP4OOF@
+OCAMLWIN32= @OCAMLWIN32@
+EXE	= @EXE@
+OCAMLGRAPH = @OCAMLGRAPH@
+OCAMLGRAPH_LOCAL = @OCAMLGRAPH_LOCAL@
+HAS_LABLGTK= @HAS_LABLGTK@
+HAS_LABLGLADECC= @HAS_LABLGLADECC@
+LABLGLADECC= @LABLGLADECC@ -hide-default
+HAS_GTKSOURCEVIEW=@HAS_GTKSOURCEVIEW@
+HAS_LEGACY_GTKSOURCEVIEW=@HAS_LEGACY_GTKSOURCEVIEW@
+OTAGS	= @OTAGS@
+DOT	= @DOT@
+
+##################
+# Shell commands #
+##################
+
+ECHO	= echo
+MKDIR   = mkdir -p
+CP      = cp -f
+RM	= rm -f
+CAT	= cat
+SED	= sed
+
+#################
+# Command Names #
+#################
+
+N_OCAMLC   =Ocamlc     #
+N_OCAMLOPT =Ocamlopt   #
+N_OCAMLLEX =Ocamllex   #
+N_OCAMLYACC=Ocamlyacc  #
+N_CAMLP4   =Camlp4     #
+N_DEP	   =Ocamldep   #
+N_DOC	   =Ocamldoc   #
+N_PACKING  =Packing    #
+N_LINKING  =Linking    #
+N_MKTOP    =Ocamlmktop #
+
+N_GCC	   =Gcc        #
+N_MAKING   =Generating #
+N_CP       =Copying    #
+N_RM       =Cleaning   #
+N_EXEC	   =Running    #
+
+N_DOT	   =Dot        #
+N_LATEX	   =Latex      #
+N_DVIPS	   =Dvips      #
+
+###########################
+# Global plugin variables #
+###########################
+
+ENABLE_MIEL= @ENABLE_MIEL@
+ENABLE_CXX=@ENABLE_CXX@
+ENABLE_SLICING=@ENABLE_SLICING@
+
+# the directory where compiled plugin files are stored
+PLUGIN_LIB_DIR=lib/plugins
+
+# Shared lists between Makefile.plugin and Makefile.in :
+# initialized them as "simply extended variables" (with :=)
+# for a correct behavior of += (see section 6.6 of GNU Make manual)
+PLUGIN_LIST	:=
+PLUGIN_CMO_LIST	:=
+PLUGIN_CMX_LIST	:=
+PLUGIN_INTERNAL_CMO_LIST:=
+PLUGIN_INTERNAL_CMX_LIST:=
+PLUGIN_GUI_CMO_LIST:=
+PLUGIN_TYPES_CMO_LIST :=
+PLUGIN_TYPES_CMX_LIST :=
+PLUGIN_GENERATED_LIST :=
+PLUGIN_DOC_LIST :=
+PLUGIN_DISTRIBUTED_LIST:=
+PLUGIN_DIST_TARGET_LIST:=
+PLUGIN_DIST_DOC_LIST:=
+PLUGIN_BIN_DOC_LIST:=
+PLUGIN_DIST_EXTERNAL_LIST:=
+PLUGIN_TESTS_LIST:=
+
+# put here any config option for the binary distribution outside of
+# plugins
+CONFIG_DISTRIB_BIN:=
+
+###############################
+# Additional global variables #
+###############################
+
+# additional compilation targets for 'make all'.
+# cannot be delayed after 'make all'
+EXTRAS	= ptests
+ifeq ("$(ENABLE_CXX)","yes")
+EXTRAS	+= bin/cxx_translate
+endif
+
+# Directories containing some source code
+SRC_DIRS= ptests $(PLUGIN_LIB_DIR)
+
+# Directory containing source code documentation
+DOC_DIR	= doc/code
+
+# Source files to document
+MODULES_TODOC=
+
+# Frama-C directories containing files which are not part of any plugin
+UNPACKED_DIRS= misc ai memory_state toplevel slicing_types pdg_types \
+	       kernel logic cxx_types gui
+ifneq ($(ENABLE_MIEL),no)
+UNPACKED_DIRS+= miel
+endif
+UNPACKED_DIRS:= $(addprefix src/, $(UNPACKED_DIRS))
+
+# Directories containing some source code
+SRC_DIRS+= $(UNPACKED_DIRS)
+
+# Directories to include when compiling
+INCLUDES=$(addprefix -I , $(UNPACKED_DIRS)) -I $(PLUGIN_LIB_DIR)
+
+# Directories to include for ocamldep
+INCLUDES_FOR_OCAMLDEP= $(patsubst +%,.,$(INCLUDES))
+
+# Ocamldep flags
+DEP_FLAGS= $(INCLUDES_FOR_OCAMLDEP)
+
+# Files for which dependencies are computed
+FILES_FOR_OCAMLDEP+=$(PLUGIN_LIB_DIR)/*.mli \
+		$(addsuffix /*.mli, $(UNPACKED_DIRS)) \
+		$(addsuffix /*.ml, $(UNPACKED_DIRS))
+
+#OPTIM="-unsafe -noassert"
+
+# Flags to use by ocamlc and ocamlopt
+FLAGS	= -w Ael -warn-error A -dtypes $(OPTIM) $(INCLUDES)
+BFLAGS	= $(FLAGS) -g $(COVERAGE_COMPILER_BYTE)
+OFLAGS	= $(FLAGS) $(COVERAGE_COMPILER_OPT)
+
+# Libraries generated by Frama-C
+GEN_BYTE_LIBS=
+GEN_OPT_LIBS=
+
+# Dynlink support for OCaml 3.11
+BYTE_LIBS_311 = dynlink.cma
+OPT_LIBS_311 = dynlink.cmxa
+
+# Libraries used in Frama-C
+BYTE_LIBS= nums.cma unix.cma bigarray.cma str.cma $(GRAPH_BYTE) $(GEN_BYTE_LIBS)
+OPT_LIBS= nums.cmxa unix.cmxa bigarray.cmxa str.cmxa $(GRAPH_OPT) \
+	$(GEN_OPT_LIBS)
+
+# files to be included in the distribution.
+# plugins may add some files to this list if they include files that are
+# not in $PLUGIN_DIR
+DISTRIB_FILES:=cil/*/*.ml* cil/src/*/*.ml* cil/*/*.in cil/LICENSE	\
+      cil/CHANGES cil/doc/*.html cil/doc/*.tex cil/doc/*.gif		\
+      cil/doc/*.pdf cil/doc/api/*.html cil/doc/examples/*.txt		\
+      doc/manuals/*.pdf doc/README doc/code/*.ml*     \
+      doc/code/*.css doc/code/*.txt tests/*/*.c	\
+      tests/*/*.h tests/*/*.ml ptests/*.ml*		\
+      configure.in Makefile.in Makefile.plugin configure Changelog	\
+      config.h.in VERSION \
+      $(filter-out CVS,licenses/*) \
+      share/*.c share/*.h		\
+      share/jessie/*.c share/jessie/*.h share/why/*.why                 \
+      $(filter-out %kui%,src/kernel/*.ml*)                              \
+      external/ptmap.ml*                                                     \
+      src/ai/*.ml* src/buckx/*.ml* src/buckx/*.c                        \
+      src/gui/*.ml* src/lib/*.ml* src/logic/*.ml*			\
+      src/memory_state/*.ml* src/misc/*.ml* src/project/*.ml*		\
+      src/toplevel/*.ml* bin/sed_get_make_major bin/sed_get_make_minor \
+      INSTALL .make-clean-stamp
+
+################
+# Main targets #
+################
+
+ifeq (@JESSIE_LOCAL@,yes)
+all: why byte $(EXTRAS)
+	$(MAKE) $(OCAMLBEST) $(EXTRAS_AFTER_BYTE)
+else
+all: byte $(EXTRAS)
+	$(MAKE) $(OCAMLBEST) $(EXTRAS_AFTER_BYTE)
+endif
+
+clean::
+	$(call QUIET,'$(N_REMOVING) $(OBJ_PERFCOUNT)') \
+	$(RM) $(OBJ_PERFCOUNT)
+
+.PHONY: top opt byte dist bdist archclean rebuild cxx
+top: bin/toplevel.top$(EXE)
+byte: bin/toplevel.byte$(EXE)
+opt: bin/toplevel.opt$(EXE)
+
+dist: clean
+	OPTIM="-unsafe -noassert" $(MAKE) all
+bdist: clean
+	OPTIM="-unsafe -noassert" $(MAKE) byte
+
+ifneq ("$(OCAMLGRAPH_LOCAL)","")
+archclean: clean
+	$(MAKE) -C $(OCAMLGRAPH_LOCAL) clean
+	cd $(OCAMLGRAPH_LOCAL) ; ./configure
+
+rebuild: archclean
+	$(MAKE) -C $(OCAMLGRAPH_LOCAL) && $(MAKE) all
+else
+archclean: clean
+
+rebuild: archclean
+	$(MAKE) all
+endif
+
+############
+# Coverage #
+############
+
+USE_COVERAGE_TOOL=no
+ifeq ($(USE_COVERAGE_TOOL),yes)
+COVERAGE_PATH=/home/monate/local/software/ml/ocaml-coverage
+COVERAGE_PREPRO=camlp4o -no_quot -filter $(COVERAGE_PATH)/coverage_filter.cmo
+COVERAGE_COMPILER_BYTE=-I $(COVERAGE_PATH) -pp "$(COVERAGE_PREPRO)"
+COVERAGE_COMPILER_OPT=-I $(COVERAGE_PATH) -pp "$(COVERAGE_PREPRO)"
+COVERAGE_LIB_BYTE=coverage.cma
+COVERAGE_LIB_OPT=coverage.cmxa
+endif
+
+INCLUDES+=$(COVERAGE_COMPILER_BYTE)
+GEN_BYTE_LIBS+=$(COVERAGE_LIB_BYTE)
+GEN_OPT_LIBS+=$(COVERAGE_LIB_OPT)
+SRC_DIRS+=$(COVERAGE_PATH)
+
+##############
+# Ocamlgraph #
+##############
+
+ifneq ("$(OCAMLGRAPH_LOCAL)","")
+lib/graph.cmo: $(OCAMLGRAPH_LOCAL)/graph.cmo
+	$(call QUIET,'$(N_CP) $@') \
+	$(CP) $< $@
+
+lib/graph.cmx: $(OCAMLGRAPH_LOCAL)/graph.cmx
+	$(call QUIET,'$(N_CP) $@') \
+	$(CP) $< $@
+
+lib/graph.cmi: $(OCAMLGRAPH_LOCAL)/graph.cmi
+	$(call QUIET,'$(N_CP) $@') \
+	$(CP) $< $@
+
+lib/graph.o: $(OCAMLGRAPH_LOCAL)/graph.o
+	$(call QUIET,'$(N_CP) $@') \
+	$(CP) $< $@
+
+$(OCAMLGRAPH_LOCAL)/graph.cmo: $(OCAMLGRAPH_LOCAL)/Makefile \
+			       	$(wildcard $(OCAMLGRAPH_LOCAL)/src/*.ml*)
+	$(MAKE) -C $(OCAMLGRAPH_LOCAL) $(notdir $@)
+
+$(OCAMLGRAPH_LOCAL)/graph.cmi: $(OCAMLGRAPH_LOCAL)/graph.cmo
+
+$(OCAMLGRAPH_LOCAL)/graph.cmx: $(OCAMLGRAPH_LOCAL)/graph.cmi \
+			       	$(wildcard $(OCAMLGRAPH_LOCAL)/src/*.ml*)
+	$(MAKE) -C $(OCAMLGRAPH_LOCAL) $(notdir $@)
+
+$(OCAMLGRAPH_LOCAL)/graph.o: $(OCAMLGRAPH_LOCAL)/graph.cmx
+
+$(OCAMLGRAPH_LOCAL)/Makefile: $(OCAMLGRAPH_LOCAL)/configure \
+			      	$(OCAMLGRAPH_LOCAL)/Makefile.in
+	cd $(OCAMLGRAPH_LOCAL) ; ./configure
+
+$(OCAMLGRAPH_LOCAL)/configure: $(OCAMLGRAPH_LOCAL)/configure.in
+	cd $(OCAMLGRAPH_LOCAL) ; autoconf
+
+src/*/*.cmi: lib/graph.cmi
+src/*/*.cmo src/*/*.cma: lib/graph.cmo
+src/*/*.cmxa src/*/*.cmx: lib/graph.cmx
+
+GENERATED+= lib/graph.cmo lib/graph.cmx lib/graph.o lib/graph.cmi
+
+INCLUDES+=-I lib
+GRAPH_BYTE=
+GRAPH_OPT=
+GRAPH_BYTE_LIBS=lib/graph.cmo
+GRAPH_OPT_LIBS=lib/graph.cmx
+GEN_BYTE_LIBS+=$(GRAPH_BYTE_LIBS)
+GEN_OPT_LIBS+=$(GRAPH_OPT_LIBS)
+else
+INCLUDES+=$(OCAMLGRAPH)
+GRAPH_BYTE=graph.cmo
+GRAPH_OPT=graph.cmx
+endif
+
+####################################
+# Internal miscellaneous libraries #
+####################################
+
+LIB_PATH= src/lib
+LIB_CMO = extlib pretty_utils hook mergemap rangemap binary_cache
+LIB_CMO:= $(patsubst %, $(LIB_PATH)/%.cmo, $(LIB_CMO))
+LIB_CMX = $(LIB_CMO:.cmo=.cmx)
+LIB_CMI = $(LIB_CMO:.cmo=.cmi)
+
+$(LIB_CMI) $(LIB_CMO) $(LIB_CMX): INCLUDES=-I $(LIB_PATH) -I src/project
+
+MODULES_TODOC+=	$(LIB_PATH)/extlib.mli $(LIB_PATH)/pretty_utils.mli \
+	$(LIB_PATH)/hook.mli \
+	$(LIB_PATH)/mergemap.mli $(LIB_PATH)/rangemap.mli
+
+INCLUDES+=-I $(LIB_PATH)
+# binary_cache depends of project. So delay its addition to GEN_*_LIBS
+GEN_BYTE_LIBS+=$(filter-out $(LIB_PATH)/binary_cache.cmo, $(LIB_CMO))
+GEN_OPT_LIBS+=$(filter-out $(LIB_PATH)/binary_cache.cmx, $(LIB_CMX))
+FILES_FOR_OCAMLDEP+=$(addsuffix /*.mli, $(LIB_PATH)) \
+		$(addsuffix /*.ml, $(LIB_PATH))
+SRC_DIRS+=$(LIB_PATH)
+
+###########
+# Project #
+###########
+
+PROJECT_PATH=src/project
+PROJECT_CMO= qstack kind project datatype computation
+PROJECT_CMO:= $(patsubst %, $(PROJECT_PATH)/%.cmo, $(PROJECT_CMO))
+PROJECT_CMX= $(PROJECT_CMO:.cmo=.cmx)
+PROJECT_CMI= signature.cmi $(PROJECT_CMO:.cmo=.cmi)
+
+PROJECT_CMA=$(PROJECT_PATH)/project.cma
+PROJECT_CMXA=$(PROJECT_CMA:.cma=.cmxa)
+
+$(PROJECT_CMA): $(PROJECT_CMO)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) -a -o $@ $(PROJECT_CMO)
+
+$(PROJECT_CMXA): $(PROJECT_CMX)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) -a -o $@ $(PROJECT_CMX)
+
+MODULES_TODOC+=	$(PROJECT_PATH)/kind.mli $(PROJECT_PATH)/project.mli \
+	$(PROJECT_PATH)/signature.mli \
+	$(PROJECT_PATH)/datatype.mli $(PROJECT_PATH)/computation.mli
+
+$(PROJECT_CMI) $(PROJECT_CMO) $(PROJECT_CMX): INCLUDES=-I $(PROJECT_PATH) \
+	-I $(LIB_PATH) $(OCAMLGRAPH)
+
+INCLUDES+=-I $(PROJECT_PATH)
+GEN_BYTE_LIBS+=$(PROJECT_CMA) $(LIB_PATH)/binary_cache.cmo
+GEN_OPT_LIBS+=$(PROJECT_CMXA) $(LIB_PATH)/binary_cache.cmx
+FILES_FOR_OCAMLDEP+=$(addsuffix /*.mli, $(PROJECT_PATH)) \
+		$(addsuffix /*.ml, $(PROJECT_PATH))
+SRC_DIRS+=$(PROJECT_PATH)
+
+#########
+# Buckx #
+#########
+
+BUCKX_PATH=src/buckx
+BUCKX_CMO= buckx
+BUCKX_CMO:= $(patsubst %, $(BUCKX_PATH)/%.cmo, $(BUCKX_CMO))
+BUCKX_CMX= $(BUCKX_CMO:.cmo=.cmx)
+BUCKX_CMI= $(BUCKX_CMO:.cmo=.cmi)
+
+MODULES_TODOC+=	$(BUCKX_PATH)/buckx.mli
+
+$(BUCKX_CMI) $(BUCKX_CMO) $(BUCKX_CMX): INCLUDES=-I $(BUCKX_PATH) \
+						-I $(PROJECT_PATH)
+
+INCLUDES+=-I $(BUCKX_PATH)
+GEN_BUCKX=src/buckx/mybigarray.o src/buckx/buckx_c.o
+GEN_BYTE_LIBS+=$(GEN_BUCKX) $(BUCKX_CMO)
+GEN_OPT_LIBS+=$(GEN_BUCKX) $(BUCKX_CMX)
+FILES_FOR_OCAMLDEP+=$(addsuffix /*.mli, $(BUCKX_PATH)) \
+		$(addsuffix /*.ml, $(BUCKX_PATH))
+SRC_DIRS+=$(BUCKX_PATH)
+
+src/buckx/buckx_c.o: src/buckx/buckx_c.c
+	$(call QUIET,'$(N_OCAMLC) $@') \
+	$(OCAMLC) $(BFLAGS) -ccopt "-O3 -fno-pic -fomit-frame-pointer -o $@" $<
+
+#################################
+# External libraries to compile #
+#################################
+
+EXTERNAL_PATH= external
+EXTERNAL_CMO = ptmap #size
+EXTERNAL_CMO:= $(patsubst %, $(EXTERNAL_PATH)/%.cmo, $(EXTERNAL_CMO))
+EXTERNAL_CMX = $(EXTERNAL_CMO:.cmo=.cmx)
+EXTERNAL_CMI = $(EXTERNAL_CMO:.cmo=.cmi)
+
+$(EXTERNAL_CMI) $(EXTERNAL_CMO) $(EXTERNAL_CMX): INCLUDES=-I $(EXTERNAL_PATH) \
+			-I $(LIB_PATH) -I $(BUCKX_PATH) -I $(PROJECT_PATH)
+
+INCLUDES+=-I $(EXTERNAL_PATH) -I src/project -I src/buckx
+FILES_FOR_OCAMLDEP+=$(addsuffix /*.mli, $(EXTERNAL_PATH)) \
+		$(addsuffix /*.ml, $(EXTERNAL_PATH))
+SRC_DIRS+=$(EXTERNAL_PATH)
+
+GEN_BYTE_LIBS+= $(EXTERNAL_CMO)
+GEN_OPT_LIBS+= $(EXTERNAL_CMX)
+
+#######
+# Cil #
+#######
+
+CIL_PATH= cil/src
+
+# Create the machine dependency module
+# If the cl command cannot be run then the MSVC part will be identical to GCC
+.PHONY : machdep $(CIL_PATH)/local_machdep.ml
+machdep: $(CIL_PATH)/local_machdep.ml
+bin/machdep.exe: machdep
+
+$(CIL_PATH)/local_machdep.ml : cil/src/machdep.c configure.in Makefile.in
+	$(call QUIET,'$(N_MAKING) $@') \
+	($(RM) $@; \
+	$(ECHO) "(* This module was generated automatically by code in Makefile and machdep.c *)" >$@; \
+# Now generate the type definition
+	$(ECHO) "open Cil_types" >> $@; \
+	if gcc -D_GNUCC $< -o bin/machdep.exe ;then \
+	    $(ECHO) "machdep.exe created succesfully." \
+	;else \
+            $(RM) $@; exit 1 \
+        ;fi; \
+	$(ECHO) "let gcc = {" >>$@; \
+	bin/machdep.exe >>$@; \
+	$(ECHO) "	 underscore_name = @UNDERSCORE_NAME@ ;" >> $@;\
+	$(ECHO) "}"          >>$@; \
+	if cl /D_MSVC $< /Febin/machdep.exe /Fobin/machdep.obj ;then \
+           $(ECHO) "let hasMSVC = true" >>$@ \
+        ;else \
+           $(ECHO) "let hasMSVC = false" >>$@ ;fi; \
+	$(ECHO) "let msvc = {" >>$@; \
+	bin/machdep.exe >>$@; \
+	$(ECHO) "	 underscore_name = true ;" >> $@; \
+	$(ECHO) "}"          >>$@; \
+	$(ECHO) "let gccHas__builtin_va_list = @HAVE_BUILTIN_VA_LIST@" >>$@; \
+	$(ECHO) "let __thread_is_keyword = @THREAD_IS_KEYWORD@"  >>$@; \
+	$(ECHO) "$@ generated. You may have this file merged into Frama-C by developers.")
+
+# Create the cil version information module
+.PHONY: cilversion
+cilversion: $(CIL_PATH)/cilversion.ml
+GENERATED += $(CIL_PATH)/cilversion.ml
+$(CIL_PATH)/cilversion.ml: configure.in
+	$(call QUIET,'$(N_MAKING) $@') \
+	($(RM) $@; \
+	$(ECHO) "(* This module was generated automatically by code in Makefile *)" >$@; \
+	$(ECHO) "let cilVersionMajor = 1" >>$@; \
+	$(ECHO) "let cilVersionMinor = 3" >>$@; \
+	$(ECHO) "let cilVersionRev   = 6"   >>$@; \
+	$(ECHO) "let cilVersion      = \"1.3.6\""  >>$@)
+
+# Performance counters
+PERFCOUNT=cil/ocamlutil/perfcount
+USE_PERFCOUNT=no
+ifeq ($(USE_PERFCOUNT),yes)
+OBJ_PERFCOUNT=$(PERFCOUNT).o
+STATS=cil/ocamlutil/stats.cmo
+else
+OBJ_PERFCOUNT=
+STATS=
+endif
+
+# .cmo files of cil
+CIL_CMO = cil/ocamlutil/pretty.cmo \
+	cil/ocamlutil/errormsg.cmo \
+	cil/ocamlutil/alpha.cmo cil/ocamlutil/clist.cmo \
+	cil/ocamlutil/growArray.cmo \
+	cil/ocamlutil/inthash.cmo $(STATS) \
+	cil/ocamlutil/trace.cmo cil/ocamlutil/cilutil.cmo \
+	cil/ocamlutil/setWithNearest.cmo \
+	$(addprefix $(CIL_PATH)/, \
+		logic/utf8_logic.cmo \
+		messages_manager.cmo \
+		cilglobopt.cmo \
+		cilversion.cmo \
+		machdep_x86_16.cmo machdep_x86_32.cmo machdep_x86_64.cmo \
+		machdep_ppc_32.cmo machdep_ppc_32_diab.cmo \
+		machdep.cmo logic/logic_env.cmo \
+		escape.cmo cil.cmo frontc/cabs.cmo \
+		frontc/cabshelper.cmo frontc/whitetrack.cmo \
+		logic/logic_const.cmo \
+                logic/logic_parser.cmo logic/logic_lexer.cmo \
+		frontc/lexerhack.cmo \
+		formatlex.cmo formatparse.cmo formatcil.cmo \
+		mergecil.cmo rmtmps.cmo testcil.cmo \
+		frontc/scope.cmo \
+		logic/logic_typing.cmo \
+		frontc/cprint.cmo \
+		frontc/cabsvisit.cmo frontc/cabs2cil.cmo \
+		frontc/clexer.cmo frontc/cparser.cmo \
+		logic/logic_preprocess.cmo \
+		frontc/patch.cmo frontc/frontc.cmo \
+		ext/obfuscate.cmo ext/metrics.cmo ext/ciltools.cmo \
+		ext/callgraph.cmo ext/dataflow.cmo ext/dominators.cmo \
+		ext/oneret.cmo ext/cfg.cmo ext/expcompare.cmo \
+		ext/usedef.cmo ext/liveness.cmo ext/reachingdefs.cmo \
+		ext/availexpslv.cmo ext/rmciltmps.cmo ext/deadcodeelim.cmo \
+		zrapp.cmo) # end of addprefix
+CIL_CMX = $(CIL_CMO:.cmo=.cmx)
+CIL_CMI = cil/src/cil_types.cmi cil/src/logic/logic_ptree.cmi \
+	$(CIL_CMO:.cmo=.cmi)
+
+GENERATED += $(addprefix $(CIL_PATH)/, \
+		frontc/clexer.ml frontc/cparser.ml frontc/cparser.mli \
+		logic/logic_lexer.ml logic/logic_parser.ml \
+		logic/logic_parser.mli logic/logic_preprocess.ml formatlex.ml \
+		formatparse.ml formatparse.mli)
+
+MODULES_TODOC += cil/ocamlutil/pretty.mli \
+	cil/ocamlutil/errormsg.mli \
+	cil/ocamlutil/alpha.mli cil/ocamlutil/clist.mli \
+	cil/ocamlutil/growArray.mli \
+	cil/ocamlutil/inthash.mli cil/ocamlutil/stats.mli \
+	cil/ocamlutil/trace.mli cil/ocamlutil/cilutil.mli \
+	cil/ocamlutil/setWithNearest.mli \
+	$(addprefix $(CIL_PATH)/, \
+		messages_manager.mli \
+		cilglobopt.ml \
+		cilversion.ml machdep.mli \
+		cil_types.mli \
+		escape.mli cil.mli frontc/cabs.ml \
+		frontc/cabshelper.mli frontc/whitetrack.mli \
+		logic/logic_parser.mli \
+		frontc/lexerhack.ml \
+		formatparse.mli formatcil.mli \
+		mergecil.mli rmtmps.mli \
+		frontc/scope.mli \
+		logic/logic_const.ml logic/logic_typing.mli \
+		frontc/cprint.mli frontc/cabsvisit.mli frontc/cabs2cil.mli \
+		frontc/cparser.mli logic/logic_preprocess.mli \
+		frontc/patch.mli frontc/frontc.mli \
+		logic/logic_ptree.mli \
+		ext/obfuscate.mli ext/metrics.mli \
+		ext/callgraph.mli ext/dataflow.mli ext/dominators.mli \
+		ext/oneret.mli) # end of addprefix
+
+CIL_CMA	=$(CIL_PATH)/cil.cma
+CIL_CMXA=$(CIL_PATH)/cil.cmxa
+
+$(CIL_CMA): Makefile.in $(CIL_CMO) $(OBJ_PERFCOUNT)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) -a -custom -o $@ $(CIL_CMO) $(OBJ_PERFCOUNT)
+$(CIL_CMXA): Makefile.in $(CIL_CMX) $(OBJ_PERFCOUNT)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) -a -o $@ $(CIL_CMX) $(OBJ_PERFCOUNT)
+
+CIL_DIRS= $(CIL_PATH) $(CIL_PATH)/ext $(CIL_PATH)/frontc $(CIL_PATH)/logic \
+	cil/ocamlutil
+
+SRC_DIRS+=$(CIL_DIRS)
+
+$(CIL_CMI) $(CIL_CMO) $(CIL_CMX):INCLUDES=$(addprefix -I , $(CIL_DIRS) \
+	$(LIB_PATH) $(PROJECT_PATH)) $(OCAMLGRAPH)
+
+INCLUDES+=$(addprefix -I , $(CIL_DIRS))
+GEN_BYTE_LIBS+=$(CIL_CMA)
+GEN_OPT_LIBS+=$(CIL_CMXA)
+FILES_FOR_OCAMLDEP+=$(addsuffix /*.mli, $(CIL_DIRS)) \
+	$(addsuffix /*.ml, $(CIL_DIRS))
+
+.PHONY : cil.byte cil.opt
+cil.byte: $(CIL_PATH)/cil.cma
+cil.opt: $(CIL_PATH)/cil.cmxa
+
+##########
+# Kernel #
+##########
+
+# modules to be linked before kernel and plugin type definitions,
+# e.g. generic modules and type definitions
+ACMO =	src/kernel/version.cmo src/kernel/ast_printer.cmo \
+	src/kernel/kernel_datatype.cmo src/kernel/kernel_computation.cmo \
+	src/kernel/alarms.cmo src/kernel/cilE.cmo \
+	src/kernel/cil_state.cmo \
+	src/kernel/ast_info.cmo \
+	src/ai/my_bigint.cmo \
+	src/ai/abstract_interp.cmo \
+	src/memory_state/mweak.cmo \
+	src/ai/int_Base.cmo \
+	src/kernel/cmdline.cmo \
+	src/kernel/unicode.cmo \
+	src/misc/bit_utils.cmo \
+	src/misc/subst.cmo \
+	src/ai/base.cmo \
+	src/ai/base_Set_Lattice.cmo \
+	src/ai/origin.cmo \
+	src/ai/map_Lattice.cmo \
+	src/ai/ival.cmo \
+	src/memory_state/abstract_value.cmo \
+	src/toplevel/options.cmo \
+	src/memory_state/baseUtils.cmo \
+	src/memory_state/locations.cmo \
+	src/memory_state/inout_type.cmo \
+	src/memory_state/shifted_Location.cmo \
+	src/memory_state/path_lattice.cmo \
+	src/memory_state/int_Interv.cmo \
+	src/memory_state/int_Interv_Map.cmo \
+	src/memory_state/offsetmap.cmo \
+	src/memory_state/offsetmap_bitwise.cmo \
+	src/memory_state/lmap.cmo \
+	src/memory_state/lmap_bitwise.cmo \
+	src/memory_state/lmap_whole.cmo \
+	src/memory_state/function_Froms.cmo \
+	src/memory_state/cvalue_type.cmo \
+	src/memory_state/memzone_type.cmo \
+	src/memory_state/widen_type.cmo \
+	src/memory_state/relations_type.cmo \
+	src/logic/why_output.cmo
+ACMX = $(ACMO:.cmo=.cmx)
+
+MODULES_TODOC += src/kernel/version.mli \
+	src/kernel/alarms.mli src/kernel/cilE.mli \
+	src/kernel/ast_info.mli \
+	src/kernel/kernel_datatype.mli src/kernel/kernel_computation.mli \
+	src/kernel/cil_state.mli \
+	src/ai/my_bigint.ml \
+	src/ai/abstract_interp.mli \
+	src/memory_state/mweak.mli \
+	src/ai/int_Base.ml \
+	src/kernel/cmdline.mli \
+	src/misc/bit_utils.mli \
+	src/misc/subst.mli \
+	src/ai/base.mli \
+	src/ai/base_Set_Lattice.ml \
+	src/ai/origin.ml \
+	src/ai/map_Lattice.ml \
+	src/ai/ival.ml \
+	src/memory_state/abstract_value.ml \
+	src/toplevel/options.mli \
+	src/memory_state/baseUtils.ml \
+	src/memory_state/locations.mli \
+	src/memory_state/inout_type.ml \
+	src/memory_state/shifted_Location.mli \
+	src/memory_state/path_lattice.mli \
+	src/memory_state/int_Interv.ml \
+	src/memory_state/int_Interv_Map.ml \
+	src/memory_state/offsetmap.mli \
+	src/memory_state/offsetmap_bitwise.mli \
+	src/memory_state/lmap.mli \
+	src/memory_state/lmap_bitwise.mli \
+	src/memory_state/lmap_whole.mli \
+	src/memory_state/function_Froms.ml \
+	src/memory_state/cvalue_type.ml \
+	src/memory_state/memzone_type.ml \
+	src/memory_state/widen_type.mli \
+	src/memory_state/relations_type.mli \
+	src/logic/why_output.mli
+
+KERNEL_CMO = src/kernel/stmts_graph.cmo src/kernel/cg.cmo \
+	src/kernel/annotations.cmo src/kernel/globals.cmo \
+	src/kernel/visitor.cmo \
+	src/kernel/printer.cmo src/kernel/unroll_loops.cmo \
+	src/kernel/file.cmo src/kernel/kernel_function.cmo \
+	src/kernel/loop.cmo \
+	src/kernel/db.cmo \
+	src/misc/filter.cmo
+
+KERNEL_CMX = $(KERNEL_CMO:.cmo=.cmx)
+
+MODULES_TODOC += src/kernel/db_types.mli \
+	src/kernel/stmts_graph.mli src/kernel/cg.mli \
+	src/kernel/annotations.mli src/kernel/globals.mli \
+	src/kernel/visitor.mli \
+	src/kernel/printer.mli src/kernel/unroll_loops.ml \
+	src/kernel/file.mli src/kernel/kernel_function.mli src/kernel/loop.mli \
+	src/kernel/db.mli \
+	src/misc/filter.mli
+
+PLUGIN_TESTS_LIST += saveload
+
+#########
+# Logic #
+#########
+
+LCMO = src/logic/fol.cmo src/logic/logic_interp.cmo \
+	src/logic/infer_annotations.cmo
+LCMX = $(LCMO:.cmo=.cmx)
+
+MODULES_TODOC += src/logic/fol.mli src/logic/logic_interp.mli \
+	src/logic/infer_annotations.mli
+
+PLUGIN_TESTS_LIST += spec
+
+########################################################
+# Alias, dependency analysis, locations interpretation #
+########################################################
+
+LOCCMO = src/memory_state/widen.cmo \
+	src/memory_state/memzone.cmo \
+	src/memory_state/bit_model_access.cmo
+LOCCMX = $(LOCCMO:.cmo=.cmx)
+
+MODULES_TODOC += src/memory_state/widen.ml \
+	src/memory_state/memzone.ml \
+	src/memory_state/bit_model_access.mli
+
+##################
+# Occurrence     #
+##################
+
+PLUGIN_ENABLE:=@ENABLE_OCCURRENCE@
+PLUGIN_NAME:=Occurrence
+PLUGIN_DIR:=src/occurrence
+PLUGIN_CMO:= register
+PLUGIN_GUI_CMO:=occurrence_gui
+PLUGIN_HAS_MLI:=yes
+# PLUGIN_UNDOC:=occurrence_gui.ml
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+##################
+# Value analysis #
+##################
+
+PLUGIN_ENABLE:=@ENABLE_VALUE@
+PLUGIN_NAME:=Value
+PLUGIN_DIR:=src/value
+PLUGIN_CMO:= state_set kf_state eval kinstr register
+PLUGIN_GUI_CMO:=value_gui
+PLUGIN_HAS_MLI:=yes
+PLUGIN_NO_TEST:=yes
+# PLUGIN_UNDOC:=value_gui.ml
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+#################
+# From analysis #
+#################
+
+PLUGIN_ENABLE:=@ENABLE_FROM@
+PLUGIN_NAME:=From
+PLUGIN_DIR:=src/from
+PLUGIN_CMO:= register
+PLUGIN_GUI_CMO:=from_gui
+PLUGIN_HAS_MLI:=yes
+PLUGIN_TESTS_DIRS:=idct test misc float
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+##################
+# Users analysis #
+##################
+
+PLUGIN_ENABLE:=@ENABLE_USERS@
+PLUGIN_NAME:=Users
+PLUGIN_DIR:=src/users
+PLUGIN_CMO:= users_register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_NO_TEST:=yes
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+########################
+# Constant propagation #
+########################
+
+PLUGIN_ENABLE:=@ENABLE_CONSTANT_PROPAGATION@
+PLUGIN_NAME:=Constant_Propagation
+PLUGIN_DIR:=src/constant_propagation
+PLUGIN_CMO:= register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+###################
+# Post-dominators #
+###################
+
+PLUGIN_ENABLE:=@ENABLE_POSTDOMINATORS@
+PLUGIN_NAME:=Postdominators
+PLUGIN_DIR:=src/postdominators
+PLUGIN_CMO:= print compute
+PLUGIN_HAS_MLI:=yes
+PLUGIN_NO_TEST:=yes
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+#########
+# inout #
+#########
+
+PLUGIN_ENABLE:=@ENABLE_INOUT@
+PLUGIN_NAME:=Inout
+PLUGIN_DIR:=src/inout
+PLUGIN_CMO:= kf_state context inputs outputs derefs access_path register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_NO_TEST:=yes
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+######################
+# Semantic callgraph #
+######################
+
+PLUGIN_ENABLE:=@ENABLE_SEMANTIC_CALLGRAPH@
+PLUGIN_NAME:=Semantic_callgraph
+PLUGIN_DIR:=src/semantic_callgraph
+PLUGIN_CMO:= register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_NO_TEST:=yes
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+######
+# wp #
+######
+
+PLUGIN_ENABLE:=@ENABLE_WP@
+PLUGIN_NAME:=Wp
+PLUGIN_DIR:=src/wp
+PLUGIN_CMO:= cil2cfg calculus lowlevel_model hoare_model register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_DISTRIBUTED:=no
+PLUGIN_NO_DEFAULT_TEST:=yes
+include Makefile.plugin
+
+#####################
+# Security analysis #
+#####################
+
+PLUGIN_ENABLE:=@ENABLE_SECURITY@
+PLUGIN_NAME:=Security
+PLUGIN_DIR:=src/security
+PLUGIN_CMO:= lattice model components analysis register
+PLUGIN_GUI_CMO:=security_gui
+PLUGIN_HAS_MLI:=yes
+PLUGIN_UNDOC:=analysis.ml
+ # ocamldoc doesn't like recursive modules!
+PLUGIN_DISTRIBUTED:=no
+include Makefile.plugin
+
+###################
+# Impact analysis #
+###################
+
+PLUGIN_ENABLE:=@ENABLE_IMPACT@
+PLUGIN_NAME:=Impact
+PLUGIN_DIR:=src/impact
+PLUGIN_CMO:= register
+PLUGIN_GUI_CMO:= impact_gui
+PLUGIN_HAS_MLI:=yes
+PLUGIN_DISTRIBUTED:=no
+# PLUGIN_UNDOC:=impact_gui.ml
+include Makefile.plugin
+
+#################
+# Jessie output #
+#################
+
+JESSIE_INCLUDES=@JESSIE_INCLUDES@
+
+PLUGIN_ENABLE:=@ENABLE_JESSIE@
+PLUGIN_NAME:=Jessie
+PLUGIN_DIR:=src/jessie
+PLUGIN_CMO:= integer common rewrite norm interp register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_BFLAGS:=$(JESSIE_INCLUDES)
+PLUGIN_OFLAGS:=$(JESSIE_INCLUDES)
+PLUGIN_DEPFLAGS:=$(JESSIE_INCLUDES)
+PLUGIN_DOCFLAGS:=$(JESSIE_INCLUDES)
+PLUGIN_DISTRIBUTED:=yes
+PLUGIN_DISTRIB_BIN:=no
+PLUGIN_DISTRIB_EXTERNAL:=src-distrib-jessie
+PLUGIN_NO_DEFAULT_TEST:=yes
+include Makefile.plugin
+
+ifeq (@JESSIE_LOCAL@,yes)
+# Same variable JCCML_EXPORT as in Why Makefile
+JCCML_EXPORT = src/lib.ml src/rc.ml src/loc.ml src/pp.ml src/option_misc.ml \
+       jc/output.ml \
+       jc/jc_version.ml jc/jc_common_options.ml \
+       jc/jc_envset.ml jc/jc_region.ml \
+       jc/jc_pervasives.ml jc/jc_iterators.ml \
+       jc/jc_poutput.ml jc/jc_output.ml
+JCCML_EXPORT := $(addprefix @WHYDISTRIB@/, $(JCCML_EXPORT))
+
+# Use the makefile of Why in order to compile Why's source files
+@WHYDISTRIB@/%:
+	$(MAKE) -j1 -C @WHYDISTRIB@ $(patsubst @WHYDISTRIB@/%, %, $@)
+
+@JCCMO@ @JCCMX@: $(JCCML_EXPORT) @WHYDISTRIB@/jc/jc.cmi
+@WHYDISTRIB@/jc/jc.cmi: $(JCCML_EXPORT)
+
+# Call Why makefile from all, only if installed locally
+.PHONY: why
+why:	@JCCMO@ @JCCMX@ @WHYDISTRIB@/jc/jc.cmi
+	$(MAKE) -j1 -C @WHYDISTRIB@
+
+GEN_BYTE_LIBS+=@JCCMO@
+GEN_OPT_LIBS+=@JCCMX@
+else ifeq (@ENABLE_JESSIE@,yes)
+BYTE_LIBS+=@JCCMO@
+OPT_LIBS+=@JCCMX@
+endif
+
+##################################
+# PDG : program dependence graph #
+##################################
+
+PLUGIN_ENABLE:=@ENABLE_PDG@
+PLUGIN_NAME:=Pdg
+PLUGIN_DIR:=src/pdg
+PLUGIN_HAS_MLI:=yes
+PLUGIN_CMO:= \
+            print \
+            macros \
+            lexical_successors \
+            ctrlDpds \
+	    state \
+            build \
+            sets \
+            annot \
+	    marks \
+            register
+
+PDG_TYPES:=pdgIndex pdgTypes pdgMarks
+PDG_TYPES:=$(addprefix src/pdg_types/, $(PDG_TYPES))
+PLUGIN_TYPES_CMO:=$(PDG_TYPES)
+
+PLUGIN_INTRO:=doc/code/intro_pdg.txt
+PLUGIN_TYPES_TODOC:=$(addsuffix .mli, $(PDG_TYPES))
+
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+#####################################
+# Scope : (very experimental !)     #
+#####################################
+
+PLUGIN_ENABLE:=@ENABLE_SCOPE@
+PLUGIN_NAME:=Scope
+PLUGIN_DIR:=src/scope
+PLUGIN_CMO:= datascope
+PLUGIN_HAS_MLI:=yes
+PLUGIN_GUI_CMO:=datascope_gui
+PLUGIN_INTRO:=doc/code/intro_scope.txt
+
+PLUGIN_DISTRIBUTED:=no
+include Makefile.plugin
+
+#####################################
+# Sparecode : unused code detection #
+#####################################
+
+PLUGIN_ENABLE:=@ENABLE_SPARECODE@
+PLUGIN_NAME:=Sparecode
+PLUGIN_DIR:=src/sparecode
+PLUGIN_CMO:= marks transform register
+PLUGIN_HAS_MLI:=yes
+PLUGIN_DEPENDS:=Pdg
+PLUGIN_INTRO:=doc/code/intro_sparecode.txt
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+###########
+# Slicing #
+###########
+
+PLUGIN_ENABLE:=$(ENABLE_SLICING)
+PLUGIN_NAME:=Slicing
+PLUGIN_DIR:=src/slicing
+PLUGIN_CMO:= slicingMacros \
+            slicingMarks \
+            slicingActions \
+            fct_slice \
+            printSlice \
+            slicingProject \
+	    slicingTransform \
+            slicingCmds \
+            register
+SLICING_TYPES:=slicingTypes
+SLICING_TYPES:=$(addprefix src/slicing_types/, $(SLICING_TYPES))
+PLUGIN_TYPES_CMO:=$(SLICING_TYPES)
+
+PLUGIN_GUI_CMO:=slicing_gui
+
+PLUGIN_INTRO:=doc/code/intro_slicing.txt
+PLUGIN_TYPES_TODOC:= $(addsuffix .ml, $(SLICING_TYPES))
+PLUGIN_UNDOC:=register.ml # slicing_gui.ml
+
+PLUGIN_TESTS_DIRS:= slicing slicing2
+PLUGIN_TESTS_LIB:= tests/slicing/libSelect tests/slicing/libAnim
+PLUGIN_DEPENDS:=Pdg
+PLUGIN_DISTRIBUTED:=yes
+include Makefile.plugin
+
+FILES_FOR_OCAMLDEP+=$(TEST_SLICING_ML)
+
+##########################
+# C++ analysis extension #
+##########################
+
+PPCHOME=@abs_top_srcdir@
+
+CXX_ELSADISTRIB=cxx_elsa/elsa-2006.06.11
+
+CXX_ELSAHOME=$(CXX_ELSADISTRIB)/elsa
+
+.PHONY: elsa
+elsa:
+	$(MAKE) -C $(CXX_ELSADISTRIB)
+
+### the ast generator.
+#   Can not be part of the generic plugin mechanism, as we need it to
+#   generate some of the sources of the plugin itself (i.e. it must be
+#   built before the dependencies computation for the plugin takes place.
+
+#The files
+CXX_ASTGENINT=std_utils loc astgen_type astgen_parse astgen_main
+CXX_ASTGENMOD=std_utils loc astgen_type astgen_parse astgen_lex astgen_main
+$(CXX_ASTGENMOD:%=cxx_elsa/%.cmo) $(CXX_OBJ:%=cxx_elsa/%.cmi): BFLAGS:=-I cxx_elsa $(BFLAGS)
+$(CXX_ASTGENMOD:%=cxx_elsa/%.cmx): OFLAGS:=-I cxx_elsa $(OFLAGS)
+
+# generator dependencies
+.PHONY: cxx_depend
+cxx_depend: cxx_elsa/.cxx_depend
+
+cxx_elsa/.cxx_depend: $(CXX_ASTGENMOD:%=cxx_elsa/%.ml) \
+                      $(CXX_ASTGENINT:%=cxx_elsa/%.mli)
+	$(call QUIET,'$(N_DEP) $@') \
+	$(OCAMLDEP) -pp camlp4o -I cxx_elsa $^ > cxx_elsa/.cxx_depend
+
+bin/astgen$(EXE): $(CXX_ASTGENMOD:%=cxx_elsa/%.cmo)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) -I cxx_elsa -o $@ -g str.cma $^
+
+### main modules of the elsa-to-cil translator
+CXX_TRANSLATE=std_utils install elsa_loc loc config astgen_lex		\
+parse_tree predef_cxx cc_ast_parse cc_ast_visitor elsa_utils		\
+cc_analyse_types mangling expr namespace types logic normalize cxx_print class	\
+statements translate
+
+### c++ ast description from elsa
+CXX_ELSAAST=cc.ast cc_tcheck.ast cc_elaborate.ast gnu.ast annot_ast.ast
+
+# local c++ ast descriptions (needed because some AST nodes are in the
+# verbatim sections of elsa's *.ast)
+CXX_EXTRAAST=cxx_elsa/extra.ast
+
+# unused for now
+#	     cxx_elsa/annot_ast.ml cxx_elsa/annot_ast_parse.ml
+
+### local configuration
+cxx_elsa/install.ml: Makefile.in
+	@$(ECHO) "(* local installation related variables. " > $@
+	@$(ECHO) "Automatically generated by Makefile. DO NOT EDIT! *)" >> $@
+	@$(ECHO) "let framac_home = \"$(PPCHOME)\";;" >> $@
+	@$(ECHO) \
+         "let elsa_home = Filename.concat framac_home \"$(CXX_ELSAHOME)\";;" >> $@
+
+### stand-alone translator
+
+cxx_elsa/test.cmo: $(CXX_TRANSLATE:%=cxx_elsa/%.cmo)
+cxx_elsa/test.cmo: BFLAGS:=-I cxx_elsa $(BFLAGS)
+bin/cxx_translate$(EXE):$(GEN_BYTE_LIBS) \
+    $(CXX_TRANSLATE:%=cxx_elsa/%.cmo) cxx_elsa/test.cmo
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) $(BFLAGS) -I cxx_elsa  $(BYTE_LIBS) \
+        $(CXX_TRANSLATE:%=cxx_elsa/%.cmo) cxx_elsa/test.cmo -o $@
+
+CXX_TESTS_DIR=basic class val_analysis template specs
+
+#NB: PTESTS_OPTS is intended to be set outside of the Makefile
+#In particular make cxx_tests PTESTS_OPTS=-update will update the oracles.
+.PHONY: cxx_tests
+cxx_tests: bin/cxx_translate ptests
+	cd cxx_elsa && \
+        ../bin/ptests.byte$(EXE) $(PTESTS_OPTS) $(CXX_TESTS_DIR)
+
+ifeq ($(ENABLE_CXX),yes)
+tests: cxx_tests
+endif
+
+
+GENERATED += src/cxx_types/cc_ast.mli
+
+DISTRIB_FILES += src/cxx_types/cc_ast.mli.in
+
+ifeq ($(ENABLE_CXX),yes)
+src/cxx_types/cc_ast.mli: \
+	bin/astgen$(EXE) $(CXX_ELSAAST:%=$(CXX_ELSAHOME)/%) $(CXX_EXTRAAST)
+	bin/astgen$(EXE) -prefix "cxx_elsa/cc_ast" \
+           $(CXX_ELSAAST:%=$(CXX_ELSAHOME)/%) $(CXX_EXTRAAST)
+	mv cxx_elsa/cc_ast.mli $@
+
+include cxx_elsa/.cxx_depend
+
+else
+
+CC_AST_STUB=src/cxx_types/cc_ast.mli.in
+
+src/cxx_types/cc_ast.mli: Makefile.in $(CC_AST_STUB)
+	$(call QUIET,'$(N_CP) $@') \
+	$(CP) $(CC_AST_STUB) $@
+endif
+
+cxx_elsa/cc_ast_parse.ml: src/cxx_types/cc_ast.mli
+	:
+
+cxx_elsa/cc_ast_visitor.ml: src/cxx_types/cc_ast.mli
+	:
+
+cxx_elsa/annot_ast.ml cxx_elsa/annot_ast_parse.ml: \
+     bin/astgen $(CXX_ELSAHOME)/annot.ast
+	bin/astgen -prefix "cxx_elsa/annot_ast" \
+	   $(CXX_ELSAHOME)/annot.ast
+
+cxx_elsa/.depend: cxx_elsa/.cxx_depend bin/astgen$(EXE)
+
+PLUGIN_ENABLE:=$(ENABLE_CXX)
+PLUGIN_NAME:=Cxx
+PLUGIN_DIR:=cxx_elsa
+PLUGIN_NO_TEST:=yes
+PLUGIN_NO_DEFAULT_TEST:=yes
+PLUGIN_BFLAGS:=-pp $(CAMLP4O)
+PLUGIN_OFLAGS:=-pp $(CAMLP4O)
+PLUGIN_DEPFLAGS:=-pp $(CAMLP4O)
+PLUGIN_DOCFLAGS:=-pp $(CAMLP4O)
+PLUGIN_CMO:= $(CXX_TRANSLATE) cxx_state register
+PLUGIN_GENERATED:= cxx_elsa/.cxx_depend bin/astgen \
+                   cxx_elsa/astgen_parse.ml cxx_elsa/astgen_parse.mli \
+                   cxx_elsa/astgen_lex.ml cxx_elsa/install.ml \
+                   cxx_elsa/cc_ast_visitor.ml cxx_elsa/cc_ast_parse.ml \
+	           src/cxx_types/cc_ast.mli
+
+PLUGIN_HAS_MLI:=yes
+PLUGIN_UNDOC:=astgen_lex.ml astgen_parse.ml cc_ast_parse.ml
+PLUGIN_TESTS_DIRS:=cxx_elsa/tests
+PLUGIN_INTRO:=cxx_elsa/doc_intro.txt
+PLUGIN_DISTRIBUTED:=no
+include Makefile.plugin
+
+ifeq ($(ENABLE_SLICING),yes)
+PLUGIN_ENABLE:=$(ENABLE_CXX)
+else
+PLUGIN_ENABLE:=no
+endif
+PLUGIN_NAME:=CxxSlicing
+PLUGIN_DIR:=cxx_elsa/cxx_slicing
+PLUGIN_CMO:= cxx_slice register_slicing
+PLUGIN_HAS_MLI:=yes
+PLUGIN_BFLAGS:= -I cxx_elsa
+PLUGIN_OFLAGS:= -I cxx_elsa
+PLUGIN_DEPFLAGS:= -I cxx_elsa
+PLUGIN_NO_TEST:=yes
+PLUGIN_INTRO:=cxx_elsa/cxx_slicing/doc_intro.txt
+PLUGIN_DEPENDS:=Cxx
+PLUGIN_DISTRIBUTED:=no
+include Makefile.plugin
+
+##########################################################################
+# Common startup module                                                  #
+# All link command should add it as last linked module and depend on it. #
+##########################################################################
+
+STARTUPCMO=src/kernel/boot.cmo
+STARTUPCMX=$(STARTUPCMO:.cmo=.cmx)
+
+############
+# toplevel #
+############
+
+TOPCMO = src/toplevel/main.cmo
+TOPCMX = $(TOPCMO:.cmo=.cmx)
+
+ALL_CMO=$(ACMO) $(PLUGIN_TYPES_CMO_LIST) \
+	$(KERNEL_CMO) $(LCMO) $(LOCCMO) \
+        $(PLUGIN_CMO_LIST) $(TOPCMO)
+
+bin/toplevel.byte$(EXE): Makefile $(ALL_CMO) $(STARTUPCMO) $(GEN_BYTE_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) $(BFLAGS) -o $@ $(BYTE_LIBS) $(ALL_CMO) $(STARTUPCMO)
+
+bin/toplevel.prof$(EXE): Makefile $(GEN_BYTE_LIBS) $(ALL_CMO) $(STARTUPCMO)
+	ocamlcp $(BFLAGS) -o $@ $(BYTE_LIBS) $(ALL_CMO) $(STARTUPCMO)
+
+ALL_CMX=$(ALL_CMO:.cmo=.cmx)
+
+bin/toplevel.opt$(EXE): Makefile $(ALL_CMX) $(STARTUPCMX) $(GEN_OPT_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) $(OFLAGS) -o $@ $(OPT_LIBS) $(ALL_CMX) $(STARTUPCMX)
+
+bin/toplevel.top$(EXE): Makefile $(ALL_CMO) src/toplevel/toplevel_topdirs.cmo \
+		$(STARTUPCMO) $(GEN_BYTE_LIBS)
+	$(call QUIET,'$(N_MKTOP) $@') \
+	$(OCAMLMKTOP) $(BFLAGS) -o $@ $(BYTE_LIBS) $(ALL_CMO) \
+	  src/toplevel/toplevel_topdirs.cmo $(STARTUPCMO)
+
+#######
+# GUI #
+#######
+
+ifneq (@ENABLE_GUI@,no)
+GUI_INCLUDES = -I src/gui -I +lablgtk2
+BYTE_GUI_LIBS= lablgtk.cma
+OPT_GUI_LIBS = lablgtk.cmxa
+
+ifeq ($(HAS_LABLGTK),yes)
+EXTRAS_AFTER_BYTE+= gui
+endif
+
+ifeq ($(HAS_GTKSOURCEVIEW),yes)
+ifeq ($(HAS_LEGACY_GTKSOURCEVIEW),yes)
+GUI_INCLUDES  += -I +lablgtksourceview
+endif
+BYTE_GUI_LIBS += lablgtksourceview.cma
+OPT_GUI_LIBS  += lablgtksourceview.cmxa
+endif
+
+GUICMO = src/gui/gtk_helper.cmo \
+	 src/gui/source_viewer.cmo src/gui/source_manager.cmo \
+	 src/gui/warning_manager.cmo \
+	 src/gui/pretty_source.cmo \
+	 src/gui/filetree.cmo \
+	 src/gui/design.cmo \
+	 src/gui/project_manager.cmo \
+	 src/gui/about_dialog.cmo \
+	 $(PLUGIN_GUI_CMO_LIST)
+
+GUICMI = $(GUICMO:.cmo=.cmi)
+GUICMX = $(GUICMO:.cmo=.cmx)
+
+$(GUICMI) $(GUICMO) bin/viewer.byte$(EXE): BFLAGS+= $(GUI_INCLUDES)
+$(GUICMX) bin/viewer.opt$(EXE): OFLAGS+= $(GUI_INCLUDES)
+
+ifeq ($(HAS_GTKSOURCEVIEW),yes)
+
+src/gui/source_viewer.ml: src/gui/source_viewer.ml4
+	$(call QUIET,'$(N_CAMLP4) $@') \
+	$(CAMLP4OOF) -DSOURCEVIEW -impl $< -o $@
+else
+
+src/gui/source_viewer.ml: src/gui/source_viewer.ml4
+	$(call QUIET,'$(N_CAMLP4) $@') \
+	$(CAMLP4OOF) -impl $< -o $@
+endif
+
+GENERATED += src/gui/source_viewer.ml
+
+gui: bin/viewer.byte$(EXE) bin/viewer.$(OCAMLBEST)$(EXE)
+
+bin/viewer.byte$(EXE): BYTE_LIBS+=$(BYTE_GUI_LIBS)
+bin/viewer.byte$(EXE): $(ALL_CMO) $(GUICMO) $(STARTUPCMO) $(GEN_BYTE_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) $(BFLAGS) -o $@ $(BYTE_LIBS) $(ALL_CMO) $(GUICMO) \
+	  $(STARTUPCMO)
+
+bin/viewer.opt$(EXE): OPT_LIBS+= $(OPT_GUI_LIBS)
+bin/viewer.opt$(EXE): $(ALL_CMX) $(GUICMX) $(STARTUPCMX) $(GEN_OPT_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) $(OFLAGS) -o $@ $(OPT_LIBS)	$(ALL_CMX) $(GUICMX) \
+	  $(STARTUPCMX)
+endif
+
+#########################
+# Standalone Obfuscator #
+#########################
+
+obfuscator: bin/obfuscator.$(OCAMLBEST)
+
+bin/obfuscator.byte$(EXE): $(ACMO) $(KERNEL_CMO) $(STARTUPCMO) $(GEN_BYTE_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) $(BFLAGS) -o $@ $(BYTE_LIBS) $^
+
+bin/obfuscator.opt$(EXE): $(ACMX) $(KERNEL_CMX) $(STARTUPCMX) $(GEN_OPT_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) $(OFLAGS) -o $@ $(OPT_LIBS) $^
+
+########
+# Miel #
+########
+
+# the following line should be removed when/if miel becomes a plugin
+CONFIG_DISTRIB_BIN+="--disable-miel"
+
+ifneq ($(ENABLE_MIEL), no)
+MIELCMO = src/miel/miel_spec_parsing_internals.cmo \
+	src/miel/miel_user.cmo \
+	src/miel/miel_spec.cmo \
+	src/miel/miel_spec_compilation_lexer.cmo \
+	src/miel/miel_spec_compilation_parser.cmo \
+	src/miel/miel_spec_pointers_lexer.cmo \
+	src/miel/miel_spec_pointers_parser.cmo \
+	src/miel/miel_spec_lexer.cmo src/miel/miel_spec_parser.cmo \
+	src/miel/parallelism.cmo  src/miel/proc_names.cmo \
+        src/miel/build_parallel_model.cmo \
+	src/miel/alcool.cmo src/miel/miel_ext_pointers.cmo \
+        src/miel/miel_ext_raw.cmo src/miel/promela.cmo \
+	src/miel/miel_init.cmo \
+        src/miel/passerelle.cmo \
+        src/miel/miel_cg.cmo \
+	src/miel/miel.cmo
+
+MIELCMX = $(MIELCMO:.cmo=.cmx)
+
+ALL_MIEL_CMO= $(ACMO) $(PLUGIN_TYPES_CMO_LIST) $(KERNEL_CMO) $(KCMO) $(LCMO) $(LOCCMO)  $(PLUGIN_CMO_LIST) $(TOPCMO) $(MIELCMO)
+
+ALL_MIEL_CMX = $(ACMX) $(PLUGIN_TYPES_CMX_LIST) $(KERNEL_CMX) $(KCMX) $(LCMX) $(LOCCMX)  $(PLUGIN_CMX_LIST) $(TOPCMX) $(MIELCMX)
+
+# The references to MIELO have been removed so far. They will be restored as
+# soon as they are needed.
+MIELO = src/miel/ocaml_tcl.o
+
+GENERATED += src/miel/miel_spec_lexer.ml src/miel/miel_spec_parser.ml \
+	src/miel/miel_spec_compilation_lexer.ml \
+	src/miel/miel_spec_compilation_parser.ml \
+	src/miel/miel_spec_pointers_lexer.ml \
+	src/miel/miel_spec_pointers_parser.ml \
+	src/miel/miel_spec_parser.mli \
+	src/miel/miel_spec_pointers_parser.mli \
+	src/miel/miel_spec_compilation_parser.mli
+
+miel: bin/miel.opt$(EXE)
+
+bin/miel.byte$(EXE) bin/miel.top$(EXE): Makefile
+bin/miel.opt$(EXE): Makefile
+
+bin/miel.top$(EXE): $(ALL_MIEL_CMO) src/toplevel/toplevel_topdirs.cmo \
+              src/miel/mieltop_dirs.cmo $(TOPCMO) $(STARTUPCMO) \
+	      $(GEN_BYTE_LIBS)
+	$(call QUIET,'$(N_MKTOP) $@') \
+	$(OCAMLMKTOP) $(BFLAGS) -o $@ $(BYTE_LIBS) \
+		$(ALL_MIEL_CMO) $(TOPCMO) \
+		src/toplevel/toplevel_topdirs.cmo src/miel/mieltop_dirs.cmo \
+		$(STARTUPCMO)
+
+bin/miel.byte$(EXE): $(ALL_MIEL_CMO) $(STARTUPCMO) $(GEN_BYTE_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) $(BFLAGS) -o $@ $(BYTE_LIBS) $(ALL_MIEL_CMO) $(STARTUPCMO)
+
+bin/miel.opt$(EXE): $(ALL_MIEL_CMX) $(STARTUPCMX) $(GEN_OPT_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) $(OFLAGS) -o $@ $(OPT_LIBS)	$(ALL_MIEL_CMX) $(STARTUPCMX)
+
+miel_tests: bin/miel.byte$(EXE)
+	make -C src/miel/tests
+
+ifeq ($(HAS_LABLGTK),yes)
+
+GENERATED += src/miel/miel_gui.ml
+src/miel/miel_gui.ml : src/miel/gui/miel_gui.glade
+	$(call QUIET,'$(N_MAKING) $@') \
+	($(CP) src/miel/gui/miel_gui.glade bin/; \
+	$(LABLGLADECC) $^ > $@)
+
+bin/miel_gui.glade : src/miel/gui/miel_gui.glade
+	$(call QUIET,'$(N_CP) $@') \
+	$(CP) $^ $@
+
+MIEL_GUI_CMO = src/miel/miel_gui.cmo src/miel/miel_gui_actions.cmo
+MIEL_GUI_CMX = $(MIEL_GUI_CMO:.cmo=.cmx)
+$(MIEL_GUI_CMO) $(MIEL_GUI_CMX) : INCLUDES+=$(GUI_INCLUDES)
+
+#bin/miel_gui.opt : $(OPT_LIBS)+=lablglade.cmxa lablgtk.cmxa
+bin/miel_gui.opt$(EXE) : $(ALL_MIEL_CMX) $(MIEL_GUI_CMX) $(STARTUPCMX) \
+	           $(GEN_OPT_LIBS)
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) $(OFLAGS) -o $@ $(OPT_LIBS) \
+	  -I +lablgtk2 lablgtk.cmxa lablglade.cmxa \
+          $(ALL_MIEL_CMX) $(MIEL_GUI_CMX) $(STARTUPCMX)
+
+miel_gui: bin/miel_gui.glade bin/miel_gui.opt$(EXE)
+
+endif
+
+else
+miel:
+	-$(ECHO) "Unsupported extension. Rerun ./configure --enable-miel"
+endif
+
+VERSION=$(shell $(SED) -e 's/\\(.*\\)/\\1/' VERSION)
+
+VERSIONDIR=src/kernel
+VERSIONFILE=$(VERSIONDIR)/version.ml
+VERSIONCMO=$(VERSIONDIR)/version.cmo
+GENERATED +=$(VERSIONFILE)
+
+$(VERSIONFILE): VERSION Makefile
+	$(call QUIET,'$(N_MAKING) $@') \
+	($(RM) $@; \
+	$(ECHO) "(* This file is generated in Makefile.in. Do not modify. *)" \
+		> $@; \
+	$(ECHO) "let version = \""$(VERSION)"\"" >> $@; \
+	$(ECHO) "let date = \""`LC_ALL=C date`"\"" >> $@; \
+	$(ECHO) "let dataroot = try Sys.getenv \"FRAMAC_SHARE\" with Not_found -> \"$(datadir)\"" >> $@)
+
+#################
+# generic rules #
+#################
+
+ifdef DOT
+%.png: %.dot
+	$(call QUIET,'$(N_DOT) $@') \
+	$(DOT) -Tpng -o $@ $<
+
+%.svg: %.dot
+	$(call QUIET,'$(N_DOT) $@') \
+	($(SED) "s/\(digraph .*\)/\1 node [href=\"\\\\N.html\"];/" $< \
+		> $<.tmp; \
+	$(DOT) -Tsvg -o $@ $<.tmp; \
+	$(RM) $<.tmp)
+
+%.ps: %.dot
+	$(call QUIET,'$(N_DOT) $@') \
+	$(DOT) -Tps -o $@ $<
+else
+%.png: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+%.svg: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+%.ps: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+endif
+
+.SUFFIXES: .mli .ml .cmi .cmo .cmx .mll .mly .tex .dvi .ps .html
+
+.mli.cmi:
+	$(call QUIET,'$(N_OCAMLC) $@') \
+	$(OCAMLC) -c $(BFLAGS) $<
+
+.ml.cmi:
+	$(call QUIET,'$(N_OCAMLC) $@') \
+	if `test -e $<i`; then $(OCAMLC) -c $(BFLAGS) $<i; \
+	else $(OCAMLC) -c $(BFLAGS) $<; fi
+
+.ml.cmo:
+	$(call QUIET,'$(N_OCAMLC) $@') \
+	$(OCAMLC) -c $(BFLAGS) $<
+
+.ml.o:
+	$(call QUIET,'$(N_OCAMLOPT) $@') \
+	$(OCAMLOPT) -c $(OFLAGS) $<
+
+.ml.cmx:
+	$(call QUIET,'$(N_OCAMLOPT) $@') \
+	$(OCAMLOPT) -c $(OFLAGS) $<
+
+.mll.ml:
+	$(call QUIET,'$(N_OCAMLLEX) $@') \
+	$(OCAMLLEX) $<
+
+.mly.ml:
+	$(call QUIET,'$(N_OCAMLYACC) $@') \
+	$(OCAMLYACC) -v $<
+
+.mly.mli:
+	$(call QUIET,'$(N_OCAMLYACC) $@') \
+	$(OCAMLYACC) -v $<
+
+.tex.dvi:
+	$(call QUIET,'$(N_LATEX) $@') \
+	latex $< && latex $<
+
+.dvi.ps:
+	$(call QUIET,'$(N_DVIPS) $@') \
+	dvips $< -o $@
+
+.tex.html:
+	hevea $<
+
+.c.o:
+	$(call QUIET,'$(N_OCAMLC) $@') \
+	$(OCAMLC) $(BFLAGS) -ccopt "-o $@" $<
+
+#########
+# Tests #
+#########
+
+
+.PHONY: tests oracles btests tests_dist
+tests: opt top ptests
+	$(call QUIET,'$(N_EXEC) ptests') \
+	time -p ./bin/ptests.byte$(EXE) $(PLUGIN_TESTS_LIST)
+
+oracles: opt top ptests
+	$(call QUIET, '$(N_MAKING) oracles') \
+	(./bin/ptests.byte$(EXE) $(PLUGIN_TESTS_LIST) > /dev/null 2>&1 ; \
+	 ./bin/ptests.byte$(EXE) -update $(PLUGIN_TESTS_LIST))
+
+btests: byte top ptests
+	$(call QUIET,'$(N_EXEC) ptest') \
+	time -p ./bin/ptests.byte$(EXE) -byte $(PLUGIN_TESTS_LIST)
+
+tests_dist: dist top ptests
+	$(call QUIET,'$(N_EXEC) ptests') \
+	time -p ./bin/ptests.byte$(EXE) $(PLUGIN_TESTS_LIST)
+
+# test only one test suite : make suite_tests
+%_tests: opt top ptests
+	$(call QUIET,'$(N_EXEC) ptests') \
+	./bin/ptests.byte$(EXE) $($*_TESTS_OPTS) $*
+
+# full test suite
+wp_TESTS_OPTS=-j 1
+fulltests: tests wp_tests
+
+acsl_tests: byte
+	find doc/speclang -name \*.c -exec bin/toplevel.byte$(EXE) {} \; > /dev/null
+
+##############
+# Emacs tags #
+##############
+
+.PHONY: tags
+# otags gives a better tagging of ocaml files than etags
+ifdef OTAGS
+tags:
+	$(OTAGS) -r external src lib cil
+vtags:
+	$(OTAGS) -vi -r external src lib cil
+else
+tags:
+	find . -name "*.ml[ily]" -o -name "*.ml" | sort -r | xargs \
+	etags "--regex=/[ \t]*let[ \t]+\([^ \t]+\)/\1/" \
+	      "--regex=/[ \t]*let[ \t]+rec[ \t]+\([^ \t]+\)/\1/" \
+	      "--regex=/[ \t]*and[ \t]+\([^ \t]+\)/\1/" \
+	      "--regex=/[ \t]*type[ \t]+\([^ \t]+\)/\1/" \
+              "--regex=/[ \t]*exception[ \t]+\([^ \t]+\)/\1/" \
+	      "--regex=/[ \t]*val[ \t]+\([^ \t]+\)/\1/" \
+	      "--regex=/[ \t]*module[ \t]+\([^ \t]+\)/\1/"
+endif
+
+#################
+# Documentation #
+#################
+
+wc:
+	ocamlwc -p src/*/*.ml*
+
+$(DOC_DIR)/plugin.css: $(DOC_DIR)/style.css
+	$(call QUIET,'$(N_MAKING) $@') \
+	($(CAT) $<; $(ECHO) "body { background-color : #FFFFEE }") > $@
+
+$(DOC_DIR)/docgen.cmo: $(DOC_DIR)/docgen.ml
+	$(call QUIET,'$(N_OCAMLC) $@') \
+	$(OCAMLC) -c -I +ocamldoc -I $(VERSIONDIR) $(DOC_DIR)/docgen.ml
+
+.PHONY: doc html plugins-doc
+
+plugins-doc: $(PLUGIN_DOC_LIST)
+
+# to make the documentation for one pluggin only,
+# the name of the pluggin should begin with a capital letter :
+# Example for the pdg doc : make Pdg_DOC
+# While working on the documentation of a pluggin, it can also be usefull
+# to use : make -o doc/code/kernel-doc.ocamldoc Plugin_DOC
+# to avoid redoing the global documentation each time.
+
+DOC_FLAGS:= -colorize-code -stars -inv-merge-ml-mli -m A \
+	$(INCLUDES) $(GUI_INCLUDES)
+
+STDLIB_FILES=map set pervasives big_int list array string char marshal \
+	printf format scanf hashtbl buffer sys
+STDLIB_FILES:=$(patsubst %, $(OCAMLLIB)/%.mli, $(STDLIB_FILES))
+
+html $(DOC_DIR)/kernel-doc.ocamldoc: $(MODULES_TODOC) \
+				   byte \
+				   $(DOC_DIR)/docgen.cmo
+	$(call QUIET,'$(N_DOC) kernel') \
+	($(MKDIR) $(DOC_DIR)/html; \
+	$(RM) $(DOC_DIR)/html/*.html; \
+	$(OCAMLDOC) $(DOC_FLAGS) -I $(OCAMLLIB) \
+	  $(addprefix -stdlib , $(STDLIB_FILES)) \
+          -sort -css-style ../style.css \
+	  -g $(DOC_DIR)/docgen.cmo \
+	  -d $(DOC_DIR)/html -dump $(DOC_DIR)/kernel-doc.ocamldoc \
+	  $(MODULES_TODOC))
+
+doc: html plugins-doc
+
+doc/db/db.tex: src/kernel/db.mli
+	$(call QUIET,'$(N_DOC) $@') \
+	($(MKDIR) $(dir $@); \
+	$(OCAMLDOC) $(INCLUDES) -I $(OCAMLLIB) \
+	  -latex -noindex -latextitle 3,paragraph -notoc -noheader -notrailer \
+	  -o $@ $<)
+
+# Could be optimized
+.PHONY: db_doc
+db_doc doc/db/db.pdf: doc/db/main.tex doc/db/main.bib doc/db/db.tex
+	$(call QUIET,'$(N_MAKING) doc/db/db.pdf') \
+	cd $(dir $@); \
+	  pdflatex $(notdir $<); bibtex main; \
+	  pdflatex $(notdir $<); pdflatex $(notdir $<); \
+	  mv main.pdf $(notdir $@)
+
+#find src -name "*.ml[i]" -o -name "*.ml" -maxdepth 3 | sort -r | xargs
+dots: $(ALL_CMO)
+	$(call QUIET,'$(N_DOC) callgraph') \
+	$(OCAMLDOC) $(INCLUDES) -o doc/call_graph.dot -dot -dot-include-all -dot-reduce $(MODULES_TODOC)
+	$(MAKE) doc/call_graph.svg
+	$(MAKE) doc/call_graph.ps
+
+datatype_dependencies.dot computation_dependencies.dot: ./bin/toplevel.byte$(EXE)
+	$(call QUIET,'$(N_EXEC) toplevel.byte') \
+	./bin/toplevel.byte$(EXE) -project-debug -dump > /dev/null 2> /dev/null
+
+.PHONY:display_dependencies
+display_dependencies: datatype_dependencies.svg computation_dependencies.svg
+	inkscape datatype_dependencies.svg computation_dependencies.svg &
+
+################
+# Installation #
+################
+.PHONY: install
+install:
+	$(MKDIR) $(BINDIR)
+	$(MKDIR) $(datadir)
+	$(CP) -R share/*.c share/*.h share/why share/jessie $(datadir)
+	$(CP) bin/toplevel.$(OCAMLBEST) $(BINDIR)/frama-c
+	$(CP) bin/toplevel.byte$(EXE) $(BINDIR)/frama-c.byte$(EXE)
+	if [ -x bin/toplevel.top ] ; then \
+          $(CP) bin/toplevel.top $(BINDIR)/frama-c.toplevel ; fi
+	if [ -x bin/viewer.$(OCAMLBEST) ] ; then \
+	  $(CP) bin/viewer.$(OCAMLBEST) $(BINDIR)/frama-c-gui ; fi
+ifeq (@JESSIE_LOCAL@,yes)
+	$(MAKE) -C @WHYDISTRIB@ install
+	$(CP) -R doc/manuals $(datadir)
+endif
+
+################################
+# File headers: license policy #
+################################
+
+HEADACHE= headache -c headers/headache_config.txt
+
+MODIFIED_MENHIR=external/ptmap.ml*
+
+CIL	= cil/ocamlutil/*.ml* \
+	cil/src/*.ml* \
+	cil/src/ext/*.ml* cil/src/ext/pta/*.ml* \
+	cil/src/frontc/*.ml*
+
+CEA_INRIA_LGPL	= Makefile.in configure.in config.h.in \
+	src/logic/*.ml* \
+	cil/src/logic/*.ml* \
+	src/wp/*.ml* \
+	src/pdg_types/*.ml* src/pdg/*.ml* \
+	src/slicing_types/*.ml* src/slicing/*.ml*
+
+INRIA_LGPL= src/jessie/*.ml*
+
+CEA_LGPL= Makefile.plugin \
+	src/kernel/*.ml* \
+	src/misc/*.ml* \
+	src/ai/*.ml* \
+	src/memory_state/*.ml* \
+	src/toplevel/*.ml* \
+	share/*.c share/*.h \
+	src/from/*.ml* \
+	src/gui/*.ml* \
+	src/inout/*.ml* \
+	src/postdominators/*.ml* \
+	src/project/*.ml* \
+	src/sparecode/*.ml* \
+	src/users/*.ml* \
+	src/value/*.ml* \
+	src/constant_propagation/*.ml* \
+        src/cxx_types/cc_ast.mli.in
+
+CEA_PROPRIETARY:= src/modular_dependencies/*.ml* \
+	src/security/*.ml* src/impact/*.ml* \
+        share/*.cc \
+	share/miel-mode.el \
+	src/cxx_types/*.ml*
+ifneq ($(ENABLE_CXX),no)
+CEA_PROPRIETARY+= \
+	cxx_elsa/*.ml* \
+	cxx_elsa/*.ast \
+	cxx_elsa/cxx_slicing/*.ml*
+endif
+ifeq ($(ENABLE_MIEL),yes)
+CEA_PROPRIETARY+=src/miel/*.ml*
+endif
+
+LICENSES= MODIFIED_MENHIR CEA_LGPL CEA_PROPRIETARY CEA_INRIA_LGPL INRIA_LGPL \
+	CIL
+
+.PHONY: headers
+headers: clean
+	@$(ECHO)\
+	$(foreach l,$(LICENSES),\
+	$(foreach f,$($l),$(shell $(HEADACHE) -h headers/$l $f)))
+
+########################################################################
+# Makefile is rebuilt whenever Makefile.in or configure.in is modified #
+########################################################################
+
+Makefile: Makefile.plugin Makefile.in config.status
+	./config.status
+
+config.status: configure
+	./config.status --recheck
+
+configure: configure.in
+	autoconf
+
+$(PERFCOUNT).c: $(PERFCOUNT).c.in
+$(PERFCOUNT).c.in:
+	./configure
+
+# If 'make clean' have to be performed after 'cvs update':
+# change '.make-clean-stamp' before 'cvs commit'
+.make-clean: .make-clean-stamp
+	touch $@
+	make clean
+
+include .make-clean
+
+# force "make clean" to be executed for all users of CVS
+force-clean:
+	expr `$(CAT) .make-clean-stamp` + 1 > .make-clean-stamp
+
+############
+# cleaning #
+############
+
+clean-tests:
+	$(call QUIET,'$(N_RM) tests') \
+	$(RM) tests/*/*.byte$(EXE) tests/*/*.opt$(EXE) tests/*/*.cm* tests/*/*~
+
+clean-doc: $(PLUGIN_LIST:=_CLEAN_DOC)
+	$(call QUIET,'$(N_RM) documentation') \
+	($(RM) -r $(DOC_DIR)/html; \
+	$(RM) $(DOC_DIR)/docgen.cm* $(DOC_DIR)/*~; \
+	$(RM) doc/db/*~ doc/db/ocamldoc.sty doc/db/db.tex; \
+	if [ -d doc/developer ]; then $(MAKE) -C doc/developer clean; fi; \
+	if [ -d doc/architecture ]; then $(MAKE) -C doc/architecture clean; fi)
+
+clean:: $(PLUGIN_LIST:=_CLEAN)
+	$(call QUIET,'$(N_RM) plugins') \
+	($(RM) $(PLUGIN_GENERATED_LIST); \
+	$(RM) $(PLUGIN_LIB_DIR)/*.mli $(PLUGIN_LIB_DIR)/*.cm* \
+		$(PLUGIN_LIB_DIR)/*.p)
+	$(call QUIET,'$(N_RM) sources') \
+	for d in $(SRC_DIRS); do \
+	  $(RM) $$d/*.cm* $$d/*.o $$d/*.a $$d/*.annot $$d/*~ $$d/*.output; \
+	done
+	$(call QUIET,'$(N_RM) generated files') \
+	$(RM) $(GENERATED)
+	$(call QUIET,'$(N_RM) binaries') \
+	$(RM) bin/*.byte$(EXE) bin/*.opt$(EXE) bin/*.top$(EXE)
+
+dist-clean distclean:: clean clean-doc clean-tests
+	$(call QUIET,'$(N_RM) distribution') \
+	$(RM) Makefile config.cache config.log config.status config.h
+
+##########
+# depend #
+##########
+
+.PHONY: depend
+depend: $(GENERATED) $(PLUGIN_GENERATED_LIST) $(PLUGIN_LIST:%=%_DEP_REDO)
+	$(call QUIET,'$(N_DEP) .depend') \
+	(if test "$(PLUGIN_LIST)" != ""; then \
+	  $(CAT) $(foreach d, $(PLUGIN_LIST), $(dir $d).depend) > .depend; \
+	fi; \
+	$(SED) -i -e "s&why/[/a-z_0-9]\+\(.cm[oxi]\)&why/jc/jc\1&g" .depend; \
+	$(OCAMLDEP) $(DEP_FLAGS) $(FILES_FOR_OCAMLDEP) >> .depend)
+
+.depend: $(GENERATED) $(PLUGIN_GENERATED_LIST) $(PLUGIN_LIST:%=%_DEP)
+	$(call QUIET,'$(N_DEP) .depend') \
+	(if test "$(PLUGIN_LIST)" != ""; then \
+	  $(CAT) $(foreach d, $(PLUGIN_LIST),$(dir $d).depend) > .depend; \
+        fi; \
+	$(SED) -i -e "s&why/[/a-z_0-9]\+\(.cm[oxi]\)&why/jc/jc\1&g" .depend; \
+	$(OCAMLDEP) $(DEP_FLAGS) $(FILES_FOR_OCAMLDEP) >> .depend)
+
+include .depend
+
+#####################
+# ptest development #
+#####################
+
+.PHONY: ptests
+
+# Because Ocaml on MacOS X has issues with native threads
+ptests: bin/ptests.byte$(EXE)
+
+ifeq ($(OCAMLWIN32),yes)
+# OCaml on Win32 does not support vmthreads, use native ones.
+bin/ptests.byte$(EXE): ptests/ptests.ml
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) -dtypes -thread -g -o $@ unix.cma threads.cma str.cma $<
+else
+bin/ptests.byte$(EXE): ptests/ptests.ml
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLC) -dtypes -vmthread -g -o $@ unix.cma threads.cma str.cma $<
+endif
+
+bin/ptests.opt$(EXE): ptests/ptests.ml
+	$(call QUIET,'$(N_LINKING) $@') \
+	$(OCAMLOPT) -dtypes -thread -o $@ unix.cmxa threads.cmxa str.cmxa $<
+
+#######################
+# source distribution #
+#######################
+
+DISTRIB_FILES+= $(PLUGIN_DISTRIBUTED_LIST) $(PLUGINS_DIST_DOC_LIST)
+
+EXPORT=frama-c-$(VERSION)
+
+doc/architecture/archi.pdf:
+	$(MAKE) -C doc/architecture
+
+doc/developer/developer.pdf:
+	$(MAKE) -C doc/developer
+
+doc/speclang/main.pdf:
+	$(MAKE) -C doc/speclang implementation
+
+doc/valviewer/%:
+	$(MAKE) -C doc/valviewer $(basename $@)
+
+doc-distrib: $(PLUGIN_DIST_DOC_LIST) \
+             doc/developer/developer.pdf doc/speclang/main.pdf \
+             doc/valviewer/doc_valviewer.pdf doc/valviewer/doc_valviewer_en.pdf
+	mkdir -p doc/manuals
+	cp doc/developer/developer.pdf doc/manuals/plugin-dev.pdf
+	cp doc/speclang/main.pdf doc/manuals/acsl-implementation.pdf
+	cp doc/valviewer/doc_valviewer.pdf doc/manuals/frama-c-manual.pdf
+	cp doc/valviewer/doc_valviewer_en.pdf doc/manuals/frama-c-manual-en.pdf
+
+clean-distrib: dist-clean
+	rm -fr $(EXPORT) $(EXPORT).tar.gz
+
+src-distrib: clean-distrib doc-distrib src-distrib-ocamlgraph \
+             $(PLUGIN_DIST_EXTERNAL_LIST)
+	tar cf tmp.tar $(DISTRIB_FILES)
+	$(MKDIR) $(EXPORT)/bin
+	$(MKDIR) $(EXPORT)/lib/plugins
+	$(MKDIR) $(EXPORT)/external
+	cd $(EXPORT); tar xf ../tmp.tar;
+	rm tmp.tar
+	for dir in $(EXPORT)/tests/*; do \
+	  $(MKDIR) $$dir/result; \
+	  $(MKDIR) $$dir/oracle; \
+        done
+	tar czf $(EXPORT).tar.gz $(EXPORT)
+	cp $(EXPORT).tar.gz doc/www/src/download
+
+bin-distrib: clean configure doc-distrib $(PLUGIN_BIN_DOC_LIST)
+	./configure $(CONFIG_DISTRIB_BIN)
+	$(MAKE) dist
+	$(RM) -fr $(VERSION)
+	$(MKDIR) $(VERSION)/share/frama-c
+	$(MKDIR) $(VERSION)/bin
+	$(MKDIR) $(VERSION)/doc
+	$(CP) share/builtin.c $(VERSION)/share/frama-c
+	$(CP) share/builtin.h $(VERSION)/share/frama-c
+	$(CP) share/libc.c    $(VERSION)/share/frama-c
+	$(CP) share/libc.h    $(VERSION)/share/frama-c
+	$(CP) share/malloc.c  $(VERSION)/share/frama-c
+	$(CP) share/math.c    $(VERSION)/share/frama-c
+	$(CP) share/math.h    $(VERSION)/share/frama-c
+	$(CP) bin/toplevel.opt$(EXE) $(VERSION)/bin/frama-c$(EXE)
+	$(CP) bin/viewer.opt$(EXE)   $(VERSION)/bin/frama-c-gui$(EXE)
+	$(CP) doc/manuals/frama-c-manual.pdf $(VERSION)/doc
+	$(CP) doc/manuals/frama-c-manual-en.pdf $(PLUGIN_BIN_DOC_LIST) \
+              $(VERSION)/doc
+	$(CP) README $(VERSION)
+
+distrib: src-distrib bin-distrib
+
+ifeq (@OCAMLGRAPH_LOCAL@,"")
+src-distrib-ocamlgraph:
+	@ $(ECHO) "Can not make distrib tar ball without local ocamlgraph installation"
+	@ exit 2
+else
+src-distrib-ocamlgraph:
+	$(MKDIR) $(EXPORT)
+	cd $(EXPORT) && tar xzf ../@OCAMLGRAPH_LOCAL@.tar.gz
+endif
+
+ifeq (@JESSIE_LOCAL@,yes)
+src-distrib-jessie:
+	$(MAKE) -C @WHYDISTRIB@ tarball-for-framac
+# Resulting tarball in @WHYDISTRIB@/export/why-for-framac.tar.gz
+	$(MKDIR) $(EXPORT)
+	cd $(EXPORT); tar zxf ../@WHYDISTRIB@/export/why-for-framac.tar.gz
+	mv $(EXPORT)/why-* $(EXPORT)/why
+else
+src-distrib-jessie:
+	@ $(ECHO) "Can not make distrib tar ball without local why installation"
+	@ exit 2
+endif
+
+
+###############################################################################
+# Local Variables:
+# compile-command: "LC_ALL=C make"
+# End:

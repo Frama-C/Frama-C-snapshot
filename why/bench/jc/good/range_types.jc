@@ -1,0 +1,72 @@
+
+type unsignedchar = 0..255
+
+type shortint = -32768..32767
+
+    /*
+type int32 = -2147483648..2147483647
+     */
+shortint f(unsignedchar x, shortint y) 
+  requires y <= 32000;
+{
+  return x+y;
+}
+
+
+
+shortint max(shortint x, shortint y) 
+  behavior result_ge_x: 
+    ensures \result >= x ;
+  behavior result_ge_y: 
+    ensures \result >= y; 
+  behavior result_is_lub:
+    ensures \forall integer z ; z >= x && z >= y ==> z >= \result;
+{
+  if x >= y then return (x+1)-1 else return y;
+} 
+
+
+/* complements for non-linear integer arithmetic */
+
+axiom zero_right: \forall integer x; x*0 == 0
+axiom zero_left: \forall integer x; 0*x == 0
+axiom one_right: \forall integer x; x*1 == x
+axiom one_left: \forall integer x; 1*x == x
+axiom distr_right: \forall integer x,y,z; x*(y+z) == (x*y)+(x*z)
+axiom distr_left: \forall integer x,y,z; (x+y)*z == (x*z)+(y*z)
+    // axiom sqr_elim: \forall integer x; x*x <= 32767 ==> x < 256
+axiom sqr_elim2: \forall integer x; x*x <= 32760 ==> x <= 180
+axiom sqr_intro2: \forall integer x; 0 <= x && x <= 181 ==> x*x <= 32761
+
+
+/* computes the square root of x, rounded to the floor */ 
+shortint isqrt(shortint x) 
+    requires x >= 0 && x <= 32760;
+    behavior is_rounded_sqrt:	
+      ensures 
+	\result >= 0 && \result * \result <= x && 
+	x < (\result + 1) * (\result + 1);
+{
+    var shortint count = 0;
+    var shortint sum = 1;
+    invariant 
+        count >= 0 && x >= count*count && sum == (count+1)*(count+1) &&
+        count <= 180 && sum <= 32761;
+    variant x - sum;
+    while (sum <= x) 
+    { 
+	count++; 
+	assert (count+2 <= 181);
+	sum += 2*count + 1;
+    };
+    assert 1==0;
+    return count;
+    
+}   
+    
+/*
+Local Variables: 
+mode: java
+compile-command: "make range_types"
+End: 
+*/

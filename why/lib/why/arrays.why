@@ -1,0 +1,125 @@
+
+(* Arrays.
+   Type 'a array is a built-in shortcut for 'a farray ref, where 'a farray
+   is the following abstract type for purely applicative arrays *)
+
+type 'a farray
+
+logic array_length : 'a farray -> int
+
+parameter array_length_ : 
+  t:'a array -> {} int reads t { result=array_length(t) }
+
+logic access : 'a farray, int -> 'a
+logic update : 'a farray, int, 'a -> 'a farray
+
+axiom access_update : 
+  forall t : 'a farray. forall i : int. forall v : 'a.
+  access(update(t,i,v), i) = v
+
+axiom access_update_neq : 
+  forall t : 'a farray. forall i : int. forall j : int. forall v : 'a.
+  i <> j -> access(update(t,i,v), j) = access(t,j)
+
+(* t[e] is syntactic sugar for (array_get t e) *)
+parameter array_get :
+  t:'a array -> i:int -> 
+    { 0 <= i < array_length(t) } 'a reads t { result = access(t,i) }
+
+(* t [e1] := e2 is syntactic sugar for (array_set t e1 e2) *)
+parameter array_set : 
+  t:'a array -> i:int -> v:'a -> 
+    { 0 <= i < array_length(t) } unit writes t { t = update(t@,i,v) }
+
+(* Sorted arrays *)
+
+predicate sorted_array(t:int farray, i:int, j:int) = 
+  forall k:int. i <= k < j -> t[k] <= t[k+1]
+
+logic array_le : int farray, int, int, int -> prop
+logic array_ge : int farray, int, int, int -> prop
+
+(* Arrays permutations *)
+
+predicate exchange(t1:int farray, t2:int farray, i:int, j:int) = 
+  array_length(t1) = array_length(t2) and
+  t1[i] = t2[j] and t2[i] = t1[j] and
+  forall k:int. (k <> i and k <> j) -> t1[k] = t2[k]
+
+logic permut : int farray, int farray -> prop
+
+axiom permut_refl :
+  forall t:int farray. permut(t,t)
+ 
+axiom permut_sym :
+  forall t1:int farray. forall t2:int farray.
+    permut(t1,t2) -> permut(t2,t1)
+ 
+axiom permut_trans :
+  forall t1:int farray. forall t2:int farray. forall t3:int farray.
+    (permut(t1,t2) and permut(t2,t3)) -> permut(t1,t3)
+  
+axiom permut_exchange :
+  forall t:int farray. forall i:int. forall j:int.
+    permut(t, update(update(t,i,t[j]),j,t[i]))
+
+logic sub_permut : int, int, int farray, int farray -> prop
+
+axiom sub_permut_refl :
+  forall t:int farray. forall g:int. forall d:int.
+    sub_permut(g,d,t,t)
+
+axiom sub_permut_sym :
+  forall t1:int farray. forall t2:int farray. forall g:int. forall d:int.
+    sub_permut(g,d,t1,t2) -> sub_permut(g,d,t2,t1)
+
+axiom sub_permut_trans :
+  forall t1:int farray. forall t2:int farray. forall t3:int farray.
+  forall g:int. forall d:int.
+    sub_permut(g,d,t1,t2) -> sub_permut(g,d,t2,t3) ->
+    sub_permut(g,d,t1,t3)
+
+axiom sub_permut_exchange_1 :
+  forall t:int farray.
+  forall g:int. forall d:int. forall i:int. forall j:int.
+    (g <= i and i <= d and g <= j and j <= d) ->
+    sub_permut(g,d,t,update(update(t,i,t[j]),j,t[i]))
+
+axiom sub_permut_exchange_2 :
+  forall t1:int farray. forall t2:int farray.
+  forall g:int. forall d:int. forall i:int. forall j:int.
+    (g <= i and i <= d and g <= j and j <= d and
+    exchange(t1,t2,i,j)) -> sub_permut(g,d,t1,t2)
+
+axiom sub_permut_weakening :
+  forall a1:int farray. forall a2:int farray.
+  forall l1:int. forall r1:int. forall l2:int. forall r2:int.
+    l1 <= l2 and l2 <= r2 and r2 <= r1 ->
+    sub_permut(l2,r2,a1,a2) ->
+    sub_permut(l1,r1,a1,a2)
+
+axiom sub_permut_eq :
+  forall a1:int farray. forall a2:int farray.
+  forall l:int. forall r:int. 
+    l <= r ->
+    sub_permut(l,r,a1,a2) ->
+    forall i:int. (i < l or r < i) -> access(a2,i) = access(a1,i)
+
+axiom sub_permut_permut :
+  forall t1:int farray. forall t2:int farray. forall g:int. forall d:int. 
+    sub_permut(g,d,t1,t2) -> permut(t1,t2)
+
+(* Axioms about array_length *)
+
+axiom array_length_update :
+  forall t:int farray. forall i:int. forall v:int.
+    array_length(update(t,i,v)) = array_length(t)
+
+axiom sub_permut_array_length :
+  forall t1:int farray. forall t2:int farray. forall g:int. forall d:int. 
+    sub_permut(g,d,t1,t2) -> array_length(t1) = array_length(t2)
+
+axiom permut_array_length :
+  forall t1:int farray. forall t2:int farray.
+    permut(t1,t2) -> array_length(t1) = array_length(t2)
+

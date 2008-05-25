@@ -1,0 +1,66 @@
+
+
+/***********
+ * Jessie sample file: integer square root 
+ ***********/
+
+/* complements for non-linear integer arithmetic */
+
+axiom distr_right: \forall integer x,y,z; x*(y+z) == (x*y)+(x*z)
+axiom distr_left: \forall integer x,y,z; (x+y)*z == (x*z)+(y*z)
+
+
+/* computes the square root of x, rounded to the floor */ 
+integer isqrt(integer x) 
+    requires x >= 0;
+    behavior is_rounded_sqrt:	
+      ensures 
+	\result >=0 && \result * \result <= x && 
+	x < (\result + 1) * (\result + 1);
+{
+    var integer count = 0;
+    var integer sum = 1;
+    invariant 
+        count >= 0 && x >= count*count && sum == (count+1)*(count+1);
+    variant x - sum;
+    while (sum <= x) 
+    { 
+	count++;
+	sum = sum + 2*count+1;
+    };
+    return count;
+}   
+
+/*
+
+logic integer sqr(integer x) = x * x
+
+integer isqrt2(integer x) 
+    requires x >= 0
+    behavior is_rounded_sqrt:
+      ensures 
+         \result >=0 && sqr(\result) <= x && x < sqr(\result + 1)
+{
+    integer count = 0;
+    integer sum = 1;
+    while (sum <= x) 
+	invariant 
+	   count >= 0 && x >= sqr(count) && sum == sqr(count+1)
+	variant x - sum
+    { 
+	count++;
+	sum = sum + 2*count+1;
+    }
+    return count;
+}   
+
+*/
+  
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make isqrt"
+End: 
+*/
+

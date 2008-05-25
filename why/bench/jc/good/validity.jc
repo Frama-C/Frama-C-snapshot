@@ -1,0 +1,33 @@
+type intM = {
+    integer intP;
+}
+
+type T = {
+    intM[0..] p;
+}
+
+
+integer m(intM[0..] t) 
+  requires \offset_max(t) >= 0;
+{
+    return (t+0).intP;
+}
+
+integer test() 
+  behavior default:
+    ensures \result == 0;
+{
+    var T[0] t = new T[1];
+    t.p = new intM[1];
+    return m(t.p);
+}
+
+
+
+
+/*
+Local Variables: 
+compile-command: "make validity"
+End: 
+*/
+

@@ -1,0 +1,131 @@
+
+/* Example 0
+ * Explanation expected: "validity of lemma"
+ * localized on "l1"
+ */
+// lemma l1: \forall integer x; x+1 == x+2
+
+/* Example 1 
+ * We want the message: 
+ *  "assertion `x < 9' cannot be established"
+ * localized on `x < 9' 
+ */
+
+integer f1(integer x)
+  requires x > 0;
+{
+  assert x >= 0 && x < 9; 
+  return x+1;
+}
+
+/* Example 2 
+ * We want the message: 
+ *  "post-condition `\result > 10' of function f2 cannot be established"
+ * localized on `return x+1'
+ * Bonus: all lines involved in the execution path should be ~underlined 
+ */
+integer f2 (integer x) 
+  requires x > 0 && x < 100;
+  behavior default:
+    ensures \result != 0 && \result > 10;  
+{
+  var integer y;
+  if x<50 then
+     return x+1
+  else 
+     y = x-1;
+  return y;
+}
+
+
+/* Example 3 
+ * We want the message: 
+ *  "pre-condition `x > 0' for call to function f2 cannot be established"
+ * localized on `(f2 x)' 
+ */
+integer f3 (integer x)  
+  requires x >= 0 && x < 50;
+{
+    return f2(x);
+}
+
+
+/* Example 4 
+ * Explanation expected: 
+ *   "validity of loop invariant `0 <= y' at loop entrance"
+ * localized on `while ...' 
+ */
+
+unit f4 (integer x) 
+{ 
+ var integer y = x;
+ invariant 0 <= y && y <= x;
+ variant y;
+ while (y > 0)
+ {
+     y = y - 1;
+ }
+}
+
+
+/* Example 5 
+ * Explanation expected:
+ *   "preservation of loop invariant `y = x'"
+ * localized on the '}' closing the loop body 
+ */
+
+unit f5 (integer x)  
+{
+ var integer y = x;
+ invariant y == x;
+ while (y > 0)
+ {
+ y = y - 1;
+ }
+}
+
+/* Example 6
+ * Explanation expected:
+ *   "arithmetic overflow"
+ * localized on "y", "x+y :> byte" and on "y+z"
+ */
+type byte = 0..255
+byte f6(byte x)
+{
+    var byte y = x+1;
+    var byte z = (x+y) :> byte; 
+    return y+z;
+}
+
+/* Example 7
+ * Explanation expected:
+ *   "pointer dereferencing"
+ * localized on "p.f"
+ */
+type S = { integer f; }
+integer f7(S[..] p)
+{
+    return p.f;
+}
+
+
+/* Example 8
+ *  assigns clause
+ */
+
+unit f8(S[0] p) 
+  behavior default:
+    assigns p.f;
+    ensures p.f == 0;
+{
+    p.f = 0;
+}
+
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make trace.goals"
+End: 
+*/

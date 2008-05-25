@@ -1,0 +1,49 @@
+
+type personne
+
+logic homme,femme : personne -> prop
+axiom homme_ou_femme : forall p:personne. homme(p) or femme(p)
+axiom homme_non_femme : forall p:personne. not (homme(p) and femme(p))
+
+logic pere,mere : personne -> personne
+
+axiom pere_homme : forall p:personne. homme(pere(p))
+axiom mere_femme : forall p:personne. femme(mere(p))
+
+predicate enfant(e:personne, p:personne) = p=pere(e) or p=mere(e)
+
+predicate fils(f:personne, p:personne) = homme(f) and enfant(f,p)
+predicate fille(f:personne, p:personne) = femme(f) and enfant(f,p)
+
+predicate frere_ou_soeur(f1:personne, f2:personne) =
+  pere(f1)=pere(f2) and mere(f1)=mere(f2)
+
+goal frere_ou_soeur_bis : forall f1,f2:personne.
+  frere_ou_soeur(f1,f2) <-> 
+  (exists p:personne. exists m:personne. 
+     homme(p) and femme(m) and
+     enfant(f1,p) and enfant(f2,p) and enfant(f1,m) and enfant(f2,m))
+
+predicate demi_frere_ou_soeur(f1:personne, f2:personne) =
+  pere(f1)=pere(f2) or mere(f1)=mere(f2)
+
+goal demi_frere_ou_soeur_bis : forall f1,f2:personne.
+  demi_frere_ou_soeur(f1,f2) <-> 
+  (exists p:personne. enfant(f1,p) and enfant(f2,p))
+
+predicate grandpere(g:personne, p:personne) = 
+  g=pere(pere(p)) or g=pere(mere(p))
+predicate grandmere(g:personne, p:personne) = 
+  g=mere(pere(p)) or g=mere(mere(p))
+
+goal grandpere_homme : forall g,p:personne. grandpere(g,p) -> homme(g)
+goal grandmere_femme : forall g,p:personne. grandmere(g,p) -> femme(g)
+
+goal grandpere_bis : forall g,p:personne.
+  grandpere(g,p) <-> exists pp:personne. g=pere(pp) and enfant(p,pp)
+
+goal deux_grandperes : forall g1,g2,g3,p:personne.
+  grandpere(g1,p) -> 
+  grandpere(g2,p) ->
+  grandpere(g3,p) ->
+  (g1 = g2 or g2 = g3 or g1 = g3)

@@ -1,0 +1,18 @@
+
+/* Jessie -> OK ; Why -> KO */
+
+// TODO
+
+integer i;
+
+unit f() { var integer i = 0; i++; }
+
+unit g() { i = 1; }
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make name_conflict"
+End: 
+*/
+

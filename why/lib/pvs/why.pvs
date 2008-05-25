@@ -1,0 +1,114 @@
+why: THEORY
+BEGIN
+
+  IMPORTING why_arrays, why_array_pred, why_int_array_pred
+ 
+  unit: TYPE = int
+  unit: unit = 0
+
+  c,x,y : VAR int
+  nzy : VAR nzint
+
+  %% integer division and modulo
+  div(x, nzy) : int = floor(x / nzy)
+  mod(x, nzy) : int = x - nzy * div(x, nzy)
+
+  %% well founded relations
+  zwf(c) : [int, int -> bool] = (lambda x,y: c <= y and x < y)
+  zwf_zero : [int, int -> bool] = zwf(0)
+
+  zwf_wf : AXIOM forall c: well_founded?(zwf(c))
+
+END why
+
+
+why_arrays[T: TYPE]: THEORY
+BEGIN
+
+  warray: TYPE = [ n:nat, [ below(n) -> T ] ]
+
+  i,j : VAR int
+  v : VAR T
+
+  array_length(t:warray) : int = proj_1(t)
+
+  access(t:warray, i:below(proj_1(t))) : T = proj_2(t)(i)
+
+  update(t:warray, i:below(proj_1(t)), v): warray = 
+    (proj_1(t), 
+     (LAMBDA (j:below(proj_1(t))): IF j = i THEN v ELSE proj_2(t)(j) ENDIF))
+
+END why_arrays
+
+% predicates over integers arrays
+why_int_array_pred: THEORY
+BEGIN
+
+  IMPORTING why_arrays
+
+  t,u : VAR warray[int]
+  i,j,k : VAR int
+  
+  % t[i..j] is sorted
+  sorted_array(t:warray[int], i, j) : bool =
+    forall (k:below(proj_1(t)-1)): 
+    i <= k and k < j implies access(t,k) <= access(t,k+1)
+
+END why_int_array_pred
+
+% predicates over arrays
+why_array_pred[T: TYPE]: THEORY
+BEGIN
+
+  IMPORTING why_arrays[T]
+
+  t,u,v : VAR warray[T]
+
+  i,j,k,l,r : VAR int
+
+  % t[i..j] = u[i..j]
+  array_id(t:warray[T], u:warray[T], 
+	   i:below(min(proj_1(t),proj_1(u))),
+	   j:below(min(proj_1(t),proj_1(u)))) : bool = 
+    forall k: i <= k and k <= j implies access(t,k) = access(u,k)
+
+  % swap of elements at i and j
+  exchange(t, u, i, j) : bool = 
+    array_length(t) = array_length(u) and
+    0 <= i and i < array_length(t) and 0 <= j and j < array_length(t) and
+    access(t,i) = access(u,j) and
+    access(t,j) = access(u,i) and
+    forall k: 0 <= k and k < array_length(t) implies 
+      k /= i implies k /= j implies access(t,k) = access(u,k)
+
+  % permut is the smallest equivalence relation containing exchange
+  permut(t, u) : bool
+  
+  permut_exchange : 
+    AXIOM forall t,u,i,j: exchange(t,u,i,j) implies permut(t,u)
+  permut_refl     : 
+    AXIOM forall t: permut(t,t)
+  permut_sym      : 
+    AXIOM forall t,u: permut(t,u) implies permut(u,t)
+  permut_trans    : 
+    AXIOM forall t,u,v : permut(t,u) implies permut(u,v) implies permut(t,v)
+
+  % sub_permut(t,u,i,j) defines a permutation on the sub-array i..j,
+  % other elements being equal
+  sub_permut(l, r, t, u) : bool
+  
+  sub_permut_exchange : 
+    AXIOM forall l,r,t,u,i,j: 
+      l <= i and i <= r implies l <= j and j <= r implies 
+      exchange(t,u,i,j) implies sub_permut(l,r,t,u)
+  sub_permut_refl     : 
+    AXIOM forall l,r,t: sub_permut(l,r,t,t)
+  sub_permut_sym      : 
+    AXIOM forall l,r,t,u: sub_permut(l,r,t,u) implies sub_permut(l,r,u,t)
+  sub_permut_trans    : 
+    AXIOM forall l,r,t,u,v : sub_permut(l,r,t,u) implies sub_permut(l,r,u,v) 
+	                     implies sub_permut(l,r,t,v)
+
+END why_array_pred
+
+

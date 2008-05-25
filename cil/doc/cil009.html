@@ -1,0 +1,304 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.06">
+
+<base target="main">
+<TITLE>
+ Library of CIL Modules
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="cilly.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="ciltoc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="cil010.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H2><A NAME="htoc18">9</A>&nbsp;&nbsp;Library of CIL Modules</H2> <A NAME="sec-Extension"></A>
+We are developing a suite of modules that use CIL for program analyses and
+transformations that we have found useful. You can use these modules directly
+on your code, or generally as inspiration for writing similar modules. A
+particularly big and complex application written on top of CIL is CCured
+(<A HREF="../ccured/index.html"><TT>../ccured/index.html</TT></A>).<BR>
+<BR>
+<A NAME="toc9"></A>
+<H3><A NAME="htoc19">9.1</A>&nbsp;&nbsp;Data flow analysis framework</H3>
+The module <TT>dataflow.ml</TT> contains a parameterized framework for forward and
+backward data flow analyses. You provide the transfer functions and this
+module does the analysis. <BR>
+<BR>
+<A NAME="toc10"></A>
+<H3><A NAME="htoc20">9.2</A>&nbsp;&nbsp;Dominators</H3> 
+The module <TT>dominators.ml</TT> contains the computation of immediate
+ dominators. It uses the <TT>dataflow.ml</TT> module. <BR>
+<BR>
+<A NAME="toc11"></A>
+<H3><A NAME="htoc21">9.3</A>&nbsp;&nbsp;Points-to Analysis</H3>
+The module <TT>ptranal.ml</TT> contains a context-sensitive, interprocedural
+points-to analysis for CIL. The analysis has the following
+characteristics:
+<OL type=1><LI>
+Not based on C types (inferred pointer relationships are sound
+despite most kinds of C casts)
+<LI>One level of subtyping 
+<LI>One level of context sensitivity
+<LI>Monomorphic type structures
+<LI>Field insensitive (fields of structs are conflated)
+<LI>Demand-driven (points-to queries are solved on demand)
+<LI>Handles function pointers 
+</OL>
+The analysis itself is factored into two components: <TT>ptranal.ml</TT>,
+which walks over the CIL file and generates constraints, and
+<TT>golf.ml</TT>, which solves the constraints. The analysis is invoked
+with the function <TT>Ptranal.analyze_file: Cil.file -&gt; unit</TT>. This
+function builds the points-to graph for the CIL file and stores it
+internally. There is currently no facility for clearing internal
+state, so <TT>Ptranal.analyze_file</TT> should only be called once.<BR>
+<BR>
+The constructed points-to graph supports several kinds of queries,
+including alias queries (may two expressions be aliased?) and
+points-to queries (to what set of locations may an expression point?).<BR>
+<BR>
+The main interface with the alias analysis is as follows:
+<OL type=1><LI>
+<TT>Ptranal.may_alias : Cil.exp -&gt; Cil.exp -&gt; bool</TT>. If <TT>true</TT>, the
+two expressions may have the same value. 
+<LI><TT>Ptranal.resolve_funptr : Cil.exp -&gt; (Cil.fundec list)</TT>. Returns
+the list of functions to which the given expression may point. 
+</OL> 
+The precision of the analysis can be customized by changing the values
+of several flags:
+<OL type=1><LI>
+<TT>Ptranal.no_sub : bool ref</TT>. If <TT>true</TT>, subtyping is
+disabled.
+<LI><TT>Ptranal.analyze_mono : bool ref</TT>. If <TT>true</TT>, context
+sensitivity is disabled and the analysis is effectively monomorphic.
+<LI><TT>Ptranal.smart_aliases : bool ref</TT>. If <TT>true</TT>, ``smart''
+disambiguation of aliases is enabled. Otherwise, aliases are computed
+by intersecting points-to sets (this is an experimental feature).
+</OL>
+In practice, the best precision/efficiency tradeoff is achieved by
+setting <TT>Ptranal.no_sub</TT> to <TT>false</TT>, <TT>Ptranal.analyze_mono</TT> to
+<TT>true</TT>, and <TT>Ptranal.smart_aliases</TT> to <TT>false</TT>. These are the
+default values of the flags.<BR>
+<BR>
+There are also a few flags that can be used to inspect or serialize
+the results of the analysis:
+<OL type=1><LI>
+<TT>Ptranal.print_constraints : bool ref</TT>. If <TT>true</TT>, the
+analysis will print each constraint as it is generated.
+<LI><TT>Ptranal.print_types : bool ref</TT>. If <TT>true</TT>, the analysis
+will print the inferred type of each variable in the program. If
+<TT>Ptranal.analyze_mono</TT> and <TT>Ptranal.no_sub</TT> are both <TT>true</TT>,
+this output is sufficient to reconstruct the points-to graph. One nice
+feature is that there is a pretty printer for recursive types, so the
+print routine doesn't loop.
+<LI><TT>Ptranal.compute_results : bool ref</TT>. If <TT>true</TT>, the
+analysis will print out the points-to set of each variable in the
+program. This will essentially serialize the points-to graph.
+</OL>
+<A NAME="toc12"></A>
+<H3><A NAME="htoc22">9.4</A>&nbsp;&nbsp;StackGuard</H3>
+The module <TT>heapify.ml</TT> contains a transformation similar to the one
+described in ``StackGuard: Automatic Adaptive Detection and Prevention of
+Buffer-Overflow Attacks'', <EM>Proceedings of the 7th USENIX Security
+Conference</EM>. In essence it modifies the program to maintain a separate
+stack for return addresses. Even if a buffer overrun attack occurs the
+actual correct return address will be taken from the special stack. <BR>
+<BR>
+Although it does work, this CIL module is provided mainly as an example of
+how to perform a simple source-to-source program analysis and
+transformation. As an optimization only functions that contain a dangerous
+local array make use of the special return address stack. <BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --dostackGuard</TT>
+transforms the following dangerous code: 
+<PRE><FONT COLOR=blue>
+  int dangerous() {
+    char array[10];
+    scanf("%s",array); // possible buffer overrun!
+  }
+
+  int main () {
+    return dangerous();
+  }
+</FONT></PRE>
+See the <A HREF="examples/ex23.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<A NAME="toc13"></A>
+<H3><A NAME="htoc23">9.5</A>&nbsp;&nbsp;Heapify</H3>
+The module <TT>heapify.ml</TT> also contains a transformation that moves all
+dangerous local arrays to the heap. This also prevents a number of buffer
+overruns. <BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --doheapify</TT>
+transforms the following dangerous code: 
+<PRE><FONT COLOR=blue>
+  int dangerous() {
+    char array[10];
+    scanf("%s",array); // possible buffer overrun!
+  }
+
+  int main () {
+    return dangerous();
+  }
+</FONT></PRE>
+See the <A HREF="examples/ex24.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<A NAME="toc14"></A>
+<H3><A NAME="htoc24">9.6</A>&nbsp;&nbsp;One Return</H3>
+The module <TT>oneret.ml</TT> contains a transformation the ensures that all
+function bodies have at most one return statement. This simplifies a number
+of analyses by providing a canonical exit-point. <BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --dooneRet</TT>
+transforms the following code: 
+<PRE><FONT COLOR=blue>
+  int foo (int predicate) {
+    if (predicate &lt;= 0) {
+      return 1;
+    } else {
+      if (predicate &gt; 5)
+        return 2;
+      return 3;
+    }
+  }
+</FONT></PRE>
+See the <A HREF="examples/ex25.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<A NAME="toc15"></A>
+<H3><A NAME="htoc25">9.7</A>&nbsp;&nbsp;Control-Flow Graphs</H3>
+CIL can reduce high-level C control-flow constructs like <TT>switch</TT> and
+<TT>continue</TT> to lower-level <TT>goto</TT>s. This completely eliminates some
+possible classes of statements from the program and may make the result
+easier to analyze (e.g., it simplifies data-flow analysis). <BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --domakeCFG</TT>
+transforms the following code (note the fall-through in case 1): 
+<PRE><FONT COLOR=blue>
+  int foo (int predicate) {
+    int x = 0;
+    switch (predicate) {
+      case 0: return 111;
+      case 1: x = x + 1;
+      case 2: return (x+3);
+      case 3: break;
+      default: return 222;
+    }
+    return 333;
+  }
+</FONT></PRE>
+See the <A HREF="examples/ex26.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<A NAME="toc16"></A>
+<H3><A NAME="htoc26">9.8</A>&nbsp;&nbsp;Partial Evaluation and Constant Folding</H3> 
+The <TT>partial.ml</TT> module provides a simple interprocedural partial
+evaluation and constant folding data-flow analysis and transformation. This
+transformation requires the <TT>--domakeCFG</TT> option. <BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --domakeCFG --dopartial</TT>
+transforms the following code (note the eliminated <TT>if</TT> branch and the
+partial optimization of <TT>foo</TT>): 
+<PRE><FONT COLOR=blue>
+  int foo(int x, int y) {
+    int unknown;
+    if (unknown)
+      return y+2;     
+    return x+3;      
+  }
+
+  int main () {
+    int a,b,c;
+    a = foo(5,7) + foo(6,7);
+    b = 4;
+    c = b * b;      
+    if (b &gt; c)     
+      return b-c;
+    else
+      return b+c; 
+  }
+</FONT></PRE>
+See the <A HREF="examples/ex27.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<A NAME="toc17"></A>
+<H3><A NAME="htoc27">9.9</A>&nbsp;&nbsp;Simple Memory Operations</H3> 
+The <TT>simplemem.ml</TT> module allows CIL lvalues that contain memory accesses
+to be even futher simplified via the introduction of well-typed
+temporaries. After this transformation all lvalues involve at
+most one memory reference. <BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --dosimpleMem</TT> 
+transforms the following code:
+<PRE><FONT COLOR=blue>
+  int main () {
+    int ***three;
+    int **two;
+    ***three = **two; 
+  } 
+</FONT></PRE>
+See the <A HREF="examples/ex28.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<A NAME="toc18"></A>
+<H3><A NAME="htoc28">9.10</A>&nbsp;&nbsp;Simple Three-Address Code</H3> 
+The <TT>simplify.ml</TT> module further reduces the complexity of program
+expressions and gives you a form of three-address code. After this
+transformation all expressions will adhere to the following grammar: 
+<PRE>
+ basic::=
+    Const _ 
+    Addrof(Var v, NoOffset)
+    StartOf(Var v, NoOffset)
+    Lval(Var v, off), where v is a variable whose address is not taken
+                      and off contains only "basic"
+
+ exp::=
+    basic
+    Lval(Mem basic, NoOffset)
+    BinOp(bop, basic, basic)
+    UnOp(uop, basic)
+    CastE(t, basic)
+   
+ lval ::= 
+    Mem basic, NoOffset
+    Var v, off, where v is a variable whose address is not taken and off
+                contains only "basic"
+</PRE>In addition, all <TT>sizeof</TT> and <TT>alignof</TT> forms are turned into
+constants. Accesses to arrays and variables whose address is taken are
+turned into "Mem" accesses. All field and index computations are turned
+into address arithmetic.<BR>
+<BR>
+For a concrete example, you can see how <TT>cilly --dosimplify</TT> 
+transforms the following code:
+<PRE><FONT COLOR=blue>
+  int main() {
+    struct mystruct {
+      int a;
+      int b;
+    } m;
+    int local;
+    int arr[3];
+    int *ptr;
+
+    ptr = &amp;local;
+    m.a = local + sizeof(m) + arr[2];
+    return m.a; 
+  } 
+</FONT></PRE>
+See the <A HREF="examples/ex29.txt">CIL output</A> for this
+code fragment<BR>
+<BR>
+<HR>
+<A HREF="cilly.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="ciltoc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="cil010.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

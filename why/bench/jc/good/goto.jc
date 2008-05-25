@@ -1,0 +1,17 @@
+
+integer f() 
+{
+  var integer ret;
+  if true then {
+      goto lab;
+      (lab: ());
+  } else ();
+  return ret;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make goto"
+End: 
+*/

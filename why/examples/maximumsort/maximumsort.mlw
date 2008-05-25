@@ -1,0 +1,48 @@
+
+(* maxisort: Maximum sort *)
+
+(* swapping two elements of an array *)
+let swap (t:int array)(i,j:int) =
+  { 0 <= i < array_length(t) and 0 <= j < array_length(t) }
+  (let v = t[i] in
+   begin
+     t[i] := t[j];
+     t[j] := v
+   end)
+  { exchange(t,t@,i,j) }
+
+(* Maximize(t,n,x,k) is
+   forall i, k <= i <= n implies t[k]<= x *) 
+(*external logic Maximize: int farray, int, int, int -> prop*)
+predicate Maximize(t:int array, n:int, x:int, k:int) =
+  forall i:int. k <= i <= n -> t[k]<= x
+
+(* returns the index of the maximum element of t[0..n] *)
+let rec maximum (t:int array)(n,k,i:int): int { variant k } =
+  { 0 <= k <= i and i <= n and n < array_length(t) and 
+    Maximize(t,n,t[i],k) }
+  (if k=0
+   then i
+   else
+    let nk=k-1
+    in if t[nk]>t[i]
+   then (maximum t n nk nk)
+   else (maximum t n nk i))
+  { 0 <= result <= n and Maximize(t,n,t[result],0) }
+
+(* Maximum sort *)
+let maxisort (t:int array) =
+  { 0 <= array_length(t) }
+  init:
+  (let i = ref ((array_length_ t)-1) in
+   while !i >= 0 do
+      { invariant 0 <= i+1 <= array_length(t)
+            and sorted_array(t,i+1,array_length(t)-1) 
+	    and permut(t,t@init) 
+            and (i+1 < array_length(t) -> Maximize(t,i,t[i+1],0))
+        variant i+1 }
+      (let r = (maximum t !i !i !i) in 
+       (swap t !i r));
+      i:=!i-1
+    done)
+  { sorted_array(t,0,array_length(t)-1) and permut(t,t@) } 

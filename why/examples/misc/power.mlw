@@ -1,0 +1,31 @@
+
+(* Fast exponentiation, using X^2n = (X^n)^2 and X^(2n+1) = X.(X^n)^2 *)
+
+logic x : int
+
+parameter n,m,y : int ref
+
+logic div2 : int -> int
+
+logic Zeven : int -> prop
+logic Zodd : int -> prop
+parameter is_odd : n:int -> { } bool { if result then Zodd(n) else Zeven(n) }
+
+logic Zpower : int,int -> int
+
+let power1 () =
+  { n >= 0 }
+  init:
+  begin
+    m := x; 
+    y := 1;
+    while !n > 0 do
+      { invariant Zpower(x,n@init) = y * Zpower(m,n) and n >= 0
+        variant n }
+      if (is_odd !n) then y := !y * !m;
+      m := !m * !m;
+      n := (div2 !n)
+    done
+  end
+  { y = Zpower(x,n@) }
+

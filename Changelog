@@ -1,0 +1,481 @@
+Core: 21 may 2008
+	- bug fixed in "make clean-doc" (and "make distclean") in Hydrogen
+
+GUI: 19 may 2008
+	- All internal options are available in the GUI preferences pannel
+
+===============================================================================
+Open Source Release Hydrogen_20080501
+===============================================================================
+
+Value: 24 April 2008
+	- Display a warning whenever an unitialized value causes the death of a branch
+
+GUI: 18 April 2008
+	- Project names are pairwise different in the GUI
+
+GUI: 17 April 2008
+	- Win32 default fonts fixed
+	
+GUI: 14 April 2008
+	- Function level information displayed in Information panel (Values and Froms)
+	- Progress added in existing plugins
+
+GUI: 10 April 2008
+	- Buffer memoization
+	- Persistent position
+	- No file selection on startup
+
+Impact: 08 April 208
+	- Available from toplevel through -impact-pragma and -impact-print
+
+Core: 08 April 2008
+	- Warnings are project compliant
+
+GUI: 07 April 2008
+	- Large improvements in reactivity
+	- Prefs/Execute bugs fixed
+	- Project management redesigned for older Gtk and for the best
+
+Core: 07 April 2008
+	- [save/load]  bug fixed with duplicated computations
+	- [Projects] inconsistent data with multiple projects 
+	and while removing projects
+	
+Core: 01 April 2008
+	- Various Win32 path fixes
+	- Option -no-unicode : do not print Unicode chars.
+
+===============================================================================
+Binary release Hydrogen_20080302: 31 Feb. 2008
+===============================================================================
+
+Occurrence: 17 Mar 2008
+	- New option "-occurrence"
+
+GUI: 16 Mar 2008
+	- GUI no longer frozen during computations
+	- 'New' menu entry
+
+Core: 14 Mar 2008
+	- [Makefile.in] bug fixed with gui compilation
+	- [save/load]   bug fixed with checksum computation
+
+===============================================================================
+Open Source Release Hydrogen_20080301
+===============================================================================
+	
+Val: 22/01/08
+	- Valeurs non initialisée refondues : elles ne peuvent plus etre lues
+	
+Core: 18 Jan 2008
+	- Pretty-printer entièrement objectifié.
+	- Utiliser Ast_printer.d_* pour le pretty-printing avec le printer
+	standard de Frama-C
+
+Val: Jan 2008
+	- correction d'un bug dans le traitement du >= flottant
+	- correction d'un bug empêchant la valeur d'une l-value après
+	le statement sélectionné dans ValViewer
+	- correction d'un bug se manifestant par une exception non
+	rattrapée en présence de recollage de valeurs.
+
+ACSL: 04 Jan. 2007
+	Adaptation du parseur de la logique au document ACSL:
+ 	 - nouvelle syntaxe pour les from
+	 - nouvelle syntaxe pour le polymorphisme
+	 - support de \union, de la compréhension et de \empty pour les
+	   ensemble de locations.
+
+Metrics: 15 Dec. 2007
+        - Nouvelles métriques syntaxiques
+
+Cil : support préliminiaire pour le compilateur Diab-C. Il manque un traitement
+	correct des bitfields de taille nulle.
+
+===============================================================================
+CAT: LIVRAISON du 14 Dec. 2007
+	- tag de la version 2007_12_1
+===============================================================================
+
+Val: 13 Dec. 2007
+	- les alarmes pour les flottants sont maintenant a moitie affichees
+	- reduction des lvalues de type flottant par les conditions de if
+	  et les assertions.
+
+Val: 11 Dec. 2007
+        - Alarmes pour les comparaison de pointeurs
+
+Gui: 11 Dec. 2007
+        - Affichage des lvals plus précis
+
+Gui: 10 Dec. 2007
+        - Affichage homogène de valeur avant/après pour les [--..--]
+
+Val: 10 Dec 2007
+        - Refonte des flottants pour pouvoir avoir les menaces
+
+===============================================================================
+CAT: Livraison RHEL4 CAT_2007_11_2xs
+===============================================================================
+
+Val: 16 nov 2007
+	- Traitement du recollage des singletons
+
+Slicing: - correction d'un bug de passage à l'échelle sur les codes
+	de grande taille
+
+===============================================================================
+CAT: Livraison à Siemens VDO
+===============================================================================
+
+Val:	08 Nov 2007
+	- amélioration de l'interprétation de la division entière et de la
+	division flottante.
+
+Val: 19/Oct/207
+	- option -unsafe-arrays : par défaut les tableaux sont maintenant accédés en utilisant
+	la taille donnée dans leur type. Cela évite de déborder dans un tableau à l'intérieur
+	d'une struct ou d'un tableau. Cette option désactive ce nouveau comportement.
+
+Val:	Oct 2007
+	- amélioration de l'interpretation du et logique "&"
+
+Val:	Sept/oct 2007
+	- amelioration de l'opération % (modulo)
+	- affichage du site d'appel de chaque fonction dans laquelle
+	l'analyse rentre
+	- nouveau builtin Frama_C_is_base_aligned
+
+Tout:   Sept/oct 2007
+	-save et -load sont sensées marcher (oui, encore !)
+
+Kernel: 17 Septembre 2007
+        Modification de la syntaxe des annotations "loop pragma" et
+	"slice pragma" (il ne faut plus de "underscore").
+
+Val:	Juin 2007
+	Flottants
+	Les options -save / -load sont sensées marcher.
+
+Kernel: 4 Juin 2007
+        Langage de spécification mis à jour.
+
+Gui: 26 Avril 2007
+        Plus aucune dépendance avec glade.
+
+All: (date inconnue)
+	Les annotations utilisent maintenant des commentaires sous la forme //
+	au lieu de (* *) comme c'était le cas auparavant.
+
+All:   26 mars 2007
+        Synthèse de spécifications pour les fonctions feuilles
+
+Val:    23 fev 2007
+	Nombreux bugs corrigés pour les Froms et les valeurs en présence de
+	variables initialisées qui se retrouvent associées à LOffset.top
+	(ce qui n'est pas leur valeur par défaut).
+
+Val:    fev 2007
+	malloc en MALLOC_ZONE_PER_MALLOC détecte les accès hors bornes.
+
+Val:    fev 2007
+	Amelioration de performance sur gros programmes tels que DA-CAT-1-v1.c
+
+Val: New option -context-valid-pointers : with this option all pointers are now initialized
+        until context-depth. At context-depth they become NULL.
+
+Gui : 15 nov. 06
+        New dependency toward lablgtksourceview. autoconf has still to be updated.
+
+Doc: 13 oct. 2006
+	Suppression de l'option -leaf-function-return-int. On utilise
+   maintenant le type de la fonction feuille.
+
+Alarms: 10 oct. 2006
+        Unresolved alarms are pretty printed with option -print after value analysis.
+        Some bugs where corrected for localization of alarms in if guards.
+
+New feature: 8 oct. 2006
+        Option -obfuscate : renomme tous les identifiants et donne un dictionnaire de ce
+        renommage.
+
+Val: 10 oct. 2006
+	-début de hshconsing pour les Offsetmap.
+
+Val: 03 oct. 06
+        -absolute-valid-range a comme valeur par défaut l'intervalle vide. Ainsi par défaut
+        on clippe les accès à des adresses absolues. C'est bien sûr incorrect pour des
+        codes qui le font de façon explicite. Dans ce cas il faut donner l'argument
+        -absolute-valid-range.
+
+Val: add patricia trees for LBase
+
+cg: dump a stratified callgraph
+
+General: update to ocamlgraph-0.98
+
+Val : 01 septembre 06 : génération des menaces correspondant aux comparaisons
+	de pointeurs qui pourraient casser le modèle mémoire.
+
+Val : option -propagate-top qui permet de ne pas stopper l'analyse de valeurs même si elle a
+        dégénéré.
+
+Val : alarmes pour pour les accès aux zones mémoires
+
+Val : emission des alarmes en logique pour les shift et /
+
+Val : nouvelle option -access-path pour calculer les cases pointant sur une case donnée
+
+Logic : nouvelle annotation pour le slicing : @slice_pragma lval 'term
+
+kernel : les switch, break, continue sont conservés. L'option -simple-cfg permet de
+         retrouver l'ancienne version simplifiée : c'est utile pour garder de la précision sur
+        les switch.
+
+kernel: champs is_called dans le kf. Les fonctions feuilles sont aussi concernées.
+        C'est l'analyse de valeur qui met ce bool à true.
+
+Val : Support d'une nouvelle origine : Padding. Valeur par défaut des champs de padding
+        dans les structures. Voir misc/const2.c
+
+Val : nouvelle option -slevel : donne le nombre de chemins explorés en parallèle
+        pendant l'analyse de valeur aka. déroulage sémantique.
+
+Val : initialisation des extern const en générant une valeur arbitraire du bon type et un warning
+
+Val : Une implementation de malloc (la meilleure de celles proposées
+	pour l'instant) est fournie dans share/malloc2.c.
+	Elle utilise deux fontions built-in ajoutées pour l'occasion :
+	CEA_alloc(b), qui crée un nouvel espace mémoire (unique pour
+	une adresse de base b existante donnée).
+	CEA_offset(e) qui retourne la valeur du décalage intrinsèque
+	   de l'adresse e (c'est à dire par rapport à son adresse de
+	   base).
+
+Cil : passage à Cil 1.3.5 total
+
+Val : option -lib-entry pour spécifier un main d'une application incomplète.
+
+Val : les fonctions feuilles qui sont déclarée noreturn renvoient bottom.
+
+Val : l'option -plevel permet de définir le niveau de précision dans l'analyse des tableaux.
+        L'entier est moralement le nombre de cases maximal qu'un tableau peut avoir pour être
+        traité avec précision.
+
+Val : l'option -use-relations est supprimée. C'est maintenant le défaut.
+
+Val : Les relations dans l'analyse de valeurs comprennent maintenant les
+        auto-affectations (x++).
+
+Support pour une zone de validité des pointeurs absolus : option -absolute-valid-range
+
+Support pour un nouveau loop_pragma :
+        //@ loop_pragma WIDEN_HINTS x,y,z,12,13
+Support pour un nouveau loop_pragma :
+        //@ loop_pragma WIDEN_VARIABLES x,y,z
+Synomyme pour UNROLL_LOOP : UNROLL
+
+Premier support pour le type _Bool de l'ansi C99 : il faut encore gérer les conversions
+
+Dégénération de l'analyse de valeur complétement localisée
+
+Stratégie du widen : élargissement vers les petites puissances de 2,
+	et quelques unes plus grandes, ainsi que vers leur prédécesseur (2**n-1)
+	ainsi que vers les valeurs (y compris leur prédécesseur et successeur)
+	présentes dans le code (fourni par Cil qui interpréte les opérations arithmétiques
+	ayant des constantes pour opérandes) de la fonction contenant le point d'élargissement.
+
+La fonction main est maintenant analysée dans un contexte qui
+prend en compte le type des arguments (int -> top_int, pointeur ->
+cases cachées allouées distinctes)
+
+Affichage : les affichages du toplevel sont un peu plus (mieux ?) alignés.
+
+Nouveau calcul : option -input calcule et affiche les cases lues par les fonctions
+        en utilisant l'analyse de valeur.
+        Ces cases contiennnent la liste de variable à droite des FROM (hors variables locales)
+        et les cases lues mais non utilisées fonctionnellement.
+
+Val : (1) prise en compte des menaces pour réduire les valeurs lues hors bornes
+      (2) menaces en cas d'écriture hors bornes (les valeurs qui auraient été
+      écrites ne sont jamais relues maintenant que (1)).
+
+GUI: saut vers les définition des fonctions appelées en cliquant droit sur l'appel.
+        Marche aussi pour les pointeurs de fonction.
+
+Cil : passage à Cil 1.3.4 (seulement frontc et la traduction verc cil.ml)
+
+GUI: arbre des fichiers et lval optimisées. Visu des fonctions jamais appelées.
+
+Db: support des options -load/-save
+
+GUI: premiere version de l'IHM avec code mort/valeur des lval/effets des statements/assert de
+        la base.
+        Nouvelle cible : make gui
+        Nouveau binaire : bin/viewer.opt
+
+Support des fonctions variadiques dans les froms:
+        C'est probablement incorrect dans les valeurs et les froms.
+
+Affichage des warning une seule fois
+
+Traitement particulier pour éviter de dégénérer : distinction entre valeur pas initialisée
+        et valeur inconnue. TOP n'est que pour des valeurs non initialisées.
+
+Optimisation des init de tableaux.
+        Il reste à traiter correctement le cas de cases volatiles du tableau.
+        Les champs anonymes (provenant du padding) des structs sont mis à zero aussi.
+
+
+Option -leaf_functions_return_int ajoutée
+
+Support des copies lval/lval pour les bitfields temporairement corrigé voir  Lmap.Cannot_copy
+        Je ne pense pas qu'on perde de la précision dans ce cas.
+
+Support des volatiles corrigé
+
+Correction d'un bug dans les affectations lval/lval non sûres
+
+Stratégie du widen : élargissement vers les puissances de 2
+
+Optimisation des Lattice_Map et des affectations de struct : compare et is_included
+
+Support pour des fonctions CEA_xxx qui forcent l'analyseur à afficher
+        des informations. Voir FAQ.Q4.
+
+Parsing : support pour les #pragma locaux à un bloc.
+
+Sauvegarde d'un graphe de flot de contrôle quand on active -debug et -val
+        pour chaque fonction f appelée dans un fichier f_cfg.dot.
+        En rouge les while, en vert les if et en bleu les return.
+
+Correction du slicing pour les tests avec des branches mortes. On ne préserve
+        pas les menaces éventuelles dans l'évaluation des test de if ou une
+        des branches est morte.
+
+En l'absence de -no-overflow : traitement correct de grands entiers 64 bits
+
+Support de -no-overflow : ne prend pas en compte les débordements éventuels
+        des entiers.
+
+Support de -mem-exec f :
+        considère que f ne doit être analysée qu'une seule fois.
+        Cette analyse est faite dans un contexte aussi général que possible.
+        Si la fonction utilise un pointeur du contexte elle va faire dégénerer
+        toute l'analyse.
+
+Amélioration de l'évaluation des conjonctions dans les if
+
+Amélioration du calcul des casts (reste à optimiser quand le cast est inutile)
+
+Supports pour les divisions élargies et amélioration des décalages
+
+Support des champs de bits complets pour l'analyse de valeurs
+
+Passage à Cil 1.3.3
+
+Support des pragma non gcc : section, options
+
+Support des variables volatiles : leur valeur est toujours inconnue
+
+Consolidation des messages d'erreurs en cas de fonctions récursives :
+cas particulier supporté : l'appel récursif est dans une branche morte
+du code.
+
+Initialisation par défaut à 0 conformément à la norme ANSI pour les variable à
+	durée de vie statiques.
+
+Support de -cg : affichage d'un graphe d'appel en format dot en classant
+	les noeuds par "services implicites" dans le graphe.
+
+Optimisation des flots de traitements à l'aide d'un algorithme de type
+        Dijkstra mémorisant.
+
+Affichage du code slicé bien plus compact : plus de DEAD CODE en commentaire,
+        et récriture des statements avec des branches mortes.
+
+Support pour les commentaires dans le fichier produit avec -sliced
+
+Utilisation des ghosts pour configurer le déroulage des boucles
+
+Support de la multiplication binaire sur intervalles
+
+Suppport pour les chaînes constantes.
+
+2005/06/13 : Pascal
+
+  Depuis la dernière entrée dans le Changelog, les Location_Enum
+  sont apparues (pour faire les Froms). Des Lmaps et Offsetmaps
+  dits "bitwise" ont été implémentés (encore pour les Froms) qui
+  n'ont plus besoin de l'hypothèse "defaut = top" et
+  si çà continue comme çà, un de ces jours, on va finir par avoir
+  des Froms.
+  Le jour du seigneur a vu l'implémentation de "is_included" dans
+  les Lmaps et Offsetmaps bitwises, et il faudrait maintenant tester,
+  mais il faut faire ce qu'il faut dans l'analyse Dataflow construite
+  à partir de Cil et je n'aime pas cette partie. Si tout allait
+  bien on n'aurait pas besoin de faire "widen" pour les Offsetmaps
+  bitwises (on a le droit de rêver).
+
+2005/04/28 : Pascal
+
+  Ca y est, la representation des entiers est unifiee, tous les
+  entiers et pointeurs C sont maintenant representes par une
+  Location_Without_Size (de base Null s'il s'agit en fait d'un
+  entier). Les decalages des Location_Without_Size sont exprimees
+  en octets (comme en C), et a partir de maintenant, une location
+  n'est plus simplement une Location_Without_Size avec une taille
+  en plus, mais une Location_Bits (exprimée en bits) avec une taille.
+
+  J'ai rajouté des tests pour le join des offsetmaps, et corrigé
+  des bugs suite aux tests, mais ça fait un moment maintenant qu'il
+  n'y a plus de problème qui se manifeste. Dommage qu'il soit de plus
+  en plus apparent qu'il faudra revenir sur le "defaut=top" que
+  l'on a pris comme hypothèse, d'une part pour faire les Froms et
+  d'autre part pour détecter les variables utilisées non initialisées.
+
+
+2005/04/21 : Pascal
+
+* Dans XXX/monprojet.BM/resultats/ ---> Division_by_Zero
+
+  Problème résolu, en présence de deux ensembles de valeurs
+  S1 et S2, on remontait l'application d'un opérateur binaire 'op'
+  en constituant l'ensemble des 'x op y' pour x dans S1 et y dans S2.
+  La division par zero était levée à cet endroit.
+  Maintenant on rattrape l'exception levée. Ca serait l'endroit pour
+  afficher une menace.
+
+* Pas bug mais bon quand même :
+  ~/local/caveat/ebulio/ebulio/ebulio_unix/improvec/log_EBULIO_err
+  Fatal error: exception Assert_failure("src/memory_state/offsetmap.ml", 327, 46)
+  i.e. : let treat_misaligned be1 en1 acc = assert false in
+
+  Problème résolu une première fois, puis je me suis pris à
+  écrire un test et j'ai trouvé d'autres cas intéressants (opération
+  join des Offsetmap qui devenait non-commutative à cause du nouveau
+  traitement des valeur non-alignées).  Maintenant le test suivant passe :
+
+int t[5]={0};
+int u[5]={1,1,1,1,1};
+int v[7]={1,1,1,1,1,1,1};
+int w[7]={0};
+
+void main(int c)
+{
+  if (c)
+    {
+      ((char*)t)[6]='a';
+      ((char*)u)[6]='c';
+      *((short*)((char*)v+6))=27;
+      *((short*)((char*)w+6))=57;
+    }
+  else
+    {
+      ((char*)t)[6]='b';
+      ((char*)u)[6]='d';
+      *((short*)((char*)v+7))=29;
+      *((short*)((char*)w+7))=59;
+    }
+}

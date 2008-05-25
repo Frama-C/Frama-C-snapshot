@@ -1,0 +1,85 @@
+# Generated automatically from Makefile.common.in by configure.
+
+WHY=../../bin/why.opt
+GWHY=../../bin/gwhy.opt -split-user-conj
+CADUCEUS=../../bin/caduceus.opt
+# WHYOPTIONS=--coq-v8
+WHYOPTIONS=--coq-v8 --valid
+
+dp: simplify cvcl
+
+simplify: $(VO:_valid.vo=_why.sx)
+	dp -timeout 10 $^  2>/dev/null
+
+yices: $(VO:_valid.vo=_why.smt)
+	dp -timeout 10 $^  2>/dev/null
+
+zenon: $(VO:_valid.vo=_why.znn)
+	dp -timeout 10 $^ 2>/dev/null
+
+cvcl: $(VO:_valid.vo=_why.cvc)
+	dp -timeout 10 $^  2>/dev/null
+
+harvey: $(VO:_valid.vo=_why.rv)
+	dp -timeout 10 $^  2>/dev/null
+
+%_valid.v %_why.v: %.mlw $(WHY)
+	$(WHY) $(WHYOPTIONS) $<
+
+%_valid.v %_why.v: %.c $(CADUCEUS)
+	$(CADUCEUS) $<
+
+%_why.vo: %_why.v
+	coqc -I ../../lib/coq $(OPT) $<
+
+%_valid.vo: %_valid.v %_why.vo
+	coqc -I ../../lib/coq $(OPT) $<
+
+%.vo: %.v
+	coqc -I ../../lib/coq $(OPT) $<
+
+%_why.pvs: %.mlw $(WHY)
+	$(WHY) --pvs $<
+
+%_why.sx: %.mlw $(WHY)
+	$(WHY) --simplify $<
+
+%_why.smt: %.mlw $(WHY)
+	$(WHY) --smtlib --encoding mono $<
+
+%_why.znn: %.mlw $(WHY)
+	$(WHY) --zenon $<
+
+%_why.cvc: %.mlw $(WHY)
+	$(WHY) --cvcl $<
+
+%_why.rv: %.mlw $(WHY)
+	$(WHY) --harvey $<
+
+%_why.miz: %.mlw $(WHY)
+	$(WHY) --mizar $<
+
+%_why.miz: %.c $(WHY)
+	$(WHY) --mizar $<
+
+%.ml: %.mlw
+	$(WHY) -ocaml $< > $@
+	ocamlc -c -i $@
+
+%.wol: %.mlw
+	$(WHY) --wol $<
+
+%.gui: %.mlw
+	$(GWHY) $<
+
+%.fastwp: %.mlw
+	$(GWHY) -fast-wp $<
+
+clean::
+	rm -f *~ *.vo *.wol
+	rm -f *_valid.v
+
+depend:: $(VO:.vo=.v)
+	coqdep -I ../../lib/coq *.v > .depend
+
+include .depend

@@ -1,0 +1,46 @@
+# InvariantPolicy = Ownership
+
+type Point = {
+    integer x;
+    integer y;
+}
+
+type PointSet = {
+    integer num;
+    rep Point[..] set;
+    invariant inv_num(p) =
+      p.num > 0 && \offset_min(p.set) == 0 && \offset_max(p.set) == p.num-1;
+}
+
+PointSet[1] createPointSet(integer n) 
+    requires n > 0;
+    behavior normal:
+      ensures \result.committed == false && \mutable(\result, PointSet);
+{
+    var Point[..] p = new Point[n];
+    var PointSet[1] ps = new PointSet[1];
+    ps.num = n;
+    ps.set = p;
+    pack(p);
+    pack(ps);
+    return ps;
+}
+
+unit deletePointSet(PointSet[1] ps) 
+    requires ps.committed == false && \mutable(ps, PointSet);
+    behavior normal:
+	ensures \offset_max(ps) < \offset_min(ps);
+{
+    var integer i;
+    //    unpack(ps);
+    //    unpack(ps.set);
+    free(ps.set);
+    free(ps);
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make new"
+End: 
+*/

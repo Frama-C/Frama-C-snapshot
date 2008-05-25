@@ -1,0 +1,51 @@
+# InvariantPolicy = Arguments
+
+/*
+
+hand-made translation from C program
+
+union U { int x; float y; }
+struct T { 
+  int my_tag ; 
+  U v ;
+  //@ invariant my_tag_0_is_int(t) = t.my_tag==0 => t.v <: x ;  
+  //@ invariant my_tag_1_is_float(t) = t.my_tag==1 => t.v <: y ;
+}
+
+*/
+
+/*type U = [ U_x | U_y ] */
+type U = {}
+tag U_x = U with { integer x; }
+tag U_y = U with { real y; }
+
+
+type T = { 	
+    integer my_tag ; 
+    rep U[0] v ;
+    invariant my_tag_0_is_int(t) = t.my_tag==0 ==> t.v <: U_x ; 
+    invariant my_tag_1_is_float(t) = t.my_tag==1 ==> t.v <: U_y ;
+}
+
+
+unit add(T[0] res, T[0] n1, T[0] n2) 
+{
+    if n1.my_tag == 0 && n2.my_tag == 0 then {
+	res.my_tag = 0;
+	(res.v :> U_x).x = (n1.v :> U_x).x + (n2.v :> U_x).x;
+    }
+    else {
+	res.my_tag = 1;
+	(res.v :> U_y).y = (n1.v :> U_y).y + (n2.v :> U_y).y;
+    }
+}
+    
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make union"
+End: 
+*/
+

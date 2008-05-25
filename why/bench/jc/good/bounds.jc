@@ -1,0 +1,63 @@
+
+type T = {
+    integer i;
+}
+
+type U = {
+    T[0..4] b;
+    T[0..] lb;
+    T[..4] rb;
+    T[..] ub;
+}
+
+unit init(U[0] u) {
+    var integer k;
+
+    /* read constant offset */
+    if u.b.i == 0 then return ();
+    if (u.b + 4).i == 0 then return ();
+    if u.lb.i == 0 then return ();
+    if (u.lb + 4).i == 0 then return ();
+    if u.rb.i == 0 then return ();
+    if (u.rb + 4).i == 0 then return ();
+    if u.ub.i == 0 then return ();
+    if (u.ub + 4).i == 0 then return ();
+
+    /* read variable offset */
+    (L1:
+    invariant 0 <= k && k <= 5;
+    for(k = 0; k < 5; ++k) {
+	if (u.b + k).i == 0 then return ();
+	if (u.lb + k).i == 0 then return ();
+	if (u.rb + k).i == 0 then return ();
+	if (u.ub + k).i == 0 then return ()
+    });
+
+    /* write constant offset */
+    u.b.i = 0;
+    (u.b + 4).i = 0;
+    u.lb.i = 0;
+    (u.lb + 4).i = 0;
+    u.rb.i = 0;
+    (u.rb + 4).i = 0;
+    u.ub.i = 0;
+    (u.ub + 4).i = 0;
+
+    /* write variable offset */
+    (L2:
+    invariant 0 <= k && k <= 5; 
+    for(k = 0; k < 5; ++k) {
+	(u.b + k).i = 0;
+	(u.lb + k).i = 0;
+	(u.rb + k).i = 0;
+	(u.ub + k).i = 0
+    })
+
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make bounds"
+End: 
+*/

@@ -1,0 +1,25 @@
+
+(* integer arithmetic prelude for provers which know nothing about it *)
+
+axiom add_zero_l : forall x:int. 0 + x = x
+
+axiom add_zero_r : forall x:int. x + 0 = x
+
+axiom add_comm : forall x,y:int. x + y = y + x
+
+axiom add_assoc: forall x,y,z:int. x + (y + z) = (x + y) + z
+
+axiom add_sub : forall x,y,z:int. (x+y)-z = x+(y-z)
+
+axiom sub_x_x : forall x:int. x - x = 0
+
+axiom lt_le : forall x,y:int. x < y <-> x <= y-1
+
+axiom le_trans : forall x,y,z:int. x <= y -> y <= z -> x <= z
+
+axiom le_eq : forall x,y:int. x <= y -> y <= x -> x = y
+
+axiom tighten_bounds_right : forall x,y:int. x <= y -> (x <= y-1 or x = y)
+
+axiom tighten_bounds_left  : forall x,y:int. x <= y -> (x = y or x+1 <= y)
+

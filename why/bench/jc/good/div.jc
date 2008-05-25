@@ -1,0 +1,16 @@
+
+integer main(integer x, integer y) {
+
+ if x >= 10 then x = 10 else if x <= 0 then x = 0 else ();
+
+ if x*x-10 > 0 then return 1/(x*x-8);
+
+ return 0;
+}
+
+/* 
+Local Variables:
+mode: C
+compile-command: "LC_ALL=C make div"
+End:
+*/

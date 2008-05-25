@@ -1,0 +1,44 @@
+
+integer main(integer i)
+  behavior safety: 
+    ensures i == 1 || \result == 1;
+{
+  var integer j = i + 1;
+  switch (j) {
+    case 0:
+      ++j;
+    case 1:
+      break;
+    default:
+      j = 1;
+      break;
+    case 2:
+      j = 2;
+  };
+  return j;
+}
+
+integer main2(integer i)
+  behavior switchok:
+    ensures \old(i == 0) ==> \result == 1;
+{
+  var integer j = i;
+  switch (j) {
+    case 0:
+      j += 4;
+    default:
+      j = 1;
+    case 4:
+      break;
+    case 2:
+      j = 2;
+  };
+  return j;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make switch"
+End: 
+*/

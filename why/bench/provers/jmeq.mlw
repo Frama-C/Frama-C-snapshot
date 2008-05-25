@@ -1,0 +1,25 @@
+
+(* John Major's equality *)
+
+type mem
+type 'a index
+
+logic get : mem, 'a index -> 'a
+logic set : mem, 'a index, 'a -> mem
+
+logic jmeq : 'a, 'b -> prop
+axiom jmeq : forall x,y:'a. jmeq(x,y) <-> x=y
+
+axiom get_set_eq : 
+  forall m:mem. forall x:'a index. forall v:'a.
+  get(set(m, x, v), x) = v
+
+axiom get_seq_neq :
+  forall m:mem. forall x:'a index. forall v:'a. forall y:'b index.
+  not jmeq(x,y) -> get(set(m, x, v), y) = get(m, y)
+
+goal test : 
+  forall m:mem.
+  forall xi: int index. forall xb: bool index. 
+  not jmeq(xi,xb) ->
+  get(set(set(m, xb, true), xi, 1), xb) = true

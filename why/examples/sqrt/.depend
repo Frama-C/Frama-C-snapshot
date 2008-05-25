@@ -1,0 +1,2 @@
+sqrt_valid.vo: sqrt_valid.v ../../lib/coq/Why.vo ./sqrt_why.vo
+sqrt_why.vo: sqrt_why.v ../../lib/coq/Why.vo

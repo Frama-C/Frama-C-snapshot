@@ -1,0 +1,31 @@
+
+# SeparationPolicy = Regions
+
+type intP = {
+    integer intM;
+}
+
+integer f() {
+    var intP[..] tab = new intP[10];
+    return tab.intM;
+}
+
+intP[0] myalloc() {
+    return new intP[1];
+}
+
+unit g() {
+    var intP[0] p = myalloc();
+    var intP[0] q = myalloc();
+    p.intM = 0;
+    q.intM = 1;
+    assert(p.intM == 0 && q.intM == 1);
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "LC_ALL=C make -j separation_plus"
+End: 
+*/
+

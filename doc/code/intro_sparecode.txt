@@ -1,0 +1,29 @@
+{2 Overview}
+
+The Sparecode module aims at removing the unused code.
+
+See how to use the plugin in the
+{{:../../www/src/sparecode.html}user documentation}.
+
+
+It is composed of to parts : 
+- one (in module {!module:Marks}) that computes some information
+to say what has to be kept in the result. It uses the generic PDG 
+marking facility {{:../pdg/PdgMarks.html}PdgMarks}+{{:../pdg/Marks.html}Marks},
+- and a second one (module {!module:Transform})
+that read thoses results to produce a new application.
+This part mainly use {{:../html/Filter.html}Filter}
+which provides a functor that filters an application to create another one.
+
+To select the useful statements, we start from the [main] outputs
+and the reachable annotations, and mark backward all the dependencies.
+When reaching a function call, the called function statements are also marked
+according to the needed outputs, but the inputs are not propagated immediately
+because it would make every function call visible.
+The information provided by the PDG marking system is kept to be used later.
+
+So, after the first step, we iterate on the input marks to propagate,
+and propagate them only for the visible calls, ie those which have at least
+one visible output. This process is repeated as long as there are some
+modification.
+

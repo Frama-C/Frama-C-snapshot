@@ -1,0 +1,24 @@
+
+(* Low-level memory model for C programs *)
+
+type memory
+
+logic acc : memory,int -> int
+
+logic upd : memory,int,int -> memory
+
+axiom acc_upd_eq : 
+  forall m:memory. forall a:int. forall v:int.
+  acc(upd(m,a,v),a) = v
+
+axiom acc_upd_neq : 
+  forall m:memory. forall a:int. forall b:int. forall v:int.
+  a <> b -> acc(upd(m,a,v),b) = acc(m,b)
+
+(*
+Put this in the coq file : 
+Hint Rewrite [acc_upd_eq] in base0.
+Ltac PPC := intuition;subst;autorewrite with base0;trivial.
+Hint Resolve sep_c_x.
+*)
+

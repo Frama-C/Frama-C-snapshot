@@ -1,0 +1,15 @@
+
+let sum (n:int) =
+  { n>=0 }
+  let i = ref 0 in
+  let s = ref 0 in
+  begin
+    while !i < n do
+      { invariant 2*s = i*(i+1)  and  i<=n
+        variant n-i }
+      i := !i + 1;
+      s := !s + !i
+    done;
+    !s
+  end
+  { 2*result = n*(n+1) }

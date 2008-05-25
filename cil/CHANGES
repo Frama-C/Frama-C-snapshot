@@ -1,0 +1,10 @@
+CHANGES with respect to original Cil library
+
+a) Replaced custom pretty printers by module Format
+b) All types of module Cil are declared in module Cil_types
+c) Module Util renamed to Cilutil
+d) Modified AST to support logic annotation
+e) Some extension from cil/src/ext/ not yet ported.
+f) Dataflow module modified (improved ?)
+g) type instr contains only one intr not a list of instr.
+h) Modified visitor to also visit logic annotations (see item d)

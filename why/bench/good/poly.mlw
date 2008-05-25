@@ -1,0 +1,10 @@
+
+(* polymorphism tests *)
+
+type 'a t
+logic f : 'b -> 'b t
+
+let p () =
+  let f (x:'a) = x { result=x } in
+  if f true then f 1 else f 2 
+  { result = 1 }

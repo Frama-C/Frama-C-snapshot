@@ -1,0 +1,6 @@
+type Set = {
+}
+
+logic type myset
+
+logic myset mycontents(Set[0] s) reads s;

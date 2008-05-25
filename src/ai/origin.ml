@@ -1,0 +1,129 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2008                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+open Abstract_interp
+type t = 
+  | Misalign_read of LocationSetLattice.t
+  | Leaf of LocationSetLattice.t
+  | Merge of LocationSetLattice.t
+  | Arith of LocationSetLattice.t
+
+let equal o1 o2 = 
+  match o1, o2 with
+    | Leaf o1, Leaf o2 | Arith o1, Arith o2 | Merge o1, Merge o2 
+    | Misalign_read o1, Misalign_read o2  ->
+	LocationSetLattice.equal o1 o2
+    | Misalign_read _, _ -> false
+    | _, Misalign_read _ -> false 
+    |  Leaf _, _ -> false
+    |  _, Leaf _ -> false
+    | Merge _, _ -> false
+    | _, Merge _ -> false
+(*    | Arith _, _ -> false
+    | _, Arith _ -> false *)
+
+
+let pretty fmt o =
+  match o with
+  | Misalign_read (LocationSetLattice.Top) ->
+      Format.fprintf fmt "@[Unknown@]"
+  | Misalign_read o ->
+      Format.fprintf fmt "@[Misaligned@ %a@]" 
+	LocationSetLattice.pretty o
+  | Leaf o ->
+      Format.fprintf fmt "@[Library function@ %a@]" 
+	LocationSetLattice.pretty o
+  | Merge o ->
+      Format.fprintf fmt "@[Merge@ %a@]" 
+	LocationSetLattice.pretty o
+  | Arith o ->
+      Format.fprintf fmt "@[Arithmetic@ %a@]" 
+	LocationSetLattice.pretty o
+
+let hash o =
+  match o with
+    | Misalign_read o ->
+	2001 +  (LocationSetLattice.hash o)
+    | Leaf o ->
+	2501 + (LocationSetLattice.hash o)
+    | Merge o ->
+	3001 + (LocationSetLattice.hash o)
+    | Arith o ->
+	3557 + (LocationSetLattice.hash o)
+
+let top = Misalign_read(LocationSetLattice.top)
+let is_top x = equal top x
+
+let bottom = Arith(LocationSetLattice.bottom)
+
+let join o1 o2 =
+  let result = 
+  if o1 == o2 
+  then o1 
+  else
+    match o1, o2 with
+      | Misalign_read o1, Misalign_read o2 ->
+	  Misalign_read(LocationSetLattice.join o1 o2)
+      | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m
+      | Leaf o1, Leaf o2 ->
+	  Leaf(LocationSetLattice.join o1 o2)
+      | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
+      | Merge o1, Merge o2 ->
+	  Merge(LocationSetLattice.join o1 o2)
+      | (Merge _ as m), _ | _, (Merge _ as m) -> m
+      | Arith o1, Arith o2 ->
+	  Arith(LocationSetLattice.join o1 o2)
+(*      | (Arith _ as m), _ | _, (Arith _ as m) -> m  *)
+  in
+(*  Format.printf "Origin.join %a %a -> %a@." pretty o1 pretty o2 pretty result;
+*)
+  result
+
+let meet o1 o2 =
+  if o1 == o2 
+  then o1 
+  else
+    match o1, o2 with
+      | Arith o1, Arith o2 ->
+	  Arith(LocationSetLattice.meet o1 o2)
+      | (Arith _ as m), _ | _, (Arith _ as m) -> m
+      | Merge o1, Merge o2 ->
+	  Merge(LocationSetLattice.meet o1 o2)
+      | (Merge _ as m), _ | _, (Merge _ as m) -> m
+      | Leaf o1, Leaf o2 ->
+	  Leaf(LocationSetLattice.meet o1 o2)
+      | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
+      | Misalign_read o1, Misalign_read o2 ->
+	  Misalign_read(LocationSetLattice.meet o1 o2)
+(*      | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m *)
+
+let is_included o1 o2 =
+  (equal o1 (meet o1 o2))
+
+let is_included_exn v1 v2 =
+  if not (is_included v1 v2) then raise Is_not_included
+
+let narrow x _y = x (* TODO *)
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

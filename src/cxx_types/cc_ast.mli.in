@@ -1,0 +1,22 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2008                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  All rights reserved.                                                  *)
+(*  Contact CEA for more details about the license.                       *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* DO NOT EDIT cc_ast.mli directly. *)
+
+(* default types needed in Db when the cxx plugin is not enabled. Note
+   that the real interface is richer and available to the plugins that
+   rely on cxx itself
+ *)
+
+type location = string * int * int
+
+type translationUnit

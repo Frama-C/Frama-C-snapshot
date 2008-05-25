@@ -1,0 +1,78 @@
+
+/* Dijkstra's dutch flag */
+
+
+type color = 1..3
+   
+logic color BLUE = (1 :> color)
+logic color WHITE = (2 :> color)
+logic color RED = (3 :> color) 
+
+type colorT = {
+    color colorM;
+}
+
+    logic isMonochrome{L}(colorT[..] t, integer i, integer j, color c) =
+    //    \offset_min(t) <= i && i <= j && j <= \offset_max(t) &&
+    \forall integer k; i <= k && k <= j ==> (t+k).colorM == c
+
+
+
+unit swap(colorT[..] t, integer i, integer j) 
+  requires
+    \offset_min(t) <= i && i <= \offset_max(t) &&
+    \offset_min(t) <= j && j <= \offset_max(t)  ;
+  behavior swaps_i_and_j:
+    assigns (t+i).colorM,(t+j).colorM;
+    ensures (t+i).colorM == \old((t+j).colorM) && 
+	(t+j).colorM == \old((t+i).colorM);
+{
+    var color z = (t+i).colorM;
+    (t+i).colorM = (t+j).colorM;
+    (t+j).colorM = z;
+}
+
+unit flag(colorT[0..] t, integer length) 
+    requires \offset_min(t) == 0 && // devrait etre inutile
+      0 <= length && length <= \offset_max(t)+1;
+    behavior sorts_t:
+      ensures 
+        \exists integer b,r; 
+           isMonochrome(t,0,b-1,BLUE) &&
+	   isMonochrome(t,b,r-1,WHITE) &&
+	   isMonochrome(t,r,length-1,RED);
+{
+    var integer b = 0;
+    var integer i = 0;
+    var integer r = length;
+    invariant
+	0 <= b && b <= i && i <= r && r <= length &&
+	isMonochrome(t,0,b-1,BLUE) &&
+	isMonochrome(t,b,i-1,WHITE) &&
+	isMonochrome(t,r,length-1,RED);
+    variant r - i; 
+    while (i < r) 
+	{
+	    switch ((t+i).colorM) {
+	    case BLUE:  
+		swap(t, b++, i++);
+		break;	    
+	    case WHITE: 
+		i++; 
+		break;
+	    case RED: 
+		swap(t, --r, i);
+		break;
+	    }
+	}
+}
+
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make flag"
+End: 
+*/
+

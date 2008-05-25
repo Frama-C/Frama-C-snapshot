@@ -1,0 +1,119 @@
+
+(* Built-in types: unit, bool, int, real *)
+(* Built-in type constructor: 'a ref *)
+
+(* Equality over types bool and unit *)
+
+logic eq_bool : bool,bool -> prop
+logic neq_bool : bool,bool -> prop
+
+parameter eq_bool_ : x:bool -> y:bool -> {} bool {if result then x=y else x<>y}
+parameter neq_bool_: x:bool -> y:bool -> {} bool {if result then x<>y else x=y}
+
+logic eq_unit : unit,unit -> prop
+logic neq_unit : unit,unit -> prop
+
+parameter eq_unit_ : x:unit -> y:unit -> {} bool {if result then x=y else x<>y}
+parameter neq_unit_: x:unit -> y:unit -> {} bool {if result then x<>y else x=y}
+
+(* Integers *)
+
+logic add_int : int,int -> int (* + *)
+logic sub_int : int,int -> int (* - *)
+logic mul_int : int,int -> int (* * *)
+logic div_int : int,int -> int (* / in logic only *)
+logic mod_int : int,int -> int (* % in logic only *)
+logic neg_int : int -> int     (* prefix - *)
+
+(* / and % in programs: *)
+parameter div_int_ : x:int -> y:int -> { y<>0 } int { result = x / y }
+parameter mod_int_ : x:int -> y:int -> { y<>0 } int { result = x % y }
+
+logic lt_int : int,int -> prop  (* <  *)
+logic le_int : int,int -> prop  (* <= *)
+logic gt_int : int,int -> prop  (* >  *)
+logic ge_int : int,int -> prop  (* >= *)
+logic eq_int : int,int -> prop  (* =  *)
+logic neq_int : int,int -> prop (* <> *)
+
+(* < <= > >= = and <> in programs: *)
+parameter lt_int_ : x:int -> y:int -> {} bool { if result then x<y else x>=y }
+parameter le_int_ : x:int -> y:int -> {} bool { if result then x<=y else x>y }
+parameter gt_int_ : x:int -> y:int -> {} bool { if result then x>y else x<=y }
+parameter ge_int_ : x:int -> y:int -> {} bool { if result then x>=y else x<y }
+parameter eq_int_ : x:int -> y:int -> {} bool { if result then x=y else x<>y }
+parameter neq_int_ : x:int -> y:int -> {} bool { if result then x<>y else x=y }
+
+(* boolean versions of the comparisons and the corresponding axioms *)
+logic lt_int_bool : int,int -> bool
+logic le_int_bool : int,int -> bool
+logic gt_int_bool : int,int -> bool
+logic ge_int_bool : int,int -> bool
+logic eq_int_bool : int,int -> bool
+logic neq_int_bool : int,int -> bool
+
+axiom lt_int_bool_axiom : 
+  forall x:int. forall y:int. lt_int_bool(x,y)=true <-> x<y
+axiom le_int_bool_axiom : 
+  forall x:int. forall y:int. le_int_bool(x,y)=true <-> x<=y
+axiom gt_int_bool_axiom : 
+  forall x:int. forall y:int. gt_int_bool(x,y)=true <-> x>y
+axiom ge_int_bool_axiom : 
+  forall x:int. forall y:int. ge_int_bool(x,y)=true <-> x>=y
+axiom eq_int_bool_axiom : 
+  forall x:int. forall y:int. eq_int_bool(x,y)=true <-> x=y
+axiom neq_int_bool_axiom : 
+  forall x:int. forall y:int. neq_int_bool(x,y)=true <-> x<>y
+
+(* Reals *)
+
+logic add_real : real,real -> real (* + *)
+logic sub_real : real,real -> real (* - *)
+logic mul_real : real,real -> real (* * *)
+logic div_real : real,real -> real (* / *)
+logic pow_real : real,real -> real 
+logic neg_real : real -> real      (* prefix - *)
+logic abs_real : real -> real
+
+(* / in programs: *)
+parameter div_real_ : x:real -> y:real -> { y<>0.0 } real { result = x / y }
+
+logic sqrt_real : real -> real
+parameter sqrt_real_ : x:real -> { x >= 0.0 } real { result = sqrt_real(x) }
+
+logic real_of_int : int -> real
+logic int_of_real : real -> int
+
+(* real comparisons in logic... *)
+logic lt_real : real,real -> prop
+logic le_real : real,real -> prop
+logic gt_real : real,real -> prop
+logic ge_real : real,real -> prop
+logic eq_real : real,real -> prop
+logic neq_real : real,real -> prop
+
+(* ... and in programs: *)
+parameter lt_real_ : x:real -> y:real -> {} bool {if result then x<y else x>=y}
+parameter le_real_ : x:real -> y:real -> {} bool {if result then x<=y else x>y}
+parameter gt_real_ : x:real -> y:real -> {} bool {if result then x>y else x<=y}
+parameter ge_real_ : x:real -> y:real -> {} bool {if result then x>=y else x<y}
+parameter eq_real_ : x:real -> y:real -> {} bool {if result then x=y else x<>y}
+parameter neq_real_: x:real -> y:real -> {} bool {if result then x<>y else x=y}
+
+(* if-then-else function symbol *)
+
+logic ite : bool,'a,'a -> 'a
+
+axiom ite_true : forall x, y : 'a. ite(true, x, y) = x
+axiom ite_false : forall x, y : 'a. ite(false, x, y) = y
+
+(* References. := is syntactic sugar for ref_set: *)
+
+parameter ref_set : x:'a ref -> v:'a -> {} unit writes x { x = v }
+
+(* Non-deterministic values *)
+
+parameter any_bool : unit -> {} bool { true }
+parameter any_int : unit -> {} int { true }
+parameter any_real : unit -> {} real { true }
+

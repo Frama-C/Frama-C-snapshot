@@ -1,0 +1,609 @@
+
+;; DO NOT EDIT BELOW THIS LINE
+
+(BG_PUSH (NEQ |@true| |@false|))
+
+(BG_PUSH
+ ;; Why axiom lt_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (lt_int_bool x y) |@true|) (< x y))))
+
+(BG_PUSH
+ ;; Why axiom le_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (le_int_bool x y) |@true|) (<= x y))))
+
+(BG_PUSH
+ ;; Why axiom gt_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (gt_int_bool x y) |@true|) (> x y))))
+
+(BG_PUSH
+ ;; Why axiom ge_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (ge_int_bool x y) |@true|) (>= x y))))
+
+(BG_PUSH
+ ;; Why axiom eq_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (eq_int_bool x y) |@true|) (EQ x y))))
+
+(BG_PUSH
+ ;; Why axiom neq_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (neq_int_bool x y) |@true|) (NEQ x y))))
+
+(BG_PUSH
+ ;; Why axiom ite_true
+ (FORALL (x y) (EQ (ite |@true| x y) x)))
+
+(BG_PUSH
+ ;; Why axiom ite_false
+ (FORALL (x y) (EQ (ite |@false| x y) y)))
+
+(BG_PUSH
+ ;; Why axiom access_update
+ (FORALL (t i v) (EQ (access (update t i v) i) v)))
+
+(BG_PUSH
+ ;; Why axiom access_update_neq
+ (FORALL (t i j v)
+ (IMPLIES (NEQ i j) (EQ (access (update t i v) j) (access t j))))
+
+ (FORALL (i j)
+ (IMPLIES (NEQ i j)
+ (FORALL (t v) (EQ (access (update t i v) j) (access t j))))))
+
+(DEFPRED (sorted_array t i j)
+  (FORALL (k)
+  (IMPLIES (AND (<= i k) (< k j)) (<= (access t k) (access t (+ k 1))))))
+
+(DEFPRED (exchange t1 t2 i j)
+  (AND (EQ (array_length t1) (array_length t2))
+  (AND (EQ (access t1 i) (access t2 j))
+  (AND (EQ (access t2 i) (access t1 j))
+  (FORALL (k)
+  (IMPLIES (AND (NEQ k i) (NEQ k j)) (EQ (access t1 k) (access t2 k))))))))
+
+(BG_PUSH
+ ;; Why axiom permut_refl
+ (FORALL (t) (EQ (permut t t) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom permut_sym
+ (FORALL (t1 t2)
+ (IMPLIES (EQ (permut t1 t2) |@true|) (EQ (permut t2 t1) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom permut_trans
+ (FORALL (t1 t2 t3)
+ (IMPLIES (AND (EQ (permut t1 t2) |@true|) (EQ (permut t2 t3) |@true|))
+ (EQ (permut t1 t3) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom permut_exchange
+ (FORALL (t i j)
+ (EQ (permut t (update (update t i (access t j)) j (access t i))) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_refl
+ (FORALL (t g d) (EQ (sub_permut g d t t) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_sym
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (EQ (sub_permut g d t2 t1) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_trans
+ (FORALL (t1 t2 t3 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (IMPLIES (EQ (sub_permut g d t2 t3) |@true|)
+ (EQ (sub_permut g d t1 t3) |@true|))))
+
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (FORALL (t3)
+ (IMPLIES (EQ (sub_permut g d t2 t3) |@true|)
+ (EQ (sub_permut g d t1 t3) |@true|))))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_exchange_1
+ (FORALL (t g d i j)
+ (IMPLIES (AND (<= g i) (AND (<= i d) (AND (<= g j) (<= j d))))
+ (EQ (sub_permut
+ g d t (update (update t i (access t j)) j (access t i))) |@true|)))
+
+ (FORALL (g d i j)
+ (IMPLIES (AND (<= g i) (AND (<= i d) (AND (<= g j) (<= j d))))
+ (FORALL (t)
+ (EQ (sub_permut
+ g d t (update (update t i (access t j)) j (access t i))) |@true|)))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_exchange_2
+ (FORALL (t1 t2 g d i j)
+ (IMPLIES
+ (AND (<= g i)
+ (AND (<= i d) (AND (<= g j) (AND (<= j d) (exchange t1 t2 i j)))))
+ (EQ (sub_permut g d t1 t2) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_weakening
+ (FORALL (a1 a2 l1 r1 l2 r2)
+ (IMPLIES (AND (<= l1 l2) (AND (<= l2 r2) (<= r2 r1)))
+ (IMPLIES (EQ (sub_permut l2 r2 a1 a2) |@true|)
+ (EQ (sub_permut l1 r1 a1 a2) |@true|))))
+
+ (FORALL (l1 r1 l2 r2)
+ (IMPLIES (AND (<= l1 l2) (AND (<= l2 r2) (<= r2 r1)))
+ (FORALL (a2 a1)
+ (IMPLIES (EQ (sub_permut l2 r2 a1 a2) |@true|)
+ (EQ (sub_permut l1 r1 a1 a2) |@true|))))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_eq
+ (FORALL (a1 a2 l r)
+ (IMPLIES (<= l r)
+ (IMPLIES (EQ (sub_permut l r a1 a2) |@true|)
+ (FORALL (i) (IMPLIES (OR (< i l) (< r i)) (EQ (access a2 i) (access a1 i)))))))
+
+ (FORALL (l r)
+ (IMPLIES (<= l r)
+ (FORALL (a2 a1)
+ (IMPLIES (EQ (sub_permut l r a1 a2) |@true|)
+ (FORALL (i) (IMPLIES (OR (< i l) (< r i)) (EQ (access a2 i) (access a1 i)))))))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_permut
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|) (EQ (permut t1 t2) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom array_length_update
+ (FORALL (t i v) (EQ (array_length (update t i v)) (array_length t))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_array_length
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (EQ (array_length t1) (array_length t2)))))
+
+(BG_PUSH
+ ;; Why axiom permut_array_length
+ (FORALL (t1 t2)
+ (IMPLIES (EQ (permut t1 t2) |@true|)
+ (EQ (array_length t1) (array_length t2)))))
+
+(DEFPRED (is_color c) (OR (EQ c blue) (OR (EQ c white) (EQ c red))))
+
+(BG_PUSH
+ ;; Why axiom acc_upd_eq
+ (FORALL (a i c) (EQ (acc (upd a i c) i) c)))
+
+(BG_PUSH
+ ;; Why axiom acc_upd_neq
+ (FORALL (a i j c) (IMPLIES (NEQ i j) (EQ (acc (upd a j c) i) (acc a i))))
+
+ (FORALL (i j)
+ (IMPLIES (NEQ i j) (FORALL (a c) (EQ (acc (upd a j c) i) (acc a i))))))
+
+(BG_PUSH
+ ;; Why axiom length_update
+ (FORALL (a i c) (EQ (length (upd a i c)) (length a))))
+
+(DEFPRED (monochrome t i j c)
+  (FORALL (k) (IMPLIES (AND (<= i k) (< k j)) (EQ (acc t k) c))))
+
+(BG_PUSH
+ ;; Why axiom permut_refl
+ (FORALL (t l r) (EQ (permutation t t l r) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom permut_swap
+ (FORALL (t l r i j)
+ (IMPLIES (AND (<= l i) (<= i r))
+ (IMPLIES (AND (<= l j) (<= j r))
+ (EQ (permutation t (upd (upd t i (acc t j)) j (acc t i)) l r) |@true|))))
+
+ (FORALL (l r i)
+ (IMPLIES (AND (<= l i) (<= i r))
+ (FORALL (j)
+ (IMPLIES (AND (<= l j) (<= j r))
+ (FORALL (t)
+ (EQ (permutation t (upd (upd t i (acc t j)) j (acc t i)) l r) |@true|)))))))
+
+(BG_PUSH
+ ;; Why axiom permut_sym
+ (FORALL (t1 t2 l r)
+ (IMPLIES (EQ (permutation t1 t2 l r) |@true|)
+ (EQ (permutation t2 t1 l r) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom permut_trans
+ (FORALL (t1 t2 t3 l r)
+ (IMPLIES (EQ (permutation t1 t2 l r) |@true|)
+ (IMPLIES (EQ (permutation t2 t3 l r) |@true|)
+ (EQ (permutation t1 t3 l r) |@true|))))
+
+ (FORALL (t1 t2 l r)
+ (IMPLIES (EQ (permutation t1 t2 l r) |@true|)
+ (FORALL (t3)
+ (IMPLIES (EQ (permutation t2 t3 l r) |@true|)
+ (EQ (permutation t1 t3 l r) |@true|))))))
+
+;; swap_po_1, File "flag_ax.mlw", line 63, characters 2-11
+(FORALL (i)
+(FORALL (j)
+(FORALL (t)
+(IMPLIES (AND (AND (<= 0 i) (< i (length t)))
+         (AND (<= 0 j) (< j (length t))))
+(IMPLIES (AND (<= 0 i) (< i (length t)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t i))
+(IMPLIES (AND (<= 0 j) (< j (length t)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t j))
+(IMPLIES (AND (<= 0 i) (< i (length t)))
+(FORALL (t0)
+(IMPLIES (EQ t0 (upd t i result0)) (AND (<= 0 j) (< j (length t0))))))))))))))))
+
+;; swap_po_2, File "flag_ax.mlw", line 64, characters 4-46
+(FORALL (i)
+(FORALL (j)
+(FORALL (t)
+(IMPLIES (AND (AND (<= 0 i) (< i (length t)))
+         (AND (<= 0 j) (< j (length t))))
+(IMPLIES (AND (<= 0 i) (< i (length t)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t i))
+(IMPLIES (AND (<= 0 j) (< j (length t)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t j))
+(IMPLIES (AND (<= 0 i) (< i (length t)))
+(FORALL (t0)
+(IMPLIES (EQ t0 (upd t i result0))
+(IMPLIES (AND (<= 0 j) (< j (length t0)))
+(FORALL (t1)
+(IMPLIES (EQ t1 (upd t0 j result))
+(EQ t1 (upd (upd t i (acc t j)) j (acc t i)))))))))))))))))))
+
+;; dutch_flag_po_1, File "flag_ax.mlw", line 74, characters 17-290
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(AND (AND (<= 0 0) (<= 0 0))
+(AND (AND (<= 0 n) (<= n n))
+(AND (monochrome t 0 0 blue)
+(AND (monochrome t 0 0 white)
+(AND (monochrome t n n red)
+(AND (EQ (length t) n)
+(AND (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))
+(EQ (permutation t t 0 (- n 1)) |@true|)))))))))))
+
+;; dutch_flag_po_2, File "flag_ax.mlw", line 82, characters 18-26
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r) (AND (<= 0 i) (< i (length t0))))))))))))
+
+;; dutch_flag_po_3, File "flag_ax.mlw", line 83, characters 7-19
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (EQ result blue)
+(AND (AND (<= 0 b) (< b (length t0))) (AND (<= 0 i) (< i (length t0)))))))))))))))))
+
+;; dutch_flag_po_4, File "flag_ax.mlw", line 74, characters 17-290
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (EQ result blue)
+(IMPLIES (AND (AND (<= 0 b) (< b (length t0)))
+         (AND (<= 0 i) (< i (length t0))))
+(FORALL (t1)
+(IMPLIES (EQ t1 (upd (upd t0 b (acc t0 i)) i (acc t0 b)))
+(FORALL (b0)
+(IMPLIES (EQ b0 (+ b 1))
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1))
+(AND (AND (<= 0 b0) (<= b0 i0))
+(AND (AND (<= i0 r) (<= r n))
+(AND (monochrome t1 0 b0 blue)
+(AND (monochrome t1 b0 i0 white)
+(AND (monochrome t1 r n red)
+(AND (EQ (length t1) n)
+(AND (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t1 k))))
+(EQ (permutation t1 t 0 (- n 1)) |@true|))))))))))))))))))))))))))))
+
+;; dutch_flag_po_5, File "flag_ax.mlw", line 81, characters 15-20
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (EQ result blue)
+(IMPLIES (AND (AND (<= 0 b) (< b (length t0)))
+         (AND (<= 0 i) (< i (length t0))))
+(FORALL (t1)
+(IMPLIES (EQ t1 (upd (upd t0 b (acc t0 i)) i (acc t0 b)))
+(FORALL (b0)
+(IMPLIES (EQ b0 (+ b 1))
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1)) (AND (<= 0 (- r i)) (< (- r i0) (- r i)))))))))))))))))))))))
+
+;; dutch_flag_po_6, File "flag_ax.mlw", line 74, characters 17-290
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (NEQ result blue)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t0 i))
+(IMPLIES (EQ result0 white)
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1))
+(AND (AND (<= 0 b) (<= b i0))
+(AND (AND (<= i0 r) (<= r n))
+(AND (monochrome t0 0 b blue)
+(AND (monochrome t0 b i0 white)
+(AND (monochrome t0 r n red)
+(AND (EQ (length t0) n)
+(AND (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+(EQ (permutation t0 t 0 (- n 1)) |@true|)))))))))))))))))))))))))))
+
+;; dutch_flag_po_7, File "flag_ax.mlw", line 81, characters 15-20
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (NEQ result blue)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t0 i))
+(IMPLIES (EQ result0 white)
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1)) (AND (<= 0 (- r i)) (< (- r i0) (- r i))))))))))))))))))))))
+
+;; dutch_flag_po_8, File "flag_ax.mlw", line 90, characters 7-19
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (NEQ result blue)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t0 i))
+(IMPLIES (NEQ result0 white)
+(FORALL (r0)
+(IMPLIES (EQ r0 (- r 1))
+(AND (AND (<= 0 r0) (< r0 (length t0))) (AND (<= 0 i) (< i (length t0)))))))))))))))))))))))
+
+;; dutch_flag_po_9, File "flag_ax.mlw", line 74, characters 17-290
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (NEQ result blue)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t0 i))
+(IMPLIES (NEQ result0 white)
+(FORALL (r0)
+(IMPLIES (EQ r0 (- r 1))
+(IMPLIES (AND (AND (<= 0 r0) (< r0 (length t0)))
+         (AND (<= 0 i) (< i (length t0))))
+(FORALL (t1)
+(IMPLIES (EQ t1 (upd (upd t0 r0 (acc t0 i)) i (acc t0 r0)))
+(AND (AND (<= 0 b) (<= b i))
+(AND (AND (<= i r0) (<= r0 n))
+(AND (monochrome t1 0 b blue)
+(AND (monochrome t1 b i white)
+(AND (monochrome t1 r0 n red)
+(AND (EQ (length t1) n)
+(AND (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t1 k))))
+(EQ (permutation t1 t 0 (- n 1)) |@true|))))))))))))))))))))))))))))))
+
+;; dutch_flag_po_10, File "flag_ax.mlw", line 81, characters 15-20
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (< i r)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result)
+(IMPLIES (EQ result (acc t0 i))
+(IMPLIES (NEQ result blue)
+(IMPLIES (AND (<= 0 i) (< i (length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (acc t0 i))
+(IMPLIES (NEQ result0 white)
+(FORALL (r0)
+(IMPLIES (EQ r0 (- r 1))
+(IMPLIES (AND (AND (<= 0 r0) (< r0 (length t0)))
+         (AND (<= 0 i) (< i (length t0))))
+(FORALL (t1)
+(IMPLIES (EQ t1 (upd (upd t0 r0 (acc t0 i)) i (acc t0 r0)))
+(AND (<= 0 (- r i)) (< (- r0 i) (- r i)))))))))))))))))))))))))
+
+;; dutch_flag_po_11, File "flag_ax.mlw", line 93, characters 4-163
+(FORALL (n)
+(FORALL (t)
+(IMPLIES (AND (<= 0 n)
+         (AND (EQ (length t) n)
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t k))))))
+(FORALL (b)
+(FORALL (i)
+(FORALL (r)
+(FORALL (t0)
+(IMPLIES (AND (AND (<= 0 b) (<= b i))
+         (AND (AND (<= i r) (<= r n))
+         (AND (monochrome t0 0 b blue)
+         (AND (monochrome t0 b i white)
+         (AND (monochrome t0 r n red)
+         (AND (EQ (length t0) n)
+         (AND
+         (FORALL (k) (IMPLIES (AND (<= 0 k) (< k n)) (is_color (acc t0 k))))
+         (EQ (permutation t0 t 0 (- n 1)) |@true|))))))))
+(IMPLIES (>= i r)
+(AND
+(EXISTS (b)
+(EXISTS (r)
+(AND (monochrome t0 0 b blue)
+(AND (monochrome t0 b r white) (monochrome t0 r n red)))))
+(EQ (permutation t0 t 0 (- n 1)) |@true|)))))))))))
+

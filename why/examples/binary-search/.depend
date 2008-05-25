@@ -1,0 +1,2 @@
+bsearch_valid.vo: bsearch_valid.v ../../lib/coq/Why.vo ./bsearch_why.vo
+bsearch_why.vo: bsearch_why.v ../../lib/coq/Why.vo

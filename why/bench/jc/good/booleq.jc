@@ -1,0 +1,10 @@
+boolean f() {
+        return true == false
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make booleq"
+End: 
+*/

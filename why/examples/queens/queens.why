@@ -1,0 +1,182 @@
+
+(* N queens on a NxN chessboard *)
+
+logic N : int 
+
+(* abstract sets of integers *)
+
+type iset
+
+logic in_ : int, iset -> prop
+
+predicate included(a:iset, b:iset) = forall i:int. in_(i,a) -> in_(i,b)
+
+logic card : iset -> int
+axiom card_nonneg : forall s:iset. card(s) >= 0
+
+logic empty : iset
+axiom empty_def : forall i:int. not in_(i,empty)
+axiom empty_card : forall s:iset. card(s)=0 <-> s=empty
+
+logic diff : iset,iset -> iset
+(*
+axiom diff_def : 
+  forall a,b:iset. forall i:int.
+    in_(i,diff(a,b)) <-> (in_(i,a) and not in_(i,b))
+*)
+axiom diff_def_1 : 
+  forall a,b:iset. forall i:int. 
+    in_(i,diff(a,b)) -> (in_(i,a) and not in_(i,b))
+axiom diff_def_2 : 
+  forall a,b:iset. forall i:int.
+    (in_(i,a) and not in_(i,b)) -> in_(i,diff(a,b)) 
+
+logic add : int,iset -> iset
+axiom add_def : 
+  forall s:iset. forall x:int. forall i:int [in_(i,add(x,s))]. 
+    in_(i,add(x,s))  <-> (i=x or in_(i,s))
+
+logic remove : int,iset -> iset
+axiom remove_def : 
+  forall s:iset. forall x:int. forall i:int [in_(i,remove(x,s))]. 
+    in_(i,remove(x,s))  <-> (in_(i,s) and i<>x)
+axiom remove_card : 
+  forall s:iset. forall i:int.
+    in_(i,s) -> card(remove(i,s)) = card(s) - 1
+
+logic min_elt : iset -> int
+axiom min_elt_def_1 : 
+  forall s:iset. card(s) > 0 -> in_(min_elt(s), s)
+axiom min_elt_def_2 : 
+  forall s:iset. card(s) > 0 ->
+    forall i:int. in_(i,s) -> min_elt(s) <= i
+
+logic succ : iset -> iset
+axiom succ_def_1 :  
+  forall s:iset. forall i:int. in_(i,s) -> in_(i+1,succ(s))
+axiom succ_def_2 :  
+  forall s:iset. forall i:int. in_(i,succ(s)) -> i>=1 and in_(i-1,s)
+
+logic pred : iset -> iset
+axiom pred_def_1 : 
+  forall s:iset. forall i:int [in_(i,pred(s))]. 
+  i>=0 -> in_(i+1,s) -> in_(i,pred(s))
+axiom pred_def_2 : 
+  forall s:iset. forall i:int. in_(i,pred(s)) -> in_(i+1,s)
+
+(* logical arrays *)
+
+type 'a arr
+
+logic acc : 'a arr,int -> 'a
+logic upd : 'a arr,int,'a -> 'a arr
+
+axiom acc_upd_eq : 
+  forall a:'a arr. forall i:int. forall v:'a. 
+    acc(upd(a,i,v),i) = v
+axiom acc_upd_neq : 
+  forall a:'a arr. forall i,j:int. forall v:'a. 
+    i<>j -> acc(upd(a,i,v),j) = acc(a,j)
+
+predicate eq_prefix(t:'a arr, u:'a arr, i:int) =
+  (* t and u have the same prefix [0..i[ *)
+  forall k:int. 0 <= k < i -> acc(t,k)=acc(u,k)
+
+(* solutions *)
+
+predicate partial_solution(k:int, s:int arr) =
+  forall i:int. 0 <= i < k ->
+    0 <= acc(s,i) < N and
+    forall j:int. 
+      0 <= j < i -> acc(s,i) <> acc(s,j) and
+                    acc(s,i) - acc(s,j) <> i - j and
+	            acc(s,i) - acc(s,j) <> j - i
+
+predicate solution(s:int arr) = partial_solution(N, s)
+
+predicate eq_sol(t:int arr, u:int arr) = eq_prefix(t, u, N)
+
+(*lemma*)axiom partial_solution_eq_prefix:
+   forall t,u:int arr. forall k:int 
+   [partial_solution(k,t), partial_solution(k,u)].
+     partial_solution(k,t) -> eq_prefix(t,u,k) -> partial_solution(k,u)
+
+predicate lt_sol(s1:int arr, s2:int arr) =
+  exists i:int. 
+     0 <= i < N and eq_prefix(s1, s2, i) and acc(s1,i) < acc(s2,i)
+
+(* s[a..b[ is sorted for lt_sol *)
+predicate sorted(s: int arr arr, a:int, b:int) = 
+  forall i,j:int. a <= i < j < b -> lt_sol(acc(s,i), acc(s,j))
+
+(* code *)
+
+parameter sol : int arr arr ref
+parameter s : int ref
+
+parameter col : int arr ref
+parameter k : int ref
+
+parameter register_solution : unit -> 
+  { solution(col) } 
+  unit reads col writes s,sol 
+  { s=s@+1 and eq_prefix(sol@,sol,s@) and acc(sol,s@)=col }
+
+let rec count (a:iset) (b:iset) (c:iset) : int { variant card(a) } =
+  { 0 <= k and k+card(a)=N and 0 <= s and
+    pre_a: (forall i:int. 
+	     in_(i,a) <-> 0<=i<N and forall j:int. 0<=j<k -> i<>acc(col,j)) and
+    pre_b: (forall i:int. 0<=i ->  
+             (in_(i,b) <-> exists j:int. 0<=j<k and acc(col,j)=i+j-k)) and
+    pre_c: (forall i:int. 0<=i ->  
+             (in_(i,c) <-> exists j:int. 0<=j<k and acc(col,j)=i+k-j)) and
+    partial_solution(k, col) }
+  if card a = 0 then begin
+    register_solution void;
+    1
+  end else begin
+    let f = ref 0 in
+    let e = ref (diff (diff a b) c) in
+    L:
+    while card !e > 0 do
+      { invariant 
+	  included(e,e@L) and
+	  f = s - s@L and f >= 0 and k = k@L and
+	  (forall i,j:int. in_(i,diff(e@L,e)) -> in_(j,e) -> i<j) and
+          (*PROVABLE*) partial_solution(k,col) and
+          eq_prefix(col@L,col,k@L) and eq_prefix(sol@L,sol,s@L) and
+          (forall t:int arr.
+             (solution(t) and exists di:int. in_(di, diff(e@L, e)) and
+	      eq_prefix(upd(col,k,di), t, k+1)) <-> 
+             (exists i:int. s@L <= i < s and eq_sol(t, acc(sol,i)))) and
+	  sorted(sol, s@L, s)
+        variant card(e) }
+      let d = min_elt !e in
+      e := remove d !e;
+      col := upd !col !k d;
+      k := !k + 1;
+      f := !f + count (remove d a) (succ (add d b)) (pred (add d c));
+      k := !k - 1
+    done;
+    !f
+  end
+  { result = s-s@ and result >= 0 and k = k@ and
+    eq_prefix(col@,col,k) and eq_prefix(sol@,sol,s@) and
+    sorted(sol, s@, s) and
+    forall t:int arr.
+      (solution(t) and eq_prefix(col, t, k)) <-> 
+      (exists i:int. s@ <= i < s and eq_sol(t, acc(sol,i)))
+  }    
+
+logic below_N : iset
+axiom below_N_def : forall i:int. in_(i,below_N) <-> 0<=i<N
+axiom below_N_card : card(below_N) = N
+
+let queens () =
+  { s = 0 and k = 0 }
+  count below_N empty empty
+  { result = s and
+    sorted(sol, 0, s) and
+    forall t:int arr. 
+      solution(t) <-> (exists i:int. 0 <= i < s and eq_sol(t, acc(sol,i)))
+  }

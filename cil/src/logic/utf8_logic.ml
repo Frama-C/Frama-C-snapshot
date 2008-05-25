@@ -1,0 +1,72 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2008                                               *)
+(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+let from_unichar n =
+  let rec log64 n =
+    if n = 0 then 0 else
+      1 + log64 (n lsr 5)
+  in
+  let utf8_storage_len n =
+    if n < 0x80 then 1 else
+      log64 (n lsr 1)
+  in
+  (* this function is not exported, so it's OK to do a few 'unsafe' things *)
+  let write_unichar s ~pos c =
+    let len = utf8_storage_len c in
+    let p = !pos in
+    if len = 1 then
+      String.unsafe_set s p (Char.unsafe_chr c)
+    else begin
+      String.unsafe_set s p (Char.unsafe_chr (((1 lsl len - 1) lsl (8-len)) lor (c lsr ((len-1)*6))));
+      for i = 1 to len-1 do
+	String.unsafe_set s (p+i) 
+	  (Char.unsafe_chr (((c lsr ((len-1-i)*6)) land 0x3f) lor 0x80))
+      done ;
+    end ;
+    pos := p + len
+  in
+  let s = String.create 6 and pos = ref 0 in
+  write_unichar s ~pos n;
+  String.sub s 0 !pos
+
+
+let forall =  from_unichar 0x2200
+let exists =  from_unichar 0x2203
+let eq =  from_unichar (*0x2263*) (*0x2250*) 0x2261
+let neq =  from_unichar 0x2262
+let le =  from_unichar 0x2264
+let ge =  from_unichar 0x2265
+
+let implies = from_unichar 0x21D2 
+let iff = from_unichar 0x21D4
+let conj = from_unichar 0x2227
+let disj = from_unichar 0x2228
+let neg = from_unichar 0x00AC
+let x_or =  from_unichar 0x22BB
+let inset = from_unichar 0x2208
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

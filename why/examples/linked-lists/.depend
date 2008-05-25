@@ -1,0 +1,5 @@
+LinkedLists.vo: LinkedLists.v ../../lib/coq/Why.vo
+length_valid.vo: length_valid.v ../../lib/coq/Why.vo ./length_why.vo
+length_why.vo: length_why.v ../../lib/coq/Why.vo ./LinkedLists.vo
+rev_valid.vo: rev_valid.v ../../lib/coq/Why.vo ./rev_why.vo
+rev_why.vo: rev_why.v ../../lib/coq/Why.vo ./LinkedLists.vo

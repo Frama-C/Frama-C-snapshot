@@ -1,0 +1,47 @@
+# InvariantPolicy = Arguments
+
+/*
+example taken from "Coping with Type Casts in C"
+*/
+
+type shape_kind = 0..1
+
+type Shape = {
+  shape_kind kind;
+  invariant dicr(s) = (s.kind == 0 ==> s <: Circle)
+		   && (s.kind == 1 ==> s <: Rectangle);
+}
+
+tag Circle = Shape with {
+  real radius;
+}
+
+tag Rectangle = Shape with {
+  real length;
+  real width;
+}
+
+real circ_area(Circle[0] s) {
+  return s.radius * s.radius * 3.14;
+}
+
+real rect_area(Rectangle[0] s) {
+  return s.length * s.width;
+}
+
+real area(Shape[0] s)
+{
+    if s.kind == 0 then {
+    return circ_area(s:>Circle);
+    } else if s.kind == 1 then {
+    return rect_area(s:>Rectangle);
+  }
+  else return 0.;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make shape"
+End: 
+*/

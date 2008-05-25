@@ -1,0 +1,633 @@
+
+;; DO NOT EDIT BELOW THIS LINE
+
+(BG_PUSH (NEQ |@true| |@false|))
+
+(BG_PUSH
+ ;; Why axiom lt_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (lt_int_bool x y) |@true|) (< x y))))
+
+(BG_PUSH
+ ;; Why axiom le_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (le_int_bool x y) |@true|) (<= x y))))
+
+(BG_PUSH
+ ;; Why axiom gt_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (gt_int_bool x y) |@true|) (> x y))))
+
+(BG_PUSH
+ ;; Why axiom ge_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (ge_int_bool x y) |@true|) (>= x y))))
+
+(BG_PUSH
+ ;; Why axiom eq_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (eq_int_bool x y) |@true|) (EQ x y))))
+
+(BG_PUSH
+ ;; Why axiom neq_int_bool_axiom
+ (FORALL (x y) (IFF (EQ (neq_int_bool x y) |@true|) (NEQ x y))))
+
+(BG_PUSH
+ ;; Why axiom ite_true
+ (FORALL (x y) (EQ (ite |@true| x y) x)))
+
+(BG_PUSH
+ ;; Why axiom ite_false
+ (FORALL (x y) (EQ (ite |@false| x y) y)))
+
+(BG_PUSH
+ ;; Why axiom access_update
+ (FORALL (t i v) (EQ (access (update t i v) i) v)))
+
+(BG_PUSH
+ ;; Why axiom access_update_neq
+ (FORALL (t i j v)
+ (IMPLIES (NEQ i j) (EQ (access (update t i v) j) (access t j))))
+
+ (FORALL (i j)
+ (IMPLIES (NEQ i j)
+ (FORALL (t v) (EQ (access (update t i v) j) (access t j))))))
+
+(DEFPRED (sorted_array t i j)
+  (FORALL (k)
+  (IMPLIES (AND (<= i k) (< k j)) (<= (access t k) (access t (+ k 1))))))
+
+(DEFPRED (exchange t1 t2 i j)
+  (AND (EQ (array_length t1) (array_length t2))
+  (AND (EQ (access t1 i) (access t2 j))
+  (AND (EQ (access t2 i) (access t1 j))
+  (FORALL (k)
+  (IMPLIES (AND (NEQ k i) (NEQ k j)) (EQ (access t1 k) (access t2 k))))))))
+
+(BG_PUSH
+ ;; Why axiom permut_refl
+ (FORALL (t) (EQ (permut t t) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom permut_sym
+ (FORALL (t1 t2)
+ (IMPLIES (EQ (permut t1 t2) |@true|) (EQ (permut t2 t1) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom permut_trans
+ (FORALL (t1 t2 t3)
+ (IMPLIES (AND (EQ (permut t1 t2) |@true|) (EQ (permut t2 t3) |@true|))
+ (EQ (permut t1 t3) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom permut_exchange
+ (FORALL (t i j)
+ (EQ (permut t (update (update t i (access t j)) j (access t i))) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_refl
+ (FORALL (t g d) (EQ (sub_permut g d t t) |@true|)))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_sym
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (EQ (sub_permut g d t2 t1) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_trans
+ (FORALL (t1 t2 t3 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (IMPLIES (EQ (sub_permut g d t2 t3) |@true|)
+ (EQ (sub_permut g d t1 t3) |@true|))))
+
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (FORALL (t3)
+ (IMPLIES (EQ (sub_permut g d t2 t3) |@true|)
+ (EQ (sub_permut g d t1 t3) |@true|))))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_exchange_1
+ (FORALL (t g d i j)
+ (IMPLIES (AND (<= g i) (AND (<= i d) (AND (<= g j) (<= j d))))
+ (EQ (sub_permut
+ g d t (update (update t i (access t j)) j (access t i))) |@true|)))
+
+ (FORALL (g d i j)
+ (IMPLIES (AND (<= g i) (AND (<= i d) (AND (<= g j) (<= j d))))
+ (FORALL (t)
+ (EQ (sub_permut
+ g d t (update (update t i (access t j)) j (access t i))) |@true|)))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_exchange_2
+ (FORALL (t1 t2 g d i j)
+ (IMPLIES
+ (AND (<= g i)
+ (AND (<= i d) (AND (<= g j) (AND (<= j d) (exchange t1 t2 i j)))))
+ (EQ (sub_permut g d t1 t2) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_weakening
+ (FORALL (a1 a2 l1 r1 l2 r2)
+ (IMPLIES (AND (<= l1 l2) (AND (<= l2 r2) (<= r2 r1)))
+ (IMPLIES (EQ (sub_permut l2 r2 a1 a2) |@true|)
+ (EQ (sub_permut l1 r1 a1 a2) |@true|))))
+
+ (FORALL (l1 r1 l2 r2)
+ (IMPLIES (AND (<= l1 l2) (AND (<= l2 r2) (<= r2 r1)))
+ (FORALL (a2 a1)
+ (IMPLIES (EQ (sub_permut l2 r2 a1 a2) |@true|)
+ (EQ (sub_permut l1 r1 a1 a2) |@true|))))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_eq
+ (FORALL (a1 a2 l r)
+ (IMPLIES (<= l r)
+ (IMPLIES (EQ (sub_permut l r a1 a2) |@true|)
+ (FORALL (i) (IMPLIES (OR (< i l) (< r i)) (EQ (access a2 i) (access a1 i)))))))
+
+ (FORALL (l r)
+ (IMPLIES (<= l r)
+ (FORALL (a2 a1)
+ (IMPLIES (EQ (sub_permut l r a1 a2) |@true|)
+ (FORALL (i) (IMPLIES (OR (< i l) (< r i)) (EQ (access a2 i) (access a1 i)))))))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_permut
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|) (EQ (permut t1 t2) |@true|))))
+
+(BG_PUSH
+ ;; Why axiom array_length_update
+ (FORALL (t i v) (EQ (array_length (update t i v)) (array_length t))))
+
+(BG_PUSH
+ ;; Why axiom sub_permut_array_length
+ (FORALL (t1 t2 g d)
+ (IMPLIES (EQ (sub_permut g d t1 t2) |@true|)
+ (EQ (array_length t1) (array_length t2)))))
+
+(BG_PUSH
+ ;; Why axiom permut_array_length
+ (FORALL (t1 t2)
+ (IMPLIES (EQ (permut t1 t2) |@true|)
+ (EQ (array_length t1) (array_length t2)))))
+
+;; swap_po_1, File "quicksort2.mlw", line 11, characters 4-13
+(FORALL (i)
+(FORALL (j)
+(FORALL (t)
+(IMPLIES (AND (AND (<= 0 i) (< i (array_length t)))
+         (AND (<= 0 j) (< j (array_length t))))
+(IMPLIES (AND (<= 0 i) (< i (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t i))
+(IMPLIES (AND (<= 0 j) (< j (array_length t)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t j))
+(IMPLIES (AND (<= 0 i) (< i (array_length t)))
+(FORALL (t0)
+(IMPLIES (EQ t0 (update t i result0)) (AND (<= 0 j) (< j (array_length t0))))))))))))))))
+
+;; swap_po_2, File "quicksort2.mlw", line 13, characters 4-25
+(FORALL (i)
+(FORALL (j)
+(FORALL (t)
+(IMPLIES (AND (AND (<= 0 i) (< i (array_length t)))
+         (AND (<= 0 j) (< j (array_length t))))
+(IMPLIES (AND (<= 0 i) (< i (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t i))
+(IMPLIES (AND (<= 0 j) (< j (array_length t)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t j))
+(IMPLIES (AND (<= 0 i) (< i (array_length t)))
+(FORALL (t0)
+(IMPLIES (EQ t0 (update t i result0))
+(IMPLIES (AND (<= 0 j) (< j (array_length t0)))
+(FORALL (t1) (IMPLIES (EQ t1 (update t0 j result)) (exchange t1 t i j)))))))))))))))))
+
+;; quick_rec_po_1, File "quicksort2.mlw", line 21, characters 12-16
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r) (AND (<= 0 l) (< l (array_length t))))))))
+
+;; quick_rec_po_2, File "quicksort2.mlw", line 27, characters 13-215
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(AND (FORALL (j) (IMPLIES (AND (< l j) (<= j l)) (< (access t j) result)))
+(AND
+(FORALL (j) (IMPLIES (AND (< l j) (< j (+ l 1))) (>= (access t j) result)))
+(AND (EQ (sub_permut l r t t) |@true|)
+(AND (EQ (access t l) result)
+(AND (AND (<= l l) (< l (+ l 1))) (<= (+ l 1) (+ r 1)))))))))))))))
+
+;; quick_rec_po_3, File "quicksort2.mlw", line 32, characters 11-16
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (<= i r) (AND (<= 0 i) (< i (array_length t0))))))))))))))))
+
+;; quick_rec_po_4, File "quicksort2.mlw", line 32, characters 46-58
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (<= i r)
+(IMPLIES (AND (<= 0 i) (< i (array_length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t0 i))
+(IMPLIES (< result0 result)
+(FORALL (m0)
+(IMPLIES (EQ m0 (+ m 1))
+(AND (AND (<= 0 i) (< i (array_length t0)))
+(AND (<= 0 m0) (< m0 (array_length t0)))))))))))))))))))))))
+
+;; quick_rec_po_5, File "quicksort2.mlw", line 27, characters 13-215
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (<= i r)
+(IMPLIES (AND (<= 0 i) (< i (array_length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t0 i))
+(IMPLIES (< result0 result)
+(FORALL (m0)
+(IMPLIES (EQ m0 (+ m 1))
+(IMPLIES (AND (AND (<= 0 i) (< i (array_length t0)))
+         (AND (<= 0 m0) (< m0 (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 i m0)
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1))
+(AND (FORALL (j) (IMPLIES (AND (< l j) (<= j m0)) (< (access t1 j) result)))
+(AND (FORALL (j) (IMPLIES (AND (< m0 j) (< j i0)) (>= (access t1 j) result)))
+(AND (EQ (sub_permut l r t1 t) |@true|)
+(AND (EQ (access t1 l) result)
+(AND (AND (<= l m0) (< m0 i0)) (<= i0 (+ r 1)))))))))))))))))))))))))))))))
+
+;; quick_rec_po_6, File "quicksort2.mlw", line 31, characters 18-27
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (<= i r)
+(IMPLIES (AND (<= 0 i) (< i (array_length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t0 i))
+(IMPLIES (< result0 result)
+(FORALL (m0)
+(IMPLIES (EQ m0 (+ m 1))
+(IMPLIES (AND (AND (<= 0 i) (< i (array_length t0)))
+         (AND (<= 0 m0) (< m0 (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 i m0)
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1))
+(AND (<= 0 (- (+ 1 r) i)) (< (- (+ 1 r) i0) (- (+ 1 r) i)))))))))))))))))))))))))))
+
+;; quick_rec_po_7, File "quicksort2.mlw", line 27, characters 13-215
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (<= i r)
+(IMPLIES (AND (<= 0 i) (< i (array_length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t0 i))
+(IMPLIES (>= result0 result)
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1))
+(AND (FORALL (j) (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+(AND (FORALL (j) (IMPLIES (AND (< m j) (< j i0)) (>= (access t0 j) result)))
+(AND (EQ (sub_permut l r t0 t) |@true|)
+(AND (EQ (access t0 l) result) (AND (AND (<= l m) (< m i0)) (<= i0 (+ r 1))))))))))))))))))))))))))
+
+;; quick_rec_po_8, File "quicksort2.mlw", line 31, characters 18-27
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (<= i r)
+(IMPLIES (AND (<= 0 i) (< i (array_length t0)))
+(FORALL (result0)
+(IMPLIES (EQ result0 (access t0 i))
+(IMPLIES (>= result0 result)
+(FORALL (i0)
+(IMPLIES (EQ i0 (+ i 1))
+(AND (<= 0 (- (+ 1 r) i)) (< (- (+ 1 r) i0) (- (+ 1 r) i))))))))))))))))))))))
+
+;; quick_rec_po_9, File "quicksort2.mlw", line 35, characters 7-18
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (> i r)
+(AND (AND (<= 0 l) (< l (array_length t0)))
+(AND (<= 0 m) (< m (array_length t0)))))))))))))))))
+
+;; quick_rec_po_10, File "quicksort2.mlw", line 36, characters 7-29
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (> i r)
+(IMPLIES (AND (AND (<= 0 l) (< l (array_length t0)))
+         (AND (<= 0 m) (< m (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 l m)
+(AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 (- m 1)) l) (- (+ 1 r) l)))))))))))))))))))
+
+;; quick_rec_po_11, File "quicksort2.mlw", line 36, characters 7-29
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (> i r)
+(IMPLIES (AND (AND (<= 0 l) (< l (array_length t0)))
+         (AND (<= 0 m) (< m (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 l m)
+(IMPLIES (AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 (- m 1)) l) (- (+ 1 r) l)))
+(AND (<= 0 l) (< (- m 1) (array_length t1))))))))))))))))))))
+
+;; quick_rec_po_12, File "quicksort2.mlw", line 37, characters 7-29
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (> i r)
+(IMPLIES (AND (AND (<= 0 l) (< l (array_length t0)))
+         (AND (<= 0 m) (< m (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 l m)
+(IMPLIES (AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 (- m 1)) l) (- (+ 1 r) l)))
+(IMPLIES (AND (<= 0 l) (< (- m 1) (array_length t1)))
+(FORALL (t2)
+(IMPLIES (AND (sorted_array t2 l (- m 1))
+         (EQ (sub_permut l (- m 1) t2 t1) |@true|))
+(AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 r) (+ m 1)) (- (+ 1 r) l)))))))))))))))))))))))
+
+;; quick_rec_po_13, File "quicksort2.mlw", line 37, characters 7-29
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (> i r)
+(IMPLIES (AND (AND (<= 0 l) (< l (array_length t0)))
+         (AND (<= 0 m) (< m (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 l m)
+(IMPLIES (AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 (- m 1)) l) (- (+ 1 r) l)))
+(IMPLIES (AND (<= 0 l) (< (- m 1) (array_length t1)))
+(FORALL (t2)
+(IMPLIES (AND (sorted_array t2 l (- m 1))
+         (EQ (sub_permut l (- m 1) t2 t1) |@true|))
+(IMPLIES (AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 r) (+ m 1)) (- (+ 1 r) l)))
+(AND (<= 0 (+ m 1)) (< r (array_length t2))))))))))))))))))))))))
+
+;; quick_rec_po_14, File "quicksort2.mlw", line 39, characters 4-53
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (< l r)
+(IMPLIES (AND (<= 0 l) (< l (array_length t)))
+(FORALL (result)
+(IMPLIES (EQ result (access t l))
+(FORALL (i)
+(FORALL (m)
+(FORALL (t0)
+(IMPLIES (AND
+         (FORALL (j)
+         (IMPLIES (AND (< l j) (<= j m)) (< (access t0 j) result)))
+         (AND
+         (FORALL (j)
+         (IMPLIES (AND (< m j) (< j i)) (>= (access t0 j) result)))
+         (AND (EQ (sub_permut l r t0 t) |@true|)
+         (AND (EQ (access t0 l) result)
+         (AND (AND (<= l m) (< m i)) (<= i (+ r 1)))))))
+(IMPLIES (> i r)
+(IMPLIES (AND (AND (<= 0 l) (< l (array_length t0)))
+         (AND (<= 0 m) (< m (array_length t0))))
+(FORALL (t1)
+(IMPLIES (exchange t1 t0 l m)
+(IMPLIES (AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 (- m 1)) l) (- (+ 1 r) l)))
+(IMPLIES (AND (<= 0 l) (< (- m 1) (array_length t1)))
+(FORALL (t2)
+(IMPLIES (AND (sorted_array t2 l (- m 1))
+         (EQ (sub_permut l (- m 1) t2 t1) |@true|))
+(IMPLIES (AND (<= 0 (- (+ 1 r) l)) (< (- (+ 1 r) (+ m 1)) (- (+ 1 r) l)))
+(IMPLIES (AND (<= 0 (+ m 1)) (< r (array_length t2)))
+(FORALL (t3)
+(IMPLIES (AND (sorted_array t3 (+ m 1) r)
+         (EQ (sub_permut (+ m 1) r t3 t2) |@true|))
+(AND (sorted_array t3 l r) (EQ (sub_permut l r t3 t) |@true|))))))))))))))))))))))))))
+
+;; quick_rec_po_15, File "quicksort2.mlw", line 39, characters 4-53
+(FORALL (l)
+(FORALL (r)
+(FORALL (t)
+(IMPLIES (AND (<= 0 l) (< r (array_length t)))
+(IMPLIES (>= l r)
+(AND (sorted_array t l r) (EQ (sub_permut l r t t) |@true|)))))))
+
+;; quicksort_po_1, File "quicksort2.mlw", line 45, characters 3-38
+(FORALL (t)
+(FORALL (result)
+(IMPLIES (EQ result (array_length t))
+(AND (<= 0 0) (< (- result 1) (array_length t))))))
+
+;; quicksort_po_2, File "quicksort2.mlw", line 46, characters 4-59
+(FORALL (t)
+(FORALL (result)
+(IMPLIES (EQ result (array_length t))
+(IMPLIES (AND (<= 0 0) (< (- result 1) (array_length t)))
+(FORALL (t0)
+(IMPLIES (AND (sorted_array t0 0 (- result 1))
+         (EQ (sub_permut 0 (- result 1) t0 t) |@true|))
+(AND (sorted_array t0 0 (- (array_length t0) 1)) (EQ (permut t0 t) |@true|))))))))
+

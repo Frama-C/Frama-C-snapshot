@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.06">
+
+<base target="main">
+<TITLE>
+ Testing CIL
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="cil002.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="ciltoc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="cil004.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+
+<H2><A NAME="htoc3">3</A>&nbsp;&nbsp;Testing CIL</H2> 
+ Once you have built CIL you can run 
+<PRE>
+make quicktest
+</PRE>
+ This will run a few small examples. If you want to test CIL on a large
+part of our own regression suite you need to do the following:
+<UL><LI>
+Download the CCured regression suite from the
+<A HREF="distrib">distribution</A> directory. The latest version is
+<A HREF="../ccured/distrib/ccured-tests-1.3.3.tar.gz"><TT>../ccured/distrib/ccured-tests-1.3.3.tar.gz</TT></A>.
+<LI>Unpack that file in the <TT>cil</TT> (you must end up with <TT>cil/test</TT>).
+<LI>Run <TT>./configure</TT> to create the file <TT>cil/test/Makefile</TT>
+<LI>Re-run <TT>make</TT>
+<LI>In the <TT>test</TT> directory, run
+<PRE>
+USECILLY=1 testsafec --run --group cil --nogroup slow
+</PRE></UL>
+Drop the argument <TT>--nogroup slow</TT> to run even larger tests. <BR>
+<BR>
+<B>Note that some tests will fail either because they are not included in
+ our distribution, or because we still have a few failing test cases.</B><BR>
+<BR>
+<HR>
+<A HREF="cil002.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="ciltoc.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="cil004.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

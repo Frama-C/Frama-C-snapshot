@@ -1,0 +1,34 @@
+
+type list = {
+  integer content;
+  list[..] next;
+}
+
+unit sum(list[0] l) {
+    var integer s = 0;
+    invariant true;
+    variant 0;
+    while (l != null) 
+    {
+	s += l.content;
+	l = l.next;
+    }
+}
+
+unit nullify(list[0] l) {
+    invariant true;
+    variant 0;
+    while (l != null) 
+    {
+	l.content = 0;
+	l = l.next;
+    }
+}
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make null"
+End: 
+*/

@@ -1,0 +1,2 @@
+maximumsort_valid.vo: maximumsort_valid.v ../../lib/coq/Why.vo ./maximumsort_why.vo
+maximumsort_why.vo: maximumsort_why.v ../../lib/coq/Why.vo

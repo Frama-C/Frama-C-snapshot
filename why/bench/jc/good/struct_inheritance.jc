@@ -1,0 +1,15 @@
+# InvariantPolicy = Arguments
+
+type A = {
+  integer i;
+  invariant i_inv(this) = this.i >= 0;
+}
+
+tag B = A with {
+  integer j;
+}
+
+
+unit f(B[0] this) {
+  assert this.i >= 0;
+}

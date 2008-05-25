@@ -1,0 +1,21 @@
+
+# SeparationPolicy = Regions
+
+type intP = {
+    integer intM;
+}
+
+unit f(intP[0] p, intP[0] q) 
+  behavior ok:
+    ensures p.intM == 0 && q.intM == 1;
+{
+    p.intM = 0;
+    q.intM = 1;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make separation"
+End: 
+*/
