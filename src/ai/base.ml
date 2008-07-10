@@ -35,8 +35,8 @@ type cell_class_attributes =
 
 type validity =
   | All
-  | Unknown
-  | Known of (Abstract_interp.Int.t*Abstract_interp.Int.t)
+  | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
+  | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
 
 type t = | Var of varinfo*validity
          | Initialized_Var of varinfo*validity
@@ -62,6 +62,12 @@ let is_hidden_variable v =
   match v with
     Var (s,_) when s.vlogic -> true
   | _ -> false
+
+let pretty_validity fmt v = 
+  match v with 
+  | All -> Format.fprintf fmt "All"
+  | Unknown (b,e)  -> Format.fprintf fmt "Unknown %a-%a" Int.pretty b Int.pretty e
+  | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
 
 let pretty fmt t = Format.fprintf fmt "%s"
   (match t with
@@ -168,7 +174,7 @@ let validity_from_type v =
       Known (Int.zero,Int.pred size)
   | Int_Base.Value size ->
       assert (Int.eq size Int.zero);
-      Unknown
+      Unknown (Int.zero, Bit_utils.max_bit_address ())
 
 let create_varinfo varinfo =
   assert (not varinfo.vlogic);

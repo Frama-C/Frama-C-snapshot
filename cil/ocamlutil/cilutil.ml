@@ -1008,6 +1008,19 @@ module StmtComparable = struct
   let equal t1 t2 = t1.sid = t2.sid
 end
 
+module KinstrComparable = struct
+  type t= kinstr
+  let compare a b = match a,b with
+  | Kglobal,Kglobal -> 0
+  | Kglobal,_ -> 1
+  | _,Kglobal -> -1
+  | Kstmt a, Kstmt b -> StmtComparable.compare a b 
+
+  let hash = function Kglobal -> 0 |  Kstmt s -> StmtComparable.hash s
+  let equal a b = compare a b = 0
+
+end
+
 (** [Map] indexed by [Cil_types.stmt] with a customizable pretty printer *)
 module StmtMap = struct
   include Map.Make(StmtComparable)

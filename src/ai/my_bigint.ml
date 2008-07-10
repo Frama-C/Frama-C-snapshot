@@ -86,6 +86,22 @@ let shift_left_big_int x y = (* idem multiplication *)
 let shift_right_big_int x y = (* idem division rounding to -oo *)
   Big_int.div_big_int x (Big_int.power_int_positive_big_int 2 y)
 
+let power_two = 
+  let h = Hashtbl.create 7 in
+  fun k ->
+      try
+	Hashtbl.find h k
+      with Not_found ->
+	let p = Big_int.power_int_positive_int 2 k in
+	Hashtbl.add h k p;
+	p
+
+let two_power y = 
+    try
+      let k = Big_int.int_of_big_int y in
+      power_two k
+    with Failure _ -> assert false
+
 let log_shift_right_big_int x y = (* no meaning for negative value of x *)
   if (Big_int.lt_big_int x Big_int.zero_big_int)
   then raise (Invalid_argument "log_shift_right_big_int")

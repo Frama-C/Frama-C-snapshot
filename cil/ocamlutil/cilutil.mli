@@ -38,7 +38,8 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(** A bunch of generally useful functions *)
+(** A bunch of generally useful functions.
+    @plugin developer guide *)
 
 open Cil_types
 
@@ -189,6 +190,7 @@ val tryFinally:
 val valOf : 'a option -> 'a
 
 val out_some : 'a option -> 'a
+  (** @plugin developer guide *)
 
 val opt_map: ('a -> 'b) -> 'a option -> 'b option
 
@@ -452,17 +454,21 @@ sig include Map.S with type key = Cil_types.stmt
     val pretty : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
 end
 
-(** [Set] of [Cil_types.stmt] with a pretty printer *)
+(** [Set] of [Cil_types.stmt] with a pretty printer.
+    @plugin developer guide *)
 module StmtSet : sig include Set.S with type elt = Cil_types.stmt
     val pretty : Format.formatter ->  t -> unit
 end
 
 module StmtComparable : Graph.Sig.COMPARABLE with type t = Cil_types.stmt
 
-(** [Hashtbl] of [Cil_types.stmt] with a pretty printer *)
+(** [Hashtbl] of [Cil_types.stmt] with a pretty printer.
+    @plugin developer guide *)
 module StmtHashtbl : sig include Hashtbl.S with type key = Cil_types.stmt
     val pretty : Format.formatter ->  'a t  -> unit
 end
+
+module KinstrComparable : Graph.Sig.COMPARABLE with type t = Cil_types.kinstr
 
 module VarinfoComparable : sig
   type t = varinfo
@@ -481,6 +487,12 @@ module LogicVarComparable : sig
 end
 module LogicVarHashtbl : Hashtbl.S with type key = Cil_types.logic_var
 
+module FieldinfoComparable : sig
+  type t = fieldinfo
+  val compare: t -> t -> int
+  val hash: t -> int
+  val equal: t -> t -> bool
+end
 module FieldinfoHashtbl : Hashtbl.S with type key = Cil_types.fieldinfo
 module FieldinfoSet : Set.S with type elt = Cil_types.fieldinfo
 module FieldinfoMap : Map.S with type key = Cil_types.fieldinfo

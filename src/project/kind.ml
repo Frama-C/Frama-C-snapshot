@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kind.ml,v 1.7 2008/04/18 14:10:49 uid568 Exp $ *)
+(* $Id: kind.ml,v 1.8 2008/07/11 09:18:50 uid568 Exp $ *)
 
 type how =
   | Do_Not_Select_Dependencies
@@ -134,15 +134,16 @@ struct
   module Topological = Graph.Topological.Make(D)
 
   let digest () = 
-    let names = 
+    (*let names = 
       Topological.fold 
 	(fun v acc -> 
 (*	   Format.printf "digest for %s@." (node_name v);*)
 	   node_name v ^ acc) 
 	deps 
 	"" 
-    in
-    Digest.string (!version ^ names)
+    in*)
+    (*Digest.string (!version ^ names)*)
+    Digest.string !version
 
   module Selection = struct
     type kind = V.t

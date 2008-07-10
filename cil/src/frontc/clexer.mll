@@ -68,7 +68,9 @@ let addComment c =
 
 (* track whitespace for the current token *)
 let white = ref ""
-let addWhite lexbuf = if not !Whitetrack.enabled then
+
+let addWhite lexbuf = 
+  if !Whitetrack.enabled then
     let w = Lexing.lexeme lexbuf in
     white := !white ^ w
 let clear_white () = white := ""
@@ -414,7 +416,7 @@ let save_current_pos () =
 let make_annot s =
   let start = snd !annot_start_pos in
   match Logic_lexer.annot (start, s) with
-    | Logic_ptree.Adecl (loc,d) -> DECL (d, loc)
+    | Logic_ptree.Adecl d -> DECL d
     | Logic_ptree.Aspec -> SPEC (start,s)
         (* At this point, we only have identified a function spec. Complete
            parsing of the annotation will only occur in the cparser.mly rule.
@@ -499,9 +501,18 @@ rule initial =
                                           end }
 
 | "//"
-    { let il = onelinecomment lexbuf in
+    {
+      let il = onelinecomment lexbuf in
       let sl = intlist_to_string il in
-      addComment sl; E.newline(); addWhite lexbuf; initial lexbuf }
+      addComment sl; E.newline();
+      if is_oneline_ghost () then begin
+        exit_oneline_ghost ();
+        RGHOST
+      end else begin
+        addWhite lexbuf;
+        initial lexbuf
+      end
+    }
 
 | "//" ([^ '\n'] as c)
     { if c = !annot_char then begin
@@ -515,8 +526,16 @@ rule initial =
     end else begin
       let il = onelinecomment lexbuf in
       let sl = intlist_to_string il in
-      addComment sl; E.newline(); addWhite lexbuf; initial lexbuf
-    end }
+      addComment sl; E.newline();
+      if is_oneline_ghost () then begin
+        exit_oneline_ghost ();
+        RGHOST
+      end else begin
+        addWhite lexbuf;
+        initial lexbuf
+      end
+    end
+    }
 |		blank			{addWhite lexbuf; initial lexbuf}
 |               '\n'                    { E.newline ();
                                           if !pragmaLine then
@@ -641,12 +660,11 @@ rule initial =
     else EOF
   }
 |		_			{E.parse_error "Invalid symbol"}
-and comment =
-    parse
-      "*/"			        { addWhite lexbuf; [] }
-(*|     '\n'                              { E.newline (); lex_unescaped comment lexbuf }*)
-| 		_ 			{ addWhite lexbuf; lex_comment comment lexbuf }
-
+and comment = parse
+  |  "*/"                       { addWhite lexbuf; [] }
+  |  '\n'                       { E.newline (); comment lexbuf }
+(*  | ([^'\n''*']*('*'+[^'/'])?)* { comment lexbuf }*)
+  | _ { addWhite lexbuf; comment lexbuf }
 
 and onelinecomment = parse
     '\n'|eof    {addWhite lexbuf; []}
@@ -767,10 +785,10 @@ and annot_first_token = parse
   | '\n' { E.newline(); Buffer.add_char buf '\n'; annot_first_token lexbuf }
   | "" { annot_token lexbuf }
 and annot_token = parse
-  | "*/" { make_annot (Buffer.contents buf) }
+  | "*/" { let s = Buffer.contents buf in
+           make_annot s }
   | eof  { E.parse_error "Unterminated annotation" }
-  | '\n' { E.newline(); Buffer.add_char buf '\n'; annot_token lexbuf }
-  |' '|'@'|'\t'|'\r' as c { Buffer.add_char buf c; annot_token lexbuf }
+  | '\n' {E.newline(); Buffer.add_char buf '\n'; annot_token lexbuf }
   | _ as c { Buffer.add_char buf c; annot_token lexbuf }
 
 and annot_one_line = parse

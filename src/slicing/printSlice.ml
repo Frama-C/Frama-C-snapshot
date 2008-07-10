@@ -36,7 +36,7 @@ let find_sub_stmts st = match st.skind with
 | If(_,bl1,bl2,_) | TryExcept (bl1, _, bl2, _)
 | TryFinally (bl1, bl2, _) -> bl1.bstmts@bl2.bstmts
 | Block bl | Loop (_,bl, _, _, _) | Switch (_, bl, _, _) ->  bl.bstmts
-| UnspecifiedSequence (s1,s2) -> [s1;s2]
+| UnspecifiedSequence bl -> bl.bstmts
 | Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _  -> []
 
 let str_call_sig ff call fmt =

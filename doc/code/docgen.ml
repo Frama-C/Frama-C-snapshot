@@ -1,4 +1,4 @@
-(* $Id: docgen.ml,v 1.5 2008/02/20 10:08:05 uid568 Exp $ *)
+(* $Id: docgen.ml,v 1.6 2008/05/30 08:29:48 uid568 Exp $ *)
 
 open Odoc_module
 
@@ -297,6 +297,13 @@ class gen = object (self)
         prerr_endline s ;
         incr Odoc_info.errors
 
+  method html_of_plugin_developer_guide _t = 
+    "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plugin-developer-guide.pdf\">Plugin Developer Guide</a></b> for additional details."
+
+  initializer 
+    tag_functions <- 
+      ("plugin", self#html_of_plugin_developer_guide) :: tag_functions
+
 end
 
 let () =
@@ -307,4 +314,3 @@ let () =
     ("-stdlib", Arg.String (add_libfiles true), "Standard library files");
   Odoc_args.add_option
     ("-stdlib-path", Arg.String (add_libfiles false), "Standard library files")
-

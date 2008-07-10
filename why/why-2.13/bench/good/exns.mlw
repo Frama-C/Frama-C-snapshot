@@ -1,0 +1,105 @@
+
+(* exception without argument *)
+
+exception E
+
+let p1 () = (raise E : unit) { false | E => true }
+
+(* exception with an argument *)
+
+exception F of int
+
+let p2 () = raise (F 1) : unit { false | F => result = 1 }
+
+let p2a () = 
+  raise (F (raise E : int)) : unit { false | E => true | F => false }
+
+(* composition of exceptions with other constructs *)
+
+let p3 () = 
+  begin raise (F 1); raise (F 2) : unit end { false | F => result = 1 }
+
+let p4 () = 
+  (if true then raise (F 1) : unit else raise (F 2) : unit) 
+  { false | F => result = 1 }
+
+let p5 () = 
+  begin
+    if true then raise (F 1);
+    raise E : unit
+  end
+  { false | E => false | F => result = 1 }
+
+let p6 () = 
+  begin
+    if false then raise (F 1);
+    raise E : unit
+  end
+  { false | E => true | F => false }
+
+(* composition of exceptions with side-effect on a reference *)
+
+parameter x : int ref
+
+let p7 () = 
+  begin x := 1; raise E; x := 2 end { false | E => x = 1 }
+
+let p8 () = 
+  begin x := 1; raise (F !x); x := 2 end 
+  { false | F => x = 1 and result = 1 }
+
+let p9 () = 
+  (raise (F begin x := 1; !x end) : unit) 
+  { false | F => x = 1 and result = 1 }
+
+(* try / with *)
+
+let p10 () = (try raise E : int with E -> 0 end) { result = 0 }
+
+let p11 () = (try raise (F 1) : int with F x -> x end) { result = 1 }
+
+let p12 () = 
+  try 
+    begin raise E; raise (F 1); 1 end
+  with E -> 2
+     | F x -> 3
+  end
+  { result = 2 }
+
+let p13 () = 
+  try 
+    begin raise E; raise (F 1); x := 1 end
+  with E -> x := 2
+     | F _ -> x := 3
+  end
+  { x = 2 }
+
+let p13a () =
+  try
+    (if !x = 1 then raise E) 
+    { true | E => x = 1 }
+  with E ->
+    x := 0
+  end
+  { x <> 1 }
+
+exception E1 
+exception E2
+exception E3
+
+let p14 () = 
+  begin
+    if !x = 1 then raise E1;
+    if !x = 2 then raise E2;
+    if !x = 3 then raise E3;
+    raise E : unit
+  end
+  { false | E1 => x = 1 | E2 => x = 2 | E3 => x = 3 
+  | E => x <> 1 and x <> 2 and x <> 3 }
+
+let p15 () = if !x = 0 then raise E else (x := 0; raise (F !x))
+              { false | E => x=0 | F => result=0 }
+
+let p16 () = if !x = 0 then (x:=1; raise E) { x<>0 | E => x=1 }
+
+let p17 () = (x := 0; (raise E; x := 1)) { false | E => x=0 }

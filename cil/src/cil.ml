@@ -121,11 +121,24 @@ let forgcc (s: string) : string =
 
 let debugConstFold = false
 
-let new_sid,reset_sid_counter,get_sid =
-  let sid_counter = ref (-1) in
-  (fun () -> incr sid_counter; !sid_counter),
-  (fun () -> sid_counter := -1),
-  (fun () -> !sid_counter)
+module Build_Counter(Name:sig val name:string end) : sig
+  val next: unit -> int
+  val reset: unit -> unit
+  val get: unit -> int
+end = struct
+  include Computation.Ref
+    (struct include Datatype.Int let default = 0 end)
+    (struct
+       let dependencies = []
+       let name = Project.Computation.Name.make Name.name
+     end)
+  let next () =
+    set (succ (get ()));
+    get ()
+  let reset = clear
+end
+
+module Sid = Build_Counter(struct let name = "sid" end)
 
 (** The Abstract Syntax of CIL *)
 
@@ -161,6 +174,8 @@ let locUnknown = Lexing.dummy_pos,Lexing.dummy_pos
 
 (* A reference to the current location *)
 let currentLoc : location ref = ref locUnknown
+
+let () = Logic_env.dloc := currentLoc
 
 (* A reference to the current global being visited *)
 let currentGlobal: global ref = ref (GText "dummy")
@@ -721,8 +736,6 @@ class type cilVisitor = object
 
   method vcode_annot: code_annotation -> code_annotation visitAction
 
-  method vtype_annot: type_annotation -> type_annotation visitAction
-
   method vannotation: global_annotation -> global_annotation visitAction
   method fill_global_tables: unit
   method get_filling_actions: (unit -> unit) Queue.t
@@ -852,8 +865,6 @@ object(self)
 
   method vcode_annot _ca = DoChildren
 
-  method vtype_annot _ta = DoChildren
-
   method vannotation _a = DoChildren
 
 end
@@ -916,17 +927,19 @@ let rec get_stmtLoc (statement : stmtkind) =
     | Loop (_, _, loc, _, _) -> loc
     | Block b -> if b.bstmts == [] then lu
                  else get_stmtLoc ((List.hd b.bstmts).skind)
-    | UnspecifiedSequence (s1,_) ->
-        get_stmtLoc s1.skind
+    | UnspecifiedSequence {bstmts=s::_} -> get_stmtLoc s.skind
+    | UnspecifiedSequence {bstmts=[]} -> lu
     | TryFinally (_, _, l) -> l
     | TryExcept (_, _, _, l) -> l
 
-
-(* The next variable identifier to use. Counts up *)
-let nextGlobalVID = ref 1
+let newVID =
+  let module M = Build_Counter(struct let name = "vid" end) in
+  M.next
 
 (* The next compindo identifier to use. Counts up. *)
-let nextCompinfoKey = ref 1
+let nextCompinfoKey =
+  let module M = Build_Counter(struct let name = "compinfokey" end) in
+  M.next
 
 (* Some error reporting functions *)
 let d_loc (fmt: formatter) (loc: location) : unit =
@@ -1013,7 +1026,7 @@ let warnContextOpt fstring =
 
 let warnLoc loc fstring =  Messages_manager.emit loc `Warning fstring
 
-let log fstring = eprintf fstring
+let log fstring = eprintf ("@[" ^^ fstring ^^ "@]@.")
 
 let bytesSizeOfInt (ik: ikind): int =
   match ik with
@@ -1142,6 +1155,12 @@ let i64_to_int (i: int64) : int =
 
 
 let rec isZero (e: exp) : bool = isInteger e = Some Int64.zero
+
+
+let isLogicNull t =
+  match t.term_node with
+  | Tnull -> true
+  | _ -> false
 
 let parseInt (str: string) : exp =
   let hasSuffix str =
@@ -1298,7 +1317,7 @@ let mkStmtCfg ~before ~(new_stmtkind:stmtkind) ~(ref_stmt:stmt) : stmt =
                labels = [];
                sid = -1; succs = []; preds = []; ghost = false }
   in
-  new_.sid <- new_sid ();
+  new_.sid <- Sid.next ();
   if before then begin
     new_.succs <- [ref_stmt];
     let old_preds = ref_stmt.preds in
@@ -1337,7 +1356,7 @@ let mkBlock (slst: stmt list) : block =
   { battrs = []; bstmts = slst; }
 
 let mkStmtCfgBlock sl =
-  let sid = new_sid() in
+  let sid = Sid.next () in
   let n = mkStmt (Block (mkBlock sl)) in
   n.sid <- sid;
   match sl with
@@ -1455,7 +1474,7 @@ let hasAttribute s al =
   (filterAttributes s al <> [])
 
 type attributeClass =
-    AttrName of bool
+  | AttrName of bool
         (* Attribute of a name. If argument is true and we are on MSVC then
          * the attribute is printed using __declspec as part of the storage
          * specifier  *)
@@ -1543,8 +1562,7 @@ let mkCompInfo
        cdefined = false; }
    in
    comp.cname <- n;
-   comp.ckey <- !nextCompinfoKey;
-   incr nextCompinfoKey;
+   comp.ckey <- nextCompinfoKey ();
    let flds =
        List.map (fun (fn, ft, fb, fa, fl) ->
           { fcomp = comp;
@@ -1564,9 +1582,7 @@ let mkCompInfo
 
 (** Make a copy of a compinfo, changing the name and the key *)
 let copyCompInfo (ci: compinfo) (n: string) : compinfo =
-  let ci' = {ci with cname = n;
-                     ckey = !nextCompinfoKey; } in
-  incr nextCompinfoKey;
+  let ci' = {ci with cname = n; ckey = nextCompinfoKey (); } in
   (* Copy the fields and set the new pointers to parents *)
   ci'.cfields <- List.map (fun f -> {f with fcomp = ci'}) ci'.cfields;
   ci'
@@ -1584,6 +1600,7 @@ let rec typeAttrs = function
   | TEnum (enum, a) -> addAttributes enum.eattr a
   | TFun (_, _, _, a) -> a
   | TBuiltin_va_list a -> a
+
 
 let typeAttr = function
   | TVoid a
@@ -1965,23 +1982,23 @@ let getParenthLevelLogic = function
 
                                         (* Unary *)
   | TCastE(_,_) -> 30
-  | TAddrOf(_) -> 30
-  | TStartOf(_) -> 30
+  | TAddrOf(_) -> addrOfLevel
+  | TStartOf(_) -> addrOfLevel
   | TUnOp((Neg|BNot|LNot),_) -> 30
                                         (* Unary post *)
   | TCoerce _ | TCoerceE _ -> 25
 
                                         (* Lvals *)
-  | TLval(TMem _ , _) -> 20
-  | TLval(TVar _, (TField _|TIndex _)) -> 20
-  | TLval(TResult,(TField _|TIndex _)) -> 20
+  | TLval(TMem _ , _) -> derefStarLevel
+  | TLval(TVar _, (TField _|TIndex _)) -> indexLevel
+  | TLval(TResult,(TField _|TIndex _)) -> indexLevel
   | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ -> 20
   | TAlignOf _ | TAlignOfE _ -> 20
   | Tapp (_, _,_)|TDataCons _ -> 10
   | TLval(TVar _, TNoOffset) -> 0        (* Plain variables *)
   | TConst _ | Tblock_length _ | Tbase_addr _ | Tat (_, _) | Told _
   | Tnull | TLval (TResult,TNoOffset)
-  | TUpdate _ -> 0
+  | TUpdate _ | Ttypeof _ | Ttype _ -> 0
   | Tif (_, _, _)  -> logic_level
 
 
@@ -1991,7 +2008,7 @@ let getParenthLevelTsetsElem = function
       indexLevel
   | TSAdd_range _ | TSAdd_index _ -> additiveLevel
   | TSCastE _ -> 30
-  | TSStartOf _ -> 30
+  | TSStartOf _ -> addrOfLevel
   | TSConst _ | TSLval _ | TSAt _ -> 0
 
 let getParenthLevelAttrParam (a: attrparam) =
@@ -2096,6 +2113,12 @@ let setReturnTypeVI (v: varinfo) (t: typ) =
 let setReturnType (f:fundec) (t:typ) =
   setReturnTypeVI f.svar t
 
+(** Returns the type pointed by the given type. Asserts it is a pointer type *)
+let typeOf_pointed typ =
+  match unrollType typ with
+  | TPtr (typ,_) -> typ
+  | _ -> assert false
+
 (**** Compute the type of an expression ****)
 let rec typeOf (e: exp) : typ =
   match stripInfo e with
@@ -2163,7 +2186,11 @@ and typeOffset basetyp =
       match unrollType basetyp with
         TComp (_, baseAttrs) ->
 	  let fieldType = typeOffset fi.ftype o in
-	  blendAttributes baseAttrs fieldType
+	  let typ = blendAttributes baseAttrs fieldType in
+          (match fi.fbitfield with
+           | Some s ->
+               typeAddAttributes [Attr ("FRAMA_C_BITFIELD_SIZE", [AInt s])] typ
+           | None -> typ)
       | _ -> E.s (bug "typeOffset: Field on a non-compound")
 
 (**** Compute the type of a term lval ****)
@@ -2707,7 +2734,12 @@ and bitsSizeOf t =
   | TComp (comp, _) when comp.cfields == [] -> begin
       (* Empty structs are allowed in msvc mode *)
       if not comp.cdefined && not !msvcMode then
-        raise (SizeOfError ("abstract type: empty struct exist only with MSVC", t)) (*abstract type*)
+        raise 
+	  (SizeOfError 
+	     (Format.sprintf 
+		"abstract type: empty struct exist only with MSVC (comp %s)" 
+		(compFullName comp), 
+	      t)) (*abstract type*)
       else
         0
   end
@@ -3419,7 +3451,13 @@ let range_loc loc1 loc2 = fst loc1, snd loc2
  * this type by specializing the class {!Cil.defaultCilPrinter}. *)
 class type cilPrinter = object
 
+  (** Local logical annotation (function specifications and code annotations
+      are printed only if [logic_printer_enabled] is set to true
+   *)
   val mutable logic_printer_enabled : bool
+
+  (** more info is displayed on verbose mode. *)
+  val mutable verbose: bool
 
   method current_function: varinfo option
     (** Returns the [varinfo] corresponding to the function being printed *)
@@ -3563,8 +3601,6 @@ class type cilPrinter = object
 
   method pCode_annot: Format.formatter -> code_annotation -> unit
 
-  method pType_annot: Format.formatter -> type_annotation -> unit
-
   method pAnnotation: Format.formatter -> global_annotation -> unit
 end
 
@@ -3588,6 +3624,7 @@ let is_empty_funspec spec =
 
 class defaultCilPrinterClass : cilPrinter = object (self)
   val mutable logic_printer_enabled = true
+  val mutable verbose = false
 
   val current_stmt = Stack.create ()
   val mutable current_function = None
@@ -4070,10 +4107,13 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 
   method pStmtKind (next: stmt) fmt kind =
     match kind with
-    | UnspecifiedSequence (s1,s2) ->
-        fprintf fmt "/*unspecified sequence*/{%a ; %a}"
-          self#pStmt s1
-          self#pStmt s2
+    | UnspecifiedSequence blk ->
+        fprintf fmt "%a@[%a%a"
+          (Cilutil.print_if verbose)
+          (fun fmt () -> fprintf fmt "{@,/*unspecified sequence*/@\n")
+          (self#pBlock ~toplevel:false) blk
+          (Cilutil.print_if verbose)
+          (fun fmt () -> fprintf fmt "}")
     | Return(None, l) ->
         self#pLineDirective fmt l;
         fprintf fmt "return;"
@@ -4774,7 +4814,12 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | Lvar s -> fprintf fmt "%a" self#pVarName s
 
   method pTsets_lval fmt (h,o) =
-    fprintf fmt "@[%a%a@]" self#pTsets_lhost h self#pTsets_offset o
+    match h,o with
+        TSMem t, TSField (f,o) ->
+          fprintf fmt "%a->@,%a@,%a"
+            (self#pTsets_elemPrec arrowLevel) t
+             self#pVarName f.fname self#pTsets_offset o
+      | _ -> fprintf fmt "@[%a%a@]" self#pTsets_lhost h self#pTsets_offset o
 
   method private pTsets_elemPrec contextprec fmt e =
     let thisLevel = getParenthLevelTsetsElem e in
@@ -4818,6 +4863,15 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     match h with
       | TSVar lv -> self#pLogic_var fmt lv
       | TSResult -> pp_print_string fmt "\\result"
+      | TSMem (TSAdd_index(t,i)) ->
+          fprintf fmt "@[<2>%a[%a]@]"
+            (self#pTsets_elemPrec derefStarLevel) t
+            self#pTerm i
+      | TSMem (TSAdd_range(t,low,high)) ->
+          fprintf fmt "@[<2>%a[%a..%a]@]"
+            (self#pTsets_elemPrec derefStarLevel) t
+            (Cilutil.pretty_opt self#pTerm) low
+            (Cilutil.pretty_opt self#pTerm) high
       | TSMem t -> fprintf fmt "@[<1>*%a@]"
           (self#pTsets_elemPrec derefStarLevel) t
 
@@ -4902,10 +4956,13 @@ class defaultCilPrinterClass : cilPrinter = object (self)
           (self#pTermPrec current_level) e
     | TAddrOf lv -> fprintf fmt "&%a" (self#pTerm_lvalPrec addrOfLevel) lv
     | TStartOf lv -> fprintf fmt "%a" (self#pTerm_lvalPrec current_level) lv
-    | Tapp (f, labels, tl) -> fprintf fmt "%a%a(%a)"
+    | Tapp (f, labels, tl) -> fprintf fmt "%a%a%a"
         self#pLogic_info_use f
 	  self#pLabels (List.map snd labels)
-	  (Cilutil.pretty_list (Cilutil.space_sep ",") self#pTerm) tl
+	  (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]")
+             (Cilutil.space_sep ",") self#pTerm) tl
     | Tif (cond,th,el) ->
         fprintf fmt "@[<2>%a?@;%a:@;%a@]"
           (self#pTermPrec current_level) cond
@@ -4947,6 +5004,8 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | Tlambda(prms,expr) ->
         fprintf fmt "@[<2>\\lambda@ %a;@ %a@]"
           self#pQuantifiers prms (self#pTermPrec current_level) expr
+    | Ttypeof t -> fprintf fmt "\\typeof(%a)" self#pTerm t
+    | Ttype ty -> fprintf fmt "\\type(%a)" (self#pType None) ty
 
   method private pTerm_lvalPrec contextprec fmt lv =
     if getParenthLevelLogic (TLval lv) > contextprec then
@@ -4957,6 +5016,11 @@ class defaultCilPrinterClass : cilPrinter = object (self)
   method pTerm_lval fmt lv = match lv with
   | TVar vi, o -> fprintf fmt "%a%a" self#pLogic_var vi self#pTerm_offset o
   | TResult, o -> fprintf fmt "\\result%a" self#pTerm_offset o
+  | TMem ({term_node=TBinOp((PlusPI|IndexPI),base,off)}), o ->
+      fprintf fmt "%a[%a]%a"
+        (self#pTermPrec derefStarLevel) base
+        self#pTerm off
+        self#pTerm_offset o
   | TMem e, TField(fi,o) ->
       fprintf fmt "%a->%a%a" (self#pTermPrec arrowLevel) e
         self#pVarName fi.fname self#pTerm_offset o
@@ -4993,10 +5057,13 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     match p with
     | Pfalse -> fprintf fmt "\\false"
     | Ptrue -> fprintf fmt "\\true"
-    | Papp (p,labels,l) -> fprintf fmt "@[%a%a(@[%a@])@]"
+    | Papp (p,labels,l) -> fprintf fmt "@[%a%a%a@]"
         self#pPredicate_info_use p
 	  self#pLabels (List.map snd labels)
-	  (Cilutil.pretty_list (Cilutil.space_sep ",") self#pTerm) l
+	  (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]")
+             (Cilutil.space_sep ",") self#pTerm) l
     | Prel (rel,l,r) ->
         fprintf fmt "@[(@[%a@]@ %a@ @[%a@])@]" term l d_relation rel term r
     | Pand (p1, p2) ->
@@ -5070,9 +5137,7 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | Pvalid_range (e1,e2,e3) ->
         fprintf fmt "@[\\valid_range(@[@[%a@],@,@[%a@],@,@[%a@]@])@]"
           self#pTerm e1 self#pTerm e2 self#pTerm e3
-    | PInstanceOf (e,ty) ->
-	fprintf fmt "%a <: %a" term e (self#pType None) ty
-    | PInstanceOfE (e,ce) ->
+    | Psubtype (e,ce) ->
 	fprintf fmt "%a <: %a" term e term ce
 
   method pPredicate_named fmt p =
@@ -5159,8 +5224,12 @@ class defaultCilPrinterClass : cilPrinter = object (self)
   (* TODO: add the annot ID in debug mode?*)
   method pCode_annot fmt ca =
     match ca.annot_content with
-    | AAssert p -> fprintf fmt "@[assert@ %a;@]@\n"
-        self#pPredicate_named p
+    | AAssert (behav,p) -> fprintf fmt "@[%aassert@ %a;@]@\n"
+	(Cilutil.pretty_list_del
+	   (fun fmt -> fprintf fmt "for ") (fun fmt -> fprintf fmt ": ")
+	   (Cilutil.space_sep ",") pp_print_string)
+	  behav
+          self#pPredicate_named p
     | AAssume p -> fprintf fmt "@[assume@ %a;@]@\n"
         self#pPredicate_named p
     | APragma (Slice_pragma sp) ->
@@ -5171,16 +5240,19 @@ class defaultCilPrinterClass : cilPrinter = object (self)
         fprintf fmt "@[loop pragma@ %a;@]@\n" self#pLoop_pragma lp
     | AStmtSpec sp -> self#pSpec fmt sp
     | AAssigns a -> self#pAssigns "loop assigns" fmt a
-    | AInvariant(true, i) -> fprintf fmt "@[<2>loop invariant@ %a;@]@\n"
-        self#pPredicate_named i
-    | AInvariant(false,i) -> fprintf fmt "@[<2>invariant@ %a;@]@\n"
-        self#pPredicate_named i
+    | AInvariant(behav,true, i) -> fprintf fmt "@[<2>%aloop invariant@ %a;@]@\n"
+	(Cilutil.pretty_list_del
+	   (fun fmt -> fprintf fmt "for ") (fun fmt -> fprintf fmt ": ")
+	   (Cilutil.space_sep ",") pp_print_string)
+	  behav
+          self#pPredicate_named i
+    | AInvariant(behav,false,i) -> fprintf fmt "@[<2>%ainvariant@ %a;@]@\n"
+	(Cilutil.pretty_list_del
+	   (fun fmt -> fprintf fmt "for ") (fun fmt -> fprintf fmt ": ")
+	   (Cilutil.space_sep ",") pp_print_string)
+	  behav
+          self#pPredicate_named i
     | AVariant v -> self#pDecrement "loop variant" fmt v
-
-  method pType_annot fmt inv =
-    fprintf fmt "@[type invariant @[%a(%a %a) { %a }@]@]@\n"
-      self#pVarName inv.inv_name self#pLogic_type inv.this_type
-      self#pVarName inv.this_name self#pPredicate_named inv.inv
 
   method private pLogicPrms fmt arg =
     fprintf fmt "%a@ %a" self#pLogic_type arg.lv_type self#pLogic_var arg
@@ -5211,10 +5283,23 @@ class defaultCilPrinterClass : cilPrinter = object (self)
       (Cilutil.space_sep ",") self#pLogicLabel fmt labels
 
   method pAnnotation fmt = function
-    | Dtype_annot a -> self#pType_annot fmt a
-    | Dinvariant (name, pred) ->
-        fprintf fmt "@[data@ invariant %a:@[@ %a;@]@]@\n"
-          self#pVarName name self#pPredicate_named pred
+    | Dtype_annot a ->
+        fprintf fmt "@[type invariant @[%a%a=@ %a@,;@]@]@\n"
+          self#pVarName a.p_name
+          (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]@ ")
+             (Cilutil.space_sep ",") self#pLogicPrms) a.p_profile
+          self#pPredicate_named (match a.p_body with PDefinition a -> a
+                                   | PReads _ ->
+                                       bug "Type invariant without definition")
+    | Dinvariant pred ->
+        fprintf fmt "@[global@ invariant %a:@[@ %a;@]@]@\n"
+          self#pVarName pred.p_name
+          self#pPredicate_named
+          (match pred.p_body with PDefinition a -> a
+             | PReads _ ->
+                 bug "Global invariant without definition")
     | Dlemma(name, is_axiom, labels, tvars, pred) ->
         fprintf fmt "@[%s@ %a%a%a:@[@ %a;@]@]@\n"
 	  (if is_axiom then "axiom" else "lemma")
@@ -5226,37 +5311,52 @@ class defaultCilPrinterClass : cilPrinter = object (self)
         fprintf fmt "@[logic@ type@ %a%a;@]@\n"
           self#pVarName name self#pTypeParameters prms
     | Dlogic_reads (name, tvars, args, rt, reads) ->
-        fprintf fmt "@[logic %a %a%a%a(@[%a@])@ %a;@]@\n"
+        fprintf fmt "@[logic %a %a%a%a%a%a;@]@\n"
           self#pLogic_type rt self#pVarName name.l_name
 	  self#pLabels name.l_labels
 	  self#pTypeParameters tvars
-          (Cilutil.pretty_list (Cilutil.space_sep ",") self#pLogicPrms) args
+          (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]@ ")
+             (Cilutil.space_sep ",") self#pLogicPrms) args
           (Cilutil.pretty_list_del
              (fun fmt -> Format.fprintf fmt "@[reads@ ")
              (fun fmt -> Format.fprintf fmt "@]")
              (Cilutil.space_sep ",") self#pTsets) reads
     | Dlogic_def (name, tvars, args, rt, def) ->
-        fprintf fmt "@[logic@[ %a %a%a%a(@[%a@])@ =@ %a;@]@]@\n"
+        fprintf fmt "@[logic@[ %a %a%a%a%a=@ %a;@]@]@\n"
           self#pLogic_type rt self#pVarName name.l_name
 	  self#pLabels name.l_labels
 	  self#pTypeParameters tvars
-          (Cilutil.pretty_list (Cilutil.space_sep ",") self#pLogicPrms) args
+          (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]@ ")
+             (Cilutil.space_sep ",")
+             self#pLogicPrms) args
           self#pTerm def
     | Dpredicate_def (info, tvars, args, def) ->
-        fprintf fmt "@[predicate@[ %a%a%a(@[%a@])@ =@ %a;@]@]@\n"
+        fprintf fmt "@[predicate@[ %a%a%a%a=@ %a;@]@]@\n"
           self#pVarName info.p_name
 	  self#pLabels info.p_labels
 	  self#pTypeParameters tvars
-          (Cilutil.pretty_list (Cilutil.space_sep ",") self#pLogicPrms) args
+          (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]@ ")
+             (Cilutil.space_sep ",") self#pLogicPrms) args
           self#pPredicate_named def
     | Dpredicate_reads (info, tvars, args, reads) ->
-        fprintf fmt "@[predicate %a%a%a(@[%a@])@\n  @[%s%a@];@]@\n"
+        fprintf fmt "@[predicate %a%a%a%a%a;@]@\n"
           self#pVarName info.p_name
 	  self#pLabels info.p_labels
 	  self#pTypeParameters tvars
-          (Cilutil.pretty_list (Cilutil.space_sep ",") self#pLogicPrms) args
-          (match reads with [] -> "" | _ -> "reads ")
-          (Cilutil.pretty_list (Cilutil.space_sep ",") self#pTsets) reads
+          (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@[(")
+             (fun fmt -> Format.fprintf fmt ")@]")
+             (Cilutil.space_sep ",") self#pLogicPrms) args
+          (Cilutil.pretty_list_del
+             (fun fmt -> Format.fprintf fmt "@\n  @[reads@ ")
+             (fun fmt -> Format.fprintf fmt "@]")
+             (Cilutil.space_sep ",") self#pTsets) reads
 end (* class defaultCilPrinterClass *)
 
 let defaultCilPrinter = new defaultCilPrinterClass
@@ -5317,8 +5417,6 @@ let printPredicate_named pp fmt p = pp#pPredicate_named fmt p
 
 let printCode_annotation pp fmt ca = pp#pCode_annot fmt ca
 
-let printType_annotation pp fmt ta = pp#pType_annot fmt ta
-
 let printFunspec pp fmt s = pp#pSpec fmt s
 
 let printAnnotation pp fmt a = pp#pAnnotation fmt a
@@ -5353,7 +5451,6 @@ let d_tsets_offset fmt lv = printTsets_offset defaultCilPrinter fmt lv
 
 let d_predicate_named fmt lv = printPredicate_named defaultCilPrinter fmt lv
 let d_code_annotation fmt lv = printCode_annotation defaultCilPrinter fmt lv
-let d_type_annotation fmt lv = printType_annotation defaultCilPrinter fmt lv
 let d_funspec fmt lv = printFunspec defaultCilPrinter fmt lv
 let d_annotation fmt lv = printAnnotation defaultCilPrinter fmt lv
 
@@ -5669,11 +5766,6 @@ let rec d_typsig () = function
   | TSBase t -> dprintf "TSBase(%a)" d_type t
 *)
 
-let newVID () =
-  let t = !nextGlobalVID in
-  incr nextGlobalVID;
-  t
-
 (* Make a varinfo. Used mostly as a helper function below  *)
 let makeVarinfo ?(logic=false) global formal name typ =
   (* Strip const from type for locals *)
@@ -5864,7 +5956,7 @@ let setFormalsDecl ~id = function
         id
         (List.length args);*)
       Inthash.replace formals id (List.map makeFormalsVarDecl args)
-  | TFun(_,None,_,_) -> Inthash.replace formals id []
+(*  | TFun(_,None,_,_) -> Inthash.replace formals id []*)
 
   | _ -> ()
 
@@ -5879,44 +5971,6 @@ let dummyFile =
     fileName = "<dummy>";
     globinit = None;
     globinitcalled = false;}
-
-(***** Load and store files as unmarshalled Ocaml binary data. ****)
-type savedFile =
-    { savedFile: file;
-      savedNextVID: int;
-      savedNextCompinfoKey: int}
-
-let saveBinaryFileChannel (cil_file : file) (outchan : out_channel) =
-  let save = {savedFile = cil_file;
-              savedNextVID = !nextGlobalVID;
-              savedNextCompinfoKey = !nextCompinfoKey} in
-  Marshal.to_channel outchan save []
-
-let saveBinaryFile (cil_file : file) (filename : string) =
-  let outchan = open_out_bin filename in
-  saveBinaryFileChannel cil_file outchan;
-  close_out outchan
-
-(** Read a {!Cil.file} in binary form from the filesystem. The first
- * argument is the name of a file previously created by
- * {!Cil.saveBinaryFile}. Because this also reads some global state,
- * this should be called before any other CIL code is parsed or generated. *)
-let loadBinaryFile (filename : string) : file =
-  let inchan = open_in_bin filename in
-  let loaded : savedFile = (Marshal.from_channel inchan : savedFile) in
-  close_in inchan ;
-  if !nextGlobalVID = 1 && !nextCompinfoKey = 1 then begin
-    nextGlobalVID := loaded.savedNextVID;
-    nextCompinfoKey := loaded.savedNextCompinfoKey;
-  end
-  else begin
-    (* In this case, we should change all of the varinfo and compinfo
-       keys in loaded.savedFile to prevent conflicts.  But since that hasn't
-       been implemented yet, just print a warning.  If you do implement this,
-       please send it to the CIL maintainers. *)
-    ignore (E.log "CIL error: you loading a binary file after another file has been loaded.  This isn't currently supported, so varinfo and compinfo id numbers may conflict.")
-  end;
-  loaded.savedFile
 
 
 (* Take the name of a file and make a valid varinfo name out of it. There are
@@ -6020,26 +6074,42 @@ let doVisit (vis: #cilVisitor as 'visitor)
         ChangeDoChildrenPost (_, f) -> f nodepost
       | _ -> nodepost
 
+let rev_until i l =
+  let rec aux acc =
+      function
+          [] -> acc
+        | i'::_ when i' == i -> acc
+        | i'::l -> aux (i'::acc) l
+  in aux [] l
+
 (* mapNoCopy is like map but avoid copying the list if the function does not
  * change the elements. *)
 let mapNoCopy (f: 'a -> 'a) orig =
-  let rec aux (acc,has_changed) l =
+  let rec aux ((acc,has_changed) as res) l =
     match l with
         [] -> if has_changed then List.rev acc else orig
       | i :: resti ->
           let i' = f i in
-          aux (i'::acc, has_changed || i'!=i) resti
+          if has_changed then
+            aux (i'::acc,true) resti
+          else if i' != i then
+            aux (i'::rev_until i orig,true) resti
+          else
+            aux res resti
   in aux ([],false) orig
 
 let mapNoCopyList (f: 'a -> 'a list) orig =
-  let rec aux (acc,has_changed) l =
+  let rec aux ((acc,has_changed) as res) l =
     match l with
         [] -> if has_changed then List.rev acc else orig
       | i :: resti ->
           let l' = f i in
-          aux (List.rev_append l' acc,
-               has_changed || (match l' with [i'] -> i' != i | _ -> true))
-            resti
+          if has_changed then
+            aux (List.rev_append l' acc,true) resti
+          else
+            (match l' with
+                 [i'] when i' == i -> aux res resti
+               | _ -> aux (List.rev_append l' (rev_until i orig), true) resti)
   in aux ([],false) orig
 
 (* A visitor for lists *)
@@ -6191,6 +6261,10 @@ and childrenTermNode vis tn =
         let prms' = visitCilQuantifiers vis prms in
         let te' = vTerm te in
         if prms' != prms || te' != te then Tlambda(prms',te') else tn
+    | Ttypeof t ->
+        let t' = vTerm t in if t' != t then Ttypeof t' else tn
+    | Ttype ty ->
+        let ty' = vTyp ty in if ty' != ty then Ttype ty' else tn
 
 and visitCilLogicLabel vis l =
   match l with
@@ -6400,7 +6474,6 @@ and childrenPredicate vis p =
     doVisit vis
       vis#behavior.get_predicate_info vis#vpredicate_info_use (fun _ x -> x) p
   in
-  let vTyp t = visitCilType vis t in
   let vTerm t = visitCilTerm vis t in
   let vTsets t = visitCilTsets vis t in
   match p with
@@ -6498,14 +6571,10 @@ and childrenPredicate vis p =
         let t' = vTerm t in if t' != t then Pfresh t' else p
 (*    | Pnamed(s,p1) ->
         let p1' = vPred p1 in if p1' != p1 then Pnamed (s,p1') else p *)
-    | PInstanceOf(te,ty) ->
-        let ty' = vTyp ty in
-        let te' = vTerm te in
-        if ty' != ty || te' != te then PInstanceOf(te',ty') else p
-    | PInstanceOfE(te,tc) ->
+    | Psubtype(te,tc) ->
         let tc' = vTerm tc in
         let te' = vTerm te in
-        if tc' != tc || te' != te then PInstanceOfE(te',tc') else p
+        if tc' != tc || te' != te then Psubtype(te',tc') else p
 
 and visitCilPredicateInfo vis pi =
   doVisit vis vis#behavior.memo_predicate_info
@@ -6652,11 +6721,11 @@ and childrenAnnotation vis a =
     | Dlemma(s,is_axiom,labels,tvars,p) ->
         let p' = visitCilPredicateNamed vis p in
         if p' != p then Dlemma(s,is_axiom,labels,tvars,p') else a
-    | Dinvariant(s,p) ->
-        let p' = visitCilPredicateNamed vis p in
-        if p' != p then Dinvariant(s,p') else a
+    | Dinvariant p ->
+        let p' = visitCilPredicateInfo vis p in
+        if p' != p then Dinvariant p' else a
     | Dtype_annot ta ->
-        let ta' = visitCilTypeAnnot vis ta in
+        let ta' = visitCilPredicateInfo vis ta in
         if ta' != ta then Dtype_annot ta' else a
 
 and visitCilCodeAnnotation vis ca =
@@ -6668,8 +6737,10 @@ and childrenCodeAnnot vis ca =
   let vSpec s = visitCilFunspec vis s in
   let change_content annot = { ca with annot_content = annot } in
   match ca.annot_content with
-      AAssert p ->
-        let p' = vPred p in if p' != p then change_content (AAssert p') else ca
+      AAssert (behav,p) ->
+        let p' = vPred p in if p' != p then 
+	  change_content (AAssert (behav,p')) 
+	else ca
     | AAssume p ->
         let p' = vPred p in if p' != p then change_content (AAssume p') else ca
     | APragma (Impact_pragma t) ->
@@ -6684,25 +6755,15 @@ and childrenCodeAnnot vis ca =
     | AStmtSpec s ->
         let s' = vSpec s in
         if s' != s then change_content (AStmtSpec s') else ca
-    | AInvariant(f,p) ->
+    | AInvariant(behav,f,p) ->
         let p' = vPred p in
-        if p' != p then change_content (AInvariant (f,p')) else ca
+        if p' != p then change_content (AInvariant (behav,f,p')) else ca
     | AVariant ((t,s)) ->
         let t' = vTerm t in
         if t != t' then change_content (AVariant ((t',s))) else ca
     | AAssigns a ->
         let a' = visitCilAssigns vis a in
         if a != a' then change_content (AAssigns a') else ca
-
-and visitCilTypeAnnot vis ta =
-  doVisit vis (fun x -> x) vis#vtype_annot childrenTypeAnnot ta
-
-and childrenTypeAnnot vis ta =
-  let vPred p = visitCilPredicateNamed vis p in
-  let ninv = vPred ta.inv in
-  if ninv != ta.inv then
-    { ta with inv = ninv; }
-  else ta
 
 and visitCilExpr (vis: cilVisitor) (e: exp) : exp =
   doVisit vis (fun x -> x) vis#vexpr childrenExp e
@@ -6897,10 +6958,9 @@ and childrenStmt (toPrepend: instr list ref) (vis:cilVisitor) (s:stmt): stmt =
   let skind' =
     match s.skind with
       Break _ | Continue _ | Return (None, _) -> s.skind
-    | UnspecifiedSequence (s1,s2) ->
-        let s1' = childrenStmt toPrepend vis s1 in
-        let s2' = childrenStmt toPrepend vis s2 in
-        if s1!=s1' || s2!=s2' then UnspecifiedSequence(s1',s2') else s.skind
+    | UnspecifiedSequence blk ->
+        let blk' = fBlock blk in
+        if blk!=blk' then UnspecifiedSequence blk' else s.skind
     | Goto (sr,l) ->
         if vis#behavior.is_copy_behavior then
           Goto(ref (vis#behavior.memo_stmt !sr),l)
@@ -7351,7 +7411,6 @@ let post_file vis f =
 
 (* A visitor for the whole file that does not change the globals *)
 let visitCilFileSameGlobals (vis : cilVisitor) (f : file) : unit =
-  vis#set_logic_tables ();
   if vis#behavior.is_copy_behavior then
     ignore (log "You used visitCilFileSameGlobals with a copy visitor. \
                  This is an error. Nothing is done")
@@ -7543,6 +7602,7 @@ let rec peepHole1 (* Process one statement and possibly replace it *)
       | Switch (_e, b, _, _) -> peepHole1 doone b.bstmts
       | Loop (_, b, _l, _, _) -> peepHole1 doone b.bstmts
       | Block b -> peepHole1 doone b.bstmts
+      | UnspecifiedSequence b -> peepHole1 doone b.bstmts
       | TryFinally (b, h, _l) ->
           peepHole1 doone b.bstmts;
           peepHole1 doone h.bstmts
@@ -7550,7 +7610,7 @@ let rec peepHole1 (* Process one statement and possibly replace it *)
           peepHole1 doone b.bstmts;
           peepHole1 doone h.bstmts;
           s.skind <- TryExcept(b, (doInstrList il, e), h, l);
-      | UnspecifiedSequence _ | Return _ | Goto _ | Break _ | Continue _ -> ())
+      | Return _ | Goto _ | Break _ | Continue _ -> ())
     ss
 
 let rec peepHole2  (* Process two statements and possibly replace them both *)
@@ -7584,7 +7644,9 @@ let rec peepHole2  (* Process two statements and possibly replace them both *)
           h.bstmts <- peepHole2 dotwo h.bstmts;
           () (*s.skind <- TryExcept (b, (doInstrList il, e), h, l)*)
 
-      | UnspecifiedSequence _ | Return _ | Goto _ | Break _ | Continue _ -> ())
+      | UnspecifiedSequence b -> 
+          b.bstmts <- peepHole2 dotwo b.bstmts
+      | Return _ | Goto _ | Break _ | Continue _ -> ())
     ss;
   doStmtList ss
 
@@ -7785,14 +7847,14 @@ let rec mkCastT ~(e: exp) ~(oldt: typ) ~(newt: typ) =
   (* Do not remove old casts because they are conversions !!! *)
   (* TODO: remove ALL attributes including volatile...*)
   if Cilutil.equals
-    (typeSig (typeRemoveAttributes ["const"] oldt))
-    (typeSig (typeRemoveAttributes ["const"] newt)) then begin
+    (typeSig (typeRemoveAttributes ["const"; "FRAMA_C_BITFIELD_SIZE"] oldt))
+    (typeSig (typeRemoveAttributes ["const"; "FRAMA_C_BITFIELD_SIZE"] newt)) then begin
     e
   end else begin
     (* Watch out for constants *)
     match newt, e with
       TInt(newik, []), Const(CInt64(i, _, _)) -> kinteger64 newik i
-    | _ -> CastE(newt,e)
+    | _ -> CastE((typeRemoveAttributes ["FRAMA_C_BITFIELD_SIZE"] newt),e)
   end
 
 let mkCast ~(e: exp) ~(newt: typ) =
@@ -8021,17 +8083,15 @@ let uniqueVarNames (f: file) : unit =
           (* See if we have used this name already for something else *)
           (try
             let oldid = H.find globalNames vi.vname in
-            if oldid <> vi.vid then
+            if oldid <> vi.vid && not vi.vinline then
               ignore (warn "The name %s is used for two distinct globals"
-                        vi.vname);
+                        vi.vname)
             (* Here if we have used this name already. Go ahead *)
-            ()
           with Not_found -> begin
             (* Here if this is the first time we define a name *)
             H.add globalNames vi.vname vi.vid;
             (* And register it *)
-            A.registerAlphaName gAlphaTable None vi.vname !currentLoc;
-            ()
+            A.registerAlphaName gAlphaTable None vi.vname !currentLoc
           end)
       | _ -> ());
 
@@ -8144,7 +8204,7 @@ class copyFunctionVisitor (newname: string) = object
 
         (* Replace statements. *)
   method vstmt (s: stmt) : stmt visitAction =
-    s.sid <- new_sid();
+    s.sid <- Sid.next ();
     let s' = {s with sid = s.sid} in
     H.add stmtmap s.sid s'; (* Remember where we copied this *)
     (* if we have a Goto or a Switch remember them to fixup at end *)
@@ -8173,7 +8233,7 @@ let statements : stmt list ref = ref []
 class clear : cilVisitor = object
   inherit nopCilVisitor
   method vstmt s = begin
-    s.sid <- new_sid() ;
+    s.sid <- Sid.next ();
     statements := s :: !statements;
     s.succs <- [] ;
     s.preds <- [] ;
@@ -8237,11 +8297,11 @@ and succpred_stmt s fallthrough =
                 | hd :: _ -> link s hd ;
                     succpred_block b fallthrough
                 end
-  | UnspecifiedSequence(s1,s2) ->
+  | UnspecifiedSequence ({bstmts=s1::_} as b)->
       link s s1;
-      link s1 s2;
-      succpred_stmt s2 fallthrough
-
+      succpred_block b fallthrough
+  | UnspecifiedSequence {bstmts=[]} ->
+      trylink s fallthrough
   | TryExcept _ | TryFinally _ ->
       failwith "computeCFGInfo: structured exception handling not implemented"
 
@@ -8290,7 +8350,7 @@ let rec xform_switch_stmt
         "switch_%d_default" label_index,l,false))
     ) s.labels ;
   match s.skind with
-  | Instr _ | Return _ | Goto _ | UnspecifiedSequence _ -> ()
+  | Instr _ | Return _ | Goto _  -> ()
   | Break(l) -> begin try
                   s.skind <- Goto(break_dest (),l)
                 with e ->
@@ -8398,9 +8458,10 @@ let rec xform_switch_stmt
           break_stmt.succs <- s.succs ;
           let new_block = mkBlock [ this_stmt ; break_stmt ] in
           s.skind <- Block new_block
-  | Block(b) ->
+  | Block b ->
       xform_switch_block ~keepSwitch b break_dest cont_dest label_index
-
+  | UnspecifiedSequence b ->
+      xform_switch_block ~keepSwitch b break_dest cont_dest label_index
   | TryExcept _ | TryFinally _ ->
       failwith "xform_switch_statement: structured exception handling not implemented"
 
@@ -8429,12 +8490,11 @@ let prepareCFG ?(keepSwitch=false) (fd : fundec) : unit =
 
 (* make the cfg and return a list of statements *)
 let computeCFGInfo (f : fundec) (global_numbering : bool) : unit =
-  if not global_numbering then
-    reset_sid_counter ();
+  if not global_numbering then Sid.reset ();
   statements := [];
   let clear_it = new clear in
   ignore (visitCilBlock clear_it f.sbody) ;
-  f.smaxstmtid <- Some (get_sid()) ;
+  f.smaxstmtid <- Some (Sid.get ()) ;
   succpred_block f.sbody (None);
   let res = List.rev !statements in
   statements := [];
@@ -8453,14 +8513,14 @@ let make_logic_var x typ =
 
 let initLogicBuiltins () =
   (* types *)
-  Logic_env.add_logic_type "boolean" { nb_params=0 };
+  Logic_env.add_builtin_logic_type "boolean" { nb_params=0 };
   (* constructors *)
-  Logic_env.add_logic_ctor
+  Logic_env.add_builtin_logic_ctor
     "\\true" { ctor_name = "\\true";
                ctor_type = Ltype("boolean",[]);
                ctor_params = []
              };
-  Logic_env.add_logic_ctor
+  Logic_env.add_builtin_logic_ctor
     "\\false"
     { ctor_name = "\\false";
       ctor_type = Ltype("boolean",[]);
@@ -8469,7 +8529,7 @@ let initLogicBuiltins () =
   let min = make_logic_var "min" Linteger in
   let max = make_logic_var "max" Linteger in
   let f = make_logic_var "f" (Larrow ([Linteger],Linteger)) in
-  Logic_env.add_logic_function
+  Logic_env.add_builtin_logic_function
     {
       l_name = "\\sum";
       l_type = Linteger;
@@ -8483,7 +8543,7 @@ let initLogicBuiltins () =
   let min = make_logic_var "min" Linteger in
   let max = make_logic_var "max" Linteger in
   let f = make_logic_var "f" (Larrow ([Linteger],Linteger)) in
-  Logic_env.add_logic_function
+  Logic_env.add_builtin_logic_function
     {
       l_name = "\\product";
       l_type = Linteger;
@@ -8497,7 +8557,7 @@ let initLogicBuiltins () =
   let min = make_logic_var "min" Linteger in
   let max = make_logic_var "max" Linteger in
   let f = make_logic_var "f" (Larrow ([Linteger],Linteger)) in
-  Logic_env.add_logic_function
+  Logic_env.add_builtin_logic_function
     {
       l_name = "\\min";
       l_type = Linteger;
@@ -8511,7 +8571,7 @@ let initLogicBuiltins () =
   let min = make_logic_var "min" Linteger in
   let max = make_logic_var "max" Linteger in
   let f = make_logic_var "f" (Larrow ([Linteger],Linteger)) in
-  Logic_env.add_logic_function
+  Logic_env.add_builtin_logic_function
     {
       l_name = "\\max";
       l_type = Linteger;
@@ -8528,7 +8588,7 @@ let initLogicBuiltins () =
     make_logic_var "f"
       (Larrow ([Linteger],Ltype("boolean",[])))
   in
-  Logic_env.add_logic_function
+  Logic_env.add_builtin_logic_function
     {
       l_name = "\\numof";
       l_type = Linteger;
@@ -8753,7 +8813,7 @@ module Instr = struct
 
   let hash i =
     match i with
-      Kglobal -> -1
+      Kglobal -> 1 lsl 29
     | Kstmt s -> s.sid
 
   let instr_loc = function
@@ -8835,6 +8895,7 @@ let rec free_vars_term bound_vars t = match t.term_node with
   | TConst _   | TSizeOf _
   | TSizeOfStr _ | TAlignOf _
   | Tnull
+  | Ttype _
     -> LogicVarSet.empty
   | TLval lv
   | TAddrOf lv
@@ -8849,6 +8910,7 @@ let rec free_vars_term bound_vars t = match t.term_node with
   | Tbase_addr t
   | Tblock_length t
   | TCoerce (t,_)
+  | Ttypeof t
     -> free_vars_term bound_vars t
   | TBinOp (_,t1,t2)
   | TCoerceE (t1,t2)
@@ -8948,13 +9010,11 @@ and free_vars_predicate bound_vars p = match p.content with
   | Papp (_,_,tl) ->
       List.fold_left
         (fun acc t -> LogicVarSet.union (free_vars_term bound_vars t) acc) LogicVarSet.empty tl
-  | Pfresh t
-  | PInstanceOf (t,_)
-    -> free_vars_term bound_vars t
+  | Pfresh t -> free_vars_term bound_vars t
   | Pvalid(t) -> free_vars_tsets bound_vars t
   | Prel (_,t1,t2)
   | Pvalid_index (t1,t2)
-  | PInstanceOfE (t1,t2)
+  | Psubtype (t1,t2)
       ->
       LogicVarSet.union
         (free_vars_term bound_vars t1)
@@ -9023,6 +9083,46 @@ let create_alpha_renaming old_args new_args =
                 Hashtbl.add conversion old_vi.vid new_vi)
     old_args new_args;
   new alpha_conv conversion
+
+(** Returns [true] whenever the type contains only arithmetic types *)
+let is_fully_arithmetic ty =
+  not (existsType
+         (fun typ -> match typ with
+            | TNamed _
+            | TComp _
+            | TArray _ -> ExistsMaybe
+            | TPtr _ | TBuiltin_va_list _ | TFun _ | TVoid _ -> ExistsTrue
+            | TEnum _ |TFloat _ | TInt _ ->  ExistsFalse)
+         ty)
+
+
+exception Got of string list
+let exists_attribute_deep f typ =
+  let tbl = Hashtbl.create 7 in
+  let rec visitor l = object
+    inherit nopCilVisitor
+    method vattr a =
+      if f a then raise (Got l);
+      DoChildren
+    method vtype t =
+      begin
+        match unrollType t with
+        | TComp (compinfo,_) ->
+            (try Hashtbl.find tbl compinfo.ckey
+            with Not_found ->
+              Hashtbl.add tbl compinfo.ckey () ;
+              List.iter
+                (fun finfo -> ignore (visitCilType (visitor (finfo.fname::l)) finfo.ftype))
+                compinfo.cfields)
+        | _ -> ()
+      end;
+      DoChildren
+  end
+  in
+  try
+    ignore (visitCilType (visitor []) typ);
+    None
+  with Got l -> Some (List.rev l)
 
 (*
 Local Variables:

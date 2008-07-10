@@ -1,0 +1,2 @@
+quicksort2_valid.vo: quicksort2_valid.v ../../lib/coq/Why.vo ./quicksort2_why.vo
+quicksort2_why.vo: quicksort2_why.v ../../lib/coq/Why.vo

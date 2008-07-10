@@ -19,7 +19,7 @@
 #                                                                        #
 ##########################################################################
 
-# $Id: Makefile.plugin,v 1.58 2008/05/26 11:33:31 uid528 Exp $
+# $Id: Makefile.plugin,v 1.61 2008/07/03 13:54:22 uid568 Exp $
 #
 ###############################################################################
 #
@@ -29,9 +29,6 @@
 # PLUGIN_ENABLE Whether the plugin is enabled
 # PLUGIN_NAME	The ML module name of the plugin
 # PLUGIN_DIR	The directory containing the source files
-# PLUGIN_DIR_DOC if set, directory for additional documentation on the
-#    plugin. This directory must have a Makefile whose default target produces
-#    a document named $(PLUGIN_NAME).pdf
 # PLUGIN_CMO	The .cmo files (do not add the plugin path and the extension)
 # PLUGIN_CMI    The .cmi files (only if there is no corresponding .cmo)
 # PLUGIN_TYPES_CMO The .cmo files containing the types definitions
@@ -134,13 +131,15 @@ ifndef ($(PLUGIN_DISTRIB_BIN))
 PLUGIN_DISTRIB_BIN:=$(PLUGIN_DISTRIBUTED)
 endif
 
+PLUGIN_OPT:=`echo "$(PLUGIN_NAME)" | tr 'A-Z' 'a-z' `
+
 ifeq ("$(PLUGIN_DISTRIB_BIN)","yes")
-CONFIG_DISTRIB_BIN += "--enable-$(PLUGIN_NAME)"
+CONFIG_DISTRIB_BIN += "--enable-$(PLUGIN_OPT)"
 ifeq ("$(PLUGIN_HAS_EXT_DOC)","yes")
 PLUGIN_BIN_DOC_LIST+=doc/plugins/$(notdir $(PLUGIN_DIR)).pdf
 endif
 else
-CONFIG_DISTRIB_BIN += "--disable-$(PLUGIN_NAME)"
+CONFIG_DISTRIB_BIN += "--disable-$(PLUGIN_OPT)"
 endif
 
 ifneq ("$(PLUGIN_ENABLE)","no")
@@ -166,7 +165,6 @@ NAME_DEPFLAGS :=$(PLUGIN_NAME)_DEPFLAGS
 NAME_DOCFLAGS :=$(PLUGIN_NAME)_DOCFLAGS
 
 # Export some variables which can be safely used outside/inside Makefile.plugin
-
 $(PLUGIN_NAME)_DIR:=$(PLUGIN_DIR)
 $(PLUGIN_NAME)_CMO:=$(PLUGIN_CMO)
 $(PLUGIN_NAME)_CMX:=$(PLUGIN_CMX)
@@ -231,7 +229,6 @@ else
 # No plugin signature
 
 PLUGIN_MLI:=
-
 $(PLUGIN_NAME)_MLI:=
 
 $(TARGET_CMO): $(PLUGIN_CMO) \

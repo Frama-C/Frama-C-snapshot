@@ -18,6 +18,7 @@
 # Where to install the binaries
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+datarootdir=@datarootdir@
 BINDIR=@bindir@
 
 # Where to install the man page
@@ -45,7 +46,7 @@ SRCDIR	= src
 LIBDIR	= lib
 
 INCLUDES= -I $(SRCDIR) -I $(LIBDIR) 
-BFLAGS = $(INCLUDES)
+BFLAGS = $(INCLUDES) -g
 OFLAGS = $(INCLUDES) @FORPACK@
 
 # main target
@@ -62,7 +63,7 @@ all: byte $(OCAMLBEST)
 LIB= unionfind heap bitv
 LIB:=$(patsubst %, $(LIBDIR)/%.cmo, $(LIB))
 
-CMO = util blocks persistent imperative \
+CMO = 	util blocks persistent imperative \
 	delaunay builder classic rand oper \
 	path traverse coloring topological components kruskal flow \
         graphviz gml dot_parser dot_lexer dot pack \
@@ -73,7 +74,7 @@ CMX = $(CMO:.cmo=.cmx)
 CMA = graph.cma
 CMXA = graph.cmxa
 
-CMI = sig dot_ast sig_pack
+CMI = sig sig_pack dot_ast
 CMI := $(patsubst %, src/%.cmi, $(CMI))
 
 GENERATED = META \
@@ -88,6 +89,8 @@ graph.cma: graph.cmo
 
 graph.cmxa: graph.cmx
 	$(OCAMLOPT) $(INCLUDES) -a -o $@ $^
+
+graph.cmi: graph.cmo
 
 graph.cmo: $(CMI) $(CMO)
 	$(OCAMLC) $(INCLUDES) -pack -o $@ $^
@@ -173,7 +176,7 @@ $(ED_DIR)/editor.opt: $(CMXA) $(ED_CMX)
 	$(OCAMLOPT) -o $@ @INCLUDEGTK2@ \
 		lablgtk.cmxa lablgnomecanvas.cmxa unix.cmxa $^
 
-VERSION=0.99b
+VERSION=0.99d
 
 src/version.ml: Makefile
 	echo "let version = \""$(VERSION)"\"" > $@
@@ -187,7 +190,10 @@ META: META.in Makefile
 ##################
 
 EXAMPLES = demo color demo_planar sudoku
+EXAMPLESBIN:=$(patsubst %, bin/%.opt, $(EXAMPLES))
 EXAMPLES:= $(patsubst %, examples/%.ml, $(EXAMPLES))
+
+examples: $(EXAMPLESBIN)
 
 TESTS = test check
 TESTS := $(patsubst %, tests/%.ml, $(TESTS))
@@ -200,17 +206,19 @@ $(DPD_GRAPH_ML:.ml=.cmx): $(CMXA)
 # installation
 ##############
 
+DESTDIR	=
+
 install: install-$(OCAMLBEST) install-byte
 
 install-byte: 
-	cp -f graph.cmo graph.cmi $(CMA) "$(OCAMLLIB)"
+	cp -f graph.cmo graph.cmi $(CMA) "$(DESTDIR)$(OCAMLLIB)"
 
 install-opt: install-byte
-	cp -f graph$(LIBEXT) graph.cmx $(CMXA) "$(OCAMLLIB)"
+	cp -f graph$(LIBEXT) graph.cmx $(CMXA) "$(DESTDIR)$(OCAMLLIB)"
 
 install-findlib: META
 ifdef OCAMLFIND
-	$(OCAMLFIND) install ocamlgraph META *.mli \
+	$(OCAMLFIND) install ocamlgraph META $(SRCDIR)/*.mli \
 		graph$(LIBEXT) graph.cmx graph.cmo graph.cmi $(CMA) $(CMXA)
 endif
 
@@ -219,7 +227,7 @@ endif
 
 DOCFILES=$(NAME).ps $(NAME).html
 
-NODOC	= util blocks dot_parser dot_lexer
+NODOC	= blocks dot_parser dot_lexer
 NODOC	:= $(patsubst %, $(SRCDIR)/%.cmo, $(NODOC))
 DOC_CMO	= $(filter-out $(NODOC) $(LIB), $(CMO))
 DOC_SRC	= $(CMI:.cmi=.mli) $(DOC_CMO:.cmo=.mli) $(DOC_CMO:.cmo=.ml)
@@ -252,14 +260,14 @@ headers:
 EXPORTDIR=$(NAME)-$(VERSION)
 TAR=$(EXPORTDIR).tar
 
-FTP = $$HOME/ftp/$(NAME)
-WWW = $$HOME/WWW/$(NAME)
+FTP = /users/www-perso/projets/ocamlgraph/download
+WWW = /users/www-perso/projets/ocamlgraph
 
 FILES = src/*.ml* lib/*.ml* Makefile.in configure configure.in META.in  \
 	.depend editor/ed_*.ml* editor/Makefile \
         editor/tests/*.dot editor/tests/*.gml \
 	examples/*.ml tests/*.ml \
-	.depend README FAQ CREDITS INSTALL COPYING LICENSE CHANGES
+	README FAQ CREDITS INSTALL COPYING LICENSE CHANGES
 
 export: source export-doc export-web export-delaunay
 
@@ -271,6 +279,16 @@ source:
 	cd export ; tar cf $(TAR) $(EXPORTDIR) ; gzip -f --best $(TAR)
 	cp export/$(TAR).gz $(FTP)
 	cp README FAQ CREDITS COPYING LICENSE CHANGES $(EXAMPLES) $(FTP)
+
+framac: EXPORTDIR=ocamlgraph
+framac: FTP=$$HOME/frama-c
+framac:
+	mkdir -p export
+	cd export; rm -rf $(EXPORTDIR)
+	mkdir -p export/$(EXPORTDIR)/bin
+	cp --parents $(FILES) export/$(EXPORTDIR)
+	cd export ; tar cf $(TAR) $(EXPORTDIR) ; gzip -f --best $(TAR)
+	cp export/$(TAR).gz $(FTP)
 
 www/version.prehtml: Makefile.in
 	echo "<#def version>$(VERSION)</#def>" > www/version.prehtml

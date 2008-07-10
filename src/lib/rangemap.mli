@@ -20,17 +20,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: rangemap.mli,v 1.1 2007/12/12 13:16:45 uid568 Exp $ *)
+(* $Id: rangemap.mli,v 1.2 2008/05/30 08:29:49 uid568 Exp $ *)
 
 (** Association tables over ordered types.
 
-   This module implements applicative association tables, also known as
-   finite maps or dictionaries, given a total ordering function
-   over the keys.
-   All operations over maps are purely applicative (no side-effects).
-   The implementation uses balanced binary trees, and therefore searching
-   and insertion take time logarithmic in the size of the map. 
-*)
+    This module implements applicative association tables, also known as
+    finite maps or dictionaries, given a total ordering function
+    over the keys.
+    
+    All operations over maps are purely applicative (no side-effects).
+    The implementation uses balanced binary trees, and therefore searching
+    and insertion take time logarithmic in the size of the map. 
+    
+    @plugin developer guide *)
 
 module type OrderedType = 
   sig

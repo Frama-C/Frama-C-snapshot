@@ -19,9 +19,19 @@
 /*                                                                        */
 /**************************************************************************/
 
-#include "share/libc.h"
+/* $Id: libc.c,v 1.22 2008/06/26 07:46:00 uid568 Exp $ */
 
-#if 0
+#include "libc.h"
+
+#ifndef FRAMA_C_MEMCPY
+#include "builtin.h"
+void* memcpy(void* region1, const void* region2, size_t n)
+{
+  if (n > 0)
+    Frama_C_memcpy(region1, region2, n);
+  return region1;
+}
+#else
 void* memcpy(void* region1, const void* region2, size_t n)
 {
   const char* first = (const char*)region2;
@@ -30,13 +40,6 @@ void* memcpy(void* region1, const void* region2, size_t n)
   while (first != last)
     *region1++ = *first++;
   return result;
-}
-#else
-#include "share/builtin.h"
-void* memcpy(void* region1, const void* region2, size_t n)
-{
-  Frama_C_memcpy(region1, region2, n);
-  return region1;
 }
 #endif
 
@@ -301,6 +304,13 @@ int sprintf(char *restrict s, const char *restrict format, ...)
       s[i] = format[i];
     }
   /* boucle qui copie le format vers s */
+  return any;
+}
+
+int snprintf (char *restrict s, size_t size, const char *restrict fmt, ...) {
+  int i;
+  for (i = 0; i < size && fmt[i] != '\0'; i++)
+      s[i] = fmt[i];
   return any;
 }
 

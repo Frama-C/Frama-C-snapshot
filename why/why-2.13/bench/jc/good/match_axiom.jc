@@ -1,0 +1,16 @@
+type Circle = {
+  integer radius;
+}
+
+axiom match_in_axiom{L} :
+(\forall Circle[0] c;
+   match c with
+       Circle{ radius = r; } -> true;
+     end)
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make match_axiom"
+End: 
+*/

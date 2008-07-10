@@ -98,7 +98,7 @@ module Computer = struct
   let doStmt stmt =
     !Db.progress ();
     if !debug then Cil.log "doStmt : %d\n" stmt.sid;
-        match stmt.skind with 
+        match stmt.skind with
           | Return _ -> Dataflow.Done (Value (StmtSet.singleton stmt))
           | _ -> Dataflow.Post (fun data -> add stmt data)
 
@@ -117,7 +117,7 @@ module Compute = Dataflow.BackwardsDataFlow(Computer)
 let compute kf =
   (*clear();*)
   let f = kf.fundec in
-  Cil.log "[postdominators] computing for function %a@\n" 
+  Cil.log "[postdominators] computing for function %a"
     Kernel_function.pretty_name kf;
   let stmts = match f with
              | Definition (f,_) -> f.sallstmts
@@ -127,7 +127,7 @@ let compute kf =
   List.iter (fun s -> State.add s.sid Top) stmts;
   let return = Kernel_function.find_return kf in
   Compute.compute [return];
-  Cil.log "[postdominators] done for function %a@\n" 
+  Cil.log "[postdominators] done for function %a"
     Kernel_function.pretty_name kf
 
 let get_stmt_postdominators f stmt =

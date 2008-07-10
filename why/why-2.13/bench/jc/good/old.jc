@@ -1,0 +1,16 @@
+
+integer j;
+
+unit f() 
+    behavior default:
+    ensures j == \old(j) + 1;
+{
+    j++;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make old"
+End: 
+*/

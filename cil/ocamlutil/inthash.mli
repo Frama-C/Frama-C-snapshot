@@ -38,6 +38,9 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
+(** Hashtable with integer keys.
+    @plugin developer guide *)
+
 type key = int
 type 'a t
 

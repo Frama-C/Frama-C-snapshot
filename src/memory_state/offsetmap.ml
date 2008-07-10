@@ -31,7 +31,7 @@ exception Result_is_bottom
 type itv = Int.t * Int.t
 
 module type S = sig
-  type t
+  type t 
   type y
   type widen_hint
 
@@ -41,69 +41,87 @@ module type S = sig
 
   val empty : t
   val is_empty : t -> bool
-
   val equal : t->t->bool
-
   val pretty_typ : Cil_types.typ option -> Format.formatter -> t -> unit
   val pretty : Format.formatter -> t -> unit
   val pretty_debug : Format.formatter -> t -> unit
-
-  val find : itv -> t -> y
-
+    
+    
   val is_included : t -> t -> bool
   val is_included_exn : t -> t -> unit
   val is_included_exn_generic : (y -> y -> unit) -> t -> t -> unit
 
-  val is_included_actual_generic :
+  val is_included_actual_generic : 
   BaseUtils.BaseSet.t ->
   BaseUtils.BaseSet.t ref ->
     Locations.Location_Bytes.t BaseUtils.BaseMap.t ref -> t -> t -> unit
 
   val join : t -> t -> (Int.t * Int.t) list * t
+
   val widen : widen_hint -> t -> t -> t
+    
+  val find_ival : 
+    validity:Base.validity -> with_alarms:CilE.warn_mode
+    -> Ival.t -> t -> Int.t -> y -> y
+    (** May raise [Not_found] if V.top is found *)
 
-  val find_ival :
-    validity:Base.validity -> with_alarms:warn_mode ->
-    Ival.t -> t -> Int.t -> y -> y
-
-(**  [concerned_bindings_ival ~offsets ~offsetmap ~size acc] accumulates
-     the list of values bound in [offsetmap] at [offsets] with [acc] *)
-  val concerned_bindings_ival :
+  val concerned_bindings_ival : 
     offsets:Ival.t -> offsetmap:t -> size:Int.t -> y list -> y list
+    (** Returns the list of the values associated to at least one bit of the 
+	ival. For this function Top is not a binding ! *)
+
   val update_ival :
-    with_alarms:warn_mode ->
+    with_alarms:CilE.warn_mode ->
     validity:Base.validity ->
-    exact: bool ->
+    exact:bool ->
     offsets:Ival.t ->
     size:Int.t ->
     t -> y -> t
+    (** May raise [Result_is_bottom] if this is completely out of bound *)
 
   val overwrite : t -> y -> Origin.t -> t
 
   val over_intersection : t -> t -> t
+    (** An over-approximation of the intersection.  The arguments can not be
+	arbitrary offsetmaps: the algorithm would be too complicated. The
+	provided algorithm should work fine with offsetmaps that correspond to
+	the relation view and the memory view of the same analysed code. *)
 
   val from_string : string -> t
 
-  val add_whole:  itv -> y -> t -> t
+  val add_whole :  itv -> y -> t -> t
   val remove_whole :  itv -> t -> t
-  val fold_whole :
+
+  val fold_whole : 
     size:Int.t -> (Ival.t -> Int.t -> y -> 'a -> 'a) -> t -> 'a -> 'a
+    (** May raise [Invalid_argument "Offsetmap.Make.fold"] *)
 
   val shift_ival : Ival.t -> t -> t option -> t option
+    (** [shift_ival shift o acc] returns the join of [acc] and 
+	of [o] shifted by all values in [shift].
+	Raises [Found_Top] when the result is [Top]. *)
 
   val copy_paste : t -> Int.t -> Int.t -> Int.t -> t -> t
   val copy_merge : t -> Int.t -> Int.t -> Int.t -> t -> t
   val copy : t -> Int.t -> Int.t -> t
+
   val merge_by_itv :  t -> t -> Int_Intervals.t -> t
   val shift : Int.t -> t -> t
   val sized_zero : size_in_bits:Int.t -> t
 
   val reciprocal_image : t -> Base.t -> Int_Intervals.t * Ival.t
-  val create_initial : size:int -> v:y -> modu:Int.t -> t
+    (** [reciprocal_image m b] is the set of bits in the offsetmap [m] 
+	that may lead to Top([b]) and  the set of offsets in [m]
+	where one can read an address [b]+_ *)
+
+  val create_initial: v:y -> modu:Int.t -> t
 
   val reduce_by_int_intervals: t -> Abstract_value.Int_Intervals.t -> t
 
   val top_stuff : (y -> bool) -> (y -> y) -> t -> t
+
+  val iter_contents : (y -> unit) -> t -> Int.t -> unit
+    (** Iter on the contents of offsetmap of given size *)
 end
 
 module Build(V:Lattice_With_Isotropy.S) =
@@ -267,7 +285,7 @@ struct
   let remove_whole i m =
     (Int_Interv_Map.remove_whole Int_Interv.fuzzy_order i m)
 
- let extract_bits ~start ~stop ~modu v =
+ let extract_bits ~with_alarms ~start ~stop ~modu v =
    assert (Int.le start stop && Int.le stop modu);
    let start,stop =
      if !Cil.little_endian then
@@ -276,7 +294,7 @@ struct
        let mmodu = Int.pred modu in
          Int.sub mmodu stop,Int.sub mmodu start
    in
-     V.extract_bits ~start ~stop v
+     V.extract_bits ~with_alarms ~start ~stop v
 
  let merge_bits ~offset ~length ~value ~total_length acc =
    assert ( let total_length_i = Int.of_int total_length in
@@ -289,7 +307,7 @@ struct
  (* Assumes one wants a value from V.t
    TODO : this could merge consecutive values or
    even compute a subvalue. *)
- let find ((bi,ei) as i) m =
+ let find ~with_alarms ((bi,ei) as i) m =
    assert (Int.le bi ei);
    let concerned_intervals =
      Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i m
@@ -308,6 +326,7 @@ struct
 		 (Int.pos_div (Int.sub bi offs) modu)
 		 (Int.pos_div (Int.sub ei offs) modu)
            then extract_bits
+             ~with_alarms
              ~start:(Int.pos_rem (Int.sub bi offs) modu)
              ~stop:(Int.pos_rem (Int.sub ei offs) modu)
              ~modu
@@ -358,7 +377,7 @@ struct
                      Int.pretty e1
                      V.pretty v
                    ; *)
-                   extract_bits ~start ~stop ~modu v
+                   extract_bits ~with_alarms ~start ~stop ~modu v
                  in
                  merge_bits ~offset ~length:(Int.length start stop)
 		   ~value ~total_length acc
@@ -968,10 +987,19 @@ V.t -> V.t -> V.t) m1 m2 =
 
 (* add a binding in the case where the "offset" part of the location
    is known only as an interval of integers modulo *)
-  let add_top_binding_offsetmap mn mx r m size v existing_offsetmap =
+  let add_top_binding_offsetmap ~with_alarms mn mx r m size v existing_offsetmap =
     match mn,mx with
     | None, _ | _, None ->
-	warn_once "Writing at unbounded offset: approximating";
+	(match with_alarms.imprecision_tracing with
+        | Aignore -> ()
+        | Acall f -> f ()
+        | Alog -> warn_once "Writing at unbounded offset: approximating");
+(*	Format.eprintf "add_top_binding: %a %a %a %a@."
+	  Ival.pretty 
+	  (Ival.Top (mn, mx, r, m))
+	  Int.pretty size
+	  V.pretty v
+	  pretty existing_offsetmap; *)
 	overwrite existing_offsetmap v (Origin.Arith (LocationSetLattice.currentloc_singleton()))
 
     | Some mn, Some mx ->
@@ -1032,22 +1060,21 @@ V.t -> V.t -> V.t) m1 m2 =
 	      s
 	      Ival.O.empty)
 
-  let create_initial ~size ~v ~modu =
+  let create_initial ~v ~modu =
     let vv = if V.is_isotropic v then Int.zero,Int.one,v
     else Int.zero,modu,v
     in
-    let twopwer39 = Int.power_two (size-1) in
-    add_if_not_default (Int.neg twopwer39,Int.pred twopwer39) vv empty
+    add_if_not_default (Int.zero,Bit_utils.max_bit_address ()) vv empty
 
   (* Raises [Not_found] if V.top is found *)
   let find_ival ~validity ~with_alarms offsets offsetmap size acc =
-    (*Format.printf "find_ival: %a in %a@\n" Ival.pretty offsets pretty
+    (*Format.eprintf "find_ival: %a in %a@." Ival.pretty offsets pretty
       offsetmap;*)
     let filtered_by_bound =
       match validity with
-      | Base.Known (bound_min,bound_max) ->
+      | Base.Known (bound_min,bound_max) | Base.Unknown (bound_min,bound_max) ->
 	  reduce_ival_by_bound ~read:true ~with_alarms offsets size bound_min bound_max
-      | Base.All | Base.Unknown -> begin (* no clipping can be performed *)
+      | Base.All -> begin (* no clipping can be performed *)
 	  match offsets with
 	  | Ival.Top (Some mn,Some mx,_r,m) -> Interval(mn, mx, m)
 	  | Ival.Top (None,_,_,_) | Ival.Top (_,None,_,_) |
@@ -1073,7 +1100,7 @@ V.t -> V.t -> V.t) m1 m2 =
            let last_partial_value = ref None in
            let result = List.fold_right
              (fun ((bi,ei),(remain,modulo,v)) acc ->
-                (*Format.printf "find_ival bi=%a ei=%a next_index_to_read=%a@\n"
+                (*Format.eprintf "find_ival bi=%a ei=%a next_index_to_read=%a@\n"
                   Int.pretty bi
                   Int.pretty ei
                   Int.pretty !next_index_to_read;*)
@@ -1116,7 +1143,9 @@ V.t -> V.t -> V.t) m1 m2 =
                         next_index_to_read := last_index_covered;
                         last_partial_value := Some (Int.succ ei);
                         top_v
-                    in V.join acc new_v
+                    in 
+                    (*Format.eprintf "find_ival new_v=%a@." V.pretty new_v; *)
+                    V.join acc new_v
                   else raise Not_found (* return top *))
              concerned_intervals
              V.bottom
@@ -1128,13 +1157,13 @@ V.t -> V.t -> V.t) m1 m2 =
            in
            if dodegenerate then raise Not_found else result)
     | Set s ->
-        (*          Format.printf "find_ival(Set) %a@\n" Ival.pretty (Ival.Set s);*)
+        (*Format.eprintf "find_ival(Set) %a@." Ival.pretty (Ival.Set s);*)
 	Ival.O.fold
 	  (fun offset acc ->
              let itv = offset, Int.pred(Int.add offset size) in
-	     let new_value = find itv offsetmap in
+	     let new_value = find ~with_alarms itv offsetmap in
+             (*Format.eprintf "find_ival(Set) new_v<%a>@." V.pretty new_value ;*)
              let result = V.join acc new_value in
-
              if V.equal result V.top then
                raise Not_found; (* return top *)
 	     result)
@@ -1166,7 +1195,7 @@ V.t -> V.t -> V.t) m1 m2 =
     in
     let result =
       match validity with
-      | Base.Known (bound_min, bound_max) -> begin
+      | Base.Known (bound_min, bound_max) | Base.Unknown (bound_min, bound_max) -> begin
 	  (*	Format.eprintf "update_ival size_of_varid %a@\n"
 		Int.pretty bound; *)
 	  let reduced =
@@ -1179,22 +1208,22 @@ V.t -> V.t -> V.t) m1 m2 =
 			    Int.pretty mn
 			    Int.pretty mx
 			    Int.pretty m; *)
-	      add_top_binding_offsetmap
+	      add_top_binding_offsetmap ~with_alarms
 		(Some mn) (Some mx) (Int.pos_rem mn m) m
 		size v offsetmap_orig
 	  | Set o when not (Ival.O.is_empty o) -> fold_set o
           | Set _  -> raise Result_is_bottom
 	end
-      | Base.All | Base.Unknown -> begin
+      | Base.All -> begin
 	  match offsets with
 	  | Ival.Top (mn,mx,r,m) ->
-	      assert (not exact);
-	      add_top_binding_offsetmap
+	      assert (if not exact then true else (Format.printf "Internal error 193: %a@." Ival.pretty offsets; false));
+	      add_top_binding_offsetmap ~with_alarms
 		mn mx r m size v offsetmap_orig
 	  | Ival.Set o -> fold_set o
 	  | Ival.Float _ ->
 	      assert (not exact);
-	      add_top_binding_offsetmap None None Int.zero Int.one
+	      add_top_binding_offsetmap ~with_alarms None None Int.zero Int.one
 		size v offsetmap_orig
 	end
     in
@@ -1339,12 +1368,13 @@ V.t -> V.t -> V.t) m1 m2 =
             s acc
 
   let sized_zero ~size_in_bits =
-    (*Format.printf "size un bits: %a (%a)@." Int.pretty size_in_bits
-    V.pretty V.singleton_zero;*)
-      (Int_Interv_Map.add
-         (Int.zero, Int.pred size_in_bits)
-         (Int.zero, Int.one, V.singleton_zero)
-         empty)
+    assert (Int.gt size_in_bits Int.zero);
+    (*Format.printf "size in bits: %a (%a)@." Int.pretty size_in_bits
+      V.pretty V.singleton_zero;*)
+    (Int_Interv_Map.add
+        (Int.zero, Int.pred size_in_bits)
+        (Int.zero, Int.one, V.singleton_zero)
+        empty)
 
   let reduce_by_int_intervals offsetmap iset =
     try
@@ -1362,6 +1392,14 @@ V.t -> V.t -> V.t) m1 m2 =
     with Int_Intervals.Error_Top (* from Int_Intervals.fold *) ->
       assert false (* shouldn't happen *)
 
+  let iter_contents f o size = 
+    let itv = (Int.zero,Int.pred size) in
+    let concerned_intervals = Int_Interv_Map.concerned_intervals  Int_Interv.fuzzy_order itv o in
+    (try 
+      Int_Interv.check_coverage itv concerned_intervals;
+     with Is_not_included -> f V.top);
+    List.iter (fun (_,(_,_,b)) -> f b) concerned_intervals
+        
 end
 
 module Make(V:Lattice_With_Isotropy.S) = struct
@@ -1485,14 +1523,19 @@ module Make(V:Lattice_With_Isotropy.S) = struct
 
  module Symcacheable =
  struct
-   type result = (Int.t * Int.t) list * tt
    type t = tt
    let hash = tag
-   let size = 2048
+   let equal = (==)
    let sentinel = empty
-   let sentinel_result = [], empty
  end
- module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)
+
+ module R =
+ struct
+   type t = (Int.t * Int.t) list * tt
+   let sentinel = [], empty
+ end
+
+ module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)(R)
 
  let () = Project.register_todo_on_clear SymetricCache.clear
 
@@ -1513,15 +1556,13 @@ module Make(V:Lattice_With_Isotropy.S) = struct
 
  module Cacheable =
 	    struct
-	      type result = bool
 	      type t = tt
 	      let hash = tag
-	      let size = 2048
+	      let equal = (==)
 	      let sentinel = empty
-	      let sentinel_result = true
 	    end
 
- module Cache = Binary_cache.Make_Asymetric(Cacheable)
+ module Cache = Binary_cache.Make_Asymetric(Cacheable)(Binary_cache.Bool_Result)
 
   let is_included m1 m2 =
     if m1 == m2 then true
@@ -1542,7 +1583,7 @@ module Make(V:Lattice_With_Isotropy.S) = struct
 
   type widen_hint = M.widen_hint
 
-  let find i v = M.find i v.v
+  let find ~with_alarms i v = M.find ~with_alarms i v.v
 
   let is_included_actual_generic a b c v1 v2 =
     M.is_included_actual_generic a b c v1.v v2.v
@@ -1605,14 +1646,17 @@ module Make(V:Lattice_With_Isotropy.S) = struct
   let reciprocal_image v =
     M.reciprocal_image v.v
 
-  let create_initial ~size ~v ~modu =
-    wrap (M.create_initial ~size ~v ~modu)
+  let create_initial ~v ~modu =
+    wrap (M.create_initial ~v ~modu)
 
   let reduce_by_int_intervals v a =
     wrap (M.reduce_by_int_intervals v.v a)
 
   let top_stuff condition topify om =
     wrap (M.top_stuff condition topify om.v)
+
+  let iter_contents f o size = 
+    M.iter_contents f o.v size
 
 end
 

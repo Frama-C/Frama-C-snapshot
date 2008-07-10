@@ -84,12 +84,14 @@ val apply_examine_calls : t_fct_slice ->
 val get_called_slice : 
   t_fct_slice -> SlicingTypes.Internals.t_call_id -> (t_fct_slice option * bool)
 
+val get_node_mark : t_fct_slice -> PdgTypes.Node.t -> t_mark
+val get_node_key_mark : t_fct_slice -> PdgIndex.Key.t -> t_mark
+
 val get_top_input_mark : SlicingTypes.Internals.t_fct_info -> t_mark
 val get_stmt_mark : t_fct_slice -> Cil_types.stmt -> t_mark
 val get_label_mark : t_fct_slice -> Cil_types.stmt -> Cil_types.label -> t_mark
 val get_param_mark : t_fct_slice -> int -> t_mark
 val get_local_var_mark : t_fct_slice -> Cil_types.varinfo -> t_mark
-val get_node_mark : t_fct_slice -> PdgTypes.Node.t -> t_mark
 val get_input_loc_under_mark : t_fct_slice -> Locations.Zone.t -> t_mark
 
 val merge_inputs_m1_mark : t_fct_slice -> t_mark

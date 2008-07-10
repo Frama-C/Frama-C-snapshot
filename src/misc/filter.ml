@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: filter.ml,v 1.50 2008/05/22 08:12:06 uid562 Exp $ *)
+(* $Id: filter.ml,v 1.54 2008/07/11 06:36:05 uid570 Exp $ *)
 
 open Db_types
 open Cil
@@ -72,7 +72,7 @@ end = struct
               (if Cilutil.StmtSet.mem stmt keep_stmts then "'t" else "");
             not (Cilutil.StmtSet.mem stmt keep_stmts) &&
               stmt.labels = []
-        | Block b -> is_empty_block keep_stmts b
+        | Block b | UnspecifiedSequence b -> is_empty_block keep_stmts b
         | _ -> false
     in List.for_all can_skip block.bstmts
 
@@ -85,13 +85,27 @@ end = struct
       | stmt :: [] -> (* one statement only *)
           begin match stmt.skind with
             | Block b -> mk_new_block keep_stmts s b loc
+            | UnspecifiedSequence b ->
+                mk_new_unspecified_sequence keep_stmts s b loc
             | _ -> mk_new_stmt s stmt.skind
           end
       | _ -> mk_new_stmt s (Block b)
 
-  let mk_new_stmts_block keep_stmts old_st stmts =
-    let block = Cil.mkBlock stmts in
-      mk_new_block keep_stmts old_st block (Cil.get_stmtLoc old_st.skind)
+  (* same as above, but for unspecified sequences. *)
+  and mk_new_unspecified_sequence keep_stmts s b loc =
+    (* vblock has already cleaned up the statements (removed skip, etc...),
+     * but now the block can still be empty or include only one statement. *)
+    match b.bstmts with
+      | []  | _ when is_empty_block keep_stmts b ->
+          mk_new_stmt s (mk_skip loc)
+      | stmt :: [] -> (* one statement only *)
+          begin match stmt.skind with
+            | UnspecifiedSequence b ->
+                mk_new_unspecified_sequence keep_stmts s b loc
+            | Block b -> mk_new_block keep_stmts s b loc
+            | _ -> mk_new_stmt s stmt.skind
+          end
+      | _ -> mk_new_stmt s (UnspecifiedSequence b)
 
   let rec filter_labels finfof st labels = match labels with
     | [] -> []
@@ -245,9 +259,9 @@ class filter_visitor pinfo prj = object(self)
             "Ignoring annotation: %a@\n" !Ast_printer.d_code_annotation v;
         ChangeTo
           (Logic_const.new_code_annotation
-             (AAssert
+             (AAssert ([],
 	       { name = []; loc = Lexing.dummy_pos,Lexing.dummy_pos;
-	       content = Ptrue}))
+	       content = Ptrue})))
       end
 
     method private process_call call_stmt call =
@@ -292,7 +306,7 @@ class filter_visitor pinfo prj = object(self)
       let old = s.sid in
       let keep = Cilutil.StmtSet.mem s keep_stmts in
       keep_stmts <- Cilutil.StmtSet.remove s keep_stmts;
-      s.sid <- Cil.new_sid();
+      s.sid <- Cil.Sid.next ();
       Cil.set_stmt self#behavior orig s;
       if keep then self#add_stmt_keep s;
       if debug () then
@@ -346,7 +360,7 @@ class filter_visitor pinfo prj = object(self)
         (match s'.skind with
           | If (cond,bthen,belse,loc) ->
               optim_if keep_stmts s' (Some cond) bthen belse loc
-          | Block b  ->
+          | Block b | UnspecifiedSequence b ->
               let loc = Cil.get_stmtLoc s'.skind in
               (* must be performed after the optimisation
                  of the block itself (see comment in vblock) *)
@@ -365,8 +379,8 @@ class filter_visitor pinfo prj = object(self)
       let labels = filter_labels finfo s s.labels in
       s.labels <- labels;
       match s.skind with
-        | Block _ | _ when Info.inst_visible finfo s ->
-            self#process_visible_stmt s
+        | Block _ | UnspecifiedSequence _ -> self#process_visible_stmt s
+        | _ when Info.inst_visible finfo s -> self#process_visible_stmt s
         | _ -> self#process_invisible_stmt s
 
     method vvdec _v = SkipChildren (* everything is done elsewhere *)

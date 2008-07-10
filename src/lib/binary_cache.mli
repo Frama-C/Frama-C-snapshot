@@ -21,42 +21,41 @@
 
 module MemoryFootprint : Computation.REF_OUTPUT with type data = int
 
-module type BinCacheable =
-sig
-  type t
-  type result
-  val hash : t -> int
-  val size : int
-  val sentinel : t
-  val sentinel_result : result
-end
-
 module type Cacheable =
 sig
   type t
   val hash : t -> int
   val sentinel : t
+  val equal : t -> t -> bool
 end
 
+module type Result =
+sig
+  type t
+  val sentinel : t
+end
+
+module Bool_Result : Result with type t = bool
+
 module Make_Symetric :
-  functor (H : BinCacheable) ->
+  functor (H : Cacheable) -> functor (R : Result) ->
     sig
       val clear : unit -> unit
-      val merge : (unit -> H.result) -> H.t -> H.t -> H.result
+      val merge : (unit -> R.t) -> H.t -> H.t -> R.t
     end
 
 
 module Make_Asymetric :
-  functor (H : BinCacheable) ->
+  functor (H : Cacheable) -> functor (R : Result) ->
     sig
       val clear : unit -> unit
-      val merge : (unit -> H.result) -> H.t -> H.t -> H.result
+      val merge : (unit -> R.t) -> H.t -> H.t -> R.t
     end
 
 module Make_Het :
 functor (H1 : Cacheable) -> 
   functor (H2 : Cacheable) -> 
-    functor (R : Cacheable) ->
+    functor (R : Result) ->
   sig
     val clear : unit -> unit
     val merge : (unit -> R.t) -> H1.t -> H2.t -> R.t

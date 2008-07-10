@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ast_info.ml,v 1.26 2008/04/29 16:41:25 uid562 Exp $ *)
+(* $Id: ast_info.ml,v 1.28 2008/07/02 08:07:07 uid570 Exp $ *)
 
 open Db_types
 open Cil_types
@@ -110,7 +110,7 @@ let is_trivial_term v =
 let is_trivial_named_predicate p = is_trivial_predicate p.content
 
 let is_trivial_annotation = function
-  | AAssert a
+  | AAssert (_,a)
   | AAssume a -> is_trivial_named_predicate a
   | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _ | AAssigns _ -> false
 
@@ -179,7 +179,7 @@ let get_sid s = match s with
     statement.*)
 let rec loc_stmt s = match s.skind with
 | Instr i -> get_instrLoc i
-| Block {bstmts=s::_} -> loc_stmt s
+| Block {bstmts=s::_} | UnspecifiedSequence {bstmts=s::_} -> loc_stmt s
 | Return (_,location)
 | Goto (_,location)
 | Break location
@@ -189,10 +189,7 @@ let rec loc_stmt s = match s.skind with
 | Loop (_,_, location,_,_)
 | TryFinally (_,_,location)
 | TryExcept (_,_,_,location) -> location
-| UnspecifiedSequence (s1,s2) ->
-    let l1 =  loc_stmt s1 in
-    if l1 == locUnknown then l1 else loc_stmt s2
-| Block {bstmts=[]} -> locUnknown
+| Block {bstmts=[]} | UnspecifiedSequence {bstmts=[]} -> locUnknown
 
 let mkassign lv e loc = Set(lv,e,loc)
 

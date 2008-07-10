@@ -6,3 +6,9 @@ void f () {
   /*@ assert \at(x,L) == 0; */
   /*@ assert \at(x==0,L); */
 }
+
+int g(int i) {
+ lab:
+  //@ assert i == \at(i,lab);
+  return i;
+}

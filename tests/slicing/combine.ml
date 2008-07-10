@@ -56,9 +56,9 @@ Cil.visitCilFile infos new_cil_file (* the cil file after slicing *);;
 
 !Db.Value.compute ();;
 let all = Cilutil.StringSet.empty;;
-let proj3 = !Db.Constant_Propagation.run_propagation all;;
+let proj3 = !Db.Constant_Propagation.run_propagation all ~cast_intro:true;;
 Project.set_current proj3;;
 Format.printf "After Constant propagation :@." ; File.pretty ~prj:proj3 fmt;;
 
-let proj4 = !Db.Sparecode.run ();;
+let proj4 = !Db.Sparecode.run ~select_annot:true ~select_slice_pragma:true;;
 Format.printf "After Sparecode :@." ; File.pretty ~prj:proj4 fmt;;

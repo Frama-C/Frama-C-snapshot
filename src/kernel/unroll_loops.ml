@@ -39,7 +39,7 @@ let rec copy_stmt break_continue_must_change label_table stmt =
   let result = {labels=[];sid=0;succs=[];preds=[];skind=stmt.skind;ghost=stmt.ghost} in
   let new_labels,label_tbl,sid =
     let new_label = fresh () in
-    let sid = new_sid() in
+    let sid = Sid.next () in
     let new_acc =
       List.fold_left
         (fun acc _ ->
@@ -84,7 +84,14 @@ and copy_stmtkind break_continue_must_change label_tbl stkind =
         in
         Loop (a,new_block,loc,None,None),label_tbl
     | Block bl ->
-        let new_block,label_tbl = copy_block break_continue_must_change label_tbl bl in
+        let new_block,label_tbl =
+          copy_block break_continue_must_change label_tbl bl
+        in
+        Block (new_block),label_tbl
+    | UnspecifiedSequence bl ->
+        let new_block,label_tbl =
+          copy_block break_continue_must_change label_tbl bl
+        in
         Block (new_block),label_tbl
     | Break loc ->
         (match break_continue_must_change with
@@ -98,10 +105,6 @@ and copy_stmtkind break_continue_must_change label_tbl stkind =
         (* from now on break and continue can be kept *)
         let new_block,new_label_tbl = copy_block None label_tbl block in
         Switch(e,new_block,stmts,loc),new_label_tbl
-    | UnspecifiedSequence (s1,s2) ->
-        let s1,label_tbl = copy_stmt break_continue_must_change label_tbl s1 in
-        let s2,label_tbl = copy_stmt break_continue_must_change label_tbl s2 in
-        UnspecifiedSequence (s1,s2),label_tbl
     | TryFinally _ | TryExcept _ -> assert false
 
 
@@ -153,12 +156,12 @@ class do_it (times:int) = object
               let break_label = fresh () in
               let break_lbl_stmt = mkEmptyStmt () in
               break_lbl_stmt.labels <- [break_label];
-              break_lbl_stmt.sid <- Cil.new_sid ();
+              break_lbl_stmt.sid <- Cil.Sid.next ();
               let mk_continue () =
                 let continue_label = fresh () in
                 let continue_lbl_stmt = mkEmptyStmt () in
                 continue_lbl_stmt.labels <- [continue_label] ;
-                continue_lbl_stmt.sid <- Cil.new_sid();
+                continue_lbl_stmt.sid <- Cil.Sid.next ();
                 continue_lbl_stmt
               in
               let current_continue = ref (mk_continue ()) in

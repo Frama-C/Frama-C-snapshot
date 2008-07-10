@@ -27,12 +27,15 @@ let add_top dir =
   let abs_dir = Filename.concat top dir in
     Topdirs.dir_directory abs_dir
 
-let () = add_top "src/kernel"
-let () = add_top "src/memory_state"
-let () = add_top "src/ai"
-let () = add_top "src/logic"
-let () = add_top "lib"
-let () = add_top "lib/plugins"
-let () = add_top "src/toplevel"
-let () = add_top "cil/src"
+let src_dir = 
+  [ "ai"; "buckx"; "constant_propagation"; "cxx_types";
+    "from"; "gui"; "impact"; "inout"; "jessie"; "kernel"; "lib";
+    "logic"; "memory_state"; "misc"; "modular_dependencies"; "occurrence";
+    "pdg"; "pdg_types"; "postdominators"; "project"; "scope"; "security";
+    "semantic_callgraph"; "slicing"; "slicing_types"; "sparecode"; "toplevel";
+    "users"; "value"; "wp" ]
+
+let () = 
+  List.iter (fun s -> add_top (Filename.concat "src" s)) src_dir;
+  add_top "external"
 

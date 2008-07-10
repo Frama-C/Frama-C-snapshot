@@ -118,7 +118,7 @@ module Visibility (SliceName : sig
         let pdg = !Db.Pdg.get kf in
         let ctrl_nodes, (data_nodes, data_in) =
           !Db.Pdg.find_code_annot_nodes pdg before stmt annot in
-        let nodes = ctrl_nodes @ data_nodes in
+
           (*
         let selections = !Db.Slicing.Select.empty_selects () in
         let spare_mark =
@@ -133,9 +133,8 @@ module Visibility (SliceName : sig
     in
     let visible = Db.Slicing.Select.fold_selects is_selected true selections
     *)
-        let visible = 
-          if (Locations.Zone.equal Locations.Zone.bottom data_in) then true
-          else
+        let visible = match data_in with None -> true
+          | Some data_in ->
             (* it is too difficult to know if the callers of this slice
             * compute [data_in] or not, but let's see if, by chance,
             * some data have been selected manually... *)
@@ -161,7 +160,28 @@ module Visibility (SliceName : sig
            end
          else visi
         in
-        let visible = List.fold_left is_visible visible nodes in
+        let is_data_visible visi (n,z) =
+          let key = PdgTypes.Node.elem_key n in
+          let key = match z, key with
+            | Some z, PdgIndex.Key.SigCallKey 
+          (call, PdgIndex.Signature.Out (PdgIndex.Signature.OutLoc out_z)) ->
+                let z = Locations.Zone.narrow z out_z in 
+                  PdgIndex.Key.call_output_key (PdgIndex.Key.call_from_id call) z
+      | _, _ -> key 
+          in
+          let m = Fct_slice.get_node_key_mark ff key in
+            if !Db.Slicing.Mark.is_bottom m then
+           begin
+             if M.debug2 () then
+               Format.printf "[Slicing:annotation_visible] node %a invisible@\n"
+                 (!Db.Pdg.pretty_node true) n;
+             false
+           end
+         else visi
+        in
+        let ctrl_visible = List.fold_left is_visible visible ctrl_nodes in
+        let data_visible = List.fold_left is_data_visible visible data_nodes in
+        let visible = (ctrl_visible && data_visible) in
           if M.debug1 () then 
             Format.printf "[Slicing:annotation_visible] -> %s@\n"
               (if visible then "yes" else "no");
@@ -258,22 +278,10 @@ let extract new_proj_name ?(f_slice_names=default_slice_names) slicing_project =
   let module S = struct let get = f_slice_names end in
   let module Visi = Visibility (S) in
   let module Transform = Filter.F (Visi) in
-  Transform.build_cil_file fresh_project slicing_project;
-  let options = 
-    let a o = Project.Selection.add o Kind.Do_Not_Select_Dependencies in
-    let add_opt = Project.Selection.empty in
-    let add_opt = a Cmdline.MinValidAbsoluteAddress.self add_opt in
-    let add_opt = a Cmdline.MaxValidAbsoluteAddress.self add_opt in
-    let add_opt = a Cmdline.AutomaticContextMaxDepth.self add_opt in
-    let add_opt = a Cmdline.AllocatedContextValid.self add_opt in
-    let add_opt = a Cmdline.IgnoreOverflow.self add_opt in
-    let add_opt = a Cmdline.UnsafeArrays.self add_opt in
-    let add_opt = a Cmdline.LibEntry.self add_opt in
-      a Cmdline.MainFunction.self add_opt
-      
-  in
-  Project.copy ~only:options fresh_project;
-  fresh_project
+    Transform.build_cil_file fresh_project slicing_project;
+    let ctx = Cmdline.get_selection_context () in
+      Project.copy ~only:ctx fresh_project;
+      fresh_project
 
 (*
 Local Variables:

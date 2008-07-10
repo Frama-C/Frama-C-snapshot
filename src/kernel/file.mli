@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: file.mli,v 1.11 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: file.mli,v 1.12 2008/05/30 08:29:48 uid568 Exp $ *)
 
-(** Frama-c preprocessing and Cil AST initialization. *)
+(** Frama-c preprocessing and Cil AST initialization. 
+    @plugin developer guide *)
 
 type t =
   | NeedCPP of string * string 
@@ -58,26 +59,30 @@ class check_file: Visitor.frama_c_visitor
 val init_from_c_files: t list -> unit
   (** Initialize the cil file representation of the current project.
       Should be called at most once per project.
-      @raise File_types.Bad_Initialization if called more than once. *)
+      @raise File_types.Bad_Initialization if called more than once. 
+      @plugin developer guide *)
 
 val init_project_from_cil_file: Project.t -> Cil_types.file -> unit
   (** Initialize the cil file representation with the given file for the
       given project from the current one.
       Should be called at most once per project.
-      @raise File_types.Bad_Initialization if called more than once. *)
+      @raise File_types.Bad_Initialization if called more than once. 
+      @plugin developer guide *)
 
 val init_project_from_visitor:
   Project.t -> (Project.t -> Visitor.frama_c_visitor) -> unit
   (** Initialize the cil file representation by visiting the current file.
       The visitor is responsible to avoid sharing between old file and new
       file (i.e. it should use {!Cil.copy_visit} at some point.
-      @raise File_types.Bad_Initialization if called more than once. *)
+      @raise File_types.Bad_Initialization if called more than once. 
+      @plugin developer guide *)
 
 val init_from_cmdline: unit -> unit
   (** Initialize the cil file representation with the file given on the
       command line.
       Should be called at most once per project.
-      @raise File_types.Bad_Initialization if called more than once. *)
+      @raise File_types.Bad_Initialization if called more than once. 
+      @plugin developer guide *)
 
 (* ************************************************************************* *)
 (** {2 Pretty printing} *)

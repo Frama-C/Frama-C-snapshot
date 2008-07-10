@@ -19,6 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Frama-C Main.
+    @plugin developer guide *)
+
 open Pretty
 open Cil
 open Cilutil
@@ -63,9 +66,13 @@ let all_plugins (fmt:formatter) =
       visitCilFileSameGlobals (constFoldVisitor true) files
     end;
 
-    if Cmdline.Metrics.get () then
-      fprintf fmt
-        "Syntactic metrics@\n %a@\n" Metrics.pretty (Metrics.sloc files);
+    if Cmdline.Metrics.is_on () then begin
+      let loc = Metrics.sloc files in
+      if Cmdline.Metrics.Print.get () then
+	fprintf fmt "Syntactic metrics@\n %a@\n" Metrics.pretty loc;
+      if Cmdline.Metrics.Dump.is_set () then
+	Metrics.dump (Cmdline.Metrics.Dump.get ()) loc
+    end;
 
     let kf () = fst (Globals.entry_point ()) in
 
@@ -106,14 +113,14 @@ let all_plugins (fmt:formatter) =
     in
     (* **** *)
 
+    let not_quiet = not (Cmdline.Quiet.get ()) in
+
     (* Value computations *)
     if Cmdline.ForceValues.get () then begin
       !Db.Value.compute ();
       (* !Db.Outputs.compute (kf()); *)
-      fprintf fmt "@\n====== VALUES COMPUTED ======@."
+      if not_quiet then fprintf fmt "@\n====== VALUES COMPUTED ======@."
     end;
-
-    let not_quiet = not (Cmdline.Quiet.get ()) in
 
     if Cmdline.ForceOut.get ()
       || Cmdline.ForceInput.get ()
@@ -145,10 +152,13 @@ let all_plugins (fmt:formatter) =
 	(fun kf ->
 	   if Kernel_function.is_definition kf && !Db.Value.is_called kf
 	   then !Db.From.compute kf) ;
-      if not_quiet then Db.From.display fmt;
-      fprintf fmt "@\n====== DEPENDENCIES COMPUTED ======@."
+      if not_quiet then
+        begin 
+          !Db.From.display fmt;
+          fprintf fmt "@\n====== DEPENDENCIES COMPUTED ======@."
+        end
     end;
-    if Cmdline.ForceCallDeps.get ()
+    if not_quiet && Cmdline.ForceCallDeps.get ()
     then begin
       fprintf fmt "@\n====== DISPLAYING CALLWISE DEPENDENCIES ======@.";
       !Db.From.Callwise.iter
@@ -217,10 +227,9 @@ let all_plugins (fmt:formatter) =
       if force_semantic_folding
       then begin
 	fprintf fmt "@\n[constant propagation] in progress...@.";
-	let fnames =
-	  Cmdline.Constant_Propagation.SemanticConstFold.get ()
-	in
-	let propagated = !Db.Constant_Propagation.run_propagation fnames in
+	let fnames = Cmdline.Constant_Propagation.SemanticConstFold.get () in
+        let cast_intro = Cmdline.Constant_Propagation.CastIntro.get () in
+	let propagated = !Db.Constant_Propagation.run_propagation fnames cast_intro in
 	if Cmdline.Constant_Propagation.SemanticConstFolding.get () then
 	  File.pretty out ~prj:propagated;
 	fprintf fmt "@\n====== CONSTANT PROPAGATED ======@.";
@@ -254,7 +263,9 @@ let all_plugins (fmt:formatter) =
 
       if force_sparecode then begin
 	fprintf fmt "@\n[sparecode] in progress...@.";
-	let new_proj = !Db.Sparecode.run () in
+        let select_annot = not (Cmdline.Sparecode.NoAnnot.get ())in
+        let select_slice_pragma = true in
+	let new_proj = !Db.Sparecode.run select_annot select_slice_pragma in
 	File.pretty out ~prj:new_proj ;
 	fprintf fmt "@\n====== UNUSED CODE DETECTED ======@."
       end;
@@ -267,88 +278,27 @@ let all_plugins (fmt:formatter) =
          * and the value analysis is not launched automatically. *)
         if not (Db.Value.is_computed ()) then
           !Db.Value.compute ();
-
-	let project = Db.Slicing.Project.mk_project "slicing" in
-
-	let top_mark = !Db.Slicing.Mark.make ~addr:true ~ctrl:true ~data:true in
-	let selection = ref (!Db.Slicing.Select.empty_selects ()) in
-	Globals.Functions.iter
-	  (fun kf ->
-	     let add_selection opt select  =
-	       if StringSet.mem (Kernel_function.get_name kf) (opt ()) then
-		 selection := select !selection ~spare:false kf
-	     in
-
-	     add_selection
-	       Cmdline.Slicing.Select.Return.get
-               !Db.Slicing.Select.select_func_return;
-
-	     add_selection
-	       Cmdline.Slicing.Select.Calls.get
-	       !Db.Slicing.Select.select_func_calls_to;
-
-	     add_selection
-	       Cmdline.Slicing.Select.Pragma.get
-	       (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		  ~ai:false ~user_assert:false ~slicing_pragma:true
-		  ~loop_inv:false ~loop_var:false);
-
-	     add_selection
-	       Cmdline.Slicing.Select.Threat.get
-               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		  ~ai:true ~user_assert:false ~slicing_pragma:false
-		  ~loop_inv:false ~loop_var:false);
-
-	     add_selection
-	       Cmdline.Slicing.Select.Assert.get
-               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		  ~ai:false ~user_assert:true ~slicing_pragma:false
-		  ~loop_inv:false ~loop_var:false);
-
-	     add_selection
-	       Cmdline.Slicing.Select.LoopInv.get
-               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		  ~ai:false ~user_assert:false ~slicing_pragma:false
-		  ~loop_inv:true ~loop_var:false);
-
-	     add_selection
-	       Cmdline.Slicing.Select.LoopVar.get
-               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		  ~ai:false ~user_assert:false ~slicing_pragma:false
-		  ~loop_inv:false ~loop_var:true);
-	  );
-	if  not (Cilutil.StringSet.is_empty (Cmdline.Slicing.Select.Value.get ())) ||
-	  not (Cilutil.StringSet.is_empty (Cmdline.Slicing.Select.RdAccess.get ())) ||
-	  not (Cilutil.StringSet.is_empty (Cmdline.Slicing.Select.WrAccess.get ()))
-	then begin
-	  (* fprintf fmt "@\n[-slice-value] Select %s at end of the entry point %a@."
-             lval_str Db.pretty_name kf; *)
-	  let kf = kf () in
-	  selection := !Db.Slicing.Select.select_func_lval !selection top_mark
-	    (Cmdline.Slicing.Select.Value.get ()) kf;
-	  selection := !Db.Slicing.Select.select_func_lval_rw !selection
-	    top_mark (Cmdline.Slicing.Select.RdAccess.get ())
-	    (Cmdline.Slicing.Select.WrAccess.get ()) kf ;
-	end;
-
-	!Db.Slicing.Request.add_persistent_selection project !selection;
-
-	(* Apply all pending requests. *)
-	if Cmdline.Slicing.Mode.Verbose.get () > 2 then
-	  fprintf fmt "[slicing] requests:@\n %a@\n"
-	    !Db.Slicing.Request.pretty project ;
-	!Db.Slicing.Request.apply_all_internal project;
-
-        if Cmdline.Slicing.Mode.Callers.get () then
-          !Db.Slicing.Slice.remove_uncalled project;
-
-	let sliced_project = 
-	  !Db.Slicing.Project.extract "Sliced code" project
-	in
-	if Cmdline.Slicing.Print.get () then
-          File.pretty out ~prj:sliced_project;
-
-	fprintf fmt "@\n====== SLICED CODE COMPUTED ======@.";
+        
+	let project = Db.Slicing.Project.mk_project "Slicing" in
+	  Db.Slicing.Project.set_project (Some project);
+	  !Db.Slicing.Request.add_persistent_cmdline project;
+          
+	  (* Apply all pending requests. *)
+	  if Cmdline.Slicing.Mode.Verbose.get () > 2 then
+	    fprintf fmt "[slicing] requests:@\n %a@\n"
+	      !Db.Slicing.Request.pretty project ;
+	  !Db.Slicing.Request.apply_all_internal project;
+          
+          if Cmdline.Slicing.Mode.Callers.get () then
+            !Db.Slicing.Slice.remove_uncalled project;
+          
+	  let sliced_project = 
+	    !Db.Slicing.Project.extract ((!Db.Slicing.Project.get_name project)^ " export") project
+	  in
+	    if Cmdline.Slicing.Print.get () then
+              File.pretty out ~prj:sliced_project;
+            
+	    fprintf fmt "@\n====== SLICED CODE COMPUTED ======@.";
       end;
 
       if Cmdline.WpCfg.get () then begin

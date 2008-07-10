@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: file.ml,v 1.81 2008/05/23 14:05:06 uid528 Exp $ *)
+(* $Id: file.ml,v 1.85 2008/07/03 12:48:20 uid528 Exp $ *)
 
 open Cil_types
 open Cil
@@ -172,7 +172,7 @@ let parse = function
           Format.sprintf "%s%s %s %s%s%s" cmd1
             (* using Filename.quote for filenames which contain space or
 	       shell metacharacters *)
-	    (Filename.quote file1) 
+	    (Filename.quote file1)
             supp_args
             cmd2 (Filename.quote file2) cmd3
         with
@@ -185,11 +185,11 @@ let parse = function
 	      (Filename.quote out_file) (Filename.quote in_file)
       in
       ignore (Errormsg.log "[preprocessing] running %s %s\n" cmdl f);
-      if Sys.command (cmd 
-                        ((Cmdline.CppExtraArgs.get()) ^ " " ^ 
-                           (if Cmdline.ReadAnnot.get() && 
+      if Sys.command (cmd
+                        ((Cmdline.CppExtraArgs.get()) ^ " " ^
+                           (if Cmdline.ReadAnnot.get() &&
                               Cmdline.PreprocessAnnot.get() then "-dD" else ""))
-                        f ppf) <> 0 then 
+                        f ppf) <> 0 then
         begin
           Format.eprintf "Failed to run: %s\n\t
            You may set the CPP environment variable to select the proper preprocessor command ...\n\t\
@@ -199,7 +199,7 @@ let parse = function
       let ppf =
         if Cmdline.ReadAnnot.get() && Cmdline.PreprocessAnnot.get()
         then
-          let ppf' = Logic_preprocess.file (cmd " -P ") ppf in
+          let ppf' = Logic_preprocess.file (cmd "") ppf in
           Sys.remove ppf; ppf'
         else ppf
       in
@@ -239,11 +239,12 @@ let files_to_cil files =
                    annotations tables are not filled yet. *)
          List.iter(Cil.d_global Format.std_formatter) f.globals)
       files;
+
+  (* Clean up useless parts *)
   Format.printf "Cleaning unused parts@\n";
+  Rmtmps.rmUnusedStatic := false; (* a command line option will be available*)
   let () = List.iter Rmtmps.removeUnusedTemps files in
-  (* Clean up useless parts
-     BM: modified to keep static functions. In fact we should
-     mark the roots with a __constructor__ attribute *)
+
   if Cmdline.Debug.get() > 5 then
     List.iter
       (fun f -> (* NB: don't use frama-C printer here, as the
@@ -504,7 +505,7 @@ object
 end
 
 let prepare_cil_file file =
-  Format.printf "Starting semantical analysis@\n";
+  Format.printf "Starting semantical analysis@.";
   computeCFG file;
   if Cmdline.Files.Check.get() then begin
    Cil.visitCilFileSameGlobals check_visitor file;

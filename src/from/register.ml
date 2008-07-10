@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.67 2008/04/18 11:04:02 uid568 Exp $ *)
+(* $Id: register.ml,v 1.71 2008/06/26 11:45:11 uid528 Exp $ *)
 
 open Cil_types
 open Cil
@@ -41,7 +41,7 @@ module Functionwise_Dependencies =
        let dependencies = [ Value.self ]
      end)
 
-let () = 
+let () =
   Db.From.self := Functionwise_Dependencies.self;
   Db.From.is_computed := Functionwise_Dependencies.mem
 
@@ -201,19 +201,15 @@ struct
 		Lmap_bitwise.From_Model.find call_site_froms (Zone.inject k intervs) )
       | Base.Null | Base.String _ | Base.Cell_class _ ->
 	  Zone.inject k intervs
-      
+
 
     in
     let joiner = Zone.join in
     let projection base =
       match Base.validity base with
-	Base.Known (min_valid,max_valid) ->
+      | Base.Known (min_valid,max_valid) | Base.Unknown (min_valid,max_valid)->
 	  Int_Intervals.inject_bounds min_valid max_valid
-      | _ -> assert false (* PC TODO: il faudrait faire quelque chose dans
-			     le cas "tout". Le cas "rien" ne devrait jamais
-			     arriver, et s'il le fait on a le droit de
-			     renvoyer bottom (hypothese que les menaces sont
-			     vérifiées par ailleurs) *)
+      | Base.All -> assert false(*TODO*)
     in
     let zone_substitution =
 	Zone.cached_fold ~cache:("from substitution", 331)
@@ -414,6 +410,7 @@ struct
     | Call (lvaloption,funcexp,argl,_) ->
         Dataflow.Post
           (fun state ->
+             !Db.progress ();
              let funcexp_deps, called_vinfos =
                resolv_func_vinfo
                  ~with_alarms:CilE.warn_none_mode
@@ -561,7 +558,7 @@ struct
                                acc_memory.deps_table})
                         acc
                         t
-             in 
+             in
 	     try
 	       fold_no_neutral called_vinfos
 	     with Call_did_not_take_place -> state
@@ -676,7 +673,7 @@ let compute_using_cfg kf = match kf.fundec with
 		else
 		  raise Not_found
               with Not_found -> begin
-                log "Non terminating function (no dependencies)@\n";
+                log "Non terminating function (no dependencies)";
                 { Function_Froms.deps_return =
                     Lmap_bitwise.From_Model.LOffset.empty;
                   deps_table = Computer.empty_from.deps_table }
@@ -805,7 +802,7 @@ let compute_using_prototype kf =
 let compute_and_return kf =
   let call_site_loc = !currentLoc in
   log
-    "[from] computing for function %a%s@\n@?"
+    "[from] computing for function %a%s"
     Kernel_function.pretty_name kf
     (let s = ref "" in
      Stack.iter
@@ -821,7 +818,7 @@ let compute_and_return kf =
         compute_using_prototype kf
   in
   Recording_To_Do.record_kf kf result;
-  log "[from] done for function %a@\n@?" Kernel_function.pretty_name kf;
+  log "[from] done for function %a" Kernel_function.pretty_name kf;
   currentLoc := call_site_loc;
   result
 
@@ -832,14 +829,14 @@ let compute kf =
 end
 
 (* Application-wide Froms *)
+let force_compute = ref (fun _ -> assert false)
 
 module Functionwise_From_to_use =
 struct
-  let compute = Db.From.compute
   let memo kf =
     Functionwise_Dependencies.memo
       (fun kf ->
-	 !compute kf;
+	 !force_compute kf;
          try Functionwise_Dependencies.find kf
 	 with Not_found -> invalid_arg "could not compute dependencies")
       kf
@@ -854,7 +851,8 @@ end
 module From2 = Make(Db.Value)(Functionwise_From_to_use)(Recording_To_Do)
 
 let () =
-  Db.From.compute := From2.compute;
+  force_compute := From2.compute;
+  Db.From.compute := (fun kf -> ignore (Functionwise_From_to_use.memo kf));
   Db.From.get := Functionwise_From_to_use.memo
 
 let () = Db.From.pretty :=
@@ -938,7 +936,7 @@ let record_for_individual_froms (call_stack, instrstates) =
 		      Kernel_function.pretty_name _current_function
 		      Kernel_function.pretty_name _f;*)
 		    raise Call_did_not_take_place
-		    
+
 		end
 (*	    | Declaration _ ->
 		Functionwise_From_to_use.get f callsite *)
@@ -984,7 +982,7 @@ let record_for_individual_froms (call_stack, instrstates) =
 (*    Format.printf "At call site %s, dependencies of %s:@.%a@."
       (match call_site with
 	Kglobal -> "Kglobal"
-      | Kstmt s -> string_of_int s.sid) 
+      | Kstmt s -> string_of_int s.sid)
       (Kernel_function.get_name current_function)
       Function_Froms.pretty froms;  *)
     record_callwise_dependencies_in_db call_site froms;
@@ -1008,11 +1006,11 @@ let record_for_individual_froms (call_stack, instrstates) =
   end
 
 let () =
-  Options.add_plugin 
+  Options.add_plugin
     ~name:"functional dependencies"
     ~descr:""
     [ "-deps", Arg.Unit Cmdline.ForceDeps.on, ": force dependencies display";
-      "-calldeps", Arg.Unit Cmdline.ForceCallDeps.on, 
+      "-calldeps", Arg.Unit Cmdline.ForceCallDeps.on,
       ": force callsite-wise dependencies (through value analysis)" ]
 
 let () =
@@ -1040,28 +1038,37 @@ let find_available kinstr =
 	      kinstr ~deps:None funcexp
 	  in
 	  let treat_kf _kf acc =
-	    let kf_froms = (assert false) 
+	    let kf_froms = (assert false)
 	    in
 	    match acc with
 	      None -> Some kf_froms
-	    | Some froms -> 
+	    | Some froms ->
 		Some (Function_Froms.join kf_froms froms)
 	  in
-	  let froms = 
+	  let froms =
 	    List.fold_right treat_kf called_functions None
 	  in
 	  begin
 	    match froms with
 	      None -> assert false (* TODO: do something *)
-	    | Some f -> f 
+	    | Some f -> f
 	  end
       | _ ->
 	  Format.printf "internal error 458 : From.find_available called on non-Call statement.";
 	assert false
     end
 
+let display fmt =
+  Format.fprintf fmt "@[";
+  !Db.Semantic_Callgraph.topologically_iter_on_functions
+    (fun k ->
+       if !Db.Value.is_called k then Format.fprintf fmt "@[Function %a:@\n%a@]"
+         Kernel_function.pretty_name k !Db.From.pretty k);
+    Format.fprintf fmt "@]"
+
 let () =
-  Db.From.Callwise.iter := Callwise_Dependencies.iter ;
+  Db.From.display := display;
+  Db.From.Callwise.iter := Callwise_Dependencies.iter;
   Db.From.Callwise.find := Callwise_Dependencies.find
 
 (*

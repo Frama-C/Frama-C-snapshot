@@ -51,6 +51,7 @@ module U = Cilutil
 (* Set on the command-line: *)
 let keepUnused = ref false
 let rmUnusedInlines = ref false
+let rmUnusedStatic = ref false
 let rmEmptyInlines = ref true
 
 let trace = Trace.trace "rmtmps"
@@ -352,7 +353,7 @@ let isExportedRoot global =
       if hasExportingAttribute v then
 	true, "constructor or destructor function"
       else if v.vstorage = Static then
-        false, "static function"
+        not !rmUnusedStatic, "static function"
       else if v.vinline && v.vstorage != Extern
               && (!msvcMode || !rmUnusedInlines) then
         false, "inline function"

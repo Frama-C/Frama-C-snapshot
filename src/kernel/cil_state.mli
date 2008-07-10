@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cil_state.mli,v 1.7 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: cil_state.mli,v 1.8 2008/05/30 08:29:48 uid568 Exp $ *)
 
-(** Access to the Cil AST dealing with projects. *)
+(** Access to the Cil AST dealing with projects. 
+    @plugin developer guide *)
 
 exception Bad_Initialisation of string
   (** May be raised by {!file} above. *)
@@ -32,7 +33,8 @@ val file: unit -> Cil_types.file
       {!File.init_from_cmdline} has to be called before using this function.
       @raise Bad_Initialization if neither {!File.init_from_c_files}
       nor {!File.init_project_from_cil_file} nor {!File.init_from_cmdline} was
-      called before. *)
+      called before. 
+      @plugin developer guide *)
 
 val self: Project.Computation.t
   (** The state kind associated to the cil AST. *)

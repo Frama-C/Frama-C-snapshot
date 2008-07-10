@@ -25,9 +25,12 @@ type t =
   | Leaf of LocationSetLattice.t
   | Merge of LocationSetLattice.t
   | Arith of LocationSetLattice.t
+  | Well 
+  | Unknown
 
 let equal o1 o2 = 
   match o1, o2 with
+    | Well, Well | Unknown, Unknown -> true
     | Leaf o1, Leaf o2 | Arith o1, Arith o2 | Merge o1, Merge o2 
     | Misalign_read o1, Misalign_read o2  ->
 	LocationSetLattice.equal o1 o2
@@ -37,13 +40,16 @@ let equal o1 o2 =
     |  _, Leaf _ -> false
     | Merge _, _ -> false
     | _, Merge _ -> false
-(*    | Arith _, _ -> false
-    | _, Arith _ -> false *)
+    | Arith _, _ -> false
+    | _, Arith _ -> false 
+    | _, Well | Well, _ -> false
+
+
 
 
 let pretty fmt o =
   match o with
-  | Misalign_read (LocationSetLattice.Top) ->
+  | Unknown ->
       Format.fprintf fmt "@[Unknown@]"
   | Misalign_read o ->
       Format.fprintf fmt "@[Misaligned@ %a@]" 
@@ -57,6 +63,7 @@ let pretty fmt o =
   | Arith o ->
       Format.fprintf fmt "@[Arithmetic@ %a@]" 
 	LocationSetLattice.pretty o
+  | Well ->       Format.fprintf fmt "@[Well@]" 
 
 let hash o =
   match o with
@@ -68,18 +75,23 @@ let hash o =
 	3001 + (LocationSetLattice.hash o)
     | Arith o ->
 	3557 + (LocationSetLattice.hash o)
+    | Well -> 17
+    | Unknown -> 97
 
-let top = Misalign_read(LocationSetLattice.top)
+
+let top = Unknown
 let is_top x = equal top x
 
 let bottom = Arith(LocationSetLattice.bottom)
 
 let join o1 o2 =
   let result = 
-  if o1 == o2 
-  then o1 
-  else
-    match o1, o2 with
+    if o1 == o2 
+    then o1 
+    else
+      match o1, o2 with
+      | Unknown,_ | _, Unknown -> Unknown
+      | Well,_ | _ , Well   -> Well
       | Misalign_read o1, Misalign_read o2 ->
 	  Misalign_read(LocationSetLattice.join o1 o2)
       | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m
@@ -91,10 +103,10 @@ let join o1 o2 =
       | (Merge _ as m), _ | _, (Merge _ as m) -> m
       | Arith o1, Arith o2 ->
 	  Arith(LocationSetLattice.join o1 o2)
-(*      | (Arith _ as m), _ | _, (Arith _ as m) -> m  *)
+            (* | (Arith _ as m), _ | _, (Arith _ as m) -> m *)
   in
-(*  Format.printf "Origin.join %a %a -> %a@." pretty o1 pretty o2 pretty result;
-*)
+  (*  Format.printf "Origin.join %a %a -> %a@." pretty o1 pretty o2 pretty result;
+  *)
   result
 
 let meet o1 o2 =
@@ -113,7 +125,10 @@ let meet o1 o2 =
       | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
       | Misalign_read o1, Misalign_read o2 ->
 	  Misalign_read(LocationSetLattice.meet o1 o2)
-(*      | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m *)
+      | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m 
+      | Well, Well -> Well
+      | Well,m | m, Well -> m
+      | Unknown, Unknown -> Unknown
 
 let is_included o1 o2 =
   (equal o1 (meet o1 o2))

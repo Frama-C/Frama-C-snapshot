@@ -19,16 +19,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_datatype.mli,v 1.13 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: kernel_datatype.mli,v 1.14 2008/05/30 08:29:48 uid568 Exp $ *)
 
 open Cil_types
 open Db_types
 
-(** Datatypes of some useful kernel types. *)
+(** Datatypes of some useful kernel types. 
+    @plugin developer guide *)
 
+(** @plugin developer guide *)
 module Varinfo : Project.Datatype.OUTPUT with type t = varinfo
 module Location : Project.Datatype.OUTPUT with type t = location
 
+(** @plugin developer guide *)
 module Stmt: sig
   include Project.Datatype.OUTPUT with type t = stmt
   val compare: t -> t -> int
@@ -41,7 +44,8 @@ module Lval: Project.Datatype.OUTPUT with type t = lval
 module File: Project.Datatype.OUTPUT with type t = file
 module InitInfo: Project.Datatype.OUTPUT with type t = initinfo
 
-(** Datatype for a kernel function. *)
+(** Datatype for a kernel function. 
+    @plugin developer guide *)
 module KernelFunction: Project.Datatype.OUTPUT with type t = kernel_function
 
 (** Datatype for a queue of kernel functions. *)
@@ -58,6 +62,7 @@ module InstrHashtbl(Data:Datatype.INPUT) :
 module StmtHashtbl(Data:Datatype.INPUT) :
   Project.Datatype.OUTPUT with type t = Data.t Cilutil.StmtHashtbl.t
 
+(** @plugin developer guide *)
 module VarinfoHashtbl(Data:Datatype.INPUT) :
   Project.Datatype.OUTPUT with type t = Data.t Cilutil.VarinfoHashtbl.t
 

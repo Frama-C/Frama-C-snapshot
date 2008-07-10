@@ -1,0 +1,25 @@
+
+/***********
+ * Jessie sample file #1 
+ ***********/
+
+integer max(integer x, integer y) 
+  behavior result_ge_x: 
+    ensures \result >= x ;
+  behavior result_ge_y: 
+    ensures \result >= y; 
+  behavior result_is_lub:
+    ensures \forall integer z ; z >= x && z >= y ==> z >= \result;
+{
+  if x >= y then return x;
+  return y;
+} 
+
+
+   
+/*
+Local Variables: 
+mode: java
+compile-command: "make max"
+End: 
+*/

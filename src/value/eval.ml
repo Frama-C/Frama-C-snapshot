@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: eval.ml,v 1.129 2008/04/24 17:48:14 uid528 Exp $ *)
+(* $Id: eval.ml,v 1.149 2008/07/02 13:33:17 uid528 Exp $ *)
 
 (** Analysis for values and pointers *)
 
@@ -73,7 +73,13 @@ let push_call_stack cf =
 
 let current_kf () = (List.hd !call_stack).called_kf
 
-let got_imprecise_value = ref false
+module Got_Imprecise_Value =
+  Computation.Ref
+    (struct include Datatype.Bool let default = false end)
+    (struct
+       let name = Project.Computation.Name.make "Eval.Got_Imprecise_Value"
+       let dependencies = [ Value.self ]
+     end)
 
 let do_degenerate lv =
   List.iter
@@ -94,32 +100,35 @@ let offsetmap_top_adresses_of_locals fundec =
   let cached_f = Location_Bytes.contains_adresses_of_locals fundec
   in
   fun offsetmap ->
-    let found_locals = ref false in
-    let loc_contains_adresses_of_locals t =
-      let l =
-        cached_f t.Cvalue_type.V_Or_Uninitialized.v
+    if Cvalue_type.V_Offsetmap.is_empty offsetmap
+    then offsetmap, true
+    else
+      let found_locals = ref false in
+      let loc_contains_adresses_of_locals t =
+	let l =
+          cached_f t.Cvalue_type.V_Or_Uninitialized.v
+	in
+	found_locals := !found_locals
+	|| (l
+             && (match t.Cvalue_type.V_Or_Uninitialized.v with
+             | Location_Bytes.Top (Location_Bytes.Top_Param.Top,_) -> false
+                 (* Do not be too verbose if the value is top. *)
+             | _ -> true));
+	l
       in
-      found_locals := !found_locals
-      || (l
-          && (match t.Cvalue_type.V_Or_Uninitialized.v with
-              | Location_Bytes.Top (Location_Bytes.Top_Param.Top,_) -> false
-                  (* Do not be too verbose if the value is top. *)
-              | _ -> true));
-      l
-    in
-    let result =
-      Cvalue_type.V_Offsetmap.top_stuff
-        loc_contains_adresses_of_locals
-        (fun v -> Cvalue_type.V_Or_Uninitialized.unspecify_escaping_locals fundec v)
-      offsetmap
-    in
-    result, !found_locals
+      let result =
+	Cvalue_type.V_Offsetmap.top_stuff
+          loc_contains_adresses_of_locals
+          (fun v -> Cvalue_type.V_Or_Uninitialized.unspecify_escaping_locals fundec v)
+	  offsetmap
+      in
+      result, !found_locals
 
 let warn_locals_escape fundec k =
   (*TODO [BM->VP] use the right name for function name mangling *)
       CilE.warn_once "local escaping the scope of %s through %a"
 	(fundec.svar.vname) Base.pretty k
-    
+
 
 let warn_locals_escape_result fundec =
   (*TODO [BM->VP] use the right name for function name mangling *)
@@ -185,8 +194,10 @@ let do_cast ~with_alarms t expr =
       else treat (TInt(IUInt,[]))
   | TComp _ -> expr (* see test [struct_call.c] *)
   | TBuiltin_va_list _ ->
-      if with_alarms.imprecision_tracing then
-        CilE.warn_once "cast to __builtin_va_list is not implemented yet.";
+      (match with_alarms.imprecision_tracing with
+       | Aignore -> ()
+       | Acall f -> f ()
+       | Alog -> CilE.warn_once "cast to __builtin_va_list is not implemented yet.");
       V.topify_arith_origin expr
   | TFun _ -> expr
   | TNamed _ -> assert false
@@ -280,7 +291,7 @@ let warn_lval_read lv loc contents =
                    pretty_param param
                    Origin.pretty orig
              | Location_Bits.Map _ ->
-                 Format.fprintf fmt "The location is @[%a@]. "
+                 Format.fprintf fmt "The location is @[%a@].@ "
                    Location_Bits.pretty loc.loc)
          | Var _, _ -> ())
       (fun fmt ->
@@ -555,7 +566,6 @@ and reduce_by_valid_expr ~with_alarms ~positive exp state =
 	     and we may lose information if loc contains misaligned data *)
 	  raise Cannot_find_lv
       | _ -> () );
-
       let value_as_loc =
 	make_loc
 	  (loc_bytes_to_loc_bits value)
@@ -570,9 +580,9 @@ and reduce_by_valid_expr ~with_alarms ~positive exp state =
       if Location_Bytes.equal value reduced_value
       then state
       else begin
-          (*	  CilE.warn_once "reducing by validity %a -> %a@."
+(*          	  CilE.warn_once "reducing by validity %a -> %a@."
 		  Location_Bytes.pretty value
-		  Location_Bytes.pretty reduced_value;*)
+		    Location_Bytes.pretty reduced_value;*)
 	  if Location_Bytes.equal Location_Bytes.bottom reduced_value
 	  then Relations_type.Model.bottom
 	  else
@@ -821,14 +831,20 @@ and eval_expr_with_deps ~with_alarms deps (state : Relations_type.Model.t) e =
 			  else
 			  V.oper_on_values ~with_alarms ">>" Int.log_shift_right ev1 ev2*)
 		    with SizeOfError _ ->
-		      error "shifting value of unknown size";
-		      V.top
+		      (match with_alarms.imprecision_tracing with
+                       | Aignore -> ()
+                       | Acall f -> f ()
+                       | Alog ->  warn_once "shifting value of unknown size");
+		      V.top  (* TODO: topify ... *)
 		  end
 	      | Shiftlt ->
 		  begin try
 		      V.shift_left ~with_alarms ~size:(bitsSizeOf typ) ev1 ev2
-		    with SizeOfError _ ->
-		      if with_alarms.imprecision_tracing then error "shifting value of unknown size";
+		  with SizeOfError _ ->
+		    (match with_alarms.imprecision_tracing with
+                     | Aignore -> ()
+                     | Acall f -> f ()
+                     | Alog ->  warn_once "shifting value of unknown size");
 		      V.top (* TODO: topify ... *)
 		  end
 		end
@@ -866,7 +882,7 @@ and eval_expr_with_deps ~with_alarms deps (state : Relations_type.Model.t) e =
 		     V.top_int)
 
   | UnOp (LNot, e, _) ->
-      (* TODO : sur les float, LNot est �quivalent � == 0.0 *)
+      (* TODO:  on float, LNot is equivalent to == 0.0 *)
       let deps, expr = eval_expr_with_deps ~with_alarms deps state e in
       CilE.set_syntactic_context (CilE.SyUnOp e);
       let t1 = typeOf e in
@@ -957,7 +973,10 @@ and eval_lval_using_main_memory ~with_alarms deps (state:Relations_type.Model.t)
     d_lval lv
     Locations.pretty loc
     V.pretty result;*)
-  if with_alarms.imprecision_tracing then warn_lval_read lv loc result;
+  (match with_alarms.imprecision_tracing with
+   | Aignore -> ()
+   | Acall f -> f ()
+   | Alog ->  warn_lval_read lv loc result);
   let new_deps =
     match deps with
     | None -> None
@@ -1063,12 +1082,14 @@ and eval_offset ~reduce_valid_index ~with_alarms deps typ state offset =
                                  (Some Int.zero)
                                  (Some (Int.of_int64 (Int64.pred array_siz)))) v
                 in
-                if not (Ival.equal new_v v) then begin
-                  if with_alarms.imprecision_tracing then begin
-                    CilE.set_syntactic_context (CilE.SyBinOp (IndexPI,exp,Cilutil.out_some array_size));
-                    CilE.warn_index  with_alarms "accessing"
-                  end;
-                end;
+                if not (Ival.equal new_v v) then
+                  (match with_alarms.others with
+                   | Aignore -> ()
+                   | Acall f -> f ()
+                   | Alog ->
+                       CilE.set_syntactic_context
+                         (CilE.SyBinOp (IndexPI,exp,Cilutil.out_some array_size));
+                       CilE.warn_index  with_alarms "accessing");
                 new_v
             with LenOfArray -> v
             else v
@@ -1431,9 +1452,8 @@ let resolv_func_vinfo ~with_alarms deps state funcexp =
 		 "Function pointer call at memory cell class: ignoring this particular value";
                acc
 	   | Base.Var (v,_) | Base.Initialized_Var (v,_) ->
-	       Globals.Functions.get v :: acc)
-
-
+	       Globals.Functions.get v :: acc
+        )
 	[]
 	(try
            Location_Bytes.get_keys_exclusive Ival.zero loc
@@ -1448,6 +1468,32 @@ let resolv_func_vinfo ~with_alarms deps state funcexp =
       deps, fundecs
   | _ ->
       assert false
+
+let make_well size hidden_base state loc =
+  let well = Cvalue_type.V.inject_top_origin
+    Origin.Well
+    (Cvalue_type.V.Top_Param.O.singleton hidden_base)
+  in
+  let well_loc =
+    Locations.make_loc
+      (Location_Bits.inject hidden_base Ival.zero)
+      (Int_Base.inject size)
+  in
+  let state_with_well =
+    Relations_type.Model.add_binding
+      ~with_alarms:warn_none_mode
+      ~exact:true
+      state
+      well_loc
+      well
+  in
+  Relations_type.Model.add_binding
+    ~with_alarms:warn_none_mode
+    ~exact:true
+    state_with_well
+    loc
+    well
+
 
 (** [initialize_var_using_type varinfo state] uses the type of [varinfo]
     to create an initial value in [state]. *)
@@ -1465,9 +1511,9 @@ let initialize_var_using_type varinfo state =
           Cvalue_type.V.top
         then
           (CilE.warn_once
-            "no initializer for the const variable %a"
-	    Ast_info.pretty_vname varinfo;
-          true)
+             "no initializer for the const variable %a"
+	     Ast_info.pretty_vname varinfo;
+           true)
         else false
       else true
     in
@@ -1476,211 +1522,219 @@ let initialize_var_using_type varinfo state =
 	 a formal constant *)
     then state else
       match typ with
-	| TInt _ | TFloat _ | TEnum (_, _)->
-            (*	  (match Base.validity v with
+      | TInt _ | TEnum (_, _)->
+          (*	  (match Base.validity v with
                   | Base.Known _ -> *)
-            Relations_type.Model.add_binding
-              ~with_alarms:warn_none_mode
-	      ~exact:true
+          Relations_type.Model.add_binding
+            ~with_alarms:warn_none_mode
+	    ~exact:true
+	    state
+	    loc
+	    Cvalue_type.V.top_int
+            (*       | Base.Unknown ->
+                     Relations_type.Model.create_initial
+                     ~v:Cvalue_type.V.top_int
+                     ~state
+                     ~base:v
+                     ~modu:Int.one
+                     ~size:(8+sizeofpointer ())
+
+
+                     | Base.All -> assert false) *)
+      | TFloat _ ->
+          Relations_type.Model.add_binding
+            ~with_alarms:warn_none_mode
+	    ~exact:true
+	    state
+	    loc
+	    Cvalue_type.V.top_float
+      | TFun _ ->
+	  Relations_type.Model.add_binding
+            ~with_alarms:warn_none_mode
+	    ~exact:true
+	    state
+	    loc
+	    (Cvalue_type.V.top_leaf_origin ())
+      | TPtr (typ, _) as full_typ
+	  when depth <= Cmdline.AutomaticContextMaxDepth.get () ->
+          (*Format.printf "Allocationg one pointer %a for %s@." d_type typ varinfo.vname;*)
+          let attr = typeAttr full_typ in
+
+          if not (isVoidType typ) && not (isFunctionType typ) then
+            let i = match findAttribute "arraylen" attr with
+            | [AInt i] -> i
+            | _ -> Cmdline.AutomaticContextMaxWidth.get ()
+            in
+            let pointed_typ = TArray(typ,Some (integer i), [])
+            in
+	    (* first create a new varid and offsetmap for the
+	       "hidden location" *)
+	    let hidden_var_name =
+	      Cabs2cil.fresh_global ("star_" ^ name)
+	    in
+            let name_desc = "*"^name_desc in
+	    let hidden_var =
+              makeGlobalVar ~logic:true hidden_var_name pointed_typ
+            in
+            hidden_var.vdescr <- Some name_desc;
+            let hidden_base = Base.create_logic
+              hidden_var
+              (match Base.validity_from_type hidden_var with
+               | Base.Known (a,b) -> Base.Unknown (a,b)
+               | (Base.All |  Base.Unknown _)  as s -> s)
+            in
+            let state = add_offsetmap
+	      (depth + 1)
+	      hidden_base
+	      name_desc
+	      hidden_var_name
+	      pointed_typ
+	      NoOffset
+	      pointed_typ
 	      state
-	      loc
-	      Cvalue_type.V.top_int
-              (*       | Base.Unknown ->
-                       Relations_type.Model.create_initial
-                       ~v:Cvalue_type.V.top_int
-                       ~state
-                       ~base:v
-                       ~modu:Int.one
-                       ~size:(8+sizeofpointer ())
-
-
-                       | Base.All -> assert false) *)
-	| TFun _ ->
+	    in
 	    Relations_type.Model.add_binding
               ~with_alarms:warn_none_mode
 	      ~exact:true
 	      state
 	      loc
-	      (Cvalue_type.V.top_leaf_origin ())
-	| TPtr (typ, _) as full_typ
-	      when depth <= Cmdline.AutomaticContextMaxDepth.get () ->
-            (*          Format.printf "Allocationg one pointer@\n";*)
-            let attr = typeAttr full_typ in
-            begin match findAttribute "arraylen" attr with
-              | [AInt i] ->
-		  begin
-                    let pointed_typ = TArray(typ,Some (integer i), []) in
-	            (* first create a new varid and offsetmap for the
-	               "hidden location" *)
-	            let hidden_var_name =
-	              Cabs2cil.fresh_global ("star_" ^ name)
-	            in
-                    let name_desc = "*"^name_desc in
-	            let hidden_var =
-                      makeGlobalVar ~logic:true hidden_var_name pointed_typ
-                    in
-                    hidden_var.vdescr <- Some name_desc;
-                    let hidden_base = Base.create_logic
-                      hidden_var
-                      (Base.validity_from_type hidden_var)
-                    in
-	            let state =
-	              if isVoidPtrType full_typ then
-			(CilE.warn_once
-			  "variable %a is of type void*. Content (name %a) cannot be created"
-			  !Ast_printer.d_ident name
-			  !Ast_printer.d_ident hidden_var_name;
-			state (* do not initialize a void value *))
-                      else add_offsetmap
-			(depth + 1)
-			hidden_base
-			name_desc
-			hidden_var_name
-			pointed_typ
-			NoOffset
-			pointed_typ
-			state
-	            in
-	            Relations_type.Model.add_binding
-                      ~with_alarms:warn_none_mode
-	              ~exact:true
-	              state
-	              loc
-	              (Cvalue_type.V.inject hidden_base (Ival.zero))
-		  end
-              | _ ->
-		  let pointed_typ = typ in
-		  begin
-	            (* first create a new varid and offsetmap for the
-	               "hidden location" *)
-	            let hidden_var_name =
-	              Cabs2cil.fresh_global ("star_" ^ name)
-	            in
-                    let name_desc = "*"^name_desc in
-	            let hidden_var =
-                      makeGlobalVar ~logic:true hidden_var_name pointed_typ
-                    in
-                    hidden_var.vdescr <- Some name_desc;
-                    let hidden_base =
-                      Base.create_logic
-			hidden_var
-			(if Cmdline.AllocatedContextValid.get () then
-			  Base.All
-			else
-			  Base.Unknown)
-                    in
-	            let state =
-	              if isVoidPtrType full_typ then
-			(CilE.warn_once
-			  "variable %a is of type void*. Content (name %a) cannot be created"
-			  !Ast_printer.d_ident name
-			  !Ast_printer.d_ident hidden_var_name;
-			state (* do not initialize a void value *))
-                      else add_offsetmap
-			(depth + 1)
-			hidden_base
-			name_desc
-			hidden_var_name
-			pointed_typ
-			NoOffset
-			pointed_typ
-			state
-	            in
+	      (Cvalue_type.V.join
+                 Cvalue_type.V.singleton_zero
+                 (Cvalue_type.V.inject hidden_base (Ival.zero)))
 
-		    let value =
-                      if Cmdline.AllocatedContextValid.get () then
-			(Cvalue_type.V.inject hidden_base (Ival.zero))
-                      else
-			(* Assume this pointer may be NULL *)
-			Cvalue_type.V.join
-			  (Cvalue_type.V.inject hidden_base (Ival.zero))
-			  Cvalue_type.V.singleton_zero
-		    in
-                    Relations_type.Model.add_binding
-                      ~with_alarms:warn_none_mode
-                      (* do not  display the warnings about Unknown validities.*)
-	              ~exact:true
-	              state
-	              loc
-	              value
+          else
+            let hidden_var_name =
+	      Cabs2cil.fresh_global ("star_" ^ name)
+	    in
+            let name_desc = "*"^name_desc in
+	    let hidden_var =
+              makeGlobalVar ~logic:true hidden_var_name typ
+            in
+            hidden_var.vdescr <- Some name_desc;
+            let hidden_base =
+              Base.create_logic
+		hidden_var
+		(if Cmdline.AllocatedContextValid.get () then
+		   Base.Known (Int.zero,Bit_utils.max_bit_address ())
+		 else
+		   Base.Unknown (Int.zero,Bit_utils.max_bit_address ()))
+            in
+            make_well (Bit_utils.max_bit_size ()) hidden_base state loc
 
-		  end
-
-            end
-	| TArray (typ, len, _) ->
-            (*          Format.printf "Allocationg one array@\n";*)
-	    begin try
-	      let size = lenOfArray len in
-	      let state = ref state in
-	      let treat_index (i : int) =
-		let offset =
-	          addOffset
-		    (Index (integer i, NoOffset))
-		    offset_orig
-		in
-		let name = name ^ "_" ^ (string_of_int i) ^ "nth" in
-		let name_desc = name_desc ^ "[" ^ (string_of_int i) ^ "]" in
-		state := (add_offsetmap depth v
-                  name_desc name typ
-                  offset typ_orig !state)
-	      in
-	      for i = 0 to pred size do
-		treat_index i
-	      done;
-	      !state
-	    with LenOfArray -> state
-	    end
-	| TComp ({cstruct=true;} as compinfo, _) -> (* Struct *)
-            (*          Format.printf "Allocationg one struct@\n"; *)
-	    let treat_field state field =
+      | TArray (typ, len, _) ->
+          (*Format.printf "Allocationg one array@.";*)
+          begin try
+            let size = lenOfArray len in
+            let state = ref state in
+            let treat_index (i : int) =
 	      let offset =
-		addOffset
-	          (Field (field, NoOffset))
+	        addOffset
+	          (Index (integer i, NoOffset))
 	          offset_orig
 	      in
-	      add_offsetmap
-		depth
-		v
-		(name_desc ^ "." ^ field.fname)
-		(name^"__"^field.fname)
-		field.ftype
-		offset
-		typ_orig
-		state
-	    in
-	    List.fold_left
-	      treat_field
+	      let name = name ^ "_" ^ (string_of_int i) ^ "nth" in
+	      let name_desc = name_desc ^ "[" ^ (string_of_int i) ^ "]" in
+	      state := (add_offsetmap depth v
+                          name_desc name typ
+                          offset typ_orig !state)
+            in
+            for i = 0 to pred size do
+	      treat_index i
+            done;
+            !state
+          with LenOfArray -> 
+            warn_once "could not find a size for array. ";
+            state
+          end
+      | TComp ({cstruct=true;} as compinfo, _) -> (* Struct *)
+          (*          Format.printf "Allocationg one struct@\n"; *)
+          let treat_field (next_offset,state) field =
+            let new_offset = Field (field, NoOffset) in
+            let offset =
+	      addOffset
+	        new_offset
+	        offset_orig
+            in
+            let field_offset,field_width = bitsOffset typ_orig offset in
+            let state = 
+              if field_offset>next_offset then (* padding bits needs filling*)
+                ((*Format.printf "Padding foff:%d fwidht:%d noff:%d@."
+                   field_offset field_width next_offset;*)
+                 let loc = make_loc
+                   (Location_Bits.inject v (Ival.of_int next_offset))
+                   (Int_Base.inject (Int.of_int (field_offset-next_offset)))
+                 in
+	         Relations_type.Model.add_binding_unspecified
+	           state
+	           loc)
+              else state
+            in
+            field_offset+field_width,
+            add_offsetmap
+	      depth
+	      v
+	      (name_desc ^ "." ^ field.fname)
+	      (name^"__"^field.fname)
+	      field.ftype
+	      offset
+	      typ_orig
 	      state
-	      compinfo.cfields
-	| TComp ({cstruct=false;} as _compinfo, _) when
-	    is_fully_arithmetic typ
-	    -> (* Union of arithmetic types *)
-            (*          Format.printf "Allocationg one arith. union@\n";*)
-	    Relations_type.Model.add_binding
-              ~with_alarms:warn_none_mode
-	      ~exact:true
+          in
+          let boff,bwidth = bitsOffset typ_orig offset_orig in
+          let last_offset,state= List.fold_left
+            treat_field
+            (boff,state)
+            compinfo.cfields
+          in
+          if last_offset<(boff+bwidth) then (* padding at end of struct*)
+            let loc = make_loc
+              (Location_Bits.inject v (Ival.of_int last_offset))
+              (Int_Base.inject (Int.of_int (boff+bwidth-last_offset)))
+            in
+	    Relations_type.Model.add_binding_unspecified
 	      state
 	      loc
-	      Cvalue_type.V.top_int
+          else state
+      | TComp ({cstruct=false;} as _compinfo, _) when
+          is_fully_arithmetic typ
+          -> (* Union of arithmetic types *)
+          (*          Format.printf "Allocationg one arith. union@\n";*)
+          Relations_type.Model.add_binding
+            ~with_alarms:warn_none_mode
+            ~exact:true
+            state
+            loc
+            Cvalue_type.V.top_int
 
-	| TPtr _ when Cmdline.AllocatedContextValid.get () ->
-            (* deep pointers map to NULL in this case *)
-      	    Relations_type.Model.add_binding
-              ~with_alarms:warn_none_mode
-	      ~exact:true
-	      state
-	      loc
-	      Cvalue_type.V.singleton_zero
+      | TPtr _ when Cmdline.AllocatedContextValid.get () ->
+          (* deep pointers map to NULL in this case *)
+          Relations_type.Model.add_binding
+            ~with_alarms:warn_none_mode
+            ~exact:true
+            state
+            loc
+            Cvalue_type.V.singleton_zero
 
-	| TBuiltin_va_list _ | TComp _ | TVoid _  | TPtr  _ ->
-	    (* variable arguments or union with non-arithmetic type or deep pointers *)
-	    Relations_type.Model.add_binding
-              ~with_alarms:warn_none_mode
-	      ~exact:true
-	      state
-	      loc
-	      Cvalue_type.V.top (* TODO 2008/02 PC: mettre une sorte de Class Cell, mais qui marche *)
-	| TNamed (_, _)  -> assert false
+      | TBuiltin_va_list _ | TComp _ | TVoid _  | TPtr  _ ->
+          (* variable arguments or union with non-arithmetic type or deep pointers *)
+
+          (* first create a new varid and offsetmap for the
+             "hidden location" *)
+          let hidden_var_name =
+            Cabs2cil.fresh_global (name^"_WELL")
+          in
+          let hidden_var =
+            makeGlobalVar ~logic:true hidden_var_name charType
+          in
+          hidden_var.vdescr <- Some (name_desc^"_WELL");
+          let size = Bit_utils.max_bit_size () in
+          let hidden_base =
+            Base.create_logic
+              hidden_var
+              (Base.Known (Int.zero,Bit_utils.max_bit_address ()))
+          in
+          make_well size hidden_base state loc
+      | TNamed (_, _)  -> assert false
   in
   add_offsetmap
     0
@@ -1692,23 +1746,23 @@ let initial_state_only_globals () =
   let state = ref Relations_type.Model.empty in
   let complete_init last_bitsoffset typ _l lval =
     (* Now process the non initialized bits defaulting to 0 *)
-    (* Format.printf "Completing array init@\n";*)
+    (* Format.printf "Completing array init of %a@." d_lval lval;*)
     begin try
       let size_to_add, offset =
         bitsSizeOf typ - last_bitsoffset,
         Ival.inject_singleton (Int.of_int last_bitsoffset)
       in
       assert (size_to_add >= 0);
-      (*Format.printf "Init missing %d->%d (%d)@\n"
+      (*Format.printf "Init missing %d->%d (%d) %a@."
         last_bitsoffset
         (bitsSizeOf typ)
-        size_to_add;*)
+        size_to_add d_type (unrollTypeDeep typ);*)
       if size_to_add <> 0 then
 	let loc =
 	  match lval with
-          | (Var vinfo, _ (* In case of a string this is not [NoOffset] ! *)) ->
+          | (Var vinfo, _ (* In case of a string this is not [NoOffset] ! *)) -> let base = Base.create_varinfo vinfo in
               let loc =
-		Location_Bits.inject (Base.create_varinfo vinfo) offset
+		Location_Bits.inject base offset
               in
               make_loc
 		loc
@@ -1796,23 +1850,25 @@ let initial_state_only_globals () =
   in
   Globals.Vars.iter
     (fun varinfo init ->
+       if not varinfo.vlogic then begin
        currentLoc:=varinfo.vdecl;
-       (*Format.printf "Initializing global %s@\n" varinfo.vname;*)
+       (*Format.printf "Initializing global %s@." varinfo.vname;*)
        match init.init with
-       | None when
-           isCompleteType varinfo.vtype
+       | None (*when
+           isCompleteType varinfo.vtype*)
            -> (* Default to zero init thanks to ANSI p126 6.7.8.10 *)
            (* eval_init (Var varinfo, NoOffset) (makeZeroInit varinfo.vtype)*)
            if varinfo.vstorage = Extern then
              (* Must not initialize when the storage is extern. *)
-             ( (*Format.printf "Ignoring extern init for %s@\n" varinfo.vname;*)
+             ((* Format.printf "Ignoring extern init for %s@." varinfo.vname;*)
                state := initialize_var_using_type varinfo !state )
            else complete_init 0 varinfo.vtype [] (Var varinfo,NoOffset)
-       | None ->
+(*       | None ->
            (* Cannot initialize with a default when type is incomplete. *)
-           ()
+           ()*)
        | Some i ->
-           eval_init (Var varinfo,NoOffset) i);
+           eval_init (Var varinfo,NoOffset) i
+       end);
 
   (** Bind the declared range for NULL to uninitialized *)
   if Int.le
@@ -1877,7 +1933,7 @@ exception Predicate_alarm
 let raise_predicate_alarm () = raise Predicate_alarm
 
 let warn_raise_mode =
-  { imprecision_tracing = false ;
+  { imprecision_tracing = Aignore ;
     others = Acall raise_predicate_alarm ;
     unspecified = Acall raise_predicate_alarm }
 
@@ -1942,7 +1998,7 @@ let rec reduce_by_predicate state positive p =
     | _,Pfresh _
     | _,Pvalid_range (_, _, _)| _,Pvalid_index (_, _)
     | _,Plet (_, _, _) | _,Pif (_, _, _)
-    | _,PInstanceOf _ | _,PInstanceOfE _
+    | _,Psubtype _
         -> state
 
   in
@@ -2134,7 +2190,7 @@ let eval_predicate state pred =
     | Pfresh _
     | Pvalid_range (_, _, _)| Pvalid_index (_, _)
     | Plet (_, _, _) | Pif (_, _, _)
-    | PInstanceOf _ | PInstanceOfE _
+    | Psubtype _
         -> Unknown
 
   in
@@ -2244,8 +2300,12 @@ let copy_offsetmap_from_virtual ~with_alarms loc1 lv2 loc2 (state:Relations_type
     raise Lmap.Cannot_copy
   end;
   let target_offset = snd lv2 in
-  let target_size = sizeof_lval lv2 in
-  let target_size = Int_Base.project target_size in
+(*  let target_size = sizeof_lval lv2 in
+  let target_size = Int_Base.project target_size in*)
+  let target_size =
+    try Int_Base.project loc2.size
+    with Int_Base.Error_Top -> raise Lmap.Cannot_copy
+  in
   let result_relations =
     match fst lv2 with
     | Mem(Lval slv as e) when Cmdline.UseRelations.get () ->
@@ -2430,8 +2490,8 @@ module Computer (REACH:sig
     InstrHashtbl.iter treat_instr current_table;
     (*Format.printf "Done Merging current@.";*)
 
-    if not degenerate && 
-      not (Db.Value.Record_Value_Callbacks.is_empty ()) 
+    if not degenerate &&
+      not (Db.Value.Record_Value_Callbacks.is_empty ())
     then begin
 (* 	Format.printf "[values] now calling Record_Value callbacks@."; *)
 
@@ -2509,7 +2569,7 @@ module Computer (REACH:sig
 	  else begin
 	      Some {counter_unroll = old.counter_unroll ;
 		    value = ref (State_set.singleton sum);}
-		
+
 	    end
 	    (*
 	    *)
@@ -2519,7 +2579,7 @@ module Computer (REACH:sig
 		 display_one new_
 		 (State_set.cardinal !(old.value))
 		 display_one old; *)
-	    
+
 	    begin try
 		let merged =
 		  (*	      Format.printf "combine %d %d@."
@@ -2532,7 +2592,7 @@ module Computer (REACH:sig
 		if new_counter_unroll >= !counter_unroll_target
 		then begin
 		    CilE.log_once
-		      "Semantic level unrolling superposing up to %d states@."
+		      "Semantic level unrolling superposing up to %d states"
 		      !counter_unroll_target;
 		    counter_unroll_target := !counter_unroll_target + 100;
 		  end;
@@ -2605,9 +2665,10 @@ module Computer (REACH:sig
     in
     (match loc_lv.loc with
     | Location_Bits.Top (Location_Bits.Top_Param.Top, orig) ->
-        Format.eprintf
-          "State before degeneration:@\n======%a@\n=======@\n"
-          Relations_type.Model.pretty state;
+	if not (Cmdline.Quiet.get ()) then
+          Format.eprintf
+            "State before degeneration:@\n======%a@\n=======@\n"
+            Relations_type.Model.pretty state;
         CilE.warn_once
           "writing at a completely unknown address@[%a@].@\nAborting."
           pretty_org orig;
@@ -2655,44 +2716,56 @@ module Computer (REACH:sig
  (* Assigns [exp] to [lv] in [state] *)
   let do_assign ~with_alarms old_state lv exp =
     assert (Relations_type.Model.is_reachable old_state);
-    let set_alarm_flag, get_alarm_flag =
+    let fresh_flags () =
       let flag = ref false in
       (fun () -> flag := true),
       fun () -> !flag
     in
-    let warn_remember_mode =
-      { imprecision_tracing = with_alarms.imprecision_tracing;
-	others = with_alarms.others;
-	unspecified =
-	  if with_alarms.unspecified <> Aignore
-	  then Acall set_alarm_flag
-	  else Aignore }
+    let set_alarm, get_alarm = fresh_flags () in
+    let logger v =
+      if v <> Aignore
+      then Acall set_alarm
+      else Aignore
     in
+    let warn_remember_mode =
+      { imprecision_tracing = logger with_alarms.imprecision_tracing;
+	others = with_alarms.others;
+	unspecified = logger with_alarms.unspecified}
+    in
+    (*Format.printf "WITH_ALARMS:%a@." (fun fmt x -> match x with
+                                      | Alog -> Format.fprintf fmt "Alog"
+                                      | Aignore -> Format.fprintf fmt "Aignore"
+                                      | Acall _ -> Format.fprintf fmt "ACall")
+      warn_remember_mode.others;*)
     let evaled_exp =
       eval_expr ~with_alarms:warn_remember_mode old_state exp
     in
     (* Format.printf "do_assign %a@\n" V.pretty evaled_exp; *)
     let left_loc = lval_to_loc ~with_alarms old_state lv in
-    begin
-      match evaled_exp with
-      | Cvalue_type.V.Top(_topparam,origin) ->
-          CilE.warn_once "assigning imprecise value to @[%a@]@[%t@]@[%a@]"
-            !Ast_printer.d_lval lv
-            (fun fmt -> match lv with
-             | (Mem _, _) -> Format.fprintf fmt " (i.e. %a)" Locations.pretty left_loc
-             | (Var _, _) -> ())
-            (fun fmt org ->
-               if not (Origin.is_top origin) then
-                 Format.fprintf fmt ".@ The imprecision originates from %a" Origin.pretty org)
-            origin
-      | Cvalue_type.V.Map _ ->
-          if not !got_imprecise_value &&
-	    not (Cvalue_type.V.cardinal_zero_or_one evaled_exp)
-	  then begin
-              got_imprecise_value := true;
-              CilE.warn_once "assigning non deterministic value for the first time";
-            end ;
-    end;
+    let warn_right_exp_imprecision () =
+      (match with_alarms.imprecision_tracing with
+       | Aignore -> ()
+       | Acall f -> f ()
+       | Alog ->
+           match evaled_exp with
+           | Cvalue_type.V.Top(_topparam,origin) ->
+               CilE.warn_once "assigning imprecise value to @[%a@]@[%t@]@[%a@]"
+                 !Ast_printer.d_lval lv
+                 (fun fmt -> match lv with
+                  | (Mem _, _) -> Format.fprintf fmt " (i.e. %a)" Locations.pretty left_loc
+                  | (Var _, _) -> ())
+                 (fun fmt org ->
+                    if not (Origin.is_top origin) then
+                      Format.fprintf fmt ".@ The imprecision originates from %a" Origin.pretty org)
+                 origin
+           | Cvalue_type.V.Map _ ->
+               if not (Got_Imprecise_Value.get ()) &&
+	         not (Cvalue_type.V.cardinal_zero_or_one evaled_exp)
+	       then begin
+                 Got_Imprecise_Value.set true;
+                 CilE.warn_once "assigning non deterministic value for the first time";
+               end)
+    in
     let old_state =
       match lv with
 	Mem mem_e,NoOffset ->
@@ -2717,9 +2790,12 @@ module Computer (REACH:sig
     then Relations_type.Model.bottom
     else
       let default () =
-	if get_alarm_flag() then
+        warn_right_exp_imprecision ();
+	if get_alarm() then
 	  (* log alarms that have not been logged the first time *)
-          ignore (eval_expr ~with_alarms:{imprecision_tracing=false;others=Aignore;unspecified=with_alarms.unspecified} old_state exp);
+          ignore (eval_expr ~with_alarms:{imprecision_tracing=with_alarms.imprecision_tracing;
+                                          others=Aignore;
+                                          unspecified=with_alarms.unspecified} old_state exp);
 
         (*Format.printf "do_assign ev_exp:%a@\n" Cvalue_type.V.pretty evaled_exp;*)
 	CilE.set_syntactic_context (CilE.SyMem lv);
@@ -2740,15 +2816,13 @@ module Computer (REACH:sig
         CilE.set_syntactic_context (CilE.SyMem exp_lv);
         let full_val =
           Relations_type.Model.find_unspecified
-            ~with_alarms
+            ~with_alarms:warn_none_mode
             old_state
             right_loc
         in
         if V_Or_Uninitialized.equal full_val V_Or_Uninitialized.bottom
-        then default ()
+        then raise Lmap.Cannot_copy
         else begin
-          if with_alarms.imprecision_tracing then
-            warn_lval_read exp_lv right_loc full_val.V_Or_Uninitialized.v;
           match right_loc.size, left_loc.size with
 	  | Int_Base.Value size, Int_Base.Value other_size
 	      when Int.equal other_size size ->
@@ -2775,14 +2849,27 @@ module Computer (REACH:sig
 	      in
 	      if not (Cvalue_type.V_Offsetmap.is_empty offsetmap)
 	      then begin
-	        try
-		  CilE.set_syntactic_context (CilE.SyMem lv);
-		  Relations_type.Model.paste_offsetmap
+		CilE.set_syntactic_context (CilE.SyMem lv);
+		let copy_paste_successed =
+                  Relations_type.Model.paste_offsetmap
 		    offsetmap left_loc.loc Int.zero size old_state
-                with Lmap.Cannot_copy -> default()
+                in
+                (* Shall we warn about imprecise contents just copied? *)
+                let module L = struct exception Got_imprecise end in
+                (try
+                   Cvalue_type.V_Offsetmap.iter_contents
+                     (fun v ->
+                        match v.Cvalue_type.V_Or_Uninitialized.v with
+                        | Location_Bytes.Map _ -> ()
+                        | _ -> raise L.Got_imprecise)
+                     offsetmap
+                     size
+                 with L.Got_imprecise ->
+                   warn_right_exp_imprecision ());
+                copy_paste_successed
 	      end
-	      else default ()
-	  | _ -> default ()
+	      else raise Lmap.Cannot_copy
+	  | _ -> raise Lmap.Cannot_copy
         end
       in
       let new_main_memory_state =
@@ -2790,8 +2877,9 @@ module Computer (REACH:sig
           (* An lval assignement might be hidden by a dummy cast *)
           let lv = find_lv ~with_alarms old_state exp in
           default_lval lv
-        with Cannot_find_lv ->
-          default ()
+        with | Cannot_find_lv | Lmap.Cannot_copy
+            (* from Relations_type.Model.paste_offsetmap or directly default_lval *) ->
+              default ()
       in (* The main memory state is now computed. *)
       (* Let's try to improve it with relations *)
       if Cmdline.UseRelations.get ()
@@ -2919,8 +3007,7 @@ module Computer (REACH:sig
   exception Got_bottom
 
   let reachables d =
-    let r = State_set.filter Relations_type.Model.is_reachable !(d.value) in
-    (not (State_set.is_empty r)),r
+    (not (State_set.is_empty !(d.value))),!(d.value)
 
   let doInstr stmt (i: instr) (d: t) =
     !Db.progress ();
@@ -2952,6 +3039,24 @@ module Computer (REACH:sig
                  in
                  CilE.end_stmt ();
                  result)
+        | Call (None,Lval (Var {vname="__builtin_va_start"},NoOffset),[Lval lv],_loc) ->
+            Dataflow.Post
+	      (fun _state ->
+                 CilE.start_stmt (Kstmt stmt);
+	         let result =
+                   {
+                     counter_unroll = 0;
+		     value =
+                       ref (State_set.fold
+                              (fun state_value acc ->
+                                 State_set.add
+				   (do_assign_abstract_value ~with_alarms:warn_all_mode ~former_state:state_value state_value lv Cvalue_type.V.top_int) acc)
+                              reachables
+                              State_set.empty) }
+                 in
+                 CilE.end_stmt ();
+                 result)
+
         | Call (lval_to_assign,funcexp,argl,_loc) ->
             let call_site_loc = !currentLoc in
             Dataflow.Done
@@ -3030,7 +3135,8 @@ module Computer (REACH:sig
 				     let lvtyp = typeOfLval lv in
                                      let default () =
                                        let {Cvalue_type.V_Or_Uninitialized.v=value;
-                                            initialized = init}
+                                            initialized = init;
+					    no_escaping_adr = no_esc}
                                            =
 					 V_Offsetmap.find_ival
 					   ~validity:Base.All
@@ -3040,16 +3146,20 @@ module Computer (REACH:sig
 					   (Int.of_int (bitsSizeOf rtype))
 					   Cvalue_type.V_Or_Uninitialized.bottom
 				       in
-                                       if not init then begin
-                                         warn_unspecified warn_all_mode;
-                                         if Cvalue_type.V.is_bottom value then 
-                                           warn_once 
+                                       if not init
+				       then warn_uninitialized warn_all_mode;
+                                       if not no_esc
+				       then warn_escapingaddr warn_all_mode;
+                                       if Cvalue_type.V.is_bottom value
+					 && not (init && no_esc)
+				       then
+                                           warn_once
                                              "Function call returned an unspecified value. This path is assumed to be dead.";
-                                       end;
-                                       
+
+                                       let exact = valid_cardinal_zero_or_one loc in
 				       Relations_type.Model.add_binding
 					 ~with_alarms:warn_none_mode
-					 ~exact:true
+					 ~exact
 					 new_state
 					 loc
 					 (do_cast
@@ -3357,7 +3467,8 @@ let compute_using_cfg kf ~call_kinstr initial_state =
       | start :: _ ->
           let ret_id = Kernel_function.find_return kf in
           (*Format.eprintf
-            "Return for %s is %d@\n" (get_name kf) (get_sid ret_id);*)
+            "@[Return for %s is %a@]@."
+            (Kernel_function.get_name kf) d_stmt ret_id; *)
           (* We start with only the start block *)
           Computer.StmtStartData.add
             start.sid
@@ -3372,7 +3483,7 @@ let compute_using_cfg kf ~call_kinstr initial_state =
             (* Computation was aborted: pop the call stack and inform
 	       the caller *)
 (*	    Format.printf "should we pop the call stack?@."; *)
- 	    pop_call_stack (); 
+ 	    pop_call_stack ();
             raise e
           end;
           let last_state =
@@ -3455,88 +3566,83 @@ let compute_using_cfg kf ~call_kinstr initial_state =
             last_state
       end
 
-(*  associates [varinfo] to a fresh base for the adress returned by function
-    [varinfo] *)
-let leaf_table = Cilutil.VarinfoHashtbl.create 7
+(** Associates [kernel_function] to a fresh base for the adress returned by
+    the [kernel_function]. *)
+module Leaf_Table =
+  Kernel_function.Make_Table
+    (Base.Datatype)
+    (struct
+       let dependencies = [Value.self]
+       let size = 7
+       let name = Project.Computation.Name.make "Leaf_Table"
+     end)
 
 let return_value return_type kf state =
   (* Process return of function *)
   let return_type = unrollType return_type in
   match return_type with
-  | TPtr(typ,_) -> begin
-        let new_base =
-          (try
-              Cilutil.VarinfoHashtbl.find
-                leaf_table (Kernel_function.get_vi kf)
-            with Not_found ->
-              let nb =
-                makeGlobalVar
-                  ~logic:true
-                  (Cabs2cil.fresh_global
-                     ("alloced_return_" ^ Kernel_function.get_name kf))
-                  typ
-              in
-              let nb = Base.create_logic nb
-                (if Cmdline.AllocatedContextValid.get () then
-		   Base.All
-		 else
-		   Base.Unknown)
-              in
-              Cilutil.VarinfoHashtbl.add
-                leaf_table (Kernel_function.get_vi kf) nb;
-              nb)
-        in
-        let initial_value = if isArithmeticType typ
-          then Cvalue_type.V.top_int
-          else Cvalue_type.V.top_leaf_origin ()
-        in
-        let returned_loc =
-          try
-            Location_Bytes.inject
-              new_base
-              (Ival.create_all_values
-                  ~modu:(Int_Base.project (osizeof typ))
-                  ~size:(sizeofpointer ()))
-          with Int_Base.Error_Top ->
-            Location_Bytes.inject
-              new_base
-              Ival.top
-        in
-        (*
-          let returned_full_loc =
-          make_loc
-          (loc_bytes_to_loc_bits returned_loc)
-          (sizeof typ)
-          in
-          let new_state =
-          Relations_type.Model.add_binding
-          ~with_alarms:warn_none_mode
-          ~exact:true
-          new_state
-          returned_full_loc
-          initial_value
-          in
-        *)
-        let modu = try
-            Int_Base.project (sizeof typ)
-          with Int_Base.Error_Top ->
-            assert (Cvalue_type.V.is_isotropic initial_value);
-            Int.one
-        in
-        let size = 8+(sizeofpointer ()) in
-        let state =
-          Relations_type.Model.create_initial
-            ~base:new_base
-            ~v:initial_value ~modu ~size ~state
-        in
-        (*Format.printf "Got new_state:%a@\n"
-          Relations_type.Model.pretty new_state;*)
-        returned_loc, state
+  | TComp _ when is_fully_arithmetic return_type -> Cvalue_type.V.top_int, state
+  | TPtr(typ,_) | (TComp _ as typ) -> begin
+      let new_base =
+	Leaf_Table.memo
+	  (fun kf ->
+             let new_varinfo =
+               makeGlobalVar
+                 ~logic:true
+                 (Cabs2cil.fresh_global
+                    ("alloced_return_" ^ Kernel_function.get_name kf))
+                 typ
+             in
+             let new_offsetmap = Cvalue_type.V_Offsetmap.sized_zero (memory_size ()) in
+             Cvalue_type.Default_offsetmap.create_initialized_var
+               new_varinfo
+               (Base.Known (Int.zero, max_bit_address ()))
+               new_offsetmap)
+	  kf
+      in
+      let initial_value =
+        if isIntegralType typ
+        then Cvalue_type.V.top_int
+        else if isFloatingType typ
+        then Cvalue_type.V.top_float
+        else
+          Cvalue_type.V.inject_top_origin
+            (Origin.Leaf (LocationSetLattice.currentloc_singleton()))
+            (Cvalue_type.V.Top_Param.O.singleton new_base)
+            (*top_leaf_origin ()*)
+      in
+      let modu = try
+        if isVoidType typ then Int.one else Int_Base.project (osizeof typ)
+      with Int_Base.Error_Top ->
+        assert (Cvalue_type.V.is_isotropic initial_value);
+        Int.one
+      in
+      let returned_loc =
+        try
+          Location_Bytes.inject
+            new_base
+            (Ival.filter_ge_int (Some Int.zero)
+               (Ival.create_all_values
+                  ~modu
+                  ~size:(sizeofpointer ())))
+        with Int_Base.Error_Top ->
+          Location_Bytes.inject
+            new_base
+            Ival.top
+      in
+      let state =
+        Relations_type.Model.create_initial
+          ~base:new_base
+          ~v:initial_value ~modu:(Int.mul Int.eight modu) ~state
+      in
+      (*Format.printf "Got new_state:%a@\n"
+        Relations_type.Model.pretty new_state;*)
+      returned_loc, state
     end
-  | _ ->(* TODO: check other types *)
-      Cvalue_type.V.top_int, state
-          (* TODO : look for a user specification *)
-
+  | TInt _ | TEnum _ ->  Cvalue_type.V.top_int, state
+  | TFloat _ ->  Cvalue_type.V.top_float, state
+  | TVoid _ -> Cvalue_type.V.top (* this value will never be used *), state
+  | TFun _ | TNamed _ | TArray _ | TBuiltin_va_list _ -> assert false
 
 
 let compute_using_prototype kf  ~state_with_formals =
@@ -3768,7 +3874,19 @@ exception Not_modular
 exception Invalid_CEA_alloc
 exception Invalid_CEA_memcpy
 
-let dynamic_alloc_table = Hashtbl.create 79
+module Dynamic_Alloc_Table =
+  Computation.Hashtbl
+    (struct
+       type t = string
+       let hash = Hashtbl.hash
+       let equal = (=)
+     end)
+    (Location_Bytes.Datatype)
+    (struct
+       let dependencies = [Value.self]
+       let size = 79
+       let name = Project.Computation.Name.make "Dynamic_Alloc_Table"
+     end)
 
 module Mem_Exec =
   Kernel_function.Make_Table
@@ -3806,24 +3924,26 @@ exception Not_found_lonely_key
 exception Found_misaligned_base
 
 let wrap_int i =
-  Some (V_Offsetmap.update_ival
-          ~with_alarms:warn_none_mode
-          ~validity:Base.All
-          ~offsets:Ival.zero
-          ~exact:true
-          ~size:(Int.of_int (bitsSizeOf intType))
-          V_Offsetmap.empty
-          (V_Or_Uninitialized.initialized i))
+  Some
+    (V_Offsetmap.update_ival
+        ~with_alarms:warn_none_mode
+        ~validity:Base.All
+        ~offsets:Ival.zero
+        ~exact:true
+        ~size:(Int.of_int (bitsSizeOf intType))
+        V_Offsetmap.empty
+        (V_Or_Uninitialized.initialized i))
 
 let wrap_double i =
-  Some (V_Offsetmap.update_ival
-          ~with_alarms:warn_none_mode
-          ~validity:Base.All
-          ~offsets:Ival.zero
-          ~exact:true
-          ~size:(Int.of_int (bitsSizeOf doubleType))
-          V_Offsetmap.empty
-          (V_Or_Uninitialized.initialized i))
+  Some
+    (V_Offsetmap.update_ival
+        ~with_alarms:warn_none_mode
+        ~validity:Base.All
+        ~offsets:Ival.zero
+        ~exact:true
+        ~size:(Int.of_int (bitsSizeOf doubleType))
+        V_Offsetmap.empty
+        (V_Or_Uninitialized.initialized i))
 
 let wrap_ptr i =
   Some (V_Offsetmap.update_ival
@@ -3841,7 +3961,7 @@ let compute_call kf ~call_kinstr
   let with_formals = actualize_formals kf initial_state actuals in
   Value.merge_initial_state kf with_formals;
   let stack_without_call = for_callbacks_stack () in
-(*  Format.printf "Now calling Call_Value callbacks@."; *)
+  (*  Format.printf "Now calling Call_Value callbacks@."; *)
   Db.Value.Call_Value_Callbacks.apply
     (with_formals, ((kf, call_kinstr) :: stack_without_call));
   let name = Kernel_function.get_name kf in
@@ -3932,37 +4052,39 @@ let compute_call kf ~call_kinstr
 	| Base.Null | Base.Cell_class _ -> raise Invalid_CEA_alloc
 
       in
-      try
-        let loc = Hashtbl.find dynamic_alloc_table file in
-        (wrap_ptr loc) ,initial_state
-      with Not_found ->
-        let new_name =
-	  if String.length file >= 7 &&
-	    String.sub file 0 6 = "alloc_"
-	  then file
-	  else
-            (Format.sprintf "alloc_%s" file)
-        in
-	let new_name = Cabs2cil.fresh_global new_name in
-        let unbounded_type = TArray(intType,Some (Const (CStr "NOSIZE")),[])
-        in
-        let new_varinfo = makeGlobalVar ~logic:true new_name unbounded_type in
-        let new_offsetmap = Cvalue_type.V_Offsetmap.sized_zero (memory_size ()) in
-        let new_base =
-          Cvalue_type.Default_offsetmap.create_initialized_var
-            new_varinfo
-            Base.All
-            new_offsetmap
-        in
-        let loc_without_size = Location_Bytes.inject new_base Ival.zero in
-        Hashtbl.add dynamic_alloc_table file loc_without_size;
-        (wrap_ptr loc_without_size),initial_state
+      let loc =
+	Dynamic_Alloc_Table.memo
+	  (fun file ->
+             let new_name =
+	       if String.length file >= 7 && String.sub file 0 6 = "alloc_"
+	       then file
+	       else Format.sprintf "alloc_%s" file
+             in
+	     let new_name = Cabs2cil.fresh_global new_name in
+             let unbounded_type =
+	       TArray(intType,Some (Const (CStr "NOSIZE")),[])
+             in
+             let new_varinfo =
+	       makeGlobalVar ~logic:true new_name unbounded_type
+	     in
+             let new_offsetmap =
+	       Cvalue_type.V_Offsetmap.sized_zero (memory_size ())
+	     in
+             let new_base =
+	       Cvalue_type.Default_offsetmap.create_initialized_var
+		 new_varinfo
+		 Base.All
+		 new_offsetmap
+             in
+             Location_Bytes.inject new_base Ival.zero)
+	  file
+      in
+      wrap_ptr loc, initial_state
     with
-
     | Ival.Error_Top | Invalid_CEA_alloc
     | Not_found_lonely_key (* from [find_lonely_key] *)
       -> CilE.warn_once
-                   "Invalid argument for Frama_C_alloc_infinite function\n";
+        "Invalid argument for Frama_C_alloc_infinite function\n";
         do_degenerate None;
         raise Value.Aborted
     | Not_found -> assert false
@@ -3980,12 +4102,14 @@ let compute_call kf ~call_kinstr
 	with Ival.Not_Singleton_Int | V.Not_based_on_null ->
 	  raise Invalid_CEA_alloc
       in
+      if Int.le size Int.zero then raise Invalid_CEA_alloc;
       let new_name =
         Format.sprintf "alloc"
       in
       let new_name = Cabs2cil.fresh_global new_name in
       let bounded_type =
-	TArray(charType,Some (Const (CInt64 (Int.to_int64 size,IInt ,None) )),[])
+	TArray(charType,Some (Const (CInt64 (Int.to_int64 size,IInt ,None) )),
+	       [])
       in
       let new_varinfo = makeGlobalVar ~logic:true new_name bounded_type in
       let size_in_bits = Int.mul (sizeofchar()) size in
@@ -4004,7 +4128,7 @@ let compute_call kf ~call_kinstr
     with Ival.Error_Top | Invalid_CEA_alloc
     | Not_found (* from [find_lonely_key]*)
       -> CilE.warn_once
-                   "Invalid argument for Frama_C_alloc_size function\n";
+        "Invalid argument for Frama_C_alloc_size function\n";
         do_degenerate None;
         raise Value.Aborted
   end else if Ast_info.is_cea_function name then begin
@@ -4034,7 +4158,7 @@ let compute_call kf ~call_kinstr
 	(wrap_double r), initial_state
       end
     | _ -> CilE.warn_once
-                     "Invalid argument for Frama_C_sqrt function\n";
+        "Invalid argument for Frama_C_sqrt function\n";
         do_degenerate None;
         raise Value.Aborted
   end
@@ -4055,7 +4179,7 @@ let compute_call kf ~call_kinstr
 	(wrap_double r), initial_state
       end
     | _ -> CilE.warn_once
-                     "Invalid argument for Frama_C_cos function\n";
+        "Invalid argument for Frama_C_cos function\n";
         do_degenerate None;
         raise Value.Aborted
   end
@@ -4082,15 +4206,15 @@ let compute_call kf ~call_kinstr
 	with
           Ival.Not_Singleton_Int | V.Not_based_on_null | Lmap.Cannot_copy ->
             CilE.warn_once
-                      "Invalid call to Frama_C_memcpy function(%a, %a, %a)\n"
-		      Cvalue_type.V.pretty dst
-		      Cvalue_type.V.pretty src
-		      Cvalue_type.V.pretty size;
+              "Invalid call to Frama_C_memcpy function(%a, %a, %a)\n"
+	      Cvalue_type.V.pretty dst
+	      Cvalue_type.V.pretty src
+	      Cvalue_type.V.pretty size;
             do_degenerate None;
             raise Value.Aborted
         end
     | _ -> CilE.warn_once
-                     "Invalid argument for Frama_C_memcpy function\n";
+        "Invalid argument for Frama_C_memcpy function\n";
         do_degenerate None;
         raise Value.Aborted
   end
@@ -4186,14 +4310,14 @@ let compute, _ =
 	 (* Move all alarms to Db *)
 	 Properties.synchronize_alarms ();
 	 Value.mark_as_computed ();
-       with 
+       with
        | Value.Aborted ->
 	   Value.mark_as_computed ();
 	   Format.printf
 	     "Degeneration occured:@\nresults are not correct for lines of code that can be reached from the degeneration point.@.";
 	   exit 1
        | exn -> Value.mark_as_computed (); raise exn)
-    
+
 let () = Value.compute := compute
 let () = Value.compute_call := compute_call
 let () = Value.memoize := memoize

@@ -19,6 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Cil Extension for Frama-C.
+    @plugin developer guide *)
+
 (** Display a localized warning only once per location and per message. *)
 val warn_once : ('a, Format.formatter, unit, unit) format4 -> 'a
 (** Display a warning only once per message. *)
@@ -52,7 +55,9 @@ type alarm_behavior =
 	(* call function -- in a future version, more information will be
 	   passed to the function *)
 
-type warn_mode = {unspecified:alarm_behavior; others: alarm_behavior; imprecision_tracing:bool}
+type warn_mode = {unspecified:alarm_behavior; 
+                  others: alarm_behavior;
+                  imprecision_tracing:alarm_behavior}
 
 val warn_all_mode : warn_mode
 val warn_none_mode : warn_mode
@@ -64,7 +69,8 @@ val warn_mem_write : warn_mode -> unit
 val warn_index : warn_mode -> string -> unit
 val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit
-val warn_unspecified : warn_mode -> unit
+val warn_uninitialized : warn_mode -> unit
+val warn_escapingaddr : warn_mode -> unit
 
 (*
 Local Variables:

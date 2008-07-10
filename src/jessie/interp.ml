@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: interp.ml,v 1.121 2008/05/23 16:55:39 uid570 Exp $ *)
+(* $Id: interp.ml,v 1.131 2008/07/11 06:36:05 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -181,14 +181,14 @@ let type_conversion ty1 ty2 =
   let ty1 = typeRemoveAttributes ["const";"volatile"] (unrollType ty1) in
   let ty2 = typeRemoveAttributes ["const";"volatile"] (unrollType ty2) in
   let sig1 = typeSig ty1 and sig2 = typeSig ty2 in
-  try       
-    let _,_,ty1_to_ty2,ty2_to_ty1 = 
-      Hashtbl.find type_conversion_table (sig1,sig2) 
+  try
+    let _,_,ty1_to_ty2,ty2_to_ty1 =
+      Hashtbl.find type_conversion_table (sig1,sig2)
     in
     ty1_to_ty2,ty2_to_ty1
   with Not_found ->
     try
-      let _,_,ty2_to_ty1,ty1_to_ty2 = 
+      let _,_,ty2_to_ty1,ty1_to_ty2 =
 	Hashtbl.find type_conversion_table (sig2,sig1)
       in
       ty1_to_ty2,ty2_to_ty1
@@ -196,7 +196,7 @@ let type_conversion ty1 ty2 =
       let n1 = type_name ty1 and n2 = type_name ty2 in
       let ty1_to_ty2 = unique_name (n1 ^ "_to_" ^ n2) in
       let ty2_to_ty1 = unique_name (n2 ^ "_to_" ^ n1) in
-      Hashtbl.add 
+      Hashtbl.add
 	type_conversion_table (sig1,sig2) (ty1,ty2,ty1_to_ty2,ty2_to_ty1);
       ty1_to_ty2,ty2_to_ty1
 
@@ -225,13 +225,13 @@ let ctype ty =
 		let max_bound =
 		  Num.num_of_string (Int64.to_string (reference_size ty - 1L))
 		in
-		JCPTpointer(compinfo.cname,Some min_bound,Some max_bound)
+		JCPTpointer(compinfo.cname,[],Some min_bound,Some max_bound)
 	    | _ -> assert false
 	  end
 	else
 	  begin match unrollType (pointed_type ty) with
 	    | TComp(compinfo,_attr) ->
-		JCPTpointer(compinfo.cname,None,None)
+		JCPTpointer(compinfo.cname,[],None,None)
 	    | _ -> assert false
 	  end
 
@@ -396,10 +396,10 @@ let rec term t =
 	when isFloatingType ty && isLogicArithmeticType t.term_type ->
 	JCPEcast(term t,"real")
 
-    | TCastE(ty,t) 
+    | TCastE(ty,t)
 	when isIntegralType ty && app_term_type isPointerType false t.term_type
 	  && bits_sizeof ty = force_app_term_type bits_sizeof t.term_type ->
-	let _,ptr_to_int = force_app_term_type (type_conversion ty) t.term_type in 
+	let _,ptr_to_int = force_app_term_type (type_conversion ty) t.term_type in
 	JCPEapp(ptr_to_int,[],[term t])
 
     | TCastE(TPtr(_ty,_attr) as ptrty,_t1) ->
@@ -411,10 +411,33 @@ let rec term t =
 	      when is_integral_const c && value_of_integral_const c = Int64.zero ->
 	      JCPEconst JCCnull
 	  | _ ->
+	      if force_app_term_type isIntegralType t.term_type 
+		&& 
+		force_app_term_type bits_sizeof t.term_type
+		= bits_sizeof ptrty 
+	      then
+		let _,int_to_ptr = 
+		  force_app_term_type (type_conversion ptrty) t.term_type
+		in
+		JCPEapp(int_to_ptr,[],[term t])
+	      else if force_app_term_type isPointerType t.term_type then
+		let destty = pointed_type ptrty in
+		let srcty = force_app_term_type pointed_type t.term_type in
+		if Retype.subtype srcty destty then
+		  (term t)#node
+		else if Retype.TypeUnion.same_class destty srcty then
+		  JCPEcast(term t,get_struct_name destty) 
+		else
+		  let _,ptr_to_ptr = 
+		    force_app_term_type (type_conversion ptrty) t.term_type 
+		  in
+		  JCPEapp(ptr_to_ptr,[],[term t])
+	      else
 	      (* Only hierarchical types are available in Jessie. It
 	       * should have been encoded as the use of pointer types
 	       * on structure type.
 	       *)
+	      
 (* 	      match unrollType ty with *)
 (* 		| TComp(compinfo,_) -> *)
 (* 		    JCPEcast(term t,compinfo.cname) *)
@@ -462,6 +485,8 @@ let rec term t =
 
     | TCoerceE(_t1,_t2) -> assert false (* TODO: see if useful *)
     | Tlambda _ -> assert false (* TODO: does not exist in Jessie *)
+
+    | Ttypeof _ | Ttype _ -> assert false (* Should have been treated *)
   in
   mkexpr enode t.term_loc
 
@@ -473,13 +498,30 @@ and term_lval loc = function
 
   | TMem t, TField(fi,toff) ->
       assert (toff = TNoOffset); (* Others should have been rewritten *)
-      mkexpr (JCPEderef(term t,fi.fname)) loc
+      let e = term t in
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = mkexpr (JCPEcast(e,repfi.fcomp.cname)) loc in
+	  caste,repfi
+      in
+      mkexpr (JCPEderef(e,fi.fname)) loc
 
   | TMem t, TIndex(it,TField(fi,toff)) ->
       assert (toff = TNoOffset); (* Others should have been rewritten *)
       (* Normalization made it equivalent to simple add *)
-      let adde = mkexpr (JCPEbinary(term t,`Badd,term it)) loc in
-      mkexpr (JCPEderef(adde,fi.fname)) loc
+      let e = mkexpr (JCPEbinary(term t,`Badd,term it)) loc in
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = mkexpr (JCPEcast(e,repfi.fcomp.cname)) loc in
+	  caste,repfi
+      in
+      mkexpr (JCPEderef(e,fi.fname)) loc
 
   | TMem _e, TIndex _ -> assert false (* Should have been rewritten *)
 
@@ -525,6 +567,29 @@ let rec tsets_elem ts =
 	      when is_integral_const c && value_of_integral_const c = Int64.zero ->
 	      JCPEconst JCCnull
 	  | ts ->
+	      let ety = typeOfTsetsElem ts in
+	      if force_app_term_type isIntegralType ety
+		&& 
+		force_app_term_type bits_sizeof ety
+		= bits_sizeof ptrty 
+	      then
+		let _,int_to_ptr = 
+		  force_app_term_type (type_conversion ptrty) ety
+		in
+		JCPEapp(int_to_ptr,[],[tsets_elem ts])
+	      else if force_app_term_type isPointerType ety then
+		let destty = pointed_type ptrty in
+		let srcty = force_app_term_type pointed_type ety in
+		if Retype.subtype srcty destty then
+		  (tsets_elem ts)#node
+		else if Retype.TypeUnion.same_class destty srcty then
+		  JCPEcast(tsets_elem ts,get_struct_name destty)
+		else
+		  let _,ptr_to_ptr = 
+		    force_app_term_type (type_conversion ptrty) ety
+		  in
+		  JCPEapp(ptr_to_ptr,[],[tsets_elem ts])
+	      else
 	      (* Only hierarchical types are available in Jessie. It
 	       * should have been encoded as the use of pointer types
 	       * on strucure type.
@@ -555,15 +620,32 @@ and tsets_lval = function
 
   | TSMem ts, TSField(fi,tsoff) ->
       assert (tsoff = TSNo_offset); (* Others should have been rewritten *)
-      mkexpr (JCPEderef(tsets_elem ts,fi.fname)) Loc.dummy_position
+      let e = tsets_elem ts in
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = mkexpr (JCPEcast(e,repfi.fcomp.cname)) Loc.dummy_position in
+	  caste,repfi
+      in
+      mkexpr (JCPEderef(e,fi.fname)) Loc.dummy_position
 
   | TSMem ts, TSIndex(it,TSField(fi,tsoff)) ->
       assert (tsoff = TSNo_offset); (* Others should have been rewritten *)
       (* Normalization made it equivalent to simple add *)
-      let adde =
+      let e =
         mkexpr (JCPEbinary(tsets_elem ts,`Badd,term it)) Loc.dummy_position
       in
-      mkexpr (JCPEderef(adde,fi.fname)) Loc.dummy_position
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = mkexpr (JCPEcast(e,repfi.fcomp.cname)) Loc.dummy_position in
+	  caste,repfi
+      in
+      mkexpr (JCPEderef(e,fi.fname)) Loc.dummy_position
 
   | TSMem _ts, TSIndex _ -> assert false (* Should have been rewritten *)
 
@@ -572,10 +654,18 @@ and tsets_lval = function
       (* Normalization made it equivalent to simple add *)
       let enode = JCPErange(opt_map term low,opt_map term high) in
       let e = mkexpr enode Loc.dummy_position in
-      let adde =
+      let e =
         mkexpr (JCPEbinary(tsets_elem ts,`Badd,e)) Loc.dummy_position
       in
-      mkexpr (JCPEderef(adde,fi.fname)) Loc.dummy_position
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = mkexpr (JCPEcast(e,repfi.fcomp.cname)) Loc.dummy_position in
+	  caste,repfi
+      in
+      mkexpr (JCPEderef(e,fi.fname)) Loc.dummy_position
 
   | TSMem _ts, TSRange _ -> assert false (* Should have been rewritten *)
 
@@ -645,20 +735,17 @@ let rec pred p =
 
     | Pat(p,lab) -> JCPEat(pred p,logic_label lab)
 
-    | Pvalid t ->
-	let elist =
-	  List.flatten (List.map (fun e ->
-	    let eoffmin = mkexpr (JCPEoffset(Offset_min,e)) p.loc in
-	    let emin = mkexpr (JCPEbinary(eoffmin,`Ble,zero_expr)) p.loc in
-	    let eoffmax = mkexpr (JCPEoffset(Offset_max,e)) p.loc in
-	    let emax = mkexpr (JCPEbinary(eoffmax,`Bge,zero_expr)) p.loc in
-	    [emin; emax]
-	  ) (tsets t))
-	in
-	(mkconjunct elist p.loc)#node
-
     | Pvalid_index(t1,t2) ->
 	let e1 = term t1 in
+	let e2 = term t2 in
+	let eoffmin = mkexpr (JCPEoffset(Offset_min,e1)) p.loc in
+	let emin = mkexpr (JCPEbinary(eoffmin,`Ble,e2)) p.loc in
+	let eoffmax = mkexpr (JCPEoffset(Offset_max,e1)) p.loc in
+	let emax = mkexpr (JCPEbinary(eoffmax,`Bge,e2)) p.loc in
+	(mkconjunct [emin; emax] p.loc)#node
+
+    | Pvalid(TSSingleton(TSAdd_index(t1,t2))) ->
+	let e1 = tsets_elem t1 in
 	let e2 = term t2 in
 	let eoffmin = mkexpr (JCPEoffset(Offset_min,e1)) p.loc in
 	let emin = mkexpr (JCPEbinary(eoffmin,`Ble,e2)) p.loc in
@@ -676,17 +763,46 @@ let rec pred p =
 	let emax = mkexpr (JCPEbinary(eoffmax,`Bge,e3)) p.loc in
 	(mkconjunct [emin; emax] p.loc)#node
 
-    | Pfresh _t -> assert false (* TODO: add to memory model for Jessie *)
-
-    | PInstanceOf(t,TPtr(ty,_attr)) ->
-	begin match unrollType ty with
-	  | TComp(compinfo,_) -> JCPEinstanceof(term t,compinfo.cname)
-	  | _ -> assert false
+    | Pvalid(TSSingleton(TSAdd_range(t1,t2,t3))) ->
+	let e1 = tsets_elem t1 in
+	begin match t2,t3 with
+	  | None,None -> true_expr#node
+	  | Some t2,None ->
+	      let e2 = term t2 in
+	      let eoffmin = mkexpr (JCPEoffset(Offset_min,e1)) p.loc in
+	      JCPEbinary(eoffmin,`Ble,e2)
+	  | None, Some t3 ->
+	      let e3 = term t3 in
+	      let eoffmax = mkexpr (JCPEoffset(Offset_max,e1)) p.loc in
+	      JCPEbinary(eoffmax,`Bge,e3)
+	  | Some t2,Some t3 ->
+	      let e2 = term t2 in
+	      let e3 = term t3 in
+	      let eoffmin = mkexpr (JCPEoffset(Offset_min,e1)) p.loc in
+	      let emin = mkexpr (JCPEbinary(eoffmin,`Ble,e2)) p.loc in
+	      let eoffmax = mkexpr (JCPEoffset(Offset_max,e1)) p.loc in
+	      let emax = mkexpr (JCPEbinary(eoffmax,`Bge,e3)) p.loc in
+	      (mkconjunct [emin; emax] p.loc)#node
 	end
 
-    | PInstanceOf(_t,_typ) -> assert false (* TODO *)
+    | Pvalid t ->
+	let elist =
+	  List.flatten (List.map (fun e ->
+	    let eoffmin = mkexpr (JCPEoffset(Offset_min,e)) p.loc in
+	    let emin = mkexpr (JCPEbinary(eoffmin,`Ble,zero_expr)) p.loc in
+	    let eoffmax = mkexpr (JCPEoffset(Offset_max,e)) p.loc in
+	    let emax = mkexpr (JCPEbinary(eoffmax,`Bge,zero_expr)) p.loc in
+	    [emin; emax]
+	  ) (tsets t))
+	in
+	(mkconjunct elist p.loc)#node
 
-    | PInstanceOfE(_t1,_t2) -> assert false (* TODO *)
+    | Pfresh _t -> assert false (* TODO: add to memory model for Jessie *)
+
+    | Psubtype({term_node = Ttypeof t},{term_node = Ttype ty}) ->
+	JCPEinstanceof(term t,get_struct_name (pointed_type ty))
+	  
+    | Psubtype(_t1,_t2) -> assert false (* TODO *)
   in
   mkexpr enode p.loc
 
@@ -740,20 +856,24 @@ let assert_ loc = function
   | WP _ -> []
   | User annot ->
       begin match annot.annot_content with
-	| AAssert p | AInvariant(_,p) ->
-	    [mkexpr (JCPEassert (locate ~loc (named_pred p))) loc]
+	| AAssert (behav,p) ->
+	    [mkexpr (JCPEassert (behav,locate ~loc (named_pred p))) loc]
+	| AInvariant(behav,_,p) ->
+	    [mkexpr (JCPEassert (behav,locate ~loc (named_pred p))) loc]
 	| _ -> assert false
       end
   | AI(alarm,annot) ->
       begin match annot.annot_content with
-	| AAssert p | AInvariant(_,p) ->
-	    [mkexpr (JCPEassert (locate ~alarm ~loc (named_pred p))) loc]
+	| AAssert (behav,p) ->
+	    [mkexpr (JCPEassert (behav,locate ~alarm ~loc (named_pred p))) loc]
+	| AInvariant(behav,_,p) ->
+	    [mkexpr (JCPEassert (behav,locate ~alarm ~loc (named_pred p))) loc]
 	| _ -> assert false
       end
 
 let invariant annot =
   match annot.annot_content with
-    | AInvariant(_loopinv,p) -> locate (pred p)
+    | AInvariant(behav,_loopinv,p) -> behav, locate (pred p)
     | _ -> assert false
 
 let variant annot =
@@ -808,11 +928,11 @@ let rec expr loc e =
 	let e = locate (mkexpr (JCPEcast(expr e,"real")) loc) in
 	e#node
 
-    | CastE(ty,e') when isIntegralType ty && isPointerType (typeOf e') 
+    | CastE(ty,e') when isIntegralType ty && isPointerType (typeOf e')
 	&& bits_sizeof ty = bits_sizeof (typeOf e') ->
-	let _,ptr_to_int = type_conversion ty (typeOf e') in 
+	let _,ptr_to_int = type_conversion ty (typeOf e') in
 	JCPEapp(ptr_to_int,[],[expr e'])
-	    
+
     | CastE(TPtr(_ty,_attr) as ptrty,_e1) ->
 	begin match stripCastsAndInfo e with
 	  | Const c
@@ -821,12 +941,21 @@ let rec expr loc e =
 	  | e ->
 	      let ety = typeOf e in
 	      if isIntegralType ety && bits_sizeof ety = bits_sizeof ptrty then
-		let _,int_to_ptr = type_conversion ptrty ety in 
+		let _,int_to_ptr = type_conversion ptrty ety in
 		JCPEapp(int_to_ptr,[],[integral_expr e])
 	      else if isPointerType ety then
-		let _,ptr_to_ptr = type_conversion ptrty ety in 
-		JCPEapp(ptr_to_ptr,[],[expr e])
-	      else		
+		let destty = pointed_type ptrty in
+		let srcty = pointed_type ety in
+		if Retype.subtype srcty destty then
+		  (expr e)#node
+		else if Retype.TypeUnion.same_class destty srcty then
+		  let enode = JCPEcast(expr e,get_struct_name destty) in
+		  let e = locate (mkexpr enode loc) in
+		  e#node
+		else
+		  let _,ptr_to_ptr = type_conversion ptrty ety in
+		  JCPEapp(ptr_to_ptr,[],[expr e])
+	      else
 		(* Only hierarchical types are available in Jessie. It
 		 * should have been encoded as the use of pointer types
 		 * on structure type.
@@ -1022,15 +1151,32 @@ and lval loc = function
 
   | Mem e, Field(fi,off) ->
       assert (off = NoOffset); (* Others should have been rewritten *)
-      locate (mkexpr (JCPEderef(expr loc e,fi.fname)) loc)
+      let e = expr loc e in
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = locate (mkexpr (JCPEcast(e,repfi.fcomp.cname)) loc) in
+	  caste,repfi
+      in
+      locate (mkexpr (JCPEderef(e,fi.fname)) loc)
 
   | Mem e, Index(ie,Field(fi,off)) ->
       assert (off = NoOffset); (* Others should have been rewritten *)
       (* Normalization made it equivalent to simple add *)
-      let adde = mkexpr (JCPEbinary(expr loc e,`Badd,expr loc ie)) loc in
-      locate (mkexpr (JCPEderef(adde,fi.fname)) loc)
+      let e = mkexpr (JCPEbinary(expr loc e,`Badd,expr loc ie)) loc in
+      let repfi = Retype.FieldUnion.repr fi in
+      let e,fi = 
+	if FieldinfoComparable.equal fi repfi then
+	  e,fi
+	else
+	  let caste = locate (mkexpr (JCPEcast(e,repfi.fcomp.cname)) loc) in
+	  caste,repfi
+      in
+      locate (mkexpr (JCPEderef(e,fi.fname)) loc)
 
-  | Mem _e, Index _ as lv -> 
+  | Mem _e, Index _ as lv ->
       Format.printf "lval %a@." !Ast_printer.d_lval lv;
       assert false (* Should have been rewritten *)
 
@@ -1041,7 +1187,7 @@ let rec instruction = function
 
   | Call(None,Lval(Var v,NoOffset),eargs,loc) ->
       if is_assert_function v then
-	JCPEassert(locate (boolean_expr loc (as_singleton eargs)))
+	JCPEassert([],locate (boolean_expr loc (as_singleton eargs)))
       else
 	let enode =
 	  if is_free_function v then
@@ -1074,8 +1220,8 @@ let rec instruction = function
 	  in
 	  JCPEalloc(arg,name_of_type)
 	else if is_calloc_function v then
-	  let nelem,elsize = match eargs with 
-	    | [nelem;elsize] -> nelem,elsize 
+	  let nelem,elsize = match eargs with
+	    | [nelem;elsize] -> nelem,elsize
 	    | _ -> assert false
 	  in
 	  let ty,arg = match stripInfo elsize with
@@ -1084,7 +1230,7 @@ let rec instruction = function
 		let lvtyp = pointed_type (typeOfLval lv) in
 		let lvsiz = (bits_sizeof lvtyp) lsr 3 in
 		let factor = (value_of_integral_expr arg) / lvsiz in
-		let siz = 
+		let siz =
 		  if factor = Int64.one then
 		    expr loc nelem
 		  else
@@ -1210,17 +1356,13 @@ let rec statement s =
 	let case_list = List.map case (case_blocks bl.bstmts slist) in
 	JCPEswitch(expr loc e,case_list)
 
-    | Loop (_,bl,loc,_continue_stmt,_break_stmt) ->
+    | Loop (_,bl,_loc,_continue_stmt,_break_stmt) ->
 
 	let invariant_list =
 	  Annotations.get_filter Logic_const.is_invariant s
 	in
 	let invariant_list =
 	  lift_annot_list_func (List.map invariant) invariant_list
-	in
-	let invariant = match invariant_list with
-	  | [inv] -> inv
-	  | _ -> locate (mkconjunct invariant_list loc)
 	in
 
 	let variant_list =
@@ -1241,14 +1383,13 @@ let rec statement s =
 	 *)
 (* 	let lab = reg_loc loc in *)
 	(* TODO: add loop-assigns to Jessie *)
-	JCPEwhile(true_expr,invariant,variant,block bl)
+	JCPEwhile(true_expr,invariant_list,variant,block bl)
 
     | Block bl ->
 	JCPEblock(statement_list bl.bstmts)
 
-    | UnspecifiedSequence(s1,s2) ->
-	let s = block (mkBlock [s1;s2]) in
-	s#node
+    | UnspecifiedSequence bl ->
+	JCPEblock(statement_list bl.bstmts)
 
     | TryFinally _ | TryExcept _ -> assert false
   in
@@ -1278,38 +1419,76 @@ let logic_variable v = ltype v.lv_type, v.lv_name
 
 let annotation = function
   | Dpredicate_reads(info,_poly,params,reads_tsets) ->
-      if in_jessie_memory_model info.p_name then [] else
-	let params = List.map logic_variable params in
-	let reads = List.flatten (List.map tsets reads_tsets) in
-	[JCDlogic(None,info.p_name,logic_labels info.p_labels,params,JCreads reads)]
+      begin try
+	if in_jessie_memory_model info.p_name then [] else
+	  let params = List.map logic_variable params in
+	  let reads = List.flatten (List.map tsets reads_tsets) in
+	  [JCDlogic(None,info.p_name,logic_labels info.p_labels,params,JCreads reads)]
+      with Errormsg.Error ->
+	Format.printf "Dropping declaration of predicate %s@." info.p_name;
+	[]
+      end
 
   | Dpredicate_def(info,_poly,params,def) ->
-      let params = List.map logic_variable params in
-      [JCDlogic(None,info.p_name,logic_labels info.p_labels,params,JCexpr(pred def))]
+      begin try
+	let params = List.map logic_variable params in
+	[JCDlogic(None,info.p_name,logic_labels info.p_labels,params,JCexpr(pred def))]
+      with Errormsg.Error ->
+	Format.printf "Dropping definition of predicate %s@." info.p_name;
+	[]
+      end
 
   | Dlogic_reads(info,_poly,params,return_type,reads_tsets) ->
-      if in_jessie_memory_model info.l_name then [] else
-	let params = List.map logic_variable params in
-	let reads = List.flatten (List.map tsets reads_tsets) in
-	[JCDlogic(
-	  Some(ltype return_type),
-           info.l_name,logic_labels info.l_labels,params,JCreads reads)]
+      begin try
+	if in_jessie_memory_model info.l_name then [] else
+	  let params = List.map logic_variable params in
+	  let reads = List.flatten (List.map tsets reads_tsets) in
+	  [JCDlogic(
+	     Some(ltype return_type),
+             info.l_name,logic_labels info.l_labels,params,JCreads reads)]
+      with Errormsg.Error ->
+	Format.printf "Dropping declaration of logic function %s@." info.l_name;
+	[]
+      end
 
   | Dlogic_def(info,_poly,params,return_type,def) ->
-      let params = List.map logic_variable params in
-      [JCDlogic(
-	Some(ltype return_type),info.l_name,logic_labels info.l_labels,params,
-         JCexpr(term def))]
+      begin try
+	let params = List.map logic_variable params in
+	[JCDlogic(
+	   Some(ltype return_type),info.l_name,logic_labels info.l_labels,params,
+           JCexpr(term def))]
+      with Errormsg.Error ->
+	Format.printf "Dropping definition of logic function %s@." info.l_name;
+	[]
+      end
 
   | Dlemma(name,is_axiom,labels,_poly,property) ->
-      [JCDlemma(name,is_axiom,logic_labels labels,pred property)]
+      begin try
+	[JCDlemma(name,is_axiom,logic_labels labels,pred property)]
+      with Errormsg.Error ->
+	Format.printf "Dropping lemma %s@." name;
+	[]
+      end
 
-  | Dinvariant(name,property) -> [JCDglobal_inv(name,pred property)]
+  | Dinvariant property ->
+      begin try
+	[JCDglobal_inv(property.p_name,
+                       pred (Logic_const.get_pred_body property))]
+      with Errormsg.Error ->
+	Format.printf "Dropping invariant %s@." property.p_name;
+	[]
+      end
 
   | Dtype_annot annot ->
-      [JCDlogic(
-	None,annot.inv_name,[(* TODO *) LabelHere],
-	[ltype annot.this_type, annot.this_name],JCexpr(pred annot.inv))]
+      begin try
+	[JCDlogic(
+	   None,annot.p_name, logic_labels annot.p_labels,
+	   List.map logic_variable annot.p_profile,
+           JCexpr(pred (Logic_const.get_pred_body annot)))]
+      with Errormsg.Error ->
+	Format.printf "Dropping type invariant %s@." annot.p_name;
+	[]
+      end
 
   | Dtype(name,[]) -> [JCDlogic_type name]
 
@@ -1321,32 +1500,47 @@ let global vardefs g =
 
     | GCompTag(compinfo,loc) when compinfo.cstruct -> (* struct type *)
 	let field fi = false, ctype fi.ftype, fi.fname in
-	let fields = List.map field compinfo.cfields in
-	let parent =
+	let fields = 
+	  List.fold_right (fun fi acc ->
+			     let repfi = Retype.FieldUnion.repr fi in
+			     if FieldinfoComparable.equal fi repfi then
+			       field fi :: acc
+			     else acc
+			  ) compinfo.cfields []
+	in
+	let _parent =
 	  find_or_none (Hashtbl.find Norm.type_to_parent_type) compinfo.cname
 	in
-	let id = mkidentifier compinfo.cname loc in
-	[
-	  JCDtag(compinfo.cname,parent,fields,[]);
-	  JCDvariant_type(compinfo.cname,[id])
-	]
-
+	let ty = TComp(compinfo,[]) in
+	begin try
+	  let parentty = TypeHashtbl.find Retype.type_to_parent_type ty in
+	  let parent = get_struct_name parentty in
+	  [
+	    JCDtag(compinfo.cname,[],Some (parent,[]),fields,[])
+	  ]
+	with Not_found ->
+	  let id = mkidentifier compinfo.cname loc in
+	  [
+	    JCDtag(compinfo.cname,[],None,fields,[]);
+	    JCDvariant_type(compinfo.cname,[id])
+	  ]
+	end
     | GCompTag(compinfo,_loc) -> (* union type *)
-(* 	assert (not compinfo.cstruct); *)
-(* 	let field fi = *)
-(* 	  match fi.ftype with *)
-(* 	    | TComp(compinfo,_) -> *)
-(* 		let field fi = false, ctype fi.ftype, fi.fname in *)
-(* 		let fields = List.map field compinfo.cfields in *)
-(* 		let parent = *)
-(* 		  find_or_none (Hashtbl.find Norm.type_to_parent_type) *)
-(* 		    compinfo.cname *)
-(* 		in *)
-(* 		mkidentifier fi.fname fi.floc, JCDtag(fi.fname,parent,fields,[]) *)
-(* 	    | _ -> assert false *)
-(* 	in *)
-(* 	let fields,field_tags = List.split (List.map field compinfo.cfields) in *)
-(* 	JCDvarianttype(compinfo.cname,fields) :: field_tags *)
+	(* 	assert (not compinfo.cstruct); *)
+	(* 	let field fi = *)
+	(* 	  match fi.ftype with *)
+	(* 	    | TComp(compinfo,_) -> *)
+	(* 		let field fi = false, ctype fi.ftype, fi.fname in *)
+	(* 		let fields = List.map field compinfo.cfields in *)
+	(* 		let parent = *)
+	(* 		  find_or_none (Hashtbl.find Norm.type_to_parent_type) *)
+	(* 		    compinfo.cname *)
+	(* 		in *)
+	(* 		mkidentifier fi.fname fi.floc, JCDtag(fi.fname,[],parent,fields,[]) *)
+	(* 	    | _ -> assert false *)
+	(* 	in *)
+	(* 	let fields,field_tags = List.split (List.map field compinfo.cfields) in *)
+	(* 	JCDvarianttype(compinfo.cname,fields) :: field_tags *)
 
 	Errormsg.s (Cil.error "Union type %s not allowed" compinfo.cname)
 
@@ -1359,12 +1553,12 @@ let global vardefs g =
 	in
 	let emin =
 	  List.fold_left (fun acc enum ->
-	    if acc < enum then acc else enum) (List.hd enums) enums
+			    if acc < enum then acc else enum) (List.hd enums) enums
 	in
 	let min = Num.num_of_string (Int64.to_string emin) in
 	let emax =
 	  List.fold_left (fun acc enum ->
-	    if acc > enum then acc else enum) (List.hd enums) enums
+			    if acc > enum then acc else enum) (List.hd enums) enums
 	in
 	let max = Num.num_of_string (Int64.to_string emax) in
 	[JCDenum_type(enuminfo.ename,min,max)]
@@ -1408,22 +1602,27 @@ let global vardefs g =
 	  in
 	  let formal v = ctype v.vtype, v.vname in
 	  let formals = List.map formal f.sformals in
-	  let local v =
-	    mkexpr (JCPEdecl(ctype v.vtype,v.vname,None)) v.vdecl
-	  in
-	  let locals = List.rev (List.rev_map local f.slocals) in
-	  let body = mkexpr (JCPEblock(statement_list f.sbody.bstmts)) loc in
-	  let body = locals @ [body] in
-	  let body = mkexpr (JCPEblock body) loc in
 	  let id = mkidentifier f.svar.vname f.svar.vdecl in
 	  let funspec =
 	    Kernel_function.get_spec (Globals.Functions.get f.svar)
 	  in
-	  ignore
-	    (reg_loc ~id:f.svar.vname
-	      ~name:("Function " ^ f.svar.vname) f.svar.vdecl);
-	  [JCDfun(ctype rty,id,formals,spec funspec,Some body)]
-
+	  begin try
+	    let local v =
+	      mkexpr (JCPEdecl(ctype v.vtype,v.vname,None)) v.vdecl
+	    in
+	    let locals = List.rev (List.rev_map local f.slocals) in
+	    let body = mkexpr (JCPEblock(statement_list f.sbody.bstmts)) loc in
+	    let body = locals @ [body] in
+	    let body = mkexpr (JCPEblock body) loc in
+	    ignore
+	      (reg_loc ~id:f.svar.vname
+		 ~name:("Function " ^ f.svar.vname) f.svar.vdecl);
+	    [JCDfun(ctype rty,id,formals,spec funspec,Some body)]
+	  with Errormsg.Error ->
+	    Format.printf "Dropping definition of function %s@." f.svar.vname;
+	    [JCDfun(ctype rty,id,formals,spec funspec,None)]
+	  end
+	    
     | GAsm _ -> [] (* No assembly in Jessie *)
 
     | GPragma _ -> [] (* Pragmas treated separately *)
@@ -1431,6 +1630,7 @@ let global vardefs g =
     | GText _ -> [] (* Ignore text in Jessie *)
 
     | GAnnot(la,_loc) -> annotation la
+
   in
   let loc = get_globalLoc g in
   List.map (fun dnode -> mkdecl dnode loc) dnodes
@@ -1482,10 +1682,10 @@ let type_conversions () =
     PDecl.mklemma_def ~name:(unique_name (ty1_to_ty2 ^ "_axiom")) ~axiom:true
       ~body:forall ()
   in
-  Hashtbl.fold 
+  Hashtbl.fold
     (fun _ (ty1,ty2,ty1_to_ty2,ty2_to_ty1) acc ->
        [
-	 PDecl.mklogic_def ~typ:(ctype ty2) ~name:ty1_to_ty2 
+	 PDecl.mklogic_def ~typ:(ctype ty2) ~name:ty1_to_ty2
 	   ~params:[ctype ty1, "x"] ~reads:[] ();
 	 PDecl.mklogic_def ~typ:(ctype ty1) ~name:ty2_to_ty1
 	   ~params:[ctype ty2, "x"] ~reads:[] ();
@@ -1511,8 +1711,8 @@ let file f =
     List.rev (List.rev_map defined_var (List.filter filter_defined globals))
   in
   (* Define all integral types as enumerated types in Jessie *)
-  integral_types () 
-  (* Define conversion functions and identity axiom for back 
+  integral_types ()
+  (* Define conversion functions and identity axiom for back
      and forth conversion *)
   @ type_conversions ()
   @ List.flatten (List.rev (List.rev_map (global vardefs) globals))

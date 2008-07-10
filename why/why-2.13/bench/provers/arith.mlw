@@ -1,0 +1,38 @@
+
+goal arith1 : forall x:int. 0 <= x <= 1 -> x=0 or x=1
+
+logic p,q : int -> prop
+
+goal arith2 : forall x:int. 0 <= x <= 1 -> p(0) -> p(1) -> p(x)
+
+goal arith3a : 
+  (forall k:int. 0 <= k <= 10 -> p(k)) ->
+  p(11) -> 
+  forall k:int. 0 <= k <= 11 -> p(k)
+
+goal arith3b : 
+  (forall k:int. 0 <= k <= 10 -> (p(k) and q(k))) ->
+  p(11) -> q(11) ->
+  forall k:int. 0 <= k <= 11 -> (p(k) and q(k))
+
+goal arith3c : 
+  (forall k:int. 0 <= k <= 10 -> p(k) -> q(k)) ->
+  (p(11) -> q(11)) ->
+  forall k:int. 0 <= k <= 11 -> p(k) -> q(k)
+
+logic a,b : int
+
+goal arith4a : 
+  (forall k:int. a <= k <= b -> p(k)) ->
+  p(b+1) -> 
+  forall k:int. a <= k <= b+1 -> p(k)
+
+goal arith4b : 
+  (forall k:int. a <= k <= b -> (p(k) and q(k))) ->
+  p(b+1) -> q(b+1) ->
+  forall k:int. a <= k <= b+1 -> (p(k) and q(k))
+
+logic f : int -> int
+
+goal arith5 : forall x:int. 2 <= x -> f(x)<>f(2) -> f(x)<>f(3) -> 4<=x
+

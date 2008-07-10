@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_function.ml,v 1.14 2008/04/18 11:04:02 uid568 Exp $ *)
+(* $Id: kernel_function.ml,v 1.15 2008/05/27 21:55:35 uid528 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -39,7 +39,12 @@ let get_vi kf = match kf.fundec with
   | Declaration (_,vi,_, _) -> vi
 
 let get_name kf = (get_vi kf).vname
-let get_location kf = (get_vi kf).vdecl
+
+let get_location kf = 
+ match kf.fundec with
+  | Definition (_, loc) -> loc
+  | Declaration (_,vi,_, _) -> vi.vdecl
+
 let get_type kf = (get_vi kf).vtype
 
 let get_global f = match f.fundec with

@@ -21,16 +21,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annot.mli,v 1.8 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: annot.mli,v 1.10 2008/07/09 11:26:38 uid530 Exp $ *)
 
 (** find the nodes needed for the annotation :
 * the first list correspond to control dependancies,
-* and the second part [(nodes, undef_loc)] correspond to dat dependencies.
+* and the second part [(node,z_part) list, undef_loc)] 
+* correspond to data dependencies.
 * @raise Not_found when the statement is unreachable *)
 val find_code_annot_nodes :
   PdgTypes.Pdg.t -> 
   before:bool -> Cil_types.stmt -> Cil_types.code_annotation ->
-  PdgTypes.Node.t list * (PdgTypes.Node.t list  * Locations.Zone.t)
+  PdgTypes.Node.t list 
+  * ((PdgTypes.Node.t * Locations.Zone.t option) list  * Locations.Zone.t option)
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

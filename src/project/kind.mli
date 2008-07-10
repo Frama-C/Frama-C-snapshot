@@ -19,14 +19,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kind.mli,v 1.5 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: kind.mli,v 1.6 2008/05/30 08:29:49 uid568 Exp $ *)
 
 (** Kind (roughly speaking, a type used as first-class-value for Project). 
 
     A kind may depend of others kinds and there are selections of kinds, i.e. a
     set of kinds dealing with their dependencies. *)
 
-(** How to select the dependencies when a kind is added to a selection. *)
+(** How to select the dependencies when a kind is added to a selection. 
+    @plugin developer guide *)
 type how =
   | Do_Not_Select_Dependencies
       (** Only select the kind, and not its dependencies. *)
@@ -52,7 +53,8 @@ module type SELECTION = sig
 	the dependencies of [k]. *)
 
   val singleton : kind -> how -> t
-    (** [singleton k h] is equivalent to [add k h empty]. *)
+    (** [singleton k h] is equivalent to [add k h empty]. 
+	@plugin developer guide *)
 
   val remove: kind -> t -> t
     (** [remove k s] removes [k] of [s]. Each dependency [d] of [k] is also

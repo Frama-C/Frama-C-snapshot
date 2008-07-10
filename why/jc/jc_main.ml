@@ -27,7 +27,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: jc_main.ml,v 1.107 2008/04/10 16:05:55 moy Exp $ *)
+(* $Id: jc_main.ml,v 1.111 2008/07/08 16:16:37 moy Exp $ *)
 
 open Jc_env
 open Jc_fenv
@@ -80,8 +80,8 @@ let main () =
 	Jc_typing.variables_table []
     in
     Hashtbl.iter
-      (fun _tag (f,_loc,s,b) -> 
-	 Jc_invariants.code_function (f, s, b) vil)
+      (fun _tag (f,loc,s,b) -> 
+	 Jc_invariants.code_function (f, loc, s, b) vil)
       Jc_typing.functions_table;
 
     (* phase 4: computation of call graph *)
@@ -312,6 +312,8 @@ let main () =
     let d_funs = 
       Hashtbl.fold 
 	(fun _ (f,loc,s,b) acc ->
+	   Jc_options.lprintf
+	     "Generation of Why function %s@." f.jc_fun_info_name;
 	   Jc_interp.tr_fun f loc s b acc)
 	Jc_typing.functions_table
 	d_axioms
@@ -369,11 +371,11 @@ let main () =
     Jc_options.lprintf "production phase 6.1: produce Why file@.";
     Pp.print_in_file 
       (fun fmt -> fprintf fmt "%a@." Output.fprintf_why_decls d_inv)
-      (Lib.file "why" (filename ^ ".why"));
+      (Lib.file_subdir "why" (filename ^ ".why"));
     (* production phase 6.2 : produce locs file *)
     Jc_options.lprintf "production phase 6.2: produce locs file@.";
     let cout_locs,fmt_locs = 
-      Pp.open_file_and_formatter (Lib.file "." (filename ^ ".loc")) in
+      Pp.open_file_and_formatter (Lib.file_subdir "." (filename ^ ".loc")) in
     Jc_interp.print_locs fmt_locs;
     Output.print_locs fmt_locs; (* Generated annotations. *)
     Pp.close_file_and_formatter (cout_locs,fmt_locs);
@@ -390,12 +392,13 @@ let main () =
     | Jc_options.Jc_error(l,s) ->
 	eprintf "%a: %s@." Loc.gen_report_position l s;
 	exit 1
-(*     | Assert_failure(f,l,c) as exn ->  *)
-(* 	eprintf "%a:@." Loc.gen_report_line (f,l,c,c); *)
-(* 	raise exn *)
+    | Assert_failure(f,l,c) as exn ->  
+ 	eprintf "%a:@." Loc.gen_report_line (f,l,c,c); 
+ 	raise exn 
 	  
-let _ = Sys.catch_break true;
-  (*Printexc.catch *) main ()
+let _ = 
+  Sys.catch_break true;
+  Printexc.catch main ()
 
   
 (*

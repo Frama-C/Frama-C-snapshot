@@ -1,0 +1,67 @@
+#InvariantPolicy = Ownership
+
+tag Parallelogram = {
+  integer l1;
+  integer l2;
+  integer l3;
+  integer l4;
+  invariant par_inv(x) = x.l1 >= 0 && x.l2 >= 0 && x.l3 >= 0 && x.l4 >= 0;
+}
+
+tag Rectangle = Parallelogram with {
+  integer smallsidelen;
+  integer greatsidelen;
+  invariant rect_inv(x) =
+    x.l1 == x.l3 &&
+    x.l1 == x.smallsidelen &&
+    x.l2 == x.l4 &&
+    x.l2 == x.greatsidelen;
+}
+
+tag Circle = {
+  integer radius;
+}
+
+type Test = {
+  integer plouf;
+}
+
+type shape = [Parallelogram | Circle]
+
+integer parallelogram_perimeter(Parallelogram[0] P)
+  behavior ok: ensures \result >= 0;
+{
+  return P.l1 + P.l2 + P.l3 + P.l4;
+}
+
+integer circle_perimeter(Circle[0] C)
+  behavior ok: ensures \result >= 0;
+{
+  return 3 * C.radius * C.radius;
+}
+
+integer perimeter(shape[0] S)
+  behavior ok: ensures match S with
+    Circle{radius = r;} -> \result == 3*r*r;
+    _ -> \result >= 0;
+  end;
+  behavior bla: ensures match S with
+    Circle{radius = r;} -> 0 == 0 <==> 1 == 1;
+  end;
+{
+  return match S with
+    Parallelogram{} as P ->
+      parallelogram_perimeter(P);
+    Circle{radius = r;} as C ->
+      3 * r * r;
+  end;
+}
+
+axiom test: \forall integer r; 3*r*r >= 0
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make variant"
+End: 
+*/

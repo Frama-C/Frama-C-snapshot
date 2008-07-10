@@ -1,5 +1,5 @@
 /* run.config
-*    OPT: -lib-entry g -pdg-debug "-fct-pdg g -dot-pdg tests/pdg/doc"
+*    OPT: -lib-entry -main g -pdg-debug "-fct-pdg g -dot-pdg tests/pdg/doc"
 */
 /* To build the svg file:
  * dot -Tsvg tests/pdg/doc.g.dot > tests/pdg/doc.g.svg

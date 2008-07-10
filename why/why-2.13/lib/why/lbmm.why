@@ -1,0 +1,319 @@
+
+(* Leroy-Blazy low-level memory model
+
+   Why theory translated from Coq theory at
+   cf http://pauillac.inria.fr/~xleroy/memory-model/ *)
+
+(* 1. Why prelude *)
+
+type 'a option
+logic None : 'a option
+logic Some : 'a -> 'a option
+axiom None_neq_Some : forall v:'a. None <> Some(v)
+axiom Some_inj : forall x, y:'a. Some(x) = Some(y) -> x=y
+
+exception Undef
+parameter out_some_or_fail : 
+  x:'a option -> {} 'a raises Undef { x = Some(result) | Undef => x = None }
+parameter out_some : 
+  x:'a option -> { x <> None } 'a { x = Some(result) }
+
+type ('a, 'b) pair
+logic pair : 'a, 'b -> ('a, 'b) pair
+logic fst : ('a, 'b) pair -> 'a
+logic snd : ('a, 'b) pair -> 'b
+axiom fst_pair : forall x:'a. forall y:'b. fst(pair(x,y)) = x
+axiom snd_pair : forall x:'a. forall y:'b. snd(pair(x,y)) = y
+axiom fst_snd : forall x:('a, 'b) pair. x = pair(fst(x), snd(x))
+
+predicate divides(d : int, n : int) = exists k:int. n = k * d
+axiom divides_1_n : forall n:int. divides(1, n)
+
+(* 2. Values and types *)
+
+type val
+logic vundef : val
+
+type memtype
+
+logic compat: memtype,memtype -> prop
+logic sizeof: memtype -> int
+logic alignof: memtype -> int
+
+logic convert: memtype, val -> val
+
+axiom sizeof_pos: forall ty:memtype. sizeof(ty) > 0
+
+axiom compat_sizeof:
+  forall ty, ty':memtype. compat(ty, ty') -> sizeof(ty') = sizeof(ty)
+
+axiom alignof_pos: forall ty:memtype. alignof(ty) > 0
+
+logic max_alignment: int
+
+axiom alignof_div: forall ty:memtype. divides(alignof(ty), max_alignment)
+
+axiom compat_alignof:
+  forall ty, ty':memtype. compat(ty, ty') -> alignof(ty') = alignof(ty)
+
+(* 3. (Abstract) Memory Model *)
+
+type block
+type mem
+
+logic empty: mem
+logic alloc: mem, int, int -> (block, mem) pair option
+logic load: memtype, mem, block, int -> val option
+logic store: memtype, mem, block, int, val -> mem option
+logic free: mem, block -> mem option
+
+axiom load_alloc_other:
+  forall m:mem. forall lo,hi:int. forall b:block. 
+  forall m':mem. forall ty:memtype. forall b':block. forall ofs:int.
+  alloc(m, lo, hi) = Some (pair (b, m')) ->
+  b' <> b ->
+  load(ty, m', b', ofs) = load(ty, m, b', ofs)
+
+axiom load_store_same:
+  forall ty:memtype. forall m:mem. forall b:block. forall ofs:int.
+  forall v:val. forall m':mem. forall ty':memtype.
+  store(ty, m, b, ofs, v) = Some(m') ->
+  compat(ty, ty') ->
+  load(ty', m', b, ofs) = Some (convert(ty', v))
+
+axiom load_store_disjoint:
+  forall ty:memtype. forall m:mem. forall b:block. forall ofs:int.
+  forall v:val. forall m':mem. forall ty':memtype.
+  forall b':block. forall ofs':int.
+  store(ty, m, b, ofs, v) = Some(m') ->
+  (b' <> b or ofs' + sizeof(ty') <= ofs or ofs + sizeof(ty) <= ofs') ->
+  load(ty', m', b', ofs') = load(ty', m, b', ofs')
+
+axiom load_free_other:
+  forall m:mem. forall b:block.  forall m':mem. forall ty:memtype.
+  forall b':block. forall ofs:int.
+  free(m, b) = Some(m') ->
+  b' <> b ->
+  load(ty, m', b', ofs) = load(ty, m, b', ofs)
+
+logic valid_block: mem, block -> prop
+
+axiom alloc_valid_block:
+  forall m:mem. forall lo, hi:int. 
+  forall b:block. forall m':mem. forall b':block.
+  alloc(m, lo, hi) = Some(pair (b, m')) ->
+  (valid_block(m', b') <-> (b' = b or valid_block(m, b')))
+axiom alloc_not_valid_block:
+  forall m:mem. forall lo, hi:int. forall b:block. forall m':mem. 
+  alloc(m, lo, hi) = Some(pair(b, m')) -> not valid_block(m, b)
+axiom load_valid_block:
+  forall ty:memtype. forall m:mem.  
+  forall b:block. forall ofs:int. forall v:val.
+  load(ty, m, b, ofs) = Some(v) -> valid_block(m, b)
+axiom store_valid_block:
+  forall ty:memtype. forall m:mem. 
+  forall b:block. forall ofs:int. forall v:val. forall m':mem.
+  store(ty, m, b, ofs, v) = Some(m') -> valid_block(m, b)
+axiom store_valid_block_inv:
+  forall ty:memtype. forall m:mem. 
+  forall b:block. forall ofs:int. forall v:val. forall m':mem. forall b':block.
+  store(ty, m, b, ofs, v) = Some(m') -> 
+  (valid_block(m', b') <-> valid_block(m, b'))
+axiom free_valid_block:
+  forall m:mem. forall b:block. forall m':mem.  forall b':block.
+  free(m, b) = Some(m') -> b' <> b -> 
+  (valid_block(m', b') <-> valid_block(m, b'))
+axiom valid_block_free:
+  forall m:mem. forall b:block.
+  valid_block(m, b) -> exists m':mem. free(m, b) = Some(m')
+
+logic bounds: mem, block -> (int, int) pair
+
+axiom alloc_result_bounds:
+  forall m:mem. forall lo, hi:int. forall b:block. forall m':mem.
+  alloc(m, lo, hi) = Some(pair (b, m')) -> bounds(m', b) = pair (lo, hi)
+axiom alloc_bounds_inv:
+  forall m:mem. forall lo, hi:int. forall b:block. forall m':mem.
+  forall b':block.
+  alloc(m, lo, hi) = Some(pair (b, m')) -> b' <> b -> 
+  bounds(m', b') = bounds(m, b')
+axiom store_bounds_inv:
+  forall ty:memtype. forall m:mem. forall b:block.
+  forall ofs:int. forall v:val. forall m':mem. forall b':block.
+  store(ty, m, b, ofs, v) = Some(m') -> bounds(m', b') = bounds(m, b')
+axiom free_bounds_inv:
+  forall m:mem. forall b:block. forall m':mem. forall b':block.
+  free(m, b) = Some(m') -> b' <> b -> bounds(m', b') = bounds(m, b')
+
+predicate valid_pointer (ty: memtype, m: mem, b: block, ofs: int) =
+  valid_block(m, b)
+  and divides(alignof(ty), ofs)
+  and fst (bounds(m, b)) <= ofs
+  and ofs + sizeof(ty) <= snd (bounds(m, b))
+
+axiom valid_pointer_store:
+  forall ty:memtype. forall m: mem. forall b: block. forall ofs: int.
+  forall v:val.
+  valid_pointer(ty, m, b, ofs) ->
+  exists m':mem. store(ty, m, b, ofs, v) = Some(m')
+
+(* Derived properties *)
+
+axiom alloc_valid_block_inv: (* proved by Ergo *)
+  forall m:mem. forall lo, hi:int. forall b:block. 
+  forall m':mem. forall b':block.
+  alloc(m, lo, hi) = Some(pair (b, m')) -> 
+  valid_block(m, b') -> valid_block(m', b')
+
+axiom alloc_not_valid_block_2: (* proved by Ergo *)
+  forall m:mem. forall lo, hi:int. forall b:block. 
+  forall m':mem. forall b':block.
+  alloc(m, lo, hi) = Some(pair (b, m')) -> valid_block(m, b') -> b' <> b
+
+axiom load_alloc_other_2: (* proved by Ergo *)
+  forall m:mem. forall lo, hi:int. forall b:block. 
+  forall m':mem. forall b':block.
+  forall ty:memtype. forall ofs:int. forall v:val.
+  alloc(m, lo, hi) = Some(pair (b, m')) ->
+  load(ty, m, b', ofs) = Some(v) ->
+  load(ty, m', b', ofs) = Some(v)
+
+axiom alloc_result_valid_pointer: (* proved by Ergo *)
+  forall m:mem. forall lo, hi:int. forall b:block. 
+  forall m':mem. forall ty:memtype. forall ofs:int. 
+  alloc(m, lo, hi) = Some(pair (b, m')) ->
+  divides(alignof(ty), ofs) -> lo <= ofs -> ofs + sizeof(ty) <= hi ->
+  valid_pointer(ty, m', b, ofs)
+
+axiom alloc_valid_pointer_inv: (* proved by Ergo *)
+  forall m:mem. forall lo, hi:int. forall b:block. 
+  forall m':mem. forall ty:memtype. forall b':block. forall ofs:int. 
+  alloc(m, lo, hi) = Some(pair (b, m')) ->
+  valid_pointer(ty, m, b', ofs) -> valid_pointer(ty, m', b', ofs)
+
+axiom store_valid_pointer_inv: (* proved by Ergo *)
+  forall ty:memtype. forall m:mem. forall b:block. forall ofs:int. 
+  forall v:val. forall m':mem. forall ty':memtype. forall b':block.
+  forall ofs':int. 
+  store(ty, m, b, ofs, v) = Some(m') ->
+  (valid_pointer(ty', m', b', ofs') <-> valid_pointer(ty', m, b', ofs'))
+
+axiom free_valid_pointer_inv: (* proved by Ergo *)
+  forall m:mem. forall b:block. forall m':mem. forall ty:memtype. 
+  forall b':block. forall ofs:int. 
+  free(m, b) = Some(m') -> b' <> b ->
+  (valid_pointer(ty, m', b', ofs) <-> valid_pointer(ty, m, b', ofs))
+
+(* C types *)
+
+logic int32 : memtype
+logic char : memtype
+axiom sizeof_int32: sizeof(int32) = 4
+axiom alignof_int32 : alignof(int32) = 1
+axiom sizeof_char: sizeof(char) = 1
+axiom alignof_char : alignof(char) = 1
+
+logic val_of_int : int -> val
+logic int_of_val : val -> int
+axiom int_val_int : forall n:int. int_of_val(val_of_int(n)) = n
+
+(* ADDED *)
+axiom convert_int32 : forall v:val. convert(int32, v) = v
+
+(* ADDED *)
+axiom compat_refl : forall ty:memtype. compat(ty,ty)
+
+(* Tests *)
+
+let test1 (m:mem) =
+  let xm = alloc m 0 8 in
+  let xm = out_some_or_fail xm in
+  let x = fst xm in
+  let m = snd xm in
+  assert { valid_pointer(int32, m, x, 0) };
+  let ym = alloc m 0 4 in
+  let ym = out_some_or_fail ym in
+  let y = fst ym in
+  let m = snd ym in
+  assert { x <> y and 
+	   valid_pointer(int32, m, x, 0) and
+	   valid_pointer(int32, m, y, 0) };
+  let m = store int32 m x 0 (val_of_int 0) in
+  let m = out_some_or_fail m in
+  assert { load(int32,m,x,0) = Some(val_of_int(0)) };
+  let m = store int32 m x 4 (val_of_int 1) in
+  let m = out_some_or_fail m in
+  assert { load(int32,m,x,0) = Some(val_of_int(0)) and
+           load(int32,m,x,4) = Some(val_of_int(1)) };
+  let t = load int32 m x 0 in
+  let t = out_some_or_fail t in
+  assert { t = val_of_int(0) };
+  let m = store int32 m y 0 t in
+  let m = out_some_or_fail m in
+  assert { load(int32,m,x,0) = Some(val_of_int(0)) and
+           load(int32,m,x,4) = Some(val_of_int(1)) and
+           load(int32,m,y,0) = Some(val_of_int(0)) };
+  let t = load int32 m x 4 in
+  let t = out_some_or_fail t in
+  assert { t = val_of_int(1) };
+  let m = store int32 m x 0 t in
+  let m = out_some_or_fail m in
+  assert { load(int32,m,x,0) = Some(val_of_int(1)) and
+           load(int32,m,x,4) = Some(val_of_int(1)) and
+           load(int32,m,y,0) = Some(val_of_int(0)) };
+  let t = load int32 m y 0 in
+  let t = out_some_or_fail t in
+  assert { t = val_of_int(0) };
+  let m = store int32 m x 4 t in
+  let m = out_some_or_fail m in
+  assert { load(int32,m,x,0) = Some(val_of_int(1)) and
+           load(int32,m,x,4) = Some(val_of_int(0)) and
+           load(int32,m,y,0) = Some(val_of_int(0)) };
+  void
+  { true | Undef => false }
+
+
+(*
+   int x[4];
+   int y[2];
+   x[0] = 42;
+   y[0] = 1;
+   //@ assert x[0] - y[0] == 41;
+*)
+
+let test2 
+  (memx:mem) (x:block) 
+  (memy:mem) (y:block) = 
+  { (forall i:int. 0 <= i <= 3 -> valid_pointer(int32, memx, x, i)) and
+    (forall i:int. 0 <= i <= 1 -> valid_pointer(int32, memy, y, i)) }
+  let memx = store int32 memx x 0 (val_of_int 42) in
+  let memx = out_some_or_fail memx in
+
+  let memy = store int32 memy y 0 (val_of_int 1) in
+  let memy = out_some_or_fail memy in
+  
+  assert { forall vx,vy:val.
+           load(int32, memx, x, 0) = Some(vx) ->
+	   load(int32, memy, y, 0) = Some(vy) ->
+	   int_of_val(vx) - int_of_val(vy) = 41 };
+
+  void
+
+(*
+  //@ requires \valid(x)
+  void change_endianness(int * x) {
+    char * p = (char* ) x;
+    int t = *(p+3) + *(p+2)<<8 + *(p+1)<<16 + *p<<24;
+    *x = t;
+  }
+*)
+
+let test3 (m : mem ref) (bx:block) (ofsx:int) =
+  { valid_pointer(int32, m, bx, ofsx) }
+  let bp = bx in
+  let ofsp = ofsx in
+  let t = load char !m bp (ofsp+3) (* + ... *) in
+  let t = out_some t in
+  let m' = store int32 !m bx ofsx t in
+  m := out_some m'
+

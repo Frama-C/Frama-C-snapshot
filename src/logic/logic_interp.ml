@@ -71,8 +71,6 @@ let code_annot kf stmt ~before:_ s =
     Logic_typing.Make
       (struct
 	 let annonCompFieldName = Cabs2cil.annonCompFieldName
-	 let integralPromotion = Cabs2cil.integralPromotion
-	 let arithmeticConversion = Cabs2cil.arithmeticConversion
 	 let conditionalConversion = Cabs2cil.conditionalConversion
 
 	 let find_var x = find_var kf stmt file x
@@ -84,6 +82,7 @@ let code_annot kf stmt ~before:_ s =
 	 let find_type _s = assert false (*TODO*)
 
 	 let find_label s = Kernel_function.find_label kf s
+         include Logic_env
        end)
   in
   LT.code_annot pa
@@ -113,6 +112,7 @@ let expr kf stmt s =
 	 let find_type _s = assert false (*TODO*)
 
 	 let find_label s = Kernel_function.find_label kf s
+         include Logic_env
        end)
   in
   LT.term (Logic_typing.make_here_label ()) pa_expr
@@ -228,7 +228,7 @@ let rec force_term_to_exp t =
     | TSizeOf ty -> SizeOf ty, empty_term_env
     | Tapp _ | TDataCons _ | Tif _ | Told _ | Tat _ | Tbase_addr _
     | Tblock_length _ | Tnull | TCoerce _ | TCoerceE _ | TUpdate _
-    | Tlambda _
+    | Tlambda _ | Ttypeof _ | Ttype _
         ->
 	add_opaque_term t empty_term_env
   in
@@ -436,7 +436,7 @@ let rec force_exp_to_predicate loc e =
   }
 
 let rec force_exp_to_assertion loc e =
-  Logic_const.new_code_annotation(AAssert (force_exp_to_predicate loc e))
+  Logic_const.new_code_annotation(AAssert([],force_exp_to_predicate loc e))
 
 (* Transform range in tsets into comprehension, and back when possible *)
 
@@ -779,7 +779,8 @@ let rec force_back_term_to_tsets_elem t =
     | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ | TUnOp _
     | TBinOp _ | TAddrOf _
     | TCoerceE _ | TCoerce _ | Tblock_length _ | Tbase_addr _ |Tat _ | Told _
-    | Tif _ | TDataCons _ | Tapp _ | Tnull | TUpdate _ | Tlambda _ ->
+    | Tif _ | TDataCons _ | Tapp _ | Tnull | TUpdate _ | Tlambda _ 
+    | Ttypeof _ | Ttype _ ->
 	(* Transformation of term obtained through conversion from tsets
 	 * should not generate parts that are not convertible back.
 	 *)
@@ -856,7 +857,7 @@ and term_to_exp {term_node = lnode ; term_type = ltype} =
   | Tbase_addr _
   | Tblock_length _
   | Tnull
-  | TCoerce _ | TCoerceE _ | TUpdate _
+  | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
     -> error_lval ()
 
 let term_to_lval t =
@@ -868,7 +869,8 @@ let term_to_lval t =
   | TSizeOfE _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TSizeOfStr _
   | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _ | Told _
   | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
-  | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _->
+  | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
+  | Ttypeof _ | Ttype _ ->
       error_lval ()
 
 let create_offset_list kind low high o =
@@ -1201,14 +1203,15 @@ module To_zone : sig
       | APragma (Slice_pragma (SPexpr term) | Impact_pragma (IPexpr term)) ->
             get_zone_from_term term;
             locals := VarinfoSet.union (extract_locals_from_term term) !locals;
-            (* TODO : see this with Patrick.
-            * To my point of view, the value of an expression at a program point
-            * doesn't depend on the attached statement... [Anne. 28/02/08]
-            pragmas:= { !pragmas with Properties.Interp.To_zone.stmt =
+            (* The value of an expression at a program point
+             * doesn't depend on the attached statement...
+               pragmas:= { !pragmas with Properties.Interp.To_zone.stmt =
                 Cilutil.StmtSet.add ki !pragmas.Properties.Interp.To_zone.stmt}
             * *)
             (* ... but we need at least the control of the branch to be visible
-            * *)
+             * See this with Patrick [Anne. 28/02/08]
+             * It's OK. [Patrick. 25/06/08].
+             * *)
             pragmas := { !pragmas with Properties.Interp.To_zone.ctrl =
                Cilutil.StmtSet.add ki !pragmas.Properties.Interp.To_zone.ctrl }
         | APragma (Slice_pragma SPctrl) ->
@@ -1224,7 +1227,7 @@ module To_zone : sig
                   Properties.Interp.To_zone.stmt =
                   Cilutil.StmtSet.add ki
                     !pragmas.Properties.Interp.To_zone.stmt}
-        | AAssert pred ->
+        | AAssert (_behav,pred) ->
             get_zone_from_pred pred;
             locals :=
               VarinfoSet.union (extract_locals_from_pred pred) !locals
@@ -1232,13 +1235,13 @@ module To_zone : sig
             get_zone_from_pred pred;
             locals :=
               VarinfoSet.union (extract_locals_from_pred pred) !locals
-        | AInvariant (true,pred) ->
+        | AInvariant (_behav,true,pred) ->
             ignore(
               visitCilPredicateNamed
                 (new populate_zone true
                    (Extlib.the loop_ki) kf:> Cil.cilVisitor)
                 pred)
-        | AInvariant (false,pred) ->
+        | AInvariant (_behav,false,pred) ->
             get_zone_from_pred pred;
             locals :=
               VarinfoSet.union (extract_locals_from_pred pred) !locals

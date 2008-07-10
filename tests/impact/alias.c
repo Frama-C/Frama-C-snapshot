@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -impact-pragma f -lib-entry f -impact-print
+   OPT: -impact-pragma f -lib-entry -main f -impact-print
    */
 
 int P,c;

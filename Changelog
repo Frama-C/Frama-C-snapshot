@@ -1,3 +1,113 @@
+===============================================================================
+Open Source Release Helium_20080701
+===============================================================================
+
+Occurrence: July 11, 2008
+	- Occurrences of a variable can be computed from any occurrence of
+	the program (not only from its declaration)
+	
+Core: July 11, 2008
+	- loading works even if the configuration when saving is not exactly
+	equal to the one when loading
+
+Impact: July 2, 2008
+	- Bug fixed when a function is undefined (bts#322)
+
+Logic: July 2, 2008
+	- Typing of recursive logic functions
+	- Enforce correct return type of logic functions
+	
+Gui: June 24, 2008
+	- Slicing contextual submenu available
+		
+Logic: June 24, 2008
+	- merge predicates and logic functions when linking multiple c files
+	- AST changes for invariants
+
+Gui: June 23, 2008
+	- enforce lablgtksourceview dependency and suppressed camlp4 need
+	- first rehighlight support
+
+Gui: June 19, 2008
+	- Some slicing requests are available from GUI
+
+Core: June 19, 2008
+	- ./configure will not emit so many warning when gui is
+	  not available. (bts#296)
+
+Gui: June 18, 2008
+	- Invalidate display cache on project switching
+
+Value: June 18, 2008
+	- Do not emit imprecision tracing warning  when a lval=lval is optimized
+	- New option -context-width for auto-allocated context pointer width. Defaults to 2.
+
+Core: June 17, 2008
+	- prefix install directories by the value of DESTDIR
+	(patch contributed by Igor Galic)
+
+Logic: June 17, 2008
+	- \valid* predicates rejects void pointers
+
+Value: June 16, 2008
+	- Removed last top from merging leaf functions returns
+
+Value: June 13, 2008
+	- Some partial builtin_va_start support
+	- New implicit context generation with a fixed width of 6 (an option
+	 will be available later)
+
+Value: June 12, 2008
+	- Remove remaining TOP in value analysis: WELL at amx-valid-depth and for
+	leaf functions.
+
+Gui: June 10, 2008
+	- Improve speed of configuration menu
+
+Core: June 10, 2008
+	- Change -lib-entry option into a boolean. "-lib-entry foo" becomes
+	 "-lib-entry -main foo"
+
+Metrics: June 10, 2008
+	- Number of syntactic calls by functions and potential entry points
+	- New option -metrics-dump
+
+Semantic Constant Folding: June 9, 2008
+	- Feature modified: by default, the plug-in does not introduce casts
+	- New option -cast-from-constant has been added to allows cast introductions
+
+Core: June 6, 2008
+	- Do not remove unused static functions
+
+Logic: June 5, 2008
+	- Quantification over arrays are interpreted as quantification over pointers to be
+	  consistent with predicates and C function calls
+	- pretty printing of pointer accesses in terms and tsets are now much nicer.
+	   For example *(T+(0+i..j)) becomes T[0+i..j]
+
+Value: June 5, 2008
+	- separate warnings for uninitialized and addresses escaping their scopes
+	(these used to be grouped together as "unspecified" alarms)
+
+Core: June 4, 2008
+	- bug fixed in "make distclean" (FS #308)
+
+Logic: june 3, 2008
+	- correct typing for predicates: no more dangerous promotions
+	- typing of terms: implement ACSL semantics for integral/real promotions
+	- better error messages for logic typing errors
+	- support for constant predicates and functions (breaks 0-argument old syntax)
+
+Core: june 3, 2008
+	- Correct promotion rules from bitfields to integers
+
+Core: june 2, 2008
+	- machdep was ignored (FS309)
+
+===============================================================================
+Open Source Release Hydrogen_20080502
+===============================================================================
+
 Core: 21 may 2008
 	- bug fixed in "make clean-doc" (and "make distclean") in Hydrogen
 
@@ -16,7 +126,7 @@ GUI: 18 April 2008
 
 GUI: 17 April 2008
 	- Win32 default fonts fixed
-	
+
 GUI: 14 April 2008
 	- Function level information displayed in Information panel (Values and Froms)
 	- Progress added in existing plugins
@@ -39,9 +149,9 @@ GUI: 07 April 2008
 
 Core: 07 April 2008
 	- [save/load]  bug fixed with duplicated computations
-	- [Projects] inconsistent data with multiple projects 
+	- [Projects] inconsistent data with multiple projects
 	and while removing projects
-	
+
 Core: 01 April 2008
 	- Various Win32 path fixes
 	- Option -no-unicode : do not print Unicode chars.
@@ -64,10 +174,10 @@ Core: 14 Mar 2008
 ===============================================================================
 Open Source Release Hydrogen_20080301
 ===============================================================================
-	
+
 Val: 22/01/08
 	- Valeurs non initialisée refondues : elles ne peuvent plus etre lues
-	
+
 Core: 18 Jan 2008
 	- Pretty-printer entièrement objectifié.
 	- Utiliser Ast_printer.d_* pour le pretty-printing avec le printer

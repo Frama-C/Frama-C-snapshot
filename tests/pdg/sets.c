@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/pdg/sets.opt
    CMD: tests/pdg/sets.opt
-   OPT: -lib-entry f -pdg-debug -pdg -inout
+   OPT: -lib-entry -main f -pdg-debug -pdg -inout
 */
 
 int b, c, x, y, z, t;

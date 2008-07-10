@@ -19,6 +19,8 @@
 /*                                                                        */
 /**************************************************************************/
 
+/* $Id: malloc.c,v 1.22 2008/06/30 14:39:46 uid530 Exp $ */
+
 /* This file is part of the Frama-C framework.
    It must be included in all files calling malloc of free as it defines macros.
    4 different implementation are available: you should define one of these:
@@ -106,7 +108,7 @@ void *malloc(size_t size) {
   if (next_free>=MEMORY_SIZE) return NULL;
   return (MEMORY+(next_free-size));
 }
-void free(void*) {
+void free(void*p) {
   return;
 }
 #else
@@ -168,11 +170,11 @@ void free(void*) {
    different zones.
 */
 void *malloc(size_t size) {
-  static char* base="M";
+  static char* const base="M";
 #ifdef FRAMA_C_MALLOC_DEBUG
   CEA_F("Called malloc", base);
 #endif
- return base = Frama_C_alloc_infinite(base);
+  return base = Frama_C_alloc_infinite(base);
 }
 void free(void*) {
   return;

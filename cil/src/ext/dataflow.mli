@@ -40,7 +40,8 @@
 
 (** A framework for data flow analysis for CIL code.  Before using 
     this framework, you must initialize the Control-flow Graph for your
-    program, e.g using [Cfg.computeFileCFG]. *)
+    program, e.g using [Cfg.computeFileCFG]. 
+    @plugin developer guide *)
 
 type 't action = 
     Default (** The default action *)

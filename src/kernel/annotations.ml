@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annotations.ml,v 1.37 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: annotations.ml,v 1.39 2008/07/11 06:36:05 uid570 Exp $ *)
 open Cil_types
 open Db_types
 open Cil
@@ -44,11 +44,11 @@ let add stmt a =
   with Not_found -> AnnotState.add stmt (ref [ a ])
 
 let add_assert stmt ~before a =
-  let a = User (Logic_const.new_code_annotation (AAssert a)) in
+  let a = User (Logic_const.new_code_annotation (AAssert ([],a))) in
   add stmt (if before then Before a else After a)
 
 let add_alarm stmt ~before alarm a =
-  let a = AI (alarm,Logic_const.new_code_annotation (AAssert a)) in
+  let a = AI (alarm,Logic_const.new_code_annotation (AAssert ([],a))) in
   add stmt (if before then Before a else After a)
 
 let reset_stmt = AnnotState.remove

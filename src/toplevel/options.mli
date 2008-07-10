@@ -19,7 +19,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Options and plugins for Frama-C *)
+(** Options and plugins for Frama-C.
+    @plugin developer guide *)
 
 val add_cmdline:
   ?name:string ->
@@ -65,7 +66,9 @@ val add_plugin:
 	string, a [;] is interpreted as a blank separator.
 
         A new section of name [name] is automatically added (see {!add_cmdline})
-        into the command line description. *)
+        into the command line description. 
+
+	@plugin developer guide *)
 
 val has_plugin: string -> bool
   (** [has_plugin name] is [true] iff the plugin [name] has already been
@@ -82,7 +85,8 @@ val parse_cmdline: unit -> unit
       plugins accordingly. *)
 
 val register_plugin_init: (unit -> unit) -> unit
-  (** Register an action to perform at plugin initialization time. *)
+  (** Register an action to perform at plugin initialization time. 
+      @plugin developer guide *)
 
 val initialize_toplevels: unit -> unit
   (** Function called at startup, i.e. toplevels *)

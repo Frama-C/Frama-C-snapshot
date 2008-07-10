@@ -72,7 +72,7 @@ print_project project;;
 (* VP: initial value of 34 does not refer to d++ (was 30) 9 corresponds
    to d++. old ki 34 corresponds to return(X), new ki 13 *)
 print_stmt project kf_f;;
-let ki,_ = Kernel_function.find_from_sid 9(*34*) in (* d++ *)
+let ki,_ = Kernel_function.find_from_sid 10(*34*) in (* d++ *)
 let select = select_data_before_stmt "a" ki project kf_f in
   !S.Request.add_slice_selection_internal project ff_f select;;
 print_requests project;;

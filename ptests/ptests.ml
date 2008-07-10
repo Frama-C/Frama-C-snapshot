@@ -1,12 +1,6 @@
 (** the options to launch the toplevel with if the test file is not
      annotated with test options *)
-let default_options = [ "-val -out -input -deps" ]
-
-(** the list of tests suites to consider *)
-let default_suites =
-[ "idct"; "slicing"; "misc" ; "slicing2" ;
-  "pdg"; "sparecode"; "occurrence";
-    "float" ; "security"; "saveload"; "spec" ]
+let default_options = "-val -out -input -deps"
 
 let () =
   Unix.putenv "FRAMAC_SHARE" (Filename.concat Filename.current_dir_name "share");
@@ -89,7 +83,7 @@ let () = Arg.parse
   "usage: ptests [options] [names of test suites]"
 
 (* redefine config file if special configuration expected *)
-let dir_config_file = 
+let dir_config_file =
   if !special_config = "" then dir_config_file else
     dir_config_file ^ "_" ^ !special_config
 
@@ -100,12 +94,12 @@ let make_toplevel_path exec = exec
 *)
 
 (* redefine oracle directory if special configuration expected *)
-let oracle_dirname = 
+let oracle_dirname =
   if !special_config = "" then "oracle" else
     "oracle_" ^ !special_config
- 
+
 (* redefine result directory if special configuration expected *)
-let result_dirname = 
+let result_dirname =
   if !special_config = "" then "result" else
     "result_" ^ !special_config
 
@@ -128,22 +122,22 @@ type execnow =
 type config =
     {
       dc_test_regexp: string; (** regexp of test files. *)
-      dc_execnow    : execnow option; (** command to be launched before
+      dc_execnow    : execnow list; (** command to be launched before
                                          the toplevel(s)
                                      *)
-      dc_toplevel   : string; (** full path of the toplevel used *)
+      (*dc_toplevel   : string; (** full path of the toplevel used *)*)
       dc_filter     : string option; (** optional filter to apply to
 			      standard output *)
-      dc_options    : string list; (** options to launch the toplevel on *)
+      dc_toplevels    : (string * string) list; 
+      (** troplevel full path and options to launch the toplevel on *)
       dc_dont_run   : bool;
     }
 
 let default_config =
   { dc_test_regexp = test_file_regexp ;
-    dc_execnow = None;
-    dc_toplevel = toplevel_path ;
+    dc_execnow = [];
     dc_filter = None ;
-    dc_options = default_options ;
+    dc_toplevels = [ toplevel_path, default_options ];
     dc_dont_run = false;
   }
 
@@ -155,7 +149,9 @@ let launch command_string =
       Thread.delay 0.1;
       ( match Unix.system command_string with
 	Unix.WEXITED r when r <> 127 -> r
-      | _ -> lock_printf "%% Retry failed, exiting.@."; exit 1 )
+      | _ -> lock_printf "%% Retry failed with command:@\n%s@\nStopping@."
+	  command_string ;
+          exit 1 )
   | Unix.WEXITED r -> r
   | Unix.WSIGNALED s ->
       lock_printf "%% SIGNAL %d received while executing command:@\n%s@\nStopping@."
@@ -184,20 +180,25 @@ let scan_execnow dir (s:string) =
 
 (* how to process options *)
 let config_options =
+  let last_toplevel = ref toplevel_path in
   [ "CMD",
-    (fun _ s (current,rev_opts) ->
-       { current with dc_toplevel = make_toplevel_path s}, rev_opts);
+    (fun _ s (current,rev_toplevels) ->
+       last_toplevel := make_toplevel_path s;
+       current, rev_toplevels);
 
     "OPT",
-    (fun _ s (current,rev_opts) -> current, (s::rev_opts) );
+    (fun _ s (current,rev_toplevels) ->
+       let t = !last_toplevel, s in
+       last_toplevel := toplevel_path;
+       current, (t::rev_toplevels) );
 
     "FILEREG",
-    (fun _ s (current,rev_opts) ->
-       { current with dc_test_regexp = s }, rev_opts );
+    (fun _ s (current,rev_toplevels) ->
+       { current with dc_test_regexp = s }, rev_toplevels );
 
     "FILTER",
-    (fun _ s (current,rev_opts) ->
-       { current with dc_filter = Some s }, rev_opts );
+    (fun _ s (current,rev_toplevels) ->
+       { current with dc_filter = Some s }, rev_toplevels );
 
     "GCC",
     (fun _ _ acc -> acc);
@@ -206,13 +207,14 @@ let config_options =
     (fun _ _ acc -> acc);
 
     "DONTRUN",
-    (fun _ s (current,rev_opts) ->
-       { current with dc_dont_run = true }, rev_opts );
+    (fun _ s (current,rev_toplevels) ->
+       { current with dc_dont_run = true }, rev_toplevels );
 
     "EXECNOW",
-    (fun dir s (current,rev_opts)->
+    (fun dir s (current,rev_toplevels)->
        let execnow = scan_execnow dir s in
-       { current with dc_execnow = Some execnow }, rev_opts);
+       { current with dc_execnow = execnow::current.dc_execnow  }, 
+       rev_toplevels);
   ]
 
 let scan_options dir scan_buffer default =
@@ -237,13 +239,13 @@ let scan_options dir scan_buffer default =
     assert false
   with
     End_of_file ->
-      let rev_options = snd !r in
-      let options =
-	if rev_options = []
-	then default.dc_options
-	else List.rev rev_options
+      let rev_toplevels = snd !r in
+      let toplevels =
+	if rev_toplevels = []
+	then default.dc_toplevels
+	else List.rev rev_toplevels
       in
-      { (fst !r) with dc_options = options }
+      { (fst !r) with dc_toplevels = toplevels }
 
 let scan_test_file default dir f =
   let f = Filename.concat dir f in
@@ -403,75 +405,75 @@ let do_command command =
       if !behavior = Update
       then update_toplevel_command command
       else begin
-          (* Run, Show or Examine *)
-          if !behavior <> Examine
-          then begin
-	      let command_string = command_string command in
-	      if !verbosity >= 1
-	      then lock_printf "%s@." command_string ;
-	      ignore (launch command_string)
-	    end;
-	  lock ();
-	  shared.summary_run <- succ shared.summary_run ;
-	  shared.summary_log <- shared.summary_log + 2 ;
-	  Queue.push (Cmp_Toplevel command) shared.cmps;
-	  unlock ()
-	end
+        (* Run, Show or Examine *)
+        if !behavior <> Examine
+        then begin
+	  let command_string = command_string command in
+	  if !verbosity >= 1
+	  then lock_printf "%s@." command_string ;
+	  ignore (launch command_string)
+	end;
+	lock ();
+	shared.summary_run <- succ shared.summary_run ;
+	shared.summary_log <- shared.summary_log + 2 ;
+	Queue.push (Cmp_Toplevel command) shared.cmps;
+	unlock ()
+      end
   | Target (execnow, cmds) ->
       if !behavior = Update then begin
-	  List.iter (update_log_files execnow.ex_dir) execnow.ex_log;
-          Queue.iter update_command cmds
-	end else
+	List.iter (update_log_files execnow.ex_dir) execnow.ex_log;
+        Queue.iter update_command cmds
+      end else
         begin
           let res =
             if !behavior <> Examine then begin
-		let filenames =
-		  List.fold_left
-		    (fun s f -> s ^ " " ^ make_result_file execnow.ex_dir f)
-		    ""
-		    (execnow.ex_bin @ execnow.ex_log)
-		in
-		(* TODO this should be done with Unix.unlink *)
-		ignore (launch ("rm" ^ filenames ^ " 2> /dev/null"));
-		Mutex.lock shared.lock_target;
-		let r = launch execnow.ex_cmd in
-		Mutex.unlock shared.lock_target;
-		r
-              end else
+	      let filenames =
+		List.fold_left
+		  (fun s f -> s ^ " " ^ make_result_file execnow.ex_dir f)
+		  ""
+		  (execnow.ex_bin @ execnow.ex_log)
+	      in
+	      (* TODO this should be done with Unix.unlink *)
+	      ignore (launch ("rm" ^ filenames ^ " 2> /dev/null"));
+	      Mutex.lock shared.lock_target;
+	      let r = launch execnow.ex_cmd in
+	      Mutex.unlock shared.lock_target;
+	      r
+            end else
 	      0
           in
           lock();
 	  shared.summary_log <- succ shared.summary_log;
           if res = 0
 	  then begin
-	      shared.summary_ok <- succ shared.summary_ok;
-              Queue.transfer shared.commands cmds;
-	      shared.commands <- cmds;
-              Condition.signal shared.work_available;
-	      if !behavior = Examine || !behavior = Run
-	      then begin
-		  List.iter
-		    (fun f -> Queue.push (Cmp_Log(execnow.ex_dir, f)) shared.cmps)
-		    execnow.ex_log
-		end
-            end
+	    shared.summary_ok <- succ shared.summary_ok;
+            Queue.transfer shared.commands cmds;
+	    shared.commands <- cmds;
+            Condition.signal shared.work_available;
+	    if !behavior = Examine || !behavior = Run
+	    then begin
+	      List.iter
+		(fun f -> Queue.push (Cmp_Log(execnow.ex_dir, f)) shared.cmps)
+		execnow.ex_log
+	    end
+          end
 	  else begin
-	      let treat_cmd = function
-		  Toplevel cmd ->
-		    shared.summary_run <- shared.summary_run + 1;
-		    let log_prefix = log_prefix cmd in
-		    begin try
-			Unix.unlink (log_prefix ^ ".res.log ")
-		      with Unix.Unix_error _ -> ()
-		    end;
-		| Target _ -> assert false
-	      in
-	      Queue.iter treat_cmd cmds;
-              Queue.push (Target_error execnow) shared.diffs;
-              Condition.signal shared.diff_available
-            end;
+	    let treat_cmd = function
+		Toplevel cmd ->
+		  shared.summary_run <- shared.summary_run + 1;
+		  let log_prefix = log_prefix cmd in
+		  begin try
+		    Unix.unlink (log_prefix ^ ".res.log ")
+		  with Unix.Unix_error _ -> ()
+		  end;
+	      | Target _ -> assert false
+	    in
+	    Queue.iter treat_cmd cmds;
+            Queue.push (Target_error execnow) shared.diffs;
+            Condition.signal shared.diff_available
+          end;
           unlock()
-        end
+        end      
 
 let log_ext = function Res -> ".res" | Err -> ".err"
 
@@ -639,7 +641,7 @@ let () =
   (* enqueue the test files *)
   let suites =
     match !suites with
-      [] -> default_suites
+      [] -> Config.default_suites
     | l -> List.rev l
   in
   List.iter
@@ -694,14 +696,14 @@ let dispatcher () =
       let file, directory, config = Queue.pop files in
       let config =
         scan_test_file config directory file in
-      let toplevel =
-	if not !use_byte
-	then config.dc_toplevel
-	else opt_to_byte config.dc_toplevel
-      in
       let i = ref 0 in
-      let make_toplevel_cmd option =
-        {file=file; options = option; toplevel = toplevel;
+      let make_toplevel_cmd (toplevel, options) =
+	let toplevel =
+	  if not !use_byte
+	  then toplevel
+	  else opt_to_byte toplevel
+	in
+        {file=file; options = options; toplevel = toplevel;
          n = !i; directory = directory;
 	 filter = config.dc_filter}
       in
@@ -713,21 +715,23 @@ let dispatcher () =
       in
       if not config.dc_dont_run
       then begin
-      (match config.dc_execnow with
-         | Some s ->
+	(match config.dc_execnow with
+	 | hd :: tl ->
+	     List.iter 
+	       (fun s -> 
+		  Queue.push (Target (s, Queue.create ())) shared.commands)
+	       (List.rev tl);
 	     let subworkqueue = Queue.create () in
-	     List.iter (treat_option subworkqueue) config.dc_options;
-             Queue.push
-               (Target (s, subworkqueue))
-               shared.commands
-         | None ->
+	     List.iter (treat_option subworkqueue) config.dc_toplevels;
+	     Queue.push (Target (hd, subworkqueue)) shared.commands
+         | [] ->
              List.iter
 	       (treat_option shared.commands)
-	       config.dc_options);
-      Condition.broadcast shared.work_available;
+	       config.dc_toplevels);
+	Condition.broadcast shared.work_available;
       end;
       unlock () ;
-      done
+    done
   with Queue.Empty ->
     shared.commands_finished <- true;
     unlock ()

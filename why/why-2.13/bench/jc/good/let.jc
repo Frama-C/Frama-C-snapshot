@@ -1,0 +1,8 @@
+
+
+integer f(integer x)
+  behavior default:
+    ensures \result == x+1;
+{
+   return let y=x+1 in y;
+}

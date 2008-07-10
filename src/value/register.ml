@@ -92,6 +92,10 @@ let () =
       Arg.Int Cmdline.AutomaticContextMaxDepth.set,
       Format.sprintf "n : use n as the depth of the default context for value analyses. (defaults to %d)"
         (Cmdline.AutomaticContextMaxDepth.get ());
+      "-context-width",
+      Arg.Int Cmdline.AutomaticContextMaxWidth.set,
+      Format.sprintf "n : use n as the width of the default context for value analyses. (defaults to %d)"
+        (Cmdline.AutomaticContextMaxWidth.get ());
       "-context-valid-pointers",
       Arg.Unit Cmdline.AllocatedContextValid.on,
       Format.sprintf ": context generation will only allocate valid pointers until the -context-depth and then use NULL (defaults to %b)"

@@ -25,46 +25,69 @@
 
 open Cil_types
 
+(** forward reference to current location (see {!Cil.currentLoc})*)
+val dloc: location ref ref
+
 (** {2 Global Tables} *)
-  module LogicInfo: Computation.HASHTBL_OUTPUT
-    with type key = string and type data = Cil_types.logic_info
+module LogicInfo: Computation.HASHTBL_OUTPUT
+  with type key = string and type data = Cil_types.logic_info
 
-  module PredicateInfo: Computation.HASHTBL_OUTPUT
-    with type key = string and type data = Cil_types.predicate_info
+module PredicateInfo: Computation.HASHTBL_OUTPUT
+  with type key = string and type data = Cil_types.predicate_info
 
-  module LogicTypeInfo: Computation.HASHTBL_OUTPUT
-    with type key = string and type data = Cil_types.logic_type_info
+module LogicTypeInfo: Computation.HASHTBL_OUTPUT
+  with type key = string and type data = Cil_types.logic_type_info
 
-  module LogicCtorInfo: Computation.HASHTBL_OUTPUT
-    with type key = string and type data = Cil_types.logic_ctor_info
+module LogicCtorInfo: Computation.HASHTBL_OUTPUT
+  with type key = string and type data = Cil_types.logic_ctor_info
+
 
 (** {2 Shortcuts to the functions of the modules above} *)
 
-  val add_logic_function: logic_info -> unit
-  val add_predicate: predicate_info -> unit
-  val add_logic_type: string -> logic_type_info -> unit
-  val add_logic_ctor: string -> logic_ctor_info -> unit
+(** reset all internal tables. *)
+val reset_all_tables : unit -> unit
 
-  val find_logic_function: string -> logic_info
-  val find_predicate: string -> predicate_info
-  val find_logic_type: string -> logic_type_info
-  val find_logic_ctor: string -> logic_ctor_info
+(** {3 Add an user-defined object} *)
 
-  val is_logic_function: string -> bool
-  val is_predicate: string -> bool
-  val is_logic_type: string -> bool
-  val is_logic_ctor: string -> bool
+val add_logic_function: logic_info -> unit
+val add_predicate: predicate_info -> unit
+val add_logic_type: string -> logic_type_info -> unit
+val add_logic_ctor: string -> logic_ctor_info -> unit
 
-  val remove_logic_function: string -> unit
+
+(** {3 Add a builtin object} *)
+
+module Builtins: sig
+  val apply: unit -> unit
+    (** adds all requested objects in the environment. *)
+  val extend: (unit -> unit) -> unit
+    (** request an addition in the environment. Use one of the functions below
+        in the body of the argument.
+     *)
+end
+
+val add_builtin_logic_function: logic_info -> unit
+val add_builtin_predicate: predicate_info -> unit
+val add_builtin_logic_type: string -> logic_type_info -> unit
+val add_builtin_logic_ctor: string -> logic_ctor_info -> unit
+
+(** {3 searching the environment} *)
+val find_logic_function: string -> logic_info
+val find_predicate: string -> predicate_info
+val find_logic_type: string -> logic_type_info
+val find_logic_ctor: string -> logic_ctor_info
+
+(** {3 tests of existence} *)
+val is_logic_function: string -> bool
+val is_predicate: string -> bool
+val is_logic_type: string -> bool
+val is_logic_ctor: string -> bool
+
+(** {3 removing} *)
+val remove_logic_function: string -> unit
 
 (** {2 Internal use} *)
-  (** Used to postpone dependency of Lenv global tables wrt Cil_state, which
-      is initialized afterwards.
-   *)
-  val init_dependencies: Project.Computation.t -> unit
-
-  module Builtins: sig 
-    val apply: unit -> unit 
-    val extend: (unit -> unit) -> unit
-  end
-
+(** Used to postpone dependency of Lenv global tables wrt Cil_state, which
+    is initialized afterwards.
+*)
+val init_dependencies: Project.Computation.t -> unit

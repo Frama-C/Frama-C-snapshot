@@ -1,7 +1,6 @@
 /* run.config
-   DONTRUN: named predicates not supported yet
+   DONTRUN: static local variables & specifications
  */
-/* This code is AIRBUS property */
 typedef int INTEGER;
 
 typedef enum {TRUE=1, FALSE=0} BOOLEAN;
@@ -11,7 +10,7 @@ typedef enum {TRUE=1, FALSE=0} BOOLEAN;
 
 extern INTEGER E1[], S1[];
 
-/*@ // proposition avec requires dans les behaviors
+/* @ // proposition avec requires dans les behaviors
   requires k >= 0;
   ensures PREC_I_RE1==E1[k];
 

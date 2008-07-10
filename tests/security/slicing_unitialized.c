@@ -9,7 +9,7 @@ typedef struct {
 
 msg msg3;
 
-/*@ requires security_status(data) == public();
+/*@ requires security_status(data) == public;
   assigns \nothing; */
 void send_data(char *data);
 

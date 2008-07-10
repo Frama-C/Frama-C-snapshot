@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap_whole.mli,v 1.11 2008/04/01 09:25:21 uid568 Exp $ i*)
+(*i $Id: lmap_whole.mli,v 1.12 2008/06/12 14:26:18 uid528 Exp $ i*)
 
 (** Functor making map for whole values with locations as keys *)
 
@@ -126,7 +126,6 @@ sig
       *)
     val create_initial :
       base:Base.t ->
-      size:int ->
       v:y ->
       modu:Int.t ->
       state:t -> t

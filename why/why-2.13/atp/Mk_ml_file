@@ -1,0 +1,4 @@
+echo "open Num;;"
+echo "open Format;;"
+
+cat $@ | sed 's/START_INTERACTIVE;;/(\*/' | sed 's/END_INTERACTIVE;;/\*)/'

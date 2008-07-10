@@ -1,0 +1,59 @@
+(why
+ (zwf_wf 0
+  (zwf_wf-1 nil 3256035585 nil ("" (postpone) nil nil) unfinished nil
+   nil nil nil nil)))
+(why_arrays)
+(why_int_array_pred
+ (sorted_array_TCC1 0
+  (sorted_array_TCC1-1 nil 3256035584 nil nil untried nil nil nil nil
+   shostak))
+ (sorted_array_TCC2 0
+  (sorted_array_TCC2-1 nil 3256035584 nil nil untried nil nil nil nil
+   shostak)))
+(why_array_pred
+ (array_id_TCC1 0
+  (array_id_TCC1-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (array_id_TCC2 0
+  (array_id_TCC2-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (exchange_TCC1 0
+  (exchange_TCC1-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (exchange_TCC2 0
+  (exchange_TCC2-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (exchange_TCC3 0
+  (exchange_TCC3-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (exchange_TCC4 0
+  (exchange_TCC4-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (exchange_TCC5 0
+  (exchange_TCC5-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (exchange_TCC6 0
+  (exchange_TCC6-1 nil 3256035585 nil nil untried nil nil nil nil
+   shostak))
+ (permut_exchange 0
+  (permut_exchange-1 nil 3256035585 3256035623 ("" (postpone) nil nil)
+   unfinished nil 14961 280 t shostak))
+ (permut_refl 0
+  (permut_refl-1 nil 3256035585 nil nil nil nil nil nil nil shostak))
+ (permut_sym 0
+  (permut_sym-1 nil 3256035585 nil nil nil nil nil nil nil shostak))
+ (permut_trans 0
+  (permut_trans-1 nil 3256035585 nil nil nil nil nil nil nil shostak))
+ (sub_permut_exchange 0
+  (sub_permut_exchange-1 nil 3256035585 nil nil nil nil nil nil nil
+   shostak))
+ (sub_permut_refl 0
+  (sub_permut_refl-1 nil 3256035585 nil nil nil nil nil nil nil
+   shostak))
+ (sub_permut_sym 0
+  (sub_permut_sym-1 nil 3256035585 nil nil nil nil nil nil nil
+   shostak))
+ (sub_permut_trans 0
+  (sub_permut_trans-1 nil 3256035585 nil nil nil nil nil nil nil
+   shostak)))
+

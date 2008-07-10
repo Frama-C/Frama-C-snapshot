@@ -90,7 +90,8 @@ let get_definitionloc (d : definition) : cabsloc =
   | TRANSFORMER(_, _, l) -> l
   | EXPRTRANSFORMER(_, _, l) -> l
   | LINKAGE (_, l, _) -> l
-  | GLOBANNOT(_,l) -> l
+  | GLOBANNOT((l,_)::_) -> l
+  | GLOBANNOT [] -> assert false
 
 let get_statementloc (s : statement) : cabsloc =
 begin

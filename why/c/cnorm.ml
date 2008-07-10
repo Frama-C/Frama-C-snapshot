@@ -27,7 +27,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: cnorm.ml,v 1.110 2008/02/05 12:10:47 marche Exp $ i*)
+(*i $Id: cnorm.ml,v 1.114 2008/05/28 14:53:34 marche Exp $ i*)
 
 open Creport
 open Cconst
@@ -86,7 +86,14 @@ let declare_arrow_var info =
   try  
     let info' = Hashtbl.find arrow_vars info.var_name in
     if not (same_why_type_no_zone info.var_why_type info'.var_why_type) then
-      assert false;
+      begin
+	let t1 = output_why_type info.var_why_type
+	and t2 = output_why_type info'.var_why_type
+	in
+	Format.eprintf "anomaly: unify why types `%a' and `%a'@."
+	  Output.fprintf_logic_type t1 Output.fprintf_logic_type t2;
+      assert false
+      end;
     info'
   with Not_found ->
     Hashtbl.add arrow_vars info.var_name info;
@@ -133,12 +140,12 @@ let type_why_table = Hashtbl.create 97
 
 let why_type_for_float_kind fk =
   if Coptions.floats then match fk with
-    | Float -> "single"
-    | Double -> "double"
-    | LongDouble -> "quad"
-    | Real -> "real"
+    | Float ->  Why_Logic "single"
+    | Double ->  Why_Logic "double"
+    | LongDouble ->  Why_Logic "quad"
+    | Real -> Info.Real
   else
-    "real"
+    Info.Real
 
 let why_type_for_float t = match t.Ctypes.ctype_node with
   | Tfloat fk -> why_type_for_float_kind fk
@@ -153,6 +160,33 @@ let why_type_for_int t = match t.Ctypes.ctype_node with
   | Tint ik -> why_type_for_int_kind ik
   | Tenum _ -> Info.Int (*TODO*)
   | _ -> assert false
+
+let why_type_op op =
+  match op with
+    | Bsub_pointer 
+    | Blt_pointer | Bgt_pointer | Ble_pointer 
+    | Bge_pointer | Beq_pointer | Bneq_pointer
+	-> Info.Int
+    | Bneq_float _ | Beq_float _ | Bge_float _
+    | Ble_float _ | Bgt_float _ | Blt_float _ 
+	-> Info.Int
+    | Bdiv_float _ | Bmul_float _ | Bsub_float _ | Badd_float _
+	-> Info.Real
+    | Bmod_int _|Bdiv_int _| Bmul_int _|Bsub_int _|Badd_int _
+	  -> Info.Int
+    | Badd_pointer_int -> assert false
+    | Bneq_int | Beq_int | Bge_int
+    | Ble_int | Bgt_int | Blt_int
+	  -> Info.Int
+    | Bshift_right | Bshift_left 
+	  -> Info.Int
+    | Bor | Band | Bbw_or | Bbw_xor| Bbw_and
+	  -> Info.Int
+    | Bneq | Beq | Bge | Ble | Bgt | Blt 
+	  -> Info.Int
+    | Bmod | Bdiv | Bmul | Bsub | Badd
+	  -> assert false
+
 
 let rec type_why e =
   match e.nexpr_node with
@@ -176,7 +210,7 @@ let rec type_why e =
 	why_type_for_int_kind ik
     | NEconstant (RealConstant x) -> 
 	let _,fk = Ctyping.float_constant_type x in 
-	Why_Logic (why_type_for_float_kind fk)
+	why_type_for_float_kind fk
     | NEstring_literal s ->  Pointer (make_zone false)
     | NEseq (e1,e2) -> 
 	type_why e2 
@@ -184,14 +218,11 @@ let rec type_why e =
 	type_why e
     | NEassign_op (l,op,e) -> 
 	type_why e
-    | NEbinary (e1,Bsub_pointer,e2) | NEbinary (e1,Blt_pointer,e2) 
-    | NEbinary (e1,Bgt_pointer,e2) | NEbinary (e1,Ble_pointer,e2)     
-    | NEbinary (e1,Bge_pointer,e2) | NEbinary (e1,Beq_pointer,e2)     
-    | NEbinary (e1,Bneq_pointer,e2) -> 
-	Info.Int
+    | NEbinary (e, Badd_pointer_int, _) -> type_why e
+    | NEbinary (_, op, _) -> why_type_op op
     | NEunary ((Ufloat_conversion | Ufloat_of_int), _) 
     | NEcast ({Ctypes.ctype_node = Tfloat _}, _) -> 
-	Why_Logic (why_type_for_float e.nexpr_type)
+	why_type_for_float e.nexpr_type
 (*
     | NEcast (ty,e') -> 
 	unsupported e.nexpr_loc "separation analysis do no support casts"
@@ -205,9 +236,7 @@ let rec type_why e =
 	end
     | NEunary (_,e) 
     | NEincr (_,e) 
-    | NEbinary (e,_,_) 
-    | NEcond (_,_,e) -> 
-	type_why e
+    | NEcond (_,_,e) -> type_why e
     | NEcall {ncall_fun = e; ncall_zones_assoc = assoc } ->
 	let tw = type_why e in
 	rename_zone assoc tw 
@@ -225,8 +254,7 @@ let rec type_why_for_term t =
     | NTconstant (RealConstant _)
     | NTunop ((Clogic.Usqrt_real | Clogic.Uabs_real 
 	      |Clogic.Uround_error | Clogic.Utotal_error
-	      |Clogic.Uexact | Clogic.Umodel), _) ->
-	Info.Why_Logic "real"
+	      |Clogic.Uexact | Clogic.Umodel), _) -> Info.Real
     | NTvar v -> v.var_why_type
     | NTapp {napp_pred = f; napp_zones_assoc = assoc } -> 
 	rename_zone assoc f.logic_why_type
@@ -235,7 +263,7 @@ let rec type_why_for_term t =
 	type_why_for_term t
     | NTunop (Clogic.Ustar,_) | NTunop (Clogic.Uamp,_) -> assert false
     | NTunop ((Clogic.Ufloat_of_int | Clogic.Ufloat_conversion),_) -> 
-	Info.Why_Logic (why_type_for_float t.nterm_type)
+	why_type_for_float t.nterm_type
     | NTunop ((Clogic.Uint_of_float | Clogic.Uint_conversion),_) -> 
 	why_type_for_int t.nterm_type
     | NTbinop (t1,Clogic.Bsub,t2) -> 
@@ -788,15 +816,11 @@ let loop_annot a =
 let logic_symbol l =
   match l with
     | Predicate_reads(param_list,loc_list) ->
-	NPredicate_reads(List.map (fun (v,t) -> (v,t)) param_list,
-			List.map nlocation loc_list)
+	NPredicate_reads(param_list, List.map nlocation loc_list)
     | Predicate_def  (param_list , p ) ->
-	NPredicate_def(List.map (fun (v,t) -> (v,t)) param_list,
-		      predicate p)
-    | Function (l1 , c , l2) -> NFunction (
-	List.map (fun (var,c) -> (var,c)) l1,
-	c,
-	List.map nlocation l2)
+	NPredicate_def(param_list, predicate p)
+    | Function (l1 , c , l2) -> 
+	NFunction (l1,c,List.map nlocation l2)
     | Function_def (param_list, t, e) ->
 	NFunction_def (param_list, t, term e)
 

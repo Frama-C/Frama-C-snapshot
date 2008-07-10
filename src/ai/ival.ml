@@ -19,6 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Arithmetic lattices.
+    @plugin developer guide *)
+
 open Abstract_interp
 
 module N = struct type t = int let n = 7 end

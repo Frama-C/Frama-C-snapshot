@@ -28,35 +28,30 @@ open PdgIndex
  * a function inputs [in_marks]. 
  *)
 let in_marks_to_caller pdg call m2m ?(rqs=[]) in_marks =
-  let build pdg call rqs (in_key, m) =
-    let new_rqs = match in_key with
-      | Signature.InTop -> 
-          (try [PdgMarks.SelNode (!Db.Pdg.find_call_topin_node pdg call)]
-          with Not_found -> 
-          (* Impossible : if there is a call to a function with a Top input,
-          * the caller function should also have a Top input. *)
-            assert false )
+  let add_n_m acc n z_opt m = 
+    let select = PdgMarks.mk_select_node ~z_opt n in
+    match m2m select m with 
+      | None -> acc
+      | Some m -> PdgMarks.add_to_select acc select m
+  in
+  let build rqs (in_key, m) =
+    match in_key with
       | Signature.InCtrl -> 
-          [PdgMarks.SelNode (!Db.Pdg.find_call_ctrl_node pdg call)]
+          add_n_m rqs (!Db.Pdg.find_call_ctrl_node pdg call) None m
       | Signature.InNum in_num -> 
-          [PdgMarks.SelNode (!Db.Pdg.find_call_input_node pdg call in_num)]
+          add_n_m rqs (!Db.Pdg.find_call_input_node pdg call in_num) None m
       | Signature.InImpl zone -> 
           let nodes, undef =
             !Db.Pdg.find_location_nodes_at_stmt pdg call ~before:true zone
           in 
-          let sel = List.map (fun n -> PdgMarks.SelNode n) nodes in
-          let sel =
-            if (Locations.Zone.equal Locations.Zone.bottom undef) then sel
-            else (PdgMarks.SelIn undef)::sel
-          in sel
-    in let add acc s = match m2m s m with
-        | None -> acc
-        | Some m -> (s, m)::acc
-    in 
-    let rqs = List.fold_left add rqs new_rqs in
-      rqs
-  in
-    List.fold_left (build pdg call) rqs in_marks
+          let rqs = 
+            List.fold_left (fun acc (n,z) -> add_n_m acc n z m) rqs nodes in
+          let rqs = match undef with None -> rqs
+            | Some z -> 
+               match m2m (PdgMarks.mk_select_undef_zone z) m with None -> rqs
+                 | Some m -> PdgMarks.add_undef_in_to_select rqs undef m
+          in rqs
+  in List.fold_left build rqs in_marks
 
 (** some new input marks has been added in a called function.
  * Build the list of what is to be propagated in the callers. *)
@@ -79,10 +74,10 @@ let translate_in_marks pdg_called in_new_marks
 let call_out_marks_to_called called_pdg m2m ?(rqs=[]) out_marks =
   let build rqs (out_key, m) =
     let nodes, undef = Sets.find_output_nodes called_pdg out_key in
-    let sel = List.map (fun n -> PdgMarks.SelNode n) nodes in
-    let sel =
-      if (Locations.Zone.equal Locations.Zone.bottom undef) then sel
-      else (PdgMarks.SelIn undef)::sel
+    let sel = 
+      List.map (fun (n, z_opt) -> PdgMarks.mk_select_node ~z_opt n) nodes in
+    let sel = match undef with None -> sel
+      | Some undef -> (PdgMarks.mk_select_undef_zone undef)::sel
     in
     let add acc s = match m2m s m with
         | None -> acc
@@ -93,8 +88,7 @@ let call_out_marks_to_called called_pdg m2m ?(rqs=[]) out_marks =
   in
     List.fold_left build rqs out_marks
 
-
-let translate_out_mark m2m other_rqs (call, l) =
+let translate_out_mark _pdg m2m other_rqs (call, l) =
   let add_list l_out_m rqs called_kf =
     try
       let called_pdg = !Db.Pdg.get called_kf in
@@ -128,7 +122,7 @@ let translate_out_mark m2m other_rqs (call, l) =
         other_rqs =
     let in_marks, out_marks = new_marks in
     let other_rqs = translate_in_marks pdg in_marks ~m2m:in_m2m other_rqs in
-      List.fold_left (translate_out_mark out_m2m) other_rqs out_marks
+      List.fold_left (translate_out_mark pdg out_m2m) other_rqs out_marks
 
 
 (** To also use interprocedural propagation, the user can instantiate this
@@ -173,7 +167,7 @@ module F_Proj (C : PdgMarks.T_Config) :
   let apply_fct_rqs proj (pdg, mark_list) other_rqs =
     match mark_list with 
       | [] -> (* don't want to build the marks when calling [get]
-                when there is nothing to do... *) 
+                if there is nothing to do... *) 
           other_rqs
       | _ ->
           let fm = get proj pdg in

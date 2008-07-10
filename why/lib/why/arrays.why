@@ -34,7 +34,7 @@ parameter array_set :
 (* Sorted arrays *)
 
 predicate sorted_array(t:int farray, i:int, j:int) = 
-  forall k:int. i <= k < j -> t[k] <= t[k+1]
+  forall k1,k2:int. i <= k1 <= k2 <= j -> t[k1] <= t[k2]
 
 logic array_le : int farray, int, int, int -> prop
 logic array_ge : int farray, int, int, int -> prop

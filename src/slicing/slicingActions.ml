@@ -28,6 +28,8 @@
 
 (**/**)
 
+module P = PdgTypes
+
 module T = SlicingTypes.Internals
 module M = SlicingMacros
 module Marks = SlicingMarks
@@ -106,21 +108,22 @@ let translate_crit_to_select pdg ?(to_select=[]) list_crit =
   let translate acc (nodes, nd_mark) =
     let add_pdg_mark acc (nd, mark) =
       let add_nodes m acc nodes = 
-        let add m acc node = 
-          PdgMarks.add_node_to_select acc node m 
+        let add m acc nodepart = 
+          PdgMarks.add_node_to_select acc nodepart m 
         in
           List.fold_left (add m) acc nodes
       in
-      let add_node_dpds dpd_mark f_dpds acc node =
-        add_nodes dpd_mark acc (f_dpds node) 
+      let add_node_dpds dpd_mark f_dpds acc (node, _node_z_part) =
+        let nodes = f_dpds node in
+        add_nodes dpd_mark acc nodes
       in
       let acc = match nd with
         | T.CwNode -> add_nodes mark acc nodes
-        | T.CwAddrDpds -> let f = !Db.Pdg.direct_addr_dpds pdg in
+        | T.CwAddrDpds -> let f = P.Pdg.get_x_direct_dpds P.Dpd.Addr  pdg in
             List.fold_left (add_node_dpds mark f) acc nodes
-        | T.CwCtrlDpds -> let f = !Db.Pdg.direct_ctrl_dpds pdg in
+        | T.CwCtrlDpds -> let f = P.Pdg.get_x_direct_dpds P.Dpd.Ctrl pdg in
             List.fold_left (add_node_dpds mark f) acc nodes
-        | T.CwDataDpds -> let f = !Db.Pdg.direct_data_dpds pdg in
+        | T.CwDataDpds -> let f = P.Pdg.get_x_direct_dpds P.Dpd.Data pdg in
             List.fold_left (add_node_dpds mark f) acc nodes
       in acc
     in List.fold_left add_pdg_mark acc nd_mark
@@ -170,7 +173,7 @@ let mk_crit_mark_calls fi_caller to_call mark =
     let call_stmts = !Db.Pdg.find_call_stmts ~caller to_call in
     let stmt_mark stmt = 
       let stmt_ctrl_node = !Db.Pdg.find_call_ctrl_node pdg_caller stmt in
-        (PdgMarks.SelNode stmt_ctrl_node, mark)
+        (PdgMarks.mk_select_node stmt_ctrl_node, mark)
     in
     let select = List.map stmt_mark call_stmts in
       T.CuSelect select
@@ -219,12 +222,13 @@ let print_nodes fmt nodes =
   let print n = Format.fprintf fmt "n%a " (!Db.Pdg.pretty_node true) n in
     List.iter print nodes
 
-let print_node_mark fmt n m =
-  Format.fprintf fmt "(n%a ,%a)" (!Db.Pdg.pretty_node true) n Marks.pretty_mark m
+let print_node_mark fmt n z m =
+  Format.fprintf fmt "(%a ,%a)" 
+    (PdgTypes.Node.pretty_with_part) (n, z) Marks.pretty_mark m
 
 let print_sel_marks_list fmt to_select =
   let print_sel (s, m) = match s with 
-    | PdgMarks.SelNode n -> print_node_mark fmt n m
+    | PdgMarks.SelNode (n, z) -> print_node_mark fmt n z m
     | PdgMarks.SelIn l -> 
         Format.fprintf fmt "(UndefIn %a:%a)" 
           Locations.Zone.pretty l Marks.pretty_mark m

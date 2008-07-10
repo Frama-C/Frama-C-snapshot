@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: norm.ml,v 1.80 2008/05/23 16:55:39 uid570 Exp $ *)
+(* $Id: norm.ml,v 1.87 2008/07/11 13:28:14 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -31,6 +31,40 @@ open Extlib
 (* Utility functions *)
 open Common
 open Integer
+
+
+(*****************************************************************************)
+(* Rename entities to avoid conflicts with Jessie predefined names.          *)
+(*****************************************************************************)
+
+class renameEntities =
+object
+
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+
+  method vannotation = function
+    | Dpredicate_reads(info,_poly,_params,_)
+    | Dpredicate_def(info,_poly,_params,_) ->
+	info.p_name <- unique_name info.p_name;
+	DoChildren
+    | Dlogic_reads(info,_poly,_params,_rt,_)
+    | Dlogic_def(info,_poly,_params,_rt,_) ->
+	info.l_name <- unique_name info.l_name;
+	DoChildren
+    | Dtype_annot info | Dinvariant info ->
+	info.p_name <- unique_name info.p_name;
+	DoChildren
+    | Dlemma(name,is_axiom,labels,poly,property) ->
+	let lem = Dlemma(unique_name name,is_axiom,labels,poly,property) in
+	ChangeDoChildrenPost(lem, fun x -> x)
+    | Dtype _ -> DoChildren (* TODO: when FS#338 corrected *)
+
+end
+
+let rename_entities file =
+  let visitor = new renameEntities in
+  visitCilFile (visitor :> cilVisitor) file
 
 
 (*****************************************************************************)
@@ -98,9 +132,9 @@ class retypeArrayVariables =
 	    | Index(ie,NoOffset) ->
 		let ptrty = TPtr(element_type ty,[]) in
 		BinOp(PlusPI,Lval(Var strawv,NoOffset),ie,ptrty)
-	    | Index _ | Field _ -> 
+	    | Index _ | Field _ ->
 		(* Field with address taken treated separately *)
-		StartOf(Mem(Lval(Var strawv,NoOffset)),off) 
+		StartOf(Mem(Lval(Var strawv,NoOffset)),off)
 	else e
     | AddrOf(Var v,off) ->
 	if VarinfoSet.mem v !varset then
@@ -111,9 +145,9 @@ class retypeArrayVariables =
 		let ptrty = TPtr(element_type ty,[]) in
 		BinOp(PlusPI,Lval(Var strawv,NoOffset),ie,ptrty)
 	    | NoOffset -> assert false
-	    | Index _ | Field _ -> 
+	    | Index _ | Field _ ->
 		(* Field with address taken treated separately *)
-		AddrOf(Mem(Lval(Var strawv,NoOffset)),off) 
+		AddrOf(Mem(Lval(Var strawv,NoOffset)),off)
 	else e
     | BinOp(PlusPI,e1,e2,opty) ->
 	begin match stripInfo e1 with
@@ -182,11 +216,11 @@ object(self)
     SkipChildren
 
   method vquantifiers vl =
-    List.iter (fun v -> 
+    List.iter (fun v ->
 		 (* Only iterate on logic variable with C type *)
 		 if app_term_type (fun _ -> true) false v.lv_type then
-		   match v.lv_origin with 
-		     | None -> 
+		   match v.lv_origin with
+		     | None ->
 			 assert false (* Not expected with current implem *)
 		     | Some v -> ignore (self#vvdec v)
 		 else ()
@@ -194,10 +228,10 @@ object(self)
     DoChildren
 
   method vlogic_var v =
-    if app_term_type isArrayType false v.lv_type then 
+    if app_term_type isArrayType false v.lv_type then
       begin match v.lv_origin with
 	| None -> assert false (* Not expected with current implem *)
-	| Some cv -> 
+	| Some cv ->
 	    let strawv = VarinfoHashtbl.find var_to_strawvar cv in
 	    assert (not (isArrayType strawv.vtype));
 	    v.lv_type <- Ctype strawv.vtype
@@ -223,9 +257,13 @@ object(self)
 	      constant_term v.vdecl (size - 1L))
 	  in
 	  let globinv =
-	    Dinvariant(unique_name ("valid_" ^ v.vname),predicate v.vdecl p)
+            { p_name = unique_name ("valid_" ^ v.vname);
+              p_profile = [];
+              p_labels = [ LogicLabel "Here" ];
+              p_body = PDefinition (predicate v.vdecl p)}
 	  in
-	  attach_global (GAnnot(globinv,v.vdecl))
+          attach_globaction (fun () -> Logic_env.add_predicate globinv);
+	  attach_global (GAnnot(Dinvariant globinv,v.vdecl))
 	else ();
 	DoChildren
     | GVarDecl _ | GFun _ | GAnnot _ -> DoChildren
@@ -367,13 +405,15 @@ object
 	  ChangeDoChildrenPost
 	    (Dlogic_def(name,poly,params,rt,t), fun x -> x)
       | Dtype_annot annot ->
-	  begin match annot.this_type with
+	  begin match (List.hd annot.p_profile).lv_type with
 	    | Ctype ty when isStructOrUnionType ty ->
 		change_this_type := true;
-		this_name := annot.this_name;
+		this_name := (List.hd annot.p_profile).lv_name;
 		let annot = { annot with
-		  this_type = Ctype(mkTRef ty);
-		} in
+                                p_profile = [{ (List.hd annot.p_profile) with
+                                                 lv_type = Ctype(mkTRef ty)}];
+		}
+                in
 		ChangeDoChildrenPost
 		  (Dtype_annot annot, fun x -> change_this_type := false; x)
 	    | Ctype _ | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ ->
@@ -732,11 +772,11 @@ object(self)
     SkipChildren
 
   method vquantifiers vl =
-    List.iter (fun v -> 
+    List.iter (fun v ->
 		 (* Only iterate on logic variable with C type *)
 		 if app_term_type (fun _ -> true) false v.lv_type then
-		   match v.lv_origin with 
-		     | None -> 
+		   match v.lv_origin with
+		     | None ->
 			 assert false (* Not expected with current implem *)
 		     | Some v -> ignore (self#vvdec v)
 		 else ()
@@ -746,8 +786,8 @@ object(self)
   method vlogic_var v =
     (* Only iterate on logic variable with C type *)
     if app_term_type (fun _ -> true) false v.lv_type then
-      match v.lv_origin with 
-	| None -> 
+      match v.lv_origin with
+	| None ->
 	    assert false (* Not expected with current implem *)
 	| Some v -> ChangeTo (cvar_to_lvar v)
     else SkipChildren
@@ -767,10 +807,14 @@ object(self)
 		    constant_term v.vdecl 0L,
 		    constant_term v.vdecl 0L)
 		in
-		let globinv =
-		  Dinvariant(unique_name ("valid_" ^ v.vname),predicate v.vdecl p)
-		in
-		attach_global (GAnnot(globinv,v.vdecl))
+	        let globinv =
+                  { p_name = unique_name ("valid_" ^ v.vname);
+                    p_profile = [];
+                    p_labels = [ LogicLabel "Here" ];
+                    p_body = PDefinition (predicate v.vdecl p)}
+	        in
+                attach_globaction (fun () -> Logic_env.add_predicate globinv);
+	        attach_global (GAnnot(Dinvariant globinv,v.vdecl))
 	      else ();
 	      g
 	  | _ -> assert false
@@ -1071,7 +1115,7 @@ class retypeFields =
       | Index (e, Field (fi,off)) ->
 	  (Index (e, Field (fi, NoOffset))) :: offset_list off
       | Index (_idx, NoOffset) as off -> [off]
-      | Index (idx, (Index _ as off)) -> 
+      | Index (idx, (Index _ as off)) ->
 	  assert (not !flatten_multi_dim_array);
 	  Index(idx,NoOffset) :: offset_list off
     in
@@ -1090,8 +1134,8 @@ class retypeFields =
 	  Index (idx,roff)
       | NoOffset -> NoOffset
     in
-    let off = 
-      if !flatten_multi_dim_array then apply_lift_offset off else off 
+    let off =
+      if !flatten_multi_dim_array then apply_lift_offset off else off
     in
     (* [initlv] : topmost lval
      * [initlist] : list of offsets to apply to topmost lval
@@ -1122,10 +1166,11 @@ class retypeFields =
 	 * Do not check it though, because type was modified in place.
 	 *)
 	Lval lv
-    | AddrOf(Mem e,Index(ie,NoOffset))
-    | StartOf(Mem e,Index(ie,NoOffset)) ->
+    | AddrOf(Mem e,Index(ie,NoOffset)) ->
 	let ptrty = TPtr(typeOf e,[]) in
 	BinOp(PlusPI,e,ie,ptrty)
+    | StartOf(Mem _e,Index(_ie,NoOffset) as lv) ->
+	Lval lv
     | AddrOf(Mem _e,Index(_ie,Field(_,NoOffset)) as lv)
     | StartOf(Mem _e,Index(_ie,Field(_,NoOffset)) as lv) ->
 	Lval lv
@@ -1189,6 +1234,27 @@ let retype_fields file =
 
 
 (*****************************************************************************)
+(* Retype type tags.                                                         *)
+(*****************************************************************************)
+
+class retypeTypeTags =
+object
+
+  inherit Visitor.generic_frama_c_visitor
+    (Project.current ()) (Cil.inplace_visit ()) as super
+
+  method vterm t = match t.term_node with
+    | Ttype ty -> ChangeTo ({ t with term_node = Ttype(TPtr(ty,[])) })
+    | _ -> DoChildren
+
+end 
+
+let retype_type_tags file =
+  let visitor = new retypeTypeTags in
+  visitCilFile (visitor :> cilVisitor) file
+
+
+(*****************************************************************************)
 (* Retype pointers to base types.                                            *)
 (*****************************************************************************)
 
@@ -1213,10 +1279,8 @@ class retypeBasePointer =
     let compinfo =
       mkCompInfo true wrapper_name
 	(fun _ ->
-	   (* Commented until FS#306 corrected:
-	      if isVoidType ty then [] else 
-	   *) 
-	   [field_name,ty,None,[],locUnknown]
+	   if isVoidType ty then [] else
+	     [field_name,ty,None,[],locUnknown]
 	) []
     in
     let tdef = GCompTag(compinfo,locUnknown) in
@@ -1228,7 +1292,7 @@ object(self)
 
   (* Helper methods called on the [self] object *)
 
-  method private new_wrapper_for_type ty =
+  method new_wrapper_for_type ty =
     (* Currently, do not make any difference between a pointer to const T
      * or volatile T and a pointer to T.
      *)
@@ -1330,6 +1394,10 @@ object(self)
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit ()) as super
 
+  method vfile _ =
+    Common.struct_type_for_void := self#new_wrapper_for_type voidType;
+    DoChildren
+
   method vtype ty =
     let ty = match self#wrap_type_if_needed ty with
       | Some newty -> newty
@@ -1396,12 +1464,12 @@ class removeUselessCasts =
 	  let ety = typeOf e in
 	  if isPointerType ty && isPointerType ety then
 	    (* Ignore type qualifiers *)
-	    let tysig = 
-	      typeSig (typeRemoveAttributes ["const";"volatile"] 
-			 (unrollType (pointed_type ty))) 
+	    let tysig =
+	      typeSig (typeRemoveAttributes ["const";"volatile"]
+			 (unrollType (pointed_type ty)))
 	    in
-	    let etysig = 
-	      typeSig (typeRemoveAttributes ["const";"volatile"] 
+	    let etysig =
+	      typeSig (typeRemoveAttributes ["const";"volatile"]
 			 (unrollType (pointed_type ety)))
 	    in
 	    if Cilutil.equals tysig etysig then
@@ -1501,23 +1569,23 @@ object
     | Mem _, Index _ ->
 	Errormsg.s (bug "bad at loc %a@." d_loc !currentLoc)
 
-  method vpredicate = function
-    | PInstanceOf(t,ty) ->
-	begin match t.term_type with
-	| Ctype origty ->
-	    if is_reference_type origty then
-	      let scety = pointed_type origty in
-	      try
-		let newty = Hashtbl.find field_type_to_equiv_type
-		  (typeSig scety,typeSig ty) in
-		ChangeTo(PInstanceOf(t,TPtr(newty,[])))
-	      with Not_found ->
-		Errormsg.s (bug "pbm type : %a,%a@."
-                       !Ast_printer.d_type scety !Ast_printer.d_type ty)
-	    else Errormsg.s (bug "pbm type : %a@." !Ast_printer.d_type origty)
-	| _ -> assert false
-	end
-    | _ -> DoChildren
+(*   method vpredicate = function *)
+(*     | PInstanceOf(t,ty) -> *)
+(* 	begin match t.term_type with *)
+(* 	| Ctype origty -> *)
+(* 	    if is_reference_type origty then *)
+(* 	      let scety = pointed_type origty in *)
+(* 	      try *)
+(* 		let newty = Hashtbl.find field_type_to_equiv_type *)
+(* 		  (typeSig scety,typeSig ty) in *)
+(* 		ChangeTo(PInstanceOf(t,TPtr(newty,[]))) *)
+(* 	      with Not_found -> *)
+(* 		Errormsg.s (bug "pbm type : %a,%a@." *)
+(*                        !Ast_printer.d_type scety !Ast_printer.d_type ty) *)
+(* 	    else Errormsg.s (bug "pbm type : %a@." !Ast_printer.d_type origty) *)
+(* 	| _ -> assert false *)
+(* 	end *)
+(*     | _ -> DoChildren *)
 
 end
 
@@ -1568,6 +1636,11 @@ let remove_array_address file =
 open Pervasives
 
 let normalize file =
+  if checking then check_types file;
+  (* Rename entities to avoid conflicts with Jessie predefined names. *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Rename entities@.";
+  rename_entities file;
   if checking then check_types file;
   (* Retype variables of array type. *)
   (* order: before [expand_struct_assign] and any other pass which calls
@@ -1632,6 +1705,12 @@ let normalize file =
   if Cmdline.Debug.get () >= 1 then
     Format.printf "Remove array address@.";
   remove_array_address file;
+  if checking then check_types file;
+  (* Retype type tags. *)
+  (* order: before [retype_base_pointer] *)
+  if Cmdline.Debug.get () >= 1 then
+    Format.printf "Retype type tags@.";
+  retype_type_tags file;
   if checking then check_types file;
   (* Retype pointers to base types. *)
   (* order: after [retype_fields] *)

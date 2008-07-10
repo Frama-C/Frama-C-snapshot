@@ -743,19 +743,23 @@ module Make (X : Endianness.S) (V : Tagged_type)
 
 	add m
       in
-      let _name, cache = cache in
-
-      let module Symcacheable = 
+      let _name, _cache = cache in
+      
+      let module Result = 
 	  struct
-	    type result = t
-	    type t = result
-	    let hash = tag
-	    let size = cache
-	    let sentinel = Empty
-	    let sentinel_result = Empty
+	    type t = tt
+	    let sentinel = Empty		
 	  end
       in
-      let module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)
+      let module Symcacheable = 
+	  struct
+	    type t = tt
+	    let hash = tag
+	    let equal = (==)
+	    let sentinel = Empty
+	  end
+      in
+      let module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)(Result)
       in
 
       Project.register_todo_on_clear SymetricCache.clear;
@@ -816,18 +820,22 @@ module Make (X : Endianness.S) (V : Tagged_type)
 	union
 
     let generic_merge ~cache ~decide =
-      let _name, cache = cache in
+      let _name, _cache = cache in
 	let module Cacheable = 
 	    struct
-	      type result = t
-	      type t = result
+	      type t = tt
 	      let hash = tag
-	      let size = cache
 	      let sentinel = Empty
-	      let sentinel_result = Empty
+	      let equal = (==)
 	    end
 	in
-	let module Cache = Binary_cache.Make_Asymetric(Cacheable)
+	let module R = 
+	    struct
+	      type t = tt
+	      let sentinel = Empty
+	    end
+	in
+	let module Cache = Binary_cache.Make_Asymetric(Cacheable)(R)
 	in
 
       Project.register_todo_on_clear Cache.clear;
@@ -918,19 +926,17 @@ module Make (X : Endianness.S) (V : Tagged_type)
 	in
 	iter (fun _key x -> decide_fst x) remains
       in
-      let _name, cache = cache in
+      let _name, _cache = cache in
 
       let module Cacheable = 
 	  struct
-	    type result = bool
 	    type t = tt
 	    let hash = tag
-	    let size = cache
+	    let equal = (==)
 	    let sentinel = Empty
-	    let sentinel_result = true
 	  end
       in
-      let module Cache = Binary_cache.Make_Asymetric(Cacheable)
+      let module Cache = Binary_cache.Make_Asymetric(Cacheable)(Binary_cache.Bool_Result)
       in
 
       Project.register_todo_on_clear Cache.clear;
@@ -1205,6 +1211,6 @@ end
 
 (*
 Local Variables:
-compile-command: "make -C ../.. -j"
+compile-command: "make -C .. -j"
 End:
 *)

@@ -23,77 +23,109 @@ open Cil
 open Cil_types
 exception Cannot_expand
 
+
 (** This visitor also performs a deep copy. *)
-class propagate project fnames = object(self)
+class propagate project fnames ~cast_intro = object(self)
   inherit Visitor.frama_c_copy project
+
+  val mutable operate = false
+
   method private on_current_stmt nothing f =
     match self#current_stmt with
-    | None -> nothing
+    | None | Some ({ skind = Return _}) -> nothing
+    | Some _ when not operate -> nothing
     | Some stmt -> f (Kstmt stmt)
 
   method vfunc fundec =
     let name = fundec.svar.vname in
-    if (Cilutil.StringSet.is_empty fnames ||
-          Cilutil.StringSet.mem name fnames)
-    then
-      begin
-        Format.printf "[constant propagation] for function %s@." (fundec.svar.vname);
+    operate <-
+      (Cilutil.StringSet.is_empty fnames || Cilutil.StringSet.mem name fnames);
+    if operate then
+      Format.printf "[constant propagation] for function %s@."
+        (fundec.svar.vname);
         DoChildren
-      end
-    else
-      SkipChildren
-
-  method vstmt_aux s = match s.skind with
-    | Return _ -> SkipChildren
-    | _ -> DoChildren
 
   method vexpr expr =
     self#on_current_stmt
       DoChildren
       (fun ki ->
-         if Cmdline.Debug.get () > 0 then
+         if Cmdline.Debug.get () > 1 then
            Format.printf "Replacing %a ?@."
              !Ast_printer.d_exp expr;
-         let evaled = !Db.Value.access_expr ki expr in
+         let type_of_expr = typeOf expr in
          try
+           begin
+             match unrollType type_of_expr with
+               | (TInt _
+                 | TFloat _
+                 | TPtr _
+                 | TEnum _) -> ()
+               | _ -> raise Cannot_expand
+           end;
+           let mkCast ~e ~newt =
+             (* introduces a cast if allowed by [cast_intro] *)
+             let exp = mkCast e newt in
+               if cast_intro then exp
+               else
+                 match exp with
+                   | CastE _ -> if exp == e
+                     then (* it isn't a new cast, but an old one *)
+                       exp
+                     else raise Cannot_expand
+                   | _ -> exp
+           in
+           let evaled = !Db.Value.access_expr ki expr in
            let k,m = Cvalue_type.V.find_lonely_binding evaled in
              begin
                match k with
                | Base.Var (vi,_) | Base.Initialized_Var (vi,_) when not vi.vlogic ->
                    (* This is a pointer coming for C code *)
-                let base =  mkAddrOrStartOf (var vi) in
+                   if Cmdline.Debug.get () > 0 then
+                     Format.printf "Trying replacing %a from a pointer value {&%a + %a}@."
+                       !Ast_printer.d_exp expr
+                       Base.pretty k
+                       Ival.pretty m;
+                   let base =  mkAddrOrStartOf (var vi) in
                    let offset = Ival.project_int m in (* these are bytes *)
                    let shifted =
                      if Abstract_interp.Int.is_zero offset then base
                      else
-                       let sizeof_pointed =
-                         try
-			   Int_Base.project
-			     (if isArrayType vi.vtype then
-				Bit_utils.osizeof_pointed vi.vtype
-                              else
+                       let offset,rem =
+                         let sizeof_pointed =
+                           try
+			     Int_Base.project
+			       (if isArrayType vi.vtype then
+				  Bit_utils.osizeof_pointed vi.vtype
+                                else
 				Bit_utils.osizeof vi.vtype)
-                         with
-                         | Int_Base.Error_Top
-                         | Int_Base.Error_Bottom -> raise Cannot_expand
-                       in
-                       increm64
-                         base
-                         (Abstract_interp.Int.to_int64
-                            (if
-                               Abstract_interp.Int.is_zero
-                                 (Abstract_interp.Int.pos_rem
-                                    offset
-                                    sizeof_pointed)
-                             then (Abstract_interp.Int.pos_div
-                                    offset
-                                    sizeof_pointed)
-                             else raise Cannot_expand
-                             ))
-                   in
-                   ChangeTo (mkCast
-                               ~e:shifted
-                               ~newt:(typeOf expr))
+                           with
+                             | Int_Base.Error_Top
+                             | Int_Base.Error_Bottom -> raise Cannot_expand
+                         in (Abstract_interp.Int.pos_div offset sizeof_pointed),
+                         (Abstract_interp.Int.pos_rem offset sizeof_pointed)
+                       in let shifted =
+                           if Abstract_interp.Int.is_zero offset
+                           then base
+                           else let v1 = Abstract_interp.Int.cast
+			     ~signed:true
+			     ~size:(Abstract_interp.Int.of_int 64)
+			     ~value:offset
+			   in increm64 base (Abstract_interp.Int.to_int64 v1)
+                       in if Abstract_interp.Int.is_zero rem
+                         then shifted
+                         else let v1 = Abstract_interp.Int.cast
+			     ~signed:true
+			     ~size:(Abstract_interp.Int.of_int 64)
+			     ~value:rem
+			   in increm64 (mkCast ~e:shifted ~newt:Cil.charPtrType)
+                                (Abstract_interp.Int.to_int64 v1)
+                   in let change_to = (* Give it the right type! *)
+                       mkCast ~e:shifted ~newt:type_of_expr
+                   in if Cmdline.Debug.get () > 0 then
+                       Format.printf "Replacing %a with %a@."
+                         !Ast_printer.d_exp expr
+                         !Ast_printer.d_exp change_to;
+                     ChangeTo change_to
                | Base.Null ->
                    let e =
                      begin
@@ -101,21 +133,31 @@ class propagate project fnames = object(self)
                          (* This is an integer *)
                          let v = Ival.project_int m in
                          if Cmdline.Debug.get () > 0 then
-                           Format.printf "Replacing %a with %a@."
+                           Format.printf "Trying replacing %a with a numeric value: %a@."
                              !Ast_printer.d_exp expr
                              Abstract_interp.Int.pretty v;
-                         (* Give it the right type ! *)
                          try
-                           kinteger64 IULongLong (Abstract_interp.Int.to_int64 v)
+                           let v1 = Abstract_interp.Int.cast
+			     ~signed:true
+			     ~size:(Abstract_interp.Int.of_int 64)
+			     ~value:v
+			   in
+(*			   Format.printf "XXXXXXXX v=%a v1=%a@."
+			     Abstract_interp.Int.pretty v
+			     Abstract_interp.Int.pretty v1; *)
+                             kinteger64 IULongLong (Abstract_interp.Int.to_int64 v1)
                          with Failure _ -> raise Cannot_expand
                        with Ival.Not_Singleton_Int->
 			 (* TODO: floats *)
                          raise Cannot_expand
                      end
-                   in
-                   ChangeTo (mkCast
-                               ~e
-                               ~newt:(typeOf expr))
+                   in let change_to =  (* Give it the right type ! *)
+                       mkCast ~e ~newt:(type_of_expr)
+                   in if Cmdline.Debug.get () > 0 then
+                       Format.printf "Replacing %a with %a @."
+                         !Ast_printer.d_exp expr
+                         !Ast_printer.d_exp change_to;
+                     ChangeTo change_to
                | Base.Cell_class _ | Base.String _
                | Base.Var _ | Base.Initialized_Var _ -> DoChildren
 
@@ -130,25 +172,14 @@ class propagate project fnames = object(self)
 
 end
 
-let run_propagation fnames =
+let run_propagation fnames ~cast_intro =
   !Db.Value.compute ();
   let fresh_project = Project.create "propagated" in
   File.init_project_from_visitor
     fresh_project
-    (fun prj -> new propagate prj fnames);
-  let options = 
-    let a o = Project.Selection.add o Kind.Do_Not_Select_Dependencies in
-    let add_opt = Project.Selection.empty in
-    let add_opt = a Cmdline.MinValidAbsoluteAddress.self add_opt in
-    let add_opt = a Cmdline.MaxValidAbsoluteAddress.self add_opt in
-    let add_opt = a Cmdline.AutomaticContextMaxDepth.self add_opt in
-    let add_opt = a Cmdline.AllocatedContextValid.self add_opt in
-    let add_opt = a Cmdline.IgnoreOverflow.self add_opt in
-    let add_opt = a Cmdline.UnsafeArrays.self add_opt in
-    let add_opt = a Cmdline.LibEntry.self add_opt in
-      a Cmdline.MainFunction.self add_opt
-  in
-  Project.copy ~only:options fresh_project;
+    (fun prj -> new propagate prj fnames cast_intro);
+  let ctx = Cmdline.get_selection_context () in
+  Project.copy ~only:ctx fresh_project;
   fresh_project
 
 let options =
@@ -157,8 +188,12 @@ let options =
     ": force semantic constant propagation and pretty print the new source code.";
 
     "-semantic-const-fold",
-    Arg.String Cmdline.Constant_Propagation.SemanticConstFold.add,
-    "f : propagate constants in f.";
+    Arg.String Cmdline.Constant_Propagation.SemanticConstFold.add_set,
+    "f1,...,fn : propagate constants only into functions f1,...,fn.";
+
+    "-cast-from-constant",
+    Arg.Unit Cmdline.Constant_Propagation.CastIntro.on,
+    ": allow introduction of new casts from a folded constant.";
   ]
 
 let () =

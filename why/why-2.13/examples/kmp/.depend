@@ -1,0 +1,5 @@
+Lex.vo: Lex.v
+Match.vo: Match.v ../../lib/coq/WhyArrays.vo
+Next.vo: Next.v ./Match.vo
+kmp_valid.vo: kmp_valid.v ../../lib/coq/Why.vo ./kmp_why.vo
+kmp_why.vo: kmp_why.v ../../lib/coq/Why.vo ./Match.vo ./Next.vo ./Lex.vo

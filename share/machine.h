@@ -19,6 +19,8 @@
 /*                                                                        */
 /**************************************************************************/
 
+/* $Id: machine.h,v 1.5 2008/07/01 12:02:37 uid562 Exp $ */
+
 #ifdef FRAMA_C_LYNX
 typedef unsigned int size_t;
 typedef int ssize_t;
@@ -64,6 +66,7 @@ typedef long int ssize_t;
 typedef long time_t;
 #ifdef FRAMA_CXX
 struct tm;
+struct FRAMA_C_IO_FILE;
 #else
 struct tm {
 	int tm_sec;
@@ -76,7 +79,7 @@ struct tm {
 	int tm_yday;
 	int tm_isdst;
 };
+struct FRAMA_C_IO_FILE { char *content; };
 #endif
-struct FRAMA_C_IO_FILE;
 typedef struct FRAMA_C_IO_FILE FILE;
 #endif

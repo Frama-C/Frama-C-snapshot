@@ -1,0 +1,53 @@
+
+(** Heapsort. 
+
+    This formal proof is detailed in this paper:
+
+    J.-C. Filliâtre and N. Magaud. Certification of sorting algorithms
+    in  the system  Coq. In  Theorem Proving  in Higher  Order Logics:
+    Emerging Trends, 1999.
+    (http://www.lri.fr/~filliatr/ftp/publis/Filliatre-Magaud.ps.gz)    **)
+
+(* The recursive function downheap.
+   [downheap N t k n] moves the element t[k] down in the heap encoded
+   in t[j..n] *)
+
+predicate select_son(t: int farray, k:int, n:int, j:int) =
+  (j = 2 * k + 1 and (2 * k + 2 <= n -> t[j] >= t[2 * k + 2])) or
+  (j = 2 * k + 2 and j <= n and t[j] >= t[2 * k + 1])
+
+logic inftree : int farray, int, int, int -> prop
+
+axiom inftree_def :
+  forall a:int farray. forall n,v,k:int.
+  inftree(a, n, v, k) <->
+  (0 <= k <= n and
+   a[k] <= v and
+   (2 * k + 1 <= n -> inftree(a, n, v, 2 * k + 1)) and
+   (2 * k + 2 <= n -> inftree(a, n, v, 2 * k + 2)))
+
+logic heap : int farray, int, int -> prop 
+
+axiom heap_def :
+  forall a:int farray. forall n,k:int.
+  heap(a,n,k) <->
+  (0 <= k <= n and
+   (2 * k + 1 <= n -> a[k] >= a[2 * k + 1]) and
+   (2 * k + 1 <= n -> heap(a, n, 2 * k + 1)) and
+   (2 * k + 2 <= n -> a[k] >= a[2 * k + 2]) and
+   (2 * k + 2 <= n -> heap(a, n, 2 * k + 2)))
+
+let downheap = 
+  let rec downheap (t:int array)(k,n:int) : unit { variant n-k } =
+  {     0 <= k <= n and n < array_length(t)
+    and forall i:int. k+1 <= i <= n -> heap(t, n, i) }
+  (let j = 2*k+1 in
+   if j <= n then
+     let j' = (if j+1 <= n then if t[j] < t[j+1] then j+1 else j else j)
+              { select_son(t, k, n, result) } 
+     in
+     if t[k] < t[j'] then begin (swap t k j'); (downheap t j' n) end)
+  {     permutation(t, t@)
+    and (forall i:int. k <= i <= n -> heap(t, n, i))
+    and (forall i:int. (0<=i<k or k<i<2*k+1 or n<i<array_length(t)) -> t[i]=t@[i])
+    and (forall v:int. inftree(t@, n, v, k) -> inftree(t, n, v, k)) }

@@ -58,11 +58,10 @@ sig
   val pretty_filter :
     Format.formatter ->
     t -> Locations.Zone.t -> unit
-  val add_binding : with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
+  val add_binding : 
+    with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
 
   val find : with_alarms:CilE.warn_mode -> t -> location -> y
-
-  val concerned_bindings : t -> location -> y list
 
   val join : t -> t -> t
   val is_included : t -> t -> bool
@@ -91,7 +90,8 @@ sig
   val paste_offsetmap :  loffset -> Location_Bits.t -> Int.t -> Int.t -> t -> t
 
   val copy_offsetmap : Locations.location -> t -> loffset option
-  val compute_actual_final_from_generic : t -> t -> Locations.Zone.t -> instanciation -> t
+  val compute_actual_final_from_generic : 
+    t -> t -> Locations.Zone.t -> instanciation -> t
   val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 
   (* Raises [Invalid_argument "Lmap.fold"] if one location is not aligned
@@ -121,7 +121,6 @@ sig
 *)
   val create_initial :
     base:Base.t ->
-    size:int ->
     v:y ->
     modu:Int.t ->
     state:t -> t
@@ -197,15 +196,16 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
     let bottom  = None
 
     let pretty fmt m =
-    Format.fprintf fmt "@[";
-    (match m with None -> Format.fprintf fmt "NOT ACCESSIBLE"
-     | Some m ->
-         LBase.iter
-           (fun base offs ->
-              Format.fprintf fmt "@[%a@[%a@]@\n@]" Base.pretty base
-                (LOffset.pretty_typ (Base.typeof base)) offs)
-           m);
-    Format.fprintf fmt "@]"
+      Format.fprintf fmt "@[";
+      (match m with None -> Format.fprintf fmt "NOT ACCESSIBLE"
+       | Some m ->
+           LBase.iter
+             (fun base offs ->
+		let typ = Base.typeof base in
+		  Format.fprintf fmt "@[%a@[%a@]@\n@]" Base.pretty base
+                    (LOffset.pretty_typ typ) offs)
+             m);
+      Format.fprintf fmt "@]"
 
     exception Error_Bottom
 
@@ -367,7 +367,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
           let validity = Base.validity varid in
           begin
 	    match validity with
-            | Base.Unknown -> CilE.warn_mem_write with_alarms
+            | Base.Unknown _ -> CilE.warn_mem_write with_alarms
             | _ -> ()
           end;
           let new_offsetmap =
@@ -376,11 +376,11 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
           in
           LBase.add varid new_offsetmap map
 
-  let create_initial ~base ~size ~v ~modu ~state =
+  let create_initial ~base ~v ~modu ~state =
     match state with
     | None -> state
     | Some mem ->
-        Some (LBase.add base (LOffset.create_initial ~size ~v ~modu) mem)
+        Some (LBase.add base (LOffset.create_initial ~v ~modu) mem)
 
   let add_binding ~with_alarms ~exact initial_mem {loc=loc ; size=size } v =
     (*Format.printf "add_binding: loc:%a@\n" Location_Bits.pretty loc;*)
@@ -391,12 +391,12 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
           let result =
             (match loc with
              | Location_Bits.Top (Location_Bits.Top_Param.Top, orig) ->
-		 if with_alarms.imprecision_tracing
-		 then begin
-                   warn_once
-		     "writing at a completely unknown address because of @[%a@]@\nAborting."
-		     Origin.pretty orig;
-		 end;
+		 (match with_alarms.imprecision_tracing with
+                  | Aignore -> ()
+                  | Acall f -> f ()
+                  | Alog -> warn_once
+	              "writing at a completely unknown address because of @[%a@]@\nAborting."
+	                Origin.pretty orig);
 		 warn_mem_write with_alarms;
 		 (* Format.printf "dumping memory : %a@\n" pretty initial_mem;*)
 		 empty (* the map where every location maps to top *)
@@ -404,8 +404,8 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
 		 warn_mem_write with_alarms;
 		 let treat_base varid acc =
 		   match Base.validity varid with
-		   | Base.Known (b,e) when Int.lt e b -> acc
-		   | Base.Unknown | Base.Known _ | Base.All ->
+		   | (Base.Known (b,e)|Base.Unknown (b,e)) when Int.lt e b -> acc
+		   | Base.Unknown _ | Base.Known _ | Base.All ->
 		       let offsetmap = LBase.find_or_default varid mem in
 		       let offsetmap =
 			 LOffset.overwrite offsetmap v origin
@@ -450,11 +450,12 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
 	           mem
 		 in
 		 if !had_non_bottom then Some result else begin
-                   if with_alarms.imprecision_tracing 
-		     (* another field would be appropriate here TODO *)
-		   then
-		     warn_once
-		       "all target addresses were invalid. This path is assumed to be dead.";
+                   (match with_alarms.imprecision_tracing with
+		      (* another field would be appropriate here TODO *)
+                    | Aignore -> ()
+                    | Acall f -> f ()
+                    | Alog -> warn_once
+		        "all target addresses were invalid. This path is assumed to be dead.");
                    bottom
 		 end)
           in
@@ -476,7 +477,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
                      let validity = Base.validity varid in
                      begin
 		       match validity with
-		       | Base.Unknown  -> CilE.warn_mem_read with_alarms
+		       | Base.Unknown _ -> CilE.warn_mem_read with_alarms
 		       | _ -> ()
 		     end;
                      let offsetmap =
@@ -512,7 +513,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
                        let validity = Base.validity varid in
                        begin
 			 match validity with
-			 | Base.Unknown  -> CilE.warn_mem_read with_alarms
+			 | Base.Unknown _ -> CilE.warn_mem_read with_alarms
 			 | _ -> ()
 		       end;
                        let offsetmap =
@@ -549,7 +550,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
       V.bottom
     end
     else result
-
+(*
   let concerned_bindings mem { loc = loc ; size = size } =
     let result =
       match mem with
@@ -578,7 +579,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
 	        loc_map
 	        []
     in result
-
+*)
   let join_internal =
     let decide_none base v1 =
       snd (LOffset.join v1 (default_offsetmap base))
@@ -830,10 +831,10 @@ let is_included =
             (fun start_to acc ->
 	      let stop_to = Int.pred (Int.add start_to size) in
 	      match validity with
-	      | Base.Known (b,e) when Int.lt start_to b || Int.gt stop_to e ->
+	      | Base.Known (b,e) | Base.Unknown (b,e) when Int.lt start_to b || Int.gt stop_to e ->
 		  CilE.warn_mem_write CilE.warn_all_mode;
 		  acc
-	      | Base.Known _ | Base.All | Base.Unknown ->
+	      | Base.Known _ | Base.All | Base.Unknown _ ->
 		  had_non_bottom := true;
 		  (if dst_is_exact then LOffset.copy_paste
 		    else LOffset.copy_merge)
@@ -865,62 +866,68 @@ let is_included =
     let result =
       begin
 	match mm with None -> None | Some m ->
-	begin
-          try
-            let size = Int_Base.project src_loc.size in
-	    begin
-              let treat_src k_src i_src (acc : LOffset.t option) =
-		let validity = Base.validity k_src in
-                try
-                  let offsetmap_src = LBase.find_or_default k_src m in
-                  (* Format.printf
-                     "copy_offsetmap/treat_src k_src:%a i_src:%a@\n"
-                     Base.pretty k_src
-                     Ival.pretty i_src;*)
-                  ignore (Ival.cardinal_less_than i_src 100);
-                  Ival.fold
-                    (fun start acc ->
-                      let stop = Int.pred (Int.add start size) in
-		      match validity with
-		      | Base.Known (b,e) when Int.lt start b
-			    || Int.gt stop e ->
-			  acc
-		      | Base.Known _ | Base.All | Base.Unknown ->
-			  let copy = LOffset.copy offsetmap_src start stop in
-			  let r = match acc with
-			  | None -> Some copy
-			  | Some acc ->
-			      let r = snd (LOffset.join copy acc) in
-			      if LOffset.is_empty r then
-				raise Not_found;
-                            Some r
-			  in r)
-                    i_src
-                    acc
-                with
-                | Not_found  (* from [LOffset.is_empty] *)
-                  ->
-                    (*CilE.warn_once "reading top in %a. Look above for origin."
-                      Location_Bits.pretty src_loc.loc;*)
-                    Some LOffset.empty
-                | Not_less_than (* from [Ival.cardinal_less_than] *)->
-                    (*CilE.warn_once "approximating lval assignment";*)
-                    raise Cannot_copy
-              in
-              try
+	  begin
+            try
+              let size = Int_Base.project src_loc.size in
+	      try
+                begin
+                let treat_src k_src i_src (acc : LOffset.t option) =
+		  let validity = Base.validity k_src in
+                  try
+                    let offsetmap_src = LBase.find_or_default k_src m in
+                    (* Format.printf
+                       "copy_offsetmap/treat_src k_src:%a i_src:%a@\n"
+                       Base.pretty k_src
+                       Ival.pretty i_src;*)
+                    ignore (Ival.cardinal_less_than i_src 100);
+                    Ival.fold
+                      (fun start acc ->
+                         let stop = Int.pred (Int.add start size) in
+		         match validity with
+		         | Base.Known (b,e) | Base.Unknown (b,e) when Int.lt start b
+			     || Int.gt stop e ->
+			     acc
+		         | Base.Known _ | Base.All | Base.Unknown _ ->
+			     let copy = LOffset.copy offsetmap_src start stop in
+			     let r = match acc with
+			     | None -> Some copy
+			     | Some acc ->
+			         let r = snd (LOffset.join copy acc) in
+			         if LOffset.is_empty r then
+				   raise Not_found;
+                                 Some r
+			     in r)
+                      i_src
+                      acc
+                  with
+                  | Not_found  (* from [LOffset.is_empty] *)
+                    ->
+                      (*CilE.warn_once "reading top in %a. Look above for origin."
+                        Location_Bits.pretty src_loc.loc;*)
+                      Some LOffset.empty
+                  | Not_less_than (* from [Ival.cardinal_less_than] *)->
+                      (*CilE.warn_once "approximating lval assignment";*)
+                      raise Cannot_copy
+                in
                 Location_Bits.fold_i treat_src src_loc.loc None
-              with Location_Bits.Error_Top  ->
-		(* [BM] Cannot_copy may escape *)
+	        end
+              with 
+	    | Location_Bits.Error_Top (* from Location_Bits.fold *)
+	    | Not_less_than (* from Ival.cardinal_less_than *)
+	    | Ival.Error_Top (* from Ival.fold *) ->
+	        let v = find ~with_alarms:warn_none_mode mm src_loc in
+                Some (LOffset.update_ival 
+                  ~with_alarms:warn_none_mode
+                  ~validity:Base.All
+                  ~exact:true
+                  ~offsets:Ival.zero
+                  ~size
+                  LOffset.empty
+                  v)
+	    with
+	    | Int_Base.Error_Top  (* from Int_Base.project *) ->
                 Some LOffset.empty
-	    end
-	  with
-	  | Location_Bits.Error_Top (* from Location_Bits.fold *)
-	  | Not_less_than (* from Ival.cardinal_less_than *)
-	  | Int_Base.Error_Top  (* from Int_Base.project *)
-	  | Ival.Error_Top (* from Ival.fold *) ->
-	      Some LOffset.empty
-
-	end
+	  end
       end
     in
     (* Format.printf "copy_offsetmap: mm:%a src:%a result:%a@\n"

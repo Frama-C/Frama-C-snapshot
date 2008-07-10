@@ -1,12 +1,12 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry backward_from_called -slice-print
-   OPT: -security-slicing -lib-entry backward_caller -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry forward_from_called -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry forward_caller -slice-print
+   OPT: -security-slicing -lib-entry -main backward_from_called -slice-print
+   OPT: -security-slicing -lib-entry -main backward_caller -slice-print
+   OPT: -security-slicing -security-lattice strong -lib-entry -main forward_from_called -slice-print
+   OPT: -security-slicing -security-lattice strong -lib-entry -main forward_caller -slice-print
 */
 
-/*@ requires security_status(s) == public(); */
+/*@ requires security_status(s) == public; */
 void send(int s);
 
 int A, B, C, D;

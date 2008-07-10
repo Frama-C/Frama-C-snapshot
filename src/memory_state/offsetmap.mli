@@ -31,7 +31,8 @@ exception Result_is_bottom
 
 exception Found_Top
 
-module type S = sig
+module type S = 
+sig
   type t 
   type y
   type widen_hint
@@ -47,7 +48,6 @@ module type S = sig
   val pretty : Format.formatter -> t -> unit
   val pretty_debug : Format.formatter -> t -> unit
     
-  val find : itv -> t -> y 
     
   val is_included : t -> t -> bool
   val is_included_exn : t -> t -> unit
@@ -116,12 +116,14 @@ module type S = sig
 	that may lead to Top([b]) and  the set of offsets in [m]
 	where one can read an address [b]+_ *)
 
-  val create_initial: size:int -> v:y -> modu:Int.t -> t
+  val create_initial: v:y -> modu:Int.t -> t
 
   val reduce_by_int_intervals: t -> Abstract_value.Int_Intervals.t -> t
 
   val top_stuff : (y -> bool) -> (y -> y) -> t -> t
 
+  val iter_contents : (y -> unit) -> t -> Int.t -> unit
+    (** Iter on the contents of offsetmap of given size *)
 end
 
 module Make(V : Lattice_With_Isotropy.S) :

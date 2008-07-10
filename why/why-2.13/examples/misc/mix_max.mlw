@@ -1,0 +1,76 @@
+
+(* MIX program for the max of X[1..r1]
+   TAOCP vol 1, Program M page 145 *)
+
+(* model *)
+
+parameter a,r1,r2,r3 : int ref
+
+type mem
+logic acc : mem, int -> int
+logic upd : mem, int, int -> mem
+
+axiom acc_upd_eq : 
+  forall m:mem. forall i,v:int. acc(upd(m,i,v),i) = v
+axiom acc_upd_neq : 
+  forall m:mem. forall i,j,v:int. i<>j -> acc(upd(m,i,v),j) = acc(m,j)
+
+parameter mem : mem ref
+
+(* program M *)
+
+logic X:int
+
+predicate Inv(mem:mem, a:int, r1:int, r2:int, r3:int) =
+  0 <= r3 <= r1 and 1 <= r2 <= r1 and a = acc(mem,X+r2) 
+  and forall i:int. r3 < i <= r1 -> a >= acc(mem,X+i)
+
+let init () =
+  { r1 >= 1 }
+  r3 := !r1;
+  r2 := !r3;
+  a  := acc !mem (X + !r3);
+  r3 := !r3 - 1
+  { Inv(mem,a,r1,r2,r3) }
+
+let loop_1 () =
+  { Inv(mem,a,r1,r2,r3) and r3 > 0 }
+  [ {} unit { a >= acc(mem,X+r3) } ];
+  r3 := !r3 - 1  
+  { Inv(mem,a,r1,r2,r3) }
+
+let loop_2 () =
+  { Inv(mem,a,r1,r2,r3) and r3 > 0 }
+  [ {} unit { a < acc(mem,X+r3) } ];
+  r2 := !r3;
+  a  := acc !mem (X + !r3);
+  r3 := !r3 - 1  
+  { Inv(mem,a,r1,r2,r3) }
+
+let post () =
+  { Inv(mem,a,r1,r2,r3) and r3 <= 0 }
+  void
+  { 1 <= r2 <= r1 and a = acc(mem, X+r2) and
+    forall i:int. 1 <= i <= r1 -> a >= acc(mem,X+i) }
+
+
+
+
+(*** test ***)
+(* max_of(mem,v,i,j) = v = max(mem[i..j]) *)
+(***
+logic max_of : mem,int,int,int -> prop
+
+axiom max_of_single : 
+  forall mem:mem. forall i:int. max_of(mem, acc(mem,i), i, i)
+
+axiom max_of_left_extension_1 : 
+  forall mem:mem. forall v:int. forall i:int. forall j:int.
+  max_of(mem, v, i, j) -> acc(mem, i-1) <= v -> max_of(mem, v, i-1, j)
+
+axiom max_of_left_extension_2 : 
+  forall mem:mem. forall v:int. forall i:int. forall j:int.
+  max_of(mem, v, i, j) -> acc(mem, i-1) > v -> 
+  max_of(mem, acc(mem,i-1), i-1, j)
+***)
+

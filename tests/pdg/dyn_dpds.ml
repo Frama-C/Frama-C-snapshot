@@ -29,19 +29,19 @@ let pdg = !Db.Pdg.get kf;;
 !Db.Pdg.pretty Format.std_formatter pdg;;
 !Db.Pdg.extract pdg "tests/pdg/dyn_dpds_0.dot";;
 
-let assert_sid = 4;; (* assert ( *p>G) *)
+let assert_sid = 5;; (* assert ( *p>G) *)
 let assert_stmt, kf = Kernel_function.find_from_sid assert_sid;;
 
 
 let assert_node =
-  match !Db.Pdg.find_stmt_nodes pdg assert_stmt with
+  match !Db.Pdg.find_simple_stmt_nodes pdg assert_stmt with
     | n::[] -> n | _ -> assert false;;
 
 let star_p = get_zones "*p" (assert_stmt, kf);;
 let data_nodes, undef =
   !Db.Pdg.find_location_nodes_at_stmt pdg assert_stmt ~before:true star_p;;
 
-assert (Locations.Zone.equal undef Locations.Zone.bottom);;
+assert (undef = None);;
 
 let g_zone = get_zones "G" (assert_stmt, kf);;
 let g_nodes, undef =
@@ -49,17 +49,10 @@ let g_nodes, undef =
 
 let data_nodes = g_nodes @ data_nodes;;
 
+let undef = match undef with None -> assert false | Some z -> z;;
+
 Format.printf "Warning : cannot select %a in this function...@\n"
   Locations.Zone.pretty undef;;
 
-Format.printf "Add some dynamic dependencies\n";
-!Db.Pdg.add_dynamic_dpds pdg ~data:data_nodes assert_node ;;
-
 !Db.Pdg.pretty Format.std_formatter pdg;;
 !Db.Pdg.extract pdg "tests/pdg/dyn_dpds_1.dot";;
-
-Format.printf "Clear the dynamic dependencies\n";
-!Db.Pdg.clear_dynamic_dpds pdg;;
-
-!Db.Pdg.pretty Format.std_formatter pdg;;
-!Db.Pdg.extract pdg "tests/pdg/dyn_dpds_2.dot";;

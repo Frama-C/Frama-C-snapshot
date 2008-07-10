@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -slice-print -deps -lib-entry f1 -slice-pragma f1
-   OPT: -slice-print -deps -lib-entry f1 -slice-assert f1
-   OPT: -slice-print -deps -lib-entry f2 -slice-pragma f2
-   OPT: -slice-print -deps -lib-entry f2 -slice-assert f2
+   OPT: -slice-print -deps -lib-entry -main f1 -slice-pragma f1
+   OPT: -slice-print -deps -lib-entry -main f1 -slice-assert f1
+   OPT: -slice-print -deps -lib-entry -main f2 -slice-pragma f2
+   OPT: -slice-print -deps -lib-entry -main f2 -slice-assert f2
    OPT: -slice-print -deps -main test_infinite_loop_3 -slice-value G
    OPT: -slice-print -deps -main test_infinite_loop_4 -slice-value G
    OPT: -slice-print -deps -main test_infinite_loop_5 -slice-value G
@@ -14,10 +14,10 @@
    OPT: -slice-print -deps -main loop -slice-rd Z
    OPT: -slice-print -deps -main loop -slice-wr Y
    OPT: -slice-print -deps -main loop -slice-wr Z 
-   OPT: -slice-print -deps -lib-entry stop_f1 -slice-pragma stop_f1
-   OPT: -slice-print -deps -lib-entry stop_f1 -slice-assert stop_f1
-   OPT: -slice-print -deps -lib-entry stop_f2 -slice-pragma stop_f2
-   OPT: -slice-print -deps -lib-entry stop_f2 -slice-assert stop_f2 
+   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-pragma stop_f1
+   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-assert stop_f1
+   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-pragma stop_f2
+   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-assert stop_f2 
    OPT: -slice-print -deps -slice-value Z 
    OPT: -slice-print -deps -slice-rd Y
    OPT: -slice-print -deps -slice-rd Z

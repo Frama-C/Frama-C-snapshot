@@ -142,6 +142,7 @@ module type Arithmetic_Value = sig
   val pos_div : t -> t -> t
   val c_div : t -> t -> t
   val c_rem : t -> t -> t
+  val cast: size:t -> signed:bool -> value:t -> t
   val abs : t -> t
   val zero : t
   val one : t
@@ -175,7 +176,8 @@ module type Arithmetic_Value = sig
   val logxor : t -> t -> t
   val lognot : t -> t
   val power_two : int -> t
-  val extract_bits : start:t -> stop:t -> t -> t
+  val two_power : t -> t
+  val extract_bits : with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
 end
 
 module Make_Lattice_Set(V:Value):(Lattice_Set with type O.elt=V.t)=
@@ -621,7 +623,6 @@ module Make_Lattice_Mod
 	match v with
 	  Float f -> f
 	| Top _ | Set _ -> raise F.Nan_or_infinite
-
 
     let in_interval x min max r modu =
       (V.equal (V.pos_rem x modu) r) &&
@@ -1509,16 +1510,9 @@ module Make_Lattice_Mod
 
     let cast ~size ~signed ~value =
       let result =
-	let factor = V.shift_left V.one size in
-	let mask = V.shift_left V.one (V.sub size V.one) in
-
-	let rem_f a =
-          if (not signed) then V.pos_rem a factor
-          else
-            if V.equal (V.logand mask a) V.zero 
-            then V.logand a (V.pred mask)
-            else
-              V.logor (V.lognot (V.pred mask)) a
+	let factor = V.two_power size in
+	let mask = V.two_power (V.sub size V.one) in
+	let rem_f value = V.cast ~size ~signed ~value 
 	in
 	let not_p_factor = V.lognot (V.pred factor) in
 	let best_effort r m =
@@ -1731,12 +1725,12 @@ module Make_Lattice_Mod
 	value
       else diff value rem
 
-    let extract_bits ~start ~stop v =
+    let extract_bits ~with_alarms ~start ~stop v =
       match v with
       | Set s ->
           Set
             (O.fold
-               (fun elt acc -> O.add (V.extract_bits ~start ~stop elt) acc)
+               (fun elt acc -> O.add (V.extract_bits ~with_alarms ~start ~stop elt) acc)
                s
                O.empty)
       | Top _ | Float _ ->
@@ -2213,6 +2207,7 @@ module Int = struct
   let one = unit_big_int
   let two = succ_big_int one
   let four = big_int_of_int 4
+  let eight = big_int_of_int 8
   let rem = mod_big_int
   let div = div_big_int
   let mul = mult_big_int
@@ -2284,9 +2279,22 @@ module Int = struct
   let c_rem u v =
     sub u (mul v (c_div u v))
 
-  let power_two n = power_int_positive_int 2 n
+  let cast ~size ~signed ~value =
+    let factor = two_power size in
+    let mask = two_power (sub size one) in
+    
+    if (not signed) then pos_rem value factor
+    else
+      if equal (logand mask value) zero 
+    then logand value (pred mask)
+    else
+      logor (lognot (pred mask)) value
 
-  let extract_bits ~start ~stop v =
+  let two_power = My_bigint.two_power
+
+  let power_two = My_bigint.power_two
+
+  let extract_bits ~with_alarms:_ ~start ~stop v =
     assert (ge start zero && ge stop start);
     (*Format.printf "%a[%a..%a]@\n" pretty v pretty start pretty stop;*)
     let r = bitwise_extraction (to_int start) (to_int stop) v in

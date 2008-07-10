@@ -28,7 +28,7 @@ module type S = sig
   val is_isotropic : t -> bool
   val hash: t -> int
   val cast : with_alarms:CilE.warn_mode -> size:Int.t -> signed:bool -> t -> t
-  val extract_bits : start:Int.t -> stop:Int.t -> t -> t
+  val extract_bits : with_alarms:CilE.warn_mode -> start:Int.t -> stop:Int.t -> t -> t
   val bitwise_or : size:int -> t -> t -> t
   val shift_left : with_alarms:CilE.warn_mode -> size:int -> t -> t -> t
   val little_endian_merge_bits :

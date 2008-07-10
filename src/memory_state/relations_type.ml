@@ -300,7 +300,7 @@ struct
   let is_isotropic x = equal x top
 
   exception Cannot_extract
-  let extract_bits ~start:_ ~stop:_  _ =
+  let extract_bits ~with_alarms:_ ~start:_ ~stop:_  _ =
     raise Cannot_extract
 end
 
@@ -723,7 +723,6 @@ module type Model_S = sig
   val shift_location : t -> location -> Ival.t -> V.t -> t
   val find_base : Base.t -> t -> V_Offsetmap.t
   val create_initial : base:Base.t ->
-    size:int ->
     v:V.t ->
     modu:Int.t ->
     state:t -> t
@@ -744,8 +743,8 @@ module Model : Model_S = struct
   type widen_hint = Model.widen_hint
   type cluster = Cluster.t
   let is_reachable (x,_) = Model.is_reachable x
-  let create_initial ~base ~size ~v ~modu ~state:(s,r) =
-    (Model.create_initial ~base ~size ~v ~modu ~state:s),r
+  let create_initial ~base ~v ~modu ~state:(s,r) =
+    (Model.create_initial ~base ~v ~modu ~state:s),r
 
   let copy_offsetmap l (x,_) = Model.copy_offsetmap l x
 
@@ -786,8 +785,8 @@ module Model : Model_S = struct
   let inject s = s, empty_tt
 
   let add_binding ~with_alarms ~exact (s,rel) left v =
-    Model.add_binding ~with_alarms ~exact s left v,
-    rel
+    let r = Model.add_binding ~with_alarms ~exact s left v in
+    r, rel
 
   let add_binding_unspecified (s,rel) left =
     Model.add_binding_unspecified s left,
@@ -1163,15 +1162,17 @@ module Model : Model_S = struct
 	        then
                   cluster
                 else
-                  let treat_varid varid offsets acc =
+                  let treat_base base offsets acc =
 	            try
 	              let offsets_in_loc =
-		        Location_Bits.M.find varid locm
+		        Location_Bits.M.find base locm
 		      in
 	              let new_offsets =
 		        Ival.sub offsets_in_loc offsets
 		      in
-		      (* Format.printf "treat_cluster: %a@\n" V.pretty value;*)
+(*		      Format.printf "treat_cluster: %a %a@." 
+			Base.pretty base
+			V.pretty value; *)
                       V_Offsetmap.update_ival
 		        ~with_alarms:CilE.warn_none_mode
                         ~validity:Base.All
@@ -1187,7 +1188,7 @@ module Model : Model_S = struct
 	          in
 	          let contents =
 	            try Location_Bits.fold_i
-	              treat_varid
+	              treat_base
 	              cluster.Cluster.virtual_to_real
 	              cluster.Cluster.contents
                     with Location_Bits.Error_Top ->

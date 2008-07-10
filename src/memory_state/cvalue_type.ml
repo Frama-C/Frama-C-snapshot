@@ -267,10 +267,12 @@ module V = struct
 	  else begin
              if is_bottom expr || is_top expr then expr
              else begin 
-               if with_alarms.imprecision_tracing then 
-                 CilE.warn_once 
-                   "casting address to a type smaller than sizeof(void*): @[%a@]"
-                   Location_Bytes.pretty expr ;
+               	(match with_alarms.imprecision_tracing with
+                 | Aignore -> ()
+                 | Acall f -> f ()
+                 | Alog -> CilE.warn_once 
+                     "casting address to a type smaller than sizeof(void*): @[%a@]"
+                       Location_Bytes.pretty expr);
 	       topify_arith_origin expr
              end
 	  end
@@ -281,14 +283,16 @@ module V = struct
       let v2 = find_ival e2 in
       inject_ival (f v1 v2)
     with Not_based_on_null  -> 
-      if with_alarms.imprecision_tracing then 
-        begin match e1,e2 with
-        | Map _, Map _ -> 
-            CilE.warn_once "unsupported %s on addresses(%a,%a)" info 
-              pretty e1
-              pretty e2
-        | _ -> ()
-        end;
+      (match with_alarms.imprecision_tracing with
+       | Aignore -> ()
+       | Acall f -> f ()
+       | Alog -> 
+           match e1,e2 with
+           | Map _, Map _ -> 
+               CilE.warn_once "unsupported %s on addresses(%a,%a)" info 
+                 pretty e1
+                 pretty e2
+           | _ -> ());
       join (topify_arith_origin e1) (topify_arith_origin e2)
 
   let unary_arithmetic_function  ~with_alarms info f e1 = 
@@ -296,12 +300,12 @@ module V = struct
       let v1 = find_ival e1 in
       inject_ival (f v1)
     with Not_based_on_null  -> 
-      if with_alarms.imprecision_tracing then 
-        begin match e1 with
-        | Map _ -> 
-            warn_once "unsupported %s on addresses(%a)" info pretty e1
-        | _ -> ()
-        end;
+      (match with_alarms.imprecision_tracing with
+       | Aignore -> ()
+       | Acall f -> f ()
+       | Alog -> match e1 with
+         | Map _ -> warn_once "unsupported %s on addresses(%a)" info pretty e1
+         | _ -> ());
       topify_arith_origin e1
 
  let cast_float_to_int ~with_alarms v =
@@ -310,8 +314,10 @@ module V = struct
      let f = Ival.project_float v1 in
      inject_ival (Ival.cast_float_to_int f)
    with Ival.Float_abstract.Nan_or_infinite | Not_based_on_null ->
-     if with_alarms.imprecision_tracing 
-     then warn_once "cast float to int : alarm (TODO)";
+     (match with_alarms.imprecision_tracing with
+      | Aignore -> ()
+      | Acall f -> f ()
+      | Alog -> warn_once "cast float to int : alarm (TODO)");
      topify_arith_origin v
      
  let cast_int_to_float ~with_alarms v =
@@ -419,15 +425,18 @@ module V = struct
     with Not_based_on_null ->
       join (topify_arith_origin e1) (topify_arith_origin e2)
 
-  let extract_bits ~start ~stop v = 
+  let extract_bits ~with_alarms ~start ~stop v = 
     try
       let i = find_ival v in
-	inject_ival (Ival.extract_bits ~start ~stop i)
+	inject_ival (Ival.extract_bits ~with_alarms ~start ~stop i)
     with 
       | Not_based_on_null -> 
           if is_top v then v
           else begin 
-            CilE.warn_once "extracting bits of a pointer";
+            (match with_alarms.imprecision_tracing with
+             | Aignore -> ()
+             | Acall f -> f ()
+             | Alog -> CilE.warn_once "extracting bits of a pointer");
             topify_arith_origin v
           end
 
@@ -484,75 +493,110 @@ let (==>) = (fun x y -> (not x) || y)
 
 module V_Or_Uninitialized = struct
   type t = { initialized : bool;
+             no_escaping_adr : bool;
              v : V.t}
   let id = "V_Or_Uninitialized"
   let project x = V.project x.v
 
   let is_included_actual_generic b1 b2 instanciation t1 t2 =
-    if t2.initialized ==> t1.initialized then 
+    if (t2.initialized ==> t1.initialized)
+      && (t2.no_escaping_adr ==> t1.no_escaping_adr)
+    then 
       V.is_included_actual_generic b1 b2 instanciation t1.v t2.v
     else raise Abstract_interp.Is_not_included
 
   type widen_hint = V.widen_hint
   let widen wh t1 t2 = { initialized = t2.initialized; 
+			 no_escaping_adr = t2.no_escaping_adr; 
                          v = V.widen wh t1.v t2.v}
   let equal t1 t2 = 
-    t1.initialized=t2.initialized && V.equal t1.v t2.v
+    t1.initialized = t2.initialized && 
+    t1.no_escaping_adr = t2.no_escaping_adr && 
+    V.equal t1.v t2.v
+
   exception Error_Bottom
   exception Error_Top
+
   let join t1 t2 = 
-    {initialized = t1.initialized && t2.initialized;
-     v = V.join t1.v t2.v
+    {
+      initialized = t1.initialized && t2.initialized;
+      no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
+      v = V.join t1.v t2.v
     }
+
   let narrow t1 t2 = 
     {initialized = t1.initialized && t2.initialized;
+     no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
      v = V.narrow t1.v t2.v
     }
   let link t1 t2 = 
     {initialized = t1.initialized || t2.initialized;
+     no_escaping_adr = t1.no_escaping_adr || t2.no_escaping_adr;
      v = V.link t1.v t2.v
     }
   let meet t1 t2 = 
-    {initialized = t1.initialized || t2.initialized;
+    {no_escaping_adr = t1.no_escaping_adr || t2.no_escaping_adr;
+     initialized = t1.initialized || t2.initialized;
      v = V.meet t1.v t2.v
     }
       
   let bottom = { initialized = true;
+		 no_escaping_adr = true;
                  v = V.bottom;}
-  let top =  { initialized = false;
-               v = V.top;}
-  let uninitialized = { initialized = false;
-                        v = V.bottom;}
 
-  let initialized v = { initialized = true ;
-                        v = v;}
+  let top =  { initialized = false;
+	       no_escaping_adr = false;
+               v = V.top;}
+
+  let uninitialized = 
+    { initialized = false;
+      no_escaping_adr = true;
+      v = V.bottom;}
+
+  let initialized v = 
+    { initialized = true ;
+      no_escaping_adr = true;
+      v = v;}
 
   let is_included t1 t2 = 
-    (t2.initialized ==> t1.initialized) && V.is_included t1.v t2.v
+    (t2.initialized ==> t1.initialized) && 
+    (t2.no_escaping_adr ==> t1.no_escaping_adr) &&
+      V.is_included t1.v t2.v
 
   let is_included_exn t1 t2 = 
-    if t2.initialized ==> t1.initialized then 
+    if (t2.initialized ==> t1.initialized) && 
+      (t2.no_escaping_adr ==> t1.no_escaping_adr) 
+    then 
       V.is_included_exn t1.v t2.v
     else raise Abstract_interp.Is_not_included
 
   let intersects t1 t2 = 
-    ((not t2.initialized) && (not t1.initialized)) || V.intersects t1.v t2.v
+    ((not t2.initialized) && (not t1.initialized)) ||
+    ((not t2.no_escaping_adr) && (not t1.no_escaping_adr)) ||
+      V.intersects t1.v t2.v
 
   let pretty fmt t = 
-    if t.initialized then V.pretty fmt t.v
-    else if equal t uninitialized then Format.fprintf fmt "UNSPECIFIED"
-    else Format.fprintf fmt "%a or UNSPECIFIED" V.pretty t.v
+    if t.initialized && t.no_escaping_adr 
+    then V.pretty fmt t.v
+    else if equal t uninitialized 
+    then Format.fprintf fmt "UNINITIALIZED"
+    else if t.initialized && not t.no_escaping_adr 
+    then Format.fprintf fmt "%a or ESCAPINGADDR" V.pretty t.v
+    else if (not t.initialized) && t.no_escaping_adr 
+    then Format.fprintf fmt "%a or UNINITIALIZED" V.pretty t.v
+    else Format.fprintf fmt "%a or UNINITIALIZED or ESCAPINGADDR" V.pretty t.v
       
   let cardinal_zero_or_one t =
-    t.initialized && V.cardinal_zero_or_one t.v
+    t.initialized && t.no_escaping_adr && V.cardinal_zero_or_one t.v
 
   let cardinal_less_than t b = 
-    if t.initialized then V.cardinal_less_than t.v b
+    if t.initialized && t.no_escaping_adr then V.cardinal_less_than t.v b
     else raise Abstract_interp.Not_less_than
 
   let tag t = 
-    if t.initialized then V.tag t.v
-    else 17 * (V.tag t.v)
+    (Hashtbl.hash t.initialized) * 433 + 
+    (Hashtbl.hash t.no_escaping_adr) * 4513 +       
+    (V.tag t.v)
 
   let hash = tag
 
@@ -563,6 +607,7 @@ module V_Or_Uninitialized = struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash t = {initialized=t.initialized;
+			 no_escaping_adr=t.no_escaping_adr;
                          v = V.Datatype.rehash t.v}
 	 let after_load () = ()
 	 let before_load () = ()
@@ -574,67 +619,83 @@ module V_Or_Uninitialized = struct
   let is_isotropic t = V.is_isotropic t.v
 
   let cast ~with_alarms ~size ~signed t = 
-    {initialized = t.initialized;
+    {no_escaping_adr = t.no_escaping_adr;
+     initialized = t.initialized;
      v = V.cast ~with_alarms ~size ~signed t.v}
-  let extract_bits ~start ~stop t = 
-    {initialized = t.initialized;
-     v = V.extract_bits ~start ~stop t.v}
+  let extract_bits ~with_alarms ~start ~stop t = 
+    {no_escaping_adr = t.no_escaping_adr;
+     initialized = t.initialized;
+     v = V.extract_bits ~with_alarms ~start ~stop t.v}
 
   let bitwise_or ~size t1 t2 = 
-    { initialized = t1.initialized && t2.initialized ;
+    { no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
+      initialized = t1.initialized && t2.initialized ;
       v = V.bitwise_or ~size t1.v t2.v}
 
   let shift_left ~with_alarms ~size t1 t2 = 
-    {initialized = t1.initialized && t2.initialized ;
+    {no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
+     initialized = t1.initialized && t2.initialized ;
      v = V.shift_left ~with_alarms ~size t1.v t2.v}
 
   let little_endian_merge_bits ~total_length ~value ~offset t =
-    {initialized = t.initialized && value.initialized ;
+    {no_escaping_adr = t.no_escaping_adr && value.no_escaping_adr;
+     initialized = t.initialized && value.initialized ;
      v = V.little_endian_merge_bits ~total_length ~value:value.v ~offset t.v}
 
   let big_endian_merge_bits ~total_length ~length ~value ~offset t =
     {initialized = t.initialized && value.initialized;
+     no_escaping_adr = t.no_escaping_adr && value.no_escaping_adr;
      v = V.big_endian_merge_bits ~total_length ~length ~value:value.v ~offset t.v}
 
   let topify_merge_origin t = 
     {initialized = t.initialized;
+no_escaping_adr = t.no_escaping_adr;
      v = V.topify_merge_origin t.v}
 
   let topify_arith_origin t = 
     {initialized = t.initialized;
+no_escaping_adr = t.no_escaping_adr;
      v = V.topify_arith_origin t.v}
 
   let topify_misaligned_read_origin t = 
     {initialized = t.initialized;
+no_escaping_adr = t.no_escaping_adr;
      v = V.topify_misaligned_read_origin t.v}
 
   let topify_with_origin o t = 
     {initialized = t.initialized;
+no_escaping_adr = t.no_escaping_adr;
      v = V.topify_with_origin o t.v}
 
   let anisotropic_cast ~size t = 
     {initialized = t.initialized;
+no_escaping_adr = t.no_escaping_adr;
      v = V.anisotropic_cast ~size t.v}
 
   let inject_top_origin o t = 
     {initialized = true;
+     no_escaping_adr = true;
      v = V.inject_top_origin o t}
 
   let under_topify t = 
     {initialized = t.initialized;
+     no_escaping_adr = t.no_escaping_adr;
      v = V.under_topify t.v}
 
   let of_char c = 
     {initialized = true;
+     no_escaping_adr = true;
      v = V.of_char c;}
 
   let singleton_zero =
     {initialized = true;
+     no_escaping_adr = true;
      v = V.singleton_zero;}
 
   let unspecify_escaping_locals fundec t = 
-    {initialized = false;
-     v = V.unspecify_escaping_locals fundec t.v}
+    {initialized = t.initialized;
+     no_escaping_adr = false;
+     v = V.remove_escaping_locals fundec t.v}
 end
 
 module V_Offsetmap = Offsetmap.Make(V_Or_Uninitialized)
@@ -712,13 +773,19 @@ struct
 
   let find ~with_alarms x y = 
     let v = (find ~with_alarms x y) in
-    if not v.V_Or_Uninitialized.initialized then 
-      begin warn_unspecified with_alarms;
-        if with_alarms.unspecified <> Aignore && V.is_bottom  v.V_Or_Uninitialized.v then
-          warn_once 
-            "completely unspecified value in %a. This path is assumed to be dead." 
-            Locations.pretty y;
-      end;
+    if not v.V_Or_Uninitialized.initialized 
+    then warn_uninitialized with_alarms;
+    if not v.V_Or_Uninitialized.no_escaping_adr 
+    then warn_escapingaddr with_alarms;
+
+    if with_alarms.unspecified <> Aignore && 
+      V.is_bottom v.V_Or_Uninitialized.v &&
+      not (v.V_Or_Uninitialized.initialized && 
+	      v.V_Or_Uninitialized.no_escaping_adr)
+    then
+      warn_once 
+        "completely unspecified value in %a. This path is assumed to be dead." 
+        Locations.pretty y;
     v.V_Or_Uninitialized.v
 
   let add_binding_unspecified acc loc =
@@ -727,6 +794,6 @@ struct
   let add_binding ~with_alarms ~exact acc loc value =
     add_binding ~with_alarms ~exact acc loc (V_Or_Uninitialized.initialized value) 
 
-  let create_initial ~base ~size ~v ~modu ~state  = 
-    create_initial ~base ~size ~v:(V_Or_Uninitialized.initialized v) ~modu ~state
+  let create_initial ~base ~v ~modu ~state  = 
+    create_initial ~base ~v:(V_Or_Uninitialized.initialized v) ~modu ~state
 end

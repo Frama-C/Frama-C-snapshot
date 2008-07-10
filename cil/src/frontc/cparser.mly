@@ -276,7 +276,7 @@ let in_ghost s =
 %}
 
 %token <Lexing.position * string> SPEC
-%token <Logic_ptree.decl * Cabs.cabsloc> DECL
+%token <(Cabs.cabsloc * Logic_ptree.decl) list> DECL
 %token <Logic_ptree.code_annot * Cabs.cabsloc> CODE_ANNOT
 %token <Logic_ptree.code_annot list * Cabs.cabsloc> LOOP_ANNOT
 %token <string * Cabs.cabsloc> ATTRIBUTE_ANNOT
@@ -456,7 +456,7 @@ ghost_globals:
 
 /*** Global Definition ***/
 global:
-| DECL                                  { GLOBANNOT(fst $1,snd $1)}
+| DECL                                  { GLOBANNOT $1 }
 | declaration                           { $1 }
 | function_def                          { $1 }
 

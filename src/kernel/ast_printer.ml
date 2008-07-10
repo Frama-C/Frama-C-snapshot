@@ -48,7 +48,6 @@ let d_tsets_offset = ref Cil.d_tsets_offset
 
 let d_predicate_named = ref Cil.d_predicate_named
 let d_code_annotation = ref Cil.d_code_annotation
-let d_type_annotation = ref Cil.d_type_annotation
 let d_funspec = ref Cil.d_funspec
 let d_annotation = ref Cil.d_annotation
 

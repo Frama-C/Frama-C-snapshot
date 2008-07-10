@@ -19,20 +19,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cmdline.mli,v 1.135 2008/05/22 11:06:58 uid526 Exp $ *)
+(* $Id: cmdline.mli,v 1.144 2008/07/01 13:23:22 uid530 Exp $ *)
 
-(** Bunch of values which may be initialize through command line. *)
+(** Bunch of values which may be initialize through command line.
+    @plugin developer guide *)
 
 val get_selection: unit -> Project.Selection.t
-  (** Selection of all the options. *)
+  (** Selection of all the options. 
+      @plugin developer guide *)
 
+val get_selection_context: unit -> Project.Selection.t
+  (** Selection of all the options which define the context of analyses. *)
+  
 val nb_selected_options: unit -> int
   (** Numbers of selected options. *)
 
 val clear_selected_options: unit -> unit
 val set_selected_options: unit -> unit
   (** Set all the selected options to their respective values *)
-
 
 type 'a option_accessor = private {get : unit -> 'a ; set : 'a -> unit }
 
@@ -42,14 +46,14 @@ type kind = private
   | String of string option_accessor
   | StringSet of string option_accessor (* Comma separated string list *)
 
-
 type t = (* private *) kind * string
 
 val iter_on_options: (t -> unit) -> unit
 
 (** {2 Signatures} *)
 
-(** Generic outputs signatures of options. *)
+(** Generic outputs signatures of options. 
+    @plugin developer guide *)
 module type S = sig
 
   type t
@@ -69,9 +73,12 @@ module type S = sig
 
   include Project.Computation.OUTPUT
 
+  val equal: t -> t -> bool
+
 end
 
-(** Signature for a boolean option. *)
+(** Signature for a boolean option. 
+    @plugin developer guide *)
 module type BOOL = sig
 
   include S with type t = bool
@@ -84,7 +91,8 @@ module type BOOL = sig
 
 end
 
-(** Signature for an integer option. *)
+(** Signature for an integer option. 
+    @plugin developer guide *)
 module type INT = sig
 
   include S with type t = int
@@ -93,7 +101,8 @@ module type INT = sig
     (** Increment the integer. *)
 end
 
-(** Signature for a string option. *)
+(** Signature for a string option.
+    @plugin developer guide *)
 module type STRING = S with type t = string
 
 (** Signature for a string set option. *)
@@ -143,7 +152,8 @@ end
 
 (** {2 Options} *)
 
-(** {3 GENERAL OPTIONS} *)
+(** {3 General Options} *)
+
 module PrintVersion: BOOL
 module CodeOutput : STRING
 module UseUnicode: BOOL
@@ -157,13 +167,14 @@ module MainFunction: sig
   val unsafe_set: string -> unit (** Not for casual users. *)
 end
 module LibEntry: sig
-  include STRING
-  val unsafe_set: string -> unit (** Not for casual users. *)
+  include BOOL
+  val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
 module Debug: INT
 
-(** {3 SYNTACTICAL TOOLS} *)
+(** {3 Syntactic Tools} *)
+
 module PrintCode : BOOL
   
 module SimplifyCfg: BOOL
@@ -177,34 +188,45 @@ module PrintComments: BOOL
 module UnrollingLevel: INT
 module Constfold: BOOL
 module Obfuscate: BOOL
-module Metrics: BOOL
 module Machdep: STRING
+
+module Metrics: sig
+  module Print: BOOL (** Pretty print metrics on stdout *)
+  module Dump: STRING (** Pretty print metrics on the given file *)
+  val is_on: unit -> bool (** Have metrics to be computed? *)
+end
   
-(** {3 CALLGRAPH} *)
+(** {3 Callgraph} *)
+
 module CallgraphFilename: STRING
 module CallgraphInitFunc: STRING_SET
   
-(** {3 FILES} *)
+(** {3 Files} *)
+
 module CppCommand: STRING
 module CppExtraArgs: STRING
 module ReadAnnot: BOOL
 module PreprocessAnnot: BOOL
+
+(** @plugin developer guide *)
 module Files: sig
   include S with type t = string list
   module Check: BOOL
   module Copy: BOOL
 end
 
-(** {3 MEMZONES} *)
+(** {3 Memzones} *)
+
 module ForceMemzones: BOOL
   
-(** {3 OCCURRENCE} *)
+(** Occurrence *)
 module Occurrence : sig
   module Debug: INT
   module Print: BOOL
 end
 
-(** {3 VALUE ANALYSIS} *)
+(** {3 Value Analysis} *)
+
 module ForceValues: BOOL
 module MemFunctions: STRING_SET
 module MemExecAll: BOOL
@@ -212,6 +234,8 @@ module FloatDigits: INT
 module PropagateTop: BOOL
 module ArrayPrecisionLevel: INT
 module SemanticUnrollingLevel: INT
+  (** @plugin developer guide *)
+
 module WideningLevel: INT
   
 module MinValidAbsoluteAddress: S with type t = Abstract_interp.Int.t
@@ -221,6 +245,7 @@ module MaxValidAbsoluteAddress: S with type t = Abstract_interp.Int.t
       Default values imply that all values are valid. *)
 
 module AutomaticContextMaxDepth: INT
+module AutomaticContextMaxWidth: INT
 module AllocatedContextValid: BOOL
 module IgnoreOverflow: BOOL  
 module UnsafeArrays: BOOL
@@ -232,21 +257,24 @@ module UseRelations: BOOL
 module MemoryFootprint: INT
 module WidenVariables: STRING_SET
 
-(** {3 FUNCTIONAL DEPENDENCIES} *)
+(** {3 Functional Dependencies} *)
+
 module ForceDeps: BOOL
 module ForceCallDeps: BOOL
   
-(** {3 USERS} *)
+(** Users *)
 module ForceUsers: BOOL
+  (** @plugin developer guide *)
 
-
-(** {3 SEMANTIC CONSTANT FOLDING} *)
+(** Constant Propagation *)
 module Constant_Propagation: sig
   module SemanticConstFolding: BOOL
   module SemanticConstFold: STRING_SET
+  module CastIntro: BOOL
 end
 
-(** {3 INOUT} *)
+(** {3 Inout} *)
+
 module ForceOut: BOOL
 module ForceInput: BOOL
 module ForceInout: BOOL
@@ -254,9 +282,10 @@ module ForceDeref: BOOL
 module ForceAccessPath: BOOL
 
 (** {3 WP} *)
+
 module WpCfg: BOOL
 
-(** {3 SECURITY} *)
+(** Security *)
 module Security: sig
 
   module LogicAnnotation: STRING
@@ -283,7 +312,7 @@ module Security: sig
 
 end
 
-(** {3 IMPACT} *)
+(** Impact *)
 module Impact : sig
 
   module Pragma: STRING_SET
@@ -299,34 +328,48 @@ module Impact : sig
 
 end
 
-(** {3 C TO JESSIE} *)
+(** Jessie *)
 module Jessie : sig
   module ProjectName: STRING
   module Analysis: BOOL
   module Gui: BOOL
   module WhyOpt: STRING_SET
+  module JcOpt: STRING_SET
   type int_model = IMexact | IMbounded | IMmodulo
   module IntModel: INDEXED_VAL with type value = int_model
   module GenOnly: BOOL
 end
 
-(** {3 PROGRAM DEPENDENCE GRAPH } *)
+(** Program Dependence Graph *)
 module Pdg : sig
+
   module BuildAll: BOOL
+    (** @plugin developer guide *)
+
   module BuildFct: STRING_SET
+    (** @plugin developer guide *)
+
   module PrintBw: BOOL
   module DotBasename: STRING
+    (** @plugin developer guide *)
+
   module DotPostdomBasename: STRING
+    (** @plugin developer guide *)
+
   module Verbosity: INT
+    (** @plugin developer guide *)
+
 end
 
-(** {3 SPARE CODE} *)
+(** Spare Code *)
 module Sparecode : sig
   module Analysis: BOOL
     (** Whether to perform spare code detection or not. *)
+  module NoAnnot : BOOL
+    (** don't keep more things to keep all reachable annotations. *)
 end
 
-(** {3 SLICING} *)
+(** Slicing *)
 module Slicing : sig
   module Select : sig
     module Calls: STRING_SET
@@ -350,11 +393,14 @@ module Slicing : sig
   val is_on: unit -> bool
 end
 
-(** {3 VALVIEWER} *)
+(** {3 Graphical User Interface} *)
+
 module MonospaceFontName: STRING
 module GeneralFontName: STRING
+  (** @plugin developer guide *)
 
-(** {3 MIEL} *)
+(** {3 Miel} *)
+
 module MielSpecFilename: STRING
 module AlcoolExtraction: STRING
 module AlcoolPrintLocations: BOOL
@@ -367,11 +413,11 @@ module Report: STRING
 module ConstFuncArrays: BOOL
 
 (** {3 Cxx} *)
+
 module PrintCxx: BOOL
   (** [true] for pretty-printing the C++ files attached to the project. *)
 
 module Unmangling: INDEXED_VAL with type value = string -> string
-
 
 
 

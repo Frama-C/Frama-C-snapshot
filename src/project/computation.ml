@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: computation.ml,v 1.6 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: computation.ml,v 1.8 2008/06/19 14:42:45 uid568 Exp $ *)
 
 module type HASHTBL = sig
   include Datatype.HASHTBL
@@ -41,6 +41,7 @@ module type HASHTBL_OUTPUT = sig
   val iter: (key -> data -> unit) -> unit
   val fold: (key -> data -> 'a -> 'a) -> 'a -> 'a
   val memo: ?change:(data -> data) -> (key -> data) -> key -> data
+    (** @plugin developer guide *)
   val find: key -> data
   val find_all: key -> data list
   val unsafe_find: key -> data
@@ -219,6 +220,40 @@ struct
 end
 
 module SetRef(Data:Datatype.SET_INPUT) = Make_SetRef(Set.Make(Data))(Data)
+
+(** {3 Queue} *)
+
+module type QUEUE = sig
+  type elt
+  val add: elt -> unit
+  val iter: (elt -> unit) -> unit
+  val is_empty: unit -> bool
+end
+
+module Queue(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) = struct
+
+  type elt = Data.t
+      
+  let state = ref (Queue.create ())
+    
+  include Project.Computation.Register
+  (Datatype.Queue(Data))
+  (struct
+     type t = elt Queue.t
+     let create = Queue.create
+     let clear = Queue.clear
+     let get () = !state
+     let set x = state := x
+   end)
+  (Info)
+
+  let add x = Queue.add x !state
+  let iter f = Queue.iter f !state
+  let is_empty () = Queue.is_empty !state
+
+end
+
+(** {3 Apply Once} *)
 
 let apply_once name dep f =
   let module First = 

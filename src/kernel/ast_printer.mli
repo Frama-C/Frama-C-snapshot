@@ -21,7 +21,7 @@
 
 (** Default printers of Frama-C. Initialized with Cil default printers, and
     updated by the {!Printer} module.
- *)
+    @plugin developer guide *)
 
 open Cil_types
 
@@ -88,6 +88,5 @@ val d_tsets_offset: (Format.formatter -> tsets_offset -> unit) ref
 
 val d_predicate_named: (Format.formatter -> predicate named -> unit) ref
 val d_code_annotation: (Format.formatter -> code_annotation -> unit) ref
-val d_type_annotation: (Format.formatter -> type_annotation -> unit) ref
 val d_funspec: (Format.formatter -> funspec -> unit) ref
 val d_annotation: (Format.formatter -> global_annotation -> unit) ref

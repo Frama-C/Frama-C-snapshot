@@ -1,0 +1,159 @@
+#!/bin/sh
+
+# benchmark for krakatoa
+export KRAKATOALIB=`pwd`/../../lib
+export JESSIELIB=`pwd`/../../lib
+export WHYCOQ=`pwd`/../../lib/coq
+make="make WHYCOQ=$WHYCOQ"
+
+# Java files to parse with success
+echo "Java parsing (good)"
+# cd good/syntax
+parsing="../../../../bin/krakatoa.opt -parse-only"
+for f in *.java; do
+    echo -n "  "$f"... "
+    if ! $parsing  $f > /dev/null 2>&1; then
+	echo "krakatoa FAILED"
+	$parsing $f
+	# exit 1
+    else
+	echo "krakatoa ok... "
+    fi
+done
+
+echo "Java parsing (bad)"
+# cd ../../bad-syn
+parsing="../../../bin/krakatoa.opt -parse-only"
+for f in *.java; do
+    echo -n "  "$f"... "
+    if $parsing  $f > /dev/null 2>&1; then
+	echo "krakatoa FAILED (accepted a bad file)"
+	$parsing $f
+	exit 1
+    else
+	echo "krakatoa ok... "
+    fi
+done
+
+echo "Java parsing/typing (bad)"
+# cd ../bad-sem
+parsing="../../../bin/krakatoa.opt -type-only"
+for f in *.java; do
+    echo -n "  "$f"... "
+    if $parsing  $f > /dev/null 2>&1; then
+	echo "krakatoa FAILED (accepted a bad file)"
+	$parsing $f
+	exit 1
+    else
+	echo "krakatoa ok... "
+    fi
+done
+
+echo "Java parsing/typing (good)"
+# cd ../good
+parsing="../../../bin/krakatoa.opt -type-only"
+for f in *.java; do
+    echo -n "  "$f"... "
+    if ! $parsing  $f > /dev/null 2>&1; then
+	echo "krakatoa FAILED"
+	$parsing $f
+	# exit 1
+    else
+	echo "krakatoa ok... "
+    fi
+done
+
+echo "Java interp (bad)"
+# cd ../bad-interp
+parsing="../../../bin/krakatoa.opt"
+for f in *.java; do
+    echo -n "  "$f"... "
+    if $parsing  $f > /dev/null 2>&1; then
+	echo "krakatoa FAILED (accepted a bad file)"
+	$parsing $f
+	exit 1
+    else
+	echo "krakatoa ok... "
+    fi
+done
+
+echo "Java interp (good)"
+cd good
+
+bench_java_good () {
+    options="$* -why-opt -show-time"
+    echo "-------------------------------------------------------------------"
+    echo "Bench Krakatoa+Simplify/Yices/Ergo with options: $options"
+    parsing="../../../bin/krakatoa.opt"
+    jessie="../../../bin/jessie.opt $options"
+
+    rm -f why/*.why
+    rm -f simplify/*_why.sx
+    rm -f smtlib/*_why.smt
+    VCS=""
+    for file in *.java; do
+	echo -n "  Generating VCs for $file... "
+	f=`basename $file .java`
+	options=""
+	if [ $f = "SCID" ]; then 
+	    options="-javacard" 
+	fi
+	if $parsing $options $f.java > /tmp/krakatoa.tmp 2>&1; then
+	    if $jessie  $f.jc > /tmp/krakatoa.tmp 2>&1; then
+		if $make -f $f.makefile simplify/${f}_why.sx > /tmp/krakatoa.tmp 2>&1 ; then
+		    if $make -f $f.makefile why/${f}_why.why > /tmp/krakatoa.tmp 2>&1 ; then
+			VCS="$VCS simplify/${f}_why.sx why/${f}_why.why"    
+			echo "ok"
+		    else
+			echo "why FAILED :"
+			cat /tmp/krakatoa.tmp
+			exit 1
+		    fi
+		else
+		    echo "why FAILED :"
+		    # cat /tmp/krakatoa.tmp
+		    # exit 1
+		fi
+	    else
+		echo "jessie FAILED (rejected a good file) :"
+		# cat /tmp/krakatoa.tmp
+		# exit 1
+	    fi
+	else
+	    echo "krakatoa FAILED (rejected a good file) :"
+	    # cat /tmp/krakatoa.tmp
+	    # exit 1
+	fi
+    done
+    ../../../bin/dp.opt -timeout 10 $VCS 2>/dev/null || true
+}
+
+bench_java_good
+# bench_jc_good -separation -no-zone-type
+
+# Coq proofs
+# for f in $FILES; do
+#     echo -n "  $f.c... "
+#     rm -f coq/krakatoa_spec_why.v
+#     if $parsing  $f.c > /tmp/krakatoa.tmp 2>&1; then
+# 	echo -n "krakatoa ok... "
+# 	if $make -f $f.makefile coq > /tmp/krakatoa.tmp 2>&1; then
+# 	    n=`grep -c Admitted coq/${f}_why.v`
+# 	    if test $n -ne 0 ; then
+# 		echo "Coq proof ok (with $n Admitted)... "
+# 	    else
+# 		echo "Coq proof ok... "
+# 	    fi
+# 	else
+# 	    echo "Coq proof FAILED !"
+# 	    cat /tmp/krakatoa.tmp
+# 	    exit 1
+# 	fi
+#     else
+# 	echo "krakatoa FAILED (rejected a good file) :"
+# 	cat /tmp/krakatoa.tmp
+# 	exit 1
+#     fi
+# done
+
+

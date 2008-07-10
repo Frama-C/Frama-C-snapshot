@@ -19,12 +19,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** @plugin developer guide *)
+
 (** Raised by [cardinal_less_than] *)
 exception Not_less_than
 
 exception Is_not_included
 
-(** Generic lattice *)
+(** Generic lattice.
+    @plugin developer guide *)
 module type Lattice = sig
   exception Error_Top
   exception Error_Bottom
@@ -145,6 +148,7 @@ module type Arithmetic_Value = sig
   val pos_div : t -> t -> t
   val c_div : t -> t -> t
   val c_rem : t -> t -> t
+  val cast: size:t -> signed:bool -> value:t -> t
   val abs : t -> t
   val zero : t
   val one : t
@@ -178,7 +182,8 @@ module type Arithmetic_Value = sig
   val logxor : t -> t -> t
   val lognot : t -> t
   val power_two : int -> t
-  val extract_bits : start:t -> stop:t -> t -> t
+  val two_power : t -> t
+  val extract_bits : with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
 end
 
 module type Card = sig
@@ -219,7 +224,7 @@ module Int : sig
   val neq : t -> t -> bool
   val to_int64 : t -> int64
   val zero : t
-
+  val eight : t
   val div : t -> t -> t
 
   val billion_one : t
@@ -251,6 +256,7 @@ module Int : sig
   val c_rem : t -> t -> t
   val power_two : int -> t
   val extract_bits :
+    with_alarms:CilE.warn_mode ->
     start:t ->
     stop:t -> t -> t
   val is_even : t -> bool
@@ -374,7 +380,7 @@ sig
   val interp_boolean :
     contains_zero:bool -> contains_non_zero:bool -> t
   val filter_set : (int -> bool) -> V.t -> O.t -> t
-  val extract_bits : start:V.t -> stop:V.t -> t -> t
+  val extract_bits : with_alarms:CilE.warn_mode -> start:V.t -> stop:V.t -> t -> t
   val create_all_values : modu:V.t -> size:int -> t
   val all_values : size:V.t -> t -> bool
 

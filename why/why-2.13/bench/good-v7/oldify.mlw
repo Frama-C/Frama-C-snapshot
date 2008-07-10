@@ -1,0 +1,23 @@
+
+logic q1 : int, int, int -> prop
+
+parameter r : int ref
+
+parameter f1 : y:int ->
+             {} unit writes r { q1(r, r@, y) }
+
+let g1 =
+  {} (f1 !r) { q1(r, r@, r@) }
+
+
+logic q: int array, int array, int -> prop
+
+parameter f : t:int array -> x:int -> 
+             {} unit reads t writes t { q(t, t@, x) }
+
+let g (t:int array) =
+  {} 
+  (f t (array_length t))
+  { q(t, t@, array_length(t@)) }
+
+

@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgMarks.mli,v 1.26 2008/05/19 14:28:27 uid568 Exp $ *)
+(* $Id: pdgMarks.mli,v 1.29 2008/07/09 11:26:38 uid530 Exp $ *)
 
 (** This module provides elements to mapped information (here called 'marks')
 * to PDG elements and propagate it along the dependencies. 
@@ -64,17 +64,22 @@ end
 * but we also need to associate marks to input locations
 * in order to propage information to the callers about undefined data.
 * *)
-type t_select_elem = 
-  | SelNode of PdgTypes.Node.t 
+type t_select_elem = private 
+  | SelNode of PdgTypes.Node.t * Locations.Zone.t option
   | SelIn of Locations.Zone.t
+
+val mk_select_node : ?z_opt:Locations.Zone.t option -> PdgTypes.Node.t -> t_select_elem
+val mk_select_undef_zone : Locations.Zone.t -> t_select_elem
 
 type 'tm t_select = (t_select_elem * 'tm) list
 
+val add_to_select : 'tm t_select -> t_select_elem -> 'tm -> 'tm t_select
 
 val add_node_to_select : 
-       'tm t_select -> PdgTypes.Node.t -> 'tm -> 'tm t_select
+    'tm t_select -> (PdgTypes.Node.t * Locations.Zone.t option) -> 
+    'tm -> 'tm t_select
 val add_undef_in_to_select : 
-       'tm t_select -> Locations.Zone.t -> 'tm -> 'tm t_select
+       'tm t_select -> Locations.Zone.t option -> 'tm -> 'tm t_select
 
 (** we sometime need a list of [t_select] associated with its pdg 
 * when dealing with several functions at one time. *)

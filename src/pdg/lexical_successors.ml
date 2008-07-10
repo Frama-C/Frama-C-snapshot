@@ -50,9 +50,9 @@ let add_link graph ~prev ~next =
       let prev_id = s_prev.sid in
       try
         ignore (Inthash.find graph prev_id)
-      with Not_found -> 
+      with Not_found ->
         if Macros.debug1 () then
-          Format.printf "[lexical successor] add %d -> %d@\n" 
+          Format.printf "[lexical successor] add %d -> %d@\n"
             prev_id s_next.sid;
         Inthash.add graph  prev_id s_next
 
@@ -80,7 +80,7 @@ let rec process_stmt graph ~prev_list ~stmt =
 
   | Switch (_,blk,_,_)
   | Block blk -> process_block graph blk
-  | UnspecifiedSequence (s1,s2) -> process_block graph (Cil.mkBlock [s1;s2])
+  | UnspecifiedSequence blk -> process_block graph blk
   | Loop (_,body,_,_,_) ->
       let last_list = process_block graph body in
       add_links graph last_list ki_stmt; [ki_stmt]
@@ -111,7 +111,7 @@ type t = Cil_types.stmt Inthash.t
 (** Compute the lexical successor graph for function kf *)
 let compute kf =
   if Macros.info () then
-    Format.printf "[lexical successor] computing for function %s@\n" 
+    Format.printf "[lexical successor] computing for function %s@\n"
       (Kernel_function.get_name kf);
   let graph = Inthash.create 50 in
   match kf.Db_types.fundec with

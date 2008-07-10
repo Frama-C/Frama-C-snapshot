@@ -1,0 +1,543 @@
+(
+
+(theory th_shift
+ (extends)
+ (axioms
+(forall p (= (shift p 0)  p))
+
+(forall p 
+ (forall i 
+  (forall j 
+   (= (shift (shift p i) j) (shift p (+ i j))))))
+))
+
+(theory th_offset_shift
+ (extends th_shift)
+ (axioms
+(forall p 
+ (forall i 
+  (= (offset (shift p i)) (+ (offset p) i))))
+(forall p1 
+ (forall p2 
+  (forall i 
+   (forall j 
+    (-> (neq (+ (offset p1) i) (+ (offset p2) j))
+	(neq (shift p1 i) (shift p2 j)))))))
+))
+
+(theory th_base_addr_shift
+ (extends th_shift)
+ (axioms
+(forall p 
+ (forall i 
+  (= (base_addr (shift p i)) (base_addr p))))
+))
+
+(theory th_block_length_shift
+ (extends th_shift)
+ (axioms
+(forall a 
+ (forall p 
+  (forall i 
+   (= (block_length a (shift p i)) (block_length a p)))))
+))
+
+(theory th_base_addr_shift
+ (extends th_shift)
+ (axioms
+(forall p1 
+ (forall p2 
+  (forall i 
+   (forall j 
+    (-> (neq (base_addr p1) (base_addr p2))
+	(neq (shift p1 i) (shift p2 j)))))))
+(forall p1 
+ (forall p2 
+  (-> (neq (base_addr p1) (base_addr p2))
+      (forall i 
+       (forall j 
+        (neq (shift p1 i) (shift p2 j)))))))
+))
+
+(theory th_lt_pointer_def
+ (extends th_base_addr_shift th_offset_shift)
+ (axioms
+(forall p1  p2 
+ (<-> (lt_pointer p1  p2 )
+      (and (= (base_addr p1)
+	      (base_addr p2))
+	   (< (offset p1)
+	      (offset p2)))))
+))
+
+(theory th_le_pointer_def
+ (extends th_base_addr_shift th_offset_shift)
+ (axioms
+(forall p1  p2 
+ (<-> (le_pointer p1  p2 ) 
+      (and (= (base_addr p1)
+	      (base_addr p2))
+	   (<= (offset p1)
+	       (offset p2)))))
+))
+
+(theory th_gt_pointer_def
+ (extends th_base_addr_shift th_offset_shift)
+ (axioms
+(forall p1  p2 
+ (<-> (gt_pointer p1  p2 )
+      (and (= (base_addr p1)
+	      (base_addr p2))
+	   (> (offset p1)
+	      (offset p2)))))
+))
+
+(theory th_ge_pointer_def
+ (extends th_base_addr_shift th_offset_shift)
+ (axioms
+(forall p1  p2 
+ (<-> (ge_pointer p1  p2 ) 
+      (and (= (base_addr p1)
+	      (base_addr p2))
+	   (>= (offset p1)
+	       (offset p2)))))
+))
+
+(theory th_valid_def
+ (extends) 
+ (axioms
+(forall a  p 
+ (<-> (valid a  p ) 
+      (and (<= 0 (offset p))
+	   (< (offset p)
+	      (block_length a p)))))
+))
+
+(theory th_valid_index_def
+ (extends th_offset_shift th_block_length_shift)
+ (axioms
+(forall a  p  i 
+ (<-> (valid_index a  p  i )
+      (and (<= 0 (+ (offset p) i))
+	   (< (+ (offset p) i) (block_length a p)))))
+))
+
+(theory th_valid_range_def
+ (extends th_offset_shift th_block_length_shift)
+ (axioms
+(forall a  p  i  j 
+ (<-> (valid_range a  p  i  j ) 
+      (and (<= 0 (+ (offset p) i))
+	   (and (<= i j) (< (+ (offset p) j) (block_length a p))))))
+))
+
+
+(theory th_base_addr_block_length
+ (extends th_base_addr_shift th_block_length_shift)
+ (axioms
+(forall a 
+ (forall p1 
+  (forall p2 
+   (-> (= (base_addr p1) (base_addr p2))
+       (= (block_length a p1) (block_length a p2))))))
+(forall p1 
+ (forall p2 
+  (-> (= (base_addr p1) (base_addr p2))
+      (forall a 
+       (= (block_length a p1) (block_length a p2))))))
+))
+
+(theory th_base_addr_offset
+ (extends th_base_addr_shift th_offset_shift)
+ (axioms
+(forall p1 
+ (forall p2 
+  (-> (and (= (base_addr p1) (base_addr p2))
+	   (= (offset p1) (offset p2)))
+      (= p1 p2))))
+(forall p1 
+ (forall p2 
+  (-> (= p1 p2) 
+      (and (= (base_addr p1) (base_addr p2))
+	   (= (offset p1) (offset p2))))))
+))
+
+(theory th_base_addr_offset_shift
+ (extends th_base_addr_shift th_offset_shift th_shift)
+ (axioms
+(forall p1 
+ (forall p2 
+  (forall i 
+   (forall j 
+    (-> (= (base_addr p1) (base_addr p2))
+	(-> (= (+ (offset p1) i) (+ (offset p2) j))
+	    (= (shift p1 i) (shift p2 j))))))))
+(forall p1 
+ (forall p2 
+  (-> (= (base_addr p1) (base_addr p2))
+      (forall j 
+       (forall i 
+        (-> (= (+ (offset p1) i) (+ (offset p2) j))
+	    (= (shift p1 i) (shift p2 j))))))))
+))
+
+;; (theory th_valid_index_valid_shift
+;;  (extends th_valid_index_def th_valid_def th_shift th_valid_def)
+;;  (axioms
+;; (forall a 
+;;  (forall p 
+;;   (forall i 
+;;    (-> (valid_index a p i) (valid a (shift p i))))))
+;; ))
+
+;; (theory th_valid_range_valid_shift
+;;  (extends th_valid_range_def th_valid_def th_shift)
+;;  (axioms
+;; (forall a 
+;;  (forall p 
+;;   (forall i 
+;;    (forall j 
+;;     (forall k 
+;;      (-> (valid_range a p i j)
+;; 	 (-> (and (<= i k) (<= k j))
+;; 	     (valid a (shift p k)))))))))
+;; (forall a 
+;;  (forall p 
+;;   (forall i 
+;;    (forall j 
+;;     (-> (valid_range a p i j)
+;; 	(forall k 
+;; 	 (-> (and (<= i k) (<= k j))
+;; 	     (valid a (shift p k)))))))))
+;; ))
+
+;; (theory th_valid_range_valid
+;;  (extends th_valid_range_def th_valid_def)
+;;  (axioms
+;; (forall a 
+;;  (forall p 
+;;   (forall i 
+;;    (forall j 
+;;     (-> (valid_range a p i j)
+;; 	(-> (and (<= i 0) (<= 0 j))
+;; 	    (valid a p)))))))
+;; ))
+
+;; (theory th_valid_range_valid_index
+;;  (extends th_valid_range_def th_valid_index_def)
+;;  (axioms
+;; (forall a 
+;;  (forall p 
+;;   (forall i 
+;;    (forall j 
+;;     (forall k 
+;;      (-> (valid_range a p i j)
+;; 	 (-> (and (<= i k) (<= k j))
+;; 	     (valid_index a p k))))))))
+;; (forall a 
+;;  (forall p 
+;;   (forall i 
+;;    (forall j 
+;;      (-> (valid_range a p i j)
+;; 	 (forall k 
+;;           (-> (and (<= i k) (<= k j))
+;; 	      (valid_index a p k))))))))
+;; ))
+
+(theory th_base_addr_sub_pointer_offset
+ (extends th_base_addr_shift th_offset_shift)
+ (axioms
+(forall p1 
+ (forall p2 
+  (-> (= (base_addr p1) (base_addr p2))
+      (= (sub_pointer p1 p2) (- (offset p1) (offset p2))))))
+))
+
+(theory th_acc_upd
+ (extends)
+ (axioms
+(forall m 
+ (forall p 
+  (forall a 
+   (= (acc (upd m p a) p) a))))
+(forall m 
+ (forall p1 
+  (forall p2 
+   (forall a 
+    (-> (= p1 p2) (= (acc (upd m p1 a) p2) a))))))
+(forall p1 
+ (forall p2 
+  (-> (= p1 p2) 
+      (forall m 
+       (forall a 
+	(= (acc (upd m p1 a) p2) a))))))
+(forall m 
+ (forall p1 
+  (forall p2 
+   (forall a 
+    (-> (neq p1 p2)
+	(= (acc (upd m p1 a) p2) (acc m p2)))))))
+(forall p1 
+ (forall p2 
+  (-> (neq p1 p2)
+      (forall m 
+       (forall a 
+        (= (acc (upd m p1 a) p2) (acc m p2)))))))
+))
+
+(theory th_assigns_def
+ (extends) 
+ (axioms
+(forall a  m1  m2  l 
+ (<-> (assigns a  m1  m2  l )
+      (forall p 
+       (-> (valid a p)
+	   (-> (unchanged p l)
+	       (= (acc m2 p) (acc m1 p)))))))
+))
+
+(theory th_unchanged_def
+ (extends th_assigns_def)
+ (axioms
+(forall p 
+ (unchanged p nothing_loc))
+(forall p1 
+ (forall p2 
+  (-> (neq p1 p2)
+      (unchanged p1 (pointer_loc p2)))))
+(forall p1 
+ (forall p2 
+  (-> (unchanged p1 (pointer_loc p2))
+      (neq p1 p2))))
+))
+
+(theory th_unchanged_union_loc
+ (extends th_assigns_def)
+ (axioms
+(forall l1 
+ (forall l2 
+  (forall p 
+   (-> (and (unchanged p l1)
+	    (unchanged p l2))
+       (unchanged p (union_loc l1 l2))))))
+(forall l1 
+ (forall l2 
+  (forall p 
+   (-> (unchanged p (union_loc l1 l2))
+       (unchanged p l1)))))
+(forall l1 
+ (forall l2 
+  (forall p 
+   (-> (unchanged p (union_loc l1 l2))
+       (unchanged p l2)))))
+))
+
+(theory th_unchanged_range_loc
+ (extends th_shift th_assigns_def)
+ (axioms
+(forall p1 
+ (forall p2 
+  (forall a 
+   (forall b 
+    (-> 
+     (forall i 
+      (-> (and (<= a i) (<= i b))
+	  (neq p1 (shift p2 i)))) 
+     (unchanged p1 (range_loc p2 a b)))))))
+(forall p1 
+ (forall p2 
+  (forall a 
+   (forall b 
+    (-> 
+     (unchanged p1 (range_loc p2 a b))
+     (forall i 
+      (-> (and (<= a i) (<= i b)) (neq p1 (shift p2 i)))))))))
+))
+
+(theory th_unchanged_all_loc
+ (extends th_base_addr_shift th_assigns_def)
+ (axioms
+(forall p1 
+ (forall p2 
+  (-> (neq (base_addr p1) (base_addr p2))
+      (unchanged p1 (all_loc p2)))))
+(forall p1 
+ (forall p2 
+  (-> 
+   (unchanged p1 (all_loc p2))
+   (neq (base_addr p1) (base_addr p2)))))
+))
+
+;; (theory th_assigns
+;;  (extends th_assigns_def)
+;;  (axioms
+;; (forall a 
+;;  (forall l 
+;;   (forall m1 
+;;    (forall m2 
+;;     (forall m3 
+;;      (-> (assigns a m1 m2 l)
+;; 	 (-> (assigns a m2 m3 l)
+;; 	     (assigns a m1 m3 l))))))))
+;; (forall a 
+;;  (forall l 
+;;   (forall m1 
+;;    (forall m2 
+;;     (-> (assigns a m1 m2 l)
+;;      (forall m3 
+;;       (-> (assigns a m2 m3 l)
+;; 	  (assigns a m1 m3 l))))))))
+;; (forall a 
+;;  (forall l 
+;;   (forall m 
+;;    (assigns a m m l))))
+;; ))
+
+(theory th_fresh_valid_shift
+ (extends th_valid_def th_shift)
+ (axioms
+(forall a 
+ (forall p 
+  (-> (fresh a p) 
+   (forall i 
+    (not (valid a (shift p i)))))))
+))
+
+(theory th_allock_stack_valid
+ (extends th_valid_def)
+ (axioms
+(forall p 
+ (forall a1 
+  (forall a2 
+   (-> (alloc_stack p a1 a2)
+       (valid a2 p)))))
+(forall p 
+ (forall a1 
+  (forall a2 
+   (-> (alloc_stack p a1 a2)
+       (forall q 
+        (-> (valid a1 q) (valid a2 q)))))))
+))
+
+(theory th_allock_stack_valid_range
+ (extends th_valid_range_def)
+ (axioms
+(forall p 
+ (forall a1 
+  (forall a2 
+   (-> (alloc_stack p a1 a2)
+       (forall q 
+        (forall i 
+         (forall j 
+          (-> (valid_range a1 q i j)
+	      (valid_range a2 q i j)))))))))
+))
+
+
+(theory th_free_stack_valid_on_heap
+ (extends th_valid_def)
+ (axioms
+(forall a1 
+ (forall a2 
+  (forall a3 
+   (-> (free_stack a1 a2 a3)
+       (forall p 
+        (-> (valid a2 p)
+	    (-> (on_heap a2 p)
+		(valid a3 p))))))))
+))
+
+(theory th_free_stack_valid_on_stack
+ (extends th_valid_def)
+ (axioms
+(forall a1 
+ (forall a2 
+  (forall a3 
+   (-> (free_stack a1 a2 a3)
+       (forall p 
+        (-> (valid a1 p)
+	    (-> (on_stack a1 p)
+		(valid a3 p))))))))
+))
+
+(theory th_is_c_string_def
+ (extends th_valid_range_def) 
+ (axioms
+(forall alloc  intP  src  n 
+ (<-> (is_c_string alloc  intP  src  n )
+      (and 
+       (and 
+        (and (>= n 0) (valid_range alloc src 0 n))
+	(= (acc intP (shift src n)) 0))
+       (forall i (-> (and (<= 0 i) (< i n))
+		     (neq (acc intP (shift src i)) 0))))))
+))
+
+(theory valid1_def
+  (extends th_valid_def th_valid_range_def)
+  (axioms
+;; Why predicate valid1
+(forall m1
+(<-> (valid1 m1) (forall p (forall a (-> (valid a p) (valid a (acc m1 p)))))))
+;; Why predicate valid1_range
+(forall m1 size
+(<-> (valid1_range m1 size)
+(forall p
+(forall a (-> (valid a p) (valid_range a (acc m1 p) 0 (- size 1)))))))
+))
+
+(theory separation1_def
+  (extends th_valid_def th_base_addr_shift)
+  (axioms
+;; Why predicate separation1
+(forall m1 m2
+(<-> (separation1 m1 m2)
+(forall p
+(forall a
+(-> (valid a p) (not (= (base_addr (acc m1 p)) (base_addr (acc m2 p)))))))))
+
+;; Why predicate separation1_range1
+(forall m1 m2 size
+(<-> (separation1_range1 m1 m2 size)
+(forall p
+(forall a
+(-> (valid a p)
+(forall i
+(-> (and (<= 0 i) (< i size))
+(not (= (base_addr (acc m1 (shift p i))) (base_addr (acc m2 p)))))))))))
+
+;; Why predicate separation1_range
+(forall m size
+(<-> (separation1_range m size)
+(forall p
+(forall a
+(-> (valid a p)
+(forall i1
+(forall i2
+(-> (and (<= 0 i1) (< i1 size))
+(-> (and (<= 0 i2) (< i2 size))
+(-> (not (= i1 i2))
+(not (= (base_addr (acc m (shift p i1))) (base_addr (acc m (shift p i2)))))))))))))))
+
+;; Why predicate separation2
+(forall m1 m2
+(<-> (separation2 m1 m2)
+(forall p1
+(forall p2
+(forall a
+(-> (not (= p1 p2))
+(not (= (base_addr (acc m1 p1)) (base_addr (acc m2 p2))))))))))
+
+;; Why predicate separation2_range1
+(forall m1 m2 size
+(<-> (separation2_range1 m1 m2 size)
+(forall p
+(forall q
+(forall a
+(forall i
+(-> (and (<= 0 i) (< i size))
+(not (= (base_addr (acc m1 (shift p i))) (base_addr (acc m2 q)))))))))))
+))
+
+
+) ;; END THEORY

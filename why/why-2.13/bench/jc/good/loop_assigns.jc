@@ -1,0 +1,28 @@
+
+
+type T = {
+     integer i;
+}
+
+T[0] a;
+
+T[0..9] b;
+
+
+unit f()
+  behavior default:
+     assigns a.i,(b+[0..\old(a.i)]).i;
+     ensures true;
+{
+     a.i = 0;
+     var integer k = 0;
+     invariant 0 <= k;
+     while (k<=9) 
+     {     
+       (b+k).i = 1;
+       k++;
+     }
+}
+
+
+     

@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: common.ml,v 1.31 2008/05/23 16:55:39 uid570 Exp $ *)
+(* $Id: common.ml,v 1.34 2008/07/11 13:28:14 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -50,6 +50,8 @@ let is_unknown_location loc =
 (* Types                                                                     *)
 (*****************************************************************************)
 
+let struct_type_for_void = ref voidType
+
 (* Query functions on types *)
 
 let app_term_type f default = function
@@ -64,10 +66,14 @@ let get_unique_field ty = match unrollType ty with
   | TComp(compinfo,_) ->
       begin match compinfo.cfields with
 	| [content_fi] -> content_fi
-	| _ -> 
+	| _ ->
 	    Format.printf "type %a@." !Ast_printer.d_type ty;
 	    assert false
       end
+  | _ -> assert false
+
+let get_struct_name = function
+  | TComp(compinfo,_) -> compinfo.cname
   | _ -> assert false
 
 (* Integral types *)
@@ -196,7 +202,7 @@ let is_array_reference_type ty =
 
 let reference_of_array ty =
   let rec reftype ty =
-    if isArrayType ty then 
+    if isArrayType ty then
       let elty = reftype (direct_element_type ty) in
 (*       if array_size ty > 0L then *)
 	let size = constant_expr (direct_array_size ty) in
@@ -261,6 +267,19 @@ let unique_name =
 let unique_name_if_empty s =
   if s = "" then unique_name "unnamed" else s
 
+let reserved_names = 
+  [ "and"; "as"; "assert"; "assigns"; "assumes"; "axiom"; "behavior"; 
+    "boolean"; "break"; "case"; "default"; "catch"; "continue"; "do";
+    "else"; "ensures"; "end"; "exception"; "false"; "finally"; "for";
+    "free"; "goto"; "if"; "in"; "integer"; "invariant"; "lemma"; "let"; 
+    "logic"; "match"; "new"; "null"; "of"; "pack"; "reads"; "real";
+    "rep"; "requires"; "return"; "switch"; "tag"; "then"; "throw"; 
+    "throws"; "true"; "try"; "type"; "unit"; "unpack"; "variant"; "var";
+    "while"; "with" ]
+    
+let () = List.iter 
+  (fun n -> let un = unique_name n in assert (n = un)) reserved_names
+  
 (* Type name *)
 
 let string_explode s =
@@ -464,7 +483,6 @@ object
   method vslice_pragma = visitor#vslice_pragma
   method vzone = visitor#vzone
   method vcode_annot = visitor#vcode_annot
-  method vtype_annot = visitor#vtype_annot
   method vannotation = visitor#vannotation
 
 end
@@ -581,9 +599,6 @@ object
   method vcode_annot annot =
     Format.printf "%a@." !Ast_printer.d_code_annotation annot;
     visitor#vcode_annot annot
-  method vtype_annot annot =
-    Format.printf "%a@." !Ast_printer.d_type_annotation annot;
-    visitor#vtype_annot annot
   method vannotation annot =
     Format.printf "%a@." !Ast_printer.d_annotation annot;
     visitor#vannotation annot
@@ -694,8 +709,8 @@ object
   method vexpr e =
     ChangeDoChildrenPost (preaction_expr e, fun x -> x)
 
-(* I comment on purpose additional verifications, because they cause some tests 
-   to fail, see e.g. [copy_struct], because term-lhost TResult does not have 
+(* I comment on purpose additional verifications, because they cause some tests
+   to fail, see e.g. [copy_struct], because term-lhost TResult does not have
    a type for a proper conversion to expression. *)
 
 (*   method vterm = *)

@@ -1,0 +1,51 @@
+(**************************************************************************)
+(*                                                                        *)
+(* Proof of the Bresenham line drawing algorithm.                         *)
+(*                                                                        *)
+(* Jean-Christophe Filliâtre (LRI, Université Paris Sud)                  *)
+(* May 2001                                                               *)
+(*                                                                        *)
+(**************************************************************************)
+
+(*  Parameters. 
+    Without loss of generality, we can take [x1=0] and [y1=0]. 
+    Thus the line to draw joins [(0,0)] to [(x2,y2)]
+    and we have [deltax = x2] and [deltay = y2]. 
+    Moreover we assume being in the first octant, i.e.
+    [0 <= y2 <= x2] (see the Coq file). The seven other cases can be easily
+    deduced by symmetry. *)
+
+logic x2,y2 : int
+
+(*s Global variables of the program. *)
+
+parameter x,y,e : int ref
+
+(*s The code.
+    [(best x y)] expresses that the point [(x,y)] is the best
+    possible point i.e. the closest to the real line (see the Coq file).
+    The invariant relates [x], [y] and [e] and
+    gives lower and upper bound for [e] (see the Coq file). *)
+
+external logic best : int, int -> prop
+external logic Invariant : int, int, int -> prop
+
+let bresenham () =
+  begin
+    x := 0;
+    y := 0;
+    e := 2 * y2 - x2;
+    while !x <= x2 do
+      { invariant 0 <= x <= x2 + 1 and Invariant(x, y, e)
+        variant   x2 + 1 - x }
+      (* here we would do (plot x y) *) 
+      assert { best(x, y) };
+      if !e < 0 then
+	e := !e + 2 * y2
+      else begin
+	y := !y + 1;
+	e := !e + 2 * (y2 - x2)
+      end;
+      x := !x + 1
+    done
+  end

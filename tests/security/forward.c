@@ -1,9 +1,9 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -security-lattice strong -lib-entry h
+   OPT: -security-analysis -security-lattice strong -lib-entry -main h
    */
 
-/*@ requires security_status(s) == public(); */
+/*@ requires security_status(s) == public; */
 void send(const int s);
 
 int a,b;

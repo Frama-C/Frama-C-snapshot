@@ -103,7 +103,7 @@ let current_len = ref 0
 let spaces = ref 0
 let follow = ref 0
 let roll = ref 0
-    
+
 
 
 (* stub out the old-style manual space functions *)
@@ -123,7 +123,7 @@ let print_unescaped_string str = print str
 (*
 ** Useful primitives
 *)
-let print_list print_sep print_elt lst = 
+let print_list print_sep print_elt lst =
   let _ = List.fold_left
       (fun com elt ->
 	if com then print_sep ();
@@ -136,7 +136,7 @@ let print_list print_sep print_elt lst =
 let print_commas nl fct lst =
   print_list (fun () -> print ","; if nl then new_line() else space()) fct lst;
   print_maybe ","
-	
+
 let print_string (s:string) =
   print ("\"" ^ escape_string s ^ "\"")
 
@@ -159,7 +159,7 @@ let rec print_specifiers (specs: spec_elem list) =
         | STATIC -> "static"
         | EXTERN -> "extern"
         | REGISTER -> "register")
-    | SpecCV cv -> 
+    | SpecCV cv ->
         printu (match cv with
         | CV_CONST -> "const"
         | CV_VOLATILE -> "volatile"
@@ -216,10 +216,10 @@ begin
 end
 
 
-(* This is the main printer for declarations. It is easy bacause the 
+(* This is the main printer for declarations. It is easy bacause the
  * declarations are laid out as they need to be printed. *)
 and print_decl (n: string) = function
-    JUSTBASE -> if n <> "___missing_field_name" then 
+    JUSTBASE -> if n <> "___missing_field_name" then
                   print n
                 else
                   comprint "missing field name"
@@ -278,11 +278,11 @@ and print_enum_items items =
     print "} ";
   end
 
-  
+
 and print_onlytype (specs, dt) =
   print_specifiers specs;
   print_decl "" dt
-    
+
 and print_name ((n, decl, attrs, _) : name) =
   print_decl n decl;
   space ();
@@ -295,11 +295,11 @@ and print_init_name ((n, i) : init_name) =
     print "= ";
     print_init_expression i
   end
-            
+
 and print_name_group (specs, names) =
   print_specifiers specs;
   print_commas false print_name names
-    
+
 and print_field_group fld = match fld with
   | FIELD (specs, fields) ->
       print_specifiers specs;
@@ -307,16 +307,16 @@ and print_field_group fld = match fld with
   | TYPE_ANNOT _ ->
       print "/*@ <type annotation> */"
 
-and print_field (name, widtho) = 
+and print_field (name, widtho) =
   print_name name;
-  (match widtho with 
+  (match widtho with
     None -> ()
   | Some w -> print " : ";  print_expression w)
 
 and print_init_name_group (specs, names) =
   print_specifiers specs;
   print_commas false print_init_name names
-    
+
 and print_single_name (specs, name) =
   print_specifiers specs;
   print_name name
@@ -324,11 +324,11 @@ and print_single_name (specs, name) =
 and print_params (pars : single_name list) (ell : bool) =
   print_commas false print_single_name pars;
   if ell then printl (if pars = [] then ["..."] else [",";"..."]) else ()
-    
+
 and print_old_params pars ell =
   print_commas false (fun id -> print id) pars;
   if ell then printl (if pars = [] then ["..."] else [",";"..."]) else ()
-    
+
 
 (*
 ** Expression printing
@@ -349,7 +349,7 @@ and print_old_params pars ell =
 **		3	||
 **		2	? :
 **		1	= ?=
-**		0	,				
+**		0	,
 *)
 and get_operator exp =
   match exp with
@@ -417,31 +417,31 @@ and get_operator exp =
 
 and print_comma_exps exps =
   print_commas false print_expression exps
-    
-and print_init_expression (iexp: init_expression) : unit = 
-  match iexp with 
+
+and print_init_expression (iexp: init_expression) : unit =
+  match iexp with
     NO_INIT -> ()
   | SINGLE_INIT e -> print_expression e
   | COMPOUND_INIT  initexps ->
       let doinitexp = function
           NEXT_INIT, e -> print_init_expression e
-        | i, e -> 
+        | i, e ->
             let rec doinit = function
                 NEXT_INIT -> ()
               | INFIELD_INIT (fn, i) -> printl [".";fn]; doinit i
-              | ATINDEX_INIT (e, i) -> 
+              | ATINDEX_INIT (e, i) ->
                   print "[";
                   print_expression e;
                   print "]";
                   doinit i
-              | ATINDEXRANGE_INIT (s, e) -> 
-                  print "["; 
+              | ATINDEXRANGE_INIT (s, e) ->
+                  print "[";
                   print_expression s;
                   print " ... ";
                   print_expression e;
                   print "]"
                 in
-            doinit i; print " = "; 
+            doinit i; print " = ";
             print_init_expression e
       in
       print "{";
@@ -471,7 +471,7 @@ and print_expression_level (_lvl: int) (exp : expression) =
       print txt;
       space ();
 			(*print_expression exp2 (if op = SUB then (lvl' + 1) else lvl');*)
-      print_expression_level (lvl' + 1) exp2 
+      print_expression_level (lvl' + 1) exp2
 			(*if (op = SUB) && (lvl <= lvl') then print ")"*)
   | QUESTION (exp1, exp2, exp3) ->
       print_expression_level 2 exp1;
@@ -484,17 +484,17 @@ and print_expression_level (_lvl: int) (exp : expression) =
   | CAST (typ, iexp) ->
       print "(";
       print_onlytype typ;
-      print ")"; 
-     (* Always print parentheses. In a small number of cases when we print 
+      print ")";
+     (* Always print parentheses. In a small number of cases when we print
       * constants we don't need them  *)
       (match iexp with
         SINGLE_INIT e -> print_expression_level 15 e
-      | COMPOUND_INIT _ -> (* print "("; *) 
-          print_init_expression iexp 
+      | COMPOUND_INIT _ -> (* print "("; *)
+          print_init_expression iexp
           (* ; print ")" *)
       | NO_INIT -> print "<NO_INIT in cast. Should never arise>")
 
-  | CALL (VARIABLE "__builtin_va_arg", [arg; TYPE_SIZEOF (bt, dt)]) -> 
+  | CALL (VARIABLE "__builtin_va_arg", [arg; TYPE_SIZEOF (bt, dt)]) ->
       comprint "variable";
       print "__builtin_va_arg";
       print "(";
@@ -554,7 +554,7 @@ and print_expression_level (_lvl: int) (exp : expression) =
       printl ["@expr";"(";name;")"]
   in
   ()
-    
+
 
 (*
 ** Statement printing
@@ -671,7 +671,7 @@ and print_statement stat =
       setLoc(loc);
       printl ["goto";name;";"];
       new_line ()
-  | COMPGOTO (exp, loc) -> 
+  | COMPGOTO (exp, loc) ->
       setLoc(loc);
       print ("goto *"); print_expression exp; print ";"; new_line ()
   | DEFINITION d ->
@@ -686,7 +686,7 @@ and print_statement stat =
         print_list (fun () -> new_line()) print tlist; (* templates *)
         print "};"
       end else begin
-        print "__asm__ "; 
+        print "__asm__ ";
         print_attributes attrs;
         print "(";
         print_list (fun () -> new_line()) print_string tlist; (* templates *)
@@ -708,14 +708,14 @@ and print_statement stat =
         print ");"
       end;
       new_line ()
-  | TRY_FINALLY (b, h, loc) -> 
+  | TRY_FINALLY (b, h, loc) ->
       setLoc loc;
       print "__try ";
       print_block b;
       print "__finally ";
       print_block h
 
-  | TRY_EXCEPT (b, e, h, loc) -> 
+  | TRY_EXCEPT (b, e, h, loc) ->
       setLoc loc;
       print "__try ";
       print_block b;
@@ -748,7 +748,7 @@ and print_block blk =
   unindent ();
   print "}";
   new_line ()
-  
+
 and print_substatement stat =
   match stat.stmt_node with
     IF _
@@ -772,7 +772,7 @@ and print_substatement stat =
 (*
 ** GCC Attributes
 *)
-and print_attribute (name,args) = 
+and print_attribute (name,args) =
   if args = [] then printu name
   else begin
     print name;
@@ -854,13 +854,14 @@ and print_def def =
       printl ["__asm__";"("];  print_string asm; print ");";
       new_line ();
       force_new_line ()
-  | GLOBANNOT (_decl, loc) ->
+  | GLOBANNOT ((loc,_)::_) ->
       setLoc(loc);
       printl ["/*";
               "annotations are pretty-printed only for fully typed sources";
               "*/"];
       new_line();
       force_new_line()
+  | GLOBANNOT [] -> assert false
   | PRAGMA (a,loc) ->
       setLoc(loc);
       force_new_line ();
@@ -871,7 +872,7 @@ and print_def def =
       width := oldwidth;
       force_new_line ()
 
-  | LINKAGE (n, loc, dl) -> 
+  | LINKAGE (n, loc, dl) ->
       setLoc (loc);
       force_new_line ();
       print "extern "; print_string n; print_string "  {";
@@ -942,4 +943,3 @@ let printFile (result : out_channel) ((_fname, defs) : file) =
 
 let set_tab t = tab := t
 let set_width w = width := w
-

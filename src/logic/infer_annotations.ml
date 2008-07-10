@@ -40,9 +40,10 @@ let assigns_from_prototype vi =
   let rtyp, _, _, _ = splitFunctionTypeVI vi in
   let pointer_args,basic_args =
     List.partition (fun vi -> isPointerType vi.vtype) formals in
-  (* Remove pointer to pointer types *)
+  (* Remove pointer to pointer types and pointer to void *)
   let pointer_args =
-    List.filter (fun vi -> isPointerType vi.vtype) pointer_args
+    List.filter (fun vi -> not (isVoidPtrType vi.vtype 
+                                || isPointerType (typeOf_pointed vi.vtype))) pointer_args
   in
   let get_length full_typ =
     let attr = typeAttr full_typ in
@@ -78,7 +79,7 @@ let assigns_from_prototype vi =
       mk_star_v
       (List.filter
          (fun v ->
-            let pointed_type = Bit_utils.typeOf_pointed v.vtype in
+            let pointed_type = typeOf_pointed v.vtype in
             not (hasAttribute "const" (typeAttrs pointed_type))
             && not (Cil.isVoidType pointed_type)
          )

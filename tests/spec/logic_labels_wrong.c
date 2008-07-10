@@ -15,7 +15,7 @@ void f() {
   //@ loop invariant x == \old(x);
   for (;;) ;
 
-  // wrong: label undefined 
+  // wrong: label undefined
   //@ assert \at(x,L0) == 0;
 
   // wrong: label defined later

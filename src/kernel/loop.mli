@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: loop.mli,v 1.7 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: loop.mli,v 1.8 2008/05/30 08:29:48 uid568 Exp $ *)
 
-(** Operations on (natural) loops. *)
+(** Operations on (natural) loops. 
+    @plugin developer guide *)
 
 open Cil_types
 open Db_types

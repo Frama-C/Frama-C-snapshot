@@ -21,7 +21,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Logic typing and logic environment *)
+(** Logic typing and logic environment.
+    @plugin developer guide *)
 
 open Cil_types
 
@@ -31,18 +32,29 @@ module Lenv : sig
   val empty : t
 end
 
+
 module Make
   (C :
     sig
       val annonCompFieldName : string
-      val integralPromotion : typ -> typ
-      val arithmeticConversion : typ -> typ -> typ
       val conditionalConversion : typ -> typ -> typ
       val find_var : string -> logic_var
       val find_enum_tag : string -> exp * typ
       val find_comp_type : kind:string -> string -> typ
       val find_type : string -> typ
       val find_label : string -> stmt ref
+
+      val remove_logic_function : string -> unit  
+      val add_logic_function: logic_info -> unit
+      val add_predicate: predicate_info -> unit
+      val add_logic_type: string -> logic_type_info -> unit
+      val add_logic_ctor: string -> logic_ctor_info -> unit
+
+      val find_logic_function: string -> logic_info
+      val find_predicate: string -> predicate_info
+      val find_logic_type: string -> logic_type_info
+      val find_logic_ctor: string -> logic_ctor_info
+
     end) :
 sig
 
@@ -53,10 +65,9 @@ sig
   val code_annot : Logic_ptree.code_annot -> code_annotation
 
   val type_annot :
-    Lexing.position * Lexing.position ->
-    Logic_ptree.type_annot -> type_annotation
+    location -> Logic_ptree.type_annot -> predicate_info
 
-  val annot : Logic_ptree.annot -> global_annotation
+  val annot : location -> Logic_ptree.decl -> global_annotation
 
   val funspec :
     id:int -> formals:(varinfo list) option -> typ -> Logic_ptree.spec ->

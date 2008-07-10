@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: locations.ml,v 1.76 2008/04/22 13:41:28 uid527 Exp $ *)
+(* $Id: locations.ml,v 1.79 2008/06/13 16:54:15 uid528 Exp $ *)
 
 open Cil_types
 open Cil
@@ -192,7 +192,8 @@ module Location_Bytes = struct
        | Map _ -> false);
        true
 
-  let unspecify_escaping_locals fundec v =
+
+  let remove_escaping_locals fundec v =
     match v with
     | Top (Top_Param.Top,_) -> v
     | Top (Top_Param.Set topparam,orig) ->
@@ -209,11 +210,7 @@ module Location_Bytes = struct
           m
           m)
 
-(*
-  let contains_adresses_of_locals fundec v =
-    let v1 = unspecify_escaping_locals fundec v in
-    not (equal v v1)
-*)
+
 end
 
 module Location_Bits = Location_Bytes
@@ -271,7 +268,7 @@ let can_be_accessed {loc=loc;size=size} =
           Location_Bits.M.iter
             (fun varid offset ->
                match Base.validity varid with
-               | Base.Known (min_valid,max_valid) ->
+               | Base.Known (min_valid,max_valid) | Base.Unknown (min_valid,max_valid)->
                    let min = Ival.min_int offset in
                    begin match min with
                    | None -> raise Not_valid
@@ -284,7 +281,7 @@ let can_be_accessed {loc=loc;size=size} =
                        if Int.gt (Int.pred (Int.add v size)) max_valid then
                          raise Not_valid
                    end
-               | Base.Unknown | Base.All -> ())
+               | Base.All -> ())
             m;
           true
   with
@@ -312,7 +309,7 @@ let is_valid {loc=loc;size=size} =
                        if Int.gt (Int.pred (Int.add v size)) max_valid then
                          raise Not_valid
                    end
-               | Base.Unknown -> raise Not_valid
+               | Base.Unknown _ -> raise Not_valid
 	       | Base.All -> ())
             m;
           true
@@ -338,14 +335,14 @@ let valid_cardinal_zero_or_one {loc=loc;size=size} =
             (fun varid offset ->
 	       let inter =
 		 match Base.validity varid with
-		 | Base.Known (min_valid,max_valid) ->
+		 | Base.Known (min_valid,max_valid) | Base.Unknown (min_valid,max_valid) ->
 		     let itv =
 		       Ival.inject_range
 			 (Some min_valid)
 			 (Some (Int.succ (Int.sub max_valid size)))
 		     in
 		     Ival.narrow itv offset
-		 | Base.Unknown | Base.All -> offset
+		 | Base.All -> offset
 	       in
 	       if Ival.cardinal_zero_or_one inter
 	       then begin
@@ -470,8 +467,8 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
           let valid_base =
             match Base.validity base with
             | Base.Known (min_valid,max_valid) ->
-		Int.lt min_valid max_valid
-	    | Base.All |Base.Unknown  -> true
+		Int.le min_valid max_valid
+	    | Base.All | Base.Unknown _ -> true
 	  in
 	  if valid_base
 	  then Location_Bits.Top_Param.O.add base acc
@@ -486,7 +483,7 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
         let compute_offset base offs acc =
           let valid_offset =
             match Base.validity base, size with
-            | Base.Known (min_valid,max_valid), Int_Base.Value size ->
+            | (Base.Known (min_valid,max_valid)|Base.Unknown (min_valid,max_valid)), Int_Base.Value size ->
 		let max_valid = Int.succ (Int.sub max_valid size) in
 (*		Format.printf "min_valid:%a@\nmax_valid:%a@."
 		  Int.pretty min_valid
@@ -494,7 +491,7 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
 		Ival.meet
 		  (Ival.inject_range (Some min_valid) (Some max_valid))
 		  offs
-	    | (Base.All|Base.Unknown|Base.Known _),_  -> offs
+	    | (Base.All|Base.Unknown _|Base.Known _),_  -> offs
 	  in
 	  if Ival.equal Ival.bottom valid_offset
 	  then acc
@@ -519,7 +516,7 @@ let valid_part ({loc = loc; size = size } as l) =
         let compute_offset base offs acc =
           let valid_offset =
             match Base.validity base, size with
-            | Base.Known (min_valid,max_valid), Int_Base.Value size ->
+            | (Base.Known (min_valid,max_valid)|Base.Unknown (min_valid,max_valid)), Int_Base.Value size ->
 		let max_valid = Int.succ (Int.sub max_valid size) in
 (*		Format.printf "min_valid:%a@\nmax_valid:%a@."
 		  Int.pretty min_valid
@@ -535,7 +532,7 @@ let valid_part ({loc = loc; size = size } as l) =
 		  Ival.pretty result; *)
 		result
 
-	    | (Base.All|Base.Unknown|Base.Known _),_  -> offs
+	    | (Base.All|Base.Unknown _|Base.Known _),_  -> offs
 	  in
 	  if Ival.equal Ival.bottom valid_offset
 	  then acc

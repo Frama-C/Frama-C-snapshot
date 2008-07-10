@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ast_info.mli,v 1.21 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: ast_info.mli,v 1.22 2008/05/30 08:29:48 uid568 Exp $ *)
 
-(** AST manipulation utilities *)
+(** AST manipulation utilities.
+    @plugin developer guide *)
 
 open Cil_types
 open Db_types

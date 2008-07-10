@@ -1,16 +1,16 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry f -security-lattice weak
-   OPT: -security-analysis -lib-entry f -security-lattice strong
+   OPT: -security-analysis -lib-entry -main f -security-lattice weak
+   OPT: -security-analysis -lib-entry -main f -security-lattice strong
    */
 
-/*@ requires security_status(x) == public(); */
+/*@ requires security_status(x) == public; */
 void send(int x);
 
-/*@ ensures security_status( *x ) == public(); */
+/*@ ensures security_status( *x ) == public; */
 void crypt(int* x);
 
-/*@ ensures security_status( *x ) == private(); */
+/*@ ensures security_status( *x ) == private; */
 void uncrypt(int* x);
 
 int c;
@@ -42,7 +42,7 @@ int f() {
 
 /*
 Local Variables:
-compile-command: "../../bin/toplevel.opt  -security-analysis -lib-entry f \
+compile-command: "../../bin/toplevel.opt  -security-analysis -lib-entry -main f \
                   -security-lattice weak simple_example.c"
 End:
 */

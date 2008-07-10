@@ -98,12 +98,11 @@ module type Model_S = sig
     (** @raise Not_found when the vid is not in the map *)
 
   val create_initial : base:Base.t ->
-    size:int ->
     v:Cvalue_type.V.t ->
     modu:Int.t ->
     state:t -> t
-    (** [size] is in bits. For instance [~size:40] for creating an 
-	initial variable on a 32-bit architecture. *)
+    (** Overwrites [base] in [state] with an initialized offsetmap filled 
+        with repetitions of the value [v] of size [modu]. *)
     
   (** {3 Copy / paste} *)
 

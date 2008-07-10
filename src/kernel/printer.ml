@@ -73,9 +73,6 @@ class print () = object(self)
          Format.fprintf fmt "@[/*@@ %a */@]@\n" self#pAnnotation annot
          end)
 
-  method private pretty_type_annot fmt a =
-    Format.fprintf fmt "@[/*@@ %a */@]@\n" self#pType_annot a
-
   (**  Do not compact statements with annotations *)
   method may_be_skipped stmt =
     Annotations.get stmt = [] && stmt.labels = []
@@ -179,7 +176,9 @@ class print () = object(self)
         (fun c -> Format.fprintf fmt "/* %s */@\n" c)
         (Zrapp.get_comments l)
 
-  initializer logic_printer_enabled <- false
+  initializer
+    logic_printer_enabled <- false;
+    verbose <- Cmdline.Debug.get () >= 1
 end;;
 
 Ast_printer.d_ident:= fun fmt x -> (new print())#pVarName fmt x;;
@@ -203,7 +202,6 @@ Ast_printer.d_term:= fun fmt x -> Cil.printTerm (new print()) fmt x;;
 Ast_printer.d_term_offset:= fun fmt x -> Cil.printTerm_offset (new print()) fmt x;;
 Ast_printer.d_predicate_named:= fun fmt x -> Cil.printPredicate_named (new print()) fmt x;;
 Ast_printer.d_code_annotation:= fun fmt x -> Cil.printCode_annotation (new print()) fmt x;;
-Ast_printer.d_type_annotation:= fun fmt x -> Cil.printType_annotation (new print()) fmt x;;
 Ast_printer.d_funspec:= fun fmt x -> Cil.printFunspec (new print()) fmt x;;
 Ast_printer.d_annotation:= fun fmt x -> Cil.printAnnotation (new print()) fmt x;;
 

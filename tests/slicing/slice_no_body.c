@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/slice_no_body.opt
    CMD: tests/slicing/slice_no_body.opt
-   OPT: -deps -lib-entry h
+   OPT: -deps -lib-entry -main h
 */
 
 int G;

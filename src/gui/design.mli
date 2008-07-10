@@ -19,11 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** The extensible GUI *)
+(** The extensible GUI.
+    @plugin developer guide *)
+
 open Db_types
 open Cil_types
 
-(** This is the type of extension points for the GUI *)
+(** This is the type of extension points for the GUI.
+    @plugin developer guide *)
 class type main_window_extension_points = object
   (** Use this to add menu entries.
       The default layout to enhance is
@@ -73,10 +76,11 @@ class type main_window_extension_points = object
     (** The information pannel. 
         The text is cleared whenever the selection is changed. *)
 
-  method source_viewer : GText.view
-    (** The [GText.view] showing the AST. *)
+  method source_viewer : GSourceView.source_view
+    (** The [GText.view] showing the AST. 
+	@plugin developer guide *)
 
-  method display_globals : global list -> GText.buffer
+  method display_globals : global list -> GSourceView.source_buffer
     (** Display globals in a memoized buffer [b]. 
         Use [main_ui#source_viexer#set_buffer b] to display it
         in the general source view. *)
@@ -88,21 +92,26 @@ class type main_window_extension_points = object
     (** register an action to perform when button is released on a given 
         localizable. 
         If the button 3 is released, the first argument is popped as a 
-        contextual menu. *)
+        contextual menu. 
+	@plugin developer guide *)
 
-  method register_source_highlighter : 
-    (GText.buffer -> Pretty_source.localizable -> start:int -> stop:int -> unit) -> unit
+  method register_source_highlighter :
+    (GSourceView.source_buffer -> Pretty_source.localizable -> 
+       start:int -> stop:int -> unit)
+    -> unit
     (** register an highlighting function to run on a given localizable 
         between start and stop in the given buffer. 
         Priority of [Gtext.tags] is used to decide which tag is rendered on 
         top of the other. *)
 
-  method highlight : 
-    scroll:bool -> GText.tag -> Pretty_source.localizable -> unit
-    (** Manually Highlight [ki] with then given [tag] in source_viewer#buffer *)
+  method rehighlight : unit -> unit
+    (** Force to rehilight the current displayed buffer but does not
+        erase previous highlighting. *)
 
+  method scroll : Pretty_source.localizable -> unit
+    (** Scroll to the given localizable in the current buffer if possible. *)
 
-  (** The original source viewer.  *)
+  (** {3 The original source viewer}  *)
 
   method original_source_viewer : Source_manager.t
     (** The multi-tab source file display widget. *)
@@ -116,12 +125,17 @@ class type main_window_extension_points = object
   method view_original : location -> unit
     (** Display the given [location] in the [original_source_viewer] *)
 
-
-
-  (** General features *)
+  (** {3 General features} *)
   
   method reset : unit -> unit
     (** reset the GUI and its extensions to its initial state *)
+
+  method lock : unit -> unit
+    (** Block almost all user interaction. 
+        Provide user feedback on the fact that something is happening *)
+
+  method unlock : unit -> unit
+    (** Unlock user interaction *)
 
   method monospace : Pango.font_description
     (** The monospace font to be used by all plugins *)
@@ -137,7 +151,8 @@ class main_window : unit -> main_window_extension_points
 
 val register_extension : (main_window_extension_points -> unit) -> unit
   (** Register an extension to the main GUI. It will be invoked at
-      initialization time.*)
+      initialization time.
+      @plugin developer guide *)
 
 val register_reset_extension : (main_window_extension_points -> unit) -> unit
   (** Register a function to be called whenever the main GUI reset method is

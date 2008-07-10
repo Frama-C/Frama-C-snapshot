@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: globals.mli,v 1.13 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: globals.mli,v 1.16 2008/07/11 12:44:15 uid568 Exp $ *)
 
-(** Operations on globals. *)
+(** Operations on globals.
+    @plugin developer guide *)
 
 open Cil_types
 open Db_types
@@ -55,7 +56,7 @@ module Functions: sig
     (** @raise Not_found if the given varinfo has not a function type. *)
 
   val get_glob_init: ?main_name:string -> file -> kernel_function
-    (** Returns the internal function for global initializations. *)
+    (** @return the internal function for global initializations. *)
 
   (** {2 Searching} *)
 
@@ -134,10 +135,10 @@ end
 (* ************************************************************************* *)
 
 exception No_such_entry_point of string
-  (** May be raised by [entry_point] above. *)
+  (** May be raised by [entry_point] below. *)
 
 val entry_point : unit -> kernel_function * bool
-  (** returns the current function entry point and a boolean indicating if it
+  (** @return the current function entry point and a boolean indicating if it
       is a library entry point.
       @raise No_such_entry_point if the current entrypoint name does not
       exist. *)
@@ -146,10 +147,11 @@ val set_entry_point : string -> bool -> unit
   (** [set_entry_point name lib] sets [Cmdline.MainFunction] to [name] if [lib]
       is [false] and [Cmdline.LibEntry] to [name] if [lib] is [true].
       Moreover, clear the results of all the analysis which depend on
-      [Cmdline.MainFunction] or [Cmdline.LibEntry]. *)
+      [Cmdline.MainFunction] or [Cmdline.LibEntry].
+      @plugin developer guide *)
 
 val has_entry_point: unit -> bool
-  (** Returns true if the analysis has an entry-point, false otherwise. *)
+  (** @return true if the analysis has an entry-point, false otherwise. *)
 
 (*
 Local Variables:

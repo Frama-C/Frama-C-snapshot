@@ -47,7 +47,7 @@ let warn_if_zero ty r =
 let sizeof ty =
   (match ty with
   | TVoid _ ->
-      ignore(warn "using size of 'void'")
+      CilE.warn_once "using size of 'void'"
   | _ -> ()) ;
   try Int_Base.inject (Int.of_int (bitsSizeOf ty))
   with SizeOfError _ ->
@@ -58,7 +58,7 @@ let sizeof ty =
 let osizeof ty =
   (match ty with
   | TVoid _ ->
-      ignore(warn "using size of 'void'")
+      CilE.warn_once "using size of 'void'"
   | _ -> ()) ;
   try
     Int_Base.inject (Int.of_int (warn_if_zero ty (bitsSizeOf ty) / 8))
@@ -128,12 +128,6 @@ let osizeof_pointed typ =
 (** Returns the size of the type pointed by a pointer type of the [lval] in
     bits. Never call it on a non pointer type [lval]. *)
 let sizeof_pointed_lval lv = sizeof_pointed (Cil.typeOfLval lv)
-
-(** Returns the type pointed by the given type. Asserts it is a pointer type *)
-let typeOf_pointed typ =
-  match unrollType typ with
-  | TPtr (typ,_) -> typ
-  | _ -> assert false
 
 (** Set of integers *)
 module IntSet = Set.Make(Int)
@@ -389,23 +383,15 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop =
     in let r = pretty_bits_internal Other typ ~align ~start ~stop
     in r, !has_misaligned_fields
 
-(** Returns [true] whenever the type contains only arithmetic types *)
-let is_fully_arithmetic ty =
-  not (existsType
-         (fun typ -> match typ with
-            | TNamed _
-            | TComp _
-            | TArray _ -> ExistsMaybe
-            | TPtr _ | TBuiltin_va_list _ | TFun _ | TVoid _ -> ExistsTrue
-            | TEnum _ |TFloat _ | TInt _ ->  ExistsFalse)
-         ty)
-
 let memory_size () =
   Int.pred
     (Int.shift_left
        Int.one
        (Int.of_int
           (8+sizeofpointer ())))
+
+let max_bit_address () = Int.pred (Int.power_two (sizeofpointer ()+7))
+let max_bit_size () = Int.power_two (7+(sizeofpointer ()))
 
 (*
 Local Variables:

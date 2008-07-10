@@ -19,12 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: project.ml,v 1.22 2008/05/20 12:55:22 uid568 Exp $ *)
-
-(* *************************************************************************
-   Do not edit by a casual developper: this implementation explicitely
-   contains unsafe operations via the module Obj.
-   ************************************************************************* *)
+(* $Id: project.ml,v 1.24 2008/07/11 09:18:50 uid568 Exp $ *)
 
 (* ************************************************************************** *)
 (** {2 Debugging} *)
@@ -38,6 +33,8 @@ let debug n fmt s = if !debug_level >= n then Format.eprintf fmt s
 let debug2 n fmt s1 s2 = if !debug_level >= n then Format.eprintf fmt s1 s2
 let debug3 n fmt s1 s2 s3 = 
   if !debug_level >= n then Format.eprintf fmt s1 s2 s3
+let debug4 n fmt s1 s2 s3 s4 =
+  if !debug_level >= n then Format.eprintf fmt s1 s2 s3 s4
 
 (* ************************************************************************** *)
 (** {2 Project} *)
@@ -45,6 +42,8 @@ let debug3 n fmt s1 s2 s3 =
 
 type t = { pid: int; name: string; unique_name: string }
 type project = t
+
+type state_ondisk = { s_value: Obj.t; s_computed: bool }
 
 (** Projects are comparable *)
 
@@ -62,8 +61,8 @@ type computation_operations =
       commit: t -> unit;
       update: t -> unit;
       clean: unit -> unit;
-      serialize: t -> Obj.t;
-      unserialize: t -> Obj.t -> unit }
+      serialize: t -> state_ondisk;
+      unserialize: t -> state_ondisk -> unit }
 
 (** Roughly first-class-value type for datatype kinds. *)
 type datatype_operations =
@@ -89,8 +88,9 @@ module Computations = struct
 	   copy = (fun _ _ -> ());
 	   commit = Extlib.nop;
 	   update = Extlib.nop;
-	   serialize = (fun _ -> Obj.repr () (* unused *));
-	   unserialize = (fun _ o -> assert (() = Obj.obj o));
+	   serialize = (* not called *)
+	     (fun _ -> { s_value = Obj.repr (); s_computed = false });
+	   unserialize = (fun _ s -> assert (() = Obj.obj s.s_value));
 	   clean = Extlib.nop }
      end)
 
@@ -116,22 +116,49 @@ Uncomment to check how often it happens *) *)
     iter_in_order only except (fun s -> s.copy src)
 
   let serialize only except p =
-    fold_in_order only except (fun s data -> s.serialize p :: data) []
+    let tbl = Hashtbl.create 97 in
+    iter_in_order only except 
+      (fun s () -> Hashtbl.add tbl s.cname (s.serialize p))
+      ();
+    tbl
 
-  let unserialize only except dst data =
-    let data = List.rev data in
-    let rest =
-      fold_in_order only except 
-	(fun s data -> 
-	   match data with
-	   | [] -> assert false
-	   | d :: acc -> s.unserialize dst d; acc)
-	data
+  let unserialize only except dst tbl =
+    let ignored () =
+      if Hashtbl.length tbl > 0 then begin
+	Format.eprintf "Warning: Some states in the saved file are ignored.@.";
+	if !debug_level >= 1 then
+	  Hashtbl.iter 
+	    (fun k _ -> 
+	       Format.eprintf "Ignoring state %s@." k)
+	    tbl
+      end
     in
-    (* check that [data] and [Dependencies.deps] have the same number of
-       elements and also check that the previous application of
-       [apply_in_order] consumes those elements. *)
-    assert (rest = [])    
+    let to_default l =
+      if l <> [] then begin
+	Format.eprintf "Warning: Some states in the saved file are set to \
+default.@.";
+      	if !debug_level >= 1 then
+	  List.iter 
+	    (Format.eprintf "Setting to default state %s@.") 
+	    (List.rev l)
+      end
+    in
+    let dft_list =
+      fold_in_order only except 
+      (fun s acc -> 
+	 try
+	   let d = Hashtbl.find tbl s.cname in
+	   s.unserialize dst d; 
+	   Hashtbl.remove tbl s.cname;
+	   acc
+	 with Not_found ->
+	   (* When the project is created states were already 
+	      filled by default values *)
+	   s.cname :: acc)    
+      []
+    in
+    to_default dft_list;
+    ignored ()
 
 end
 
@@ -270,15 +297,13 @@ let on ?only ?except p f x =
 exception IOError = Sys_error
 
 (* magic numbers *)
-let magic = 1
+let magic = 3
 let magic_one () = (*Dependencies.nb_kind () * *)(100 + magic) (* TO(re)DO *)
 let magic_all () = 10000 + try magic_one () with NoProject -> 0
 
 (* Generic saving function on disk. *)
 let gen_save f (n:int) filename =
   let cout = open_out_bin filename in
-  Digest.output cout (Computations.digest ());
-  Digest.output cout (Datatypes.digest ());
   output_value cout n;
   output_value cout (f ());
   close_out cout
@@ -288,37 +313,28 @@ let gen_load =
   let error () = 
     raise (IOError "project saved with an incompatible version") 
   in
-  let check_digest cin d =
-    let digest : Digest.t = Digest.input cin in
-    if digest <> d then begin
-      if !debug_level > 0  then
-	Format.eprintf "save digest: %s@.load_digest: %s@." 
-	  (Digest.to_hex digest) (Digest.to_hex d);
-      error ()
-    end
-  in
   fun f n filename ->
     let cin = open_in_bin filename in
-    check_digest cin (Computations.digest ());
-    check_digest cin (Datatypes.digest ());
     let m : int = input_value cin in
     if m <> n then error ();
     let state = input_value cin in
-    f state;
-    close_in cin
+    close_in cin;
+    f state
 
 let write, read =
-  (fun only except p -> (Computations.serialize only except p : 'a)),
-  (fun only except dst (data:'a) -> 
+  (fun only except p -> 
+     (Computations.serialize only except p : 
+	(string, state_ondisk) Hashtbl.t)),
+  (fun only except dst (data: (string, state_ondisk) Hashtbl.t) -> 
      Computations.unserialize only except dst data)
-
+    
 let save 
     ?(only=Selection.empty) 
     ?(except=Selection.empty) 
     ?(project=current()) 
-    f =
-  debug2 1 "Saving project %s into file %s.@." project.name f;
-  gen_save (fun () -> write only except) (magic_one ()) f
+    filename =
+  debug2 1 "Saving project %s into file %s.@." project.name filename;
+  gen_save (fun () -> write only except project) (magic_one ()) filename
 
 let load 
     ?(only=Selection.empty) 
@@ -532,8 +548,10 @@ module Computation = struct
 	try
 	  let v = find p in
 	  v.state <- State.get ()
-	with Not_found ->
+	with Not_found -> begin
+	  debug 2 "State %s not found@. Program will fail" name ;
 	  assert false
+	end
 
     let update_with p s = if is_current p then begin 
       debug2 2 "update state %s of project %s@." Info.name p.name;
@@ -564,7 +582,7 @@ module Computation = struct
 	    State.get ()
 	  end else begin
             debug2 2 "creating state %s for project %s@." Info.name p.name;
-	    State.create () 
+	    State.create ()
           end
 	in
 	add p (mk ())
@@ -585,13 +603,12 @@ module Computation = struct
       debug2 2 "serializing state %s for project %s.@." Info.name p.name;
       commit p;
       let v = find p in
-      Obj.repr (v.state, v.computed)
+      { s_value = Obj.repr v.state; s_computed = v.computed }
 
     let unserialize p new_s = 
       debug2 2 "unserializing state %s for project %s@." Info.name p.name;
-      let s, c = Obj.obj new_s in
-      let s = Datatype.rehash s in
-      change_and_update p { state = s; computed = c }
+      let s = Datatype.rehash (Obj.obj new_s.s_value) in
+      change_and_update p { state = s; computed = new_s.s_computed }
     (* ********************************************************************* *)
 
     let self, depend =

@@ -1,0 +1,8 @@
+Inftree.vo: Inftree.v ../../lib/coq/Why.vo ./heap.vo
+downheap_valid.vo: downheap_valid.v ../../lib/coq/Why.vo ./swap_valid.vo ./downheap_why.vo
+downheap_why.vo: downheap_why.v ../../lib/coq/Why.vo ./heap.vo ./Inftree.vo ./swap_why.vo
+heap.vo: heap.v ../../lib/coq/Why.vo
+heapsort_valid.vo: heapsort_valid.v ../../lib/coq/Why.vo ./swap_valid.vo ./downheap_valid.vo ./heapsort_why.vo
+heapsort_why.vo: heapsort_why.v ../../lib/coq/Why.vo ./heap.vo ./Inftree.vo ./swap_why.vo ./downheap_why.vo
+swap_valid.vo: swap_valid.v ../../lib/coq/Why.vo ./swap_why.vo
+swap_why.vo: swap_why.v ../../lib/coq/Why.vo

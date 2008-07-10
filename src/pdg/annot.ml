@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annot.ml,v 1.10 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: annot.ml,v 1.13 2008/07/09 11:26:38 uid530 Exp $ *)
 
 open Cil_types
 
@@ -43,10 +43,10 @@ let add_info_nodes pdg (nodes_acc, undef_acc) info =
     let nodes, undef_loc =
       Sets.find_location_nodes_at_stmt pdg stmt before zone
     in
-    let undef_acc = 
-      if (Locations.Zone.equal Locations.Zone.bottom undef_loc) 
-      then undef_acc
-      else Locations.Zone.join undef_acc undef_loc
+    let undef_acc = match undef_acc, undef_loc with 
+      | None, _ -> undef_loc
+      | _, None -> undef_acc
+      | Some z1, Some z2 -> Some (Locations.Zone.join z1 z2)
     in
       (nodes @ nodes_acc, undef_acc)
 
@@ -62,23 +62,25 @@ let find_code_annot_nodes pdg ~before stmt annot =
       let (list_info, list_info_decl), pragmas =
         !Db.Properties.Interp.To_zone.from_stmt_annot annot ~before (stmt, kf)
       in
-      let data_dpds = ([], Locations.Zone.bottom) in
-      let data_dpds = List.fold_left (add_info_nodes pdg) data_dpds list_info in
+      let data_dpds = ([], None) in
+      let data_dpds = 
+        List.fold_left (add_info_nodes pdg) data_dpds list_info in
       let add_decl_nodes decl_var (nodes_acc, undef_acc) =
         let node = !Db.Pdg.find_decl_var_node pdg decl_var in
-          (node::nodes_acc, undef_acc)
+          ((node,None)::nodes_acc, undef_acc)
       in
       let data_dpds =
         Cil.VarinfoSet.fold add_decl_nodes list_info_decl data_dpds 
       in
-      let stmt_nodes = !Db.Pdg.find_stmt_nodes pdg stmt in
+      let stmt_nodes = !Db.Pdg.find_simple_stmt_nodes pdg stmt in
       let ctrl_dpds = match stmt_nodes with
         | stmt_node::_ ->
             (* only have to consider the first node for ctrl dpds... *)
             !Db.Pdg.direct_ctrl_dpds pdg stmt_node
         | _ -> assert false (* accessible stmt with no node !!!??? *)
       in
-      let add_stmt_nodes s acc = (!Db.Pdg.find_stmt_nodes pdg s) @ acc in
+      let add_stmt_nodes s acc = 
+        (!Db.Pdg.find_stmt_and_blocks_nodes pdg s) @ acc in
       (* can safely ignore pragmas.ctrl
       * because we already have the ctrl dpds from the stmt node. *)
       let stmt_pragmas = pragmas.Db.Properties.Interp.To_zone.stmt in
@@ -86,11 +88,21 @@ let find_code_annot_nodes pdg ~before stmt annot =
         Cilutil.StmtSet.fold add_stmt_nodes stmt_pragmas ctrl_dpds in
         if M.debug2 () then
           begin
+            let p fmt (n,z) = match z with
+              | None -> PdgTypes.Node.pretty fmt n
+              | Some z -> Format.fprintf fmt "%a(%a)"
+                            PdgTypes.Node.pretty n Locations.Zone.pretty z
+            in
+            let pl fmt l = 
+              List.iter (fun n -> Format.fprintf fmt " %a" p n) l
+            in
             let data_nodes, data_undef = data_dpds in
           Format.printf "[pdg:annotation] ctrl nodes = %a@\n" 
             PdgTypes.Node.pretty_list ctrl_dpds;
           Format.printf "[pdg:annotation] data nodes = %a@\n" 
-            PdgTypes.Node.pretty_list data_nodes;
+            pl data_nodes;
+          match data_undef with None -> ()
+            | Some data_undef ->
           Format.printf "[pdg:annotation] data undef = %a@\n" 
             Locations.Zone.pretty data_undef;
           end;

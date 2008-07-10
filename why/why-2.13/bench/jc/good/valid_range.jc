@@ -1,0 +1,18 @@
+type Int = {
+  integer i;
+}
+
+integer get(Int[0..] I)
+  requires \offset_max(I + [0..42]) >= 0;
+  behavior plop:
+    ensures true;
+{
+  return (I+37).i;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make valid_range"
+End: 
+*/

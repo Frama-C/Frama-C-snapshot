@@ -92,7 +92,9 @@ let spec s =
 *)
 
 let loop_annot acc la = 
-  let acc = assertion acc la.jc_loop_invariant in
+  let acc = List.fold_left (fun acc (_behav,inv) -> assertion acc inv)
+    acc la.jc_loop_invariant 
+  in
   match la.jc_loop_variant with
   | None -> acc
   | Some t -> term acc t

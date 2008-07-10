@@ -19,21 +19,27 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: datatype.mli,v 1.6 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: datatype.mli,v 1.9 2008/06/23 14:12:08 uid568 Exp $ *)
 
 (** Datatype implementations and builders. 
     Provide ways to implement signature [Project.Datatype.OUTPUT] without
-    directly apply functor [Project.Datatype.Register]. *)
+    directly apply functor [Project.Datatype.Register]. 
+    @plugin developer guide *)
 
 (** Implementation of [before_load] and [after_load] when those functions do
-    nothing special. *)
+    nothing special. 
+    @plugin developer guide *)
 module Nop : sig
   val before_load: unit -> unit
   val after_load : unit -> unit
 end
 
+(** @plugin developer guide *)
 module Int: Project.Datatype.OUTPUT with type t = int
+
+(** @plugin developer guide *)
 module Bool: Project.Datatype.OUTPUT with type t = bool
+
 module String: Project.Datatype.OUTPUT with type t = string
 module BigInt : Project.Datatype.OUTPUT with type t = Big_int.big_int
 
@@ -48,6 +54,7 @@ end
 
 (** {3 References} *)
 
+(** @plugin developer guide *)
 module Ref(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t ref
 
 module Option(Data:INPUT) :
@@ -55,6 +62,12 @@ module Option(Data:INPUT) :
 
 module OptionRef(Data:INPUT) :
   Project.Datatype.OUTPUT with type t = Data.t option ref
+
+(** {3 Lists} *)
+
+(** Generic functor building a list of data. 
+    @plugin developer guide *)
+module List(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t list
 
 (** {3 Hashtables} *)
 
@@ -68,15 +81,6 @@ module type HASHTBL = sig
   val replace: 'a t -> key -> 'a -> unit
   val length: 'a t -> int
 end
-
-(** Generic functor. *)
-
-(** {3 Lists} *)
-
-(** Generic functor building a list of data. *)
-module List(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t list
-
-(** {3 Hashtables} *)
 
 module Make_Hashtbl(H: HASHTBL)(Data:INPUT) :
   Project.Datatype.OUTPUT with type t = Data.t H.t
@@ -131,6 +135,7 @@ module Queue(Data:INPUT) : Project.Datatype.OUTPUT with type t = Data.t Queue.t
 
 (** {3 Tuples} *)
 
+(** @plugin developer guide *)
 module Couple(D1:INPUT)(D2:INPUT) : 
   Project.Datatype.OUTPUT with type t = D1.t * D2.t
 

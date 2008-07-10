@@ -28,14 +28,17 @@ type t_loc =  Locations.Zone.t
 type t_pdg = PdgTypes.Pdg.t
 type t_dpds_kind = PdgTypes.Dpd.td
 
+type t_nodes_and_undef = (t_node * t_loc option) list * t_loc option
+
 (** {2 PDG nodes for some elements} *)
 
-val find_stmt_nodes : t_pdg -> Cil_types.stmt -> t_node list
 val find_stmt_node : t_pdg -> Cil_types.stmt -> t_node 
-val find_nodes_for_stmt_id : t_pdg -> int -> t_node list
+val find_simple_stmt_nodes : t_pdg -> Cil_types.stmt -> t_node list
+val find_stmt_and_blocks_nodes : t_pdg -> Cil_types.stmt -> t_node list
+(*val find_nodes_for_stmt_id : t_pdg -> int -> t_node list*)
 val find_location_nodes_at_stmt : 
-  t_pdg -> Cil_types.stmt -> before:bool -> t_loc -> t_node list * t_loc
-val find_location_nodes_at_end : t_pdg -> t_loc -> t_node list * t_loc
+  t_pdg -> Cil_types.stmt -> before:bool -> t_loc -> t_nodes_and_undef
+val find_location_nodes_at_end : t_pdg -> t_loc -> t_nodes_and_undef
 val find_label_node : t_pdg -> Cil_types.stmt -> Cil_types.label -> t_node
 val find_decl_var_node : t_pdg -> Cil_types.varinfo -> t_node
 val find_input_node : t_pdg -> int -> t_node
@@ -44,14 +47,13 @@ val find_all_input_nodes : t_pdg -> t_node list
 val find_entry_point_node : t_pdg -> t_node
 val find_top_input_node : t_pdg -> t_node
 val find_output_nodes : 
-    t_pdg -> PdgIndex.Signature.t_out_key -> t_node list * t_loc
+    t_pdg -> PdgIndex.Signature.t_out_key -> t_nodes_and_undef
 
 
 val find_call_ctrl_node : t_pdg -> Cil_types.stmt -> t_node 
-val find_call_topin_node : t_pdg -> Cil_types.stmt -> t_node 
 val find_call_num_input_node : t_pdg -> Cil_types.stmt -> int -> t_node
 val find_call_input_nodes : 
-  t_pdg -> Cil_types.stmt -> PdgIndex.Signature.t_in_key -> t_node list * t_loc
+  t_pdg -> Cil_types.stmt -> PdgIndex.Signature.t_in_key -> t_nodes_and_undef
 val find_call_output_node : t_pdg -> Cil_types.stmt -> t_node
 
 val find_call_stmts: 

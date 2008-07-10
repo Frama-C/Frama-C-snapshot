@@ -4,7 +4,8 @@
     ensures \result == \sum(0,n-1,\lambda integer i; p[i]*p[i]);
 */
 int sqsum(int* p, int n);
-#include <limits.h>
+
+#define INT_MAX (1<<30-1)
 
 int sqsum(int* p, int n) {
   int S=0, tmp;

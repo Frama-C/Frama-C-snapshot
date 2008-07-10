@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: db.ml,v 1.444 2008/04/29 16:41:25 uid562 Exp $ *)
+(* $Id: db.ml,v 1.452 2008/07/09 11:26:37 uid530 Exp $ *)
 
 open Format
 open Cil_types
@@ -386,13 +386,7 @@ module From = struct
   let get = mk_fun "From.get"
   let self = ref Project.Computation.dummy
 
-  let display fmt =
-    Format.fprintf fmt "@[";
-    Globals.Functions.iter
-      (fun k ->
-         if !Value.is_called k then Format.fprintf fmt "@[Function %a:@\n%a@]"
-           Kernel_function.pretty_name k !pretty k);
-    Format.fprintf fmt "@]"
+  let display = mk_fun "From.display"
 
   module Callwise = struct
     let iter = mk_fun "From.Callwise.iter"
@@ -425,6 +419,8 @@ module Pdg = struct
   type t = PdgTypes.Pdg.t
   type t_node = PdgTypes.Node.t
   type t_node_key = PdgIndex.Key.t
+  type t_nodes_and_undef = 
+            (t_node * Locations.Zone.t option) list * Locations.Zone.t option
 
   exception Top = PdgTypes.Pdg.Top
   exception Bottom = PdgTypes.Pdg.Bottom
@@ -443,8 +439,6 @@ module Pdg = struct
 
   let node_key = mk_fun "Pdg.node_key"
 
-  let add_dynamic_dpds = mk_fun "Pdg.add_dynamic_dpds"
-  let clear_dynamic_dpds = mk_fun "Pdg.clear_dynamic_dpds"
   let synchronize_annotations = mk_fun "Pdg.synchronize_annotations"
 
   let find_decl_var_node = mk_fun "Pdg.find_decl_var_node"
@@ -453,7 +447,8 @@ module Pdg = struct
   let find_output_nodes = mk_fun "Pdg.find_output_nodes"
   let find_all_outputs_nodes = mk_fun "Pdg.find_all_outputs_nodes"
   let find_all_inputs_nodes = mk_fun "Pdg.find_all_inputs_nodes"
-  let find_stmt_nodes = mk_fun "Pdg.find_stmt_nodes"
+  let find_stmt_and_blocks_nodes = mk_fun "Pdg.find_stmt_and_blocks_nodes"
+  let find_simple_stmt_nodes = mk_fun "Pdg.find_simplestmt_nodes"
   let find_stmt_node = mk_fun "Pdg.find_stmt_node"
   let find_entry_point_node = mk_fun "Pdg.find_entry_point_node"
   let find_top_input_node = mk_fun "Pdg.find_top_input_node"
@@ -524,7 +519,8 @@ end
 
 (** Detection of the unused code of an application. *)
 module Sparecode = struct
-  let run = mk_fun "Sparecode.run"
+  let run = 
+    ref (fun ~select_annot:_  -> not_yet_implemented "Sparecode.run")
 end
 
 (* ************************************************************************* *)
@@ -540,6 +536,7 @@ module Slicing = struct
   (* TODO: merge with frama-c projects (?) *)
   module Project = struct
     type t = SlicingTypes.sl_project
+    type t_project_management = SlicingTypes.sl_project list * SlicingTypes.sl_project option
 
     module P =
       Computation.Ref
@@ -547,10 +544,10 @@ module Slicing = struct
 	   include
 	     Project.Datatype.Imperative
 	     (struct
-		type t = SlicingTypes.sl_project list
+		type t = t_project_management
 		let copy _ = assert false (* TODO: deep copy *)
 	      end)
-	   let default = []
+	   let default = [], None
 	 end)
 	(struct
 	   let name = Project.Computation.Name.make "Slicing.Project"
@@ -570,13 +567,16 @@ module Slicing = struct
       ref (fun ~filename:_ ~title:_ _ ->
 	     not_yet_implemented "Slicing.Project.print_dot")
 
-    let get_all = P.get
-
+    let get_all () = let all,_current = P.get () in all
+    let get_project () = let _all,current = P.get () in current
+    let set_project proj_opt = P.set (get_all (),  proj_opt)
     let mk_project name =
       let project = (!create_internal name) in
-      P.set (project :: get_all ());
-      project
-
+      let all,current = P.get () in
+        P.set ((project :: all), current);
+        project
+    let get_name = mk_fun "Slicing.Project.get_name"
+      
     let is_directly_called_internal =
       mk_fun "Slicing.Project.is_directly_called_internal"
     let is_called = mk_fun "Slicing.Project.is_called"
@@ -672,7 +672,8 @@ module Slicing = struct
 
   module Request = struct
     let add_selection = mk_fun "Slicing.Request.add_selection"
-    let add_persistent_selection = mk_fun "Slicing.Request.add_fct_selection"
+    let add_persistent_selection = mk_fun "Slicing.Request.add_persistent_selection"
+    let add_persistent_cmdline = mk_fun "Slicing.Request.add_persistent_cmdline"
     let is_already_selected_internal =
       mk_fun "Slicing.Request.is_already_selected_internal"
     let add_slice_selection_internal =
@@ -760,7 +761,7 @@ module Properties = struct
     let annotation_to_predicates a =
       let code_annotation_to_predicates ca =
         match ca.annot_content with
-	  | AAssert p | AAssume p -> [p]
+	  | AAssert (_,p) | AAssume p -> [p]
 	  | APragma _ -> []
           | AInvariant _ -> [] (*TODO: a more clever interpretation?*)
           | AVariant _ -> []

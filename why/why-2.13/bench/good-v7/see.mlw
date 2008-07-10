@@ -1,0 +1,16 @@
+
+(* Side effect in expressions (Bart Jacobs' tricky example) *)
+
+parameter b, b1, b2 : int ref
+
+let f (u:unit) = 
+  {} begin b := 1 - !b; !b end { result = b and b = 1 - b@ }
+
+let k (u:unit) = 
+  {}
+  begin
+    b := 1;
+    b1 := (1 - (f void)) + (f void);
+    b2 := (f void) * (1 - (f void)) 
+  end
+  { b1 = 0 and b2 = 1 }

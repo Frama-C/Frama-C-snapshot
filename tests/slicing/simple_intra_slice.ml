@@ -60,12 +60,12 @@ let print_outputs fct_name =
 let kf = get_fct "f1" ;;
 Format.printf "@[%a@]@\n" pretty_pdg kf;;
 print_fct_stmts kf;;
-select_stmt_and_print kf 2;; (* G=x+a; *)
+select_stmt_and_print kf 3;; (* G=x+a; *)
 
 let kf = get_fct "f2" ;;
 Format.printf "@[%a@]@\n" pretty_pdg kf;;
 print_fct_stmts kf;;
-select_stmt_and_print kf 6;; (* c=3; *)
+select_stmt_and_print kf 7;; (* c=3; *)
 
 let kf = get_fct "f3" ;;
 Format.printf "@[%a@]@\n" pretty_pdg kf;;
@@ -76,7 +76,7 @@ let kf = get_fct "f4" ;;
 Format.printf "@[%a@]@\n" pretty_pdg kf;;
 print_fct_stmts kf;;
 select_out0_and_print kf;;
-select_stmt_and_print kf 20;; (* G=a; in then branch of if (c>Unknown) *)
+select_stmt_and_print kf 21;; (* G=a; in then branch of if (c>Unknown) *)
 
 let kf = get_fct "f5" ;;
 print_outputs "f5";;
@@ -88,11 +88,12 @@ print_fct_stmts kf;;
 
 select_out0_and_print kf;;
 
-select_ctrl_and_print kf 28;;
+select_ctrl_and_print kf 29;;
 (* G++. VP 2008-02-04: Was ki 113, and corresponded to
    if(c<Unknown) { goto L2; }, not to G++
    Fixed ki number to the test instead of the incrementation.
    As of this date, ki for G++ is 31.
+   VP 2008-06-25 ki for G++ is 32
  *)
 
 let kf = get_fct "f6" ;;
@@ -106,6 +107,7 @@ branch of if (i) { __retres = 0; goto return_label; }
           else { /* here*/__retres = 10*n; goto return_label; }
 Fixed ki number for this particular ki.
 As of this date, ki for return_label is 92
+VP 2008-06-25: ki for return_label is 96
 *)
 
 !S.Project.pretty Format.std_formatter  project;;

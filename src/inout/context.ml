@@ -401,7 +401,7 @@ let get_internal =
     (fun kf ->
        !Value.compute ();
        Cil.log
-	 "[inout context] computing for function %a%s@\n"
+	 "[inout context] computing for function %a%s"
 	 Kernel_function.pretty_name kf
 	 (let s = ref "" in
 	  Stack.iter
@@ -416,7 +416,7 @@ let get_internal =
 	 | Declaration _ ->
 	     compute_internal_using_prototype kf
        in
-       Cil.log "[inout context] done for function %a@\n"
+       Cil.log "[inout context] done for function %a"
 	 Kernel_function.pretty_name kf;
        res)
 

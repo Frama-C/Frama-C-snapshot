@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.57 2008/05/21 16:41:46 uid570 Exp $ *)
+(* $Id: register.ml,v 1.59 2008/06/02 06:15:11 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -84,6 +84,10 @@ let options =
     Arg.Unit Cmdline.Jessie.GenOnly.on,
     ": only generates jessie code (for developer use)";
 
+    "-jc-opt",
+    Arg.String Cmdline.Jessie.JcOpt.add,
+    "<s> : give an option to Jc (e.g., -separation)"; 
+
     "-why-opt",
     Arg.String Cmdline.Jessie.WhyOpt.add,
     "<s> : give an option to Why (e.g., -fast-wp)"; 
@@ -133,6 +137,7 @@ let run () =
    *)
 
   Norm.normalize file;
+  Retype.retype file;
   if checking then check_types file;
 
   (* Phase 4: various postprocessing steps, still on Cil AST *)
@@ -191,10 +196,14 @@ let run () =
       StringSet.fold (fun opt acc -> " -why-opt " ^ opt ^ " " ^ acc) 
 	(Cmdline.Jessie.WhyOpt.get ()) ""
     in
+    let jc_opt =
+      StringSet.fold (fun opt acc -> " " ^ opt ^ " " ^ acc) 
+	(Cmdline.Jessie.JcOpt.get ()) ""
+    in
     let debug_opt = if Cmdline.Debug.get () >= 1 then " -d " else " " in
     sys_command (
       "jessie -why-opt -split-user-conj " 
-      ^ why_opt ^ debug_opt ^ " -locs " ^ locname ^ " " ^ filename);
+      ^ why_opt ^ jc_opt ^ debug_opt ^ " -locs " ^ locname ^ " " ^ filename);
     
     (* Phase 9: call Why to VP translation *)
 

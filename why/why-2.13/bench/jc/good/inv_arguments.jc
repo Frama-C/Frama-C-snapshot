@@ -1,0 +1,20 @@
+# InvariantPolicy = Arguments
+
+type A = {
+  integer i;
+  invariant invA(x) = x.i > 0;
+}
+
+unit test(A[0] a)
+  behavior ok:
+    ensures true;
+{
+  a.i = 100 * a.i;
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make inv_arguments"
+End: 
+*/

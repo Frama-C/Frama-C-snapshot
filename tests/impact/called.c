@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -impact-pragma g -impact-print -lib-entry g
+   OPT: -impact-pragma g -impact-print -lib-entry -main g
    */
 
 int X;

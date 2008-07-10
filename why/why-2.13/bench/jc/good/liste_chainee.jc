@@ -1,0 +1,156 @@
+# InvariantPolicy = Arguments
+
+/*
+ *  Présentation :
+ *  --------------
+ *
+ *  Ce source est une abstraction d'une partie de logiciel embarqué
+ *  plus volumineuse, et intégrée avec de nombreuses définitions de variables
+ *  et de constantes pour remplir les structures de données utilisées
+ *  (tables de signaux, listes chaînées de messages, etc.)
+ *
+ *  Il comporte des alias, principalement dus :
+ *      - à la présence de listes chaînées ;
+ *      - à l'utilisation de "raccourcis" pour accéder à des champs
+ *      accessibles par plusieurs niveaux d'indirection.
+ *
+ *  On souhaite se donner les moyens de prouver sur ce code :
+ *      - des propriétés fonctionnelles en intégré (ou au moins en unitaire) ;
+ *      - des propriétés de sûreté de fonctionnement en intégré.
+ *
+ *
+ *  Hypothèses :
+ *  ------------
+ *
+ *      Tout pointeur contient l'adresse d'une constante ou d'une variable
+ *      du type correspondant, et allouée statiquement.
+ *
+ *      Le champ PTR de toute variable de type STR_MESSAGE contient
+ *      l'adresse d'une constante de type T_1MSG16C ou T_2MSG41C.
+ *      Le champ NATURE de toute constante de type T_1MSG16C vaut T1MSG16C.
+ *      Le champ NATURE de toute constante de type T_2MSG41C vaut T2MSG41C.
+ *
+ *      Tous les tableaux de caractères associés aux messages contiennent
+ *      au moins un caractère de fin de chaîne '\0'.
+ *
+ *
+ *  Propriété à prouver :
+ *  ---------------------
+ *
+ *      A l'issue de l'exécution de la fonction ComposerPage(),
+ *      la ressource Page contient exactement la liste des messages visibles
+ *      associés aux signaux textuels actifs :
+ *
+ *          - dans l'ordre induit par :
+ *              > l'ordre des signaux défini par la table ListeSignaux[] d'abord ;
+ *              > l'ordre de chaînage des messages sur chaque signal ensuite.
+ *
+ *          - dans la limite des 18 premiers messages.
+ *
+ *
+ *  Autre propriété à vérifier :
+ *  ----------------------------
+ *
+ *      La fonction DeclarerPanneRobustesse n'est jamais appelée.
+ */
+
+
+/* Définition des types et constantes */
+
+type BOOLEAN = 0..1
+
+type charM = -128..127
+
+type char = {
+ charM c;
+}
+
+type T_NATURE_MSG = 0..1
+
+type T_MSG = {
+    T_NATURE_MSG    NATURE ;
+    invariant dicr(msg) = (msg.NATURE == 0 ==> msg <: T_1MSG16C)
+                       && (msg.NATURE == 1 ==> msg <: T_2MSG41C);
+}
+
+tag T_1MSG16C = T_MSG with {
+    char[0..15]            TEXTE ;
+} 
+
+tag T_2MSG41C = T_MSG with {
+    char[0..40]            TEXTE1 ;
+    char[0..40]            TEXTE2 ;
+} 
+
+type STR_MESSAGE = {
+    T_MSG[0]                 PTR ;
+    BOOLEAN             VISIBLE ;
+    STR_MESSAGE[..] MESSAGESUIVANT ;
+}
+
+type T_TYPE = 0..1
+
+type T_SIGNAL = {
+    T_TYPE  TYPE ;
+    integer     PRIORITE ;
+} 
+
+
+type STR_SIGNAL =
+{
+    T_SIGNAL[0]    DEF ;
+    BOOLEAN     ACTIF ;
+    STR_MESSAGE[0] MESSAGE ;
+} 
+
+
+type T_CompositionPage = {
+    integer     IndexLigne;
+    char[0..40]    Texte ;
+} 
+
+
+/* Définition des variables globales */
+
+
+/*  Autre propriété à vérifier :
+ *  ----------------------------
+ *
+ *      La fonction DeclarerPanneRobustesse n'est jamais appelée.
+ */
+//@ requires 0
+unit DeclarerPanneRobustesse(integer codeErr)
+{
+    /* Fonction non implantée ici */()
+}
+
+
+
+unit ComposerMsg(STR_MESSAGE[0] Msg, T_CompositionPage[0] Page)
+{
+    /* Ecriture du message sur la page */
+    if Msg.PTR.NATURE == 0 then
+    {	
+	var T_1MSG16C[0] Ligne1Etat = Msg.PTR :> T_1MSG16C;
+	Page.Texte = Ligne1Etat.TEXTE;
+    }
+    else if Msg.PTR.NATURE == 1 then
+    {
+	var T_2MSG41C[0] Ligne2Etats = Msg.PTR :> T_2MSG41C;
+	Page.Texte = Ligne2Etats.TEXTE2;
+    }
+    else
+    {
+	DeclarerPanneRobustesse(Msg.PTR.NATURE) ;
+    }
+    
+}
+
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make liste_chainee"
+End: 
+*/

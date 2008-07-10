@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -sparecode-analysis -lib-entry Se
+   OPT: -sparecode-analysis -lib-entry -main Se
 */
 int glob;
 

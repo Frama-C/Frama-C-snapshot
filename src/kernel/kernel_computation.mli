@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_computation.mli,v 1.7 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: kernel_computation.mli,v 1.8 2008/05/30 08:29:48 uid568 Exp $ *)
 
-(** Functors for building computations which use kernel datatypes. *)
+(** Functors for building computations which use kernel datatypes. 
+    @plugin developer guide *)
 
 open Computation
 
@@ -34,6 +35,7 @@ module IntHashtbl(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS) :
 module InstrHashtbl(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS) :
   HASHTBL_OUTPUT with type key = Cil_types.kinstr and type data = Data.t
 
+(** @plugin developer guide *)
 module StmtHashtbl(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS) :
   HASHTBL_OUTPUT with type key = Cil_types.stmt and type data = Data.t
 

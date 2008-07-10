@@ -1,0 +1,73 @@
+
+(* Fichier regroupant tous les aspects du langage logique de Why,
+   pour tester les sorties vers les différents proveurs *)
+
+
+(* propositional logic *)
+
+logic A,B,C : prop
+
+goal prop_1 : A -> A
+
+goal prop_2 : (A or B) -> (B or A)
+
+
+(* first-order logic *)
+
+type t
+
+logic c : t
+logic f : t -> t
+logic p,q : t -> prop
+
+goal fol_1 : (forall x:t. p(x)) -> p(c)
+
+goal fol_2 : (forall x:t. p(x) <-> q(x)) -> p(c) -> q(c)
+
+
+(* equality *)
+
+goal eq_1 : p(c) -> forall x:t. x=c -> p(x)
+
+
+(* arithmetic *)
+
+goal arith_1 : forall x:int. x=0 -> x+1=1
+
+goal arith_2 : forall x:int. 0 <= x <= 1 -> (x = 0 or x = 1)
+
+goal arith_3 : forall x:int. x < 3 -> x <= 2
+
+
+(* list (of elements of type t; see list.mlw for polymorphic lists) *)
+
+type list
+
+logic nil : list
+logic cons : t, list -> list
+
+logic hd : list -> t
+logic tl : list -> list
+
+axiom hd_cons : forall x:t. forall l:list. hd (cons(x,l)) = x
+axiom tl_cons : forall x:t. forall l:list. tl (cons(x,l)) = l
+
+goal hdtlconscons :
+    forall x,y:t. hd(tl(cons(x, cons(y, nil)))) = y
+
+
+(* first-order *)
+
+logic nbocc : t, list -> int
+
+predicate equiv(l1:list, l2:list) = forall x:t. nbocc(x,l1) = nbocc(x,l2)
+
+goal equiv_trans :
+  forall l1,l2,l3:list. equiv(l1,l2) -> equiv(l2,l3) -> equiv(l1,l3)
+
+
+(* if-then-else *)
+
+goal ite1 : 1 = if true then 1 else 2
+
+goal ite2 : 2 = if false then 1 else 2

@@ -44,8 +44,6 @@
 AC_INIT(src/kernel)
 export CYGWIN=nobinmode
 
-AC_CONFIG_HEADER(config.h)
-
 upper() {
   echo "$1" | tr "a-z" "A-Z"
 }
@@ -92,6 +90,13 @@ fi
 # Check for Ocaml compilers #
 #############################
 
+# Specifically allow 3.10.0
+UNSUPPORTED_OCAML=no
+AC_ARG_ENABLE(unsupported-ocaml,
+[  --enable-unsupported-ocaml
+    attempt to compile even against unsupported ocaml version],
+UNSUPPORTED_OCAML=yes,UNSUPPORTED_OCAML=no)
+
 new_section "configure ocaml compilers"
 
 # we first look for ocamlc in the path; if not present, we fail
@@ -105,11 +110,27 @@ OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 echo $ECHO_N "ocaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
   3.09.3*) echo "${ECHO_T}Good!";;
-  3.09*) echo "${ECHO_T}Warning: unsupported version. Compile at your own risks";;
-  3.0*) echo "${ECHO_T}Unsupported version!"; exit 2;;
-  3.10.0) echo "${ECHO_T}Warning: unsupported version. Compile at your own risks";;
+  3.09*) echo "${ECHO_T}Warning: unsupported version.";
+         if test "$UNSUPPORTED_OCAML" == "yes"; then
+           echo "Compile at your own risks";
+         else
+           echo "If you want to compile Frama-C with this version, use the \
+--enable-unsupported-ocaml option of configure";
+           exit 2;
+         fi
+         ;;
+  3.0*) echo "${ECHO_T}Incompatible version!"; exit 2;;
+  3.10.0) echo "${ECHO_T}Warning: unsupported version." ;
+         if test "$UNSUPPORTED_OCAML" == "yes"; then
+           echo "Compile at your own risks";
+         else
+           echo "If you want to compile Frama-C with this version, use the \
+--enable-unsupported-ocaml option of configure";
+           exit 2;
+         fi
+         ;;
   3.*) echo "${ECHO_T}Good!";;
-  *) echo "${ECHO_T}Unsupported version!"; exit 2;;
+  *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
 # Ocaml library path
@@ -197,20 +218,14 @@ if test "$OCAMLYACC" = no ; then
 	AC_MSG_ERROR(Cannot find ocamlyacc.)
 fi
 
-# camlp4o
-AC_CHECK_PROG(CAMLP4O,camlp4o,camlp4o,no)
-if test "$CAMLP4O" == no ; then
-   AC_MSG_ERROR([You need to install camlp4.])
-fi
-
 # camlp4oof
-AC_CHECK_PROG(CAMLP4OOF,camlp4oof,camlp4oof,no)
-if test "$CAMLP4OOF" == no ; then
-  case $OCAMLVERSION in
-    3.09*) CAMLP4OOF="$CAMLP4O pa_macro.cmo pr_o.cmo" ;;
-    *) AC_MSG_ERROR([You need to install camlp4.]);;
-  esac
-fi
+dnl AC_CHECK_PROG(CAMLP4OOF,camlp4oof,camlp4oof,no)
+dnl if test "$CAMLP4OOF" == no ; then
+dnl   case $OCAMLVERSION in
+dnl     3.09*) CAMLP4OOF="$CAMLP4O pa_macro.cmo pr_o.cmo" ;;
+dnl     *) AC_MSG_ERROR([You need to install camlp4.]);;
+dnl   esac
+dnl fi
 
 # ocamlgraph
 
@@ -226,7 +241,16 @@ if test "$OCAMLGRAPH_EXISTS" == "no"; then
  if test "$OCAMLGRAPH_EXISTS" == "yes"; then
          AC_MSG_NOTICE([Unarchiving ocamlgraph.tar.gz])
          tar zxf ocamlgraph.tar.gz
- fi   
+ fi
+else
+ AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_TAR=yes)
+ if test "$OCAMLGRAPH_TAR" == "yes"; then
+   if test ocamlgraph.tar.gz -nt ocamlgraph; then
+     rm -rf ocamlgraph
+     AC_MSG_NOTICE([Ocamlgraph updated])
+     tar zxf ocamlgraph.tar.gz
+   fi
+ fi
 fi
 
 #NB: until now, it is not really possible to check a particular
@@ -290,13 +314,20 @@ if echo "let _ = Sys.os_type;;" | ocaml | grep -q Win32; then
     EXE=.exe
 else
     OCAMLWIN32=no
-    EXE=
     if echo "let _ = Sys.os_type;;" | ocaml | grep -q Cygwin; then
        AC_MSG_RESULT(Cygwin)
        EXE=.exe
+    else
+       AC_MSG_RESULT(Unix)
+       EXE=
     fi
 fi
 
+# Local machdep feature (to generate new platforms)
+AC_ARG_ENABLE(localmachdep,[  --enable-localmachdep    enable local machdep configuration],LOCAL_MACHDEP=yes,LOCAL_MACHDEP=no)
+
+if test "$LOCAL_MACHDEP" = yes ; then
+AC_CONFIG_HEADER(config.h)
 AC_CHECK_HEADERS(stdlib.h)
 AC_CHECK_HEADERS(wchar.h)
 
@@ -365,6 +396,8 @@ AC_LINK_IFELSE([int main() { __asm__("jmp _main"); }],
                   UNDERSCORE_NAME=true,
                   UNDERSCORE_NAME=false)
 AC_MSG_RESULT($UNDERSCORE_NAME)
+
+fi
 
 AC_MSG_CHECKING(if performance counters are usable)
 # Create a C file from src/perfcount.c.in
@@ -443,6 +476,11 @@ REQUIRE_LABLGLADECC=
 USE_LABLGLADECC=
 HAS_LABLGLADECC=
 
+CAMLP4O=
+REQUIRE_CAMLP4O=
+USE_CAMLP4O=
+HAS_CAMLP4O=
+
 ### Now plugin declarations
 
 define([check_plugin],
@@ -466,7 +504,7 @@ AC_ARG_ENABLE(
 )
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-AC_MSG_ERROR([constant propagation is not available])
+AC_MSG_ERROR([PLUGIN_NAME is not available])
 fi
 up=`upper PLUGIN_NAME`
 eval FORCE_$up=\$FORCE
@@ -488,6 +526,7 @@ check_plugin(cxx,cxx_elsa,[support for cxx plugin],no)
 
 if test "$ENABLE_CXX" == "yes"; then
   REQUIRE_ELSA=${REQUIRE_ELSA}" cxx"
+  REQUIRE_CAMLP4O=${REQUIRE_CAMLP4O}" cxx"
 fi
 
 # from
@@ -619,7 +658,7 @@ configure_library () {
     if test "$has" == "no"; then
       AC_MSG_WARN([$msg])
       if test "$require" != ""; then
-        echo "plugins disable:
+        echo "plugins disabled:
  $require"
         for p in $require; do
 	  fp=FORCE_`upper "$p"`
@@ -664,11 +703,10 @@ configure_tool () {
      AC_CHECK_PROG(has,$file,yes,no)
       if test "$has" == "yes"; then eval SELECTED_$VAR=$file break; fi
       done
-      echo "Has : $has, $VAR";
     if test "$has" == "no"; then
       AC_MSG_WARN([$msg])
       if test "$require" != ""; then
-        echo "plugins disable:
+        echo "plugins disabled:
  $require"
         for p in $require; do
 	  fp=FORCE_`upper "$p"`
@@ -726,6 +764,13 @@ configure_tool \
   lablgladecc2 \
   "lablgladecc2 not found."
 
+# camlp4o
+###########
+configure_tool \
+  CAMLP4O \
+  camlp4o \
+  "camlp4o not found."
+
 # lablgtk2
 ##########
 configure_library \
@@ -736,12 +781,13 @@ configure_library \
 REQUIRE_GTKSOURCEVIEW=
 USE_GTKSOURCEVIEW=
 HAS_GTKSOURCEVIEW=
+FORCE_GTKSOURCEVIEW="yes"
 
-AC_ARG_ENABLE(gtksourceview,
-  [  --enable-gtksourceview  uses lablgtksourceview for the gui
-                          (default: auto-detected)],
-     FORCE_GTKSOURCEVIEW=$enableval,
-     FORCE_GTKSOURCEVIEW="no")
+#AC_ARG_ENABLE(gtksourceview,
+#  [  --enable-gtksourceview  uses lablgtksourceview for the gui
+#                          (default: auto-detected)],
+#     FORCE_GTKSOURCEVIEW=$enableval,
+#     FORCE_GTKSOURCEVIEW="no")
 
 if test "$FORCE_GTKSOURCEVIEW" == "yes"; then
   REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
@@ -788,10 +834,10 @@ if test "$has" == "yes" -a "$REQUIRE_WHYJC" != ""; then
     JESSIE_LOCAL=yes
     JESSIE_INCLUDES="-I $WHYDISTRIB/src -I $WHYDISTRIB/jc"
     (cd $WHYDISTRIB && ./configure --prefix=$prefix --datarootdir=$datarootdir \
-      --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$libdir \
+      --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
       --mandir=$mandir)
     ;;
-  $OCAMLLIB/*/jessie)
+  $OCAMLLIB/jessie)
     JCCMO=$SELECTED_WHYJC/jc.cmo
     JCCMX=$SELECTED_WHYJC/jc.cmx
     JESSIE_LOCAL=no
@@ -818,7 +864,7 @@ new_section "checking for plugin dependencies"
 
 REQUIRE_FROM="value inout pdg slicing"
 
-USE_GUI="occurrence security slicing value impact"
+#USE_GUI="occurrence security slicing value impact"
 
 REQUIRE_PDG="slicing security"
 
@@ -1005,6 +1051,7 @@ AC_SUBST(OCAMLBEST)
 AC_SUBST(OCAMLVERSION)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLWIN32)
+AC_SUBST(CAMLP4O)
 AC_SUBST(EXE)
 
 AC_SUBST(HAVE_STDLIB_H)
@@ -1015,6 +1062,8 @@ AC_SUBST(THREAD_IS_KEYWORD)
 AC_SUBST(UNDERSCORE_NAME)
 AC_SUBST(HAS_PERFCOUNT)
 AC_SUBST(CYCLES_PER_USEC)
+AC_SUBST(LOCAL_MACHDEP)
+AC_SUBST(datarootdir)
 
 AC_SUBST(HAS_LABLGTK)
 AC_SUBST(HAS_GTKSOURCEVIEW)
@@ -1046,8 +1095,6 @@ AC_SUBST(ENABLE_SPARECODE)
 AC_SUBST(ENABLE_USERS)
 AC_SUBST(ENABLE_VALUE)
 AC_SUBST(ENABLE_WP)
-
-AC_SUBST(datarootdir)
 
 ################################################
 # Finally create the Makefile from Makefile.in #

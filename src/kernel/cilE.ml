@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cilE.ml,v 1.52 2008/04/18 09:36:05 uid528 Exp $ *)
+(* $Id: cilE.ml,v 1.57 2008/07/11 06:36:05 uid570 Exp $ *)
 (* Cil extensions *)
 open Cil_types
 open Cil
@@ -43,7 +43,7 @@ let warn_once : ('a,Format.formatter, unit, unit) format4 -> 'a =
 
 let add_predicate p =
   if not (Logic_env.PredicateInfo.mem p.p_name) then
-    Logic_env.add_predicate p
+    Logic_env.add_builtin_predicate p
 
 let init_builtins () =
   add_predicate  {
@@ -87,7 +87,7 @@ let log_once fmt =
 	if not (Hashtbl.mem log_h fmt)
 	then begin
 	    Hashtbl.add log_h (fmt) ();
-	    Cil.log "%s@." fmt
+	    Cil.log "%s" fmt
 	  end)
       bfmt fmt
 
@@ -233,12 +233,13 @@ let set_syntactic_context e =
 let get_syntactic_context () = current_stmt (),!syntactic_context
 
 type alarm_behavior = Aignore | Alog | Acall of (unit -> unit)
-type warn_mode = {unspecified:alarm_behavior; others: alarm_behavior; imprecision_tracing:bool}
+type warn_mode = {unspecified:alarm_behavior; others: alarm_behavior;
+                  imprecision_tracing:alarm_behavior}
 
 let warn_all_mode =
-  {unspecified=Alog; others=Alog; imprecision_tracing=true}
+  {unspecified=Alog; others=Alog; imprecision_tracing=Alog}
 let warn_none_mode =
-  {unspecified=Aignore; others=Aignore; imprecision_tracing=false}
+  {unspecified=Aignore; others=Aignore; imprecision_tracing=Aignore}
 
 
 let warn_div warn_mode =
@@ -254,7 +255,8 @@ let warn_div warn_mode =
 	    let lexpr = Logic_const.expr_to_term exp_d in
 	    let annotation =
               Logic_const.new_code_annotation
-		(AAssert (Logic_const.unamed (Prel (Rneq,lexpr, lzero())))) in
+		(AAssert ([],
+			  Logic_const.unamed (Prel (Rneq,lexpr, lzero())))) in
 	    if Alarms.register ki Alarms.Division_alarm annotation then
               Cil.warn
 		"division by zero: %a" !Ast_printer.d_code_annotation annotation
@@ -275,7 +277,8 @@ let warn_shift warn_mode size =
 	let annotation =
           Logic_const.new_code_annotation
             (AAssert
-		(Logic_const.pand
+		([],
+		 Logic_const.pand
                     (Logic_const.unamed (Prel (Rge,lexpr, lzero())),
                     Logic_const.unamed
                       (Prel (Rlt,lexpr, lconstant (Int64.of_int size))))))
@@ -302,7 +305,8 @@ let warn_mem warn_mode msg =
         let lexpr = Logic_const.expr_to_tsets_elem term in
         let annotation =
           Logic_const.new_code_annotation
-            (AAssert (Logic_const.unamed (Pvalid (TSSingleton lexpr)))) in
+            (AAssert ([],
+		      Logic_const.unamed (Pvalid (TSSingleton lexpr)))) in
         if Alarms.register ki Alarms.Memory_alarm annotation then
           Cil.warn
             "out of bounds %s. @[%a@]" msg !Ast_printer.d_code_annotation annotation;
@@ -327,7 +331,7 @@ let warn_index warn_mode msg =
         let p0 = Logic_const.prel(Rle, lzero(), lexpr) in
         let p1 = Logic_const.prel(Rlt, lexpr, rexpr) in
         let p = Logic_const.pand (p0,p1) in
-        let annotation = Logic_const.new_code_annotation (AAssert p) in
+        let annotation = Logic_const.new_code_annotation (AAssert ([],p)) in
         if Alarms.register ki Alarms.Memory_alarm annotation then
           Cil.warn
             "%s out of bounds index. @[%a@]"
@@ -357,7 +361,8 @@ let warn_pointer_comparison warn_mode =
       let lexpr_r = Logic_const.expr_to_term exp_r in
       let annotation =
         Logic_const.new_code_annotation
-          (AAssert (Logic_const.unamed (comparable_pointers lexpr_l lexpr_r))) in
+          (AAssert ([],
+		    Logic_const.unamed (comparable_pointers lexpr_l lexpr_r))) in
       if Alarms.register ki Alarms.Pointer_compare_alarm annotation then
         ignore
           (Cil.warn
@@ -385,14 +390,15 @@ let warn_result_nan_infinite warn_mode =
       let op = lexpr_l in (* TODO: use op *)
       let annotation =
         Logic_const.new_code_annotation
-          (AAssert (Logic_const.unamed (result_nan_infinite op lexpr_l lexpr_r))) in
+          (AAssert ([],
+		    Logic_const.unamed (result_nan_infinite op lexpr_l lexpr_r))) in
       if Alarms.register ki Alarms.Result_is_nan_or_infinite_alarm annotation
       then
         ignore
           (Cil.warn "float operation: %a" !Ast_printer. d_code_annotation annotation)
 end
 
-let warn_unspecified warn_mode =
+let warn_uninitialized warn_mode =
   match warn_mode.unspecified with
     Aignore -> ()
   | Acall f -> f()
@@ -402,7 +408,20 @@ let warn_unspecified warn_mode =
     | _,SyNone -> ()
     | _,SyBinOp _ | _,SyUnOp _ -> assert false
     | _,SyMem lv_d ->
-        warn_once "(TODO: emit a proper alarm) accessing unspecified left-value: %a" d_lval lv_d
+        warn_once "(TODO: emit a proper alarm) accessing uninitialized left-value: %a" d_lval lv_d
+      end
+
+let warn_escapingaddr warn_mode =
+  match warn_mode.unspecified with
+    Aignore -> ()
+  | Acall f -> f()
+  | Alog ->
+      begin
+    match get_syntactic_context () with
+    | _,SyNone -> ()
+    | _,SyBinOp _ | _,SyUnOp _ -> assert false
+    | _,SyMem lv_d ->
+        warn_once "(TODO: emit a proper alarm) accessing left-value that contains escaping addresses : %a" d_lval lv_d
       end
 
 (*

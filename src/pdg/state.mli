@@ -28,22 +28,21 @@ type t = PdgTypes.t_data_state
 val make : PdgTypes.LocInfo.t -> Locations.Zone.t -> t
 val empty : t
 
-val add_loc_node :
-  t -> exact:bool -> Locations.Zone.t -> t_node -> t
+val add_loc_node : t -> exact:bool -> Locations.Zone.t -> t_node -> t
+val add_init_state_input : t -> Locations.Zone.t -> t_node -> t
+
 
 val test_and_merge :
   old:t -> t -> bool * t
 
 val get_loc_nodes :
-  t -> Locations.Zone.t -> t_node list * Locations.Zone.t
-val get_all_nodes : t -> t_node list 
-
-val iter_on_nodes :
-  t -> Locations.Zone.t -> (t_node -> unit) -> Locations.Zone.t
+  t -> Locations.Zone.t -> (t_node * Locations.Zone.t option) list * Locations.Zone.t option
 
 val pretty : Format.formatter -> t -> unit
 
-type t_states = PdgTypes.t_data_state Inthash.t
+(* ~~~~~~~~~~~~~~~~~~~ *)
+
+type t_states = t Inthash.t
 
 val store_init_state : t_states -> t -> unit
 val store_last_state : t_states -> t -> unit

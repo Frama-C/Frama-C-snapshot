@@ -25,136 +25,189 @@
 
 open Cil_types
 
-type location = Lexing.position * Lexing.position
-
+(** logic types. *)
 type logic_type =
-  | LTvoid
-  | LTinteger
-  | LTreal
-  | LTint of ikind
-  | LTfloat of fkind
-  | LTarray of logic_type
-  | LTpointer of logic_type
-  | LTenum of string
-  | LTstruct of string
-  | LTunion of string
-  | LTnamed of string * logic_type list
+  | LTvoid (** C void *)
+  | LTinteger (** mathematical integers. *)
+  | LTreal (** mathematical real. *)
+  | LTint of ikind (** C integral type.*)
+  | LTfloat of fkind (** C floating-point type *)
+  | LTarray of logic_type (** C array *)
+  | LTpointer of logic_type (** C pointer *)
+  | LTenum of string (** C enum *)
+  | LTstruct of string (** C struct *)
+  | LTunion of string (** C union *)
+  | LTnamed of string * logic_type list (** declared logic type. *)
 (*  | LTarrow of logic_type list * logic_type *)
 
+(** quantifier-bound variables *)
 type quantifiers = (logic_type * string) list
 
-type constant = IntConstant of string | FloatConstant of string
+(** logic constants. *)
+type constant =
+    IntConstant of string (** integer constant *)
+  | FloatConstant of string (** real constant *)
 
+(** comparison operators. *)
 type relation = Lt | Gt | Le | Ge | Eq | Neq
 
+(** arithmetic and logic binary operators. *)
 type binop = Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or | Bbw_xor |
              Blshift | Brshift
 
+(** unary operators. *)
 type unop = Uminus | Ustar | Uamp | Ubw_not
 
+(** logical expression. The distinction between locations, terms and
+    predicate is done during typing.
+*)
 type lexpr = {
-  lexpr_node : lexpr_node;
-  lexpr_loc : location
+  lexpr_node : lexpr_node; (** kind of expression. *)
+  lexpr_loc : location (** position in the source code. *)
 }
 
 (* PL is for Parsed Logic *)
+(** kind of expression. *)
 and lexpr_node =
     (* both terms and predicates *)
-  | PLvar of string
-  | PLapp of string * string list * lexpr list
+  | PLvar of string (** a variable *)
+  | PLapp of string * string list * lexpr list (** an application. *)
       (* terms *)
-  | PLlambda of (logic_type * string) list * lexpr
-  | PLconstant of constant
-  | PLunop of unop * lexpr
-  | PLbinop of lexpr * binop * lexpr
-  | PLdot of lexpr * string
-  | PLarrow of lexpr * string
-  | PLarrget of lexpr * lexpr
-  | PLold of lexpr
-  | PLat of lexpr * string
-  | PLbase_addr of lexpr
-  | PLblock_length of lexpr
-  | PLresult
-  | PLnull
-  | PLcast of logic_type * lexpr
-  | PLrange of lexpr option * lexpr option
-  | PLsizeof of logic_type
-  | PLsizeofE of lexpr
+  | PLlambda of (logic_type * string) list * lexpr (** a lambda abstraction. *)
+  | PLconstant of constant (** a constant. *)
+  | PLunop of unop * lexpr (** unary operator. *)
+  | PLbinop of lexpr * binop * lexpr (** binary operator. *)
+  | PLdot of lexpr * string (** field access ({t a.x}) *)
+  | PLarrow of lexpr * string (** field access ({t a->x})*)
+  | PLarrget of lexpr * lexpr (** array access. *)
+  | PLold of lexpr (** expression refers to pre-state of a function. *)
+  | PLat of lexpr * string (** expression refers to a given program point. *)
+  | PLbase_addr of lexpr (** base address of a pointer. *)
+  | PLblock_length of lexpr (** length of the block pointed to by an
+                                expression. *)
+  | PLresult (** value returned by a function. *)
+  | PLnull (** null pointer. *)
+  | PLcast of logic_type * lexpr (** cast. *)
+  | PLrange of lexpr option * lexpr option (** interval of integers. *)
+  | PLsizeof of logic_type (** sizeof a type. *)
+  | PLsizeofE of lexpr (** sizeof the type of an expression. *)
   | PLcoercion of lexpr * logic_type
+      (** coercion of an expression in a given type. *)
   | PLcoercionE of lexpr * lexpr
+      (** coercion of the first expression into the type of the second one. *)
   | PLupdate of lexpr * string * lexpr
+      (** functional update of the field of a structure. *)
+  | PLtypeof of lexpr (** type tag for an expression. *)
+  | PLtype of logic_type (** type tag for a C type. *)
       (* predicates *)
-  | PLfalse
-  | PLtrue
-  | PLrel of lexpr * relation * lexpr
-  | PLand of lexpr * lexpr
-  | PLor of lexpr * lexpr
-  | PLxor of lexpr * lexpr
-  | PLimplies of lexpr * lexpr
-  | PLiff of lexpr * lexpr
-  | PLnot of lexpr
-  | PLif of lexpr * lexpr * lexpr
-  | PLforall of quantifiers * lexpr
-  | PLexists of quantifiers * lexpr
-  | PLvalid of lexpr
+  | PLfalse (** false (either as a term or a predicate. *)
+  | PLtrue (** true (either as a term or a predicate. *)
+  | PLrel of lexpr * relation * lexpr (** comparison operator. *)
+  | PLand of lexpr * lexpr (** conjunction. *)
+  | PLor of lexpr * lexpr (** disjunction. *)
+  | PLxor of lexpr * lexpr (** logical xor. *)
+  | PLimplies of lexpr * lexpr (** implication. *)
+  | PLiff of lexpr * lexpr (** equivalence. *)
+  | PLnot of lexpr (** negation. *)
+  | PLif of lexpr * lexpr * lexpr (** conditional operator. *)
+  | PLforall of quantifiers * lexpr (** universal quantification. *)
+  | PLexists of quantifiers * lexpr (** existential quantification. *)
+  | PLvalid of lexpr (** pointer is valid. *)
   | PLvalid_index of lexpr * lexpr
+      (** [PLvalid_index(p,i)] indicates that accessing the [i]th element
+          of [p] is valid.*)
   | PLvalid_range of lexpr * lexpr * lexpr
-  | PLfresh of lexpr
-  | PLnamed of string * lexpr
-  | PLinstance_of of lexpr * logic_type
-  | PLinstance_ofE of lexpr * lexpr
+      (** same as [PLvalid_index], but for a range of indices. *)
+  | PLfresh of lexpr (** expression points to a newly allocated block. *)
+  | PLnamed of string * lexpr (** named expression. *)
+  | PLsubtype of lexpr * lexpr
+      (** first type tag is a subtype of second one. *)
       (* tsets *)
   | PLcomprehension of lexpr * quantifiers * lexpr option
+      (** set of expression defined in comprehension
+          ({t \{ e | integer i; P(i)\}})*)
   | PLunion of lexpr list
+      (** union of sets. *)
   | PLinter of lexpr list
+      (** intersection of sets. *)
   | PLempty
+      (** empty set. *)
 
-type type_annot = (lexpr, logic_type) Cil_types.type_annot
+(** type invariant. *)
+type type_annot =  {inv_name: string; 
+                    this_type : logic_type; 
+                    this_name: string; (** name of its argument. *)
+                    inv: lexpr
+                   }
 
 (** global declarations. *)
 type decl =
   | LDlogic_reads of
       string * string list * string list *
         logic_type * (logic_type * string) list * lexpr list
-        (** LDlogic_reads(name,labels,type_params,
-                          return_type, parameters, reads_tsets) *)
+        (**
+            [LDlogic_reads(name,labels,type_params,
+           return_type, parameters, reads_tsets)] represents the declaration
+           of logic function [name] whose return type is [return_type] and
+           arguments are [parameters]. Its label arguments are [labels].
+           Polymorphic functions have their type parameters in [type_params].
+           Read accesses are given in [read_tsets].
+         *)
   | LDlogic_def of
       string * string list * string list *
 	logic_type * (logic_type * string) list * lexpr
-        (** LDlogic_def(name,labels,type_params,
-                        return_type, parameters, definition) *)
-  | LDtype of string * string list(** new logic type + its parameters *)
+        (** [LDlogic_def(name,labels,type_params,
+                         return_type, parameters, definition)]
+            represents the definition of a logic function. It has the same
+            arguments as [LDlogic_reads], except that read accesses are
+            replaced by the [definition] of the function.*)
+  | LDtype of string * string list(** new logic type and its parameters *)
   | LDpredicate_reads of
       string * string list * string list *
 	(logic_type * string) list * lexpr list
-        (** LDpredicate_reads(name,labels,type_params,
-                              parameters, reads_tsets) *)
+        (** [LDpredicate_reads(name,labels,type_params,
+                              parameters, reads_tsets)]
+            represents the declaration of a new predicate. It is similar to
+            [LDlogic_reads] except that it has no [return_type].
+         *)
   | LDpredicate_def of string * string list * string list *
       (logic_type * string) list * lexpr
-        (** LDpredicate_def(name,labels,type_params, parameters, def) *)
+        (** [LDpredicate_def(name,labels,type_params, parameters, def)]
+            represents the definition of a new predicate. It is similar to
+            [LDlogic_def] except that it has no [return_type].
+
+         *)
   | LDlemma of string * bool * string list * string list * lexpr
-      (** LDlemma(name,is_axiom,labels,type_params,property)
-          [is_axiom] is true for an axiom, false for a lemma
+      (** LDlemma(name,is_axiom,labels,type_params,property) represents
+          a lemma or an axiom [name].
+          [is_axiom] is true for an axiom and false for a lemma. [labels]
+          is the list of label arguments and
+          [type_params] the list of type parameters. Last, [property] is the
+          statement of the lemma.
        *)
-  | LDinvariant of string * lexpr
-  | LDtype_annot of type_annot
+  | LDinvariant of string * lexpr (** global invariant. *)
+  | LDtype_annot of type_annot    (** type invariant. *)
 
-
+(** specification of a C function. *)
 type spec = (lexpr, lexpr, lexpr) Cil_types.spec
 type code_annot = (lexpr, lexpr, lexpr, lexpr) Cil_types.code_annot
 
+(** assignment performed by a C function. *)
 type assigns = lexpr Cil_types.assigns
+
+(** variant for loop or recursive function. *)
 type variant = lexpr Cil_types.variant
 
+(** all kind of annotations*)
 type annot =
-  | Adecl of location * decl
+  | Adecl of (location * decl) list (** global annotation. *)
   | Aspec  (* the real spec is parsed afterwards.
               See cparser.mly (grammar rules involving SPEC) for
               more details.
-            *)
-  | Acode_annot of location * code_annot
-  | Aloop_annot of location * code_annot list
-  | Aattribute_annot of location * string
+            *) (** function specification. *)
+  | Acode_annot of location * code_annot (** code annotation. *)
+  | Aloop_annot of location * code_annot list (** loop annotation. *)
+  | Aattribute_annot of location * string (** attribute annotation. *)
 
 (*
 Local Variables:

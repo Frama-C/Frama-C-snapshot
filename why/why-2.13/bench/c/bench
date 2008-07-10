@@ -1,0 +1,169 @@
+#!/bin/sh
+
+FILES=`cat bench-files`
+
+# benchmark for caduceus
+export CADUCEUSLIB=`pwd`/../../lib/why
+export WHYCOQ=`pwd`/../../lib/coq
+make="make WHYCOQ=$WHYCOQ"
+
+# C files to parse with success
+echo "C parsing (good)"
+cd good/syntax
+parsing="../../../../bin/caduceus.opt -parse-only"
+for f in *.c; do
+    echo -n "  "$f"... "
+    if ! gcc -c $f > /dev/null 2>&1; then
+	echo "GCC failed"
+	if test $f != "obfuscated.c" ; then
+           gcc -c $f
+	   exit 1
+        fi
+    else
+      echo -n "GCC ok... "
+    fi
+    if ! $parsing  $f > /dev/null 2>&1; then
+	echo "caduceus FAILED"
+	#$parsing $f
+	#exit 1
+    else
+	echo "caduceus ok... "
+    fi
+done
+
+echo "C parsing (bad)"
+cd ../../bad-syn
+parsing="../../../bin/caduceus.opt -parse-only"
+for f in *.c; do
+    echo -n "  "$f"... "
+    if gcc -c $f > /dev/null 2>&1; then
+	echo "GCC failed (accepted a bad file)"
+	gcc -c $f
+	exit 1
+    fi
+    echo -n "GCC ok... "
+    if $parsing  $f > /dev/null 2>&1; then
+	echo "caduceus FAILED (accepted a bad file)"
+	#$parsing $f
+	#exit 1
+    else
+	echo "caduceus ok... "
+    fi
+done
+
+echo "C parsing/typing (bad)"
+cd ../bad-sem
+parsing="../../../bin/caduceus.opt -type-only"
+for f in *.c; do
+    echo -n "  "$f"... "
+    if gcc -c -Wall -Werror $f > /dev/null 2>&1; then
+	echo "GCC failed (accepted a bad file)"
+	gcc -c $f
+	exit 1
+    fi
+    echo -n "GCC ok... "
+    if $parsing  $f > /dev/null 2>&1; then
+	echo "caduceus FAILED (accepted a bad file)"
+	#$parsing $f
+	#exit 1
+    else
+	echo "caduceus ok... "
+    fi
+done
+
+echo "C parsing/typing (good)"
+cd ../good
+parsing="../../../bin/caduceus.opt -type-only"
+for f in *.c; do
+    echo -n "  "$f"... "
+    if ! gcc -c $f > /dev/null 2>&1; then
+	echo "GCC failed"
+	gcc -c $f
+	exit 1
+    fi
+    echo -n "GCC ok... "
+    if ! $parsing  $f > /dev/null 2>&1; then
+	echo "caduceus FAILED"
+	#$parsing $f
+	#exit 1
+    else
+	echo "caduceus ok... "
+    fi
+done
+
+echo "C interp (bad)"
+cd ../bad-interp
+parsing="../../../bin/caduceus.opt"
+for f in *.c; do
+    echo -n "  "$f"... "
+    if gcc -ansi -pedantic -Wall -Werror -c $f > /dev/null 2>&1; then
+	echo "GCC failed (accepted a bad file, maybe not detected)"
+	gcc -ansi -pedantic -Wall -Werror -c $f
+    else
+        echo -n "GCC ok... "
+    fi
+    if $parsing  $f > /dev/null 2>&1; then
+	echo "caduceus FAILED (accepted a bad file)"
+	#$parsing $f
+	#exit 1
+    else
+	echo "caduceus ok... "
+    fi
+done
+
+echo "C interp (good)"
+cd ../good
+export CADUCEUSLIB=`pwd`/../../../lib
+
+bench_c_good () {
+    options="$* -why-opt -split-user-conj " # -why-opt -show-time"  # --typing-predicates"
+    echo "-------------------------------------------------------------------"
+    echo "Bench Caduceus+Simplify/Yices with options: $options"
+    parsing="../../../bin/caduceus.opt $options"
+
+    rm -f why/*.why
+    rm -f simplify/*_why.sx
+    rm -f smtlib/*_why.smt
+    rm -f *.time
+    hostname=`hostname`
+    if test $hostname = "belzebuth"; then parall="-j 7"; fi
+    CADUCEUS=$parsing make -e $parall -f Makefile.bench
+    cat *.time
+    echo "===TOTAL==============================="
+    ocaml ../stat.ml *.time
+    echo "======================================="
+}
+
+# bench_c_good
+# bench_c_good -separation -no-zone-type
+bench_c_good -separation
+
+cd ../../../examples-c
+make bench
+
+# Coq proofs
+# for f in $FILES; do
+#     echo -n "  $f.c... "
+#     rm -f coq/caduceus_spec_why.v
+#     if $parsing  $f.c > /tmp/caduceus.tmp 2>&1; then
+# 	echo -n "caduceus ok... "
+# 	if $make -f $f.makefile coq > /tmp/caduceus.tmp 2>&1; then
+# 	    n=`grep -c Admitted coq/${f}_why.v`
+# 	    if test $n -ne 0 ; then
+# 		echo "Coq proof ok (with $n Admitted)... "
+# 	    else
+# 		echo "Coq proof ok... "
+# 	    fi
+# 	else
+# 	    echo "Coq proof FAILED !"
+# 	    cat /tmp/caduceus.tmp
+# 	    exit 1
+# 	fi
+#     else
+# 	echo "caduceus FAILED (rejected a good file) :"
+# 	cat /tmp/caduceus.tmp
+# 	exit 1
+#     fi
+# done
+
+

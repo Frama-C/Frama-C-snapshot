@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry f -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry f -slice-print
+   OPT: -security-slicing -lib-entry -main f -slice-print
+   OPT: -security-slicing -security-lattice strong -lib-entry -main f -slice-print
 */
 
-/*@ requires security_status(s) == public(); */
+/*@ requires security_status(s) == public; */
 void send(int s);
 
 int a, b;

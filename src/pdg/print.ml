@@ -46,9 +46,9 @@ let pretty_pdg_graph ?(bw=false) fmt graph =
   let print_node n =  Format.fprintf fmt "%a@\n" pretty_node n in
   let print_dpd d =
     let dpd_kind = G.E.label d in
-    if bw then Format.fprintf fmt "  <-%a- %d@\n" Dpd.pretty dpd_kind 
+    if bw then Format.fprintf fmt "  <-%a- %d@\n" G.pretty_edge_label dpd_kind
                  (N.elem_id (G.E.src d))
-    else Format.fprintf fmt "  -%a-> %d@\n" Dpd.pretty dpd_kind
+    else Format.fprintf fmt "  -%a-> %d@\n" G.pretty_edge_label dpd_kind
                  (N.elem_id (G.E.dst d))
   in
   let print_node_and_dpds n =
@@ -60,11 +60,6 @@ let pretty_pdg ?(bw=false) fmt pdg =
   try
     let graph = PdgTypes.InternalPdg.get_graph pdg in
     pretty_pdg_graph ~bw fmt graph;
-    let print_dynamic_dpd d =
-      Format.fprintf fmt "(+DynDpd) %d -%a-> %d@\n"
-        (N.elem_id (G.E.src d)) Dpd.pretty (G.E.label d) (N.elem_id (G.E.dst d))
-    in
-    PdgTypes.Pdg.iter_dynamic_dpds print_dynamic_dpd pdg
   with PdgTypes.Pdg.Top -> Format.fprintf fmt "Top PDG@\n"
     |  PdgTypes.Pdg.Bottom -> Format.fprintf fmt "Bottom PDG@\n"
 
@@ -89,8 +84,6 @@ module Printer = struct
       let graph = PdgTypes.InternalPdg.get_graph pdg in
       let f_static e = f (e, false) in
         G.iter_edges_e f_static graph;
-        let f_dynamic e = f (e, true) in
-          PdgTypes.Pdg.iter_dynamic_dpds f_dynamic pdg
     with PdgTypes.Pdg.Top | PdgTypes.Pdg.Bottom -> ()
 
   let graph_attributes _ = [`Rankdir `TopToBottom ]
@@ -125,7 +118,7 @@ module Printer = struct
                     (`Shape `Diamond), txt
               | Loop _ ->
                   (`Shape `Doublecircle), "while"
-              | Block _ ->
+              | Block _ | UnspecifiedSequence _ ->
                   (`Shape `Doublecircle), "{}"
               | Goto _ | Break _ | Continue _ ->
                   let txt = Cil.fprintf_to_string "%a"
@@ -155,9 +148,17 @@ module Printer = struct
     in sh :: col :: [`Label ( String.escaped txt)]
 
   let default_edge_attributes _ = []
+
   let edge_attributes (e, dynamic) =
-    let d = G.E.label e in
+    let d, z = G.edge_dpd e in
     let attrib = [] in
+    let attrib = match z with 
+      | None -> attrib
+      | Some z ->
+          let txt = 
+            Cil.fprintf_to_string "@[<h 1>%a@]" Locations.Zone.pretty z in
+          (`Label txt) :: attrib
+    in
     let attrib =
       let color =
         if Dpd.is_data d then (if dynamic then 0xFF00FF else 0x0000FF)

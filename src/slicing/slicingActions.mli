@@ -41,7 +41,8 @@ val build_node_and_dpds_selection :
   ?nd_marks:t_n_or_d_marks -> t_mark -> t_n_or_d_marks
                     (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 val translate_crit_to_select :
-  Db.Pdg.t -> ?to_select:t_select -> (Db.Pdg.t_node list * t_n_or_d_marks) list
+  Db.Pdg.t -> ?to_select:t_select -> 
+  ((Db.Pdg.t_node * Locations.Zone.t option) list * t_n_or_d_marks) list
   -> t_select
                     (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 type t_fct_info = SlicingTypes.Internals.t_fct_info

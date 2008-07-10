@@ -27,7 +27,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: jc_pervasives.ml,v 1.105 2008/04/15 09:00:08 filliatr Exp $ *)
+(* $Id: jc_pervasives.ml,v 1.110 2008/07/03 14:34:11 marche Exp $ *)
 
 open Format
 open Jc_env
@@ -57,22 +57,36 @@ let operator_of_type = function
   | JCTnative n -> operator_of_native n
   | JCTenum _ -> `Integer
   | JCTlogic _ -> `Logic
-  | JCTany -> assert false (* TODO? *)
+  | JCTany | JCTtype_var _ -> assert false (* TODO? *)
   | JCTnull | JCTpointer _ -> `Pointer
 
-let label_var lab name =
-  match lab with
-(*
-    | LabelNone -> assert false
-*)
-    | LabelHere -> name
-    | LabelPre -> name ^ "_at_Pre"
-    | LabelOld -> assert false (* name ^ "_at_Old" *)
-(*
-    | LabelInit -> name ^ "_at_Init"
-*)
-    | LabelPost -> name ^ "_at_Post"
-    | LabelName l -> name ^ "_at_" ^ l.label_info_final_name
+let label_var ?(label_in_name=true) ?label_assoc lab name =
+  let label =
+    match label_assoc with
+      | None -> lab 
+      | Some a ->
+	  try List.assoc lab a
+	  with Not_found -> lab
+  in			
+  if label_in_name then 
+    match label with
+      | LabelHere -> name
+      | LabelPre -> name ^ "_at_Pre"
+      | LabelOld -> assert false (* name ^ "_at_Old" *)
+      | LabelPost -> name ^ "_at_Post"
+      | LabelName l -> name ^ "_at_" ^ l.label_info_final_name
+  else
+    match label with (* hack ?? *)
+      | LabelHere -> name
+      | LabelPost -> name
+      | LabelPre -> name ^ "@init"
+      | LabelOld -> name ^ "@"
+      | LabelName l -> name ^ "@" ^ l.label_info_final_name
+
+let new_label_name =
+  let label_name_counter = ref 0 in function () ->
+    incr label_name_counter;
+    "JC_" ^ string_of_int !label_name_counter
 
 let root_name st =
   st.jc_struct_info_root.jc_struct_info_name
@@ -88,32 +102,38 @@ let string_of_native t =
     | Tboolean -> "boolean"
     | Tstring -> "string"
 
-let print_type fmt t =
+let rec print_type fmt t =
   match t with
     | JCTnative n -> fprintf fmt "%s" (string_of_native n)
     | JCTlogic s -> fprintf fmt "%s" s
     | JCTenum ri -> fprintf fmt "%s" ri.jc_enum_info_name
-    | JCTpointer (
-	( JCtag { jc_struct_info_name = name }
-	| JCvariant { jc_variant_info_name = name }
-	| JCunion { jc_variant_info_name = name }),
-	ao, bo) ->
+    | JCTpointer(tov, ao, bo) ->
+        begin match tov with
+          | JCtag({ jc_struct_info_name = name }, [])
+          | JCvariant { jc_variant_info_name = name }
+	  | JCunion { jc_variant_info_name = name } ->
+              fprintf fmt "%s" name
+          | JCtag({ jc_struct_info_name = name }, params) ->
+              fprintf fmt "%s<%a>" name
+                (Pp.print_list Pp.comma print_type) params
+        end;
 	begin match ao, bo with
 	  | None, None ->
-	      fprintf fmt "%s[..]" name
+	      fprintf fmt "[..]"
 	  | Some a, None ->
-	      fprintf fmt "%s[%s..]" name (Num.string_of_num a)
+	      fprintf fmt "[%s..]" (Num.string_of_num a)
 	  | None, Some b ->
-	      fprintf fmt "%s[..%s]" name (Num.string_of_num b)
+	      fprintf fmt "[..%s]" (Num.string_of_num b)
 	  | Some a, Some b ->
 	      if Num.eq_num a b then
-		fprintf fmt "%s[%s]" name (Num.string_of_num a)
+		fprintf fmt "[%s]" (Num.string_of_num a)
 	      else
-		fprintf fmt "%s[%s..%s]" name
+		fprintf fmt "[%s..%s]"
 		  (Num.string_of_num a) (Num.string_of_num b)
 	end
     | JCTnull -> fprintf fmt "(nulltype)"  
     | JCTany -> fprintf fmt "(anytype)"  
+    | JCTtype_var v -> fprintf fmt "(var%d)" (Jc_type_var.uid v)
 
 let num_of_constant loc c =
     match c with
@@ -248,7 +268,7 @@ let exception_info ty id =
 
 let empty_effects = 
   { jc_effect_alloc_table = StringRegionSet.empty;
-    jc_effect_tag_table = VariantSet.empty;
+    jc_effect_tag_table = VariantMap.empty;
     jc_effect_memories = FieldOrVariantRegionMap.empty;
     jc_effect_globals = VarSet.empty;
     jc_effect_mutable = StringSet.empty;
@@ -286,6 +306,8 @@ let make_logic_fun name ty =
   }
 
 let real_of_integer = make_logic_fun "real_of_int" real_type
+let any_string = make_logic_fun "any_string" string_type
+
 let () = 
   let vi = var ~formal:true integer_type "n" in
   real_of_integer.jc_logic_info_parameters <- [vi]
@@ -323,21 +345,27 @@ let make_fun_info name ty =
   incr fun_tag_counter;
   let vi = var ty "\\result" in
   vi.jc_var_info_final_name <- "result";
-    { jc_fun_info_tag = !fun_tag_counter;
-      jc_fun_info_name = name;
-      jc_fun_info_final_name = Jc_envset.get_unique_name name;
-      jc_fun_info_parameters = [];
-      jc_fun_info_result = vi;
-      jc_fun_info_return_region = Region.make_var ty name;
-      jc_fun_info_param_regions = [];
-      jc_fun_info_calls = [];
-      jc_fun_info_is_recursive = false;
-      jc_fun_info_logic_apps = [];
-      jc_fun_info_effects = empty_fun_effect;
- }
+  { jc_fun_info_tag = !fun_tag_counter;
+    jc_fun_info_name = name;
+    jc_fun_info_final_name = Jc_envset.get_unique_name name;
+    jc_fun_info_parameters = [];
+    jc_fun_info_result = vi;
+    jc_fun_info_return_region = Region.make_var ty name;
+    jc_fun_info_param_regions = [];
+    jc_fun_info_calls = [];
+    jc_fun_info_is_recursive = false;
+    jc_fun_info_logic_apps = [];
+    jc_fun_info_effects = empty_fun_effect;
+  }
 
 
-let real_of_integer_ = make_fun_info "real_of_integer" real_type
+let real_of_integer_ = make_fun_info "real_of_int" real_type
+
+let () = 
+  let vi = var ~formal:true integer_type "n" in
+  real_of_integer_.jc_fun_info_final_name <- "real_of_int";
+  real_of_integer_.jc_fun_info_parameters <- [vi]
+
 
 let option_compare comp opt1 opt2 = match opt1,opt2 with
   | None,None -> 0
@@ -692,7 +720,7 @@ let embedded_struct_fields st =
 *)
 let field_sinfo fi = 
   match fi.jc_field_info_type with
-    | JCTpointer(JCtag st, _, _) -> st
+    | JCTpointer(JCtag(st, _), _, _) -> st
     | _ -> assert false
 
 let field_bounds fi = 
@@ -729,12 +757,12 @@ let struct_variant st =
          * in a type *)
 
 let tag_or_variant_variant = function
-  | JCtag st -> struct_variant st
+  | JCtag(st, _) -> struct_variant st
   | JCvariant vi -> vi
   | JCunion vi -> vi
   
 let tag_or_variant_name = function
-  | JCtag st -> "tag "^st.jc_struct_info_name
+  | JCtag(st, _) -> "tag "^st.jc_struct_info_name
   | JCvariant vi -> "variant "^vi.jc_variant_info_name
   | JCunion vi -> "union "^vi.jc_variant_info_name
 
@@ -768,7 +796,8 @@ let union_of_field fi =
 let integral_type = function
   | JCTnative Tinteger -> true
   | JCTenum _ -> true 
-  | JCTnative _ | JCTlogic _ | JCTpointer _ | JCTnull | JCTany -> false
+  | JCTnative _ | JCTlogic _ | JCTpointer _ | JCTnull | JCTany
+  | JCTtype_var _ -> false
 
 let integral_union vi =
   assert vi.jc_variant_info_is_union;
@@ -809,6 +838,7 @@ let string_of_op = function
   | `Uminus -> "unary -"
   | `Unot -> "not"
   | `Ubw_not -> "bw not"
+  | `Bconcat -> "strcat"
 
 let string_of_op_type = function
   | `Integer -> "integer"

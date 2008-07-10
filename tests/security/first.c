@@ -6,10 +6,10 @@
 #define FRAMA_C_MALLOC_INDIVIDUAL
 #include <share/malloc.c>
 
-/*@ requires security_status(y) == public(); */
+/*@ requires security_status(y) == public; */
 void send(const int y);
 
-/*@ ensures security_status( *z) == public(); */
+/*@ ensures security_status( *z) == public; */
 void crypt(int* z);
 
 int main() {

@@ -1,6 +1,7 @@
-(* $Id: occurrence_gui.mli,v 1.1 2008/01/15 14:06:26 uid568 Exp $ *)
+(* $Id: occurrence_gui.mli,v 1.2 2008/05/30 08:29:49 uid568 Exp $ *)
 
-(** Extension of the GUI for the occurrence plugin. *)
+(** Extension of the GUI for the occurrence plugin. 
+    @plugin developer guide *)
 
 (** No function is directly exported: this module simply extends the GUI. *)
 

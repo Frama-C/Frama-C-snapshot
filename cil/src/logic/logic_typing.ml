@@ -30,7 +30,9 @@ open Cil
 let dloc = Lexing.dummy_pos,Lexing.dummy_pos
 let error (b,e) fstring =
   let f fmt =
-    kfprintf (fun _ -> raise Errormsg.Error) fmt (fstring ^^ "@\n@]")
+    kfprintf (fun _ ->
+                currentLoc := (b,e);
+                raise Errormsg.Error) fmt (fstring ^^ "@\n@]")
   in
   kfprintf f err_formatter
     "@[File %s, line %d, characters %d-%d:@\n\
@@ -86,16 +88,33 @@ module Make
   (C :
     sig
       val annonCompFieldName : string
-      val integralPromotion : typ -> typ
-      val arithmeticConversion : typ -> typ -> typ
       val conditionalConversion : typ -> typ -> typ
       val find_var : string -> logic_var
       val find_enum_tag : string -> exp * typ
       val find_comp_type : kind:string -> string -> typ
       val find_type : string -> typ
       val find_label : string -> stmt ref
+      val remove_logic_function : string -> unit  
+      val add_logic_function: logic_info -> unit
+      val add_predicate: predicate_info -> unit
+      val add_logic_type: string -> logic_type_info -> unit
+      val add_logic_ctor: string -> logic_ctor_info -> unit
+
+      val find_logic_function: string -> logic_info
+      val find_predicate: string -> predicate_info
+      val find_logic_type: string -> logic_type_info
+      val find_logic_ctor: string -> logic_ctor_info
+
     end) =
 struct
+
+  let is_logic_ctor c =
+    try ignore (C.find_logic_ctor c);true with Not_found -> false
+  let is_logic_function c =
+    try ignore (C.find_logic_function c);true with Not_found -> false
+  let is_predicate c =
+    try ignore (C.find_predicate c);true with Not_found -> false
+
 
 let prefix p s =
   let lp = String.length p in
@@ -201,27 +220,18 @@ let check_non_void_ptr loc typ =
         else ()
     | _ -> error loc "not a pointer or array type"
 
-let rec equal_types t1 t2 =
-match t1,t2 with
-    Ctype t1, Ctype t2 -> Cilutil.equals (Cil.typeSig t1) (Cil.typeSig t2)
-  | Ltype (s1,l1), Ltype(s2,l2) when s1 = s2 ->
-      List.for_all2 equal_types l1 l2
-  | Linteger, Linteger | Lreal, Lreal -> true
-  | Lvar s1, Lvar s2 -> s1 = s2
-  | _,_ -> false
-
 let rec partial_unif loc env t1 t2 =
   match unroll_type t1, unroll_type t2 with
   | _, Lvar s2 ->
       (try
-         if equal_types t1 (Lenv.find_type_var s2 env) then env
-         else error loc "incompatible types@."
+         if Logic_const.is_same_type t1 (Lenv.find_type_var s2 env) then env
+         else error loc "cannot instantiate %a to %a" d_logic_type t1 d_logic_type t2
        with Not_found -> Lenv.add_type_var s2 t1 env)
-  | Ctype _, Ctype _ when equal_types t1 t2 -> env
+  | Ctype _, Ctype _ when Logic_const.is_same_type t1 t2 -> env
   | Linteger, Linteger | Lreal, Lreal -> env
   | Ltype(s1,l1), Ltype(s2,l2) when s1 = s2->
       List.fold_left2 (partial_unif loc) env l1 l2
-  | _,_ -> error loc "incompatible types@."
+  | _,_ -> error loc "incompatible types"
 
 let c_addr = Ltype ("base_addr",[])
 let c_int = Ctype (TInt (IInt, []))
@@ -246,7 +256,7 @@ let rec logic_type loc env = function
   | LTvoid -> Ctype (TVoid [])
   | LTint ikind -> Ctype (TInt (ikind, []))
   | LTfloat fkind -> Ctype (TFloat (fkind, []))
-  | LTarray ty -> Ctype (TArray (c_logic_type loc env ty, None, []))
+  | LTarray ty -> Ctype (TPtr (c_logic_type loc env ty, []))
   | LTpointer ty -> Ctype (TPtr (c_logic_type loc env ty, []))
   | LTenum e ->
       (try Ctype (C.find_comp_type "enum" e)
@@ -262,7 +272,7 @@ let rec logic_type loc env = function
        with Not_found ->
          try Ctype (C.find_type id) with Not_found ->
            try
-             let info = Logic_env.find_logic_type id in
+             let info = C.find_logic_type id in
              if info.nb_params <> 0 then
                error loc "wrong number of parameter for type %s" id
              else Ltype (id,[])
@@ -270,7 +280,7 @@ let rec logic_type loc env = function
              error loc "no such named type")
   | LTnamed(id,l) ->
       (try
-         let info = Logic_env.find_logic_type id in
+         let info = C.find_logic_type id in
          if info.nb_params <> List.length l then
            error loc "wrong number of parameter for type %s" id
          else Ltype (id,List.map (logic_type loc env) l)
@@ -317,6 +327,25 @@ let rec is_zero t = match t.term_node with
   | TCastE(_, t) -> is_zero t
   | _ -> false
 
+let is_arithmetic_type = function
+  | Ctype ty -> Cil.isArithmeticType ty
+  | Linteger | Lreal -> true
+  | Ltype _ | Lvar _ | Larrow _ -> false
+
+let is_pointer_type = function
+  | Ctype ty -> Cil.isPointerType ty
+  | Ltype _ | Linteger | Lreal | Lvar _ | Larrow _ -> false
+
+let is_integral_type = function
+  | Ctype ty -> Cil.isIntegralType ty
+  | Linteger -> true
+  | Ltype _ | Lreal | Lvar _ | Larrow _ -> false
+
+let is_boolean_type = function
+  | Ctype ty -> isIntegralType ty
+  | Linteger | Ltype ("boolean",[]) -> true
+  | Lreal | Ltype _ | Lvar _ | Larrow _ -> false
+
 (* Make an AddrOf. Given an lval of type T will give back an expression of
  * type ptr(T)  *)
 let mk_AddrOf lval =
@@ -346,7 +375,7 @@ let mkAddrOfAndMark ((b, off) as lval) : term_node =
 let c_mk_cast e oldt newt =
   (* let oldt = Cil.typeRemoveAttributes ["const"] oldt in
   let newt = Cil.typeRemoveAttributes ["const"] newt in *)
-  if Cil.typeSig oldt = Cil.typeSig newt then begin
+  if Cilutil.equals (Cil.typeSig oldt) (Cil.typeSig newt) then begin
     e
   end else begin
     (* Watch out for constants *)
@@ -354,32 +383,39 @@ let c_mk_cast e oldt newt =
       | TInt(newik, []), TConst (CInt64(i, _, _)) ->
 	  { e with term_node = TConst (CInt64 (i, newik, None)) }
       | _ ->
-	  { e with term_node = TCastE (newt, e); term_type = Ctype newt }
+          { e with term_node = TCastE (newt, e); term_type = Ctype newt }
   end
 
-let mk_cast e newt = match e.term_type, newt with
-  | Ctype oldt, Ctype newt ->
-      c_mk_cast e oldt newt
-  | Ltype (t1,l1), Ltype (t2,l2) when t1 = t2 && l1 = l2-> e
-  | Linteger, Linteger | Lreal, Lreal -> e
-  | Linteger, Ctype _ | Lreal, Ctype _ ->
-      error e.term_loc "invalid implicit cast from logic_arithmetic_type@."
-  | Ctype t, Linteger when Cil.isIntegralType t ->
-      { e with term_type = Linteger}
-  | Ctype (TFloat _), Lreal -> { e with term_type = Lreal }
-  | Ctype _, (Lreal | Linteger) ->
-      error e.term_loc "invalid implicit cast to logic arithmetic type@."
-  | Linteger, Lreal | Lreal, Linteger ->
-      error e.term_loc
-        "cast between real and integer is invalid. \
+let mk_cast e newt =
+  if Logic_const.is_same_type e.term_type newt then e
+  else begin
+    match e.term_type, newt with
+      | Ctype oldt, Ctype newt ->
+          c_mk_cast e oldt newt
+      | t1, Ltype ("boolean",[]) when is_integral_type t1 -> e
+      | Linteger, Linteger | Lreal, Lreal -> e
+      | Linteger, Ctype _ | Lreal, Ctype _ ->
+          error e.term_loc "invalid implicit cast from %a to C type %a"
+            d_logic_type e.term_type d_logic_type newt
+      | Ctype t, Linteger when Cil.isIntegralType t ->
+          { e with term_type = Linteger}
+      | Ctype t, Lreal when isFloatingType t -> { e with term_type = Lreal }
+      | Ctype _, (Lreal | Linteger) ->
+          error e.term_loc "invalid implicit cast from %a to logic type %a"
+            d_logic_type e.term_type d_logic_type newt
+      | Linteger, Lreal | Lreal, Linteger ->
+          error e.term_loc
+            "invalid cast between real and integer. \
          Use conversion functions instead"
-  | Ltype _, _ | _, Ltype _ ->
-      error e.term_loc "invalid cast@."
-  | Lvar _,_ | _,Lvar _ -> error e.term_loc "invalid cast@."
-  | Larrow _,_ | _,Larrow _ -> error e.term_loc "invalid cast@."
+      | Ltype _, _ | _, Ltype _
+      | Lvar _,_ | _,Lvar _
+      | Larrow _,_ | _,Larrow _ ->
+          error e.term_loc "invalid cast from %a to %a"
+            d_logic_type e.term_type d_logic_type newt
+  end
 
 let rec c_cast_to ot nt e =
-  if Cil.typeSig ot = Cil.typeSig nt then
+  if Cilutil.equals (Cil.typeSig ot) (Cil.typeSig nt) then
     (ot, e)
   else begin
     let result = (nt, mk_cast e (Ctype nt)) in
@@ -416,80 +452,93 @@ let rec c_cast_to ot nt e =
       | TComp (comp1, _a1), TComp (comp2, _a2) when comp1.ckey = comp2.ckey ->
           (nt, e)
       | _ ->
-	  Cil.bug "cabs2cil: castTo %a -> %a@."
+	  bug "Logic_typing.c_cast_to: %a -> %a@."
 	    Cil.d_type ot Cil.d_type nt
   end
 
-let instantiate_app loc ot nt env e =
+let instantiate_app loc oterm nt env =
+  let ot = oterm.term_type in
   let rec implicit_conversion ot nt = match ot, nt with
-    | Ctype ty1, Ctype ty2 -> let t,e = c_cast_to ty1 ty2 e in Ctype t, e
-    | Ctype ty, Linteger when Cil.isIntegralType ty -> Linteger, e
-    | Ctype (TFloat _), Lreal -> Lreal, e
-    | Ltype (t1,l1), Ltype (t2,l2) when t1 = t2 ->
-        let l = List.map2 (fun x y -> fst (implicit_conversion x y)) l1 l2 in
-        Ltype(t1,l),e
-    | Linteger, Linteger | Lreal, Lreal -> ot, e
-    | Lvar s1, Lvar s2 when s1 = s2 -> ot, e
-    | Larrow(args1,rt1), Larrow(args2,rt2)
-        when List.length args1 = List.length args2 ->
-        (* contravariance. *)
-        let args =
-          List.map2 (fun x y -> fst (implicit_conversion x y)) args2 args1 in
-        let rt,_ = implicit_conversion rt1 rt2 in
-        Larrow(args,rt), e
-    | ((Ctype _| Linteger | Lreal | Ltype _ | Lvar _ | Larrow _),
-       (Ctype _| Linteger | Lreal | Ltype _ | Lvar _ | Larrow _)) ->
-        error loc "incompatible types@."
+  | Ctype ty1, Ctype ty2 ->
+      if Cilutil.equals (typeSig ty1) (typeSig ty2) then
+        ot, oterm
+      else
+        let sz1 = bitsSizeOf ty1 in
+        let sz2 = bitsSizeOf ty2 in
+        if (isIntegralType ty1 && isIntegralType ty2 &&
+              (sz1 < sz2
+               || (sz1 = sz2 && (isSignedInteger ty1 = isSignedInteger ty2))
+              ))
+          || ((isArrayType ty1 || isPointerType ty1) && isVoidPtrType ty2)
+          || ((isArrayType ty1 || isPointerType ty1) &&
+              (isArrayType ty2 || isPointerType ty2) &&
+              (Cilutil.equals (typeSig (typeOf_pointed ty1)) (typeSig (typeOf_pointed ty2))
+               || isLogicNull oterm))
+          || (match unrollType ty1, unrollType ty2 with
+              | (TFloat (f1,_), TFloat (f2,_)) ->
+                  f1 <= f2 (*[BM] relies on internal representation of OCaml constant
+                             constructors.*)
+              | _ -> false)
+        then
+          let t,e = c_cast_to ty1 ty2 oterm in Ctype t, e
+        else
+          error loc "invalid implicit conversion from %a to %a"
+            d_type ty1 d_type ty2
+  | Ctype ty, Linteger when Cil.isIntegralType ty -> Linteger, oterm
+  | Ctype (TFloat _), Lreal -> Lreal, oterm
+  | Ltype (t1,l1), Ltype (t2,l2) when t1 = t2 ->
+      let l = List.map2 (fun x y -> fst (implicit_conversion x y)) l1 l2 in
+      Ltype(t1,l),oterm
+  | Linteger, Linteger | Lreal, Lreal -> ot, oterm
+  | Lvar s1, Lvar s2 when s1 = s2 -> ot, oterm
+  | Larrow(args1,rt1), Larrow(args2,rt2)
+      when List.length args1 = List.length args2 ->
+      (* contravariance. *)
+      let args =
+        List.map2 (fun x y -> fst (implicit_conversion x y)) args2 args1 in
+      let rt,_ = implicit_conversion rt1 rt2 in
+      Larrow(args,rt), oterm
+  | ((Ctype _| Linteger | Lreal | Ltype _ | Lvar _ | Larrow _),
+     (Ctype _| Linteger | Lreal | Ltype _ | Lvar _ | Larrow _)) ->
+      error loc "invalid implicit conversion from %a to %a"
+        d_logic_type ot d_logic_type nt
   in
+
   let rec instantiate ot nt env =
     match ot,nt with
-      | _, Lvar s2 -> (* we only perform instantiation, as all
-                         types are supposed to be declared. *)
-          (try
-             let nt = Lenv.find_type_var s2 env in (env, ot, nt)
-           with Not_found ->
-             Lenv.add_type_var s2 ot env, ot, ot)
-      | Ltype(t1,l1), Ltype(t2,l2) when t1 = t2 ->
-          let env,l1,l2 =
-            List.fold_right2
-              (fun ot nt (env,l1,l2) ->
-                 let (env,ot,nt) = instantiate ot nt env in
-                 (env,ot::l1,nt::l2))
-              l1 l2 (env,[],[])
-          in env,Ltype(t1,l1),Ltype(t2,l2)
-      | Larrow(args1,rt1), Larrow(args2,rt2)
-          when List.length args1 = List.length args2 ->
-          let env, args1, args2 =
-            List.fold_right2
-              (fun ot nt (env, args1, args2) ->
-                 let (env,ot,nt) = instantiate ot nt env in
-                 (env,ot::args1,nt::args2))
-              args1 args2 (env,[],[])
-          in env, Larrow(args1,rt1), Larrow(args2,rt2)
-      | (Ltype _|Larrow _|Lvar _), _ | _, (Larrow _| Ltype _) ->
-          error loc "incompatible types@."
-      | ((Ctype _ | Linteger | Lreal), (Ctype _ | Linteger | Lreal)) ->
-          env,ot,nt
+    | _, Lvar s2 -> (* we only perform instantiation, as all
+                       types are supposed to be declared. *)
+        (try
+           let nt = Lenv.find_type_var s2 env in (env, ot, nt)
+         with Not_found ->
+           Lenv.add_type_var s2 ot env, ot, ot)
+    | Ltype(t1,l1), Ltype(t2,l2) when t1 = t2 ->
+        let env,l1,l2 =
+          List.fold_right2
+            (fun ot nt (env,l1,l2) ->
+               let (env,ot,nt) = instantiate ot nt env in
+               (env,ot::l1,nt::l2))
+            l1 l2 (env,[],[])
+        in env,Ltype(t1,l1),Ltype(t2,l2)
+    | Larrow(args1,rt1), Larrow(args2,rt2)
+        when List.length args1 = List.length args2 ->
+        let env, args1, args2 =
+          List.fold_right2
+            (fun ot nt (env, args1, args2) ->
+               let (env,ot,nt) = instantiate ot nt env in
+               (env,ot::args1,nt::args2))
+            args1 args2 (env,[],[])
+        in env, Larrow(args1,rt1), Larrow(args2,rt2)
+    | (Ltype _|Larrow _|Lvar _), _ | _, (Larrow _| Ltype _) ->
+        error loc "cannot instantiate %a to %a"
+          d_logic_type ot
+          d_logic_type nt
+    | ((Ctype _ | Linteger | Lreal), (Ctype _ | Linteger | Lreal)) ->
+        env,ot,nt
   in
   let env, ot, nt = instantiate ot nt env in
   let t,e = implicit_conversion ot nt in
   env, t, e
-
-
-
-let is_arithmetic_type = function
-  | Ctype ty -> Cil.isArithmeticType ty
-  | Linteger | Lreal -> true
-  | Ltype _ | Lvar _ | Larrow _ -> false
-
-let is_pointer_type = function
-  | Ctype ty -> Cil.isPointerType ty
-  | Ltype _ | Linteger | Lreal | Lvar _ | Larrow _ -> false
-
-let is_integral_type = function
-  | Ctype ty -> Cil.isIntegralType ty
-  | Linteger -> true
-  | Ltype _ | Lreal | Lvar _ | Larrow _ -> false
 
 let logic_arithmetic_promotion = function
   | Ctype ty when Cil.isIntegralType ty -> Linteger
@@ -500,37 +549,49 @@ let logic_arithmetic_promotion = function
   | Ltype _ | Lvar _ | Larrow _ -> assert false
 
 let integral_promotion = function
-  | Ctype ty ->
-      Ctype (C.integralPromotion ty)
+  | Ctype ty when isIntegralType ty ->
+      Linteger
   | Linteger -> Linteger
-  | Ltype _ | Lreal | Lvar _ | Larrow _ -> assert false
+  | Ltype _ | Lreal | Lvar _ | Larrow _ | Ctype _ -> assert false
 
 let arithmetic_conversion ty1 ty2 = match ty1, ty2 with
-  | Ctype ty1, Ctype ty2 ->
-      Ctype (C.arithmeticConversion ty1 ty2)
-  | (Linteger, Ctype t | Ctype t, Linteger) when Cil.isIntegralType t ->
-      Linteger
-  | Lreal, Ctype ty | Ctype ty, Lreal ->
-      (match Cil.unrollType ty with TFloat _ -> Lreal | _ -> assert false)
-  | Linteger, Linteger -> Linteger
-  | (Lreal | Linteger) , (Lreal | Linteger) -> Lreal
-  | _ -> assert false
+| Ctype ty1, Ctype ty2 ->
+    if isIntegralType ty1 && isIntegralType ty2
+    then Linteger
+    else Lreal
+| (Linteger, Ctype t | Ctype t, Linteger) when isIntegralType t ->
+    Linteger
+| Lreal, Ctype ty | Ctype ty, Lreal ->
+    (match Cil.unrollType ty with TFloat _ -> Lreal | _ -> assert false)
+| Linteger, Linteger -> Linteger
+| (Lreal | Linteger) , (Lreal | Linteger) -> Lreal
+| _ -> assert false
 
 let conditional_conversion loc t1 t2 = match t1, t2 with
-  | Ctype ty1, Ctype ty2 ->
-        Ctype (C.conditionalConversion ty1 ty2)
-  | (Linteger, Ctype t | Ctype t, Linteger) when Cil.isIntegralType t
-      ->
+| Ctype ty1, Ctype ty2 ->
+    if isIntegralType ty1 && isIntegralType ty2 then
       Linteger
-  | Lreal, Ctype ty | Ctype ty, Lreal ->
-      (match Cil.unrollType ty with
-           TFloat _ -> Lreal
-         | _ -> error loc "incompatible types")
-  | Ltype (s1,l1), Ltype (s2,l2)  when s1 = s2 && l1 = l2 -> t1
-  | Lvar s1, Lvar s2 when s1 = s2 -> t1
-  | Linteger, Linteger -> Linteger
-  | (Lreal | Linteger) , (Lreal | Linteger) -> Lreal
-  | _ -> error loc "incompatible types"
+    else if isArithmeticType ty1 && isArithmeticType ty2 then
+      Lreal
+    else
+      Ctype (C.conditionalConversion ty1 ty2)
+| (Linteger, Ctype t | Ctype t, Linteger) when Cil.isIntegralType t
+    ->
+    Linteger
+| (Ltype("boolean",[]), t | t, Ltype("boolean",[])) when is_integral_type t ->
+    Ltype("boolean",[])
+| Lreal, Ctype ty | Ctype ty, Lreal ->
+    (match Cil.unrollType ty with
+       TFloat _ -> Lreal
+     | _ -> error loc "types %a and %a are not convertible"
+         d_logic_type t1 d_logic_type t2)
+| Ltype (s1,l1), Ltype (s2,l2)  when s1 = s2 && l1 = l2 -> t1
+| Lvar s1, Lvar s2 when s1 = s2 -> t1
+| Linteger, Linteger -> Linteger
+| (Lreal | Linteger) , (Lreal | Linteger) -> Lreal
+| _ ->
+    error loc "types %a and %a are not convertible"
+      d_logic_type t1 d_logic_type t2
 
 let binop_of_rel = function
     Eq -> Cil_types.Eq
@@ -670,7 +731,7 @@ and term_node env loc pl =
 	try
 	  let lv = Lenv.find_var x env in TLval (TVar lv, TNoOffset), lv.lv_type
 	with Not_found ->
-	  try
+          try
 	    let info = C.find_var x in
             (match info.lv_origin with
              | Some lv when lv.vglob -> ignore (find_current_label loc env)
@@ -683,11 +744,16 @@ and term_node env loc pl =
 	      | Const c -> TConst c, Ctype t
 	      | _ -> assert false
 	      end
-	    with Not_found -> error loc "unbound logic variable %s" x
+	    with Not_found ->
+	      try
+                let info = C.find_logic_function x in
+                Tapp(info,[],[]), info.l_type
+              with Not_found ->
+                error loc "unbound logic variable %s" x
       end
   | PLapp (f, labels, tl) ->
       (try
-	 let info = Logic_env.find_logic_function f in
+	 let info = C.find_logic_function f in
 	 let labels = List.map (find_logic_label loc env) labels in
 	 let tl = type_terms env loc info.l_profile tl in
 	 let label_assoc =
@@ -710,7 +776,7 @@ and term_node env loc pl =
       | Ctype (TPtr (ty,_))  ->
           check_non_void_ptr t.term_loc t.term_type;
 	  TLval (mk_mem t TNoOffset), Ctype ty
-      | _ -> error loc "invalid type argument of `unary *'"
+      | _ -> error loc "invalid type %a for `unary *'" d_logic_type t.term_type
       end
   | PLunop (Uamp, t) ->
       let t, (ty:Cil_types.typ) = term_lval env t in
@@ -764,7 +830,7 @@ and term_node env loc pl =
       | Bsub when is_pointer_type ty1 && is_pointer_type ty2 ->
 	  TBinOp (MinusPP, t1, mk_cast t2 ty1), c_int
       | _ ->
-	  error loc "invalid operands to binary op."
+	  error loc "invalid operands to binary %a"d_binop (type_binop op)
       end
   | PLdot (t, f) ->
       let t = term env t in
@@ -772,7 +838,7 @@ and term_node env loc pl =
       let t_dot_x = match t.term_node with
       | TLval lv
       | TCastE (_, {term_node=TLval lv}) -> TLval (add_offset_lval f_ofs lv)
-      | _ -> error loc "PLdot: expected a left value"
+      | _ -> error loc "field access expects a left value"
       in
       t_dot_x, f_type
 
@@ -798,11 +864,11 @@ and term_node env loc pl =
           | (TPtr (ty, _) | TArray (ty, _, _)) ->
               let f_ofs, f_type = type_of_field loc f (Ctype ty) in
 	      TLval (mk_mem ~loc t f_ofs), f_type
-          | t -> error loc "invalid C type argument of `->': %a" Cil.d_type t
+          | t -> error loc "invalid C type argument of `->': %a" d_type t
 
           end
       | t ->
-	  error loc "invalid type argument of `->': %a" Cil.d_logic_type t
+	  error loc "invalid type argument of `->': %a" d_logic_type t
       end
   | PLarrget (t1, t2) ->
       let _lab = find_current_label loc env in
@@ -831,7 +897,7 @@ and term_node env loc pl =
       end,
       Ctype tres
   | PLif (t1, t2, t3) ->
-      let t1 = type_int_term env t1 in
+      let t1 = type_bool_term env t1 in
       let t2 = term env t2 in
       let t3 = term env t3 in
       Tif (t1, t2, t3),
@@ -902,20 +968,40 @@ and term_node env loc pl =
 	  let ty = conditional_conversion loc ty1 ty2 in
 	  TBinOp (binop_of_rel op, mk_cast t1 ty, mk_cast t2 ty)
       | _ ->
-	  error loc "comparison of incompatible types"
+	  error loc "comparison of incompatible types %a and %a"
+            d_logic_type ty1 d_logic_type ty2
       in expr, Ltype("boolean",[])
   | PLtrue ->
-      TDataCons(Logic_env.find_logic_ctor "\\true",[]), Ltype ("boolean",[])
+      TDataCons(C.find_logic_ctor "\\true",[]), Ltype ("boolean",[])
   | PLfalse ->
-      TDataCons(Logic_env.find_logic_ctor "\\false",[]), Ltype ("boolean",[])
+      TDataCons(C.find_logic_ctor "\\false",[]), Ltype ("boolean",[])
   | PLlambda(prms,e) ->
       let (prms, env) = add_quantifiers loc prms env in
       let e = term env e in
       Tlambda(prms,e),Larrow(List.map (fun x -> x.lv_type) prms,e.term_type)
+  | PLnot t ->
+      let t = type_bool_term env t in TUnOp(LNot,t), Ltype ("boolean",[])
+  | PLand (t1,t2) ->
+      let t1 = type_bool_term env t1 in
+      let t2 = type_bool_term env t2 in
+      TBinOp(LAnd,t1,t2), Ltype ("boolean",[])
+  | PLor (t1,t2) ->
+      let t1 = type_bool_term env t1 in
+      let t2 = type_bool_term env t2 in
+      TBinOp(LOr,t1,t2), Ltype ("boolean",[])
+  | PLtypeof t1 ->
+      let t1 = term env t1 in
+      Ttypeof t1, Ltype ("typetag",[])
+  | PLtype ty ->
+      begin match logic_type loc env ty with
+      | Ctype ty -> Ttype ty, Ltype ("typetag",[])
+      | Linteger | Lreal | Ltype _ | Lvar _ | Larrow _ ->
+          error loc "cannot take type tag of logic type"
+      end
   | PLvalid _ | PLvalid_index _ | PLvalid_range _ | PLfresh _
-  | PLexists _ | PLforall _ | PLnot _ | PLimplies _ | PLiff _
-  | PLor _ | PLxor _ | PLand _
-  | PLinstance_of _ | PLinstance_ofE _ ->
+  | PLexists _ | PLforall _  | PLimplies _ | PLiff _
+  | PLxor _
+  | PLsubtype _ ->
       error loc "syntax error (expression expected but predicate found)"
   | PLcomprehension _ | PLunion _ | PLinter _ | PLempty | PLrange _ ->
       error loc "syntax error (expression expected but tsets found)"
@@ -929,7 +1015,13 @@ and term_node env loc pl =
 and type_int_term env t =
   let tt = term env t in
   if not (is_integral_type tt.term_type) then
-    error t.lexpr_loc "integer expected";
+    error t.lexpr_loc "integer expected but %a found" d_logic_type tt.term_type;
+  tt
+
+and type_bool_term env t =
+  let tt = term env t in
+  if not (is_boolean_type tt.term_type) then
+    error t.lexpr_loc "boolean expected but %a found" d_logic_type tt.term_type;
   tt
 
 and type_int_term_option env = Cilutil.opt_map (type_int_term env)
@@ -979,7 +1071,7 @@ and type_terms env loc at tl =
     | { lv_type = et } :: etl, ({lexpr_loc=tloc} as t) :: tl ->
 	let arg = term env t in
         let nt = Cil.visitCilLogicType obj et in
-	let env, _,t' = instantiate_app tloc arg.term_type nt env arg in
+	let env, _,t' = instantiate_app tloc arg nt env in
 	let env, l = type_list env (etl, tl) in env, t' :: l
     | [], _ ->
 	error loc "too many arguments"
@@ -1016,7 +1108,13 @@ let rec tsets_lval env pl =
 	            | Const c -> TSConst c, Ctype t
 	            | _ -> assert false
 	          end
-	        with Not_found -> error loc "unbound logic variable %s" x
+	        with Not_found ->
+                                (* TODO: global logic constants in tsets... *)
+                  try
+                    let _info = C.find_logic_function x in
+                    error loc "Global logic constants are unsupported in locations"
+                  with Not_found ->
+                  error loc "unbound logic variable %s" x
           end
       | PLunop(Ustar,e) ->
 	  let _lab = find_current_label loc env in
@@ -1155,13 +1253,14 @@ let rec tsets_lval env pl =
   | PLvalid _ | PLvalid_index _ | PLvalid_range _ | PLfresh _
   | PLexists _ | PLforall _ | PLnot _ | PLimplies _ | PLiff _
   | PLor _ | PLxor _ | PLand _
-  | PLinstance_of _ | PLinstance_ofE _ | PLtrue | PLfalse ->
+  | PLsubtype _ | PLtrue | PLfalse ->
       error loc "syntax error (location expected but predicate found)"
   | PLcomprehension _ | PLunion _ | PLinter _ | PLempty | PLrange _ ->
       error loc "syntax error (single location expected but tsets found)"
   | PLapp _ | PLunop _ | PLbinop _ | PLold _ | PLbase_addr _ | PLblock_length _
   | PLnull | PLcoercion _ | PLcoercionE _ | PLrel _ | PLif _ | PLnamed _
-  | PLconstant _ | PLsizeof _ | PLsizeofE _ | PLupdate _ | PLlambda _ ->
+  | PLconstant _ | PLsizeof _ | PLsizeofE _ | PLupdate _ | PLlambda _ 
+  | PLtypeof _ | PLtype _ ->
       error loc "syntax error (location expected but term found)"
  in
   match elem, unroll_type typ with
@@ -1206,17 +1305,36 @@ let normalize_location loc =
       | PLbase_addr _ | PLnull | PLcast _ | PLcoercion _ | PLcoercionE _
       | PLfalse | PLtrue | PLrel _ | PLand _ | PLor _ | PLxor _
       | PLnot _ | PLif _ | PLblock_length _   | PLrange _ | PLupdate _
-      | PLlambda _ ->
+      | PLlambda _ | PLtypeof _ | PLtype _ ->
           transf pl
             (* tsets are terms, not predicates *)
       | PLimplies _ | PLiff _ | PLforall _ | PLexists _ | PLvalid _
       | PLvalid_index _ | PLvalid_range _ | PLfresh _ | PLnamed _
-      | PLinstance_of _ | PLinstance_ofE _ | PLsizeof _ | PLsizeofE _ ->
+      | PLsubtype _ | PLsizeof _ | PLsizeofE _ ->
           error pl.lexpr_loc "expecting tsets and not a predicate"
   in
   aux (fun x -> x) loc
 
-let rec type_tset env loc0 =
+let boolean_to_predicate env p0 =
+  let loc = p0.lexpr_loc in
+  let t = term env p0 in
+  (match t.term_type with
+     Ctype _ | Linteger | Lreal ->
+       prel ~loc:p0.lexpr_loc (Cil_types.Rneq, t, Cil.lzero ~loc ())
+   | Ltype ("boolean",[]) ->
+       prel ~loc: p0.lexpr_loc
+	 (Cil_types.Req,t,
+          { term_node =
+              TDataCons(C.find_logic_ctor "\\true",[]);
+            term_loc = t.term_loc;
+            term_type = Ltype("boolean",[]);
+            term_name = [];
+          })
+   | Ltype _ | Lvar _ | Larrow _ ->
+       error p0.lexpr_loc "expecting a predicate and not a term")
+
+
+let rec type_tset ?(check_type=fun _ ->()) env loc0 =
   let loc = normalize_location loc0 in
   let rec aux env loc =
     match loc.lexpr_node with
@@ -1234,7 +1352,9 @@ let rec type_tset env loc0 =
           let ls = List.map (aux env) locs in
           TSInter(ls)
       | PLempty -> TSEmpty
-      | _ -> let (v,_typ) = tsets_lval env loc in TSSingleton v
+      | _ -> let (v,typ) = tsets_lval env loc in
+        check_type typ;
+        TSSingleton v
   in aux env loc
 
 and predicate env p0 =
@@ -1292,21 +1412,32 @@ and predicate env p0 =
 	 | {content = Prel (Cil_types.Rneq, t, z)} when is_zero z ->
 	     prel ~loc:p0.lexpr_loc (Cil_types.Req, t, Cil.lzero ~loc ())
 	 | p -> pnot ~loc:p0.lexpr_loc p)
-  | PLapp (p, labels, tl) when Logic_env.is_predicate p ->
-      let info = Logic_env.find_predicate p in
+  | PLapp (p, labels, tl) when is_predicate p ->
+      let info = C.find_predicate p in
       let labels = List.map (find_logic_label p0.lexpr_loc env) labels in
       let tl = type_terms env p0.lexpr_loc info.p_profile tl in
       let label_assoc =
 	labels_assoc loc p env.Lenv.current_logic_label info.p_labels labels
       in
       papp ~loc:p0.lexpr_loc (info, label_assoc, tl)
-  | PLapp (p,_, _) when not (Logic_env.is_logic_function p ||
-                               Logic_env.is_logic_ctor p) ->
+  | PLapp (p,_, _) when not (is_logic_function p ||
+                               is_logic_ctor p) ->
       error p0.lexpr_loc "unknown predicate %s" p
   (* see below for implicit conversion of terms into predicate *)
   | PLif (t, p1, p2) ->
-      let t = type_int_term env t in
-      pif ~loc:p0.lexpr_loc (t, predicate env p1, predicate env p2)
+      begin try
+        let t = type_bool_term env t in
+        pif ~loc:p0.lexpr_loc (t, predicate env p1, predicate env p2)
+      with Errormsg.Error ->
+	(* p1 ? p2 : p3 is syntactic sugar for (p1 ==> p2) && (!p1 ==> p3) *)
+	predicate env {lexpr_node =
+            (PLand ({lexpr_node = (PLimplies (t, p1)); lexpr_loc = loc},
+                    {lexpr_node =
+                        (PLimplies ({lexpr_node = PLnot t; lexpr_loc = loc},
+				    p2));
+		     lexpr_loc = loc}));
+		       lexpr_loc = loc}
+      end
   | PLforall (q, p) ->
       let q, env' = add_quantifiers p0.lexpr_loc q env in
       pforall ~loc:p0.lexpr_loc (q, predicate env' p)
@@ -1319,21 +1450,19 @@ and predicate env p0 =
       if is_pointer_type t.term_type then pfresh ~loc:p0.lexpr_loc (t)
       else error tloc "subscripted value is neither array nor pointer"
   | PLvalid (t) ->
-      let t = type_tset env t in
+      let t = type_tset ~check_type:(check_non_void_ptr t.lexpr_loc) env t in
       pvalid ~loc:p0.lexpr_loc t
   | PLvalid_index (t,a) ->
-      let tloc = t.lexpr_loc in
       let t = term env t in
       let a = type_int_term env a in
-      if is_pointer_type t.term_type then pvalid_index ~loc:p0.lexpr_loc (t,a)
-      else  error tloc "subscripted value is neither array nor pointer"
+      check_non_void_ptr t.term_loc t.term_type;
+      pvalid_index ~loc:p0.lexpr_loc (t,a)
   | PLvalid_range (t,a,b) ->
-      let tloc = t.lexpr_loc in
       let t = term env t in
       let a = type_int_term env a in
       let b = type_int_term env b in
-      if is_pointer_type t.term_type then  pvalid_range ~loc:p0.lexpr_loc (t,a,b)
-      else error tloc "subscripted value is neither array nor pointer"
+      check_non_void_ptr t.term_loc t.term_type;
+      pvalid_range ~loc:p0.lexpr_loc (t,a,b)
   | PLold p ->
       let _lab = find_old_label p0.lexpr_loc env in
       (* could be Tat(t,lab) *)
@@ -1342,41 +1471,25 @@ and predicate env p0 =
       let lab = find_logic_label p0.lexpr_loc env l in
       let env = Lenv.set_current_logic_label lab env in
       pat ~loc:p0.lexpr_loc (predicate env p, lab)
+  | PLvar x ->
+      (try
+         let info = C.find_predicate x in
+         papp ~loc:p0.lexpr_loc (info,[],[])
+       with Not_found -> boolean_to_predicate env p0)
   | PLapp _
   | PLcast _ | PLblock_length _ | PLbase_addr _ | PLarrget _ | PLarrow _
-  | PLdot _ | PLbinop _ | PLunop _ | PLconstant _ | PLvar _
+  | PLdot _ | PLbinop _ | PLunop _ | PLconstant _
   | PLnull | PLresult | PLcoercion _ | PLcoercionE _ | PLsizeof _
-  | PLsizeofE _ | PLupdate _ | PLlambda _ ->
-      let t = term env p0 in
-      (match t.term_type with
-           Ctype _ | Linteger | Lreal ->
-             prel ~loc:p0.lexpr_loc (Cil_types.Rneq, t, Cil.lzero ~loc ())
-         | Ltype ("boolean",[]) ->
-             prel ~loc: p0.lexpr_loc
-	       (Cil_types.Req,t,
-                  { term_node =
-                      TDataCons(Logic_env.find_logic_ctor "\\true",[]);
-                    term_loc = t.term_loc;
-                    term_type = Ltype("boolean",[]);
-                    term_name = [];
-                  })
-         | Ltype _ | Lvar _ | Larrow _ ->
-             error p0.lexpr_loc "expecting a predicate and not a term")
+  | PLsizeofE _ | PLupdate _ | PLlambda _ 
+  | PLtypeof _ | PLtype _ -> boolean_to_predicate env p0
   | PLrange _ ->
       error p0.lexpr_loc "cannot use operator .. within a predicate"
   | PLnamed (n, p) ->
       let p = predicate env p in { p with name = n::p.name }
-  | PLinstance_of (t,ty) ->
-      let t = term env t in
-      begin match logic_type p0.lexpr_loc env ty with
-      | Ctype ty -> pInstanceOf ~loc:p0.lexpr_loc (t,ty)
-      | Linteger | Lreal | Ltype _ | Lvar _ | Larrow _ ->
-          error p0.lexpr_loc "cannot use instance-of with logic type"
-      end
-  | PLinstance_ofE (t,tc) ->
+  | PLsubtype (t,tc) ->
       let t = term env t in
       let tc = term env tc in
-      pInstanceOfE ~loc:p0.lexpr_loc (t,tc)
+      psubtype ~loc:p0.lexpr_loc (t,tc)
   | PLcomprehension _ | PLunion _ | PLinter _ | PLempty ->
       error p0.lexpr_loc "expecting a predicate and not tsets"
 
@@ -1442,17 +1555,12 @@ let type_annot loc ti =
   let this_type = logic_type loc env ti.this_type in
   let v = Cil.make_logic_var ti.this_name this_type in
   let env = Lenv.add_var ti.this_name v env in
-  let r = { inv_name = ti.inv_name;
-            this_name = ti.this_name;
-            this_type = this_type;
-            inv = predicate env ti.inv;
-          }
-  in
-  Logic_env.add_predicate {p_name = r.inv_name;
-                      p_profile = [v];
-		      p_labels = [LogicLabel "Here"];
-                      p_body = PDefinition r.inv};
-  r
+  let body = predicate env ti.inv in
+  let infos = {p_name = ti.inv_name;
+               p_profile = [v];
+	       p_labels = [LogicLabel "Here"];
+               p_body = PDefinition body}
+  in C.add_predicate infos; infos
 
 let type_spec result env s =
   let env = append_here_label env in
@@ -1513,7 +1621,7 @@ let funspec ~id ~formals typ s =
             in
             (try
                List.fold_left add_formal Lenv.empty (Cil.getFormalsDecl id)
-             with Not_found -> assert false)
+             with Not_found -> Lenv.empty)
       | Some formals ->
           let add_formal env v =
             Lenv.add_var v.vname (Cil.cvar_to_lvar v) env in
@@ -1535,7 +1643,7 @@ let code_annot_env =
 
 let code_annot ca =
   let annot = match ca with
-    | AAssert p -> AAssert (predicate code_annot_env p)
+    | AAssert (behav,p) -> AAssert (behav,predicate code_annot_env p)
     | AAssume p -> AAssume (predicate code_annot_env p)
     | APragma (Impact_pragma sp) ->
 	APragma (Impact_pragma (impact_pragma code_annot_env sp))
@@ -1547,7 +1655,7 @@ let code_annot ca =
 	(* TODO: right env for labels *)
 	AStmtSpec (type_spec None Lenv.empty s)
     | AVariant v -> AVariant (type_variant code_annot_env v)
-    | AInvariant (f,i) -> AInvariant (f,predicate code_annot_env i)
+    | AInvariant (behav,f,i) -> AInvariant (behav,f,predicate code_annot_env i)
     | AAssigns a -> AAssigns (type_assign code_annot_env a)
   in Logic_const.new_code_annotation annot
 
@@ -1614,72 +1722,111 @@ let annot_env loc labels poly =
   in
   labels,env
 
-let annot = function
-  | Adecl (loc, LDlogic_reads (f, labels, poly, t, p, l)) ->
-      let labels,env = annot_env loc labels poly in
-      let t = logic_type loc env t in
-      let p, env = formals loc env p in
-      check_polymorphism loc t p;
-      let l = List.map (type_tset env) l in
-      let info =
-        {l_name = f;
-         l_profile = p;
-         l_type = t;
-         l_reads= l;
-	 l_labels = labels;
-         l_definition = None}
-      in
-      Logic_env.add_logic_function info;
-      Dlogic_reads (info, poly, p, t, l)
-  | Adecl (loc, LDlogic_def(f, labels, poly,t,p,e)) ->
-      let labels,env = annot_env loc labels poly in
-      let t = logic_type loc env t in
-      let p, env = formals loc env p in
-      check_polymorphism loc t p;
-      let e = term env e in
-      let info =
-        { l_name = f; l_profile = p; l_type = t; l_labels = labels;
-          l_reads = []; l_definition = Some e}
-      in Logic_env.add_logic_function info;
-      Dlogic_def (info,poly,p,t,e)
-  | Adecl (loc, LDpredicate_reads (f, labels, poly, p, l)) ->
-      let labels,env = annot_env loc labels poly in
-      let p, env = formals loc env p in
-      let l = List.map (type_tset env) l in
-      let info = {p_name = f; p_profile = p; p_body = PReads l;
-		  p_labels = labels}
-      in Logic_env.add_predicate info;
-      Dpredicate_reads (info, poly, p, l)
-  | Adecl (loc, LDpredicate_def (f, labels, poly, p, e)) ->
-      let labels,env = annot_env loc labels poly in
-      let p, env = formals loc env p in
-      (* allow recursive definitions *)
-      let pinfo =
-        {p_name = f;
-         p_profile = p;
-	 p_labels = labels;
-         p_body = PReads [] (* updated in 3 lines *)};
-      in
-      Logic_env.add_predicate pinfo;
-      let e = predicate env e in
-      pinfo.p_body <- PDefinition e;
-      Dpredicate_def (pinfo, poly, p, e)
-  | Adecl(loc,LDtype(s,l)) ->
-      ignore (init_type_variables loc l);
-      Logic_env.add_logic_type s {nb_params = (List.length l)}; Dtype (s,l)
-  | Adecl (loc, LDlemma (is_axiom, x, labels, poly, e)) ->
-      let labels,env = annot_env loc labels poly in
-      Dlemma (is_axiom, x, labels, poly,  predicate env e)
-  | Adecl (_, LDinvariant (s, e)) ->
-      let env = make_here_label () in
-      Dinvariant (s, predicate env e)
-  | Adecl (loc, LDtype_annot l) ->
-      Dtype_annot (type_annot loc l)
-  | Aspec
-  | Acode_annot (_, _)
-  | Aloop_annot _
-  | Aattribute_annot (_, _) ->
-      assert false (* forbidden by the grammar *)
+let annot loc annot =
+  Cil.currentLoc:= loc;
+  match annot with
+    | LDlogic_reads (f, labels, poly, t, p, l) ->
+        let labels,env = annot_env loc labels poly in
+        let t = logic_type loc env t in
+        let p, env = formals loc env p in
+        check_polymorphism loc t p;
+        let l = List.map (type_tset env) l in
+        let info =
+          {l_name = f;
+           l_profile = p;
+           l_type = t;
+           l_reads= l;
+	   l_labels = labels;
+           l_definition = None}
+        in
+        let info =
+          if is_logic_function f then begin
+            let old_info = C.find_logic_function f in
+            if Logic_const.is_same_logic_signature old_info info then begin
+              Logic_const.merge_logic_reads old_info info; old_info
+            end else
+              error loc "logic function %s has incompatible declarations" f
+          end else begin
+            C.add_logic_function info;
+            info
+          end
+        in
+        Dlogic_reads (info, poly, p, t, l)
+    | LDlogic_def(f, labels, poly,t,p,e) ->
+        let labels,env = annot_env loc labels poly in
+        let t = logic_type loc env t in
+        let p, env = formals loc env p in
+        check_polymorphism loc t p;
+        let info =
+          { l_name = f; l_profile = p; l_type = t; l_labels = labels;
+            l_reads = []; l_definition = None (*for the time being*)}
+        in
+        let info,redefinition =
+          if is_logic_function f then begin
+            let old_info = C.find_logic_function f in
+            if Logic_const.is_same_logic_signature old_info info then
+              (match old_info.l_definition with
+                   None -> old_info,true
+                 | Some _ ->
+                     error loc "logic function %s has multiple definitions" f)
+            else
+              error loc "logic function %s has incompatible declarations" f
+          end else begin
+            C.add_logic_function info; info,false
+          end
+        in
+        (try 
+          let e = term env e in
+          let _,new_typ,new_term = instantiate_app loc e t env in
+          if Logic_const.is_same_type new_typ t then begin
+            info.l_definition <- Some new_term;
+            Dlogic_def (info,poly,p,t,e)
+          end else
+            error loc "return type of logic function %s is %a but %a was expected" 
+              f d_logic_type new_typ d_logic_type t
+         with Errormsg.Error as e when not redefinition -> 
+           C.remove_logic_function f; raise e)
+
+    | LDpredicate_reads (f, labels, poly, p, l) ->
+        let labels,env = annot_env loc labels poly in
+        let p, env = formals loc env p in
+        let l = List.map (type_tset env) l in
+        let info = {p_name = f; p_profile = p; p_body = PReads l;
+		    p_labels = labels}
+        in C.add_predicate info;
+        Dpredicate_reads (info, poly, p, l)
+    | LDpredicate_def (f, labels, poly, p, e) ->
+        let labels,env = annot_env loc labels poly in
+        let p, env = formals loc env p in
+        (* allow recursive definitions *)
+        let pinfo =
+          {p_name = f;
+           p_profile = p;
+	   p_labels = labels;
+           p_body = PReads [] (* updated in 3 lines *)};
+        in
+        C.add_predicate pinfo;
+        let e = predicate env e in
+        pinfo.p_body <- PDefinition e;
+        Dpredicate_def (pinfo, poly, p, e)
+    | LDtype(s,l) ->
+        ignore (init_type_variables loc l);
+        C.add_logic_type s {nb_params = (List.length l)}; Dtype (s,l)
+    | LDlemma (is_axiom, x, labels, poly, e) ->
+        let labels,env = annot_env loc labels poly in
+        Dlemma (is_axiom, x, labels, poly,  predicate env e)
+    | LDinvariant (s, e) ->
+        let env = make_here_label () in
+        let p = predicate env e in
+        let infos =
+          {p_name = s;
+           p_profile = [];
+	   p_labels = [LogicLabel "Here"];
+           p_body = PDefinition p}
+        in C.add_predicate infos; Dinvariant infos
+    | LDtype_annot l ->
+        Dtype_annot (type_annot loc l)
+
 end
 
 (*

@@ -1,16 +1,20 @@
-(* $Id: extlib.mli,v 1.5 2008/02/18 13:54:38 uid570 Exp $ *)
+(* $Id: extlib.mli,v 1.6 2008/05/30 08:29:49 uid568 Exp $ *)
 
 (** Useful operations. 
     
-    This module does not depend of any of frama-c module. *)
+    This module does not depend of any of frama-c module. 
+    @plugin developer guide *)
 
 exception NotYetImplemented of string
+  (** @plugin developer guide *)
+
 val not_yet_implemented: string -> 'a
   (** @raise NotYetImplemented with the given string. *)
 
 val mk_fun: string -> ('a -> 'b) ref
   (** build a reference to an unitialized function (which raises
-      [NotYetImplemented] if it is called). *)
+      [NotYetImplemented] if it is called). 
+      @plugin developer guide *)
 
 val nop: 'a -> unit
   (** Do nothing. *)
@@ -56,7 +60,8 @@ val may_map: ('a -> 'b) -> ?dft:'b -> 'a option -> 'b
 val opt_map: ('a -> 'b) -> 'a option -> 'b option
 
 val the: 'a option -> 'a
-  (** @raise Invalid_argument if the value is none *)
+  (** @raise Invalid_argument if the value is none.
+      @plugin developer guide *)
 
 (*
 Local Variables:

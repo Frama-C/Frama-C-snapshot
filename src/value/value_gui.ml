@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: value_gui.ml,v 1.36 2008/04/18 09:36:06 uid528 Exp $ i*)
+(*i $Id: value_gui.ml,v 1.40 2008/06/26 13:10:36 uid528 Exp $ i*)
 
 open Cil_types
 open Cil
@@ -242,6 +242,8 @@ let reset (main_ui:Design.main_window_extension_points) =
              vi
          with Not_found -> ())
 
+let degenerated_highlighted = ref None
+
 let main (main_ui:Design.main_window_extension_points) =
 
   (* reset attributes for the list of source files *)
@@ -257,8 +259,20 @@ let main (main_ui:Design.main_window_extension_points) =
   in
   main_ui#register_source_selector value_selector;
 
-  let highlighter (buffer:GText.buffer) localizable ~start ~stop =
-    (* highlight dead code areas if values were computed *)
+  let highlighter (buffer:GSourceView.source_buffer) localizable ~start ~stop =
+    (* highlight the degeneration point *)
+    Extlib.may 
+      (fun loc -> 
+         if Cilutil.equals localizable loc then 
+           let orange_area = make_tag 
+             buffer 
+             ~name:"degeneration" 
+             [`BACKGROUND "orange" ] 
+           in
+           apply_tag buffer orange_area start stop)
+      !degenerated_highlighted;
+    
+    (* highlight dead code areas if values were computed.*)
     if Db.Value.is_computed () then
       let ki = match localizable with
       | PStmt (_,stmt) -> Kstmt stmt
@@ -301,6 +315,7 @@ let main (main_ui:Design.main_window_extension_points) =
 
 let degeneration_occurred ki lv =
   Cilutil.flush_all ();
+  Db.Value.mark_as_computed ();
   ignore (GtkMain.Main.init ());
   let app = new Design.main_window () in
   app#main_window#set_title "Degeneration Occurred";
@@ -321,13 +336,13 @@ let degeneration_occurred ki lv =
                  PLval(None,ki,lv)
              | Kglobal, None -> assert false)
           in
-          let orange_area = make_tag app#source_viewer#buffer ~name:"degeneration" [`BACKGROUND "orange" ] in
           to_do_on_select
             (new GMenu.factory (GMenu.menu ()))
             app
             1
 	    localizable;
-          app#highlight ~scroll:true orange_area localizable;
+          app#rehighlight ();
+          app#scroll localizable
           (*match ki with
 	    | Kstmt st ->
             let l =  (get_stmtLoc st.skind) in
@@ -347,3 +362,4 @@ Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"
 End:
 *)
+    

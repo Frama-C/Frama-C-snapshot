@@ -66,29 +66,27 @@
 %token TERMINATES
 %token HAT HATHAT PIPE TILDE GTGT LTLT
 %token SIZEOF LAMBDA
+%token TYPEOF BSTYPE
 
 %right prec_named
-%nonassoc IDENTIFIER
+%nonassoc IDENTIFIER TYPENAME
 %nonassoc prec_forall prec_exists prec_lambda
+%right QUESTION prec_question
 %right IMPLIES IFF
 %left OR
 %left HATHAT
 %left AND
-%nonassoc prec_not
-%nonassoc prec_if
-%right QUESTION prec_question
 %left PIPE
 %left HAT
-%nonassoc prec_rel_list
-%nonassoc prec_relation
-%left LT GT LE GE EQ NE
+%nonassoc prec_no_rel
+%left prec_rel_list /* for list of relations (LT GT LE GE EQ NE) */
+%left LT
 %left LTLT GTGT
 %left PLUS MINUS
 %left STAR SLASH PERCENT AMP
 %right prec_uminus
 %right prec_cast
-%nonassoc prec_range
-%nonassoc TILDE
+%nonassoc TILDE NOT
 %nonassoc LTCOLON COLONGT
 %left DOT ARROW LSQUARE
 %right prec_par
@@ -123,9 +121,9 @@ ne_lexpr_list:
 | lexpr COMMA ne_lexpr_list { $1 :: $3 }
 ;
 
-lexpr:
-| lexpr_no_rel %prec prec_rel_list { $1 }
-| lexpr rel_list %prec prec_rel_list
+lexpr_rel:
+| lexpr_inner %prec prec_no_rel { $1 }
+| lexpr_inner rel_list %prec prec_rel_list
       { let rel, rhs, _, oth_rel = $2 in
         let loc = loc_start $1, loc_end rhs in
         let relation = loc_info loc (PLrel($1,rel,rhs)) in
@@ -133,6 +131,71 @@ lexpr:
             None -> relation
           | Some oth_relation -> info (PLand(relation,oth_relation))
       }
+
+lexpr_inner:
+  | NOT lexpr_inner { info (PLnot $2) }
+  | TRUE { info PLtrue }
+  | FALSE { info PLfalse }
+  | VALID LPAR lexpr RPAR { info (PLvalid ($3)) }
+  | VALID_INDEX LPAR lexpr COMMA lexpr RPAR { info (PLvalid_index ($3,$5)) }
+  | VALID_RANGE LPAR lexpr COMMA lexpr COMMA lexpr RPAR
+      { info (PLvalid_range ($3,$5,$7)) }
+  | FRESH LPAR lexpr RPAR { info (PLfresh ($3)) }
+  | NULL { info PLnull }
+  | CONSTANT { info (PLconstant $1) }
+  | lexpr_inner PLUS lexpr_inner { info (PLbinop ($1, Badd, $3)) }
+  | lexpr_inner MINUS lexpr_inner { info (PLbinop ($1, Bsub, $3)) }
+  | lexpr_inner STAR lexpr_inner { info (PLbinop ($1, Bmul, $3)) }
+  | lexpr_inner SLASH lexpr_inner { info (PLbinop ($1, Bdiv, $3)) }
+  | lexpr_inner PERCENT lexpr_inner { info (PLbinop ($1, Bmod, $3)) }
+  | lexpr_inner ARROW identifier { info (PLarrow ($1, $3)) }
+  | lexpr_inner DOT identifier { info (PLdot ($1, $3)) }
+  | lexpr_inner LSQUARE range RSQUARE { info (PLarrget ($1, $3)) }
+  | lexpr_inner LSQUARE lexpr RSQUARE { info (PLarrget ($1, $3)) }
+  | MINUS lexpr_inner %prec prec_uminus { info (PLunop (Uminus, $2)) }
+  | PLUS lexpr_inner %prec prec_uminus { $2 }
+  | TILDE lexpr_inner { info (PLunop (Ubw_not, $2)) }
+  | STAR lexpr_inner { info (PLunop (Ustar, $2)) }
+  | AMP lexpr_inner { info (PLunop (Uamp, $2)) }
+  | SIZEOF LPAR lexpr RPAR { info (PLsizeofE $3) }
+  | SIZEOF LPAR logic_type_not_id RPAR { info (PLsizeof $3) }
+  | OLD LPAR lexpr RPAR { info (PLold $3) }
+  | AT LPAR lexpr COMMA label RPAR { info (PLat ($3, $5)) }
+  | BASE_ADDR LPAR lexpr RPAR { info (PLbase_addr $3) }
+  | BLOCK_LENGTH LPAR lexpr RPAR { info (PLblock_length $3) }
+  | RESULT { info PLresult }
+  | identifier LPAR ne_lexpr_list RPAR
+      { info (PLapp ($1, [], $3)) }
+  | identifier LBRACE ne_tvar_list RBRACE LPAR ne_lexpr_list RPAR
+      { info (PLapp ($1, $3, $6)) }
+  | identifier LBRACE ne_tvar_list RBRACE
+      { info (PLapp ($1, $3, [])) }
+  | identifier %prec IDENTIFIER { info (PLvar $1) }
+  | lexpr_inner GTGT lexpr_inner { info (PLbinop ($1, Brshift, $3))}
+  | lexpr_inner LTLT lexpr_inner { info (PLbinop ($1, Blshift, $3))}
+  | LPAR lexpr RPAR %prec prec_par { info $2.lexpr_node }
+  | LPAR range RPAR { info $2.lexpr_node }
+  | LPAR logic_type_not_id RPAR lexpr_inner %prec prec_cast
+      { info (PLcast ($2, $4)) }
+  | lexpr_inner LTCOLON lexpr_inner %prec prec_cast
+      { info (PLsubtype ($1, $3)) }
+  | lexpr_inner COLONGT logic_type_not_id %prec prec_cast
+      { info (PLcoercion ($1, $3)) }
+  | lexpr_inner COLONGT lexpr_inner %prec prec_cast
+      { info (PLcoercionE ($1, $3)) }
+  | TYPEOF LPAR lexpr RPAR { info (PLtypeof $3) }
+  | BSTYPE LPAR type_spec_not_id RPAR { info (PLtype $3) }
+    /* tsets */
+  | EMPTY { info PLempty }
+  | UNION LPAR lexpr_list RPAR { info (PLunion $3) }
+  | INTER LPAR lexpr_list RPAR { info (PLinter $3) }
+  | LBRACE lexpr PIPE binders RBRACE
+      {info (PLcomprehension ($2,$4,None)) }
+  | LBRACE lexpr PIPE binders SEMICOLON lexpr RBRACE
+      { info (PLcomprehension ($2,$4,Some $6)) }
+    /* Functional update */
+  | LBRACE lexpr FOR identifier EQUAL lexpr RBRACE { info (PLupdate($2,$4,$6)) }
+;
 
 relation:
   | LT    { Lt }
@@ -143,105 +206,37 @@ relation:
   | NE    { Neq }
 ;
 
-lexpr_dotdot:
-| lexpr { $1 }
+range:
 | lexpr_option DOTDOT lexpr_option { info (PLrange($1,$3)) }
 
-
-lexpr_no_rel:
+lexpr:
   /* predicates */
   lexpr IMPLIES lexpr { info (PLimplies ($1, $3)) }
 | lexpr IFF lexpr { info (PLiff ($1, $3)) }
 | lexpr OR lexpr     { info (PLor ($1, $3)) }
 | lexpr AND lexpr    { info (PLand ($1, $3)) }
 | lexpr HATHAT lexpr    { info (PLxor ($1, $3)) }
-| NOT lexpr %prec prec_not { info (PLnot $2) }
-| TRUE { info PLtrue }
-| FALSE { info PLfalse }
 | FORALL binders SEMICOLON lexpr  %prec prec_forall
       { info (PLforall ($2, $4)) }
 | EXISTS binders SEMICOLON lexpr  %prec prec_exists
       { info (PLexists ($2, $4)) }
 | LAMBDA binders SEMICOLON lexpr  %prec prec_lambda
       { info (PLlambda ($2,$4)) }
-| VALID LPAR lexpr RPAR { info (PLvalid ($3)) }
-| VALID_INDEX LPAR lexpr COMMA lexpr RPAR { info (PLvalid_index ($3,$5)) }
-| VALID_RANGE LPAR lexpr COMMA lexpr COMMA lexpr RPAR
-      { info (PLvalid_range ($3,$5,$7)) }
-| FRESH LPAR lexpr RPAR { info (PLfresh ($3)) }
 /* terms */
-| NULL { info PLnull }
-| CONSTANT { info (PLconstant $1) }
-| lexpr PLUS lexpr { info (PLbinop ($1, Badd, $3)) }
-| lexpr MINUS lexpr { info (PLbinop ($1, Bsub, $3)) }
-| lexpr STAR lexpr { info (PLbinop ($1, Bmul, $3)) }
-| lexpr SLASH lexpr { info (PLbinop ($1, Bdiv, $3)) }
-| lexpr PERCENT lexpr { info (PLbinop ($1, Bmod, $3)) }
 | lexpr AMP lexpr { info (PLbinop ($1, Bbw_and, $3)) }
 | lexpr PIPE lexpr { info (PLbinop ($1, Bbw_or, $3)) }
 | lexpr HAT lexpr { info (PLbinop ($1, Bbw_xor, $3)) }
-| lexpr GTGT lexpr { info (PLbinop ($1, Brshift, $3))}
-| lexpr LTLT lexpr { info (PLbinop ($1, Blshift, $3))}
-| lexpr ARROW identifier { info (PLarrow ($1, $3)) }
-| lexpr DOT identifier { info (PLdot ($1, $3)) }
-| lexpr LSQUARE lexpr_dotdot RSQUARE { info (PLarrget ($1, $3)) }
-| MINUS lexpr %prec prec_uminus { info (PLunop (Uminus, $2)) }
-| PLUS lexpr %prec prec_uminus { $2 }
-| TILDE lexpr { info (PLunop (Ubw_not, $2)) }
-| STAR lexpr { info (PLunop (Ustar, $2)) }
-| AMP lexpr { info (PLunop (Uamp, $2)) }
 | lexpr QUESTION lexpr COLON2 lexpr %prec prec_question
     { info (PLif ($1, $3, $5)) }
-| SIZEOF LPAR lexpr RPAR { info (PLsizeofE $3) }
-| SIZEOF LPAR logic_type_not_id RPAR { info (PLsizeof $3) }
-| OLD LPAR lexpr RPAR { info (PLold $3) }
-| AT LPAR lexpr COMMA label RPAR { info (PLat ($3, $5)) }
-| BASE_ADDR LPAR lexpr RPAR { info (PLbase_addr $3) }
-| BLOCK_LENGTH LPAR lexpr RPAR { info (PLblock_length $3) }
-| RESULT { info PLresult }
 /* both terms and predicates */
-| identifier LPAR lexpr_list RPAR
-    { info (PLapp ($1, [], $3)) }
-| identifier LBRACE ne_tvar_list RBRACE LPAR lexpr_list RPAR
-    { info (PLapp ($1, $3, $6)) }
 | identifier COLON lexpr %prec prec_named { info (PLnamed ($1, $3)) }
-| identifier %prec IDENTIFIER { info (PLvar $1) }
-| LPAR lexpr_dotdot RPAR %prec prec_par { $2 }
-/* terms using type expressions: cast, coercion, instance_of */
-| LPAR logic_type_not_id RPAR lexpr %prec prec_cast { info (PLcast ($2, $4)) }
-| LPAR lexpr_dotdot RPAR lexpr %prec prec_cast
-    { match $2.lexpr_node with
-	| PLvar x -> info (PLcast (LTnamed (x,[]), $4))
-	| _ -> raise Parse_error }
-/* | lexpr LTCOLON logic_type_not_id { info (PLinstance_of ($1, $3)) }
-| lexpr COLONGT logic_type_not_id { info (PLcoercion ($1, $3)) }
-| lexpr LTCOLON lexpr { info (PLinstance_ofE ($1, $3)) }
-| lexpr COLONGT lexpr { info (PLcoercionE ($1, $3)) }
-  NOTE: rules replaced by the next ones
-  otherwise, there is a conflict between e1<:t1<e2 and e1<:t1<t2>
-*/
-| LPAR lexpr LTCOLON logic_type_not_id RPAR { info (PLinstance_of ($2, $4)) }
-| LPAR lexpr COLONGT logic_type_not_id RPAR { info (PLcoercion ($2, $4)) }
-| LPAR lexpr LTCOLON lexpr RPAR{ info (PLinstance_ofE ($2, $4)) }
-| LPAR lexpr COLONGT lexpr RPAR{ info (PLcoercionE ($2, $4)) }
-/* tsets */
-| EMPTY { info PLempty }
-| UNION LPAR lexpr_list RPAR { info (PLunion $3) }
-| INTER LPAR lexpr_list RPAR { info (PLinter $3) }
-| LBRACE lexpr PIPE binders RBRACE
-      {info (PLcomprehension ($2,$4,None)) }
-| LBRACE lexpr PIPE binders SEMICOLON lexpr RBRACE
-      { info (PLcomprehension ($2,$4,Some $6)) }
-
-/* Functional update */
-| LBRACE lexpr FOR identifier EQUAL lexpr RBRACE { info (PLupdate($2,$4,$6)) }
-| LBRACE lexpr FOR LSQUARE lexpr RSQUARE EQUAL lexpr RBRACE { (* TODO *) raise Parse_error  }
+| lexpr_rel %prec prec_rel_list { $1 }
 ;
 
 rel_list:
-  relation lexpr %prec prec_relation
+  relation lexpr_inner %prec prec_rel_list
   { $1, $2, fst(relation_sense $1 Unknown), None }
-| relation lexpr_no_rel rel_list %prec prec_relation
+| relation lexpr_inner rel_list %prec prec_rel_list
   {
     let next_rel, rhs, sense, oth_rel = $3 in
     let (sense, correct) = relation_sense $1 sense
@@ -259,7 +254,7 @@ rel_list:
     else begin
       let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 3 in
       raise (Not_well_formed
-               (loc,"Inconsistent inequality chain."));
+               (loc,"Inconsistent relation chain."));
 
     end
   }
@@ -379,31 +374,8 @@ id_as_typename_poly:
 
 
 
-/* logic_type_not_id is more restrictive than logic_type.
-TODO: [ID_AS_TYPENAME]
-all rules must use logic_type instead
-when logic type identifiers will be considered as TYPENAME.
-*/
 logic_type_not_id:
-| identifier abs_spec_not_id { $2 (LTnamed ($1,[])) }
 | type_spec_not_id abs_spec_option  { $2 $1 }
-;
-
-/* abs_spec_not_id is more restrictive than abs_spec.
-TODO: [ID_AS_TYPENAME]
-to remove the rule when it'll be unused.
-*/
-abs_spec_not_id:
-|                    tabs { $1 }
-| stars                   { $1 }
-| stars              tabs { fun t -> $2 ($1 t)}
-| stars abs_spec_bis      { fun t -> $2 ($1 t) }
-| stars abs_spec_bis tabs { fun t -> $2 ($3 ($1 t)) }
-;
-
-parameters:
-| /* epsilon */  { [] }
-| ne_parameters { $1 }
 ;
 
 ne_parameters:
@@ -413,9 +385,6 @@ ne_parameters:
 
 parameter:
 | type_spec var_spec { let (modif, name) = $2 in (modif $1, name)}
-/* TODO: [ID_AS_TYPENAME]
-to remove when logic type identifiers will be considered as TYPENAME.
-*/
 | id_as_typename var_spec { let (modif, name) = $2 in (modif $1, name) }
 ;
 
@@ -424,29 +393,21 @@ to remove when logic type identifiers will be considered as TYPENAME.
 
 logic_type:
 | type_spec  abs_spec_option { $2 $1 }
-/* NOTE: [ID_AS_TYPENAME]
-the next rule gives a conflict.
-   TODO: So, logic type identifiers should be considered as TYPENAME.
-| id_as_typename_poly abs_spec_option { $2 $1 }
-*/
-/* TODO: [ID_AS_TYPENAME]
-to remove when logic type identifiers will be considered as TYPENAME.
-*/
 | id_as_typename abs_spec_option { $2 $1 }
 ;
 
 abs_spec_option:
-| /* empty */   { fun t -> t }
+| /* empty */ %prec TYPENAME  { fun t -> t }
 | abs_spec { $1 }
 ;
 
 abs_spec:
 |                    tabs { $1 }
-| stars                   { $1 }
-| stars              tabs { fun t -> $2 ($1 t) }
-| stars abs_spec_bis      { fun t -> $2 ($1 t) }
-| stars abs_spec_bis tabs { fun t -> $2 ($3 ($1 t)) }
-|       abs_spec_bis tabs { fun t -> $1 ($2 t) }
+| stars                   %prec TYPENAME { $1 }
+| stars              tabs                { fun t -> $2 ($1 t) }
+| stars abs_spec_bis      %prec TYPENAME { fun t -> $2 ($1 t) }
+| stars abs_spec_bis tabs                { fun t -> $2 ($3 ($1 t)) }
+|       abs_spec_bis tabs                { fun t -> $1 ($2 t) }
 ;
 
 abs_spec_bis:
@@ -460,7 +421,7 @@ stars:
 ;
 
 tabs:
-| LSQUARE lexpr_option RSQUARE
+| LSQUARE lexpr_option RSQUARE %prec TYPENAME
     {  (* TODO: use size information for LTarray - $2 *)
       fun t -> LTarray t
     }
@@ -485,17 +446,27 @@ type_spec_not_id:
 | INT            { LTint IInt }        /** [int] */
 | SIGNED INT     { LTint IInt }        /** [int] */
 | UNSIGNED INT   { LTint IUInt }       /** [unsigned int] */
+| UNSIGNED       { LTint IUInt }
 | SHORT          { LTint IShort }      /** [short] */
 | SIGNED SHORT   { LTint IShort }      /** [short] */
 | UNSIGNED SHORT { LTint IUShort }     /** [unsigned short] */
 | LONG           { LTint ILong }       /** [long] */
 | SIGNED LONG    { LTint ILong }       /** [long] */
 | UNSIGNED LONG  { LTint IULong }      /** [unsigned long] */
+| SIGNED LONG INT{ LTint ILong }       /** [long] */
+| LONG  INT      { LTint ILong }       /** [long] */
+| UNSIGNED LONG INT { LTint IULong }      /** [unsigned long] */
 | LONG LONG      { LTint ILongLong }   /** [long long] (or [_int64] on
 					   Microsoft Visual C) */
 | SIGNED LONG LONG   { LTint ILongLong }   /** [long long] (or [_int64] on
 					   Microsoft Visual C) */
 | UNSIGNED LONG LONG { LTint IULongLong }  /** [unsigned long long]
+                                (or [unsigned _int64] on Microsoft Visual C) */
+| LONG LONG INT     { LTint ILongLong }   /** [long long] (or [_int64] on
+					   Microsoft Visual C) */
+| SIGNED LONG LONG INT  { LTint ILongLong }   /** [long long] (or [_int64] on
+					   Microsoft Visual C) */
+| UNSIGNED LONG LONG INT { LTint IULongLong }  /** [unsigned long long]
                                 (or [unsigned _int64] on Microsoft Visual C) */
 | FLOAT             { LTfloat FFloat }
 | DOUBLE            { LTfloat FDouble }
@@ -523,7 +494,7 @@ enter_kw_c_mode identifier exit_kw_c_mode { $2 }
 ;
 
 full_parameters:
-enter_kw_c_mode parameters exit_kw_c_mode { $2 }
+enter_kw_c_mode ne_parameters exit_kw_c_mode { $2 }
 ;
 
 full_parameter:
@@ -655,7 +626,7 @@ is_spec:
 ;
 
 loop_annot:
-  loop_invariant { [AInvariant (true,$1)] }
+  loop_invariant { [AInvariant (fst $1,true,snd $1)] }
 | loop_effects { List.map (fun x -> AAssigns x) $1 }
 | loop_variant { [AVariant $1] }
 | loop_pragma { [APragma (Loop_pragma $1)] }
@@ -679,7 +650,9 @@ variant:
 ;
 
 loop_invariant:
-  LOOP INVARIANT full_lexpr SEMICOLON { $3 }
+  FOR ne_full_identifier_list COLON LOOP INVARIANT full_lexpr SEMICOLON
+    { ($2,$6) }
+| LOOP INVARIANT full_lexpr SEMICOLON { ([],$3) }
 ;
 
 loop_variant:
@@ -694,8 +667,10 @@ decreases:
 code_annotation:
   slice_pragma     { APragma (Slice_pragma $1) }
 | impact_pragma    { APragma (Impact_pragma $1) }
-| ASSERT full_lexpr SEMICOLON    { AAssert $2 }
-| INVARIANT full_lexpr SEMICOLON { AInvariant (false,$2) }
+| FOR ne_full_identifier_list COLON ASSERT full_lexpr SEMICOLON 
+      { AAssert ($2,$5) }
+| ASSERT full_lexpr SEMICOLON    { AAssert ([],$2) }
+| INVARIANT full_lexpr SEMICOLON { AInvariant ([],false,$2) }
 ;
 
 loop_pragma_tk:
@@ -760,6 +735,9 @@ logic_decl:
 | LOGIC full_logic_type poly_id LPAR full_parameters RPAR
   { let (id,labels,tvars) = $3 in
     ($2,id,labels, tvars,$5) }
+| LOGIC full_logic_type poly_id
+  { let (id,labels,tvars) = $3 in
+    ($2,id,labels, tvars,[]) }
 
 poly_id:
 | full_identifier { ($1,[],[]) }
@@ -771,6 +749,10 @@ identifier:
 | IDENTIFIER { $1 }
 ;
 
+opt_parameters:
+| /*epsilon*/ { [] }
+| LPAR full_parameters RPAR { $2 }
+;
 decl:
 | logic_decl SEMICOLON
     { let (rt, id, labels, tvars, args) = $1 in
@@ -785,15 +767,15 @@ decl:
     { let (id,labels,tvars) = $2 in
       assert (labels = []);
       LDtype(id,tvars) }
-| PREDICATE poly_id LPAR full_parameters RPAR SEMICOLON
+| PREDICATE poly_id opt_parameters SEMICOLON
     { let (id,labels,tvars) = $2 in
-      LDpredicate_reads (id, labels, tvars, $4, []) }
-| PREDICATE poly_id LPAR full_parameters RPAR READS tsets SEMICOLON
+      LDpredicate_reads (id, labels, tvars, $3, []) }
+| PREDICATE poly_id opt_parameters READS tsets SEMICOLON
     { let (id,labels,tvars) = $2 in
-      LDpredicate_reads (id, labels, tvars, $4, $7) }
-| PREDICATE poly_id LPAR full_parameters RPAR EQUAL full_lexpr SEMICOLON
+      LDpredicate_reads (id, labels, tvars, $3, $5) }
+| PREDICATE poly_id opt_parameters EQUAL full_lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
-      LDpredicate_def (id, labels, tvars, $4, $7) }
+      LDpredicate_def (id, labels, tvars, $3, $5) }
 | AXIOM poly_id COLON full_lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
       LDlemma (id, true, labels, tvars, $4) }
@@ -823,8 +805,12 @@ annot:
   annotation EOF   { $1 }
 ;
 
+decl_list:
+  decl { [(loc(), $1)] }
+| decl decl_list { (loc(),$1) :: $2 }
+
 annotation:
-  decl             { Adecl (loc (), $1) }
+  decl_list             { Adecl ($1) }
 | is_spec any      { Aspec }
 | loop_annotations { Logic_const.check_loop_annotation ~loc:(loc()) $1;
                      Aloop_annot (loc (), $1) }
@@ -949,6 +935,8 @@ wildcard:
 | DISJOINT { () }
 | TERMINATES { () }
 | LAMBDA { () }
+| TYPEOF { () }
+| BSTYPE { () }
 ;
 
 %%

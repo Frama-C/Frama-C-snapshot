@@ -80,10 +80,10 @@ end = struct
   let bottom = T.Cav D.bottom
   let top = T.Cav D.top
   let spare = T.Spare
-  let data = T.Cav D.make_data
-  let ctrl = T.Cav D.make_ctrl
-  let addr = T.Cav D.make_addr
-  let mk_adc a d c =  T.Cav (D.make_adc a d c)
+  let mk_adc a d c =  T.Cav (D.make ~a ~d ~c ())
+  let data = T.Cav (D.make ~d:true ())
+  let ctrl = T.Cav (D.make ~c:true ())
+  let addr = T.Cav (D.make ~a:true ())
 
   let is_bottom m = (m = bottom)
 

@@ -23,8 +23,8 @@ type cell_class_attributes
 
 type validity = 
   | All
-  | Unknown
-  | Known of (Abstract_interp.Int.t*Abstract_interp.Int.t)
+  | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
+  | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
 
 type t = private 
   | Var of Cil_types.varinfo*validity (** Base for uninitialized variables *)
@@ -35,6 +35,7 @@ type t = private
   | Cell_class of cell_class_attributes (** A class of memory cells *)
 
 val pretty : Format.formatter -> t -> unit
+val pretty_validity : Format.formatter -> validity -> unit
 
 val compare : t -> t -> int
 val typeof : t -> Cil_types.typ option

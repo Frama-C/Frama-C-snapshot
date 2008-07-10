@@ -60,7 +60,6 @@ module Signature :
       (** key for input elements *)
     type t_in_key = private
         InCtrl (** input control point *)
-      | InTop  (** TOP input *)
       | InNum of int (** parameters numbered from 1 *)
       | InImpl of Locations.Zone.t (** key for implicit inputs.
                                     * Used in function signatures only *)

@@ -21,10 +21,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgTypes.mli,v 1.35 2008/04/11 09:06:05 uid530 Exp $*)
+(* $Id: pdgTypes.mli,v 1.39 2008/07/09 11:26:38 uid530 Exp $*)
 
 (** This module defines the types that are used to store the PDG of a
-    function. *)
+    function. 
+    @plugin developer guide *)
 
 exception Pdg_Internal_Error of string
 
@@ -39,27 +40,28 @@ exception Pdg_Internal_Error of string
 module Dpd :
   sig
     type t
+
     type td = Ctrl | Addr | Data
-    val make_adc : bool -> bool -> bool -> t
-    val make : td -> t
-    val make_addr : t
-    val make_ctrl : t
-    val make_data : t
-    val bottom : t
+
+    val make : ?a:bool -> ?d:bool -> ?c:bool -> unit -> t
     val top : t
-    val default : t
-    val adc_value : t -> bool * bool * bool
+    val bottom : t
+
     val is_addr : t -> bool
     val is_ctrl : t -> bool
     val is_data : t -> bool
+    val adc_value : t -> bool * bool * bool
     val is_dpd : td -> t -> bool
     val is_bottom : t -> bool
-    val compare : t -> t -> int
     val is_included : t -> t -> bool
+
+
+    val compare : t -> t -> int
     val combine : t -> t -> t
     val add : t -> td -> t
     val inter : t -> t -> t
     val minus : t -> t -> t
+
     val pretty : Format.formatter -> t -> unit
   end
 
@@ -77,6 +79,8 @@ module Node :
     val equivalent : t -> PdgIndex.Key.t -> bool
     val pretty : Format.formatter -> t -> unit
     val pretty_list : Format.formatter -> t list -> unit
+    val pretty_with_part : 
+          Format.formatter -> (t * Locations.Zone.t option) -> unit
     module Datatype: Project.Datatype.OUTPUT with type t = t
   end
 
@@ -95,18 +99,20 @@ module G :
     module E :
       sig
         type t 
+        type label
         val src : t -> Node.t
         val dst : t -> Node.t
-        val label : t -> Dpd.t
+        val label : t -> label
       end
     type edge = E.t
 
     val create : unit -> t
 
     val add_elem : t -> PdgIndex.Key.t -> Node.t
-    val add_dpd : t -> Node.t -> Dpd.td -> Node.t -> unit
+    val add_dpd : t -> Node.t -> 
+      Dpd.td -> Locations.Zone.t option -> Node.t -> unit
     (* val replace_dpd : t -> edge -> Dpd.t -> unit *)
-    val find_dpd : t -> Node.t -> Node.t -> edge * Dpd.t
+    (* val find_dpd : t -> Node.t -> Node.t -> edge * Dpd.t *)
 
     val succ : t -> Node.t -> Node.t list
     val pred : t -> Node.t -> Node.t list
@@ -118,11 +124,13 @@ module G :
     val fold_succ : (Node.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
     val iter_pred_e : (edge -> unit) -> t -> Node.t -> unit
     val fold_pred : (Node.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
+
+    val edge_dpd : edge -> Dpd.t * Locations.Zone.t option
+    val pretty_edge_label : Format.formatter -> E.label -> unit
   end
 
 module NodeSetLattice : sig
   include Abstract_interp.Lattice_Set with type O.elt=Node.t
-  exception NoNodeForZone of Locations.Zone.t
   val default : Base.t -> Abstract_interp.Int.t -> Abstract_interp.Int.t -> t
   val defaultall : Base.t -> t
 end
@@ -146,6 +154,7 @@ module Pdg :
 
     type t
     module Datatype : Project.Datatype.OUTPUT with type t = t
+      (** @plugin developer guide *)
 
     (** @param name of the function associated with that PDG *)
     val top : string -> t
@@ -158,26 +167,27 @@ module Pdg :
     val get_fct_name : t -> string
 
     val iter_nodes : (Node.t -> unit) -> t -> unit
-    val iter_dynamic_dpds : (G.E.t -> unit) -> t -> unit
 
     val fold_call_nodes : 
         ('a -> Node.t -> 'a) -> 'a -> t -> Cil_types.stmt -> 'a
 
-    val get_all_direct_dpds : t -> Node.t -> Node.t list
-    val get_x_direct_dpds : Dpd.td -> t -> Node.t -> Node.t list
+    type dpd_info = (Node.t * Locations.Zone.t option)
 
-    val get_all_direct_codpds : t -> Node.t -> Node.t list
-    val get_x_direct_codpds : Dpd.td -> t -> Node.t -> Node.t list
+    val get_all_direct_dpds : t -> Node.t -> dpd_info list
+    val get_x_direct_dpds : Dpd.td -> t -> Node.t -> dpd_info list
 
-    val add_dynamic_dpds : t -> 
-      ?data:Node.t list -> ?addr: Node.t list -> ?ctrl:Node.t list -> 
-      Node.t -> unit
-    val clear_dynamic_dpds : t -> unit
+    val get_all_direct_codpds : t -> Node.t -> dpd_info list
+    val get_x_direct_codpds : Dpd.td -> t -> Node.t -> dpd_info list
+
+    (* val get_all_direct_edges : t -> Node.t -> 
+      (Dpd.t * Locations.Zone.t option * Node.t) list U*)
+
   end
 
 module InternalPdg :
   sig
     type t = Pdg.t
+
     type t_index = (Node.t, unit) PdgIndex.FctIndex.t
     val get_index : t -> t_index
 
@@ -187,7 +197,6 @@ module InternalPdg :
 
     val get_states : t -> t_data_state Inthash.t 
 
-    (** Be careful: this function shouldn't be used because it doesn't take
-	the dynamic dependencies into account. *)
+    (** Be careful: this function shouldn't be used except by PDG itself ! *)
     val get_graph : t -> G.t
   end

@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry f -security-lattice weak
-   OPT: -security-analysis -lib-entry f -security-lattice strong
+   OPT: -security-analysis -lib-entry -main f -security-lattice weak
+   OPT: -security-analysis -lib-entry -main f -security-lattice strong
    */
 
 // #define GCC
@@ -12,10 +12,10 @@
   #include "share/malloc.c"
 #endif
 
-/*@ requires security_status(x) == public(); */
+/*@ requires security_status(x) == public; */
 void send(int x);
 
-/*@ ensures security_status( *x) == public(); */
+/*@ ensures security_status( *x) == public; */
 void crypt(int* x);
 
 int a, b, c, d;

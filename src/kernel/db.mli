@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: db.mli,v 1.388 2008/04/18 14:29:35 uid568 Exp $ *)
+(* $Id: db.mli,v 1.401 2008/07/09 11:26:38 uid530 Exp $ *)
 
-(** Database in which plugins are registered. *)
+(** Database in which plugins are registered. 
+    @plugin developer guide *)
 
 (**
     Other kernel modules:
@@ -70,18 +71,20 @@ module Value : sig
   exception Aborted
 
   val self : Project.Computation.t
-    (** Internal state of the value analysis from project viewpoints. *)
+    (** Internal state of the value analysis from project viewpoints. 
+	@plugin developer guide *)
 
   val mark_as_computed: unit -> unit
     (** Indicate that the value analysis has been done already. *)
 
-
   val compute : (unit -> unit) ref
-    (** Compute the value analysis using the entry point of the current project. 
-        You may set it with {!Globals.set_entry_point}. *)
+    (** Compute the value analysis using the entry point of the current
+	project. You may set it with {!Globals.set_entry_point}. 
+	@plugin developer guide *)
 
   val is_computed: unit -> bool
-    (** Return [true] iff the value analysis has been done. *)
+    (** Return [true] iff the value analysis has been done. 
+	@plugin developer guide *)
 
   val degeneration_occurred:
     (Cil_types.kinstr -> Cil_types.lval option -> unit) ref
@@ -213,7 +216,8 @@ module Value : sig
     Hook.S
     with type param = (kernel_function * kinstr) list * state Cil.InstrHashtbl.t
 
-  (** Actions to perform at each treatment of a "call" statement. *)
+  (** Actions to perform at each treatment of a "call" statement. 
+      @plugin developer guide *)
   module Call_Value_Callbacks:
     Hook.S with type param = state * (kernel_function * kinstr) list
 
@@ -259,11 +263,12 @@ module From : sig
   val access : (Locations.Zone.t -> from_model -> Locations.Zone.t) ref
   val find_deps_no_transitivity : (kinstr -> exp -> Locations.Zone.t) ref
   val self: Project.Computation.t ref
+    (** @plugin developer guide *)
 
   (** {3 Pretty printing} *)
 
   val pretty : (Format.formatter -> kernel_function -> unit) ref
-  val display : Format.formatter -> unit
+  val display : (Format.formatter -> unit) ref
 
   (** {3 Internal use only} *)
 
@@ -524,10 +529,10 @@ end
 (** Constant propagation plugin.
     @see <../constant_propagation/index.html> internal documentation. *)
 module Constant_Propagation: sig
-  val run_propagation : (Cilutil.StringSet.t -> Project.t) ref
+  val run_propagation : (Cilutil.StringSet.t -> cast_intro:bool -> Project.t) ref
     (** propagate constant into the functions given by name.
         note: the propagation is performed into all functions when the set is
-	empty. *)
+	empty; and casts can be introduced when [cast_intro] is true.*)
 end
 
 (** Customisation for cxx plugin. *)
@@ -636,6 +641,14 @@ module Pdg : sig
 	  See {!module:PdgIndex.Key}
 	  to know more about it and to get functions to build some keys. *)
 
+  type t_nodes_and_undef = 
+            (t_node * Locations.Zone.t option) list * Locations.Zone.t option
+    (** type for the return value of many [find_xxx] functions 
+    * when the answer can be a list of nodes and an undef zone 
+    * For each node, we can also have which part is used in terms of zone
+    * (None means all)
+    * *)
+
   val self : Project.Computation.t ref
 
   (** {3 Getters} *)
@@ -663,7 +676,7 @@ module Pdg : sig
 	@raise Top if the given pdg is top. *)
 
   val find_output_nodes :
-    (t -> PdgIndex.Signature.t_out_key -> t_node list * Locations.Zone.t) ref
+    (t -> PdgIndex.Signature.t_out_key -> t_nodes_and_undef) ref
     (** Get the nodes corresponding to a call output key in the called pdg.
     	@raise NotFound if the ouptut state in unreachable
  	@raise Bottom if given PDG is bottom.
@@ -681,18 +694,28 @@ module Pdg : sig
  	@raise Bottom if given PDG is bottom.
 	@raise Top if the given pdg is top. *)
 
-  val find_stmt_nodes : (t -> Cil_types.stmt -> t_node list) ref
-    (** Get the nodes corresponding to the statement.
-	It is usualy composed of only one node (see {!find_stmt_node}),
-        except for call statement.
-    	@raise NotFound if the given statement is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
-
   val find_stmt_node : (t -> Cil_types.stmt -> t_node) ref
     (** Get the node corresponding to the statement.
 	It shouldn't be a call statement.
         See also {!find_stmt_nodes} or {!find_call_stmts}.
+    	@raise NotFound if the given statement is unreachable.
+ 	@raise Bottom if given PDG is bottom.
+	@raise Top if the given pdg is top. *)
+
+  val find_simple_stmt_nodes : (t -> Cil_types.stmt -> t_node list) ref
+    (** Get the nodes corresponding to the statement.
+	It is usualy composed of only one node (see {!find_stmt_node}),
+        except for call statement.
+        Be careful that for block statements, it only retuns a node 
+        corresponding to the elementary stmt (see {!find_stmt_nodes} for more)
+    	@raise NotFound if the given statement is unreachable.
+ 	@raise Bottom if given PDG is bottom.
+	@raise Top if the given pdg is top. *)
+
+  val find_stmt_and_blocks_nodes : (t -> Cil_types.stmt -> t_node list) ref
+    (** Get the nodes corresponding to the statement like
+    * {!find_simple_stmt_nodes} but also add the nodes of the enclosed
+    * statements if [stmt] contains blocks.
     	@raise NotFound if the given statement is unreachable.
  	@raise Bottom if given PDG is bottom.
 	@raise Top if the given pdg is top. *)
@@ -710,7 +733,7 @@ module Pdg : sig
 
   val find_location_nodes_at_stmt :
     (t -> Cil_types.stmt -> before:bool -> Locations.Zone.t ->
-      t_node list * Locations.Zone.t) ref
+      t_nodes_and_undef) ref
     (** Find the nodes that define the value of the location at the given
 	program point. Also return a zone that might be undefined at that
 	point.
@@ -719,7 +742,7 @@ module Pdg : sig
 	@raise Top if the given pdg is top. *)
 
   val find_location_nodes_at_end :
-    (t -> Locations.Zone.t -> t_node list * Locations.Zone.t) ref
+    (t -> Locations.Zone.t -> t_nodes_and_undef) ref
     (** Same than {!find_location_nodes_at_stmt} for the program point located
 	at the end of the function.
 	@raise NotFound if the output state is unreachable.
@@ -730,11 +753,6 @@ module Pdg : sig
     (kernel_function -> caller:kernel_function -> Cil_types.stmt list) ref
     (** Find the call statements to the function (can maybe be somewhere
 	else).
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
-
-  val find_call_topin_node : (t ->  Cil_types.stmt -> t_node) ref
-    (** @raise NotFound if the call is unreachable or has no top input.
  	@raise Bottom if given PDG is bottom.
 	@raise Top if the given pdg is top. *)
 
@@ -755,7 +773,7 @@ module Pdg : sig
 
   val find_code_annot_nodes :
     (t -> before:bool -> Cil_types.stmt -> Cil_types.code_annotation -> 
-       t_node list * (t_node list * Locations.Zone.t)) ref
+       t_node list * (t_nodes_and_undef)) ref
     (** The first part of the result are the control dependencies nodes
     * of the annotation, and the second part is similar to 
     * [find_location_nodes_at_stmt] result but  for all the locations
@@ -867,18 +885,6 @@ module Pdg : sig
  	@raise Bottom if given PDG is bottom.
 	@raise Top if the given pdg is top. *)
 
-  (** {3 Dynamic dependencies} *)
-
-  val add_dynamic_dpds :
-    (t -> ?data:t_node list -> ?addr: t_node list -> ?ctrl:t_node list ->
-       t_node -> unit) ref
-    (** @raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
-
-  val clear_dynamic_dpds : (t -> unit) ref
-    (** @raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
-
   (** {3 Pretty printing} *)
 
   val extract : (t -> string -> unit) ref
@@ -934,8 +940,11 @@ end
 (** Interface for the unused code detection.
     @see <../sparecode/index.html> internal documentation. *)
 module Sparecode : sig
-  val run: (unit -> Project.t) ref
-     (** Remove in each function what isn't used to compute its outputs. *)
+  val run: (select_annot:bool -> select_slice_pragma:bool -> Project.t) ref
+     (** Remove in each function what isn't used to compute its outputs,
+      *   or its annotations when [select_annot] is true,
+      *   or its slicing pragmas when [select_slice_pragmas] is true.
+      *)
 end
 
 (** Interface for the occurrence plugin.
@@ -944,7 +953,8 @@ module Occurrence: sig
   val get: (varinfo -> (kinstr * lval) list) ref
     (** Return the occurrences of the given varinfo.
 	An occurrence [ki, lv] is a left-value [lv] which uses the location of
-	[vi] at the position [ki]. *)
+	[vi] at the position [ki]. 
+	@plugin developer guide *)
   val print_all: (unit -> unit) ref
     (** Print all the occurrence of each variable declarations. *)
 end
@@ -970,6 +980,15 @@ module Slicing : sig
 
     val get_all : unit -> t list
       (** Get all slicing projects. *)
+
+    val set_project : t option -> unit
+      (** Get the nth project. *)
+
+    val get_project : unit -> t option
+      (** Get the nth project. *)
+
+    val get_name : (t -> string) ref
+      (** Get the slicing project name. *)
 
     (** {3 Kernel function} *)
 
@@ -998,7 +1017,7 @@ module Slicing : sig
 
     val print_dot : (filename:string -> title:string -> t -> unit) ref
       (** Print a representation of the slicing project (call graph)
-      * in a dot file which name is the given string. *)
+          in a dot file which name is the given string. *)
 
     (** {3 Internal use only} *)
 
@@ -1311,6 +1330,9 @@ module Slicing : sig
       (** Add a persistent selection request to all slices (already existing or
 	  created later) of a function to the project requests. *)
 
+    val add_persistent_cmdline : (Project.t -> unit) ref
+      (** Add persistent selection from the command line. *)
+      
     val is_already_selected_internal: (Slice.t -> Select.t -> bool) ref
       (** Return true when the requested selection is already selected into the
       * slice. *)
@@ -1453,9 +1475,11 @@ module Toplevel : sig
   val run_all_plugins : (Format.formatter -> unit) ref
 end
 
-(** This function should be called from time to time by all analyzers taking
-    time. In GUI mode, this will make the interface reactive.
-*)
+(** {3 GUI} *)
+
+(** This function should be called from time to time by all analysers taking
+    time. In GUI mode, this will make the interface reactive. 
+    @plugin developer guide *)
 val progress: (unit -> unit) ref
 
 (*

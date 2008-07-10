@@ -1,15 +1,15 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry f -slice-print
-   OPT: -security-slicing -security-analysis -lib-entry f
-   OPT: -security-slicing -security-analysis -security-lattice strong -lib-entry f
-   OPT: -security-slicing -lib-entry f1 -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry f1 -slice-print
-   OPT: -security-slicing -lib-entry f2 -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry f2 -slice-print
+   OPT: -security-slicing -lib-entry -main f -slice-print
+   OPT: -security-slicing -security-analysis -lib-entry -main f
+   OPT: -security-slicing -security-analysis -security-lattice strong -lib-entry -main f
+   OPT: -security-slicing -lib-entry -main f1 -slice-print
+   OPT: -security-slicing -security-lattice strong -lib-entry -main f1 -slice-print
+   OPT: -security-slicing -lib-entry -main f2 -slice-print
+   OPT: -security-slicing -security-lattice strong -lib-entry -main f2 -slice-print
    */
 
-/*@ requires security_status(s) == public(); */
+/*@ requires security_status(s) == public; */
 void send(int s);
 
 int c, d;
@@ -30,12 +30,12 @@ void f(void) {
   int x = 0, y, z = 2, t, u, v;
   if (c) { x++; y = x; } 
   else { x--; y = (/*@ public */ int) 0; }
-  //@ assert (security_status(y) == public()); // faille potentielle
+  //@ assert (security_status(y) == public); // faille potentielle
   x = 0;
   t = 5;
   y = u = 2 * t;
   z = v = 2 * z; // sliced
-  //@ assert (security_status(x) == private()); // OK
+  //@ assert (security_status(x) == private); // OK
   if (d) y = (/*@ public */ int) t; else y = (/*@ public */ int) 3 * x;
   send(y); // OK si pas dep. ctrl.
   g(5, 3);

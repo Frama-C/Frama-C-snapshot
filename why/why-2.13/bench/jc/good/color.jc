@@ -1,0 +1,32 @@
+
+/*
+example taken from "Coping with Type Casts in C"
+*/
+
+type Point = {
+  integer x;
+  integer y;
+}
+
+type color = 0..1
+
+tag ColorPoint = Point with {
+  color c;
+}
+
+unit translateX(Point[0] p, integer dx) {
+  p.x += dx
+}
+
+unit main(Point[0] pt, ColorPoint[0] cpt) {
+  translateX(pt, 1);
+  translateX(cpt, 1)
+}
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make color"
+End: 
+*/

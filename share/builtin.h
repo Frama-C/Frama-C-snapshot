@@ -19,6 +19,8 @@
 /*                                                                        */
 /**************************************************************************/
 
+/* $Id: builtin.h,v 1.16 2008/06/26 07:46:00 uid568 Exp $ */
+
 #ifndef Frama_C_BUILTIN
 #define Frama_C_BUILTIN
 #include "libc.h"
@@ -44,6 +46,7 @@ float Frama_C_float_interval(float min, float max);
 //  assigns ((char *)dest)[0..n-1] \from ((char *)src)[0..n-1];
 */
 void Frama_C_memcpy(void *dest, const void *src, unsigned long n);
+
 /*@
   assigns \empty;
 */

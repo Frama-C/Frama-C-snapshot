@@ -152,6 +152,8 @@
         "\\result", RESULT;
         "\\sum", IDENTIFIER "\\sum";
         "\\true", TRUE;
+        "\\type", BSTYPE;
+        "\\typeof", TYPEOF;
         "\\union", BSUNION;
         "\\valid", VALID;
         "\\valid_index", VALID_INDEX;
@@ -206,7 +208,7 @@
       }
 }
 
-let space = [' ' '\t' '\012' '\r']
+let space = [' ' '\t' '\012' '\r' '@' ]
 
 let rD =	['0'-'9']
 let rO = ['0'-'7']
@@ -227,7 +229,7 @@ let oct_escape = '\\' rO rO? rO?
 let utf8_char = ['\128'-'\254']+
 
 rule token = parse
-  | '@' | [' ' '\t' '\012' '\r']+ { token lexbuf }
+  | space+ { token lexbuf }
   | '\n' { update_newline_loc lexbuf; token lexbuf }
   | comment_line '\n' { update_newline_loc lexbuf; token lexbuf }
   | comment_line eof { token lexbuf }
@@ -238,7 +240,7 @@ rule token = parse
   | '0'['x''X'] rH+ rIS?    { CONSTANT (IntConstant (lexeme lexbuf)) }
   | '0' rD+ rIS?            { CONSTANT (IntConstant (lexeme lexbuf)) }
   | rD+ rIS?                { CONSTANT (IntConstant (lexeme lexbuf)) }
-  | ('L'? "'" as prelude) (([^'\'']|"\\'")+ as content) "'"
+  | ('L'? "'" as prelude) (([^'\'''\n']|"\\'")+ as content) "'"
       {
         let b = Buffer.create 5 in
         Buffer.add_string b prelude;
@@ -253,8 +255,9 @@ rule token = parse
   | (rD+ as n) ".."         { lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos - 2;
                               CONSTANT (IntConstant n) }
 
-  | 'L'? '"' [^ '"']* '"'   { STRING_LITERAL (lexeme lexbuf) }
+  | 'L'? '"' [^ '"''\n']* '"'   { STRING_LITERAL (lexeme lexbuf) }
 
+  | '#'                     { hash lexbuf }
   | "==>"                   { IMPLIES }
   | "<==>"                  { IFF }
   | "&&"                    { AND }
@@ -350,6 +353,45 @@ and chr buffer = parse
   | eof { Buffer.add_char buffer '\'';
           CONSTANT (IntConstant (Buffer.contents buffer)) }
   | _  { Buffer.add_string buffer (lexeme lexbuf); chr buffer lexbuf }
+
+and hash = parse
+  '\n'		{ update_newline_loc lexbuf; token lexbuf}
+| [' ''\t']		{ hash lexbuf}
+| rD+	        { (* We are seeing a line number. This is the number for the
+                   * next line *)
+                 let s = Lexing.lexeme lexbuf in
+                 let lineno = try
+                   int_of_string s
+                 with Failure ("int_of_string") ->
+                   (* the int is too big. *)
+                   Cil.warnLoc (lexbuf.lex_start_p, lexbuf.lex_curr_p)
+                     "Bad line number in preprocessed file: %s"  s;
+                   (-1)
+                 in
+                 update_line_loc lexbuf (lineno - 1) true 0;
+                  (* A file name may follow *)
+		  file lexbuf }
+| "line"        { hash lexbuf } (* MSVC line number info *)
+| _	        { endline lexbuf}
+
+and file =  parse
+        '\n'		        { update_newline_loc lexbuf; token lexbuf}
+|	[' ''\t''\r']			{ file lexbuf}
+|	'"' [^ '\012' '\t' '"']* '"'
+            {
+              let n = Lexing.lexeme lexbuf in
+              let n1 = String.sub n 1
+                ((String.length n) - 2) in
+              update_file_loc lexbuf n1;
+	      endline lexbuf
+            }
+
+|	_			{ endline lexbuf}
+
+and endline = parse
+        '\n' 			{ update_newline_loc lexbuf; token lexbuf}
+|   eof                         { EOF }
+|	_			{ endline lexbuf}
 
 {
 

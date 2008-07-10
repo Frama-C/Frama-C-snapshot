@@ -1,0 +1,14 @@
+
+(* fichier qui fait boucler la méthode actuelle de monomorphisation *)
+
+type 'a list
+
+logic one : 'a -> 'a list
+
+logic hd : 'a list -> 'a
+
+axiom hd_one : forall x:'a. hd(hd(one(one(x)))) = x
+
+goal test : forall l:int list. hd(l) = 0
+
+

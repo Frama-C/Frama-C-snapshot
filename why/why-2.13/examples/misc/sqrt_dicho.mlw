@@ -1,0 +1,22 @@
+
+(* Integer square root by dichotomy (Michel Levy) *)
+
+let sqrt = fun (x : int) ->
+  {x >= 0 }
+  begin
+    let inf = ref 0 in let  sup = ref (x+1)in let mil = ref 0  in
+    begin
+      while (!inf +1 <> !sup) do
+	  { invariant 
+                inf*inf <= x
+	    and x < sup*sup
+	    and inf < sup
+	      variant (sup - inf)}
+	  mil := (!inf + !sup + 1)/ 2;
+	  if x < !mil * !mil then sup := !mil else inf := !mil
+	done;
+	!inf
+      end
+  end
+  { result*result <= x and x < (result+1)*(result+1) }
+	

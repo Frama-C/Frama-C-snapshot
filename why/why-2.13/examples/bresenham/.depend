@@ -1,0 +1,3 @@
+bresenham_valid.vo: bresenham_valid.v ../../lib/coq/Why.vo bresenham_why.vo
+bresenham_why.vo: bresenham_why.v zaux.vo ../../lib/coq/Why.vo
+zaux.vo: zaux.v

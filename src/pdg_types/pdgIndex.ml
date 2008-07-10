@@ -36,12 +36,11 @@ let is_call_stmt stmt =
   match stmt.skind with Instr (Call _) -> true | _ -> false
 
 module Signature = struct
-  type t_in_key = InCtrl | InTop | InNum of int | InImpl of Locations.Zone.t
+  type t_in_key = InCtrl | InNum of int | InImpl of Locations.Zone.t
   type t_out_key = OutRet | OutLoc of Locations.Zone.t
   type t_key = In of t_in_key | Out of t_out_key
 
   type 'info t = { in_ctrl : 'info option ;
-                   in_top : 'info option ;
                    in_params : (int * 'info) list ;
     (** implicit inputs :
     * Maybe we should use [Lmap_bitwise.Make_bitwise] ?
@@ -51,14 +50,14 @@ module Signature = struct
                    outputs : (Locations.Zone.t * 'info) list
                  }
 
-  let empty = { in_ctrl = None ; in_top = None ;
+  let empty = { in_ctrl = None ;
                 in_params = [] ; in_implicits = [] ;
                 out_ret = None; outputs = [] }
 
   let in_key n = In (InNum n)
   let in_impl_key loc = In (InImpl loc)
+  let in_top_key = in_impl_key (Locations.Zone.top)
   let in_ctrl_key = In InCtrl
-  let in_top_key = In InTop
   let out_ret_key = Out OutRet
   let out_key out = Out (OutLoc out)
 
@@ -68,7 +67,7 @@ module Signature = struct
 
   let copy sgn = sgn
 
-  (** InTop < InCtrl < InNum < InImpl *)
+  (** InCtrl < InNum < InImpl *)
   let cmp_in_key k1 k2 = match k1, k2 with
     | (InImpl z1), (InImpl z2) when Locations.Zone.equal z1 z2 -> 0
     | (InImpl _), (InImpl _) -> raise Not_equal
@@ -78,9 +77,6 @@ module Signature = struct
     | (InNum _), _ -> 1
     | _, (InNum _) -> -1
     | InCtrl, InCtrl -> 0
-    | InCtrl, InTop -> 1
-    | InTop, InCtrl -> -1
-    | InTop, InTop -> 0
 
   (** OutRet < OutLoc *)
   let cmp_out_key k1 k2 = match k1, k2 with
@@ -151,9 +147,7 @@ module Signature = struct
     in { sgn with in_ctrl = Some new_info }
 
   let add_in_top sgn info ~replace =
-    let new_info = match sgn.in_top with None -> info
-      | Some old -> add_replace replace old info
-    in { sgn with in_top = Some new_info }
+    add_impl_input sgn (Locations.Zone.top) info replace
 
   let add_out_ret sgn info ~replace =
     let new_info = match sgn.out_ret with None -> info
@@ -163,7 +157,6 @@ module Signature = struct
   let add_info sgn key info ~replace =
     match key with
       | In InCtrl -> add_in_ctrl sgn info replace
-      | In InTop -> add_in_top sgn info replace
       | In (InNum n) -> add_input sgn n info replace
       | In (InImpl loc) -> add_impl_input sgn loc info replace
       | Out OutRet -> add_out_ret sgn info replace
@@ -193,10 +186,6 @@ module Signature = struct
     | Some i -> i
     | None -> raise NotFound
 
-  let find_in_top sgn = match sgn.in_top with
-    | Some i -> i
-    | None -> raise NotFound
-
   (** try to find an exact match with loc.
   * we shouldn't try to find a zone that we don't have... *)
   let find_implicit_input sgn loc =
@@ -208,10 +197,12 @@ module Signature = struct
     in
     find sgn.in_implicits
 
+  let find_in_top sgn =
+    find_implicit_input sgn Locations.Zone.top
+
   let find_in_info sgn in_key =
     match in_key with
     | InCtrl -> find_in_ctrl sgn
-    | InTop -> find_in_top sgn
     | (InNum n) -> find_input sgn n
     | (InImpl loc) -> find_implicit_input sgn loc
 
@@ -238,7 +229,7 @@ module Signature = struct
 
   let fold_impl_inputs f acc sgn = List.fold_left f acc sgn.in_implicits
 
-  let fold_matching_impl_inputs loc f acc sgn = 
+  let fold_matching_impl_inputs loc f acc sgn =
     let test acc (in_loc, info) =
       if (Locations.Zone.intersects in_loc loc) then f acc (in_loc, info)
       else acc
@@ -248,9 +239,6 @@ module Signature = struct
     let acc = match  sgn.in_ctrl with
       | None -> acc
       | Some info -> f acc (InCtrl, info) in
-    let acc = match  sgn.in_top with
-      | None -> acc
-      | Some info -> f acc (InTop, info) in
     let acc =
       fold_num_inputs (fun acc (n, info) -> f acc ((InNum n), info)) acc sgn
     in
@@ -271,25 +259,19 @@ module Signature = struct
       | _, None -> sgn1.in_ctrl
       | Some i1, Some i2 -> Some (merge_info i1 i2)
     in
-    let in_top = match sgn1.in_top, sgn2.in_top with
-      | None, _ -> sgn2.in_top
-      | _, None -> sgn1.in_top
-      | Some i1, Some i2 -> Some (merge_info i1 i2)
-    in
     assert (sgn1.in_implicits = [] && sgn2.in_implicits = []);
     let out_ret = match sgn1.out_ret, sgn2.out_ret with
       | None, _ -> sgn2.out_ret
       | _, None -> sgn1.out_ret
       | Some i1, Some i2 -> Some (merge_info i1 i2)
     in
-    { in_ctrl = in_ctrl; in_top = in_top; in_params = inputs ;
+    { in_ctrl = in_ctrl; in_params = inputs ;
       in_implicits = [] ;
       out_ret = out_ret ; outputs = outputs }
 
   let pretty_in_key fmt key = match key with
     | (InNum n)  -> Format.fprintf fmt "In%d" n
     | InCtrl -> Format.fprintf fmt "InCtrl"
-    | InTop -> Format.fprintf fmt "InTop"
     | InImpl loc ->
 	Format.fprintf fmt "@[<h 1>In(%a)@]" Locations.Zone.pretty loc
 
@@ -376,7 +358,8 @@ module Key = struct
           | Goto _ | Break _ | Continue _ | Return _ | Instr _ ->
               Cil.fprintf_to_string "@[<h 1>%a@]"
                 (Cil.defaultCilPrinter#pStmtKind s) s.skind
-          | _ -> "ERROR"
+          | UnspecifiedSequence _ -> "unspecified sequence"
+          | TryExcept _ | TryFinally _  -> "ERROR"
       in Format.fprintf fmt "%s" str
     in
       match k with
@@ -463,8 +446,6 @@ end = struct
     mutable sgn : 'a Signature.t ;
     (** calls signatures *)
     mutable calls : (Key.t_call_id * ('b option * 'a Signature.t)) list ;
-    (* annotations : sorted with CodeAn < LoopAn, and then by id *)
-    (* mutable annots : (Key.annot_key * 'a) list ; *)
     (** everything else *)
     other : 'a H.t
   }

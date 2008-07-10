@@ -1,0 +1,30 @@
+arith_valid.vo: arith_valid.v ../../lib/coq/Why.vo arith_why.vo
+arith_why.vo: arith_why.v ../../lib/coq/Why.vo
+copy_why.vo: copy_why.v ../../lib/coq/Why.vo ../../lib/coq/WhyFloat.vo
+csearch_why.vo: csearch_why.v ../../lib/coq/Why.vo
+fib_valid.vo: fib_valid.v ../../lib/coq/Why.vo fib_why.vo
+fib_why.vo: fib_why.v ../../lib/coq/Why.vo
+flag_ax_valid.vo: flag_ax_valid.v ../../lib/coq/Why.vo flag_ax_why.vo
+flag_ax_why.vo: flag_ax_why.v ../../lib/coq/Why.vo
+flag_valid.vo: flag_valid.v ../../lib/coq/Why.vo flag_why.vo
+flag_why.vo: flag_why.v ../../lib/coq/Why.vo
+gcd_valid.vo: gcd_valid.v ../../lib/coq/Why.vo gcd_why.vo
+gcd_why.vo: gcd_why.v ../../lib/coq/Why.vo
+loop0_valid.vo: loop0_valid.v ../../lib/coq/Why.vo loop0_why.vo
+loop0_why.vo: loop0_why.v ../../lib/coq/Why.vo
+mac_carthy_valid.vo: mac_carthy_valid.v ../../lib/coq/Why.vo mac_carthy_why.vo
+mac_carthy_why.vo: mac_carthy_why.v ../../lib/coq/Why.vo
+max_valid.vo: max_valid.v ../../lib/coq/Why.vo max_why.vo
+max_why.vo: max_why.v ../../lib/coq/Why.vo
+peano_valid.vo: peano_valid.v ../../lib/coq/Why.vo peano_why.vo
+peano_why.vo: peano_why.v ../../lib/coq/Why.vo
+power_valid.vo: power_valid.v ../../lib/coq/Why.vo power_why.vo
+power_why.vo: power_why.v ../../lib/coq/Why.vo
+search_valid.vo: search_valid.v ../../lib/coq/Why.vo search_why.vo
+search_why.vo: search_why.v ../../lib/coq/Why.vo
+sqrt_dicho_valid.vo: sqrt_dicho_valid.v ../../lib/coq/Why.vo sqrt_dicho_why.vo
+sqrt_dicho_why.vo: sqrt_dicho_why.v ../../lib/coq/Why.vo
+sum_valid.vo: sum_valid.v ../../lib/coq/Why.vo sum_why.vo
+sum_why.vo: sum_why.v ../../lib/coq/Why.vo
+swap0_valid.vo: swap0_valid.v ../../lib/coq/Why.vo swap0_why.vo
+swap0_why.vo: swap0_why.v ../../lib/coq/Why.vo

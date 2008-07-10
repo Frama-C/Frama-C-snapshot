@@ -1,12 +1,12 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry f -security-lattice weak
-   OPT: -security-analysis -lib-entry f -security-lattice strong
+   OPT: -security-analysis -lib-entry -main f -security-lattice weak
+   OPT: -security-analysis -lib-entry -main f -security-lattice strong
    */
 
 int c;
 
-/*@ requires security_status(x) == public(); */
+/*@ requires security_status(x) == public; */
 void send(int x);
 
 int y;

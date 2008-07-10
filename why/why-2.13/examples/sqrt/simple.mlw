@@ -1,0 +1,14 @@
+let sqrt (n:int) =
+  { n >= 0 } 
+  let count = ref 0 in
+  let sum = ref 1 in
+  while !sum <= n do
+    { invariant count >= 0 and n >= count*count 
+            and sum = (count+1)*(count+1)
+      variant n - sum }
+    count := !count + 1;
+    sum := !sum + 2 * !count + 1
+  done;
+  !count
+  { result >= 0 and 
+    result * result <= n < (result+1)*(result+1) }

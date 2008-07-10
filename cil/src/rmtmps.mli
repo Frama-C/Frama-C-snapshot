@@ -83,3 +83,4 @@ val removeUnusedTemps: ?isRoot:rootsFilter -> Cil_types.file -> unit
 
 val keepUnused: bool ref (* Set this to true to turn off this module *)
 val rmUnusedInlines: bool ref (* Delete unused inline funcs in gcc mode? *)
+val rmUnusedStatic: bool ref (* Delete unused static functions? *)

@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -lib-entry f -slevel 4
-   OPT: -security-analysis -lib-entry g
+   OPT: -security-analysis -lib-entry -main f -slevel 4
+   OPT: -security-analysis -lib-entry -main g
    */
 
 //#define GCC
@@ -16,7 +16,7 @@
 int *x;
 int t[4];
 
-/*@ requires security_status(x) == public(); */
+/*@ requires security_status(x) == public; */
 void send(int x);
 
 /* ************************************************************************* */

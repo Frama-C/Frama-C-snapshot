@@ -16,7 +16,7 @@
 typedef struct t_ { int a; int b; } t;
 typedef struct u_ { int a; int *b; t *c; struct u_ *d; } u;
 
-/*@ requires security_status(v) == public(); */
+/*@ requires security_status(v) == public; */
 void send(int v);
 
 void send_t(const t *a) {

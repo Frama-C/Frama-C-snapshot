@@ -1,0 +1,35 @@
+# InvariantPolicy = Ownership
+
+type A = {
+  integer x;
+  invariant pos(this) = this.x > 0;
+}
+
+integer f(A[0] a)
+    requires \mutable(a, A);
+  behavior ok:
+    ensures true;
+{
+    assert a.x != 0;
+    return 100/a.x;
+}
+
+unit g(A[0] a)
+    requires \mutable(a, \typeof(a)) && a.committed == false;
+  behavior ok:
+    ensures \mutable(a, A) && a.committed == false;
+{
+    unpack(a);
+    a.x -= 1;
+    var integer r = f(a); // erreur
+    a.x += 1;
+    pack(a, A);
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make invariants"
+End: 
+*/
+

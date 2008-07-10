@@ -40,6 +40,7 @@
 
 open Cil
 open Cil_types
+open Cilutil
 
 type t =
     { sloc: int;
@@ -49,16 +50,35 @@ type t =
       if_statements: int;
       loop_statements: int;
       mem_access: int;
-      functions_without_source: VarinfoSet.t;
-      functions_with_source: VarinfoSet.t;
+      functions_without_source: int VarinfoHashtbl.t;
+      functions_with_source: int VarinfoHashtbl.t;
     }
 
 let pretty_set fmt s =
   Format.fprintf fmt "@[";
-  VarinfoSet.iter (fun e ->
-                     Format.fprintf fmt "%s %s;@ " e.vname
-                       (if e.vaddrof then "(address taken)" else ""))
-                       s;
+  VarinfoHashtbl.iter 
+    (fun f n ->
+       Format.fprintf fmt "%s %s (%d call%s);@ " 
+	 f.vname
+         (if f.vaddrof then "(address taken)" else "")
+	 n (if n > 1 then "s" else ""))
+    s;
+  Format.fprintf fmt "@]"
+
+let number_entry_points fs =
+  VarinfoHashtbl.fold 
+    (fun f n acc -> if n = 0 && not f.vaddrof then succ acc else acc)
+    fs
+    0
+
+let pretty_entry_points fmt fs =
+  let print =   
+    VarinfoHashtbl.iter 
+      (fun f n -> 
+	 if n = 0 && not f.vaddrof then Format.fprintf fmt "%s;@ " f.vname)
+  in
+  Format.fprintf fmt "@[";
+  print fs;
   Format.fprintf fmt "@]"
 
 let pretty fmt { if_statements = ifs;
@@ -72,18 +92,30 @@ let pretty fmt { if_statements = ifs;
                  functions_with_source = fs; } =
 
   Format.fprintf fmt
-    "@[SLOC: %d@\nDefined function (%d):@\n  @[%a@]@\nUndefined functions (%d):@\n  @[%a@]@\nNumber of if statements %d@\nNumber of assignments %d@\nNumber of loops %d@\nNumber of calls %d@\nNumber of gotos %d@\nNumber of pointer access %d@]"
-    sloc
-    (VarinfoSet.cardinal fs)
+    "@[Defined function (%d):@\n  @[%a@]@\nUndefined functions (%d):@\n  @[%a@]@\nPotential entry points (%d):@\n  @[%a@]@\nSLOC: %d@\nNumber of if statements %d@\nNumber of assignments %d@\nNumber of loops %d@\nNumber of calls %d@\nNumber of gotos %d@\nNumber of pointer access %d@]"
+    (VarinfoHashtbl.length fs)
     pretty_set fs
-    (VarinfoSet.cardinal fws)
+    (VarinfoHashtbl.length fws)
     pretty_set fws
+    (number_entry_points fs)
+    pretty_entry_points fs
+    sloc
     ifs
     assigns
     loops
     calls
     gotos
     mem_access
+
+let dump filename data =
+  try
+    let cout = open_out_bin filename in
+    let fmt = Format.formatter_of_out_channel cout in
+    pretty fmt data;
+    close_out cout
+  with Sys_error _ as e ->
+    Cil.warn "Cannot open file %s for dumpimp metrics: %s" 
+      filename (Printexc.to_string e)
 
 class slocVisitor = object
   inherit nopCilVisitor
@@ -100,26 +132,32 @@ class slocVisitor = object
   method ifs = ifs
   val mutable mem_access = 0
   method mem_access = mem_access
-  val mutable functions_no_source = VarinfoSet.empty
-  val mutable functions_with_source = VarinfoSet.empty
+  val functions_no_source = VarinfoHashtbl.create 97
+  val functions_with_source = VarinfoHashtbl.create 97
   method functions_no_source = functions_no_source
   method functions_with_source = functions_with_source
   method vvdec vi =
-    begin
-      if isFunctionType vi.vtype then
-        match (VarinfoSet.mem vi functions_with_source,
-               VarinfoSet.mem vi functions_no_source)
-        with
-        | true, true -> assert false
-        | true, false | false,true -> ()
-        | false,false ->
-            functions_no_source <- VarinfoSet.add vi functions_no_source
-    end;
+    if isFunctionType vi.vtype then
+      if not (VarinfoHashtbl.mem functions_with_source vi) then
+	VarinfoHashtbl.replace functions_no_source vi
+	  (try VarinfoHashtbl.find functions_no_source vi
+	   with Not_found -> 0);
     DoChildren
-  method vfunc fdec =
-    functions_with_source <- VarinfoSet.add fdec.svar functions_with_source;
-    functions_no_source <- VarinfoSet.remove fdec.svar functions_no_source;
 
+  method vfunc fdec =
+    let n =
+      try 
+	let n = VarinfoHashtbl.find functions_no_source fdec.svar in
+	VarinfoHashtbl.remove functions_no_source fdec.svar;
+	n
+      with Not_found ->	
+	0
+    in
+    let n =
+      try VarinfoHashtbl.find functions_with_source fdec.svar + n
+      with Not_found -> n
+    in
+    VarinfoHashtbl.replace functions_with_source fdec.svar n;
     DoChildren
 
   method vlval (host,_) =
@@ -143,7 +181,18 @@ class slocVisitor = object
 
   method vinst i =
     begin match i with
-    | Call _ -> calls <- calls + 1
+    | Call(_, e, _, _) -> 
+	calls <- calls + 1;
+	(match e with
+	 | Lval(Var v, NoOffset) ->
+	     let next tbl =
+	       VarinfoHashtbl.replace tbl v (succ (VarinfoHashtbl.find tbl v))
+	     in begin
+	       try next functions_with_source 		
+	       with Not_found -> 
+		 try next functions_no_source with Not_found -> assert false
+	     end
+	 | _ -> ())
     | Set _ -> assigns <- assigns + 1
     | _ -> ()
     end;

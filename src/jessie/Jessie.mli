@@ -19,8 +19,8 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: Jessie.mli,v 1.7 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: Jessie.mli,v 1.8 2008/07/03 13:54:23 uid568 Exp $ *)
 
 (** C to Jessie translation. *)
 
-(** No function is directly exported: they are registered in {!Db.Security}. *)
+(** No function is directly exported: they are registered in {!Db.Jessie}. *)

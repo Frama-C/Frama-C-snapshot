@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cmdline.ml,v 1.162 2008/05/22 11:06:58 uid526 Exp $ *)
+(* $Id: cmdline.ml,v 1.177 2008/07/04 09:34:09 uid524 Exp $ *)
 
 (** Bunch of values which may be initialized through command line. *)
 
@@ -65,6 +65,7 @@ module type S = sig
   val clear: unit -> unit
   val is_set: unit -> bool
   include Project.Computation.OUTPUT
+  val equal: t -> t -> bool
 end
 
 type 'a option_accessor = {get : unit -> 'a ; set : 'a -> unit }
@@ -109,10 +110,13 @@ struct
   let is_set () = not (X.equal X.default (get ()))
 
   let set x =
-    set x;
-    if is_set () then Selected_Options.extend (fun () -> set x)
+    if not (X.equal x (get ())) then begin
+      set x;
+      if is_set () then Selected_Options.extend (fun () -> set x)
+    end
 
   let clear () = set X.default
+  let equal = X.equal
 
 end
 
@@ -129,7 +133,8 @@ module Bool(X:sig val default: bool val name: string end) = struct
   let on () = set true
   let off () = set false
   let () =
-    options := (Bool{get=get;set=set}, Project.Computation.Name.get name) :: !options
+    options := 
+      (Bool{get=get;set=set}, Project.Computation.Name.get name) :: !options
 end
 
 (** Build a boolean option initialized to [false]. *)
@@ -152,8 +157,8 @@ module Int(X: sig val default: int val name: string end) = struct
   include Build(struct type t = int include X let equal = (=) end)
   let incr () = set (succ (get ()))
   let () =
-    options := (Int{get=get;set=set}, Project.Computation.Name.get name) :: !options
-
+    options := 
+      (Int{get=get;set=set}, Project.Computation.Name.get name) :: !options
 end
 
 (** Build an integer option initialized to [0]. *)
@@ -165,12 +170,12 @@ module Zero(X: sig val name: string end) =
 module type STRING = S with type t = string
 
 (** Build a string option. *)
-module String(X: sig val default: string val name: string end) =
-  struct 
-    include Build(struct type t = string include X let equal = (=) end)
-    let () =
-      options := (String{get=get;set=set}, Project.Computation.Name.get name) :: !options
-  end
+module String(X: sig val default: string val name: string end) = struct 
+  include Build(struct type t = string include X let equal = (=) end)
+  let () =
+    options := 
+      (String{get=get;set=set}, Project.Computation.Name.get name) :: !options
+end
 
 (** Build a string option initialized to [""]. *)
 module EmptyString(X: sig val name: string end) =
@@ -263,11 +268,12 @@ module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
     let after_load () = ()
     let get () = !curr_choice
     let set s =
-      if Hashtbl.mem options !s then
-        curr_choice:=s
-      else
-        Printf.eprintf
-          "Warning: %s: identifier %s is not a valid index for this option. \
+      if s <> get () then
+	if Hashtbl.mem options !s then
+          curr_choice:=s
+	else
+          Printf.eprintf
+            "Warning: %s: identifier %s is not a valid index for this option. \
          Option is unchanged.\n" V.name !s
 
     let dependencies = []
@@ -275,6 +281,8 @@ module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
     let rehash s = copy s
     let clear tbl = tbl:= V.default_key
   end
+
+  let equal = (=)
 
   module State =
     Project.Computation.Register
@@ -286,16 +294,18 @@ module IndexedVal (V:COMPLEX_VALUE):INDEXED_VAL with type value = V.t = struct
 
   include State
 
-  let set s =
-    if Hashtbl.mem options s then
-      !curr_choice:=s
-    else
-      Printf.eprintf
-        "Warning: %s: identifier %s is not a valid index for this option. \
-         Option is unchanged.\n" V.name s
-
   let get () = !(!curr_choice)
   let get_val () = Hashtbl.find options (get())
+
+  let set s =
+    if s <> get () then
+      if Hashtbl.mem options s then
+	!curr_choice:=s
+      else
+	Printf.eprintf
+          "Warning: %s: identifier %s is not a valid index for this option. \
+         Option is unchanged.\n" V.name s
+
   let clear () = !curr_choice:=V.default_key
   let is_set () = !(!curr_choice) <> V.default_key
 
@@ -318,7 +328,14 @@ module UseUnicode = struct
 end
 
 module Obfuscate = False(struct let name = "Cmdline.obfuscate" end)
-module Metrics = False(struct let name = "Cmdline.metrics" end)
+
+module Metrics = struct
+  module Print = False(struct let name = "pretty print metrics on stdout" end)
+  module Dump = 
+    EmptyString(struct let name = "pretty print metrics in a file" end)
+  let is_on () = Print.is_set () || Dump.is_set ()
+end
+
 module ForceDeps = False(struct let name = "Cmdline.force deps" end)
 module ForceCallDeps = False(struct let name = "Cmdline.force call deps" end)
 module ForceUsers = False(struct let name = "Cmdline.force users" end)
@@ -345,21 +362,25 @@ module MainFunction = struct
     String(struct let default = "main" let name = "Cmdline.MainFunction" end)
   let unsafe_set = set
   let set x =
-    set x;
-    Project.clear
-      ~only:(Project.Selection.singleton self Kind.Only_Select_Dependencies)
-      ()
+    if not (equal x (get ())) then begin
+      set x;
+      Project.clear
+	~only:(Project.Selection.singleton self Kind.Only_Select_Dependencies)
+	()
+    end
 (*  let () = depend Cil_state.self *)
 end
 
 module LibEntry = struct
-  include EmptyString(struct let name = "Cmdline.LibEntry" end)
+  include Bool(struct let name = "Cmdline.LibEntry" let default = false end)
   let unsafe_set = set
   let set x =
-    set x;
-    Project.clear
-      ~only:(Project.Selection.singleton self Kind.Only_Select_Dependencies)
-      ()
+    if not (equal x (get ())) then begin
+      set x;
+      Project.clear
+	~only:(Project.Selection.singleton self Kind.Only_Select_Dependencies)
+	()
+    end
 (*  let () = depend Cil_state.self *)
 end
 
@@ -414,6 +435,9 @@ module LeafFuncReturnInt =
 module AutomaticContextMaxDepth =
   Int(struct let name = "Cmdline.AutomaticContextMaxDepth" let default = 2 end)
 
+module AutomaticContextMaxWidth =
+  Int(struct let name = "Cmdline.AutomaticContextMaxWidth" let default = 2 end)
+
 module AllocatedContextValid =
   False(struct let name = "Cmdline.allocated contex valid" end)
 
@@ -432,9 +456,11 @@ module KeepOnlyLastRun =
 module MemoryFootprint = struct
   include Int(struct let name = "Cmdline.memory footprint" let default = 2 end)
   let set x =
-    Binary_cache.MemoryFootprint.set x;
-    Buckx.MemoryFootprint.set x;
-    set x
+    if not (equal x (get ())) then begin
+      Binary_cache.MemoryFootprint.set x;
+      Buckx.MemoryFootprint.set x;
+      set x
+    end
 end
 
 module FloatDigits =
@@ -510,10 +536,7 @@ module Security = struct
   let is_on () = Analysis.get () || Slicing.get ()
 
   module LogicAnnotation =
-    String(struct
-	     let name = "Cmdline.Security.LogicAnnotation"
-	     let default = "medium"
-	   end)
+    EmptyString(struct let name = "Cmdline.Security.LogicAnnotation" end)
 
   module Debug = Zero(struct let name = "Cmdline.Security.Debug" end)
 
@@ -539,6 +562,7 @@ module Jessie = struct
   module ProjectName = EmptyString(struct let name = "Cmdline.jessie project name" end)
   module Analysis = False(struct let name = "Cmdline.jessie analysis" end)
   module Gui = False(struct let name = "Cmdline.jessie gui" end)
+  module JcOpt = StringSet(struct let name = "Cmdline.jessie jc opt" end)
   module WhyOpt = StringSet(struct let name = "Cmdline.jessie why opt" end)
   type int_model = IMexact | IMbounded | IMmodulo
   module IntModel =
@@ -572,6 +596,7 @@ end
 
 module Sparecode = struct
   module Analysis = False(struct let name = "Cmdline.sparecode analysis" end)
+  module NoAnnot = False(struct let name = "Cmdline.sparecode no annot" end)
 end
 
 
@@ -621,9 +646,15 @@ end
 module Constfold = False(struct let name = "Cmdline.constfold" end)
 module Constant_Propagation = struct
   module SemanticConstFolding =
-    False(struct let name = "Cmdline.SemanticConstFolding" end)
+    False
+      (struct
+         let name = "Cmdline.Constant_Propagation.SemanticConstFolding"
+       end)
   module SemanticConstFold =
-    StringSet(struct let name = "Cmdline.SemanticConstFold" end)
+    StringSet
+      (struct let name = "Cmdline.Constant_Propagation.SemanticConstFold" end)
+  module CastIntro =
+    False(struct let name = "Cmdline.Constant_Propagation.CastIntro" end)
 end
 
 (** {3 Cxx options} *)
@@ -646,6 +677,23 @@ module Occurrence = struct
   module Print = False(struct let name = "Occurrence.Print" end)
 end
 
+(** {2 Options which define context of analyses } *)
+
+let get_selection_context () =
+  let a o = Project.Selection.add o Kind.Do_Not_Select_Dependencies in
+  let sel_ctx = Project.Selection.empty in
+  (* Value analysis *)
+  let sel_ctx = a MinValidAbsoluteAddress.self sel_ctx in
+  let sel_ctx = a MaxValidAbsoluteAddress.self sel_ctx in
+  let sel_ctx = a AutomaticContextMaxDepth.self sel_ctx in
+  let sel_ctx = a AllocatedContextValid.self sel_ctx in
+  let sel_ctx = a IgnoreOverflow.self sel_ctx in
+  let sel_ctx = a UnsafeArrays.self sel_ctx in
+  (* General options *)
+  let sel_ctx = a Machdep.self sel_ctx in
+  let sel_ctx = a LibEntry.self sel_ctx in
+  a MainFunction.self sel_ctx
+  
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

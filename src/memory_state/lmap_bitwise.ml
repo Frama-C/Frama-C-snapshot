@@ -432,10 +432,10 @@ module Make_bitwise (V:With_default) = struct
                     (fun start acc ->
                       let stop = Int.pred (Int.add start size) in
 		      match validity with
-		      | Base.Known (b,e) when Int.lt start b
+		      | (Base.Known (b,e) | Base.Unknown (b,e)) when Int.lt start b
 			    || Int.gt stop e ->
 			  acc
-		      | Base.Known _ | Base.All | Base.Unknown ->
+		      | Base.Known _ | Base.All | Base.Unknown _ ->
 			  let default = V.default k_src in
 			  let copy =
 			    LOffset.copy ~f:(Some (f, default))
@@ -505,10 +505,10 @@ module Make_bitwise (V:With_default) = struct
             (fun start_to acc ->
 	      let stop_to = Int.pred (Int.add start_to size) in
 	      match validity with
-	      | Base.Known (b,e) when Int.lt start_to b || Int.gt stop_to e ->
+	      | Base.Known (b,e) | Base.Unknown (b,e) when Int.lt start_to b || Int.gt stop_to e ->
 		  CilE.warn_mem_write CilE.warn_all_mode;
 		  acc
-	      | Base.Known _ | Base.All | Base.Unknown ->
+	      | Base.Known _ | Base.All | Base.Unknown _ ->
 		  had_non_bottom := true;
 		  (if dst_is_exact
 		    then LOffset.copy_paste ~f:None

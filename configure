@@ -660,8 +660,6 @@ OCAMLDEPDOTOPT
 OCAMLLEX
 OCAMLLEXDOTOPT
 OCAMLYACC
-CAMLP4O
-CAMLP4OOF
 OCAMLDOC
 OCAMLMKTOP
 OTAGS
@@ -684,6 +682,7 @@ OCAMLBEST
 OCAMLVERSION
 OCAMLLIB
 OCAMLWIN32
+CAMLP4O
 EXE
 HAVE_STDLIB_H
 HAVE_WCHAR_H
@@ -693,6 +692,7 @@ THREAD_IS_KEYWORD
 UNDERSCORE_NAME
 HAS_PERFCOUNT
 CYCLES_PER_USEC
+LOCAL_MACHDEP
 HAS_LABLGTK
 HAS_GTKSOURCEVIEW
 HAS_LEGACY_GTKSOURCEVIEW
@@ -1303,6 +1303,9 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-verbosemake    verbose makefile commands
+  --enable-unsupported-ocaml
+    attempt to compile even against unsupported ocaml version
+  --enable-localmachdep    enable local machdep configuration
   --enable-constant_propagation
                           support for constant propagation plugin (default: yes)
   --enable-cxx            support for cxx plugin (default: no)
@@ -1325,8 +1328,6 @@ Optional Features:
   --enable-users          support for users analysis (default: yes)
   --enable-value          support for value analysis (default: yes)
   --enable-wp             support for wp plugin (default: yes)
-  --enable-gtksourceview  uses lablgtksourceview for the gui
-                          (default: auto-detected)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1767,9 +1768,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 export CYGWIN=nobinmode
 
-ac_config_headers="$ac_config_headers config.h"
-
-
 upper() {
   echo "$1" | tr "a-z" "A-Z"
 }
@@ -1865,6 +1863,16 @@ fi
 # Check for Ocaml compilers #
 #############################
 
+# Specifically allow 3.10.0
+UNSUPPORTED_OCAML=no
+# Check whether --enable-unsupported-ocaml was given.
+if test "${enable_unsupported_ocaml+set}" = set; then
+  enableval=$enable_unsupported_ocaml; UNSUPPORTED_OCAML=yes
+else
+  UNSUPPORTED_OCAML=no
+fi
+
+
 new_section "configure ocaml compilers"
 
 # we first look for ocamlc in the path; if not present, we fail
@@ -1917,11 +1925,27 @@ OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 echo $ECHO_N "ocaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
   3.09.3*) echo "${ECHO_T}Good!";;
-  3.09*) echo "${ECHO_T}Warning: unsupported version. Compile at your own risks";;
-  3.0*) echo "${ECHO_T}Unsupported version!"; exit 2;;
-  3.10.0) echo "${ECHO_T}Warning: unsupported version. Compile at your own risks";;
+  3.09*) echo "${ECHO_T}Warning: unsupported version.";
+         if test "$UNSUPPORTED_OCAML" == "yes"; then
+           echo "Compile at your own risks";
+         else
+           echo "If you want to compile Frama-C with this version, use the \
+--enable-unsupported-ocaml option of configure";
+           exit 2;
+         fi
+         ;;
+  3.0*) echo "${ECHO_T}Incompatible version!"; exit 2;;
+  3.10.0) echo "${ECHO_T}Warning: unsupported version." ;
+         if test "$UNSUPPORTED_OCAML" == "yes"; then
+           echo "Compile at your own risks";
+         else
+           echo "If you want to compile Frama-C with this version, use the \
+--enable-unsupported-ocaml option of configure";
+           exit 2;
+         fi
+         ;;
   3.*) echo "${ECHO_T}Good!";;
-  *) echo "${ECHO_T}Unsupported version!"; exit 2;;
+  *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
 # Ocaml library path
@@ -2321,98 +2345,7 @@ echo "$as_me: error: Cannot find ocamlyacc." >&2;}
    { (exit 1); exit 1; }; }
 fi
 
-# camlp4o
-# Extract the first word of "camlp4o", so it can be a program name with args.
-set dummy camlp4o; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_CAMLP4O+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$CAMLP4O"; then
-  ac_cv_prog_CAMLP4O="$CAMLP4O" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_CAMLP4O="camlp4o"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_CAMLP4O" && ac_cv_prog_CAMLP4O="no"
-fi
-fi
-CAMLP4O=$ac_cv_prog_CAMLP4O
-if test -n "$CAMLP4O"; then
-  { echo "$as_me:$LINENO: result: $CAMLP4O" >&5
-echo "${ECHO_T}$CAMLP4O" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
-if test "$CAMLP4O" == no ; then
-   { { echo "$as_me:$LINENO: error: You need to install camlp4." >&5
-echo "$as_me: error: You need to install camlp4." >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
 # camlp4oof
-# Extract the first word of "camlp4oof", so it can be a program name with args.
-set dummy camlp4oof; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_CAMLP4OOF+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if test -n "$CAMLP4OOF"; then
-  ac_cv_prog_CAMLP4OOF="$CAMLP4OOF" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_CAMLP4OOF="camlp4oof"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_CAMLP4OOF" && ac_cv_prog_CAMLP4OOF="no"
-fi
-fi
-CAMLP4OOF=$ac_cv_prog_CAMLP4OOF
-if test -n "$CAMLP4OOF"; then
-  { echo "$as_me:$LINENO: result: $CAMLP4OOF" >&5
-echo "${ECHO_T}$CAMLP4OOF" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
-if test "$CAMLP4OOF" == no ; then
-  case $OCAMLVERSION in
-    3.09*) CAMLP4OOF="$CAMLP4O pa_macro.cmo pr_o.cmo" ;;
-    *) { { echo "$as_me:$LINENO: error: You need to install camlp4." >&5
-echo "$as_me: error: You need to install camlp4." >&2;}
-   { (exit 1); exit 1; }; };;
-  esac
-fi
 
 # ocamlgraph
 
@@ -2471,6 +2404,36 @@ fi
          { echo "$as_me:$LINENO: Unarchiving ocamlgraph.tar.gz" >&5
 echo "$as_me: Unarchiving ocamlgraph.tar.gz" >&6;}
          tar zxf ocamlgraph.tar.gz
+ fi
+else
+ { echo "$as_me:$LINENO: checking for ocamlgraph.tar.gz" >&5
+echo $ECHO_N "checking for ocamlgraph.tar.gz... $ECHO_C" >&6; }
+if test "${ac_cv_file_ocamlgraph_tar_gz+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "ocamlgraph.tar.gz"; then
+  ac_cv_file_ocamlgraph_tar_gz=yes
+else
+  ac_cv_file_ocamlgraph_tar_gz=no
+fi
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_file_ocamlgraph_tar_gz" >&5
+echo "${ECHO_T}$ac_cv_file_ocamlgraph_tar_gz" >&6; }
+if test $ac_cv_file_ocamlgraph_tar_gz = yes; then
+  OCAMLGRAPH_TAR=yes
+fi
+
+ if test "$OCAMLGRAPH_TAR" == "yes"; then
+   if test ocamlgraph.tar.gz -nt ocamlgraph; then
+     rm -rf ocamlgraph
+     { echo "$as_me:$LINENO: Ocamlgraph updated" >&5
+echo "$as_me: Ocamlgraph updated" >&6;}
+     tar zxf ocamlgraph.tar.gz
+   fi
  fi
 fi
 
@@ -2757,13 +2720,28 @@ echo "${ECHO_T}Win32" >&6; }
     EXE=.exe
 else
     OCAMLWIN32=no
-    EXE=
     if echo "let _ = Sys.os_type;;" | ocaml | grep -q Cygwin; then
        { echo "$as_me:$LINENO: result: Cygwin" >&5
 echo "${ECHO_T}Cygwin" >&6; }
        EXE=.exe
+    else
+       { echo "$as_me:$LINENO: result: Unix" >&5
+echo "${ECHO_T}Unix" >&6; }
+       EXE=
     fi
 fi
+
+# Local machdep feature (to generate new platforms)
+# Check whether --enable-localmachdep was given.
+if test "${enable_localmachdep+set}" = set; then
+  enableval=$enable_localmachdep; LOCAL_MACHDEP=yes
+else
+  LOCAL_MACHDEP=no
+fi
+
+
+if test "$LOCAL_MACHDEP" = yes ; then
+ac_config_headers="$ac_config_headers config.h"
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -4804,6 +4782,8 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 { echo "$as_me:$LINENO: result: $UNDERSCORE_NAME" >&5
 echo "${ECHO_T}$UNDERSCORE_NAME" >&6; }
 
+fi
+
 { echo "$as_me:$LINENO: checking if performance counters are usable" >&5
 echo $ECHO_N "checking if performance counters are usable... $ECHO_C" >&6; }
 # Create a C file from src/perfcount.c.in
@@ -4888,6 +4868,11 @@ REQUIRE_LABLGLADECC=
 USE_LABLGLADECC=
 HAS_LABLGLADECC=
 
+CAMLP4O=
+REQUIRE_CAMLP4O=
+USE_CAMLP4O=
+HAS_CAMLP4O=
+
 ### Now plugin declarations
 
 
@@ -4937,8 +4922,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: constant_propagation is not available" >&5
+echo "$as_me: error: constant_propagation is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper constant_propagation`
@@ -4993,8 +4978,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: cxx is not available" >&5
+echo "$as_me: error: cxx is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper cxx`
@@ -5006,6 +4991,7 @@ echo "cxx... $ENABLE"
 
 if test "$ENABLE_CXX" == "yes"; then
   REQUIRE_ELSA=${REQUIRE_ELSA}" cxx"
+  REQUIRE_CAMLP4O=${REQUIRE_CAMLP4O}" cxx"
 fi
 
 # from
@@ -5053,8 +5039,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: from is not available" >&5
+echo "$as_me: error: from is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper from`
@@ -5109,8 +5095,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: gui is not available" >&5
+echo "$as_me: error: gui is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper gui`
@@ -5169,8 +5155,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: impact is not available" >&5
+echo "$as_me: error: impact is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper impact`
@@ -5225,8 +5211,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: inout is not available" >&5
+echo "$as_me: error: inout is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper inout`
@@ -5281,8 +5267,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: jessie is not available" >&5
+echo "$as_me: error: jessie is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper jessie`
@@ -5341,8 +5327,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: miel is not available" >&5
+echo "$as_me: error: miel is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper miel`
@@ -5402,8 +5388,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: occurrence is not available" >&5
+echo "$as_me: error: occurrence is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper occurrence`
@@ -5458,8 +5444,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: pdg is not available" >&5
+echo "$as_me: error: pdg is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper pdg`
@@ -5514,8 +5500,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: postdominators is not available" >&5
+echo "$as_me: error: postdominators is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper postdominators`
@@ -5570,8 +5556,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: scope is not available" >&5
+echo "$as_me: error: scope is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper scope`
@@ -5626,8 +5612,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: security is not available" >&5
+echo "$as_me: error: security is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper security`
@@ -5682,8 +5668,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: semantic_callgraph is not available" >&5
+echo "$as_me: error: semantic_callgraph is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper semantic_callgraph`
@@ -5738,8 +5724,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: slicing is not available" >&5
+echo "$as_me: error: slicing is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper slicing`
@@ -5794,8 +5780,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: sparecode is not available" >&5
+echo "$as_me: error: sparecode is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper sparecode`
@@ -5850,8 +5836,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: users is not available" >&5
+echo "$as_me: error: users is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper users`
@@ -5906,8 +5892,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: value is not available" >&5
+echo "$as_me: error: value is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper value`
@@ -5962,8 +5948,8 @@ fi
 
 if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
 then
-{ { echo "$as_me:$LINENO: error: constant propagation is not available" >&5
-echo "$as_me: error: constant propagation is not available" >&2;}
+{ { echo "$as_me:$LINENO: error: wp is not available" >&5
+echo "$as_me: error: wp is not available" >&2;}
    { (exit 1); exit 1; }; }
 fi
 up=`upper wp`
@@ -6027,7 +6013,7 @@ fi
       { echo "$as_me:$LINENO: WARNING: $msg" >&5
 echo "$as_me: WARNING: $msg" >&2;}
       if test "$require" != ""; then
-        echo "plugins disable:
+        echo "plugins disabled:
  $require"
         for p in $require; do
 	  fp=FORCE_`upper "$p"`
@@ -6111,12 +6097,11 @@ fi
 
       if test "$has" == "yes"; then eval SELECTED_$VAR=$file break; fi
       done
-      echo "Has : $has, $VAR";
     if test "$has" == "no"; then
       { echo "$as_me:$LINENO: WARNING: $msg" >&5
 echo "$as_me: WARNING: $msg" >&2;}
       if test "$require" != ""; then
-        echo "plugins disable:
+        echo "plugins disabled:
  $require"
         for p in $require; do
 	  fp=FORCE_`upper "$p"`
@@ -6176,6 +6161,13 @@ configure_tool \
   lablgladecc2 \
   "lablgladecc2 not found."
 
+# camlp4o
+###########
+configure_tool \
+  CAMLP4O \
+  camlp4o \
+  "camlp4o not found."
+
 # lablgtk2
 ##########
 configure_library \
@@ -6186,14 +6178,13 @@ configure_library \
 REQUIRE_GTKSOURCEVIEW=
 USE_GTKSOURCEVIEW=
 HAS_GTKSOURCEVIEW=
+FORCE_GTKSOURCEVIEW="yes"
 
-# Check whether --enable-gtksourceview was given.
-if test "${enable_gtksourceview+set}" = set; then
-  enableval=$enable_gtksourceview; FORCE_GTKSOURCEVIEW=$enableval
-else
-  FORCE_GTKSOURCEVIEW="no"
-fi
-
+#AC_ARG_ENABLE(gtksourceview,
+#  [  --enable-gtksourceview  uses lablgtksourceview for the gui
+#                          (default: auto-detected)],
+#     FORCE_GTKSOURCEVIEW=$enableval,
+#     FORCE_GTKSOURCEVIEW="no")
 
 if test "$FORCE_GTKSOURCEVIEW" == "yes"; then
   REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
@@ -6243,10 +6234,10 @@ if test "$has" == "yes" -a "$REQUIRE_WHYJC" != ""; then
     JESSIE_LOCAL=yes
     JESSIE_INCLUDES="-I $WHYDISTRIB/src -I $WHYDISTRIB/jc"
     (cd $WHYDISTRIB && ./configure --prefix=$prefix --datarootdir=$datarootdir \
-      --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$libdir \
+      --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
       --mandir=$mandir)
     ;;
-  $OCAMLLIB/*/jessie)
+  $OCAMLLIB/jessie)
     JCCMO=$SELECTED_WHYJC/jc.cmo
     JCCMX=$SELECTED_WHYJC/jc.cmx
     JESSIE_LOCAL=no
@@ -6274,7 +6265,7 @@ new_section "checking for plugin dependencies"
 
 REQUIRE_FROM="value inout pdg slicing"
 
-USE_GUI="occurrence security slicing value impact"
+#USE_GUI="occurrence security slicing value impact"
 
 REQUIRE_PDG="slicing security"
 
@@ -6457,6 +6448,7 @@ done
 ############################
 # Substitutions to perform #
 ############################
+
 
 
 
@@ -7181,8 +7173,6 @@ OCAMLDEPDOTOPT!$OCAMLDEPDOTOPT$ac_delim
 OCAMLLEX!$OCAMLLEX$ac_delim
 OCAMLLEXDOTOPT!$OCAMLLEXDOTOPT$ac_delim
 OCAMLYACC!$OCAMLYACC$ac_delim
-CAMLP4O!$CAMLP4O$ac_delim
-CAMLP4OOF!$CAMLP4OOF$ac_delim
 OCAMLDOC!$OCAMLDOC$ac_delim
 OCAMLMKTOP!$OCAMLMKTOP$ac_delim
 OTAGS!$OTAGS$ac_delim
@@ -7205,6 +7195,7 @@ OCAMLBEST!$OCAMLBEST$ac_delim
 OCAMLVERSION!$OCAMLVERSION$ac_delim
 OCAMLLIB!$OCAMLLIB$ac_delim
 OCAMLWIN32!$OCAMLWIN32$ac_delim
+CAMLP4O!$CAMLP4O$ac_delim
 EXE!$EXE$ac_delim
 HAVE_STDLIB_H!$HAVE_STDLIB_H$ac_delim
 HAVE_WCHAR_H!$HAVE_WCHAR_H$ac_delim
@@ -7214,6 +7205,7 @@ THREAD_IS_KEYWORD!$THREAD_IS_KEYWORD$ac_delim
 UNDERSCORE_NAME!$UNDERSCORE_NAME$ac_delim
 HAS_PERFCOUNT!$HAS_PERFCOUNT$ac_delim
 CYCLES_PER_USEC!$CYCLES_PER_USEC$ac_delim
+LOCAL_MACHDEP!$LOCAL_MACHDEP$ac_delim
 HAS_LABLGTK!$HAS_LABLGTK$ac_delim
 HAS_GTKSOURCEVIEW!$HAS_GTKSOURCEVIEW$ac_delim
 HAS_LEGACY_GTKSOURCEVIEW!$HAS_LEGACY_GTKSOURCEVIEW$ac_delim

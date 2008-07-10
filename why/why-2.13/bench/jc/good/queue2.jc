@@ -1,0 +1,71 @@
+# InvariantPolicy = Arguments
+
+type char = {
+  integer char_val;
+  invariant is_char(c) = 0 <= c.char_val && c.char_val <= 255;
+}
+
+type char_pointer = {
+ char[..] charM;
+}
+
+
+type queue = {
+  rep char_pointer[0..] contents;
+  integer length;
+  integer first;	
+  integer last;
+  boolean empty;
+  boolean full;
+  invariant is_queue(q) = 
+     \offset_min(q.contents) == 0 && /* redondant with type of q.contents */
+     q.length == \offset_max(q.contents) + 1 &&
+     0 <= q.first && q.first < q.length &&
+     0 <= q.last && q.last < q.length &&
+     (q.full <==> q.last == (q.first-1) % q.length) &&
+     (q.empty <==> q.last == q.first) ;
+}
+
+unit push(queue[0] q, char[0] c) 
+  requires !q.full;
+  behavior correct_push:
+    assigns q.empty, q.full, q.last, (q.contents+q.last).charM;
+    ensures !q.empty && (q.contents+\old(q.last)).charM == c;
+{
+  (q.contents+q.last++).charM = c;
+  if q.last == q.length then q.last = 0;
+  q.empty = false;
+  q.full = q.first == q.last;
+}
+
+char[0] pop(queue[0] q) 
+  requires !q.empty;
+  behavior correct_pop:
+    assigns q.empty, q.full, q.first;
+    ensures !q.full && \result == (q.contents+\old(q.first)).charM;
+{
+  var char[0] r = (q.contents+q.first++).charM;
+  if q.first == q.length then q.first = 0;
+  q.full = false;
+  q.empty = q.last == (q.first + 1) % q.length;
+  return r;
+}
+
+boolean test(queue[0] q, queue[0] q1) 
+  requires !q.empty;
+  behavior q1_unchanged:
+   ensures \result == \old(q1.empty); 
+{
+  var char[0] c = pop(q);
+  return q1.empty;
+}
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make queue2"
+End: 
+*/
+
+

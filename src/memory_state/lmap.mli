@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap.mli,v 1.64 2008/04/01 09:25:21 uid568 Exp $ i*)
+(*i $Id: lmap.mli,v 1.67 2008/06/26 07:43:40 uid568 Exp $ i*)
 
-(** Functors making map with locations as keys *)
+(** Functors making map indexed by locations.
+    @plugin developer guide *)
 
 open Abstract_interp
 open Abstract_value
@@ -60,8 +61,6 @@ sig
       with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
 
     val find : with_alarms:CilE.warn_mode -> t -> location -> y
-
-    val concerned_bindings : t -> location -> y list
 
     val join : t -> t -> t
     val is_included : t -> t -> bool
@@ -136,7 +135,6 @@ sig
       *)
     val create_initial :
       base:Base.t ->
-      size:int ->
       v:y ->
       modu:Int.t ->
       state:t -> t

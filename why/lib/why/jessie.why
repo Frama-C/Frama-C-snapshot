@@ -1,4 +1,33 @@
 
+(****************************************************************************)
+(* booleans                                                                 *)
+(****************************************************************************)
+
+logic bool_and : bool, bool -> bool
+logic bool_or : bool, bool -> bool
+logic bool_xor : bool, bool -> bool
+
+axiom bool_and_false :
+  forall b:bool. bool_and(b,false) = false
+
+axiom false_bool_and :
+  forall b:bool. bool_and(false,b) = false
+
+axiom bool_and_true :
+  forall b:bool. bool_and(b,true) = b
+
+axiom true_bool_and :
+  forall b:bool. bool_and(true,b) = b
+
+axiom bool_and_1 :
+  forall b1:bool. forall b2:bool.
+  bool_and(b1,b2) = true -> b1 = true and b2 = true
+
+(****************************************************************************)
+(* division and modulo                                                      *)
+(****************************************************************************)
+
+
 (*
 axiom div_int_euclid :
   forall i:int. forall j:int [i/j].
@@ -97,6 +126,10 @@ axiom eq_pointer_bool_def :
   forall p1: 't pointer. forall p2: 't pointer.
     eq_pointer_bool(p1, p2) = true <-> p1 = p2
 
+axiom sub_pointer_shift :
+  forall p:'t pointer. forall q:'t pointer [sub_pointer(p,p)]. 
+    p = shift(q,sub_pointer(p,q))
+
 axiom sub_pointer_self :
   forall p:'t pointer [sub_pointer(p,p)]. sub_pointer(p,p) = 0
 
@@ -131,7 +164,7 @@ axiom select_store_eq:
   forall a: 'v [store(m,p1,a),p2].
     p1=p2 -> select(store(m,p1,a),p2) = a
 
-(*
+(* redundant
 axiom select_store:
   forall m: ('t,'v) memory. 
   forall p: 't pointer. 
@@ -341,6 +374,10 @@ logic pset_range_right : 'z pset, int -> 'z pset (* l(a..) *)
 
 logic in_pset : 't pointer, 't pset -> prop
 
+predicate pset_disjoint(ps1:'t pset, ps2:'t pset) =
+  forall p:'t pointer.
+    not (in_pset(p,ps1) and in_pset(p,ps2))
+
 axiom in_pset_empty:
   forall p:'t pointer. not in_pset(p,pset_empty)
 
@@ -397,6 +434,22 @@ predicate not_assigns
   (a:'t alloc_table, m1:('t,'v) memory, m2:('t,'v) memory, l:'t pset) =
     forall p:'t pointer. 
       valid(a,p) and not in_pset(p,l) -> select(m2,p)=select(m1,p)
+
+axiom not_assigns_refl:
+  forall a: 't alloc_table. 
+  forall m: ('t,'v) memory.
+  forall l:'t pset.
+    not_assigns(a,m,m,l)
+
+axiom not_assigns_trans:
+  forall a: 't alloc_table. 
+  forall m1: ('t,'v) memory.
+  forall m2: ('t,'v) memory.
+  forall m3: ('t,'v) memory.
+  forall l:'t pset [not_assigns(a,m1,m2,l), not_assigns(a,m1,m3,l)] .
+    not_assigns(a,m1,m2,l) ->
+    not_assigns(a,m2,m3,l) ->
+    not_assigns(a,m1,m3,l) 
 
 logic full_separated : 't1 pointer, 't2 pointer -> prop
 

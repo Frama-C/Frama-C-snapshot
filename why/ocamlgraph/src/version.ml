@@ -1,2 +1,2 @@
-let version = "0.99b"
-let date = "Thu Apr 24 19:41:20 CEST 2008"
+let version = "0.99d"
+let date = "jeudi 10 juillet 2008, 14:34:53 (UTC+0200)"

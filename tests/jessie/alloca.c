@@ -63,14 +63,6 @@ int two_local_arrays_not_alias() {
 struct S { int a; int b[4]; struct S *next; };
 
 /*
-//@ ensures \result == 3
-int local_struct() {
-  struct S s = { 1, {1,2,3,4}, (void*)0 };
-  return s.b[2];
-}
-*/
-
-/* 
 Local Variables:
 compile-command: "LC_ALL=C make alloca"
 End:

@@ -25,20 +25,20 @@ open Cil
 let debug1() = Cmdline.Debug.get() >= 1
 let debug2() = Cmdline.Debug.get() >= 2
 
-let run () =
+let run ~select_annot ~select_slice_pragma =
   Format.printf "[sparecode] running@\n";
 
   (*let initial_file = Cil_state.file () in*)
   let kf_entry, _library = Globals.entry_point () in
 
-  let proj = Marks.select_usefull_things kf_entry in
+  let proj = Marks.select_usefull_things ~select_annot ~select_slice_pragma kf_entry in
 
   let new_proj_name = "unused_removed" in
   let fresh_project = Project.create new_proj_name in
   Transform.Info.build_cil_file fresh_project proj;
   Format.printf "[sparecode] done. Result in new project '%s'.@." new_proj_name;
   fresh_project
-
+    
 let () =
   Db.Sparecode.run := run
 
@@ -48,7 +48,11 @@ let () =
     ~descr:"unused code detection"
     [ "-sparecode-analysis",
       Arg.Unit Cmdline.Sparecode.Analysis.on,
-      ": perform a spare code analysis" ]
+      ": perform a spare code analysis";
+      "-sparecode-no-annot",
+      Arg.Unit Cmdline.Sparecode.NoAnnot.on,
+      ": don't select more things to keep every reachable annotation";
+    ]
 
 (*
 Local Variables:

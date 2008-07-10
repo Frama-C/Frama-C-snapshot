@@ -19,28 +19,56 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: gtk_helper.ml,v 1.12 2008/05/23 14:35:10 uid528 Exp $ *)
+(* $Id: gtk_helper.ml,v 1.16 2008/06/25 08:31:13 uid528 Exp $ *)
 
 (** Generic Gtk helpers. *)
 
-let apply_tag (b:GText.buffer) tag pb pe =
+let apply_tag b tag pb pe =
+  let b = (b:>GText.buffer) in
   let start = b#get_iter (`OFFSET pb) in
   let stop = b#get_iter (`OFFSET pe) in
   b#apply_tag ~start ~stop tag
 
-let remove_tag (b:GText.buffer) tag pb pe =
+let remove_tag b tag pb pe =
+  let b = (b:>GText.buffer) in
   let start = b#get_iter (`OFFSET pb) in
   let stop = b#get_iter (`OFFSET pe) in
   b#remove_tag ~start ~stop tag
 
-let cleanup_tag (b:GText.buffer) tag = 
+let cleanup_tag b tag = 
+  let b = (b:>GText.buffer) in
   b#remove_tag tag ~start:b#start_iter ~stop:b#end_iter
 
-let make_tag (buffer:GText.buffer) ~name l = 
-  match GtkText.TagTable.lookup buffer#tag_table name with
-  | None -> buffer#create_tag ~name l
-  | Some t -> new GText.tag t
+(* this table shall not be projectified: it contains trans-project informations *)
+module IntHashtbl = 
+  Hashtbl.Make(struct 
+                 type t = int 
+                 let hash = Hashtbl.hash 
+                 let equal = (=) 
+               end)
 
+let tag_names = IntHashtbl.create 17
+let cleanup_all_tags b = 
+  let b = (b:>GText.buffer) in
+  let start = b#start_iter in
+  let stop = b#end_iter in
+  try 
+  let tags = IntHashtbl.find tag_names (Oo.id b) in
+  Cilutil.StringSet.iter (fun s -> b#remove_tag_by_name s ~start ~stop) tags
+  with Not_found -> ()
+
+let make_tag buffer ~name l = 
+  let buffer = (buffer:>GText.buffer) in
+  match GtkText.TagTable.lookup buffer#tag_table name with
+  | None -> 
+      let oid = Oo.id buffer in
+      let old_set = 
+        try IntHashtbl.find tag_names oid 
+        with Not_found -> Cilutil.StringSet.empty 
+      in
+      IntHashtbl.replace tag_names oid (Cilutil.StringSet.add name old_set);
+      buffer#create_tag ~name l
+  | Some t -> new GText.tag t
 
 let expand_to_path (treeview:GTree.view) path =
   (* in the future when a recent lablgtk2 is installed it becomes:
@@ -54,7 +82,8 @@ let expand_to_path (treeview:GTree.view) path =
     treeview#expand_row path
   done
 
-let make_formatter (t:GText.buffer) = 
+let make_formatter t = 
+  let t = (t:>GText.buffer) in
   let fmt_emit s start length =
     let subs = String.sub s start length in
     t#insert subs
@@ -63,7 +92,7 @@ let make_formatter (t:GText.buffer) =
   in
   Format.make_formatter fmt_emit fmt_flush
 
-let redirect fmt (t:GText.buffer) = 
+let redirect fmt (t:#GText.buffer) = 
   let fmt_emit s start length =
     let subs = String.sub s start length in
     t#insert subs

@@ -126,10 +126,13 @@ let oneret (f: fundec) : unit =
           let rec setLastLoc = function
             | [] -> ()
             | {skind=Block b} :: [] -> setLastLoc b.bstmts
+            | {skind=UnspecifiedSequence b}::[] ->
+                setLastLoc b.bstmts
             | {skind=s} :: [] -> lastloc := get_stmtLoc s
             | {skind=_s} :: l -> setLastLoc l
           in setLastLoc f.sbody.bstmts; !lastloc
-        in mkStmt (Return (rv, getLastLoc ()))
+        in
+        mkStmt (Return (rv, getLastLoc ()))
       in retStmt := sr;
         sr
     end else
@@ -197,7 +200,10 @@ let oneret (f: fundec) : unit =
     | ({skind=Block b} as s) :: rests ->
         s.skind <- Block (scanBlock false b);
         s :: scanStmts mainbody rests
-    | ({skind=(UnspecifiedSequence _ |Goto _ | Instr _ | Continue _ | Break _
+    | ({skind = UnspecifiedSequence b} as s) :: rests ->
+        s.skind <- UnspecifiedSequence (scanBlock false b);
+        s::scanStmts mainbody rests
+    | ({skind=(Goto _ | Instr _ | Continue _ | Break _
                | TryExcept _ | TryFinally _)} as s)
       :: rests -> s :: scanStmts mainbody rests
 

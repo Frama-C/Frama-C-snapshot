@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry f -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry f1 -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry f2 -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry f3 -slicing-level 3 -slice-print
-   OPT: -security-slicing -lib-entry f -slicing-level 3 -security-lattice strong -slice-print
+   OPT: -security-slicing -lib-entry -main f -slicing-level 3 -slice-print
+   OPT: -security-slicing -lib-entry -main f1 -slicing-level 3 -slice-print
+   OPT: -security-slicing -lib-entry -main f2 -slicing-level 3 -slice-print
+   OPT: -security-slicing -lib-entry -main f3 -slicing-level 3 -slice-print
+   OPT: -security-slicing -lib-entry -main f -slicing-level 3 -security-lattice strong -slice-print
 */
 
 void do_something(int a, int b);
@@ -12,7 +12,7 @@ void do_something(int a, int b);
 /*@ ensures \result == -a; */
 int inv(int a);
 
-/*@ requires security_status(s) == public(); */
+/*@ requires security_status(s) == public; */
 void send(int s);
 
 int a, b;

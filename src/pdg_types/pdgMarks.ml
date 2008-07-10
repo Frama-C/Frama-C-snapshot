@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgMarks.ml,v 1.27 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: pdgMarks.ml,v 1.32 2008/07/09 11:26:38 uid530 Exp $ *)
 
 (** This file provides useful things to help to associate an information
 * (called mark) to PDG elements and to propagate it across the
@@ -35,7 +35,13 @@ open PdgIndex
 let debug1() = Cmdline.Debug.get() >= 1
 let debug2() = Cmdline.Debug.get() >= 2
 
-type t_select_elem = SelNode of PdgTypes.Node.t | SelIn of Locations.Zone.t
+type t_select_elem = 
+  | SelNode of PdgTypes.Node.t * Locations.Zone.t option
+                                     (** zone is [Some z] only for nodes that
+                                     * represent call output in case we want to
+                                     * select less than the whole OutCall *)
+  | SelIn of Locations.Zone.t
+
 type 'tm t_select = (t_select_elem * 'tm) list
 type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_select) list
 
@@ -46,11 +52,20 @@ type 'tm t_info_called_outputs =
 
 type 'tm t_info_inter = 'tm t_info_caller_inputs * 'tm t_info_called_outputs
 
-let add_node_to_select select node m = (SelNode node, m)::select
+let mk_select_node ?(z_opt=None) node = SelNode (node, z_opt)
+let mk_select_undef_zone zone = SelIn zone
 
-let add_undef_in_to_select select loc m = 
-  if (Locations.Zone.equal Locations.Zone.bottom loc) then select
-  else (SelIn loc, m)::select
+let add_to_select select sel m = (sel, m)::select
+
+let add_node_to_select select (node,z_opt) m = 
+  add_to_select select (mk_select_node ~z_opt node) m
+
+let add_undef_in_to_select select undef m = 
+  match undef with 
+    | None -> select
+    | Some loc ->
+        if (Locations.Zone.equal Locations.Zone.bottom loc) then select
+        else add_to_select select (mk_select_undef_zone loc) m 
 
 (** Type of the module that the user has to provide to describe the marks.  *)
 module type T_Mark = sig
@@ -149,7 +164,10 @@ module F_Fct (M : T_Mark)
       | (k, m)::tl -> 
           let cmp = 
             try Signature.cmp_in_key in_key k 
-            with PdgIndex.Not_equal -> 1 (* 2 <> InImpl -> insert after *)
+            with PdgIndex.Not_equal -> 
+              (* k and in_key are 2 different InImpl : look for in_key in tl *)
+              (* TODO : we could try to group several InImpl... *)
+              1
           in
             if cmp = 0 then (in_key, M.merge m mark)::tl
             else if cmp < 0 then (in_key, mark) :: marks
@@ -205,9 +223,17 @@ module F_Fct (M : T_Mark)
   * @return the modified marks of the function inputs,
   * and of the call outputs for interprocedural propagation.
   * *)
-  let rec add_node_mark_rec get_dpds pdg fm node_marks to_prop =
-    let mark_node_and_dpds to_prop (node, mark) =
+  let rec add_node_mark_rec pdg fm node_marks to_prop =
+    let mark_node_and_dpds to_prop (node, z_opt, mark) =
       let node_key = PdgTypes.Node.elem_key node in
+      let node_key = match z_opt with None -> node_key
+        | Some z -> 
+            match node_key with 
+              | Key.SigCallKey (call, Signature.Out (Signature.OutLoc out_z)) ->
+                  let z = Locations.Zone.narrow z out_z in 
+                    Key.call_output_key (Key.call_from_id call) z 
+              | _ -> node_key
+      in
       let mark_to_prop = add_mark pdg fm node_key mark in
         if (M.is_bottom mark_to_prop) then
           begin
@@ -222,19 +248,26 @@ module F_Fct (M : T_Mark)
               Format.printf "[pdgMark] mark_and_propagate = to propagate %a@\n"
                 M.pretty mark_to_prop;
             let to_prop = add_to_to_prop to_prop node_key mark_to_prop in
-            let dpds = get_dpds pdg node in
-            let node_marks = List.map (fun n -> (n, mark_to_prop)) dpds in
-              add_node_mark_rec get_dpds pdg fm node_marks to_prop
+            let dpds_info = PdgTypes.Pdg.get_all_direct_dpds pdg node in
+            let node_marks = 
+              List.map (fun (n, z) -> (n, z, mark_to_prop)) dpds_info in
+              add_node_mark_rec pdg fm node_marks to_prop
           end
     in List.fold_left mark_node_and_dpds to_prop node_marks
 
   let mark_and_propagate fm ?(to_prop=empty_to_prop) select =
     let pdg, idx = fm in
-    let get_dpds = PdgTypes.Pdg.get_all_direct_dpds in
     let process to_prop (sel, mark) = match sel with
-      | SelNode n -> add_node_mark_rec get_dpds pdg idx [(n, mark)] to_prop
+      | SelNode (n, z_opt) -> 
+          if debug2 () then
+            Format.printf "[pdgMark] mark_and_propagate start with %a@\n"
+              PdgTypes.Node.pretty_with_part (n, z_opt);
+          add_node_mark_rec pdg idx [(n, z_opt, mark)] to_prop
       | SelIn loc ->
           let in_key = Key.implicit_in_key loc in
+          if debug2 () then
+            Format.printf "[pdgMark] mark_and_propagate start with %a@\n"
+              Key.pretty in_key;
           let mark_to_prop = add_mark pdg idx in_key mark in
             if (M.is_bottom mark_to_prop) then to_prop
             else add_to_to_prop to_prop in_key mark_to_prop

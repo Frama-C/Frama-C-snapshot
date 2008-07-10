@@ -1,0 +1,59 @@
+# InvariantPolicy = Arguments
+
+/*
+
+hand-made from C program:
+
+struct packet {
+    int discr;
+    union {
+        int val1;
+        float val2;
+    } uni;
+};
+void get(struct packet *p, int *v1, float *v2) {
+    switch (p->discr) {
+        case 0: *v1 = p->uni.val1; break;
+        case 1: *v2 = p->uni.val2; break;
+    }
+}
+
+*/
+
+type integerT = { integer i; }
+type realT = { real r; }
+
+type packet_uni = {
+}
+
+tag packet_uni_int = packet_uni with {
+    integer val1;
+}
+
+tag packet_uni_float = packet_uni with {
+    real val2;
+}
+
+type packet = {
+    integer discr;
+    rep packet_uni[0] uni;
+    invariant discr0(this) = this.discr == 0 ==> this.uni <: packet_uni_int;
+    invariant discr1(this) = this.discr == 1 ==> this.uni <: packet_uni_float;
+}
+
+unit get(packet[0] p, integerT[0] v1, realT[0] v2)
+    requires discr0(p) && discr1(p);
+    behavior normal: ensures  discr0(p) && discr1(p);
+{
+    switch (p.discr) {
+        case 0: v1.i = (p.uni :> packet_uni_int).val1; break;
+        case 1: v2.r = (p.uni :> packet_uni_float).val2; break;
+    }
+}
+
+/*
+Local Variables: 
+mode: C
+compile-command: "make discr_union"
+End: 
+*/

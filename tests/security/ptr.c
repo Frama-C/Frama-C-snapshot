@@ -1,15 +1,15 @@
 /* run.config
    GCC:
-   OPT: -security-slicing -lib-entry f -slice-print
-   OPT: -security-slicing -lib-entry g -slice-print
-   OPT: -security-slicing -lib-entry h -slice-print
-   OPT: -security-slicing -lib-entry toto -slice-print
-   OPT: -security-slicing -security-lattice strong -lib-entry toto -slice-print
+   OPT: -security-slicing -lib-entry -main f -slice-print
+   OPT: -security-slicing -lib-entry -main g -slice-print
+   OPT: -security-slicing -lib-entry -main h -slice-print
+   OPT: -security-slicing -lib-entry -main toto -slice-print
+   OPT: -security-slicing -security-lattice strong -lib-entry -main toto -slice-print
    */
 
 /* ************************************************************************* */
 
-/*@ requires security_status( *x ) == public(); */
+/*@ requires security_status( *x ) == public; */
 void send(int *x) ;
 
 void f() {
@@ -21,7 +21,7 @@ void f() {
 
 /*@ ghost int channel; */
 
-/*@ requires security_status( *x ) == public();
+/*@ requires security_status( *x ) == public;
   assigns channel \from *x ; */
 void send2(const int *x);
 
@@ -52,7 +52,7 @@ typedef struct {
   int src[2];
 } msg;
 
-/*@ requires security_status(addr) == public();
+/*@ requires security_status(addr) == public;
   assigns channel \from addr[0]; */
 void send_addr(const int addr[1]);
 

@@ -42,13 +42,16 @@ let make loc_info under_outputs =
 let empty = make LocInfo.empty Locations.Zone.bottom
 
 let pretty fmt state = 
-  Format.fprintf fmt "State : under_outputs = %a\nstate = %a"
-    Locations.Zone.pretty state.under_outputs
+  Format.fprintf fmt "state = %a@.with under_outputs = %a@\n"
     LocInfo.pretty state.loc_info
+    Locations.Zone.pretty state.under_outputs
 
 let add_loc_node state ~exact loc node =
+  (* don't add top in state because it loses all the information. *)
+  match loc with Locations.Zone.Top(_p,_o) -> assert false
+    | _ ->
   if M.debug2 () then
-    Format.printf "[pdg] add_loc_node (%s) : node %a -> %a@."
+    Format.printf "[pdg state] add_loc_node (%s) : node %a -> %a@."
       (if exact then "exact" else "merge")
       PdgTypes.Node.pretty node
       Locations.Zone.pretty loc ;
@@ -57,7 +60,22 @@ let add_loc_node state ~exact loc node =
   let new_outputs = (* Zone.link in the under-approx version of Zone.join *)
     if exact then Locations.Zone.link state.under_outputs loc
     else state.under_outputs
-  in make new_loc_info new_outputs
+  in let state = make new_loc_info new_outputs in
+    if M.debug2 () then
+      Format.printf "[pdg] add_loc_node -> %a@\n" pretty state;
+    state
+
+(** this one is very similar to [add_loc_node] except that
+* we want to accumulate the nodes (exact = false) but nonetheless
+* define under_outputs like (exact = true) *)
+let add_init_state_input state loc node =
+  match loc with Locations.Zone.Top(_p,_o) -> assert false
+    | _ ->
+  let new_info = NodeSetLattice.inject_singleton node in
+  let new_loc_info = LocInfo.add_binding false state.loc_info loc new_info in
+  let new_outputs = Locations.Zone.link state.under_outputs loc in
+  let state = make new_loc_info new_outputs in
+    state
 
 let test_and_merge ~old new_ =
   if LocInfo.is_included new_.loc_info old.loc_info then (false, old)
@@ -70,41 +88,68 @@ let test_and_merge ~old new_ =
       { loc_info = new_loc_info ; under_outputs = new_outputs }
     in (true, new_state)
 
-
-let get_loc_nodes state loc =
-  if Locations.Zone.equal loc Locations.Zone.bottom
-  then  [], Locations.Zone.bottom (* nothing to do *)
-  else
-    let node_set = LocInfo.find state.loc_info loc in
-    let nodes = NodeSetLattice.fold (fun n acc -> n::acc) node_set [] in
-    let undef_zone = Locations.Zone.diff loc state.under_outputs in
-      if M.debug2 () then
-        begin
-        Format.printf "[pdg state] state = %a@." pretty state ;
-        Format.printf "[pdg state] get_loc_nodes %a@." 
-          Locations.Zone.pretty loc;
-        Format.printf "[pdg state] get_loc_nodes -> undef = %a@." 
-          Locations.Zone.pretty undef_zone
-        end;
-      nodes, undef_zone
-
 let get_all_nodes state =
   let add _z (_def, nodes) acc = NodeSetLattice.join acc nodes in
   let node_set = LocInfo.fold add state.loc_info NodeSetLattice.empty in
-  let nodes = NodeSetLattice.fold (fun n acc -> n::acc) node_set [] in
+  let nodes = NodeSetLattice.fold (fun n acc -> (n,None)::acc) node_set [] in
     nodes
 
-               (*
-let fold_on_nodes state loc f acc0 =
-  let info = LocInfo.find state.loc_info loc in
-  let fct node acc = f node acc in
-    NodeSet.fold fct info acc0
-    *)
+let get_loc_nodes_and_part state loc =
+  let process z (_default, nodes) acc =
+    if Locations.Zone.intersects z loc then
+      let z = 
+        if Locations.Zone.equal loc z 
+        then Some loc (* Be carreful not ot put None here,
+       because if we have n_1 : (s1 = s2) and then n_2 : (s1.b = 3)
+       the state looks like : s1.a -> n_1; s1.b -> n_2 ; s1.c -> n_1.
+       And if we look for s1.a in that state, we get n_1 but this node
+       represent more that s1.a even if it is so in the state...
+        *)
+        else Some (Locations.Zone.narrow z loc) in
+      let add n acc =
+        if M.debug2 () then
+          Format.printf "[pdg state] get_loc_nodes ->  %a@\n" 
+            PdgTypes.Node.pretty_with_part (n,z);
+        (n,z)::acc
+      in
+      let nodes = NodeSetLattice.fold add nodes acc in
+        nodes
+    else acc
+  in
+  let nodes_and_part = LocInfo.fold process state.loc_info [] in
+    nodes_and_part
 
-let iter_on_nodes state loc f =
-  let nodes, undef_zone = get_loc_nodes state loc in
-    List.iter f nodes;
-    undef_zone
+let get_loc_nodes state loc =
+  if M.debug2 () then
+    begin
+      Format.printf "[pdg state] get_loc_nodes %a@." 
+        Locations.Zone.pretty loc;
+      Format.printf "            in %a@\n" pretty state ;
+    end;
+  if Locations.Zone.equal loc Locations.Zone.bottom
+  then  [], None (* nothing to do *)
+  else 
+    let nodes =
+      match loc with
+        | Locations.Zone.Top (_p, _o) ->
+            (* every nodes in the state match Top *)
+            get_all_nodes state
+        | _ ->
+          (*LocInfo.find state.loc_info loc*)
+            get_loc_nodes_and_part state loc
+    in
+    let undef_zone = Locations.Zone.diff loc state.under_outputs in
+      if M.debug2 () then
+        begin
+        Format.printf "[pdg state] get_loc_nodes -> undef = %a@." 
+          Locations.Zone.pretty undef_zone
+        end;
+    let undef_zone =
+      if (Locations.Zone.equal undef_zone Locations.Zone.bottom) then None
+      else Some undef_zone
+    in
+      nodes, undef_zone
+
 
 type t_states = t Inthash.t
 

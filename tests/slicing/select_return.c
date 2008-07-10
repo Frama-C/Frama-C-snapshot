@@ -1,26 +1,26 @@
 /* run.config
-  OPT: -slice-calls send -lib-entry g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send -lib-entry g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send -lib-entry g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send -lib-entry g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-calls send,send_bis -lib-entry g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
-  OPT: -slice-calls "send , send_bis" -lib-entry g -slice-print -slicing-level 1
-  OPT: -slice-calls "send, send_bis" -lib-entry g -slice-print -slicing-level 2
-  OPT: -slice-calls "send ,send_bis" -lib-entry g -slice-print -slicing-level 3
-  OPT: -slice-return f   -lib-entry g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
-  OPT: -slice-return f   -lib-entry g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-return f   -lib-entry g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-return f   -lib-entry g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
-  OPT: -slice-pragma f   -lib-entry g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
-  OPT: -slice-pragma f   -lib-entry g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-pragma f   -lib-entry g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-pragma f   -lib-entry g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
-  OPT: -slice-value  H   -lib-entry g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
-  OPT: -slice-value  H   -lib-entry g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
-  OPT: -slice-value  H   -lib-entry g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
+  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
+  OPT: -slice-calls "send , send_bis" -lib-entry -main g -slice-print -slicing-level 1
+  OPT: -slice-calls "send, send_bis" -lib-entry -main g -slice-print -slicing-level 2
+  OPT: -slice-calls "send ,send_bis" -lib-entry -main g -slice-print -slicing-level 3
+  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
+  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
+  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
+  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
+  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 0 -slicing-debug -no-slice-callers
+  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
+  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
+  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
+  OPT: -slice-value  H   -lib-entry -main g -slice-print -slicing-level 1 -slicing-debug -no-slice-callers
+  OPT: -slice-value  H   -lib-entry -main g -slice-print -slicing-level 2 -slicing-debug -no-slice-callers
+  OPT: -slice-value  H   -lib-entry -main g -slice-print -slicing-level 3 -slicing-debug -no-slice-callers
 */
 
 int G,H,I;

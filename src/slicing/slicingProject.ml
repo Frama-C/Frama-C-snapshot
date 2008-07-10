@@ -42,7 +42,8 @@ let mk_project name =
     T.functions = Cilutil.VarinfoHashtbl.create 17; 
     T.actions = [];
   }
-
+    
+let get_name proj = proj.T.name
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Managing the slices} *)
 

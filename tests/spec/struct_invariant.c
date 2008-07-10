@@ -12,3 +12,7 @@ struct T {
 
 //@ type invariant strange(struct T t) = t == u ;
 
+//@ global invariant u_inv: u.ok == 1;
+
+// error: redefined invariant.
+//@ global invariant u_inv: u.ok <= 1;

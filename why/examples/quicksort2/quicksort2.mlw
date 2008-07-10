@@ -47,6 +47,6 @@ let quicksort (t:int array) =
 
 (*
 Local Variables: 
-compile-command: "gwhy -split-user-conj quicksort2.mlw"
+compile-command: "gwhy quicksort2.mlw"
 End: 
 *)

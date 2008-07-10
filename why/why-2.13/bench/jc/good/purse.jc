@@ -1,0 +1,115 @@
+# InvariantPolicy = Arguments
+
+/* Jessie sample file: electronic purse toy example */
+
+type purse = {		
+  integer balance;
+  invariant balance_non_negative(this) = this.balance >= 0;
+}	
+
+
+
+unit credit(purse[0] this, integer s) 
+  requires s >= 0;
+  behavior amount_credited:
+    assigns this.balance;
+    ensures this.balance == \old(this.balance)+s;
+{
+    this.balance += s;
+}
+
+unit withdraw(purse[0] this, integer s) 
+  requires s >= 0 && s <= this.balance;
+  behavior amount_withdrawn:
+    assigns this.balance;
+    ensures this.balance == \old(this.balance) - s;
+{
+  this.balance -= s;
+}
+
+integer test1(purse[0] p1, purse[0] p2)
+// requires p1 != p2; 
+  behavior result_is_nul:
+    assigns p1.balance,p2.balance;
+    ensures \result == 0;
+{	
+    p1.balance = 0;
+    credit(p2,100);
+    return p1.balance;
+}
+
+/* introducing exceptions */
+    
+exception NoCreditException of unit
+
+unit withdraw2(purse[0] this, integer s) 
+  requires s >= 0;
+  behavior amount_withdrawn:
+     assigns this.balance;
+     ensures s <= \old(this.balance) && 
+	 this.balance == \old(this.balance) - s;
+  behavior amount_too_large:
+     throws NoCreditException; 
+     assigns \nothing;
+     ensures s > \old(this.balance);
+{
+    if this.balance >= s then {
+	this.balance -= s;
+    }
+    else {
+	throw NoCreditException ();
+    }
+}	
+ 
+boolean test2(purse[0] p) 
+  behavior ok_iff_enough_balance:
+    assigns p.balance ;
+    ensures \result <==> \old(p.balance) >= 1000;
+{
+    try {
+	withdraw2(p,1000);
+        return true;
+    }
+    catch NoCreditException e { 
+	return false; 
+    }
+    end
+}
+
+/* introducing dynamic memory allocation */
+
+/*
+
+purse[0] new_purse() 
+  allocates \result;
+  behavior balance_is_zero:
+    assigns \result.balance;
+    ensures \result.balance == 0;
+  {     
+    purse this = new purse[0];
+    this.balance = 0;	
+    return this;
+  }
+
+integer test2() 
+  behavior result_is_150:
+    ensures \result == 150;
+{    
+    purse p1 = new_purse();
+    purse p2 = new_purse();
+    credit(p1,100);
+    credit(p2,200);
+    withdraw(p1,50);
+    withdraw(p2,100);
+    return p1.balance+p2.balance;
+}
+*/
+
+
+    
+/*
+Local Variables: 
+mode: java
+compile-command: "make purse"
+End: 
+*/

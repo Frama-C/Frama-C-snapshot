@@ -20,14 +20,14 @@ src/cvcl.cmx: src/vcg.cmx src/util.cmx src/report.cmx src/pp.cmx \
     src/options.cmx src/misc.cmx src/ltyping.cmx src/logic_decl.cmi \
     src/logic.cmi src/loc.cmx src/ident.cmx src/error.cmi src/env.cmx \
     src/encoding.cmx src/cc.cmi src/cvcl.cmi 
-src/dispatcher.cmo: src/zenon.cmi src/vcg.cmi src/theory_filtering.cmo \
-    src/smtlib.cmi src/simplify.cmi src/pretty.cmi src/options.cmi \
-    src/logic_decl.cmi src/logic.cmi src/harvey.cmi src/cvcl.cmi \
-    tools/calldp.cmi src/dispatcher.cmi 
-src/dispatcher.cmx: src/zenon.cmx src/vcg.cmx src/theory_filtering.cmx \
-    src/smtlib.cmx src/simplify.cmx src/pretty.cmx src/options.cmx \
-    src/logic_decl.cmi src/logic.cmi src/harvey.cmx src/cvcl.cmx \
-    tools/calldp.cmx src/dispatcher.cmi 
+src/dispatcher.cmo: src/zenon.cmi src/version.cmo src/vcg.cmi \
+    src/theory_filtering.cmo src/smtlib.cmi src/simplify.cmi src/pretty.cmi \
+    src/options.cmi src/logic_decl.cmi src/logic.cmi src/harvey.cmi \
+    src/cvcl.cmi tools/calldp.cmi src/dispatcher.cmi 
+src/dispatcher.cmx: src/zenon.cmx src/version.cmx src/vcg.cmx \
+    src/theory_filtering.cmx src/smtlib.cmx src/simplify.cmx src/pretty.cmx \
+    src/options.cmx src/logic_decl.cmi src/logic.cmi src/harvey.cmx \
+    src/cvcl.cmx tools/calldp.cmx src/dispatcher.cmi 
 src/effect.cmo: src/ident.cmi src/effect.cmi 
 src/effect.cmx: src/ident.cmx src/effect.cmi 
 src/encoding.cmo: src/options.cmi src/monomorph.cmi src/ident.cmi \
@@ -286,9 +286,9 @@ src/vcg.cmx: src/util.cmx src/types.cmi src/pp.cmx src/options.cmx \
     src/cc.cmi src/ast.cmi src/vcg.cmi 
 src/why.cmo: src/report.cmi src/main.cmo 
 src/why.cmx: src/report.cmx src/main.cmx 
-src/whyweb.cmo: src/wserver.cmi src/version.cmo src/project.cmi \
+src/whyweb.cmo: src/wserver.cmi src/version.cmo src/project.cmi src/pp.cmi \
     src/logic_decl.cmi src/explain.cmi 
-src/whyweb.cmx: src/wserver.cmx src/version.cmx src/project.cmx \
+src/whyweb.cmx: src/wserver.cmx src/version.cmx src/project.cmx src/pp.cmx \
     src/logic_decl.cmi src/explain.cmx 
 src/wp.cmo: src/util.cmi src/typing.cmi src/types.cmi src/report.cmi \
     src/options.cmi src/option_misc.cmi src/misc.cmi src/logic.cmi \
@@ -380,6 +380,7 @@ src/zenon.cmi: src/logic_decl.cmi src/cc.cmi
 jc/jc_ai.cmi: src/loc.cmi jc/jc_fenv.cmi jc/jc_ast.cmi 
 jc/jc_ast.cmi: src/loc.cmi jc/jc_region.cmo jc/jc_fenv.cmi jc/jc_env.cmi 
 jc/jc_common_options.cmi: jc/jc_env.cmi 
+jc/jc_env.cmi: jc/jc_type_var.cmi 
 jc/jc_envset.cmi: jc/jc_env.cmi 
 jc/jc_fenv.cmi: jc/jc_region.cmo jc/jc_envset.cmi jc/jc_env.cmi 
 jc/jc_lexer.cmi: src/loc.cmi jc/jc_parser.cmi jc/jc_ast.cmi 
@@ -440,15 +441,17 @@ jc/jc_interp_misc.cmx: jc/output.cmx jc/numconst.cmx jc/jc_typing.cmx \
 jc/jc_interp.cmo: src/rc.cmi jc/output.cmi src/option_misc.cmi \
     jc/numconst.cmi src/loc.cmi jc/jc_typing.cmi jc/jc_struct_tools.cmi \
     jc/jc_separation.cmo jc/jc_region.cmo jc/jc_pervasives.cmi \
-    jc/jc_pattern.cmo jc/jc_options.cmi jc/jc_name.cmo jc/jc_invariants.cmo \
-    jc/jc_interp_misc.cmo jc/jc_fenv.cmi jc/jc_envset.cmi jc/jc_env.cmi \
-    jc/jc_effect.cmo jc/jc_constructors.cmo jc/jc_ast.cmi 
+    jc/jc_pattern.cmo jc/jc_options.cmi jc/jc_name.cmo jc/jc_iterators.cmo \
+    jc/jc_invariants.cmo jc/jc_interp_misc.cmo jc/jc_fenv.cmi \
+    jc/jc_envset.cmi jc/jc_env.cmi jc/jc_effect.cmo jc/jc_constructors.cmo \
+    jc/jc_ast.cmi 
 jc/jc_interp.cmx: src/rc.cmx jc/output.cmx src/option_misc.cmx \
     jc/numconst.cmx src/loc.cmx jc/jc_typing.cmx jc/jc_struct_tools.cmx \
     jc/jc_separation.cmx jc/jc_region.cmx jc/jc_pervasives.cmx \
-    jc/jc_pattern.cmx jc/jc_options.cmx jc/jc_name.cmx jc/jc_invariants.cmx \
-    jc/jc_interp_misc.cmx jc/jc_fenv.cmi jc/jc_envset.cmx jc/jc_env.cmi \
-    jc/jc_effect.cmx jc/jc_constructors.cmx jc/jc_ast.cmi 
+    jc/jc_pattern.cmx jc/jc_options.cmx jc/jc_name.cmx jc/jc_iterators.cmx \
+    jc/jc_invariants.cmx jc/jc_interp_misc.cmx jc/jc_fenv.cmi \
+    jc/jc_envset.cmx jc/jc_env.cmi jc/jc_effect.cmx jc/jc_constructors.cmx \
+    jc/jc_ast.cmi 
 jc/jc_invariants.cmo: jc/output.cmi src/loc.cmi jc/jc_typing.cmi \
     jc/jc_region.cmo jc/jc_pervasives.cmi jc/jc_options.cmi jc/jc_name.cmo \
     jc/jc_iterators.cmo jc/jc_interp_misc.cmo jc/jc_fenv.cmi jc/jc_envset.cmi \
@@ -517,12 +520,12 @@ jc/jc_pattern.cmo: jc/output.cmi jc/jc_pervasives.cmi jc/jc_name.cmo \
     jc/jc_interp_misc.cmo jc/jc_env.cmi jc/jc_effect.cmo jc/jc_ast.cmi 
 jc/jc_pattern.cmx: jc/output.cmx jc/jc_pervasives.cmx jc/jc_name.cmx \
     jc/jc_interp_misc.cmx jc/jc_env.cmi jc/jc_effect.cmx jc/jc_ast.cmi 
-jc/jc_pervasives.cmo: src/loc.cmi jc/jc_region.cmo jc/jc_fenv.cmi \
-    jc/jc_envset.cmi jc/jc_env.cmi jc/jc_constructors.cmo jc/jc_ast.cmi \
-    jc/jc_pervasives.cmi 
-jc/jc_pervasives.cmx: src/loc.cmx jc/jc_region.cmx jc/jc_fenv.cmi \
-    jc/jc_envset.cmx jc/jc_env.cmi jc/jc_constructors.cmx jc/jc_ast.cmi \
-    jc/jc_pervasives.cmi 
+jc/jc_pervasives.cmo: src/pp.cmi src/loc.cmi jc/jc_type_var.cmi \
+    jc/jc_region.cmo jc/jc_fenv.cmi jc/jc_envset.cmi jc/jc_env.cmi \
+    jc/jc_constructors.cmo jc/jc_ast.cmi jc/jc_pervasives.cmi 
+jc/jc_pervasives.cmx: src/pp.cmx src/loc.cmx jc/jc_type_var.cmx \
+    jc/jc_region.cmx jc/jc_fenv.cmi jc/jc_envset.cmx jc/jc_env.cmi \
+    jc/jc_constructors.cmx jc/jc_ast.cmi jc/jc_pervasives.cmi 
 jc/jc_poutput.cmo: src/pp.cmi src/option_misc.cmi jc/jc_pervasives.cmi \
     jc/jc_output_misc.cmo jc/jc_fenv.cmi jc/jc_env.cmi jc/jc_ast.cmi 
 jc/jc_poutput.cmx: src/pp.cmx src/option_misc.cmx jc/jc_pervasives.cmx \
@@ -543,16 +546,18 @@ jc/jc_struct_tools.cmo: jc/jc_pervasives.cmi jc/jc_options.cmi jc/jc_name.cmo \
     jc/jc_envset.cmi jc/jc_env.cmi jc/jc_struct_tools.cmi 
 jc/jc_struct_tools.cmx: jc/jc_pervasives.cmx jc/jc_options.cmx jc/jc_name.cmx \
     jc/jc_envset.cmx jc/jc_env.cmi jc/jc_struct_tools.cmi 
+jc/jc_type_var.cmo: jc/jc_type_var.cmi 
+jc/jc_type_var.cmx: jc/jc_type_var.cmi 
 jc/jc_typing.cmo: src/option_misc.cmi src/loc.cmi jc/jc_region.cmo \
     jc/jc_pervasives.cmi jc/jc_output_misc.cmo jc/jc_output.cmo \
-    jc/jc_iterators.cmo jc/jc_fenv.cmi jc/jc_envset.cmi jc/jc_env.cmi \
-    jc/jc_constructors.cmo jc/jc_common_options.cmi jc/jc_ast.cmi \
-    jc/jc_typing.cmi 
+    jc/jc_options.cmi jc/jc_iterators.cmo jc/jc_fenv.cmi jc/jc_envset.cmi \
+    jc/jc_env.cmi jc/jc_constructors.cmo jc/jc_common_options.cmi \
+    jc/jc_ast.cmi jc/jc_typing.cmi 
 jc/jc_typing.cmx: src/option_misc.cmx src/loc.cmx jc/jc_region.cmx \
     jc/jc_pervasives.cmx jc/jc_output_misc.cmx jc/jc_output.cmx \
-    jc/jc_iterators.cmx jc/jc_fenv.cmi jc/jc_envset.cmx jc/jc_env.cmi \
-    jc/jc_constructors.cmx jc/jc_common_options.cmx jc/jc_ast.cmi \
-    jc/jc_typing.cmi 
+    jc/jc_options.cmx jc/jc_iterators.cmx jc/jc_fenv.cmi jc/jc_envset.cmx \
+    jc/jc_env.cmi jc/jc_constructors.cmx jc/jc_common_options.cmx \
+    jc/jc_ast.cmi jc/jc_typing.cmi 
 jc/numconst.cmo: jc/numconst.cmi 
 jc/numconst.cmx: jc/numconst.cmi 
 jc/output.cmo: src/pp.cmi src/option_misc.cmi src/loc.cmi jc/output.cmi 
@@ -748,12 +753,12 @@ java/java_lexer.cmo: jc/jc_env.cmi java/java_parser.cmi java/java_options.cmo \
     java/java_env.cmi java/java_ast.cmi 
 java/java_lexer.cmx: jc/jc_env.cmi java/java_parser.cmx java/java_options.cmx \
     java/java_env.cmi java/java_ast.cmi 
-java/java_main.cmo: src/pp.cmi jc/output.cmi src/option_misc.cmi src/lib.cmi \
+java/java_main.cmo: src/pp.cmi jc/output.cmi src/option_misc.cmi \
     jc/jc_poutput.cmo jc/jc_env.cmi jc/jc_constructors.cmo \
     java/java_typing.cmi java/java_syntax.cmo java/java_options.cmo \
     java/java_interp.cmo java/java_env.cmi java/java_callgraph.cmo \
     java/java_ast.cmi java/java_analysis.cmo 
-java/java_main.cmx: src/pp.cmx jc/output.cmx src/option_misc.cmx src/lib.cmx \
+java/java_main.cmx: src/pp.cmx jc/output.cmx src/option_misc.cmx \
     jc/jc_poutput.cmx jc/jc_env.cmi jc/jc_constructors.cmx \
     java/java_typing.cmx java/java_syntax.cmx java/java_options.cmx \
     java/java_interp.cmx java/java_env.cmi java/java_callgraph.cmx \
@@ -849,8 +854,8 @@ intf/pprinter.cmi: intf/tags.cmo src/logic_decl.cmi src/logic.cmi src/env.cmi \
 tools/simplify_parser.cmi: tools/simplify_ast.cmi 
 tools/cadlog.cmo: jc/jc_version.cmo java/java_version.cmo c/cversion.cmo 
 tools/cadlog.cmx: jc/jc_version.cmx java/java_version.cmx c/cversion.cmx 
-tools/calldp.cmo: src/options.cmi tools/calldp.cmi 
-tools/calldp.cmx: src/options.cmx tools/calldp.cmi 
+tools/calldp.cmo: src/version.cmo src/options.cmi tools/calldp.cmi 
+tools/calldp.cmx: src/version.cmx src/options.cmx tools/calldp.cmi 
 tools/cvcl_split.cmo: tools/cvcl_split.cmi 
 tools/cvcl_split.cmx: tools/cvcl_split.cmi 
 tools/dp.cmo: tools/zenon_split.cmi tools/smtlib_split.cmo \

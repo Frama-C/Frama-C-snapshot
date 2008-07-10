@@ -19,7 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** The body of this module is generated from Makefile.in *)
+(** Information about version of Frama-C.
+    
+    The body of this module is generated from Makefile.in.
+    @plugin developer guide *)
 
 (** Version identifier *)
 val version : string

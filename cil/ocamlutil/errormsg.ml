@@ -257,7 +257,7 @@ let startParsing ?(useBasename=true) (fname: string) =
            stdin
         end else begin
            readingFromStdin := false;
-           open_in fname
+          open_in_bin fname
         end
     with e -> s (error "Cannot find input file %s (exception %s"
                     fname (Printexc.to_string e)) in

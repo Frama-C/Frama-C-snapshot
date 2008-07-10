@@ -35,7 +35,21 @@ module Actions : sig
 end = struct
 
   module Hook = Hook.Make(struct end)
-  let apply = Hook.apply
+
+    (* CIL initialization and customization *)
+  let boot_cil () =
+    Cil.initCIL ();
+    Cabs2cil.forceRLArgEval := false;
+    Cil.lineDirectiveStyle := None;
+    (*  Cil.lineDirectiveStyle := Some LinePreprocessorInput;*)
+    Cil.printCilAsIs := Cmdline.Debug.get () > 0;
+    Mergecil.ignore_merge_conflicts := true;
+    Cil.useLogicalOperators := false; (* do not use lazy LAND and LOR *)
+    Pretty.flushOften := true
+
+  let apply () =
+    Hook.apply ();
+    if not (Cmdline.LoadState.is_set ()) then boot_cil ()
 
   let version () =
     if Cmdline.PrintVersion.get () then
@@ -66,16 +80,6 @@ end = struct
            close_out oc)
   let () = Hook.extend time
 
-  let machdep () = match Cmdline.Machdep.get () with
-    | "" -> ()
-    | "x86_16" -> let module M = Machdep.DEFINE(Machdep_x86_16) in ()
-    | "x86_32" -> let module M = Machdep.DEFINE(Machdep_x86_32) in ()
-    | "x86_64" -> let module M = Machdep.DEFINE(Machdep_x86_64) in ()
-    | "ppc_32" -> let module M = Machdep.DEFINE(Machdep_ppc_32) in ()
-    | "ppc_32_diab" -> let module M = Machdep.DEFINE(Machdep_ppc_32_diab) in ()
-    | s -> Format.printf "Unsupported machine %s@." s; exit 1
-  let () = Hook.extend machdep
-
   let save () =
     let filename = Cmdline.SaveState.get () in
     if filename <> "" then
@@ -89,12 +93,24 @@ end = struct
     let filename = Cmdline.LoadState.get () in
     if filename <> "" then begin
       if Cmdline.Files.is_set () then
-	Cil.log "Warning: ignoring source files specified on command line while loading.@.";
+	Cil.log "Warning: ignoring source files specified on command line while loading.";
       try Project.load_all filename
       with Project.IOError s ->
 	Cil.log "Problem when loading: %s.@.Exiting.@." s;
 	exit 2
     end
+
+  let machdep () =
+    (match Cmdline.Machdep.get () with
+    | "" -> ()
+    | "x86_16" -> let module M = Machdep.DEFINE(Machdep_x86_16) in ()
+    | "x86_32" -> let module M = Machdep.DEFINE(Machdep_x86_32) in ()
+    | "x86_64" -> let module M = Machdep.DEFINE(Machdep_x86_64) in ()
+    | "ppc_32" -> let module M = Machdep.DEFINE(Machdep_ppc_32) in ()
+    | "ppc_32_diab" -> let module M = Machdep.DEFINE(Machdep_ppc_32_diab) in ()
+    | s -> Format.printf "Unsupported machine %s@." s; exit 1)
+
+  let () = Hook.extend machdep
 
 end
 
@@ -197,13 +213,21 @@ let () = add_cmdline
     "filename : when printing code, redirects the output to file [filename].";
 
     "-lib-entry",
-    Arg.String Cmdline.LibEntry.unsafe_set,
-    "name : set to name the entry point for an incomplete application. Overrides the -main option.";
-    
+    Arg.Unit (fun () -> Cmdline.LibEntry.unsafe_set true),
+    ": run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point name.";
+
     "-main",
     Arg.String Cmdline.MainFunction.unsafe_set,
-    "name : set to name the entry function of a complete application. Defaults to main";
-      
+    "name : set to name the entry point for analysis. Use -lib-entry if this is not for a complete application. Defaults to main";
+
+    "-machdep",
+    Arg.String Cmdline.Machdep.set,
+    "machine : use [machine] as the current machine dependent configuration.";
+
+    "-msvc",
+    Arg.Set Cil.msvcMode,
+    ": switch to MSVC mode. Default mode is gcc.";
+
     "-debug",
     Arg.Int Cmdline.Debug.set,
     Format.sprintf "n : level of debug (defaults to %d)."
@@ -243,21 +267,18 @@ let () = add_cmdline
     ": print an obfuscated version of files to standard output and exit.";
 
     "-metrics",
-    Arg.Unit Cmdline.Metrics.on,
-    ": print some metrics.";
+    Arg.Unit Cmdline.Metrics.Print.on,
+    ": print some metrics on stdout.";
 
-    "-machdep",
-    Arg.String Cmdline.Machdep.set,
-    "machine : use [machine] as the current machine dependent configuration.";
-
-    "-msvc",
-    Arg.Set Cil.msvcMode,
-    ": switch to MSVC mode. Default mode is gcc." ]
+    "-metrics-dump",
+    Arg.String Cmdline.Metrics.Dump.set,
+    "<s> : print some metrics into the specified file."; ]
 
 module Startup_Hook = Hook.Make(struct end)
 let initialize_toplevels = Startup_Hook.apply
 
 module Init_Hook = Hook.Make(struct end)
+
 let register_plugin_init = Init_Hook.extend
 
 let () =
@@ -317,20 +338,23 @@ let parse_cmdline () =
       [ section "HELP" ]
       !available_sections
   in
-  Arg.parse (!cmdline_to_parse @ cmdline) add_file (usage())
+  Arg.parse (!cmdline_to_parse @ cmdline) add_file (usage());
+  Actions.apply ()
 
 let init_from_options =
   let first_run = ref true in
   fun () ->
-    At_exit.clear ();
     let res =
       if Cmdline.LoadState.is_set () then begin
+        At_exit.clear ();
 	let old_save = Cmdline.SaveState.get () in
 	Actions.load ();
 	Cmdline.set_selected_options ();
-	(* do not remember -save set by -load, nor courant -load *)
+	(* do not remember -save set by -load, nor current -load *)
 	Cmdline.SaveState.set old_save;
 	Cmdline.LoadState.set "";
+        (* Execute predefined actions set by options *)
+        Actions.apply ();
 	true
       end else
 	not !first_run
@@ -350,8 +374,6 @@ let init_from_options =
            raise exn
       )
       !available_plugins;
-    (* Execute predefined actions set by options *)
-    Actions.apply ();
     res
 
 (*

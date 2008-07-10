@@ -1,0 +1,55 @@
+(**************************************************************************)
+(*                                                                        *)
+(* Proof of the Bresenham line drawing algorithm.                         *)
+(*                                                                        *)
+(* Jean-Christophe Filliâtre (LRI, Université Paris Sud)                  *)
+(* May 2001                                                               *)
+(*                                                                        *)
+(**************************************************************************)
+
+(*  Bresenham's algorithm draws a discrete line from (x1,y1) to (x2,y2).
+
+    Without loss of generality, we can take [x1=0] and [y1=0]. 
+    Thus the line to draw joins [(0,0)] to [(x2,y2)]
+    and we have [deltax = x2] and [deltay = y2]. 
+    Moreover we assume being in the first octant, i.e.
+    [0 <= y2 <= x2]. The seven other cases can be easily
+    deduced by symmetry. *)
+
+logic x2,y2 : int
+
+axiom first_octant : 0 <= y2 <= x2
+
+parameter x,y,e : int ref
+
+axiom z_ring_0 : forall a,b,c:int. a * (b+c) = a*b + a*c
+axiom z_ring_1 : forall a,b,c:int. (b+c) * a = b*a + c*a
+
+let bresenham () =
+  x := 0;
+  y := 0;
+  e := 2 * y2 - x2;
+  while !x <= x2 do
+    { invariant 
+        0 <= x <= x2 + 1 and 
+        e = 2 * (x + 1) * y2 - (2 * y + 1) * x2 and
+        2 * (y2 - x2) <= e <= 2 * y2
+      variant   
+        x2 + 1 - x }
+    (* here we would do (plot x y) *) 
+    if !e < 0 then
+      e := !e + 2 * y2
+    else begin
+      y := !y + 1;
+      e := !e + 2 * (y2 - x2)
+    end;
+    x := !x + 1
+  done
+    
+
+(*
+Local Variables: 
+compile-command: "gwhy-bin -split-user-conj bresenham_inv.mlw"
+End: 
+*)
+

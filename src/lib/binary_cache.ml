@@ -51,30 +51,37 @@ let get_size () =
   | 2 -> 8192
   | _ -> 32 * 1024
 
-module type BinCacheable =
+module type Cacheable =
 sig
   type t
-  type result
   val hash : t -> int
-  val size : int
   val sentinel : t
-  val sentinel_result : result
+  val equal : t -> t -> bool
 end
 
-module Make_Symetric (H: BinCacheable) =
-struct
-  assert (H.size = 65536 || H.size = 2048 || H.size = 4096 || 
-      H.size = 8192 || H.size = 16384);;
+module type Result =
+sig
+  type t
+  val sentinel : t
+end
 
+module Bool_Result = 
+struct
+  type t = bool
+  let sentinel = true
+end
+
+module Make_Symetric (H: Cacheable) (R: Result) =
+struct
   let size = get_size ()
   let args = create H.sentinel size
-  let results = Array.create size H.sentinel_result
+  let results = Array.create size R.sentinel
 
   let mask = pred size
 
   let clear () = 
     clear H.sentinel args;
-    clear H.sentinel_result results
+    clear R.sentinel results
 
   let hash = H.hash
 
@@ -89,20 +96,17 @@ struct
     merge args (has land mask) results f a1 a2
 end
 
-module Make_Asymetric (H: BinCacheable) =
+module Make_Asymetric (H: Cacheable) (R: Result) =
 struct
-  assert (H.size = 65536 || H.size = 2048 || H.size = 4096 || 
-      H.size = 8192 || H.size = 16384);;
-
   let size = get_size ()
   let args = create H.sentinel size
-  let results = Array.create size H.sentinel_result
+  let results = Array.create size R.sentinel
 
   let mask = pred size
 
   let clear () = 
     clear H.sentinel args;
-    clear H.sentinel_result results
+    clear R.sentinel results
 
   let hash = H.hash
 
@@ -111,14 +115,7 @@ struct
     merge args (has land mask) results f a1 a2
 end
 
-module type Cacheable =
-sig
-  type t
-  val hash : t -> int
-  val sentinel : t
-end
-
-module Make_Het (H1: Cacheable) (H2: Cacheable) (R: Cacheable) =
+module Make_Het (H1: Cacheable) (H2: Cacheable) (R: Result) =
 struct
   let size = get_size ()
   let args1 = Array.create size H1.sentinel
@@ -134,12 +131,44 @@ struct
 
   let merge f a1 a2 =
     let has = 599 * (H1.hash a1) + H2.hash a2 in
-    if args1.(has) == a1 && args2.(has) == a2
+    if H1.equal args1.(has) a1 && H2.equal args2.(has) a2
     then results.(has)
     else 
       let result = f () in
       args1.(has) <- a1;
       args2.(has) <- a2;
+      results.(has) <- result;
+      result
+
+
+end
+
+
+module Make_Unary (H1: Cacheable) (R: Result) =
+struct
+
+  let size = (get_size ())
+  let args = Array.create size H1.sentinel
+  let results = Array.create size R.sentinel
+
+  let mask = pred size
+
+  let clear () = 
+    clear H1.sentinel args;
+    clear R.sentinel results
+
+  let merge f a =
+    let has = (H1.hash a) in
+    let has = has land mask in 
+    if H1.equal args.(has) a 
+    then begin
+(*     Format.eprintf "cache %s found@." H1.name ; *)
+      results.(has)
+    end
+    else 
+      let result = f () in
+(*      Format.eprintf "cache %s failed@." H1.name ; *)
+      args.(has) <- a;
       results.(has) <- result;
       result
 

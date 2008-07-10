@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-type t =
+type t = private
     { sloc: int;
       call_statements: int;
       goto_statements: int;
@@ -46,10 +46,11 @@ type t =
       if_statements: int;
       loop_statements: int;
       mem_access: int;
-      functions_without_source: Cil.VarinfoSet.t;
-      functions_with_source: Cil.VarinfoSet.t;
+      functions_without_source: int Cilutil.VarinfoHashtbl.t;
+      functions_with_source: int Cilutil.VarinfoHashtbl.t;
     }
 
 val sloc : Cil_types.file -> t
 
 val pretty : Format.formatter -> t -> unit
+val dump: string -> t -> unit

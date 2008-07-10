@@ -44,8 +44,8 @@ module S = struct
 end
 
 type t_info =
-    | ToReturn of S.t 
-    | ToInfinity of S.t 
+    | ToReturn of S.t
+    | ToInfinity of S.t
     | Init
 
 module State = struct
@@ -83,17 +83,17 @@ module States = struct
   let create = Inthash.create
   let add = Inthash.add
   let find = Inthash.find
-  let pretty fmt infos = 
-    Inthash.iter 
+  let pretty fmt infos =
+    Inthash.iter
       (fun k v -> Format.fprintf fmt "Stmt:%d\n%a\n======" k State.pretty v)
       infos
 end
 
 type t = Lexical_successors.t * States.t
 
-module Computer (Param:sig 
+module Computer (Param:sig
                    val states : States.t
-                   val end_point : int 
+                   val end_point : int
                  end) = struct
 
   let name = "ctrlDpds"
@@ -162,8 +162,8 @@ let compute_infos kf =
   (*List.iter (fun s -> States.add s.sid (ToReturn (S.empty))) stmts;*)
   (*List.iter (fun s -> States.add s.sid (ToReturn (S.singleton s))) stmts;*)
   (* let return = find_return kf in go return; *)
-  let init tops s = 
-    let tops, postdom = 
+  let init tops s =
+    let tops, postdom =
       try tops, ToReturn (!Db.Postdominators.stmt_postdominators kf s)
       with Db.Postdominators.Top -> s::tops, Init
     in
@@ -173,12 +173,12 @@ let compute_infos kf =
   let tops = List.fold_left init [] stmts in
   let _ = match tops with
       | [] -> ()
-      | _ -> 
+      | _ ->
           begin
-            Cil.log "[traces] computing for function %a@\n" 
+            Cil.log "[traces] computing for function %a"
 	      Kernel_function.pretty_name kf;
-            Cil.log "[traces] WARNING : experimental feature...@\n";
-            Cil.log "  -> infinite loop processing@\n" ;
+            Cil.log "[traces] WARNING : experimental feature...";
+            Cil.log "  -> infinite loop processing" ;
             compute_on_infinite_traces infos tops
           end
   in infos
@@ -193,7 +193,7 @@ let get_postdoms infos ~without stmt =
     let stmt_to_ret, postdoms = match States.find infos stmt.sid with
       | ToInfinity postdoms -> false, postdoms
       | ToReturn postdoms -> true, postdoms
-      | Init -> assert false 
+      | Init -> assert false
     in let postdoms = if without then S.remove stmt postdoms else postdoms in
       stmt_to_ret, postdoms
   with Not_found -> assert false
@@ -212,13 +212,13 @@ let pd_b_but_not_a infos stmt_a stmt_b =
     let a_to_ret, postdom_a = get_postdoms infos ~without:true stmt_a in
     let b_to_ret, postdom_b = get_postdoms infos ~without:false stmt_b in
     let res = match a_to_ret, b_to_ret with
-      | true, true | false, false -> S.diff postdom_b postdom_a 
+      | true, true | false, false -> S.diff postdom_b postdom_a
       | true, false -> postdom_b
       | false, true -> (* no path [a, ret] but path [b, ret]
                         * possible when a there is a jump, because then we have
                         * either (A=G, B=S) or (A=S, B=L) *)
           S.empty (* because we don't want b postdoms to depend on the jump *)
-    in 
+    in
       if Macros.debug2 () then
         Format.printf "[pdg] pd_b_but_not_a for a=%d b=%d = %a@\n"
           stmt_a.sid stmt_b.sid S.pretty res;
@@ -235,12 +235,12 @@ let get_if_controled_stmts ctrl_dpds_infos stmt =
   let add_pdb_s set succ = S.union set (pd_b_but_not_a infos stmt succ) in
   let controled_stmts = List.fold_left add_pdb_s S.empty stmt.succs in
   if Macros.debug1 () then
-    Format.printf "[pdg] controled_stmt for cond %d = %a@\n" 
+    Format.printf "[pdg] controled_stmt for cond %d = %a@\n"
       stmt.sid S.pretty controled_stmts;
   let controled_stmts = S.elements controled_stmts in
   controled_stmts
 
-(** let's find the statements which are depending on 
+(** let's find the statements which are depending on
 * the jump statement (goto, break, continue, loop) =
   {v PDB(jump,lex_suc) U (PDB(lex_suc,label) - lex_suc) v}
   (see the document to know more about the applied algorithm).
@@ -275,12 +275,12 @@ let get_jump_controled_stmts ctrl_dpds_infos jump =
     S.remove jump pd_jump
   in
   if Macros.debug1 () then
-    Format.printf "[pdg] controled_stmt for jump %d = %a@\n" 
+    Format.printf "[pdg] controled_stmt for jump %d = %a@\n"
       jump.sid S.pretty controled_stmts;
   let controled_stmt_list = S.elements controled_stmts in
     controled_stmt_list
 
-let display = States.pretty 
+let display = States.pretty
 
 (*
 Local Variables:

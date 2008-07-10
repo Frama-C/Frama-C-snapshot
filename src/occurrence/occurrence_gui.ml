@@ -1,65 +1,63 @@
-(* $Id: occurrence_gui.ml,v 1.8 2008/03/06 08:23:29 uid568 Exp $ *)
+(* $Id: occurrence_gui.ml,v 1.12 2008/07/11 12:44:15 uid568 Exp $ *)
 
 open Pretty_source
 open Gtk_helper
 open Db
 open Cil_types
+open Cilutil
 
-exception Highlight of Db_types.kernel_function * stmt
+let highlight_state = ref ([], None)
 
-let apply_tag main_ui name color =
-  let view = main_ui#source_viewer in
-  let tag = make_tag view#buffer name [`BACKGROUND color ] in
-  cleanup_tag view#buffer tag;
-  List.iter
-    (fun (ki, lv) ->
-       let skf, kf = match ki with 
-	 | Kglobal -> None, None
-	 | Kstmt s -> 
-	     let s, kf = Kernel_function.find_from_sid s.sid in
-	     Some (s, kf), Some kf
-       in
-       let highlight = main_ui#highlight ~scroll:true tag in
-       let try_and_highlight loc = 
-	 match Pretty_source.locate_localizable loc, skf with
-	 | None, None -> invalid_arg "some occurrence cannot be highlighted"
-	 | None, Some (s, kf) -> raise (Highlight(kf, s))
-	 | Some _, _ -> highlight loc
-       in
-       (* Try to highlight as a lval *)
-       try try_and_highlight (PLval (kf, ki, lv))
-       with 
-       | Invalid_argument _ | Highlight _ ->
-	   (* If that doesn't work, try to highlight as a term_lval *)
-	   try 
-	     try_and_highlight 
-	       (PTermLval (kf, ki, Logic_const.lval_to_term_lval lv))
-	   with 
-	   | Highlight(kf, s) -> 
-	       (* Possible to highlight the whole stmt *)
-	       highlight (PStmt (kf, s))
-	   | Invalid_argument msg -> 
-	       (* Cannot highlight *)
-	       Format.printf "%s@." msg)
+let occurrence_highlighter buffer loc ~start ~stop = 
+  let highlight_stmt, highlight_vi = !highlight_state in
+  match highlight_vi with
+  | None -> (* occurrence not computed *)
+      ()
+  | Some vi ->
+    let tag = make_tag buffer "occurrence" [`BACKGROUND "yellow" ] in
+    match loc with 
+    | PLval (_,ki,lval) -> 
+	let same_lval (k, l) = 
+	  KinstrComparable.equal k ki && Cilutil.equals l lval
+	in
+	if List.exists same_lval highlight_stmt then 
+          apply_tag buffer tag start stop
+    | PTermLval (_,ki,term_lval) -> 
+	let same_tlval (k, l) =
+          Logic_const.is_same_tlval (Logic_const.lval_to_term_lval l) term_lval
+	  && KinstrComparable.equal k ki 
+	in
+	if List.exists same_tlval highlight_stmt then
+          apply_tag buffer tag start stop
+    | PVDecl(_, vi') when VarinfoComparable.equal vi vi' ->
+	apply_tag buffer tag start stop
+    | PVDecl _ | PStmt _ -> 
+	()
 
 let occurrence_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
   if button = 3 then
     match localizable with
-    | PVDecl (_,vi) ->
+    | PVDecl(_,vi) 
+    | PLval(_, _, (Var vi, NoOffset)) 
+    | PTermLval(_, _, (TVar { lv_origin = Some vi }, TNoOffset))->
 	if not (Cil.isFunctionType vi.vtype) then begin
           let callback () =
-	    let lvals = !Db.Occurrence.get vi in
-	    apply_tag main_ui "occurrence" "yellow" lvals
+	    highlight_state := !Db.Occurrence.get vi, Some vi;
+            main_ui#rehighlight ()
 	  in
           ignore (popup_factory#add_item "_Occurrence" ~callback)
 	end
-    | _ ->
+    | PLval _ | PTermLval _ | PStmt _ ->
 	()
 
-let main main_ui = main_ui#register_source_selector occurrence_selector
+let main main_ui = 
+  main_ui#register_source_selector occurrence_selector;
+  main_ui#register_source_highlighter occurrence_highlighter
 
-let () = Design.register_extension main
+let () = 
+  Design.register_extension main;
+  Design.register_reset_extension (fun _ -> highlight_state := [], None)
 
 (*
 Local Variables:

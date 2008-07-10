@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: bit_utils.mli,v 1.7 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: bit_utils.mli,v 1.11 2008/07/02 15:28:19 uid568 Exp $ *)
 
 (** Some bit manipulations. *)
 
@@ -49,33 +49,32 @@ val is_signed_int_enum_pointer: typ -> bool
       meaningful. *)
 
 val signof_typeof_lval: lval -> bool
-  (** Returns the sign of type of the [lval]. [true] means that the type is
+  (** @return the sign of type of the [lval]. [true] means that the type is
       signed. *)
 
 val sizeof_vid: varinfo -> Int_Base.t
-  (** Returns the size of a the type of the variable in bits. *)
+  (** @return the size of the type of the variable in bits. *)
 
 val sizeof_lval: lval -> Int_Base.t
-  (** Returns the size of a the type of the variable in bits. *)
+  (** @return the size of the type of the left value in bits. *)
 
 val sizeof_pointed: typ -> Int_Base.t
-  (** Returns the size of the type pointed by a pointer or array type in bits.
+  (** @return the size of the type pointed by a pointer or array type in bits.
       Never call it on a non pointer or non array type . *)
 
 val osizeof_pointed: typ -> Int_Base.t
-  (** Returns the size of the type pointed by a pointer or array type in bytes.
+  (** @return the size of the type pointed by a pointer or array type in bytes.
       Never call it on a non pointer or array type. *)
 
 val sizeof_pointed_lval: lval -> Int_Base.t
-  (** Returns the size of the type pointed by a pointer type of the [lval] in
+  (** @return the size of the type pointed by a pointer type of the [lval] in
       bits. Never call it on a non pointer type [lval]. *)
 
-val typeOf_pointed : typ -> typ
-  (** Returns the type pointed by the given type. Asserts it is a pointer
-      type. *)
+val max_bit_address : unit -> Abstract_interp.Int.t
+  (** @return the maximal possible offset in bits of a memory base. *)
 
-val is_fully_arithmetic: typ -> bool
-  (** Returns [true] whenever the type contains only arithmetic types *)
+val max_bit_size : unit -> Abstract_interp.Int.t
+  (** @return the maximal possible size in bits of a memory base. *)
 
 (** {2 Pretty printing} *)
 

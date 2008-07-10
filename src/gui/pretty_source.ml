@@ -23,6 +23,7 @@ open Format
 open Cil_types
 open Db_types
 open Db
+open Gtk_helper
 
 (** The kind of object that can be selected in the source viewer *)
 type localizable =
@@ -31,22 +32,27 @@ type localizable =
   | PTermLval of (kernel_function option*  kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
 
-module Locs:sig 
-  val add: int * int -> localizable -> unit 
+module Locs:sig
+  val add: int * int -> localizable -> unit
   val iter : (int * int -> localizable -> unit) -> unit
-  val create : unit -> unit
+  val create : (unit -> unit) -> unit
   val find_next_start :  int -> (localizable -> bool) -> int
   val find :  int -> (int * int) * localizable
-  type tbl
-  val locs : tbl ref
+  type state
+  val locs : state ref
+  val hilite : unit -> unit
 end = struct
-  type tbl = (int*int,localizable) Hashtbl.t
-  let locs = ref (Hashtbl.create 97)
+  type state = { table : (int*int,localizable) Hashtbl.t;
+               hiliter : unit -> unit
+             }
+  let locs = ref { table = Hashtbl.create 97;
+               hiliter = (fun () -> assert false)
+             }
+  let hilite () = !locs.hiliter ()
+  let create h =
+    locs := {table = Hashtbl.create 97; hiliter = h}
 
-  let create () = 
-    locs := Hashtbl.create 97
-      
-  let add loc v = Hashtbl.add !locs loc v
+  let add loc v = Hashtbl.add !locs.table loc v
 
   let find p =
     let best = ref None in
@@ -56,11 +62,11 @@ end = struct
 	  | None -> best := Some (loc, sid)
 	  | Some ((b',e'),_) -> if e-b < e'-b' then best := Some (loc, sid)
     in
-    Hashtbl.iter update !locs;
+    Hashtbl.iter update !locs.table;
     match !best with None -> raise Not_found | Some (loc,sid) -> loc, sid
 
   (* Find the closest localizable q after position p such that [predicate q]. *)
-  let find_next_start p predicate = 
+  let find_next_start p predicate =
     let current,_localized = find p in
     let next = ref (p+1) in
     while
@@ -74,12 +80,13 @@ end = struct
 
   let iter f =
     (*Format.printf "Iterate on %d locations@." (Hashtbl.length locs);*)
-    Hashtbl.iter f !locs
+    Hashtbl.iter f !locs.table
     (*Format.printf "DONE: Iterate on %d locations@." (Hashtbl.length locs);*)
-    
-  let size () = Hashtbl.length !locs
+
+  let size () = Hashtbl.length !locs.table
 end
 
+let hilite = Locs.hilite
 
 module Tag = struct
   type t = localizable
@@ -183,19 +190,6 @@ class tagPrinterClass = object(self)
 
 end
 
-let apply_tag (b:GText.buffer) tag pb pe =
-  let start = b#get_iter (`OFFSET pb) in
-  let stop = b#get_iter (`OFFSET pe) in
-  b#apply_tag ~start ~stop tag
-
-let remove_tag (b:GText.buffer) tag pb pe =
-  let start = b#get_iter (`OFFSET pb) in
-  let stop = b#get_iter (`OFFSET pe) in
-  b#remove_tag ~start ~stop tag
-
-let cleanup_tag (b:GText.buffer) tag =
-  b#remove_tag tag ~start:b#start_iter ~stop:b#end_iter
-
 let equal_localizable l1 l2 =
   match l1,l2 with
   | PStmt (_,ki1), PStmt (_,ki2) -> ki1.sid = ki2.sid
@@ -231,7 +225,7 @@ let localizable_from_locs ~file ~line =
          r := v::!r);
   !r
 
-let buffer_formatter (source:GText.buffer) =
+let buffer_formatter source =
   let starts = Stack.create () in
   let emit_open_tag s =
     (*    Format.eprintf "EMIT TAG@\n";*)
@@ -266,16 +260,57 @@ let buffer_formatter (source:GText.buffer) =
   Format.pp_set_margin gtk_fmt 79;
   gtk_fmt
 
-let display_source globals
-    (source:GText.buffer) (st,hlt,upd) ~highlighter ~selector =
-  st();    
-  upd ();
+external text_tag_table_foreach:
+  Gtk.text_tag_table -> (Gtk.text_tag -> unit) -> unit = "ml_gtk_text_tag_table_foreach"
 
+let display_source globals
+    source (st,hlt,upd) ~highlighter ~selector =
+  st();
+  upd ();
   source#set_text "";
-  source#remove_all_tags ~start:source#start_iter ~stop:source#end_iter ;
-  Locs.create ();
-(*  Format.eprintf "Display source starts@.";*)
-  let gtk_fmt = buffer_formatter source in
+  source#remove_all_tags ~start:source#start_iter ~stop:source#end_iter;
+  let hiliter () =
+    let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
+    Gtk_helper.cleanup_all_tags source;
+    Locs.iter
+      (fun (pb,pe) v -> upd ();
+         match v with
+         | PStmt (_,ki) ->
+             (try
+	        let pb,pe = match ki with
+                | {skind = Instr _ | Return _ | Goto _
+                  | Break _ | Continue _} -> pb,pe
+	        | {skind = If _ | Loop _
+                  | Switch _ } ->
+		    (* these statements contain other statements.
+		       We highlight only until the start of the first included
+		       statement *)
+                    pb,
+                    (try Locs.find_next_start pb
+		       (fun p -> match p with
+		        | PStmt _ -> true
+		        | _ -> false (* Do not stop on expressions*))
+                     with Not_found -> pb+1)
+	        | {skind = Block _ | TryExcept _ | TryFinally _
+                  | UnspecifiedSequence _} ->
+                    pb,
+                    (try Locs.find_next_start pb (fun _ -> true)
+                     with Not_found -> pb+1)
+	        in
+	        highlighter v ~start:pb ~stop:pe
+              with Not_found -> ())
+         | PTermLval _ | PLval _ | PVDecl _ ->
+	     highlighter v  ~start:pb ~stop:pe);
+    (*  Format.printf "Highlighting done (%d occurrences)@." (Locs.size ());*)
+
+    (* React to events on the text *)
+    source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
+    (*  Format.printf "Event tag done@.";*)
+  in
+  Locs.create hiliter;
+
+  (*  Format.eprintf "Display source starts@.";*)
+  let gtk_fmt = buffer_formatter (source:>GText.buffer) in
   let tagPrinter = new tagPrinterClass in
   let display_global g =
     upd ();
@@ -284,7 +319,7 @@ let display_source globals
       g;
     Format.pp_print_flush gtk_fmt ()
   in
-(*  Format.printf "Before Display globals %d@." (List.length globals);*)
+  (*  Format.printf "Before Display globals %d@." (List.length globals);*)
   let counter = ref 0 in
   begin try
     List.iter
@@ -298,47 +333,14 @@ let display_source globals
   end;
   (*  Format.printf "Displayed globals@.";*)
 
-  let last_shown_area = 
-    Gtk_helper.make_tag source ~name:"last_show_area" 
-      [`BACKGROUND "light green"] 
-  in
   source#place_cursor source#start_iter;
   (* Highlight the localizable *)
-  Locs.iter
-    (fun (pb,pe) v -> upd ();
-       match v with
-       | PStmt (_,ki) ->
-           (try
-	      let pb,pe = match ki with
-              | {skind = Instr _ | Return _ | Goto _
-                | Break _ | Continue _} -> pb,pe
-	      | {skind = If _ | Loop _
-                | Switch _| UnspecifiedSequence _} ->
-		  (* these statements contain other statements.
-		     We highlight only until the start of the first included
-		     statement *)
-                  pb,
-                  (try Locs.find_next_start pb
-		     (fun p -> match p with
-		      | PStmt _ -> true
-		      | _ -> false (* Do not stop on expressions*))
-                   with Not_found -> pb+1)
-	      | {skind = Block _ | TryExcept _ | TryFinally _ } ->
-                  pb,
-                  (try Locs.find_next_start pb (fun _ -> true)
-                   with Not_found -> pb+1)
-	      in
-	      highlighter v ~start:pb ~stop:pe
-            with Not_found -> ())
-       | PTermLval _ | PLval _ | PVDecl _ ->
-	   highlighter v  ~start:pb ~stop:pe);
-  (*  Format.printf "Highlighting done (%d occurrences)@." (Locs.size ());*)
-
-  (* React to events on the text *)
+  hiliter ();
+  let last_shown_area =
+    Gtk_helper.make_tag source ~name:"last_show_area"
+      [`BACKGROUND "light green"]
+  in
   let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
-  source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
-  (*  Format.printf "Event tag done@.";*)
-
   ignore
     (event_tag#connect#event ~callback:
        (fun ~origin:_ ev it ->
@@ -359,6 +361,7 @@ let display_source globals
 	      with Not_found -> () (* no statement at this offset *)
             end;
         false));
+
   hlt ()
 
 (*

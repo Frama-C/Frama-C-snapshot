@@ -1,0 +1,45 @@
+
+
+type byte = -128..127
+
+type short = -32768..32767
+
+unit f(short m)
+  requires true;
+{
+      ()
+}
+
+unit g1()
+  requires true;
+{  var byte b = 127;
+   f(b++);
+}
+
+unit g2()
+  requires true;
+{  var byte b = 127;
+   f(++b);
+}
+
+type T = { byte b; }
+
+unit g3(T[0] x)
+  requires true;
+{  f(x.b++);
+}
+
+unit g4(T[0] x)
+  requires true;
+{  f(++x.b);
+}
+
+
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make incr"
+End: 
+*/
+

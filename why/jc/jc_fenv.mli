@@ -27,7 +27,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: jc_fenv.mli,v 1.30 2008/04/10 16:05:55 moy Exp $ *)
+(* $Id: jc_fenv.mli,v 1.32 2008/07/03 14:34:11 marche Exp $ *)
 
 open Jc_env
 open Jc_envset
@@ -38,7 +38,7 @@ open Jc_region
 type effect =
     {
       jc_effect_alloc_table : StringRegionSet.t;
-      jc_effect_tag_table : VariantSet.t;
+      jc_effect_tag_table : LogicLabelSet.t VariantMap.t;
       jc_effect_memories : LogicLabelSet.t FieldOrVariantRegionMap.t;
       jc_effect_globals : VarSet.t;
       jc_effect_mutable : StringSet.t;
@@ -73,7 +73,7 @@ type fun_info =
     {
       jc_fun_info_tag : int;
       jc_fun_info_name : string;
-      jc_fun_info_final_name : string;
+      mutable jc_fun_info_final_name : string;
       jc_fun_info_result : var_info;
       jc_fun_info_return_region : region;
       mutable jc_fun_info_parameters : var_info list;

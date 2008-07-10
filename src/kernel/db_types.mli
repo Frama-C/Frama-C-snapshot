@@ -19,10 +19,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: db_types.mli,v 1.39 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: db_types.mli,v 1.40 2008/05/30 08:29:48 uid568 Exp $ *)
 
 (** Type definitions for [Db] module. Each plugin may add its additional
-    types. *)
+    types. 
+    @plugin developer guide *)
 
 open Cil_types
 open Cil
@@ -51,7 +52,8 @@ type stmts_graph = Graph.Imperative.Digraph.Concrete(Cilutil.StmtComparable).t
 
 (** Except field [fundec], do not used the other fields directly.
     Prefer to use {!Kernel_function.find_return}, {!Kernel_function.get_spec} 
-    and {!Stmts_graph.stmt_can_reach}. *)
+    and {!Stmts_graph.stmt_can_reach}. 
+    @plugin developer guide *)
 type kernel_function = {
   fundec : cil_function;
   mutable return_stmt : stmt option;

@@ -23,7 +23,8 @@ type t_proj
 
 type t_fct
 
-val select_usefull_things : Db_types.kernel_function -> t_proj
+val select_usefull_things : 
+  select_annot:bool -> select_slice_pragma:bool -> Db_types.kernel_function -> t_proj
 
 val get_marks : t_proj -> Db_types.kernel_function -> t_fct option
 

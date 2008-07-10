@@ -36,7 +36,7 @@ unsigned int my_strlen(const char *s)
   return l;
 }
 
-/*@ requires security_status(addr) == public(); */
+/*@ requires security_status(addr) == public; */
 void send_addr(const ip_address addr, const char *txt) 
 #ifdef GCC 
 {
@@ -49,7 +49,7 @@ void send_addr(const ip_address addr, const char *txt)
   ;
 #endif
 
-/*@ requires security_status(data) == public(); */
+/*@ requires security_status(data) == public; */
 void send_data(const char *data, const char *txt) 
 #ifdef GCC 
 {
@@ -68,21 +68,21 @@ void send_msg(const msg *msg) {
 #endif
 }
 
-/*@ ensures security_status(data) == public(); */
+/*@ ensures security_status(data) == public; */
 void crypt(char* data) {
   unsigned int i = 0;
   char *d = data;
   while(d[i]!='\0') { d[i] += CRYPT_PAD; i++; }
 }
 
-/*@ ensures security_status(data) == private(); */
+/*@ ensures security_status(data) == private; */
 void uncrypt(char* data) {
   unsigned int i = 0;
   char *d = data;
   while(d[i]!='\0') { d[i] -= CRYPT_PAD; i++; }
 }
 
-/*@ ensures security_status(ip) == public(); */
+/*@ ensures security_status(ip) == public; */
 void host_address(ip_address ip) {
   ip[0] = 192; ip[1] = 100; ip[2] = 200; ip[3] = 101;
 }

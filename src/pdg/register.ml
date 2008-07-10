@@ -62,17 +62,14 @@ let () =
   Db.Pdg.get := Tbl.memo compute;
   Db.Pdg.node_key :=  PdgTypes.Node.elem_key;
 
-  Db.Pdg.add_dynamic_dpds := PdgTypes.Pdg.add_dynamic_dpds;
-  Db.Pdg.clear_dynamic_dpds := PdgTypes.Pdg.clear_dynamic_dpds;
-
   Db.Pdg.find_decl_var_node := Sets.find_decl_var_node;
   Db.Pdg.find_entry_point_node := Sets.find_entry_point_node;
   Db.Pdg.find_top_input_node := Sets.find_top_input_node;
-  Db.Pdg.find_stmt_nodes := Sets.find_stmt_nodes;
+  Db.Pdg.find_simple_stmt_nodes := Sets.find_simple_stmt_nodes;
+  Db.Pdg.find_stmt_and_blocks_nodes := Sets.find_stmt_and_blocks_nodes;
   Db.Pdg.find_stmt_node := Sets.find_stmt_node;
   Db.Pdg.find_location_nodes_at_stmt := Sets.find_location_nodes_at_stmt;
   Db.Pdg.find_location_nodes_at_end := Sets.find_location_nodes_at_end;
-  Db.Pdg.find_call_topin_node := Sets.find_call_topin_node;
   Db.Pdg.find_call_ctrl_node := Sets.find_call_ctrl_node;
   Db.Pdg.find_call_input_node := Sets.find_call_num_input_node;
   Db.Pdg.find_call_output_node := Sets.find_call_output_node;

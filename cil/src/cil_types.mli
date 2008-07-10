@@ -38,7 +38,8 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(** {b The Abstract Syntax of CIL} *)
+(** The Abstract Syntax of CIL.
+    @plugin developer guide *)
 
 (**************************** WARNING ***************************************)
 (* Remember to reflect any change here into the visitor and pretty-printer  *)
@@ -58,7 +59,6 @@
  * {!Cil.dummyFile} when you need a {!Cil_types.file} as a placeholder. For each
  * global item CIL stores the source location where it appears (using the
  * type {!Cil_types.location}) *)
-
 type file =
     { mutable fileName: string;   (** The complete file name *)
       mutable globals: global list; (** List of globals as they will appear
@@ -75,13 +75,13 @@ type file =
           you create a global initialization CIL will try to insert code in
           main to call it. *)
     }
-(** Top-level representation of a C source file *)
-
-and comment = location * string
+(** Top-level representation of a C source file.
+    @plugin developer guide  *)
 
 (** The main type for representing global declarations and definitions. A list
     of these form a CIL file. The order of globals in the file is generally
-    important. *)
+    important.
+    @plugin developer guide *)
 and global =
   | GType of typeinfo * location
     (** A typedef. All uses of type names (through the [TNamed] constructor)
@@ -304,7 +304,8 @@ and attrparam =
 
 (** The definition of a structure or union type. Use {!Cil.mkCompInfo} to
  * make one and use {!Cil.copyCompInfo} to copy one (this ensures that a new
- * key is assigned and that the fields have the right pointers to parents.). *)
+ * key is assigned and that the fields have the right pointers to parents.).
+    @plugin developer guide *)
 and compinfo = {
     mutable cstruct: bool;
    (** True if struct, False if union *)
@@ -337,7 +338,8 @@ and compinfo = {
  * attributes associated with the field itself or associated with the type of
  * the field (stored along with the type of the field). *)
 
-(** Information about a struct/union field *)
+(** Information about a struct/union field.
+    @plugin developer guide *)
 and fieldinfo = {
     mutable fcomp: compinfo;
      (** The host structure that contains this field. There can be only one
@@ -381,7 +383,8 @@ and fieldinfo = {
  * references to an enumeration. Make sure you have a [GEnumTag] for each
  * of these. *)
 
-(** Information about an enumeration *)
+(** Information about an enumeration.
+    @plugin developer guide *)
 and enuminfo = {
     mutable ename: string;
     (** The name. Always non-empty. *)
@@ -400,7 +403,8 @@ and enuminfo = {
  * references to an enumeration. Make sure you have a [GEnumTag] for each of
  * of these. *)
 
-(** Information about a defined type *)
+(** Information about a defined type.
+    @plugin developer guide *)
 and typeinfo = {
     mutable tname: string;
     (** The name. Can be empty only in a [GType] when introducing a composite
@@ -438,7 +442,8 @@ and a new unique identifier
 
 *)
 
-(** Information about a variable. *)
+(** Information about a variable.
+    @plugin developer guide *)
 and varinfo = {
     mutable vname: string;
     (** The name of the variable. Cannot be empty. It is primarily your
@@ -750,7 +755,8 @@ and lhost =
 (** The offset part of an {!Cil_types.lval}. Each offset can be applied to certain
   * kinds of lvalues and its effect is that it advances the starting address
   * of the lvalue and changes the denoted type, essentially focussing to some
-  * smaller lvalue that is contained in the original one. *)
+  * smaller lvalue that is contained in the original one.
+    @plugin developer guide *)
 and offset =
   | NoOffset          (** No offset. Can be applied to any lvalue and does
                         * not change either the starting address or the type.
@@ -819,7 +825,8 @@ with the formals that appear in the function type. For that reason, to
 manipulate formals you should use the provided functions
 {!Cil.makeFormalVar} and {!Cil.setFormals}.
 *)
-(** Function definitions. *)
+(** Function definitions.
+    @plugin developer guide *)
 and fundec =
     { mutable svar:     varinfo;
          (** Holds the name and type as a variable, so we can refer to it
@@ -881,7 +888,8 @@ default. Instead you must explicitly use the functions
 {!Cil.prepareCFG} and {!Cil.computeCFGInfo} to do it.
 
 *)
-(** Statements. *)
+(** Statements.
+    @plugin developer guide *)
 and stmt = {
     mutable labels: label list;
     (** Whether the statement starts with some labels, case statements or
@@ -960,12 +968,13 @@ and stmtkind =
     (** Just a block of statements. Use it as a way to keep some block
      * attributes local *)
 
-  | UnspecifiedSequence of stmt * stmt
-    (** Two statements whose order of execution is not specified by ISO/C.
-        This is important for the order of side effects during evaluation of expressions.
-        At this time this feature is experimental and may miss some uspecified sequences.
-        In case you do not care about this feature just handle it like a block containing
-        the two statements in sequence.
+  | UnspecifiedSequence of block
+    (** statements whose order of execution is not specified by ISO/C.
+        This is important for the order of side effects during evaluation of
+        expressions.
+        At this time this feature is experimental and may miss some
+        unspecified sequences.
+        In case you do not care about this feature just handle it like a block.
     *)
 
   | TryFinally of block * block * location
@@ -1056,6 +1065,7 @@ and typsig =
 
 (** Abstract syntax trees for annotations *)
 
+(** Types of logic terms. *)
 and logic_type =
   | Ctype of typ (** a C type *)
   | Ltype of string * logic_type list
@@ -1065,250 +1075,359 @@ and logic_type =
   | Lreal    (** mathematical reals, {i i.e.} R *)
   | Larrow of logic_type list * logic_type (** (n-ary) function type *)
 
+(** sets of terms. *)
 and tsets =
-    TSSingleton of tsets_elem
-  | TSEmpty
-  | TSUnion of tsets list
-  | TSInter of tsets list
+    TSSingleton of tsets_elem (** a single term *)
+  | TSEmpty (** the empty set. *)
+  | TSUnion of tsets list (** union of terms. *)
+  | TSInter of tsets list (** intersection of terms. *)
   | TSComprehension of
       tsets * quantifiers * predicate named option
+        (** set defined in comprehension ({t \{ t[i] | integer i; 0 <= i < 5\}})
+         *)
 
+(** base address of a (set of) location. *)
 and tsets_lhost =
-    TSVar of logic_var
-  | TSResult
-  | TSMem of tsets_elem
+    TSVar of logic_var (** variable *)
+  | TSResult (** returned value of the specified function. *)
+  | TSMem of tsets_elem (** memory access. *)
 
+(** A (set of) location: base address and offset *)
 and tsets_lval = tsets_lhost * tsets_offset
 
+(** Single elements of a tset *)
 and tsets_elem =
-  | TSLval of tsets_lval
-  | TSStartOf of tsets_lval
-  | TSConst of constant
-  | TSAdd_index of tsets_elem * term
+  | TSLval of tsets_lval (** location. *)
+  | TSStartOf of tsets_lval (** start of an array. *)
+  | TSConst of constant (** An integer constant. *)
+  | TSAdd_index of tsets_elem * term (** an element plus a given term. *)
   | TSAdd_range of tsets_elem * term option * term option
-  | TSCastE of typ * tsets_elem
-  | TSAt of tsets_elem * logic_label
-
+      (** an element plus a term in a given range. *)
+  | TSCastE of typ * tsets_elem (** cast *)
+  | TSAt of tsets_elem * logic_label (** the element must be evaluated at
+                                      a particular program point. *)
+(** offset of a tset element *)
 and tsets_offset =
-    TSNo_offset
-  | TSIndex of term * tsets_offset
+    TSNo_offset (** no further offset*)
+  | TSIndex of term * tsets_offset (** index *)
   | TSRange of term option * term option * tsets_offset
+      (** index in a given range. *)
   | TSField of fieldinfo * tsets_offset
+      (** field of a compound type. *)
 
-(** uses [Logic_const.new_location] to generate a new id. *)
+(** tsets with an unique identifier.
+    Use [Logic_const.new_location] to generate a new id. *)
 and identified_tsets =
-    { its_id: int;
-      its_content: tsets
+    { its_id: int; (** the identifier. *)
+      its_content: tsets (** the tset *)
     }
 
+(** logic label referring to a particular program point. *)
 and logic_label =
-  | StmtLabel of stmt ref
-  | LogicLabel of string
+  | StmtLabel of stmt ref (** label of a C statement. *)
+  | LogicLabel of string (** builtin logic label ({t Here, Pre}, ...) *)
 
 (* Expressions follow CIL constructs (with prefix T) *)
 
+(** Logic terms. *)
 and term = {
-  term_node : term_node;
+  term_node : term_node; (** kind of term. *)
   term_loc : Lexing.position * Lexing.position;
-  term_type : logic_type;
-  term_name: string list;
+  (** position in the source file. *)
+  term_type : logic_type; (** type of the term. *)
+  term_name: string list; (** names of the term if any. *)
 }
 
+(** the various kind of terms. *)
 and term_node =
   (* same constructs as exp *)
-  | TConst of constant
-  | TLval of term_lval
-  | TSizeOf of typ
-  | TSizeOfE of term
-  | TSizeOfStr of string
-  | TAlignOf of typ
-  | TAlignOfE of term
-  | TUnOp of unop * term
-  | TBinOp of binop * term * term
-  | TCastE of typ * term
-  | TAddrOf of term_lval
-  | TStartOf of term_lval
+  | TConst of constant (** a constant. *)
+  | TLval of term_lval (** an L-value *)
+  | TSizeOf of typ (** size of a given C type. *)
+  | TSizeOfE of term (** size of the type of an expression. *)
+  | TSizeOfStr of string (** size of a string constant. *)
+  | TAlignOf of typ (** alignment of a type. *)
+  | TAlignOfE of term (** alignment of the type of an expression. *)
+  | TUnOp of unop * term (** unary operator. *)
+  | TBinOp of binop * term * term (** binary operators. *)
+  | TCastE of typ * term (** cast to a C type. *)
+  | TAddrOf of term_lval (** address of a term. *)
+  | TStartOf of term_lval (** beginning of an array. *)
   (* additional constructs *)
   | Tapp of logic_info * (logic_label * logic_label) list * term list
-  | Tlambda of quantifiers * term
+      (** application of a logic function. *)
+  | Tlambda of quantifiers * term (** lambda abstraction. *)
   | TDataCons of logic_ctor_info * term list
+      (** constructor of logic sum-type. *)
   | Tif of term * term * term
-  | Told of term
+      (** conditional operator*)
+  | Told of term (** term refers to the pre-state of the function. *)
   | Tat of term * logic_label
-  | Tbase_addr of term
-  | Tblock_length of term
-  | Tnull
-  | TCoerce of term * typ
-  | TCoerceE of term * term
+      (** term refers to a particular program point. *)
+  | Tbase_addr of term (** base address of a pointer. *)
+  | Tblock_length of term (** length of the block pointed to by the term. *)
+  | Tnull (** the null pointer. *)
+  | TCoerce of term * typ (** coercion to a given C type. *)
+  | TCoerceE of term * term (** coercion to the type of a given term. *)
   | TUpdate of term * fieldinfo * term
+      (** functional update of a field. *)
+  | Ttypeof of term (** type tag for a term. *)
+  | Ttype of typ (** type tag for a C type. *)
 
+(** lvalue: base address and offset. *)
 and term_lval =
     term_lhost * term_offset
 
+(** base address of an lvalue. *)
 and term_lhost =
-  | TVar of logic_var
-  | TResult
-  | TMem of term
+  | TVar of logic_var (** a variable. *)
+  | TResult (** value returned by a function. *)
+  | TMem of term (** memory access. *)
 
+(** offset of an lvalue. *)
 and term_offset =
-  | TNoOffset
+  | TNoOffset (** no further offset. *)
   | TField of fieldinfo * term_offset
+      (** access to the field of a compound type. *)
   | TIndex of term * term_offset
-
+      (** index. *)
+(** description of a logic function.
+@plugin developer guide *)
 and logic_info = {
-  l_name : string;
-  mutable l_type : logic_type;
-  mutable l_profile : logic_var list;
-  l_labels : logic_label list;
-  mutable l_reads : tsets list;
-  mutable l_definition: term option;
+  mutable l_name : string; (** name of the function. *)
+  mutable l_type : logic_type; (** return type. *)
+  mutable l_profile : logic_var list; (** type of the arguments. *)
+  l_labels : logic_label list; (** label arguments of the function. *)
+  mutable l_reads : tsets list; (** read accesses performed by the function. *)
+  mutable l_definition: term option; (** body of the function. *)
 }
 
+(** description of a logic type*)
 and logic_type_info =
-    { nb_params : int; }
+    { nb_params : int; (** number of type parameters*)
+    }
       (* will be expanded when dealing with concrete types *)
 
+(** description of a logic variable
+@plugin developer guide *)
 and logic_var = {
-  lv_name : string;
-  lv_id : int;
-  mutable lv_type : logic_type;
-  lv_origin : varinfo option }
+  lv_name : string; (** name of the variable. *)
+  lv_id : int; (** unique identifier *)
+  mutable lv_type : logic_type; (** type of the variable. *)
+  lv_origin : varinfo option (** when the logic variable stems from a
+                              C variable, set to the original C variable.
+                              *)
+}
 
+(** description of a constructor of a logic sum-type*)
 and logic_ctor_info =
- { ctor_name: string;
-   ctor_type: logic_type;
+ { ctor_name: string; (** name of the constructor. *)
+   ctor_type: logic_type; (** type to which the constructor belongs. *)
    ctor_params: logic_type list
+     (** types of the parameters of the constructor. *)
  }
 
 (* Predicates *)
 
+(** variables bound by a quantifier. *)
 and quantifiers = logic_var list
 
+(** comparison relations*)
 and relation = Rlt | Rgt | Rle | Rge | Req | Rneq
 
+(** predicates *)
 and predicate =
-  | Pfalse
-  | Ptrue
+  | Pfalse (** always-false predicate. *)
+  | Ptrue (** always-true predicate. *)
   | Papp of predicate_info * (logic_label * logic_label) list * term list
+      (** application of a predicate. *)
   | Prel of relation * term * term
+      (** comparison of two terms. *)
   | Pand of predicate named * predicate named
+      (** conjunction *)
   | Por of predicate named * predicate named
+      (** disjunction. *)
   | Pxor of predicate named * predicate named
+      (** logical xor. *)
   | Pimplies of predicate named * predicate named
+      (** implication. *)
   | Piff of predicate named * predicate named
+      (** equivalence. *)
   | Pnot of predicate named
+      (** negation. *)
   | Pif of term * predicate named * predicate named
+      (** conditional *)
   | Plet of logic_var * term * predicate named
+      (** definition of a local variable *)
   | Pforall of quantifiers * predicate named
+      (** universal quantification. *)
   | Pexists of quantifiers * predicate named
+      (** existential quantification. *)
   | Pold of predicate named
+      (** predicate refers to the pre-state of a function. *)
   | Pat of predicate named * logic_label
+      (** predicate refers to a particular program point. *)
   | Pvalid of tsets
+      (** the given locations are valid. *)
   | Pvalid_index of term * term
+      (** {b deprecated:} Use [Pvalid(TSSingleton(TSAdd_index(p,i)))] instead
+
+          [Pvalid_index(p,i)] indicates that accessing the [i]th element
+          of [p] is valid.
+       *)
   | Pvalid_range of term * term * term
+      (** {b deprecated:} Use [Pvalid(TSSingleton(TSAdd_range(p,i1,i2)))]
+          instead
+
+          similar to [Pvalid_index] but for a range of indices.*)
   | Pfresh of term
-  | PInstanceOf of term * typ
-  | PInstanceOfE of term * term
+      (** The given term is newly allocated in the post-state of a function.*)
+  | Psubtype of term * term
+      (** First term is a type tag that is a subtype of the second. *)
 
+(** Description of a predicate
+    @plugin developer guide *)
 and predicate_info = {
-  p_name : string;
-  mutable p_profile : logic_var list;
-  p_labels : logic_label list;
-  mutable p_body : predicate_body
+  mutable p_name : string; (** name of the predicate. *)
+  mutable p_profile : logic_var list; (** arguments of the predicate. *)
+  p_labels : logic_label list; (** label arguments. *)
+  mutable p_body : predicate_body (** definition. *)
 }
 
-(** use [Logic_const.new_predicate] to create fresh predicates *)
+(** predicate with an unique identifier.
+Use [Logic_const.new_predicate] to create fresh predicates *)
 and identified_predicate = {
-  ip_name: string list;
-  ip_loc: location;
-  ip_id: int;
-  ip_content: predicate;
+  ip_name: string list; (** names given to the predicate if any.*)
+  ip_loc: location; (** location in the source code. *)
+  ip_id: int; (** identifier *)
+  ip_content: predicate; (** the predicate itself*)
 }
 
+(** definition of a predicate *)
 and predicate_body =
-  | PReads of tsets list
-  | PDefinition of predicate named
+  | PReads of tsets list (** read accesses performed by the predicate. *)
+  | PDefinition of predicate named (** body of the predicate. *)
 
-(* Polymorphic types shared with parsed trees (Logic_ptree) *)
-
+(*  Polymorphic types shared with parsed trees (Logic_ptree) *)
+(** variant of a loop or a recursive function. Type shared with Logic_ptree. *)
 and 'term variant = 'term * string option
 
-and 'locs zone = Location of 'locs | Nothing
+(** zone assigned by a C function. Type shared with Logic_ptree. *)
+and 'locs zone =
+    Location of 'locs (** tsets *)
+  | Nothing (** nothing is assigned. *)
 
+(** zone assigned with its dependencies. Type shared with Logic_ptree.*)
 and 'locs assigns = 'locs zone * ('locs zone list)
 
-and 'a named = { name : string list; (* can have more than one name *)
-                 loc : location;
-                 content : 'a;
+(** object that can be named (in particular predicates). *)
+and 'a named = { name : string list; (** list of given names *)
+                 loc : location; (** position in the source code. *)
+                 content : 'a; (** content *)
                }
 
+(** function contract. Type shared with Logic_ptree. *)
 and ('term,'pred,'locs) spec = {
-  mutable spec_requires : 'pred list;
+  mutable spec_requires : 'pred list; (** global requirements. *)
   mutable spec_behavior : ('pred,'locs) behavior list;
+  (** behaviors *)
   mutable spec_variant : 'term variant option;
+  (** variant for recursive functions. *)
   mutable spec_terminates: 'pred option;
+  (** termination condition. *)
   mutable spec_complete_behaviors: string list list;
-  (* it is possible to have more than one set of complete behaviors *)
+  (** list of complete behaviors.
+      It is possible to have more than one set of complete behaviors *)
   mutable spec_disjoint_behaviors: string list list;
-  (* it is possible to have more than one set of disjoint behaviors *)
+  (** list of disjoint behaviors.
+     It is possible to have more than one set of disjoint behaviors *)
 }
 
+(* proposal for bug #305 *)
+(*
+and ('term,'pred,'locs) func_annot =
+    Requires of string * 'pred
+  | Assumes of string * 'pred
+  | Ensures of string * 'pred
+  | Variant of 'term variant
+  | Terminates of 'pred
+  | Complete_behaviors of string list
+  | Disjoint_behaviors of string list
+
+and func_annotation =
+    {
+      fa_id: int;
+      fa_content: (term, predicate named, tsets) func_annot
+    }
+
+(* /#305 *)
+*)
+
+(** behavior of a function. Type shared with Logic_ptree. *)
 and ('pred,'locs) behavior = {
-  mutable b_name : string;
-  mutable b_assumes : 'pred list;
-  mutable b_ensures : 'pred list;
-  mutable b_assigns : 'locs assigns list;
+  mutable b_name : string; (** name of the behavior. *)
+  mutable b_assumes : 'pred list; (** assume clauses. *)
+  mutable b_ensures : 'pred list; (** ensure clauses. *)
+  mutable b_assigns : 'locs assigns list; (** assignments. *)
 }
 
-and ('pred, 'typ) type_annot = {
-  inv_name : string;
-  this_name : string;
-  this_type : 'typ;
-  inv : 'pred;
-}
-
+(** pragmas for the value analysis plugin of Frama-C.
+Type shared with Logic_ptree.*)
 and 'term loop_pragma =
   | Unroll_level of 'term
   | Widen_hints of 'term list
   | Widen_variables of 'term list
 
+(** pragmas for the slicing plugin of Frama-C. Type shared with Logic_ptree.*)
 and 'term slice_pragma =
   | SPexpr of 'term
   | SPctrl
   | SPstmt
 
+(** pragmas for the impact plugin of Frama-C. Type shared with Logic_ptree.*)
 and 'term impact_pragma =
   | IPexpr of 'term
   | IPstmt
 
+(** the various kinds of pragmas. Type shared with Logic_ptree. *)
 and 'term pragma =
   | Loop_pragma of 'term loop_pragma
   | Slice_pragma of 'term slice_pragma
   | Impact_pragma of 'term impact_pragma
 
-(** all annotations that can be found in the code. *)
+(** all annotations that can be found in the code.
+    Type shared with Logic_ptree. *)
 and ('term, 'pred, 'spec_pred, 'locs) code_annot =
-  | AAssert of 'pred (** assertion to be checked *)
+  | AAssert of (string list * 'pred) 
+      (** assertion to be checked. The list of strings is the list of 
+	  behaviors to which this assertion applies. *)
   | AAssume of 'pred (** assertion assumed to be true *)
-  | AStmtSpec of ('term, 'spec_pred, 'locs) spec
-  | AInvariant of (bool * 'pred) (* true for traditional loop invariants,
-                                    false for invariant-as-assertion. *)
-  | AVariant of 'term variant (* NB: there can be at most one variant
-                                 associated to a given statement
+  | AStmtSpec of ('term, 'spec_pred, 'locs) spec (** statement contract. *)
+  | AInvariant of (string list * bool * 'pred)
+      (** code invariant. The list of strings is the list of 
+	  behaviors to which this invariant applies. 
+	  The boolean flag is true for normal loop invariants
+          and false for invariant-as-assertions.*)
+  | AVariant of 'term variant (** variant. Note that
+                                  there can be at most one variant
+                                  associated to a given statement
                                *)
-  | AAssigns of 'locs assigns
-  | APragma of 'term pragma
+  | AAssigns of 'locs assigns (** assignment *)
+  | APragma of 'term pragma (** pragma. *)
 
+(** function contract. *)
 and funspec = (term, identified_predicate, identified_tsets) spec
 
-(** Use [Logic_const.new_code_annotation] to create new code annotations with
+(** code annotation with an unique identifier.
+    Use [Logic_const.new_code_annotation] to create new code annotations with
     a fresh id. *)
 and code_annotation =
     { annot_content :
         (term, predicate named, identified_predicate, identified_tsets)
-        code_annot;
-      annot_id: int }
-and type_annotation = (predicate named, logic_type) type_annot
+        code_annot; (** content of the annotation. *)
+      annot_id: int (** identifier. *) }
+
+(** behavior of a function. *)
 and funbehavior = (identified_predicate,identified_tsets) behavior
 
 (** global annotations, not attached to a statement or a function. *)
@@ -1316,27 +1435,32 @@ and global_annotation =
   | Dpredicate_reads of
       predicate_info * string list
       * logic_var list * tsets list
-        (** Dpredicate_reads(name,type_params,
-                             params,reads_tsets)
+        (** declaration of a predicate.
+            [Dpredicate_info(infos,type_vars,profile,reads)]
          *)
   | Dpredicate_def of
       predicate_info * string list * logic_var list *
         predicate named
-        (** Dpredicate_def(name,type_params,params,def) *)
+        (** definition of a predicate. *)
   | Dlogic_reads of
       logic_info * string list *
         logic_var list * logic_type * tsets list
-        (** Dlogic_reads(name,type_params,params,return_type,
-                         reads_tsets)*)
+        (** declaration of a logic function.
+            [Dlogic_reads(infos,type_vars,profile,rt_type,reads)]
+         *)
   | Dlogic_def of
       logic_info * string list *
         logic_var list * logic_type * term
-        (** Dlogic_def(name,type_params,params,return_type,def)*)
-  | Dtype of string * string list
+        (** definition of a logic function. *)
+  | Dtype of string * string list (** declaration of a logic type. *)
   | Dlemma of string * bool * logic_label list * string list * predicate named
-      (** Dlemma(name,is_axiom,labels,type_params,property) *)
-  | Dinvariant of string * predicate named
-  | Dtype_annot of type_annotation
+      (** definition of a lemma. The boolean flag is true if the property.
+            should be taken as an axiom and false if it must be proved.
+         *)
+  | Dinvariant of predicate_info
+      (** global invariant. The predicate does not have any argument. *)
+  | Dtype_annot of predicate_info
+      (** type invariant. The predicate has exactly one argument. *)
 
 type kinstr =
   | Kstmt of stmt

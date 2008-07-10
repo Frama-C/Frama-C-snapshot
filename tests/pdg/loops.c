@@ -1,14 +1,14 @@
 /* run.config
    GCC:
-   OPT: -lib-entry simple -pdg-debug "-fct-pdg simple"
-   OPT: -lib-entry simple_with_break -pdg-debug "-fct-pdg simple_with_break"
-   OPT: -lib-entry infinite -pdg-debug "-fct-pdg infinite"
-   OPT: -lib-entry infinite2 -pdg-debug "-fct-pdg infinite2"
-   OPT: -lib-entry maybe_infinite -pdg-debug "-fct-pdg maybe_infinite"
-   OPT: -lib-entry two_infinite_loops -pdg-debug "-fct-pdg two_infinite_loops"
-   OPT: -lib-entry loop_with_goto -pdg-debug "-fct-pdg loop_with_goto"
-   OPT: -lib-entry non_natural_loop -pdg-debug "-fct-pdg non_natural_loop"
-   OPT: -lib-entry dead_code -pdg-debug "-fct-pdg dead_code"
+   OPT: -lib-entry -main simple -pdg-debug "-fct-pdg simple"
+   OPT: -lib-entry -main simple_with_break -pdg-debug "-fct-pdg simple_with_break"
+   OPT: -lib-entry -main infinite -pdg-debug "-fct-pdg infinite"
+   OPT: -lib-entry -main infinite2 -pdg-debug "-fct-pdg infinite2"
+   OPT: -lib-entry -main maybe_infinite -pdg-debug "-fct-pdg maybe_infinite"
+   OPT: -lib-entry -main two_infinite_loops -pdg-debug "-fct-pdg two_infinite_loops"
+   OPT: -lib-entry -main loop_with_goto -pdg-debug "-fct-pdg loop_with_goto"
+   OPT: -lib-entry -main non_natural_loop -pdg-debug "-fct-pdg non_natural_loop"
+   OPT: -lib-entry -main dead_code -pdg-debug "-fct-pdg dead_code"
 
 
 
@@ -20,15 +20,15 @@ F=maybe_infinite
 
 Pour voir le CFG :
 
-bin/toplevel.opt -lib-entry $F -deps -pdg-debug "-verbose" tests/pdg/loops.c
+bin/toplevel.opt -lib-entry -main $F -deps -pdg-debug "-verbose" tests/pdg/loops.c
 zgrviewer ./$F_cfg.dot
 
 Pour voir les postdominateurs :
-bin/toplevel.opt -lib-entry $F -fct-pdg $F -dot-postdom p tests/pdg/loops.c ;
+bin/toplevel.opt -lib-entry -main $F -fct-pdg $F -dot-postdom p tests/pdg/loops.c ;
 zgrviewer ./p.$F.dot
 
 Pour voir le PDG :
-bin/toplevel.opt -lib-entry $F -fct-pdg $F -dot-pdg pdg tests/pdg/loops.c ;
+bin/toplevel.opt -lib-entry -main $F -fct-pdg $F -dot-pdg pdg tests/pdg/loops.c ;
 zgrviewer ./pdg.$F.dot
 
 */

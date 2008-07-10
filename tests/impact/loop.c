@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -impact-pragma loop -lib-entry loop -impact-print
+   OPT: -impact-pragma loop -lib-entry -main loop -impact-print
    */
 
 int c,x,y,z,w;

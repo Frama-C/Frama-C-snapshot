@@ -1,4 +1,4 @@
-(* $Id: register.ml,v 1.5 2007/12/10 15:32:39 uid568 Exp $ *)
+(* $Id: register.ml,v 1.6 2008/06/19 14:42:45 uid568 Exp $ *)
 
 open Db_types
 open Db
@@ -9,8 +9,8 @@ module SGraph =
     (struct include Cilutil.StmtComparable let default = Cil.dummyStmt end)
 
 module SCQueue =
-  Computation.Ref
-    (struct include Kernel_datatype.KF_Queue let default = Queue.create () end)
+  Computation.Queue
+    (Kernel_datatype.KernelFunction)
     (struct
        let name = Project.Computation.Name.make "SCQueue"
        let dependencies = [ Value.self ]
@@ -35,10 +35,9 @@ let callgraph () =
 let topologically_iter_on_functions =
   let module T = Graph.Topological.Make(SGraph) in
   fun f ->
-    let q = SCQueue.get () in
     (* compute on need *)
-    if Queue.is_empty q then T.iter (fun kf -> Queue.add kf q) (callgraph ());
-    Queue.iter f q
+    if SCQueue.is_empty () then T.iter SCQueue.add (callgraph ());
+    SCQueue.iter f
 
 let () =
   Db.Semantic_Callgraph.topologically_iter_on_functions :=

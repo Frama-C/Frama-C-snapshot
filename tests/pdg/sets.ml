@@ -1,8 +1,8 @@
 open Db;;
 open Cil_types;;
 
-let pp_nodes msg nodes = Cil.log "%s\n" msg ;
-  List.iter (fun n -> Cil.log "%a@." (!Pdg.pretty_node false) n) nodes;;
+let pp_nodes msg nodes = Cil.log "%s" msg ;
+  List.iter (fun n -> Cil.log "%a" (!Pdg.pretty_node false) n) nodes;;
 
 let f = Globals.Functions.find_by_name "f";;
 let pdg = !Pdg.get f;;
@@ -12,7 +12,7 @@ let pdg = !Pdg.get f;;
 Format.eprintf "@[%a@]@." !Ast_printer.d_global (Kernel_function.get_global f);;
 *)
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
-let stmt_1 = fst (Kernel_function.find_from_sid 0);; (* y = 0 *)
+let stmt_1 = fst (Kernel_function.find_from_sid 1);; (* y = 0 *)
 let node = !Pdg.find_stmt_node pdg stmt_1;;
 let nodes = !Pdg.all_uses pdg [node];;
 let () = pp_nodes "Test [all_uses] stmt1" nodes;;
@@ -30,9 +30,10 @@ let y_zone = Locations.valid_enumerate_bits (Locations.loc_of_varinfo y);;
 
 let y_at_11_nodes, undef = (* y=5 *)
   !Pdg.find_location_nodes_at_stmt
-    pdg (fst (Kernel_function.find_from_sid 9)) ~before:false y_zone;;
+    pdg (fst (Kernel_function.find_from_sid 10)) ~before:false y_zone;;
 
-assert (Locations.Zone.equal undef Locations.Zone.bottom);;
+assert (undef = None);;
+let y_at_11_nodes = List.map (fun (n,_z) -> n) y_at_11_nodes;;
 
 let () = pp_nodes "Test [find_location_nodes_at_stmt] y@11" y_at_11_nodes;;
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)

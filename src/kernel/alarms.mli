@@ -19,7 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: alarms.mli,v 1.11 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: alarms.mli,v 1.12 2008/05/30 08:29:48 uid568 Exp $ *)
+
+(** Alarm Database.
+    @plugin developer guide *)
 
 type t = 
   | Division_alarm

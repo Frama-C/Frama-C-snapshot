@@ -19,12 +19,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Utilities to pretty print source with located elements in a Gtk TextBuffer. *)
+(** Utilities to pretty print source with located elements in a Gtk
+    TextBuffer. 
+    @plugin developer guide *)
 
 open Cil_types
 open Db_types
 
-(** The kind of object that can be selected in the source viewer *)
+(** The kind of object that can be selected in the source viewer.
+    @plugin developer guide *)
 type localizable =
   | PStmt of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
@@ -32,22 +35,25 @@ type localizable =
   | PVDecl of (kernel_function option * varinfo)
 
 module Locs:sig
-  type tbl
-  val locs : tbl ref
+  type state
+  val locs : state ref
 end
 
 val display_source :  
   global list ->
-  GText.buffer ->
+  GSourceView.source_buffer ->
   ((unit ->unit)*(unit ->unit)*(unit ->unit)) ->
   highlighter:(localizable -> start:int -> stop:int -> unit) ->
   selector:(button:int -> localizable -> unit) -> unit
-(** This will set a fresh Locs.tbl in Locs.locs *)
+(** This will set a fresh Locs.state in Locs.locs. *)
 
+val hilite : unit -> unit
 
 val locate_localizable : localizable -> (int*int) option
-  (** @returns Some (start,stop) in offset from start of buffer if the
-      given localizable has been displayed according to [Locs.locs] *)
+  (** @return Some (start,stop) in offset from start of buffer if the
+      given localizable has been displayed according to [Locs.locs].
+      @plugin developer guide *)
+
 val localizable_from_locs : file:string -> line:int -> localizable list
 
 (*

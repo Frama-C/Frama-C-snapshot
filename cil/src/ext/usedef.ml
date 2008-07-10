@@ -44,7 +44,7 @@ open Pretty
 
 (** compute use/def information *)
 
-module VS = Set.Make (struct 
+module VS = Set.Make (struct
                         type t = varinfo
                         (* Subtraction is safe since vids are always positive*)
                         let compare v1 v2 = v1.vid - v2.vid
@@ -54,21 +54,21 @@ module VS = Set.Make (struct
     This also returns a modified argument list which will be used for the
     purpose of Use analysis, in case you have a function that needs special
     treatment of its args. *)
-let getUseDefFunctionRef: (exp -> exp list -> VS.t * VS.t * exp list) ref = 
+let getUseDefFunctionRef: (exp -> exp list -> VS.t * VS.t * exp list) ref =
   ref (fun _func args -> (VS.empty, VS.empty, args))
 
 (** Say if you want to consider a variable use.  This applies to
   variable reads only; see also considerVariableAddrOfAsUse *)
-let considerVariableUse: (varinfo -> bool) ref = 
+let considerVariableUse: (varinfo -> bool) ref =
   ref (fun _ -> true)
 
 
 (** Say if you want to consider a variable def *)
-let considerVariableDef: (varinfo -> bool) ref = 
+let considerVariableDef: (varinfo -> bool) ref =
   ref (fun _ -> true)
 
 (** Say if you want to consider a variable addrof as a use *)
-let considerVariableAddrOfAsUse: (varinfo -> bool) ref = 
+let considerVariableAddrOfAsUse: (varinfo -> bool) ref =
   ref (fun _ -> true)
 
 (** Return any vars that should be considered "used" by an expression,
@@ -93,12 +93,12 @@ let varDefs: VS.t ref = ref VS.empty
 
 class useDefVisitorClass : cilVisitor = object (self)
   inherit nopCilVisitor
-      
-  (** this will be invoked on variable definitions only because we intercept 
+
+  (** this will be invoked on variable definitions only because we intercept
    * all uses of variables in expressions ! *)
-  method vvrbl (v: varinfo) = 
+  method vvrbl (v: varinfo) =
     if (!considerVariableDef) v &&
-      not(!onlyNoOffsetsAreDefs) then 
+      not(!onlyNoOffsetsAreDefs) then
       varDefs := VS.add v !varDefs;
     SkipChildren
 
@@ -123,19 +123,19 @@ class useDefVisitorClass : cilVisitor = object (self)
 
   method vexpr (e:exp) =
     let extra = (!extraUsesOfExpr) e in
-    if not (VS.is_empty extra) then 
+    if not (VS.is_empty extra) then
       varUsed := VS.union extra !varUsed;
     match e with
-      Lval (Var v, off) -> 
+      Lval (Var v, off) ->
         ignore (visitCilOffset (self :> cilVisitor) off);
         if (!considerVariableUse) v then
           varUsed := VS.add v !varUsed;
         SkipChildren (* So that we do not see the v *)
 
-    | AddrOf (Var v, off) 
-    | StartOf (Var v, off) -> 
+    | AddrOf (Var v, off)
+    | StartOf (Var v, off) ->
         ignore (visitCilOffset (self :> cilVisitor) off);
-        if (!considerVariableAddrOfAsUse) v then 
+        if (!considerVariableAddrOfAsUse) v then
           varUsed := VS.add v !varUsed;
         SkipChildren
 
@@ -147,13 +147,13 @@ class useDefVisitorClass : cilVisitor = object (self)
   (* For function calls, do the transitive variable read/defs *)
   method vinst = function
       Call (lvo, f, args, _) -> begin
-        (* we will compute the use and def that appear in 
-         * this instruction. We also add in the stuff computed by 
+        (* we will compute the use and def that appear in
+         * this instruction. We also add in the stuff computed by
          * getUseDefFunctionRef *)
         let use, def, args' = !getUseDefFunctionRef f args in
         varUsed := VS.union !varUsed use;
         varDefs := VS.union !varDefs def;
-        
+
         (* Now visit the children of  "Call (lvo, f, args', _)" *)
         let self: cilVisitor = (self :> cilVisitor) in
         (match lvo with None -> ()
@@ -169,14 +169,14 @@ class useDefVisitorClass : cilVisitor = object (self)
 	| _ -> ()) slvl;
 	DoChildren
     | _ -> DoChildren
-        
+
 end
 
-let useDefVisitor = new useDefVisitorClass 
+let useDefVisitor = new useDefVisitorClass
 
-(** Compute the use information for an expression (accumulate to an existing 
+(** Compute the use information for an expression (accumulate to an existing
  * set) *)
-let computeUseExp ?(acc=VS.empty) (e: exp) : VS.t = 
+let computeUseExp ?(acc=VS.empty) (e: exp) : VS.t =
   varUsed := acc;
   ignore (visitCilExpr useDefVisitor e);
   !varUsed
@@ -184,31 +184,31 @@ let computeUseExp ?(acc=VS.empty) (e: exp) : VS.t =
 
 (** Compute the use/def information for an instruction *)
 let computeUseDefInstr ?(acc_used=VS.empty)
-                       ?(acc_defs=VS.empty) 
-                       (i: instr) : VS.t * VS.t = 
+                       ?(acc_defs=VS.empty)
+                       (i: instr) : VS.t * VS.t =
   varUsed := acc_used;
   varDefs := acc_defs;
   ignore (visitCilInstr useDefVisitor i);
   !varUsed, !varDefs
 
 
-(** Compute the use/def information for a statement kind. Do not descend into 
+(** Compute the use/def information for a statement kind. Do not descend into
  * the nested blocks. *)
 let computeUseDefStmtKind ?(acc_used=VS.empty)
-                          ?(acc_defs=VS.empty) 
+                          ?(acc_defs=VS.empty)
                           (sk: stmtkind) : VS.t * VS.t =
   varUsed := acc_used;
   varDefs := acc_defs;
-  let ve e = ignore (visitCilExpr useDefVisitor e) in 
-  let _ = 
-    match sk with 
+  let ve e = ignore (visitCilExpr useDefVisitor e) in
+  let _ =
+    match sk with
       Return (None, _) -> ()
     | Return (Some e, _) -> ve e
     | If (e, _, _, _) -> ve e
     | Break _ | Goto _ | Continue _ -> ()
     | Loop (_,_, _, _, _) -> ()
     | Switch (e, _, _, _) -> ve e
-    | Instr il -> 
+    | Instr il ->
         ignore (visitCilInstr useDefVisitor il)
     | TryExcept _ | TryFinally _ -> ()
     | Block _ | UnspecifiedSequence _ -> ()
@@ -218,7 +218,7 @@ let computeUseDefStmtKind ?(acc_used=VS.empty)
 (* Compute the use/def information for a statement kind.
    DO descend into nested blocks *)
 let rec computeDeepUseDefStmtKind ?(acc_used=VS.empty)
-                                  ?(acc_defs=VS.empty) 
+                                  ?(acc_defs=VS.empty)
                                    (sk: stmtkind) : VS.t * VS.t =
   let handle_block b =
     List.fold_left (fun (u,d) s ->
@@ -228,10 +228,10 @@ let rec computeDeepUseDefStmtKind ?(acc_used=VS.empty)
   in
   varUsed := acc_used;
   varDefs := acc_defs;
-  let ve e = ignore (visitCilExpr useDefVisitor e) in  
-  match sk with 
+  let ve e = ignore (visitCilExpr useDefVisitor e) in
+  match sk with
     Return (None, _) -> !varUsed, !varDefs
-  | Return (Some e, _) -> 
+  | Return (Some e, _) ->
       let _ = ve e in
       !varUsed, !varDefs
   | If (e, tb, fb, _) ->
@@ -242,18 +242,17 @@ let rec computeDeepUseDefStmtKind ?(acc_used=VS.empty)
       (VS.union (VS.union u u') u'', VS.union (VS.union d d') d'')
   | Break _ | Goto _ | Continue _ -> !varUsed, !varDefs
   | Loop (_,b, _, _, _) -> handle_block b
-  | Switch (e, b, _, _) -> 
+  | Switch (e, b, _, _) ->
       let _ = ve e in
       let u, d = !varUsed, !varDefs in
       let u', d' = handle_block b in
       (VS.union u u', VS.union d d')
-  | Instr il -> 
+  | Instr il ->
       ignore (visitCilInstr useDefVisitor il);
       !varUsed, !varDefs
   | TryExcept _ | TryFinally _ -> !varUsed, !varDefs
   | Block b -> handle_block b
-  | UnspecifiedSequence (s1,s2) -> 
-      handle_block (mkBlock [s1;s2])
+  | UnspecifiedSequence b -> handle_block b
 
 let computeUseLocalTypes ?(acc_used=VS.empty)
                          (fd : fundec)

@@ -16,7 +16,7 @@
 
 typedef struct { int b; int *a; } t;
 
-/*@ requires security_status(v) == public(); */
+/*@ requires security_status(v) == public; */
 void send(int v);
 
 void send_all(const t *data) {
@@ -36,19 +36,19 @@ void init(t *x, int a, int b) {
 }
 
 /*@ assigns x->a \from a;
-    ensures security_status( *x->a) == public() &&
-            security_status(x->b) == private();
+    ensures security_status( *x->a) == public &&
+            security_status(x->b) == private;
 */
 INIT(semi_public_init)
 
 /*@ assigns x->a \from a;
-    ensures security_status( *x->a) == public() &&
-            security_status(x->b) == public(); */
+    ensures security_status( *x->a) == public &&
+            security_status(x->b) == public; */
 INIT(public_init)
 
 /*@ assigns x->a \from a;
-    ensures security_status( *x->a) == private() &&
-            security_status(x->b) == private();
+    ensures security_status( *x->a) == private &&
+            security_status(x->b) == private;
 */
 INIT(private_init)
 

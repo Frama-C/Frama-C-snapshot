@@ -39,10 +39,10 @@
 (**************************************************************************)
 
 (** Code to compute the control-flow graph of a function or file.
-  This will fill in the [preds] and [succs] fields of {!Cil.stmt}
+    This will fill in the [preds] and [succs] fields of {!Cil.stmt}
 
-  This is required for several other extensions, such as {!Dataflow}.
-*)
+    This is required for several other extensions, such as {!Dataflow}.
+    @plugin developer guide *)
 
 open Cil
 open Cil_types

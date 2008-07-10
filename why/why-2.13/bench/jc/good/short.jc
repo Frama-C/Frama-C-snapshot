@@ -1,0 +1,16 @@
+
+type unsignedchar = 0..255
+
+type shortint = -32768..32767
+
+
+unsignedchar f(unsignedchar x, shortint y) {
+  return x+y;
+}
+    
+/*
+Local Variables: 
+mode: java
+compile-command: "make short"
+End: 
+*/

@@ -19,12 +19,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: visitor.mli,v 1.13 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: visitor.mli,v 1.14 2008/05/30 08:29:49 uid568 Exp $ *)
 
 open Cil_types
 open Db_types
 
-(** Frama-C visitors dealing with projects. *)
+(** Frama-C visitors dealing with projects. 
+    @plugin developer guide *)
 
 (** Class type for a Db-aware visitor.
     This is done by defining auxiliary methods that can be
@@ -52,31 +53,39 @@ open Db_types
     anything has been attached to the corresponding variable or
     statement in the new project, which means
        - for statements, in [vstmt], for the current statement only
-       - for variables, at their declaration point.
- *)
+       - for variables, at their declaration point. *)
 class type frama_c_visitor = object
+
   inherit Cil.cilVisitor
+
   method vstmt_aux: stmt -> stmt Cil.visitAction
-    (** Replacement of vstmt. *)
+    (** Replacement of vstmt. 
+	@plugin developer guide*)
+
   method vglob_aux: global -> global list Cil.visitAction
-    (** Replacement of vglob. *)
+    (** Replacement of vglob. 
+	@plugin developer guide*)
+
   method vrooted_code_annotation:
     rooted_code_annotation ->
     rooted_code_annotation list Cil.visitAction
       (** visiting a rooted code annotation. *)
+
   method is_annot_before: bool
     (** Used to tell if we're visiting an annotation placed
 	before current statement.
 	@raise Error if not called while visiting a statement. *)
+
 end
 
 class generic_frama_c_visitor:
   Project.t -> Cil.visitor_behavior ->  frama_c_visitor
-  (** generic visitor. The tables are filled on the project given in argument.
-      See also {!File.init_project_from_visitor}. *)
+  (** Generic visitor. The tables are filled on the project given in argument.
+      See also {!File.init_project_from_visitor}. 
+      @plugin developer guide *)
 
 class frama_c_copy: Project.t -> frama_c_visitor
-  (** copying visitor *)
+  (** Copying visitor *)
 
 (*
 Local Variables:

@@ -19,13 +19,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: computation.mli,v 1.4 2008/04/10 15:48:06 uid562 Exp $ *)
+(* $Id: computation.mli,v 1.6 2008/06/19 14:42:45 uid568 Exp $ *)
 
 (** Internal state builders. 
     Provide ways to implement signature [Project.Computation.OUTPUT] without
     directly apply functor [Project.Computation.Register]. 
     Depending on the builder, also provide some additional useful
-    information. *)
+    information. 
+    @plugin developer guide *)
 
 (** {3 Useful operations} *)
 
@@ -61,6 +62,7 @@ module type REF_OUTPUT = sig
     (** Reset the reference to its default value. *)
 end
 
+(** @plugin developer guide *)
 module Ref(Data:REF_INPUT)(Info:Signature.NAME_DPDS) 
   : REF_OUTPUT with type data = Data.t
 
@@ -160,8 +162,20 @@ module Make_SetRef
   (Info:Signature.NAME_DPDS) :
   SET_REF_OUTPUT with type elt = Data.t
 
-module SetRef(Data:Datatype.SET_INPUT)(Info:Signature.NAME_DPDS) :
-  SET_REF_OUTPUT with type elt = Data.t
+module SetRef(Data:Datatype.SET_INPUT)(Info:Signature.NAME_DPDS)
+  : SET_REF_OUTPUT with type elt = Data.t
+
+(** {3 Queue} *)
+
+module type QUEUE = sig
+  type elt
+  val add: elt -> unit
+  val iter: (elt -> unit) -> unit
+  val is_empty: unit -> bool
+end
+
+module Queue(Data:Datatype.INPUT)(Info:Signature.NAME_DPDS) 
+  : QUEUE with type elt = Data.t
 
 (*
 Local Variables:

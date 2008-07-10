@@ -19,14 +19,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: project.mli,v 1.10 2008/04/18 12:43:48 uid568 Exp $ *)
+(* $Id: project.mli,v 1.11 2008/05/30 08:29:49 uid568 Exp $ *)
 
 (** Projects management. 
 
     A project groups together all the internal states of Frama-C. An internal
     state is roughly the result of a computation which depends of an AST. It is
     possible to have many projects at the same time. For registering a new
-    state in the Frama-C projects, apply the functor {!Computation.Register}. *)
+    state in the Frama-C projects, apply the functor {!Computation.Register}. 
+
+    @plugin developer guide *)
 
 val set_debug_level: int -> unit
   (** Set the level of debug: 0 = no level; 1 = small debugging messages and so
@@ -37,7 +39,8 @@ val set_debug_level: int -> unit
 (* ************************************************************************* *)
 
 type t
-  (** Type of a project. *)
+  (** Type of a project. 
+      @plugin developer guide *)
 
 type project = t 
     (** Alias for the project type. *)
@@ -62,7 +65,8 @@ module type KIND = sig
     (** Type of kinds. *)
 
   val dummy : t
-    (** A dummy kind. *)
+    (** A dummy kind. 
+	@plugin developer guide *)
 
   val name: t -> string
     (** Name of a kind. *)
@@ -76,7 +80,8 @@ module type KIND = sig
 	done before one of the state kind [k1]. Actions are cleaning, copying,
 	loading and saving. 
 	@raise Circular_Dependency if there is a circular dependency between
-	two state kinds. *)
+	two state kinds. 
+	@plugin developer guide *)
 
 end
 
@@ -85,14 +90,16 @@ end
 module type NAME = sig
 
   type t
-    (** Type of a name. *)
+    (** Type of a name. 
+	@plugin developer guide *)
 
   exception AlreadyExists of string
     (** May be raised by [make]. *)
 
   val make: string -> t
     (** [make s] create a new name [s]. 
-	@raise AlreadyExists if such a name already exists. *)
+	@raise AlreadyExists if such a name already exists. 
+	@plugin developer guide *)
 
   val extend: string -> t -> t
     (** [extend s n] extends [s] by [n] in order to build a name of
@@ -127,11 +134,13 @@ module Datatype : sig
 
     val before_load: unit -> unit
       (** Action to perform before loading a project (related to this
-	  datatype). *) 
+	  datatype). 
+	  @plugin developer guide *) 
 
     val after_load: unit -> unit
       (** Action to perform after loading a project (related to this
-	  datatype). *)
+	  datatype). 
+	  @plugin developer guide *)
 
     val rehash: t -> t
       (** How to rehashcons the datatype. *)
@@ -159,14 +168,17 @@ module Datatype : sig
 
   end
 
-  (** Register a new kind of datatype by side-effects. *)
+  (** Register a new kind of datatype by side-effects. 
+      @plugin developer guide *)
   module Register(Datatype:INPUT) : OUTPUT with type t = Datatype.t
 
-  (** Register a single datatype, not affected by hashconsing. *)
+  (** Register a single datatype, not affected by hashconsing. 
+      @plugin developer guide *)
   module Imperative(X:sig type t val copy: t -> t end) : 
     OUTPUT with type t = X.t
 
-  (** Register a single datatype, not affected by hashconsing and copying. *)
+  (** Register a single datatype, not affected by hashconsing and copying. 
+      @plugin developer guide *)
   module Persistent(X:sig type t end) : OUTPUT with type t = X.t
 
   val dump_dependencies: string -> unit
@@ -201,7 +213,8 @@ module Computation : sig
     val clear: t -> unit
       (** How to clear a state. After cleaning, the state should be
 	  observationaly the same that after its creation (see invariant 2
-	  below). *)
+	  below). 
+	  @plugin developer guide *)
 
     val get: unit -> t
       (** How to access to the current state. Be aware of invariants 3 and 4
@@ -232,7 +245,8 @@ module Computation : sig
   module type OUTPUT = sig 
 
     val self: t
-      (** The kind of the registered state. *)
+      (** The kind of the registered state. 
+	  @plugin developer guide *)
 
     val select: Kind.how -> selection -> selection
       (** [select sel] add the registered state to the given selection in a
@@ -260,7 +274,8 @@ module Computation : sig
       side-effect.
       [Datatype] represents the datatype of a state, [State] explains how to
       deal with a state and [Info] mainly details the dependencies of the
-      computation (i.e. what computations should be done before this one). *)
+      computation (i.e. what computations should be done before this one). 
+      @plugin developer guide *)
   module Register
     (Datatype: Datatype.OUTPUT)
     (State: INPUT with type t = Datatype.t)
@@ -273,7 +288,8 @@ module Computation : sig
 
 end
 
-(** Selection of kinds of computation. *)
+(** Selection of kinds of computation. 
+    @plugin developer guide *)
 module Selection : Kind.SELECTION with type kind = Computation.t 
 				  and type t = Computation.selection
 
@@ -284,14 +300,16 @@ module Selection : Kind.SELECTION with type kind = Computation.t
 val create: string -> t
   (** Create a new project with the given name and attach it after the existing
       projects (so the current project, if existing, is unchanged). 
-      The given name may be already used by another project. *)
+      The given name may be already used by another project. 
+      @plugin developer guide *)
 
 exception NoProject
   (** May be raised by [current]. *)
 
 val current: unit -> t
   (** The current project. 
-      @raise NoProject if there is no project. *)
+      @raise NoProject if there is no project. 
+      @plugin developer guide *)
 
 val is_current: t -> bool
   (** Check whether the given project is the current one or not. *)
@@ -309,6 +327,7 @@ val clear_all: unit -> unit
 (** {3 Inputs/Outputs} *)
 
 exception IOError of string
+  (** @plugin developer guide *)
 
 val save_all: string -> unit
   (** Save all the projects in a file. 
@@ -318,7 +337,8 @@ val load_all: string -> unit
   (** Load all the projects from a file.
       For each project to load, the specification is the same than
       {!Project.load}.
-      @raise IOError if a project cannot be loaded. *)
+      @raise IOError if a project cannot be loaded. 
+      @plugin developer guide *)
 
 (* ************************************************************************* *)
 (** {2 Operations on one project} 
@@ -341,18 +361,21 @@ val unique_name: t -> string
 
 val set_current: ?only:Selection.t -> ?except:Selection.t -> t -> unit
   (** Set the current project with the given one.
-      @raise Invalid_argument if the given project does not exist anymore. *)
+      @raise Invalid_argument if the given project does not exist anymore. 
+      @plugin developer guide *)
 
 val on: 
   ?only:Selection.t -> ?except:Selection.t -> t -> ('a -> 'b) -> 'a -> 'b
   (** [on p f x] sets the current project to [p], computes [f x] then 
       restores the current project. You should use this function if you use a
-      project different of [current ()]. *)
+      project different of [current ()]. 
+      @plugin developer guide *)
 
 val copy: 
   ?only:Selection.t -> ?except:Selection.t -> ?src:t -> t -> unit
   (** Copy a project into another one. Default project for [src] is [current
-      ()]. Replace the destination by [src]. *)
+      ()]. Replace the destination by [src]. 
+      @plugin developer guide *)
 
 val clear: 
   ?only:Selection.t -> ?except:Selection.t -> ?project:t -> unit -> unit
@@ -379,7 +402,8 @@ val hash: t -> int
 val save: 
   ?only:Selection.t -> ?except:Selection.t -> ?project:t -> string -> unit
   (** Save a given project in a file. Default project is [current ()]. 
-      @raise IOError if the project cannot be saved. *)
+      @raise IOError if the project cannot be saved. 
+      @plugin developer guide *)
 
 val load: 
   ?only:Selection.t -> ?except:Selection.t -> name:string -> string -> t
@@ -394,7 +418,8 @@ val load:
       {- performs all the registered [after_load] actions.}
       }
       @raise IOError if the project cannot be loaded
-      @return the new project containing the loaded data. *)
+      @return the new project containing the loaded data. 
+      @plugin developer guide *)
 
 (*
   Local Variables:

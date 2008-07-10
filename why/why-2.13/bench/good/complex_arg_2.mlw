@@ -1,0 +1,14 @@
+exception Exception of int
+
+parameter t : int ref
+
+parameter m : a:int -> b:int ->
+    { }
+    unit reads t raises Exception
+    { true | Exception => true }
+
+let test = fun (tt : unit) ->
+  { }
+  (m ( assert { true } ; 0) 0)
+  { true | Exception => true }
+

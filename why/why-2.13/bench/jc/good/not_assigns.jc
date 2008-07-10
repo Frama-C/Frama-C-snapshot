@@ -1,0 +1,48 @@
+
+
+type T = {
+  integer x;
+  integer y;
+}
+
+unit f(integer n, T[0] t) 
+  requires -100 <= n && n <= 100;
+  behavior x_changed:
+    assumes n > 0; 
+    assigns t.x;
+    ensures t.x == n;
+  behavior y_changed:
+    assumes n <= 0;
+    assigns t.y;
+    ensures t.y == n;
+{
+  if n > 0 then t.x = n else t.y = n;
+}
+
+unit test1(T[0] t)
+  behavior y_unchanged:
+    ensures t.y == \old(t.y);
+  behavior x_set_to_3:
+    ensures t.x == 3;
+{
+    f(3,t);
+}
+
+unit test2(T[0] t)
+  behavior x_unchanged:
+    ensures t.x == \old(t.x);
+  behavior y_set_to_minus_3:
+    ensures t.y == -3;
+{
+    f(-3,t);
+}
+
+/*
+Local Variables: 
+mode: java
+compile-command: "make not_assigns"
+End: 
+*/
+
+
+  

@@ -3,8 +3,8 @@
    OPT: -memory-footprint 1 -val -deps -out -input
    OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_1
    OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_2
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry semantique_const_1
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry semantique_const_2
+   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_1
+   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_2
 */
 extern const int G;
 extern int H;
@@ -27,7 +27,7 @@ int main () {
  * Les valeurs des variables "const" peuvent évoluer au cours de l'exécution
  * du code, comme pour toutes autres variables.
  *
- * Lors d'une analyse de type -lib-entry, les variables "const" ont pour
+ * Lors d'une analyse de type -lib-entry -main, les variables "const" ont pour
  * valeurs initiales, la valeur correspondant à leur expression d'initialisation.
  *
  * Les valeurs initiales des autres variables sont d'une valeur inderterminée, mais

@@ -19,22 +19,32 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: gtk_helper.mli,v 1.11 2008/05/23 14:35:10 uid528 Exp $ *)
+(* $Id: gtk_helper.mli,v 1.15 2008/06/23 15:27:15 uid528 Exp $ *)
 
-(** Generic Gtk helpers. *)
+(** Generic Gtk helpers. 
+    @plugin developer guide *)
 
-val apply_tag : GText.buffer -> GText.tag -> int -> int -> unit
-val remove_tag : GText.buffer -> GText.tag -> int -> int -> unit
-val cleanup_tag : GText.buffer -> GText.tag -> unit
+val apply_tag : GSourceView.source_buffer -> GText.tag -> int -> int -> unit
+  (** @plugin developer guide *)
+
+val remove_tag : GSourceView.source_buffer -> GText.tag -> int -> int -> unit
+
+val cleanup_tag : GSourceView.source_buffer -> GText.tag -> unit
+  (** @plugin developer guide *)
+
+val cleanup_all_tags : GSourceView.source_buffer -> unit
+
 val expand_to_path : GTree.view -> Gtk.tree_path -> unit
-val make_tag : 
-  GText.buffer -> name:string -> GText.tag_property list -> GText.tag
 
-val make_formatter : GText.buffer -> Format.formatter
+val make_tag : 
+  GSourceView.source_buffer -> name:string -> GText.tag_property list -> GText.tag
+  (** @plugin developer guide *)
+
+val make_formatter : #GText.buffer -> Format.formatter
 
 val channel_redirector :  Unix.file_descr -> (string -> bool) -> unit
 
-val redirect : Format.formatter -> GText.buffer -> unit
+val redirect : Format.formatter -> #GText.buffer -> unit
 
 (** This is a mutex you may use to prevent running some code while the GUI
     is locked. *)
@@ -45,6 +55,8 @@ val string_selector: string list -> (GObj.widget -> unit) -> GEdit.entry
 (** returns (add, remove_selected, get_elements) *)
 val make_string_list: packing:(GObj.widget -> unit) 
   -> (string -> unit)* (unit -> unit)*(unit -> string list)
+
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

@@ -1,6 +1,3 @@
-/* run.config
-   DONTRUN: ghost label is discarded + label in annotations not functional yet
-*/
 int x;
 
 //@ ensures x == 2+\old(x)+y;

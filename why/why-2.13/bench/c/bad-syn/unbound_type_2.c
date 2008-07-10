@@ -1,0 +1,3 @@
+
+struct { t x; } y;
+

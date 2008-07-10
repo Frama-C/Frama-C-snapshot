@@ -754,28 +754,32 @@ let canDropStatement (s: stmt) : bool =
   ignore (visitCilStmt vis s);
   !pRes
 
-(**** Occasionally we see structs with no name and no fields *)
-
-
 module BlockChunk =
   struct
     type chunk = {
-        stmts: stmt list;
-        postins: stmt list;              (* Some statements to append at
-                                           * the ends of stmts (in
-                                           * reverse order)  *)
-        cases: stmt list;                 (* A list of case statements
-                                           * (statements with Case labels)
-                                           * visible at the outer level *)
-      }
+      stmts: stmt list;
+      unspecified_order:bool; (* order of evaluation of statements in the
+                                 chunk is unspecified.
+                               *)
+      postins: stmt list;              (* Some statements to append at
+                                        * the ends of stmts (in
+                                        * reverse order)  *)
+      cases: stmt list;                 (* A list of case statements
+                                         * (statements with Case labels)
+                                         * visible at the outer level *)
+    }
 
       let d_chunk fmt (c: chunk) =
-      Format.fprintf fmt "@[{ @[%a@] };@?%a@]"
+      Format.fprintf fmt "@[%a{ @[%a@] };@?%a@]"
+        (fun fmt b -> if b then Format.fprintf fmt "/* UNSPECIFIED ORDER */@\n")
+        c.unspecified_order
         (fprintfList ~sep:";" d_stmt) c.stmts
         (fprintfList ~sep:";" d_stmt) (List.rev c.postins)
 
     let empty =
-      { stmts = []; postins = []; cases = []; }
+      { stmts = []; postins = []; cases = [];
+        unspecified_order = false
+      }
 
     let isEmpty (c: chunk) =
       c.postins == [] && c.stmts == []
@@ -788,7 +792,22 @@ module BlockChunk =
     let pushPostIns (c: chunk) : stmt list =
       let stmts =
         match c.stmts with
-            [ { skind = Block b} as s] ->
+            [ { skind = Block b} as s] when not c.unspecified_order ->
+              if s.labels <> [] then begin
+                (* place the labels on the first statement of the block *)
+                Format.eprintf "@[found labels@\n@]@.";
+                let s' =
+                  match b.bstmts with
+                      [] ->
+                        let dummy = Cil.mkEmptyStmt () in
+                        b.bstmts <- [dummy];
+                        dummy
+                    | s::_ -> s
+                in s'.labels <- s.labels @ s'.labels
+              end;
+              b.bstmts
+          | [ { skind = UnspecifiedSequence b } as s] when c.unspecified_order
+              ->
               if s.labels <> [] then begin
                 (* place the labels on the first statement of the block *)
                 Format.eprintf "@[found labels@\n@]@.";
@@ -816,6 +835,20 @@ module BlockChunk =
         bstmts = pushPostIns c;
       }
 
+    let c2stmt c =
+      let block = c2block c in
+      let kind =
+        if c.unspecified_order then UnspecifiedSequence block else Block block
+      in
+      mkStmt kind
+
+    let unspecified_chunk c = (* c *)
+      (* to restore previous behavior (where unspecified evaluation order
+         was not explicitely marked), comment out the line below and make
+         unspecified_chunk the identity function.
+       *)
+      { c with unspecified_order = true }
+
     (* Add a statement at the end. Never refer to this statement again
      * after you call this *)
     let (+++) (c: chunk) (i : stmt) = {c with postins = i :: c.postins}
@@ -823,12 +856,30 @@ module BlockChunk =
     (* Append two chunks. Never refer to the original chunks after you call
      * this. And especially never share c2 with somebody else *)
     let (@@) (c1: chunk) (c2: chunk) =
-      let r = { stmts = (pushPostIns c1) @ c2.stmts;
-        postins = c2.postins;
-        cases = c1.cases @ c2.cases;
-      }
+      let r =
+        if (c1.unspecified_order && c2.unspecified_order) ||
+          (not c1.unspecified_order && not c2.unspecified_order)
+      then
+        { stmts = (pushPostIns c1) @ c2.stmts;
+          postins = c2.postins;
+          cases = c1.cases @ c2.cases;
+          unspecified_order = c1.unspecified_order }
+      else
+        match c2.stmts, c2.postins with
+            [],[] -> c1
+          | [s],[] | [],[s] ->
+              { stmts = (pushPostIns c1) @ [ s ];
+                postins = [];
+                cases = c1.cases @ c2.cases;
+                unspecified_order = c1.unspecified_order }
+          | _ ->
+              { stmts = (pushPostIns c1) @ [c2stmt c2];
+                postins = [];
+                cases = c1.cases @ c2.cases;
+                unspecified_order = c1.unspecified_order
+              }
       in
-      (*Format.printf "Concat:@\n%a@\nWITH@\n%a@\nLEADS TO@\n%a@."
+        (*Format.printf "Concat:@\n%a@\nWITH@\n%a@\nLEADS TO@\n%a@."
         d_chunk c1 d_chunk c2 d_chunk r;*)
       r
 
@@ -837,7 +888,8 @@ module BlockChunk =
     let returnChunk (e: exp option) (l: location) : chunk =
       { stmts = [ mkStmt (Return(e, l)) ];
         postins = [];
-        cases = []
+        cases = [];
+        unspecified_order = false;
       }
 
     let ifChunk (be: exp) (l: location) (t: chunk) (e: chunk) : chunk =
@@ -845,6 +897,7 @@ module BlockChunk =
       { stmts = [ mkStmt(If(be, c2block t, c2block e, l))];
         postins = [];
         cases = t.cases @ e.cases;
+        unspecified_order = false;
       }
 
         (* We can duplicate a chunk if it has a few simple statements, and if
@@ -861,23 +914,21 @@ module BlockChunk =
             if s.labels != [] then
               raise (Failure "cannot duplicate: has labels");
             (match s.skind with
-              If _ | Switch _ | Loop _ | Block _ ->
+              If _ | Switch _ | Loop _ | Block _ | UnspecifiedSequence _
+             | TryFinally _ | TryExcept _
+                ->
                 raise (Failure "cannot duplicate: complex stmt")
-            | Instr _ ->
-                pCount := !pCount + 1 (*List.length il*)
-            | _ -> incr pCount);
+            | Instr _ | Goto _ | Return _ | Break _ | Continue _ ->
+                incr pCount);
             if !pCount > 5 then raise (Failure ("cannot duplicate: too many instr"));
             (* We can just copy it because there is nothing to share here.
              * Except maybe for the ref cell in Goto but it is Ok to share
              * that, I think *)
             { s with sid = s.sid}) c.stmts;
         postins = List.map (fun s -> {s with sid = s.sid }) c.postins;
-        cases = []
+        cases = []; unspecified_order = false;
       }
-(*
-    let duplicateChunk (c: chunk) =
-      if isEmpty c then c else raise (Failure ("cannot duplicate: isNotEmpty"))
-*)
+
     (* We can drop a chunk if it does not have labels inside *)
     let canDrop (c: chunk) =
       List.for_all canDropStatement c.stmts
@@ -888,18 +939,21 @@ module BlockChunk =
       { stmts = [ loop (* ; n *) ];
         postins = [];
         cases = body.cases;
+        unspecified_order = false;
       }
 
     let breakChunk (l: location) : chunk =
       { stmts = [ mkStmt (Break l) ];
         postins = [];
         cases = [];
+        unspecified_order = false;
       }
 
     let continueChunk (l: location) : chunk =
       { stmts = [ mkStmt (Continue l) ];
         postins = [];
-        cases = []
+        cases = [];
+        unspecified_order = false;
       }
 
         (* Keep track of the gotos *)
@@ -938,10 +992,21 @@ module BlockChunk =
     let getFirstInChunk (c: chunk) : stmt * stmt list =
       (* Get the first statement and add the label to it *)
       match c.stmts with
-        | [{ skind = Block b }] ->
+        | [{ skind = Block b}] when not c.unspecified_order ->
             (match b.bstmts with
                  [] -> let n = mkEmptyStmt () in n, [n]
                | s::_ -> s,b.bstmts)
+        | [{ skind = UnspecifiedSequence b}] when c.unspecified_order ->
+            (match b.bstmts with
+                 [] -> let n = mkEmptyStmt () in n, [n]
+               | s::_ -> s,b.bstmts)
+        (* Go a bit deeper in case of UnspecifiedSequence, since it
+           is an artifact of the transformation.
+         *)
+        | { skind = UnspecifiedSequence b} :: tl ->
+            (match b.bstmts with
+                 [] -> let n = mkEmptyStmt () in n, n::tl
+               | s::_ -> s,c.stmts)
         | s :: _ -> s, c.stmts
         | [] -> (* Add a statement *)
             let n = mkEmptyStmt () in
@@ -951,6 +1016,7 @@ module BlockChunk =
       { stmts = [ s ];
         postins = [];
         cases = [];
+        unspecified_order = false;
       }
 
     let gotoChunk (ln: string) (l: location) : chunk =
@@ -959,20 +1025,24 @@ module BlockChunk =
       { stmts = [ mkStmt (Goto (gref, l)) ];
         postins = [];
         cases = [];
+        unspecified_order = false;
       }
 
     let caseRangeChunk (el: exp list) (l: location) (next: chunk) =
       let fst, stmts' = getFirstInChunk next in
-      assert (List.memq fst stmts');
       let labels = List.map (fun e -> Case (e, l)) el in
       fst.labels <- labels @ fst.labels;
-      { next with stmts = stmts'; cases = fst :: next.cases}
+      { next with stmts = stmts'; cases = fst :: next.cases;
+        unspecified_order = false;
+      }
 
     let defaultChunk (l: location) (next: chunk) =
       let fst, stmts' = getFirstInChunk next in
       let lb = Default l in
       fst.labels <- lb :: fst.labels;
-      { next with stmts = stmts'; cases = fst :: next.cases}
+      { next with stmts = stmts'; cases = fst :: next.cases;
+        unspecified_order = false;
+      }
 
 
     let switchChunk (e: exp) (body: chunk) (l: location) =
@@ -1005,6 +1075,7 @@ module BlockChunk =
       { stmts = [ switch (* ; n *) ];
         postins = [];
         cases = [];
+        unspecified_order = false;
       }
 
     let mkFunctionBody (c: chunk) : block =
@@ -1159,7 +1230,13 @@ let integralPromotion (t : typ) : typ = (* c.f. ISO 6.3.1.1 *)
   match unrollType t with
           (* We assume that an IInt can hold even an IUShort *)
     TInt ((IShort|IUShort|IChar|ISChar|IUChar|IBool), a) -> TInt(IInt, a)
-  | TInt _ -> t
+  | TInt (_,a) ->
+      begin match findAttribute "FRAMA_C_BITFIELD_SIZE" a with
+      | [AInt size] when size < (bitsSizeOf intType) ->
+          TInt(IInt, dropAttribute "FRAMA_C_BITFIELD_SIZE" a)
+      | [] -> t
+      | _ -> assert false
+      end
   | TEnum (_, a) -> TInt(IInt, a)
   | t -> Cil.fatal_error "integralPromotion: not expecting %a" d_type t
 
@@ -1208,33 +1285,110 @@ let arithmeticConversion    (* c.f. ISO 6.3.1.8 *)
   end
 
 
+let rec check_strict_attributes ~direct ot nt =
+  let w ?name () =
+    let s = (match name with
+             | None -> ""
+             | Some n -> "through fields " ^  n)
+    in
+    if direct then
+      warn "cannot drop strict attributes from %a to %a %s" d_type ot d_type nt s
+    else warn "cannot add strict attributes of %a to %a %s" d_type ot d_type nt s;
+    false
+  in
+  let is_strict_attr a = attributeName a = "address_space" in
+  let strict_attr a =  List.filter is_strict_attr a in
+  let check oa na =
+    if (List.for_all
+          (fun x -> List.exists (Cilutil.equals x) (strict_attr na)) (strict_attr oa))
+    then true else w ()
+  in
+  let exists_strict_attribute_deep ?name ty =
+    match exists_attribute_deep is_strict_attr ty with
+    | None -> true
+    | Some l -> let n = fprintf_to_string "%a%a"
+        (Cilutil.pretty_opt (fun fmt -> Format.fprintf fmt "%s, ")) name
+        (Cilutil.pretty_list (fun fmt -> Format.fprintf fmt ", ")
+           Format.pp_print_string)
+        l
+      in
+      w ~name:n ()
+  in
+  let check_comp_fields l =
+    List.fold_left
+      (fun acc fi ->
+         acc
+         &&
+           (List.for_all (fun x -> (if is_strict_attr x then w ~name:fi.fname () else true)) fi.fattr)
+         &&
+           (exists_strict_attribute_deep ~name:fi.fname fi.ftype)
+      )
+      true
+      l
+  in
+  match unrollType ot, unrollType nt with
+  | TNamed _, _ | _, TNamed _ -> assert false
+
+  | (TVoid o|TInt(_,o)|TEnum (_,o)|TFloat(_,o)|TBuiltin_va_list (o)),
+      (TVoid n|TInt(_,n)|TEnum (_,n)|TFloat(_,n)|TBuiltin_va_list (n))
+      -> check o n
+  | (TArray (ot,_,o)|TPtr (ot, o)), (TArray (nt,_,n)|TPtr(nt, n)) ->
+      check o n && check_strict_attributes ~direct ot nt
+  | ((TVoid o|TInt(_,o)|TEnum (_,o)|TFloat(_,o)|TBuiltin_va_list (o)),
+     (TArray (_,_,n)|TPtr(_, n))) ->
+      check o n
+  | ((TArray (ot,_,o)|TPtr (ot, o)),
+     (TVoid n|TInt(_,n)|TEnum (_,n)|TFloat(_,n)|TBuiltin_va_list (n))) ->
+      check o n && (exists_strict_attribute_deep ot)
+  | TComp ({ckey=ok; cattr=oia; cfields=l}, oa), TComp ({ckey=nk; cattr=nia},na) ->
+      ok=nk || (check (addAttributes oa oia) (addAttributes na nia)
+                && check_comp_fields l)
+  | TComp ({cattr=co; cfields=l}, o),nt ->
+      check (addAttributes o co) (typeAttr nt) &&
+        check_comp_fields l
+
+  | (TVoid o|TInt(_,o)|TEnum (_,o)|TFloat(_,o)|TBuiltin_va_list (o)) ,TComp ({cattr=no},n)->
+      check o (addAttributes no n)
+
+  |  (TArray (ot,_,o)|TPtr (ot, o)),TComp ({cattr=no},n)->
+       check o (addAttributes no n)
+       &&
+         (exists_strict_attribute_deep ot)
+  | TFun (_, _, _, _),_
+  | _,TFun (_, _, _, _) -> (exists_strict_attribute_deep ot)
+
 (* Specify whether the cast is from the source code *)
 let rec castTo ?(fromsource=false)
                 (ot : typ) (nt : typ) (e : exp) : (typ * exp ) =
   let debugCast = false in
   if debugCast then
-     log "@[%t: castTo:%s %a->%a@\n@]"
+     warn "@[%t: castTo:%s %a->%a@\n@]"
       d_thisloc
       (if fromsource then "(source)" else "")
       d_type ot d_type nt;
 
-  if not fromsource && Cilutil.equals (typeSig ot) (typeSig nt) then
+  if not fromsource && Cilutil.equals
+    (typeSig (typeRemoveAttributes ["FRAMA_C_BITFIELD_SIZE"] ot))
+    (typeSig (typeRemoveAttributes ["FRAMA_C_BITFIELD_SIZE"] nt)) then
     (* Do not put the cast if it is not necessary, unless it is from the
      * source. *)
     (ot, e)
   else begin
+    let ot' = unrollType ot in
     let nt' = unrollType nt in
     let nt' = if fromsource then nt' else !typeForInsertedCast nt' in
-    let result = (nt',
-                  if !insertImplicitCasts || fromsource then Cil.mkCastT e ot nt' else e) in
-
+    let result = (nt', if !insertImplicitCasts || fromsource then
+                    Cil.mkCastT e ot nt' else e)
+    in
+(*  [BM] uncomment the following line to enable attributes static typing
+    ignore (check_strict_attributes true ot nt  && check_strict_attributes false nt ot);*)
     if debugCast then
        log "@[castTo: ot=%a nt=%a\n  result is %a@\n@]"
         d_type ot d_type nt'
         d_plainexp (snd result);
 
     (* Now see if we can have a cast here *)
-    match unrollType ot, nt' with
+    match ot', nt' with
       TNamed _, _
     | _, TNamed _ -> Cil.bug "unrollType failed in castTo"
     | _, TInt(IBool,_) ->
@@ -1243,7 +1397,6 @@ let rec castTo ?(fromsource=false)
         (* We used to ignore attributes on integer-integer casts. Not anymore *)
         (* if ikindo = ikindn then (nt, e) else *)
         result
-
     | TPtr (_, _), TPtr(_, _) -> result
 
     | TInt _, TPtr _ -> result
@@ -1745,7 +1898,9 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
                formals
            with
            | Invalid_argument "List.iter2" ->
-               assert !E.hadErrors
+               if not !E.hadErrors then begin
+                 bug "inconsistent formals";
+               end
            | Not_found -> ())
       | _ -> ()
     end ;
@@ -2219,8 +2374,6 @@ let optConstFoldBinOp (machdep: bool) (bop: binop)
 module C_logic_env =
 struct
   let annonCompFieldName = annonCompFieldName
-  let integralPromotion = integralPromotion
-  let arithmeticConversion = arithmeticConversion
   let conditionalConversion = conditionalConversion
   let find_var x = match H.find env x with
     | EnvVar vi, _ -> cvar_to_lvar vi
@@ -2235,6 +2388,10 @@ struct
    We keep track of these scopes here.
  *)
   let labels: (string, stmt) H.t = H.create 7
+    (* label held by the current statement*)
+  let label_current = ref ""
+  let set_current_label s = label_current:= s
+  let reset_current_label () = label_current := ""
   let scope = Stack.create ()
   let enter_scope () = Stack.push (ref []) scope
 
@@ -2247,7 +2404,15 @@ struct
     scope := l::!scope;
     H.add labels l stmt
 
-  let find_label s = ref (H.find labels s)
+  let find_label s =
+    try
+      ref (H.find labels s)
+    with Not_found when s = !label_current ->
+      let my_ref = ref (mkEmptyStmt ()) in
+      addGoto s my_ref; my_ref
+
+  include Logic_env
+
 end
 
 module Ltyping = Logic_typing.Make (C_logic_env)
@@ -2282,10 +2447,10 @@ let consLabel (l: string) (c: chunk) (loc: location)
   (* Get the first statement and add the label to it *)
   let labstmt, stmts' = getFirstInChunk c in
   (* Add the label *)
+  C_logic_env.add_label l labstmt;
   labstmt.labels <- Label (l, loc, in_original_program_text) ::
     labstmt.labels;
   H.add labelStmt l labstmt;
-  C_logic_env.add_label l labstmt;
   if c.stmts == stmts' then c else {c with stmts = stmts'}
 
 let consLabContinue (c: chunk) =
@@ -3285,10 +3450,9 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         | _ ->
             let (e', t') = processArrayFun e t in
             let (t'', e'') = castTo t' lvt e' in
-            (*
-              ignore (E.log "finishExp: e = %a\n  e'' = %a\n" d_plainexp e d_plainexp e'');
-            *)
-            (se +++ (mkStmtOneInstr (Set(lv, e'', !currentLoc))), e'', t'')
+            (*log "finishExp: e = %a\n  e'' = %a\n" d_plainexp e d_plainexp e'';*)
+            (se +++
+               (mkStmtOneInstr (Set(lv, e'', !currentLoc))), e'', t'')
       end
   in
   let rec findField (n: string) (fidlist: fieldinfo list) : offset =
@@ -3318,10 +3482,11 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
   try
     match e with
     | A.PAREN _ -> Cil.bug "stripParen"
-    | A.NOTHING when what = ADrop -> finishExp empty (integer 0) intType
+    | A.NOTHING when what = ADrop ->
+        finishExp (unspecified_chunk empty) (integer 0) intType
     | A.NOTHING ->
         let res = Const(CStr "exp_nothing") in
-        finishExp empty res (typeOf res)
+        finishExp (unspecified_chunk empty) res (typeOf res)
 
     (* Do the potential lvalues first *)
     | A.VARIABLE n -> begin
@@ -3334,17 +3499,18 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                  not (isFunctionType vi.vtype) &&
                  not (isArrayType vi.vtype)then
                  Cil.error "variable appears in constant"; *)
-              finishExp empty (Lval(var vi)) vi.vtype
+              finishExp (unspecified_chunk empty) (Lval(var vi)) vi.vtype
           | EnvEnum (tag, typ), _ ->
               if !Cil.lowerConstants then
-                finishExp empty tag typ
+                finishExp (unspecified_chunk empty) tag typ
               else begin
                 let ei =
                   match unrollType typ with
                     TEnum(ei, _) -> ei
                   | _ -> assert false
                 in
-                finishExp empty (Const (CEnum(tag, n, ei))) typ
+                finishExp (unspecified_chunk empty)
+                  (Const (CEnum(tag, n, ei))) typ
               end
 
           | _ -> raise Not_found
@@ -3389,7 +3555,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         let tresult =
           match unrollType t with
           | TPtr(te, _) -> te
-          | _ -> Cil.fatal_error "Expecting a pointer type in *. Got %a@"
+          | _ -> Cil.fatal_error "Expecting a pointer type in *. Got %a."
                         d_plaintype t
         in
         finishExp se
@@ -3451,7 +3617,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         match ct with
           A.CONST_INT str -> begin
             let res = parseInt str in
-            finishExp empty res (typeOf res)
+            finishExp (unspecified_chunk empty) res (typeOf res)
           end
 
         (*
@@ -3488,7 +3654,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
 
         | A.CONST_WSTRING (ws: int64 list) ->
             let res = Const(CWStr ((* intlist_to_wstring *) ws)) in
-            finishExp empty res (typeOf res)
+            finishExp (unspecified_chunk empty) res (typeOf res)
 
         | A.CONST_STRING s ->
             (* Maybe we burried __FUNCTION__ in there *)
@@ -3508,11 +3674,11 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
               with Not_found -> s
             in
             let res = Const(CStr s') in
-            finishExp empty res (typeOf res)
+            finishExp (unspecified_chunk empty) res (typeOf res)
 
         | A.CONST_CHAR char_list ->
             let a, b = (interpret_character_constant char_list) in
-            finishExp empty (Const a) b
+            finishExp (unspecified_chunk empty) (Const a) b
 
         | A.CONST_WCHAR char_list ->
             (* matth: I can't see a reason for a list of more than one char
@@ -3524,7 +3690,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
              * I'm missing some architecture dependent behavior. *)
 	    let value = reduce_multichar !wcharType char_list in
 	    let result = kinteger64 !wcharKind value in
-            finishExp empty result (typeOf result)
+            finishExp (unspecified_chunk empty) result (typeOf result)
 
         | A.CONST_FLOAT str -> begin
             (* Maybe it ends in U or UL. Strip those *)
@@ -3541,28 +3707,28 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                 str, FDouble
             in
             try
-              finishExp empty
+              finishExp (unspecified_chunk empty)
                 (Const(CReal(float_of_string baseint, kind,
                              Some str)))
                 (TFloat(kind,[]))
             with Failure s -> begin
               Cil.error "float_of_string %s (%s)\n" str s;
               let res = Const(CStr "booo CONS_FLOAT") in
-              finishExp empty res (typeOf res)
+              finishExp (unspecified_chunk empty) res (typeOf res)
             end
           end
       end
 
     | A.TYPE_SIZEOF (bt, dt) ->
         let typ = doOnlyType ghost bt dt in
-        finishExp empty (SizeOf(typ)) !typeOfSizeOf
+        finishExp (unspecified_chunk empty) (SizeOf(typ)) !typeOfSizeOf
 
     (* Intercept the sizeof("string") *)
     | A.EXPR_SIZEOF (A.CONSTANT (A.CONST_STRING s)) -> begin
         (* Process the string first *)
         match doExp ghost asconst (A.CONSTANT (A.CONST_STRING s)) (AExp None) with
           _, Const(CStr s), _ ->
-            finishExp empty (SizeOfStr s) !typeOfSizeOf
+            finishExp (unspecified_chunk empty) (SizeOfStr s) !typeOfSizeOf
         | _ -> Cil.bug "cabs2cil: sizeOfStr"
       end
 
@@ -3596,11 +3762,11 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
             end
           | _ -> SizeOfE e'
         in
-        finishExp empty size !typeOfSizeOf
+        finishExp (unspecified_chunk empty) size !typeOfSizeOf
 
     | A.TYPE_ALIGNOF (bt, dt) ->
         let typ = doOnlyType ghost bt dt in
-        finishExp empty (AlignOf(typ)) !typeOfSizeOf
+        finishExp (unspecified_chunk empty) (AlignOf(typ)) !typeOfSizeOf
 
     | A.EXPR_ALIGNOF e ->
         let (_, e', _) = doExp ghost false e AExpLeaveArrayFun in
@@ -3616,7 +3782,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
 
           | _ -> e'
         in
-        finishExp empty (AlignOfE(e'')) !typeOfSizeOf
+        finishExp (unspecified_chunk empty) (AlignOfE(e'')) !typeOfSizeOf
 
     | A.CAST ((specs, dt), ie) ->
         let s', dt', ie' = preprocessCast ghost specs dt ie in
@@ -3657,7 +3823,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                   in
                   ignore (createGlobal ghost None spec_res'
                             ((newvar, dt', [], cabslu), ie'));
-                  empty
+                  (unspecified_chunk empty)
                 end else
                   createLocal ghost spec_res ((newvar, dt', [], cabslu), ie')
               in
@@ -3762,7 +3928,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
               let res'' =
                 BinOp(PlusA, res', kinteger IULong sizeOfLast, tres')
               in
-              finishExp empty res'' tres'
+              finishExp (unspecified_chunk empty) res'' tres'
             end else begin (* On GCC the only reliable way to do this is to
                             * call builtin_next_arg. If we take the address of
                             * a local we are going to get the address of a copy
@@ -3828,9 +3994,10 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
               | _ -> Cil.fatal_error "Expected lval for ++ or --"
             in
             let tresult, result = doBinOp uop' e' t one intType in
-            finishExp (se +++ (mkStmtOneInstr
-                                 (Set(lv, makeCastT result tresult t,
-                                      !currentLoc))))
+            finishExp (se +++
+                         (mkStmtOneInstr
+                            (Set(lv, makeCastT result tresult t,
+                                 !currentLoc))))
               e'
               tresult   (* Should this be t instead ??? *)
           end
@@ -3874,13 +4041,18 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                     dd_exp  e'
                     (if uop = A.POSINCR then "++" else "--") in
                 let tmp = newTempVar (Some descr) true t in
-                se +++ (mkStmtOneInstr (Set(var tmp, e', !currentLoc))), Lval(var tmp)
+                (empty @@ se) +++
+                  (mkStmtOneInstr
+                     (Set(var tmp, e', !currentLoc))), Lval(var tmp)
               else
                 se, e'
             in
             finishExp
               (se' +++ (mkStmtOneInstr
-                          (Set(lv, makeCastT opresult tresult (typeOfLval lv),
+                          (Set(lv, makeCastT opresult
+                                 (Cil.typeRemoveAttributes ["FRAMA_C_BITFIELD_SIZE"] tresult)
+                                 (Cil.typeRemoveAttributes ["FRAMA_C_BITFIELD_SIZE"]
+                                    (typeOfLval lv)),
                                !currentLoc))))
               result
               tresult   (* Should this be t instead ??? *)
@@ -3909,15 +4081,17 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         | A.PAREN e1 -> doExp ghost asconst (A.BINARY(A.ASSIGN,e1,e2)) what
         | (A.VARIABLE _ | A.UNARY (A.MEMOF, _) | (* Regular lvalues *)
            A.INDEX _ | A.MEMBEROF _ | A.MEMBEROFPTR _ ) -> begin
-             if asconst then ignore (warn "ASSIGN in constant");
-             let (se1, e1', lvt) = doExp ghost false e1 (AExp None) in
+            if asconst then warn "ASSIGN in constant";
+            let se0 = unspecified_chunk empty in
+            let (se1, e1', lvt) = doExp ghost false e1 (AExp None) in
              let lv =
                match e1' with
                  Lval x -> x
                | _ -> Cil.fatal_error "Expected lval for assignment. Got %a"
                              d_plainexp e1'
              in
-             let (_, _, _) = doExp ghost false e2 (ASet(lv, lvt)) in
+             (*[BM]: is this useful?
+               let (_, _, _) = doExp ghost false e2 (ASet(lv, lvt)) in*)
              (* Catch the case of an lval that might depend on itself,
                 e.g. p[p[0]] when p[0] == 0.  We need to use a temporary
                 here if the result of the expression will be used:
@@ -3929,16 +4103,19 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                                     || not (isConstantOffset off)
                | _, (Var _, off) -> not (isConstantOffset off)
              in
-             let tmplv, se3 =
+             let unspec, tmplv, se3 =
                if needsTemp then
                  let descr = Some (fprintf_to_string "%a" dd_lval lv) in
                  let tmp = newTempVar descr true lvt in
-                 var tmp, i2c (mkStmtOneInstr (Set(lv, Lval(var tmp), !currentLoc)))
+                 (empty,
+                  var tmp,
+                  i2c (mkStmtOneInstr (Set(lv, Lval(var tmp), !currentLoc))))
                else
-                 lv, empty
+                 unspecified_chunk empty, lv, empty
              in
              let (se2, _, _) = doExp ghost false e2 (ASet(tmplv, lvt)) in
-             finishExp (se1 @@ se2 @@ se3) (Lval tmplv) lvt
+             finishExp ((unspec @@ ((se0 @@ se1) @@ se2)) @@ se3)
+               (Lval tmplv) lvt
 	       (* [BM] Yannick: please explain what you are trying to do.
                   if !doAlternateAssign then
 	          finishExp (se1 @@ se2) e'' t''
@@ -3949,16 +4126,18 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
     end
     | A.BINARY((A.ADD|A.SUB|A.MUL|A.DIV|A.MOD|A.BAND|A.BOR|A.XOR|
       A.SHL|A.SHR|A.EQ|A.NE|A.LT|A.GT|A.GE|A.LE) as bop, e1, e2) ->
+        let se0 = unspecified_chunk empty in
         let bop' = convBinOp bop in
         let (se1, e1', t1) = doExp ghost asconst e1 (AExp None) in
         let (se2, e2', t2) = doExp ghost asconst e2 (AExp None) in
         let tresult, result = doBinOp bop' e1' t1 e2' t2 in
-        finishExp (se1 @@ se2) result tresult
+        finishExp ((se0 @@ se1) @@ se2) result tresult
 
           (* assignment operators *)
     | A.BINARY((A.ADD_ASSIGN|A.SUB_ASSIGN|A.MUL_ASSIGN|A.DIV_ASSIGN|
       A.MOD_ASSIGN|A.BAND_ASSIGN|A.BOR_ASSIGN|A.SHL_ASSIGN|
       A.SHR_ASSIGN|A.XOR_ASSIGN) as bop, e1, e2) -> begin
+        let se0 = unspecified_chunk empty in
         match e1 with
           A.COMMA el -> (* GCC extension *)
             doExp ghost asconst
@@ -4003,8 +4182,9 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
               * different than t1 if lv1 was a Cast *)
              let _, result' = castTo tresult (typeOfLval lv1) result in
              (* The type of the result is the type of the left-hand side  *)
-             finishExp (se1 @@ se2 +++
-                        (mkStmtOneInstr(Set(lv1, result', !currentLoc))))
+             finishExp
+               (((se0 @@ se1) @@ se2) +++
+                  (mkStmtOneInstr(Set(lv1, result', !currentLoc))))
                e1'
                t1
            end
@@ -4042,8 +4222,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
     end
 
     | A.CALL(f, args) ->
-        if asconst then
-          ignore (warn "CALL in constant");
+        if asconst then warn "CALL in constant";
         let (sf, f', ft') =
           match f with                  (* Treat the VARIABLE case separate
                                          * because we might be calling a
@@ -4053,9 +4232,8 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
             A.VARIABLE n -> begin
               try
                 let vi, _ = lookupVar n in
-                (empty, Lval(var vi), vi.vtype) (* Found. Do not use
-                                                 * finishExp. Simulate what =
-                                                 * AExp None  *)
+                (unspecified_chunk empty, Lval(var vi), vi.vtype)
+                  (* Found. Do not use finishExp. Simulate what = AExp None  *)
               with Not_found -> begin
                 ignore (warnOpt "Calling function %s without prototype." n);
                 let ftype = TFun(intType, None, false,
@@ -4070,7 +4248,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
 	        (* setFormalsDecl ~id:proto.vid proto.vtype; *)
                 (* Add it to the file as well *)
                 cabsPushGlobal (GVarDecl (empty_funspec (),proto, !currentLoc));
-                (empty, Lval(var proto), ftype)
+                (unspecified_chunk empty, Lval(var proto), ftype)
               end
             end
           | _ -> doExp ghost false f (AExp None)
@@ -4136,14 +4314,14 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         let rec loopArgs
             : (string * typ * attributes) list * A.expression list
           -> (chunk * exp list) = function
-            | ([], []) -> (empty, [])
+            | ([], []) -> (unspecified_chunk empty, [])
 
             | _, [] ->
                 if not isSpecialBuiltin then
                   ignore (warnOpt
                             "Too few arguments in call to %a."
                             d_exp f');
-		(empty, [])
+		(unspecified_chunk empty, [])
 
             | ((_, at, _) :: atypes, a :: args) ->
                 let (ss, args') = loopArgs (atypes, args) in
@@ -4161,7 +4339,7 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                   (* Do not give a warning for functions without a prototype*)
                   ignore (warnOpt "Too many arguments in call to %a" d_exp f');
                 let rec loop = function
-                    [] -> (empty, [])
+                    [] -> (unspecified_chunk empty, [])
                   | a :: args ->
                       let (ss, args') = loop args in
                       let (sa, a', _) = force_right_to_left_evaluation
@@ -4173,7 +4351,13 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         let (sargs, args') = loopArgs (argTypesList, args) in
         (* Setup some pointer to the elements of the call. We may change
          * these below *)
-        let prechunk: chunk ref = ref (sf @@ sargs) in (* comes before *)
+        let s0 = unspecified_chunk empty in
+        (* Order of evaluation of arguments and function is not specified,
+           but there is a sequence point between these evaluations
+           and the call itself: the unspecified_chunk ends after sf @@ sargs
+         *)
+        let prechunk: chunk ref =
+          ref (empty @@ ((s0 @@ sf) @@ sargs)) in
 
         (* Do we actually have a call, or an expression? *)
         let piscall: bool ref = ref true in
@@ -4291,7 +4475,9 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         (* Now we must finish the call *)
         if !piscall then begin
           let addCall (calldest: lval option) (res: exp) (t: typ) =
-            prechunk := !prechunk +++
+            assert (not !prechunk.unspecified_order);
+            prechunk :=
+              !prechunk +++
                 (mkStmtOneInstr(Call(calldest, !pf, !pargs, !currentLoc)));
             pres := res;
             prestype := t
@@ -4369,9 +4555,10 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
           match e2 with
             A.NOTHING -> begin (* The same as the type of e1 *)
               match ce1 with
-                CEExp (_, e1') -> empty, None, typeOf e1' (* Do not promote
+                CEExp (_, e1') ->
+                  unspecified_chunk empty, None, typeOf e1' (* Do not promote
                                                              to bool *)
-              | _ -> empty, None, intType
+              | _ -> unspecified_chunk empty, None, intType
             end
           | _ ->
               let se2, e2', t2 = doExp ghost asconst e2 (AExp None) in
@@ -4383,14 +4570,17 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
         let tresult = conditionalConversion t2 t3 in
         match ce1 with
           CEExp (se1, e1') when isConstFalse e1' && canDrop se2 ->
-             finishExp (se1 @@ se3) (snd (castTo t3 tresult e3')) tresult
+             finishExp ((empty @@ se1) @@ se3)
+               (snd (castTo t3 tresult e3')) tresult
         | CEExp (se1, e1') when isConstTrue e1' && canDrop se3 ->
            begin
              match e2'o with
                None -> (* use e1' *)
-                 finishExp (se1 @@ se2) (snd (castTo t2 tresult e1')) tresult
+                 finishExp
+                   ((empty @@ se1) @@ se2) (snd (castTo t2 tresult e1')) tresult
              | Some e2' ->
-                 finishExp (se1 @@ se2) (snd (castTo t2 tresult e2')) tresult
+                 finishExp
+                   ((empty @@ se1) @@ se2) (snd (castTo t2 tresult e2')) tresult
            end
 
         | _ -> (* Use a conditional *) begin
@@ -4399,8 +4589,8 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                 let tmp = var (newTempVar None true tresult) in
                 let (se1, _, _) = doExp ghost asconst e1 (ASet(tmp, tresult)) in
                 let (se3, _, _) = doExp ghost asconst e3 (ASet(tmp, tresult)) in
-                finishExp (se1 @@ ifChunk (Lval(tmp)) lu
-                                    skipChunk se3)
+                finishExp ((empty @@ se1) @@
+                             ifChunk (Lval(tmp)) lu skipChunk se3)
                   (Lval(tmp))
                   tresult
             | _ ->
@@ -4414,7 +4604,8 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
                 (* Now do e2 and e3 for real *)
                 let (se2, _, _) = doExp ghost asconst e2 (ASet(lv, lvt)) in
                 let (se3, _, _) = doExp ghost asconst e3 (ASet(lv, lvt)) in
-                finishExp (doCondition ghost asconst e1 se2 se3) (Lval(lv)) tresult
+                finishExp
+                  (doCondition ghost asconst e1 se2 se3) (Lval(lv)) tresult
         end
 
 (*
@@ -4531,7 +4722,8 @@ and doExp (ghost:bool) (* This expression is in ghost code *)
             res
           end
         in
-        finishExp empty (makeCast (integer addrval) voidPtrType) voidPtrType
+        finishExp (unspecified_chunk empty)
+          (makeCast (integer addrval) voidPtrType) voidPtrType
     end
 
     | A.EXPR_PATTERN _ -> Cil.bug "EXPR_PATTERN in cabs2cil input"
@@ -4652,7 +4844,7 @@ and doCondExp ghost (asconst: bool) (** Try to evaluate the conditional expressi
                                 * constant *)
               (e: A.expression) : condExpRes =
   let rec addChunkBeforeCE (c0: chunk) = function
-      CEExp (c, e) -> CEExp (c0 @@ c, e)
+      CEExp (c, e) -> CEExp ((empty @@ c0) @@ c, e)
     | CEAnd (ce1, ce2) -> CEAnd (addChunkBeforeCE c0 ce1, ce2)
     | CEOr (ce1, ce2) -> CEOr (addChunkBeforeCE c0 ce1, ce2)
     | CENot ce1 -> CENot (addChunkBeforeCE c0 ce1)
@@ -4773,7 +4965,7 @@ and compileCondExp (ce: condExpRes) (st: chunk) (sf: chunk) : chunk =
       match e with
         Const(CInt64(i,_,_)) when i <> Int64.zero && canDrop sf -> se @@ st
       | Const(CInt64(z,_,_)) when z = Int64.zero && canDrop st -> se @@ sf
-      | _ -> se @@ ifChunk e !currentLoc st sf
+      | _ -> (empty @@ se) @@ ifChunk e !currentLoc st sf
   end
 
 
@@ -4791,6 +4983,11 @@ and doPureExp ghost (e : A.expression) : exp =
   if isNotEmpty se then
    Cil.error "doPureExp: not pure";
   e'
+
+and doFullExp ghost const e what =
+  let (se,e,t) = doExp ghost  const e what in
+  (* there is a sequence point after a full exp *)
+  empty @@ se,e,t
 
 and doInitializer
     (ghost : bool)
@@ -4812,7 +5009,8 @@ and doInitializer
   in
   let acc, restl =
     let so = makeSubobj vi vi.vtype NoOffset in
-    doInit ghost vi.vglob topSetupInit so empty [ (A.NEXT_INIT, inite) ]
+    doInit ghost vi.vglob topSetupInit so
+      (unspecified_chunk empty) [ (A.NEXT_INIT, inite) ]
   in
   if restl <> [] then
     warn "Ignoring some initializers";
@@ -4826,7 +5024,7 @@ and doInitializer
   if debugInit then
     log "Finished the initializer for %s@\n  init=%a@\n  typ=%a@\n  acc=%a@\n"
       vi.vname d_init init d_type typ' d_chunk acc;
-  acc, init, typ''
+  empty @@ acc, init, typ''
 
 and blockInitializer vi inite =
   let c,init,ty = doInitializer false vi inite in
@@ -5656,7 +5854,7 @@ and doDecl ghost (isglobal: bool) : A.definition -> chunk = function
     begin
       let funloc = convLoc loc1 in
       let endloc = convLoc loc2 in
-(*      ignore (E.log "Definition of %s at %a\n" n d_loc funloc); *)
+      if debugGlobal then Cil.log "Definition of %s at %a\n" n d_loc funloc;
       currentLoc := funloc;
       E.withContext
         (fun fmt -> Format.fprintf fmt "2cil: %s" n)
@@ -5878,7 +6076,6 @@ and doDecl ghost (isglobal: bool) : A.definition -> chunk = function
               let stmts = doBody ghost body in
               (* Finish everything *)
               exitScope ();
-
               (* Now fill in the computed goto statement with cases. Do this
                * before mkFunctionbody which resolves the gotos *)
               (match !gotoTargetData with
@@ -5918,7 +6115,51 @@ and doDecl ghost (isglobal: bool) : A.definition -> chunk = function
 
               | None -> ());
               (* Now finish the body and store it *)
-              !currentFunctionFDEC.sbody <- mkFunctionBody stmts;
+              let body = mkFunctionBody stmts in
+              let cleanUnspecified = object(self)
+                inherit nopCilVisitor
+                val unspecified_stack = Stack.create ()
+
+                (* we start in a deterministic block. *)
+                initializer Stack.push false unspecified_stack
+
+                method private push: 'a.bool->'a->'a visitAction =
+                  fun flag x ->
+                  Stack.push flag unspecified_stack;
+                  ChangeDoChildrenPost
+                    (x,fun x -> ignore(Stack.pop unspecified_stack); x)
+
+
+                method vblock b =
+                  b.bstmts <-
+                    List.fold_right(
+                      fun s res ->
+                        match s.skind with
+                            Block b when
+                              not (Stack.top unspecified_stack) &&
+                                b.battrs = []
+                              -> b.bstmts @ res
+                          | _ -> s ::res)
+                    b.bstmts [];
+                  DoChildren
+
+                method vstmt s =
+                  match s.skind with
+                      UnspecifiedSequence { bstmts = [ s ] } ->
+                        ChangeDoChildrenPost(s, fun x ->x)
+                    | UnspecifiedSequence { bstmts = [] } ->
+                        ChangeTo dummyStmt;
+                    | UnspecifiedSequence _ -> self#push true s
+                    | Block _ | If _ | Switch _ | Loop _
+                    | TryFinally _ | TryExcept _ ->
+                        self#push false s
+                    | Instr _ | Return _ | Goto _ | Break _
+                    | Continue _ ->
+                        DoChildren
+              end
+              in
+              !currentFunctionFDEC.sbody <-
+                visitCilBlock cleanUnspecified body;
               (* Reset the global parameters *)
               gotoTargetData := None;
               H.clear gotoTargetHash;
@@ -6013,7 +6254,7 @@ and doDecl ghost (isglobal: bool) : A.definition -> chunk = function
               match s.skind with
                 Instr(il) ->
                   instrFallsThrough il
-              | UnspecifiedSequence (s1,s2) -> stmtFallsThrough s1 || stmtFallsThrough s2
+              | UnspecifiedSequence b -> blockFallsThrough b
               | Return _ | Break _ | Continue _ -> false
               | Goto _ -> false
               | If (_, b1, b2, _) ->
@@ -6079,7 +6320,7 @@ and doDecl ghost (isglobal: bool) : A.definition -> chunk = function
               match s.skind with
                 Instr _ | Return _ | Continue _ | Goto _ -> false
               | Break _ -> true
-              | UnspecifiedSequence (s1,s2) -> stmtCanBreak s1 || stmtCanBreak s2
+              | UnspecifiedSequence b -> blockCanBreak b
               | If (_, b1, b2, _) ->
                   blockCanBreak b1 || blockCanBreak b2
               | Switch _ | Loop _ ->
@@ -6139,12 +6380,17 @@ and doDecl ghost (isglobal: bool) : A.definition -> chunk = function
         dl;
       empty
 
-  | A.GLOBANNOT (decl,loc) when isglobal ->
-      currentLoc := convLoc(loc);
-      begin try
-        let tdecl = Ltyping.annot (Logic_ptree.Adecl (loc,decl)) in
-        cabsPushGlobal (GAnnot(tdecl,!currentLoc));
-      with Errormsg.Error -> Cil.warn "ignoring logic global annotation"
+  | A.GLOBANNOT (decl) when isglobal ->
+      begin
+        List.iter
+          (fun (loc,decl) ->
+             try
+               currentLoc := convLoc(loc);
+               let tdecl = Ltyping.annot loc decl in
+               cabsPushGlobal (GAnnot(tdecl,!currentLoc))
+             with Errormsg.Error -> Cil.warn "ignoring logic global annotation"
+          )
+          decl;
       end;
       empty
 
@@ -6288,7 +6534,11 @@ and doBody ghost (blk: A.block) : chunk =
                          b.battrs <-
                            addAttributes
                            [Attr("FRAMA_C_KEEP_BLOCK",[])] b.battrs;
-                         prev @@ s2c (mkStmt (Block b))
+                         prev @@
+                           s2c (mkStmt
+                                  (if res.unspecified_order then
+                                     UnspecifiedSequence b
+                                   else Block b))
                  else
                    prev @@ res
                in keep_next, chunk)
@@ -6321,11 +6571,11 @@ and doStatement (s : A.statement) : chunk =
         currentLoc := convLoc loc;
         let (lasts, data) = !gnu_body_result in
         if lasts == s then begin      (* This is the last in a GNU_BODY *)
-          let (s', e', t') = doExp ghost false e (AExp None) in
+          let (s', e', t') = doFullExp ghost false e (AExp None) in
           data := Some (e', t');      (* Record the result *)
           s'
         end else
-          let (s', _, _) = doExp ghost false e ADrop in
+          let (s', _, _) = doFullExp ghost false e ADrop in
             (* drop the side-effect free expression *)
             (* And now do some peep-hole optimizations *)
           s'
@@ -6377,11 +6627,11 @@ and doStatement (s : A.statement) : chunk =
         enterScope (); (* Just in case we have a declaration *)
         let (se1, _, _) =
           match fc1 with
-            FC_EXP e1 -> doExp ghost false e1 ADrop
+            FC_EXP e1 -> doFullExp ghost false e1 ADrop
           | FC_DECL d1 -> (doDecl ghost false d1, zero, voidType)
         in
         let a = mk_loop_annot a in
-        let (se3, _, _) = doExp ghost false e3 ADrop in
+        let (se3, _, _) = doFullExp ghost false e3 ADrop in
         startLoop false;
         let s' = doStatement s in
         currentLoc := loc';
@@ -6421,13 +6671,13 @@ and doStatement (s : A.statement) : chunk =
         (* Sometimes we return the result of a void function call *)
         if isVoidType !currentReturnType then begin
           ignore (warn "Return statement with a value in function returning void");
-          let (se, _, _) = doExp ghost false e ADrop in
+          let (se, _, _) = doFullExp ghost false e ADrop in
           se @@ returnChunk None loc'
         end else begin
 	  let rt =
 	    typeRemoveAttributes ["warn_unused_result"] !currentReturnType
 	  in
-          let (se, e', et) = doExp ghost false e (AExp (Some rt)) in
+          let (se, e', et) = doFullExp ghost false e (AExp (Some rt)) in
           let (_, e'') = castTo et rt e' in
           se @@ (returnChunk (Some e'') loc')
         end
@@ -6435,7 +6685,7 @@ and doStatement (s : A.statement) : chunk =
     | A.SWITCH (e, s, loc) ->
         let loc' = convLoc loc in
         currentLoc := loc';
-        let (se, e', et) = doExp ghost false e (AExp (Some intType)) in
+        let (se, e', et) = doFullExp ghost false e (AExp (Some intType)) in
         let (_, e'') = castTo et intType e' in
         let s' = doStatement s in
         se @@ (switchChunk e'' s' loc')
@@ -6443,7 +6693,7 @@ and doStatement (s : A.statement) : chunk =
     | A.CASE (e, s, loc) ->
         let loc' = convLoc loc in
         currentLoc := loc';
-        let (se, e', _) = doExp ghost true e (AExp None) in
+        let (se, e', _) = doFullExp ghost true e (AExp None) in
         if isNotEmpty se then
           Cil.error "Case statement with a non-constant";
         caseRangeChunk [if !lowerConstants then constFold false e' else e']
@@ -6452,8 +6702,8 @@ and doStatement (s : A.statement) : chunk =
     | A.CASERANGE (el, eh, s, loc) ->
         let loc' = convLoc loc in
         currentLoc := loc';
-        let (sel, el', _) = doExp ghost false el (AExp None) in
-        let (seh, eh', _) = doExp ghost false eh (AExp None) in
+        let (sel, el', _) = doFullExp ghost false el (AExp None) in
+        let (seh, eh', _) = doFullExp ghost false eh (AExp None) in
         if isNotEmpty sel || isNotEmpty seh then
           Cil.error "Case statement with a non-constant";
         let il, ih =
@@ -6474,12 +6724,13 @@ and doStatement (s : A.statement) : chunk =
         let loc' = convLoc loc in
         currentLoc := loc';
         defaultChunk loc' (doStatement s)
-
     | A.LABEL (l, s, loc) ->
         let loc' = convLoc loc in
         currentLoc := loc';
+        C_logic_env.set_current_label l;
         (* Lookup the label because it might have been locally defined *)
-        consLabel (lookupLabel l) (doStatement s) loc' true
+        let chunk = consLabel (lookupLabel l) (doStatement s) loc' true in
+        C_logic_env.reset_current_label (); chunk
 
     | A.GOTO (l, loc) ->
         let loc' = convLoc loc in
@@ -6491,7 +6742,7 @@ and doStatement (s : A.statement) : chunk =
         let loc' = convLoc loc in
         currentLoc := loc';
         (* Do the expression *)
-        let se, e', _ = doExp ghost false e (AExp (Some voidPtrType)) in
+        let se, e', _ = doFullExp ghost false e (AExp (Some voidPtrType)) in
         match !gotoTargetData with
           Some (switchv, switch) -> (* We have already generated this one  *)
             se
@@ -6518,8 +6769,9 @@ and doStatement (s : A.statement) : chunk =
             (* And make a label for it since we'll goto it *)
             switch.labels <- [Label ("__docompgoto", loc', false)];
             gotoTargetData := Some (switchv, switch);
-            se @@ i2c (mkStmtOneInstr(Set(var switchv, makeCast e' intType, loc'))) @@
-            s2c switch
+            se @@
+              i2c (mkStmtOneInstr(Set(var switchv, makeCast e' intType, loc')))
+            @@ s2c switch
         end
       end
 
@@ -6554,7 +6806,7 @@ and doStatement (s : A.statement) : chunk =
               let outs' =
 		List.map
 		  (fun (id, c, e) ->
-		    let (se, e', _) = doExp ghost false e (AExp None) in
+		    let (se, e', _) = doFullExp ghost false e (AExp None) in
 		    let lv =
                       match e' with
 		      | Lval lval
@@ -6593,7 +6845,7 @@ and doStatement (s : A.statement) : chunk =
         currentLoc := loc';
         let b': chunk = doBody ghost b in
         (* Now do e *)
-        let ((se: chunk), e', _) = doExp ghost false e (AExp None) in
+        let ((se: chunk), e', _) = doFullExp ghost false e (AExp None) in
         let h': chunk = doBody ghost h in
         if b'.cases <> [] || h'.cases <> [] || se.cases <> [] then
           Cil.error "Try statements cannot contain switch cases";
@@ -6684,6 +6936,7 @@ let convFile (f : A.file) : Cil_types.file =
   H.clear typedefs;
   H.clear isomorphicStructs;
   H.clear alpha_renaming;
+  Logic_env.reset_all_tables ();
   annonCompFieldNameId := 0;
   if !E.verboseFlag || !Cilutil.printStages then
     Cil.log "Converting CABS->CIL";
@@ -6744,6 +6997,7 @@ let convFile (f : A.file) : Cil_types.file =
   let globals = ref (popGlobals ()) in
   List.iter rename_spec !globals;
 
+  Logic_env.reset_all_tables ();
   IH.clear noProtoFunctions;
   IH.clear mustTurnIntoDef;
   H.clear alreadyDefined;

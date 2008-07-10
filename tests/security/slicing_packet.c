@@ -48,7 +48,7 @@ unsigned int my_strlen(const char *s)
 
 /*@ ghost int channel; */
 
-/*@ requires security_status(addr) == public();
+/*@ requires security_status(addr) == public;
   assigns channel \from addr[0..3]; */
 void send_addr(const ip_address addr, const char *txt)
 #ifdef GCC
@@ -62,7 +62,7 @@ void send_addr(const ip_address addr, const char *txt)
   ;
 #endif
 
-/*@ requires security_status(data) == public();
+/*@ requires security_status(data) == public;
   assigns channel \from data[0.. DATA_LEN_MOINS_UN]; */
 void send_data(const char *data, const char *txt)
 #ifdef GCC
@@ -96,7 +96,7 @@ void send_msg_safely(const msg *msg)
 
 
 
-/*@ ensures security_status(data) == public();
+/*@ ensures security_status(data) == public;
   assigns data[0.. DATA_LEN_MOINS_UN] \from data[0.. DATA_LEN_MOINS_UN]; */
 void crypt(char* data)
 #ifdef GCC
@@ -109,7 +109,7 @@ void crypt(char* data)
 ;
 #endif
 
-/*@ ensures security_status(data) == private();
+/*@ ensures security_status(data) == private;
   assigns data[0.. DATA_LEN_MOINS_UN] \from data[0.. DATA_LEN_MOINS_UN]; */
 void uncrypt(char* data)
 #ifdef GCC
@@ -122,7 +122,7 @@ void uncrypt(char* data)
 ;
 #endif
 
-/*@ ensures security_status(ip) == public(); */
+/*@ ensures security_status(ip) == public; */
 void host_address(ip_address ip) {
   ip[0] = 192; ip[1] = 100; ip[2] = 200; ip[3] = 101;
 }

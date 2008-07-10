@@ -19,7 +19,7 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (**************************************************************************)
 
-(* $Id: rewrite.ml,v 1.49 2008/05/23 16:55:40 uid570 Exp $ *)
+(* $Id: rewrite.ml,v 1.51 2008/07/11 06:36:05 uid570 Exp $ *)
 
 (* Import from Cil *)
 open Cil_types
@@ -1004,13 +1004,13 @@ object(self)
 		  loc = Lexing.dummy_pos,Lexing.dummy_pos;
 		  content = Prel(Rgt,tstrlen,toff);
 		} in
-		let supa = Logic_const.new_code_annotation(AAssert supp) in
+		let supa = Logic_const.new_code_annotation(AAssert([],supp)) in
 		let eqp = {
 		  name = ["hint"];
 		  loc = Lexing.dummy_pos,Lexing.dummy_pos;
 		  content = Prel(Req,tstrlen,toff);
 		} in
-		let eqa = Logic_const.new_code_annotation(AAssert eqp) in
+		let eqa = Logic_const.new_code_annotation(AAssert([],eqp)) in
 		let supst = mkStmt(Instr(Code_annot(supa,!currentLoc))) in
 		let eqst = mkStmt(Instr(Code_annot(eqa,!currentLoc))) in
 		if neg then
@@ -1054,14 +1054,14 @@ object(self)
 		    loc = Lexing.dummy_pos,Lexing.dummy_pos;
 		    content = Prel(Rge,tstrlen,toffset_min);
 		  } in
-		  let supa = Logic_const.new_code_annotation(AAssert supp) in
+		  let supa = Logic_const.new_code_annotation(AAssert([],supp)) in
 		  let supst = mkStmt(Instr(Code_annot(supa,!currentLoc))) in
 		  let infp = {
 		    name = ["hint"];
 		    loc = Lexing.dummy_pos,Lexing.dummy_pos;
 		    content = Prel(Rle,tstrlen,toff);
 		  } in
-		  let infa = Logic_const.new_code_annotation(AAssert infp) in
+		  let infa = Logic_const.new_code_annotation(AAssert([],infp)) in
 		  let infst = mkStmt(Instr(Code_annot(infa,!currentLoc))) in
 		  mkStmt(Block(mkBlock[s;supst;infst]))
 	    end

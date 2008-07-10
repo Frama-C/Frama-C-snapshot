@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: locations.mli,v 1.69 2008/04/22 13:41:28 uid527 Exp $ *)
+(* $Id: locations.mli,v 1.71 2008/06/05 15:18:48 uid527 Exp $ *)
 
-(** Memory locations. *)
+(** Memory locations. 
+    @plugin developer guide *)
 
 open Cil_types
 open Cil
@@ -29,7 +30,8 @@ open Abstract_interp
 open Abstract_value
 open BaseUtils
 
-(** Association between varids and offsets in byte. *)
+(** Association between varids and offsets in byte. 
+    @plugin developer guide *)
 module Location_Bytes : sig
 
   module M : sig
@@ -115,12 +117,13 @@ module Location_Bytes : sig
     (** [contains_adresses_of_locals f loc] returns [true] if [loc] contains
 	the adress of a local variable of [f] or a formal of [f]*)
 
-  val unspecify_escaping_locals : Cil_types.fundec -> t -> t
+  val remove_escaping_locals : Cil_types.fundec -> t -> t
     (**  TODO: merge with above function *)
 
 end
 
-(** Association between varids and offsets in bits. *)
+(** Association between varids and offsets in bits. 
+    @plugin developer guide *)
 module Location_Bits : sig
 
   module M : sig
@@ -196,7 +199,8 @@ module Location_Bits : sig
 
 end
 
-(** Association between varids and ranges of bits. *)
+(** Association between varids and ranges of bits. 
+    @plugin developer guide *)
 module Zone : sig
 
 (*  module M : Mergemap.S with type key = Base.t
@@ -304,7 +308,8 @@ end
 
 (** {2 Locations} *)
 
-(** A {!Location_Bits.t} and a size in bits. *)
+(** A {!Location_Bits.t} and a size in bits. 
+    @plugin developer guide *)
 type location = private {
   loc : Location_Bits.t;
   size : Int_Base.t;
@@ -335,7 +340,10 @@ val loc_bits_to_loc_bytes : Location_Bits.t -> Location_Bytes.t
 val loc_without_size_to_loc :
   Cil_types.lval -> Location_Bytes.t -> location
 val loc_bits_to_loc : Cil_types.lval -> Location_Bits.t -> location
+
 val valid_enumerate_bits : location -> Zone.t
+  (** @plugin developer guide *)
+
 val loc_of_varinfo : varinfo -> location
 val loc_of_base : Base.t -> location
 val loc_of_typoffset : Base.t -> typ -> offset -> location

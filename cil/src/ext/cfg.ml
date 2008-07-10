@@ -38,44 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(*
- *
- * Copyright (c) 2001-2003,
- *  George C. Necula    <necula@cs.berkeley.edu>
- *  Scott McPeak        <smcpeak@cs.berkeley.edu>
- *  Wes Weimer          <weimer@cs.berkeley.edu>
- *  Simon Goldsmith     <sfg@cs.berkeley.edu>
- *  S.P Rahul, Aman Bhargava
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- *
- * 3. The names of the contributors may not be used to endorse or promote
- * products derived from this software without specific prior written
- * permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *)
+
 
 (* Authors: Aman Bhargava, S. P. Rahul *)
 (* sfg: this stuff was stolen from optim.ml - the code to print the cfg as
@@ -117,9 +80,6 @@ module E=Errormsg
 
 (*let numNodes = ref 0 (* number of nodes in the CFG *)*)
 let nodeList : stmt list ref = ref [] (* All the nodes in a flat list *) (* ab: Added to change dfs from quadratic to linear *)
-(*
-let start_id = ref 0 (* for unique ids across many functions *)
-*)
 
 class caseLabeledStmtFinder slr = object
     inherit nopCilVisitor
@@ -150,19 +110,15 @@ let findCaseLabeledStmts (b : block) : stmt list =
 (** Compute a control flow graph for fd.  Stmts in fd have preds and succs
   filled in *)
 let rec cfgFun (fd : fundec) =
-  begin
-    nodeList := [];
-
-    cfgBlock fd.sbody None None None;
-
-    fd.smaxstmtid <- Some(Cil.get_sid());
-    fd.sallstmts <- List.rev !nodeList;
-    nodeList := []
-  end
+  nodeList := [];
+  cfgBlock fd.sbody None None None;
+  fd.smaxstmtid <- Some(Cil.Sid.get ());
+  fd.sallstmts <- List.rev !nodeList;
+  nodeList := []
 
 
 and cfgStmts (ss: stmt list)
-                 (next:stmt option) (break:stmt option) (cont:stmt option) =
+    (next:stmt option) (break:stmt option) (cont:stmt option) =
   match ss with
     [] -> ();
   | [s] -> cfgStmt s next break cont
@@ -171,7 +127,7 @@ and cfgStmts (ss: stmt list)
       cfgStmts tl next break cont
 
 and cfgBlock  (blk: block)
-              (next:stmt option) (break:stmt option) (cont:stmt option) =
+    (next:stmt option) (break:stmt option) (cont:stmt option) =
   cfgStmts blk.bstmts next break cont
 
 
@@ -179,15 +135,14 @@ and cfgBlock  (blk: block)
    Meaning of next, break, cont should be clear from earlier comment
 *)
 and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) =
-  if s.sid = -1 then s.sid <- Cil.new_sid();
+  if s.sid = -1 then s.sid <- Cil.Sid.next ();
   nodeList := s :: !nodeList; (* Future traversals can be made in linear time. e.g.  *)
-  if s.succs <> [] then
-    E.s (bug "CFG must be cleared before being computed!");
+  if s.succs <> [] then 
+    bug "CFG must be cleared before being computed! '%a' of %d" d_stmt s 
+      (List.length s.succs);
   let addSucc (n: stmt) =
-    if not (List.memq n s.succs) then
-      s.succs <- n::s.succs;
-    if not (List.memq s n.preds) then
-      n.preds <- s::n.preds
+    if not (List.memq n s.succs) then s.succs <- n::s.succs;
+    if not (List.memq s n.preds) then n.preds <- s::n.preds
   in
   let addOptionSucc (n: stmt option) =
     match n with
@@ -222,20 +177,18 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
   | Goto (p,_) -> addSucc !p
   | Break _ -> addOptionSucc break
   | Continue _ -> addOptionSucc cont
-  | UnspecifiedSequence (s1,s2) -> 
-      addSucc s1;
-      cfgStmt s1 (Some s2) break cont;
-      cfgStmt s2 next break cont
-
   | If (_, blk1, blk2, _) ->
       (* The succs of If is [true branch;false branch] *)
       addBlockSucc blk2;
       addBlockSucc blk1;
       cfgBlock blk1 next break cont;
       cfgBlock blk2 next break cont
+
+  | UnspecifiedSequence b
   | Block b ->
       addBlockSucc b;
       cfgBlock b next break cont
+
   | Switch(_,blk,_l,_) ->
       let bl = findCaseLabeledStmts blk in
       List.iter addSucc (List.rev bl(*l*)); (* Add successors in order *)
@@ -252,8 +205,8 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
       addBlockSuccFull s blk;
       cfgBlock blk (Some s) next (Some s)
 
-      (* Since all loops have terminating condition true, we don't put
-         any direct successor to stmt following the loop *)
+  (* Since all loops have terminating condition true, we don't put
+     any direct successor to stmt following the loop *)
   | TryExcept _ | TryFinally _ ->
       E.s (E.unimp "try/except/finally")
 
@@ -263,7 +216,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
 (* do something for all stmts in a fundec *)
 
 let rec forallStmts todo (fd : fundec) =
-  let vis = object 
+  let vis = object
     inherit nopCilVisitor
     method vstmt stmt = ignore (todo stmt); DoChildren
   end

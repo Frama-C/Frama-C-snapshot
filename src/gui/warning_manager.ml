@@ -32,7 +32,7 @@ let make ~packing ~callback =
   let message_list_severity_col = cols#add Gobject.Data.caml in
   let message_list_list_store = GTree.list_store cols in
   let append message = 
-    let row = message_list_list_store#append ()
+    let row = message_list_list_store#prepend ()
     in
     message_list_list_store#set ~row ~column:message_list_file_col message.m_file ;
     message_list_list_store#set ~row ~column:message_list_line_col message.m_line ;

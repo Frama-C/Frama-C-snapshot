@@ -19,9 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_function.mli,v 1.11 2008/04/18 11:04:02 uid568 Exp $ *)
+(* $Id: kernel_function.mli,v 1.12 2008/05/30 08:29:48 uid568 Exp $ *)
 
-(** Operations on kernel function. *)
+(** Operations on kernel function. 
+    @plugin developer guide *)
 
 open Cil_types
 
@@ -42,7 +43,8 @@ val find_from_sid : int -> stmt * t
   (** Return the stmt and its kernel function from its identifier.
       Complexity: the first call to this function is linear in the size of
       the cil file.
-      @raise Not_found if there is no statement with such an identifier. *)
+      @raise Not_found if there is no statement with such an identifier. 
+      @plugin developer guide *)
 
 exception No_Statement
 val find_first_stmt : t -> stmt
@@ -115,7 +117,8 @@ val populate_spec: (t -> unit) ref
 (** {2 Collections} *)
 (* ************************************************************************* *)
 
-(** Hashtable indexed by kernel functions and dealing with project. *)
+(** Hashtable indexed by kernel functions and dealing with project. 
+    @plugin developer guide *)
 module Make_Table(Data:Datatype.INPUT)(Info:Signature.NAME_SIZE_DPDS):
   Computation.HASHTBL_OUTPUT with type key = t and type data = Data.t
 

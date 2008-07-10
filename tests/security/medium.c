@@ -1,26 +1,26 @@
 /* run.config
    GCC:
-   OPT: -security-analysis -security-lattice weak -lib-entry f
-   OPT: -security-analysis -security-lattice medium -lib-entry f
-   OPT: -security-analysis -security-lattice strong -lib-entry f
+   OPT: -security-analysis -security-lattice weak -security-annotation medium -lib-entry -main f
+   OPT: -security-analysis -security-lattice medium -lib-entry -main f
+   OPT: -security-analysis -security-lattice strong -security-annotation medium -lib-entry -main f
    */
 
 #define FRAMA_C_MALLOC_INDIVIDUAL
 #include <share/malloc.c>
 
-/*@ requires security_status(y) == public() ;
-    ensures security_status(y) == concrete(); */
+/*@ requires security_status(y) == public ;
+    ensures security_status(y) == concrete; */
 void send(const int y);
 
 /*@ ensures
-      security_status( *z) == public() &&
-      security_status( *z) == abstract(); */
+      security_status( *z) == public &&
+      security_status( *z) == abstract; */
 void crypt(int* z);
 
 int y;
 
 /* \result cannot be used here. See bug #121 */
-/*@ ensures security_status( \result) == abstract(); */
+/*@ ensures security_status( \result) == abstract; */
 int read_key();
 
 int f() {

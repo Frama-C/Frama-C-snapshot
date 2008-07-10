@@ -1,0 +1,17 @@
+exception Exception
+
+parameter f0 : tt:unit ->
+   { }
+   unit
+   { true }
+
+parameter f1 : tt:unit ->
+  { }
+  unit
+  raises Exception
+  { true | Exception => true }
+
+let f = fun () ->
+  { }
+  f0 (f1 void)
+  { true | Exception => true }

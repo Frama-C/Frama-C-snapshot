@@ -1,0 +1,5 @@
+Match.vo: Match.v ../../lib/coq/WhyArrays.vo
+brute_force_valid.vo: brute_force_valid.v ../../lib/coq/Why.vo ./brute_force_why.vo
+brute_force_why.vo: brute_force_why.v ../../lib/coq/Why.vo ./Match.vo
+not_so_naive_valid.vo: not_so_naive_valid.v ../../lib/coq/Why.vo ./not_so_naive_why.vo
+not_so_naive_why.vo: not_so_naive_why.v ../../lib/coq/Why.vo ./Match.vo

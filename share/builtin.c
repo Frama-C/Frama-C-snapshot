@@ -19,6 +19,8 @@
 /*                                                                        */
 /**************************************************************************/
 
+/* $Id: builtin.c,v 1.15 2008/06/26 07:46:00 uid568 Exp $ */
+
 static volatile int Frama_C_entropy_source;
 
 int Frama_C_nondet(int a, int b)

@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: globals.ml,v 1.24 2008/04/29 16:41:25 uid562 Exp $ *)
+(* $Id: globals.ml,v 1.26 2008/06/10 17:32:36 uid528 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -353,10 +353,9 @@ end
 exception No_such_entry_point of string
 
 let entry_point () =
-  let libentry = Cmdline.LibEntry.get () in
-  let kf_name, lib =
-    if libentry <> "" then libentry, true
-    else Cmdline.MainFunction.get (), false
+  let kf_name, lib = 
+    Cmdline.MainFunction.get (),
+    Cmdline.LibEntry.get ()
   in
   try Functions.find_def_by_name kf_name, lib
   with Not_found ->
@@ -372,14 +371,15 @@ let set_entry_point name lib =
     let selection = add Cmdline.LibEntry.self selection in
     Project.clear ~only:selection ()
   in
-  if lib then begin
-    Cmdline.MainFunction.unsafe_set "";
-    Cmdline.LibEntry.unsafe_set name
-  end else begin
-    Cmdline.MainFunction.unsafe_set name;
-    Cmdline.LibEntry.unsafe_set ""
-  end;
+
+  let has_changed = lib <> Cmdline.LibEntry.get () ||
+    name <> Cmdline.MainFunction.get ()
+  in
+  if has_changed then begin
+  Cmdline.MainFunction.unsafe_set name;
+  Cmdline.LibEntry.unsafe_set lib;
   clear_from_entry_point ()
+  end
 
 let has_entry_point () =
   try ignore (entry_point ()); true with No_such_entry_point _ -> false

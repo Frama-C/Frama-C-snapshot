@@ -1,22 +1,22 @@
 /* run.config
    EXECNOW: make -s tests/slicing/select_by_annot.opt
    CMD: tests/slicing/select_by_annot.opt
-   OPT: -deps -lib-entry main
+   OPT: -deps -lib-entry -main main
    CMD: bin/toplevel.opt
-   OPT: -deps -lib-entry main -slice-print -slice-pragma main
-   OPT: -deps -lib-entry main -slice-print -slice-assert main
-   OPT: -deps -lib-entry main -slice-print -slice-pragma modifS -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f1 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f2 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f3 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f4 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f5 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f6 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f7 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-loop-inv f8 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f8 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-assert f8 -slicing-debug -no-slice-callers
-   OPT: -deps -lib-entry main -slice-print -slice-pragma f9 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma main
+   OPT: -deps -lib-entry -main main -slice-print -slice-assert main
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma modifS -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f1 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f2 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f3 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f4 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f5 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f6 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f7 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-loop-inv f8 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f8 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-assert f8 -slicing-debug -no-slice-callers
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f9 -slicing-debug -no-slice-callers
 
 
 */

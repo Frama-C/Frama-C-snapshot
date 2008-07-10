@@ -19,7 +19,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: boot.ml,v 1.17 2008/04/01 09:25:20 uid568 Exp $ *)
+(* $Id: boot.ml,v 1.19 2008/06/02 14:54:23 uid528 Exp $ *)
+
+(** Frama-C Entry Point (last linked module).
+    @plugin developer guide *)
 
 (** Register options for debugging project *)
 
@@ -43,17 +46,6 @@ let () = Options.add_cmdline ~name:"project" ~debug:project_debug []
 
 (** Boot Frama-C *)
 
-(* CIL initialization and customization *)
-let boot_cil () =
-  Cil.initCIL ();
-  Cabs2cil.forceRLArgEval := false;
-  Cil.lineDirectiveStyle := None;
-  (*  Cil.lineDirectiveStyle := Some LinePreprocessorInput;*)
-  Cil.printCilAsIs := Cmdline.Debug.get () > 0;
-  Mergecil.ignore_merge_conflicts := true;
-  Cil.useLogicalOperators := false; (* do not use lazy LAND and LOR *)
-  Pretty.flushOften := true
-
 (* Additional internal state dependencies *)
 let () =
   Project.Computation.add_dependency Alarms.self Db.Value.self;
@@ -63,7 +55,6 @@ let () =
 (* Main: let's go! *)
 let () =
   Kind.version := Version.version;
-  boot_cil ();
   Sys.catch_break true;
   Options.parse_cmdline ();
   Options.initialize_toplevels ()
