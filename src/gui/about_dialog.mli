@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,3 +20,9 @@
 (**************************************************************************)
 
 val show : unit -> unit
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

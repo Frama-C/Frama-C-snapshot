@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -71,7 +71,7 @@ module type T_RemoveInfo = sig
   val fun_precond_visible : t_fct -> Cil_types.predicate -> bool
   val fun_postcond_visible : t_fct -> Cil_types.predicate -> bool
   val fun_variant_visible : t_fct -> Cil_types.term -> bool
-  val fun_assign_visible : t_fct -> Cil_types.identified_tsets Cil_types.assigns -> bool
+  val fun_assign_visible : t_fct -> Cil_types.identified_term Cil_types.assigns -> bool
 
   (** [called_info] will be called only if the call statement is visible.
   * If it returns [None], the source call will be visible,
@@ -104,6 +104,6 @@ end
 *)
 module F (Info : T_RemoveInfo) : sig
 
-  val build_cil_file : Project.t ->  Info.t_proj -> unit
+  val build_cil_file : string ->  Info.t_proj -> Project.t
 
 end

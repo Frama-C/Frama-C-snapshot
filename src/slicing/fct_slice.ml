@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -43,7 +43,7 @@
 open Cilutil
 open Cil_types
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 module M = SlicingMacros
 module Marks = SlicingMarks
 module Act = SlicingActions
@@ -156,7 +156,7 @@ end = struct
       | e :: called_by -> if (M.same_ff_call call_id e) then called_by
         else e::(remove called_by)
     in
-      M.debug 2 "-> remove old_called@.";
+      SlicingParameters.debug ~level:2 "[Fct_Slice.CallInfo.remove_called_by] -> remove old_called";
       let old_called = get_f_called call_info in
       match old_called with
         | None -> ()
@@ -176,14 +176,14 @@ end = struct
   * [call] in [ff] is changed in order to call [to_call]. If some function was
   * previously called, update its [called_by] information. *)
   let change_call proj ff_marks call_id to_call =
-    M.debug 2 "CallInfo.change_call@.";
+    SlicingParameters.debug ~level:2 "[Fct_Slice.CallInfo.change_call]";
     let call_info = get_info_call call_id in
     let something_to_do = is_call_to_change call_info to_call in
     if something_to_do then
       begin
-        M.debug 2 "-> remove old_called@.";
+        SlicingParameters.debug ~level:2 "  -> remove old_called";
         let _ = remove_called_by proj call_id call_info in
-        M.debug 2 "-> add new_called@.";
+        SlicingParameters.debug ~level:2 "  -> add new_called";
         let _ = match to_call with
         | None -> () (* nothing to do *)
         | Some f ->
@@ -429,7 +429,7 @@ end = struct
       in
       let old_m = get_mark old_marks key in
       let new_m = Marks.missing_input_mark ~call:old_m ~called:m in
-        M.debug 2 "marks_for_caller_inputs for %a : old=%a new=%a -> %a@."
+        SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.marks_for_caller_inputs] for %a : old=%a new=%a -> %a"
             !Db.Pdg.pretty_key key Marks.pretty_mark old_m Marks.pretty_mark m
             Marks.pretty_mark
             (match new_m with None -> Marks.bottom_mark | Some m -> m);
@@ -508,7 +508,7 @@ end = struct
                 new_output := true; true
             | _ -> (); false
           in
-            M.debug 2 "check_called_marks for %a : old=%a new=%a -> %a %s@."
+            SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.check_called_marks] for %a : old=%a new=%a -> %a %s"
               !Db.Pdg.pretty_key nkey
               Marks.pretty_mark old_m
               Marks.pretty_mark m
@@ -522,9 +522,9 @@ end = struct
 
   let persistant_in_marks_to_prop fi to_prop  =
     let in_info, _ = to_prop in
-    M.debug 2 "[persistant_marks_to_prop] from %s@." (M.fi_name fi);
+    SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.persistant_in_marks_to_prop] from %s" (M.fi_name fi);
     let m2m _call _pdg_caller _n m =
-      (* M.debug 2 "  in_m2m %a in %s ?@."
+      (* SlicingParameters.debug ~level:2 "  in_m2m %a in %s ?@."
           PdgIndex.Key.pretty (!Db.Pdg.node_key n) (M.pdg_name pdg_caller); *)
       Marks.missing_input_mark ~call:Marks.bottom_mark ~called:m
     in
@@ -585,7 +585,7 @@ end = struct
           let marks = check_in_params (n+1) params in
             if not (Marks.is_bottom_mark m) then
               begin
-                M.debug 2 "check_visible_inputs %a -> %a@."
+                SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.mark_visible_inputs] %a -> %a"
                     (!Db.Pdg.pretty_node true) node Marks.pretty_mark m;
                 PdgMarks.add_node_to_select marks (node, None) m
               end
@@ -603,7 +603,7 @@ end = struct
         let m = Marks.inter_marks dpds_marks in
           if not (Marks.is_bottom_mark m) then
             begin
-              M.debug 2 "check_visible_outputs %a -> %a@."
+              SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.mark_visible_outputs] %a -> %a"
                   (!Db.Pdg.pretty_node true) out_node Marks.pretty_mark m;
               let select = PdgMarks.add_node_to_select [] (out_node, None) m in
               let to_prop = mark_and_propagate ff_marks select in
@@ -656,17 +656,14 @@ let pretty_node_marks fmt marks =
 
 let check_outputs call_id called_ff add_spare =
   let (ff_call, call) = call_id in
-  M.debug 2 "[slicing] check %s outputs for call %d in %s@."
+  SlicingParameters.debug ~level:2 "[Fct_Slice.check_outputs] %s outputs for call %d in %s"
       (M.ff_name called_ff) call.sid (M.ff_name ff_call);
   let call_info = CallInfo.get_info_call call_id in
   let spare_info = if add_spare then Some call_id else None in
   let out_call = FctMarks.get_call_output_marks ~spare_info call_info in
   let new_marks, more = FctMarks.check_called_marks out_call called_ff in
-
-  M.debug 2
-    (*    Format.printf "[slicing:check_outputs] need : %a@."
-      pretty_node_marks new_marks;*)
-    "[slicing:check_outputs] %d more marks. %s more outputs@."
+  SlicingParameters.debug ~level:2
+    "  -> %d more marks. %s more outputs"
     (List.length new_marks) (if more then "some" else "no");
   (new_marks, more)
 
@@ -703,25 +700,25 @@ let check_ff_called ff call new_marks_in_call_outputs ff_called =
   * @return a list of actions if needed.
   *)
 let examine_calls ff new_marks_in_call_outputs =
-  M.debug 2 "examine_calls@.";
+  SlicingParameters.debug ~level:2 "[Fct_Slice.examine_calls]";
   let process_this_call call call_info filter_list =
     if CallInfo.something_visible call_info then
       begin
-      M.debug 2 "  examine visible call %d@." call.sid;
+      SlicingParameters.debug ~level:2 "  examine visible call %d" call.sid;
       let f_called = CallInfo.get_f_called call_info in
       let filter_list = match f_called with
         | None ->
             (* have to chose a function to call here *)
-            M.debug 2 "  -> add choose_call@.";
+            SlicingParameters.debug ~level:2 "  -> add choose_call";
             (Act.mk_crit_choose_call ff call) :: filter_list
         | Some (T.CallSrc _) ->
             (* the source function compute every outputs, so nothing to do *)
-            M.debug 2 "  -> source called : nothing to do@.";
+            SlicingParameters.debug ~level:2 "  -> source called : nothing to do";
             filter_list
         | Some (T.CallSlice ff_called) ->
             (* call to a sliced function : check if it's still ok,
             * or create new [missing_output] action  *)
-            M.debug 2 "  -> slice called -> check@.";
+            SlicingParameters.debug ~level:2 "  -> slice called -> check";
             let new_filter =
               check_ff_called ff call new_marks_in_call_outputs ff_called
             in match new_filter with None -> filter_list
@@ -730,7 +727,7 @@ let examine_calls ff new_marks_in_call_outputs =
       end
     else (* the call is not visible : nothing to do *)
       begin
-        M.debug 2 "  invisible call -> OK@.";
+        SlicingParameters.debug ~level:2 "  invisible call -> OK";
         filter_list
       end
   in FctMarks.fold_calls process_this_call ff []
@@ -754,7 +751,7 @@ let make_new_ff fi build_actions =
     let new_filters =
       (if build_actions && some_marks then examine_calls ff [] else [])
     in
-      M.debug 1 "[make_new_ff] = %s@." (M.ff_name ff);
+      SlicingParameters.debug ~level:1 "[Fct_Slice.make_new_ff] = %s@." (M.ff_name ff);
       (ff, new_filters)
   in
   let fname = M.fi_name fi in
@@ -800,13 +797,11 @@ let add_missing_inputs_actions ff calls to_prop actions =
             Act.mk_crit_missing_inputs ff_call call missing_inputs in
             new_action :: actions
   in let actions = List.fold_left check_call actions calls in
-  if M.has_debug 2 then
-    begin
-    match actions with
-    | [] -> Format.printf "no missing input@."
-    |  _ -> Format.printf "add_missing_inputs_actions@."
-    end;
-  actions
+    SlicingParameters.debug ~level:2 "[Fct_Slice.add_missing_inputs_actions] %s" 
+      (match actions with
+         | [] -> " -> no missing input"
+         |  _ -> " -> add missing inputs actions");
+    actions
 
 (** {2 Adding marks} *)
 
@@ -816,19 +811,18 @@ let add_missing_inputs_actions ff calls to_prop actions =
 * They will by  used during the applications.
 * *)
 let after_marks_modifications ff to_prop =
-  M.debug 2 "before after_marks_modifications@.";
-  M.debug 2 "%a@." FctMarks.debug_marked_ff ff;
+  SlicingParameters.debug ~level:2 "[Fct_Slice.after_marks_modifications] before: %a"
+    FctMarks.debug_marked_ff ff;
   let new_filters = [] in
   let calls = M.get_calls_to_ff ff in
   let new_filters = add_missing_inputs_actions ff calls to_prop new_filters in
   let call_outputs = FctMarks.marks_for_call_outputs to_prop in
   let new_filters = (Act.mk_crit_examines_calls ff call_outputs)::new_filters in
-  if M.has_debug 2 then
-    begin match new_filters with
-    | [] -> Format.printf "[after_marks_modifications] no new filters@."
-    | _ -> Format.printf "[after_marks_modifications] some new filters@.";
-    end;
-  new_filters
+    SlicingParameters.debug ~level:2 "[Fct_Slice.after_marks_modifications] after: %s new filters"
+      (match new_filters with
+         | [] -> "no"
+         | _ -> "some");
+    new_filters
 
 let apply_examine_calls ff call_outputs = examine_calls ff call_outputs
 
@@ -836,7 +830,7 @@ let apply_examine_calls ff call_outputs = examine_calls ff call_outputs
 * Dont't use it alone because it doesn't take care of the calls and so on.
 * See [apply_add_marks] or [add_marks_to_fi] for higher level functions. *)
 let add_marks fct_marks nodes_marks =
-  M.debug 2 "add_marks@.";
+  SlicingParameters.debug ~level:2 "add_marks@.";
   let to_prop = FctMarks.mark_and_propagate fct_marks nodes_marks in
   FctMarks.mark_visible_output fct_marks;
   let to_prop = FctMarks.mark_visible_inputs fct_marks to_prop in
@@ -846,7 +840,7 @@ let add_marks fct_marks nodes_marks =
   * @return a list of the filters to add to the worklist.
 *)
 let apply_add_marks ff nodes_marks =
-  M.debug 3 "apply_add_marks@\n-BEFORE:@\n%a" FctMarks.debug_marked_ff ff;
+  SlicingParameters.debug ~level:3 "[Fct_Slice.apply_add_marks]@\n-BEFORE:@\n%a" FctMarks.debug_marked_ff ff;
   (*let pdg = M.get_ff_pdg ff in*)
   let to_prop = add_marks (FctMarks.get_ff_marks ff) nodes_marks in
   let new_filters = after_marks_modifications ff to_prop in
@@ -888,7 +882,7 @@ let prop_persistant_marks proj fi to_prop actions =
 * and [propagate=true], also generates the actions to make every calls to this
 * function visible. *)
 let add_marks_to_fi proj fi nodes_marks propagate actions =
-  M.debug 2 "add_marks_to_fi (persistant)@.";
+  SlicingParameters.debug ~level:2 "[Fct_Slice.add_marks_to_fi] (persistant)";
   let marks, are_new_marks =
     match FctMarks.fi_marks fi with
       | Some m -> m, false
@@ -915,19 +909,19 @@ let add_top_mark_to_fi fi m propagate actions =
 
 (** Build a new action [ChangeCall] (if needed) *)
 let add_change_call_action ff call call_info f_to_call actions =
-  M.debug 2 "[slicing] add_change_call_action : ";
+  SlicingParameters.debug ~level:2 "[Fct_Slice.add_change_call_action]:";
   let add_change_call =
     CallInfo.is_call_to_change call_info (Some f_to_call)
   in
     if add_change_call then
       begin
         let change_call_action = Act.mk_crit_change_call ff call f_to_call in
-          M.debug 2 "%a@." Act.print_crit change_call_action;
+          SlicingParameters.debug ~level:2 "  -> %a" Act.print_crit change_call_action;
           change_call_action :: actions
       end
     else
       begin
-        M.debug 2 "not needed@.";
+        SlicingParameters.debug ~level:2 "  -> not needed";
         actions
       end
 (*
@@ -994,11 +988,11 @@ let get_call_in_nodes called_kf call_info called_in_zone =
 * have to add some marks, but no new inputs. *)
 let add_spare_call_inputs called_kf call_info =
   let (ff_caller, _call) = CallInfo.get_call_id call_info in
-  M.debug 2 "[slicing] add_spare_call_inputs in %s@." (M.ff_name ff_caller);
+  SlicingParameters.debug ~level:2 "[slicing] add_spare_call_inputs in %s@." (M.ff_name ff_caller);
   let sig_call = CallInfo.get_call_sig call_info in
   let out0, marked_out_zone = Marks.get_marked_out_zone sig_call in
   let called_in_zone = get_called_needed_input called_kf out0 marked_out_zone in
-    M.debug 2 "\tneed %a inputs : %a@." Kernel_function.pretty_name called_kf
+    SlicingParameters.debug ~level:2 "\tneed %a inputs : %a@." Kernel_function.pretty_name called_kf
       Locations.Zone.pretty called_in_zone;
   let needed_nodes, undef =
     get_call_in_nodes called_kf call_info called_in_zone in
@@ -1033,7 +1027,7 @@ let choose_precise_slice fi_to_call call_info =
           if more_outputs
           then (* not enough outputs in [ff] *)
             begin
-              M.debug 2 "[choose_precise_slice] %s ? not enought outputs@."
+              SlicingParameters.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? not enought outputs"
                   (M.ff_name ff);
               find slices
             end
@@ -1052,14 +1046,14 @@ let choose_precise_slice fi_to_call call_info =
                 if more_inputs
                 then (* [ff] needs too many inputs *)
                   begin
-                    M.debug 2 "[choose_precise_slice] %s ? too many inputs@."
+                    SlicingParameters.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? too many inputs"
                         (M.ff_name ff);
                     find slices
                   end
                 else
                   *)
                   begin
-                    M.debug 2 "[choose_precise_slice] %s ? ok@." (M.ff_name ff);
+                    SlicingParameters.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? ok" (M.ff_name ff);
                     ff , []
                   end
             end
@@ -1070,9 +1064,9 @@ let choose_precise_slice fi_to_call call_info =
 (** choose the function to call according to the slicing level of the function
  * to call *)
 let choose_f_to_call fbase_to_call call_info =
-  M.debug 2 "choose_f_to_call@.";
+  SlicingParameters.debug ~level:2 "[Fct_Slice.choose_f_to_call]";
   let choose_min_slice fi_to_call =
-    M.debug 2 "MinimizeNbSlice -> choose_min_slice@.";
+    SlicingParameters.debug ~level:2 "MinimizeNbSlice -> choose_min_slice";
     let slices = M.fi_slices fi_to_call in
       match slices with
         | [] -> make_new_ff fi_to_call true
@@ -1081,7 +1075,7 @@ let choose_f_to_call fbase_to_call call_info =
 	    Extlib.not_yet_implemented "choose_min_slice with several slices"
   in
   let choose_full_slice fi_to_call =
-    M.debug 2 "PropagateMarksOnly -> choose_full_slice@.";
+    SlicingParameters.debug ~level:2 "PropagateMarksOnly -> choose_full_slice";
       match M.fi_slices fi_to_call with
         | [] -> make_new_ff fi_to_call true
                (* the signature is computed in [apply_choose_call]
@@ -1096,16 +1090,16 @@ let choose_f_to_call fbase_to_call call_info =
            either it is a call through a pointer or an external or
            variadic function
                => we don't try to slice it, so we keep the source call *)
-        M.debug 1 "[slicing] unknown called function : keep src@.";
+        SlicingParameters.debug ~level:1 "unknown called function -> keep src";
         T.CallSrc None, []
     | Some fi_to_call ->
         try
           let slicing_level = M.fi_slicing_level fi_to_call in
-            M.debug 1 "[slicing] choose_call with level %s@."
+            SlicingParameters.debug ~level:1 "choose_call with level %s"
                 (M.str_level_option slicing_level);
             match slicing_level with
             | T.DontSlice ->
-                M.debug 2 "DontSliceCalls -> call src@.";
+                SlicingParameters.debug ~level:2 "DontSliceCalls -> call src";
                 T.CallSrc fbase_to_call, []
             | T.DontSliceButComputeMarks ->
                 let ff_to_call, new_filters = choose_full_slice fi_to_call in
@@ -1147,7 +1141,7 @@ let check_called_outputs call_id ff actions =
 *   build an action to add outputs to it.
 * *)
 let apply_choose_call proj ff call =
-  M.debug 2 "apply_choose_call for call-%d@." call.sid;
+  SlicingParameters.debug ~level:2 "[Fct_Slice.apply_choose_call] for call-%d" call.sid;
   let call_id = ff, call in
   let call_info = CallInfo.get_info_call (ff, call) in
     if ((CallInfo.get_f_called call_info) = None) then
@@ -1165,13 +1159,13 @@ let apply_choose_call proj ff call =
           in actions
         else
           begin
-            M.debug 2 "  -> invisible call : nothing to do @.";
+            SlicingParameters.debug ~level:2 "  -> invisible call : nothing to do";
             []
           end
       end
     else
       begin
-        M.debug 2 "  -> already call something : nothing to do@.";
+        SlicingParameters.debug ~level:2 "  -> already call something : nothing to do";
         []
       end
 
@@ -1180,14 +1174,14 @@ let apply_choose_call proj ff call =
 (** propagate the [input_marks] in the inputs of [call] in [ff]. *)
 let modif_call_inputs ff _call input_marks =
   (*
-  M.debug 1 "[slicing] modif_call_inputs : %a@."
+  SlicingParameters.debug ~level:1 "modif_call_inputs : %a"
           pretty_node_marks input_marks;
   *)
   add_marks (FctMarks.get_ff_marks ff) input_marks
 
 (** [modif_call_inputs] and then, check the calls and the callers *)
 let apply_modif_call_inputs ff call missing_inputs =
-  M.debug 2 "apply_modif_call_inputs@.";
+  SlicingParameters.debug ~level:2 "apply_modif_call_inputs@.";
   let input_marks, _more_inputs = missing_inputs in
   let to_prop = modif_call_inputs ff call input_marks in
   let new_filters = after_marks_modifications ff to_prop in
@@ -1198,7 +1192,7 @@ let apply_modif_call_inputs ff call missing_inputs =
 * or to call another function. *)
 let apply_missing_inputs proj ff call missing_inputs =
   let _input_marks, more_inputs = missing_inputs in
-  M.debug 1 "[slicing] apply_missing_inputs (%s) @."
+  SlicingParameters.debug ~level:1 "[Fct_Slice.apply_missing_inputs] (%s)"
           (if more_inputs then "more" else "marks");
   (*
   let rec visible_top in_marks = match in_marks with
@@ -1229,7 +1223,7 @@ let apply_missing_inputs proj ff call missing_inputs =
 * function [g] or to change it.
 *)
 let apply_missing_outputs proj ff call output_marks more_outputs =
-  M.debug 2 "apply_missing_outputs@.";
+  SlicingParameters.debug ~level:2 "[Fct_Slice.apply_missing_outputs]";
   let ff_g = match CallInfo.get_call_f_called (ff, call) with
       | Some (T.CallSlice g) -> g
       | _ -> (* we shouldn't be here *) assert false
@@ -1255,7 +1249,7 @@ let apply_missing_outputs proj ff call output_marks more_outputs =
 * @raise ChangeCallErr if [f_to_call] doesn't compute enought outputs.
 *)
 let apply_change_call proj ff call f_to_call =
-  M.debug 1 "[slicing] apply_change_call@.";
+  SlicingParameters.debug ~level:1 "[Fct_Slice.apply_change_call]";
   let pdg = M.get_ff_pdg ff in
   let to_call, to_prop =
     match f_to_call with

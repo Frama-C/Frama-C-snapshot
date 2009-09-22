@@ -42,7 +42,7 @@ let build_all_graphs basename title proj first_n =
       next n
     with Not_found -> n
   in
-  let next_num = next first_n in Format.printf "\n"; next_num
+  let next_num = next first_n in Format.printf "@."; next_num
 ;;
 
 let all_files basename = basename^".*.jpg ";;
@@ -54,14 +54,14 @@ let build_anim_cmd basename=
 let print_help basename =
   let display_cmd = display_cmd basename in
   let clean_cmd = clean_cmd basename in
-  Format.printf "To display '%s' use :\n\t%s\n" basename display_cmd;
-  Format.printf "\t- use : Space/Backspace to see next/previous step\n";
-  Format.printf "\t- use : 'q' to quit\n@\n";
+  Format.printf "To display '%s' use :@\n\t%s@\n" basename display_cmd;
+  Format.printf "\t- use : Space/Backspace to see next/previous step@\n";
+  Format.printf "\t- use : 'q' to quit@\n@@\n";
   Format.printf
-    "After that, you can clear the generated files with:\n\t%s\n" clean_cmd
+    "After that, you can clear the generated files with:@\n\t%s@." clean_cmd
 
 let remove_all_files basename = 
-  Format.printf "removing generated .jpg files\n";
+  Format.printf "removing generated .jpg files@.";
   ignore (Sys.command (clean_cmd basename))
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)

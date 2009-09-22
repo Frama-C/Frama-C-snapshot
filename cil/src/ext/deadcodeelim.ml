@@ -43,9 +43,8 @@
 
 open Cil_types
 open Cil
-open Pretty
+(*open Pretty*)
 
-module E = Errormsg
 module RD = Reachingdefs
 module UD = Usedef
 module IH = Inthash
@@ -101,15 +100,15 @@ class usedDefsCollectorClass = object(self)
     UD.VS.iter (fun vi ->
       if IH.mem iosh vi.vid then
 	let ios = IH.find iosh vi.vid in
-	if !debug then ignore(E.log "DCE: IOS size for vname=%s at stmt=%d: %d\n"
+	if !debug then (Cilmsg.debug "DCE: IOS size for vname=%s at stmt=%d: %d\n"
 				vi.vname
                                 sid (RD.IOS.cardinal ios));
 	RD.IOS.iter (function
 	    Some(i) ->
-	      if !debug then log "DCE: def %d used: %a\n" i d_plainexp e;
+	      if !debug then Cilmsg.debug "DCE: def %d used: %a\n" i d_plainexp e;
 	      usedDefsSet := IS.add i (!usedDefsSet)
 	  | None -> ()) ios
-      else if !debug then log "DCE: vid %d:%s not in stm:%d iosh at %a\n"
+      else if !debug then Cilmsg.debug "DCE: vid %d:%s not in stm:%d iosh at %a\n"
 				   vi.vid vi.vname
                                    sid d_plainexp e) u
 
@@ -118,7 +117,7 @@ class usedDefsCollectorClass = object(self)
     match self#get_cur_iosh() with
       Some(iosh) -> self#add_defids iosh e u; DoChildren
     | None ->
-	if !debug then log "DCE: use but no rd data: %a\n" d_plainexp e;
+	if !debug then Cilmsg.debug "DCE: use but no rd data: %a\n" d_plainexp e;
 	DoChildren
 
   method vstmt s =
@@ -150,7 +149,8 @@ class usedDefsCollectorClass = object(self)
     | Asm(_,_,slvl,_,_,_) -> List.iter (fun (_,s,lv) ->
 	match lv with (Var v, off) ->
 	  if s.[0] = '+' then
-	    self#add_defids iosh (Lval(Var v, off)) (UD.VS.singleton v)
+	    self#add_defids iosh (dummy_exp(Lval(Var v, off)))
+              (UD.VS.singleton v)
 	| _ -> ()) slvl
     | Call(_,ce,el,_) when not (!callHasNoSideEffects i) ->
 	List.iter (fun e ->
@@ -181,13 +181,13 @@ class usedDefsCollectorClass = object(self)
 		    with Not_found ->
 		      IH.add sidUseSetHash i (IS.singleton sid)
 		end
-		| None -> ()) ios) u) ([Lval(lh);rhs])
+                | None -> ()) ios) u) ([new_exp (Lval(lh));rhs])
     | _ -> ()
     in
     ignore(super#vinst i);
     match cur_rd_dat with
     | None -> begin
-	if !debug then ignore(E.log "DCE: instr with no cur_rd_dat\n");
+	if !debug then (Cilmsg.debug "DCE: instr with no cur_rd_dat\n");
 	(* handle_inst *)
 	DoChildren
     end
@@ -250,7 +250,7 @@ let el_has_volatile =
 let rec compareExp (e1: exp) (e2: exp) : bool =
 (*   log "CompareExp %a and %a.\n" d_plainexp e1 d_plainexp e2; *)
   e1 == e2 ||
-  match e1, e2 with
+  match e1.enode, e2.enode with
   | Lval lv1, Lval lv2
   | StartOf lv1, StartOf lv2
   | AddrOf lv1, AddrOf lv2 -> compareLval lv1 lv2
@@ -281,7 +281,7 @@ and compareLval (lv1: lval) (lv2: lval) : bool =
   | _ -> false
 
 let rec stripNopCasts (e:exp): exp =
-  match e with
+  match e.enode with
     CastE(t, e') -> begin
       match unrollType (typeOf e'), unrollType t  with
         TPtr _, TPtr _ -> (* okay to strip *)
@@ -328,7 +328,7 @@ class uselessInstrElim : cilVisitor = object
 	let defuses = IH.find defUseSetHash defid in
 	(*let siduses = IH.find sidUseSetHash defid in*)
 	if IH.mem sidUseSetHash defid then begin
-	  if !debug then log "siduses not empty: %a\n" d_instr i;
+	  if !debug then Cilmsg.debug "siduses not empty: %a\n" d_instr i;
 	  true
 	end else begin
 	  (* true if there is something in defuses not in instruses or when
@@ -336,7 +336,7 @@ class uselessInstrElim : cilVisitor = object
 	  let instruses = viSetToDefIdSet iosh instruses in
 	  IS.fold (fun i' b ->
 	    if not(IS.mem i' instruses) then begin
-	      if !debug then log "i not in instruses: %a\n" d_instr i;
+	      if !debug then Cilmsg.debug "i not in instruses: %a\n" d_instr i;
 	      true
 	    end else
 	      (* can only use the definition i' at the definition defid *)
@@ -345,10 +345,10 @@ class uselessInstrElim : cilVisitor = object
 	      if not(IS.equal i'_uses (IS.singleton defid)) then begin
 		IS.iter (fun iu -> match RD.getSimpRhs iu with
 		| Some(RD.RDExp e) ->
-		    if !debug then log "i' had other than one use: %d: %a\n"
+		    if !debug then Cilmsg.debug "i' had other than one use: %d: %a\n"
 		      (IS.cardinal i'_uses) d_exp e
 		| Some(RD.RDCall i) ->
-		    if !debug then log "i' had other than one use: %d: %a\n"
+		    if !debug then Cilmsg.debug "i' had other than one use: %d: %a\n"
 			     (IS.cardinal i'_uses) d_instr i
 		| None -> ()) i'_uses;
 		true
@@ -359,12 +359,12 @@ class uselessInstrElim : cilVisitor = object
 
     let test (i,(_,s,iosh)) =
       match i with
-      | Call(Some(Var vi,NoOffset),Lval(Var _vf,NoOffset),el,_l) ->
+      | Call(Some(Var vi,NoOffset),{enode = Lval(Var _vf,NoOffset)},el,_l) ->
 	  if not(!callHasNoSideEffects i) then begin
-	    if !debug then log "found call w/ side effects: %a\n" d_instr i;
+	    if !debug then Cilmsg.debug "found call w/ side effects: %a\n" d_instr i;
 	    true
 	  end else begin
-	    if !debug then log "found call w/o side effects: %a\n" d_instr i;
+	    if !debug then Cilmsg.debug "found call w/o side effects: %a\n" d_instr i;
 	    (vi.vglob || (Ciltools.is_volatile_vi vi) || (el_has_volatile el) ||
 	    let uses, defd = UD.computeUseDefInstr i in
 	    let rec loop n =
@@ -374,7 +374,8 @@ class uselessInstrElim : cilVisitor = object
 	    loop (UD.VS.cardinal defd - 1) || (incr removedCount; false))
 	  end
       |	Call _ -> true
-      | Set(lh,e,_) when compareExpStripCasts (Lval lh) e -> false (* filter x = x *)
+      | Set(lh,e,_) when compareExpStripCasts (dummy_exp (Lval lh)) e ->
+          false (* filter x = x *)
       | Set((Var vi,NoOffset),e,_) ->
 	  vi.vglob || (Ciltools.is_volatile_vi vi) || (exp_has_volatile e) ||
 	  let uses, defd = UD.computeUseDefInstr i in
@@ -431,10 +432,10 @@ let elim_dead_code (fd : fundec) :  fundec =
   IH.clear sidUseSetHash;
   removedCount := 0;
   time "reaching definitions" RD.computeRDs fd;
-  if !debug then ignore(E.log "DCE: collecting used definitions\n");
+  if !debug then (Cilmsg.debug "DCE: collecting used definitions\n");
   ignore(time "ud-collector"
 	   (visitCilFunction (new usedDefsCollectorClass :> cilVisitor)) fd);
-  if !debug then ignore(E.log "DCE: eliminating useless instructions\n");
+  if !debug then (Cilmsg.debug "DCE: eliminating useless instructions\n");
   let fd' = time "useless-elim" (visitCilFunction (new uselessInstrElim)) fd in
   fd'
 
@@ -448,5 +449,5 @@ class deadCodeElimClass : cilVisitor = object
 end
 
 let dce f =
-  if !debug then ignore(E.log "DCE: starting dead code elimination\n");
+  if !debug then (Cilmsg.debug "DCE: starting dead code elimination\n");
   visitCilFile (new deadCodeElimClass) f

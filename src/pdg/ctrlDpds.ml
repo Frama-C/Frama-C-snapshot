@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -219,7 +219,7 @@ let pd_b_but_not_a infos stmt_a stmt_b =
                         * either (A=G, B=S) or (A=S, B=L) *)
           S.empty (* because we don't want b postdoms to depend on the jump *)
     in
-      Macros.debug 2 "[pdg] pd_b_but_not_a for a=%d b=%d = %a@."
+      Macros.debug 2 "pd_b_but_not_a for a=%d b=%d = %a"
           stmt_a.sid stmt_b.sid S.pretty res;
       res
   end
@@ -233,7 +233,7 @@ let get_if_controled_stmts ctrl_dpds_infos stmt =
   let _, infos = ctrl_dpds_infos in
   let add_pdb_s set succ = S.union set (pd_b_but_not_a infos stmt succ) in
   let controled_stmts = List.fold_left add_pdb_s S.empty stmt.succs in
-  Macros.debug 1 "[pdg] controled_stmt for cond %d = %a@."
+  Macros.debug 1 "controled_stmt for cond %d = %a"
       stmt.sid S.pretty controled_stmts;
   let controled_stmts = S.elements controled_stmts in
   controled_stmts
@@ -248,13 +248,13 @@ let get_jump_controled_stmts ctrl_dpds_infos jump =
   let controled_stmts =
   try
     let lex_suc = Lexical_successors.find lex_succ_graph jump in
-      Macros.debug 2 "[pdg] lex_succ %d = %d@." jump.sid lex_suc.sid;
+      Macros.debug 2 "lex_succ %d = %d" jump.sid lex_suc.sid;
     match jump.succs with
     | [label] ->
-        Macros.debug 2 "[pdg] jump succ %d = %d@." jump.sid label.sid;
+        Macros.debug 2 "jump succ %d = %d" jump.sid label.sid;
         if lex_suc.sid = label.sid
         then (* the label is the jump lexical successor : no dpds *)
-          (Macros.debug 1 "[pdg] useless jump %d@." jump.sid;
+          (Macros.debug 1 "useless jump %d" jump.sid;
           S.empty
           )
         else
@@ -265,12 +265,12 @@ let get_jump_controled_stmts ctrl_dpds_infos jump =
     | _ -> assert false
   with Not_found ->
     if debug
-    then Format.printf "[pdg] lex_succ %d = (none) @." jump.sid;
+    then Macros.debug 1 "lex_succ %d = (none)" jump.sid;
     (* no lexical successor : every postdom (jump) depend on jump. *)
     let _, pd_jump = (get_postdoms infos ~without:false jump) in
     S.remove jump pd_jump
   in
-  Macros.debug 1 "[pdg] controled_stmt for jump %d = %a@."
+  Macros.debug 1 "controled_stmt for jump %d = %a"
       jump.sid S.pretty controled_stmts;
   let controled_stmt_list = S.elements controled_stmts in
     controled_stmt_list

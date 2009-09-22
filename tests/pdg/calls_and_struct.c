@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -deps -input -out -inout -pdg-debug -pdg -journal-disable
+   OPT: -deps -input -out -inout -pdg -journal-disable
    */
 
 struct Tstr { int a; int b; int c; };

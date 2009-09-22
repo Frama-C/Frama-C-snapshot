@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2008                                               #
+#  Copyright (C) 2007-2009                                               #
 #    CEA   (Commissariat à l'Énergie Atomique)                           #
 #    INRIA (Institut National de Recherche en Informatique et en         #
 #           Automatique)                                                 #
@@ -21,7 +21,6 @@
 #                                                                        #
 ##########################################################################
 
-#
 # autoconf input for Objective Caml programs
 # Copyright (C) 2001 Jean-Christophe Filliâtre
 #   from a first script by Georges Mariano
@@ -42,23 +41,11 @@
 #   EXE           ".exe" if OCAMLWIN32=yes, "" otherwise
 
 AC_INIT(src/kernel)
-export CYGWIN=nobinmode
 
-upper() {
-  echo "$1" | tr "a-z" "A-Z"
-}
+define([FRAMAC_MAIN_AUTOCONF])
+m4_include(share/configure.ac)
 
-lower() {
-  echo "$1" | tr "A-Z" "a-z"
-}
-
-new_section() {
-  banner=`echo "* $1 *" | sed -e 's/./*/g'`
-  title=`echo "* $1 *" | tr "a-z" "A-Z"`
-  AC_MSG_NOTICE($banner)
-  AC_MSG_NOTICE($title)
-  AC_MSG_NOTICE($banner)
-}
+# export CYGWIN=nobinmode
 
 ##########################
 # Check for Make version #
@@ -81,9 +68,15 @@ else
 fi
 
 # verbosemake feature
-AC_ARG_ENABLE(verbosemake,[  --enable-verbosemake    verbose makefile commands],VERBOSEMAKE=yes,VERBOSEMAKE=no)
+AC_ARG_ENABLE(
+  verbosemake,
+  [  --enable-verbosemake    verbose makefile commands],
+  VERBOSEMAKE=$enableval,
+  VERBOSEMAKE=no
+)
+
 if test "$VERBOSEMAKE" = yes ; then
-	AC_MSG_RESULT(Make will be verbose.)
+  AC_MSG_RESULT(Make will be verbose.)
 fi
 
 #############################
@@ -92,10 +85,11 @@ fi
 
 # Specifically allow 3.10.0
 UNSUPPORTED_OCAML=no
-AC_ARG_ENABLE(unsupported-ocaml,
-[  --enable-unsupported-ocaml
-    attempt to compile even against unsupported ocaml version],
-UNSUPPORTED_OCAML=yes,UNSUPPORTED_OCAML=no)
+AC_ARG_ENABLE(
+  unsupported-ocaml,
+  [  --enable-unsupported-ocaml attempt to compile even against unsupported ocaml version],
+  UNSUPPORTED_OCAML=$enableval,
+  UNSUPPORTED_OCAML=no)
 
 new_section "configure ocaml compilers"
 
@@ -105,22 +99,13 @@ if test "$OCAMLC" = no ; then
 	AC_MSG_ERROR(Cannot find ocamlc.)
 fi
 
+OCAML_ANNOT_OPTION="-dtypes"
+
 # we extract Ocaml version number and library path
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-LOWER_THAN_311="yes"
 echo $ECHO_N "ocaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
-  3.09.3*) echo "${ECHO_T}Good!";;
-  3.09*) echo "${ECHO_T}Warning: unsupported version.";
-         if test "$UNSUPPORTED_OCAML" == "yes"; then
-           echo "Compile at your own risks";
-         else
-           echo "If you want to compile Frama-C with this version, use the \
---enable-unsupported-ocaml option of configure";
-           exit 2;
-         fi
-         ;;
-  3.0*) echo "${ECHO_T}Incompatible version!"; exit 2;;
+  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.10.1."; exit 2;;
   3.10.0) echo "${ECHO_T}Warning: unsupported version." ;
          if test "$UNSUPPORTED_OCAML" == "yes"; then
            echo "Compile at your own risks";
@@ -131,8 +116,7 @@ case $OCAMLVERSION in
          fi
          ;;
   3.10*) echo "${ECHO_T}Good!";;
-  3.1*) LOWER_THAN_311=no;
-  	echo "${ECHO_T}Good!";;
+  3.1*) echo "${ECHO_T}Good!"; OCAML_ANNOT_OPTION="-annot";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
@@ -229,68 +213,76 @@ if test "$OCAMLYACC" = no ; then
 	AC_MSG_ERROR(Cannot find ocamlyacc.)
 fi
 
-# camlp4oof
-dnl AC_CHECK_PROG(CAMLP4OOF,camlp4oof,camlp4oof,no)
-dnl if test "$CAMLP4OOF" == no ; then
-dnl   case $OCAMLVERSION in
-dnl     3.09*) CAMLP4OOF="$CAMLP4O pa_macro.cmo pr_o.cmo" ;;
-dnl     *) AC_MSG_ERROR([You need to install camlp4.]);;
-dnl   esac
-dnl fi
-
 # ocamlgraph
-
-OCAMLGRAPH_LOCAL=ocamlgraph
+OCAMLGRAPH_LOCAL=""
+OCAMLGRAPH_HOME=$OCAMLLIB/ocamlgraph
+OCAMLGRAPH="-I +ocamlgraph"
 OCAMLGRAPH_EXISTS=no
 
-OCAMLGRAPH_TEST=$OCAMLGRAPH_LOCAL
-OCAMLGRAPH="-I lib"
-AC_CHECK_FILE($OCAMLGRAPH_TEST,OCAMLGRAPH_EXISTS=yes)
+AC_CHECK_FILE($OCAMLGRAPH_HOME,OCAMLGRAPH_EXISTS=yes)
 
 if test "$OCAMLGRAPH_EXISTS" == "no"; then
- AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_EXISTS=yes)
- if test "$OCAMLGRAPH_EXISTS" == "yes"; then
-         AC_MSG_NOTICE([Unarchiving ocamlgraph.tar.gz])
-         tar zxf ocamlgraph.tar.gz
- fi
-else
- AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_TAR=yes)
- if test "$OCAMLGRAPH_TAR" == "yes"; then
-   if test ocamlgraph.tar.gz -nt ocamlgraph; then
-     rm -rf ocamlgraph
-     AC_MSG_NOTICE([Ocamlgraph updated])
-     tar zxf ocamlgraph.tar.gz
-   fi
- fi
+   OCAMLGRAPH_TEST=$OCAMLLIB
+   OCAMLGRAPH=
+   AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,OCAMLGRAPH_EXISTS=yes)
 fi
 
-#NB: until now, it is not really possible to check a particular
-#version of ocamlgraph if it is installed system-wide. for godi installs, this
-#is taken into account by godi itself
+# Is the installed version compatible?
+if test "$OCAMLGRAPH_EXISTS" == "yes"; then
+ test_ocamlgraph_version='print_string Graph.Version.version;;'
+ echo $test_ocamlgraph_version > test_ocamlgraph.ml
+ if ocamlc -o test_ocamlgraph $OCAMLGRAPH graph.cmo test_ocamlgraph.ml 2> /dev/null; then
+  OCAMLGRAPH_VERSION=`./test_ocamlgraph`
+  case $OCAMLGRAPH_VERSION in
+  1.3) AC_MSG_NOTICE([ocamlgraph $OCAMLGRAPH_VERSION found]);;
+  *) AC_MSG_NOTICE([ocamlgraph $OCAMLGRAPH_VERSION is incompatible with Frama-C. Will switch to a local version.])
+     OCAMLGRAPH_EXISTS=no
+;;
+  esac
+ else
+   AC_MSG_NOTICE([The installed version of ocamlgraph is incompatible with Frama-C. Will switch to a local one.])
+   OCAMLGRAPH_EXISTS=no
+ fi
+ rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
+fi
+
+#revert back to local version of ocamlgraph
+
 if test "$OCAMLGRAPH_EXISTS" == "no"; then
-   OCAMLGRAPH_LOCAL=""
-   OCAMLGRAPH_TEST=$OCAMLLIB/ocamlgraph
-   OCAMLGRAPH="-I +ocamlgraph"
+   AC_MSG_NOTICE([Switching to local ocamlgraph])
+   OCAMLGRAPH_LOCAL=ocamlgraph
+   OCAMLGRAPH_HOME=
+
+   OCAMLGRAPH_TEST=$OCAMLGRAPH_LOCAL
+   OCAMLGRAPH="-I lib"
    AC_CHECK_FILE($OCAMLGRAPH_TEST,OCAMLGRAPH_EXISTS=yes)
 
    if test "$OCAMLGRAPH_EXISTS" == "no"; then
-      OCAMLGRAPH_TEST=$OCAMLLIB
-      OCAMLGRAPH=
-      AC_CHECK_FILE($OCAMLGRAPH_TEST/graph.$OBJ_SUFFIX,OCAMLGRAPH_EXISTS=yes)
+    AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_EXISTS=yes)
+    if test "$OCAMLGRAPH_EXISTS" == "yes"; then
+         AC_MSG_NOTICE([Unarchiving ocamlgraph.tar.gz])
+         tar zxf ocamlgraph.tar.gz
+    fi
+   else
+    AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_TAR=yes)
+    if test "$OCAMLGRAPH_TAR" == "yes"; then
+     if test ocamlgraph.tar.gz -nt ocamlgraph; then
+       rm -rf ocamlgraph
+       AC_MSG_NOTICE([ocamlgraph updated])
+       tar zxf ocamlgraph.tar.gz
+     fi
+    fi
    fi
 
    if test "$OCAMLGRAPH_EXISTS" == "no"; then
       AC_MSG_ERROR(Cannot find $OCAMLGRAPH_LOCAL in current directory
       Please download the latest version from http://ocamlgraph.lri.fr/download
       Compile it in "ocamlgraph" then rerun ./configure)
-   fi
-else
-        AC_CHECK_FILE($OCAMLGRAPH_TEST/Makefile,,
-        AC_MSG_NOTICE([Configuring ocamlgraph])
+   else
+      AC_CHECK_FILE($OCAMLGRAPH_TEST/Makefile,,
+      AC_MSG_NOTICE([Configuring ocamlgraph])
         [(cd $OCAMLGRAPH_TEST && ./configure > /dev/null)])
-#        AC_CHECK_FILE($OCAMLGRAPH_TEST/graph.cmo,,
-#        AC_MSG_NOTICE([ocamlgraph not compiled: compiling it])
-#        [$MAKE -s -C $OCAMLGRAPH_TEST])
+   fi
 fi
 
 #################################################
@@ -310,7 +302,6 @@ if test "$OCAMLMKTOP" = no ; then
 fi
 
 AC_CHECK_PROG(OTAGS,otags,otags,)
-AC_CHECK_PROG(DOT,dot,dot,)
 
 ############
 # Platform #
@@ -335,9 +326,14 @@ else
 fi
 
 # Local machdep feature (to generate new platforms)
-AC_ARG_ENABLE(localmachdep,[  --enable-localmachdep    enable local machdep configuration],LOCAL_MACHDEP=yes,LOCAL_MACHDEP=no)
+AC_ARG_ENABLE(
+  localmachdep,
+  [  --enable-localmachdep    enable local machdep configuration],
+  LOCAL_MACHDEP=$enableval,
+  LOCAL_MACHDEP=no)
 
 if test "$LOCAL_MACHDEP" = yes ; then
+
 AC_CONFIG_HEADER(config.h)
 AC_CHECK_HEADERS(stdlib.h)
 AC_CHECK_HEADERS(wchar.h)
@@ -408,7 +404,7 @@ AC_LINK_IFELSE([int main() { __asm__("jmp _main"); }],
                   UNDERSCORE_NAME=false)
 AC_MSG_RESULT($UNDERSCORE_NAME)
 
-fi
+fi # local machdep configuration
 
 AC_MSG_CHECKING(if performance counters are usable)
 # Create a C file from src/perfcount.c.in
@@ -458,7 +454,16 @@ fi
 # Plugin wished #
 #################
 
-new_section "wished frama-c plugins"
+new_section "wished frama-c plug-ins"
+
+# Option -with-all-static
+#######################
+
+define([ALL_STATIC_HELP],
+       AC_HELP_STRING([--with-all-static],
+                      [link all plug-ins statically (default: no)]))
+AC_ARG_WITH(all-static,ALL_STATIC_HELP,
+	    IS_ALL_STATIC=$withval,IS_ALL_STATIC=no)
 
 # Library declarations
 ######################
@@ -467,22 +472,17 @@ new_section "wished frama-c plugins"
 # USE_LIBRARY: better for plugins if library is present, but not required
 # HAS_LIBRARY: is the library available?
 
-REQUIRE_ELSA=
-USE_ELSA=
-HAS_ELSA=
-
 REQUIRE_LABLGTK=
 USE_LABLGTK=
 HAS_LABLGTK=
-
-REQUIRE_WHYJC=
-USE_WHYJC=
-HAS_WHYJC=
 
 REQUIRE_APRON=
 USE_APRON=
 HAS_APRON=no
 
+REQUIRE_NATIVE_DYNLINK=
+USE_NATIVE_DYNLINK=
+HAS_NATIVE_DYNLINK=uncheck
 
 # Tool declarations
 ####################
@@ -492,103 +492,56 @@ REQUIRE_LABLGLADECC=
 USE_LABLGLADECC=
 HAS_LABLGLADECC=
 
-CAMLP4O=
-REQUIRE_CAMLP4O=
-USE_CAMLP4O=
-HAS_CAMLP4O=
-
-
 LTLTOBA=
 REQUIRE_LTLTOBA=
 USE_LTLTOBA=
 HAS_LTLTOBA=
 
+WHY=
+REQUIRE_WHY=
+USE_WHY=
+HAS_WHY=
+
+ALTERGO=
+REQUIRE_ALTERGO=
+USE_ALTERGO=
+HAS_ALTERGO=
+
+DOT=
+REQUIRE_DOT=
+USE_DOT=
+HAS_DOT=
 
 ### Now plugin declarations
 
 PLUGINS_FORCE_LIST=
 
-define([check_plugin],
-[
-define([PLUGIN_NAME],$1)
-define([PLUGIN_FILE],$2)
-define([PLUGIN_MSG],$3)
-define([PLUGIN_DEFAULT],$4)
-default=PLUGIN_DEFAULT
-AC_CHECK_FILE(PLUGIN_FILE,plugin_present=yes,plugin_present=no;default=no)
-FORCE=no
-define([PLUGIN_HELP],
-       AC_HELP_STRING([--enable-PLUGIN_NAME],
-                      [PLUGIN_MSG (default: PLUGIN_DEFAULT)]))
-AC_ARG_ENABLE(
-  [PLUGIN_NAME],
-  PLUGIN_HELP,
-  ENABLE=$enableval;
-  FORCE=$enableval,
-  ENABLE=$default
-)
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-if test "$plugin_present" == "no" -a "$FORCE" == "yes"; \
-then
-AC_MSG_ERROR([PLUGIN_NAME is not available])
-fi
-up=`upper PLUGIN_NAME`
-eval FORCE_$up=\$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_$up
-eval ENABLE_$up=\$ENABLE
-
-echo "PLUGIN_NAME... $ENABLE"
-])
-
-# syntactic callgraph
-#####################
-
-check_plugin(syntactic_callgraph, src/syntactic_callgraph,
-             [support for callgraph plugin], yes)
-
-if test "$ENABLE_SYNTACTIC_CALLGRAPH" == "yes"; then
-  USE_GNOMECANVAS=${USE_GNOMECANVAS}" syntactic_callgraph"
-  USE_LABLGTK=${USE_LABLGTK}" syntactic_callgraph"
-fi
+###############################################################################
+#                                                                             #
+####################                                                          #
+# Plug-in sections #                                                          #
+####################                                                          #
+#                                                                             #
+# For 'internal' developpers:                                                 #
+# Add your own plug-in here                                                   #
+#                                                                             #
+###############################################################################
 
 # constant propagation
 ######################
 
 check_plugin(constant_propagation, src/constant_propagation,
-             [support for constant propagation plugin], yes)
-
-# cxx
-#####
-
-check_plugin(cxx,cxx_elsa,[support for cxx plugin],no)
-
-if test "$ENABLE_CXX" == "yes"; then
-  REQUIRE_ELSA=${REQUIRE_ELSA}" cxx"
-  REQUIRE_CAMLP4O=${REQUIRE_CAMLP4O}" cxx"
-fi
+             [support for constant propagation plugin], yes, no)
 
 # from
 ######
 
-check_plugin(from,src/from,[support for from analysis],yes)
+check_plugin(from,src/from,[support for from analysis],yes,no)
 
 # gui
 #####
 
-check_plugin(gui,src/gui,[support for gui],yes)
+check_plugin(gui,src/gui,[support for gui],yes,no)
 
 if test "$ENABLE_GUI" == "yes"; then
   REQUIRE_LABLGTK=${REQUIRE_LABLGTK}" gui"
@@ -597,39 +550,33 @@ fi
 # impact
 ########
 
-check_plugin(impact,src/impact,[support for impact plugin],yes)
+check_plugin(impact,src/impact,[support for impact plugin],yes,no)
 
 # inout
 #######
 
-check_plugin(inout,src/inout,[support for inout analysis],yes)
+check_plugin(inout,src/inout,[support for inout analysis],yes,no)
 
-# jessie
-########
 
-check_plugin(jessie,src/jessie,[support for jessie plugin],yes)
+# Ltl_to_acsl (aka Aorai)
+#########################
 
-if test "$ENABLE_JESSIE" == "yes"; then
-  REQUIRE_WHYJC=${REQUIRE_WHYJC}" jessie"
-  USE_APRON=${USE_APRON}" jessie"
+check_plugin(ltl_to_acsl,src/ltl_to_acsl,[support for Aorai plugin (ltl to acsl conversion)],yes,yes)
+if test "$ENABLE_LTL_TO_ACSL" == "yes"; then
+   USE_LTLTOBA=${USE_LTLTOBA}" ltl_to_acsl"
 fi
-
-# journal_loader
-#################
-
-check_plugin(journal_loader,src/journal_loader,[support journal loading],yes)
 
 # metrics
 #########
 
-check_plugin(metrics,src/metrics,[support for metrics analysis],yes)
+check_plugin(metrics,src/metrics,[support for metrics analysis],yes,no)
 
 # miel
 ######
 
-check_plugin(miel,src/miel,[support for miel plugin],no)
+check_plugin(miel,src/miel,[support for miel plugin],no,no)
 
-if test "$ENABLE_MIEL" == "yes"; then
+if test "$ENABLE_MIEL" == "yes" -a "$ENABLE_GUI" == "yes"; then
   REQUIRE_LABLGTK=${REQUIRE_LABLGTK}" miel"
   REQUIRE_LABLGLADECC=${REQUIRE_LABLGLADECC}" miel"
 fi
@@ -637,240 +584,146 @@ fi
 # occurrence
 ############
 
-check_plugin(occurrence,src/occurrence,[support for occurrence analysis],yes)
+check_plugin(occurrence,src/occurrence,[support for occurrence analysis],yes,no)
 
 # occurrence_dyn
 #################
 
 dnl check_plugin(occurrence_dyn,src/occurrence_dyn,
-dnl 	[support for occurrence analysis (full dynamic)],yes)
+dnl 	[support for occurrence analysis (full dynamic)],yes,yes)
 
 # pdg
 #####
 
-check_plugin(pdg,src/pdg,[support for pdg plugin],yes)
+check_plugin(pdg,src/pdg,[support for pdg plugin],yes,no,pdg_types)
 
 # postdominators
 ################
 
 check_plugin(postdominators,src/postdominators,
-             [support for postdominators plugin],yes)
+             [support for postdominators plugin],yes,no)
 
 # scope
 ############
 
-check_plugin(scope,src/scope,[support for scope plugin],yes)
+check_plugin(scope,src/scope,[support for scope plugin],yes,no)
 
 # security
 ##########
 
-check_plugin(security,src/security,[support for security plugin],yes)
+check_plugin(security,src/security,[support for security plugin],yes,no)
 
 # semantic callgraph
 ####################
 
 check_plugin(semantic_callgraph,src/semantic_callgraph,
-             [support for semantic_callgraph],yes)
+             [support for semantic_callgraph],yes,no)
 
 # slicing
 #########
 
-check_plugin(slicing,src/slicing,[support for slicing plugin],yes)
+check_plugin(slicing,src/slicing,[support for slicing plugin],yes,no,
+             src/slicing_types)
 
 # spare code
 ############
 
-check_plugin(sparecode,src/sparecode,[support for sparecode plugin],yes)
+check_plugin(sparecode,src/sparecode,[support for sparecode plugin],yes,no)
+
+# syntactic callgraph
+#####################
+
+check_plugin(syntactic_callgraph, src/syntactic_callgraph,
+             [support for callgraph plugin], yes, no)
+
+if test "$ENABLE_SYNTACTIC_CALLGRAPH" == "yes"; then
+  USE_GNOMECANVAS=${USE_GNOMECANVAS}" syntactic_callgraph"
+  USE_DOT=${USE_DOT}" syntactic_callgraph"
+fi
 
 # users
 #######
 
-check_plugin(users,src/users,[support for users analysis],yes)
+check_plugin(users,src/users,[support for users analysis],yes,no)
 
 # value
 #######
 
-check_plugin(value,src/value,[support for value analysis],yes)
+check_plugin(value,src/value,[support for value analysis],yes,no,
+             [src/ai src/buckx])
 
 # wp
 ####
 
-check_plugin(wp,src/wp,[support for wp plugin],yes)
+check_plugin(wp,src/wp,[support for wp plugin],yes,no)
 
+if test "$ENABLE_WP" == "yes"; then
+  USE_ALTERGO=${USE_ALTERGO}" wp"
+  USE_WHY=${USE_WHY}" wp"
+  USE_GNOMECANVAS=${USE_GNOMECANVAS}" wp"
+  USE_DOT=${USE_DOT}" wp"
+fi
 
-# Aorai : ltl_to_acsl
-#####################
+####################
+# External plugins #
+####################
 
-check_plugin(ltl_to_acsl,src/ltl_to_acsl,[support for Aorai plugin (ltl to acsl conversion)],yes)
-#if test "$ENABLE_LTL_TO_ACSL" == "yes"; then
-#   REQUIRE_LTLTOBA=${REQUIRE_LTLTOBA}" ltl_to_acsl"
-#fi
+EXTRA_EXTERNAL_PLUGINS=
 
+AC_ARG_ENABLE(external,
+[[--enable-external=plugin allows to compile directly from Frama-C kernel
+some external plug-ins.]],
+[if test "$enableval" == "yes" || test "$enableval" == "no"; then
+    AC_MSG_ERROR([--enable-external expects a directory as argument]);
+ fi
+ EXTRA_EXTERNAL_PLUGINS="$EXTRA_EXTERNAL_PLUGINS $enableval"
+ if test -e $enableval/configure; then
+ . $enableval/configure --prefix=$prefix --datarootdir=$datarootdir \
+      --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
+      --host=$host --build=$build --mandir=$mandir;
+ fi
+])
 
+define([KNOWN_SRC_DIRS],
+       KNOWN_SRC_DIRS src/kernel src/project src/logic src/dummy src/toplevel
+       src/toplevel src/misc)
+
+AC_FOREACH([plugin],m4_esyscmd([ls src]),
+  [m4_if(m4_index(plugin,KNOWN_SRC_DIRS),-1,
+         [
+          m4_syscmd(test -r src/plugin/configure.in)
+          m4_define([is_configure_in],m4_sysval)
+          m4_syscmd(test -r src/plugin/configure.ac)
+          m4_define([is_configure_ac],m4_sysval)
+          m4_define([config_file],
+                 [m4_if(is_configure_in,0,src/plugin/configure.in,
+                  m4_if(is_configure_ac,0,src/plugin/configure.ac,no))])
+          m4_if(config_file,[no],,
+                [ m4_define([plugin_prefix],src/plugin)
+                  m4_include(config_file)
+                  m4_syscmd(cp share/configure.ac src/plugin/aclocal.m4 &&
+                            cd src/plugin && autoconf && rm aclocal.m4)])]
+        )
+  ])
 
 #####################################################
 # Check for tools/libraries requirements of plugins #
 #####################################################
 
-new_section "configure tools and libraries used by some plugins"
-
-# 1st param: uppercase name of the library
-# 2nd param: file which must exist. This parameter can be a list of files.
-# In this case, they will be tried in turn until one of them exists. The
-# name of the file found will be put in the variable SELECTED_$1
-# 3d  param: warning to display if problem
-define([configure_library],
-[
-  m4_define([VAR],[$1])
-  m4_define([SELECTED_VAR],[SELECTED_$1])
-  m4_define([PROG],[$2])
-  m4_define([require],[$REQUIRE_$1])
-  m4_define([use],[$USE_$1])
-  m4_define([msg],[$3])
-  m4_define([has],[HAS_$1])
-  m4_define([file],[FILE_$1])
-  if test -n "require" -o -n "use"; then
-    has=no
-    m4_foreach(file,[PROG],
-       [if test "$has" != "yes"; then
-          AC_CHECK_FILE(file,has=yes,has=no)
-          if test "$has" == "yes"; then SELECTED_VAR=file
-          fi
-       fi]
-       )
-    if test "$has" == "no"; then
-      AC_MSG_WARN(msg)
-      if test "require" != ""; then
-        echo "plugins disabled:
- require"
-        for p in require; do
-	  fp=FORCE_`upper "$p"`
-	  if eval test "\$$fp" == "yes"; then
-	    AC_MSG_ERROR($p requested but PROG missing.)
-	  fi
-          ep=ENABLE_`upper "$p"`
-	  eval $ep="no\ \(see\ warning\ about\ PROG\)"
-        done
-      fi
-      if test "use" != ""; then
-        echo "plugins not fully functional:
- use"
-        for p in use; do
-          ep=ENABLE_`upper "$p"`
-	  eval eep="\$$ep"
-	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ PROG\)"
-          fi
-        done
-      fi
-      echo
-    fi
-  fi
-  undefine([SELECTED_VAR])
-  undefine([VAR])
-  undefine([PROG])
-  undefine([require])
-  undefine([use])
-  undefine([msg])
-  undefine([has])
-])
-
-# 1st param: uppercase name of the program
-# 2nd param: program which must exist. See comment on configure_library()
-# on how to deal with multiple choices for a given program.
-# 3d  param: warning to display if problem
-define([configure_tool],
-[
-  define([VAR],[$1])
-  define([PROG],[$2])
-  define([require],[$REQUIRE_$1])
-  define([use],[$USE_$1])
-  define([msg],[$3])
-  define([has],[HAS_$1])
-
-  if test -n "require" -o -n "use"; then
-    for file in PROG; do
-     has=
-    AC_CHECK_PROG(has,$file,yes,no)
-      if test "$has" == "yes"; then SELECTED_VAR=$file break; fi
-      done
-    if test "$has" == "no"; then
-      AC_MSG_WARN([msg])
-      if test "require" != ""; then
-        echo "plugins disabled:
- require"
-        for p in require; do
-	  fp=FORCE_`upper "$p"`
-	  if eval test "\$$fp" == "yes"; then
-	    AC_MSG_ERROR([$p requested but PROG missing.])
-	  fi
-          ep=ENABLE_`upper "$p"`
-	  eval $ep="no\ \(see\ warning\ about\ PROG\)"
-        done
-      fi
-      if test "use" != ""; then
-        echo "plugins not fully functional:
- use"
-        for p in use; do
-          ep=ENABLE_`upper "$p"`
-	  eval eep="\$$ep"
-	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ PROG\)"
-          fi
-        done
-      fi
-      echo
-    else
-        VAR=PROG
-    fi
-  fi
-  undefine([VAR])
-  undefine([PROG])
-  undefine([require])
-  undefine([use])
-  undefine([msg])
-  undefine([has])
-])
-
-# elsa
-######
-configure_library([ELSA],[cxx_elsa],[
-  sources of cxx_elsa are not present in this directory.
-  Please check them out from the cvs repository.])
-
-REQUIRE_CCPARSE=
-USE_CCPARSE=
-HAS_CCPARSE=
-if test "$has" == "yes"; then
-  USE_CCPARSE="$REQUIRE_ELSA$USE_ELSA"
-fi
-
-configure_library([CCPARSE],
-  [cxx_elsa/elsa-2006.06.11/elsa/ccparse],
-  [elsa seems to be uncompiled. Please run 'make elsa'.])
+new_section "configure tools and libraries used by some plug-ins"
 
 # lablglade
 ###########
-configure_tool([LABLGLADECC],[lablgladecc2],[lablgladecc2 not found.])
-
-# camlp4o
-###########
-configure_tool([CAMLP4O],[camlp4o],[camlp4o not found.])
+configure_tool([LABLGLADECC],[lablgladecc2],[lablgladecc2 not found.],no)
 
 # ltl2ba library
 ################
-configure_tool([LTLTOBA],[ltl2ba],[ltl2ba not found.])
+configure_tool([LTLTOBA],[ltl2ba],[ltl2ba not found.],no)
 
 # lablgtk2
 ##########
 configure_library([LABLGTK],[$OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX],
-                  [lablgtk2/lablgtk.$LIB_SUFFIX not found.])
-
-HAS_LABLGTK_CUSTOM_MODEL=no
-AC_ARG_ENABLE(custommodel,
-[  --enable-custommodel
-     use a custom tree model in GUI. Need to have a recent lablgtk version],
-HAS_LABLGTK_CUSTOM_MODEL=yes,HAS_LABLGTK_CUSTOM_MODEL=no)
+                  [lablgtk2/lablgtk.$LIB_SUFFIX not found.],no)
 
 # Gtksourceview
 ###############
@@ -890,7 +743,8 @@ fi
 
 configure_library([GTKSOURCEVIEW],
                   [$OCAMLLIB/lablgtk2/lablgtksourceview.$LIB_SUFFIX,$OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX],
-                  [lablgtksourceview.$LIB_SUFFIX not found])
+                  [lablgtksourceview.$LIB_SUFFIX not found],
+		  no)
 
 case $SELECTED_GTKSOURCEVIEW in
 $OCAMLLIB/lablgtksourceview/lablgtksourceview.$LIB_SUFFIX)
@@ -901,61 +755,107 @@ esac
 # Gnomecanvas
 #############
 configure_library([GNOMECANVAS],[$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX],
-                  [lablgnomecanvas.$LIB_SUFFIX not found])
+                  [lablgnomecanvas.$LIB_SUFFIX not found],
+		  ,no)
+
+# dot and xdot tools
+####################
+
+configure_tool([DOT],[dot],[dot not found: you should install GraphViz],no)
+
+# Apron library
+###############
+
+# [JS 2009/03/25] apron must be configured before why/jc which uses $HAS_APRON
+configure_library([APRON],
+	          [/usr/local/lib/apron.a,/usr/lib/apron.a],
+ 		  [apron not found])
 
 # why/jc library
 ################
 
-define([WHY_DEFAULT],why)
-AC_ARG_WITH(
-  whydir,
-  [  --with-whydir=<path>	directory for Why sources (default: WHY_DEFAULT) ],
-  WHYDISTRIB=$with_whydir,
-  WHYDISTRIB=WHY_DEFAULT
-)
+configure_tool([WHY],[why],[why not found],no)
 
-configure_library([WHYJC],
-                  [$WHYDISTRIB/jc,$OCAMLLIB/jessie/jc.$OBJ_SUFFIX],
-                  [why not found])
+# Native dynlink
+################
 
-configure_library([APRON],
-	          [/usr/local/lib/apron.a,/usr/lib/apron.a],
-		  [apron not found])
+configure_library([NATIVE_DYNLINK],[$OCAMLLIB/dynlink.cmxa],
+                  [native dynlink unavailable (ocaml 3.11 or higher required)],yes)
 
-if test "$HAS_WHYJC" == "yes" -a "$REQUIRE_WHYJC" != ""; then
-  case $SELECTED_WHYJC in
-  $WHYDISTRIB/jc)
-    JCCMO=$WHYDISTRIB/jc/jc.cmo
-    JCCMX=$WHYDISTRIB/jc/jc.cmx
-    JESSIE_LOCAL=yes
-    JESSIE_INCLUDES="-I $WHYDISTRIB/src -I $WHYDISTRIB/jc"
-    (cd $WHYDISTRIB && ./configure --prefix=$prefix --datarootdir=$datarootdir \
-      --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
-      --mandir=$mandir --enable-apron=$HAS_APRON) || ENABLE_JESSIE=no
-    if test "$ENABLE_JESSIE" == "no"; then
-       INFO_JESSIE=" (configuration of Why failed)"
-    fi
-    ;;
-  $OCAMLLIB/jessie)
-    JCCMO=$SELECTED_WHYJC/jc.cmo
-    JCCMX=$SELECTED_WHYJC/jc.cmx
-    JESSIE_LOCAL=no
-    JESSIE_INCLUDES="-I $SELECTED_WHYJC"
-    ;;
-  *)
-    AC_MSG_WARN([Unexpected location for why tool: $SELECTED_WHYJC])
-    JESSIE_LOCAL=no
-    ;;
-  esac
-else
-  JESSIE_LOCAL=no
+# alt-ergo
+##########
+
+configure_tool([ALTERGO],[alt-ergo],[alt-ergo not found],no)
+
+check_frama_c_dependencies()
+
+# Why
+#####
+
+if test "$HAS_WHY" == "yes"; then
+   rm -f tests/wp/test_config_dev
+   cp tests/wp/test_config_dev.system_why tests/wp/test_config_dev
+   chmod a-w  tests/wp/test_config_dev
+fi
+
+# Checking some other things which cannot be done too early
+###########################################################
+
+# Usable native dynlink
+
+# Checking internal invariant
+if test "$HAS_NATIVE_DYNLINK" == "uncheck"; then
+   AC_MSG_ERROR([Internal error with check of native dynlink. Please report.])
+fi
+
+HAS_USABLE_NATIVE_DYNLINK=no
+
+if test "$HAS_NATIVE_DYNLINK" != "no" ; then
+  echo "Dynlink.loadfile \"foo\";;" > test_dynlink.ml
+  if ($OCAMLOPT -shared -o test_dynlink.cmxs test_dynlink.ml) 2> /dev/null ; \
+  then
+    HAS_USABLE_NATIVE_DYNLINK=yes
+  else
+    REQUIRE_USABLE_NATIVE_DYNLINK=$REQUIRE_NATIVE_DYNLINK
+    USE_USABLE_NATIVE_DYNLINK=$USE_NATIVE_DYNLINK
+    HAS_USABLE_NATIVE_DYNLINK=no
+#   we know that dynlink does not work:
+#   configure a dummy library "dynlink" in order to
+#   configure plug-ins depending on dynlink in a proper way
+    configure_library([USABLE_NATIVE_DYNLINK],[dynlink],
+                      [native dynlink unsupported on this platform],yes)
+    check_frama_c_dependencies()
+  fi
+  rm -f test_dynlink.*
+fi
+
+# Lablgtk2's custom tree model
+
+if test "$HAS_LABLGTK" == "yes"; then
+  if echo "type ('a,'b,'c,'d) t = ('a,'b,'c,'d) GTree.custom_tree_model" > test_custommodel.ml && ocamlc -c -I +lablgtk2 test_custommodel.ml 2> /dev/null; \
+  then
+    AC_MSG_CHECKING([for lablgtk2's custom tree model])
+    AC_MSG_RESULT([yes])
+  else
+#   we don't have a good version of lablgtk2:
+#   configure a dummy library "customtree" in order to
+#   configure plug-ins depending on lablgtk2 in a proper way
+    configure_library(
+      [LABLGTK],
+      [custom-tree-model],
+      [lablgtk2's custom tree model unavailable. You need at least LablGtk 2.12.],
+      yes
+    )
+    check_frama_c_dependencies()
+  fi
+  rm -f test_custommodel.*
 fi
 
 #######################
 # Plugin dependencies #
 #######################
 
-new_section "checking for plugin dependencies"
+new_section "checking for plug-in dependencies"
 
 # What are the dependencies?
 ############################
@@ -963,16 +863,18 @@ new_section "checking for plugin dependencies"
 
 REQUIRE_FROM="value inout pdg slicing"
 
-#USE_GUI="occurrence security slicing value impact"
+USE_GUI="occurrence security slicing value impact syntactic_callgraph wp"
 
 REQUIRE_PDG="slicing security"
 
 REQUIRE_SECURITY="impact"
 
-USE_SLICING="security miel"
+USE_SLICING="security miel impact"
 
 REQUIRE_VALUE="constant_propagation from inout occurrence pdg scope security \
   slicing sparecode users semantic_callgraph miel"
+
+REQUIRE_USERS="semantic_callgraph"
 
 ### Now compute the dependencies
 # a bit ugly... Probably optimizable
@@ -1063,7 +965,7 @@ check_and_propagate () {
   done
 }
 
-# Recursively check the plugin dependencies using the plugin dependency graph
+# Recursively check the plug-in dependencies using the plug-in dependency graph
 compute_dependency () {
   plugin=`echo $TODOLIST | sed -e 's/ .*//' `
   TODOLIST=`echo $TODOLIST | sed -e 's/[[^ ]]* *\(.*\)/\1/' `
@@ -1081,7 +983,7 @@ compute_dependency () {
   e=ENABLE_$uplugin
   eval enable="\$$e"
 
-#  echo "plugin $lplugin (mark=$mark, remember=$remember, enable=$enable)"
+#  echo "plug-in $lplugin (mark=$mark, remember=$remember, enable=$enable)"
   if test `lt_mark "$remember" "$mark"`; then
     # visit the current plugin:
     # mark <- max(mark, enable)
@@ -1091,7 +993,7 @@ compute_dependency () {
       "partial") if test "$enable" == "no"; then mark="no"; fi;;
       "no")      ;;
     esac
-    # update plugin attributes with the new mark
+    # update plug-in attributes with the new mark
 #    echo "update attributes with $mark"
     eval $m=\"$mark\"
     eval $e=\"$mark\"
@@ -1102,15 +1004,17 @@ compute_dependency () {
       "")        echo "problem?"; exit 3;;
       "yes")     check_and_propagate $uplugin "yes" "yes";;
       "partial")
+# if a plug-in is partial, does not consider its dependencies as partial
+# so the second argument is "yes" and not "partial"
         check_and_propagate \
 	  "$uplugin" \
-	  "partial ($lplugin partially enable)" \
+	  "yes" \
 	  "yes";;
       "no")
         check_and_propagate \
 	  "$uplugin" \
-	  "no ($lplugin not enable)" \
-	  "partial ($lplugin not enable)";;
+	  "no ($lplugin not enabled)" \
+	  "partial ($lplugin not enabled)";;
     esac
   fi
 
@@ -1142,16 +1046,18 @@ done
 # Substitutions to perform #
 ############################
 
+EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
+
 AC_SUBST(VERBOSEMAKE)
 AC_SUBST(DOT)
 AC_SUBST(OCAMLGRAPH)
 AC_SUBST(OCAMLGRAPH_LOCAL)
+AC_SUBST(OCAMLGRAPH_HOME)
 AC_SUBST(OCAMLBEST)
 AC_SUBST(OCAMLVERSION)
-AC_SUBST(LOWER_THAN_311)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLWIN32)
-AC_SUBST(CAMLP4O)
+AC_SUBST(OCAML_ANNOT_OPTION)
 AC_SUBST(EXE)
 
 AC_SUBST(HAVE_STDLIB_H)
@@ -1165,44 +1071,25 @@ AC_SUBST(CYCLES_PER_USEC)
 AC_SUBST(LOCAL_MACHDEP)
 AC_SUBST(datarootdir)
 
-AC_SUBST(HAS_LABLGTK)
-AC_SUBST(HAS_GTKSOURCEVIEW)
+AC_SUBST(EXTERNAL_PLUGINS)
+
+AC_SUBST(HAS_USABLE_NATIVE_DYNLINK)
 AC_SUBST(HAS_LEGACY_GTKSOURCEVIEW)
-AC_SUBST(HAS_GNOMECANVAS)
-AC_SUBST(HAS_LABLGTK_CUSTOM_MODEL)
-AC_SUBST(LABLGLADECC)
-AC_SUBST(HAS_LABLGLADECC)
-AC_SUBST(HAS_LTLTOBA)
+AC_SUBST(WHYBIN)
+AC_SUBST(WHYDPBIN)
+
 AC_SUBST(JCCMO)
 AC_SUBST(JCCMX)
 AC_SUBST(JESSIE_LOCAL)
 AC_SUBST(JESSIE_INCLUDES)
-
-AC_SUBST(ENABLE_SYNTACTIC_CALLGRAPH)
-AC_SUBST(ENABLE_CONSTANT_PROPAGATION)
-AC_SUBST(ENABLE_CXX)
-AC_SUBST(ENABLE_FROM)
-AC_SUBST(ENABLE_GUI)
-AC_SUBST(ENABLE_IMPACT)
-AC_SUBST(ENABLE_INOUT)
-AC_SUBST(ENABLE_JESSIE)
-AC_SUBST(ENABLE_JOURNAL_LOADER)
 AC_SUBST(WHYDISTRIB)
-AC_SUBST(ENABLE_METRICS)
-AC_SUBST(ENABLE_MIEL)
-AC_SUBST(ENABLE_OCCURRENCE)
-dnl AC_SUBST(ENABLE_OCCURRENCE_DYN)
-AC_SUBST(ENABLE_PDG)
-AC_SUBST(ENABLE_POSTDOMINATORS)
-AC_SUBST(ENABLE_SCOPE)
-AC_SUBST(ENABLE_SECURITY)
-AC_SUBST(ENABLE_SEMANTIC_CALLGRAPH)
-AC_SUBST(ENABLE_SLICING)
-AC_SUBST(ENABLE_SPARECODE)
-AC_SUBST(ENABLE_USERS)
-AC_SUBST(ENABLE_VALUE)
-AC_SUBST(ENABLE_WP)
-AC_SUBST(ENABLE_LTL_TO_ACSL)
+
+# m4_foreach_w is not supported in some old autoconf versions.
+# Sadly AC_FOREACH is deprecated now...
+AC_FOREACH([p],PLUGINS_LIST,
+	[AC_SUBST([ENABLE_]p)
+	AC_SUBST([DYNAMIC_]p)
+	])
 
 ################################################
 # Finally create the Makefile from Makefile.in #
@@ -1210,41 +1097,37 @@ AC_SUBST(ENABLE_LTL_TO_ACSL)
 
 new_section "creating makefile"
 
-AC_OUTPUT(cil/ocamlutil/perfcount.c Makefile)
-chmod a-w cil/ocamlutil/perfcount.c
-chmod a-w Makefile
+AC_CONFIG_FILES(cil/ocamlutil/perfcount.c share/Makefile.config)
+AC_OUTPUT()
+chmod a-w cil/ocamlutil/perfcount.c share/Makefile.config
 
 ###########
 # Summary #
 ###########
 
-new_section "summary: plugins available"
+new_section "summary: plug-ins available"
 
-if test "$LOWER_THAN_311" == yes ; then
-  AC_MSG_WARN(Dynamic plugins in native mode are disabled.)
+for plugin in m4_flatten(PLUGINS_LIST); do
+  n=NAME_$plugin
+  e=ENABLE_$plugin
+  d=DYNAMIC_$plugin
+  i=INFO_$plugin
+  eval nv=\$$n
+  eval ev=\$$e
+  eval dv=\$$d
+  eval iv=\$$i
+  if test "$ev" != "no" -a "$dv" = "yes"; then
+    res="$ev, dynamic";
+  else
+    res=$ev;
+  fi
+  AC_MSG_NOTICE([$nv: $res$iv])
+done
+
+if test "$EXTRA_EXTERNAL_PLUGINS" != ""; then
+  new_section "summary: requested external plugins"
 fi
 
-AC_MSG_NOTICE([syntactic callgraph  : $ENABLE_SYNTACTIC_CALLGRAPH$INFO_SYNTACTIC_CALLGRAPH])
-AC_MSG_NOTICE([constant propagation : $ENABLE_CONSTANT_PROPAGATION$INFO_CONSTANT_PROPAGATION])
-AC_MSG_NOTICE([cxx                  : $ENABLE_CXX$INFO_CXX])
-AC_MSG_NOTICE([from                 : $ENABLE_FROM$INFO_FROM])
-AC_MSG_NOTICE([gui                  : $ENABLE_GUI$INFO_GUI])
-AC_MSG_NOTICE([impact               : $ENABLE_IMPACT$INFO_IMPACT])
-AC_MSG_NOTICE([inout                : $ENABLE_INOUT$INFO_INOUT])
-AC_MSG_NOTICE([jessie               : $ENABLE_JESSIE$INFO_JESSIE])
-AC_MSG_NOTICE([journal loader       : $ENABLE_JOURNAL_LOADER$INFO_JOURNAL_LOADER])
-AC_MSG_NOTICE([metrics              : $ENABLE_METRICS$INFO_METRICS])
-AC_MSG_NOTICE([miel                 : $ENABLE_MIEL$INFO_MIEL])
-AC_MSG_NOTICE([occurrence           : $ENABLE_OCCURRENCE$INFO_OCCURRENCE])
-dnl AC_MSG_NOTICE([occurrence dynamic   : $ENABLE_OCCURRENCE_DYN$INFO_OCCURRENCE_DYN])
-AC_MSG_NOTICE([pdg                  : $ENABLE_PDG$INFO_PDG])
-AC_MSG_NOTICE([postdominators       : $ENABLE_POSTDOMINATORS$INFO_POSTDOMINATORS])
-AC_MSG_NOTICE([scope                : $ENABLE_SCOPE$INFO_SCOPE])
-AC_MSG_NOTICE([security             : $ENABLE_SECURITY$INFO_SECURITY])
-AC_MSG_NOTICE([semantic callgraph   : $ENABLE_SEMANTIC_CALLGRAPH$INFO_SEMANTIC_CALLGRAPH])
-AC_MSG_NOTICE([slicing              : $ENABLE_SLICING$INFO_SLICING])
-AC_MSG_NOTICE([spare code           : $ENABLE_SPARECODE$INFO_SPARECODE])
-AC_MSG_NOTICE([users                : $ENABLE_USERS$INFO_USERS])
-AC_MSG_NOTICE([value                : $ENABLE_VALUE$INFO_VALUE])
-AC_MSG_NOTICE([wp                   : $ENABLE_WP$INFO_WP])
-AC_MSG_NOTICE([ltl to acsl          : $ENABLE_LTL_TO_ACSL$INFO_LTL_TO_ACSL])
+for plugin in $EXTRA_EXTERNAL_PLUGINS; do
+    AC_MSG_NOTICE([$plugin])
+done

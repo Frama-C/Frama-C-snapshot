@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: alarms.mli,v 1.15 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: alarms.mli,v 1.15 2008-11-18 12:13:41 uid568 Exp $ *)
 
 (** Alarm Database.
     @plugin development guide *)
@@ -27,8 +27,10 @@
 type t =
   | Division_alarm
   | Memory_alarm
+  | Index_alarm
   | Shift_alarm
   | Pointer_compare_alarm
+  | Signed_overflow_alarm
   | Using_nan_or_infinite_alarm
   | Result_is_nan_or_infinite_alarm
   | Separation_alarm

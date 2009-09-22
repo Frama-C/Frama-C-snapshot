@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: Ltl_to_acsl.mli,v 1.3 2008/10/10 16:03:25 uid588 Exp $ *)
+(* $Id: Ltl_to_acsl.mli,v 1.3 2008-10-10 16:03:25 uid588 Exp $ *)
 
 (**
   Aorai plugin (AKA Ltl_to_acsl).

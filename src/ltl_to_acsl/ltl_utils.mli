@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,14 +18,17 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ltl_utils.mli,v 1.2 2008/10/02 13:33:29 uid588 Exp $ *)
+(* $Id: ltl_utils.mli,v 1.4 2008-12-19 15:30:56 uid588 Exp $ *)
 
 open Promelaast
+open Spec_tools
 
 
 (** Given a transition a function name and a function status (call or return) it returns if the cross condition can be statisfied with only function status. *)
+
 val isCrossable: trans -> string -> funcStatus -> bool
 
 (** Given a transition a function name and a function status (call or return) it returns if the cross condition can be statisfied with only function status. *)
@@ -44,49 +48,50 @@ val get_next : string -> funcStatus -> bool array -> (bool array * bool array)
 val get_prev : string -> funcStatus -> (bool array * bool array) -> (bool array * bool array) 
 
 
+(*
 (** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical and between cells with same index from the two arrays.  *)
 val bool_array_and        : bool array              -> bool array              -> bool array
-val double_bool_array_and : (bool array*bool array) -> (bool array*bool array) -> (bool array*bool array)
+val double_bool_array_and : (bool array*bool array) -> (bool array*bool array) -> (bool array*bool array) 
 val quad_bool_array_and   : (bool array*bool array*bool array*bool array) -> (bool array*bool array*bool array*bool array) -> (bool array*bool array*bool array*bool array)
-
-(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical AND between cells with same index from the two arrays.  *)
-val bool_array_or         : bool array              -> bool array              -> bool array
-val double_bool_array_or  : (bool array*bool array) -> (bool array*bool array) -> (bool array*bool array)
+ 
+(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical AND between cells with same index from the two arrays.  *) 
+val bool_array_or         : bool array              -> bool array              -> bool array 
+val double_bool_array_or  : (bool array*bool array) -> (bool array*bool array) -> (bool array*bool array) 
 val quad_bool_array_or    : (bool array*bool array*bool array*bool array) -> (bool array*bool array*bool array*bool array) -> (bool array*bool array*bool array*bool array)
 
 
 (** Given two bool arrays with the same length, it returns true if and only if their cells are equal for each index. *)
 val bool_array_eq         : bool array              -> bool array              -> bool
-val double_bool_array_eq  : (bool array*bool array) -> (bool array*bool array) -> bool
+val double_bool_array_eq  : (bool array*bool array) -> (bool array*bool array) -> bool 
 val quad_bool_array_eq    : (bool array*bool array*bool array*bool array) -> (bool array*bool array*bool array*bool array) -> bool
+ 
 
-
-
+ 
 val mk_empty_pre_or_post  : unit -> (bool array*bool array)
 val mk_empty_spec         : unit -> (bool array*bool array*bool array*bool array)
-
+*)
 
 (*val hash_specs_diff : 
   (Cil_types.stmt ref , (bool array*bool array*bool array*bool array)) Hashtbl.t  -> 
   (Cil_types.stmt ref , (bool array*bool array*bool array*bool array)) Hashtbl.t  
   -> bool  
-*)
 
 val debug_display_func_status  : string -> unit 
 val debug_display_spec         : (bool array*bool array*bool array*bool array) -> string -> unit
-val debug_display_stmt_pre     : (bool array*bool array) -> unit
+val debug_display_stmt_pre     : bool array -> string -> unit 
 val debug_display_stmt_all_pre : (bool array*bool array) -> unit
+*)
 
 
 
 (* ************************************************************************* *)
 (** {b Behaviored pre/post (bycase approach)} *)
 
-
+(*
 type pre_post_bycase_t = bool array array
 type double_pre_post_bycase_t = (pre_post_bycase_t*pre_post_bycase_t)
-type quad_pre_post_bycase_t = (pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t)
-
+type quad_pre_post_bycase_t = (pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t) 
+*)
 
 (** Given a function name, is status (call or return) and an array of boolean describing states status, it returns a couple of boolean array. The first one describes the set of reachable states and the second one is the set of crossable transitions. *)
 val get_next_bycase : string -> funcStatus -> pre_post_bycase_t -> double_pre_post_bycase_t 
@@ -95,29 +100,33 @@ val get_next_bycase : string -> funcStatus -> pre_post_bycase_t -> double_pre_po
 val get_prev_bycase : string -> funcStatus -> double_pre_post_bycase_t -> double_pre_post_bycase_t 
 
 
+(*
 (** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical and between cells with same index from the two arrays.  *)
 val bool_array_and_bycase        : pre_post_bycase_t        -> pre_post_bycase_t        -> pre_post_bycase_t 
-val double_bool_array_and_bycase : double_pre_post_bycase_t -> double_pre_post_bycase_t -> double_pre_post_bycase_t
+val double_bool_array_and_bycase : double_pre_post_bycase_t -> double_pre_post_bycase_t -> double_pre_post_bycase_t 
 val quad_bool_array_and_bycase   : quad_pre_post_bycase_t   -> quad_pre_post_bycase_t   -> quad_pre_post_bycase_t
-
+ 
 (** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical AND between cells with same index from the two arrays.  *)
-val bool_array_or_bycase         : pre_post_bycase_t        -> pre_post_bycase_t        -> pre_post_bycase_t 
+val bool_array_or_bycase         : pre_post_bycase_t        -> pre_post_bycase_t        -> pre_post_bycase_t  
 val double_bool_array_or_bycase  : double_pre_post_bycase_t -> double_pre_post_bycase_t -> double_pre_post_bycase_t
-val quad_bool_array_or_bycase    : quad_pre_post_bycase_t   -> quad_pre_post_bycase_t   -> quad_pre_post_bycase_t
+val quad_bool_array_or_bycase    : quad_pre_post_bycase_t   -> quad_pre_post_bycase_t   -> quad_pre_post_bycase_t 
 
 
-(** Given two bool arrays with the same length, it returns true if and only if their cells are equal for each index. *)
-val bool_array_eq_bycase         : pre_post_bycase_t        -> pre_post_bycase_t        -> bool
+(** Given two bool arrays with the same length, it returns true if and only if their cells are equal for each index. *) 
+val bool_array_eq_bycase         : pre_post_bycase_t        -> pre_post_bycase_t        -> bool 
 val double_bool_array_eq_bycase  : double_pre_post_bycase_t -> double_pre_post_bycase_t -> bool
-val quad_bool_array_eq_bycase    : quad_pre_post_bycase_t   -> quad_pre_post_bycase_t   -> bool
+val quad_bool_array_eq_bycase    : quad_pre_post_bycase_t   -> quad_pre_post_bycase_t   -> bool 
+*)
+ 
+val mk_pre_or_post_bycase_from_pre_or_post : (bool array * bool array) -> double_pre_post_bycase_t
 
-
+(*
 val mk_empty_pre_or_post_bycase  : unit -> double_pre_post_bycase_t
 val mk_empty_spec_bycase         : unit -> quad_pre_post_bycase_t
 
-val mk_pre_or_post_bycase_from_pre_or_post : (bool array * bool array) -> double_pre_post_bycase_t
 val pre_flattening : (bool array array*bool array array) -> (bool array*bool array)
 val post_pseudo_flattening : (bool array array*bool array array) -> (bool array array*bool array array)
+*)
 
 (** Given a set of states and the bycase post-condition of an operation 
     this function returns the new post-condition after the execution of the operation in the context of current_st.
@@ -131,16 +140,13 @@ val mk_backward_composition: pre_post_bycase_t -> (bool array*bool array) -> dou
 
 
 val debug_display_func_status_bycase  : string -> unit
-val debug_display_spec_bycase         : quad_pre_post_bycase_t -> string -> unit
-val debug_display_stmt_pre_bycase     : double_pre_post_bycase_t -> unit
-val debug_display_stmt_all_pre_bycase : double_pre_post_bycase_t -> unit 
+(*val debug_display_spec_bycase         : quad_pre_post_bycase_t -> string -> unit
+val debug_display_stmt_pre_bycase     : bool array array -> string  -> unit
+val debug_display_stmt_all_pre_bycase : double_pre_post_bycase_t -> unit  
 
-
-
-
-
+ 
 val is_empty_behavior : bool array -> bool
-
+*)
 
 
 
@@ -162,7 +168,7 @@ val is_empty_behavior : bool array -> bool
 val initFile : Cil_types.file -> unit
  
 (** Given the name of the main function, this function computes all newly introduced globals (variables, enumeration structure, invariants, etc.) *)
-val initGlobals : string -> unit
+val initGlobals : string -> bool -> unit
  
 
 
@@ -177,8 +183,11 @@ val initGlobals : string -> unit
   + The buchi automata
   + the name of the function that is called or that returns
   + the status of this action (call or return)
-  + the localisation assiciated to this generated code*)
-val synch_upd : buchautomata -> string -> funcStatus -> Cil_types.location -> Cil_types.instr list
+  + the localisation associated to this generated code
+  + the name of the caller (if any)
+  + the stmt id of the call (if any)
+*)
+val synch_upd : buchautomata -> string -> funcStatus -> Cil_types.location -> string option -> int option -> Cil_types.instr list
 
 
 
@@ -243,6 +252,12 @@ val force_condition_to_predicate : (bool array * bool array) -> (bool array * bo
 
 
 
+
+val display_operations_spec : unit -> unit
+val display_operations_spec_bycase : unit -> unit
+val display_operations_spec_sorted : unit -> unit
+val display_operations_spec_sorted_bycase : unit -> unit
+val debug_display_all_specs : unit -> unit
 
 (*
 Local Variables:

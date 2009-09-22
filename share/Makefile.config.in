@@ -1,0 +1,169 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2009                                               #
+#    CEA (Commissariat à l'Énergie Atomique)                             #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+##########################################################################
+#                                                                        #
+# Define variables from configure.                                       #
+# These variables may be redefined later.                                #
+#                                                                        #
+##########################################################################
+
+#######################
+# Working directories #
+#######################
+
+FRAMAC_SRC 	?= @abs_top_srcdir@
+
+######################
+# Installation paths #
+######################
+
+DESTDIR 	?=
+prefix		?=@prefix@
+exec_prefix	?=@exec_prefix@
+datarootdir     ?=@datarootdir@
+datadir         ?=@datadir@
+BINDIR		?=$(DESTDIR)@bindir@
+LIBDIR		?=$(DESTDIR)@libdir@
+DATADIR		?=$(DESTDIR)@datarootdir@
+MANDIR		?=$(DESTDIR)@mandir@
+
+FRAMAC_LIBDIR	?=$(LIBDIR)/frama-c
+FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
+FRAMAC_DATADIR 	?=$(DATADIR)/frama-c
+
+###############
+# Ocaml stuff #
+###############
+
+# compilers and others executables
+OCAMLC  	?=@OCAMLC@
+OCAMLOPT	?=@OCAMLOPT@
+OCAMLDEP	?=@OCAMLDEP@ -slash
+OCAMLLEX	?=@OCAMLLEX@
+OCAMLYACC	?=@OCAMLYACC@
+OCAMLMKTOP	?=@OCAMLMKTOP@
+OCAMLDOC	?=@OCAMLDOC@
+OCAMLCP		?=ocamlcp
+
+# others ocaml stuffs
+
+# either -annot or -dtypes
+OCAML_ANNOT_OPTION ?=@OCAML_ANNOT_OPTION@
+# ocaml stdlib path
+OCAMLLIB	?=@OCAMLLIB@
+# either opt or byte
+OCAMLBEST	?=@OCAMLBEST@
+OCAMLVERSION 	?=@OCAMLVERSION@
+NATIVE_DYNLINK  ?=@HAS_NATIVE_DYNLINK@
+USABLE_NATIVE_DYNLINK ?=@HAS_USABLE_NATIVE_DYNLINK@
+OCAMLWIN32	?=@OCAMLWIN32@
+
+#############
+# Libraries #
+#############
+
+# ocamlgraph
+OCAMLGRAPH 	?=@OCAMLGRAPH@
+OCAMLGRAPH_LOCAL ?=@OCAMLGRAPH_LOCAL@
+OCAMLGRAPH_HOME ?=@OCAMLGRAPH_HOME@
+
+# lablgtk
+HAS_LABLGTK	?=@HAS_LABLGTK@
+HAS_LABLGTK_CUSTOM_MODEL ?=@HAS_LABLGTK@
+
+# lablgtksourceview
+HAS_GTKSOURCEVIEW ?=@HAS_GTKSOURCEVIEW@
+HAS_LEGACY_GTKSOURCEVIEW ?=@HAS_LEGACY_GTKSOURCEVIEW@
+
+# lablgnomecanvas
+HAS_GNOMECANVAS	?=@HAS_GNOMECANVAS@
+
+# lablglade
+HAS_LABLGLADECC	?=@HAS_LABLGLADECC@
+LABLGLADECC	?=@LABLGLADECC@ -hide-default
+
+# ltltoba
+HAS_LTLTOBA 	?= @HAS_LTLTOBA@
+
+##########################
+# Miscellaneous commands #
+##########################
+
+OTAGS		?=@OTAGS@
+DOT		?=@DOT@
+
+WHYBIN		?=@WHYBIN@
+WHYDPBIN	?=@WHYDPBIN@
+
+HEADACHE 	?= headache -c $(FRAMAC_SRC)/headers/headache_config.txt
+
+###########################
+# Miscellaneous variables #
+###########################
+
+VERBOSEMAKE	?=@VERBOSEMAKE@
+LOCAL_MACHDEP	?=@LOCAL_MACHDEP@
+EXE		?=@EXE@
+
+# Required by Cil
+UNDERSCORE_NAME ?=@UNDERSCORE_NAME@
+HAVE_BUILTIN_VA_LIST ?=@HAVE_BUILTIN_VA_LIST@
+THREAD_IS_KEYWORD ?=@THREAD_IS_KEYWORD@
+
+##########################
+# Variables for plug-ins #
+##########################
+
+EXTERNAL_PLUGINS ?=@EXTERNAL_PLUGINS@
+
+# Jessie
+JESSIE_LOCAL	?=@JESSIE_LOCAL@
+ENABLE_JESSIE	?=@ENABLE_JESSIE@
+DYNAMIC_JESSIE	?=@DYNAMIC_JESSIE@
+JESSIE_INCLUDES	?=@JESSIE_INCLUDES@
+JCCMO		?=@JCCMO@
+JCCMX		?=@JCCMX@
+WHY_DISTRIB	?=@WHYDISTRIB@
+
+# Aoraï
+ENABLE_LTL_TO_ACSL ?=@ENABLE_LTL_TO_ACSL@
+DYNAMIC_LTL_TO_ACSL ?=@DYNAMIC_LTL_TO_ACSL@
+
+# Others
+ENABLE_GUI	?=@ENABLE_GUI@
+ENABLE_WP	?=@ENABLE_WP@
+ENABLE_SYNTACTIC_CALLGRAPH ?=@ENABLE_SYNTACTIC_CALLGRAPH@
+ENABLE_OCCURRENCE ?=@ENABLE_OCCURRENCE@
+ENABLE_METRICS	?=@ENABLE_METRICS@
+ENABLE_VALUE	?=@ENABLE_VALUE@
+ENABLE_FROM	?=@ENABLE_FROM@
+ENABLE_USERS	?=@ENABLE_USERS@
+ENABLE_CONSTANT_PROPAGATION ?=@ENABLE_CONSTANT_PROPAGATION@
+ENABLE_POSTDOMINATORS ?=@ENABLE_POSTDOMINATORS@
+ENABLE_INOUT	?=@ENABLE_INOUT@
+ENABLE_SEMANTIC_CALLGRAPH ?=@ENABLE_SEMANTIC_CALLGRAPH@
+ENABLE_SECURITY	?=@ENABLE_SECURITY@
+ENABLE_IMPACT	?=@ENABLE_IMPACT@
+ENABLE_PDG	?=@ENABLE_PDG@
+ENABLE_SCOPE	?=@ENABLE_SCOPE@
+ENABLE_SPARECODE ?=@ENABLE_SPARECODE@
+ENABLE_SLICING	?=@ENABLE_SLICING@

@@ -11,48 +11,54 @@ let get_zones str_data (kinst, kf) =
   let loc =
     !Db.From.find_deps_no_transitivity
       (Cil_types.Kstmt kinst)
-      (Cil_types.Lval lval)
+      (Cil.new_exp (Cil_types.Lval lval))
   in
   loc
 ;;
 
-let memo_debug = Cmdline.Debug.get () in
-Cmdline.Debug.set 1;
-let files = Cil_state.file () in
-Format.printf "@[%a@]" (Cil.d_file (new Printer.print ())) files;
+let main _ =
+  let memo_debug = Parameters.Debug.get () in
+  Parameters.Debug.set 1;
+  let files = Ast.get () in
+  Format.printf "@[%a@]" (Cil.d_file (new Printer.print ())) files;
 
-Cmdline.Debug.set memo_debug ;;
+  Parameters.Debug.set memo_debug ;
 
-let kf =  Globals.Functions.find_def_by_name "main";;
-let pdg = !Db.Pdg.get kf;;
+  let kf =  Globals.Functions.find_def_by_name "main" in
+  let pdg = !Db.Pdg.get kf in
 
-!Db.Pdg.pretty Format.std_formatter pdg;;
-!Db.Pdg.extract pdg "tests/pdg/dyn_dpds_0.dot";;
+  !Db.Pdg.pretty Format.std_formatter pdg;
+  !Db.Pdg.extract pdg "tests/pdg/dyn_dpds_0.dot";
 
-let assert_sid = 5;; (* assert ( *p>G) *)
-let assert_stmt, kf = Kernel_function.find_from_sid assert_sid;;
+  let assert_sid = 5 in (* assert ( *p>G) *)
+  let assert_stmt, kf = Kernel_function.find_from_sid assert_sid in
 
 
-let assert_node =
-  match !Db.Pdg.find_simple_stmt_nodes pdg assert_stmt with
-    | n::[] -> n | _ -> assert false;;
+  let _assert_node =
+    match !Db.Pdg.find_simple_stmt_nodes pdg assert_stmt with
+    | n::[] -> n | _ -> assert false
+  in
 
-let star_p = get_zones "*p" (assert_stmt, kf);;
-let data_nodes, undef =
-  !Db.Pdg.find_location_nodes_at_stmt pdg assert_stmt ~before:true star_p;;
+  let star_p = get_zones "*p" (assert_stmt, kf) in
+  let data_nodes, undef =
+    !Db.Pdg.find_location_nodes_at_stmt pdg assert_stmt ~before:true star_p
+  in
 
-assert (undef = None);;
+  assert (undef = None);
 
-let g_zone = get_zones "G" (assert_stmt, kf);;
-let g_nodes, undef =
-  !Db.Pdg.find_location_nodes_at_stmt pdg assert_stmt ~before:true g_zone;;
+  let g_zone = get_zones "G" (assert_stmt, kf) in
+  let g_nodes, undef =
+    !Db.Pdg.find_location_nodes_at_stmt pdg assert_stmt ~before:true g_zone
+  in
 
-let data_nodes = g_nodes @ data_nodes;;
+  let _data_nodes = g_nodes @ data_nodes in
 
-let undef = match undef with None -> assert false | Some z -> z;;
+  let undef = match undef with None -> assert false | Some z -> z in
 
-Format.printf "Warning : cannot select %a in this function...@\n"
-  Locations.Zone.pretty undef;;
+  Format.printf "Warning : cannot select %a in this function...@\n"
+    Locations.Zone.pretty undef;
 
-!Db.Pdg.pretty Format.std_formatter pdg;;
-!Db.Pdg.extract pdg "tests/pdg/dyn_dpds_1.dot";;
+  !Db.Pdg.pretty Format.std_formatter pdg;
+  !Db.Pdg.extract pdg "tests/pdg/dyn_dpds_1.dot"
+
+let () = Db.Main.extend main

@@ -40,7 +40,6 @@
 
 open Cil_types
 open Cil
-open Pretty
 
 (** compute use/def information *)
 
@@ -125,7 +124,7 @@ class useDefVisitorClass : cilVisitor = object (self)
     let extra = (!extraUsesOfExpr) e in
     if not (VS.is_empty extra) then
       varUsed := VS.union extra !varUsed;
-    match e with
+    match e.enode with
       Lval (Var v, off) ->
         ignore (visitCilOffset (self :> cilVisitor) off);
         if (!considerVariableUse) v then

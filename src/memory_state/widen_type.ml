@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen_type.ml,v 1.21 2008/10/03 13:09:17 uid568 Exp $ *)
+(* $Id: widen_type.ml,v 1.21 2008-10-03 13:09:17 uid568 Exp $ *)
 
 open Cil
 open Cil_types

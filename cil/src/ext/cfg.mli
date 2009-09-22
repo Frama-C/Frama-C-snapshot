@@ -63,7 +63,7 @@ val clearCFGinfo: ?clear_id:bool -> fundec -> unit
 
 
 (** print control flow graph (in dot form) for fundec to channel *)
-val printCfgChannel : out_channel -> fundec -> unit
+val printCfgChannel : Format.formatter -> fundec -> unit
 
 (** Print control flow graph (in dot form) for fundec to file *)
 val printCfgFilename : string -> fundec -> unit

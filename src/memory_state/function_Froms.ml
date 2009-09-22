@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -61,8 +61,8 @@ let equal
   Lmap_bitwise.From_Model.equal dt dt' 
   && Lmap_bitwise.From_Model.LOffset.equal dr dr'
 
-module Datatype = struct
-  include Project.Datatype.Register
+module Datatype = 
+  Project.Datatype.Register
     (struct
        type tt = t
        type t = tt
@@ -72,7 +72,7 @@ module Datatype = struct
          let dr = From_Model.LOffset.Datatype.rehash x.deps_return in
          let dt = From_Model.Datatype.rehash x.deps_table in
          { deps_return = dr ; deps_table = dt }
+       let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
        let name = "function_froms"
      end)
-  let () = register_comparable ~equal ~hash ()
-end
+let () = Datatype.register_comparable ~equal ~hash ()

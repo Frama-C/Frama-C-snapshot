@@ -38,12 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-
-(* This interface is generated manually. The corresponding .ml file is 
- * generated automatically and is placed in ../obj/clexer.ml. The reason we 
- * want this interface is to avoid confusing make with freshly generated 
- * interface files *)
-
+val keepComments : bool ref
 
 val init: filename:string -> Lexing.lexbuf
 val finish: unit -> unit

@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/simple_intra_slice.opt
    CMD: tests/slicing/simple_intra_slice.opt
-   OPT: -deps -slicing-level 0 -slicing-debug -no-slice-callers -journal-disable
+   OPT: -deps -slicing-level 2 -no-slice-callers -journal-disable
 */
 int Unknown;
 int G;

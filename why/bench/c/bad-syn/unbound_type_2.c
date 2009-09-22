@@ -1,3 +1,0 @@
-
-struct { t x; } y;
-

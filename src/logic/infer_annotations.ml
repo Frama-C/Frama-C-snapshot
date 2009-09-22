@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,17 +25,18 @@ open Cil
 open Cil_types
 open Db
 open Db_types
+open Logic_const
 
 let tsets_to_tsets =
   function [] -> [Nothing]
     | l -> List.map (fun x -> Location x) l
 
 let assigns_from_prototype vi =
-  (*Format.printf "looking for %s prototype@." vi.vname;*)
   let formals = try let formals = getFormalsDecl vi in
   (* Do ignore anonymous names *)
   List.filter (fun vi -> vi.vname <> "") formals
-  with Not_found -> [] (* this may happen for function pointer used as formal parameters.*)
+  with Not_found -> [] 
+    (* this may happen for function pointer used as formal parameters.*)
   in
   let rtyp, _, _, _ = splitFunctionTypeVI vi in
   let pointer_args,basic_args =
@@ -52,27 +53,25 @@ let assigns_from_prototype vi =
 
   let mk_star_v v =
     let typ = unrollType v.vtype in
+    let loc = v.vdecl in
     match get_length typ with
         [AInt length] ->
-(*           let loc = vi.vdecl.byte, vi.vdecl.byte+1 in *)
-          let wrap_const c =
-            {term_node = TConst (CInt64 (Int64.of_int c,IUInt,None));
-             term_loc = vi.vdecl;
-             term_name = [];
-             term_type = Ctype uintType;}
+          let low = Logic_const.tinteger ~loc 0 in
+          let high = Logic_const.tinteger ~loc (length - 1) in
+          let range = Logic_const.trange ~loc (Some low,Some high) in
+          let shift = Logic_const.term ~loc
+            (TBinOp(PlusPI,tvar(cvar_to_lvar v),range))
+            (make_set_type (Ctype typ))
           in
-          Logic_const.new_location
-            (TSSingleton(
-               TSLval(
-                 TSMem(
-                   TSAdd_range(TSLval(TSVar(cvar_to_lvar v),TSNoOffset),
-                               Some (wrap_const 0),
-                               Some (wrap_const (length - 1)))),TSNoOffset)))
+          Logic_const.new_identified_term
+            (term ~loc (TLval(TMem shift,TNoOffset))
+               (make_set_type (Ctype (Cil.typeOf_pointed typ))))
       | _ ->
-(*           let loc = vi.vdecl.byte, vi.vdecl.byte+1 in *)
-          let cell = TSLval((TSVar(cvar_to_lvar v),TSNoOffset)) in
-          Logic_const.new_location
-            (TSSingleton(TSLval(TSMem cell,TSNoOffset)))
+
+          let cell = tvar ~loc (cvar_to_lvar v) in
+          Logic_const.new_identified_term
+            (term ~loc (TLval (TMem cell,TNoOffset))
+               (Ctype (Cil.typeOf_pointed typ)))
   in
   let to_assign =
     List.map
@@ -95,8 +94,11 @@ let assigns_from_prototype vi =
       (pointer_args_content
        @(List.map
            (fun v ->
-              Logic_const.new_location
-                (TSSingleton(TSLval(TSVar (cvar_to_lvar v),TSNoOffset))))
+              Logic_const.new_identified_term
+                { term_node = TLval (TVar (cvar_to_lvar v),TNoOffset);
+                  term_type = Ctype v.vtype;
+                  term_name = [];
+                  term_loc = v.vdecl })
            basic_args))
   in
   let arguments =
@@ -104,14 +106,17 @@ let assigns_from_prototype vi =
   in
   let deps =
     match rtyp with
-    | TVoid _ -> (* assigns all pointer args from basic args and content of pointer args *)
+    | TVoid _ ->
+        (* assigns all pointer args from basic args and
+           content of pointer args *)
         arguments
     | _ -> (* assigns result from basic args and content of pointer args *)
-        ((Location
-           (Logic_const.new_location
-              (TSSingleton
-                 (TSat
-                    (TSLval(TSResult,TSNoOffset),LogicLabel "Post"))))), inputs)::arguments
+        let loc = vi.vdecl in
+        (Location
+           (Logic_const.new_identified_term
+              (Logic_const.tat ~loc
+                 (Logic_const.tresult ~loc rtyp,LogicLabel "Post"))),inputs)
+        :: arguments
   in
   match deps with [] -> [Nothing,[]] | l -> l
 
@@ -127,7 +132,8 @@ let populate_funspec kf =
           in
           CilE.log_once
             "No code for function %a, default assigns generated%s"
-            Kernel_function.pretty_name kf pretty_behavior;
+            Kernel_function.pretty_name kf pretty_behavior
+          ;
         end;
 	behavior.b_assigns <- assigns
     | _ -> ()
@@ -140,7 +146,10 @@ let populate_funspec kf =
           Kernel_function.pretty_name kf;
       end;
       kf.spec.spec_behavior <- [{b_name = "generated"; b_ensures = [] ;
-                                 b_assumes = []; b_assigns = assigns}]
+                                 b_assumes = []; b_assigns = assigns}](*;
+      CilE.log_once "assigns generated:@\n%a"
+      d_funspec kf.spec*)
+
   | _ ->
       List.iter
         set_assigns

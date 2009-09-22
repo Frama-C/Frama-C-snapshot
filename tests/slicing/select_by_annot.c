@@ -5,18 +5,18 @@
    CMD: bin/toplevel.opt
    OPT: -deps -lib-entry -main main -slice-print -slice-pragma main -journal-disable
    OPT: -deps -lib-entry -main main -slice-print -slice-assert main -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma modifS -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f1 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f2 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f3 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f4 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f5 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f6 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f7 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-loop-inv f8 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f8 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-assert f8 -slicing-debug -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f9 -slicing-debug -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma modifS -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f1 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f2 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f3 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f4 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f5 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f6 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f7 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-loop-inv f8 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f8 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-assert f8 -no-slice-callers -journal-disable
+   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f9 -no-slice-callers -journal-disable
 
 
 */

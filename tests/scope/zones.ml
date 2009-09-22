@@ -6,10 +6,10 @@ bin/topleval.top -val tests/scope/zones.c
 let fmt =  Format.std_formatter;;
 
 (*
-let old_debug = Cmdline.Debug.get ();;
-Cmdline.Debug.set 1;; (* to see sid *)
-Format.fprintf fmt "@[%a@]" (Cil.d_file (new Printer.print())) ( Cil_state.file ());;
-Cmdline.Debug.set old_debug;;
+let old_debug = Parameters.Debug.get ();;
+Parameters.Debug.set 1;; (* to see sid *)
+Format.fprintf fmt "@[%a@]" (Cil.d_file (new Printer.print())) ( Ast.get ());;
+Parameters.Debug.set old_debug;;
 *)
 
 let find_ret kf_name =
@@ -42,23 +42,26 @@ let compute_and_print pp str_data =
       str_data !Db.Scope.pretty_zones zones
 ;;
 
-let pp = find_ret "simple";;
-compute_and_print pp "x";; 
+let main _ =
+  let pp = find_ret "simple" in
+  compute_and_print pp "x";
 
-let pp = find_ret "array1";;
-compute_and_print pp "T[0]";;
-compute_and_print pp "T[1]";;
-compute_and_print pp "T[x]";;
+  let pp = find_ret "array1" in
+  compute_and_print pp "T[0]";
+  compute_and_print pp "T[1]";
+  compute_and_print pp "T[x]";
 
-let pp = find_ret "struct1";;
-compute_and_print pp "s.a";;
-compute_and_print pp "s.b";;
-compute_and_print pp "s";;
+  let pp = find_ret "struct1" in
+  compute_and_print pp "s.a";
+  compute_and_print pp "s.b";
+  compute_and_print pp "s";
 
-let pp = find_ret "ctrl1";;
-compute_and_print pp "a";;
-let pp = find_label "ctrl1" "Lt2";;
-compute_and_print pp "a";;
+  let pp = find_ret "ctrl1" in
+  compute_and_print pp "a";
+  let pp = find_label "ctrl1" "Lt2" in
+  compute_and_print pp "a";
 
-let pp = find_ret "caller";;
-compute_and_print pp "Yf";;
+  let pp = find_ret "caller" in
+  compute_and_print pp "Yf"
+
+let () = Db.Main.extend main

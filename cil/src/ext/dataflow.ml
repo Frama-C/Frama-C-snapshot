@@ -38,11 +38,10 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-module E = Errormsg
-
+(*module E = Errormsg*)
 open Cil_types
 open Cil
-open Pretty
+(* open Pretty *)
 
 (** A framework for data flow analysis for CIL code.  Before using
     this framework, you must initialize the Control-flow Graph for your
@@ -98,7 +97,6 @@ end
 
 module type ForwardsTransfer = sig
   val name: string (** For debugging purposes, the name of the analysis *)
-
   val debug: bool ref (** Whether to turn on debugging *)
 
   type t  (** The type of the data we compute for each block start. May be
@@ -151,6 +149,11 @@ module type ForwardsTransfer = sig
    * block would normally be put in the worklist. *)
 
   val stmt_can_reach : stmt -> stmt -> bool
+
+  val doEdge: stmt -> stmt -> t -> t
+    (** what to do when following the edge between the two given statements.
+        Can default to identity if nothing special is required.
+     *)
 end
 
 module ForwardsDataFlow(T : ForwardsTransfer) = struct
@@ -164,34 +167,32 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
 
     (** We call this function when we have encountered a statement, with some
      * state. *)
-    let reachedStatement (s: stmt) (d: T.t) : unit =
+    let reachedStatement pred (s: stmt) (d: T.t) : unit =
       (** see if we know about it already *)
-      E.pushContext (fun fmt -> Format.fprintf fmt "Reached statement %d with %a"
-          s.sid T.pretty d);
+      let d = T.doEdge pred s d in
       let newdata: T.t option =
         try
           let old = T.StmtStartData.find s.sid in
           match T.combinePredecessors s ~old:old d with
             None -> (* We are done here *)
               if !T.debug then
-                log "FF(%s): reached stmt %d with %a\n  implies the old state %a\n"
+                Cilmsg.debug "FF(%s): reached stmt %d with %a\n  implies the old state %a\n"
                   T.name s.sid T.pretty d T.pretty old;
               None
           | Some d' -> begin
               (* We have changed the data *)
               if !T.debug then
-                log "FF(%s): weaken data for block %d: %a\n"
+                Cilmsg.debug "FF(%s): weaken data for block %d: %a\n"
                   T.name s.sid T.pretty d';
               Some d'
           end
         with Not_found -> (* was bottom before *)
           let d' = T.computeFirstPredecessor s d in
           if !T.debug then
-            log "FF(%s): set data for block %d: %a\n"
-                      T.name s.sid T.pretty d';
+            Cilmsg.debug "FF(%s): set data for block %d: %a\n"
+              T.name s.sid T.pretty d';
           Some d'
       in
-      E.popContext ();
       match newdata with
         None -> ()
       | Some d' ->
@@ -220,9 +221,9 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
                 s.succs
             in
             match fallthrough with
-              [] -> E.s (bug "Bad CFG: missing fallthrough for If.")
+              [] -> Cil.fatal "Bad CFG: missing fallthrough for If."
             | [s'] -> s'
-            | _ ->  E.s (bug "Bad CFG: multiple fallthrough for If.")
+            | _ ->  Cil.fatal "Bad CFG: multiple fallthrough for If."
           in
           (* If thenSucc or elseSucc is Cil.dummyStmt, it's an empty block.
              So the successor is the statement after the if *)
@@ -235,19 +236,19 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
           (stmtOrFallthrough thenSucc,
            stmtOrFallthrough elseSucc)
 
-      | _-> E.s (bug "ifSuccs on a non-If Statement.")
+      | _-> Cil.fatal "ifSuccs on a non-If Statement."
 
     (** Process a statement *)
     let processStmt (s: stmt) : unit =
       CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
       if !T.debug then
-        log "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
+        Cilmsg.debug "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
 
       (* It must be the case that the block has some data *)
       let init: T.t =
          try T.copy (T.StmtStartData.find s.sid)
          with Not_found ->
-            E.s (E.bug "FF(%s): processing block without data" T.name)
+            (Cil.fatal "FF(%s): processing block without data" T.name)
       in
 
       (** See what the custom says *)
@@ -257,7 +258,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
           let curr = match act with
               SDefault -> init
             | SUse d -> d
-            | SDone -> E.s (bug "SDone")
+            | SDone -> (Cil.fatal "SDone")
           in
           (* Do the instructions in order *)
           let handleInstruction (state: T.t) (i: instr) : T.t =
@@ -279,7 +280,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
               Instr i ->
                 (* Handle instructions starting with the first one *)
                 handleInstruction curr i
-            | UnspecifiedSequence _ 
+            | UnspecifiedSequence _
             | Goto _ | Break _ | Continue _ | If _
             | TryExcept _ | TryFinally _
             | Switch _ | Loop _ | Return _ | Block _ -> curr
@@ -289,7 +290,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
           (* Handle If guards *)
           let succsToReach = match s.skind with
               If (e, _, _, _) -> begin
-                let not_e = UnOp(LNot, e, intType) in
+                let not_e = new_exp (UnOp(LNot, e, intType)) in
                 let thenGuard = T.doGuard s e after in
                 let elseGuard = T.doGuard s not_e after in
                 if thenGuard = GDefault && elseGuard = GDefault then
@@ -298,14 +299,12 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
                 else begin
                   let doBranch succ guard =
                     match guard with
-                      GDefault -> reachedStatement succ after
-                    | GUse d ->  reachedStatement succ d
+                      GDefault -> reachedStatement s succ after
+                    | GUse d ->  reachedStatement s succ d
                     | GUnreachable ->
                         if !T.debug then
-                          ignore (E.log "FF(%s): Not exploring branch to %d\n"
-                                    T.name succ.sid);
-
-                        ()
+                          (Cilmsg.debug "FF(%s): Not exploring branch to %d\n"
+                             T.name succ.sid)
                   in
                   let thenSucc, elseSucc = ifSuccs s  in
                   doBranch thenSucc thenGuard;
@@ -318,21 +317,19 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
 		  (fun succ ->
 		      match T.doGuard s Cil.one after
 		      with
-			GDefault -> reachedStatement succ after
-                      | GUse d -> reachedStatement succ d
+			GDefault -> reachedStatement s succ after
+                      | GUse d -> reachedStatement s succ d
 		      | GUnreachable ->
                           if !T.debug then
-                            ignore (E.log "FF(%s): Not exploring branch to %d\n"
-                                    T.name succ.sid);
-
-                          ())
+                            Cilmsg.debug "FF(%s): Not exploring branch to %d\n"
+                              T.name succ.sid)
 		  s.succs;
 		[]
 	    | _ -> s.succs
 
           in
           (* Reach the successors *)
-          List.iter (fun s' -> reachedStatement s' after) succsToReach;
+          List.iter (fun s' -> reachedStatement s s' after) succsToReach;
 
       end
 
@@ -385,28 +382,27 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
       (** All initial stmts must have non-bottom data *)
       List.iter (fun s ->
          if not (T.StmtStartData.mem s.sid) then
-           E.s (E.error "FF(%s): initial stmt %d does not have data"
-                  T.name s.sid))
+           (Cil.fatal "FF(%s): initial stmt %d does not have data"
+              T.name s.sid))
          sources;
       if !T.debug then
-        ignore (E.log "\nFF(%s): processing\n"
-                  T.name);
+        (Cilmsg.debug "FF(%s): processing" T.name);
       let rec fixedpoint () =
         if !T.debug && not (Queue.is_empty worklist) then
-          ignore (E.log "FF(%s): worklist= %a\n"
-                    T.name
-                    (docList (fun s -> num s.sid))
-                    (List.rev
-                       (Queue.fold (fun acc s -> s :: acc) [] worklist)));
-          let s = find_next_in_queue worklist in
-          processStmt s;
-          fixedpoint ()
+          (Cilmsg.debug "FF(%s): worklist= %a"
+             T.name
+             (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "%d" s.sid))
+             (List.rev
+                (Queue.fold (fun acc s -> s :: acc) [] worklist)));
+        let s = find_next_in_queue worklist in
+        processStmt s;
+        fixedpoint ()
       in
       (try
          fixedpoint ()
        with Queue.Empty ->
          if !T.debug then
-           ignore (E.log "FF(%s): done\n\n" T.name))
+           (Cilmsg.debug "FF(%s): done" T.name))
 
   end
 
@@ -476,14 +472,14 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
     let getStmtStartData (s: stmt) : T.t =
       try T.StmtStartData.find s.sid
       with Not_found ->
-        E.s (E.bug "BF(%s): stmtStartData is not initialized for %d"
+        (Cil.fatal "BF(%s): stmtStartData is not initialized for %d"
                T.name s.sid)
 
     (** Process a statement and return true if the set of live return
      * addresses on its entry has changed. *)
     let processStmt (s: stmt) : bool =
       if !T.debug then
-        ignore (E.log "FF(%s).stmt %d\n" T.name s.sid);
+        (Cilmsg.debug "FF(%s).stmt %d\n" T.name s.sid);
 
 
       (* Find the state before the branch *)
@@ -536,7 +532,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
       | Some d' ->
           (* We have changed the data *)
           if !T.debug then
-            log "BF(%s): set data for block %d: %a\n"
+            Cilmsg.debug "BF(%s): set data for block %d: %a\n"
               T.name s.sid T.pretty d';
           T.StmtStartData.replace s.sid d';
           true
@@ -547,13 +543,13 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
       let worklist: stmt Queue.t = Queue.create () in
       List.iter (fun s -> Queue.add s worklist) sinks;
       if !T.debug && not (Queue.is_empty worklist) then
-        ignore (E.log "\nBF(%s): processing\n"
+        (Cilmsg.debug "\nBF(%s): processing\n"
                   T.name);
       let rec fixedpoint () =
         if !T.debug &&  not (Queue.is_empty worklist) then
-          ignore (E.log "BF(%s): worklist= %a\n"
+          (Cilmsg.debug "BF(%s): worklist= %a\n"
                     T.name
-                    (docList (fun s -> num s.sid))
+                    (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "%d" s.sid))
                     (List.rev
                        (Queue.fold (fun acc s -> s :: acc) [] worklist)));
           let s = Queue.take worklist in
@@ -563,8 +559,8 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
              * in and if the filter accepts them. *)
             List.iter
               (fun p ->
-                if T.filterStmt p s 
-                  && (try 
+                if T.filterStmt p s
+                  && (try
                         Queue.iter (fun s' -> if p.sid = s'.sid then raise Exit) worklist;
                         true
                       with Exit -> false)
@@ -578,7 +574,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
         fixedpoint ()
       with Queue.Empty ->
         if !T.debug then
-          ignore (E.log "BF(%s): done\n\n" T.name)
+          (Cilmsg.debug "BF(%s): done\n\n" T.name)
   end
 
 

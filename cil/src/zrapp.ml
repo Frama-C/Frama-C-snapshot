@@ -39,12 +39,9 @@
 (**************************************************************************)
 
 open Escape
-open Pretty
-open Trace
 open Cil_types
 open Cil
 
-module E = Errormsg
 module H = Hashtbl
 module IH = Inthash
 module M = Machdep
@@ -109,7 +106,7 @@ let simpleGaSearch l =
     | Some(0) -> i
     | Some(-1) -> loop (i-1)
     | Some(1) -> i
-    | _ -> E.s (E.error "simpleGaSearch: unexpected return from loc_comp\n")
+    | _ -> Cilmsg.fatal "simpleGaSearch: unexpected return from loc_comp"
   in
   loop hi
 
@@ -127,20 +124,20 @@ let get_comments l =
     else let _ = GA.set CH.commentsGA i (l',c,true) in
     loop (i - 1) (c::cl)
   in
-  List.rev (loop s [])
+  (*List.rev*) (loop s [])
 
 (* clean up some of the mess made below *)
 let rec simpl_cond e =
-  match e with
-  | UnOp(LNot,BinOp(LAnd,e1,e2,t1),t2) ->
-      let e1 = simpl_cond (UnOp(LNot,e1,t1)) in
-      let e2 = simpl_cond (UnOp(LNot,e2,t1)) in
-      BinOp(LOr,e1,e2,t2)
-  | UnOp(LNot,BinOp(LOr,e1,e2,t1),t2) ->
-      let e1 = simpl_cond (UnOp(LNot,e1,t1)) in
-      let e2 = simpl_cond (UnOp(LNot,e2,t1)) in
-      BinOp(LAnd,e1,e2,t2)
-  | UnOp(LNot,UnOp(LNot,e,_),_) -> simpl_cond e
+  match e.enode with
+  | UnOp(LNot,{enode = BinOp(LAnd,e1,e2,t1)},t2) ->
+      let e1 = simpl_cond (dummy_exp (UnOp(LNot,e1,t1))) in
+      let e2 = simpl_cond (dummy_exp (UnOp(LNot,e2,t1))) in
+      new_exp (BinOp(LOr,e1,e2,t2))
+  | UnOp(LNot,{enode = BinOp(LOr,e1,e2,t1)},t2) ->
+      let e1 = simpl_cond (dummy_exp (UnOp(LNot,e1,t1))) in
+      let e2 = simpl_cond (dummy_exp (UnOp(LNot,e2,t1))) in
+      new_exp (BinOp(LAnd,e1,e2,t2))
+  | UnOp(LNot,{enode = UnOp(LNot,e,_)},_) -> simpl_cond e
   | _ -> e
 
 (* the argument b is the body of a Loop *)
@@ -168,59 +165,64 @@ let get_loop_condition b =
 	let fsl = skipEmpty fb.bstmts in
 	(match tsl, fsl with
 	  {skind = Break _} :: _, [] -> Some e
-	| [], {skind = Break _} :: _ -> 
-	    Some(UnOp(LNot, e, intType))
+	| [], {skind = Break _} :: _ ->
+	    Some(new_exp (UnOp(LNot, e, intType)))
 	| ({skind = If(_,_,_,_)} as s) :: _, [] ->
 	    let teo = get_cond_from_if s in
 	    (match teo with
 	      None -> None
-	    | Some te -> 
-		Some(BinOp(LAnd,e,EC.stripNopCasts te,intType)))
+	    | Some te ->
+		Some(new_exp (BinOp(LAnd,e,EC.stripNopCasts te,intType))))
 	| [], ({skind = If(_,_,_,_)} as s) :: _ ->
 	    let feo = get_cond_from_if s in
 	    (match feo with
 	      None -> None
-	    | Some fe -> 
-		Some(BinOp(LAnd,UnOp(LNot,e,intType),
-			   EC.stripNopCasts fe,intType)))
+	    | Some fe ->
+		Some(new_exp(BinOp(LAnd,new_exp (UnOp(LNot,e,intType)),
+			           EC.stripNopCasts fe,intType))))
 	| {skind = Break _} :: _, ({skind = If(_,_,_,_)} as s):: _ ->
 	    let feo = get_cond_from_if s in
 	    (match feo with
 	      None -> None
-	    | Some fe -> 
-		Some(BinOp(LOr,e,EC.stripNopCasts fe,intType)))
+	    | Some fe ->
+		Some(new_exp(BinOp(LOr,e,EC.stripNopCasts fe,intType))))
 	| ({skind = If(_,_,_,_)} as s) :: _, {skind = Break _} :: _ ->
 	    let teo = get_cond_from_if s in
 	    (match teo with
 	      None -> None
-	    | Some te -> 
-		Some(BinOp(LOr,UnOp(LNot,e,intType),
-			   EC.stripNopCasts te,intType)))
+	    | Some te ->
+		Some(new_exp(BinOp(LOr,new_exp (UnOp(LNot,e,intType)),
+			           EC.stripNopCasts te,intType))))
 	| ({skind = If(_,_,_,_)} as ts) :: _ , ({skind = If(_,_,_,_)} as fs) :: _ ->
 	    let teo = get_cond_from_if ts in
 	    let feo = get_cond_from_if fs in
 	    (match teo, feo with
 	      Some te, Some fe ->
-		Some(BinOp(LOr,BinOp(LAnd,e,EC.stripNopCasts te,intType),
-			   BinOp(LAnd,UnOp(LNot,e,intType),
-				 EC.stripNopCasts fe,intType),intType))
+		Some(new_exp
+                       (BinOp(LOr,
+                              new_exp
+                                (BinOp(LAnd,e,EC.stripNopCasts te,intType)),
+			      new_exp
+                                (BinOp(LAnd,new_exp (UnOp(LNot,e,intType)),
+				       EC.stripNopCasts fe,intType)),
+                              intType)))
 	    | _,_ -> None)
-	| _, _ -> (if !debug then log "cond_finder: branches of %a not good\n"
+	| _, _ -> (if !debug then Cilmsg.debug "cond_finder: branches of %a not good\n"
 					   d_stmt if_stm;
 		   None))
-    | _ -> (if !debug then log "cond_finder: %a not an if\n" d_stmt if_stm;
+    | _ -> (if !debug then Cilmsg.debug "cond_finder: %a not an if\n" d_stmt if_stm;
 	    None)
   in
   let sl = skipEmpty b.bstmts in
   match sl with
     ({skind = If(_,_,_,_); labels=[]} as s) :: rest ->
       get_cond_from_if s, rest
-  | s :: _ -> 
-      (if !debug then log "checkMover: %a is first, not an if\n"
+  | s :: _ ->
+      (if !debug then Cilmsg.debug "checkMover: %a is first, not an if\n"
 	 d_stmt s;
        None, sl)
   | [] ->
-      (if !debug then log "checkMover: no statements in loop block?@\n";
+      (if !debug then Cilmsg.debug "checkMover: no statements in loop block?@\n";
        None, sl)
 
 (*
@@ -235,7 +237,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
   (* give the varinfo for the variable to be printed,
    * returns the varinfo for the varinfo with that name
    * in the current environment.
-   * Returns argument and prints a warning if the variable 
+   * Returns argument and prints a warning if the variable
    * isn't in the environment *)
   method private getEnvVi (v:varinfo) : varinfo =
     try
@@ -270,7 +272,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
 
   (* variable use *)
   method pVar (v:varinfo) =
-    (* warn about instances where a possibly unintentionally 
+    (* warn about instances where a possibly unintentionally
        conflicting name is used *)
      if IH.mem RCT.iioh v.vid then
        let rhso = IH.find RCT.iioh v.vid in
@@ -289,7 +291,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
 	   let _ = super#setPrintInstrTerminator oldpit in
 	   let _ = printComments := opc in
 	   c ++ d
-       | _ -> 
+       | _ ->
 	   if IH.mem RCT.incdecHash v.vid then
 	     (* print an post-inc/dec instead of a temp variable *)
 	     let redefid, rhsvi, b = IH.find RCT.incdecHash v.vid in
@@ -315,7 +317,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
 
  (* variable declaration *)
   method pVDecl () (v:varinfo) =
-    (* See if the name is already in the environment with a 
+    (* See if the name is already in the environment with a
        different varinfo. If so, give a warning.
        If not, add the name to the environment *)
     let _ = if (H.mem lenvHtbl v.vname) && not(self#checkVi v) then
@@ -341,7 +343,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
   (* For printing deputy annotations *)
   method pAttr (Attr (an, args) : attribute) : doc * bool =
     if not (!deputyAttrs) then super#pAttr (Attr(an,args)) else
-    match an, args with 
+    match an, args with
     | "fancybounds", [AInt i1; AInt i2] -> nil, false
         (*if !showBounds then
           dprintf "BND(%a, %a)" self#pExp (getBoundsExp i1)
@@ -398,28 +400,28 @@ class zraCilPrinterClass : cilPrinter = object (self)
         nil, false
     | _ ->
         super#pAttr (Attr (an, args))
-            
+
 
   (*** GLOBALS ***)
   method pGlobal () (g:global) : doc =       (* global (vars, types, etc.) *)
-    match g with 
+    match g with
     | GFun (fundec, l) ->
-        (* If the function has attributes then print a prototype because 
+        (* If the function has attributes then print a prototype because
         * GCC cannot accept function attributes in a definition *)
         let oldattr = fundec.svar.vattr in
         (* Always pring the file name before function declarations *)
-        let proto = 
-          if oldattr <> [] then 
-            (self#pLineDirective l) ++ (self#pVDecl () fundec.svar) 
-              ++ chr ';' ++ line 
+        let proto =
+          if oldattr <> [] then
+            (self#pLineDirective l) ++ (self#pVDecl () fundec.svar)
+              ++ chr ';' ++ line
           else nil in
         (* Temporarily remove the function attributes *)
         fundec.svar.vattr <- [];
-        let body = (self#pLineDirective ~forcefile:true l) 
+        let body = (self#pLineDirective ~forcefile:true l)
                       ++ (self#pFunDecl () fundec) in
         fundec.svar.vattr <- oldattr;
         proto ++ body ++ line
-          
+
     | GType (typ, l) ->
         self#pLineDirective ~forcefile:true l ++
           text "typedef "
@@ -431,8 +433,8 @@ class zraCilPrinterClass : cilPrinter = object (self)
           text "enum" ++ align ++ text (" " ^ enum.ename) ++
           self#pAttrs () enum.eattr ++ text " {" ++ line
           ++ (docList ~sep:(chr ',' ++ line)
-                (fun (n,i, loc) -> 
-                  text (n ^ " = ") 
+                (fun (n,i, loc) ->
+                  text (n ^ " = ")
                     ++ self#pExp () i)
                 () enum.eitems)
           ++ unalign ++ line ++ text "};\n"
@@ -452,7 +454,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
           text su1 ++ (align ++ text su2 ++ chr ' ' ++ (self#pAttrs () sto_mod)
                          ++ text n
                          ++ text " {" ++ line
-                         ++ ((docList ~sep:line (self#pFieldDecl ())) () 
+                         ++ ((docList ~sep:line (self#pFieldDecl ())) ()
                                comp.cfields)
                          ++ unalign)
           ++ line ++ text "}" ++
@@ -468,36 +470,36 @@ class zraCilPrinterClass : cilPrinter = object (self)
           ++ chr ' '
           ++ (match io.init with
             None -> nil
-          | Some i -> text " = " ++ 
-                (let islong = 
+          | Some i -> text " = " ++
+                (let islong =
                   match i with
                     CompoundInit (_, il) when List.length il >= 8 -> true
-                  | _ -> false 
+                  | _ -> false
                 in
-                if islong then 
-                  line ++ self#pLineDirective l ++ text "  " 
+                if islong then
+                  line ++ self#pLineDirective l ++ text "  "
                 else nil) ++
                 (self#pInit () i))
           ++ text ";\n"
-      
+
     (* print global variable 'extern' declarations, and function prototypes *)
     | GVarDecl (spec,vi, l) ->
         let builtins = if !msvcMode then msvcBuiltins else gccBuiltins in
-        let result = 
+        let result =
           if not !printCilAsIs && H.mem builtins vi.vname then begin
             (* Compiler builtins need no prototypes. Just print them in
                comments. *)
             text "/* compiler builtin: \n   " ++
               (self#pVDecl () vi)
             ++ text ";  */\n"
-          
+
         end else
           self#pLineDirective l ++
             (self#pVDecl () vi)
             ++ text ";\n"
         in
-        (let spec = Cilutil.pretty_to_string Logic_printer.pretty_funspec spec in 
-         if  spec = "" then nil 
+        (let spec = Cilutil.pretty_to_string Logic_printer.pretty_funspec spec in
+         if  spec = "" then nil
          else text "/*@ " ++ text spec ++ text " */\n") ++ result
 
     | GAsm (s, l) ->
@@ -510,7 +512,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
         (* also don't print the 'combiner' pragma *)
         (* nor 'cilnoremove' *)
         let suppress =
-          not !print_CIL_Input && 
+          not !print_CIL_Input &&
           not !msvcMode &&
           ((startsWith "box" an) ||
            (startsWith "ccured" an) ||
@@ -527,66 +529,66 @@ class zraCilPrinterClass : cilPrinter = object (self)
               ++ docList ~sep:(chr ',') (self#pAttrParam ()) () args
               ++ text ")"
         in
-        self#pLineDirective l 
+        self#pLineDirective l
           ++ (if suppress then text "/* " else text "")
           ++ (text "#pragma ")
           ++ d
           ++ (if suppress then text " */\n" else text "\n")
     | GAnnot _ -> text ("/* suppressed annotation */\n")
-    | GText s  -> 
-        if s <> "//" then 
+    | GText s  ->
+        if s <> "//" then
           text s ++ text "\n"
         else
           nil
 
 
-   method dGlobal (out: out_channel) (g: global) : unit = 
-     (* For all except functions and variable with initializers, use the 
+   method dGlobal (out: out_channel) (g: global) : unit =
+     (* For all except functions and variable with initializers, use the
       * pGlobal *)
-     match g with 
-       GFun (fdec, l) -> 
-         (* If the function has attributes then print a prototype because 
+     match g with
+       GFun (fdec, l) ->
+         (* If the function has attributes then print a prototype because
           * GCC cannot accept function attributes in a definition *)
          let oldattr = fdec.svar.vattr in
-         let proto = 
-           if oldattr <> [] then 
-             (self#pLineDirective l) ++ (self#pVDecl () fdec.svar) 
+         let proto =
+           if oldattr <> [] then
+             (self#pLineDirective l) ++ (self#pVDecl () fdec.svar)
                ++ chr ';' ++ line
            else nil in
          fprint out 80 (proto ++ (self#pLineDirective ~forcefile:true l));
          (* Temporarily remove the function attributes *)
          fdec.svar.vattr <- [];
-         fprint out 80 (self#pFunDecl () fdec);               
+         fprint out 80 (self#pFunDecl () fdec);
          fdec.svar.vattr <- oldattr;
          output_string out "\n"
 
      | GVar (vi, {init = Some i}, l) -> begin
-         fprint out 80 
+         fprint out 80
            (self#pLineDirective ~forcefile:true l ++
               self#pVDecl () vi
-              ++ text " = " 
-              ++ (let islong = 
+              ++ text " = "
+              ++ (let islong =
                 match i with
                   CompoundInit (_, il) when List.length il >= 8 -> true
-                | _ -> false 
+                | _ -> false
               in
-              if islong then 
-                line ++ self#pLineDirective l ++ text "  " 
-              else nil)); 
+              if islong then
+                line ++ self#pLineDirective l ++ text "  "
+              else nil));
          self#dInit out 3 i;
          output_string out ";\n"
      end
 
      | g -> fprint out 80 (self#pGlobal () g)
 
-  method pFieldDecl () fi = 
+  method pFieldDecl () fi =
     self#pLineDirective fi.floc ++
     (self#pType
        (Some (text (if fi.fname = missingFieldName then "" else fi.fname)))
-       () 
+       ()
        fi.ftype)
       ++ text " "
-      ++ (match fi.fbitfield with None -> nil 
+      ++ (match fi.fbitfield with None -> nil
       | Some i -> text ": " ++ num i ++ text " ")
       ++ self#pAttrs () fi.fattr
       ++ text ";"
@@ -596,7 +598,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
     H.clear lenvHtbl; (* new local environment *)
     (* add the arguments to the local environment *)
     List.iter (fun vi -> H.add lenvHtbl vi.vname vi) f.sformals;
-    let nf = 
+    let nf =
       if !doElimTemps
       then RCT.eliminate_temps f
       else f in
@@ -610,7 +612,7 @@ class zraCilPrinterClass : cilPrinter = object (self)
 	    ++ decls
 	    ++ line ++ line
 	    (* the body *)
-	    ++ ((* remember the declaration *) super#setCurrentFormals nf.sformals; 
+	    ++ ((* remember the declaration *) super#setCurrentFormals nf.sformals;
           let body = self#pBlock () nf.sbody in
           super#setCurrentFormals [];
           body))
@@ -655,15 +657,15 @@ type outfile =
 let outChannel : outfile option ref = ref None
 
 (* Processign of output file arguments *)
-let openFile (what: string) (takeit: outfile -> unit) (fl: string) = 
+let openFile (what: string) (takeit: outfile -> unit) (fl: string) =
   if !E.verboseFlag then
     ignore (Printf.printf "Setting %s to %s\n" what fl);
   (try takeit {fname = fl; fchan = open_out fl}
   with _ ->
     raise (Arg.Bad ("Cannot open " ^ what ^ " file " ^ fl)))
 
-let feature : featureDescr = 
-  { fd_name = "zrapp";              
+let feature : featureDescr =
+  { fd_name = "zrapp";
     fd_enabled = ref false;
     fd_description = "pretty printing with checks for name conflicts and temp variable elimination";
     fd_extraopt = [
@@ -679,8 +681,8 @@ let feature : featureDescr =
     "--zrapp_comments",
     Arg.Unit (fun _ -> printComments := true),
     "Print comments from source file in output";];
-    fd_doit = 
-    (function (f: file) -> 
+    fd_doit =
+    (function (f: file) ->
       lineDirectiveStyle := None;
       printerForMaincil := zraCilPrinter);
     fd_post_check = false

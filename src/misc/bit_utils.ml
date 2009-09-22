@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,6 +32,16 @@ let sizeofchar () = Int.of_int (bitsSizeOf charType)
 
 (** [sizeof(char* )] in bits *)
 let sizeofpointer () =  bitsSizeOf theMachine.upointType
+
+let memory_size () =
+  Int.pred
+    (Int.shift_left
+       Int.one
+       (Int.of_int
+          (8+sizeofpointer ())))
+
+let max_bit_address () = Int.pred (Int.power_two (sizeofpointer ()+7))
+let max_bit_size () = Int.power_two (7+(sizeofpointer ()))
 
 let warn_if_zero ty r =
   if r = 0 then
@@ -108,18 +118,18 @@ let sizeof_lval lv =
 let sizeof_pointed typ =
   match unrollType typ with
     | TPtr (typ,_) -> sizeof typ
-    | TArray(typ,_,_) -> sizeof typ
+    | TArray(typ,_,_,_) -> sizeof typ
     | _ ->
-        assert false
-      (*  ignore (Pretty.printf "TYPE IS: %a\n" !Ast_printer.d_type typ);
-        Int_Base.top *)
+        Kernel.abort "TYPE IS: %a (unrolled as %a)" 
+	  !Ast_printer.d_type typ
+	  !Ast_printer.d_type (unrollType typ)
 
 (** Returns the size of the type pointed by a pointer type in bytes.
     Never call it on a non pointer type. *)
 let osizeof_pointed typ =
   match unrollType typ with
     | TPtr (typ,_) -> osizeof typ
-    | TArray(typ,_,_) -> osizeof typ
+    | TArray(typ,_,_,_) -> osizeof typ
     | _ ->
         assert false (*
         Format.printf "TYPE IS: %a\n" !Ast_printer.d_type typ;
@@ -132,99 +142,93 @@ let sizeof_pointed_lval lv = sizeof_pointed (Cil.typeOfLval lv)
 (** Set of integers *)
 module IntSet = Set.Make(Int)
 
+(* -------------------------------------------------------------------------- *)
+(* --- Pretty Printing                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+type ppenv = {
+  fmt : Format.formatter ;
+  use_align : bool ;
+  rh_size : Int.t ;
+  mutable misaligned : bool ;
+}
 type bfinfo = Other | Bitfield of int64
+type fieldpart =
+  | NamedField of string * bfinfo * typ * Int.t * Int.t * Int.t
+      (* name, parameters to pretty_bits_internal for the field *)
+  | RawField of char * Int.t * Int.t
+      (* parameters for raw_bits of the raw field *)
 
-(** Pretty prints a range of bits in a type for the user.
-    Tries to find field names and array indexes, whenever possible. *)
-let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop =
-  assert (Int.le Int.zero align
-          && Int.lt align rh_size);
-  if Int.lt start Int.zero then
-    (Format.sprintf "[%sbits %a to %a]#(negative offsets)"
-       (if Cmdline.Debug.get () > 0 then "?" else "")
-       Int.pretty_s start
-       Int.pretty_s stop), true
-  else
-    let has_misaligned_fields = ref false in
-    let rec pretty_bits_internal bfinfo typ ~align ~start ~stop =
-      assert ( Int.le Int.zero align
-               && Int.lt align rh_size);
-      assert (if (Int.lt start Int.zero
-                  || Int.lt stop Int.zero) then
-                (Format.printf "start: %a stop: %a@\n"
-                   Int.pretty start
-                   Int.pretty stop;
-                 false) else true);
+type arraypart =
+  | ArrayPart of Int.t * Int.t * typ * Int.t * Int.t * Int.t
+      (* start index, stop index, typ of element , align , start, stop *)
 
-      let req_size = Int.length start stop in
-      (*    Format.printf "align:%Ld size: %Ld start:%Ld stop:%Ld req_size:%Ld@\n"
-            align size start stop req_size;*)
-      let raw_bits c start stop =
-        let cond =
-          use_align && (Int.neq (Int.pos_rem start rh_size) align
-                        || Int.neq req_size rh_size) in
-        Format.sprintf "[%sbits %a to %a]%s"
-	  (if Cmdline.Debug.get () > 0 then String.make 1 c else "")
-          Int.pretty_s start
-          Int.pretty_s stop
-          (if cond
-           then (has_misaligned_fields := true; "#")
-           else "")
-      in
-      assert (if (Int.le req_size Int.zero
-                  || Int.lt start Int.zero
-                  || Int.lt stop Int.zero) then
-                (Format.printf "req_s: %a start: %a stop: %a@\n"
-                   Int.pretty req_size
-                   Int.pretty start
-                   Int.pretty stop;
-                 false) else true);
-
-      match (unrollType typ) with
-      | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
-      | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) ->
-          let size =
-            match bfinfo with
+let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
+  assert ( Int.le Int.zero align
+           && Int.lt align env.rh_size);
+  assert (if (Int.lt start Int.zero
+              || Int.lt stop Int.zero) then
+            (Format.printf "start: %a stop: %a@\n"
+               Int.pretty start
+               Int.pretty stop;
+             false) else true);
+  
+  let req_size = Int.length start stop in
+  (*    Format.printf "align:%Ld size: %Ld start:%Ld stop:%Ld req_size:%Ld@\n"
+        align size start stop req_size;*)
+  let raw_bits c start stop =
+    let cond =
+      env.use_align && (Int.neq (Int.pos_rem start env.rh_size) align
+                        || Int.neq req_size env.rh_size) in
+    Format.fprintf env.fmt "[%sbits %a to %a]%s"
+      (if Parameters.debug_atleast 1 then String.make 1 c else "")
+      Int.pretty start
+      Int.pretty stop
+      (if cond then (env.misaligned <- true ; "#") else "")
+  in
+  assert (if (Int.le req_size Int.zero
+              || Int.lt start Int.zero
+              || Int.lt stop Int.zero) then
+            (Format.printf "req_s: %a start: %a stop: %a@\n"
+               Int.pretty req_size
+               Int.pretty start
+               Int.pretty stop;
+             false) else true);
+  
+  match (unrollType typ) with
+    | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
+    | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) ->
+        let size =
+          match bfinfo with
             | Other -> Int.of_int (bitsSizeOf typ)
             | Bitfield i -> Int.of_int64 i
-          in
-          (if Int.eq start Int.zero
-             && Int.eq size req_size then
-               (** pretty print a full offset *)
-               (if (Int.eq start align
-                    && Int.eq rh_size size) || (not use_align) then
-                  ""
-                else (has_misaligned_fields := true; "#"))
-           else
-             (** Not so readable after all...
-                Format.sprintf " &0x%Lx"
-                (Scanf.sscanf (Format.sprintf "0b%s"
-                (Int.fold
-                (fun i acc ->
-                acc^(if i<start || i>stop then "0"
-                else "1"))
-                ~inf:0L
-                ~sup:(Int.pred size)
-                ~step:1L
-                ""))
-                "%Li" (fun x ->  x)) *)
-             raw_bits 'b' start stop)
-
-      | TComp (compinfo, _) -> begin
-          let size = Int.of_int (try bitsSizeOf typ
-                                 with SizeOfError _ -> 0)
-          in
-          if (not use_align) && Int.compare req_size size = 0
-          then
-            "" (* do not print sub-fields if the size is exactly the right one
-                  and the alignement is not important *)
-          else
+        in
+        (if Int.eq start Int.zero
+           && Int.eq size req_size then
+             (** pretty print a full offset *)
+             (if not env.use_align || 
+		(Int.eq start align && Int.eq env.rh_size size) 
+	      then () 
+	      else (env.misaligned <- true ; 
+		    Format.pp_print_char env.fmt '#'))
+         else
+           raw_bits 'b' start stop)
+	  
+    | TComp (compinfo, _, _) -> begin
+        let size = Int.of_int (try bitsSizeOf typ
+                               with SizeOfError _ -> 0)
+        in
+        if (not env.use_align) && Int.compare req_size size = 0
+        then
+          () (* do not print sub-fields if the size is exactly the right one
+                and the alignement is not important *)
+        else
           let full_fields_to_print = List.fold_left
             (fun acc field ->
                let current_offset = Field (field,NoOffset) in
                let start_o,width_o = bitsOffset typ current_offset in
                let start_o,width_o = Int.of_int start_o, Int.of_int width_o in
-
+	       
                let new_start =
                  if compinfo.cstruct then
                    Int.max Int.zero (Int.sub start start_o)
@@ -238,17 +242,16 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop =
                  else stop
                in
                let new_bfinfo = match field.fbitfield with
-               | None -> Other
-               | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
+		 | None -> Other
+		 | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
                in
+	       let new_align = Int.pos_rem (Int.sub align start_o) env.rh_size in
                if Int.le new_start new_stop then
-                 let s_for_o =
-                   pretty_bits_internal new_bfinfo field.ftype
-                     ~align:(Int.pos_rem (Int.sub align start_o) rh_size)
-                     ~start:new_start
-                     ~stop:new_stop
-                 in (field.fname, s_for_o)::acc
-               else acc)
+		 NamedField( field.fname ,
+			     new_bfinfo , field.ftype , 
+			     new_align , new_start , new_stop ) :: acc
+               else 
+		 acc)
             []
             compinfo.cfields
           in
@@ -267,36 +270,45 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop =
                    else if Int.le succ_stop_o start then acc
                    else if Int.gt start_o last_field_offset then
                      (* found a hole *)
-                     ((raw_bits 'c' (last_field_offset) (Int.pred start_o)),"")
-                     ::s,
-                   succ_stop_o
-                   else s,succ_stop_o)
-                (full_fields_to_print,start)
+		     (RawField('c', last_field_offset,Int.pred start_o)::s,
+                      succ_stop_o)
+                   else 
+		     (s,succ_stop_o)
+		) 
+		(full_fields_to_print,start)
                 compinfo.cfields
             else full_fields_to_print, Int.zero
           in
           let overflowing =
-            if compinfo.cstruct then
-              if Int.le succ_last stop then
-                (raw_bits 'o' (Int.max start succ_last) stop,"")::
-                  non_covered
-              else non_covered
+            if compinfo.cstruct && Int.le succ_last stop 
+	    then RawField('o',Int.max start succ_last,stop)::non_covered
             else non_covered
           in
-          let pretty_one_field (name,s) =
-            Pretty_utils.sfprintf ".%a%s" !Ast_printer.d_ident name s in
-          match overflowing with
-          | [] -> ""
-          | [v] -> pretty_one_field v
-          | _ ->
-              Format.sprintf "{%s}"
-                (List.fold_left
-                   (fun acc v -> (pretty_one_field v)^"; "^ acc)
-                   ""
-                   overflowing)
-
+          let pretty_one_field = function
+	    | NamedField(name,bf,ftyp,align,start,stop) ->
+		Format.fprintf env.fmt ".%a" !Ast_printer.d_ident name ;
+		pretty_bits_internal env bf ftyp ~align ~start ~stop
+	    | RawField(c,start,stop) ->
+		Format.pp_print_char env.fmt '.' ;
+		raw_bits c start stop
+	  in
+	  let rec pretty_all_fields = function
+	    | [] -> ()
+	    | f::fs -> 
+		pretty_all_fields fs ; 
+		pretty_one_field f ;
+		Format.pp_print_string env.fmt "; "
+	  in
+	  match overflowing with
+	    | [] -> Format.pp_print_string env.fmt "{}"
+	    | [f] -> pretty_one_field f
+	    | fs -> 
+		Format.pp_print_char env.fmt '{' ;
+		pretty_all_fields fs ;
+		Format.pp_print_char env.fmt '}'
         end
-      | TArray (typ, _, _) ->
+
+      | TArray (typ, _, _, _) ->
           let size = Int.of_int (bitsSizeOf typ) in
           if Int.eq size Int.zero then
             raw_bits 'z' start stop
@@ -309,19 +321,16 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop =
             let new_align =
               Int.pos_rem
                 (Int.sub align (Int.mul start_case size))
-                rh_size
+                env.rh_size
             in
-            Format.sprintf
-              "[%a]%s"
-              Int.pretty_s start_case
-              (pretty_bits_internal Other
-                 typ
-                 ~align:new_align
-                 ~start:rem_start_size
-                 ~stop:rem_stop_size)
-          else
-            if Int.eq (Int.rem start rh_size) align
-              && (Int.eq (Int.rem size rh_size) Int.zero) then
+            Format.fprintf env.fmt "[%a]" Int.pretty start_case ;
+            pretty_bits_internal env Other typ
+              ~align:new_align
+              ~start:rem_start_size
+              ~stop:rem_stop_size
+	  else
+            if Int.eq (Int.rem start env.rh_size) align
+              && (Int.eq (Int.rem size env.rh_size) Int.zero) then
                 let pred_size = Int.pred size in
                 let start_full_case =
                   if Int.eq rem_start_size Int.zero then start_case
@@ -332,66 +341,67 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop =
                   else Int.pred stop_case
                 in
                 let first_part = if Int.eq rem_start_size Int.zero
-                then None
-                else
-                  Some
-                    (pretty_bits_internal Other typ ~align ~start:rem_start_size ~stop:pred_size)
+                then []
+                else [ArrayPart(start_case,start_case,
+				typ,align,rem_start_size,pred_size)]
                 in
                 let middle_part =
-                  if Int.lt
-                    (Int.sub stop_full_case start_full_case) Int.zero
-                  then None
-                  else
-                    Some (pretty_bits_internal Other typ
-                            ~align
-                            ~start:Int.zero
-                            ~stop:pred_size)
+                  if Int.lt stop_full_case start_full_case
+                  then []
+                  else [ArrayPart(start_full_case,stop_full_case,
+				  typ,align,Int.zero,pred_size)]
                 in
                 let last_part =
-                  if Int.eq rem_stop_size pred_size then None
-                  else Some (pretty_bits_internal Other typ
-                               ~align
-                               ~start:Int.zero
-                               ~stop:rem_stop_size)
+                  if Int.eq rem_stop_size pred_size 
+		  then []
+                  else [ArrayPart(stop_case,stop_case,
+				  typ,align,Int.zero,rem_stop_size)]
                 in
-                let at_least_two =
-                  match first_part,middle_part,last_part with
-                  | Some _,Some _,_|_,Some _,Some _ | Some _ ,_,Some _ -> true
-                  | _ -> false
-                in
-                let semicol = if at_least_two then "; " else "" in
-                let do_part p prefix =
-                  (match p with
-                   | None -> ""
-                   | Some s -> prefix^s^semicol)
-                in
-                Format.sprintf "%s%s%s%s%s"
-                  (if at_least_two then "{" else "")
-                  (do_part first_part
-                     (Format.sprintf "[%a]" Int.pretty_s start_case))
-                  (do_part middle_part
-                     (if Int.eq start_full_case stop_full_case then
-                        Format.sprintf "[%a]" Int.pretty_s start_full_case
-                      else Format.sprintf "[%a..%a]"
-                        Int.pretty_s start_full_case
-                        Int.pretty_s stop_full_case))
-                  (do_part last_part
-                     (Format.sprintf "[%a]" Int.pretty_s stop_case))
-                  (if at_least_two then "}" else "")
+		let do_part = function
+		  | ArrayPart(start_index,stop_index,typ,align,start,stop) ->
+		      if Int.eq start_index stop_index then
+			Format.fprintf env.fmt "[%a]" 
+			  Int.pretty start_index
+		      else
+			Format.fprintf env.fmt "[%a..%a]" 
+			  Int.pretty start_index 
+			  Int.pretty stop_index ;
+		      pretty_bits_internal env Other typ ~align ~start ~stop
+		in
+		let rec do_all_parts = function
+		  | [] -> ()
+		  | p::ps -> 
+		      do_part p ; 
+		      Format.pp_print_string env.fmt "; " ;
+		      do_all_parts ps
+		in
+		match first_part @ middle_part @ last_part with
+		  | [] -> Format.pp_print_string env.fmt "{}"
+		  | [p] -> do_part p
+		  | ps -> 
+		      Format.pp_print_char env.fmt '{' ; 
+		      do_all_parts ps ;
+		      Format.pp_print_char env.fmt '}' ; 
             else raw_bits 'a' start stop
 
-    in let r = pretty_bits_internal Other typ ~align ~start ~stop
-    in r, !has_misaligned_fields
 
-let memory_size () =
-  Int.pred
-    (Int.shift_left
-       Int.one
-       (Int.of_int
-          (8+sizeofpointer ())))
+let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
+  assert (Int.le Int.zero align
+          && Int.lt align rh_size);
+  if Int.lt start Int.zero then
+    (Format.fprintf fmt "[%sbits %a to %a]#(negative offsets)"
+       (if Parameters.debug_atleast 1 then "?" else "")
+       Int.pretty start Int.pretty stop ; true)
+  else
+    let env = {
+      fmt = fmt ;
+      rh_size = rh_size ;
+      use_align = use_align ;
+      misaligned = false ;
+    } in
+    pretty_bits_internal env Other typ ~align ~start ~stop ;
+    env.misaligned
 
-let max_bit_address () = Int.pred (Int.power_two (sizeofpointer ()+7))
-let max_bit_size () = Int.power_two (7+(sizeofpointer ()))
 
 (*
 Local Variables:

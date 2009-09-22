@@ -42,24 +42,16 @@
     @plugin development guide *)
 
 open Cil_types
+open Pretty_utils
 
-exception GotSignal of int
-
-val withTimeout : float -> (* Seconds for timeout *)
-                (int -> 'b) -> (* What to do if we have a timeout. The
-                                        * argument passed is the signal number
-                                        * received. *)
-                ('a -> 'b) -> (* The function to run *)
-                'a -> (* And its argument *)
-   'b
-
-val docHash : ?sep:Pretty.doc -> ('a -> 'b -> Pretty.doc) -> unit ->
-  (('a, 'b) Hashtbl.t) -> Pretty.doc
-
+val docHash : ?sep:sformat -> ('a,'b) formatter2 -> (('a, 'b) Hashtbl.t) formatter
 
 val hash_to_list: ('a, 'b) Hashtbl.t -> ('a * 'b) list
 
 val keys: ('a, 'b) Hashtbl.t -> 'a list
+
+(** composition of functions *)
+val ($) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
 
 (** [swap f x y] is [f y x] *)
 val swap: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
@@ -383,7 +375,9 @@ val get_globalLoc: global -> location
 val get_stmtLoc: stmtkind -> location
 
 module StringMap : Map.S with type key = String.t
-module StringSet : Set.S with type elt = String.t
+module StringSet : sig include Set.S with type elt = String.t
+    val pretty : Format.formatter ->  t -> unit
+end
 
 module type Mapl=
 sig
@@ -594,9 +588,6 @@ val pretty_list_del:
 val pretty_opt:
   (formatter -> 'a -> unit) -> formatter -> 'a option -> unit
 
-(** Flush std and err out formatter of module Format *)
-val flush_all : unit -> unit
-
 (** separator + breakable space *)
 val space_sep: string -> formatter -> unit
 
@@ -608,8 +599,6 @@ type opaque_term_env = {
   term_lhosts: term_lhost VarinfoMap.t;
   terms: term VarinfoMap.t;
   vars: logic_var VarinfoMap.t;
-  tsets_elems: tsets_elem VarinfoMap.t;
-  tsets_lhosts: tsets_lhost VarinfoMap.t;
 }
 
 (** Environment for placeholders in exp to term translation *)

@@ -1,10 +1,10 @@
-# 26 "src/ltl_to_acsl/ltllexer.mll"
+# 28 "src/ltl_to_acsl/ltllexer.mll"
  
 
   open Ltlparser
   open Ltlast
   open Lexing
- 
+
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
 
   (*let lex_error lexbuf s = ()*)
@@ -15,7 +15,7 @@
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
-    lexbuf.lex_curr_p <- 
+    lexbuf.lex_curr_p <-
       { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 
   (* Update the current location with file name and line number. *)
@@ -26,15 +26,19 @@
       | None -> pos.pos_fname
       | Some s -> s
     in
-    lexbuf.lex_curr_p <- 
+    lexbuf.lex_curr_p <-
       { pos with
 	  pos_fname = new_file;
 	  pos_lnum = if absolute then line else pos.pos_lnum + line;
 	  pos_bol = pos.pos_cnum - chars;
       }
 *)
+  exception Error of (Lexing.position * Lexing.position) * string
 
-# 38 "src/ltl_to_acsl/ltllexer.ml"
+  let raise_located loc e = raise (Error (loc, e))
+
+
+# 42 "src/ltl_to_acsl/ltllexer.ml"
 let __ocaml_lex_tables = {
   Lexing.lex_base = 
    "\000\000\215\255\216\255\077\000\152\000\219\255\002\000\162\000\
@@ -46,8 +50,8 @@ let __ocaml_lex_tables = {
     \247\005\066\006\141\006\216\006\237\255\035\007\230\255\129\000\
     \222\255\221\255\045\007\120\007\195\007\014\008\089\008\164\008\
     \239\008\058\009\133\009\208\009\027\010\102\010\177\010\252\010\
-    \071\011\146\011\221\011\040\012\131\000\254\255\012\000\255\255\
-    ";
+    \071\011\146\011\221\011\040\012\131\000\252\255\253\255\254\255\
+    \012\000\255\255";
   Lexing.lex_backtrk = 
    "\255\255\255\255\255\255\038\000\037\000\255\255\035\000\038\000\
     \038\000\255\255\255\255\255\255\255\255\255\255\022\000\021\000\
@@ -58,8 +62,8 @@ let __ocaml_lex_tables = {
     \010\000\011\000\012\000\013\000\255\255\037\000\255\255\255\255\
     \255\255\255\255\038\000\038\000\030\000\038\000\038\000\038\000\
     \038\000\038\000\038\000\038\000\038\000\038\000\032\000\038\000\
-    \038\000\038\000\038\000\031\000\255\255\255\255\003\000\255\255\
-    ";
+    \038\000\038\000\038\000\031\000\255\255\255\255\255\255\255\255\
+    \003\000\255\255";
   Lexing.lex_default = 
    "\001\000\000\000\000\000\255\255\255\255\000\000\255\255\255\255\
     \255\255\000\000\000\000\000\000\000\000\000\000\255\255\255\255\
@@ -70,8 +74,8 @@ let __ocaml_lex_tables = {
     \255\255\255\255\255\255\255\255\000\000\255\255\000\000\055\000\
     \000\000\000\000\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\255\255\255\255\255\255\024\000\000\000\255\255\000\000\
-    ";
+    \255\255\255\255\255\255\255\255\077\000\000\000\000\000\000\000\
+    \255\255\000\000";
   Lexing.lex_trans = 
    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\006\000\005\000\006\000\006\000\006\000\006\000\006\000\
@@ -80,7 +84,7 @@ let __ocaml_lex_tables = {
     \006\000\019\000\006\000\000\000\000\000\012\000\020\000\040\000\
     \025\000\024\000\013\000\016\000\000\000\015\000\011\000\014\000\
     \004\000\004\000\004\000\004\000\004\000\004\000\004\000\004\000\
-    \004\000\004\000\056\000\079\000\022\000\023\000\017\000\055\000\
+    \004\000\004\000\056\000\081\000\022\000\023\000\017\000\055\000\
     \052\000\003\000\003\000\008\000\003\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
     \003\000\003\000\007\000\003\000\003\000\003\000\003\000\003\000\
@@ -90,11 +94,11 @@ let __ocaml_lex_tables = {
     \003\000\003\000\003\000\003\000\027\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\000\000\021\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\039\000\
-    \035\000\036\000\000\000\057\000\000\000\025\000\003\000\003\000\
+    \035\000\036\000\000\000\057\000\000\000\078\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
-    \000\000\000\000\000\000\000\000\003\000\078\000\003\000\003\000\
+    \000\000\000\000\000\000\000\000\003\000\080\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
@@ -121,7 +125,7 @@ let __ocaml_lex_tables = {
     \053\000\053\000\053\000\053\000\053\000\053\000\053\000\053\000\
     \053\000\053\000\000\000\000\000\000\000\000\000\054\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
-    \003\000\255\255\000\000\077\000\000\000\000\000\000\000\000\000\
+    \003\000\255\255\000\000\079\000\000\000\000\000\000\000\000\000\
     \003\000\003\000\003\000\003\000\003\000\045\000\046\000\003\000\
     \003\000\003\000\003\000\003\000\003\000\003\000\003\000\003\000\
     \003\000\043\000\003\000\003\000\044\000\003\000\003\000\042\000\
@@ -503,7 +507,7 @@ let __ocaml_lex_tables = {
     \000\000\000\000\006\000\255\255\255\255\000\000\000\000\020\000\
     \000\000\000\000\000\000\000\000\255\255\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\014\000\078\000\000\000\000\000\000\000\014\000\
+    \000\000\000\000\014\000\080\000\000\000\000\000\000\000\014\000\
     \017\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
@@ -937,211 +941,212 @@ let rec token lexbuf =
 and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 70 "src/ltl_to_acsl/ltllexer.mll"
+# 76 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_TRUE )
-# 943 "src/ltl_to_acsl/ltllexer.ml"
+# 947 "src/ltl_to_acsl/ltllexer.ml"
 
   | 1 ->
-# 71 "src/ltl_to_acsl/ltllexer.mll"
+# 77 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_FALSE )
-# 948 "src/ltl_to_acsl/ltllexer.ml"
+# 952 "src/ltl_to_acsl/ltllexer.ml"
 
   | 2 ->
-# 72 "src/ltl_to_acsl/ltllexer.mll"
+# 78 "src/ltl_to_acsl/ltllexer.mll"
               ( LTL_LPAREN )
-# 953 "src/ltl_to_acsl/ltllexer.ml"
+# 957 "src/ltl_to_acsl/ltllexer.ml"
 
   | 3 ->
-# 73 "src/ltl_to_acsl/ltllexer.mll"
+# 79 "src/ltl_to_acsl/ltllexer.mll"
               ( LTL_RPAREN )
-# 958 "src/ltl_to_acsl/ltllexer.ml"
+# 962 "src/ltl_to_acsl/ltllexer.ml"
 
   | 4 ->
-# 76 "src/ltl_to_acsl/ltllexer.mll"
+# 82 "src/ltl_to_acsl/ltllexer.mll"
               ( LTL_IMPLIES )
-# 963 "src/ltl_to_acsl/ltllexer.ml"
+# 967 "src/ltl_to_acsl/ltllexer.ml"
 
   | 5 ->
-# 77 "src/ltl_to_acsl/ltllexer.mll"
+# 83 "src/ltl_to_acsl/ltllexer.mll"
                ( LTL_LEFT_RIGHT_ARROW )
-# 968 "src/ltl_to_acsl/ltllexer.ml"
+# 972 "src/ltl_to_acsl/ltllexer.ml"
 
   | 6 ->
-# 78 "src/ltl_to_acsl/ltllexer.mll"
+# 84 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_OR )
-# 973 "src/ltl_to_acsl/ltllexer.ml"
+# 977 "src/ltl_to_acsl/ltllexer.ml"
 
   | 7 ->
-# 79 "src/ltl_to_acsl/ltllexer.mll"
+# 85 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_AND )
-# 978 "src/ltl_to_acsl/ltllexer.ml"
+# 982 "src/ltl_to_acsl/ltllexer.ml"
 
   | 8 ->
-# 80 "src/ltl_to_acsl/ltllexer.mll"
+# 86 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_NOT )
-# 983 "src/ltl_to_acsl/ltllexer.ml"
+# 987 "src/ltl_to_acsl/ltllexer.ml"
 
   | 9 ->
-# 81 "src/ltl_to_acsl/ltllexer.mll"
+# 87 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_GLOBALLY )
-# 988 "src/ltl_to_acsl/ltllexer.ml"
+# 992 "src/ltl_to_acsl/ltllexer.ml"
 
   | 10 ->
-# 82 "src/ltl_to_acsl/ltllexer.mll"
+# 88 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_FATALLY )
-# 993 "src/ltl_to_acsl/ltllexer.ml"
+# 997 "src/ltl_to_acsl/ltllexer.ml"
 
   | 11 ->
-# 83 "src/ltl_to_acsl/ltllexer.mll"
+# 89 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_UNTIL )
-# 998 "src/ltl_to_acsl/ltllexer.ml"
+# 1002 "src/ltl_to_acsl/ltllexer.ml"
 
   | 12 ->
-# 84 "src/ltl_to_acsl/ltllexer.mll"
+# 90 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_RELEASE )
-# 1003 "src/ltl_to_acsl/ltllexer.ml"
+# 1007 "src/ltl_to_acsl/ltllexer.ml"
 
   | 13 ->
-# 85 "src/ltl_to_acsl/ltllexer.mll"
+# 91 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_NEXT )
-# 1008 "src/ltl_to_acsl/ltllexer.ml"
+# 1012 "src/ltl_to_acsl/ltllexer.ml"
 
   | 14 ->
-# 89 "src/ltl_to_acsl/ltllexer.mll"
+# 95 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_EQ )
-# 1013 "src/ltl_to_acsl/ltllexer.ml"
+# 1017 "src/ltl_to_acsl/ltllexer.ml"
 
   | 15 ->
-# 90 "src/ltl_to_acsl/ltllexer.mll"
+# 96 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_LT )
-# 1018 "src/ltl_to_acsl/ltllexer.ml"
+# 1022 "src/ltl_to_acsl/ltllexer.ml"
 
   | 16 ->
-# 91 "src/ltl_to_acsl/ltllexer.mll"
+# 97 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_GT )
-# 1023 "src/ltl_to_acsl/ltllexer.ml"
+# 1027 "src/ltl_to_acsl/ltllexer.ml"
 
   | 17 ->
-# 92 "src/ltl_to_acsl/ltllexer.mll"
+# 98 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_LE )
-# 1028 "src/ltl_to_acsl/ltllexer.ml"
+# 1032 "src/ltl_to_acsl/ltllexer.ml"
 
   | 18 ->
-# 93 "src/ltl_to_acsl/ltllexer.mll"
+# 99 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_GE )
-# 1033 "src/ltl_to_acsl/ltllexer.ml"
+# 1037 "src/ltl_to_acsl/ltllexer.ml"
 
   | 19 ->
-# 94 "src/ltl_to_acsl/ltllexer.mll"
+# 100 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_NEQ )
-# 1038 "src/ltl_to_acsl/ltllexer.ml"
+# 1042 "src/ltl_to_acsl/ltllexer.ml"
 
   | 20 ->
-# 97 "src/ltl_to_acsl/ltllexer.mll"
+# 103 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_PLUS )
-# 1043 "src/ltl_to_acsl/ltllexer.ml"
+# 1047 "src/ltl_to_acsl/ltllexer.ml"
 
   | 21 ->
-# 98 "src/ltl_to_acsl/ltllexer.mll"
+# 104 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_MINUS )
-# 1048 "src/ltl_to_acsl/ltllexer.ml"
+# 1052 "src/ltl_to_acsl/ltllexer.ml"
 
   | 22 ->
-# 99 "src/ltl_to_acsl/ltllexer.mll"
+# 105 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_DIV )
-# 1053 "src/ltl_to_acsl/ltllexer.ml"
+# 1057 "src/ltl_to_acsl/ltllexer.ml"
 
   | 23 ->
-# 100 "src/ltl_to_acsl/ltllexer.mll"
+# 106 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_STAR )
-# 1058 "src/ltl_to_acsl/ltllexer.ml"
+# 1062 "src/ltl_to_acsl/ltllexer.ml"
 
   | 24 ->
-# 101 "src/ltl_to_acsl/ltllexer.mll"
+# 107 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_MODULO)
-# 1063 "src/ltl_to_acsl/ltllexer.ml"
+# 1067 "src/ltl_to_acsl/ltllexer.ml"
 
   | 25 ->
-# 104 "src/ltl_to_acsl/ltllexer.mll"
+# 110 "src/ltl_to_acsl/ltllexer.mll"
               ( LTL_RIGHT_ARROW )
-# 1068 "src/ltl_to_acsl/ltllexer.ml"
+# 1072 "src/ltl_to_acsl/ltllexer.ml"
 
   | 26 ->
-# 105 "src/ltl_to_acsl/ltllexer.mll"
+# 111 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_DOT )
-# 1073 "src/ltl_to_acsl/ltllexer.ml"
+# 1077 "src/ltl_to_acsl/ltllexer.ml"
 
   | 27 ->
-# 106 "src/ltl_to_acsl/ltllexer.mll"
+# 112 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_LEFT_SQUARE)
-# 1078 "src/ltl_to_acsl/ltllexer.ml"
+# 1082 "src/ltl_to_acsl/ltllexer.ml"
 
   | 28 ->
-# 107 "src/ltl_to_acsl/ltllexer.mll"
+# 113 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_RIGHT_SQUARE)
-# 1083 "src/ltl_to_acsl/ltllexer.ml"
+# 1087 "src/ltl_to_acsl/ltllexer.ml"
 
   | 29 ->
-# 108 "src/ltl_to_acsl/ltllexer.mll"
+# 114 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_ADRESSE )
-# 1088 "src/ltl_to_acsl/ltllexer.ml"
+# 1092 "src/ltl_to_acsl/ltllexer.ml"
 
   | 30 ->
-# 109 "src/ltl_to_acsl/ltllexer.mll"
+# 115 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_CALL )
-# 1093 "src/ltl_to_acsl/ltllexer.ml"
+# 1097 "src/ltl_to_acsl/ltllexer.ml"
 
   | 31 ->
-# 110 "src/ltl_to_acsl/ltllexer.mll"
+# 116 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_RETURN )
-# 1098 "src/ltl_to_acsl/ltllexer.ml"
+# 1102 "src/ltl_to_acsl/ltllexer.ml"
 
   | 32 ->
-# 111 "src/ltl_to_acsl/ltllexer.mll"
+# 117 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_CALL_OR_RETURN )
-# 1103 "src/ltl_to_acsl/ltllexer.ml"
+# 1107 "src/ltl_to_acsl/ltllexer.ml"
 
   | 33 ->
-# 114 "src/ltl_to_acsl/ltllexer.mll"
+# 120 "src/ltl_to_acsl/ltllexer.mll"
                             ( comment lexbuf; token lexbuf )
-# 1108 "src/ltl_to_acsl/ltllexer.ml"
+# 1112 "src/ltl_to_acsl/ltllexer.ml"
 
   | 34 ->
-# 115 "src/ltl_to_acsl/ltllexer.mll"
+# 121 "src/ltl_to_acsl/ltllexer.mll"
                             ( newline lexbuf; token lexbuf )
-# 1113 "src/ltl_to_acsl/ltllexer.ml"
+# 1117 "src/ltl_to_acsl/ltllexer.ml"
 
   | 35 ->
-# 118 "src/ltl_to_acsl/ltllexer.mll"
+# 124 "src/ltl_to_acsl/ltllexer.mll"
                             ( token lexbuf )
-# 1118 "src/ltl_to_acsl/ltllexer.ml"
+# 1122 "src/ltl_to_acsl/ltllexer.ml"
 
   | 36 ->
-# 119 "src/ltl_to_acsl/ltllexer.mll"
+# 125 "src/ltl_to_acsl/ltllexer.mll"
                             ( newline lexbuf; token lexbuf )
-# 1123 "src/ltl_to_acsl/ltllexer.ml"
+# 1127 "src/ltl_to_acsl/ltllexer.ml"
 
   | 37 ->
-# 122 "src/ltl_to_acsl/ltllexer.mll"
+# 128 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_INT (lexeme lexbuf) )
-# 1128 "src/ltl_to_acsl/ltllexer.ml"
+# 1132 "src/ltl_to_acsl/ltllexer.ml"
 
   | 38 ->
-# 123 "src/ltl_to_acsl/ltllexer.mll"
+# 129 "src/ltl_to_acsl/ltllexer.mll"
                             ( LTL_LABEL (lexeme lexbuf) )
-# 1133 "src/ltl_to_acsl/ltllexer.ml"
+# 1137 "src/ltl_to_acsl/ltllexer.ml"
 
   | 39 ->
-# 126 "src/ltl_to_acsl/ltllexer.mll"
+# 132 "src/ltl_to_acsl/ltllexer.mll"
                             ( EOF )
-# 1138 "src/ltl_to_acsl/ltllexer.ml"
+# 1142 "src/ltl_to_acsl/ltllexer.ml"
 
   | 40 ->
-# 127 "src/ltl_to_acsl/ltllexer.mll"
-                            ( Format.printf "Illegal_character %s\n" (lexeme lexbuf);
-      (*lex_error lexbuf ("Illegal_character " ^ lexeme lexbuf) ; *)
-			      exit 1)
-# 1145 "src/ltl_to_acsl/ltllexer.ml"
+# 133 "src/ltl_to_acsl/ltllexer.mll"
+                            (
+      raise_located (loc lexbuf)
+        (Format.sprintf "Illegal_character %s\n" (lexeme lexbuf))
+    )
+# 1150 "src/ltl_to_acsl/ltllexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_token_rec lexbuf __ocaml_lex_state
 
@@ -1150,56 +1155,37 @@ and comment lexbuf =
 and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 135 "src/ltl_to_acsl/ltllexer.mll"
+# 139 "src/ltl_to_acsl/ltllexer.mll"
          ( () )
-# 1156 "src/ltl_to_acsl/ltllexer.ml"
-
-  | 1 ->
-# 136 "src/ltl_to_acsl/ltllexer.mll"
-         (  Format.printf "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) )
 # 1161 "src/ltl_to_acsl/ltllexer.ml"
 
-  | 2 ->
-# 137 "src/ltl_to_acsl/ltllexer.mll"
-         ( newline lexbuf; comment lexbuf )
+  | 1 ->
+# 140 "src/ltl_to_acsl/ltllexer.mll"
+         (  raise_located (loc lexbuf) "Unterminated_comment\n" )
 # 1166 "src/ltl_to_acsl/ltllexer.ml"
 
-  | 3 ->
-# 138 "src/ltl_to_acsl/ltllexer.mll"
-         ( comment lexbuf )
+  | 2 ->
+# 141 "src/ltl_to_acsl/ltllexer.mll"
+         ( newline lexbuf; comment lexbuf )
 # 1171 "src/ltl_to_acsl/ltllexer.ml"
+
+  | 3 ->
+# 142 "src/ltl_to_acsl/ltllexer.mll"
+         ( comment lexbuf )
+# 1176 "src/ltl_to_acsl/ltllexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_comment_rec lexbuf __ocaml_lex_state
 
 ;;
 
-# 141 "src/ltl_to_acsl/ltllexer.mll"
+# 145 "src/ltl_to_acsl/ltllexer.mll"
  
-  exception Error of ((Lexing.position * Lexing.position) option) * string
-
-  let raise_located loc e = raise (Error (Some (loc), e))
-
   let parse c =
     let lb = from_channel c in
     try
       Ltlparser.ltl token lb
-    with 
-	Parsing.Parse_error 
-      | Invalid_argument _ -> 
-	  let (a,b)=(loc lb) in 
-	    Format.print_string "LTL syntax error (" ;
-	    Format.print_string "l" ;
-	    Format.print_int a.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (a.pos_cnum-a.pos_bol) ;
-	    Format.print_string " -> l" ;
-	    Format.print_int b.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (b.pos_cnum-b.pos_bol) ;
-	    Format.print_string ")\n" ;
-	    raise_located (loc lb) "Syntax error"
-	      
-     
+    with
+	Parsing.Parse_error
+      | Invalid_argument _  -> raise_located (loc lb) "Syntax error"
 
-
-# 1206 "src/ltl_to_acsl/ltllexer.ml"
+# 1192 "src/ltl_to_acsl/ltllexer.ml"

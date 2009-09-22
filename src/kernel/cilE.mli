@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -29,7 +29,7 @@ val log_once : ('a, Format.formatter, unit, unit) format4 -> 'a
 
 (*val compact_body : Cil_types.fundec -> unit*)
 
-(* Restore correct gotos after a statement substitution *)
+(** Restore correct gotos after a statement substitution *)
 val update_gotos :
   Cil_types.stmt Cilutil.StmtMap.t -> Cil_types.block -> Cil_types.block
 
@@ -49,25 +49,43 @@ val set_syntactic_context : syntactic_context -> unit
 val get_syntactic_context : unit -> Cil_types.kinstr*syntactic_context
 
 type alarm_behavior =
-    Aignore  (* pretend that the problematic values do not happen *)
-    | Alog (* log the alarm using the global variable that has been set
-	     with set_syntactic_context, and continue,
-	     pretending that the problematic values do not happen *)
-    | Acall of (unit -> unit)
-	(* call function -- in a future version, more information will be
-	   passed to the function *)
+  | Aignore
+      (** pretend that the problematic values do not happen *)
+  | Alog 
+      (** log the alarm using the global variable that has been set
+	  with set_syntactic_context, and continue,
+	  pretending that the problematic values do not happen *)
+  | Acall of (unit -> unit)
+      (** call function -- in a future version, more information will be
+	  passed to the function *)
 
-type warn_mode = {unspecified:alarm_behavior;
-                  others: alarm_behavior;
-                  imprecision_tracing:alarm_behavior}
+type warn_mode = 
+    { unspecified: alarm_behavior;
+      others: alarm_behavior;
+      imprecision_tracing: alarm_behavior }
+      (** An argument of type [warn_mode] is required by some of the access
+	  functions in {!Db.Value  (the interface to the value analysis). This
+	  argument tells what should be done with the various messages
+	  that the value analysis emits during the call.
+
+	  Each [warn_mode] field indicates the expected treatment for one
+	  category of message. These fields are not completely fixed
+	  yet. However, you can still used functions {!warn_all_mode} and
+	  {!warn_none_mode} below when you have to provide an argument of type
+	  [warn_mode]. *)
 
 val warn_all_mode : warn_mode
+  (** Emit all messages, including alarms and informative messages
+      regarding the loss of precision. *)
+
 val warn_none_mode : warn_mode
+  (** Do not emit any message. *)
 
 val warn_div : warn_mode -> unit
 val warn_shift : warn_mode -> int -> unit
 val warn_mem_read : warn_mode -> unit
 val warn_mem_write : warn_mode -> unit
+val warn_signed_overflow : warn_mode -> unit
 val warn_index : warn_mode -> string -> unit
 val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit

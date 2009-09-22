@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,24 +21,182 @@
 
 (** This file contains the source viewer muli-tabs widget window *)
 
+(* ABP added 1 line *)
+open Pretty_source
+
 type source_tab = {
-  filename : string;
+  tab_name : string;
   select_line : int -> unit;
-  modify_font : Pango.font_description -> unit;
 }
 
+
+module Q = Qstack.Make(struct 
+                         type t = GSourceView.source_view
+                         let equal x y = x == y
+                       end)
+
+
 type t = {notebook : GPack.notebook;
-          tbl : (string,source_tab) Hashtbl.t}
+          tbl : (string,source_tab) Hashtbl.t;
+          views : Q.t; }
+
+let get_notebook t = t.notebook
+
+
+let set_current_view t n =
+  if (n>=0) && (n < (Q.length t.views)) then t.notebook#goto_page n
+      
+let prepend_source_tab w titre =
+  Parameters.debug "prepend_source_tab";
+  (* insert one extra tab in the source window w, with label *)
+  let label = GMisc.label ~text:titre () in
+  let sw = GBin.scrolled_window
+    ~vpolicy:`AUTOMATIC
+    ~hpolicy:`AUTOMATIC
+    ~packing:(fun arg -> 
+                ignore 
+                  (w.notebook#prepend_page ~tab_label:label#coerce arg))
+    ()
+  in  
+  let window = (Source_viewer.make ~packing:sw#add) in
+    (* Remove default pango menu for textviews *)
+    ignore (window#event#connect#button_press ~callback:
+	      (fun ev -> GdkEvent.Button.button ev = 3));
+    Q.add window w.views;
+    w.notebook#goto_page 0;
+    window
+
+let get_nth_page (t:t) n = 
+  let nb =  t.notebook in
+    nb#get_nth_page n (* Deprecated *)
+
+let current_page (t:t) =
+  let nb =  t.notebook in
+    nb#current_page
+
+let last_page t = Q.length t.views - 1
+	
+(* ABP and methods to manage this memory *)
+let get_current_view (t:t) =
+  let nb =  t.notebook in
+  let cp = nb#current_page in
+  Parameters.debug "get_current_view: %d" cp;
+  Q.nth cp t.views
+
+let get_current_index (t:t) =
+  let cp = t.notebook#current_page in
+  Parameters.debug "get_current_index: %d" cp; 
+  cp
+
+let delete_view (t:t) cp =
+  let nb =  t.notebook in
+    Parameters.debug "delete_current_view - cur is page %d" cp; 
+    Q.remove (Q.nth cp t.views) t.views; 
+    nb#remove_page cp;
+    let last = pred (Q.length t.views) in
+    Parameters.debug "Going to page (delete_current_view) %d" last;
+    nb#goto_page last
+
+(* delete within w the tab that contains window win *)
+let delete_view_and_loc w win () =
+  Parameters.debug "delete_view_and_loc ";
+  let idx = Q.idx win w.views in
+  delete_view w idx 
+
+let delete_current_view t =  delete_view t t.notebook#current_page
+
+let delete_all_views (t:t) =
+  Q.iter (fun _ -> t.notebook#remove_page 0) t.views;
+  Q.clear t.views
+
+let append_view (t:t) (v:GSourceView.source_view) =
+  let nb =  t.notebook in
+  let next =  Q.length t.views in
+  let text = Printf.sprintf "Page %d" next in
+  let label = GMisc.label ~text:text () in
+  let sw = GBin.scrolled_window 
+    ~vpolicy:`AUTOMATIC
+    ~hpolicy:`AUTOMATIC
+    ~packing:(fun arg ->
+		ignore
+		  (nb#append_page ~tab_label:label#coerce arg)) () in
+  sw#add (v:>GObj.widget);
+  nb#goto_page next;
+  Parameters.debug "Going to page (append_view) %d" next;
+  Q.add_at_end v t.views;
+  Parameters.debug "append_view - nb pages is %d" (Q.length t.views);
+  Parameters.debug "append_view - current nb page is %d" nb#current_page
+     
+let get_nth_view t (n:int) = Q.nth n t.views 
+
+let enable_popup (t:t) (b:bool) =
+  let nb =  t.notebook in
+    nb#set_enable_popup b
+
+let set_scrollable (t:t) (b:bool) =
+  let nb =  t.notebook in
+    nb#set_scrollable b
+
+(* get length of the current source_views list *)
+let length t = Q.length t.views
+
+
+let append_source_tab w titre =
+  Parameters.debug "append_source_tab";
+  (* insert one extra tab in the source window w, with some title *)
+  let composed_label = GPack.hbox  () in
+
+  let _ = GMisc.label ~text:(titre) ~packing:composed_label#add () in
+
+  let cbutton = GButton.button  ~packing:composed_label#add () in
+    
+    cbutton#set_use_stock false ;
+    cbutton#set_label "X";
+    cbutton#misc#set_size_request ~width:20 ~height:20 ();
+
+  let sw = GBin.scrolled_window
+    ~vpolicy:`AUTOMATIC
+    ~hpolicy:`AUTOMATIC
+    ~packing:(fun arg -> 
+		ignore
+		  (w.notebook#append_page ~tab_label:composed_label#coerce arg))
+    (*
+    ~packing:(fun arg -> 
+                ignore 
+                  (w.notebook#append_page ~tab_label:label#coerce arg)) *)
+    ()
+  in  
+  let window = (Source_viewer.make ~packing:sw#add) in
+    ignore 
+	(cbutton#connect#clicked ~callback:(fun () -> delete_view_and_loc w window ()));
+  (* Remove default pango menu for textviews *)
+    ignore (window#event#connect#button_press ~callback:
+	      (fun ev -> GdkEvent.Button.button ev = 3));
+    Q.add_at_end window w.views;
+    let last = pred (Q.length w.views) in
+    w.notebook#goto_page last;  (* THIS CALLS THE SWITCH_PAGE CALLBACK IMMEDIATELY! *)
+    window
+
+(* ABP end of additions *)
   
+let make_unpacked () = 
+  { notebook = 
+      (let nb = GPack.notebook ~scrollable:true ~show_tabs:true ()
+       in
+       nb#set_enable_popup true;nb);
+    tbl = Hashtbl.create 7;
+    views = Q.create ()
+  }
+
 let make ~packing = 
   { notebook = 
-      (let nb = GPack.notebook ~scrollable:true ~show_tabs:true ~packing () in
+      (let nb = 
+	 GPack.notebook ~scrollable:true ~show_tabs:true ~packing ()
+       in
        nb#set_enable_popup true;nb);
-    tbl = Hashtbl.create 7;}
+    tbl = Hashtbl.create 7;
+    views = Q.create ()}
     
-let set_font (t:t) fontname = 
-  Hashtbl.iter (fun _ v -> v.modify_font fontname) t.tbl
-
 (* Try to convert a source file either as UTF-8 or as locale. *)
 let try_convert s =
   try
@@ -67,9 +225,8 @@ let with_file name ~f =
     close_in ic (*; !flash_info ("Error: "^Printexc.to_string exn)*)
  with _exn -> ()
 
-let load_file fn w ~filename ~line =
-  if Cmdline.Debug.get () > 0 then
-    Format.printf "Opening file %S line %d@." filename line;
+let load_file w ~filename ~line =
+  Parameters.debug  "Opening file %S line %d" filename line;
   let filename_info = 
     begin
       try Hashtbl.find w.tbl filename  
@@ -104,9 +261,6 @@ let load_file fn w ~filename ~line =
         Buffer.reset b;
         let (buffer:GText.buffer) = window#buffer in
         buffer#set_text s;
-        let modify_font fn = window#misc#modify_font fn
-        in
-        modify_font fn;
         let select_line line = 
           w.notebook#goto_page page_num;
           let it = buffer#get_iter (`LINE (line-1)) in 
@@ -114,9 +268,7 @@ let load_file fn w ~filename ~line =
           let y = if buffer#line_count < 20 then 0.23 else 0.3 in
           window#scroll_to_mark ~use_align:true ~yalign:y `INSERT
         in
-        let result = { filename = filename;
-                       select_line = select_line;
-                       modify_font = modify_font;}
+        let result = { tab_name = filename; select_line = select_line;}
         in
         Hashtbl.add w.tbl filename result ;
         result

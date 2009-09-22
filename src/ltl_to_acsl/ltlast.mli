@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ltlast.mli,v 1.3 2008/10/13 09:21:24 uid588 Exp $ *)
+(* $Id: ltlast.mli,v 1.3 2008-10-13 09:21:24 uid588 Exp $ *)
 
 (** The abstract tree of LTL formula. Such tree is used by ltl parser/lexer before its translation into Buchi automata by the LTL2BA external tool. *)
 

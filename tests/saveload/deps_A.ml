@@ -4,7 +4,7 @@
   What it does: it add two states with a dependency relations between them.
   This configuration is saved and restore with a different parent
   state. This should test the propagation of the reset.
-  A thrid test verifies a non propagation case.
+  A third test verifies a non propagation case.
 
   Date: 16/07/2008
   Author: Julien Peeters
@@ -37,5 +37,6 @@ module StateC =
 
 let () = StateA.set 10
 let () = StateB.set (if StateA.get () = 10 then true else false)
+let () = assert (StateB.get ())
 let () = StateC.set (if StateB.get () then 10 else 5)
 		       

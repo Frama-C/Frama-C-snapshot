@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap_whole.mli,v 1.13 2008/10/03 13:09:16 uid568 Exp $ i*)
+(*i $Id: lmap_whole.mli,v 1.13 2008-10-03 13:09:16 uid568 Exp $ i*)
 
 (** Functor making map for whole values with locations as keys *)
 
@@ -106,9 +106,13 @@ sig
 
     val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 
-    (** Raises [Invalid_argument "Lmap.fold"] if one location is not aligned
+    (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
         or of size different of [size]. *)
     val fold : size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
+  (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
+     or of size different of [size].*)
+    val fold_single_bindings : 
+      size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
 
     (** [fold_base f m] calls [f] on all bases bound to non top values in [m] *)
     val fold_base : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a

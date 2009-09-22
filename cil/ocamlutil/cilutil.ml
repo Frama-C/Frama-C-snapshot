@@ -41,16 +41,15 @@
 open Cil_types
 
 (** Utility functions for Coolaid *)
-module E = Errormsg
 module H = Hashtbl
 module IH = Inthash
 
-open Pretty
-
-exception GotSignal of int
+let ($) f g x = f (g x)
 
 let swap f x y = f y x
 
+(*TODO: remove
+exception GotSignal of int
 let withTimeout (secs: float) (* Seconds for timeout *)
                 (handler: int -> 'b) (* What to do if we have a timeout. The
                                         * argument passed is the signal number
@@ -86,17 +85,19 @@ let withTimeout (secs: float) (* Seconds for timeout *)
         handler i
     | _ -> raise exc
   end
+*)
 
 (** Print a hash table *)
-let docHash ?(sep=chr ',') (one: 'a -> 'b -> doc) () (h: ('a, 'b) H.t) =
-  (H.fold
-     (fun key data acc ->
-       if acc == align then acc ++ one key data
-       else acc ++ sep ++ one key data)
-     h
-     align) ++ unalign
-
-
+let docHash ?(sep=format_of_string ",@ ") entry fmt h =
+  Format.fprintf fmt "@[" ;
+  ignore
+    (H.fold
+       (fun key data next ->
+	  if next then Format.fprintf fmt sep ;
+	  entry fmt key data ;
+	  true)
+       h false) ;
+  Format.fprintf fmt "@]"
 
 let hash_to_list (h: ('a, 'b) H.t) : ('a * 'b) list =
   H.fold
@@ -602,7 +603,7 @@ let findConfigurationInt (key: string) : int =
   match findConfiguration key with
     ConfInt i -> i
   | _ ->
-      ignore (E.warn "Configuration %s is not an integer" key);
+      (Cilmsg.warning "Configuration %s is not an integer" key);
       raise Not_found
 
 let useConfigurationInt (key: string) (f: int -> unit) =
@@ -613,7 +614,7 @@ let findConfigurationString (key: string) : string =
   match findConfiguration key with
     ConfString s -> s
   | _ ->
-      ignore (E.warn "Configuration %s is not a string" key);
+      (Cilmsg.warning "Configuration %s is not a string" key);
       raise Not_found
 
 let useConfigurationString (key: string) (f: string -> unit) =
@@ -625,7 +626,7 @@ let findConfigurationBool (key: string) : bool =
   match findConfiguration key with
     ConfBool b -> b
   | _ ->
-      ignore (E.warn "Configuration %s is not a boolean" key);
+      (Cilmsg.warning "Configuration %s is not a boolean" key);
       raise Not_found
 
 let useConfigurationBool (key: string) (f: bool -> unit) =
@@ -636,7 +637,7 @@ let findConfigurationList (key: string) : configData list  =
   match findConfiguration key with
     ConfList l -> l
   | _ ->
-      ignore (E.warn "Configuration %s is not a list" key);
+      (Cilmsg.warning "Configuration %s is not a list" key);
       raise Not_found
 
 let useConfigurationList (key: string) (f: configData list -> unit) =
@@ -667,7 +668,7 @@ let saveConfiguration (fname: string) =
 
       | ConfString s ->
           if String.contains s '"' then
-            E.s (E.unimp "Guilib: configuration string contains quotes");
+            (Cilmsg.fatal "Guilib: configuration string contains quotes");
           Buffer.add_char buff '"';
           Buffer.add_string buff s;
           Buffer.add_char buff '"'; (* '"' *)
@@ -682,14 +683,14 @@ let saveConfiguration (fname: string) =
   in
   try
     let oc = open_out fname in
-    ignore (E.log "Saving configuration to %s\n" (absoluteFilename fname));
+    (Cilmsg.feedback "Saving configuration to %s\n" (absoluteFilename fname));
     H.iter (fun k c ->
       output_string oc (k ^ "\n");
       output_string oc ((configToString c) ^ "\n"))
       configurationData;
     close_out oc
   with _ ->
-    ignore (E.warn "Cannot open configuration file %s\n" fname)
+    (Cilmsg.warning "Cannot open configuration file %s\n" fname)
 
 
 (** Make some regular expressions early *)
@@ -725,7 +726,7 @@ let loadConfiguration (fname: string) : unit =
         incr idx;
         let rec loop (acc: configData list) : configData list =
           if !idx >= l then begin
-            ignore (E.warn "Non-terminated list in configuration %s" s);
+            (Cilmsg.warning "Non-terminated list in configuration %s" s);
             raise Not_found
           end;
           if String.get s !idx = ']' then begin
@@ -736,7 +737,7 @@ let loadConfiguration (fname: string) : unit =
         in
         ConfList (loop [])
       end else begin
-        ignore (E.warn "Bad configuration element in a list: %s\n"
+        (Cilmsg.warning "Bad configuration element in a list: %s\n"
                   (String.sub s !idx (l - !idx)));
         raise Not_found
       end
@@ -745,7 +746,7 @@ let loadConfiguration (fname: string) : unit =
   in
   (try
     let ic = open_in fname in
-    ignore (E.log "Loading configuration from %s\n" (absoluteFilename fname));
+    (Cilmsg.feedback "Loading configuration from %s\n" (absoluteFilename fname));
     (try
       while true do
         let k = input_line ic in
@@ -793,9 +794,12 @@ let resetSymbols () =
 
 
 let dumpSymbols () =
-  ignore (E.log "Current symbols\n");
-  IH.iter (fun i k -> ignore (E.log " %s -> %d\n" k i)) symbolNames;
-  ()
+  begin
+    let pp_map fmt map =
+      IH.iter (fun i k -> Format.fprintf fmt " %s -> %d\n" k i) map
+    in
+    Cilmsg.result "Current symbols\n%a" pp_map symbolNames ;
+  end
 
 let newSymbol (n: string) : symbol =
   assert(not (H.mem registeredSymbolNames n));
@@ -814,7 +818,7 @@ let registerSymbolName (n: string) : symbol =
 (** Register a range of symbols. The mkname function will be invoked for
  * indices starting at 0 *)
 let registerSymbolRange (count: int) (mkname: int -> string) : symbol =
-  if count < 0 then E.s (E.bug "registerSymbolRange: invalid counter");
+  if count < 0 then (Cilmsg.fatal "registerSymbolRange: invalid counter");
   let first = !nextSymbolId in
   nextSymbolId := !nextSymbolId + count;
   symbolRangeNaming :=
@@ -834,7 +838,7 @@ let symbolName (id: symbol) : string =
       IH.add symbolNames id n;
       n
     with Not_found ->
-      ignore (E.warn "Cannot find the name of symbol %d" id);
+      (Cilmsg.warning "Cannot find the name of symbol %d" id);
       "symbol" ^ string_of_int id
 
 (************************************************************************)
@@ -908,13 +912,17 @@ let rec get_stmtLoc = function
       (match b.bstmts with
       | [] -> locUnknown
       | stmt :: _ -> get_stmtLoc stmt.skind)
-  | UnspecifiedSequence ((s,_,_)::_) -> get_stmtLoc s.skind
+  | UnspecifiedSequence ((s,_,_,_)::_) -> get_stmtLoc s.skind
   | UnspecifiedSequence [] -> locUnknown
   | TryFinally (_, _, l) -> l
   | TryExcept (_, _, _, l) -> l
 
 module StringMap = Map.Make(String)
-module StringSet = Set.Make(String)
+module StringSet = struct
+  include Set.Make(String)
+  let pretty fmt s = iter (fun x -> Format.fprintf fmt "%s " x) s
+end
+
 
 module GenericMapl (FX: Map.OrderedType) =
 struct
@@ -1167,7 +1175,7 @@ module FieldinfoSet = Set.Make(FieldinfoComparable)
 module FieldinfoMap = Map.Make(FieldinfoComparable)
 
 let pTypeSig : (typ -> typsig) ref =
-  ref (fun _ -> E.s (E.bug "pTypeSig not initialized"))
+  ref (fun _ -> (Cilmsg.fatal "pTypeSig not initialized"))
 
 module TypeComparable = struct
   type t = typ
@@ -1208,7 +1216,7 @@ let rec compare_constant c1 c2 =
        (CInt64 _ | CStr _ | CWStr _ | CChr _ | CReal _) -> -1
 
 and compare_exp e1 e2 =
-  match e1,e2 with
+  match e1.enode,e2.enode with
       Const c1, Const c2 -> compare_constant c1 c2
     | Lval l1, Lval l2 -> compare_lval l1 l2
     | SizeOf t1, SizeOf t2 -> compare_typ t1 t2
@@ -1292,11 +1300,6 @@ end
 
 module LvalSet = Set.Make(LvalComparable)
 
-let flush_all () =
-  Format.printf "@?";
-  Format.eprintf "@?"
-
-
 let out_some v = match v with
 | None -> assert false
 | Some v -> v
@@ -1305,8 +1308,6 @@ type opaque_term_env = {
   term_lhosts: term_lhost VarinfoMap.t;
   terms: term VarinfoMap.t;
   vars: logic_var VarinfoMap.t;
-  tsets_elems: tsets_elem VarinfoMap.t;
-  tsets_lhosts: tsets_lhost VarinfoMap.t;
 }
 
 type opaque_exp_env = {

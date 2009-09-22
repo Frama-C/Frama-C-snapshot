@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -87,7 +87,7 @@ module BoolInfo = struct
                 end
             | _ -> None
         end
-    | _ -> assert false
+    | _ -> Sparecode_params.fatal "this call is not a call"
 
   let inst_visible fm stmt =
     match stmt.Cil_types.skind with
@@ -97,7 +97,8 @@ module BoolInfo = struct
         | _ ->
             let stmt_key = PdgIndex.Key.stmt_key stmt in
             let visible = Marks.key_visible fm stmt_key in
-                Debug.debug 2 "[sparecode] inst_visible : %a -> %s@\n"
+                Sparecode_params.debug ~level:3 
+                  "[sparecode] inst_visible : %a -> %s@\n"
                   !Db.Pdg.pretty_key stmt_key 
                   (if visible then "true" else "false");
               visible

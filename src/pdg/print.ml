@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -108,42 +108,42 @@ module Printer = struct
             in
               (`Shape `Box) , color_decl , txt
         | K.SigKey k ->
-            let txt = Cil.fprintf_to_string "%a" S.pretty_key k in
+            let txt = Pretty_utils.sfprintf "%a" S.pretty_key k in
             let color = match k with | S.Out _ -> color_out | _ ->  color_in in
               (`Shape `Box), color, txt
         | K.Stmt s ->
             let sh, txt = match s.skind with
               | Switch (exp,_,_,_) | If (exp,_,_,_) ->
-                  let txt = Cil.fprintf_to_string "%a" !Ast_printer.d_exp exp in
+                  let txt = Pretty_utils.sfprintf "%a" !Ast_printer.d_exp exp in
                     (`Shape `Diamond), txt
               | Loop _ ->
                   (`Shape `Doublecircle), "while"
               | Block _ | UnspecifiedSequence _ ->
                   (`Shape `Doublecircle), "{}"
               | Goto _ | Break _ | Continue _ ->
-                  let txt = Cil.fprintf_to_string "%a"
+                  let txt = Pretty_utils.sfprintf "%a"
                               (Cil.defaultCilPrinter#pStmtKind s) s.skind
                   in (`Shape `Doublecircle), txt
               | Return _ | Instr _ ->
-                  let txt = Cil.fprintf_to_string "%a"
+                  let txt = Pretty_utils.sfprintf "%a"
                               (Cil.defaultCilPrinter#pStmtKind s) s.skind in
                     sh_box, txt
               | _ -> sh_box, "???"
             in sh, color_stmt, txt
         (* | K.Annot _ ->
-            let txt = Cil.fprintf_to_string "%a" pretty_key key in
+            let txt = Pretty_utils.sfprintf "%a" pretty_key key in
             (`Shape `Doublecircle), color_annot, txt *)
         | K.CallStmt call ->
             let call_stmt = K.call_from_id call in
-            let txt = Cil.fprintf_to_string "%a"
+            let txt = Pretty_utils.sfprintf "%a"
                         (Cil.defaultCilPrinter#pStmtKind call_stmt)
                         call_stmt.skind
             in sh_box, color_call, txt
         | K.SigCallKey (_call, sgn) ->
-            let txt = Cil.fprintf_to_string "%a" S.pretty_key sgn in
+            let txt = Pretty_utils.sfprintf "%a" S.pretty_key sgn in
               sh_box, color_elem_call, txt
         | K.Label _ ->
-            let txt = Cil.fprintf_to_string "%a" pretty_key key in
+            let txt = Pretty_utils.sfprintf "%a" pretty_key key in
               sh_box, color_stmt, txt
     in sh :: col :: [`Label ( String.escaped txt)]
 
@@ -156,7 +156,7 @@ module Printer = struct
       | None -> attrib
       | Some z ->
           let txt = 
-            Cil.fprintf_to_string "@[<h 1>%a@]" Locations.Zone.pretty z in
+            Pretty_utils.sfprintf "@[<h 1>%a@]" Locations.Zone.pretty z in
           (`Label txt) :: attrib
     in
     let attrib =
@@ -183,7 +183,7 @@ module Printer = struct
           let call_stmt = K.call_from_id call in
           let name = "Call"^(string_of_int call_stmt.sid) in
           let call_txt =
-            Cil.fprintf_to_string "%a"
+            Pretty_utils.sfprintf "%a"
               (fun fmt ->
                  Cil.defaultCilPrinter#pStmtKind call_stmt fmt
               )

@@ -75,9 +75,6 @@
  *
  *)
 
-open Pretty
-
-
 (* We often need to concatenate sequences and using lists for this purpose is 
  * expensive. So we define a kind of "concatenable lists" that are easier to 
  * concatenate *)
@@ -165,15 +162,17 @@ let rec rev (revelem: 'a -> 'a) = function
   | CConsR (l, x) -> CConsL (x, rev revelem l)
   | CSeq (l1, l2) -> CSeq (rev revelem l2, rev revelem l1)
 
-
-let docCList (sep: doc) (doone: 'a -> doc) () (dl: 'a clist) = 
-  fold_left 
-    (fun (acc: doc) (elem: 'a) -> 
-      let elemd = doone elem in
-      if acc == nil then elemd else acc ++ sep ++ elemd)
-    nil
-    dl
-
+let docCList sep elt fmt xs =
+  begin
+    Format.fprintf fmt "@[" ;
+    ignore (fold_left
+	      (fun next e ->
+		 if next then Format.fprintf fmt sep ;
+		 elt fmt e ;
+		 true)
+	      false xs) ;
+    Format.fprintf fmt "@]" ;
+  end
     
 (* let debugCheck (lst: 'a clist) : unit =*)
 (*   (* use a hashtable to store values encountered *)*)
@@ -191,33 +190,8 @@ type boxedInt =
   | BI of int
   | SomethingElse
 
-let d_boxedInt () b =
+let d_boxedInt fmt b =
   match b with
-  | BI(i) -> (dprintf "%d" i)
-  | SomethingElse -> (text "somethingElse")
+  | BI(i) -> Format.fprintf fmt "%d" i
+  | SomethingElse -> Format.fprintf fmt "somethingElse"
 
-
-(* sm: some simple tests of CLists 
-let testCList () : unit =
-begin
-  (trace "sm" (dprintf "in testCList\n"));
-
-  let clist1 = (fromList [BI(1); BI(2); BI(3)]) in
-  (trace "sm" (dprintf "length of clist1 is %d\n"
-                       (length clist1) ));
-
-  let flattened = (toList clist1) in
-  (trace "sm" (dprintf "flattened: %a\n"
-                       (docList ~sep:(chr ',' ++ break) (d_boxedInt ()))
-                       flattened));
-
-
-end
-1) in
-  (trace "sm" (dprintf "flattened: %a\n"
-                       (docList ~sep:(chr ',' ++ break) (d_boxedInt ()))
-                       flattened));
-
-
-end
-*)

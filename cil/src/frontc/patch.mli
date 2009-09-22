@@ -42,4 +42,5 @@
 (* patch.mli *)
 (* interface for patch.ml *)
 
+val verbose : bool
 val applyPatch : Cabs.file -> Cabs.file -> Cabs.file

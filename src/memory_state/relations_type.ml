@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -111,7 +111,7 @@ module Cluster = struct
     in
     assert (if not (has_information c)
 	    then begin
-	      Cil.warn "Internal error while creating cluster %a@."
+	      Cil.warning "Internal error while creating cluster %a@."
 		pretty c;
 	      false
 	    end
@@ -161,13 +161,9 @@ module Cluster = struct
     try
       H.find rehash_table c
     with Not_found ->
-      (* [JS -> PC] does not work if c.id or !cluster_counter is negative.
-	 See at the top of ocamlgraph/src/blocks.ml for a correct 
-	 version ;-) *) 
-      cluster_counter := max c.id !cluster_counter;
+      cluster_counter := Extlib.max_cpt c.id !cluster_counter;
       let c' =
-	{ c with
-	    contents =
+	{ c with contents =
 	    V_Offsetmap.Datatype.rehash c.contents;
 	    rel = Relation_between.Datatype.rehash c.rel;
 	    virtual_to_real = Location_Bits.Datatype.rehash c.virtual_to_real }
@@ -175,18 +171,18 @@ module Cluster = struct
       H.add rehash_table c c';
       c'
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype = 
+    Project.Datatype.Register
       (struct
 	 type t = tt
 	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let copy _ = assert false (* TODO *)
 	 let name = "Cluster"
        end)
-    let () = 
-      register_comparable ~compare ~equal ~hash ();
-      Project.register_after_load_hook (fun () -> H.clear rehash_table)
-  end
+  let () =
+    Datatype.register_comparable ~compare ~equal ~hash ();
+    Project.register_after_load_hook (fun () -> H.clear rehash_table)
 
 end
 
@@ -229,16 +225,16 @@ struct
 
   let id = "Cluster_info"
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype = 
+    Project.Datatype.Register
       (struct
 	 type t = cluster_info
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name = id
        end)
-    let () = register_comparable ~hash ~equal ()
-  end
+  let () = Datatype.register_comparable ~hash ~equal ()
 
   let project _ = assert false
 
@@ -255,7 +251,10 @@ struct
   let defaultall _base = No_cluster
 
   let cardinal_less_than _ = assert false
-  let cardinal_zero_or_one _ = assert false
+  let cardinal_zero_or_one = function
+      Cluster _ -> true
+    | Bottom_cluster -> assert false
+    | No_cluster -> false
 
   let link _ = assert false (* Not implemented yet. *)
   let narrow _ = assert false (* Not implemented yet. *)
@@ -373,32 +372,21 @@ let empty_tt =
     all_clusters = ClusterSet.empty}
 
 let index_cluster_into_participation_map cluster pmap =
-  let copy_loc lc _ acc =
+  let copy_loc loc _ acc =
 (*    Format.printf "copy_loc size:%a@\n" Int_Base.pretty lc.Cluster.size;*)
-    Location_Bits.fold_enum
-      (fun loc acc ->
-         Participation_Map.add_whole
-           (make_loc loc lc.size)
-           (Cluster cluster)
-           acc)
-      lc.loc
-      acc
+    Participation_Map.add_whole loc (Cluster cluster) acc
   in
-  Relation_between.fold
+  Relation_between.fold_single_bindings
     ~size:cluster.Cluster.size
     copy_loc
     cluster.Cluster.rel
     pmap
 
 let remove_cluster_from_participation_map cluster pmap =
-  let copy_loc lc _ acc =
-    Location_Bits.fold_enum
-      (fun loc acc ->
-         Participation_Map.remove_whole (make_loc loc lc.size) acc)
-      lc.loc
-      acc
+  let copy_loc loc _ acc =
+    Participation_Map.remove_whole loc acc
   in
-  Relation_between.fold
+  Relation_between.fold_single_bindings
     ~size:cluster.Cluster.size
     copy_loc
     cluster.Cluster.rel
@@ -577,7 +565,7 @@ let join (m1 : tt) (m2 : tt) =
 (*      if cluster1.Cluster.id = cluster2.Cluster.id then ((*variables de cluster2*),cluster2)::acc
       else -- optimisation qui nécessite de réfléchir pour être activée *)
         let h = HInt.create 7 in
-          Relation_between.fold
+          Relation_between.fold_single_bindings
             ~size:cluster1.Cluster.size
             (fun loc1 v1 _acc ->
                let v2 =
@@ -622,6 +610,7 @@ let join (m1 : tt) (m2 : tt) =
                 List.fold_left
                   (fun acc loc ->
                      Location_Bits.fold_enum
+		       ~split_non_enumerable:(-1)
                        (fun loc_no_size acc ->
                           let loc = make_loc loc_no_size loc.size in
                           let v = Relation_between.find
@@ -684,7 +673,8 @@ module type Model_S = sig
   val is_reachable : t -> bool
   val pretty : Format.formatter -> t -> unit
   val pretty_without_null : Format.formatter -> t -> unit
-  val pretty_filter : Format.formatter -> t -> Zone.t -> unit
+  val pretty_filter : 
+    Format.formatter -> t -> Zone.t -> (Base.t -> bool) -> unit
   val join : t -> t -> t
   val find : with_alarms:CilE.warn_mode -> t -> location -> Location_Bytes.t
   val find_unspecified : with_alarms:CilE.warn_mode -> t -> location ->
@@ -707,6 +697,7 @@ module type Model_S = sig
   val drop_relations : t -> t
   val filter_base : (Base.t -> bool) -> t -> t
   val clear_state_from_locals : Cil_types.fundec -> t -> t
+  val uninitialize_locals: Cil_types.block list -> t -> t
   val compute_actual_final_from_generic :
     t -> t -> Zone.t -> Model.instanciation -> t*Location_Bits.Top_Param.t
   val is_included_by_location_enum :  t -> t -> Zone.t -> bool
@@ -728,14 +719,14 @@ module type Model_S = sig
     modu:Int.t ->
     state:t -> t
 
-  val paste_offsetmap : 
+  val paste_offsetmap :
     Cvalue_type.V_Offsetmap.t -> Location_Bits.t -> Int.t -> Int.t -> t -> t
   val copy_paste : location  -> location -> t -> t
-  val copy_from_virtual : 
+  val copy_from_virtual :
     location ->
     Ival.t ->
     Int.t -> t -> Cvalue_type.V_Offsetmap.t
-  val copy_offsetmap : 
+  val copy_offsetmap :
     Locations.location -> t -> Cvalue_type.V_Offsetmap.t option
 end
 
@@ -751,21 +742,22 @@ module Model : Model_S = struct
 
   let pretty fmt (x,y) =
     Model.pretty fmt x;
-    if Cmdline.Debug.get () > 0 then pretty_tt fmt y
+    if Parameters.Debug.get () > 0 then pretty_tt fmt y
 
   let pretty_without_null fmt (x,y) =
     Model.pretty_without_null fmt x;
-    if Cmdline.Debug.get () > 0 then pretty_tt fmt y
+    if Parameters.Debug.get () > 0 then pretty_tt fmt y
 
-  let pretty_filter fmt (x,_y) outs =
-    Model.pretty_filter fmt x outs
+  let pretty_filter fmt (x,_y) outs refilter =
+    Model.pretty_filter fmt x outs refilter
 
   let join (a,b as f) (c,d as s) =
     let result =
       if not (is_reachable f) then s
       else if not (is_reachable s) then f
       else
-        Model.join a c, join b d
+	let _l,value_state = Model.join a c in
+	value_state, join b d
     in
     (*Format.printf "f:%a@\ns:%a@\nresult:%a@\n"
       pretty f pretty s pretty result;*)
@@ -878,13 +870,14 @@ module Model : Model_S = struct
     try
       Cilutil.out_some
 	(Location_Bits.fold_enum
+	    ~split_non_enumerable:(-1)
 	   treat_one_exact_location
 	   sub_left_loc.loc
 	   None)
     with Location_Bits.Error_Top -> raise Use_Main_Memory
 
   let rehash ((a, b as _r:t)) =
-(*    Format.printf "rehashing %a@." pretty r;  *)
+(*    Format.printf "rehashing %a@." pretty r;*)
     Model.Datatype.rehash a,
     { participation_map =
 	Participation_Map.Datatype.rehash b.participation_map;
@@ -912,11 +905,25 @@ module Model : Model_S = struct
     List.fold_left cleanup result formals,
     filter_base_tt (fun v -> not (Base.is_formal_or_local v fundec)) r
 (*
-    List.iter cleanup 
+    List.iter cleanup
       filter_base
       (fun v -> not (Base.is_formal_or_local v fundec))
       state
 *)
+
+  let uninitialize_locals blocks (state,r) =
+    let locals =
+      List.fold_left
+        (fun acc block ->
+           List.map Locations.loc_of_varinfo block.Cil_types.blocals @ acc)
+        [] blocks
+    in
+    let state' =
+      List.fold_left Cvalue_type.Model.add_binding_unspecified state locals
+    in
+    let r' = filter_base_tt (fun v -> not (List.exists
+                                             (Base.is_block_local v) blocks)) r
+    in (state', r')
 
   let compute_actual_final_from_generic (a,_a') (b,_b') loc instanciation =
     let a,b = Model.compute_actual_final_from_generic a b loc instanciation in
@@ -978,6 +985,7 @@ module Model : Model_S = struct
     in
     try
       let r = Location_Bits.fold_enum
+	    ~split_non_enumerable:(-1)
         treat_one_exact_location
         loc.loc
         V.bottom
@@ -1182,7 +1190,7 @@ module Model : Model_S = struct
 	              let new_offsets =
 		        Ival.sub offsets_in_loc offsets
 		      in
-(*		      Format.printf "treat_cluster: %a %a@." 
+(*		      Format.printf "treat_cluster: %a %a@."
 			Base.pretty base
 			V.pretty value; *)
                       V_Offsetmap.update_ival
@@ -1236,6 +1244,7 @@ module Model : Model_S = struct
 
   let reduce_binding (main, map as _state) left value =
     assert (Locations.valid_cardinal_zero_or_one left);
+    let left = Locations.valid_part left in
     match left.size with
     | Int_Base.Bottom -> assert false
     | Int_Base.Value _ when
@@ -1244,6 +1253,8 @@ module Model : Model_S = struct
 	   all of which are in the same cluster *)
 	begin match Participation_Map.find map.participation_map left with
 	| Cluster c ->
+(*	    Format.printf "cluster: %a@." 	      
+	      Cluster.pretty c ; *)
 	    let left_offset =
 	      Relation_between.find ~with_alarms:CilE.warn_none_mode c.Cluster.rel left
 	    in
@@ -1252,11 +1263,11 @@ module Model : Model_S = struct
 	      let reduced_value =
 		V.add_untyped (Int_Base.minus_one) value offs
 	      in
-	      Model.add_binding ~with_alarms:CilE.warn_none_mode ~exact:true
+	      Model.reduce_binding ~with_alarms:CilE.warn_none_mode
 		acc loc reduced_value
 	    in
 	    let improved_main =
-	      Relation_between.fold
+	      Relation_between.fold_single_bindings
 		~size:c.Cluster.size
 		update_loc
 		c.Cluster.rel
@@ -1264,12 +1275,12 @@ module Model : Model_S = struct
 	    in
 	    improved_main, map
 	| _ ->
-	    Model.add_binding ~with_alarms:CilE.warn_none_mode ~exact:true
+	    Model.reduce_binding ~with_alarms:CilE.warn_none_mode
 	      main left value,
 	    map
 	end
     | _ ->
-	Model.add_binding ~with_alarms:CilE.warn_none_mode ~exact:true
+	Model.reduce_binding ~with_alarms:CilE.warn_none_mode
 	  main left value,
 	map
 
@@ -1334,6 +1345,7 @@ module Model : Model_S = struct
 		      left
 		      offset
 		      (Location_Bits.fold_enum
+			  ~split_non_enumerable:(-1)
 			  (fun loc acc ->
 			    let locsize = Locations.make_loc loc right.size
 			    in
@@ -1412,7 +1424,8 @@ module Model : Model_S = struct
 		    in
 		    assert (V.cardinal_zero_or_one delta);
 		    let rel =
-		      Relation_between.fold ~size
+		      Relation_between.fold_single_bindings			
+			~size
 			(fun loc v acc ->
 			  let new_v =
 			    V.add_untyped Int_Base.one
@@ -1422,6 +1435,8 @@ module Model : Model_S = struct
 			  Relation_between.add_whole loc new_v acc)
 			cleft.Cluster.rel
 			c.Cluster.rel
+(* NB: this wouldn't have to be the _single_binding kind of fold but
+   add_whole currently doesn't support non-exact locations *)
 		    in
 (*		    Format.printf "rel:%a@."
 		      Relation_between.pretty rel;*)
@@ -1564,16 +1579,16 @@ module Model : Model_S = struct
 
   type tt = t
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype =
+    Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name = "Relations_type.Model.State"
        end)
-    let () = register_comparable ~hash ~equal ()
-  end
+  let () = Datatype.register_comparable ~hash ~equal ()
 
 end
 

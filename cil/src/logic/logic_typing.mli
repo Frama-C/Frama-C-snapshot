@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -45,17 +45,17 @@ module Make
       val find_label : string -> stmt ref
 
       val remove_logic_function : string -> unit
+      val remove_logic_type: string -> unit
+      val remove_logic_ctor: string -> unit
+
       val add_logic_function: logic_info -> unit
-(*
-      val add_predicate: predicate_info -> unit
-*)
       val add_logic_type: string -> logic_type_info -> unit
       val add_logic_ctor: string -> logic_ctor_info -> unit
 
-      val find_logic_function: string -> logic_info
 (*
-      val find_predicate: string -> predicate_info
+      val find_logic_function: string -> logic_info
 *)
+      val find_all_logic_functions : string -> Cil_types.logic_info list
       val find_logic_type: string -> logic_type_info
       val find_logic_ctor: string -> logic_ctor_info
 

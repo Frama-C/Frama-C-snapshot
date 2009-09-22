@@ -131,7 +131,9 @@ val iter: ('a -> unit) -> 'a clist -> unit
 (** Reverse a clist. The first function reverses an element.  *)
 val rev: ('a -> 'a) -> 'a clist -> 'a clist
 
+open Pretty_utils
+
 (** A document for printing a clist (similar to [docList]) *)
-val docCList: 
-    Pretty.doc -> ('a -> Pretty.doc) -> unit -> 'a clist -> Pretty.doc
+val docCList: sformat -> 'a formatter -> 'a clist formatter
+
  

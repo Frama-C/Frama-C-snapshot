@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -301,8 +301,8 @@ struct
     in
     (intersect V.meet compute_origin_meet),
     (fun x y -> let r = intersect V.narrow compute_origin_narrow x y in
-     (*Format.printf "Map_Lattice.narrow %a and %a ===> %a@\n"
-       pretty x pretty y pretty r;*)
+(*     Format.printf "Map_Lattice.narrow %a and %a ===> %a@\n"
+       pretty x pretty y pretty r;  *)
      r)
 
   let widen wh m1 m2 =
@@ -463,7 +463,7 @@ struct
 	in true
       with Not_found -> false
 
-  (** Remark: the cardinal of a map [m] is the sum of the cardinals of the
+  (** the cardinal of a map [m] is the sum of the cardinals of the
       values bound to a key in [m] *)
   let cardinal_less_than m n =
     match m with
@@ -471,6 +471,18 @@ struct
     | Map m ->
 	M.fold
 	  (fun _base v card -> card + V.cardinal_less_than v (n-card))
+	  m
+	  0
+
+  let splitting_cardinal_less_than ~split_non_enumerable m n =
+    match m with
+    | Top _ -> raise Not_less_than
+    | Map m ->
+	M.fold
+	  (fun _base v card -> 
+	    card + 
+	      (V.splitting_cardinal_less_than ~split_non_enumerable
+	      v  (n-card) ))
 	  m
 	  0
 
@@ -551,7 +563,7 @@ struct
     | Map m ->
 	M.fold f m acc
 
-  let fold_enum f m acc =
+  let fold_enum ~split_non_enumerable f m acc =
     match m with
     | Top _ -> raise Error_Top
     | Map m ->
@@ -562,7 +574,7 @@ struct
                  let one_loc = inject k one_ival in
                  f one_loc acc
 	       in
-	       V.fold_enum g vl acc)
+	       V.fold_enum ~split_non_enumerable g vl acc)
             m
             acc
         with V.Error_Top -> raise Error_Top
@@ -570,16 +582,16 @@ struct
   let fold_enum_by_base f m acc =
     fold_i (fun k v acc -> f (inject k v) acc) m acc
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype =
+    Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name = Project.Datatype.extend_name "map_lattice" V.Datatype.name
        end)
-    let () = register_comparable ~hash ~equal ()
-  end
+  let () = Datatype.register_comparable ~hash ~equal ()
 
 end
 

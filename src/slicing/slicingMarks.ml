@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,7 +25,7 @@
 
 (**/**)
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 
 let debug = false
 
@@ -78,14 +78,38 @@ end = struct
 
   type t = T.t_mark
 
+  
+  let spare = T.Spare
+
+  (* Internal constructor *)
+  let create_adc a d c =  T.Cav (D.make ~a ~d ~c ())
+    
   let bottom = T.Cav D.bottom
   let top = T.Cav D.top
-  let spare = T.Spare
-  let mk_adc a d c =  T.Cav (D.make ~a ~d ~c ())
-  let data = T.Cav (D.make ~d:true ())
-  let ctrl = T.Cav (D.make ~c:true ())
-  let addr = T.Cav (D.make ~a:true ())
+    
+  let addr = create_adc true false  false 
+  let data = create_adc false true  false
+  let ctrl = create_adc false false true
+    
+  let m_ad = create_adc true  true  false 
+  let m_ac = create_adc true  false true  
+  let m_dc = create_adc false true  true
 
+  let create adc =
+    match adc with
+      | false, false, false -> bottom
+      | true,  false, false -> addr
+      | false, true,  false -> data
+      | false, false, true  -> ctrl
+      | true,  true,  false -> m_ad
+      | true,  false, true  -> m_ac
+      | false, true,  true  -> m_dc
+      | true,  true,  true  -> top
+          
+  (* External constructor sharing same values *)
+  let mk_adc a d c = create (a, d, c)
+  let mk_mark dpd = create (D.adc_value dpd)
+  
   let is_bottom m = (m = bottom)
   let is_top m = (m = top)
 
@@ -104,17 +128,18 @@ end = struct
        | T.Spare, T.Spare -> m1
        | T.Spare, T.Cav _ -> if is_bottom m2 then m1 else m2
        | T.Cav _,  T.Spare -> if is_bottom m1 then m2 else m1
-       | T.Cav d1, T.Cav d2 -> T.Cav (D.combine d1 d2)
+       | T.Cav d1, T.Cav d2 -> mk_mark (D.combine d1 d2)
 
   let inter m1 m2 =
     if is_bottom m1 then m1
     else if is_bottom m2 then m2
     else (* m1 and m2 are not bottom => the result cannot be bottom *)
       match m1,m2 with
-        | T.Spare, _ | _, T.Spare -> T.Spare
+        | T.Spare, _ -> m1
+        | _, T.Spare -> m2
         | T.Cav d1, T.Cav d2 -> 
-            let m = T.Cav (D.inter d1 d2) in
-              if is_bottom m then T.Spare else m
+            let m = mk_mark (D.inter d1 d2) in
+              if is_bottom m then spare else m
 
    let combine ~old m = 
      match old, m with
@@ -125,25 +150,24 @@ end = struct
          if D.is_bottom new_d then (false, old) else (true, m)
      | T.Cav old_d, T.Cav new_d ->
          let new_d = D.combine old_d new_d in 
-         if old_d = new_d then (false, old) else (true, T.Cav new_d)
+         if old_d = new_d then (false, old) else (true, mk_mark new_d)
 
   let minus m1 m2 =
      match m1,m2 with
        | T.Spare, T.Spare -> bottom
        | T.Spare, T.Cav d2 -> if D.is_bottom d2 then m1 else bottom
        | T.Cav _, T.Spare -> m1 (* even if [D.is_bottom d1] because m1 = bot *)
-       | T.Cav d1, T.Cav d2 -> T.Cav (D.minus d1 d2)
+       | T.Cav d1, T.Cav d2 -> mk_mark (D.minus d1 d2)
 
   let pretty fmt m =
     match m with 
     | T.Cav d -> D.pretty fmt d
     | T.Spare -> Format.fprintf fmt "[ S ]"
 
-  let to_string m =
-    Cil.fprintf_to_string "%a" pretty m
+  let to_string m = Pretty_utils.sfprintf "%a" pretty m
 
 end
-
+  
 (** a [MarkPair] is associated with each element of the PDG in a slice.  
   * The first component gives the mark propagated from a user request, while 
   * the second one is used to propagate informations to the called functions.
@@ -151,9 +175,12 @@ end
 module MarkPair = struct
   type t = T.t_pdg_mark
 
-  let mk_m1 m = {T.m1 = m ; T.m2 = Mark.bottom}
-  let mk_m2 m = {T.m1 = Mark.bottom; T.m2 = m}
-  let mk_m m1 m2 = { T.m1 = m1; T.m2 = m2}
+  (* To do hash-consing *)
+  let create = SlicingInternals.create_sl_mark
+    
+  let mk_m1 m1 = create ~m1 ~m2:Mark.bottom
+  let mk_m2 m2 = create ~m1:Mark.bottom ~m2
+  let mk_m m1 m2 = create ~m1 ~m2
 
   let mk_m1_data = mk_m1 Mark.data
   let mk_m1_addr = mk_m1 Mark.addr
@@ -163,7 +190,7 @@ module MarkPair = struct
 
   let mk_gen_spare = mk_m2 Mark.spare
 
-  let bottom = { T.m1 = Mark.bottom; T.m2 = Mark.bottom}
+  let bottom = create ~m1:Mark.bottom ~m2:Mark.bottom
 
   let user_mark m = Mark.merge m.T.m1 m.T.m2
 
@@ -187,7 +214,7 @@ module MarkPair = struct
     in Format.fprintf fmt "<%a,%a>" pm m.T.m1 pm m.T.m2
 
   let to_string m =
-    Cil.fprintf_to_string "%a" pretty m 
+    Pretty_utils.sfprintf "%a" pretty m 
 
   let minus ma mb = 
     mk_m (Mark.minus ma.T.m1 mb.T.m1) (Mark.minus ma.T.m2 mb.T.m2)
@@ -206,7 +233,7 @@ module MarkPair = struct
   let rec merge_all marks =
     match marks with
       | [] -> bottom
-      | m :: [] -> m (* to avoir meging with bottom every time ! *)
+      | m :: [] -> m (* to avoid merging with bottom every time ! *)
       | m :: tl -> merge m (merge_all tl)
 
   let inter ma mb = 

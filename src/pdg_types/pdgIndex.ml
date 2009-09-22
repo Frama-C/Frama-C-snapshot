@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -352,11 +352,11 @@ module Key = struct
       let str =
         match s.skind with
           | Switch (exp,_,_,_) | If (exp,_,_,_) ->
-              Cil.fprintf_to_string "%a" ! Ast_printer.d_exp exp
+              Pretty_utils.sfprintf "%a" ! Ast_printer.d_exp exp
           | Loop _ -> "while(1)"
           | Block _ -> "block"
           | Goto _ | Break _ | Continue _ | Return _ | Instr _ ->
-              Cil.fprintf_to_string "@[<h 1>%a@]"
+              Pretty_utils.sfprintf "@[<h 1>%a@]"
                 (Cil.defaultCilPrinter#pStmtKind s) s.skind
           | UnspecifiedSequence _ -> "unspecified sequence"
           | TryExcept _ | TryFinally _  -> "ERROR"

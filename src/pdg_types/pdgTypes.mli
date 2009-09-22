@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgTypes.mli,v 1.42 2008/11/18 12:13:41 uid568 Exp $*)
+(* $Id: pdgTypes.mli,v 1.44 2009-01-23 13:41:47 uid526 Exp $*)
 
 (** This module defines the types that are used to store the PDG of a
     function. 
@@ -55,8 +55,9 @@ module Dpd :
     val is_bottom : t -> bool
     val is_included : t -> t -> bool
 
-
     val compare : t -> t -> int
+    val equal : t -> t -> bool
+      
     val combine : t -> t -> t
     val add : t -> td -> t
     val inter : t -> t -> t

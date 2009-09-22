@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -out -input -deps -pdg-debug -pdg -journal-disable
+   OPT: -val -out -input -deps -pdg -journal-disable
 */
 
 int ** top_input() ;

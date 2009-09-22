@@ -2,15 +2,24 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
-(*  All rights reserved.                                                  *)
-(*  Contact CEA for more details about the license.                       *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: model.ml,v 1.89 2008/10/03 13:09:17 uid568 Exp $ *)
+(* $Id: model.ml,v 1.89 2008-10-03 13:09:17 uid568 Exp $ *)
 
 open Cil_types
 open Cil
@@ -95,15 +104,16 @@ module Make(S : Lattice.S) = struct
 	  "PROBABLE security leak; %s of %a is probably wrong." ^^ x
       in
       let loc = match l.loc with None -> assert false | Some loc -> loc in
-      Cil.warnLoc loc (fmt "%a") state_name
+      Options.warning ~source:(Cil.source loc)
+	(fmt "%a") state_name
         !Ast_printer.d_exp l.data print_call_stack l.call_stack
 
     let print_stat stat =
-      log "Security state summary:";
+      Options.result "security state summary:";
       begin match stat with
-      | 0, 0 -> log "The code is secure."
+      | 0, 0 -> Options.result "the code is secure."
       | p, s ->
-	  let some fmt x = log fmt x (if x > 1 then "s" else "") in
+	  let some fmt x = Options.result fmt x (if x > 1 then "s" else "") in
 	  let log_p () = some "%d potential security leak%s." p in
 	  if s > 0 then begin
 	    if p > 0 then log_p ();
@@ -208,9 +218,9 @@ module Make(S : Lattice.S) = struct
       | Location of location (** The same than the given location *)
 
     (** Debugging purpose *)
-    let pretty_status _ = function
-      | Status s -> log "[security] status %a" S.pretty s
-      | Location l -> log "[security] location %a" Locations.pretty l
+    let pretty_status fmt = function
+      | Status s -> Format.fprintf fmt "status %a" S.pretty s
+      | Location l -> Format.fprintf fmt "location %a" Locations.pretty l
 
     let last_stmt = ref dummyStmt
 
@@ -262,9 +272,8 @@ module Make(S : Lattice.S) = struct
                     dummyStmt (* TODO: Anne. *)
 	       | PdgIndex.Key.SigKey _k -> dummyStmt (* TODO: huh, very ugly *)
 	       | _ ->
-                   Format.printf "what is this key : %a ???"
-                     PdgIndex.Key.pretty (!Pdg.node_key n);
-                   assert false
+		   Options.fatal "unknown PDG key: %a"
+                     PdgIndex.Key.pretty (!Pdg.node_key n)
 	     in
 	     S.join acc (status_of_dep s))
 	  (* continue the current dependencies computation *)
@@ -280,7 +289,7 @@ module Make(S : Lattice.S) = struct
 	Status
 	  (if with_deps then S.join s (status_of_deps values state) else s)
       in
-      match stripInfo e with
+      match (stripInfo e).enode with
       | Info _ -> assert false
       | Const _ | SizeOf _ | SizeOfStr _ | AlignOf _ ->
 	  status S.constant
@@ -292,7 +301,8 @@ module Make(S : Lattice.S) = struct
 	    Location (lval_to_loc values lv)
       | AddrOf _lv | StartOf _lv ->
 	  (* TODO: Flyspray #64 *)
-	  CilE.warn_once "[security] address expression detected: suboptimical case in this version.";
+	  Options.warning ~once:true ~current:true
+	    "address expression detected: suboptimical case in this version";
 	  Status S.top
       | CastE(ty, e) ->
 	  let s = L.type_attributes2state S.bottom ty in
@@ -309,7 +319,8 @@ module Make(S : Lattice.S) = struct
 	  find_loc_or_status ~with_deps values state e
       | BinOp((PlusPI | IndexPI | MinusPI | MinusPP), _e1, _e2, TPtr _) ->
 	  (* TODO: Flyspray #64 *)
-	  CilE.warn_once "[security] arithmetic pointer expression detected: suboptimital case in this version.";
+	  Options.warning ~once:true ~current:true
+	    "arithmetic pointer expression detected: suboptimital case in this version";
 	  Status S.top
       | BinOp((PlusPI | IndexPI | MinusPI | MinusPP), _e1, _e2, _) ->
 	  assert false
@@ -337,8 +348,7 @@ module Make(S : Lattice.S) = struct
 (*      log "change_loc_status: %a with %a@."
 	      Locations.pretty loc pretty_status status;*)
       (match loc.loc with
-       | Location_Bits.Top _ ->
-	   CilE.warn_once "[security] analysis degenerated"
+       | Location_Bits.Top _ -> Options.warning "analysis degenerated"
        | _ -> ());
       match status with
       | Status s ->
@@ -440,7 +450,7 @@ module Make(S : Lattice.S) = struct
 	  state
       | TNamed(info, _)  ->
 	  typ state values loc info.ttype
-      | TComp(info, _) as ty ->
+      | TComp(info, _, _) as ty ->
 	  List.fold_left (field values ty loc) state info.cfields
 
     and field values ty loc state f =
@@ -486,8 +496,8 @@ module Make(S : Lattice.S) = struct
 	  params
 	  args
       with Invalid_argument _ ->
-	CilE.warn_once
-	  "Variadic call detected. Using only %d argument(s)."
+	Options.warning ~once:true ~current:true
+	  "variadic call detected. Using only %d argument(s)."
 	  (min (List.length args) (List.length params));
 	state, old_values
 
@@ -532,11 +542,11 @@ module Make(S : Lattice.S) = struct
       | Rneq -> uncomparable x y, S.equal x y
 
     let warn_todo () =
-      CilE.warn_once
-	"[security] this kind of specification is ignored with this lattice."
+      Options.warning ~once:true ~current:true
+	"this kind of specification is ignored with this security lattice"
 
     let find_term_loc_or_status values state f l =
-      match f.l_name, l with
+      match f.l_var_info.lv_name, l with
       | a, [ y ] when a = state_name ->
 	  let e = !Properties.Interp.term_to_exp y in
 	  Some (find_loc_or_status values state e)
@@ -553,7 +563,7 @@ module Make(S : Lattice.S) = struct
 	  Prel(rel,
 	       { term_node = Tapp(f1, _, [ x ]) },
 	       { term_node = Tapp(f2, _, l) })
-	    when f1.l_name = state_name
+	    when f1.l_var_info.lv_name = state_name
 	      ->
 	  (match find_term_loc_or_status values state f2 l with
 	   | None -> warn_todo (); state
@@ -579,13 +589,12 @@ module Make(S : Lattice.S) = struct
 	       | true, true -> assert false
 	       | true, false -> state (* secure *)
 	       | false, b ->
-		   if Cmdline.Debug.get () > 0 then
-		     log "[security] add security leak for %a"
-		       !Ast_printer.d_exp (subst true ex);
+		   Options.debug "add security leak for %a"
+		     !Ast_printer.d_exp (subst true ex);
 		   let state =
 		     add_leak ~potential:(not b) state ki (subst false ex)
 		   in
-		   if Cmdline.Security.PropagateAssertions.get () then
+		   if Options.PropagateAssertions.get () then
 		     (* you have just emitted a leak corresponding to a
 			propertie P, so you can assume that P is verified. Be
 			careful to only perform over-approximation. *)
@@ -615,7 +624,7 @@ module Make(S : Lattice.S) = struct
 	  Prel(Req,
 	       { term_node = Tapp(f1, _, [ x ]) },
 	       { term_node = Tapp(f2, _, l) })
-	    when f1.l_name = state_name
+	    when f1.l_var_info.lv_name = state_name
 	      ->
 	  (match find_term_loc_or_status values state f2 l with
 	   | None -> warn_todo (); state
@@ -624,8 +633,8 @@ module Make(S : Lattice.S) = struct
 		  let x = !Properties.Interp.term_to_lval x in
 		  change_lval_status values state x sy
 		with Invalid_argument _ ->
-		  CilE.warn_once
-                    "%a is not a left value. Do not take the ensurement into account.@."
+		  Options.warning ~once:true ~current:true
+                    "%a is not a left value; ignoring clause 'ensures'"
                     !Ast_printer.d_term x;
 		  state))
       | Ptrue -> state
@@ -641,6 +650,6 @@ end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

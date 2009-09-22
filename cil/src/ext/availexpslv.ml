@@ -45,10 +45,8 @@
 
 open Cil_types
 open Cil
-open Pretty
 open Expcompare
 
-module E = Errormsg
 module DF = Dataflow
 module UD = Usedef
 module IH = Inthash
@@ -57,11 +55,11 @@ module S = (*Stats*) struct
   let time _ f c = f c
 end (*Stats*)
 
-let debug = ref false
+let debug = ref (Cilmsg.debug_atleast 2)
 let doTime = ref false
 
 
-let time s f a = 
+let time s f a =
   if !doTime then
     S.time s f a
   else f a
@@ -86,7 +84,7 @@ let registerIgnoreCall (f : instr -> bool) : unit =
   ignore_call := (fun i -> (f i) || (f' i))
 
 
-module LvExpHash = 
+module LvExpHash =
   H.Make(struct
     type t = lval
     let equal lv1 lv2 = compareLval lv1 lv2
@@ -106,16 +104,16 @@ let lvh_equals lvh1 lvh2 =
     with Not_found -> false)
       lvh1 true
 
-let lvh_pretty fmt lvh = 
-  LvExpHash.iter 
+let lvh_pretty fmt lvh =
+  LvExpHash.iter
     (fun lv e ->
        Format.fprintf fmt "@\n%a -> %a" d_lval lv d_exp e)
-    lvh 
+    lvh
 
 (* the result must be the intersection of eh1 and eh2 *)
 (* exp IH.t -> exp IH.t -> exp IH.t *)
 let lvh_combine lvh1 lvh2 =
-  if !debug then log "lvh_combine: combining %a\n and\n %a\n"
+  if !debug then Cilmsg.debug ~level:2 "lvh_combine: combining %a\n and\n %a"
     lvh_pretty lvh1 lvh_pretty lvh2;
   let lvh' = LvExpHash.copy lvh1 in (* eh' gets all of eh1 *)
   LvExpHash.iter (fun lv e1 ->
@@ -128,8 +126,7 @@ let lvh_combine lvh1 lvh2 =
     List.iter (fun e -> LvExpHash.add lvh' lv e) e1l'
     with Not_found ->
       LvExpHash.remove lvh' lv) lvh1;
-  if !debug then log "with result %a\n"
-    lvh_pretty lvh';
+  if !debug then Cilmsg.debug "with result %a" lvh_pretty lvh';
   lvh'
 
 
@@ -138,7 +135,7 @@ let lvh_combine lvh1 lvh2 =
 class memReadOrAddrOfFinderClass br = object
   inherit nopCilVisitor
 
-  method vexpr e = match e with
+  method vexpr e = match e.enode with
   | Lval(Mem _, _) -> begin
       br := true;
       SkipChildren
@@ -168,7 +165,7 @@ let lval_has_mem_read lv =
   let vis = new memReadOrAddrOfFinderClass br in
   ignore(visitCilLval vis lv);
   !br
-   
+
 let lvh_kill_mem lvh =
   LvExpHash.iter (fun lv e ->
     if exp_has_mem_read e || lval_has_mem_read lv
@@ -178,8 +175,8 @@ let lvh_kill_mem lvh =
 (* need to kill exps containing a particular vi sometimes *)
 class viFinderClass vi br = object
   inherit nopCilVisitor
-      
-  method vvrbl vi' = 
+
+  method vvrbl vi' =
     if vi.vid = vi'.vid
     then (br := true; SkipChildren)
     else DoChildren
@@ -241,7 +238,7 @@ class volatileFinderClass br = object
   inherit nopCilVisitor
 
   method vexpr e =
-    if (hasAttribute "volatile" (typeAttrs (typeOf e))) 
+    if (hasAttribute "volatile" (typeAttrs (typeOf e)))
     then (br := true; SkipChildren)
     else DoChildren
 end
@@ -277,10 +274,10 @@ let lvh_kill_addrof_or_global lvh =
     lvh
 
 
-let lvh_handle_inst i lvh = 
+let lvh_handle_inst i lvh =
   if (!ignore_inst) i then lvh else
   match i with
-    Set(lv,e,_) -> begin 
+    Set(lv,e,_) -> begin
       match lv with
       | (Mem _, _) -> begin
           LvExpHash.replace lvh lv e;
@@ -290,7 +287,7 @@ let lvh_handle_inst i lvh =
       end
       | _ when not (exp_is_volatile e) -> begin
 	  (* ignore x = x *)
-	  if compareExpStripCasts (Lval lv) e then lvh 
+	  if compareExpStripCasts (dummy_exp (Lval lv)) e then lvh
 	  else begin
 	    LvExpHash.replace lvh lv e;
 	    lvh_kill_lval lvh lv;
@@ -299,7 +296,7 @@ let lvh_handle_inst i lvh =
       end
       | _ -> begin (* e is volatile *)
 	  (* must remove mapping for lv *)
-	  if !debug then log "lvh_handle_inst: %a is volatile. killing %a\n"
+	  if !debug then Cilmsg.debug "lvh_handle_inst: %a is volatile. killing %a"
             d_exp e d_lval lv;
 	  LvExpHash.remove lvh lv;
 	  lvh_kill_lval lvh lv;
@@ -340,7 +337,7 @@ module AvailableExps =
     (* mapping from var id to expression *)
     type t = exp LvExpHash.t
 
-    module StmtStartData = 
+    module StmtStartData =
       DF.StmtStartData(struct type t = exp LvExpHash.t let size = 64 end)
 
     let copy = LvExpHash.copy
@@ -353,7 +350,7 @@ module AvailableExps =
       if time "lvh_equals" (lvh_equals old) lvh then None else
       Some(time "lvh_combine" (lvh_combine old) lvh)
 
-    let doInstr _ i _lvh = 
+    let doInstr _ i _lvh =
       let action = lvh_handle_inst i in
       DF.Post(action)
 
@@ -364,6 +361,8 @@ module AvailableExps =
     let filterStmt _stm = true
 
     let stmt_can_reach _ _ = true
+
+    let doEdge _ _ d = d
 
   end
 
@@ -382,8 +381,8 @@ let computeAEs fd =
   AvailableExps.StmtStartData.clear ();
   AvailableExps.StmtStartData.add first_stm.sid (LvExpHash.create 4);
   time "compute" AE.compute [first_stm]
-  with Failure "hd" -> if !debug then ignore(E.log "fn w/ no stmts?\n")
-  | Not_found -> if !debug then ignore(E.log "no data for first_stm?\n")
+  with Failure "hd" -> if !debug then Cilmsg.debug "fn w/ no stmts?"
+  | Not_found -> if !debug then Cilmsg.debug "no data for first_stm?"
 
 
 (* get the AE data for a statement *)
@@ -393,7 +392,7 @@ let getAEs sid =
 
 (* get the AE data for an instruction list *)
 let instrAEs il _sid lvh _out =
-  if !debug then ignore(E.log "instrAEs\n");
+  if !debug then Cilmsg.debug "instrAEs" ;
   let proc_one hil i =
     match hil with
       [] -> let lvh' = LvExpHash.copy lvh in
@@ -421,31 +420,31 @@ class aeVisitorClass = object
     sid <- stm.sid;
     match getAEs sid with
       None ->
-	if !debug then ignore(E.log "aeVis: stm %d has no data\n" sid);
+	if !debug then Cilmsg.debug "aeVis: stm %d has no data" sid ;
 	cur_ae_dat <- None;
 	DoChildren
     | Some eh ->
 	match stm.skind with
 	  Instr il ->
-	    if !debug then ignore(E.log "aeVist: visit il\n");
+	    if !debug then Cilmsg.debug "aeVist: visit il" ;
 	    ae_dat_lst <- time "instrAEs" (instrAEs [il] stm.sid eh) false;
 	    DoChildren
 	| _ ->
-	    if !debug then ignore(E.log "aeVisit: visit non-il\n");
+	    if !debug then Cilmsg.debug "aeVisit: visit non-il" ;
 	    cur_ae_dat <- None;
 	    DoChildren
 
   method vinst i =
-    if !debug then log "aeVist: before %a, ae_dat_lst is %d long\n"
+    if !debug then Cilmsg.debug "aeVist: before %a, ae_dat_lst is %d long"
       d_instr i (List.length ae_dat_lst);
     try
       let data = List.hd ae_dat_lst in
       cur_ae_dat <- Some(data);
       ae_dat_lst <- List.tl ae_dat_lst;
-      if !debug then log "aeVisit: data is %a\n" lvh_pretty data;
+      if !debug then Cilmsg.debug "aeVisit: data is %a" lvh_pretty data;
       DoChildren
     with Failure "hd" ->
-      if !debug then log "aeVis: il ae_dat_lst mismatch\n";
+      if !debug then Cilmsg.debug "aeVis: il ae_dat_lst mismatch";
       DoChildren
 
   method get_cur_eh () =

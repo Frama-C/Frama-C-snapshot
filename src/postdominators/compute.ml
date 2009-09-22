@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,20 +25,31 @@ open Db_types
 open Db
 open Cilutil
 
+module Parameters = 
+  Plugin.Register
+    (struct 
+      let name = "dominators"
+      let shortname = "dominators"
+      let descr = "Compute dominators and postdominators of statements"
+    end)
+
 module DomSet = struct
   type t = Value of Cilutil.StmtSet.t | Top
 
-  let hash = function Top -> 222222 | Value s -> Cilutil.StmtSet.cardinal s
+  let hash _ = assert false
+    (* better no hash function than a hash function as stupid as 
+       function Top -> 222222 | Value s -> Cilutil.StmtSet.cardinal s 
+       (iterate on all elements AND have so many collisions as to
+       be useless. A WTF-worthy jewel) *)
 
   let pretty fmt d =
     match d with
     | Top ->
 	Format.fprintf fmt "Top"
     | Value d ->
-	Format.fprintf fmt "{%a}"
-          (Cil.fprintfList ~sep:","
-	     (fun fmt s -> Format.fprintf fmt "%d" s.sid))
-          (StmtSet.elements d)
+	Pretty_utils.pp_list ~pre:"@[{" ~sep:",@," ~suf:"}@]"
+	  (fun fmt s -> Format.fprintf fmt "%d" s.sid)
+	  fmt (StmtSet.elements d)
 
   let inter a b = match a,b with
     | Top,Top -> Top
@@ -63,17 +74,16 @@ module DomSet = struct
     | Value set -> Value (f set)
 end
 
-module Datatype = struct
-  include Project.Datatype.Register
+module Datatype = 
+  Project.Datatype.Register
     (struct
        type t = DomSet.t
        let map = DomSet.map
        let copy = map Cil_datatype.StmtSet.copy
        let rehash = map Cil_datatype.StmtSet.rehash
+       let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
        let name = "postdominator"
      end)
-  let () = register_comparable ~hash ~equal ()
-end
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
@@ -82,7 +92,7 @@ module Dom =
     (Datatype)
     (struct
        let name = "dominator"
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
        let size = 503
      end)
 
@@ -110,29 +120,29 @@ module DomComputer = struct
   let stmt_can_reach _ _ = true
   let filterStmt _stmt = true
   let doGuard _ _ _ = Dataflow.GDefault
+  let doEdge _ _ d = d
 end
 module DomCompute = Dataflow.ForwardsDataFlow(DomComputer)
 
 let compute_dom kf =
   let start = Kernel_function.find_first_stmt kf in
-  try 
+  try
     let _ = Dom.find start.sid in
-      Cil.log "[dominators] computed for function %a"
-        Kernel_function.pretty_name kf;
+    Parameters.feedback "computed for function %a"
+      Kernel_function.pretty_name kf;
   with Not_found ->
-    Cil.log "[dominators] computing for function %a"
+    Parameters.feedback "computing for function %a"
       Kernel_function.pretty_name kf;
     let f = kf.fundec in
     let stmts = match f with
-      | Definition (f,_) -> f.sallstmts
-      | Declaration _ -> invalid_arg
-                           "[dominators] cannot compute for a leaf function"
+    | Definition (f,_) -> f.sallstmts
+    | Declaration _ -> Parameters.fatal "cannot compute for a leaf function"
     in
-      List.iter (fun s -> Dom.add s.sid DomSet.Top) stmts;
-      Dom.replace start.sid (DomSet.Value (StmtSet.singleton start));
-      DomCompute.compute [start];
-      Cil.log "[dominators] done for function %a"
-        Kernel_function.pretty_name kf
+    List.iter (fun s -> Dom.add s.sid DomSet.Top) stmts;
+    Dom.replace start.sid (DomSet.Value (StmtSet.singleton start));
+    DomCompute.compute [start];
+    Parameters.feedback "done for function %a"
+      Kernel_function.pretty_name kf
 
 let get_stmt_dominators f stmt =
   let do_it () = Dom.find stmt.sid in
@@ -150,7 +160,7 @@ let is_dominator f ~opening ~closing =
 
 let display_dom () =
   Dom.iter
-    (fun k v -> Format.printf "Stmt:%d\n%a\n======" k DomSet.pretty v)
+    (fun k v -> Parameters.result "Stmt:%d@\n%a@\n======" k DomSet.pretty v)
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
@@ -159,7 +169,7 @@ module PostDom =
     (Datatype)
     (struct
        let name = "postdominator"
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
        let size = 503
      end)
 
@@ -182,10 +192,10 @@ module PostComputer = struct
 
   let doStmt stmt =
     !Db.progress ();
-    if !debug then Cil.log "doStmt : %d\n" stmt.sid;
-        match stmt.skind with
-          | Return _ -> Dataflow.Done (DomSet.Value (StmtSet.singleton stmt))
-          | _ -> Dataflow.Post (fun data -> DomSet.add stmt data)
+    Parameters.debug "doStmt : %d" stmt.sid;
+    match stmt.skind with
+    | Return _ -> Dataflow.Done (DomSet.Value (StmtSet.singleton stmt))
+    | _ -> Dataflow.Post (fun data -> DomSet.add stmt data)
 
   let doInstr _ _ _ = Dataflow.Default
 
@@ -198,24 +208,23 @@ module PostCompute = Dataflow.BackwardsDataFlow(PostComputer)
 
 let compute_postdom kf =
   let return = Kernel_function.find_return kf in
-  try 
-    let _ = PostDom.find return.sid in 
-    Cil.log "[postdominators] computed for function %a"
+  try
+    let _ = PostDom.find return.sid in
+    Parameters.result "(post) computed for function %a"
       Kernel_function.pretty_name kf
   with Not_found ->
-    Cil.log "[postdominators] computing for function %a"
+    Parameters.feedback "computing (post) for function %a"
       Kernel_function.pretty_name kf;
     let f = kf.fundec in
     let stmts = match f with
       | Definition (f,_) -> f.sallstmts
-      | Declaration _ -> 
-          invalid_arg "[postdominators] cannot compute for a leaf function"
+      | Declaration _ ->
+          Parameters.fatal "cannot compute postdominators for a leaf function"
     in
       List.iter (fun s -> PostDom.add s.sid DomSet.Top) stmts;
       PostCompute.compute [return];
-      Cil.log "[postdominators] done for function %a"
+      Parameters.feedback "done for function %a"
         Kernel_function.pretty_name kf
-
 
 let get_stmt_postdominators f stmt =
   let do_it () = PostDom.find stmt.sid in
@@ -235,20 +244,17 @@ let is_postdominator f ~opening ~closing =
   DomSet.mem closing open_postdominators
 
 let display_postdom () =
-  PostDom.iter
-    (fun k v -> Format.printf "Stmt:%d\n%a\n======" k PostComputer.pretty v)
+  let disp_all fmt =
+    PostDom.iter
+      (fun k v -> Format.fprintf fmt "Stmt:%d\n%a\n======" k PostComputer.pretty v)
+  in Parameters.result "%t" disp_all
 
 let print_dot_postdom basename kf =
   let filename = basename ^ "." ^ Kernel_function.get_name kf ^ ".dot" in
-    Print.build_dot filename kf;
-    Format.printf "[postdominators] dot file generated in %s@\n" filename
+  Print.build_dot filename kf;
+  Parameters.result "(post) dot file generated in %s" filename
 
-let main _fmt =
-  if Cmdline.Pdg.DotPostdomBasename.get () <> "" then begin
-    let base = Cmdline.Pdg.DotPostdomBasename.get () in
-    let print kf = !Db.Postdominators.print_dot base kf in
-    !Db.Semantic_Callgraph.topologically_iter_on_functions print
-  end
+let main _fmt = ()
 
 let () = Db.Main.extend main
 

@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: cil_computation.ml,v 1.2 2008/10/28 16:16:11 uid570 Exp $ *)
+(* $Id: cil_computation.ml,v 1.2 2008-10-28 16:16:11 uid570 Exp $ *)
 
 open Cilutil
 

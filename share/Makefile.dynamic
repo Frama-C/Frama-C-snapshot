@@ -1,0 +1,187 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2009                                               #
+#    CEA (Commissariat à l'Énergie Atomique)                             #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+FRAMAC_MAKE	?=no
+MAKECONFIG_DIR	?=$(FRAMAC_SHARE)
+
+PLUGIN_ENABLE	?=yes
+PLUGIN_DIR	?=.
+
+PLUGIN_DYNAMIC	?=yes
+
+ifeq ($(NATIVE_DYNLINK),no)
+USABLE_NATIVE_DYNLINK ?=no
+endif
+
+ifeq ($(FRAMAC_MAKE),yes)
+PLUGIN_RESET	:=yes
+else
+PLUGIN_RESET	:=no
+include $(MAKECONFIG_DIR)/Makefile.common
+include $(MAKECONFIG_DIR)/Makefile.dynamic_config
+endif
+
+PLUGIN_LIB_DIR	?= $(PLUGIN_DIR)
+PLUGIN_GUI_LIB_DIR ?= $(PLUGIN_DIR)/gui
+PLUGIN_INSTALL_DIR ?=$(FRAMAC_PLUGINDIR)
+
+PLUGIN_BFLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES) $(PLUGIN_BFLAGS)
+PLUGIN_OFLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES) $(PLUGIN_OFLAGS)
+PLUGIN_DEPFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DEPFLAGS)
+PLUGIN_DOCFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DOCFLAGS)
+include $(MAKECONFIG_DIR)/Makefile.plugin
+
+TARGETS	:= $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA) $(TARGET_CMXS)
+TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) $(TARGET_GUI_CMXS)
+
+include $(FRAMAC_SHARE)/Makefile.kernel
+
+byte: $(TARGET_CMO) $(TARGET_CMA)
+opt: $(TARGET_CMX) $(TARGET_CMXA)
+
+frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_CMO)
+	$(PRINT_LINKING) $@
+	$(OCAMLC) $(DYN_BLINKFLAGS) -o $@ \
+	  $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
+	  $(patsubst %boot.cmo, $(PLUGIN_EXTRA_BYTE) $(TARGET_CMO) %boot.cmo, \
+	    $(DYN_ALL_BATCH_CMO))
+
+frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_CMX)
+	$(PRINT_LINKING) $@
+	$(OCAMLOPT) $(DYN_OLINKFLAGS) -o $@ \
+	  $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
+	  $(patsubst %boot.cmx, $(PLUGIN_EXTRA_OPT) $(TARGET_CMX) %boot.cmx, \
+            $(DYN_ALL_BATCH_CMX))
+
+static.byte: frama-c-$(PLUGIN_NAME).byte$(EXE)
+static.opt: frama-c-$(PLUGIN_NAME).opt
+static: frama-c-$(PLUGIN_NAME).byte$(EXE) \
+	frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)
+
+# do not define additional targets if you come from the Frama-C Makefile
+ifneq ($(FRAMAC_MAKE),yes)
+
+.PHONY: tests all install uninstall clean
+
+# Testing stuff
+PTESTS_DEP=Makefile
+ifeq ($(FRAMAC_MAKE),yes)
+PTESTS_DEP+=$(PTESTS) $(FRAMAC_SHARE)/Makefile.dynamic $(FRAMAC_SHARE)/Makefile.dynamic_config
+
+endif
+
+# fixes renaming from ptests_config to ptests_local_config
+# to erase after everybody has updated Frama-C svn
+clean_ptests_config:
+	${RM} ptests_config.*
+
+ptests_local_config.ml: clean_ptests_config $(PTESTS_DEP)
+	$(PRINT_MAKING) $@
+	$(RM) $@
+	$(ECHO) \
+         "Ptests_config.default_suites:= [" $(PLUGIN_TESTS_DIRS:%='"%";') "];;" > $@
+	$(ECHO) \
+	 "Ptests_config.toplevel_path :=\"$(FRAMAC_OPT)\";;" >> $@
+	$(ECHO) \
+	"Ptests_config.framac_share :=\"$(FRAMAC_SHARE)\";;" >> $@
+	$(ECHO) \
+	"Ptests_config.framac_plugin :=\"$(FRAMAC_PLUGIN)\";;" >> $@
+	$(ECHO) \
+	"Ptests_config.framac_share :=\"$(FRAMAC_PLUGIN_GUI)\";;" >> $@
+	$(CHMOD_RO) $@
+
+clean::
+	$(RM) ptests_local_config.ml
+	$(RM) frama-c-$(PLUGIN_NAME) frama-c-$(PLUGIN_NAME).byte
+
+
+tests:: $(TARGETS) $(TARGETS_GUI) ptests_local_config.cmo
+	time -p $(PTESTS)
+
+
+ifeq ($(FRAMAC_INTERNAL),yes)
+ptests_local_config.cmo: BFLAGS=-I $(FRAMAC_SRC)/ptests -g
+ptests_local_config.cmo: $(FRAMAC_SRC)/bin/ptests.byte
+else
+ptests_local_config.cmo: BFLAGS=$(FRAMAC_INCLUDES)
+endif
+
+ifeq ($(FRAMAC_MAKE),yes)
+all:: $(TARGETS) $(TARGETS_GUI)
+	$(PRINT_CP) plugin
+	$(CP) $(TARGETS) $(FRAMAC_PLUGIN)
+ifeq ($(HAS_GUI),yes)
+	$(CP) $(TARGETS_GUI) $(FRAMAC_GUI_PLUGIN)
+endif
+
+else
+all:: $(TARGETS) $(TARGETS_GUI)
+ifeq ($(USABLE_NATIVE_DYNLINK),no)
+all:: static.opt
+endif
+endif
+
+install::
+	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)
+	$(CP) $(TARGETS) $(PLUGIN_INSTALL_DIR)
+	$(PRINT_CP) $(BINDIR)
+	if [ -f frama-c-$(PLUGIN_NAME).byte$(EXE) ]; then \
+	  $(CP) frama-c-$(PLUGIN_NAME).byte$(EXE) $(BINDIR); \
+	fi
+	if [ -f frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE) ]; then \
+	  $(CP) frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE) \
+		$(BINDIR)/frama-c-$(PLUGIN_NAME)$(EXE); \
+	fi
+ifeq ($(HAS_GUI),yes)
+	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/gui
+	$(CP) $(TARGETS_GUI) $(PLUGIN_INSTALL_DIR)/gui
+endif
+
+uninstall::
+	$(PRINT_RM) installed $(PLUGIN_NAME) libraries
+	$(RM) $(PLUGIN_INSTALL_DIR)/$(PLUGIN_NAME).*
+	$(PRINT_RM) installed $(PLUGIN_NAME) binaries
+	$(RM) $(BINDIR)/frama-c-$(PLUGIN_NAME)$(EXE) \
+		$(BINDIR)/frama-c-$(PLUGIN_NAME)$(EXE).byte
+ifeq ($(HAS_GUI),yes)
+	$(PRINT_RM) installed $(PLUGIN_NAME)/gui
+	$(RM) $(PLUGIN_INSTALL_DIR)/gui/$(PLUGIN_NAME).*
+endif
+
+clean:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN
+
+# Makefile.plugin's targets for ocamldep are not convenient
+# so use our own targets for dynamic plug-ins
+depend .depend:: $($(PLUGIN_NAME)_GENERATED)
+	$(PRINT_DEP) .depend
+	$(RM) .depend
+	$(OCAMLDEP) $(PLUGIN_DEPFLAGS) $(PLUGIN_DIR)/*.mli $(PLUGIN_DIR)/*.ml \
+              > .depend
+	$(CHMOD_RO) .depend
+
+include .depend
+
+endif
+
+###############################################################################
+# Local Variables:
+# mode: makefile
+# End:

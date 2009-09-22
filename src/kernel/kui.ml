@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kui.ml,v 1.103 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: kui.ml,v 1.103 2008-04-01 09:25:21 uid568 Exp $ *)
 open Cil_types
 type appl = Project.t
 type file = File.t
@@ -620,14 +620,10 @@ module Project = struct
          in a file if [filename_opt] is specified, on [stdout] otherwise.
   *)
   let export project filename =
-    let new_appli = !Db.Slicing.Project.extract "slicing_proj" project
-    in
+    let new_appli = !Db.Slicing.Project.extract "slicing_proj" project in
     let cout = open_out filename in
-    let out =
-      Format.printf "Slicing result printed in %s\n" filename;
-      let fmt = Format.formatter_of_out_channel cout in
-      fmt
-    in
+    SlicingParameters.result "Slicing result printed in %s" filename ;
+    let out = Format.formatter_of_out_channel cout in
     File.pretty out ~prj:new_appli;
     Format.pp_print_flush out ();
     close_out cout

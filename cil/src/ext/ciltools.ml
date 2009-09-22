@@ -153,7 +153,7 @@ let rec isCompositeType tp =
   match tp with
     TComp _  -> true
   | TPtr(x, _) -> isCompositeType x
-  | TArray(x,_,_) -> isCompositeType x
+  | TArray(x,_,_,_) -> isCompositeType x
   | TFun(x,_,_,_) -> isCompositeType x
   | TNamed (x,_) -> isCompositeType x.ttype
   | _ -> false
@@ -164,7 +164,7 @@ class attribute_checker target rflag = object
   inherit nopCilVisitor
   method vtype t =
     match t with 
-      TComp(cinfo, _a) ->
+      TComp(cinfo, _, _) ->
 	if(not (List.exists (fun x -> cinfo.cname = x) !visited )) then begin
 	  visited := cinfo.cname :: !visited;
 	  List.iter 

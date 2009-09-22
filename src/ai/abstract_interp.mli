@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -78,7 +78,10 @@ module type Lattice_With_Diff = sig
     (** [diff t1 t2] is an over-approximation of [t1-t2].
 	@return t1 if [t2] is not a singleton. *)
 
-  val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_enum : 
+    split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
+  val splitting_cardinal_less_than:
+    split_non_enumerable:int -> t -> int -> int
   val hash : t -> int
   val pretty_debug : Format.formatter -> t -> unit
   val name : string
@@ -188,38 +191,6 @@ module type Arithmetic_Value = sig
   val extract_bits : with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
 end
 
-module type Card = sig
-  type t
-  val n : t
-end
-
-
-module type Float_Abstract_Sig =
-sig
-  type t
-  type integer
-  exception Nan_or_infinite
-  exception Bottom
-  val compare : t -> t -> int
-  val pretty : Format.formatter -> t -> unit
-  val hash : t -> int
-  val widen : t -> t -> t
-  val is_singleton : t -> bool
-  val is_zero : t -> bool
-  val contains_zero : t -> bool
-  val zero : t
-  val meet : t -> t -> t
-  val join : t -> t -> t
-  val top : t
-  val is_included : t -> t -> bool
-  val diff : t -> t -> t
-  val filter_le : t -> t -> t
-  val filter_ge : t -> t -> t
-  val filter_lt : t -> t -> t
-  val filter_gt : t -> t -> t
-end
-
-
 module Int : sig
   include Arithmetic_Value with type t = My_bigint.big_int
   val pretty_s : unit -> t -> string
@@ -284,129 +255,6 @@ end
 
 module Make_Lattice_Base (V : Value) : Lattice_Base with type l = V.t
 
-module Make_Lattice_Mod
-  (V:Arithmetic_Value)
-  (CARD:Card with type t = int)
-  (F:Float_Abstract_Sig with type integer = V.t):
-sig
-  module O : Set.S with type elt = V.t
-
-  type tt = 
-      Set of O.t
-    | Float of F.t 
-    | Top of V.t option * V.t option * V.t * V.t
-
-  module Widen_Hints : sig 
-    module V : Arithmetic_Value with type t = V.t
-    include SetWithNearest.S with type elt = V.t
-    val default_widen_hints : t
-  end
-
-  include Lattice with type t = tt and type widen_hint = Widen_Hints.t
-
-  val hash : t -> int
-  val equal : t -> t -> bool
-  val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
-  val diff : t -> t -> t
-  val diff_if_one : t -> t -> t
-  val add : t -> t -> t
-  val neg : t -> t
-  val sub : t -> t -> t
-  val min_int : t -> V.t option
-  val max_int : t -> V.t option
-  val min_and_max : t -> V.t option * V.t option
-  val bitwise_and : size:int -> t -> t -> t
-  val bitwise_or : size:int -> t -> t -> t
-    
-  val inject_range : V.t option -> V.t option -> t
-    (** the interval is inclusive. *)
-
-  val all_positives : V.t option -> bool
-  val all_negatives : V.t option -> bool
-  val cardinal_zero_or_one : t -> bool
-  val is_singleton_int : t -> bool
-  val inject_singleton : V.t -> t
-  val zero : t
-  val one : t
-  val is_zero : t -> bool
-  val is_one : t -> bool
-
-  val inject_float : F.t -> t
-  val top_float : t
-
-  val project_float : t -> F.t 
-    (** @raise F.Nan_or_infinite when the float is Nan or infinite. *)
-
-  val in_interval :
-    V.t -> V.t option -> V.t option -> V.t -> V.t -> bool
-  val contains_zero : t -> bool
-
-  exception Not_Singleton_Int
-  val project_int : t -> V.t
-    (** @raise Not_Singleton_Int when the cardinal is not 1. *)
-
-
-  val cardinal_less_than : t -> int -> int
-  val inject_top : V.t option -> V.t option -> V.t -> V.t -> t
-  val inject_set : O.t -> t
-  val fold : (V.t -> 'a -> 'a) -> t -> 'a -> 'a
-
-
-  exception Apply_Set_Exn of exn
-  val apply_set :
-    string -> (V.t -> V.t -> V.t) -> t -> t -> t
-  val apply_set_unary : 'a -> (V.t -> V.t) -> t -> t
-
-  val singleton_zero : t
-  val singleton_one : t
-  val zero_or_one : t
-  val contains_non_zero : t -> bool
-
-  val scale : V.t -> t -> t
-  val scale_div : pos:bool -> V.t -> t -> t
-
-  val negative : t
-  val div : t -> t -> t
-
-  val scale_rem : pos:bool -> V.t -> t -> t
-
-  val cast : size:V.t -> signed:bool -> value:t -> t
-
-(*  val cast_int_to_float : t -> t
-  val cast_float_to_int : t -> t
-*)		       
-  val c_rem : t -> t -> t
-  val mul : t -> t -> t
-  val shift_left : size:V.t -> t -> t -> t
-  val shift_right : size:V.t -> t -> t -> t
-  val interp_boolean :
-    contains_zero:bool -> contains_non_zero:bool -> t
-  val filter_set : (int -> bool) -> V.t -> O.t -> t
-  val extract_bits : with_alarms:CilE.warn_mode -> start:V.t -> stop:V.t -> t -> t
-  val create_all_values : modu:V.t -> size:int -> t
-  val all_values : size:V.t -> t -> bool
-
-  (*TODO To be hidden *)
-  val filter_le_int : V.t option -> t -> t
-  val filter_ge_int : V.t option -> t -> t
-  val filter_lt_int : V.t option -> t -> t
-  val filter_gt_int : V.t option -> t -> t
-  val filter_le : t -> t -> t
-  val filter_ge : t -> t -> t
-  val filter_lt : t -> t -> t
-  val filter_gt : t -> t -> t
-
-  val filter_le_float : t -> t -> t
-  val filter_ge_float : t -> t -> t
-  val filter_lt_float : t -> t -> t
-  val filter_gt_float : t -> t -> t
-
-  val compare_C :
-    (V.t option ->
-       V.t option -> V.t option -> V.t option -> 'a) -> t -> t -> 'a
-  val max_max :  V.t option -> V.t option -> V.t option
-end
-
 module Make_Pair (V:Value)(W:Value) :
   sig
     type t = V.t * W.t
@@ -424,6 +272,8 @@ sig
   val inject_bounds : V.t -> V.t -> t
   val inject : elt list -> t
   val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
+  val splitting_cardinal_less_than : 
+    split_non_enumerable:int -> t -> int -> int
 end
 
 module Make_Lattice_Set (V : Value) : Lattice_Set with type O.elt=V.t

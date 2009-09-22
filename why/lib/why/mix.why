@@ -1,9 +1,0 @@
-
-(* MIX model *)
-
-parameter mem : int array
-
-parameter a,x,i1,i2,i3,i4,i5,i6 : int ref
-
-parameter cmp : int ref
-parameter cmp_ : x:int -> y:int -> {} unit writes cmp { cmp = x-y }

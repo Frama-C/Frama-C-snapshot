@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -files-debug "-check -copy" -val -print -journal-disable
+   OPT: -check -copy -val -print -journal-disable
  */
 
 /*@ predicate p(int x); */

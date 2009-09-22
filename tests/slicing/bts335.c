@@ -3,7 +3,7 @@
 */
 
 /*
-bin/toplevel.opt -slice-pragma g -calldeps -slicing-level 3 tests/slicing/bts335.c -slicing-debug "-debug 2"
+bin/toplevel.opt -slice-pragma g -calldeps -slicing-level 3 tests/slicing/bts335.c -debug 2
 bin/toplevel.opt -pdg-debug -pdg -pdg-debug "-dot-pdg bts335" tests/slicing/bts335.c 
  */
 int T[2]  = {0, 0};

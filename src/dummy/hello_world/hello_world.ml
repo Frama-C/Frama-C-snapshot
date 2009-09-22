@@ -1,29 +1,64 @@
-(** The traditional Hello world! plugin.
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(** The traditional 'Hello world!' plugin.
     It contains one boolean state [Enabled] which can be set by the
     command line option "-hello".
     When this option is set it just pretty prints a message on the standard
-    error.
-*)
+    output. *)
 
+(** Register the new plug-in "Hello World" and provide access to some plug-in
+    dedicated features. *)
+module Self =
+  Plugin.Register
+    (struct
+       let name = "Hello world"
+       let shortname = "hello"
+       let descr = "The famous 'Hello world' plugin"
+     end)
 
-module Enabled = Cmdline.Dynamic.Register.False(
-  struct 
-    let name = "hello enabled" 
-  end)
+(** Register the new Frama-C option "-hello". *)
+module Enabled =
+  Self.False
+    (struct
+       let option_name = "-hello"
+       let descr = "pretty print \"Hello world!\""
+     end)
 
-let startup () = 
-  if Enabled.get () then 
-    prerr_endline "Hello world!"
+let print () = Self.result "Hello world!"
 
-let options = 
-  [ "-hello",
-    Arg.Unit Enabled.on,
-    ": pretty print \"Hello world!\"" ]
+(** The code below is not mandatory: you can ignore it in a first reading. It
+    provides an API for the plug-in, so that the function [run] is callable by
+    another plug-in and journalized: first, each plug-in can call [Dynamic.get
+    "Hello.run" (Type.func Type.unit Type.unit)] in order to call [run]
+    and second, each call to [run] is written in the Frama-C journal. *)
+let print =
+  Dynamic.register
+    "Hello.run"
+    ~journalize:true
+    (Type.func Type.unit Type.unit)
+    print
 
-let () = 
-  Options.add_plugin
-    ~name:"hello world"
-    ~descr:"Hello world plugin"
-    options;
-  Dynamic.Main.extend startup
+(** Print 'Hello World!' whenever the option is set. *)
+let run () =  if Enabled.get () then print ()
 
+(** Register the function [run] as a main entry point. *)
+let () = Db.Main.extend run

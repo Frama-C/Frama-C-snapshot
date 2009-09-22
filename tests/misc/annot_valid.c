@@ -47,7 +47,7 @@ int main (int u) {
   //@ assert \valid(p);
     break;
   case 14:
-  //@ assert (\valid((void*)5));
+  //@ assert (\valid((char*)5));
     break;
   }
 

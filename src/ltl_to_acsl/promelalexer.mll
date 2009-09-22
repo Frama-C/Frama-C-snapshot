@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: promelalexer.mll,v 1.2 2008/10/02 13:33:29 uid588 Exp $ *)
+(* $Id: promelalexer.mll,v 1.2 2008-10-02 13:33:29 uid588 Exp $ *)
 
 (* from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip *)
 
@@ -102,7 +104,7 @@ rule token = parse
   | eof                     { EOF }
 
   | "1"                     { PROMELA_TRUE }
-  | _                       { Format.printf "Illegal_character : '%s'\n" (lexeme lexbuf);
+  | _                       { Ltl_to_acsl_option.error "Illegal_character : '%s'\n" (lexeme lexbuf);
 			      raise Parsing.Parse_error}
 
 
@@ -110,7 +112,7 @@ rule token = parse
 
 and comment = parse
   | "*/" { () }
-  | eof  {  Format.printf "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) }
+  | eof  {  Ltl_to_acsl_option.error "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) }
   | '\n' { newline lexbuf; comment lexbuf }
   | _    { comment lexbuf }
 
@@ -124,16 +126,17 @@ and comment = parse
 	Parsing.Parse_error 
       | Invalid_argument _ -> 
 	  let (a,b)=(loc lb) in 
-	    Format.print_string "Syntax error (" ;
-	    Format.print_string "l" ;
-	    Format.print_int a.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (a.pos_cnum-a.pos_bol) ;
-	    Format.print_string " -> l" ;
-	    Format.print_int b.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (b.pos_cnum-b.pos_bol) ;
-	    Format.print_string ")\n" ;
+		   Ltl_to_acsl_option.error "Syntax error (l%d c%d -> l%dc%d)" a.pos_lnum (a.pos_cnum-a.pos_bol) b.pos_lnum (b.pos_cnum-b.pos_bol);
+(*	    Format.print_string "Syntax error (" ;   *)
+(*	    Format.print_string "l" ;                *)
+(*	    Format.print_int a.pos_lnum ;            *)
+(*	    Format.print_string "c" ;                *)
+(*	    Format.print_int (a.pos_cnum-a.pos_bol) ;*)
+(*	    Format.print_string " -> l" ;            *)
+(*	    Format.print_int b.pos_lnum ;            *)
+(*	    Format.print_string "c" ;                *)
+(*	    Format.print_int (b.pos_cnum-b.pos_bol) ;*)
+(*	    Format.print_string ")\n" ;              *)
 	    raise_located (loc lb) "Syntax error"
 	      
      

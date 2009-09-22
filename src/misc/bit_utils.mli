@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: bit_utils.mli,v 1.11 2008/07/02 15:28:19 uid568 Exp $ *)
+(* $Id: bit_utils.mli,v 1.11 2008-07-02 15:28:19 uid568 Exp $ *)
 
 (** Some bit manipulations. *)
 
@@ -84,7 +84,7 @@ val pretty_bits:
   align:My_bigint.big_int ->
   rh_size:My_bigint.big_int ->
   start:My_bigint.big_int ->
-  stop:My_bigint.big_int -> string * bool
+  stop:My_bigint.big_int -> Format.formatter -> bool
   (** Pretty prints a range of bits in a type for the user.
       Tries to find field names and array indexes, whenever possible. *)
 

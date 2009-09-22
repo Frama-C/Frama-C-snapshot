@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -28,7 +28,7 @@ let compute kf =
 
 let pretty ?(bw=false) fmt pdg =
     let kf = PdgTypes.Pdg.get_kf pdg in
-    Format.fprintf fmt "@[[pdg RESULT for %s] :@]@\n@[%a@]"
+    Format.fprintf fmt "@[RESULT for %s:@]@\n@[%a@]"
       (Kernel_function.get_name kf) (Print.pretty_pdg ~bw) pdg
 
 let pretty_node short =
@@ -39,7 +39,7 @@ let pretty_key = Print.pretty_key
 
 let print_dot pdg filename =
   Print.build_dot filename pdg;
-  Format.printf "[pdg] dot file generated in %s@." filename
+  Pdg_parameters.result "dot file generated in %s" filename
 
 module Tbl =
   Kernel_function.Make_Table
@@ -51,7 +51,7 @@ module Tbl =
     end)
 
 let () =
-  Options.register_plugin_init
+  Cmdline.run_after_extended_stage
     (fun () ->
        let add = Project.Computation.add_dependency Tbl.self in
        add !Db.From.self)
@@ -126,63 +126,34 @@ let translate_in_marks = Marks.translate_in_marks
 
 module F_Proj (C : PdgMarks.T_Config) = Marks.F_Proj (C)
 
-let main fmt =
+let main () =
   let force_pdg = 
-    Cmdline.Pdg.BuildAll.get ()
-    || not (Cilutil.StringSet.is_empty (Cmdline.Pdg.BuildFct.get ()))
+    Pdg_parameters.BuildAll.get ()
+    || not (Cilutil.StringSet.is_empty (Pdg_parameters.BuildFct.get ()))
   in
   if force_pdg then begin
-    Format.fprintf fmt "@\n[pdg] in progress...@.";
+    Pdg_parameters.feedback "in progress...";
     let do_kf_pdg kf =
       let fname = Kernel_function.get_name kf in
-      if Cmdline.Pdg.BuildAll.get () ||
-	Cilutil.StringSet.mem fname (Cmdline.Pdg.BuildFct.get ())
+      if Pdg_parameters.BuildAll.get () ||
+	Cilutil.StringSet.mem fname (Pdg_parameters.BuildFct.get ())
       then begin
 	let pdg = !Db.Pdg.get kf in
-        let bw  = Cmdline.Pdg.PrintBw.get () in
-	Format.fprintf fmt "@[%a@]@." (!Db.Pdg.pretty ~bw) pdg;
-	if Cmdline.Pdg.DotBasename.get () <> "" then
+        let dot_postdom = Pdg_parameters.DotPostdomBasename.get () in
+          if dot_postdom <> "" then !Db.Postdominators.print_dot dot_postdom kf;
+        let bw  = Pdg_parameters.PrintBw.get () in
+	Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
+	if Pdg_parameters.DotBasename.get () <> "" then
           !Db.Pdg.extract pdg
-	    (Cmdline.Pdg.DotBasename.get ()^"."^fname^".dot")
+	    (Pdg_parameters.DotBasename.get ()^"."^fname^".dot")
       end
     in
     !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
-    if Cmdline.Pdg.BuildAll.get () then
-      Format.fprintf fmt "@\n====== PDG GRAPH COMPUTED ======@.";
+    if Pdg_parameters.BuildAll.get () then
+      Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======";
   end
 
 let () = Db.Main.extend main
-
-(** Register options for this computation *)
-let () =
-  Options.add_plugin ~name:"Program Dependence Graph (experimental)"
-    ~descr:""
-    ~shortname: "pdg"
-    ~debug:[
-      "-verbose", Arg.Unit Cmdline.Pdg.Verbosity.incr,
-      ": increase verbosity level for the pdg plugin (can be repeated).";
-
-      "-pdg",
-      Arg.Unit Cmdline.Pdg.BuildAll.on,
-      ": build the dependence graph of each function for the slicing tool";
-
-      "-fct-pdg",
-      Arg.String Cmdline.Pdg.BuildFct.add,
-      "f : build the dependence graph for the specified function f";
-
-      "-codpds",
-      Arg.Unit Cmdline.Pdg.PrintBw.on,
-      ": print the co-dependencies rather than the dependencies";
-
-      "-dot-pdg",
-      Arg.String Cmdline.Pdg.DotBasename.set,
-      "basename : put the PDG of function f in basename.f.dot";
-
-      "-dot-postdom",
-      Arg.String Cmdline.Pdg.DotPostdomBasename.set,
-      "basename : put the postdominators of function f in basename.f.dot";
-    ]
-    [ ]
 
 (*
   Local Variables:

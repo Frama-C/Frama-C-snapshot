@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,20 +19,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: project.ml,v 1.50 2008/11/18 16:37:29 uid562 Exp $ *)
+(* $Id: project.ml,v 1.60 2009-02-05 12:35:06 uid568 Exp $ *)
 
 (* ************************************************************************** *)
 (** {2 Debugging} *)
 (* ************************************************************************** *)
 
-let debug_level = ref 0
-let set_debug_level n = debug_level := n
-
-let debug0 n fmt = if !debug_level >= n  then Format.eprintf fmt
-let debug n fmt s = if !debug_level >= n then Format.eprintf fmt s
-let debug2 n fmt s1 s2 = if !debug_level >= n then Format.eprintf fmt s1 s2
-let debug3 n fmt s1 s2 s3 =
-  if !debug_level >= n then Format.eprintf fmt s1 s2 s3
+include Log.Register
+  (struct
+     let channel = Log.kernel_channel_name
+     let label = Log.kernel_label_name
+     let verbose_atleast n = Cmdline.kernel_verbose_level >= n
+     let debug_atleast n = Cmdline.kernel_debug_level >= n
+   end)
 
 (* ************************************************************************** *)
 (** {2 Project} *)
@@ -42,34 +41,50 @@ type t = { pid: int; name: string; unique_name: string }
 type project = t
 
 let dummy = { pid = 0; name = ""; unique_name = ""}
-let repr = Type.make "Project.t" dummy
 
-let () =
-  Journal.register_printer
-    repr
-    (fun fmt p ->
-       Format.fprintf fmt "(Project.from_unique_name %S)" p.unique_name)
+let pp p_caller fmt p =
+  let pp f =
+    Format.fprintf f "@[<hv 2>Project.from_unique_name@;%S@]" p.unique_name
+  in
+  Type.par p_caller Type.Call fmt pp
+
+let varname p = "p_" ^ p.name
+
+let ty =
+  Type.register
+    ~name:"Project.t" ~value_name:(Some "Project.ty") ~pp ~varname:varname
+    dummy
 
 type state_ondisk = { s_value: Obj.t; s_computed: bool; s_digest: Digest.t }
 
+let global_pid = ref 0
+
 (** Projects are comparable *)
 
+(* Be careful: it is incorrect to compare projects using (==) while loading
+   projects from disk whom states refer to another project.
+   The function [load_all] ensures that comparing pid are conservative, so
+   correct. *)
+
+let equal p1 p2 = p1.pid = p2.pid
 let compare p1 p2 = Pervasives.compare p1.pid p2.pid
-let equal = (==)
 let hash p = p.pid
 
-(** Roughly first-class-value type for computation kinds. *)
+(* Operations on states visible by operations on projects *)
 type computation_operations =
     { cname: string;
       create: t -> unit;
       remove: t -> unit;
       clear: t -> unit;
+      clear_if_project: t -> t -> bool;
+      contain_any_project: bool;
       copy: t -> t -> unit;
       commit: t -> unit;
       update: t -> unit;
       clean: unit -> unit;
       serialize: t -> state_ondisk;
-      unserialize: t -> state_ondisk -> unit }
+      unserialize: t -> state_ondisk -> unit;
+      rehash: t -> t -> unit }
 
 let dummy_name = "dummy"
 
@@ -79,22 +94,23 @@ module Computations = struct
   include Kind.Make
     (struct
        type t = computation_operations
-       let name = "computations"
+       let name = "Computations"
        let kind_name x = x.cname
        let dummy =
+	 let never_called _ = assert false in
 	 { cname = dummy_name;
-	   create = Extlib.nop;
-	   remove = Extlib.nop;
-	   clear = Extlib.nop;
-	   copy = (fun _ _ -> ());
-	   commit = Extlib.nop;
-	   update = Extlib.nop;
-	   serialize = (* not called *)
-	     (fun _ -> { s_value = Obj.repr ();
-			 s_computed = false;
-			 s_digest = Digest.string "" });
-	   unserialize = (fun _ s -> assert (() = Obj.obj s.s_value));
-	   clean = Extlib.nop }
+	   create = never_called;
+	   remove = never_called;
+	   clear = never_called;
+	   clear_if_project = never_called;
+	   contain_any_project = false;
+	   copy = never_called;
+	   commit = never_called;
+	   update = never_called;
+	   serialize = never_called;
+	   unserialize = never_called;
+	   clean = never_called;
+	   rehash = never_called }
      end)
 
   let create_kind = create
@@ -109,11 +125,62 @@ module Computations = struct
   let update ?(only=Selection.empty) ?(except=Selection.empty) =
     iter_in_order only except (fun s -> s.update)
 
+  let rehash p rehashed_p =
+    iter_in_order Selection.empty Selection.empty
+      (fun s p -> s.rehash p rehashed_p) p
+
   let clear only except =
-(*    Format.printf "Project.clear@."; (* project.clear happening too often
-can cause slowness of regression tests and be otherwise undetectable.
-Uncomment to check how often it happens *) *)
     iter_in_order only except (fun s -> s.clear)
+
+  let clear_if_project tested_p p =
+    let cleared =
+      apply_in_order Selection.empty Selection.empty
+	(fun s acc ->
+	   let v = value s in
+	   if v.clear_if_project tested_p p then begin
+	     let sel = Selection.singleton s Kind.Select_Dependencies in
+             clear sel Selection.empty p;
+	     Selection.add s Kind.Select_Dependencies acc
+	   end else
+	     acc)
+	Selection.empty
+    in
+    if not (Selection.is_empty cleared) then begin
+      warning
+	"forcing to clear all values equal to project %S in project %S"
+	tested_p.name
+	p.name;
+      debug ~append:(fun fmt -> Format.fprintf fmt "@]")
+	"@[the involved states are:%t"
+	(fun fmt ->
+	   iter_in_order cleared Selection.empty
+	     (fun v () -> Format.fprintf fmt "@ %S" v.cname)
+	     ())
+    end
+
+  let clear_when_project only except p =
+    let cleared =
+      apply_in_order only except
+	(fun s acc ->
+	   let v = value s in
+	   if v.contain_any_project then begin
+	     let sel = Selection.singleton s Kind.Select_Dependencies in
+             clear sel Selection.empty p;
+	     Selection.add s Kind.Select_Dependencies acc
+	   end else
+	     acc)
+	Selection.empty
+    in
+    if not (Selection.is_empty cleared) then begin
+      warning "forcing to clear states containing projects in project %S"
+	p.name;
+      debug ~append:(fun fmt -> Format.fprintf fmt "@]")
+	"@[the involved states are:%t"
+	(fun fmt ->
+	   iter_in_order cleared Selection.empty
+	     (fun v () -> Format.fprintf fmt "@ %S" v.cname)
+	     ())
+    end
 
   let copy only except src =
     iter_in_order only except (fun s -> s.copy src)
@@ -128,35 +195,29 @@ Uncomment to check how often it happens *) *)
     tbl
 
   let unserialize only except dst tbl =
-    let use_info = ref false in
-    let pp_err fmt n pp_debug =
+    let pp_err fmt n =
       if n > 0 then begin
-	Format.eprintf ("Warning: " ^^ fmt ^^ "@.")
+	warning
+	  fmt
 	  n
 	  (if n = 1 then "" else "s") (if n = 1 then "is" else "are")
-	  (if n = 1 then "It does not exist in" else "They do not exist in");
-	if !debug_level >= 1 then pp_debug () else use_info := true
+	  (if n = 1 then "It does not exist in" else "They do not exist in")
       end
     in
     let ignored () =
       pp_err
-	"%n state%s of the saved file %s ignored. \
-%s your Frama-C configuration."
-	(Hashtbl.length tbl)
-	(fun () ->
-	   Hashtbl.iter
-	     (fun k _ -> Format.eprintf "Ignoring state %s.@." k)
-	     tbl)
+	"%n state%s of the saved file %s ignored. %s your Frama-C configuration"
+	(Hashtbl.length tbl);
+      Hashtbl.iter (fun k _ -> debug "ignoring state %s" k) tbl
     in
     let to_default l =
       pp_err
 	"%d state%s %s set to default. \
-%s the Frama-C configuration of the saved file."
-	(List.length l)
-	(fun () ->
-	   List.iter
-	     (fun s -> Format.eprintf "Setting to default state %s.@." s.cname)
-	     (List.rev l));
+%s the Frama-C configuration of the saved file"
+	(List.length l);
+      List.iter
+	(fun s -> debug "setting to default state %s" s.cname)
+	(List.rev l);
       List.iter (fun s -> s.clear dst) l
     in
     let dft_list =
@@ -179,15 +240,28 @@ Uncomment to check how often it happens *) *)
 	[]
     in
     to_default (List.rev dft_list);
-    ignored ();
-    if !use_info then
-      Format.eprintf "Use -project-debug \"-debug 1\" for some details.@."
+    ignored ()
 
 end
 
 module Selection = Computations.Selection
 
-(* [Julien] TODO: change this datastructure for a queue with promotion? *)
+let guarded_feedback only except level fmt_msg =
+  if verbose_atleast level then
+    match Computations.number_of_applicants only except with
+    | None -> feedback ~level fmt_msg
+    | Some n when n = 0 -> Log.nullprintf fmt_msg
+    | Some n ->
+	let states fmt =
+	  if n > 1 then Format.fprintf fmt " (for %d states)" n
+	  else Format.fprintf fmt " (for 1 state)"
+	in
+	feedback ~level ~append:states fmt_msg
+  else
+    Log.nullprintf fmt_msg
+
+let dft_sel () = Selection.empty
+
 module Q = Qstack.Make(struct type u = t type t = u let equal = equal end)
 
 let projects = Q.create ()
@@ -195,11 +269,9 @@ let projects = Q.create ()
 
 let current () = Q.top projects
 
-let is_current p = p == (current ())
+let is_current p = equal p (current ())
 
 let iter_on_projects f = Q.iter f projects
-
-let nb_projects = ref 0
 
 let find_all name = Q.filter (fun p -> p.name = name) projects
 
@@ -220,97 +292,152 @@ let from_unique_name uname =
 module Create_Hook = Hook.Build(struct type t = project end)
 let register_create_hook = Create_Hook.extend
 
-let create name =
-  debug 1 "Creating project %s.@." name;
-  incr nb_projects;
-  let p = { pid = !nb_projects; name = name; unique_name = mk_unique name } in
+let force_create name =
+  feedback ~level:2 "creating project %S" name;
+  incr global_pid;
+  let p = { pid = !global_pid; name = name; unique_name = mk_unique name } in
   Q.add_at_end p projects;
   Computations.create p;
   Create_Hook.apply p;
   p
+
+let journalized_create =
+  Journal.register "Project.create" (Type.func Type.string ty) force_create
+
+(* do not journalise the first call to [create] *)
+let create =
+  let first = ref true in
+  fun name ->
+    let p = if !first then force_create name else journalized_create name in
+    first := false;
+    p
 
 let name p = p.name
 let unique_name p = p.unique_name
 
 exception NoProject = Q.Empty
 
-module Set_Current_Hook_User = Hook.Make(struct end)
-module Set_Current_Hook = Hook.Make(struct end)
+module Set_Current_Hook_User = Hook.Build (struct type t = project end)
+module Set_Current_Hook = Hook.Build(struct type t = project end)
+
 let register_after_set_current_hook ~user_only =
   if user_only then Set_Current_Hook_User.extend else Set_Current_Hook.extend
 
-let force_set_current ?(on=false) ?only ?except p =
-  if not (Q.mem p projects) then
-    invalid_arg ("Project.set_current: " ^ p.name ^ " does not exist");
-  let old = current () in
-  Computations.commit ?only ?except old;
-  (try Q.move_at_top p projects with Invalid_argument _ -> assert false);
-  debug3 1 "Project %s (id %d) is now the current one  (was project %s).@."
-    p.name p.pid old.name;
-  assert (p == current ());
-  Computations.update ?only ?except p;
-  if not on then Set_Current_Hook_User.apply ();
-  Set_Current_Hook.apply ()
+let unjournalized_set_current =
+  let apply_hook = ref false in
+  fun on only except p ->
+    if not (Q.mem p projects) then
+      invalid_arg ("Project.set_current: " ^ p.unique_name ^ " does not exist");
+    let old = current () in
+    Computations.commit ~only ~except old;
+    (try Q.move_at_top p projects with Invalid_argument _ -> assert false);
+    let level = if on then 3 else 2 in
+    guarded_feedback only except level
+      "%S is now the current project"
+      p.unique_name;
+    assert (equal p (current ()));
+    Computations.update ~only ~except p;
+    if not !apply_hook then begin
+      apply_hook := true;
+      if not on then Set_Current_Hook_User.apply old;
+      Set_Current_Hook.apply old;
+      apply_hook := false
+    end
 
-let j_force_set_current =
-  Journal.register "Project.set_current" (Type.func repr Type.unit)
-    (fun s -> force_set_current s (* etat-expansion required: the function
-                                     must be registered once.
-                                   *))
+let journalized_set_current =
+  let lbl = Type.optlabel_func in
+  Journal.register "Project.set_current"
+    (lbl "on" (fun () -> false) Type.bool
+       (lbl "only" dft_sel Selection.ty
+	  (lbl "except" dft_sel Selection.ty (Type.func ty Type.unit))))
+    unjournalized_set_current
 
-let set_current ?(on=false) ?only ?except p =
-  if not (is_current p) then
-    match on,only,except with
-    | false, None, None -> j_force_set_current p
-    | _ -> force_set_current ~on ?only ?except p
+let set_current
+    ?(on=false) ?(only=Selection.empty) ?(except=Selection.empty) p =
+  if not (equal p (current ())) then journalized_set_current on only except p
 
-let remove project =
-  debug 1 "Removing project %s.@." project.name;
+exception Cannot_remove of string
+
+module Before_remove = Hook.Build(struct type t = project end)
+let register_before_remove_hook = Before_remove.extend
+
+let unjournalized_remove project =
+  feedback ~level:2 "removing project %S" project.name;
+  if Q.length projects = 1 then raise (Cannot_remove project.name);
+  Before_remove.apply project;
   Computations.remove project;
   let old_current = current () in
   Q.remove project projects;
-  if project == old_current then Computations.update (current ())
+  if equal project old_current then begin
+    (* we removed the current project. So there is a new current project
+       and we have to update the local states according to it. *)
+    let c = current () in
+    Computations.update c;
+    Set_Current_Hook_User.apply c
+  end;
+  (* clear all the states of other projects referring to the delete project *)
+  Q.iter (Computations.clear_if_project project) projects
 
-let remove =
-  Journal.register "Project.remove" (Type.func repr Type.unit ) remove
+let journalized_remove =
+  Journal.register "Project.remove"
+    (Type.optlabel_func "project" current ty (Type.func Type.unit Type.unit))
+    (fun project () -> unjournalized_remove project)
 
-let remove ?(project=current()) () = remove project
+let remove ?(project=current()) () = journalized_remove project ()
 
 let remove_all () =
-  debug0 1 "Removing all the projects.@.";
+  feedback ~level:2 "removing all existing projects";
   try
+    iter_on_projects Before_remove.apply;
     Computations.clean ();
     Q.clear projects;
-    nb_projects := 0
   with NoProject ->
     ()
 
-let copy
-    ?(only=Selection.empty)
-    ?(except=Selection.empty)
-    ?(src=current())
-    dst =
-  debug2 1 "Copy project from %s to %s.@." src.name dst.name;
-  Computations.commit ~only ~except src;
-  Computations.copy only except src dst
+let journalized_copy =
+  let lbl = Type.optlabel_func in
+  Journal.register "Project.copy"
+    (lbl "only" dft_sel Selection.ty
+       (lbl "except" dft_sel Selection.ty
+	  (lbl "src" current ty (Type.func ty Type.unit))))
+    (fun only except src  dst ->
+       guarded_feedback only except 2 "copying project from %S to %S"
+	 src.name dst.name;
+       Computations.commit ~only ~except src;
+       Computations.copy only except src dst)
 
-module Clear_Hook = Hook.Make(struct end)
+let copy
+    ?(only=Selection.empty) ?(except=Selection.empty) ?(src=current()) dst =
+  journalized_copy only except src dst
+
+module Clear_Hook = Hook.Build(struct type t = project end)
 let register_todo_on_clear = Clear_Hook.extend
 
-let clear
-    ?(only=Selection.empty)
-    ?(except=Selection.empty)
-    ?(project=current()) () =
-  debug 1 "Cleaning project %s.@." project.name;
-  Clear_Hook.apply ();
-  Computations.clear only except project
+let journalized_clear =
+  let lbl = Type.optlabel_func in
+  Journal.register "Project.clear"
+    (lbl "only" dft_sel Selection.ty
+       (lbl "except" dft_sel Selection.ty
+	  (lbl "src" current ty (Type.func Type.unit Type.unit))))
+    (fun only except project () ->
+       guarded_feedback only except 2 "clearing project %S" project.name;
+       Clear_Hook.apply project;
+       Computations.clear only except project)
 
-let clear_all () =
+let clear
+    ?(only=Selection.empty) ?(except=Selection.empty) ?(project=current()) () =
+  journalized_clear only except project ()
+
+let unjournalized_clear_all () =
   Q.iter
     (Computations.clear
        Selection.empty
        Selection.empty)
     projects
+
+let clear_all =
+  Journal.register "Project.clear_all" (Type.func Type.unit Type.unit)
+    unjournalized_clear_all
 
 let on ?only ?except p f x =
   let old_current = current () in
@@ -324,8 +451,6 @@ let on ?only ?except p f x =
     set old_current;
     raise e
 
-let set_current ?only ?except p =  set_current ?only ?except p (* hide ?on *)
-
 exception IOError = Sys_error
 
 module Before_load = Hook.Make(struct end)
@@ -334,9 +459,26 @@ let register_before_load_hook = Before_load.extend
 module After_load = Hook.Make(struct end)
 let register_after_load_hook = After_load.extend
 
+(* Rehashing of projects is required while loading *)
+module Rehash_Cache =
+  Hashtbl.Make
+    (struct
+       type t = project
+       let hash = hash
+       let equal = equal
+     end)
+let rehash_cache = Rehash_Cache.create 17
+let rehash p =
+  try
+    Rehash_Cache.find rehash_cache p
+  with Not_found ->
+    let v = create p.name in
+    Rehash_Cache.add rehash_cache p v;
+    v
+
 (* magic numbers *)
 let magic = 5
-let magic_one () = (*Dependencies.nb_kind () * *)(100 + magic) (* TO(re)DO *)
+let magic_one () = 100 + magic (* TO(re)DO *)
 let magic_all () = 10000 + try magic_one () with NoProject -> 0
 
 (* Generic saving function on disk. *)
@@ -354,7 +496,7 @@ let gen_load =
     raise
       (IOError
 	 (Format.sprintf
-	    "project saved with an incompatible version (old:%s,current:%s)"
+	    "project saved with an incompatible version (old:%S,current:%S)"
 	    old
 	    current))
   in
@@ -383,28 +525,69 @@ let write, read =
   (fun only except dst (data: (string, state_ondisk) Hashtbl.t) ->
      Computations.unserialize only except dst data)
 
-let save
-    ?(only=Selection.empty)
-    ?(except=Selection.empty)
-    ?(project=current())
-    filename =
-  debug2 1 "Saving project %s into file %s.@." project.name filename;
-  gen_save (fun () -> write only except project) (magic_one ()) filename
+let unjournalized_save only except project filename =
+  if Cmdline.use_obj then begin
+    guarded_feedback only except 2
+      "saving project %S into file %S"
+      project.name filename;
+    gen_save (fun () -> write only except project) (magic_one ()) filename
+  end else
+    raise (IOError "saving a file is not supported in the 'no obj' mode")
 
-let load
-    ?(only=Selection.empty)
-    ?(except=Selection.empty)
-    ~name
+let journalized_save =
+  let lbl = Type.optlabel_func in
+  Journal.register "Project.save"
+    (lbl "only" dft_sel Selection.ty
+       (lbl "except" dft_sel Selection.ty
+	  (lbl "project" current ty (Type.func Type.string Type.unit))))
+    unjournalized_save
+
+let save
+    ?(only=Selection.empty) ?(except=Selection.empty)
+    ?(project=current())
+    filename
+    =
+  journalized_save only except project filename
+
+(* loading one single project [p] from disk is incorrect if one state of [p]
+   refers to a project [p'] which does not exist in the current session. *)
+let unjournalized_load safe only except name filename =
+  if Cmdline.use_obj then begin
+    guarded_feedback only except 2
+      "loading project %S from file %S"
+      name filename;
+    let p = create name in
+    on p
+      (fun () ->
+	 if safe then Before_load.apply ();
+	 gen_load (read only except p) (magic_one ()) filename;
+	 if safe then begin
+	   Computations.clear_when_project only except p;
+	   After_load.apply ()
+	 end)
+      ();
+    p
+  end else
+    raise (IOError "loading a file is not supported in the 'no obj' mode")
+
+let journalized_load =
+  let lbl = Type.optlabel_func in
+  Journal.register "Project.load"
+    (lbl "safe" (fun () -> true) Type.bool
+       (lbl "only" dft_sel Selection.ty
+	  (lbl "except" dft_sel Selection.ty
+	     (Type.func ~label:("name", None) Type.string
+		(Type.func Type.string ty)))))
+    unjournalized_load
+
+let unsafe_load
+    ?(safe=true) ?(only=Selection.empty) ?(except=Selection.empty) ~name
     filename =
-  debug2 1 "Loading project %s from file %s.@." name filename;
-  let p = create name in
-  on p
-    (fun () ->
-       Before_load.apply ();
-       gen_load (read only except p) (magic_one ()) filename;
-       After_load.apply ())
-    ();
-  p
+  journalized_load safe only except name filename
+
+(* mask the optional parameter [save] *)
+let load ?only ?except ~name filename =
+  unsafe_load ?only ?except ~name filename
 
 let write_all, read_all =
   (fun () ->
@@ -416,7 +599,14 @@ let write_all, read_all =
 	:'a)),
   (fun (data:'a) ->
      let load_one (p, s) =
-       let p = create p.name in
+       let p =
+	 try
+	   let p = Rehash_Cache.find rehash_cache p in
+	   Q.move_at_end p projects;
+	   p
+	 with Not_found ->
+	   create p.name
+       in
        on p
 	 (fun () ->
 	    Before_load.apply ();
@@ -426,24 +616,68 @@ let write_all, read_all =
      in
      List.iter load_one (List.rev data))
 
-let save_all f =
-  debug 1 "Saving all projects into file %s.@." f;
-  gen_save write_all (magic_all ()) f
 let save_all =
   Journal.register "Project.save_all" (Type.func Type.string Type.unit)
-    save_all
+    (fun f ->
+       if Cmdline.use_obj then begin
+	 feedback ~level:2 "saving all projects into file %S" f;
+	 gen_save write_all (magic_all ()) f
+       end else
+	 raise (IOError "saving a file is not supported in the 'no obj' mode"))
 
-let load_all f =
-  remove_all ();
-  debug 1 "Loading all projects from file %s.@." f;
-  try gen_load read_all (magic_all ()) f
-  with IOError _ as e ->
-    set_current (create "default");
-    raise e
+let unjournalized_load_all f =
+  if Cmdline.use_obj then begin
+    remove_all ();
+    feedback ~level:2 "loading all projects from file %S" f;
+    try
+      gen_load read_all (magic_all ()) f;
+      Rehash_Cache.clear rehash_cache;
+    with
+    | IOError _ as e ->
+	set_current (create "default");
+        Rehash_Cache.clear rehash_cache;
+	raise e
+    | _ -> assert false
+  end else
+    raise (IOError "loading a file is not supported in the 'no obj' mode")
 
 let load_all =
-  Journal.register "Project.load_all" (Type.func Type.string Type.unit)
-    load_all
+  Journal.register
+    "Project.load_all"
+    (Type.func Type.string Type.unit)
+    unjournalized_load_all
+
+module Create_by_copy_hook = Hook.Build(struct type t = project * project end)
+let create_by_copy_hook f =
+  Create_by_copy_hook.extend (fun (src, dst) -> f src dst)
+
+let unjournalized_create_by_copy only except src name =
+  let filename = Filename.temp_file "frama_c_create_by_copy" ".sav" in
+  save ~only ~except ~project:src filename;
+  try
+    let prj = unsafe_load ~safe:false ~only ~except ~name filename in
+    Sys.remove filename;
+    Create_by_copy_hook.apply (src, prj);
+    prj
+  with
+  | IOError _ as e ->
+    Sys.remove filename;
+    raise e
+  | _ ->
+      Sys.remove filename;
+      assert false
+
+let journalized_create_by_copy =
+  let lbl = Type.optlabel_func in
+  Journal.register "Project.create_by_copy"
+    (lbl "only" dft_sel Selection.ty
+       (lbl "except" dft_sel Selection.ty
+	  (lbl "src" current ty (Type.func Type.string ty))))
+    unjournalized_create_by_copy
+
+let create_by_copy
+    ?(only=Selection.empty) ?(except=Selection.empty) ?(src=current()) name =
+  journalized_create_by_copy only except src name
 
 (* ************************************************************************** *)
 (** {2 State dealing with Project} *)
@@ -459,11 +693,14 @@ end
 let identity = fun x -> x
 let is_identity x = x == identity
 
+let no_project _ _ = false
+
 module Datatype = struct
 
   module type INPUT = sig
     type t
     val rehash: t -> t
+    val descr: Unmarshal.t
     val copy: t -> t
     val name: string
   end
@@ -481,6 +718,7 @@ module Datatype = struct
     val physical_hash: t -> int
     val equal: t -> t -> bool
     val compare: t -> t -> int
+    val contain_project: (project -> t -> bool) option ref
   end
 
   let default_rehash = identity
@@ -496,6 +734,8 @@ module Datatype = struct
     include Datatype
     let name = Name.get (Name.make Datatype.name)
 
+    let contain_project : (project -> t -> bool) option ref = ref None
+
     type comparable =
 	{ mutable hash: t -> int;
 	  mutable physical_hash: t -> int;
@@ -503,17 +743,22 @@ module Datatype = struct
 	  mutable compare: t -> t -> int;
 	  mutable is_set: bool }
 
+    let default_equal _ _ = fatal "no equality defined for datatype %S" name
+    let default_compare _ _ =
+      fatal "no comparison defined for datatype %S" name
+
     let comparable =
       { hash = Hashtbl.hash;
 	physical_hash = Hashtbl.hash;
-	equal = (=);
-	compare = Pervasives.compare;
+	equal = default_equal;
+	compare = default_compare;
 	is_set = false }
 
-    let hash = comparable.hash
-    let physical_hash = comparable.physical_hash
-    let equal = comparable.equal
-    let compare = comparable.compare
+    (* eta-expansion is required *)
+    let hash x = comparable.hash x
+    let physical_hash x = comparable.physical_hash x
+    let equal x y = comparable.equal x y
+    let compare x y = comparable.compare x y
     let is_comparable_set () = comparable.is_set
 
     let register_comparable ?compare ?equal ?hash ?physical_hash () =
@@ -524,8 +769,8 @@ module Datatype = struct
       | _ ->
 	  comparable.is_set <- true;
 	  let cmp, eq = match compare, equal with
-	    | None, None -> Pervasives.compare, (=)
-	    | None, Some eq -> Pervasives.compare, eq
+	    | None, None -> default_compare, default_equal
+	    | None, Some eq -> default_compare, eq
 	    | Some cmp, None -> cmp, (fun x y -> cmp x y = 0)
 	    | Some cmp, Some eq -> cmp, eq
 	  in
@@ -543,20 +788,24 @@ module Datatype = struct
     module Rehash_Cache =
       Hashtbl.Make
 	(struct
-	   type t = Datatype.t
-	   let hash x = comparable.physical_hash x (* eta-expansion required *)
-	   let equal = (==)
+	  type t = Datatype.t
+(* [pc 2009/07] need a better physical hash function because there may
+   be some unsharing in the original data that cause the hashtable to
+   degenerate with a semantical hash function
+let hash x = comparable.physical_hash x (* eta-expansion required *) *)
+
+	  let hash = Extlib.address_of_value
+	  let equal = (==)
 	 end)
 
     let cache = ref (Rehash_Cache.create 17)
     let rehash =
-      if is_identity Datatype.rehash then
-	identity
+      if is_identity Datatype.rehash then identity
       else begin
-	register_after_load_hook (fun () -> cache := Rehash_Cache.create 5);
+        register_after_load_hook (fun () -> cache := Rehash_Cache.create 5);
 	fun x ->
 	  try
-	    Rehash_Cache.find !cache x;
+	    Rehash_Cache.find !cache x
 	  with Not_found ->
             let v = Datatype.rehash x in
             Rehash_Cache.add !cache x v;
@@ -566,10 +815,28 @@ module Datatype = struct
   end
 
   module Imperative(D: sig type t val copy: t -> t val name: string end) =
-    Register(struct include D let rehash = identity end)
+    Register
+      (struct
+	 include D
+	 let rehash = identity
+	 let descr = Unmarshal.Abstract
+       end)
 
   module Persistent(D:sig type t val name: string end) =
     Imperative(struct include D let copy x = x end)
+
+  module Own =
+    Register
+      (struct
+	 type t = project
+	 let copy _ = abort "never perform a project copy"
+	 let name = "project"
+	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: Ask Julien *)
+       end)
+  let () =
+    Own.register_comparable ~hash ~equal ~compare ();
+    Own.contain_project := Some equal
 
 end
 
@@ -590,6 +857,7 @@ module Computation = struct
     val clear: t -> unit
     val get: unit -> t
     val set: t -> unit
+    val clear_if_project: project -> t -> bool
   end
 
   module type INFO = sig
@@ -638,13 +906,14 @@ module Computation = struct
 	try
 	  let v = find p in
 	  v.state <- State.get ()
-	with Not_found -> begin
-	  debug 2 "State %s not found@. Program will fail" name ;
-	  assert false
-	end
+	with Not_found ->
+	  fatal
+	    "state %S not associated with project %S; program will fail"
+	    name
+	    p.name
 
     let update_with p s = if is_current p then begin
-      debug2 2 "update state %s of project %s@." Info.name p.name;
+      feedback ~level:4 "update state %S of project %S" Info.name p.name;
       State.set s
     end
 
@@ -671,7 +940,8 @@ module Computation = struct
 	    first := false;
 	    State.get ()
 	  end else begin
-            debug2 2 "creating state %s for project %s@." Info.name p.name;
+            debug ~level:4 "creating state %S for project %S"
+	      Info.name p.name;
 	    State.create ()
           end
 	in
@@ -680,42 +950,65 @@ module Computation = struct
 	update_with p s
 
     let clear p =
-      debug2 2 "clearing state %s for project %s@." Info.name p.name;
+      debug ~level:4 "clearing state %S for project %S" Info.name p.name;
       let v = find p in
       State.clear v.state;
       v.computed <- false;
       update_with p v.state
 
+    let clear_if_project tested_p p =
+      debug ~level:4
+	"clearing values equal to project %S in state %S for project %S"
+	tested_p.name Info.name p.name;
+      assert (p <> tested_p);
+      State.clear_if_project tested_p (find p).state
+
     let copy src dst =
-      debug3 2 "copying state %s from %s to %s@." Info.name src.name dst.name;
+      debug ~level:4 "copying state %S from %S to %S"
+	Info.name src.name dst.name;
       let v = find src in
       change_and_update dst { v with state = Datatype.copy v.state }
+
+    let rehash p rehashed_p =
+      debug ~level:4 "rehashing state %S for project %S" Info.name p.name;
+      let v = find p in
+      Hashtbl.remove tbl p.pid;
+      Hashtbl.add tbl rehashed_p.pid v
 
     let must_save = ref true
     let do_not_save () = must_save := false
 
     (* ******* TOUCH THE FOLLOWING AT YOUR OWN RISK: DANGEROUS CODE ******** *)
     let serialize p =
-      debug2 2 "serializing state %s for project %s.@." Info.name p.name;
-      commit p;
-      let v = find p in
-      let d = Digest.string Datatype.name in
-      let obj = if !must_save then Obj.repr v.state else Obj.repr () in
-      { s_value = obj; s_computed = v.computed; s_digest = d }
+      if Cmdline.use_obj then begin
+	debug ~level:4 "serializing state %S for project %S" Info.name p.name;
+	commit p;
+	let v = find p in
+	let d = Digest.string Datatype.name in
+	let obj = if !must_save then Obj.repr v.state else Obj.repr () in
+	{ s_value = obj; s_computed = v.computed; s_digest = d }
+      end else
+	assert false (* aborting already occured *)
 
     let unserialize p new_s =
-      if Digest.string Datatype.name = new_s.s_digest then begin
-	debug2 2 "unserializing state %s for project %s@." Info.name p.name;
-	let s =
-	  if !must_save then Datatype.rehash (Obj.obj new_s.s_value)
-	  else State.create ()
-	in
-	change_and_update p { state = s; computed = new_s.s_computed }
-      end else
-	raise
-	  (IOError
-	     ("project saved with incompatibles datatypes for state "
-	      ^ Info.name))
+      if Cmdline.use_obj then
+	if Digest.string Datatype.name = new_s.s_digest then begin
+	  debug ~level:4 "unserializing state %S for project %S"
+	    Info.name p.name;
+	  let s, computed =
+	    if !must_save then
+	      Datatype.rehash (Obj.obj new_s.s_value), new_s.s_computed
+	    else
+	      State.create (), false
+	  in
+	  change_and_update p { state = s; computed = computed }
+	end else
+	  raise
+	    (IOError
+	       ("project saved with incompatibles datatypes for state "
+		^ Info.name))
+      else
+	assert false (* aborting already occured *)
     (* ********************************************************************* *)
 
     let self, depend =
@@ -725,15 +1018,22 @@ module Computation = struct
 	    create = create;
 	    remove = remove;
 	    clear = clear;
+	    clear_if_project = clear_if_project;
+	    contain_any_project = !Datatype.contain_project <> None;
 	    copy = copy;
 	    commit = commit;
 	    update = update;
 	    serialize = serialize;
 	    unserialize = unserialize;
-	    clean = clean }
+	    clean = clean;
+	    rehash = rehash }
 	  dependencies
       in
       me, add_dependency me
+
+    let () =
+      (* dynamically extend the existing projects with this state *)
+      iter_on_projects create
 
     let select = Selection.add self
 
@@ -751,8 +1051,36 @@ module Computation = struct
 
 end
 
+(* ************************************************************************** *)
+(** {2 Undoing} *)
+(* ************************************************************************** *)
+
+module Undo = struct
+
+  let short_filename = "frama_c_undo_restore"
+  let filename = ref ""
+
+  let clear_breakpoint () = try Sys.remove !filename with _ -> ()
+
+  let restore () =
+    try
+      Journal.prevent load_all !filename;
+      Journal.restore ();
+      clear_breakpoint ()
+    with IOError s ->
+      feedback "cannot restore the last breakpoint: %S" s;
+      clear_breakpoint ()
+
+  let breakpoint () =
+    clear_breakpoint ();
+    filename := Filename.temp_file short_filename ".sav";
+    Journal.prevent save_all !filename;
+    Journal.save ()
+
+end
+
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

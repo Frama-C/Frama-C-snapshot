@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,365 +19,397 @@
 (*                                                                        *)
 (**************************************************************************)
 
+let number_to_color n =
+  let color = ref 0 in
+  let number = ref n in
+  for i = 0 to 7 do
+    color := (!color lsl 1) +
+      (if !number land 1 <> 0 then 1 else 0) +
+      (if !number land 2 <> 0 then 256 else 0) +
+      (if !number land 4 <> 0 then 65536 else 0);
+    number := !number lsr 3
+  done;
+  !color
+
 module Make
   (G: sig
      type t
      module V: sig
-       type t
-       val id: t -> int (* assume is >= 0 and unique for each vertices of the graph *)
+       include Graph.Sig.HASHABLE
+       val id: t -> int
        val name: t -> string
        val attributes: t -> Graph.Graphviz.DotAttributes.vertex list
      end
-     val iter_vertex: (V.t -> unit) -> t -> unit
-     val callees: t -> V.t -> V.t list
-     val callers: t -> V.t -> V.t list
-     val name: string
+     val iter_vertex : (V.t -> unit) -> t -> unit
+     val iter_succ : (V.t -> unit) -> t -> V.t -> unit
+     val iter_pred : (V.t -> unit) -> t -> V.t -> unit
+     val fold_pred : (V.t -> 'a -> 'a) -> t -> V.t -> 'a -> 'a
+     val in_degree: t -> V.t -> int
+     val datatype_name: string
    end) =
 struct
 
-  module V = struct
-    type t = G.V.t 
-    let compare t1 t2 = 
-      Pervasives.compare (G.V.id t1) (G.V.id t2)
-    let hash t1 = G.V.id t1
-    let equal t1 t2 = G.V.id t1 = G.V.id t2
+  type vertex = { node: G.V.t; mutable is_root: bool; mutable root: vertex }
+  type edge = Inter_services | Inter_functions | Function_to_service 
+  
+  module Vertex = struct
+    type t = vertex
+    let id v = (G.V.id v.node)
+    let compare v1 v2 = Pervasives.compare (id v1) (id v2)
+    let equal v1 v2 = (id v1) = (id v2)
+    let hash = id
   end
 
-  module CallNodeComparable = struct
-    type m = Nothing | Service of int | JustMet of int
-    type t = { node : G.V.t; mutable mark : m; mutable visited : bool; is_service : bool }
-    let compare t1 t2 = 
-      let n = V.compare t1.node t2.node in
-      if n = 0 then Pervasives.compare t1.is_service t2.is_service else n
-        
-    let hash t1 = V.hash t1.node
-    let equal t1 t2 = t1.is_service = t2.is_service && V.equal t1.node t2.node
+  module Edge = struct
+    type t = edge
+    let default = Inter_functions
+    let compare = Pervasives.compare
   end
-  type m = CallNodeComparable.m = Nothing | Service of int | JustMet of int
-  type vertex = CallNodeComparable.t = 
-      { node : G.V.t; mutable mark : m; mutable visited : bool; is_service : bool }
-
-  open CallNodeComparable
-
-  module CallNodeSet = Set.Make(CallNodeComparable)
-
-  let verbose = ref false
-
-  let pretty m s =
-    if !verbose
-    then Format.printf
-      "Doing %s for Node: %s(%d) Visited: %b Mark:%s@."
-      s
-      (G.V.name m.node) (G.V.id m.node)
-      m.visited
-      (match m.mark with
-       | Nothing -> "Nothing"
-       | Service n -> "S"^(string_of_int n)
-       | JustMet n -> "JustMet"^(string_of_int n))
 
   module CallG = struct
-    module M = Graph.Imperative.Digraph.Concrete(CallNodeComparable)
+    module M = Graph.Imperative.Digraph.ConcreteLabeled(Vertex)(Edge)
     include M
     type tt = t
     module Datatype = 
       Project.Datatype.Imperative
 	(struct 
 	   include M 
-	   let name = Project.Datatype.extend_name "service_graph " G.name
+	   let name = 
+	     Project.Datatype.extend_name
+	       "Service_graph.CallG " G.datatype_name
 	 end)
+    let add_labeled_edge g src l dst = add_edge_e g (E.create src l dst) 
   end
 
-  (* check the invariant: for any edge a-->b with a <> b,
-     if a and b have same service
-     then all predecessors of b also have this service *)
+  type root = Is_root | In_service of vertex
 
-  let check ocg =
+  type incomming_service =  
+    | Unknown
+    | Fresh_if_unchanged
+    | To_be_confirmed of vertex
+    | Final of vertex
+
+  type service = Maybe_fresh of vertex | In_service of vertex
+
+  module Vertices = struct
+    module H = Hashtbl.Make(G.V)
+    let vertices : (vertex * service) H.t = H.create 7
+    let find = H.find vertices
+    let add = H.add vertices
+    let clear () = H.clear vertices
+  end
+
+  let check_invariant callg =
+    CallG.iter_edges_e
+      (fun e -> 
+	 let src = CallG.E.src e in
+	 let dst = CallG.E.dst e in
+	 (match CallG.E.label e with
+	  | Inter_functions -> 
+              assert 
+		(if Vertex.equal src.root dst.root || dst.is_root then 
+		   true
+		 else begin
+                   Format.printf 
+		     "Src:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b)@." 
+                     (G.V.name src.node)
+                     (G.V.name src.root.node)
+                     src.is_root
+                     (G.V.name dst.node)
+                     (G.V.name dst.root.node)
+                     dst.is_root; 
+		   false
+		 end)
+	  | Inter_services -> assert (src.is_root && dst.is_root)
+	  | Function_to_service -> 
+	      assert (not (Vertex.equal src.root dst.root) && dst.is_root)))
+      callg
+
+  let mem initial_roots node =
+    Cilutil.StringSet.mem (G.V.name node) initial_roots
+
+  (* [merge_service] is not symmetric *)
+  exception Cannot_merge
+  let merge_service s1 s2 = match s1, s2 with
+    | Unknown, Maybe_fresh v2 -> 
+	To_be_confirmed v2
+    | Unknown, In_service v2 ->
+	Final v2
+    | Fresh_if_unchanged, (Maybe_fresh v2 | In_service v2) ->
+	To_be_confirmed v2
+    | (To_be_confirmed v1 | Final v1), In_service v2 when Vertex.equal v1 v2 -> 
+	s1
+    | (To_be_confirmed v1 | Final v1), Maybe_fresh v2 
+	when Vertex.equal v1 v2 -> 
+	To_be_confirmed v2
+    | (To_be_confirmed v1 | Final v1), (Maybe_fresh v2 | In_service v2) ->
+	assert (not (Vertex.equal v1 v2));
+	raise Cannot_merge
+
+  let make_vertex g callg initial_roots node =
+    let mk incomming_s =
+      let v = match incomming_s with 
+	| Unknown | Fresh_if_unchanged ->
+	    let rec v = { node = node; is_root = true; root = v } in v 
+	| To_be_confirmed root | Final root -> 
+	    { node = node; is_root = false; root = root }
+      in
+      let s = match incomming_s with
+	| Unknown | Fresh_if_unchanged | Final _ -> In_service v.root
+	| To_be_confirmed root -> Maybe_fresh root
+      in
+      (*	Format.printf "%s; root %s; final: %b@."
+		(G.V.name node) (G.V.name v.root.node) 
+		(match s with In_service _ -> true | Maybe_fresh _ -> false);*)
+      Vertices.add node (v, s);
+      CallG.add_vertex callg v
+    in
+    if mem initial_roots node then 
+      mk Fresh_if_unchanged
+    else
+      try
+	let service =
+	  G.fold_pred
+	    (fun node' acc ->
+	       try
+		 let _, s' = Vertices.find node' in
+		 merge_service acc s'
+	       with Not_found ->
+		 match acc with Unknown -> Fresh_if_unchanged | _ -> acc)
+	    g
+	    node
+	    Unknown
+	in
+	(* if unknown at this point, node without predecessor *)
+	(* if Fresh_if_unchanged at this point, then dominator cycle detected *)
+	mk service
+      with Cannot_merge ->
+	mk Fresh_if_unchanged
+      
+  let update_vertex g node =
     try
-      CallG.iter_edges
-        (
-          fun v1 v2 ->
-	    if not (equal v1 v2)
-            then match v1.mark, v2.mark with
-	    | Service s1, Service s2 when s1 = s2 ->
-	        CallG.iter_pred
-	          (fun p -> match p.mark with
-		   | Service s when s = s2 -> ()
-		   | Service _ ->
-		       Format.eprintf "Cg.check: case 1a@."; raise Exit
-		   | _ ->
-		       Format.eprintf "Cg.check: case 1b@."; raise Exit)
-	          ocg v2
-	    | JustMet _, _ | _, JustMet _ ->
-	        Format.eprintf "Cg.check: case 2@."; raise Exit
-	    | _ -> ()
-        ) ocg;
-      true
-    with Exit ->
-      false
+      let v, s = Vertices.find node in
+      match s with
+      | In_service root -> assert (Vertex.equal v.root root)
+      | Maybe_fresh root -> 
+	  assert (Vertex.equal v.root root);
+	  try
+	    G.iter_pred
+	      (fun node' ->
+		 try
+		   let v', _ = Vertices.find node' in
+		   if not (Vertex.equal root v'.root) then raise Exit
+		 with Not_found ->
+		   assert false)
+	      g
+	      node
+	      (* old status is confirmed: nothing to do *)
+	  with Exit ->
+	    (* update *)
+	    v.is_root <- true;
+	    v.root <- v
+    with Not_found ->
+      assert false
 
+  let add_edges g callg =
+    let find node = 
+      try fst (Vertices.find node) with Not_found -> assert false
+    in
+    G.iter_vertex
+      (fun node ->
+	 let v = find node in
+	 G.iter_succ
+	   (fun node' -> 
+	      let succ = find node' in
+	      CallG.add_labeled_edge callg v Inter_functions succ;
+	      let src_root = v.root in
+	      let dst_root = succ.root in
+	      if not (Vertex.equal src_root dst_root) then begin
+		CallG.add_labeled_edge callg src_root Inter_services dst_root;
+		CallG.add_labeled_edge callg v Function_to_service dst_root
+	      end)
+	   g 
+	   node)
+      g
+
+  let compute g initial_roots =
+    let module Go = Graph.Topological.Make(G) in
+    let callg = CallG.create () in
+    Go.iter (make_vertex g callg initial_roots) g;
+    Go.iter (update_vertex g) g;
+    add_edges g callg;
+    check_invariant callg;
+    Vertices.clear ();
+    callg
+
+  (* *********************************************************************** *)
   (* Pretty-print *)
+  (* *********************************************************************** *)
 
   module TP = struct
+
     include CallG
+    let root_id v = G.V.id v.root.node
+
     let graph_attributes _ = []
-    open Pretty
 
     let vertex_name s =
-      Format.sprintf "\"UV %s (%d)\""
-        (G.V.name s.node)
-        (G.V.id s.node)
-
-    let number_to_color n =
-      let color = ref 0 in
-      let number = ref n in
-      for i = 0 to 7 do
-        color := (!color lsl 1) +
-          (if !number land 1 <> 0 then 1 else 0) +
-          (if !number land 2 <> 0 then 256 else 0) +
-          (if !number land 4 <> 0 then 65536 else 0);
-        number := !number lsr 3
-      done;
-      !color
+      Format.sprintf "\"UV %s (%d)\"" (G.V.name s.node) (G.V.id s.node)
 
     let vertex_attributes s =
-      match s.mark with
-      | Nothing -> [`Color 0x00FF00 ; `Style `Dashed]
-      | JustMet _ -> [`Color 0x0000FF ; `Style `Dashed]
-      | Service c ->
-	  if s.is_service then
-	    [ `Width 0.0; `Height 0.0; `Style `Invis; `Label "" ]
-	  else
-            (`Label
-               (match s.mark with
-                | Service _ ->
-                    (Pretty_utils.sfprintf "@[%a@]" 
-                       !Ast_printer.d_ident (G.V.name s.node))
-                | _ -> "NA"))
-             ::
-             (`Color (number_to_color c))
-             ::
-               G.V.attributes s.node
-
+      let attr =
+	`Label
+          (Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident 
+	     (G.V.name s.node))
+	:: (`Color (number_to_color (G.V.id s.root.node)))
+	:: G.V.attributes s.node
+      in
+      if s.is_root then `Shape `Diamond :: attr else attr
+      
     let default_vertex_attributes _ = []
 
     let edge_attributes e =
-      let dst = CallG.E.dst e in
-      let src = CallG.E.src e in
-      if dst.is_service then
-        if src.is_service then
-	  (* inter-service edge *)
-	  [ `Style `Dotted; `Arrowhead `None; `Arrowtail `Inv ]
-        else
-	  (* edge from internal vertex to service vertex *)
-          [ `Style `Invis; `Minlen 0 ]
-      else
-        (* true node edge *)
-        if src.is_service then
-          (* service/true edge *)
-	  assert false
-        else
-          match src.mark,dst.mark with
-          | Service sc, Service dc ->
-              if sc = dc then  []
-              else
-                [ `Style `Dotted ]
-          | _ -> [] (*assert false*)
+      match CallG.E.label e with
+      | Inter_functions ->
+	  let sr = root_id (CallG.E.src e) in
+	  let dr = root_id (CallG.E.dst e) in
+	  if sr = dr then [ `Color (number_to_color sr); `Comment "ff" ]
+	  else [ `Color 0x1478ac; `Comment "ff" ]
+      | Inter_services -> [  `Color 0xf3862f; `Comment "ss" ]
+      | Function_to_service -> [ `Color 0x067c06; `Comment "fs"  ]
 
     let default_edge_attributes _ = []
 
-    let get_subgraph v = match v.mark with
-    | Nothing | JustMet _ -> None
-    | Service c ->
-        let cs = string_of_int c in
-        Some
-          { Graph.Graphviz.DotAttributes.sg_name = cs;
-            sg_attributes = [
-              `Label ("S "^cs);
-              `Color (number_to_color c);
-              `Style `Bold]}
+    let get_subgraph v = 
+      let id = root_id v in
+      let cs = string_of_int id in
+      Some
+        { Graph.Graphviz.DotAttributes.sg_name = cs;
+          sg_attributes = 
+	    [ `Label ("S "^cs);
+	      `Color (number_to_color id);
+	      `Style `Bold ] }
 
   end
 
   include Graph.Graphviz.Dot(TP)
+
+(*
+  (* Computing a graph of services whose nodes are nodes of the initial 
+     callgraph *)
+
+  module SS = 
+    Set.Make(struct 
+	       type t = G.V.t 
+	       let compare x y = Pervasives.compare (G.V.id x) (G.V.id y)
+	     end)
+
+  type service_vertex = 
+      { service: int; mutable root: G.V.t; mutable nodes: SS.t }
+
+  module SG = struct
+    module M = Graph.Imperative.Digraph.ConcreteLabeled
+      (struct 
+	 type t = service_vertex 
+	 let equal x y = x.service = y.service
+	 let compare x y = Pervasives.compare x.service y.service
+	 let hash x = x.service
+       end)
+      (struct 
+	 type t = bool ref (* [true] for inter-service edge *)
+	 let default = ref false 
+	 let compare = Pervasives.compare
+       end)
+    include M
+    type tt = t
+    module Datatype = 
+      Project.Datatype.Imperative
+	(struct 
+	   include M 
+	   let name = Project.Datatype.extend_name "Service_graph.SG " G.name
+	 end)
+  end
+
+  let get_service_id v = match v.mark with 
+    | Service s -> s
+    | Nothing | JustMet _ -> assert false
     
-  (* Service assignment *)
-
-  let services = Inthash.create 997
-
-  let add_service v cg =
-    match v.mark with
-    | Service s ->
-        let vs =
-          try Inthash.find services s
-          with Not_found ->
-            let vs = { v with is_service = true } in
-            CallG.add_vertex cg vs;
-	    Inthash.add services s vs;
-            vs
-        in
-        CallG.add_edge cg v vs
-    | _ ->
-        assert false
-
-  let fresh_mark =
-    let counter = ref 0 in
-    (function () ->
-       incr counter;
-       !counter)
-
-  let mark_with_service n ocg =
-    pretty n "BEFORE MARK W S";
-    let new_mark = Service (fresh_mark ()) in
-    n.mark <- new_mark;
-    add_service n ocg; (* do it after setting the mark *)
-    pretty n "AFTER MARK W S"
-
-  exception NoNumber
-    
-  let dump ocg = CallG.iter_vertex (fun x -> pretty x "RECAP") ocg
-
-  let decompose ocg l =
-    let _info () = Format.printf "OCG: edges:%d vertex:%d@\n"
-      (CallG.nb_edges ocg)
-      (CallG.nb_vertex ocg)
+  let compute_services cg =
+    let sg = SG.create () in
+    let vertices = Hashtbl.create 7 in
+    let get_service v =
+      let id = get_service_id v in
+      let node = v.node in
+      try 
+	let vertex = Hashtbl.find vertices id in
+	(* the service already exists *)
+	vertex.nodes <- SS.add node vertex.nodes;
+	if v.is_service then vertex.root <- node;
+	vertex
+      with Not_found ->
+	(* the service does not exist yet *)
+	let vertex = { service = id; root = node; nodes= SS.singleton node } in
+	SG.add_vertex sg vertex;
+	Hashtbl.add vertices id vertex;
+	vertex
     in
-    (* At least all nodes accessible from root will be marked. *)
-    (* contains only Service's marked nodes *)
-    let todo_queue = Queue.create () in
-
-    let rec new_mark n acc parent_service =
-      pretty n "new_mark";
-      match n.mark with
-      | Service s ->
-          (match acc with
-           | None -> Some s
-           | Some old when old = s -> acc
-           | _ -> raise NoNumber)
-      | JustMet n ->
-          (match acc with
-           | None -> Some n
-           | Some old when old = n -> acc
-           | _ -> raise NoNumber)
-      | Nothing ->
-          new_service n parent_service;
-          match n.mark with Service s -> (match acc with
-	                                    Some old when old = s -> acc
-	                                  | None -> Some s
-	                                  | _ -> raise NoNumber)
-          | _ -> assert false
-    and new_service elt parent_service =
-      pretty elt "new_service";
-      (try
-         elt.mark <- JustMet parent_service;
-         let new_service = CallG.fold_pred
-           (fun n acc ->
-              if equal n elt
-              then acc
-              else new_mark n acc parent_service)
-           ocg
-           elt
-           None
-         in
-         match new_service with
-         | None -> mark_with_service elt ocg
-         | Some s -> elt.mark <- Service s; add_service elt ocg;
-             pretty elt "CHOSE COMMON SERV"
-       with NoNumber -> mark_with_service elt ocg);
-      pretty elt "new_service result";
-      dump ocg;
-    in
-    let do_mark elt parent_service =
-      pretty elt "do_mark";
-      elt.visited <- true;
-      begin match elt.mark with
-      | Service _ ->  ()
-      | JustMet s -> new_service elt s
-      | Nothing -> new_service elt parent_service
-      end;
-      match elt.mark with
-      | Service s ->
-          CallG.iter_succ
-            (fun x -> Queue.push (x,s) todo_queue)
-            ocg
-            elt
-      | _ -> () (*assert false*)
-    in
-    let one_node () =
-      while not (Queue.is_empty todo_queue) do
-        let current,s = Queue.pop todo_queue in
-        pretty current "one_node";
-        if not current.visited then do_mark current s;
-      done
-    in
-    List.iter (fun x -> Queue.push x todo_queue) l ;
-    one_node ()
-
-  let get_fresh =
-    let module H = Hashtbl.Make(V) in
-    let memo = H.create 7 in
-    fun c -> try H.find memo c
-    with Not_found ->
-      let node_func = {node = c; mark = Nothing; visited = false; is_service=false} in
-      H.add memo c node_func;
-      node_func
-
-  exception Found of int
-  let merge_edges cg =
-    let new_cg = CallG.copy cg in
-    let merge e =
-      let src = CallG.E.src e in
-      let dst = CallG.E.dst e in
-      match src.mark, dst.mark with
-      | Service s, Service d ->
-	  if Cmdline.Debug.get () > 0 && s <> d && (not src.is_service) then begin
-	    let find v =
-	      try
-	        CallG.iter_succ
-		  (fun s -> if s.is_service then raise (Found (G.V.id s.node)))
-		  cg
-		  v;
-	        assert false
-	      with Found s ->
-	        Inthash.find services s
-	    in
-	    CallG.add_edge new_cg (find src) (find dst)
-	  end
-      | _ -> () (*assert false*)
-    in
-    CallG.iter_edges_e merge new_cg;
-    new_cg
-
-  let compute cg init_nodes =
-    let ocg = CallG.create () in
-    let roots = ref [] in
-    let all = ref [] in
-    G.iter_vertex
-      (fun func ->
-         let node_func = get_fresh func in
-         let func_name = G.V.name func in
-         let has_callees = match G.callees cg func with [] -> false | _ :: _ -> true in
-         let has_callers = match G.callers cg func with [] -> false | _ :: _ -> true in
-         if Cilutil.StringSet.mem func_name init_nodes 
-           || (not has_callers && has_callees) 
-         then roots := node_func::!roots;
-         
-         all := node_func::!all;
-         if has_callees || has_callers then CallG.add_vertex ocg node_func;
-
-         List.iter
-           (fun func_callee ->
-              let node_callee = get_fresh func_callee in
-              CallG.add_edge ocg node_func node_callee)
-           (G.callees cg func))
+    CallG.iter_edges
+      (fun v1 v2 -> 
+	 let s1 = get_service v1 in
+	 let s2 = get_service v2 in
+	 match v1.is_service, v2.is_service with
+	 | true, true -> 
+	     (try 
+		let b = SG.E.label (SG.find_edge sg s1 s2) in
+		b := true
+	      with Not_found ->
+		SG.add_edge sg s1 s2)
+	 | true, false ->
+	     assert false
+	 | false, true ->
+	     ()
+	 | false, false ->
+	     if not (SG.mem_edge sg s1 s2 || SG.V.equal s1 s2) then 
+	       SG.add_edge sg s1 s2)
       cg;
-    let roots =
-      List.map (fun c -> let s = fresh_mark ()
-                in c.mark <- Service s; add_service c ocg; (c, s)) !roots
-    in
-    List.iter (fun x -> pretty x "BEFORE DEC") !all;
-    decompose ocg roots;
-    List.iter (fun x -> pretty x "AFTER DEC") !all;
-    (* assert (check ocg); *)
-    merge_edges ocg
+    sg
 
+  (* Pretty-print *)
+
+  module PP_SG = struct
+
+    include SG
+
+    let graph_attributes _ = []
+
+    let vertex_name s = 
+      Format.sprintf "\"%s (%d)\"" (G.V.name s.root) (SS.cardinal s.nodes)
+
+    let vertex_attributes s = 
+      let n = 0.2 *. float (SS.cardinal s.nodes) in
+      `Height n
+      :: `Width n
+      :: `Shape `Box 
+      :: (`Color (number_to_color s.service)) 
+      :: G.V.attributes s.root
+
+    let default_vertex_attributes _ = []
+
+    let edge_attributes e = 
+      if !(SG.E.label e) then [ `Arrowhead `None; `Arrowtail `Inv ] else [ ]
+
+    let default_edge_attributes _ = []
+    let get_subgraph _ = None
+
+  end
+
+  module SGD = Graph.Graphviz.Dot(PP_SG)
+  let output_services = SGD.output_graph
+*)
 end (* functor Service *)
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

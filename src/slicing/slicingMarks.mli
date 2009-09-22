@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type t_mark = SlicingTypes.Internals.t_pdg_mark
+type t_mark = SlicingTypes.sl_mark
 
 val bottom_mark : t_mark
 val mk_user_mark : data:bool -> addr:bool -> ctrl:bool -> t_mark

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: access_path.ml,v 1.9 2008/11/06 13:03:28 uid568 Exp $ *)
+(* $Id: access_path.ml,v 1.9 2008-11-06 13:03:28 uid568 Exp $ *)
 open Locations
 open Abstract_interp
 open BaseUtils
@@ -50,7 +50,7 @@ let compute state base_set =
         ()
     with Zone.Error_Top -> ()
   done;
-  Format.printf "%a" pretty !result;
+  Inout_parameters.result "%a" pretty !result;
   !result
 
 let filter m inputs =
@@ -63,8 +63,8 @@ let filter m inputs =
          inputs).Locations.loc)
     m
   
-let main fmt =
-  if Cmdline.ForceAccessPath.get () then
+let main () =
+  if Inout_parameters.ForceAccessPath.get () then
     !Db.Semantic_Callgraph.topologically_iter_on_functions
       (fun kf ->
 	 if Kernel_function.is_definition kf && !Db.Value.is_called kf then
@@ -79,7 +79,7 @@ let main fmt =
 		(Relations_type.Model.value_state state)
 		BaseUtils.BaseSet.empty)
 	   in
-	   Format.fprintf fmt
+	   Inout_parameters.result
 	     "Filtered access_path for %a :@ %a@."
 	     Kernel_function.pretty_name kf
 	     !Db.Access_path.pretty
@@ -96,11 +96,6 @@ let () =
   Db.Access_path.filter := filter;
   Db.Access_path.pretty := pretty
    
-let option =
-  "-access_path",
-  Arg.Unit Cmdline.ForceAccessPath.on,
-  ": force the access path information to be computed"
-
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

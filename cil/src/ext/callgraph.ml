@@ -45,12 +45,8 @@
 
 open Cil_types
 open Cil
-open Trace
-open Printf
-module P = Pretty
 module IH = Inthash
 module H = Hashtbl
-module E = Errormsg
 
 (* ------------------- interface ------------------- *)
 (* a call node describes the local calling structure for a
@@ -129,7 +125,7 @@ let markFunctionAddrTaken (cg: callgraph) (f: varinfo) : unit =
   (*
   ignore (E.log "markFunctionAddrTaken %s\n" f.vname);
    *)
-  let n = getNodeForIndirect cg (AddrOf (Var f, NoOffset)) in
+  let n = getNodeForIndirect cg (dummy_exp (AddrOf (Var f, NoOffset))) in
   match n.cnInfo with
     NIIndirect (_, r) -> r := f :: !r
   | _ -> assert false
@@ -145,14 +141,15 @@ class cgComputer (graph: callgraph) = object
 
 
   (* begin visiting a function definition *)
-  method vfunc (f:fundec) : fundec visitAction = begin
-    (trace "callgraph" (P.dprintf "entering function %s\n" f.svar.vname));
-   let node =  getNodeForVar graph f.svar in
-   (match node.cnInfo with
-     NIVar (_v, r) -> r := true
-   | _ -> assert false);
-   curFunc <- (Some node);
-   DoChildren
+  method vfunc (f:fundec) : fundec visitAction = 
+    begin
+      Cilmsg.feedback ~level:2 "Callgraph for function %s" f.svar.vname ;
+      let node =  getNodeForVar graph f.svar in
+      (match node.cnInfo with
+	   NIVar (_v, r) -> r := true
+	 | _ -> assert false);
+      curFunc <- (Some node);
+      DoChildren
   end
 
   (* visit an instruction; we're only interested in calls *)
@@ -167,7 +164,7 @@ class cgComputer (graph: callgraph) = object
     (match i with
       Call(_,f,_,_) -> (
         let callee: callnode =
-          match f with
+          match f.enode with
           | Lval(Var(vi),NoOffset) ->
               (*(trace "callgraph" (P.dprintf "I see a call by %s to %s\n"
                                     callerName vi.vname));*)
@@ -190,7 +187,7 @@ class cgComputer (graph: callgraph) = object
   end
 
   method vexpr (e: exp) =
-    (match e with
+    (match e.enode with
       AddrOf (Var fv, NoOffset) when isFunctionType fv.vtype ->
         markFunctionAddrTaken graph fv
     | _ -> ());
@@ -217,26 +214,25 @@ let printGraph (out:out_channel) (g:callgraph) : unit = begin
   in
 
   let printCalls (node:callnode) : unit =
-    (fprintf out "  calls:");
+    (Printf.fprintf out "  calls:");
     (IH.iter printEntry node.cnCallees);
-    (fprintf out "\n  is called by:");
+    (Printf.fprintf out "\n  is called by:");
     (IH.iter printEntry node.cnCallers);
-    (fprintf out "\n")
+    (Printf.fprintf out "\n")
   in
 
   H.iter (fun (_name: string) (node: callnode) ->
     match node.cnInfo with
       NIVar (v, def) ->
-        (fprintf out "%s (%s):\n" v.vname
+        (Printf.fprintf out "%s (%s):\n" v.vname
            (if !def then "defined" else "external"));
         printCalls node
 
     | NIIndirect (n, funcs) ->
-        fprintf out "Indirect %s:\n" n;
-        fprintf out "   possible aliases: ";
-        List.iter (fun a -> fprintf out "%s " a.vname)
-          !funcs;
-        fprintf out "\n")
+        Printf.fprintf out "Indirect %s:\n" n;
+        Printf.fprintf out "   possible aliases: ";
+        List.iter (fun a -> Printf.fprintf out "%s " a.vname) !funcs;
+        Printf.fprintf out "\n")
     g
   end
 
@@ -253,6 +249,3 @@ let feature : featureDescr =
       printGraph stdout graph);
     fd_post_check = false;
   }
-
-
-

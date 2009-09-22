@@ -19,3 +19,8 @@ int main() {
   /*@ assert \separated(&x,&y[2]); */
   return 0;
 }
+
+/*@
+predicate test1(set<int> s1,set<int> s2) =
+\subset(s1,s2);
+@*/

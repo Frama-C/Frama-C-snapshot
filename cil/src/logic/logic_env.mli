@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,17 +25,9 @@
 
 open Cil_types
 
-(** forward reference to current location (see {!Cil.CurrentLoc})*)
-module CurrentLoc: Computation.REF_OUTPUT with type data = location
-
 (** {2 Global Tables} *)
 module LogicInfo: Computation.HASHTBL_OUTPUT
   with type key = string and type data = Cil_types.logic_info
-
-(*
-module PredicateInfo: Computation.HASHTBL_OUTPUT
-  with type key = string and type data = Cil_types.predicate_info
-*)
 
 module LogicTypeInfo: Computation.HASHTBL_OUTPUT
   with type key = string and type data = Cil_types.logic_type_info
@@ -53,10 +45,14 @@ val prepare_tables : unit -> unit
 
 (** {3 Add an user-defined object} *)
 
-val add_logic_function: logic_info -> unit
-(*
-val add_predicate: predicate_info -> unit
+(** add_logic_function_gen takes as argument a function eq_logic_info
+    which decides whether two logic_info are identical. It is intended
+    to be Logic_utils.is_same_logic_profile, but this one can not be
+    called from here since it will cause a circular dependency
+    Logic_env <- Logic_utils <- Cil <- Logic_env
 *)
+val add_logic_function_gen:
+  (logic_info -> logic_info -> bool) -> logic_info -> unit
 val add_logic_type: string -> logic_type_info -> unit
 val add_logic_ctor: string -> logic_ctor_info -> unit
 
@@ -72,18 +68,26 @@ module Builtins: sig
      *)
 end
 
-val add_builtin_logic_function: logic_info -> unit
-(*
-val add_builtin_predicate: predicate_info -> unit
-*)
+(** see add_logic_function_gen above *)
+val add_builtin_logic_function_gen:
+  (builtin_logic_info -> builtin_logic_info -> bool) ->
+  builtin_logic_info -> unit
 val add_builtin_logic_type: string -> logic_type_info -> unit
 val add_builtin_logic_ctor: string -> logic_ctor_info -> unit
 
+val is_builtin_logic_function: string -> bool
+val is_builtin_logic_type: string -> bool
+val is_builtin_logic_ctor: string -> bool
+
+val iter_builtin_logic_function: (builtin_logic_info -> unit) -> unit
+val iter_builtin_logic_type: (logic_type_info -> unit) -> unit
+val iter_builtin_logic_ctor: (logic_ctor_info -> unit) -> unit
+
 (** {3 searching the environment} *)
-val find_logic_function: string -> logic_info
 (*
-val find_predicate: string -> predicate_info
+val find_logic_function: string -> logic_info
 *)
+val find_all_logic_functions : string -> logic_info list
 val find_logic_type: string -> logic_type_info
 val find_logic_ctor: string -> logic_ctor_info
 
@@ -97,9 +101,28 @@ val is_logic_ctor: string -> bool
 
 (** {3 removing} *)
 val remove_logic_function: string -> unit
-(*
-val remove_predicate: string -> unit
-*)
+val remove_logic_type: string -> unit
+val remove_logic_ctor: string -> unit
+
+(** {2 Typename table} *)
+
+(** marks an identifier as being a typename in the logic *)
+val add_typename: string -> unit
+
+(** marks temporarily a typename as being a normal identifier in the logic *)
+val hide_typename: string -> unit
+
+(** removes latest typename status associated to a given identifier *)
+val remove_typename: string -> unit
+
+(** erases all the typename status *)
+val reset_typenames: unit -> unit
+
+(** returns the typename status of the given identifier. *)
+val typename_status: string -> bool
+
+(** marks builtin logical types as logical typenames for the logic lexer. *)
+val builtin_types_as_typenames: unit -> unit
 
 (** {2 Internal use} *)
 (** Used to postpone dependency of Lenv global tables wrt Cil_state, which

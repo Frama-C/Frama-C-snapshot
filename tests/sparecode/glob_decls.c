@@ -1,7 +1,7 @@
 /* run.config
- OPT: -lib-entry -journal-disable -sparecode-analysis
+ OPT: -lib-entry -journal-disable -sparecode-debug 1 -sparecode-analysis
  OPT: -lib-entry -slice-pragma main -slice-return main -slice-print -journal-disable
- OPT: -journal-disable -rm-unused-globals
+ OPT: -journal-disable -sparecode-debug 1 -rm-unused-globals
 */
 
 // can be removed
@@ -41,5 +41,6 @@ int main (int x, Ts s) {
   //@ slice pragma expr S2 ;
   int y = 3;
   y += Y;
+  //@ assert X > 0;
   return X + x;
 }

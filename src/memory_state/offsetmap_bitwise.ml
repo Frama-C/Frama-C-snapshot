@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,8 +33,8 @@ struct
 
   let tag x = match x with
     | Degenerate v -> 571 + V.tag v
-    | Map map -> 
-	Int_Interv_Map.fold 
+    | Map map ->
+	Int_Interv_Map.fold
 	  (fun k (_b, v) acc -> Int_Interv.hash k + V.tag v * 3 + 5 * acc)
 	  map
 	  0
@@ -43,7 +43,7 @@ struct
 
   let degenerate v = Degenerate v
 
-	
+
   let equal_map mm1 mm2 =
     ( try
 	Int_Interv_Map.equal
@@ -54,7 +54,7 @@ struct
   let equal m1 m2 =
     match m1, m2 with
       Degenerate v1, Degenerate v2 ->
-	V.equal v1 v2 
+	V.equal v1 v2
     | Map mm1, Map mm2 ->
 	equal_map mm1 mm2
     | Map _, Degenerate _ | Degenerate _, Map _ -> false
@@ -65,29 +65,28 @@ struct
 	Format.fprintf fmt "@[[..] FROM @[%a@]@]"
 	  V.pretty v
     | Map m ->
-        let is_first = ref true in
-	let pretty_binding (bi,ei) (default,v) =
-          let left = match typ with
-          | None -> Format.sprintf ":%a..%a" Int.pretty_s bi
-              Int.pretty_s ei
-          | Some typ -> Format.sprintf "%s"
-               (fst
-                  (Bit_utils.pretty_bits typ
-                     ~use_align:false ~align:Int.zero ~rh_size:Int.one
-                     ~start:bi ~stop:ei))
+	let first = ref true in
+	let pretty_binding fmt (bi,ei) (default,v) =
+          let pp_left fmt = function
+            | None -> 
+		Format.fprintf fmt ":%a..%a" 
+		  Int.pretty bi Int.pretty ei
+            | Some typ ->
+		ignore (Bit_utils.pretty_bits typ
+			  ~use_align:false ~align:Int.zero ~rh_size:Int.one
+			  ~start:bi ~stop:ei fmt)
           in
-          if !is_first then is_first := false else
-            Format.fprintf fmt "@,";
-	  Format.fprintf fmt "@[%s FROM @[%a@](and default:%b)@]"
-	    left V.pretty v default
+	  if !first then first := false else Format.fprintf fmt "@," ;
+          Format.fprintf fmt "@[%a FROM @[%a@](and default:%b)@]"
+	    pp_left typ V.pretty v default
 	in
 	Format.fprintf fmt "@[<v>";
-	Int_Interv_Map.iter pretty_binding m;
+	Int_Interv_Map.iter (pretty_binding fmt) m;
 	Format.fprintf fmt "@]"
 
-  let pretty = pretty_with_type None     
+  let pretty = pretty_with_type None
 
-  let rec rehash t = 
+  let rec rehash t =
     match t with
       Degenerate v -> Degenerate (V.Datatype.rehash v)
     | Map t ->
@@ -95,18 +94,17 @@ struct
 
   let name = Project.Datatype.extend_name "offsetmap_bitwise" V.Datatype.name
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype =
+    Project.Datatype.Register
       (struct
 	 type tt = t
 	 type t = tt
 	 let copy x = x (* immutable datatype *)
 	 let rehash = rehash
-	 let name = name 
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let name = name
        end)
-    let () = 
-      register_comparable ~hash:tag ~equal ();
-  end
+  let () = Datatype.register_comparable ~hash:tag ~equal ()
 
   let is_empty m =
     match m with
@@ -128,7 +126,7 @@ struct
 	    V.join (default s_ek (Int.pred bl)) acc
           else acc
 	in
-        let concerned_intervals = List.rev concerned_intervals in
+        (*let concerned_intervals = List.rev concerned_intervals in*)
 	match concerned_intervals with
 	  [] -> default bi ei
 	| ((_bk,ek),_)::_ ->
@@ -167,7 +165,8 @@ struct
   let same_values ((bx:bool),x) (by,y) =
     (bx = by) && (V.equal x y )
 
-  let add_map_internal i v map =
+  let add_map_internal i v map = (* FIXME (?) Fails to stick the writing binding
+				    with neighbors if applicable *)
     match Int_Interv_Map.cleanup_overwritten_bindings same_values i v map
     with
     | None -> map
@@ -185,17 +184,48 @@ struct
     | Degenerate v1 -> Degenerate (V.join tv v1)
     | Map map ->
 	Map (add_map_internal i v map)
-(* exact add *)
+(** exact add *)
   let add i v m = add_internal i (false,v) m
 
-(* approximate add; currently not as precise as could be *)
-  let add_approximate (bi, ei as i) v m =
+(** approximate add, for when the target location is ambiguous *)
+  let add_approximate (b, e as i) v m =
    match m with
     | Degenerate v1 -> Degenerate (V.join v v1)
     | Map map ->
 	let concerned_intervals =
 	  Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i map
 	in
+	let treat_interval (acc, right_bound) ((b1, e1), (d1, v1)) =
+	  let acc, restricted_e1 = 
+	    if Int.lt e1 right_bound 
+	    then begin (* there is a hole *)
+		let i_hole = (Int.succ e1, right_bound) in
+		add_internal i_hole (true, v) acc, e1
+	      end
+	    else acc, Int.min e1 e
+	  in
+	  let restricted_b1 = Int.max b1 b in
+	  let restricted_i1 = restricted_b1, restricted_e1 in 
+	  add_internal restricted_i1 (d1,V.join v1 v) acc, Int.pred restricted_b1
+	in
+	let acc, right_bound = List.fold_left treat_interval (m, e) concerned_intervals
+	in
+	let result = 
+	  if Int.le b right_bound 
+	    then begin (* there is a hole *)
+		let i_hole = (b, right_bound) in
+		add_internal i_hole (true, v) acc
+	      end
+	    else acc
+	in
+(*	Format.printf "bitwise add_approximate@\ninterval:%a..%a value:%a@\nstate%a@\nresult: %a@."
+	  Int.pretty b Int.pretty e
+	  V.pretty v
+	  pretty m
+	  pretty result;*)
+	result
+
+(*
 	let new_v =
 	  List.fold_left
 	    (fun vacc (_,(_,v)) ->
@@ -204,14 +234,12 @@ struct
 	    concerned_intervals
 	in
 	let d =
-	  match concerned_intervals with
-	    [(bj,ej),(d,_)] ->
-	      if (Int.le bj bi) && (Int.ge ej ei)
-	      then d
-	      else true
-	  | _ -> true
+          try Int_Interv.check_coverage i concerned_intervals;
+            List.fold_left (fun acc ((_,_),(d,_)) -> acc || d) false concerned_intervals
+          with Is_not_included -> true
 	in
 	add_internal i (d, new_v) m
+*)
 
   let collapse m =
     match m with
@@ -220,27 +248,34 @@ struct
 	Int_Interv_Map.fold (fun _ (_,v) acc -> V.join acc v) map V.bottom
 
   let find_iset default alldefault is m =
-    if Int_Intervals.is_top is
-    then
-      V.join alldefault (collapse m)
-    else
-      let s = Int_Intervals.project_set is in
-      if s = [] 
-      then V.bottom
-      else begin 
+    let result =
+      if Int_Intervals.is_top is
+      then
+        V.join alldefault (collapse m)
+      else
+        let s = Int_Intervals.project_set is in
+        if s = []
+        then V.bottom
+        else begin
 	  match m with
-	  | Degenerate v ->
-	      List.fold_left
-		(fun acc i -> V.join acc (default (fst i) (snd i)))
-		v s
-	  | Map _ ->
-	      let f acc i =  V.join acc (find default i m) in
-	      List.fold_left f V.bottom s
+	    | Degenerate v ->
+	        List.fold_left
+		  (fun acc i -> V.join acc (default (fst i) (snd i)))
+		  v s
+	    | Map _ ->
+	        let f acc i =  V.join acc (find default i m) in
+	        List.fold_left f V.bottom s
 	end
+    in
+(*    Format.printf "find_iset %a %a@\nresult:%a@." Int_Intervals.pretty is pretty m V.pretty result; *)
+    result
 
   let add_iset ~exact is v m =
-    if Int_Intervals.is_top is 
-    then Degenerate (V.join v (collapse m))
+    if Int_Intervals.is_top is
+    then begin
+(*      Format.printf "add_iset degenerate: value: %a@\nmap: %a@." V.pretty v pretty m; *)
+      Degenerate (V.join v (collapse m))
+    end
     else begin
 	let s = Int_Intervals.project_set is in
 	match m with
@@ -286,7 +321,7 @@ struct
       | Map m ->
           Map (map_map f m)
 
-(*  let check_contiguity m = 
+(*  let check_contiguity m =
     let id = map (fun x -> x) m in
     assert (equal id m)
 
@@ -305,7 +340,7 @@ struct
       mm1 mm2 =
 (*    check_contiguity(mm2);
     check_contiguity(mm1); *)
-    let result = 
+    let result =
     match mm1, mm2 with
     | Degenerate(v), m | m, Degenerate(v) ->
 	Degenerate (snd (f (Some (true, v)) (Some (true, collapse m))))
@@ -335,7 +370,7 @@ struct
 	  (*Format.printf "out_out: b1=%a e1=%a b2=%a e2=%a@\n"
             Int.pretty b1 Int.pretty e1 Int.pretty b2 Int.pretty e2; *)
 (*	  check_map_contiguity(acc);*)
-	  let result = 
+	  let result =
 	    if Int.lt b1 b2
 	    then in_out i1 v1 m1  i2 v2 m2  acc
 	    else if Int.gt b1 b2
@@ -432,7 +467,7 @@ struct
 	    let new_m1 = Int_Interv_Map.remove new_i1 m1 in
 	    in_or_out_in new_i1 new_v1 new_m1  new_i2 v2 m2  new_acc
 	  with Int_Interv_Map.Empty_rangemap ->
-	    compute_remains_m2_and_merge 
+	    compute_remains_m2_and_merge
 	      (add_map_internal new_i2 v2 m2) new_acc
 	and in_in_e2_first (_b1, e1) v1 m1 (_b2, e2 as i2) _v2 m2 acc new_v12=
           (*Format.printf "in_in_e2_first: b1=%a e1=%a b2=%a e2=%a@\n"
@@ -445,13 +480,13 @@ struct
 	    let new_m2 = Int_Interv_Map.remove new_i2 m2 in
 	    in_in_or_out new_i1 v1 m1  new_i2 new_v2 new_m2  new_acc
 	  with Int_Interv_Map.Empty_rangemap ->
-	    compute_remains_m1_and_merge 
+	    compute_remains_m1_and_merge
 	      (add_map_internal new_i1 v1 m1) new_acc
 	and in_in_same_end (_b1, e1 as i1) _v1 m1 (_b2, e2) _v2 m2 acc new_v12=
 	  (*Format.printf "in_in_same_end: b1=%a e1=%a b2=%a e2=%a@\n"
             Int.pretty b1 Int.pretty e1 Int.pretty b2 Int.pretty e2; *)
 	  assert (Int.eq e1 e2);
-     
+
 	  let acc = add_map_internal i1 new_v12 acc in
           try
 	    let (new_i1, new_v1) = Int_Interv_Map.lowest_binding m1 in
@@ -468,7 +503,7 @@ struct
 	  (*Format.printf "in_in: b1=%a e1=%a b2=%a e2=%a@\n"
             Int.pretty b1 Int.pretty e1 Int.pretty b2 Int.pretty e2; *)
           assert (Int.eq b1 b2);
-      
+
 	  let new_v12 = f (Some v1) (Some v2) in
 	  (if Int.gt e1 e2
 	   then in_in_e2_first
@@ -576,9 +611,10 @@ struct
         d1&&d2,
         if d1 then V.join (f v1) v2 else f v1
     in
-    (*Format.printf "Offsetmap.map_and_merge offs:%a and acc:%a@." 
-         (pretty None) offs
-         (pretty None) acc;*)
+(*    Format.printf "@[Offsetmap.map_and_merge offs:%a and acc:%a@]@."
+         (pretty) offs
+         (pretty) acc;
+*)
     let result = map2 generic_f offs acc in
 (*    check_contiguity(result);*)
     result
@@ -598,10 +634,10 @@ struct
       let current = ref start in
       let f, treat_empty_space =
 	match f with
-	  Some (f, default) -> f, 
+	  Some (f, default) -> f,
 	    (fun acc i ->
 	      let src_b = !current in
-	      if My_bigint.le_big_int i src_b 
+	      if My_bigint.le_big_int i src_b
 	      then acc
 	      else
 		let src_e = Int.pred i in
@@ -627,19 +663,20 @@ struct
       let acc = List.fold_right treat_interval concerned_itv _to in
       treat_empty_space acc (Int.succ stop)
     in
-(*      Format.printf "Offsetmap.copy_paste from:%a start:%a stop:%a start_to:%a to:%a result:%a@\n"
-        (pretty None) (Map from)
+(*      Format.printf "Offsetmap_bitwise.copy_paste from:%a start:%a stop:%a start_to:%a to:%a result:%a@\n"
+        (pretty) (Map from)
         Int.pretty start
         Int.pretty stop
         Int.pretty start_to
-        (pretty None) (Map _to)
-        (pretty None) (Map result); *)
-      result  
-	
+        (pretty) (Map _to)
+        (pretty) (Map result);
+*)
+      result
+
   let copy_paste ~f from start stop start_to _to =
     match from, _to with
       Map from, Map _to -> Map (copy_paste_map ~f from start stop start_to _to)
-    | _, _ -> 
+    | _, _ ->
 	let collapse_from = collapse from in
 	let value_from =
 	 ( match f with

@@ -10,7 +10,9 @@ static int G;
 int main2 () {
 /* Commentaire apres main comment*/
   int i;
-/* Commentaire apres int i comment*/
+/* Commentaire apres int i comment
+   Big Comment line 1
+   Bif Comment line 2 */
   G = 0;
 
 /* Commentaire avant loop comment*/
@@ -28,7 +30,7 @@ int main2 () {
 
 /* ICI avant H comment*/
 static int H;
-/* ICI après H comment*/
+/* ICI apres H comment*/
 // fin
 
 int HHH;

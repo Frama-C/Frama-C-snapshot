@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,8 +25,8 @@ let make_bi_label (parent:GPack.box) l1 =
                      ~packing:(container#pack ~expand:false ~fill:false)
          ()
  in
- t#set_width_chars 7;
- let l = GMisc.label ~selectable:true ~xalign:0.0
+ Gtk_helper.old_gtk_compat t#set_width_chars 7;
+ let l = GMisc.label ~selectable:true ~xalign:0.0 ~text:""
              ~packing:(container#pack ~expand:true)
              ()
  in
@@ -114,9 +114,9 @@ let make_panel _main_ui =
       update_button#misc#set_sensitive true ;
       init ()
   in
-  (ignore (update_button#connect#clicked 
-             (fun () -> ignore (!Db.Metrics.get ());
-                fill ())));
+  ignore
+    (update_button#connect#clicked 
+       (fun () -> !Db.Metrics.compute (); fill ()));
   "Metrics", w#coerce, Some fill
    
 let gui (main_ui:Design.main_window_extension_points) = 

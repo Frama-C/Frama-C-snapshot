@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2008                                               */
+/*  Copyright (C) 2007-2009                                               */
 /*    CEA (Commissariat à l'Énergie Atomique)                             */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -19,7 +19,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: builtin.c,v 1.16 2008/11/21 09:19:53 uid527 Exp $ */
+/* $Id: builtin.c,v 1.16 2008-11-21 09:19:53 uid527 Exp $ */
 
 int Frama_C_entropy_source;
 

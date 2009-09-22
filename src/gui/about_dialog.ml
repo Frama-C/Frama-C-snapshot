@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -42,7 +42,7 @@ Analysis plugins are LGPL v2.1"
       ~website_label:"Questions and support"
       (* [JS 6 October 2008] the following line breaks compilation, of course.
 	 ~icon:*)
-      ~version:(Version.version^" compiled on "^Version.date)
+      ~version:(Config.version ^ " compiled on " ^ Config.date)
       ()
   in
 (*  Buggy labgtk2 prevents this from working...*)
@@ -76,3 +76,9 @@ let () =
        let help_item = window#ui_manager#get_widget "/MenuBar/HelpMenu" in
        let help_item =  GtkMenu.MenuItem.cast help_item#as_widget in
        GtkMenu.MenuItem.set_right_justified help_item true)
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

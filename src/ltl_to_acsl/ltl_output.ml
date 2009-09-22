@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ltl_output.ml,v 1.2 2008/10/02 13:33:29 uid588 Exp $ *)
+(* $Id: ltl_output.ml,v 1.3 2009-03-11 12:40:58 uid588 Exp $ *)
 
 open Format
 open Ltlast
@@ -70,14 +72,16 @@ let pretty_hash_ident_entry ident (_,str,_) =
 
 
 let output ltl_form file =
-  let c = open_out file in
-    out_fmt:=formatter_of_out_channel c ;
-    fprintf !out_fmt "%s\n\n" (ltl_form_to_string ltl_form);
-    fprintf !out_fmt "// associations : \n" ;
+  let c = open_out file in 
+    out_fmt:=formatter_of_out_channel c ; 
+
+    fprintf !out_fmt "%s\n\n" (ltl_form_to_string ltl_form); 
+    fprintf !out_fmt "// associations : \n" ; 
     (Data_for_ltl.ltl_expressions_iter pretty_hash_ident_entry);
+    fprintf !out_fmt "@?"; (* Flush du flux *)
+
     close_out c; 
     out_fmt:=formatter_of_out_channel stdout
-
 
 
 

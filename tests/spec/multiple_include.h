@@ -7,7 +7,7 @@ typedef struct s_t { int n; } t;
 /* if uncommented, should lead to an error */
 static int i = 42;
 
-/* @ predicate p{Here}(int x) = x >= i; */
+/*@ predicate p{Here}(int x) = x >= i; */
 
 /*@ logic integer li; */
 

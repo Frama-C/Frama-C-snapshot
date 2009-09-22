@@ -1,5 +1,5 @@
 int X,Y,Z1,Z2,T,U1,U2,V,W1,W2;
-int a,b;
+int a,b,d1,d2,d0,e;
 int t[5]={1,2,3};
 
 int *p;
@@ -28,4 +28,8 @@ void main (void)
   p = &(t[3]);
   a = 40000/Z2;
   b = ((int)&Z2)/Z2;
+  d2 = 100 / (int)(&X + 2);
+  d1 = 100 / (int)(&X + 1);
+  d0 = 100 / (int)(&X);
+  e = - (int) &X;
 }

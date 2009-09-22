@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -occurrence -journal-disable
+   STDOPT: +"-occurrence" +"-journal-disable"
 */
 
 int x, y;
@@ -12,5 +12,7 @@ int main() {
   q = &y;
   p = q;
   *q = 1;
+  *p = 2;
+  /*@ assert (y == 2 && *q == 2 && *p == 2 && x == 0); */
   return 0;
 }

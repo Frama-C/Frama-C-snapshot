@@ -2,15 +2,24 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
-(*  All rights reserved.                                                  *)
-(*  Contact CEA for more details about the license.                       *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: analysis.ml,v 1.82 2008/08/21 15:02:25 uid528 Exp $ *)
+(* $Id: analysis.ml,v 1.86 2009-02-23 12:52:19 uid562 Exp $ *)
 
 open Cil
 open Cil_types
@@ -29,9 +38,9 @@ module Make(S : Lattice.S) = struct
 
   let global_state : Model.State.t Inthash.t = Inthash.create 107
 
-  let debug = ref false
+  let debug = ref (Options.Debug.get () > 0)
 
-  let pretty _ = log "[security] status_tbl:@.%a" Model.State.pretty
+  let pretty _ = Options.debug "status_tbl:%a" Model.State.pretty
 
   module rec Computer :
     functor(Reach : REACH) ->
@@ -100,7 +109,7 @@ module Make(S : Lattice.S) = struct
 	  | Code_annot (_) ->
  	      Dataflow.Default
 	  | Asm _ ->
-	      CilE.warn_once "[security] Assembler code is ignored in this version. Please upgraded.";
+	      Options.warning "assembler code is ignored. Please replace it by an equivalent piece of C code or ACSL annotation.";
 	      Dataflow.Default
 	  | Skip _ ->
 	      Dataflow.Default
@@ -124,7 +133,7 @@ module Make(S : Lattice.S) = struct
         let before,after,contract = Db.Properties.predicates_on_stmt stmt in
         (match contract with
              None -> ()
-           | Some _s -> CilE.warn_once "ignoring statement contract");
+           | Some _s -> Options.warning "ignoring statement contract");
         let state =
           List.fold_left
             (fun state (p,_) -> Logic.requires (Value.get_state ki) ki state p)
@@ -137,6 +146,8 @@ module Make(S : Lattice.S) = struct
       let filterStmt = Value.is_reachable_stmt
 
       let stmt_can_reach = Reach.stmt_can_reach
+
+      let doEdge _ _ d = d
 
     end
 
@@ -189,9 +200,8 @@ end =
       try
 	Computer.StmtStartData.find !State.last_stmt.sid
       with Not_found ->
-	Format.eprintf "%d:%a@." !State.last_stmt.sid
-          !Ast_printer.d_stmt !State.last_stmt;
-	assert false
+	Options.fatal "unknown statement %d (%a)"
+	  !State.last_stmt.sid !Ast_printer.d_stmt !State.last_stmt
 
     let analyse_definition kf values state _args =
       match kf.fundec with
@@ -258,9 +268,10 @@ end =
 		  (Value.get_state ki)
 		  state
 	  in
-	  if Cmdline.Debug.get () > 0 then
-	    log "[security] function call on %a@.%a@.values %a"
-	      Ast_info.pretty_vname v pretty state Value.pretty_state values;
+	  Options.debug "function call on %a%avalues %a"
+	    Ast_info.pretty_vname v 
+	    pretty state 
+	    Value.pretty_state values;
 	  let state =
 	    Logic.requires values ki state
 	      ((Logic_const.pands $ (List.map Logic_const.pred_of_id_pred))
@@ -275,28 +286,25 @@ end =
 	  let state =
 	    Logic.ensures values state (Kernel_function.postcondition kf)
 	  in
-	  if Cmdline.Debug.get () > 0 then
-	    log "[security] end of call of %a@.%a@. values %a"
-	      Ast_info.pretty_vname v
-	      pretty state Value.pretty_state values;
+	  Options.debug "end of call of %a%avalues %a"
+	    Ast_info.pretty_vname v
+	    pretty state
+	    Value.pretty_state values;
 	  Model.Register.clean kf state
 
   end
 
 let slicing () =
-  if Cmdline.Security.Slicing.get () then begin
-    log "====== Run security slicing analysis ======";
+  if Options.Slicing.get () then
     let prj = Components.slice () in
-    if Cmdline.Slicing.Print.get () then
-      Project.on
-	prj (fun () -> Format.printf "%t@." (fun fmt -> File.pretty fmt)) ();
-    prj
-  end else
+    !Slicing.Project.print_extracted_project ?fmt:None ~extracted_prj:prj;
+    prj;
+  else
     Project.current ()
 
 let ai () =
-  if Cmdline.Security.Analysis.get () then begin
-    log "====== Run security analysis ======";
+  if Options.Analysis.get () then begin
+    Options.feedback "beginning analysis";
     !Db.Value.compute ();
     let main = fst (Globals.entry_point ()) in
     let state = Model.State.reset () in
@@ -321,7 +329,8 @@ let ai () =
       empty_indirect_state
       bottom
     *)
-    Model.State.print_results state
+    Model.State.print_results state;
+    Options.feedback "analysis done"
   end
 
 let whole () =
@@ -330,14 +339,28 @@ let whole () =
 
 let init () =
   Components.init ();
-  Db.Security.run_whole_analysis := whole;
-  Db.Security.run_ai_analysis := ai;
-  Db.Security.run_slicing_analysis := slicing;
+  (* run_whole_analysis *)
+  Db.register
+    (Db.Journalize
+       ("Security.run_whole_analysis", Type.func Type.unit Type.unit))
+    Db.Security.run_whole_analysis
+    whole;
+  (* run_ai_analysis *)
+  Db.register
+    (Db.Journalize ("Security.run_ai_analysis", Type.func Type.unit Type.unit))
+    Db.Security.run_ai_analysis
+    ai;
+  (* run_slicing_analysis *)
+  Db.register
+    (Db.Journalize
+       ("Security.run_slicing_analysis", Type.func Type.unit Project.ty))
+    Db.Security.run_slicing_analysis
+    slicing;
 
 end
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.. -j"
+  compile-command: "LC_ALL=C make -C ../.."
   End:
 *)

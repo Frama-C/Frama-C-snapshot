@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2008                                               */
+/*  Copyright (C) 2007-2009                                               */
 /*    CEA (Commissariat à l'Énergie Atomique)                             */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -19,7 +19,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: malloc.c,v 1.23 2008/10/03 11:09:19 uid562 Exp $ */
+/* $Id: malloc.c,v 1.23 2008-10-03 11:09:19 uid562 Exp $ */
 
 /* This file is part of the Frama-C framework.
    It must be included in all files calling malloc of free as it defines macros.

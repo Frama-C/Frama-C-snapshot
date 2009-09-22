@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -57,11 +57,11 @@ let rec copy_stmt break_continue_must_change label_table stmt =
   result.skind <- new_stmkind;
   List.iter
     (fun annot ->
+       (*Format.printf "Adding annots to %d@." result.sid;*)
        Annotations.add result
          (let content = match Ast_info.before_after_content annot with
               User a -> User (Logic_const.refresh_code_annotation a)
             | AI(c,a) -> AI(c,Logic_const.refresh_code_annotation a)
-            | WP(l,_) -> WP(l,Logic_const.fresh_annot_id())
           in match annot with
               Before _ -> Before content
             | After _ -> After content))
@@ -92,10 +92,11 @@ and copy_stmtkind break_continue_must_change label_tbl stkind =
     | UnspecifiedSequence seq ->
         let new_seq,label_tbl =
           List.fold_left
-            (fun (seq,label_tbl) (stmt,writes,reads) ->
+            (fun (seq,label_tbl) (stmt,modified,writes,reads) ->
                let stmt,label_tbl =
                  copy_stmt break_continue_must_change label_tbl stmt
-               in (stmt,writes,reads)::seq, label_tbl) ([],label_tbl) seq
+               in (stmt,modified,writes,reads)::seq, label_tbl)
+            ([],label_tbl) seq
         in
         UnspecifiedSequence (List.rev new_seq),label_tbl
     | Break loc ->
@@ -123,6 +124,7 @@ and copy_block break_continue_must_change label_tbl bl =
       ([],label_tbl) bl.bstmts
   in
   { battrs= bl.battrs;
+    blocals = [];
     bstmts= List.rev new_stmts},label_tbl
 (* Update to take into account annotations*)
 class do_it (times:int) = object
@@ -138,7 +140,7 @@ class do_it (times:int) = object
     | Loop _ ->
         let annot = Annotations.get s in
         let pragmas =
-          Ast_info.lift_annot_list_func Logic_const.extract_loop_pragma annot
+          Ast_info.lift_annot_list_func Logic_utils.extract_loop_pragma annot
         in
         let filter (b,_ as elt) p =
           match (b,p) with
@@ -185,8 +187,9 @@ class do_it (times:int) = object
                   [ s ] -> s
                 | _ ->
                     let new_stmts = new_stmts @ [break_lbl_stmt] in
-                    let new_block = Block (mkBlock new_stmts) in
-                    mkStmt new_block
+                    let new_block = mkBlock new_stmts in
+                    new_block.blocals <- block.blocals;
+                    mkStmt (Block new_block)
               in new_stmt
           | _ -> assert false
         in

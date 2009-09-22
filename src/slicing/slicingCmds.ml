@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -202,13 +202,13 @@ let topologic_propagation project =
   !Slicing.Request.apply_all_internal project;
   !Db.Semantic_Callgraph.topologically_iter_on_functions
     (fun kf ->
-       if Cmdline.Debug.get () > 0 then
-	 Format.printf "Doing %a@." Kernel_function.pretty_name kf;
-       propagate_user_marks_to_callers project kf;
+       SlicingParameters.debug ~level:3
+         "doing topologic propagation for function: %a"
+         Kernel_function.pretty_name kf;
        !Slicing.Request.apply_all_internal project)
 
 let add_to_selection set selection =
-  !Db.Slicing.Select.add_to_selects_internal selection set ; set
+  !Db.Slicing.Select.add_to_selects_internal selection set
 
 (** Registered as a slicing selection function:
     Add a selection of the pdg nodes. *)
@@ -229,7 +229,9 @@ let select_stmt set ~spare ki kf =
     and add a selection to [~inputs] parts of its inputs
     and add a selection to [~ouputs] parts of its outputs*)
 let select_entry_point_and_some_inputs_outputs set ~mark kf ~return ~outputs ~inputs =
-  (* Format.printf "@[select_entry_point_and_some_inputs_outputs %a@]@." Kernel_function.pretty_name kf ; *)
+  SlicingParameters.debug ~level:3
+    "select_entry_point_and_some_inputs_outputs %a"
+    Kernel_function.pretty_name kf ; 
   let set = let selection = !Db.Slicing.Select.select_entry_point_internal kf mark in
     add_to_selection set selection
   in
@@ -393,7 +395,10 @@ let select_lval_rw set mark ~rd ~wr ~scope ~eval kf ki_opt=
              let zone = Locations.valid_enumerate_bits loc
              in Locations.Zone.join zone acc)
           lval_str Locations.Zone.bottom
-      in (* Format.printf "@\nselect_lval_rw sid=%d zone=%a@." ki.sid Locations.Zone.pretty zone; *)
+      in SlicingParameters.debug ~level:3
+           "select_lval_rw %a zone=%a"
+           Kernel_function.pretty_name kf
+           Locations.Zone.pretty zone;
         Some zone
    in
    let zone_rd_opt = zone_option rd in
@@ -404,15 +409,17 @@ let select_lval_rw set mark ~rd ~wr ~scope ~eval kf ki_opt=
          let ac = ref set in
          let select_rw_from_stmt kf ki =
            let rd_zone_opt, wr_zone_opt = Kinstr.is_rw_zone zone_option_rw ki in
-           let select_zpne ~before zone_opt =
+           let select_zone ~before zone_opt =
              match zone_opt with
                | None -> !ac
                | Some zone ->
-                   (* Format.printf "@\nselect_lval_rw sid=%d before=%b zone=%a@." ki.sid before Locations.Zone.pretty zone; *)
+                   SlicingParameters.debug ~level:3
+                     "select_lval_rw sid=%d before=%b zone=%a"
+                     ki.sid before Locations.Zone.pretty zone;
                    select_stmt_zone !ac mark zone ~before ki kf ;
            in
-             ac := select_zpne ~before:true rd_zone_opt ;
-             ac := select_zpne ~before:false wr_zone_opt
+             ac := select_zone ~before:true rd_zone_opt ;
+             ac := select_zone ~before:false wr_zone_opt
          in (match ki_opt with
                | Some ki -> select_rw_from_stmt kf ki
                | None ->
@@ -463,15 +470,10 @@ let select_lval_rw set mark ~rd ~wr ~scope ~eval kf ki_opt=
 let select_stmt_lval_rw set mark ~rd ~wr ki ~scope ~eval kf =
   select_lval_rw set mark ~rd ~wr ~scope ~eval kf (Some ki)
 
-(**
-    Add a selection of the declaration of [vi]. *)
-let select_decl_var set mark vi kf =
-  if vi.Cil_types.vglob (* no slicing request on globals *)
-  then set
-  else
-    let pdg = !Db.Pdg.get kf in
-    let node = !Db.Pdg.find_decl_var_node pdg vi in
-      select_pdg_nodes set mark [node] kf
+(** Add a selection of the declaration of [vi]. *)
+let select_decl_var set mark vi kf = 
+  let selection = !Db.Slicing.Select.select_decl_var_internal kf vi mark in
+    add_to_selection set selection
 
 let select_ZoneAnnot_pragmas set ~spare pragmas kf =
   let set =
@@ -591,7 +593,7 @@ let add_selection project set =
       in if slices = [] then [!Slicing.Slice.create project kf] else slices
     in List.iter make_request slices ;
       r
-  in ignore (Slicing.Select.fold_selects add_selection None set)
+  in ignore (Slicing.Select.fold_selects_internal add_selection None set)
 
 (** Registered as a slicing request function:
     Add selections that will be applied to all the slices of the function
@@ -607,7 +609,7 @@ let add_persistent_selection project set =
         None -> !Slicing.Request.apply_all_internal project ; Some (kf)
       | Some prev_kf -> if prev_kf == kf then prev else None
     in !Slicing.Request.add_selection_internal project selection; r
-  in ignore (Slicing.Select.fold_selects add_selection None set)
+  in ignore (Slicing.Select.fold_selects_internal add_selection None set)
 
 (** Registered as a slicing request function:
     Add selections that will be applied to all the slices of the function
@@ -616,79 +618,82 @@ let add_persistent_selection project set =
     - the function begins by applying the remaining internal requests.
     - the requests added for the last kernel function are not applied. *)
 let add_persistent_cmdline project =
-  let top_mark = !Db.Slicing.Mark.make ~addr:true ~ctrl:true ~data:true in
-  let selection = ref (!Db.Slicing.Select.empty_selects ()) in
-    Globals.Functions.iter
-      (fun kf ->
-	 let add_selection opt select  =
-	   if Cilutil.StringSet.mem (Kernel_function.get_name kf) (opt ()) then
-	     selection := select !selection ~spare:false kf
-	 in
+  SlicingParameters.feedback ~level:1
+    "interpreting slicing requests from the command line...";
+  begin try
+    let selection = ref Db.Slicing.Select.empty_selects in
+    let top_mark = !Db.Slicing.Mark.make ~addr:true ~ctrl:true ~data:true in
+      Globals.Functions.iter
+        (fun kf ->
+           let add_selection opt select  =
+	     if Cilutil.StringSet.mem (Kernel_function.get_name kf) (opt ()) then
+	       selection := select !selection ~spare:false kf
+           in
+             
+             add_selection
+	       SlicingParameters.Select.Return.get
+               !Db.Slicing.Select.select_func_return;
+             
+             add_selection
+	       SlicingParameters.Select.Calls.get
+	       !Db.Slicing.Select.select_func_calls_to;
+             
+             add_selection
+	       SlicingParameters.Select.Pragma.get
+	       (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
+	          ~ai:false ~user_assert:false ~slicing_pragma:true
+	          ~loop_inv:false ~loop_var:false);
 
-	   add_selection
-	     Cmdline.Slicing.Select.Return.get
-             !Db.Slicing.Select.select_func_return;
+             add_selection
+	       SlicingParameters.Select.Threat.get
+               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
+	          ~ai:true ~user_assert:false ~slicing_pragma:false
+	          ~loop_inv:false ~loop_var:false);
+             
+             add_selection
+	       SlicingParameters.Select.Assert.get
+               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
+	          ~ai:false ~user_assert:true ~slicing_pragma:false
+	          ~loop_inv:false ~loop_var:false);
 
-	         add_selection
-	           Cmdline.Slicing.Select.Calls.get
-	           !Db.Slicing.Select.select_func_calls_to;
-
-	         add_selection
-	           Cmdline.Slicing.Select.Pragma.get
-	           (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		      ~ai:false ~user_assert:false ~slicing_pragma:true
-		      ~loop_inv:false ~loop_var:false);
-
-	         add_selection
-	           Cmdline.Slicing.Select.Threat.get
-                   (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		      ~ai:true ~user_assert:false ~slicing_pragma:false
-		      ~loop_inv:false ~loop_var:false);
-
-	         add_selection
-	           Cmdline.Slicing.Select.Assert.get
-                   (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		      ~ai:false ~user_assert:true ~slicing_pragma:false
-		      ~loop_inv:false ~loop_var:false);
-
-	         add_selection
-	           Cmdline.Slicing.Select.LoopInv.get
-                   (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		      ~ai:false ~user_assert:false ~slicing_pragma:false
-		      ~loop_inv:true ~loop_var:false);
-
-	         add_selection
-	           Cmdline.Slicing.Select.LoopVar.get
-                   (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-		      ~ai:false ~user_assert:false ~slicing_pragma:false
-		      ~loop_inv:false ~loop_var:true);
-      );
-    Cmdline.Slicing.Select.Return.clear () ;
-    Cmdline.Slicing.Select.Calls.clear () ;
-    Cmdline.Slicing.Select.Pragma.clear () ;
-    Cmdline.Slicing.Select.Threat.clear () ;
-    Cmdline.Slicing.Select.Assert.clear () ;
-    Cmdline.Slicing.Select.LoopInv.clear () ;
-    Cmdline.Slicing.Select.LoopVar.clear () ;
-    if  not (Cilutil.StringSet.is_empty (Cmdline.Slicing.Select.Value.get ())) ||
-      not (Cilutil.StringSet.is_empty (Cmdline.Slicing.Select.RdAccess.get ())) ||
-      not (Cilutil.StringSet.is_empty (Cmdline.Slicing.Select.WrAccess.get ()))
-    then begin
-      (* fprintf fmt "@\n[-slice-value] Select %s at end of the entry point %a@."
-         lval_str Db.pretty_name kf; *)
-      let kf = fst (Globals.entry_point ()) in
-      let ki_scope_eval = Kernel_function.find_first_stmt kf in
-	selection := !Db.Slicing.Select.select_func_lval !selection top_mark
-	  (Cmdline.Slicing.Select.Value.get ()) kf;
-	selection := !Db.Slicing.Select.select_func_lval_rw !selection top_mark
-	  ~rd:(Cmdline.Slicing.Select.RdAccess.get ())
-	  ~wr:(Cmdline.Slicing.Select.WrAccess.get ())
-          ~scope:ki_scope_eval ~eval:ki_scope_eval kf ;
-        Cmdline.Slicing.Select.Value.clear () ;
-        Cmdline.Slicing.Select.RdAccess.clear () ;
-        Cmdline.Slicing.Select.WrAccess.clear () ;
-    end;
-    !Db.Slicing.Request.add_persistent_selection project !selection
+             add_selection
+	       SlicingParameters.Select.LoopInv.get
+               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
+	          ~ai:false ~user_assert:false ~slicing_pragma:false
+	          ~loop_inv:true ~loop_var:false);
+             
+             add_selection
+	       SlicingParameters.Select.LoopVar.get
+               (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
+	          ~ai:false ~user_assert:false ~slicing_pragma:false
+	          ~loop_inv:false ~loop_var:true);
+        );
+      if not (Cilutil.StringSet.is_empty (SlicingParameters.Select.Value.get ())) 
+        ||
+        not (Cilutil.StringSet.is_empty (SlicingParameters.Select.RdAccess.get ())) 
+        ||
+        not (Cilutil.StringSet.is_empty (SlicingParameters.Select.WrAccess.get ()))
+      then begin
+        (* fprintf fmt "@\n[-slice-value] Select %s at end of the entry point %a@."
+           lval_str Db.pretty_name kf; *)
+        let kf = fst (Globals.entry_point ()) in
+        let ki_scope_eval = Kernel_function.find_first_stmt kf in
+          selection := !Db.Slicing.Select.select_func_lval !selection top_mark
+            (SlicingParameters.Select.Value.get ()) kf;
+          selection := !Db.Slicing.Select.select_func_lval_rw !selection top_mark
+            ~rd:(SlicingParameters.Select.RdAccess.get ())
+            ~wr:(SlicingParameters.Select.WrAccess.get ())
+            ~scope:ki_scope_eval ~eval:ki_scope_eval kf ;
+          SlicingParameters.Select.Value.clear () ;
+          SlicingParameters.Select.RdAccess.clear () ;
+          SlicingParameters.Select.WrAccess.clear () ;
+      end;
+      !Db.Slicing.Request.add_persistent_selection project !selection
+  with Logic_interp.Error(_loc,msg) -> 
+    SlicingParameters.error "%s. Slicing requests from the command line are ignored" msg
+  end;
+  SlicingParameters.feedback ~level:2
+    "done (interpreting slicing requests from the command line)."
 
 
 let apply_all project ~propagate_to_callers =

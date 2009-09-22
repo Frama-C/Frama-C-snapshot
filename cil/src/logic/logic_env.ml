@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -23,28 +23,15 @@
 
 open Cil_types
 
-(* fwd ref to [Cil.CurrentLoc]... See cil.ml *)
-module CurrentLoc = 
-  Computation.Ref
-    (struct
-       include Cil_datatype.Location
-       let default () = Lexing.dummy_pos, Lexing.dummy_pos
-     end)
-    (struct 
-       let dependencies = [] 
-       let name = "CurrentLoc"
-     end)
+module CurrentLoc = Cil_const.CurrentLoc
 
-let error (b,e) fstring =
-  let f fmt =
-    Format.kfprintf (fun _ -> raise Errormsg.Error) fmt (fstring ^^ "@\n@]")
-  in
-  Format.kfprintf f Format.err_formatter
-    "@[File %s, line %d, characters %d-%d:@\n\
-     Error during analysis of annotation: "
-    b.Lexing.pos_fname b.Lexing.pos_lnum
-    (b.Lexing.pos_cnum - b.Lexing.pos_bol)
-    (e.Lexing.pos_cnum - b.Lexing.pos_bol)
+let error (b,_e) fstring =
+  Cilmsg.abort
+    ~source:{
+      Log.src_file = b.Lexing.pos_fname ;
+      Log.src_line = b.Lexing.pos_lnum ;
+    }
+    ("In annotation: " ^^ fstring)
 
 module LogicInfo =
   Computation.Hashtbl
@@ -56,17 +43,16 @@ module LogicInfo =
        let size = 17
      end)
 
-(*
-module PredicateInfo =
+module LogicBuiltin =
   Computation.Hashtbl
     (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Cil_datatype.Predicate_Info)
+    (Cil_datatype.Builtin_Logic_Info)
     (struct
-       let name = "predicate table"
+       let name = "builtin logic functions table"
        let dependencies = []
        let size = 17
      end)
-*)
+let () = LogicInfo.depend LogicBuiltin.self
 
 module LogicTypeInfo =
   Computation.Hashtbl
@@ -88,17 +74,58 @@ module LogicCtorInfo =
        let size = 17
      end)
 
-(* We depend from Cil_state, but it is initialized after Logic_typing... *)
+(* We depend from ast, but it is initialized after Logic_typing... *)
 let init_dependencies comp =
-  LogicInfo.depend comp; (* PredicateInfo.depend comp; *)
-  LogicTypeInfo.depend comp; LogicCtorInfo.depend comp
+  LogicInfo.depend comp;
+  LogicTypeInfo.depend comp;
+  LogicCtorInfo.depend comp
 
-let is_logic_function = LogicInfo.mem
+let builtin_to_logic b =
+  let params =
+    List.map (fun (x,t) -> Cil_const.make_logic_var x t) b.bl_profile in
+  let li = Cil_const.make_logic_info b.bl_name in
+  li.l_type <- b.bl_type;
+  li.l_tparams <- b.bl_params;
+  li.l_profile <- params;
+  li.l_labels <- b.bl_labels;
+  LogicInfo.add b.bl_name li; li
+
+let is_builtin_logic_function = LogicBuiltin.mem
+
+let is_logic_function s = is_builtin_logic_function s || LogicInfo.mem s
+(*
 let find_logic_function = LogicInfo.find
-let add_logic_function l =
-  if is_logic_function l.l_name then
-    error (CurrentLoc.get ()) "predicate or logic function %s already declared" l.l_name;
-  LogicInfo.add l.l_name l
+*)
+let find_all_logic_functions s =
+  match
+    LogicInfo.find_all s
+  with
+      [] ->
+        let builtins = LogicBuiltin.find_all s in
+        List.map builtin_to_logic builtins
+    | l -> l
+
+(* add_logic_function takes as argument a function eq_logic_info which
+   decides whether two logic_info are identical. It is intended to be
+   Logic_utils.is_same_logic_profile, but this one can not be called
+   from here since it will cause a circular dependency Logic_env <-
+   Logic_utils <- Cil <- Logic_env
+*)
+
+let add_logic_function_gen is_same_profile l =
+  if is_builtin_logic_function l.l_var_info.lv_name then
+    error (CurrentLoc.get())
+      "logic function or predicate %s is built-in. You can not redefine it"
+      l.l_var_info.lv_name
+  ;
+  List.iter
+    (fun li ->
+       if is_same_profile li l then
+	 error (CurrentLoc.get ())
+	   "already declared logic function or predicate %s with same profile"
+	   l.l_var_info.lv_name)
+    (LogicInfo.find_all l.l_var_info.lv_name);
+  LogicInfo.add l.l_var_info.lv_name l
 
 let remove_logic_function = LogicInfo.remove
 
@@ -109,6 +136,7 @@ let add_logic_type t infos =
     (* type variables hide type definitions on their scope *)
   then error (CurrentLoc.get ()) "logic type %s already declared" t
   else LogicTypeInfo.add t infos
+let remove_logic_type = LogicTypeInfo.remove
 
 let is_logic_ctor = LogicCtorInfo.mem
 let find_logic_ctor = LogicCtorInfo.find
@@ -116,44 +144,11 @@ let add_logic_ctor c infos =
   if is_logic_ctor c
   then error (CurrentLoc.get ()) "logic constructor %s already declared" c
   else LogicCtorInfo.add c infos
-
-(*
-let is_predicate = PredicateInfo.mem
-let find_predicate = PredicateInfo.find
-let add_predicate pred_info =
-  if is_predicate pred_info.p_name then
-    error (CurrentLoc.get ()) "predicate %s already declared" pred_info.p_name;
-  PredicateInfo.add pred_info.p_name pred_info
-let remove_predicate = PredicateInfo.remove
-*)
-
-module LogicBuiltin =
-  Computation.Hashtbl
-    (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Cil_datatype.Logic_Info)
-    (struct
-       let name = "builtin logic functions table"
-       let dependencies = []
-       let size = 17
-     end)
-let () = LogicInfo.depend LogicBuiltin.self
-
-(*
-module PredicateBuiltin =
-  Computation.Hashtbl
-    (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
-    (Cil_datatype.Predicate_Info)
-    (struct
-       let name = "builtin predicate table"
-       let dependencies = []
-       let size = 17
-     end)
-let () = PredicateInfo.depend PredicateBuiltin.self
-*)
+let remove_logic_ctor = LogicCtorInfo.remove
 
 module LogicTypeBuiltin =
   Computation.Hashtbl
-    (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
+    (Datatype.String)
     (Cil_datatype.Logic_Type_Info)
     (struct
        let name = "builtin logic types table"
@@ -162,9 +157,11 @@ module LogicTypeBuiltin =
      end)
 let () = LogicTypeInfo.depend LogicTypeBuiltin.self
 
+let is_builtin_logic_type = LogicTypeBuiltin.mem
+
 module LogicCtorBuiltin =
   Computation.Hashtbl
-    (struct type t = string let hash = Hashtbl.hash let equal = (=) end)
+    (Datatype.String)
     (Cil_datatype.Logic_Ctor_Info)
     (struct
        let name = "builtin logic contructors table"
@@ -173,32 +170,64 @@ module LogicCtorBuiltin =
      end)
 let () = LogicCtorInfo.depend LogicCtorBuiltin.self
 
+let is_builtin_logic_ctor = LogicCtorBuiltin.mem
+
 let builtin_states =
   let add x = Project.Selection.add x Kind.Do_Not_Select_Dependencies in
-  add LogicBuiltin.self 
-(*
-    (add PredicateBuiltin.self
-*)
-       (add LogicTypeBuiltin.self 
-	  (add LogicCtorBuiltin.self Project.Selection.empty))
+  add LogicBuiltin.self
+    (add LogicTypeBuiltin.self
+       (add LogicCtorBuiltin.self Project.Selection.empty))
 
-let add_builtin_logic_function li =
-  if not (LogicBuiltin.mem li.l_name) then begin
-    LogicBuiltin.add li.l_name li;
-    add_logic_function li
-  end
+module Builtins= struct
+  include Hook.Make(struct type t = unit end)
+    (* ensures we do not apply the hooks twice *)
+  let apply () = apply (); clear ()
+end
 
-(*
-let add_builtin_predicate pi =
-  if not (PredicateBuiltin.mem pi.p_name) then begin
-    PredicateBuiltin.add pi.p_name pi;
-    add_predicate pi
-  end
+let prepare_tables () =
+  LogicCtorInfo.clear ();
+  LogicTypeInfo.clear ();
+  LogicInfo.clear ();
+  LogicTypeBuiltin.iter LogicTypeInfo.add;
+  LogicCtorBuiltin.iter LogicCtorInfo.add (*;*)
+(*  LogicBuiltin.iter LogicInfo.add *)
+
+(** C typedefs *)
+(**
+  -  true => identifier is a type name
+  -  false => identifier is a plain identifier
 *)
+let typenames: (string, bool) Hashtbl.t = Hashtbl.create 13
+
+let add_typename t = Hashtbl.add typenames t true
+
+let hide_typename t = Hashtbl.add typenames t false
+
+let remove_typename t = Hashtbl.remove typenames t
+
+let reset_typenames () = Hashtbl.clear typenames
+
+let typename_status t =
+  try Hashtbl.find typenames t with Not_found -> false
+
+let builtin_types_as_typenames () =
+  LogicTypeBuiltin.iter (fun x _ -> add_typename x)
+
+let add_builtin_logic_function_gen is_same_profile l =
+  List.iter
+    (fun li ->
+       if is_same_profile li l then
+	 error (CurrentLoc.get ())
+	   "already declared builtin logic function or predicate \
+            %s with same profile"
+	   l.bl_name)
+    (LogicBuiltin.find_all l.bl_name);
+    LogicBuiltin.add l.bl_name l
 
 let add_builtin_logic_type name infos =
   if not (LogicTypeBuiltin.mem name) then begin
     LogicTypeBuiltin.add name infos;
+    add_typename name;
     add_logic_type name infos
   end
 
@@ -208,21 +237,14 @@ let add_builtin_logic_ctor name infos =
     add_logic_ctor name infos
   end
 
-module Builtins=Hook.Make(struct type t = unit end)
+let iter_builtin_logic_function f =
+  LogicBuiltin.iter (fun _ info -> f info)
 
-let prepare_tables () =
-  LogicCtorInfo.clear ();
-  LogicTypeInfo.clear ();
-(*
-  PredicateInfo.clear ();
-*)
-  LogicInfo.clear ();
-  LogicCtorBuiltin.iter LogicCtorInfo.add;
-  LogicTypeBuiltin.iter LogicTypeInfo.add;
-(*
-  PredicateBuiltin.iter PredicateInfo.add;
-*)
-  LogicBuiltin.iter LogicInfo.add
+let iter_builtin_logic_type f =
+  LogicTypeBuiltin.iter (fun _ info -> f info)
+
+let iter_builtin_logic_ctor f =
+  LogicCtorBuiltin.iter (fun _ info -> f info)
 
 (*
   Local Variables:

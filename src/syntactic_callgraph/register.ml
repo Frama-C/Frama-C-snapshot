@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,28 +22,12 @@
 open Cil_types
 open Cil
 open Callgraph
-
-let name = "syntactic callgraph"
-
-module CG =
-  Computation.OptionRef
-    (Project.Datatype.Imperative
-       (struct
-	  type t = Callgraph.callgraph
-	  let copy _cg = assert false (* TODO *)
-	  let name = name
-	end))
-    (struct
-       let name = name
-       let dependencies = [ Cil_state.self ]
-     end)
-
-let get () = CG.memo (fun () -> let p = Cil_state.file () in computeGraph p)
+open Options
 
 module Service =
   Service_graph.Make
     (struct
-       let name = "syntactic callgraph"
+       let datatype_name = name
        type t = Callgraph.callgraph
        module V = struct
          type t = callnode
@@ -53,52 +37,96 @@ module Service =
            [ match v.cnInfo with
              | NIVar (_,b) when not !b -> `Style `Dotted
              | _ -> `Style `Bold ]
+	 let equal v1 v2 = id v1 = id v2
+	 let hash = id
        end
        let iter_vertex f = Hashtbl.iter (fun _ -> f)
-       let callees _g v = 
-	 Inthash.fold (fun _ v' acc -> v' :: acc) v.cnCallees []
-       let callers _g v = 
-	 Inthash.fold (fun _ v' acc -> v' :: acc) v.cnCallers []
+       let iter_succ f _g v = Inthash.iter (fun _ -> f) v.cnCallees
+       let iter_pred f _g v = Inthash.iter (fun _ -> f) v.cnCallers
+       let fold_pred f _g v = Inthash.fold (fun _ -> f) v.cnCallers
+       let in_degree g v = fold_pred (fun _ -> succ) g v 0
      end)
 
+module CG =
+  Computation.OptionRef
+    (Service.CallG.Datatype)
+    (struct
+       let name = name
+       let dependencies = [ Ast.self ]
+     end)
+
+let get_init_funcs cg =
+  let entry_point_name = Parameters.MainFunction.get () in
+  let init_funcs = (* entry point is always a root *)
+    Cilutil.StringSet.add entry_point_name (InitFunc.get ()) 
+  in
+  (* Add the callees of entry point as roots *)
+  Cilutil.StringSet.union 
+    (try 
+       let callees = 
+	 (Hashtbl.find cg entry_point_name).Callgraph.cnCallees
+       in
+       Inthash.fold (fun _ v acc -> match v.Callgraph.cnInfo with
+		     | Callgraph.NIVar ({vname=n},_) -> 
+			 Cilutil.StringSet.add n acc
+		     | _ -> acc)
+	 callees Cilutil.StringSet.empty
+     with Not_found -> Cilutil.StringSet.empty)
+    init_funcs
+
+let compute () =
+  feedback "beginning analysis";
+  let p = Ast.get () in 
+  let cg = computeGraph p in
+  let init_funcs = get_init_funcs cg in
+  let cg = Service.compute cg init_funcs in
+  CG.mark_as_computed ();
+  feedback "analysis done";
+  cg
+
+let get () = CG.memo compute
+(*
+module SG =
+  Computation.OptionRef
+    (Service.SG.Datatype)
+    (struct
+       let name = name ^ " (service only)"
+       let dependencies = [ CG.self; ServicesOnly.self ]
+     end)
+
+let get_services () = SG.memo (fun () -> Service.compute_services (get ()))
+*)
 let dump () = 
-  try 
-    let file = Cmdline.CallgraphFilename.get () in
-    let cg = get () in
-    let init_funcs = (* entry point is always a root *)
-      Cilutil.StringSet.add 
-	(Cmdline.MainFunction.get ()) (Cmdline.CallgraphInitFunc.get ()) 
-    in
-    let strat_cg = Service.compute cg init_funcs in
+  let output =
+(*    if ServicesOnly.get () then
+      let sg = get_services () in
+      fun o -> Service.output_services o sg
+    else *)
+      let cg = get () in
+      fun o -> Service.output_graph o cg
+  in
+  let file = Filename.get () in
+  feedback ~level:2 "dumping the graph into file %s" file;
+  try
     let o = open_out file in
-    Service.output_graph o strat_cg;
+    output o;
     close_out o
   with e ->
-    Format.eprintf "dump_callgraph: %s@." (Printexc.to_string e)
+    error
+      "error while dumping the syntactic callgraph: %s"
+      (Printexc.to_string e)
     
 let () = 
   Db.register_guarded_compute
-    "Syntactic_callgraph.dump"
-    (fun () -> Cmdline.CallgraphFilename.get () = "")
-    Db.Syntactic_callgraph.dump
+    "Syntactic_Callgraph.dump"
+    (fun () -> Filename.get () = "" || CG.is_computed ())
+    Db.Syntactic_Callgraph.dump
     dump
 
 let () = 
   (* Do not directly use [dump]: function in [Db] is guarded and apply only if
      required. *)
-  Db.Main.extend (fun _fmt -> !Db.Syntactic_callgraph.dump ())
-
-let () =
-  Options.add_plugin 
-    ~name:"callgraph" ~shortname:"cg"
-    ~descr:"syntactic stratified callgraph"
-    [ "-cg",
-      Arg.String Cmdline.CallgraphFilename.set,
-      "FILENAME: dump a stratified call graph to FILENAME in dot format";
-      "-cg-init-func",
-      Arg.String Cmdline.CallgraphInitFunc.add,
-      "FUNCTION: use this function as a root service (you can add as many functions as you want; if no function is declared, then root services are initialized with functions with no callers)" ;
-    ]
+  Db.Main.extend (fun _fmt -> !Db.Syntactic_Callgraph.dump ())
 
 (*
 Local Variables:

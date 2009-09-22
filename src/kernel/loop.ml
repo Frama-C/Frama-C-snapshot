@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: loop.ml,v 1.12 2008/10/03 13:09:16 uid568 Exp $ *)
+(* $Id: loop.ml,v 1.12 2008-10-03 13:09:16 uid568 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -35,7 +35,7 @@ module Natural_Loops =
     (struct
        let name = name
        let size = 97
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
 
 let pretty_natural_loops fmt kf loops =
@@ -55,11 +55,10 @@ let get_naturals kf =
 	 | Declaration _ ->
 	     []
 	 | Definition (cilfundec,_) ->
-	     let dbg = 
-	       Cmdline.Debug.get () > 0 || Cmdline.Pdg.Verbosity.get() > 0 
-	     in
+	     let dbg = Parameters.Debug.get () > 0 in
              if dbg then
-               Format.printf "COMPUTE NATURAL LOOPS FOR %S@." (Kernel_function.get_name kf);
+               Format.printf "COMPUTE NATURAL LOOPS FOR %S@." 
+		 (Kernel_function.get_name kf);
 	     let dominators = Dominators.computeIDom cilfundec in
              (*if dbg then 
                Format.printf "DONE COMPUTE NATURAL LOOPS IDOM FOR %S@." 
@@ -162,7 +161,7 @@ let get_loop_stmts =
       (struct
 	 let name = "LoopStmts"
 	 let size = 97
-	 let dependencies = [ Cil_state.self ]
+	 let dependencies = [ Ast.self ]
        end)
   in
   fun kf loop_stmt ->

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -122,13 +122,11 @@
       ];
     fun s ->
       try
-        Hashtbl.find (if Logic_const.is_kw_c_mode () then c_kw else all_kw) s
+        Hashtbl.find (if Logic_utils.is_kw_c_mode () then c_kw else all_kw) s
       with Not_found ->
-        try
-          if Hashtbl.find Logic_const.typenames s then
-            TYPENAME s
-          else IDENTIFIER s
-        with Not_found -> IDENTIFIER s
+        if Logic_utils.is_rt_type_mode () then TYPENAME s
+        else if Logic_env.typename_status s then TYPENAME s
+        else IDENTIFIER s
 
   let bs_identifier =
     let h = Hashtbl.create 97 in
@@ -145,16 +143,11 @@
         "\\from", FROM;
         "\\inter", INTER;
         "\\lambda", LAMBDA;
-        "\\max", IDENTIFIER "\\max";
-        "\\min", IDENTIFIER "\\min";
         "\\nothing", NOTHING;
         "\\null", NULL;
-        "\\numof", IDENTIFIER "\\numof";
         "\\old", OLD;
-        "\\product", IDENTIFIER "\\product";
         "\\result", RESULT;
         "\\separated", SEPARATED;
-        "\\sum", IDENTIFIER "\\sum";
         "\\true", TRUE;
         "\\type", BSTYPE;
         "\\typeof", TYPEOF;
@@ -165,9 +158,7 @@
       ];
     fun lexbuf ->
       let s = lexeme lexbuf in
-      try Hashtbl.find h s
-      with Not_found ->
-        lex_error lexbuf ("illegal escape sequence " ^ s)
+      try Hashtbl.find h s with Not_found -> IDENTIFIER s 
 
 
   let int_of_digit chr =
@@ -219,6 +210,7 @@ let rO = ['0'-'7']
 let rL = ['a'-'z' 'A'-'Z' '_']
 let rH = ['a'-'f' 'A'-'F' '0'-'9']
 let rE = ['E''e']['+''-']? rD+
+let rP = ['P''p']['+''-']? rD+
 let rFS	= ('f'|'F'|'l'|'L')
 let rIS = ('u'|'U'|'l'|'L')*
 let comment_line = "//" [^'\n']*
@@ -251,9 +243,14 @@ rule token = parse
         let lbf = Lexing.from_string content in
         CONSTANT (IntConstant (chr b lbf ^ "'"))
       }
-  | rD+ rE rFS?             { CONSTANT (FloatConstant (lexeme lexbuf)) }
-  | rD* "." rD+ (rE)? rFS?  { CONSTANT (FloatConstant (lexeme lexbuf)) }
-  | rD+ "." rD* (rE)? rFS?  { CONSTANT (FloatConstant (lexeme lexbuf)) }
+(* floating-point literals, both decimal and hexadecimal *)
+  | rD+ rE rFS?             
+  | rD* "." rD+ (rE)? rFS?  
+  | rD+ "." rD* (rE)? rFS?  
+  | '0'['x''X'] rH+ '.' rH* rP rFS?
+  | '0'['x''X'] rH* '.' rH+ rP rFS?
+  | '0'['x''X'] rH+ rP rFS?
+      { CONSTANT (FloatConstant (lexeme lexbuf)) }
 
  (* hack to lex 0..3 as 0 .. 3 and not as 0. .3 *)
   | (rD+ as n) ".."         { lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos - 2;
@@ -367,7 +364,8 @@ and hash = parse
                    int_of_string s
                  with Failure ("int_of_string") ->
                    (* the int is too big. *)
-                   Cil.warnLoc (lexbuf.lex_start_p, lexbuf.lex_curr_p)
+		   let src = Cil.source (lexbuf.lex_start_p, lexbuf.lex_curr_p) in
+                   Cilmsg.warning ~source:src
                      "Bad line number in preprocessed file: %s"  s;
                    (-1)
                  in
@@ -421,32 +419,25 @@ and endline = parse
       f token lb
     with
       | Parsing.Parse_error as _e ->
-          let start, stop = start_pos lb,end_pos lb in
           Cil.error_loc (
 	    lb.lex_curr_p.Lexing.pos_fname,
-	    lb.lex_curr_p.Lexing.pos_lnum,start,stop)
+	    lb.lex_curr_p.Lexing.pos_lnum)
             "syntax error while parsing annotation@.";
-          Logic_const.exit_kw_c_mode ();
+          Logic_utils.exit_kw_c_mode ();
           raise Parsing.Parse_error
 
-      | Error ((b,e), m) ->
+      | Error (_, m) ->
           Cil.error_loc (
 	    lb.lex_curr_p.Lexing.pos_fname,
-	    lb.lex_curr_p.Lexing.pos_lnum,
-            b - lb.lex_curr_p.Lexing.pos_bol,
-            e - lb.lex_curr_p.Lexing.pos_bol)
-            "%s@."
-            m;
-          Logic_const.exit_kw_c_mode ();
-          raise Parsing.Parse_error
-      | Logic_const.Not_well_formed (loc, m) ->
-          Cil.error_loc
-            ((fst loc).Lexing.pos_fname,
-             (fst loc).Lexing.pos_lnum,
-             (fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol,
-             (snd loc).Lexing.pos_cnum - (snd loc).Lexing.pos_bol)
+	    lb.lex_curr_p.Lexing.pos_lnum)
             "%s@." m;
-          Logic_const.exit_kw_c_mode ();
+          Logic_utils.exit_kw_c_mode ();
+          raise Parsing.Parse_error
+      | Logic_utils.Not_well_formed (loc, m) ->
+          Cil.error_loc
+            ((fst loc).Lexing.pos_fname,(fst loc).Lexing.pos_lnum)
+            "%s@." m;
+          Logic_utils.exit_kw_c_mode ();
           raise Parsing.Parse_error
 
 
@@ -457,3 +448,9 @@ and endline = parse
   let spec = parse_from_location Logic_parser.spec
 
 }
+
+(* 
+Local Variables:
+compile-command: "make -C ../../.. byte"
+End:
+*)

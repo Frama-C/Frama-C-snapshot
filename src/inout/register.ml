@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,14 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.6 2008/09/04 11:10:50 uid527 Exp $ *)
-
-let () =
-  Options.add_plugin 
-    ~name:"inout (experimental)" 
-    ~descr:"analysis of inputs and outputs of functions"
-    ( [ Context.option;  Outputs.option; Derefs.option;
-      Access_path.option ] @ Inputs.options )
+(* $Id: register.ml,v 1.7 2009-02-18 21:56:10 uid528 Exp $ *)
 
 (*
 Local Variables:

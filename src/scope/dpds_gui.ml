@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,29 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: dpds_gui.ml,v 1.15 2008/12/12 12:46:33 uid581 Exp $ *)
-(**************************************************************************)
-(*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
-(*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
-(*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
-(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
-(*                                                                        *)
-(**************************************************************************)
+(* $Id: dpds_gui.ml,v 1.18 2009-01-06 10:00:45 uid530 Exp $ *)
 
 
 open Cil_types
@@ -64,7 +42,7 @@ let scope_p_tag = ("p_scope",   [`BACKGROUND "#FFFFab"])
 let scope_p_warn_tag = ("p_warn_scope",   [`BACKGROUND "#D5FFAb"])
 let empty_tag = ("", [])
 
-let add_annot (main_ui:Design.main_window_extension_points) txt =
+let add_msg (main_ui:Design.main_window_extension_points) txt =
   main_ui#annot_window#buffer#insert (txt ^ "\n")
 
 let pretty_zone fmt z = 
@@ -79,25 +57,37 @@ let ask_for_lval (main_ui:Design.main_window_extension_points) kf stmt =
             let lval = !Db.Properties.Interp.term_lval_to_lval term_lval in
               Some (txt, lval)
           with e ->
-            let msg = 
-              Format.sprintf "[ask for lval] '%s' invalid expression: %s@." 
-                txt (Printexc.to_string e)
-            in add_annot main_ui msg; 
-               None
+            main_ui#error "[ask for lval] '%s' invalid expression: %s@." 
+              txt (Printexc.to_string e);
+            None
 
 let get_kf_stmt_opt localizable =
   match localizable with
-    | Pretty_source.PTermLval(Some kf,(Kstmt stmt),_) 
-    | Pretty_source.PLval (Some kf,(Kstmt stmt),_) 
+    | Pretty_source.PTermLval(Some kf, Kstmt stmt, _) 
+    | Pretty_source.PLval (Some kf, Kstmt stmt, _) 
     | Pretty_source.PStmt (kf,stmt)
-        -> Some (kf, stmt)
+    | Pretty_source.PCodeAnnot (kf, stmt, _)  
+    | Pretty_source.PPredicate (Some kf, Kstmt stmt, _)  
+      -> Some (kf, stmt)
+    | Pretty_source.PTermLval (_, _, _)
+    | Pretty_source.PLval (_, _, _) 
+    | Pretty_source.PGlobal _ 
+    | Pretty_source.PVDecl _ 
+    | Pretty_source.PBehavior _ 
+    | Pretty_source.PPredicate (_, _, _)
+      -> None
+
+let get_annot_opt localizable =
+  match localizable with
+    | Pretty_source.PCodeAnnot (_kf, _stmt, annot)  -> Some annot
     | _ -> None
+
 
 (** [kf_stmt_opt] is used if we want to ask the lval to the user in a popup *)
 let get_lval_opt main_ui kf_stmt_opt localizable =
   match localizable with
     | Pretty_source.PLval (Some _kf, (Kstmt _stmt), lv) -> 
-        let lv_txt = Cil.fprintf_to_string "%a" Cil.d_lval lv in
+        let lv_txt = Pretty_utils.sfprintf "%a" Cil.d_lval lv in
         Some (lv_txt, lv)
     | _ -> 
         match kf_stmt_opt with None -> None
@@ -105,25 +95,23 @@ let get_lval_opt main_ui kf_stmt_opt localizable =
               match (ask_for_lval main_ui kf stmt) with None -> None
                 | Some (lv_txt, lv) -> Some (lv_txt, lv)
 
-let get_annots kf_stmt_opt =
-  match kf_stmt_opt with None -> []
-    | Some (_kf, stmt) -> 
-        Annotations.get_filter Logic_const.is_assert stmt
-
-module Make_StmtSetState(Info:sig val name: string end) =
+module Make_StmtSetState (Info:sig val name: string end) =
   Computation.Ref
     (struct 
        include Cil_datatype.StmtSet
        let default () = Cilutil.StmtSet.empty
      end)
-    (struct let name = Info.name let dependencies = [ Db.Value.self ] end)
+    (struct 
+       let name = Info.name 
+       let dependencies = [ Db.Value.self ] 
+     end)
 
 module type DpdCmdSig = sig
   type t_in
   val help : string
   val get_info : (Kernel_function.t * Cil_types.stmt) option -> string
   val compute : Kernel_function.t -> Cil_types.stmt -> t_in -> string
-  val tag : Cil_types.stmt -> (string * GText.tag_property list)
+  val tag_stmt : Cil_types.stmt -> (string * GText.tag_property list)
   val clear: unit -> unit
 end
 
@@ -162,7 +150,7 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
     Fscope.set f; FBscope.set fb; Bscope.set b;
     "[scope] computed"
 
-  let tag stmt =
+  let tag_stmt stmt =
     if Cilutil.StmtSet.mem stmt (Fscope.get()) then scope_f_tag
     else if Cilutil.StmtSet.mem stmt (FBscope.get()) then scope_fb_tag
     else if Cilutil.StmtSet.mem stmt (Bscope.get()) then scope_b_tag
@@ -170,7 +158,7 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
 
 end
 
-module Pscope : (DpdCmdSig with type t_in = code_annotation) = struct
+module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
 
   type t_in = code_annotation
 
@@ -179,8 +167,15 @@ module Pscope : (DpdCmdSig with type t_in = code_annotation) = struct
       (struct let name = "Dpds_gui.Highlighter.Pscope" end)
 
   module Pscope_warn =
-    Make_StmtSetState
-      (struct let name = "Dpds_gui.Highlighter.Pscope_warn" end)
+    Computation.Ref
+    (struct
+       include Datatype.List (Cil_datatype.Code_Annotation)
+      let default () = []
+     end)
+    (struct 
+       let name = "Dpds_gui.Highlighter.Pscope_warn"
+       let dependencies = [ Db.Value.self ] 
+     end)
 
   let clear () = Pscope.clear(); Pscope_warn.clear()
 
@@ -198,11 +193,15 @@ module Pscope : (DpdCmdSig with type t_in = code_annotation) = struct
     Pscope.set s1; Pscope_warn.set s2;
     "[prop_scope] computed"
 
-  let tag stmt =
-    if Cilutil.StmtSet.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
-    else if Cilutil.StmtSet.mem stmt (Pscope.get()) then scope_p_tag
+  let tag_stmt stmt =
+    (*if Cilutil.StmtSet.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
+    else*) if Cilutil.StmtSet.mem stmt (Pscope.get()) then scope_p_tag
     else empty_tag
 
+  let tag_annot annot =
+    let tag = 
+      List.exists (fun a -> a.annot_id = annot.annot_id) (Pscope_warn.get())
+    in if tag then scope_p_warn_tag else empty_tag
 end
 
 module ShowDef : (DpdCmdSig with type t_in = lval) = struct
@@ -233,13 +232,13 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
           let msg = match undef with 
             | None -> "[show_def] computed"
             | Some undef ->
-                Cil.fprintf_to_string "[show_def] notice that %a %s"
+                Pretty_utils.sfprintf "[show_def] notice that %a %s"
                   pretty_zone undef 
                   "can be undefined by this function at this point"
           in
             ShowDefState.set defs; msg
 
-  let tag stmt = 
+  let tag_stmt stmt = 
     if Cilutil.StmtSet.mem stmt (ShowDefState.get())
     then show_def_tag else empty_tag
 
@@ -275,7 +274,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
           | Some (_kf, stmt) ->
               let z = !Db.Scope.get_zones zones stmt in
               let txt = 
-                Cil.fprintf_to_string "[zones] needed before stmt %d = %a" 
+                Pretty_utils.sfprintf "[zones] needed before stmt %d = %a" 
                   stmt.sid pretty_zone z
               in txt
     with Not_found -> ""
@@ -285,7 +284,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
       ZonesState.set (zones, used_stmts);
       "[zones] computed"
 
-  let tag stmt = 
+  let tag_stmt stmt = 
     let is_used =
       try 
         let _zones, used =  ZonesState.get () in
@@ -297,7 +296,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
 end
 
 let help (main_ui:Design.main_window_extension_points) =
-  let add txt = add_annot main_ui txt in
+  let add txt = add_msg main_ui txt in
     add ("General : "
      ^"each of these commands starts from a data D at a program point L.\n\t"
      ^"The program point is the one that is before the selected statement,\n\t"
@@ -331,7 +330,7 @@ let reset () =
 let print_info main_ui kf_stmt_opt =
   try
     let kf_dpds, _s, txt = DpdsState.get () in
-      add_annot main_ui txt;
+      add_msg main_ui txt;
       match kf_stmt_opt with 
         | None -> ()
         | Some (kf, _s) ->
@@ -339,76 +338,81 @@ let print_info main_ui kf_stmt_opt =
               begin
               let get f =
                 let msg = f kf_stmt_opt in
-                  if msg <> "" then add_annot main_ui msg
+                  if msg <> "" then add_msg main_ui msg
               in
                 get ShowDef.get_info;
                 get Zones.get_info;
                 get DataScope.get_info;
                 get Pscope.get_info 
               end
-            else add_annot main_ui 
+            else add_msg main_ui 
                    "[dependencies] no information in this function"
   with Not_found -> ()
 
 let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
-              main_ui (kf, stmt, localizable) = 
+    main_ui (kf, stmt, localizable) = 
   let compute f arg =
-    let already_locked = main_ui#lock () in
+
     let msg = f kf stmt arg in
-      main_ui#unlock already_locked ;
-      if msg <> "" then add_annot main_ui msg
+
+    if msg <> "" then add_msg main_ui msg
   in
   let set_txt x =
-    let txt = Cil.fprintf_to_string 
-                "[dependencies] for %s before stmt %d in %a"
-                x stmt.sid Kernel_function.pretty_name kf 
+    let txt = Pretty_utils.sfprintf 
+      "[dependencies] for %s before stmt %d in %a"
+      x stmt.sid Kernel_function.pretty_name kf 
     in 
-      DpdsState.set (kf, stmt, txt);
-      add_annot main_ui txt
+    DpdsState.set (kf, stmt, txt);
+    add_msg main_ui txt
   in
   let _ = 
     if pscope then begin
       reset ();
-        match get_annots (Some(kf, stmt)) with [] -> ()
-          | (Before (AI (_, annot)))::_ -> (* TODO tail *)
-              begin
-                set_txt "annotation";
-                compute Pscope.compute annot 
-              end
-          | _ -> ()
+      match get_annot_opt localizable with
+      | Some ({annot_content = (AAssert _)} as annot) ->
+          begin
+            set_txt ("annotation "^(string_of_int annot.annot_id));
+            compute Pscope.compute annot 
+          end
+      | _ -> ()
     end
     else begin 
       Pscope.clear ();
       match get_lval_opt main_ui (Some(kf, stmt)) localizable with
-        | None -> reset ()
-        | Some (lval_txt, lval) ->
-            begin
+      | None -> reset ()
+      | Some (lval_txt, lval) ->
+          begin
             set_txt lval_txt;
             if defs then compute ShowDef.compute lval else ShowDef.clear ();
             if zones then compute Zones.compute lval else Zones.clear ();
             if scope then compute DataScope.compute lval else DataScope.clear ()
-            end
+          end
     end
   in main_ui#rehighlight ()
 
 let highlighter (buffer:GSourceView.source_buffer) localizable ~start ~stop =
   try
     let _kf, start_s, _txt = DpdsState.get () in
+    let put_tag tag = match tag with ("",[]) -> ()
+      | _ -> add_tag buffer tag start stop 
+    in
       match localizable with
         | Pretty_source.PStmt (_,stmt) ->
             begin
-              let put_tag tag = match tag with ("",[]) -> ()
-                | _ -> add_tag buffer tag start stop 
-              in
                 if start_s.sid = stmt.sid then put_tag scope_start_tag;
-                put_tag (Pscope.tag stmt);
-                put_tag (DataScope.tag stmt);
-                put_tag (Zones.tag stmt );
-                put_tag (ShowDef.tag stmt)
+                put_tag (Pscope.tag_stmt stmt);
+                put_tag (DataScope.tag_stmt stmt);
+                put_tag (Zones.tag_stmt stmt );
+                put_tag (ShowDef.tag_stmt stmt)
             end
+	| Pretty_source.PCodeAnnot (_, _, annot) ->
+            put_tag (Pscope.tag_annot annot)
         | Pretty_source.PVDecl _ 
         | Pretty_source.PTermLval _ 
-        | Pretty_source.PLval _ -> ()
+        | Pretty_source.PLval _ 
+	| Pretty_source.PGlobal _ 
+        | Pretty_source.PBehavior _ 
+        | (*TODO?*) Pretty_source.PPredicate _ -> ()
   with Not_found -> ()
 
 (** To add a sensitive/unsensitive menu item to a [factory].
@@ -422,7 +426,7 @@ let add_item (main_ui:Design.main_window_extension_points)
       (* add the menu item asking for running value analysis *)
     let callback () = 
       let msg = "You need to Execute Values analysis first." in
-        add_annot main_ui ("[" ^ name ^ "] " ^ msg) 
+        add_msg main_ui ("[" ^ name ^ "] " ^ msg) 
     in ignore (factory#add_item name ~callback)
   else
     match arg_opt with
@@ -455,8 +459,8 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
 
         add_zones_item "Show defs" (callbacks ~defs:true);
         add_zones_item "Zones"     (callbacks ~zones:true);
-        add_zones_item "DataScope"     (callbacks ~scope:true);
-        (*add_zones_item "PropScope"     (callbacks ~pscope:true); TODO *)
+        add_zones_item "DataScope" (callbacks ~scope:true);
+        add_zones_item "PropScope" (callbacks ~pscope:true); 
 
         ignore (submenu_factory#add_separator ());
         add_zones_item "Show All" 

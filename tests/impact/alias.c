@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -impact-pragma f -lib-entry -main f -impact-print -journal-disable
+   STDOPT: +"-impact-pragma f" +"-lib-entry" +"-main f"
    */
 
 int P,c;

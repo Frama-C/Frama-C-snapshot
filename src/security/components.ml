@@ -2,15 +2,24 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
-(*  All rights reserved.                                                  *)
-(*  Contact CEA for more details about the license.                       *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: components.ml,v 1.130 2008/10/07 11:49:27 uid528 Exp $ *)
+(* $Id: components.ml,v 1.135 2009-01-26 10:40:23 uid568 Exp $ *)
 
 open Cil_types
 open Cil
@@ -28,7 +37,7 @@ module Security_Annotations =
   Cil_computation.StmtSetRef
     (struct
        let name = "Components.Annotations"
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
 
 let rec is_security_predicate p = match p.content with
@@ -37,13 +46,13 @@ let rec is_security_predicate p = match p.content with
       Prel(_,
 	   { term_node = Tapp(f1, _ , ([ _ ])) },
 	   { term_node = Tapp(_, _, _) })
-	when f1.l_name = Model.state_name ->
+	when f1.l_var_info.lv_name = Model.state_name ->
       true
   | (* [state(lval) op term] *)
       Prel(_,
 	   { term_node = Tapp(f1, _, [ _ ]) },
 	   { term_node = _ })
-	when f1.l_name = Model.state_name ->
+	when f1.l_var_info.lv_name = Model.state_name ->
       assert false
   | _ ->
       false
@@ -55,8 +64,7 @@ let has_security_requirement kf =
 (* Do not called twice. *)
 let search_security_requirements () =
   if Security_Annotations.is_empty () then begin
-    if Cmdline.Security.Debug.get () > 0 then
-      Format.printf "[security] searching security annotations...@.";
+    Options.feedback ~level:3 "searching security annotations";
     (* TODO: chercher dans les GlobalAnnotations *)
     let is_security_annotation = function
       | User a ->
@@ -65,12 +73,12 @@ let search_security_requirements () =
 	   | AStmtSpec { spec_requires = l } ->
 	       List.exists
 		 (is_security_predicate $ Logic_const.pred_of_id_pred) l
-	   | AAssume _ | APragma _
-           | AInvariant _
+	   | APragma _
+           | AInvariant _ (* | ALoopBehavior _ *)
 	       (* [JS 2008/02/26] may contain a security predicate *)
-           | AVariant _ | AAssigns _
+           | AVariant _ | AAssigns _ 
                -> false)
-      | AI _ | WP _ ->
+      | AI _ ->
 	  false
     in
     Annotations.iter
@@ -88,7 +96,7 @@ let search_security_requirements () =
 	   List.iter
 	     (fun (_, callsites) ->
 		List.iter Security_Annotations.add callsites)
-	     (!Value.callers kf))
+	     (!Value.callers kf));
   end
 
 (* ************************************************************************* *)
@@ -264,16 +272,15 @@ end = struct
     | Key.SigKey (Signature.In Signature.InCtrl) ->
 	(* do not consider node [InCtrl]  *)
 	list
-    | Key.VarDecl vi when not (Cmdline.LibEntry.is_set () && vi.vglob) ->
+    | Key.VarDecl vi when not (Parameters.LibEntry.get () && vi.vglob) ->
 	(* do not consider variable declaration,
 	   except if libEntry is set and they are globals
 	   (i.e. we could have no further info about them) *)
 	list
     | _ ->
-	if Cmdline.Security.Debug.get () > 1 then
-	  Format.printf "[security] adding node %a (in %s)@."
-	    (!Pdg.pretty_node false) n
-	    (Kernel_function.get_name kf);
+	Options.debug ~level:2 "adding node %a (in %s)"
+	  (!Pdg.pretty_node false) n
+	  (Kernel_function.get_name kf);
 	{ node = n; kf = kf; pdg = pdg;
 	  callstack_length = len; from_deep = fd }
 	:: list
@@ -318,7 +325,7 @@ end = struct
       - [found] is [true] iff [elt] was previously added for [kind]
       - [new_already] is [already] updated with [elt] and its (new) associated
       value. *)
-  let check_and_add elt kind pdg len already =
+  let check_and_add first elt kind pdg len already =
     try
 (*	Format.printf "[security] check node %a (in %s, kind %a)@."
 	(!Pdg.pretty_node true) (fst elt)
@@ -345,7 +352,13 @@ end = struct
 	{ pdg = pdg; callstack_length = len;
 	  direct = dir; indirect_backward = up; forward = down }
       in
-      false, M.add elt v already
+      false,
+      if first && kind = Forward Impact then
+	(* do not add the initial selected stmt for an impact analysis.
+	   fixed bts#411 *)
+	already
+      else
+	M.add elt v already
 
   let one_step_related_nodes kind pdg node =
     (* do not consider address dependencies now (except for impact analysis):
@@ -393,8 +406,11 @@ end = struct
       todolist
       (!Value.callers kf)
 
-  let related_nodes_of_nodes kind =
-    let rec aux result = function
+  let related_nodes_of_nodes kind result nodes =
+    let initial_nodes =
+      List.map (fun n -> n.Todolist.node, n.Todolist.kf) nodes
+    in
+    let rec aux first result = function
       | [] -> result
       | { Todolist.node = node; kf = kf; pdg = pdg;
 	  callstack_length = callstack_length; from_deep = from_deep }
@@ -402,21 +418,18 @@ end = struct
 	->
 	  let elt = node, kf in
 	  let found, result =
-	    check_and_add elt kind pdg callstack_length result
+	    check_and_add first elt kind pdg callstack_length result
 	  in
 	  let todolist =
 	    if found then begin
 	      todolist
 	    end else begin
-	      if Cmdline.Security.Debug.get () > 1 then
-		Format.printf
-		  "[security] considering node %a (in %s)@."
-		  (!Pdg.pretty_node false) node
-		  (Kernel_function.get_name kf);
+	      Options.debug ~level:2 "considering node %a (in %s)"
+		(!Pdg.pretty_node false) node
+		(Kernel_function.get_name kf);
 	      (* intraprocedural related_nodes *)
 	      let related_nodes = one_step_related_nodes kind pdg node in
-	      if Cmdline.Security.Debug.get () > 2 then
-		Format.printf "[security] intraprocedural part done.@.";
+	      Options.debug ~level:3 "intraprocedural part done";
 	      let todolist =
 		List.fold_left
 		  (fun todo n ->
@@ -513,7 +526,7 @@ end = struct
                                      !Pdg.find_output_nodes called_pdg out_key
 				       (* TODO: use undef_zone (see FS#201) *)
 				   in
-                                   let nodes = 
+                                   let nodes =
                                      List.map (fun (n, _z_part) -> n) nodes in
                                      (* TODO : use _z_part ? *)
 				   nodes
@@ -548,11 +561,21 @@ end = struct
 		       | Forward _ ->
 			   List.fold_left
 			     (fun todolist called_kf ->
-				let from_stmt =
-				  M.fold
+				let compute_from_stmt fold =
+				  fold
 				    (fun (n, kfn) _ acc ->
 				       if kfn == kf then n :: acc else acc)
-				    result []
+				in
+				let from_stmt =
+				  compute_from_stmt M.fold result [] in
+				let from_stmt =
+				  (* initial nodes may be not in results *)
+				  compute_from_stmt
+				    (fun f e acc ->
+				       List.fold_left
+					 (fun acc e -> f e [] acc) acc e)
+				    initial_nodes
+				    from_stmt
 				in
 				let called_pdg = !Pdg.get called_kf in
 				let nodes =
@@ -580,20 +603,19 @@ end = struct
 	    end
 	  in
 	  (* recursive call *)
-	  aux result todolist
+	  aux false result todolist
     in
-    aux
+    aux true result nodes
 
   let initial_nodes kf stmt =
-    if Cmdline.Security.Debug.get () > 2 then
-      Format.printf "[security] computing initial nodes for %d@." stmt.sid;
+    Options.debug ~level:3 "computing initial nodes for %d" stmt.sid;
     let pdg = !Pdg.get kf in
     let nodes =
       if Db.Value.is_reachable_stmt stmt then
 	try !Pdg.find_simple_stmt_nodes pdg stmt
 	with Pdg.NotFound -> assert false
       else begin
-	Cil.log "[security] stmt %d is dead. skipping..." stmt.sid;
+	Options.debug ~level:3 "stmt %d is dead. skipping." stmt.sid;
 	[]
       end
     in
@@ -602,8 +624,7 @@ end = struct
   let direct kf stmt =
     try
       let nodes = initial_nodes kf stmt in
-      if Cmdline.Security.Debug.get () > 0 then
-	Format.printf "[security] computing direct component %d@." stmt.sid;
+      Options.debug "computing direct component %d" stmt.sid;
       let res = related_nodes_of_nodes Direct M.empty nodes in
       (* add the initial node, fix FS#180 *)
       let mk p =
@@ -618,19 +639,17 @@ end = struct
       in
       res
     with Pdg.Top | Pdg.Bottom ->
-      Cil.log "[security] Pdg is not manageable. skipping...";
+      Options.warning "PDG is not manageable. skipping.";
       M.empty
 
   let backward kf stmt =
     try
       let nodes = initial_nodes kf stmt in
       let res = direct kf stmt in
-      if Cmdline.Security.Debug.get () > 0 then
-	Format.printf
-	  "[security] computing backward indirect component for %d@." stmt.sid;
+      Options.debug "computing backward indirect component for %d" stmt.sid;
       related_nodes_of_nodes Indirect_Backward res nodes
     with Pdg.Top | Pdg.Bottom ->
-      Cil.log "[security] Pdg is not manageable. skipping...";
+      Options.warning "PDG is not manageable. skipping.";
       M.empty
 
   let whole kf stmt =
@@ -642,17 +661,13 @@ end = struct
 	res
 	[]
     in
-    if Cmdline.Security.Debug.get () > 0 then
-      Format.printf "[security] computing forward component for stmt %d@." 
-	stmt.sid;
+    Options.debug "computing forward component for stmt %d" stmt.sid;
     related_nodes_of_nodes (Forward Security) res from
 
   (* is exactly an impact analysis iff [fwd_kind = Impact] *)
   let forward fwd_kind kf stmt =
     let nodes = initial_nodes kf stmt in
-    if Cmdline.Security.Debug.get () > 0 then
-      Format.printf "[security] computing forward component for stmt %d@." 
-	stmt.sid;
+    Options.debug "computing forward component for stmt %d" stmt.sid;
     let res = related_nodes_of_nodes (Forward fwd_kind) M.empty nodes in
     let set =
       M.fold
@@ -692,12 +707,27 @@ end = struct
     let action = if use_ctrl_dpds then whole else direct in
     M.iter (fun elt _ -> f elt) (action kf stmt)
 
+  let register name dbf arg =
+    Db.register
+      (Db.Journalize
+	 ("Security." ^ name,
+	  Type.func Kernel_type.stmt (Type.list Kernel_type.stmt)))
+      dbf
+      (get_component arg)
+
   let () =
-    Db.Security.get_direct_component := get_component Direct;
-    Db.Security.get_indirect_backward_component :=
-      get_component Indirect_Backward;
-    Db.Security.get_forward_component := get_component (Forward Security);
-    Db.Security.impact_analysis := forward Impact
+    register "get_direct_component" Security.get_direct_component Direct;
+    register "get_indirect_backward_component"
+      Security.get_indirect_backward_component Indirect_Backward;
+    register "get_forward_component"
+      Security.get_forward_component (Forward Security);
+    Db.register
+      (Db.Journalize
+	 ("Security.impact_analysis",
+	  Type.func Kernel_type.kernel_function
+	    (Type.func Kernel_type.stmt (Type.list Kernel_type.stmt))))
+      Db.Security.impact_analysis
+      (forward Impact)
 
 end
 
@@ -753,9 +783,7 @@ let compute, self =
     (fun () ->
        search_security_requirements ();
        let add_component stmt =
-	 if Cmdline.Security.Debug.get () > 0 then
-	   Format.printf
-	     "[security] computing security component %d.@." stmt.sid;
+	 Options.debug "computing security component %d" stmt.sid;
 	 let add_one = Components.add stmt in
 	 let kf = snd (Kernel_function.find_from_sid stmt.sid) in
 	 Component.iter
@@ -769,7 +797,7 @@ let compute, self =
        Security_Annotations.iter add_component)
 
 let () =
-  Options.register_plugin_init
+  Cmdline.run_after_extended_stage
     (fun () ->
        Project.Computation.add_dependency self !Pdg.self;
        Project.Computation.add_dependency Nodes.self self;
@@ -802,7 +830,15 @@ module Make(X:sig val use_ctrl_dependencies: bool end) = struct
 	res || match s.skind with  Block _ -> true | _ -> false*)
     true (* TODO: tracks bugs *)
 
-  let () = Db.Security.get_component := (fun s -> compute (); Components.find s)
+  (* [JS]: journalisation in a functor body does not work because it is
+     registered twice *)
+  let () = Security.get_component := fun s -> compute (); Components.find s
+(*    Db.register
+      ~journalize:
+      (Some ("Security.get_component",
+	     Type.func Kernel_type.stmt (Type.list Kernel_type.stmt)))
+      Db.Security.get_component
+      (fun s -> compute (); Components.find s)*)
 
   let fold_fold = Components.fold_fold
 
@@ -811,16 +847,14 @@ module Make(X:sig val use_ctrl_dependencies: bool end) = struct
   (* ************************************************************************ *)
 
   let slice () =
+    Options.feedback ~level:2 "beginning slicing";
     compute ();
-    if Cmdline.Security.Debug.get () > 0 then
-      Format.printf "[security] beginning slicing@.";
     let name = "security slicing" in
     let slicing = !Slicing.Project.mk_project name in
     let select (n, kf) sel =
-      if Cmdline.Security.Debug.get () > 1 then
-	Format.printf "[security] selecting %a (of %s)@."
- 	  (!Pdg.pretty_node false) n
-	  (Kernel_function.get_name kf);
+      Options.debug ~level:2 "selecting %a (of %s)"
+ 	(!Pdg.pretty_node false) n
+	(Kernel_function.get_name kf);
       !Slicing.Select.select_pdg_nodes
 	sel
 	(!Slicing.Mark.make
@@ -828,22 +862,21 @@ module Make(X:sig val use_ctrl_dependencies: bool end) = struct
 	[ n ]
 	kf
     in
-    let sel = Nodes.fold select (!Slicing.Select.empty_selects ()) in
-    if Cmdline.Security.Debug.get () > 0 then
-      Format.printf "[security] adding selection@.";
+    let sel = Nodes.fold select Slicing.Select.empty_selects in
+    Options.debug "adding selection";
     !Slicing.Request.add_persistent_selection slicing sel;
-    if Cmdline.Security.Debug.get () > 0 then
-      Format.printf "[security] applying slicing request@.";
+    Options.debug "applying slicing request";
     !Slicing.Request.apply_all_internal slicing;
     !Slicing.Slice.remove_uncalled slicing;
     let p = !Slicing.Project.extract name slicing in
-    Project.copy ~only:(Cmdline.Security.get_selection_after_slicing ()) p;
+    Project.copy ~only:(Options.get_selection_after_slicing ()) p;
+    Options.feedback ~level:2 "slicing done";
     p
 
 end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

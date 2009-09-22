@@ -33,3 +33,8 @@ void reset_array3(int t[],int n) {
 void incr_list(struct list *p) {
   while (p) { p->hd++ ; p = p->next; }
 }
+
+/*@
+  predicate is_empty (set<int *> s) =
+  s == \empty;
+  @*/

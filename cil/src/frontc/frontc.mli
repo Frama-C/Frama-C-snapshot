@@ -38,20 +38,14 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-   (* Signal that we are in MS VC mode *)
+(* Signal that we are in MS VC mode *)
 val setMSVCMode: unit -> unit
 
-
-   (* Parse a file in *)
-exception ParseError of string
-
-   (* Raised when the front-end is requested to print the CABS and return *)
+(* Raised when the front-end is requested to print the CABS and return *)
 exception CabsOnly
-
-    (* additional command line arguments *)
-val args: (string * Arg.spec * string) list
-
-    (* the main command to parse a file. Return a thunk that can be used to 
-     * convert the AST to CIL. *)
+  
+(* the main command to parse a file. Return a thunk that can be used to 
+ * convert the AST to CIL. *)
 val parse: string -> (unit -> Cil_types.file*Cabs.file)
 
+  

@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: cil_computation.mli,v 1.3 2008/11/18 12:13:40 uid568 Exp $ *)
+(* $Id: cil_computation.mli,v 1.3 2008-11-18 12:13:40 uid568 Exp $ *)
 
 (** Functors for building computations which use kernel datatypes. 
     @plugin development guide *)

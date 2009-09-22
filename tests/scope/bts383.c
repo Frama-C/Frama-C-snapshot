@@ -1,7 +1,5 @@
 /* run.config
-   EXECNOW: make -s tests/scope/bts383.opt
-   CMD: tests/scope/bts383.opt
-   OPT: -val -print -journal-disable
+   OPT: -val -print -journal-disable -scope-verbose 1 -scope-debug 1
 */
 /* 
    echo '!Db.Scope.check_asserts();;' \

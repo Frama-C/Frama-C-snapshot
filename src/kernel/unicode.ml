@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: unicode.ml,v 1.4 2008/04/08 05:47:45 uid528 Exp $ *)
+(* $Id: unicode.ml,v 1.4 2008-04-08 05:47:45 uid528 Exp $ *)
 
 let inset_string () = 
-  if Cmdline.UseUnicode.get () then Utf8_logic.inset else "IN"
+  if Parameters.UseUnicode.get () then Utf8_logic.inset else "IN"

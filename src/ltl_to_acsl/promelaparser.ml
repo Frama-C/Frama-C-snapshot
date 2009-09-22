@@ -24,7 +24,7 @@ type token =
   | EOF
 
 open Parsing;;
-# 26 "src/ltl_to_acsl/promelaparser.mly"
+# 28 "src/ltl_to_acsl/promelaparser.mly"
 open Parsing
 open Promelaast
 open Bool3
@@ -167,7 +167,7 @@ let yyact = [|
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
     Obj.repr(
-# 64 "src/ltl_to_acsl/promelaparser.mly"
+# 66 "src/ltl_to_acsl/promelaparser.mly"
                                                                  ( 
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
@@ -180,16 +180,17 @@ let yyact = [|
 	      ) observed_states []
 	    in 
 	    let n=ref 0 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) _3;
+	    let transitions = Ltl_logic.simplifyTrans _3 in
+	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
-	    ((states , _3),observed_vars,observed_funcs)
+	    ((states , transitions),observed_vars,observed_funcs)
 	)
-# 188 "src/ltl_to_acsl/promelaparser.ml"
+# 189 "src/ltl_to_acsl/promelaparser.ml"
                : (Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t)))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 3 : 'states) in
     Obj.repr(
-# 80 "src/ltl_to_acsl/promelaparser.mly"
+# 83 "src/ltl_to_acsl/promelaparser.mly"
                                                                                    (
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
@@ -202,37 +203,38 @@ let yyact = [|
 	      ) observed_states []
 	    in
 	    let n=ref 0 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) _3;
+	    let transitions = Ltl_logic.simplifyTrans _3 in
+	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
 
-	    ((states , _3),observed_vars,observed_funcs) )
-# 210 "src/ltl_to_acsl/promelaparser.ml"
+	    ((states , transitions),observed_vars,observed_funcs) )
+# 212 "src/ltl_to_acsl/promelaparser.ml"
                : (Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t)))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
-# 101 "src/ltl_to_acsl/promelaparser.mly"
+# 105 "src/ltl_to_acsl/promelaparser.mly"
                                          ( 
 	    _1@_3
 	    (*let (s1,t1)=$1 in
 	    let (s2,t2)=$3 in
 	      (s1@s2,t1@t2)*)
 	  )
-# 223 "src/ltl_to_acsl/promelaparser.ml"
+# 225 "src/ltl_to_acsl/promelaparser.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
-# 107 "src/ltl_to_acsl/promelaparser.mly"
+# 111 "src/ltl_to_acsl/promelaparser.mly"
          ( _1 )
-# 230 "src/ltl_to_acsl/promelaparser.ml"
+# 232 "src/ltl_to_acsl/promelaparser.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'state_labels) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'state_body) in
     Obj.repr(
-# 111 "src/ltl_to_acsl/promelaparser.mly"
+# 115 "src/ltl_to_acsl/promelaparser.mly"
                                   (
 	  let (stl,trans)=_1 in
 	  let (trl,force_final)=_2 in
@@ -261,125 +263,117 @@ let yyact = [|
 
 
 	)
-# 265 "src/ltl_to_acsl/promelaparser.ml"
+# 267 "src/ltl_to_acsl/promelaparser.ml"
                : 'state))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'label) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'state_labels) in
     Obj.repr(
-# 142 "src/ltl_to_acsl/promelaparser.mly"
+# 146 "src/ltl_to_acsl/promelaparser.mly"
                              ( 
 	    let (stl1,trl1)=_1 in
 	    let (stl2,trl2)=_2 in
 	      (stl1@stl2,trl1@trl2) 
 	)
-# 277 "src/ltl_to_acsl/promelaparser.ml"
+# 279 "src/ltl_to_acsl/promelaparser.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'label) in
     Obj.repr(
-# 147 "src/ltl_to_acsl/promelaparser.mly"
+# 151 "src/ltl_to_acsl/promelaparser.mly"
          ( _1 )
-# 284 "src/ltl_to_acsl/promelaparser.ml"
+# 286 "src/ltl_to_acsl/promelaparser.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
-# 151 "src/ltl_to_acsl/promelaparser.mly"
+# 155 "src/ltl_to_acsl/promelaparser.mly"
                                       (
 	  begin
+    (* Step 0 : trans is the set of new transitions and old is the description of the current state *)
 	    let trans = ref [] in
-	    let old=
-	      try 
+	    (* Promela Label is a state. According to its name, we will try to give him its properties (init / accept) *)
+	    (* Firstly, if this state is still referenced, then we get it back. Else, we make a new "empty" state *)
+	    let old= 
+	      try  
 		Hashtbl.find observed_states _1
 	      with
 		| Not_found -> 
-		    let s={name=_1;acceptation=Undefined;init=Undefined;nums=(Hashtbl.length observed_states)}
-		    in
-		      Hashtbl.add observed_states _1 s;
-		      s
+		    let s={name=_1;acceptation=Undefined;init=Undefined;nums=(Hashtbl.length observed_states)} in
+		    Hashtbl.add observed_states _1 s;
+		    s
 	    in
-	      begin
-		try 
-		  if (old.acceptation<>False) && (String.sub _1 0 10) = "accept_all" then 
-		    begin
-		      old.acceptation <- True;
-		      trans:={start=old;stop=old;cross=PTrue;numt=(-1)}::!trans
-		    end
-		  else
-		    if (old.acceptation<>False) && (String.sub _1 0 6)  = "accept" then
-		      old.acceptation <- True
-		    else 
-		      old.acceptation <- False
-		with Invalid_argument _ -> 
-		  if (old.acceptation=Undefined) then 
-		    old.acceptation <- False 
-	      end;
-	      begin
-		try 
-		  if
-		    (old.init<>False) && 
-		      let i=(String.index _1 'i') in (String.sub _1 i 4) = "init"  
-		  then
-		    old.init <- True
-		  else
-		    old.init <- False
-		with  
-		    Invalid_argument _ 
-		  | Not_found -> 
-		      if (old.init=Undefined) then 
-			old.init <- False 
-	      end;
-	      ([old],!trans)
+    (* Step 1 : setting up the acceptance status *)
+	    (* Default status : Non acceptation state *)
+ 	    old.acceptation <- False;
+	    
+	    (* Accept_all state means acceptance state with a reflexive transition without cross condition *)
+	    (* This case is not exlusive with the following. Acceptation status is set in this last. *)
+	    if (String.length _1>=10) && (String.compare (String.sub _1 0 10) "accept_all")=0 then 
+	      trans:={start=old;stop=old;cross=PTrue;numt=(-1)}::!trans;
+	    
+	    (* If the name includes accept then this state is an acceptation one. *)
+	    if (String.length _1>=7) && (String.compare (String.sub _1 0 7) "accept_")=0 then
+	      old.acceptation <- True;
+
+    (* Step 2 : setting up the init status *)
+	    (* If the state name ended with "_init" then it is an initial state. Else, it is not. *)
+	    if (String.length _1>=5) && (String.compare (String.sub _1 ((String.length _1)-5) 5) "_init" ) = 0
+	    then  
+	      old.init <- True
+	    else
+	      old.init <- False;
+	    
+	    ([old],!trans)
 	  end
 	)
-# 337 "src/ltl_to_acsl/promelaparser.ml"
+# 331 "src/ltl_to_acsl/promelaparser.ml"
                : 'label))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     Obj.repr(
-# 202 "src/ltl_to_acsl/promelaparser.mly"
+# 198 "src/ltl_to_acsl/promelaparser.mly"
                                             ( (_2,false) )
+# 338 "src/ltl_to_acsl/promelaparser.ml"
+               : 'state_body))
+; (fun __caml_parser_env ->
+    Obj.repr(
+# 199 "src/ltl_to_acsl/promelaparser.mly"
+                ( ([],false) )
 # 344 "src/ltl_to_acsl/promelaparser.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 203 "src/ltl_to_acsl/promelaparser.mly"
-                ( ([],false) )
+# 200 "src/ltl_to_acsl/promelaparser.mly"
+                 ( ([],true) )
 # 350 "src/ltl_to_acsl/promelaparser.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 204 "src/ltl_to_acsl/promelaparser.mly"
-                 ( ([],true) )
-# 356 "src/ltl_to_acsl/promelaparser.ml"
-               : 'state_body))
-; (fun __caml_parser_env ->
-    Obj.repr(
-# 205 "src/ltl_to_acsl/promelaparser.mly"
+# 201 "src/ltl_to_acsl/promelaparser.mly"
                                                             ( ([],true) )
-# 362 "src/ltl_to_acsl/promelaparser.ml"
+# 356 "src/ltl_to_acsl/promelaparser.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
-# 210 "src/ltl_to_acsl/promelaparser.mly"
+# 206 "src/ltl_to_acsl/promelaparser.mly"
                                  ( _1@[_2] )
-# 370 "src/ltl_to_acsl/promelaparser.ml"
+# 364 "src/ltl_to_acsl/promelaparser.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
-# 211 "src/ltl_to_acsl/promelaparser.mly"
+# 207 "src/ltl_to_acsl/promelaparser.mly"
               ( [_1] )
-# 377 "src/ltl_to_acsl/promelaparser.ml"
+# 371 "src/ltl_to_acsl/promelaparser.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'guard) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 215 "src/ltl_to_acsl/promelaparser.mly"
+# 211 "src/ltl_to_acsl/promelaparser.mly"
                                                                                     (
 	  let s=
 	    try
@@ -392,77 +386,77 @@ let yyact = [|
 	  in
 	    (_2,s)
 	)
-# 396 "src/ltl_to_acsl/promelaparser.ml"
+# 390 "src/ltl_to_acsl/promelaparser.ml"
                : 'transition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 231 "src/ltl_to_acsl/promelaparser.mly"
+# 227 "src/ltl_to_acsl/promelaparser.mly"
      ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCallOrReturn _1 )
-# 403 "src/ltl_to_acsl/promelaparser.ml"
+# 397 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
+    Obj.repr(
+# 229 "src/ltl_to_acsl/promelaparser.mly"
+     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCall _1 )
+# 404 "src/ltl_to_acsl/promelaparser.ml"
+               : 'guard))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
+    Obj.repr(
+# 231 "src/ltl_to_acsl/promelaparser.mly"
+     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PReturn _1 )
+# 411 "src/ltl_to_acsl/promelaparser.ml"
+               : 'guard))
+; (fun __caml_parser_env ->
     Obj.repr(
 # 233 "src/ltl_to_acsl/promelaparser.mly"
-     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCall _1 )
-# 410 "src/ltl_to_acsl/promelaparser.ml"
-               : 'guard))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
-    Obj.repr(
-# 235 "src/ltl_to_acsl/promelaparser.mly"
-     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PReturn _1 )
+            ( PTrue )
 # 417 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 237 "src/ltl_to_acsl/promelaparser.mly"
-            ( PTrue )
-# 423 "src/ltl_to_acsl/promelaparser.ml"
-               : 'guard))
-; (fun __caml_parser_env ->
-    Obj.repr(
-# 239 "src/ltl_to_acsl/promelaparser.mly"
+# 235 "src/ltl_to_acsl/promelaparser.mly"
             ( PFalse )
-# 429 "src/ltl_to_acsl/promelaparser.ml"
+# 423 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 241 "src/ltl_to_acsl/promelaparser.mly"
+# 237 "src/ltl_to_acsl/promelaparser.mly"
      ( PNot _2 )
-# 436 "src/ltl_to_acsl/promelaparser.ml"
+# 430 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 243 "src/ltl_to_acsl/promelaparser.mly"
+# 239 "src/ltl_to_acsl/promelaparser.mly"
      ( PAnd (_1,_3) )
-# 444 "src/ltl_to_acsl/promelaparser.ml"
+# 438 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 245 "src/ltl_to_acsl/promelaparser.mly"
+# 241 "src/ltl_to_acsl/promelaparser.mly"
             ( POr (_1,_3) )
-# 452 "src/ltl_to_acsl/promelaparser.ml"
+# 446 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'guard) in
     Obj.repr(
-# 247 "src/ltl_to_acsl/promelaparser.mly"
+# 243 "src/ltl_to_acsl/promelaparser.mly"
      ( _2 )
-# 459 "src/ltl_to_acsl/promelaparser.ml"
+# 453 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 249 "src/ltl_to_acsl/promelaparser.mly"
+# 245 "src/ltl_to_acsl/promelaparser.mly"
      ( if not (Hashtbl.mem observed_vars _1) then Hashtbl.add observed_vars _1 _1 ; PIndexedExp _1 )
-# 466 "src/ltl_to_acsl/promelaparser.ml"
+# 460 "src/ltl_to_acsl/promelaparser.ml"
                : 'guard))
 (* Entry promela *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

@@ -1,10 +1,9 @@
 /* run.config
-   EXECNOW: BIN control_journal.ml ./bin/toplevel.opt -memory-footprint 1 -val -deps -out -main f -journal-name tests/journal/result/control_journal tests/journal/control.c > /dev/null 2> /dev/null
-  EXECNOW: make -s tests/journal/result/control_journal.cmo
-  CMD: ./bin/toplevel.byte
-  OPT: -load-journal tests/journal/result/control_journal.cmo -journal-disable
-  CMD: ./bin/toplevel.byte
-  OPT: -load-journal tests/journal/result/control_journal.cmo -calldeps -journal-disable
+   EXECNOW: BIN control_journal.ml ./bin/toplevel.opt -journal-enable -memory-footprint 1 -val -deps -out -main f -journal-name tests/journal/result/control_journal tests/journal/control.c > /dev/null 2> /dev/null
+  CMD: FRAMAC_LIB=lib/fc ./bin/toplevel.byte
+  OPT: -load-script tests/journal/result/control_journal -journal-disable
+  CMD: FRAMAC_LIB=lib/fc ./bin/toplevel.byte
+  OPT: -load-script tests/journal/result/control_journal -calldeps -journal-disable
 */
 
 int x,y,c,d;

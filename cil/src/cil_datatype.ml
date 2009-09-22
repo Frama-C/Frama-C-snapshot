@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: cil_datatype.ml,v 1.3 2008/10/28 16:16:11 uid570 Exp $ *)
+(* $Id: cil_datatype.ml,v 1.5 2009-02-23 12:52:18 uid562 Exp $ *)
 
 open Cil_types
 open Cilutil
@@ -61,12 +61,15 @@ module StmtSet = Datatype.Make_Set(Cilutil.StmtSet)(Stmt)
 module StmtSetRef = Datatype.Make_SetRef(Cilutil.StmtSet)(Stmt)
 module StmtList = Datatype.List(Stmt)
 
+module Block =
+  Project.Datatype.Persistent (struct type t = block let name = "block" end)
+
 module Varinfo = struct
   include Project.Datatype.Imperative
-    (struct 
-       type t = varinfo 
-       let copy _ = assert false 
-       let name = "varinfo" 
+    (struct
+       type t = varinfo
+       let copy _ = assert false
+       let name = "varinfo"
      end)
   let hash = VarinfoComparable.hash
   let equal = VarinfoComparable.equal
@@ -78,7 +81,7 @@ module Location = struct
   include Project.Datatype.Imperative
     (struct
        type t = location
-       let copy (l1, l2) = 
+       let copy (l1, l2) =
 	 { l1 with Lexing.pos_fname = String.copy l1.Lexing.pos_fname },
 	 { l2 with Lexing.pos_fname = String.copy l2.Lexing.pos_fname }
        let name = "location"
@@ -87,12 +90,12 @@ module Location = struct
   let () = register_comparable ~hash ()
 end
 
-module File = 
+module File =
   Project.Datatype.Imperative
     (struct type t = file let copy _ = assert false let name = "file" end)
 
 (* [Cabs.file] is mutable but sharing between project is not a problem here. *)
-module UntypedFile = 
+module UntypedFile =
   Project.Datatype.Persistent
     (struct type t = Cabs.file let name = "Cabs.file" end)
 
@@ -121,23 +124,39 @@ module Code_Annotation = struct
   let () = register_comparable ~hash ~equal ~compare ()
 end
 
-module Logic_Info = 
+module Logic_Var =
+  Project.Datatype.Imperative
+    (struct
+       type t = logic_var
+       let copy c = { c with lv_name = c.lv_name}
+       let name = "logic_var"
+     end)
+
+module Logic_Info =
   Project.Datatype.Imperative
     (struct
        type t = logic_info
-       let copy c = { c with l_name = c.l_name}
+       let copy c = { c with l_var_info = Logic_Var.copy c.l_var_info}
        let name = "logic_info"
      end)
 
-module Logic_Type_Info = 
+module Builtin_Logic_Info =
+  Project.Datatype.Imperative
+    (struct
+       type t = builtin_logic_info
+       let copy c = { c with bl_name = c.bl_name }
+       let name = "builtin_logic_info"
+     end)
+
+module Logic_Type_Info =
   Project.Datatype.Imperative
     (struct
        type t = logic_type_info
-       let copy c = {nb_params = c.nb_params}
+       let copy c = {c with lt_params = c.lt_params}
        let name = "logic_type_info"
      end)
 
-module Logic_Ctor_Info = 
+module Logic_Ctor_Info =
   Project.Datatype.Imperative
     (struct
        type t = logic_ctor_info
@@ -145,21 +164,11 @@ module Logic_Ctor_Info =
        let name = "logic_ctor_info"
      end)
 
-(*
-module Predicate_Info =
-  Project.Datatype.Imperative
-    (struct 
-       type t = Cil_types.predicate_info 
-       let copy c = { c with p_name = c.p_name } 
-       let name = "predicate_info"
-     end)
-*)
-
 module Lval = struct
   include Project.Datatype.Imperative
-    (struct 
-       type t = lval 
-       let copy _ = assert false (* todo *) 
+    (struct
+       type t = lval
+       let copy _ = assert false (* todo *)
        let name = "lval"
      end)
   let () = register_comparable ~compare:LvalComparable.compare ()
@@ -167,9 +176,9 @@ end
 
 module Kinstr = struct
   include Project.Datatype.Imperative
-    (struct 
-       type t = kinstr 
-       let copy _ = assert false (* todo *) 
+    (struct
+       type t = kinstr
+       let copy _ = assert false (* todo *)
        let name = "kinstr"
      end)
   let hash = function
@@ -182,6 +191,15 @@ module Kinstr = struct
     | Kstmt s1, Kstmt s2 -> StmtComparable.compare s1 s2
   let () = register_comparable ~hash ~compare ()
 end
+
+module Annot_Status =
+  Project.Datatype.Imperative
+    (struct type t = annot_status
+            let name = "annot_status"
+            let copy _ = assert false
+     end)
+
+module Annot_Status_List = Datatype.List(Annot_Status)
 
 (*
 Local Variables:

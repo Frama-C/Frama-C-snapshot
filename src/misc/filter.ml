@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: filter.ml,v 1.75 2008/11/21 09:59:36 uid562 Exp $ *)
+(* $Id: filter.ml,v 1.78 2009-03-05 15:42:45 uid562 Exp $ *)
 
 open Db_types
 open Cil
@@ -28,8 +28,8 @@ open Cil_types
 open Extlib
 
 let debug n format =
-  if Cmdline.Debug.get () >= n
-  then Format.printf format
+  if Parameters.Debug.get () >= n
+  then Format.eprintf format
   else Format.ifprintf Format.std_formatter format
 
 let debug1 format = debug 1 format
@@ -55,7 +55,7 @@ module type T_RemoveInfo = sig
   val fun_precond_visible : t_fct -> predicate -> bool
   val fun_postcond_visible : t_fct -> predicate -> bool
   val fun_variant_visible : t_fct -> term -> bool
-  val fun_assign_visible : t_fct -> identified_tsets assigns -> bool
+  val fun_assign_visible : t_fct -> identified_term assigns -> bool
 
   val called_info : (t_proj * t_fct) -> stmt ->
     (Db_types.kernel_function * t_fct) option
@@ -65,8 +65,7 @@ end
 
 module F (Info : T_RemoveInfo) : sig
 
-  val build_cil_file : Project.t ->  Info.t_proj -> unit
-
+  val build_cil_file : string ->  Info.t_proj -> Project.t
 end = struct
 
   type t = (string, Cil_types.varinfo) Hashtbl.t
@@ -92,7 +91,7 @@ end = struct
     List.for_all (can_skip keep_stmts) block.bstmts
 
   and is_empty_unspecified_sequence keep_stmts seq =
-    List.for_all ((can_skip keep_stmts) $ (fun (x,_,_)->x)) seq
+    List.for_all ((can_skip keep_stmts) $ (fun (x,_,_,_)->x)) seq
 
   let rec mk_new_block keep_stmts s b loc =
     (* vblock has already cleaned up the statements (removed skip, etc...),
@@ -117,7 +116,7 @@ end = struct
       | [] -> mk_new_stmt s (mk_skip loc)
       | _ when is_empty_unspecified_sequence keep_stmts seq ->
           mk_new_stmt s (mk_skip loc)
-      | [stmt,_,_] -> (* one statement only *)
+      | [stmt,_,_,_] -> (* one statement only *)
           begin match stmt.skind with
             | UnspecifiedSequence seq ->
                 mk_new_unspecified_sequence keep_stmts s seq loc
@@ -226,6 +225,7 @@ class filter_visitor pinfo prj = object(self)
     val spec_table = VarinfoHashtbl.create 7
     val fun_vars = Hashtbl.create 7
     val local_visible = Cilutil.VarinfoHashtbl.create 7
+    val formals_table = VarinfoHashtbl.create 7
 
     method private get_finfo () = Extlib.the fi
 
@@ -245,6 +245,12 @@ class filter_visitor pinfo prj = object(self)
       else Cil.SkipChildren (*copy has already been done by default visitor*)
 
     (*method vvdec _ = SkipChildren (* everything is done elsewhere *)*)
+
+    method private add_formals_bindings v formals =
+      VarinfoHashtbl.add formals_table v formals
+
+    method private get_formals_bindings v =
+      VarinfoHashtbl.find formals_table v
 
     method private filter_formals formals =
       let formals = filter_params (self#get_finfo ()) formals in
@@ -320,7 +326,7 @@ class filter_visitor pinfo prj = object(self)
         | None -> call_stmt.skind
         | Some (called_kf, called_finfo) ->
             let var_slice = ff_var fun_vars called_kf called_finfo in
-            let new_funcexp = Lval (Var var_slice, NoOffset) in
+            let new_funcexp = new_exp (Lval (Var var_slice, NoOffset)) in
             let new_args = filter_params called_finfo args in
             let need_lval = Info.res_call_visible finfo call_stmt in
             let new_lval = if need_lval then lval else None in
@@ -422,15 +428,15 @@ class filter_visitor pinfo prj = object(self)
                    match s'.skind with
                      | UnspecifiedSequence l ->
                          let res =
-                           List.filter (fun (s,_,_) -> not (is_skip s.skind)) l
+                           List.filter (fun (s,_,_,_) -> not (is_skip s.skind)) l
                          in
                          let res =
                            List.map
-                             (fun (s,w,r) -> (s,
-                                              List.filter
-                                                (visible_lval local_visible) w,
-                                              List.filter
-                                                (visible_lval local_visible) r))
+                             (fun (s,m,w,r) ->
+                                (s,
+                                 List.filter (visible_lval local_visible) m,
+                                 List.filter (visible_lval local_visible) w,
+                                 List.filter (visible_lval local_visible) r))
                              res
                          in
                          (match res with
@@ -456,7 +462,13 @@ class filter_visitor pinfo prj = object(self)
       debug1 "@[[filter:vfunc] -> %s@\n@]@." f.svar.vname;
       fi <- Some (VarinfoHashtbl.find fi_table f.svar);
       (* parameters *)
-      let new_formals = self#filter_formals f.sformals in
+      let new_formals =
+        try self#get_formals_bindings f.svar
+          (* if there was a declaration, use the already computed
+             formals list *)
+        with Not_found ->
+          self#filter_formals f.sformals
+      in
       (* local declarations *)
       let new_locals = self#filter_locals f.slocals in
       let new_body = Cil.visitCilBlock (self:>Cil.cilVisitor) f.sbody
@@ -529,58 +541,53 @@ class filter_visitor pinfo prj = object(self)
                     variables (both pure C and logical ones)
                   *)
 
-  method private build_proto ?(force_spec=false) finfo loc =
+  method private build_proto finfo loc =
     let kf = Extlib.the self#current_kf in
       fi <- Some finfo;
-     let defined =
-       try let _ = Kernel_function.get_definition kf in true
-       with Kernel_function.No_Definition -> false
-     in
      let new_var = ff_var fun_vars kf finfo in
      VarinfoHashtbl.add fi_table new_var finfo;
-
      debug1 "@[[filter:build_cil_proto] -> %s@\n@]@." new_var.vname;
      let action =
-       if force_spec || not defined then begin
-         let (rt,args,va,attrs) = Cil.splitFunctionType new_var.vtype in
-         let () =
-           match args with
-               None -> ()
-            | Some args ->
-                let old_formals = Kernel_function.get_formals kf in
-                let old_formals = filter_params finfo old_formals in
-                let args = filter_params finfo args in
-                let mytype = TFun(rt,Some args,va,attrs) in
-                let new_formals = List.map makeFormalsVarDecl args in
-                new_var.vtype <- mytype;
-                List.iter2
-                  (fun x y ->
-                     Cil.set_varinfo self#behavior x y;
-                     Cil.set_orig_varinfo self#behavior y x;
-                     match x.vlogic_var_assoc with
-                         None -> ();
-                       | Some lv ->
-                           let lv' = Cil.cvar_to_lvar y in
-                           Cil.set_logic_var self#behavior lv lv';
-                           Cil.set_orig_logic_var self#behavior lv' lv
-                  )
-                  old_formals new_formals;
-                (* adds the new parameters to the formals decl table *)
-                Queue.add
-                  (fun () -> Cil.unsafeSetFormalsDecl new_var new_formals)
-                  self#get_filling_actions
-         in
-         let res = Cil.visitCilFunspec (self:>Cil.cilVisitor) kf.spec in
-         let action () =
-           (* Replace the funspec copied by the default visitor, as
-              varinfo of formals would not be taken into account correctly
-              otherwise (everything would be mapped to the last set of
-              formals...
-            *)
-           Queue.add (fun () -> let kf = Globals.Functions.get new_var in
-                      kf.spec <- res) self#get_filling_actions
-         in action
-       end else fun () -> ()
+       let (rt,args,va,attrs) = Cil.splitFunctionType new_var.vtype in
+       let () =
+         match args with
+             None -> ()
+           | Some args ->
+               let old_formals = Kernel_function.get_formals kf in
+               let old_formals = filter_params finfo old_formals in
+               let args = filter_params finfo args in
+               let mytype = TFun(rt,Some args,va,attrs) in
+               let new_formals = List.map makeFormalsVarDecl args in
+               self#add_formals_bindings new_var new_formals;
+               new_var.vtype <- mytype;
+               List.iter2
+                 (fun x y ->
+                    Cil.set_varinfo self#behavior x y;
+                    Cil.set_orig_varinfo self#behavior y x;
+                    match x.vlogic_var_assoc with
+                        None -> ();
+                      | Some lv ->
+                          let lv' = Cil.cvar_to_lvar y in
+                          Cil.set_logic_var self#behavior lv lv';
+                          Cil.set_orig_logic_var self#behavior lv' lv
+                 )
+                 old_formals new_formals;
+               (* adds the new parameters to the formals decl table *)
+               Queue.add
+                 (fun () -> Cil.unsafeSetFormalsDecl new_var new_formals)
+                 self#get_filling_actions
+       in
+       let res = Cil.visitCilFunspec (self:>Cil.cilVisitor) kf.spec in
+       let action () =
+         (* Replace the funspec copied by the default visitor, as
+            varinfo of formals would not be taken into account correctly
+            otherwise (everything would be mapped to the last set of
+            formals...
+          *)
+         Queue.add (fun () -> let kf = Globals.Functions.get new_var in
+                    kf.spec <- res) self#get_filling_actions
+       in action
+            (*end else fun () -> ()*)
      in
      let orig_var = Ast_info.Function.get_vi kf.fundec in
      (* The first copy is also the default one for varinfo that are not handled
@@ -611,7 +618,7 @@ class filter_visitor pinfo prj = object(self)
        (Extlib.the self#current_kf) (List.length finfo_list);
      let do_f finfo =
        if not (Info.body_visible finfo) then
-         self#build_proto ~force_spec:true finfo loc
+         self#build_proto finfo loc
        else begin
          let new_fct_var = ff_var fun_vars (Extlib.the self#current_kf) finfo in
            (* Set the new_var as an already known one,
@@ -629,7 +636,11 @@ class filter_visitor pinfo prj = object(self)
                   kf.spec <- VarinfoHashtbl.find spec_table new_fct_var)
                self#get_filling_actions
            in let f = {f with svar = new_fct_var} in
-           assert (self#vfunc f = SkipChildren);
+	   (* [JS 2009/03/23] do not call self#vfunc in the assertion;
+	      otherwise does not work whenever frama-c is compiled with
+	      -no-assert *)
+	   let res = self#vfunc f in
+	   assert (res = SkipChildren);
            (* if this ever changes, we must do some work. *)
            GFun (f,loc), action
        end
@@ -665,11 +676,12 @@ class filter_visitor pinfo prj = object(self)
       | _ -> Cil.DoChildren
   end
 
-  let build_cil_file prj pinfo =
-    debug1 "[filter:build_cil_file] ...@.";
+  let build_cil_file new_proj_name pinfo =
+    debug1 "[filter:build_cil_file] in %s@." new_proj_name;
     let visitor = new filter_visitor pinfo in
-    File.init_project_from_visitor prj visitor;
-    debug1 "[filter:build_cil_file] done.@."
+    let prj = File.create_project_from_visitor new_proj_name visitor in
+    debug1 "[filter:build_cil_file] done.@.";
+    prj
 end
 
 (*

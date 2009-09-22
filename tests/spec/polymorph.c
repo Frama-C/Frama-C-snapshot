@@ -24,3 +24,9 @@
 //@ predicate blu2<a,b>(foo<a> x, foo<b> y) = g(x,x) == 36 && g(y,y) == 72 ;
 
 //@ predicate bar(foo<real> x) = bli(x) && blu2(x,x) ;
+
+// should be rejected
+//@ predicate unif1<a,b>(foo<a> x,foo<b>y) = h(x) == h(y);
+
+// should be rejected
+//@ logic foo<a> unif2<a,b>(foo<a> x, foo<b>y) = h(y);

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,7 +21,6 @@
 
 open Cil_types
 open Cil
-open Pretty
 open Db
 open Db_types
 open Locations
@@ -135,27 +134,12 @@ module Computer (REACH:sig
     (* under-approximation :
        O- = O_old- /\- O_new-
     *)
-    (*display Format.std_formatter stmtStartData;*)
     if Zone.is_included result_inputs old_inputs
       (* test for an over-approximation *)
       && Zone.is_included old_outputs result_outputs
       (* test for an under-approximation *)
-    then
-      ((*Format.printf "STABLE RESULT:[Under-outputs=%a][Over-inputs=%a]@\nOLD:[Under-outputs=%a][Over-inputs=%a]@\n"
-         Zone.pretty result_outputs
-         Zone.pretty result_inputs
-         Zone.pretty old_outputs
-         Zone.pretty old_inputs
-         ;*)
-        None)
-    else
-      ((*Format.printf "LATER  RESULT:[Under-outputs=%a][Over-inputs=%a]@\nOLD:[Under-outputs=%a][Over-inputs=%a]@\n"
-         Zone.pretty result_outputs
-         Zone.pretty result_inputs
-         Zone.pretty old_outputs
-         Zone.pretty old_inputs
-         ;*)
-        Some {under_outputs = result_outputs; over_inputs = result_inputs})
+    then None
+    else Some {under_outputs = result_outputs; over_inputs = result_inputs}
 
   let resolv_func_vinfo ?deps kinstr funcexp =
     !Value.expr_to_kernel_function ?deps kinstr funcexp
@@ -184,16 +168,6 @@ module Computer (REACH:sig
         else (* Impossible to add these outputs into the under-approximed outputs. *)
           st.under_outputs
       in
-      (* Format.printf "doInstr:@\n <-new_inputs: %a@\n <-new_outputs: %a@\n ->old_inputs: %a@\n ->old_outputs: %a@\n ->additional_var: %a@\n ->read_loc: %a@\n ->writen_loc: %a@\n ->cardinal_zero_or_one: %s@\n"
-        Zone.pretty new_inputs
-        Zone.pretty new_outputs
-        Zone.pretty st.over_inputs
-        Zone.pretty st.under_outputs
-        Zone.pretty j
-        Zone.pretty deps
-        Location_Bits.pretty looking_for.loc
-        (if Location_Bits.cardinal_zero_or_one looking_for.loc then "true" else "false");
-      *)
       { over_inputs = new_inputs;
         under_outputs = new_outputs }
     in
@@ -205,8 +179,6 @@ module Computer (REACH:sig
              let exp_inputs_deps =
                find_deps_no_transitivity kinstr exp
              in
-            (*  Format.printf "ADD INPUTS (line %d): %a\n"
-                location.Cil_types.line Zone.pretty exp_inputs_deps; *)
              add_with_additional_var
                lv
                exp_inputs_deps
@@ -295,6 +267,8 @@ module Computer (REACH:sig
     current_stmt := Kstmt s;
     Dataflow.GDefault
 
+  let doEdge _ _ d = d
+
 end
 
 let get_using_prototype kf =
@@ -336,10 +310,9 @@ let compute_internal_using_cfg kf =
       in
       Stack.iter
         (fun g -> if kf == g then begin
-           ignore
-             (error
-                "ignoring recursive call detected in function %s during [inout context] computation."
-                (Kernel_function.get_name kf));
+           Inout_parameters.warning ~current:true
+             "ignoring recursive call detected in function %s during [inout context] computation."
+             (Kernel_function.get_name kf);
            raise Exit
          end)
         call_stack;
@@ -349,7 +322,6 @@ let compute_internal_using_cfg kf =
         [] -> assert false
       | start :: _ ->
           let ret_id = Kernel_function.find_return kf in
-          (* Format.printf "Return is %d@\n\n" ret_id; *)
           (* We start with only the start block *)
           Computer.StmtStartData.add
             start.sid
@@ -358,11 +330,6 @@ let compute_internal_using_cfg kf =
                empty);
           Compute.compute [start];
           let _poped = Stack.pop call_stack in
-          (*Format.printf "[inout] poped %s\n@\n" (get_name _poped);
-            Stack.iter
-            (fun g -> Format.printf "[inout] stack with %s\n@\n" (get_name g))
-            call_stack;
-          *)
           try
             Computer.StmtStartData.find ret_id.sid
           with Not_found ->
@@ -399,15 +366,14 @@ let get_internal =
   Internals.memo
     (fun kf ->
        !Value.compute ();
-       Cil.log
-	 "[inout context] computing for function %a%s"
+       Inout_parameters.feedback "computing for function %a%s"
 	 Kernel_function.pretty_name kf
 	 (let s = ref "" in
 	  Stack.iter
 	    (fun kf -> s := !s^" <-"^
-	       (fprintf_to_string "%a" Kernel_function.pretty_name kf))
+	       (Pretty_utils.sfprintf "%a" Kernel_function.pretty_name kf))
 	    call_stack;
-	    !s);
+	  !s);
        let res =
 	 match kf.fundec with
 	 | Definition _ ->
@@ -415,7 +381,7 @@ let get_internal =
 	 | Declaration _ ->
 	     compute_internal_using_prototype kf
        in
-       Cil.log "[inout context] done for function %a"
+       Inout_parameters.feedback "done for function %a"
 	 Kernel_function.pretty_name kf;
        res)
 
@@ -467,11 +433,6 @@ let () =
   InOutContext.get_external := get_external;
   InOutContext.compute := compute_external;
   InOutContext.display := pretty_internal
-
-let option =
-  "-inout",
-  Arg.Unit Cmdline.ForceInout.on,
-  ": force operational inout display; this gives the operational inputs, an over-approximation of the set of locations whose initial value is used; and the sure outputs, an under-approximation of the set of writen tsets "
 
 (*
 Local Variables:

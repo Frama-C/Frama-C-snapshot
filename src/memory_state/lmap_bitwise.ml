@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -65,8 +65,13 @@ sig
   val filter_base : (Base.t -> bool) -> t -> t
   val find : t -> Zone.t -> y
   val find_base: t -> Zone.t -> LOffset.t
+
   exception Cannot_fold
+
+  val uninitialize_locals: Cil_types.varinfo list -> t -> t
+
   val fold : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
   val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
       -> t -> t -> t
   val copy_paste : f:(bool * y -> bool * y) -> location -> location -> t -> t
@@ -115,17 +120,17 @@ module Make_bitwise (V:With_default) = struct
   | Top,_|_,Top -> false
   | Map m1, Map m2 -> LBase.equal m1 m2
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype = 
+    Project.Datatype.Register
       (struct
 	 type tt = t
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name = name
        end)
-    let () = register_comparable ~hash ~equal ()
-  end
+  let () = Datatype.register_comparable ~hash ~equal ()
 
   let fold f m acc =
     match m with
@@ -141,6 +146,11 @@ module Make_bitwise (V:With_default) = struct
 		 acc)
 	    m
 	    acc
+
+ let fold_base f m acc=
+    match m with
+    | Top -> raise Cannot_fold
+    | Map m -> LBase.fold f m acc
 
   let pretty fmt m =
     match m with
@@ -175,7 +185,7 @@ module Make_bitwise (V:With_default) = struct
    | Zone.Top (Zone.Top_Param.Top, _),_|_,Top -> Top
    | Zone.Top (Zone.Top_Param.Set s, _), Map m ->
        let result =
-	 let treat_base base _acc =
+	 let treat_base base acc =
 	   let offsetmap_orig =
 	     try
 	       LBase.find base m
@@ -185,7 +195,7 @@ module Make_bitwise (V:With_default) = struct
 	   let new_offsetmap =
 	     LOffset.add_iset ~exact Int_Intervals.top v offsetmap_orig
 	   in
-	   LBase.add base new_offsetmap m
+	   LBase.add base new_offsetmap acc
 	 in
 	 Zone.Top_Param.O.fold treat_base s (treat_base Base.null m)
        in Map result
@@ -328,12 +338,9 @@ module Make_bitwise (V:With_default) = struct
    match m_1,m_2 with
    | Top,_ | _, Top -> Top
    | Map m1, Map m2 ->
-       (*Format.printf "map_and_merge %a and %a@."
-         pretty m_1
-         pretty m_2;*)
        let result = LBase.fold
          (fun k1 v1 acc ->
-            (*Format.printf "HERE :%a %a@\n" Base.pretty k1 (LOffset.pretty None) v1;*)
+(*            Format.printf "HERE :%a %a@\n" Base.pretty k1 (LOffset.pretty) v1; *)
             let new_v = try
               let v2 = LBase.find k1 m2 in
               LOffset.map_and_merge f v1 v2
@@ -341,16 +348,17 @@ module Make_bitwise (V:With_default) = struct
               let result = LOffset.map (fun (d,v) -> d,f v) v1 in
               result
             in
-            (*Format.printf "RESULT:%a %a@\n" Base.pretty k1 (LOffset.pretty None) new_v;*)
+(*            Format.printf "RESULT:%a %a@\n" Base.pretty k1 (LOffset.pretty) new_v; *)
             LBase.add k1 new_v acc)
          m1
          m2
        in
        let result = Map result in
-       (*Format.printf "map_and_merge %a and %a RESULT:%a @."
+(*       Format.printf "map_and_merge %a and %a RESULT:%a @."
          pretty m_1
          pretty m_2
-         pretty result; *)
+         pretty result;
+*)
        result
 
  let filter_base f m =
@@ -363,6 +371,29 @@ module Make_bitwise (V:With_default) = struct
 	   LBase.empty
        in
        Map result
+
+ let uninitialize_locals locals m =
+   match m with
+       Top -> Top
+     | Map m ->
+         let result =
+           List.fold_left
+             (fun acc v ->
+                let base = Base.create_varinfo v in
+                let (i1,i2) =
+                  match Base.validity base with
+                      Base.Unknown (i1,i2) | Base.Known(i1,i2) -> (i1,i2)
+                    | Base.All -> assert false
+                        (* not supposed to happen for a local*)
+                in
+                if Int.lt i2 i1 then assert false (* not supposed to happen
+                                                     for a local *)
+                else
+                  let offset = LOffset.add (i1,i2) V.bottom LOffset.empty
+                  in LBase.add base offset acc)
+             m locals
+         in Map result
+
 
  let find_base m loc =
    match loc, m with
@@ -506,14 +537,14 @@ module Make_bitwise (V:With_default) = struct
     in
     let stop = Int.pred (Int.add start size) in
     let had_non_bottom = ref false in
+    let plevel = Parameters.Dynamic.Int.get "-plevel" in
     let treat_dst k_dst i_dst (acc_lmap : LBase.t) =
       let validity = Base.validity k_dst in
       let offsetmap_dst = LBase.find_or_default k_dst m in
       let new_offsetmap =
         try
 	  ignore
-	    (Ival.cardinal_less_than i_dst
-	       (Cmdline.ArrayPrecisionLevel.get ()));
+	    (Ival.cardinal_less_than i_dst plevel);
 	  Ival.fold
             (fun start_to acc ->
 	      let stop_to = Int.pred (Int.add start_to size) in

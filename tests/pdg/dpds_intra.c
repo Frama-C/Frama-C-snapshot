@@ -1,18 +1,18 @@
 /* run.config
    GCC:
-   OPT: -pdg-debug "-fct-pdg test_struct" -journal-disable
-   OPT: -pdg-debug "-fct-pdg test_if_simple" -journal-disable
-   OPT: -pdg-debug "-fct-pdg test_goto_simple" -journal-disable
-   OPT: -pdg-debug "-fct-pdg test_goto_arriere" -journal-disable
-   OPT: -pdg-debug "-fct-pdg test_goto_else" -journal-disable
+   OPT: -fct-pdg test_struct -journal-disable
+   OPT: -fct-pdg test_if_simple -journal-disable
+   OPT: -fct-pdg test_goto_simple -journal-disable
+   OPT: -fct-pdg test_goto_arriere -journal-disable
+   OPT: -fct-pdg test_goto_else -journal-disable
    OPT: -main test_ctrl_dpd_multiple  -journal-disable
         => ne passe pas
-   OPT: -pdg-debug "-fct-pdg test_simple_loop" -journal-disable
-   OPT: -pdg-debug "-fct-pdg main" -journal-disable
-   OPT: -pdg-debug "-fct-pdg multiple_global_inputs" -journal-disable
+   OPT: -fct-pdg test_simple_loop -journal-disable
+   OPT: -fct-pdg main -journal-disable
+   OPT: -fct-pdg multiple_global_inputs -journal-disable
 */
 /* bin/toplevel.opt -deps -main g tests/slicing/dpds_intra.c */
-/* bin/toplevel.opt -pdg-debug "-fct-pdg test_goto_simple" tests/slicing/dpds_intra.c -dot-pdg*/
+/* bin/toplevel.opt -fct-pdg test_goto_simple tests/slicing/dpds_intra.c -dot-pdg*/
 
 extern int G;
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -30,18 +30,18 @@
 
 module P = PdgTypes
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 module M = SlicingMacros
 module Marks = SlicingMarks
 
 type t_mark = SlicingMarks.t_mark
 type t_select = t_mark PdgMarks.t_select
 type t_n_or_d_marks = (T.t_node_or_dpds * T.t_pdg_mark) list
-type t_fct_info = SlicingTypes.Internals.t_fct_info
-type t_fct_slice = SlicingTypes.Internals.t_fct_slice
-type t_call_id = SlicingTypes.Internals.t_call_id
-type t_fct_crit = SlicingTypes.Internals.t_fct_crit
-type t_criterion = SlicingTypes.Internals.t_criterion
+type t_fct_info = T.t_fct_info
+type t_fct_slice = T.t_fct_slice
+type t_call_id = T.t_call_id
+type t_fct_crit = T.t_fct_crit
+type t_criterion = T.t_criterion
 
 (**/**)
 

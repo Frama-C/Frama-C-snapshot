@@ -1,5 +1,5 @@
 /* run.config
-* OPT: -slicing-level 0 -slice-return uncalled -slice-print -slicing-debug -no-slice-callers  -journal-disable
+* OPT: -slicing-level 0 -slice-return uncalled -slice-print -no-slice-callers  -journal-disable
 * OPT: -slicing-level 2 -slice-return main     -slice-print -journal-disable
 * OPT: -slicing-level 2 -slice-return strlen   -slice-print -journal-disable
 *

@@ -2,29 +2,36 @@ module L = List
 open Type
 module List = L
 
-module Test = 
-  Cmdline.Dynamic.Register.False(struct let name = "Apply.Test" end)
+module Param =
+  Plugin.Register
+    (struct
+       let name = "apply"
+       let shortname = "apply"
+       let descr = "testing purpose"
+       let module_name = "Apply.Param"
+       let is_dynamic = true
+     end)
+
+module Test =
+  Param.False
+    (struct
+       let option_name = "-dynamic-test"
+       let module_name = "Apply.Test"
+       let descr = "print dynamic test"
+     end)
 
 let main _fmt =
-  if Cmdline.Dynamic.Apply.Bool.get "Apply.Test" then begin 
-    ignore (Dynamic.apply "Register_mod2.g_test" (func int int) 41);
-    try Dynamic.apply "Register_mod2.g_test"
-      (func int (func (list char) (func (couple string float) unit))) 
+  if Parameters.Dynamic.Bool.get "-dynamic-test" then begin
+    ignore (Dynamic.get "Register_mod2.g_test" (func int int) 41);
+    try Dynamic.get "Register_mod2.g_test"
+      (func int (func (list char) (func (couple string float) unit)))
       42 ['a'] ("r",6.8)
-    with FunTbl.Incompatible_Type s -> 
-      Format.eprintf "%s@." s;
-      try Dynamic.apply "Register_mod2.unknow" (func unit unit) ()
-      with FunTbl.Not_Registered s -> Format.eprintf "Not_Registered %s@." s;
+    with Type.StringTbl.Incompatible_type s ->
+      Param.error "%s@." s;
+      try
+	Dynamic.get "Register_mod2.unknown" (func unit unit) ()
+      with Type.StringTbl.Unbound_value s ->
+	Param.error "Value %s not registered@." s;
   end
 
-let options =
-    [ "-dynamic-test",
-    Arg.Unit Test.on,
-    ": print dynamic test" ]
-
-let () =
-  Options.add_plugin
-    ~name:"dynamic-test"
-    ~descr:"Test dynamic command line"
-    options;
-  Db.Main.extend main
+let () = Db.Main.extend main

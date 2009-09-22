@@ -43,12 +43,8 @@
 
 open Cabs
 open Cabshelper
-open Trace
-open Pretty
 
 open Cil
-
-module E = Errormsg
 
 type nameKind =
     NVar                                (* Variable or function prototype
@@ -79,19 +75,17 @@ class type cabsVisitor = object
   method vExitScope: unit -> unit
 end
 
-let visitorLocation = ref (Lexing.dummy_pos,Lexing.dummy_pos)
-
-        (* a default visitor which does nothing to the tree *)
+(* a default visitor which does nothing to the tree *)
 class nopCabsVisitor : cabsVisitor = object
   method vexpr (_e:expression) = DoChildren
   method vinitexpr (_e:init_expression) = DoChildren
   method vstmt (s: statement) =
-    visitorLocation := get_statementloc s;
+    CurrentLoc.set (get_statementloc s);
     DoChildren
   method vblock (_b: block) = DoChildren
   method vvar (s: string) = s
   method vdef (d: definition) =
-    visitorLocation := get_definitionloc d;
+    CurrentLoc.set (get_definitionloc d);
     DoChildren
   method vtypespec (_ts: typeSpecifier) = DoChildren
   method vdecltype (_dt: decl_type) = DoChildren
@@ -104,10 +98,10 @@ class nopCabsVisitor : cabsVisitor = object
 end
 
 let doVisit vis startvisit children node =
-  Cil.doVisit vis (fun x -> x) startvisit children node
+  Cil.doVisit vis vis (fun x -> x) startvisit children node
 
 let doVisitList vis startvisit children node =
-  Cil.doVisitList vis (fun x -> x) startvisit children node
+  Cil.doVisitList vis vis (fun x -> x) startvisit children node
 
 let rec visitCabsTypeSpecifier (vis: cabsVisitor) (ts: typeSpecifier) =
   doVisit vis vis#vtypespec childrenTypeSpecifier ts
@@ -165,7 +159,7 @@ and childrenSpecElem (vis: cabsVisitor) (se: spec_elem) : spec_elem =
       match al' with
         [a''] when a'' == a -> se
       | [a''] -> SpecAttr a''
-      | _ -> E.s (E.unimp "childrenSpecElem: visitCabsAttribute returned a list")
+      | _ -> Cilmsg.fatal "childrenSpecElem: visitCabsAttribute returned a list"
   end
   | SpecType ts ->
       let ts' = visitCabsTypeSpecifier vis ts in
@@ -326,7 +320,7 @@ and childrenStatement vis s =
             let d1' =
               match visitCabsDefinition vis d1 with
                 [d1'] -> d1'
-              | _ -> E.s (E.unimp "visitCabs: for can have only one definition")
+              | _ -> Cilmsg.fatal "visitCabs: for can have only one definition"
             in
             if d1' != d1 then FC_DECL d1' else fc1
       in

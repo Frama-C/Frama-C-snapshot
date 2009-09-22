@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -50,7 +50,7 @@ class type t =  object
   method view : GTree.view
     (** The tree view associated in which the file tree is packed. *)
 
-  method reset : unit -> t
+  method reset : unit -> unit
     (** Resynchronize the tree view with the current project state. 
         This is called by the generic reset extension of {!Design} and shall
         not be called by other plugins.

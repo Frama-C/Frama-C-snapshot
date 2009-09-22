@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,12 +19,33 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: extlib.mli,v 1.14 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: extlib.mli,v 1.16 2009-02-13 07:59:29 uid562 Exp $ *)
 
 (** Useful operations.
 
     This module does not depend of any of frama-c module.
     @plugin development guide *)
+
+val nop: 'a -> unit
+  (** Do nothing. *)
+
+val find_or_none: ('a -> 'b) -> 'a -> 'b option
+
+val adapt_filename: string -> string
+  (** Ensure that the given filename has the extension "cmo" in bytecode
+      and "cmxs" in native *)
+
+(* [max_cpt t1 t2] returns the maximum of [t1] and [t2] wrt the total ordering
+   induced by tags creation. This ordering is defined as follow:
+   forall tags t1 t2,
+   t1 <= t2 iff
+   t1 is before t2 in the finite sequence
+   [0; 1; ..; max_int; min_int; min_int-1; -1] *)
+val max_cpt: int -> int -> int
+
+(* ************************************************************************* *)
+(** {2 Function builders} *)
+(* ************************************************************************* *)
 
 exception NotYetImplemented of string
   (** @plugin development guide *)
@@ -35,25 +56,11 @@ val not_yet_implemented: string -> 'a
 val mk_fun: string -> ('a -> 'b) ref
   (** build a reference to an unitialized function (which raises
       [NotYetImplemented] if it is called).
-      @plugin development guide *)
+      @deprecated since Beryllium-20090601-beta1+dev *)
 
-val deprecated: string -> ('a -> 'b) -> ('a -> 'b)
-  (** Indicate that the use of the given function with the given name is
-      deprecated.
-      @return the given function itself 
-      @since Lithium-20081002+beta1+dev *)
-
-val nop: 'a -> unit
-  (** Do nothing. *)
-
-val find_or_none: ('a -> 'b) -> 'a -> 'b option
-
-val adapt_filename: string -> string
-  (** Ensure that the given filename has the extension "cmo" in bytecode
-      and "cmxs" in native *)
-(* ************************************************************************** *)
+(* ************************************************************************* *)
 (** {2 Function combinators} *)
-(* ************************************************************************** *)
+(* ************************************************************************* *)
 
 val ($) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
   (** Composition. *)
@@ -61,9 +68,9 @@ val ($) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
 val swap: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
   (** Swap arguments. *)
 
-(* ************************************************************************** *)
+(* ************************************************************************* *)
 (** {2 Lists} *)
-(* ************************************************************************** *)
+(* ************************************************************************* *)
 
 val as_singleton: 'a list -> 'a
   (** returns the unique element of a singleton list.
@@ -72,9 +79,19 @@ val as_singleton: 'a list -> 'a
 val filter_out: ('a -> bool) -> 'a list -> 'a list
   (** Filter out elements that pass the test *)
 
-(* ************************************************************************** *)
+val product_fold: ('a -> 'b -> 'c -> 'a) -> 'a -> 'b list -> 'c list -> 'a
+(** [product f acc l1 l2] is similar to [fold_left f acc l12] with l12 the
+    list of all pairs of an elt of [l1] and an elt of [l2]
+*)
+
+val product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+  (** [product f l1 l2] applies [f] to all the pairs of an elt of [l1] and
+      an element of [l2].
+   *)
+
+(* ************************************************************************* *)
 (** {2 Options} *)
-(* ************************************************************************** *)
+(* ************************************************************************* *)
 
 val may: ('a -> unit) -> 'a option -> unit
 
@@ -92,6 +109,29 @@ val the: 'a option -> 'a
       @plugin development guide *)
 
 external getperfcount: unit -> int = "getperfcount"
+external getperfcount1024: unit -> int = "getperfcount1024"
+
+external address_of_value: 'a -> int = "address_of_value"
+
+(* ************************************************************************* *)
+(** {2 Exception catcher} *)
+(* ************************************************************************* *)
+
+val try_finally: finally:(unit -> unit) -> ('a -> 'b) -> 'a -> 'b
+
+(* ************************************************************************* *)
+(** {2 Launching an external process} *)
+(* ************************************************************************* *)
+
+val full_command :
+  string -> string array
+  -> stdin:Unix.file_descr
+  -> stdout:Unix.file_descr
+  -> stderr:Unix.file_descr
+  -> int
+  (** Same arguments as {Unix.create_process} but returns only when
+      execution is complete. It returns the exit code of the executed
+      process. *)
 
 (*
 Local Variables:

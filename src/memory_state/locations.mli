@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,9 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: locations.mli,v 1.75 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: locations.mli,v 1.80 2009-02-23 12:52:19 uid562 Exp $ *)
 
-(** Memory locations. 
+(** Memory locations.
     @plugin development guide *)
 
 open Cil_types
@@ -30,7 +30,7 @@ open Abstract_interp
 open Abstract_value
 open BaseUtils
 
-(** Association between varids and offsets in byte. 
+(** Association between varids and offsets in byte.
     @plugin development guide *)
 module Location_Bytes : sig
 
@@ -80,7 +80,9 @@ module Location_Bytes : sig
     (** [inject_top_origin origin p] creates a top with origin [origin]
 	and additional information [param] *)
 
-  val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
+  val splitting_cardinal_less_than : 
+    split_non_enumerable:int -> t -> int -> int
 
   val find_exclusive : Base.t -> t -> Ival.t
     (** [find_exclusive k m] returns [v] if [m] contains only the binding [k]
@@ -112,20 +114,25 @@ module Location_Bytes : sig
     projection:(Base.t -> Ival.t) ->
     joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
 
-  val contains_adresses_of_locals : Cil_types.fundec -> t -> bool
-    (** [contains_adresses_of_locals f loc] returns [true] if [loc] contains
-	the adress of a local variable of [f] or a formal of [f]*)
+  val contains_addresses_of_locals : (M.key -> bool) -> t -> bool
+    (** [contains_adresses_of_locals is_local loc] returns [true]
+        if [loc] contains the adress of a variable for which
+        [is_local] returns [true]
+     *)
 
-  val remove_escaping_locals : Cil_types.fundec -> t -> t
-    (**  TODO: merge with above function *)
+  val remove_escaping_locals : (M.key -> bool) -> t -> t
+    (**  TODO: merge with above function
+         [remove_escaping_locals is_local v] removes from [v] information
+         associated with bases for which [is_local] returns [true].
+     *)
 
-  val contains_adresses_of_any_locals : t -> bool
+  val contains_addresses_of_any_locals : t -> bool
     (** [contains_adresses_of_any_locals loc] returns [true] iff [loc] contains
 	the adress of a local variable or of a formal variable. *)
 
 end
 
-(** Association between varids and offsets in bits. 
+(** Association between varids and offsets in bits.
     @plugin development guide *)
 module Location_Bits : sig
 
@@ -184,10 +191,16 @@ module Location_Bits : sig
     (** [intersects t1 t2] is true iff [t1] and [t2] have a nonempty
 	intersection *)
 
+  val inject_top_origin : Origin.t -> Top_Param.O.t -> t
+    (** [inject_top_origin origin p] creates a top with origin [origin]
+	and additional information [param] *)
+  val topify_arith_origin : t -> t
+
   type widen_hint
   val widen : widen_hint -> t -> t -> t
     (*    val compare : t -> t -> int*)
   val equal : t -> t -> bool
+  val hash : t -> int
   val is_included : t -> t -> bool
   val find_lonely_binding : t -> Base.t * Ival.t
   val find_lonely_key : t -> Base.t * Ival.t
@@ -196,14 +209,14 @@ module Location_Bits : sig
   val location_shift : Ival.t -> t -> t
   val filter_base : (Base.t -> bool) -> t -> t
   val fold_i : (Base.t -> Ival.t -> 'a -> 'a) -> t -> 'a -> 'a
-  val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
   val is_in_set : set:Top_Param.O.t -> Base.t -> bool
   val fold_bases : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
   val get_bases : t -> Top_Param.t
 
 end
 
-(** Association between varids and ranges of bits. 
+(** Association between varids and ranges of bits.
     @plugin development guide *)
 module Zone : sig
 
@@ -257,7 +270,7 @@ module Zone : sig
   val pretty : Format.formatter -> t -> unit
   val intersects : t -> t -> bool
 
-(** Assuming that [z1] and [z2] only contain valid bases, 
+(** Assuming that [z1] and [z2] only contain valid bases,
    [valid_intersects z1 z2] returns true iff [z1] and [z2] have a valid
     intersection. *)
   val valid_intersects : t -> t -> bool
@@ -284,7 +297,7 @@ module Zone : sig
 	@raise Error_Top in the case [Top Top]. *)
 
   val get_bases : t -> Top_Param.t
-    
+
   val fold_i : (Base.t -> Int_Intervals.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold_i f l acc] folds [l] by base.
 	@raise Error_Top in the cases [Top Top], [Top bases]. *)
@@ -300,7 +313,7 @@ module Zone : sig
 
   val out_some_or_bottom : t option -> t
 
-  val cached_fold :    
+  val cached_fold :
     cache:string * int ->
     f:(Base.t -> Abstract_value.Int_Intervals.t -> 'b) ->
     projection:(Base.t -> Abstract_value.Int_Intervals.t) ->
@@ -320,12 +333,17 @@ end
 
 (** {2 Locations} *)
 
-(** A {!Location_Bits.t} and a size in bits. 
+(** A {!Location_Bits.t} and a size in bits.
     @plugin development guide *)
 type location = private {
   loc : Location_Bits.t;
   size : Int_Base.t;
 }
+
+module Location :
+sig
+  module Datatype : Project.Datatype.S with type t = location
+end
 
 val loc_bottom : location
 val make_loc : Location_Bits.t -> Int_Base.t -> location

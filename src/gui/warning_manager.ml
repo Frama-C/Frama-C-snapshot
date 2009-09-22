@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,28 +19,39 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Messages_manager
+open Log
 
 type t = 
     { widget: GTree.view;
-      append : message -> unit;
+      append : event -> unit;
       clear : unit -> unit;}
 
+
 let make ~packing ~callback = 
-  let cols = new GTree.column_list in
-  let message_list_file_col = cols#add Gobject.Data.string in
-  let message_list_line_col = cols#add Gobject.Data.int in
-  let message_list_message_col = cols#add Gobject.Data.string in
-  let message_list_severity_col = cols#add Gobject.Data.caml in
-  let message_list_list_store = GTree.list_store cols in
-  let append message = 
-    let row = message_list_list_store#prepend ()
-    in
-    message_list_list_store#set ~row ~column:message_list_file_col message.m_file ;
-    message_list_list_store#set ~row ~column:message_list_line_col message.m_line ;
-    message_list_list_store#set ~row ~column:message_list_message_col message.m_msg ;
-    message_list_list_store#set ~row ~column:message_list_severity_col message.m_severity
-  in
+  let module L = struct
+    type t = event
+    let column_list = new GTree.column_list
+    let message_list_scope_col = column_list#add Gobject.Data.caml
+    let message_list_channel_col = column_list#add Gobject.Data.string
+    let message_list_message_col = column_list#add Gobject.Data.string
+    let message_list_severity_col = column_list#add Gobject.Data.caml
+
+    let scope = function
+      | None -> "Global"
+      | Some s -> Printf.sprintf "%s:%d" s.src_file s.src_line
+	  
+    let custom_value (_:Gobject.g_type) t ~column : Gobject.basic = 
+      match column with
+	| 0 -> (* scope *)   `CAML (Obj.repr t.evt_source)
+	| 1 -> (* plugin *)  `STRING (Some (String.capitalize t.evt_plugin))
+	| 2 -> (* message *) `STRING (Some t.evt_message)
+	| 3 -> (* severity *) `CAML (Obj.repr t.evt_kind)
+	| _ -> assert false
+  end
+  in  
+  let module MODEL =  Gtk_helper.MAKE_CUSTOM_LIST(L) in
+  let message_list_list_store = MODEL.custom_list () in
+  let append m = message_list_list_store#insert m in
   let clear () = message_list_list_store#clear () in
   let sc =   
     GBin.scrolled_window
@@ -49,66 +60,66 @@ let make ~packing ~callback =
       ~packing 
       ()
   in
-  let view:GTree.view = GTree.view ~packing:sc#add () in
+  let view:GTree.view = GTree.view 
+    ~rules_hint:true
+    ~headers_visible:false
+    ~packing:sc#add () in
   let model = message_list_list_store#coerce in
-  let severity_renderer = GTree.cell_renderer_pixbuf [] in
-  let file_renderer = GTree.cell_renderer_text [] in
-  let line_renderer = GTree.cell_renderer_text [] in
-  let message_renderer = GTree.cell_renderer_text [] in
+  let top = `YALIGN 0.0 in
+  let severity_renderer = GTree.cell_renderer_pixbuf [top;`XALIGN 0.5] in
+  let scope_renderer = GTree.cell_renderer_text [top] in
+  let plugin_renderer = GTree.cell_renderer_text [top] in
+  let message_renderer = GTree.cell_renderer_text [top] in
   let m_severity_renderer renderer (model:GTree.model) iter =
-    let severity = model#get ~row:iter ~column:message_list_severity_col in
+    let severity = model#get ~row:iter ~column:L.message_list_severity_col in
     renderer#set_properties (match severity with 
-			       | `Error -> [`STOCK_ID "gtk-dialog-error"]
-			       | `Info -> [`STOCK_ID "gtk-dialog-info"]
-			       | `Warning -> [`STOCK_ID  "gtk-dialog-warning"])
+			       | Error -> [`STOCK_ID "gtk-dialog-error"]
+			       | Warning -> [`STOCK_ID  "gtk-dialog-warning"]
+			       | _ -> [`STOCK_ID "gtk-dialog-info"])
   in
-  let m_file_renderer renderer (model:GTree.model) iter =
-    let name = model#get ~row:iter ~column:message_list_file_col in
-    renderer#set_properties [`TEXT name]
+  let m_scope_renderer renderer (model:GTree.model) iter =
+    let src = model#get ~row:iter ~column:L.message_list_scope_col in
+    renderer#set_properties [`TEXT (L.scope src)]
   in
-  let m_line_renderer renderer (model:GTree.model) iter =
-    let name = model#get ~row:iter ~column:message_list_line_col in
-    renderer#set_properties [`TEXT (string_of_int name)]
+  let m_plugin_renderer renderer (model:GTree.model) iter =
+    let plugin = model#get ~row:iter ~column:L.message_list_channel_col in
+    renderer#set_properties [`TEXT plugin]
   in
   let m_message_renderer renderer (model:GTree.model) iter =
-    let name = model#get ~row:iter ~column:message_list_message_col in
-    renderer#set_properties [`TEXT name]
+    let message = model#get ~row:iter ~column:L.message_list_message_col in
+    renderer#set_properties [`TEXT message]
   in
   let severity_col_view = GTree.view_column
-    ~title:"Severity"
-    ~renderer:(severity_renderer, []) () in
-  let file_col_view = GTree.view_column
-    ~title:"Filename"
-    ~renderer:(file_renderer, []) () in
-  let line_col_view = GTree.view_column
-    ~title:"Line"
-    ~renderer:(line_renderer, []) () in
+    ~title:"" ~renderer:(severity_renderer, []) () in
+  let scope_col_view = GTree.view_column
+    ~title:"Source" ~renderer:(scope_renderer, []) () in
+  let channel_col_view = GTree.view_column
+    ~title:"Plugin" ~renderer:(plugin_renderer, []) () in
   let message_col_view = GTree.view_column
-    ~title:"Message"
-    ~renderer:(message_renderer, []) () in
+    ~title:"Message" ~renderer:(message_renderer, []) () in
   severity_col_view#set_cell_data_func
     severity_renderer (m_severity_renderer severity_renderer) ;
-  file_col_view#set_cell_data_func
-    file_renderer (m_file_renderer file_renderer) ;
-  line_col_view#set_cell_data_func
-    line_renderer (m_line_renderer line_renderer) ;
+  scope_col_view#set_cell_data_func
+    scope_renderer (m_scope_renderer scope_renderer) ;
+  channel_col_view#set_cell_data_func
+    plugin_renderer (m_plugin_renderer plugin_renderer) ;
   message_col_view#set_cell_data_func
     message_renderer (m_message_renderer message_renderer) ;
-
+  
   ignore (view#append_column severity_col_view) ;
-  ignore (view#append_column file_col_view) ;
-  ignore (view#append_column line_col_view) ;
+  ignore (view#append_column scope_col_view) ;
+  ignore (view#append_column channel_col_view) ;
   ignore (view#append_column message_col_view) ;
-
+  
   let on_message_activated (mess_view:GTree.view) tree_path _view_column =
     let model = mess_view#model in
     let row = model#get_iter tree_path in
-    let file = model#get ~row ~column:message_list_file_col in
-    let line = model#get ~row ~column:message_list_line_col in
-  callback file line 
+    let src = model#get ~row ~column:L.message_list_scope_col in
+    match src with
+      | None -> ()
+      | Some s -> callback s.src_file s.src_line 
   in
-  ignore (view#connect#row_activated
-            ~callback:(on_message_activated view)) ;
+  ignore (view#connect#row_activated ~callback:(on_message_activated view)) ;
   view#set_model (Some model);
 
   {widget = view;

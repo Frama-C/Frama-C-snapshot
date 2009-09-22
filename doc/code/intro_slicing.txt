@@ -1,25 +1,48 @@
+@ignore                                                                        
+@ignore                                                                        
+@ignore  This file is part of Frama-C.                                         
+@ignore                                                                        
+@ignore  Copyright (C) 2007-2009                                               
+@ignore    CEA   (Commissariat à l'Énergie Atomique)                           
+@ignore    INRIA (Institut National de Recherche en Informatique et en         
+@ignore           Automatique)                                                 
+@ignore                                                                        
+@ignore  you can redistribute it and/or modify it under the terms of the GNU   
+@ignore  Lesser General Public License as published by the Free Software       
+@ignore  Foundation, version 2.1.                                              
+@ignore                                                                        
+@ignore  It is distributed in the hope that it will be useful,                 
+@ignore  but WITHOUT ANY WARRANTY; without even the implied warranty of        
+@ignore  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
+@ignore  GNU Lesser General Public License for more details.                   
+@ignore                                                                        
+@ignore  See the GNU Lesser General Public License version v2.1                
+@ignore  for more details (enclosed in the file licenses/LGPLv2.1).            
+@ignore                                                                        
+@ignore                                                                        
+
 
 {2 Overview}
 
 To have more details about what we are trying to do,
-you may have a look to the 
+you may have a look to the
 {{:../../slicing/index.html}specification} report (in French).
 
 The internal types module ({!module:SlicingTypes.Internals})
 can give a pretty good idea of the kind of objects that we deal with in this
-module. 
+module.
 
 You can also find some general information below.
 
 {3 Project}
 
 The project was the global repository of the results obtained so far.
-If is mainly composed of 
+If is mainly composed of
 a list of actions waiting to be applied,
 and the already computed slices.
 
 More precisely, see its type definition
-{!type:SlicingTypes.Internals.t_project} 
+{!type:SlicingTypes.Internals.t_project}
 if you want to know what it is composed of,
 and the module {!module:SlicingProject} of the functions to handle it.
 
@@ -55,7 +78,7 @@ The actions are the way of giving an order to modify the current application.
 
 There are many kinds of actions, but only one is really used to build the
 slice which is a list of nodes from the PDG of a function,
-and their associated marks. 
+and their associated marks.
 All the other actions dealing with the marks are first decomposed
 before being applied.
 
@@ -83,4 +106,3 @@ When there are non more actions in the task list,
 the project can be exported. This is done in
 {!module:SlicingTransform} module
 by building a new CIL application.
-

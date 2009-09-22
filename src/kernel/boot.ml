@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,62 +19,41 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: boot.ml,v 1.33 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: boot.ml,v 1.33 2008-11-18 12:13:41 uid568 Exp $ *)
 
 (** Frama-C Entry Point (last linked module).
     @plugin development guide *)
 
-(* ************************************************************************* *)
-(** Registering options for debugging project *)
-(* ************************************************************************* *)
+let obfuscate_code code_fmt ast =
+  let dictionary = Obfuscate.obfuscate ast in
+  Format.fprintf code_fmt "// Start of dictionary for obfuscation:@\n";
+  Hashtbl.iter
+    (fun k v -> Format.fprintf code_fmt "#define %s %s@\n" k v)
+    dictionary;
+  Format.fprintf code_fmt "// End of dictionary for obfuscation.@\n";
+  Format.fprintf code_fmt "@[%a@]" (Cil.d_file (new Printer.print())) ast
 
-let dump_dependencies () =
-  let _except =
-    Project.Selection.remove Cmdline.Machdep.self
-      (Project.Selection.remove Cmdline.MainFunction.self
-	 (Project.Selection.remove Cmdline.LibEntry.self
-	    (Cmdline.get_selection ())))
-  in
-  Project.Computation.dump_dependencies (*~except*) 
-    "computation_dependencies.dot"
+let run_plugins () =
+  if Parameters.TypeCheck.get () then Ast.compute ();
+  if Parameters.Obfuscate.get () then 
+    begin
+      Parameters.CodeOutput.output "%a" obfuscate_code (Ast.get ()) ;
+      raise Cmdline.Exit
+    end;
+  (* Printing files before anything else (in debug mode only) *)
+  if Parameters.Debug.get () > 0 then File.pretty ();
+  (* Syntactic constant folding before analysing files if required *)
+  if Parameters.Constfold.get () then
+    Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) (Ast.get ());
+  try
+    Dynamic.Main.apply (); (* for Helium-compatibility purpose only *)
+    Db.Main.apply ();
+    (* Printing code if required, have to be done at end *)
+    if Parameters.PrintCode.get () then File.pretty ();
+  with Globals.No_such_entry_point msg ->
+    Kernel.error "%s" msg
 
-let project_debug =
-    [ "-debug", 
-      Arg.Int Project.set_debug_level,      
-      "Level of debug for project";
-      
-      "-dump", Arg.Unit dump_dependencies, "Dump dependencies" ]
-
-let () = Options.add_cmdline ~name:"project" ~debug:project_debug []
-
-(* Journal options *)
-let () = 
-  Options.add_cmdline 
-    ~name:"journalization"
-    [ "-journal-disable",
-      Arg.Unit Cmdline.Journal.Disable.on,
-      ": do not output any journal";
-      "-journal-name",
-      Arg.String Cmdline.Journal.Name.set,
-      ": set the filename of the journal (do not write any extension)";
-    ]
-
-(* ************************************************************************* *)
-(** Adding some internal state dependencies *)
-(* ************************************************************************* *)
-
-let () =
-  Project.Computation.add_dependency Alarms.self Db.Value.self;
-  Binary_cache.MemoryFootprint.depend Cmdline.MemoryFootprint.self;
-  Buckx.MemoryFootprint.depend Cmdline.MemoryFootprint.self;
-  List.iter 
-    Cil_state.depend 
-    [ Cmdline.SimplifyCfg.self;
-      Cmdline.KeepSwitch.self;
-      Cmdline.UnrollingLevel.self;
-      Cmdline.Constfold.self;
-      Cmdline.ReadAnnot.self;
-      Cmdline.PreprocessAnnot.self ]
+let () = Db.Main.play := run_plugins
 
 (* ************************************************************************* *)
 (** Booting Frama-C *)
@@ -86,30 +65,26 @@ let boot_cil () =
   Cabs2cil.forceRLArgEval := false;
   Cil.miscState.Cil.lineDirectiveStyle <- None;
   (*  Cil.lineDirectiveStyle := Some LinePreprocessorInput;*)
-  Cil.miscState.Cil.printCilAsIs <- Cmdline.Debug.get () > 0;
-  Mergecil.ignore_merge_conflicts := true;
-  Pretty.flushOften := true
+  Cil.miscState.Cil.printCilAsIs <- Parameters.Debug.get () > 0;
+  Mergecil.ignore_merge_conflicts := true
 
 (* Main: let's go! *)
 let () =
-  File.cxx_suffixes := Db.Cxx.suffixes;
-  Kind.version := Version.version;
+  Kind.version := Config.version;
   boot_cil ();
   Sys.catch_break true;
-  !Dynamic.include_all_module ();
-  Journal.start ();
-  at_exit Journal.write;
-  Options.parse_cmdline ();
-  if Cmdline.Journal.Disable.get () then begin
-    Journal.clear ~restart:false ();
-    Journal.stop ()
-  end;
-  if Cmdline.Journal.Name.is_set () then 
-    Journal.set_name (Cmdline.Journal.Name.get ());
-  Options.initialize_toplevels ()
+  Cmdline.catch_toplevel_run
+    (fun () ->
+       Journal.set_name (Parameters.Journal.Name.get ());
+       ignore (Project.create "default");
+       Cmdline.parse_and_boot (fun () -> !Db.Toplevel.run) run_plugins)
+    (fun () ->
+       Plugin.run_normal_exit_hook ();
+       exit 0 (* ensure that nothing occurs after booting: no other file can be
+		 linked after boot.ml *))
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

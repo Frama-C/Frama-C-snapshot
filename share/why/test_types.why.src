@@ -1,0 +1,2 @@
+
+goal option : forall x:int. Some(x) <> None

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,7 +25,7 @@
 
 (**/**)
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 module M = SlicingMacros
 
 
@@ -36,12 +36,14 @@ module M = SlicingMacros
 
 (** API function : see {!val: Db.Slicing.Project.mk_project}.  *)
 let mk_project name = 
-  M.debug 0 "[slicing] make slicing project '%s'@." name;
-  { T.name = name ;
-    T.application = Project.current () ;
-    T.functions = Cilutil.VarinfoHashtbl.create 17; 
-    T.actions = [];
-  }
+  SlicingParameters.feedback ~level:1 "making slicing project '%s'..." name;
+  let r = { T.name = name ;
+            T.application = Project.current () ;
+            T.functions = Cilutil.VarinfoHashtbl.create 17; 
+            T.actions = [];
+          } in
+  SlicingParameters.feedback ~level:2 "done (making slicing project '%s')." name;
+  r  
     
 let get_name proj = proj.T.name
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
@@ -181,7 +183,7 @@ let add_fct_src_filters proj fi actions =
 let add_fct_ff_filter proj ff to_select =
   match to_select with
       | T.CuSelect [] -> 
-          M.debug 1 "\t(ignored empty selection)@."
+          SlicingParameters.debug ~level:1 "[SlicingProject.add_fct_ff_filter] (ignored empty selection)"
       | T.CuSelect select -> 
           let filter = SlicingActions.mk_ff_user_select ff select in
             add_filter proj filter 
@@ -223,7 +225,7 @@ let print_project och proj =
     | [] -> ()
     | glob :: tail -> print glob ; print_globs tail
   in 
-  let source = Cil_state.file () in
+  let source = Ast.get () in
   let global_decls = source.Cil_types.globals in
   print_globs global_decls
 
@@ -330,16 +332,16 @@ let apply_fct_action proj fct_crit =
          | T.CcExamineCalls marks ->
              Fct_slice.apply_examine_calls ff marks
       in 
-        M.debug 4 "[apply_fct_action] result =\n%a"
+        SlicingParameters.debug ~level:4 "[slicingProject.apply_fct_action] result =@\n%a"
             PrintSlice.print_marked_ff ff;
         new_filters
    | T.FctSrc fi -> (* the marks have to be added to all slices *)
-       let propagate = Cmdline.Slicing.Mode.Callers.get () in
+       let propagate = SlicingParameters.Mode.Callers.get () in
        match fct_crit.T.cf_info with
          | T.CcUserMark (T.CuSelect to_select) -> 
              add_persistante_marks proj fi to_select true propagate [] 
          | T.CcUserMark (T.CuTop m) -> 
-             M.debug 0 "[slicing warning] unable to slice %s (-> TOP)@."
+             SlicingParameters.result ~level:1 "unable to slice %s (-> TOP)"
                  (M.fi_name fi);
              let filters = call_src_and_remove_all_ff proj fi in
              Fct_slice.add_top_mark_to_fi fi m propagate filters
@@ -352,33 +354,33 @@ let apply_fct_action proj fct_crit =
        
 (** apply [filter] and return a list of generated filters *)
 let apply_action proj filter =
-  M.debug 1 "[slicing] apply_action : %a@." SlicingActions.print_crit filter;
+  SlicingParameters.debug ~level:1 "[SlicingProject.apply_action] : %a" SlicingActions.print_crit filter;
   let new_filters = 
     try match filter with  
       | T.CrFct fct_crit -> 
           begin
             try (apply_fct_action proj fct_crit)
             with PdgTypes.Pdg.Bottom -> 
-              M.debug 1 "[slicing] apply_action : ABORTED (PDG is bottom)@." ;
+              SlicingParameters.debug ~level:1 "  -> action ABORTED (PDG is bottom)" ;
               []
           end
     | T.CrAppli appli_crit ->
           apply_appli_crit proj appli_crit
     with Not_found -> (* catch unprocessed Not_found here *) assert false
   in 
-    M.debug 1 "[slicing] %d generated filters : %a@." 
+    SlicingParameters.debug ~level:1 "  -> %d generated filters : %a@." 
         (List.length new_filters)
         SlicingActions.print_list_crit new_filters;
     new_filters
 
 let get_next_filter proj =
   match proj.T.actions with
-    | [] -> M.debug 2 "No more filter@."; 
+    | [] -> SlicingParameters.debug ~level:2 "[SlicingProject.get_next_filter] No more filter"; 
             raise Not_found
     | f :: tail -> proj.T.actions <- tail; f
 
 let apply_next_action proj = 
-  M.debug 2 "apply_next_action@.";
+  SlicingParameters.debug ~level:2 "[SlicingProject.apply_next_action]";
   let filter = get_next_filter proj in
   let new_filters = apply_action proj filter in
     proj.T.actions <- new_filters @ proj.T.actions
@@ -387,20 +389,22 @@ let apply_all_actions proj =
   let nb_actions = List.length proj.T.actions in
   let rec apply actions = match actions with [] -> ()
     | a::actions -> 
-        M.debug 2 "apply sub action@.";
+        SlicingParameters.feedback ~level:2 "applying sub action...";
         let new_filters = apply_action proj a in
           apply new_filters;
           apply actions
   in
-  let rec apply_user n = 
-    try let a = get_next_filter proj in
-      M.debug 1 "[slicing] apply actions: %d/%d@." n nb_actions;
-      let new_filters = apply_action proj a in
-        apply new_filters;
-        apply_user (n+1)
-    with Not_found ->
-      if nb_actions > 0 then 
-        M.debug 1 "[slicing] apply %d actions : done@." nb_actions
-  in apply_user 1 
+    SlicingParameters.feedback ~level:1 "applying %d actions..." nb_actions;
+    let rec apply_user n = 
+      try let a = get_next_filter proj in
+        SlicingParameters.feedback ~level:1 "applying actions: %d/%d..." n nb_actions;
+        let new_filters = apply_action proj a in
+          apply new_filters;
+          apply_user (n+1)
+      with Not_found ->
+        if nb_actions > 0 then 
+          SlicingParameters.feedback ~level:2 "done (applying %d actions." nb_actions
+    in 
+      apply_user 1 
 
 

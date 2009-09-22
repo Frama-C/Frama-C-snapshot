@@ -44,7 +44,7 @@ let print_requests project = !S.Request.pretty fmt project ;;
 (* construit l'application correspondant au projet, et affiche le résultat *)
 let extract_and_print project = 
   let prj = !S.Project.extract "Sliced code" project in
-  File.pretty Format.std_formatter ~prj
+  File.pretty ~prj ()
 
 
 (*--------------------------*)
@@ -156,26 +156,26 @@ let test ?project fname ?(do_prop_to_callers=false) select_fct =
       let kf = Globals.Functions.find_def_by_name fname in
       let ff = !S.Slice.create project kf in
       let select = select_fct project kf in
-        !S.Request.add_slice_selection_internal project ff select;
-        if do_prop_to_callers then
-          begin
-            !S.Request.apply_all_internal project;
-            prop_to_callers project (kf, ff)
-          end;
-        let fmt =  Format.std_formatter in
-          !S.Request.pretty fmt project;
-          (* !S.Request.apply_next_internal project *)
-          (* !S.Project.pretty fmt project *)
-          extract_and_print project
+      !S.Request.add_slice_selection_internal project ff select;
+      if do_prop_to_callers then
+        begin
+          !S.Request.apply_all_internal project;
+          prop_to_callers project (kf, ff)
+        end;
+      let fmt =  Format.std_formatter in
+      !S.Request.pretty fmt project;
+      (* !S.Request.apply_next_internal project *)
+      (* !S.Project.pretty fmt project *)
+      extract_and_print project
     with
-        | No_return ->
-            Format.printf
-              "Impossible to select 'retres' for a void function (%s)\n" fname
-        | Unknown_data str ->
-            Format.printf
-              "Impossible to select this data : %s in %s\n" str fname
+    | No_return ->
+        Format.printf
+          "Impossible to select 'retres' for a void function (%s)\n" fname
+    | Unknown_data str ->
+        Format.printf
+          "Impossible to select this data : %s in %s\n" str fname
   end;
-      project
+  project
 ;;
 
 let test_select_retres ?(do_prop_to_callers=false) fname =

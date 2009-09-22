@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -sparecode-analysis -journal-disable
+   OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable
    OPT: -slicing-level 2 -slice-return main -slice-print -journal-disable
 */
 

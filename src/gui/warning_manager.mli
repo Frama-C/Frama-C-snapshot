@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,8 +27,8 @@ val make :
 (*val set_font : t -> Pango.font_description -> unit*)
 
 val append : 
-  t -> Messages_manager.message -> 
-  on_select:(Messages_manager.message -> unit) -> unit
+  t -> Log.event -> 
+  on_select:(Log.event -> unit) -> unit
 
 val clear : t -> unit
 

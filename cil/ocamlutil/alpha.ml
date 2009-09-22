@@ -39,8 +39,6 @@
 (**************************************************************************)
 
 module H = Hashtbl
-module E = Errormsg
-open Pretty
 
 let debugAlpha (_prefix: string) = false
 (*** Alpha conversion ***)
@@ -89,7 +87,7 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
                      (make_new: bool) : string * 'a = 
   let prefix, suffix, (numsuffix: Big_int.big_int) = splitNameForAlpha ~lookupname in
   if debugAlpha prefix then
-    ignore (E.log "Alpha worker: prefix=%s suffix=%s (%s) create=%b. " 
+    (Cilmsg.debug "Alpha worker: prefix=%s suffix=%s (%s) create=%b. " 
               prefix suffix (Big_int.string_of_big_int numsuffix) make_new);
   let newname, (olddata: 'a) = 
     try
@@ -97,9 +95,9 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
       let max, suffixes = !rc in 
       (* We have seen this prefix *)
       if debugAlpha prefix then
-        ignore (E.log " Old max %s. Old suffixes: @[%a@]" (Big_int.string_of_big_int max)
-                  (docList 
-                     (fun (s, _) -> dprintf "%s" (* d_loc l *) s)) suffixes);
+        Cilmsg.debug " Old max %s. Old suffixes: @[%a@]" 
+	  (Big_int.string_of_big_int max)
+          (Pretty_utils.pp_list (fun fmt (s,_) -> Format.fprintf fmt "%s" s)) suffixes ;
       (* Save the undo info *)
       (match undolist with 
         Some l -> l := AlphaChangedSuffix (rc, !rc) :: !l
@@ -123,7 +121,7 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
                Big_int.succ_big_int max, newsuffix, l, (newsuffix, data) :: suffixes
               else
                 max, suffix, data, suffixes
-          |  _ -> E.s (E.bug "Cil.alphaWorker")
+          |  _ -> (Cilmsg.fatal "Cil.alphaWorker")
         end
       in
       rc := (newmax, newsuffixes);
@@ -133,12 +131,12 @@ and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
         Some l -> l := AlphaAddedSuffix prefix :: !l
       | _ -> ());
       H.add alphaTable prefix (ref (numsuffix, [ (suffix, data) ]));
-      if debugAlpha prefix then ignore (E.log " First seen. ");
+      if debugAlpha prefix then (Cilmsg.debug " First seen. ");
       lookupname, data  (* Return the original name *)
     end
   in
   if debugAlpha prefix then
-    ignore (E.log " Res=: %s \n" newname (* d_loc oldloc *));
+    (Cilmsg.debug " Res=: %s \n" newname (* d_loc oldloc *));
   newname, olddata
 
 (* Strip the suffix. Return the prefix, the suffix (including the separator 
@@ -187,12 +185,15 @@ let undoAlphaChanges ~(alphaTable: (string, 'a alphaTableData ref) H.t)
           where := old
       | AlphaAddedSuffix name -> 
           if debugAlpha name then 
-            ignore (E.log "Removing %s from alpha table\n" name);
+            (Cilmsg.debug "Removing %s from alpha table\n" name);
           H.remove alphaTable name)
     undolist
 
-let docAlphaTable () (alphaTable: (string, 'a alphaTableData ref) H.t) = 
+let docAlphaTable fmt (alphaTable: (string, 'a alphaTableData ref) H.t) = 
   let acc = ref [] in
   H.iter (fun k d -> acc := (k, !d) :: !acc) alphaTable;
-  docList ~sep:line (fun (k, (d, _)) -> dprintf "  %s -> %s" k (Big_int.string_of_big_int d)) () !acc
+  Pretty_utils.pp_list ~sep:"@\n" 
+    (fun fmt (k, (d, _)) -> 
+       Format.fprintf fmt "  %s -> %s" k (Big_int.string_of_big_int d))
+    fmt !acc
 

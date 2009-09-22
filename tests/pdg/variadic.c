@@ -1,6 +1,6 @@
 /* run.config
 *    GCC:
-*    OPT: -pdg-debug -pdg  -journal-disable
+*    OPT: -pdg  -journal-disable
 */
 
 #include <stdarg.h>

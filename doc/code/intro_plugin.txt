@@ -1,30 +1,37 @@
-{1 _PluginName_ module}
+@ignore                                                                        
+@ignore                                                                        
+@ignore  This file is part of Frama-C.                                         
+@ignore                                                                        
+@ignore  Copyright (C) 2007-2009                                               
+@ignore    CEA (Commissariat à l'Énergie Atomique)                             
+@ignore                                                                        
+@ignore  you can redistribute it and/or modify it under the terms of the GNU   
+@ignore  Lesser General Public License as published by the Free Software       
+@ignore  Foundation, version 2.1.                                              
+@ignore                                                                        
+@ignore  It is distributed in the hope that it will be useful,                 
+@ignore  but WITHOUT ANY WARRANTY; without even the implied warranty of        
+@ignore  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
+@ignore  GNU Lesser General Public License for more details.                   
+@ignore                                                                        
+@ignore  See the GNU Lesser General Public License version 2.1                 
+@ignore  for more details (enclosed in the file licenses/LGPLv2.1).            
+@ignore                                                                        
+@ignore                                                                        
 
-{2 Introduction}
+{2 API Documentation}
 
-This is the {b internal} documentation of the _PluginName_ module.
+The _PluginName_ API is dynamically registered.
 
-Look at {{:../../index.html}Frama-C} to have an overview of the whole tool, 
-including the {{:../html/Db._PluginName_.html}API of this module}.
+{b Main entry points:}
+ - {{:../index.html}Frama-C} complete kernel API
+ - {{:../html/Dynamic.html}Dynamic} kernel registry for plugins' API
 
-While browsing the documentation, you will jump from public parts
-to internal parts. So, the internal documentation have a light yellow
-background (like this page) in order that you can recognize them.
+{2 Plugin Internal Documentation}
 
-Indexes :
-{{:index_modules.html}Modules} ({{:modules-all.ps}internal graph},
-{{:modules.ps} external graph}),
-{{:index_types.html}Types} ({{:types.ps}graph}),
-{{:index_values.html}Values},
-{{:index_exceptions.html}Exceptions}.
+ - {{:modules.svg}_PluginName_} architecture (SVG format)
+ - Index of {{:index_modules.html}Modules}
+ - Index of {{:index_types.html}Types}
+ - Index of {{:index_values.html}Values}
+ - Index of {{:index_exceptions.html}Exceptions}
 
-(You are invited to use
-{{:http://zvtm.sourceforge.net/zgrviewer.html}zgrviewer}
-to view the .dot graphs because they are to big to be seen in image formats
-(jpg or png)).
-
-If your browser know how to deal with SVG format 
-(for instance, firefox >= 1.5),
-you can also have a look at the {{:modules.svg}relations between the files}
-of the _PluginName_ module, and click on the nodes to go directly to their
-documentation.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -66,17 +66,22 @@ module type Location_map_bitwise = sig
   val map_and_merge : (y -> y) -> t -> t -> t
     (** [map_and_merge f m1 m2] maps [f] on values in [m1] and [add_exact]
 	all elements of the mapped [m1] to [m2] *)
-    
+
   val filter_base : (Base.t -> bool) -> t -> t
   val find : t -> Zone.t -> y
   val find_base: t -> Zone.t -> LOffset.t
+
   exception Cannot_fold
+
+  val uninitialize_locals: Cil_types.varinfo list -> t -> t
+    (** binds the given variables to bottom, keeps the other unchanged. *)
 
   val fold : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold f m] folds a function [f] on bindings in [m].  Each binding
 	associates to a zone a boolean representing the possibility that the
 	zone was not modified, and a value of type y. May raise
 	[Cannot_fold]. *)
+  val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
 
   val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
     -> t -> t -> t

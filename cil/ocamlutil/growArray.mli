@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: growArray.mli,v 1.3 2008/03/06 14:04:26 uid528 Exp $ *)
+(* $Id: growArray.mli,v 1.3 2008-03-06 14:04:26 uid528 Exp $ *)
 
 (** Array operations. *)
 
@@ -145,8 +145,10 @@ val fold_right : ('b -> 'a -> 'a) -> 'b t -> 'a -> 'a
    [f a.(0) (f a.(1) ( ... (f a.(n-1) x) ...))],
    where [n] is the length of the array [a]. *)
 
-val d_growarray : Pretty.doc -> (int -> 'a -> Pretty.doc) -> unit -> 'a t
-                             -> Pretty.doc
+open Pretty_utils
+
+val d_growarray : sformat -> (int,'a) formatter2 -> 'a t formatter
+  
 (** [GrowArray.d_growarray sep f () a] creates a {!Pretty.doc} for growable
    array a using separator sep and element printer f. *)
 

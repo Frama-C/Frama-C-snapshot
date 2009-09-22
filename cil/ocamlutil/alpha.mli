@@ -79,8 +79,8 @@ val registerAlphaName: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t ->
     used to index into the hashtable. The next result value is a separator 
     (either empty or the separator chosen to separate the original name from 
      the index)  *)
-val docAlphaTable: unit -> 
-                  (string, 'a alphaTableData ref) Hashtbl.t -> Pretty.doc
+val docAlphaTable: Format.formatter -> 
+                  (string, 'a alphaTableData ref) Hashtbl.t -> unit
 
 
 val getAlphaPrefix: lookupname:string -> string

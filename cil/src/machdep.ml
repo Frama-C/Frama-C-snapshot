@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: machdep.ml,v 1.9 2008/07/21 17:50:56 uid568 Exp $ *)
+(* $Id: machdep.ml,v 1.9 2008-07-21 17:50:56 uid568 Exp $ *)
 
 open Cil_types
 

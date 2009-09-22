@@ -201,11 +201,8 @@ let fold_right (f: 'a -> 'acc -> 'acc) (ga: 'a t) (acc: 'acc) : 'acc =
   loop acc (max_init_index ga)
 
 (** Document generator *)
-let d_growarray (sep: Pretty.doc)
-                (doit:int -> 'a -> Pretty.doc)
-                ()
-                (elements: 'a t) =
-  Pretty.docArray ~sep:sep doit () elements.gaData
+let d_growarray sep elt fmt elements = 
+  Pretty_utils.pp_array ~sep:sep elt fmt elements.gaData
 
 let restoreGA ?deepCopy (ga: 'a t) : (unit -> unit) = 
   let old = 
@@ -215,8 +212,7 @@ let restoreGA ?deepCopy (ga: 'a t) : (unit -> unit) =
   in
   (fun () ->
      if ga.gaFill != old.gaFill then
-       Errormsg.s 
-         (Errormsg.bug "restoreGA to an array with a different fill.");
+       Cilmsg.fatal "restoreGA to an array with a different fill." ;
      ga.gaMaxInitIndex <- old.gaMaxInitIndex;
      for i = 0 to max_init_index ga do 
        set ga i (getg old i)

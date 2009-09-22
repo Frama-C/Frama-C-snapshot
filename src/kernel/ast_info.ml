@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ast_info.ml,v 1.36 2008/11/18 16:37:29 uid562 Exp $ *)
+(* $Id: ast_info.ml,v 1.39 2009-02-23 12:52:19 uid562 Exp $ *)
 
 open Db_types
 open Cil_types
@@ -43,7 +43,7 @@ let rec possible_value_of_integral_const = function
   | _ -> None
 
 and possible_value_of_integral_expr e =
-  match stripInfo e with
+  match (stripInfo e).enode with
     | Const c -> possible_value_of_integral_const c
     | _ -> None
 
@@ -57,15 +57,15 @@ let value_of_integral_expr e =
     | None -> assert false
     | Some i -> i
 
-let constant_expr i = Const(CInt64(i,IInt,None))
+let constant_expr i = new_exp (Const(CInt64(i,IInt,None)))
 
-let rec is_null_expr e = match stripInfo e with
+let rec is_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
       value_of_integral_const c = Int64.zero
   | CastE(_,e) -> is_null_expr e
   | _ -> false
 
-let rec is_non_null_expr e = match stripInfo e with
+let rec is_non_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
       value_of_integral_const c <> Int64.zero
   | CastE(_,e) -> is_non_null_expr e
@@ -101,13 +101,14 @@ let is_trivial_term v =
 let is_trivial_named_predicate p = is_trivial_predicate p.content
 
 let is_trivial_annotation = function
-  | AAssert (_,a,_)
-  | AAssume a -> is_trivial_named_predicate a
-  | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _ | AAssigns _ -> false
+  | AAssert (_,a,_) -> is_trivial_named_predicate a
+  | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _
+  | AAssigns _
+(* | ALoopBehavior _ *)
+    -> false
 
 let is_trivial_rooted_assertion = function
   | User ca | AI(_, ca) -> is_trivial_annotation ca.annot_content
-  | WP _ -> false
 
 let behavior_postcondition b =
   let assumes =
@@ -120,7 +121,7 @@ let behavior_postcondition b =
   Logic_const.pimplies (assumes,postcondition)
 
 let merge_assigns l =
-  List.fold_left (fun a b -> Logic_const.merge_assigns a b.b_assigns) [] l
+  List.fold_left (fun a b -> Logic_utils.merge_assigns a b.b_assigns) [] l
 
 let variable_term loc v =
   {
@@ -161,13 +162,11 @@ let predicate loc p =
 
 let before_after_content = function Before x | After x -> x
 
-let lift_annot_func f x a = match before_after_content a with
-  | WP _ -> x
+let lift_annot_func f a = match before_after_content a with
   | User p | AI (_,p) -> f p
 
 let lift_annot_list_func f l =
   let add l x = match before_after_content x with
-    | WP _ -> l
     | User p | AI(_,p) -> p :: l
   in
   let l' = List.fold_left add [] l in
@@ -196,7 +195,7 @@ let get_sid s = match s with
     statement.*)
 let rec loc_stmt s = match s.skind with
 | Instr i -> get_instrLoc i
-| Block {bstmts=s::_} | UnspecifiedSequence ((s,_,_)::_) -> loc_stmt s
+| Block {bstmts=s::_} | UnspecifiedSequence ((s,_,_,_)::_) -> loc_stmt s
 | Return (_,location)
 | Goto (_,location)
 | Break location
@@ -211,6 +210,8 @@ let rec loc_stmt s = match s.skind with
 let mkassign lv e loc = Set(lv,e,loc)
 
 let mkassign_statement lv e loc = mkStmt (Instr(mkassign lv e loc))
+
+let is_block_local v b = List.exists (fun vv -> v.vid = vv.vid) b.blocals
 
 (* ************************************************************************** *)
 (** {2 Functions} *)
@@ -256,34 +257,34 @@ end
 (** {2 Types} *)
 (* ************************************************************************** *)
 
-let array_type ?length ?(attr=[]) ty = TArray(ty,length,attr)
+let array_type ?length ?(attr=[]) ty = TArray(ty,length,empty_size_cache (),attr)
 
 let direct_array_size ty =
   match unrollType ty with
-    | TArray(_ty,Some size,_attr) -> value_of_integral_expr size
-    | TArray(_ty,None,_attr) -> 0L
+    | TArray(_ty,Some size,_,_) -> value_of_integral_expr size
+    | TArray(_ty,None,_,_) -> 0L
     | _ -> assert false
 
 let rec array_size ty =
   match unrollType ty with
-    | TArray(elemty,Some _e,_attr) ->
+    | TArray(elemty,Some _,_,_) ->
 	if isArrayType elemty then
 	  Int64.mul (direct_array_size ty) (array_size elemty)
 	else direct_array_size ty
-    | TArray(_ty,None,_attr) -> 0L
+    | TArray(_,None,_,_) -> 0L
     | _ -> assert false
 
 let direct_element_type ty = match unrollType ty with
-  | TArray(eltyp,_,_) -> eltyp
+  | TArray(eltyp,_,_,_) -> eltyp
   | _ -> assert false
 
 let element_type ty =
   let rec elem_type ty = match unrollType ty with
-    | TArray(eltyp,_,_) -> elem_type eltyp
+    | TArray(eltyp,_,_,_) -> elem_type eltyp
     | _ -> ty
   in
   match unrollType ty with
-    | TArray(eltyp,_,_) -> elem_type eltyp
+    | TArray(eltyp,_,_,_) -> elem_type eltyp
     | _ -> assert false
 
 let direct_pointed_type ty =

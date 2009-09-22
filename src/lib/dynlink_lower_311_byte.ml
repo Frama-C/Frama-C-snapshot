@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,19 +19,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: dynlink_lower_311_byte.ml,v 1.3 2008/08/28 09:22:49 uid528 Exp $ *)
+(* Implementation of [Dynlink_common_interface] compatible with 
+   ocamlc < 3.11 *)
 
 module type OldDynlink = sig
   val loadfile : string -> unit
   val allow_unsafe_modules : bool -> unit
   val init : unit -> unit
-  type linking_error = 
-      Dynlink.linking_error 
-      =
-    | Undefined_global of string
-    | Unavailable_primitive of string
-    | Uninitialized_global of string
-
   val digest_interface : string -> string list -> Digest.t
 end
 
@@ -41,6 +35,11 @@ exception Unsupported_Feature of string
 
 let is_native = false
 let adapt_filename x = x
+
+type linking_error = 
+  | Undefined_global of string
+  | Unavailable_primitive of string
+  | Uninitialized_global of string
 
 type error =
     Not_a_bytecode_file of string
@@ -55,23 +54,34 @@ type error =
 
 exception Error of error
 
+let to_dynlink_linking_error = function
+  | Undefined_global s -> Dynlink.Undefined_global s
+  | Unavailable_primitive s -> Dynlink.Unavailable_primitive s
+  | Uninitialized_global s -> Dynlink.Uninitialized_global s
+
 let to_dynlink_error = function
   | Not_a_bytecode_file s -> Dynlink.Not_a_bytecode_file s
   | Inconsistent_import s -> Dynlink.Inconsistent_import s
   | Unavailable_unit s -> Dynlink.Unavailable_unit s
   | Unsafe_file -> Dynlink.Unsafe_file
-  | Linking_error(s, l) -> Dynlink.Linking_error(s, l)
+  | Linking_error(s, l) -> Dynlink.Linking_error(s, to_dynlink_linking_error l)
   | Corrupted_interface s -> Dynlink.Corrupted_interface s
   | File_not_found s -> Dynlink.File_not_found s
   | Cannot_open_dll s -> Dynlink.Cannot_open_dll s
   | Inconsistent_implementation _ -> assert false 
+
+let from_dynlink_linking_error = function
+  | Dynlink.Undefined_global s -> Undefined_global s
+  | Dynlink.Unavailable_primitive s -> Unavailable_primitive s
+  | Dynlink.Uninitialized_global s -> Uninitialized_global s
 
 let from_dynlink_error = function
   | Dynlink.Not_a_bytecode_file s -> Not_a_bytecode_file s
   | Dynlink.Inconsistent_import s -> Inconsistent_import s
   | Dynlink.Unavailable_unit s -> Unavailable_unit s
   | Dynlink.Unsafe_file -> Unsafe_file
-  | Dynlink.Linking_error(s, l) -> Linking_error(s, l)
+  | Dynlink.Linking_error(s, l) -> 
+      Linking_error(s, from_dynlink_linking_error l)
   | Dynlink.Corrupted_interface s -> Corrupted_interface s
   | Dynlink.File_not_found s -> File_not_found s
   | Dynlink.Cannot_open_dll s -> Cannot_open_dll s
@@ -86,6 +96,6 @@ let error_message e = Dynlink.error_message (to_dynlink_error e)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

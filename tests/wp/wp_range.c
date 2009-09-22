@@ -1,11 +1,29 @@
+
+
+int T[10];
+
+/*@ requires 0 <= i < 10;
+  @ ensures T[i] == \old(T[i]) + 1;
+  */
+void incr_elem_tab (int i) {
+  T[i]++;
+}
+
 /*@ requires \valid_range(p,0,i) ;
   ensures *(\old(p)+i) == 78;
 */
 void main (int *p,int i) {
-  int T[5];
-  /*@ assert \valid_range(T,0,4) ;*/
   p++;
   p++;
   p++;
   *(p+i-3) = 78;
+}
+
+/*@ requires 0 <= i < 5;
+  @ ensures \result == i;
+  */
+int local_tab (int i) {
+  int t[5];
+  t[i] = i;
+  return t[i];
 }

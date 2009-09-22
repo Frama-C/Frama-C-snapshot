@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: rangemap.mli,v 1.4 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: rangemap.mli,v 1.4 2008-11-18 12:13:41 uid568 Exp $ *)
 
 (** Association tables over ordered types.
 

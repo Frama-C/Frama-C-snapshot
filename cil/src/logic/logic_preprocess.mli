@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,11 +25,12 @@
     annotations.
 *)
 
-(* $Id: logic_preprocess.mli,v 1.7 2008/05/23 12:39:23 uid528 Exp $ *)
+(* $Id: logic_preprocess.mli,v 1.7 2008-05-23 12:39:23 uid528 Exp $ *)
 
 (** [file cpp file] takes the file to preprocess,
-and the pre-processing directive, and returns the name of the file containing
-the completely pre-processed source.
-*)
+    and the pre-processing directive, and returns the name of the file
+    containing the completely pre-processed source.
+
+    @raises Sys_error if the file cannot be opened. *)
 
 val file: (string -> string -> string) -> string -> string

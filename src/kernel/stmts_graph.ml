@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: stmts_graph.ml,v 1.23 2008/10/13 12:56:47 uid530 Exp $ *)
+(* $Id: stmts_graph.ml,v 1.23 2008-10-13 12:56:47 uid530 Exp $ *)
 
 open Cil_types
 open Cil
@@ -37,10 +37,9 @@ module Classic = Graph.Oper.I(StmtsGraph)
 module TP = struct
   include SG
   let graph_attributes _ = []
-  open Pretty
 
   let pretty_raw_stmt s =
-    let s = fprintf_to_string "%a" !Ast_printer.d_stmt s in
+    let s = Pretty_utils.sfprintf "%a" !Ast_printer.d_stmt s in
     if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s
 
   let vertex_name s =
@@ -51,8 +50,7 @@ module TP = struct
        | Goto _ -> Format.sprintf "%s <%d>\n" (pretty_raw_stmt s) s.sid
        | Break _ -> Format.sprintf "BREAK <%d>" s.sid
        | Continue _ -> Format.sprintf "CONTINUE <%d>" s.sid
-       | If(e,_,_,_) -> fprintf_to_string
-           "IF <%d>\n%a" s.sid !Ast_printer.d_exp e
+       | If(e,_,_,_) -> Pretty_utils.sfprintf "IF <%d>\n%a" s.sid !Ast_printer.d_exp e
        | Switch _ ->  Format.sprintf "SWITCH <%d>" s.sid
        | Loop _ ->  Format.sprintf "WHILE(1) <%d>" s.sid
        | Block _ ->  Format.sprintf "BLOCK <%d>" s.sid
@@ -93,17 +91,18 @@ let compute_stmtgraph_func func =
   let nb_stmt = List.length func.sallstmts in
   let o = new stmt_graph_builder nb_stmt in
   ignore (visitCilFunction (o:>cilVisitor) func);
-  if Cmdline.Debug.get () > 0 || Cmdline.Pdg.Verbosity.get() > 0 then begin
-    Format.printf
-      "Function %a: Nb vertex: %d Nb edges:%d See file '%s_cfg.dot'.@\n"
-      !Ast_printer.d_ident func.svar.vname
-      (SG.nb_edges o#result)
-      (SG.nb_vertex o#result)
-      func.svar.vname;
-    let oc = open_out (func.svar.vname^"_cfg.dot") in
-    GPrint.output_graph oc o#result;
-    close_out oc;
-  end;
+  if Kernel.debug_atleast 1 then
+    begin
+      Kernel.debug
+	"Function %a: Nb vertex: %d Nb edges:%d See file '%s_cfg.dot'.@\n"
+	!Ast_printer.d_ident func.svar.vname
+	(SG.nb_edges o#result)
+	(SG.nb_vertex o#result)
+	func.svar.vname;
+      let oc = open_out (func.svar.vname^"_cfg.dot") in
+      GPrint.output_graph oc o#result;
+      close_out oc;
+    end;
   (* Classic.add_transitive_closure ~reflexive:true o#result*)
   o#result
 
@@ -129,8 +128,8 @@ let get_graph kf = match kf.stmts_graph with
       f
 
 let stmt_can_reach kf s1 s2 =
-  if Cmdline.Debug.get () > 1 || Cmdline.Pdg.Verbosity.get () > 0 then
-    Format.printf "CHECK PATH %d->%d@\n" s1.sid s2.sid;
+  if Kernel.debug_atleast 1 then
+    Kernel.debug "CHECK PATH %d->%d@\n" s1.sid s2.sid;
   check_path (get_graph kf) s1 s2
 
 module Reachable_Stmts = 
@@ -139,7 +138,7 @@ module Reachable_Stmts =
     (struct
        let name = "reachable_stmts"
        let size = 97
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
 
 let reachable_stmts kf s =

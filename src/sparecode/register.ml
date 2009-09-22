@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -26,7 +26,7 @@ open Cil
 
 (** {2 Internal State} *)
 
-module Result = 
+module Result =
   Computation.Hashtbl
     (Datatype.Couple(Datatype.Bool)(Datatype.Bool))
     (Datatype.Project)
@@ -36,90 +36,90 @@ module Result =
        let dependencies = [] (* delayed, see below *)
      end)
 
+
+module P = Sparecode_params
+(*
 let () =
-  Options.register_plugin_init
+  Cmdline.run_after_extending_stage
     (fun () ->
        let add = Project.Computation.add_dependency Result.self in
        add !Db.Pdg.self;
        add !Db.Outputs.self_external)
-
+*)
 (** {2 Computation} *)
 
-let rm_unused_globals ?project () = 
-  let project = 
-    match project with Some prj -> prj | None -> (Project.current()) in
-  Debug.debug 0 
-    "[sparecode] remove unused global declarations in project '%s'@."
+let unjournalized_rm_unused_globals project () =
+  P.feedback "remove unused global declarations from project '%s'"
     (Project.name project);
-  Project.on project Globs.rm_unused_decl () 
+  let new_name = Project.name project ^ " (without unused globals)" in
+  P.result "removed unused global declarations in new project '%s'" new_name;
+  Project.on project Globs.rm_unused_decl new_name
+
+let journalized_rm_unused_globals =
+  Journal.register
+    "!Db.Sparecode.rm_unused_globals"
+    (Type.func ~label:("project", Some Project.current)
+       Project.ty (Type.func Type.unit  Project.ty))
+    unjournalized_rm_unused_globals
+
+let rm_unused_globals ?(project=Project.current ()) () =
+  journalized_rm_unused_globals project ()
 
 let run select_annot select_slice_pragma =
-  Debug.debug 1 "[sparecode] running@.";
-  (*let initial_file = Cil_state.file () in*)
+  P.feedback "remove unused code...";
+  (*let initial_file = Ast.get () in*)
   let kf_entry, _library = Globals.entry_point () in
 
-  let proj = Marks.select_usefull_things 
+  let proj = Marks.select_usefull_things
                ~select_annot ~select_slice_pragma kf_entry in
 
-  let new_proj_name = "unused_removed" in
-  let new_prj = Project.create new_proj_name in
-  Transform.Info.build_cil_file new_prj proj;
-  Debug.debug 1 "[sparecode] remove unused global declarations...@.";
-  let _ = Project.on new_prj Globs.rm_unused_decl () in
-  Debug.debug 0 "[sparecode] done. Result in new project '%s'.@."
-    (Project.name new_prj);
-  new_prj
+  let old_proj_name = Project.name (Project.current ()) in
+  let new_proj_name = (old_proj_name^" without sparecode") in
 
+    P.feedback "remove unused global declarations...";
+  let tmp_prj = Transform.Info.build_cil_file "tmp_prj" proj in
+  let new_prj = Project.on tmp_prj Globs.rm_unused_decl new_proj_name in
+    P.result "result in new project '%s'." (Project.name new_prj);
+    Project.remove ~project:tmp_prj ();
+  let ctx = Parameters.get_selection_context () in
+    Project.copy ~only:ctx new_prj;
+    new_prj
 
 let journalized_get =
   Journal.register
     "!Db.Sparecode.get"
-    (Type.func Type.bool (Type.func Type.bool Project.repr))
-    (fun select_annot select_slice_pragma -> 
-       Result.memo 
+    (Type.func ~label:("select_annot", None) Type.bool
+       (Type.func ~label:("select_slice_pragma", None) Type.bool Project.ty))
+    (fun select_annot select_slice_pragma ->
+       Result.memo
 	 (fun _ -> run select_annot select_slice_pragma)
 	 (select_annot, select_slice_pragma))
 
 (* add labels *)
-let get ~select_annot ~select_slice_pragma = 
+let get ~select_annot ~select_slice_pragma =
   journalized_get select_annot select_slice_pragma
-    
+
 (** {2 Initialisation of the sparecode plugin } *)
 
-let () = 
-  Db.register ~journalize:None Db.Sparecode.get get;
-  Db.Sparecode.rm_unused_globals := rm_unused_globals
+let () =
+  (* journalization already done. *)
+  Db.register Db.Journalization_not_required Db.Sparecode.get get;
+  Db.register Db.Journalization_not_required
+    Db.Sparecode.rm_unused_globals rm_unused_globals
 
-let main fmt =
-  if Cmdline.Sparecode.Analysis.get () then begin
-    Format.fprintf fmt "@\n[sparecode] in progress...@.";
-    let select_annot = not (Cmdline.Sparecode.NoAnnot.get ())in
+let main _fmt =
+  if Sparecode_params.Analysis.get () then begin
+    let select_annot = Sparecode_params.Annot.get () in
     let select_slice_pragma = true in
     let new_proj = !Db.Sparecode.get select_annot select_slice_pragma in
-    File.pretty fmt ~prj:new_proj ;
-    Format.fprintf fmt "@\n====== UNUSED CODE DETECTED ======@."
-  end 
-  else if Cmdline.Sparecode.GlobDecl.get () then begin
-    rm_unused_globals ();
-    File.pretty fmt 
+    File.pretty ~prj:new_proj ()
+  end
+  else if Sparecode_params.GlobDecl.get () then begin
+    let new_proj = rm_unused_globals () in
+    File.pretty  ~prj:new_proj ()
   end
 
 let () = Db.Main.extend main
-
-let () =
-  Options.add_plugin
-    ~name:"Spare Code (experimental)"
-    ~descr:"unused code detection"
-    [ "-sparecode-analysis",
-      Arg.Unit Cmdline.Sparecode.Analysis.on,
-      ": perform a spare code analysis";
-      "-sparecode-no-annot",
-      Arg.Unit Cmdline.Sparecode.NoAnnot.on,
-      ": don't select more things to keep every reachable annotation";
-      "-rm-unused-globals",
-      Arg.Unit Cmdline.Sparecode.GlobDecl.on,
-      ": only remove unused global types and variables (automatically done by -sparecode-analysis)"
-    ]
 
 (*
 Local Variables:

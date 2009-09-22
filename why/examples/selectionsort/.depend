@@ -1,2 +1,0 @@
-selection_valid.vo: selection_valid.v ../../lib/coq/Why.vo ./selection_why.vo
-selection_why.vo: selection_why.v ../../lib/coq/Why.vo

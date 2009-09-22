@@ -129,14 +129,10 @@ type token =
 
 open Parsing;;
 # 47 "cil/src/frontc/cparser.mly"
+
 open Cabs
 open Cabshelper
-module E = Errormsg
-
-let parse_error msg : unit =       (* sm: c++-mode highlight hack: -> ' <- *)
-  E.parse_error msg
-
-let print = print_string
+let parse_error msg = Errorloc.parse_error msg
 
 (* unit -> string option *)
 (*
@@ -198,8 +194,7 @@ let announceFunctionName ((n, decl, _, _):name) =
   !Lexerhack.push_context ();
   (try findProto decl
    with Parsing.Parse_error ->
-     parse_error "Cannot find the prototype in a function definition";
-     raise Parsing.Parse_error);
+     parse_error "Cannot find the prototype in a function definition");
   currentFunctionName := n
 
 
@@ -233,10 +228,10 @@ let doDeclaration logic_spec (loc: cabsloc) (specs: spec_elem list) (nl: init_na
         match logic_spec with
             None -> None
           | Some ls ->
-              (try Some (Logic_lexer.spec ls)
-               with Parsing.Parse_error ->
-                 Cabshelper.warn_skip_logic(); None)
-
+	      Cabshelper.continue_annot loc
+		(fun () -> Some (Logic_lexer.spec ls))
+		(fun () -> None)
+		"Skipping annotation"
       in
       !Lexerhack.pop_context ();
       DECDEF (logic_spec, (specs, nl), loc)
@@ -275,20 +270,12 @@ let checkConnective (s : string) : unit =
 begin
   (* checking this means I could possibly have more connectives, with *)
   (* different meaning *)
-  if (s <> "to") then (
-    parse_error "transformer connective must be 'to'";
-    raise Parsing.Parse_error
-  )
-  else ()
+  if (s <> "to") then parse_error "transformer connective must be 'to'";
 end
 
 let int64_to_char value =
   if (compare value (Int64.of_int 255) > 0) || (compare value Int64.zero < 0) then
-    begin
-      let msg = Printf.sprintf "cparser:intlist_to_string: character 0x%Lx too big" value in
-      parse_error msg;
-      raise Parsing.Parse_error
-    end
+    parse_error (Printf.sprintf "integral literal 0x%Lx too big" value)
   else
     Char.chr (Int64.to_int value)
 
@@ -335,9 +322,8 @@ let transformOffsetOf (speclist, dtype) member =
 	MEMBEROF (replaceBase base, field)
     | INDEX (base, index) ->
 	INDEX (replaceBase base, index)
-    | _ ->
-	parse_error "malformed offset expression in __builtin_offsetof";
-        raise Parsing.Parse_error
+    | _ -> 
+	parse_error "malformed offset expression in __builtin_offsetof"
   in
   let memberExpr = replaceBase member in
   let addrExpr = UNARY (ADDROF, memberExpr) in
@@ -358,7 +344,7 @@ let in_ghost s =
   in
   ignore (Cabsvisit.visitCabsStatement ghost_me s)
 
-# 362 "cil/src/frontc/cparser.ml"
+# 348 "cil/src/frontc/cparser.ml"
 let yytransl_const = [|
     0 (* EOF *);
   296 (* EQ *);
@@ -3067,104 +3053,104 @@ let yyact = [|
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : (bool*Cabs.definition) list) in
     Obj.repr(
-# 435 "cil/src/frontc/cparser.mly"
+# 421 "cil/src/frontc/cparser.mly"
               (_1)
-# 3073 "cil/src/frontc/cparser.ml"
+# 3059 "cil/src/frontc/cparser.ml"
                : (bool*Cabs.definition) list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : (bool*Cabs.definition) list) in
     Obj.repr(
-# 437 "cil/src/frontc/cparser.mly"
+# 423 "cil/src/frontc/cparser.mly"
                  (_1)
-# 3080 "cil/src/frontc/cparser.ml"
+# 3066 "cil/src/frontc/cparser.ml"
                : (bool*Cabs.definition) list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 440 "cil/src/frontc/cparser.mly"
+# 426 "cil/src/frontc/cparser.mly"
                                         ( [] )
-# 3086 "cil/src/frontc/cparser.ml"
+# 3072 "cil/src/frontc/cparser.ml"
                : (bool*Cabs.definition) list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.definition) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : (bool*Cabs.definition) list) in
     Obj.repr(
-# 441 "cil/src/frontc/cparser.mly"
+# 427 "cil/src/frontc/cparser.mly"
                                         ( (false,_1) :: _2 )
-# 3094 "cil/src/frontc/cparser.ml"
+# 3080 "cil/src/frontc/cparser.ml"
                : (bool*Cabs.definition) list))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'ghost_globals) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : (bool*Cabs.definition) list) in
     Obj.repr(
-# 442 "cil/src/frontc/cparser.mly"
+# 428 "cil/src/frontc/cparser.mly"
                                         ( _2 @ _3 )
-# 3102 "cil/src/frontc/cparser.ml"
+# 3088 "cil/src/frontc/cparser.ml"
                : (bool*Cabs.definition) list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : (bool*Cabs.definition) list) in
     Obj.repr(
-# 443 "cil/src/frontc/cparser.mly"
+# 429 "cil/src/frontc/cparser.mly"
                                         ( _2 )
-# 3110 "cil/src/frontc/cparser.ml"
+# 3096 "cil/src/frontc/cparser.ml"
                : (bool*Cabs.definition) list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 447 "cil/src/frontc/cparser.mly"
+# 433 "cil/src/frontc/cparser.mly"
                                ( currentLoc () )
-# 3116 "cil/src/frontc/cparser.ml"
+# 3102 "cil/src/frontc/cparser.ml"
                : Cabs.cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.definition) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'ghost_globals) in
     Obj.repr(
-# 452 "cil/src/frontc/cparser.mly"
+# 438 "cil/src/frontc/cparser.mly"
                                                       ( (true,_1)::_2 )
-# 3124 "cil/src/frontc/cparser.ml"
+# 3110 "cil/src/frontc/cparser.ml"
                : 'ghost_globals))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.definition) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'ghost_globals) in
     Obj.repr(
-# 453 "cil/src/frontc/cparser.mly"
+# 439 "cil/src/frontc/cparser.mly"
                                                       ( (true,_1)::_2 )
-# 3132 "cil/src/frontc/cparser.ml"
+# 3118 "cil/src/frontc/cparser.ml"
                : 'ghost_globals))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 454 "cil/src/frontc/cparser.mly"
+# 440 "cil/src/frontc/cparser.mly"
                                                       ( [] )
-# 3138 "cil/src/frontc/cparser.ml"
+# 3124 "cil/src/frontc/cparser.ml"
                : 'ghost_globals))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : (Cabs.cabsloc * Logic_ptree.decl) list) in
     Obj.repr(
-# 459 "cil/src/frontc/cparser.mly"
+# 445 "cil/src/frontc/cparser.mly"
                                         ( GLOBANNOT _1 )
+# 3131 "cil/src/frontc/cparser.ml"
+               : Cabs.definition))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.definition) in
+    Obj.repr(
+# 446 "cil/src/frontc/cparser.mly"
+                                        ( _1 )
+# 3138 "cil/src/frontc/cparser.ml"
+               : Cabs.definition))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.definition) in
+    Obj.repr(
+# 447 "cil/src/frontc/cparser.mly"
+                                        ( _1 )
 # 3145 "cil/src/frontc/cparser.ml"
-               : Cabs.definition))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.definition) in
-    Obj.repr(
-# 460 "cil/src/frontc/cparser.mly"
-                                        ( _1 )
-# 3152 "cil/src/frontc/cparser.ml"
-               : Cabs.definition))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.definition) in
-    Obj.repr(
-# 461 "cil/src/frontc/cparser.mly"
-                                        ( _1 )
-# 3159 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : string * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.definition) in
     Obj.repr(
-# 465 "cil/src/frontc/cparser.mly"
+# 451 "cil/src/frontc/cparser.mly"
                                         ( LINKAGE (fst _2, (*handleLoc*) (snd _2), [ _3 ]) )
-# 3168 "cil/src/frontc/cparser.ml"
+# 3154 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -3173,16 +3159,14 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : (bool*Cabs.definition) list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 467 "cil/src/frontc/cparser.mly"
+# 453 "cil/src/frontc/cparser.mly"
       ( LINKAGE (fst _2, (*handleLoc*) (snd _2),
                  List.map
                    (fun (x,y) ->
-                      if x then
-                        (parse_error "invalid ghost in extern linkage specification";
-                         raise Parsing.Parse_error);
-                      y)
+                      if x then parse_error "invalid ghost in extern linkage specification"
+		      else y)
                    _4)  )
-# 3186 "cil/src/frontc/cparser.ml"
+# 3170 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -3190,16 +3174,16 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 2 : string * cabsloc) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 476 "cil/src/frontc/cparser.mly"
+# 460 "cil/src/frontc/cparser.mly"
                                         ( GLOBASM (fst _3, (*handleLoc*) _1) )
-# 3196 "cil/src/frontc/cparser.ml"
+# 3180 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'pragma) in
     Obj.repr(
-# 477 "cil/src/frontc/cparser.mly"
+# 461 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 3203 "cil/src/frontc/cparser.ml"
+# 3187 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : string * Cabs.cabsloc) in
@@ -3208,7 +3192,7 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : 'old_pardef_list) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 482 "cil/src/frontc/cparser.mly"
+# 466 "cil/src/frontc/cparser.mly"
                            ( (* Convert pardecl to new style *)
                              let pardecl, isva = doOldParDecl _3 _5 in
                              (* Make the function declarator *)
@@ -3216,20 +3200,20 @@ let yyact = [|
                                [((fst _1, PROTO(JUSTBASE, pardecl,isva), [], snd _1),
                                  NO_INIT)]
                             )
-# 3220 "cil/src/frontc/cparser.ml"
+# 3204 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : string * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 491 "cil/src/frontc/cparser.mly"
+# 475 "cil/src/frontc/cparser.mly"
                            ( (* Make the function declarator *)
                              doDeclaration None ((*handleLoc*)(snd _1)) []
                                [((fst _1, PROTO(JUSTBASE,[],false), [], (*CEA*) cabslu),
                                  NO_INIT)]
                             )
-# 3233 "cil/src/frontc/cparser.ml"
+# 3217 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 7 : Cabs.cabsloc) in
@@ -3241,20 +3225,18 @@ let yyact = [|
     let _7 = (Parsing.peek_val __caml_parser_env 1 : (bool*Cabs.definition) list) in
     let _8 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 497 "cil/src/frontc/cparser.mly"
+# 481 "cil/src/frontc/cparser.mly"
                                                                         (
     checkConnective(fst _5);
     TRANSFORMER(_3,
                   List.map
                     (fun (x,y) ->
-                       if x then
-                         (parse_error "invalid ghost transformer";
-                          raise Parsing.Parse_error);
-                       y)
+                       if x then parse_error "invalid ghost transformer"
+                       else y)
                     _7,
                 _1)
   )
-# 3258 "cil/src/frontc/cparser.ml"
+# 3240 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 7 : Cabs.cabsloc) in
@@ -3266,123 +3248,123 @@ let yyact = [|
     let _7 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression * cabsloc) in
     let _8 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 510 "cil/src/frontc/cparser.mly"
+# 492 "cil/src/frontc/cparser.mly"
                                                                                    (
     checkConnective(fst _5);
     EXPRTRANSFORMER(fst _3, fst _7, _1)
   )
-# 3275 "cil/src/frontc/cparser.ml"
+# 3257 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 514 "cil/src/frontc/cparser.mly"
+# 496 "cil/src/frontc/cparser.mly"
                            ( PRAGMA (VARIABLE "parse_error", _1) )
-# 3283 "cil/src/frontc/cparser.ml"
+# 3265 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 518 "cil/src/frontc/cparser.mly"
+# 500 "cil/src/frontc/cparser.mly"
              ( _1 )
-# 3290 "cil/src/frontc/cparser.ml"
+# 3272 "cil/src/frontc/cparser.ml"
                : 'id_or_typename_as_id))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 519 "cil/src/frontc/cparser.mly"
+# 501 "cil/src/frontc/cparser.mly"
                   ( _1 )
-# 3297 "cil/src/frontc/cparser.ml"
+# 3279 "cil/src/frontc/cparser.ml"
                : 'id_or_typename_as_id))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename_as_id) in
     Obj.repr(
-# 523 "cil/src/frontc/cparser.mly"
+# 505 "cil/src/frontc/cparser.mly"
                           (fst _1)
-# 3304 "cil/src/frontc/cparser.ml"
+# 3286 "cil/src/frontc/cparser.ml"
                : 'id_or_typename))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.cabsloc) in
     Obj.repr(
-# 524 "cil/src/frontc/cparser.mly"
+# 506 "cil/src/frontc/cparser.mly"
                                         ( "@name(" ^ fst _3 ^ ")" )
-# 3312 "cil/src/frontc/cparser.ml"
+# 3294 "cil/src/frontc/cparser.ml"
                : 'id_or_typename))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 528 "cil/src/frontc/cparser.mly"
+# 510 "cil/src/frontc/cparser.mly"
                                         ( () )
-# 3318 "cil/src/frontc/cparser.ml"
+# 3300 "cil/src/frontc/cparser.ml"
                : 'maybecomma))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 529 "cil/src/frontc/cparser.mly"
+# 511 "cil/src/frontc/cparser.mly"
                                         ( () )
-# 3324 "cil/src/frontc/cparser.ml"
+# 3306 "cil/src/frontc/cparser.ml"
                : 'maybecomma))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 536 "cil/src/frontc/cparser.mly"
+# 518 "cil/src/frontc/cparser.mly"
           (VARIABLE (fst _1), snd _1)
-# 3331 "cil/src/frontc/cparser.ml"
+# 3313 "cil/src/frontc/cparser.ml"
                : 'primary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.constant * cabsloc) in
     Obj.repr(
-# 538 "cil/src/frontc/cparser.mly"
+# 520 "cil/src/frontc/cparser.mly"
           (CONSTANT (fst _1), snd _1)
-# 3338 "cil/src/frontc/cparser.ml"
+# 3320 "cil/src/frontc/cparser.ml"
                : 'primary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 540 "cil/src/frontc/cparser.mly"
+# 522 "cil/src/frontc/cparser.mly"
           (PAREN (smooth_expression (fst _1)), snd _1)
-# 3345 "cil/src/frontc/cparser.ml"
+# 3327 "cil/src/frontc/cparser.ml"
                : 'primary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.block * cabsloc * cabsloc) in
     Obj.repr(
-# 542 "cil/src/frontc/cparser.mly"
+# 524 "cil/src/frontc/cparser.mly"
           ( GNU_BODY (fst3 _2), _1 )
-# 3353 "cil/src/frontc/cparser.ml"
+# 3335 "cil/src/frontc/cparser.ml"
                : 'primary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.cabsloc) in
     Obj.repr(
-# 546 "cil/src/frontc/cparser.mly"
+# 528 "cil/src/frontc/cparser.mly"
                          ( EXPR_PATTERN(fst _3), _1 )
-# 3362 "cil/src/frontc/cparser.ml"
+# 3344 "cil/src/frontc/cparser.ml"
                : 'primary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'primary_expression) in
     Obj.repr(
-# 551 "cil/src/frontc/cparser.mly"
+# 533 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3369 "cil/src/frontc/cparser.ml"
+# 3351 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'postfix_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list) in
     Obj.repr(
-# 553 "cil/src/frontc/cparser.mly"
+# 535 "cil/src/frontc/cparser.mly"
    (INDEX (fst _1, smooth_expression _2), snd _1)
-# 3377 "cil/src/frontc/cparser.ml"
+# 3359 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'postfix_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list) in
     Obj.repr(
-# 555 "cil/src/frontc/cparser.mly"
+# 537 "cil/src/frontc/cparser.mly"
    (CALL (fst _1, _3), snd _1)
-# 3386 "cil/src/frontc/cparser.ml"
+# 3368 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -3390,11 +3372,11 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 3 : Cabs.expression * cabsloc) in
     let _5 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
     Obj.repr(
-# 557 "cil/src/frontc/cparser.mly"
+# 539 "cil/src/frontc/cparser.mly"
                         ( let b, d = _5 in
                           CALL (VARIABLE "__builtin_va_arg",
                                 [fst _3; TYPE_SIZEOF (b, d)]), _1 )
-# 3398 "cil/src/frontc/cparser.ml"
+# 3380 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -3402,12 +3384,12 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 3 : Cabs.spec_elem list * Cabs.decl_type) in
     let _5 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
     Obj.repr(
-# 561 "cil/src/frontc/cparser.mly"
+# 543 "cil/src/frontc/cparser.mly"
                         ( let b1,d1 = _3 in
                           let b2,d2 = _5 in
                           CALL (VARIABLE "__builtin_types_compatible_p",
                                 [TYPE_SIZEOF(b1,d1); TYPE_SIZEOF(b2,d2)]), _1 )
-# 3411 "cil/src/frontc/cparser.ml"
+# 3393 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -3415,41 +3397,41 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 3 : Cabs.spec_elem list * Cabs.decl_type) in
     let _5 = (Parsing.peek_val __caml_parser_env 1 : 'offsetof_member_designator) in
     Obj.repr(
-# 566 "cil/src/frontc/cparser.mly"
+# 548 "cil/src/frontc/cparser.mly"
                         ( transformOffsetOf _3 _5, _1 )
-# 3421 "cil/src/frontc/cparser.ml"
+# 3403 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'postfix_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 568 "cil/src/frontc/cparser.mly"
+# 550 "cil/src/frontc/cparser.mly"
           (MEMBEROF (fst _1, _3), snd _1)
-# 3429 "cil/src/frontc/cparser.ml"
+# 3411 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'postfix_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 570 "cil/src/frontc/cparser.mly"
+# 552 "cil/src/frontc/cparser.mly"
           (MEMBEROFPTR (fst _1, _3), snd _1)
-# 3437 "cil/src/frontc/cparser.ml"
+# 3419 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'postfix_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 572 "cil/src/frontc/cparser.mly"
+# 554 "cil/src/frontc/cparser.mly"
           (UNARY (POSINCR, fst _1), snd _1)
-# 3445 "cil/src/frontc/cparser.ml"
+# 3427 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'postfix_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 574 "cil/src/frontc/cparser.mly"
+# 556 "cil/src/frontc/cparser.mly"
           (UNARY (POSDECR, fst _1), snd _1)
-# 3453 "cil/src/frontc/cparser.ml"
+# 3435 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -3458,545 +3440,545 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : 'initializer_list_opt) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 577 "cil/src/frontc/cparser.mly"
+# 559 "cil/src/frontc/cparser.mly"
           ( CAST(_2, COMPOUND_INIT _5), _1 )
-# 3464 "cil/src/frontc/cparser.ml"
+# 3446 "cil/src/frontc/cparser.ml"
                : 'postfix_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 582 "cil/src/frontc/cparser.mly"
+# 564 "cil/src/frontc/cparser.mly"
           ( VARIABLE (_1) )
-# 3471 "cil/src/frontc/cparser.ml"
+# 3453 "cil/src/frontc/cparser.ml"
                : 'offsetof_member_designator))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'offsetof_member_designator) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 584 "cil/src/frontc/cparser.mly"
+# 566 "cil/src/frontc/cparser.mly"
    ( MEMBEROF (_1, fst _3) )
-# 3479 "cil/src/frontc/cparser.ml"
+# 3461 "cil/src/frontc/cparser.ml"
                : 'offsetof_member_designator))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'offsetof_member_designator) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list) in
     Obj.repr(
-# 586 "cil/src/frontc/cparser.mly"
+# 568 "cil/src/frontc/cparser.mly"
    ( INDEX (_1, smooth_expression _2) )
-# 3487 "cil/src/frontc/cparser.ml"
+# 3469 "cil/src/frontc/cparser.ml"
                : 'offsetof_member_designator))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'postfix_expression) in
     Obj.repr(
-# 591 "cil/src/frontc/cparser.mly"
+# 573 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3494 "cil/src/frontc/cparser.ml"
+# 3476 "cil/src/frontc/cparser.ml"
                : 'unary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
+    Obj.repr(
+# 575 "cil/src/frontc/cparser.mly"
+          (UNARY (PREINCR, fst _2), _1)
+# 3484 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
+    Obj.repr(
+# 577 "cil/src/frontc/cparser.mly"
+          (UNARY (PREDECR, fst _2), _1)
+# 3492 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
+    Obj.repr(
+# 579 "cil/src/frontc/cparser.mly"
+          (EXPR_SIZEOF (fst _2), _1)
+# 3500 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
+    let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
+    Obj.repr(
+# 581 "cil/src/frontc/cparser.mly"
+          (let b, d = _3 in TYPE_SIZEOF (b, d), _1)
+# 3509 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
+    Obj.repr(
+# 583 "cil/src/frontc/cparser.mly"
+          (EXPR_ALIGNOF (fst _2), _1)
+# 3517 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
+    let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
+    Obj.repr(
+# 585 "cil/src/frontc/cparser.mly"
+          (let b, d = _3 in TYPE_ALIGNOF (b, d), _1)
+# 3526 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
+    Obj.repr(
+# 587 "cil/src/frontc/cparser.mly"
+          (UNARY (PLUS, fst _2), _1)
+# 3534 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
+    Obj.repr(
+# 589 "cil/src/frontc/cparser.mly"
+          (UNARY (MINUS, fst _2), _1)
+# 3542 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
+    Obj.repr(
+# 591 "cil/src/frontc/cparser.mly"
+          (UNARY (MEMOF, fst _2), _1)
+# 3550 "cil/src/frontc/cparser.ml"
+               : 'unary_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
 # 593 "cil/src/frontc/cparser.mly"
-          (UNARY (PREINCR, fst _2), _1)
-# 3502 "cil/src/frontc/cparser.ml"
+          (UNARY (ADDROF, fst _2), _1)
+# 3558 "cil/src/frontc/cparser.ml"
                : 'unary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
 # 595 "cil/src/frontc/cparser.mly"
-          (UNARY (PREDECR, fst _2), _1)
-# 3510 "cil/src/frontc/cparser.ml"
+          (UNARY (NOT, fst _2), _1)
+# 3566 "cil/src/frontc/cparser.ml"
                : 'unary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
 # 597 "cil/src/frontc/cparser.mly"
-          (EXPR_SIZEOF (fst _2), _1)
-# 3518 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
-    let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
-    Obj.repr(
-# 599 "cil/src/frontc/cparser.mly"
-          (let b, d = _3 in TYPE_SIZEOF (b, d), _1)
-# 3527 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
-    Obj.repr(
-# 601 "cil/src/frontc/cparser.mly"
-          (EXPR_ALIGNOF (fst _2), _1)
-# 3535 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
-    let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
-    Obj.repr(
-# 603 "cil/src/frontc/cparser.mly"
-          (let b, d = _3 in TYPE_ALIGNOF (b, d), _1)
-# 3544 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
-    Obj.repr(
-# 605 "cil/src/frontc/cparser.mly"
-          (UNARY (PLUS, fst _2), _1)
-# 3552 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
-    Obj.repr(
-# 607 "cil/src/frontc/cparser.mly"
-          (UNARY (MINUS, fst _2), _1)
-# 3560 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
-    Obj.repr(
-# 609 "cil/src/frontc/cparser.mly"
-          (UNARY (MEMOF, fst _2), _1)
-# 3568 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
-    Obj.repr(
-# 611 "cil/src/frontc/cparser.mly"
-          (UNARY (ADDROF, fst _2), _1)
-# 3576 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
-    Obj.repr(
-# 613 "cil/src/frontc/cparser.mly"
-          (UNARY (NOT, fst _2), _1)
-# 3584 "cil/src/frontc/cparser.ml"
-               : 'unary_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
-    Obj.repr(
-# 615 "cil/src/frontc/cparser.mly"
           (UNARY (BNOT, fst _2), _1)
-# 3592 "cil/src/frontc/cparser.ml"
+# 3574 "cil/src/frontc/cparser.ml"
                : 'unary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename_as_id) in
     Obj.repr(
-# 617 "cil/src/frontc/cparser.mly"
+# 599 "cil/src/frontc/cparser.mly"
                                              ( LABELADDR (fst _2), _1 )
-# 3600 "cil/src/frontc/cparser.ml"
+# 3582 "cil/src/frontc/cparser.ml"
                : 'unary_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
     Obj.repr(
-# 622 "cil/src/frontc/cparser.mly"
+# 604 "cil/src/frontc/cparser.mly"
                          ( _1 )
-# 3607 "cil/src/frontc/cparser.ml"
+# 3589 "cil/src/frontc/cparser.ml"
                : 'cast_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.spec_elem list * Cabs.decl_type) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
-# 624 "cil/src/frontc/cparser.mly"
+# 606 "cil/src/frontc/cparser.mly"
            ( CAST(_2, SINGLE_INIT (fst _4)), _1 )
-# 3616 "cil/src/frontc/cparser.ml"
+# 3598 "cil/src/frontc/cparser.ml"
                : 'cast_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
-# 629 "cil/src/frontc/cparser.mly"
+# 611 "cil/src/frontc/cparser.mly"
                          ( _1 )
-# 3623 "cil/src/frontc/cparser.ml"
+# 3605 "cil/src/frontc/cparser.ml"
                : 'multiplicative_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'multiplicative_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
-# 631 "cil/src/frontc/cparser.mly"
+# 613 "cil/src/frontc/cparser.mly"
    (BINARY(MUL, fst _1, fst _3), snd _1)
-# 3632 "cil/src/frontc/cparser.ml"
+# 3614 "cil/src/frontc/cparser.ml"
                : 'multiplicative_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'multiplicative_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
-# 633 "cil/src/frontc/cparser.mly"
+# 615 "cil/src/frontc/cparser.mly"
    (BINARY(DIV, fst _1, fst _3), snd _1)
-# 3640 "cil/src/frontc/cparser.ml"
+# 3622 "cil/src/frontc/cparser.ml"
                : 'multiplicative_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'multiplicative_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'cast_expression) in
     Obj.repr(
-# 635 "cil/src/frontc/cparser.mly"
+# 617 "cil/src/frontc/cparser.mly"
    (BINARY(MOD, fst _1, fst _3), snd _1)
-# 3648 "cil/src/frontc/cparser.ml"
+# 3630 "cil/src/frontc/cparser.ml"
                : 'multiplicative_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'multiplicative_expression) in
     Obj.repr(
-# 640 "cil/src/frontc/cparser.mly"
+# 622 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3655 "cil/src/frontc/cparser.ml"
+# 3637 "cil/src/frontc/cparser.ml"
                : 'additive_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'additive_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'multiplicative_expression) in
     Obj.repr(
-# 642 "cil/src/frontc/cparser.mly"
+# 624 "cil/src/frontc/cparser.mly"
    (BINARY(ADD, fst _1, fst _3), snd _1)
-# 3664 "cil/src/frontc/cparser.ml"
+# 3646 "cil/src/frontc/cparser.ml"
                : 'additive_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'additive_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'multiplicative_expression) in
     Obj.repr(
-# 644 "cil/src/frontc/cparser.mly"
+# 626 "cil/src/frontc/cparser.mly"
    (BINARY(SUB, fst _1, fst _3), snd _1)
-# 3673 "cil/src/frontc/cparser.ml"
+# 3655 "cil/src/frontc/cparser.ml"
                : 'additive_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'additive_expression) in
     Obj.repr(
-# 649 "cil/src/frontc/cparser.mly"
+# 631 "cil/src/frontc/cparser.mly"
                          ( _1 )
-# 3680 "cil/src/frontc/cparser.ml"
+# 3662 "cil/src/frontc/cparser.ml"
                : 'shift_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'shift_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'additive_expression) in
     Obj.repr(
-# 651 "cil/src/frontc/cparser.mly"
+# 633 "cil/src/frontc/cparser.mly"
    (BINARY(SHL, fst _1, fst _3), snd _1)
-# 3688 "cil/src/frontc/cparser.ml"
+# 3670 "cil/src/frontc/cparser.ml"
                : 'shift_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'shift_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'additive_expression) in
     Obj.repr(
-# 653 "cil/src/frontc/cparser.mly"
+# 635 "cil/src/frontc/cparser.mly"
    (BINARY(SHR, fst _1, fst _3), snd _1)
-# 3696 "cil/src/frontc/cparser.ml"
+# 3678 "cil/src/frontc/cparser.ml"
                : 'shift_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'shift_expression) in
     Obj.repr(
-# 659 "cil/src/frontc/cparser.mly"
+# 641 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3703 "cil/src/frontc/cparser.ml"
+# 3685 "cil/src/frontc/cparser.ml"
                : 'relational_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_expression) in
     Obj.repr(
-# 661 "cil/src/frontc/cparser.mly"
+# 643 "cil/src/frontc/cparser.mly"
    (BINARY(LT, fst _1, fst _3), snd _1)
-# 3711 "cil/src/frontc/cparser.ml"
+# 3693 "cil/src/frontc/cparser.ml"
                : 'relational_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_expression) in
     Obj.repr(
-# 663 "cil/src/frontc/cparser.mly"
+# 645 "cil/src/frontc/cparser.mly"
    (BINARY(GT, fst _1, fst _3), snd _1)
-# 3719 "cil/src/frontc/cparser.ml"
+# 3701 "cil/src/frontc/cparser.ml"
                : 'relational_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_expression) in
     Obj.repr(
-# 665 "cil/src/frontc/cparser.mly"
+# 647 "cil/src/frontc/cparser.mly"
    (BINARY(LE, fst _1, fst _3), snd _1)
-# 3727 "cil/src/frontc/cparser.ml"
+# 3709 "cil/src/frontc/cparser.ml"
                : 'relational_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_expression) in
     Obj.repr(
-# 667 "cil/src/frontc/cparser.mly"
+# 649 "cil/src/frontc/cparser.mly"
    (BINARY(GE, fst _1, fst _3), snd _1)
-# 3735 "cil/src/frontc/cparser.ml"
+# 3717 "cil/src/frontc/cparser.ml"
                : 'relational_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'relational_expression) in
     Obj.repr(
-# 672 "cil/src/frontc/cparser.mly"
+# 654 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3742 "cil/src/frontc/cparser.ml"
+# 3724 "cil/src/frontc/cparser.ml"
                : 'equality_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'equality_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'relational_expression) in
     Obj.repr(
-# 674 "cil/src/frontc/cparser.mly"
+# 656 "cil/src/frontc/cparser.mly"
    (BINARY(EQ, fst _1, fst _3), snd _1)
-# 3750 "cil/src/frontc/cparser.ml"
+# 3732 "cil/src/frontc/cparser.ml"
                : 'equality_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'equality_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'relational_expression) in
     Obj.repr(
-# 676 "cil/src/frontc/cparser.mly"
+# 658 "cil/src/frontc/cparser.mly"
    (BINARY(NE, fst _1, fst _3), snd _1)
-# 3758 "cil/src/frontc/cparser.ml"
+# 3740 "cil/src/frontc/cparser.ml"
                : 'equality_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'equality_expression) in
     Obj.repr(
-# 682 "cil/src/frontc/cparser.mly"
+# 664 "cil/src/frontc/cparser.mly"
                        ( _1 )
-# 3765 "cil/src/frontc/cparser.ml"
+# 3747 "cil/src/frontc/cparser.ml"
                : 'bitwise_and_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'bitwise_and_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'equality_expression) in
     Obj.repr(
-# 684 "cil/src/frontc/cparser.mly"
+# 666 "cil/src/frontc/cparser.mly"
    (BINARY(BAND, fst _1, fst _3), snd _1)
-# 3774 "cil/src/frontc/cparser.ml"
+# 3756 "cil/src/frontc/cparser.ml"
                : 'bitwise_and_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_and_expression) in
     Obj.repr(
-# 689 "cil/src/frontc/cparser.mly"
+# 671 "cil/src/frontc/cparser.mly"
                        ( _1 )
-# 3781 "cil/src/frontc/cparser.ml"
+# 3763 "cil/src/frontc/cparser.ml"
                : 'bitwise_xor_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'bitwise_xor_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_and_expression) in
     Obj.repr(
-# 691 "cil/src/frontc/cparser.mly"
+# 673 "cil/src/frontc/cparser.mly"
    (BINARY(XOR, fst _1, fst _3), snd _1)
-# 3789 "cil/src/frontc/cparser.ml"
+# 3771 "cil/src/frontc/cparser.ml"
                : 'bitwise_xor_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_xor_expression) in
     Obj.repr(
-# 696 "cil/src/frontc/cparser.mly"
+# 678 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3796 "cil/src/frontc/cparser.ml"
+# 3778 "cil/src/frontc/cparser.ml"
                : 'bitwise_or_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'bitwise_or_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_xor_expression) in
     Obj.repr(
-# 698 "cil/src/frontc/cparser.mly"
+# 680 "cil/src/frontc/cparser.mly"
    (BINARY(BOR, fst _1, fst _3), snd _1)
-# 3804 "cil/src/frontc/cparser.ml"
+# 3786 "cil/src/frontc/cparser.ml"
                : 'bitwise_or_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_or_expression) in
     Obj.repr(
-# 703 "cil/src/frontc/cparser.mly"
+# 685 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3811 "cil/src/frontc/cparser.ml"
+# 3793 "cil/src/frontc/cparser.ml"
                : 'logical_and_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'logical_and_expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_or_expression) in
     Obj.repr(
-# 705 "cil/src/frontc/cparser.mly"
+# 687 "cil/src/frontc/cparser.mly"
    (BINARY(AND, fst _1, fst _3), snd _1)
-# 3820 "cil/src/frontc/cparser.ml"
+# 3802 "cil/src/frontc/cparser.ml"
                : 'logical_and_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logical_and_expression) in
     Obj.repr(
-# 710 "cil/src/frontc/cparser.mly"
+# 692 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3827 "cil/src/frontc/cparser.ml"
+# 3809 "cil/src/frontc/cparser.ml"
                : 'logical_or_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'logical_or_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'logical_and_expression) in
     Obj.repr(
-# 712 "cil/src/frontc/cparser.mly"
+# 694 "cil/src/frontc/cparser.mly"
    (BINARY(OR, fst _1, fst _3), snd _1)
-# 3835 "cil/src/frontc/cparser.ml"
+# 3817 "cil/src/frontc/cparser.ml"
                : 'logical_or_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logical_or_expression) in
     Obj.repr(
-# 717 "cil/src/frontc/cparser.mly"
+# 699 "cil/src/frontc/cparser.mly"
                          ( _1 )
-# 3842 "cil/src/frontc/cparser.ml"
+# 3824 "cil/src/frontc/cparser.ml"
                : 'conditional_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : 'logical_or_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 2 : Cabs.expression) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : 'conditional_expression) in
     Obj.repr(
-# 719 "cil/src/frontc/cparser.mly"
+# 701 "cil/src/frontc/cparser.mly"
    (QUESTION (fst _1, _3, fst _5), snd _1)
-# 3851 "cil/src/frontc/cparser.ml"
+# 3833 "cil/src/frontc/cparser.ml"
                : 'conditional_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'conditional_expression) in
     Obj.repr(
-# 727 "cil/src/frontc/cparser.mly"
+# 709 "cil/src/frontc/cparser.mly"
                          ( _1 )
-# 3858 "cil/src/frontc/cparser.ml"
+# 3840 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 711 "cil/src/frontc/cparser.mly"
+   (BINARY(ASSIGN, fst _1, fst _3), snd _1)
+# 3848 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 713 "cil/src/frontc/cparser.mly"
+   (BINARY(ADD_ASSIGN, fst _1, fst _3), snd _1)
+# 3856 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 715 "cil/src/frontc/cparser.mly"
+   (BINARY(SUB_ASSIGN, fst _1, fst _3), snd _1)
+# 3864 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 717 "cil/src/frontc/cparser.mly"
+   (BINARY(MUL_ASSIGN, fst _1, fst _3), snd _1)
+# 3872 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 719 "cil/src/frontc/cparser.mly"
+   (BINARY(DIV_ASSIGN, fst _1, fst _3), snd _1)
+# 3880 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 721 "cil/src/frontc/cparser.mly"
+   (BINARY(MOD_ASSIGN, fst _1, fst _3), snd _1)
+# 3888 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 723 "cil/src/frontc/cparser.mly"
+   (BINARY(BAND_ASSIGN, fst _1, fst _3), snd _1)
+# 3896 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 725 "cil/src/frontc/cparser.mly"
+   (BINARY(BOR_ASSIGN, fst _1, fst _3), snd _1)
+# 3904 "cil/src/frontc/cparser.ml"
+               : 'assignment_expression))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
+    Obj.repr(
+# 727 "cil/src/frontc/cparser.mly"
+   (BINARY(XOR_ASSIGN, fst _1, fst _3), snd _1)
+# 3912 "cil/src/frontc/cparser.ml"
                : 'assignment_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
     Obj.repr(
 # 729 "cil/src/frontc/cparser.mly"
-   (BINARY(ASSIGN, fst _1, fst _3), snd _1)
-# 3866 "cil/src/frontc/cparser.ml"
+   (BINARY(SHL_ASSIGN, fst _1, fst _3), snd _1)
+# 3920 "cil/src/frontc/cparser.ml"
                : 'assignment_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
     Obj.repr(
 # 731 "cil/src/frontc/cparser.mly"
-   (BINARY(ADD_ASSIGN, fst _1, fst _3), snd _1)
-# 3874 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 733 "cil/src/frontc/cparser.mly"
-   (BINARY(SUB_ASSIGN, fst _1, fst _3), snd _1)
-# 3882 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 735 "cil/src/frontc/cparser.mly"
-   (BINARY(MUL_ASSIGN, fst _1, fst _3), snd _1)
-# 3890 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 737 "cil/src/frontc/cparser.mly"
-   (BINARY(DIV_ASSIGN, fst _1, fst _3), snd _1)
-# 3898 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 739 "cil/src/frontc/cparser.mly"
-   (BINARY(MOD_ASSIGN, fst _1, fst _3), snd _1)
-# 3906 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 741 "cil/src/frontc/cparser.mly"
-   (BINARY(BAND_ASSIGN, fst _1, fst _3), snd _1)
-# 3914 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 743 "cil/src/frontc/cparser.mly"
-   (BINARY(BOR_ASSIGN, fst _1, fst _3), snd _1)
-# 3922 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 745 "cil/src/frontc/cparser.mly"
-   (BINARY(XOR_ASSIGN, fst _1, fst _3), snd _1)
-# 3930 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 747 "cil/src/frontc/cparser.mly"
-   (BINARY(SHL_ASSIGN, fst _1, fst _3), snd _1)
-# 3938 "cil/src/frontc/cparser.ml"
-               : 'assignment_expression))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'cast_expression) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
-    Obj.repr(
-# 749 "cil/src/frontc/cparser.mly"
    (BINARY(SHR_ASSIGN, fst _1, fst _3), snd _1)
-# 3946 "cil/src/frontc/cparser.ml"
+# 3928 "cil/src/frontc/cparser.ml"
                : 'assignment_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'assignment_expression) in
     Obj.repr(
-# 754 "cil/src/frontc/cparser.mly"
+# 736 "cil/src/frontc/cparser.mly"
                         ( _1 )
-# 3953 "cil/src/frontc/cparser.ml"
+# 3935 "cil/src/frontc/cparser.ml"
                : Cabs.expression * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 759 "cil/src/frontc/cparser.mly"
+# 741 "cil/src/frontc/cparser.mly"
                (CONST_INT (fst _1), snd _1)
-# 3960 "cil/src/frontc/cparser.ml"
+# 3942 "cil/src/frontc/cparser.ml"
                : Cabs.constant * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 760 "cil/src/frontc/cparser.mly"
+# 742 "cil/src/frontc/cparser.mly"
                  (CONST_FLOAT (fst _1), snd _1)
-# 3967 "cil/src/frontc/cparser.ml"
+# 3949 "cil/src/frontc/cparser.ml"
                : Cabs.constant * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list * Cabs.cabsloc) in
     Obj.repr(
-# 761 "cil/src/frontc/cparser.mly"
+# 743 "cil/src/frontc/cparser.mly"
                 (CONST_CHAR (fst _1), snd _1)
-# 3974 "cil/src/frontc/cparser.ml"
+# 3956 "cil/src/frontc/cparser.ml"
                : Cabs.constant * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list * Cabs.cabsloc) in
     Obj.repr(
-# 762 "cil/src/frontc/cparser.mly"
+# 744 "cil/src/frontc/cparser.mly"
                  (CONST_WCHAR (fst _1), snd _1)
-# 3981 "cil/src/frontc/cparser.ml"
+# 3963 "cil/src/frontc/cparser.ml"
                : Cabs.constant * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * cabsloc) in
     Obj.repr(
-# 763 "cil/src/frontc/cparser.mly"
+# 745 "cil/src/frontc/cparser.mly"
                              (CONST_STRING (fst _1), snd _1)
-# 3988 "cil/src/frontc/cparser.ml"
+# 3970 "cil/src/frontc/cparser.ml"
                : Cabs.constant * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list * cabsloc) in
     Obj.repr(
-# 764 "cil/src/frontc/cparser.mly"
+# 746 "cil/src/frontc/cparser.mly"
                    (CONST_WSTRING (fst _1), snd _1)
-# 3995 "cil/src/frontc/cparser.ml"
+# 3977 "cil/src/frontc/cparser.ml"
                : Cabs.constant * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list Queue.t * cabsloc) in
     Obj.repr(
-# 770 "cil/src/frontc/cparser.mly"
+# 752 "cil/src/frontc/cparser.mly"
                                         (
      let queue, location = _1 in
      let buffer = Buffer.create (Queue.length queue) in
@@ -4008,295 +3990,295 @@ let yyact = [|
        queue;
      Buffer.contents buffer, location
    )
-# 4012 "cil/src/frontc/cparser.ml"
+# 3994 "cil/src/frontc/cparser.ml"
                : string * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list * Cabs.cabsloc) in
     Obj.repr(
-# 784 "cil/src/frontc/cparser.mly"
+# 766 "cil/src/frontc/cparser.mly"
                                         (intlist_to_string (fst _1) )
-# 4019 "cil/src/frontc/cparser.ml"
+# 4001 "cil/src/frontc/cparser.ml"
                : 'one_string_constant))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'one_string) in
     Obj.repr(
-# 787 "cil/src/frontc/cparser.mly"
+# 769 "cil/src/frontc/cparser.mly"
                                         (
       let queue = Queue.create () in
       Queue.add (fst _1) queue;
       queue, snd _1
     )
-# 4030 "cil/src/frontc/cparser.ml"
+# 4012 "cil/src/frontc/cparser.ml"
                : int64 list Queue.t * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : int64 list Queue.t * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'one_string) in
     Obj.repr(
-# 792 "cil/src/frontc/cparser.mly"
+# 774 "cil/src/frontc/cparser.mly"
                                         (
       Queue.add (fst _2) (fst _1);
       _1
     )
-# 4041 "cil/src/frontc/cparser.ml"
+# 4023 "cil/src/frontc/cparser.ml"
                : int64 list Queue.t * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list * Cabs.cabsloc) in
     Obj.repr(
-# 799 "cil/src/frontc/cparser.mly"
+# 781 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 4048 "cil/src/frontc/cparser.ml"
+# 4030 "cil/src/frontc/cparser.ml"
                : int64 list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : int64 list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'one_string) in
     Obj.repr(
-# 800 "cil/src/frontc/cparser.mly"
+# 782 "cil/src/frontc/cparser.mly"
                                         ( (fst _1) @ (fst _2), snd _1 )
-# 4056 "cil/src/frontc/cparser.ml"
+# 4038 "cil/src/frontc/cparser.ml"
                : int64 list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : int64 list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : int64 list * Cabs.cabsloc) in
     Obj.repr(
-# 801 "cil/src/frontc/cparser.mly"
+# 783 "cil/src/frontc/cparser.mly"
                                         ( (fst _1) @ (fst _2), snd _1 )
-# 4064 "cil/src/frontc/cparser.ml"
+# 4046 "cil/src/frontc/cparser.ml"
                : int64 list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int64 list * Cabs.cabsloc) in
     Obj.repr(
-# 806 "cil/src/frontc/cparser.mly"
+# 788 "cil/src/frontc/cparser.mly"
                   (_1)
-# 4071 "cil/src/frontc/cparser.ml"
+# 4053 "cil/src/frontc/cparser.ml"
                : 'one_string))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 807 "cil/src/frontc/cparser.mly"
+# 789 "cil/src/frontc/cparser.mly"
                                         ((Cabshelper.explodeStringToInts
 					    !currentFunctionName), _1)
-# 4079 "cil/src/frontc/cparser.ml"
+# 4061 "cil/src/frontc/cparser.ml"
                : 'one_string))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 809 "cil/src/frontc/cparser.mly"
+# 791 "cil/src/frontc/cparser.mly"
                                         ((Cabshelper.explodeStringToInts
 					    !currentFunctionName), _1)
-# 4087 "cil/src/frontc/cparser.ml"
+# 4069 "cil/src/frontc/cparser.ml"
                : 'one_string))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 814 "cil/src/frontc/cparser.mly"
+# 796 "cil/src/frontc/cparser.mly"
                         ( SINGLE_INIT (fst _1) )
-# 4094 "cil/src/frontc/cparser.ml"
+# 4076 "cil/src/frontc/cparser.ml"
                : Cabs.init_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'initializer_list_opt) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 816 "cil/src/frontc/cparser.mly"
+# 798 "cil/src/frontc/cparser.mly"
    ( COMPOUND_INIT _2)
-# 4103 "cil/src/frontc/cparser.ml"
+# 4085 "cil/src/frontc/cparser.ml"
                : Cabs.init_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.initwhat * Cabs.init_expression) in
     Obj.repr(
-# 819 "cil/src/frontc/cparser.mly"
+# 801 "cil/src/frontc/cparser.mly"
                                             ( [_1] )
-# 4110 "cil/src/frontc/cparser.ml"
+# 4092 "cil/src/frontc/cparser.ml"
                : (Cabs.initwhat * Cabs.init_expression) list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.initwhat * Cabs.init_expression) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'initializer_list_opt) in
     Obj.repr(
-# 820 "cil/src/frontc/cparser.mly"
+# 802 "cil/src/frontc/cparser.mly"
                                             ( _1 :: _3 )
-# 4118 "cil/src/frontc/cparser.ml"
+# 4100 "cil/src/frontc/cparser.ml"
                : (Cabs.initwhat * Cabs.init_expression) list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 823 "cil/src/frontc/cparser.mly"
+# 805 "cil/src/frontc/cparser.mly"
                                             ( [] )
-# 4124 "cil/src/frontc/cparser.ml"
+# 4106 "cil/src/frontc/cparser.ml"
                : 'initializer_list_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : (Cabs.initwhat * Cabs.init_expression) list) in
     Obj.repr(
-# 824 "cil/src/frontc/cparser.mly"
+# 806 "cil/src/frontc/cparser.mly"
                                             ( _1 )
-# 4131 "cil/src/frontc/cparser.ml"
+# 4113 "cil/src/frontc/cparser.ml"
                : 'initializer_list_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.initwhat) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'eq_opt) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.init_expression) in
     Obj.repr(
-# 827 "cil/src/frontc/cparser.mly"
+# 809 "cil/src/frontc/cparser.mly"
                                             ( (_1, _3) )
-# 4140 "cil/src/frontc/cparser.ml"
+# 4122 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat * Cabs.init_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'gcc_init_designators) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.init_expression) in
     Obj.repr(
-# 828 "cil/src/frontc/cparser.mly"
+# 810 "cil/src/frontc/cparser.mly"
                                          ( (_1, _2) )
-# 4148 "cil/src/frontc/cparser.ml"
+# 4130 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat * Cabs.init_expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.init_expression) in
     Obj.repr(
-# 829 "cil/src/frontc/cparser.mly"
+# 811 "cil/src/frontc/cparser.mly"
                                         ( (NEXT_INIT, _1) )
-# 4155 "cil/src/frontc/cparser.ml"
+# 4137 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat * Cabs.init_expression))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 832 "cil/src/frontc/cparser.mly"
+# 814 "cil/src/frontc/cparser.mly"
                              ( () )
-# 4161 "cil/src/frontc/cparser.ml"
+# 4143 "cil/src/frontc/cparser.ml"
                : 'eq_opt))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 834 "cil/src/frontc/cparser.mly"
+# 816 "cil/src/frontc/cparser.mly"
                                  ( () )
-# 4167 "cil/src/frontc/cparser.ml"
+# 4149 "cil/src/frontc/cparser.ml"
                : 'eq_opt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'id_or_typename) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.initwhat) in
     Obj.repr(
-# 837 "cil/src/frontc/cparser.mly"
+# 819 "cil/src/frontc/cparser.mly"
                                                  ( INFIELD_INIT(_2, _3) )
-# 4175 "cil/src/frontc/cparser.ml"
+# 4157 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.expression * cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.initwhat) in
     Obj.repr(
-# 839 "cil/src/frontc/cparser.mly"
+# 821 "cil/src/frontc/cparser.mly"
                                         ( ATINDEX_INIT(fst _2, _4) )
-# 4183 "cil/src/frontc/cparser.ml"
+# 4165 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : Cabs.expression * cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 841 "cil/src/frontc/cparser.mly"
+# 823 "cil/src/frontc/cparser.mly"
                                         ( ATINDEXRANGE_INIT(fst _2, fst _4) )
-# 4191 "cil/src/frontc/cparser.ml"
+# 4173 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 844 "cil/src/frontc/cparser.mly"
+# 826 "cil/src/frontc/cparser.mly"
                                         ( NEXT_INIT )
-# 4197 "cil/src/frontc/cparser.ml"
+# 4179 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.initwhat) in
     Obj.repr(
-# 845 "cil/src/frontc/cparser.mly"
+# 827 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 4204 "cil/src/frontc/cparser.ml"
+# 4186 "cil/src/frontc/cparser.ml"
                : Cabs.initwhat))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'id_or_typename) in
     Obj.repr(
-# 849 "cil/src/frontc/cparser.mly"
+# 831 "cil/src/frontc/cparser.mly"
                                         ( INFIELD_INIT(_1, NEXT_INIT) )
-# 4211 "cil/src/frontc/cparser.ml"
+# 4193 "cil/src/frontc/cparser.ml"
                : 'gcc_init_designators))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 853 "cil/src/frontc/cparser.mly"
+# 835 "cil/src/frontc/cparser.mly"
                                     ( [] )
-# 4217 "cil/src/frontc/cparser.ml"
+# 4199 "cil/src/frontc/cparser.ml"
                : Cabs.expression list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 854 "cil/src/frontc/cparser.mly"
+# 836 "cil/src/frontc/cparser.mly"
                                     ( fst _1 )
-# 4224 "cil/src/frontc/cparser.ml"
+# 4206 "cil/src/frontc/cparser.ml"
                : Cabs.expression list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 859 "cil/src/frontc/cparser.mly"
+# 841 "cil/src/frontc/cparser.mly"
           (NOTHING)
-# 4230 "cil/src/frontc/cparser.ml"
+# 4212 "cil/src/frontc/cparser.ml"
                : Cabs.expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 861 "cil/src/frontc/cparser.mly"
+# 843 "cil/src/frontc/cparser.mly"
           (smooth_expression (fst _1))
-# 4237 "cil/src/frontc/cparser.ml"
+# 4219 "cil/src/frontc/cparser.ml"
                : Cabs.expression))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 865 "cil/src/frontc/cparser.mly"
+# 847 "cil/src/frontc/cparser.mly"
                                            ([fst _1], snd _1)
-# 4244 "cil/src/frontc/cparser.ml"
+# 4226 "cil/src/frontc/cparser.ml"
                : Cabs.expression list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.expression * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 866 "cil/src/frontc/cparser.mly"
+# 848 "cil/src/frontc/cparser.mly"
                                                   ( fst _1 :: fst _3, snd _1 )
-# 4252 "cil/src/frontc/cparser.ml"
+# 4234 "cil/src/frontc/cparser.ml"
                : Cabs.expression list * cabsloc))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 867 "cil/src/frontc/cparser.mly"
+# 849 "cil/src/frontc/cparser.mly"
                                                   ( _3 )
-# 4259 "cil/src/frontc/cparser.ml"
+# 4241 "cil/src/frontc/cparser.ml"
                : Cabs.expression list * cabsloc))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 871 "cil/src/frontc/cparser.mly"
+# 853 "cil/src/frontc/cparser.mly"
                                     ( NOTHING )
-# 4265 "cil/src/frontc/cparser.ml"
+# 4247 "cil/src/frontc/cparser.ml"
                : 'comma_expression_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 872 "cil/src/frontc/cparser.mly"
+# 854 "cil/src/frontc/cparser.mly"
                                     ( smooth_expression (fst _1) )
-# 4272 "cil/src/frontc/cparser.ml"
+# 4254 "cil/src/frontc/cparser.ml"
                : 'comma_expression_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 876 "cil/src/frontc/cparser.mly"
+# 858 "cil/src/frontc/cparser.mly"
                                                    ( _2 )
-# 4280 "cil/src/frontc/cparser.ml"
+# 4262 "cil/src/frontc/cparser.ml"
                : Cabs.expression list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     Obj.repr(
-# 877 "cil/src/frontc/cparser.mly"
+# 859 "cil/src/frontc/cparser.mly"
                                                    ( [], _1 )
-# 4287 "cil/src/frontc/cparser.ml"
+# 4269 "cil/src/frontc/cparser.ml"
                : Cabs.expression list * cabsloc))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     Obj.repr(
-# 881 "cil/src/frontc/cparser.mly"
+# 863 "cil/src/frontc/cparser.mly"
                                                        ( fst _2 )
-# 4294 "cil/src/frontc/cparser.ml"
+# 4276 "cil/src/frontc/cparser.ml"
                : Cabs.expression list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 882 "cil/src/frontc/cparser.mly"
+# 864 "cil/src/frontc/cparser.mly"
                                                        ( [] )
-# 4300 "cil/src/frontc/cparser.ml"
+# 4282 "cil/src/frontc/cparser.ml"
                : Cabs.expression list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : 'block_begin) in
@@ -4305,163 +4287,163 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.statement list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 889 "cil/src/frontc/cparser.mly"
+# 871 "cil/src/frontc/cparser.mly"
                                          (!Lexerhack.pop_context();
                                           { blabels = _2;
                                             battrs = _3;
                                             bstmts = _4 },
 					    _1, _5
                                          )
-# 4316 "cil/src/frontc/cparser.ml"
+# 4298 "cil/src/frontc/cparser.ml"
                : Cabs.block * cabsloc * cabsloc))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 895 "cil/src/frontc/cparser.mly"
+# 877 "cil/src/frontc/cparser.mly"
                                          ( { blabels = [];
                                              battrs  = [];
                                              bstmts  = [] },
 					     _2, _3
                                          )
-# 4328 "cil/src/frontc/cparser.ml"
+# 4310 "cil/src/frontc/cparser.ml"
                : Cabs.block * cabsloc * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 902 "cil/src/frontc/cparser.mly"
+# 884 "cil/src/frontc/cparser.mly"
                            (!Lexerhack.push_context (); _1)
-# 4335 "cil/src/frontc/cparser.ml"
+# 4317 "cil/src/frontc/cparser.ml"
                : 'block_begin))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 906 "cil/src/frontc/cparser.mly"
+# 888 "cil/src/frontc/cparser.mly"
                                                             ( [] )
-# 4341 "cil/src/frontc/cparser.ml"
+# 4323 "cil/src/frontc/cparser.ml"
                : 'block_attrs))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'paren_attr_list_ne) in
     Obj.repr(
-# 908 "cil/src/frontc/cparser.mly"
+# 890 "cil/src/frontc/cparser.mly"
                                         ( [("__blockattribute__", _2)] )
-# 4348 "cil/src/frontc/cparser.ml"
+# 4330 "cil/src/frontc/cparser.ml"
                : 'block_attrs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'annot_list_opt) in
     Obj.repr(
-# 913 "cil/src/frontc/cparser.mly"
+# 895 "cil/src/frontc/cparser.mly"
                                                         ( _1 )
-# 4355 "cil/src/frontc/cparser.ml"
+# 4337 "cil/src/frontc/cparser.ml"
                : Cabs.statement list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'annot_list_opt) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.definition) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.statement list) in
     Obj.repr(
-# 914 "cil/src/frontc/cparser.mly"
+# 896 "cil/src/frontc/cparser.mly"
                                                         ( _1 @ no_ghost (DEFINITION(_2)) :: _3 )
-# 4364 "cil/src/frontc/cparser.ml"
+# 4346 "cil/src/frontc/cparser.ml"
                : Cabs.statement list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'annot_list_opt) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'statement) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.statement list) in
     Obj.repr(
-# 915 "cil/src/frontc/cparser.mly"
+# 897 "cil/src/frontc/cparser.mly"
                                                         ( _1 @ (no_ghost _2) :: _3 )
-# 4373 "cil/src/frontc/cparser.ml"
+# 4355 "cil/src/frontc/cparser.ml"
                : Cabs.statement list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'annot_list_opt) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'pragma) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.statement list) in
     Obj.repr(
-# 916 "cil/src/frontc/cparser.mly"
+# 898 "cil/src/frontc/cparser.mly"
                                                         ( _1 @ _3 )
-# 4382 "cil/src/frontc/cparser.ml"
+# 4364 "cil/src/frontc/cparser.ml"
                : Cabs.statement list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'annot_list_opt) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'id_or_typename_as_id) in
     Obj.repr(
-# 919 "cil/src/frontc/cparser.mly"
+# 901 "cil/src/frontc/cparser.mly"
                                       ( _1 @ [no_ghost
                                                 (LABEL (fst _2,
                                                         no_ghost (NOP (snd _2)), snd _2))] )
-# 4392 "cil/src/frontc/cparser.ml"
+# 4374 "cil/src/frontc/cparser.ml"
                : Cabs.statement list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 925 "cil/src/frontc/cparser.mly"
+# 907 "cil/src/frontc/cparser.mly"
                     ( [] )
-# 4398 "cil/src/frontc/cparser.ml"
+# 4380 "cil/src/frontc/cparser.ml"
                : 'annot_list_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'annot_list) in
     Obj.repr(
-# 926 "cil/src/frontc/cparser.mly"
+# 908 "cil/src/frontc/cparser.mly"
                     ( _1 )
-# 4405 "cil/src/frontc/cparser.ml"
+# 4387 "cil/src/frontc/cparser.ml"
                : 'annot_list_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Logic_ptree.code_annot * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'annot_list_opt) in
     Obj.repr(
-# 930 "cil/src/frontc/cparser.mly"
+# 912 "cil/src/frontc/cparser.mly"
                              ( no_ghost (Cabs.CODE_ANNOT _1):: _2)
-# 4413 "cil/src/frontc/cparser.ml"
+# 4395 "cil/src/frontc/cparser.ml"
                : 'annot_list))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.statement list) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : 'annot_list_opt) in
     Obj.repr(
-# 932 "cil/src/frontc/cparser.mly"
+# 914 "cil/src/frontc/cparser.mly"
        ( let res = (_2@_4) in
          List.iter in_ghost res; res )
-# 4422 "cil/src/frontc/cparser.ml"
+# 4404 "cil/src/frontc/cparser.ml"
                : 'annot_list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 937 "cil/src/frontc/cparser.mly"
+# 919 "cil/src/frontc/cparser.mly"
                                                      ( [] )
-# 4428 "cil/src/frontc/cparser.ml"
+# 4410 "cil/src/frontc/cparser.ml"
                : string list))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 2 : string list) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : string list) in
     Obj.repr(
-# 938 "cil/src/frontc/cparser.mly"
+# 920 "cil/src/frontc/cparser.mly"
                                                      ( _2 @ _4 )
-# 4437 "cil/src/frontc/cparser.ml"
+# 4419 "cil/src/frontc/cparser.ml"
                : string list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename_as_id) in
     Obj.repr(
-# 941 "cil/src/frontc/cparser.mly"
+# 923 "cil/src/frontc/cparser.mly"
                                                      ( [ fst _1 ] )
-# 4444 "cil/src/frontc/cparser.ml"
+# 4426 "cil/src/frontc/cparser.ml"
                : string list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'id_or_typename_as_id) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string list) in
     Obj.repr(
-# 942 "cil/src/frontc/cparser.mly"
+# 924 "cil/src/frontc/cparser.mly"
                                                      ( fst _1 :: _3 )
-# 4452 "cil/src/frontc/cparser.ml"
+# 4434 "cil/src/frontc/cparser.ml"
                : string list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'statement) in
     Obj.repr(
-# 947 "cil/src/frontc/cparser.mly"
+# 929 "cil/src/frontc/cparser.mly"
               ( no_ghost _1 )
-# 4459 "cil/src/frontc/cparser.ml"
+# 4441 "cil/src/frontc/cparser.ml"
                : 'annotated_statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'annot_list) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'statement) in
     Obj.repr(
-# 948 "cil/src/frontc/cparser.mly"
+# 930 "cil/src/frontc/cparser.mly"
                          (
       let st = no_ghost _2 in
       let st =
@@ -4476,56 +4458,57 @@ let yyact = [|
                   battrs  = [];
                   bstmts  = _1 @ [st] },
                 get_statementloc (List.hd _1), get_statementloc st)))
-# 4480 "cil/src/frontc/cparser.ml"
+# 4462 "cil/src/frontc/cparser.ml"
                : 'annotated_statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 965 "cil/src/frontc/cparser.mly"
+# 947 "cil/src/frontc/cparser.mly"
                (NOP ((*handleLoc*) _1) )
-# 4487 "cil/src/frontc/cparser.ml"
+# 4469 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Lexing.position * string) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 967 "cil/src/frontc/cparser.mly"
+# 949 "cil/src/frontc/cparser.mly"
       (
         let bs = _2 in
-        try
-          let spec = Logic_lexer.spec _1 in
-          let spec = no_ghost (Cabs.CODE_SPEC spec) in
-          BLOCK ({ blabels = []; battrs = []; bstmts = [spec;bs] },
-                 get_statementloc spec, get_statementloc bs)
-        with Parsing.Parse_error ->
-          Cabshelper.warn_skip_logic ();
-          bs.stmt_node
+        Cabshelper.continue_annot
+	  (currentLoc())
+	  (fun () ->
+             let spec = Logic_lexer.spec _1 in
+             let spec = no_ghost (Cabs.CODE_SPEC spec) in
+             BLOCK ({ blabels = []; battrs = []; bstmts = [spec;bs] },
+                    get_statementloc spec, get_statementloc bs))
+	  (fun () -> bs.stmt_node)
+	  "Skipping annotation"
       )
-# 4505 "cil/src/frontc/cparser.ml"
+# 4488 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 979 "cil/src/frontc/cparser.mly"
+# 962 "cil/src/frontc/cparser.mly"
           (COMPUTATION (smooth_expression (fst _1),  (*handleLoc*)(snd _1)))
-# 4513 "cil/src/frontc/cparser.ml"
+# 4496 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.block * cabsloc * cabsloc) in
     Obj.repr(
-# 980 "cil/src/frontc/cparser.mly"
+# 963 "cil/src/frontc/cparser.mly"
                         (BLOCK (fst3 _1, (*handleLoc*)(snd3 _1), trd3 _1))
-# 4520 "cil/src/frontc/cparser.ml"
+# 4503 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 982 "cil/src/frontc/cparser.mly"
+# 965 "cil/src/frontc/cparser.mly"
                  (IF (smooth_expression (fst _2), _3, no_ghost (NOP _1), _1))
-# 4529 "cil/src/frontc/cparser.ml"
+# 4512 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -4533,18 +4516,18 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 2 : 'annotated_statement) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 984 "cil/src/frontc/cparser.mly"
+# 967 "cil/src/frontc/cparser.mly"
                  (IF (smooth_expression (fst _2), _3, _5, (*handleLoc*) _1))
-# 4539 "cil/src/frontc/cparser.ml"
+# 4522 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 986 "cil/src/frontc/cparser.mly"
+# 969 "cil/src/frontc/cparser.mly"
                         (SWITCH (smooth_expression (fst _2), _3, (*handleLoc*) _1))
-# 4548 "cil/src/frontc/cparser.ml"
+# 4531 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'opt_loop_annotations) in
@@ -4552,9 +4535,9 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 989 "cil/src/frontc/cparser.mly"
+# 972 "cil/src/frontc/cparser.mly"
           (WHILE (_1, smooth_expression (fst _3), _4, (*handleLoc*) _2))
-# 4558 "cil/src/frontc/cparser.ml"
+# 4541 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : 'opt_loop_annotations) in
@@ -4564,10 +4547,10 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 992 "cil/src/frontc/cparser.mly"
+# 975 "cil/src/frontc/cparser.mly"
                    (DOWHILE (_1,
 					   smooth_expression (fst _5), _3, (*handleLoc*) _2))
-# 4571 "cil/src/frontc/cparser.ml"
+# 4554 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 9 : 'opt_loop_annotations) in
@@ -4580,31 +4563,31 @@ let yyact = [|
     let _9 = (Parsing.peek_val __caml_parser_env 1 : 'annotated_statement) in
     let _10 = (Parsing.peek_val __caml_parser_env 0 : 'get_current_loc) in
     Obj.repr(
-# 997 "cil/src/frontc/cparser.mly"
+# 980 "cil/src/frontc/cparser.mly"
                           (FOR (_1, _4, _5, _7, _9, _2, (*handleLoc*) _10))
-# 4586 "cil/src/frontc/cparser.ml"
+# 4569 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'id_or_typename_as_id) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'attribute_nocv_list) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 999 "cil/src/frontc/cparser.mly"
+# 982 "cil/src/frontc/cparser.mly"
                    ((* The only attribute that should appear here
                                      is "unused". For now, we drop this on the
                                      floor, since unused labels are usually
                                      removed anyways by Rmtmps. *)
                                   LABEL (fst _1, _4, (snd _1)))
-# 4599 "cil/src/frontc/cparser.ml"
+# 4582 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.expression * cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 1005 "cil/src/frontc/cparser.mly"
+# 988 "cil/src/frontc/cparser.mly"
                           (CASE (fst _2, _4, (*handleLoc*) _1))
-# 4608 "cil/src/frontc/cparser.ml"
+# 4591 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -4612,58 +4595,58 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 2 : Cabs.expression * cabsloc) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : 'annotated_statement) in
     Obj.repr(
-# 1007 "cil/src/frontc/cparser.mly"
+# 990 "cil/src/frontc/cparser.mly"
                           (CASERANGE (fst _2, fst _4, _6, (*handleLoc*) _1))
-# 4618 "cil/src/frontc/cparser.ml"
+# 4601 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     Obj.repr(
-# 1009 "cil/src/frontc/cparser.mly"
+# 992 "cil/src/frontc/cparser.mly"
                           (DEFAULT (no_ghost (NOP _1), (*handleLoc*) _1))
-# 4625 "cil/src/frontc/cparser.ml"
+# 4608 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1010 "cil/src/frontc/cparser.mly"
+# 993 "cil/src/frontc/cparser.mly"
                        (RETURN (NOTHING, (*handleLoc*) _1))
-# 4633 "cil/src/frontc/cparser.ml"
+# 4616 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1012 "cil/src/frontc/cparser.mly"
+# 995 "cil/src/frontc/cparser.mly"
                           (RETURN (smooth_expression (fst _2), (*handleLoc*) _1))
-# 4642 "cil/src/frontc/cparser.ml"
+# 4625 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1013 "cil/src/frontc/cparser.mly"
+# 996 "cil/src/frontc/cparser.mly"
                         (BREAK ((*handleLoc*) _1))
-# 4650 "cil/src/frontc/cparser.ml"
+# 4633 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1014 "cil/src/frontc/cparser.mly"
+# 997 "cil/src/frontc/cparser.mly"
                         (CONTINUE ((*handleLoc*) _1))
-# 4658 "cil/src/frontc/cparser.ml"
+# 4641 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'id_or_typename_as_id) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1016 "cil/src/frontc/cparser.mly"
+# 999 "cil/src/frontc/cparser.mly"
                    (GOTO (fst _2, (*handleLoc*) _1))
-# 4667 "cil/src/frontc/cparser.ml"
+# 4650 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
@@ -4671,9 +4654,9 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1018 "cil/src/frontc/cparser.mly"
+# 1001 "cil/src/frontc/cparser.mly"
                                  ( COMPGOTO (smooth_expression (fst _3), (*handleLoc*) _1) )
-# 4677 "cil/src/frontc/cparser.ml"
+# 4660 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 6 : Cabs.cabsloc) in
@@ -4683,16 +4666,16 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 2 : 'asmoutputs) in
     let _7 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1020 "cil/src/frontc/cparser.mly"
+# 1003 "cil/src/frontc/cparser.mly"
                         ( ASM (_2, _4, _5, (*handleLoc*) _1) )
-# 4689 "cil/src/frontc/cparser.ml"
+# 4672 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1021 "cil/src/frontc/cparser.mly"
+# 1004 "cil/src/frontc/cparser.mly"
                         ( ASM ([], [fst _1], None, (*handleLoc*)(snd _1)))
-# 4696 "cil/src/frontc/cparser.ml"
+# 4679 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -4701,13 +4684,13 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression list * cabsloc) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.block * cabsloc * cabsloc) in
     Obj.repr(
-# 1023 "cil/src/frontc/cparser.mly"
+# 1006 "cil/src/frontc/cparser.mly"
                         ( let b, _, _ = _2 in
                           let h, _, _ = _5 in
                           if not !Cprint.msvcMode then
                             parse_error "try/except in GCC code";
                           TRY_EXCEPT (b, COMMA (fst _4), h, (*handleLoc*) _1) )
-# 4711 "cil/src/frontc/cparser.ml"
+# 4694 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
@@ -4715,80 +4698,80 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.block * cabsloc * cabsloc) in
     Obj.repr(
-# 1029 "cil/src/frontc/cparser.mly"
+# 1012 "cil/src/frontc/cparser.mly"
                         ( let b, _, _ = _2 in
                           let h, _, _ = _4 in
                           if not !Cprint.msvcMode then
                             parse_error "try/finally in GCC code";
                           TRY_FINALLY (b, h, (*handleLoc*) _1) )
-# 4725 "cil/src/frontc/cparser.ml"
+# 4708 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1035 "cil/src/frontc/cparser.mly"
+# 1018 "cil/src/frontc/cparser.mly"
                                  ( (NOP _2))
-# 4733 "cil/src/frontc/cparser.ml"
+# 4716 "cil/src/frontc/cparser.ml"
                : 'statement))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1040 "cil/src/frontc/cparser.mly"
+# 1023 "cil/src/frontc/cparser.mly"
                 ( [] )
-# 4739 "cil/src/frontc/cparser.ml"
+# 4722 "cil/src/frontc/cparser.ml"
                : 'opt_loop_annotations))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'loop_annotations) in
     Obj.repr(
-# 1041 "cil/src/frontc/cparser.mly"
+# 1024 "cil/src/frontc/cparser.mly"
                    ( _1 )
-# 4746 "cil/src/frontc/cparser.ml"
+# 4729 "cil/src/frontc/cparser.ml"
                : 'opt_loop_annotations))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'loop_annotation) in
     Obj.repr(
-# 1045 "cil/src/frontc/cparser.mly"
+# 1028 "cil/src/frontc/cparser.mly"
                   ( _1 )
-# 4753 "cil/src/frontc/cparser.ml"
+# 4736 "cil/src/frontc/cparser.ml"
                : 'loop_annotations))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Logic_ptree.code_annot list * Cabs.cabsloc) in
     Obj.repr(
-# 1057 "cil/src/frontc/cparser.mly"
+# 1040 "cil/src/frontc/cparser.mly"
                ( fst _1 )
-# 4760 "cil/src/frontc/cparser.ml"
+# 4743 "cil/src/frontc/cparser.ml"
                : 'loop_annotation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1061 "cil/src/frontc/cparser.mly"
+# 1044 "cil/src/frontc/cparser.mly"
                                  ( FC_EXP _1 )
-# 4768 "cil/src/frontc/cparser.ml"
+# 4751 "cil/src/frontc/cparser.ml"
                : 'for_clause))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.definition) in
     Obj.repr(
-# 1062 "cil/src/frontc/cparser.mly"
+# 1045 "cil/src/frontc/cparser.mly"
                                  ( FC_DECL _1 )
-# 4775 "cil/src/frontc/cparser.ml"
+# 4758 "cil/src/frontc/cparser.ml"
                : 'for_clause))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.init_name list) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1067 "cil/src/frontc/cparser.mly"
+# 1050 "cil/src/frontc/cparser.mly"
       ( doDeclaration None ((snd _1)) (fst _1) _2 )
-# 4784 "cil/src/frontc/cparser.ml"
+# 4767 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1069 "cil/src/frontc/cparser.mly"
+# 1052 "cil/src/frontc/cparser.mly"
       ( doDeclaration None ((snd _1)) (fst _1) [] )
-# 4792 "cil/src/frontc/cparser.ml"
+# 4775 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Lexing.position * string) in
@@ -4796,249 +4779,249 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.init_name list) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1071 "cil/src/frontc/cparser.mly"
+# 1054 "cil/src/frontc/cparser.mly"
       ( doDeclaration (Some _1) ((snd _2)) (fst _2) _3 )
-# 4802 "cil/src/frontc/cparser.ml"
+# 4785 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Lexing.position * string) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1073 "cil/src/frontc/cparser.mly"
+# 1056 "cil/src/frontc/cparser.mly"
       ( doDeclaration (Some _1) ((snd _2)) (fst _2) [] )
-# 4811 "cil/src/frontc/cparser.ml"
+# 4794 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.init_name) in
     Obj.repr(
-# 1076 "cil/src/frontc/cparser.mly"
+# 1059 "cil/src/frontc/cparser.mly"
                                                  ( [_1] )
-# 4818 "cil/src/frontc/cparser.ml"
+# 4801 "cil/src/frontc/cparser.ml"
                : Cabs.init_name list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.init_name) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.init_name list) in
     Obj.repr(
-# 1077 "cil/src/frontc/cparser.mly"
+# 1060 "cil/src/frontc/cparser.mly"
                                                  ( _1 :: _3 )
-# 4826 "cil/src/frontc/cparser.ml"
+# 4809 "cil/src/frontc/cparser.ml"
                : Cabs.init_name list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name) in
     Obj.repr(
-# 1081 "cil/src/frontc/cparser.mly"
+# 1064 "cil/src/frontc/cparser.mly"
                                         ( (_1, NO_INIT) )
-# 4833 "cil/src/frontc/cparser.ml"
+# 4816 "cil/src/frontc/cparser.ml"
                : Cabs.init_name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.name) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.init_expression) in
     Obj.repr(
-# 1083 "cil/src/frontc/cparser.mly"
+# 1066 "cil/src/frontc/cparser.mly"
                                         ( (_1, _3) )
-# 4841 "cil/src/frontc/cparser.ml"
+# 4824 "cil/src/frontc/cparser.ml"
                : Cabs.init_name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1088 "cil/src/frontc/cparser.mly"
+# 1071 "cil/src/frontc/cparser.mly"
                                         ( SpecTypedef :: _2, _1  )
-# 4849 "cil/src/frontc/cparser.ml"
+# 4832 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1089 "cil/src/frontc/cparser.mly"
+# 1072 "cil/src/frontc/cparser.mly"
                                         ( SpecStorage EXTERN :: _2, _1 )
-# 4857 "cil/src/frontc/cparser.ml"
+# 4840 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1090 "cil/src/frontc/cparser.mly"
+# 1073 "cil/src/frontc/cparser.mly"
                                         ( SpecStorage STATIC :: _2, _1 )
-# 4865 "cil/src/frontc/cparser.ml"
+# 4848 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1091 "cil/src/frontc/cparser.mly"
+# 1074 "cil/src/frontc/cparser.mly"
                                         ( SpecStorage AUTO :: _2, _1 )
-# 4873 "cil/src/frontc/cparser.ml"
+# 4856 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1092 "cil/src/frontc/cparser.mly"
+# 1075 "cil/src/frontc/cparser.mly"
                                         ( SpecStorage REGISTER :: _2, _1)
-# 4881 "cil/src/frontc/cparser.ml"
+# 4864 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : typeSpecifier * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt_no_named) in
     Obj.repr(
-# 1094 "cil/src/frontc/cparser.mly"
+# 1077 "cil/src/frontc/cparser.mly"
                                           ( SpecType (fst _1) :: _2, snd _1 )
-# 4889 "cil/src/frontc/cparser.ml"
+# 4872 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1096 "cil/src/frontc/cparser.mly"
+# 1079 "cil/src/frontc/cparser.mly"
                                         ( SpecInline :: _2, _1 )
-# 4897 "cil/src/frontc/cparser.ml"
+# 4880 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1097 "cil/src/frontc/cparser.mly"
+# 1080 "cil/src/frontc/cparser.mly"
                                         ( (fst _1) :: _2, snd _1 )
-# 4905 "cil/src/frontc/cparser.ml"
+# 4888 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'attribute_nocv) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'decl_spec_list_opt) in
     Obj.repr(
-# 1098 "cil/src/frontc/cparser.mly"
+# 1081 "cil/src/frontc/cparser.mly"
                                         ( SpecAttr (fst _1) :: _2, snd _1 )
-# 4913 "cil/src/frontc/cparser.ml"
+# 4896 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1100 "cil/src/frontc/cparser.mly"
+# 1083 "cil/src/frontc/cparser.mly"
                                         ( [ SpecPattern(fst _3) ], _1 )
-# 4922 "cil/src/frontc/cparser.ml"
+# 4905 "cil/src/frontc/cparser.ml"
                : spec_elem list * cabsloc))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1105 "cil/src/frontc/cparser.mly"
+# 1088 "cil/src/frontc/cparser.mly"
                                         ( [] )
-# 4928 "cil/src/frontc/cparser.ml"
+# 4911 "cil/src/frontc/cparser.ml"
                : 'decl_spec_list_opt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : spec_elem list * cabsloc) in
+    Obj.repr(
+# 1089 "cil/src/frontc/cparser.mly"
+                                        ( fst _1 )
+# 4918 "cil/src/frontc/cparser.ml"
+               : 'decl_spec_list_opt))
+; (fun __caml_parser_env ->
+    Obj.repr(
+# 1096 "cil/src/frontc/cparser.mly"
+                                        ( [] )
+# 4924 "cil/src/frontc/cparser.ml"
+               : 'decl_spec_list_opt_no_named))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : spec_elem list * cabsloc) in
+    Obj.repr(
+# 1097 "cil/src/frontc/cparser.mly"
+                                        ( fst _1 )
+# 4931 "cil/src/frontc/cparser.ml"
+               : 'decl_spec_list_opt_no_named))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
+    Obj.repr(
+# 1100 "cil/src/frontc/cparser.mly"
+                    ( Tvoid, _1)
+# 4938 "cil/src/frontc/cparser.ml"
+               : typeSpecifier * cabsloc))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
+    Obj.repr(
+# 1101 "cil/src/frontc/cparser.mly"
+                    ( Tchar, _1 )
+# 4945 "cil/src/frontc/cparser.ml"
+               : typeSpecifier * cabsloc))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
+    Obj.repr(
+# 1102 "cil/src/frontc/cparser.mly"
+                    ( Tbool, _1 )
+# 4952 "cil/src/frontc/cparser.ml"
+               : typeSpecifier * cabsloc))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
+    Obj.repr(
+# 1103 "cil/src/frontc/cparser.mly"
+                    ( Tshort, _1 )
+# 4959 "cil/src/frontc/cparser.ml"
+               : typeSpecifier * cabsloc))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
+    Obj.repr(
+# 1104 "cil/src/frontc/cparser.mly"
+                    ( Tint, _1 )
+# 4966 "cil/src/frontc/cparser.ml"
+               : typeSpecifier * cabsloc))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
+    Obj.repr(
+# 1105 "cil/src/frontc/cparser.mly"
+                    ( Tlong, _1 )
+# 4973 "cil/src/frontc/cparser.ml"
+               : typeSpecifier * cabsloc))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
 # 1106 "cil/src/frontc/cparser.mly"
-                                        ( fst _1 )
-# 4935 "cil/src/frontc/cparser.ml"
-               : 'decl_spec_list_opt))
-; (fun __caml_parser_env ->
-    Obj.repr(
-# 1113 "cil/src/frontc/cparser.mly"
-                                        ( [] )
-# 4941 "cil/src/frontc/cparser.ml"
-               : 'decl_spec_list_opt_no_named))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : spec_elem list * cabsloc) in
-    Obj.repr(
-# 1114 "cil/src/frontc/cparser.mly"
-                                        ( fst _1 )
-# 4948 "cil/src/frontc/cparser.ml"
-               : 'decl_spec_list_opt_no_named))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1117 "cil/src/frontc/cparser.mly"
-                    ( Tvoid, _1)
-# 4955 "cil/src/frontc/cparser.ml"
-               : typeSpecifier * cabsloc))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1118 "cil/src/frontc/cparser.mly"
-                    ( Tchar, _1 )
-# 4962 "cil/src/frontc/cparser.ml"
-               : typeSpecifier * cabsloc))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1119 "cil/src/frontc/cparser.mly"
-                    ( Tbool, _1 )
-# 4969 "cil/src/frontc/cparser.ml"
-               : typeSpecifier * cabsloc))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1120 "cil/src/frontc/cparser.mly"
-                    ( Tshort, _1 )
-# 4976 "cil/src/frontc/cparser.ml"
-               : typeSpecifier * cabsloc))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1121 "cil/src/frontc/cparser.mly"
-                    ( Tint, _1 )
-# 4983 "cil/src/frontc/cparser.ml"
-               : typeSpecifier * cabsloc))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1122 "cil/src/frontc/cparser.mly"
-                    ( Tlong, _1 )
-# 4990 "cil/src/frontc/cparser.ml"
-               : typeSpecifier * cabsloc))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
-    Obj.repr(
-# 1123 "cil/src/frontc/cparser.mly"
                     ( Tint64, _1 )
-# 4997 "cil/src/frontc/cparser.ml"
+# 4980 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1124 "cil/src/frontc/cparser.mly"
+# 1107 "cil/src/frontc/cparser.mly"
                     ( Tfloat, _1 )
-# 5004 "cil/src/frontc/cparser.ml"
+# 4987 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1125 "cil/src/frontc/cparser.mly"
+# 1108 "cil/src/frontc/cparser.mly"
                     ( Tdouble, _1 )
-# 5011 "cil/src/frontc/cparser.ml"
+# 4994 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1126 "cil/src/frontc/cparser.mly"
+# 1109 "cil/src/frontc/cparser.mly"
                     ( Tsigned, _1 )
-# 5018 "cil/src/frontc/cparser.ml"
+# 5001 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1127 "cil/src/frontc/cparser.mly"
+# 1110 "cil/src/frontc/cparser.mly"
                     ( Tunsigned, _1 )
-# 5025 "cil/src/frontc/cparser.ml"
+# 5008 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1129 "cil/src/frontc/cparser.mly"
+# 1112 "cil/src/frontc/cparser.mly"
                                                    ( Tstruct (_2, None,    []), _1 )
-# 5033 "cil/src/frontc/cparser.ml"
+# 5016 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'just_attributes) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1131 "cil/src/frontc/cparser.mly"
+# 1114 "cil/src/frontc/cparser.mly"
                                                    ( Tstruct (_3, None,    _2), _1 )
-# 5042 "cil/src/frontc/cparser.ml"
+# 5025 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -5047,9 +5030,9 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1133 "cil/src/frontc/cparser.mly"
+# 1116 "cil/src/frontc/cparser.mly"
                                                    ( Tstruct (_2, Some _4, []), _1 )
-# 5053 "cil/src/frontc/cparser.ml"
+# 5036 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
@@ -5057,9 +5040,9 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1135 "cil/src/frontc/cparser.mly"
+# 1118 "cil/src/frontc/cparser.mly"
                                                    ( Tstruct ("", Some _3, []), _1 )
-# 5063 "cil/src/frontc/cparser.ml"
+# 5046 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -5069,9 +5052,9 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1137 "cil/src/frontc/cparser.mly"
+# 1120 "cil/src/frontc/cparser.mly"
                                                    ( Tstruct (_3, Some _5, _2), _1 )
-# 5075 "cil/src/frontc/cparser.ml"
+# 5058 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -5080,17 +5063,17 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1139 "cil/src/frontc/cparser.mly"
+# 1122 "cil/src/frontc/cparser.mly"
                                                    ( Tstruct ("", Some _4, _2), _1 )
-# 5086 "cil/src/frontc/cparser.ml"
+# 5069 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1141 "cil/src/frontc/cparser.mly"
+# 1124 "cil/src/frontc/cparser.mly"
                                                    ( Tunion  (_2, None,    []), _1 )
-# 5094 "cil/src/frontc/cparser.ml"
+# 5077 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -5099,9 +5082,9 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1143 "cil/src/frontc/cparser.mly"
+# 1126 "cil/src/frontc/cparser.mly"
                                                    ( Tunion  (_2, Some _4, []), _1 )
-# 5105 "cil/src/frontc/cparser.ml"
+# 5088 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
@@ -5109,9 +5092,9 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1145 "cil/src/frontc/cparser.mly"
+# 1128 "cil/src/frontc/cparser.mly"
                                                    ( Tunion  ("", Some _3, []), _1 )
-# 5115 "cil/src/frontc/cparser.ml"
+# 5098 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -5121,9 +5104,9 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1147 "cil/src/frontc/cparser.mly"
+# 1130 "cil/src/frontc/cparser.mly"
                                                    ( Tunion  (_3, Some _5, _2), _1 )
-# 5127 "cil/src/frontc/cparser.ml"
+# 5110 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -5132,17 +5115,17 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.field_group list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1149 "cil/src/frontc/cparser.mly"
+# 1132 "cil/src/frontc/cparser.mly"
                                                    ( Tunion  ("", Some _4, _2), _1 )
-# 5138 "cil/src/frontc/cparser.ml"
+# 5121 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1151 "cil/src/frontc/cparser.mly"
+# 1134 "cil/src/frontc/cparser.mly"
                                                    ( Tenum   (_2, None,    []), _1 )
-# 5146 "cil/src/frontc/cparser.ml"
+# 5129 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -5152,9 +5135,9 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : 'maybecomma) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1153 "cil/src/frontc/cparser.mly"
+# 1136 "cil/src/frontc/cparser.mly"
                                                    ( Tenum   (_2, Some _4, []), _1 )
-# 5158 "cil/src/frontc/cparser.ml"
+# 5141 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -5163,9 +5146,9 @@ let yyact = [|
     let _4 = (Parsing.peek_val __caml_parser_env 1 : 'maybecomma) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1155 "cil/src/frontc/cparser.mly"
+# 1138 "cil/src/frontc/cparser.mly"
                                                    ( Tenum   ("", Some _3, []), _1 )
-# 5169 "cil/src/frontc/cparser.ml"
+# 5152 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 6 : Cabs.cabsloc) in
@@ -5176,9 +5159,9 @@ let yyact = [|
     let _6 = (Parsing.peek_val __caml_parser_env 1 : 'maybecomma) in
     let _7 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1157 "cil/src/frontc/cparser.mly"
+# 1140 "cil/src/frontc/cparser.mly"
                                                    ( Tenum   (_3, Some _5, _2), _1 )
-# 5182 "cil/src/frontc/cparser.ml"
+# 5165 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 5 : Cabs.cabsloc) in
@@ -5188,59 +5171,59 @@ let yyact = [|
     let _5 = (Parsing.peek_val __caml_parser_env 1 : 'maybecomma) in
     let _6 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1159 "cil/src/frontc/cparser.mly"
+# 1142 "cil/src/frontc/cparser.mly"
                                                    ( Tenum   ("", Some _4, _2), _1 )
-# 5194 "cil/src/frontc/cparser.ml"
+# 5177 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1160 "cil/src/frontc/cparser.mly"
+# 1143 "cil/src/frontc/cparser.mly"
                     ( Tnamed (fst _1), snd _1 )
-# 5201 "cil/src/frontc/cparser.ml"
+# 5184 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 1161 "cil/src/frontc/cparser.mly"
+# 1144 "cil/src/frontc/cparser.mly"
                                         ( TtypeofE (fst _3), _1 )
-# 5210 "cil/src/frontc/cparser.ml"
+# 5193 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
     Obj.repr(
-# 1162 "cil/src/frontc/cparser.mly"
+# 1145 "cil/src/frontc/cparser.mly"
                                         ( let s, d = _3 in
                                           TtypeofT (s, d), _1 )
-# 5220 "cil/src/frontc/cparser.ml"
+# 5203 "cil/src/frontc/cparser.ml"
                : typeSpecifier * cabsloc))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1168 "cil/src/frontc/cparser.mly"
+# 1151 "cil/src/frontc/cparser.mly"
                                          ( [] )
-# 5226 "cil/src/frontc/cparser.ml"
+# 5209 "cil/src/frontc/cparser.ml"
                : Cabs.field_group list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.field_group list) in
     Obj.repr(
-# 1170 "cil/src/frontc/cparser.mly"
+# 1153 "cil/src/frontc/cparser.mly"
                                          ( FIELD (fst _1,
                                             [(missingFieldDecl, None)]) :: _3 )
-# 5236 "cil/src/frontc/cparser.ml"
+# 5219 "cil/src/frontc/cparser.ml"
                : Cabs.field_group list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.field_group list) in
     Obj.repr(
-# 1174 "cil/src/frontc/cparser.mly"
+# 1157 "cil/src/frontc/cparser.mly"
                                          ( _2 )
-# 5244 "cil/src/frontc/cparser.ml"
+# 5227 "cil/src/frontc/cparser.ml"
                : Cabs.field_group list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : spec_elem list * cabsloc) in
@@ -5248,250 +5231,250 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.field_group list) in
     Obj.repr(
-# 1176 "cil/src/frontc/cparser.mly"
+# 1159 "cil/src/frontc/cparser.mly"
                                           ( FIELD (fst _1, _2)
                                             :: _4 )
-# 5255 "cil/src/frontc/cparser.ml"
+# 5238 "cil/src/frontc/cparser.ml"
                : Cabs.field_group list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'pragma) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.field_group list) in
     Obj.repr(
-# 1179 "cil/src/frontc/cparser.mly"
+# 1162 "cil/src/frontc/cparser.mly"
                                           ( _2 )
-# 5263 "cil/src/frontc/cparser.ml"
+# 5246 "cil/src/frontc/cparser.ml"
                : Cabs.field_group list))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.field_group list) in
     Obj.repr(
-# 1182 "cil/src/frontc/cparser.mly"
+# 1165 "cil/src/frontc/cparser.mly"
                                           ( _3 )
-# 5271 "cil/src/frontc/cparser.ml"
+# 5254 "cil/src/frontc/cparser.ml"
                : Cabs.field_group list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name * expression option) in
     Obj.repr(
-# 1185 "cil/src/frontc/cparser.mly"
+# 1168 "cil/src/frontc/cparser.mly"
                                          ( [_1] )
-# 5278 "cil/src/frontc/cparser.ml"
+# 5261 "cil/src/frontc/cparser.ml"
                : (Cabs.name * expression option) list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.name * expression option) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : (Cabs.name * expression option) list) in
     Obj.repr(
-# 1186 "cil/src/frontc/cparser.mly"
+# 1169 "cil/src/frontc/cparser.mly"
                                          ( _1 :: _3 )
-# 5286 "cil/src/frontc/cparser.ml"
+# 5269 "cil/src/frontc/cparser.ml"
                : (Cabs.name * expression option) list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name) in
     Obj.repr(
-# 1189 "cil/src/frontc/cparser.mly"
+# 1172 "cil/src/frontc/cparser.mly"
                                     ( (_1, None) )
-# 5293 "cil/src/frontc/cparser.ml"
+# 5276 "cil/src/frontc/cparser.ml"
                : Cabs.name * expression option))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.name) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression * cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1191 "cil/src/frontc/cparser.mly"
+# 1174 "cil/src/frontc/cparser.mly"
                                     ( let (n,decl,al,loc) = _1 in
                                       let al' = al @ _4 in
                                      ((n,decl,al',loc), Some (fst _3)) )
-# 5304 "cil/src/frontc/cparser.ml"
+# 5287 "cil/src/frontc/cparser.ml"
                : Cabs.name * expression option))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 1194 "cil/src/frontc/cparser.mly"
+# 1177 "cil/src/frontc/cparser.mly"
                                     ( (missingFieldDecl, Some (fst _2)) )
-# 5311 "cil/src/frontc/cparser.ml"
+# 5294 "cil/src/frontc/cparser.ml"
                : Cabs.name * expression option))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.enum_item) in
     Obj.repr(
-# 1198 "cil/src/frontc/cparser.mly"
+# 1181 "cil/src/frontc/cparser.mly"
                   ([_1])
-# 5318 "cil/src/frontc/cparser.ml"
+# 5301 "cil/src/frontc/cparser.ml"
                : Cabs.enum_item list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.enum_item list) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.enum_item) in
     Obj.repr(
-# 1199 "cil/src/frontc/cparser.mly"
+# 1182 "cil/src/frontc/cparser.mly"
                                        (_1 @ [_3])
-# 5326 "cil/src/frontc/cparser.ml"
+# 5309 "cil/src/frontc/cparser.ml"
                : Cabs.enum_item list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.enum_item list) in
     Obj.repr(
-# 1200 "cil/src/frontc/cparser.mly"
+# 1183 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 5333 "cil/src/frontc/cparser.ml"
+# 5316 "cil/src/frontc/cparser.ml"
                : Cabs.enum_item list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1203 "cil/src/frontc/cparser.mly"
+# 1186 "cil/src/frontc/cparser.mly"
             ((fst _1, NOTHING, snd _1))
-# 5340 "cil/src/frontc/cparser.ml"
+# 5323 "cil/src/frontc/cparser.ml"
                : Cabs.enum_item))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 1204 "cil/src/frontc/cparser.mly"
+# 1187 "cil/src/frontc/cparser.mly"
                          ((fst _1, fst _3, snd _1))
-# 5348 "cil/src/frontc/cparser.ml"
+# 5331 "cil/src/frontc/cparser.ml"
                : Cabs.enum_item))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : attribute list list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.decl_type) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1210 "cil/src/frontc/cparser.mly"
+# 1193 "cil/src/frontc/cparser.mly"
                                ( let (n, decl) = _2 in
                                 (n, applyPointer (fst _1) decl, _3, (snd _1)) )
-# 5358 "cil/src/frontc/cparser.ml"
+# 5341 "cil/src/frontc/cparser.ml"
                : Cabs.name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1218 "cil/src/frontc/cparser.mly"
+# 1201 "cil/src/frontc/cparser.mly"
                                    ( (_1, JUSTBASE) )
-# 5365 "cil/src/frontc/cparser.ml"
+# 5348 "cil/src/frontc/cparser.ml"
                : string * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.attribute list) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.name) in
     Obj.repr(
-# 1221 "cil/src/frontc/cparser.mly"
+# 1204 "cil/src/frontc/cparser.mly"
                                    ( let (n,decl,al,_) = _3 in
                                      (n, PARENTYPE(_2,decl,al)) )
-# 5375 "cil/src/frontc/cparser.ml"
+# 5358 "cil/src/frontc/cparser.ml"
                : string * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : string * Cabs.decl_type) in
     let _3 = (Parsing.peek_val __caml_parser_env 2 : Cabs.attribute list) in
     let _4 = (Parsing.peek_val __caml_parser_env 1 : 'comma_expression_opt) in
     Obj.repr(
-# 1225 "cil/src/frontc/cparser.mly"
+# 1208 "cil/src/frontc/cparser.mly"
                                    ( let (n, decl) = _1 in
                                      (n, ARRAY(decl, _3, _4)) )
-# 5385 "cil/src/frontc/cparser.ml"
+# 5368 "cil/src/frontc/cparser.ml"
                : string * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : string * Cabs.decl_type) in
     let _3 = (Parsing.peek_val __caml_parser_env 2 : Cabs.attribute list) in
     Obj.repr(
-# 1228 "cil/src/frontc/cparser.mly"
+# 1211 "cil/src/frontc/cparser.mly"
                                    ( let (n, decl) = _1 in
                                      (n, ARRAY(decl, _3, NOTHING)) )
-# 5394 "cil/src/frontc/cparser.ml"
+# 5377 "cil/src/frontc/cparser.ml"
                : string * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : string * Cabs.decl_type) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : 'parameter_list_startscope) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'rest_par_list) in
     Obj.repr(
-# 1231 "cil/src/frontc/cparser.mly"
+# 1214 "cil/src/frontc/cparser.mly"
                                    ( let (n, decl) = _1 in
                                      let (params, isva) = _3 in
                                      !Lexerhack.pop_context ();
                                      (n, PROTO(decl, params, isva))
                                    )
-# 5407 "cil/src/frontc/cparser.ml"
+# 5390 "cil/src/frontc/cparser.ml"
                : string * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1238 "cil/src/frontc/cparser.mly"
+# 1221 "cil/src/frontc/cparser.mly"
                                    ( !Lexerhack.push_context () )
-# 5414 "cil/src/frontc/cparser.ml"
+# 5397 "cil/src/frontc/cparser.ml"
                : 'parameter_list_startscope))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1241 "cil/src/frontc/cparser.mly"
+# 1224 "cil/src/frontc/cparser.mly"
                                    ( ([], false) )
-# 5420 "cil/src/frontc/cparser.ml"
+# 5403 "cil/src/frontc/cparser.ml"
                : 'rest_par_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.single_name) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'rest_par_list1) in
     Obj.repr(
-# 1242 "cil/src/frontc/cparser.mly"
+# 1225 "cil/src/frontc/cparser.mly"
                                    ( let (params, isva) = _2 in
                                      (_1 :: params, isva)
                                    )
-# 5430 "cil/src/frontc/cparser.ml"
+# 5413 "cil/src/frontc/cparser.ml"
                : 'rest_par_list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1247 "cil/src/frontc/cparser.mly"
+# 1230 "cil/src/frontc/cparser.mly"
                                         ( ([], false) )
-# 5436 "cil/src/frontc/cparser.ml"
+# 5419 "cil/src/frontc/cparser.ml"
                : 'rest_par_list1))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1248 "cil/src/frontc/cparser.mly"
+# 1231 "cil/src/frontc/cparser.mly"
                                         ( ([], true) )
-# 5442 "cil/src/frontc/cparser.ml"
+# 5425 "cil/src/frontc/cparser.ml"
                : 'rest_par_list1))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.single_name) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'rest_par_list1) in
     Obj.repr(
-# 1249 "cil/src/frontc/cparser.mly"
+# 1232 "cil/src/frontc/cparser.mly"
                                         ( let (params, isva) = _3 in
                                           (_2 :: params, isva)
                                         )
-# 5452 "cil/src/frontc/cparser.ml"
+# 5435 "cil/src/frontc/cparser.ml"
                : 'rest_par_list1))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name) in
     Obj.repr(
-# 1256 "cil/src/frontc/cparser.mly"
+# 1239 "cil/src/frontc/cparser.mly"
                                           ( (fst _1, _2) )
-# 5460 "cil/src/frontc/cparser.ml"
+# 5443 "cil/src/frontc/cparser.ml"
                : Cabs.single_name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.decl_type * Cabs.attribute list) in
     Obj.repr(
-# 1257 "cil/src/frontc/cparser.mly"
+# 1240 "cil/src/frontc/cparser.mly"
                                           ( let d, a = _2 in
                                             (fst _1, ("", d, a, (*CEA*) cabslu)) )
-# 5469 "cil/src/frontc/cparser.ml"
+# 5452 "cil/src/frontc/cparser.ml"
                : Cabs.single_name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : spec_elem list * cabsloc) in
     Obj.repr(
-# 1259 "cil/src/frontc/cparser.mly"
+# 1242 "cil/src/frontc/cparser.mly"
                                           ( (fst _1, ("", JUSTBASE, [], (*CEA*) cabslu)) )
-# 5476 "cil/src/frontc/cparser.ml"
+# 5459 "cil/src/frontc/cparser.ml"
                : Cabs.single_name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.single_name) in
     Obj.repr(
-# 1260 "cil/src/frontc/cparser.mly"
+# 1243 "cil/src/frontc/cparser.mly"
                                           ( _2 )
-# 5484 "cil/src/frontc/cparser.ml"
+# 5467 "cil/src/frontc/cparser.ml"
                : Cabs.single_name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : attribute list list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'direct_old_proto_decl) in
     Obj.repr(
-# 1265 "cil/src/frontc/cparser.mly"
+# 1248 "cil/src/frontc/cparser.mly"
                                       ( let (n, decl, a) = _2 in
 					  (n, applyPointer (fst _1) decl,
                                            a, snd _1)
                                       )
-# 5495 "cil/src/frontc/cparser.ml"
+# 5478 "cil/src/frontc/cparser.ml"
                : Cabs.name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : string * Cabs.decl_type) in
@@ -5499,53 +5482,53 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 2 : string list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : 'old_pardef_list) in
     Obj.repr(
-# 1274 "cil/src/frontc/cparser.mly"
+# 1257 "cil/src/frontc/cparser.mly"
                                    ( let par_decl, isva = doOldParDecl _3 _5 in
                                      let n, decl = _1 in
                                      (n, PROTO(decl, par_decl, isva), [])
                                    )
-# 5508 "cil/src/frontc/cparser.ml"
+# 5491 "cil/src/frontc/cparser.ml"
                : 'direct_old_proto_decl))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.decl_type) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     Obj.repr(
-# 1279 "cil/src/frontc/cparser.mly"
+# 1262 "cil/src/frontc/cparser.mly"
                                    ( let n, decl = _1 in
                                      (n, PROTO(decl, [], false), [])
                                    )
-# 5518 "cil/src/frontc/cparser.ml"
+# 5501 "cil/src/frontc/cparser.ml"
                : 'direct_old_proto_decl))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1294 "cil/src/frontc/cparser.mly"
+# 1277 "cil/src/frontc/cparser.mly"
                                                ( [fst _1] )
-# 5525 "cil/src/frontc/cparser.ml"
+# 5508 "cil/src/frontc/cparser.ml"
                : string list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string list) in
     Obj.repr(
-# 1295 "cil/src/frontc/cparser.mly"
+# 1278 "cil/src/frontc/cparser.mly"
                                                ( let rest = _3 in
                                                  (fst _1 :: rest) )
-# 5534 "cil/src/frontc/cparser.ml"
+# 5517 "cil/src/frontc/cparser.ml"
                : string list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1300 "cil/src/frontc/cparser.mly"
+# 1283 "cil/src/frontc/cparser.mly"
                                           ( ([], false) )
-# 5540 "cil/src/frontc/cparser.ml"
+# 5523 "cil/src/frontc/cparser.ml"
                : 'old_pardef_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : 'old_pardef) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     Obj.repr(
-# 1302 "cil/src/frontc/cparser.mly"
+# 1285 "cil/src/frontc/cparser.mly"
                                           ( ([(fst _1, _2)], true) )
-# 5549 "cil/src/frontc/cparser.ml"
+# 5532 "cil/src/frontc/cparser.ml"
                : 'old_pardef_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : spec_elem list * cabsloc) in
@@ -5553,150 +5536,147 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : 'old_pardef_list) in
     Obj.repr(
-# 1304 "cil/src/frontc/cparser.mly"
+# 1287 "cil/src/frontc/cparser.mly"
                                           ( let rest, isva = _4 in
                                             ((fst _1, _2) :: rest, isva)
                                           )
-# 5561 "cil/src/frontc/cparser.ml"
+# 5544 "cil/src/frontc/cparser.ml"
                : 'old_pardef_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name) in
     Obj.repr(
-# 1310 "cil/src/frontc/cparser.mly"
+# 1293 "cil/src/frontc/cparser.mly"
                                           ( [_1] )
-# 5568 "cil/src/frontc/cparser.ml"
+# 5551 "cil/src/frontc/cparser.ml"
                : 'old_pardef))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.name) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'old_pardef) in
     Obj.repr(
-# 1311 "cil/src/frontc/cparser.mly"
+# 1294 "cil/src/frontc/cparser.mly"
                                           ( _1 :: _3 )
-# 5576 "cil/src/frontc/cparser.ml"
+# 5559 "cil/src/frontc/cparser.ml"
                : 'old_pardef))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1312 "cil/src/frontc/cparser.mly"
+# 1295 "cil/src/frontc/cparser.mly"
                                           ( [] )
-# 5582 "cil/src/frontc/cparser.ml"
+# 5565 "cil/src/frontc/cparser.ml"
                : 'old_pardef))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.attribute list) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : attribute list list * cabsloc) in
     Obj.repr(
-# 1317 "cil/src/frontc/cparser.mly"
+# 1300 "cil/src/frontc/cparser.mly"
                                 ( _2 :: fst _3, _1 )
-# 5591 "cil/src/frontc/cparser.ml"
+# 5574 "cil/src/frontc/cparser.ml"
                : attribute list list * cabsloc))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1320 "cil/src/frontc/cparser.mly"
+# 1303 "cil/src/frontc/cparser.mly"
                                  ( let l = currentLoc () in
                                    ([], l) )
-# 5598 "cil/src/frontc/cparser.ml"
+# 5581 "cil/src/frontc/cparser.ml"
                : attribute list list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : attribute list list * cabsloc) in
     Obj.repr(
-# 1322 "cil/src/frontc/cparser.mly"
+# 1305 "cil/src/frontc/cparser.mly"
                                  ( _1 )
-# 5605 "cil/src/frontc/cparser.ml"
+# 5588 "cil/src/frontc/cparser.ml"
                : attribute list list * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.decl_type * Cabs.attribute list) in
     Obj.repr(
-# 1326 "cil/src/frontc/cparser.mly"
+# 1309 "cil/src/frontc/cparser.mly"
                                ( let d, a = _2 in
-                                 if a <> [] then begin
-                                   parse_error "attributes in type name";
-                                   raise Parsing.Parse_error
-                                 end;
+                                 if a <> [] then parse_error "attributes in type name" ;
                                  (fst _1, d)
                                )
-# 5619 "cil/src/frontc/cparser.ml"
+# 5599 "cil/src/frontc/cparser.ml"
                : Cabs.spec_elem list * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : spec_elem list * cabsloc) in
     Obj.repr(
-# 1333 "cil/src/frontc/cparser.mly"
+# 1313 "cil/src/frontc/cparser.mly"
                                ( (fst _1, JUSTBASE) )
-# 5626 "cil/src/frontc/cparser.ml"
+# 5606 "cil/src/frontc/cparser.ml"
                : Cabs.spec_elem list * Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : attribute list list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.decl_type) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1336 "cil/src/frontc/cparser.mly"
+# 1316 "cil/src/frontc/cparser.mly"
                                           ( applyPointer (fst _1) _2, _3 )
-# 5635 "cil/src/frontc/cparser.ml"
+# 5615 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type * Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : attribute list list * cabsloc) in
     Obj.repr(
-# 1337 "cil/src/frontc/cparser.mly"
+# 1317 "cil/src/frontc/cparser.mly"
                                           ( applyPointer (fst _1) JUSTBASE, [] )
-# 5642 "cil/src/frontc/cparser.ml"
+# 5622 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type * Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.attribute list) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.decl_type * Cabs.attribute list) in
     Obj.repr(
-# 1344 "cil/src/frontc/cparser.mly"
+# 1324 "cil/src/frontc/cparser.mly"
                                    ( let d, a = _3 in
                                      PARENTYPE (_2, d, a)
                                    )
-# 5653 "cil/src/frontc/cparser.ml"
+# 5633 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     Obj.repr(
-# 1349 "cil/src/frontc/cparser.mly"
+# 1329 "cil/src/frontc/cparser.mly"
                                    ( JUSTBASE )
-# 5660 "cil/src/frontc/cparser.ml"
+# 5640 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.decl_type) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'comma_expression_opt) in
     Obj.repr(
-# 1352 "cil/src/frontc/cparser.mly"
+# 1332 "cil/src/frontc/cparser.mly"
                                    ( ARRAY(_1, [], _3) )
-# 5668 "cil/src/frontc/cparser.ml"
+# 5648 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.decl_type) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : 'parameter_list_startscope) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'rest_par_list) in
     Obj.repr(
-# 1355 "cil/src/frontc/cparser.mly"
+# 1335 "cil/src/frontc/cparser.mly"
                                    ( let (params, isva) = _3 in
                                      !Lexerhack.pop_context ();
                                      PROTO (_1, params, isva)
                                    )
-# 5680 "cil/src/frontc/cparser.ml"
+# 5660 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.decl_type) in
     Obj.repr(
-# 1361 "cil/src/frontc/cparser.mly"
+# 1341 "cil/src/frontc/cparser.mly"
                                     ( _1 )
-# 5687 "cil/src/frontc/cparser.ml"
+# 5667 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1362 "cil/src/frontc/cparser.mly"
+# 1342 "cil/src/frontc/cparser.mly"
                                     ( JUSTBASE )
-# 5693 "cil/src/frontc/cparser.ml"
+# 5673 "cil/src/frontc/cparser.ml"
                : Cabs.decl_type))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Lexing.position * string) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : cabsloc * spec_elem list * name) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : Cabs.block * cabsloc * cabsloc) in
     Obj.repr(
-# 1366 "cil/src/frontc/cparser.mly"
+# 1346 "cil/src/frontc/cparser.mly"
           (
             let spec =
               try Some (Logic_lexer.spec _1 )
@@ -5708,47 +5688,47 @@ let yyact = [|
                                     * announceFunctionName *)
             doFunctionDef spec loc (trd3 _3) specs decl (fst3 _3)
           )
-# 5712 "cil/src/frontc/cparser.ml"
+# 5692 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : cabsloc * spec_elem list * name) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.block * cabsloc * cabsloc) in
     Obj.repr(
-# 1378 "cil/src/frontc/cparser.mly"
+# 1358 "cil/src/frontc/cparser.mly"
           ( let (loc, specs, decl) = _1 in
             currentFunctionName := "<__FUNCTION__ used outside any functions>";
             !Lexerhack.pop_context (); (* The context pushed by
                                     * announceFunctionName *)
             doFunctionDef None ((*handleLoc*) loc) (trd3 _2) specs decl (fst3 _2)
           )
-# 5725 "cil/src/frontc/cparser.ml"
+# 5705 "cil/src/frontc/cparser.ml"
                : Cabs.definition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name) in
     Obj.repr(
-# 1388 "cil/src/frontc/cparser.mly"
+# 1368 "cil/src/frontc/cparser.mly"
                             ( announceFunctionName _2;
                               (fourth4 _2, fst _1, _2)
                             )
-# 5735 "cil/src/frontc/cparser.ml"
+# 5715 "cil/src/frontc/cparser.ml"
                : cabsloc * spec_elem list * name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : spec_elem list * cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.name) in
     Obj.repr(
-# 1394 "cil/src/frontc/cparser.mly"
+# 1374 "cil/src/frontc/cparser.mly"
                             ( announceFunctionName _2;
                               (snd _1, fst _1, _2)
                             )
-# 5745 "cil/src/frontc/cparser.ml"
+# 5725 "cil/src/frontc/cparser.ml"
                : cabsloc * spec_elem list * name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : string * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : 'parameter_list_startscope) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'rest_par_list) in
     Obj.repr(
-# 1399 "cil/src/frontc/cparser.mly"
+# 1379 "cil/src/frontc/cparser.mly"
                            ( let (params, isva) = _3 in
                              let fdec =
                                (fst _1, PROTO(JUSTBASE, params, isva), [], snd _1) in
@@ -5757,7 +5737,7 @@ let yyact = [|
                              let defSpec = [SpecType Tint] in
                              (snd _1, defSpec, fdec)
                            )
-# 5761 "cil/src/frontc/cparser.ml"
+# 5741 "cil/src/frontc/cparser.ml"
                : cabsloc * spec_elem list * name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : string * Cabs.cabsloc) in
@@ -5765,7 +5745,7 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 2 : string list) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : 'old_pardef_list) in
     Obj.repr(
-# 1410 "cil/src/frontc/cparser.mly"
+# 1390 "cil/src/frontc/cparser.mly"
                            ( (* Convert pardecl to new style *)
                              let pardecl, isva = doOldParDecl _3 _5 in
                              (* Make the function declarator *)
@@ -5777,13 +5757,13 @@ let yyact = [|
                              let defSpec = [SpecType Tint] in
                              (snd _1, defSpec, fdec)
                             )
-# 5781 "cil/src/frontc/cparser.ml"
+# 5761 "cil/src/frontc/cparser.ml"
                : cabsloc * spec_elem list * name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     Obj.repr(
-# 1423 "cil/src/frontc/cparser.mly"
+# 1403 "cil/src/frontc/cparser.mly"
                            ( (* Make the function declarator *)
                              let fdec = (fst _1,
                                          PROTO(JUSTBASE, [], false),
@@ -5793,64 +5773,64 @@ let yyact = [|
                              let defSpec = [SpecType Tint] in
                              (snd _1, defSpec, fdec)
                             )
-# 5797 "cil/src/frontc/cparser.ml"
+# 5777 "cil/src/frontc/cparser.ml"
                : cabsloc * spec_elem list * name))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1436 "cil/src/frontc/cparser.mly"
+# 1416 "cil/src/frontc/cparser.mly"
                              ( SpecCV(CV_CONST), _1 )
-# 5804 "cil/src/frontc/cparser.ml"
+# 5784 "cil/src/frontc/cparser.ml"
                : Cabs.spec_elem * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1437 "cil/src/frontc/cparser.mly"
+# 1417 "cil/src/frontc/cparser.mly"
                              ( SpecCV(CV_VOLATILE), _1 )
-# 5811 "cil/src/frontc/cparser.ml"
+# 5791 "cil/src/frontc/cparser.ml"
                : Cabs.spec_elem * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1438 "cil/src/frontc/cparser.mly"
+# 1418 "cil/src/frontc/cparser.mly"
                              ( SpecCV(CV_RESTRICT), _1 )
-# 5818 "cil/src/frontc/cparser.ml"
+# 5798 "cil/src/frontc/cparser.ml"
                : Cabs.spec_elem * cabsloc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1439 "cil/src/frontc/cparser.mly"
+# 1419 "cil/src/frontc/cparser.mly"
                              ( let annot, loc = _1 in
 			       SpecCV(CV_ATTRIBUTE_ANNOT annot), loc )
-# 5826 "cil/src/frontc/cparser.ml"
+# 5806 "cil/src/frontc/cparser.ml"
                : Cabs.spec_elem * cabsloc))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1445 "cil/src/frontc/cparser.mly"
+# 1425 "cil/src/frontc/cparser.mly"
                    ( [])
-# 5832 "cil/src/frontc/cparser.ml"
+# 5812 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'attribute) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1446 "cil/src/frontc/cparser.mly"
+# 1426 "cil/src/frontc/cparser.mly"
                                  ( fst _1 :: _2 )
-# 5840 "cil/src/frontc/cparser.ml"
+# 5820 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1452 "cil/src/frontc/cparser.mly"
+# 1432 "cil/src/frontc/cparser.mly"
                                         ( [] )
-# 5846 "cil/src/frontc/cparser.ml"
+# 5826 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'attribute) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1453 "cil/src/frontc/cparser.mly"
+# 1433 "cil/src/frontc/cparser.mly"
                                         ( fst _1 :: _2 )
-# 5854 "cil/src/frontc/cparser.ml"
+# 5834 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : Cabs.cabsloc) in
@@ -5858,760 +5838,760 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 2 : string * cabsloc) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1455 "cil/src/frontc/cparser.mly"
+# 1435 "cil/src/frontc/cparser.mly"
                                         ( ("__asm__",
 					   [CONSTANT(CONST_STRING (fst _3))]) :: _5 )
-# 5865 "cil/src/frontc/cparser.ml"
+# 5845 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'paren_attr_list) in
     Obj.repr(
-# 1462 "cil/src/frontc/cparser.mly"
+# 1442 "cil/src/frontc/cparser.mly"
                                         ( ("__attribute__", _3), _1 )
-# 5874 "cil/src/frontc/cparser.ml"
+# 5854 "cil/src/frontc/cparser.ml"
                : 'attribute_nocv))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'paren_attr_list_ne) in
     Obj.repr(
-# 1467 "cil/src/frontc/cparser.mly"
+# 1447 "cil/src/frontc/cparser.mly"
                                         ( ("__declspec", _2), _1 )
-# 5882 "cil/src/frontc/cparser.ml"
+# 5862 "cil/src/frontc/cparser.ml"
                : 'attribute_nocv))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1468 "cil/src/frontc/cparser.mly"
+# 1448 "cil/src/frontc/cparser.mly"
                                         ( (fst _1, []), snd _1 )
-# 5889 "cil/src/frontc/cparser.ml"
+# 5869 "cil/src/frontc/cparser.ml"
                : 'attribute_nocv))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1470 "cil/src/frontc/cparser.mly"
+# 1450 "cil/src/frontc/cparser.mly"
                                         ( ("__thread",[]), _1 )
-# 5896 "cil/src/frontc/cparser.ml"
+# 5876 "cil/src/frontc/cparser.ml"
                : 'attribute_nocv))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1474 "cil/src/frontc/cparser.mly"
+# 1454 "cil/src/frontc/cparser.mly"
                    ( [])
-# 5902 "cil/src/frontc/cparser.ml"
+# 5882 "cil/src/frontc/cparser.ml"
                : 'attribute_nocv_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'attribute_nocv) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'attribute_nocv_list) in
     Obj.repr(
-# 1475 "cil/src/frontc/cparser.mly"
+# 1455 "cil/src/frontc/cparser.mly"
                                         ( fst _1 :: _2 )
-# 5910 "cil/src/frontc/cparser.ml"
+# 5890 "cil/src/frontc/cparser.ml"
                : 'attribute_nocv_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'attribute_nocv) in
     Obj.repr(
-# 1480 "cil/src/frontc/cparser.mly"
+# 1460 "cil/src/frontc/cparser.mly"
                           ( _1 )
-# 5917 "cil/src/frontc/cparser.ml"
+# 5897 "cil/src/frontc/cparser.ml"
                : 'attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1481 "cil/src/frontc/cparser.mly"
+# 1461 "cil/src/frontc/cparser.mly"
                           ( ("const", []), _1 )
-# 5924 "cil/src/frontc/cparser.ml"
+# 5904 "cil/src/frontc/cparser.ml"
                : 'attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1482 "cil/src/frontc/cparser.mly"
+# 1462 "cil/src/frontc/cparser.mly"
                           ( ("restrict",[]), _1 )
-# 5931 "cil/src/frontc/cparser.ml"
+# 5911 "cil/src/frontc/cparser.ml"
                : 'attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1483 "cil/src/frontc/cparser.mly"
+# 1463 "cil/src/frontc/cparser.mly"
                           ( ("volatile",[]), _1 )
-# 5938 "cil/src/frontc/cparser.ml"
+# 5918 "cil/src/frontc/cparser.ml"
                : 'attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1484 "cil/src/frontc/cparser.mly"
+# 1464 "cil/src/frontc/cparser.mly"
                           ( let annot, loc = _1 in
 			    ("$annot:" ^ annot, []), loc )
-# 5946 "cil/src/frontc/cparser.ml"
+# 5926 "cil/src/frontc/cparser.ml"
                : 'attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'paren_attr_list) in
     Obj.repr(
-# 1493 "cil/src/frontc/cparser.mly"
+# 1473 "cil/src/frontc/cparser.mly"
                                         ( ("__attribute__", _3) )
-# 5955 "cil/src/frontc/cparser.ml"
+# 5935 "cil/src/frontc/cparser.ml"
                : 'just_attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'paren_attr_list_ne) in
     Obj.repr(
-# 1494 "cil/src/frontc/cparser.mly"
+# 1474 "cil/src/frontc/cparser.mly"
                                         ( ("__declspec", _2) )
-# 5963 "cil/src/frontc/cparser.ml"
+# 5943 "cil/src/frontc/cparser.ml"
                : 'just_attribute))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'just_attribute) in
     Obj.repr(
-# 1500 "cil/src/frontc/cparser.mly"
+# 1480 "cil/src/frontc/cparser.mly"
                                         ( [_1] )
-# 5970 "cil/src/frontc/cparser.ml"
+# 5950 "cil/src/frontc/cparser.ml"
                : 'just_attributes))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'just_attribute) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'just_attributes) in
     Obj.repr(
-# 1501 "cil/src/frontc/cparser.mly"
+# 1481 "cil/src/frontc/cparser.mly"
                                         ( _1 :: _2 )
-# 5978 "cil/src/frontc/cparser.ml"
+# 5958 "cil/src/frontc/cparser.ml"
                : 'just_attributes))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'attr) in
     Obj.repr(
-# 1506 "cil/src/frontc/cparser.mly"
+# 1486 "cil/src/frontc/cparser.mly"
                           ( PRAGMA (_2, _1) )
-# 5986 "cil/src/frontc/cparser.ml"
+# 5966 "cil/src/frontc/cparser.ml"
                : 'pragma))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : 'attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     Obj.repr(
-# 1507 "cil/src/frontc/cparser.mly"
+# 1487 "cil/src/frontc/cparser.mly"
                                    ( PRAGMA (_2, _1) )
-# 5995 "cil/src/frontc/cparser.ml"
+# 5975 "cil/src/frontc/cparser.ml"
                : 'pragma))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1508 "cil/src/frontc/cparser.mly"
+# 1488 "cil/src/frontc/cparser.mly"
                                         ( PRAGMA (VARIABLE (fst _1),
                                                   snd _1) )
-# 6003 "cil/src/frontc/cparser.ml"
+# 5983 "cil/src/frontc/cparser.ml"
                : 'pragma))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1515 "cil/src/frontc/cparser.mly"
+# 1495 "cil/src/frontc/cparser.mly"
              ( VARIABLE (fst _1) )
-# 6010 "cil/src/frontc/cparser.ml"
+# 5990 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1517 "cil/src/frontc/cparser.mly"
+# 1497 "cil/src/frontc/cparser.mly"
                   ( VARIABLE (fst _1) )
-# 6017 "cil/src/frontc/cparser.ml"
+# 5997 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'attr) in
     Obj.repr(
-# 1518 "cil/src/frontc/cparser.mly"
+# 1498 "cil/src/frontc/cparser.mly"
                                         ( _2 )
-# 6025 "cil/src/frontc/cparser.ml"
+# 6005 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1519 "cil/src/frontc/cparser.mly"
+# 1499 "cil/src/frontc/cparser.mly"
                                          ( CALL(VARIABLE (fst _1), [VARIABLE (fst _2)]) )
-# 6033 "cil/src/frontc/cparser.ml"
+# 6013 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1520 "cil/src/frontc/cparser.mly"
+# 1500 "cil/src/frontc/cparser.mly"
                                          ( CONSTANT(CONST_INT (fst _1)) )
-# 6040 "cil/src/frontc/cparser.ml"
+# 6020 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string * cabsloc) in
     Obj.repr(
-# 1521 "cil/src/frontc/cparser.mly"
+# 1501 "cil/src/frontc/cparser.mly"
                                          ( CONSTANT(CONST_STRING (fst _1)) )
-# 6047 "cil/src/frontc/cparser.ml"
+# 6027 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1525 "cil/src/frontc/cparser.mly"
+# 1505 "cil/src/frontc/cparser.mly"
                                          ( VARIABLE "aconst" )
-# 6054 "cil/src/frontc/cparser.ml"
+# 6034 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1527 "cil/src/frontc/cparser.mly"
+# 1507 "cil/src/frontc/cparser.mly"
                                          ( VARIABLE (fst _1 ^ ":" ^ fst _3) )
-# 6062 "cil/src/frontc/cparser.ml"
+# 6042 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1531 "cil/src/frontc/cparser.mly"
+# 1511 "cil/src/frontc/cparser.mly"
                                          ( VARIABLE (fst _1 ^ ":" ^ fst _3) )
-# 6070 "cil/src/frontc/cparser.ml"
+# 6050 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1533 "cil/src/frontc/cparser.mly"
+# 1513 "cil/src/frontc/cparser.mly"
                                          ( VARIABLE ("default:" ^ fst _3) )
-# 6078 "cil/src/frontc/cparser.ml"
+# 6058 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : Cabs.cabsloc) in
     Obj.repr(
-# 1538 "cil/src/frontc/cparser.mly"
+# 1518 "cil/src/frontc/cparser.mly"
                                          ( VARIABLE ("__noreturn__") )
-# 6085 "cil/src/frontc/cparser.ml"
+# 6065 "cil/src/frontc/cparser.ml"
                : 'primary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'primary_attr) in
     Obj.repr(
-# 1542 "cil/src/frontc/cparser.mly"
+# 1522 "cil/src/frontc/cparser.mly"
                                          ( _1 )
-# 6092 "cil/src/frontc/cparser.ml"
+# 6072 "cil/src/frontc/cparser.ml"
                : 'postfix_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     Obj.repr(
-# 1545 "cil/src/frontc/cparser.mly"
+# 1525 "cil/src/frontc/cparser.mly"
                                      ( CALL(VARIABLE (fst _1), [VARIABLE ""]) )
-# 6100 "cil/src/frontc/cparser.ml"
+# 6080 "cil/src/frontc/cparser.ml"
                : 'postfix_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'paren_attr_list_ne) in
     Obj.repr(
-# 1546 "cil/src/frontc/cparser.mly"
+# 1526 "cil/src/frontc/cparser.mly"
                                      ( CALL(VARIABLE (fst _1), _2) )
-# 6108 "cil/src/frontc/cparser.ml"
+# 6088 "cil/src/frontc/cparser.ml"
                : 'postfix_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'postfix_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1548 "cil/src/frontc/cparser.mly"
+# 1528 "cil/src/frontc/cparser.mly"
                                          (MEMBEROFPTR (_1, _3))
-# 6116 "cil/src/frontc/cparser.ml"
+# 6096 "cil/src/frontc/cparser.ml"
                : 'postfix_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'postfix_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'id_or_typename) in
     Obj.repr(
-# 1549 "cil/src/frontc/cparser.mly"
+# 1529 "cil/src/frontc/cparser.mly"
                                          (MEMBEROF (_1, _3))
-# 6124 "cil/src/frontc/cparser.ml"
+# 6104 "cil/src/frontc/cparser.ml"
                : 'postfix_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'postfix_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'attr) in
     Obj.repr(
-# 1550 "cil/src/frontc/cparser.mly"
+# 1530 "cil/src/frontc/cparser.mly"
                                          (INDEX (_1, _3) )
-# 6132 "cil/src/frontc/cparser.ml"
+# 6112 "cil/src/frontc/cparser.ml"
                : 'postfix_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'postfix_attr) in
     Obj.repr(
-# 1557 "cil/src/frontc/cparser.mly"
+# 1537 "cil/src/frontc/cparser.mly"
                                          ( _1 )
-# 6139 "cil/src/frontc/cparser.ml"
+# 6119 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
     Obj.repr(
-# 1558 "cil/src/frontc/cparser.mly"
+# 1538 "cil/src/frontc/cparser.mly"
                                          (EXPR_SIZEOF (fst _2) )
-# 6147 "cil/src/frontc/cparser.ml"
+# 6127 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
     Obj.repr(
-# 1560 "cil/src/frontc/cparser.mly"
+# 1540 "cil/src/frontc/cparser.mly"
                            (let b, d = _3 in TYPE_SIZEOF (b, d))
-# 6156 "cil/src/frontc/cparser.ml"
+# 6136 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'unary_expression) in
     Obj.repr(
-# 1562 "cil/src/frontc/cparser.mly"
+# 1542 "cil/src/frontc/cparser.mly"
                                          (EXPR_ALIGNOF (fst _2) )
-# 6164 "cil/src/frontc/cparser.ml"
+# 6144 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : Cabs.spec_elem list * Cabs.decl_type) in
     Obj.repr(
-# 1563 "cil/src/frontc/cparser.mly"
+# 1543 "cil/src/frontc/cparser.mly"
                                          (let b, d = _3 in TYPE_ALIGNOF (b, d))
-# 6173 "cil/src/frontc/cparser.ml"
+# 6153 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1564 "cil/src/frontc/cparser.mly"
+# 1544 "cil/src/frontc/cparser.mly"
                                         (UNARY (PLUS, _2))
-# 6181 "cil/src/frontc/cparser.ml"
+# 6161 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1565 "cil/src/frontc/cparser.mly"
+# 1545 "cil/src/frontc/cparser.mly"
                                         (UNARY (MINUS, _2))
-# 6189 "cil/src/frontc/cparser.ml"
+# 6169 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1566 "cil/src/frontc/cparser.mly"
+# 1546 "cil/src/frontc/cparser.mly"
                             (UNARY (MEMOF, _2))
-# 6197 "cil/src/frontc/cparser.ml"
+# 6177 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1568 "cil/src/frontc/cparser.mly"
+# 1548 "cil/src/frontc/cparser.mly"
                                  (UNARY (ADDROF, _2))
-# 6205 "cil/src/frontc/cparser.ml"
+# 6185 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1569 "cil/src/frontc/cparser.mly"
+# 1549 "cil/src/frontc/cparser.mly"
                                  (UNARY (NOT, _2))
-# 6213 "cil/src/frontc/cparser.ml"
+# 6193 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1570 "cil/src/frontc/cparser.mly"
+# 1550 "cil/src/frontc/cparser.mly"
                                         (UNARY (BNOT, _2))
-# 6221 "cil/src/frontc/cparser.ml"
+# 6201 "cil/src/frontc/cparser.ml"
                : 'unary_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'unary_attr) in
     Obj.repr(
-# 1574 "cil/src/frontc/cparser.mly"
+# 1554 "cil/src/frontc/cparser.mly"
                                          ( _1 )
-# 6228 "cil/src/frontc/cparser.ml"
+# 6208 "cil/src/frontc/cparser.ml"
                : 'cast_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1578 "cil/src/frontc/cparser.mly"
+# 1558 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 6235 "cil/src/frontc/cparser.ml"
+# 6215 "cil/src/frontc/cparser.ml"
                : 'multiplicative_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'multiplicative_attr) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1579 "cil/src/frontc/cparser.mly"
+# 1559 "cil/src/frontc/cparser.mly"
                                         (BINARY(MUL ,_1 , _3))
-# 6244 "cil/src/frontc/cparser.ml"
+# 6224 "cil/src/frontc/cparser.ml"
                : 'multiplicative_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'multiplicative_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1580 "cil/src/frontc/cparser.mly"
+# 1560 "cil/src/frontc/cparser.mly"
                                           (BINARY(DIV ,_1 , _3))
-# 6252 "cil/src/frontc/cparser.ml"
+# 6232 "cil/src/frontc/cparser.ml"
                : 'multiplicative_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'multiplicative_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'cast_attr) in
     Obj.repr(
-# 1581 "cil/src/frontc/cparser.mly"
+# 1561 "cil/src/frontc/cparser.mly"
                                           (BINARY(MOD ,_1 , _3))
-# 6260 "cil/src/frontc/cparser.ml"
+# 6240 "cil/src/frontc/cparser.ml"
                : 'multiplicative_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'multiplicative_attr) in
     Obj.repr(
-# 1586 "cil/src/frontc/cparser.mly"
+# 1566 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 6267 "cil/src/frontc/cparser.ml"
+# 6247 "cil/src/frontc/cparser.ml"
                : 'additive_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'additive_attr) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'multiplicative_attr) in
     Obj.repr(
-# 1587 "cil/src/frontc/cparser.mly"
+# 1567 "cil/src/frontc/cparser.mly"
                                             (BINARY(ADD ,_1 , _3))
-# 6276 "cil/src/frontc/cparser.ml"
+# 6256 "cil/src/frontc/cparser.ml"
                : 'additive_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'additive_attr) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'multiplicative_attr) in
     Obj.repr(
-# 1588 "cil/src/frontc/cparser.mly"
+# 1568 "cil/src/frontc/cparser.mly"
                                             (BINARY(SUB ,_1 , _3))
-# 6285 "cil/src/frontc/cparser.ml"
+# 6265 "cil/src/frontc/cparser.ml"
                : 'additive_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'additive_attr) in
     Obj.repr(
-# 1592 "cil/src/frontc/cparser.mly"
+# 1572 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 6292 "cil/src/frontc/cparser.ml"
+# 6272 "cil/src/frontc/cparser.ml"
                : 'shift_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'shift_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'additive_attr) in
     Obj.repr(
-# 1593 "cil/src/frontc/cparser.mly"
+# 1573 "cil/src/frontc/cparser.mly"
                                      (BINARY(SHL ,_1 , _3))
-# 6300 "cil/src/frontc/cparser.ml"
+# 6280 "cil/src/frontc/cparser.ml"
                : 'shift_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'shift_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'additive_attr) in
     Obj.repr(
-# 1594 "cil/src/frontc/cparser.mly"
+# 1574 "cil/src/frontc/cparser.mly"
                                      (BINARY(SHR ,_1 , _3))
-# 6308 "cil/src/frontc/cparser.ml"
+# 6288 "cil/src/frontc/cparser.ml"
                : 'shift_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'shift_attr) in
     Obj.repr(
-# 1598 "cil/src/frontc/cparser.mly"
+# 1578 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 6315 "cil/src/frontc/cparser.ml"
+# 6295 "cil/src/frontc/cparser.ml"
                : 'relational_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_attr) in
     Obj.repr(
-# 1599 "cil/src/frontc/cparser.mly"
+# 1579 "cil/src/frontc/cparser.mly"
                                    (BINARY(LT ,_1 , _3))
-# 6323 "cil/src/frontc/cparser.ml"
+# 6303 "cil/src/frontc/cparser.ml"
                : 'relational_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_attr) in
     Obj.repr(
-# 1600 "cil/src/frontc/cparser.mly"
+# 1580 "cil/src/frontc/cparser.mly"
                                    (BINARY(GT ,_1 , _3))
-# 6331 "cil/src/frontc/cparser.ml"
+# 6311 "cil/src/frontc/cparser.ml"
                : 'relational_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_attr) in
     Obj.repr(
-# 1601 "cil/src/frontc/cparser.mly"
+# 1581 "cil/src/frontc/cparser.mly"
                                       (BINARY(LE ,_1 , _3))
-# 6339 "cil/src/frontc/cparser.ml"
+# 6319 "cil/src/frontc/cparser.ml"
                : 'relational_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'relational_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'shift_attr) in
     Obj.repr(
-# 1602 "cil/src/frontc/cparser.mly"
+# 1582 "cil/src/frontc/cparser.mly"
                                       (BINARY(GE ,_1 , _3))
-# 6347 "cil/src/frontc/cparser.ml"
+# 6327 "cil/src/frontc/cparser.ml"
                : 'relational_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'relational_attr) in
     Obj.repr(
-# 1606 "cil/src/frontc/cparser.mly"
+# 1586 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 6354 "cil/src/frontc/cparser.ml"
+# 6334 "cil/src/frontc/cparser.ml"
                : 'equality_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'equality_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'relational_attr) in
     Obj.repr(
-# 1607 "cil/src/frontc/cparser.mly"
+# 1587 "cil/src/frontc/cparser.mly"
                                             (BINARY(EQ ,_1 , _3))
-# 6362 "cil/src/frontc/cparser.ml"
+# 6342 "cil/src/frontc/cparser.ml"
                : 'equality_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'equality_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'relational_attr) in
     Obj.repr(
-# 1608 "cil/src/frontc/cparser.mly"
+# 1588 "cil/src/frontc/cparser.mly"
                                             (BINARY(NE ,_1 , _3))
-# 6370 "cil/src/frontc/cparser.ml"
+# 6350 "cil/src/frontc/cparser.ml"
                : 'equality_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'equality_attr) in
     Obj.repr(
-# 1613 "cil/src/frontc/cparser.mly"
+# 1593 "cil/src/frontc/cparser.mly"
                                         ( _1 )
-# 6377 "cil/src/frontc/cparser.ml"
+# 6357 "cil/src/frontc/cparser.ml"
                : 'bitwise_and_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'bitwise_and_attr) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'equality_attr) in
     Obj.repr(
-# 1614 "cil/src/frontc/cparser.mly"
+# 1594 "cil/src/frontc/cparser.mly"
                                        (BINARY(BAND ,_1 , _3))
-# 6386 "cil/src/frontc/cparser.ml"
+# 6366 "cil/src/frontc/cparser.ml"
                : 'bitwise_and_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_and_attr) in
     Obj.repr(
-# 1618 "cil/src/frontc/cparser.mly"
+# 1598 "cil/src/frontc/cparser.mly"
                                            ( _1 )
-# 6393 "cil/src/frontc/cparser.ml"
+# 6373 "cil/src/frontc/cparser.ml"
                : 'bitwise_xor_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'bitwise_xor_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_and_attr) in
     Obj.repr(
-# 1619 "cil/src/frontc/cparser.mly"
+# 1599 "cil/src/frontc/cparser.mly"
                                            (BINARY(XOR ,_1 , _3))
-# 6401 "cil/src/frontc/cparser.ml"
+# 6381 "cil/src/frontc/cparser.ml"
                : 'bitwise_xor_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_xor_attr) in
     Obj.repr(
-# 1623 "cil/src/frontc/cparser.mly"
+# 1603 "cil/src/frontc/cparser.mly"
                                           ( _1 )
-# 6408 "cil/src/frontc/cparser.ml"
+# 6388 "cil/src/frontc/cparser.ml"
                : 'bitwise_or_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'bitwise_or_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_xor_attr) in
     Obj.repr(
-# 1624 "cil/src/frontc/cparser.mly"
+# 1604 "cil/src/frontc/cparser.mly"
                                           (BINARY(BOR ,_1 , _3))
-# 6416 "cil/src/frontc/cparser.ml"
+# 6396 "cil/src/frontc/cparser.ml"
                : 'bitwise_or_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_or_attr) in
     Obj.repr(
-# 1628 "cil/src/frontc/cparser.mly"
+# 1608 "cil/src/frontc/cparser.mly"
                                                 ( _1 )
-# 6423 "cil/src/frontc/cparser.ml"
+# 6403 "cil/src/frontc/cparser.ml"
                : 'logical_and_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'logical_and_attr) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'bitwise_or_attr) in
     Obj.repr(
-# 1629 "cil/src/frontc/cparser.mly"
+# 1609 "cil/src/frontc/cparser.mly"
                                              (BINARY(AND ,_1 , _3))
-# 6432 "cil/src/frontc/cparser.ml"
+# 6412 "cil/src/frontc/cparser.ml"
                : 'logical_and_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logical_and_attr) in
     Obj.repr(
-# 1633 "cil/src/frontc/cparser.mly"
+# 1613 "cil/src/frontc/cparser.mly"
                                                ( _1 )
-# 6439 "cil/src/frontc/cparser.ml"
+# 6419 "cil/src/frontc/cparser.ml"
                : 'logical_or_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'logical_or_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'logical_and_attr) in
     Obj.repr(
-# 1634 "cil/src/frontc/cparser.mly"
+# 1614 "cil/src/frontc/cparser.mly"
                                                (BINARY(OR ,_1 , _3))
-# 6447 "cil/src/frontc/cparser.ml"
+# 6427 "cil/src/frontc/cparser.ml"
                : 'logical_or_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logical_or_attr) in
     Obj.repr(
-# 1638 "cil/src/frontc/cparser.mly"
+# 1618 "cil/src/frontc/cparser.mly"
                                            ( _1 )
-# 6454 "cil/src/frontc/cparser.ml"
+# 6434 "cil/src/frontc/cparser.ml"
                : 'conditional_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : 'logical_or_attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 2 : 'conditional_attr) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : 'conditional_attr) in
     Obj.repr(
-# 1641 "cil/src/frontc/cparser.mly"
+# 1621 "cil/src/frontc/cparser.mly"
                                           ( QUESTION(_1, _3, _5) )
-# 6463 "cil/src/frontc/cparser.ml"
+# 6443 "cil/src/frontc/cparser.ml"
                : 'conditional_attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'conditional_attr) in
     Obj.repr(
-# 1644 "cil/src/frontc/cparser.mly"
+# 1624 "cil/src/frontc/cparser.mly"
                                           ( _1 )
-# 6470 "cil/src/frontc/cparser.ml"
+# 6450 "cil/src/frontc/cparser.ml"
                : 'attr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'attr) in
     Obj.repr(
-# 1648 "cil/src/frontc/cparser.mly"
+# 1628 "cil/src/frontc/cparser.mly"
                                          ( [_1] )
-# 6477 "cil/src/frontc/cparser.ml"
+# 6457 "cil/src/frontc/cparser.ml"
                : 'attr_list_ne))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'attr) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'attr_list_ne) in
     Obj.repr(
-# 1649 "cil/src/frontc/cparser.mly"
+# 1629 "cil/src/frontc/cparser.mly"
                                          ( _1 :: _3 )
-# 6485 "cil/src/frontc/cparser.ml"
+# 6465 "cil/src/frontc/cparser.ml"
                : 'attr_list_ne))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'attr_list_ne) in
     Obj.repr(
-# 1650 "cil/src/frontc/cparser.mly"
+# 1630 "cil/src/frontc/cparser.mly"
                                          ( _3 )
-# 6492 "cil/src/frontc/cparser.ml"
+# 6472 "cil/src/frontc/cparser.ml"
                : 'attr_list_ne))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1653 "cil/src/frontc/cparser.mly"
+# 1633 "cil/src/frontc/cparser.mly"
                                          ( [] )
-# 6498 "cil/src/frontc/cparser.ml"
+# 6478 "cil/src/frontc/cparser.ml"
                : 'attr_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'attr_list_ne) in
     Obj.repr(
-# 1654 "cil/src/frontc/cparser.mly"
+# 1634 "cil/src/frontc/cparser.mly"
                                          ( _1 )
-# 6505 "cil/src/frontc/cparser.ml"
+# 6485 "cil/src/frontc/cparser.ml"
                : 'attr_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'attr_list_ne) in
     Obj.repr(
-# 1657 "cil/src/frontc/cparser.mly"
+# 1637 "cil/src/frontc/cparser.mly"
                                          ( _2 )
-# 6513 "cil/src/frontc/cparser.ml"
+# 6493 "cil/src/frontc/cparser.ml"
                : 'paren_attr_list_ne))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     Obj.repr(
-# 1658 "cil/src/frontc/cparser.mly"
+# 1638 "cil/src/frontc/cparser.mly"
                                          ( [] )
-# 6520 "cil/src/frontc/cparser.ml"
+# 6500 "cil/src/frontc/cparser.ml"
                : 'paren_attr_list_ne))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'attr_list) in
     Obj.repr(
-# 1661 "cil/src/frontc/cparser.mly"
+# 1641 "cil/src/frontc/cparser.mly"
                                          ( _2 )
-# 6528 "cil/src/frontc/cparser.ml"
+# 6508 "cil/src/frontc/cparser.ml"
                : 'paren_attr_list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     Obj.repr(
-# 1662 "cil/src/frontc/cparser.mly"
+# 1642 "cil/src/frontc/cparser.mly"
                                          ( [] )
-# 6535 "cil/src/frontc/cparser.ml"
+# 6515 "cil/src/frontc/cparser.ml"
                : 'paren_attr_list))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1666 "cil/src/frontc/cparser.mly"
+# 1646 "cil/src/frontc/cparser.mly"
                                         ( [] )
-# 6541 "cil/src/frontc/cparser.ml"
+# 6521 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1667 "cil/src/frontc/cparser.mly"
+# 1647 "cil/src/frontc/cparser.mly"
                                         ( ("volatile", []) :: _2 )
-# 6549 "cil/src/frontc/cparser.ml"
+# 6529 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : Cabs.cabsloc) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : Cabs.attribute list) in
     Obj.repr(
-# 1668 "cil/src/frontc/cparser.mly"
+# 1648 "cil/src/frontc/cparser.mly"
                                         ( ("const", []) :: _2 )
-# 6557 "cil/src/frontc/cparser.ml"
+# 6537 "cil/src/frontc/cparser.ml"
                : Cabs.attribute list))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'one_string_constant) in
     Obj.repr(
-# 1671 "cil/src/frontc/cparser.mly"
+# 1651 "cil/src/frontc/cparser.mly"
                                                  ( [_1] )
-# 6564 "cil/src/frontc/cparser.ml"
+# 6544 "cil/src/frontc/cparser.ml"
                : 'asmtemplate))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'one_string_constant) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'asmtemplate) in
     Obj.repr(
-# 1672 "cil/src/frontc/cparser.mly"
+# 1652 "cil/src/frontc/cparser.mly"
                                                  ( _1 :: _2 )
-# 6572 "cil/src/frontc/cparser.ml"
+# 6552 "cil/src/frontc/cparser.ml"
                : 'asmtemplate))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1675 "cil/src/frontc/cparser.mly"
+# 1655 "cil/src/frontc/cparser.mly"
                         ( None )
-# 6578 "cil/src/frontc/cparser.ml"
+# 6558 "cil/src/frontc/cparser.ml"
                : 'asmoutputs))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'asmoperands) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'asminputs) in
     Obj.repr(
-# 1677 "cil/src/frontc/cparser.mly"
+# 1657 "cil/src/frontc/cparser.mly"
                         ( let (ins, clobs) = _3 in
                           Some {aoutputs = _2; ainputs = ins; aclobbers = clobs} )
-# 6587 "cil/src/frontc/cparser.ml"
+# 6567 "cil/src/frontc/cparser.ml"
                : 'asmoutputs))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1681 "cil/src/frontc/cparser.mly"
+# 1661 "cil/src/frontc/cparser.mly"
                                         ( [] )
-# 6593 "cil/src/frontc/cparser.ml"
+# 6573 "cil/src/frontc/cparser.ml"
                : 'asmoperands))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'asmoperandsne) in
     Obj.repr(
-# 1682 "cil/src/frontc/cparser.mly"
+# 1662 "cil/src/frontc/cparser.mly"
                                         ( List.rev _1 )
-# 6600 "cil/src/frontc/cparser.ml"
+# 6580 "cil/src/frontc/cparser.ml"
                : 'asmoperands))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'asmoperand) in
     Obj.repr(
-# 1685 "cil/src/frontc/cparser.mly"
+# 1665 "cil/src/frontc/cparser.mly"
                                         ( [_1] )
-# 6607 "cil/src/frontc/cparser.ml"
+# 6587 "cil/src/frontc/cparser.ml"
                : 'asmoperandsne))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'asmoperandsne) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'asmoperand) in
     Obj.repr(
-# 1686 "cil/src/frontc/cparser.mly"
+# 1666 "cil/src/frontc/cparser.mly"
                                         ( _3 :: _1 )
-# 6615 "cil/src/frontc/cparser.ml"
+# 6595 "cil/src/frontc/cparser.ml"
                : 'asmoperandsne))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : 'asmopname) in
@@ -6619,79 +6599,79 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     let _4 = (Parsing.peek_val __caml_parser_env 1 : Cabs.expression * cabsloc) in
     Obj.repr(
-# 1689 "cil/src/frontc/cparser.mly"
+# 1669 "cil/src/frontc/cparser.mly"
                                                            ( (_1, fst _2, fst _4) )
-# 6625 "cil/src/frontc/cparser.ml"
+# 6605 "cil/src/frontc/cparser.ml"
                : 'asmoperand))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : 'asmopname) in
     let _2 = (Parsing.peek_val __caml_parser_env 3 : string * cabsloc) in
     let _3 = (Parsing.peek_val __caml_parser_env 2 : Cabs.cabsloc) in
     Obj.repr(
-# 1690 "cil/src/frontc/cparser.mly"
+# 1670 "cil/src/frontc/cparser.mly"
                                                            ( (_1, fst _2, NOTHING ) )
-# 6634 "cil/src/frontc/cparser.ml"
+# 6614 "cil/src/frontc/cparser.ml"
                : 'asmoperand))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1693 "cil/src/frontc/cparser.mly"
+# 1673 "cil/src/frontc/cparser.mly"
                              ( ([], []) )
-# 6640 "cil/src/frontc/cparser.ml"
+# 6620 "cil/src/frontc/cparser.ml"
                : 'asminputs))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'asmoperands) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'asmclobber) in
     Obj.repr(
-# 1695 "cil/src/frontc/cparser.mly"
+# 1675 "cil/src/frontc/cparser.mly"
                         ( (_2, _3) )
-# 6648 "cil/src/frontc/cparser.ml"
+# 6628 "cil/src/frontc/cparser.ml"
                : 'asminputs))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1698 "cil/src/frontc/cparser.mly"
+# 1678 "cil/src/frontc/cparser.mly"
                                         ( None )
-# 6654 "cil/src/frontc/cparser.ml"
+# 6634 "cil/src/frontc/cparser.ml"
                : 'asmopname))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : string * Cabs.cabsloc) in
     Obj.repr(
-# 1699 "cil/src/frontc/cparser.mly"
+# 1679 "cil/src/frontc/cparser.mly"
                                         ( Some (fst _2) )
-# 6661 "cil/src/frontc/cparser.ml"
+# 6641 "cil/src/frontc/cparser.ml"
                : 'asmopname))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1703 "cil/src/frontc/cparser.mly"
+# 1683 "cil/src/frontc/cparser.mly"
                                         ( [] )
-# 6667 "cil/src/frontc/cparser.ml"
+# 6647 "cil/src/frontc/cparser.ml"
                : 'asmclobber))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'asmcloberlst_ne) in
     Obj.repr(
-# 1704 "cil/src/frontc/cparser.mly"
+# 1684 "cil/src/frontc/cparser.mly"
                                         ( _2 )
-# 6674 "cil/src/frontc/cparser.ml"
+# 6654 "cil/src/frontc/cparser.ml"
                : 'asmclobber))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'one_string_constant) in
     Obj.repr(
-# 1707 "cil/src/frontc/cparser.mly"
+# 1687 "cil/src/frontc/cparser.mly"
                                                  ( [_1] )
-# 6681 "cil/src/frontc/cparser.ml"
+# 6661 "cil/src/frontc/cparser.ml"
                : 'asmcloberlst_ne))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'one_string_constant) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'asmcloberlst_ne) in
     Obj.repr(
-# 1708 "cil/src/frontc/cparser.mly"
+# 1688 "cil/src/frontc/cparser.mly"
                                                  ( _1 :: _3 )
-# 6689 "cil/src/frontc/cparser.ml"
+# 6669 "cil/src/frontc/cparser.ml"
                : 'asmcloberlst_ne))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 1713 "cil/src/frontc/cparser.mly"
+# 1693 "cil/src/frontc/cparser.mly"
               ( currentLoc () )
-# 6695 "cil/src/frontc/cparser.ml"
+# 6675 "cil/src/frontc/cparser.ml"
                : 'get_current_loc))
 (* Entry interpret *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

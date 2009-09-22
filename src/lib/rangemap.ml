@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,20 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(***********************************************************************)
-(*                                                                     *)
-(*                           Objective Caml                            *)
-(*                                                                     *)
-(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
-(*                                                                     *)
-(*  Copyright 1996 Institut National de Recherche en Informatique et   *)
-(*  en Automatique.  All rights reserved.  This file is distributed    *)
-(*  under the terms of the GNU Library General Public License, with    *)
-(*  the special exception on linking described in file ../LICENSE.     *)
-(*                                                                     *)
-(***********************************************************************)
+(* modified by CEA *)
 
-(* $Id: rangemap.ml,v 1.3 2008/11/04 10:05:05 uid568 Exp $ *)
+(* $Id: rangemap.ml,v 1.3 2008-11-04 10:05:05 uid568 Exp $ *)
 
 module type OrderedType =
   sig

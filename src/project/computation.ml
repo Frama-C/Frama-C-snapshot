@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: computation.ml,v 1.15 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: computation.ml,v 1.16 2009-02-23 12:52:19 uid562 Exp $ *)
 
 module type HASHTBL = sig
   include Datatype.HASHTBL
@@ -33,7 +33,7 @@ module type HASHTBL_OUTPUT = sig
   include Project.Computation.OUTPUT
   type key
   type data
-  val replace: key -> data -> unit 
+  val replace: key -> data -> unit
   val add: key -> data -> unit
   val clear: unit -> unit
   val length: unit -> int
@@ -49,16 +49,16 @@ module type HASHTBL_OUTPUT = sig
 end
 
 module Make_Hashtbl
-  (H:HASHTBL)(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS) = 
+  (H:HASHTBL)(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS) =
 struct
 
   type key = H.key
   type data = Data.t
-      
+
   let create () = H.create Info.size
-    
+
   let state = ref (create ())
-    
+
   include Project.Computation.Register
   (Datatype.Make_Hashtbl(H)(Data))
   (struct
@@ -67,6 +67,12 @@ struct
      let clear = H.clear
      let get () = !state
      let set x = state := x
+     let clear_if_project p h = match !Data.contain_project with
+       | None -> false
+       | Some f -> 
+	   let found = H.fold (fun k v l -> if f p v then k::l else l) h [] in
+	   List.iter (H.remove h) found;
+	   found <> []
    end)
   (Info)
 
@@ -85,7 +91,7 @@ struct
   let memo ?change f key =
     try
       let old = find key in
-      Extlib.may_map 
+      Extlib.may_map
 	~dft:old (fun f -> let v = f old in replace key v; v) change
     with Not_found ->
       let data = f key in
@@ -124,6 +130,9 @@ module Ref(Data:REF_INPUT)(Info:Signature.NAME_DPDS) = struct
      let clear tbl = tbl := Data.default ()
      let get () = !state
      let set x = state := x
+     let clear_if_project p x = match !Data.contain_project with
+       | None -> false
+       | Some f -> if f p !x then begin clear x; true end else false
    end)
   (Info)
 
@@ -138,6 +147,7 @@ module type OPTION_REF_OUTPUT = sig
   val memo: ?change:(data -> data) -> (unit -> data) -> data
   val map: (data -> data) -> data option
   val may: (data -> unit) -> unit
+  val get_option : unit -> data option
 end
 
 module OptionRef
@@ -156,17 +166,21 @@ module OptionRef
      let clear tbl = tbl := None
      let get () = !state
      let set x = state := x
+     let clear_if_project p x = match !Data.contain_project, !x with
+       | None, _ | _, None -> false
+       | Some f, Some v -> if f p v then begin clear x; true end else false
    end)
   (Info)
 
   let set v = !state := Some v
   let get () = match !(!state) with None -> raise Not_found | Some v -> v
+  let get_option () = !(!state)
   let clear () = !state := None
 
   let memo ?change f =
     try
       let old = get () in
-      Extlib.may_map 
+      Extlib.may_map
 	~dft:old (fun f -> let v = f old in set v; v) change
     with Not_found ->
       let data = f () in
@@ -203,10 +217,10 @@ end
 module Make_SetRef
   (Set:SET)
   (Data:Project.Datatype.S with type t = Set.elt)
-  (Info:Signature.NAME_DPDS) = 
+  (Info:Signature.NAME_DPDS) =
 struct
   include Ref
-    (struct 
+    (struct
        include Datatype.Make_Set(Set)(Data)
        let default () = Set.empty
      end)
@@ -234,9 +248,9 @@ end
 module Queue(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) = struct
 
   type elt = Data.t
-      
+
   let state = ref (Queue.create ())
-    
+
   include Project.Computation.Register
   (Datatype.Queue(Data))
   (struct
@@ -245,6 +259,12 @@ module Queue(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) = struct
      let clear = Queue.clear
      let get () = !state
      let set x = state := x
+     let clear_if_project p q = match !Data.contain_project with
+       | None -> false
+       | Some f -> 
+	   (* cannot remove a single element from a queue *)
+	   try Queue.iter (fun x -> if f p x then raise Exit) q; false
+	   with Exit -> clear q; true
    end)
   (Info)
 
@@ -256,28 +276,33 @@ end
 
 (** {3 Project itself} *)
 
-module Project(Info:Signature.NAME_DPDS) = 
-  Ref 
+module Project(Info:Signature.NAME_DPDS) =
+  Ref
     (struct include Datatype.Project let default () = Project.dummy end)
     (Info)
 
 (** {3 Apply Once} *)
 
 let apply_once name dep f =
-  let module First = 
+  let module First =
     Ref
       (struct include Datatype.Bool let default () = true end)
       (struct let dependencies = dep let name = name end)
-  in 
+  in
   (fun () ->
      if First.get () then begin
        First.set false;
-       try f () with exn -> First.set true; raise exn
+       try 
+	 f (); 
+	 assert (First.get () = false) 
+       with exn -> 
+	 First.set true; 
+	 raise exn
      end),
   First.self
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

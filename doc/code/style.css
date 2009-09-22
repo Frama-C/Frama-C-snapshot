@@ -1,167 +1,163 @@
-.typetable {
-  border-style : hidden
+/**************************************************************************/
+/*                                                                        */
+/*  This file is part of Frama-C.                                         */
+/*                                                                        */
+/*  Copyright (C) 2007-2009                                               */
+/*    CEA (Commissariat à l'Énergie Atomique)                             */
+/*                                                                        */
+/*  you can redistribute it and/or modify it under the terms of the GNU   */
+/*  Lesser General Public License as published by the Free Software       */
+/*  Foundation, version 2.1.                                              */
+/*                                                                        */
+/*  It is distributed in the hope that it will be useful,                 */
+/*  but WITHOUT ANY WARRANTY; without even the implied warranty of        */
+/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
+/*  GNU Lesser General Public License for more details.                   */
+/*                                                                        */
+/*  See the GNU Lesser General Public License version 2.1                 */
+/*  for more details (enclosed in the file licenses/LGPLv2.1).            */
+/*                                                                        */
+/**************************************************************************/
+
+* { margin: 0; padding: 0 }
+
+body {
+    color: #222;
+    font-family: "Verdana", sans;
+    font-size: 11px;
+    width: 18cm;
+    margin-left: 2.5cm;
+    margin-top:  0.5cm;
+    margin-bottom: 1cm;
+    padding:     4mm 18mm 4mm 28mm;
+    background: #ffffff url(frama-c.png) no-repeat fixed 5mm 1cm ;
 }
-.indextable {
-  border-style : hidden
-}
-.paramstable {
-  border-style : hidden ;
-  padding: 5pt 5pt
-}
-td.typefieldcomment {
-  font-size: smaller ;
-}
-pre {
-  margin-bottom: 2px;
-}
-pre, code {
-  font-family: terminal,"courier new",monospace;
-  font-size: 10pt;
-}
-div.sig_block {
-  margin-left: 2em
-}
-.keyword {
-  font-weight : bold ;
-  color : Red
-}
-.keywordsign {
-  color : #C04600
-}
-.superscript {
-  font-size : 4
-}
-.subscript {
-  font-size : 4
-}
-.comment {
-  color : Green
-}
-.constructor {
-  color : Blue
-}
-.type {
-  color : #5C6585
-}
-.string {
-  color : Maroon
-}
-.warning {
-  color : Red ;
-  font-weight : bold
-}
-.info {
-  margin-left : 3em;
-  margin-right : 3em
-}
-.param_info {
-  margin-top: 4px;
-  margin-left : 3em;
-  margin-right : 3em
-}
-.code {
-  color : #465F91 ;
-}
-a .code {
-  color : #009F9F ;
-}
+
 h1 {
-  font-size : 200% ;
-  text-align: center;
+    width: 18cm;
+    font-family: "Optima", "Verdana", "Arial", sans;
+    text-align: left;
+    margin-top: 5mm;
+    margin-bottom: 2mm;
+    padding-left: 3mm;
+    border-left: 20px solid darkorange;
 }
+
 h2 {
-  font-size : 180% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  margin-left: 2px;
-  margin-right: 2px;
-  text-align: center;
-  background-color: #90BDFF ;
-  padding: 2px;
+    width: 18cm;
+    font-family: "Optima", "Verdana", "Arial", sans;
+    margin-top: 5mm;
+    margin-bottom: 2mm;
+    padding-left: 3mm;
+    border-bottom: thin solid #404040;
 }
+
+h1.chapter {
+    clear: both;
+    text-align: left;
+    font-family: "Optima", "Verdana", "Arial", sans;
+    font-size: 2.0em;
+    font-weight: normal;
+    color: black;
+    margin: 0.4em 0em 0.4em 0em;
+    padding: 0.4em 0em 0em 0em;
+    border-left: none;
+    border-bottom: thin solid #404040;
+}
+
+h2.section {
+    width: 18cm;
+    font-family: "Optima", "Verdana", "Arial", sans;
+    margin-top: 5mm;
+    margin-bottom: 2mm;
+    padding-left: 3mm;
+    border-bottom: none;
+    border-left: 20px solid darkorange;
+    color: darkred;
+}
+
+h2.section .directory {
+    font-size: smaller ;
+    color: #707070 ;
+    font-familly: "Everson Mono", monospace ;
+}
+
 h3 {
-  font-size : 150% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  margin-left: 5px;
-  margin-right: 5px;
-  text-align: center;
-  background-color: #90DDFF ;
-  padding: 2px;
+    width: 18cm;
+    font-family: "Optima", "Verdana", "Arial", sans;
+    color: black;
+    margin-top: 5mm;
+    margin-bottom: 3mm;
+    border-bottom: thin solid #404040;
 }
-h4 {
-  font-size : 120% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  text-align: center;
-  background-color: #90EDFF ;
-  padding: 2px;
+
+h4,h5,h6, div.h7, div.h8, div.h9 {
+    margin-left:   4mm;
+    margin-top:    4mm;    
+    margin-bottom: 1mm;
+    font-family: "Optima", "Verdana", "Arial", sans;
+    font-size: 10px;
+    font-style: italic;
+    font-weight: bold;
+    color: darkred;
 }
-h5 {
-  font-size : 100% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  text-align: center;
-  background-color: #90FDFF ;
-  padding: 2px;
+
+p,ul { margin: 2mm; width: 15cm; margin-left: 0mm; }
+
+hr { border: none ; border-top: 1px solid #404040; margin-top: 4mm; margin-bottom: 4mm }
+
+a:visited { color: darkblue; text-decoration: none }
+a:link    { color: darkblue; text-decoration: none }
+a:hover   { background-color: lightgray; color: firebrick }
+a:active  { background-color: lightgray; color: darkgreen }
+
+.navbar {
+    margin-left: 1cm ;
+    margin-bottom: 4mm ;
+    font-size: 9px ;
 }
-h6 {
-  font-size : 100% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  text-align: center;
-  background-color: #C0FFFF ;
-  padding: 2px;
+
+.navbar a:link { color: darkgreen; }
+.navbar a:visited { color: darkgreen; }
+
+.keyword  { font-weight : bold; color: darkgoldenrod }
+.keywordsign { color : #C04600 }
+.superscript { font-size: 7px }
+.subscript { font-size: 7px }
+.warning { color: firebrick ; font-style: italic; margin-right:1ex }
+.info { 
+    padding: 1mm 1mm 1mm 1em;
+    margin-top: 0mm;
+    margin-bottom: 2mm;
+    margin-left: 1em;
+    margin-right: 3em;
+    border-left: thin dotted darkgreen;
 }
-div.h7 {
-  font-size : 100% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  text-align: center;
-  background-color: #E0FFFF ;
-  padding: 2px;
+table .info { border: none }
+.param_info { margin-top: 4px; margin-left : 3em; margin-right : 3em }
+.typetable { border-style : hidden }
+.indextable { 
+    margin-left: 3mm;
+    margin-top: 2mm ;
+    padding: 2mm 6mm 2mm 4mm ;
+    border-style : hidden ; 
+    border-left: darkgreen thin solid ; 
 }
-div.h8 {
-  font-size : 100% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  text-align: center;
-  background-color: #F0FFFF ;
-  padding: 2px;
-}
-div.h9 {
-  font-size : 100% ;
-  border: 1px solid #000000;
-  margin-top: 5px;
-  margin-bottom: 2px;
-  text-align: center;
-  background-color: #FFFFEE ;
-  padding: 100%;
-}
-ul {
-  margin:0;
-}
-a:visited {
-  color : #416DFF;
-  text-decoration : none;
-}
-a:link {
-  color : #416DFF;
-  text-decoration : none;
-}
-a:hover {
-  color : Red;
-  text-decoration : none;
-  background-color: #5FFF88
-}
-a:active {
-  color : Red;
-  text-decoration : underline;
-}
+.paramstable { border-style : hidden ; padding: 5pt 5pt }
+
+tr { font-size: 11px }
+td { padding:0 ; margin:2px 5px 2px 10px ; vertical-align: top }
+td .info { padding:0 ; margin-top:0 ; margin-bottom:0 ; border-left: none ; vertical-align: top }
+td.typefieldcomment { font-family: serif; color: darkgreen }
+pre { color : #263F71 ; font-size: 11px; font-family: "Everson Mono", monospace; margin-top: 1mm }
+
+.code     { color : #465F91 ; font-size: 11px; font-family: "Everson Mono", monospace }
+.comment  { color : darkgreen; font-family: serif }
+.constructor { color : darkblue }
+.type { color: #5C6585 }
+.string { color: maroon }
+div.sig_block {margin-left: 2em}
+li { margin-left: 2em }
+.copyright { margin-top: 5mm; font-size:10px; padding-top: 2mm; border-top: thin solid #404040; }
+.copyright a:visited { color:darkred }
+.copyright a:link { color:darkred }

@@ -1,9 +1,9 @@
 /* run.config
    GCC:
-   OPT: -pdg-debug "-fct-pdg main" -journal-disable
-   OPT: -main call_in_loop -pdg-debug "-fct-pdg call_in_loop" -journal-disable
-   OPT: -main call_mix_G1_G2 -pdg-debug "-fct-pdg call_mix_G1_G2" -journal-disable
-   OPT: -main call_multiple_global_outputs -pdg-debug "-fct-pdg call_multiple_global_outputs" -journal-disable
+   OPT: -fct-pdg main -journal-disable
+   OPT: -main call_in_loop -fct-pdg call_in_loop -journal-disable
+   OPT: -main call_mix_G1_G2 -fct-pdg call_mix_G1_G2 -journal-disable
+   OPT: -main call_multiple_global_outputs -fct-pdg call_multiple_global_outputs -journal-disable
 */
 
 extern int G, G1, G2;

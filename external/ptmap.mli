@@ -12,7 +12,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: ptmap.mli,v 1.4 2008/10/10 13:27:07 uid527 Exp $ *)
+(* $Id: ptmap.mli,v 1.4 2008-10-10 13:27:07 uid527 Exp $ *)
 
 module type Tagged_type =
 sig

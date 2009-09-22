@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*$Id: logic_preprocess.mll,v 1.20 2008/11/20 07:44:31 uid562 Exp $*)
+(*$Id: logic_preprocess.mll,v 1.20 2008-11-20 07:44:31 uid562 Exp $*)
 {
   open Lexing
   type state = NORMAL | SLASH | INCOMMENT
@@ -112,7 +112,7 @@
 }
 
 rule main cpp outfile = parse
-  | "#define" [' ''\t']* ((['a'-'z''A'-'Z''0'-'9''_'])* as m)
+  | ("#define"|"#undef") [' ''\t']* ((['a'-'z''A'-'Z''0'-'9''_'])* as m)
       [^'\n']* '\n'
       {
         if not (List.mem m blacklisted_macros) then

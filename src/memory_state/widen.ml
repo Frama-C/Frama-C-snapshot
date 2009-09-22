@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen.ml,v 1.39 2008/10/03 13:09:17 uid568 Exp $ *)
+(* $Id: widen.ml,v 1.40 2009-02-13 07:59:29 uid562 Exp $ *)
 
 open Cil
 open Cil_types
@@ -54,7 +54,7 @@ object (* visit all sub-expressions from [kf] definition *)
           let annot = Annotations.get s in
           let l_pragma =
             Ast_info.lift_annot_list_func
-              Logic_const.extract_loop_pragma annot
+              Logic_utils.extract_loop_pragma annot
           in
           let widening_stmts = match bl.bstmts with
           | [] -> [s]
@@ -194,12 +194,12 @@ object (* visit all sub-expressions from [kf] definition *)
       begin
         let e1,e2 = constFold true e1, constFold true e2 in
         match (Cil.isInteger e1, Cil.isInteger e2, e1, e2) with
-        | Some int64, _, _, Lval (Var varinfo, _) ->
+        | Some int64, _, _, { enode = Lval (Var varinfo, _)} ->
 	    add
 	      (Base.create_varinfo varinfo)
 	      (add1 (Ival.Widen_Hints.V.of_int64 int64));
             SkipChildren
-        | _, Some int64, Lval (Var varinfo, _), _ ->
+        | _, Some int64, {enode = Lval (Var varinfo, _)}, _ ->
 	    add
 	      (Base.create_varinfo varinfo)
 	      (add2 (Ival.Widen_Hints.V.of_int64 int64));
@@ -207,7 +207,7 @@ object (* visit all sub-expressions from [kf] definition *)
         | _ -> DoChildren
       end
     in
-    match e with
+    match e.enode with
     | BinOp (Lt, e1, e2, _)
     | BinOp (Gt, e2, e1, _)
     | BinOp (Le, e2, e1, _)
@@ -241,7 +241,7 @@ module Hints =
     (struct
        let name = "Widen.Hints"
        let size = 97
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
 
 let getWidenHints (kf:kernel_function) (s:stmt) =

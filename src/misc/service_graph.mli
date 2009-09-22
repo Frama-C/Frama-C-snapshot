@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,30 +23,66 @@ module Make
   (G: sig
      type t
      module V: sig
-       type t
-       val id: t -> int (* assume is >= 0 and unique for each vertices of the graph *)
+       include Graph.Sig.HASHABLE
+       val id: t -> int
+	 (** assume is >= 0 and unique for each vertices of the graph *)
        val name: t -> string
        val attributes: t -> Graph.Graphviz.DotAttributes.vertex list
      end
-     val iter_vertex: (V.t -> unit) -> t -> unit
-     val callees: t -> V.t -> V.t list
-     val callers: t -> V.t -> V.t list
-     val name: string
-   end) : sig
+     val iter_vertex : (V.t -> unit) -> t -> unit
+     val iter_succ : (V.t -> unit) -> t -> V.t -> unit
+     val iter_pred : (V.t -> unit) -> t -> V.t -> unit
+     val fold_pred : (V.t -> 'a -> 'a) -> t -> V.t -> 'a -> 'a
+     val in_degree: t -> V.t -> int
+     val datatype_name: string
+   end) : 
+sig
 
-    type m = private Nothing | Service of int | JustMet of int
-    type vertex = private { node : G.V.t; 
-                            mutable mark : m; 
-                            mutable visited : bool;
-                            is_service : bool}
+  type vertex = private 
+      { node: G.V.t; mutable is_root: bool; mutable root: vertex }
 
-    module CallG: sig
-      include Graph.Sig.I with type V.t = vertex
-      type tt = t
-      module Datatype: Project.Datatype.S with type t = tt
-    end
+  type edge = private Inter_services | Inter_functions | Function_to_service 
 
-    val output_graph: out_channel -> CallG.t -> unit
-
-    val compute: G.t -> Cilutil.StringSet.t -> CallG.t
+  module CallG: sig
+    include Graph.Sig.G with type V.t = vertex and type E.label = edge
+    type tt = t
+    module Datatype: Project.Datatype.S with type t = tt
   end
+
+  val compute: G.t -> Cilutil.StringSet.t -> CallG.t
+  val output_graph: out_channel -> CallG.t -> unit
+
+  module TP: Graph.Graphviz.GraphWithDotAttrs 
+    with type t = CallG.t
+    and type V.t = vertex
+    and type E.t = CallG.E.t
+    (** @since Beryllium-20090901+dev *)
+
+(*
+  (** Graph of services *)
+
+  module SS: Set.S with type elt = G.V.t
+  type service_vertex = private
+      { service: int; mutable root: G.V.t; mutable nodes: SS.t }
+      (** @since Beryllium-20090901 *)
+
+  (** @since Beryllium-20090901 *)
+  module SG : sig
+    include Graph.Sig.G with type V.t = service_vertex
+    type tt = t
+    module Datatype: Project.Datatype.S with type t = tt
+  end
+
+  val compute_services: CallG.t -> SG.t
+      (** @since Beryllium-20090901 *)
+
+  val output_services: out_channel -> SG.t -> unit
+      (** @since Beryllium-20090901 *)
+*)
+end
+  
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

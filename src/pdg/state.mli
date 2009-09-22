@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,6 +21,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+exception Cannot_fold
+
 type t_loc = Locations.Zone.t
 type t_node = PdgTypes.Node.t
 type t = PdgTypes.t_data_state
@@ -35,6 +37,7 @@ val add_init_state_input : t -> Locations.Zone.t -> t_node -> t
 val test_and_merge :
   old:t -> t -> bool * t
 
+(** @raise Cannot_fold if the state is Top *)
 val get_loc_nodes :
   t -> Locations.Zone.t -> (t_node * Locations.Zone.t option) list * Locations.Zone.t option
 

@@ -1,6 +1,7 @@
 /* run.config
-   OPT: -obfuscate -print
+   OPT: -obfuscate
 */
+
 int my_var = 0;
 
 /*@ global invariant I: my_var >= 0; */
@@ -20,3 +21,10 @@ int my_func () {
   return my_var + x;
 
 }
+
+/*@ requires \valid(p);
+    ensures *p == 0;
+*/
+void f(int* p);
+
+int main(int*p) { f(p); }

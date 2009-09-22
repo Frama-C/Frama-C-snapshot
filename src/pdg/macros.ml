@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,11 +21,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let has_debug n = 
-  Cmdline.Debug.get () >= n ||
-  Cmdline.Pdg.Verbosity.get () > n
+let has_debug n = Pdg_parameters.verbose_atleast (n+1)
 
-let debug n format = Debug.debug_f (has_debug n) format
+let debug n format = Pdg_parameters.result ~level:(n+1) format
 
 let bug msg = raise (PdgTypes.Pdg_Internal_Error msg)
 

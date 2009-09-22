@@ -1,9 +1,8 @@
 /* run.config
    EXECNOW: make -s tests/journal/intra.opt tests/journal/intra.byte
-   EXECNOW: BIN intra_journal.ml ./tests/journal/intra.opt -journal-name tests/journal/result/intra_journal tests/journal/intra.c > /dev/null 2> /dev/null
-   EXECNOW: make -s tests/journal/result/intra_journal.cmo
-   CMD: ./tests/journal/intra.byte
-   OPT: -load-journal tests/journal/result/intra_journal.cmo -journal-disable
+   EXECNOW: BIN intra_journal.ml ./tests/journal/intra.opt -journal-enable -journal-name tests/journal/result/intra_journal tests/journal/intra.c > /dev/null 2> /dev/null
+   CMD: FRAMAC_LIB=lib/fc ./tests/journal/intra.byte
+   OPT: -load-script tests/journal/result/intra_journal -journal-disable
 */
 
 /* Waiting for results such as:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,8 +20,6 @@
 (**************************************************************************)
 
 
-
-
 (* Build a read only text view for C source code. *)
 
 let set_language_to_C (buffer:GSourceView.source_buffer)  = 
@@ -31,7 +29,7 @@ let set_language_to_C (buffer:GSourceView.source_buffer)  =
   in
   begin match original_lang with
   | Some lang -> buffer#set_language lang
-  | None -> Format.printf "No such mime type@."
+  | None -> Kernel.warning "Mime type 'text/x-csrc' not found"
   end;
   buffer#set_highlight true
   
@@ -49,13 +47,15 @@ let make ~packing =
       ~packing
       ()
   in
-  (*    let pixbuf = 
-        original_source_window#misc#render_icon ~size:`MENU `DIALOG_WARNING 
-        in 
-        original_source_window#set_marker_pixbuf "warning" pixbuf;*)
+(*  let pixbuf = 
+    original_source_window#misc#render_icon ~size:`MENU `DIALOG_WARNING 
+  in 
+  original_source_window#set_marker_pixbuf "warning" pixbuf; *)
+  original_source_window#misc#set_name "source";
   let original_source_buffer = original_source_window#source_buffer in
   set_language_to_C original_source_buffer;
-  (*      ignore (original_source_buffer#create_marker ~typ:"warning" original_source_buffer#start_iter ) ;*)
+(*
+  ignore (original_source_buffer#create_marker ~typ:"warning" original_source_buffer#start_iter ) ;*)
   begin try
     original_source_window#set_highlight_current_line true
   with Not_found -> ()

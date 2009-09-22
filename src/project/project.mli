@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,8 +19,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: project.mli,v 1.28 2008/12/12 12:46:33 uid581 Exp $ *)
-
 (** Projects management.
 
     A project groups together all the internal states of Frama-C. An internal
@@ -29,10 +27,6 @@
     state in the Frama-C projects, apply the functor {!Computation.Register}.
 
     @plugin development guide *)
-
-val set_debug_level: int -> unit
-  (** Set the level of debug: 0 = no level; 1 = small debugging messages and so
-      on. *)
 
 (* ************************************************************************* *)
 (** {2 Datatypes} *)
@@ -45,7 +39,7 @@ type t
 type project = t
     (** Alias for the project type. *)
 
-val repr: t Type.t
+val ty: t Type.t
   (** Identifier for type [t]. *)
 
 val dummy: t
@@ -104,6 +98,10 @@ module Datatype : sig
     val rehash: t -> t
       (** How to rehashcons the datatype. *)
 
+    val descr: Unmarshal.t
+      (** A better way to rehashcons the datatype. 
+	  @since Beryllium-20090901 *)
+
     val copy: t -> t
       (** How to deeply copy the datatype.
 	  The following invariant must hold: forall (p:t), copy s != s. *)
@@ -136,9 +134,9 @@ module Datatype : sig
 	  that is:
 	  forall x y, x == y ==> physical_hash x = physical_hash y.
 
-	  - default value for [compare] is [Pervasives.compare];
+	  - there is no default value for [compare];
 	  - default value for [equal] is [fun x y -> compare x y = 0] if
-	  [compare] is provided; (=) otherwise.
+	  [compare] is provided; no default value otherwise.
 	  - default value for [hash] is Hashtbl.hash;
 	  - default value for [physical_hash] is [hash] if it is provided;
 	  [Hashtbl.hash] otherwise.
@@ -153,12 +151,15 @@ module Datatype : sig
     val is_comparable_set: unit -> bool
       (** @return false if [register_comparable] has never been called. *)
 
-    (** {3 Access to the functions registered by [registered_comparable]} *)
+    (** {3 Access to the functions registered by {!registered_comparable}} *)
 
     val hash: t -> int
     val physical_hash: t -> int
     val equal: t -> t -> bool
     val compare: t -> t -> int
+
+    val contain_project: (project -> t -> bool) option ref
+      (** @since Beryllium-20090901 *)
 
   end
 
@@ -175,6 +176,9 @@ module Datatype : sig
       @plugin development guide *)
   module Persistent(X:sig type t val name: string end) :
     S with type t = X.t
+
+  module Own : S with type t = project
+    (** @since Beryllium-20090901 *)
 
   (** {3 Create a name from predefined ones}
 
@@ -228,6 +232,14 @@ module Computation : sig
       {- forall [(p:t)], [create () = (clear p; set p; get ())]}
       {- forall [(p1:t),(p2:t)] such that [p1 != p2], [(set p1; get ()) != s2]}
       } *)
+
+    val clear_if_project: project -> t -> bool
+      (** [clear_if_project p x] must clear any element of [x] equals to the
+	  project [p]. Of course, if the type [t] does not contain any object
+	  of type [project], this function may be safely equal to [fun _ _ ->
+	  false].
+	  @return true iff at least one element of [x] has been cleared. *)
+
   end
 
   (** Some additional informations used by {!Computation.Register}. *)
@@ -301,6 +313,7 @@ val create: string -> t
   (** Create a new project with the given name and attach it after the existing
       projects (so the current project, if existing, is unchanged).
       The given name may be already used by another project.
+      If there is no other project, then the new one is the current one.
       @plugin development guide *)
 
 val register_create_hook: (t -> unit) -> unit
@@ -336,17 +349,37 @@ val clear_all: unit -> unit
 exception IOError of string
   (** @plugin development guide *)
 
+val save: 
+  ?only:Selection.t -> ?except:Selection.t -> ?project:t -> string -> unit
+  (** Save a given project in a file. Default project is [current ()].
+      @raise IOError if the project cannot be saved.
+      @plugin development guide *)
+ 
+val load: 
+  ?only:Selection.t -> ?except:Selection.t -> name:string -> string -> t
+  (** Load a file into a new project given by its name.
+      More precisely, [load only except name file]:
+      {ol
+      {- creates a new project;}
+      {- performs all the registered [before_load] actions, following the
+      datatype dependencies;}
+      {- loads the (specified) states of the project and rehashcons them
+      (following the computation dependencies); and}
+      {- performs all the registered [after_load] actions.}
+      }
+      @raise IOError if the project cannot be loaded
+      @return the new project containing the loaded data.
+      @plugin development guide *)
+
 val save_all: string -> unit
   (** Save all the projects in a file.
-      @raise IOError a project cannot be saved.
-  *)
+      @raise IOError a project cannot be saved. *)
 
 val load_all: string -> unit
-  (** Load all the projects from a file.
-      For each project to load, the specification is the same than
-      {!Project.load}.
-      @raise IOError if a project cannot be loaded.
-      @plugin development guide *)
+  (** First remove all the existing project, then load all the projects from a
+      file.  For each project to load, the specification is the same than
+      {!Project.load}. 
+      @raise IOError if a project cannot be loaded. *)
 
 val register_before_load_hook: (unit -> unit) -> unit
   (** [register_before_load_hook f] adds a hook called just before loading
@@ -386,17 +419,19 @@ val unique_name: t -> string
 
 val from_unique_name: string -> t
   (** Return a project based on {!unique_name}.
-      @raise Not_found if no project has this unique name.
-  *)
+      @raise Not_found if no project has this unique name. *)
 
-val set_current: ?only:Selection.t -> ?except:Selection.t -> t -> unit
+val set_current: 
+  ?on:bool -> ?only:Selection.t -> ?except:Selection.t -> t -> unit
   (** Set the current project with the given one.
+      The flag [on] is not for casual users.
       @raise Invalid_argument if the given project does not exist anymore.
       @plugin development guide *)
 
-val register_after_set_current_hook: user_only:bool -> (unit -> unit) -> unit
+val register_after_set_current_hook: user_only:bool -> (t -> unit) -> unit
   (** [register_after_set_current_hook f] adds a hook on function
-      {!set_current}.
+      {!set_current}. The project given as argument to [f] is the old current
+      project.
       - If [user_only] is [true], then each time {!set_current} is directly
       called by an user of this library, [f ()] is applied.
       - If [user_only] is [false], then each time {!set_current} is applied
@@ -414,7 +449,22 @@ val copy:
   ?only:Selection.t -> ?except:Selection.t -> ?src:t -> t -> unit
   (** Copy a project into another one. Default project for [src] is [current
       ()]. Replace the destination by [src].
+      For each state to copy, the function [copy] given at state registration
+      time must be fully implemented.
       @plugin development guide *)
+
+val create_by_copy:
+  ?only:Selection.t -> ?except:Selection.t -> ?src:t -> string -> t
+  (** Return a new project with the given name by copying some states from the
+      project [src]. All the others states are initialized with their default
+      values.
+      Does not require that the copy function of the copied state is
+      implemented. *)
+
+val create_by_copy_hook: (t -> t -> unit) -> unit
+  (** Register a hook to call at the end of {!create_by_copy}. The first
+      argument of the registered function is the copy source while the
+      second one is the created project. *)
 
 val clear:
   ?only:Selection.t -> ?except:Selection.t -> ?project:t -> unit -> unit
@@ -422,46 +472,42 @@ val clear:
       internal states of the given project are now empty (wrt the action
       registered with {!register_todo_on_clear}). *)
 
-val register_todo_on_clear: (unit -> unit) -> unit
+val register_todo_on_clear: (t -> unit) -> unit
   (** Register action to perform just before clearing a project. *)
+
+exception Cannot_remove of string
+  (** Raised by [remove] *)
 
 val remove: ?project:t -> unit -> unit
   (** Default project is [current ()]. If the current project is removed, then
       the new current project is the previous current project if it still
-      exists (and so on). *)
+      exists (and so on). 
+      @raise Cannot_remove if there is only one project.
+  *)
+
+val register_before_remove_hook: (t -> unit) -> unit
+  (** [register_before_remove_hook f] adds a hook called just before removing
+      a project. 
+      @since Beryllium-20090901+dev
+  *)
 
 (** {3 Projects are comparable values} *)
 
 val compare: t -> t -> int
 val equal: t -> t -> bool
 val hash: t -> int
+val rehash: t -> t
 
-(** {3 Inputs/Outputs} *)
+(** {3 Undoing} *)
 
-val save:
-  ?only:Selection.t -> ?except:Selection.t -> ?project:t -> string -> unit
-  (** Save a given project in a file. Default project is [current ()].
-      @raise IOError if the project cannot be saved.
-      @plugin development guide *)
-
-val load:
-  ?only:Selection.t -> ?except:Selection.t -> name:string -> string -> t
-  (** Load a file into a new project given by its name.
-      More precisely, [load only except name file]:
-      {ol
-      {- creates a new project;}
-      {- performs all the registered [before_load] actions, following the
-      datatype dependencies;}
-      {- loads the (specified) states of the project and rehashcons them
-      (following the computation dependencies); and}
-      {- performs all the registered [after_load] actions.}
-      }
-      @raise IOError if the project cannot be loaded
-      @return the new project containing the loaded data.
-      @plugin development guide *)
+module Undo: sig
+  val breakpoint: unit -> unit
+  val restore: unit -> unit
+  val clear_breakpoint: unit -> unit
+end
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.. -j"
+  compile-command: "LC_ALL=C make -C ../.."
   End:
 *)

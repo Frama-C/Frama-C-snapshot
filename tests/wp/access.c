@@ -1,3 +1,4 @@
+
 struct Tb { int b ; } ;
 struct Ta {
   struct Tb *a ;

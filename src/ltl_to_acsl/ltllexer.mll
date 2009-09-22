@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ltllexer.mll,v 1.2 2008/10/02 13:33:29 uid588 Exp $ *)
+(* $Id: ltllexer.mll,v 1.2 2008-10-02 13:33:29 uid588 Exp $ *)
 
 (* from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip *)
 
@@ -28,7 +30,7 @@
   open Ltlparser
   open Ltlast
   open Lexing
- 
+
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
 
   (*let lex_error lexbuf s = ()*)
@@ -39,7 +41,7 @@
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
-    lexbuf.lex_curr_p <- 
+    lexbuf.lex_curr_p <-
       { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 
   (* Update the current location with file name and line number. *)
@@ -50,13 +52,17 @@
       | None -> pos.pos_fname
       | Some s -> s
     in
-    lexbuf.lex_curr_p <- 
+    lexbuf.lex_curr_p <-
       { pos with
 	  pos_fname = new_file;
 	  pos_lnum = if absolute then line else pos.pos_lnum + line;
 	  pos_bol = pos.pos_cnum - chars;
       }
 *)
+  exception Error of (Lexing.position * Lexing.position) * string
+
+  let raise_located loc e = raise (Error (loc, e))
+
 }
 
 
@@ -83,7 +89,7 @@ rule token = parse
   | "_U_"                   { LTL_UNTIL }
   | "_R_"                   { LTL_RELEASE }
   | "_X_"                   { LTL_NEXT }
-  
+
 
 (* Logic relations *)
   | "=="                    { LTL_EQ }
@@ -115,7 +121,7 @@ rule token = parse
   | "//" [^ '\n']* '\n'     { newline lexbuf; token lexbuf }
 
 (* Spaces *)
-  | [' ' '\t' '\012' '\r']+ { token lexbuf } 
+  | [' ' '\t' '\012' '\r']+ { token lexbuf }
   | '\n'                    { newline lexbuf; token lexbuf }
 
 (* Variables and constants *)
@@ -124,46 +130,24 @@ rule token = parse
 
 (* Others *)
   | eof                     { EOF }
-  | _                       { Format.printf "Illegal_character %s\n" (lexeme lexbuf);
-      (*lex_error lexbuf ("Illegal_character " ^ lexeme lexbuf) ; *)
-			      exit 1}
-
-
-
+  | _                       {
+      raise_located (loc lexbuf)
+        (Format.sprintf "Illegal_character %s\n" (lexeme lexbuf))
+    }
 
 and comment = parse
   | "*/" { () }
-  | eof  {  Format.printf "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) }
+  | eof  {  raise_located (loc lexbuf) "Unterminated_comment\n" }
   | '\n' { newline lexbuf; comment lexbuf }
   | _    { comment lexbuf }
 
 
 {
-  exception Error of ((Lexing.position * Lexing.position) option) * string
-
-  let raise_located loc e = raise (Error (Some (loc), e))
-
   let parse c =
     let lb = from_channel c in
     try
       Ltlparser.ltl token lb
-    with 
-	Parsing.Parse_error 
-      | Invalid_argument _ -> 
-	  let (a,b)=(loc lb) in 
-	    Format.print_string "LTL syntax error (" ;
-	    Format.print_string "l" ;
-	    Format.print_int a.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (a.pos_cnum-a.pos_bol) ;
-	    Format.print_string " -> l" ;
-	    Format.print_int b.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (b.pos_cnum-b.pos_bol) ;
-	    Format.print_string ")\n" ;
-	    raise_located (loc lb) "Syntax error"
-	      
-     
-
+    with
+	Parsing.Parse_error
+      | Invalid_argument _  -> raise_located (loc lb) "Syntax error"
 }
-

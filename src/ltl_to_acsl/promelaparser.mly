@@ -2,7 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2008                                               */
+/*  Copyright (C) 2007-2009                                               */
+/*    INSA  (Institut National des Sciences Appliquees)                   */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
 /*                                                                        */
@@ -17,9 +18,10 @@
 /*                                                                        */
 /*  See the GNU Lesser General Public License version 2.1                 */
 /*  for more details (enclosed in the file licenses/LGPLv2.1).            */
+/*                                                                        */
 /**************************************************************************/
 
-/* $Id: promelaparser.mly,v 1.2 2008/10/02 13:33:29 uid588 Exp $ */
+/* $Id: promelaparser.mly,v 1.2 2008-10-02 13:33:29 uid588 Exp $ */
 
 /* Originated from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip  */
 %{
@@ -73,9 +75,10 @@ promela
 	      ) observed_states []
 	    in 
 	    let n=ref 0 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) $3;
+	    let transitions = Ltl_logic.simplifyTrans $3 in
+	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
-	    ((states , $3),observed_vars,observed_funcs)
+	    ((states , transitions),observed_vars,observed_funcs)
 	}
         | PROMELA_NEVER PROMELA_LBRACE states PROMELA_SEMICOLON PROMELA_RBRACE EOF {
 	    let states=
@@ -89,10 +92,11 @@ promela
 	      ) observed_states []
 	    in
 	    let n=ref 0 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) $3;
+	    let transitions = Ltl_logic.simplifyTrans $3 in
+	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
 
-	    ((states , $3),observed_vars,observed_funcs) }
+	    ((states , transitions),observed_vars,observed_funcs) }
   ;
 
 
@@ -150,49 +154,41 @@ state_labels
 label   
         : PROMELA_LABEL PROMELA_COLON {
 	  begin
+    (* Step 0 : trans is the set of new transitions and old is the description of the current state *)
 	    let trans = ref [] in
-	    let old=
-	      try 
+	    (* Promela Label is a state. According to its name, we will try to give him its properties (init / accept) *)
+	    (* Firstly, if this state is still referenced, then we get it back. Else, we make a new "empty" state *)
+	    let old= 
+	      try  
 		Hashtbl.find observed_states $1
 	      with
 		| Not_found -> 
-		    let s={name=$1;acceptation=Undefined;init=Undefined;nums=(Hashtbl.length observed_states)}
-		    in
-		      Hashtbl.add observed_states $1 s;
-		      s
+		    let s={name=$1;acceptation=Undefined;init=Undefined;nums=(Hashtbl.length observed_states)} in
+		    Hashtbl.add observed_states $1 s;
+		    s
 	    in
-	      begin
-		try 
-		  if (old.acceptation<>False) && (String.sub $1 0 10) = "accept_all" then 
-		    begin
-		      old.acceptation <- True;
-		      trans:={start=old;stop=old;cross=PTrue;numt=(-1)}::!trans
-		    end
-		  else
-		    if (old.acceptation<>False) && (String.sub $1 0 6)  = "accept" then
-		      old.acceptation <- True
-		    else 
-		      old.acceptation <- False
-		with Invalid_argument _ -> 
-		  if (old.acceptation=Undefined) then 
-		    old.acceptation <- False 
-	      end;
-	      begin
-		try 
-		  if
-		    (old.init<>False) && 
-		      let i=(String.index $1 'i') in (String.sub $1 i 4) = "init"  
-		  then
-		    old.init <- True
-		  else
-		    old.init <- False
-		with  
-		    Invalid_argument _ 
-		  | Not_found -> 
-		      if (old.init=Undefined) then 
-			old.init <- False 
-	      end;
-	      ([old],!trans)
+    (* Step 1 : setting up the acceptance status *)
+	    (* Default status : Non acceptation state *)
+ 	    old.acceptation <- False;
+	    
+	    (* Accept_all state means acceptance state with a reflexive transition without cross condition *)
+	    (* This case is not exlusive with the following. Acceptation status is set in this last. *)
+	    if (String.length $1>=10) && (String.compare (String.sub $1 0 10) "accept_all")=0 then 
+	      trans:={start=old;stop=old;cross=PTrue;numt=(-1)}::!trans;
+	    
+	    (* If the name includes accept then this state is an acceptation one. *)
+	    if (String.length $1>=7) && (String.compare (String.sub $1 0 7) "accept_")=0 then
+	      old.acceptation <- True;
+
+    (* Step 2 : setting up the init status *)
+	    (* If the state name ended with "_init" then it is an initial state. Else, it is not. *)
+	    if (String.length $1>=5) && (String.compare (String.sub $1 ((String.length $1)-5) 5) "_init" ) = 0
+	    then  
+	      old.init <- True
+	    else
+	      old.init <- False;
+	    
+	    ([old],!trans)
 	  end
 	}
         ;

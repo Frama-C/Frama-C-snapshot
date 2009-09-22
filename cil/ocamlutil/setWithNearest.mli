@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: setWithNearest.mli,v 1.4 2008/03/06 14:04:26 uid528 Exp $ *)
+(* $Id: setWithNearest.mli,v 1.4 2008-03-06 14:04:26 uid528 Exp $ *)
 
 module type OrderedType =
   sig

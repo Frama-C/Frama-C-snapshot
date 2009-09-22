@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap.mli,v 1.71 2008/11/18 12:13:41 uid568 Exp $ i*)
+(*i $Id: lmap.mli,v 1.73 2008-12-18 09:34:21 uid527 Exp $ i*)
 
 (** Functors making map indexed by locations.
     @plugin development guide *)
@@ -56,13 +56,14 @@ sig
 
     val pretty : Format.formatter -> t -> unit
     val pretty_without_null : Format.formatter -> t -> unit
-    val pretty_filter: Format.formatter -> t -> Locations.Zone.t -> unit
+    val pretty_filter: 
+      Format.formatter -> t -> Locations.Zone.t -> (Base.t -> bool) -> unit
     val add_binding: 
       with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
 
     val find : with_alarms:CilE.warn_mode -> t -> location -> y
 
-    val join : t -> t -> t
+    val join : t -> t -> location list * t
     val is_included : t -> t -> bool
     val equal : t -> t -> bool
     val hash : t -> int
@@ -88,7 +89,9 @@ sig
 
     (** Removes the base if it is present. Does nothing otherwise. *)
     val remove_base : Base.t -> t -> t
-      
+    
+  val reduce_binding : with_alarms:CilE.warn_mode ->
+    t -> Locations.location -> y -> t  
 
     (** [copy_paste src dst state] returns a modified version of [state] in
         which everything present in [src] has been copied onto [dst]. [src] and
@@ -110,10 +113,18 @@ sig
 
     val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 
+      
     (** @raise Invalid_argument if one location is not aligned or of size
         different of [size].
         @raise Error_Bottom if [m] is bottom. *)
     val fold : size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
+      
+
+  (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
+     or of size different of [size].
+      @raise Error_Bottom if [m] is bottom.  *)
+    val fold_single_bindings : 
+      size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
 
 
     (** [fold_base f m] calls [f] on all bases bound to non top

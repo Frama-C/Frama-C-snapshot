@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,4 +28,4 @@ let has_debug get n = (get () >= n)
 
 let debug_n get n format = debug_f (has_debug get n) format
 
-let debug n format = debug_n Cmdline.Debug.get n format
+let debug n format = debug_n Parameters.Debug.get n format

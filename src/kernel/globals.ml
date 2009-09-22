@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: globals.ml,v 1.34 2008/10/09 11:40:37 uid570 Exp $ *)
+(* $Id: globals.ml,v 1.37 2009-02-13 07:59:29 uid562 Exp $ *)
 
 open Cil_types
 open Cilutil
@@ -31,14 +31,24 @@ open Ast_info
 (** {2 Global variables} *)
 (* ************************************************************************* *)
 
+(* redefinition from Kernel_function.ml *)
+let get_formals f = match f.fundec with
+  | Definition(d, _) -> d.sformals
+  | Declaration(_, _, None, _) -> []
+  | Declaration(_,_,Some args,_) -> args
+
+let get_locals f = match f.fundec with
+  | Definition(d, _) -> d.slocals
+  | Declaration(_, _, _, _) -> []
+
 module Vars = struct
 
   include
-    Cil_computation.VarinfoHashtbl
-    (Cil_datatype.InitInfo)
+      Cil_computation.VarinfoHashtbl
+      (Cil_datatype.InitInfo)
     (struct
        let name = "Globals.Vars"
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
        let size = 17
      end)
 
@@ -52,6 +62,40 @@ module Vars = struct
 	 vi)
 
   let add_decl vi = add vi { init = None }
+
+  let get_astinfo_ref : (Cil_types.varinfo -> string * localisation) ref =
+    Extlib.mk_fun "get_astinfo_ref"
+
+  exception Found of varinfo
+  let find_from_astinfo name = function
+    | VGlobal ->
+	(try
+	   iter (fun v _ -> if v.vname = name then raise (Found v));
+	   invalid_arg ("[find_from_astinfo] global " ^ name ^ "not found")
+	 with Found v ->
+	   v)
+    | VLocal kf ->
+	(try
+	   List.find (fun v -> v.vname = name) (get_locals kf)
+	 with Not_found ->
+	   invalid_arg ("[find_from_astinfo] local " ^ name ^ "not found"))
+    | VFormal kf ->
+	(try
+	   List.find (fun v -> v.vname = name) (get_formals kf)
+	 with Not_found ->
+	   invalid_arg ("[find_from_astinfo] formal " ^ name ^ "not found"))
+
+  let get_astinfo vi = !get_astinfo_ref vi
+
+  let pp_varinfo p fmt v =
+    let name, loc = get_astinfo v in
+    let pp fmt =
+      Format.fprintf fmt "Globals.Vars.find_from_astinfo %S %a" name
+	(Type.pp Kernel_type.localisation Type.Call) loc
+    in
+    Type.par p Type.Call fmt pp
+
+  let () = Type.register_pp Kernel_type.varinfo pp_varinfo
 
 end
 
@@ -71,6 +115,7 @@ module Functions = struct
            | Declaration (_,v,Some args,_) ->
                Cil.unsafeSetFormalsDecl v args;
 	       x
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let copy _ = assert false (* TODO: deep copy *)
 	 let name = "kernel_function"
        end)
@@ -86,9 +131,11 @@ module Functions = struct
       (KF_Datatype)
       (struct
 	 let name = "Functions"
-	 let dependencies = [ Cil_state.self ]
+	 let dependencies = [ Ast.self ]
 	 let size = 17
        end)
+
+  let self = State.self
 
   let init_kernel_function f spec =
     { fundec = f; return_stmt = None;
@@ -121,18 +168,22 @@ module Functions = struct
   let add f =
     match f with
     | Definition (n, _) ->
-        if Cmdline.Debug.get () > 0 then
-          Format.printf "Register %a with specification \"%a\"@\n"
-            Ast_info.pretty_vname n.svar !Ast_printer.d_funspec n.sspec;
+	if Kernel.debug_atleast 1 then
+	  Kernel.debug 
+	    "Register definition %a with specification \"%a\"@\n"
+            Ast_info.pretty_vname n.svar !Ast_printer.d_funspec n.sspec ;
         (try
            let my_spec = (State.find n.svar).spec in
-           Logic_const.merge_funspec n.sspec my_spec
+           Logic_utils.merge_funspec n.sspec my_spec
          with Not_found ->
 	   ());
-        State.replace n.svar (init_kernel_function f n.sspec)
+        State.replace n.svar (init_kernel_function f n.sspec);
+	Parameters.MainFunction.set_possible_values 
+	  (n.svar.vname :: Parameters.MainFunction.get_possible_values ())
     | Declaration (spec, v,_,_) ->
-	if Cmdline.Debug.get () > 0 then
-          Format.printf "Register %a with specification \"%a\"@\n"
+	if Kernel.debug_atleast 1 then
+          Kernel.debug 
+	    "Register declaration %a with specification \"%a\"@\n"
             Ast_info.pretty_vname v !Ast_printer.d_funspec spec;
 	State.replace v (init_kernel_function f spec)
 
@@ -215,6 +266,35 @@ module Functions = struct
 	with Found_kf kf ->
           Some kf
 
+
+  exception Found of kernel_function
+  let get_astinfo vi =
+    vi.vname,
+    if vi.vglob then VGlobal
+    else begin
+      if vi.vformal then begin
+	try
+	  iter
+	    (fun kf ->
+	       if List.exists (fun v -> v.vname = vi.vname) (get_formals kf)
+	       then raise (Found kf));
+	  assert false
+	with Found kf ->
+	  VFormal kf
+      end else begin
+	try
+	  iter
+	    (fun kf ->
+	       if List.exists (fun v -> v.vname = vi.vname) (get_locals kf)
+	       then raise (Found kf));
+	  assert false
+	with Found kf ->
+	  VLocal kf
+      end
+    end
+
+  let () = Vars.get_astinfo_ref := get_astinfo
+
 end
 
 (* ************************************************************************* *)
@@ -238,7 +318,7 @@ module Annotations = struct
        end)
       (struct
 	 let name = name
-	 let dependencies = [ Cil_state.self ]
+	 let dependencies = [ Ast.self ]
        end)
 
   let self = State.self
@@ -279,22 +359,22 @@ module FileIndex = struct
 	  end))
       (struct
 	 let name = name
-	 let dependencies = [ Cil_state.self ]
+	 let dependencies = [ Ast.self ]
 	 let size = 7
        end)
 
   let compute, _ =
     let compute () =
       iterGlobals
-        (Cil_state.file ())
+        (Ast.get ())
         (fun glob ->
 	  let file = (fst (Cilutil.get_globalLoc glob)).Lexing.pos_fname in
 	   let f = Filename.basename file in
-	   if Cmdline.Debug.get () > 0 then
-             Format.printf "Indexing in file %s the global in %s@."
-               f file;
+	   if Kernel.debug_atleast 1 then
+             Kernel.debug "Indexing in file %s the global in %s@." f file;
 	   ignore
-	     (S.memo ~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) file))
+	     (S.memo
+		~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) file))
     in
     Computation.apply_once "FileIndex.compute" [ S.self ] compute
 
@@ -390,9 +470,10 @@ end
 exception No_such_entry_point of string
 
 let entry_point () =
+  Ast.compute ();
   let kf_name, lib =
-    Cmdline.MainFunction.get (),
-    Cmdline.LibEntry.get ()
+    Parameters.MainFunction.get (),
+    Parameters.LibEntry.get ()
   in
   try Functions.find_def_by_name kf_name, lib
   with Not_found ->
@@ -404,18 +485,17 @@ let set_entry_point name lib =
     let add s sel =
       Project.Selection.add s Kind.Only_Select_Dependencies sel
     in
-    let selection = add Cmdline.MainFunction.self Project.Selection.empty in
-    let selection = add Cmdline.LibEntry.self selection in
+    let selection = add Parameters.MainFunction.self Project.Selection.empty in
+    let selection = add Parameters.LibEntry.self selection in
     Project.clear ~only:selection ()
   in
-
-  let has_changed = lib <> Cmdline.LibEntry.get () ||
-    name <> Cmdline.MainFunction.get ()
+  let has_changed = 
+    lib <> Parameters.LibEntry.get () || name <> Parameters.MainFunction.get ()
   in
   if has_changed then begin
-  Cmdline.MainFunction.unsafe_set name;
-  Cmdline.LibEntry.unsafe_set lib;
-  clear_from_entry_point ()
+    Parameters.MainFunction.unsafe_set name;
+    Parameters.LibEntry.unsafe_set lib;
+    clear_from_entry_point ()
   end
 
 let has_entry_point () =

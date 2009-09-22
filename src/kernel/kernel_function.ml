@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kernel_function.ml,v 1.20 2008/11/05 16:18:02 uid530 Exp $ *)
+(* $Id: kernel_function.ml,v 1.21 2009-02-23 12:52:19 uid562 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -28,17 +28,17 @@ open Db_types
 (** {2 Getters} *)
 (* ************************************************************************* *)
 
-let dummy () = 
-  { fundec = Definition (Cil.emptyFunction "@dummy@", Cilutil.locUnknown); 
-    return_stmt = None; 
+let dummy () =
+  { fundec = Definition (Cil.emptyFunction "@dummy@", Cilutil.locUnknown);
+    return_stmt = None;
     spec = Cil.empty_funspec ();
     stmts_graph = None }
 
-let get_vi kf = Ast_info.Function.get_vi kf.fundec 
+let get_vi kf = Ast_info.Function.get_vi kf.fundec
 let get_id kf = (get_vi kf).vid
 let get_name kf = (get_vi kf).vname
 
-let get_location kf = 
+let get_location kf =
  match kf.fundec with
   | Definition (_, loc) -> loc
   | Declaration (_,vi,_, _) -> vi.vdecl
@@ -80,23 +80,29 @@ include Datatype
 module Kf =
   Computation.OptionRef
     (Cil_datatype.IntHashtbl
-       (D(*atatype*).Couple(Datatype)(Cil_datatype.Stmt)))
+       (D(*atatype*).Triple(Datatype)(Cil_datatype.Stmt)
+          (D.List(Cil_datatype.Block))))
     (struct
        let name = "KF"
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
 
 let compute () =
   Kf.memo
     (fun () ->
-       let p = Cil_state.file () in
+       let p = Ast.get () in
        let h = Inthash.create 97 in
        let visitor = object(self)
 	 inherit Cil.nopCilVisitor
 	 val mutable current_kf = None
+         val mutable opened_blocks = []
 	 method kf = match current_kf with None -> assert false | Some kf -> kf
+         method vblock b =
+           opened_blocks <- b :: opened_blocks;
+           Cil.ChangeDoChildrenPost
+             (b,fun b -> opened_blocks <- List.tl opened_blocks; b)
 	 method vstmt s =
-	   Inthash.add h s.sid (self#kf, s);
+	   Inthash.add h s.sid (self#kf, s, opened_blocks);
 	   Cil.DoChildren
 	 method vglob g =
 	   begin match g with
@@ -114,8 +120,36 @@ let compute () =
 
 let find_from_sid sid =
   let table = compute () in
-  let kf,s = Inthash.find table sid in
+  let kf,s,_ = Inthash.find table sid in
   s, kf
+
+let blocks_closed_by_edge s1 s2 =
+  let table = compute () in
+  if  not (List.memq s2 s1.succs) then
+    raise (Invalid_argument "Kernel_function.edge_exits_block");
+  try
+  let _,_,b1 = Inthash.find table s1.sid in
+  let _,_,b2 = Inthash.find table s2.sid in
+  let rec aux acc = function
+      [] -> acc
+    | inner_block::others ->
+        if List.memq inner_block b2 then acc
+        else aux (inner_block::acc) others
+  in aux [] b1
+  with Not_found ->
+    Format.eprintf "Unknown statements:@\n%d: %a@\n%d: %a@."
+      s1.sid !Ast_printer.d_stmt s1 s2.sid !Ast_printer.d_stmt s2;
+    raise Not_found
+
+let find_enclosing_block s =
+  let table = compute () in
+  let (_,_,b) = Inthash.find table s.sid in
+  List.hd b
+
+let find_all_enclosing_blocks s =
+   let table = compute () in
+  let (_,_,b) = Inthash.find table s.sid in b
+
 
 exception Got_return of stmt
 let find_return kf =
@@ -240,7 +274,8 @@ module Set = struct
   module S = Set.Make(Datatype)
   include S
   module Datatype = D.Make_Set(S)(Datatype)
-  let pretty fmt = iter (fun kf -> pretty_name fmt kf; Format.printf "@ ")
+  let pretty fmt = 
+    iter (fun kf -> Format.fprintf fmt "@[%a@ @]" pretty_name kf)
 end
 
 module Queue = struct
@@ -251,9 +286,9 @@ end
 (** {2 Setters} *)
 (* ************************************************************************* *)
 
-let register_stmt kf s =
+let register_stmt kf s b =
   let tbl = try Kf.get () with Not_found -> assert false in
-  Inthash.add tbl s.sid (kf,s)
+  Inthash.add tbl s.sid (kf,s,b)
 
 (*
 Local Variables:

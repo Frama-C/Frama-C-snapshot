@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: datatype.mli,v 1.17 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: datatype.mli,v 1.17 2008-11-18 12:13:41 uid568 Exp $ *)
 
 (** Datatype implementations and builders. 
     Provide ways to implement signature [Project.Datatype.OUTPUT] without
@@ -38,6 +38,13 @@ module Bool: S with type t = bool
 
 module String: S with type t = string
 module BigInt : S with type t = Big_int.big_int
+
+module Formatter: S with type t = Format.formatter
+  (** @since Beryllium-20090901 *)
+module OutChannel: S with type t = Pervasives.out_channel
+  (** @since Beryllium-20090901 *)
+module InChannel: S with type t = Pervasives.in_channel
+  (** @since Beryllium-20090901 *)
 
 (** {2 Builders} *)
 
@@ -73,6 +80,7 @@ module type HASHTBL = sig
 end
 
 module Make_Hashtbl(H: HASHTBL)(Data:S) : S with type t = Data.t H.t
+  (** Must not be used if type [H.key] is equal to type [Project.t] *)
 
 (** {3 Sets} *)
 
@@ -83,6 +91,8 @@ module type SET = sig
   val empty: t
   val singleton: elt -> t
   val add: elt -> t -> t
+  val iter: (elt -> unit) -> t -> unit
+    (** @since Beryllium-20090901 *)
   val fold: (elt -> 'a -> 'a) -> t -> 'a -> 'a
 end
 
@@ -105,11 +115,14 @@ module type MAP = sig
   type 'a t
   val empty: 'a t
   val add: key -> 'a -> 'a t -> 'a t
+  val iter: (key -> 'a -> unit) -> 'a t -> unit
+    (** @since Beryllium-20090901 *)
   val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 end
 
 (** Generic functor building a map datatype. *)
 module Make_Map(Map:MAP)(Data:S) : S with type t = Data.t Map.t
+  (** Must not be used if type [H.key] is equal to type [Project.t] *)
 
 (** {3 Queues} *)
 
@@ -125,6 +138,7 @@ module Triple(D1:S)(D2:S)(D3:S) : S with type t = D1.t * D2.t * D3.t
 (** {3 Project} *)
 
 module Project : S with type t = Project.t
+  (** Equivalent to {!Project.Datatype.Own}. *)
 
 (*
 Local Variables:

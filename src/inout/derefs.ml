@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@ open Cil_types
 open Cil
 open Db
 open Db_types
-open Pretty
 open Locations
 open Abstract_value
 open Abstract_interp
@@ -79,9 +78,9 @@ let get_internal =
           (try
              Stack.iter
                (fun g -> if kf == g then begin
-                warn
-                  "recursive call detected during deref analysis of %a. Ignoring it is safe if the value analysis suceeded without problem."
-                       Kernel_function.pretty_name kf;
+                  Cil.warn
+                    "recursive call detected during deref analysis of %a. Ignoring it is safe if the value analysis suceeded without problem."
+                    Kernel_function.pretty_name kf;
                   raise Ignore
                 end
                )
@@ -147,8 +146,3 @@ let () =
   Db.Derefs.compute := compute_external;
   Db.Derefs.display := pretty_external;
   Db.Derefs.statement := statement
-
-let option =
-  "-deref", 
-  Arg.Unit Cmdline.ForceDeref.on,
-  ": force deref display (undocumented)"

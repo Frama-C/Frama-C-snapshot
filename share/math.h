@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2008                                               */
+/*  Copyright (C) 2007-2009                                               */
 /*    CEA (Commissariat à l'Énergie Atomique)                             */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -19,7 +19,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: math.h,v 1.7 2008/06/26 07:46:00 uid568 Exp $ */
+/* $Id: math.h,v 1.7 2008-06-26 07:46:00 uid568 Exp $ */
 
 double cos (double x);
 double sqrt (double x);

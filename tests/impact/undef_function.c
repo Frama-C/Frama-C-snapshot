@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -impact-pragma main -impact-print -journal-disable
+   STDOPT: +"-impact-pragma main"
    */
 int y;
 

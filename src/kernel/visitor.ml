@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,8 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: visitor.ml,v 1.34 2008/11/20 12:47:11 uid562 Exp $ *)
+(* $Id$ *)
 
+open Extlib
 open Cil
 open Cil_types
 open Db_types
@@ -35,6 +36,7 @@ let is_definition v =
 (** Class type for a Db-aware visitor. *)
 class type frama_c_visitor = object
   inherit cilVisitor
+  method frama_c_plain_copy: frama_c_visitor
   method vstmt_aux: Cil_types.stmt -> Cil_types.stmt visitAction
   method vglob_aux: Cil_types.global -> Cil_types.global list visitAction
   method vrooted_code_annotation:
@@ -59,10 +61,9 @@ class generic_frama_c_visitor prj behavior: frama_c_visitor =
     | AI (cause,ca) ->
         let ca' = visitCilCodeAnnotation (vis:> cilVisitor) ca in
         if ca != ca' then AI(cause,ca') else rca
-    | WP _ -> rca (*TODO Virgile: visitor for WP types ??? *)
   in
-  let visitRooted_code_annotation vis ca =
-    doVisitList vis
+  let visitRooted_code_annotation (vis: frama_c_visitor) ca =
+    doVisitList vis vis#frama_c_plain_copy
       (fun x -> x)
       vis#vrooted_code_annotation childrenRooted_code_annotation ca
   in
@@ -74,6 +75,10 @@ object(self)
   val before = Stack.create ()
 
   val mutable current_kf = None
+
+  method frama_c_plain_copy = new generic_frama_c_visitor prj behavior
+
+  method plain_copy_visitor = (self#frama_c_plain_copy :> Cil.cilVisitor)
 
   method private set_current_kf kf = current_kf <- Some kf
 
@@ -98,7 +103,8 @@ object(self)
     let make_children_annot () =
       Stack.push true before;
       let abefore' =
-        List.filter (fun x -> not (Ast_info.is_trivial_rooted_assertion x))
+        List.filter 
+          (fun x -> not (Ast_info.is_trivial_rooted_assertion x))
           (List.flatten
              (List.rev_map (visitRooted_code_annotation (self:>frama_c_visitor))
                 abefore))
@@ -114,38 +120,33 @@ object(self)
       (abefore',aafter')
     in
     let change_stmt stmt (abefore',aafter') =
-      if abefore' <> [] || aafter' <> [] then
-        Queue.add
-          (fun () ->
-             let current_annots = Annotations.get stmt in
-             (* remove all annotations that are physically equal to
-                one of the annotations that existed before the visit.
-                They will be readded if needed. Keep annotations that
-                have been added by visiting the statement itself (by vstmt_aux)
-              *)
-             let new_annots =
-               List.filter
-                 (fun x -> not (List.memq x annots)) current_annots
-             in
-             Annotations.reset_stmt stmt;
-             List.iter (Annotations.add stmt) new_annots;
-	     List.iter (fun x -> Annotations.add stmt (Before x)) abefore';
-	     List.iter (fun x -> (Annotations.add stmt) (After x)) aafter')
-          self#get_filling_actions
+      Queue.add
+        (fun () ->
+           let current_annots = Annotations.get stmt in
+           (* remove all annotations that are physically equal to
+              one of the annotations that existed before the visit.
+              They will be re-added if needed. Keep annotations that
+              have been added by visiting the statement itself (by vstmt_aux)
+           *)
+           let new_annots =
+             List.filter
+               (fun x -> not (List.memq x annots)) current_annots
+           in
+           Annotations.reset_stmt stmt;
+           List.iter (Annotations.add stmt) new_annots;
+	   List.iter (fun x -> Annotations.add stmt (Before x)) abefore';
+	   List.iter (fun x -> (Annotations.add stmt) (After x)) aafter')
+        self#get_filling_actions
     in
+    let post_action stmt = change_stmt stmt (make_children_annot ()); stmt in
     match res with
-        SkipChildren -> change_stmt stmt (abefore,aafter); res
-      | DoChildren ->
-          ChangeDoChildrenPost
-            (stmt,
-             fun stmt -> change_stmt stmt (make_children_annot()); stmt)
-      | ChangeTo _ | ChangeToPost _ -> res
-      | ChangeDoChildrenPost (stmt,f) ->
-          ChangeDoChildrenPost
-            (stmt,
-             (fun stmt ->
-                let annots = make_children_annot() in
-                change_stmt stmt annots; f stmt))
+      SkipChildren -> change_stmt stmt (abefore,aafter); res
+    | JustCopy -> JustCopyPost post_action
+    | JustCopyPost f -> JustCopyPost (f $ post_action)
+    | DoChildren -> ChangeDoChildrenPost (stmt, post_action)
+    | ChangeTo _ | ChangeToPost _ -> res
+    | ChangeDoChildrenPost (stmt,f) ->
+        ChangeDoChildrenPost (stmt, f $ post_action)
 
   method vstmt_aux _ = DoChildren
   method vglob_aux _ = DoChildren
@@ -153,120 +154,114 @@ object(self)
   method vglob g =
     let has_kf =
       match g with
-          GVarDecl(_,v,_) when isFunctionType v.vtype ->
-            self#set_current_kf (Globals.Functions.get v); true
-        | GFun(f,_) -> self#set_current_kf (Globals.Functions.get f.svar); true
-        | _ -> false
+        GVarDecl(_,v,_) when isFunctionType v.vtype ->
+          self#set_current_kf (Globals.Functions.get v); true
+      | GFun(f,_) -> self#set_current_kf (Globals.Functions.get f.svar); true
+      | _ -> false
     in
     let res = self#vglob_aux g in
     let make_funspec () =
       match g with
-          GVarDecl(_,v,_) when isFunctionType v.vtype ->
-            if not (is_definition v) then begin
-	      let spec' = visitCilFunspec (self:> cilVisitor)
-                (Extlib.the current_kf).spec in
-              Some spec'
-	    end
-	    else None
-        | GFun _ ->
-            let spec' = visitCilFunspec (self:> cilVisitor)
+        GVarDecl(_,v,_) when isFunctionType v.vtype ->
+          if not (is_definition v) then begin
+	    let spec' = visitCilFunspec (self:> cilVisitor)
               (Extlib.the current_kf).spec in
             Some spec'
-        | _ -> None
+	  end
+	  else None
+      | GFun _ ->
+          let spec' = visitCilFunspec (self:> cilVisitor)
+            (Extlib.the current_kf).spec in
+          Some spec'
+      | _ -> None
     in
     let get_spec () =
       match g with
-          GVarDecl(_,v,_) when isFunctionType v.vtype ->
-            if not (is_definition v) then begin
-              Some (Extlib.the current_kf).spec
-	    end
-	    else None (* visited in the corresponding definition *)
-        | GFun _ -> Some (Extlib.the current_kf).spec
-        | _ -> None
+        GVarDecl(_,v,_) when isFunctionType v.vtype ->
+          if not (is_definition v) then begin
+            Some (Extlib.the current_kf).spec
+	  end
+	  else None (* visited in the corresponding definition *)
+      | GFun _ -> Some (Extlib.the current_kf).spec
+      | _ -> None
     in
     let change_glob ng spec =
       let cond = is_copy_behavior self#behavior in
-       match ng with
-           GVar(vi,init,_) ->
-             if cond then
-               Queue.add (fun () -> Globals.Vars.add vi init)
-                 self#get_filling_actions
-         | GVarDecl(_,v,l) when isFunctionType v.vtype ->
-             let spec = match spec with
-                 None -> Cil.empty_funspec ()
-               | Some spec -> spec
-             in
-             let orig_spec = (Extlib.the current_kf).spec in
-             if cond || (not (Cil.is_empty_funspec spec) &&
-                           not (Cil.is_empty_funspec orig_spec) &&
-                           spec != orig_spec)
-             then
-	       Queue.add
-                 (fun () ->
-                    Globals.Functions.replace_by_declaration spec v l)
-	         self#get_filling_actions;
+      match ng with
+        GVar(vi,init,_) ->
+          if cond then
+            Queue.add (fun () -> Globals.Vars.add vi init)
+              self#get_filling_actions
+      | GVarDecl(_,v,l) when isFunctionType v.vtype ->
+          let spec = match spec with
+            None -> Cil.empty_funspec ()
+          | Some spec -> spec
+          in
+          let orig_spec = (Extlib.the current_kf).spec in
+          if cond || (not (Cil.is_empty_funspec spec) &&
+                        not (Cil.is_empty_funspec orig_spec) &&
+                        spec != orig_spec)
+          then
+	    Queue.add
+              (fun () ->
+                 Globals.Functions.replace_by_declaration spec v l)
+	      self#get_filling_actions;
 
-         | GVarDecl (_,({vstorage=Extern} as v),_) ->
-             if cond then
-               Queue.add (fun () -> Globals.Vars.add_decl v)
-                 self#get_filling_actions
-         | GFun(f,l) ->
-             if cond then begin
-               let spec =
-                 match spec with
-                     None -> Cil.empty_funspec ()
-                   | Some spec -> spec
-               in
-	       Queue.add
-	         (fun () ->
-	            if Cmdline.Debug.get () > 0 then
- 		      Format.eprintf
-		        "@[Adding definition %s (vid: %d) for project %s@\n\
-                              body: %a@\n@]@."
-		        f.svar.vname f.svar.vid
-                        (Project.name (Project.current()))
-                        !Ast_printer.d_block f.sbody
-                    ;
-	            if is_definition f.svar then
-		      failwith
-                        "trying to redefine an existing kernel function"
-	            else
-		      Globals.Functions.replace_by_definition spec f l
-                 )
-	         self#get_filling_actions
-             end
-         | _ -> ()
+      | GVarDecl (_,({vstorage=Extern} as v),_) ->
+          if cond then
+            Queue.add (fun () -> Globals.Vars.add_decl v)
+              self#get_filling_actions
+      | GFun(f,l) ->
+          if cond then begin
+            let spec =
+              match spec with
+                None -> Cil.empty_funspec ()
+              | Some spec -> spec
+            in
+	    Queue.add
+	      (fun () ->
+		 Kernel.debug 
+		   "@[Adding definition %s (vid: %d) for project %s@\n\
+                      body: %a@\n@]@."
+		   f.svar.vname f.svar.vid
+                   (Project.name (Project.current()))
+                   !Ast_printer.d_block f.sbody
+                 ;
+	         if is_definition f.svar then
+		   failwith
+                     "trying to redefine an existing kernel function"
+	         else
+		   Globals.Functions.replace_by_definition spec f l
+              )
+	      self#get_filling_actions
+          end
+      | _ -> ()
+    in
+    let post_action g =
+      let spec = lazy (make_funspec ()) in
+      List.iter (fun g -> change_glob g (Lazy.force spec)) g;
+      if has_kf then self#reset_current_kf();
+      g
     in
     match res with
       SkipChildren ->
-        change_glob g (get_spec()); if has_kf then self#reset_current_kf(); res
-    | DoChildren ->
-	ChangeDoChildrenPost
-	  ([g],
-           fun g -> let spec = make_funspec () in
-           List.iter (fun g -> change_glob g spec) g;
-           if has_kf then self#reset_current_kf();
-           g)
+        change_glob g (get_spec());
+        if has_kf then self#reset_current_kf(); res
+    | JustCopy -> JustCopyPost post_action
+    | JustCopyPost f -> JustCopyPost (f $ post_action)
+    | DoChildren -> ChangeDoChildrenPost([g],post_action)
     | ChangeTo l ->
         List.iter (fun g -> change_glob g None) l;
         if has_kf then self#reset_current_kf();
         res
-    | ChangeToPost (l,f) ->
-        ChangeToPost(l,
-                     fun l ->
-                       List.iter (fun g -> change_glob g None) l;
-                       if has_kf then self#reset_current_kf(); f l)
-    | ChangeDoChildrenPost (g,f) ->
-	ChangeDoChildrenPost
-	  (g,
-           fun g->
-             let spec = make_funspec () in
-             List.iter (fun g -> change_glob g spec) g;
-             if has_kf then self#reset_current_kf();
-             f g)
+    | ChangeToPost (l,f) -> ChangeToPost (l, f $ post_action)
+    | ChangeDoChildrenPost (g,f) -> ChangeDoChildrenPost (g, f $ post_action)
 end
 
 class frama_c_copy prj = generic_frama_c_visitor prj (copy_visit ())
+
+class frama_c_inplace =
+  generic_frama_c_visitor (Project.current()) (inplace_visit())
 
 let visitFramacFileCopy vis f = visitCilFileCopy (vis:>cilVisitor) f
 
@@ -355,18 +350,9 @@ let visitFramacPredicateNamed vis p =
   let p' = visitCilPredicateNamed (vis:>cilVisitor) p in
   vis#fill_global_tables; p'
 
-let visitFramacTsets vis t =
-  let t' = visitCilTsets (vis:>cilVisitor) t in
-  vis#fill_global_tables; t'
-
-let visitFramacTsetsElem vis t =
-  let t' = visitCilTsetsElem (vis:>cilVisitor) t in
-  vis#fill_global_tables; t'
-
-
-let visitFramacTsetsOffset vis t =
-  let t' = visitCilTsetsOffset (vis:>cilVisitor) t in
-  vis#fill_global_tables; t'
+let visitFramacPredicates vis p =
+  let p' = visitCilPredicates (vis:>cilVisitor) p in
+  vis#fill_global_tables; p'
 
 let visitFramacTerm  vis t =
   let t' = visitCilTerm (vis:>cilVisitor) t in
@@ -376,9 +362,21 @@ let visitFramacTermOffset vis t =
   let t' = visitCilTermOffset (vis:>cilVisitor) t in
   vis#fill_global_tables; t'
 
+let visitFramacTermLhost vis t =
+  let t' = visitCilTermLhost (vis:>cilVisitor) t in
+  vis#fill_global_tables; t'
+
 let visitFramacLogicInfo vis l =
   let l' = visitCilLogicInfo (vis:>cilVisitor) l in
   vis#fill_global_tables; l'
+
+let visitFramacBehavior vis b =
+  let b' = visitCilBehavior (vis:>cilVisitor) b in
+  vis#fill_global_tables; b'
+
+let visitFramacBehaviors vis b =
+  let b' = visitCilBehaviors (vis:>cilVisitor) b in
+  vis#fill_global_tables; b'
 
 (*
 Local Variables:

@@ -1,7 +1,7 @@
 /* frama-c-gui -val -deps account.c */
 /* frama-c-gui -val -deps account.c -main update_account -slice-pragma update_account */
 /* frama-c-gui -val -deps account.c -main update_account -sparecode-analysis */
-/* frama-c -jessie-analysis -jessie-gui inv.c -jessie-int-model exact account.c
+/* frama-c -jessie -jessie-gui inv.c -jessie-int-model exact account.c
  */
 
 #include "types.h"
@@ -50,7 +50,7 @@ int check_account (int balance, int min, int max) {
   return res;
 }
 
-/*@ requires \valid(bk_ops) && \valid(bk_ops.ops + (0..bk_ops->nb-1)); 
+/*@ requires \valid(bk_ops) && \valid(bk_ops->ops + (0..bk_ops->nb-1)); 
  */
 bool process_bank_operations (t_operations * bk_ops, t_account * c) {
   int i; bool ok = true;
@@ -61,7 +61,7 @@ bool process_bank_operations (t_operations * bk_ops, t_account * c) {
   return ok;
 }
 
-/*@ requires \valid(bk_ops) && \valid(bk_ops.ops + (0..bk_ops->nb-1)); 
+/*@ requires \valid(bk_ops) && \valid(bk_ops->ops + (0..bk_ops->nb-1)); 
  */
 int update_account (t_operations * bk_ops, t_account * c) {
   int todo;

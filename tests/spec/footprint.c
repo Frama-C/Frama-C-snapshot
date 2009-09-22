@@ -8,7 +8,7 @@ struct S {
 */
 
 /*@
-   requires \valid(\union((char*)s + (0..sizeof(*s)),footprint(*s)));
+   requires \valid(\union(s,footprint(*s)));
    assigns footprint(*s);
 */
 int f(struct S* s) {

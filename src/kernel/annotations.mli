@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,9 +19,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annotations.mli,v 1.24 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: annotations.mli,v 1.25 2009-02-13 07:59:29 uid562 Exp $ *)
 
-(** Annotations associated with a kinstr. 
+(** Annotations associated with a kinstr.
     @plugin development guide *)
 
 open Cil_types
@@ -50,7 +50,7 @@ val get_filter:
   (code_annotation -> bool) -> stmt ->
   rooted_code_annotation before_after list
     (** Returns all the annotation associated with the stmt that respects
-        the given condition. Use it in conjunction with Logic_const.is_*
+        the given condition. Use it in conjunction with Logic_utils.is_*
         to retrieve a particular kind of annotations.
     *)
 

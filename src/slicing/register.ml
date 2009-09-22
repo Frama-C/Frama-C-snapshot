@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -23,7 +23,7 @@
 
 open Cil_types
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 module M = SlicingMacros
 module U = SlicingMacros
 module C = SlicingCmds
@@ -55,10 +55,11 @@ let check_db_select fvar db_select =
   let db_fvar, select = db_select in
   if db_fvar.vid <> fvar.vid then
     begin
-      Format.printf "slice name = %s <> select = %a@."
-        (fvar.vname) print_select db_select;
+      SlicingParameters.debug 
+	"slice name = %s <> select = %a@."
+        (fvar.vname) print_select db_select ;
       raise (Invalid_argument
-           "This selection doesn't belong to the given function");
+               "This selection doesn't belong to the given function");
     end;
   fvar, select
 
@@ -91,7 +92,7 @@ let basic_add_select kf select nodes ?(undef) nd_marks =
           (fvar, sel)
 
 let select_pdg_nodes kf ?(select=empty_db_select kf) nodes mark =
-  M.debug 1 "[slicing] select_pdg_nodes@." ;
+  SlicingParameters.debug ~level:1 "[Register.select_pdg_nodes]" ;
   let nd_marks = Act.build_node_and_dpds_selection mark in
   try basic_add_select kf select nodes nd_marks
   with Db.Pdg.Top | Db.Pdg.Bottom -> 
@@ -106,7 +107,7 @@ let mk_select pdg sel nodes undef mark =
     sel
 
 let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
-  M.debug 1 "[slicing] select_stmt_zone %a %s stmt %d (m=%a)@."
+  SlicingParameters.debug ~level:1 "[Register.select_stmt_zone] %a %s stmt %d (m=%a)"
       Locations.Zone.pretty loc
       (if before then "before" else "after") stmt.sid
        SlicingMarks.pretty_mark mark;
@@ -122,11 +123,11 @@ let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
             (fvar, sel)
         with
           | Db.Pdg.NotFound -> (* stmt probably unreachable *)
-          let msg = M.sprintf "%a %s stmt %d"
-                      Locations.Zone.pretty loc
-                      (if before then "before" else "after") stmt.sid
-          in Format.printf "Nothing to select for %s@." msg;
-             select
+	      SlicingParameters.debug 
+		"@[Nothing to select for @[%a@]@ %s stmt %d@]"
+                Locations.Zone.pretty loc
+                (if before then "before" else "after") stmt.sid ;
+              select
           | Db.Pdg.Top -> top_db_select kf mark
           | Db.Pdg.Bottom -> bottom_msg kf; select
 
@@ -134,9 +135,10 @@ let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
 (** this one is similar to [select_stmt_zone] with the return statement
 * when the function is defined, but it can also be used for undefined functions. *)
 let select_in_out_zone ~at_end ~use_undef kf select loc mark =
-  M.debug 1 "[slicing] select zone %a (m=%a) at %s of %a@."
-      Locations.Zone.pretty loc SlicingMarks.pretty_mark mark
-      (if at_end then "end" else "begin") Kernel_function.pretty_name kf;
+  SlicingParameters.debug
+    "[Register.select_in_out_zone] select zone %a (m=%a) at %s of %a"
+    Locations.Zone.pretty loc SlicingMarks.pretty_mark mark
+    (if at_end then "end" else "begin") Kernel_function.pretty_name kf;
   let fvar, sel = check_kf_db_select kf select in
   match sel with
     | T.CuTop _ -> select
@@ -168,7 +170,7 @@ let stmt_nodes_to_select pdg stmt =
   let stmt_nodes =
     try !Db.Pdg.find_stmt_and_blocks_nodes pdg stmt with Db.Pdg.NotFound -> []
   in
-      (* TODO : add this when visibility of anotations are ok
+    (* TODO : add this when visibility of anotations are ok
 let stmt_nodes =
   if List.length stmt_nodes > 1 then
     begin (* this is surely a call statement *)
@@ -188,13 +190,13 @@ let stmt_nodes =
             stmt_nodes
   in
         *)
-      M.debug 2 "   add_stmt_nodes on stmt %d (%a)@." stmt.sid
-          (fun fmt l -> List.iter (!Db.Pdg.pretty_node true fmt) l)
-          stmt_nodes;
-      stmt_nodes
+    SlicingParameters.debug ~level:2 "[Register.stmt_nodes_to_select] results on stmt %d (%a)" stmt.sid
+      (fun fmt l -> List.iter (!Db.Pdg.pretty_node true fmt) l)
+      stmt_nodes;
+    stmt_nodes
 
 let select_stmt_computation kf ?(select=empty_db_select kf) stmt mark =
-  M.debug 1 "[slicing] select_stmt_computation on stmt %d@." stmt.sid;
+  SlicingParameters.debug ~level:1 "[Register.select_stmt_computation] on stmt %d" stmt.sid;
     try
       let pdg = !Db.Pdg.get kf in
       let stmt_nodes = stmt_nodes_to_select pdg stmt in
@@ -207,7 +209,7 @@ let select_stmt_computation kf ?(select=empty_db_select kf) stmt mark =
  * call according to the slicing-level, but anyway, the call will be visible.
  *)
 let select_minimal_call kf ?(select=empty_db_select kf) stmt m =
-  M.debug 1 "[slicing] select_minimal_call@.";
+  SlicingParameters.debug ~level:1 "[Register.select_minimal_call]";
     try 
       let pdg = !Db.Pdg.get kf in
       let call = check_call stmt true in
@@ -218,7 +220,7 @@ let select_minimal_call kf ?(select=empty_db_select kf) stmt m =
       | Db.Pdg.Bottom -> bottom_msg kf; select
 
 let select_stmt_ctrl kf ?(select=empty_db_select kf) stmt =
-  M.debug 1 "[slicing] select_stmt_ctrl of sid:%d@." stmt.sid;
+  SlicingParameters.debug ~level:1 "[Register.select_stmt_ctrl] of sid:%d" stmt.sid;
   let mark = SlicingMarks.mk_user_mark ~ctrl:true ~data:false ~addr:false in
   try
     let pdg = !Db.Pdg.get kf in
@@ -229,7 +231,7 @@ let select_stmt_ctrl kf ?(select=empty_db_select kf) stmt =
     | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
 
 let select_entry_point kf ?(select=empty_db_select kf) mark =
-  M.debug 1 "[slicing] select_entry_point of %a@." 
+  SlicingParameters.debug ~level:1 "[Register.select_entry_point] of %a" 
       Kernel_function.pretty_name kf;
   try
     let pdg = !Db.Pdg.get kf in
@@ -240,11 +242,26 @@ let select_entry_point kf ?(select=empty_db_select kf) mark =
     | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
 
 let select_return kf ?(select=empty_db_select kf) mark =
-  M.debug 1 "[slicing] select_return of %a@." 
+  SlicingParameters.debug ~level:1 "[Register.select_return] of %a" 
       Kernel_function.pretty_name kf;
   try
     let pdg = !Db.Pdg.get kf in
     let node = !Db.Pdg.find_ret_output_node pdg in
+    let nd_marks = Act.build_simple_node_selection mark in
+      basic_add_select kf select [node] nd_marks
+  with 
+    | Db.Pdg.NotFound -> (* unreachable ? *) select
+    | Db.Pdg.Top -> top_db_select kf mark
+    | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
+
+let select_decl_var kf ?(select=empty_db_select kf) vi mark =
+  SlicingParameters.debug ~level:1 "[Register.select_decl_var] of %s in %a@." 
+    vi.Cil_types.vname Kernel_function.pretty_name kf;
+  if vi.Cil_types.vglob (* no slicing request on globals *)
+  then select
+  else try
+    let pdg = !Db.Pdg.get kf in
+    let node = !Db.Pdg.find_decl_var_node pdg vi in
     let nd_marks = Act.build_simple_node_selection mark in
       basic_add_select kf select [node] nd_marks
   with 
@@ -267,27 +284,23 @@ let merge_db_select db_select1 db_select2 =
   let select = merge_select select1 select2 in
     (fvar, select)
 
-let empty_selects () = Cilutil.VarinfoHashtbl.create 7
-
-let add_to_selects db_select hsel =
-  let vf, select = db_select in
-  let select =
-    try let old_selection = Cilutil.VarinfoHashtbl.find hsel vf in
-      merge_select old_selection select
-    with Not_found -> select
-  in Cilutil.VarinfoHashtbl.replace hsel vf select
-
-let fold_selects f hsel acc =
-  let dof v sel acc = f (v, sel) acc in
-  Cilutil.VarinfoHashtbl.fold dof hsel acc
-
-let iter_selects f hsel = fold_selects (fun s _ -> f s) hsel ()
-
-(** add [hsel1] to [hsel2] *)
-let add_selects_to_selects hsel1 hsel2 =
-  let add (vf, sel) () = add_to_selects (vf, sel) hsel2 in
-    fold_selects add hsel1 ()
-
+module Selections = struct
+  type t = Db.Slicing.Select.t
+  type t_set = Db.Slicing.Select.t_set
+      
+  let add_to_selects db_select set =
+    let vf, select = db_select in
+    let select =
+      try let old_selection = Cilutil.VarinfoMap.find vf set in
+        merge_select old_selection select
+      with Not_found -> select
+    in Cilutil.VarinfoMap.add vf select set 
+         
+  let iter_selects_internal f set =
+    let dof v sel  = f (v, sel) in
+      Cilutil.VarinfoMap.iter dof set
+end
+  
 let print_fct_stmts fmt (_proj, kf) =
   try
     let pdg = !Db.Pdg.get kf in
@@ -347,16 +360,19 @@ let is_already_selected ff db_select =
       | T.CuSelect to_select ->
           (* let pdg = !Db.Pdg.get (Globals.Functions.get fvar) in *)
           let new_marks = Fct_slice.filter_already_in ff to_select in
-            M.debug 1 "[slicing] is_already_selected %a ?@."
-                !Db.Slicing.Select.pretty db_select;
-            let ok = if new_marks = [] then true else false in
-              if ok then M.debug 1 "\t--> yes@."
-              else M.debug 1 "\t--> no (missing %a)@."
-                       Act.print_sel_marks_list new_marks;
-              ok
+          let ok = if new_marks = [] then true else false in
+            if ok then
+              SlicingParameters.debug ~level:1
+                "[Register.is_already_selected] %a ?\t--> yes"
+                !Db.Slicing.Select.pretty db_select
+            else SlicingParameters.debug ~level:1
+              "[Register.is_already_selected] %a ?\t--> no (missing %a)"
+              !Db.Slicing.Select.pretty db_select
+              Act.print_sel_marks_list new_marks;
+            ok
 
 let add_ff_selection proj ff db_select =
-  M.debug 1 "[slicing:add_ff_selection] %a to %s@."
+  SlicingParameters.debug ~level:1 "[Register.add_ff_selection] %a to %s"
       !Db.Slicing.Select.pretty db_select (M.ff_name ff);
   let _, select = check_ff_db_select ff db_select in
       SlicingProject.add_fct_ff_filter proj ff select
@@ -364,7 +380,7 @@ let add_ff_selection proj ff db_select =
 (** add a persistant selection to the function.
 * This might change its slicing level in order to call slices later on. *)
 let add_fi_selection proj db_select =
-  M.debug 1 "[slicing:add_fi_selection] %a@."
+  SlicingParameters.debug ~level:1 "[Register.add_fi_selection] %a"
                       !Db.Slicing.Select.pretty db_select;
   let kf = get_select_kf db_select in
   let fi = M.get_kf_fi proj kf in
@@ -373,7 +389,7 @@ let add_fi_selection proj db_select =
     match M.fi_slicing_level fi with
       |  T.DontSlice |  T.DontSliceButComputeMarks ->
           M.change_fi_slicing_level fi  T.MinNbSlice;
-          M.debug 1 "[slicing] changing %s slicing level to %s@."
+          SlicingParameters.debug ~level:1 "[Register.add_fi_selection] changing %s slicing level to %s@."
               (M.fi_name fi)
               (M.str_level_option (M.fi_slicing_level fi))
 
@@ -412,35 +428,43 @@ let db_pretty fmt (_project, kf) =
     try !Db.Pdg.pretty fmt (!Db.Pdg.get kf)
     with Not_found -> ()
 
-let dot_project ~filename ~title project =
-  PrintSlice.build_dot_project filename title project
+let create_slice s =
+  SlicingParameters.debug ~level:1 "[Register.create_slice]";
+  SlicingProject.create_slice s
 
-let create_slice =
-  M.debug 1 "[slicing] create_slice@.";
-  SlicingProject.create_slice
 let copy_slice _proj ff =
-  M.debug 1 "[slicing] copy_slice@.";
+  SlicingParameters.debug ~level:1 "[Register.copy_slice]";
   Fct_slice.copy_slice ff
-let split_slice =
-  M.debug 1 "[slicing] split_slice@.";
-  SlicingProject.split_slice
+
+let split_slice s =
+  SlicingParameters.debug ~level:1 "[Register.split_slice]";
+  SlicingProject.split_slice s
+
 let merge_slices proj ff_1 ff_2 ~replace =
-  M.debug 1 "[slicing] merge_slices@.";
+  SlicingParameters.debug ~level:1 "[Register.merge_slices]";
   SlicingProject.merge_slices proj ff_1 ff_2 replace
-let remove_slice =
-  M.debug 1 "[slicing] remove_slice@.";
-  SlicingProject.remove_ff
 
-let apply_next_action =
-  M.debug 1 "[slicing] apply_next_action@.";
-  SlicingProject.apply_next_action
+let remove_slice s =
+  SlicingParameters.debug ~level:1 "[Register.remove_slice]";
+  SlicingProject.remove_ff s
 
-let apply_all_actions =
-  M.debug 1 "[slicing] apply_all_actions@.";
-  SlicingProject.apply_all_actions
+let apply_next_action s =
+  SlicingParameters.debug ~level:1 "[Register.apply_next_action]";
+  SlicingProject.apply_next_action s
+
+let apply_all_actions p =
+  SlicingParameters.debug ~level:1 "[Register.apply_all_actions]";
+  SlicingParameters.feedback ~level:1 "applying all slicing requests...";
+  SlicingParameters.debug ~level:2 "pending requests:@\n %a@\n"
+    !Db.Slicing.Request.pretty p ;
+  let r = SlicingProject.apply_all_actions p in
+    SlicingParameters.feedback ~level:2 "done (applying all slicing requests).";
+    r
+      
+let print_extracted_project ?fmt ~extracted_prj =
+  if SlicingParameters.Print.get () then File.pretty ?fmt ~prj:extracted_prj ()
 
 (** Global data managment *)
-
 
 type t_project_management = 
     SlicingTypes.sl_project list * SlicingTypes.sl_project option
@@ -458,136 +482,667 @@ module P =
      end)
     (struct
        let name = "Slicing.Project"
-       let dependencies = [ ] (* others delayed below *)
+       let dependencies = [] (* others delayed below *)
      end)
 
 let get_all () = let all,_current = P.get () in all
 let get_project () = let _all,current = P.get () in current
 let set_project proj_opt = P.set (get_all (),  proj_opt)
+
+let from_unique_name name =
+  let all = get_all () in
+  try List.find (fun p -> name = SlicingProject.get_name p) all
+  with Not_found -> raise Db.Slicing.No_Project
+      
 let mk_project name =
-  !Db.Value.compute () ;
-  let project = (SlicingProject.mk_project name) in
-  let all,current = P.get () in
+(*  try
+    let _ = from_unique_name name in 
+    raise Db.Slicing.Existing_Project
+  with Db.Slicing.No_Project -> *)
+    !Db.Value.compute () ;
+    let project = (SlicingProject.mk_project name) in
+    let all,current = P.get () in
     P.set ((project :: all), current);
     project
 
-(** {2 Initialisation of the slicing plugin } *)
+let from_num_id proj kf num =
+  List.find
+    (fun f -> num = !Db.Slicing.Slice.get_num_id f)
+    (!Db.Slicing.Slice.get_all proj kf)
+    
+(** {2 For the journalization of the slicing plug-in } *)
+
+(** {3 For the journalization of the Db.Slicing.Project.functions} *)
+let dot_project = PrintSlice.build_dot_project
+let dot_project =
+  Journal.register
+    "Slicing.Project.print_dot"
+    (Type.func ~label:("filename", None) Type.string
+       (Type.func ~label:("title", None) Type.string
+          (Type.func Db.Slicing.Project.dyn_t
+             Type.unit)))
+   dot_project
+let dot_project ~filename ~title project =
+  dot_project filename title project
+ 
+let extract f_slice_names = SlicingTransform.extract ~f_slice_names
+let extract =
+  Journal.register
+    "!Db.Slicing.Project.extract"
+    (Type.func 
+    ~label:("f_slice_names",
+	    Some (fun () -> !Db.Slicing.Project.default_slice_names))
+    (Type.func Kernel_type.kernel_function 
+       (Type.func Type.bool (Type.func Type.int Type.string)))
+    (Type.func Type.string
+       (Type.func Db.Slicing.Project.dyn_t
+          Project.ty)))
+    extract
+let extract new_proj_name 
+    ?(f_slice_names=(!Db.Slicing.Project.default_slice_names)) = 
+  extract f_slice_names new_proj_name
+    
+let default_slice_names = SlicingTransform.default_slice_names
+let () =
+  Type.Binding.add
+    (Type.func Kernel_type.kernel_function
+       (Type.func Type.bool
+          (Type.func Type.int
+             Type.string)))
+    default_slice_names
+    "!Db.Slicing.Project.default_slice_names"
+
+(** {3 For the journalization of the Db.Slicing.Select.functions} *)
+    
+let higher_select_stmt set spare = C.select_stmt set ~spare
+let higher_select_stmt =
+  Journal.register
+    "!Db.Slicing.Select.select_stmt"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func ~label:("spare", None) Type.bool
+          (Type.func Kernel_type.stmt
+             (Type.func Kernel_type.kernel_function
+                Db.Slicing.Select.dyn_t_set))))
+    higher_select_stmt
+let higher_select_stmt set ~spare =
+  higher_select_stmt set spare
+      
+let higher_select_stmt_ctrl set spare = C.select_stmt_ctrl set ~spare
+let higher_select_stmt_ctrl =
+  Journal.register
+    "!Db.Slicing.Select.select_stmt_ctrl"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func ~label:("spare", None) Type.bool
+          (Type.func Kernel_type.stmt
+             (Type.func Kernel_type.kernel_function
+                Db.Slicing.Select.dyn_t_set))))
+    higher_select_stmt_ctrl
+let higher_select_stmt_ctrl set ~spare =
+  higher_select_stmt_ctrl set spare 
+
+let higher_select_stmt_lval_rw set mark rd wr stmt scope eval =
+  C.select_stmt_lval_rw set mark ~rd ~wr stmt ~scope ~eval
+let higher_select_stmt_lval_rw =
+  Journal.register
+    "!Db.Slicing.Select.select_stmt_lval_rw"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func Db.Slicing.Mark.dyn_t
+          (Type.func ~label:("rd", None) Kernel_type.string_set
+             (Type.func ~label:("wr", None) Kernel_type.string_set
+                (Type.func Kernel_type.stmt
+                   (Type.func ~label:("scope", None) Kernel_type.stmt
+                      (Type.func ~label:("eval", None) Kernel_type.stmt
+                         (Type.func Kernel_type.kernel_function
+                            Db.Slicing.Select.dyn_t_set))))))))
+    higher_select_stmt_lval_rw
+let higher_select_stmt_lval_rw set mark ~rd ~wr stmt ~scope ~eval =
+  higher_select_stmt_lval_rw set mark rd wr stmt scope eval
+  
+let higher_select_stmt_lval set mark lval before stmt scope eval =
+  C.select_stmt_lval set mark lval ~before stmt ~scope ~eval
+let higher_select_stmt_lval =
+  Journal.register
+    "!Db.Slicing.Select.select_stmt_lval"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func Db.Slicing.Mark.dyn_t
+          (Type.func Kernel_type.string_set
+             (Type.func ~label:("before", None) Type.bool
+                (Type.func Kernel_type.stmt
+                   (Type.func ~label:("scope", None) Kernel_type.stmt
+                      (Type.func ~label:("eval", None) Kernel_type.stmt
+                         (Type.func Kernel_type.kernel_function
+                            Db.Slicing.Select.dyn_t_set))))))))
+    higher_select_stmt_lval
+let higher_select_stmt_lval set mark lval ~before stmt ~scope ~eval =
+  higher_select_stmt_lval set mark lval before stmt scope eval
+      
+let higher_select_stmt_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var =
+  C.select_stmt_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var
+let higher_select_stmt_annots =
+  Journal.register
+    "!Db.Slicing.Select.select_stmt_annots"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func Db.Slicing.Mark.dyn_t
+          (Type.func ~label:("spare", None) Type.bool
+             (Type.func ~label:("ai", None) Type.bool
+                (Type.func ~label:("user_assert", None) Type.bool
+                   (Type.func ~label:("slicing_pragma", None) Type.bool
+                      (Type.func ~label:("loop_inv", None) Type.bool
+                         (Type.func ~label:("loop_var", None) Type.bool
+                            (Type.func Kernel_type.stmt
+                               (Type.func Kernel_type.kernel_function
+                                  Db.Slicing.Select.dyn_t_set))))))))))
+    higher_select_stmt_annots
+let higher_select_stmt_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var =
+    higher_select_stmt_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var
+
+let higher_select_func_lval_rw set mark rd wr scope eval =
+  C.select_func_lval_rw set mark ~rd ~wr ~scope ~eval
+let higher_select_func_lval_rw =
+  Journal.register
+    "!Db.Slicing.Select.select_func_lval_rw"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func Db.Slicing.Mark.dyn_t
+          (Type.func ~label:("rd", None) Kernel_type.string_set
+             (Type.func ~label:("wr", None) Kernel_type.string_set
+                (Type.func ~label:("scope", None) Kernel_type.stmt
+                   (Type.func ~label:("eval", None) Kernel_type.stmt
+                      (Type.func Kernel_type.kernel_function
+                         Db.Slicing.Select.dyn_t_set)))))))
+    higher_select_func_lval_rw
+let higher_select_func_lval_rw set mark ~rd ~wr ~scope ~eval =
+  higher_select_func_lval_rw set mark rd wr scope eval
+  
+let higher_select_func_return set spare =
+    C.select_func_return set ~spare
+let higher_select_func_return =
+  Journal.register
+    "!Db.Slicing.Select.select_func_return"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func ~label:("spare", None) Type.bool
+          (Type.func Kernel_type.kernel_function
+               Db.Slicing.Select.dyn_t_set)))
+    higher_select_func_return
+let higher_select_func_return set ~spare = higher_select_func_return set spare
+    
+let higher_select_func_calls_to set spare =
+  C.select_func_calls_to set ~spare
+let higher_select_func_calls_to =
+  Journal.register
+    "!Db.Slicing.Select.select_func_calls_to"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func ~label:("spare", None) Type.bool
+          (Type.func Kernel_type.kernel_function
+             Db.Slicing.Select.dyn_t_set)))
+    higher_select_func_calls_to
+let higher_select_func_calls_to set ~spare =
+    higher_select_func_calls_to set spare
+  
+let higher_select_func_calls_into set spare =
+  C.select_func_calls_into set ~spare
+let higher_select_func_calls_into =
+  Journal.register
+    "!Db.Slicing.Select.select_func_calls_into"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func ~label:("spare", None) Type.bool
+          (Type.func Kernel_type.kernel_function
+             Db.Slicing.Select.dyn_t_set)))
+    higher_select_func_calls_into
+let higher_select_func_calls_into set ~spare =
+  higher_select_func_calls_into set spare
+  
+let higher_select_func_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var =
+  C.select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var
+let higher_select_func_annots =
+  Journal.register
+    "!Db.Slicing.Select.select_func_annots"
+    (Type.func Db.Slicing.Select.dyn_t_set
+       (Type.func Db.Slicing.Mark.dyn_t
+          (Type.func ~label:("spare", None) Type.bool
+             (Type.func ~label:("ai", None) Type.bool
+                (Type.func ~label:("user_assert", None) Type.bool
+                   (Type.func ~label:("slicing_pragma", None) Type.bool
+                      (Type.func ~label:("loop_inv", None) Type.bool
+                         (Type.func ~label:("loop_var", None) Type.bool
+                            (Type.func Kernel_type.kernel_function
+                               Db.Slicing.Select.dyn_t_set)))))))))
+    higher_select_func_annots
+let higher_select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var =
+  higher_select_func_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var  
+    
+(** {3 For the journalization of the Db.Slicing.Request.functions} *)
+let apply_all project propagate_to_callers =
+  C.apply_all project ~propagate_to_callers
+let apply_all =
+  Journal.register
+    "!Db.Slicing.Request.apply_all"
+    (Type.func Db.Slicing.Project.dyn_t
+       (Type.func ~label:("propagate_to_callers", None) Type.bool 
+          Type.unit))
+    apply_all
+let apply_all project ~propagate_to_callers =
+  apply_all project propagate_to_callers
+
+let merge_slices proj ff_1 ff_2 replace =
+  merge_slices proj ff_1 ff_2 ~replace
+let merge_slices =
+  Journal.register
+    "!Db.Slicing.Request.merge_slices"
+    (Type.func  Db.Slicing.Project.dyn_t
+       (Type.func Db.Slicing.Slice.dyn_t
+          (Type.func Db.Slicing.Slice.dyn_t
+             (Type.func ~label:("replace", None) Type.bool
+                Db.Slicing.Slice.dyn_t))))
+    merge_slices
+let merge_slices proj ff_1 ff_2 ~replace =
+  merge_slices proj ff_1 ff_2 replace 
+      
+let call_ff_in_caller proj caller to_call =
+  call_ff_in_caller proj ~caller ~to_call
+let call_ff_in_caller =
+  Journal.register
+    "!Db.Slicing.Request.add_call_slice"
+    (Type.func  Db.Slicing.Project.dyn_t
+       (Type.func ~label:("caller", None) Db.Slicing.Slice.dyn_t
+          (Type.func ~label:("to_call", None) Db.Slicing.Slice.dyn_t
+             Type.unit)))
+    call_ff_in_caller
+let call_ff_in_caller proj ~caller ~to_call =
+  call_ff_in_caller proj caller to_call
+
+let call_fsrc_in_caller proj caller to_call =
+  call_fsrc_in_caller proj ~caller ~to_call
+let call_fsrc_in_caller =
+  Journal.register
+    "!Db.Slicing.Request.add_call_fun"
+    (Type.func  Db.Slicing.Project.dyn_t
+       (Type.func ~label:("caller", None) Db.Slicing.Slice.dyn_t
+          (Type.func ~label:("to_call", None) Kernel_type.kernel_function
+             Type.unit)))
+    call_fsrc_in_caller
+let call_fsrc_in_caller proj ~caller ~to_call =
+  call_fsrc_in_caller proj caller to_call
+    
+let call_min_f_in_caller proj caller to_call =
+  call_min_f_in_caller proj ~caller ~to_call
+let call_min_f_in_caller =
+  Journal.register
+    "!Db.Slicing.Request.add_call_min_fun" 
+    (Type.func  Db.Slicing.Project.dyn_t
+       (Type.func ~label:("caller", None) Db.Slicing.Slice.dyn_t
+          (Type.func ~label:("to_call", None) Kernel_type.kernel_function
+               Type.unit)))
+    call_min_f_in_caller
+let call_min_f_in_caller proj ~caller ~to_call =
+  call_min_f_in_caller proj caller to_call
+    
+    
+(** {3 For the journalization of the Db.Slicingfunctions} *)
+
+let set_modes calls callers sliceUndef keepAnnotations print () =
+  SlicingParameters.Mode.Calls.set calls ;
+  SlicingParameters.Mode.Callers.set callers ;
+  SlicingParameters.Mode.SliceUndef.set sliceUndef;
+  SlicingParameters.Mode.KeepAnnotations.set keepAnnotations;
+  SlicingParameters.Print.set print
+    
+let set_modes =
+  Journal.register
+    "!Db.Slicing.set_modes" 
+    (Type.func  ~label:("calls", None) Type.int
+       (Type.func ~label:("callers", None) Type.bool
+          (Type.func ~label:("sliceUndef", None) Type.bool
+             (Type.func ~label:("keepAnnotation", None) Type.bool
+                (Type.func ~label:("print", None) Type.bool
+                   (Type.func Type.unit
+                      Type.unit))))))
+    set_modes
+let set_modes ?(calls=SlicingParameters.Mode.Calls.get ())
+    ?(callers=SlicingParameters.Mode.Callers.get ())
+    ?(sliceUndef=SlicingParameters.Mode.SliceUndef.get ())
+    ?(keepAnnotations=SlicingParameters.Mode.KeepAnnotations.get ())
+    ?(print=SlicingParameters.Print.get ())
+    () =
+  set_modes calls callers sliceUndef keepAnnotations print ()
+    
+(** {2 Initialisation of the slicing plug-in} *)
 
 let () =
-  Options.register_plugin_init
+  Cmdline.run_after_extended_stage
     (fun () ->
        let add = Project.Computation.add_dependency P.self in
-         add !Db.Pdg.self;
-         add !Db.Inputs.self_external;
-         add !Db.Outputs.self_external)
+       add !Db.Pdg.self;
+       add !Db.Inputs.self_external;
+       add !Db.Outputs.self_external)
 
-(** Register external functions into Db.  *)
+(** {3 Register external functions into Db.Slicing}  *)
 let () =
   Db.Slicing.self := P.self;
-  Db.Slicing.Project.mk_project := mk_project;
-  Db.Slicing.Project.get_all := get_all;
-  Db.Slicing.Project.get_project := get_project;
-  Db.Slicing.Project.set_project := set_project;
-  Db.Slicing.Project.get_name := SlicingProject.get_name;
-  Db.Slicing.Project.pretty := SlicingProject.print_project_and_worklist ;
-  Db.Slicing.Project.print_dot := dot_project ;
-  Db.Slicing.Project.extract := SlicingTransform.extract ;
-  Db.Slicing.Project.is_directly_called_internal := M.is_src_fun_called ;
-  Db.Slicing.Project.is_called := SlicingTransform.is_src_fun_called ;
-  Db.Slicing.Project.has_persistent_selection := M.has_persistent_selection ;
-  Db.Slicing.Project.change_slicing_level := M.change_slicing_level ;
+  Db.Slicing.set_modes := set_modes  (* Journalized *)
+  
+(** {3 Register external functions into Db.Slicing.Project}  *)
+let () =
+  Db.Slicing.Project.print_dot := dot_project; (* Journalized *)
+  Db.Slicing.Project.extract := extract ; (* Journalized *)
+  Db.Slicing.Project.default_slice_names := default_slice_names ; (* Journalized *)
+  Db.register
+    (Db.Journalize
+       ("Slicing.Project.mk_project",
+	Type.func Type.string Db.Slicing.Project.dyn_t))
+    Db.Slicing.Project.mk_project
+    mk_project;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Project.set_project",
+        Type.func
+          (Type.option Db.Slicing.Project.dyn_t) Type.unit ))
+    Db.Slicing.Project.set_project
+    set_project;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Project.change_slicing_level",
+        Type.func Db.Slicing.Project.dyn_t
+          (Type.func Kernel_type.kernel_function
+             (Type.func Type.int Type.unit))))
+    Db.Slicing.Project.change_slicing_level
+    M.change_slicing_level ;
+  
+  (* No needs of Journalization for others Db.Slicing.Project.functions *)
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.print_extracted_project print_extracted_project;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.from_unique_name from_unique_name;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.get_all get_all;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.get_project get_project;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.get_name SlicingProject.get_name;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.pretty SlicingProject.print_project_and_worklist ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.is_directly_called_internal  M.is_src_fun_called ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.is_called SlicingTransform.is_src_fun_called ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Project.has_persistent_selection M.has_persistent_selection
 
-  Db.Slicing.Select.select_stmt_internal := select_stmt_computation ;
-  Db.Slicing.Select.select_entry_point_internal := select_entry_point;
-  Db.Slicing.Select.select_return_internal := select_return;
-  Db.Slicing.Select.select_min_call_internal := select_minimal_call ;
-  Db.Slicing.Select.select_stmt_ctrl_internal := select_stmt_ctrl ;
-  Db.Slicing.Select.select_stmt_zone_internal := select_stmt_zone ;
-  Db.Slicing.Select.select_zone_at_entry_point_internal := select_zone_at_entry ;
-  Db.Slicing.Select.select_zone_at_end_internal := select_zone_at_end ;
-  Db.Slicing.Select.select_modified_output_zone_internal := 
-                    select_modified_output_zone ;
-  Db.Slicing.Select.select_pdg_nodes_internal := select_pdg_nodes ;
-
-  Db.Slicing.Select.empty_selects := empty_selects ;
-  Db.Slicing.Select.add_to_selects_internal := add_to_selects ;
-  Db.Slicing.Select.iter_selects_internal := iter_selects ;
-
-  Db.Slicing.Select.merge_internal := merge_db_select ;
-  Db.Slicing.Select.get_function := get_select_kf;
-  Db.Slicing.Select.pretty := print_select;
+(** {3 Register external functions into Db.Slicing.Select}  *)
+let () =
+  (* No needs of Journalization for low-level Db.Slicing.Select.functions.
+   * [Note:] They can be Journalized. In that case, functions computing [Db.Slicing.Select.t]
+   *         values have to be Journalized
+   *)
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.add_to_selects_internal")
+    Db.Slicing.Select.add_to_selects_internal Selections.add_to_selects;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_internal")
+    Db.Slicing.Select.select_stmt_internal select_stmt_computation;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_ctrl_internal")
+    Db.Slicing.Select.select_stmt_ctrl_internal select_stmt_ctrl ; (* TODO? Journalized *)
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_entry_point_internal")
+    Db.Slicing.Select.select_entry_point_internal select_entry_point;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_return_internal")
+    Db.Slicing.Select.select_return_internal select_return;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_decl_var_internal")
+    Db.Slicing.Select.select_decl_var_internal select_decl_var;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_min_call_internal")
+    Db.Slicing.Select.select_min_call_internal select_minimal_call;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_merge_internal")
+    Db.Slicing.Select.merge_internal merge_db_select;
+  
+  (* No needs of Journalization for low-level Db.Slicing.Select.functions.
+   * [Note:] They can be Journalized. In that case, functions computing [Db.Slicing.Select.t]
+   *         [Pdg.t_node] values have to be Journalized
+   *)
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_pdg_nodes_internal")
+    Db.Slicing.Select.select_pdg_nodes_internal select_pdg_nodes;
+  
+  (* No needs of Journalization for low-level Db.Slicing.Select.functions.
+   * [Note:] They can be Journalized. In that case, functions computing [Db.Slicing.Select.t]
+   *         [Location.Zone.t] values have to be Journalized
+   *)
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_zone_internal")
+    Db.Slicing.Select.select_stmt_zone_internal select_stmt_zone;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_zone_at_entry_internal")
+    Db.Slicing.Select.select_zone_at_entry_point_internal select_zone_at_entry;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_zone_at_end_internal")
+    Db.Slicing.Select.select_zone_at_end_internal select_zone_at_end;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_modified_output_zone_internal")
+    Db.Slicing.Select.select_modified_output_zone_internal select_modified_output_zone;
+  
+  (* No needs of Journalization for intermediate-level Db.Slicing.Select.functions *)
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_term")
+    (* [Note] Can be Journalized -> Functions computing [term] values have to be Journalized *)
+    Db.Slicing.Select.select_stmt_term C.select_stmt_term ;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_pred")
+    (* [Note] Can be Journalized -> Functions computing [predicate named] values have to be Journalized *)
+    Db.Slicing.Select.select_stmt_pred C.select_stmt_pred ; 
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_annot")
+    (* [Note] Can be Journalized -> Functions computing [code_annotation] values have to be Journalized *)
+    Db.Slicing.Select.select_stmt_annot C.select_stmt_annot ;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_pdg_nodes")
+    (* [Note] Can be Journalized -> Functions computing [Pdg.t_node] values have to be Journalized *)
+    Db.Slicing.Select.select_pdg_nodes C.select_pdg_nodes ;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_zone")
+    (* [Note] Can be Journalized -> Functions computing [Locations.Zone.t] values have to be Journalized *)
+    Db.Slicing.Select.select_stmt_zone C.select_stmt_zone ;
+  Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_func_zone")
+    (* [Note] Can be Journalized -> Functions computing [Locations.Zone.t] values have to be Journalized *)
+    Db.Slicing.Select.select_func_zone C.select_func_zone ;
 
   (* higher level function from slicingCmds *)
-  Db.Slicing.Select.select_pdg_nodes := C.select_pdg_nodes ;
-  Db.Slicing.Select.select_stmt := C.select_stmt ;
-  Db.Slicing.Select.select_stmt_ctrl := C.select_stmt_ctrl ;
-  Db.Slicing.Select.select_stmt_lval := C.select_stmt_lval ;
-  Db.Slicing.Select.select_stmt_lval_rw := C.select_stmt_lval_rw ;
-  Db.Slicing.Select.select_stmt_zone := C.select_stmt_zone ;
-  Db.Slicing.Select.select_stmt_pred := C.select_stmt_pred ;
-  Db.Slicing.Select.select_stmt_term := C.select_stmt_term ;
-  Db.Slicing.Select.select_stmt_annot := C.select_stmt_annot ;
-  Db.Slicing.Select.select_stmt_annots := C.select_stmt_annots ;
-  Db.Slicing.Select.select_func_annots := C.select_func_annots ;
-  Db.Slicing.Select.select_func_lval := C.select_func_lval ;
-  Db.Slicing.Select.select_func_lval_rw := C.select_func_lval_rw ;
-  Db.Slicing.Select.select_func_zone := C.select_func_zone ;
-  Db.Slicing.Select.select_func_return := C.select_func_return ;
-  Db.Slicing.Select.select_func_calls_to := C.select_func_calls_to ;
-  Db.Slicing.Select.select_func_calls_into := C.select_func_calls_into ;
-
-  Db.Slicing.Slice.create := create_slice ;
-  Db.Slicing.Slice.remove := remove_slice ;
-  Db.Slicing.Slice.remove_uncalled := SlicingProject.remove_uncalled_slices ;
-  Db.Slicing.Slice.get_all := SlicingProject.get_slices ;
-  Db.Slicing.Slice.get_callers := SlicingProject.get_slice_callers ;
-  Db.Slicing.Slice.get_called_slice := get_called_slice ;
-  Db.Slicing.Slice.get_called_funcs := get_called_funcs ;
-  Db.Slicing.Slice.pretty := SlicingProject.pretty_slice ;
-  Db.Slicing.Slice.get_mark_from_stmt := Fct_slice.get_stmt_mark;
-  Db.Slicing.Slice.get_mark_from_label := Fct_slice.get_label_mark ;
-  Db.Slicing.Slice.get_mark_from_formal := get_mark_from_param ;
-  Db.Slicing.Slice.get_mark_from_local_var := Fct_slice.get_local_var_mark ;
-  Db.Slicing.Slice.get_user_mark_from_inputs := Fct_slice.merge_inputs_m1_mark ;
-  Db.Slicing.Slice.get_callers := SlicingProject.get_slice_callers ;
-  Db.Slicing.Slice.get_function := M.get_ff_kf ;
-
+  Db.Slicing.Select.select_stmt := higher_select_stmt ; (* Journalized *)
+  Db.Slicing.Select.select_stmt_ctrl := higher_select_stmt_ctrl ; (* Journalized *)
+  Db.Slicing.Select.select_stmt_lval_rw := higher_select_stmt_lval_rw ; (* Journalized *)
+  Db.Slicing.Select.select_stmt_lval := higher_select_stmt_lval ; (* Journalized *)
+  Db.Slicing.Select.select_stmt_annots := higher_select_stmt_annots ; (* Journalized *)
+  Db.Slicing.Select.select_func_lval_rw := higher_select_func_lval_rw ; (* Journalized *)
+  Db.register
+    (Db.Journalize
+       ("Slicing.Select.select_func_lval",
+        Type.func Db.Slicing.Select.dyn_t_set
+          (Type.func Db.Slicing.Mark.dyn_t
+             (Type.func Kernel_type.string_set
+                (Type.func Kernel_type.kernel_function
+                   Db.Slicing.Select.dyn_t_set)))))
+    Db.Slicing.Select.select_func_lval
+    C.select_func_lval ;
+  Db.Slicing.Select.select_func_return := higher_select_func_return ; (* Journalized *)
+  Db.Slicing.Select.select_func_calls_to := higher_select_func_calls_to ; (* Journalized *)
+  Db.Slicing.Select.select_func_calls_into := higher_select_func_calls_into ; (* Journalized *)
+  Db.Slicing.Select.select_func_annots := higher_select_func_annots ; (* Journalized *)
+  
+  (* No needs of Journalization for others Db.Slicing.Select.functions *)
+  Db.register
+    Db.Journalization_not_required
+    Db.Slicing.Select.iter_selects_internal
+    Selections.iter_selects_internal ;
+  Db.register
+    Db.Journalization_not_required
+    Db.Slicing.Select.get_function
+    get_select_kf;
+  Db.register
+    Db.Journalization_not_required
+    Db.Slicing.Select.pretty
+    print_select
+  
+(** {3 Register external functions into Db.Slicing.Slice}  *)
+let () =
+  Db.register (Db.Journalize
+       ("Slicing.Slice.create",
+        Type.func Db.Slicing.Project.dyn_t 
+          (Type.func Kernel_type.kernel_function Db.Slicing.Slice.dyn_t)))
+    Db.Slicing.Slice.create
+    create_slice ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Slice.remove",
+        Type.func Db.Slicing.Project.dyn_t 
+          (Type.func Db.Slicing.Slice.dyn_t Type.unit)))
+    Db.Slicing.Slice.remove
+    remove_slice ;
+  
   (* higher level function from slicingCmds *)
-  Db.Slicing.Request.propagate_user_marks := C.topologic_propagation ;
-  Db.Slicing.Request.add_selection := C.add_selection ;
-  Db.Slicing.Request.add_persistent_selection := C.add_persistent_selection ;
-  Db.Slicing.Request.add_persistent_cmdline := C.add_persistent_cmdline ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Slice.remove_uncalled",
+        Type.func Db.Slicing.Project.dyn_t Type.unit))
+    Db.Slicing.Slice.remove_uncalled
+    SlicingProject.remove_uncalled_slices ;
+  
+  (* No needs of Journalization for others Db.Slicing.Slice.functions *)
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_all SlicingProject.get_slices ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_callers SlicingProject.get_slice_callers ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_called_slice get_called_slice ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_called_funcs get_called_funcs ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.pretty SlicingProject.pretty_slice ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_mark_from_stmt Fct_slice.get_stmt_mark;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_mark_from_label Fct_slice.get_label_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_mark_from_formal get_mark_from_param ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_mark_from_local_var Fct_slice.get_local_var_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_user_mark_from_inputs Fct_slice.merge_inputs_m1_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_callers SlicingProject.get_slice_callers ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_function M.get_ff_kf;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.get_num_id M.get_ff_id;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Slice.from_num_id from_num_id
 
-  Db.Slicing.Request.is_already_selected_internal := is_already_selected ;
-  Db.Slicing.Request.add_slice_selection_internal := add_ff_selection ;
-  Db.Slicing.Request.add_selection_internal := add_fi_selection ;
-  Db.Slicing.Request.add_call_slice := call_ff_in_caller ;
-  Db.Slicing.Request.add_call_fun := call_fsrc_in_caller ;
-  Db.Slicing.Request.add_call_min_fun := call_min_f_in_caller ;
-  Db.Slicing.Request.merge_slices := merge_slices ;
-  Db.Slicing.Request.copy_slice := copy_slice ;
-  Db.Slicing.Request.split_slice := split_slice ;
-  Db.Slicing.Request.apply_next_internal := apply_next_action ;
-  Db.Slicing.Request.apply_all_internal := apply_all_actions ;
-  Db.Slicing.Request.apply_all := C.apply_all ;
-  Db.Slicing.Request.pretty := SlicingProject.print_proj_worklist ;
+(** {3 Register external functions into Db.Slicing.Request}  *)
+let () =
+  (* intermediate-level Db.Slicing.Request.functions *)
+  Db.register (Db.Journalization_must_not_happen "Db.Slicing.Request.add_slice_selection_internal")
+    (* [Note] Can be Journalized -> Functions computing [Db.Slicing.Select.t] values have to be Journalized *)
+    Db.Slicing.Request.add_slice_selection_internal add_ff_selection ;
+  Db.register (Db.Journalization_must_not_happen "Db.Slicing.Request.add_selection_internal")
+    (* [Note] Can be Journalized -> Functions computing [Db.Slicing.Select.t] values have to be Journalized *)
+    Db.Slicing.Request.add_selection_internal add_fi_selection ;
+  (* higher level Db.Slicing.Request.functions *)
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.propagate_user_marks",
+        Type.func Db.Slicing.Project.dyn_t Type.unit))
+    Db.Slicing.Request.propagate_user_marks
+    C.topologic_propagation ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.add_selection",
+        Type.func Db.Slicing.Project.dyn_t
+          (Type.func Db.Slicing.Select.dyn_t_set Type.unit)))
+    Db.Slicing.Request.add_selection
+    C.add_selection ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.add_persistent_selection",
+        Type.func Db.Slicing.Project.dyn_t
+          (Type.func Db.Slicing.Select.dyn_t_set Type.unit)))
+    Db.Slicing.Request.add_persistent_selection
+    C.add_persistent_selection ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.add_persistent_cmdline",
+        Type.func Db.Slicing.Project.dyn_t Type.unit))
+    Db.Slicing.Request.add_persistent_cmdline
+    C.add_persistent_cmdline ; 
+  Db.Slicing.Request.add_call_slice := call_ff_in_caller ; (* Journalized *)
+  Db.Slicing.Request.add_call_fun := call_fsrc_in_caller ; (* Journalized *)
+  Db.Slicing.Request.add_call_min_fun := call_min_f_in_caller ; (* Journalized *)
+  Db.Slicing.Request.merge_slices := merge_slices ; (* Journalized *)
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.copy_slice",
+        Type.func Db.Slicing.Project.dyn_t
+          (Type.func Db.Slicing.Slice.dyn_t Db.Slicing.Slice.dyn_t )))
+    Db.Slicing.Request.copy_slice
+    copy_slice ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.split_slice",
+        Type.func Db.Slicing.Project.dyn_t
+          (Type.func Db.Slicing.Slice.dyn_t
+             (Type.list Db.Slicing.Slice.dyn_t))))
+    Db.Slicing.Request.split_slice
+    split_slice ;
+  Db.Slicing.Request.apply_all := apply_all ;  (* Journalized *)
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.apply_next_internal",
+        Type.func Db.Slicing.Project.dyn_t Type.unit))
+  Db.Slicing.Request.apply_next_internal
+    apply_next_action ;
+  Db.register
+    (Db.Journalize
+       ("Slicing.Request.apply_all_internal",
+        Type.func Db.Slicing.Project.dyn_t Type.unit))
+    Db.Slicing.Request.apply_all_internal
+    apply_all_actions;
+  
+  (* No needs of Journalization for Db.Slicing.Request.functions *)   
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Request.is_already_selected_internal is_already_selected ;  
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Request.pretty SlicingProject.print_proj_worklist
+  
+(** {3 Register external functions into Db.Slicing.Mark}  *)
+let () =
+  (* No needs of Journalization for Db.Slicing.Mark.functions *)
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.compare SlicingMarks.compare_marks ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.pretty SlicingMarks.pretty_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.make SlicingMarks.mk_user_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.is_bottom SlicingMarks.is_bottom_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.is_spare SlicingMarks.is_spare_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.is_ctrl SlicingMarks.is_ctrl_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.is_addr SlicingMarks.is_addr_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.is_data SlicingMarks.is_data_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.is_data SlicingMarks.is_data_mark ;
+  Db.register Db.Journalization_not_required
+    Db.Slicing.Mark.get_from_src_func Fct_slice.get_mark_from_src_fun
 
-  Db.Slicing.Mark.compare := SlicingMarks.compare_marks ;
-  Db.Slicing.Mark.pretty := SlicingMarks.pretty_mark ;
-  Db.Slicing.Mark.make := SlicingMarks.mk_user_mark ;
-  Db.Slicing.Mark.is_bottom := SlicingMarks.is_bottom_mark ;
-  Db.Slicing.Mark.is_spare := SlicingMarks.is_spare_mark ;
-  Db.Slicing.Mark.is_ctrl := SlicingMarks.is_ctrl_mark ;
-  Db.Slicing.Mark.is_addr := SlicingMarks.is_addr_mark ;
-  Db.Slicing.Mark.is_data := SlicingMarks.is_data_mark ;
-  Db.Slicing.Mark.is_data := SlicingMarks.is_data_mark ;
-  Db.Slicing.Mark.get_from_src_func := Fct_slice.get_mark_from_src_fun;
+(* [JS 2009/07/08, for PB or AP] In release 5719 and earlier, the above actions
+   'clear' was done just after building the slicing requests. They were only
+   necessary to don't recompute slicing. The issue appear for instance after
+   loading. That's why I just put these actions in the above hook. In that way,
+   non-regression tests are happy (especially tests/saveload/sparecode.c).
 
-;;
+   However that's not solve the whole issue: these parameters are modifiable by
+   the user in the GUI. So, instead of clearing them, memoisation (or any other
+   way) should be used to don't recompute slicing if the slicing requests are
+   the same. As long as there is no memoisation, bugs exist (see bts#177). *)
+let () = 
+  Project.register_after_load_hook
+    (fun () ->
+       SlicingParameters.Select.Return.clear ();
+       SlicingParameters.Select.Calls.clear ();
+       SlicingParameters.Select.Pragma.clear ();
+       SlicingParameters.Select.Threat.clear ();
+       SlicingParameters.Select.Assert.clear ();
+       SlicingParameters.Select.LoopInv.clear ();
+       SlicingParameters.Select.LoopVar.clear ())
 
-let main fmt =
-  if Cmdline.Slicing.is_on () then begin
-    Format.fprintf fmt "@\n[slicing] in progress...@.";
+let main () =
+  if SlicingParameters.is_on () then begin
+    SlicingParameters.feedback ~level:1 "slicing requests in progress...";
 
     (* have to do the value analysis before the selections
      * because some functions use its results,
@@ -595,134 +1150,28 @@ let main fmt =
     !Db.Value.compute ();
 
     let project = !Db.Slicing.Project.mk_project "Slicing" in
-    !Db.Slicing.Project.set_project (Some project);
-    !Db.Slicing.Request.add_persistent_cmdline project;
+      !Db.Slicing.Project.set_project (Some project);
+      !Db.Slicing.Request.add_persistent_cmdline project;
+      (* Apply all pending requests. *)
+      !Db.Slicing.Request.apply_all_internal project;
+      
+      if SlicingParameters.Mode.Callers.get () then
+        !Db.Slicing.Slice.remove_uncalled project;
+      let sliced_project_name =
+        !Db.Slicing.Project.get_name project ^ " export" in 
+      let sliced_project =
+        !Db.Slicing.Project.extract sliced_project_name project
+      in
+        if SlicingParameters.Print.get () then
+          begin
+            File.pretty ~prj:sliced_project ();
+            SlicingParameters.result ~level:2 "Results :@. %a@."
+	      !Db.Slicing.Project.pretty project
+          end;
+        SlicingParameters.feedback ~level:2 "done (slicing requests in progress).";
 
-    (* Apply all pending requests. *)
-    if Cmdline.Slicing.Mode.Verbose.get () > 2 then
-      Format.fprintf fmt "[slicing] requests:@\n %a@\n"
-	!Db.Slicing.Request.pretty project ;
-    !Db.Slicing.Request.apply_all_internal project;
-
-    if Cmdline.Slicing.Mode.Callers.get () then
-      !Db.Slicing.Slice.remove_uncalled project;
-
-    let sliced_project =
-      !Db.Slicing.Project.extract 
-	(!Db.Slicing.Project.get_name project ^ " export") 
-	project
-    in
-    if Cmdline.Slicing.Print.get () then begin
-      File.pretty (Cmdline.CodeOutput.get_fmt ()) ~prj:sliced_project;
-      if Cmdline.Slicing.Mode.Verbose.get () > 0 then
-        Format.fprintf fmt "Slicing result :@. %a@."
-          !Db.Slicing.Project.pretty project
-    end;
-
-    Format.fprintf fmt "@\n====== SLICED CODE COMPUTED ======@.";
+        
   end
-
+    
 let () = Db.Main.extend main
 
-(** Register the plugin options *)
-let () =
-  Options.add_plugin ~name:"slicing" ~descr:"slicing analysis"
-    [
-      "-slice-print",
-      Arg.Unit Cmdline.Slicing.Print.on,
-      ": pretty print the sliced code";
-
-      "-slice-undef-functions",
-      Arg.Unit Cmdline.Slicing.Mode.SliceUndef.on,
-      ": "
-      ^ (if Cmdline.Slicing.Mode.SliceUndef.get () then "by default, " else "")
-      ^ "allow the use of the -slicing-level option for calls to undefined functions";
-      
-      "-no-slice-undef-functions",
-      Arg.Unit Cmdline.Slicing.Mode.SliceUndef.off,
-      ": "
-      ^ (if Cmdline.Slicing.Mode.SliceUndef.get () then "" else "by default, ")
-      ^ "don't slice the prototype of undefined functions";
-
-      "-slicing-level",
-      Arg.Int (fun n -> match n with
-                 | 0 | 1 | 2 | 3 -> Cmdline.Slicing.Mode.Calls.set n
-                 | _ -> raise
-                     (Arg.Help ("Invalid argument for -slicing-level option:" ^
-                        " not in range [0-3]\n"))
-      ),
-      "n : set the default level of slicing used to propagate to the calls\n"
-      ^"\t0 : don't slice the called functions\n"
-      ^"\t1 : don't slice the called functions but propagate the marks anyway\n"
-      ^"\t2 : try to use existing slices, create at most one\n"
-      ^"\t3 : most precise slices\n"
-      ^"  note: this value"
-      ^ (Format.sprintf " (defaults to %d) " (Cmdline.Slicing.Mode.Calls.get ()))
-      ^"is not used for calls to undefined functions\n"
-      ^"\texcept when '-slice-undef-functions' option is set."
-      ^"\n"; (* A new line as separator for
-                next options related to slicing requests.
-                Alphabetic order is used for them. *)
-
-      "-slice-assert",
-      Arg.String Cmdline.Slicing.Select.Assert.add_set,
-      "f1,...,fn : select the assertions of functions f1,...,fn";
-
-      "-slice-calls",
-      Arg.String Cmdline.Slicing.Select.Calls.add_set,
-      "f1,...,fn : select every calls to functions f1,...,fn, and all their effect";
-
-      "-slice-loop-inv",
-      Arg.String Cmdline.Slicing.Select.LoopInv.add_set,
-      "f1,...,fn : select the loop invariants of functions f1,...,fn";
-
-      "-slice-loop-var",
-      Arg.String Cmdline.Slicing.Select.LoopVar.add_set,
-      "f1,...,fn : select the loop variants of functions f1,...,fn";
-
-      "-slice-pragma",
-      Arg.String Cmdline.Slicing.Select.Pragma.add_set,
-      "f1,...,fn : use the slicing pragmas in the code of functions f1,...,fn as slicing criteria\n"
-      ^"\t//@slice pragma ctrl; : to reach this control-flow point\n"
-      ^"\t//@slice pragma expr <expr_desc;> : to preserve the value of an expression at this control-flow point\n"
-      ^"\t//@slice pragma stmt; : to preserve the effect of the next statement";
-
-      "-slice-return",
-      Arg.String Cmdline.Slicing.Select.Return.add_set,
-      "f1,...,fn : select the result (returned value) of functions f1,...,fn";
-
-      "-slice-threat",
-      Arg.String Cmdline.Slicing.Select.Threat.add_set,
-      "f1,...,fn : select the threats of functions f1,...,fn";
-
-      "-slice-value",
-      Arg.String Cmdline.Slicing.Select.Value.add_set,
-      "v1,...,vn : select the result of left-values v1,...,vn at the end of the function given as entry point\n"
-      ^"\t (addresses are evaluated at the beginning of the function given as entry point)";
-
-      "-slice-rd",
-      Arg.String Cmdline.Slicing.Select.RdAccess.add_set,
-      "v1,...,vn : select the read accesses to left-values v1,...,vn\n"
-      ^"\t (addresses are evaluated at the beginning of the function given as entry point)";
-
-      "-slice-wr",
-      Arg.String Cmdline.Slicing.Select.WrAccess.add_set,
-      "v1,...,vn : select the write accesses to left-values v1,...,vn\n"
-      ^"\t (addresses are evaluated at the beginning of the function given as entry point)"
-      ^"\n"; (* A new line as separator for
-                next options related to debug. *)
-    ]
-    ~debug:[ "-debug",
-        Arg.Int Cmdline.Slicing.Mode.Verbose.set,
-        " n : set the level of slicing debug to n";
-
-        "-verbose",
-        Arg.Unit Cmdline.Slicing.Mode.Verbose.incr,
-        ": increment the level of slicing debug";
-
-        "-no-slice-callers",
-        Arg.Unit Cmdline.Slicing.Mode.Callers.off,
-        ": don't propagate the slicing to the function callers";
-           ]
-
-;;

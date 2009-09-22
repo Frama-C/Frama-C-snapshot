@@ -57,9 +57,7 @@
  *)
 open Cil_types
 open Cil
-open Pretty
 
-module E = Errormsg
 module DF = Dataflow
 module UD = Usedef
 module L = Liveness
@@ -77,7 +75,7 @@ let time s f a =
     S.time s f a
   else f a
 
-module IOS = 
+module IOS =
   Set.Make(struct
     type t = int option
     let compare io1 io2 =
@@ -103,7 +101,7 @@ let ih_inter ih1 ih2 =
 let ih_union ih1 ih2 =
   let ih' = IH.copy ih1 in
   IH.iter (fun id vi ->
-    if not(IH.mem ih' id) 
+    if not(IH.mem ih' id)
     then IH.add ih' id vi
     else ()) ih2;
   ih'
@@ -133,8 +131,8 @@ let iosh_defId_find iosh defId =
   let get_vid vid ios io =
     match io with
       Some(i) -> Some(i)
-    | None -> 
-	let there = IOS.exists 
+    | None ->
+	let there = IOS.exists
 	    (function None -> false
 	      | Some(i') -> defId = i') ios in
 	if there then Some(vid) else None
@@ -171,21 +169,19 @@ let iosh_equals iosh1 iosh2 =
 (*  if IH.length iosh1 = 0 && not(IH.length iosh2 = 0) ||
   IH.length iosh2 = 0 && not(IH.length iosh1 = 0)*)
   if not(IH.length iosh1 = IH.length iosh2)
-  then 
-    (if !debug then ignore(E.log "iosh_equals: length not same\n");
-    false)
+  then
+    (Cilmsg.debug "iosh_equals: length not same" ; false)
   else
     IH.fold (fun vid ios b ->
       if not b then b else
       try let ios2 = IH.find iosh2 vid in
       if not(IOS.compare ios ios2 = 0) then
-	(if !debug then ignore(E.log "iosh_equals: sets for vid %d not equal\n" vid);
-	 false)
+	(Cilmsg.debug "iosh_equals: sets for vid %d not equal\n" vid ; false)
       else true
       with Not_found ->
-	(if !debug then ignore(E.log "iosh_equals: vid %d not in iosh2\n" vid);
-	 false)) iosh1 true
-      
+	(Cilmsg.debug "iosh_equals: vid %d not in iosh2\n" vid ; false)) 
+      iosh1 true
+
 (* replace an entire set with a singleton.
    if nothing was there just add the singleton *)
 (* IOS.t IH.t -> int -> varinfo -> unit *)
@@ -210,7 +206,7 @@ let iosh_filter_dead iosh vs =
 (* Takes the defs, the data, and a function for
    obtaining the next def id *)
 (* VS.t -> IOS.t IH.t -> (unit->int) -> unit *)
-let proc_defs vs iosh f = 
+let proc_defs vs iosh f =
   let pd vi =
     let newi = f() in
     (*if !debug then
@@ -245,12 +241,12 @@ let instrRDs il sid (_ivih, s, iosh) out =
 
   let proc_one hil i =
     match hil with
-    | [] -> 
+    | [] ->
 	let _, defd = UD.computeUseDefInstr i in
-	if UD.VS.is_empty defd 
+	if UD.VS.is_empty defd
 	then ((*if !debug then print_instr i ((), s, iosh);*)
 	      [((), s, iosh)])
-	else 
+	else
 	  let iosh' = IH.copy iosh in
 	  proc_defs defd iosh' (idMaker () s);
 	  (*if !debug then
@@ -258,8 +254,8 @@ let instrRDs il sid (_ivih, s, iosh) out =
 	  ((), s + UD.VS.cardinal defd, iosh')::hil
     | (_, s', iosh')::_hrst as l ->
 	let _, defd = UD.computeUseDefInstr i in
-	if UD.VS.is_empty defd 
-	then 
+	if UD.VS.is_empty defd
+	then
 	  ((*if !debug then
 	    print_instr i ((),s', iosh');*)
 	   ((), s', iosh')::l)
@@ -275,7 +271,7 @@ let instrRDs il sid (_ivih, s, iosh) out =
   Hashtbl.add iRDsHtbl (sid,true) foldedout;
   Hashtbl.add iRDsHtbl (sid,false) foldednotout;
   if out then foldedout else foldednotout
-    
+
 
 
 (* The right hand side of an assignment is either
@@ -292,16 +288,16 @@ module ReachingDef =
     (* Should the analysis calculate may-reach
        or must-reach *)
     let mayReach = ref false
- 
+
     (* An integer that tells the id number of
        the first definition *)
-    (* Also a hash from variable ids to a set of 
+    (* Also a hash from variable ids to a set of
        definition ids that reach this statement.
        None means there is a path to this point on which
        there is no definition of the variable *)
     type t = (unit * int * IOS.t IH.t)
 
-    module StmtStartData = 
+    module StmtStartData =
       DF.StmtStartData
 	(struct type t = (unit * int * IOS.t IH.t) let size = 32 end)
     (* entries for starting statements must
@@ -319,7 +315,7 @@ module ReachingDef =
 
     (* pretty printer *)
     let pretty _fmt _ = () (* prettyprint defIdStmtHash stmtStartData*)
-      
+
 
     (* The first id to use when computeFirstPredecessor
        is next called *)
@@ -345,8 +341,7 @@ module ReachingDef =
 	if n < 0
 	then ()
 	else
-	  (if !debug then
-	    ignore (E.log "RD: defId %d -> stm %d\n" (startDefId + n) stm.sid);
+	  (Cilmsg.debug "RD: defId %d -> stm %d\n" (startDefId + n) stm.sid ;
 	   Inthash.add defIdStmtHash (startDefId + n) stm;
 	   loop (n-1))
       in
@@ -354,11 +349,11 @@ module ReachingDef =
       nextDefId := startDefId + numds;
       ((), startDefId, Inthash.copy iosh)
 
-     
+
     let combinePredecessors (_stm:stmt) ~(old:t) ((_, _s, iosh):t) =
       match old with (_, os, oiosh) -> begin
-	if time "iosh_equals" (iosh_equals oiosh) iosh 
-	then None 
+	if time "iosh_equals" (iosh_equals oiosh) iosh
+	then None
 	else
 	  Some((), os, time "iosh_combine" (iosh_combine oiosh) iosh)
       end
@@ -375,9 +370,9 @@ module ReachingDef =
 
     (* all the work gets done at the instruction level *)
     let doStmt stm (_, _s, iosh) =
-      if not(Inthash.mem sidStmtHash stm.sid) then 
+      if not(Inthash.mem sidStmtHash stm.sid) then
 	Inthash.add sidStmtHash stm.sid stm;
-      if !debug then log "RD: looking at %a\n" d_stmt stm;
+      if !debug then Cilmsg.debug "RD: looking at %a\n" d_stmt stm;
       match L.getLiveSet stm.sid with
       | None -> DF.SDefault
       | Some vs -> begin
@@ -392,6 +387,8 @@ module ReachingDef =
 
     let stmt_can_reach _ _ = true
 
+    let doEdge _ _ d = d
+
 end
 
 module RD = DF.ForwardsDataFlow(ReachingDef)
@@ -405,11 +402,11 @@ let rhsHtbl = IH.create 64 (* to avoid recomputation *)
 let getDefRhs didstmh defId =
   if IH.mem rhsHtbl defId then IH.find rhsHtbl defId else
   let stm =
-    try IH.find didstmh defId 
-    with Not_found -> E.s (E.error "getDefRhs: defId %d not found\n" defId) in
-  let (_,s,iosh) = 
+    try IH.find didstmh defId
+    with Not_found -> Cilmsg.fatal "getDefRhs: defId %d not found\n" defId in
+  let (_,s,iosh) =
     try ReachingDef.StmtStartData.find stm.sid
-    with Not_found -> E.s (E.error "getDefRhs: sid %d not found \n" stm.sid) in
+    with Not_found -> Cilmsg.fatal "getDefRhs: sid %d not found \n" stm.sid in
   match stm.skind with
     Instr il ->
       let ivihl = instrRDs il stm.sid ((),s,iosh) true in (* defs that reach out of each instr *)
@@ -418,33 +415,33 @@ let getDefRhs didstmh defId =
 	let iihl = List.combine (List.combine [il] ivihl) ivihl_in in
 	(try let ((i,(_,_,_diosh)),(_,_,iosh_in)) = List.find (fun ((i,(_,_,iosh')),_) ->
 	  match time "iosh_defId_find" (iosh_defId_find iosh') defId with
-	    Some vid -> 
+	    Some vid ->
 	      (match i with
 		Set((Var vi',NoOffset),_,_) -> vi'.vid = vid (* _ -> NoOffset *)
 	      | Call(Some(Var vi',NoOffset),_,_,_) -> vi'.vid = vid (* _ -> NoOffset *)
 	      | Call(None,_,_,_) -> false
-	      | Asm(_,_,sll,_,_,_) -> List.exists 
+	      | Asm(_,_,sll,_,_,_) -> List.exists
 		    (function (_,_,(Var vi',NoOffset)) -> vi'.vid = vid | _ -> false) sll
 	      | _ -> false)
 	  | None -> false) iihl in
 	(match i with
 	  Set((lh,_),e,_) ->
 	    (match lh with
-	      Var _vi' -> 
+	      Var _vi' ->
 		(IH.add rhsHtbl defId (Some(RDExp(e),stm.sid,iosh_in));
 		 Some(RDExp(e), stm.sid, iosh_in))
-	    | _ -> E.s (E.error "Reaching Defs getDefRhs: right vi not first\n"))
-	| Call(_lvo,_e,_el,_) -> 
+	       | _ -> Cilmsg.fatal "Reaching Defs getDefRhs: right vi not first")
+	| Call(_lvo,_e,_el,_) ->
 	    (IH.add rhsHtbl defId (Some(RDCall(i),stm.sid,iosh_in));
 	     Some(RDCall(i), stm.sid, iosh_in))
         | Skip _ | Code_annot _ -> None
 	| Asm(_a,_sl,_slvl,_sel,_sl',_) -> None) (* ? *)
 	with Not_found ->
-	  (if !debug then ignore (E.log "getDefRhs: No instruction defines %d\n" defId);
+	  (if !debug then (Cilmsg.debug "getDefRhs: No instruction defines %d" defId);
 	   IH.add rhsHtbl defId None;
 	   None))
       with Invalid_argument _ -> None end
-  | _ -> E.s (E.error "getDefRhs: defining statement not an instruction list %d\n" defId)
+  | _ -> Cilmsg.fatal "getDefRhs: defining statement not an instruction list %d" defId
 	(*None*)
 
 let prettyprint _fmt _didstmh _stmdat () (_,_s,_iosh) = ()
@@ -467,7 +464,7 @@ let prettyprint _fmt _didstmh _stmdat () (_,_s,_iosh) = ()
    None in iosh *)
 (* IOS.t IH.t -> varinfo list -> () *)
 let iosh_none_fill iosh vil =
-  List.iter (fun vi -> 
+  List.iter (fun vi ->
     IH.add iosh vi.vid (IOS.singleton None))
     vil
 
@@ -483,7 +480,7 @@ let computeRDs fdec =
   try
     if compare fdec.svar.vname (!debug_fn) = 0 then
       (debug := true;
-       log "%s =\n%a\n" (!debug_fn) d_block fdec.sbody);
+       Cilmsg.debug "%s =\n%a\n" (!debug_fn) d_block fdec.sbody);
     let bdy = fdec.sbody in
     let slst = bdy.bstmts in
     ReachingDef.StmtStartData.clear ();
@@ -497,8 +494,7 @@ let computeRDs fdec =
     ReachingDef.StmtStartData.add fst_stm.sid ((), 0, fst_iosh);
     time "liveness" L.computeLiveness fdec;
     ignore(ReachingDef.computeFirstPredecessor fst_stm ((), 0, fst_iosh));
-    if !debug then
-      ignore (E.log "computeRDs: fst_stm.sid=%d\n" fst_stm.sid);
+    if !debug then Cilmsg.debug "computeRDs: fst_stm.sid=%d\n" fst_stm.sid ;
     RD.compute [fst_stm];
     if compare fdec.svar.vname (!debug_fn) = 0 then
       debug := false
@@ -508,7 +504,7 @@ let computeRDs fdec =
 
 (* return the definitions that reach the statement
    with statement id sid *)
-let getRDs sid = 
+let getRDs sid =
   try
     Some (ReachingDef.StmtStartData.find sid)
   with Not_found ->
@@ -567,30 +563,30 @@ class rdVisitorClass = object
   method vstmt stm =
     sid <- stm.sid;
     match getRDs sid with
-      None -> 
-	if !debug then ignore(E.log "rdVis: stm %d had no data\n" sid);
+      None ->
+	if !debug then (Cilmsg.debug "rdVis: stm %d had no data\n" sid);
 	cur_rd_dat <- None;
 	DoChildren
     | Some(_,s,iosh) ->
 	match stm.skind with
 	  Instr il ->
-	    if !debug then ignore(E.log "rdVis: visit il\n");
+	    if !debug then (Cilmsg.debug "rdVis: visit il\n");
 	    rd_dat_lst <- instrRDs il stm.sid ((),s,iosh) false;
 	    DoChildren
 	| _ ->
-	    if !debug then ignore(E.log "rdVis: visit non-il\n");
+	    if !debug then (Cilmsg.debug "rdVis: visit non-il\n");
 	    cur_rd_dat <- None;
 	    DoChildren
 
   method vinst i =
-    if !debug then log "rdVis: before %a, rd_dat_lst is %d long\n" 
+    if !debug then Cilmsg.debug "rdVis: before %a, rd_dat_lst is %d long\n"
       d_instr i (List.length rd_dat_lst);
     try
       cur_rd_dat <- Some(List.hd rd_dat_lst);
       rd_dat_lst <- List.tl rd_dat_lst;
       DoChildren
-    with Failure "hd" -> 
-      if !debug then ignore(E.log "rdVis: il rd_dat_lst mismatch\n");
+    with Failure "hd" ->
+      if !debug then (Cilmsg.debug "rdVis: il rd_dat_lst mismatch\n");
       DoChildren
 
   method get_cur_iosh () =
@@ -601,4 +597,3 @@ class rdVisitorClass = object
     | Some(_,_,iosh) -> Some iosh
 
 end
-

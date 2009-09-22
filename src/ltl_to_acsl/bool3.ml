@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: bool3.ml,v 1.2 2008/10/02 13:33:29 uid588 Exp $ *)
+(* $Id: bool3.ml,v 1.2 2008-10-02 13:33:29 uid588 Exp $ *)
 
 
 type bool3 = 
@@ -30,9 +32,7 @@ type bool3 =
 
 let bool3and c1 c2 = 
   match (c1,c2) with
-    | (True,True)     
-    | (True,Undefined)
-    | (Undefined,True) -> True    
+    | (True,True) -> True 
 
     | (_,False)
     | (False,_) -> False
@@ -54,6 +54,8 @@ let bool3not c =
     | True -> False
     | False -> True    
     | Undefined -> Undefined
+
+
 
 
 

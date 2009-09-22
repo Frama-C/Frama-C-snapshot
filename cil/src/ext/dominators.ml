@@ -78,8 +78,6 @@
 (** Compute dominator information for the statements in a function *)
 open Cil_types
 open Cil
-open Pretty
-module E = Errormsg
 module H = Hashtbl
 module U = Cilutil
 module IH = Inthash
@@ -107,9 +105,9 @@ module DT = struct
   let copy (d: t) = d
 
   let pretty fmt (d: t) =
-    Format.fprintf fmt "{%a}"
-      (Cil.fprintfList ~sep:"," (fun fmt s -> Format.fprintf fmt "%d" s.sid))
-      (BS.elements d)
+    Pretty_utils.pp_list ~pre:"@[{" ~sep:",@," ~suf:"}@]"
+      (fun fmt s -> Format.fprintf fmt "%d" s.sid)
+      fmt (BS.elements d)
 
   let computeFirstPredecessor (s: stmt) (d: BS.t) : BS.t =
     (* Make sure we add this block to the set *)
@@ -133,6 +131,8 @@ module DT = struct
   let filterStmt _ = true
 
   let stmt_can_reach _ _ = true
+
+  let doEdge _ _ d = d
 end
 
 
@@ -150,8 +150,7 @@ let getStmtDominators (s: stmt) : BS.t =
 let getIdom (idomInfo: stmt option IH.t) (s: stmt) =
   try IH.find idomInfo s.sid
   with Not_found ->
-    E.s (E.bug "Immediate dominator information not set for statement %d"
-           s.sid)
+    Cilmsg.fatal "Immediate dominator information not set for statement %d" s.sid
 
 (** Check whether one block dominates another. This assumes that the "idom"
  * field has been computed. *)
@@ -161,7 +160,7 @@ let rec dominates idomData (s1: stmt) (s2: stmt) =
    match s2idom with
      None -> false
    | Some s2idom -> dominates idomData s1 s2idom)
-  
+
 (* Now fill the immediate dominators for all nodes *)
 and fillOneIdom idomData (s: stmt) =
   try
@@ -221,10 +220,10 @@ let computeIDom (f: fundec) : stmt option IH.t =
                if not (BS.mem s sdoms) then begin
                  (* It can be that the block is not reachable *)
                  if s.preds <> [] then
-                   E.s (E.bug "Statement %d is not in its list of dominators"
-                          s.sid);
+                   (Cilmsg.error "Statement %d is not in its list of dominators"
+                      s.sid);
                end;
-               log "Dominators for %d: %a\n" s.sid
+               Cilmsg.debug "Dominators for %d: %a\n" s.sid
                  DT.pretty (BS.remove s sdoms))
             f.sallstmts;
         (* Scan all blocks and compute the idom *)
@@ -266,13 +265,14 @@ let findNaturalLoops (f: fundec)
   in
 
   if debug then
-    ignore (E.log "Natural loops:\n%a\n"
-              (docList ~sep:line
-                 (fun (s, backs) ->
-                   dprintf "    Start: %d, backs:%a"
-                     s.sid
-                     (docList (fun b -> num b.sid))
-                     backs))
-              loops);
-
+    begin
+      let pp_back fmt b = Format.pp_print_int fmt b.sid in
+      let pp_loop fmt (s,backs) = 
+	Format.fprintf fmt "Start:%d, backs:%a"
+	  s.sid (Pretty_utils.pp_list pp_back) backs in
+      Cilmsg.debug
+	"Natural loops:\n%a"
+	(Pretty_utils.pp_list ~sep:"@\n" pp_loop)
+	loops
+    end ;
   loops

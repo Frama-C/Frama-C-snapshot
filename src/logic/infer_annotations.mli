@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,6 +21,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: infer_annotations.mli,v 1.9 2008/04/01 09:25:21 uid568 Exp $ i*)
+(*i $Id: infer_annotations.mli,v 1.9 2008-04-01 09:25:21 uid568 Exp $ i*)
 
 (** This is empty on purpose. *)

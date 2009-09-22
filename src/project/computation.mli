@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: computation.mli,v 1.13 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: computation.mli,v 1.13 2008-11-18 12:13:41 uid568 Exp $ *)
 
 (** Internal state builders. 
     Provide ways to implement signature [Project.Computation.OUTPUT] without
@@ -75,6 +75,8 @@ module type OPTION_REF_OUTPUT = sig
 	it is possible to change with [change]. *)
   val map: (data -> data) -> data option
   val may: (data -> unit) -> unit
+  val get_option : unit -> data option
+    (** @since Beryllium-20090901 *)
 end
 
 module OptionRef(Data:Project.Datatype.S)(Info:Signature.NAME_DPDS) : 
@@ -186,6 +188,6 @@ module Project(Info:Signature.NAME_DPDS)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

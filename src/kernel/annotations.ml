@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annotations.ml,v 1.42 2008/10/03 13:09:16 uid568 Exp $ *)
+(* $Id: annotations.ml,v 1.43 2008-12-17 15:37:56 uid530 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -31,21 +31,28 @@ module AnnotState =
     (struct
        let name = "Annotations"
        let size = 17
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
 
 let add stmt a =
   try
     let l = AnnotState.find stmt in
     l := a :: !l;
-  with Not_found -> AnnotState.add stmt (ref [ a ])
+  with Not_found -> 
+    AnnotState.add stmt (ref [ a ])
 
 let add_assert stmt ~before a =
-  let a = User (Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown}))) in
+  let a = 
+    User (Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown}))) 
+  in
   add stmt (if before then Before a else After a)
 
 let add_alarm stmt ~before alarm a =
-  let a = AI (alarm,Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown}))) in
+  let a = 
+    AI (alarm,
+	Logic_const.new_code_annotation
+	  (AAssert ([], a, { status = Unknown }))) 
+  in
   add stmt (if before then Before a else After a)
 
 let reset_stmt = AnnotState.remove
@@ -58,8 +65,7 @@ let get_filter f stmt =
   List.filter
     (function
          Before (User ca) | After (User ca)
-       | Before (AI (_,ca)) | After(AI(_,ca)) -> f ca
-       | Before (WP _) | After (WP _) -> false)
+       | Before (AI (_,ca)) | After(AI(_,ca)) -> f ca)
     (get stmt)
 
 let iter = AnnotState.iter

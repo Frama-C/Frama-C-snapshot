@@ -41,9 +41,9 @@
 (* A consistency checker for CIL *)
 open Cil_types
 open Cil
-module E = Errormsg
+module M = Cilmsg
 module H = Hashtbl
-open Pretty
+(* open Pretty *)
 
 
 (* A few parameters to customize the checking *)
@@ -99,10 +99,9 @@ let allBases: (int, varinfo) H.t = H.create 117
   * mark the start of a local environment (i.e. a function) *)
 let varNamesList : (string * int) list ref = ref []
 let defineName s =
-  if s = "" then
-    E.s (bug "Empty name\n");
+  if s = "" then M.fatal "Empty name" ;
   if H.mem varNamesEnv s then
-    ignore (warn "Multiple definitions for %s\n" s);
+    ignore (M.warning "Multiple definitions for %s" s);
   H.add varNamesEnv s ()
 
 let defineVariable vi =
@@ -110,7 +109,7 @@ let defineVariable vi =
   varNamesList := (vi.vname, vi.vid) :: !varNamesList;
   (* Check the id *)
   if H.mem allBases vi.vid then
-    ignore (warn "Id %d is already defined (%s)\n" vi.vid
+    ignore (M.warning "Id %d is already defined (%s)\n" vi.vid
               (!Cil.output_ident vi.vname));
   H.add allBases vi.vid vi;
   (* And register it in the current scope also *)
@@ -133,7 +132,7 @@ let startEnv () =
 
 let endEnv () =
   let rec loop = function
-      [] -> E.s (bug "Cannot find start of env")
+      [] -> M.fatal "Cannot find start of env"
     | ("", _) :: rest -> varNamesList := rest
     | (s, id) :: rest -> begin
         H.remove varNamesEnv s;
@@ -248,7 +247,7 @@ let rec checkType (t: typ) (ctx: ctxType) =
           let t = checkExp true l in
           match t with
             TInt((IInt|IUInt), _) -> ()
-          | _ -> E.s (bug "Type of array length is not integer")
+          | _ -> M.fatal "Type of array length is not integer"
       end)
 
   | TFun (rt, targs, isva, a) ->

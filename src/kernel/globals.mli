@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: globals.mli,v 1.25 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: globals.mli,v 1.26 2009-01-19 10:21:24 uid568 Exp $ *)
 
 (** Operations on globals.
     @plugin development guide *)
@@ -33,6 +33,9 @@ module Vars: sig
   (** {2 Getters} *)
 
   val find: varinfo -> initinfo
+    
+  val find_from_astinfo: string -> localisation -> varinfo
+  val get_astinfo: varinfo -> string * localisation
 
   (** {2 Iterators} *)
 
@@ -47,6 +50,8 @@ module Vars: sig
   val add_decl: varinfo -> unit
     (** @raise AlreadyExists if the given varinfo is already registered. *)
 
+  val self: Project.Computation.t
+
 end
 
 (* ************************************************************************* *)
@@ -56,6 +61,8 @@ module Functions: sig
   (** Should not be used.
       Used [Kernel_function.Datatype] instead. *)
   module KF_Datatype: Project.Datatype.S with type t = kernel_function
+
+  val self: Project.Computation.t
 
   (** {2 Getters} *)
 
@@ -126,7 +133,7 @@ end
 module FileIndex : sig
 
   val find : filename:string -> string * (global list)
-    (** Global list for valviewer. The file name to duisplay is returned. *)
+    (** Global list for valviewer. The file name to display is returned. *)
 
   val get_globals : filename:string -> (varinfo * initinfo) list
     (** Global variables of the given module for the kernel user interface *)
@@ -159,10 +166,10 @@ val entry_point : unit -> kernel_function * bool
       exist. *)
 
 val set_entry_point : string -> bool -> unit
-  (** [set_entry_point name lib] sets [Cmdline.MainFunction] to [name] if [lib]
-      is [false] and [Cmdline.LibEntry] to [name] if [lib] is [true].
+  (** [set_entry_point name lib] sets [Parameters.MainFunction] to [name] if [lib]
+      is [false] and [Parameters.LibEntry] to [name] if [lib] is [true].
       Moreover, clear the results of all the analysis which depend on
-      [Cmdline.MainFunction] or [Cmdline.LibEntry].
+      [Parameters.MainFunction] or [Parameters.LibEntry].
       @plugin development guide *)
 
 val has_entry_point: unit -> bool

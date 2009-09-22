@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,12 +19,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: subst.ml,v 1.6 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id: subst.ml,v 1.6 2008-04-01 09:25:21 uid568 Exp $ *)
 
 open Cil_types
 open Cil
 
-module M = 
+module M =
   Map.Make(struct type t = varinfo let compare x y = compare x.vid y.vid end)
 
 type t = exp M.t
@@ -40,16 +40,16 @@ let expr ?(trans=true) e subst =
   let rec expr e =
     let visitor = object
       inherit nopCilVisitor
-      method vexpr = function
-      | Lval((Var x, NoOffset)) -> 
-	  (try 
+      method vexpr e = match e.enode with
+      | Lval((Var x, NoOffset)) ->
+	  (try
 	     let e = M.find x subst in
 	     modified := true;
 	     let e = if trans then expr e else e in
 	     ChangeTo e
 	   with Not_found ->
 	     SkipChildren)
-      | _ -> 
+      | _ ->
 	  DoChildren
     end
     in
@@ -58,4 +58,4 @@ let expr ?(trans=true) e subst =
   let e = expr e in
   e, !modified
 
-let lval ?trans x = expr ?trans (Lval x)
+let lval ?trans x = expr ?trans (new_exp (Lval x))

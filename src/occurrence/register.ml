@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,12 +19,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.20 2008/11/06 13:03:28 uid568 Exp $ *)
+(* $Id: register.ml,v 1.21 2009-01-26 10:40:23 uid568 Exp $ *)
 
 open Cil_types
 open Cilutil
 open Cil
 open Visitor
+open Options
 
 module Occurrences: sig
   val add: varinfo -> kinstr -> lval -> unit
@@ -47,7 +48,7 @@ end = struct
       (Cil_datatype.Varinfo)
       (struct
 	 let name = "Occurrences.LastResult"
-	 let dependencies = [ Cil_state.self; State.self ]
+	 let dependencies = [ Ast.self; State.self ]
        end)
 
   let add vi ki lv = State.add vi (ki, lv)
@@ -66,7 +67,8 @@ end = struct
       None
 
   let () = 
-    Db.register ~journalize:None Db.Occurrence.get_last_result get_last_result
+    Db.register Db.Journalization_not_required 
+      Db.Occurrence.get_last_result get_last_result
 
   let iter f =
     let old, l =
@@ -126,8 +128,7 @@ class occurrence = object (self)
        let lv = !Db.Properties.Interp.term_lval_to_lval tlv in
        ignore (self#vlval lv)
      with Invalid_argument msg ->
-       if Cmdline.Occurrence.Debug.get () > 0 then
-	 Format.printf "[occurrence:] %s@." msg);
+       error "%s@." msg);
     DoChildren
 
   method vstmt_aux s =
@@ -140,11 +141,9 @@ end
 
 let compute, _self =
   let run () =
-    if Cmdline.Occurrence.Debug.get () > 0 then
-      Format.printf "[occurrence] Beginning analysis...@.";
-    ignore (visitFramacFile (new occurrence) (Cil_state.file ()));
-    if Cmdline.Occurrence.Debug.get () > 0 then
-      Format.printf "[occurrence] Done.@.";
+    feedback "beginning analysis";
+    ignore (visitFramacFile (new occurrence) (Ast.get ()));
+    feedback "analysis done"
   in
   Computation.apply_once "Occurrence.compute" [ Occurrences.self ] run
 
@@ -152,59 +151,37 @@ let get vi =
   compute (); 
   try Occurrences.get vi with Not_found -> assert false
 
-let print_one v l =
-  Format.printf "variable %s (%d):\n" v.vname v.vid;
+let d_ki fmt = function
+  | Kglobal -> Format.fprintf fmt "Global"
+  | Kstmt s -> Format.fprintf fmt "%d" s.sid
+
+let print_one fmt v l =
+  Format.fprintf fmt "variable %s (%d):@\n" v.vname v.vid;
   List.iter
     (fun (ki, lv) ->
-       Format.printf "  sid %a: %a\n"
-	 (fun fmt ki -> match ki with
-	  | Kglobal -> Format.fprintf fmt "Global"
-	  | Kstmt s -> Format.fprintf fmt "%d" s.sid)
-	 ki
-	 d_lval lv)
-    l;
-  Format.print_flush ()
+       Format.fprintf fmt "  sid %a: %a@\n" d_ki ki d_lval lv) l
 
 let print_all () =
   compute ();
-  Occurrences.iter print_one
+  result "%t" (fun fmt -> Occurrences.iter (print_one fmt))
 
-let main _fmt =
-  if Cmdline.Occurrence.Print.get () then 
-    !Db.Occurrence.print_all ()
-
+let main _fmt = if Print.get () then !Db.Occurrence.print_all ()
 let () = Db.Main.extend main
-
-let debug =
-  [ "-debug",
-    Arg.Int Cmdline.Occurrence.Debug.set,
-    ": level of debug" ]
-
-let options =
-  [ "-occurrence",
-    Arg.Unit Cmdline.Occurrence.Print.on,
-    ": print results of occurrence analysis" ]
 
 let () =
   Db.register 
-    ~journalize:
-    (Some ("Occurrence.get",
-	   Type.func Kernel_type.varinfo 
-	     (Type.list (Type.couple Kernel_type.kinstr Kernel_type.lval))))
+    (Db.Journalize
+       ("Occurrence.get",
+	Type.func Kernel_type.varinfo 
+	  (Type.list (Type.couple Kernel_type.kinstr Kernel_type.lval))))
     Db.Occurrence.get 
     get;
   Db.register
-    ~journalize:
-    (Some ("Occurrence.print_all", Type.func Type.unit Type.unit))
-    (* pb: print_all prend maintenant un formatter *)
+    (Db.Journalize ("Occurrence.print_all", Type.func Type.unit Type.unit))
+    (* pb: print_all should take a formatter as argument *)
     Db.Occurrence.print_all 
     print_all;
-  Db.Occurrence.self := Occurrences.self;
-  Options.add_plugin
-    ~name:"occurrence"
-    ~descr:"Compute occurrences of variable declarations"
-    ~debug
-    options
+  Db.Occurrence.self := Occurrences.self
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@ open Cil_types
 open Cil
 open Db
 open Db_types
-open Pretty
 open Locations
 
 let call_stack = Stack.create ()
@@ -46,7 +45,7 @@ class do_it = object(self)
     match s.skind with
       | UnspecifiedSequence seq ->
           List.iter
-            (fun (stmt,_,_) ->
+            (fun (stmt,_,_,_) ->
                ignore (visitCilStmt (self:>cilVisitor) stmt))
             seq;
           SkipChildren (* do not visit the additional lvals *)
@@ -106,7 +105,7 @@ class do_it = object(self)
     else SkipChildren
 
   method vexpr exp =
-    match exp with
+    match exp.enode with
     | AddrOf lv | StartOf lv ->
 	let deps,_loc =
 	  !Value.lval_to_loc_with_deps
@@ -147,7 +146,7 @@ let get_internal =
            (try
 	      Stack.iter
 		(fun g -> if kf == g then begin
-                   warn
+                   Cil.warn
 		     "recursive call detected during input analysis of %a. Ignoring it is safe if the value analysis suceeded without problem."
 		     Kernel_function.pretty_name kf;
                    raise Ignore
@@ -178,7 +177,7 @@ let externalize fundec =
         (fun v -> not (Base.is_formal_or_local v fundec))
   | Declaration (_,vd,_,_) ->
       Zone.filter_base
-        (fun v -> not (Base.is_formal_of_prototype v vd)) 
+        (fun v -> not (Base.is_formal_of_prototype v vd))
 
 
 
@@ -207,7 +206,7 @@ module With_formals =
      end)
 
 let get_with_formals =
-  With_formals.memo 
+  With_formals.memo
     (fun kf -> remove_locals_keep_formals kf.fundec (get_internal kf))
 
 
@@ -240,15 +239,6 @@ let () =
   Db.Inputs.statement := statement;
   Db.Inputs.expr := expr
 
-let options =
-  ["-input",
-  Arg.Unit Cmdline.ForceInput.on,
-  ": force display of operational inputs computed in a linear pass. Locals and function parameters are not displayed";
-
-   "-input_with_formals",
-  Arg.Unit Cmdline.ForceInputWithFormals.on,
-  ": force display of operational inputs computed in a linear pass. Function parameters are displayed, locals are not.";
-  ]
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

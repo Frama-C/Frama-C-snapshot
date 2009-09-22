@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pretty_utils.mli,v 1.3 2008/11/04 10:05:05 uid568 Exp $ *)
+(* $Id: pretty_utils.mli,v 1.3 2008-11-04 10:05:05 uid568 Exp $ *)
 
 (** {2 pretty-printing to a string} *)
 
@@ -47,29 +47,42 @@ val escape_underscores : string -> string
 
 (** {2 pretty printers for standard types} *)
 
+type sformat = (unit,Format.formatter,unit) Pervasives.format
+type 'a formatter = Format.formatter -> 'a -> unit
+type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
+
 (** pretty prints a list. The optional arguments stands for
 - the prefix to output before a non-empty list (default: open a box)
 - the separator between two elements (default: nothing)
 - the suffix to output after a non-empty list (default: close box)
 *)
-val pp_list:
-?pre:(unit,Format.formatter,unit) format ->
-?sep:(unit,Format.formatter,unit) format ->
-?suf:(unit,Format.formatter,unit) format ->
-  (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a list -> unit
+val pp_list: ?pre:sformat -> ?sep:sformat -> ?suf:sformat -> 
+  'a formatter -> 'a list formatter
+
+(** pretty prints an array. The optional arguments stands for
+- the prefix to output before a non-empty list (default: open a box)
+- the separator between two elements (default: nothing)
+- the suffix to output after a non-empty list (default: close box)
+*)
+val pp_array: ?pre:sformat -> ?sep:sformat -> ?suf:sformat -> 
+  (int,'a) formatter2 -> 'a array formatter
 
 (** pretty-prints an optional value. Prefix and suffix default to nothing.
     Nothing is printed if the option is None.
 *)
-val pp_opt:
-  ?pre:(unit,Format.formatter,unit) format ->
-  ?suf:(unit,Format.formatter,unit) format ->
-  (Format.formatter -> 'a -> unit) ->  Format.formatter -> 'a option -> unit
+val pp_opt: ?pre:sformat -> ?suf:sformat -> 'a formatter -> 'a option formatter
 
 (** pp_cond cond f s  pretty-prints s if cond is true and the optional
     pr_false, which defaults to nothing, otherwise *)
-val pp_cond: ?pr_false:(unit,Format.formatter,unit) format -> bool ->
-  Format.formatter -> (unit,Format.formatter,unit) format -> unit
+val pp_cond: ?pr_false:sformat -> bool -> sformat formatter
+
+
+
+val pp_flowlist : ?left:string -> ?sep:string -> ?right:string -> 'a formatter -> 'a list formatter
+val pp_blocklist : ?left:string -> ?right:string -> 'a formatter -> 'a list formatter
+
+val pp_open_block : Format.formatter -> ('a,Format.formatter,unit) format -> 'a
+val pp_close_block : Format.formatter -> ('a,Format.formatter,unit) format -> 'a
 
 (*
 Local Variables:

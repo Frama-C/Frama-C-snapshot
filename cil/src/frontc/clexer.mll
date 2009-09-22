@@ -45,11 +45,10 @@
 *)
 {
 open Cparser
-open Pretty
 exception Eof
 exception InternalError of string
-module E = Errormsg
 module H = Hashtbl
+module E = Errorloc
 
 let matchingParsOpen = ref 0
 
@@ -64,6 +63,8 @@ let ghost_code = ref false
 let is_ghost_code () = !ghost_code
 let enter_ghost_code () = ghost_code := true
 let exit_ghost_code () = ghost_code := false
+
+let keepComments = ref false
 
 (* string -> unit *)
 let addComment c =
@@ -108,15 +109,15 @@ let rec intlist_to_string (str: int64 list):string =
 (* Some debugging support for line numbers *)
 let dbgToken (t: token) =
   if false then begin
-    ignore (E.log "%a" insert
-              (match t with
-                IDENT (n, l) -> dprintf "IDENT(%s,%d)\n" n (fst l).Lexing.pos_lnum
-              | LBRACE l -> dprintf "LBRACE(%d)\n" (fst l).Lexing.pos_lnum
-              | RBRACE l -> dprintf "RBRACE(%d)\n" (fst l).Lexing.pos_lnum
-              | IF l -> dprintf "IF(%d)\n" (fst l).Lexing.pos_lnum
-              | SWITCH l -> dprintf "SWITCH(%d)\n" (fst l).Lexing.pos_lnum
-              | RETURN l -> dprintf "RETURN(%d)\n" (fst l).Lexing.pos_lnum
-              | _ -> nil));
+    let dprintf fmt = Cilmsg.debug fmt in
+    (match t with
+         IDENT (n, l) -> dprintf "IDENT(%s,%d)\n" n (fst l).Lexing.pos_lnum
+       | LBRACE l -> dprintf "LBRACE(%d)\n" (fst l).Lexing.pos_lnum
+       | RBRACE l -> dprintf "RBRACE(%d)\n" (fst l).Lexing.pos_lnum
+       | IF l -> dprintf "IF(%d)\n" (fst l).Lexing.pos_lnum
+       | SWITCH l -> dprintf "SWITCH(%d)\n" (fst l).Lexing.pos_lnum
+       | RETURN l -> dprintf "RETURN(%d)\n" (fst l).Lexing.pos_lnum
+       | _ -> ()) ;
     t
   end else
     t
@@ -127,6 +128,8 @@ let dbgToken (t: token) =
 let lexicon = H.create 211
 let init_lexicon _ =
   H.clear lexicon;
+  Logic_env.reset_typenames ();
+  Logic_env.builtin_types_as_typenames ();
   List.iter
     (fun (key, builder) -> H.add lexicon key builder)
     [ ("auto", fun loc -> AUTO loc);
@@ -238,7 +241,7 @@ let init_lexicon _ =
 let add_type name =
    (* ignore (print_string ("adding type name " ^ name ^ "\n"));  *)
   H.add lexicon name (fun loc -> NAMED_TYPE (name, loc));
-  H.add Logic_const.typenames name true
+  Logic_env.add_typename name
 
 let context : string list list ref = ref [ [] ]
 
@@ -246,27 +249,27 @@ let push_context _ = context := []::!context
 
 let pop_context _ =
   match !context with
-    [] -> raise (InternalError "Empty context stack")
+    [] -> Cilmsg.fatal "Empty context stack"
   | con::sub ->
 		(context := sub;
 		List.iter (fun name ->
                             (* Format.eprintf
                               "removing lexicon for %s@." name; *)
                              H.remove lexicon name;
-                             H.remove Logic_const.typenames name
+                             Logic_env.remove_typename name
                           ) con)
 
 (* Mark an identifier as a variable name. The old mapping is preserved and
  * will be reinstated when we exit this context  *)
 let add_identifier name =
   match !context with
-    [] -> raise (InternalError "Empty context stack")
+    [] -> Cilmsg.fatal "Empty context stack"
   | con::sub ->
       (context := (name::con)::sub;
        (*Format.eprintf "adding IDENT for %s@." name;*)
        H.add lexicon name (fun loc ->
          dbgToken (IDENT (name, loc)));
-       H.add Logic_const.typenames name false
+       Logic_env.hide_typename name
       )
 
 
@@ -365,11 +368,19 @@ let lex_unescaped remainder lexbuf =
   let prefix = Int64.of_int (Char.code (Lexing.lexeme_char lexbuf 0)) in
   prefix :: remainder lexbuf
 
-let lex_comment remainder lexbuf =
+let lex_comment remainder buffer lexbuf =
   let ch = Lexing.lexeme_char lexbuf 0 in
-  let prefix = Int64.of_int (Char.code ch) in
-  if ch = '\n' then E.newline();
-  prefix :: remainder lexbuf
+  if ch = '\n' then E.newline() ;
+  (match buffer with None -> () | Some b -> Buffer.add_char b ch) ;
+  remainder buffer lexbuf
+
+let do_lex_comment remainder lexbuf =
+  let buffer = 
+    if !keepComments then Some(Buffer.create 80) else None
+  in remainder buffer lexbuf ;
+  match buffer with
+    | Some b -> addComment (Buffer.contents b)
+    | None -> ()
 
 let make_char (i:int64):char =
   let min_val = Int64.zero in
@@ -457,7 +468,8 @@ let decfloat = (intnum? fraction)
 	      | (intnum '.')
               | (intnum '.' exponent)
 
-let hexfraction = hexdigit* '.' hexdigit+ | hexdigit+
+
+let hexfraction = hexdigit* '.' hexdigit+ | hexdigit+ '.'
 let binexponent = ['p' 'P'] ['+' '-']? decdigit+
 let hexfloat = hexprefix hexfraction binexponent
              | hexprefix hexdigit+   binexponent
@@ -483,33 +495,35 @@ let no_parse_pragma =
 
 
 rule initial =
-	parse 	"/*"			{ let il = comment lexbuf in
-	                                  let sl = intlist_to_string il in
-					  addComment sl;
-                                          addWhite lexbuf;
-                                          initial lexbuf}
+  parse "/*"			
+      { 
+	do_lex_comment comment lexbuf ;
+	addWhite lexbuf ;
+        initial lexbuf
+      }
 
-| "/*" ([^ '*' '\n'] as c)              { if c = !annot_char then begin
-	                                    try
-                                              save_current_pos ();
-	                                      Buffer.clear buf;
-	                                      annot_first_token lexbuf
-                                            with Parsing.Parse_error->
-                                              Cabshelper.warn_skip_logic ();
-                                              initial lexbuf
-                                          end else begin
-                                          let il = comment lexbuf in
-	                                  let sl = intlist_to_string il in
-					  addComment sl;
-                                          addWhite lexbuf;
-                                          initial lexbuf
-                                          end }
+| "/*" ([^ '*' '\n'] as c)
+    { if c = !annot_char then begin
+	Cabshelper.continue_annot
+	  (currentLoc ())
+	  (fun () ->
+             save_current_pos ();
+	     Buffer.clear buf;
+	     annot_first_token lexbuf)
+	  (fun () ->
+	     initial lexbuf)
+	  "Skipping annotation"
+      end else 
+	begin
+	  do_lex_comment comment lexbuf ;
+          addWhite lexbuf;
+          initial lexbuf
+	end 
+    }
 
 | "//"
-    {
-      let il = onelinecomment lexbuf in
-      let sl = intlist_to_string il in
-      addComment sl; E.newline();
+    { do_lex_comment onelinecomment lexbuf ;
+      E.newline();
       if is_oneline_ghost () then begin
         exit_oneline_ghost ();
         RGHOST
@@ -521,25 +535,29 @@ rule initial =
 
 | "//" ([^ '\n'] as c)
     { if c = !annot_char then begin
-      try
-        save_current_pos ();
-	Buffer.clear buf;
-	annot_one_line lexbuf
-      with Parsing.Parse_error->
-        Cabshelper.warn_skip_logic ();
-        initial lexbuf
-    end else begin
-      let il = onelinecomment lexbuf in
-      let sl = intlist_to_string il in
-      addComment sl; E.newline();
-      if is_oneline_ghost () then begin
-        exit_oneline_ghost ();
-        RGHOST
-      end else begin
-        addWhite lexbuf;
-        initial lexbuf
-      end
-    end
+	Cabshelper.continue_annot
+	  (currentLoc())
+	  (fun () ->
+             save_current_pos ();
+	     Buffer.clear buf;
+	     annot_one_line lexbuf)
+	  (fun () -> initial lexbuf)
+	  "Skipping annotation"
+      end else 
+	begin
+	  do_lex_comment onelinecomment lexbuf ;
+	  E.newline();
+	  if is_oneline_ghost () then 
+	    begin
+              exit_oneline_ghost ();
+              RGHOST
+	    end 
+	  else 
+	    begin
+              addWhite lexbuf;
+              initial lexbuf
+	    end
+	end
     }
 |		blank			{addWhite lexbuf; initial lexbuf}
 |               '\n'                    { E.newline ();
@@ -604,29 +622,29 @@ rule initial =
 | 		"!="			{EXCLAM_EQ}
 |		"<="			{INF_EQ}
 |		">="			{SUP_EQ}
-|		"="				{EQ}
-|		"<"				{INF}
-|		">"				{SUP}
+|		"="			{EQ}
+|		"<"			{INF}
+|		">"			{SUP}
 |		"++"			{PLUS_PLUS (currentLoc ())}
 |		"--"			{MINUS_MINUS (currentLoc ())}
 |		"->"			{ARROW}
-|		'+'				{PLUS (currentLoc ())}
-|		'-'				{MINUS (currentLoc ())}
+|		'+'			{PLUS (currentLoc ())}
+|		'-'			{MINUS (currentLoc ())}
 |		'*'
                     { if is_ghost_code () then might_end_ghost lexbuf
                       else
                         STAR (currentLoc ())}
-|		'/'				{SLASH}
-|		'%'				{PERCENT}
+|		'/'			{SLASH}
+|		'%'			{PERCENT}
 |		'!'			{EXCLAM (currentLoc ())}
 |		"&&"			{AND_AND (currentLoc ())}
 |		"||"			{PIPE_PIPE}
-|		'&'				{AND (currentLoc ())}
-|		'|'				{PIPE}
-|		'^'				{CIRC}
-|		'?'				{QUEST}
-|		':'				{COLON}
-|		'~'		       {TILDE (currentLoc ())}
+|		'&'			{AND (currentLoc ())}
+|		'|'			{PIPE}
+|		'^'			{CIRC}
+|		'?'			{QUEST}
+|		':'			{COLON}
+|		'~'		        {TILDE (currentLoc ())}
 
 |		'{'		       {dbgToken (LBRACE (currentLoc ()))}
 |		'}'		       {dbgToken (RBRACE (currentLoc ()))}
@@ -672,15 +690,13 @@ and might_end_ghost = parse
   | '/' { exit_ghost_code(); RGHOST }
   | "" { STAR (currentLoc()) }
 
-and comment = parse
-  |  "*/"                       { addWhite lexbuf; [] }
-  |  '\n'                       { E.newline (); comment lexbuf }
-(*  | ([^'\n''*']*('*'+[^'/'])?)* { comment lexbuf }*)
-  | _ { addWhite lexbuf; comment lexbuf }
+and comment buffer = parse
+  |  "*/"       { addWhite lexbuf; }
+  | _           { addWhite lexbuf; lex_comment comment buffer lexbuf }
 
-and onelinecomment = parse
-    '\n'|eof    {addWhite lexbuf; []}
-|   _           {addWhite lexbuf; lex_comment onelinecomment lexbuf }
+and onelinecomment buffer = parse
+  | '\n'|eof    { addWhite lexbuf; }
+  | _           { addWhite lexbuf; lex_comment onelinecomment buffer lexbuf }
 
 and matchingpars = parse
   '\n'          { addWhite lexbuf; E.newline (); matchingpars lexbuf }
@@ -692,14 +708,12 @@ and matchingpars = parse
                   else
                      matchingpars lexbuf
                 }
-|  "/*"		{ addWhite lexbuf; let il = comment lexbuf in
-                  let sl = intlist_to_string il in
-		  addComment sl;
-                  matchingpars lexbuf}
+|  "/*"		{ addWhite lexbuf; 
+		  do_lex_comment comment lexbuf ;
+                  matchingpars lexbuf }
 |  '"'		{ addWhite lexbuf; (* '"' *)
                   let _ = str lexbuf in
-                  matchingpars lexbuf
-                 }
+                  matchingpars lexbuf }
 | _              { addWhite lexbuf; matchingpars lexbuf }
 
 (* # <line number> <file name> ... *)
@@ -713,7 +727,7 @@ and hash = parse
                    int_of_string s
                  with Failure ("int_of_string") ->
                    (* the int is too big. *)
-                   E.warn "Bad line number in preprocessed file: %s" s;
+                   Cilmsg.warning "Bad line number in preprocessed file: %s" s;
                    (-1)
                  in
                  E.setCurrentLine (lineno - 1);
@@ -820,7 +834,8 @@ and annot_one_line_logic = parse
 
 }
 
-(* Local-Variables:
-   compile-command: make -C ../../..
-   End:
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
 *)

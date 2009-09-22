@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,6 +33,8 @@ val d_ident: (Format.formatter -> string -> unit) ref
 
 (** Pretty-print an expression using {!Printer.default_printer}  *)
 val d_exp: (Format.formatter -> exp -> unit) ref
+
+val d_var: (Format.formatter -> varinfo -> unit) ref
 
 val d_type: (Format.formatter -> typ -> unit) ref
 
@@ -80,13 +82,10 @@ val d_logic_var: (Format.formatter -> logic_var -> unit) ref
 val d_logic_type: (Format.formatter -> logic_type -> unit) ref
 val d_term: (Format.formatter -> term -> unit) ref
 val d_term_offset: (Format.formatter -> term_offset -> unit) ref
-val d_tsets_lval: (Format.formatter -> tsets_lval -> unit) ref
-val d_tsets: (Format.formatter -> tsets -> unit) ref
-val d_tsets_elem: (Format.formatter -> tsets_elem -> unit) ref
-val d_tsets_lhost: (Format.formatter -> tsets_lhost -> unit) ref
-val d_tsets_offset: (Format.formatter -> tsets_offset -> unit) ref
 
 val d_predicate_named: (Format.formatter -> predicate named -> unit) ref
 val d_code_annotation: (Format.formatter -> code_annotation -> unit) ref
 val d_funspec: (Format.formatter -> funspec -> unit) ref
 val d_annotation: (Format.formatter -> global_annotation -> unit) ref
+
+val d_file: (Format.formatter -> file -> unit) ref

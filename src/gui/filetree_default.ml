@@ -2,7 +2,29 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+# 2 "filetree_default.ml"
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -101,8 +123,6 @@ let rec make (tree_view:GTree.view) =
     List.iter (add_global ~parent:toplevel) globs;
     (*Format.printf "DONE Adding globals@."*)
   in
-  
-  (** Let's fill the model with all files. *) 
   List.iter add_file 
     (List.sort Pervasives.compare (Globals.FileIndex.get_files ()));
 
@@ -168,6 +188,7 @@ let rec make (tree_view:GTree.view) =
          done
        with Gpointer.Null -> ());
       let myself = make tree_view in
+
       List.iter myself#add_select_function select_functions;
       myself#reset_dynamic_columns dynamic_columns;
       myself
@@ -190,9 +211,10 @@ let rec make (tree_view:GTree.view) =
     val mutable activated_path = "" (* prevent double selection *)
     method enable_select_functions =
       let select path deactivating =
-	let fail e = Format.eprintf 
-          "selector handler got an internal error, please report: %s@." 
-          (Printexc.to_string e)
+	let fail e = 
+          Kernel.error 
+            "selector handler got an internal error, please report: %s" 
+            (Printexc.to_string e)
 	in
 	try
           if !Gtk_helper.gui_unlocked then
@@ -215,8 +237,7 @@ let rec make (tree_view:GTree.view) =
 	    true
           else false
 	with e ->
-          Format.eprintf "gui could not select row in filetree, please \
-report: %s@."
+          Kernel.error "gui could not select row in filetree, please report: %s"
 	    (Printexc.to_string e);
           true
       in

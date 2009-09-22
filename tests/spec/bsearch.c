@@ -39,6 +39,6 @@ int bsearch(int* t, int n, int v) {
 
 /*
 Local Variables:
-compile-command: "../../bin/toplevel.byte -jessie-analysis -jessie-output bsearch.jc bsearch.c ; jessie bsearch.jc ; make -f bsearch.makefile gui"
+compile-command: "../../bin/toplevel.opt -jessie bsearch.c"
 End:
 */

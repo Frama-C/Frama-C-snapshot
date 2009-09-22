@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ast_info.mli,v 1.26 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: ast_info.mli,v 1.29 2009-02-23 12:52:19 uid562 Exp $ *)
 
 (** AST manipulation utilities.
     @plugin development guide *)
@@ -36,18 +36,17 @@ val pretty_vname: Format.formatter -> Cil_types.varinfo -> unit
 val before_after_content: 'a before_after -> 'a
 
 val lift_annot_func:
-  (code_annotation -> 'a) -> 'a -> rooted_code_annotation before_after -> 'a
+  (code_annotation -> 'a) -> rooted_code_annotation before_after -> 'a
   (** lifts a function that operates on code_annotation up to the
-      annotations used in Db. Uses the second argument as result for a
-      WP annotation. *)
+      annotations used in Db. *)
 
 val lift_annot_list_func:
-  (code_annotation list -> 'a) -> 
+  (code_annotation list -> 'a) ->
   rooted_code_annotation before_after list -> 'a
   (** lifts a function taking lists of code_annotation up to the annotations
       lists in Db. Ignores WP annotations. *)
 
-module Datatype_Annotation: 
+module Datatype_Annotation:
   Project.Datatype.S with type t = rooted_code_annotation before_after
 
 (* ************************************************************************** *)
@@ -78,7 +77,7 @@ val is_trivial_rooted_assertion: Db_types.rooted_code_annotation -> bool
 val is_trivial_named_predicate: predicate named -> bool
 
 val behavior_postcondition : funbehavior -> predicate named
-val merge_assigns: funbehavior list -> identified_tsets assigns list
+val merge_assigns: funbehavior list -> identified_term assigns list
 
 val variable_term: location -> logic_var -> term
 val constant_term: location -> int64 -> term
@@ -104,6 +103,9 @@ val loc_stmt: stmt -> location
 
 val mkassign: lval -> exp -> location -> instr
 val mkassign_statement: lval -> exp -> location -> stmt
+
+(** determines if a var is local to a block. *)
+val is_block_local: varinfo -> block -> bool
 
 (* ************************************************************************** *)
 (** {2 Types} *)

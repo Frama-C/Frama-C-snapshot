@@ -1,1 +1,0 @@
-extern static int x;

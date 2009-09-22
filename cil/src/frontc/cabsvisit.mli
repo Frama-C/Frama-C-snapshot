@@ -43,26 +43,6 @@
 
 open Cil
 
-(* Deprecated: use the Cil ones *)
-(* Different visiting actions. 'a will be instantiated with exp, instr, etc. *)
-(*type 'a visitAction =
-    SkipChildren                        (* Do not visit the children. Return
-                                         * the node as it is *)
-  | ChangeTo of 'a                      (* Replace the expression with the
-                                         * given one *)
-  | DoChildren                          (* Continue with the children of this
-                                         * node. Rebuild the node on return
-                                         * if any of the children changes
-                                         * (use == test) *)
-  | ChangeDoChildrenPost of 'a * ('a -> 'a) (* First consider that the entire
-                                          * exp is replaced by the first
-                                          * paramenter. Then continue with
-                                          * the children. On return rebuild
-                                          * the node if any of the children
-                                          * has changed and then apply the
-                                          * function on the node *)
-*)
-
 type nameKind =
     NVar                                (** Variable or function prototype
                                            name *)
@@ -117,6 +97,7 @@ val visitCabsName: cabsVisitor -> nameKind
 val visitCabsFile: cabsVisitor -> Cabs.file -> Cabs.file
 
 
-
+(*
 (** Set by the visitor to the current location *)
 val visitorLocation: Cabs.cabsloc ref
+*)

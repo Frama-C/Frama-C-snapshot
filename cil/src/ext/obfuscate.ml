@@ -60,15 +60,11 @@ class obfuscateVisitor dictionary = object
   val enum = new renamer "E" dictionary
   val local = new renamer "V" dictionary
   val functions = new renamer "F" dictionary
+  val formals = new renamer "f" dictionary
 
   method vglob global =
     begin match global with
-    | GType (ty,_) ->
-        ty.tname <- typ#fresh ty.tname;
-
-    | GVarDecl (_spec, ({vtype = TFun (t,Some l, b,att)} as vi),_) ->
-        let fresh_l = List.map (fun (n,t,a) -> (var#fresh n,t,a)) l in
-        vi.vtype <- TFun (t,Some fresh_l, b,att)
+    | GType (ty,_) -> ty.tname <- typ#fresh ty.tname 
     | _ -> ()
     end;
     DoChildren
@@ -87,6 +83,7 @@ class obfuscateVisitor dictionary = object
     else
       vi.vname <-
         if vi.vglob then var#fresh vi.vname
+        else if vi.vformal then formals#fresh vi.vname
         else local#fresh vi.vname;
     DoChildren
 end
@@ -94,5 +91,5 @@ end
 let obfuscate file =
   let dictionary = Hashtbl.create 7 in
   let v = new obfuscateVisitor dictionary in
-  visitCilFile (v:>cilVisitor) file;
+  visitCilFileSameGlobals (v:>cilVisitor) file;
   dictionary

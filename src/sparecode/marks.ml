@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -20,6 +20,10 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
+
+let debug n format = Sparecode_params.debug ~level:n format
+
+let fatal text = Sparecode_params.fatal text
 
 module BoolMark = struct
   type prop_mode = Glob | Loc
@@ -74,13 +78,13 @@ module Config = struct
             call_in_to_check := 
             (pdg_caller, call_opt, sel_elem, m) :: !call_in_to_check;
             None
-        | _ -> assert false (* marque invisible ??? *)
+        | _ -> fatal "cannot propagate invisible mark@."
 
     let mark_to_prop_to_called_output _call _pdg _node m =
       match m with
         | true, M.Glob -> Some (true, M.Loc)
         | true, M.Loc -> Some m
-        | _ -> assert false (* marque invisible ??? *)
+        | _ -> fatal "cannot propagate invisible mark@."
 
 end
 
@@ -147,16 +151,17 @@ let rec process_call_inputs proj =
     | [] -> (to_select, unused)
     | (pdg_caller, call, sel, m) as e :: calls ->
         let kf_caller = PdgTypes.Pdg.get_kf pdg_caller in
+        let fm_caller = get_marks proj kf_caller in
         let visible = match call with
           | Some call ->
-              let fm = get_marks proj kf_caller in
-              let fm = match fm with | None -> assert false | Some fm -> fm in
+              let fm = match fm_caller with 
+                | None -> fatal "the caller should have marks@."
+                | Some fm -> fm 
+              in
                 call_visible fm call
           | None -> (* let see if the function is visible or not *)
               assert (PdgTypes.Pdg.is_top pdg_caller);
-              match  get_marks proj kf_caller with 
-                | None -> false
-                | Some _fm -> true 
+              match  fm_caller with None -> false | Some _fm -> true 
         in
         let res = if visible then
             let to_select = add_pdg_selection to_select pdg_caller (sel, m) 
@@ -179,10 +184,15 @@ let add_node_to_select glob to_select z_opt node =
   PdgMarks.add_to_select to_select
            (PdgMarks.mk_select_node ~z_opt node) (BoolMark.mk glob)
 
-let add_nodes_and_undef_to_select glob (ctrl_nodes, (data_nodes, undef)) to_select =
+let add_nodes_and_undef_to_select glob 
+      (ctrl_nodes, decl_nodes, (data_nodes, undef)) to_select =
   let to_select =
     List.fold_left
       (fun s n -> add_node_to_select glob s None n) to_select ctrl_nodes
+  in
+  let to_select =
+    List.fold_left
+      (fun s n -> add_node_to_select glob s None n) to_select decl_nodes
   in
   let to_select =
     List.fold_left
@@ -209,7 +219,7 @@ class annot_visitor ~filter pdg = object (self)
       try
         let stmt = Cilutil.valOf self#current_stmt in
         let before = self#is_annot_before in
-            Debug.debug 1 "[sparecode] selecting annotation : %a @."
+            debug 1 "selecting annotation : %a @."
               !Ast_printer.d_code_annotation annot;
         let nodes_and_co =
           !Db.Pdg.find_code_annot_nodes pdg before stmt annot in
@@ -221,7 +231,7 @@ end
 let select_all_outputs proj kf =
   let pdg = !Db.Pdg.get kf in
   let outputs = !Db.Outputs.get_external kf in
-    Debug.debug 1 "[sparecode] selecting output zones %a@."
+    debug 1 "selecting output zones %a@."
       Locations.Zone.pretty outputs;
   try
   let nodes, undef = !Db.Pdg.find_location_nodes_at_end pdg outputs in
@@ -229,7 +239,7 @@ let select_all_outputs proj kf =
     try ((!Db.Pdg.find_ret_output_node pdg),None) :: nodes
     with Db.Pdg.NotFound -> nodes
   in
-  let nodes_and_co = ([], (nodes, undef)) in
+  let nodes_and_co = ([], [], (nodes, undef)) in
   let to_select = add_nodes_and_undef_to_select false nodes_and_co [] in
     select_pdg_elements proj pdg to_select
   with PdgIndex.NotFound -> (* end is unreachable *)
@@ -238,7 +248,7 @@ let select_all_outputs proj kf =
 let select_annotations ~select_annot ~select_slice_pragma proj =
   let visit_fun kf =
     try
-        Debug.debug 1 "[sparecode] look for annotations in function %s@."
+        debug 1 "look for annotations in function %s@."
           (Kernel_function.get_name kf);
       let filter annot = match annot.Cil_types.annot_content with
         | Cil_types.APragma (Cil_types.Slice_pragma _) -> select_slice_pragma
@@ -261,7 +271,7 @@ let select_entry_point proj kf =
     select_pdg_elements proj pdg to_select
 
 let finalize proj =
-    Debug.debug 1 "[sparecode] finalize (process call inputs) @.";
+    debug 1 "finalize (process call inputs) @.";
   process_call_inputs proj;
   assert (!call_in_to_check = [])
 
@@ -269,7 +279,7 @@ let finalize proj =
 let select_usefull_things ~select_annot ~select_slice_pragma kf_entry =
   let proj = ProjBoolMarks.empty in
   assert (!call_in_to_check = []);
-    Debug.debug 1 "[sparecode] selecting function %s outputs and entry point@."
+    debug 1 "selecting function %s outputs and entry point@."
       (Kernel_function.get_name kf_entry);
   select_entry_point proj kf_entry;
   select_all_outputs proj kf_entry;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,7 +39,7 @@ type validity =
   | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
   | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
 
-type t = 
+type t =
   | Var of varinfo*validity
   | Initialized_Var of varinfo*validity
       (** base that is implicitely initialized. *)
@@ -65,8 +65,8 @@ let is_hidden_variable v =
     Var (s,_) when s.vlogic -> true
   | _ -> false
 
-let pretty_validity fmt v = 
-  match v with 
+let pretty_validity fmt v =
+  match v with
   | All -> Format.fprintf fmt "All"
   | Unknown (b,e)  -> Format.fprintf fmt "Unknown %a-%a" Int.pretty b Int.pretty e
   | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
@@ -79,6 +79,13 @@ let pretty fmt t = Format.fprintf fmt "%s"
        Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident t.vname
    | Null -> "NULL")
 
+(*
+let pretty_caml fmt t =
+  match t with
+    String (_,s) -> Format.fprintf fmt "(Base.create_string %S)" s
+  | Var (t,_) | Initialized_Var (t,_) ->
+      Base.
+*)
 
 let compare v1 v2 = Pervasives.compare (id v1) (id v2)
 
@@ -107,10 +114,50 @@ let bits_sizeof v =
             bitsSizeOf pointed_typ
 *)
 
+(** All absolute address are invalid *)
+module MinValidAbsoluteAddress =
+  Computation.Ref
+    (struct
+       include Abstract_interp.Int.Datatype
+       let default () = Abstract_interp.Int.zero
+     end)
+    (struct
+       let name = "MinValidAbsoluteAddress"
+       let dependencies = []
+     end)
+
+module MaxValidAbsoluteAddress =
+  Computation.Ref
+    (struct
+       include Abstract_interp.Int.Datatype
+       let default () = Abstract_interp.Int.minus_one
+     end)
+    (struct
+       let name = "MaxValidAbsoluteAddress"
+       let dependencies = []
+     end)
+
+let () =
+  Parameters.AbsoluteValidRange.add_set_hook
+    (fun _ x ->
+       try Scanf.sscanf x "%Li-%Li"
+	 (fun min max ->
+	    let mul8 = Int64.mul 8L in
+            MinValidAbsoluteAddress.set 
+	      (Abstract_interp.Int.of_int64 (mul8 min));
+            MaxValidAbsoluteAddress.set 
+	      (Abstract_interp.Int.of_int64
+		 (Int64.pred (mul8 (Int64.succ max)))))
+       with End_of_file | Scanf.Scan_failure _ | Failure _ as e ->
+	 Kernel.abort "Invalid -absolute-valid-range integer-integer: each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and has to hold in 64 bits. A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
+           (Printexc.to_string e))
+
+let min_valid_absolute_address = MinValidAbsoluteAddress.get
+let max_valid_absolute_address = MaxValidAbsoluteAddress.get
+
 let validity v =
   match v with
-  | Null -> Known (Cmdline.MinValidAbsoluteAddress.get (),
-                   Cmdline.MaxValidAbsoluteAddress.get ())
+  | Null -> Known (min_valid_absolute_address (), max_valid_absolute_address ())
   | Var (_,v) | Initialized_Var (_,v) -> v
   | String _ | Cell_class _ ->
       let max_valid = bits_sizeof v in
@@ -122,6 +169,25 @@ let validity v =
           Known (Int.zero,Int.pred size)
             (* they all start to be valid at offset 0 *)
 
+exception Not_valid_offset
+
+let is_valid_offset size base offset =
+  match validity base with
+  | Known (min_valid,max_valid) ->
+      let min = Ival.min_int offset in
+      begin match min with
+      | None -> raise Not_valid_offset
+      | Some v -> if Int.lt v min_valid then raise Not_valid_offset
+      end;
+      let max = Ival.max_int offset in
+      begin match max with
+      | None -> raise Not_valid_offset
+      | Some v ->
+          if Int.gt (Int.pred (Int.add v size)) max_valid then
+            raise Not_valid_offset
+      end
+  | Unknown _ -> raise Not_valid_offset
+  | All -> ()
 
 (*
   let is_volatile v =
@@ -152,6 +218,12 @@ let is_any_formal_or_local v =
   | Var (v,_) | Initialized_Var (v,_) -> not v.vlogic && not v.vglob
   | Null | String _ | Cell_class _  -> false
 
+let is_any_local v =
+  match v with
+  | Var (v,_) | Initialized_Var (v,_) ->
+      not v.vlogic && not v.vglob && not v.vformal
+  | Null | String _ | Cell_class _  -> false
+
 let is_formal_or_local v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
@@ -169,15 +241,20 @@ let is_local v fundec =
   | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_local v fundec
   | Null | String _ | Cell_class _   -> false
 
+let is_block_local v block =
+  match v with
+  | Var (v,_) | Initialized_Var (v,_) -> Ast_info.is_block_local v block
+  | Null | String _ | Cell_class _   -> false
+
 let validity_from_type v =
   if isFunctionType v.vtype then invalid
   else
   let max_valid = Bit_utils.sizeof_vid v in
   match max_valid with
   | Int_Base.Bottom -> assert false
-  | Int_Base.Top -> 
-      (* TODO: 
-	 if (some configuration option) 
+  | Int_Base.Top ->
+      (* TODO:
+	 if (some configuration option)
 	 then Unknown (Int.zero, Bit_utils.max_bit_address ())
 	 else *)
       invalid
@@ -187,6 +264,11 @@ let validity_from_type v =
   | Int_Base.Value size ->
       assert (Int.eq size Int.zero);
       Unknown (Int.zero, Bit_utils.max_bit_address ())
+
+let get_varinfo t =
+  match t with
+  | Var (t,_) | Initialized_Var (t,_) -> t
+  | _ -> assert false
 
 let create_varinfo varinfo =
   assert (not varinfo.vlogic);
@@ -208,9 +290,9 @@ module LiteralStrings =
     ((* The function [copy] is used here but persistent strings are not
 	required. *)
       Project.Datatype.Imperative
-	(struct 
-	   type t = base 
-	   let copy = function 
+	(struct
+	   type t = base
+	   let copy = function
 	     | String _ as b -> b
 	     | _ -> assert false
 	   let name = "LiteralStrings"
@@ -222,12 +304,18 @@ module LiteralStrings =
      end)
 
 let create_string s =
-  LiteralStrings.memo (fun _ -> String (Cil.new_raw_id (), s)) s
+  LiteralStrings.memo (fun _ -> String (Cil_const.new_raw_id (), s)) s
 
 module Datatype =
   Project.Datatype.Imperative
-    (struct 
-       type t = base 
-       let copy _ = assert false (* TODO if required *) 
-       let name = "base" 
+    (struct
+       type t = base
+       let copy _ = assert false (* TODO if required *)
+       let name = "base"
      end)
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

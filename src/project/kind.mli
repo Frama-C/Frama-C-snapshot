@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kind.mli,v 1.11 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: kind.mli,v 1.12 2009-01-23 15:02:59 uid568 Exp $ *)
 
 (** Kind (roughly speaking, a type used as first-class-value for Project). 
 
@@ -45,8 +45,15 @@ module type SELECTION = sig
   type t
     (** Type of a selection of kinds. *)
 
+  val ty: t Type.t
+    (** Type value of a selection. *)
+
   val empty : t
     (** The empty selection. *)
+
+  val is_empty : t -> bool
+    (** Whether the selection is empty. 
+	@since Beryllium-20090601-beta1 *)
 
   val add: kind -> how -> t -> t
     (** [add k h s] adds [k] to [s]. [h] is used to specify how to deal with
@@ -133,6 +140,10 @@ sig
 	of type [T.t] (or for each kind specified by [only] and 
 	[except] if one of them is non-empty), begining to [acc] and following 
 	the same order as apply_in_order. *)
+
+  val number_of_applicants: Selection.t -> Selection.t -> int option
+    (** [number_of_applicants only except] computes how many states would be
+	impact by a folding. Return [None] if all states are impacted. *)
 
   val digest: unit -> Digest.t
     (** Checksum of kinds of type [t]. *)

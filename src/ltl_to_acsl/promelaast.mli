@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: promelaast.mli,v 1.4 2008/10/13 09:21:24 uid588 Exp $ *)
+(* $Id: promelaast.mli,v 1.4 2008-10-13 09:21:24 uid588 Exp $ *)
 
 (** The abstract tree of promela representation. Such tree is used by promela parser/lexer before its translation into Data_for_ltl module. *)
 
@@ -42,7 +44,7 @@ type condition =
 type state = {name : string ;               (** State name *)
 	      mutable acceptation : bool3 ; (** True iff state is an acceptation state *)
 	      mutable init : bool3 ;        (** True iff state is an initial state *)
-	      nums : int                    (** Numerical ID of the state *)
+	      mutable nums : int            (** Numerical ID of the state *)
 	     }
 
 (** Internal representation of a transition from the Buchi automata. *)

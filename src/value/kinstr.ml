@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,13 +19,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kinstr.ml,v 1.19 2008/11/21 09:19:53 uid527 Exp $ *)
+(* $Id: kinstr.ml,v 1.20 2009-02-13 07:59:30 uid562 Exp $ *)
 
 open Cil_types
-open Db_types
 open Eval
+open Db_types
 open Locations
-open Db
 open CilE
 
 (* [TODO Julien 2007/07/04]:
@@ -57,10 +56,10 @@ end
 
 let lval_to_loc_with_deps_state ~with_alarms state ~deps lv =
   let state, deps, r =
-    lval_to_loc_with_deps
+    Eval.lval_to_loc_with_deps
       ~with_alarms
       ~deps
-      ~reduce_valid_index:(not (Cmdline.UnsafeArrays.get()))
+      ~reduce_valid_index:(Parameters.SafeArrays.get ())
       state
       lv
   in
@@ -124,16 +123,16 @@ let assigns_to_zone_inputs_state state assigns =
                  (fun acc loc ->
                     let clocs = match loc with
                         Location loc ->
-                          !Db.Properties.Interp.tsets_to_lval loc.its_content
+                          !Db.Properties.Interp.loc_to_lval loc.it_content
                       | Nothing -> []
                     in
                     List.fold_left
                       (fun acc cin ->
                          Zone.join acc
-                           (!Value.lval_to_zone_state state cin))
+                           (!Db.Value.lval_to_zone_state state cin))
                       acc clocs)
                  acc ins
-             with Invalid_argument "not a lvalue" ->
+             with Invalid_argument "not an lvalue" ->
                CilE.warn_once "Can not interpret assigns clause; Ignoring.";
                raise Top_input)
     in
@@ -162,24 +161,24 @@ let lval_to_offsetmap  kinstr lv ~with_alarms =
 
 
 let () =
-  Value.lval_to_loc_with_deps :=
-    (fun s ~with_alarms ~deps lval -> 
+  Db.Value.lval_to_loc_with_deps :=
+    (fun s ~with_alarms ~deps lval ->
       let _, deps, r = lval_to_loc_with_deps ~with_alarms s ~deps lval in
       deps, r);
-  Value.lval_to_loc_with_deps_state :=
-    (fun s ~deps lval -> 
+  Db.Value.lval_to_loc_with_deps_state :=
+    (fun s ~deps lval ->
       let _, deps, r = lval_to_loc_with_deps_state s ~deps lval in
       deps, r);
-  Value.expr_to_kernel_function := expr_to_kernel_function;
-  Value.expr_to_kernel_function_state := expr_to_kernel_function_state;
-  Value.lval_to_loc := lval_to_loc_kinstr;
-  Value.lval_to_loc_state := lval_to_loc ~with_alarms:warn_none_mode ;
-  Value.lval_to_zone_state := lval_to_zone_state;
-  Value.lval_to_zone := lval_to_zone;
-  Value.lval_to_offsetmap := lval_to_offsetmap;
-  Value.assigns_to_zone_inputs_state := assigns_to_zone_inputs_state;
-  Value.eval_expr := eval_expr;
-  Value.eval_lval := 
+  Db.Value.expr_to_kernel_function := expr_to_kernel_function;
+  Db.Value.expr_to_kernel_function_state := expr_to_kernel_function_state;
+  Db.Value.lval_to_loc := lval_to_loc_kinstr;
+  Db.Value.lval_to_loc_state := lval_to_loc ~with_alarms:warn_none_mode ;
+  Db.Value.lval_to_zone_state := lval_to_zone_state;
+  Db.Value.lval_to_zone := lval_to_zone;
+  Db.Value.lval_to_offsetmap := lval_to_offsetmap;
+  Db.Value.assigns_to_zone_inputs_state := assigns_to_zone_inputs_state;
+  Db.Value.eval_expr := eval_expr;
+  Db.Value.eval_lval :=
     (fun ~with_alarms deps state lval ->
       let _, deps, r = eval_lval  ~with_alarms deps state lval in
       deps, r)

@@ -38,18 +38,20 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: cil_datatype.mli,v 1.4 2008/11/18 12:13:40 uid568 Exp $ *)
+(* $Id: cil_datatype.mli,v 1.5 2009-02-23 12:52:18 uid562 Exp $ *)
 
 open Cil_types
 open Cilutil
 open Project.Datatype
 
-(** Datatypes of some useful kernel types. 
+(** Datatypes of some useful kernel types.
     @plugin development guide *)
 
 (** @plugin development guide *)
 module Varinfo : S with type t = varinfo
 module Location : S with type t = location
+
+module Block: S with type t = block
 
 (** @plugin development guide *)
 module Stmt: sig
@@ -100,8 +102,12 @@ module StmtList: S with type t = stmt list
 
 module Code_Annotation: S with type t = code_annotation
 module Logic_Info: S with type t = logic_info
+module Builtin_Logic_Info: S with type t = builtin_logic_info
 module Logic_Type_Info: S with type t = logic_type_info
 module Logic_Ctor_Info: S with type t = logic_ctor_info
+module Annot_Status: S with type t = annot_status
+module Annot_Status_List: S with type t = annot_status list
+
 (*
 module Predicate_Info: S with type t = predicate_info
 *)

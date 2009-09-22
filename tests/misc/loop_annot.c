@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -simplify-cfg -keep-switch -print -files-debug -check -journal-disable
-   OPT: -simplify-cfg -print -files-debug -check -journal-disable
+   OPT: -simplify-cfg -keep-switch -print -check -journal-disable
+   OPT: -simplify-cfg -print -check -journal-disable
 */
 
 void f() {

@@ -1,0 +1,767 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2009                                               #
+#    CEA (Commissariat à l'Énergie Atomique)                             #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# $Id: Makefile.plugin,v 1.82 2009-03-05 15:42:45 uid562 Exp $
+#
+###############################################################################
+#
+# Generic makefile used to build plug-ins.
+# Setup the following required variables before including this makefile:
+#
+# Usual information
+# -----------------
+# PLUGIN_NAME	The ML module name of the plugin
+# PLUGIN_DIR	The directory containing the source files
+# PLUGIN_ENABLE Whether the plugin is enabled
+# PLUGIN_DYNAMIC Set it to yes if the plugin is only dynamically linked with
+# 		 Frama-C.
+# PLUGIN_HAS_MLI Set it to yes if your plugin has a .mli
+#
+# Source files
+# ------------
+# PLUGIN_CMO	The .cmo files (do not add the plugin path and the extension)
+# PLUGIN_CMI    The .cmi files (only if there is no corresponding .cmo)
+# PLUGIN_TYPES_CMO The .cmo files containing the types definitions
+# PLUGIN_GUI_CMO The .cmo files to be linked with the graphical interface
+#
+# Compilation flags
+# -----------------
+# PLUGIN_BFLAGS Additional options for the bytecode compiler
+# PLUGIN_OFLAGS Additional options for the native compiler
+# PLUGIN_EXTRA_BYTE Additional bytecode files to link against
+# PLUGIN_EXTRA_OPT Additional native files to link against
+# PLUGIN_LINK_BFLAGS Additional options for the bytecode linker
+# PLUGIN_LINK_OFLAGS Additional options for the native linker
+# PLUGIN_LINK_GUI_BFLAGS Additional options for the bytecode gui linker
+# PLUGIN_LINK_GUI_OFLAGS Additional options for the native gui linker
+#
+# Dependencies
+# ------------
+# PLUGIN_DEPFLAGS Additional options for ocamldep
+# PLUGIN_GENERATED ML files that must be generated in order to compute
+# 	dependencies
+# PLUGIN_DEPENDS Plugins the current plugin depends upon
+#
+# Documentation
+# -------------
+# PLUGIN_DOCFLAGS Additional options for ocamldoc
+# PLUGIN_UNDOC  Do not document this source files (do not add the plugin path)
+# PLUGIN_TYPES_TODOC  Do document this source files containing the types
+#	definition
+# PLUGIN_INTRO  Add this text file to the introduction of the documentation
+# PLUGIN_HAS_EXT_DOC (yes/no) Plugin has a pdf manual
+#
+# Testing
+# -------
+# PLUGIN_NO_TEST Set it to a non-empty value if there is no specific
+#       test directory for this plugin
+# PLUGIN_TESTS_DIRS Test directories of the plugin.
+#	Default is tests/$(PLUGIN_DIR)
+# PLUGIN_TESTS_DIRS_DEFAULTS Tests directories that should be run by default
+#	Defaults to $(PLUGIN_TESTS_DIRS)
+# PLUGIN_TESTS_LIB Additional .cmo files used by tests.
+#	Should be part of one of the $(PLUGIN_TESTS_DIRS)
+#	Do not write the file extension
+# PLUGIN_NO_DEFAULT_TEST Set it to a non-empty value if you don't want the
+# 	tests of your plugin to be executed systematically by make tests
+#
+# Distribution
+# ------------
+# PLUGIN_DISTRIBUTED should the plugin be included in the distribution (yes/no)
+# PLUGIN_DISTRIB_BIN should the plugin be included in binary distributions
+#       (defaults to ${PLUGIN_DISTRIBUTED})
+# PLUGIN_DISTRIB_EXTERNAL if files outside of the usual plugins directories
+#	need to be included in the distribution, name of a Makefile target that
+#       will put these files at their proper place in the frama-c-$(VERSION)
+#       directory for a release.
+#
+# Kernel developers only
+# ----------------------
+# PLUGIN_RESET Set it to no in order to don't reset plug-in variable.
+#	Default to yes
+#
+# Except their initialisations, these variables should not be use outside of
+# Makefile.plugin.
+# Instead, you can safely use the corresponding following variables
+# in which $(PLUGIN_NAME) is the name of your plugin:
+#
+# $(PLUGIN_NAME)_DIR
+# $(PLUGIN_NAME)_CMO
+# $(PLUGIN_NAME)_CMX
+# $(PLUGIN_NAME)_CMI
+# $(PLUGIN_NAME)_TYPES_CMO
+# $(PLUGIN_NAME)_TYPES_CMX
+# $(PLUGIN_NAME)_TYPES_TODOC
+# $(PLUGIN_NAME)_BFLAGS
+# $(PLUGIN_NAME)_OFLAGS
+# $(PLUGIN_NAME)_DEPFLAGS
+# $(PLUGIN_NAME)_DOCFLAGS
+# $(PLUGIN_NAME)_GENERATED
+# $(PLUGIN_NAME)_TESTS_DIRS
+# $(PLUGIN_NAME)_TESTS_LIB
+#
+###############################################################################
+#
+# Note for the Makefile.plugin developpers:
+# If you add a new option to communicate with the main Makefile,
+# don't forget to reset it at the end of this file.
+#
+###############################################################################
+
+# The plugin types .cm* files
+PLUGIN_TYPES_CMO:=$(addsuffix .cmo, $(PLUGIN_TYPES_CMO))
+PLUGIN_TYPES_CMX:=$(PLUGIN_TYPES_CMO:.cmo=.cmx)
+$(PLUGIN_NAME)_TYPES_CMO:=$(PLUGIN_TYPES_CMO)
+$(PLUGIN_NAME)_TYPES_CMX:=$(PLUGIN_TYPES_CMX)
+$(PLUGIN_NAME)_TYPES_TODOC:=$(PLUGIN_TYPES_TODOC)
+
+PLUGIN_TYPES_CMO_LIST += $(PLUGIN_TYPES_CMO)
+PLUGIN_TYPES_CMX_LIST += $(PLUGIN_TYPES_CMX)
+
+################
+# distribution #
+################
+
+ifeq ($(PLUGIN_DISTRIBUTED),yes)
+ifdef PLUGIN_TYPES_CMO
+PLUGIN_DISTRIBUTED_LIST += $(wildcard $(patsubst %.cmo,%.ml, $(PLUGIN_TYPES_CMO))) $(wildcard $(patsubst %.cmo,%.mli, $(PLUGIN_TYPES_CMO)))
+endif
+PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_DIR)/*.ml*
+ifeq ($(PLUGIN_HAS_EXT_DOC),yes)
+PLUGIN_EXT_DOC_DIR:=doc/$(notdir $(PLUGIN_DIR))
+PLUGIN_DIST_DOC_LIST += doc/plugins/$(notdir $(PLUGIN_DIR)).pdf
+$(PLUGIN_EXT_DOC_DIR)/$(notdir $(PLUGIN_DIR)).pdf:
+	$(PRINT_MAKING) $@
+	$(MAKE) -C $(dir $@)
+
+doc/plugins/$(notdir $(PLUGIN_DIR)).pdf: \
+   $(PLUGIN_EXT_DOC_DIR)/$(notdir $(PLUGIN_DIR)).pdf
+	$(PRINT_CP) $<
+	$(MKDIR) doc/plugins
+	$(CP) $< $@
+endif
+ifdef PLUGIN_DISTRIB_EXTERNAL
+PLUGIN_DIST_EXTERNAL_LIST += $(PLUGIN_DISTRIB_EXTERNAL)
+endif
+endif
+
+ifndef ($(PLUGIN_DISTRIB_BIN))
+PLUGIN_DISTRIB_BIN:=$(PLUGIN_DISTRIBUTED)
+endif
+
+PLUGIN_OPT:=`echo "$(PLUGIN_NAME)" | tr 'A-Z' 'a-z' `
+
+ifeq ("$(PLUGIN_DISTRIB_BIN)","yes")
+CONFIG_DISTRIB_BIN += "--enable-$(PLUGIN_OPT)"
+ifeq ("$(PLUGIN_HAS_EXT_DOC)","yes")
+PLUGIN_BIN_DOC_LIST+=doc/plugins/$(notdir $(PLUGIN_DIR)).pdf
+endif
+else
+CONFIG_DISTRIB_BIN += "--disable-$(PLUGIN_OPT)"
+endif
+
+ifneq ("$(PLUGIN_ENABLE)","no")
+
+# The .cm* files list
+PLUGIN_CMO:= $(patsubst %, $(PLUGIN_DIR)/%.cmo, $(PLUGIN_CMO))
+PLUGIN_CMX:= $(PLUGIN_CMO:.cmo=.cmx)
+PLUGIN_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_CMI)) \
+	$(PLUGIN_CMO:.cmo=.cmi)
+
+HAS_GUI:=no
+ifneq  ($(ENABLE_GUI),no)
+ifneq ("$(PLUGIN_GUI_CMO)","")
+# The .cm* gui files list
+PLUGIN_GUI_CMO:= $(PLUGIN_CMO) \
+	$(patsubst %, $(PLUGIN_DIR)/%.cmo, $(PLUGIN_GUI_CMO))
+PLUGIN_GUI_CMX:= $(PLUGIN_GUI_CMO:.cmo=.cmx)
+PLUGIN_GUI_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_GUI_CMI)) \
+	$(PLUGIN_GUI_CMO:.cmo=.cmi)
+HAS_GUI:=yes
+endif
+endif
+
+# The packing files
+TARGET_CMO:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME).cmo
+ifdef PLUGIN_EXTRA_BYTE
+TARGET_CMA:= $(TARGET_CMO:.cmo=.cma)
+endif
+
+TARGET_CMX:= $(TARGET_CMO:.cmo=.cmx)
+ifdef PLUGIN_EXTRA_OPT
+TARGET_CMXA:= $(TARGET_CMO:.cmo=.cmxa)
+endif
+
+ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+TARGET_CMXS:= $(TARGET_CMX:.cmx=.cmxs)
+else
+TARGET_CMXS:=
+endif
+
+#The packing gui files
+ifeq ($(HAS_GUI),yes)
+TARGET_GUI_CMO:= $(PLUGIN_GUI_LIB_DIR)/$(PLUGIN_NAME).cmo
+TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
+ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
+else
+TARGET_GUI_CMXS:=
+endif
+endif
+
+# Some meta-variables for compilation flags
+NAME_BFLAGS :=$(PLUGIN_NAME)_BFLAGS
+NAME_OFLAGS :=$(PLUGIN_NAME)_OFLAGS
+TARGET_OFLAGS := $(PLUGIN_NAME)_TARGET_OFLAGS
+TARGET_BFLAGS := $(PLUGIN_NAME)_TARGET_BFLAGS
+ifeq ($(HAS_GUI),yes)
+NAME_GUI_BFLAGS := $(PLUGIN_NAME)_gui_BFLAGS
+NAME_GUI_OFLAGS := $(PLUGIN_NAME)_gui_OFLAGS
+TARGET_GUI_OFLAGS:= $(PLUGIN_NAME)_gui_TARGET_OFLAGS
+TARGET_GUI_BFLAGS:= $(PLUGIN_NAME)_gui_TARGET_BFLAGS
+endif
+NAME_DEPFLAGS :=$(PLUGIN_NAME)_DEPFLAGS
+NAME_DOCFLAGS :=$(PLUGIN_NAME)_DOCFLAGS
+
+# Export some variables which can be safely used outside/inside Makefile.plugin
+$(PLUGIN_NAME)_DIR:=$(PLUGIN_DIR)
+$(PLUGIN_NAME)_CMO:=$(PLUGIN_CMO)
+$(PLUGIN_NAME)_CMX:=$(PLUGIN_CMX)
+$(PLUGIN_NAME)_CMI:=$(PLUGIN_CMI)
+$(PLUGIN_NAME)_GENERATED:=$(PLUGIN_GENERATED)
+$(PLUGIN_NAME)_TARGET_BFLAGS:=$(PLUGIN_LINK_BFLAGS)
+$(PLUGIN_NAME)_TARGET_OFLAGS:=$(PLUGIN_LINK_OFLAGS)
+$(PLUGIN_NAME)_EXTRA_BYTE:=$(PLUGIN_EXTRA_BYTE)
+$(PLUGIN_NAME)_EXTRA_OPT:=$(PLUGIN_EXTRA_OPT)
+
+ifeq ($(HAS_GUI),yes)
+# gui variable
+$(PLUGIN_NAME)_gui_CMO:=$(PLUGIN_GUI_CMO)
+$(PLUGIN_NAME)_gui_CMX:=$(PLUGIN_GUI_CMX)
+$(PLUGIN_NAME)_gui_CMI:=$(PLUGIN_GUI_CMI)
+$(PLUGIN_NAME)_gui_TARGET_GUI_BFLAGS:=$(PLUGIN_LINK_GUI_BFLAGS)
+$(PLUGIN_NAME)_gui_TARGET_GUI_OFLAGS:=$(PLUGIN_LINK_GUI_OFLAGS)
+endif
+
+# Set the compilation flags for the plugin
+$(NAME_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS)
+$(NAME_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS)
+ifeq ($(HAS_GUI),yes)
+$(NAME_GUI_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS) -I +lablgtk2
+$(NAME_GUI_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS) -I +lablgtk2
+$(TARGET_GUI_BFLAGS):= $(PLUGIN_LINK_GUI_BFLAGS)
+$(TARGET_GUI_OFLAGS):=-pack $(PLUGIN_LINK_GUI_OFLAGS)
+endif
+$(NAME_DEPFLAGS):= -I $(PLUGIN_DIR) $(PLUGIN_DEPFLAGS)
+$(NAME_DOCFLAGS):= $(PLUGIN_DOCFLAGS)
+
+$(TARGET_BFLAGS):= $(PLUGIN_LINK_BFLAGS)
+$(TARGET_OFLAGS):=-pack $(PLUGIN_LINK_OFLAGS)
+
+# Add dependencies wrt other plugins for cmx.
+$(PLUGIN_CMX): $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+
+# Add the flags to the compilation line of the plugin source files
+$(PLUGIN_CMO) $(PLUGIN_CMI): BFLAGS:=$($(NAME_BFLAGS))
+$(PLUGIN_CMX): OFLAGS:=$($(NAME_OFLAGS)) -for-pack $(PLUGIN_NAME)
+
+ifeq ($(HAS_GUI),yes)
+$(PLUGIN_GUI_CMO) $(PLUGIN_GUI_CMI): BFLAGS:=$($(NAME_GUI_BFLAGS))
+$(PLUGIN_GUI_CMX): OFLAGS:=$($(NAME_GUI_OFLAGS)) -for-pack $(PLUGIN_NAME)
+endif
+
+# Now build the targets. Depend on the presence of a plugin interface.
+# Note: generate no documentation. Should be in Db.
+#########
+ifeq ("$(PLUGIN_HAS_MLI)","yes")
+# A plugin signature exists: link with it
+
+PLUGIN_MLI:= $(PLUGIN_DIR)/$(PLUGIN_NAME).mli
+TARGET_MLI:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME).mli
+TARGET_CMI:= $(TARGET_MLI:.mli=.cmi)
+
+PLUGIN_GENERATED_LIST+= $(TARGET_MLI)
+
+ifneq ($(TARGET_MLI),$(PLUGIN_MLI))
+# Copy the plugin interface in the plugins directory
+$(TARGET_MLI): $(PLUGIN_MLI)
+	$(PRINT_MAKING) $@
+	$(RM) $@
+	$(ECHO) "(* This module was generated automatically by code in Makefile and $< *)" > $@
+	$(ECHO) "#1 \"$<\"" >> $@
+	$(CAT) $< >> $@
+	$(CHMOD_RO) $@
+endif
+
+$(PLUGIN_NAME)_MLI:=$(TARGET_MLI)
+
+$(TARGET_CMO): $(PLUGIN_CMO) $(TARGET_CMI) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
+	$(PRINT_PACKING) $@
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
+	  $($(basename $(notdir $@))_CMO)
+
+$(TARGET_CMX): $(PLUGIN_CMX) $(TARGET_CMI) $(PACKED_CMX) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
+	  $($(basename $(notdir $@))_CMX)
+
+ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+$(TARGET_CMXS): $(TARGET_CMX) $(PLUGIN_EXTRA_OPT)
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ -shared $($(basename $(notdir $@))_OFLAGS) \
+		$($(basename $(notdir $@))_EXTRA_OPT) \
+                $(@:.cmxs=.cmx)
+endif
+
+#########
+else
+# No plugin signature
+
+PLUGIN_MLI:=
+$(PLUGIN_NAME)_MLI:=
+
+$(TARGET_CMO): $(PLUGIN_CMO) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
+	$(PRINT_PACKING) $@
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
+	  $($(basename $(notdir $@))_CMO)
+
+$(TARGET_CMX): $(PLUGIN_CMX) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
+	  $($(basename $(notdir $@))_CMX)
+
+ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+$(TARGET_CMXS): $(TARGET_CMX) $(PLUGIN_EXTRA_OPT)
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ -shared $($(basename $(notdir $@))_OFLAGS) \
+		$($(basename $(notdir $@))_EXTRA_OPT) \
+                $(@:.cmxs=.cmx)
+endif
+
+endif # PLUGIN_HAS_MLI
+
+ifdef PLUGIN_EXTRA_BYTE
+$(TARGET_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_CMO)
+	$(PRINT_PACKING) $@
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
+	  -a $($(basename $(notdir $@))_EXTRA_BYTE) $(@:.cma=.cmo)
+endif
+
+ifdef PLUGIN_EXTRA_OPT
+$(TARGET_CMXA): $(PLUGIN_EXTRA_OPT) $(TARGET_CMX)
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ -a $($(basename $(notdir $@))_EXTRA_OPT) \
+	  $(@:.cmxa=.cmx)
+endif
+
+ifeq ($(HAS_GUI),yes)
+ifeq ("$(PLUGIN_HAS_MLI)","yes")
+# packing gui files with signature
+#####################################
+
+TARGET_GUI_MLI:= $(PLUGIN_GUI_LIB_DIR)/$(PLUGIN_NAME).mli
+TARGET_GUI_CMI:= $(TARGET_GUI_MLI:.mli=.cmi)
+
+PLUGIN_GENERATED_LIST+= $(TARGET_GUI_MLI)
+
+$(TARGET_GUI_MLI): $(PLUGIN_MLI)
+	$(PRINT_MAKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(RM) $@
+	$(ECHO) "(* This module was generated automatically by code in Makefile and $< *)" > $@
+	$(ECHO) "#1 \"$<\"" >> $@
+	$(CAT) $< >> $@
+	$(CHMOD_RO) $@
+
+$(PLUGIN_NAME)_gui_MLI:=$(TARGET_GUI_MLI)
+
+$(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) $(TARGET_GUI_CMI) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
+	$(PRINT_PACKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	  $($(basename $(notdir $@))_TARGET_GUI_BFLAGS) \
+	  $($(basename $(notdir $@))_gui_CMO)
+
+$(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_GUI_CMI) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
+	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+	$(PRINT_PACKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
+	  $($(basename $(notdir $@))_gui_CMX)
+ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+$(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
+	$(PRINT_PACKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(OCAMLOPT) -o $@ -shared $^
+endif
+else
+# packing gui files without signature
+#####################################
+
+PLUGIN_GUI_MLI:=
+$(PLUGIN_NAME)_gui_MLI:=
+
+$(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
+	$(PRINT_PACKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	  $($(basename $(notdir $@))_TARGET_GUI_BFLAGS) \
+	  $($(basename $(notdir $@))_gui_CMO)
+
+$(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) \
+               $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
+	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
+	$(PRINT_PACKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
+	  $($(basename $(notdir $@))_gui_CMX)
+ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
+$(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
+	$(PRINT_PACKING) $@
+	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(OCAMLOPT) -o $@ -shared $^
+endif
+endif
+endif
+
+#########
+
+# The following rules used some plugin info (name and path) in their names
+# in order to used them in the command:
+# it is not possible to use $(PLUGIN_*) in commands due to the evaluation rules
+# of make
+
+##########################
+# Internal documentation #
+##########################
+
+MODULES_TODOC+= $(PLUGIN_TYPES_TODOC)
+
+PLUGIN_UNDOC := $(addprefix $(PLUGIN_DIR)/, $(PLUGIN_UNDOC))
+ifeq ($(ENABLE_GUI),no)
+PLUGIN_UNDOC += $(patsubst %, $(PLUGIN_DIR)/%.ml, $(PLUGIN_GUI_CMO)) \
+		$(patsubst %, $(PLUGIN_DIR)/%.mli, $(PLUGIN_GUI_CMO))
+endif
+
+PLUGIN_DOC_SRC := $(filter-out $(PLUGIN_UNDOC), \
+	$(wildcard $(PLUGIN_DIR)/*.ml) \
+	$(filter-out $(PLUGIN_MLI), $(wildcard $(PLUGIN_DIR)/*.mli)))
+
+$(PLUGIN_NAME)_DOC_SRC:= $(PLUGIN_DOC_SRC)
+
+PLUGIN_DOC_DIR := $(DOC_DIR)/$(notdir $(PLUGIN_DIR))
+$(PLUGIN_NAME)_DOC_DIR:= $(PLUGIN_DOC_DIR)
+
+$(PLUGIN_NAME)_INTRO:=$(PLUGIN_INTRO)
+ifdef PLUGIN_INTRO
+$(PLUGIN_NAME)_CAT_INTRO:= $(SED) -e "/^@ignore/d" $(PLUGIN_INTRO) >> $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt
+else
+$(PLUGIN_NAME)_CAT_INTRO:=
+endif
+
+$(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt: $(DOC_DIR)/intro_kernel_plugin.txt $(DOC_DIR)/intro_plugin.txt $(PLUGIN_INTRO)
+	$(PRINT_MAKING) "$@"
+	$(MKDIR) $(dir $@)
+	if test -f "$(DOC_DIR)/html/Db.$(basename $(notdir $@)).html" ; then \
+		cp -f $(DOC_DIR)/intro_kernel_plugin.txt $@ ; \
+	else \
+		cp -f $(DOC_DIR)/intro_plugin.txt $@ ; \
+	fi
+	$(ISED) -e "s/_PluginName_/$(basename $(notdir $@))/g" \
+                -e "/^@ignore/d" $@
+	$($(basename $(notdir $@))_CAT_INTRO)
+
+$(PLUGIN_DOC_DIR)/FLAGS:= -I $($(PLUGIN_NAME)_DIR) $(PLUGIN_DOCFLAGS)
+
+.PHONY: $(PLUGIN_NAME)_DOC
+$(PLUGIN_NAME)_DOC: $(PLUGIN_CMO) $(PLUGIN_DOC_SRC) \
+		    $(DOC_DIR)/kernel-doc.ocamldoc \
+	            $(DOC_PLUGIN) \
+		    $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt \
+		    $(PLUGIN_DOC_DIR)/modules.svg
+	$(PRINT_DOC) $(patsubst %_DOC,%,$@)
+	$(MKDIR) $($@_DIR)
+	$(RM) $($@_DIR)/*.html
+	$(ECHO) '<li><a href="$(subst $(DOC_DIR)/,,$($@_DIR))/index.html">$(subst _, ,$(patsubst %_DOC,%,$@))</a></li>' > $(DOC_DIR)/$(patsubst %_DOC,%,$@).toc
+	$(OCAMLDOC) $(DOC_FLAGS) $($($@_DIR)/FLAGS) \
+		-t "$(patsubst %_DOC,%,$@) plugin" \
+		-intro $($@_DIR)/$(patsubst %_DOC,%,$@).txt \
+	  	-css-style ../style.css \
+	  	-d $($@_DIR) -g $(DOC_PLUGIN) -docpath ../html \
+	  	-load $(DOC_DIR)/kernel-doc.ocamldoc $($@_SRC)
+# [rb+js] 20090619
+# pwd is required to avoid "bad directory" message on OpenBSD
+# don't know why
+	cd `pwd`/$($(patsubst %_DOC,%_DOC_DIR,$@)); \
+	for f in $(foreach f,$($(patsubst %_DOC,%_TYPES_TODOC,$@)),\
+	                     $(basename $(notdir $f))); do \
+	  for g in \
+	      $(wildcard \
+	         ../html/$(shell $(ECHO) $(f) | $(SED) 's/^./\u&/').*html); \
+          do \
+	    ln -sf $$g; \
+	  done; \
+	done
+
+# removed dependencies:
+#		    $(PLUGIN_DOC_DIR)/modules.ps \
+#		    $(PLUGIN_DOC_DIR)/modules-all.ps \
+#		    $(PLUGIN_DOC_DIR)/types.ps
+
+$(PLUGIN_DOC_DIR)/modules.dot: $(PLUGIN_DOC_SRC)
+	$(PRINT_DOC) $@
+	$(MKDIR) $(dir $@)
+	$(OCAMLDOC) $(DOC_FLAGS) $($(dir $@)FLAGS) -o $@ -dot $^
+	$(ISED) -e "s/rotate=90;//" \
+		-e 's/digraph G/digraph "Plugin architecture ($(subst /,,$(subst doc/code,,$(dir $@))))"/' \
+		$@
+
+$(PLUGIN_DOC_DIR)/modules-all.dot: $(PLUGIN_DOC_SRC)
+	$(PRINT_DOC) $@
+	$(MKDIR) $(dir $@)
+	$(OCAMLDOC) $(DOC_FLAGS) $($(dir $@)FLAGS) -o $@ -dot \
+	  -dot-include-all $^
+	$(ISED) -e "s/rotate=90;//" $@
+
+$(PLUGIN_DOC_DIR)/types.dot: $(PLUGIN_DOC_SRC)
+	$(PRINT_DOC) $@
+	$(MKDIR) $(dir $@)
+	$(OCAMLDOC) $(DOC_FLAGS) $($(dir $@)FLAGS) -o $@ -dot -dot-types $^
+	$(ISED) -e "s/rotate=90;//" $@
+
+.PHONY: $(PLUGIN_NAME)_metrics
+$(PLUGIN_NAME)_metrics : $(PLUGIN_DOC_DIR)/metrics.html
+$(PLUGIN_DOC_DIR)/metrics.html : $(PLUGIN_DOC_SRC)
+	$(PRINT_DOC) $@
+	ocamlmetrics $^ > $@
+
+############
+# Tests    #
+############
+
+ifneq ("$(PLUGIN_ENABLE)","no")
+ifndef PLUGIN_NO_TEST
+ifndef PLUGIN_TESTS_DIRS
+PLUGIN_TESTS_DIRS:=$(notdir $(PLUGIN_DIR))
+endif
+endif
+
+ifndef PLUGIN_TESTS_DIRS_DEFAULT
+PLUGIN_TESTS_DIRS_DEFAULT:=$(PLUGIN_TESTS_DIRS)
+endif
+
+ifndef PLUGIN_NO_DEFAULT_TEST
+PLUGIN_TESTS_LIST += $(PLUGIN_TESTS_DIRS_DEFAULT)
+endif
+
+$(PLUGIN_NAME)_TESTS_DIRS:=$(PLUGIN_TESTS_DIRS)
+$(PLUGIN_NAME)_DEPFLAGS_TEST:=$(add_prefix tests/,$(PLUGIN_TESTS_DIRS))
+
+$(PLUGIN_NAME)_TESTS_LIB:=$(PLUGIN_TESTS_LIB:%=%.cmx)
+$(PLUGIN_NAME)_TESTS_LIB_BYTE:=$(PLUGIN_TESTS_LIB:%=%.cmo)
+
+# [JS 2009/03/18] both .PRECIOUS are required in order to prevent 'make'
+# deletion of intermediate generated files. Such a deletion forces 'make' to
+# unnecessarily recompile those files.
+.PRECIOUS: $($(PLUGIN_NAME)_TESTS_LIB) $($(PLUGIN_NAME)_TESTS_LIB_BYTE)
+
+$(foreach d,$(PLUGIN_TESTS_DIRS),$(eval $(call COMPILE_TESTS_ML_FILES,$d,$(PLUGIN_NAME),$($(PLUGIN_NAME)_TESTS_LIB))))
+
+endif # PLUGIN_ENABLE
+
+##########
+# Depend #
+##########
+
+# If you explicitly do "make depend", force the computation of dependencies
+.PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI_MLI)
+	$(PRINT_DEP) $(dir $@).depend
+	$(RM) $(dir $@).depend
+	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
+	    $($(patsubst %_DEP_REDO,%_DEPFLAGS,$(basename $(notdir $@)))) \
+	    $(dir $@)*.mli $(dir $@)*.ml \
+	    $($(patsubst %_DEP_REDO,%_MLI, $(basename $(notdir $@))))\
+	    $($(patsubst %_DEP_REDO,%_gui_MLI, $(basename $(notdir $@))))\
+	    $(foreach d, $($(patsubst %_DEP_REDO,%_DEPFLAGS_TEST,$(basename $(notdir $@)))), -I $d $d/*.ml $d/*.mli) \
+              > $(dir $@).depend
+	$(CHMOD_RO) $(dir $@).depend
+
+# Otherwise do it only if necessary
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI_MLI)
+	$(PRINT_DEP) $(dir $@).depend
+	$(RM) $(dir $@).depend
+	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
+	    $($(basename $(notdir $@))FLAGS) \
+	    $(dir $@)*.mli $(dir $@)*.ml \
+	    $($(patsubst %_DEP,%_MLI, $(basename $(notdir $@))))\
+	    $($(patsubst %_DEP,%_gui_MLI, $(basename $(notdir $@))))\
+	    $(foreach d, $($(basename $(notdir $@))FLAGS_TEST), -I $d $d/*.ml $d/*.mli) \
+              > $(dir $@).depend
+	touch $@
+	$(CHMOD_RO) $(dir $@).depend
+# touch above = Do not recompute dependances each times
+
+############
+# Cleaning #
+############
+
+.PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
+	$(PRINT_RM) $(dir $@)
+	if test "$(FRAMAC_MAKE)" = "yes"; then \
+          $(RM) $(dir $@).depend; \
+        fi
+	$(RM) $(@:%CLEAN=%DEP) $(@:%CLEAN=%DEP_REDO)
+	$(RM) $(dir $@)*.cm* $(dir $@)*.o $(dir $@)*.annot $(dir $@)*~
+	$(RM) $(foreach d, $(@:%CLEAN=%TESTS_LIB), \
+		$(foreach f, $($(notdir $d)), \
+		$f $(f:.cmx=.cmo) $(f:.cmx=.opt) $(f:.cmx=.byte) $(f:.cmx=.o)))
+
+.PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC $($(PLUGIN_NAME)_DOC_DIR)
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
+	$(PRINT_RM) documentation of $(dir $@)
+	$(RM) -r $< 
+	$(PRINT_RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
+	$(RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
+
+# Global lists seen in Makefile.in
+ifeq ($(PLUGIN_DYNAMIC),yes)
+#dynamic plugin
+PLUGIN_DYN_EXISTS:=yes
+PLUGIN_DYN_LIST += $(PLUGIN_DIR)/$(PLUGIN_NAME)
+ifdef PLUGIN_EXTRA_BYTE
+.PRECIOUS: $(TARGET_CMO)
+PLUGIN_DYN_CMO_LIST += $(TARGET_CMA)
+else
+PLUGIN_DYN_CMO_LIST += $(TARGET_CMO)
+endif
+PLUGIN_DYN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
+ifeq ($(HAS_GUI),yes)
+PLUGIN_DYN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
+PLUGIN_DYN_GUI_EXISTS:=yes
+endif
+
+ifeq ($(USABLE_NATIVE_DYNLINK),yes)
+PLUGIN_DYN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
+PLUGIN_DYN_CMX_LIST	+= $(TARGET_CMXS)
+ifeq ($(HAS_GUI),yes)
+PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMXS)
+endif
+endif
+
+else # Normal plugin
+PLUGIN_LIST += $(PLUGIN_DIR)/$(PLUGIN_NAME)
+ifdef PLUGIN_EXTRA_BYTE
+.PRECIOUS: $(TARGET_CMO)
+PLUGIN_CMO_LIST += $(TARGET_CMA)
+else
+PLUGIN_CMO_LIST += $(TARGET_CMO)
+endif
+#PLUGIN_CMO_LIST	+= $(TARGET_CMO)
+ifdef PLUGIN_EXTRA_OPT
+.PRECIOUS: $(TARGET_CMX)
+PLUGIN_CMX_LIST += $(TARGET_CMXA)
+else
+PLUGIN_CMX_LIST += $(TARGET_CMX)
+endif
+#PLUGIN_CMX_LIST	+= $(TARGET_CMX)
+PLUGIN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
+PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
+PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
+PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
+
+endif
+
+PLUGIN_GENERATED_LIST += $(PLUGIN_GENERATED)
+PLUGIN_INTERNAL_CMO_LIST += $(PLUGIN_CMO)
+PLUGIN_INTERNAL_CMX_LIST += $(PLUGIN_CMX)
+PLUGIN_DOC_LIST += $(PLUGIN_NAME)_DOC
+PLUGIN_DOC_DIRS += $(notdir $(PLUGIN_DIR))
+
+ifeq ($(PLUGIN_DISTRIBUTED),yes)
+PLUGIN_DISTRIBUTED_NAME_LIST += $(PLUGIN_NAME)
+endif
+
+endif
+
+# Reset each "local" plugin variable
+
+ifneq ($(PLUGIN_RESET),no)
+PLUGIN_RESET:=
+PLUGIN_NAME:=
+PLUGIN_DIR:=
+PLUGIN_CMI:=
+PLUGIN_CMO:=
+PLUGIN_BFLAGS:=
+PLUGIN_OFLAGS:=
+PLUGIN_DEPFLAGS:=
+PLUGIN_DOCFLAGS:=
+PLUGIN_GENERATED:=
+PLUGIN_HAS_MLI:=
+PLUGIN_DYNAMIC:=
+PLUGIN_TYPES_CMO:=
+PLUGIN_GUI_CMO:=
+PLUGIN_GUI_CMX:=
+TARGET_GUI_CMO:=
+TARGET_GUI_CMX:=
+PLUGIN_UNDOC:=
+PLUGIN_TYPES_TODOC:=
+PLUGIN_INTRO:=
+PLUGIN_ENABLE:=
+PLUGIN_NO_TEST:=
+PLUGIN_TESTS_LIB:=
+PLUGIN_TESTS_DIRS:=
+PLUGIN_DEPENDS:=
+PLUGIN_DISTRIBUTED:=
+PLUGIN_DISTRIB_BIN:=
+PLUGIN_DISTRIB_EXTERNAL:=
+PLUGIN_HAS_EXT_DOC:=
+PLUGIN_NO_DEFAULT_TEST:=
+PLUGIN_TESTS_DIRS_DEFAULT:=
+PLUGIN_LINK_GUI_BFLAGS:=
+PLUGIN_LINK_GUI_OFLAGS:=
+PLUGIN_LINK_BFLAGS:=
+PLUGIN_LINK_OFLAGS:=
+PLUGIN_EXTRA_BYTE:=
+PLUGIN_EXTRA_OPT:=
+endif
+
+###############################################################################
+# Local Variables:
+# mode: makefile
+# End:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,47 +26,80 @@ open Abstract_value
 open Locations
 open CilE
 
-module V = struct 
+module V = struct
   include Location_Bytes
 
   let id = "Location_Bytes"
 
-  let project x = x    
+  let project x = x
 
   let is_top v =
-    match v with 
-      | Top _ -> true 
+    match v with
+      | Top _ -> true
       | _ -> false
 
   let is_bottom v = equal v bottom
-      
+
   let is_isotropic v =
-    is_zero v 
-    || equal top_int v 
-    || is_top v 
+    is_zero v
+    || equal top_int v
+    || is_top v
     || is_bottom v
 
-  let contains_zero v =
-    match v with
-      | Top _ -> true
-      | Map m -> 
-	let o = find_or_bottom Base.null m in
-	Ival.contains_zero o
+  let contains_zero loc =
+    try
+      let is_valid_offset base offset = 
+	match base with
+	  Base.Null -> 
+	    if Ival.contains_zero offset then raise Base.Not_valid_offset
+	| _ ->
+	    let bits_offset = Ival.scale (Bit_utils.sizeofchar()) offset in
+	    Base.is_valid_offset Int.zero base bits_offset
+      in
+      match loc with
+      | Location_Bytes.Top _ -> true
+      | Location_Bytes.Map m ->
+          Location_Bytes.M.iter is_valid_offset m;
+          false
+    with
+    | Int_Base.Error_Top | Int_Base.Error_Bottom 
+    | Base.Not_valid_offset -> true
 
   let contains_non_zero v =
     not ((equal v bottom) || (is_zero v))
 
   let of_char c = inject_ival (Ival.of_int (Char.code c))
 
-  exception Not_based_on_null 
+  exception Not_based_on_null
 
   let find_ival m =
-    try 
+    try
       let k, v = find_lonely_key m in
       if not (Base.is_null k)
       then raise Not_based_on_null
       else v
     with Not_found -> raise Not_based_on_null
+
+  let subdiv_float_interval v =
+    try
+      let v_ival = find_ival v in
+      let ival1, ival2 = Ival.subdiv_float_interval v_ival in
+      inject_ival ival1, inject_ival ival2
+    with Not_based_on_null -> assert false
+
+  let compare_min_float l1 l2 = 
+    try
+      let f1 = find_ival l1 in
+      let f2 = find_ival l2 in
+      Ival.compare_min_float f1 f2
+    with Not_based_on_null -> assert false
+
+ let compare_max_float l1 l2 = 
+    try
+      let f1 = find_ival l1 in
+      let f2 = find_ival l2 in
+      Ival.compare_max_float f1 f2
+    with Not_based_on_null -> assert false
 
   let filter_comparison ival_filter e1 ~cond_expr =
     match e1 with
@@ -90,64 +123,64 @@ module V = struct
   let filter_lt e1 ~cond_expr = filter_comparison Ival.filter_lt e1 ~cond_expr
   let filter_gt e1 ~cond_expr = filter_comparison Ival.filter_gt e1 ~cond_expr
 
-  let filter_le_float e1 ~cond_expr = 
+  let filter_le_float e1 ~cond_expr =
     filter_comparison_float Ival.filter_le_float e1 ~cond_expr
-  let filter_ge_float e1 ~cond_expr = 
+  let filter_ge_float e1 ~cond_expr =
     filter_comparison_float Ival.filter_ge_float e1 ~cond_expr
-  let filter_lt_float e1 ~cond_expr = 
+  let filter_lt_float e1 ~cond_expr =
     filter_comparison_float Ival.filter_lt_float e1 ~cond_expr
-  let filter_gt_float e1 ~cond_expr = 
+  let filter_gt_float e1 ~cond_expr =
     filter_comparison_float Ival.filter_gt_float e1 ~cond_expr
 
   let pretty fmt v =
     (*Format.printf "@[HERE@.@]";*)
-    let pretty_org fmt org = 
-      if not (Origin.is_top org) then 
+    let pretty_org fmt org =
+      if not (Origin.is_top org) then
         Format.fprintf fmt " (origin: %a)" Origin.pretty org
     in
     match v with
-      | Top (Top_Param.Top, a) -> 
+      | Top (Top_Param.Top, a) ->
           Format.fprintf fmt "{{ ANYTHING%a }}"
 	    pretty_org a
-      | Top (t, a) -> 
-          Format.fprintf fmt "{{ garbled mix of &%a%a }}" 
+      | Top (t, a) ->
+          Format.fprintf fmt "{{ garbled mix of &%a%a }}"
 	    Top_Param.pretty t
 	    pretty_org a
       | Map m ->
 	  try
 	    Ival.pretty fmt (find_ival v)
-	  with 
+	  with
             | Not_based_on_null ->
-	        let print_binding k v = 
-	          if Ival.equal Ival.singleton_zero v 
-	          then Format.fprintf fmt " &%a ;" Base.pretty k 
-	          else 
-		    Format.fprintf fmt " &%a + %a ;" 
+	        let print_binding k v =
+	          if Ival.equal Ival.singleton_zero v
+	          then Format.fprintf fmt " &%a ;" Base.pretty k
+	          else
+		    Format.fprintf fmt " &%a + %a ;"
 		      Base.pretty k Ival.pretty v
 	        in
 	          Format.fprintf fmt "{{";
 	          (M.iter print_binding) m;
 	          Format.fprintf fmt "}}"
-      
+
 (* Returns the list of non NULL Base.t that have a null offset in the map.
-   The boolean is true iff the result is exact. Otherwise it is 
+   The boolean is true iff the result is exact. Otherwise it is
    under-approximated. *)
-  let find_exact_base_without_offset v = match v with 
+  let find_exact_base_without_offset v = match v with
     | Top _ -> [],false
-    | Map m -> 
+    | Map m ->
         let exact = ref true in
         let result = ref [] in
-        let get_binding k v = 
-          if Ival.equal Ival.singleton_zero v 
+        let get_binding k v =
+          if Ival.equal Ival.singleton_zero v
 	  then result := k::!result
 	  else exact := false
         in
         M.iter get_binding m;
         !result,!exact
-          
-  let inject_int (v:Int.t) = 
+
+  let inject_int (v:Int.t) =
     inject_ival (Ival.inject_singleton v)
-      
+
   let interp_boolean ~contains_zero ~contains_non_zero =
     match contains_zero, contains_non_zero with
     | true, true -> zero_or_one
@@ -162,18 +195,18 @@ module V = struct
       try
         Location_Bytes.location_shift (find_ival v2) v1
       with
-	  Not_based_on_null  -> 
-	    join 
-	      (topify_arith_origin v1) 
+	  Not_based_on_null  ->
+	    join
+	      (topify_arith_origin v1)
 	      (topify_arith_origin v2)
 
   (* compute [e1+factor*e2] using C semantic for +, i.e.
      [ptr+v] is [add_untyped sizeof_in_octets( *ptr) ptr v] *)
   let add_untyped factor e1 e2 =
     try
-      if Int_Base.equal factor (Int_Base.minus_one) 
-      then 
-	(* Either e1 and e2 have the same base, and it's a substraction 
+      if Int_Base.equal factor (Int_Base.minus_one)
+      then
+	(* Either e1 and e2 have the same base, and it's a substraction
 	   of pointers, or e2 is really an integer *)
 	let b1, o1 = Location_Bytes.find_lonely_key e1 in
 	let b2, o2 = Location_Bytes.find_lonely_key e2 in
@@ -184,7 +217,7 @@ module V = struct
 	then raise Not_found; (* cannot multiply a pointer *)
 	add e1 e2
       end
-    with Not_found -> 
+    with Not_found ->
       (* we end up here if the only way left to make this
 	 addition is to convert e2 to an integer *)
       try
@@ -194,7 +227,7 @@ module V = struct
         join (topify_arith_origin e1) (topify_arith_origin e2)
 
   let rec check_equal positive e1 e2 =
-    let one,zero = 
+    let one,zero =
       if positive then Ival.singleton_one, Ival.singleton_zero else
         Ival.singleton_zero, Ival.singleton_one
     in
@@ -203,8 +236,8 @@ module V = struct
          cardinal_zero_or_one e2 &&
          (equal e1 e2)
        then one
-       else 
-         if intersects e1 e2 
+       else
+         if intersects e1 e2
 	   (* [intersects] gives an exact answer *)
          then Ival.zero_or_one
          else zero)
@@ -217,80 +250,81 @@ module V = struct
     ;*)
     result
 
-  let compare_min_max min max = 
+  let compare_min_max min max =
     match min,max with
     | None,_ -> -1
     | _,None -> -1
     | Some min, Some max -> Int.compare min max
 
-  let compare_max_min max min = 
+  let compare_max_min max min =
     match max,min with
     | None,_ -> 1
     | _,None -> 1
     | Some max, Some min -> Int.compare max min
 
-  let do_le min1 max1 min2 max2 = 
+  let do_le min1 max1 min2 max2 =
     if compare_max_min max1 min2 <= 0 then singleton_one
     else if compare_min_max min1 max2 > 0 then singleton_zero
     else zero_or_one
 
-  let do_ge min1 max1 min2 max2 = 
+  let do_ge min1 max1 min2 max2 =
     do_le min2 max2 min1 max1
 
-  let do_lt min1 max1 min2 max2 = 
+  let do_lt min1 max1 min2 max2 =
     if compare_max_min max1 min2 < 0 then singleton_one
     else if compare_min_max min1 max2 >= 0 then singleton_zero
     else zero_or_one
 
-  let do_gt min1 max1 min2 max2 = 
+  let do_gt min1 max1 min2 max2 =
     do_lt min2 max2 min1 max1
 
-  let comparisons _info f e1 e2 = 
+  let comparisons _info f e1 e2 =
     try
       let k1,v1 = find_lonely_key e1 in
       let k2,v2 = find_lonely_key e2 in
-      if Base.compare k1 k2 <> 0 
+      if Base.compare k1 k2 <> 0
       then zero_or_one
       else Ival.compare_C f v1 v2
     with Not_found ->
       zero_or_one
 
-  let cast ~with_alarms ~size ~signed expr = 
+  let cast ~with_alarms ~size ~signed expr =
     try
       let i = find_ival expr in
 	inject_ival (Ival.cast ~size ~signed ~value:i)
-    with 
+    with
       | Not_based_on_null ->
-	  if Int.compare size (Int.of_int (Bit_utils.sizeofpointer ())) >= 0 
+	  if Int.compare size (Int.of_int (Bit_utils.sizeofpointer ())) >= 0
 	    || (match expr with Top _ -> true | _ -> false)
 	  then expr
 	  else begin
              if is_bottom expr || is_top expr then expr
-             else begin 
+             else begin
                	(match with_alarms.imprecision_tracing with
                  | Aignore -> ()
                  | Acall f -> f ()
-                 | Alog -> CilE.warn_once 
+                 | Alog -> CilE.warn_once
                      "casting address to a type smaller than sizeof(void*): @[%a@]"
                        Location_Bytes.pretty expr);
 	       topify_arith_origin expr
              end
 	  end
 
-  let import_function ~topify_arith_origin ~with_alarms info f e1 e2 = 
+  let import_function ~topify_arith_origin ~with_alarms info f e1 e2 =
     try
       let v1 = find_ival e1 in
       let v2 = find_ival e2 in
       inject_ival (f v1 v2)
-    with Not_based_on_null  -> 
+    with Not_based_on_null  ->
       (match with_alarms.imprecision_tracing with
        | Aignore -> ()
        | Acall f -> f ()
-       | Alog -> 
+       | Alog ->
            match e1,e2 with
-           | Map _, Map _ -> 
-               CilE.warn_once "unsupported %s on addresses(%a,%a)" info 
+           | Map _, Map _ ->
+               CilE.warn_once "Operation %a %s %a incurs a loss of precision" 
                  pretty e1
+		 info
                  pretty e2
            | _ -> ());
       join (topify_arith_origin e1) (topify_arith_origin e2)
@@ -298,16 +332,18 @@ module V = struct
 
   let arithmetic_function = import_function ~topify_arith_origin
 
-  let unary_arithmetic_function  ~with_alarms info f e1 = 
+  let unary_arithmetic_function  ~with_alarms info f e1 =
     try
       let v1 = find_ival e1 in
       inject_ival (f v1)
-    with Not_based_on_null  -> 
+    with Not_based_on_null  ->
       (match with_alarms.imprecision_tracing with
        | Aignore -> ()
        | Acall f -> f ()
        | Alog -> match e1 with
-         | Map _ -> warn_once "unsupported %s on addresses(%a)" info pretty e1
+         | Map _ -> 
+	     warn_once "Operation %s %a incurs a loss of precision" 
+	       info pretty e1
          | _ -> ());
       topify_arith_origin e1
 
@@ -322,79 +358,83 @@ module V = struct
       | Acall f -> f ()
       | Alog -> warn_once "cast float to int : alarm (TODO)");
      topify_arith_origin v
-     
+
  let cast_int_to_float ~with_alarms v =
    unary_arithmetic_function ~with_alarms "integer promotion" Ival.cast_int_to_float v
 
-  let div ~with_alarms e1 e2 = 
-    if equal e2 singleton_one 
+  let div ~with_alarms e1 e2 =
+    if equal e2 singleton_one
     then e1
     else begin
       if (with_alarms.others <> Aignore) && contains_zero e2 then CilE.warn_div with_alarms;
       arithmetic_function ~with_alarms "/" Ival.div e1 e2
     end
-      
-  let shift_left ~topify_arith_origin ~with_alarms ~size e1 e2 = 
+
+  let c_rem ~with_alarms e1 e2 =
+    if (with_alarms.others <> Aignore) && contains_zero e2 then CilE.warn_div with_alarms;
+    arithmetic_function ~with_alarms "%" Ival.c_rem e1 e2
+
+  let shift_left ~topify_arith_origin ~with_alarms ~size e1 e2 =
     let size_int = Int.of_int size in
-    let valid_range = 
-      inject_ival (Ival.inject_range (Some Int.zero) (Some (Int.pred size_int))) 
+    let valid_range =
+      inject_ival (Ival.inject_range (Some Int.zero) (Some (Int.pred size_int)))
     in
     if not (intersects e2 valid_range) then begin
       (warn_shift with_alarms size;
-       if (with_alarms.others <> Aignore) then warn_once 
+       if (with_alarms.others <> Aignore) then warn_once
          "invalid shift of %a-bit value by %a. This path is assumed to be dead."
 	 Int.pretty size_int
          pretty e2);
       bottom
-    end else 
-      match e2 with 
-      | Top _ -> 
-          warn_shift with_alarms size; 
+    end else
+      match e2 with
+      | Top _ ->
+          warn_shift with_alarms size;
           join (topify_arith_origin e1) (topify_arith_origin e2)
-      | Map m -> 
+      | Map m ->
           begin
-            if (with_alarms.others <> Aignore) 
-	      && not (is_included e2 valid_range) 
+            if (with_alarms.others <> Aignore)
+	      && not (is_included e2 valid_range)
             then warn_shift with_alarms size;
-            try 
+            try
               let e2 = inject_ival (M.find Base.null m) in
-              import_function 
+              import_function
 		~topify_arith_origin
-		~with_alarms 
-		"<<" 
+		~with_alarms
+		"<<"
 		(Ival.shift_left ~size:size_int) e1 e2
-            with Not_found -> 
+            with Not_found ->
               join (topify_arith_origin e1) (topify_arith_origin e2)
           end
 
   let oper_on_values ~with_alarms info f v1 v2 =
-    arithmetic_function with_alarms info (Ival.apply_set info f) v1 v2 
+    arithmetic_function with_alarms info (Ival.apply_set info f) v1 v2
 
-  let shift_right ~with_alarms ~size ~signed:_ e1 e2 = 
+  let shift_right ~with_alarms ~size ~signed:_ e1 e2 =
     let size_int = Int.of_int size in
-    let valid_range = 
-      inject_ival (Ival.inject_range (Some Int.zero) (Some (Int.pred size_int))) 
+    let valid_range =
+      inject_ival (Ival.inject_range (Some Int.zero) (Some (Int.pred size_int)))
     in
     if not (intersects e2 valid_range) then begin
       (warn_shift  with_alarms size;
-       if (with_alarms.others <> Aignore) then 
-         warn_once 
+       if (with_alarms.others <> Aignore) then
+         warn_once
            "invalid shift of %a-bit value by %a. This path is assumed to be dead."
 	Int.pretty size_int
 	   pretty e2);
       bottom
-    end else 
-      match e2 with 
-      | Top _ -> warn_shift with_alarms size; 
+    end else
+      match e2 with
+      | Top _ -> warn_shift with_alarms size;
           join (topify_arith_origin e1) (topify_arith_origin e2)
-      | Map m -> 
+      | Map m ->
           begin
-            if (with_alarms.others <> Aignore) 
-	      && not (is_included e2 valid_range) 
+            if (with_alarms.others <> Aignore)
+	      && not (is_included e2 valid_range)
             then CilE.warn_shift with_alarms size;
-            try 
+            try
               let e2 = inject_ival (M.find Base.null m) in
-              arithmetic_function ~with_alarms ">>" 
+              arithmetic_function ~with_alarms ">>"
                 (Ival.shift_right ~size:size_int) e1 e2
             with Not_found ->
               join (topify_arith_origin e1) (topify_arith_origin e2)
@@ -402,44 +442,44 @@ module V = struct
 
   let bitwise_and ~size e1 e2 =
     let bitwise_and_pointer_ival p _ival =
-      Location_Bytes.location_shift 
+      Location_Bytes.location_shift
 	(Ival.inject_top None (Some Int.zero) Int.zero Int.one)
-	p 
+	p
     in
       try
 	let v1 = find_ival e1 in
 	try
 	  let v2 = find_ival e2 in
-	  let result = Ival.bitwise_and ~size v1 v2	    
+	  let result = Ival.bitwise_and ~size v1 v2
 	  in
 	  inject_ival result
 	with Not_based_on_null ->
 	  bitwise_and_pointer_ival e2 v1
-      with Not_based_on_null  -> 
+      with Not_based_on_null  ->
 	try
 	  let v2 = find_ival e2 in
 	  bitwise_and_pointer_ival e1 v2
-	with Not_based_on_null -> 
+	with Not_based_on_null ->
 	  join (topify_arith_origin e1) (topify_arith_origin e2)
 
   let bitwise_or ~topify_arith_origin ~size e1 e2 =
     try
       let v1 = find_ival e1 in
       let v2 = find_ival e2 in
-      let result = Ival.bitwise_or ~size v1 v2	    
+      let result = Ival.bitwise_or ~size v1 v2
       in
       inject_ival result
     with Not_based_on_null ->
       join (topify_arith_origin e1) (topify_arith_origin e2)
 
-  let extract_bits ~with_alarms ~start ~stop v = 
+  let extract_bits ~with_alarms ~start ~stop v =
     try
       let i = find_ival v in
 	inject_ival (Ival.extract_bits ~with_alarms ~start ~stop i)
-    with 
-      | Not_based_on_null -> 
+    with
+      | Not_based_on_null ->
           if is_top v then v
-          else begin 
+          else begin
             (match with_alarms.imprecision_tracing with
              | Aignore -> ()
              | Acall f -> f ()
@@ -450,11 +490,11 @@ module V = struct
   let big_endian_merge_bits ~total_length ~length ~value ~offset acc =
     let total_length_i = Int.of_int total_length in
     assert (Int.le (Int.add length offset) total_length_i);
-    let result = 
+    let result =
       bitwise_or
 	~topify_arith_origin:topify_misaligned_read_origin
 	~size:total_length
-	(shift_left 
+	(shift_left
 	    ~topify_arith_origin:topify_misaligned_read_origin
 	    ~with_alarms:warn_none_mode
 	    ~size:total_length
@@ -462,21 +502,21 @@ module V = struct
 	   (inject_ival (Ival.inject_singleton (Int.sub (Int.sub total_length_i offset) length))))
 	acc
     in
-(*    Format.printf "be merge_bits : total_length:%d length:%a value:%a offset:%a acc:%a GOT:%a@." 
-      total_length 
-      Int.pretty length 
-      pretty value 
+(*    Format.printf "be merge_bits : total_length:%d length:%a value:%a offset:%a acc:%a GOT:%a@."
+      total_length
+      Int.pretty length
+      pretty value
       Int.pretty offset
       pretty acc
       pretty result; *)
     result
 
   let little_endian_merge_bits ~total_length ~value ~offset acc =
-    let result = 
+    let result =
       bitwise_or
 	~topify_arith_origin:topify_misaligned_read_origin
         ~size:total_length
-        (shift_left 
+        (shift_left
 	    ~topify_arith_origin:topify_misaligned_read_origin
            ~with_alarms:warn_none_mode
            ~size:total_length
@@ -484,19 +524,22 @@ module V = struct
            (inject_ival (Ival.inject_singleton offset)))
         acc
     in
-    (*Format.printf "le merge_bits : total_length:%d value:%a offset:%a acc:%a GOT:%a@." 
+    (*Format.printf "le merge_bits : total_length:%d value:%a offset:%a acc:%a GOT:%a@."
       total_length pretty value Int.pretty offset pretty acc pretty result;*)
     result
-      
-  let all_values ~size v = 
-    (not (Cmdline.IgnoreOverflow.get ())) &&
-      try 
+
+  let all_values ~size v =
+    (Parameters.Overflow.get ()) &&
+      try
         let i = find_ival v in
           Ival.all_values ~size i
       with Not_based_on_null -> false
-        
-  let anisotropic_cast ~size v = 
-    if all_values ~size v then topify_arith_origin v else v
+
+  let anisotropic_cast ~size v =
+    if all_values ~size v then top_int else v
+
+  let create_all_values ~modu ~signed ~size =
+    inject_ival (Ival.create_all_values ~modu ~signed ~size)
 
   let bitwise_or = bitwise_or ~topify_arith_origin
   let shift_left = shift_left ~topify_arith_origin
@@ -515,45 +558,45 @@ module V_Or_Uninitialized = struct
   let is_included_actual_generic b1 b2 instanciation t1 t2 =
     if (t2.initialized ==> t1.initialized)
       && (t2.no_escaping_adr ==> t1.no_escaping_adr)
-    then 
+    then
       V.is_included_actual_generic b1 b2 instanciation t1.v t2.v
     else raise Abstract_interp.Is_not_included
 
   type widen_hint = V.widen_hint
-  let widen wh t1 t2 = { initialized = t2.initialized; 
-			 no_escaping_adr = t2.no_escaping_adr; 
+  let widen wh t1 t2 = { initialized = t2.initialized;
+			 no_escaping_adr = t2.no_escaping_adr;
                          v = V.widen wh t1.v t2.v}
-  let equal t1 t2 = 
-    t1.initialized = t2.initialized && 
-    t1.no_escaping_adr = t2.no_escaping_adr && 
+  let equal t1 t2 =
+    t1.initialized = t2.initialized &&
+    t1.no_escaping_adr = t2.no_escaping_adr &&
     V.equal t1.v t2.v
 
   exception Error_Bottom
   exception Error_Top
 
-  let join t1 t2 = 
+  let join t1 t2 =
     {
       initialized = t1.initialized && t2.initialized;
       no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
       v = V.join t1.v t2.v
     }
 
-  let narrow t1 t2 = 
-    {initialized = t1.initialized && t2.initialized;
-     no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
-     v = V.narrow t1.v t2.v
-    }
-  let link t1 t2 = 
+  let narrow t1 t2 =
     {initialized = t1.initialized || t2.initialized;
      no_escaping_adr = t1.no_escaping_adr || t2.no_escaping_adr;
+     v = V.narrow t1.v t2.v
+    }
+  let link t1 t2 =
+    {initialized = t1.initialized && t2.initialized;
+     no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
      v = V.link t1.v t2.v
     }
-  let meet t1 t2 = 
+  let meet t1 t2 =
     {no_escaping_adr = t1.no_escaping_adr || t2.no_escaping_adr;
      initialized = t1.initialized || t2.initialized;
      v = V.meet t1.v t2.v
     }
-      
+
   let bottom = { initialized = true;
 		 no_escaping_adr = true;
                  v = V.bottom;}
@@ -562,93 +605,93 @@ module V_Or_Uninitialized = struct
 	       no_escaping_adr = false;
                v = V.top;}
 
-  let uninitialized = 
+  let uninitialized =
     { initialized = false;
       no_escaping_adr = true;
       v = V.bottom;}
 
-  let initialized v = 
+  let initialized v =
     { initialized = true ;
       no_escaping_adr = true;
       v = v;}
 
-  let is_included t1 t2 = 
-    (t2.initialized ==> t1.initialized) && 
+  let is_included t1 t2 =
+    (t2.initialized ==> t1.initialized) &&
     (t2.no_escaping_adr ==> t1.no_escaping_adr) &&
       V.is_included t1.v t2.v
 
-  let is_included_exn t1 t2 = 
-    if (t2.initialized ==> t1.initialized) && 
-      (t2.no_escaping_adr ==> t1.no_escaping_adr) 
-    then 
+  let is_included_exn t1 t2 =
+    if (t2.initialized ==> t1.initialized) &&
+      (t2.no_escaping_adr ==> t1.no_escaping_adr)
+    then
       V.is_included_exn t1.v t2.v
     else raise Abstract_interp.Is_not_included
 
-  let intersects t1 t2 = 
+  let intersects t1 t2 =
     ((not t2.initialized) && (not t1.initialized)) ||
     ((not t2.no_escaping_adr) && (not t1.no_escaping_adr)) ||
       V.intersects t1.v t2.v
 
-  let pretty fmt t = 
-    if t.initialized && t.no_escaping_adr 
+  let pretty fmt t =
+    if t.initialized && t.no_escaping_adr
     then V.pretty fmt t.v
-    else if equal t uninitialized 
+    else if equal t uninitialized
     then Format.fprintf fmt "UNINITIALIZED"
-    else if t.initialized && not t.no_escaping_adr 
+    else if t.initialized && not t.no_escaping_adr
     then Format.fprintf fmt "%a or ESCAPINGADDR" V.pretty t.v
-    else if (not t.initialized) && t.no_escaping_adr 
+    else if (not t.initialized) && t.no_escaping_adr
     then Format.fprintf fmt "%a or UNINITIALIZED" V.pretty t.v
     else Format.fprintf fmt "%a or UNINITIALIZED or ESCAPINGADDR" V.pretty t.v
-      
+
   let cardinal_zero_or_one t =
     t.initialized && t.no_escaping_adr && V.cardinal_zero_or_one t.v
 
-  let cardinal_less_than t b = 
+  let cardinal_less_than t b =
     if t.initialized && t.no_escaping_adr then V.cardinal_less_than t.v b
     else raise Abstract_interp.Not_less_than
 
-  let tag t = 
-    (Hashtbl.hash t.initialized) * 433 + 
-    (Hashtbl.hash t.no_escaping_adr) * 4513 +       
+  let tag t =
+    (Hashtbl.hash t.initialized) * 433 +
+    (Hashtbl.hash t.no_escaping_adr) * 4513 +
     (V.tag t.v)
 
   let hash = tag
 
   type tt = t
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype =
+    Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
-	 let rehash t = 
+	 let rehash t =
            let rehashed_v = V.Datatype.rehash t.v in
-           {initialized=t.initialized; 
-            no_escaping_adr=t.no_escaping_adr; 
+           {initialized=t.initialized;
+            no_escaping_adr=t.no_escaping_adr;
             v = rehashed_v }
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name = id
        end)
-    let () = register_comparable ~hash:tag ~equal ()
-  end
+  let () = Datatype.register_comparable ~hash:tag ~equal ()
 
   module Top_Param = V.Top_Param
 
   let is_isotropic t = V.is_isotropic t.v
 
-  let cast ~with_alarms ~size ~signed t = 
+  let cast ~with_alarms ~size ~signed t =
     {no_escaping_adr = t.no_escaping_adr;
      initialized = t.initialized;
      v = V.cast ~with_alarms ~size ~signed t.v}
-  let extract_bits ~with_alarms ~start ~stop t = 
+  let extract_bits ~with_alarms ~start ~stop t =
     {no_escaping_adr = t.no_escaping_adr;
      initialized = t.initialized;
      v = V.extract_bits ~with_alarms ~start ~stop t.v}
 
-  let bitwise_or ~size t1 t2 = 
+  let bitwise_or ~size t1 t2 =
     { no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
       initialized = t1.initialized && t2.initialized ;
       v = V.bitwise_or ~size t1.v t2.v}
 
-  let shift_left ~with_alarms ~size t1 t2 = 
+  let shift_left ~with_alarms ~size t1 t2 =
     {no_escaping_adr = t1.no_escaping_adr && t2.no_escaping_adr;
      initialized = t1.initialized && t2.initialized ;
      v = V.shift_left ~with_alarms ~size t1.v t2.v}
@@ -663,42 +706,42 @@ module V_Or_Uninitialized = struct
      no_escaping_adr = t.no_escaping_adr && value.no_escaping_adr;
      v = V.big_endian_merge_bits ~total_length ~length ~value:value.v ~offset t.v}
 
-  let topify_merge_origin t = 
+  let topify_merge_origin t =
     {initialized = t.initialized;
 no_escaping_adr = t.no_escaping_adr;
      v = V.topify_merge_origin t.v}
 
-  let topify_arith_origin t = 
+  let topify_arith_origin t =
     {initialized = t.initialized;
 no_escaping_adr = t.no_escaping_adr;
      v = V.topify_arith_origin t.v}
 
-  let topify_misaligned_read_origin t = 
+  let topify_misaligned_read_origin t =
     {initialized = t.initialized;
 no_escaping_adr = t.no_escaping_adr;
      v = V.topify_misaligned_read_origin t.v}
 
-  let topify_with_origin o t = 
+  let topify_with_origin o t =
     {initialized = t.initialized;
 no_escaping_adr = t.no_escaping_adr;
      v = V.topify_with_origin o t.v}
 
-  let anisotropic_cast ~size t = 
+  let anisotropic_cast ~size t =
     {initialized = t.initialized;
 no_escaping_adr = t.no_escaping_adr;
      v = V.anisotropic_cast ~size t.v}
 
-  let inject_top_origin o t = 
+  let inject_top_origin o t =
     {initialized = true;
      no_escaping_adr = true;
      v = V.inject_top_origin o t}
 
-  let under_topify t = 
+  let under_topify t =
     {initialized = t.initialized;
      no_escaping_adr = t.no_escaping_adr;
      v = V.under_topify t.v}
 
-  let of_char c = 
+  let of_char c =
     {initialized = true;
      no_escaping_adr = true;
      v = V.of_char c;}
@@ -708,16 +751,16 @@ no_escaping_adr = t.no_escaping_adr;
      no_escaping_adr = true;
      v = V.singleton_zero;}
 
-  let unspecify_escaping_locals fundec t = 
+  let unspecify_escaping_locals is_local t =
     {initialized = t.initialized;
      no_escaping_adr = false;
-     v = V.remove_escaping_locals fundec t.v}
+     v = V.remove_escaping_locals is_local t.v}
 end
 
 module V_Offsetmap = Offsetmap.Make(V_Or_Uninitialized)
 
 (*
-module R_V = 
+module R_V =
 struct
   include V
 end
@@ -732,17 +775,17 @@ module V_Offsetmap_ext = V_Offsetmap
   type t = V_Offsetmap.t * V_Offsetmap.t
   type tt = t
 
-  let pretty fmt (o,c) = 
+  let pretty fmt (o,c) =
     V_Offsetmap.pretty fmt o
 
-  let pretty_typ typ fmt (o,c) = 
+  let pretty_typ typ fmt (o,c) =
     V_Offsetmap.pretty_typ typ fmt o
 
   let pretty_debug _ = assert false
 
-  let equal (o1, c1) (o2, c2) = 
+  let equal (o1, c1) (o2, c2) =
     V_Offsetmap.equal o1 o2 && C_Offsetmap.equal c1 c2
-      
+
   let empty = V_Offsetmap.empty, C_Offsetmap.empty
 
   let is_empty = equal empty
@@ -754,18 +797,18 @@ module V_Offsetmap_ext = V_Offsetmap
 	let rehash = assert false
 	let copy _ = assert false (* TODO *)
 	let before_load () = ()
-	let after_load () = assert false 
+	let after_load () = assert false
 	let name = Project.Datatype.Name.extend "ext" V_Offsetmap.Datatype.name
-	let dependencies = [ V_Offsetmap.Datatype.self ] 
-      end)      
+	let dependencies = [ V_Offsetmap.Datatype.self ]
+      end)
 end*)
 
 module Partial_lmap = Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap_ext)
 
-module Default_offsetmap = 
-struct  
+module Default_offsetmap =
+struct
   let initialized_var_table = Cilutil.VarinfoHashtbl.create 17
-    
+
   let create_initialized_var varinfo validity initinfo =
     Cilutil.VarinfoHashtbl.add initialized_var_table varinfo initinfo;
     Base.create_initialized varinfo validity
@@ -775,7 +818,7 @@ struct
       (try Cilutil.VarinfoHashtbl.find initialized_var_table v
         with Not_found ->
           V_Offsetmap.empty)
-  | Base.Var _ | Base.Null 
+  | Base.Var _ | Base.Null
   | Base.Cell_class _ -> V_Offsetmap.empty
   | Base.String (_,s) -> V_Offsetmap.from_string s
 end
@@ -787,20 +830,20 @@ struct
 
   let find_unspecified = find
 
-  let find ~with_alarms x y = 
+  let find ~with_alarms x y =
     let v = (find ~with_alarms x y) in
-    if not v.V_Or_Uninitialized.initialized 
+    if not v.V_Or_Uninitialized.initialized
     then warn_uninitialized with_alarms;
-    if not v.V_Or_Uninitialized.no_escaping_adr 
+    if not v.V_Or_Uninitialized.no_escaping_adr
     then warn_escapingaddr with_alarms;
 
-    if with_alarms.unspecified <> Aignore && 
+    if with_alarms.unspecified <> Aignore &&
       V.is_bottom v.V_Or_Uninitialized.v &&
-      not (v.V_Or_Uninitialized.initialized && 
+      not (v.V_Or_Uninitialized.initialized &&
 	      v.V_Or_Uninitialized.no_escaping_adr)
     then
-      warn_once 
-        "completely unspecified value in %a. This path is assumed to be dead." 
+      warn_once
+        "completely unspecified value in %a. This path is assumed to be dead."
         Locations.pretty y;
     v.V_Or_Uninitialized.v
 
@@ -808,8 +851,11 @@ struct
     add_binding ~with_alarms:warn_none_mode ~exact:true acc loc (V_Or_Uninitialized.uninitialized)
 
   let add_binding ~with_alarms ~exact acc loc value =
-    add_binding ~with_alarms ~exact acc loc (V_Or_Uninitialized.initialized value) 
+    add_binding ~with_alarms ~exact acc loc (V_Or_Uninitialized.initialized value)
 
-  let create_initial ~base ~v ~modu ~state  = 
+ let reduce_binding ~with_alarms acc loc value =
+    reduce_binding  ~with_alarms acc loc (V_Or_Uninitialized.initialized value)
+
+  let create_initial ~base ~v ~modu ~state  =
     create_initial ~base ~v:(V_Or_Uninitialized.initialized v) ~modu ~state
 end

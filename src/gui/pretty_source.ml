@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pretty_source.ml,v 1.31 2008/10/03 13:09:16 uid568 Exp $ *)
+(* $Id: pretty_source.ml,v 1.36 2009-02-13 07:59:29 uid562 Exp $ *)
 
 open Format
 open Cil_types
@@ -33,38 +33,47 @@ type localizable =
   | PLval of (kernel_function option * kinstr * lval)
   | PTermLval of (kernel_function option*  kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
+  | PCodeAnnot of (kernel_function * stmt * code_annotation)
+  | PGlobal of global
+  | PBehavior of (kernel_function*funbehavior)
+  | PPredicate of (kernel_function option*kinstr*identified_predicate)
+
 
 module Localizable_Datatype =
   Project.Datatype.Imperative
-    (struct 
-       type t = localizable 
+    (struct
+       type t = localizable
        let copy _ = assert false (* TODO *)
        let name = "localizable"
      end)
 
 module Locs:sig
-  val add: int * int -> localizable -> unit
-  val iter : (int * int -> localizable -> unit) -> unit
-  val create : (unit -> unit) -> unit
-  val find_next_start :  int -> (localizable -> bool) -> int
-  val find :  int -> (int * int) * localizable
   type state
-  val locs : state ref
-  val hilite : unit -> unit
-end = struct
+  val add: state -> int * int -> localizable -> unit
+  val iter : state -> (int * int -> localizable -> unit) -> unit
+  val create : unit -> state
+  val find_next_start :  state -> int -> (localizable -> bool) -> int
+  val find : state -> int -> (int * int) * localizable
+  val hilite : state -> unit
+  val set_hilite : state -> (unit -> unit) -> unit
+end 
+= 
+struct
   type state = { table : (int*int,localizable) Hashtbl.t;
-               hiliter : unit -> unit
-             }
-  let locs = ref { table = Hashtbl.create 97;
-               hiliter = (fun () -> ())
-             }
-  let hilite () = !locs.hiliter ()
-  let create h =
-    locs := {table = Hashtbl.create 97; hiliter = h}
+                 mutable hiliter : unit -> unit}
 
-  let add loc v = Hashtbl.add !locs.table loc v
+  let create () =
+    {table = Hashtbl.create 97; 
+     hiliter = (fun () -> ())}
 
-  let find p =
+  let hilite state = state.hiliter ()
+ 
+  let set_hilite state f = 
+    state.hiliter <- f
+    
+  let add state loc v = Hashtbl.add state.table loc v
+
+  let find state p =
     let best = ref None in
     let update ((b,e) as loc) sid =
       if b <= p && p <= e then
@@ -72,31 +81,32 @@ end = struct
 	  | None -> best := Some (loc, sid)
 	  | Some ((b',e'),_) -> if e-b < e'-b' then best := Some (loc, sid)
     in
-    Hashtbl.iter update !locs.table;
+    Hashtbl.iter update state.table ;
     match !best with None -> raise Not_found | Some (loc,sid) -> loc, sid
 
   (* Find the closest localizable q after position p such that [predicate q]. *)
-  let find_next_start p predicate =
-    let current,_localized = find p in
+  let find_next_start state p predicate =
+    let current,_localized = find state p in
     let next = ref (p+1) in
     while
-      let next_start,next_item = find !next in
+      let next_start,next_item = find state !next in
       next_start = current || not (predicate next_item)
     do
       incr next
     done;
-    (* Format.printf "Char %d has next %d@." p !next;*)
+    (* Parameters.debug "Char %d has next %d" p !next;*)
     !next
 
-  let iter f =
-    (*Format.printf "Iterate on %d locations@." (Hashtbl.length locs);*)
-    Hashtbl.iter f !locs.table
-    (*Format.printf "DONE: Iterate on %d locations@." (Hashtbl.length locs);*)
+  let iter state f =
+    (*Parameters.debug "Iterate on %d locations" (Hashtbl.length locs);*)
+    Hashtbl.iter f state.table
+    (*Parameters.debug "DONE: Iterate on %d locations" (Hashtbl.length locs);*)
 
-  let size () = Hashtbl.length !locs.table
+  let size state = Hashtbl.length state.table
+    
 end
 
-let hilite = Locs.hilite
+let hilite state = Locs.hilite state
 
 module Tag = struct
   type t = localizable
@@ -110,10 +120,14 @@ module Tag = struct
       !current),
     (function code -> try Hashtbl.find h code with Not_found -> assert false)
 
+  let encode_stmt,decode_stmt = make_modem ()
   let encode_lval,decode_lval = make_modem ()
   let encode_termlval,decode_termlval = make_modem ()
   let encode_vdecl,decode_vdecl = make_modem ()
-  let encode_stmt,decode_stmt = make_modem ()
+  let encode_code_annot,decode_code_annot = make_modem ()
+  let encode_global,decode_global = make_modem ()
+  let encode_behavior,decode_behavior = make_modem ()
+  let encode_predicate,decode_predicate = make_modem ()
 
   let create = function
     | PStmt sid -> sprintf "s%x" (encode_stmt sid)
@@ -126,6 +140,18 @@ module Tag = struct
     | PVDecl vi ->
         let code = encode_vdecl vi in
         sprintf "d%x" code
+    | PCodeAnnot ca ->
+	let code = encode_code_annot ca in
+	sprintf "c%x" code
+    | PGlobal g ->
+	let code = encode_global g in
+	sprintf "g%x" code
+    | PBehavior b -> 
+        let code = encode_behavior b in
+        sprintf "b%x" code
+    | PPredicate b -> 
+        let code = encode_predicate b in
+        sprintf "p%x" code
 
   let get s =
     try
@@ -136,6 +162,14 @@ module Tag = struct
       Scanf.sscanf s "t%x" (fun s -> PTermLval (decode_termlval s))
     with Scanf.Scan_failure _ -> try
       Scanf.sscanf s "d%x" (fun s -> PVDecl (decode_vdecl s))
+    with Scanf.Scan_failure _ -> try
+      Scanf.sscanf s "c%x" (fun s -> PCodeAnnot (decode_code_annot s))
+    with Scanf.Scan_failure _ -> try
+      Scanf.sscanf s "g%x" (fun s -> PGlobal (decode_global s))
+    with Scanf.Scan_failure _ -> try
+      Scanf.sscanf s "b%x" (fun s -> PBehavior (decode_behavior s))
+    with Scanf.Scan_failure _ -> try
+      Scanf.sscanf s "p%x" (fun s -> PPredicate (decode_predicate s))
     with Scanf.Scan_failure _ ->
       assert false
 end
@@ -157,10 +191,28 @@ class tagPrinterClass = object(self)
     | None -> None
     | Some fd -> Some (Globals.Functions.get fd)
 
+
+  method pCode_annot fmt ca =
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PCodeAnnot (Cilutil.out_some self#current_kf,
+			       Cilutil.out_some self#current_stmt,
+			       ca)))
+      super#pCode_annot ca
+
+  method pIdentified_predicate fmt ip = 
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PPredicate (self#current_kf,self#current_kinstr,ip)))
+      super#pIdentified_predicate ip
+
   method pVDecl fmt vi =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create (PVDecl (self#current_kf,vi)))
       super#pVDecl vi
+
+  method pBehavior fmt b =
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PBehavior (Cilutil.out_some self#current_kf,b)))
+      super#pBehavior b
 
   method pLval fmt lv =
     match self#current_kinstr with
@@ -206,39 +258,46 @@ let equal_localizable l1 l2 =
   | PLval (_,ki1,lv1), PLval (_,ki2,lv2) ->
       Cilutil.Instr.equal ki1 ki2 && lv1 == lv2
   | PTermLval (_,ki1,lv1), PTermLval (_,ki2,lv2) ->
-      Cilutil.Instr.equal ki1 ki2 && Logic_const.is_same_tlval lv1 lv2
+      Cilutil.Instr.equal ki1 ki2 && Logic_utils.is_same_tlval lv1 lv2
 	(* [JS 21/01/08:] term_lval are not shared: cannot use == *)
   | PVDecl (_,v1), PVDecl (_,v2) ->
       v1.vid == v2.vid
+  | PCodeAnnot (_,_,{annot_id=id1}),PCodeAnnot (_,_,{annot_id=id2}) ->
+      id1 = id2
   | _ -> false
 
 exception Found of int*int
-let locate_localizable loc =
+
+let locate_localizable state loc =
   try
     Locs.iter
+      state
       (fun (b,e) v -> if equal_localizable v loc then raise (Found(b,e)));
     None
   with Found (b,e) -> Some (b,e)
 
-let localizable_from_locs ~file ~line =
+let localizable_from_locs state ~file ~line =
   let loc_localizable = function
-    | PStmt (_,st) | PLval (_,Kstmt st,_) | PTermLval(_,Kstmt st,_) ->
+    | PStmt (_,st) | PLval (_,Kstmt st,_) | PTermLval(_,Kstmt st,_)
+    | PCodeAnnot (_,st,_) ->
         Cilutil.get_stmtLoc st.skind
     | PVDecl (_,vi) -> vi.vdecl
+    | PGlobal g -> Cilutil.get_globalLoc g
     | _ -> Cilutil.locUnknown
   in
   let r = ref [] in
   Locs.iter
+    state
     (fun _ v ->
        let loc,_ = loc_localizable v in
        if line = loc.Lexing.pos_lnum && loc.Lexing.pos_fname = file then
          r := v::!r);
   !r
 
-let buffer_formatter source =
+let buffer_formatter state source =
   let starts = Stack.create () in
   let emit_open_tag s =
-    (*    Format.eprintf "EMIT TAG@\n";*)
+    (*    Parameters.debug "EMIT TAG";*)
     (match Tag.get s with
      | PStmt sid ->
          Stack.push (source#end_iter#offset, PStmt sid) starts
@@ -247,15 +306,23 @@ let buffer_formatter source =
      | PTermLval lv ->
          Stack.push (source#end_iter#offset, PTermLval lv) starts
      | PVDecl vi ->
-         Stack.push (source#end_iter#offset, PVDecl vi) starts);
+         Stack.push (source#end_iter#offset, PVDecl vi) starts
+     | PCodeAnnot ca ->
+         Stack.push (source#end_iter#offset, PCodeAnnot ca) starts
+     | PGlobal g ->
+         Stack.push (source#end_iter#offset, PGlobal g) starts
+     | PBehavior b -> 
+         Stack.push (source#end_iter#offset, PBehavior b) starts
+     | PPredicate b -> 
+         Stack.push (source#end_iter#offset, PPredicate b) starts);
     ""
   in
   let emit_close_tag _s =
     (try
        let (p,sid) = Stack.pop starts in
-       Locs.add (p, source#end_iter#offset) sid
+       Locs.add state (p, source#end_iter#offset) sid
      with Stack.Empty ->
-       Format.eprintf "empty stack in emit_tag@\n");
+       Parameters.debug "empty stack in emit_tag");
     ""
   in
   let gtk_fmt = Gtk_helper.make_formatter source in
@@ -270,112 +337,120 @@ let buffer_formatter source =
   Format.pp_set_margin gtk_fmt 79;
   gtk_fmt
 
-external text_tag_table_foreach:
-  Gtk.text_tag_table -> (Gtk.text_tag -> unit) -> unit = "ml_gtk_text_tag_table_foreach"
+let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector =
+  let state = Locs.create () in 
+  host#protect 
+    (fun () -> 
+       Gtk_helper.refresh_gui  ();
+       source#set_text "";
+       source#remove_all_tags ~start:source#start_iter ~stop:source#end_iter;
+       let hiliter () =
+         let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
+         Gtk_helper.cleanup_all_tags source;
+         Locs.iter
+           state
+           (fun (pb,pe) v -> 
+              Gtk_helper.refresh_gui  ();
+              match v with
+              | PStmt (_,ki) ->
+                  (try
+	             let pb,pe = match ki with
+                     | {skind = Instr _ | Return _ | Goto _
+                       | Break _ | Continue _} -> pb,pe
+	             | {skind = If _ | Loop _
+                       | Switch _ } ->
+		         (* these statements contain other statements.
+		            We highlight only until the start of the first included
+		            statement *)
+                         pb,
+                         (try Locs.find_next_start state pb
+		            (fun p -> match p with
+		             | PStmt _ -> true
+		             | _ -> false (* Do not stop on expressions*))
+                          with Not_found -> pb+1)
+	             | {skind = Block _ | TryExcept _ | TryFinally _
+                       | UnspecifiedSequence _} ->
+                         pb,
+                         (try Locs.find_next_start state pb (fun _ -> true)
+                          with Not_found -> pb+1)
+	             in
+	             highlighter v ~start:pb ~stop:pe
+                   with Not_found -> ())
+              | PTermLval _ | PLval _ | PVDecl _ | PCodeAnnot _ | PGlobal _ 
+              | PBehavior _ | PPredicate _ ->
+	          highlighter v  ~start:pb ~stop:pe);
+         (*  Parameters.debug "Highlighting done (%d occurrences)" (Locs.size ());*)
 
-let display_source globals
-    source (st,hlt,upd) ~highlighter ~selector =
-  st();
-  upd ();
-  source#set_text "";
-  source#remove_all_tags ~start:source#start_iter ~stop:source#end_iter;
-  let hiliter () =
-    let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
-    Gtk_helper.cleanup_all_tags source;
-    Locs.iter
-      (fun (pb,pe) v -> upd ();
-         match v with
-         | PStmt (_,ki) ->
-             (try
-	        let pb,pe = match ki with
-                | {skind = Instr _ | Return _ | Goto _
-                  | Break _ | Continue _} -> pb,pe
-	        | {skind = If _ | Loop _
-                  | Switch _ } ->
-		    (* these statements contain other statements.
-		       We highlight only until the start of the first included
-		       statement *)
-                    pb,
-                    (try Locs.find_next_start pb
-		       (fun p -> match p with
-		        | PStmt _ -> true
-		        | _ -> false (* Do not stop on expressions*))
-                     with Not_found -> pb+1)
-	        | {skind = Block _ | TryExcept _ | TryFinally _
-                  | UnspecifiedSequence _} ->
-                    pb,
-                    (try Locs.find_next_start pb (fun _ -> true)
-                     with Not_found -> pb+1)
-	        in
-	        highlighter v ~start:pb ~stop:pe
-              with Not_found -> ())
-         | PTermLval _ | PLval _ | PVDecl _ ->
-	     highlighter v  ~start:pb ~stop:pe);
-    (*  Format.printf "Highlighting done (%d occurrences)@." (Locs.size ());*)
+         (* React to events on the text *)
+         source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
+         (*  Parameters.debug "Event tag done";*)
+       in
+       Locs.set_hilite state hiliter;
+       
+       (*  Parameters.debug "Display source starts";*)
+       let gtk_fmt = buffer_formatter state (source:>GText.buffer) in
+       let tagPrinter = new tagPrinterClass in
+       let display_global g =
+         Gtk_helper.refresh_gui  ();
+         begin match g with
+         | GVarDecl _ | GVar _ | GFun _
+	       (* these globals are already covered by PVDecl *)
+	     ->
+	     tagPrinter#pGlobal gtk_fmt g
+         | _ ->
+	     Format.fprintf gtk_fmt "@{<%s>%a@}"
+	       (Tag.create (PGlobal g))
+	       tagPrinter#pGlobal
+               g
+         end;
+         Format.pp_print_flush gtk_fmt ()
+       in
+       (*  Parameters.debug "Before Display globals %d" (List.length globals);*)
+       let counter = ref 0 in
+       begin try
+         List.iter
+           (fun g ->
+              incr counter;
+              if !counter > 20 then raise Exit;
+              display_global g)
+           globals;
+       with Exit ->
+         Format.fprintf
+           gtk_fmt
+           "@.<<Cannot display more than %d globals at a time. Skipping end of file>>@."
+           !counter;
+       end;
+       (*  Parameters.debug "Displayed globals";*)
 
-    (* React to events on the text *)
-    source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
-    (*  Format.printf "Event tag done@.";*)
-  in
-  Locs.create hiliter;
-
-  (*  Format.eprintf "Display source starts@.";*)
-  let gtk_fmt = buffer_formatter (source:>GText.buffer) in
-  let tagPrinter = new tagPrinterClass in
-  let display_global g =
-    upd ();
-    tagPrinter#pGlobal
-      gtk_fmt
-      g;
-    Format.pp_print_flush gtk_fmt ()
-  in
-  (*  Format.printf "Before Display globals %d@." (List.length globals);*)
-  let counter = ref 0 in
-  begin try
-    List.iter
-      (fun g ->
-         incr counter;
-         if !counter > 20 then raise (Failure "");
-         display_global g)
-      globals;
-  with Failure "" ->
-    Format.fprintf 
-      gtk_fmt 
-      "@.<<Cannot display more than %d globals at a time. Skipping end of file>>@." 
-      !counter;
-  end;
-  (*  Format.printf "Displayed globals@.";*)
-
-  source#place_cursor source#start_iter;
-  (* Highlight the localizable *)
-  hiliter ();
-  let last_shown_area =
-    Gtk_helper.make_tag source ~name:"last_show_area"
-      [`BACKGROUND "light green"]
-  in
-  let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
-  ignore
-    (event_tag#connect#event ~callback:
-       (fun ~origin:_ ev it ->
-	  if !Gtk_helper.gui_unlocked then
-            if GdkEvent.get_type ev = `BUTTON_PRESS then begin
-              let coords = GtkText.Iter.get_offset it in
-	      try
-		let ((pb,pe), selected) = Locs.find coords in
-		(* Highlight the pointed term *)
-                source#remove_tag
-		  ~start:source#start_iter
-		  ~stop:source#end_iter
-		  last_shown_area;
-		apply_tag source last_shown_area pb pe;
-		let event_button = GdkEvent.Button.cast ev in
-		let button = GdkEvent.Button.button event_button in
-		selector ~button selected;
-	      with Not_found -> () (* no statement at this offset *)
-            end;
-        false));
-
-  hlt ()
+       source#place_cursor source#start_iter;
+       (* Highlight the localizable *)
+       hiliter ();
+       let last_shown_area =
+         Gtk_helper.make_tag source ~name:"last_show_area"
+           [`BACKGROUND "light green"]
+       in
+       let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
+       ignore
+         (event_tag#connect#event ~callback:
+            (fun ~origin:_ ev it ->
+               if !Gtk_helper.gui_unlocked then
+                    if GdkEvent.get_type ev = `BUTTON_PRESS then begin
+                      let coords = GtkText.Iter.get_offset it in
+	              try
+		        let ((pb,pe), selected) = Locs.find state coords in
+		        (* Highlight the pointed term *)
+                        source#remove_tag
+		          ~start:source#start_iter
+		          ~stop:source#end_iter
+		          last_shown_area;
+		        apply_tag source last_shown_area pb pe;
+		        let event_button = GdkEvent.Button.cast ev in
+		        let button = GdkEvent.Button.button event_button in
+		        host#protect (fun () -> selector ~button selected);
+	              with Not_found -> () (* no statement at this offset *)
+                    end;
+             false)));
+  state
 
 
 (*

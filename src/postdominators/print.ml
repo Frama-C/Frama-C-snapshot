@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -67,7 +67,7 @@ module Printer = struct
 
   let vertex_attributes (s, has_postdom) = 
     let attrib = [] in
-    let txt = Cil.fprintf_to_string "%a" V.pretty s in
+    let txt = Pretty_utils.sfprintf "%a" V.pretty s in
     let attrib = (`Label txt) :: attrib in
     let color = if has_postdom then 0x7FFFD4 else 0xFF0000 in
     let attrib = (`Shape `Box) :: attrib in 
@@ -131,8 +131,8 @@ let rec build_reduced_graph kf graph stmts =
 let build_dot filename kf =
   let stmts = match kf.Db_types.fundec with
     | Db_types.Definition (fct, _) -> fct.sallstmts
-    | Db_types.Declaration _ -> invalid_arg
-                         "[postdominators] cannot compute for a leaf function"
+    | Db_types.Declaration _ -> 
+	Parameters.abort "cannot compute for a function without body"
   in
   let graph = InstrHashtbl.create (List.length stmts) in
   let _ = build_reduced_graph kf graph stmts in

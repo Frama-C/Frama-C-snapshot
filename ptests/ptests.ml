@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,9 +23,42 @@
      annotated with test options *)
 let default_options = "-val -out -input -deps -journal-disable"
 
-let () =
-  Unix.putenv "FRAMAC_SHARE" (Filename.concat Filename.current_dir_name "share");
-  Unix.putenv "OCAMLRUNPARAM" ""
+let system =
+  if Sys.os_type = "Win32" then
+    fun f ->
+      Unix.system (Format.sprintf "bash -c %S" f)
+  else
+    fun f ->
+      Unix.system f
+module Filename = struct
+  include Filename
+  let concat =
+    if Sys.os_type = "Win32" then
+      fun a b -> a ^ "/" ^ b
+    else
+      concat
+
+  let cygpath r =
+    let cmd =
+      Format.sprintf
+	"bash -c \"cygpath -m %s\""
+	(String.escaped (String.escaped r))
+    in
+    let in_channel  = Unix.open_process_in cmd in
+    let result = input_line in_channel in
+    ignore(Unix.close_process_in in_channel);
+    result
+
+  let temp_file =
+    if Sys.os_type = "Win32" then
+      fun a b -> let r = temp_file a b in
+	cygpath r
+    else
+      temp_file
+end
+
+let default_env var value =
+  try ignore (Unix.getenv var) with Not_found -> Unix.putenv var value
 
 (** the name of the directory-wide configuration file*)
 let dir_config_file = "test_config"
@@ -40,11 +73,15 @@ let end_comment = Str.regexp ".*\\*/"
 let opt_to_byte =
   let opt = Str.regexp "[.]opt$" in
   function toplevel ->
+    if toplevel = "frama-c" then "frama-c.byte" else
     Str.global_replace opt ".byte" toplevel
 
 let execnow_opt_to_byte =
   let opt = Str.regexp "tests/\\(.+\\)[.]opt\\($\\|[ \t]\\)" in
-  fun cmd -> Str.global_replace opt "tests/\\1.byte\\2" cmd
+  let cmxs = Str.regexp "tests/\\(.+\\)[.]cmxs\\($\\|[ \t]\\)" in
+  fun cmd ->
+    let cmd = Str.global_replace opt "tests/\\1.byte\\2" cmd in
+    Str.global_replace cmxs "tests/\\1.cmo\\2" cmd
 
 let base_path = Filename.current_dir_name
 (*    (Filename.concat
@@ -54,19 +91,27 @@ let base_path = Filename.current_dir_name
 
 let test_path = "tests"
 
+let ptests_config = "ptests_local_config.cmo"
+
 (** Command-line flags *)
 
 type behavior = Examine | Update | Run | Show
 let behavior = ref Run
 let verbosity = ref 0
 let use_byte = ref false
+let use_diff_as_cmp = ref false
 let do_diffs = ref "diff -u"
+let do_cmp = ref "cmp -s"
 let n = ref 4    (* the level of parallelism *)
 let suites = ref []
 (** options given to toplevel for all tests *)
 let additional_options = ref ""
 (** special configuration, with associated oracles *)
 let special_config = ref ""
+
+let exclude_suites = ref []
+
+let exclude s = exclude_suites := s :: !exclude_suites
 
 let m = Mutex.create ()
 
@@ -79,6 +124,24 @@ let lock_eprintf s = lock_fprintf Format.err_formatter s
 
 let make_test_suite s =
   suites := s :: !suites
+
+let () =
+  if Sys.file_exists ptests_config then
+    try
+      Dynlink.loadfile ptests_config
+    with Dynlink.Error e ->
+      Format.eprintf "Could not load dynamic configuration %s: %s@."
+        ptests_config (Dynlink.error_message e)
+;;
+
+let () =
+  default_env "FRAMAC_SHARE" !Ptests_config.framac_share;
+  default_env "FRAMAC_PLUGIN" !Ptests_config.framac_plugin;
+  default_env "FRAMAC_PLUGIN_GUI" !Ptests_config.framac_plugin_gui;
+  default_env "OCAMLRUNPARAM" "";
+  default_env "FRAMAC_OPT" !Ptests_config.toplevel_path;
+  default_env "FRAMAC_BYTE" (opt_to_byte !Ptests_config.toplevel_path)
+;;
 
 let () = Arg.parse
   [
@@ -93,7 +156,14 @@ let () = Arg.parse
     "(default)  Delete the logs, run the tests, then examine the logs that are different from the oracles.";
     "", Arg.Unit (fun () -> ()) , "" ;
     "-v", Arg.Unit (fun () -> incr verbosity), " Increase verbosity (up to twice)" ;
-    "-diff", Arg.String (fun s -> do_diffs := s), "<command>  Use command for diffs" ;
+    "-diff", Arg.String (fun s -> do_diffs := s;
+                           if !use_diff_as_cmp then do_cmp := s),
+    "<command>  Use command for diffs" ;
+    "-cmp", Arg.String (fun s -> do_cmp:=s),
+    "<command>  Use command for comparison";
+    "-use-diff-as-cmp",
+    Arg.Unit (fun () -> use_diff_as_cmp:=true; do_cmp:=!do_diffs),
+    "use the diff command for performing comparisons";
     "-j", Arg.Int (fun i -> if i>=0 then n := i else ( lock_printf "Option -j requires nonnegative argument@."; exit (-1))), "<n>  Use nonnegative integer n for level of parallelism" ;
     "-byte", Arg.Set use_byte, " Use bytecode toplevel";
     "-opt", Arg.Clear use_byte, " Use native toplevel (default)";
@@ -102,6 +172,7 @@ let () = Arg.parse
     "-add-options", Arg.Set_string additional_options,
     "add additional options to be passed to the toplevels \
      that will be launched";
+    "-exclude", Arg.String exclude, "exclude a test or a suite from the run";
     "", Arg.Unit (fun () -> ()) ,"\nA test suite can be the name of a directory in ./tests or the path to a file.\n\nExamples:\nptests\nptests -diff \"echo diff\" -examine     # see again the list of tests that failed\nptests misc                           # for a single test suite\nptests tests/misc/alias.c             # for a single test\nptests -examine tests/misc/alias.c    # to see the differences again\nptests -v -j 1                        # to check the time taken by each test\n"
   ]
   make_test_suite
@@ -132,8 +203,7 @@ let gen_make_file s dir file = Filename.concat (Filename.concat dir s) file
 let make_result_file = gen_make_file result_dirname
 let make_oracle_file = gen_make_file oracle_dirname
 
-let toplevel_path =
-  make_toplevel_path (gen_make_file "bin" base_path "toplevel.opt")
+let toplevel_regex = Str.regexp ".*@frama-c@"
 
 type execnow =
     {
@@ -157,24 +227,28 @@ type config =
       dc_toplevels    : (string * string) list;
       (** troplevel full path and options to launch the toplevel on *)
       dc_dont_run   : bool;
+      dc_is_explicit_test: bool
+        (** set to true for single test files that are explicitely
+            mentioned on the command line. Overrides dc_dont_run. *)
     }
 
 let default_config =
   { dc_test_regexp = test_file_regexp ;
     dc_execnow = [];
     dc_filter = None ;
-    dc_default_toplevel = toplevel_path;
-    dc_toplevels = [ toplevel_path, default_options ];
+    dc_default_toplevel = !Ptests_config.toplevel_path;
+    dc_toplevels = [ !Ptests_config.toplevel_path, default_options ];
     dc_dont_run = false;
+    dc_is_explicit_test = false
   }
 
 let launch command_string =
-  let result = Unix.system command_string in
+  let result = system command_string in
   match result with
   | Unix.WEXITED 127 ->
       lock_printf "%% Couldn't execute command. Retrying once.@.";
       Thread.delay 0.1;
-      ( match Unix.system command_string with
+      ( match system command_string with
 	Unix.WEXITED r when r <> 127 -> r
       | _ -> lock_printf "%% Retry failed with command:@\n%s@\nStopping@."
 	  command_string ;
@@ -206,7 +280,7 @@ let scan_execnow dir (s:string) =
   aux { ex_cmd = s; ex_log = []; ex_bin = []; ex_dir = dir }
 
 (* the default toplevel for the current level of options. *)
-let current_default_toplevel = ref toplevel_path
+let current_default_toplevel = ref !Ptests_config.toplevel_path
 
 let make_custom_opts stdopts s =
   let rec aux opts s =
@@ -233,7 +307,10 @@ let config_options stdopts =
   let last_toplevel = ref !current_default_toplevel in
   [ "CMD",
     (fun _ s (current,rev_toplevels) ->
-       last_toplevel := make_toplevel_path s;
+       if Str.string_match toplevel_regex s 0 then
+         last_toplevel := !Ptests_config.toplevel_path
+       else
+         last_toplevel := make_toplevel_path s;
        { current with dc_default_toplevel = !last_toplevel}, rev_toplevels);
 
     "OPT",
@@ -264,7 +341,9 @@ let config_options stdopts =
 
     "DONTRUN",
     (fun _ s (current,rev_toplevels) ->
-       { current with dc_dont_run = true }, rev_toplevels );
+       if current.dc_is_explicit_test then current, rev_toplevels
+       else
+         { current with dc_dont_run = true }, rev_toplevels );
 
     "EXECNOW",
     (fun dir s (current,rev_toplevels)->
@@ -327,7 +406,12 @@ let scan_test_file default dir f =
 	    (fun name ->
 	       if not
 		 (!special_config = "" && name = ""
-		     || name = "_" ^ !special_config)
+		     || name = "_" ^ !special_config
+                     || (name = "_no_native_dynlink" && !special_config=""
+                         && Ptests_config.no_native_dynlink)
+                     || (name = "_no_native_dynlink_" ^ !special_config &&
+                         Ptests_config.no_native_dynlink)
+                 )
 	       then
 		 (ignore (scan_options dir scan_buffer default);
 		  scan_config ()))
@@ -421,16 +505,24 @@ let log_prefix = gen_prefix result_dirname
 let oracle_prefix = gen_prefix oracle_dirname
 
 let basic_command_string command =
+  let is_framac_toplevel = Filename.check_suffix command.toplevel "opt" ||
+    Filename.check_suffix command.toplevel "byte"
+  in
   command.toplevel ^ " " ^
     command.options ^ " " ^
-    !additional_options ^ " " ^
+    (if is_framac_toplevel then !additional_options ^ " " else "") ^
     (Filename.concat command.directory command.file)
 
 let command_string command =
   let log_prefix = log_prefix command in
+  let errlog = log_prefix ^ ".err.log" in
+  let stderr = match command.filter with
+      None -> errlog
+    | Some _ -> Filename.temp_file (Filename.basename log_prefix) ".err.log"
+  in
   let command_string = basic_command_string command in
   let command_string =
-    command_string ^ " 2>" ^ log_prefix ^ ".err.log"
+    command_string ^ " 2>" ^ stderr
   in
   let command_string =
     match command.filter with
@@ -440,6 +532,13 @@ let command_string command =
   in
   let command_string =
     command_string ^ " >" ^ log_prefix ^ ".res.log"
+  in
+  let command_string =
+    match command.filter with
+        None -> command_string
+      | Some filter ->
+          Printf.sprintf "%s && %s < %s > %s && rm -f %s"
+          command_string filter stderr errlog stderr
   in
   command_string
 
@@ -571,7 +670,9 @@ let compare_one_file cmp log_prefix oracle_prefix log_kind =
     let ext = log_ext log_kind in
     let log_file = log_prefix ^ ext ^ ".log " in
     let oracle_file = oracle_prefix ^ ext ^ ".oracle" in
-    let cmp_string = "cmp -s " ^ log_file ^ oracle_file in
+    let cmp_string =
+      !do_cmp ^ " " ^ log_file ^ oracle_file ^ " > /dev/null 2> /dev/null"
+    in
     if !verbosity >= 2 then lock_printf "%% cmp%s (%d) :%s@."
       ext
       cmp.n
@@ -590,7 +691,12 @@ let compare_one_file cmp log_prefix oracle_prefix log_kind =
 	lock_printf
 	  "%% System error while comparing. Maybe one of the files is missing...@\n%s or %s@."
 	  log_file oracle_file;
-    | _ -> assert false
+    | n ->
+        lock_printf
+          "%% Comparison function exited with code %d for files %s and %s. \
+           Allowed exit codes are 0 (no diff), 1 (diff found) and \
+           2 (system error). This is a fatal error.@." n log_file oracle_file;
+        exit 2
 
 let compare_one_log_file dir file =
   if !behavior = Show
@@ -602,7 +708,7 @@ let compare_one_log_file dir file =
   end else
     let log_file = make_result_file dir file in
     let oracle_file = make_oracle_file dir file in
-    let cmp_string = "cmp -s " ^ log_file ^ " " ^ oracle_file in
+    let cmp_string = !do_cmp ^ " " ^ log_file ^ " " ^ oracle_file ^ " > /dev/null 2> /dev/null" in
     if !verbosity >= 2 then lock_printf "%% cmplog: %s / %s@." dir file;
     shared.summary_log <- succ shared.summary_log;
     match launch cmp_string with
@@ -619,7 +725,12 @@ let compare_one_log_file dir file =
 	lock_printf
 	  "%% System error while comparing. Maybe one of the files is missing...@\n%s or %s@."
 	  log_file oracle_file;
-    | _ -> assert false
+    | n ->
+        lock_printf
+          "%% Diff function exited with code %d for files %s and %s. \
+           Allowed exit codes are 0 (no diff), 1 (diff found) and \
+           2 (system error). This is a fatal error.@." n log_file oracle_file;
+        exit 2
 
 let do_cmp = function
   | Cmp_Toplevel cmp ->
@@ -724,45 +835,59 @@ let () =
   (* enqueue the test files *)
   let suites =
     match !suites with
-      [] -> Config.default_suites
+      [] -> !Ptests_config.default_suites
     | l -> List.rev l
   in
-  List.iter
-    (fun suite ->
-       if !verbosity >= 2 then lock_printf "%% Now treating test %s\n%!" suite;
-      (* the "suite" may be a directory in [test_path] or a single file *)
-      let interpret_as_file =
+  let interpret_as_file suite =
 	try
 	  ignore (Filename.chop_extension suite);
 	  true
 	with Invalid_argument _ -> false
       in
-      let directory =
-	if interpret_as_file
-	then
-	  Filename.dirname suite
-	else
-	  Filename.concat test_path suite
-      in
-      let config = Filename.concat directory dir_config_file in
-      let dir_config =
-        if Sys.file_exists config
-	then begin
-	    let scan_buffer = Scanf.Scanning.from_file config in
-            scan_options directory scan_buffer default_config
-        end
-	else default_config
-      in
-      if interpret_as_file
-      then Queue.push (Filename.basename suite, directory, dir_config) files
-      else begin
-	  let dir_files = Sys.readdir directory in
-	  for i = 0 to pred (Array.length dir_files) do
-	    let file = dir_files.(i) in
-	    assert (Filename.is_relative file);
-	    if test_pattern dir_config file
-	    then Queue.push (file, directory, dir_config) files;
-	  done
+  let exclude_suite, exclude_file =
+    List.fold_left
+      (fun (suite,test) x ->
+         if interpret_as_file x then (suite,x::test) else (x::suite,test))
+      ([],[]) !exclude_suites
+  in
+  List.iter
+    (fun suite ->
+       if !verbosity >= 2 then lock_printf "%% Now treating test %s\n%!" suite;
+      (* the "suite" may be a directory in [test_path] or a single file *)
+       let interpret_as_file = interpret_as_file suite in
+       let directory =
+	 if interpret_as_file
+	 then
+	   Filename.dirname suite
+	 else
+	   Filename.concat test_path suite
+       in
+       let config = Filename.concat directory dir_config_file in
+       let dir_config =
+         if Sys.file_exists config
+	 then begin
+	   let scan_buffer = Scanf.Scanning.from_file config in
+           scan_options directory scan_buffer default_config
+         end
+	 else default_config
+       in
+       if interpret_as_file
+       then begin
+         if not (List.mem suite exclude_file) then
+           Queue.push (Filename.basename suite, directory,
+                       { dir_config with dc_is_explicit_test = true}) files
+       end
+       else begin
+	 if not (List.mem suite exclude_suite) then begin
+           let dir_files = Sys.readdir directory in
+	   for i = 0 to pred (Array.length dir_files) do
+	     let file = dir_files.(i) in
+	     assert (Filename.is_relative file);
+	     if test_pattern dir_config file &&
+               (not (List.mem file exclude_file))
+	     then Queue.push (file, directory, dir_config) files;
+	   done
+         end
 	end)
     suites
 

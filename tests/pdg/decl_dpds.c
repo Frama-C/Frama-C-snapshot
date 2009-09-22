@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -pdg-debug "-fct-pdg main" -journal-disable
+   OPT: -fct-pdg main -journal-disable
 */
 
 extern int G;

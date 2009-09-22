@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: alarms.ml,v 1.19 2008/10/07 09:27:47 uid570 Exp $ *)
+(* $Id: alarms.ml,v 1.19 2008-10-07 09:27:47 uid570 Exp $ *)
 
 open Cil_types
 open Cil
@@ -27,25 +27,30 @@ open Cil
 type t =
   | Division_alarm
   | Memory_alarm
+  | Index_alarm
   | Shift_alarm
   | Pointer_compare_alarm
+  | Signed_overflow_alarm
   | Using_nan_or_infinite_alarm
   | Result_is_nan_or_infinite_alarm
   | Separation_alarm
   | Other_alarm
 
 let pretty fmt al =
-  Format.fprintf fmt "alarm caused by a%s"
+  Format.fprintf fmt "alarm caused by %s"
   (match al with
-  | Division_alarm -> " division"
-  | Memory_alarm -> " memory access"
-  | Shift_alarm -> " shift"
-  | Pointer_compare_alarm -> " pointer comparison"
-  | Using_nan_or_infinite_alarm -> "n unknown float value"
-  | Result_is_nan_or_infinite_alarm -> "n overflow or nan float computation"
+  | Division_alarm -> "a division"
+  | Memory_alarm -> "a memory access"
+  | Index_alarm -> "a memory access" (* TODO: separate a day when 
+    		     	    	    the oracles are working *)
+  | Shift_alarm -> "a shift"
+  | Signed_overflow_alarm -> "an overflow in signed integer arithmetic"
+  | Pointer_compare_alarm -> "a pointer comparison"
+  | Using_nan_or_infinite_alarm -> "an unknown float value"
+  | Result_is_nan_or_infinite_alarm -> "an overflow or nan float computation"
   | Separation_alarm ->
       "incompatible accesses to the same zone in unspecified order"
-  | Other_alarm -> " safety concern")
+  | Other_alarm -> "a safety concern")
 
 module AlarmSet = struct
   include Set.Make
@@ -65,7 +70,6 @@ module AlarmSet = struct
 end
 
 (*let (tbl:AlarmSet.t InstrHashtbl.t) = InstrHashtbl.create 7*)
-
 module Alarms =
   Cil_computation.InstrHashtbl
     (Project.Datatype.Persistent(AlarmSet))

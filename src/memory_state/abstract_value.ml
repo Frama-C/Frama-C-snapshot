@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,7 +25,12 @@ module Unhashconsed_Int_Intervals = struct
   
   include Make_Lattice_Interval_Set (Int)
 
-  let fold_enum _ = assert false 
+  let fold_enum ~split_non_enumerable f v acc = 
+    ignore (split_non_enumerable);
+    ignore (f);
+    ignore (v);
+    ignore (acc);
+    assert false 
 
   let pretty_typ typ fmt i =
     let typ = 
@@ -35,7 +40,8 @@ module Unhashconsed_Int_Intervals = struct
           Cil_types.TArray 
 	    (Cil_types.TInt(Cil_types.IUChar,[]),
              Some (Cil.kinteger64 Cil_types.IULongLong 922337203685477580L 
-                     (* See Cuoq for rational *)), 
+                     (* See Cuoq for rational *)),
+             Cil.empty_size_cache (), 
              [])
     in
     match i with
@@ -43,31 +49,25 @@ module Unhashconsed_Int_Intervals = struct
     | Set s -> 
         if s=[] then Format.fprintf fmt "BottomISet"
         else begin
-          let doset = match s with [_] ->false | _ -> true in
-          Format.fprintf fmt "@[%s%a%s@]" 
-            (if doset then "{" else "")
-            (fun fmt s -> 
-	       List.iter 
-                 (fun (b,e) -> 
-                    assert (Int.le b e);
-                    Format.fprintf 
-		      fmt 
-		      "%s" 
-                      (fst (Bit_utils.pretty_bits typ 
-                                       ~use_align:false
-                                       ~align:Int.zero 
-                                       ~rh_size:Int.one
-                                       ~start:b ~stop:e));
-                    if doset then Format.fprintf fmt ";@ ")
-                 s) 
-            s
-            (if doset then "}" else "")
+	  let pp_one fmt (b,e)=
+	    assert (Int.le b e) ;
+	    ignore (Bit_utils.pretty_bits typ
+		      ~use_align:false
+		      ~align:Int.zero 
+		      ~rh_size:Int.one
+		      ~start:b ~stop:e fmt) in
+	  let pp_stmt fmt r = Format.fprintf fmt "%a;@ " pp_one r in
+	  match s with
+	    | [] -> Format.pp_print_string fmt "{}"
+	    | [r] -> pp_one fmt r
+	    | s -> 
+		Format.fprintf fmt "@[<hov 1>{" ;
+		List.iter (pp_stmt fmt) s ;
+		Format.fprintf fmt "}@]" ;
         end
 
-
-
   let from_ival_int ival int =
-    let max_elt_int = Cmdline.ArrayPrecisionLevel.get () in
+    let max_elt_int = Parameters.Dynamic.Int.get "-plevel" in
     let max_elt = Int.of_int max_elt_int in
     let add_offset x acc =
        join (inject_one ~value:x  ~size:int) acc
@@ -185,7 +185,8 @@ module Int_Intervals = struct
   let rehash x = 
     wrap x.v
 
-  let fold_enum _ = assert false
+  let fold_enum ~split_non_enumerable f v acc = 
+    Unhashconsed_Int_Intervals.fold_enum ~split_non_enumerable f v.v acc
 
   let diff_if_one _ = assert false
 
@@ -193,6 +194,10 @@ module Int_Intervals = struct
 
   let cardinal_less_than x n = 
     Unhashconsed_Int_Intervals.cardinal_less_than x.v n 
+
+  let splitting_cardinal_less_than ~split_non_enumerable x n =
+    Unhashconsed_Int_Intervals.splitting_cardinal_less_than
+      ~split_non_enumerable x.v n 
 
   let meet x y = wrap (Unhashconsed_Int_Intervals.meet x.v y.v)
   let link x y = wrap (Unhashconsed_Int_Intervals.link x.v y.v)
@@ -253,7 +258,7 @@ module Int_Intervals = struct
     end)
     (struct 
       let name = name ^ "hashconsing_table" 
-      let dependencies = [ Cil_state.self ]
+      let dependencies = [ Ast.self ]
     end)
       
   let () = State.do_not_save ()
@@ -298,16 +303,16 @@ module Int_Intervals = struct
   let inject_bounds b e = 
     wrap (Unhashconsed_Int_Intervals.inject_bounds b e)
 
-  module Datatype = struct
-    include Project.Datatype.Register
+  module Datatype =
+    Project.Datatype.Register
       (struct 
 	 type t = tt
 	 let rehash = rehash
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let copy _ = assert false (* TODO *)
 	 let name = "Int_Intervals"
        end)
-    let () = register_comparable ~hash ~equal ()
-  end
+  let () = Datatype.register_comparable ~hash ~equal ()
 
 end
 

@@ -41,11 +41,11 @@
 (* rmtmps.ml *)
 (* implementation for rmtmps.mli *)
 
-open Pretty
+let level=666
+
 open Cil_types
 open Cil
 module H = Hashtbl
-module E = Errormsg
 module U = Cilutil
 
 (* Set on the command-line: *)
@@ -53,10 +53,6 @@ let keepUnused = ref false
 let rmUnusedInlines = ref false
 let rmUnusedStatic = ref false
 let rmEmptyInlines = ref true
-
-let trace = Trace.trace "rmtmps"
-
-
 
 (***********************************************************************
  *
@@ -88,7 +84,7 @@ let clearReferencedBits file =
 	info.vreferenced <- false
 
     | GFun ({svar = info} as func, _) ->
-(*	trace (dprintf "clearing mark: %a\n" d_shortglobal global);*)
+	(*trace (dprintf "clearing mark: %a\n" d_shortglobal global);*)
 	info.vreferenced <- false;
 	let clearMark local =
 	  (*trace (dprintf "clearing mark: local %s\n" local.vname);*)
@@ -147,7 +143,7 @@ let categorizePragmas file =
   let considerPragma =
 
     let badPragma location pragma =
-      ignore (warnLoc location "Invalid argument to pragma %s" pragma)
+      Cilmsg.warning ~source:(source location) "Invalid argument to pragma %s" pragma
     in
 
     function
@@ -196,8 +192,7 @@ let categorizePragmas file =
             | [Attr("alias", [AStr othername])] ->
                 H.add keepers.defines othername ()
             | _ ->
-		E.s
-		  (error "Bad alias attribute at %a" d_loc (CurrentLoc.get ()))
+		(Cil.fatal "Bad alias attribute at %a" d_loc (CurrentLoc.get ()))
         end
 
       (*** Begin CCured-specific checks:  ***)
@@ -215,9 +210,9 @@ let categorizePragmas file =
       | GPragma (Attr("ccuredvararg", _funcname :: (ASizeOf t) :: _), _location) ->
 	  begin
 	    match t with
-	    | TComp(c,_) when c.cstruct -> (* struct *)
+	    | TComp(c,_,_) when c.cstruct -> (* struct *)
 		H.add keepers.structs c.cname ()
-	    | TComp(c,_) -> (* union *)
+	    | TComp(c,_,_) -> (* union *)
 		H.add keepers.unions c.cname ()
 	    | TNamed(ti,_) ->
 		H.add keepers.typedefs ti.tname ()
@@ -263,7 +258,7 @@ let amputateFunctionBodies keptGlobals file =
   let considerGlobal = function
     | GFun ({svar = {vname = name} as info}, location)
       when not (H.mem keptGlobals name) ->
-	trace (dprintf "slicing: reducing to prototype: function %s\n" name);
+	(Cilmsg.debug ~level "slicing: reducing to prototype: function %s\n" name);
 	GVarDecl (empty_funspec(),info, location)
     | other ->
 	other
@@ -304,18 +299,15 @@ let isPragmaRoot keepers = function
  *  Common root collecting utilities
  *
  *)
-
-
+(*TODO:remove
 let traceRoot _reason _global =
 (*  trace (dprintf "root (%s): %a@!" reason d_shortglobal global);*)
   true
 
-
 let traceNonRoot _reason _global =
 (*  trace (dprintf "non-root (%s): %a@!" reason d_shortglobal global);*)
   false
-
-
+*)
 let hasExportingAttribute funvar =
   let rec isExportingAttribute = function
     | Attr ("constructor", []) -> true
@@ -454,7 +446,8 @@ class markReachableVisitor
         | _ -> assert false);
         DoChildren
     | Call (None,
-            Lval(Var {vname = name; vinline = true}, NoOffset), args,loc) ->
+            {enode = Lval(Var {vname = name; vinline = true}, NoOffset)},
+            args,loc) ->
         let glob = Hashtbl.find globalMap name in
           begin
             match glob with
@@ -473,15 +466,15 @@ class markReachableVisitor
       begin
 	let name = v.vname in
 	if v.vglob then
-	  trace (dprintf "marking transitive use: global %s\n" name)
+	  Cilmsg.debug ~level "marking transitive use: global %s" name
 	else
-	  trace (dprintf "marking transitive use: local %s\n" name);
+	  Cilmsg.debug ~level "marking transitive use: local %s" name;
 
         (* If this is a global, we need to keep everything used in its
 	 * definition and declarations. *)
 	if v.vglob then
 	  begin
-	    trace (dprintf "descending: global %s\n" name);
+	    Cilmsg.debug ~level "descending: global %s" name;
 	    let descend global =
 	      ignore (visitCilGlobal (self :> cilVisitor) global)
 	    in
@@ -495,7 +488,7 @@ class markReachableVisitor
     SkipChildren
 
   method vexpr (e: exp) =
-    match e with
+    match e.enode with
       Const (CEnum {eihost = ei}) -> ei.ereferenced <- true; DoChildren
     | _ -> DoChildren
 
@@ -512,18 +505,18 @@ class markReachableVisitor
 	  let old = e.ereferenced in
 	  if not old then
 	    begin
-	      trace (dprintf "marking transitive use: enum %s\n" e.ename);
+	      (Cilmsg.debug ~level "marking transitive use: enum %s\n" e.ename);
 	      e.ereferenced <- true;
 	      visitAttrs attrs;
 	      visitAttrs e.eattr
 	    end;
 	  old
 
-      | TComp(c, attrs) ->
+      | TComp(c, _, attrs) ->
 	  let old = c.creferenced in
           if not old then
             begin
-	      trace (dprintf "marking transitive use: compound %s\n" c.cname);
+	      (Cilmsg.debug ~level "marking transitive use: compound %s\n" c.cname);
 	      c.creferenced <- true;
 
               (* to recurse, we must ask explicitly *)
@@ -538,7 +531,7 @@ class markReachableVisitor
 	  let old = ti.treferenced in
           if not old then
 	    begin
-	      trace (dprintf "marking transitive use: typedef %s\n" ti.tname);
+	      (Cilmsg.debug ~level "marking transitive use: typedef %s\n" ti.tname);
 	      ti.treferenced <- true;
 
 	      (* recurse deeper into the type referred-to by the typedef *)
@@ -630,11 +623,10 @@ let labelsToKeep (ll: label list) : (string * location * bool) * label list =
   loop ("", Cilutil.locUnknown, false) ll
 
 class markUsedLabels (labelMap: (string, unit) H.t) =
-let keep_label dest =
+  let keep_label dest =
   let (ln, _, _), _ = labelsToKeep !dest.labels in
   if ln = "" then
-    (Format.eprintf "@[dest: %a@\n@]@." Cil.d_stmt !dest;
-     E.s (E.bug "rmtmps: destination statement does not have labels"));
+    Cilmsg.fatal "Statement have no label:@\n%a" Cil.d_stmt !dest ;
   (* Mark it as used *)
   H.replace labelMap ln ()
 in
@@ -654,17 +646,6 @@ object
       match t with
       | Tat (_,lab) -> keep_label_logic lab
       | Tapp(_,labs,_) ->
-          let labs = snd (List.split labs) in List.iter keep_label_logic labs
-      | _ -> ()
-    end;
-    DoChildren
-
-
-  method vtsets_elem t =
-    begin
-      match t with
-      | TSat (_,lab) -> keep_label_logic lab
-      | TSapp(_,labs,_) ->
           let labs = snd (List.split labs) in List.iter keep_label_logic labs
       | _ -> ()
     end;
@@ -763,7 +744,7 @@ let removeUnmarked isRoot file =
 	       begin
 	         (* along the way, record the interesting locals that were removed *)
 	         let name = local.vname in
-	         trace (dprintf "removing local: %s\n" name);
+	         (Cilmsg.debug ~level "removing local: %s\n" name);
 	         if not (Str.string_match uninteresting name 0) then
 		   removedLocals := (func.svar.vname ^ "::" ^ name) :: !removedLocals;
 	       end;
@@ -799,15 +780,9 @@ type rootsFilter = global -> bool
 let isDefaultRoot = isExportedRoot
 
 let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
-  if !keepUnused || Trace.traceActive "disableTmpRemoval" then
-    Trace.trace "disableTmpRemoval" (dprintf "temp removal disabled\n")
-  else
+  if not !keepUnused then
     begin
-      if !E.verboseFlag then
-        ignore (E.log "Removing unused temporaries\n" );
-
-      if Trace.traceActive "printCilTree" then
-	dumpFile defaultCilPrinter stdout "stdout" file;
+      Cilmsg.debug ~level "Removing unused temporaries" ;
 
       (* digest any pragmas that would create additional roots *)
       let keepers = categorizePragmas file in
@@ -833,8 +808,8 @@ let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
       if false && removedLocals != [] then
 	let count = List.length removedLocals in
 	if count > 2000 then
-	  ignore (E.warn "%d unused local variables removed" count)
+	  (Cilmsg.warning "%d unused local variables removed" count)
 	else
-	  ignore (E.warn "%d unused local variables removed:@!%a"
-		    count (docList ~sep:(chr ',' ++ break) text) removedLocals)
+	  (Cilmsg.warning "%d unused local variables removed:@!%a"
+	     count (Pretty_utils.pp_list ~sep:",@," Format.pp_print_string) removedLocals)
     end

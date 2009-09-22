@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT:
+   STDOPT: +"-warn-unspecified-order"
    STDOPT: +"-no-unspecified-access"
 */
 /* detection of undefined behavior for read/write accesses
@@ -10,7 +10,14 @@ int G[10];
 int f (int x) { return x+1;}
 int g (int x) { return x+2;}
 
-int main () {
+int r, H;
+int h(int i)
+{
+  H = i;
+  return i;
+}
+
+int main (int a) {
   int x, *y, i,j;
   x = 0;
   y = &x;
@@ -30,6 +37,10 @@ int main () {
     G[j] += G[j++]; // UB
     G[i++] += G[i]; // UB
   }
+
+  if (a)
+    r = h(1) + h(2); // missing alarm!
+
   int (*my_f) (int) = f;
   return (my_f=g, f(1)) + my_f(2);
 }

@@ -101,9 +101,8 @@ let setLoc cabsloc =
         try 
             curidx := Hashtbl.find tokenmap ((fst cabsloc).Lexing.pos_fname,(fst cabsloc).Lexing.pos_cnum)
         with
-            Not_found -> Errormsg.s 
-                (Errormsg.error "setLoc with location for non-lexed token: %s"
-                    (cabsloc_to_str cabsloc)) 
+            Not_found -> 
+	      Cilmsg.fatal "setLoc with location for non-lexed token: %s" (cabsloc_to_str cabsloc)
     end else begin curidx := noidx; () end
     
 let setOutput out_chan = 
@@ -133,11 +132,11 @@ let print str =
         let white = if str = srctok 
             then srcwhite
             else if !gonebad then invent_white ()
-            else begin                
-                ignore (Errormsg.warnOpt "%s" ("nomatch:["^String.escaped str^"] expected:["^String.escaped srctok ^ 
-                    "] - NOTE: cpp not supported"));
-                gonebad := true;
-                invent_white ()
+            else begin 
+              Cilmsg.warnOpt "nomatch:[%s] expected:[%s] - NOTE: cpp not supported"
+		(String.escaped str) (String.escaped srctok) ;
+              gonebad := true;
+              invent_white ()
             end in
         if !last_was_maybe && str = !last_str then () else begin
             output_string !out (white ^ str);

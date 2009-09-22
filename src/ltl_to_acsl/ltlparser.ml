@@ -37,10 +37,10 @@ type token =
   | EOF
 
 open Parsing;;
-# 26 "src/ltl_to_acsl/ltlparser.mly"
+# 28 "src/ltl_to_acsl/ltlparser.mly"
 open Parsing
 open Cil_types
-
+open Cil
 
 let observed_expressions=Hashtbl.create 97
 
@@ -111,91 +111,104 @@ let yylen = "\002\000\
 let yydefred = "\000\000\
 \000\000\000\000\002\000\003\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\033\000\043\000\
-\045\000\000\000\018\000\000\000\000\000\032\000\034\000\000\000\
+\045\000\000\000\018\000\000\000\000\000\032\000\000\000\000\000\
 \040\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\042\000\041\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\001\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\004\000\035\000\044\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\019\000\020\000\021\000\022\000\023\000\024\000\026\000\
-\027\000\029\000\030\000\031\000\036\000\037\000\000\000\015\000\
+\027\000\029\000\030\000\031\000\037\000\000\000\000\000\015\000\
 \016\000\017\000\000\000\039\000"
 
 let yydgoto = "\002\000\
 \017\000\018\000\019\000\020\000\021\000\022\000\023\000\024\000\
 \025\000"
 
-let yysindex = "\009\000\
-\088\255\000\000\000\000\000\000\088\255\088\255\088\255\088\255\
-\088\255\036\255\036\255\253\254\002\255\010\255\000\000\000\000\
-\000\000\053\000\000\000\140\255\092\255\000\000\000\000\048\255\
-\000\000\141\255\090\255\014\255\246\254\246\254\246\254\246\254\
-\036\255\000\000\000\000\240\254\247\254\254\254\088\255\088\255\
-\088\255\088\255\088\255\088\255\000\000\008\255\008\255\008\255\
-\008\255\008\255\008\255\008\255\008\255\008\255\008\255\008\255\
-\036\255\036\255\008\255\000\000\000\000\000\000\014\255\021\255\
-\030\255\037\255\023\255\023\255\023\255\004\255\246\254\246\254\
-\008\255\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\011\255\000\000\
-\000\000\000\000\060\255\000\000"
+let yysindex = "\021\000\
+\105\255\000\000\000\000\000\000\105\255\105\255\105\255\105\255\
+\105\255\000\255\000\255\028\255\049\255\053\255\000\000\000\000\
+\000\000\157\000\000\000\058\255\015\255\000\000\031\255\023\255\
+\000\000\007\255\065\255\001\255\013\255\013\255\013\255\013\255\
+\000\255\031\255\031\255\029\255\030\255\032\255\105\255\105\255\
+\105\255\105\255\105\255\105\255\000\000\255\254\255\254\255\254\
+\255\254\255\254\255\254\255\254\255\254\255\254\255\254\255\254\
+\035\255\000\255\255\254\000\000\000\000\000\000\001\255\062\255\
+\067\255\082\255\115\255\115\255\115\255\042\255\013\255\013\255\
+\255\254\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\031\255\059\255\000\000\
+\000\000\000\000\083\255\000\000"
 
 let yyrindex = "\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\044\000\027\000\000\000\000\000\001\000\
-\000\000\000\000\074\255\119\255\063\000\068\000\073\000\078\000\
+\000\000\000\000\000\000\148\000\131\000\000\000\105\000\079\000\
+\000\000\000\000\137\255\183\255\167\000\172\000\177\000\182\000\
+\000\000\001\000\027\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\006\000\007\000\008\000\197\000\187\000\192\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\006\000\007\000\008\000\093\000\083\000\088\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\053\000\000\000\000\000\
 \000\000\000\000\000\000\000\000"
 
 let yygindex = "\000\000\
-\000\000\015\000\000\000\255\255\000\000\074\000\004\000\000\000\
+\000\000\054\000\000\000\251\255\000\000\218\255\255\255\000\000\
 \000\000"
 
-let yytablesize = 356
-let yytable = "\036\000\
-\038\000\043\000\044\000\027\000\037\000\010\000\013\000\014\000\
-\028\000\001\000\073\000\042\000\038\000\034\000\035\000\043\000\
-\044\000\062\000\064\000\026\000\029\000\030\000\031\000\032\000\
-\088\000\065\000\028\000\039\000\040\000\041\000\042\000\010\000\
-\066\000\089\000\043\000\044\000\063\000\011\000\033\000\092\000\
-\090\000\015\000\016\000\025\000\074\000\075\000\076\000\077\000\
-\078\000\079\000\080\000\081\000\045\000\067\000\068\000\069\000\
-\070\000\071\000\072\000\010\000\085\000\086\000\012\000\061\000\
-\000\000\011\000\000\000\005\000\000\000\000\000\016\000\091\000\
-\006\000\057\000\058\000\059\000\028\000\009\000\025\000\025\000\
-\025\000\025\000\007\000\000\000\000\000\025\000\025\000\008\000\
-\003\000\004\000\005\000\000\000\011\000\061\000\000\000\000\000\
-\006\000\007\000\008\000\000\000\000\000\009\000\000\000\000\000\
-\046\000\047\000\048\000\049\000\050\000\051\000\000\000\010\000\
-\052\000\053\000\054\000\055\000\056\000\011\000\012\000\013\000\
-\014\000\015\000\016\000\034\000\034\000\034\000\034\000\082\000\
-\083\000\084\000\034\000\034\000\087\000\034\000\034\000\034\000\
+let yytablesize = 460
+let yytable = "\027\000\
+\042\000\073\000\033\000\028\000\062\000\010\000\013\000\014\000\
+\034\000\035\000\060\000\039\000\040\000\041\000\042\000\082\000\
+\083\000\084\000\043\000\044\000\087\000\001\000\010\000\010\000\
+\043\000\044\000\041\000\057\000\011\000\011\000\036\000\063\000\
+\015\000\016\000\016\000\052\000\053\000\054\000\055\000\056\000\
+\074\000\075\000\076\000\077\000\078\000\079\000\080\000\081\000\
+\058\000\042\000\059\000\037\000\036\000\043\000\044\000\038\000\
+\086\000\057\000\026\000\029\000\030\000\031\000\032\000\064\000\
+\065\000\088\000\066\000\091\000\061\000\085\000\089\000\028\000\
+\046\000\047\000\048\000\049\000\050\000\051\000\038\000\046\000\
+\047\000\048\000\049\000\050\000\051\000\090\000\061\000\092\000\
+\000\000\000\000\000\000\000\000\067\000\068\000\069\000\070\000\
+\071\000\072\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\034\000\003\000\004\000\005\000\000\000\000\000\000\000\000\000\
+\000\000\006\000\007\000\008\000\000\000\000\000\009\000\039\000\
+\040\000\041\000\042\000\000\000\000\000\000\000\043\000\044\000\
+\010\000\000\000\028\000\000\000\000\000\000\000\011\000\012\000\
+\013\000\014\000\015\000\016\000\000\000\025\000\025\000\025\000\
+\025\000\000\000\000\000\025\000\025\000\025\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\045\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\000\000\012\000\000\000\
+\000\000\000\000\000\000\005\000\000\000\000\000\000\000\000\000\
+\006\000\000\000\000\000\000\000\000\000\009\000\000\000\000\000\
+\000\000\000\000\007\000\034\000\034\000\034\000\034\000\008\000\
+\000\000\000\000\034\000\034\000\011\000\034\000\034\000\034\000\
 \034\000\034\000\034\000\034\000\034\000\034\000\034\000\034\000\
-\060\000\039\000\040\000\041\000\042\000\000\000\000\000\000\000\
-\043\000\044\000\046\000\047\000\048\000\049\000\050\000\051\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\038\000\038\000\038\000\038\000\
-\038\000\010\000\013\000\014\000\038\000\038\000\000\000\038\000\
+\000\000\000\000\000\000\000\000\042\000\042\000\042\000\042\000\
+\042\000\010\000\013\000\014\000\042\000\042\000\000\000\042\000\
+\042\000\042\000\042\000\042\000\042\000\042\000\042\000\042\000\
+\042\000\042\000\042\000\000\000\042\000\042\000\041\000\041\000\
+\041\000\041\000\041\000\000\000\000\000\000\000\041\000\041\000\
+\000\000\041\000\041\000\041\000\041\000\041\000\041\000\041\000\
+\041\000\041\000\041\000\041\000\041\000\000\000\041\000\041\000\
+\036\000\036\000\036\000\036\000\036\000\000\000\000\000\000\000\
+\036\000\036\000\000\000\036\000\036\000\036\000\036\000\036\000\
+\036\000\036\000\036\000\036\000\036\000\036\000\036\000\000\000\
+\036\000\036\000\038\000\038\000\038\000\038\000\038\000\000\000\
+\000\000\000\000\038\000\038\000\000\000\038\000\038\000\038\000\
 \038\000\038\000\038\000\038\000\038\000\038\000\038\000\038\000\
-\038\000\038\000\000\000\000\000\000\000\038\000\028\000\028\000\
+\000\000\038\000\000\000\038\000\034\000\034\000\034\000\034\000\
+\034\000\000\000\000\000\000\000\034\000\034\000\000\000\034\000\
+\034\000\034\000\034\000\034\000\034\000\034\000\034\000\034\000\
+\034\000\034\000\000\000\000\000\000\000\034\000\028\000\028\000\
 \028\000\028\000\028\000\000\000\000\000\000\000\028\000\028\000\
 \000\000\028\000\028\000\028\000\028\000\028\000\028\000\025\000\
 \025\000\025\000\025\000\025\000\000\000\000\000\000\000\025\000\
@@ -206,33 +219,33 @@ let yytable = "\036\000\
 \007\000\007\000\007\000\008\000\008\000\008\000\008\000\008\000\
 \011\000\011\000\011\000\011\000"
 
-let yycheck = "\003\001\
-\000\000\012\001\013\001\005\000\003\001\000\000\000\000\000\000\
-\005\000\001\000\003\001\008\001\003\001\010\000\011\000\012\001\
-\013\001\004\001\035\001\005\000\006\000\007\000\008\000\009\000\
-\004\001\035\001\000\000\005\001\006\001\007\001\008\001\024\001\
-\035\001\004\001\012\001\013\001\033\000\030\001\003\001\029\001\
-\004\001\034\001\035\001\000\000\046\000\047\000\048\000\049\000\
-\050\000\051\000\052\000\053\000\000\000\039\000\040\000\041\000\
-\042\000\043\000\044\000\024\001\057\000\058\000\000\000\004\001\
-\255\255\030\001\255\255\000\000\255\255\255\255\035\001\073\000\
-\000\000\026\001\027\001\028\001\073\000\000\000\005\001\006\001\
-\007\001\008\001\000\000\255\255\255\255\012\001\013\001\000\000\
-\001\001\002\001\003\001\255\255\000\000\004\001\255\255\255\255\
-\009\001\010\001\011\001\255\255\255\255\014\001\255\255\255\255\
-\015\001\016\001\017\001\018\001\019\001\020\001\255\255\024\001\
-\021\001\022\001\023\001\024\001\025\001\030\001\031\001\032\001\
-\033\001\034\001\035\001\005\001\006\001\007\001\008\001\054\000\
-\055\000\056\000\012\001\013\001\059\000\015\001\016\001\017\001\
+let yycheck = "\005\000\
+\000\000\003\001\003\001\005\000\004\001\000\000\000\000\000\000\
+\010\000\011\000\004\001\005\001\006\001\007\001\008\001\054\000\
+\055\000\056\000\012\001\013\001\059\000\001\000\024\001\024\001\
+\012\001\013\001\000\000\027\001\030\001\030\001\003\001\033\000\
+\034\001\035\001\035\001\021\001\022\001\023\001\024\001\025\001\
+\046\000\047\000\048\000\049\000\050\000\051\000\052\000\053\000\
+\026\001\008\001\028\001\003\001\000\000\012\001\013\001\003\001\
+\058\000\027\001\005\000\006\000\007\000\008\000\009\000\035\001\
+\035\001\004\001\035\001\073\000\004\001\035\001\004\001\073\000\
+\015\001\016\001\017\001\018\001\019\001\020\001\000\000\015\001\
+\016\001\017\001\018\001\019\001\020\001\004\001\004\001\029\001\
+\255\255\255\255\255\255\255\255\039\000\040\000\041\000\042\000\
+\043\000\044\000\255\255\255\255\255\255\255\255\255\255\255\255\
+\000\000\001\001\002\001\003\001\255\255\255\255\255\255\255\255\
+\255\255\009\001\010\001\011\001\255\255\255\255\014\001\005\001\
+\006\001\007\001\008\001\255\255\255\255\255\255\012\001\013\001\
+\024\001\255\255\000\000\255\255\255\255\255\255\030\001\031\001\
+\032\001\033\001\034\001\035\001\255\255\005\001\006\001\007\001\
+\008\001\255\255\255\255\000\000\012\001\013\001\255\255\255\255\
+\255\255\255\255\255\255\255\255\000\000\255\255\255\255\255\255\
+\255\255\255\255\255\255\255\255\255\255\255\255\000\000\255\255\
+\255\255\255\255\255\255\000\000\255\255\255\255\255\255\255\255\
+\000\000\255\255\255\255\255\255\255\255\000\000\255\255\255\255\
+\255\255\255\255\000\000\005\001\006\001\007\001\008\001\000\000\
+\255\255\255\255\012\001\013\001\000\000\015\001\016\001\017\001\
 \018\001\019\001\020\001\021\001\022\001\023\001\024\001\025\001\
-\004\001\005\001\006\001\007\001\008\001\255\255\255\255\255\255\
-\012\001\013\001\015\001\016\001\017\001\018\001\019\001\020\001\
-\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
 \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
 \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
 \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
@@ -241,6 +254,19 @@ let yycheck = "\003\001\
 \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
 \255\255\255\255\255\255\255\255\004\001\005\001\006\001\007\001\
 \008\001\004\001\004\001\004\001\012\001\013\001\255\255\015\001\
+\016\001\017\001\018\001\019\001\020\001\021\001\022\001\023\001\
+\024\001\025\001\026\001\255\255\028\001\029\001\004\001\005\001\
+\006\001\007\001\008\001\255\255\255\255\255\255\012\001\013\001\
+\255\255\015\001\016\001\017\001\018\001\019\001\020\001\021\001\
+\022\001\023\001\024\001\025\001\026\001\255\255\028\001\029\001\
+\004\001\005\001\006\001\007\001\008\001\255\255\255\255\255\255\
+\012\001\013\001\255\255\015\001\016\001\017\001\018\001\019\001\
+\020\001\021\001\022\001\023\001\024\001\025\001\026\001\255\255\
+\028\001\029\001\004\001\005\001\006\001\007\001\008\001\255\255\
+\255\255\255\255\012\001\013\001\255\255\015\001\016\001\017\001\
+\018\001\019\001\020\001\021\001\022\001\023\001\024\001\025\001\
+\255\255\027\001\255\255\029\001\004\001\005\001\006\001\007\001\
+\008\001\255\255\255\255\255\255\012\001\013\001\255\255\015\001\
 \016\001\017\001\018\001\019\001\020\001\021\001\022\001\023\001\
 \024\001\025\001\255\255\255\255\255\255\029\001\004\001\005\001\
 \006\001\007\001\008\001\255\255\255\255\255\255\012\001\013\001\
@@ -300,350 +326,354 @@ let yyact = [|
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'formula) in
     Obj.repr(
-# 82 "src/ltl_to_acsl/ltlparser.mly"
+# 84 "src/ltl_to_acsl/ltlparser.mly"
                       ((_1,observed_expressions))
-# 306 "src/ltl_to_acsl/ltlparser.ml"
+# 332 "src/ltl_to_acsl/ltlparser.ml"
                : (Ltlast.formula * (string, (Cil_types.exp* string*Cil_types.predicate)) Hashtbl.t)))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 88 "src/ltl_to_acsl/ltlparser.mly"
+# 90 "src/ltl_to_acsl/ltlparser.mly"
             (Ltlast.LTrue)
-# 312 "src/ltl_to_acsl/ltlparser.ml"
+# 338 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 90 "src/ltl_to_acsl/ltlparser.mly"
+# 92 "src/ltl_to_acsl/ltlparser.mly"
      (Ltlast.LFalse)
-# 318 "src/ltl_to_acsl/ltlparser.ml"
+# 344 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'formula) in
     Obj.repr(
-# 92 "src/ltl_to_acsl/ltlparser.mly"
+# 94 "src/ltl_to_acsl/ltlparser.mly"
      ( _2 )
-# 325 "src/ltl_to_acsl/ltlparser.ml"
-               : 'formula))
-; (fun __caml_parser_env ->
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
-    Obj.repr(
-# 95 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LGlobally(_2) )
-# 332 "src/ltl_to_acsl/ltlparser.ml"
+# 351 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 97 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LFatally(_2) )
-# 339 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LGlobally(_2) )
+# 358 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 99 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LUntil(_1,_3) )
-# 347 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LFatally(_2) )
+# 365 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 101 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LRelease(_1,_3) )
-# 355 "src/ltl_to_acsl/ltlparser.ml"
-               : 'formula))
-; (fun __caml_parser_env ->
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
-    Obj.repr(
-# 103 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LNext(_2) )
-# 362 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LUntil(_1,_3) )
+# 373 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
-# 106 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LOr(_1,_3) )
-# 370 "src/ltl_to_acsl/ltlparser.ml"
+# 103 "src/ltl_to_acsl/ltlparser.mly"
+     ( Ltlast.LRelease(_1,_3) )
+# 381 "src/ltl_to_acsl/ltlparser.ml"
+               : 'formula))
+; (fun __caml_parser_env ->
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
+    Obj.repr(
+# 105 "src/ltl_to_acsl/ltlparser.mly"
+     ( Ltlast.LNext(_2) )
+# 388 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 108 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LAnd(_1,_3) )
-# 378 "src/ltl_to_acsl/ltlparser.ml"
-               : 'formula))
-; (fun __caml_parser_env ->
-    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
-    Obj.repr(
-# 110 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LNot(_2) )
-# 385 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LOr(_1,_3) )
+# 396 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
+# 110 "src/ltl_to_acsl/ltlparser.mly"
+     ( Ltlast.LAnd(_1,_3) )
+# 404 "src/ltl_to_acsl/ltlparser.ml"
+               : 'formula))
+; (fun __caml_parser_env ->
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
+    Obj.repr(
 # 112 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LImplies(_1,_3) )
-# 393 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LNot(_2) )
+# 411 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 114 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LIff(_1,_3) )
-# 401 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LImplies(_1,_3) )
+# 419 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
-    let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
-# 117 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LCall(_3))
-# 408 "src/ltl_to_acsl/ltlparser.ml"
+# 116 "src/ltl_to_acsl/ltlparser.mly"
+     ( Ltlast.LIff(_1,_3) )
+# 427 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
 # 119 "src/ltl_to_acsl/ltlparser.mly"
-     ( Ltlast.LReturn(_3))
-# 415 "src/ltl_to_acsl/ltlparser.ml"
+     ( Ltlast.LCall(_3))
+# 434 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
 # 121 "src/ltl_to_acsl/ltlparser.mly"
+     ( Ltlast.LReturn(_3))
+# 441 "src/ltl_to_acsl/ltlparser.ml"
+               : 'formula))
+; (fun __caml_parser_env ->
+    let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
+    Obj.repr(
+# 123 "src/ltl_to_acsl/ltlparser.mly"
      ( Ltlast.LCallOrReturn(_3))
-# 422 "src/ltl_to_acsl/ltlparser.ml"
+# 448 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logic_relation) in
     Obj.repr(
-# 125 "src/ltl_to_acsl/ltlparser.mly"
-     ( 
-	      let id = get_fresh_ident () in 
+# 127 "src/ltl_to_acsl/ltlparser.mly"
+     (
+	      let id = get_fresh_ident () in
 	      let (pred,exp) = _1 in
-	        Hashtbl.add observed_expressions id (exp, (Cil.fprintf_to_string "%a" Cil.d_exp exp), pred);
+	        Hashtbl.add observed_expressions id 
+		  (exp, (Pretty_utils.sfprintf "%a" Cil.d_exp exp), pred);
 	        Ltlast.LIdent(id)
 	    )
-# 434 "src/ltl_to_acsl/ltlparser.ml"
+# 461 "src/ltl_to_acsl/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 137 "src/ltl_to_acsl/ltlparser.mly"
-            ( (	Prel(Cil_types.Req, Logic_const.expr_to_term _1 ,Logic_const.expr_to_term  _3),
-		BinOp(Cil_types.Eq, _1 , _3 , Cil.intType) )
+# 140 "src/ltl_to_acsl/ltlparser.mly"
+            ( (	Prel(Cil_types.Req, Logic_utils.expr_to_term _1 ,Logic_utils.expr_to_term  _3),
+		new_exp (BinOp(Cil_types.Eq, _1 , _3 , Cil.intType)) )
 	    )
-# 444 "src/ltl_to_acsl/ltlparser.ml"
+# 471 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 141 "src/ltl_to_acsl/ltlparser.mly"
-            ( (	Prel(Cil_types.Rlt, Logic_const.expr_to_term _1 , Logic_const.expr_to_term _3),
-		BinOp(Cil_types.Lt, _1 , _3 , Cil.intType) )
+# 144 "src/ltl_to_acsl/ltlparser.mly"
+            ( (	Prel(Cil_types.Rlt, Logic_utils.expr_to_term _1 , Logic_utils.expr_to_term _3),
+		new_exp (BinOp(Cil_types.Lt, _1 , _3 , Cil.intType)) )
 	    )
-# 454 "src/ltl_to_acsl/ltlparser.ml"
+# 481 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 145 "src/ltl_to_acsl/ltlparser.mly"
-            ( (	Prel(Cil_types.Rgt, Logic_const.expr_to_term _1 , Logic_const.expr_to_term _3),
-		BinOp(Cil_types.Gt, _1 , _3 , Cil.intType) )
+# 148 "src/ltl_to_acsl/ltlparser.mly"
+            ( (	Prel(Cil_types.Rgt, Logic_utils.expr_to_term _1 , Logic_utils.expr_to_term _3),
+		new_exp(BinOp(Cil_types.Gt, _1 , _3 , Cil.intType)) )
 	    )
-# 464 "src/ltl_to_acsl/ltlparser.ml"
+# 491 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 149 "src/ltl_to_acsl/ltlparser.mly"
-            ( (	Prel(Cil_types.Rle, Logic_const.expr_to_term _1 , Logic_const.expr_to_term _3),
-		BinOp(Cil_types.Le, _1 , _3 , Cil.intType) )
+# 152 "src/ltl_to_acsl/ltlparser.mly"
+            ( (	Prel(Cil_types.Rle, Logic_utils.expr_to_term _1 , Logic_utils.expr_to_term _3),
+		new_exp (BinOp(Cil_types.Le, _1 , _3 , Cil.intType) ))
 	    )
-# 474 "src/ltl_to_acsl/ltlparser.ml"
+# 501 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 153 "src/ltl_to_acsl/ltlparser.mly"
-            ( (	Prel(Cil_types.Rge, Logic_const.expr_to_term _1 , Logic_const.expr_to_term _3),
-		BinOp(Cil_types.Ge, _1 , _3 , Cil.intType) )
+# 156 "src/ltl_to_acsl/ltlparser.mly"
+            ( (	Prel(Cil_types.Rge, Logic_utils.expr_to_term _1 , Logic_utils.expr_to_term _3),
+		new_exp (BinOp(Cil_types.Ge, _1 , _3 , Cil.intType) ))
 	    )
-# 484 "src/ltl_to_acsl/ltlparser.ml"
+# 511 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 157 "src/ltl_to_acsl/ltlparser.mly"
-            ( (	Prel(Cil_types.Rneq,Logic_const.expr_to_term _1 , Logic_const.expr_to_term _3),
-		BinOp(Cil_types.Ne , _1 , _3 , Cil.intType) )
+# 160 "src/ltl_to_acsl/ltlparser.mly"
+            ( (	Prel(Cil_types.Rneq,Logic_utils.expr_to_term _1 , Logic_utils.expr_to_term _3),
+		new_exp (BinOp(Cil_types.Ne , _1 , _3 , Cil.intType) ))
 	    )
-# 494 "src/ltl_to_acsl/ltlparser.ml"
+# 521 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 161 "src/ltl_to_acsl/ltlparser.mly"
-     ( (	Prel(Cil_types.Rneq,Logic_const.expr_to_term _1 , 
-		     Logic_const.mk_dummy_term 
-		       (TConst( CInt64(Int64.of_int 0,IInt,Some("0"))))  
-		       Cil.intType),
+# 164 "src/ltl_to_acsl/ltlparser.mly"
+     ( (	Prel(Cil_types.Rneq,Logic_utils.expr_to_term _1 ,
+		     Logic_const.term
+		       (TConst( CInt64(Int64.of_int 0,IInt,Some("0"))))
+		       (Ctype Cil.intType)),
 		_1)
 	    )
-# 506 "src/ltl_to_acsl/ltlparser.ml"
+# 533 "src/ltl_to_acsl/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 173 "src/ltl_to_acsl/ltlparser.mly"
-            ( BinOp(Cil_types.PlusA, _1 , _3 , Cil.intType) )
-# 514 "src/ltl_to_acsl/ltlparser.ml"
+# 176 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (BinOp(Cil_types.PlusA, _1 , _3 , Cil.intType)) )
+# 541 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 175 "src/ltl_to_acsl/ltlparser.mly"
-            ( BinOp(Cil_types.MinusA, _1 , _3 , Cil.intType) )
-# 522 "src/ltl_to_acsl/ltlparser.ml"
+# 178 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (BinOp(Cil_types.MinusA, _1 , _3 , Cil.intType)) )
+# 549 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation_mul) in
     Obj.repr(
-# 177 "src/ltl_to_acsl/ltlparser.mly"
+# 180 "src/ltl_to_acsl/ltlparser.mly"
      ( _1 )
-# 529 "src/ltl_to_acsl/ltlparser.ml"
+# 556 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 183 "src/ltl_to_acsl/ltlparser.mly"
-            ( BinOp(Cil_types.Div, _1 , _3 , Cil.intType) )
-# 537 "src/ltl_to_acsl/ltlparser.ml"
+# 186 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (BinOp(Cil_types.Div, _1 , _3 , Cil.intType)) )
+# 564 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 185 "src/ltl_to_acsl/ltlparser.mly"
-            ( BinOp(Cil_types.Mult, _1 , _3 , Cil.intType) )
-# 545 "src/ltl_to_acsl/ltlparser.ml"
+# 188 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (BinOp(Cil_types.Mult, _1 , _3 , Cil.intType)) )
+# 572 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 187 "src/ltl_to_acsl/ltlparser.mly"
-            ( BinOp(Cil_types.Mod, _1 , _3 , Cil.intType) )
-# 553 "src/ltl_to_acsl/ltlparser.ml"
+# 190 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (BinOp(Cil_types.Mod, _1 , _3 , Cil.intType)) )
+# 580 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 189 "src/ltl_to_acsl/ltlparser.mly"
+# 192 "src/ltl_to_acsl/ltlparser.mly"
      ( _1 )
-# 560 "src/ltl_to_acsl/ltlparser.ml"
+# 587 "src/ltl_to_acsl/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 195 "src/ltl_to_acsl/ltlparser.mly"
-            ( Const(CInt64(Int64.of_string _1,IInt, Some(_1))))
-# 567 "src/ltl_to_acsl/ltlparser.ml"
+# 198 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (Const(CInt64(Int64.of_string _1,IInt, Some(_1)))))
+# 594 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
-# 197 "src/ltl_to_acsl/ltlparser.mly"
-     ( Lval(_1) )
-# 574 "src/ltl_to_acsl/ltlparser.ml"
+# 200 "src/ltl_to_acsl/ltlparser.mly"
+            ( new_exp (Lval(_1)) )
+# 601 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'arith_relation) in
     Obj.repr(
-# 199 "src/ltl_to_acsl/ltlparser.mly"
+# 202 "src/ltl_to_acsl/ltlparser.mly"
      ( _2 )
-# 581 "src/ltl_to_acsl/ltlparser.ml"
+# 608 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access_array) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
-# 206 "src/ltl_to_acsl/ltlparser.mly"
-            ( Format.printf "NOT YET IMPLEMENTED : A->B pointed structure filed access."; assert false )
-# 589 "src/ltl_to_acsl/ltlparser.ml"
+# 209 "src/ltl_to_acsl/ltlparser.mly"
+            ( Ltl_to_acsl_option.fatal "NOT YET IMPLEMENTED : A->B pointed structure filed access." )
+# 616 "src/ltl_to_acsl/ltlparser.ml"
                : 'access))
 ; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access_array) in
-    let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
+    let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access) in
+    let _3 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 208 "src/ltl_to_acsl/ltlparser.mly"
-            ( Format.printf "NOT YET IMPLEMENTED : A.B structure filed access."; assert false )
-# 597 "src/ltl_to_acsl/ltlparser.ml"
+# 211 "src/ltl_to_acsl/ltlparser.mly"
+            ( let (my_host,my_offset) = (_1) in
+              
+              let new_offset = Utils_parser.add_offset my_offset (Utils_parser.get_new_offset my_host my_offset _3) in
+              (my_host,new_offset))
+# 627 "src/ltl_to_acsl/ltlparser.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_array) in
     Obj.repr(
-# 210 "src/ltl_to_acsl/ltlparser.mly"
+# 216 "src/ltl_to_acsl/ltlparser.mly"
      (_1)
-# 604 "src/ltl_to_acsl/ltlparser.ml"
+# 634 "src/ltl_to_acsl/ltlparser.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'access_array) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'access_or_const) in
     Obj.repr(
-# 214 "src/ltl_to_acsl/ltlparser.mly"
+# 220 "src/ltl_to_acsl/ltlparser.mly"
      ( Cil.addOffsetLval (Index (_3,NoOffset)) _1)
-# 612 "src/ltl_to_acsl/ltlparser.ml"
+# 642 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_leaf) in
     Obj.repr(
-# 220 "src/ltl_to_acsl/ltlparser.mly"
+# 222 "src/ltl_to_acsl/ltlparser.mly"
      (_1)
-# 619 "src/ltl_to_acsl/ltlparser.ml"
+# 649 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
-# 225 "src/ltl_to_acsl/ltlparser.mly"
-            ( Format.printf "NOT YET IMPLEMENTED : &A 'address of' access."; assert false )
-# 626 "src/ltl_to_acsl/ltlparser.ml"
+# 227 "src/ltl_to_acsl/ltlparser.mly"
+            ( Ltl_to_acsl_option.fatal "NOT YET IMPLEMENTED : &A 'address of' access." )
+# 656 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
-# 227 "src/ltl_to_acsl/ltlparser.mly"
-            ( Format.printf "NOT YET IMPLEMENTED : *A dereferencement access."; assert false )
-# 633 "src/ltl_to_acsl/ltlparser.ml"
+# 229 "src/ltl_to_acsl/ltlparser.mly"
+            ( Ltl_to_acsl_option.fatal "NOT YET IMPLEMENTED : *A dereferencement access.")
+# 663 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 229 "src/ltl_to_acsl/ltlparser.mly"
+# 231 "src/ltl_to_acsl/ltlparser.mly"
      ( Cil.var ( Data_for_ltl.get_varinfo _1) )
-# 640 "src/ltl_to_acsl/ltlparser.ml"
+# 670 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'access) in
     Obj.repr(
-# 231 "src/ltl_to_acsl/ltlparser.mly"
+# 233 "src/ltl_to_acsl/ltlparser.mly"
      ( _2 )
-# 647 "src/ltl_to_acsl/ltlparser.ml"
+# 677 "src/ltl_to_acsl/ltlparser.ml"
                : 'access_leaf))
 (* Entry ltl *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

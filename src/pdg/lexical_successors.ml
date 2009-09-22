@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -51,9 +51,9 @@ let add_link graph ~prev ~next =
       try
         ignore (Inthash.find graph prev_id)
       with Not_found ->
-        Macros.debug 1 "[lexical successor] add %d -> %d@."
-            prev_id s_next.sid;
-        Inthash.add graph  prev_id s_next
+        Macros.debug 1 "[lexical successor] add %d -> %d"
+          prev_id s_next.sid;
+        Inthash.add graph prev_id s_next
 
 (** Add links from each prev in prev_list to next. *)
 let add_links graph prev_list next =

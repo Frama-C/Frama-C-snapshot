@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: db_types.mli,v 1.42 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: db_types.mli,v 1.44 2009-01-19 10:21:24 uid568 Exp $ *)
 
 (** Type definitions for [Db] module. Each plugin may add its additional
     types. 
@@ -43,7 +43,6 @@ type cil_function =
 type rooted_code_annotation =
   | User of code_annotation
   | AI of Alarms.t*code_annotation
-  | WP of Fol.decl list * int      (** formula * unique id *)
 
 type 'a before_after = Before of 'a | After of 'a
 
@@ -59,6 +58,9 @@ type kernel_function = {
   mutable spec : funspec;
   mutable stmts_graph : stmts_graph option;
 }
+
+type localisation = 
+    VGlobal | VLocal of kernel_function | VFormal of kernel_function
 
 (*
 Local Variables:

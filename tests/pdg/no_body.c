@@ -1,9 +1,9 @@
 /* run.config
 *    GCC:
-*    OPT: -pdg-debug "-fct-pdg main" -inout -journal-disable
+*    OPT: -fct-pdg main -inout -journal-disable
 */
 /*
- * ledit bin/toplevel.top  tests/slicing/no_body.c -pdg-debug "-fct-pdg main"
+ * ledit bin/toplevel.top  tests/slicing/no_body.c -fct-pdg main
  * #use "tests/slicing/select.ml";;
  * test "loop" (select_data "G");;
 */

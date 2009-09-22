@@ -45,10 +45,31 @@ let getident () =
     nextident := !nextident + 1;
     !nextident
 
-let currentLoc () = Errormsg.getPosition ()
+let currentLoc () = Errorloc.getPosition ()
 
-let warn_skip_logic () = Format.eprintf "Warning: ignoring logical annotation.@."
+(* TODO: use Parameters directly as soon as dependencies issues are resolved*)
+
+let continueOnAnnotError = ref false
+
+let continue_annot_error_set () = continueOnAnnotError:=true
+let continue_annot_error_unset () = continueOnAnnotError :=false
 let cabslu = Lexing.dummy_pos,Lexing.dummy_pos
+
+let continue_annot l job default msg =
+  try
+    Cilmsg.push_errors () ;
+    let result = job () in
+    if Cilmsg.had_errors () then failwith "Annotation has errors" ;
+    Cilmsg.pop_errors () ;
+    Log.with_null (fun _ -> result) msg ;
+  with exn when !continueOnAnnotError ->
+    Cilmsg.debug "Continue on annotation error (%s)" (Printexc.to_string exn) ;
+    Cilmsg.pop_errors () ;
+    Cilmsg.with_warning (fun _ -> default ()) 
+      ~source:{
+	Log.src_file= (fst l).Lexing.pos_fname ;
+	Log.src_line= (fst l).Lexing.pos_lnum ;
+      } msg
 
 (* clexer puts comments here *)
 let commentsGA = GrowArray.make 100 (GrowArray.Elem(cabslu,"",false))
@@ -135,10 +156,12 @@ let valueOfDigit chr =
       '0'..'9' -> (Char.code chr) - (Char.code '0')
     | 'a'..'z' -> (Char.code chr) - (Char.code 'a') + 10
     | 'A'..'Z' -> (Char.code chr) - (Char.code 'A') + 10
-    | _ -> Errormsg.s (Errormsg.bug "not a digit") in
+    | _ -> Cilmsg.fatal "not a digit" 
+  in
   Int64.of_int int_value
 
 
-open Pretty
-let d_cabsloc () cl =
-  text (fst cl).Lexing.pos_fname ++ text ":" ++ num (fst cl).Lexing.pos_lnum
+let d_cabsloc fmt cl =
+  Format.fprintf fmt "%s:%d" 
+    (fst cl).Lexing.pos_fname 
+    (fst cl).Lexing.pos_lnum

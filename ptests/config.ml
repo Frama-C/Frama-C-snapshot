@@ -1,1 +1,0 @@
-let default_suites = [ "saveload"; "dynamic"; "journal"; "occurrence"; "idct"; "test"; "misc"; "float"; "constant_propagation"; "security"; "impact"; "jessie"; "pdg"; "scope"; "sparecode"; "slicing"; "slicing2"; "spec"; ]

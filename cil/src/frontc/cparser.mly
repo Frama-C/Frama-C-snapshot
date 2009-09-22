@@ -44,14 +44,10 @@
 
 
 %{
+
 open Cabs
 open Cabshelper
-module E = Errormsg
-
-let parse_error msg : unit =       (* sm: c++-mode highlight hack: -> ' <- *)
-  E.parse_error msg
-
-let print = print_string
+let parse_error msg = Errorloc.parse_error msg
 
 (* unit -> string option *)
 (*
@@ -113,8 +109,7 @@ let announceFunctionName ((n, decl, _, _):name) =
   !Lexerhack.push_context ();
   (try findProto decl
    with Parsing.Parse_error ->
-     parse_error "Cannot find the prototype in a function definition";
-     raise Parsing.Parse_error);
+     parse_error "Cannot find the prototype in a function definition");
   currentFunctionName := n
 
 
@@ -148,10 +143,10 @@ let doDeclaration logic_spec (loc: cabsloc) (specs: spec_elem list) (nl: init_na
         match logic_spec with
             None -> None
           | Some ls ->
-              (try Some (Logic_lexer.spec ls)
-               with Parsing.Parse_error ->
-                 Cabshelper.warn_skip_logic(); None)
-
+	      Cabshelper.continue_annot loc
+		(fun () -> Some (Logic_lexer.spec ls))
+		(fun () -> None)
+		"Skipping annotation"
       in
       !Lexerhack.pop_context ();
       DECDEF (logic_spec, (specs, nl), loc)
@@ -190,20 +185,12 @@ let checkConnective (s : string) : unit =
 begin
   (* checking this means I could possibly have more connectives, with *)
   (* different meaning *)
-  if (s <> "to") then (
-    parse_error "transformer connective must be 'to'";
-    raise Parsing.Parse_error
-  )
-  else ()
+  if (s <> "to") then parse_error "transformer connective must be 'to'";
 end
 
 let int64_to_char value =
   if (compare value (Int64.of_int 255) > 0) || (compare value Int64.zero < 0) then
-    begin
-      let msg = Printf.sprintf "cparser:intlist_to_string: character 0x%Lx too big" value in
-      parse_error msg;
-      raise Parsing.Parse_error
-    end
+    parse_error (Printf.sprintf "integral literal 0x%Lx too big" value)
   else
     Char.chr (Int64.to_int value)
 
@@ -250,9 +237,8 @@ let transformOffsetOf (speclist, dtype) member =
 	MEMBEROF (replaceBase base, field)
     | INDEX (base, index) ->
 	INDEX (replaceBase base, index)
-    | _ ->
-	parse_error "malformed offset expression in __builtin_offsetof";
-        raise Parsing.Parse_error
+    | _ -> 
+	parse_error "malformed offset expression in __builtin_offsetof"
   in
   let memberExpr = replaceBase member in
   let addrExpr = UNARY (ADDROF, memberExpr) in
@@ -467,10 +453,8 @@ global:
       { LINKAGE (fst $2, (*handleLoc*) (snd $2),
                  List.map
                    (fun (x,y) ->
-                      if x then
-                        (parse_error "invalid ghost in extern linkage specification";
-                         raise Parsing.Parse_error);
-                      y)
+                      if x then parse_error "invalid ghost in extern linkage specification"
+		      else y)
                    $4)  }
 | ASM LPAREN string_constant RPAREN SEMICOLON
                                         { GLOBASM (fst $3, (*handleLoc*) $1) }
@@ -499,10 +483,8 @@ global:
     TRANSFORMER($3,
                   List.map
                     (fun (x,y) ->
-                       if x then
-                         (parse_error "invalid ghost transformer";
-                          raise Parsing.Parse_error);
-                       y)
+                       if x then parse_error "invalid ghost transformer"
+                       else y)
                     $7,
                 $1)
   }
@@ -966,14 +948,15 @@ statement:
 |   SPEC annotated_statement
       {
         let bs = $2 in
-        try
-          let spec = Logic_lexer.spec $1 in
-          let spec = no_ghost (Cabs.CODE_SPEC spec) in
-          BLOCK ({ blabels = []; battrs = []; bstmts = [spec;bs] },
-                 get_statementloc spec, get_statementloc bs)
-        with Parsing.Parse_error ->
-          Cabshelper.warn_skip_logic ();
-          bs.stmt_node
+        Cabshelper.continue_annot
+	  (currentLoc())
+	  (fun () ->
+             let spec = Logic_lexer.spec $1 in
+             let spec = no_ghost (Cabs.CODE_SPEC spec) in
+             BLOCK ({ blabels = []; battrs = []; bstmts = [spec;bs] },
+                    get_statementloc spec, get_statementloc bs))
+	  (fun () -> bs.stmt_node)
+	  "Skipping annotation"
       }
 |   comma_expression SEMICOLON
 	        	{COMPUTATION (smooth_expression (fst $1),  (*handleLoc*)(snd $1))}
@@ -1324,10 +1307,7 @@ pointer_opt:
 
 type_name: /* (* ISO 6.7.6 *) */
   decl_spec_list abstract_decl { let d, a = $2 in
-                                 if a <> [] then begin
-                                   parse_error "attributes in type name";
-                                   raise Parsing.Parse_error
-                                 end;
+                                 if a <> [] then parse_error "attributes in type name" ;
                                  (fst $1, d)
                                }
 | decl_spec_list               { (fst $1, JUSTBASE) }

@@ -259,8 +259,12 @@ struct
 	 "[result == r] => a new entry has been allocated in [table]"
 	 implication does not work *)
       if result == r 
-      then incr current_tag;
-      result
+      then begin 
+	  incr current_tag;
+	  if !current_tag = 0
+	  then failwith "Please mention 'ptmap internal limit' when you report";
+	end;
+	result
 
     let project_offset () =
       try
@@ -276,19 +280,38 @@ struct
       let new_tr = Branch (p, m, l, r, !current_tag ) in
       wrap new_tr
 
+    let debug_rehash = false
+    let rehash_table = PatriciaHashtbl.create 27
+    let () = Project.register_after_load_hook 
+      (fun () -> PatriciaHashtbl.clear rehash_table)
     let rec rehash t =
-(*      Format.printf "rehash got:%d@\n=======@\n%a@." (tag t) pretty t;*)
-      let res = 
-	match t with
-	  Empty -> t
-	| Leaf (k, v, _) -> let v = V.Datatype.rehash v in wrap_Leaf k v
-	| Branch (p, m, l, r, _) ->
-	    let l = rehash l in
-	    let r = rehash r in
-	    wrap_Branch p m l r
-      in
-      res
-	
+      try
+	PatriciaHashtbl.find rehash_table t 
+      with Not_found ->
+	if debug_rehash 
+	then Format.printf "rehash %9dms %s got: %4d (%d)@." 
+	  (Extlib.getperfcount1024())
+	  name (tag t) 
+	  (Obj.magic t);
+	let res = 
+	  match t with
+	    Empty -> t
+	  | Leaf (k, v, _) -> 
+	      let v = V.Datatype.rehash v in wrap_Leaf k v
+	  | Branch (p, m, l, r, _) ->
+	      let l = rehash l in
+	      let r = rehash r in
+	      wrap_Branch p m l r
+	in
+	if debug_rehash
+	then Format.printf "rehash %9dms %s got: %4d (%d) ->%5d (%d)@." 
+	  (Extlib.getperfcount1024())
+	  name
+	  (tag t) (Obj.magic t)
+	  (tag res) (Obj.magic res);
+	PatriciaHashtbl.add rehash_table t res;
+	res
+	  
     let rehash_initial t =
       match t with
 	Empty -> ()
@@ -421,6 +444,7 @@ struct
        let rehash _ = assert false (* this datatype is not saved to disk *)
        let copy _ = assert false (* TODO: think! share between similar 
 				 projects, or not share? *)
+       let descr = Unmarshal.Abstract 
        let name = 
 	 Project.Datatype.extend_name 
 	   "hashconsing_table_datatype" 
@@ -458,12 +482,14 @@ struct
 	set save;
 	result
 
+      let clear_if_project _ _ = false
+
     end)
     (struct 
       let name = 
 	incr counter ; 
 	name ^ " hashconsing_table " ^ (string_of_int !counter)
-      let dependencies = [ Cil_state.self ]
+      let dependencies = [ Ast.self ]
     end)
       
   let () = State.do_not_save ()
@@ -749,118 +775,116 @@ struct
 
       exception Found of t
 
-    let symetric_merge ~cache ~decide_none ~decide_some =
-      let symetric_fine_add k d m =
-	(* this function to be called when one of the trees
-	   is a single binding *)
-	let rec add t =
-	  match t with
-	  |	Empty ->
-	      wrap_Leaf k (decide_none d )
-	  |	Leaf (k0, d0, _) ->
-	      if k = k0 then
-		let d' = decide_some d0 d in
-		if d'==d0 then t else wrap_Leaf k d'
-	      else
-		let endo =
-		  let decid = decide_none d0 in
-		  if decid == d0 then t else wrap_Leaf k0 decid
-		in
-		join k (wrap_Leaf k (decide_none d)) k0 endo
-	  |	Branch (p, m, t0, t1, _) ->
-	      if match_prefix k p m then
-		if (k land m) = 0 then
-		  let a_t0 = add t0 in
-		  let endo = endo_map decide_none t1 in
-		  if a_t0 == t0 && endo == t1 then t
-		  else wrap_Branch p m a_t0 endo
-		else
-		  let a_t1 = add t1 in
-		  let endo =  endo_map decide_none t0
-		  in
-		  if a_t1 == t1 && endo == t0 then t
-		  else wrap_Branch p m endo a_t1
-	      else
-		let endo = endo_map decide_none t in
-		join k (wrap_Leaf k (decide_none d)) p endo in
+      let symetric_merge ~cache ~decide_none ~decide_some =
+	let symetric_fine_add k d m =
+	  (* this function to be called when one of the trees
+	     is a single binding *)
+	  let rec add t =
+	    match t with
+	    |	Empty ->
+		  wrap_Leaf k (decide_none d )
+	    |	Leaf (k0, d0, _) ->
+		  if k = k0 then
+		    let d' = decide_some d0 d in
+		    if d'==d0 then t else wrap_Leaf k d'
+		  else
+		    let endo =
+		      let decid = decide_none d0 in
+		      if decid == d0 then t else wrap_Leaf k0 decid
+		    in
+		    join k (wrap_Leaf k (decide_none d)) k0 endo
+	    |	Branch (p, m, t0, t1, _) ->
+		  if match_prefix k p m then
+		    if (k land m) = 0 then
+		      let a_t0 = add t0 in
+		      let endo = endo_map decide_none t1 in
+		      if a_t0 == t0 && endo == t1 then t
+		      else wrap_Branch p m a_t0 endo
+		    else
+		      let a_t1 = add t1 in
+		      let endo =  endo_map decide_none t0
+		      in
+		      if a_t1 == t1 && endo == t0 then t
+		      else wrap_Branch p m endo a_t1
+		  else
+		    let endo = endo_map decide_none t in
+		    join k (wrap_Leaf k (decide_none d)) p endo in
 
-	add m
-      in
-      let _name, _cache = cache in
-      
-      let module Result = 
-	  struct
-	    type t = tt
-	    let sentinel = Empty		
-	  end
-      in
-      let module Symcacheable = 
-	  struct
-	    type t = tt
-	    let hash = tag
-	    let equal = (==)
-	    let sentinel = Empty
-	  end
-      in
-      let module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)(Result)
-      in
-
-      Project.register_todo_on_clear SymetricCache.clear;
-      let rec union s t =
+	  add m
+	in
+	let _name, _cache = cache in
+	
+	let module Result = 
+	    struct
+	      type t = tt
+	      let sentinel = Empty		
+	    end
+	in
+	let module Symcacheable = 
+	    struct
+	      type t = tt
+	      let hash = tag
+	      let equal = (==)
+	      let sentinel = Empty
+	    end
+	in
+	let module SymetricCache = 
+	  Binary_cache.Make_Symetric(Symcacheable)(Result)
+	in
+	Project.register_todo_on_clear (fun _ -> SymetricCache.clear ());
+	let rec union s t =
 	  if s==t then s else
+	    SymetricCache.merge uncached_union s t
+	and uncached_union s t =
 	  match s, t with
 	  | Empty, t | t, Empty ->
 	      endo_map decide_none t
 	  | Leaf(key, value, _), t | t, Leaf(key, value, _) ->
 	      symetric_fine_add key value t
 	  | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
-		let compute () =
-		  if (p = q) & (m = n) then
+	      if (p = q) & (m = n) then
 
-  		    (* The trees have the same prefix. Merge their sub-trees. *)
+  		(* The trees have the same prefix. Merge their sub-trees. *)
 
-		    let u0 = union s0 t0
-		    and u1 = union s1 t1 in
-		    if t0 == u0 && t1 == u1 then t
-		    else wrap_Branch p m u0 u1
+		let u0 = union s0 t0
+		and u1 = union s1 t1 in
+		if t0 == u0 && t1 == u1 then t
+		else wrap_Branch p m u0 u1
 
-		  else if (X.shorter m n) & (match_prefix q p m) then
+	      else if (X.shorter m n) & (match_prefix q p m) then
 
-  		    (* [q] contains [p]. Merge [t] with a sub-tree of [s]. *)
+  		(* [q] contains [p]. Merge [t] with a sub-tree of [s]. *)
 
-		    if (q land m) = 0 then
-		      let s0_t = union s0 t in
-		      let s1_e = union s1 Empty in
-		      if s0_t == s0 && s1_e == s1 then s
-		      else wrap_Branch p m s0_t s1_e
-		    else
-		      let s0_e = union s0 Empty in
-		      let s1_t = union s1 t in
-		      if s0_e == s0 && s1_t == s1 then s
-		      else wrap_Branch p m s0_e s1_t
+		if (q land m) = 0 then
+		  let s0_t = union s0 t in
+		  let s1_e = union s1 Empty in
+		  if s0_t == s0 && s1_e == s1 then s
+		  else wrap_Branch p m s0_t s1_e
+		else
+		  let s0_e = union s0 Empty in
+		  let s1_t = union s1 t in
+		  if s0_e == s0 && s1_t == s1 then s
+		  else wrap_Branch p m s0_e s1_t
 
-		  else if (X.shorter n m) & (match_prefix p q n) then
+	      else if (X.shorter n m) & (match_prefix p q n) then
 
-		    (* [p] contains [q]. Merge [s] with a sub-tree of [t]. *)
+		(* [p] contains [q]. Merge [s] with a sub-tree of [t]. *)
 
-		    if (p land n) = 0 then
-		      let s_t0 = union s t0 in
-		      let e_t1 = union Empty t1 in
-		      if t0 == s_t0 && e_t1 == t1 then t
-		      else wrap_Branch q n s_t0 e_t1
-		    else
-		      let s_t1 = union s t1 in
-		      let e_t0 =  union Empty t0 in
-		      if t1 == s_t1 && e_t0 == t0 then t
-		      else wrap_Branch q n e_t0 s_t1
-		  else
-		    (* The prefixes disagree. *)
-		    join p (union s Empty) q (union Empty t)
+		if (p land n) = 0 then
+		  let s_t0 = union s t0 in
+		  let e_t1 = union Empty t1 in
+		  if t0 == s_t0 && e_t1 == t1 then t
+		  else wrap_Branch q n s_t0 e_t1
+		else
+		  let s_t1 = union s t1 in
+		  let e_t0 =  union Empty t0 in
+		  if t1 == s_t1 && e_t0 == t0 then t
+		  else wrap_Branch q n e_t0 s_t1
+	      else
+		(* The prefixes disagree. *)
+		join p (union s Empty) q (union Empty t)
+	in union
 
-		in
-		SymetricCache.merge compute s t
-	in
-	union
 
     let generic_merge ~cache ~decide =
       let _name, _cache = cache in
@@ -881,7 +905,7 @@ struct
 	let module Cache = Binary_cache.Make_Asymetric(Cacheable)(R)
 	in
 
-      Project.register_todo_on_clear Cache.clear;
+      Project.register_todo_on_clear (fun _ -> Cache.clear ());
       fun m1 m2 ->
 	let rec union s t =
 	  if s==t then s else
@@ -979,10 +1003,10 @@ struct
 	    let sentinel = Empty
 	  end
       in
-      let module Cache = Binary_cache.Make_Asymetric(Cacheable)(Binary_cache.Bool_Result)
+      let module Cache = 
+	Binary_cache.Make_Asymetric(Cacheable)(Binary_cache.Bool_Result)
       in
-
-      Project.register_todo_on_clear Cache.clear;
+      Project.register_todo_on_clear (fun _ -> Cache.clear ());
 
       fun m1 m2 -> 
 	let rec inclusion s t =
@@ -1053,7 +1077,7 @@ struct
     let cached_fold ~cache ~f ~joiner ~empty =
       let _name, cache = cache in
       let table = PatriciaHashtbl.create cache in
-      Project.register_todo_on_clear (fun () -> PatriciaHashtbl.clear table);
+      Project.register_todo_on_clear (fun _-> PatriciaHashtbl.clear table);
       let counter = ref 0 in
       fun m ->
 	let rec traverse t = 
@@ -1086,7 +1110,7 @@ struct
   let cached_map ~cache ~f =
       let _name, cache = cache in
       let table = PatriciaHashtbl.create cache in
-      Project.register_todo_on_clear (fun () -> PatriciaHashtbl.clear table);
+      Project.register_todo_on_clear (fun _ -> PatriciaHashtbl.clear table);
       let counter = ref 0 in
       fun m ->
 	let rec traverse t = 
@@ -1120,6 +1144,7 @@ struct
     (struct
        type t = tt
        let rehash = rehash
+       let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
        let copy _ = assert false (* TODO *)
        let name = name
      end)
@@ -1165,6 +1190,7 @@ struct
 	   type t = key * V.t
 	   let copy (k, v) = k, V.Datatype.copy v
 	   let rehash (k, v) = k, V.Datatype.rehash v
+	   let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	   let name = 
 	     Project.Datatype.extend_name 
 	       ("G[" ^ X.name ^ "]") 

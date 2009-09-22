@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgMarks.ml,v 1.33 2008/09/10 09:00:50 uid530 Exp $ *)
+(* $Id: pdgMarks.ml,v 1.33 2008-09-10 09:00:50 uid530 Exp $ *)
 
 (** This file provides useful things to help to associate an information
 * (called mark) to PDG elements and to propagate it across the
@@ -32,8 +32,8 @@ open PdgTypes
 open PdgIndex
 
 (** *)
-let debug1() = Cmdline.Debug.get() >= 1
-let debug2() = Cmdline.Debug.get() >= 2
+let debug1() = Kernel.debug_atleast 1
+let debug2() = Kernel.debug_atleast 2
 
 type t_select_elem = 
   | SelNode of PdgTypes.Node.t * Locations.Zone.t option
@@ -143,8 +143,9 @@ module F_Fct (M : T_Mark)
    *)
   let add_mark _pdg fm node_key mark =
     if debug2 () then
-      Format.printf "[pdgMark] add_mark %a -> %a @\n"
-                    PdgIndex.Key.pretty node_key M.pretty mark ;
+      Kernel.debug 
+	"[pdgMark] add_mark %a -> %a @\n"
+        PdgIndex.Key.pretty node_key M.pretty mark ;
     let mark_to_prop =
       try
         begin (* simple node *)
@@ -240,14 +241,15 @@ module F_Fct (M : T_Mark)
         if (M.is_bottom mark_to_prop) then
           begin
             if debug2 () then 
-              Format.printf 
+              Kernel.debug
                 "[pdgMark] mark_and_propagate = stop propagation !@\n";
             to_prop
           end
         else 
           begin
             if debug2 () then
-              Format.printf "[pdgMark] mark_and_propagate = to propagate %a@\n"
+              Kernel.debug
+		"[pdgMark] mark_and_propagate = to propagate %a@\n"
                 M.pretty mark_to_prop;
             let to_prop = add_to_to_prop to_prop node_key mark_to_prop in
             let dpds_info = PdgTypes.Pdg.get_all_direct_dpds pdg node in
@@ -262,13 +264,15 @@ module F_Fct (M : T_Mark)
     let process to_prop (sel, mark) = match sel with
       | SelNode (n, z_opt) -> 
           if debug2 () then
-            Format.printf "[pdgMark] mark_and_propagate start with %a@\n"
+            Kernel.debug
+	      "[pdgMark] mark_and_propagate start with %a@\n"
               PdgTypes.Node.pretty_with_part (n, z_opt);
           add_node_mark_rec pdg idx [(n, z_opt, mark)] to_prop
       | SelIn loc ->
           let in_key = Key.implicit_in_key loc in
           if debug2 () then
-            Format.printf "[pdgMark] mark_and_propagate start with %a@\n"
+            Kernel.debug 
+	      "[pdgMark] mark_and_propagate start with %a@\n"
               Key.pretty in_key;
           let mark_to_prop = add_mark pdg idx in_key mark in
             if (M.is_bottom mark_to_prop) then to_prop

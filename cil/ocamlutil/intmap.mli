@@ -38,7 +38,7 @@
 (*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
 (**************************************************************************)
 
-(* $Id: intmap.mli,v 1.3 2008/03/06 14:04:26 uid528 Exp $ *)
+(* $Id: intmap.mli,v 1.3 2008-03-06 14:04:26 uid528 Exp $ *)
 
 (** Specialized to integer keys by George Necula *)
 

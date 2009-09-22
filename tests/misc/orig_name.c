@@ -1,6 +1,6 @@
 /* run.config
    CMD: bin/toplevel.byte
-   OPT: -files-debug -orig-name -journal-disable -print
+   OPT: -orig-name -journal-disable -print
 */
 
 int x = 1;

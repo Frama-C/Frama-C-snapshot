@@ -1,0 +1,66 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* include "/model1.why" *)
+
+type memory
+
+(* acc (m, p) ==== p.[*_m] *)
+logic acc : memory,'a pointer -> 'a
+
+(* upd (m, p, v) ==== *_m ++ {p -> v} *)
+logic upd : memory,'a pointer,'a -> memory
+
+axiom acc_shift_field : forall m:memory. forall ps:'a pointer. 
+  forall f : 'f field.
+  acc (m, shift_field (ps, f)) = acc_field (acc (m, ps), f)
+
+axiom acc_shift_index : forall m:memory. forall p:'a farray pointer. 
+  forall i : int.
+  acc (m, shift_index (p, i)) = access (acc (m, p), (i))
+
+axiom acc_upd_mem : forall m:memory. forall a:'a pointer. forall v:'a.
+  acc(upd(m,a,v),a) = v
+
+axiom acc_upd_neq_index : forall m:memory. forall a:'a farray pointer. 
+  forall i, j : int. forall v:'a. i <> j ->
+  acc(upd(m, shift_index (a, i), v), shift_index (a, j)) 
+= acc(m, shift_index (a, j))
+
+(* for pointer to the same type ONLY *)
+axiom acc_upd_mem_neq : 
+  forall m:memory. forall a:'t pointer. forall b:'t pointer. forall v:'t.
+  a <> b -> acc(upd(m,a,v),b) = acc(m,b)
+
+axiom acc_upd_disj : 
+  forall m:memory. forall a:'a pointer. forall b:'b pointer. forall v:'a.
+  disj_pointer (a, b) -> acc(upd(m,a,v),b) = acc(m,b) 
+
+(*
+Put this in the coq file :
+
+Hint Rewrite [shift_zero; acc_upd_mem] in smp.
+Ltac go := intuition;subst;autorewrite with smp;trivial.
+Hint Resolve sep_c_x.
+*)
+

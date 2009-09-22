@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -166,7 +166,10 @@ type decl =
             arguments as [LDlogic_def], except that the definition is
            abstracted to a set of read accesses in [read_tsets].
          *)
-  | LDtype of string * string list(** new logic type and its parameters *)
+  | LDtype of string * string list *
+      (string * logic_type list) list option
+      (** new logic type and its parameters, optionally followed by
+          a list of data constructors. *)
   | LDpredicate_reads of
       string * string list * string list *
 	(logic_type * string) list * lexpr list

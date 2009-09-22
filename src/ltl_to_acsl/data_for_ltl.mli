@@ -2,7 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -17,9 +18,10 @@
 (*                                                                        *)
 (*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
 (**************************************************************************)
 
-(* $Id: data_for_ltl.mli,v 1.4 2008/10/21 07:40:35 uid588 Exp $ *)
+(* $Id: data_for_ltl.mli,v 1.5 2008-12-17 17:06:27 uid588 Exp $ *)
 
 (** Module of data management used in all the plugin Aorai. Operations are mainly accessors for data. The use of this module is mainly done through the ltl_utils module. *)
 
@@ -45,6 +47,9 @@ val get_exp_from_tmpident : string -> Cil_types.exp
 (** *)
 val get_str_exp_from_tmpident : string -> string
 
+val debug_ltl_expressions : unit -> unit
+
+
 (** *)
 val get_pred_from_tmpident : string -> Cil_types.predicate 
 
@@ -56,40 +61,12 @@ val get_logic : string -> Cil_types.logic_info
 
 
 (** *)
-(*val add_predicate : string -> Cil_types.predicate_info -> unit*)
 val add_predicate : string -> Cil_types.logic_info -> unit
 
 (** *)
-(*val get_predicate : string -> Cil_types.predicate_info*)
 val get_predicate : string -> Cil_types.logic_info
 
-(*
-and logic_info = {
-  mutable l_name : string; (** name of the function. *)
-  l_labels : logic_label list; (** label arguments of the function. *)
-  l_tparams : string list; (** type parameters *)
-  mutable l_type : logic_type option; (** return type. None for predicates *)
-  mutable l_profile : logic_var list; (** type of the arguments. *)
-  mutable l_body : logic_body; (** body of the function. *)
 
-
-
-and predicate_info = {
-  mutable p_name : string; (** name of the predicate. *)
-  mutable p_profile : logic_var list; (** arguments of the predicate. *)
-  p_labels : logic_label list; (** label arguments. *)
-  mutable p_body : predicate_body (** definition. *)
-}
-
-
-(*
-(** definition of a predicate *)
-and predicate_body =
-  | PReads of tsets list (** read accesses performed by the predicate. *)
-  | PDefinition of predicate named (** body of the predicate. *)
-*)
-
-*)
 (* ************************************************************************* *)
 
 (**{b Constants} Some constant names used for generation. *)
@@ -208,6 +185,14 @@ val getFunctions_from_c : unit -> string list
 (** Return the list of all variables name observed in the C file. *)
 val getVariables_from_c : unit -> string list 
 
+(** Return the list of names of all ignored functions. A function is ignored if it is used in C file and if its declaration is unavailable. *)
+val getIgnoredFunctions : unit -> string list
+
+(** Return the list of names of all ignored functions. A function is ignored if it is used in C file and if its declaration is unavailable. *)
+val addIgnoredFunction : string -> unit
+
+(** Return true if and only if the given string fname denotes an ignored function. *)
+val isIgnoredFunction : string -> bool 
 
 (** Manage particular consistency verification between C file and promela specification. 
     It returns true if and only if these checks are ok. *)
@@ -245,23 +230,32 @@ val get_varinfo_option : string -> Cil_types.varinfo option
    is for the crossable conditions *)
 
 (** Returns the pre condition associated to the given C function *)
-val get_func_pre  : string -> (bool array)*(bool array)
+val get_func_pre  : ?securised:bool -> string -> (bool array)*(bool array)
 
 (** Sets the pre condition of the given C function *)
 val set_func_pre  : string -> (bool array)*(bool array) -> unit
 
 (** Returns the post condition associated to the given C function *)
-val get_func_post : string -> (bool array)*(bool array)
+val get_func_post : ?securised:bool -> string -> (bool array)*(bool array)
 
 (** Sets the post condition of the given C function *)
 val set_func_post : string -> (bool array)*(bool array) -> unit
 
 (** Returns the post condition associated to the given C function *)
-val get_func_post_bycase : string -> (bool array array)*(bool array array)
+val get_func_post_bycase : ?securised:bool -> string -> (bool array array)*(bool array array)
 
 (** Sets the pre condition of the given C function *)
 val set_func_post_bycase : string -> (bool array array)*(bool array array) -> unit
 
+
+(** Gives the specification of the call stmt in the given C function at the given StmtId. *)
+val get_func_pre_call : string -> int -> (bool array)*(bool array)
+
+(** Sets the specification of the call stmt in the given C function at the given StmtId. *)
+val set_func_pre_call : string -> int -> (bool array)*(bool array) -> unit
+
+(** Sets the specification of the call stmt in the given C function at the given StmtId. *)
+val set_func_pre_call_bycase : string -> int -> (bool array array)*(bool array array) -> unit
 
 
 
@@ -332,6 +326,10 @@ val set_loop_int_post_bycase : Cil_types.stmt Pervasives.ref -> (bool array arra
 
 
 
+(** Returns a stmt_ref list. It is the set of all registered loop in loop_specs hashtables *)
+val get_loops_index : unit -> Cil_types.stmt Pervasives.ref list
+
+
 (* ************************************************************************* *)
 (**{b Enumeration management}*)
 
@@ -356,7 +354,7 @@ val set_usedinfo : string -> Cil_types.enuminfo -> unit
 val get_usedinfo : string -> Cil_types.enuminfo 
 
 
-
+val removeUnusedTransitionsAndStates : unit -> unit
 
 
 

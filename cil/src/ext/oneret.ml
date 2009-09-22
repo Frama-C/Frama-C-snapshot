@@ -82,9 +82,6 @@
 open Cil_types
 open Cilutil
 open Cil
-open Pretty
-
-module E = Errormsg
 
 let dummyVisitor = new nopCilVisitor
 
@@ -94,8 +91,8 @@ let oneret (f: fundec) : unit =
   let retTyp =
     match f.svar.vtype with
       TFun(rt, _, _, _) -> rt
-    | _ -> E.s (E.bug "Function %s does not have a function type\n"
-                  f.svar.vname)
+    | _ ->
+	Cilmsg.abort "Function %s does not have a function type" f.svar.vname
   in
   (* Does it return anything ? *)
   let hasRet = match unrollType retTyp with TVoid _ -> false | _ -> true in
@@ -104,13 +101,22 @@ let oneret (f: fundec) : unit =
   let lastloc = ref locUnknown in
   let retVar : varinfo option ref = ref None in
   let getRetVar (_x: unit) : varinfo =
-    match !retVar with
-      Some rv -> rv
-    | None -> begin
-        let rv = makeLocalVar f "__retres" retTyp in (* don't collide *)
-        retVar := Some rv;
-        rv
-    end
+      match !retVar with
+	Some rv ->
+(*	  Format.printf "variable %s glob %b formal %b function_scope%b@."
+	    rv.vname
+	    rv.vglob
+	    rv.vformal
+	    rv.vfunction_scope; *)
+	  if not rv.vglob && not rv.vformal
+	  then rv.vfunction_scope <- true;
+	  rv
+      | None -> begin
+            let rv = makeLocalVar f "__retres" retTyp in (* don't collide *)
+	    rv.vfunction_scope <- true;
+            retVar := Some rv;
+            rv
+	end
   in
   (* Remember if we have introduced goto's *)
   let haveGoto = ref false in
@@ -120,7 +126,8 @@ let oneret (f: fundec) : unit =
     if !retStmt == dummyStmt then begin
       (* Must create a statement *)
       let rv =
-        if hasRet then Some (Lval(Var (getRetVar ()), NoOffset)) else None
+        if hasRet then Some (new_exp(Lval(Var (getRetVar ()), NoOffset)))
+        else None
       in
       let sr =
         let getLastLoc () = (* CEA modified to have a good [!lastloc] *)
@@ -128,7 +135,7 @@ let oneret (f: fundec) : unit =
             | [] -> ()
             | {skind=Block b} :: [] -> setLastLoc b.bstmts
             | {skind=UnspecifiedSequence seq}::[] ->
-                setLastLoc (List.map (fun (x,_,_) -> x) seq)
+                setLastLoc (List.map (fun (x,_,_,_) -> x) seq)
             | {skind=s} :: [] -> lastloc := get_stmtLoc s
             | {skind=_s} :: l -> setLastLoc l
           in setLastLoc f.sbody.bstmts; !lastloc
@@ -151,9 +158,12 @@ let oneret (f: fundec) : unit =
 
     | [] -> []
 
-    | [{skind=Return (Some (Lval(Var _,NoOffset)), _l)} as s]
+    | [{skind=Return (Some ({enode = Lval(Var rv,NoOffset)}), _l)} as s]
         when mainbody && not !haveGoto
-          -> [s]
+          ->
+	if not rv.vglob && not rv.vformal
+	then rv.vfunction_scope <- true;
+	[s]
 
     | ({skind=Return (retval, l)} as s) :: rests ->
         (*CEA currentLoc := l; *)
@@ -165,9 +175,9 @@ let oneret (f: fundec) : unit =
                   d_loc l);
 *)
         if hasRet && retval = None then
-          E.s (error "Found return without value in function %s\n" fname);
-        if not hasRet && retval <> None then
-          E.s (error "Found return in subroutine %s\n" fname);
+          (Cil.error "Found return without value in function %s" fname) ;
+	if not hasRet && retval <> None then
+          (Cil.error "Found return in subroutine %s" fname);
         (* Keep this statement because it might have labels. But change it to
          * an instruction that sets the return value (if any). *)
         s.skind <- begin
@@ -205,10 +215,10 @@ let oneret (f: fundec) : unit =
         s.skind <-
           UnspecifiedSequence
           (List.concat
-             (List.map (fun (s,w,r) ->
+             (List.map (fun (s,m,w,r) ->
                           let res = scanStmts false [s] in
-                          (List.hd res,w,r)::
-                            (List.map (fun x -> x,[],[]) (List.tl res)))
+                          (List.hd res,m,w,r)::
+                            (List.map (fun x -> x,[],[],[]) (List.tl res)))
                 seq));
         s::scanStmts mainbody rests
     | ({skind=(Goto _ | Instr _ | Continue _ | Break _
@@ -216,7 +226,7 @@ let oneret (f: fundec) : unit =
       :: rests -> s :: scanStmts mainbody rests
 
   and scanBlock (mainbody: bool) (b: block) =
-    { bstmts = scanStmts mainbody b.bstmts; battrs = b.battrs; }
+    { b with bstmts = scanStmts mainbody b.bstmts;}
 
   in
   (*CEA since CurrentLoc isn't set
@@ -224,16 +234,3 @@ let oneret (f: fundec) : unit =
   (*CEA so, [scanBlock] will set [lastloc] when necessary
     lastloc := !currentLoc ;  *) (* last location in the function *)
   f.sbody <- scanBlock true f.sbody
-
-
-let feature : featureDescr =
-  { fd_name = "oneRet";
-    fd_enabled = Cilglobopt.doOneRet;
-    fd_description = "make each function have at most one 'return'" ;
-    fd_extraopt = [];
-    fd_doit = (function (f: file) ->
-      iterGlobals f (fun glob -> match glob with
-        GFun(fd,_) -> oneret fd;
-      | _ -> ()));
-    fd_post_check = true;
-  }

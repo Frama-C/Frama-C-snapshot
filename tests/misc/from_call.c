@@ -66,6 +66,15 @@ int access_tab(int ind)
   return tab[ind];
 }
 
+int AA,AR,AS;
+int At[2]={&AA};
+int *Ap=At;
+
+/*@ assigns AR \from Ap[..] ;
+    assigns AS \from At[..] ;
+ */
+void unavailable_f(void);
+
 void main(int r)
 {
   y = f(&b);
@@ -82,4 +91,6 @@ void main(int r)
   T0 = access_tab(0);
   T1 = access_tab(1);
   T2 = access_tab(2);
+
+  unavailable_f();
 }

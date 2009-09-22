@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,7 +25,7 @@
 
 (**/**)
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 module M = SlicingMacros
 
 open Cil_types
@@ -36,7 +36,7 @@ let find_sub_stmts st = match st.skind with
 | If(_,bl1,bl2,_) | TryExcept (bl1, _, bl2, _)
 | TryFinally (bl1, bl2, _) -> bl1.bstmts@bl2.bstmts
 | Block bl | Loop (_,bl, _, _, _) | Switch (_, bl, _, _) ->  bl.bstmts
-| UnspecifiedSequence seq -> List.map (fun (x,_,_) -> x) seq
+| UnspecifiedSequence seq -> List.map (fun (x,_,_,_) -> x) seq
 | Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _  -> []
 
 let str_call_sig ff call fmt =
@@ -56,7 +56,6 @@ let str_call_sig ff call fmt =
                            SlicingMarks.pretty_sig sgn print_called
     with Db.Pdg.NotFound -> Format.fprintf fmt "/* invisible call */@."
 
-open Pretty
 class printerClass optional_ff = object(self)
   inherit Printer.print () as super
   val opt_ff = optional_ff
@@ -162,7 +161,7 @@ module PrintProject = struct
       | None -> Undef
 
   let node_slice_callers () =
-    (OptSliceCallers (Cmdline.Slicing.Mode.Callers.get ()))
+    (OptSliceCallers (SlicingParameters.Mode.Callers.get ()))
   let node_slice_calls () =
     (OptSlicingLevel (M.get_default_level_option true))
 

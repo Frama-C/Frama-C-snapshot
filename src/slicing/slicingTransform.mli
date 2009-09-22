@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -23,14 +23,16 @@
 
 (** Export a CIL application from a slicing project *)
 
+val default_slice_names:(Db_types.kernel_function -> bool  -> int -> string)
+  
 (** Apply the actions still waiting in the project 
 * and transform the program (CIL AST) using slicing results 
 * Can optionally specify how to name the sliced functions using [f_slice_names].
 * (see db.mli)
 *)
-val extract : string -> 
-  ?f_slice_names:(Db_types.kernel_function -> bool  -> int -> string)
-  -> Db.Slicing.Project.t -> Project.t
+val extract :
+  f_slice_names:(Db_types.kernel_function -> bool  -> int -> string)
+  -> string -> Db.Slicing.Project.t -> Project.t
   
 (** Return [true] if the source function is called 
 * (even indirectly via transitivity) from a [Slice.t]. *)

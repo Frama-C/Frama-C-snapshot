@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,107 +28,6 @@ exception Cannot_copy
 
 open BaseUtils
 
-module type Location_map =
-sig
-  type y (* type of the values associated to the locations *)
-  type widen_hint_offsetmap
-  module LOffset : Offsetmap.S with type y = y
-			       and type widen_hint = widen_hint_offsetmap
-
-  module Make (Default_offsetmap :
-    sig
-      val default_offsetmap : Base.t -> LOffset.t
-    end) :
-  sig
-
-    type t (* the type of a map *)
-
-    type widen_hint = bool * BaseSet.t * (Base.t -> widen_hint_offsetmap)
-
-    type instanciation = Location_Bytes.t BaseMap.t
-
-    module Datatype : Project.Datatype.S with type t = t
-
-    val inject : Base.t -> LOffset.t -> t
-
-  val pretty : Format.formatter -> t -> unit
-  val pretty_without_null : Format.formatter -> t -> unit
-  val pretty_filter :
-    Format.formatter ->
-    t -> Locations.Zone.t -> unit
-  val add_binding : with_alarms:warn_mode -> exact:bool -> t -> location -> y -> t
-
-  val find : with_alarms:warn_mode -> t -> location -> y
-
-  val concerned_bindings : t -> location -> y list
-
-  val join : t -> t -> t
-  val is_included : t -> t -> bool
-  val equal : t -> t -> bool
-  val is_included_actual_generic :
-    Zone.t -> t -> t -> instanciation
-
-  (* Every location is associated to [VALUE.top] in [empty].*)
-  val empty : t
-  val is_empty : t -> bool
-
-  (* Every location is associated to [VALUE.bottom] in [bottom].
-     This state can be reached only in dead code. *)
-  val bottom : t
-  val is_reachable : t -> bool
-
-  val widen : widen_hint-> t -> t -> (bool * t)
-
-
-  val filter_base : (Base.t -> bool) -> t -> t
-
-  (* Raises [Not_found] if the varid is not present in the map *)
-  val find_base : Base.t -> t -> LOffset.t
-
-  val copy_paste : location -> location -> t -> t
-  val paste_offsetmap :  LOffset.t -> Location_Bits.t -> Int.t -> Int.t -> t -> t
-
-  val copy_offsetmap : Locations.location -> t -> LOffset.t option
-  val compute_actual_final_from_generic : t -> t -> Locations.Zone.t -> instanciation -> t
-  val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
-
-  (* Raises [Invalid_argument "Lmap.fold"] if one location is not aligned
-     or of size different of [size]. *)
-  val fold : size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
-
-  (* [fold_base f m] calls [f] on all bases bound to non top values in [m] *)
-  val fold_base : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
-
-  val find_offsetmap_for_location : Location_Bits.t -> t -> LOffset.t
-  val add_whole: location -> y -> t -> t
-  val remove_whole: location -> t -> t
-
-  (** [reciprocal_image m b] is the set of bits in the map [m] that may lead to
-      Top([b]) and  the location in [m] where one may read an address [b]+_ *)
-  val reciprocal_image : Base.t -> t -> Zone.t*Location_Bits.t
-
-(*  val create_initialized_var :
-    Cil_types.varinfo -> Base.validity -> LOffset.t -> Base.t
-*)
-  val create_initial :
-    base:Base.t ->
-    v:y ->
-    modu:Int.t ->
-    state:t -> t
-
-  exception Error_Bottom
-
-  val cached_fold :
-    f:(Base.t -> LOffset.t -> 'a) ->
-    cache:string * int ->
-    joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
-
-    val cached_map :
-	f:(Base.t -> LOffset.t -> LOffset.t) ->
-	  cache:string * int ->
-	    t -> t
-  end
-end
 
 module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y = V.t) = struct
 
@@ -178,17 +77,17 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y =
     | None -> 0
     | Some m -> LBase.tag m
 
-    module Datatype = struct
-      include Project.Datatype.Register
+    module Datatype = 
+      Project.Datatype.Register
 	(struct
 	   type tt = t
 	   type t = tt
 	   let copy _ = assert false (* TODO *)
 	   let rehash = rehash
+	   let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	   let name = name
 	 end)
-      let () = register_comparable ~hash ~equal ()
-    end
+    let () = Datatype.register_comparable ~hash ~equal ()
 
     let top = empty
 
@@ -811,14 +710,13 @@ let is_included =
     in
     let stop = Int.pred (Int.add start size) in
     let had_non_bottom = ref false in
+    let plevel = Parameters.Dynamic.Int.get "-plevel" in
     let treat_dst k_dst i_dst (acc_lmap : LBase.t) =
       let validity = Base.validity k_dst in
       let offsetmap_dst = LBase.find_or_default k_dst m in
       let new_offsetmap =
         try
-	  ignore
-	    (Ival.cardinal_less_than i_dst
-	       (Cmdline.ArrayPrecisionLevel.get ()));
+	  ignore (Ival.cardinal_less_than i_dst plevel);
 	  Ival.fold
             (fun start_to acc ->
 	      let stop_to = Int.pred (Int.add start_to size) in
@@ -961,6 +859,25 @@ let is_included =
               acc
           with Invalid_argument "Offsetmap.Make.fold" ->
             raise (Invalid_argument "Lmap.fold")
+
+ let fold_single_bindings ~size f m acc =
+    match m with
+    | None -> acc
+    | Some m ->
+        try
+          LBase.fold
+            (fun k v acc ->
+              LOffset.fold_single_bindings
+                ~size
+                (fun ival size v acc ->
+                  let loc = Location_Bits.inject k ival in
+                  f (make_loc loc (Int_Base.inject size)) v acc)
+                v
+                acc)
+            m
+            acc
+        with Invalid_argument "Offsetmap.Make.fold" ->
+          raise (Invalid_argument "Lmap.fold")
 
   let fold_base f m acc =
     match m with

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -41,12 +41,9 @@ class print () = object(self)
 
   val mutable is_fun_def = false
 
-  method pVarName fmt v =
-    Format.pp_print_string fmt (Cmdline.Unmangling.get_val () v)
-
   method pVar fmt v =
     super#pVar fmt v;
-    if  Cmdline.Debug.get () > 3 then Format.fprintf fmt "/*vid:%d*/" v.vid
+    if  Parameters.Debug.get () > 3 then Format.fprintf fmt "/*vid:%d*/" v.vid
 
   method private current_kf = match self#current_function with
   | None -> assert false
@@ -63,14 +60,17 @@ class print () = object(self)
     | Some st -> st.sid
 
   method private pretty_funspec fmt kf =
-    if not (Cil.is_empty_funspec kf.spec) then
-      Format.fprintf fmt "@[/*@@ %a*/@]@\n" self#pSpec kf.spec
+    if not (Cil.is_empty_funspec kf.spec) then begin
+      Pretty_utils.pp_open_block fmt "/*@@ ";
+      Format.fprintf fmt "%a@ " self#pSpec kf.spec;
+      Pretty_utils.pp_close_block fmt "*/@\n";
+    end
 
   method private pretty_global_annot fmt =
     Globals.Annotations.iter
       (fun annot is_generated ->
          if is_generated then begin
-         Format.fprintf fmt "@[/*@@ %a */@]@\n" self#pAnnotation annot
+         Format.fprintf fmt "@[/*@@ %a@ @]*/@\n" self#pAnnotation annot
          end)
 
   (**  Do not compact statements with annotations *)
@@ -102,87 +102,94 @@ class print () = object(self)
     super#pGlobal fmt glob
 
   (* TODO: make it a public method, with a new class type specific to Frama-C*)
-  method private pRooted_code_annotation fmt ca =
-    match Ast_info.before_after_content ca with
-      User ca -> Format.fprintf fmt "@[@[<4>/*@@@ %a@]@\n*/@]@\n"
-        self#pCode_annot ca
-    | AI(_,ca) -> Format.fprintf fmt "@[@[<4>/*@@@ %a@ // synthesized@]@\n*/@]@\n"
-        self#pCode_annot ca
-    | WP (fol,_) ->
-	if Cmdline.Debug.get () > 0 then
-          Format.fprintf fmt "@[@[<3>/* WP computed:@,%a@]@ @]@\n"
-            (Pretty_utils.pp_list
-               ~sep:Pretty_utils.nl_sep Why_output.decl) fol
 
-  method private pLoop_annotation fmt annots =
-    pp_list ~pre:"@[@[<4>/*@@@ " ~suf:"@]@ */@]@\n"
-      (fun fmt ca ->
-         match Ast_info.before_after_content ca with
-             User ca -> Format.fprintf fmt "@[%a@]@\n" self#pCode_annot ca
-           | AI(_,ca) ->
-               Format.fprintf fmt "@[%a@ // synthesized@]@\n"
-                 self#pCode_annot ca
-           | WP _ -> ())
-      fmt annots
+  method private pInsertedAnnotation fmt ca =
+    match Ast_info.before_after_content ca with
+      | User ca -> 
+	  Format.fprintf fmt "%a" self#pCode_annot ca
+      | AI(_,ca) -> 
+	  Format.fprintf fmt "%a@\n    // synthesized@\n" self#pCode_annot ca
+
+  method private pAnnotations fmt annots =
+    if annots <> [] then
+      begin
+	Pretty_utils.pp_open_block fmt "/*@@ " ;
+        Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep 
+	  self#pInsertedAnnotation 
+          fmt
+          annots ;
+	Pretty_utils.pp_close_block fmt "*/@\n" ;
+      end
 
   method pAnnotatedStmt next fmt s =
-    if false then (* CEA: to debug location setting *)
+    (* To debug location setting:
       (let loc = fst (Cilutil.get_stmtLoc s.skind) in
-      Format.fprintf fmt "/*Loc=%s:%d*/" loc.Lexing.pos_fname loc.Lexing.pos_lnum);
-    (* print the labels *)
-    fprintfList ~sep:"@\n" (fun fmt l -> self#pLabel fmt l) fmt s.labels;
-    if Cmdline.Debug.get () > 0 then
-      Format.fprintf fmt "@[<0>/*sid:%d*/ @]" s.sid;
-    let annot = Annotations.get s in
-    let loop_annot, annot =
-      List.partition (Ast_info.lift_annot_func Logic_const.is_loop_annot false)
-        annot
-    in
-    let annot_before,annot_after =
-      List.partition (function Before _ -> true | After _ -> false) annot
-    in
-    let loop_annot_before, loop_annot_after =
-      List.partition (function Before _ -> true | After _ -> false) loop_annot
-    in
-    pp_cond (not (Cil.is_skip s.skind) && s.labels <> []) fmt nl_sep;
-    pp_list self#pRooted_code_annotation fmt annot_before;
-    self#pLoop_annotation fmt loop_annot_before;
-    pp_cond (annot_after <> [] || loop_annot_after <> []) fmt "{";
-    pp_cond s.ghost fmt "@[/*@@ @[ghost ";
-    self#pStmtKind next fmt s.skind;
-    pp_cond s.ghost fmt "@]@ */@]@\n";
-    self#pLoop_annotation fmt loop_annot_after;
-    pp_list self#pRooted_code_annotation fmt annot_after;
-    pp_cond (annot_after <> [] || loop_annot_after <> []) fmt "}@\n";
+       Format.fprintf fmt "/*Loc=%s:%d*/" loc.Lexing.pos_fname loc.Lexing.pos_lnum); *)
 
-  (* The pBlock will put the unalign itself *)
-  method pBlock ?(toplevel=true) fmt (blk: block) =
-    let toplevel =
-      toplevel ||
-        match blk.bstmts with
-        | [_] | [] when blk.battrs = [] ->
-            (match self#current_stmt with
+    (* print the labels *)
+    self#pStmtLabels fmt s ;
+    if verbose then Format.fprintf fmt "/*sid:%d*/@ " s.sid ;
+    (* print the annotations *)
+    let all_annot = Annotations.get s in
+    match all_annot with 
+      | [] -> self#pStmtKind next fmt s.skind
+      | [a] when is_skip s.skind ->
+	  Format.fprintf fmt "@[/*@@@ %a */@] %a" 
+	    (self#pInsertedAnnotation) a 
+	    (self#pStmtKind next) s.skind ;
+      | _ ->
+	  let loop_annot, stmt_annot =
+	    List.partition 
+	      (Ast_info.lift_annot_func Logic_utils.is_loop_annot ) 
+	      all_annot
+	  in
+	  let annot_before,annot_after =
+	    List.partition 
+	      (function Before _ -> true | After _ -> false) 
+	      stmt_annot
+	  in
+	  let loop_annot_before, loop_annot_after =
+	    List.partition 
+	      (function Before _ -> true | After _ -> false) 
+	      loop_annot
+	  in
+	  begin
+	    let s_block = annot_after <> [] || loop_annot_after <> [] in
+	    if s_block then Pretty_utils.pp_open_block fmt "{" ;
+	    self#pAnnotations fmt loop_annot_before ;
+	    self#pAnnotations fmt annot_before ;
+	    if s.ghost then Pretty_utils.pp_open_block fmt "/*@@ ghost" ;
+	    self#pStmtKind next fmt s.skind;
+	    if s.ghost then Pretty_utils.pp_close_block fmt "@ */@\n" ;
+	    self#pAnnotations fmt loop_annot_after ;
+	    self#pAnnotations fmt annot_after ;
+	    if s_block then Pretty_utils.pp_close_block fmt "}" ;
+	  end
+
+  method requireBraces blk =
+    match blk.bstmts with
+      | [_] | [] when blk.battrs = [] ->
+          (match self#current_stmt with
              | None -> false
              | Some stmt -> (Annotations.get stmt) <> [])
-        | _ -> true
-    in
-    super#pBlock ~toplevel fmt blk
+      | _ -> true
 
   (** Get the comment out of a location if there is one *)
   method pLineDirective ?(forcefile=false) fmt l =
     super#pLineDirective ~forcefile fmt l;
-    if Cmdline.PrintComments.get () then
+    if Parameters.PrintComments.get () then
       List.iter
-        (fun c -> Format.fprintf fmt "/* %s */@\n" c)
+        (fun c -> Format.fprintf fmt "/* %s@ */@\n" c)
         (Zrapp.get_comments l)
 
   initializer
     logic_printer_enabled <- false;
-    verbose <- Cmdline.Debug.get () >= 1
+    verbose <- Parameters.Debug.get () >= 1
 end;;
 
 Ast_printer.d_ident:= fun fmt x -> (new print())#pVarName fmt x;;
 Ast_printer.d_exp:= fun fmt x -> Cil.printExp (new print()) fmt x;;
+Ast_printer.d_var:= fun fmt x -> Cil.printVar (new print()) fmt x;;
 Ast_printer.d_lval:= fun fmt x -> Cil.printLval (new print()) fmt x;;
 Ast_printer.d_offset:= fun fmt x -> (new print())#pOffset fmt x;;
 Ast_printer.d_init:= fun fmt x -> Cil.printInit (new print()) fmt x;;
@@ -204,6 +211,7 @@ Ast_printer.d_predicate_named:= fun fmt x -> Cil.printPredicate_named (new print
 Ast_printer.d_code_annotation:= fun fmt x -> Cil.printCode_annotation (new print()) fmt x;;
 Ast_printer.d_funspec:= fun fmt x -> Cil.printFunspec (new print()) fmt x;;
 Ast_printer.d_annotation:= fun fmt x -> Cil.printAnnotation (new print()) fmt x;;
+Ast_printer.d_file:= fun fmt x -> Cil.d_file (new print()) fmt x;;
 
 (*
 Local Variables:

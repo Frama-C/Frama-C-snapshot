@@ -1,4 +1,25 @@
-(* $Id: docgen.ml,v 1.7 2008/11/18 12:13:40 uid568 Exp $ *)
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* $Id: docgen.ml,v 1.7 2008-11-18 12:13:40 uid568 Exp $ *)
 
 open Odoc_module
 
@@ -6,10 +27,10 @@ let doc_path = ref "."
 
 let lib_files = ref []
 
-let add_libfiles analyse s = 
+let add_libfiles analyse s =
   let f = Odoc_args.Intf_file s in
   lib_files :=
-    (String.capitalize (Filename.chop_extension (Filename.basename s))) :: 
+    (String.capitalize (Filename.chop_extension (Filename.basename s))) ::
       !lib_files;
   if analyse then Odoc_args.files := f :: !Odoc_args.files
 
@@ -26,6 +47,43 @@ let equal_module_name m s =
 
 let equal_module m1 m2 = equal_module_name m1 m2.m_name
 
+type chapter = Chapter of int * string * string | Directory of string
+let compare_chapter c1 c2 =
+  match c1 , c2 with
+    | Chapter(a,_,_) , Chapter(b,_,_) -> a-b
+    | Directory a , Directory b -> compare a b
+    | Chapter _ , Directory _ -> (-1)
+    | Directory _ , Chapter _ -> 1
+
+let merge3
+    (s1 : 'a -> 'a -> int)
+    (s2 : 'b -> 'b -> int)
+    (s3 : 'c -> 'c -> int)
+    (triplets : ('a * 'b * 'c) list)
+    : ('a * ('b * 'c list) list) list =
+  let sort3_rev s1 s2 s3 (x,y,z) (x',y',z') =
+    let c = s1 x' x in
+    if c <> 0 then c else
+      let c = s2 y' y in
+      if c <> 0 then c else
+	s3 z' z
+  in
+  let rec merge3_rev acc triplets =
+    match triplets , acc with
+      | [] , _ -> acc
+      | (a,b,c)::tail , (dir_a,all_a)::a_merged when a = dir_a ->
+	  begin
+	    match all_a with
+	      | (dir_b,all_b)::b_merged when b = dir_b ->
+		  merge3_rev ((dir_a,(dir_b,c::all_b)::b_merged)::a_merged) tail
+	      | _ ->
+		  merge3_rev ((dir_a,(b,[c])::all_a)::a_merged) tail
+	  end
+      | (a,b,c)::tail , merged ->
+	  merge3_rev (( a , [b,[c]] )::merged) tail
+  in
+  merge3_rev [] (List.sort (sort3_rev s1 s2 s3) triplets)
+
 class gen = object (self)
 
   inherit html as super
@@ -35,16 +93,16 @@ class gen = object (self)
   method loaded_modules =
     match memo with
     | [] ->
-	let l = List.flatten 
-	  (List.map 
+	let l = List.flatten
+	  (List.map
 	     (fun f ->
 		Odoc_info.verbose (Odoc_messages.loading f);
-		try 
+		try
 		  let l = Odoc_analyse.load_modules f in
 		  Odoc_info.verbose Odoc_messages.ok;
 		  l
-		with Failure s -> 
-		  prerr_endline s ; 
+		with Failure s ->
+		  prerr_endline s ;
 		  incr Odoc_global.errors ;
 		  []
 	     )
@@ -53,16 +111,16 @@ class gen = object (self)
 	in
 	memo <- l;
 	l
-    | (_ :: _) as l -> 
+    | (_ :: _) as l ->
 	l
 
-  method path s = 
+  method path s =
     let name = root_name s in
     if List.exists (fun m -> m = name) !lib_files then
       "http://caml.inria.fr/pub/docs/manual-ocaml/libref/"
-    else 
+    else
       if List.exists (fun m -> m.m_name = name) self#loaded_modules
-      then !doc_path ^ "/" 
+      then !doc_path ^ "/"
       else "./"
 
   method create_fully_qualified_idents_links m_name s =
@@ -117,64 +175,62 @@ class gen = object (self)
 
   (** redefine from file odoc_html.ml *)
   method html_of_Module_list b l =
-    let dir f = 
+    let dir f = (* <dir> , <name> *)
       let chop dir f =
 	let n = Str.search_forward (Str.regexp dir) f 0 in
 	let f = String.sub f n (String.length f - n) in
 	let d = Filename.dirname f in
-	String.capitalize (Filename.basename d) 
-	^ " (in " ^ String.sub dir 0 (String.length dir - 1) ^ ")"
+	String.capitalize (Filename.basename d)
       in
-      try chop "cil/" f
-      with Not_found -> 
-	try chop "src/" f
+      try Chapter(2,"C & ACSL","cil") , chop "cil/" f
+      with Not_found ->
+	try Chapter(1,"Frama-C","src") , chop "src/" f
 	with Not_found ->
 	  let d = Filename.dirname f in
-	  String.capitalize (Filename.basename d) ^ " (in " 
-	  ^ Filename.basename (Filename.dirname d) ^ ")"
+	  Directory (Filename.basename (Filename.dirname d)) ,
+	  String.capitalize (Filename.basename d)
     in
-    let modules =
-      List.fold_left
-	(fun acc name ->
-	   (let m = List.find (fun m -> m.m_name = name) self#list_modules in
-	    dir m.m_file, m) 
-	   :: acc)
-	[]
-	l
+    let structured_modules (* chapter , section , module *) =
+      (List.map
+	 (fun name ->
+	    let m = List.find (fun m -> m.m_name = name) self#list_modules
+	    in let dir,name = dir m.m_file in
+	    dir,name,m) l)
     in
-    let modules = 
-      List.sort (fun (f1, _) (f2, _) -> String.compare f1 f2) modules 
+    let toc_modules (* chapter/section/modules *) =
+      merge3 compare_chapter compare compare structured_modules
     in
-    let l =
-      let rec merge acc l = 
-	match l, acc with
-	| [], _ -> acc
-	| (f, m) :: tl, (f', l) :: tl' when f = f' -> 
-	    merge ((f, m :: l) :: tl') tl
-	| (f, m) :: tl, acc -> merge ((f, [ m ]) :: acc) tl
-      in
-      List.rev (merge [] modules)
-    in
-    List.iter 
-      (fun (dir, l) ->
-	 bp b "<h2>%s</h2>\n" dir;
-	 bs b "<br>\n<table class=\"indextable\">\n";
+    List.iter
+      (fun (chapter, subdirs) ->
+	 let dir =
+	   ( match chapter with
+	       | Chapter (n,a,d) ->
+		   bp b "<h1 class=\"chapter\">Chapter %d. %s</h1>" n a ; d
+	       | Directory d ->
+		   bp b "<h1>Directory %s</h1>" d ; d)
+	 in
 	 List.iter
-           (fun m ->
-              bs b "<tr><td>";
-              (try
-		  let (html, _) = Naming.html_files m.m_name in
-		  bp b "<a href=\"%s\">%s</a></td>" html m.m_name;
-		  bs b "<td>";
-		  self#html_of_info_first_sentence b m.m_info;
-		with Not_found ->
-		  Odoc_messages.pwarning 
-		    (Odoc_messages.cross_module_not_found m.m_name);
-		  bp b "%s</td><td>" m.m_name);
-              bs b "</td></tr>\n")
-           l;
-	 bs b "</table>\n")
-      l
+	   (fun (subdir,modules) ->
+	      bp b "<h2 class=\"section\">Section %s <span class=\"directory\">(in %s/%s)</span></h2>\n"
+		subdir dir (String.lowercase subdir) ;
+	      bs b "<br>\n<table class=\"indextable\">\n";
+	      List.iter
+		(fun m ->
+		   bs b "<tr><td>";
+		   (try
+		      let (html, _) = Naming.html_files m.m_name in
+		      bp b "<a href=\"%s\">%s</a></td>" html m.m_name;
+		      bs b "<td>";
+		      self#html_of_info_first_sentence b m.m_info;
+		    with Not_found ->
+		      Odoc_messages.pwarning
+			(Odoc_messages.cross_module_not_found m.m_name);
+		      bp b "%s</td><td>" m.m_name);
+		   bs b "</td></tr>\n")
+		modules;
+	      bs b "</table>\n")
+	   subdirs)
+      toc_modules
 
   (** Print html code for an included module. *)
   method html_of_included_module b im =
@@ -191,8 +247,8 @@ class gen = object (self)
                 let (html_file, _) = Naming.html_files m.m_name in
                 (html_file, m.m_name)
             | Modtype mt ->
-                let (html_file, _) = 
-		  Naming.html_files mt.mt_name 
+                let (html_file, _) =
+		  Naming.html_files mt.mt_name
 		in
                 (html_file, mt.mt_name)
           in
@@ -260,7 +316,7 @@ class gen = object (self)
 
     (* generate html for each module *)
     let keep_list =
-      let keep m = 
+      let keep m =
 	not (List.exists (equal_module m) self#loaded_modules) &&
 	  not (List.exists (equal_module_name m) !lib_files)
       in
@@ -300,15 +356,18 @@ class gen = object (self)
   method html_of_plugin_developer_guide _t = 
     "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plug-in_development_guide.pdf\">Plugin Development Guide</a></b> for additional details."
 
-  initializer 
-    tag_functions <- 
+  method html_of_ignore _t = ""
+
+  initializer
+    tag_functions <-
+      ("ignore", self#html_of_ignore) ::
       ("plugin", self#html_of_plugin_developer_guide) :: tag_functions
 
 end
 
 let () =
   Odoc_args.set_doc_generator (Some (new gen :> Odoc_args.doc_generator));
-  Odoc_args.add_option 
+  Odoc_args.add_option
     ("-docpath", Arg.Set_string doc_path, "Frama-C documentation directory");
   Odoc_args.add_option
     ("-stdlib", Arg.String (add_libfiles true), "Standard library files");

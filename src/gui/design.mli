@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,13 +19,26 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: design.mli,v 1.37 2008/11/18 12:13:41 uid568 Exp $ *)
+(* $Id: design.mli,v 1.38 2009-01-29 13:58:59 uid528 Exp $ *)
 
 (** The extensible GUI.
     @plugin development guide *)
 
 open Db_types
 open Cil_types
+
+(** This is the type of source code buffers that can react to global
+    selections and highlighters 
+    @since Beryllium-20090901 *)
+class type reactive_buffer = object
+  inherit Gtk_helper.error_manager
+  method buffer : GSourceView.source_buffer
+  method locs : Pretty_source.Locs.state option
+  method rehighlight : unit
+end
+
+class protected_menu_factory: Gtk_helper.host -> GMenu.menu -> [GMenu.menu] GMenu.factory
+
 
 (** This is the type of extension points for the GUI.
     @plugin development guide *)
@@ -85,11 +98,12 @@ class type main_window_extension_points = object
   method source_viewer : GSourceView.source_view
     (** The [GText.view] showing the AST. 
 	@plugin development guide *)
+    
+  method display_globals : global list -> unit
+    (** Display globals in the general [source_view]. *)
 
-  method display_globals : global list -> GSourceView.source_buffer
-    (** Display globals in a memoized buffer [b]. 
-        Use [main_ui#source_viexer#set_buffer b] to display it
-        in the general source view. *)
+  method lower_notebook : GPack.notebook
+    (** The lower notebook with messages tabs *)
 
   method register_source_selector : 
     (GMenu.menu GMenu.factory 
@@ -111,19 +125,9 @@ class type main_window_extension_points = object
         top of the other. 
 	@plugin development guide *)
 
-  method register_launcher :
-    (unit -> (string*GObj.widget option*(unit-> unit) option*(unit-> unit) option)) -> unit
-    (** [register_launcher f] registers a configurator and launcher.
-        [f] shall return a 4-uple looking like
-        ("Configuration panel name",
-        widget containing a configuration panel,
-        function to call when configurations are updated
-        function to call to launch the functionality)
-        
-    *)
-
   method register_panel :
-    (main_window_extension_points -> (string * GObj.widget *(unit-> unit) option)) -> unit
+    (main_window_extension_points->(string*GObj.widget*(unit-> unit) option))
+    -> unit
     (** [register_panel f] registers a panel in GUI.
         [f self] returns the name of the panel to create, 
         the widget containing the panel and a function to be called on refresh.
@@ -132,7 +136,8 @@ class type main_window_extension_points = object
   method rehighlight : unit -> unit
     (** Force to rehilight the current displayed buffer. 
         Plugins should call this method whenever they have changed the states on
-        which the function given to [register_source_highlighter] have been updated.
+        which the function given to [register_source_highlighter] have been
+        updated.
     *)
 
   method scroll : Pretty_source.localizable -> unit
@@ -153,31 +158,42 @@ class type main_window_extension_points = object
     (** Display the given [location] in the [original_source_viewer] *)
 
   (** {3 General features} *)
-  
+
+  method launcher : unit -> unit
+    (** Display the analysis configuration dialog and offer the
+	opportunity to launch to the user *)
+
   method reset : unit -> unit
     (** reset the GUI and its extensions to its initial state *)
 
-  method lock : unit -> unit
-    (** Block almost all user interaction. 
-        Provide user feedback on the fact that something is happening *)
-
-  method unlock : unit -> unit
-    (** Unlock user interaction *)
-
-  method monospace : Pango.font_description
-    (** The monospace font to be used by all plugins *)
-
-  method general : Pango.font_description
-    (** The general font to be used by all plugins *)
-
-  method error : 'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format -> 'a
+  method error :
+    'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format -> 'a
     (** Popup a modal dialog displaying an error message *)
+
+  method protect : 
+    ?parent:GWindow.window_skel -> (unit -> unit) -> unit
+    (** Lock the GUI ; run the funtion ; catch all exceptions ; Unlock GUI
+	The parent window must be set if this method is not called directly
+	by the main window: it will ensure that error dialogs are transient 
+	for the right window. *)
+
+  method full_protect : 
+    'a . ?parent:GWindow.window_skel -> (unit -> 'a) -> 'a option
+    (** Lock the GUI ; run the funtion ; catch all exceptions ; Unlock GUI ;
+        returns [f ()].
+	The parent window must be set if this method is not called directly
+	by the main window: it will ensure that error dialogs are transient 
+	for the right window. *)
 
   method push_info : 'a. ('a, Format.formatter, unit) format -> 'a
     (** Pretty print a temporary information in the status bar *)
   method pop_info : unit -> unit
     (** Remove last temporary information in the status bar *)
-
+  method help_message : 'a 'b. 
+    (<event : GObj.event_ops ; .. > as 'a) -> 
+    ('b, Format.formatter, unit) format -> 
+    'b
+    (** Help message displayed when entering the widget *)
 end
 
 class main_window : unit -> main_window_extension_points
@@ -191,12 +207,17 @@ val register_reset_extension : (main_window_extension_points -> unit) -> unit
   (** Register a function to be called whenever the main GUI reset method is
       called. *)
 
-
 val apply_on_selected : (Pretty_source.localizable -> unit) -> unit
   (** [apply_on_selected f] applies [f] to the currently selected 
       [Pretty_source.localizable]. Does nothing if nothing is selected. *)
 
-
+ val reactive_buffer : main_window_extension_points ->
+   ?parent_window:GWindow.window -> global list -> reactive_buffer
+   (** This function creates a reactive buffer for the given list of globals.
+       These buffers a cached.
+       These buffer are sensitive to selections and highlighters.
+       @since Beryllium-20090901 *)
+   
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

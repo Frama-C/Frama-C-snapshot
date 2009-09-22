@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: register_gui.ml,v 1.11 2008/10/23 07:59:52 uid527 Exp $ i*)
+(*i $Id: register_gui.ml,v 1.13 2008-12-21 17:34:22 uid528 Exp $ i*)
 
 open Cil_types
 open Cil
@@ -39,7 +39,7 @@ let pretty_offsetmap lv fmt offsetmap =
   begin match offsetmap with
   | None ->  Format.fprintf fmt "<BOTTOM>"
   | Some off ->
-      Format.fprintf fmt "%a%a"   
+      Format.fprintf fmt "%a%a"
 	!Ast_printer.d_lval lv
 	(Cvalue_type.V_Offsetmap.pretty_typ
 	    (Some (typeOfLval lv)))
@@ -51,47 +51,36 @@ let gui_annot_action (main_ui:Design.main_window_extension_points) txt =
   main_ui#annot_window#buffer#insert ~tags:[tag_style_italic] ((txt ()) ^ "\n")
 
 
-let gui_compute_values what (main_ui:Design.main_window_extension_points) =
-  if not (Db.Value.is_computed ()) then
-    begin
-      gui_annot_action main_ui 
-	(fun () -> "Activating " ^ what ^ " by running value analysis first");
-      let already_locked = main_ui#lock () in
-        !Db.Value.compute ();
-        main_ui#unlock already_locked
-    end
+let gui_compute_values  (main_ui:Design.main_window_extension_points) =
+  if not (Db.Value.is_computed ()) 
+  then main_ui#launcher ()
+
 
 let rec to_do_on_select
     (popup_factory:GMenu.menu GMenu.factory)
     (main_ui:Design.main_window_extension_points) button_nb selected
     =
   let inset_utf8 = Unicode.inset_string () in
-  
+
   let annot = main_ui#annot_window#buffer in
   if button_nb = 1 then
     begin
-      if Db.Value.is_computed () 
-      then begin 
+      if Db.Value.is_computed ()
+      then begin
 	  match selected with
 	  | PStmt (_kf,ki) -> begin
 		(* Find kinstr and kf *)
-		try
 		  (* Is it an accessible statement ? *)
 		  if Db.Value.is_accessible (Kstmt ki) then begin
 		      (* Out for this statement *)
 		      let outs = Db.Outputs.kinstr (Kstmt ki) in
 		      let n = ( match outs with
                       | Some outs ->
-                          fprintf_to_string "Modifies %a@\n"
-                            Db.Outputs.pretty outs
+                          Pretty_utils.sfprintf 
+			    "Modifies %a@\n" Db.Outputs.pretty outs
                       | _ -> "\n");
 		      in annot#insert n
 		    end else annot#insert "This code is dead\n";
-
-		with e ->
-		  main_ui#error 
-		    "error in Db.KernelFunction.find :%s. Please report"
-		    (Printexc.to_string e)
             end
 	  | PLval (_kf, ki,lv) ->
               if not (isFunctionType (typeOfLval lv))
@@ -100,31 +89,33 @@ let rec to_do_on_select
 		      let offsetmap =
 			!Db.Value.lval_to_offsetmap ~with_alarms:CilE.warn_none_mode ki lv
 		      in
-		      annot#insert (fprintf_to_string
+		      annot#insert (Pretty_utils.sfprintf
 				       "Before statement:@\n%a@\n"
 				       (pretty_offsetmap lv ) offsetmap);
 		    with Lmap.Cannot_copy ->
 		      let value = !Db.Value.access ki lv in
-		      annot#insert (fprintf_to_string "Before statement:@\n%a %s %a@\n" 	
+		      annot#insert (Pretty_utils.sfprintf "Before statement:@\n%a %s %a@\n"
 				       !Ast_printer.d_lval lv inset_utf8 Db.Value.pretty value));
 		  (try
 		      let offsetmap_after = !Db.Value.lval_to_offsetmap_after ki lv in
 		      annot#insert "At next statement:\n";
-		      annot#insert (fprintf_to_string "%a\n" (pretty_offsetmap lv)  offsetmap_after);
+		      annot#insert (Pretty_utils.sfprintf "%a\n" (pretty_offsetmap lv)  offsetmap_after);
 		    with Not_found -> ());
 		end
 	  | PTermLval _ -> () (* JS: TODO (?) *)
 	  | PVDecl (_kf,_vi) -> ()
+	  | PCodeAnnot _ | PGlobal _ 
+          | PBehavior _ | PPredicate _ -> ()
 	end
     end
   else if button_nb = 3
   then begin
       match selected with
-      | PVDecl (_,vi) -> 
+      | PVDecl (_,vi) ->
 	  begin
 	    try
 	      let kfun = Globals.Functions.get vi in
-	      if Db.Value.is_computed () 
+	      if Db.Value.is_computed ()
 	      then
 		let callers = !Value.callers kfun in
 		(* popup a menu to jump to the definitions of the callers *)
@@ -136,11 +127,11 @@ let rec to_do_on_select
 			let nb_sites = List.length call_sites in
 			let label = "Go to caller " ^
 			  (Pretty_utils.escape_underscores
-			      (fprintf_to_string "%a"
+			      (Pretty_utils.sfprintf "%a"
 				  Ast_info.pretty_vname v))
 			in
-			let label = 
-			  if nb_sites > 1 
+			let label =
+			  if nb_sites > 1
 			  then
 			    label ^ " (" ^ (string_of_int nb_sites) ^" call sites)"
 			  else label
@@ -150,27 +141,27 @@ let rec to_do_on_select
 			      label
 			      ~callback:
 			      (fun () -> main_ui#file_tree#select_global v)))
-		      l;	     
+		      l;
 		  with Not_found -> ()
 		in
 		do_menu callers
 	      else
 		ignore
 		  (popup_factory#add_item
-		      "Activate callers"
+		      "Callers ..."
 		      ~callback:
-		      (fun () -> (gui_compute_values "callers" main_ui)))
-		  
+		      (fun () -> (gui_compute_values main_ui)))
+
 	    with Not_found ->
 	      ()
           end
-	    
+
       | PStmt (kf,ki) ->
-	  if Db.Value.is_computed () 
+	  if Db.Value.is_computed ()
 	  then begin
               let eval_expr () =
 		let txt =
-		  GToolbox.input_string 
+		  GToolbox.input_string
                     ~title:"Evaluate"
                     "  Enter an ACSL expression to evaluate  "
 		    (* the spaces at beginning and end should not be necessary
@@ -183,7 +174,7 @@ let rec to_do_on_select
 			!Db.Properties.Interp.term_to_exp
 			  (!Db.Properties.Interp.expr kf ki txt)
 	              in
-                      begin match exp with
+                      begin match exp.enode with
                       | Lval lv | StartOf lv ->
 			  to_do_on_select popup_factory main_ui 1 (PLval((Some kf),Kstmt ki,lv))
                       | _ ->
@@ -195,8 +186,8 @@ let rec to_do_on_select
 			  let txt =
 			    Format.sprintf
                               "Before the selected statement, all the values taken by the expression %s are contained in %s@\n"
-		              (fprintf_to_string "%a" !Ast_printer.d_exp exp)
-                              (fprintf_to_string "%a" Cvalue_type.V.pretty loc)
+		              (Pretty_utils.sfprintf "%a" !Ast_printer.d_exp exp)
+                              (Pretty_utils.sfprintf "%a" Cvalue_type.V.pretty loc)
 			  in
 			  annot#insert txt
                       end
@@ -214,9 +205,9 @@ let rec to_do_on_select
 	  else
 	    ignore
 	      (popup_factory#add_item
-		  "Activate Evaluate"
+		  "_Evaluate expression ..."
 		  ~callback:
-		  (fun () -> (gui_compute_values "Activate _Evaluate" main_ui)))
+		  (fun () -> (gui_compute_values main_ui)))
       | PLval (_kf, ki, lv) ->
           let ty = typeOfLval lv in
           (* Do special actions for functions *)
@@ -233,7 +224,7 @@ let rec to_do_on_select
                           (popup_factory#add_item
 			      ("Go to definition of " ^
                                   (Pretty_utils.escape_underscores
-				      (fprintf_to_string "%a"
+				      (Pretty_utils.sfprintf "%a"
 					  Ast_info.pretty_vname v))
 				^ " (indirect)")
 			      ~callback:
@@ -246,7 +237,7 @@ let rec to_do_on_select
 	    | Var _,NoOffset when isFunctionType ty ->
                 (* simple literal calls are done by [Design]. *)
                 ()
-	    | _  ->
+	    | Mem ({ enode = Lval lv}), NoOffset  ->
                 if isFunctionType ty then
                   (* Function pointers *)
 	          begin try
@@ -267,10 +258,12 @@ let rec to_do_on_select
 		      do_menu functions
 
 		    with Not_found -> ()
-                  end)
+                  end
+            | _ -> ()
+            )
           end
       | PTermLval _ -> () (* No C function calls in logic *)
-
+      | PCodeAnnot _ | PGlobal _ | PBehavior _ | PPredicate _ -> ()
     end
 
 
@@ -292,161 +285,8 @@ module DegeneratedHighlighted =
      end)
     (struct
        let name = "Value_gui.DegeneratedHighlightedState"
-       let dependencies = [ Cil_state.self ]
+       let dependencies = [ Ast.self ]
      end)
-
-let launcher () = 
-  let module Hook = Hook.Make(struct end) in
-  let enabled = ref (Cmdline.ForceValues.get ()) in
-  let w = GPack.vbox () in
-  Hook.extend (on_bool w "Enable" 
-                 Cmdline.ForceValues.get 
-                 (fun b -> 
-                    Cmdline.ForceValues.set b;
-                    enabled := b));
-
-  (** Entry point chooser *)
-  Hook.extend begin
-    let all_function_names = 
-      List.sort
-        Pervasives.compare
-        (Globals.Functions.fold 
-	   (fun kf acc -> (Kernel_function.get_name kf)::acc)
-	   [])
-    in
-    let get_entrypoint () = 
-      try 
-        let kf, _ = Globals.entry_point () in
-        Kernel_function.get_name kf
-      with Globals.No_such_entry_point _ -> 
-        ""
-    in
-    let valid_entrypoint r = 
-      if r <> "" then 
-        try 
-          ignore (Globals.Functions.find_def_by_name r);
-          true
-        with Not_found -> 
-          Format.printf "%s is not a function definition.@." r;
-          false
-      else true
-    in
-    on_string_completion 
-      ~validator:valid_entrypoint
-      all_function_names
-      w 
-      "Entry point"
-      get_entrypoint
-      Cmdline.MainFunction.set
-  end;
-
-  Hook.extend (on_bool_radio w "Library" "Full application"
-                 Cmdline.LibEntry.get 
-                 Cmdline.LibEntry.set);
-
-  
-  (*****************************************************************************)
-  let context =
-    let expander = GBin.expander ~label:"Initial Context" ~packing:w#pack () in
-    let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
-    GPack.vbox ~packing:frame#add ()
-  in
-  Hook.extend (on_int context "Maximal depth for chained pointers of the initial context"
-                 Cmdline.AutomaticContextMaxDepth.get
-                 Cmdline.AutomaticContextMaxDepth.set);
-  Hook.extend (on_int context "Maximal width for pointers of the initial context"
-                 Cmdline.AutomaticContextMaxWidth.get
-                 Cmdline.AutomaticContextMaxWidth.set);
-  Hook.extend (on_bool context "Initial context contains only valid pointers"
-                 Cmdline.AllocatedContextValid.get
-                 Cmdline.AllocatedContextValid.set);
-
-  (*****************************************************************************)
-  let platform =
-    let expander = GBin.expander ~label:"Platform" ~packing:w#pack () in
-    let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
-    GPack.vbox ~packing:frame#add ()
-  in
-  Hook.extend (on_bool platform "Pretend integers cannot overflow"
-                 Cmdline.IgnoreOverflow.get
-                 Cmdline.IgnoreOverflow.set);
-
-  Hook.extend (on_bool platform "Do not assume array accesses inside structures are valid"
-                 Cmdline.UnsafeArrays.get
-                 Cmdline.UnsafeArrays.set);
-  let valid_int64 s = 
-    try 
-      Scanf.sscanf s "%Li%!" (fun _ -> ());
-      true
-    with End_of_file | Scanf.Scan_failure _ | Failure _ -> false
-  in
-  Hook.extend (on_string ~validator:valid_int64 
-                 platform 
-                 "Minimal valid absolute address in bytes" 
-                 (fun () -> 
-                    Format.sprintf
-                      "%Li"
-                      (Abstract_interp.Int.to_int64 
-                         (Abstract_interp.Int.div 
-                            (Cmdline.MinValidAbsoluteAddress.get ())
-                            Abstract_interp.Int.eight)))
-                 (fun s -> 
-                    try 
-                      Scanf.sscanf s "%Li"
-                        (fun v ->
-                           Cmdline.MinValidAbsoluteAddress.set
-                             (Abstract_interp.Int.mul 
-                                Abstract_interp.Int.eight
-                                (Abstract_interp.Int.of_int64 v)))
-                    with End_of_file | Scanf.Scan_failure _ | Failure _ -> assert false));
-
-  Hook.extend (on_string ~validator:valid_int64 
-                 platform  
-                 "Maximal valid absolute address in bytes" 
-                 (fun () -> 
-                    Format.sprintf
-                      "%Li"
-                      (Abstract_interp.Int.to_int64 
-                         (Abstract_interp.Int.pred
-                            (Abstract_interp.Int.div 
-                               (Abstract_interp.Int.succ (Cmdline.MaxValidAbsoluteAddress.get ()))
-                               (Abstract_interp.Int.of_int 8)))))
-                 (fun s -> 
-                    try 
-                      Scanf.sscanf s "%Li"
-                        (fun v ->
-                           Cmdline.MaxValidAbsoluteAddress.set
-                             (Abstract_interp.Int.pred
-                                (Abstract_interp.Int.mul 
-                                   (Abstract_interp.Int.of_int 8) 
-                                   (Abstract_interp.Int.succ 
-                                      (Abstract_interp.Int.of_int64 v)))))
-                    with End_of_file | Scanf.Scan_failure _ | Failure _ -> assert false));
-
-
-  (*****************************************************************************)
-  let tune =
-    let expander = GBin.expander ~label:"Precision tuning" ~packing:w#pack () in
-    let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
-    GPack.vbox ~packing:frame#add ()
-  in
-  Hook.extend (on_int tune "Semantic branch unrolling"
-                 Cmdline.SemanticUnrollingLevel.get
-                 Cmdline.SemanticUnrollingLevel.set);
-  Hook.extend (on_int tune "Precision level for arrays" 
-                 Cmdline.ArrayPrecisionLevel.get
-                 Cmdline.ArrayPrecisionLevel.set);
-  Hook.extend (on_int tune "Threshold for widening" 
-                 Cmdline.WideningLevel.get
-                 Cmdline.WideningLevel.set);
-  Hook.extend (on_bool tune "Continue even after degeneration"
-                 Cmdline.PropagateTop.get
-                 Cmdline.PropagateTop.set);
-
-  let compute () = 
-    if !enabled then !Db.Value.compute ()
-  in
-  "Value",Some w#coerce,Some Hook.apply,Some compute
 
 let main (main_ui:Design.main_window_extension_points) =
 
@@ -465,23 +305,24 @@ let main (main_ui:Design.main_window_extension_points) =
 
   let highlighter (buffer:GSourceView.source_buffer) localizable ~start ~stop =
     (* highlight the degeneration point *)
-    Extlib.may 
-      (fun loc -> 
-         if Cilutil.equals localizable loc then 
-           let orange_area = make_tag 
-             buffer 
-             ~name:"degeneration" 
-             [`BACKGROUND "orange" ] 
+    Extlib.may
+      (fun loc ->
+         if Cilutil.equals localizable loc then
+           let orange_area = make_tag
+             buffer
+             ~name:"degeneration"
+             [`BACKGROUND "orange" ]
            in
            apply_tag buffer orange_area start stop)
       (DegeneratedHighlighted.get ());
-    
+
     (* highlight dead code areas if values were computed.*)
     if Db.Value.is_computed () then
       let ki = match localizable with
-      | PStmt (_,stmt) -> Kstmt stmt
-      | PLval (_,ki,_) | PTermLval(_,ki,_) -> ki
-      | PVDecl _ -> Kglobal
+      | PStmt (_,stmt) | PCodeAnnot (_,stmt,_) -> Kstmt stmt
+      | PLval (_,ki,_) | PTermLval(_,ki,_) 
+      | PPredicate (_,ki,_) -> ki
+      | PVDecl _ | PGlobal _ | PBehavior _ -> Kglobal
       in
       if not (Value.is_accessible ki) then
         let dead_code_area =
@@ -496,32 +337,24 @@ let main (main_ui:Design.main_window_extension_points) =
   in
   main_ui#register_source_highlighter highlighter;
 
-  let _ = main_ui#source_viewer#misc#modify_font main_ui#monospace in
-  Source_manager.set_font
-    main_ui#original_source_viewer
-    main_ui#monospace;
-
-  let filetree_selector ~was_activated ~activating globals = 
-    if Value.is_computed () then begin 
+  let filetree_selector ~was_activated ~activating globals =
+    if Value.is_computed () then begin
       if not was_activated && activating then begin match globals with
-      | [GFun ({svar=v},_)] -> 
-          begin try 
+(* [JS 2009/30/03] GUI may become too slow if values are displayed *)
+(*      | [GFun ({svar=v},_)] ->
+          begin try
             let kf = Globals.Functions.get v in
-            let s = fprintf_to_string "@[%a@]" Value.display kf in
+            let s = Pretty_utils.sfprintf "@[%a@]" Value.display kf in
             main_ui#annot_window#buffer#insert s
-          with Not_found -> () 
-          end
+          with Not_found -> ()
+          end*)
       | _ -> ();
       end;
     end
   in
-  main_ui#file_tree#add_select_function filetree_selector;
-
-  main_ui#register_launcher launcher
-
+  main_ui#file_tree#add_select_function filetree_selector
 
 let degeneration_occurred ki lv =
-  Cilutil.flush_all ();
   Db.Value.mark_as_computed ();
   ignore (GtkMain.Main.init ());
   let app = new Design.main_window () in
@@ -567,7 +400,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)
-    

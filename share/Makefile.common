@@ -1,0 +1,256 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2009                                               #
+#    CEA (Commissariat à l'Énergie Atomique)                             #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+##########################################################################
+#                                                                        #
+# Define common stuff shared by makefiles.                               #
+#                                                                        #
+##########################################################################
+
+include $(MAKECONFIG_DIR)/Makefile.config
+
+#######################
+# Working directories #
+#######################
+
+# Frama-C kernel directories
+UNPACKED_DIRS= misc ai memory_state toplevel slicing_types pdg_types \
+	       kernel logic lib project buckx gui
+UNPACKED_DIRS:= $(addprefix src/, $(UNPACKED_DIRS))
+UNPACKED_DIRS+= external
+
+CIL_PATH= cil/src
+CIL_DIRS= $(CIL_PATH) $(CIL_PATH)/ext $(CIL_PATH)/frontc $(CIL_PATH)/logic \
+	cil/ocamlutil
+
+FRAMAC_SRC_DIRS=$(UNPACKED_DIRS) $(CIL_DIRS)
+
+##################
+# Flags          #
+##################
+
+ifeq ($(findstring 3.10,$(OCAMLVERSION)),)
+HAS_OCAML311 = yes
+else
+HAS_OCAML311 = no
+endif
+
+FLAGS	= -w Ael -warn-error A $(OCAML_ANNOT_OPTION) $(OPTIM) 
+DEBUG	= -g
+
+#############
+# Verbosing #
+#############
+
+ifeq ($(VERBOSEMAKE),yes)
+# ignore the PRINT_* materials but print all the other commands
+  PRINT = @true
+# prevent the warning "jobserver unavailable: using -j1".
+# see GNU make manual (section 5.7.1 and appendix B)
+  QUIET_MAKE:= + $(MAKE)
+# prevent the warning: "-jN forced in submake: disabling jobserver mode".
+# see GNU make manual (appendix B)
+  MAKE := MAKEFLAGS="$(patsubst j,,$(MAKEFLAGS))" $(MAKE)
+else
+# print the PRINT_* materials
+  PRINT = @echo
+# but silently execute all the other commands
+  OLDFLAGS:=$(MAKEFLAGS)
+  MAKEFLAGS := s $(MAKEFLAGS)
+# do not silently execute other makefiles (e.g the one of why):
+# the redefinition of MAKE below is for this purpose
+# but use QUIET_MAKE in order to call silently the initial Makefile
+  QUIET_MAKE:= + $(MAKE)
+  MAKE := MAKEFLAGS="$(OLDFLAGS)" $(MAKE)
+endif
+
+##################
+# Shell commands #
+##################
+
+# prefer to use these commands and not directly "cp" or others
+
+ECHO	= echo
+MKDIR   = mkdir -p
+MV	= mv
+CP      = cp -f
+RM	= rm -f
+CAT	= cat
+SED	= sed
+ISED	= ./bin/sed_inplace
+CHMOD_RO= chmod a-w
+TAR	= tar
+
+###########################
+# Command pretty printing #
+###########################
+
+PRINT_OCAMLC   	=$(PRINT) 'Ocamlc      '#
+PRINT_OCAMLOPT 	=$(PRINT) 'Ocamlopt    '#
+PRINT_DEP      	=$(PRINT) 'Ocamldep    '#
+PRINT_OCAMLLEX 	=$(PRINT) 'Ocamllex    '#
+PRINT_OCAMLYACC	=$(PRINT) 'Ocamlyacc   '#
+PRINT_OCAMLMKTOP=$(PRINT) 'Ocamlmktop  '#
+PRINT_DOC	=$(PRINT) 'Ocamldoc    '#
+PRINT_OCAMLCP  	=$(PRINT) 'Profiling   '#
+PRINT_CAMLP4   	=$(PRINT) 'Camlp4      '#
+PRINT_PACKING  	=$(PRINT) 'Packing     '#
+PRINT_LINKING  	=$(PRINT) 'Linking     '#
+
+PRINT_MAKING   	=$(PRINT) 'Generating  '#
+PRINT_MV       	=$(PRINT) 'Moving to   '#
+PRINT_CP       	=$(PRINT) 'Copying to  '#
+PRINT_RM       	=$(PRINT) 'Cleaning    '#
+PRINT_EXEC	=$(PRINT) 'Running     '#
+PRINT_TAR    	=$(PRINT) 'Archiving   '#
+PRINT_UNTAR    	=$(PRINT) 'Unarchiving '#
+PRINT_CONFIG   	=$(PRINT) 'Configuring '#
+PRINT_BUILD   	=$(PRINT) 'Building    '#
+PRINT_INSTALL  	=$(PRINT) 'Installing  '#
+
+PRINT_DOT	=$(PRINT) 'Dot         '#
+PRINT_LATEX	=$(PRINT) 'Latex       '#
+PRINT_DVIPS	=$(PRINT) 'Dvips       '#
+PRINT_HEVEA	=$(PRINT) 'Hevea       '#
+
+#########
+# Tests #
+#########
+
+define COMPILE_TESTS_ML_FILES
+# Function with two arguments:
+#  - $(1) is the test directory under consideration.
+#  - $(2) is the name of Frama-C component under test (plugin or some core part)
+.PRECIOUS: $(patsubst %.ml, %.cmo %.cmx %.cmxs %.opt %.byte, $(wildcard tests/$(1)/*.ml))
+
+# [JS 2009/03/18] in the 5 rules below, don't print anything while VERBOSEMAKE
+# is not set (otherwise "make tests" is too much verbose)
+
+$(1)_TESTS_INCLUDES=$$(addprefix -I tests/, $$($(2)_TESTS_DIRS))
+
+tests/$(1)/%.cmo: tests/$(1)/%.ml $$(CMO) $$(GEN_BYTE_LIBS)
+	$$(OCAMLC) -c $$(BFLAGS) $$($(1)_TESTS_INCLUDES) $$<
+
+tests/$(1)/%.byte: tests/$(1)/%.cmo $(3:.cmx=.cmo) bin/toplevel.byte$$(EXE)
+	$$(OCAMLC) $$(BLINKFLAGS) $$($(1)_TESTS_INCLUDES) -o $$@ \
+	  $$(BYTE_LIBS) $$(filter-out $$(STARTUP_CMO),$$(ALL_BATCH_CMO)) $(3:.cmx=.cmo) \
+	  $$< $$(STARTUP_CMO)
+
+# [JS 2009/05/29] don't use $$(CMX)
+tests/$(1)/%.cmx: tests/$(1)/%.ml $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
+	$$(OCAMLOPT) -c $$(OFLAGS) $$($(1)_TESTS_INCLUDES) $$<
+
+tests/$(1)/%.cmxs: tests/$(1)/%.ml $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
+	$$(OCAMLOPT) $$(OFLAGS) $$($(1)_TESTS_INCLUDES) -shared -o $$@ $$<
+
+tests/$(1)/%.opt: tests/$(1)/%.cmx $(3) bin/toplevel.opt$$(EXE)
+	$$(OCAMLOPT) $$(OLINKFLAGS) $$($(1)_TESTS_INCLUDES) -o $$@ \
+	  $$(OPT_LIBS) $$(filter-out $$(STARTUP_CMX),$$(ALL_BATCH_CMX)) $(3) $$< $$(STARTUP_CMX)
+
+$(filter-out $(3),$(patsubst %.ml,%.cmx,$(wildcard tests/$(1)/*.ml))): $(3)
+$(filter-out $(3:.cmx=.cmo), \
+    $(patsubst %.ml,%.cmo,$(wildcard tests/$(1)/*.ml))): \
+     $(3:.cmx=.cmo)
+
+endef #COMPILE_TESTS_ML_FILES
+
+#################
+# Generic rules #
+#################
+
+.DEFAULT_GOAL=all
+
+.SUFFIXES: .mli .ml .cmi .cmo .cmx .mll .mly .tex .dvi .ps .html .cmxs \
+	.png .svg .ps
+
+ifdef DOT
+%.png: %.dot
+	$(PRINT_DOT) $@
+	$(DOT) -Tpng -o $@ $<
+
+%.svg: %.dot
+	$(PRINT_DOT) $@
+	$(ISED) -e "s/\(digraph .*\)/\1 node [href=\"\\N.html\"];/" $<
+	$(DOT) -Tsvg -o $@ $<
+
+%.ps: %.dot
+	$(PRINT_DOT) $@
+	$(DOT) -Tps -o $@ $<
+else
+%.png: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+%.svg: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+%.ps: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+endif
+
+.mli.cmi:
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) -c $(BFLAGS) $<
+
+.ml.cmi:
+	$(PRINT_OCAMLC) $@
+	if `test -e $<i`; then $(OCAMLC) -c $(BFLAGS) $<i; \
+	else $(MAKE) $(patsubst %.ml,%.cmo,$<); fi
+
+.ml.cmo:
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) -c $(BFLAGS) $<
+
+.ml.o:
+	$(PRINT_OCAMLOPT) $@
+	$(OCAMLOPT) -c $(OFLAGS) $<
+
+.ml.cmx:
+	$(PRINT_OCAMLOPT) $@
+	$(OCAMLOPT) -c $(OFLAGS) $<
+
+.ml.cmxs:
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -shared -o $@ $(OFLAGS) $<
+
+.mll.ml:
+	$(PRINT_OCAMLLEX) $@
+	$(OCAMLLEX) $<
+
+.mly.ml:
+	$(PRINT_OCAMLYACC) $@
+	$(OCAMLYACC) -v $<
+
+%.mli: %.mly %.ml
+	:
+
+.tex.dvi:
+	$(PRINT_LATEX) $@
+	latex $< && latex $<
+
+.dvi.ps:
+	$(PRINT_DVIPS) $@
+	dvips $< -o $@
+
+.tex.html:
+	$(PRINT_HEVEA) $@
+	hevea $<
+
+.c.o:
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) $(BFLAGS) -ccopt "-o $@" $<

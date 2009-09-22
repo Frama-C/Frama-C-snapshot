@@ -44,10 +44,10 @@
 (* sfg: this stuff was stolen from optim.ml - the code to print the cfg as
    a dot graph is mine *)
 
-open Pretty
+(*open Pretty*)
 open Cil
 open Cil_types
-module E=Errormsg
+(*module E=Errormsg*)
 
 (* entry points: cfgFun, printCfgChannel, printCfgFilename *)
 
@@ -138,7 +138,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
   if s.sid = -1 then s.sid <- Cil.Sid.next ();
   nodeList := s :: !nodeList; (* Future traversals can be made in linear time. e.g.  *)
   if s.succs <> [] then
-    bug "CFG must be cleared before being computed! '%a' of %d" d_stmt s
+    Cilmsg.fatal "CFG must be cleared before being computed! '%a' of %d" d_stmt s
       (List.length s.succs);
   let addSucc (n: stmt) =
     if not (List.memq n s.succs) then s.succs <- n::s.succs;
@@ -160,7 +160,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
     | hd::_ -> addSucc hd
   in
   let instrFallsThrough (i : instr) : bool = match i with
-      Call (_, Lval (Var vf, NoOffset), _, _) ->
+      Call (_, {enode = Lval (Var vf, NoOffset)}, _, _) ->
         (* See if this has the noreturn attribute *)
         not (hasAttribute "noreturn" vf.vattr)
     | Call (_, f, _, _) ->
@@ -210,7 +210,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
   (* Since all loops have terminating condition true, we don't put
      any direct successor to stmt following the loop *)
   | TryExcept _ | TryFinally _ ->
-      E.s (E.unimp "try/except/finally")
+      Cilmsg.fatal "try/except/finally"
 
 (*------------------------------------------------------------*)
 
@@ -228,56 +228,55 @@ let rec forallStmts todo (fd : fundec) =
 (**************************************************************)
 (* printing the control flow graph - you have to compute it first *)
 
-let d_cfgnodename () (s : stmt) =
-  dprintf "%d" s.sid
+let d_cfgnodename fmt (s : stmt) = Format.fprintf fmt "%d" s.sid
 
-let d_cfgnodelabel () (s : stmt) =
+let d_cfgnodelabel fmt (s : stmt) = 
   let label =
-  begin
-    match s.skind with
-      | If (_, _, _, _)  -> "if" (*sprint ~width:999 (dprintf "if %a" d_exp e)*)
-      | Loop _ -> "loop"
-      | Break _ -> "break"
-      | Continue _ -> "continue"
-      | Goto _ -> "goto"
-      | Instr _ -> "instr"
-      | Switch _ -> "switch"
-      | Block _ -> "block"
-      | Return _ -> "return"
-      | TryExcept _ -> "try-except"
-      | TryFinally _ -> "try-finally"
-      | UnspecifiedSequence _ -> "unspecifiedsequence"
-  end in
-    dprintf "%d: %s" s.sid label
+    begin
+      match s.skind with
+	| If (_, _, _, _)  -> "if" (*sprint ~width:999 (dprintf "if %a" d_exp e)*)
+	| Loop _ -> "loop"
+	| Break _ -> "break"
+	| Continue _ -> "continue"
+	| Goto _ -> "goto"
+	| Instr _ -> "instr"
+	| Switch _ -> "switch"
+	| Block _ -> "block"
+	| Return _ -> "return"
+	| TryExcept _ -> "try-except"
+	| TryFinally _ -> "try-finally"
+	| UnspecifiedSequence _ -> "unspecifiedsequence"
+    end in
+  Format.fprintf fmt "%d: %s" s.sid label
 
-let d_cfgedge (src) () (dest) =
-  dprintf "%a -> %a"
+let d_cfgedge src fmt dest =
+  Format.fprintf fmt "%a -> %a"
     d_cfgnodename src
     d_cfgnodename dest
-
-let d_cfgnode () (s : stmt) =
-    dprintf "%a [label=\"%a\"]\n\t%a"
+    
+let d_cfgnode fmt (s : stmt) =
+  Format.fprintf fmt "%a [label=\"%a\"]\n\t@[<hov 2>%a@]"
     d_cfgnodename s
     d_cfgnodelabel s
-    (d_list "\n\t" (d_cfgedge s)) s.succs
-
+    (Pretty_utils.pp_list ~sep:"@." (d_cfgedge s)) s.succs
+    
 (**********************************************************************)
 (* entry points *)
 
 (** print control flow graph (in dot form) for fundec to channel *)
-let printCfgChannel (chan : out_channel) (fd : fundec) =
-  let pnode (s:stmt) = fprintf chan "%a\n" d_cfgnode s in
-    begin
-      ignore (fprintf chan "digraph CFG_%s {\n" fd.svar.vname);
-      forallStmts pnode fd;
-      ignore(fprintf chan  "}\n");
+let printCfgChannel fmt (fd : fundec) =
+  let pnode (s:stmt) = Format.fprintf fmt "%a\n" d_cfgnode s in
+  begin
+    Format.fprintf fmt "digraph CFG_%s {\n" fd.svar.vname ;
+    forallStmts pnode fd;
+    Format.fprintf fmt  "}\n" ;
     end
 
 (** Print control flow graph (in dot form) for fundec to file *)
 let printCfgFilename (filename : string) (fd : fundec) =
   let chan = open_out filename in
     begin
-      printCfgChannel chan fd;
+      printCfgChannel (Format.formatter_of_out_channel chan) fd ;
       close_out chan;
     end
 

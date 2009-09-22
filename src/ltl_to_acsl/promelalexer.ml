@@ -1,4 +1,4 @@
-# 26 "src/ltl_to_acsl/promelalexer.mll"
+# 28 "src/ltl_to_acsl/promelalexer.mll"
  
 
   open Promelaparser
@@ -1180,170 +1180,170 @@ let rec token lexbuf =
 and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 57 "src/ltl_to_acsl/promelalexer.mll"
+# 59 "src/ltl_to_acsl/promelalexer.mll"
                             ( PROMELA_TRUE )
 # 1186 "src/ltl_to_acsl/promelalexer.ml"
 
   | 1 ->
-# 58 "src/ltl_to_acsl/promelalexer.mll"
+# 60 "src/ltl_to_acsl/promelalexer.mll"
                  ( PROMELA_NEVER )
 # 1191 "src/ltl_to_acsl/promelalexer.ml"
 
   | 2 ->
-# 59 "src/ltl_to_acsl/promelalexer.mll"
+# 61 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_IF )
 # 1196 "src/ltl_to_acsl/promelalexer.ml"
 
   | 3 ->
-# 60 "src/ltl_to_acsl/promelalexer.mll"
+# 62 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_FI )
 # 1201 "src/ltl_to_acsl/promelalexer.ml"
 
   | 4 ->
-# 61 "src/ltl_to_acsl/promelalexer.mll"
+# 63 "src/ltl_to_acsl/promelalexer.mll"
                 ( PROMELA_GOTO )
 # 1206 "src/ltl_to_acsl/promelalexer.ml"
 
   | 5 ->
-# 62 "src/ltl_to_acsl/promelalexer.mll"
+# 64 "src/ltl_to_acsl/promelalexer.mll"
                 ( PROMELA_SKIP )
 # 1211 "src/ltl_to_acsl/promelalexer.ml"
 
   | 6 ->
-# 63 "src/ltl_to_acsl/promelalexer.mll"
+# 65 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_DOUBLE_COLON )
 # 1216 "src/ltl_to_acsl/promelalexer.ml"
 
   | 7 ->
-# 64 "src/ltl_to_acsl/promelalexer.mll"
+# 66 "src/ltl_to_acsl/promelalexer.mll"
                      ( PROMELA_COLON )
 # 1221 "src/ltl_to_acsl/promelalexer.ml"
 
   | 8 ->
-# 65 "src/ltl_to_acsl/promelalexer.mll"
+# 67 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_SEMICOLON )
 # 1226 "src/ltl_to_acsl/promelalexer.ml"
 
   | 9 ->
-# 66 "src/ltl_to_acsl/promelalexer.mll"
+# 68 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_LPAREN )
 # 1231 "src/ltl_to_acsl/promelalexer.ml"
 
   | 10 ->
-# 67 "src/ltl_to_acsl/promelalexer.mll"
+# 69 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_RPAREN )
 # 1236 "src/ltl_to_acsl/promelalexer.ml"
 
   | 11 ->
-# 68 "src/ltl_to_acsl/promelalexer.mll"
+# 70 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_LBRACE )
 # 1241 "src/ltl_to_acsl/promelalexer.ml"
 
   | 12 ->
-# 69 "src/ltl_to_acsl/promelalexer.mll"
+# 71 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_RBRACE )
 # 1246 "src/ltl_to_acsl/promelalexer.ml"
 
   | 13 ->
-# 70 "src/ltl_to_acsl/promelalexer.mll"
+# 72 "src/ltl_to_acsl/promelalexer.mll"
               ( PROMELA_RIGHT_ARROW )
 # 1251 "src/ltl_to_acsl/promelalexer.ml"
 
   | 14 ->
-# 71 "src/ltl_to_acsl/promelalexer.mll"
+# 73 "src/ltl_to_acsl/promelalexer.mll"
                             ( PROMELA_FALSE )
 # 1256 "src/ltl_to_acsl/promelalexer.ml"
 
   | 15 ->
-# 72 "src/ltl_to_acsl/promelalexer.mll"
+# 74 "src/ltl_to_acsl/promelalexer.mll"
                             ( PROMELA_OR )
 # 1261 "src/ltl_to_acsl/promelalexer.ml"
 
   | 16 ->
-# 73 "src/ltl_to_acsl/promelalexer.mll"
+# 75 "src/ltl_to_acsl/promelalexer.mll"
                             ( PROMELA_AND )
 # 1266 "src/ltl_to_acsl/promelalexer.ml"
 
   | 17 ->
-# 74 "src/ltl_to_acsl/promelalexer.mll"
+# 76 "src/ltl_to_acsl/promelalexer.mll"
                             ( PROMELA_NOT )
 # 1271 "src/ltl_to_acsl/promelalexer.ml"
 
   | 18 ->
-# 75 "src/ltl_to_acsl/promelalexer.mll"
+# 77 "src/ltl_to_acsl/promelalexer.mll"
                             ( token lexbuf )
 # 1276 "src/ltl_to_acsl/promelalexer.ml"
 
   | 19 ->
-# 76 "src/ltl_to_acsl/promelalexer.mll"
+# 78 "src/ltl_to_acsl/promelalexer.mll"
                             ( newline lexbuf; token lexbuf )
 # 1281 "src/ltl_to_acsl/promelalexer.ml"
 
   | 20 ->
-# 77 "src/ltl_to_acsl/promelalexer.mll"
+# 79 "src/ltl_to_acsl/promelalexer.mll"
                             ( comment lexbuf; token lexbuf )
 # 1286 "src/ltl_to_acsl/promelalexer.ml"
 
   | 21 ->
-# 78 "src/ltl_to_acsl/promelalexer.mll"
+# 80 "src/ltl_to_acsl/promelalexer.mll"
                             ( newline lexbuf; token lexbuf )
 # 1291 "src/ltl_to_acsl/promelalexer.ml"
 
   | 22 ->
-# 81 "src/ltl_to_acsl/promelalexer.mll"
+# 83 "src/ltl_to_acsl/promelalexer.mll"
                             ( let s=(lexeme lexbuf) in 
 			      let s=String.sub s 7 ((String.length s)-7) in 
                               PROMELA_CALLOF s )
 # 1298 "src/ltl_to_acsl/promelalexer.ml"
 
   | 23 ->
-# 85 "src/ltl_to_acsl/promelalexer.mll"
+# 87 "src/ltl_to_acsl/promelalexer.mll"
                             ( let s=(lexeme lexbuf) in 
 			      let s=String.sub s 9 ((String.length s)-9) in 
                               PROMELA_RETURNOF s )
 # 1305 "src/ltl_to_acsl/promelalexer.ml"
 
   | 24 ->
-# 89 "src/ltl_to_acsl/promelalexer.mll"
+# 91 "src/ltl_to_acsl/promelalexer.mll"
                             ( let s=(lexeme lexbuf) in 
 			      let s=String.sub s 15 ((String.length s)-15) in 
                               PROMELA_CALLORRETURNOF s )
 # 1312 "src/ltl_to_acsl/promelalexer.ml"
 
   | 25 ->
-# 94 "src/ltl_to_acsl/promelalexer.mll"
+# 96 "src/ltl_to_acsl/promelalexer.mll"
                             ( raise_located (loc lexbuf) "Illegal fonction name in Promela file." )
 # 1317 "src/ltl_to_acsl/promelalexer.ml"
 
   | 26 ->
-# 95 "src/ltl_to_acsl/promelalexer.mll"
+# 97 "src/ltl_to_acsl/promelalexer.mll"
                             ( raise_located (loc lexbuf) "Illegal fonction name in Promela file." )
 # 1322 "src/ltl_to_acsl/promelalexer.ml"
 
   | 27 ->
-# 96 "src/ltl_to_acsl/promelalexer.mll"
+# 98 "src/ltl_to_acsl/promelalexer.mll"
                             ( raise_located (loc lexbuf) "Illegal fonction name in Promela file." )
 # 1327 "src/ltl_to_acsl/promelalexer.ml"
 
   | 28 ->
-# 100 "src/ltl_to_acsl/promelalexer.mll"
+# 102 "src/ltl_to_acsl/promelalexer.mll"
                             ( let s = lexeme lexbuf in
 				PROMELA_LABEL s )
 # 1333 "src/ltl_to_acsl/promelalexer.ml"
 
   | 29 ->
-# 102 "src/ltl_to_acsl/promelalexer.mll"
+# 104 "src/ltl_to_acsl/promelalexer.mll"
                             ( EOF )
 # 1338 "src/ltl_to_acsl/promelalexer.ml"
 
   | 30 ->
-# 104 "src/ltl_to_acsl/promelalexer.mll"
+# 106 "src/ltl_to_acsl/promelalexer.mll"
                             ( PROMELA_TRUE )
 # 1343 "src/ltl_to_acsl/promelalexer.ml"
 
   | 31 ->
-# 105 "src/ltl_to_acsl/promelalexer.mll"
-                            ( Format.printf "Illegal_character : '%s'\n" (lexeme lexbuf);
+# 107 "src/ltl_to_acsl/promelalexer.mll"
+                            ( Ltl_to_acsl_option.error "Illegal_character : '%s'\n" (lexeme lexbuf);
 			      raise Parsing.Parse_error)
 # 1349 "src/ltl_to_acsl/promelalexer.ml"
 
@@ -1354,22 +1354,22 @@ and comment lexbuf =
 and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 112 "src/ltl_to_acsl/promelalexer.mll"
+# 114 "src/ltl_to_acsl/promelalexer.mll"
          ( () )
 # 1360 "src/ltl_to_acsl/promelalexer.ml"
 
   | 1 ->
-# 113 "src/ltl_to_acsl/promelalexer.mll"
-         (  Format.printf "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) )
+# 115 "src/ltl_to_acsl/promelalexer.mll"
+         (  Ltl_to_acsl_option.error "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) )
 # 1365 "src/ltl_to_acsl/promelalexer.ml"
 
   | 2 ->
-# 114 "src/ltl_to_acsl/promelalexer.mll"
+# 116 "src/ltl_to_acsl/promelalexer.mll"
          ( newline lexbuf; comment lexbuf )
 # 1370 "src/ltl_to_acsl/promelalexer.ml"
 
   | 3 ->
-# 115 "src/ltl_to_acsl/promelalexer.mll"
+# 117 "src/ltl_to_acsl/promelalexer.mll"
          ( comment lexbuf )
 # 1375 "src/ltl_to_acsl/promelalexer.ml"
 
@@ -1377,7 +1377,7 @@ and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
 
 ;;
 
-# 118 "src/ltl_to_acsl/promelalexer.mll"
+# 120 "src/ltl_to_acsl/promelalexer.mll"
  
   let parse c =
     let lb = from_channel c in
@@ -1387,19 +1387,20 @@ and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
 	Parsing.Parse_error 
       | Invalid_argument _ -> 
 	  let (a,b)=(loc lb) in 
-	    Format.print_string "Syntax error (" ;
-	    Format.print_string "l" ;
-	    Format.print_int a.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (a.pos_cnum-a.pos_bol) ;
-	    Format.print_string " -> l" ;
-	    Format.print_int b.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (b.pos_cnum-b.pos_bol) ;
-	    Format.print_string ")\n" ;
+		   Ltl_to_acsl_option.error "Syntax error (l%d c%d -> l%dc%d)" a.pos_lnum (a.pos_cnum-a.pos_bol) b.pos_lnum (b.pos_cnum-b.pos_bol);
+(*	    Format.print_string "Syntax error (" ;   *)
+(*	    Format.print_string "l" ;                *)
+(*	    Format.print_int a.pos_lnum ;            *)
+(*	    Format.print_string "c" ;                *)
+(*	    Format.print_int (a.pos_cnum-a.pos_bol) ;*)
+(*	    Format.print_string " -> l" ;            *)
+(*	    Format.print_int b.pos_lnum ;            *)
+(*	    Format.print_string "c" ;                *)
+(*	    Format.print_int (b.pos_cnum-b.pos_bol) ;*)
+(*	    Format.print_string ")\n" ;              *)
 	    raise_located (loc lb) "Syntax error"
 	      
      
 
 
-# 1406 "src/ltl_to_acsl/promelalexer.ml"
+# 1407 "src/ltl_to_acsl/promelalexer.ml"

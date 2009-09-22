@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annot.ml,v 1.25 2008/11/20 08:57:36 uid530 Exp $ *)
+(* $Id: annot.ml,v 1.25 2008-11-20 08:57:36 uid530 Exp $ *)
 
 open Cil_types
 open Cilutil
@@ -50,23 +50,24 @@ let add_info_nodes pdg (nodes_acc, undef_acc) info =
     in
       (nodes @ nodes_acc, undef_acc)
 
+
 let zone_info_nodes pdg (list_info, list_info_decl) =
   let data_dpds = ([], None) in
   let data_dpds = List.fold_left (add_info_nodes pdg) data_dpds list_info in
-  let add_decl_nodes decl_var (nodes_acc, undef_acc) =
+  let add_decl_nodes decl_var nodes_acc =
     let node = !Db.Pdg.find_decl_var_node pdg decl_var in
-      ((node, None)::nodes_acc, undef_acc)
+      node::nodes_acc
   in
-  let data_dpds = VarinfoSet.fold add_decl_nodes list_info_decl data_dpds in 
-    data_dpds
+  let decl_nodes = VarinfoSet.fold add_decl_nodes list_info_decl [] in 
+    decl_nodes, data_dpds
 
 let find_nodes_for_function_contract pdg f_interpret =
   let kf = M.get_pdg_kf pdg in
   try
     let _def = Kernel_function.get_definition kf in
     let info = f_interpret kf in
-    let data_dpds = zone_info_nodes pdg info in
-      data_dpds
+    let decl_nodes, data_dpds = zone_info_nodes pdg info in
+      decl_nodes, data_dpds
   with Kernel_function.No_Definition -> (* TODO ! *)
     raise (Extlib.NotYetImplemented 
              "[pdg:find_nodes_for_function_contract] on function declarations")
@@ -74,7 +75,7 @@ let find_nodes_for_function_contract pdg f_interpret =
     raise (Extlib.NotYetImplemented 
              ("[pdg:find_nodes_for_function_contract] to_zone : "^msg))
 
-let find_fun_precond_nodes pdg p =
+let find_fun_precond_nodes (pdg:PdgTypes.Pdg.t) p =
   let f_interpret kf =
     let f_ctx = !Db.Properties.Interp.To_zone.mk_ctx_func_contrat 
                   ~state_opt:(Some true) kf in
@@ -109,14 +110,14 @@ let find_code_annot_nodes pdg ~before stmt annot =
         let info, pragmas =
           !Db.Properties.Interp.To_zone.from_stmt_annot annot ~before (stmt, kf)
         in
-        let data_dpds = zone_info_nodes pdg info in
-        let stmt_nodes = !Db.Pdg.find_simple_stmt_nodes pdg stmt in
-        let ctrl_dpds = match stmt_nodes with
-          | stmt_node::_ ->
-              (* only have to consider the first node for ctrl dpds... *)
-              !Db.Pdg.direct_ctrl_dpds pdg stmt_node
-          | _ -> assert false (* accessible stmt with no node !!!??? *)
-        in
+        let decl_nodes, data_dpds = zone_info_nodes pdg info in
+        let stmt_key = Key.stmt_key stmt in
+        let stmt_node = match stmt_key with 
+          | Key.Stmt _ -> !Db.Pdg.find_stmt_node pdg stmt 
+          | Key.CallStmt _ -> !Db.Pdg.find_call_ctrl_node pdg stmt
+          | _ -> assert false
+        in 
+        let ctrl_dpds = !Db.Pdg.direct_ctrl_dpds pdg stmt_node in
         let add_stmt_nodes s acc =
           (!Db.Pdg.find_stmt_and_blocks_nodes pdg s) @ acc in
         (* can safely ignore pragmas.ctrl
@@ -135,16 +136,18 @@ let find_code_annot_nodes pdg ~before stmt annot =
                 List.iter (fun n -> Format.fprintf fmt " %a" p n) l
               in
               let data_nodes, data_undef = data_dpds in
-                Format.printf "[pdg:annotation] ctrl nodes = %a@."
+                Pdg_parameters.result " ctrl nodes = %a"
                   PdgTypes.Node.pretty_list ctrl_dpds;
-                Format.printf "[pdg:annotation] data nodes = %a@."
+                Pdg_parameters.result " decl nodes = %a"
+                   PdgTypes.Node.pretty_list decl_nodes;
+                Pdg_parameters.result " data nodes = %a"
                   pl data_nodes;
                 match data_undef with None -> ()
                   | Some data_undef ->
-                      Format.printf "[pdg:annotation] data undef = %a@."
+                      Pdg_parameters.result " data undef = %a"
                         Locations.Zone.pretty data_undef;
             end;
-          ctrl_dpds, data_dpds
+          ctrl_dpds, decl_nodes, data_dpds
       end
     with Extlib.NotYetImplemented msg ->
       raise (Extlib.NotYetImplemented 
@@ -152,7 +155,7 @@ let find_code_annot_nodes pdg ~before stmt annot =
   else
     begin
       M.debug 2 "[pdg:annotation] CodeAnnot-%d : unreachable stmt ! @."
-          annot.annot_id;
+        annot.annot_id;
       raise PdgIndex.NotFound (* unreachable statement *)
     end
 

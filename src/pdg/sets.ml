@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -50,6 +50,8 @@ let get_stmt_state pdg stmt =
   try State.get_stmt_state (PI.get_states pdg) stmt
   with Not_found -> raise Db.Pdg.NotFound (* probably an unreachable stmt *)
 
+let find_node pdg key = FI.find_info  (PI.get_index pdg) key
+
 (** notice that there can be several nodes if the statement is a call.
 * For If, Switch, ... the node represent only the condition
 * (see find_stmt_nodes below).
@@ -76,7 +78,6 @@ let rec add_stmt_nodes pdg nodes s =
             add_block_stmts_nodes nodes belse
       | _ -> nodes
 
-
 (** notice that there can be several nodes if the statement is a call.
 * If the stmt is a composed instruction (block, etc), all the nodes of the
 * enclosed statements are considered.
@@ -85,18 +86,15 @@ let find_stmt_and_blocks_nodes pdg stmt =
   add_stmt_nodes pdg [] stmt
 
 let find_stmt_node pdg stmt =
-  let key = K.stmt_key stmt in
-    FI.find_info  (PI.get_index pdg) key
+  let key = K.stmt_key stmt in find_node pdg key
 
 let find_entry_point_node pdg =
   try
-    let key = K.entry_point in
-      FI.find_info (PI.get_index pdg) key
+    let key = K.entry_point in find_node pdg key
   with PdgIndex.NotFound -> assert false
 
 let find_top_input_node pdg =
-  let key = K.top_input in
-  FI.find_info (PI.get_index pdg) key
+  let key = K.top_input in find_node pdg key
 
 
 let find_loc_nodes pdg state loc =
@@ -147,31 +145,28 @@ let find_location_nodes_at_stmt pdg stmt ~before loc =
 let find_location_nodes_at_end pdg loc =
   find_loc_nodes pdg (get_last_state pdg) loc
 
-(* be carreful that begin is different from init because 
+(* be carreful that begin is different from init because
 * init_state only contains implicit inputs
 * while begin contains only formal arguments *)
 let find_location_nodes_at_begin pdg loc =
   let kf = M.get_pdg_kf pdg in
-  let stmts = 
+  let stmts =
     try let f = Kernel_function.get_definition kf in f.sbody.bstmts
     with Kernel_function.No_Definition -> []
-  in 
-  let state = match stmts with 
+  in
+  let state = match stmts with
     | [] -> get_last_state pdg
     | stmt::_ -> get_stmt_state pdg stmt
   in find_loc_nodes pdg state loc
 
 let find_label_node pdg label_stmt label =
-  let key = K.label_key label_stmt label in
-  FI.find_info (PI.get_index pdg) key
+  let key = K.label_key label_stmt label in find_node pdg key
 
 let find_decl_var_node pdg v =
-  let key = K.decl_var_key v in
-  FI.find_info (PI.get_index pdg) key
+  let key = K.decl_var_key v in find_node pdg key
 
 let find_output_node pdg =
-  let key = K.output_key in
-  FI.find_info (PI.get_index pdg) key
+  let key = K.output_key in find_node pdg key
 
 let find_input_node pdg numin =
   let sgn = FI.sgn (PI.get_index pdg) in
@@ -203,17 +198,14 @@ let find_call_input_nodes pdg_caller call_stmt in_key =
         in nodes, undef
 
 let find_call_ctrl_node pdg stmt =
-  let key = K.call_ctrl_key stmt in
-    FI.find_info (PI.get_index pdg) key
+  let key = K.call_ctrl_key stmt in find_node pdg key
 
 let find_call_num_input_node pdg call num_in =
-  if num_in = 0 then raise (Invalid_argument "[pdg] 0 is not an input number");
-  let key = K.call_input_key call num_in in
-  FI.find_info (PI.get_index pdg) key
+  if num_in = 0 then Pdg_parameters.fatal "0 is not an input number" ;
+  let key = K.call_input_key call num_in in find_node pdg key
 
 let find_call_output_node pdg call =
-  let key = K.call_outret_key call in
-  FI.find_info (PI.get_index pdg) key
+  let key = K.call_outret_key call in find_node pdg key
 
 let find_output_nodes called_pdg out_key =
   match out_key with
@@ -223,7 +215,7 @@ let find_output_nodes called_pdg out_key =
 
 let is_call_to_f stmt f_varinfo =
   match stmt.skind with
-  | Instr (Call (_, Lval (Var v, NoOffset), _, _)) ->
+  | Instr (Call (_, {enode = Lval (Var v, NoOffset)}, _, _)) ->
       if v.vid = f_varinfo.vid then true else false
   | _ -> false
 

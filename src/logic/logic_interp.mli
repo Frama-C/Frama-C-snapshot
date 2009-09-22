@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: logic_interp.mli,v 1.9 2008/04/01 09:25:21 uid568 Exp $ *)
+(* $Id$ *)
 
-(** No function is directly exported: they are registered in
-    {!Db.Properties}. *)
+(* TODO: remove the module Properties from Db and export directly the
+   functions from here.
+*)
+
+(** returns a copy of the spec in which all formals in an ensures clause
+    are guarded by an \at(x,Old)
+*)
+val formals_in_ensures: Db_types.kernel_function -> Cil_types.funspec
+
+exception Error of Cil_types.location * string

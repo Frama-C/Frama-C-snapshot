@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,8 +22,47 @@
 (** This file contains the source viewer multi-tabs widget window *)
 
 type t
+
 val make : packing:(GObj.widget -> unit) -> t
 
-val set_font : t -> Pango.font_description -> unit
+val make_unpacked : unit -> t
 
-val load_file : Pango.font_description -> t -> filename:string -> line:int -> unit
+val load_file : t -> filename:string -> line:int -> unit
+
+(** Lowlevel interface *)
+
+val get_notebook: t -> GPack.notebook
+
+val append_source_tab : t -> string -> GSourceView.source_view
+
+val prepend_source_tab : t -> string -> GSourceView.source_view
+
+val get_nth_page: t -> int -> GObj.widget
+
+val current_page: t -> int
+
+val last_page: t -> int
+
+val set_current_view: t -> int -> unit
+
+val get_current_view: t -> GSourceView.source_view
+
+val get_current_index: t -> int
+
+val delete_current_view: t -> unit
+
+val delete_view: t -> int -> unit
+
+val delete_all_views: t -> unit
+  (** Delete all pages in the object *)
+
+val append_view: t -> GSourceView.source_view -> unit
+
+val get_nth_view:  t -> int -> GSourceView.source_view
+
+val enable_popup : t -> bool -> unit
+
+val set_scrollable : t -> bool -> unit
+
+val length: t -> int
+

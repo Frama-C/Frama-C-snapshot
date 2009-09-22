@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,8 +19,4 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: context.mli,v 1.6 2008/04/01 09:25:20 uid568 Exp $ *)
-
-(** Computations of inout Context. *)
-
-val option: string * Arg.spec * string
+(* $Id: context.mli,v 1.6 2008-04-01 09:25:20 uid568 Exp $ *)

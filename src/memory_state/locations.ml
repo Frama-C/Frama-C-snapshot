@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: locations.ml,v 1.84 2008/10/10 13:27:07 uid527 Exp $ *)
+(* $Id: locations.ml,v 1.87 2009-02-23 12:52:19 uid562 Exp $ *)
 
 open Cil_types
 open Cil
@@ -175,8 +175,8 @@ module Location_Bytes = struct
  exception Contains_local
 
 
- let contains_adresses_of_locals fundec =
-   let f base _offsets = Base.is_formal_or_local base fundec
+ let contains_addresses_of_locals is_local =
+   let f base _offsets = is_local base
    in
    let projection _base = Ival.top in
    let cached_f =
@@ -198,26 +198,25 @@ module Location_Bytes = struct
        | Map _ -> false);
        true
 
-
  (**  TODO: merge with above function *)
-   let remove_escaping_locals fundec v =
+   let remove_escaping_locals is_local v =
     match v with
     | Top (Top_Param.Top,_) -> v
     | Top (Top_Param.Set topparam,orig) ->
         inject_top_origin
           orig
           (Top_Param.O.filter
-             (fun base -> not (Base.is_formal_or_local base fundec))
+             (fun base -> not (is_local base))
              topparam)
     | Map m ->
         Map (M.fold (fun base _ acc ->
-                  if Base.is_formal_or_local base fundec then
+                  if is_local base then
                     M.remove base acc
                   else acc)
           m
           m)
 
- let contains_adresses_of_any_locals =
+ let contains_addresses_of_any_locals =
    let f base _offsets = Base.is_any_formal_or_local base
    in
    let projection _base = Ival.top in
@@ -251,26 +250,44 @@ module Zone = struct
   include Map_Lattice.Make(Base)(BaseSetLattice)(Int_Intervals)(Initial_Values)
   (struct let zone = true end)
 
-  let default varid bi ei = inject varid (Int_Intervals.inject [bi,ei])
-  let defaultall varid = inject varid Int_Intervals.top
+  let default base bi ei = inject base (Int_Intervals.inject [bi,ei])
+  let defaultall base = inject base Int_Intervals.top
 
-  let pretty fmt m = match m with
-  | Top (Top_Param.Top,a) ->
-      Format.fprintf fmt "ANYTHING(origin:%a)"
-	Origin.pretty a
-  | Top (s,a) ->
-      Format.fprintf fmt "Unknown(%a, origin:%a)"
-	Top_Param.pretty s
-	Origin.pretty a
-  | Map _ when equal m bottom ->
-      Format.fprintf fmt "\\nothing@ "
-  | Map off ->
-      let print_binding k v =
-	Format.fprintf fmt "@[<h>%a%a;@,@]@ " Base.pretty k
-          (Int_Intervals.pretty_typ (Base.typeof k)) v
-      in
-      (M.iter print_binding) off
-
+  let pretty fmt m =
+    match m with
+    | Top (Top_Param.Top,a) ->
+	Format.fprintf fmt "ANYTHING(origin:%a)"
+	  Origin.pretty a
+    | Top (s,a) ->
+	Format.fprintf fmt "Unknown(%a, origin:%a)"
+	  Top_Param.pretty s
+	  Origin.pretty a
+    | Map _ when equal m bottom ->
+	Format.fprintf fmt "\\nothing@ "
+    | Map off ->
+	let print_binding k v =
+	  Format.fprintf fmt "@[<h>%a%a;@,@]@ " Base.pretty k
+            (Int_Intervals.pretty_typ (Base.typeof k)) v
+	in
+	(M.iter print_binding) off
+(*
+  let pretty_caml fmt m =
+    match m with
+    | Top (Top_Param.Top,a) ->
+	assert false (* TODO *)
+    | Top (s,a) ->
+	assert false (* TODO *)
+    | Map _ when equal m bottom ->
+	Format.fprintf "Locations.Zone.bottom"
+    | Map off ->
+	Format.fprintf "Locations.Zone.inject_list [";
+	let print_binding k v =
+	  Format.fprintf fmt "@[%a,@ %a;@,]@ "
+	    Base.pretty_caml k
+            Int_Intervals.pretty_caml v
+	in
+	(M.iter print_binding) off
+*)
   let out_some_or_bottom zone =
     match zone with
       | None -> bottom
@@ -286,8 +303,8 @@ module Zone = struct
   let valid_intersects m1 m2 =
     let result =
       match m1,m2 with
-      | Map _, Map _ -> 
-	  intersects m1 m2 
+      | Map _, Map _ ->
+	  intersects m1 m2
       | Top (toparam, _), m | m, Top (toparam, _) ->
 	  (equal m bottom) ||
 	    let f base () =
@@ -310,9 +327,28 @@ end
 
 exception Not_valid
 
+module Location__ = Datatype.Couple(Location_Bits.Datatype)(Int_Base.Datatype)
+
 type location =
     { loc : Location_Bits.t;
       size : Int_Base.t }
+
+module Location =
+struct
+  module Datatype =
+    Project.Datatype.Register
+      (struct
+	type t = location
+	let copy _x = assert false
+	let rehash { loc = loc ; size = size } =
+	  { loc = Location_Bits.Datatype.rehash loc ;
+	    size = Int_Base.Datatype.rehash size }
+	let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	let name = "Abstract Location"
+      end)
+end
+
+
 
 let can_be_accessed {loc=loc;size=size} =
   try
@@ -345,31 +381,15 @@ let can_be_accessed {loc=loc;size=size} =
 let is_valid {loc=loc;size=size} =
   try
     let size = Int_Base.project size in
+    let is_valid_offset = Base.is_valid_offset size in
     match loc with
       | Location_Bits.Top _ -> false
       | Location_Bits.Map m ->
-          Location_Bits.M.iter
-            (fun varid offset ->
-               match Base.validity varid with
-               | Base.Known (min_valid,max_valid) ->
-                   let min = Ival.min_int offset in
-                   begin match min with
-                   | None -> raise Not_valid
-                   | Some v -> if Int.lt v min_valid then raise Not_valid
-                   end;
-                   let max = Ival.max_int offset in
-                   begin match max with
-                   | None -> raise Not_valid
-                   | Some v ->
-                       if Int.gt (Int.pred (Int.add v size)) max_valid then
-                         raise Not_valid
-                   end
-               | Base.Unknown _ -> raise Not_valid
-	       | Base.All -> ())
-            m;
+          Location_Bits.M.iter is_valid_offset m;
           true
   with
-    | Int_Base.Error_Top | Int_Base.Error_Bottom | Not_valid -> false
+  | Int_Base.Error_Top | Int_Base.Error_Bottom 
+  | Base.Not_valid_offset -> false
 
 exception Found_two
 
@@ -387,9 +407,9 @@ let valid_cardinal_zero_or_one {loc=loc;size=size} =
       | Location_Bits.Top _ -> false
       | Location_Bits.Map m ->
           Location_Bits.M.iter
-            (fun varid offset ->
+            (fun base offset ->
 	       let inter =
-		 match Base.validity varid with
+		 match Base.validity base with
 		 | Base.Known (min_valid,max_valid) | Base.Unknown (min_valid,max_valid) ->
 		     let itv =
 		       Ival.inject_range
@@ -464,9 +484,9 @@ let size_of_varinfo =
       s
 
 let loc_of_varinfo v =
-  let varid = Base.create_varinfo v in
+  let base = Base.create_varinfo v in
   make_loc
-    (Location_Bits.inject varid Ival.zero)
+    (Location_Bits.inject base Ival.zero)
     (Int_Base.inject (Big_int.big_int_of_int (size_of_varinfo v)))
 
 let loc_of_base v =
@@ -515,10 +535,10 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
 (*  Format.printf "valid_enumerate_bits:%a@\n" pretty _arg; *)
   let result = match loc_bits with
     | Location_Bits.Top (Location_Bits.Top_Param.Top, _) -> Zone.top
-    | Location_Bits.Top (Location_Bits.Top_Param.Set s, a) ->
+    | Location_Bits.Top (Location_Bits.Top_Param.Set s, _) ->
 	(* Zone.inject_top_origin a s   [pc 2007/10] we used to do this,
  but let's be more agressive re "valid_" *)
-	let compute_base base acc =
+(*	let compute_base base acc =
           let valid_base =
             match Base.validity base with
             | Base.Known (min_valid,max_valid) ->
@@ -534,6 +554,28 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
 	      compute_base
 	      s
 	      (compute_base Base.null Location_Bits.Top_Param.O.empty))
+ *)
+        let compute_offset base acc =
+          let valid_offset =
+            match Base.validity base, size with
+            | (Base.Known (min_valid,max_valid)|Base.Unknown (min_valid,max_valid)), Int_Base.Value size ->
+(*		Format.printf "min_valid:%a@\nmax_valid:%a@."
+		  Int.pretty min_valid
+		  Int.pretty max_valid; *)
+		let max_valid = Int.succ (Int.sub max_valid size) in
+		Ival.inject_range (Some min_valid) (Some max_valid)
+            | _,Int_Base.Bottom -> assert false
+	    | Base.All,_ | _,Int_Base.Top -> Ival.top
+	  in
+	  if Ival.equal Ival.bottom valid_offset
+	  then acc
+	  else
+            let valid_offset = Int_Intervals.from_ival_size valid_offset size
+            in
+            Zone.M.add base valid_offset acc
+        in
+        Zone.inject_map
+          (Location_Bits.Top_Param.O.fold compute_offset s Zone.M.empty)
     | Location_Bits.Map m ->
         let compute_offset base offs acc =
           let valid_offset =
@@ -558,7 +600,7 @@ let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
         Zone.inject_map
           (Location_Bits.M.fold compute_offset m Zone.M.empty)
   in
-    (*  Format.printf "valid_enumerate_bits leads to %a@\n" Zone.pretty result;*)
+(*      Format.printf "valid_enumerate_bits leads to %a@\n" Zone.pretty result; *)
     result
 
 
@@ -632,8 +674,10 @@ let filter_loc ({loc = loc; size = size } as initial) zone =
                Int_Intervals.fold
                  (fun (bi,ei) acc ->
                     let width = Int.length bi ei in
-                    if Int.lt width size then acc
-                    else Ival.inject_top (Some bi) (Some (Int.length size ei)) Int.zero Int.one)
+                    if Int.lt width size 
+		    then acc
+                    else 
+		      Ival.inject_range (Some bi) (Some (Int.length size ei)))
                  (Zone.find_or_bottom base zone_m)
                  Ival.bottom
          in

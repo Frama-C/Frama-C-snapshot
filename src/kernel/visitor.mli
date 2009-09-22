@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: visitor.mli,v 1.18 2008/11/20 12:47:11 uid562 Exp $ *)
+(* $Id: visitor.mli,v 1.21 2009-02-23 14:49:04 uid568 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -58,6 +58,9 @@ class type frama_c_visitor = object
 
   inherit Cil.cilVisitor
 
+  method frama_c_plain_copy: frama_c_visitor
+    (** same as plain_copy_visitor but for frama-c specific methods *)
+
   method vstmt_aux: stmt -> stmt Cil.visitAction
     (** Replacement of vstmt.
 	@plugin development guide*)
@@ -79,8 +82,7 @@ class type frama_c_visitor = object
   method current_kf: kernel_function option
     (** link to the kernel function currently being visited.
         {b NB:} for copy visitors, the link is to the original kf (anyway,
-        the new kf is created only after the visit is over)
-     *)
+        the new kf is created only after the visit is over) *)
 
 end
 
@@ -92,6 +94,9 @@ class generic_frama_c_visitor:
 
 class frama_c_copy: Project.t -> frama_c_visitor
   (** Copying visitor *)
+
+class frama_c_inplace: frama_c_visitor
+  (** in-place visit. Always in the current project. *)
 
 (** Visit a file. This will will re-cons all globals TWICE (so that it is
  * tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
@@ -158,7 +163,7 @@ val visitFramacCodeAnnotation:
   frama_c_visitor -> code_annotation -> code_annotation
 
 val visitFramacAssigns:
-  frama_c_visitor -> identified_tsets assigns -> identified_tsets assigns
+  frama_c_visitor -> identified_term assigns -> identified_term assigns
 
 val visitFramacFunspec: frama_c_visitor -> funspec -> funspec
 
@@ -169,23 +174,21 @@ val visitFramacPredicate: frama_c_visitor -> predicate -> predicate
 val visitFramacPredicateNamed:
   frama_c_visitor -> predicate named -> predicate named
 
-val visitFramacTsets: frama_c_visitor -> tsets -> tsets
-
-val visitFramacTsetsElem: frama_c_visitor -> tsets_elem -> tsets_elem
-
-val visitFramacTsetsOffset: frama_c_visitor -> tsets_offset -> tsets_offset
+val visitFramacPredicates: frama_c_visitor -> identified_predicate list
+  -> identified_predicate list
 
 val visitFramacTerm: frama_c_visitor -> term -> term
 
-val visitFramacTermOffset: frama_c_visitor -> term_offset -> term_offset
+val visitFramacTermLhost: frama_c_visitor -> term_lhost -> term_lhost
 
-(*
-val visitFramacPredicateInfo:
-  frama_c_visitor -> predicate_info -> predicate_info
-*)
+val visitFramacTermOffset: frama_c_visitor -> term_offset -> term_offset
 
 val visitFramacLogicInfo: frama_c_visitor -> logic_info -> logic_info
 
+val visitFramacBehavior: frama_c_visitor -> funbehavior -> funbehavior
+
+val visitFramacBehaviors:
+  frama_c_visitor -> funbehavior list -> funbehavior list
 
 (*
 Local Variables:

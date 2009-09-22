@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register_gui.mli,v 1.1 2008/08/19 09:28:36 uid568 Exp $ *)
+(* $Id: register_gui.mli,v 1.1 2008-08-19 09:28:36 uid568 Exp $ *)
 
 (** Extension of the GUI in order to support slicing visualization.
     No function is exported. *)

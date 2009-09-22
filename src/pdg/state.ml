@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -27,8 +27,11 @@
     was last defined.
   *)
 
+module P = Pdg_parameters
 module M = Macros
 open PdgTypes
+
+exception Cannot_fold
 
 type t_loc = Locations.Zone.t
 type t_node = Node.t
@@ -47,7 +50,7 @@ let pretty fmt state =
     Locations.Zone.pretty state.under_outputs
 
 let add_loc_node state ~exact loc node =
-  M.debug 2 "[pdg state] add_loc_node (%s) : node %a -> %a@."
+  P.debug ~level:2 "[pdg state] add_loc_node (%s) : node %a -> %a@."
       (if exact then "exact" else "merge")
       PdgTypes.Node.pretty node
       Locations.Zone.pretty loc ;
@@ -57,7 +60,7 @@ let add_loc_node state ~exact loc node =
     if exact then Locations.Zone.link state.under_outputs loc
     else state.under_outputs
   in let state = make new_loc_info new_outputs in
-    M.debug 2 "[pdg] add_loc_node -> %a@." pretty state;
+    P.debug ~level:2 "add_loc_node -> %a" pretty state;
     state
 
 (** this one is very similar to [add_loc_node] except that
@@ -87,14 +90,19 @@ let test_and_merge ~old new_ =
       { loc_info = new_loc_info ; under_outputs = new_outputs }
     in (true, new_state)
 
+(** @raise Cannot_fold when the state is Top. *)
 let get_all_nodes state =
   let add _z (_def, nodes) acc = NodeSetLattice.join acc nodes in
-  let node_set = LocInfo.fold add state.loc_info NodeSetLattice.empty in
+  let node_set = 
+    try LocInfo.fold add state.loc_info NodeSetLattice.empty 
+    with LocInfo.Cannot_fold -> raise Cannot_fold
+  in
   let nodes = NodeSetLattice.fold (fun n acc -> (n,None)::acc) node_set [] in
     nodes
 
 (** returns pairs of (n, z_opt) where n is a node that computes a part of [loc]
 * and z is the intersection between [loc] and the zone computed by the node.  
+* @raise Cannot_fold if the state is top (TODO : something better ?)
 * *)
 let get_loc_nodes_and_part state loc =
   let process z (_default, nodes) acc =
@@ -109,7 +117,7 @@ let get_loc_nodes_and_part state loc =
         *)
         else Some (Locations.Zone.narrow z loc) in
       let add n acc =
-        M.debug 2 "[pdg state] get_loc_nodes ->  %a@." 
+        P.debug ~level:2 "[pdg state] get_loc_nodes ->  %a@." 
             PdgTypes.Node.pretty_with_part (n,z);
         (n,z)::acc
       in
@@ -117,18 +125,21 @@ let get_loc_nodes_and_part state loc =
         nodes
     else acc
   in
-  let nodes_and_part = LocInfo.fold process state.loc_info [] in
-    nodes_and_part
+  let nodes_and_part = 
+    try LocInfo.fold process state.loc_info []
+    with LocInfo.Cannot_fold -> raise Cannot_fold
+  in nodes_and_part
 
+(** @raise Cannot_fold (see [get_loc_nodes_and_part]) *)
 let get_loc_nodes state loc =
-  M.debug 2 "[pdg state] get_loc_nodes %a@.            in %a@." 
+  P.debug ~level:2 "[pdg state] get_loc_nodes %a@.            in %a@." 
     Locations.Zone.pretty loc pretty state ;
   if Locations.Zone.equal loc Locations.Zone.bottom
   then  [], None (* nothing to do *)
   else 
     let nodes = get_loc_nodes_and_part state loc in
     let undef_zone = Locations.Zone.diff loc state.under_outputs in
-      M.debug 2 "[pdg state] get_loc_nodes -> undef = %a@." 
+      P.debug ~level:2 "[pdg state] get_loc_nodes -> undef = %a@." 
           Locations.Zone.pretty undef_zone;
     let undef_zone =
       if (Locations.Zone.equal undef_zone Locations.Zone.bottom) then None

@@ -47,12 +47,12 @@
 
 open Cil_types
 open Cil
-open Pretty
+(* open Pretty *)
 
 module DF = Dataflow
 module UD = Usedef
 module IH = Inthash
-module E = Errormsg
+(* module E = Errormsg *)
 
 let debug = ref false
 
@@ -99,10 +99,10 @@ module LiveFlow = struct
   let combineSuccessors = VS.union
 
   let doStmt stmt =
-    if !debug then log "looking at: %a\n" d_stmt stmt;
+    if !debug then Cilmsg.debug "looking at: %a\n" d_stmt stmt;
     match stmt.succs with
       [] -> let u,_d = UD.computeUseDefStmtKind stmt.skind in
-      if !debug then ignore(E.log "doStmt: no succs %d\n" stmt.sid);
+      if !debug then (Cilmsg.debug "doStmt: no succs %d\n" stmt.sid);
       DF.Done u
     | _ ->
 	let handle_stm vs = match stmt.skind with
@@ -160,7 +160,7 @@ let print_everything () =
 
 let match_label lbl = match lbl with
   Label(str,_,_b) ->
-    if !debug then ignore(E.log "Liveness: label seen: %s\n" str);
+    if !debug then (Cilmsg.debug "Liveness: label seen: %s\n" str);
     (*b && *)(String.compare str (!live_label) = 0)
 | _ -> false
 
@@ -186,11 +186,11 @@ class doFeatureClass = object
        Format.printf "%a" LiveFlow.pretty vs;
        SkipChildren)
     with Not_found ->
-      if !debug then ignore(E.log "Liveness: stmt: %d not found\n" s.sid);
+      if !debug then (Cilmsg.debug "Liveness: stmt: %d not found\n" s.sid);
       DoChildren
     else
       (if List.length s.labels = 0 then
-	if !debug then ignore(E.log "Liveness: no label at sid=%d\n" s.sid);
+	if !debug then (Cilmsg.debug "Liveness: no label at sid=%d\n" s.sid);
       DoChildren)
 
 end

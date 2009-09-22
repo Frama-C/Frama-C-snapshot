@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -24,8 +24,7 @@
 open Cilutil
 open Cil_types
 
-let debug1() = Cmdline.Debug.get() > 1
-let debug2() = Cmdline.Debug.get() > 2
+module R = Datascope.R
 
 module Data = struct
   type t = Locations.Zone.t
@@ -97,8 +96,11 @@ let process_froms data_after froms =
   let new_data = Data.bottom in (* add out_dpds when out intersects data_after*)
   let used = false in (* is the call needed ? *)
   let to_prop, used, new_data =
-    Lmap_bitwise.From_Model.fold process_out_call from_table 
-      (to_prop, used, new_data)
+    try Lmap_bitwise.From_Model.fold process_out_call from_table 
+          (to_prop, used, new_data)
+    with Lmap_bitwise.From_Model.Cannot_fold ->
+      process_out_call  Locations.Zone.top (false, Locations.Zone.top)
+          (to_prop, used, new_data)
   in let data = Data.merge to_prop new_data in
     (used, data)
 
@@ -124,7 +126,7 @@ let process_call_args data called_kf stmt args =
           (* warning already sent during 'from' computation. *)
           (* TODO : merge the remaining args in data ?... *)
           data
-      | _, [] -> assert false (* "call to a function with to few arguments" *)
+      | _, [] -> R.abort "call to a function with to few arguments"
   in do_param_arg data param_list args
 
 let process_one_call data stmt lvaloption froms =
@@ -160,7 +162,8 @@ let process_call data_after stmt lvaloption funcexp args =
     let data =  Data.merge funcexp_dpds data in
       used, data
   else begin
-    assert (Data.equal data data_after);
+    assert (R.verify (Data.equal data data_after) 
+              "if statement not used, data doesn't change !");
     used, data
   end
 
@@ -225,15 +228,13 @@ let compute_ctrl_info pdg ctrl_part used_stmts =
     let ctrl_nodes = !Db.Pdg.direct_ctrl_dpds pdg node in
       List.fold_left add_ctrl_node new_stmts ctrl_nodes
   and add_ctrl_node new_stmts ctrl_node =
-    if debug2() then
-    Format.printf "[zones] add ctrl node %a@." PdgTypes.Node.pretty ctrl_node;
+    R.debug ~level:2 "[zones] add ctrl node %a@." PdgTypes.Node.pretty ctrl_node;
     match PdgTypes.Node.stmt ctrl_node with 
       | None -> (* node without stmt : add its ctrl_dpds *)
           add_node_ctrl_nodes new_stmts ctrl_node
       | Some stmt ->
-          if debug2() then
-            Format.printf "[zones] node %a is stmt %d@."
-              PdgTypes.Node.pretty ctrl_node stmt.sid;
+          R.debug ~level:2 "[zones] node %a is stmt %d@."
+            PdgTypes.Node.pretty ctrl_node stmt.sid;
           if Inthash.mem seen stmt.sid then new_stmts
           else 
             let ctrl_zone = match stmt.skind with
@@ -241,13 +242,11 @@ let compute_ctrl_info pdg ctrl_part used_stmts =
               | _ -> Data.bottom
             in Ctx.add ctrl_part stmt.sid ctrl_zone;
                Inthash.add seen stmt.sid ();
-               if debug2() then
-                 Format.printf "[zones] add ctrl zone %a at stmt %d@." 
-                   Data.pretty ctrl_zone stmt.sid;
+               R.debug ~level:2 "[zones] add ctrl zone %a at stmt %d@." 
+                 Data.pretty ctrl_zone stmt.sid;
                stmt::new_stmts
   and add_stmt_ctrl new_stmts stmt =
-    if debug1() then
-      Format.printf "[zones] add ctrl of stmt %d@." stmt.sid;
+    R.debug ~level:1 "[zones] add ctrl of stmt %d@." stmt.sid;
     if Inthash.mem seen stmt.sid then new_stmts
     else begin
       Inthash.add seen stmt.sid ();
@@ -271,9 +270,8 @@ let compute kf stmt lval =
   let f = Kernel_function.get_definition kf in 
   let dpds, _exact, zone = Datascope.get_lval_zones stmt lval in
   let zone = Data.merge dpds zone in
-    if debug1() then
-      Format.printf "[zones] build for %a before %d in %a@\n"
-        Data.pretty zone stmt.sid Kernel_function.pretty_name kf;
+    R.debug ~level:1 "[zones] build for %a before %d in %a@\n"
+      Data.pretty zone stmt.sid Kernel_function.pretty_name kf;
   let data_part = Ctx.create 50 in
   List.iter (fun s -> Ctx.add data_part s.sid Data.bottom) f.sallstmts;
   let _ = Ctx.add data_part stmt.sid zone in

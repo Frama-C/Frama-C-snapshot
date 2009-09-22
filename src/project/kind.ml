@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kind.ml,v 1.12 2008/09/19 07:55:05 uid568 Exp $ *)
+(* $Id: kind.ml,v 1.14 2009-01-28 14:34:55 uid568 Exp $ *)
 
 type how =
   | Do_Not_Select_Dependencies
@@ -29,7 +29,9 @@ type how =
 module type SELECTION = sig
   type kind
   type t
-  val empty : t
+  val ty: t Type.t
+  val empty: t
+  val is_empty: t -> bool
   val add: kind -> how -> t -> t
   val singleton : kind -> how -> t
   val remove: kind -> t -> t
@@ -149,6 +151,16 @@ struct
     let singleton s d = M.add s d M.empty
     let iter = M.iter
     let fold = M.fold
+    let ty = 
+      Type.register 
+	~name:(T.name ^ ".Selection.t") 
+	~value_name:(Some "Project.Selection.ty")
+	(* Too difficult to print non-empty selection.
+	   It is correct to always print a selection as empty
+	   since the empty selection is the "biggest" one affecting
+	   each of its states :). *)
+	~pp:(fun _ fmt _ -> Format.fprintf fmt "Project.Selection.empty")
+	M.empty
   end
 
   let iter f p = iter (fun v -> f (value v) p)
@@ -241,6 +253,10 @@ struct
 
   let iter_in_order only except f p =
     fold_in_order only except (fun v () -> f v p) ()
+
+  let number_of_applicants only except = 
+    if Selection.is_empty only && Selection.is_empty except then None
+    else Some (apply_in_order only except (fun _ -> succ) 0)
 
   module Display = struct
     let graph_attributes _ = []

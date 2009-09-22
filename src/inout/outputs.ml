@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@ open Cil_types
 open Cil
 open Db
 open Db_types
-open Pretty
 open Locations
 
 let call_stack = Stack.create ()
@@ -43,7 +42,7 @@ class do_it = object(self)
     match s.skind with
         UnspecifiedSequence seq ->
           List.iter
-            (fun (stmt,_,_) ->
+            (fun (stmt,_,_,_) ->
                ignore(visitCilStmt (self:>cilVisitor) stmt))
           seq;
           SkipChildren
@@ -54,23 +53,18 @@ class do_it = object(self)
 
   method do_assign lv =
     let loc = !Value.lval_to_loc ~with_alarms:CilE.warn_none_mode current_stmt lv in
-(*    Format.printf "out: loc=%a@\n" pretty loc;*)
     if not (Location_Bits.equal loc.loc Location_Bits.bottom)
     then
       begin
         if Location_Bits.equal
           loc.loc
           Location_Bits.top
-        then begin
-          warn "Problem with %a" !Ast_printer.d_lval lv;
-          let state = Value.get_state current_stmt in
-          warn "Value at this point:@\n%a@\n"
-            Value.pretty_state
-            state
-          (*assert false*)
-        end;
-        let bits_loc = valid_enumerate_bits loc in
-        (* Format.printf "Adding %a===@\n" Zone.pretty bits_loc;*)
+        then
+          Cilmsg.warning ~current:true
+	    "Problem with %a@\nValue at this point:@\n%a"
+	    !Ast_printer.d_lval lv
+	    Value.pretty_state (Value.get_state current_stmt) ;
+	let bits_loc = valid_enumerate_bits loc in
         self#join bits_loc
       end
 
@@ -112,7 +106,7 @@ let get_internal =
            (try
 	      Stack.iter
 		(fun g -> if kf == g then begin
-                   warn
+                   Cil.warn
 		     "recursive call detected during out analysis of %a. Ignoring it is safe if the value analysis suceeded without problem."
 		     Kernel_function.pretty_name kf;
                    raise Ignore
@@ -157,20 +151,20 @@ let get_internal =
                 (fun acc (loc,_) ->
                    match loc with
                        Location loc ->
-                         if (Logic_const.tsets_is_result loc.its_content)
+			 let c = loc.it_content in
+                         if (Logic_utils.is_result c)
                          then acc
                          else
-                           List.fold_left
-                             (fun acc lval ->
- 		                Zone.join acc
-                                  (!Value.lval_to_zone_state state lval))
-                             acc (!Properties.Interp.tsets_to_lval
-                                    loc.its_content)
+			   let loc = !Properties.Interp.loc_to_loc state c in
+ 		             Zone.join
+			       acc
+			       (Locations.valid_enumerate_bits loc)
                      | Nothing -> acc
                 )
-                Zone.bottom assigns
-            with Invalid_argument "not a lvalue" ->
-              warn "unsupported assigns clause for function %a; Ignoring it."
+                Zone.bottom
+		assigns
+            with Invalid_argument "not an lvalue" ->
+              Cil.warn "unsupported assigns clause for function %a; Ignoring it."
                 Kernel_function.pretty_name kf;
               Zone.bottom)
     )
@@ -202,15 +196,14 @@ let pretty_internal fmt kf =
   with Not_found ->
     ()
 
-(* unused :
 let pretty_external fmt kf =
-  match kf.external_out with
-  | Some o ->
-      Format.fprintf fmt "@[Out for function %s:@\n@[<hov 2>  %a@]@]@\n"
-        (get_name kf)
-        Zone.pretty o
-  | None -> ()
-*)
+  try
+    Format.fprintf fmt "@[Out (external) for function %a:@\n@[<hov 2>  %a@]@]@\n"
+      Kernel_function.pretty_name kf
+      Zone.pretty (get_external kf)
+  with Not_found ->
+    ()
+
 
 (* unused:
 let display () = iter_on_functions (pretty_internal Format.std_formatter)
@@ -223,12 +216,8 @@ let () =
   Db.Outputs.get_external := get_external;
   Db.Outputs.compute := (fun kf -> ignore (get_internal kf));
   Db.Outputs.display := pretty_internal;
+  Db.Outputs.display_external := pretty_external;
   Db.Outputs.statement := statement
-
-let option =
-  "-out",
-  Arg.Unit Cmdline.ForceOut.on,
-  ": force internal out display; this is an over-approximation of the set of written tsets "
 
 (*
 Local Variables:

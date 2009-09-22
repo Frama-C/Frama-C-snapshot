@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -out -input -calldeps -pdg-debug -pdg -journal-disable
+   OPT: -val -out -input -calldeps -pdg -journal-disable
 */
 
 int G;

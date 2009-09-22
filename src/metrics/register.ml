@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA (Commissariat à l'Énergie Atomique)                             *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,7 +19,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.10 2008/11/12 14:06:01 uid568 Exp $ *)
+(* $Id: register.ml,v 1.14 2009-01-28 14:34:55 uid568 Exp $ *)
 
 open Cil
 open Cil_types
@@ -31,33 +31,21 @@ let name = "metrics"
 module LastResult =
   Computation.OptionRef
     (Project.Datatype.Imperative
-       (struct 
-	  type t = Db.Metrics.t 
-	  let copy _ = assert false (* TODO *) 
+       (struct
+	  type t = Db.Metrics.t
+	  let copy _ = assert false (* TODO *)
 	  let name = name
 	end))
-    (struct 
-       let dependencies = [ Cil_state.self ] 
+    (struct
+       let dependencies = [ Ast.self ]
        let name = name
      end)
 
-let ty_repr =
-  Type.make "Db.Metrics.t"
-    { call_statements = 0;
-      goto_statements = 0;
-      assign_statements = 0;
-      if_statements = 0;
-      mem_access = 0;
-      loop_statements = 0;
-      sloc = 0;
-      functions_without_source = VarinfoHashtbl.create 0;
-      functions_with_source = VarinfoHashtbl.create 0 }
-
 let pretty_set fmt s =
   Format.fprintf fmt "@[";
-  VarinfoHashtbl.iter 
+  VarinfoHashtbl.iter
     (fun f n ->
-       Format.fprintf fmt "%s %s (%d call%s);@ " 
+       Format.fprintf fmt "%s %s (%d call%s);@ "
 	 f.vname
          (if f.vaddrof then "(address taken)" else "")
 	 n (if n > 1 then "s" else ""))
@@ -65,59 +53,52 @@ let pretty_set fmt s =
   Format.fprintf fmt "@]"
 
 let number_entry_points fs =
-  VarinfoHashtbl.fold 
+  VarinfoHashtbl.fold
     (fun f n acc -> if n = 0 && not f.vaddrof then succ acc else acc)
     fs
     0
 
 let pretty_entry_points fmt fs =
-  let print =   
-    VarinfoHashtbl.iter 
-      (fun f n -> 
+  let print =
+    VarinfoHashtbl.iter
+      (fun f n ->
 	 if n = 0 && not f.vaddrof then Format.fprintf fmt "%s;@ " f.vname)
   in
   Format.fprintf fmt "@[";
   print fs;
   Format.fprintf fmt "@]"
 
-let pretty fmt { if_statements = ifs;
-                 mem_access = mem_access;
-                 loop_statements = loops;
-                 call_statements = calls;
-                 assign_statements = assigns;
-                 goto_statements = gotos;
-                 sloc =  sloc;
-                 functions_without_source =  fws;
-                 functions_with_source = fs; } =
-
+let pretty fmt =
+  let m = LastResult.get () in
   Format.fprintf fmt
     "@[Defined function (%d):@\n  @[%a@]@\nUndefined functions (%d):@\n  @[%a@]@\nPotential entry points (%d):@\n  @[%a@]@\nSLOC: %d@\nNumber of if statements: %d@\nNumber of assignments: %d@\nNumber of loops: %d@\nNumber of calls: %d@\nNumber of gotos: %d@\nNumber of pointer access: %d@]"
-    (VarinfoHashtbl.length fs)
-    pretty_set fs
-    (VarinfoHashtbl.length fws)
-    pretty_set fws
-    (number_entry_points fs)
-    pretty_entry_points fs
-    sloc
-    ifs
-    assigns
-    loops
-    calls
-    gotos
-    mem_access
+    (VarinfoHashtbl.length m.functions_with_source)
+    pretty_set m.functions_with_source
+    (VarinfoHashtbl.length m.functions_without_source)
+    pretty_set m.functions_without_source
+    (number_entry_points m.functions_with_source)
+    pretty_entry_points m.functions_with_source
+    m.sloc
+    m.if_statements
+    m.assign_statements
+    m.loop_statements
+    m.call_statements
+    m.goto_statements
+    m.mem_access
 
-let dump filename data =
+let dump () =
+  let filename = Metrics_parameters.Dump.get () in
   try
     let cout = open_out_bin filename in
     let fmt = Format.formatter_of_out_channel cout in
-    pretty fmt data;
+    pretty fmt;
     close_out cout
   with Sys_error _ as e ->
-    Cil.warn "Cannot open file %s for dumpimp metrics: %s" 
+    Metrics_parameters.warning "Cannot open file \"%s\" for dumping metrics: %s"
       filename (Printexc.to_string e)
 
 class slocVisitor = object
-  inherit Visitor.generic_frama_c_visitor 
+  inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit ())
   val mutable sloc = 0
   val mutable ifs = 0
@@ -145,11 +126,11 @@ class slocVisitor = object
 
   method vfunc fdec =
     let n =
-      try 
+      try
 	let n = VarinfoHashtbl.find functions_no_source fdec.svar in
 	VarinfoHashtbl.remove functions_no_source fdec.svar;
 	n
-      with Not_found ->	
+      with Not_found ->
 	0
     in
     let n =
@@ -180,19 +161,18 @@ class slocVisitor = object
 
   method vinst i =
     begin match i with
-    | Call(_, e, _, _) -> 
+    | Call(_, e, _, _) ->
 	calls <- calls + 1;
-	(match e with
+	(match e.enode with
 	 | Lval(Var v, NoOffset) ->
 	     let next tbl =
 	       VarinfoHashtbl.replace tbl v (succ (VarinfoHashtbl.find tbl v))
 	     in begin
-	       try next functions_with_source 		
-	       with Not_found -> 
-		 try next functions_no_source 
-		 with Not_found -> 
-		   Format.printf "Got no source for %s@." v.vname;
-		   assert false
+	       try next functions_with_source
+	       with Not_found ->
+		 try next functions_no_source
+		 with Not_found ->
+		   Metrics_parameters.fatal "Got no source for %s" v.vname
 	     end
 	 | _ -> ())
     | Set _ -> assigns <- succ assigns
@@ -295,17 +275,11 @@ end
 
 *)
 
-let get () =
-  let file = Cil_state.file () in
+let compute () =
+  let file = Ast.get () in
   let v = new slocVisitor in
   visitCilFileSameGlobals (v:>cilVisitor) file;
-  (*  let changer =
-      new turn_prototype_into_body
-      v#functions_no_source
-      make_body_from_prototype
-      in
-      visitCilFile (changer:>cilVisitor) file;*)
-  let metrics =
+  LastResult.set
     { call_statements = v#calls;
       goto_statements = v#gotos;
       assign_statements = v#assigns;
@@ -316,25 +290,33 @@ let get () =
       functions_without_source =  v#functions_no_source;
       functions_with_source =  v#functions_with_source;
     }
-  in
-  LastResult.set metrics;
-  metrics
 
-let main fmt =
-  if Cmdline.Metrics.is_on () then begin
-    let loc = !Db.Metrics.get () in
-    if Cmdline.Metrics.Print.get () then
-      Format.fprintf fmt "Syntactic metrics@\n %a@\n" !Db.Metrics.pretty loc;
-    if Cmdline.Metrics.Dump.is_set () then
-      !Db.Metrics.dump (Cmdline.Metrics.Dump.get ()) loc
+let main () =
+  if Metrics_parameters.is_on () then begin
+    !Db.Metrics.compute ();
+    if Metrics_parameters.Print.get () then
+      Metrics_parameters.result "Syntactic metrics@\n %t" !Db.Metrics.pretty;
+    if Metrics_parameters.Dump.get () <> "" then
+      !Db.Metrics.dump ()
   end
 
 let () = Db.Main.extend main
 
 let () =
   Db.register
-    ~journalize:(Some ("Metrics.get", Type.func Type.unit ty_repr))
-    Db.Metrics.get get;
-  Db.register None Db.Metrics.pretty pretty;
-  Db.register None Db.Metrics.dump dump;
-  Db.register None Db.Metrics.last_result LastResult.get
+    (Db.Journalize ("Metrics.compute", Type.func Type.unit Type.unit))
+    Db.Metrics.compute compute;
+  Db.register
+    (Db.Journalize ("Metrics.pretty", Type.func Type.formatter Type.unit))
+    Db.Metrics.pretty pretty;
+  Db.register
+    (Db.Journalize ("Metrics.dump", Type.func Type.unit Type.unit))
+    Db.Metrics.dump dump;
+  Db.register Db.Journalization_not_required
+    Db.Metrics.last_result LastResult.get
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

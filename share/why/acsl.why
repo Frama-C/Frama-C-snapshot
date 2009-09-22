@@ -1,0 +1,73 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(** Defines some functions that are directly comming from ACSL *)
+
+logic bottom : -> prop
+
+(* ACSL \null : see 2.7.1 *)
+logic _null : -> 'a pointer 
+
+(* ACSL \base_addr : see 2.7.1 *)
+logic _base_addr : 'a pointer -> char pointer
+
+(* ACSL \block_length : see 2.7.1 *)
+logic _block_length : 'a pointer -> size_t
+
+logic _valid_index : 'a pointer, int -> prop
+
+logic int_of_ptr : 'a pointer -> int
+
+(** return an identification for a pointer if it is a location base *)
+logic base_id : 'a pointer -> int option
+
+(** return the int value of _base_addr *)
+logic int_base_addr : 'a pointer -> int
+axiom int_base_addr_def :  forall p : 'a pointer.
+  int_base_addr (p) = int_of_ptr (_base_addr (p))
+
+axiom base_id_vs_base_addr : forall p : 'a pointer. forall id : int.
+  base_id (p) = Some (id) -> int_base_addr (p) = id
+
+
+(* ACSL \valid : see 2.7.1 *)
+logic valid_pointer : 'a pointer -> prop
+
+(* pointers are disjoints iff their contents don't overlap.
+The \separated ACSL predicate is translated using disj_pointer,
+but it is not exactly the same thing since \separated (x,*p)
+means disj_pointer (&x, p) *)
+logic disj_pointer : 'a pointer, 'b pointer -> prop
+
+axiom disj_pointer_sym : forall p1 : 't1 pointer. forall p2 : 't2 pointer.
+  disj_pointer (p1, p2) -> disj_pointer (p2, p1)
+
+
+(* bitwise operations *)
+logic bnot : int -> int
+logic band : int, int -> int
+logic bor : int, int -> int
+logic bxor : int, int -> int
+logic lshift : int, int -> int
+logic rshift : int, int -> int
+

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,7 +21,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: build.ml,v 1.120 2008/11/20 08:57:36 uid530 Exp $ *)
+(* $Id: build.ml,v 1.121 2009-02-23 12:52:19 uid562 Exp $ *)
 
 (** Build graphs (PDG) for the function
     (see module {!module: Build.BuildPdg})
@@ -39,6 +39,7 @@ open Cil_types
 open Cilutil
 
 module M = Macros
+module P = Pdg_parameters
 module G = PdgTypes.G
 module Dpd = PdgTypes.Dpd
 module FI = PdgIndex.FctIndex
@@ -69,8 +70,9 @@ let is_variadic kf =
     *)
 let add_dpd_in_g graph v1 dpd_kind part_opt v2 =
   (* let part_opt = match part_opt with Some _ | None -> None in *)
-  M.debug 2 "[pdg] add_dpd : %a -> %a@." Macros.pretty_node v1
-                                        Macros.pretty_node v2;
+  P.debug ~level:2 "add_dpd : %a -> %a@." 
+    Macros.pretty_node v1
+    Macros.pretty_node v2;
   G.add_dpd graph v1 dpd_kind part_opt v2
 
 (** Module to build the PDG. *)
@@ -245,7 +247,7 @@ module BuildPdg : sig
   let add_elem pdg key =
     let add_new_node key =
       let new_node = G.add_elem (graph pdg) key in
-      M.debug 2 "[pdg] add_new_node %a @." Print.pretty_node new_node;
+      P.debug ~level:2 "add_new_node %a @." Print.pretty_node new_node;
       new_node
     in
     let index = nodes_index pdg in
@@ -461,10 +463,10 @@ module BuildPdg : sig
       (* TODO : Check this with Pascal !
       * (Locations.Zone.cardinal_zero_or_one out) && *)
       (not default) in
-    M.debug 1 "[pdg] call-%d Out%d : %a From %a (%sexact)@."
-        stmt.sid numout
-        Locations.Zone.pretty out Locations.Zone.pretty from_out
-        (if exact then "" else "not ");
+    P.debug "call-%d Out%d : %a From %a (%sexact)@."
+      stmt.sid numout
+      Locations.Zone.pretty out Locations.Zone.pretty from_out
+      (if exact then "" else "not ");
 
     let key = Key.call_output_key stmt (* numout *) out in
     let new_node = create_call_output_node pdg state_before_call stmt
@@ -603,14 +605,14 @@ module BuildPdg : sig
   * (notice that now, they can overlap, for example we can have G and G.a)
   * And also deals with warning for uninitialized local variables. *)
   let process_other_inputs pdg =
-    M.debug 2 "[pdg] process_other_inputs@.";
+    P.debug ~level:2 "process_other_inputs@.";
     let rec add n dpd_kind (state, zones) z_or_top =
       (* be careful because [z] can intersect several elements in [zones] *)
       match zones with
         | [] ->
             let key = Key.implicit_in_key z_or_top in
             let nz = add_elem pdg key in
-              M.debug 1 "[pdg] add_implicit_input : %a@."
+              P.debug "add_implicit_input : %a@."
                   Locations.Zone.pretty z_or_top ;
             let state = State.add_init_state_input state z_or_top nz in
             let _ = add_z_dpd pdg n dpd_kind None nz in
@@ -653,11 +655,11 @@ module BuildPdg : sig
 
   (** @param from_opt for undefined functions  (declarations) *)
   let finalize_pdg pdg from_opt =
-    M.debug 2 "[pdg] try to finalize_pdg@.";
+    P.debug ~level:2 "try to finalize_pdg";
     let last_state =
       try Some (State.get_last_state (get_states pdg))
       with Not_found ->
-        CilE.warn_once "[pdg] no final state. Probably unreachable..."; None
+        CilE.warn_once "no final state. Probably unreachable..."; None
     in
     let _ = match from_opt with
       | None -> () (* defined function : retres already processed. *)
@@ -671,7 +673,10 @@ module BuildPdg : sig
           in
           let from_table = froms.Function_Froms.deps_table in
           let new_state =
-            Lmap_bitwise.From_Model.fold process_out from_table state in
+            try Lmap_bitwise.From_Model.fold process_out from_table state 
+            with Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
+              process_out Locations.Zone.top (false, Locations.Zone.top) state
+          in
           let new_state =
             if (not (Kernel_function.returns_void pdg.fct)) then
               let from0 = froms.Function_Froms.deps_return in
@@ -685,7 +690,7 @@ module BuildPdg : sig
     let init_state = process_other_inputs pdg in
       store_init_state pdg init_state;
     add_ctrl_dpds pdg ;
-    M.debug 2 "[pdg] finalize_pdg ok@.";
+    P.debug ~level:2 "finalize_pdg ok";
     let states = get_states pdg in
     let pdg = PdgTypes.InternalPdg.make pdg.fct
                                pdg.graph states pdg.index in
@@ -751,11 +756,13 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
   let from_table = froms.Function_Froms.deps_table in
     if M.has_debug 1 then
       begin
-        Format.printf "[pdg] call outputs  : %a@."
-                    Lmap_bitwise.From_Model.pretty from_table;
-        if not (lvaloption = None) then
-          Format.printf "\t and \\result %a@."
-            Lmap_bitwise.From_Model.LOffset.pretty froms_deps_return
+	let print_outputs fmt =
+	  Format.fprintf fmt "call outputs  : %a"
+            Lmap_bitwise.From_Model.pretty from_table;
+          if not (lvaloption = None) then
+            Format.fprintf fmt "\t and \\result %a@."
+              Lmap_bitwise.From_Model.LOffset.pretty froms_deps_return
+	in P.result "%t" print_outputs
       end;
   let new_state =
     match lvaloption with
@@ -777,8 +784,10 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
       (new_state, numout+1)
   in
   let (new_state, _num) =
-    Lmap_bitwise.From_Model.fold process_out from_table (new_state, 1) in
-    new_state
+    try Lmap_bitwise.From_Model.fold process_out from_table (new_state, 1) 
+    with  Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
+      process_out Locations.Zone.top (false, Locations.Zone.top) (new_state, 1)
+  in new_state
 
 (** process call : {v lvaloption = funcexp (argl); v}
     Use the state at ki (before the call)
@@ -815,7 +824,7 @@ let process_call pdg state stmt lvaloption funcexp argl =
   let new_state =
     match state_for_each_call with
     | [] ->
-       let stmt_str = Cil.fprintf_to_string "%a" !Ast_printer.d_stmt stmt in
+       let stmt_str = Pretty_utils.sfprintf "%a" !Ast_printer.d_stmt stmt in
        Extlib.not_yet_implemented
 	 ("pdg with an unknown function call : " ^ stmt_str)
     | st :: [] -> st
@@ -966,7 +975,7 @@ module Computer (Param:sig
     else
       begin
         (if !debug
-         then Format.printf "[pdg] fix point reached for stmt %d@." stmt.sid);
+         then P.debug "fix point reached for stmt %d" stmt.sid);
         None
       end
 
@@ -974,8 +983,7 @@ module Computer (Param:sig
     *)
   let doInstr stmt instr state =
     !Db.progress ();
-    if !debug then
-        Format.printf "[pdg] doInstr : %a@." !Ast_printer.d_instr instr;
+    P.debug "doInstr : %a" !Ast_printer.d_instr instr;
     match instr with
     | Set (lv, exp, _) ->
         let new_state = process_asgn current_pdg state stmt lv exp in
@@ -988,13 +996,12 @@ module Computer (Param:sig
     | Code_annot (annot, _) ->
         process_code_annot current_pdg stmt annot; Dataflow.Default
     | Skip _ -> process_skip current_pdg stmt ; Dataflow.Default
-    | Asm  _ -> Errormsg.s (Errormsg.unimp "inline assembly instruction")
+    | Asm  _ -> P.fatal ~current:true "inline assembly instruction"
 
   (** Called before processing the successors of the statements.
    *)
   let doStmt (stmt: Cil_types.stmt) (state: t) =
-    if !debug then
-      Format.printf "[pdg] doStmt %d @." stmt.sid ;
+      P.debug "doStmt %d @." stmt.sid ;
 
     (* labels are processed while processing the jumps.
        process_labels current_pdg labels ;
@@ -1036,6 +1043,8 @@ module Computer (Param:sig
   let filterStmt stmt = Db.Value.is_accessible (Kstmt stmt)
 
   let doGuard _ _ _ = Dataflow.GDefault
+
+  let doEdge _ _ d = d
 
 end
 
@@ -1084,32 +1093,47 @@ let compute_pdg_for_f kf =
   let pdg = BuildPdg.finalize_pdg pdg froms in
     pdg
 
+let degenerated top kf =
+  P.feedback "%s for function %a"
+    (if top then "Top" else "Bottom") 
+    Kernel_function.pretty_name kf;
+  if top then PdgTypes.Pdg.top kf else PdgTypes.Pdg.bottom kf
+
 let compute_pdg kf =
   if not (Db.Value.is_computed ()) then !Db.Value.compute ();
 
-  Cil.log "[pdg] computing for function %a" Kernel_function.pretty_name kf;
-
-  let end_with_err top kind why =
-    Cil.log "[pdg %s] %s" kind why;
-    Cil.log "[pdg] %s for function %a"
-      (if top then "Top" else "Bottom") Kernel_function.pretty_name kf;
-    if top then PdgTypes.Pdg.top kf else PdgTypes.Pdg.bottom kf
-  in
+  P.feedback "computing for function %a" 
+    Kernel_function.pretty_name kf;
+  
   try
+
     if is_variadic kf then
       Extlib.not_yet_implemented "PDG for a variadic function";
+
     let pdg = compute_pdg_for_f kf in
-    Cil.log "[pdg] done for function %a" Kernel_function.pretty_name kf;
+
+    P.feedback "done for function %a"
+      Kernel_function.pretty_name kf;
+    
     (* Datascope.compute kf; *)
     pdg
+
   with
-  | Err_Bot what -> end_with_err false "warning" what
-  (* | Err_Top what -> end_with_err true "warning" what *)
-  | PdgTypes.Pdg_Internal_Error what -> end_with_err true "internal bug" what
-  | Extlib.NotYetImplemented why_nyi ->
-      end_with_err true "not implemented yet" why_nyi
+    | Err_Bot what -> 
+	P.warning "%s" what ;
+	degenerated false kf
+	  
+    | PdgTypes.Pdg_Internal_Error what -> 
+	P.failure "%s" what ;
+	degenerated true kf
 
+    | State.Cannot_fold -> 
+	P.failure "too imprecise value analysis : abort" ;
+	degenerated true kf
 
+    | Extlib.NotYetImplemented why_nyi ->
+	P.failure "%s not implemented yet" why_nyi ;
+	degenerated true kf
 
 (*
 Local Variables:

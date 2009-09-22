@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -29,7 +29,7 @@
 
 open Cil_types
 
-module T = SlicingTypes.Internals
+module T = SlicingInternals
 
 exception Break
 
@@ -37,15 +37,11 @@ exception Break
 
 (** {2 Debug and utils} *)
 
-let has_debug n = Debug.has_debug Cmdline.Slicing.Mode.Verbose.get n
-let debug n format = Debug.debug_f (has_debug n) format
-
 let cbug assert_cond msg = 
   if not assert_cond then raise (SlicingTypes.Slicing_Internal_Error msg)
 
 let bug msg = raise (SlicingTypes.Slicing_Internal_Error msg)
-
-let sprintf = Cil.fprintf_to_string
+let sprintf = Pretty_utils.sfprintf
 
 (** {2 Options} *)
 
@@ -64,8 +60,8 @@ let translate_num_to_slicing_level n =
       | _ -> raise SlicingTypes.WrongSlicingLevel
 
 let get_default_level_option defined_function =
-  if defined_function || (Cmdline.Slicing.Mode.SliceUndef.get ()) then 
-    translate_num_to_slicing_level (Cmdline.Slicing.Mode.Calls.get ())
+  if defined_function || (SlicingParameters.Mode.SliceUndef.get ()) then 
+    translate_num_to_slicing_level (SlicingParameters.Mode.Calls.get ())
   else T.DontSlice 
 
 let get_str_default_level_option defined_function = 
@@ -96,6 +92,7 @@ let get_kf_fi proj kf =
     let new_fi = { 
       T.fi_kf = kf;
       T.fi_def = fi_def;
+      T.fi_project = proj;
       T.fi_top = None;
       T.fi_level_option = get_default_level_option is_def;
       T.fi_init_marks = None ; 
@@ -115,6 +112,9 @@ let f_fi f = match f with
   | T.FctSrc fct -> fct
   | T.FctSliced ff -> ff_fi ff
 
+(** {4 getting num id} *)
+let get_ff_id ff = ff.T.ff_id
+
 (** {4 getting names} *)
 
 let fi_name fi = let svar = fi_svar fi in svar.Cil_types.vname
@@ -122,7 +122,7 @@ let fi_name fi = let svar = fi_svar fi in svar.Cil_types.vname
 (** get the name of the function corresponding to that slice. *)
 let ff_name ff =
   let fi = ff_fi ff in
-  let ff_id = ff.T.ff_id in
+  let ff_id = get_ff_id ff in
   let fct_name = fi_name fi in
     (fct_name ^ "_slice_" ^ (string_of_int (ff_id)))
 
@@ -178,7 +178,7 @@ let equal_fi fi1 fi2 =
     v1.vid = v2.vid
 
 let equal_ff ff1 ff2 = (equal_fi ff1.T.ff_fct ff2.T.ff_fct) && 
-                       (ff1.T.ff_id = ff2.T.ff_id)
+                       ((get_ff_id ff1) = (get_ff_id ff2))
 
 let equal_f f1 f2 =
   match f1, f2 with

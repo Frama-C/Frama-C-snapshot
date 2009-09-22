@@ -3,7 +3,9 @@
 
 include LibSelect ;;
 
-test_select_data "main" "x";;
-test_select_data "main" "y";;
-test_select_data "main" "z";;
+let main _ =
+  ignore (test_select_data "main" "x");
+  ignore (test_select_data "main" "y");
+  ignore (test_select_data "main" "z")
+let () = Db.Main.extend main
 

@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -impact-pragma main -impact-print -journal-disable
-   OPT: -impact-pragma main2 -impact-print -main main2 -journal-disable
-   OPT: -impact-pragma main3 -impact-print -main main3 -journal-disable
+   STDOPT: +"-impact-pragma main"
+   STDOPT: +"-impact-pragma main2" +"-main main2"
+   STDOPT: +"-impact-pragma main3" +"-main main3"
    */
 
 /*@ ghost int G; */

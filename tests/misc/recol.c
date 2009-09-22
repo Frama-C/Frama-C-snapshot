@@ -1,5 +1,6 @@
 /* run.config
    OPT: -val -slevel 100 -memory-footprint 1 -cpp-command "gcc -C -E -DPTEST " -journal-disable
+   OPT: -val -slevel 100 -memory-footprint 1 -cpp-command "gcc -C -E -DPTEST " -journal-disable -machdep ppc_32
 */
 
 #ifndef PTEST
@@ -12,10 +13,17 @@ char s[S];
 int c=0;
 int s_int;
 int *p_int;
+char ones[]="11111111"; 
+char one23[]="1223";
+int col_ones;
+int col_123;
 
 int main(void)
 {
   char *p = s;
+
+  col_ones = 1 + * (int*) ones;
+  col_123 = 1 + * (int*) one23;
 
   while (p <= s+S-sizeof(int))
     {
@@ -40,11 +48,11 @@ int main(void)
     }
 
 #ifndef PTEST
-  printf("s_int: %d\n", s_int);
+  printf("s_int: %d  col_ones: %d col_123:%d\n", s_int, col_ones, col_123);
 #endif
   /* résultat attendu, avec int 32-bits :
-     little endian : s_int = -833811464
-     big_endian :    s_int = -1480071902
+     little endian: s_int = -833811464
+     big_endian :  s_int: -1480071902  col_ones: 825307442 col_123:825373236
   */
   return 0;
 }

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2008                                               */
+/*  Copyright (C) 2007-2009                                               */
 /*    CEA (Commissariat à l'Énergie Atomique)                             */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -19,7 +19,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: libc.c,v 1.23 2008/08/07 15:20:48 uid568 Exp $ */
+/* $Id: libc.c,v 1.23 2008-08-07 15:20:48 uid568 Exp $ */
 
 #include "libc.h"
 
@@ -272,6 +272,23 @@ strrchr (s, c)
       rtnval = (char*) s;
   } while (*s++);
   return (rtnval);
+}
+
+char *
+strstr (s1, s2)
+  char *s1, *s2;
+{
+  char *p = s1;
+  int len = strlen (s2);
+
+  for (; (p = strchr (p, *s2)) != 0; p++)
+    {
+      if (strncmp (p, s2, len) == 0)
+	{
+	  return (p);
+	}
+    }
+  return (0);
 }
 
 char * getenv(const char * c) {

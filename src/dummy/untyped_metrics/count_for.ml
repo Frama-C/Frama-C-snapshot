@@ -1,11 +1,44 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2009                                               *)
+(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
 (** Counting for loops on the untyped AST.
 *)
 
 
-module Enabled = Cmdline.Dynamic.Register.False(
-  struct 
-    let name = "cea.untyped_metrics" 
-  end)
+module Self =
+  Plugin.Register
+    (struct
+       let name = "For loops counter"
+       let shortname = "for_counter"
+       let module_name = "Untyped_metrics.Count_for.Self"
+       let descr = "For counter on untyped AST"
+       let is_dynamic = true
+     end)
+
+module Enabled = Self.False
+  (struct
+     let module_name = "Count_for.Enabled"
+     let option_name = "-count-for"
+     let descr = "count the for loops"
+   end)
 
 open Cabs
 
@@ -28,24 +61,15 @@ let count_for (fname,_ as file) =
   
 let print_stat (fname,n) = Format.printf "%s: %d@." fname n
 
-let startup () = 
+let startup _ = 
   if Enabled.get () then begin
-    let untyped_files = Cil_state.UntypedFiles.get () in
+    let untyped_files = Ast.UntypedFiles.get () in
       
     let stats = List.map count_for untyped_files in
       List.iter print_stat stats
   end
 
 
-let options = 
-  [ "-count_for",
-    Arg.Unit Enabled.on,
-    ": pretty print the number of for loops per file" ]
-
 let () = 
-  Options.add_plugin
-    ~name:"Untyped Metrics"
-    ~descr:"pretty prints metrics on the untyped AST"
-    options;
-  Dynamic.Main.extend startup
+  Db.Main.extend startup
 

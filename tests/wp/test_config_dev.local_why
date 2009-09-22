@@ -1,0 +1,9 @@
+CMD: FRAMAC_SHARE=./share WHYLIB=./why/lib WHYBIN=./why/bin/why.opt WHYDP=./why/bin/why-dp.opt ./bin/toplevel.opt
+OPT: -wp-mm 0 -wp-debug 2 -journal-disable -wp-proof
+CMD: FRAMAC_SHARE=./share WHYLIB=./why/lib WHYBIN=./why/bin/why.opt WHYDP=./why/bin/why-dp.opt ./bin/toplevel.opt
+OPT: -wp-mm 1 -wp-debug 2 -journal-disable -wp-proof
+CMD: FRAMAC_SHARE=./share WHYLIB=./why/lib WHYBIN=./why/bin/why.opt WHYDP=./why/bin/why-dp.opt ./bin/toplevel.opt
+OPT: -wp-mm 2 -wp-debug 2 -journal-disable -wp-proof
+CMD: FRAMAC_SHARE=./share WHYLIB=./why/lib WHYBIN=./why/bin/why.opt WHYDP=./why/bin/why-dp.opt ./bin/toplevel.opt
+OPT: -wp-mm 3 -wp-debug 2 -journal-disable -wp-proof
+FILTER: tests/wp/filter_wp_res

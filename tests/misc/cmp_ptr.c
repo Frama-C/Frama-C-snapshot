@@ -7,13 +7,17 @@ int f(void) { /* make a top integer */
     i++;}
   return i;
 };
-
+int x,y;
+float ff;
 int main () {
 
   p = &T[1] + f();
   q = &C[1] + f();
   
   if (p >= &(T[5])) {*p=88;*q=77;}
+  x = !(&y+2);
+  *(int*)&ff = &y + 2;
+  y = !ff;
 
         
 }

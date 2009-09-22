@@ -44,19 +44,21 @@ let slice_on_fun_calls project kf =
   in
   List.iter (process_src_caller kf) (callers kf)
 
+let main _ =
+  let kf_f = find_kf "f" in
+  
+  let project = mk_project () in
+  call_f project kf_f;
+  print_project project;
+  extract_and_print project;
 
-let kf_f = find_kf "f";;
+  let project = mk_project () in
+  slice_on_fun_calls project kf_f;
+  !S.Request.apply_all_internal project;
+  print_project project;
+  extract_and_print project
 
-let project = mk_project ();;
-call_f project kf_f;;
-print_project project ;;
-extract_and_print project;;
-
-let project = mk_project ();;
-slice_on_fun_calls project kf_f;;
-!S.Request.apply_all_internal project;
-print_project project ;;
-extract_and_print project;;
+let () = Db.Main.extend main
 
 
 

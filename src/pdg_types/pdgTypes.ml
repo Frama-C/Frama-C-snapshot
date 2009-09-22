@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2008                                               *)
+(*  Copyright (C) 2007-2009                                               *)
 (*    CEA   (Commissariat à l'Énergie Atomique)                           *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -74,6 +74,7 @@ module Dpd : sig
 
   (** total order. Used only to sort...*)
   val compare : t -> t -> int
+  val equal : t -> t -> bool
 
   val is_included : t -> t -> bool
   val combine : t -> t -> t
@@ -91,16 +92,40 @@ module Dpd : sig
 
   type td = Ctrl | Addr | Data
 
-  let make ?(a=false) ?(d=false) ?(c=false) _ = 
+      
+  (* internal constructor *)
+  let create ?(a=false) ?(d=false) ?(c=false) _ = 
     { addr = a; data = d; ctrl = c }
 
-  let bottom   = make ()
-  let top   = make ~a:true ~d:true ~c:true ()
+  (* all possible value for [t] *)
+  let bottom = create ()
+  let top    = create ~a:true ~d:true ~c:true ()
+  let a_dpd  = create ~a:true ()
+  let d_dpd  = create ~d:true ()
+  let c_dpd  = create ~c:true ()
+  let ad_dpd = create ~a:true ~d:true ()
+  let ac_dpd = create ~a:true ~c:true ()
+  let dc_dpd = create ~d:true ~c:true ()
 
+  (* external constructor sharing identical [t] values *)
+  let make ?(a=false) ?(d=false) ?(c=false) _ = 
+    match a,d,c with
+      | false, false, false -> bottom
+      | true,  false, false -> a_dpd
+      | false, true,  false -> d_dpd
+      | false, false, true  -> c_dpd
+      | true,  true,  false -> ad_dpd
+      | true,  false, true  -> ac_dpd
+      | false, true,  true  -> dc_dpd
+      | true,  true,  true  -> top
+
+  (* the use the external constructor ensures [==] can be used instead of [=] *)
+  let equal d1 d2 = d1 == d2
+    
   let make_simple kind = match kind with
-    | Ctrl -> make ~c:true ()
-    | Addr -> make ~a:true ()
-    | Data -> make ~d:true ()
+    | Ctrl -> c_dpd
+    | Addr -> a_dpd
+    | Data -> d_dpd
 
   let default = bottom
 
@@ -108,24 +133,31 @@ module Dpd : sig
   let is_ctrl d = d.ctrl
   let is_data d = d.data
   let is_dpd tdpd d = match tdpd with
-  | Addr -> d.addr
-  | Ctrl -> d.ctrl
-  | Data -> d.data
-  let is_bottom d = (d = bottom)
-
-
+    | Addr -> d.addr
+    | Ctrl -> d.ctrl
+    | Data -> d.data
+        
+  let is_bottom d = equal d bottom
+    
   let adc_value d = (is_addr d, is_data d, is_ctrl d)
 
   let compare l1 l2 = Pervasives.compare l1 l2
 
-  let combine d1 d2 = { addr = d1.addr || d2.addr;
-                        ctrl = d1.ctrl || d2.ctrl;
-                        data = d1.data || d2.data }
-  let inter d1 d2 = { addr = d1.addr && d2.addr;
-                        ctrl = d1.ctrl && d2.ctrl;
-                        data = d1.data && d2.data }
+  let combine d1 d2 =
+    if (d1 == d2) then d1
+    else make
+      ~a:(d1.addr || d2.addr)
+      ~c:(d1.ctrl || d2.ctrl)
+      ~d:(d1.data || d2.data) ()
+    
+  let inter d1 d2 =
+    if (d1 == d2) then d1
+    else make
+      ~a:(d1.addr && d2.addr)
+      ~c:(d1.ctrl && d2.ctrl)
+      ~d:(d1.data && d2.data) ()
 
-  let is_included d1 d2 = let d = combine d1 d2 in d = d2
+  let is_included d1 d2 = let d = combine d1 d2 in equal d d2
   let intersect d1 d2 = let d = inter d1 d2 in not (is_bottom d)
 
   let add d kind = combine d (make_simple kind)
@@ -157,6 +189,7 @@ module DpdZone : sig
   (** total order. Used only to sort...*)
   val compare : t -> t -> int
   val equal : t -> t -> bool
+    
   val default : t
 
   val pretty : Format.formatter -> t -> unit
@@ -176,8 +209,8 @@ end = struct
   let is_dpd k dpd = Dpd.is_dpd k (dpd_kind dpd)
 
   let equal dpd1 dpd2 = 
-    let cmp = Dpd.compare (dpd_kind dpd1) (dpd_kind dpd2) in
-      if cmp = 0 then
+    let cmp = Dpd.equal (dpd_kind dpd1) (dpd_kind dpd2) in
+      if cmp then
         match (dpd_zone dpd1), (dpd_zone dpd2) with
           | None, None -> true
           | Some z1, Some z2 -> Locations.Zone.equal z1 z2
@@ -201,18 +234,22 @@ end = struct
       else cmp
       *)
 
-  let add dpd k z = 
-    let d = Dpd.add (dpd_kind dpd) k in
-    let z = match (dpd_zone dpd), z with 
-    | _, None | None, _ -> None
-    | Some z1, Some z2  ->
-        (* we are loosing some precision here because for instance :
-        * (z1, addr) + (z2, data) = (z1 U z2, data+addr) *)
-        let z = Locations.Zone.join z1 z2 in
-          match z with
-            |  Locations.Zone.Top(_p, _o) -> None
-            | _ -> Some z
-    in d, z
+  let add ((d1,z1) as dpd) k z =
+    let d = Dpd.add d1 k in
+    let z = match z1, z with 
+      | None, _ -> z1
+      | _, None -> z
+      | Some zz1, Some zz2  ->
+          (* we are loosing some precision here because for instance :
+           * (zz1, addr) + (zz2, data) = (zz1 U zz2, data+addr) *)
+          let zz = Locations.Zone.join zz1 zz2 in
+            match zz with
+              | Locations.Zone.Top(_p, _o) -> None
+              | _ -> (* To share values as much as possible *)
+                  if (zz == zz1)      then z1
+                  else if (zz == zz2) then z
+                  else Some zz
+    in if (d == d1) && (z == z1) then dpd else d, z
 
   let pretty fmt dpd =
     Dpd.pretty fmt (dpd_kind dpd);
@@ -483,6 +520,7 @@ module Pdg = struct
 			  Locations.Zone.Datatype.rehash v.under_outputs })
 		 p.states;
 	       PdgDef { p with states = states }
+	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
        end)
 
   let make kf graph states index =

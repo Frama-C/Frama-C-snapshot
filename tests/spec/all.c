@@ -57,6 +57,10 @@ void f(int G,int*p) {
   *p = G + 76;
 }
 
+struct st { int a, b ; } ;
+/*@ axiomatic St { logic struct st fl(struct st s) ; } */
+/*@ ensures fl(s).a == \result.a ; */
+struct st fc (struct st s) ;
 
 /*@ logic integer x = 1 ; */                              // OK
 /*@ logic integer y ; */                                  // OK
