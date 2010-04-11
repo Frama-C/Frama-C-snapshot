@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -60,7 +61,7 @@ class do_it = object(self)
           loc.loc
           Location_Bits.top
         then
-          Cilmsg.warning ~current:true
+          Inout_parameters.debug ~current:true
 	    "Problem with %a@\nValue at this point:@\n%a"
 	    !Ast_printer.d_lval lv
 	    Value.pretty_state (Value.get_state current_stmt) ;
@@ -78,7 +79,7 @@ class do_it = object(self)
 	    !Value.expr_to_kernel_function
 	      ~with_alarms:CilE.warn_none_mode ~deps:None current_stmt exp
 	  in
-          List.iter (fun kf -> self#join (!Db.Outputs.get_external kf)) callees
+          Kernel_function.Set.iter (fun kf -> self#join (!Db.Outputs.get_external kf)) callees
       | _ -> ()
     end;
     SkipChildren
@@ -155,7 +156,11 @@ let get_internal =
                          if (Logic_utils.is_result c)
                          then acc
                          else
-			   let loc = !Properties.Interp.loc_to_loc state c in
+			   let loc = 
+			     !Properties.Interp.loc_to_loc ~result:None 
+			       state
+			       c
+			   in
  		             Zone.join
 			       acc
 			       (Locations.valid_enumerate_bits loc)

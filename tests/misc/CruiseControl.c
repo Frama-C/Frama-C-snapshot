@@ -1,6 +1,7 @@
 /* run.config
    GCC:
    OPT: -val -deps -out -input tests/misc/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers -journal-disable
+   OPT: -float-hex -all-rounding-modes -val -deps -out -input tests/misc/CruiseControl_const.c -lib-entry -main CruiseControl -context-depth 10 -context-valid-pointers -journal-disable
 */
 /*$************* SCADE_KCG KCG Version 5.1.1 (build i10) **************
 ** Command :

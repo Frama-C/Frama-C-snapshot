@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -31,13 +32,25 @@ open Gtk_helper
 type localizable =
   | PStmt of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
-  | PTermLval of (kernel_function option*  kinstr * term_lval)
+  | PTermLval of (kernel_function option * kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
-  | PCodeAnnot of (kernel_function * stmt * code_annotation)
-  | PGlobal of global
-  | PBehavior of (kernel_function*funbehavior)
-  | PPredicate of (kernel_function option*kinstr*identified_predicate)
 
+  | PCodeAnnot of (kernel_function * stmt * code_annotation)
+  | PGlobal of global (* all globals but variable declarations and function
+			 definitions. *)
+  | PRequires of (kernel_function*kinstr*funbehavior option*identified_predicate)
+  | PBehavior of (kernel_function*kinstr*funbehavior)
+  | PVariant of (kernel_function*kinstr*term variant)
+  | PTerminates of (kernel_function*kinstr*identified_predicate)
+  | PComplete_behaviors of (kernel_function*kinstr*string list)
+  | PDisjoint_behaviors of (kernel_function*kinstr*string list)
+
+  | PAssumes of (kernel_function*kinstr*funbehavior option*identified_predicate)
+  | PPost_cond of
+      (kernel_function*kinstr*funbehavior option*
+         (termination_kind * identified_predicate))
+  | PAssigns of (kernel_function*kinstr*funbehavior option*identified_term assigns list)
+  | PPredicate of (kernel_function option*kinstr*identified_predicate)
 
 module Localizable_Datatype =
   Project.Datatype.Imperative
@@ -46,6 +59,28 @@ module Localizable_Datatype =
        let copy _ = assert false (* TODO *)
        let name = "localizable"
      end)
+
+let kf_of_localizable loc = match loc with
+    | PLval (kf_opt, _, _)
+    | PTermLval(kf_opt, _,_)
+    | PVDecl (kf_opt, _)
+    | PPredicate (kf_opt, _, _)
+      -> kf_opt
+    | PStmt (kf, _)
+    | PCodeAnnot (kf,  _,  _)
+    | PRequires (kf, _, _, _)
+    | PBehavior (kf, _, _)
+    | PVariant (kf, _, _)
+    | PTerminates (kf, _, _)
+    | PComplete_behaviors (kf, _, _)
+    | PDisjoint_behaviors (kf, _, _)
+    | PAssumes (kf, _, _, _)
+    | PPost_cond (kf, _, _, _)
+    | PAssigns (kf, _, _, _)
+      -> Some kf
+    | PGlobal _ 
+      -> None
+
 
 module Locs:sig
   type state
@@ -56,22 +91,29 @@ module Locs:sig
   val find : state -> int -> (int * int) * localizable
   val hilite : state -> unit
   val set_hilite : state -> (unit -> unit) -> unit
-end 
-= 
+end
+=
 struct
   type state = { table : (int*int,localizable) Hashtbl.t;
                  mutable hiliter : unit -> unit}
 
   let create () =
-    {table = Hashtbl.create 97; 
+    {table = Hashtbl.create 97;
      hiliter = (fun () -> ())}
 
   let hilite state = state.hiliter ()
- 
-  let set_hilite state f = 
+
+  let set_hilite state f =
     state.hiliter <- f
-    
-  let add state loc v = Hashtbl.add state.table loc v
+
+  (* Add a location range only if it is not already there.
+     Visually only the innermost pretty printed entity is kept.
+     For example: 'loop assigns x;' will be indexed as an assigns 
+     and not as a code annotation.
+  *)
+  let add state loc v =
+    if not (Hashtbl.mem state.table loc) then 
+      Hashtbl.add state.table loc v
 
   let find state p =
     let best = ref None in
@@ -103,74 +145,97 @@ struct
     (*Parameters.debug "DONE: Iterate on %d locations" (Hashtbl.length locs);*)
 
   let size state = Hashtbl.length state.table
-    
+
 end
 
 let hilite state = Locs.hilite state
 
 module Tag = struct
   type t = localizable
-
-  let make_modem () =
+  exception Wrong_decoder
+  let make_modem charcode =
     let h = Hashtbl.create 17 in
     let current = ref 0 in
     (function lv ->
       incr current;
       Hashtbl.add h !current lv;
-      !current),
-    (function code -> try Hashtbl.find h code with Not_found -> assert false)
+      sprintf "%c%x" charcode !current),
+    (function code ->
+       Scanf.sscanf code "%c%x"
+         (fun c code ->
+            if c=charcode then
+              try Hashtbl.find h code with Not_found -> assert false
+            else raise Wrong_decoder))
 
-  let encode_stmt,decode_stmt = make_modem ()
-  let encode_lval,decode_lval = make_modem ()
-  let encode_termlval,decode_termlval = make_modem ()
-  let encode_vdecl,decode_vdecl = make_modem ()
-  let encode_code_annot,decode_code_annot = make_modem ()
-  let encode_global,decode_global = make_modem ()
-  let encode_behavior,decode_behavior = make_modem ()
-  let encode_predicate,decode_predicate = make_modem ()
+  let encode_stmt,decode_stmt = make_modem 's'
+  let encode_lval,decode_lval = make_modem 'l'
+  let encode_termlval,decode_termlval = make_modem 't'
+  let encode_vdecl,decode_vdecl = make_modem 'd'
+  let encode_code_annot,decode_code_annot = make_modem 'c'
+  let encode_global,decode_global = make_modem 'g'
+  let encode_behavior,decode_behavior = make_modem 'b'
+  let encode_assigns,decode_assigns = make_modem 'a'
+  let encode_post_cond,decode_post_cond = make_modem 'e'
+  let encode_assumes,decode_assumes = make_modem 'u'
+  let encode_disjoint,decode_disjoint = make_modem 'i'
+  let encode_complete,decode_complete = make_modem 'o'
+  let encode_terminates,decode_terminates = make_modem 'r'
+  let encode_variant,decode_variant = make_modem 'v'
+  let encode_requires,decode_requires = make_modem 'q'
+  let encode_predicate,decode_predicate = make_modem 'p'
 
   let create = function
-    | PStmt sid -> sprintf "s%x" (encode_stmt sid)
-    | PLval lval ->
-        let code = encode_lval lval in
-        sprintf "l%x" code
-    | PTermLval lval ->
-        let code = encode_termlval lval in
-        sprintf "t%x" code
-    | PVDecl vi ->
-        let code = encode_vdecl vi in
-        sprintf "d%x" code
-    | PCodeAnnot ca ->
-	let code = encode_code_annot ca in
-	sprintf "c%x" code
-    | PGlobal g ->
-	let code = encode_global g in
-	sprintf "g%x" code
-    | PBehavior b -> 
-        let code = encode_behavior b in
-        sprintf "b%x" code
-    | PPredicate b -> 
-        let code = encode_predicate b in
-        sprintf "p%x" code
+    | PStmt sid -> encode_stmt sid
+    | PLval lval -> encode_lval lval
+    | PTermLval lval -> encode_termlval lval
+    | PVDecl vi -> encode_vdecl vi
+    | PCodeAnnot ca -> encode_code_annot ca
+    | PGlobal g -> encode_global g
+    | PBehavior b -> encode_behavior b
+    | PAssigns a -> encode_assigns a
+    | PPredicate p ->  encode_predicate p
+    | PPost_cond p -> encode_post_cond p
+    | PAssumes p -> encode_assumes p
+    | PDisjoint_behaviors p -> encode_disjoint p
+    | PComplete_behaviors p -> encode_complete p
+    | PTerminates p -> encode_terminates p
+    | PVariant v -> encode_variant v
+    | PRequires p -> encode_requires p
 
   let get s =
     try
-      Scanf.sscanf s "s%x" (fun sid -> PStmt (decode_stmt sid))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "l%x" (fun s -> PLval (decode_lval s))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "t%x" (fun s -> PTermLval (decode_termlval s))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "d%x" (fun s -> PVDecl (decode_vdecl s))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "c%x" (fun s -> PCodeAnnot (decode_code_annot s))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "g%x" (fun s -> PGlobal (decode_global s))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "b%x" (fun s -> PBehavior (decode_behavior s))
-    with Scanf.Scan_failure _ -> try
-      Scanf.sscanf s "p%x" (fun s -> PPredicate (decode_predicate s))
-    with Scanf.Scan_failure _ ->
+      PStmt (decode_stmt s)
+    with Wrong_decoder -> try
+      PLval (decode_lval s)
+    with Wrong_decoder -> try
+      PTermLval (decode_termlval s)
+    with Wrong_decoder -> try
+      PVDecl (decode_vdecl s)
+    with Wrong_decoder -> try
+      PCodeAnnot (decode_code_annot s)
+    with Wrong_decoder -> try
+      PGlobal (decode_global s)
+    with Wrong_decoder -> try
+      PBehavior (decode_behavior s)
+    with Wrong_decoder -> try
+      PAssigns (decode_assigns s)
+    with Wrong_decoder -> try
+    PPredicate (decode_predicate s)
+    with Wrong_decoder -> try
+    PPost_cond (decode_post_cond s)
+    with Wrong_decoder -> try
+    PAssumes (decode_assumes s)
+    with Wrong_decoder -> try
+    PDisjoint_behaviors (decode_disjoint s)
+    with Wrong_decoder -> try
+    PComplete_behaviors (decode_complete s)
+    with Wrong_decoder -> try
+    PTerminates (decode_terminates s)
+    with Wrong_decoder -> try
+    PVariant (decode_variant s)
+    with Wrong_decoder -> try
+    PRequires (decode_requires s)
+    with Wrong_decoder ->
       assert false
 end
 
@@ -191,28 +256,17 @@ class tagPrinterClass = object(self)
     | None -> None
     | Some fd -> Some (Globals.Functions.get fd)
 
+  val mutable current_behavior = None
+  method private current_behavior =
+    current_behavior
 
-  method pCode_annot fmt ca =
-    Format.fprintf fmt "@{<%s>%a@}"
-      (Tag.create (PCodeAnnot (Cilutil.out_some self#current_kf,
-			       Cilutil.out_some self#current_stmt,
-			       ca)))
-      super#pCode_annot ca
+  val mutable localize_predicate = true (* wrap all identified predicates *)
 
-  method pIdentified_predicate fmt ip = 
+  method pStmtNext next fmt current =
     Format.fprintf fmt "@{<%s>%a@}"
-      (Tag.create (PPredicate (self#current_kf,self#current_kinstr,ip)))
-      super#pIdentified_predicate ip
+      (Tag.create (PStmt (Cilutil.out_some self#current_kf,current)))
+      (super#pStmtNext next) current
 
-  method pVDecl fmt vi =
-    Format.fprintf fmt "@{<%s>%a@}"
-      (Tag.create (PVDecl (self#current_kf,vi)))
-      super#pVDecl vi
-
-  method pBehavior fmt b =
-    Format.fprintf fmt "@{<%s>%a@}"
-      (Tag.create (PBehavior (Cilutil.out_some self#current_kf,b)))
-      super#pBehavior b
 
   method pLval fmt lv =
     match self#current_kinstr with
@@ -245,10 +299,104 @@ class tagPrinterClass = object(self)
         super#pTerm_lval fmt lv;
         if alive then Format.fprintf fmt "@}"
 
-  method pStmtNext next fmt current =
+  method pVDecl fmt vi =
     Format.fprintf fmt "@{<%s>%a@}"
-      (Tag.create (PStmt (Cilutil.out_some self#current_kf,current)))
-      (super#pStmtNext next) current
+      (Tag.create (PVDecl (self#current_kf,vi)))
+      super#pVDecl vi
+
+  method pCode_annot fmt ca =
+    localize_predicate <- false;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PCodeAnnot (Cilutil.out_some self#current_kf,
+			       Cilutil.out_some self#current_stmt,
+			       ca)))
+      super#pCode_annot ca;
+    localize_predicate <- true
+
+  method pGlobal fmt g =
+    match g with
+      (* these globals are already covered by PVDecl *)
+    | GVarDecl _ | GVar _ | GFun _ -> super#pGlobal fmt g
+    | _ ->
+        Format.fprintf fmt "@{<%s>%a@}"
+          (Tag.create (PGlobal g))
+          super#pGlobal
+          g
+
+  method pRequires fmt p =
+    localize_predicate <- false;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PRequires (Cilutil.out_some self#current_kf,
+			      self#current_kinstr,
+                              self#current_behavior,
+			      p)))
+      super#pRequires p;
+    localize_predicate <- true
+
+  method pBehavior fmt b =
+    current_behavior <- Some b;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PBehavior (Cilutil.out_some self#current_kf,self#current_kinstr,b)))
+      super#pBehavior b;
+    current_behavior <- None
+
+  method pDecreases fmt t =
+    localize_predicate <- false;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PVariant (Cilutil.out_some self#current_kf,self#current_kinstr,t)))
+      super#pDecreases t;
+    localize_predicate <- true
+
+  method pTerminates fmt t =
+    localize_predicate <- false;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PTerminates (Cilutil.out_some self#current_kf,self#current_kinstr,t)))
+      super#pTerminates t;
+    localize_predicate <- true
+
+  method pComplete_behaviors fmt t =
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PComplete_behaviors (Cilutil.out_some self#current_kf,self#current_kinstr,t)))
+      super#pComplete_behaviors t
+
+  method pDisjoint_behaviors fmt t =
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PDisjoint_behaviors (Cilutil.out_some self#current_kf,self#current_kinstr,t)))
+      super#pDisjoint_behaviors t
+
+  method pAssumes fmt p =
+    localize_predicate <- false;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PAssumes (Cilutil.out_some self#current_kf,
+			     self#current_kinstr,
+                               self#current_behavior,
+			     p)))
+      super#pAssumes p;
+    localize_predicate <- true
+
+  method pPost_cond fmt p =
+    localize_predicate <- false;
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create (PPost_cond (Cilutil.out_some self#current_kf,
+			      self#current_kinstr,
+                              self#current_behavior,
+			      p)))
+      super#pPost_cond p;
+    localize_predicate <- true
+
+  method pAssigns s fmt a =
+    Format.fprintf fmt "@{<%s>%a@}"
+      (Tag.create
+         (PAssigns (Cilutil.out_some self#current_kf,
+                    self#current_kinstr,self#current_behavior,a)))
+      (super#pAssigns s) a
+
+  method pIdentified_predicate fmt ip =
+    if localize_predicate then
+      Format.fprintf fmt "@{<%s>%a@}"
+        (Tag.create (PPredicate (self#current_kf,self#current_kinstr,ip)))
+        super#pIdentified_predicate ip
+    else super#pIdentified_predicate fmt ip
 
 end
 
@@ -264,7 +412,7 @@ let equal_localizable l1 l2 =
       v1.vid == v2.vid
   | PCodeAnnot (_,_,{annot_id=id1}),PCodeAnnot (_,_,{annot_id=id2}) ->
       id1 = id2
-  | _ -> false
+  | _ -> false (*TODO: add the full diagonal*)
 
 exception Found of int*int
 
@@ -298,23 +446,9 @@ let buffer_formatter state source =
   let starts = Stack.create () in
   let emit_open_tag s =
     (*    Parameters.debug "EMIT TAG";*)
-    (match Tag.get s with
-     | PStmt sid ->
-         Stack.push (source#end_iter#offset, PStmt sid) starts
-     | PLval lv ->
-         Stack.push (source#end_iter#offset, PLval lv) starts
-     | PTermLval lv ->
-         Stack.push (source#end_iter#offset, PTermLval lv) starts
-     | PVDecl vi ->
-         Stack.push (source#end_iter#offset, PVDecl vi) starts
-     | PCodeAnnot ca ->
-         Stack.push (source#end_iter#offset, PCodeAnnot ca) starts
-     | PGlobal g ->
-         Stack.push (source#end_iter#offset, PGlobal g) starts
-     | PBehavior b -> 
-         Stack.push (source#end_iter#offset, PBehavior b) starts
-     | PPredicate b -> 
-         Stack.push (source#end_iter#offset, PPredicate b) starts);
+    Stack.push
+      (source#end_iter#offset, Tag.get s)
+      starts;
     ""
   in
   let emit_close_tag _s =
@@ -322,7 +456,7 @@ let buffer_formatter state source =
        let (p,sid) = Stack.pop starts in
        Locs.add state (p, source#end_iter#offset) sid
      with Stack.Empty ->
-       Parameters.debug "empty stack in emit_tag");
+       Gui_parameters.debug "empty stack in emit_tag");
     ""
   in
   let gtk_fmt = Gtk_helper.make_formatter source in
@@ -338,9 +472,10 @@ let buffer_formatter state source =
   gtk_fmt
 
 let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector =
-  let state = Locs.create () in 
-  host#protect 
-    (fun () -> 
+  let state = Locs.create () in
+  host#protect
+    ~cancelable:false
+    (fun () ->
        Gtk_helper.refresh_gui  ();
        source#set_text "";
        source#remove_all_tags ~start:source#start_iter ~stop:source#end_iter;
@@ -349,7 +484,7 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
          Gtk_helper.cleanup_all_tags source;
          Locs.iter
            state
-           (fun (pb,pe) v -> 
+           (fun (pb,pe) v ->
               Gtk_helper.refresh_gui  ();
               match v with
               | PStmt (_,ki) ->
@@ -376,8 +511,11 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
 	             in
 	             highlighter v ~start:pb ~stop:pe
                    with Not_found -> ())
-              | PTermLval _ | PLval _ | PVDecl _ | PCodeAnnot _ | PGlobal _ 
-              | PBehavior _ | PPredicate _ ->
+              | PTermLval _ | PLval _ | PVDecl _ | PCodeAnnot _ | PGlobal _
+              | PBehavior _ | PPredicate _ | PAssigns _
+              | PPost_cond _| PAssumes _| PDisjoint_behaviors _
+              | PComplete_behaviors _
+              | PTerminates _| PVariant _| PRequires _ ->
 	          highlighter v  ~start:pb ~stop:pe);
          (*  Parameters.debug "Highlighting done (%d occurrences)" (Locs.size ());*)
 
@@ -386,23 +524,13 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
          (*  Parameters.debug "Event tag done";*)
        in
        Locs.set_hilite state hiliter;
-       
+
        (*  Parameters.debug "Display source starts";*)
        let gtk_fmt = buffer_formatter state (source:>GText.buffer) in
        let tagPrinter = new tagPrinterClass in
        let display_global g =
          Gtk_helper.refresh_gui  ();
-         begin match g with
-         | GVarDecl _ | GVar _ | GFun _
-	       (* these globals are already covered by PVDecl *)
-	     ->
-	     tagPrinter#pGlobal gtk_fmt g
-         | _ ->
-	     Format.fprintf gtk_fmt "@{<%s>%a@}"
-	       (Tag.create (PGlobal g))
-	       tagPrinter#pGlobal
-               g
-         end;
+         tagPrinter#pGlobal gtk_fmt g;
          Format.pp_print_flush gtk_fmt ()
        in
        (*  Parameters.debug "Before Display globals %d" (List.length globals);*)
@@ -446,7 +574,8 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
 		        apply_tag source last_shown_area pb pe;
 		        let event_button = GdkEvent.Button.cast ev in
 		        let button = GdkEvent.Button.button event_button in
-		        host#protect (fun () -> selector ~button selected);
+		        host#protect ~cancelable:false
+			  (fun () -> selector ~button selected);
 	              with Not_found -> () (* no statement at this offset *)
                     end;
              false)));

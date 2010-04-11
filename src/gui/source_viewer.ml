@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,16 +23,19 @@
 
 (* Build a read only text view for C source code. *)
 
-let set_language_to_C (buffer:GSourceView.source_buffer)  = 
-  let original_source_language_manager = GSourceView.source_languages_manager () in
+let set_language_to_C (buffer:GSourceView2.source_buffer)  = 
+  let original_source_language_manager = 
+    GSourceView2.source_language_manager ~default:true
+  in
   let original_lang =
-    original_source_language_manager#get_language_from_mime_type "text/x-csrc"
+    original_source_language_manager#guess_language
+      ~content_type:"text/x-csrc" ()
   in
   begin match original_lang with
-  | Some lang -> buffer#set_language lang
-  | None -> Kernel.warning "Mime type 'text/x-csrc' not found"
+  | Some _ -> buffer#set_language original_lang
+  | None -> Gui_parameters.warning "Mime type 'text/x-csrc' not found"
   end;
-  buffer#set_highlight true
+  buffer#set_highlight_syntax true
   
 let make ~packing =
 (*  let d = GWindow.font_selection_dialog ~title:"tutu" ~show:true () in
@@ -40,9 +44,8 @@ let make ~packing =
        Utf8_logic.forall Utf8_logic.exists Utf8_logic.eq Utf8_logic.neq) ;
 *)
   let original_source_window = 
-    GSourceView.source_view
+    GSourceView2.source_view
       ~show_line_numbers:true
-      ~show_line_markers:true
       ~editable:false
       ~packing
       ()
@@ -65,7 +68,7 @@ let make ~packing =
   
     
 let buffer () =
-  let original_source_buffer = GSourceView.source_buffer ()  in
+  let original_source_buffer = GSourceView2.source_buffer ()  in
   set_language_to_C original_source_buffer;
   original_source_buffer
 

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -39,11 +40,10 @@ module type Model_S = sig
 
   (** {3 ...} *)
 
-  val rehash: t -> t
   val is_reachable : t -> bool
   val pretty : Format.formatter -> t -> unit
   val pretty_without_null : Format.formatter -> t -> unit
-  val pretty_filter : 
+  val pretty_filter :
     Format.formatter -> t -> Zone.t -> (Base.t -> bool) -> unit
   val join : t -> t -> t
 
@@ -65,6 +65,7 @@ module type Model_S = sig
   val bottom : t
   val inject : Cvalue_type.Model.t -> t
   val empty : t
+  val is_top: t -> bool
   val value_state : t -> Cvalue_type.Model.t
 
   val drop_relations : t -> t
@@ -73,7 +74,8 @@ module type Model_S = sig
   val uninitialize_locals: Cil_types.block list -> t -> t
 
   val compute_actual_final_from_generic :
-    t -> t -> Zone.t -> Cvalue_type.Model.instanciation -> t*Location_Bits.Top_Param.t
+    t -> t -> Zone.t -> Cvalue_type.Model.instanciation ->
+    t * Location_Bits.Top_Param.t
 
   val is_included_by_location_enum :  t -> t -> Zone.t -> bool
 
@@ -82,7 +84,7 @@ module type Model_S = sig
 
   val add_mem :
     location -> Int_Base.t -> Ival.t -> t -> Cvalue_type.V.t ->
-    cluster list*t
+    cluster list * t
       (** add an information about the value of [*location] *)
 
   val propagate_change_from_real_to_virt :
@@ -131,6 +133,6 @@ module Model : Model_S
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -40,7 +41,8 @@ module type S = sig
   val iter : t -> (data -> unit) -> unit
   val clear : t -> unit
   val release : t -> unit
-  val shallow_copy : t -> t    
+  val shallow_copy : t -> t 
+  val addr : t -> int   
   val overwrite : old:t -> fresh:t -> unit
   val pretty_debug : Format.formatter -> t -> int -> unit
 end

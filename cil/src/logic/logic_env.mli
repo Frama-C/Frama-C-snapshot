@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -84,18 +85,20 @@ val iter_builtin_logic_type: (logic_type_info -> unit) -> unit
 val iter_builtin_logic_ctor: (logic_ctor_info -> unit) -> unit
 
 (** {3 searching the environment} *)
-(*
-val find_logic_function: string -> logic_info
-*)
+
 val find_all_logic_functions : string -> logic_info list
+
+(** cons is a logic function with no argument. It is used as a variable,
+    but may occasionally need to find associated logic_info.
+    @raise Not_found if the given varinfo is not associated to a global logic
+    constant.
+ *)
+val find_logic_cons: logic_var -> logic_info
 val find_logic_type: string -> logic_type_info
 val find_logic_ctor: string -> logic_ctor_info
 
 (** {3 tests of existence} *)
 val is_logic_function: string -> bool
-(*
-val is_predicate: string -> bool
-*)
 val is_logic_type: string -> bool
 val is_logic_ctor: string -> bool
 

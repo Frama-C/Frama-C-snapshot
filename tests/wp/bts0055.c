@@ -15,3 +15,5 @@ int call_ret_ptr (void) {
   int * p = ret_ptr (0);
   return *p;
 }
+
+int main (void) {return 0;}

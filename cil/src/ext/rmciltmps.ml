@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* These are functions etc. for removing CIL generated
@@ -366,13 +367,13 @@ let ok_to_replace_with_incdec curiosh defiosh f id vi r =
                      None)
                   else let redefios = try IH.find redefiosh rhsvi.vid
                   with Not_found -> RD.IOS.empty in
-                  let curdef_stmt = 
+                  let curdef_stmt =
 		    try IH.find RD.ReachingDef.defIdStmtHash curid
-                    with Not_found -> 
+                    with Not_found ->
 		      Cilmsg.fatal "ok_to_replace: couldn't find statement defining %d" curid in
                   if not (RD.IOS.compare defios redefios = 0) then
-                    (if !debug then 
-		       (Cilmsg.debug 
+                    (if !debug then
+		       (Cilmsg.debug
 			  "ok_to_replace: different sets of definitions of %s reach the def of %s and the redef of %s"
                           rhsvi.vname
                           vi.vname
@@ -919,7 +920,16 @@ let rm_unused_locals fd =
 
   let good_var vi = UD.VS.mem vi used in
   let good_locals = List.filter good_var fd.slocals in
-  fd.slocals <- good_locals
+  let remove_block_locals = object
+    inherit Cil.nopCilVisitor
+    method vblock b =
+      b.blocals <- List.filter good_var b.blocals;
+      DoChildren
+  end
+  in
+  fd.slocals <- good_locals;
+  ignore (visitCilBlock remove_block_locals fd.sbody)
+
 
 
 (* see if a vi is volatile *)
@@ -941,11 +951,21 @@ let is_volatile vi =
 (* This is different from dead code elimination because
    temps that can be eliminated during pretty printing
    are also considered *)
-class unusedRemoverClass : cilVisitor = object
+class unusedRemoverClass : cilVisitor = object(self)
     inherit nopCilVisitor
 
   val mutable unused_set = UD.VS.empty
   val mutable cur_func = emptyFunction "@dummy@"
+
+    (* a filter function for picking out
+       the local variables that need to be kept *)
+  method private good_var vi =
+      (is_volatile vi) ||
+      (not(UD.VS.mem vi unused_set) &&
+      (not(IH.mem iioh vi.vid) ||
+      (match IH.find iioh vi.vid with
+        None -> true | Some _ -> false)) &&
+      not(IH.mem incdecHash vi.vid))
 
   (* figure out which locals aren't used *)
   method vfunc f =
@@ -962,20 +982,9 @@ class unusedRemoverClass : cilVisitor = object
       then un
       else (if !debug then (Cilmsg.debug "unusedRemoverClass: %s is unused" vi.vname);
             UD.VS.add vi un)) UD.VS.empty f.slocals in
-
-    (* a filter function for picking out
-       the local variables that need to be kept *)
-    let good_var vi =
-      (is_volatile vi) ||
-      (not(UD.VS.mem vi unused) &&
-      (not(IH.mem iioh vi.vid) ||
-      (match IH.find iioh vi.vid with
-        None -> true | Some _ -> false)) &&
-      not(IH.mem incdecHash vi.vid))
-    in
-    let good_locals = List.filter good_var f.slocals in
-    f.slocals <- good_locals;
     unused_set <- unused;
+    let good_locals = List.filter self#good_var f.slocals in
+    f.slocals <- good_locals;
     DoChildren
 
   (* remove instructions that set variables
@@ -1083,6 +1092,10 @@ class unusedRemoverClass : cilVisitor = object
                  else Skip Cilutil.locUnknown);
         SkipChildren
     | _ -> DoChildren
+
+  method vblock b =
+    b.blocals <- List.filter self#good_var b.blocals;
+    DoChildren
 
 end
 

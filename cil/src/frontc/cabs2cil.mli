@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,8 +35,15 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
+
+(** Registers a new hook that will be applied each time a side-effect free
+    expression whose result is unused is dropped.
+*)
+val register_ignore_pure_exp_hook:
+  (string -> Cil_types.location -> Cil_types.exp -> unit) -> unit
 
 val convFile: Cabs.file -> Cil_types.file
 
@@ -78,12 +85,35 @@ val fresh_global : string -> string
 val prefix : string -> string -> bool
 
 val annonCompFieldName : string
-val conditionalConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
+val logicConditionalConversion: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 val arithmeticConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 val integralPromotion : Cil_types.typ -> Cil_types.typ
 
+(** local information needed to typecheck expressions and statements *)
+type local_env = private
+    { authorized_reads: Cilutil.LvalSet.t;
+      (** sets of lvalues that can be read regardless of a potential
+          write access between sequence points. Mainly for tmp variables
+          introduced by the normalization.
+       *)
+      known_behaviors: string list;
+      (** list of known behaviors at current point. *)
+      is_ghost: bool;
+      (** whether we're analyzing ghost code or not *)
+    }
+
+(** an empty local environment. *)
+val empty_local_env: local_env
+
+(** same as [empty_local_env], but sets the ghost status to the value of its
+    argument
+ *)
+val ghost_local_env: bool -> local_env
+
+(* [VP] Jessie plug-in needs this function to be exported
+   for semi-good reasons. *)
 val blockInitializer :
-  Cilutil.LvalSet.t ->
+  local_env ->
   Cil_types.varinfo -> Cabs.init_expression ->
   Cil_types.block * Cil_types.init * Cil_types.typ
 
@@ -102,11 +132,6 @@ val setDoTransformWhile : unit -> unit
 (** If called, sets a flag so that translation of conditionals does not result
     in forward ingoing gotos (from the if-branch to the else-branch). *)
 val setDoAlternateConditional : unit -> unit
-
-(** If called, sets a flag so that translation of assignments as
-    sub-expressions returns the right-hand-side rather than
-    the left-hand-side. *)
-val setDoAlternateAssign : unit -> unit
 
 (*
 Local Variables:

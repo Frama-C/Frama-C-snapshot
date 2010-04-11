@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* Signal that we are in MS VC mode *)
@@ -43,9 +44,11 @@ val setMSVCMode: unit -> unit
 
 (* Raised when the front-end is requested to print the CABS and return *)
 exception CabsOnly
-  
-(* the main command to parse a file. Return a thunk that can be used to 
+
+(** add a syntactic transformation that will be applied to all freshly parsed
+    C files. *)
+val add_syntactic_transformation: (Cabs.file -> Cabs.file) -> unit
+
+(* the main command to parse a file. Return a thunk that can be used to
  * convert the AST to CIL. *)
 val parse: string -> (unit -> Cil_types.file*Cabs.file)
-
-  

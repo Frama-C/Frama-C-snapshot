@@ -63,12 +63,25 @@ Lt : T[a-1] = 1;
   //@ assert \at(T[\at(a + \at(b, Lb), Pre)], Lt) == 0;
 }
 
+
 //@ ensures \result[\at(i, Pre)] == 0;
 int * result_and_pre (int i) {
-  int * p;
-  p = T+i;
+  int * p0, * pi;
+  p0 = T;
+  pi = p0 + i;
   i = 0;
-  *p = i;
-  return p;
+  *pi = i;
+  return p0;
 }
 
+// result_and_pre contient  no_itself_pointer :
+// manque hypothèse qu'un pointeur ne peut pointé
+// sur lui-même en l'absence de cast.
+ 
+int *p;
+int i; 
+/*@ assigns *p;
+  ensures p==\old(p); */
+void no_itself_pointer(){*p=0;}
+
+int main (void) { return 0 ; }

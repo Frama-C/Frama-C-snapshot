@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,17 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Provided plug-general services for plug-ins. 
+(** Provided plug-general services for plug-ins.
     @since Beryllium-20090601-beta1 *)
 
 val at_normal_exit: (unit -> unit) -> unit
-  (** Register a hook executed whenever Frama-C exits without error (the exit
-      code is 0).
-      @since Beryllium-20090901 *)
+  (** Now replaced by {!Cmdline.at_normal_exit}.
+      @since Beryllium-20090901
+      @deprecated since Boron-20100401 *)
 
 val run_normal_exit_hook: unit -> unit
-  (** Run all the hooks registered by {!at_normal_exit}.
-      @since Beryllium-20090901 *)
+  (** Now replaced by {!Cmdline.run_normal_exit_hook}.
+      @since Beryllium-20090901
+      @deprecated since Boron-20100401 *)
 
 (** {2 Signatures} *)
 
@@ -104,13 +106,13 @@ module type INT = sig
     (** Increment the integer. *)
 
   val set_range: min:int -> max:int -> unit
-    (** Set what is the possible range of values for this parameter. 
+    (** Set what is the possible range of values for this parameter.
 	@since Beryllium-20090901 *)
 
   val get_range: unit -> int * int
-    (** What is the possible range of values for this parameter. 
+    (** What is the possible range of values for this parameter.
 	@since Beryllium-20090901 *)
-  
+
 end
 
 (** Signature for a string parameter.
@@ -135,33 +137,39 @@ module type GEN_STRING_SET = sig
 
   include Parameter
 
-  val set_set: string -> unit
-    (** Set each sub-string (separated by "[ \t]*,[ \t]*" regexp)
-        to the set option. *)
-  val get_set: ?sep:string -> unit -> string
-    (** Get a string which concatenates each string in the set with a
-	white space separation. *)
   val add: string -> unit
     (** Add a string to the string set option. *)
-  val add_set: string -> unit
-    (** Add each sub-string (separated by "[ \t]*,[ \t]*" regexp)
-        to the set option. *)
-  val iter: (string -> unit) -> unit
-  val fold: (string -> 'a -> 'a) -> 'a -> 'a
 
-end
-
-module type STRING_SET = sig
-  include GEN_STRING_SET with type t = Cilutil.StringSet.t
-  val is_empty: unit -> bool
   val remove: string -> unit
     (** Remove a string from the option. *)
-  val remove_set: string -> unit
-    (** Remove each sub-string (separated by "[ \t]*,[ \t]*" regexp)
-        from the option. *)
+
+  val is_empty: unit -> bool
+    (** Check if the set is empty. *)
+
+  val get_set: ?sep:string -> unit -> string
+    (** Get a string which concatenates each string in the set with a
+	separator. The default separator is ", ". *)
+
+  val iter: (string -> unit) -> unit
+    (** Iter on each string in the set. *)
+
 end
 
+module type STRING_SET = GEN_STRING_SET with type t = Cilutil.StringSet.t
 module type STRING_LIST = GEN_STRING_SET with type t = string list
+
+(** @since Boron-20100401 *)
+module type STRING_HASHTBL = sig
+
+  include GEN_STRING_SET with type t = Cilutil.StringSet.t
+
+  (** @since Boron-20100401 *)
+  type value
+
+  val find: string -> value
+    (** @since Boron-20100401 *)
+
+end
 
 (** {3 Complex values indexed by strings} *)
 
@@ -189,7 +197,7 @@ end
 module type Parameter_input_with_arg = sig
   include Parameter_input
   val arg_name: string
-    (** A standard name for the argument which may be used in the description. 
+    (** A standard name for the argument which may be used in the description.
 	If empty, a generic arg_name is generated. *)
 end
 
@@ -214,6 +222,15 @@ module type S = sig
   module Help: BOOL
   module Verbose: INT
   module Debug: INT
+
+  val help: group
+    (** The group containing option -*-help.
+	@since Boron-20100401 *)
+
+  val messages: group
+    (** The group containing options -*-debug and -*-verbose.
+	@since Boron-20100401 *)
+
 end
 
 module type General_services = sig
@@ -223,8 +240,8 @@ module type General_services = sig
   (** {2 Functors for generating a new parameter} *)
 
   module Bool
-    (X:sig 
-       include Parameter_input 
+    (X:sig
+       include Parameter_input
        val default: bool
 	 (** The default value of the parameter. So giving the option
 	     [option_name] to Frama-C, change the value of the parameter to
@@ -269,48 +286,58 @@ module type General_services = sig
   (** @plugin development guide *)
   module IndexedVal (V:COMPLEX_VALUE) : INDEXED_VAL with type value = V.t
 
+  (** @since Boron-20100401 *)
+  module StringHashtbl
+    (X: Parameter_input_with_arg)
+    (V: sig
+       include Project.Datatype.S
+       val parse: string -> string * t
+       val no_binding: string -> t
+     end) :
+    STRING_HASHTBL with type value = V.t
+
 end
 
-(** {2 Configuration of functor applications generating parameters} 
+(** {2 Configuration of functor applications generating parameters}
 
     You can apply the below functions juste before applying one of the functors
     provided by the functor [Register] and generating a new parameter. *)
 
 val set_cmdline_stage: Cmdline.stage -> unit
   (** Set the stage where the option corresponding to the parameter is
-      recognized. Default is [Cmdline.Configuring]. 
+      recognized. Default is [Cmdline.Configuring].
       @since Beryllium-20090601-beta1 *)
 
 val do_not_journalize: unit -> unit
-  (** Call this function in order to not journalize the parameter. 
+  (** Call this function in order to not journalize the parameter.
       @since Beryllium-20090601-beta1 *)
 
 val do_not_projectify: unit -> unit
-  (** Do not projectify the parameter. 
+  (** Do not projectify the parameter.
       @since Beryllium-20090601-beta1 *)
 
 val register_kernel: unit -> unit
   (** To be called just before {!Register} in order to activate a
       special mode corresponding to registering some parts of the Frama-C
-      kernel and not a standard plug-in. 
+      kernel and not a standard plug-in.
       @since Beryllium-20090601-beta1 *)
 
 val set_negative_option_name: string -> unit
   (** For boolean parameters, set the name of the negative
       option generating automatically from the positive one (the given option
-      name). The default used value prefixes the given option name by "-no". 
-      Assume that the given string is a valid option name or empty. 
-      If it is empty, no negative option is created. 
+      name). The default used value prefixes the given option name by "-no".
+      Assume that the given string is a valid option name or empty.
+      If it is empty, no negative option is created.
       @since Beryllium-20090601-beta1 *)
 
 val set_negative_option_descr: string -> unit
   (** For boolean parameters, set the description of the negative
-      option generating automatically. 
-      Assume that the given string is non empty. 
+      option generating automatically.
+      Assume that the given string is non empty.
       @since Beryllium-20090601-beta1 *)
 
 val set_optional_descr: (unit, Format.formatter, unit) format -> unit
-  (** Concatenate an additional description just after the default one. 
+  (** Concatenate an additional description just after the default one.
       @since Beryllium-20090601-beta1 *)
 
 val set_group: group -> unit
@@ -318,11 +345,17 @@ val set_group: group -> unit
       @since Beryllium-20090901 *)
 
 val set_module_name: string -> unit
-  (** This function must be call if and only if the next functor application
+  (** This function must be called if and only if the next functor application
       generates a new **kernel** parameter. So this function should not be used
-      by plug-in developer. 
-      The given argument must be the module name corresponding to the
-      parameter. *)
+      by plug-in developer. The given argument must be the module name
+      corresponding to the parameter. *)
+
+val is_visible: unit -> unit
+  (** This function must be called in order to allow the parameter created
+      by the next functor application to be accessible through function
+      {!iter_on_plugins}. By default, only the parameter corresponding to an
+      option registered at the {!Cmdline.Configuring} stage are visible.
+      @since Boron-20100401 *)
 
 (** Functors for generating plug-ins parameters. *)
 module Register
@@ -339,20 +372,23 @@ type 'a option_accessor = private
     { get: unit -> 'a; set: 'a -> unit; is_set: unit -> bool }
 
 type kind = private
-  | Bool of 
-      bool option_accessor * string option (* the negative option, if any *)
-  | Int of int option_accessor * (unit -> int * int) (* getting range *)
-  | String of string option_accessor * (unit -> string list)
-  | StringSet of string option_accessor (* Comma separated string list *)
+  | Bool of
+      bool option_accessor * string option (** the negative option, if any *)
+  | Int of int option_accessor * (unit -> int * int) (** getting range *)
+  | String of
+      string option_accessor * (unit -> string list) (** possible values *)
+  | StringSet of string option_accessor (** Comma separated string list *)
 
 type parameter = private { o_name: string; o_descr: string; o_kind: kind }
-  (** @since Beryllium-20090901 *)
+    (** @since Beryllium-20090901 *)
 
-type plugin = private 
-    { p_name: string; 
-      p_descr: string; 
+type plugin = private
+    { p_name: string;
+      p_descr: string;
       p_parameters: (string, parameter list) Hashtbl.t }
-  (** @since Beryllium-20090901 *)
+    (** Only visible parameters (see {!is_visible}) are registered in the field
+	[p_parameters].
+	@since Beryllium-20090901 *)
 
 val iter_on_plugins: (plugin -> unit) -> unit
   (** Iterate on each registered plug-ins.
@@ -362,12 +398,20 @@ val get_selection: unit -> Project.Selection.t
   (** Selection of all the settable parameters.
       @plugin development guide *)
 
-val dynamic_funname:
-  modname:string -> funname:string -> statename:string -> string
-  (** Not for casual users. *)
+val positive_debug_ref: int ref
+  (** Not for casual users.
+      @since Boron-20100401 *)
+
+val dynamic_plugin_name: string -> string
+  (** Not for casual users.
+      @since Boron-20100401 *)
+
+val dynamic_function_name: string -> string -> string
+  (** Not for casual users.
+      @since Boron-20100401 *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

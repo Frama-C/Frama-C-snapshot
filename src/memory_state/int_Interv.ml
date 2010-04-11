@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -36,6 +37,9 @@ let fuzzy_order (b1,e1) (b2, e2) =
 exception Cannot_compare_intervals
 
 type t = Int.t * Int.t
+
+let descr = Unmarshal.t_tuple [| Unmarshal.Abstract; Unmarshal.Abstract |]
+
 let compare x y =
   match fuzzy_order x y with
     Rangemap.Above -> -1
@@ -52,7 +56,7 @@ let compare x y =
 	end
 
 let hash (x, y) = Int.hash x + 7 * Int.hash y
-	
+
 let shift s (b,e) =
   Int.add b s, Int.add e s
 
@@ -75,9 +79,9 @@ let check_coverage (bi,ei) concerned =
 
 
 let clip_itv (refb1,refe1) (b2,e2) =
-  assert (Int.le b2 refe1 && Int.ge e2 refb1); 
+  assert (Int.le b2 refe1 && Int.ge e2 refb1);
   (* the 2 is a concerned_interval of the ref *)
   let min = Int.max refb1 b2 in
   let max = Int.min refe1 e2 in
   min,max
-    
+

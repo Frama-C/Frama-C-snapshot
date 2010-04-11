@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -36,13 +37,13 @@ struct
 (*  module Top_Param = Make_Hashconsed_Lattice_Set(K) *)
 
   module M = (* Mergemap.Make (K) *)
-    Ptmap.Generic(K)(V)(struct let v = [] :: [K.null,V.top]::L.v end)
+    Ptmap.Make(K)(V)(struct let v = [] :: [K.null,V.top]::L.v end)
 
   module Top_Param = Top_Param
- 
+
   type map_t = M.t
   type t = Top of Top_Param.t * Origin.t | Map of map_t
-  type tt = t
+  type tt = t = Top of Top_Param.t * Origin.t | Map of map_t
     (* Invariant :
        [Top (s,_)] ok if [Top_Param.null] is not in [s]
        [Top (emptyset,_)] is injected to [Map (Null,Top)] *)
@@ -102,13 +103,6 @@ struct
 	(M.iter print_binding) m;
 	Format.fprintf fmt "}}"
 
-  let rehash l =
-(*    Format.printf "rehashing (%s map) %a@."
-      V.Datatype.name pretty l; *)
-    match l with
-      Top (t,a) -> Top (Top_Param.Datatype.rehash t, a)
-    | Map m -> Map (M.Datatype.rehash m)
-
   let find_or_bottom k m =
     try
       M.find k m
@@ -152,7 +146,7 @@ struct
   let join =
     let symetric_merge =
       M.symetric_merge
-	~cache:("map_Lattice",8192) ~decide_none ~decide_some
+        ~cache:("map_Lattice",8192) ~decide_none ~decide_some
     in
     fun m1 m2 ->
       if m1 == m2 then m1 else
@@ -175,7 +169,7 @@ struct
 
 		  let n = succ !check_join_assert in
 		  check_join_assert := n;
-		  n land 63 <> 0  || 
+		  n land 63 <> 0  ||
 		(let merge_key k v acc =
 		  M.add k (V.join v (find_or_bottom k mm2)) acc
 		in
@@ -183,11 +177,11 @@ struct
 		if equal result r2 then
 		  true
 		else begin
-		  Format.printf "Map_Lattice.join incorrect %a (%d) %a (%d) -> %a (%d) %a (%d)@."
-		    pretty m1 (hash m1)
-		    pretty m2 (hash m2)
-		    pretty result (hash result)
-		    pretty r2 (hash r2);
+		  Format.printf "Map_Lattice.join incorrect %a (%d;%x) %a (%d;%x) -> %a (%d;%x) %a (%d;%x)@."
+		    pretty m1 (hash m1) (Extlib.address_of_value m1)
+		    pretty m2 (hash m2) (Extlib.address_of_value m2)
+		    pretty result (hash result) (Extlib.address_of_value result)
+		    pretty r2 (hash r2) (Extlib.address_of_value r2);
 		  false;
 		  end));
 
@@ -234,7 +228,7 @@ struct
   exception Not_all_keys
 
   (** If all keys are bound to [v0] in [m], [get_keys_exclusive v0 m] returns
-      the list of keys in [m]. 
+      the list of keys in [m].
       @raise Not_all_keys otherwise. *)
   let get_keys_exclusive v0 m =
     match m with
@@ -407,7 +401,7 @@ struct
   let intersects m1 m2 =
     let result =
       match m1,m2 with
-      | Top (_,_), Top (_,_) -> true	  
+      | Top (_,_), Top (_,_) -> true
       | Top _, (Map _ as m) | (Map _ as m), Top _ -> not (equal m bottom)
       | Map m1, Map m2 ->
 	  let intersects_in_m1 k v2 =
@@ -428,7 +422,7 @@ struct
     result
 
   (** if there is only one key [k] in map [m], then returns the pair [k,v]
-      where [v] is the value associated to [k]. 
+      where [v] is the value associated to [k].
       @raise Not_found otherwise. *)
   let find_lonely_key m =
     match m with
@@ -479,8 +473,8 @@ struct
     | Top _ -> raise Not_less_than
     | Map m ->
 	M.fold
-	  (fun _base v card -> 
-	    card + 
+	  (fun _base v card ->
+	    card +
 	      (V.splitting_cardinal_less_than ~split_non_enumerable
 	      v  (n-card) ))
 	  m
@@ -585,11 +579,14 @@ struct
   module Datatype =
     Project.Datatype.Register
       (struct
-	 type t = tt
+	 type t = tt = Top of Top_Param.t * Origin.t | Map of map_t
 	 let copy _ = assert false (* TODO *)
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
-	 let name = Project.Datatype.extend_name "map_lattice" V.Datatype.name
+	 let name = Project.Datatype.extend_name "map_lattice" M.Datatype.name
+	 open Unmarshal
+	 let descr =
+	   Structure
+	     (Sum [| [| Top_Param.Datatype.descr; Abstract |];
+		     [| M.Datatype.descr |] |])
        end)
   let () = Datatype.register_comparable ~hash ~equal ()
 

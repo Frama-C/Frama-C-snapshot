@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -80,6 +81,10 @@ let init_dependencies comp =
   LogicTypeInfo.depend comp;
   LogicCtorInfo.depend comp
 
+(* keep track of logic functions builtins that have been used
+   across various input files *)
+module LogicInfoUsedBuiltin = Hook.Make(struct type t = unit end)
+
 let builtin_to_logic b =
   let params =
     List.map (fun (x,t) -> Cil_const.make_logic_var x t) b.bl_profile in
@@ -88,7 +93,12 @@ let builtin_to_logic b =
   li.l_tparams <- b.bl_params;
   li.l_profile <- params;
   li.l_labels <- b.bl_labels;
-  LogicInfo.add b.bl_name li; li
+  let add () =
+    LogicInfo.add b.bl_name li
+  in
+  LogicInfoUsedBuiltin.extend add;
+  add ();
+  li
 
 let is_builtin_logic_function = LogicBuiltin.mem
 
@@ -104,6 +114,10 @@ let find_all_logic_functions s =
         let builtins = LogicBuiltin.find_all s in
         List.map builtin_to_logic builtins
     | l -> l
+
+let find_logic_cons vi =
+  List.find (fun x -> x.l_var_info.lv_id = vi.lv_id)
+    (LogicInfo.find_all vi.lv_name)
 
 (* add_logic_function takes as argument a function eq_logic_info which
    decides whether two logic_info are identical. It is intended to be
@@ -181,13 +195,31 @@ let builtin_states =
 module Builtins= struct
   include Hook.Make(struct type t = unit end)
     (* ensures we do not apply the hooks twice *)
-  let apply () = apply (); clear ()
+  module Applied =
+    Computation.Ref(struct include Datatype.Bool let default () = false end)
+      (struct
+         let name="Application of logic built-ins hook"
+         let dependencies= [LogicBuiltin.self; LogicTypeBuiltin.self;
+                            LogicCtorBuiltin.self]
+           (* if the built-in states are not kept,
+              hooks must be replayed.
+            *)
+       end)
+  let apply () =
+    Cilmsg.feedback ~level:5 "Applying logic built-ins hooks for project %s"
+      (Project.name (Project.current()))
+    ;
+    if not (Applied.get ()) then begin Applied.set true; apply () end
+    else Cilmsg.feedback ~level:5 "Already applied"
 end
+
+let called = ref false
 
 let prepare_tables () =
   LogicCtorInfo.clear ();
   LogicTypeInfo.clear ();
   LogicInfo.clear ();
+  LogicInfoUsedBuiltin.apply();
   LogicTypeBuiltin.iter LogicTypeInfo.add;
   LogicCtorBuiltin.iter LogicCtorInfo.add (*;*)
 (*  LogicBuiltin.iter LogicInfo.add *)

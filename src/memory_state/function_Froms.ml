@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -52,27 +53,26 @@ let pretty_with_type typ fmt { deps_return = r; deps_table = t } =
       Lmap_bitwise.From_Model.pretty t
       (Lmap_bitwise.From_Model.LOffset.pretty_with_type (Some rt_typ)) r
 
-let hash { deps_return = dr ; deps_table = dt } = 
+let hash { deps_return = dr ; deps_table = dt } =
   Lmap_bitwise.From_Model.hash dt + 197*Lmap_bitwise.From_Model.LOffset.tag dr
 
-let equal 
-    { deps_return = dr ; deps_table = dt } 
+let equal
+    { deps_return = dr ; deps_table = dt }
     { deps_return = dr' ; deps_table = dt' } =
-  Lmap_bitwise.From_Model.equal dt dt' 
+  Lmap_bitwise.From_Model.equal dt dt'
   && Lmap_bitwise.From_Model.LOffset.equal dr dr'
 
-module Datatype = 
+module Datatype =
   Project.Datatype.Register
     (struct
        type tt = t
        type t = tt
        open Lmap_bitwise
        let copy _ = assert false (* TODO: deep copy *)
-       let rehash x =
-         let dr = From_Model.LOffset.Datatype.rehash x.deps_return in
-         let dt = From_Model.Datatype.rehash x.deps_table in
-         { deps_return = dr ; deps_table = dt }
-       let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+       let descr =
+	 Unmarshal.t_record
+	   [| Lmap_bitwise.From_Model.LOffset.Datatype.descr;
+	      Lmap_bitwise.From_Model.Datatype.descr |]
        let name = "function_froms"
      end)
 let () = Datatype.register_comparable ~equal ~hash ()

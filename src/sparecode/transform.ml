@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -76,16 +77,16 @@ module BoolInfo = struct
     | Instr (Call (_, _fexp, _, _)) ->
         begin
           let called_functions = Db.Value.call_to_kernel_function call_stmt in
-          match called_functions with
-            | called_kf :: [] ->
-                begin
-                let fm =
-                    Marks.get_marks project called_kf
-                in match fm with
-                  | None -> None
-                  | Some fm -> Some (called_kf, fm)
-                end
-            | _ -> None
+	  match Kernel_function.Set.contains_single_elt called_functions with
+	    None -> None
+	  | Some funct ->
+                  begin
+                    let fm =
+                      Marks.get_marks project funct
+                    in match fm with
+                      | None -> None
+                      | Some fm -> Some (funct, fm)
+                  end
         end
     | _ -> Sparecode_params.fatal "this call is not a call"
 

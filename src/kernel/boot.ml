@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: boot.ml,v 1.33 2008-11-18 12:13:41 uid568 Exp $ *)
-
 (** Frama-C Entry Point (last linked module).
     @plugin development guide *)
 
@@ -34,14 +33,15 @@ let obfuscate_code code_fmt ast =
   Format.fprintf code_fmt "@[%a@]" (Cil.d_file (new Printer.print())) ast
 
 let run_plugins () =
-  if Parameters.TypeCheck.get () then Ast.compute ();
-  if Parameters.Obfuscate.get () then 
+  if Parameters.TypeCheck.get () || Parameters.Files.Copy.get () then
+    Ast.compute ();
+  if Parameters.Obfuscate.get () then
     begin
       Parameters.CodeOutput.output "%a" obfuscate_code (Ast.get ()) ;
       raise Cmdline.Exit
     end;
   (* Printing files before anything else (in debug mode only) *)
-  if Parameters.Debug.get () > 0 then File.pretty ();
+  if Kernel.debug_atleast 1 then File.pretty ();
   (* Syntactic constant folding before analysing files if required *)
   if Parameters.Constfold.get () then
     Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) (Ast.get ());
@@ -64,8 +64,7 @@ let () = Db.Main.play := run_plugins
 let boot_cil () =
   Cabs2cil.forceRLArgEval := false;
   Cil.miscState.Cil.lineDirectiveStyle <- None;
-  (*  Cil.lineDirectiveStyle := Some LinePreprocessorInput;*)
-  Cil.miscState.Cil.printCilAsIs <- Parameters.Debug.get () > 0;
+  Cil.miscState.Cil.printCilAsIs <- Kernel.debug_atleast 1;
   Mergecil.ignore_merge_conflicts := true
 
 (* Main: let's go! *)
@@ -74,17 +73,16 @@ let () =
   boot_cil ();
   Sys.catch_break true;
   Cmdline.catch_toplevel_run
-    (fun () ->
-       Journal.set_name (Parameters.Journal.Name.get ());
-       ignore (Project.create "default");
-       Cmdline.parse_and_boot (fun () -> !Db.Toplevel.run) run_plugins)
-    (fun () ->
-       Plugin.run_normal_exit_hook ();
-       exit 0 (* ensure that nothing occurs after booting: no other file can be
-		 linked after boot.ml *))
+    ~f:(fun () ->
+	  Journal.set_name (Parameters.Journal.Name.get ());
+	  ignore (Project.create "default");
+	  Cmdline.parse_and_boot (fun () -> !Db.Toplevel.run) run_plugins)
+    ~at_normal_exit:Cmdline.run_normal_exit_hook
+    ~quit:true
+    ~on_error:Cmdline.run_error_exit_hook
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -52,7 +53,8 @@ let print () = Self.result "Hello world!"
     and second, each call to [run] is written in the Frama-C journal. *)
 let print =
   Dynamic.register
-    "Hello.run"
+    ~plugin:"Hello"
+    "run"
     ~journalize:true
     (Type.func Type.unit Type.unit)
     print

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -21,15 +22,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id$ *)
-
 (* TODO: remove the module Properties from Db and export directly the
-   functions from here.
-*)
+   functions from here. *)
+
+open Cil_types
+open Db_types
 
 (** returns a copy of the spec in which all formals in an ensures clause
-    are guarded by an \at(x,Old)
-*)
-val formals_in_ensures: Db_types.kernel_function -> Cil_types.funspec
+    are guarded by an \at(x,Old). *)
+val formals_in_ensures: kernel_function -> funspec
 
-exception Error of Cil_types.location * string
+exception Error of location * string
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

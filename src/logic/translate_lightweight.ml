@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -136,13 +137,13 @@ class annotateFunFromDeclspec =
     let kf = Globals.Functions.get v in
     let params = Globals.Functions.get_params kf in
     let req = List.fold_left (annotate_var params) [] params in
-    if req <> [] then 
+    if req <> [] then
       let funspec = Kernel_function.get_spec kf in
       let req = req@funspec.spec_requires in
       let return_ty = getReturnType v.vtype in
       let loc = v.vdecl in
       funspec.spec_requires <- req;
-      let insert_spec behavior = 
+      let insert_spec behavior =
         let ens =
           List.fold_left
 	    (fun acc attr ->
@@ -167,7 +168,7 @@ class annotateFunFromDeclspec =
 		     let app =
 		       Logic_const.new_predicate (Logic_const.unamed p)
 		     in
-		     app :: acc
+		     (Normal,app) :: acc
 		   else
 		     try
 		       let p =
@@ -183,12 +184,12 @@ class annotateFunFromDeclspec =
 		         Logic_const.new_predicate
 			   (Logic_const.unamed (Papp(p,[],args)))
 		       in
-		       app :: acc
-		     with Not_found -> acc) 
-            behavior.b_ensures 
+		       (Normal,app) :: acc
+		     with Not_found -> acc)
+            behavior.b_post_cond
             (typeAttrs return_ty)
         in
-        behavior.b_ensures <- ens
+        behavior.b_post_cond <- ens
       in
       List.iter insert_spec funspec.spec_behavior
   in
@@ -204,7 +205,7 @@ object
     | GVarDecl(_,v,_)
     | GVar(v,_,_) (*as g*) ->
 	if isFunctionType v.vtype && not v.vdefined then
-	  annotate_fun v; 
+	  annotate_fun v;
         SkipChildren
           (* )
 	     else
@@ -236,4 +237,3 @@ end
 let interprate file =
   let visitor = new annotateFunFromDeclspec in
   visitFramacFile visitor file
-    

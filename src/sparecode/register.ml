@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -36,7 +37,6 @@ module Result =
        let dependencies = [] (* delayed, see below *)
      end)
 
-
 module P = Sparecode_params
 (*
 let () =
@@ -58,8 +58,10 @@ let unjournalized_rm_unused_globals project () =
 let journalized_rm_unused_globals =
   Journal.register
     "!Db.Sparecode.rm_unused_globals"
-    (Type.func ~label:("project", Some Project.current)
-       Project.ty (Type.func Type.unit  Project.ty))
+    (Type.func2
+       ~label1:("project", Some Project.current) Project.ty
+       Type.unit
+       Project.ty)
     unjournalized_rm_unused_globals
 
 let rm_unused_globals ?(project=Project.current ()) () =
@@ -88,8 +90,10 @@ let run select_annot select_slice_pragma =
 let journalized_get =
   Journal.register
     "!Db.Sparecode.get"
-    (Type.func ~label:("select_annot", None) Type.bool
-       (Type.func ~label:("select_slice_pragma", None) Type.bool Project.ty))
+    (Type.func2
+       ~label1:("select_annot", None) Type.bool
+       ~label2:("select_slice_pragma", None) Type.bool
+       Project.ty)
     (fun select_annot select_slice_pragma ->
        Result.memo
 	 (fun _ -> run select_annot select_slice_pragma)
@@ -107,7 +111,7 @@ let () =
   Db.register Db.Journalization_not_required
     Db.Sparecode.rm_unused_globals rm_unused_globals
 
-let main _fmt =
+let main () =
   if Sparecode_params.Analysis.get () then begin
     let select_annot = Sparecode_params.Annot.get () in
     let select_slice_pragma = true in

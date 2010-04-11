@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -33,9 +34,9 @@ val load_file : t -> filename:string -> line:int -> unit
 
 val get_notebook: t -> GPack.notebook
 
-val append_source_tab : t -> string -> GSourceView.source_view
+val append_source_tab : t -> string -> GSourceView2.source_view
 
-val prepend_source_tab : t -> string -> GSourceView.source_view
+val prepend_source_tab : t -> string -> GSourceView2.source_view
 
 val get_nth_page: t -> int -> GObj.widget
 
@@ -45,7 +46,7 @@ val last_page: t -> int
 
 val set_current_view: t -> int -> unit
 
-val get_current_view: t -> GSourceView.source_view
+val get_current_view: t -> GSourceView2.source_view
 
 val get_current_index: t -> int
 
@@ -56,9 +57,9 @@ val delete_view: t -> int -> unit
 val delete_all_views: t -> unit
   (** Delete all pages in the object *)
 
-val append_view: t -> GSourceView.source_view -> unit
+val append_view: t -> GSourceView2.source_view -> unit
 
-val get_nth_view:  t -> int -> GSourceView.source_view
+val get_nth_view:  t -> int -> GSourceView2.source_view
 
 val enable_popup : t -> bool -> unit
 

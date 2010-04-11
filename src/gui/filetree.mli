@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,14 +23,14 @@
 (** The tree containing the list of modules and functions together with dynamic columns *)
 
 class type t =  object 
-  method model : GTree.model_filter
+  method model : GTree.model
 
   method set_file_attribute: 
-    ?strikethrough:bool -> ?visible:bool -> ?text:string -> string -> unit
+    ?strikethrough:bool -> ?text:string -> string -> unit
     (** Manually set some attributes of the given filename. *)
 
   method set_global_attribute: 
-    ?strikethrough:bool -> ?visible:bool -> ?text:string -> Cil_types.varinfo -> unit
+    ?strikethrough:bool -> ?text:string -> Cil_types.varinfo -> unit
     (** Manually set some attributes of the given variable. *)
 
   method add_select_function : 

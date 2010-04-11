@@ -3,12 +3,12 @@ int x;
 // wrong: multiply defined label
 //@ predicate p{L,L}(integer n) = n > 0 ;
 
-// wrong: label missing
+// label missing, but automatically inferred
 //@ predicate p(int t[]) = t[0];
 
 /*@ axiomatic Q {
   @   predicate q(int t[]);
-  @   //wrong: label missing
+  @   //label missing, but automatically inferred
   @   axiom q_ax: \forall int t[]; t[0] == 0 ==> q(t);
   @ }
   @*/

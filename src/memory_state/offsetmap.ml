@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -32,7 +33,7 @@ exception Result_is_same
 type itv = Int.t * Int.t
 
 module type S = sig
-  type t 
+  type t
   type y
   type widen_hint
 
@@ -47,14 +48,14 @@ module type S = sig
   val pretty : Format.formatter -> t -> unit
   val pretty_debug : Format.formatter -> t -> unit
 
-    
+
   val reduce : Ival.t -> size:Int.t -> y -> t -> t
 
   val is_included : t -> t -> bool
   val is_included_exn : t -> t -> unit
   val is_included_exn_generic : (y -> y -> unit) -> t -> t -> unit
 
-  val is_included_actual_generic : 
+  val is_included_actual_generic :
   BaseUtils.BaseSet.t ->
   BaseUtils.BaseSet.t ref ->
     Locations.Location_Bytes.t BaseUtils.BaseMap.t ref -> t -> t -> unit
@@ -63,15 +64,15 @@ module type S = sig
 
   val widen : widen_hint -> t -> t -> t
 
-      
-  val find_ival : 
+
+  val find_ival :
     validity:Base.validity -> with_alarms:CilE.warn_mode
     -> Ival.t -> t -> Int.t -> y -> y
     (** May raise [Not_found] if V.top is found *)
 
-  val concerned_bindings_ival : 
+  val concerned_bindings_ival :
     offsets:Ival.t -> offsetmap:t -> size:Int.t -> y list -> y list
-    (** Returns the list of the values associated to at least one bit of the 
+    (** Returns the list of the values associated to at least one bit of the
 	ival. For this function Top is not a binding ! *)
 
   val update_ival :
@@ -96,11 +97,11 @@ module type S = sig
   val add_whole :  itv -> y -> t -> t
   val remove_whole :  itv -> t -> t
 
-  val fold_whole : 
+  val fold_whole :
     size:Int.t -> (Ival.t -> Int.t -> y -> 'a -> 'a) -> t -> 'a -> 'a
     (** May raise [Invalid_argument "Offsetmap.Make.fold"] *)
 
-  val fold_single_bindings : 
+  val fold_single_bindings :
     size:Int.t -> (Ival.t -> Int.t -> y -> 'a -> 'a) -> t -> 'a -> 'a
     (** May raise [Invalid_argument "Offsetmap.Make.fold"] *)
 
@@ -108,7 +109,7 @@ module type S = sig
     (itv -> (Int.t * Int.t * y) -> 'a -> 'a) -> t -> 'a -> 'a
 
   val shift_ival : Ival.t -> t -> t option -> t option
-    (** [shift_ival shift o acc] returns the join of [acc] and 
+    (** [shift_ival shift o acc] returns the join of [acc] and
 	of [o] shifted by all values in [shift].
 	Raises [Found_Top] when the result is [Top]. *)
 
@@ -121,7 +122,7 @@ module type S = sig
   val sized_zero : size_in_bits:Int.t -> t
 
   val reciprocal_image : t -> Base.t -> Int_Intervals.t * Ival.t
-    (** [reciprocal_image m b] is the set of bits in the offsetmap [m] 
+    (** [reciprocal_image m b] is the set of bits in the offsetmap [m]
 	that may lead to Top([b]) and  the set of offsets in [m]
 	where one can read an address [b]+_ *)
 
@@ -143,8 +144,19 @@ struct
   open Abstract_interp
 
   module New = New_offsetmap.Make(V)
-      
-  type value = Int.t*Int.t*V.t
+
+  module Int_Int_V = struct
+    type t =  Int.t * Int.t * V.t
+    let hash (r,m,v) =
+      Hashtbl.hash (Int.hash r, Int.hash m, V.hash v)
+    let descr =
+      Unmarshal.t_tuple
+	[| Unmarshal.Abstract; Unmarshal.Abstract; V.Datatype.descr |]
+  end
+
+  module M = Int_Interv_Map.Make(Int_Int_V)
+
+  type value = Int_Int_V.t
 
       (* Invariants:
          1) Same as Rangemap.t
@@ -153,29 +165,22 @@ struct
          3) No binding to V.top is present
       *)
 
-  type t = value Int_Interv_Map.t
+  type t = M.t
+  let descr = M.descr
   type y = V.t
   type widen_hint = V.widen_hint
 
 
-  let hash v =
-    Int_Interv_Map.fold
-      (fun (b,e) (r,m,v) acc ->
-	 assert (Int.lt r m);
-	 assert (Int.le Int.zero r);
-	 assert (if V.is_isotropic v then Int.is_one m else true);
-	 5 * acc + (Int.hash b) + 29 * (Int.hash e) +  299 * (V.hash v))
-      v
-      19871
+  let hash v = M.hash v
 
-  let empty = Int_Interv_Map.empty
+  let empty = M.empty
 
-  let is_empty v = Int_Interv_Map.is_empty v
+  let is_empty v = M.is_empty v
 
-  let shift s v = Int_Interv_Map.shift s v
+  let shift s v = M.shift s v
 
   let pretty_debug fmt m =
-    Int_Interv_Map.pretty
+    M.pretty
       (fun fmt (r,m,v) ->
 	 Format.fprintf fmt "{r=%a;m=%a;v=%a}"
 	   Int.pretty r
@@ -185,7 +190,7 @@ struct
       m
 
   let pretty_compare fmt m =
-    Int_Interv_Map.iter
+    M.iter
       (fun (x, y) (r, m, v) ->
         Format.fprintf fmt "@[[%a..%a] -> (%a, %a, %a);@]@;@ "
           Int.pretty x
@@ -195,8 +200,8 @@ struct
           V.pretty v
       )
       m
-  
-  
+
+
   let same_values (off,modulo,v) (off',modulo',v') =
 (*    Format.printf "same_values v %a v' %a eq %b@."
       V.pretty v V.pretty v' (V.equal v v'); *)
@@ -221,7 +226,7 @@ struct
                      else true));
       last := Some (e,vv)
     in
-    assert(Int_Interv_Map.iter
+    assert(M.iter
              check_interval
              x;
            true);
@@ -241,16 +246,16 @@ struct
       else Format.fprintf fmt "@\n";
       Format.fprintf fmt "@[" ;
       (* Print left-member and return misalign condition *)
-      let force_misalign = 
+      let force_misalign =
 	match typ with
           | None ->
-              Format.fprintf fmt "[rbits %a to %a]" 
+              Format.fprintf fmt "[rbits %a to %a]"
 		Int.pretty bk Int.pretty ek ;
 	      (* misalign condition: *)
               not ((Int.eq (Int.rem bk modu) offs)
                    && (Int.eq (Int.sub ek bk) (Int.pred modu)))
               && not (V.is_isotropic v)
-		
+
           | Some typ ->
 	      (* returns misalign condition. *)
               Bit_utils.pretty_bits typ
@@ -268,19 +273,19 @@ struct
           Int.pretty modu ;
       Format.fprintf fmt "@]"
     in
-    if Int_Interv_Map.is_empty m then
+    if M.is_empty m then
       Format.fprintf fmt "@[[?] %s ANYTHING@]" inset_utf8
     else
     Format.fprintf fmt "@[%a@]"
-      (fun fmt -> Int_Interv_Map.iter (pretty_binding fmt)) m
+      (fun fmt -> M.iter (pretty_binding fmt)) m
 
   let pretty fmt = pretty_typ None fmt
 
   let fold_internal f m acc =
-    Int_Interv_Map.fold f m acc
-(*      
+    M.fold f m acc
+(*
 exception Not_translatable
-;;    
+;;
   let translate_from_old omap =
     let conv = Int.to_int64 in
     fold_internal
@@ -305,9 +310,9 @@ exception Not_translatable
        )
       omap (Int.minus_one, New.empty)
 ;;
- *)     
+ *)
   let reciprocal_image m base =
-    Int_Interv_Map.fold
+    M.fold
       (fun (bi,ei as itv) (r,modu,v) (acc1,acc2) ->
          let acc1 = if Locations.Location_Bytes.may_reach base (V.project v)
          then Int_Intervals.join acc1 (Int_Intervals.inject [itv])
@@ -337,7 +342,7 @@ exception Not_translatable
       new_offs, new_modu, v
 
   let remove_whole i m =
-    (Int_Interv_Map.remove_whole Int_Interv.fuzzy_order i m)
+    (M.remove_whole Int_Interv.fuzzy_order i m)
 
  let extract_bits ~with_alarms ~start ~stop ~modu v =
    assert (Int.le start stop && Int.le stop modu);
@@ -436,13 +441,13 @@ exception Not_translatable
 
 
  (* Assumes one wants a value from V.t
-   This merges consecutive values when singleton integers and 
+   This merges consecutive values when singleton integers and
    coonversely extract bits the best it can when it has to.
     Could perhaps be improved. *)
  let find ~with_alarms ((bi,ei) as i) m =
    assert (Int.le bi ei);
    let concerned_intervals =
-     Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i m
+     M.concerned_intervals Int_Interv.fuzzy_order i m
    in
    let result =
      match concerned_intervals with
@@ -463,7 +468,7 @@ exception Not_translatable
              ~stop:(Int.pos_rem (Int.sub ei offs) modu)
              ~modu
              v
-	   else 
+	   else
 	     extract_bits_and_stitch ~with_alarms i concerned_intervals
 	       (* the result depends on several instances of
 		  the same repeated value but is completely covered*)
@@ -476,7 +481,7 @@ exception Not_translatable
   let add_if_not_default i (_,_,v as vv) (m:t) =
     let result =
       if V.equal v V.top  then m else
-	Int_Interv_Map.add i vv m
+	M.add i vv m
     in
     result
 
@@ -488,15 +493,15 @@ exception Not_translatable
       if V.is_isotropic v then (Int.zero,Int.one,v) else new_vv
     in
     let v_is_singleton = V.cardinal_zero_or_one v in
-    let extend_left = 
-      v_is_singleton || Int.eq new_offs (Int.pos_rem bi new_modu) 
+    let extend_left =
+      v_is_singleton || Int.eq new_offs (Int.pos_rem bi new_modu)
     in
-    let extend_right = 
+    let extend_right =
       v_is_singleton || Int.is_zero
-      (Int.pos_rem (Int.sub (Int.pred new_offs) ei) new_modu) 
+      (Int.pos_rem (Int.sub (Int.pred new_offs) ei) new_modu)
     in
     match
-      Int_Interv_Map.cleanup_overwritten_bindings
+      M.cleanup_overwritten_bindings
         ~extend_left
         ~extend_right
         same_values
@@ -516,7 +521,7 @@ exception Not_translatable
 
   let top_stuff f topify offsm =
     assert (not (is_empty offsm));
-    Int_Interv_Map.fold
+    M.fold
       (fun (_,_ as i) (r,m,v) acc ->
 	 assert (Int.lt r m);
 	 assert (Int.le Int.zero r);
@@ -550,20 +555,20 @@ exception Not_translatable
       let bi = Ival.project_int ival in
       let ei = Int.pred (Int.add bi size) in
       let i = bi, ei in
-      let rem, modu, old_v = Int_Interv_Map.find i m in
-      if not (Int.equal rem (Int.pos_rem bi modu)) 
+      let rem, modu, old_v = M.find i m in
+      if not (Int.equal rem (Int.pos_rem bi modu))
       then raise Result_is_same;
       if not (Int.equal modu size)
       then raise Result_is_same;
       let new_v = V.narrow old_v v in
-      if (V.equal v new_v) 
+      if (V.equal v new_v)
       then raise Result_is_same;
-	Int_Interv_Map.add i (rem, modu, v) (Int_Interv_Map.remove i m) 
+	M.add i (rem, modu, v) (M.remove i m)
     with
       Int_Interv.Cannot_compare_intervals -> raise Result_is_same
 
   let add_whole i v m =
-    let removed =  (Int_Interv_Map.remove_whole Int_Interv.fuzzy_order i m)
+    let removed =  (M.remove_whole Int_Interv.fuzzy_order i m)
     in
     (add i v removed)
 
@@ -609,7 +614,7 @@ exception Not_translatable
 
   let map ~treat_aligned ~treat_misaligned:_ (m:t) =
     let result =
-      Int_Interv_Map.fold
+      M.fold
 	(fun (be,en) (offs1, modu1, v1) acc ->
            let treat_aligned ~inf ~sup acc =
              let new_itv = (inf,sup) in
@@ -625,7 +630,7 @@ exception Not_translatable
 
   let is_instance_one_itv (itv1,_triple1) offsetmap2 =
     let itvs2 =
-      Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order itv1 offsetmap2
+      M.concerned_intervals Int_Interv.fuzzy_order itv1 offsetmap2
     in
     Int_Interv.check_coverage itv1 itvs2;
     let treat_one_itv2 (_itv2,_triple2) = ()
@@ -652,9 +657,9 @@ exception Not_translatable
      (*    Format.printf "Offsetmap.is_included_exn_generic %a@\nIN %a@\n"
            (pretty None) m1 (pretty None) m2 ; *)
   (*   if m1 != m2 then -- done by caller *)
-       Int_Interv_Map.iter
+       M.iter
 	 (fun (bi,ei as i) (offs2, modu2, v2) ->
-            let itvs1 = Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i m1 in
+            let itvs1 = M.concerned_intervals Int_Interv.fuzzy_order i m1 in
             begin
               match itvs1 with
               | [] -> raise Is_not_included
@@ -728,7 +733,7 @@ exception Not_translatable
    and _, t2 = translate_from_old m2 in
    let o1 = Int64.zero
    and o2 = Int64.zero in
-       
+
    let rnew = New.is_included o1 t1 o2 t2
    in
      if r <> rnew
@@ -743,11 +748,11 @@ exception Not_translatable
          (assert false)
        end
    else r
-;;  
+;;
 *)
   let equal m1 m2 =
     try
-      Int_Interv_Map.equal
+      M.equal
         same_values
         m1 m2
     with Int_Interv.Cannot_compare_intervals -> false
@@ -760,10 +765,10 @@ exception Not_translatable
     let generic (f:size:Int.t -> offs:Int.t option -> V.t -> V.t -> V.t) m1 m2 =
       let r = if m1 == m2 then m1 else
         begin
-          Int_Interv_Map.fold
+          M.fold
 	    (fun (be,en) (offs1, modu1, v1 as triple1) acc ->
                let itvs2 =
-                 Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order (be,en) m2
+                 M.concerned_intervals Int_Interv.fuzzy_order (be,en) m2
                in
                List.fold_left
                  (fun acc ((xb,xe),(offs2,modu2,v2 as triple2)) ->
@@ -866,25 +871,25 @@ exception Not_translatable
 	  (pretty None) m2; *)
     let rec over_intersection_rec continue acc =
       try
-	let (_b1, _e1 as itv1),v1 = Int_Interv_Map.find_above continue m1 in
+	let (_b1, _e1 as itv1),v1 = M.find_above continue m1 in
 	try
-	  let (_b2, _e2 as itv2),v2 = Int_Interv_Map.find_above continue m2 in
+	  let (_b2, _e2 as itv2),v2 = M.find_above continue m2 in
 	  treat_the_lowest_binding itv1 v1 itv2 v2 acc
-	with Int_Interv_Map.No_such_binding ->
+	with M.No_such_binding ->
 	  (* m2 is finished *)
-	  (Int_Interv_Map.fold
+	  (M.fold
 	      (fun (bi, ei as itv) vv (_cont, acc) ->
 		if Int.ge bi continue
-		then ei, Int_Interv_Map.add itv vv acc
+		then ei, M.add itv vv acc
 		else ei, acc)
 	      m1
 	      (continue, acc))
-      with Int_Interv_Map.No_such_binding ->
+      with M.No_such_binding ->
 	(* m1 is finished *)
-	(Int_Interv_Map.fold
+	(M.fold
 	    (fun (bi, ei as itv) vv (_cont, acc) ->
 	      if Int.ge bi continue
-	      then ei, Int_Interv_Map.add itv vv acc
+	      then ei, M.add itv vv acc
 	      else ei, acc)
 	    m2
 	    (continue, acc))
@@ -901,7 +906,7 @@ exception Not_translatable
     and treat_lowest_binding
 	(b, e as itv) (offs,modu,v as vv) first_m other_m acc =
       let concerned_intervals =
-	Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order itv other_m
+	M.concerned_intervals Int_Interv.fuzzy_order itv other_m
       in
       let treat_interval ((bc, ec as _itvc), (offsc,moduc,vc as vvc))
 	  (next, acc) =
@@ -915,7 +920,7 @@ exception Not_translatable
 	      (* add a binding to vv in the result where there is no
 		 binding in other_m *)
 	      assert (Int.lt next bc);
-	      Int_Interv_Map.add (next, Int.pred bc) vv acc
+	      M.add (next, Int.pred bc) vv acc
 	    end
 	in
 	let same_align = Int.eq moduc modu && Int.eq offsc offs in
@@ -939,7 +944,7 @@ exception Not_translatable
 	  else ec
 	in
 	let new_next = Int.succ actual_end in
-	let new_acc = Int_Interv_Map.add (bc, actual_end) inter_vv acc in
+	let new_acc = M.add (bc, actual_end) inter_vv acc in
 	if over_reach
 	then (* if we arrive here, we are necessarily treating
 		the last interval in the list, but we have to
@@ -955,7 +960,7 @@ exception Not_translatable
 	let acc =
 	  if Int.gt next e
 	  then acc
-	  else Int_Interv_Map.add (next, e) vv acc
+	  else M.add (next, e) vv acc
 	in
 	over_intersection_rec (Int.succ e) acc
       with Continue_here(itv, vvc, other_m, first_m, new_acc) ->
@@ -963,14 +968,14 @@ exception Not_translatable
     in
     let result =
       try
-	let itv1, v1 = Int_Interv_Map.lowest_binding m1 in
+	let itv1, v1 = M.lowest_binding m1 in
 	try
-	  let itv2, v2 = Int_Interv_Map.lowest_binding m2 in
+	  let itv2, v2 = M.lowest_binding m2 in
 	  snd (treat_the_lowest_binding itv1 v1 itv2 v2 empty)
-	with Int_Interv_Map.Empty_rangemap ->
+	with M.Empty_rangemap ->
 	  (* m2 is empty *)
 	  m1
-      with Int_Interv_Map.Empty_rangemap ->
+      with M.Empty_rangemap ->
 	(* m1 is empty *)
 	m2
     in
@@ -981,16 +986,17 @@ exception Not_translatable
     result
 
   let join m1 m2 =
-(*    Format.printf "Starting Offsetmap.join@."; *)
+    if !Ptmap.debug then Format.printf "Starting Offsetmap.join uncached@.";
     let singletons,r1 = unsafe_join m1 m2 in
-(*    Format.printf "Done Offsetmap.join@."; *)
+    if !Ptmap.debug then Format.printf "Done Offsetmap.join, safety check@.";
     assert (let _,r2 = unsafe_join m2 m1 in
             equal r1 r2 ||
               (Format.printf
                  "Non commuting join %a@\n with %a@\n leads to %a@\n and %a@\n"
                  pretty m1 pretty m2
 		 pretty r1 pretty r2;
-               false)); 
+               false));
+    if !Ptmap.debug then Format.printf "Done Offsetmap.join@.";
     (*if !debug_now
     then
       Format.printf "Joining(offsetmap) %a@\n with %a@\n leads to %a@\n"
@@ -1007,7 +1013,7 @@ exception Not_translatable
    (* pretty_compare Format.std_formatter m1; *)
    (* Format.printf "N1:%a@." New.pretty n1;
     Format.printf "N2:%a@." New.pretty n2; *)
-    if not (Int.equal l1 l2) then s, r  else  
+    if not (Int.equal l1 l2) then s, r  else
     let _o, t = New.join n1 n2   in
     let _, t1 = (translate_from_old r) in
     if not (New.equal t1  t) then
@@ -1020,8 +1026,8 @@ exception Not_translatable
         New.print t;
         assert false;
       end;
-    s, r 
- *)       
+    s, r
+ *)
   let add_approximate_including_spaces mn mx r m size v existing_offsetmap =
     let treat_itv (b,e as itv) (rem,modu,value as vv) acc=
       if (Int.lt e mn)
@@ -1088,7 +1094,7 @@ exception Not_translatable
           acc
       end
     in
-    Int_Interv_Map.fold
+    M.fold
       treat_itv
       existing_offsetmap
       empty
@@ -1100,7 +1106,7 @@ exception Not_translatable
 (* compute the resulting offsetmap if [v] is potentially written anywhere *)
   let overwrite offsetmap_orig v o =
     let v = V.topify_with_origin o v in
-    Int_Interv_Map.fold
+    M.fold
       (fun itv (_offs,_modu,bound_v) acc ->
 	let new_v = V.join (V.topify_with_origin o bound_v) v in
 	add_internal itv (Int.zero, Int.one, new_v) acc)
@@ -1117,7 +1123,7 @@ exception Not_translatable
         | Acall f -> f ()
         | Alog -> warn_once "Writing at unbounded offset: approximating");
 (*	Format.eprintf "add_top_binding: %a %a %a %a@."
-	  Ival.pretty 
+	  Ival.pretty
 	  (Ival.Top (mn, mx, r, m))
 	  Int.pretty size
 	  V.pretty v
@@ -1212,7 +1218,7 @@ exception Not_translatable
           ((*Format.eprintf "find_ival itv is mn=%a mx=%a m = %a@."
              Int.pretty mn Int.pretty mx Int.pretty m;*)
            let concerned_intervals =
-             Int_Interv_Map.concerned_intervals
+             M.concerned_intervals
                Int_Interv.fuzzy_order
                (mn,Int.pred (Int.add mx size)) offsetmap
            in
@@ -1265,7 +1271,7 @@ exception Not_translatable
                         next_index_to_read := last_index_covered;
                         last_partial_value := Some (Int.succ ei);
                         top_v
-                    in 
+                    in
                     (*Format.eprintf "find_ival new_v=%a@." V.pretty new_v; *)
                     V.join acc new_v
                   else raise Not_found (* return top *))
@@ -1362,12 +1368,12 @@ exception Not_translatable
           begin
             match mn, mx with
               | None, _ | _, None ->
-                  Int_Interv_Map.fold (fun _k (_,_,v) acc -> v::acc)
+                  M.fold (fun _k (_,_,v) acc -> v::acc)
                     offsetmap
                     []
               | Some mn, Some mx ->
                   let concerned_itv =
-                    Int_Interv_Map.concerned_intervals
+                    M.concerned_intervals
                       Int_Interv.fuzzy_order
                       (mn, (Int.pred (Int.add mx size)))
                       offsetmap
@@ -1382,7 +1388,7 @@ exception Not_translatable
 	    (fun offset acc ->
 	       let itv = offset, Int.pred(Int.add offset size) in
                let concerned_itv =
-                 Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order itv offsetmap
+                 M.concerned_intervals Int_Interv.fuzzy_order itv offsetmap
                in
                List.fold_left (fun acc (_,(_,_,v)) -> v::acc) acc concerned_itv)
             s
@@ -1393,9 +1399,9 @@ exception Not_translatable
       let ss = start,stop in
       let to_ss = start_to, Int.sub (Int.add stop start_to) start in
         (* First removing the bindings of the destination interval *)
-      let _to = Int_Interv_Map.remove_itv Int_Interv.fuzzy_order to_ss _to in
+      let _to = M.remove_itv Int_Interv.fuzzy_order to_ss _to in
       let concerned_itv =
-        Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order ss from
+        M.concerned_intervals Int_Interv.fuzzy_order ss from
       in
       let offset = Int.sub start_to start in
       let treat_interval acc (i,(offs,modu, v)) =
@@ -1444,7 +1450,7 @@ exception Not_translatable
 
   let fold_whole ~size f m acc =
     let result =
-      Int_Interv_Map.fold
+      M.fold
 	(fun (be,en) (offs1, modu1, v1) acc ->
            if
              (V.is_isotropic v1 ==>
@@ -1501,20 +1507,20 @@ exception Not_translatable
     assert (Int.gt size_in_bits Int.zero);
     (*Format.printf "size in bits: %a (%a)@." Int.pretty size_in_bits
       V.pretty V.singleton_zero;*)
-    (Int_Interv_Map.add
+    (M.add
         (Int.zero, Int.pred size_in_bits)
         (Int.zero, Int.one, V.singleton_zero)
         empty)
 
   let reduce_by_int_intervals offsetmap iset =
     try
-    Int_Interv_Map.fold
+    M.fold
       (fun itv vv acc ->
 	 let itv_iset = Int_Intervals.inject [itv] in
 	 let inter = Int_Intervals.meet itv_iset iset in
 	 Int_Intervals.fold
 	   (fun itv acc ->
-	      Int_Interv_Map.add itv vv acc)
+	      M.add itv vv acc)
 	   inter
 	   acc)
       offsetmap
@@ -1522,16 +1528,16 @@ exception Not_translatable
     with Int_Intervals.Error_Top (* from Int_Intervals.fold *) ->
       assert false (* shouldn't happen *)
 
-  let iter_contents f o size = 
+  let iter_contents f o size =
     let itv = (Int.zero,Int.pred size) in
-    let concerned_intervals = Int_Interv_Map.concerned_intervals  Int_Interv.fuzzy_order itv o in
-    (try 
+    let concerned_intervals = M.concerned_intervals  Int_Interv.fuzzy_order itv o in
+    (try
       Int_Interv.check_coverage itv concerned_intervals;
      with Is_not_included -> f V.top);
     List.iter (fun (_,(_,_,b)) -> f b) concerned_intervals
 
-  let fold f m = Int_Interv_Map.fold f m
-        
+  let fold f m = M.fold f m
+
 end
 
 module Make(V:Lattice_With_Isotropy.S) =
@@ -1539,172 +1545,69 @@ module Make(V:Lattice_With_Isotropy.S) =
 
   module M=Build(V)
   type t =
-      { h:int;
-        v: M.t;
+      { v: M.t;
 	tag:int }
-  type tt = t
+  type tt = t = { v: M.t; tag:int }
+      (* The descr without the unmarshaling actions *)
+  let descr = Unmarshal.t_record [| M.descr; Unmarshal.Abstract |]
+
   type y = M.y
 
   let id = V.id ^ " offsetmap"
 
-  let hash_internal {v=_;h=h} = h
+  let hash_internal {v=v} = M.M.hash v
 
   let tag {tag=t} = t
 
-  let equal_internal {v=v;h=h} {v=v';h=h'} =
-    h = h' && M.equal v v'
+  let equal_internal {v=v} {v=v'} =
+    M.M.hash v = M.M.hash v' && M.equal v v'
+
+  let empty = { v = M.empty;
+                tag = 0 }
 
   module OffsetmapHashconsTbl =
-    Buckx.MakeBig(struct
-                   type t = tt
-                   let equal = equal_internal
-                   let hash = hash_internal
-		   let pretty fmt x = M.pretty fmt x.v
-		   let id = "offsetmap"
-                   end)
+    Computation.HashconsTbl
+      (struct
+	type t = tt
+        let name = id ^ " dt"
+	let equal_internal = equal_internal
+	let hash_internal = hash_internal
+	let initial_values = [ empty ]
+       end)
+      (struct
+         let name = id
+         let dependencies = [ Ast.self ]
+         let size = 137
+       end)
 
-(* the state of the hashconsing structure *)
-  let table = OffsetmapHashconsTbl.create 1379
-  let current_tag = ref 0 ;;
-
-
-
-  let wrap x =
-    let tag = !current_tag in
-(*    if tag mod 10000 = 0
-    then begin
-	let a,b,c,d,e,f = OffsetmapHashconsTbl.stats table in
-	Format.printf "offsetmap table: %4d %4d %4d %4d %4d %4d@."
-	  a b c d e f;
-	OffsetmapHashconsTbl.iter
-	  (fun o ->
-	     Format.printf "%8d %8d %a@\n@."
-	       o.h
-	       o.tag
-	       (M.pretty None)
-	       o.v)
-	  table
+  let wrap =
+    let current_tag = ref 1 in
+    fun x ->
+      let tag = !current_tag in
+      let new_offsetmap = { v = x; tag = tag} in
+      let result = OffsetmapHashconsTbl.merge new_offsetmap in
+      if result == new_offsetmap
+      then begin
+        let new_current = succ tag in
+        current_tag := new_current;
       end;
-*)
-    let new_offsetmap =
-      { h = M.hash x;
-        v = x;
-        tag = tag}
-    in
-    let result = OffsetmapHashconsTbl.merge table new_offsetmap in
-    if result == new_offsetmap
-    then begin
-     let new_current = succ tag in
-     if new_current = 0
-     then begin
-	 Format.printf "An internal limit of the analyser has been reached. The solutions are to report to the developers, or to use the 64-bit version of this software@.";
-	 exit 1;
-       end;
-     current_tag := new_current;
-      end;
-    result
-
-  module For_rehash = 
-    struct
-      type t = M.t
-      let equal = (==)
-      let hash = Extlib.address_of_value
-    end
-  module Rehash_Table = Hashtbl.Make(For_rehash)
-
-  let rehash_table = Rehash_Table.create 27
-  let () = Project.register_after_load_hook 
-    (fun () -> Rehash_Table.clear rehash_table)
-
-  let debug_rehash = false
-  let rec unwraped_rehash t =
-    match t with
-      Int_Interv_Map.Empty -> Int_Interv_Map.Empty
-    | Int_Interv_Map.Node(left,k,(r,m,v),right,h) ->
-	try
-	  Rehash_Table.find rehash_table t
-	with Not_found ->
-	  if debug_rehash 
-	  then Format.printf "rehash %9dms %s got: (%d)@." 
-	    (Extlib.getperfcount1024())
-	    id 
-	    (Obj.magic t);
-	  let r_left = unwraped_rehash left in
-	  let r_right = unwraped_rehash right in
-	  let r_v = r, m, V.Datatype.rehash v in
-	  let res = Int_Interv_Map.Node(r_left, k, r_v, r_right, h) in
-	  Rehash_Table.add rehash_table t res;
-	  if debug_rehash
-	  then Format.printf "rehash %9dms %s got: (%d) -> (%d)@." 
-	    (Extlib.getperfcount1024())
-	    id
-	    (Obj.magic t)
-	    (Obj.magic res);
-	  res
-
-  let rehash t = wrap (unwraped_rehash t.v)
-
-(* initial values go here *)
-  let empty = wrap M.empty
-
-(* end of initial values *)
-  let current_tag_after_initial_values = !current_tag
-
-  let rehash_initial_values () =
-    let re_empty = OffsetmapHashconsTbl.merge table empty in
-    assert (empty == re_empty)
-
-  module HashconsingPseudoDatatype = Project.Datatype.Register
-    (struct
-       type t = OffsetmapHashconsTbl.t * (int ref)
-       let rehash _ = assert false (* this datatype is not saved to disk *)
-       let descr = Unmarshal.Abstract
-       let copy _ = assert false (* TODO: think! share between similar 
-				 projects, or not share? *)
-       let name = id ^ " hashconsing_table_datatype"
-     end)
-
-  module State = Project.Computation.Register(HashconsingPseudoDatatype)
-    (struct
-      type t = HashconsingPseudoDatatype.t
-      let set (t,c) = 
-	OffsetmapHashconsTbl.overwrite ~old:table ~fresh:t;
-	current_tag := !c
-      let get () =
-	OffsetmapHashconsTbl.shallow_copy table, ref (!current_tag)
-      let clear (t,c as w) =
-	let save = get () in
-	set w;
-	OffsetmapHashconsTbl.clear t;
-	rehash_initial_values ();
-	c := current_tag_after_initial_values;
-	set save
-      let create () =
-	let save = get () in
-	clear (table, current_tag);
-	let result = get () in
-	set save;
-	result
-      let clear_if_project _ _ = false
-    end)
-    (struct 
-      let name = id ^ "hashconsing_table" 
-      let dependencies = [ Ast.self ]
-    end)
-      
-  let () = State.do_not_save ()
+      result
 
   let equal = (==)
 
-  module Datatype = 
+  module Datatype =
     Project.Datatype.Register
       (struct
-	 type t = tt
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 type t = tt =
+	     { v: M.t;
+	       tag:int }
 	 let copy _ = assert false (* TODO *)
-	 let before_load () = () 
-	let name = id
+	 let name = id
+	 open Unmarshal
+	 let descr =
+	   Transform (descr,
+	              fun o -> let x : tt = Obj.obj o in Obj.repr (wrap x.v))
+	 let before_load () = ()
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ()
 
@@ -1721,9 +1624,21 @@ module Make(V:Lattice_With_Isotropy.S) =
  end
 
  module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)(R)
- let () = Project.register_todo_on_clear (fun _ -> SymetricCache.clear ())
+ let () = Project.register_todo_before_clear (fun _ -> SymetricCache.clear ())
 
- let join  m1 m2 =
+ let pretty_typ t fmt v = M.pretty_typ t fmt v.v
+ let pretty fmt v = M.pretty fmt v.v
+
+ let join m1 m2 =
+   if !Ptmap.debug
+   then Format.printf "Offsetmap join %a@@%d %a@@%d@."
+     pretty m1 (Extlib.address_of_value m1)
+     pretty m2 (Extlib.address_of_value m2);
+   if !Ptmap.debug
+   then Format.printf "Cached Offsetmap.join %d@@%d %d@@%d@."
+     (tag m1) (Extlib.address_of_value m1)
+     (tag m2) (Extlib.address_of_value m2)
+  ;
    if m1 == m2 then [],m1
    else
      let compute x y =
@@ -1733,8 +1648,6 @@ module Make(V:Lattice_With_Isotropy.S) =
      SymetricCache.merge compute m1 m2
 
   let is_empty v = M.is_empty v.v
-  let pretty_typ t fmt v = M.pretty_typ t fmt v.v
-  let pretty fmt v = M.pretty fmt v.v
   let pretty_debug fmt v = M.pretty_debug fmt v.v
   let pretty_compare fmt v = M.pretty_compare fmt v.v
 
@@ -1746,16 +1659,16 @@ module Make(V:Lattice_With_Isotropy.S) =
 	      let sentinel = empty
 	    end
 
-  module Cache = 
+  module Cache =
     Binary_cache.Make_Asymetric(Cacheable)(Binary_cache.Bool_Result)
-  let () = Project.register_todo_on_clear (fun _ -> Cache.clear ())
+  let () = Project.register_todo_before_clear (fun _ -> Cache.clear ())
 
   let is_included m1 m2 =
     if m1 == m2 then true
     else
       let m1v = m1.v in
       let m2v = m2.v in
-      if Int_Interv_Map.height m2v <= 3
+      if M.M.height m2v <= 3
       then M.is_included m1v m2v
       else
 	let compute () = M.is_included m1v m2v in
@@ -1854,15 +1767,15 @@ module Make(V:Lattice_With_Isotropy.S) =
   let top_stuff condition topify om =
     wrap (M.top_stuff condition topify om.v)
 
-  let iter_contents f o size = 
+  let iter_contents f o size =
     M.iter_contents f o.v size
- 
+
   let fold f v = M.fold f v.v
 
 end
 
 (*
 Local Variables:
-compile-command: "make -C ../.. -j 3"
+compile-command: "make -C ../.."
 End:
 *)

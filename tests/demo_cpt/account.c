@@ -23,6 +23,9 @@ bool increase_size (t_operations * ops) {
   return false;
 }
 
+/*@ requires account_ok(*c);
+  @ ensures \result == false || account_ok(*c);
+  */
 bool add_operation_to_account (t_operation * op, t_account * c) {
 
   if (c->operations.nb == c->operations.size) {
@@ -41,12 +44,14 @@ bool add_operation_to_account (t_operation * op, t_account * c) {
 }
 
   
+/*@ ensures min <= balance + \result <= max;
+ */
 int check_account (int balance, int min, int max) {
   int res = 0;
   if (balance < min)
     res = balance - min;
   if (balance > max)
-    res = balance - max;
+    res = max - balance;
   return res;
 }
 

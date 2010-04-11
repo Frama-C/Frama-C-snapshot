@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,14 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cil_state.ml,v 1.16 2008-10-03 13:09:16 uid568 Exp $ *)
-
 include
   Computation.OptionRef
     (Cil_datatype.File)
     (struct
        let name = "AST"
-       let dependencies = 
+       let dependencies =
 	 [ Cil.selfMachine;
 	   Parameters.SimplifyCfg.self;
 	   Parameters.KeepSwitch.self;
@@ -36,7 +35,7 @@ include
 	   Parameters.PreprocessAnnot.self ]
      end)
 
-let mark_as_computed () = mark_as_computed () (* eta-expansion required *) 
+let mark_as_computed () = mark_as_computed () (* eta-expansion required *)
 
 let () =
   Messages.depend self;
@@ -51,7 +50,7 @@ let default_initialization =
 
 let set_default_initialization f = default_initialization := f
 
-let force_compute () = 
+let force_compute () =
   Kernel.feedback ~level:2 "computing the AST";
   !default_initialization ()
 

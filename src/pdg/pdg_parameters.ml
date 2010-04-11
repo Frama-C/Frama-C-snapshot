@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -54,7 +55,7 @@ module DotBasename =
   EmptyString
     (struct
        let option_name = "-dot-pdg"
-       let arg_name = "f"
+       let arg_name = "basename"
        let descr = "put the PDG of function <f> in basename.f.dot"
      end)
 

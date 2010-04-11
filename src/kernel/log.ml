@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -30,42 +31,16 @@ type event = {
   evt_message : string ;
 }
 
+let kernel_channel_name = "kernel"
+let kernel_label_name = "kernel"
+
 (* -------------------------------------------------------------------------- *)
 (* --- Exception Management                                               --- *)
 (* -------------------------------------------------------------------------- *)
 
-exception NotRegistered of string
 exception FeatureRequest of string * string
-exception AbortError of string (* plugin *)
-exception AbortFatal of string (* plugin *)
-
-let protect = function
-  | Sys.Break -> "User Interruption (Ctrl-C)"
-  | Sys_error s -> Printf.sprintf "System error: %s" s
-  | Unix.Unix_error(err,a,b) ->
-      let error = Printf.sprintf "System error: %s" (Unix.error_message err) in
-      (match a , b with
-	 | "" , "" -> error
-	 | "" , t | t , "" -> Printf.sprintf "%s (%s)" error t
-	 | f , x -> Printf.sprintf "%s (%s %S)" error f x)
-  | AbortError p ->
-      Printf.sprintf "Plugin %s aborted because of invalid user input(s)." p
-  | AbortFatal p ->
-      Printf.sprintf "Plugin %s aborted because of an internal error.\n\
-                      Please report with 'crash' at http://bts.frama-c.com" p
-  | FeatureRequest(p,m) ->
-      Printf.sprintf "Plugin %s aborted because of a not-yet implemented feature.\n\
-                      Please send a feature request at http://bts.frama-c.com with:\n\
-                      '[%s] %s'." p p m
-  | Extlib.NotYetImplemented m ->
-      Printf.sprintf "Computation aborted because of a not-yet implemented feature.\n\
-                      Please send a feature request at http://bts.frama-c.com with:\n\
-                      '%s'." m
-  | e ->
-      Printf.sprintf 
-	"Unexpected error (%s).\n\
-         Please report as 'crash' at http://bts.frama-c.com"
-	(Printexc.to_string e)
+exception AbortError of string (* plug-in *)
+exception AbortFatal of string (* plug-in *)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Terminal Management                                                --- *)
@@ -410,6 +385,8 @@ let check_not_yet evt =
   if Hashtbl.mem oncetable evt then false
   else ( Hashtbl.add oncetable evt () ; true )
 
+let reset_once_flag () = Hashtbl.clear oncetable
+
 (* -------------------------------------------------------------------------- *)
 (* --- Listeners                                                          --- *)
 (* -------------------------------------------------------------------------- *)
@@ -596,12 +573,9 @@ let echo e =
 	e.evt_plugin e.evt_message 
     in failwith msg
 
-(* -------------------------------------------------------------------------- *)
-(* --- Plugin Interface                                                   --- *)
-(* -------------------------------------------------------------------------- *)
-
-let kernel_channel_name = "kernel"
-let kernel_label_name = "kernel"
+(* ------------------------------------------------------------------------- *)
+(* --- Plug-in Interface                                                 --- *)
+(* ------------------------------------------------------------------------- *)
 
 module type Messages =
 sig
@@ -872,6 +846,6 @@ end
 (* -------------------------------------------------------------------------- *)
 (*
 Local Variables:
-compile-command: "make -C ../.. byte -j"
+compile-command: "make -C ../.."
 End:
 *)

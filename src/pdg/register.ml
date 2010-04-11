@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -29,16 +30,16 @@ let compute kf =
 let pretty ?(bw=false) fmt pdg =
     let kf = PdgTypes.Pdg.get_kf pdg in
     Format.fprintf fmt "@[RESULT for %s:@]@\n@[%a@]"
-      (Kernel_function.get_name kf) (Print.pretty_pdg ~bw) pdg
+      (Kernel_function.get_name kf) (PdgTypes.Pdg.pretty ~bw) pdg
 
 let pretty_node short =
   if short then PdgTypes.Node.pretty
-  else Print.pretty_node
+  else PdgTypes.Pdg.pretty_node
 
 let pretty_key = Print.pretty_key
 
 let print_dot pdg filename =
-  Print.build_dot filename pdg;
+  PdgTypes.Pdg.build_dot filename pdg;
   Pdg_parameters.result "dot file generated in %s" filename
 
 module Tbl =
@@ -126,6 +127,12 @@ let translate_in_marks = Marks.translate_in_marks
 
 module F_Proj (C : PdgMarks.T_Config) = Marks.F_Proj (C)
 
+(* Didn't manage to make it work. Got message : run: couldn't run the server
+let _ = 
+  Format.printf "try to run ocamlviz@.";
+  Ocamlviz.init ()
+*)
+
 let main () =
   let force_pdg = 
     Pdg_parameters.BuildAll.get ()
@@ -154,6 +161,7 @@ let main () =
   end
 
 let () = Db.Main.extend main
+
 
 (*
   Local Variables:

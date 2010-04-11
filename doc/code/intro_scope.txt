@@ -2,8 +2,9 @@
 @ignore                                                                        
 @ignore  This file is part of Frama-C.                                         
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2009                                               
-@ignore    CEA   (Commissariat à l'Énergie Atomique)                           
+@ignore  Copyright (C) 2007-2010                                               
+@ignore    CEA   (Commissariat à l'énergie atomique et aux énergies            
+@ignore           alternatives)                                                
 @ignore    INRIA (Institut National de Recherche en Informatique et en         
 @ignore           Automatique)                                                 
 @ignore                                                                        

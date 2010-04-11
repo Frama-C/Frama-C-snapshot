@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* cprint -- pretty printer of C program from abstract syntax
@@ -854,7 +855,7 @@ and print_def def =
       printl ["__asm__";"("];  print_string asm; print ");";
       new_line ();
       force_new_line ()
-  | GLOBANNOT ((loc,_)::_) ->
+  | GLOBANNOT ({Logic_ptree.decl_loc = loc }::_) ->
       setLoc(loc);
       printl ["/*";
               "annotations are pretty-printed only for fully typed sources";

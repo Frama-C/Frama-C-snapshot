@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -33,7 +34,12 @@ module Elem = struct
 
   type t = { id : int; key : key }
 
-  let make num key = { id = num; key = key }
+  let make counter key =
+    {id = (incr counter;
+           if !counter = -1 then
+             failwith "Internal limit reached in PDG counter";
+           !counter);
+     key = key}
 
   let compare e1 e2 = Pervasives.compare e1.id e2.id
   let hash e = e.id
@@ -58,7 +64,7 @@ module Dpd : sig
   type td =  Ctrl | Addr | Data
 
   val make : ?a:bool -> ?d:bool -> ?c:bool -> unit -> t
-  val make_simple : td -> t 
+  val make_simple : td -> t
   val bottom : t
   val top : t
 
@@ -92,9 +98,9 @@ module Dpd : sig
 
   type td = Ctrl | Addr | Data
 
-      
+
   (* internal constructor *)
-  let create ?(a=false) ?(d=false) ?(c=false) _ = 
+  let create ?(a=false) ?(d=false) ?(c=false) _ =
     { addr = a; data = d; ctrl = c }
 
   (* all possible value for [t] *)
@@ -108,7 +114,7 @@ module Dpd : sig
   let dc_dpd = create ~d:true ~c:true ()
 
   (* external constructor sharing identical [t] values *)
-  let make ?(a=false) ?(d=false) ?(c=false) _ = 
+  let make ?(a=false) ?(d=false) ?(c=false) _ =
     match a,d,c with
       | false, false, false -> bottom
       | true,  false, false -> a_dpd
@@ -121,7 +127,7 @@ module Dpd : sig
 
   (* the use the external constructor ensures [==] can be used instead of [=] *)
   let equal d1 d2 = d1 == d2
-    
+
   let make_simple kind = match kind with
     | Ctrl -> c_dpd
     | Addr -> a_dpd
@@ -136,9 +142,9 @@ module Dpd : sig
     | Addr -> d.addr
     | Ctrl -> d.ctrl
     | Data -> d.data
-        
+
   let is_bottom d = equal d bottom
-    
+
   let adc_value d = (is_addr d, is_data d, is_ctrl d)
 
   let compare l1 l2 = Pervasives.compare l1 l2
@@ -149,7 +155,7 @@ module Dpd : sig
       ~a:(d1.addr || d2.addr)
       ~c:(d1.ctrl || d2.ctrl)
       ~d:(d1.data || d2.data) ()
-    
+
   let inter d1 d2 =
     if (d1 == d2) then d1
     else make
@@ -179,7 +185,6 @@ end
 
 module DpdZone : sig
   type t
-  type t_dpd
   val is_dpd : Dpd.td -> t -> bool
   val make : Dpd.td -> Locations.Zone.t option -> t
   val add : t -> Dpd.td -> Locations.Zone.t option -> t
@@ -189,7 +194,7 @@ module DpdZone : sig
   (** total order. Used only to sort...*)
   val compare : t -> t -> int
   val equal : t -> t -> bool
-    
+
   val default : t
 
   val pretty : Format.formatter -> t -> unit
@@ -197,7 +202,6 @@ module DpdZone : sig
 end = struct
 
   type t = Dpd.t * Locations.Zone.t option (* None == Locations.Zone.Top *)
-  type t_dpd = t
 
   let dpd_kind dpd = fst dpd
   let dpd_zone dpd = snd dpd
@@ -208,7 +212,7 @@ end = struct
 
   let is_dpd k dpd = Dpd.is_dpd k (dpd_kind dpd)
 
-  let equal dpd1 dpd2 = 
+  let equal dpd1 dpd2 =
     let cmp = Dpd.equal (dpd_kind dpd1) (dpd_kind dpd2) in
       if cmp then
         match (dpd_zone dpd1), (dpd_zone dpd2) with
@@ -218,8 +222,8 @@ end = struct
       else false
 
 
-  let compare dpd1 dpd2 = 
-    if equal dpd1 dpd2 then 0 
+  let compare dpd1 dpd2 =
+    if equal dpd1 dpd2 then 0
     else assert false (* is this useful ? TODO ? *)
                             (*
     let cmp = Dpd.compare (dpd_kind dpd1) (dpd_kind dpd2) in
@@ -236,7 +240,7 @@ end = struct
 
   let add ((d1,z1) as dpd) k z =
     let d = Dpd.add d1 k in
-    let z = match z1, z with 
+    let z = match z1, z with
       | None, _ -> z1
       | _, None -> z
       | Some zz1, Some zz2  ->
@@ -254,68 +258,94 @@ end = struct
   let pretty fmt dpd =
     Dpd.pretty fmt (dpd_kind dpd);
     match (dpd_zone dpd) with None -> ()
-      | Some z -> 
+      | Some z ->
           Format.fprintf fmt "@[<h 1>(%a)@]" Locations.Zone.pretty z
 end
 
 (** The graph itself.
 * It uses ocamlgraph
-* {{:http://ocamlgraph.lri.fr/doc/Imperative.S.AbstractLabeled.html}Graph.Imperative.Digraph}.
+* {{:http://ocamlgraph.lri.fr/doc/Imperative.S.concreteLabeled.html}Graph.Imperative.Digraph}.
 * @see <http://ocamlgraph.lri.fr/> ocamlgraph web site
 *)
 module G = struct
-  include Graph.Imperative.Digraph.AbstractLabeled(Elem)(DpdZone)
+  module IGraph=Graph.Imperative.Digraph.AbstractLabeled(Elem)(DpdZone)
+  module E = IGraph.E
+  module V = IGraph.V
 
-  (* added for compatibility between ocamlgraph 0.98 and 0.99 in which
-     create has an optional argument
-   *)
-  let create () = create ()
+  (* Could be declared private out of G if the sig was explicit. *)
+  type t = { counter : int ref; graph : IGraph.t }
 
-  let find_dpd graph v1 v2 =
-    let edge = find_edge graph v1 v2  in (edge, E.label edge)
+  let create =
+    fun () ->
+    let counter = ref (-1) in (*BUG: Should be ok but slicing fails if
+                                it is not shared among all graphs?????? *)
+    { counter = counter;
+      graph = IGraph.create ()}
 
-  let add_elem graph key =
-    let elem = Elem.make (nb_vertex graph) key in
+  let find_dpd g v1 v2 =
+    let edge = IGraph.find_edge g.graph v1 v2 in
+    (edge, IGraph.E.label edge)
+
+  let add_elem g key =
+    let elem = Elem.make g.counter key in
     let new_vertex = V.create elem in
-    add_vertex graph new_vertex;
+    IGraph.add_vertex g.graph new_vertex;
     new_vertex
 
-  let simple_add_dpd graph v1 dpd v2 =
-    add_edge_e graph (E.create v1 dpd v2)
+  let simple_add_dpd g v1 dpd v2 =
+    IGraph.add_edge_e g.graph (IGraph.E.create v1 dpd v2)
 
-  let replace_dpd graph edge new_dpd =
-    let v1 = E.src edge in let v2 = E.dst edge in
-    remove_edge_e graph edge; simple_add_dpd graph v1 new_dpd v2
+  let replace_dpd g edge new_dpd =
+    let v1 = IGraph.E.src edge in
+    let v2 = IGraph.E.dst edge in
+    IGraph.remove_edge_e g.graph edge;
+    simple_add_dpd g v1 new_dpd v2
 
   let add_dpd graph v1 dpd_kind opt_zone v2 =
-  try
-    let edge, old_dpd = find_dpd graph v1 v2 in
-    let new_dpd = DpdZone.add old_dpd dpd_kind opt_zone in
+    try
+      let edge, old_dpd = find_dpd graph v1 v2 in
+      let new_dpd = DpdZone.add old_dpd dpd_kind opt_zone in
       if not (DpdZone.equal old_dpd new_dpd) then
         replace_dpd graph edge new_dpd
-  with Not_found ->
-    let new_dpd = DpdZone.make dpd_kind opt_zone in 
+    with Not_found ->
+      let new_dpd = DpdZone.make dpd_kind opt_zone in
       simple_add_dpd graph v1 new_dpd v2
 
-        (*
-  let remove_elem graph v =
-    iter_pred_e ( fun e -> remove_edge_e graph e ) graph v ;
-    iter_succ_e ( fun e -> remove_edge_e graph e ) graph v ;
-    remove_vertex graph v
-    *)
+  let iter_vertex x g = IGraph.iter_vertex x g.graph
+  let iter_edges_e x g = IGraph.iter_edges_e x g.graph
+  let iter_succ_e x g y = IGraph.iter_succ_e x g.graph y
+  let fold_succ_e x g y z = IGraph.fold_succ_e x g.graph y z
+  let fold_succ x g y z = IGraph.fold_succ x g.graph y z
+  let iter_pred_e x g y = IGraph.iter_pred_e x g.graph y
+  let fold_pred x g y z = IGraph.fold_pred x g.graph y z
+  let fold_pred_e x g y z = IGraph.fold_pred_e x g.graph y z
+  let pred g x = IGraph.pred g.graph x
+  let succ g x = IGraph.succ g.graph x
 
-  let edge_dpd e = DpdZone.kind_and_zone (E.label e)
+  let edge_dpd e = DpdZone.kind_and_zone (IGraph.E.label e)
   let pretty_edge_label = DpdZone.pretty
+
 end
 
 (** Node.t is the type of the PDG vertex.
    [compare] and [pretty] are needed by [Abstract_interp.Make_Lattice_Set]. *)
 module Node = struct
   type t = G.V.t
-  let add_simple_node graph key =
-    let elem = Elem.make (G.nb_vertex graph) key in
+  module Datatype =
+    Project.Datatype.Imperative
+      (struct
+	 type t = G.V.t
+	 let copy _ = assert false (* TODO *)
+	 let name = "pdg_node"
+       end)
+
+  let name = Datatype.name
+(*
+  let add_simple_node g key =
+    let elem = Elem.make g key in
     let new_vertex = G.V.create elem in
-      new_vertex
+    new_vertex
+*)
   let compare = G.V.compare
   let equal = G.V.equal
   let hash = G.V.hash
@@ -333,21 +363,14 @@ module Node = struct
  * dependence problem. See PrintPdg.pretty_node if needed. *)
   let pretty = print_id
 
-  module Datatype = 
-    Project.Datatype.Imperative
-      (struct 
-	 type t = G.V.t 
-	 let copy _ = assert false (* TODO *) 
-	 let name = "pdg_node"
-       end)
 
-  let pretty_list fmt l = 
+  let pretty_list fmt l =
     List.iter (fun n -> Format.fprintf fmt " %a" pretty n) l
 
   let pretty_with_part fmt (n, z_part) =
     Format.fprintf fmt "n%a" pretty n;
     match z_part with None -> ()
-      | Some z -> Format.fprintf fmt "(restrict to @[<h 1>%a@])" 
+      | Some z -> Format.fprintf fmt "(restrict to @[<h 1>%a@])"
                     Locations.Zone.pretty z
 
 end
@@ -355,7 +378,7 @@ end
 module NodeSet = struct
   include Set.Make (Node)
 
-  let add_list ?(set=empty) l = 
+  let add_list ?(set=empty) l =
     List.fold_left (fun acc n -> add n acc) set l
 end
 
@@ -490,7 +513,7 @@ module Pdg = struct
                    (** The nodes which are associated the each element.
                      * There is only one node for simple statements,
                      * but there are several for a call for instance. *)
-  type t_def = { 
+  type t_def = {
     graph : G.t ;
     states : t_data_state Inthash.t ;
     index : t_index ;
@@ -507,24 +530,11 @@ module Pdg = struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
 	 let name = "Pdg"
-	 let rehash (kf, b) = 
-	   Kernel_function.Datatype.rehash kf,
-	   match b with 
-	   | PdgTop | PdgBottom -> b
-	   | PdgDef p -> 
-	       let states = Inthash.create (Inthash.length p.states) in
-	       Inthash.iter
-		 (fun k v -> 
-		    Inthash.replace states k 
-		      { v with under_outputs =
-			  Locations.Zone.Datatype.rehash v.under_outputs })
-		 p.states;
-	       PdgDef { p with states = states }
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let descr = Project.no_descr
        end)
 
   let make kf graph states index =
-    let body = { graph = graph; states = states; index = index ; } in 
+    let body = { graph = graph; states = states; index = index ; } in
       (kf, PdgDef body)
 
   let top kf = (kf, PdgTop)
@@ -534,8 +544,8 @@ module Pdg = struct
   let is_bottom pdg = match snd pdg with PdgBottom -> true | _ -> false
 
   let get_pdg_body pdg = match snd pdg with
-    | PdgDef pdg -> pdg 
-    | PdgTop -> raise Top 
+    | PdgDef pdg -> pdg
+    | PdgTop -> raise Top
     | PdgBottom -> raise Bottom
 
   let get_kf pdg = fst pdg
@@ -551,7 +561,7 @@ module Pdg = struct
       PdgIndex.Signature.fold do_it acc call_pdg
 
 
-  (* let remove_node pdg node = 
+  (* let remove_node pdg node =
     G.remove_elem (get_graph pdg) node;
     PdgIndex.FctIndex.remove (get_index pdg) (Node.elem_key node) *)
 
@@ -562,10 +572,10 @@ module Pdg = struct
     *)
   let get_x_direct_edges ~co dpd_type_opt pdg node =
     let pdg = get_pdg_body pdg in
-    let is_dpd_ok e = match dpd_type_opt with None -> true 
-      | Some k -> DpdZone.is_dpd k (G.E.label e) 
+    let is_dpd_ok e = match dpd_type_opt with None -> true
+      | Some k -> DpdZone.is_dpd k (G.E.label e)
     in
-    let filter edge nodes = 
+    let filter edge nodes =
       if is_dpd_ok edge then edge :: nodes else nodes
     in
     let fold = if co then G.fold_pred_e else G.fold_succ_e  in
@@ -576,14 +586,18 @@ module Pdg = struct
 
   let get_x_direct ~co dpd_type pdg node =
     let edges = get_x_direct_edges ~co (Some dpd_type) pdg node in
-      List.map (fun e -> (edge_end co e, DpdZone.dpd_zone (G.E.label e))) edges
+    List.map
+      (fun e -> (edge_end co e, DpdZone.dpd_zone (G.E.label e)))
+      edges
 
   let get_x_direct_dpds k = get_x_direct ~co:false k
   let get_x_direct_codpds k = get_x_direct ~co:true k
 
   let get_all_direct ~co pdg node =
     let edges = get_x_direct_edges ~co None pdg node in
-      List.map (fun e -> (edge_end co e, DpdZone.dpd_zone (G.E.label e))) edges
+    List.map
+      (fun e -> (edge_end co e, DpdZone.dpd_zone (G.E.label e)))
+      edges
 
   let get_all_direct_dpds pdg node = get_all_direct ~co:false pdg node
   let get_all_direct_codpds pdg node = get_all_direct ~co:true pdg node
@@ -591,12 +605,211 @@ module Pdg = struct
   let get_all_direct_edges pdg node =
     let co = false in
     let edges = get_x_direct_edges ~co None pdg node in
-    let get_info e = 
+    let get_info e =
       let k, z = G.edge_dpd e in
       let n = edge_end co e in
         (k, z, n)
     in
       List.map get_info edges
+
+  let pretty_node fmt n =
+    let id = Node.elem_id n in
+    Format.fprintf fmt "[Elem] %d : " id;
+    let key = Node.elem_key n in PdgIndex.Key.pretty fmt key
+
+  let pretty_nodes fmt nodes =
+  let pretty_node n = Format.fprintf fmt "%a@." pretty_node n
+  in List.iter pretty_node nodes
+
+  let pretty_graph ?(bw=false) fmt graph =
+    let iter = if bw then G.iter_pred_e else G.iter_succ_e in
+    let print_node n =  Format.fprintf fmt "%a@." pretty_node n in
+    let print_dpd d =
+      let dpd_kind = G.E.label d in
+      if bw then Format.fprintf fmt "  <-%a- %d@." G.pretty_edge_label dpd_kind
+        (Node.elem_id (G.E.src d))
+      else Format.fprintf fmt "  -%a-> %d@." G.pretty_edge_label dpd_kind
+        (Node.elem_id (G.E.dst d))
+    in
+    let print_node_and_dpds n =
+      print_node n ; iter print_dpd graph n
+    in
+    G.iter_vertex print_node_and_dpds graph
+
+  let pretty ?(bw=false) fmt pdg =
+    try
+      let graph = get_graph pdg in
+      pretty_graph ~bw fmt graph;
+    with Top -> Format.fprintf fmt "Top PDG@."
+    |  Bottom -> Format.fprintf fmt "Bottom PDG@."
+
+
+
+(*-----------------------------------------------------------------------*)
+module Printer = struct
+  type parent_t = t
+  type t = parent_t
+  module V = G.V
+  module E = struct
+    type t = G.E.t * bool (** boolean to say that the edge is dynamic *)
+    let src (e, _dyn) = G.E.src e
+    let dst (e, _dyn) = G.E.dst e
+    end
+
+  let iter_vertex f pdg =
+    try
+      let graph = get_graph pdg in
+        G.iter_vertex f graph
+    with Top | Bottom -> ()
+
+  let iter_edges_e f pdg =
+    try
+      let graph = get_graph pdg in
+      let f_static e = f (e, false) in
+        G.iter_edges_e f_static graph;
+    with Top | Bottom -> ()
+
+  let graph_attributes _ = [`Rankdir `TopToBottom ]
+
+  let default_vertex_attributes _ = [`Style `Filled]
+  let vertex_name v = string_of_int (Node.elem_id v)
+
+  let vertex_attributes v =
+    let color_in = (`Fillcolor 0x6495ED) in
+    let color_out = (`Fillcolor 0x90EE90) in
+    let color_decl = (`Fillcolor 0xFFEFD5) in
+    let color_stmt = (`Fillcolor 0xCCCCCC) in
+    (* let color_annot = (`Fillcolor 0x999999) in *)
+    let color_call = (`Fillcolor 0xFF8A0F) in
+    let color_elem_call = (`Fillcolor 0xFFCA6E) in
+    let sh_box = (`Shape `Box) in
+    let key = Node.elem_key v in
+    let sh, col, txt = match key with
+        | PdgIndex.Key.VarDecl v ->
+            let txt =
+              Pretty_utils.sfprintf "@[Decl %a@]" !Ast_printer.d_ident v.vname
+            in
+              (`Shape `Box) , color_decl , txt
+        | PdgIndex.Key.SigKey k ->
+            let txt = Pretty_utils.sfprintf "%a"
+              PdgIndex.Signature.pretty_key k
+            in
+            let color = match k with | PdgIndex.Signature.Out _ -> color_out | _ ->  color_in in
+              (`Shape `Box), color, txt
+        | PdgIndex.Key.Stmt s ->
+            let sh, txt = match s.skind with
+              | Switch (exp,_,_,_) | If (exp,_,_,_) ->
+                  let txt = Pretty_utils.sfprintf "%a" !Ast_printer.d_exp exp in
+                    (`Shape `Diamond), txt
+              | Loop _ ->
+                  (`Shape `Doublecircle), "while"
+              | Block _ | UnspecifiedSequence _ ->
+                  (`Shape `Doublecircle), "{}"
+              | Goto _ | Break _ | Continue _ ->
+                  let txt = Pretty_utils.sfprintf "%a"
+                              (Cil.defaultCilPrinter#pStmtKind s) s.skind
+                  in (`Shape `Doublecircle), txt
+              | Return _ | Instr _ ->
+                  let txt = Pretty_utils.sfprintf "%a"
+                              (Cil.defaultCilPrinter#pStmtKind s) s.skind in
+                    sh_box, txt
+              | _ -> sh_box, "???"
+            in sh, color_stmt, txt
+        (* | PdgIndex.Key.Annot _ ->
+            let txt = Pretty_utils.sfprintf "%a" PdgIndex.Key.pretty key in
+            (`Shape `Doublecircle), color_annot, txt *)
+        | PdgIndex.Key.CallStmt call ->
+            let call_stmt = PdgIndex.Key.call_from_id call in
+            let txt = Pretty_utils.sfprintf "%a"
+                        (Cil.defaultCilPrinter#pStmtKind call_stmt)
+                        call_stmt.skind
+            in sh_box, color_call, txt
+        | PdgIndex.Key.SigCallKey (_call, sgn) ->
+            let txt = Pretty_utils.sfprintf "%a" PdgIndex.Signature.pretty_key sgn in
+              sh_box, color_elem_call, txt
+        | PdgIndex.Key.Label _ ->
+            let txt = Pretty_utils.sfprintf "%a" PdgIndex.Key.pretty key in
+              sh_box, color_stmt, txt
+    in sh :: col :: [`Label ( String.escaped txt)]
+
+  let default_edge_attributes _ = []
+
+  let edge_attributes (e, dynamic) =
+    let d, z = G.edge_dpd e in
+    let attrib = [] in
+    let attrib = match z with
+      | None -> attrib
+      | Some z ->
+          let txt =
+            Pretty_utils.sfprintf "@[<h 1>%a@]" Locations.Zone.pretty z in
+          (`Label txt) :: attrib
+    in
+    let attrib =
+      let color =
+        if Dpd.is_data d then (if dynamic then 0xFF00FF else 0x0000FF)
+        else  (if dynamic then 0xFF0000 else 0x000000)
+      in (`Color color) :: attrib
+    in
+    let attrib =
+      if Dpd.is_ctrl d then (`Arrowhead `Odot)::attrib else attrib
+    in
+    let attrib =
+      if Dpd.is_addr d then (`Style `Dotted)::attrib else attrib
+    in attrib
+
+  let get_subgraph v =
+    let mk_subgraph name attrib =
+      let attrib = (`Style `Filled) :: attrib in
+          Some { Graph.Graphviz.DotAttributes.sg_name= name;
+                 Graph.Graphviz.DotAttributes.sg_attributes = attrib }
+    in
+    match Node.elem_key v with
+      | PdgIndex.Key.CallStmt call | PdgIndex.Key.SigCallKey (call, _) ->
+          let call_stmt = PdgIndex.Key.call_from_id call in
+          let name = "Call"^(string_of_int call_stmt.sid) in
+          let call_txt =
+            Pretty_utils.sfprintf "%a"
+              (fun fmt ->
+                 Cil.defaultCilPrinter#pStmtKind call_stmt fmt
+              )
+                        call_stmt.skind  in
+          let call_txt = String.escaped call_txt in
+          let attrib = [(`Label (name^" : "^call_txt))] in
+          let attrib = (`Fillcolor 0xB38B4D) :: attrib in
+            mk_subgraph name attrib
+      | PdgIndex.Key.SigKey k ->
+          let pack_inputs_outputs = false in
+          if pack_inputs_outputs then
+            begin
+              let is_in =  match k with PdgIndex.Signature.In _ -> true | _ -> false in
+              let name = if is_in then "Inputs" else "Outputs" in
+              let color = if is_in then 0x90EE90 else 0x6495ED in
+              let attrib = [] in
+              let attrib = (`Fillcolor color) :: attrib in
+                mk_subgraph name attrib
+            end
+          else
+            None
+      | _ -> None
 end
 
-module InternalPdg = Pdg
+(** @see <http://www.lri.fr/~filliatr/ocamlgraph/doc/Graphviz.html>
+*        Graph.Graphviz *)
+module PrintG = Graph.Graphviz.Dot(Printer)
+
+(*-----------------------------------------------------------------------*)
+(** build the PDG .dot file and put it in [filename].  *)
+let build_dot filename pdg =
+  let file = open_out filename in
+  PrintG.output_graph file pdg;
+  close_out file
+
+(** build the .dot file and put it in [pdg function name.dot]  *)
+let build_dot_file pdg =
+  let kf = get_kf pdg in
+  let fct_name = Kernel_function.get_name kf in
+  let filename = (fct_name ^ ".dot") in
+    build_dot filename pdg;
+    filename
+
+end

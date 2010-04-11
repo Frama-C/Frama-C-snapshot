@@ -5,3 +5,5 @@ int g (int);
 int f (int x) {
   return g (x);
 }
+
+int main (void) {return 0;}

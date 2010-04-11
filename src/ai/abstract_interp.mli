@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -78,7 +79,7 @@ module type Lattice_With_Diff = sig
     (** [diff t1 t2] is an over-approximation of [t1-t2].
 	@return t1 if [t2] is not a singleton. *)
 
-  val fold_enum : 
+  val fold_enum :
     split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
   val splitting_cardinal_less_than:
     split_non_enumerable:int -> t -> int -> int
@@ -132,6 +133,7 @@ end
 
 module type Value = sig
   type t
+  val name : string
   val pretty: Format.formatter -> t -> unit
   val compare : t -> t -> int
   val hash: t -> int
@@ -193,6 +195,7 @@ end
 
 module Int : sig
   include Arithmetic_Value with type t = My_bigint.big_int
+  val descr: Unmarshal.t
   val pretty_s : unit -> t -> string
   val neq : t -> t -> bool
   val to_int64 : t -> int64
@@ -262,8 +265,8 @@ module Make_Pair (V:Value)(W:Value) :
     val pretty : Format.formatter -> t -> unit
   end
 
-module Make_Lattice_Interval_Set (V:Arithmetic_Value) : 
-sig 
+module Make_Lattice_Interval_Set (V:Arithmetic_Value) :
+sig
   type elt = Make_Pair(V)(V).t
   type tt = private Top | Set of elt list
   include Lattice with type t = tt
@@ -272,22 +275,16 @@ sig
   val inject_bounds : V.t -> V.t -> t
   val inject : elt list -> t
   val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-  val splitting_cardinal_less_than : 
+  val splitting_cardinal_less_than :
     split_non_enumerable:int -> t -> int -> int
 end
 
 module Make_Lattice_Set (V : Value) : Lattice_Set with type O.elt=V.t
 
-module type Value_With_Id = sig
-  include Value
-  val id: t -> int
-  val name : string
-end
-
-module Make_Hashconsed_Lattice_Set (V : Value_With_Id) 
+module Make_Hashconsed_Lattice_Set (V : Ptset.Id_Datatype)
   : Lattice_Set with type O.elt=V.t
 
-module LocationSetLattice : 
+module LocationSetLattice :
 sig include Lattice_Set with type O.elt = Cil_types.location
     val currentloc_singleton : unit -> t
 end
@@ -296,6 +293,7 @@ module type Key =
 sig
   type t
   val compare : t -> t -> int
+  val equal : t -> t -> bool
   val pretty : Format.formatter -> t -> unit
   val is_null : t -> bool
   val null : t
@@ -310,7 +308,7 @@ module VarinfoSetLattice : Lattice_Set with type O.elt = Cil_types.varinfo
 module type Collapse = sig
   val collapse : bool
 end
-  
+
 (** If [C.collapse] then [L1.bottom,_] = [_,L2.bottom] = [bottom] *)
 module Make_Lattice_Product (L1:Lattice) (L2:Lattice) (C:Collapse):
   Lattice_Product with type t1 = L1.t and type t2 = L2.t

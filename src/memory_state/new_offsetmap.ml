@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -1007,7 +1008,7 @@ let widen _hint t1 t2 =
  *) 
 (** Changes a binding : the [min, max] interval already exists *)
 (** In particular it is not allowed to add the binding before the*)
-(** lowest abs_min or after the greates abs_max*)
+(** lowest abs_min or after the greatest abs_max*)
 let change_binding min max rem modu v tree =
   let rec aux_add curr_off zipper min max rem modu v tree =
     match tree with

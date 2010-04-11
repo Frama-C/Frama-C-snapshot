@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -172,8 +173,12 @@ module Location_Bytes = struct
          true
        with Not_found -> false
 
- exception Contains_local
+(*
+ let to_functionlist v=
+   let f base offs =
+*)
 
+ exception Contains_local
 
  let contains_addresses_of_locals is_local =
    let f base _offsets = is_local base
@@ -249,6 +254,12 @@ module Zone = struct
 
   include Map_Lattice.Make(Base)(BaseSetLattice)(Int_Intervals)(Initial_Values)
   (struct let zone = true end)
+  let ty =
+    Type.register
+      ~name:"Locations.Zone.t"
+      ~value_name:(Some "Locations.Zone.ty")
+      ~varname:(fun _ -> "zone")
+      [top;bottom]
 
   let default base bi ei = inject base (Int_Intervals.inject [bi,ei])
   let defaultall base = inject base Int_Intervals.top
@@ -340,15 +351,12 @@ struct
       (struct
 	type t = location
 	let copy _x = assert false
-	let rehash { loc = loc ; size = size } =
-	  { loc = Location_Bits.Datatype.rehash loc ;
-	    size = Int_Base.Datatype.rehash size }
-	let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	let descr =
+	  Unmarshal.t_record
+	    [| Location_Bits.Datatype.descr; Int_Base.Datatype.descr |]
 	let name = "Abstract Location"
       end)
 end
-
-
 
 let can_be_accessed {loc=loc;size=size} =
   try
@@ -388,7 +396,7 @@ let is_valid {loc=loc;size=size} =
           Location_Bits.M.iter is_valid_offset m;
           true
   with
-  | Int_Base.Error_Top | Int_Base.Error_Bottom 
+  | Int_Base.Error_Top | Int_Base.Error_Bottom
   | Base.Not_valid_offset -> false
 
 exception Found_two
@@ -674,9 +682,9 @@ let filter_loc ({loc = loc; size = size } as initial) zone =
                Int_Intervals.fold
                  (fun (bi,ei) acc ->
                     let width = Int.length bi ei in
-                    if Int.lt width size 
+                    if Int.lt width size
 		    then acc
-                    else 
+                    else
 		      Ival.inject_range (Some bi) (Some (Int.length size ei)))
                  (Zone.find_or_bottom base zone_m)
                  Ival.bottom

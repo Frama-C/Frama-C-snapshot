@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 open Cil_types
@@ -427,8 +428,6 @@ let tryFinally
 let valOf : 'a option -> 'a = function
     None -> raise (Failure "Util.valOf")
   | Some x -> x
-
-let opt_map f = function None -> None | Some x -> Some (f x)
 
 let opt_bind f = function None -> None | Some x -> f x
 
@@ -917,6 +916,16 @@ let rec get_stmtLoc = function
   | TryFinally (_, _, l) -> l
   | TryExcept (_, _, _, l) -> l
 
+let rec get_code_annotationLoc ca =
+  match ca.annot_content with
+  | AAssert(_,{loc=loc},_)
+  | AInvariant(_,_,{loc=loc})
+  | AVariant({term_loc=loc},_)
+    -> Some loc
+  | AAssigns _ | APragma _
+  | AStmtSpec _ -> None
+
+
 module StringMap = Map.Make(String)
 module StringSet = struct
   include Set.Make(String)
@@ -926,7 +935,7 @@ end
 
 module GenericMapl (FX: Map.OrderedType) =
 struct
-  include Rangemap.Make(FX)
+  include Map.Make(FX)
   type 'a map = 'a list t
   let map f m =
     fold (fun x l m -> add x (f l) m) m empty
@@ -996,9 +1005,6 @@ sig
        where [k1 ... kN] are the keys of all bindings in [m]
        (in increasing order), and [d1 ... dN] are the associated data. *)
 
-    val fold_range : (key -> Rangemap.fuzzy_order) ->
-      (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-
     val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
     (** Total ordering between maps.  The first argument is a total ordering
         used to compare data associated with equal keys in the two maps. *)
@@ -1054,6 +1060,13 @@ let pretty_opt print fmt o =
       None -> ()
     | Some s -> print fmt s
 
+
+let pretty_opt_nl print fmt o =
+  match o with
+      None -> ()
+    | Some s ->
+        fprintf fmt "@[%a@]@\n" print s
+
 let nl_sep fmt = fprintf fmt "@\n"
 
 let space_sep s fmt = fprintf fmt "%s@ " s
@@ -1066,6 +1079,7 @@ module StmtComparable = struct
   let compare t1 t2 = compare t1.sid t2.sid
   let hash t1 = t1.sid
   let equal t1 t2 = t1.sid = t2.sid
+  let descr = Unmarshal.Abstract
 end
 
 module KinstrComparable = struct
@@ -1117,27 +1131,30 @@ module Instr = struct
 
 end
 
-module InstrMapl = Mapl_Make(Instr)
+module InstrMapl =
+  struct
+    include Mapl_Make(Instr)
+  end
+
 module InstrHashtbl = Hashtbl.Make(Instr)
 
 (** [Map] indexed by [Cil_types.stmt] with a customizable pretty printer *)
 module StmtMap = struct
   include Map.Make(StmtComparable)
   let pretty pretty_v fmt =
-    iter
-      (fun k v ->
-         Format.fprintf fmt "%d: {%a}\n" k.sid pretty_v v)
+    iter (fun k v -> Format.fprintf fmt "%d: {%a}\n" k.sid pretty_v v)
+  let descr = Unmarshal.t_map_unchangedcompares StmtComparable.descr
 end
 
 module StmtSet = struct
   include Set.Make(StmtComparable)
   let pretty fmt s = iter (fun x -> Format.fprintf fmt "%d; " x.sid) s
+  let descr = Unmarshal.t_set_unchangedcompares StmtComparable.descr
 end
 
 module StmtHashtbl = struct
   include Hashtbl.Make(StmtComparable)
-  let pretty fmt s =
-  iter (fun k _v -> Format.fprintf fmt "%d; " k.sid) s
+  let pretty fmt s = iter (fun k _v -> Format.fprintf fmt "%d; " k.sid) s
 end
 
 module VarinfoComparable = struct
@@ -1150,6 +1167,43 @@ end
 module VarinfoHashtbl = Hashtbl.Make(VarinfoComparable)
 module VarinfoMap = Map.Make(VarinfoComparable)
 module VarinfoSet = Set.Make(VarinfoComparable)
+
+module EnuminfoComparable = struct
+  type t = enuminfo
+  let compare v1 v2 = Pervasives.compare v1.ename v2.ename
+  let hash v = Hashtbl.hash v.ename
+  let equal v1 v2 = v1.ename = v2.ename
+end
+
+module EnuminfoHashtbl = Hashtbl.Make(EnuminfoComparable)
+module EnuminfoMap = Map.Make(EnuminfoComparable)
+module EnuminfoSet = Set.Make(EnuminfoComparable)
+(** @since Beryllium-20090902+dev *)
+
+module EnumitemComparable = struct
+  type t = enumitem
+  let compare v1 v2 = Pervasives.compare v1.einame v2.einame
+  let hash v = Hashtbl.hash v.einame
+  let equal v1 v2 = v1.einame = v2.einame
+end
+
+module CompinfoComparable = struct
+  type t = compinfo
+  let compare v1 v2 = Pervasives.compare v1.ckey v2.ckey
+  let hash v = Hashtbl.hash v.ckey
+  let equal v1 v2 = v1.ckey = v2.ckey
+end
+
+module TypeinfoComparable = struct
+  type t = typeinfo
+  let compare v1 v2 = Pervasives.compare v1.tname v2.tname
+  let hash v = Hashtbl.hash v.tname
+  let equal v1 v2 = v1.tname = v2.tname
+end
+
+module TypeinfoHashtbl = Hashtbl.Make(TypeinfoComparable)
+module TypeinfoMap = Map.Make(TypeinfoComparable)
+module TypeinfoSet = Set.Make(TypeinfoComparable)
 
 module LogicVarComparable = struct
   type t = logic_var

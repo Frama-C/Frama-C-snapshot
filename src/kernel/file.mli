@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: file.mli,v 1.18 2009-02-05 12:35:06 uid568 Exp $ *)
-
 (** Frama-c preprocessing and Cil AST initialization.
     @plugin development guide *)
 
@@ -31,17 +30,18 @@ type t =
 	  tempfilname.i] will be appended at the end).*)
   | NoCPP of string
       (** Already pre-processed file [.i] *)
-  | External of string * (string -> Cil_types.file * Cabs.file)
+  | External of string * string
       (** file that can be translated into a Cil AST through an external
-          function. *)
-
-val external_func_type: (string -> Cil_types.file * Cabs.file) Type.t
+          function, together with the recognized suffix. *)
 
 val new_file_type:
   string -> (string -> Cil_types.file * Cabs.file) -> unit
-(** [new_file_type suffix func funcname] registers a new type of files (with
-    corresponding suffix) as recognized by Frama-C through [func]. [func] must
-    be registered in {!Type.Binding}. *)
+  (** [new_file_type suffix func funcname] registers a new type of files (with
+      corresponding suffix) as recognized by Frama-C through [func]. *)
+
+val get_suffixes: unit -> string list
+  (** @return the list of accepted suffixes of input source files
+      @since Boron-20100401 *)
 
 val ty: t Type.t
 
@@ -115,6 +115,6 @@ val pretty : ?prj:Project.t -> ?fmt:Format.formatter -> unit -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

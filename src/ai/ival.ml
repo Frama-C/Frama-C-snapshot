@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -31,31 +32,39 @@ let small_cardinal_Int = Int.of_int small_cardinal
 
 module F = struct
   type t = float
+  let descr = Unmarshal.Abstract
+
   type integer = Int.t
   exception Nan_or_infinite
   exception Too_small
 
   let max_float = max_float
+  let infinity = infinity
+  let neg_infinity = neg_infinity
 
-  let wrap f x =
-    let r = f x in
+  let is_infinity = (=) infinity
+  let is_neg_infinity = (=) neg_infinity
+
+  let wrap r =
     match classify_float r with
-      FP_nan | FP_infinite -> raise Nan_or_infinite
-    | FP_normal | FP_subnormal | FP_zero -> r
+      FP_nan -> raise Nan_or_infinite
+    | FP_normal | FP_subnormal | FP_infinite | FP_zero -> r
 
-  let wrap_bin f x = wrap (f x)
+  let wrap_un f x = wrap (f x)
+
+  let wrap_bin f x y = wrap (f x y)
 
   let add = wrap_bin (+.)
   let sub = wrap_bin (-.)
-  let neg = wrap (~-.)
-  let mult = wrap_bin ( *.)  
+  let neg = wrap_un (~-.)
+  let mult = wrap_bin ( *.)
   let div = wrap_bin (/.)
 
   let avg x y =
     let xp = x >= 0. in
     let yp = y >= 0. in
     if xp = yp
-    then 
+    then
       let d = x -. y in y +. d /. 2.
     else
       (x +. y) /. 2.
@@ -68,9 +77,9 @@ module F = struct
 
   let minus_zero = -0.0
 
-  let sqrt = wrap sqrt
+  let sqrt = wrap_un sqrt
 
-  let cos = wrap cos
+  let cos = wrap_un cos
 
   let minus_one = -1.0
   let one = 1.0
@@ -79,7 +88,7 @@ module F = struct
   let m_pi_2 = 1.57079632679489661923132169163975144
 
   let of_int = float_of_int
-    
+
   let widen_up f =
     if f <= zero then zero
     else if f <= one then one
@@ -92,9 +101,9 @@ module F = struct
 
   let round_normal int64fup int64fdown float =
     let r = Int64.bits_of_float float in
-    let f = 
+    let f =
       if r >= 0L then
-	int64fup 
+	int64fup
       else
 	int64fdown
     in
@@ -111,15 +120,11 @@ module F = struct
     | FP_zero ->
 	(round_normal int64fup int64fdown (float +. min_float)) -. min_float
 
-(*
+
   let round_up = round Int64.succ Int64.pred
-
   let round_down = round Int64.pred Int64.succ
-*)
-  let round_up f = f
-  let round_down f = f
 
-  let equal f1 f2 = 
+  let equal f1 f2 =
     if f1 = zero && f2 = zero
     then (1. /. f1) = (1. /. f2)
     else f1 = f2
@@ -136,101 +141,180 @@ module F = struct
 
   let max f1 f2 =
     if le f1 f2 then f2 else f1
-(*
-  let compare f1 f2 =
-    let e1 = is_zero f1 in
-    let e2 = is_zero f2 in
-    match e1, e2 with
-      true, true -> 0
-    | true, false -> 1
-    | false, true -> -1
-    | false, false -> compare f1 f2
-*)
 
-      let compare f1 f2 =Pervasives.compare f1 f2
+  let compare f1 f2 = Pervasives.compare f1 f2
 
   let equal_ieee = ((=) : float -> float -> bool)
 
-  let pretty fmt f = 
+  let pretty fmt f =
+    if Parameters.FloatHex.get()
+    then
+      let i = Int64.bits_of_float f in
+      let s = 0L <> (Int64.logand Int64.min_int i) in
+      let i = Int64.logand Int64.max_int i in
+      Format.fprintf fmt "%s%14Lx*2^%Ld"
+      (if s then "-" else "")
+      (Int64.add (Int64.shift_left 1L 52) (Int64.logand i (Int64.pred (Int64.shift_left 1L 53))))
+      (Int64.sub (Int64.shift_right_logical i 53) 511L)
+    else
     let r = Format.sprintf "%.*g" (Parameters.FloatDigits.get()) f in
     if (String.contains r '.' || String.contains r 'e' || String.contains r 'E')
-      || (match classify_float f with 
-          | FP_normal | FP_subnormal | FP_zero -> false 
-          | FP_infinite | FP_nan -> true) 
+      || (match classify_float f with
+          | FP_normal | FP_subnormal | FP_zero -> false
+          | FP_infinite | FP_nan -> true)
     then Format.pp_print_string fmt r
     else Format.fprintf fmt "%s." r
 
   let hash = Hashtbl.hash
 
-  let of_float = wrap (fun x -> x) 
+  let id = fun x -> x
+  let of_float = wrap_un id
+  let to_float = id
 
   let min_64_float = Int64.to_float (Int64.add Int64.min_int 512L)
   let max_64_float = Int64.to_float (Int64.sub Int64.max_int 512L)
+
   exception Non_representable_float
-  let to_integer x = 
+
+  let to_integer x =
     if min_64_float <= x && x <= max_64_float then
       Int.of_int64 (Int64.of_float x)
     else
       raise Non_representable_float
 
   let most_negative_float = -. max_float
+  let min_float = Pervasives.min_float
+  let classify_float = Pervasives.classify_float
 end
+
+external set_round_downward: unit -> unit = "set_round_downward"
+external set_round_upward: unit -> unit = "set_round_upward"
+external set_round_nearest_even: unit -> unit = "set_round_nearest_even"
 
 module Float_abstract =
 struct
-  type t = F.t * F.t
+  exception Bottom
+
+  module Private_Couple :
+  sig
+    type t = private I of F.t * F.t
+    val inject : F.t -> F.t -> t
+    val inject_r : F.t -> F.t -> (bool * t) end
+    =
+  struct
+    type t = I of F.t * F.t
+
+    let inject b e =
+      assert
+	( if not (F.le b e)
+	  then begin
+	      Format.printf "assertion 0936 failed.@.%30.30f@.%30.30f@."
+		b e;
+	      false
+	    end
+	  else true
+
+	     );
+      I(b, e)
+
+    let inject_r b e =
+      if F.is_neg_infinity e || F.is_infinity b
+      then raise Bottom;
+
+      let c = F.classify_float e in
+      let overflow_alarm, e =
+	match c with
+	  FP_infinite | FP_subnormal ->
+	    let pos = F.le_ieee F.zero e in
+	    ( match c, pos with
+	      FP_infinite, true -> true, F.max_float
+	    | FP_infinite, false -> raise Bottom
+	    | _, true -> false, e
+	    | _, false -> false, F.zero )
+	| _ -> false, e
+      in
+      let c = F.classify_float b in
+      let overflow_alarm, b =
+	match c with
+	  FP_infinite | FP_subnormal ->
+	    let pos = F.le_ieee F.zero b in
+	    ( match c, pos with
+	      FP_infinite, true -> raise Bottom
+	    | FP_infinite, false -> true, F.most_negative_float
+	    | _, true -> overflow_alarm, F.zero
+	    | _, false -> overflow_alarm, b )
+	| _ -> overflow_alarm, b
+      in
+      overflow_alarm, inject b e
+
+
+  end
+
+  type t = Private_Couple.t
+  open Private_Couple
+  let descr = Unmarshal.Structure (Unmarshal.Sum [| [| F.descr; F.descr |] |])
+
+  let inject = Private_Couple.inject
+
+  let inject_r = Private_Couple.inject_r
+
+  let min_and_max_float (I(b,e)) = b, e
 
   let min = ()
   let max = ()
   type integer = Int.t
 
-  let top = F.most_negative_float, F.max_float
-
-  exception Bottom
+  let top = inject F.most_negative_float F.max_float
 
   exception Nan_or_infinite = F.Nan_or_infinite
 
-  let compare (b1,e1) (b2,e2) =
+  let compare (I(b1,e1)) (I(b2,e2)) =
     let r = F.compare b1 b2 in
     if r <> 0 then r else F.compare e1 e2
 
-  let pretty fmt (b,e) =
+  let pretty fmt (I(b,e)) =
     if F.equal b e then
       Format.fprintf fmt "%a" F.pretty b
-    else
-      Format.fprintf fmt "[%a .. %a]"
-	F.pretty b
-	F.pretty e
+    else begin
+      if (Parameters.FloatRelative.get())
+      then begin
+	set_round_upward ();
+	let d = F.sub e b in
+	  Format.fprintf fmt "[%a ++ %a]"
+	    F.pretty b
+	    F.pretty d
+      end
+      else
+	Format.fprintf fmt "[%a .. %a]"
+	  F.pretty b
+	  F.pretty e
+    end
 
-  let hash (b, e) =
-    Hashtbl.hash b + (5 * Hashtbl.hash e)
+  let hash (I(b,e)) =
+    F.hash b + (5 * F.hash e)
 
-  let zero = F.zero, F.zero
+  let zero = inject F.zero F.zero
 
-  let inject b e =
-    assert (F.le b e);
-    b, e
+  let compare_min (I(m1,_)) (I(m2,_)) = F.compare m1 m2
 
-  let compare_min (m1,_) (m2,_) = F.compare m1 m2
+  let compare_max (I(_, m1)) (I(_, m2)) = F.compare m2 m1
 
-  let compare_max (_, m1) (_, m2) = F.compare m2 m1
-
-  let rounding_inject b e = 
-    assert (F.le b e);
-    F.round_down b, F.round_up e
-
-  let is_included (b1, e1) (b2, e2) =
+  let is_included (I(b1, e1)) (I(b2, e2)) =
     F.le b2 b1 && F.le e1 e2
 
-  let join (b1, e1) (b2, e2) =
-    (F.min b1 b2, F.max e1 e2)
+  let join (I(b1, e1)) (I(b2, e2)) =
+    inject (F.min b1 b2) (F.max e1 e2)
 
-  let meet (b1, e1) (b2, e2) =
-    (F.max b1 b2, F.min e1 e2)
+      (*@ raises [Bottom] *)
+  let meet (I(b1, e1)) (I(b2, e2)) =
+    if F.le b2 e1 && F.le b1 e2
+    then
+      inject (F.max b1 b2) (F.min e1 e2)
+    else raise Bottom
 
   let contains_zero = is_included zero
 
-  let fold_split n f (b, e) acc =
+  let fold_split n f (I(b, e)) acc =
     let bound = ref b in
     let acc = ref acc in
     begin try
@@ -245,163 +329,175 @@ struct
     end;
     (*    Format.printf "float fold_split %a@."
 	  pretty (!bound, e); *)
-    f (inject !bound e) !acc 
+    f (inject !bound e) !acc
 
-  let contains_a_zero (b, e) = F.le_ieee b F.zero && F.le_ieee F.zero e
+  let contains_a_zero (I(b, e)) = F.le_ieee b F.zero && F.le_ieee F.zero e
 
   let is_zero x = compare x zero = 0
 
-  let is_singleton (b, e) = F.equal b e
+  let is_singleton (I(b, e)) = F.equal b e
 
   let neg_float v =
-    let b, e =  v in
+    let I(b, e) = v in
     inject (F.neg e) (F.neg b) (* do not round because exact operation *)
-      
-  let add_float v1 v2 =
-    let b1, e1 =  v1 in
-    let b2, e2 =  v2 in
-    let bs = F.add b1 b2 in
-    let b = 
-      if F.le_ieee F.zero b1 && F.equal_ieee b2 bs
-      then (if F.equal_ieee b2 F.zero then F.minus_zero else b2) 
-      else if F.le_ieee F.zero b2 && F.equal_ieee b1 bs
-      then b1
-      else F.round_down bs
-    in    
-    let es = F.add e1 e2 in
-    let e = 
-      if F.le_ieee e1 F.zero  && F.equal_ieee e2 es
-      then (if F.equal_ieee e2 F.zero then F.zero else e2) 
-      else if F.le_ieee e2 F.zero && F.equal_ieee e1 es
-      then e1
-      else F.round_up es
-    in    
-    inject b e
- (*   the whole add_float function used to be only one call
-      to rounding_inject, but the +-1ulp was causing problems when
-      one term should have been absorbed by the other.
-*)	
 
-  let sub_float v1 v2 = add_float v1 (neg_float v2)
-	
-  let mult_float v1 v2 =
-    let b1, e1 =  v1 in
-    let b2, e2 =  v2 in
+  type rounding_mode = Any | Nearest_Even
+
+  let add_float rounding_mode v1 v2 =
+    let I(b1, e1) =  v1 in
+    let I(b2, e2) =  v2 in
+    if rounding_mode = Any
+    then set_round_downward ()
+    else set_round_nearest_even ();
+    let bs = F.add b1 b2 in
+    if rounding_mode = Any
+    then set_round_upward ();
+    let es = F.add e1 e2 in
+    inject_r bs es
+
+  let sub_float rounding_mode v1 v2 = add_float rounding_mode v1 (neg_float v2)
+
+  let mult_float rounding_mode v1 v2 =
+    let I(b1, e1) =  v1 in
+    let I(b2, e2) =  v2 in
+    if rounding_mode = Any
+    then set_round_downward ()
+    else set_round_nearest_even ();
     let a = F.mult b1 b2 in
     let b = F.mult b1 e2 in
     let c = F.mult e1 b2 in
     let d = F.mult e1 e2 in
     let min = F.min (F.min a b) (F.min c d) in
-    let max = F.max (F.max a b) (F.max c d) in
-    rounding_inject min max
-	  
-  let div_float v1 v2 =
-    if contains_a_zero v2
-    then begin
-	raise Nan_or_infinite
-      end
-    else begin
-	  match v1, v2 with
-	    (b1, e1),  (b2, e2) ->
-	      let c1 = F.div b1 b2 in
-	      let c2 = F.div b1 e2 in
-	      let c3 = F.div e1 b2 in
-	      let c4 = F.div e1 e2 in
-	      let min = F.min (F.min c1 c2) (F.min c3 c4) in
-	      let max = F.max (F.max c1 c2) (F.max c3 c4) in
-	      rounding_inject min max
-      end
-      
-  let sqrt_float v =
-      match v with
-	 (b, e) ->
-	  if not (F.le_ieee F.zero b)
-	  then begin
-	      ignore (CilE.warn_once "sqrt: TODO -- a proper alarm");
-	      if F.le_ieee F.zero e
-	      then F.minus_zero, (F.sqrt e) 
-	    (* sqrt(-0.0) results in -0.0 *)
-	      else raise Bottom
-	    end
-	  else (F.sqrt b), (F.sqrt e)
+    let max =
+      if rounding_mode = Any
+      then begin
+	  set_round_upward ();
+	  let a = F.mult b1 b2 in
+	  let b = F.mult b1 e2 in
+	  let c = F.mult e1 b2 in
+	  let d = F.mult e1 e2 in
+	  F.max (F.max a b) (F.max c d)
+	end
+      else
+	F.max (F.max a b) (F.max c d)
+    in
+    inject_r min max
 
-  let minus_one_one =  (F.minus_one, F.one)
-    
+  let div_float rounding_mode (I(b1, e1)) (I(b2, e2) as v2) =
+    if contains_a_zero v2
+    then raise Nan_or_infinite;
+    if rounding_mode = Any
+    then set_round_downward ()
+    else set_round_nearest_even ();
+    let c1 = F.div b1 b2 in
+    let c2 = F.div b1 e2 in
+    let c3 = F.div e1 b2 in
+    let c4 = F.div e1 e2 in
+    let min = F.min (F.min c1 c2) (F.min c3 c4) in
+    let max =
+      if rounding_mode = Any
+      then begin
+	  set_round_upward ();
+	  let c1 = F.div b1 b2 in
+	  let c2 = F.div b1 e2 in
+	  let c3 = F.div e1 b2 in
+	  let c4 = F.div e1 e2 in
+	  F.max (F.max c1 c2) (F.max c3 c4)
+	end
+      else F.max (F.max c1 c2) (F.max c3 c4)
+    in
+    inject_r min max
+
+  let sqrt_float rounding_mode (I(b, e)) =
+    if rounding_mode = Any
+    then set_round_downward ()
+    else set_round_nearest_even ();
+    let alarm, min =
+      if F.le_ieee F.zero b
+      then false, F.sqrt b
+      else begin
+	  if not (F.le_ieee F.zero e)
+	  then raise Bottom;
+	  true, F.minus_zero
+	end
+    in
+    if rounding_mode = Any
+    then set_round_upward ();
+    let max = F.sqrt e in
+    alarm, inject min max
+
+  let minus_one_one = inject F.minus_one F.one
+
   let cos_float v =
       match v with
-	 (b, e) when F.equal b e ->
+	 I(b, e) when F.equal b e ->
 	  let c = F.cos b in
-	  c, c
+	  inject c c
       | _ ->
 	  minus_one_one
 
-  let widen (b1,e1) (b2, e2) =
+  let widen (I(b1,e1)) (I(b2, e2)) =
     assert (F.le b2 b1);
     assert (F.le e1 e2);
     let b = if F.equal b2 b1 then b2 else F.most_negative_float in
     let e = if F.equal e2 e1 then e2 else F.widen_up e2 in
- (* Format.printf "F.widen %a %a -> %a@." 
-  pretty (b1,e1)
-  pretty (b2,e2) 
-  pretty (b,e); *)
-    b, e
+    inject b e
 
   let equal_float_ieee f1 f2 =
-      let b1, e1 =  f1 in
-      let b2, e2 =  f2 in
-      let intersects = 
+      let I(b1, e1) =  f1 in
+      let I(b2, e2) =  f2 in
+      let intersects =
 	F.le_ieee b1 e2 && F.le_ieee b2 e1
-      in 
+      in
       if not intersects
       then true, false
       else if F.equal_ieee b1 e1 && F.equal_ieee b2 e2
       then false, true
       else true, true
-      
+
   let maybe_le_ieee_float f1 f2 =
-      let b1, _e1 =  f1 in
-      let _b2, e2 =  f2 in
+      let I(b1, _e1) =  f1 in
+      let I(_b2, e2) =  f2 in
       F.le_ieee b1 e2
-      
+
   let maybe_lt_ieee_float f1 f2 =
-      let b1, _e1 =  f1 in
-      let _b2, e2 =  f2 in
+      let I(b1, _e1) =  f1 in
+      let I(_b2, e2) =  f2 in
       F.lt_ieee b1 e2
 
-  let diff (b1, e1 as f1) (b2, e2) =
+  let diff (I(b1, e1) as f1) (I(b2, e2)) =
     if F.le b2 b1 && F.le e1 e2
     then raise Bottom
     else if F.le b2 e1 && F.le e1 e2
-    then b1, b2
+    then inject b1 b2
     else if F.le b1 e2 && F.le b2 b1
-    then e2, e1
+    then inject e2 e1
     else f1
 
-  let filter_le (b1, e1 as f1) (_b2, e2) =
+  let filter_le (I(b1, e1) as f1) (I(_b2, e2)) =
     let e2 = if F.equal_ieee F.zero e2 then F.zero else e2 in
     if not (F.le b1 e2)
     then raise Bottom
-    else if F.le e1 e2 
+    else if F.le e1 e2
     then f1
-    else b1, e2
+    else inject b1 e2
 
-  let filter_ge (b1, e1 as f1) (b2, e2) =
+  let filter_ge (I(b1, e1) as f1) (I(b2, e2)) =
     let b2 = if F.equal_ieee F.minus_zero e2 then F.minus_zero else b2 in
     if not (F.le b2 e1)
     then raise Bottom
-    else if F.le b2 b1 
+    else if F.le b2 b1
     then f1
-    else b2, e1
+    else inject b2 e1
 
   let filter_lt = filter_le (* some float domains may want to improve this *)
   let filter_gt = filter_ge
 
-  let subdiv_float_interval (l, u) = 
+  let subdiv_float_interval (I(l, u)) =
     let midpoint = F.avg l u in
     if F.equal l midpoint || F.equal u midpoint
     then raise Can_not_subdiv;
-    (l, midpoint), (midpoint, u)
-
+    (inject l midpoint), (inject midpoint u)
 
 end
 
@@ -542,22 +638,22 @@ let pretty fmt t =
 let compare_elt_min elt min =
   match min with
   | None -> true
-  | Some m -> Int.le m elt 
+  | Some m -> Int.le m elt
 
 let compare_elt_max elt max =
   match max with
   | None -> true
-  | Some m -> Int.ge m elt 
+  | Some m -> Int.ge m elt
 
 let all_positives min =
   match min with
   | None -> false
-  | Some m -> Int.ge m Int.zero 
+  | Some m -> Int.ge m Int.zero
 
 let all_negatives max =
   match max with
   | None -> false
-  | Some m -> Int.le m Int.zero 
+  | Some m -> Int.le m Int.zero
 
 let check doc min max r modu =
   assert(assert (Int.ge r Int.zero );
@@ -656,8 +752,8 @@ let splitting_cardinal_less_than ~split_non_enumerable v n =
     | Top (Some mn, Some mx,_,m) ->
 	Int.succ ((Int.native_div (Int.sub mx mn) m))
     | Set s -> Int.of_int (O.cardinal s)
-    | Float f -> 
-	if Float_abstract.is_singleton f then Int.one 
+    | Float f ->
+	if Float_abstract.is_singleton f then Int.one
 	else Int.of_int split_non_enumerable
   in
   if Int.le c (Int.of_int n)
@@ -669,7 +765,7 @@ let inject_top min max r modu =
   match min, max with
   | Some mn, Some mx ->
       if Int.ge mx mn  then
-	if (Int.le (Int.length mn mx) (Int.mul modu small_cardinal_Int)) 
+	if (Int.le (Int.length mn mx) (Int.mul modu small_cardinal_Int))
 	then
 	  let s = ref O.empty in
 	  let i = ref mn in
@@ -729,20 +825,20 @@ let compare_min_int t1 t2 =
   let m2, _ = min_and_max t2 in
   match m1, m2 with
     None, None -> 0
-  | None, Some _ -> 1
-  | Some _, None -> -1
+  | None, Some _ -> -1
+  | Some _, None -> 1
   | Some m1, Some m2 ->
       Int.compare m1 m2
 
 let compare_max_int t1 t2 =
-  let m1, _ = min_and_max t1 in
-  let m2, _ = min_and_max t2 in
+  let _, m1 = min_and_max t1 in
+  let _, m2 = min_and_max t2 in
   match m1, m2 with
     None, None -> 0
   | None, Some _ -> 1
   | Some _, None -> -1
   | Some m1, Some m2 ->
-      Int.compare m1 m2
+      Int.compare m2 m1
 
 let compare_min_float t1 t2 =
  let f1 = project_float t1 in
@@ -850,7 +946,7 @@ let compute_r_common r1 modu1 r2 modu2 =
   let modu = Int.ppcm modu1 modu2 in
   try
     let i = ref Int.zero in (* for i = 0 to modu - 1 *)
-    while (Int.le !i (Int.pred modu)) 
+    while (Int.le !i (Int.pred modu))
     do
       if (Int.equal (Int.rem !i modu1) r1) && (Int.equal (Int.rem !i modu2) r2)
       then raise (Found !i);
@@ -887,7 +983,9 @@ let meet v1 v2 =
 	      (fun x -> in_interval x min max r modu)
 	      s)
     | Float(f1), Float(f2) ->
-	inject_float (Float_abstract.meet f1 f2)
+	( try
+	  inject_float (Float_abstract.meet f1 f2)
+	with Float_abstract.Bottom -> bottom )
     | (Float f) as ff, other | other, ((Float f) as ff) ->
 	if equal top other
 	then ff
@@ -964,11 +1062,11 @@ let fold_enum ~split_non_enumerable f v acc =
   | Float (fl) when Float_abstract.is_singleton fl ->
       f v acc
   | Float (fl) ->
-      Float_abstract.fold_split 
-	split_non_enumerable 
+      Float_abstract.fold_split
+	split_non_enumerable
 	(fun fl acc -> f (inject_float fl) acc)
 	fl
-	acc 
+	acc
   | Top(_,_,_,_) | Set _ ->
       fold (fun x acc -> f (inject_singleton x) acc) v acc
 
@@ -981,7 +1079,7 @@ let min_is_lower mn1 mn2 =
     None, _ -> true
   | _, None -> false
   | Some m1, Some m2 ->
-      Int.le m1 m2 
+      Int.le m1 m2
 
 	(** [max_is_greater mx1 mx2] is true iff mx1 is a greater max than mx2 *)
 let max_is_greater mx1 mx2 =
@@ -989,7 +1087,7 @@ let max_is_greater mx1 mx2 =
     None, _ -> true
   | _, None -> false
   | Some m1, Some m2 ->
-      Int.ge m1 m2 
+      Int.ge m1 m2
 
 let rem_is_included r1 m1 r2 m2 =
   (Int.equal (Int.rem m1 m2) Int.zero) && (Int.equal (Int.rem r1 m2) r2)
@@ -1088,7 +1186,7 @@ let rec add v1 v2 =
       then bottom
       else let mn = O.min_elt s in
       let mx = O.max_elt s in
-      if Int.equal mn mx 
+      if Int.equal mn mx
       then (* only one element *)
 	let incr = Int.add mn in
 	let new_mn = opt1 incr mn1 in
@@ -1345,7 +1443,7 @@ let scale f v =
 	let incr = Int.mul f in
 	if Int.is_zero f
 	then singleton_zero
-	else if Int.gt f Int.zero 
+	else if Int.gt f Int.zero
 	then
 	  let modu = incr m1 in
 	  Top(opt1 incr mn1, opt1 incr mx1, Int.pos_rem (incr r1) modu, modu)
@@ -1390,19 +1488,19 @@ let scale_div ~pos f v =
   | Set s -> Set (map_set div_f s)
   | Float _ -> top
 
-let div_set x sy = 
+let div_set x sy =
   O.fold
-    (fun elt acc -> 
+    (fun elt acc ->
       if Int.is_zero elt
       then acc
       else join acc (scale_div ~pos:false elt x))
     sy
-    bottom  
+    bottom
 
 (* ymin and ymax must be the same sign *)
 let div_range x ymn ymx =
   match min_and_max x with
-    Some xmn, Some xmx ->	
+    Some xmn, Some xmx ->
       let c1 = Int.c_div xmn ymn in
       let c2 = Int.c_div xmx ymn in
       let c3 = Int.c_div xmn ymx in
@@ -1428,12 +1526,12 @@ let div x y =
     | Top (Some mn,Some mx, r, modu) ->
 	let result_pos =
 	  if Int.gt mx Int.zero
-	  then 
-	    let lpos = 
-	      if Int.gt mn Int.zero 
+	  then
+	    let lpos =
+	      if Int.gt mn Int.zero
 	      then mn
 	      else
-		Int.round_up_to_r ~min:Int.one ~r ~modu 
+		Int.round_up_to_r ~min:Int.one ~r ~modu
 	    in
 	    div_range x lpos mx
 	  else
@@ -1441,14 +1539,14 @@ let div x y =
 	in
 	let result_neg =
 	  if Int.lt mn Int.zero
-	  then 
-	    let gneg = 
+	  then
+	    let gneg =
 	      if Int.lt mx Int.zero
 	      then mx
 	      else
-		Int.round_down_to_r ~max:Int.minus_one ~r ~modu 
+		Int.round_down_to_r ~max:Int.minus_one ~r ~modu
 	    in
-	    div_range x mn gneg 
+	    div_range x mn gneg
 	  else
 	    bottom
 	in
@@ -1471,7 +1569,7 @@ let div x y =
 
 
 	(* TODO : rename to div_int *)
-(*let div = 
+(*let div =
   if contains_zero y
 *)
 
@@ -1538,7 +1636,7 @@ let c_rem x y =
       | Float _ -> top
       | Top _ ->
 	  let f y acc =
-	    join (scale_rem ~pos:false y x) acc	
+	    join (scale_rem ~pos:false y x) acc
 	  in
 	  O.fold f yy bottom)
 
@@ -1549,7 +1647,7 @@ let cast ~size ~signed ~value =
   let result =
     let factor = Int.two_power size in
     let mask = Int.two_power (Int.sub size Int.one) in
-    let rem_f value = Int.cast ~size ~signed ~value 
+    let rem_f value = Int.cast ~size ~signed ~value
     in
     let not_p_factor = Int.lognot (Int.pred factor) in
     let best_effort r m =
@@ -1578,7 +1676,7 @@ let cast ~size ~signed ~value =
 	  else
 	    Int.logand mn not_p_factor, Int.logand mx not_p_factor
 	in
-	if Int.equal highbits_mn highbits_mx 
+	if Int.equal highbits_mn highbits_mx
 	then
 	  if Int.is_zero highbits_mn
 	  then value
@@ -1591,7 +1689,7 @@ let cast ~size ~signed ~value =
 	best_effort r m
     | Set s -> inject_set (map_set rem_f s)
     | Float _ -> if Int.ge size v32 then value else top
-  in  
+  in
 (*  Format.printf "Cast with size:%d signed:%b to %a@\n"
     size
     signed
@@ -1639,7 +1737,7 @@ let rec mul v1 v2 =
 	then bottom
 	else let mn = O.min_elt s in
 	let mx = O.max_elt s in
-	if Int.equal mn mx 
+	if Int.equal mn mx
 	then (* only one element *)
 	  scale mn t
 	else mul t (unsafe_make_top_from_set s)
@@ -1825,33 +1923,34 @@ let compare_C f v1 v2 =
 module Datatype =
   Project.Datatype.Register
     (struct
-      type t = tt
+      type t = tt =
+	  Set of O.t | Float of Float_abstract.t |
+	      Top of Int.t option * Int.t option * Int.t * Int.t
+
       let copy _ = assert false (* TODO *)
-      let rehash x = match x with
-      | Set set ->
-	  inject_set
-	    (O.fold (fun x -> O.add (Int.Datatype.rehash x)) set O.empty)
-      | Float _f -> x (*TODO inject_float (Float_abstract.Datatype.rehash f) *)
-      | Top(mn, mx, r, modu) ->
-	  inject_top
-	    (Extlib.opt_map Int.Datatype.rehash mn)
-	    (Extlib.opt_map Int.Datatype.rehash mx)
-	    (Int.Datatype.rehash r)
-	    (Int.Datatype.rehash modu)
-      let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+      open Unmarshal
+      let descr =
+	Structure
+	  (Sum
+	      [|
+		 [| t_set_unchangedcompares Int.Datatype.descr |];
+		 [| Float_abstract.descr |];
+		 [| t_option Int.Datatype.descr; t_option Int.Datatype.descr;
+		    Int.Datatype.descr; Int.Datatype.descr |]
+	      |])
       let name = Project.Datatype.extend_name "lattice_mod" Int.Datatype.name
     end)
 let () = Datatype.register_comparable ~hash ~equal ()
 
-let scale_int64base factor v = 
+let scale_int64base factor v =
   match factor with
   | Int_Base.Bottom -> bottom
   | Int_Base.Top -> top
   | Int_Base.Value f -> scale f v
 
 let cast_float_to_int f =
-  try 
-    let min,max = f in
+  try
+    let Float_abstract.Private_Couple.I(min,max) = f in
     let min_int = F.to_integer min in
     let max_int = F.to_integer max in
     assert (Int.compare min_int max_int <= 0);
@@ -1862,21 +1961,32 @@ let of_int i = inject_singleton (Int.of_int i)
 
 let of_int64 i = inject_singleton (Int.of_int64 i)
 
-let cast_int_to_float v =
+let cast_int_to_float rounding_mode v =
   match min_and_max v with
-    None, _ | _, None -> top
+    None, _ | _, None -> false (* not ok *), top_float
   | Some min, Some max ->
-      inject_float 
-	(Float_abstract.rounding_inject 
-	   (F.of_float (Int.to_float min)) 
-	   (F.of_float (Int.to_float max)))
+      ( try
+	  set_round_nearest_even (); (* PC: Do not even ask *)
+	  let b = F.of_float (Int.to_float min) in
+	  let e = F.of_float (Int.to_float max) in
+	  if rounding_mode = Float_abstract.Nearest_Even
+	  then true (* ok *), inject_float (Float_abstract.inject b e)
+	  else begin
+	      let b = F.round_down b
+	      in
+      	      let e = F.round_up e
+	      in
+	      true, inject_float (Float_abstract.inject b e)
+	    end
+	with
+	  F.Nan_or_infinite | F.Non_representable_float -> false, top_float)
 
-let cast ~size ~signed ~value = 
+let cast ~size ~signed ~value =
   if Parameters.Overflow.get () then cast ~size ~signed ~value else value
 
 let tag = hash
 let pretty_debug = pretty
-let name = "ival" 
+let name = "ival"
 
-(*let pretty fmt x = 
+(*let pretty fmt x =
   Format.fprintf fmt "%a ((%d))@." pretty x (tag x)*)

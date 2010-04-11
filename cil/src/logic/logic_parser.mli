@@ -16,6 +16,7 @@ type token =
   | INT
   | INTEGER
   | REAL
+  | BOOLEAN
   | FLOAT
   | LT
   | GT
@@ -75,6 +76,10 @@ type token =
   | IMPACT
   | PRAGMA
   | FROM
+  | EXITS
+  | BREAKS
+  | CONTINUES
+  | RETURNS
   | READS
   | LOGIC
   | PREDICATE
@@ -115,10 +120,11 @@ type token =
   | LTLT
   | SIZEOF
   | LAMBDA
+  | LET
   | TYPEOF
   | BSTYPE
 
-val lexpr :
+val lexpr_eof :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.lexpr
 val annot :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.annot

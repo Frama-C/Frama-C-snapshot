@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,6 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: unicode.mli,v 1.3 2008-04-01 09:25:21 uid568 Exp $ *)
+(** Handling unicode string. *)
 
 val inset_string : unit -> string

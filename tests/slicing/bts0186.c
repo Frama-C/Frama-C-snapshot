@@ -1,6 +1,5 @@
 /*  run.config
-DONTRUN: Stack overflow (bts#186)
-OPT: -slice-return x  -journal-disable
+OPT: -slice-return x  -journal-disable -slice-print
 */
 /*@ requires y == 1;
   @ ensures

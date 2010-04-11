@@ -1,0 +1,406 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* Integer modulo definitions as in compcert integers*)
+
+logic modul : int
+
+axiom modul_pos : modul > 0
+
+logic eqmod: int ,int -> prop
+
+axiom eqmod_def : 
+ forall x,y:int. 
+   exists k:int. x =k*modul + y 
+
+
+axiom eqmod_refl : 
+  forall x:int. 
+     eqmod(x,x)
+
+axiom eqmod_refl2 : 
+  forall x,y:int. 
+     x=y -> 
+     eqmod(x,y)
+
+axiom eqmod_sym : 
+  forall x,y:int. 
+     eqmod(x,y) -> 
+     eqmod(y,x)
+
+axiom eqmod_trans: 
+  forall x,y,z:int. 
+     eqmod(x,y) -> 
+     eqmod(y,z) -> 
+     eqmod(x,z)
+
+axiom eqmod_small_eq : 
+  forall x,y:int. 
+    eqmod(x,y)    ->
+    0<= x < modul ->  
+    0<= y < modul ->
+    x=y  
+
+axiom eqmod_mod_eq: 
+  forall x,y:int. 
+    eqmod(x,y) ->
+    x % modul = y% modul 
+
+axiom eqmod_mod: 
+  forall x:int. 
+    eqmod(x,x %modul) 
+
+axiom eqmod_neg: 
+  forall x,y:int. 
+    eqmod(x,y) ->
+    eqmod(-x,-y)
+
+axiom eqmod_add: 
+  forall a,b,c,d:int. 
+    eqmod(a,b) ->
+    eqmod(c,d) ->
+    eqmod(a+c,b+d)
+
+axiom eqmod_sub: 
+  forall a,b,c,d:int. 
+    eqmod(a,b) ->
+    eqmod(c,d) ->
+    eqmod(a-c,b-d)
+
+axiom eqmod_mult: 
+  forall a,b,c,d:int. 
+    eqmod(a,b) ->
+    eqmod(c,d) ->
+    eqmod(a*c,b*d)
+
+
+axiom mod_in_range : 
+ forall x:int. 
+    0 <= x%modul < modul
+
+(* integer definition *) 
+
+type Int
+
+logic intval   : Int -> int  (* Z representation of the int *)
+logic intrange : Int -> prop (* range property of the int vs a modul *)
+logic unsigned : Int -> int 
+logic signed   : Int -> int
+logic repr     : int -> Int
+logic Int_eq   : Int equality
+
+
+
+logic half_modul   : int
+logic max_unsigned : int
+logic max_signed   : int
+logic min_signed   : int
+
+
+axiom half_modul_value   : half_modul = modul /2
+axiom max_unsigned_value : max_signed = modul - 1 
+axiom max_signed_value   : max_signed = half_modul - 1
+axiom min_signed_value   : min_signed =- half_modul 
+
+axiom unsigned_def : 
+  forall i:Int. 
+   unsigned(i) = intval(i)
+
+axiom signed_lt : 
+  forall i:Int. 
+   intval(i) < half_modul ->
+   signed(i) = unsigned(i)
+
+axiom signed_ge : 
+  forall i:Int. 
+   intval(i) >= half_modul ->
+   signed(i) = unsigned(i) - modul 
+
+axiom mod_in_range : 
+ forall x:Int. 0 <= (intval(x))%modul < modul
+
+axiom repr_intval : 
+  forall x:int. intval(repr(x))=x
+
+axiom repr_intrange : 
+   forall x:int. intrange(repr(x))
+
+logic zero : Int
+logic one  : Int
+logic mone : Int
+
+axiom zero_def : zero = repr(0) 
+axiom one_def  : one  = repr(1)
+axiom mone_def : mone = repr(-1)
+
+
+(** coercions between int and Int **) 
+
+
+axiom eqm_unsigned_repr : 
+ forall z:int. eqmod(z,unsigned(repr(z)))
+
+axiom eqm_unsigned_repr_l : 
+ forall a,b:int. 
+    eqmod(a,b) -> 
+    eqmod(unsigned(repr(a)),b)
+
+axiom eqm_unsigned_repr_r : 
+ forall a,b:int. 
+    eqmod(a,b) ->
+    eqmod(a,unsigned(repr(b)))
+
+axiom eqm_signed_unsigned :
+ forall x:Int. 
+    eqmod(signed(x),unsigned(x)) 
+
+axiom unsigned_range: 
+ forall i:Int. 0 <= unsigned(i) < max_unsigned
+
+axiom unsigned_range_2: 
+ forall i:Int. 0 <= unsigned(i) <= max_unsigned
+
+
+
+
+
+(** boolean intepretation **)
+
+axiom is_true : 
+  forall i: Int. i <> zero
+
+axiom is_false : 
+  forall i:Int. i = zero 
+
+(** arithmetics operations **) 
+
+
+(** comparisons definition **)
+logic cmpi_eq  : Int,Int -> Int
+logic cmpi_lt  : Int,Int -> Int
+logic cmpi_ltu : Int,Int -> Int
+
+axiom cmpi_eq_def_true: 
+ forall x,y:Int. 
+   unsigned(x) = unsigned(y) -> 
+   cmpi_eq(x,y) = one
+
+axiom cmpi_eq_def_false: 
+ forall x,y:Int. 
+   unsigned(x) <> unsigned(y) -> 
+   cmpi_eq(x,y) = zero
+
+
+axiom cmpi_lt_def_true : 
+ forall x,y:Int. 
+   signed(x) < signed(y) ->
+   cmpi_lt(x,y) = one 
+
+axiom cmpi_lt_def_false : 
+ forall x,y:Int. 
+   signed(x) >= signed(y) ->
+   cmpi_lt(x,y) = zero
+
+
+axiom cmpi_ltu_def_true : 
+ forall x,y:Int. 
+   unsigned(x) < unsigned(y) ->
+   cmpi_lt(x,y) = one 
+
+axiom cmpi_ltu_def_false : 
+ forall x,y:Int. 
+   unsigned(x) >= unsigned(y) ->
+   cmpi_lt(x,y) = zero
+
+
+(** negation of a Int definition and properties **)
+logic i_neg: Int -> Int
+
+axiom neg_def : 
+ forall i:Int. i_neg(i) = repr(-unsigned(i))
+
+axiom neg_repr : 
+ forall i:int . i_neg(repr(i)) = repr(-i)
+
+axiom neg_zero : 
+ i_neg(zero) = zero
+
+axiom neg_involutive : 
+ forall i:Int. i_neg (i_neg(i)) = i
+
+(** addition of int definition and properties **)
+logic i_add : Int,Int -> Int
+
+axiom i_add_unsigned : 
+ forall x,y:Int. 
+     i_add(x,y) = repr (unsigned(x)+unsigned(y))
+
+axiom add_signed : 
+ forall x,y:Int. 
+     i_add(x,y) = repr(signed(x)+signed(y))
+
+axiom add_commut : 
+ forall x,y:Int. 
+   i_add(x,y) = i_add(y,x)
+
+axiom add_permut : 
+ forall x,y,z:Int. 
+   i_add(x,i_add(y,z)) = i_add(y,i_add(x,z)) 
+
+axiom add_neg_zero : 
+ forall x:Int. i_add(x,i_neg(x)) = zero
+
+
+axiom neg_add_distr : 
+ forall x,y:Int. 
+     i_neg(i_add(x,y)) = i_add (i_neg(x),i_neg(y))
+
+(** subtraction of Int definition and properties **)
+logic i_sub : Int,Int -> Int
+
+axiom i_sub_def : 
+ forall x,y:Int. 
+     i_sub(x,y) = repr (unsigned(x)-unsigned(y))
+
+axiom sub_zero_l : 
+ forall x:Int. i_sub(x,zero) = x
+
+axiom sub_zero_r : 
+ forall x:Int. i_sub(zero,x) = i_neg(x)
+
+axiom sub_add_opp : 
+ forall x,y:Int. i_sub(x,y) = i_add(x,i_neg(y))
+
+axiom sub_idem : 
+ forall x:Int. i_sub(x,x) = zero
+
+axiom sub_add_l : 
+ forall x,y,z:Int. i_sub (i_add(x,y),z) = i_add(i_sub(x,z),y) 
+ 
+axiom sub_add_r: 
+ forall x,y,z:Int. i_sub(x,i_add(y,z)) = i_add(i_sub(x,z),i_neg(y)) 
+
+axiom sub_shifted:
+ forall x,y,z:Int. i_sub(i_add(x,z),i_add(y,z)) =i_sub(x,y)
+
+(** multiplication of Int definition and properties **)
+logic i_mul : Int,Int -> Int
+
+axiom i_mul_def : 
+ forall x,y:Int. 
+     i_mul(x,y) = repr (unsigned(x)*unsigned(y))
+
+axiom mul_commut: 
+ forall x,y:Int. i_mul(x,y) = i_mul(y,x)
+
+axiom mul_zero: 
+ forall x:Int. i_mul(x,zero) = zero 
+
+axiom mul_one: 
+ forall x:Int. i_mul(x,one) = x
+
+axiom mul_assoc: 
+ forall x,y,z:Int. i_mul(i_mul(x,y),z) = i_mul(x,i_mul(y,z))
+
+axiom mul_add_distr_l : 
+ forall x,y,z:Int. i_mul(i_add(x,y),z) = i_add(i_mul(x,z),i_mul(y,z))
+
+axiom mul_add_distr_r :
+ forall x,y,z:Int. i_mul(x,i_add(y,z)) = i_add(i_mul(x,y),i_mul(x,z))
+
+axiom neg_mul_distr_l: 
+ forall x,y:Int. i_neg(i_mul(x,y)) = i_mul (i_neg(x),y)
+
+axiom neg_mul_distr_l: 
+ forall x,y:Int. i_neg(i_mul(x,y)) = i_mul (x,i_neg(y))
+
+(** divisions on signed Int definition and properties **) 
+
+logic divs:Int,Int -> Int
+
+axiom divs_neg_neg : 
+ forall x,y:Int. 
+   signed(x) < 0 ->
+   signed(y) < 0 ->
+   divs(x,y) = repr (-signed(x)/(-signed(y)))
+
+axiom divs_neg_pos : 
+ forall x,y:Int. 
+   signed(x) < 0  ->
+   signed(y) >= 0 ->
+   divs(x,y) = repr (-((-signed(x))/signed(y)))
+
+axiom divs_pos_neg : 
+ forall x,y:Int. 
+   signed(x)>= 0 ->
+   signed(y) < 0 ->
+   divs(x,y) = repr(-(signed(x)/(-signed(y))))
+
+axiom divs_pos_pos : 
+ forall x,y:Int. 
+   signed(x)>= 0 ->
+   signed(y)>= 0 ->
+   divs(x,y) = repr (signed(x)/signed(y))
+
+(** divisions of unsigned Int definition and properties **) 
+
+logic divu : Int,Int -> Int 
+
+axiom divu_def : 
+ forall x,y:Int. divu(x,y) = repr (unsigned(x)/unsigned(y))
+
+(** Modulo of signed Int definition and properties **)
+
+logic mods :Int,Int -> Int
+
+axiom mods_neg_neg: 
+  forall x,y:Int. 
+   signed(x) < 0 ->
+   signed(y) < 0 ->
+   mods(x,y) = repr (signed(x)-(((-signed(x))/(-signed(y)))*signed(y)))
+
+axiom divs_neg_pos : 
+ forall x,y:Int. 
+   signed(x) < 0  ->
+   signed(y) >= 0 ->
+   mods(x,y) = repr (signed(x) +(((-signed(x))/signed(y))*signed(y)))
+
+axiom divs_pos_neg : 
+ forall x,y:Int. 
+   signed(x)>= 0 ->
+   signed(y) < 0 ->
+   mods(x,y) = repr(signed(x)+((signed(x)/(-signed(y)))*signed(y)))
+
+axiom divs_pos_pos : 
+ forall x,y:Int. 
+   signed(x)>= 0 ->
+   signed(y)>= 0 ->
+   divs(x,y) = repr(signed(x)-((signed(x)/signed(y))*signed(y)))
+
+(** Modulo of unsigned Int definition and properties **)
+
+logic modu:Int,Int ->Int
+
+axiom modu_def: 
+ forall x,y:Int. modu(x,y)=repr (unsigned(x)%unsigned(y)) 

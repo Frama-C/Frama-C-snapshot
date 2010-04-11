@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,15 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module MemoryFootprint = 
+module MemoryFootprint =
   Computation.Ref
     (struct include Datatype.Int let default () = 2 end)
-    (struct 
-       let name = "Buckx.MemoryFootprint" 
-       let dependencies = [] 
+    (struct
+       let name = "Buckx.MemoryFootprint"
+       let dependencies = []
      end)
 
-module type WeakHashable = 
+module type WeakHashable =
 sig
   type t
   val equal : t -> t -> bool
@@ -46,30 +47,43 @@ module type S = sig
   val clear : t -> unit
   val release : t -> unit
   val shallow_copy : t -> t
+  val addr : t -> int
   val overwrite : old:t -> fresh:t -> unit
   val pretty_debug : Format.formatter -> t -> int -> unit
 end;;
 
-
-module MakeBig(H:WeakHashable) = 
+module MakeBig(H:WeakHashable) =
 struct
   module W = Weak.Make(H)
-  type t = W.t ref
+  let n = ref 0
+  let get () = incr n; !n
+  type t = (W.t * int )ref
+  let addr t = snd !t
   type data = H.t
-  let create c = ref (W.create c)
-  let merge t d = 
-    let r = W.merge !t d in
-    r
-  let iter t f = W.iter f !t
-  let clear t = W.clear !t
+  let create c =
+    let t = ref (W.create c, (get())) in
+(*    Format.printf "CREATE %s: %d@." H.id (snd !t);*)
+    t
+  let merge t d =
+(*    let r = *)W.merge (fst !t) d (*in*)
+(*    if H.id = "(base, Int_Intervals) ptmap" && (addr new_tr = 1297910 || H.id
+	  new_tr = 538304833 || H.id = 27776) then
+      Format.printf "MERGE %S: t=%d; d=%a " H.id (snd !t) H.pretty d;*)
+(*    r*)
+  let iter t f = W.iter f (fst !t)
+  let clear t = W.clear (fst !t)
   let release _t = ()
   let pretty_debug _ = assert false
-  let shallow_copy t = ref (!t)
-  let overwrite ~old ~fresh = old := !fresh
+  let shallow_copy t = ref !t
+  let overwrite ~old ~fresh =
+(*    if H.id = "(base, Int_Intervals) ptmap" then
+      Format.printf "OVERWRITE old=%d; fresh=%d@." (snd !old) (snd !fresh);*)
+    old := !fresh
 end
-  
+
 
 
 let () =
   let gc_params = Gc.get () in
-  Gc.set { gc_params with Gc.minor_heap_size = 2 lsl 18 };
+  Gc.set
+    { gc_params with Gc.minor_heap_size = 2 lsl 18 };

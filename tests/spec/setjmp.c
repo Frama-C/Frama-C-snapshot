@@ -2,7 +2,7 @@
    DONTRUN: syntactically incorrect include
 */
 #ifndef PTEST
-#include <stdio.>
+#include <stdio.h>
 #else
 extern int printf (__const char *__restrict __format, ...);
 #endif

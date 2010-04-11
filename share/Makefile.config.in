@@ -2,8 +2,9 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2009                                               #
-#    CEA (Commissariat à l'Énergie Atomique)                             #
+#  Copyright (C) 2007-2010                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
 #  Lesser General Public License as published by the Free Software       #
@@ -30,7 +31,7 @@
 # Working directories #
 #######################
 
-FRAMAC_SRC 	?= @abs_top_srcdir@
+FRAMAC_TOP_SRCDIR 	?= @abs_top_srcdir@
 
 ######################
 # Installation paths #
@@ -41,10 +42,10 @@ prefix		?=@prefix@
 exec_prefix	?=@exec_prefix@
 datarootdir     ?=@datarootdir@
 datadir         ?=@datadir@
-BINDIR		?=$(DESTDIR)@bindir@
-LIBDIR		?=$(DESTDIR)@libdir@
-DATADIR		?=$(DESTDIR)@datarootdir@
-MANDIR		?=$(DESTDIR)@mandir@
+BINDIR		?="$(DESTDIR)@bindir@"
+LIBDIR		?="$(DESTDIR)@libdir@"
+DATADIR		?="$(DESTDIR)@datarootdir@"
+MANDIR		?="$(DESTDIR)@mandir@"
 
 FRAMAC_LIBDIR	?=$(LIBDIR)/frama-c
 FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
@@ -101,18 +102,12 @@ HAS_GNOMECANVAS	?=@HAS_GNOMECANVAS@
 HAS_LABLGLADECC	?=@HAS_LABLGLADECC@
 LABLGLADECC	?=@LABLGLADECC@ -hide-default
 
-# ltltoba
-HAS_LTLTOBA 	?= @HAS_LTLTOBA@
-
 ##########################
 # Miscellaneous commands #
 ##########################
 
 OTAGS		?=@OTAGS@
 DOT		?=@DOT@
-
-WHYBIN		?=@WHYBIN@
-WHYDPBIN	?=@WHYDPBIN@
 
 HEADACHE 	?= headache -c $(FRAMAC_SRC)/headers/headache_config.txt
 
@@ -135,22 +130,8 @@ THREAD_IS_KEYWORD ?=@THREAD_IS_KEYWORD@
 
 EXTERNAL_PLUGINS ?=@EXTERNAL_PLUGINS@
 
-# Jessie
-JESSIE_LOCAL	?=@JESSIE_LOCAL@
-ENABLE_JESSIE	?=@ENABLE_JESSIE@
-DYNAMIC_JESSIE	?=@DYNAMIC_JESSIE@
-JESSIE_INCLUDES	?=@JESSIE_INCLUDES@
-JCCMO		?=@JCCMO@
-JCCMX		?=@JCCMX@
-WHY_DISTRIB	?=@WHYDISTRIB@
-
-# Aoraï
-ENABLE_LTL_TO_ACSL ?=@ENABLE_LTL_TO_ACSL@
-DYNAMIC_LTL_TO_ACSL ?=@DYNAMIC_LTL_TO_ACSL@
-
 # Others
 ENABLE_GUI	?=@ENABLE_GUI@
-ENABLE_WP	?=@ENABLE_WP@
 ENABLE_SYNTACTIC_CALLGRAPH ?=@ENABLE_SYNTACTIC_CALLGRAPH@
 ENABLE_OCCURRENCE ?=@ENABLE_OCCURRENCE@
 ENABLE_METRICS	?=@ENABLE_METRICS@
@@ -161,9 +142,9 @@ ENABLE_CONSTANT_PROPAGATION ?=@ENABLE_CONSTANT_PROPAGATION@
 ENABLE_POSTDOMINATORS ?=@ENABLE_POSTDOMINATORS@
 ENABLE_INOUT	?=@ENABLE_INOUT@
 ENABLE_SEMANTIC_CALLGRAPH ?=@ENABLE_SEMANTIC_CALLGRAPH@
-ENABLE_SECURITY	?=@ENABLE_SECURITY@
 ENABLE_IMPACT	?=@ENABLE_IMPACT@
 ENABLE_PDG	?=@ENABLE_PDG@
+ENABLE_RTE	?=@ENABLE_RTE@
 ENABLE_SCOPE	?=@ENABLE_SCOPE@
 ENABLE_SPARECODE ?=@ENABLE_SPARECODE@
 ENABLE_SLICING	?=@ENABLE_SLICING@

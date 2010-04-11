@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -76,7 +77,9 @@ val is_trivial_predicate: predicate -> bool
 val is_trivial_rooted_assertion: Db_types.rooted_code_annotation -> bool
 val is_trivial_named_predicate: predicate named -> bool
 
-val behavior_postcondition : funbehavior -> predicate named
+val behavior_postcondition : funbehavior -> termination_kind -> predicate named
+  (** @modify Boron-20100401 added termination kind as argument *)
+
 val merge_assigns: funbehavior list -> identified_term assigns list
 
 val variable_term: location -> logic_var -> term
@@ -153,14 +156,12 @@ end
 
 val is_cea_function : string -> bool
 val is_cea_dump_function : string -> bool
-val is_cea_offset : string -> bool
-val is_frama_c_base_aligned : string -> bool
 val is_cea_alloc : string -> bool
 val is_cea_alloc_with_validity : string -> bool
 val is_frama_c_builtin : string -> bool
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

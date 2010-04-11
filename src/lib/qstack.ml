@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: qstack.ml,v 1.3 2008-08-28 09:22:49 uid528 Exp $ *)
 
 module type DATA = sig
   type t
@@ -43,6 +42,11 @@ module Make(D: DATA) = struct
   let add x t = t.first <- x :: t.first
   let add_at_end x t = t.last <- x :: t.last
 
+  let singleton x = 
+    let q = create () in
+    add x q;
+    q
+
   let transfer t =
     assert (t.first = []);
     List.iter (fun x -> add x t) t.last;
@@ -57,6 +61,7 @@ module Make(D: DATA) = struct
 	 | [] -> assert false
 	 | x :: _ -> x)
     | x :: _, _ -> x
+	  
 
   let mem x t = 
     let list_mem x = List.exists (D.equal x) in

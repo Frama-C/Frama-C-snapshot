@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -26,7 +27,6 @@
   open Lexing
   type state = NORMAL | SLASH | INCOMMENT
   type end_of_buffer = NEWLINE | SPACE | CHAR
-  let debug = false
   let buf = Buffer.create 1024
   let macros = Buffer.create 1024
   let beg_of_line = Buffer.create 8
@@ -36,7 +36,19 @@
   let curr_line = ref 1
   let is_ghost = ref false
   let begin_annot_line = ref 1
+
+  let reset () =
+    Buffer.clear buf;
+    Buffer.clear macros;
+    Buffer.clear beg_of_line;
+    is_newline := CHAR;
+    curr_file := "";
+    curr_line := 1;
+    is_ghost := false;
+    begin_annot_line := 1
+
   let preprocess_annot cpp outfile =
+    let debug = Cilmsg.debug_atleast 3 in
     let (ppname, ppfile) = Filename.open_temp_file "ppannot" ".c" in
     Buffer.output_buffer ppfile macros;
     (* NB: the three extra spaces replace the begining of the annotation
@@ -255,11 +267,13 @@ parse
 
 {
   let file cpp filename =
+    reset ();
     let inchan = open_in_bin filename in
     let lex = Lexing.from_channel inchan in
     let (ppname, ppfile) = Filename.open_temp_file
       (Filename.basename filename) ".pp"
     in
+    Extlib.cleanup_at_exit ppname;  
     main cpp ppfile lex;
     close_in inchan;
     close_out ppfile;

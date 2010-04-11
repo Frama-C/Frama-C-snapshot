@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -169,7 +170,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
       module Initial_Values = struct
         let v = [[]]
       end
-      include Ptmap.Generic(Base)(LOffset)(Initial_Values)
+      include Ptmap.Make(Base)(LOffset)(Initial_Values)
 
       let add k v m =
 	if LOffset.equal v (default_offsetmap k) then
@@ -194,25 +195,14 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset : Offsetmap.S with type y
 
     let empty = Some LBase.empty
 
-    let rehash = Extlib.opt_map LBase.Datatype.rehash
-
     let name = Project.Datatype.extend_name "Lmap" LOffset.Datatype.name
 
     let hash = function 
       | None -> 0
       | Some m -> LBase.tag m
 
-    module Datatype = 
-      Project.Datatype.Register
-	(struct
-	   type tt = t
-	   type t = tt
-	   let copy _ = assert false (* TODO *)
-	   let rehash = rehash
-	   let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
-	   let name = name
-	 end)
-    let () = Datatype.register_comparable ~hash ~equal ()
+    module Datatype = Datatype.Option(LBase.Datatype)
+    let () = Datatype.register_comparable ~hash ()
 
     let top = empty
 
@@ -766,10 +756,12 @@ let is_included =
     | _,None -> raise Is_not_included
     | Some actual_m,Some generic_m ->
 	let bases =
-	  Zone.fold_bases
-	    BaseSet.add
-	    inouts
-	    BaseSet.empty
+	  try
+	    Zone.fold_bases
+	      BaseSet.add
+	      inouts
+	      BaseSet.empty
+	  with Zone.Error_Top -> raise Is_not_included
 	in
 	let q = ref bases in
 	let instanciation = ref BaseMap.empty in

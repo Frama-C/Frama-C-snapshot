@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -36,10 +37,13 @@ val disj : string
 val neg : string
 val x_or : string
 val inset : string
+val minus: string
+val boolean: string
+val integer: string
+val real: string
 
 (*
 Local Variables:
 compile-command: "make -C ../../.."
 End:
 *)
-

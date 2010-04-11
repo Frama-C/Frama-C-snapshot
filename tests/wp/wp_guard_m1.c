@@ -1,9 +1,3 @@
-/* run.config
-OPT: -wp-mm 1 -wp-debug 1 -journal-disable -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-mm 1 -wp-debug 2 -journal-disable -wp-proof
-*/
 
 int X, Y;
 int T[10];
@@ -27,7 +21,7 @@ void f_no_hyp (void) {
   int x = X;
   *P = x + 1;
 }
-/*@ requires \separated (P, &X);
+/*@ requires \separated (P, &X) && \separated (P, &P);
     ensures *P > X;
 */
 void f_with_hyp (void) {
@@ -69,3 +63,9 @@ int locvar_vs_paramptr (int * p) {
   (*p)++;
   return x;
 }
+void cmp_shift (int * p, int i, int j) {
+  *(p+i) = 1;
+  *(p+j) = 2;
+  //@ assert i != j ==> *(p+i) == 1;
+}
+int main (void) { return 0 ; }

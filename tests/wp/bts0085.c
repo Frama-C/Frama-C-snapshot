@@ -1,9 +1,5 @@
-/* run.config
-OPT: -wp-mm 2 -wp-debug 1 -journal-disable -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-mm 2 -wp-debug 2 -journal-disable -wp-proof
-*/
+
+// Tout passe avec m2 z3
 
 int * P;
 int X;
@@ -79,3 +75,16 @@ int addr_param_vs_addr_glob (int x) {
   X = 3;
   return x + X;
 }
+
+//@ ensures ! \valid(P);
+void f (void) { 
+  int x; 
+  P = &x; 
+}
+
+/*@ requires \valid (P); */
+void disj_glob_addr_param (int x) {
+  //@ assert (P != &x);
+}
+
+int main (void) {return 0;}

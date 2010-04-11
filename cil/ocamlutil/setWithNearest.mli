@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* $Id: setWithNearest.mli,v 1.4 2008-03-06 14:04:26 uid528 Exp $ *)
@@ -43,12 +44,14 @@
 module type OrderedType =
   sig
     include Set.OrderedType
+    val descr : Unmarshal.t
   end
 (** Input signature of the functor {!SetWithNearest.Make}. *)
 
 module type S =
   sig
     include Set.S
+    val descr : Unmarshal.t
     val nearest_elt_le: elt -> t -> elt
     val nearest_elt_ge: elt -> t -> elt
   end

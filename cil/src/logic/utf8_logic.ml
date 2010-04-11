@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -39,7 +40,7 @@ let from_unichar n =
     else begin
       String.unsafe_set s p (Char.unsafe_chr (((1 lsl len - 1) lsl (8-len)) lor (c lsr ((len-1)*6))));
       for i = 1 to len-1 do
-	String.unsafe_set s (p+i) 
+	String.unsafe_set s (p+i)
 	  (Char.unsafe_chr (((c lsr ((len-1-i)*6)) land 0x3f) lor 0x80))
       done ;
     end ;
@@ -56,8 +57,9 @@ let eq =  from_unichar (*0x2263*) (*0x2250*) 0x2261
 let neq =  from_unichar 0x2262
 let le =  from_unichar 0x2264
 let ge =  from_unichar 0x2265
+let minus = from_unichar 0x2212
 
-let implies = from_unichar 0x21D2 
+let implies = from_unichar 0x21D2
 let iff = from_unichar 0x21D4
 let conj = from_unichar 0x2227
 let disj = from_unichar 0x2228
@@ -65,6 +67,9 @@ let neg = from_unichar 0x00AC
 let x_or =  from_unichar 0x22BB
 let inset = from_unichar 0x2208
 
+let boolean = from_unichar 0x1D539
+let integer = from_unichar 0x2124
+let real = from_unichar 0x211D
 (*
 Local Variables:
 compile-command: "make -C ../../.."

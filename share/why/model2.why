@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -23,44 +24,81 @@
 
 (* include "/model1.why" *)
 
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+
+(* mapping from int_base_addr to a boolean 
+that says if the memory block is allocated in the given scope. *)
+(* type scope *)
+
 type memory
 
+logic upd_scope : memory, int, bool -> memory
+
+logic acc_scope : memory, int -> bool
+
+axiom acc_upd_scope : forall m:memory. 
+  forall a:'a pointer. forall a:int. forall v:bool.
+  acc_scope (upd_scope (m,a,v), a) = v
+
+axiom acc_upd_scope_neq : forall m:memory. 
+  forall a:int. forall v:bool. forall b:int.
+  a <> b -> acc_scope (upd_scope (m,a,v), b) = acc_scope (m, b)
+
+(* shortcut *)
+predicate valid_in_scope (m: memory, p: 't pointer) =
+  acc_scope (m, int_base_addr(p)) = true 
+
+axiom disj_valid_in_scope : forall m:memory.
+  forall p:'a pointer. forall p':'b pointer.
+  valid_in_scope (m, p) -> not valid_in_scope (m, p') ->
+  disj_pointer (p, p')
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+
 (* acc (m, p) ==== p.[*_m] *)
-logic acc : memory,'a pointer -> 'a
+logic acc : memory, 'a pointer -> 'a
 
 (* upd (m, p, v) ==== *_m ++ {p -> v} *)
 logic upd : memory,'a pointer,'a -> memory
 
+axiom acc_upd_mem : forall m:memory. forall a:'a pointer. forall v:'a.
+  acc(upd(m,a,v), a) = v
+
+(* for pointer to the same type ONLY *)
+axiom acc_upd_mem_neq : 
+  forall m:memory. forall a:'t pointer. forall b:'t pointer. forall v:'t.
+  a <> b -> acc(upd(m,a,v), b) = acc(m, b)
+
+axiom acc_upd_disj : 
+  forall m:memory. forall a:'a pointer. forall b:'b pointer. forall v:'a.
+  disj_pointer (a, b) -> acc(upd(m,a,v), b) = acc(m, b) 
+
 axiom acc_shift_field : forall m:memory. forall ps:'a pointer. 
   forall f : 'f field.
-  acc (m, shift_field (ps, f)) = acc_field (acc (m, ps), f)
+  acc (m,  shift_field (ps, f)) = acc_field (acc (m, ps), f)
+
+axiom upd_shift_field : forall m:memory. forall ps:'a pointer. 
+  forall f : 'f field.  forall v:'f.
+  upd (m, shift_field (ps, f), v) = upd (m, ps, upd_field (acc (m, ps), f, v))
 
 axiom acc_shift_index : forall m:memory. forall p:'a farray pointer. 
   forall i : int.
   acc (m, shift_index (p, i)) = access (acc (m, p), (i))
-
-axiom acc_upd_mem : forall m:memory. forall a:'a pointer. forall v:'a.
-  acc(upd(m,a,v),a) = v
 
 axiom acc_upd_neq_index : forall m:memory. forall a:'a farray pointer. 
   forall i, j : int. forall v:'a. i <> j ->
   acc(upd(m, shift_index (a, i), v), shift_index (a, j)) 
 = acc(m, shift_index (a, j))
 
-(* for pointer to the same type ONLY *)
-axiom acc_upd_mem_neq : 
-  forall m:memory. forall a:'t pointer. forall b:'t pointer. forall v:'t.
-  a <> b -> acc(upd(m,a,v),b) = acc(m,b)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* Memory acces when changing scope *)
 
-axiom acc_upd_disj : 
-  forall m:memory. forall a:'a pointer. forall b:'b pointer. forall v:'a.
-  disj_pointer (a, b) -> acc(upd(m,a,v),b) = acc(m,b) 
+axiom acc_mem_upd_scope :
+  forall m:memory.  forall p:'a pointer. forall id:int. forall b:bool.
+  acc (upd_scope (m, id, b), p) = acc (m, p)
 
-(*
-Put this in the coq file :
+axiom upd_mem_acc_scope : forall m:memory.  
+  forall p:'a pointer. forall v:'a. forall id:int.
+  acc_scope (upd (m, p, v), id) = acc_scope (m, id)
 
-Hint Rewrite [shift_zero; acc_upd_mem] in smp.
-Ltac go := intuition;subst;autorewrite with smp;trivial.
-Hint Resolve sep_c_x.
-*)
-
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)

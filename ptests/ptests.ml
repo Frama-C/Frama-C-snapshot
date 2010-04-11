@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -54,11 +55,40 @@ module Filename = struct
       fun a b -> let r = temp_file a b in
 	cygpath r
     else
-      temp_file
+      fun a b -> temp_file a b
 end
 
+let default_env = ref []
+
+let add_default_env x y = default_env:=(x,y)::!default_env
+
+let add_env var value =
+    add_default_env var value;
+    Unix.putenv var value
+
+let print_default_env fmt =
+  match !default_env with
+      [] -> ()
+    | l ->
+	Format.fprintf fmt "@[Env:@\n";
+	List.iter (fun (x,y) -> Format.fprintf fmt "%s = \"%s\"@\n"  x y) l;
+	Format.fprintf fmt "@]"
+
 let default_env var value =
-  try ignore (Unix.getenv var) with Not_found -> Unix.putenv var value
+  try ignore (Unix.getenv var) with Not_found -> add_env var value
+
+let test_paths = [ "tests"; "../../tests" ]
+
+exception Path of string
+let test_path =
+  try
+    List.iter
+      (fun p -> if Sys.file_exists p && Sys.is_directory p then raise (Path p))
+      test_paths;
+    Format.eprintf "No test path found@.";
+    exit 1
+  with Path p ->
+    p
 
 (** the name of the directory-wide configuration file*)
 let dir_config_file = "test_config"
@@ -73,23 +103,22 @@ let end_comment = Str.regexp ".*\\*/"
 let opt_to_byte =
   let opt = Str.regexp "[.]opt$" in
   function toplevel ->
-    if toplevel = "frama-c" then "frama-c.byte" else
-    Str.global_replace opt ".byte" toplevel
+    if toplevel = "frama-c" then "frama-c.byte"
+    else Str.global_replace opt ".byte" toplevel
 
 let execnow_opt_to_byte =
-  let opt = Str.regexp "tests/\\(.+\\)[.]opt\\($\\|[ \t]\\)" in
-  let cmxs = Str.regexp "tests/\\(.+\\)[.]cmxs\\($\\|[ \t]\\)" in
+  let test_regexp r = Filename.concat test_path r in
+  let opt = Str.regexp (test_regexp "\\(.+\\)[.]opt\\($\\|[ \t]\\)") in
+  let cmxs = Str.regexp (test_regexp "\\(.+\\)[.]cmxs\\($\\|[ \t]\\)") in
   fun cmd ->
-    let cmd = Str.global_replace opt "tests/\\1.byte\\2" cmd in
-    Str.global_replace cmxs "tests/\\1.cmo\\2" cmd
+    let cmd = Str.global_replace opt (test_regexp "\\1.byte\\2") cmd in
+    Str.global_replace cmxs (test_regexp "\\1.cmo\\2") cmd
 
 let base_path = Filename.current_dir_name
 (*    (Filename.concat
         (Filename.dirname Sys.executable_name)
 	Filename.parent_dir_name)
 *)
-
-let test_path = "tests"
 
 let ptests_config = "ptests_local_config.cmo"
 
@@ -99,8 +128,9 @@ type behavior = Examine | Update | Run | Show
 let behavior = ref Run
 let verbosity = ref 0
 let use_byte = ref false
-let use_diff_as_cmp = ref false
-let do_diffs = ref "diff -u"
+let use_diff_as_cmp = ref (Sys.os_type = "Win32")
+let do_diffs = ref (if Sys.os_type = "Win32" then "diff --strip-trailing-cr -u"
+		    else "diff -u")
 let do_cmp = ref "cmp -s"
 let n = ref 4    (* the level of parallelism *)
 let suites = ref []
@@ -113,11 +143,11 @@ let exclude_suites = ref []
 
 let exclude s = exclude_suites := s :: !exclude_suites
 
-let m = Mutex.create ()
+let io_mutex = Mutex.create ()
 
 let lock_fprintf f =
-  Mutex.lock m;
-  Format.kfprintf (fun _ -> Mutex.unlock m) f
+  Mutex.lock io_mutex;
+  Format.kfprintf (fun _ -> Mutex.unlock io_mutex) f
 
 let lock_printf s = lock_fprintf Format.std_formatter s
 let lock_eprintf s = lock_fprintf Format.err_formatter s
@@ -137,10 +167,13 @@ let () =
 let () =
   default_env "FRAMAC_SHARE" !Ptests_config.framac_share;
   default_env "FRAMAC_PLUGIN" !Ptests_config.framac_plugin;
+  default_env "FRAMAC_LIB" !Ptests_config.framac_lib;
   default_env "FRAMAC_PLUGIN_GUI" !Ptests_config.framac_plugin_gui;
   default_env "OCAMLRUNPARAM" "";
   default_env "FRAMAC_OPT" !Ptests_config.toplevel_path;
-  default_env "FRAMAC_BYTE" (opt_to_byte !Ptests_config.toplevel_path)
+  default_env "FRAMAC_BYTE" (opt_to_byte !Ptests_config.toplevel_path);
+  Unix.putenv "LC_ALL" "C" (* some oracles, especially in Jessie, depend on the
+                              locale *)
 ;;
 
 let () = Arg.parse
@@ -203,7 +236,7 @@ let gen_make_file s dir file = Filename.concat (Filename.concat dir s) file
 let make_result_file = gen_make_file result_dirname
 let make_oracle_file = gen_make_file oracle_dirname
 
-let toplevel_regex = Str.regexp ".*@frama-c@"
+let toplevel_regex = Str.regexp "\\(.*\\)@frama-c@\\(.*\\)"
 
 type execnow =
     {
@@ -308,7 +341,8 @@ let config_options stdopts =
   [ "CMD",
     (fun _ s (current,rev_toplevels) ->
        if Str.string_match toplevel_regex s 0 then
-         last_toplevel := !Ptests_config.toplevel_path
+         last_toplevel :=
+           Str.replace_matched ("\\1" ^ !Ptests_config.toplevel_path ^ "\\2") s
        else
          last_toplevel := make_toplevel_path s;
        { current with dc_default_toplevel = !last_toplevel}, rev_toplevels);
@@ -449,7 +483,8 @@ type cmps =
 
 type shared =
     { lock : Mutex.t ;
-      lock_target : Mutex.t ;
+      mutable building_target : bool ;
+      target_queue : command Queue.t ;
       commands_empty : Condition.t ;
       work_available : Condition.t ;
       diff_available : Condition.t ;
@@ -467,7 +502,8 @@ type shared =
 
 let shared =
   { lock = Mutex.create () ;
-    lock_target = Mutex.create () ;
+    building_target = false ;
+    target_queue = Queue.create () ;
     commands_empty = Condition.create () ;
     work_available = Condition.create () ;
     diff_available = Condition.create () ;
@@ -518,26 +554,53 @@ let command_string command =
   let errlog = log_prefix ^ ".err.log" in
   let stderr = match command.filter with
       None -> errlog
-    | Some _ -> Filename.temp_file (Filename.basename log_prefix) ".err.log"
+    | Some _ ->
+        let stderr =
+          Filename.temp_file (Filename.basename log_prefix) ".err.log"
+        in
+        at_exit
+          (fun () ->  try Unix.unlink stderr with Unix.Unix_error _ -> ());
+        stderr
   in
+  let filter = match command.filter with
+    | None -> None
+    | Some filter ->
+	let len = String.length filter in
+	let rec split_filter i =
+	  if i < len && filter.[i] = ' ' then split_filter (i+1)
+	  else
+	    try
+	      let idx = String.index_from filter i ' ' in
+	      String.sub filter i idx,
+	      String.sub filter idx (len - idx)
+	    with Not_found ->
+	      String.sub filter i (len - i), ""
+	in
+	let exec_name, params = split_filter 0 in
+        let exec_name =
+	  if Sys.file_exists exec_name || not (Filename.is_relative exec_name)
+          then exec_name
+	  else
+	    Filename.concat
+	      (Filename.dirname (Filename.dirname log_prefix))
+	      (Filename.basename exec_name)
+	in
+	Some (exec_name ^ params)
+  in
+
   let command_string = basic_command_string command in
   let command_string =
     command_string ^ " 2>" ^ stderr
   in
-  let command_string =
-    match command.filter with
-      None -> command_string
+  let command_string = match filter with
+    | None -> command_string
+    | Some filter -> command_string ^ " | " ^ filter
+  in
+  let command_string = command_string ^ " >" ^ log_prefix ^ ".res.log" in
+  let command_string = match filter with
+    | None -> command_string
     | Some filter ->
-	command_string ^ " | " ^ filter
-  in
-  let command_string =
-    command_string ^ " >" ^ log_prefix ^ ".res.log"
-  in
-  let command_string =
-    match command.filter with
-        None -> command_string
-      | Some filter ->
-          Printf.sprintf "%s && %s < %s > %s && rm -f %s"
+        Printf.sprintf "%s && %s < %s > %s && rm -f %s"
           command_string filter stderr errlog stderr
   in
   command_string
@@ -586,75 +649,89 @@ let do_command command =
       if !behavior = Update
       then update_toplevel_command command
       else begin
-        (* Run, Show or Examine *)
-        if !behavior <> Examine
-        then begin
-	  let command_string = command_string command in
-	  if !verbosity >= 1
-	  then lock_printf "%s@." command_string ;
-	  ignore (launch command_string)
-	end;
-	lock ();
-	shared.summary_run <- succ shared.summary_run ;
-	shared.summary_log <- shared.summary_log + 2 ;
-	Queue.push (Cmp_Toplevel command) shared.cmps;
-	unlock ()
-      end
+          (* Run, Show or Examine *)
+          if !behavior <> Examine
+          then begin
+	      let command_string = command_string command in
+	      if !verbosity >= 1
+	      then lock_printf "%% launch %s@." command_string ;
+	      ignore (launch command_string)
+	    end;
+	  lock ();
+	  shared.summary_run <- succ shared.summary_run ;
+	  shared.summary_log <- shared.summary_log + 2 ;
+	  Queue.push (Cmp_Toplevel command) shared.cmps;
+	  unlock ()
+	end
   | Target (execnow, cmds) ->
-      if !behavior = Update then begin
-        update_command command
-      end else
-        begin
-          let res =
-            if !behavior <> Examine then begin
-              remove_execnow_results execnow;
-	      Mutex.lock shared.lock_target;
-              let cmd =
-                if !use_byte then
-                  execnow_opt_to_byte execnow.ex_cmd
-                else
-                  execnow.ex_cmd
-              in
-	      let r = launch cmd in
-	      Mutex.unlock shared.lock_target;
-	      r
-            end else
-	      0
-          in
+      let continue res =
           lock();
 	  shared.summary_log <- succ shared.summary_log;
           if res = 0
 	  then begin
-	    shared.summary_ok <- succ shared.summary_ok;
-            Queue.transfer shared.commands cmds;
-	    shared.commands <- cmds;
-            Condition.signal shared.work_available;
-	    if !behavior = Examine || !behavior = Run
-	    then begin
-	      List.iter
-		(fun f -> Queue.push (Cmp_Log(execnow.ex_dir, f)) shared.cmps)
-		execnow.ex_log
-	    end
-          end
+	      shared.summary_ok <- succ shared.summary_ok;
+              Condition.broadcast shared.work_available;
+	      if !behavior = Examine || !behavior = Run
+	      then begin
+		  List.iter
+		    (fun f -> Queue.push (Cmp_Log(execnow.ex_dir, f)) shared.cmps)
+		    execnow.ex_log
+		end
+            end
 	  else begin
-	    let rec treat_cmd = function
-		Toplevel cmd ->
-		  shared.summary_run <- shared.summary_run + 1;
-		  let log_prefix = log_prefix cmd in
-		  begin try
-		    Unix.unlink (log_prefix ^ ".res.log ")
-		  with Unix.Unix_error _ -> ()
-		  end;
-	      | Target (execnow,cmds) ->
-                  shared.summary_run <- succ shared.summary_run;
-                  remove_execnow_results execnow;
-                  Queue.iter treat_cmd cmds
-	    in
-	    Queue.iter treat_cmd cmds;
-            Queue.push (Target_error execnow) shared.diffs;
-            Condition.signal shared.diff_available
-          end;
+	      let rec treat_cmd = function
+		  Toplevel cmd ->
+		    shared.summary_run <- shared.summary_run + 1;
+		    let log_prefix = log_prefix cmd in
+		    begin try
+			Unix.unlink (log_prefix ^ ".res.log ")
+		      with Unix.Unix_error _ -> ()
+		    end;
+		| Target (execnow,cmds) ->
+                    shared.summary_run <- succ shared.summary_run;
+                    remove_execnow_results execnow;
+                    Queue.iter treat_cmd cmds
+	      in
+	      Queue.iter treat_cmd cmds;
+              Queue.push (Target_error execnow) shared.diffs;
+              Condition.signal shared.diff_available
+            end;
           unlock()
+      in
+
+      if !behavior = Update then begin
+          update_command command;
+	  lock ();
+	  shared.building_target <- false;
+	  Condition.signal shared.work_available;
+	  unlock ();
+	end else
+        begin
+            if !behavior <> Examine
+	    then begin
+		remove_execnow_results execnow;
+		    let cmd =
+                      if !use_byte then
+			execnow_opt_to_byte execnow.ex_cmd
+                      else
+			execnow.ex_cmd
+		    in
+		    let r = launch cmd in
+		    lock ();
+		    if r = 0
+		    then begin
+			Queue.transfer shared.commands cmds;
+			shared.commands <- cmds;
+		      end;
+		    shared.building_target <- false;
+		    Condition.signal shared.work_available;
+		    unlock ();
+
+		    continue r
+		  end
+	    else
+	      continue 0
+
         end
 
 let log_ext = function Res -> ".res" | Err -> ".err"
@@ -752,11 +829,37 @@ let worker_thread () =
       do_cmp cmp
     with Queue.Empty ->
       try
-	let command = Queue.pop shared.commands in
+	let rec real_command () =
+	  let command =
+	    try
+	      if shared.building_target then raise Queue.Empty;
+	      Queue.pop shared.target_queue
+	    with Queue.Empty ->
+	      Queue.pop shared.commands
+	  in
+     	  match command with
+	    Target _ ->
+	      if shared.building_target
+	      then begin
+		  Queue.push command shared.target_queue;
+		  real_command()
+		end
+	      else begin
+		  shared.building_target <- true;
+		  command
+		end
+	  | _ -> command
+	in
+	let command = real_command() in
 	unlock () ;
 	do_command command
       with Queue.Empty ->
-	if shared.commands_finished then (unlock () ; Thread.exit ());
+	if shared.commands_finished
+	  && Queue.is_empty shared.target_queue
+	  && not shared.building_target
+	  (* a target being built would mean work can still appear *)
+
+	then (unlock () ; Thread.exit ());
 
 	Condition.signal shared.commands_empty;
 	(* we still have the lock at this point *)
@@ -769,11 +872,11 @@ let worker_thread () =
   done
 
 let do_diff = function
-  | Command_error (diff, kind) ->
+    | Command_error (diff, kind) ->
       let log_prefix = log_prefix diff in
       let log_ext = log_ext kind in
       let command_string = command_string diff in
-      lock_printf "Command:@\n%s@." command_string;
+      lock_printf "%tCommand:@\n%s@." print_default_env command_string;
       if !behavior = Show
       then ignore (launch ("cat " ^ log_prefix ^ log_ext ^ ".log"))
       else
@@ -852,7 +955,7 @@ let () =
   in
   List.iter
     (fun suite ->
-       if !verbosity >= 2 then lock_printf "%% Now treating test %s\n%!" suite;
+       if !verbosity >= 2 then lock_printf "%% producer now treating test %s\n%!" suite;
       (* the "suite" may be a directory in [test_path] or a single file *)
        let interpret_as_file = interpret_as_file suite in
        let directory =
@@ -884,7 +987,7 @@ let () =
 	     let file = dir_files.(i) in
 	     assert (Filename.is_relative file);
 	     if test_pattern dir_config file &&
-               (not (List.mem file exclude_file))
+               (not (List.mem (Filename.concat directory file) exclude_file))
 	     then Queue.push (file, directory, dir_config) files;
 	   done
          end

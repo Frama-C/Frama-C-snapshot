@@ -2,8 +2,9 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2009                                               #
-#    CEA (Commissariat à l'Énergie Atomique)                             #
+#  Copyright (C) 2007-2010                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
 #  Lesser General Public License as published by the Free Software       #
@@ -53,7 +54,7 @@ else
 HAS_OCAML311 = no
 endif
 
-FLAGS	= -w Ael -warn-error A $(OCAML_ANNOT_OPTION) $(OPTIM) 
+FLAGS	= -w Z -warn-error A $(OCAML_ANNOT_OPTION) $(OPTIM)
 DEBUG	= -g
 
 #############
@@ -73,14 +74,27 @@ else
 # print the PRINT_* materials
   PRINT = @echo
 # but silently execute all the other commands
-  OLDFLAGS:=$(MAKEFLAGS)
-  MAKEFLAGS := s $(MAKEFLAGS)
+  OLDFLAGS:= r $(MAKEFLAGS)
+  MAKEFLAGS := rs $(MAKEFLAGS)
 # do not silently execute other makefiles (e.g the one of why):
 # the redefinition of MAKE below is for this purpose
 # but use QUIET_MAKE in order to call silently the initial Makefile
   QUIET_MAKE:= + $(MAKE)
   MAKE := MAKEFLAGS="$(OLDFLAGS)" $(MAKE)
 endif
+
+################
+# Calling Make #
+################
+
+# Function to be called to call make on a given plugin (first argument) and
+# a given rule (second argument)
+external_make = \
+  $(MAKE) FRAMAC_INTERNAL=yes \
+          PLUGIN_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/$(PLUGIN_LIB_DIR) \
+          PLUGIN_GUI_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/$(PLUGIN_GUI_LIB_DIR) \
+          FRAMAC_LIBDIR=$(FRAMAC_TOP_SRCDIR)/lib/fc \
+          FRAMAC_SHARE=$(FRAMAC_TOP_SRCDIR)/share -C $(1) $(2)
 
 ##################
 # Shell commands #
@@ -125,6 +139,7 @@ PRINT_UNTAR    	=$(PRINT) 'Unarchiving '#
 PRINT_CONFIG   	=$(PRINT) 'Configuring '#
 PRINT_BUILD   	=$(PRINT) 'Building    '#
 PRINT_INSTALL  	=$(PRINT) 'Installing  '#
+PRINT_UPDATE  	=$(PRINT) 'Updating    '#
 
 PRINT_DOT	=$(PRINT) 'Dot         '#
 PRINT_LATEX	=$(PRINT) 'Latex       '#
@@ -178,7 +193,18 @@ endef #COMPILE_TESTS_ML_FILES
 
 .DEFAULT_GOAL=all
 
-.SUFFIXES: .mli .ml .cmi .cmo .cmx .mll .mly .tex .dvi .ps .html .cmxs \
+ifndef SUFFIXES_ARE_SET
+
+SUFFIXES_ARE_SET:=true
+
+# The former .SUFFIXES delete all predefined implicit rules
+# The latter .SUFFIXES defines our suffix list
+# See GNU Make manual, section 10.7
+# This way of declaring implicit rules is deprecated,
+# but that is the only way for removing **all** predefined implicit rules
+# The only other way is to remove each predefined implicit rule, one by one.
+.SUFFIXES:
+.SUFFIXES: .c .o .mli .ml .cmi .cmo .cmx .mll .mly .tex .dvi .ps .html .cmxs \
 	.png .svg .ps
 
 ifdef DOT
@@ -254,3 +280,5 @@ endif
 .c.o:
 	$(PRINT_OCAMLC) $@
 	$(OCAMLC) $(BFLAGS) -ccopt "-o $@" $<
+
+endif

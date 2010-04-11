@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2009 INRIA                                              *)
+(*  Copyright (C) 2009-2010 INRIA                                         *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -36,7 +36,7 @@
 
 (* caml_unmarshal by Ineffable Casters *)
 
-(* Version 3.11.1.9 *)
+(* Version 3.11.2.0 *)
 
 
 (* Warning:
@@ -53,8 +53,11 @@ type t =
   | Transform of t * (Obj.t -> Obj.t)
   | Return of t * (unit -> Obj.t)
   | Dynamic of (unit -> t)
-and structure = Sum of t array array | Array of t
 
+and structure =
+  | Sum of t array array
+  | Dependent_pair of t * (Obj.t -> t)
+  | Array of t
 ;;
 
 let arch_sixtyfour = Sys.word_size = 64;;
@@ -208,14 +211,20 @@ let readfloat_big =
 
 (* Auxiliary functions for handling closures. *)
 
+(* the int64 thing is a work-around for a bug in OCaml <= 3.11.2 *)
+
+let int64 = ref 0L
+
+let _ = int64 := Int64.add !int64 !int64
+
 let raw_value_big32 x =
-  let result = Obj.dup (Obj.repr 0L) in
+  let result = Obj.dup (Obj.repr !int64) in
   Obj.set_field result 2 (Obj.repr x);
   (Obj.obj result : Int64.t)
 ;;
 
 let raw_value_other x =
-  let result = Obj.dup (Obj.repr 0L) in
+  let result = Obj.dup (Obj.repr !int64) in
   Obj.set_field result 1 (Obj.repr x);
   (Obj.obj result : Int64.t)
 ;;
@@ -339,13 +348,16 @@ type frame = {
   st_obj : Obj.t;
 };;
 
-let rec get_field_type t tag i =
+let rec get_field_type t tag i prev =
   match t with
   | Abstract -> Abstract
   | Structure (Sum a) -> a.(tag).(i)
+  | Structure (Dependent_pair(a, _f)) when i = 0 -> a
+  | Structure (Dependent_pair(_a, f)) when i = 1 -> f prev
+  | Structure (Dependent_pair(_a, _f)) -> assert false
   | Structure (Array a) -> a
-  | Transform (t1, _) -> get_field_type t1 tag i
-  | Return (t1, _) -> get_field_type t1 tag i
+  | Transform (t1, _) -> get_field_type t1 tag i prev
+  | Return (t1, _) -> get_field_type t1 tag i prev
   | Dynamic _ -> assert false
 ;;
 
@@ -378,22 +390,20 @@ let input_val ch t =
   let ctr = ref 0 in
 
   let rec intern_rec stk t =
-    match t with
-    | Dynamic f -> intern_rec stk (f ())
-    | _ ->
-       let code = read8u ch in
-       match code with
+    let read_ch () =
+      let code = read8u ch in
+      match code with
 
-       | 0x00 (* CODE_INT8 *) ->
+      | 0x00 (* CODE_INT8 *) ->
           let v = Obj.repr (read8s ch) in
           return stk (do_transform t v)
-       | 0x01 (* CODE_INT16 *) ->
+      | 0x01 (* CODE_INT16 *) ->
           let v = Obj.repr (read16s ch) in
           return stk (do_transform t v)
-       | 0x02 (* CODE_INT32 *) ->
+      | 0x02 (* CODE_INT32 *) ->
           let v = Obj.repr (read32s ch) in
           return stk (do_transform t v)
-       | 0x03 (* CODE_INT64 *) ->
+      | 0x03 (* CODE_INT64 *) ->
           if arch_sixtyfour then begin
             let v = Obj.repr (read64s ch) in
             return stk (do_transform t v)
@@ -401,85 +411,105 @@ let input_val ch t =
             failwith "input_value: integer too large"
           end
 
-       | 0x04 (* CODE_SHARED8 *) ->
+      | 0x04 (* CODE_SHARED8 *) ->
           let ofs = read8u ch in
           read_shared stk ofs
-       | 0x05 (* CODE_SHARED16 *) ->
+      | 0x05 (* CODE_SHARED16 *) ->
           let ofs = read16u ch in
           read_shared stk ofs
-       | 0x06 (* CODE_SHARED32 *) ->
+      | 0x06 (* CODE_SHARED32 *) ->
           let ofs = read32u ch in
           read_shared stk ofs
 
-       | 0x08 (* CODE_BLOCK32 *) ->
+      | 0x08 (* CODE_BLOCK32 *) ->
           let (tag, size) = readheader32 ch in
           read_block stk t tag size
-       | 0x13 (* CODE_BLOCK64 *) ->
+      | 0x13 (* CODE_BLOCK64 *) ->
           let (tag, size) = readheader64 ch in
           read_block stk t tag size
 
-       | 0x09 (* CODE_STRING8 *) ->
+      | 0x09 (* CODE_STRING8 *) ->
           let len = read8u ch in
           read_string stk t len
-       | 0x0A (* CODE_STRING32 *) ->
+      | 0x0A (* CODE_STRING32 *) ->
           let len = read32u ch in
           read_string stk t len
 
-       | 0x0C (* CODE_DOUBLE_LITTLE *) ->
+      | 0x0C (* CODE_DOUBLE_LITTLE *) ->
           read_double stk t readfloat_little
-       | 0x0B (* CODE_DOUBLE_BIG *) ->
+      | 0x0B (* CODE_DOUBLE_BIG *) ->
           read_double stk t readfloat_big
-       | 0x0E (* CODE_DOUBLE_ARRAY8_LITTLE *) ->
+      | 0x0E (* CODE_DOUBLE_ARRAY8_LITTLE *) ->
           let len = read8u ch in
           read_double_array stk t len readfloat_little
-       | 0x0D (* CODE_DOUBLE_ARRAY8_BIG *) ->
+      | 0x0D (* CODE_DOUBLE_ARRAY8_BIG *) ->
           let len = read8u ch in
           read_double_array stk t len readfloat_big
-       | 0x07 (* CODE_DOUBLE_ARRAY32_LITTLE *) ->
+      | 0x07 (* CODE_DOUBLE_ARRAY32_LITTLE *) ->
           let len = read32u ch in
           read_double_array stk t len readfloat_little
-       | 0x0F (* CODE_DOUBLE_ARRAY32_BIG *) ->
+      | 0x0F (* CODE_DOUBLE_ARRAY32_BIG *) ->
           let len = read32u ch in
           read_double_array stk t len readfloat_big
 
-       | 0x10 (* CODE_CODEPOINTER *) ->
+      | 0x10 (* CODE_CODEPOINTER *) ->
           let ofs = getword ch in
           check_const ch cksum "input_value: code mismatch";
           return stk (do_transform t (obj_add_offset code_area_start ofs))
-       | 0x11 (* CODE_INFIXPOINTER *) ->
+      | 0x11 (* CODE_INFIXPOINTER *) ->
           let ofs = getword ch in
           let clos = intern_rec [] t in
           return stk (obj_add_offset clos ofs)
 
-       | 0x12 (* CODE_CUSTOM *) ->
+      | 0x12 (* CODE_CUSTOM *) ->
           let id = read_customident ch in
           let v = read_custom ch id in
           let dest = !ctr in
           ctr := dest + 1;
           return_block stk t v dest
 
-       | _ when code >= 0x80 (* PREFIX_SMALL_BLOCK *) ->
+      | _ when code >= 0x80 (* PREFIX_SMALL_BLOCK *) ->
           let tag = code land 0xF in
           let size = (code lsr 4) land 0x7 in
           read_block stk t tag size
-       | _ when code >= 0x40 (* PREFIX_SMALL_INT *) ->
+      | _ when code >= 0x40 (* PREFIX_SMALL_INT *) ->
           let v = Obj.repr (code land 0x3F) in
           return stk (do_transform t v)
-       | _ when code >= 0x20 (* PREFIX_SMALL_STRING *) ->
+      | _ when code >= 0x20 (* PREFIX_SMALL_STRING *) ->
           let len = code land 0x1F in
           read_string stk t len
 
-       | _ -> ill_formed ()
+      | _ ->
+(*	  Format.printf "code %x@." code;*)
+	  ill_formed ()
+    in
+    match t with
+    | Dynamic f ->
+	intern_rec stk (f ())
+    | Abstract
+    | Structure (Array _ | Sum _ | Dependent_pair _)
+    | Transform _
+    | Return _ ->
+	read_ch ()
 
   and read_block stk t tag size =
     (* read one block of the given tag and size *)
     let (t1, alloc) = get_structure t true in
     begin match t1 with
     | Abstract -> ()
+    | Structure (Dependent_pair(_, _)) ->
+	if tag >= 1 || size != 2 then begin
+(*	  Format.printf "dep couple@.";*)
+	  ill_formed ()
+	end
     | Structure (Sum a) ->
-       if tag >= Array.length a
-          || size != Array.length a.(tag)
-       then ill_formed ()
+	if tag >= Array.length a || size != Array.length a.(tag)
+	then begin
+(*structure sum tag=0 size=2 len=1 len-tag=1*)
+(*	  Format.printf "structure sum tag=%d size=%d len=%d len-tag=%d@."
+	    tag size (Array.length a) (Array.length a.(tag));*)
+	  ill_formed ()
+	end
     | Structure (Array _) -> ()
     | _ -> assert false
     end;
@@ -491,8 +521,9 @@ let input_val ch t =
         st_constr = tag;
         st_cur = 0;
         st_obj = v;
-      } in
-      let t2 = get_field_type t tag 0 in
+      }
+      in
+      let t2 = get_field_type t tag 0 (Obj.repr 0) in
       ctr := !ctr + 1;
       intern_rec (fr :: stk) t2
     end else begin
@@ -521,15 +552,18 @@ let input_val ch t =
     return_block stk t v dest
 
   and read_shared stk ofs =
-    if ofs <= 0 || ofs > !ctr then ill_formed ();
+    if ofs <= 0 || ofs > !ctr then begin
+      (*Format.printf "shared@.";*)
+      ill_formed ()
+    end;
     let v = LA.get tbl (!ctr - ofs) in
     if v == null then begin
       match stk with
       | [] -> assert false
       | f :: _ ->
-         let p = LA.get patch (!ctr - ofs) in
-         LA.set patch (!ctr - ofs) ((f.st_ctr, f.st_cur) :: p);
-         return stk null
+          let p = LA.get patch (!ctr - ofs) in
+          LA.set patch (!ctr - ofs) ((f.st_ctr, f.st_cur) :: p);
+          return stk null
     end else begin
       return stk v
     end
@@ -538,17 +572,18 @@ let input_val ch t =
     match stk with
     | [] -> Obj.obj v
     | f :: stk1 ->
-       let sz = if Obj.is_int f.st_obj
-                then (Obj.obj f.st_obj : int)
-                else begin
-                  Obj.set_field f.st_obj f.st_cur v;
-                  Obj.size f.st_obj
-                end
-       in
-       f.st_cur <- f.st_cur + 1;
-       if f.st_cur >= sz
-       then return_block stk1 f.st_ty f.st_obj f.st_ctr
-       else intern_rec stk (get_field_type f.st_ty f.st_constr f.st_cur)
+	let sz =
+	  if Obj.is_int f.st_obj
+          then (Obj.obj f.st_obj : int)
+          else begin
+            Obj.set_field f.st_obj f.st_cur v;
+            Obj.size f.st_obj
+          end
+	in
+	f.st_cur <- f.st_cur + 1;
+	if f.st_cur >= sz
+	then return_block stk1 f.st_ty f.st_obj f.st_ctr
+	else intern_rec stk (get_field_type f.st_ty f.st_constr f.st_cur v)
 
   and return_block stk t v dest =  (* call alloc, patch, and return *)
     let res = do_transform t v in
@@ -564,13 +599,13 @@ let input_val ch t =
 (* Functions for handling Int32, Int64, and Nativeint custom blocks. *)
 
 let readint64_little32 ch =
-  let result = Obj.dup (Obj.repr 0L) in
+  let result = Obj.dup (Obj.repr !int64) in
   readblock_rev ch result 4 8;
   result
 ;;
 
 let readint64_big32 ch =
-  let result = Obj.dup (Obj.repr 0L) in
+  let result = Obj.dup (Obj.repr !int64) in
   readblock ch result 4 8;
   result
 ;;
@@ -683,7 +718,7 @@ let t_option = t_ref;;
 
 let t_array a = Structure (Array a)
 
-(**** Hash tables ***)
+(**** Hash tables ****)
 
 type ('a, 'b) caml_hashtable =
   { mutable size: int;                        (* number of elements *)
@@ -699,18 +734,15 @@ let t_hashtbl_unchangedhashs key value =
   t_record [| Abstract ; t_array bucket |]
 
 (* version 2: keys change hash value in the unmarshalling+transformation *)
-let t_hashtbl_changedhashs key value create add =
-  Dynamic 
+let t_hashtbl_changedhashs create add key value =
+  Dynamic
     (fun () ->
       let new_hashtbl = create 27 in
-      (* Pascal -> Damien: Si tu me garantis que les champs d'un constructeur
-	 sont parcourus dans l'ordre, je peux créer la table directement de la
-	 bonne taille *)
-
-      let rec bucket = 
+      let return_new_hashtbl () = Obj.repr new_hashtbl in
+      let rec bucket =
 	Transform
 	  (Structure (Sum [| [| key; value; bucket |] |]),
-	  fun cell -> 
+	  fun cell ->
 	    ( match Obj.obj cell with
 	      Empty -> ()
 	    | Cons (k, v, _) ->
@@ -718,4 +750,54 @@ let t_hashtbl_changedhashs key value create add =
 	    Obj.repr Empty
 	  )
       in
-      Return (t_record [| Abstract ; t_array bucket |], new_hashtbl))
+      Return (t_record [| Abstract ; t_array bucket |], return_new_hashtbl))
+
+(**** Sets ****)
+
+type elt
+type caml_set = Empty | Node of caml_set * elt * caml_set * int
+
+let t_set_unchangedcompares t_elt =
+  let rec t_set =  Structure (Sum [| [| t_set; t_elt; t_set; Abstract |] |] ) in
+  t_set
+
+(**** Maps ****)
+
+type key
+
+type 'a caml_map = Empty | Node of 'a caml_map * key * 'a * 'a caml_map * int
+
+let t_map_unchangedcompares t_key t_elt =
+  let rec t_map =
+    Structure (Sum [| [| t_map; t_key; t_elt; t_map; Abstract |] |] )
+  in
+  t_map
+
+
+(** Pre-specialized functors for sets and maps *)
+
+module type ORDEREDDESCR = sig
+  val descr: t
+  include Set.OrderedType
+end
+
+module type SetDescr = sig
+  val descr: t
+  include Set.S
+end
+
+module SetWithDescr(Data: ORDEREDDESCR) = struct
+  include Set.Make(Data)
+  let descr = t_set_unchangedcompares Data.descr
+end
+
+module type MapDescr = sig
+  val descr: t -> t
+  include Map.S
+end
+
+module MapWithDescr(Data: ORDEREDDESCR) = struct
+  include Map.Make(Data)
+  let descr = t_map_unchangedcompares Data.descr
+end
+

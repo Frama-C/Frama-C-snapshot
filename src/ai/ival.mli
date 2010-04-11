@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,11 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
+exception Can_not_subdiv
 
 module F :
   sig
     type t
     val of_float : float -> t
+    val to_float : t -> float
     exception Nan_or_infinite
   end
 
@@ -33,18 +36,30 @@ module Float_abstract :
     type integer = Abstract_interp.Int.t
     exception Nan_or_infinite
     exception Bottom
-    val inject : F.t -> F.t -> t
+    type rounding_mode = Any | Nearest_Even
+
+    (** [inject] creates an abstract float interval.
+	Does not handle infinites.
+	Does not enlarge subnormals to handle flush-to-zero modes *)
+    val inject : F.t -> F.t -> t 
+      
+    (** [inject_r] creates an abstract float interval.
+	It handles infinites and flush-to-zero.
+	the returned boolean is true if there was reduction *)
+    val inject_r : F.t -> F.t -> bool * t
+
+    val min_and_max_float : t -> F.t * F.t
     val top : t
-    val add_float : t -> t -> t
-    val sub_float : t -> t -> t
-    val mult_float : t -> t -> t
-    val div_float : t -> t -> t
+    val add_float : rounding_mode -> t -> t -> bool * t
+    val sub_float : rounding_mode -> t -> t -> bool * t
+    val mult_float : rounding_mode -> t -> t -> bool * t
+    val div_float : rounding_mode -> t -> t -> bool * t
     val contains_zero : t -> bool 
     val compare : t -> t -> int
     val pretty : Format.formatter -> t -> unit
-    val hash : 'a * 'b -> int
+    val hash : t -> int
     val zero : t
-    val rounding_inject : F.t -> F.t -> t
+(*    val rounding_inject : F.t -> F.t -> t *)
     val is_included : t -> t -> bool
     val join : t -> t -> t
     val meet : t -> t -> t
@@ -53,7 +68,7 @@ module Float_abstract :
     val is_zero : t -> bool
     val is_singleton : t -> bool
     val neg_float : t -> t
-    val sqrt_float : t -> t
+    val sqrt_float : rounding_mode -> t -> bool * t
     val minus_one_one : t
     val cos_float : t -> t
     val widen : t -> t -> t
@@ -71,8 +86,7 @@ module Float_abstract :
 module O :
   sig
     type elt = Abstract_interp.Int.t
-    type t (*=
-        Abstract_interp.Make_Lattice_Mod(Abstract_interp.Int)(N)(Float_abstract).O.t*)
+    type t 
     val empty : t
     val is_empty : t -> bool
     val mem : elt -> t -> bool
@@ -99,7 +113,6 @@ module O :
     val split : elt -> t -> t * bool * t
   end
 type tt =
- (* Abstract_interp.Make_Lattice_Mod(Abstract_interp.Int)(N)(Float_abstract).tt =*)
     Set of O.t
   | Float of Float_abstract.t
   | Top of Abstract_interp.Int.t option * Abstract_interp.Int.t option *
@@ -165,8 +178,7 @@ module Widen_Hints :
           with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
       end
     type elt = V.t
-    type t (*=
-        Abstract_interp.Make_Lattice_Mod(Abstract_interp.Int)(N)(Float_abstract).Widen_Hints.t *)
+    type t 
     val empty : t
     val is_empty : t -> bool
     val mem : elt -> t -> bool
@@ -243,6 +255,8 @@ val zero : t
 val one : t
 val compare_min_float : t -> t -> int
 val compare_max_float : t -> t -> int
+val compare_min_int : t -> t -> int
+val compare_max_int : t -> t -> int
 val is_zero : t -> bool
 val is_one : t -> bool
 val inject_float : Float_abstract.t -> t
@@ -337,7 +351,7 @@ val scale_int64base : Int_Base.tt -> t -> t
 val cast_float_to_int : Float_abstract.t -> t
 val of_int : int -> t
 val of_int64 : int64 -> t
-val cast_int_to_float : t -> t
+val cast_int_to_float : Float_abstract.rounding_mode -> t -> bool * t
 val cast : size:Abstract_interp.Int.t -> signed:bool -> value:t -> t
 val tag : t -> int
 val pretty_debug : Format.formatter -> t -> unit

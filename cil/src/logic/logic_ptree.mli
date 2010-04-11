@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -25,6 +26,13 @@
 
 open Cil_types
 
+(** logic constants. *)
+type constant =
+    IntConstant of string (** integer constant *)
+  | FloatConstant of string (** real constant *)
+  | StringConstant of string (** string constant *)
+  | WStringConstant of string (** wide string constant *)
+
 (** logic types. *)
 type logic_type =
   | LTvoid (** C void *)
@@ -32,23 +40,16 @@ type logic_type =
   | LTreal (** mathematical real. *)
   | LTint of ikind (** C integral type.*)
   | LTfloat of fkind (** C floating-point type *)
-  | LTarray of logic_type (** C array *)
+  | LTarray of logic_type * constant option (** C array *)
   | LTpointer of logic_type (** C pointer *)
   | LTenum of string (** C enum *)
   | LTstruct of string (** C struct *)
   | LTunion of string (** C union *)
   | LTnamed of string * logic_type list (** declared logic type. *)
-(*  | LTarrow of logic_type list * logic_type *)
+  | LTarrow of logic_type list * logic_type
 
 (** quantifier-bound variables *)
 type quantifiers = (logic_type * string) list
-
-(** logic constants. *)
-type constant =
-    IntConstant of string (** integer constant *)
-  | FloatConstant of string (** real constant *)
-  | StringConstant of string (** string constant *)
-  | WStringConstant of string (** wide string constant *)
 
 (** comparison operators. *)
 type relation = Lt | Gt | Le | Ge | Eq | Neq
@@ -76,6 +77,7 @@ and lexpr_node =
   | PLapp of string * string list * lexpr list (** an application. *)
       (* terms *)
   | PLlambda of (logic_type * string) list * lexpr (** a lambda abstraction. *)
+  | PLlet of string * lexpr * lexpr (** local binding. *)
   | PLconstant of constant (** a constant. *)
   | PLunop of unop * lexpr (** unary operator. *)
   | PLbinop of lexpr * binop * lexpr (** binary operator. *)
@@ -144,8 +146,18 @@ type type_annot =  {inv_name: string;
                     inv: lexpr
                    }
 
+(** Concrete type definition. *)
+type typedef =
+  | TDsum of (string * logic_type list) list
+      (** sum type, list of constructors *)
+  | TDsyn of logic_type (** synonym of an existing type *)
+
 (** global declarations. *)
-type decl =
+type decl = {
+  decl_node : decl_node; (** kind of declaration. *)
+  decl_loc : location (** position in the source code. *)
+}
+and decl_node =
   | LDlogic_def of
       string * string list * string list *
 	logic_type * (logic_type * string) list * lexpr
@@ -158,21 +170,19 @@ type decl =
 	    body of the defined function.*)
   | LDlogic_reads of
       string * string list * string list *
-        logic_type * (logic_type * string) list * lexpr list
-        (** OBSOLETE ???
-            [LDlogic_reads(name,labels,type_params,
+        logic_type * (logic_type * string) list * lexpr list option
+        (** [LDlogic_reads(name,labels,type_params,
            return_type, parameters, reads_tsets)] represents the declaration
            of logic function.  It has the same
             arguments as [LDlogic_def], except that the definition is
            abstracted to a set of read accesses in [read_tsets].
          *)
-  | LDtype of string * string list *
-      (string * logic_type list) list option
+  | LDtype of string * string list * typedef option
       (** new logic type and its parameters, optionally followed by
-          a list of data constructors. *)
+          its definition. *)
   | LDpredicate_reads of
       string * string list * string list *
-	(logic_type * string) list * lexpr list
+	(logic_type * string) list * lexpr list option
         (** [LDpredicate_reads(name,labels,type_params,
                               parameters, reads_tsets)]
             represents the declaration of a new predicate. It is similar to
@@ -216,7 +226,7 @@ type variant = lexpr Cil_types.variant
 
 (** all kind of annotations*)
 type annot =
-  | Adecl of (location * decl) list (** global annotation. *)
+  | Adecl of decl list (** global annotation. *)
   | Aspec  (* the real spec is parsed afterwards.
               See cparser.mly (grammar rules involving SPEC) for
               more details.

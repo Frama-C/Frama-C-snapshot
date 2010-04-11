@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -33,10 +34,9 @@ module Enabled=
     (struct let name = "Occurrence_gui.Enabled" let dependencies = [] end)
 
 let find_occurrence (main_ui:Design.main_window_extension_points) vi () =
-  main_ui#protect
-    (fun () -> ignore (!Db.Occurrence.get vi);
-       Enabled.set true;
-       main_ui#rehighlight ())
+  ignore (!Db.Occurrence.get vi);
+  Enabled.set true;
+  main_ui#rehighlight ()
 
 (* Only these localizable interest this plugin *)
 let apply_on_vi f localizable = match localizable with
@@ -66,15 +66,17 @@ let occurrence_highlighter buffer loc ~start ~stop =
         | PTermLval (_,ki,term_lval) ->
 	    let same_tlval (k, l) =
               Logic_utils.is_same_tlval
-	        (Logic_utils.lval_to_term_lval l)
+	        (Logic_utils.lval_to_term_lval ~cast:true l)
 	        term_lval
 	      && KinstrComparable.equal k ki
 	    in
 	    if List.exists same_tlval result then highlight ()
         | PVDecl(_, vi') when VarinfoComparable.equal vi vi' ->
 	    highlight ()
-        | PVDecl _ | PStmt _ | PCodeAnnot _ | PGlobal _ 
-        | PBehavior _ | PPredicate _ ->
+        | PVDecl _ | PStmt _ | PCodeAnnot _ | PGlobal _ | PAssigns _
+        | PBehavior _ | PPredicate _
+        | PPost_cond _| PAssumes _| PDisjoint_behaviors _| PComplete_behaviors _
+        | PTerminates _| PVariant _| PRequires _ ->
 	    ()
 
 module FollowFocus =
@@ -152,7 +154,7 @@ let occurrence_panel main_ui =
 let occurrence_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
     apply_on_vi
-      (fun vi -> 
+      (fun vi ->
        if button = 3 || FollowFocus.get () then begin
          let callback = find_occurrence main_ui vi in
          ignore (popup_factory#add_item "_Occurrence" ~callback);
@@ -181,7 +183,7 @@ let file_tree_decorate (file_tree:Filetree.t) =
                     |  _ -> false)
                    globs
            in
-           if List.exists (in_globals globs) result then [`STOCK_ID "gtk-yes"]
+           if List.exists (in_globals globs) result then [`STOCK_ID "gtk-apply"]
            else [`STOCK_ID ""])
 
 let main main_ui =
@@ -191,7 +193,7 @@ let main main_ui =
   file_tree_decorate main_ui#file_tree
 
 let () = Design.register_extension main
- 
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

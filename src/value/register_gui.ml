@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -52,7 +53,7 @@ let gui_annot_action (main_ui:Design.main_window_extension_points) txt =
 
 
 let gui_compute_values  (main_ui:Design.main_window_extension_points) =
-  if not (Db.Value.is_computed ()) 
+  if not (Db.Value.is_computed ())
   then main_ui#launcher ()
 
 
@@ -76,7 +77,7 @@ let rec to_do_on_select
 		      let outs = Db.Outputs.kinstr (Kstmt ki) in
 		      let n = ( match outs with
                       | Some outs ->
-                          Pretty_utils.sfprintf 
+                          Pretty_utils.sfprintf
 			    "Modifies %a@\n" Db.Outputs.pretty outs
                       | _ -> "\n");
 		      in annot#insert n
@@ -104,8 +105,11 @@ let rec to_do_on_select
 		end
 	  | PTermLval _ -> () (* JS: TODO (?) *)
 	  | PVDecl (_kf,_vi) -> ()
-	  | PCodeAnnot _ | PGlobal _ 
-          | PBehavior _ | PPredicate _ -> ()
+	  | PCodeAnnot _ | PGlobal _ | PAssigns _
+          | PBehavior _ | PPredicate _
+          | PPost_cond _| PAssumes _
+          | PDisjoint_behaviors _| PComplete_behaviors _
+          | PTerminates _| PVariant _| PRequires _ -> ()
 	end
     end
   else if button_nb = 3
@@ -171,7 +175,7 @@ let rec to_do_on_select
 		| None -> ()
 		| Some txt -> try
 	              let exp =
-			!Db.Properties.Interp.term_to_exp
+			!Db.Properties.Interp.term_to_exp ~result:None
 			  (!Db.Properties.Interp.expr kf ki txt)
 	              in
                       begin match exp.enode with
@@ -263,7 +267,11 @@ let rec to_do_on_select
             )
           end
       | PTermLval _ -> () (* No C function calls in logic *)
-      | PCodeAnnot _ | PGlobal _ | PBehavior _ | PPredicate _ -> ()
+      | PCodeAnnot _ | PGlobal _ | PBehavior _
+      | PPredicate _ | PAssigns _
+      | PPost_cond _
+      | PAssumes _| PDisjoint_behaviors _| PComplete_behaviors _
+      | PTerminates _| PVariant _| PRequires _ -> ()
     end
 
 
@@ -303,7 +311,7 @@ let main (main_ui:Design.main_window_extension_points) =
   in
   main_ui#register_source_selector value_selector;
 
-  let highlighter (buffer:GSourceView.source_buffer) localizable ~start ~stop =
+  let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
     (* highlight the degeneration point *)
     Extlib.may
       (fun loc ->
@@ -320,8 +328,12 @@ let main (main_ui:Design.main_window_extension_points) =
     if Db.Value.is_computed () then
       let ki = match localizable with
       | PStmt (_,stmt) | PCodeAnnot (_,stmt,_) -> Kstmt stmt
-      | PLval (_,ki,_) | PTermLval(_,ki,_) 
-      | PPredicate (_,ki,_) -> ki
+      | PLval (_,ki,_) | PTermLval(_,ki,_) | PAssigns (_,ki,_,_)
+      | PPredicate (_,ki,_)
+      | PPost_cond (_,ki,_,_)
+      | PAssumes (_,ki,_,_) | PDisjoint_behaviors (_,ki,_)
+      | PComplete_behaviors (_,ki,_)
+      | PTerminates (_,ki,_)| PVariant (_,ki,_)| PRequires (_,ki,_,_) -> ki
       | PVDecl _ | PGlobal _ | PBehavior _ -> Kglobal
       in
       if not (Value.is_accessible ki) then
@@ -335,24 +347,7 @@ let main (main_ui:Design.main_window_extension_points) =
         in
         apply_tag buffer dead_code_area start stop
   in
-  main_ui#register_source_highlighter highlighter;
-
-  let filetree_selector ~was_activated ~activating globals =
-    if Value.is_computed () then begin
-      if not was_activated && activating then begin match globals with
-(* [JS 2009/30/03] GUI may become too slow if values are displayed *)
-(*      | [GFun ({svar=v},_)] ->
-          begin try
-            let kf = Globals.Functions.get v in
-            let s = Pretty_utils.sfprintf "@[%a@]" Value.display kf in
-            main_ui#annot_window#buffer#insert s
-          with Not_found -> ()
-          end*)
-      | _ -> ();
-      end;
-    end
-  in
-  main_ui#file_tree#add_select_function filetree_selector
+  main_ui#register_source_highlighter highlighter
 
 let degeneration_occurred ki lv =
   Db.Value.mark_as_computed ();

@@ -1,6 +1,6 @@
 /* run.config
-  OPT: -fct-pdg f1 -pdg-verbose 2 -main f1 -journal-disable
-  OPT: -fct-pdg loop -pdg-verbose 2 -main loop -journal-disable
+  OPT: -fct-pdg f1 -main f1 -journal-disable
+  OPT: -fct-pdg loop -main loop -journal-disable
 */
 
 int G;

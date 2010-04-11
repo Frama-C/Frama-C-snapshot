@@ -1,6 +1,6 @@
 /**************************************************************************/
 /*                                                                        */
-/*  Copyright (C) 2001-2003,                                              */
+/*  Copyright (C) 2001-2003                                               */
 /*   George C. Necula    <necula@cs.berkeley.edu>                         */
 /*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        */
 /*   Wes Weimer          <weimer@cs.berkeley.edu>                         */
@@ -35,7 +35,8 @@
 /*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       */
 /*  POSSIBILITY OF SUCH DAMAGE.                                           */
 /*                                                                        */
-/*  File modified by CEA (Commissariat à l'Énergie Atomique).             */
+/*  File modified by CEA (Commissariat à l'énergie atomique et aux        */
+/*                        énergies alternatives).                         */
 /**************************************************************************/
 
 /*  3.22.99 Hugues Cass<E9> First version.
@@ -113,6 +114,20 @@ let announceFunctionName ((n, decl, _, _):name) =
   currentFunctionName := n
 
 
+let check_funspec_abrupt_clauses fname (spec,_) =
+  List.iter
+    (fun bhv -> List.iter
+       (function
+            (Cil_types.Normal | Cil_types.Exits),_ -> ()
+          | (Cil_types.Breaks | Cil_types.Continues |
+                 Cil_types.Returns), {Logic_ptree.lexpr_loc = (loc,_)} ->
+              Cil.error_loc (loc.Lexing.pos_fname, loc.Lexing.pos_lnum)
+                "Specification of function %s can only contain ensures or \
+                 exits post-conditions" fname;
+              raise Parsing.Parse_error
+       )
+       bhv.Cil_types.b_post_cond)
+    spec.Cil_types.spec_behavior
 
 let applyPointer (ptspecs: attribute list list) (dt: decl_type)
        : decl_type =
@@ -144,7 +159,15 @@ let doDeclaration logic_spec (loc: cabsloc) (specs: spec_elem list) (nl: init_na
             None -> None
           | Some ls ->
 	      Cabshelper.continue_annot loc
-		(fun () -> Some (Logic_lexer.spec ls))
+		(fun () ->
+                   let spec = Logic_lexer.spec ls in
+                   let name =
+                     match nl with
+                         [ (n,_,_,_),_ ] -> n
+                       | _ -> "unknown function"
+                   in
+                   check_funspec_abrupt_clauses name spec;
+                   Some spec)
 		(fun () -> None)
 		"Skipping annotation"
       in
@@ -159,6 +182,8 @@ let doFunctionDef spec (loc: cabsloc)
                   (n: name)
                   (b: block) : definition =
   let fname = (specs, n) in
+  let name = match n with (n,_,_,_) -> n in
+  Extlib.may_map ~dft:() (check_funspec_abrupt_clauses name) spec;
   FUNDEF (spec, fname, b, loc, lend)
 
 let doOldParDecl (names: string list)
@@ -237,7 +262,7 @@ let transformOffsetOf (speclist, dtype) member =
 	MEMBEROF (replaceBase base, field)
     | INDEX (base, index) ->
 	INDEX (replaceBase base, index)
-    | _ -> 
+    | _ ->
 	parse_error "malformed offset expression in __builtin_offsetof"
   in
   let memberExpr = replaceBase member in
@@ -262,7 +287,7 @@ let in_ghost s =
 %}
 
 %token <Lexing.position * string> SPEC
-%token <(Cabs.cabsloc * Logic_ptree.decl) list> DECL
+%token <Logic_ptree.decl list> DECL
 %token <Logic_ptree.code_annot * Cabs.cabsloc> CODE_ANNOT
 %token <Logic_ptree.code_annot list * Cabs.cabsloc> LOOP_ANNOT
 %token <string * Cabs.cabsloc> ATTRIBUTE_ANNOT
@@ -1051,7 +1076,7 @@ declaration:                                /* ISO 6.7.*/
 |   decl_spec_list SEMICOLON
       { doDeclaration None ((snd $1)) (fst $1) [] }
 |   SPEC decl_spec_list init_declarator_list SEMICOLON
-      { doDeclaration (Some $1) ((snd $2)) (fst $2) $3 }
+          { doDeclaration (Some $1) ((snd $2)) (fst $2) $3 }
 |   SPEC decl_spec_list SEMICOLON
       { doDeclaration (Some $1) ((snd $2)) (fst $2) [] }
 ;
@@ -1344,11 +1369,13 @@ abs_direct_decl_opt:
 function_def:  /* (* ISO 6.9.1 *) */
   SPEC function_def_start block
           {
-            let spec =
-              try Some (Logic_lexer.spec $1 )
-              with Parsing.Parse_error -> None
-            in
             let (loc, specs, decl) = $2 in
+            let spec =
+              Cabshelper.continue_annot loc
+                (fun () -> Some (Logic_lexer.spec $1 ))
+                (fun () -> None)
+                "Ignoring specification of function %s" !currentFunctionName
+            in
             currentFunctionName := "<__FUNCTION__ used outside any functions>";
             !Lexerhack.pop_context (); (* The context pushed by
                                     * announceFunctionName *)

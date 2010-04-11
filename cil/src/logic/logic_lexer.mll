@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -59,6 +60,10 @@
         Utf8_logic.disj, OR;
         Utf8_logic.neg, NOT;
         Utf8_logic.x_or, HATHAT;
+        Utf8_logic.minus, MINUS;
+        Utf8_logic.boolean, BOOLEAN;
+        Utf8_logic.integer, INTEGER;
+        Utf8_logic.real, REAL
       ];
 
     fun s -> try Hashtbl.find h s
@@ -67,6 +72,7 @@
   let identifier =
     let all_kw = Hashtbl.create 37 in
     let c_kw = Hashtbl.create 37 in
+    let type_kw = Hashtbl.create 3 in
     List.iter
       (fun (i,t,flag) ->
          Hashtbl.add all_kw i t;
@@ -80,21 +86,23 @@
         "axiomatic", AXIOMATIC, false;
         "behavior", BEHAVIOR, false;
         "behaviors", BEHAVIORS, false;
+        "breaks", BREAKS, false;
 	"case", CASE, true;
         "char", CHAR, true;
         "complete", COMPLETE, false;
+        "continues", CONTINUES, false;
         "decreases", DECREASES, false;
         "disjoint", DISJOINT, false;
         "double", DOUBLE, true;
         "else", ELSE, true;
         "ensures", ENSURES, false ;
         "enum", ENUM, true;
+        "exits", EXITS, false;
         "float", FLOAT, true;
         "for", FOR, true;
         "if", IF, true;
 	"inductive", INDUCTIVE, false;
         "int", INT, true;
-        "integer", INTEGER, true;
         "invariant", INVARIANT, false;
         "global",    GLOBAL, false;
         "label", LABEL, false;
@@ -105,8 +113,8 @@
         "pragma", PRAGMA, false;
         "predicate", PREDICATE, false;
         "reads", READS, false;
-        "real", REAL, true;
         "requires", REQUIRES, false;
+        "returns", RETURNS, false;
         "short", SHORT, true;
         "signed", SIGNED, true;
         "sizeof", SIZEOF, true;
@@ -120,13 +128,19 @@
         "variant", VARIANT, false;
         "void", VOID, true;
       ];
+    List.iter (fun (x, y) -> Hashtbl.add type_kw x y)
+      ["integer", INTEGER; "real", REAL; "boolean", BOOLEAN; ];
     fun s ->
       try
         Hashtbl.find (if Logic_utils.is_kw_c_mode () then c_kw else all_kw) s
       with Not_found ->
-        if Logic_utils.is_rt_type_mode () then TYPENAME s
-        else if Logic_env.typename_status s then TYPENAME s
-        else IDENTIFIER s
+        if Logic_env.typename_status s then TYPENAME s
+        else
+          (try
+             Hashtbl.find type_kw s
+           with Not_found ->
+             if Logic_utils.is_rt_type_mode () then TYPENAME s
+             else IDENTIFIER s)
 
   let bs_identifier =
     let h = Hashtbl.create 97 in
@@ -143,6 +157,7 @@
         "\\from", FROM;
         "\\inter", INTER;
         "\\lambda", LAMBDA;
+        "\\let", LET;
         "\\nothing", NOTHING;
         "\\null", NULL;
         "\\old", OLD;
@@ -158,7 +173,7 @@
       ];
     fun lexbuf ->
       let s = lexeme lexbuf in
-      try Hashtbl.find h s with Not_found -> IDENTIFIER s 
+      try Hashtbl.find h s with Not_found -> IDENTIFIER s
 
 
   let int_of_digit chr =
@@ -244,9 +259,9 @@ rule token = parse
         CONSTANT (IntConstant (chr b lbf ^ "'"))
       }
 (* floating-point literals, both decimal and hexadecimal *)
-  | rD+ rE rFS?             
-  | rD* "." rD+ (rE)? rFS?  
-  | rD+ "." rD* (rE)? rFS?  
+  | rD+ rE rFS?
+  | rD* "." rD+ (rE)? rFS?
+  | rD+ "." rD* (rE)? rFS?
   | '0'['x''X'] rH+ '.' rH* rP rFS?
   | '0'['x''X'] rH* '.' rH+ rP rFS?
   | '0'['x''X'] rH+ rP rFS?
@@ -440,8 +455,7 @@ and endline = parse
           Logic_utils.exit_kw_c_mode ();
           raise Parsing.Parse_error
 
-
-  let lexpr = parse_from_location Logic_parser.lexpr
+  let lexpr = parse_from_location Logic_parser.lexpr_eof
 
   let annot = parse_from_location Logic_parser.annot
 
@@ -449,7 +463,7 @@ and endline = parse
 
 }
 
-(* 
+(*
 Local Variables:
 compile-command: "make -C ../../.. byte"
 End:

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -29,213 +30,140 @@ type service_id = int
 
 module Model = DGraphModel.Make(Service.TP)
 
-class ['v, 'e, 'c] service_view obj model g =
-object(self)
-  inherit ['v, 'e, 'c] DGraphView.highlight_focus_view obj model
+class ['v, 'e, 'c] services_view view = object (self)
 
-  val deployed : (service_id, bool) Hashtbl.t = Hashtbl.create 10
+  val services:
+    (service_id,
+     bool ref * Service.CallG.V.t DGraphViewItem.view_item list ref)
+    Hashtbl.t
+    = Hashtbl.create 10
 
-  method roots =
-    let l = ref [] in
-    self#iter_nodes (fun n -> if self#is_root n then l := n::!l);
-    !l
+  method is_root (n:'v DGraphViewItem.view_item) = n#item.Service.is_root
 
-  method iter_roots f = List.iter f self#roots
+  method is_deployed id =
+    try !(fst (Hashtbl.find services id)) with Not_found -> assert false
 
-  method is_root (n : 'v DGraphViewItem.view_node) = n#vertex.Service.is_root
+  method edge_kind (e: 'e DGraphViewItem.view_item) =
+    Service.CallG.E.label e#item
 
-  method is_deployed i = try Hashtbl.find deployed i with Not_found -> false
-
-  method edge_type (e: 'e DGraphViewItem.view_edge) = 
-    Service.CallG.E.label e#edge
-
-  (* For debugging purposes *)
-  method private print_edge (e: 'e DGraphViewItem.view_edge) =
-    let v1, v2 = Service.CallG.E.src e#edge, Service.CallG.E.dst e#edge in
-    Options.debug "edge from \"%s\" (service %d) to \"%s\" (service %d): %s@."
-      (Service.TP.vertex_name v1) (self#service (self#src e))
-      (Service.TP.vertex_name v2) (self#service (self#dst e))
-      (match Service.CallG.E.label e#edge with
-       | Service.Inter_services -> "inter services"
-       | Service.Inter_functions -> "inter functions"
-       | Service.Function_to_service -> "function to service")
-
-  method iter_service_nodes f n =
-    let s = self#service n in
-    let apply n' =
-      if n' <> n && self#service n' = s then
-	f n' in
-    self#iter_nodes apply
-
-  method deploy n =
-    assert (self#is_root n);
-    let s = self#service n in
-    Hashtbl.add deployed s true;
-    (* Show nodes *)
-    self#iter_service_nodes (fun n' -> n'#show ()) n;
-    (* Show or hide edges *)
-    let show_or_hide_edge e =
-      let n1, n2 = self#src e, self#dst e in
-      (* Edge in the current service *)
-      if self#service n1 = s && self#service n2 = s then begin
-	match self#edge_type e with
-	| Service.Inter_functions -> e#show ()
-	| _ -> assert false
-      end else 
-	(* Edge starting from the current service *)
-	if self#service n1 = s then begin
-	  match self#edge_type e with
-	  | Service.Inter_functions ->
-	      if self#is_deployed (self#service n2) then e#show ()
-	  | Service.Function_to_service ->
-	      if not (self#is_deployed (self#service n2)) then e#show ()
-	  | Service.Inter_services ->
-	      e#hide ()
-	end else 
-	  (* Edges going to the current service *)
-	  if self#service n2 = s then begin
-	    match self#edge_type e with
-	    | Service.Inter_functions ->
-		if self#is_deployed (self#service n1) then
-		  e#show ()
-	    | Service.Function_to_service ->
-		e#hide ()
+  method deploy node =
+    assert (self#is_root node);
+    let service = self#service node in
+    let deployed, nodes = Hashtbl.find services service in
+    assert (not !deployed);
+    deployed := true;
+    (* itering on nodes of the current service *)
+    List.iter
+      (fun n ->
+	 n#compute ();
+	 if not (self#is_root n) then n#show ();
+	 view#iter_succ_e
+	   (fun e -> match self#edge_kind e with
+	    | Service.Inter_functions | Service.Both ->
+		e#compute ();
+		e#show ()
 	    | Service.Inter_services ->
-		if self#is_deployed (self#service n1) then
-		  e#hide ()
-	  end 
-    in
-    self#iter_edges_e show_or_hide_edge
+		e#hide ())
+	   n)
+      !nodes
 
-  method undeploy n =
-    assert (self#is_root n);
-    let s = self#service n in
-    Hashtbl.add deployed s false;
-    (* Hide nodes *)
-    self#iter_service_nodes (fun n' -> n'#hide ()) n;
-    (* Show or hide edges *)
-    let show_or_hide_edge e =
-      let n1, n2 = self#src e, self#dst e in
-      (* Edge in the current service *)
-      if self#service n1 = s && self#service n2 = s then begin
-	match self#edge_type e with
-	| Service.Inter_functions -> e#hide ()
-	| _ -> assert false
-      end else 
-	(* Edges starting from the current service *)
-	if self#service n1 = s then begin
-	  match self#edge_type e with
-	  | Service.Inter_functions | Service.Function_to_service ->
-	      e#hide ()
-	  | Service.Inter_services ->
-	      e#show ()
-	end else
-	  (* Edges going to the current service *)
-	  if self#service n2 = s then begin
-	    match self#edge_type e with
-	    | Service.Inter_functions ->
-		e#hide ()
-	    | Service.Function_to_service ->
-		if self#is_deployed (self#service n1) then
-		  e#show ()
-	    | Service.Inter_services ->
-		if not (self#is_deployed (self#service n1)) then
-		  e#show ()
-	  end 
-    in
-    self#iter_edges_e show_or_hide_edge
-      
-  method service n = n#vertex.Service.root.Service.node.Callgraph.cnid
-      
-  (* Events *)
-  method private trigger_deploy_ev n = function
-  | `BUTTON_PRESS _ ->
-      if self#is_root n then
-	if self#is_deployed (self#service n) then self#undeploy n
-	else self#deploy n;
-      false
-  | _ -> 
-      false
-	
+  method undeploy node =
+    assert (self#is_root node);
+    let service = self#service node in
+    let deployed, nodes = Hashtbl.find services service in
+    assert !deployed;
+    deployed := false;
+    (* itering on nodes of the current service *)
+    List.iter
+      (fun n ->
+	 if not (self#is_root n) then n#hide ();
+	 view#iter_succ_e
+	   (fun e -> match self#edge_kind e with
+	    | Service.Inter_services | Service.Both -> e#show ()
+	    | Service.Inter_functions -> e#hide ())
+	   n)
+      !nodes
+
+  method service n = n#item.Service.root.Service.node.Callgraph.cnid
+
   initializer
-    (* Hide non-service nodes *)
-    self#iter_roots (fun n -> self#undeploy n);
-    (* Deploy or undeploy root nodes when clicked *)
-    let connect_trigger_to_node n =
-      let callback = self#trigger_deploy_ev n in
-      n#iter_shapes (fun s -> ignore $ s#connect#event ~callback);
-      n#iter_texts (fun t -> ignore $ t#connect#event ~callback) 
+  let add_in_service n s =
+    try
+      let _, nodes = Hashtbl.find services s in
+      nodes := n :: !nodes
+    with Not_found ->
+      Hashtbl.add services s (ref false, ref [ n ])
+  in
+  let connect_trigger_to_node n =
+    let callback = function
+      | `BUTTON_PRESS _ ->
+	  if self#is_deployed (self#service n) then self#undeploy n
+	  else self#deploy n;
+	  false
+      | _ ->
+	  false
     in
-    self#iter_roots connect_trigger_to_node;
+    n#connect_event ~callback
+  in
+  view#iter_nodes
+    (fun n ->
+       add_in_service n (self#service n);
+       if self#is_root n then connect_trigger_to_node n else n#hide ());
+  view#iter_edges_e
+    (fun e -> match self#edge_kind e with
+     | Service.Inter_services | Service.Both -> e#show ()
+     | Service.Inter_functions -> e#hide ())
 
 end
 
 (* Constructor copied from dGraphView *)
-let service_view ?(aa=false) model g =
-  GContainer.pack_container [] ~create:(fun pl ->
-    let w =
-      if aa then GnomeCanvas.Canvas.new_canvas_aa ()
-      else GnomeCanvas.Canvas.new_canvas () in
-    Gobject.set_params w pl;
-    new service_view w model g)
-
-let scrolled_view ~packing model g =
-  let frame = GBin.frame ~shadow_type:`IN () in
-  let aa = true (* anti-aliasing *) in
-  let view = 
-    service_view ~aa ~width:1280 ~height:1024 ~packing:frame#add model g () 
+let services_view ~packing model =
+  let scroll =
+    GBin.scrolled_window ~packing ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
   in
+  let delay_node v = not v.Service.is_root in
+  let delay_edge e = match Service.CallG.E.label e with
+    | Service.Inter_services | Service.Both -> false
+    | Service.Inter_functions -> true
+  in
+  let view =
+    DGraphView.view ~packing:scroll#add ~aa:true ~delay_node ~delay_edge model
+  in
+  (* not very nice *)
+  ignore (new services_view view);
+  view#connect_highlighting_event ();
   ignore $ view#set_center_scroll_region true;
-  let table = GPack.table ~packing
-                ~rows:2 ~columns:2 ~row_spacings:4 ~col_spacings:4 () in
-  ignore $ table#attach ~left:0 ~right:1 ~top:0 ~bottom:1
-           ~expand:`BOTH ~fill:`BOTH ~shrink:`BOTH ~xpadding:0 ~ypadding:0
-           frame#coerce;
-  let w = GRange.scrollbar `HORIZONTAL ~adjustment:view#hadjustment () in
-  ignore $ table#attach ~left:0 ~right:1 ~top:1 ~bottom:2
-            ~expand:`X ~fill:`BOTH ~shrink:`X ~xpadding:0 ~ypadding:0
-            w#coerce;
-  let w = GRange.scrollbar `VERTICAL ~adjustment:view#vadjustment () in
-  ignore $ table#attach ~left:1 ~right:2 ~top:0 ~bottom:1
-            ~expand:`Y ~fill:`BOTH ~shrink:`Y ~xpadding:0 ~ypadding:0
-            w#coerce;
-  view, table
+  view
 
-let create_graph_win title model g =
-  let window = GWindow.window ~title ~allow_shrink:true  ~allow_grow:true () in
-  let vbox = GPack.vbox ~border_width:4 ~spacing:4 ~packing:window#add () in
-  let packing = vbox#pack ~expand:true ~fill:true in
-  let view, _table = scrolled_view ~packing model g in
-  window, view
-
-let show_graph_win _a =
-  let g = Register.get () in
+let graph_window (main_window: Design.main_window_extension_points) =
+  let graph = Register.get () in
   try
-    let model = Model.from_graph g in
-    let window, view = create_graph_win "Call Graph" model g in
+    let model = Model.from_graph graph in
+    let parent = main_window#main_window in
+    let height = int_of_float (float parent#default_height *. 3. /. 4.) in
+    let width = int_of_float (float parent#default_width *. 3. /. 4.) in
+    let window =
+      GWindow.window
+	~position:`CENTER
+	~height ~width ~title:"Syntactic Callgraph"
+	~allow_shrink:true ~allow_grow:true ()
+    in
+    let view = services_view ~packing:window#add model in
     window#show ();
-    view#adapt_zoom ()
+    view#adapt_zoom () (* require that the window is displayed for working *)
   with DGraphModel.DotError cmd ->
-    GToolbox.message_box "Error: " 
-      (Printf.sprintf "%s failed\n" cmd)
-    
-let main window =
-  GAction.add_actions window#actions 
-    [ GAction.add_action 
-	"CallGraph" ~label:"_Show Call Graph" ~callback:show_graph_win];
+    main_window#error "%s failed\n" cmd
+
+let main (window: Design.main_window_extension_points) =
   ignore
-    (window#ui_manager#add_ui_from_string
-       "<ui><menubar name='MenuBar'> 
-              <menu action='ViewMenu'>
-                 <menuitem action='CallGraph'/> 
-              </menu>
-           </menubar>
-       </ui>")
+    (window#menu_manager#add_plugin
+       [ Menu_manager.Menubar(None, "Show callgraph"),
+	 (fun () -> graph_window window) ])
 
 let () = Design.register_extension main
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

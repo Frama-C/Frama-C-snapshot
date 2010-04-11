@@ -1,0 +1,38 @@
+		  -------------------------------------------
+		  INSTALLATION INSTRUCTIONS for FRAMA_C + WHY
+		  -------------------------------------------
+
+===============================================================================
+				    SUMMARY
+===============================================================================
+
+0) Summary
+1) Installation Instructions
+2) Additional Instructions
+3) Have Fun With Frama-C and Why!
+
+===============================================================================
+			   INSTALLATION INSTRUCTIONS
+===============================================================================
+
+Run the following commands from the directory containing the Frama-C source.
+
+./configure
+make
+make install (may require superuser right)
+cd why
+./configure
+make
+make install (may require superuser right)
+
+===============================================================================
+			   ADDITIONAL INSTRUCTIONS
+===============================================================================
+
+Please refer to the specific installation instructions for Frama-C and Why:
+- file INSTALL of Frama-C
+- file INSTALL of Why
+
+===============================================================================
+			HAVE FUN WITH FRAMA-C AND WHY!
+===============================================================================

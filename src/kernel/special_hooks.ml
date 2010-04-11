@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: boot.ml,v 1.33 2008-11-18 12:13:41 uid568 Exp $ *)
 
 let version () =
   if Parameters.PrintVersion.get () then begin
@@ -37,21 +36,21 @@ let () = Cmdline.run_after_early_stage version
 
 let print_sharepath () =
   if Parameters.PrintShare.get () then begin
-    Log.print_on_output "%s@." Config.datadir;
+    Log.print_on_output "%s%!" Config.datadir;
     raise Cmdline.Exit
   end
 let () = Cmdline.run_after_early_stage print_sharepath
 
 let print_libpath () =
   if Parameters.PrintLib.get () then  begin
-    Log.print_on_output "%s@." Config.libdir;
+    Log.print_on_output "%s%!" Config.libdir;
     raise Cmdline.Exit
   end
 let () = Cmdline.run_after_early_stage print_libpath
 
 let print_pluginpath () =
   if Parameters.PrintPluginPath.get () then  begin
-    Log.print_on_output "%s@." Config.plugin_dir;
+    Log.print_on_output "%s%!" Config.plugin_dir;
     raise Cmdline.Exit
   end
 let () = Cmdline.run_after_early_stage print_pluginpath
@@ -78,14 +77,14 @@ let time () =
     close_out oc
 let () = at_exit time
 
-
 (* Save Frama-c on disk if required *)
 let save_binary () =
   let filename = Parameters.SaveState.get () in
   if filename <> "" then begin
     Parameters.SaveState.clear ();
     try Project.save_all filename
-    with Project.IOError s -> Kernel.error "problem while saving to file %s (%s)." filename s
+    with Project.IOError s -> 
+      Kernel.error "problem while saving to file %s (%s)." filename s
  end
 let () = at_exit save_binary
 
@@ -101,13 +100,13 @@ let load_binary () =
 let () = Cmdline.run_after_loading_stage load_binary
 
 let () =
-  Plugin.at_normal_exit 
+  Cmdline.at_normal_exit 
     (fun _ -> match Parameters.Files.get () with
      | [] -> ()
      | _ :: _ -> Ast.compute ())
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

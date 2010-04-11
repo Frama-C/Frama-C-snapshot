@@ -1,11 +1,3 @@
-/* run.config
-OPT: -wp-mm 0 -wp-behav x1 -wp-debug 1 -journal-disable  -wp-no-proof
-OPT: -wp-mm 0              -wp-debug 1 -journal-disable  -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-mm 0 -wp-behav x1 -wp-debug 2 -journal-disable  -wp-proof
-OPT: -wp-mm 0              -wp-debug 2 -journal-disable  -wp-proof
-*/
 
 /*@
   @ ensures \result > x;
@@ -24,3 +16,54 @@ int f (int x) {
   return x+1;
 }
 
+/*@
+    behavior bx :
+       assumes x <= y;
+       ensures \result == x;
+    behavior by :
+       assumes x > y;
+       ensures \result == y;
+    complete behaviors bx, by;
+    disjoint behaviors bx, by;
+*/
+int min (int x, int y) {
+  return (x < y) ? x : y;
+}
+
+/*@ requires n != 0;
+  behavior pos :
+    assumes n > 0;
+    ensures \result == x/n;
+  behavior neg :
+    assumes n < 0;
+    ensures \result == x/-n;
+  complete behaviors pos, neg; // notice that this needs the requires hyp
+*/
+int bhv (int x, int n) {
+  n = (n<0) ? -n : n;
+  return x/n;
+}
+
+int stmt_contract (int c) {
+  int x = 0;
+
+  /*@ requires x == 0;
+    @ ensures x > 0;
+    */
+  if (c)
+    x = 3;
+  else
+    x = 5;
+  return x;
+}
+
+int local_named_behavior (int x) {
+  int y = 3;
+  /*@ behavior xpos :
+        assumes x > 0;
+        ensures x > 3;
+	*/
+  x += y;
+  return x;
+}
+int main (void) { return 0 ; }

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -175,18 +176,61 @@ module Print =
 	  let descr = "pretty print the sliced code"
 	end)
 
-let is_on () =
-  not (Select.Calls.is_empty ()
-       && Select.Return.is_empty ()
-       && Select.Threat.is_empty ()
-       && Select.Assert.is_empty ()
-       && Select.LoopInv.is_empty ()
-       && Select.LoopVar.is_empty ()
-       && Select.Pragma.is_empty ()
-       && Select.RdAccess.is_empty ()
-       && Select.WrAccess.is_empty ()
-       && Select.Value.is_empty ())
+module OptionModified =
+  Computation.Ref
+    (struct include Datatype.Bool
+            let default () = true
+     end)
+    (struct
+       let name = "Slicing.OptionModified"
+       let dependencies = []
+     end)
+    
+module Force =
+  True(struct
+       let option_name = "-slice-force"
+       let descr = "don't slice"
+     end)
 
+let () =
+  let add = Project.Computation.add_dependency OptionModified.self in
+    List.iter add [Select.Calls.self ;
+                   Select.Return.self ;
+                   Select.Threat.self ;
+                   Select.Assert.self ;
+                   Select.LoopInv.self ;
+                   Select.LoopVar.self ;
+                   Select.Pragma.self ;
+                   Select.RdAccess.self ;
+                   Select.WrAccess.self ;
+                   Select.Value.self ;
+                   Mode.Callers.self ;
+                   Mode.Calls.self ;
+                   Mode.SliceUndef.self ;
+                   Mode.KeepAnnotations.self ;
+                   Print.self ]
+  
+let is_on () =
+  ((Force.get ()) || (OptionModified.get ()))
+  &&
+    (not (Select.Calls.is_empty ()
+          && Select.Return.is_empty ()
+          && Select.Threat.is_empty ()
+          && Select.Assert.is_empty ()
+          && Select.LoopInv.is_empty ()
+          && Select.LoopVar.is_empty ()
+          && Select.Pragma.is_empty ()
+          && Select.RdAccess.is_empty ()
+          && Select.WrAccess.is_empty ()
+          && Select.Value.is_empty ()))
+    
+
+let set_off () =
+  Force.off () ;
+  OptionModified.set false ;
+    
+
+  
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (** Code to compute the control-flow graph of a function or file.
@@ -68,8 +69,9 @@ val printCfgChannel : Format.formatter -> fundec -> unit
 (** Print control flow graph (in dot form) for fundec to file *)
 val printCfgFilename : string -> fundec -> unit
 
-(** Next statement id that will be assigned. *)
-(* val start_id: int ref
+(*
+(* Next statement id that will be assigned. *)
+val start_id: int ref
 
 (** All of the nodes in a file. *)
 val nodeList : stmt list ref

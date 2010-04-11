@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,18 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-let number_to_color n =
-  let color = ref 0 in
-  let number = ref n in
-  for i = 0 to 7 do
-    color := (!color lsl 1) +
-      (if !number land 1 <> 0 then 1 else 0) +
-      (if !number land 2 <> 0 then 256 else 0) +
-      (if !number land 4 <> 0 then 65536 else 0);
-    number := !number lsr 3
-  done;
-  !color
 
 module Make
   (G: sig
@@ -50,7 +39,7 @@ module Make
 struct
 
   type vertex = { node: G.V.t; mutable is_root: bool; mutable root: vertex }
-  type edge = Inter_services | Inter_functions | Function_to_service 
+  type edge = Inter_services | Inter_functions | Both
   
   module Vertex = struct
     type t = vertex
@@ -78,13 +67,17 @@ struct
 	     Project.Datatype.extend_name
 	       "Service_graph.CallG " G.datatype_name
 	 end)
-    let add_labeled_edge g src l dst = add_edge_e g (E.create src l dst) 
+    let add_labeled_edge g src l dst = 
+      if mem_edge g src dst then begin
+	remove_edge g src dst;
+	add_edge_e g (E.create src Both dst)
+      end else
+	add_edge_e g (E.create src l dst)
   end
 
   type root = Is_root | In_service of vertex
 
   type incomming_service =  
-    | Unknown
     | Fresh_if_unchanged
     | To_be_confirmed of vertex
     | Final of vertex
@@ -99,30 +92,28 @@ struct
     let clear () = H.clear vertices
   end
 
+  let edge_invariant src dst = function
+    | Inter_functions -> 
+        assert 
+	  (if Vertex.equal src.root dst.root || dst.is_root then 
+	     true
+	   else begin
+             Format.printf 
+	       "Src:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b)@." 
+               (G.V.name src.node)
+               (G.V.name src.root.node)
+               src.is_root
+               (G.V.name dst.node)
+               (G.V.name dst.root.node)
+               dst.is_root; 
+	     false
+	   end)
+    | Inter_services | Both -> assert (src.is_root && dst.is_root)
+
   let check_invariant callg =
     CallG.iter_edges_e
       (fun e -> 
-	 let src = CallG.E.src e in
-	 let dst = CallG.E.dst e in
-	 (match CallG.E.label e with
-	  | Inter_functions -> 
-              assert 
-		(if Vertex.equal src.root dst.root || dst.is_root then 
-		   true
-		 else begin
-                   Format.printf 
-		     "Src:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b)@." 
-                     (G.V.name src.node)
-                     (G.V.name src.root.node)
-                     src.is_root
-                     (G.V.name dst.node)
-                     (G.V.name dst.root.node)
-                     dst.is_root; 
-		   false
-		 end)
-	  | Inter_services -> assert (src.is_root && dst.is_root)
-	  | Function_to_service -> 
-	      assert (not (Vertex.equal src.root dst.root) && dst.is_root)))
+	 edge_invariant (CallG.E.src e) (CallG.E.dst e) (CallG.E.label e))
       callg
 
   let mem initial_roots node =
@@ -131,10 +122,6 @@ struct
   (* [merge_service] is not symmetric *)
   exception Cannot_merge
   let merge_service s1 s2 = match s1, s2 with
-    | Unknown, Maybe_fresh v2 -> 
-	To_be_confirmed v2
-    | Unknown, In_service v2 ->
-	Final v2
     | Fresh_if_unchanged, (Maybe_fresh v2 | In_service v2) ->
 	To_be_confirmed v2
     | (To_be_confirmed v1 | Final v1), In_service v2 when Vertex.equal v1 v2 -> 
@@ -149,13 +136,13 @@ struct
   let make_vertex g callg initial_roots node =
     let mk incomming_s =
       let v = match incomming_s with 
-	| Unknown | Fresh_if_unchanged ->
+	| Fresh_if_unchanged ->
 	    let rec v = { node = node; is_root = true; root = v } in v 
 	| To_be_confirmed root | Final root -> 
 	    { node = node; is_root = false; root = root }
       in
       let s = match incomming_s with
-	| Unknown | Fresh_if_unchanged | Final _ -> In_service v.root
+	| Fresh_if_unchanged | Final _ -> In_service v.root
 	| To_be_confirmed root -> Maybe_fresh root
       in
       (*	Format.printf "%s; root %s; final: %b@."
@@ -175,13 +162,13 @@ struct
 		 let _, s' = Vertices.find node' in
 		 merge_service acc s'
 	       with Not_found ->
-		 match acc with Unknown -> Fresh_if_unchanged | _ -> acc)
+		 acc)
 	    g
 	    node
-	    Unknown
+	    Fresh_if_unchanged
 	in
-	(* if unknown at this point, node without predecessor *)
-	(* if Fresh_if_unchanged at this point, then dominator cycle detected *)
+	(* if Fresh_if_unchanged at this point, 
+	   either node without predecessor or dominator cycle detected *)
 	mk service
       with Cannot_merge ->
 	mk Fresh_if_unchanged
@@ -225,8 +212,13 @@ struct
 	      let src_root = v.root in
 	      let dst_root = succ.root in
 	      if not (Vertex.equal src_root dst_root) then begin
-		CallG.add_labeled_edge callg src_root Inter_services dst_root;
-		CallG.add_labeled_edge callg v Function_to_service dst_root
+		CallG.add_labeled_edge callg src_root Inter_services dst_root
+		(* JS: no need of a `service_to_function' edge since
+		   it is not possible to have an edge starting from a
+		   not-a-root vertex and going to another service. 
+
+		   no need of a `function_to_service' edge since the only
+		   possible edges between two services go to a root. *)
 	      end)
 	   g 
 	   node)
@@ -261,22 +253,16 @@ struct
 	`Label
           (Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident 
 	     (G.V.name s.node))
-	:: (`Color (number_to_color (G.V.id s.root.node)))
+	:: (`Color (Extlib.number_to_color (G.V.id s.root.node)))
 	:: G.V.attributes s.node
       in
       if s.is_root then `Shape `Diamond :: attr else attr
       
     let default_vertex_attributes _ = []
 
-    let edge_attributes e =
-      match CallG.E.label e with
-      | Inter_functions ->
-	  let sr = root_id (CallG.E.src e) in
-	  let dr = root_id (CallG.E.dst e) in
-	  if sr = dr then [ `Color (number_to_color sr); `Comment "ff" ]
-	  else [ `Color 0x1478ac; `Comment "ff" ]
-      | Inter_services -> [  `Color 0xf3862f; `Comment "ss" ]
-      | Function_to_service -> [ `Color 0x067c06; `Comment "fs"  ]
+    let edge_attributes e = 
+      let sr = root_id (CallG.E.src e) in
+      [ `Color (Extlib.number_to_color sr) ]
 
     let default_edge_attributes _ = []
 
@@ -286,8 +272,8 @@ struct
       Some
         { Graph.Graphviz.DotAttributes.sg_name = cs;
           sg_attributes = 
-	    [ `Label ("S "^cs);
-	      `Color (number_to_color id);
+	    [ `Label ("S " ^ cs);
+	      `Color (Extlib.number_to_color id);
 	      `Style `Bold ] }
 
   end

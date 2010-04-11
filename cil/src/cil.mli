@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* ************************************************************************* *)
@@ -261,8 +262,10 @@ val getFormalsDecl: varinfo -> varinfo list
 val dummyFile: file
 
 (** Get the global initializer and create one if it does not already exist.
- * When it creates a global initializer it attempts to place a call to it in
- * the main function named by the optional argument (default "main")  *)
+    When it creates a global initializer it attempts to place a call to it in
+    the main function named by the optional argument (default "main").
+    @deprecated using this function is incorrect since it modifies the
+    current AST (see Plug-in Development Guide, Section "Using Projects"). *)
 val getGlobInit: ?main_name:string -> file -> fundec
 
 (** Iterate over all globals, including the global initializer *)
@@ -635,38 +638,50 @@ val typeSigAttrs: typsig -> attributes
 (** Make a varinfo. Use this (rarely) to make a raw varinfo. Use other
  * functions to make locals ({!Cil.makeLocalVar} or {!Cil.makeFormalVar} or
  * {!Cil.makeTempVar}) and globals ({!Cil.makeGlobalVar}). Note that this
- * function will assign a new identifier. The [logic] argument defaults to [false]
- *  and should be used to create a varinfo such that [varinfo.vlogic=true].
- *  The first argument specifies whether the varinfo is for a global and
-    the second is for formals. *)
-val makeVarinfo: ?logic:bool -> bool -> bool -> string -> typ -> varinfo
+ * function will assign a new identifier.
+ * The [logic] argument defaults to [false]
+ * and should be used to create a varinfo such that [varinfo.vlogic=true].
+ * The [generated] argument defaults to [true] (in fact, only front-ends have
+ * the need to set it to false), and tells whether the variable is generated
+ * or comes directly from user input (the [vgenerated] flag).
+ * The first unnmamed argument specifies whether the varinfo is for a global and
+ * the second is for formals. *)
+val makeVarinfo:
+  ?logic:bool -> ?generated:bool -> bool -> bool -> string -> typ -> varinfo
 
 (** Make a formal variable for a function declaration. Insert it in both the
     sformals and the type of the function. You can optionally specify where to
     insert this one. If where = "^" then it is inserted first. If where = "$"
     then it is inserted last. Otherwise where must be the name of a formal
-    after which to insert this. By default it is inserted at the end. *)
+    after which to insert this. By default it is inserted at the end.
+    A formal var is never generated.
+*)
 val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
 
 (** Make a local variable and add it to a function's slocals (only if insert =
     true, which is the default). Make sure you know what you are doing if you
-    set insert=false.  *)
-val makeLocalVar: fundec -> ?insert:bool -> string -> typ -> varinfo
+    set insert=false.
+    [generated] is passed to {!Cil.makeVarinfo}.
+ *)
+val makeLocalVar:
+  fundec -> ?generated:bool -> ?insert:bool -> string -> typ -> varinfo
 
 (** Make a pseudo-variable to use as placeholder in term to expression
-    conversions. Its logic field is set. *)
+    conversions. Its logic field is set. They are always generated. *)
 val makePseudoVar: typ -> varinfo
 
 (** Make a temporary variable and add it to a function's slocals. The name of
     the temporary variable will be generated based on the given name hint so
     that to avoid conflicts with other locals.
-    Optionally, you can give the variable a description of its contents. *)
+    Optionally, you can give the variable a description of its contents.
+    Temporary variables are always generated.
+ *)
 val makeTempVar: fundec -> ?name:string -> ?descr:string ->
                  ?descrpure:bool -> typ -> varinfo
 
 (** Make a global variable. Your responsibility to make sure that the name
-    is unique. [logic] defaults to [false]. *)
-val makeGlobalVar: ?logic:bool -> string -> typ -> varinfo
+    is unique. [logic] defaults to [false]. [generated] defaults to [true].*)
+val makeGlobalVar: ?logic:bool -> ?generated:bool -> string -> typ -> varinfo
 
 (** Make a shallow copy of a [varinfo] and assign a new identifier.
     If the original varinfo has an associated logic var, it is copied too and
@@ -765,6 +780,9 @@ val i64_to_int: int64 -> int
 (** True if the expression is a compile-time constant *)
 val isConstant: exp -> bool
 
+(** True if the expression is a compile-time integer constant *)
+val isIntegerConstant: exp -> bool
+
 (** True if the given offset contains only field nanmes or constant indices. *)
 val isConstantOffset: offset -> bool
 
@@ -778,7 +796,7 @@ val isLogicZero: term -> bool
 (** True if the given term is [\null] or a constant null pointer*)
 val isLogicNull: term -> bool
 
-(** @deprecated Since Beryllium-20090901+dev, use
+(** @deprecated Since Beryllium-20090902, use
     !Db.Properties.Status.code_annotation *)
 val get_status : code_annotation -> annot_status
 
@@ -904,6 +922,10 @@ val typeOf_pointed : typ -> typ
   (** Returns the type pointed by the given type. Asserts it is a pointer
       type. *)
 
+val typeOf_array_elem : typ -> typ
+  (** Returns the type of the array elements of the given type.
+  * Asserts it is an array type. *)
+
 val is_fully_arithmetic: typ -> bool
   (** Returns [true] whenever the type contains only arithmetic types *)
 
@@ -916,7 +938,8 @@ val parseInt: string -> exp
 (** {b Values for manipulating statements} *)
 
 (** Construct a statement, given its kind. Initialize the [sid] field to -1
-    if [valid_sid] is false, or to a valid sid if [valid_sid] is true,
+    if [valid_sid] is false (the default),
+    or to a valid sid if [valid_sid] is true,
     and [labels], [succs] and [preds] to the empty list *)
 val mkStmt: ?valid_sid:bool -> stmtkind -> stmt
 
@@ -1013,6 +1036,9 @@ val dropAttributes: string list -> attributes -> attributes
 
 (** Retains attributes with the given name *)
 val filterAttributes: string -> attributes -> attributes
+
+(** retains attributes corresponding to type qualifiers (6.7.3) *)
+val filter_qualifier_attributes: attributes -> attributes
 
 (** True if the named attribute appears in the attribute list. The list of
     attributes must be sorted.  *)
@@ -1338,6 +1364,8 @@ class type cilVisitor = object
 
   method vlogic_type_info_use: logic_type_info -> logic_type_info visitAction
 
+  method vlogic_type_def: logic_type_def -> logic_type_def visitAction
+
   method vlogic_ctor_info_decl: logic_ctor_info -> logic_ctor_info visitAction
 
   method vlogic_ctor_info_use: logic_ctor_info -> logic_ctor_info visitAction
@@ -1501,6 +1529,9 @@ val visitCilPredicate: cilVisitor -> predicate -> predicate
 
 val visitCilPredicateNamed: cilVisitor -> predicate named -> predicate named
 
+val visitCilIdPredicate:
+  cilVisitor -> identified_predicate -> identified_predicate
+
 val visitCilPredicates:
   cilVisitor -> identified_predicate list -> identified_predicate list
 
@@ -1511,6 +1542,10 @@ val visitCilTermLhost: cilVisitor -> term_lhost -> term_lhost
 val visitCilTermOffset: cilVisitor -> term_offset -> term_offset
 
 val visitCilLogicInfo: cilVisitor -> logic_info -> logic_info
+
+val visitCilLogicVarUse: cilVisitor -> logic_var -> logic_var
+
+val visitCilLogicVarDecl: cilVisitor -> logic_var -> logic_var
 
 (* And some generic visitors. The above are built with these *)
 
@@ -1620,6 +1655,9 @@ class type cilPrinter = object
 
   method current_function: varinfo option
     (** Returns the [varinfo] corresponding to the function being printed *)
+
+  method has_annot: bool
+    (** true if [current_stmt] has some annotations attached to it. *)
 
   method current_stmt: stmt option
     (** Returns the stmt being printed *)
@@ -1731,7 +1769,12 @@ class type cilPrinter = object
 
     (** Pretty-printing of annotations. *)
 
-  method pLogic_type: Format.formatter -> logic_type -> unit
+  method pLogic_type:
+    (Format.formatter -> unit) option ->
+    Format.formatter -> logic_type -> unit
+
+  method pLogic_type_def:
+    Format.formatter -> logic_type_def -> unit
 
   method pTerm: Format.formatter -> term -> unit
 
@@ -1756,6 +1799,22 @@ class type cilPrinter = object
 
   method pBehavior: Format.formatter -> funbehavior -> unit
 
+  method pRequires: Format.formatter -> identified_predicate -> unit
+
+  method pComplete_behaviors: Format.formatter -> string list -> unit
+
+  method pDisjoint_behaviors: Format.formatter -> string list -> unit
+
+  method pTerminates: Format.formatter -> identified_predicate -> unit
+
+  (** pretty prints a post condition according to the exit kind it represents
+      @modify Boron-20100401 replaces [pEnsures]
+   *)
+  method pPost_cond: Format.formatter ->
+    (termination_kind * identified_predicate) -> unit
+
+  method pAssumes: Format.formatter -> identified_predicate -> unit
+
   method pSpec: Format.formatter -> funspec -> unit
 
   method pZone: Format.formatter -> identified_term zone -> unit
@@ -1764,7 +1823,10 @@ class type cilPrinter = object
         (i.e. loop_assigns or assigns)
      *)
   method pAssigns:
-    string -> Format.formatter -> identified_term assigns -> unit
+    string -> Format.formatter -> identified_term assigns list -> unit
+
+  (** prints an assignment with its dependencies. *)
+  method pFrom: string -> Format.formatter -> identified_term assigns -> unit
 
   method pStatus : Format.formatter -> Cil_types.annot_status -> unit
 
@@ -1904,8 +1966,8 @@ val d_logic_type: Format.formatter -> logic_type -> unit
 val d_term:  Format.formatter -> term -> unit
 val d_term_offset: Format.formatter -> term_offset -> unit
 
-(** @since Beryllium-20090601+dev *)
 val d_annotation_status: Format.formatter -> annotation_status -> unit
+  (** @since Beryllium-20090901 *)
 
 val d_status: Format.formatter -> annot_status -> unit
 val d_predicate_named: Format.formatter -> predicate named -> unit
@@ -2134,8 +2196,7 @@ val extract_free_logicvars_from_predicate :
 
 (** creates a visitor that will replace in place uses of var in the first
     list by their counterpart in the second list.
-    @raise Invalid_argument if the lists have different lengths.
-*)
+    @raise Invalid_argument if the lists have different lengths. *)
 val create_alpha_renaming: varinfo list -> varinfo list -> cilVisitor
 
 val print_utf8 : bool ref

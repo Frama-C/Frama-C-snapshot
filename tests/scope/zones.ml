@@ -6,10 +6,10 @@ bin/topleval.top -val tests/scope/zones.c
 let fmt =  Format.std_formatter;;
 
 (*
-let old_debug = Parameters.Debug.get ();;
-Parameters.Debug.set 1;; (* to see sid *)
+let old_debug = Kernel.Debug.get ();;
+Kernel.Debug.set 1;; (* to see sid *)
 Format.fprintf fmt "@[%a@]" (Cil.d_file (new Printer.print())) ( Ast.get ());;
-Parameters.Debug.set old_debug;;
+Kernel.Debug.set old_debug;;
 *)
 
 let find_ret kf_name =
@@ -19,7 +19,7 @@ let find_ret kf_name =
     stmt, kf
 ;;
 
-let find_sid sid = 
+let find_sid sid =
   let stmt, kf = Kernel_function.find_from_sid sid in
     Format.printf "Current program point = before stmt %d in function %a@\n"
       sid Kernel_function.pretty_name kf;
@@ -36,7 +36,7 @@ let find_label kf_name lab_name =
 let compute_and_print pp str_data =
   let stmt, kf = pp in
   let lval_term = !Db.Properties.Interp.lval kf stmt str_data in
-  let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
+  let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let (_used_stmts, zones) = !Db.Scope.build_zones kf stmt lval in
     Format.printf "Zones for %s at current program point =@.%a\n@\n"
       str_data !Db.Scope.pretty_zones zones

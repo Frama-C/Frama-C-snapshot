@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -25,9 +26,9 @@ open Db_types
 open Db
 open Cilutil
 
-module Parameters = 
+module Parameters =
   Plugin.Register
-    (struct 
+    (struct
       let name = "dominators"
       let shortname = "dominators"
       let descr = "Compute dominators and postdominators of statements"
@@ -37,8 +38,8 @@ module DomSet = struct
   type t = Value of Cilutil.StmtSet.t | Top
 
   let hash _ = assert false
-    (* better no hash function than a hash function as stupid as 
-       function Top -> 222222 | Value s -> Cilutil.StmtSet.cardinal s 
+    (* better no hash function than a hash function as stupid as
+       function Top -> 222222 | Value s -> Cilutil.StmtSet.cardinal s
        (iterate on all elements AND have so many collisions as to
        be useless. A WTF-worthy jewel) *)
 
@@ -74,14 +75,13 @@ module DomSet = struct
     | Value set -> Value (f set)
 end
 
-module Datatype = 
+module Datatype =
   Project.Datatype.Register
     (struct
        type t = DomSet.t
        let map = DomSet.map
        let copy = map Cil_datatype.StmtSet.copy
-       let rehash = map Cil_datatype.StmtSet.rehash
-       let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+       let descr = Project.no_descr
        let name = "postdominator"
      end)
 

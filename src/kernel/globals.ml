@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -111,11 +112,14 @@ module Functions = struct
 	 type t = kernel_function
 	 let rehash x =
            match x.fundec with
-           | Definition _ | Declaration (_,_,None,_)-> x
-           | Declaration (_,v,Some args,_) ->
+           | Definition _ | Declaration (_, _, None, _)-> x
+           | Declaration (_, v, Some args, _) ->
                Cil.unsafeSetFormalsDecl v args;
 	       x
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let descr =
+	   Unmarshal.Transform
+	     (Unmarshal.Abstract,
+	      fun o -> let x : t = Obj.obj o in Obj.repr (rehash x))
 	 let copy _ = assert false (* TODO: deep copy *)
 	 let name = "kernel_function"
        end)
@@ -123,6 +127,9 @@ module Functions = struct
     let hash = id
     let equal = (==)
     let compare k1 k2 = Pervasives.compare (id k1) (id k2)
+    let pretty fmt kf =
+      Ast_info.pretty_vname fmt
+	(Ast_info.Function.get_vi kf.fundec)
     let () = register_comparable ~hash ~equal ~compare ()
   end
 
@@ -169,7 +176,7 @@ module Functions = struct
     match f with
     | Definition (n, _) ->
 	if Kernel.debug_atleast 1 then
-	  Kernel.debug 
+	  Kernel.debug
 	    "Register definition %a with specification \"%a\"@\n"
             Ast_info.pretty_vname n.svar !Ast_printer.d_funspec n.sspec ;
         (try
@@ -178,11 +185,11 @@ module Functions = struct
          with Not_found ->
 	   ());
         State.replace n.svar (init_kernel_function f n.sspec);
-	Parameters.MainFunction.set_possible_values 
+	Parameters.MainFunction.set_possible_values
 	  (n.svar.vname :: Parameters.MainFunction.get_possible_values ())
     | Declaration (spec, v,_,_) ->
 	if Kernel.debug_atleast 1 then
-          Kernel.debug 
+          Kernel.debug
 	    "Register declaration %a with specification \"%a\"@\n"
             Ast_info.pretty_vname v !Ast_printer.d_funspec spec;
 	State.replace v (init_kernel_function f spec)
@@ -211,17 +218,14 @@ module Functions = struct
       | Definition(f,_loc) -> f.svar
       | Declaration(_spec,v,_params,_loc) -> v
 
-  (* Similar to [Cil.getGlobInit], except it registers the newly created
-   * function
-   *)
   let get_glob_init ?(main_name="main") (fl: file) =
     match fl.globinit with
-      | Some f -> get f.svar
-      | None ->
-	  (* Create a function by calling [Cil.getGlobInit] and register it *)
-	  let gif = getGlobInit ~main_name fl in
-	  add (Definition (gif, Cilutil.locUnknown));
-	  get gif.svar
+    | Some f -> get f.svar
+    | None ->
+	(* Create a function by calling [Cil.getGlobInit] and register it *)
+	let gif = getGlobInit ~main_name fl in
+	add (Definition (gif, Cilutil.locUnknown));
+	get gif.svar
 
   exception Found_kf of kernel_function
 
@@ -363,7 +367,7 @@ module FileIndex = struct
 	 let size = 7
        end)
 
-  let compute, _ =
+  let compute, self =
     let compute () =
       iterGlobals
         (Ast.get ())
@@ -382,65 +386,73 @@ module FileIndex = struct
     compute ();
     S.fold (fun key _ keys ->  key :: keys) []
 
-  let find ~filename =
+  let get_symbols ~filename =
     compute ();
-    let find f = let f,l = S.find f in f, List.rev l in
     try
-      find (Filename.basename filename)
-    with Not_found -> find filename
+      S.find (Filename.basename filename)
+    with Not_found -> S.find filename
 
-  (** get all global variables as (varinfo, initinfo) list with only one
+  let find ~filename =
+    let f,l = get_symbols ~filename
+    in f, List.rev l
+
+  let get_symbols ~filename =
+    snd (get_symbols ~filename)
+
+ (** get all global variables as (varinfo, initinfo) list with only one
       occurence of a varinfo *)
   let get_globals ~filename =
     compute ();
     let varinfo_set =
       List.fold_right
         (fun glob acc ->
-           let is_glob_varinfo x =
-             if x.vglob then
-               match x.vtype with
+	   let is_glob_varinfo x =
+	     if x.vglob then
+	       match x.vtype with
                  | TFun _ -> None
                  | _ -> Some x
-             else
-               None
-           in let is_glob_var v = match v with
-             | Cil_types.GVar (vi, _, _) ->
+	     else
+	       None
+	   in let is_glob_var v = match v with
+	     | Cil_types.GVar (vi, _, _) ->
                  is_glob_varinfo vi
-             | Cil_types.GVarDecl(_,vi, _) ->
+	     | Cil_types.GVarDecl(_,vi, _) ->
                  is_glob_varinfo vi
-             | _ -> None
-           in match is_glob_var glob with
-             | None -> acc
-             | Some vi -> VarinfoSet.add vi acc)
+	     | _ -> None
+	   in match is_glob_var glob with
+	     | None -> acc
+	     | Some vi -> VarinfoSet.add vi acc)
         (snd (S.find filename))
         VarinfoSet.empty
     in
-    VarinfoSet.fold (fun vi acc -> (vi, Vars.find vi) :: acc) varinfo_set []
+      VarinfoSet.fold
+	(fun vi acc -> (vi, Vars.find vi) :: acc) varinfo_set []
 
   let get_functions ~filename =
     compute ();
     let varinfo_set =
       List.fold_right
         (fun glob acc ->
-           let is_func_varinfo x =
-             if x.vglob then
-               match x.vtype with
+	   let is_func_varinfo x =
+	     if x.vglob then
+	       match x.vtype with
                  | TFun _ -> Some x
                  | _ -> None
-             else
-               None
-           in let is_func v = match v with
-             | Cil_types.GVarDecl(_,vi, _) ->
-                 is_func_varinfo vi
-             | Cil_types.GFun(fundec, _) -> Some (fundec.svar)
-             | _ -> None
-           in match is_func glob with
-             | None -> acc
-             | Some vi -> VarinfoSet.add vi acc)
+	     else
+	       None
+		in let is_func v = match v with
+		  | Cil_types.GVarDecl(_,vi, _) ->
+                      is_func_varinfo vi
+		  | Cil_types.GFun(fundec, _) -> Some (fundec.svar)
+		  | _ -> None
+		in match is_func glob with
+		  | None -> acc
+		  | Some vi -> VarinfoSet.add vi acc)
         (snd (S.find filename))
         VarinfoSet.empty
     in
-    VarinfoSet.fold (fun vi acc -> Functions.get vi :: acc) varinfo_set []
+      VarinfoSet.fold
+	(fun vi acc -> Functions.get vi :: acc) varinfo_set []
 
   let kernel_function_of_local_var_or_param_varinfo x =
     compute ();
@@ -489,7 +501,7 @@ let set_entry_point name lib =
     let selection = add Parameters.LibEntry.self selection in
     Project.clear ~only:selection ()
   in
-  let has_changed = 
+  let has_changed =
     lib <> Parameters.LibEntry.get () || name <> Parameters.MainFunction.get ()
   in
   if has_changed then begin
@@ -503,6 +515,6 @@ let has_entry_point () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

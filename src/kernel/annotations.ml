@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,60 +20,77 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annotations.ml,v 1.43 2008-12-17 15:37:56 uid530 Exp $ *)
-
 open Cil_types
 open Db_types
 open Cil
 
 module AnnotState =
-  Cil_computation.StmtHashtbl
-    (Datatype.Ref(Datatype.List(Ast_info.Datatype_Annotation)))
+  Computation.Dashtbl
+    (Cilutil.StmtComparable)
+    (Ast_info.Datatype_Annotation)
     (struct
        let name = "Annotations"
        let size = 17
        let dependencies = [ Ast.self ]
      end)
 
-let add stmt a =
-  try
-    let l = AnnotState.find stmt in
-    l := a :: !l;
-  with Not_found -> 
-    AnnotState.add stmt (ref [ a ])
+let add = AnnotState.add
 
-let add_assert stmt ~before a =
-  let a = 
-    User (Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown}))) 
+let add_assert stmt states ~before a =
+  let a =
+    User (Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown})))
   in
-  add stmt (if before then Before a else After a)
+  let v = if before then Before a else After a in
+  if not (List.for_all
+	    (fun s -> List.memq v (AnnotState.find_all_local_data stmt s))
+	    states)
+  then add stmt states v
 
-let add_alarm stmt ~before alarm a =
-  let a = 
+let add_alarm stmt states ~before alarm a =
+  let a =
     AI (alarm,
 	Logic_const.new_code_annotation
-	  (AAssert ([], a, { status = Unknown }))) 
+	  (AAssert ([], a, { status = Unknown })))
   in
-  add stmt (if before then Before a else After a)
+  add stmt states (if before then Before a else After a)
 
-let reset_stmt = AnnotState.remove
+let reset_stmt = AnnotState.remove_all
+let replace = AnnotState.replace
 
-let replace stmt a = AnnotState.replace stmt (ref [ a ])
+let get = AnnotState.find_all_local
+let get_annotations = AnnotState.find_all_local_data
+let get_state = AnnotState.find_all_local_state
 
-let get stmt = try List.rev !(AnnotState.find stmt) with Not_found -> []
+let get_all = AnnotState.find_all
+let get_all_annotations = AnnotState.find_all_data
+let get_all_states = AnnotState.find_all_states
+
+let get_by_state stmt =
+  List.map (fun s -> s, get_annotations stmt s) (get_all_states stmt)
 
 let get_filter f stmt =
   List.filter
     (function
-         Before (User ca) | After (User ca)
-       | Before (AI (_,ca)) | After(AI(_,ca)) -> f ca)
-    (get stmt)
+     | Before (User ca) | After (User ca)
+     | Before (AI (_,ca)) | After(AI(_,ca)) -> f ca)
+    (get_all_annotations stmt)
 
 let iter = AnnotState.iter
+let iter_stmt = AnnotState.iter_key
+let single_iter_stmt f s = List.iter f (get_all_annotations s)
+let fold = AnnotState.fold
+let fold_stmt = AnnotState.fold_key
+let single_fold_stmt f s acc =
+  List.fold_left (fun acc a -> f a acc) acc (get_all_annotations s)
 
-let filter f = iter (fun stmt l -> l := List.filter (f stmt) !l)
+let filter = AnnotState.filter
 
 let self = AnnotState.self
+
+let add_dependency stmt state =
+  List.iter
+    (fun s -> AnnotState.add_dependency s state)
+    (get_all_states stmt)
 
 (*
 Local Variables:

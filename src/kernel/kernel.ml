@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -41,7 +42,7 @@ module P = Plugin.Register
      let name = ""
      let shortname = ""
      let module_name = ""
-     let descr = "General options of Frama-C"
+     let descr = "General options provided by the Frama-C kernel"
    end)
 
 include (P: Plugin.S)
@@ -49,10 +50,10 @@ include (P: Plugin.S)
 module Bool(X:sig include Parameter_input val default: bool end) =
   P.Bool(struct let () = Plugin.set_module_name X.module_name include X end)
 
-module False(X: Parameter_input) = 
+module False(X: Parameter_input) =
   P.False(struct let () = Plugin.set_module_name X.module_name include X end)
 
-module True(X: Parameter_input) = 
+module True(X: Parameter_input) =
   P.True(struct let () = Plugin.set_module_name X.module_name include X end)
 
 module Int (X: sig val default: int include Parameter_input_with_arg end) =
@@ -77,7 +78,7 @@ module StringList(X: Parameter_input_with_arg) =
   P.StringList
     (struct let () = Plugin.set_module_name X.module_name include X end)
 
-module IndexedVal (V:COMPLEX_VALUE) = 
+module IndexedVal (V:COMPLEX_VALUE) =
   P.IndexedVal
     (struct let () = Plugin.set_module_name V.module_name include V end)
 

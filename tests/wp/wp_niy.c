@@ -1,28 +1,10 @@
 /* run.config
-OPT: -wp-mm 0  -journal-disable -wp-no-proof
+   DONTRUN: don't run a test which raises an exception
 */
-/* run.config_dev
-OPT: -wp-mm 0  -journal-disable -wp-proof
-*/
-// No -debug in order to really see user messages.
-
-/*@  
-    behavior bx :
-       assumes x <= y;
-       ensures \result == x;
-    behavior by :
-       assumes x > y;
-       ensures \result == y;
-    complete behaviors bx, by;
-    disjoint behaviors bx, by;
-*/
-int min (int x, int y) {
-  return (x < y) ? x : y;
-}
-
 /*@ 
  requires n >= 0;
  terminates \true;
+ decreases 101 - n;
  assigns \nothing;
  behavior b91 :
      assumes n <= 101;
@@ -30,7 +12,6 @@ int min (int x, int y) {
  behavior b100 :
      assumes n > 100;
      ensures \result == n - 10;
- decreases (101 - n);
 */
 int f91 (int n) {
   if ( n > 100 )
@@ -45,3 +26,46 @@ int f91 (int n) {
 int addr_result (void) {
   return 0;
 }
+
+int loop2 (int n) {
+  int i, s = 0;
+  for (i = 0; i < n; i++) {
+    //@ invariant 0 <= i < n ;
+    s++;
+  }
+  return s;
+}
+
+/*@ requires c > 0;
+ */
+int goto_loop (int c) {
+  int x = 1;
+  L : x++;
+      //@ invariant (0 < c <= \at(c, Pre)) && x == 2 + (\at(c, Pre) - c);
+  if (--c > 0) goto L;
+  return x;
+}
+
+/* Doc example 2.45 */
+int abrupt (int x) {
+    while (x > 0) {
+      /*@ breaks x % 11 == 0 && x == \old (x );
+        @ continues (x +1) % 11 != 0 && x % 7 == 0 && x == \old (x ) -1;
+        // @ returns ( \result +2) % 11 != 0 && ( \result +1) % 7 != 0
+        // @           && \result % 5 == 0 && \result == \old (x ) -2;
+        @ ensures (x +3) % 11 != 0 && ( x +2) % 7 != 0 && (x +1) % 5 != 0
+        @           && x == \old (x ) -3;
+        @ */
+      {
+         if   (x % 11 == 0)      break ;
+         x--;
+         if   (x % 7 == 0)    continue ;
+         x--;
+         if   (x % 5 == 0)    return x;
+         x--;
+      }
+    }
+    return    x;
+}
+
+int main (void) { return 0 ; }

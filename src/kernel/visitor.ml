@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id$ *)
 
 open Extlib
 open Cil
@@ -92,29 +91,40 @@ object(self)
   method vrooted_code_annotation _ = DoChildren
 
   method private vstmt stmt =
-    let annots = Annotations.get stmt in
+    let annots = Annotations.get_all_annotations stmt in
     let res = self#vstmt_aux stmt in
     let abefore,aafter =
       List.fold_left
-        (fun (b,a) x ->
-           match x with Before x -> (x::b,a) | After x -> (b,x::a))
-        ([],[]) annots
+        (fun (b, a) x -> match x with
+	 | Before x -> x :: b, a
+	 | After x -> b, x :: a)
+        ([], [])
+	annots
     in
-    let make_children_annot () =
+    let compare_rooted x y =
+      let id1 = match x with User ca | AI(_,ca) -> ca.annot_id in
+      let id2 = match y with User ca | AI(_,ca) -> ca.annot_id in
+      if id1 < id2 then -1 else if id2 > id1 then 1 else 0
+    in
+    (* Annotations will be visited and more importantly added in the
+       same order as they were in the original AST.  *)
+    let abefore = List.sort compare_rooted abefore in
+    let aafter = List.sort compare_rooted aafter in
+    let make_children_annot vis =
       Stack.push true before;
       let abefore' =
-        List.filter 
+        List.filter
           (fun x -> not (Ast_info.is_trivial_rooted_assertion x))
           (List.flatten
-             (List.rev_map (visitRooted_code_annotation (self:>frama_c_visitor))
+             (List.map (visitRooted_code_annotation (self:>frama_c_visitor))
                 abefore))
       in
       ignore (Stack.pop before); Stack.push false before;
       let aafter' =
         List.filter (fun x -> not (Ast_info.is_trivial_rooted_assertion x))
           (List.flatten
-             (List.rev_map
-                (visitRooted_code_annotation (self:>frama_c_visitor)) aafter))
+             (List.map
+                (visitRooted_code_annotation (vis:>frama_c_visitor)) aafter))
       in
       ignore(Stack.pop before);
       (abefore',aafter')
@@ -122,27 +132,29 @@ object(self)
     let change_stmt stmt (abefore',aafter') =
       Queue.add
         (fun () ->
-           let current_annots = Annotations.get stmt in
-           (* remove all annotations that are physically equal to
+           (* Remove all annotations that are physically equal to
               one of the annotations that existed before the visit.
-              They will be re-added if needed. Keep annotations that
-              have been added by visiting the statement itself (by vstmt_aux)
-           *)
-           let new_annots =
-             List.filter
-               (fun x -> not (List.memq x annots)) current_annots
-           in
-           Annotations.reset_stmt stmt;
-           List.iter (Annotations.add stmt) new_annots;
-	   List.iter (fun x -> Annotations.add stmt (Before x)) abefore';
-	   List.iter (fun x -> (Annotations.add stmt) (After x)) aafter')
+              They will be re-added if needed.
+
+	      Keep annotations that have been added by visiting the statement
+	      itself (by vstmt_aux) *)
+	   Annotations.filter
+	     ~reset:false
+	     (fun _ _ x -> not (List.memq x annots))
+	     stmt;
+	   List.iter (fun x -> Annotations.add stmt [ ] (Before x)) abefore';
+	   List.iter (fun x -> Annotations.add stmt [ ] (After x)) aafter')
         self#get_filling_actions
     in
-    let post_action stmt = change_stmt stmt (make_children_annot ()); stmt in
+    let post_action stmt = change_stmt stmt (make_children_annot self); stmt in
+    let copy stmt =
+      change_stmt stmt
+        (make_children_annot self#frama_c_plain_copy); stmt
+    in
     match res with
-      SkipChildren -> change_stmt stmt (abefore,aafter); res
-    | JustCopy -> JustCopyPost post_action
-    | JustCopyPost f -> JustCopyPost (f $ post_action)
+    | SkipChildren -> change_stmt stmt (abefore,aafter); res
+    | JustCopy -> JustCopyPost copy
+    | JustCopyPost f -> JustCopyPost (f $ copy)
     | DoChildren -> ChangeDoChildrenPost (stmt, post_action)
     | ChangeTo _ | ChangeToPost _ -> res
     | ChangeDoChildrenPost (stmt,f) ->
@@ -220,7 +232,7 @@ object(self)
             in
 	    Queue.add
 	      (fun () ->
-		 Kernel.debug 
+		 Kernel.debug
 		   "@[Adding definition %s (vid: %d) for project %s@\n\
                       body: %a@\n@]@."
 		   f.svar.vname f.svar.vid
@@ -380,6 +392,6 @@ let visitFramacBehaviors vis b =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

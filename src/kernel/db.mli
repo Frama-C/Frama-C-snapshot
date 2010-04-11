@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: db.mli,v 1.486 2009-02-27 10:38:16 uid530 Exp $ *)
 
 (** Database in which static plugins are registered.
     @plugin development guide *)
@@ -37,7 +36,8 @@
    - {!Ast_info}: syntactic value directly computed from the Cil Ast
    - {!File}: Cil file initialization
    - {!Globals}: global variables, functions and annotations
-   - {!Annotations}:  annotations associated with a statement
+   - {!Annotations}: annotations associated with a statement
+   - {!Properties_status}: status of annotations
    - {!Kernel_function}: C functions as seen by Frama-C
    - {!Stmts_graph}: the statement graph
    - {!Loop}: (natural) loops
@@ -76,7 +76,8 @@ val register: 'a how_to_journalize -> 'a ref -> 'a -> unit
 val register_compute:
   string ->
   Project.Computation.t list ->
-  (unit -> unit) ref -> (unit -> unit) -> unit
+  (unit -> unit) ref -> (unit -> unit) -> Project.Computation.t
+  (** @modify Boron-20100401 now return the state of the computation. *)
 
 val register_guarded_compute:
   string ->
@@ -93,7 +94,7 @@ module Main: sig
 
   val play: (unit -> unit) ref
     (** Run all the Frama-C analyses. This function should be called only by
-	toplevels.  
+	toplevels.
 	@since Beryllium-20090901 *)
 
   (**/**)
@@ -161,15 +162,69 @@ module Value : sig
     (** This hook is called by the value analysis in the seldom
         case a total degeneration occurs. *)
 
+  (** {3 Parameterization} *)
+
+  val register_builtin:
+    (string ->
+      (state -> (Cil_types.exp * t) list ->
+	     (Cvalue_type.V_Offsetmap.t option * state * Locations.Location_Bits.Top_Param.t)) ->
+	unit) ref
+    (** [!record_builtin name f] registers an abstract function [f] to use
+  	everytime a C function named [name] is called in the program *)
+
+  val mem_builtin:
+    (string -> bool) ref
+
+
+  (** {4 Arguments of the main function} *)
+
+  (** The functions below are related to the arguments that are passed to the
+      function that is analysed by the value analysis. Specific arguments
+      are set by [fun_set_args]. Arguments reset to default values when
+      [fun_use_default_args] is called, when the ast is changed, or
+      if the options [-libentry] or [-main] are changed. *)
+
+  (** Specify the arguments to use. This function is not journalized, and
+      will generate an error when the journal is replayed *)
+  val fun_set_args : t list -> unit
+
+  val fun_use_default_args : unit -> unit
+
+  (** For this function, the result [None] means that
+      default values are used for the arguments.j *)
+  val fun_get_args : unit -> t list option
+
+
+  (** {4 Initial state of the analysis} *)
+
+  (** The functions below are related to the the value of the global variables
+      when the value analysis is started. If [globals_set_initial_state] has not
+      been called, the given state is used. A default state (which depends on
+      the option [-libentry]) is used when [globals_use_default_initial_state]
+      is called, or when the ast changes. *)
+
+  (** Specify the initial state to use. This function is not journalized,
+      and will generate an error when the journal is replayed *)
+  val globals_set_initial_state : state -> unit
+
+  val globals_use_default_initial_state : unit -> unit
+
+  (** Initial state used by the analysis *)
+  val globals_state : unit -> state
+
+
+  (** Returns [true] if the initial state for globals used by the value
+      analysis has been supplied by the user (through
+      [globals_set_initial_state]), or [false] if it is automatically
+      computed by the value analysis *)
+  val globals_use_supplied_state : unit -> bool
+
+
   (** {3 Getters} *)
+  (** State of the analysis at various points *)
 
   val get_initial_state : kernel_function -> state
   val get_state : kinstr -> state
-
-  val globals_state : unit -> state
-    (** Return the default initial values of globals. This might be
-        different from the initial state of the value analysis in
-        the library case.*)
 
   val find : state -> Locations.location ->  t
 
@@ -180,17 +235,17 @@ module Value : sig
      Locations.Zone.t option ->
      state ->
      lval ->
-     Locations.Zone.t option * Cvalue_type.V.t) ref
+     Locations.Zone.t option * t) ref
 
-  val eval_expr : 
-    (with_alarms:CilE.warn_mode -> state -> exp -> Cvalue_type.V.t) ref
+  val eval_expr :
+    (with_alarms:CilE.warn_mode -> state -> exp -> t) ref
 
   val eval_expr_with_state :
-    (with_alarms:CilE.warn_mode -> state -> exp -> state*Cvalue_type.V.t) ref
+    (with_alarms:CilE.warn_mode -> state -> exp -> state * t) ref
 
   val find_lv_plus :
     (with_alarms:CilE.warn_mode ->
-      Relations_type.Model.t -> Cil_types.exp -> 
+      Relations_type.Model.t -> Cil_types.exp ->
       (Cil_types.lval * Ival.t) list) ref
   (** returns the list of all decompositions of [expr] into the sum an lvalue
       and an interval. *)
@@ -202,16 +257,16 @@ module Value : sig
      -> with_alarms:CilE.warn_mode
      -> deps:Locations.Zone.t option
      -> exp
-     -> Locations.Zone.t * kernel_function list) ref
+     -> Locations.Zone.t * Kernel_function.Set.t) ref
 
   val expr_to_kernel_function_state :
     (state
      -> deps:Locations.Zone.t option
      -> exp
-     -> Locations.Zone.t * kernel_function list) ref
+     -> Locations.Zone.t * Kernel_function.Set.t) ref
 
   exception Not_a_call
-  val call_to_kernel_function : stmt ->  kernel_function list
+  val call_to_kernel_function : stmt -> Kernel_function.Set.t
     (** Return the functions that can be called from this call.
 	@raise Not_a_call if the statement is not a call. *)
 
@@ -294,16 +349,16 @@ module Value : sig
 
   (** Actions to perform at end of each function analysis. *)
   module Record_Value_Callbacks:
-    Hook.S with type param = (kernel_function * kinstr) list
+    Hook.Iter_hook with type param = (kernel_function * kinstr) list
     * state Cilutil.InstrHashtbl.t
   module Record_Value_Superposition_Callbacks:
-    Hook.S with type param = (kernel_function * kinstr) list 
+    Hook.Iter_hook with type param = (kernel_function * kinstr) list
     * State_set.t Cilutil.InstrHashtbl.t
 
   (** Actions to perform at each treatment of a "call" statement.
       @plugin development guide *)
   module Call_Value_Callbacks:
-    Hook.S with type param = state * (kernel_function * kinstr) list
+    Hook.Iter_hook with type param = state * (kernel_function * kinstr) list
 
   (** {3 Pretty printing} *)
 
@@ -362,6 +417,10 @@ module From : sig
   val update :
     (Locations.location -> Locations.Zone.t -> from_model -> from_model) ref
 
+ module Record_From_Callbacks:
+   Hook.Iter_hook with type param = Kernel_function.t Cilutil.Stack.t *
+              Lmap_bitwise.From_Model.t Inthash.t
+
   module Callwise : sig
     val iter : ((kinstr -> Function_Froms.t -> unit) -> unit) ref
     val find : (kinstr -> Function_Froms.t) ref
@@ -399,151 +458,146 @@ module Properties : sig
 
     (** {3 From logic terms to C terms} *)
 
-    val term_lval_to_lval: (term_lval -> Cil_types.lval) ref
+    val term_lval_to_lval:
+      (result: Cil_types.varinfo option -> term_lval -> Cil_types.lval) ref
       (** @raise Invalid_argument if the argument is not a left value. *)
 
-    val term_to_lval: (term -> Cil_types.lval) ref
+    val term_to_lval:
+      (result: Cil_types.varinfo option -> term -> Cil_types.lval) ref
       (** @raise Invalid_argument if the argument is not a left value. *)
 
-    val term_to_exp: (term -> Cil_types.exp) ref
+    val term_to_exp:
+      (result: Cil_types.varinfo option -> term -> Cil_types.exp) ref
       (** @raise Invalid_argument if the argument is not a valid expression. *)
 
-    val loc_to_exp: (term -> Cil_types.exp list) ref
-      (** returns a list of C expressions.
+    val loc_to_exp:
+      (result: Cil_types.varinfo option -> term -> Cil_types.exp list) ref
+      (** @return a list of C expressions.
           @raise Invalid_argument if the argument is not a valid set of
           expressions. *)
-    val loc_to_lval: (term -> Cil_types.lval list) ref
-      (** returns a list of C locations.
-          @raise Invalid_argument if the argument is not a valid set of
-          left values
-       *)
-    val identified_term_zone_to_loc: (Value.state -> Cil_types.identified_term Cil_types.zone -> Locations.location) ref
-      (** returns a Locations.Location
-          @raise Invalid_argument in some cases. Complain if you'd like
-	  more cases to be treated. A bottle of single malt may help.
-       *)
-    val loc_to_loc: (Value.state -> term -> Locations.location) ref
-      (** returns a Locations.Location
-          @raise Invalid_argument in some cases. See [identified_term_to_loc]
-       *)
 
-    val loc_to_offset: (term -> Cil_types.offset list) ref
-      (** returns a list of C offset provided the term denotes location who
+    val loc_to_lval:
+      (result: Cil_types.varinfo option -> term -> Cil_types.lval list) ref
+      (** @return a list of C locations.
+          @raise Invalid_argument if the argument is not a valid set of
+          left values. *)
+
+    val identified_term_zone_to_loc:
+      (result: Cil_types.varinfo option -> Value.state -> Cil_types.identified_term Cil_types.zone
+	 -> Locations.location) ref
+      (** @return a Locations.Location
+          @raise Invalid_argument in some cases. Complain if you'd like
+	  more cases to be treated. *)
+
+    val loc_to_loc:
+      (result: Cil_types.varinfo option -> Value.state -> term -> Locations.location) ref
+      (** @return a Locations.Location
+          @raise Invalid_argument in some cases. See
+	  [identified_term_to_loc]. *)
+
+    val loc_to_offset:
+      (result: Cil_types.varinfo option -> term -> Cil_types.offset list) ref
+      (** @return a list of C offset provided the term denotes location who
           have all the same base address.  *)
 
     val force_term_to_exp: (term -> exp * opaque_term_env) ref
-
     val force_back_exp_to_term: (opaque_term_env -> exp -> term) ref
-
     val force_exp_to_term: (location -> exp -> term) ref
-
     val force_lval_to_term_lval: (location -> lval -> term_lval) ref
-
     val force_term_offset_to_offset:
       (term_offset -> offset * opaque_term_env) ref
-
     val force_back_offset_to_term_offset:
       (opaque_term_env -> offset -> term_offset) ref
-
     val force_exp_to_predicate: (location -> exp -> predicate named) ref
-
     val force_exp_to_assertion: (location -> exp -> code_annotation) ref
-
     val force_term_lval_to_lval:
       (term_lval -> lval * opaque_term_env) ref
-
     val force_back_lval_to_term_lval:
       (opaque_term_env -> lval -> term_lval) ref
-
     val from_range_to_comprehension:
       (visitor_behavior -> Project.t -> file -> unit) ref
-
     val range_to_comprehension: (term -> term) ref
-
     val from_comprehension_to_range:
       (visitor_behavior -> Project.t -> file -> unit) ref
-
-    val term_offset_to_offset: (term_offset -> offset) ref
+    val term_offset_to_offset:
+      (result: Cil_types.varinfo option -> term_offset -> offset) ref
       (** @raise Invalid_argument if the argument is not a valid offset. *)
 
     (** {3 From logic terms to Zone.t} *)
 
     module To_zone : sig
-      type t_ctx = {state_opt:bool option; ki_opt:(stmt * bool) option; kf:Kernel_function.t}
-      val mk_ctx_func_contrat: (kernel_function -> state_opt:bool option -> t_ctx) ref
-        (** to build an interpretation context relative to function contracts. *)
-      val mk_ctx_stmt_contrat: (kernel_function -> stmt -> state_opt:bool option -> t_ctx) ref
-        (** to build an interpretation context relative to statement contracts. *)
-      val mk_ctx_stmt_annot: (kernel_function -> stmt -> before:bool -> t_ctx) ref
-        (** to build an interpretation context relative to statement annotations. *)
+      type t_ctx =
+	  {state_opt:bool option;
+	   ki_opt:(stmt * bool) option;
+	   kf:Kernel_function.t}
+
+      val mk_ctx_func_contrat:
+	(kernel_function -> state_opt:bool option -> t_ctx) ref
+        (** To build an interpretation context relative to function
+	    contracts. *)
+
+      val mk_ctx_stmt_contrat:
+	(kernel_function -> stmt -> state_opt:bool option -> t_ctx) ref
+        (** To build an interpretation context relative to statement
+	    contracts. *)
+
+      val mk_ctx_stmt_annot:
+	(kernel_function -> stmt -> before:bool -> t_ctx) ref
+        (** To build an interpretation context relative to statement
+	    annotations. *)
 
       type t = {before:bool ; ki:stmt ; zone:Locations.Zone.t}
       type t_decl = VarinfoSet.t
       type t_pragmas = {ctrl: Cilutil.StmtSet.t ; (* related to //@ slice pragma ctrl/expr *)
                         stmt: Cilutil.StmtSet.t}  (* related to statement assign and //@ slice pragma stmt *)
-      val from_term:
-	(term -> t_ctx -> t list * t_decl)
-        ref
-        (** Entry point to get zones
-            needed to evaluate the [term] relative to the [ctx] of interpretation. *)
+      val from_term: (term -> t_ctx -> t list * t_decl) ref
+        (** Entry point to get zones needed to evaluate the [term] relative to
+            the [ctx] of interpretation. *)
 
-      val from_terms:
-	(term list -> t_ctx -> t list * t_decl)
-        ref
-        (** Entry point to get zones
-            needed to evaluate the list of [terms] relative to the [ctx] of interpretation. *)
+      val from_terms: (term list -> t_ctx -> t list * t_decl) ref
+        (** Entry point to get zones needed to evaluate the list of [terms]
+            relative to the [ctx] of interpretation. *)
 
-      val from_pred:
-	(predicate named -> t_ctx -> t list * t_decl)
-        ref
-        (** Entry point to get zones
-            needed to evaluate the [predicate] relative to the [ctx] of interpretation. *)
+      val from_pred: (predicate named -> t_ctx -> t list * t_decl) ref
+        (** Entry point to get zones needed to evaluate the [predicate]
+            relative to the [ctx] of interpretation. *)
 
-      val from_preds:
-	(predicate named list -> t_ctx -> t list * t_decl)
-        ref
-        (** Entry point to get zones
-            needed to evaluate the list of [predicates] relative to the [ctx] of interpretation. *)
+      val from_preds: (predicate named list -> t_ctx -> t list * t_decl) ref
+        (** Entry point to get zones needed to evaluate the list of
+            [predicates] relative to the [ctx] of interpretation. *)
 
       val from_zones:
-	(identified_term zone list -> t_ctx -> t list * t_decl)
-        ref
-        (** Entry point to get zones
-            needed to evaluate the list of [predicates] relative to the [ctx] of interpretation. *)
+	(identified_term zone list -> t_ctx -> t list * t_decl) ref
+        (** Entry point to get zones needed to evaluate the list of
+            [predicates] relative to the [ctx] of interpretation. *)
 
-      val from_zone:
-	(identified_term zone -> t_ctx -> t list * t_decl)
-        ref
-        (** Entry point to get zones
-            needed to evaluate the [zone] relative to the [ctx] of interpretation. *)
+      val from_zone: (identified_term zone -> t_ctx -> t list * t_decl) ref
+        (** Entry point to get zones needed to evaluate the [zone] relative to
+            the [ctx] of interpretation. *)
 
       val from_stmt_annot:
 	(code_annotation -> before:bool -> stmt * kernel_function
-	-> (t list * t_decl) * t_pragmas)
-        ref
-        (** Entry point to get zones
-            needed to evaluate annotations of this [stmt]. *)
+	  -> (t list * t_decl) * t_pragmas) ref
+        (** Entry point to get zones needed to evaluate annotations of this
+            [stmt]. *)
 
       val from_stmt_annots:
 	((rooted_code_annotation before_after -> bool) option ->
-	   stmt * kernel_function -> (t list * t_decl) * t_pragmas)
-        ref
+	   stmt * kernel_function -> (t list * t_decl) * t_pragmas) ref
         (** Entry point to get zones needed to evaluate annotations of this
 	    [stmt]. *)
 
       val from_func_annots:
 	(((stmt -> unit) -> kernel_function -> unit) ->
 	   (rooted_code_annotation before_after -> bool) option ->
-	     kernel_function -> (t list * t_decl) * t_pragmas)
-        ref
+	     kernel_function -> (t list * t_decl) * t_pragmas) ref
         (** Entry point to get zones
             needed to evaluate annotations of this [kf]. *)
 
       val code_annot_filter:
 	(rooted_code_annotation before_after ->
 	   ai:bool -> user_assert:bool -> slicing_pragma:bool ->
-          loop_inv:bool -> loop_var:bool -> others:bool -> bool)
-        ref
+          loop_inv:bool -> loop_var:bool -> others:bool -> bool) ref
         (** To quickly build an annotation filter *)
 
     end
@@ -556,62 +610,30 @@ module Properties : sig
 
   end
 
-  val predicates_on_stmt :
-    stmt ->
-    (predicate named*(annotation_status -> unit)) list
-    * (predicate named*(annotation_status -> unit)) list
-    * funspec option
-      (** returns the predicates holding before, the predicates holding after
-          together with the function to update their status in-place
-          and the contract (if any) for the given statement
-     *)
-
   (** {3 Alarms} *)
 
-  val synchronize_alarms : unit -> unit
+  val synchronize_alarms : Project.Computation.t list -> unit
     (** Transform current set of alarms into code properties. This has to be
 	called at the end of an alarm generator. By example, this is
-	automatically called at the end of {!Db.Value.compute}. *)
+	automatically called at the end of {!Db.Value.compute}.
+	@modify Boron-20100401 takes as additional argument the
+	computation which adds the assert. *)
 
   val add_alarm :
-    kernel_function -> stmt -> Alarms.t -> Cil_types.code_annotation -> unit
+    kernel_function -> stmt -> Project.Computation.t list -> Alarms.t ->
+    Cil_types.code_annotation -> unit
     (** Emit an alarm. {!synchronize_alarms} must be called as soon as one
-	need to see the alarms as properties to be checked on the code. *)
+	need to see the alarms as properties to be checked on the code.
+	@modify Boron-20100401 takes as additional argument the
+	computation which adds the assert. *)
 
   (** {3 Assertions} *)
 
-  val add_assert : kernel_function -> stmt -> before:bool -> string -> unit
-  val get_user_assert :
-    kernel_function -> stmt -> before:bool -> Cil_types.code_annotation list
-
-  (** {3 Status of properties} *)
-  (** @since Beryllium-20090901+dev *)
-  module Status: sig
-    module type S = sig 
-      type t 
-      val get: t -> Cil_types.annotation_status
-        (** get the last status that was set or updated *)
-      val set: t -> Cil_types.annotation_status -> unit
-        (** set the status and forget all past status *)
-      val update: t -> Cil_types.annotation_status -> unit
-        (** Add a new status to the list of past status. It becomes 
-            the last status. *)
-      val get_all: t -> Cil_types.annotation_status list
-        (** Get all past status. The first elements of the list
-            are the last status that have been updated. *)
-      val strongest: t -> Cil_types.annotation_status
-        (** Returns the most precise status available for the
-            property and checks consistency according to the following
-            partial order: 
-            Unknown < Maybe < True and Maybe < False 
-            In case of consistent multiple status, the most recent 
-            is returned. *)
-    end                                 
-    module CodeAnnotation:S with type t = code_annotation
-    module Behavior:S with type t = kernel_function*funbehavior
-    module Predicate:S with type t = identified_predicate 
-  end
-  (** {3 Weakest preconditions} *)
+  val add_assert:
+    kernel_function -> stmt -> Project.Computation.t list -> before:bool ->
+    string -> unit
+    (** @modify Boron-20100401 takes as additional argument the
+	computation which adds the assert. *)
 
 end
 
@@ -671,6 +693,13 @@ module Dominators: sig
     * which name is [basename.function_name.dot]. *)
 end
 
+(** Runtime Error Annotation Generation plugin.
+    @see <../rte/index.html> internal documentation. *)
+module RteGen : sig
+  val annotate_kf : (kernel_function -> unit) ref
+  val self: Project.Computation.t ref
+end
+
 (** Constant propagation plugin.
     @see <../constant_propagation/index.html> internal documentation. *)
 module Constant_Propagation: sig
@@ -696,7 +725,7 @@ end
     @see <../impact/index.html> internal documentation. *)
 module Impact : sig
   val compute_pragmas: (unit -> unit) ref
-    (** Compute the impact analysis from the impact pragma in the program. 
+    (** Compute the impact analysis from the impact pragma in the program.
         Print and slice the results according to the parameters -impact-print
         and -impact-slice.
 	@plugin development guide *)
@@ -719,13 +748,6 @@ module Security : sig
 
   val run_slicing_analysis: (unit -> Project.t) ref
     (** Only run the security slicing pre-analysis. *)
-
-  val get_component: (stmt -> stmt list) ref
-  val get_direct_component: (stmt -> stmt list) ref
-  val get_indirect_backward_component: (stmt -> stmt list) ref
-  val get_forward_component: (stmt -> stmt list) ref
-
-  val impact_analysis: (kernel_function -> stmt -> stmt list) ref
 
   val self: Project.Computation.t ref
 
@@ -1073,7 +1095,7 @@ end
 module Scope : sig
   val get_data_scope_at_stmt :
     (kernel_function -> stmt -> lval ->
-       Cilutil.StmtSet.t * Cilutil.StmtSet.t * Cilutil.StmtSet.t) ref
+       Cilutil.StmtSet.t * (Cilutil.StmtSet.t * Cilutil.StmtSet.t)) ref
     (**
     * @raise Kernel_function.No_Definition if [kf] has no definition.
     * @return 3 statement sets related to the value of [lval] before [stmt] :
@@ -1162,7 +1184,7 @@ module Slicing : sig
   val set_modes : (?calls:int -> ?callers:bool -> ?sliceUndef:bool
     -> ?keepAnnotations:bool -> ?print:bool
     -> unit -> unit) ref
-    
+
   (** Slicing project management. *)
   module Project : sig
 
@@ -1693,7 +1715,7 @@ module Slicing : sig
 
 end
 
-(** Signature for inputs and/or outputs computations. *)
+(** Signature common to inputs and outputs computations. *)
 module type INOUT = sig
 
   type t
@@ -1710,7 +1732,6 @@ module type INOUT = sig
     (** Inputs/Outputs without either local or formal variables *)
 
   val statement : (stmt -> t) ref
-  val expr : (stmt -> exp -> t) ref
 
   val kinstr : kinstr -> t option
     (** Effects of the given statement or of the englobing statement *)
@@ -1728,6 +1749,8 @@ end
 module Inputs :
   sig
     include INOUT with type t = Locations.Zone.t
+
+    val expr : (stmt -> exp -> t) ref
 
     val self_with_formals: Project.Computation.t ref
 
@@ -1757,8 +1780,6 @@ module InOutContext : sig
 
   include INOUT with type t = Inout_type.t
 
-  type t' = Locations.Zone.t
-
 end
 
 (** Metrics.
@@ -1774,6 +1795,9 @@ module Metrics : sig
 	mem_access: int;
 	functions_without_source: int Cilutil.VarinfoHashtbl.t;
 	functions_with_source: int Cilutil.VarinfoHashtbl.t;
+	(* ABP added 2 fields below*)
+	function_definitions: int ;
+	cyclos:int;
       }
   val compute: (unit -> unit) ref
   val pretty: (Format.formatter -> unit) ref
@@ -1800,6 +1824,6 @@ exception Cancel
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

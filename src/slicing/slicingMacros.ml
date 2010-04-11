@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -204,8 +205,9 @@ let get_called_kf call_stmt =
           !Db.Value.expr_to_kernel_function 
              ~with_alarms:CilE.warn_none_mode
             (Kstmt call_stmt) ~deps:(Some Locations.Zone.bottom) funcexp in
-          (match called_functions with | kf :: [] -> kf
-                                       | _ -> raise SlicingTypes.PtrCallExpr)
+          (match Kernel_function.Set.contains_single_elt called_functions with 
+	  | Some kf -> kf
+          | _ -> raise SlicingTypes.PtrCallExpr)
     | _ -> raise (Invalid_argument "Not a call statement !")
 
 let is_variadic kf =

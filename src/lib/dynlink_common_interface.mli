@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: dynlink_common_interface.mli,v 1.2 2009-01-20 11:54:13 uid568 Exp $ *)
+(** Wrapper for [Dynlink] compatible with all ocaml versions. *)
 
 module type OldDynlink = sig
 
@@ -98,6 +99,6 @@ val error_message : error -> string
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

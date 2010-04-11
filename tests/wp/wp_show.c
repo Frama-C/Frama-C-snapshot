@@ -1,9 +1,3 @@
-/* run.config
-OPT: -wp-debug 1 -journal-disable -wp-mm 0 -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-debug 2 -journal-disable -wp-mm 0 -wp-proof
-*/
 
 /* ~~~ First of all, let's launch the tool :
        cd ~/frama-c; FRAMAC_SHARE=share  bin/viewer.opt tests/wp/wp_show.c 
@@ -85,3 +79,20 @@ int * fptr (int i) {
 
 /* ~~~ let's now test [wp_bottom] option : */
 
+/* ~~~ with bottom we can prove this property */
+
+//@ behavior xpos : assumes x > 0; ensures \result == 1;
+int fbot (int x) {
+  if (x > 0) 
+    x = 1;
+  else {
+    x = *(S.p);
+    *(S.p) = 0;
+  }
+  return x;
+}
+
+/* ~~~ we can prove some properties with a simple model, and then use them
+ * as hypotheses to prove some others. */
+
+int main (void) { return 0 ; }

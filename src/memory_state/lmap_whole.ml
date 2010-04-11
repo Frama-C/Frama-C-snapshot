@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -45,7 +46,7 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y =
       module Initial_Values = struct
         let v = [[]]
       end
-      include Ptmap.Generic(Base)(LOffset)(Initial_Values)
+      include Ptmap.Make(Base)(LOffset)(Initial_Values)
 
       let add k v m =
 	if LOffset.equal v (default_offsetmap k) then
@@ -64,8 +65,6 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y =
 
     let empty = Some LBase.empty
 
-    let rehash = Extlib.opt_map LBase.Datatype.rehash
-
     let name = Project.Datatype.extend_name "Lmap_whole" LOffset.Datatype.name
 
     let equal m1 m2 = match m1, m2 with
@@ -73,18 +72,17 @@ module Make_LOffset(V:Lattice_With_Isotropy.S)(LOffset:Offsetmap.S with type y =
     | None, Some _ | Some _, None -> false
     | Some m1, Some m2 -> m1 == m2
 
-    let hash m = match m with 
+    let hash m = match m with
     | None -> 0
     | Some m -> LBase.tag m
 
-    module Datatype = 
+    module Datatype =
       Project.Datatype.Register
 	(struct
 	   type tt = t
 	   type t = tt
 	   let copy _ = assert false (* TODO *)
-	   let rehash = rehash
-	   let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	   let descr = Unmarshal.t_option LBase.Datatype.descr
 	   let name = name
 	 end)
     let () = Datatype.register_comparable ~hash ~equal ()

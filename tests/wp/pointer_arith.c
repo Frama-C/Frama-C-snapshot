@@ -1,3 +1,7 @@
+/* run.config
+   DONTRUN: don't run a test which raises an exception
+*/
+
 int T[10];
 
 int x;
@@ -28,7 +32,7 @@ int no_alias (int * p, int * q) {
 int wptr (int *p) {
 
   *p = 3;
-//  x = *p;
+  x = *p;
   return *p;
 
 }
@@ -50,3 +54,4 @@ int cmp_ptr (int i, int j) {
   if (pi - pj > 0) return 1;
   return 0;
 }
+int main (void) { return 0 ; }

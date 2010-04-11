@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,6 +23,7 @@
 (* $Id: docgen.ml,v 1.7 2008-11-18 12:13:40 uid568 Exp $ *)
 
 open Odoc_module
+open Odoc_info
 
 let doc_path = ref "."
 
@@ -190,7 +192,7 @@ class gen = object (self)
 	  Directory (Filename.basename (Filename.dirname d)) ,
 	  String.capitalize (Filename.basename d)
     in
-    let structured_modules (* chapter , section , module *) =
+    let structured_modules (* chapter, section, module *) =
       (List.map
 	 (fun name ->
 	    let m = List.find (fun m -> m.m_name = name) self#list_modules
@@ -204,10 +206,10 @@ class gen = object (self)
       (fun (chapter, subdirs) ->
 	 let dir =
 	   ( match chapter with
-	       | Chapter (n,a,d) ->
-		   bp b "<h1 class=\"chapter\">Chapter %d. %s</h1>" n a ; d
-	       | Directory d ->
-		   bp b "<h1>Directory %s</h1>" d ; d)
+	     | Chapter (n,a,d) ->
+		 bp b "<h1 class=\"chapter\">Chapter %d. %s</h1>" n a ; d
+	     | Directory d ->
+		 bp b "<h1>Directory %s</h1>" d ; d)
 	 in
 	 List.iter
 	   (fun (subdir,modules) ->
@@ -348,18 +350,45 @@ class gen = object (self)
       self#generate_class_types_index keep_list ;
       self#generate_modules_index keep_list ;
       self#generate_module_types_index keep_list ;
-    with
-      Failure s ->
-        prerr_endline s ;
-        incr Odoc_info.errors
+    with Failure s ->
+      prerr_endline s ;
+      incr Odoc_info.errors
 
-  method html_of_plugin_developer_guide _t = 
-    "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plug-in_development_guide.pdf\">Plugin Development Guide</a></b> for additional details."
+  method html_of_plugin_developer_guide _t =
+    "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plug-in_development_guide.pdf\">Plugin Development Guide</a></b> for additional details.<br>\n"
 
   method html_of_ignore _t = ""
 
+  method html_of_modify t =
+    match t with
+    | [] -> Odoc_info.warning "Found an empty @modify tag"; ""
+    | Raw s :: l ->
+	let time, explanation = 
+	  try 
+	    let idx = String.index s ' ' in
+	    String.sub s 0 idx, 
+	    ":" ^ String.sub s idx (String.length s - idx) 
+	  with Not_found -> 
+	    s, ""
+	in
+        let text = 
+	  Bold [ Raw "Change in "; Raw time ] :: Raw explanation :: l 
+	in
+        let buf = Buffer.create 7 in
+        self#html_of_text buf text;
+        Buffer.contents buf ^ "<br>\n"
+    | _ :: _ ->
+	assert false
+
+  (* Write the subtitle (eg. "Frama-C Kernel" after the main title
+     instead of before, for users that use many tabs in their browser *)
+  method inner_title s =
+    (match self#title with "" -> "" | t -> (self#escape s)^" - "^ t)
+
+
   initializer
     tag_functions <-
+      ("modify", self#html_of_modify) ::
       ("ignore", self#html_of_ignore) ::
       ("plugin", self#html_of_plugin_developer_guide) :: tag_functions
 

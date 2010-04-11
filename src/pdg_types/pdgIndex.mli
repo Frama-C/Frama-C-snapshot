@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -21,7 +22,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** This module can be useful to store some information about differents
+(** This module can be useful to store some information about different
  * elements of a function.
  *
  * {!module:PdgIndex.Signature} is used to store information
@@ -38,7 +39,7 @@
  * Should have used replace function *)
 exception AddError
 
-(** Some functions doesn't apply to call statement because the stored
+(** Some functions do not apply to call statements because the stored
  * information has a different type. *)
 exception CallStatement
 

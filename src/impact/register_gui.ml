@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -41,12 +42,38 @@ module SelectedStmt = struct
     Project.clear ~only ()
 end
 
-module HighlightedStmtState = 
-  Cil_computation.StmtSetRef
-    (struct
-       let name = "Impact_gui.HighlightedStmt"
-       let dependencies = [ SelectedStmt.self ]
-     end)
+module Highlighted_stmt : sig
+  val add: Kernel_function.t -> stmt -> unit 
+  val mem: Kernel_function.t -> stmt -> bool
+  val mem_kf: Kernel_function.t -> bool
+end = struct
+
+  module Tbl = 
+    Kernel_function.Make_Table
+      (Cil_datatype.StmtSet)
+      (struct
+	 let name = "Impact_gui.Highlighted_stmt"
+	 let size = 7
+	 let dependencies = [ SelectedStmt.self ]
+       end)
+
+  let add kf s = 
+    ignore
+      (Tbl.memo
+	 ~change:(fun set -> Cilutil.StmtSet.add s set) 
+	 (fun _ -> Cilutil.StmtSet.singleton s) 
+	 kf)
+
+  let mem kf s = 
+    try
+      let set = Tbl.find kf in
+      Cilutil.StmtSet.mem s set
+    with Not_found ->
+      false
+
+  let mem_kf = Tbl.mem
+
+end
  
 (* Are results shown? *)
 module Enabled =
@@ -67,7 +94,7 @@ module FollowFocus =
     (struct let name = "Impact_gui.FollowFocus" let dependencies = [] end)
 
 let apply_on_stmt f = function
-  | PStmt (_kf,s) -> f s
+  | PStmt (kf,s) -> f kf s
   | _ -> ()
 
 let impact_highlighter buffer loc ~start ~stop = 
@@ -76,8 +103,8 @@ let impact_highlighter buffer loc ~start ~stop =
       let t = make_tag buffer name [`BACKGROUND color ] in
       apply_tag buffer t start stop
     in
-    let hilight s = 
-      if HighlightedStmtState.mem s then 
+    let hilight kf s = 
+      if Highlighted_stmt.mem kf s then 
 	tag "hilighed_impact" "green"
       else 
 	SelectedStmt.may 
@@ -87,20 +114,20 @@ let impact_highlighter buffer loc ~start ~stop =
     apply_on_stmt hilight loc
 
 let compute_impact (main_ui:Design.main_window_extension_points) s =
-  main_ui#protect 
-    (fun () -> 
-       let impact = !Db.Impact.from_stmt s in
-    SelectedStmt.set s;
-    List.iter HighlightedStmtState.add impact;
-    if Slicing.get () then !Db.Impact.slice impact;
-    Enabled.set true;
-    main_ui#rehighlight ())
-
+  let impact = !Db.Impact.from_stmt s in
+  SelectedStmt.set s;
+  let add s = 
+    Highlighted_stmt.add (snd (Kernel_function.find_from_sid s.sid)) s 
+  in
+  List.iter add impact;
+  if Slicing.get () then !Db.Impact.slice impact;
+  Enabled.set true;
+  main_ui#rehighlight ()
 
 let impact_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
   apply_on_stmt
-    (fun s -> 
+    (fun _ s -> 
        if button = 3 || FollowFocus.get () then
 	 let callback () = compute_impact main_ui s in
 	 ignore (popup_factory#add_item "_Impact analysis" ~callback);
@@ -116,7 +143,7 @@ let impact_panel main_ui =
     GButton.button ~label:"Set selected" 
       ~packing:(bbox#pack ~fill:false ~expand:true) () 
   in
-  let do_select = apply_on_stmt (compute_impact main_ui) in
+  let do_select = apply_on_stmt (fun _ -> compute_impact main_ui) in
   ignore (set_selected#connect#pressed
 	    (fun () -> Design.apply_on_selected do_select));
   (* check buttons *)
@@ -141,7 +168,7 @@ let impact_panel main_ui =
   let refresh () = 
     let sensitive_set_selected_button = ref false in
     Design.apply_on_selected
-      (apply_on_stmt (fun _ -> sensitive_set_selected_button:=true));
+      (apply_on_stmt (fun _ _ -> sensitive_set_selected_button := true));
     set_selected#misc#set_sensitive !sensitive_set_selected_button;
     if Enabled.get () <> enabled_button#active then begin
       enabled_button#set_active (Enabled.get ());
@@ -152,10 +179,27 @@ let impact_panel main_ui =
   in
   "Impact", w#coerce, Some refresh
 
+let file_tree_decorate (file_tree:Filetree.t) =
+  file_tree#append_pixbuf_column
+    "Impact"
+    (fun globs ->
+       let is_hilighted = function
+         | GFun ({svar = v }, _) -> 
+             Highlighted_stmt.mem_kf (Globals.Functions.get v)
+         |  _ -> false
+       in
+       let id =
+	 (* lazyness of && is used for efficiency *)
+	 if Enabled.get () && List.exists is_hilighted globs then "gtk-apply"
+	 else ""
+       in
+       [ `STOCK_ID id ])
+
 let main main_ui = 
   main_ui#register_source_selector impact_selector;
   main_ui#register_source_highlighter impact_highlighter;
-  main_ui#register_panel impact_panel
+  main_ui#register_panel impact_panel;
+  file_tree_decorate main_ui#file_tree
   
 let () = Design.register_extension main
 

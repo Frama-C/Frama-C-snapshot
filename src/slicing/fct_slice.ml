@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -144,7 +145,8 @@ end = struct
     let _, called_functions =
       !Db.Value.expr_to_kernel_function ~with_alarms:CilE.warn_none_mode
         (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
-    in called_functions
+    in
+      Kernel_function.Set.elements called_functions
 
   (** [call_id] is a call to [g] in [f].
   * we don't want [f] to call [g] anymore, so we have to update [g] [called_by]
@@ -583,33 +585,34 @@ end = struct
           let dpds_marks = List.map get_n_mark dpds in
           let m = Marks.inter_marks dpds_marks in
           let marks = check_in_params (n+1) params in
-            if not (Marks.is_bottom_mark m) then
-              begin
-                SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.mark_visible_inputs] %a -> %a"
-                    (!Db.Pdg.pretty_node true) node Marks.pretty_mark m;
-                PdgMarks.add_node_to_select marks (node, None) m
-              end
-            else marks
-    in let new_marks = check_in_params 1 param_list in
-      mark_and_propagate ff_marks ~to_prop new_marks
+          if not (Marks.is_bottom_mark m) then begin
+            SlicingParameters.debug ~level:2
+	      "[Fct_Slice.FctMarks.mark_visible_inputs] %a -> %a"
+              (!Db.Pdg.pretty_node true) node Marks.pretty_mark m;
+            PdgMarks.add_node_to_select marks (node, None) m
+          end else
+	    marks
+    in
+    let new_marks = check_in_params 1 param_list in
+    mark_and_propagate ff_marks ~to_prop new_marks
 
   let mark_visible_output ff_marks =
     let pdg, _ = ff_marks  in
-      try
-        let out_node = !Db.Pdg.find_ret_output_node pdg in
-        let dpds = !Db.Pdg.direct_dpds pdg out_node in
-        let get_n_mark n = get_mark ff_marks (PdgTypes.Node.elem_key n) in
-        let dpds_marks = List.map get_n_mark dpds in
-        let m = Marks.inter_marks dpds_marks in
-          if not (Marks.is_bottom_mark m) then
-            begin
-              SlicingParameters.debug ~level:2 "[Fct_Slice.FctMarks.mark_visible_outputs] %a -> %a"
-                  (!Db.Pdg.pretty_node true) out_node Marks.pretty_mark m;
-              let select = PdgMarks.add_node_to_select [] (out_node, None) m in
-              let to_prop = mark_and_propagate ff_marks select in
-                assert (to_prop = PropMark.empty_to_prop); ()
-            end
-      with PdgIndex.NotFound -> ()
+    try
+      let out_node = !Db.Pdg.find_ret_output_node pdg in
+      let dpds = !Db.Pdg.direct_dpds pdg out_node in
+      let get_n_mark n = get_mark ff_marks (PdgTypes.Node.elem_key n) in
+      let dpds_marks = List.map get_n_mark dpds in
+      let m = Marks.inter_marks dpds_marks in
+      if not (Marks.is_bottom_mark m) then begin
+        SlicingParameters.debug ~level:2
+	  "[Fct_Slice.FctMarks.mark_visible_outputs] %a -> %a"
+          (!Db.Pdg.pretty_node true) out_node Marks.pretty_mark m;
+        let select = PdgMarks.add_node_to_select [] (out_node, None) m in
+        let to_prop = mark_and_propagate ff_marks select in
+        assert (to_prop = PropMark.empty_to_prop); ()
+      end
+    with PdgIndex.NotFound -> ()
 
   let debug_ff_marks fmt fm =
     let pdg, fm = fm in
@@ -621,15 +624,15 @@ end = struct
           with PdgIndex.CallStatement -> assert false
         with PdgIndex.NotFound -> Marks.bottom_mark
       in
-        Format.fprintf fmt "%a : %a@." (!Db.Pdg.pretty_node true) node
-          Marks.pretty_mark m
+      Format.fprintf fmt "%a : %a@." (!Db.Pdg.pretty_node true) node
+        Marks.pretty_mark m
     in
-      !Db.Pdg.iter_nodes print_node pdg
+    !Db.Pdg.iter_nodes print_node pdg
 
   let debug_marked_ff fmt ff =
     Format.fprintf fmt "Print slice = %s@." (M.ff_name ff);
     let ff_marks =  ff.T.ff_marks in
-      debug_ff_marks fmt ff_marks
+    debug_ff_marks fmt ff_marks
 
 end
 
@@ -797,7 +800,7 @@ let add_missing_inputs_actions ff calls to_prop actions =
             Act.mk_crit_missing_inputs ff_call call missing_inputs in
             new_action :: actions
   in let actions = List.fold_left check_call actions calls in
-    SlicingParameters.debug ~level:2 "[Fct_Slice.add_missing_inputs_actions] %s" 
+    SlicingParameters.debug ~level:2 "[Fct_Slice.add_missing_inputs_actions] %s"
       (match actions with
          | [] -> " -> no missing input"
          |  _ -> " -> add missing inputs actions");

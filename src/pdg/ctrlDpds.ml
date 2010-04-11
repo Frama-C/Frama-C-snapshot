@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -22,8 +23,6 @@
 (**************************************************************************)
 
 open Cil_types
-
-let debug = false
 
 module S = struct
   type t = Cilutil.StmtSet.t
@@ -110,6 +109,7 @@ module Computer (Param:sig
     let replace = Inthash.replace Param.states
     let add = Inthash.add Param.states
     let iter f = Inthash.iter f Param.states
+    let length () = Inthash.length Param.states
   end
 
 
@@ -219,9 +219,9 @@ let pd_b_but_not_a infos stmt_a stmt_b =
                         * either (A=G, B=S) or (A=S, B=L) *)
           S.empty (* because we don't want b postdoms to depend on the jump *)
     in
-      Macros.debug 2 "pd_b_but_not_a for a=%d b=%d = %a"
-          stmt_a.sid stmt_b.sid S.pretty res;
-      res
+    Pdg_parameters.debug ~level:2 "pd_b_but_not_a for a=%d b=%d = %a"
+      stmt_a.sid stmt_b.sid S.pretty res;
+    res
   end
 
 (** @return the statements which are depending on the condition.
@@ -233,10 +233,9 @@ let get_if_controled_stmts ctrl_dpds_infos stmt =
   let _, infos = ctrl_dpds_infos in
   let add_pdb_s set succ = S.union set (pd_b_but_not_a infos stmt succ) in
   let controled_stmts = List.fold_left add_pdb_s S.empty stmt.succs in
-  Macros.debug 1 "controled_stmt for cond %d = %a"
-      stmt.sid S.pretty controled_stmts;
-  let controled_stmts = S.elements controled_stmts in
-  controled_stmts
+  Pdg_parameters.debug "controled_stmt for cond %d = %a"
+    stmt.sid S.pretty controled_stmts;
+  S.elements controled_stmts
 
 (** let's find the statements which are depending on
 * the jump statement (goto, break, continue, loop) =
@@ -246,34 +245,32 @@ let get_if_controled_stmts ctrl_dpds_infos stmt =
 let get_jump_controled_stmts ctrl_dpds_infos jump =
   let lex_succ_graph, infos = ctrl_dpds_infos in
   let controled_stmts =
-  try
-    let lex_suc = Lexical_successors.find lex_succ_graph jump in
-      Macros.debug 2 "lex_succ %d = %d" jump.sid lex_suc.sid;
-    match jump.succs with
-    | [label] ->
-        Macros.debug 2 "jump succ %d = %d" jump.sid label.sid;
-        if lex_suc.sid = label.sid
-        then (* the label is the jump lexical successor : no dpds *)
-          (Macros.debug 1 "useless jump %d" jump.sid;
-          S.empty
-          )
-        else
+    try
+      let lex_suc = Lexical_successors.find lex_succ_graph jump in
+      Pdg_parameters.debug ~level:2 "lex_succ %d = %d" jump.sid lex_suc.sid;
+      match jump.succs with
+      | [label] ->
+          Pdg_parameters.debug ~level:2 "jump succ %d = %d" jump.sid label.sid;
+          if lex_suc.sid = label.sid then begin
+	    (* the label is the jump lexical successor: no dpds *)
+            Pdg_parameters.debug "useless jump %d" jump.sid;
+            S.empty
+          end else
             let pdb_jump_lex_suc = pd_b_but_not_a infos jump lex_suc in
             let pdb_lex_suc_label = pd_b_but_not_a infos lex_suc label in
             let pdb_lex_suc_label = S.remove lex_suc pdb_lex_suc_label in
             S.union pdb_jump_lex_suc pdb_lex_suc_label
-    | _ -> assert false
-  with Not_found ->
-    if debug
-    then Macros.debug 1 "lex_succ %d = (none)" jump.sid;
-    (* no lexical successor : every postdom (jump) depend on jump. *)
-    let _, pd_jump = (get_postdoms infos ~without:false jump) in
-    S.remove jump pd_jump
+      | _ -> assert false
+    with Not_found ->
+      Pdg_parameters.debug "lex_succ %d = (none)" jump.sid;
+      (* no lexical successor : every postdom (jump) depend on jump. *)
+      let _, pd_jump = (get_postdoms infos ~without:false jump) in
+      S.remove jump pd_jump
   in
-  Macros.debug 1 "controled_stmt for jump %d = %a"
-      jump.sid S.pretty controled_stmts;
+  Pdg_parameters.debug "controled_stmt for jump %d = %a"
+    jump.sid S.pretty controled_stmts;
   let controled_stmt_list = S.elements controled_stmts in
-    controled_stmt_list
+  controled_stmt_list
 
 let display = States.pretty
 

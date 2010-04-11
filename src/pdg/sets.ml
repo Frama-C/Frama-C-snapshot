@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -27,7 +28,6 @@ open Cil_types
 
 module M = Macros
 module P = PdgTypes.Pdg
-module PI = PdgTypes.InternalPdg
 module D = PdgTypes.Dpd
 module N = PdgTypes.Node
 module G = PdgTypes.G
@@ -41,16 +41,16 @@ type t_dpds_kind = PdgTypes.Dpd.td
 type t_nodes_and_undef = (t_node * t_loc option) list * t_loc option
 
 let get_init_state pdg =
-  try State.get_init_state (PI.get_states pdg)
+  try State.get_init_state (PdgTypes.Pdg.get_states pdg)
   with Not_found -> assert false
 let get_last_state pdg =
-  try State.get_last_state (PI.get_states pdg)
+  try State.get_last_state (PdgTypes.Pdg.get_states pdg)
   with Not_found -> raise Db.Pdg.NotFound (* no last state: strange ! *)
 let get_stmt_state pdg stmt =
-  try State.get_stmt_state (PI.get_states pdg) stmt
+  try State.get_stmt_state (PdgTypes.Pdg.get_states pdg) stmt
   with Not_found -> raise Db.Pdg.NotFound (* probably an unreachable stmt *)
 
-let find_node pdg key = FI.find_info  (PI.get_index pdg) key
+let find_node pdg key = FI.find_info  (PdgTypes.Pdg.get_index pdg) key
 
 (** notice that there can be several nodes if the statement is a call.
 * For If, Switch, ... the node represent only the condition
@@ -58,7 +58,7 @@ let find_node pdg key = FI.find_info  (PI.get_index pdg) key
 *)
 let find_simple_stmt_nodes pdg stmt =
   let key = K.stmt_key stmt in
-    FI.find_all  (PI.get_index pdg) key
+    FI.find_all (PdgTypes.Pdg.get_index pdg) key
 
 let rec add_stmt_nodes pdg nodes s =
   let s_nodes = find_simple_stmt_nodes pdg s in
@@ -66,17 +66,19 @@ let rec add_stmt_nodes pdg nodes s =
   let add_block_stmts_nodes node_list blk =
     List.fold_left (add_stmt_nodes pdg) node_list blk.bstmts
   in
-    match s.skind with
-      | Switch (_,blk,_,_) | Loop (_, blk, _, _, _) | Block blk ->
-          M.debug 2 "   select_stmt_computation on composed stmt %d@." s.sid;
-          add_block_stmts_nodes nodes blk
-      | UnspecifiedSequence seq ->
-          M.debug 2 "   select_stmt_computation on composed stmt %d@." s.sid;
-          add_block_stmts_nodes nodes (Cil.block_from_unspecified_sequence seq)
-      | If (_,bthen,belse,_) ->
-          let nodes = add_block_stmts_nodes nodes bthen in
-            add_block_stmts_nodes nodes belse
-      | _ -> nodes
+  match s.skind with
+  | Switch (_,blk,_,_) | Loop (_, blk, _, _, _) | Block blk ->
+      Pdg_parameters.debug ~level:2
+	"   select_stmt_computation on composed stmt %d@." s.sid;
+      add_block_stmts_nodes nodes blk
+  | UnspecifiedSequence seq ->
+      Pdg_parameters.debug ~level:2
+	"   select_stmt_computation on composed stmt %d@." s.sid;
+      add_block_stmts_nodes nodes (Cil.block_from_unspecified_sequence seq)
+  | If (_,bthen,belse,_) ->
+      let nodes = add_block_stmts_nodes nodes bthen in
+      add_block_stmts_nodes nodes belse
+  | _ -> nodes
 
 (** notice that there can be several nodes if the statement is a call.
 * If the stmt is a composed instruction (block, etc), all the nodes of the
@@ -169,11 +171,11 @@ let find_output_node pdg =
   let key = K.output_key in find_node pdg key
 
 let find_input_node pdg numin =
-  let sgn = FI.sgn (PI.get_index pdg) in
+  let sgn = FI.sgn (PdgTypes.Pdg.get_index pdg) in
   PdgIndex.Signature.find_input sgn numin
 
 let find_all_input_nodes pdg =
-  let sgn = FI.sgn (PI.get_index pdg) in
+  let sgn = FI.sgn (PdgTypes.Pdg.get_index pdg) in
   let add acc (_in_key, info) = info::acc in
   PdgIndex.Signature.fold_all_inputs add [] sgn
 
@@ -188,7 +190,7 @@ let find_call_input_nodes pdg_caller call_stmt in_key =
   match in_key with
     | PdgIndex.Signature.InCtrl
     | PdgIndex.Signature.InNum _ ->
-        let idx = PI.get_index pdg_caller in
+        let idx = PdgTypes.Pdg.get_index pdg_caller in
         let _, call_sgn = FI.find_call idx call_stmt in
         let node = PdgIndex.Signature.find_in_info call_sgn in_key in
           [(node,None)], None
@@ -363,51 +365,55 @@ let all_related_nodes pdg nodes =
             intersects [called_selected_nodes].
   *)
 let find_call_out_nodes_to_select pdg_called called_selected_nodes
-                                  pdg_caller call_stmt  =
-  M.debug 2  "[pdg:find_call_out_nodes_to_select] for call sid:%d@."
-      call_stmt.sid;
-  let _, call_sgn = FI.find_call (PI.get_index pdg_caller) call_stmt in
+    pdg_caller call_stmt  =
+  Pdg_parameters.debug ~level:2
+    "[pdg:find_call_out_nodes_to_select] for call sid:%d@."
+    call_stmt.sid;
+  let _, call_sgn = 
+    FI.find_call (PdgTypes.Pdg.get_index pdg_caller) call_stmt 
+  in
   let called_selected_nodes_set =
     PdgTypes.NodeSet.add_list called_selected_nodes in
   let test_out acc (out_key, call_out_node) =
     let called_out_nodes, _undef = find_output_nodes pdg_called out_key in
-      (* undef can be ignored in this case because it is taken into account in
-       * the call part. *)
+    (* undef can be ignored in this case because it is taken into account in
+     * the call part. *)
     let intersect =
       List.exists
         (fun (n,_z) -> PdgTypes.NodeSet.mem n called_selected_nodes_set)
         called_out_nodes
     in
-      if intersect then
-        begin
-          M.debug 2  "\t+ n_%a@." Macros.pretty_node call_out_node;
-          call_out_node::acc
-        end
-      else acc
-  in let nodes = PdgIndex.Signature.fold_all_outputs test_out [] call_sgn in
-    nodes
+    if intersect then begin
+      Pdg_parameters.debug ~level:2
+	"\t+ n_%a@." Macros.pretty_node call_out_node;
+      call_out_node::acc
+    end else
+      acc
+  in
+  PdgIndex.Signature.fold_all_outputs test_out [] call_sgn
 
 let find_in_nodes_to_select_for_this_call
-      pdg_caller caller_selected_nodes call_stmt pdg_called =
-  M.debug 2  "[pdg:find_in_nodes_to_select_for_this_call] for call sid:%d@."
-      call_stmt.sid;
-  let sgn = FI.sgn (PI.get_index pdg_called) in
+    pdg_caller caller_selected_nodes call_stmt pdg_called =
+  Pdg_parameters.debug ~level:2
+    "[pdg:find_in_nodes_to_select_for_this_call] for call sid:%d@."
+    call_stmt.sid;
+  let sgn = FI.sgn (PdgTypes.Pdg.get_index pdg_called) in
   let caller_selected_nodes_set =
     PdgTypes.NodeSet.add_list caller_selected_nodes in
   let test_in acc (in_key, in_node) =
     let caller_nodes, _undef =
       find_call_input_nodes pdg_caller call_stmt in_key in
-      (* undef can be ignored in this case because it is taken into account in
-       * the call part. *)
+    (* undef can be ignored in this case because it is taken into account in
+     * the call part. *)
     let intersect =
       List.exists
         (fun (n,_z) -> PdgTypes.NodeSet.mem n caller_selected_nodes_set)
         caller_nodes
     in
-      if intersect then
-        begin
-          M.debug 2  "\t+ n_%a@." Macros.pretty_node in_node;
-          in_node::acc
-        end
-      else acc
-    in PdgIndex.Signature.fold_all_inputs test_in [] sgn
+    if intersect then begin
+      Pdg_parameters.debug ~level:2 "\t+ n_%a@." Macros.pretty_node in_node;
+      in_node::acc
+    end else
+      acc
+  in
+  PdgIndex.Signature.fold_all_inputs test_in [] sgn

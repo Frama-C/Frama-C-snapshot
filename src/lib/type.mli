@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -25,7 +26,7 @@
     @plugin development guide *)
 
 type 'a t
-  (** Type of type values. For each (static) monomorphic type [ty], 
+  (** Type of type values. For each (static) monomorphic type [ty],
       a value of type [ty t] dynamically represents the type [ty]. Such a value
       is called a type value and should be unique for each static monomorphic
       type.
@@ -50,16 +51,16 @@ type precedence =
     let pp fmt = Format.fprintf "..." ... x ... in
     let myself = Call in
     par p_caller Call fmt pp] *)
-val par: 
-  precedence -> precedence -> Format.formatter -> (Format.formatter -> unit) -> 
+val par:
+  precedence -> precedence -> Format.formatter -> (Format.formatter -> unit) ->
   unit
 
 exception AlreadyExists of string
-val register: 
+val register:
   name:string -> value_name:string option ->
-  ?pp:(precedence -> Format.formatter -> 'a -> unit) -> 
-  ?varname:('a -> string) -> 
-  'a -> 'a t
+  ?pp:(precedence -> Format.formatter -> 'a -> unit) ->
+  ?varname:('a -> string) ->
+  'a list -> 'a t
   (** [register ~name ~value_name abstract pp repr] registers a new type
       value from a value [repr] representing this type.
       - [repr] should not be a polymorphic value. For registering
@@ -76,7 +77,10 @@ val register:
       - [varname] is the prefix for the generated variable names of this
       type value (no generable variable by default).
       @raise AlreadyExists if the given name is already used by another
-      type. *)
+      type.
+      @raise Invalid_arg if [repr] is the empty list
+      @modify Boron-20100401 request a list of representant, not only
+      a single one *)
 
 val name: 'a t -> string
   (** @return the name used to register the given type value. *)
@@ -90,7 +94,7 @@ val register_pp: 'a t -> (precedence -> Format.formatter -> 'a -> unit) -> unit
 exception NoPrinter of string
 val pp: 'a t -> precedence -> Format.formatter -> 'a -> unit
   (** [pp ty fmt v] prints [v] on [fmt] according to the printer
-      registered for the type value [ty]. 
+      registered for the type value [ty].
       This function must be called from other pretty printers.
       However, the printed verbatim contains formatting materials and so should
       not be used for a direct output. Consider to use {!use_pp} instead.
@@ -130,7 +134,7 @@ val hash: 'a t -> int
 (* ****************************************************************************)
 
 val unit: unit t
-  (** The type value corresponding to [unit]. 
+  (** The type value corresponding to [unit].
       @plugin development guide*)
 
 val bool: bool t
@@ -140,7 +144,7 @@ val int: int t
   (** The type value corresponding to [int]. *)
 
 val int32: int32 t
-  (** The type value corresponding to [in32t]. 
+  (** The type value corresponding to [in32t].
       @since Beryllium-20090901 *)
 
 val int64: int64 t
@@ -154,10 +158,10 @@ val nativeint: nativeint t
 val float: float t
   (** The type value corresponding to [float]. *)
 
-val char: char t 
+val char: char t
   (** The type value corresponding to [char]. *)
 
-val string: string t 
+val string: string t
   (** The type value corresponding to [string].
       @plugin development guide *)
 
@@ -183,7 +187,7 @@ module type POLYMORPHIC = sig
     (** @return the monomorphic instantiation of the polymorph type with the
 	given type value. For instance, if ['a poly = 'a list], then
 	[instantiate int] returns the type value [int list]. *)
-    
+
   val is_instance_of: 'a t -> bool
     (** @return [true] iff the given type value has been created from
 	function [instantiate] above.
@@ -198,23 +202,23 @@ end
 
 (** Generic implementation of polymorphic type value. *)
 module Polymorphic
-  (D:sig 
+  (D:sig
      val name: 'a t -> string
        (** How to build a name for each monomorphic instance of the type
 	   value from the underlying type. *)
      val value_name: string
        (** The name of the built module. *)
-     type 'a t 
+     type 'a t
        (** Static polymorphic type corresponding to its dynamic counterpart to
 	   register. *)
      val repr: 'a -> 'a t
        (** How to make the representant of each monomorphic instance of the
 	   polymorphic type value from an underlying representant. *)
-     val pp: 
+     val pp:
        (precedence -> Format.formatter -> 'a -> unit) ->
        precedence -> Format.formatter -> 'a t -> unit
        (** How to pretty print values with the help of a pretty printer for the
-	   underlying type. 
+	   underlying type.
 	   Use {!no_pp} if you don't want to register a pretty printer. *)
    end)
   : POLYMORPHIC with type 'a poly = 'a D.t
@@ -228,16 +232,16 @@ module type POLYMORPHIC2 = sig
 end
 
 module Polymorphic2
-  (D:sig 
-     val name: 'a t -> 'b t -> string 
-     val value_name: string 
-     type ('a, 'b) t 
+  (D:sig
+     val name: 'a t -> 'b t -> string
+     val value_name: string
+     type ('a, 'b) t
      val repr: 'a -> 'b -> ('a, 'b) t
-     val pp: 
-       (precedence -> Format.formatter -> 'a -> unit) -> 
+     val pp:
+       (precedence -> Format.formatter -> 'a -> unit) ->
        (precedence -> Format.formatter -> 'b -> unit) ->
        precedence -> Format.formatter -> ('a,'b) t -> unit
-   end) 
+   end)
   : POLYMORPHIC2 with type ('a, 'b) poly = ('a, 'b) D.t
 
 (* ****************************************************************************)
@@ -246,8 +250,8 @@ module Polymorphic2
 
 (** @since Beryllium-20090901 *)
 module Ref : POLYMORPHIC with type 'a poly = 'a ref
-val t_ref: 'a t -> 'a ref t 
-  (** Alias of {!Parameters.instantiate}. 
+val t_ref: 'a t -> 'a ref t
+  (** Alias of {!Parameters.instantiate}.
       @since Beryllium-20090901 *)
 
 module Option : POLYMORPHIC with type 'a poly = 'a option
@@ -259,30 +263,73 @@ val list : 'a t -> 'a list t (** Alias of {!List.instantiate}. *)
 module Couple : POLYMORPHIC2 with type ('a, 'b) poly = 'a * 'b
 val couple: 'a t -> 'b t -> ('a * 'b) t (** Alias of {!Couple.instantiate}. *)
 
+val hashtbl: 'a t -> 'b t -> ('a, 'b) Hashtbl.t t
+  (** Alias of {!Hashtbl.instantiate}. *)
+
+module Hashtbl: POLYMORPHIC2 with type ('a, 'b) poly = ('a, 'b) Hashtbl.t
+
 (** Same signature than {!POLYMORPHIC2} with possibility to specify a label for
     the function parameter. *)
 module Function : sig
   type ('a, 'b) poly
-  val instantiate: 
+  val instantiate:
     ?label:string * (unit -> 'a) option -> 'a t -> 'b t -> ('a -> 'b) t
-    (** Possibility to add a label for the parameter. 
+    (** Possibility to add a label for the parameter.
 	 - [~label:(p,None)] for a mandatory labelized parameter [p];
-         - [~label:(p,Some f)] for an optional labelized parameter [p], 
+         - [~label:(p,Some f)] for an optional labelized parameter [p],
            with default value [f ()]. *)
   val is_instance_of: 'a t -> bool
-  val get_instance: 
+  val get_instance:
     ('a, 'b) poly t -> 'a t * 'b t * (string * (unit -> 'a) option) option
 end
-val func: ?label:string * (unit -> 'a) option -> 'a t -> 'b t -> ('a -> 'b) t
+val func:
+  ?label:string * (unit -> 'arg) option -> 'arg t -> 'ret t -> ('arg -> 'ret) t
   (** Alias of {!Function.instantiate}.
       @plugin development guide *)
 
-val optlabel_func: string -> (unit -> 'a) -> 'a t -> 'b t -> ('a -> 'b) t
-  (** [optlabel_func lab dft ty1 ty2] is an alias for 
+val optlabel_func:
+  string -> (unit -> 'arg) -> 'arg t -> 'ret t -> ('arg -> 'ret) t
+  (** [optlabel_func lab dft ty1 ty2] is equivalent to
       [func ~label:(lab, Some dft) ty1 ty2] *)
 
+val func2:
+  ?label1:string * (unit -> 'arg1) option -> 'arg1 t ->
+  ?label2:string * (unit -> 'arg2) option -> 'arg2 t ->
+  'ret t ->
+  ('arg1 -> 'arg2 -> 'ret) t
+    (** Type value for a function taking 2 arguments.
+	[func2 ?label1 ty1 ?label2 ty2 ty_ret] is equivalent to
+	[func ?label:label1 ty1 (func ?label:label2 ty2 ty_ret)]
+	@since Boron-20100401 *)
+
+val func3:
+  ?label1:string * (unit -> 'arg1) option -> 'arg1 t ->
+  ?label2:string * (unit -> 'arg2) option -> 'arg2 t ->
+  ?label3:string * (unit -> 'arg3) option -> 'arg3 t ->
+  'ret t ->
+  ('arg1 -> 'arg2 -> 'arg3 -> 'ret) t
+    (** Type value for a function taking 3 arguments.
+	[func3 ?label1 ty1 ?label2 ty2 ?label3 ty3 ty_ret] is equivalent to
+	[func ?label:label1 ty1 (func ?label:label2 ty2
+	(func ?label:label3 ty3 ty_ret))]
+	@since Boron-20100401 *)
+
+val func4:
+  ?label1:string * (unit -> 'arg1) option -> 'arg1 t ->
+  ?label2:string * (unit -> 'arg2) option -> 'arg2 t ->
+  ?label3:string * (unit -> 'arg3) option -> 'arg3 t ->
+  ?label4:string * (unit -> 'arg3) option -> 'arg4 t ->
+  'ret t ->
+  ('arg1 -> 'arg2 -> 'arg3 -> 'arg4 -> 'ret) t
+    (** Type value for a function taking 4 arguments.
+	[func4 ?label1 ty1 ?label2 ty2 ?label3 ty3 ?label4 ty4 ty_ret] is
+	equivalent to
+	[func ?label:label1 ty1 (func ?label:label2 ty2
+	(func ?label:label3 ty3 ?label:label4 ty4 ty_ret))]
+	@since Boron-20100401 *)
+
 (* ****************************************************************************)
-(** {2 Heterogeneous Tables} 
+(** {2 Heterogeneous Tables}
     These tables are safe to use but nevertheless not for casual users. *)
 (* ****************************************************************************)
 
@@ -290,15 +337,18 @@ val optlabel_func: string -> (unit -> 'a) -> 'a t -> 'b t -> ('a -> 'b) t
 module StringTbl : sig
 
   type 'a ty = 'a t
-  type t 
-    (** Type of heterogeneous (hash)tables indexed by string. 
+  type t
+    (** Type of heterogeneous (hash)tables indexed by string.
 	Type values ensure type safety. *)
 
   val create: int -> t
     (** [create n] creates a new table of initial size [n]. *)
 
   val add: t -> string -> 'a ty -> 'a -> 'a
-    (** [add tbl s ty v] binds [s] to the value [v] in the table [tbl]. 
+    (** [add tbl s ty v] binds [s] to the value [v] in the table [tbl].
+	If the returned value is a closure whose the type of one of its
+	argument was dynamically registered, then it may raise
+	[Incompatible_Type].
 	@return the exact value stored in the table which is observationally
 	equal to [v] but it deals better with dynamic types.
 	@raise AlreadyExists if [s] is already bound in [tbl]. *)
@@ -315,7 +365,7 @@ module StringTbl : sig
 
 end
 
-(** Heterogeneous tables indexed by type. 
+(** Heterogeneous tables indexed by type.
     Roughly the same signature that [Hashtbl.S]. *)
 module TyTbl : sig
   type 'a ty = 'a t
@@ -342,6 +392,6 @@ val no_obj: unit -> unit
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

@@ -1,21 +1,25 @@
-/*@ requires \valid(p) && \valid(q);
-    ensures *p == \old(*q);
-    ensures *q == \old(*p);
-    assigns *p, *q;
+# pragma SeparationPolicy(none)
+
+/*@
+   requires \valid(p);
+   requires \valid(q);
+
+
+   assigns *p;
+   assigns *q;
+
+   ensures *p == \old(*q);
+   ensures *q == \old(*p);
 */
-void Swap(int *p, int *q)
+void swap(int* p, int* q)
 {
-  int temp;
-  temp = *p;
+  int const save = *p;
   *p = *q;
-  *q = temp;
+  *q = save;
 }
 
-
-
-/*@ requires \valid(a+ (0..k));
-*/
-void foo(int a[], int k) {
-  Swap(&a[0], &a[k]);
+int main () {
+  int p[2] = { 0,1};
+  int *q = (int *)((char*)q+1);
+  swap(p,q);
 }
-

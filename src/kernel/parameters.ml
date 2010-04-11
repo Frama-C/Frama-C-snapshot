@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,7 +23,6 @@
 (** Bunch of values which may be initialized through command line. *)
 
 open Extlib
-open Plugin
 
 (* ************************************************************************* *)
 (** {2 General purpose options} *)
@@ -32,25 +32,32 @@ let check_range name ~min ~max =
   Kernel.deprecated "check_range" ~now:"Plugin.Int.set_range"
     (fun v ->
        if v < min || v > max then
-	 Kernel.abort 
+	 Kernel.abort
 	   "invalid argument for %s option, not in range %d-%d"
 	   name min max)
 
-include Kernel
+(* ************************************************************************* *)
+(** {2 Installation Information} *)
+(* ************************************************************************* *)
 
-let () = Plugin.set_negative_option_name ""
-let () = set_cmdline_stage Cmdline.Early
-module Quiet =
-  Bool(struct
-	 let default = Cmdline.quiet
-	 let option_name = "-quiet"
-	 let module_name = "Quiet"
-	 let descr = "sets -verbose and -debug to 0"
-       end)
+let () = Plugin.set_group Kernel.help
+let () = Plugin.set_cmdline_stage Cmdline.Exiting
+let () = Plugin.do_not_journalize ()
+module GeneralHelp =
+  Kernel.False(struct
+	  let option_name = "-help"
+	  let descr = "display a general help"
+	  let module_name = "GeneralHelp"
+	end)
 
-let () = set_cmdline_stage Cmdline.Early
+let run_help () = if GeneralHelp.get () then Cmdline.help () else Cmdline.nop
+let () = Cmdline.run_after_exiting_stage run_help
+let () = GeneralHelp.add_alias [ "--help"; "-h" ]
+
+let () = Plugin.set_group Kernel.help
+let () = Plugin.set_cmdline_stage Cmdline.Early
 module PrintVersion =
-  False
+  Kernel.False
     (struct
        let option_name = "-version"
        let module_name = "PrintVersion"
@@ -58,84 +65,137 @@ module PrintVersion =
      end)
 let () = PrintVersion.add_alias [ "-v"; "--version" ]
 
-let () = set_cmdline_stage Cmdline.Early
+let () = Plugin.set_group Kernel.help
+let () = Plugin.set_cmdline_stage Cmdline.Early
 module PrintShare =
-  False(struct
+  Kernel.False(struct
 	  let option_name = "-print-share-path"
 	  let module_name = "PrintShare"
 	  let descr = "print the Frama-C share path"
 	end)
 let () = PrintShare.add_alias [ "-print-path" ]
 
-let () = set_cmdline_stage Cmdline.Early
+let () = Plugin.set_group Kernel.help
+let () = Plugin.set_cmdline_stage Cmdline.Early
 module PrintLib =
-  False(struct
+  Kernel.False(struct
 	  let option_name = "-print-lib-path"
 	  let module_name = "PrintLib"
 	  let descr = "print the path of the Frama-C kernel library"
 	end)
 let () = PrintLib.add_alias [ "-print-libpath" ]
 
-let () = set_cmdline_stage Cmdline.Early
+let () = Plugin.set_group Kernel.help
+let () = Plugin.set_cmdline_stage Cmdline.Early
 module PrintPluginPath =
-  False(struct
-	  let option_name = "-print-plugin-path"
-	  let module_name = "PrintPluginPath"
-	  let descr =
-	    "print the path where the Frama-C dynamic plug-ins are searched into"
-	end)
+  Kernel.False
+    (struct
+       let option_name = "-print-plugin-path"
+       let module_name = "PrintPluginPath"
+       let descr =
+	 "print the path where the Frama-C dynamic plug-ins are searched into"
+     end)
 
-let () = set_cmdline_stage Cmdline.Extending
-module AddPath =
-  StringSet(struct
-	      let option_name = "-add-path"
-	      let module_name = "AddPath"
-	      let arg_name = "p1, ..., pn"
-	      let descr = "add paths which dynamic plugins are searched in"
-	    end)
-let () = AddPath.add_set_hook (fun _ _ -> AddPath.iter Dynamic.add_path)
-  
-let () = set_cmdline_stage Cmdline.Extending
-module LoadModule =
-  StringSet(struct
-	      let option_name = "-load-module"
-	      let module_name = "LoadModule"
-	      let arg_name = "m1, ..., mn"
-	      let descr = "load the given modules dynamically"
-	    end)
-let () =
-  LoadModule.add_set_hook (fun _ _ -> LoadModule.iter Dynamic.load_module)
-
-let () = set_cmdline_stage Cmdline.Extending
-module LoadScript =
-  StringSet(struct
-	      let option_name = "-load-script"
-	      let module_name = "LoadScript"
-	      let arg_name = "m1, ..., mn"
-	      let descr = "load the given ocaml scripts dynamically"
-	    end)
-let () =
-  LoadScript.add_set_hook (fun _ _ -> LoadScript.iter Dynamic.load_script)
-
+let () = Plugin.set_group Kernel.help
 let () = Plugin.set_negative_option_name ""
 module DumpDependencies =
-  EmptyString
+  Kernel.EmptyString
     (struct
        let module_name = "DumpDependencies"
        let option_name = "-dump-dependencies"
        let descr = "undocumented"
        let arg_name = ""
      end)
-let () = 
+let () =
   at_exit
-    (fun () -> 
-       if not (DumpDependencies.is_default ()) then 
+    (fun () ->
+       if not (DumpDependencies.is_default ()) then
 	 Project.Computation.dump_dependencies (DumpDependencies.get ()))
-    
-let () = do_not_journalize ()
-let () = do_not_projectify ()
+
+let () = Plugin.set_negative_option_name ""
+module DumpDynamicDependencies =
+  Kernel.EmptyString
+    (struct
+       let module_name = "DumpDynamicDependencies"
+       let option_name = "-dump-dynamic-dependencies"
+       let descr = "undocumented"
+       let arg_name = ""
+     end)
+let () =
+  at_exit
+    (fun () ->
+       if not (DumpDynamicDependencies.is_default ()) then
+	 Project.Computation.dump_dynamic_dependencies
+	   (DumpDynamicDependencies.get ()))
+
+(* ************************************************************************* *)
+(** {2 Output Messages} *)
+(* ************************************************************************* *)
+
+let () = Plugin.set_group Kernel.messages
+let () = Plugin.do_not_projectify ()
+let () = Plugin.do_not_journalize ()
+let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.is_visible ()
+module GeneralVerbose =
+    Kernel.Int
+      (struct
+	 let default = 1
+	 let option_name = "-verbose"
+	 let arg_name = "n"
+	 let descr = "general level of verbosity"
+	 let module_name = "GeneralVerbose"
+       end)
+let () =
+  (* line order below matters *)
+  GeneralVerbose.set_range ~min:0 ~max:max_int;
+  GeneralVerbose.add_set_hook (fun _ n -> Cmdline.verbose_level_ref := n);
+  GeneralVerbose.set !Cmdline.verbose_level_ref
+
+let () = Plugin.set_group Kernel.messages
+let () = Plugin.do_not_projectify ()
+let () = Plugin.do_not_journalize ()
+let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.is_visible ()
+module GeneralDebug =
+  Kernel.Zero
+    (struct
+       let option_name = "-debug"
+       let arg_name = "n"
+       let descr = "general level of debug"
+       let module_name = "GeneralDebug"
+     end)
+let () =
+  (* line order below matters *)
+  GeneralDebug.set_range ~min:0 ~max:max_int;
+  GeneralDebug.add_set_hook
+    (fun old n ->
+       if n = 0 then decr Plugin.positive_debug_ref
+       else if old = 0 then incr Plugin.positive_debug_ref;
+       Cmdline.debug_level_ref := n);
+  GeneralDebug.set !Cmdline.debug_level_ref
+
+let () = Plugin.set_group Kernel.messages
+let () = Plugin.set_negative_option_name ""
+let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.is_visible ()
+module Quiet =
+  Kernel.Bool
+    (struct
+       let default = Cmdline.quiet
+       let option_name = "-quiet"
+       let module_name = "Quiet"
+       let descr = "sets -verbose and -debug to 0"
+     end)
+let () =
+  Quiet.add_set_hook
+    (fun _ b -> assert b; GeneralVerbose.set 0; GeneralDebug.set 0)
+
+let () = Plugin.set_group Kernel.messages
+let () = Plugin.do_not_journalize ()
+let () = Plugin.do_not_projectify ()
 module UseUnicode =
-  True
+  Kernel.True
     (struct
        let option_name = "-unicode"
        let module_name = "UseUnicode"
@@ -143,59 +203,33 @@ module UseUnicode =
      end)
 let () = UseUnicode.add_set_hook (fun _ b -> Cil.print_utf8 := b)
 
-module Obfuscate =
-  False
+let () = Plugin.set_group Kernel.messages
+module Time =
+  Kernel.EmptyString
     (struct
-       let option_name = "-obfuscate"
-       let module_name = "Obfuscate"
-       let descr = "print an obfuscated version of files and exit"
+       let module_name = "Time"
+       let option_name = "-time"
+       let arg_name = "filename"
+       let descr = "append user time and date to <filename> at exit"
      end)
 
-module UnrollingLevel =
-  Zero
-    (struct
-       let module_name = "UnrollingLevel"
-       let option_name = "-ulevel"
-       let arg_name = "l"
-       let descr = "unroll loops n times (defaults to 0) before analyzes"
-     end)
+(* ************************************************************************* *)
+(** {2 Input / Output Source Code} *)
+(* ************************************************************************* *)
 
-module MainFunction =
-  String
-    (struct
-       let module_name = "MainFunction"
-       let default = "main"
-       let option_name = "-main"
-       let arg_name = "f"
-       let descr = "set to name the entry point for analysis. Use -lib-entry if this is not for a complete application. Defaults to main"
-     end)
+let inout_source = Kernel.add_group "Input/Output Source Code"
 
-module LibEntry =
-  False(struct
-	  let module_name = "LibEntry"
-	    let option_name = "-lib-entry"
-	    let descr ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point name"
-	end)
-    
-module Machdep =
-  EmptyString
-    (struct
-       let module_name = "Machdep"
-       let option_name = "-machdep"
-       let arg_name = "machine"
-       let descr = "use <machine> as the current machine dependent configuration. Use -machdep help to see the list of available machines"
-     end)
-let () = Project.Computation.add_dependency Cil.selfMachine Machdep.self
-
+let () = Plugin.set_group inout_source
 module PrintCode =
-  False(struct
+  Kernel.False(struct
 	  let module_name = "PrintCode"
 	  let option_name = "-print"
 	  let descr = "pretty print original code with its comments"
 	end)
 
-module PrintComments = 
-  False(struct
+let () = Plugin.set_group inout_source
+module PrintComments =
+  Kernel.False(struct
 	  let module_name = "PrintComments"
 	  let option_name = "-keep-comments"
 	  let descr = "try to keep comments in C code"
@@ -205,13 +239,14 @@ let () =
   PrintComments.add_set_hook
     (fun _old b -> Clexer.keepComments := b) ;
   (* projectified mirror *)
-  Project.register_after_set_current_hook 
+  Project.register_after_set_current_hook
     ~user_only:false
     (fun _ -> Clexer.keepComments := PrintComments.get ())
-    
+
 module CodeOutput = struct
 
-  include EmptyString
+  let () = Plugin.set_group inout_source
+  include Kernel.EmptyString
     (struct
        let module_name = "CodeOutput"
        let option_name = "-ocode"
@@ -224,7 +259,7 @@ module CodeOutput = struct
 
   let output msg =
     let file = get () in
-    if file = "" 
+    if file = ""
     then Log.print_delayed msg
     else
       try
@@ -241,80 +276,195 @@ module CodeOutput = struct
 	  "Fail to open file \"%s\" for code output@\nSystem error: %s.@\n\
              Code is output on stdout instead." file s ;
 	Log.print_delayed msg
-	    
+
   let close_all () =
     Hashtbl.iter
       (fun file (fmt,cout) ->
-	 try 
+	 try
 	   Format.pp_print_flush fmt () ;
-	   close_out cout ; 
-	 with Sys_error s -> 
-	   Kernel.failure 
-	     "Fail to close output file \"%s\"@\nSystem error: %s." 
+	   close_out cout ;
+	 with Sys_error s ->
+	   Kernel.failure
+	     "Fail to close output file \"%s\"@\nSystem error: %s."
 	     file s)
       streams
 
   let () = at_exit close_all
-	
+
 end
 
-module Time =
-  EmptyString
+let () = Plugin.set_group inout_source
+module Obfuscate =
+  Kernel.False
     (struct
-       let module_name = "Time"
-       let option_name = "-time"
-       let arg_name = "filename"
-       let descr = "append user time and date to <filename> at exit"
+       let option_name = "-obfuscate"
+       let module_name = "Obfuscate"
+       let descr = "print an obfuscated version of files and exit"
      end)
 
+let () = Plugin.set_group inout_source
+module FloatDigits =
+  Kernel.Int
+    (struct
+       let module_name = "FloatDigits"
+       let option_name = "-float-digits"
+       let default = 12
+       let arg_name = "n"
+       let descr =
+	 "display this number of digits when printing floats. Defaults to "
+	 ^ string_of_int default
+     end)
+
+let () = Plugin.set_group inout_source
+module FloatRelative =
+  Kernel.False
+    (struct
+       let option_name = "-float-relative"
+       let module_name = "FloatRelative"
+       let descr = "display float intervals as [lower_bound ++ width]"
+     end)
+
+let () = Plugin.set_group inout_source
+module FloatHex =
+  Kernel.False
+    (struct
+       let option_name = "-float-hex"
+       let module_name = "FloatHex"
+       let descr = "display floats as hexadecimal"
+     end)
+
+(* ************************************************************************* *)
+(** {2 Save/Load} *)
+(* ************************************************************************* *)
+
+let saveload = Kernel.add_group "Saving or Loading Data"
+
+let () = Plugin.set_group saveload
 module SaveState =
-  EmptyString
+  Kernel.EmptyString
     (struct
        let module_name = "SaveState"
        let option_name = "-save"
        let arg_name = "filename"
-       let descr = "save the state into file <filename> after computations"
+       let descr = "at exit, save the session into file <filename>"
      end)
 
-let () = set_cmdline_stage Cmdline.Loading
+let () = Plugin.set_group saveload
+let () = Plugin.set_cmdline_stage Cmdline.Loading
 module LoadState =
-  EmptyString
+  Kernel.EmptyString
     (struct
        let module_name = "LoadState"
        let option_name = "-load"
        let arg_name = "filename"
-       let descr =
-	 "load an initial (previously saved) state from file <filename>"
+       let descr = "load a previously-saved session from file <filename>"
      end)
 
-let platform = add_group "Platform"
+let () = Plugin.set_group saveload
+let () = Plugin.set_cmdline_stage Cmdline.Extending
+module AddPath =
+  Kernel.StringSet
+    (struct
+       let option_name = "-add-path"
+       let module_name = "AddPath"
+       let arg_name = "p1, ..., pn"
+       let descr = "add paths which dynamic plugins are searched in"
+     end)
+let () = AddPath.add_set_hook (fun _ _ -> AddPath.iter Dynamic.add_path)
 
-let () = set_group platform
-module Overflow =
-  True(struct
-	 let module_name = "Overflow"
-	 let option_name = "-overflow"
-	 let descr = "assume that arithmetic operations overflow"
+let () = Plugin.set_group saveload
+let () = Plugin.set_cmdline_stage Cmdline.Extending
+module LoadModule =
+  Kernel.StringSet
+    (struct
+       let option_name = "-load-module"
+       let module_name = "LoadModule"
+       let arg_name = "m1, ..., mn"
+       let descr = "load the given modules dynamically"
+     end)
+let () =
+  LoadModule.add_set_hook (fun _ _ -> LoadModule.iter Dynamic.load_module)
+
+let () = Plugin.set_group saveload
+let () = Plugin.set_cmdline_stage Cmdline.Extending
+module Dynlink =
+  Kernel.True(struct
+	 let option_name = "-dynlink"
+	 let module_name = "Dynlink"
+	 let descr = "load all the found dynamic plug-ins (default); \
+otherwise, ignore all plug-ins in default directories"
        end)
+let () = Dynlink.add_set_hook (fun _ -> Dynamic.set_default)
 
-let () = set_negative_option_name "-unsafe-arrays"
-let () = set_group platform
-module SafeArrays =
-  True(struct
-	 let module_name = "SafeArrays"
-	 let option_name = "-safe-arrays"
-	 let descr = "for arrays that are fields inside structs, assume that accesses are in bounds"
+let () = Plugin.set_group saveload
+let () = Plugin.set_cmdline_stage Cmdline.Extending
+module LoadScript =
+  Kernel.StringSet(struct
+	      let option_name = "-load-script"
+	      let module_name = "LoadScript"
+	      let arg_name = "m1, ..., mn"
+	      let descr = "load the given ocaml scripts dynamically"
+	    end)
+let () =
+  LoadScript.add_set_hook (fun _ _ -> LoadScript.iter Dynamic.load_script)
+
+module Journal = struct
+  let () = Plugin.set_negative_option_name "-journal-disable"
+  let () = Plugin.set_cmdline_stage Cmdline.Early
+  let () = Plugin.set_group saveload
+  module Enable = struct
+    include Kernel.Bool
+      (struct
+	 let module_name = "Journal.Enable"
+	 let default = Cmdline.journal_enable
+	 let option_name = "-journal-enable"
+	 let descr = "dump a journal while Frama-C exit"
        end)
-
-module UnspecifiedAccess =
-  True(struct
-	 let module_name = "UnspecifiedAccess"
-	 let option_name = "-unspecified-access"
-	 let descr = "assume that all read/write accesses occuring in unspecified order are not separated"
+    let is_set () = Cmdline.journal_isset
+  end
+  let () = Plugin.set_group saveload
+  module Name =
+    Kernel.String
+      (struct
+	 let module_name = "Journal.Name"
+	 let option_name = "-journal-name"
+	 let default = Journal.get_name ()
+	 let arg_name = "s"
+	 let descr =
+	   "set the filename of the journal (do not write any extension)"
        end)
+end
 
+(* ************************************************************************* *)
+(** {2 Customizing Normalization} *)
+(* ************************************************************************* *)
+
+let normalisation = Kernel.add_group "Customizing Normalization"
+
+let () = Plugin.set_group normalisation
+module UnrollingLevel =
+  Kernel.Zero
+    (struct
+       let module_name = "UnrollingLevel"
+       let option_name = "-ulevel"
+       let arg_name = "l"
+       let descr = "unroll loops n times (defaults to 0) before analyzes"
+     end)
+
+let () = Plugin.set_group normalisation
+module Machdep =
+  Kernel.EmptyString
+    (struct
+       let module_name = "Machdep"
+       let option_name = "-machdep"
+       let arg_name = "machine"
+       let descr = "use <machine> as the current machine dependent configuration. Use -machdep help to see the list of available machines"
+     end)
+let () = Project.Computation.add_dependency Cil.selfMachine Machdep.self
+
+let () = Plugin.set_group normalisation
 module ReadAnnot =
-  True(struct
+  Kernel.True(struct
 	 let module_name = "ReadAnnot"
 	 let option_name = "-annot"
 	 let descr = "read annotation"
@@ -325,45 +475,51 @@ let () =
     (fun _ x ->
        (* prevent the C lexer interpretation of comments *)
        if x then Clexer.annot_char := '@' else Clexer.annot_char := '\000')
-    
+
+let () = Plugin.set_group normalisation
 module PreprocessAnnot =
-  False(struct
+  Kernel.False(struct
 	  let module_name = "PreprocessAnnot"
 	  let option_name = "-pp-annot"
 	  let descr = "pre-process annotations (if they are read)"
 	end)
 
+let () = Plugin.set_group normalisation
 module CppCommand =
-  EmptyString
+  Kernel.EmptyString
     (struct
        let module_name = "CppCommand"
        let option_name = "-cpp-command"
        let arg_name = "cmd"
        let descr = "<cmd> is used to build the preprocessing command.
-	Defaults to $CPP environment variable or else \"gcc -C -E -I.\"
-	If unset, the command is built as follow:
-	CPP -o <preprocessed file> <source file>
-	%1 and %2 can be used into CPP string to mark the position of <source file> and <preprocessed file> respectively"
+Default to $CPP environment variable or else \"gcc -C -E -I.\".
+If unset, the command is built as follow:
+  CPP -o <preprocessed file> <source file>
+%1 and %2 can be used into CPP string to mark the position of <source file> and <preprocessed file> respectively"
      end)
 
+let () = Plugin.set_group normalisation
 module CppExtraArgs =
-  StringSet(struct
-	      let module_name = "CppExtraArgs"
-	      let option_name = "-cpp-extra-args"
-	      let arg_name = "args"
-	      let descr = "additional arguments passed to the preprocessor while preprocessing the C code but not while preprocessing annotations"
-	    end)
-    
+  Kernel.StringSet
+    (struct
+       let module_name = "CppExtraArgs"
+       let option_name = "-cpp-extra-args"
+       let arg_name = "args"
+       let descr = "additional arguments passed to the preprocessor while preprocessing the C code but not while preprocessing annotations"
+     end)
+
+let () = Plugin.set_group normalisation
 let () = Plugin.set_negative_option_name ""
 module TypeCheck =
-  False(struct
+  Kernel.False(struct
           let module_name = "TypeCheck"
           let option_name = "-typecheck"
           let descr = "only typechecks the source files"
         end)
 
+let () = Plugin.set_group normalisation
 module ContinueOnAnnotError =
-  False(struct
+  Kernel.False(struct
           let module_name = "ContinueOnAnnotError"
           let option_name = "-continue-annot-error"
           let descr = "When an annotation fails to type-check, just emits \
@@ -377,62 +533,123 @@ let () =
          Cabshelper.continue_annot_error_set ()
        else Cabshelper.continue_annot_error_unset())
 
-let () = set_negative_option_name ""
-let () = set_cmdline_stage Cmdline.Early
-module NoType =
-  Bool
-    (struct
-       let module_name = "NoType"
-       let default = not Cmdline.use_type
-       let option_name = "-no-type"
-       let descr = "undocumented but disable some features"
-     end)
-
-let () = set_negative_option_name ""
-let () = set_cmdline_stage Cmdline.Early
-module NoObj =
-  Bool
-    (struct
-       let module_name = "NoObj"
-       let default = not Cmdline.use_obj
-       let option_name = "-no-obj"
-       let descr = "-no-type + disable some additional features"
-     end)
-    
+let () = Plugin.set_group normalisation
 module SimplifyCfg =
-  False
+  Kernel.False
     (struct
        let module_name = "SimplifyCfg"
        let option_name = "-simplify-cfg"
-       let descr = 
+       let descr =
 	 "remove break, continue and switch statement before analyzes"
      end)
 
+let () = Plugin.set_group normalisation
 module KeepSwitch =
-  False(struct
+  Kernel.False(struct
 	  let option_name = "-keep-switch"
 	  let module_name = "KeepSwitch"
 	  let descr = "keep switch statements despite -simplify-cfg"
 	end)
 
+let () = Plugin.set_group normalisation
 module Constfold =
-  False
+  Kernel.False
     (struct
        let option_name = "-constfold"
        let module_name = "Constfold"
        let descr = "fold all constant expressions in the code before analysis"
      end)
 
-module FloatDigits =
-  Int(struct
-	let module_name = "FloatDigits"
-	let option_name = "-float-digits"
-	let default = 12
-	let arg_name = "n"
-	let descr = 
-	  "display this number of digits when printing floats. Defaults to 4"
-      end)
+module Files = struct
 
+  include Kernel.StringList
+    (struct
+       let option_name = ""
+       let module_name = "Files"
+       let arg_name = ""
+       let descr = ""
+     end)
+  let () = Cmdline.use_cmdline_files set
+
+  let () = Plugin.set_group normalisation
+  module Check =
+    Kernel.False(struct
+	    let option_name = "-check"
+	    let module_name = "Files.Check"
+	    let descr = "performs consistency checks over cil files"
+	  end)
+
+  let () = Plugin.set_group normalisation
+  module Copy =
+    Kernel.False(struct
+	    let option_name = "-copy"
+	    let module_name = "Files.Copy"
+	    let descr =
+	      "always perform a copy of the original AST before analysis begin"
+	  end)
+
+  let () = Plugin.set_group normalisation
+  module Orig_name =
+    Kernel.False(struct
+	    let option_name = "-orig-name"
+	    let module_name = "Files.Orig_name"
+	    let descr = "prints a message each time a variable is renamed"
+	  end)
+
+end
+
+(* ************************************************************************* *)
+(** {2 Analysis Options} *)
+(* ************************************************************************* *)
+
+let analysis_options = Kernel.add_group "Analysis Options"
+
+let () = Plugin.set_group analysis_options
+module MainFunction =
+  Kernel.String
+    (struct
+       let module_name = "MainFunction"
+       let default = "main"
+       let option_name = "-main"
+       let arg_name = "f"
+       let descr = "set to name the entry point for analysis. Use -lib-entry if this is not for a complete application. Defaults to main"
+     end)
+
+let () = Plugin.set_group analysis_options
+module LibEntry =
+  Kernel.False(struct
+	  let module_name = "LibEntry"
+	    let option_name = "-lib-entry"
+	    let descr ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point name"
+	end)
+
+let () = Plugin.set_group analysis_options
+module UnspecifiedAccess =
+  Kernel.False(struct
+	 let module_name = "UnspecifiedAccess"
+	 let option_name = "-unspecified-access"
+	 let descr = "assume that all read/write accesses occuring in unspecified order are not separated"
+       end)
+
+let () = Plugin.set_group analysis_options
+module Overflow =
+  Kernel.True(struct
+	 let module_name = "Overflow"
+	 let option_name = "-overflow"
+	 let descr = "assume that arithmetic operations overflow"
+       end)
+
+let () = Plugin.set_negative_option_name "-unsafe-arrays"
+let () = Plugin.set_group analysis_options
+module SafeArrays =
+  Kernel.True
+    (struct
+       let module_name = "SafeArrays"
+       let option_name = "-safe-arrays"
+       let descr = "for arrays that are fields inside structs, assume that accesses are in bounds"
+     end)
+
+let () = Plugin.set_group analysis_options
 module AbsoluteValidRange = struct
   module Info = struct
     let option_name = "-absolute-valid-range"
@@ -441,107 +658,48 @@ module AbsoluteValidRange = struct
     let default = ""
     let module_name = "AbsoluteValidRange"
   end
-  include String(Info)
+  include Kernel.String(Info)
   let is_set _x = assert false
 end
 
-(** {3 Journalization] *)
-module Journal = struct
-  let journal = add_group "Journalisation"
-  let () = set_negative_option_name "-journal-disable"
-  let () = set_cmdline_stage Cmdline.Early
-  let () = set_group journal
-  module Enable =
-    Bool
-      (struct
-	 let module_name = "Journal.Enable"
-	 let default = Cmdline.journal_enable
-	 let option_name = "-journal-enable"
-	 let descr = "dump a journal while Frama-C exit"
-       end)
-  let () = set_group journal
-  module Name =
-    String
-      (struct
-	 let module_name = "Journal.Name"
-	 let option_name = "-journal-name"
-	 let default = Journal.get_name ()
-	 let arg_name = "s"
-	 let descr =
-	   "set the filename of the journal (do not write any extension)"
-       end)
-end
-
-module Files = struct
-  include StringList
+let () = Plugin.set_group analysis_options
+module FloatFlushToZero =
+  Kernel.False
     (struct
-       let option_name = ""
-       let module_name = "Files"
-       let arg_name = ""
-       let descr = ""
+      let option_name = "-float-flush-to-zero"
+      let descr = "Floating-point operations flush to zero"
+      let module_name = "FloatFlushToZero"
+    end)
+
+(* ************************************************************************* *)
+(** {2 Others options} *)
+(* ************************************************************************* *)
+
+let misc = Kernel.add_group "Miscellaneous Options"
+
+let () = Plugin.set_group misc
+let () = Plugin.set_negative_option_name ""
+let () = Plugin.set_cmdline_stage Cmdline.Early
+module NoType =
+  Kernel.Bool
+    (struct
+       let module_name = "NoType"
+       let default = not Cmdline.use_type
+       let option_name = "-no-type"
+       let descr = "undocumented but disable some features"
      end)
-  let () = Cmdline.use_cmdline_files set
-  module Check =
-    False(struct
-	    let option_name = "-check"
-	    let module_name = "Files.Check"
-	    let descr = "performs consistency checks over cil files"
-	  end)
-  module Copy =
-    False(struct
-	    let option_name = "-copy"
-	    let module_name = "Files.Copy"
-	    let descr = 
-	      "always perform a copy of the original AST before analysis begin"
-	  end)
-  module Orig_name =
-    False(struct
-	    let option_name = "-orig-name"
-	    let module_name = "Files.Orig_name"
-	    let descr = "prints a message each time a variable is renamed"
-	  end)
-end  
 
-(* ************************************************************************* *)
-(** {2 Special kernel parameters} *)
-(* ************************************************************************* *)
-
-let () = set_cmdline_stage Cmdline.Exiting
-let () = do_not_journalize ()
-module GeneralHelp =
-  False(struct
-	  let option_name = "-help"
-	  let descr = "display a general help"
-	  let module_name = "GeneralHelp"
-	end)
-
-let help () = if GeneralHelp.get () then Cmdline.help () else Cmdline.nop
-let () = Cmdline.run_after_exiting_stage help
-let () = GeneralHelp.add_alias [ "--help"; "-h" ]
-
-let () = do_not_projectify ()
-let () = do_not_journalize ()
-let () = set_cmdline_stage Cmdline.Early
-module GeneralVerbose =
-    Int(struct
-	  let default = Cmdline.verbose_level
-	  let option_name = "-verbose"
-	  let arg_name = "n"
-	  let descr = "general level of verbosity"
-	  let module_name = "GeneralVerbose"
-	end)
-
-let () = do_not_projectify ()
-let () = do_not_journalize ()
-let () = set_cmdline_stage Cmdline.Early
-module GeneralDebug =
-  Int(struct
-	let default = Cmdline.debug_level
-	let option_name = "-debug"
-	let arg_name = "n"
-	let descr = "general level of debug"
-	let module_name = "GeneralDebug"
-      end)
+let () = Plugin.set_group misc
+let () = Plugin.set_negative_option_name ""
+let () = Plugin.set_cmdline_stage Cmdline.Early
+module NoObj =
+  Kernel.Bool
+    (struct
+       let module_name = "NoObj"
+       let default = not Cmdline.use_obj
+       let option_name = "-no-obj"
+       let descr = "-no-type + disable some additional features"
+     end)
 
 (* ************************************************************************* *)
 (** {2 Interface for dynamic plugins} *)
@@ -559,8 +717,10 @@ module Dynamic = struct
     end
 
     let apply modname name s ty1 ty2 =
-      let name = dynamic_funname modname s name in
-      Dynamic.get name (Type.func ty1 ty2)
+      Dynamic.get
+	~plugin:(Plugin.dynamic_plugin_name modname)
+	(Plugin.dynamic_function_name s name)
+	(Type.func ty1 ty2)
 
     module Common(X: sig type t val modname:string val ty: t Type.t end ) =
     struct
@@ -603,13 +763,12 @@ module Dynamic = struct
 	   let modname = "StringSet"
 	 end)
       let add name = apply "StringSet" name "add" Type.string Type.unit
-      let add_set name = apply "StringSet" name "add_set" Type.string Type.unit
+      let remove name = apply "StringSet" name "remove" Type.string Type.unit
       let is_empty name =
 	apply "StringSet" name "is_empty" Type.unit Type.bool ()
       let iter name =
 	apply "StringSet" name "iter"
 	  (Type.func Type.string Type.unit) Type.unit
-(*      let fold _name = assert false*)
     end
 (*
     module IndexedVal(X: sig val ty_name: string end) = struct
@@ -645,18 +804,16 @@ let get_selection_context () =
   let sel_ctx =
     Project.Selection.fold
       (fun o _ acc -> if has_dependencies o then a o acc else acc)
-      (get_selection ())
+      (Plugin.get_selection ())
       Project.Selection.empty
   in
-  (* Value analysis *)
-  let sel_ctx = a FloatDigits.self sel_ctx in
   (* General options *)
   ((a Files.Check.self) $
-   (a Files.Copy.self))
+     (a Files.Copy.self))
     sel_ctx
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

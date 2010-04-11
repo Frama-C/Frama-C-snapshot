@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -26,6 +27,7 @@ let sfprintf fmt =
   let return fmt = Format.pp_print_flush fmt (); Buffer.contents b in
   Format.kfprintf return (Format.formatter_of_buffer b) fmt
 
+let no_sep = format_of_string ""
 let space_sep = format_of_string "@ "
 let nl_sep = format_of_string "@\n"
 
@@ -45,9 +47,9 @@ type sformat = (unit,Format.formatter,unit) Pervasives.format
 type 'a formatter = Format.formatter -> 'a -> unit
 type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
 
-let pp_list 
+let pp_list
     ?(pre=format_of_string "@[")
-    ?(sep=format_of_string "") 
+    ?(sep=format_of_string "")
     ?(suf=format_of_string "@]")
     pp_elt f l =
   let rec aux f l =
@@ -58,9 +60,9 @@ let pp_list
       [] -> ()
     | e::l -> Format.fprintf f "%(%)%a%a%(%)" pre pp_elt e aux l suf
 
-let pp_array 
+let pp_array
     ?(pre=format_of_string "@[")
-    ?(sep=format_of_string "") 
+    ?(sep=format_of_string "")
     ?(suf=format_of_string "@]")
     pp_elt f xs =
   match xs with
@@ -87,17 +89,17 @@ let pp_cond ?(pr_false=format_of_string "") cond f pr_true =
 
 let escape_underscores = Str.global_replace (Str.regexp_string "_") "__"
 
-let pp_flowlist ?(left="(") ?(sep=",") ?(right=")") f out = 
+let pp_flowlist ?(left="(") ?(sep=",") ?(right=")") f out =
   function
     | [] -> Format.fprintf out "%s%s" left right
-    | x::xs -> 
+    | x::xs ->
 	begin
-	  Format.fprintf out "@[<hov 1>%s%a" left f x ; 
-	  List.iter (fun x -> Format.fprintf out "%s@,%a" sep f x) xs ; 
+	  Format.fprintf out "@[<hov 1>%s%a" left f x ;
+	  List.iter (fun x -> Format.fprintf out "%s@,%a" sep f x) xs ;
 	  Format.fprintf out "%s@]" right ;
 	end
 
-let pp_blocklist ?(left="{") ?(right="}") f out = 
+let pp_blocklist ?(left="{") ?(right="}") f out =
   function
     | [] -> Format.fprintf out "%s%s" left right
     | xs ->
@@ -105,7 +107,8 @@ let pp_blocklist ?(left="{") ?(right="}") f out =
 	List.iter (fun x -> Format.fprintf out "@ %a" f x) xs ;
 	Format.fprintf out "@]@ %s@]" right
 
-let pp_open_block out msg = Format.fprintf out ("@[<hv 0>@[<hv 2>" ^^ msg )
+let pp_open_block out msg =
+  Format.fprintf out ("@[<hv 0>@[<hv 2>" ^^ msg)
 let pp_close_block out msg = Format.fprintf out ("@]@ " ^^ msg ^^ "@]")
 
 (*

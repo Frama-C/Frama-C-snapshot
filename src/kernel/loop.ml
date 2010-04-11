@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -55,13 +56,13 @@ let get_naturals kf =
 	 | Declaration _ ->
 	     []
 	 | Definition (cilfundec,_) ->
-	     let dbg = Parameters.Debug.get () > 0 in
+	     let dbg = Kernel.debug_atleast 1 in
              if dbg then
-               Format.printf "COMPUTE NATURAL LOOPS FOR %S@." 
+               Format.printf "COMPUTE NATURAL LOOPS FOR %S@."
 		 (Kernel_function.get_name kf);
 	     let dominators = Dominators.computeIDom cilfundec in
-             (*if dbg then 
-               Format.printf "DONE COMPUTE NATURAL LOOPS IDOM FOR %S@." 
+             (*if dbg then
+               Format.printf "DONE COMPUTE NATURAL LOOPS IDOM FOR %S@."
                  (Kernel_function.get_name kf);*)
 	     let naturals = Dominators.findNaturalLoops cilfundec dominators in
 	     if dbg then begin
@@ -110,7 +111,7 @@ let while_for_natural_loop kf stmt =
       List.iter (fun x -> Format.printf "B_edge:%d " x.sid) be;
       List.iter (fun x -> Format.printf "Preds:%d " x.sid) stmt.preds;
       let non_looping_pred =
-        List.filter (fun pred -> not (List.mem pred be)) stmt.preds 
+        List.filter (fun pred -> not (List.mem pred be)) stmt.preds
       in
       match non_looping_pred with
       | [x] -> x
@@ -123,7 +124,7 @@ let compute_allstmt_block block =
     val mutable allstmts = StmtSet.empty
     method allstmts = allstmts
     inherit nopCilVisitor as super
-    method vstmt s = 
+    method vstmt s =
       allstmts <- StmtSet.add s allstmts;
       DoChildren
   end
@@ -144,10 +145,10 @@ let compute_loops_stmts kf =
   end
   in
   (try
-     ignore 
-       (visitCilFunction 
+     ignore
+       (visitCilFunction
 	  (visitor :> cilVisitor) (Kernel_function.get_definition kf));
-   with Kernel_function.No_Definition -> 
+   with Kernel_function.No_Definition ->
      ());
   tbl
 

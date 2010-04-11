@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: kind.mli,v 1.12 2009-01-23 15:02:59 uid568 Exp $ *)
 
 (** Kind (roughly speaking, a type used as first-class-value for Project). 
 
@@ -94,6 +93,15 @@ sig
   val dummy: t
     (** A dummy kind. *)
 
+  val equal: t -> t -> bool
+    (** @since Boron-20100401 *)
+
+  val compare: t -> t -> int
+    (** @since Boron-20100401 *)
+
+  val hash: t -> int
+    (** @since Boron-20100401 *)
+
   module Selection : SELECTION with type kind = t
     (** Selection for this type of kinds. *)
 
@@ -106,6 +114,12 @@ sig
 
   val value: t -> T.t
     (** Inverse of [create]. *)
+
+  val get_from_name: string -> t
+    (** Reverse of [name] (as names are uniques for kinds, this function is the
+	injection from kinds to names).  
+	@raise Not_found if there is no kind with this name.
+	@since Boron-20100401 *)
 
   exception DependencyAlreadyExists of string * string
     (** May be raised by [add_dependency]. *)
@@ -134,6 +148,12 @@ sig
 	[except] if one of them is non-empty), following the same order as 
 	apply_in_order. *)
 
+  val full_iter_in_order:
+    Selection.t -> Selection.t -> (T.t -> 'a -> unit) -> 'a -> unit
+    (** [full_iter_in_order] has the same behavior than [iter_in_order] but
+	takes into account the dynamic dependencies.
+	@since Boron-20100401 *)
+
   val fold_in_order:
     Selection.t -> Selection.t -> (T.t -> 'a -> 'a) -> 'a -> 'a
     (** [fold_in_order only except f acc] folds [f v x] for each kind value [v]
@@ -143,12 +163,89 @@ sig
 
   val number_of_applicants: Selection.t -> Selection.t -> int option
     (** [number_of_applicants only except] computes how many states would be
-	impact by a folding. Return [None] if all states are impacted. *)
+	impacted by a folding. Return [None] if all states are impacted. *)
 
-  val digest: unit -> Digest.t
-    (** Checksum of kinds of type [t]. *)
+  val full_number_of_applicants: Selection.t -> Selection.t -> int option
+    (** [full_number_of_applicants only except] computes how many states would
+	be impacted by a full folding. Return [None] if all states are
+	impacted. 
+	@since Boron-20100401 *) 
+
+  (** Dynamic kinds. They are kinds generated dynamically, after loading
+      compilation units.
+      @since Boron-20100401 *)
+  module Dynamic : sig
+    
+    type kind = t
+	(** Alias for the type of kinds.
+	    @since Boron-20100401 *)
+
+    type graph
+      (** Type of the dependency graph.
+	  @since Boron-20100401 *)
+
+    type t = graph ref
+	(** Type of a dynamic dependency graph.
+	    @since Boron-20100401 *)
+
+    val create: unit -> t
+      (** Create a new dynamic graph for handling dynamic kinds. 
+	  @since Boron-20100401 *)
+
+    val create_graph: unit -> graph
+      (** Create a new graph.
+	  @since Boron-20100401 *)
+
+    val clear_graph: graph -> unit
+      (** Reset a graph by removing all the vertices and edges.
+	  @since Boron-20100401 *)
+      
+    val add_kind: t -> T.t -> kind list -> kind
+      (** Add a kind in a graph, with predefined dependencies.
+	  @since Boron-20100401 *)
+
+    val remove_kind: t -> kind -> unit
+      (** Remove a kind.
+	  @since Boron-20100401 *)
+
+    val add_dependency: t -> kind -> kind -> unit
+      (** Add a dependency from the first kind to the second one in the given
+	  graph.
+	  @since Boron-20100401 *)
+
+    type marshalled_graph
+      (** Type of a marshallable graph.
+	  @since Boron-20100401 *)
+
+    val marshal: graph -> marshalled_graph
+      (** Convert a graph to a marshallable one.
+	  @since Boron-20100401 *)
+
+    val unmarshal: 
+      (string -> T.t) -> (kind -> unit) -> marshalled_graph -> graph
+      (** Retrieve a graph from a marshaled one.
+	  The first closure builds the value to store in the kind from a name.
+	  The second one is a kind updater called on each fresh kind.
+	  @since Boron-20100401 *)
+
+    val before_load: unit -> unit
+      (** Must be called before loading **all** projects
+	  @since Boron-20100401 *)
+
+    val after_load: unit -> unit
+      (** Must be called after loading **all** projects
+	  @since Boron-20100401 *)
+
+  end
+
+  (** {2 Debugging Tools} *)
 
   val dump_dependencies: 
+    ?only:Selection.t -> ?except:Selection.t -> string -> unit
+    (** Dump the dependencies of kinds of type [t] (or those of kinds specified
+	by [only] and [except] if any) in a file (in dot format). *)
+
+  val dump_dynamic_dependencies: 
     ?only:Selection.t -> ?except:Selection.t -> string -> unit
     (** Dump the dependencies of kinds of type [t] (or those of kinds specified
 	by [only] and [except] if any) in a file (in dot format). *)
@@ -157,6 +254,6 @@ end
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.. -j"
+  compile-command: "make -C ../.."
   End:
 *)

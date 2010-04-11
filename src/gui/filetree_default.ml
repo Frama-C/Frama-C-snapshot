@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -212,7 +213,7 @@ let rec make (tree_view:GTree.view) =
     method enable_select_functions =
       let select path deactivating =
 	let fail e = 
-          Kernel.error 
+          Gui_parameters.error 
             "selector handler got an internal error, please report: %s" 
             (Printexc.to_string e)
 	in
@@ -237,7 +238,8 @@ let rec make (tree_view:GTree.view) =
 	    true
           else false
 	with e ->
-          Kernel.error "gui could not select row in filetree, please report: %s"
+	  Gui_parameters.error
+	    "gui could not select row in filetree, please report: %s"
 	    (Printexc.to_string e);
           true
       in

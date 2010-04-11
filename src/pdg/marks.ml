@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -99,7 +100,7 @@ let call_out_marks_to_called called_pdg m2m ?(rqs=[]) out_marks =
     List.fold_left build rqs out_marks
 
 let translate_out_mark _pdg m2m other_rqs (call, l) =
-  let add_list l_out_m rqs called_kf =
+  let add_list l_out_m called_kf rqs  =
     try
       let called_pdg = !Db.Pdg.get called_kf in
       let m2m = m2m (Some call) called_pdg in
@@ -113,7 +114,7 @@ let translate_out_mark _pdg m2m other_rqs (call, l) =
       rqs
   in
   let all_called = Db.Value.call_to_kernel_function call in
-    List.fold_left (add_list l) other_rqs all_called
+    Kernel_function.Set.fold (add_list l)  all_called other_rqs
 
   (** [add_new_marks_to_rqs pdg new_marks other_rqs] translates [new_marks]
   * that were computed during intraprocedural propagation into requests,

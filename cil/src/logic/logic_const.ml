@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -29,7 +30,6 @@ open Cil_types
 (** {1 Identification Numbers} *)
 
 (**/**)
-(* Ocamldoc bug: let f,g = ... f and g not documented. *)
 let __annot_count = ref 0
 let __pred_count = ref 0
 let __term_count = ref 0
@@ -125,8 +125,8 @@ let pands l = List.fold_right (fun p1 p2 -> pand (p1, p2)) l ptrue
 let pors l = List.fold_right (fun p1 p2 -> por (p1, p2)) l pfalse
 
 let plet ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p = match p.content with
-| (_, _, ({content = Ptrue} as p)) -> p
-| (v, t, p) -> unamed ~loc (Plet (v, t, p))
+| (_, ({content = Ptrue} as p)) -> p
+| (v, p) -> unamed ~loc (Plet (v, p))
 
 let pimplies ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p1,p2) =
 match p1.content,p2.content with
@@ -208,6 +208,10 @@ let plain_or_set f = function
     | Ltype ({lt_name = "set"},[t]) -> f t
     | t -> f t
 
+let is_plain_type = function
+    | Ltype ({lt_name = "set"},[_]) -> false
+    | _ -> true
+
 (** {2 Terms} *)
 (* empty line for ocamldoc *)
 
@@ -235,6 +239,10 @@ let trange ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) (low,high) =
 let tinteger ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) i =
   term ~loc (TConst (CInt64 (Int64.of_int i,IUInt,None))) Linteger
 
+(** An integer constant (of type integer) from an int64 . *)
+let tinteger_s64 ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) i64 =
+  term ~loc (TConst (CInt64 (i64,IInt,None))) Linteger
+
 let tat ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (t,label) =
   term ~loc (Tat(t,label)) t.term_type
 
@@ -244,6 +252,14 @@ let tvar ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) lv =
 let tresult ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) typ =
   term ~loc (TLval(TResult typ,TNoOffset)) (Ctype typ)
 
+(* needed by Cil, upon which Logic_utils depends.
+   TODO: some refactoring of these two files *)
+(** true if the given term is a lvalue denoting result or part of it *)
+let rec is_result t = match t.term_node with
+    TLval (TResult _,_) -> true
+  | Tat(t,_) -> is_result t
+  | Told t -> is_result t
+  | _ -> false
 
 (*
 Local Variables:

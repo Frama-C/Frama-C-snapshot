@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -24,32 +25,44 @@
     The body of this module is generated from Makefile.in.
     @plugin development guide *)
 
-(** Version identifier. *)
-val version : string
+val version: string
+  (** Frama-C Version identifier. *)
 
-(** Compilation date. *)
-val date : string
+val date: string
+  (** Compilation date. *)
 
-(** Is the Frama-C GUI running? 
-    @since Beryllium-20090601-beta1 *)
 val is_gui: bool ref
+  (** Is the Frama-C GUI running? 
+      @since Beryllium-20090601-beta1 *)
 
-(** Directory where architecture independent files are. *)
-val datadir : string
+val ocamlc: string
+  (** Name of the bytecode compiler.
+      @since Boron-20100401 *)
 
-(** Directory where the Frama-C kernel library is.
-    @since Beryllium-20090601-beta1 *)
-val libdir : string
+val ocamlopt: string
+  (** Name of the native compiler.
+      @since Boron-20100401 *)
 
-(** Directory where the Frama-C dynamic plug-ins are.
-    @since Beryllium-20090601-beta1 *)
-val plugin_dir : string
+val datadir: string
+  (** Directory where architecture independent files are. *)
 
-(** Plug-ins statically linked within Frama-C. *)
-val static_plugins : string list
+val libdir: string
+  (** Directory where the Frama-C kernel library is.
+      @since Beryllium-20090601-beta1 *)
 
-(** GUI of plug-ins statically linked within Frama-C. *)
-val static_gui_plugins : string list
+val plugin_dir: string
+  (** Directory where the Frama-C dynamic plug-ins are.
+      @since Beryllium-20090601-beta1 *)
+
+val static_plugins: string list
+  (** Plug-ins statically linked within Frama-C. *)
+
+val static_gui_plugins: string list
+  (** GUI of plug-ins statically linked within Frama-C. *)
+
+val compilation_unit_names: string list
+  (** List of names of all kernel compilation units.
+      @since Boron-20100401 *)
 
 (*
   Local Variables:

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: kernel_function.ml,v 1.21 2009-02-23 12:52:19 uid562 Exp $ *)
 
 open Cil_types
 open Db_types
@@ -86,6 +85,8 @@ module Kf =
        let name = "KF"
        let dependencies = [ Ast.self ]
      end)
+
+let clear_sid_info () = Kf.clear ()
 
 let compute () =
   Kf.memo
@@ -230,6 +231,9 @@ let returns_void kf =
 
 let is_formal v kf =  List.exists (fun vv -> v.vid = vv.vid) (get_formals kf)
 
+let get_formal_position v kf =
+  Extlib.find_index (fun vv -> v.vid = vv.vid) (get_formals kf)
+
 let is_local v kf = match kf.fundec with
     | Definition(fd, _) -> Ast_info.Function.is_local v fd
     | Declaration _ -> false
@@ -250,13 +254,29 @@ let get_spec f =
       !populate_spec f;
       f.spec)
 
-let postcondition kf =
+let postcondition kf k =
   Logic_const.pands
-    (List.map Ast_info.behavior_postcondition (get_spec kf).spec_behavior)
+    (List.map
+       (fun b -> Ast_info.behavior_postcondition b k)
+       (get_spec kf).spec_behavior)
 
 let precondition kf =
   Logic_const.pands
     (List.map Logic_const.pred_of_id_pred (get_spec kf).spec_requires)
+
+let code_annotations kf =
+  try
+    let def = get_definition kf in
+    List.fold_left
+      (fun acc stmt ->
+	 Annotations.single_fold_stmt
+	   (fun a acc -> (stmt, a) :: acc)
+	   stmt
+	   acc)
+      []
+      def.sallstmts
+  with No_Definition ->
+    []
 
 (* ************************************************************************* *)
 (** {2 Pretty printer} *)
@@ -271,10 +291,10 @@ let pretty_name fmt kf = Ast_info.pretty_vname fmt (get_vi kf)
 module Make_Table = Computation.Hashtbl(Datatype)
 
 module Set = struct
-  module S = Set.Make(Datatype)
+  module S = Ptset.Make(struct include Datatype module Datatype = Datatype end)
   include S
   module Datatype = D.Make_Set(S)(Datatype)
-  let pretty fmt = 
+  let pretty fmt =
     iter (fun kf -> Format.fprintf fmt "@[%a@ @]" pretty_name kf)
 end
 

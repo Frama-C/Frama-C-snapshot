@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 module Stats = struct
@@ -56,8 +57,8 @@ let close_output _ =
 
 let set_output filename =
   close_output ();
-  let out_chan = try open_out filename 
-    with Sys_error msg -> 
+  let out_chan = try open_out filename
+    with Sys_error msg ->
     (output_string stderr ("Error while opening output: " ^ msg); exit 1) in
   out := Some out_chan;
   Whitetrack.setOutput out_chan;
@@ -111,7 +112,7 @@ exception CabsOnly
 
 (* parse, and apply patching *)
 let rec parse_to_cabs fname =
-begin
+  begin
   (* parse the patch file if it isn't parsed already *)
   if ((!patchFileName <> "") && (isNone !patchFile)) then (
     (* parse the patch file *)
@@ -137,7 +138,7 @@ begin
         (if Patch.verbose then Format.eprintf "newpatching %s\n" fname);
         let result = (Stats.time "newpatch" (Patch.applyPatch pf) cabs) in
 
-        if (!printPatchedFiles) then begin                              
+        if (!printPatchedFiles) then begin
           let outFname:string = fname ^ ".patched" in
           (Format.eprintf "Printing patched version of %s to %s\n" fname outFname);
           let o = (open_out outFname) in
@@ -164,7 +165,7 @@ begin
   | None -> ());
   if Cilmsg.had_errors () then
     raise Parsing.Parse_error;
-  
+
   (* and return the patched source *)
   patched
 end
@@ -189,19 +190,19 @@ and parse_to_cabs_inner (fname : string) =
     Whitetrack.setFinalWhite (Clexer.get_white ());
     Clexer.finish ();
     (*TODO: explore deeper why to overwrite fname ?!
-      let fname = match !E.first_filename_encountered with 
-      | None -> fname 
+      let fname = match !E.first_filename_encountered with
+      | None -> fname
       | Some f -> f
       in*)
     (fname, cabs)
-  with 
-    | Sys_error msg -> 
+  with
+    | Sys_error msg ->
 	begin
 	  Clexer.finish () ;
 	  close_output () ;
 	  Cilmsg.abort "Cannot open %s : %s" fname msg ;
 	end
-    | Parsing.Parse_error -> 
+    | Parsing.Parse_error ->
 	begin
 	  Clexer.finish ();
 	  close_output ();
@@ -213,7 +214,7 @@ and parse_to_cabs_inner (fname : string) =
       raise e
   end
   *)
-(*TODO:remove  
+(*TODO:remove
 (* print to safec.proto.h the prototypes of all functions that are defined *)
 let printPrototypes ((_fname, file) : Cabs.file) : unit =
 begin
@@ -230,7 +231,7 @@ begin
     | Cabs.FUNDEF(_,name, _, loc, _) -> (
         match name with
         | (_, (funcname, Cabs.PROTO(_,_,_), _, _)) -> (
-            incr counter;          
+            incr counter;
             ignore (fprintf chan "\n/* %s from %s:%d */\n"
                                  funcname (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum);
             flush chan;
@@ -253,10 +254,14 @@ begin
 end
 *)
 
+module Syntactic_transformations = Hook.Fold(struct type t = Cabs.file end)
+
+let add_syntactic_transformation = Syntactic_transformations.extend
 
 let parse fname =
   Cilmsg.feedback ~level:2 "Parsing %s to Cabs" fname ;
   let cabs = parse_to_cabs fname in
+  let cabs = Syntactic_transformations.apply cabs in
   (*Cprint.printFile stdout cabs;*)
   (* Now (return a function that will) convert to CIL *)
   fun _ ->
@@ -265,11 +270,3 @@ let parse fname =
     (*if !doPrintProtos then (printPrototypes cabs);*)
     (*Cil.dumpFile Cil.defaultCilPrinter stdout "behue" cil;*)
     cil,cabs
-
-
-
-
-
-
-
-

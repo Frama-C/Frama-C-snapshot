@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -183,7 +184,8 @@ let add_fct_src_filters proj fi actions =
 let add_fct_ff_filter proj ff to_select =
   match to_select with
       | T.CuSelect [] -> 
-          SlicingParameters.debug ~level:1 "[SlicingProject.add_fct_ff_filter] (ignored empty selection)"
+          SlicingParameters.debug ~level:1 
+            "[SlicingProject.add_fct_ff_filter] (ignored empty selection)"
       | T.CuSelect select -> 
           let filter = SlicingActions.mk_ff_user_select ff select in
             add_filter proj filter 
@@ -316,6 +318,10 @@ let apply_fct_action proj fct_crit =
       let _ = M.get_ff_pdg ff in
       let new_filters = 
         match fct_crit.T.cf_info with
+        | T.CcUserMark (T.CuSelect []) -> 
+            SlicingParameters.debug ~level:1
+              "[apply_fct_action] ignore empty selection on existing slice";
+            []
         | T.CcUserMark (T.CuSelect crit) -> apply_fct_crit ff crit
         | T.CcUserMark (T.CuTop _) -> assert false (* impossible on ff ! *)
         | T.CcChangeCall (call, f) ->
@@ -345,6 +351,10 @@ let apply_fct_action proj fct_crit =
                  (M.fi_name fi);
              let filters = call_src_and_remove_all_ff proj fi in
              Fct_slice.add_top_mark_to_fi fi m propagate filters
+         | T.CcPropagate [] ->
+             SlicingParameters.debug ~level:1
+               "[apply_fct_action] nothing to propagate";
+             []
          | T.CcPropagate node_marks ->
              add_persistante_marks proj fi node_marks false propagate [] 
          | T.CcExamineCalls _

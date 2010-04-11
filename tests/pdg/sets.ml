@@ -1,7 +1,7 @@
 open Db;;
 open Cil_types;;
 
-let pp_nodes msg nodes = 
+let pp_nodes msg nodes =
   Cil.log "%s" msg ;
   List.iter (fun n -> Cil.log "%a" (!Pdg.pretty_node false) n) nodes;;
 
@@ -12,7 +12,7 @@ let main _ =
   let pdg = !Pdg.get f in
 
   (* Uncomment to retrieve sid *)
-  (*Parameters.Debug.set 1;;
+  (*Kernel.Debug.set 1;;
     Format.eprintf "@[%a@]@." !Ast_printer.d_global (Kernel_function.get_global f);;
   *)
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)

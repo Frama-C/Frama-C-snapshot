@@ -2,8 +2,9 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2009                                               #
-#    CEA (Commissariat à l'Énergie Atomique)                             #
+#  Copyright (C) 2007-2010                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
 #  Lesser General Public License as published by the Free Software       #
@@ -19,8 +20,6 @@
 #                                                                        #
 ##########################################################################
 
-# $Id: Makefile.plugin,v 1.82 2009-03-05 15:42:45 uid562 Exp $
-#
 ###############################################################################
 #
 # Generic makefile used to build plug-ins.
@@ -88,10 +87,9 @@
 # PLUGIN_DISTRIBUTED should the plugin be included in the distribution (yes/no)
 # PLUGIN_DISTRIB_BIN should the plugin be included in binary distributions
 #       (defaults to ${PLUGIN_DISTRIBUTED})
-# PLUGIN_DISTRIB_EXTERNAL if files outside of the usual plugins directories
-#	need to be included in the distribution, name of a Makefile target that
-#       will put these files at their proper place in the frama-c-$(VERSION)
-#       directory for a release.
+# PLUGIN_DISTRIB_EXTERNAL list of files that should be distributed within the
+# 	source distribution for this plug-in. They will be put at their proper
+#       place in the frama-c-$(VERSION) directory for a release.
 #
 # Kernel developers only
 # ----------------------
@@ -158,8 +156,9 @@ doc/plugins/$(notdir $(PLUGIN_DIR)).pdf: \
 	$(MKDIR) doc/plugins
 	$(CP) $< $@
 endif
-ifdef PLUGIN_DISTRIB_EXTERNAL
-PLUGIN_DIST_EXTERNAL_LIST += $(PLUGIN_DISTRIB_EXTERNAL)
+ifneq ("$(strip $(PLUGIN_DISTRIB_EXTERNAL))","")
+PLUGIN_DIST_EXTERNAL_LIST += \
+       $(addprefix $(PLUGIN_DIR)/,$(PLUGIN_DISTRIB_EXTERNAL))
 endif
 endif
 
@@ -177,6 +176,10 @@ endif
 else
 CONFIG_DISTRIB_BIN += "--disable-$(PLUGIN_OPT)"
 endif
+
+# Export some variables which can be safely used outside/inside Makefile.plugin
+# even if the plug-in is not enable
+$(PLUGIN_NAME)_DIR:=$(PLUGIN_DIR)
 
 ifneq ("$(PLUGIN_ENABLE)","no")
 
@@ -218,7 +221,7 @@ endif
 
 #The packing gui files
 ifeq ($(HAS_GUI),yes)
-TARGET_GUI_CMO:= $(PLUGIN_GUI_LIB_DIR)/$(PLUGIN_NAME).cmo
+TARGET_GUI_CMO:= $(PLUGIN_LIB_DIR)/gui/$(PLUGIN_NAME).cmo
 TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
@@ -242,7 +245,6 @@ NAME_DEPFLAGS :=$(PLUGIN_NAME)_DEPFLAGS
 NAME_DOCFLAGS :=$(PLUGIN_NAME)_DOCFLAGS
 
 # Export some variables which can be safely used outside/inside Makefile.plugin
-$(PLUGIN_NAME)_DIR:=$(PLUGIN_DIR)
 $(PLUGIN_NAME)_CMO:=$(PLUGIN_CMO)
 $(PLUGIN_NAME)_CMX:=$(PLUGIN_CMX)
 $(PLUGIN_NAME)_CMI:=$(PLUGIN_CMI)
@@ -298,8 +300,6 @@ PLUGIN_MLI:= $(PLUGIN_DIR)/$(PLUGIN_NAME).mli
 TARGET_MLI:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME).mli
 TARGET_CMI:= $(TARGET_MLI:.mli=.cmi)
 
-PLUGIN_GENERATED_LIST+= $(TARGET_MLI)
-
 ifneq ($(TARGET_MLI),$(PLUGIN_MLI))
 # Copy the plugin interface in the plugins directory
 $(TARGET_MLI): $(PLUGIN_MLI)
@@ -309,6 +309,8 @@ $(TARGET_MLI): $(PLUGIN_MLI)
 	$(ECHO) "#1 \"$<\"" >> $@
 	$(CAT) $< >> $@
 	$(CHMOD_RO) $@
+
+PLUGIN_GENERATED+= $(TARGET_MLI)
 endif
 
 $(PLUGIN_NAME)_MLI:=$(TARGET_MLI)
@@ -388,14 +390,14 @@ ifeq ("$(PLUGIN_HAS_MLI)","yes")
 # packing gui files with signature
 #####################################
 
-TARGET_GUI_MLI:= $(PLUGIN_GUI_LIB_DIR)/$(PLUGIN_NAME).mli
+TARGET_GUI_MLI:= $(PLUGIN_LIB_DIR)/gui/$(PLUGIN_NAME).mli
 TARGET_GUI_CMI:= $(TARGET_GUI_MLI:.mli=.cmi)
 
-PLUGIN_GENERATED_LIST+= $(TARGET_GUI_MLI)
+PLUGIN_GENERATED+= $(TARGET_GUI_MLI)
 
 $(TARGET_GUI_MLI): $(PLUGIN_MLI)
 	$(PRINT_MAKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(RM) $@
 	$(ECHO) "(* This module was generated automatically by code in Makefile and $< *)" > $@
 	$(ECHO) "#1 \"$<\"" >> $@
@@ -407,7 +409,7 @@ $(PLUGIN_NAME)_gui_MLI:=$(TARGET_GUI_MLI)
 $(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) $(TARGET_GUI_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
 	$(PRINT_PACKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_GUI_BFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMO)
@@ -416,14 +418,14 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_GUI_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
 	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMX)
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLOPT) -o $@ -shared $^
 endif
 else
@@ -436,7 +438,7 @@ $(PLUGIN_NAME)_gui_MLI:=
 $(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
 	$(PRINT_PACKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_GUI_BFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMO)
@@ -445,14 +447,14 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
 	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMX)
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
-	$(MKDIR) $(PLUGIN_GUI_LIB_DIR)
+	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLOPT) -o $@ -shared $^
 endif
 endif
@@ -646,6 +648,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 	if test "$(FRAMAC_MAKE)" = "yes"; then \
           $(RM) $(dir $@).depend; \
         fi
+	$(RM) $(PLUGIN_GENERATED)
 	$(RM) $(@:%CLEAN=%DEP) $(@:%CLEAN=%DEP_REDO)
 	$(RM) $(dir $@)*.cm* $(dir $@)*.o $(dir $@)*.annot $(dir $@)*~
 	$(RM) $(foreach d, $(@:%CLEAN=%TESTS_LIB), \
@@ -655,7 +658,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC $($(PLUGIN_NAME)_DOC_DIR)
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
 	$(PRINT_RM) documentation of $(dir $@)
-	$(RM) -r $< 
+	$(RM) -r $<
 	$(PRINT_RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
 	$(RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
 
@@ -682,6 +685,15 @@ PLUGIN_DYN_CMX_LIST	+= $(TARGET_CMXS)
 ifeq ($(HAS_GUI),yes)
 PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMXS)
 endif
+else # No native dynlink: use a static version
+ifdef PLUGIN_EXTRA_OPT
+.PRECIOUS: $(TARGET_CMX)
+PLUGIN_CMX_LIST += $(TARGET_CMXA)
+else
+PLUGIN_CMX_LIST += $(TARGET_CMX)
+endif
+PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
+PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
 endif
 
 else # Normal plugin
@@ -696,8 +708,10 @@ endif
 ifdef PLUGIN_EXTRA_OPT
 .PRECIOUS: $(TARGET_CMX)
 PLUGIN_CMX_LIST += $(TARGET_CMXA)
+DEP_CMXS=$(TARGET_CMXA)
 else
 PLUGIN_CMX_LIST += $(TARGET_CMX)
+DEP_CMXS=$(TARGET_CMX)
 endif
 #PLUGIN_CMX_LIST	+= $(TARGET_CMX)
 PLUGIN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
@@ -707,7 +721,6 @@ PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
 
 endif
 
-PLUGIN_GENERATED_LIST += $(PLUGIN_GENERATED)
 PLUGIN_INTERNAL_CMO_LIST += $(PLUGIN_CMO)
 PLUGIN_INTERNAL_CMX_LIST += $(PLUGIN_CMX)
 PLUGIN_DOC_LIST += $(PLUGIN_NAME)_DOC
@@ -717,14 +730,19 @@ ifeq ($(PLUGIN_DISTRIBUTED),yes)
 PLUGIN_DISTRIBUTED_NAME_LIST += $(PLUGIN_NAME)
 endif
 
+else
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO:
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP:
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 endif
 
 # Reset each "local" plugin variable
 
 ifneq ($(PLUGIN_RESET),no)
 PLUGIN_RESET:=
-PLUGIN_NAME:=
-PLUGIN_DIR:=
+#PLUGIN_NAME and PLUGIN_DIR must be redefined before any new inclusion.
+#PLUGIN_NAME:=
+#PLUGIN_DIR:=
 PLUGIN_CMI:=
 PLUGIN_CMO:=
 PLUGIN_BFLAGS:=

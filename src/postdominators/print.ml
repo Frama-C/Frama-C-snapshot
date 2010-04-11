@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,12 +23,10 @@
 open Cil_types
 open Cilutil
 
-let debug = false
-
 let pretty_stmt fmt s =
   let key = PdgIndex.Key.stmt_key s in !Db.Pdg.pretty_key fmt key
 
-module Printer = struct 
+module Printer = struct
   type t = string * (StmtSet.t option InstrHashtbl.t)
   module V = struct
     type t = Cil_types.stmt * bool
@@ -39,17 +38,17 @@ module Printer = struct
     let dst e = snd e
   end
 
-  let iter_vertex f (_, graph) = 
-    let do_s ki postdom = 
+  let iter_vertex f (_, graph) =
+    let do_s ki postdom =
       let s = match ki with Kstmt s -> s | _  -> assert false in
-      if debug then Cil.log "iter_vertex %d : %a\n" s.sid V.pretty s; 
+      Postdominators_parameters.debug "iter_vertex %d : %a\n" s.sid V.pretty s;
       let has_postdom = match postdom with None -> false | _ -> true in
       f (s, has_postdom)
-    in 
+    in
     InstrHashtbl.iter do_s graph
 
   let iter_edges_e f (_, graph) =
-    let do_s ki postdom = 
+    let do_s ki postdom =
       let s = match ki with Kstmt s -> s | _  -> assert false in
       match postdom with None -> ()
       | Some postdom ->
@@ -65,13 +64,13 @@ module Printer = struct
   let default_vertex_attributes _g = [`Style `Filled]
   let default_edge_attributes _g = []
 
-  let vertex_attributes (s, has_postdom) = 
+  let vertex_attributes (s, has_postdom) =
     let attrib = [] in
     let txt = Pretty_utils.sfprintf "%a" V.pretty s in
     let attrib = (`Label txt) :: attrib in
     let color = if has_postdom then 0x7FFFD4 else 0xFF0000 in
-    let attrib = (`Shape `Box) :: attrib in 
-    let attrib = (`Fillcolor color) :: attrib in 
+    let attrib = (`Shape `Box) :: attrib in
+    let attrib = (`Fillcolor color) :: attrib in
       attrib
 
   let edge_attributes _s = []
@@ -82,17 +81,16 @@ end
 module PostdomGraph = Graph.Graphviz.Dot(Printer)
 
 let get_postdom kf graph s =
-  try 
-    match InstrHashtbl.find graph (Kstmt s) with 
-    | None -> StmtSet.empty 
+  try
+    match InstrHashtbl.find graph (Kstmt s) with
+    | None -> StmtSet.empty
     | Some l -> l
-  with Not_found -> 
-    try 
+  with Not_found ->
+    try
       let postdom = !Db.Postdominators.stmt_postdominators kf s in
       let postdom = StmtSet.remove s postdom in
-      if debug then 
-	Cil.log "postdom for %d:%a = %a\n" 
-          s.sid pretty_stmt s StmtSet.pretty postdom;
+      Postdominators_parameters.debug "postdom for %d:%a = %a\n"
+        s.sid pretty_stmt s StmtSet.pretty postdom;
       InstrHashtbl.add graph (Kstmt s) (Some postdom); postdom
     with Db.Postdominators.Top ->
       InstrHashtbl.add graph (Kstmt s) None;
@@ -105,38 +103,37 @@ let get_postdom kf graph s =
 *)
 let reduce kf graph s =
   let remove p s_postdom =
-    if StmtSet.mem p s_postdom 
-    then 
+    if StmtSet.mem p s_postdom
+    then
       try
         let p_postdom = get_postdom kf graph p in
         let s_postdom = StmtSet.diff s_postdom p_postdom
         in s_postdom
-      with Db.Postdominators.Top -> assert false 
+      with Db.Postdominators.Top -> assert false
                                    (* p postdom s -> cannot be top *)
     else s_postdom (* p has already been removed from s_postdom *)
-  in 
+  in
   try
     let postdom = get_postdom kf graph s in
     let postdom = StmtSet.fold remove postdom postdom in
-      if debug then 
-	Cil.log "new postdom for %d:%a = %a\n" 
-          s.sid pretty_stmt s StmtSet.pretty postdom;
+    Postdominators_parameters.debug "new postdom for %d:%a = %a\n"
+      s.sid pretty_stmt s StmtSet.pretty postdom;
     InstrHashtbl.replace graph (Kstmt s) (Some postdom)
-  with Db.Postdominators.Top -> 
+  with Db.Postdominators.Top ->
     ()
 
-let rec build_reduced_graph kf graph stmts = 
+let rec build_reduced_graph kf graph stmts =
   List.iter (reduce kf graph) stmts
 
 let build_dot filename kf =
   let stmts = match kf.Db_types.fundec with
     | Db_types.Definition (fct, _) -> fct.sallstmts
-    | Db_types.Declaration _ -> 
-	Parameters.abort "cannot compute for a function without body"
+    | Db_types.Declaration _ ->
+	Kernel.abort "cannot compute for a function without body"
   in
   let graph = InstrHashtbl.create (List.length stmts) in
   let _ = build_reduced_graph kf graph stmts in
-  let name = Kernel_function.get_name kf in 
+  let name = Kernel_function.get_name kf in
   let title = "Postdominators for function " ^ name in
   let file = open_out filename in
   PostdomGraph.output_graph file (title, graph);

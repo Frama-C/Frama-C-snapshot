@@ -2,8 +2,9 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2009                                               */
-/*    CEA (Commissariat à l'Énergie Atomique)                             */
+/*  Copyright (C) 2007-2010                                               */
+/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
 /*  Lesser General Public License as published by the Free Software       */
@@ -18,8 +19,6 @@
 /*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
 /**************************************************************************/
-
-/* $Id: libc.c,v 1.23 2008-08-07 15:20:48 uid568 Exp $ */
 
 #include "libc.h"
 
@@ -66,7 +65,7 @@ int strcmp(const char *s1, const char *s2)
 char* strcat(char *s1, const char *s2)
 {
   char *os1 = s1;
-      
+
   while (*s1++)
     ;
   --s1;
@@ -78,12 +77,12 @@ char* strcat(char *s1, const char *s2)
 char* strcpy(char *s1, const char *s2)
 {
   char *os1 = s1;
- 
+
   while (*s1++ = *s2++)
     ;
   return (os1);
 }
- 
+
 /*
  * Copy s2 to s1, truncating or null-padding to always copy n bytes
  * return s1
@@ -92,7 +91,7 @@ char *
 strncpy(char *s1, const char *s2, size_t n)
 {
   char *os1 = s1;
- 
+
   n++;
   while ((--n != 0) && ((*s1++ = *s2++) != '\0'))
     ;
@@ -122,19 +121,19 @@ size_t
 strlen(const char *s)
 {
   const char *s0 = s + 1;
-      
+
   while (*s++ != '\0')
     ;
   return (s - s0);
 }
-     
+
 int
 memcmp(const void *s1, const void *s2, size_t n)
 {
   if (s1 != s2 && n != 0) {
     const unsigned char	*ps1 = s1;
     const unsigned char	*ps2 = s2;
-     
+
     do {
       if (*ps1++ != *ps2++)
 	return (ps1[-1] - ps2[-1]);
@@ -225,7 +224,7 @@ atoi(const char *p)
   int n;
   int c, neg = 0;
   unsigned char	*up = (unsigned char *)p;
- 
+
   if (!isdigit(c = *up)) {
     while (isspace(c))
       c = *++up;
@@ -293,7 +292,7 @@ strstr (s1, s2)
 
 char * getenv(const char * c) {
   return (char*)0;
-} 
+}
 
 
 volatile int any;
@@ -317,7 +316,7 @@ int printf(const char *restrict format, ...)
 int sprintf(char *restrict s, const char *restrict format, ...)
 {
   int i;
-  
+
   for (i = 0; format[i] != '\0'; i++)
     {
       s[i] = format[i];
@@ -363,6 +362,3 @@ ssize_t read(int fd, void *buf, size_t count)
     *ptr++ = any;
   return any;
 }
-
-
-

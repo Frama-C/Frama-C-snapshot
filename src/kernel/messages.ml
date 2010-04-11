@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -32,7 +33,7 @@ module MessageMap =
        let size = 17
        let dependencies = []
      end)
-    
+
 module MessageCounter =
   Computation.Ref
     (struct include Datatype.Int let default () = 0 end)
@@ -46,16 +47,20 @@ let depend s = MessageMap.depend s; MessageCounter.depend s
 let clear () = MessageCounter.clear () ; MessageMap.clear ()
 let iter f = MessageMap.iter f
 
-let enable_collect () =
-  Cilmsg.debug "Enable collection of error messages." ; 
-  let emit e =
-    let c = MessageCounter.get () in
-    MessageMap.add c e ;
-    MessageCounter.set (succ c)
-  in
-  begin
-    Log.add_listener ~kind:[Log.Error;Log.Warning] emit ;
-  end
+let enable_collect =
+  let enabled = ref false in
+  fun () ->
+    if !enabled = false then (
+      enabled := true;
+      Cilmsg.debug "Enable collection of error messages." ;
+      let emit e =
+        let c = MessageCounter.get () in
+        MessageMap.add c e ;
+        MessageCounter.set (succ c)
+      in
+      begin
+        Log.add_listener ~kind:[Log.Error;Log.Warning] emit ;
+      end)
 
 let disable_echo () =
   begin
@@ -63,9 +68,7 @@ let disable_echo () =
     Log.set_echo ~kind:[Log.Error;Log.Warning] false ;
   end
 
-let dump_messages () =
-  MessageMap.iter 
-    (fun _ e -> Log.echo e)
+let dump_messages () = MessageMap.iter (fun _ e -> Log.echo e)
 
 (*
 Local Variables:

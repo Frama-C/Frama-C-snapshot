@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,20 +35,20 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
-
-(* $Id: cil_datatype.mli,v 1.5 2009-02-23 12:52:18 uid562 Exp $ *)
 
 open Cil_types
 open Cilutil
 open Project.Datatype
 
-(** Datatypes of some useful kernel types.
+(** Datatypes of some useful CIL types.
     @plugin development guide *)
 
 (** @plugin development guide *)
 module Varinfo : S with type t = varinfo
+
 module Location : S with type t = location
 
 module Block: S with type t = block
@@ -69,6 +69,15 @@ module Lval: S with type t = lval
 module File: S with type t = file
 module UntypedFiles: S with type t = Cabs.file list
 module InitInfo: S with type t = initinfo
+  (** @deprecated since Boron-20100401 *)
+
+module Initinfo: S with type t = initinfo
+
+module Enuminfo : S with type t = enuminfo
+  (** @since Boron-20100401 *)
+
+module Typeinfo : S with type t = typeinfo
+  (** @since Boron-20100401 *)
 
 (** {3 Hashtables for Cil types} *)
 
@@ -87,16 +96,29 @@ module VarinfoHashtbl(Data:S) :
 
 (** {3 Sets} *)
 
-(** Datatype for a set of statements. *)
+(** Datatype for a set of statements.
+    @plugin development guide *)
 module StmtSet: S with type t = Cilutil.StmtSet.t
 
 (** Datatype for a reference to a set of statements. *)
 module StmtSetRef: S with type t = Cilutil.StmtSet.t ref
 
+(** @since Boron-20100401 *)
+module VarinfoSet: S with type t = Cilutil.VarinfoSet.t
+
+(** @since Boron-20100401 *)
+module EnuminfoSet: S with type t = Cilutil.EnuminfoSet.t
+
+(** @since Boron-20100401 *)
+module TypeinfoSet: S with type t = Cilutil.TypeinfoSet.t
+
 (** {3 Lists} *)
 
 (** Datatype for a set of datatypes. *)
 module StmtList: S with type t = stmt list
+
+(** @since Boron-20100401 *)
+module VarinfoList: S with type t = varinfo list
 
 (** {3 Annotations} *)
 
@@ -105,8 +127,14 @@ module Logic_Info: S with type t = logic_info
 module Builtin_Logic_Info: S with type t = builtin_logic_info
 module Logic_Type_Info: S with type t = logic_type_info
 module Logic_Ctor_Info: S with type t = logic_ctor_info
+
 module Annot_Status: S with type t = annot_status
+  (** @deprecated Boron-20100401 *)
+
 module Annot_Status_List: S with type t = annot_status list
+  (** @deprecated Boron-20100401 *)
+
+module Annotation_Status: S with type t = annotation_status
 
 (*
 module Predicate_Info: S with type t = predicate_info
@@ -114,6 +142,6 @@ module Predicate_Info: S with type t = predicate_info
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

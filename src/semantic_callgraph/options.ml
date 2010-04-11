@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -34,7 +35,8 @@ module Filename =
     (struct
        let option_name = "-scg"
        let arg_name = "filename"
-       let descr = "dump a stratified call graph to the file <filename> in dot format"
+       let descr = "dump the semantic stratified callgraph to the file \
+<filename> in dot format"
      end)
 
 module InitFunc =
@@ -42,7 +44,7 @@ module InitFunc =
     (struct
        let option_name = "-scg-init-func"
        let arg_name = ""
-       let descr = "use the given functions as a root service (you can add as many functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
+       let descr = "use the given functions as a root service for the scg (you can add as many comma-separated functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
      end)
 
 (*

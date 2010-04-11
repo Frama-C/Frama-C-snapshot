@@ -2,8 +2,9 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2009                                               #
-#    CEA (Commissariat à l'Énergie Atomique)                             #
+#  Copyright (C) 2007-2010                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
 #  Lesser General Public License as published by the Free Software       #
@@ -20,11 +21,12 @@
 ##########################################################################
 
 export FRAMAC_INTERNAL=yes
-export FRAMAC_SHARE=$(FRAMAC_SRC)/share
-export FRAMAC_PLUGIN=$(FRAMAC_SRC)/lib/plugins
-export FRAMAC_PLUGIN_GUI=$(FRAMAC_SRC)/lib/gui
-export FRAMAC_OPT=$(FRAMAC_SRC)/bin/toplevel.opt$(EXE)
-export FRAMAC_BYTE=$(FRAMAC_SRC)/bin/toplevel.byte$(EXE)
-export FRAMAC_INCLUDES=$(addprefix -I $(FRAMAC_SRC)/, $(FRAMAC_SRC_DIRS))
-export PTESTS=$(FRAMAC_SRC)/bin/ptests.byte$(EXE)
+#export FRAMAC_SHARE=$(abspath $(FRAMAC_SRC)/share)
+export FRAMAC_PLUGIN_TEST=$(abspath $(FRAMAC_SRC)/lib/plugins)
+export FRAMAC_PLUGIN_GUI_TEST=$(abspath $(FRAMAC_SRC)/lib/plugins/gui)
+export FRAMAC_OPT=$(abspath $(FRAMAC_SRC)/bin/toplevel.opt$(EXE))
+#export FRAMAC_BYTE=$(FRAMAC_SRC)/bin/toplevel.byte$(EXE)
+export FRAMAC_INCLUDES=$(addprefix -I $(FRAMAC_SRC)/, $(FRAMAC_SRC_DIRS) lib)
+export PTESTS=$(abspath $(FRAMAC_SRC)/bin/ptests.byte$(EXE))
 export PLUGIN_LIB_DIR=$(FRAMAC_SRC)/lib/plugins
+export FRAMAC_LIB=$(abspath $(FRAMAC_SRC)/lib/fc)

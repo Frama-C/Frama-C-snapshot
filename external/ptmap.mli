@@ -9,10 +9,14 @@
 (*  under the terms of the Q Public License version 1.0, with the         *)
 (*  change described in the file licences/Q_MODIFIED_LICENSE.             *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
 (**************************************************************************)
 
 (* $Id: ptmap.mli,v 1.4 2008-10-10 13:27:07 uid527 Exp $ *)
+
+val debug: bool ref
 
 module type Tagged_type =
 sig
@@ -23,12 +27,14 @@ sig
   module Datatype : Project.Datatype.S with type t = t
 end
 
-module Generic 
+module Make
   (X:sig 
     type t
     val name : string
     val id: t -> int
     val pretty: Format.formatter -> t -> unit
+    val equal:t -> t-> bool
+    module Datatype : Project.Datatype.S with type t = t
   end) 
   (V : Tagged_type) 
   (Initial_Values : sig val v : (X.t*V.t) list list end) :
@@ -40,6 +46,8 @@ sig
       
   val empty : t
 
+(* the tag is no longer guaranteed to uniquely identify a Patricia tree, so
+this function will be renamed "hash" in the future *)
   val tag : t -> int
   val hash_debug : t -> int
 
@@ -63,10 +71,6 @@ sig
     
   val fold : (X.t -> V.t -> 'b -> 'b) -> t -> 'b -> 'b
     
-  (*val compare : ('a -> 'a -> int) -> t -> t -> int*)
-    
-  (*val equal : ('a -> 'a -> bool) -> t -> t -> bool*)
-    
   val generic_merge : cache:(string * int) -> 
     decide:(X.t -> V.t option -> V.t option -> V.t) -> t -> t -> t
 
@@ -88,7 +92,13 @@ sig
     cache:string * int ->
     f:(key -> V.t -> V.t) -> t -> t
 
+  val is_singleton: t -> (key * V.t) option
+
+  val min_binding: t -> key * V.t
+
   module Datatype : Project.Datatype.S with type t = t
+
+  val pretty : Format.formatter -> t -> unit
 
 end
 

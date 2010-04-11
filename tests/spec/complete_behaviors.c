@@ -13,5 +13,7 @@ int extremum (kind k, int x, int y) {
       ensures \result <= x && \result <= y;
     complete behaviors is_max, is_min;
     disjoint behaviors is_max, is_min;
+    complete behaviors;
+    disjoint behaviors;
 */
 int extremum (kind k, int x, int y);

@@ -26,3 +26,9 @@ void f() {
 
 void g() {
 }
+
+typedef struct _S S;
+/*@ axiomatic S {
+logic S S00;
+logic S1 S0;
+} */

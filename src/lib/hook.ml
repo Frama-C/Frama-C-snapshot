@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -23,26 +24,41 @@
 
 module type S = sig
   type param
-  val extend: (param -> unit) -> unit
-  val apply: param -> unit
+  type result
+  val extend: (param -> result) -> unit
+  val apply: param -> result
   val is_empty: unit -> bool
   val clear: unit -> unit
   val length: unit -> int
 end
 
+module type Iter_hook = S with type result = unit
+
 module Build(P:sig type t end) = struct
   type param = P.t
+  type result = unit
   let hooks = Queue.create ()
   let extend f = Queue.add f hooks
 
   let apply arg = Queue.iter (fun f -> f arg) hooks
     (* [JS 06 October 2008] the following code iter in reverse order without
        changing the order of the queue itself.
-      
+
        let list = ref [] in
        Queue.iter (fun f -> list := f :: !list) hooks;
        List.iter (fun f -> f arg) !list *)
 
+  let is_empty () = Queue.is_empty hooks
+  let clear () = Queue.clear hooks
+  let length () = Queue.length hooks
+end
+
+module Fold(P:sig type t end) = struct
+  type param = P.t
+  type result = P.t
+  let hooks = Queue.create ()
+  let extend f = Queue.add f hooks
+  let apply arg = Queue.fold (fun arg f -> f arg) arg hooks
   let is_empty () = Queue.is_empty hooks
   let clear () = Queue.clear hooks
   let length () = Queue.length hooks

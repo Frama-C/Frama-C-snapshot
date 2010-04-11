@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,8 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val make : packing:(GObj.widget -> unit) -> GSourceView.source_view
+(** The Frama-C source viewer.
+    That is the buffer where Frama-C puts its pretty-printed AST. *)
 
-val buffer : unit -> GSourceView.source_buffer
+val make : packing:(GObj.widget -> unit) -> GSourceView2.source_view
+  (** Build a new source viewer. *)
+
+val buffer : unit -> GSourceView2.source_buffer
+  (** Return the buffer displaying the pretty-printed AST. *)
 
 

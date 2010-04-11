@@ -1,11 +1,3 @@
-/*  run.config
-OPT: -wp-builtin-why-file -wp-debug 2
-DONTRUN:
-OPT: -wp-mm 0 -wp-debug 1 -journal-disable -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-mm 0 -wp-debug 2 -journal-disable -wp-proof
-*/
 
 // Be carreful : this is not the real definition (TODO : change that)
 int * NULL = (int*) 0;
@@ -61,3 +53,4 @@ int stmt_contract (int n) {
 
   return s;
 }
+int main (void) { return 0 ; }

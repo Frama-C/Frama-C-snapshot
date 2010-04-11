@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,19 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Kernel parameters and access to the plug-in parameters.
+(** Kernel parameters and generic access to plug-in parameters.
     @since Beryllium-20090601-beta1 *)
 
 open Plugin
 
-val check_range: string -> min:int -> max:int -> int -> unit
-  (** @since Beryllium-20090601-beta1 
-      @deprecated Beryllium-20090601-beta1+dev *)
-
-val get_selection_context: unit -> Project.Selection.t
-  (** Selection of all the options which define the context of analyses. *)
-
-(** {2 Access to plug-in parameters} *)
+(* ************************************************************************* *)
+(** {2 Generic access to plug-in parameters} *)
+(* ************************************************************************* *)
 
 (** Module to use for accessing parameters of plug-ins. *)
 module Dynamic : sig
@@ -67,11 +63,10 @@ module Dynamic : sig
   (** Set of string parameters. *)
   module StringSet : sig
     include Common with type t = Cilutil.StringSet.t
-    val add : string -> string  -> unit
-    val add_set : string -> string -> unit
-    val is_empty : string -> bool
-    val iter :string -> (string -> unit) -> unit
-      (*      val fold: string -> (string -> 'a -> 'a) -> 'a -> 'a*)
+    val add: string -> string  -> unit
+    val remove: string -> string -> unit
+    val is_empty: string -> bool
+    val iter: string -> (string -> unit) -> unit
   end
 (*
     module IndexedVal(X: sig val ty_name: string end) : sig
@@ -84,106 +79,203 @@ module Dynamic : sig
 
 end
 
-(** {2 Kernel parameters} *)
+(* ************************************************************************* *)
+(** {2 General purpose options} *)
+(* ************************************************************************* *)
 
-module AddPath : STRING_SET
-module LoadModule : STRING_SET
-module LoadScript : STRING_SET
+val check_range: string -> min:int -> max:int -> int -> unit
+  (** @since Beryllium-20090601-beta1
+      @deprecated Beryllium-20090901 *)
+
+val get_selection_context: unit -> Project.Selection.t
+  (** Selection of all the parameters which define the context of analyses. *)
+
+(* ************************************************************************* *)
+(** {2 Installation Information} *)
+(* ************************************************************************* *)
+
 module PrintVersion: BOOL
+  (** Behavior of option "-version" *)
+
 module PrintShare: BOOL
+  (** Behavior of option "-print-share-path" *)
+
 module PrintLib: BOOL
+  (** Behavior of option "-print-lib-path" *)
+
 module PrintPluginPath: BOOL
+  (** Behavior of option "-print-plugin-path" *)
+
+(* ************************************************************************* *)
+(** {2 Output Messages} *)
+(* ************************************************************************* *)
+
+module GeneralVerbose: INT
+  (** Behavior of option "-verbose" *)
+
+module GeneralDebug: INT
+  (** Behavior of option "-debug" *)
+
+module Quiet: BOOL
+  (** Behavior of option "-quiet" *)
+
+module UseUnicode: BOOL
+  (** Behavior of option "-unicode"
+      @plugin development guide *)
+
+module Time: STRING
+  (** Behavior of option "-time" *)
+
+(* ************************************************************************* *)
+(** {2 Input / Output Source Code} *)
+(* ************************************************************************* *)
+
+module PrintCode : BOOL
+  (** Behavior of option "-print" *)
+
+module PrintComments: BOOL
+  (** Behavior of option "-keep-comments" *)
+
+(** Behavior of option "-ocode" *)
 module CodeOutput : sig
   include STRING
   val output: ('a,Format.formatter,unit) format -> 'a
 end
-module UseUnicode: BOOL
-  (** @plugin development guide *)
+
+module Obfuscate: BOOL
+  (** Behavior of option "-obfuscate" *)
+
+module FloatDigits: INT
+  (** Behavior of option "-float-digits" *)
+
+module FloatRelative: BOOL
+  (** Behavior of option "-float-relative" *)
+
+module FloatHex: BOOL
+  (** Behavior of option "-float-hex" *)
+
+(* ************************************************************************* *)
+(** {2 Save/Load} *)
+(* ************************************************************************* *)
 
 module SaveState: STRING
-module LoadState: STRING
-module Time: STRING
+  (** Behavior of option "-save" *)
 
+module LoadState: STRING
+  (** Behavior of option "-load" *)
+
+module AddPath: STRING_SET
+  (** Behavior of option "-add-path" *)
+
+module LoadModule: STRING_SET
+  (** Behavior of option "-load-module" *)
+
+module LoadScript: STRING_SET
+  (** Behavior of option "-load-script" *)
+
+module Dynlink: BOOL
+  (** Behavior of option "-dynlink" *)
+
+(** Parameters for journalization. *)
+module Journal: sig
+
+  module Enable: BOOL
+    (** Behavior of option "-journal-enable" *)
+
+  module Name: STRING
+    (** Behavior of option "-journal-name" *)
+
+end
+
+(* ************************************************************************* *)
+(** {2 Customizing Normalization} *)
+(* ************************************************************************* *)
+
+module UnrollingLevel: INT
+  (** Behavior of option "-ulevel" *)
+
+(** Behavior of option "-machdep".
+    If function [set] is called, then {!File.prepare_from_c_files} must be
+    called for well preparing the AST. *)
+module Machdep: STRING
+
+module CppCommand: STRING
+  (** Behavior of option "-cpp-command" *)
+
+module CppExtraArgs: STRING_SET
+  (** Behavior of option "-cpp-extra-args" *)
+
+module ReadAnnot: BOOL
+  (** Behavior of option "-read-annot" *)
+
+module PreprocessAnnot: BOOL
+  (** Behavior of option "-pp-annot" *)
+
+module TypeCheck: BOOL
+  (** Behavior of option "-type-check" *)
+
+module ContinueOnAnnotError: BOOL
+  (** Behavior of option "-continue-annot-error" *)
+
+module SimplifyCfg: BOOL
+  (** Behavior of option "-simplify-cfg" *)
+
+module KeepSwitch: BOOL
+  (** Behavior of option "-keep-switch" *)
+
+module Constfold: BOOL
+  (** Behavior of option "-constfold" *)
+
+(** Analyzed files *)
+module Files: sig
+
+  include STRING_LIST
+    (** List of files to analyse *)
+
+  module Check: BOOL
+    (** Behavior of option "-check" *)
+
+  module Copy: BOOL
+    (** Behavior of option "-copy" *)
+
+  module Orig_name: BOOL
+    (** Behavior of option "-orig-name" *)
+
+end
+
+(* ************************************************************************* *)
+(** {2 Analysis Behavior of options} *)
+(* ************************************************************************* *)
+
+(** Behavior of option "-main" *)
 module MainFunction: sig
   include STRING
   val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
+(** Behavior of option "-lib-entry" *)
 module LibEntry: sig
   include BOOL
   val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
-module Machdep: sig
-  include STRING
-    (** If [set] is called, then {!File.prepare_from_c_files} must be
-	called for well preparing the AST. *)
-  val unsafe_set: t -> unit (** Not for casual users. *)
-end
-
-include Plugin.S
-
-(** Parameters for journalization. *)
-module Journal: sig
-  module Enable: BOOL
-  module Name: STRING
-end
-
-module PrintCode : BOOL
-
-module SimplifyCfg: BOOL
-  (** Call Cil.prepareCFG on all functions. Removes
-      break, continue and switch statemement *)
-
-module KeepSwitch: BOOL
-  (** Allows to keep switch statements, even if -simplify-cfg is used. *)
-
-module PrintComments: BOOL
-module UnrollingLevel: INT
-module Constfold: BOOL
-module Obfuscate: BOOL
-
-(** {3 Parameters for files} *)
-
-module CppCommand: STRING
-module CppExtraArgs: STRING_SET
-module ReadAnnot: BOOL
-module PreprocessAnnot: BOOL
-
-module TypeCheck: BOOL (** Performs type-checking. *)
-module ContinueOnAnnotError: BOOL
-  (** Do not stop for type-checking errors in annotations. *)
-
-module Files: sig
-  include STRING_LIST
-  module Check: BOOL
-  module Copy: BOOL
-  module Orig_name: BOOL
-end
-
-
-(** Parameters for analysis (should be used by all relevant plug-ins 
-    for consistency *)
-
-module AbsoluteValidRange: Plugin.STRING
-  (** Absolute address out of this range are considered as
-      invalid: this is a threat to write or read at these addresses.
-      Default values imply that all values are valid. *)
-module FloatDigits: INT
-
-(** {3 Value Analysis} *)
+module UnspecifiedAccess: BOOL
+  (** Behavior of option "-unspecified-access" *)
 
 module Overflow: BOOL
-module UnspecifiedAccess: BOOL
-  (** Whether emit alarms related to read/write accesses in
-      UnspecifiedSequence.
-      default to true. *)
+  (** Behavior of option "-overflow" *)
 
 module SafeArrays: BOOL
+  (** Behavior of option "-safe-arrays" *)
 
+module AbsoluteValidRange: Plugin.STRING
+  (** Behavior of option "-absolute-valid-range" *)
+
+module FloatFlushToZero: BOOL
+  (** Behavior of option "-float-flush-to-zero" *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

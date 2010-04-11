@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -198,7 +199,7 @@ let is_valid_offset size base offset =
   hasAttribute "volatile" (typeAttrs vv.vtype)
 *)
 
-let equal v w = compare v w = 0
+let equal v w = (id v) = (id w)
 
 let hash = id
 
@@ -265,10 +266,12 @@ let validity_from_type v =
       assert (Int.eq size Int.zero);
       Unknown (Int.zero, Bit_utils.max_bit_address ())
 
+exception Not_a_variable
+
 let get_varinfo t =
   match t with
   | Var (t,_) | Initialized_Var (t,_) -> t
-  | _ -> assert false
+  | _ -> raise Not_a_variable
 
 let create_varinfo varinfo =
   assert (not varinfo.vlogic);
@@ -299,7 +302,7 @@ module LiteralStrings =
 	 end))
     (struct
        let name = name
-       let dependencies = []
+       let dependencies = [Ast.self]
        let size = 17
      end)
 

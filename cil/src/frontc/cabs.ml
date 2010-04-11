@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (** This file was originally part of Hugues Casee's frontc 2.0, and has been
@@ -174,7 +175,7 @@ and definition =
  | TRANSFORMER of definition * definition list * cabsloc
  (* expression transformer: source and destination *)
  | EXPRTRANSFORMER of expression * expression * cabsloc
- | GLOBANNOT of (cabsloc * Logic_ptree.decl) list
+ | GLOBANNOT of Logic_ptree.decl list
      (** Logical declaration (axiom, logic, etc.)*)
 
 (* the string is a file name, and then the list of toplevel forms *)

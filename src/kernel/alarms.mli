@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: alarms.mli,v 1.15 2008-11-18 12:13:41 uid568 Exp $ *)
 
 (** Alarm Database.
     @plugin development guide *)
@@ -39,13 +38,19 @@ type t =
 val pretty : Format.formatter -> t -> unit
 val register: Cil_types.kinstr -> t -> Cil_types.code_annotation -> bool
 val clear: unit -> unit
-val fold: (Cil_types.kinstr -> (t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
-val fold_kinstr: Cil_types.kinstr -> ((t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
+
+val iter: (Cil_types.kinstr -> (t * Cil_types.code_annotation) -> unit) -> unit
+
+val fold: 
+  (Cil_types.kinstr -> (t * Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
+
+val fold_kinstr: 
+  Cil_types.kinstr -> ((t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
 
 val self: Project.Computation.t
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

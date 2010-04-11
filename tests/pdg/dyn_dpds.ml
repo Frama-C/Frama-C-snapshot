@@ -7,7 +7,7 @@ zgrviewer tests/pdg/dyn_dpds_2.dot ;
 
 let get_zones str_data (kinst, kf) =
   let lval_term = !Db.Properties.Interp.lval kf kinst str_data in
-  let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
+  let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let loc =
     !Db.From.find_deps_no_transitivity
       (Cil_types.Kstmt kinst)
@@ -17,12 +17,12 @@ let get_zones str_data (kinst, kf) =
 ;;
 
 let main _ =
-  let memo_debug = Parameters.Debug.get () in
-  Parameters.Debug.set 1;
+  let memo_debug = Kernel.Debug.get () in
+  Kernel.Debug.set 1;
   let files = Ast.get () in
   Format.printf "@[%a@]" (Cil.d_file (new Printer.print ())) files;
 
-  Parameters.Debug.set memo_debug ;
+  Kernel.Debug.set memo_debug ;
 
   let kf =  Globals.Functions.find_def_by_name "main" in
   let pdg = !Db.Pdg.get kf in

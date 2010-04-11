@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: kernel_function.mli,v 1.19 2009-02-23 12:52:19 uid562 Exp $ *)
 
 (** Operations on kernel function.
     @plugin development guide *)
@@ -43,14 +42,6 @@ module Datatype: Project.Datatype.S with type t = kernel_function
 (* ************************************************************************* *)
 (** {2 Searching} *)
 (* ************************************************************************* *)
-
-val find_from_sid : int -> stmt * t
-  (** Return the stmt and its kernel function from its identifier.
-      Complexity: the first call to this function is linear in the size of
-      the cil file.
-      @raise Not_found if there is no statement with such an identifier.
-      @plugin development guide *)
-
 exception No_Statement
 val find_first_stmt : t -> stmt
   (** Find the first statement in a kernel function.
@@ -64,6 +55,22 @@ val find_label : t -> string -> stmt ref
   (** Find a given label in a kernel function.
       @raise Not_found if the label does not exist in the given function. *)
 
+(** removes any information related to statements in kernel functions.
+    ({i.e.} the table used by the function below).
+    - Must be called when the Ast has silently changed
+    (e.g. with an in-place visitor) before calling one of
+    the functions below
+    - Use with caution, as it is very expensive to re-populate the table.
+ *)
+val clear_sid_info: unit -> unit
+
+val find_from_sid : int -> stmt * t
+  (** Return the stmt and its kernel function from its identifier.
+      Complexity: the first call to this function is linear in the size of
+      the cil file.
+      @raise Not_found if there is no statement with such an identifier.
+      @plugin development guide *)
+
 val find_enclosing_block: stmt -> block
   (** returns the innermost block to which the given statement belongs. *)
 
@@ -73,7 +80,7 @@ val find_all_enclosing_blocks: stmt -> block list
    *)
 
 val blocks_closed_by_edge: stmt -> stmt -> block list
-  (** [edge_exits_block kf s1 s2] returns the (possibly empty)
+  (** [blocks_closed_by_edge s1 s2] returns the (possibly empty)
       list of blocks that are closed when going from [s1] to [s2].
       @raise Invalid_argument if the statements do not belong to the
       same function or are not adjacent in the cfg.
@@ -114,6 +121,12 @@ val is_formal: varinfo -> t -> bool
       function. If possible, use this function instead of
       {!Ast_info.Function.is_formal}. *)
 
+val get_formal_position: varinfo -> t -> int
+  (** [get_formal_position v kf]
+      returns the position of [v] as parameter of [kf].
+      @raise Not_found if [v] is not a formal of [kf].
+   *)
+
 val is_local : varinfo -> t -> bool
   (** Return [true] if the given varinfo is a local variable of the given
       function. If possible, use this function instead of
@@ -130,8 +143,14 @@ val is_formal_or_local: varinfo -> t -> bool
 (* ************************************************************************* *)
 
 val get_spec: t -> funspec
-val postcondition : t -> predicate named
+
+val postcondition : t -> Cil_types.termination_kind -> predicate named
+  (** @modify Boron-20100401 added argument to select desired
+      termination kind*)
+
 val precondition: t -> predicate named
+
+val code_annotations: t -> (stmt*rooted_code_annotation before_after) list
 
 val populate_spec: (t -> unit) ref
   (** Should not be used by casual users. *)
@@ -148,7 +167,7 @@ module Make_Table(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS):
 (** Set of kernel functions. *)
 module Set : sig
 
-  include Set.S with type elt = t
+  include Ptset.S with type elt = t
 
   module Datatype : Project.Datatype.S with type t = t
     (** Datatype corresponding to a set of kernel functions. *)
@@ -171,8 +190,7 @@ end
 
 val register_stmt: t -> stmt -> block list -> unit
   (** Register a new statement in a kernel function, with the list of
-      blocks that contain the statement (innermost first)
-   *)
+      blocks that contain the statement (innermost first). *)
 
 (* ************************************************************************* *)
 (** {2 Pretty printer} *)
@@ -183,6 +201,6 @@ val pretty_name : Format.formatter -> t -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

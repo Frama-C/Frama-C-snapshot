@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,14 +20,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.14 2009-01-28 14:34:55 uid568 Exp $ *)
-
+open Log
+open Format
+open Lexing
 open Cil
 open Cil_types
 open Cilutil
 open Db.Metrics
 
 let name = "metrics"
+
+type int8 = int*int*int*int*int*int*int*int
 
 module LastResult =
   Computation.OptionRef
@@ -91,26 +95,188 @@ let dump () =
   try
     let cout = open_out_bin filename in
     let fmt = Format.formatter_of_out_channel cout in
-    pretty fmt;
-    close_out cout
+      pretty fmt;
+      close_out cout
   with Sys_error _ as e ->
     Metrics_parameters.warning "Cannot open file \"%s\" for dumping metrics: %s"
       filename (Printexc.to_string e)
 
-class slocVisitor = object
+let null_position : Lexing.position =
+  {pos_fname=""; pos_lnum=0; pos_bol=0; pos_cnum=0}
+
+let null_location : Cil_types.location =
+  (null_position, null_position)
+
+let fun_equal (a:global) (b:global) =
+  match a with
+      GFun (af,_) ->
+	begin
+	  match b with
+	      GFun (bf,_) -> (af == bf)
+	    | _ -> false
+	end
+    | _ -> false
+
+let file_of glob =
+  (* returns the file name to which belongs glob *)
+  let res = ref "" in
+  let all_files = Globals.FileIndex.get_files () in
+    begin
+      for j = 0 to (List.length all_files)-1 do
+	let f = (List.nth all_files j) in
+        let (_,globs) = Globals.FileIndex.find f in
+	  for i = 0 to (List.length globs)-1 do
+	    let elt = ((List.nth globs i) :> global) in
+	      if (fun_equal elt glob) then
+		res:=f
+	    done
+	done;
+	!res
+    end
+
+let image_int8 (a:int8) =
+  let (a1,a2,a3,a4,a5,a6,a7,a8) = a in
+    "(" ^ (string_of_int a1) ^ "," ^
+      (string_of_int a2) ^ "," ^
+      (string_of_int a3) ^ "," ^
+      (string_of_int a4) ^ "," ^
+      (string_of_int a5) ^ "," ^
+      (string_of_int a6) ^ "," ^
+      (string_of_int a7) ^ "," ^
+      (string_of_int a8) ^ ")"
+
+let plus (a:int8) (b:int8) =
+  let (a1,a2,a3,a4,a5,a6,a7,a8) = a in
+  let (b1,b2,b3,b4,b5,b6,b7,b8) = b in
+    (a1+b1,a2+b2,a3+b3,a4+b4,a5+b5,a6+b6,a7+b7,a8+b8)
+
+class slocVisitor = object(self)
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit ())
+  val mutable current_file_name:string = ""
+  val mutable current_function_name:string = ""
   val mutable sloc = 0
   val mutable ifs = 0
   val mutable loops = 0
   val mutable calls = 0
   val mutable gotos = 0
   val mutable assigns = 0
+  val mutable exits = 0
+  val mutable funcs = 0
+    (* table of all statistics per module and per function:
+       stats(file,f) = (#ifs, #assign, #loop, #calls, #gotos, #pointers, #exits, cyclo)
+    *)
+  val mutable stats:
+    (string*string*(int*int*int*int*int*int*int*int)) list ref = ref []
+
+  method stats_of_fic f =
+    (* get only the stats that are relative to file fic. remove them
+       from stats and return them *)
+    let prop element =
+      let (fic,_,_) = element in
+      (f=fic)
+    in
+    let (good, bad) = (List.partition prop !stats) in
+    stats <- ref bad;
+    good
+
+  method complete_stats () =
+    (* When using this visitor no cyclomatic complexity is calculated
+       during the traversal of the AST. It has to be calculated AFTER
+       cisiting the entire global function. We revisit on site every tuple
+       of stats and calculate the last item. *)
+    let tout = !stats in
+    if tout <> [] then
+      let res = ref [] in
+      let do_it e =
+	let (fic,func,(a,b,c,d,e,f,g,h)) = e in
+	begin
+	  if h <> 0 then
+	    prerr_endline "metrics.complete_stats ERROR";
+	  res := List.append !res [(fic,func,(a,b,c,d,e,f,g,a+c-g+2))]
+	end
+      in List.iter do_it tout;
+      stats := !res
+
+  method print_stats fmt =
+    let print_item e =
+      let _, func, (a,b,c,d,e,f,g,h) = e in
+      Metrics_parameters.debug
+	"stats: func: %s
+val: ifs %d
+     assigns %d
+     loops %d
+     calls %d
+     gotos %d
+     mems %d
+     exits %d
+     cyclo %d"
+	func a b c d e f g h;
+      fprintf fmt "<tr>\n";
+      fprintf fmt "<td> %s </td>\n" func;
+      fprintf fmt "<td> %d </td>\n" a;
+      fprintf fmt "<td> %d </td>\n" b;
+      fprintf fmt "<td> %d </td>\n" c;
+      fprintf fmt "<td> %d </td>\n" d;
+      fprintf fmt "<td> %d </td>\n" e;
+      fprintf fmt "<td> %d </td>\n" f;
+      fprintf fmt "<td> %d </td>\n" g;
+      fprintf fmt "<td> %d </td>\n" h;
+      fprintf fmt "</tr>\n";
+    in
+    while List.length !stats > 0 do
+      let first = List.hd !stats in
+      let (fic,_,_) = first in
+      let fic_stats = (self#stats_of_fic fic) in
+      (* print header specific to fic *)
+      fprintf fmt "<h3> %s </h3>\n" fic;
+      fprintf fmt "	<br>\n";
+      fprintf fmt "<table style=\"width: 252px; height: 81px;\" border=\"1\">\n";
+      fprintf fmt "  <tbody>\n";
+      fprintf fmt "    <tr>\n";
+      fprintf fmt "      <th>Function</th>\n";
+      fprintf fmt "      <th>#If stmts<br>\n";
+      fprintf fmt "      <th>#Assignments<br>\n";
+      fprintf fmt "      <th>#Loops<br>\n";
+      fprintf fmt "      <th>#Calls<br>\n";
+      fprintf fmt "      <th>#Gotos<br>\n";
+      fprintf fmt "      <th>#Pointer accesses<br>\n";
+      fprintf fmt "      <th>#Exits<br>\n";
+      fprintf fmt "      <th>Cyclomatic value<br>\n";
+      fprintf fmt "      </th>\n";
+      fprintf fmt "    </tr>\n";
+      List.iter print_item fic_stats;
+      (* print trailer specific to fic *)
+      fprintf fmt "  </tbody>\n";
+      fprintf fmt "</table>\n"
+    done
+
+  method add_item (a:string) (b:string) (c:int8) l =
+    (* add a new item to the list stats *)
+    if (List.length l) = 0 then
+      [(a,b,c)]
+    else (* there's at least 1 element *)
+      let premier = (List.hd l) in
+      let (x,y,z) = premier in
+      let reste = (List.tl l) in
+      if (x,y)=(a,b) then
+	List.append [(x,y,(plus c z))] reste
+      else
+	List.append [premier] (self#add_item a b c reste)
+
+  method add_stat (a,b,c) =
+    (* add one new item to stats *)
+    stats := (self#add_item a b c !stats)
+
   method assigns = assigns
   method calls = calls
   method gotos = gotos
   method loops = loops
   method ifs = ifs
+  method exits = exits
+  method funcs = funcs
+  val mutable standalone = true
+  method set_standalone v = begin standalone <- v end
   val mutable mem_access = 0
   method mem_access = mem_access
   val functions_no_source = VarinfoHashtbl.create 97
@@ -125,6 +291,10 @@ class slocVisitor = object
     DoChildren
 
   method vfunc fdec =
+    current_file_name <- file_of (GFun (fdec, null_location));
+    current_function_name <- fdec.svar.vname;
+    self#add_stat (current_file_name,current_function_name,(0,0,0,0,0,0,0,0));
+    funcs <- funcs+1;
     let n =
       try
 	let n = VarinfoHashtbl.find functions_no_source fdec.svar in
@@ -143,7 +313,8 @@ class slocVisitor = object
   method vlval (host,_) =
     begin
       match host with
-      | Mem _ -> mem_access <- mem_access + 1
+      | Mem _ -> mem_access <- mem_access + 1;
+	  self#add_stat (current_file_name,current_function_name,(0,0,0,0,0,1,0,0))
       | _ -> ()
     end;
     DoChildren
@@ -152,33 +323,112 @@ class slocVisitor = object
   method vstmt s =
     sloc <- sloc + 1 ;
     begin match s.skind with
-    | If _ -> ifs <- ifs + 1
-    | Loop _ -> loops <- loops + 1
-    | Goto _ -> gotos <- gotos + 1
+    | If _ ->
+	ifs <- ifs + 1;
+	self#add_stat (current_file_name,current_function_name,(1,0,0,0,0,0,0,0))
+    | Loop _ ->
+	loops <- loops + 1;
+	self#add_stat (current_file_name,current_function_name,(0,0,1,0,0,0,0,0))
+    | Goto _ ->
+	gotos <- gotos + 1;
+	self#add_stat (current_file_name,current_function_name,(0,0,0,0,1,0,0,0))
+    | Return _ ->
+	exits <- exits + 1;
+	self#add_stat (current_file_name,current_function_name,(0,0,0,0,0,0,1,0))
     | _ -> ()
     end;
     DoChildren
+
+  method find_global_function (v:varinfo) =
+    (* return a pair (found,spec_or_body) *)
+    let found:bool ref = ref false in
+    let spec:bool ref = ref false in
+    iterGlobals (Ast.get()) (
+      function glob ->
+	match glob with
+	| GFun (s,_) -> (* function with code *)
+	    if (s.svar==v) then found:=true;spec:=false
+	| GVarDecl (_,s,_) -> (* function w/o code *)
+	    if (s==v) then found:=true;spec:=true
+	| _ -> ());
+    (!found,!spec)
+
+  method image (glob:global) =
+    (* extract just the name of the global , for printing purposes *)
+    match glob with
+    | GVar (v,_,_) -> v.vname ^ " (GVar) "
+    | GVarDecl (_,v,_) -> v.vname ^ " (GVarDecl) "
+    | GFun (fdec, _) -> fdec.svar.vname ^ " (GFun) "
+    | GType (ty, _) -> ty.tname
+    | GCompTag (ci, _) | GCompTagDecl (ci, _) -> ci.cname
+    | GEnumTagDecl (ei,_) | GEnumTag (ei,_) -> ei.ename
+    | GAsm (_,_) | GPragma _ | GText _ -> ""
+    | GAnnot (an,_) ->
+	match an with
+	  Dfun_or_pred (li) -> li.l_var_info.lv_name
+	| Daxiomatic (s,_) -> s
+	| Dtype (lti) ->  lti.lt_name
+	| Dlemma (ln, _, _, _, _) ->  ln
+	| Dinvariant (toto) -> toto.l_var_info.lv_name
+	| Dtype_annot (ta) -> ta.l_var_info.lv_name
+
+  method images (globs:global list) =
+    (* extract just the names of the globals, for printing purposes *)
+    let les_images = List.map self#image globs in
+    String.concat "," les_images
+
+  method print_all =
+    prerr_endline ("* print_all");
+    let all_files = Globals.FileIndex.get_files () in
+    let print_one fic =
+      let (_,glob) = Globals.FileIndex.find fic in
+      prerr_endline ("* " ^ fic ^ " : " ^ (self#images glob))
+    in
+    List.iter print_one all_files
 
   method vinst i =
     begin match i with
     | Call(_, e, _, _) ->
 	calls <- calls + 1;
+	self#add_stat (current_file_name,current_function_name,(0,0,0,1,0,0,0,0));
 	(match e.enode with
 	 | Lval(Var v, NoOffset) ->
 	     let next tbl =
 	       VarinfoHashtbl.replace tbl v (succ (VarinfoHashtbl.find tbl v))
-	     in begin
-	       try next functions_with_source
+	     in
+	     begin
+	       try next functions_with_source;
 	       with Not_found ->
-		 try next functions_no_source
+		 try next functions_no_source;
 		 with Not_found ->
-		   Metrics_parameters.fatal "Got no source for %s" v.vname
+		   (* if this iterator is called on a specific global
+		      function only, it might not find the target of this call
+		      so we check if this function is w/ or w/o source and
+		      add 1 to the number of calls accordingly.
+		   *)
+		   (* self#print_all; *)
+		   if not standalone then
+		     let (ya,codeless) = self#find_global_function v in
+		     if ya then
+		       begin
+			 if codeless then
+			   VarinfoHashtbl.replace functions_with_source v 0
+			 else
+			   VarinfoHashtbl.replace functions_no_source v 0
+		       end
+		     else
+		       Metrics_parameters.fatal "Got no source for %s" v.vname
+		   else
+		     Metrics_parameters.fatal "Got no source for %s" v.vname
 	     end
-	 | _ -> ())
-    | Set _ -> assigns <- succ assigns
-    | _ -> ()
-    end;
-    DoChildren
+	 | _ -> ());
+	DoChildren
+    | Set _ ->
+	assigns <- succ assigns;
+	self#add_stat (current_file_name,current_function_name,(0,1,0,0,0,0,0,0));
+	DoChildren
+    | _ ->     DoChildren
+    end
 
 end
 
@@ -277,19 +527,66 @@ end
 
 let compute () =
   let file = Ast.get () in
-  let v = new slocVisitor in
-  visitCilFileSameGlobals (v:>cilVisitor) file;
-  LastResult.set
-    { call_statements = v#calls;
-      goto_statements = v#gotos;
-      assign_statements = v#assigns;
-      if_statements = v#ifs;
-      mem_access = v#mem_access;
-      loop_statements = v#loops;
-      sloc = v#sloc;
-      functions_without_source =  v#functions_no_source;
-      functions_with_source =  v#functions_with_source;
-    }
+    let v = new slocVisitor in
+      v#set_standalone true; (* measure the entire code *)
+      visitCilFileSameGlobals (v:>cilVisitor) file;
+      v#complete_stats ();
+      LastResult.set
+	{ call_statements = v#calls;
+	  goto_statements = v#gotos;
+	  assign_statements = v#assigns;
+	  if_statements = v#ifs;
+	  mem_access = v#mem_access;
+	  loop_statements = v#loops;
+	  function_definitions = v#funcs;
+	  sloc = v#sloc;
+	  functions_without_source =  v#functions_no_source;
+	  functions_with_source =  v#functions_with_source;
+	  cyclos = (v#ifs +v#loops) - v#exits +2*v#funcs
+	 };
+      (* print results on HTML file *)
+      let cout = open_out "metrics.html" in
+      let fmt = formatter_of_out_channel cout in
+	(* header *)
+	fprintf fmt "<!DOCTYPE HTML PUBLIC >\n";
+	fprintf fmt "<html>\n";
+	fprintf fmt "<head>\n";
+	fprintf fmt "</head>\n";
+	fprintf fmt "<body>\n";
+	fprintf fmt "<div style=\"text-align: left;\">\n";
+	fprintf fmt "<h1><span style=\"font-weight: bold;\">Metrics</span></h1>\n";
+	fprintf fmt "<h2>Synthetic results</h2>\n";
+	fprintf fmt "<br>\n";
+	(* *)	(* global stats *)
+	fprintf fmt "<span style=\"font-weight: bold;\">Defined function</span> (%d):<br>\n"
+	  (VarinfoHashtbl.length v#functions_with_source);
+	(* *)
+	fprintf fmt "@[&nbsp; %a@]@ <br>\n" pretty_set v#functions_with_source;
+	fprintf fmt "<br>\n";
+	fprintf fmt "<span style=\"font-weight: bold;\">Undefined functions</span> (%d):<br>\n" (VarinfoHashtbl.length v#functions_no_source);
+	(* *)
+	fprintf fmt "@[&nbsp; %a@]@ <br>\n" pretty_set v#functions_no_source;
+	fprintf fmt "<br>\n";
+	(* *)
+	fprintf fmt "<span style=\"font-weight: bold;\">Potential entry points</span> (%d):<br>\n" (number_entry_points v#functions_with_source);
+	(* *)
+	fprintf fmt "@[&nbsp; %a@]@ <br>\n" pretty_entry_points v#functions_with_source;
+	fprintf fmt "<br>\n";
+	(* TBD other gloabl stats *)
+	fprintf fmt "<span style=\"font-weight: bold;\">SLOC:</span> (%d)<br>\n" v#sloc;
+	fprintf fmt "<span style=\"font-weight: bold;\">Number of if statements:</span> (%d)<br>\n" v#ifs;
+	fprintf fmt "<span style=\"font-weight: bold;\">Number of assignments:</span> (%d)<br>\n" v#assigns;
+	fprintf fmt "<span style=\"font-weight: bold;\">Number of loops:</span> (%d)<br>\n" v#loops;
+	fprintf fmt "<span style=\"font-weight: bold;\">Number of calls:</span> (%d)<br>\n" v#calls;
+	fprintf fmt "<span style=\"font-weight: bold;\">Number of gotos:</span> (%d)<br>\n" v#gotos;
+	fprintf fmt "<span style=\"font-weight: bold;\">Number of pointer access:</span> (%d)<br>\n" v#mem_access;
+	fprintf fmt "<br>\n";
+	fprintf fmt "<h2>Detailed results</h2>\n";
+	fprintf fmt "<br>\n";
+	(* detailed stats *)
+	v#print_stats fmt;
+	close_out cout;
+	Metrics_parameters.feedback "Metrics printed to file metrics.html"
 
 let main () =
   if Metrics_parameters.is_on () then begin

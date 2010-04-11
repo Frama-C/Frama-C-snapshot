@@ -17,3 +17,4 @@ int int_of_color (enum Color col) {
   }
   return x;
 }
+int main (void) { return 0 ; }

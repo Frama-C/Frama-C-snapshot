@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -20,11 +21,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-include "bool.why"
-include "integer.why"
-include "real.why"
-include "arrays.why"
 
 (* struct field of type 'f *)
 type 'f field
@@ -61,6 +57,8 @@ axiom acc_upd_field_neq : forall s : 'a.
   neq_field (f1, f2) ->
   acc_field (upd_field (s, f2, x), f1) = acc_field (s, f1)
 
+(* From 'why' : logic array_length :  'a farray -> int *)
+
 (* acc_index (t, i) ==== t.[.(i)] *)
 logic acc_index : 'a farray , int -> 'a
 
@@ -95,8 +93,8 @@ logic sub_ptr : 'a pointer, 'a pointer -> int
 axiom shift_zero : forall p:'a pointer. shift_pointer(p,0) = p
 
 axiom shift_not_zero :
-  forall p:'a pointer. forall i:int. shift_pointer (p, i) <> p
-axiom shift_neq : forall p:'a pointer. forall i, j:int.
+  forall p:'a pointer. forall i:int. i<>0 -> shift_pointer (p, i) <> p
+axiom shift_neq : forall p:'a pointer. forall i, j:int. i<>j ->
     shift_pointer (p, i) <> shift_pointer (p, j)
 
 axiom shift_shift_pointer :
@@ -104,6 +102,16 @@ axiom shift_shift_pointer :
       forall i,j:int .
       shift_pointer(shift_pointer(p,i),j) 
     = shift_pointer(p, add_int (i,j))
+
+axiom shift_index_shift_pointer :
+  forall pt:'a farray pointer. forall i,j:int.
+  shift_pointer(shift_index(pt,i), j)
+  = shift_index(pt, add_int (i,j))
+
+logic alloc : int, 't pointer -> 't pointer
+
+axiom base_alloc :
+  forall i:int. forall p:'t pointer. int_base_addr (alloc (i, p)) = i
 
 axiom base_neq : forall p1 : 't pointer. forall p2 : 't pointer.
   int_base_addr (p1) <> int_base_addr (p2) -> p1 <> p2

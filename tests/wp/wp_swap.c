@@ -3,7 +3,6 @@ int G;
 void main(int a, int b) {
   if (a > b) { int tmp = a; a = b; b = tmp; }
   /*@ assert  a <= b; */
-
 }
 
 void main1( int a, int b, int c, int d) {

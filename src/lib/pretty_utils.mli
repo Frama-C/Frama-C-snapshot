@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -27,6 +28,9 @@
 val sfprintf: ('a,Format.formatter,unit,string) format4 -> 'a
 
 (** {2 separators} *)
+
+(** do nothing *)
+val no_sep: (unit,Format.formatter,unit) format
 
 (** a breakable space *)
 val space_sep: (unit,Format.formatter,unit) format
@@ -56,7 +60,7 @@ type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
 - the separator between two elements (default: nothing)
 - the suffix to output after a non-empty list (default: close box)
 *)
-val pp_list: ?pre:sformat -> ?sep:sformat -> ?suf:sformat -> 
+val pp_list: ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
   'a formatter -> 'a list formatter
 
 (** pretty prints an array. The optional arguments stands for
@@ -64,7 +68,7 @@ val pp_list: ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
 - the separator between two elements (default: nothing)
 - the suffix to output after a non-empty list (default: close box)
 *)
-val pp_array: ?pre:sformat -> ?sep:sformat -> ?suf:sformat -> 
+val pp_array: ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
   (int,'a) formatter2 -> 'a array formatter
 
 (** pretty-prints an optional value. Prefix and suffix default to nothing.

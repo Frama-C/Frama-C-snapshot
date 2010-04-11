@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -51,8 +52,8 @@ let add_link graph ~prev ~next =
       try
         ignore (Inthash.find graph prev_id)
       with Not_found ->
-        Macros.debug 1 "[lexical successor] add %d -> %d"
-          prev_id s_next.sid;
+        Pdg_parameters.debug "[lexical successor] add %d -> %d"
+	  prev_id s_next.sid;
         Inthash.add graph prev_id s_next
 
 (** Add links from each prev in prev_list to next. *)
@@ -110,8 +111,8 @@ type t = Cil_types.stmt Inthash.t
 
 (** Compute the lexical successor graph for function kf *)
 let compute kf =
-  Macros.debug 1 "[lexical successor] computing for function %s@."
-      (Kernel_function.get_name kf);
+  Pdg_parameters.debug "[lexical successor] computing for function %s@."
+    (Kernel_function.get_name kf);
   let graph = Inthash.create 50 in
   match kf.Db_types.fundec with
     | Db_types.Declaration _ -> graph

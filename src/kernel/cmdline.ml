@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -42,14 +43,13 @@
 
 let debug_level_ref = ref 0
 let verbose_level_ref = ref 1
-let debug_isset_ref = ref false
-let verbose_isset_ref = ref false
 let kernel_debug_level_ref = ref 0
 let kernel_verbose_level_ref = ref 1
-let kernel_debug_isset_ref = ref false
-let kernel_verbose_isset_ref = ref false
+let kernel_debug_atleast_ref = ref (fun n -> !kernel_debug_level_ref >= n)
+let kernel_verbose_atleast_ref = ref (fun n -> !kernel_verbose_level_ref >= n)
 let quiet_ref = ref false
 let journal_enable_ref = ref !Config.is_gui
+let journal_isset_ref = ref false
 let journal_name_ref = ref "frama_c_journal"
 let use_obj_ref = ref true
 let use_type_ref = ref true
@@ -65,8 +65,78 @@ module L =
 include L
 
 (* ************************************************************************* *)
+(** {2 Handling errors} *)
+(* ************************************************************************* *)
+
+let long_plugin_name s =
+  if s = Log.kernel_label_name then "Frama-C" else "Plug-in " ^ s
+
+let additional_info () =
+  if !Config.is_gui then
+    "\nLook at the console for additional information (if any)."
+  else
+    ""
+
+let get_backtrace () =
+  try "The full backtrace is:\n" ^ Printexc_common_interface.get_backtrace ()
+  with Printexc_common_interface.No_backtrace ->
+    "No backtrace available (ocaml version is lower than 3.11.0)"
+
+let protect = function
+  | Sys.Break -> "User Interruption (Ctrl-C)"
+  | Sys_error s ->
+      Printf.sprintf "%s\nSystem error: %s"
+	(get_backtrace ())
+	s
+  | Unix.Unix_error(err, a, b) ->
+      let error =
+	Printf.sprintf "%s\nSystem error: %s"
+	  (get_backtrace ()) (Unix.error_message err)
+      in
+      (match a, b with
+	 | "", "" -> error
+	 | "", t | t, "" -> Printf.sprintf "%s (%s)" error t
+	 | f, x -> Printf.sprintf "%s (%s %S)" error f x)
+  | Log.AbortError p ->
+      Printf.sprintf "%s aborted because of an invalid user input.%s"
+	(long_plugin_name p) (additional_info ())
+  | Log.AbortFatal p ->
+      Printf.sprintf
+	"%s\n%s aborted because of an internal error.%s\n\
+         Please report as 'crash' at http://bts.frama-c.com"
+	(get_backtrace ()) (long_plugin_name p) (additional_info ())
+  | Log.FeatureRequest(p, m) ->
+      let name = long_plugin_name p in
+      Printf.sprintf
+	"%s aborted because of a not-yet implemented feature.%s\n\
+         Please send a feature request at http://bts.frama-c.com with:\n\
+         '[%s] %s'."
+	name (additional_info ()) name m
+  | Extlib.NotYetImplemented m ->
+      Printf.sprintf
+	"Computation aborted because of a not-yet implemented feature.\n\
+         Please send a feature request at http://bts.frama-c.com with:\n\
+         '%s'."
+	m
+  | e ->
+      Printf.sprintf
+	"%s\nUnexpected error (%s).\n\
+         Please report as 'crash' at http://bts.frama-c.com"
+	(get_backtrace ()) (Printexc.to_string e)
+
+(* ************************************************************************* *)
 (** {2 Exiting Frama-C} *)
 (* ************************************************************************* *)
+
+module NormalExit = Hook.Make(struct end)
+let at_normal_exit = NormalExit.extend
+let run_normal_exit_hook = NormalExit.apply
+
+module ErrorExit = Hook.Make(struct end)
+let at_error_exit = ErrorExit.extend
+let run_error_exit_hook = ErrorExit.apply
+let error_occured_ref = ref false
+let error_occured () = error_occured_ref := true
 
 type exit = unit
 exception Exit
@@ -78,20 +148,37 @@ let catch_at_toplevel = function
   | _ -> !kernel_debug_level_ref = 0
 
 let exit_code = function
-  | Log.AbortError _ | Log.FeatureRequest _ -> 1
-  | Log.AbortFatal _ -> 2
-  | Sys.Break | Sys_error _ | Unix.Unix_error _ -> 3
-  | _ -> 4
+  | Log.AbortError _ -> 1
+  | Sys.Break -> 2
+  | Log.FeatureRequest _ | Extlib.NotYetImplemented _ -> 3
+  | Log.AbortFatal _ -> 4
+  | _ -> 5
 
-let catch_toplevel_run f at_normal_exit =
+let bail_out_ref = ref (fun _ -> assert false)
+let bail_out () =
+  !bail_out_ref (); (* bail_out_ref must call exit 0 *)
+  assert false
+
+let catch_toplevel_run ~f ~quit ~at_normal_exit ~on_error =
+  let bail_out () =
+    (if !error_occured_ref then on_error else at_normal_exit) ();
+    (* even if an error occured somewhere, Frama-C stops normally. *)
+    exit 0
+  in
+  bail_out_ref := bail_out;
   try
     f ();
-    at_normal_exit ()
+    (if quit then bail_out else at_normal_exit) ()
   with
-    | Exit -> at_normal_exit ()
+    | Exit ->
+	bail_out ()
     | exn when catch_at_toplevel exn ->
-	L.feedback "%s" (Log.protect exn) ; 
+	L.feedback ~level:0 "%s" (protect exn);
+	on_error ();
 	exit (exit_code exn)
+    | exn ->
+	on_error ();
+	raise exn
 
 (* ************************************************************************* *)
 (** {2 Generic parsing way} *)
@@ -108,8 +195,8 @@ let raise_error name because = raise (Cannot_parse(name, because))
 
 let error name msg =
   let bin_name = Sys.argv.(0) in
-  L.abort 
-    "option `%s' %s.@\nuse `%s -help' for more information."  
+  L.abort
+    "option `%s' %s.@\nuse `%s -help' for more information."
     name msg bin_name
 
 let all_options = match Array.to_list Sys.argv with
@@ -120,7 +207,7 @@ let get_option_and_arg option arg =
   try
     let k = String.index option '=' in
     let p = succ k in
-    String.sub option 0 k , 
+    String.sub option 0 k ,
     String.sub option p (String.length option - p) , true
   with Not_found -> option,arg,false
 
@@ -191,44 +278,38 @@ let parse known_options_list options_list =
 let non_initial_options_ref = ref []
 
 let () =
-  let set_level lref isref n =
-    lref := n;
-    isref := true
-  in
-  let set_verbose_level n = 
-    set_level verbose_level_ref verbose_isset_ref n;
-    set_level kernel_verbose_level_ref kernel_verbose_isset_ref n
-  in
-  let set_debug_level n = 
-    set_level debug_level_ref debug_isset_ref n;
-    set_level kernel_debug_level_ref kernel_debug_isset_ref n
+  let set_journal b =
+    journal_enable_ref := b;
+    journal_isset_ref := true
   in
   let first_parsing_stage () =
     fst
       (parse
-	   [ "-journal-enable", Unit (fun () -> journal_enable_ref := true);
-	     "-journal-disable", Unit (fun () -> journal_enable_ref := false);
+	   [ "-journal-enable", Unit (fun () -> set_journal true);
+	     "-journal-disable", Unit (fun () -> set_journal false);
 	     "-journal-name", String (fun s -> journal_name_ref := s);
 	     "-no-obj", Unit (fun () -> use_obj_ref := false);
 	     "-no-type", Unit (fun () -> use_type_ref := false);
-	     "-quiet", 
-	     Unit (fun () -> 
-		     quiet_ref := true; 
-		     set_verbose_level 0;
-		     set_debug_level 0);
-	     "-verbose", Int set_verbose_level;
-	     "-debug", Int set_debug_level;
-	     "-kernel-verbose",
-	     Int (set_level kernel_verbose_level_ref kernel_verbose_isset_ref);
-	     "-kernel-debug",
-	     Int (set_level kernel_debug_level_ref kernel_debug_isset_ref) 
+	     "-quiet",
+	     Unit (fun () ->
+		     quiet_ref := true;
+		     verbose_level_ref := 0;
+		     debug_level_ref := 0);
+	     "-verbose", Int (fun n -> verbose_level_ref := n);
+	     "-debug", Int (fun n -> debug_level_ref := n);
+	     "-kernel-verbose", Int (fun n -> kernel_verbose_level_ref := n);
+	     "-kernel-debug", Int (fun n -> kernel_debug_level_ref := n)
 	   ]
 	     all_options)
   in
   catch_toplevel_run
-    (fun () -> non_initial_options_ref := first_parsing_stage ())
-    (fun () -> ())
-	   
+    ~f:(fun () ->
+	  let remaining_options = first_parsing_stage () in
+	  non_initial_options_ref := remaining_options)
+    ~quit:false
+    ~at_normal_exit:(fun () -> ())
+    ~on_error:run_error_exit_hook
+
 let non_initial_options = !non_initial_options_ref
 
 let () =
@@ -242,8 +323,6 @@ let () =
   end
 
 let quiet = !quiet_ref
-let debug_isset = !debug_isset_ref
-let verbose_isset = !verbose_isset_ref
 let debug_level = !debug_level_ref
 let verbose_level = !verbose_level_ref
 
@@ -251,17 +330,17 @@ let kernel_debug_level = !kernel_debug_level_ref
 let kernel_verbose_level = !kernel_verbose_level_ref
 
 let journal_enable = !journal_enable_ref
+let journal_isset = !journal_isset_ref
 let journal_name = !journal_name_ref
 let use_obj = !use_obj_ref
 let use_type = !use_type_ref
-
 
 (* ************************************************************************* *)
 (** {2 Plugin} *)
 (* ************************************************************************* *)
 
 type cmdline_option =
-    { oname: string; argname: string; 
+    { oname: string; argname: string;
       odescr: string option; ext_descr: (unit,Format.formatter,unit) format;
       setting: option_setting }
 
@@ -306,7 +385,7 @@ end = struct
     try Hashtbl.find plugins p
     with Not_found -> fatal "Plug-in %s not found" p
 
-  let add_group ~plugin name = 
+  let add_group ~plugin name =
     let groups = (find plugin).groups in
     if Hashtbl.mem groups name then
       abort "A group of name %s already exists for plug-in %s" name plugin;
@@ -390,10 +469,10 @@ module Make_Stage(S: sig val exclusive: bool val name: string end) = struct
   let options  : (string, cmdline_option) Hashtbl.t = Hashtbl.create 17
 
   let add name plugin ?(argname="") descr ext_descr setting =
-    L.debug ~level:3 "Cmdline: [%s] registers %S for stage %s" 
+    L.debug ~level:4 "Cmdline: [%s] registers %S for stage %s"
       plugin name S.name;
     let o =
-      { oname = name; argname = argname; 
+      { oname = name; argname = argname;
 	odescr = descr; ext_descr = ext_descr; setting = setting }
     in
     Hashtbl.add options name o;
@@ -415,24 +494,24 @@ module Make_Stage(S: sig val exclusive: bool val name: string end) = struct
 
 end
 
-module Early_Stage = 
+module Early_Stage =
   Make_Stage(struct let exclusive = false let name = "early" end)
 
-module Extending_Stage = 
+module Extending_Stage =
   Make_Stage(struct let exclusive = false let name = "extending" end)
 
 module Extended_Stage =
   Make_Stage(struct let exclusive = false let name = "extended" end)
 
-module Exiting_Stage = 
+module Exiting_Stage =
   Make_Stage(struct let exclusive = true let name = "exiting" end)
 
-module Loading_Stage = 
+module Loading_Stage =
   Make_Stage(struct let exclusive = true let name = "loading" end)
 
 let is_going_to_load = Loading_Stage.is_going_to_run
 
-module Configuring_Stage = 
+module Configuring_Stage =
   Make_Stage(struct let exclusive = false let name = "configuring" end)
 
 let run_after_early_stage = Early_Stage.H.extend
@@ -446,7 +525,7 @@ type stage = Early | Extending | Extended | Exiting | Loading | Configuring
 
 (* prefix is not used yet *)
 let add_option
-    ?(prefix=true) name ~plugin ~group stage ?argname ~descr ~ext_descr setting 
+    ?(prefix=true) name ~plugin ~group stage ?argname ~descr ~ext_descr setting
     =
   if name <> "" then
     let name = match prefix, plugin with
@@ -454,7 +533,7 @@ let add_option
       | true, _p -> (*p ^*) name
     in
     let add = match stage with
-      | Early -> Early_Stage.add      
+      | Early -> Early_Stage.add
       | Extending -> Extending_Stage.add
       | Extended -> Extended_Stage.add
       | Exiting -> Exiting_Stage.add
@@ -464,7 +543,7 @@ let add_option
     add name plugin ~group ?argname descr ext_descr setting
 
 module On_Files = Hook.Build(struct type t = string list end)
-let use_cmdline_files = On_Files.extend 
+let use_cmdline_files = On_Files.extend
 
 let set_files used_loading l =
   List.iter (fun s -> if s.[0] = '-' then error s "is unknown") l;
@@ -481,19 +560,19 @@ while loading a global initial context."
 
 let nb_used_ref = ref 0
 let nb_used_relevant = ref false
-let nb_given_options () = 
-  if not !nb_used_relevant then 
+let nb_given_options () =
+  if not !nb_used_relevant then
     fatal "function `nb_given_options' called too early";
   !nb_used_ref
 
 let parse_and_boot get_toplevel play =
   let options, nb_used_early = Early_Stage.parse non_initial_options in
   let options, nb_used_extending = Extending_Stage.parse options in
-  get_toplevel 
+  get_toplevel
     ()
     (* the extending stage may change the toplevel: applying [get_toplevel]
        provides the good one. *)
-    (fun () -> 
+    (fun () ->
        let options, nb_used_extended = Extended_Stage.parse options in
        let options, nb_used_exiting = Exiting_Stage.parse options in
        if nb_used_exiting > 0 then
@@ -501,12 +580,12 @@ let parse_and_boot get_toplevel play =
        let options, nb_used_loading = Loading_Stage.parse options in
        let files, nb_used_config = Configuring_Stage.parse options in
        nb_used_relevant := true;
-       nb_used_ref := 
-         nb_used_early 
-       + nb_used_extending 
-       + nb_used_extended 
-       + nb_used_exiting 
-       + nb_used_loading 
+       nb_used_ref :=
+         nb_used_early
+       + nb_used_extending
+       + nb_used_extended
+       + nb_used_exiting
+       + nb_used_loading
        + nb_used_config ;
        set_files (nb_used_loading > 0) files;
        play ())
@@ -518,7 +597,7 @@ let parse_and_boot get_toplevel play =
     help and exiting. *)
 (* ************************************************************************* *)
 
-let print_helpline fmt head descr ext_descr = 
+let print_helpline fmt head descr ext_descr =
   match descr with
   | None -> ()
   | Some descr ->
@@ -530,7 +609,7 @@ let print_helpline fmt head descr ext_descr =
 	(* the description *)
 	(fun fmt ->
 	   (* add a cutting point at each space *)
-	   let cut_space fmt s = 
+	   let cut_space fmt s =
 	     let rec cut_list fmt = function
 	       | [] -> ()
 	       | [ s ] -> Format.fprintf fmt "%s" s
@@ -542,7 +621,7 @@ let print_helpline fmt head descr ext_descr =
 	   let rec cut_newline fmt = function
 	     | [] -> ()
 	     | [ s ] -> Format.fprintf fmt "%a" cut_space s
-	     | s :: tl -> 
+	     | s :: tl ->
 		 Format.fprintf fmt "%a@\n%a" cut_space s cut_newline tl
 	   in
 	   cut_newline fmt (Str.split (Str.regexp_string "\n") descr))
@@ -550,7 +629,9 @@ let print_helpline fmt head descr ext_descr =
 	(fun fmt -> Format.fprintf fmt ext_descr)
 
 let print_option_help fmt o =
-  if not (Plugin.is_option_alias o) then
+  if Plugin.is_option_alias o then begin
+    false
+  end else
     let ty =
       let s = o.argname in
       if s = "" then
@@ -566,54 +647,74 @@ let print_option_help fmt o =
     print_helpline fmt (name ^ ty) o.odescr o.ext_descr;
     List.iter
       (fun o ->
-	 print_helpline fmt 
-	   (o.oname ^ ty) 
+	 print_helpline fmt
+	   (o.oname ^ ty)
 	   (Some (" alias for option " ^ name))
 	   o.ext_descr)
-      (Plugin.find_option_aliases o)
+      (Plugin.find_option_aliases o);
+    true
 
 let option_intro short =
   let first =
     if short <> "" then begin
       let short = "-" ^ short in
       Format.sprintf
-	"Most options '%s-option-name' without parameter@ have an opposite \
-with the name '%s-no-option-name'.@\n"
+	"Most options of the form '%s-option-name'@ and without any \
+parameter@ have an opposite with the name '%s-no-option-name'.@\n@\n"
 	short short
-    end else 
+    end else
       ""
   in
   Format.sprintf
-    "%sMost options '-option-name' without parameter@ have an opposite with \
-the name '-no-option-name'."
+    "%sMost options of the form '-option-name' and without any parameter@ \
+have an opposite with the name '-no-option-name'."
     first
 
 let plugin_help shortname =
   let p = Plugin.find shortname in
+  if p.Plugin.name <> "" then begin
+    assert (p.Plugin.short <> "");
+    Log.print_on_output "@[%s:@ %s@]@\n@[%s:@ %s@]@\n"
+      "Plug-in name"
+      p.Plugin.name
+      "Plug-in shortname"
+      shortname
+  end;
   Log.print_on_output
-    "@[@[%s:@ %s@]@\n@[%s:@ %s@]@\n@[%s:@ %s@]@\n@\n%s@\n@\n%s:@\n@\n@[%t@]@]@?"
-    "Plug-in name"
-    p.Plugin.name
-    "Plug-in shortname"
-    shortname
-    "Plug-in description"
+    "@[@[%s:@ %s@]@\n@\n%s@\n@\n%s:@\n@\n@[%t@]@]@?"
+    "Description"
     p.Plugin.descr
     (option_intro shortname)
     "***** LIST OF AVAILABLE OPTIONS"
     (fun fmt ->
        let print_options l =
-	 List.iter 
-	   (print_option_help fmt) 
+	 List.fold_left
+	   (fun b o ->
+	      let b' = print_option_help fmt o in
+	      b || b')
+	   false
 	   (List.sort (fun o1 o2 -> Pervasives.compare o1.oname o2.oname) l)
        in
-       print_options !(Hashtbl.find p.Plugin.groups "");
-       Hashtbl.iter
-	 (fun s l -> 
-	    if s <> "" then begin
-	      Format.fprintf fmt "@\n@[*** %s@]@\n@\n" (String.uppercase s);
-	      print_options !l
-	    end)
-	 p.Plugin.groups);
+       let printed = print_options !(Hashtbl.find p.Plugin.groups "") in
+       if printed then Format.pp_print_newline fmt ();
+       let sorted_groups =
+	 List.sort
+	   (fun (s1, _) (s2, _) -> String.compare s1 s2)
+	   (Hashtbl.fold
+	      (fun s l acc -> if s = "" then acc else (s, l) :: acc)
+	      p.Plugin.groups
+	      [])
+       in
+       match sorted_groups with
+       | [] -> ()
+       | (s, o) :: l ->
+	   Format.fprintf fmt "@[*** %s@]@\n@\n" (String.uppercase s);
+	   ignore (print_options !o);
+	   List.iter
+	     (fun (s, l) ->
+		Format.fprintf fmt "@\n@[*** %s@]@\n@\n" (String.uppercase s);
+		ignore (print_options !l))
+	     l);
   raise Exit
 
 let help () =
@@ -624,8 +725,8 @@ let help () =
 	 (fun p1 p2 -> Pervasives.compare p1.Plugin.name p2.Plugin.name)
 	 (Plugin.all_plugins ()))
   in
-  Log.print_on_output 
-    "@[%t@\n%t@\n@\n%s@\n@[%t@]@]@?"
+  Log.print_on_output
+    "@[%t@\n%t@\n@\n%s@\n@\n@[%t@]@]@?"
     (fun fmt ->
        Format.fprintf fmt "@[Usage: %s [options and files...]@]" Sys.argv.(0))
     (fun fmt ->
@@ -635,19 +736,19 @@ let help () =
     "***** LIST OF AVAILABLE PLUG-INS"
     (fun fmt ->
        iter_on_plugins
-	 (fun p -> 
-	    print_helpline 
-	      fmt 
-	      p.Plugin.name 
-	      (Some 
-		 (p.Plugin.descr 
-		  ^ ";\n use -" ^ p.Plugin.short 
+	 (fun p ->
+	    print_helpline
+	      fmt
+	      p.Plugin.name
+	      (Some
+		 (p.Plugin.descr
+		  ^ ";\n use -" ^ p.Plugin.short
 		  ^ "-help for specific options."))
 	      ""));
   raise Exit
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

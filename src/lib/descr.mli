@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,7 +23,7 @@
 (** Type description for safer unmarshalling.
 
     This module provides a safer API than the library "unmarshal" for
-    registering type description.  *) 
+    registering type description.  *)
 
 (** {2 Type declaration} *)
 
@@ -34,9 +35,6 @@ type packed
   (** Type of an "embeded" type description (that is a type description
       enclosed into one other). *)
 
-type structure = Sum of packed array array | Array of packed
-  (** Similar to {!Unmarshal.structure} *)
-
 (** {2 Smart constructors} *)
 
 val pack: 'a t -> packed
@@ -45,13 +43,19 @@ val pack: 'a t -> packed
 val abstract: 'a Type.t -> 'a t
   (** Similar to the {!Unmarshal.Abstract} constructor. *)
 
-val structure: 'a Type.t -> structure -> 'a t
-  (** Similar to the {!Unmarshal.Structure} constructor. *)
+val sum: 'a Type.t -> packed array array -> 'a t
+  (** Similar to the {!Unmarshal.Sum} constructor. *)
 
-val transform: 'a Type.t -> 'a t -> ('a -> 'a) -> 'a t
+val dependent_pair: 'b Type.t -> 'a t -> ('a -> 'b t) -> ('a * 'b) t
+  (** Similar to the {!Unmarshal.Dependent_pair} constructor. *)
+
+val array: 'a Type.t -> packed -> 'a t
+  (** Similar to the {!Unmarshal.Array} constructor. *)
+
+val transform: 'a t -> ('a -> 'a) -> 'a t
   (** Similar to the {!Unmarshal.Transform} constructor with sanity check. *)
 
-val return: 'a Type.t -> 'a t -> (unit -> 'a) -> 'a t
+val return: 'a t -> (unit -> 'a) -> 'a t
   (** Similar to the {!Unmarshal.Return} constructor with sanity check. *)
 
 val dynamic: 'a Type.t -> (unit -> 'a t) -> 'a t
@@ -76,8 +80,14 @@ val t_list : 'a t -> 'a list t
 val t_ref : 'a t -> 'a ref t
 val t_option : 'a t -> 'a option t
 
+val t_hashtbl_unchangedhashs: 'key t -> 'value t -> ('key, 'value) Hashtbl.t t
+val t_hashtbl_changedhashs:
+  (int -> ('key, 'value) Hashtbl.t) ->
+  (('key, 'value) Hashtbl.t -> 'key -> 'value -> unit) ->
+  'key t -> 'value t -> ('key, 'value) Hashtbl.t t
+
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

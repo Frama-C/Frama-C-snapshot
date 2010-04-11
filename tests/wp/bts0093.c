@@ -1,16 +1,3 @@
-/* run.config
-OPT: -wp-mm 2 -wp-fct f -wp-debug 1 -journal-disable -wp-no-proof
-OPT: -wp-mm 2 -wp-fct g_loc -wp-debug 1 -journal-disable -wp-no-proof
-OPT: -wp-mm 2 -wp-fct g_param -wp-debug 1 -journal-disable -wp-no-proof
-OPT: -wp-mm 2 -wp-fct g_glob -wp-debug 1 -journal-disable -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-mm 2 -wp-fct f -wp-debug 1 -journal-disable -wp-proof
-OPT: -wp-mm 2 -wp-fct g_loc -wp-debug 1 -journal-disable -wp-proof
-OPT: -wp-mm 2 -wp-fct g_param -wp-debug 1 -journal-disable -wp-proof
-OPT: -wp-mm 2 -wp-fct g_glob -wp-debug 1 -journal-disable -wp-proof
-*/
-
 /*@ ensures *x == 3;
     assigns *x;
  */
@@ -43,3 +30,4 @@ void fy (int * y) {
 void g_glob (void) {
   f (&y);
 }
+int main (void) {return 0;}

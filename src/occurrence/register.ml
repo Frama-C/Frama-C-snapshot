@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -125,7 +126,7 @@ class occurrence = object (self)
 
   method vterm_lval tlv =
     (try
-       let lv = !Db.Properties.Interp.term_lval_to_lval tlv in
+       let lv = !Db.Properties.Interp.term_lval_to_lval ~result:None tlv in
        ignore (self#vlval lv)
      with Invalid_argument msg ->
        error "%s@." msg);

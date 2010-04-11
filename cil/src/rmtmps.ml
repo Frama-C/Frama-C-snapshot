@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* rmtmps.ml *)
@@ -672,7 +673,9 @@ class removeUnusedLabels (labelMap: (string, unit) H.t) = object
   method vstmt (s: stmt) =
     let (ln, lloc, lorig), lrest = labelsToKeep s.labels in
     s.labels <-
-       (if ln <> "" && H.mem labelMap ln then (* We had labels *)
+       (if ln <> "" &&
+          (H.mem labelMap ln || lorig) (* keep user-provided labels *)
+        then (* We had labels *)
          (Label(ln, lloc, lorig) :: lrest)
        else
          lrest);
@@ -751,6 +754,14 @@ let removeUnmarked isRoot file =
 	     local.vreferenced
 	   in
 	   func.slocals <- List.filter filterLocal func.slocals;
+           let remove_blocals = object
+             inherit Cil.nopCilVisitor
+             method vblock b =
+               b.blocals <- List.filter filterLocal b.blocals;
+               DoChildren
+           end
+           in
+           ignore (visitCilBlock remove_blocals func.sbody);
            (* We also want to remove unused labels. We do it all here, including
             * marking the used labels *)
            let usedLabels:(string, unit) H.t = H.create 13 in

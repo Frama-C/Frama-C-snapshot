@@ -1,0 +1,66 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* caveat.why : add things about indirect access to hoare.why. *)
+
+logic indir : pointer, 'a format -> 'a
+
+logic mu_indir : pointer, 'a format, 'a -> pointer
+
+logic mu_shift : pointer, int, pointer -> pointer
+
+(* function to use when we can safely ignore mu_indir *)
+logic ptr : pointer -> pointer
+
+axiom indir_mu_indir : forall p:pointer. forall t:'a format. forall x:'a.
+  indir (mu_indir (p, t, x), t) = x
+
+axiom ptr_addr : forall x:name. ptr (m0_addr (x)) = m0_addr (x)
+
+axiom ptr_shift_field : forall p:pointer. forall f:name.
+  ptr (shift_field (p, f)) = shift_field (p, f)
+
+axiom ptr_shift_pointer : forall p:pointer. forall i:int.
+  ptr (shift_pointer (p, i)) = shift_pointer (p, i)
+
+axiom ptr_shift_index : forall p:pointer. forall i:int.
+  ptr (shift_index (p, i)) = shift_index (p, i)
+
+axiom ptr_mu_indir : forall p:pointer. forall t:'a format. forall x:'a.
+  ptr (mu_indir (p, t, x)) = ptr (p)
+
+axiom ptr_mu_shift : forall p, q:pointer. forall i:int.
+  ptr (mu_shift (p, i, q)) = ptr (p)
+
+axiom mu_shift_zero : forall p, q:pointer.  mu_shift (p, 0, q) = q
+
+axiom mu_shift_other : forall p, q:pointer. forall i:int. 
+  i<> 0 -> mu_shift (p, i, q) = p
+
+axiom shift_mu_shift : forall p, q:pointer. forall i, j:int.
+  shift_pointer (mu_shift (p, i, q), j) = 
+  mu_shift (shift_pointer (p, j), i-j, q)
+
+(*----------------------------------------------------------------------------*)
+

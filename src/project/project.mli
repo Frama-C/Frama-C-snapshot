@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -29,7 +30,7 @@
     @plugin development guide *)
 
 (* ************************************************************************* *)
-(** {2 Datatypes} *)
+(** {2 Types for project} *)
 (* ************************************************************************* *)
 
 type t
@@ -45,6 +46,18 @@ val ty: t Type.t
 val dummy: t
   (** A dummy project: should only be used to initialized reference but must
       never be put something inside. *)
+
+(* ************************************************************************* *)
+(** {2 Useful functions} *)
+(* ************************************************************************* *)
+
+val identity: 'a -> 'a
+  (** The identity function. *)
+
+val is_identity: ('a -> 'a) -> bool
+  (** @return [true] iff the given function is (physically) {!identity}. *)
+
+val no_descr: Unmarshal.t
 
 (* ************************************************************************* *)
 (** {2 Kinds dealing with Project}
@@ -72,6 +85,12 @@ module type KIND = sig
   val name: t -> string
     (** Name of a kind. *)
 
+  val get_from_name: string -> t
+    (** Reverse of [name] (as names are uniques for kinds, this function is the
+	injection from kinds to names).
+	@raise Not_found if there is no kind with this name.
+	@since Boron-20100401 *)
+
   val add_dependency: t -> t -> unit
     (** [add_dependency k1 k2] indicates that the state kind [k1] depends on
 	the state kind [k2], that is an action of the state kind [k2] must be
@@ -79,13 +98,16 @@ module type KIND = sig
 	loading and saving.
 	@plugin development guide *)
 
+  val equal: t -> t -> bool
+    (** @since Boron-20100401 *)
+
+  val compare: t -> t -> int
+    (** @since Boron-20100401 *)
+
+  val hash: t -> int
+    (** @since Boron-20100401 *)
+
 end
-
-val identity: 'a -> 'a
-  (** The identity function. *)
-
-val is_identity: ('a -> 'a) -> bool
-  (** @return true iff the given function is (physically) {!identity}. *)
 
 (** Datatype implementation and how to register them. *)
 module Datatype : sig
@@ -95,11 +117,8 @@ module Datatype : sig
     type t
       (** The datatype to register. *)
 
-    val rehash: t -> t
-      (** How to rehashcons the datatype. *)
-
     val descr: Unmarshal.t
-      (** A better way to rehashcons the datatype. 
+      (** Memory representation of the datatype. Used for unmarshalling.
 	  @since Beryllium-20090901 *)
 
     val copy: t -> t
@@ -122,26 +141,19 @@ module Datatype : sig
       ?compare:(t -> t -> int) ->
       ?equal:(t -> t -> bool) ->
       ?hash:(t -> int) ->
-      ?physical_hash:(t -> int) ->
       unit -> unit
-      (** Allow to register a specific [compare], [equal], [hash] and
-	  [physical_hash] functions for the datatype.
+      (** Allow to register a specific [compare], [equal] and [hash] functions
+	  for the datatype.
 
 	  [hash] and [equal] have to be compatible, that is:
 	  forall x y, equal x y ==> hash x = hash y.
-
-	  [physical_hash] has to be compatible with physical equality (==),
-	  that is:
-	  forall x y, x == y ==> physical_hash x = physical_hash y.
 
 	  - there is no default value for [compare];
 	  - default value for [equal] is [fun x y -> compare x y = 0] if
 	  [compare] is provided; no default value otherwise.
 	  - default value for [hash] is Hashtbl.hash;
-	  - default value for [physical_hash] is [hash] if it is provided;
-	  [Hashtbl.hash] otherwise.
 
-	  Never call [registered_comparable] is equivalent to call
+	  Never call [register_comparable] is equivalent to call
 	  [register_comparable ()].
 
 	  Note that, as usual in ocaml, the default values for [equal] and
@@ -149,17 +161,22 @@ module Datatype : sig
 	  ones). *)
 
     val is_comparable_set: unit -> bool
-      (** @return false if [register_comparable] has never been called. *)
+      (** @return false iff [register_comparable] has never been called. *)
 
+    (* ******************************************************************* *)
     (** {3 Access to the functions registered by {!registered_comparable}} *)
+    (* ******************************************************************* *)
 
     val hash: t -> int
-    val physical_hash: t -> int
     val equal: t -> t -> bool
     val compare: t -> t -> int
 
-    val contain_project: (project -> t -> bool) option ref
-      (** @since Beryllium-20090901 *)
+    val mem_project: ((project -> bool) -> t -> bool) option ref
+      (** [!mem_project] must be [Some g] with [g f x] returning [true] iff [x]
+	  contains one project [p] such that [f p] returns [true].
+	  [!mem_project] should be equal to [None] if there is no value of type
+	  [project] in [x].
+	  @since Boron-20100401 *)
 
   end
 
@@ -180,9 +197,11 @@ module Datatype : sig
   module Own : S with type t = project
     (** @since Beryllium-20090901 *)
 
+(* ************************************************************************* *)
   (** {3 Create a name from predefined ones}
 
       See module {!Namespace}. *)
+(* ************************************************************************* *)
 
   val extend_name: string -> string -> string
   val extend_name2: string -> string -> string -> string
@@ -233,12 +252,13 @@ module Computation : sig
       {- forall [(p1:t),(p2:t)] such that [p1 != p2], [(set p1; get ()) != s2]}
       } *)
 
-    val clear_if_project: project -> t -> bool
-      (** [clear_if_project p x] must clear any element of [x] equals to the
-	  project [p]. Of course, if the type [t] does not contain any object
-	  of type [project], this function may be safely equal to [fun _ _ ->
-	  false].
-	  @return true iff at least one element of [x] has been cleared. *)
+    val clear_some_projects: (project -> bool) -> t -> bool
+      (** [clear_if_project f x] must clear any value [v] of type project of [x]
+	  such that [f v] is [true]. Of course, if the type [t] does not contain
+	  any object of type [project], this function should do nothing and
+	  safely returns [fun _ -> false].
+	  @return [true] iff at least one element of [x] has been cleared.
+	  @since Boron-20100401 *)
 
   end
 
@@ -248,8 +268,8 @@ module Computation : sig
     val dependencies : t list (** Dependencies of this internal state. *)
   end
 
-  (** Output signature of {!Computation.Register}. *)
-  module type OUTPUT = sig
+  (** @since Boron-20100401 *)
+  module type MINIMAL_OUTPUT = sig
 
     val self: t
       (** The kind of the registered state.
@@ -261,6 +281,16 @@ module Computation : sig
 
     val depend: t -> unit
       (** [depend k] adds a dependencies from [k] to [me]. *)
+
+    val name: string
+
+  end
+
+
+  (** Output signature of {!Computation.Register}. *)
+  module type OUTPUT = sig
+
+    include MINIMAL_OUTPUT
 
     val mark_as_computed: ?project:project -> unit -> unit
       (** Indicate that the registered state will not change again for the
@@ -278,7 +308,14 @@ module Computation : sig
     (** Exportation of some inputs (easier use of [Computation.Register]). *)
 
     module Datatype: Datatype.S
-    val name: string
+
+    val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
+      (** [howto_marshal marshal unmarshal] registers a custom couple of
+	  countions [(marshal, unmarshal)] to be used for serialization.
+	  Default functions are identities. In particular, calling this
+	  function must be used if [Datatype.t] is not marshallable and
+	  [do_not_save] is not called.
+	  @since Boron-20100401 *)
 
   end
 
@@ -294,7 +331,48 @@ module Computation : sig
     (Info: INFO)
     : OUTPUT with module Datatype = Datatype
 
+  (** Generate a fresh dynamic state dependency graph.
+      @since Boron-20100401 *)
+  module Dynamic
+    (Local: sig
+       val restore: t -> (project -> unit)
+	 (** How to restore a just-unmarshaled state kind.
+	     This function must return a closure which clears the state in the
+	     given project. *)
+     end)
+    (Info: INFO) :
+  sig
+
+    val add_dependency: t -> t -> unit
+      (** [add_dependency k1 k2] indicates that the state [k1] depends on the
+	  state kind [k2] in the underlying dynamic graph, that is an action of
+	  the state kind [k2] must be done before one of the state kind [k1].
+	  @since Boron-20100401 *)
+
+    val remove_computation: reset:bool -> t -> unit
+      (** Remove a state kind from the underlying dynamic graph.
+	  [reset] must be [true] iff the dependencies of this state kind must
+	  be cleared.
+	  @since Boron-20100401 *)
+
+    val self: t
+      (** The state kind corresponding to the dynamic graph itself.
+	  @since Boron-20100401 *)
+
+    (** Register a new kind in the underlying dynamic graph.
+	@since Boron-20100401 *)
+    module Register
+      (State: sig val clear: project -> unit end)
+      (Info: INFO)
+      : MINIMAL_OUTPUT
+
+  end
+
   val dump_dependencies:
+    ?only:selection -> ?except:selection -> string -> unit
+    (** Debugging purpose only. *)
+
+  val dump_dynamic_dependencies:
     ?only:selection -> ?except:selection -> string -> unit
     (** Debugging purpose only. *)
 
@@ -337,48 +415,56 @@ val is_current: t -> bool
 val iter_on_projects: (t -> unit) -> unit
   (** iteration on project starting with the current one. *)
 
+val fold_on_projects: ('a -> t -> 'a) -> 'a -> 'a
+  (** folding on project starting with the current one.
+      @since Boron-20100401 *)
+
 val find_all: string -> t list
   (** Find all projects with the given name. *)
 
 val clear_all: unit -> unit
   (** Clear all the projects: all the internal states of all the projects are
-      now empty (wrt the action registered with {!register_todo_on_clear}). *)
+      now empty (wrt the action registered with
+      {!register_todo_after_global_clear} and {!register_todo_after_clear}. *)
 
+(* ************************************************************************* *)
 (** {3 Inputs/Outputs} *)
+(* ************************************************************************* *)
 
 exception IOError of string
   (** @plugin development guide *)
 
-val save: 
+val save:
   ?only:Selection.t -> ?except:Selection.t -> ?project:t -> string -> unit
   (** Save a given project in a file. Default project is [current ()].
       @raise IOError if the project cannot be saved.
       @plugin development guide *)
- 
-val load: 
-  ?only:Selection.t -> ?except:Selection.t -> name:string -> string -> t
+
+val load:
+  ?only:Selection.t -> ?except:Selection.t -> ?name:string -> string -> t
   (** Load a file into a new project given by its name.
       More precisely, [load only except name file]:
       {ol
       {- creates a new project;}
       {- performs all the registered [before_load] actions, following the
       datatype dependencies;}
-      {- loads the (specified) states of the project and rehashcons them
-      (following the computation dependencies); and}
+      {- loads the (specified) states of the project according to its
+      description; and}
       {- performs all the registered [after_load] actions.}
       }
       @raise IOError if the project cannot be loaded
       @return the new project containing the loaded data.
       @plugin development guide *)
 
-val save_all: string -> unit
+val save_all: ?only:Selection.t -> ?except:Selection.t -> string -> unit
   (** Save all the projects in a file.
       @raise IOError a project cannot be saved. *)
 
-val load_all: string -> unit
+val load_all: ?only:Selection.t -> ?except:Selection.t -> string -> unit
   (** First remove all the existing project, then load all the projects from a
-      file.  For each project to load, the specification is the same than
-      {!Project.load}. 
+      file. For each project to load, the specification is the same than
+      {!Project.load}. Furthermore, after loading, all the hooks registered by
+      [register_after_set_current_hook] are applied.
       @raise IOError if a project cannot be loaded. *)
 
 val register_before_load_hook: (unit -> unit) -> unit
@@ -391,12 +477,17 @@ val register_before_load_hook: (unit -> unit) -> unit
       the same than the order in which hooks are registered. *)
 
 val register_after_load_hook: (unit -> unit) -> unit
-  (** [register_before_load_hook f] adds a hook called just after loading
+  (** [register_after_load_hook f] adds a hook called just after loading
       **each project**: if [n] projects are on disk, the same hook will be
       called [n] times (one call by project).
 
       Besides, for each project, the order in which the hooks are applied is
       the same than the order in which hooks are registered. *)
+
+val register_after_global_load_hook: (unit -> unit) -> unit
+  (** [register_after_load_hook f] adds a hook called just after loading
+      **all projects**.
+      @since Boron-20100401 *)
 
 (* ************************************************************************* *)
 (** {2 Operations on one project}
@@ -406,6 +497,9 @@ val register_after_load_hook: (unit -> unit) -> unit
     - If [only] is specified, only the selected state kinds are copied.
     - If [except] is specified, those selected state kinds are not copied (even
     if they are also selected by [only]).
+    - If both [only] and [except] are specifid, the operation only applied on
+    the [only] states, except the [except] ones.
+
     Use it carefuly because Frama-C may become lost and inconsistent if these
     specifications are incorrects. *)
 (* ************************************************************************* *)
@@ -417,11 +511,15 @@ val unique_name: t -> string
   (** Return a project name based on {!name} but different of each others
       [unique_name]. *)
 
+val set_name: t -> string -> unit
+  (** Set the name of the given project.
+      @since Boron-20100401 *)
+
 val from_unique_name: string -> t
   (** Return a project based on {!unique_name}.
       @raise Not_found if no project has this unique name. *)
 
-val set_current: 
+val set_current:
   ?on:bool -> ?only:Selection.t -> ?except:Selection.t -> t -> unit
   (** Set the current project with the given one.
       The flag [on] is not for casual users.
@@ -456,10 +554,11 @@ val copy:
 val create_by_copy:
   ?only:Selection.t -> ?except:Selection.t -> ?src:t -> string -> t
   (** Return a new project with the given name by copying some states from the
-      project [src]. All the others states are initialized with their default
+      project [src]. All the other states are initialized with their default
       values.
-      Does not require that the copy function of the copied state is
-      implemented. *)
+      Use the same/load mechanism for copying. Thus it does not require that
+      the copy function of the copied state is implemented. All the hooks
+      applied when loading a project are applied (see {!load}). *)
 
 val create_by_copy_hook: (t -> t -> unit) -> unit
   (** Register a hook to call at the end of {!create_by_copy}. The first
@@ -473,7 +572,16 @@ val clear:
       registered with {!register_todo_on_clear}). *)
 
 val register_todo_on_clear: (t -> unit) -> unit
-  (** Register action to perform just before clearing a project. *)
+  (** @deprecated since Boron-20100401.
+      Replaced by {!register_todo_before_clear} *)
+
+val register_todo_before_clear: (t -> unit) -> unit
+  (** Register an action performed just before clearing a project.
+      @since Boron-20100401 *)
+
+val register_todo_after_clear: (t -> unit) -> unit
+  (** Register an action performed just after clearing a project.
+      @since Boron-20100401 *)
 
 exception Cannot_remove of string
   (** Raised by [remove] *)
@@ -481,24 +589,25 @@ exception Cannot_remove of string
 val remove: ?project:t -> unit -> unit
   (** Default project is [current ()]. If the current project is removed, then
       the new current project is the previous current project if it still
-      exists (and so on). 
-      @raise Cannot_remove if there is only one project.
-  *)
+      exists (and so on).
+      @raise Cannot_remove if there is only one project. *)
 
 val register_before_remove_hook: (t -> unit) -> unit
   (** [register_before_remove_hook f] adds a hook called just before removing
-      a project. 
-      @since Beryllium-20090901+dev
-  *)
+      a project.
+      @since Beryllium-20090902 *)
 
+(* ************************************************************************* *)
 (** {3 Projects are comparable values} *)
+(* ************************************************************************* *)
 
 val compare: t -> t -> int
 val equal: t -> t -> bool
 val hash: t -> int
-val rehash: t -> t
 
+(* ************************************************************************* *)
 (** {3 Undoing} *)
+(* ************************************************************************* *)
 
 module Undo: sig
   val breakpoint: unit -> unit
@@ -508,6 +617,6 @@ end
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

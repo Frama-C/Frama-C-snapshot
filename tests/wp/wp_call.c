@@ -2,8 +2,10 @@ struct Ts { int a; int b; };
 int G;
 struct Ts S;
 int * P;
+int T[10];
+int X;
 
-
+//------------------------------------------------------------------------------
 /*@ 
   requires \true;
   assigns G, S.b;
@@ -32,9 +34,7 @@ int main(void) {
   
   return r;
 }
-
-int T[10];
-int X;
+//------------------------------------------------------------------------------
 
 // this is to test the assigns order : T[X] is T[\old(X)] !
 //@ assigns T[X], T[X+1], X;
@@ -52,29 +52,83 @@ void call_f (void) {
   f (a);
 }
 
-//@ ensures (T[3] == \old(T[3]));
+/*@ ensures (T[0] == \old(T[0])); //false
+    ensures (T[1] == \old(T[1])); // false
+    ensures (T[2] == \old(T[2])); //true
+    */
 void call_f_1 (void) {
   int a = 3;
   X = 0;
   f (a);
 }
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/* This is to test is [a] and \old(a) are correctly handdled,
- * even if P points on a. 
- * ACSL says that [a] in a postconditon always means \old(a).
+//------------------------------------------------------------------------------
+/* This is to test that M0 is able to handle a call with a pointer parameter
+ * as long as it takes an address as argument. */
+/*@ requires \valid(p);
+    ensures *p == \old(*p) + 1;
+    assigns *p;
+*/
+void incr (int * p) {
+  (*p) ++;
+}
+//@ ensures \result == x + 1;
+int call_incr (int x) {
+  incr (&x);
+  return x;
+}
+//@ ensures S.a == \old(S.a) + 1;
+void call_incr_on_S (void) {
+  incr (&(S.a));
+}
+//@ ensures T[i] == \old(T[i]) + 1;
+void call_incr_on_Ti (int i) {
+  incr (T+i);
+}
+//@ ensures T[0] == \old(T[0]) + 1;
+void call_incr_on_T (void) {
+  incr (T);
+}
+//------------------------------------------------------------------------------
+// This is to test  [assigns \nothing]
+//@ assigns \nothing;
+void print (int);
+
+//@ ensures \result == \old(X) + x;
+int just_print (int x) {
+  print (x);
+  return X + x;
+}
+//------------------------------------------------------------------------------
+// This is to test call when assigns are not specified.
+// We have to provide a body, else the kernel add a default assigns nothing !
+void unknown (void) { return; }
+
+// TODO : this test is wrong at the moment !
+/*@
+@ ensures X == \old(X); 
+       // this one is not provable since we don't know whether print modifies X
+@ ensures \result == X;
+       // but this one should be ok...
+*/
+int call_unknown (void) {
+  unknown ();
+  return X;
+}
+//------------------------------------------------------------------------------
+
+/*@
+  requires x >0 ; 
+  ensures \result == x;
  */
-/*@ ensures a == \old(a);
-    assigns *P;
-    */
-void f_param (int a) {
-  a++;
-  *P = 0;
+
+int f1 (int x)
+{
+  return x;
 }
-void call_f_param (void) {
-  int x = 1;
-  P = &x;
-  f_param (x);
-  //@ assert x == 0;
-}
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/*@ ensures \result == 1;
+ */
+int call_f1 (void)
+  
+{ int a = 1 ; return f1(a);}

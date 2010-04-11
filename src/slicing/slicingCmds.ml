@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -98,11 +99,12 @@ struct
   let get_called_funcs ki =
     match ki.skind with
       | Instr (Call (_,expr_f,_,_)) ->
-          snd (!Value.expr_to_kernel_function
+          Kernel_function.Set.elements 
+	    (snd (!Value.expr_to_kernel_function
                    (Kstmt ki)
                    ~with_alarms:CilE.warn_none_mode
                    ~deps:None
-                   expr_f)
+                   expr_f))
        | _ -> []
 
   (** Is statement call (direct or indirect via pointer) to [kf] *)
@@ -362,7 +364,9 @@ let select_stmt_lval set mark lval_str ~before ki ~scope ~eval kf =
       Cilutil.StringSet.fold
         (fun lval_str acc ->
            let lval_term = !Db.Properties.Interp.lval kf scope lval_str in
-           let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
+           let lval = 
+	     !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term 
+	   in
            let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt eval) lval in
            let zone = Locations.valid_enumerate_bits loc
            in Locations.Zone.join zone acc)
@@ -390,7 +394,7 @@ let select_lval_rw set mark ~rd ~wr ~scope ~eval kf ki_opt=
         Cilutil.StringSet.fold
           (fun lval_str acc ->
              let lval_term = !Db.Properties.Interp.lval kf scope lval_str in
-             let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
+             let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
              let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt eval) lval in
              let zone = Locations.valid_enumerate_bits loc
              in Locations.Zone.join zone acc)

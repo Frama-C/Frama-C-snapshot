@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -37,7 +38,9 @@ let fresh =
 
 (* Deep copy of a statement taking care of local gotos and labels. *)
 let rec copy_stmt break_continue_must_change label_table stmt =
-  let result = {labels=[];sid=0;succs=[];preds=[];skind=stmt.skind;ghost=stmt.ghost} in
+  let result = 
+    { labels=[]; sid=0; succs=[]; preds=[]; skind=stmt.skind; ghost=stmt.ghost} 
+  in
   let new_labels,label_tbl,sid =
     let new_label = fresh () in
     let sid = Sid.next () in
@@ -55,31 +58,33 @@ let rec copy_stmt break_continue_must_change label_table stmt =
   if stmt.labels <> [] then result.labels <- new_labels;
   result.sid <-sid;
   result.skind <- new_stmkind;
-  List.iter
-    (fun annot ->
+  Annotations.iter_stmt
+    (fun s annot ->
        (*Format.printf "Adding annots to %d@." result.sid;*)
-       Annotations.add result
+       Annotations.add result [ s ]
          (let content = match Ast_info.before_after_content annot with
-              User a -> User (Logic_const.refresh_code_annotation a)
-            | AI(c,a) -> AI(c,Logic_const.refresh_code_annotation a)
-          in match annot with
-              Before _ -> Before content
-            | After _ -> After content))
-    (Annotations.get stmt);
-  result,new_label_tbl
+	    | User a -> User(Logic_const.refresh_code_annotation a)
+	    | AI(c, a) -> AI(c, Logic_const.refresh_code_annotation a)
+          in 
+	  match annot with
+          | Before _ -> Before content
+          | After _ -> After content))
+    stmt;
+  result, new_label_tbl
+
 and copy_stmtkind break_continue_must_change label_tbl stkind =
   match stkind with
-    |(Instr _ | Return _ | Goto _) as keep -> keep,label_tbl
-    | If (exp,bl1,bl2,loc) ->
-        CurrentLoc.set loc;
-        let new_block1,label_tbl = copy_block break_continue_must_change label_tbl bl1 in
-        let new_block2,label_tbl = copy_block break_continue_must_change label_tbl bl2 in
-        If(exp,new_block1,new_block2,loc),label_tbl
-    | Loop (a,bl,loc,_,_) ->
-        CurrentLoc.set loc;
-        let new_block,label_tbl =
-          copy_block
-            None (* from now on break and continue can be kept *)
+  |(Instr _ | Return _ | Goto _) as keep -> keep,label_tbl
+  | If (exp,bl1,bl2,loc) ->
+      CurrentLoc.set loc;
+      let new_block1,label_tbl = copy_block break_continue_must_change label_tbl bl1 in
+      let new_block2,label_tbl = copy_block break_continue_must_change label_tbl bl2 in
+      If(exp,new_block1,new_block2,loc),label_tbl
+  | Loop (a,bl,loc,_,_) ->
+      CurrentLoc.set loc;
+      let new_block,label_tbl =
+        copy_block
+          None (* from now on break and continue can be kept *)
             label_tbl
             bl
         in
@@ -123,9 +128,7 @@ and copy_block break_continue_must_change label_tbl bl =
          new_block::block_l, label_tbl)
       ([],label_tbl) bl.bstmts
   in
-  { battrs= bl.battrs;
-    blocals = [];
-    bstmts= List.rev new_stmts},label_tbl
+  { bl with bstmts = List.rev new_stmts },label_tbl
 (* Update to take into account annotations*)
 class do_it (times:int) = object
   inherit Visitor.generic_frama_c_visitor
@@ -138,7 +141,7 @@ class do_it (times:int) = object
 
   method vstmt_aux s = match s.skind with
     | Loop _ ->
-        let annot = Annotations.get s in
+        let annot = Annotations.get_all_annotations s in
         let pragmas =
           Ast_info.lift_annot_list_func Logic_utils.extract_loop_pragma annot
         in
@@ -200,3 +203,9 @@ end
 let compute nb file =
   let visitor = new do_it(nb)
   in visitFramacFileSameGlobals visitor file
+
+(*
+Local Variables:
+compile-command: "make -C ../.. -j"
+End:
+*)

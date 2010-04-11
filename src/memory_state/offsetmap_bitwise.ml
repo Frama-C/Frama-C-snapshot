@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -26,27 +27,32 @@ type itv = Int.t * Int.t
 
 module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) =
 struct
-
   open Abstract_interp
 
-  type t = Map of (bool*V.t) Int_Interv_Map.t | Degenerate of V.t
+  module V_bool = struct
+    type t = bool * V.t
+    let hash (b,v) =
+      let h = V.tag v in
+      if b then h else 100000 + h
+    let descr = Unmarshal.t_tuple [| Unmarshal.Abstract; V.Datatype.descr |]
+  end
+
+  module M = Int_Interv_Map.Make(V_bool)
+
+  type t = Map of M.t | Degenerate of V.t
 
   let tag x = match x with
     | Degenerate v -> 571 + V.tag v
-    | Map map ->
-	Int_Interv_Map.fold
-	  (fun k (_b, v) acc -> Int_Interv.hash k + V.tag v * 3 + 5 * acc)
-	  map
-	  0
+    | Map map -> M.hash map
 
-  let empty = Map Int_Interv_Map.empty
+  let empty = Map M.empty
 
   let degenerate v = Degenerate v
 
 
   let equal_map mm1 mm2 =
     ( try
-	Int_Interv_Map.equal
+	M.equal
           (fun (bx,x) (by,y) -> (bx = by) && V.equal x y )
           mm1 mm2
       with Int_Interv.Cannot_compare_intervals -> false )
@@ -68,8 +74,8 @@ struct
 	let first = ref true in
 	let pretty_binding fmt (bi,ei) (default,v) =
           let pp_left fmt = function
-            | None -> 
-		Format.fprintf fmt ":%a..%a" 
+            | None ->
+		Format.fprintf fmt ":%a..%a"
 		  Int.pretty bi Int.pretty ei
             | Some typ ->
 		ignore (Bit_utils.pretty_bits typ
@@ -81,34 +87,29 @@ struct
 	    pp_left typ V.pretty v default
 	in
 	Format.fprintf fmt "@[<v>";
-	Int_Interv_Map.iter (pretty_binding fmt) m;
+	M.iter (pretty_binding fmt) m;
 	Format.fprintf fmt "@]"
 
   let pretty = pretty_with_type None
-
-  let rec rehash t =
-    match t with
-      Degenerate v -> Degenerate (V.Datatype.rehash v)
-    | Map t ->
-	Map (Int_Interv_Map.map (fun (b,v) -> b,(V.Datatype.rehash v)) t)
 
   let name = Project.Datatype.extend_name "offsetmap_bitwise" V.Datatype.name
 
   module Datatype =
     Project.Datatype.Register
       (struct
-	 type tt = t
+	 let name = name
+	 type tt = t = Map of M.t | Degenerate of V.t
 	 type t = tt
 	 let copy x = x (* immutable datatype *)
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
-	 let name = name
+	 open Unmarshal
+	 let descr =
+	   Structure (Sum [| [| M.descr |]; [| V.Datatype.descr |] |])
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ()
 
   let is_empty m =
     match m with
-      Map m -> Int_Interv_Map.is_empty m
+      Map m -> M.is_empty m
     | Degenerate _ -> false
 
   let find default ((bi,ei) as i) m =
@@ -116,7 +117,7 @@ struct
       Degenerate v -> v
     | Map m ->
 	let concerned_intervals =
-	  Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i m
+	  M.concerned_intervals Int_Interv.fuzzy_order i m
 	in
 	let treat_mid_interval (_bk,ek) (bl,_el) acc =
        (*   Format.printf "treat_mid_itv: ek:%a bl:%a@\n" Int.pretty ek
@@ -167,16 +168,16 @@ struct
 
   let add_map_internal i v map = (* FIXME (?) Fails to stick the writing binding
 				    with neighbors if applicable *)
-    match Int_Interv_Map.cleanup_overwritten_bindings same_values i v map
+    match M.cleanup_overwritten_bindings same_values i v map
     with
     | None -> map
     | Some(new_bi, new_ei, cleaned_m) ->
         (* Add the new binding *)
-	let result = Int_Interv_Map.add (new_bi,new_ei) v cleaned_m in
+	let result = M.add (new_bi,new_ei) v cleaned_m in
 	result
 
   let merge_map m1 m2 =
-    Int_Interv_Map.fold (fun k v acc -> add_map_internal k v acc) m1 m2
+    M.fold (fun k v acc -> add_map_internal k v acc) m1 m2
 
 (* low-level add to manipulate the pairs (default,value) *)
   let add_internal ((_bi,_ei) as i) (_bv, tv as v) m =
@@ -193,11 +194,11 @@ struct
     | Degenerate v1 -> Degenerate (V.join v v1)
     | Map map ->
 	let concerned_intervals =
-	  Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i map
+	  M.concerned_intervals Int_Interv.fuzzy_order i map
 	in
 	let treat_interval (acc, right_bound) ((b1, e1), (d1, v1)) =
-	  let acc, restricted_e1 = 
-	    if Int.lt e1 right_bound 
+	  let acc, restricted_e1 =
+	    if Int.lt e1 right_bound
 	    then begin (* there is a hole *)
 		let i_hole = (Int.succ e1, right_bound) in
 		add_internal i_hole (true, v) acc, e1
@@ -205,13 +206,13 @@ struct
 	    else acc, Int.min e1 e
 	  in
 	  let restricted_b1 = Int.max b1 b in
-	  let restricted_i1 = restricted_b1, restricted_e1 in 
+	  let restricted_i1 = restricted_b1, restricted_e1 in
 	  add_internal restricted_i1 (d1,V.join v1 v) acc, Int.pred restricted_b1
 	in
 	let acc, right_bound = List.fold_left treat_interval (m, e) concerned_intervals
 	in
-	let result = 
-	  if Int.le b right_bound 
+	let result =
+	  if Int.le b right_bound
 	    then begin (* there is a hole *)
 		let i_hole = (b, right_bound) in
 		add_internal i_hole (true, v) acc
@@ -245,7 +246,7 @@ struct
     match m with
     | Degenerate v -> v
     | Map map ->
-	Int_Interv_Map.fold (fun _ (_,v) acc -> V.join acc v) map V.bottom
+	M.fold (fun _ (_,v) acc -> V.join acc v) map V.bottom
 
   let find_iset default alldefault is m =
     let result =
@@ -293,7 +294,7 @@ struct
     end
 
   let joindefault_internal =
-    Int_Interv_Map.map
+    M.map
       (fun v -> true, (snd v))
 
   let fold f m acc =
@@ -301,19 +302,19 @@ struct
       | Degenerate v ->
 	  f Int_Intervals.top (true,v) acc
       | Map m ->
-	  Int_Interv_Map.fold
+	  M.fold
 	    (fun i v acc ->
 	       f (Int_Intervals.inject [i]) v acc)
 	    m
 	    acc
 
   let map_map f m =
-    Int_Interv_Map.fold
+    M.fold
       (fun i v acc -> add_map_internal i (f v) acc)
       (* [pc] add_internal could be replaced by a more efficient
 	 function that assumes there are no bindings above i *)
       m
-      Int_Interv_Map.empty
+      M.empty
 
   let map f m =
     match m with
@@ -396,15 +397,15 @@ struct
 	    else begin
 		let new_acc = add_map_internal i1 new_v acc in
 		try
-		  let (new_i1, new_v1) = Int_Interv_Map.lowest_binding m1 in
-		  let new_m1 = Int_Interv_Map.remove new_i1 m1 in
+		  let (new_i1, new_v1) = M.lowest_binding m1 in
+		  let new_m1 = M.remove new_i1 m1 in
 		  if Int.lt e1 pb2
 		  then (* -> out_out *)
 		    out_out new_i1 new_v1 new_m1 i2 v2 m2  new_acc
 		  else (* pb2 = e1 *)
 		    (* -> in_or_out_in *)
 	            in_or_out_in new_i1 new_v1 new_m1  i2 v2 m2  new_acc
-		with Int_Interv_Map.Empty_rangemap ->
+		with M.Empty_rangemap ->
 		  compute_remains_m2_and_merge (add_map_internal i2 v2 m2) new_acc
 	      end
 	  in
@@ -429,15 +430,15 @@ struct
 	  else begin
 	    let new_acc = add_map_internal i2 new_v acc in
 	    try
-	      let (new_i2, new_v2) = Int_Interv_Map.lowest_binding m2 in
-	      let new_m2 = Int_Interv_Map.remove new_i2 m2 in
+	      let (new_i2, new_v2) = M.lowest_binding m2 in
+	      let new_m2 = M.remove new_i2 m2 in
 	      if Int.lt e2 pb1
 	      then (* -> out_out *)
 		out_out i1 v1 m1 new_i2 new_v2 new_m2  new_acc
 	      else (* pb1 = e2 *)
 		(* -> in_in_or_out *)
 		in_in_or_out i1 v1 m1 new_i2 new_v2 new_m2  new_acc
-	    with Int_Interv_Map.Empty_rangemap ->
+	    with M.Empty_rangemap ->
 	      compute_remains_m1_and_merge (add_map_internal i1 v1 m1) new_acc
 	    end
 	  in
@@ -463,10 +464,10 @@ struct
 	  let new_acc = add_map_internal i1 new_v12 acc in
 	  let new_i2 = (Int.succ e1,e2) in
 	  try
-	    let (new_i1, new_v1) = Int_Interv_Map.lowest_binding m1 in
-	    let new_m1 = Int_Interv_Map.remove new_i1 m1 in
+	    let (new_i1, new_v1) = M.lowest_binding m1 in
+	    let new_m1 = M.remove new_i1 m1 in
 	    in_or_out_in new_i1 new_v1 new_m1  new_i2 v2 m2  new_acc
-	  with Int_Interv_Map.Empty_rangemap ->
+	  with M.Empty_rangemap ->
 	    compute_remains_m2_and_merge
 	      (add_map_internal new_i2 v2 m2) new_acc
 	and in_in_e2_first (_b1, e1) v1 m1 (_b2, e2 as i2) _v2 m2 acc new_v12=
@@ -476,10 +477,10 @@ struct
 	  let new_acc = add_map_internal i2 new_v12 acc in
 	  let new_i1 = (Int.succ e2,e1) in
 	  try
-	    let (new_i2, new_v2) = Int_Interv_Map.lowest_binding m2 in
-	    let new_m2 = Int_Interv_Map.remove new_i2 m2 in
+	    let (new_i2, new_v2) = M.lowest_binding m2 in
+	    let new_m2 = M.remove new_i2 m2 in
 	    in_in_or_out new_i1 v1 m1  new_i2 new_v2 new_m2  new_acc
-	  with Int_Interv_Map.Empty_rangemap ->
+	  with M.Empty_rangemap ->
 	    compute_remains_m1_and_merge
 	      (add_map_internal new_i1 v1 m1) new_acc
 	and in_in_same_end (_b1, e1 as i1) _v1 m1 (_b2, e2) _v2 m2 acc new_v12=
@@ -489,15 +490,15 @@ struct
 
 	  let acc = add_map_internal i1 new_v12 acc in
           try
-	    let (new_i1, new_v1) = Int_Interv_Map.lowest_binding m1 in
-	    let new_m1 = Int_Interv_Map.remove new_i1 m1 in
+	    let (new_i1, new_v1) = M.lowest_binding m1 in
+	    let new_m1 = M.remove new_i1 m1 in
 	    try
-	      let (new_i2, new_v2) = Int_Interv_Map.lowest_binding m2 in
-	      let new_m2 = Int_Interv_Map.remove new_i2 m2 in
+	      let (new_i2, new_v2) = M.lowest_binding m2 in
+	      let new_m2 = M.remove new_i2 m2 in
 	      out_out new_i1 new_v1 new_m1  new_i2 new_v2 new_m2 acc
-	    with Int_Interv_Map.Empty_rangemap ->
+	    with M.Empty_rangemap ->
 	      compute_remains_m1_and_merge m1 acc
-	  with Int_Interv_Map.Empty_rangemap ->
+	  with M.Empty_rangemap ->
 	    compute_remains_m2_and_merge m2 acc
 	and in_in (b1, e1 as i1) v1 m1 (b2, e2 as i2) v2 m2 acc =
 	  (*Format.printf "in_in: b1=%a e1=%a b2=%a e2=%a@\n"
@@ -513,14 +514,14 @@ struct
 	    i1 v1 m1  i2 v2 m2  acc  new_v12
 	in
 	try
-	  let i1, v1 = Int_Interv_Map.lowest_binding m1 in
+	  let i1, v1 = M.lowest_binding m1 in
 	  try
-	    let i2, v2 = Int_Interv_Map.lowest_binding m2 in
-	    let new_m1 = Int_Interv_Map.remove i1 m1 in
-	    let new_m2 = Int_Interv_Map.remove i2 m2 in
-	    Map (out_out i1 v1 new_m1 i2 v2 new_m2 Int_Interv_Map.empty)
-	  with Int_Interv_Map.Empty_rangemap -> mm1
-	with Int_Interv_Map.Empty_rangemap -> mm2
+	    let i2, v2 = M.lowest_binding m2 in
+	    let new_m1 = M.remove i1 m1 in
+	    let new_m2 = M.remove i2 m2 in
+	    Map (out_out i1 v1 new_m1 i2 v2 new_m2 M.empty)
+	  with M.Empty_rangemap -> mm1
+	with M.Empty_rangemap -> mm2
     in
 (*    check_contiguity(result);*)
     result
@@ -528,7 +529,7 @@ struct
   let rec check_inter offs1 offs2 =
     let check bi ei =
       let concerned_intervals =
-	Int_Interv_Map.concerned_intervals
+	M.concerned_intervals
 	  Int_Interv.fuzzy_order (bi,ei) offs2
       in
       List.iter
@@ -548,7 +549,7 @@ struct
 	  then check (Int.succ ek) pbi;
 	  Some ei
     in
-    match Int_Interv_Map.fold f offs1 None with
+    match M.fold f offs1 None with
     | None -> ()
     | Some _ek ->
 	(* if Int.lt ek Int.max_int
@@ -561,7 +562,7 @@ struct
       | Map offs1, Map offs2 ->
 	  let treat_itv (_bi, _ei as i) (di,vi) =
 	    let concerned_intervals =
-	      Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order i offs2
+	      M.concerned_intervals Int_Interv.fuzzy_order i offs2
 	    in
 	    Int_Interv.check_coverage i concerned_intervals;
 	    List.iter
@@ -570,7 +571,7 @@ struct
 		 if not (V.is_included vi vj) then raise Is_not_included)
 	      concerned_intervals
 	  in
-	  Int_Interv_Map.iter treat_itv offs1    ;
+	  M.iter treat_itv offs1    ;
 	  check_inter offs1 offs2
       | Degenerate _v1, Map _offs2 ->
           raise Is_not_included
@@ -620,15 +621,15 @@ struct
     result
 
 (* this code was copied from the non-bitwise lattice, it could be shared
-   if it was placed in Int_Interv_Map. TODO PC 2007/02 *)
+   if it was placed in M. TODO PC 2007/02 *)
   let copy_paste_map ~f from start stop start_to _to =
     let result =
       let ss = start,stop in
       let to_ss = start_to, Int.sub (Int.add stop start_to) start in
         (* First removing the bindings of the destination interval *)
-      let _to = Int_Interv_Map.remove_itv Int_Interv.fuzzy_order to_ss _to in
+      let _to = M.remove_itv Int_Interv.fuzzy_order to_ss _to in
       let concerned_itv =
-        Int_Interv_Map.concerned_intervals Int_Interv.fuzzy_order ss from
+        M.concerned_intervals Int_Interv.fuzzy_order ss from
       in
       let offset = Int.sub start_to start in
       let current = ref start in

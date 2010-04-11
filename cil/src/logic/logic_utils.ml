@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -30,11 +31,41 @@ open Cil_types
     to build terms and predicates.
     @plugin development guide
 *)
+let rec instantiate subst = function
+  | Ltype(ty,prms) -> Ltype(ty, List.map (instantiate subst) prms)
+  | Larrow(args,rt) ->
+      Larrow(List.map (instantiate subst) args, instantiate subst rt)
+  | Lvar v as ty ->
+      (* This is an application of type parameters:
+         no need to recursively substitute in the resulting type. *)
+      (try List.assoc v subst with Not_found -> ty)
+  | Ctype _ | Linteger | Lreal as ty -> ty
+
+let rec unroll_type_logic = function
+  | Ltype (tdef,prms) as ty ->
+      (match tdef.lt_def with
+         | None | Some (LTsum _) -> ty
+         | Some (LTsyn ty) ->
+             let subst =
+               try
+                 List.combine tdef.lt_params prms
+               with Invalid_argument _ ->
+                 Cilmsg.fatal "Logic type used with wrong number of parameters"
+             in
+             unroll_type_logic (instantiate subst ty)
+      )
+  | Linteger | Lreal | Lvar _ | Larrow _ | Ctype _ as ty  -> ty
+
+let unroll_type ty =
+  match unroll_type_logic ty with
+    | Ctype ty -> Ctype (Cil.unrollType ty)
+    | Ltype _ | Linteger | Lreal | Lvar _ | Larrow _ as ty -> ty
+
 
 (** {1 From C to logic}*)
 
 let isLogicType f t =
-  plain_or_set (function Ctype t -> f t | _ -> false) t
+  plain_or_set (function Ctype t -> f t | _ -> false) (unroll_type t)
 
 (** true if the type is a C array (or a set of)*)
 let isLogicArrayType = isLogicType Cil.isArrayType
@@ -45,6 +76,8 @@ let isLogicVoidType = isLogicType Cil.isVoidType
 
 let isLogicPointerType = isLogicType Cil.isPointerType
 
+let isLogicVoidPointerType = isLogicType Cil.isVoidPtrType
+
 (** returns the equivalent C type.
  @raise Failure if the type is purely logical
 *)
@@ -54,6 +87,46 @@ let logicCType =
                   | _ -> failwith "not a C type")
 
 
+
+let plain_array_to_ptr ty =
+  match unroll_type ty with
+      Ctype(TArray(ty,lo,_,attr) as tarr) ->
+        let rec aux attr = function
+            TArray(ty,lo,s,attr') ->
+              let attr =
+                Cil.addAttributes (Cil.filter_qualifier_attributes attr') attr
+              in
+              TArray(aux attr ty,lo,s,attr')
+          | ty -> Cil.typeAddAttributes attr ty
+        in
+        let length_attr =
+          match lo with
+              None -> []
+            | Some _ -> begin
+                try
+                  let len = Cil.bitsSizeOf tarr in
+                  let len = try len / (Cil.bitsSizeOf ty)
+                  with Cil.SizeOfError _ ->
+                    Cilmsg.fatal
+                      "Inconsistent information: I know the length of \
+                       array type %a, but not of its elements."
+                      Cil.d_type tarr
+                  in
+                  (* Normally, overflow is checked in bitsSizeOf itself *)
+                  let la = AInt len in
+                  [ Attr("arraylen",[la])]
+                with Cil.SizeOfError _ ->
+                  Cil.warning
+                    "Cannot represent length of array as an attribute";
+                  []
+              end
+        in
+        Ctype(TPtr(aux (Cil.filter_qualifier_attributes attr) ty,
+                   Cil.addAttributes length_attr attr))
+    | ty -> ty
+
+let array_to_ptr = plain_or_set plain_array_to_ptr
+
 (** @plugin development guide *)
 let mk_dummy_term e ctyp = Logic_const.term e (Ctype ctyp)
 
@@ -61,41 +134,113 @@ let insert_logic_cast typ term =
   let made_term =  mk_dummy_term term typ in
   TCastE(typ, made_term)
 
-(** @plugin development guide *)
-let rec expr_to_term e =
-  let result = match e.enode with
-  | Const c ->
-      let tc = TConst c in
- (*     if true  Cil.isIntegralType e_typ
-    then *)tc
-(* else insert_logic_cast e_typ tc*)
-  | SizeOf t -> TSizeOf t
-  | SizeOfE e -> TSizeOfE (expr_to_term e)
-  | SizeOfStr s -> TSizeOfStr s
-  | StartOf lv -> TStartOf (lval_to_term_lval lv)
-  | AddrOf lv -> TAddrOf (lval_to_term_lval lv)
-  | CastE (ty,e) ->  TCastE (ty,expr_to_term e)
-  | BinOp (op, l, r, _) -> TBinOp (op,expr_to_term l,expr_to_term r)
-  | UnOp (op, e, _) -> TUnOp (op,expr_to_term e)
-  | AlignOfE e -> TAlignOfE (expr_to_term e)
-  | AlignOf typ -> TAlignOf typ
-  | Lval lv -> TLval (lval_to_term_lval lv)
-  | Info (e,_) -> (expr_to_term e).term_node
+let rec is_C_array t =
+  let is_C_array_lhost = function
+      TVar { lv_origin = Some _ } -> true
+    (* \result always refer to a C value *)
+    | TResult _ -> true
+    (* dereference implies an access to a C value. *)
+    | TMem _ -> true
+    | TVar _ -> false
   in
-  let e_typ = Cil.typeOf e in
-  mk_dummy_term result e_typ
+  isLogicArrayType t.term_type &&
+  (match t.term_node with
+     | TStartOf (lh,_) -> is_C_array_lhost lh
+     | TLval(lh,_) -> is_C_array_lhost lh
+     | Told t | Tat(t,_) -> is_C_array t
+     | Tif(_,t1,t2) -> is_C_array t1 && is_C_array t2
+     | Tlet (_,t) -> is_C_array t
+     | _ -> false)
+         (* TUpdate gives back a logic array, TStartOf has pointer type anyway,
+            other constructors are never arrays. *)
+
+(* do not use it on something which is not a C array *)
+let rec mk_logic_StartOf t =
+  let my_type = array_to_ptr t.term_type in
+  match t.term_node with
+      TLval s -> { t with term_node = TStartOf s; term_type = my_type }
+    | Told t ->
+        { t with term_node = Told (mk_logic_StartOf t); term_type = my_type }
+    | Tat (t,l) ->
+        { t with term_node = Tat(mk_logic_StartOf t,l); term_type = my_type }
+    | Tif(c,t1,t2) ->
+        { t with
+            term_node = Tif(c,mk_logic_StartOf t1, mk_logic_StartOf t2);
+            term_type = my_type
+        }
+    | Tlet (body,t) ->
+        { t with term_node = Tlet(body, mk_logic_StartOf t);
+            term_type = my_type }
+    | _ -> Cilmsg.fatal "mk_logic_StartOf given a non-C-array term"
+
+let isLogicPointer t =
+  isLogicPointerType t.term_type || (is_C_array t)
+
+let mk_logic_pointer_or_StartOf t =
+  if isLogicPointer t then
+    if is_C_array t then mk_logic_StartOf t else t
+  else Cilmsg.fatal "%a is neither a pointer nor a C array" d_term t
+
+let typ_to_logic_type e_typ =
+  match Cil.unrollType e_typ with
+    | TFloat (_,_) ->  Lreal
+    | TInt   (_,_) -> Linteger
+    | _ -> Ctype (e_typ)
 
 (** @plugin development guide *)
-and lval_to_term_lval (host,offset) =
-  host_to_term_host host,offset_to_term_offset offset
-and host_to_term_host = function
+(* translates a C expression into an "equivalent" logical term *)
+(* if cast is true: expressions with integral type are cast to corresponding C type *)
+(* if cast is false: no cast performed to C type, except for constants since
+   there are no logic integer constants for the time being => they keep their C type *)
+let rec expr_to_term ~cast:cast e =
+  let e_typ = Cil.typeOf e in
+  let result = match e.enode with
+    | Const c ->
+	(* a constant should be translated into a logic constant,
+	   but logic constants do not exist yet => keep C constant *)
+	(* may be a problem for big constants, also type of a C constant
+	   is a C type (ikind) i.e. architecture dependant *)
+	let tc = TConst c in tc
+    | SizeOf t -> TSizeOf t
+    | SizeOfE e -> TSizeOfE (expr_to_term ~cast e)
+    | SizeOfStr s -> TSizeOfStr s
+    | StartOf lv -> TStartOf (lval_to_term_lval ~cast lv)
+    | AddrOf lv -> TAddrOf (lval_to_term_lval ~cast lv)
+    | CastE (ty,e) ->  TCastE (ty,expr_to_term ~cast e)
+    | BinOp (op, l, r, _) ->
+	let nnode = TBinOp (op,expr_to_term ~cast l,expr_to_term ~cast r) in
+	  if cast && (Cil.isIntegralType e_typ || Cil.isFloatingType e_typ)
+	  then
+	    TCastE (e_typ, Logic_const.term nnode (typ_to_logic_type e_typ))
+	  else nnode
+    | UnOp (op, e, _) ->
+	let nnode = TUnOp (op,expr_to_term ~cast e) in
+	  if cast && (Cil.isIntegralType e_typ || Cil.isFloatingType e_typ)
+	  then
+	    TCastE (e_typ, Logic_const.term nnode (typ_to_logic_type e_typ))
+	  else nnode
+    | AlignOfE e -> TAlignOfE (expr_to_term ~cast e)
+    | AlignOf typ -> TAlignOf typ
+    | Lval lv -> TLval (lval_to_term_lval ~cast lv)
+    | Info (e,_) -> (expr_to_term ~cast e).term_node
+  in
+    if cast then Logic_const.term result (Ctype e_typ)
+    else (
+      match e.enode with
+	| Const _ -> Logic_const.term result (Ctype e_typ)
+	| _       -> Logic_const.term result (typ_to_logic_type e_typ)
+    )
+(** @plugin development guide *)
+and lval_to_term_lval ~cast:cast (host,offset) =
+    host_to_term_host ~cast host,offset_to_term_offset ~cast offset
+and host_to_term_host ~cast:cast = function
   | Var s -> TVar (Cil.cvar_to_lvar s)
-  | Mem e ->
-      TMem (expr_to_term e)
-and offset_to_term_offset = function
+  | Mem e -> TMem (expr_to_term ~cast e)
+and offset_to_term_offset ~cast:cast = function
   | NoOffset -> TNoOffset
-  | Index (e,off) -> TIndex (expr_to_term e,offset_to_term_offset off)
-  | Field (fi,off) -> TField(fi,offset_to_term_offset off)
+  | Index (e,off) -> TIndex (expr_to_term ~cast e,offset_to_term_offset ~cast off)
+  | Field (fi,off) -> TField(fi,offset_to_term_offset ~cast off)
+
 
 (** {1 Various utilities} *)
 
@@ -113,7 +258,7 @@ let bound_var v = Cil_const.make_logic_var v.lv_name v.lv_type
 let rec lval_contains_result v =
   match v with
       TResult _ -> true
-    | TMem(t) -> contains_result t
+    | TMem t -> contains_result t
     | TVar _ -> false
 and loffset_contains_result o =
   match o with
@@ -137,12 +282,7 @@ and contains_result t =
 let get_pred_body pi =
   match pi.l_body with LBpred p -> p | _ -> raise Not_found
 
-(** true if the given term is a lvalue denoting result or part of it *)
-let rec is_result t = match t.term_node with
-    TLval (TResult _,_) -> true
-  | Tat(t,_) -> is_result t
-  | Told t -> is_result t
-  | _ -> false
+let is_result = Logic_const.is_result
 
 let is_same_list f l1 l2 =
   try List.for_all2 f l1 l2 with Invalid_argument _ -> false
@@ -259,18 +399,19 @@ let rec is_same_term t1 t2 =
         (try List.for_all2 is_same_term l1 l2
          with Invalid_argument _ -> false)
     | Tcomprehension(e1,q1,p1), Tcomprehension(e2,q2,p2) ->
-        is_same_term e1 e2 &&
-          (try List.for_all2 (fun x y -> x.lv_id = y.lv_id) q1 q2
-           with Invalid_argument _ -> false) &&
+        is_same_term e1 e2 && is_same_list is_same_var q1 q2 &&
           is_same_opt is_same_named_predicate p1 p2
     | Trange(l1,h1), Trange(l2,h2) ->
         is_same_opt is_same_term l1 l2 && is_same_opt is_same_term h1 h2
+    | Tlet(d1,b1), Tlet(d2,b2) ->
+        is_same_logic_info d1 d2 && is_same_term b1 b2
     | (TConst _ | TLval _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
       | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _
       | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
       | Tif _ | Told _ | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
       | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
       | Tcomprehension _ | Tempty_set | Tunion _ | Tinter _ | Trange _
+      | Tlet _
       ),_ -> false
 
 and is_same_logic_info l1 l2 =
@@ -279,11 +420,12 @@ and is_same_logic_info l1 l2 =
 
 and is_same_logic_body b1 b2 =
   match b1,b2 with
+    | LBnone, LBnone -> true
     | LBreads l1, LBreads l2 -> is_same_list is_same_identified_term l1 l2
     | LBterm t1, LBterm t2 -> is_same_term t1 t2
     | LBpred p1, LBpred p2 -> is_same_named_predicate p1 p2
     | LBinductive l1, LBinductive l2 -> is_same_list is_same_indcase l1 l2
-    | (LBinductive _ | LBpred _ | LBterm _ | LBreads _), _ ->
+    | (LBnone | LBinductive _ | LBpred _ | LBterm _ | LBreads _), _ ->
 	false
 
 and is_same_indcase (id1,labs1,typs1,p1) (id2,labs2,typs2,p2) =
@@ -301,7 +443,7 @@ and is_same_lhost h1 h2 =
     | TMem t1, TMem t2 -> is_same_term t1 t2
     | TResult t1, TResult t2 ->
         Cilutil.equals (Cil.typeSig t1) (Cil.typeSig t2)
-    | (TVar _ | TMem _ | TResult _),_ -> false
+    | (TVar _ | TMem _ | TResult _ ),_ -> false
 
 and is_same_offset o1 o2 =
   match o1, o2 with
@@ -331,9 +473,8 @@ and is_same_predicate p1 p2 =
     | Pif (c1,t1,e1), Pif(c2,t2,e2) ->
         is_same_term c1 c2 && is_same_named_predicate t1 t2 &&
           is_same_named_predicate e1 e2
-    | Plet (v1,t1,p1), Plet(v2,t2,p2) ->
-        v1.lv_id = v2.lv_id &&
-        is_same_term t1 t2 && is_same_named_predicate p1 p2
+    | Plet (d1,p1), Plet(d2,p2) ->
+        is_same_logic_info d1 d2 && is_same_named_predicate p1 p2
     | Pforall(q1,p1), Pforall(q2,p2) ->
         is_same_list is_same_var q1 q2 && is_same_named_predicate p1 p2
     | Pexists(q1,p1), Pexists(q2,p2) ->
@@ -384,10 +525,13 @@ let is_same_variant (v1,o1) (v2,o2) =
     (match o1, o2 with None, None -> true | None, _ | _, None -> false
        | Some o1, Some o2 -> o1 = o2)
 
+let is_same_post_cond (k1,p1) (k2,p2) =
+  k1 = k2 && is_same_identified_predicate p1 p2
+
 let is_same_behavior b1 b2 =
   b1.b_name = b2.b_name &&
   is_same_list is_same_identified_predicate b1.b_assumes b2.b_assumes &&
-  is_same_list is_same_identified_predicate b1.b_ensures b2.b_ensures  &&
+  is_same_list is_same_post_cond b1.b_post_cond b2.b_post_cond  &&
   is_same_list is_same_assigns b1.b_assigns b2.b_assigns
 
 let is_same_spec spec1 spec2 =
@@ -404,11 +548,16 @@ let is_same_spec spec1 spec2 =
   && spec1.spec_complete_behaviors = spec2.spec_complete_behaviors
   && spec1.spec_disjoint_behaviors = spec2.spec_disjoint_behaviors
 
+let is_same_logic_type_def d1 d2 =
+  match d1,d2 with
+      LTsum l1, LTsum l2 -> is_same_list is_same_logic_ctor_info l1 l2
+    | LTsyn ty1, LTsyn ty2 -> is_same_type ty1 ty2
+    | (LTsyn _ | LTsum _), _ -> false
+
 let is_same_logic_type_info t1 t2 =
   t1.lt_name = t2.lt_name &&
   is_same_list (=) t1.lt_params  t2.lt_params &&
-  is_same_opt (is_same_list is_same_logic_ctor_info)
-  t1.lt_ctors t2.lt_ctors
+  is_same_opt is_same_logic_type_def t1.lt_def t2.lt_def
 
 let rec is_same_global_annotation ga1 ga2 =
   match (ga1,ga2) with
@@ -463,7 +612,7 @@ let merge_funspec old_spec fresh_spec =
               let old_b = List.find (fun x -> x.b_name = b.b_name)
                 old_spec.spec_behavior in
               old_b.b_assumes <- old_b.b_assumes @ b.b_assumes;
-              old_b.b_ensures <- old_b.b_ensures @ b.b_ensures;
+              old_b.b_post_cond <- old_b.b_post_cond @ b.b_post_cond;
               old_b.b_assigns <- merge_assigns old_b.b_assigns b.b_assigns;
               false
             with Not_found -> true)
@@ -499,7 +648,7 @@ let lhost_c_type = function
       (match t.term_type with
            Ctype (TPtr(ty,_)) -> ty
          | _ -> assert false)
-  | TResult _ -> assert false
+  | TResult ty -> ty
 
 let is_assert ca = match ca.annot_content with AAssert _ -> true | _ -> false
 
@@ -625,6 +774,7 @@ let check_loop_annotation  ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) l =
             | AVariant _ -> true
             | _ -> has_variant) false l);
   check_all_assigns ~loc l
+
 
 (*
 Local Variables:

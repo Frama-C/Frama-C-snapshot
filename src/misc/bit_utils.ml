@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -120,7 +121,7 @@ let sizeof_pointed typ =
     | TPtr (typ,_) -> sizeof typ
     | TArray(typ,_,_,_) -> sizeof typ
     | _ ->
-        Kernel.abort "TYPE IS: %a (unrolled as %a)" 
+        Kernel.abort "TYPE IS: %a (unrolled as %a)"
 	  !Ast_printer.d_type typ
 	  !Ast_printer.d_type (unrollType typ)
 
@@ -172,7 +173,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                Int.pretty start
                Int.pretty stop;
              false) else true);
-  
+
   let req_size = Int.length start stop in
   (*    Format.printf "align:%Ld size: %Ld start:%Ld stop:%Ld req_size:%Ld@\n"
         align size start stop req_size;*)
@@ -181,7 +182,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
       env.use_align && (Int.neq (Int.pos_rem start env.rh_size) align
                         || Int.neq req_size env.rh_size) in
     Format.fprintf env.fmt "[%sbits %a to %a]%s"
-      (if Parameters.debug_atleast 1 then String.make 1 c else "")
+      (if Kernel.debug_atleast 1 then String.make 1 c else "")
       Int.pretty start
       Int.pretty stop
       (if cond then (env.misaligned <- true ; "#") else "")
@@ -194,7 +195,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                Int.pretty start
                Int.pretty stop;
              false) else true);
-  
+
   match (unrollType typ) with
     | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
     | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) ->
@@ -206,14 +207,14 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
         (if Int.eq start Int.zero
            && Int.eq size req_size then
              (** pretty print a full offset *)
-             (if not env.use_align || 
-		(Int.eq start align && Int.eq env.rh_size size) 
-	      then () 
-	      else (env.misaligned <- true ; 
+             (if not env.use_align ||
+		(Int.eq start align && Int.eq env.rh_size size)
+	      then ()
+	      else (env.misaligned <- true ;
 		    Format.pp_print_char env.fmt '#'))
          else
            raw_bits 'b' start stop)
-	  
+
     | TComp (compinfo, _, _) -> begin
         let size = Int.of_int (try bitsSizeOf typ
                                with SizeOfError _ -> 0)
@@ -228,7 +229,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                let current_offset = Field (field,NoOffset) in
                let start_o,width_o = bitsOffset typ current_offset in
                let start_o,width_o = Int.of_int start_o, Int.of_int width_o in
-	       
+
                let new_start =
                  if compinfo.cstruct then
                    Int.max Int.zero (Int.sub start start_o)
@@ -248,9 +249,9 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 	       let new_align = Int.pos_rem (Int.sub align start_o) env.rh_size in
                if Int.le new_start new_stop then
 		 NamedField( field.fname ,
-			     new_bfinfo , field.ftype , 
+			     new_bfinfo , field.ftype ,
 			     new_align , new_start , new_stop ) :: acc
-               else 
+               else
 		 acc)
             []
             compinfo.cfields
@@ -272,15 +273,15 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                      (* found a hole *)
 		     (RawField('c', last_field_offset,Int.pred start_o)::s,
                       succ_stop_o)
-                   else 
+                   else
 		     (s,succ_stop_o)
-		) 
+		)
 		(full_fields_to_print,start)
                 compinfo.cfields
             else full_fields_to_print, Int.zero
           in
           let overflowing =
-            if compinfo.cstruct && Int.le succ_last stop 
+            if compinfo.cstruct && Int.le succ_last stop
 	    then RawField('o',Int.max start succ_last,stop)::non_covered
             else non_covered
           in
@@ -294,15 +295,15 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 	  in
 	  let rec pretty_all_fields = function
 	    | [] -> ()
-	    | f::fs -> 
-		pretty_all_fields fs ; 
+	    | f::fs ->
+		pretty_all_fields fs ;
 		pretty_one_field f ;
 		Format.pp_print_string env.fmt "; "
 	  in
 	  match overflowing with
 	    | [] -> Format.pp_print_string env.fmt "{}"
 	    | [f] -> pretty_one_field f
-	    | fs -> 
+	    | fs ->
 		Format.pp_print_char env.fmt '{' ;
 		pretty_all_fields fs ;
 		Format.pp_print_char env.fmt '}'
@@ -352,7 +353,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 				  typ,align,Int.zero,pred_size)]
                 in
                 let last_part =
-                  if Int.eq rem_stop_size pred_size 
+                  if Int.eq rem_stop_size pred_size
 		  then []
                   else [ArrayPart(stop_case,stop_case,
 				  typ,align,Int.zero,rem_stop_size)]
@@ -360,28 +361,28 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 		let do_part = function
 		  | ArrayPart(start_index,stop_index,typ,align,start,stop) ->
 		      if Int.eq start_index stop_index then
-			Format.fprintf env.fmt "[%a]" 
+			Format.fprintf env.fmt "[%a]"
 			  Int.pretty start_index
 		      else
-			Format.fprintf env.fmt "[%a..%a]" 
-			  Int.pretty start_index 
+			Format.fprintf env.fmt "[%a..%a]"
+			  Int.pretty start_index
 			  Int.pretty stop_index ;
 		      pretty_bits_internal env Other typ ~align ~start ~stop
 		in
 		let rec do_all_parts = function
 		  | [] -> ()
-		  | p::ps -> 
-		      do_part p ; 
+		  | p::ps ->
+		      do_part p ;
 		      Format.pp_print_string env.fmt "; " ;
 		      do_all_parts ps
 		in
 		match first_part @ middle_part @ last_part with
 		  | [] -> Format.pp_print_string env.fmt "{}"
 		  | [p] -> do_part p
-		  | ps -> 
-		      Format.pp_print_char env.fmt '{' ; 
+		  | ps ->
+		      Format.pp_print_char env.fmt '{' ;
 		      do_all_parts ps ;
-		      Format.pp_print_char env.fmt '}' ; 
+		      Format.pp_print_char env.fmt '}' ;
             else raw_bits 'a' start stop
 
 
@@ -390,7 +391,7 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
           && Int.lt align rh_size);
   if Int.lt start Int.zero then
     (Format.fprintf fmt "[%sbits %a to %a]#(negative offsets)"
-       (if Parameters.debug_atleast 1 then "?" else "")
+       (if Kernel.debug_atleast 1 then "?" else "")
        Int.pretty start Int.pretty stop ; true)
   else
     let env = {

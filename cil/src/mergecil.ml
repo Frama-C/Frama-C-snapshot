@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* mergecil.ml *)
@@ -241,7 +242,7 @@ let findReplacement
       Some (rep.ndata, rep.nfidx)
   with Not_found -> begin
     if debugFind then
-      (Cilmsg.debug "  not found in the map");
+      Cilmsg.debug "  not found in the map";
     None
   end
 
@@ -253,8 +254,7 @@ let getNode    (eq: (int * string, 'a node) H.t)
                (l: (location * int) option) =
   let debugGetNode = false in
   if debugGetNode then
-    (Cilmsg.debug "getNode(%s(%d), %a)"
-              name fidx d_nloc l);
+    Cilmsg.debug "getNode(%s(%d), %a)" name fidx d_nloc l;
   try
     let res = H.find eq (fidx, name) in
 
@@ -267,13 +267,11 @@ let getNode    (eq: (int * string, 'a node) H.t)
 	    "Duplicate definition of node %s(%d) at indices %d(%a) and %d(%a)"
             name fidx old_idx d_loc old_l idx d_loc l
     | _, _ -> ());
-    if debugGetNode then
-      (Cilmsg.debug "  node already found");
+    if debugGetNode then Cilmsg.debug "  node already found";
     find false res (* No path compression *)
   with Not_found -> begin
     let res = mkSelfNode eq syn fidx name data l in
-    if debugGetNode then
-      (Cilmsg.debug "   made a new one");
+    if debugGetNode then Cilmsg.debug "   made a new one";
     res
   end
 
@@ -281,15 +279,15 @@ let getNode    (eq: (int * string, 'a node) H.t)
 
 (* Dump a graph *)
 let dumpGraph (what: string) (eq: (int * string, 'a node) H.t) : unit =
-  (Cilmsg.debug "Equivalence graph for %s is:" what);
+  Cilmsg.debug "Equivalence graph for %s is:" what;
   H.iter (fun (fidx, name) nd ->
-    (Cilmsg.debug "  %s(%d) %s-> "
-              name fidx (if nd.nloc = None then "(undef)" else ""));
-    if nd.nrep == nd then
-      (Cilmsg.debug "*")
-    else
-      (Cilmsg.debug " %s(%d)" nd.nrep.nname nd.nrep.nfidx ))
-    eq
+            Cilmsg.debug "  %s(%d) %s-> "
+              name fidx (if nd.nloc = None then "(undef)" else "");
+            if nd.nrep == nd then
+              Cilmsg.debug "*"
+            else
+              Cilmsg.debug " %s(%d)" nd.nrep.nname nd.nrep.nfidx
+         ) eq
 
 
 
@@ -413,27 +411,31 @@ let add_to_merge_spec vi spec =
   in Hashtbl.replace spec_to_merge vi.vid (spec::l)
 
 let add_alpha_renaming old_vi old_args new_args =
-  Hashtbl.add formals_renaming old_vi.vid
-    (Cil.create_alpha_renaming old_args new_args)
+  try
+    Hashtbl.add
+      formals_renaming
+      old_vi.vid
+      (Cil.create_alpha_renaming old_args new_args)
+  with Invalid_argument _ ->
+    (* [old_args] and [new_args] haven't the same length.
+       May occur at least when trying to merge incompatible declarations. *)
+    ()
 
 let mergeSpec vi_ref vi_disc spec =
-  if Cil.is_empty_funspec spec then () (* no need keep empty specs *)
-  else begin
-    let spec = try
-      let alpha =
-        Cil.create_alpha_renaming
-          (Cil.getFormalsDecl vi_disc) (Cil.getFormalsDecl vi_ref)
-      in
+  if not (Cil.is_empty_funspec spec) then
+    let spec =
       try
-        Cil.visitCilFunspec alpha spec
-      with Not_found -> assert false
-    with Not_found -> spec
+	let alpha =
+          Cil.create_alpha_renaming
+            (Cil.getFormalsDecl vi_disc)
+	    (Cil.getFormalsDecl vi_ref)
+	in
+	try Cil.visitCilFunspec alpha spec with Not_found -> assert false
+      with Not_found ->
+	spec
     in
     add_to_merge_spec vi_ref spec
-
-  end
-
-
+  (* else no need keep empty specs *)
 
 (* The index of the current file being scanned *)
 let currentFidx = ref 0
@@ -476,11 +478,23 @@ let init ?(all=true) () =
   H.clear tEq;
   H.clear iEq;
 
+  H.clear lfEq;
+  H.clear ltEq;
+  H.clear lcEq;
+  H.clear laEq;
+  H.clear llEq;
+
   H.clear vSyn;
   H.clear sSyn;
   H.clear eSyn;
   H.clear tSyn;
   H.clear iSyn;
+
+  H.clear lfSyn;
+  H.clear ltSyn;
+  H.clear lcSyn;
+  H.clear laSyn;
+  H.clear llSyn;
 
   theFile := [];
   theFileTypes := [];
@@ -557,40 +571,40 @@ type combineWhat =
 
 
 let rec combineTypes (what: combineWhat)
-                     (oldfidx: int)  (oldt: typ)
-                     (fidx: int) (t: typ)  : typ =
+    (oldfidx: int)  (oldt: typ)
+    (fidx: int) (t: typ)  : typ =
   match oldt, t with
   | TVoid olda, TVoid a -> TVoid (addAttributes olda a)
   | TInt (oldik, olda), TInt (ik, a) ->
       let combineIK oldk k =
         if oldk == k then oldk else
-        (* GCC allows a function definition to have a more precise integer
-         * type than a prototype that says "int" *)
-        if not theMachine.msvcMode && oldk = IInt && bitsSizeOf t <= 32
-           && (what = CombineFunarg || what = CombineFunret)
-        then
-          k
-        else (
-          let msg =
-            Pretty_utils.sfprintf
-              "(different integer types %a and %a)"
-              d_type oldt d_type t
-          in
-          raise (Failure msg))
+          (* GCC allows a function definition to have a more precise integer
+           * type than a prototype that says "int" *)
+          if not theMachine.msvcMode && oldk = IInt && bitsSizeOf t <= 32
+            && (what = CombineFunarg || what = CombineFunret)
+          then
+            k
+          else (
+            let msg =
+              Pretty_utils.sfprintf
+		"(different integer types %a and %a)"
+		d_type oldt d_type t
+            in
+            raise (Failure msg))
       in
       TInt (combineIK oldik ik, addAttributes olda a)
 
   | TFloat (oldfk, olda), TFloat (fk, a) ->
       let combineFK oldk k =
         if oldk == k then oldk else
-        (* GCC allows a function definition to have a more precise integer
-         * type than a prototype that says "double" *)
-        if not theMachine.msvcMode && oldk = FDouble && k = FFloat
-           && (what = CombineFunarg || what = CombineFunret)
-        then
-          k
-        else
-          raise (Failure "(different floating point types)")
+          (* GCC allows a function definition to have a more precise integer
+           * type than a prototype that says "double" *)
+          if not theMachine.msvcMode && oldk = FDouble && k = FFloat
+            && (what = CombineFunarg || what = CombineFunret)
+          then
+            k
+          else
+            raise (Failure "(different floating point types)")
       in
       TFloat (combineFK oldfk fk, addAttributes olda a)
 
@@ -601,12 +615,12 @@ let rec combineTypes (what: combineWhat)
       TEnum (oldei, addAttributes olda a)
 
 
-        (* Strange one. But seems to be handled by GCC *)
+  (* Strange one. But seems to be handled by GCC *)
   | TEnum (oldei, olda) , TInt(IInt, a) -> TEnum(oldei,
                                                  addAttributes olda a)
 
-        (* Strange one. But seems to be handled by GCC. Warning. Here we are
-         * leaking types from new to old  *)
+  (* Strange one. But seems to be handled by GCC. Warning. Here we are
+   * leaking types from new to old  *)
   | TInt(IInt, olda), TEnum (ei, a) -> TEnum(ei, addAttributes olda a)
 
   | TComp (oldci, _, olda) , TComp (ci, _, a) ->
@@ -629,7 +643,7 @@ let rec combineTypes (what: combineWhat)
               | _, _ -> false
             in
             if samesz then oldsz else
-            raise (Failure "(different array sizes)")
+              raise (Failure "(different array sizes)")
       in
       TArray (combbt, combinesz, empty_size_cache (), addAttributes olda a)
 
@@ -637,7 +651,7 @@ let rec combineTypes (what: combineWhat)
       TPtr (combineTypes CombineOther oldfidx oldbt fidx bt,
             addAttributes olda a)
 
-        (* WARNING: In this case we are leaking types from new to old !! *)
+  (* WARNING: In this case we are leaking types from new to old !! *)
   | TFun (_, _, _, [Attr("missingproto",_)]), TFun _ -> t
 
 
@@ -652,31 +666,31 @@ let rec combineTypes (what: combineWhat)
       if oldva != va then
         raise (Failure "(diferent vararg specifiers)");
       (* If one does not have arguments, believe the one with the
-      * arguments *)
+       * arguments *)
       let newargs =
         if oldargs = None then args else
-        if args = None then oldargs else
-        let oldargslist = argsToList oldargs in
-        let argslist = argsToList args in
-        if List.length oldargslist <> List.length argslist then
-          raise (Failure "(different number of arguments)")
-        else begin
-          (* Go over the arguments and update the old ones with the
-           * adjusted types *)
-          Some
-            (List.map2
-               (fun (on, ot, oa) (an, at, aa) ->
-                 let n = if an <> "" then an else on in
-                 let t =
-                   combineTypes
-                     (if what = CombineFundef then CombineFunarg
-		      else CombineOther)
-                     oldfidx ot fidx at
-                 in
-                 let a = addAttributes oa aa in
-		 (n, t, a))
-               oldargslist argslist)
-        end
+          if args = None then oldargs else
+            let oldargslist = argsToList oldargs in
+            let argslist = argsToList args in
+            if List.length oldargslist <> List.length argslist then
+              raise (Failure "(different number of arguments)")
+            else begin
+              (* Go over the arguments and update the old ones with the
+               * adjusted types *)
+              Some
+		(List.map2
+		   (fun (on, ot, oa) (an, at, aa) ->
+                      let n = if an <> "" then an else on in
+                      let t =
+			combineTypes
+			  (if what = CombineFundef then CombineFunarg
+			   else CombineOther)
+			  oldfidx ot fidx at
+                      in
+                      let a = addAttributes oa aa in
+		      (n, t, a))
+		   oldargslist argslist)
+            end
       in
       TFun (newrt, newargs, oldva, addAttributes olda a)
 
@@ -688,12 +702,12 @@ let rec combineTypes (what: combineWhat)
       (* If we get here we were able to match *)
       TNamed(oldt, addAttributes olda a)
 
-        (* Unroll first the new type *)
+  (* Unroll first the new type *)
   | _, TNamed (t, a) ->
       let res = combineTypes what oldfidx oldt fidx t.ttype in
       typeAddAttributes a res
 
-        (* And unroll the old type as well if necessary *)
+  (* And unroll the old type as well if necessary *)
   | TNamed (oldt, a), _ ->
       let res = combineTypes what oldfidx oldt.ttype fidx t in
       typeAddAttributes a res
@@ -702,7 +716,7 @@ let rec combineTypes (what: combineWhat)
       (* raise (Failure "(different type constructors)") *)
       let msg:string =
         Pretty_utils.sfprintf
-        "(different type constructors: %a vs. %a)"
+          "(different type constructors: %a vs. %a)"
           d_type oldt  d_type t
       in
       raise (Failure msg))
@@ -710,16 +724,16 @@ let rec combineTypes (what: combineWhat)
 
 (* Match two compinfos and throw a Failure if they do not match *)
 and matchCompInfo (oldfidx: int) (oldci: compinfo)
-                     (fidx: int)    (ci: compinfo) : unit =
+    (fidx: int)    (ci: compinfo) : unit =
   if oldci.cstruct <> ci.cstruct then
     raise (Failure "(different struct/union types)");
   (* See if we have a mapping already *)
   (* Make the nodes if not already made. Actually return the
-  * representatives *)
+   * representatives *)
   let oldcinode = getNode sEq sSyn oldfidx oldci.cname oldci None in
   let    cinode = getNode sEq sSyn    fidx    ci.cname    ci None in
   if oldcinode == cinode then (* We already know they are the same *)
-        ()
+    ()
   else begin
     (* Replace with the representative data *)
     let oldci = oldcinode.ndata in
@@ -735,14 +749,14 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
      * new one is. We still reuse the old one and we'll take care of defining
      * it later with the new fields.
      * GN: 7/10/04, I could not find when is "later", so I added it below *)
-    if len <> 0 && old_len <> 0 && old_len <> len then (
+    if len <> 0 && old_len <> 0 && old_len <> len then begin
       let curLoc = CurrentLoc.get () in     (* d_global blows this away.. *)
       CurrentLoc.set curLoc;
       let msg = Printf.sprintf
-	  "(different number of fields in %s and %s: %d != %d.)"
-	  oldci.cname ci.cname old_len len in
+	"(different number of fields in %s and %s: %d != %d.)"
+	oldci.cname ci.cname old_len len in
       raise (Failure msg)
-    );
+    end;
     (* We check that they are defined in the same way. While doing this there
      * might be recursion and we have to watch for going into an infinite
      * loop. So we add the assumption that they are equal *)
@@ -753,22 +767,21 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
      * old compinfo. *)
     (* But what if the old one is the empty one ? *)
     if old_len = len then begin
-      (try
+      try
         List.iter2
           (fun oldf f ->
-            if oldf.fbitfield <> f.fbitfield then
-              raise (Failure "(different bitfield info)");
-            if oldf.fattr <> f.fattr then
-              raise (Failure "(different field attributes)");
-            (* Make sure the types are compatible *)
-            let newtype =
-              combineTypes CombineOther oldfidx oldf.ftype fidx f.ftype
-            in
-            (* Change the type in the representative *)
-            oldf.ftype <- newtype;
-          )
+             if oldf.fbitfield <> f.fbitfield then
+	       raise (Failure "(different bitfield info)");
+             if oldf.fattr <> f.fattr then
+	       raise (Failure "(different field attributes)");
+             (* Make sure the types are compatible *)
+             let newtype =
+	       combineTypes CombineOther oldfidx oldf.ftype fidx f.ftype
+             in
+             (* Change the type in the representative *)
+             oldf.ftype <- newtype)
           oldci.cfields ci.cfields
-      with Failure reason -> begin
+      with Failure reason ->
         (* Our assumption was wrong. Forget the isomorphism *)
         undo ();
         let msg =
@@ -779,7 +792,6 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
             dn_global (GCompTag(ci,Cilutil.locUnknown))
         in
         raise (Failure msg)
-      end)
     end else begin
       (* We will reuse the old one. One of them is empty. If the old one is
        * empty, copy over the fields from the new one. Won't this result in
@@ -795,7 +807,7 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
 
 (* Match two enuminfos and throw a Failure if they do not match *)
 and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
-                   (fidx: int)    (ei: enuminfo) : unit =
+    (fidx: int)    (ei: enuminfo) : unit =
   (* Find the node for this enum, no path compression. *)
   let oldeinode = getNode eEq eSyn oldfidx oldei.ename oldei None in
   let einode    = getNode eEq eSyn fidx ei.ename ei None in
@@ -811,20 +823,20 @@ and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
       if List.length oldei.eitems <> List.length ei.eitems then
         raise (Failure "(different number of enumeration elements)");
       (* We check that they are defined in the same way. This is a fairly
-      * conservative check. *)
+       * conservative check. *)
       List.iter2
         (fun old_item item ->
-          if old_item.einame <> item.einame then
-            raise (Failure "(different names for enumeration items)");
-          let samev =
-            match ((constFold true old_item.eival).enode,
-                   (constFold true item.eival).enode)
-            with
-              Const(CInt64(oldi, _, _)), Const(CInt64(i, _, _)) -> oldi = i
-            | _ -> false
-          in
-          if not samev then
-            raise (Failure "(different values for enumeration items)"))
+           if old_item.einame <> item.einame then
+             raise (Failure "(different names for enumeration items)");
+           let samev =
+             match ((constFold true old_item.eival).enode,
+                    (constFold true item.eival).enode)
+             with
+               Const(CInt64(oldi, _, _)), Const(CInt64(i, _, _)) -> oldi = i
+             | _ -> false
+           in
+           if not samev then
+             raise (Failure "(different values for enumeration items)"))
         oldei.eitems ei.eitems;
       (* Set the representative *)
       let newrep, _ = union oldeinode einode in
@@ -845,9 +857,9 @@ and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
 
 (* Match two typeinfos and throw a Failure if they do not match *)
 and matchTypeInfo (oldfidx: int) (oldti: typeinfo)
-                   (fidx: int)      (ti: typeinfo) : unit =
+    (fidx: int)      (ti: typeinfo) : unit =
   if oldti.tname = "" || ti.tname = "" then
-     (Cilmsg.fatal "matchTypeInfo for anonymous type");
+    Cilmsg.fatal "matchTypeInfo for anonymous type";
   (* Find the node for this enum, no path compression. *)
   let oldtnode = getNode tEq tSyn oldfidx oldti.tname oldti None in
   let    tnode = getNode tEq tSyn    fidx ti.tname    ti None in
@@ -861,15 +873,15 @@ and matchTypeInfo (oldfidx: int) (oldti: typeinfo)
     let fidx = tnode.nfidx in
     (* Check that they are the same *)
     (try
-      ignore (combineTypes CombineOther oldfidx oldti.ttype fidx ti.ttype);
-    with Failure reason -> begin
-      let msg =
-        Format.sprintf
-          "Failed assumption that %s and %s are isomorphic %s"
-          oldti.tname ti.tname reason
-      in
-      raise (Failure msg)
-    end);
+       ignore (combineTypes CombineOther oldfidx oldti.ttype fidx ti.ttype);
+     with Failure reason -> begin
+       let msg =
+         Format.sprintf
+           "Failed assumption that %s and %s are isomorphic %s"
+           oldti.tname ti.tname reason
+       in
+       raise (Failure msg)
+     end);
     let _ = union oldtnode tnode in
     ()
   end
@@ -903,7 +915,7 @@ let matchLogicInfo oldfidx oldpi fidx pi =
     let fidx = tnode.nfidx in
     if Logic_utils.is_same_logic_info oldpi pi then begin
       if has_static_ref_logic_function oldpi then
-        Cilmsg.fatal
+        Cilmsg.abort
           "multiple inclusion of logic function %s referring to a static variable"
           oldpi.l_var_info.lv_name
       else  if oldfidx < fidx then
@@ -911,7 +923,7 @@ let matchLogicInfo oldfidx oldpi fidx pi =
       else
         oldtnode.nrep <- tnode.nrep
     end else
-      Cil.error "invalid multiple logic function declarations %s" pi.l_var_info.lv_name
+      Cilmsg.abort "invalid multiple logic function declarations %s" pi.l_var_info.lv_name
   end
 
 let matchLogicType oldfidx oldnode fidx node =
@@ -1013,7 +1025,7 @@ let rec oneFilePass1 (f:file) : unit =
           None ->  (Cilmsg.fatal "old variable is undefined")
         | Some l -> l
       in
-      let oldvi     = oldvinode.ndata in
+      let oldvi = oldvinode.ndata in
       (* There is an old definition. We must combine the types. Do this first
        * because it might fail *)
       let newtype =
@@ -1022,13 +1034,14 @@ let rec oneFilePass1 (f:file) : unit =
             oldvinode.nfidx oldvi.vtype
             !currentFidx vi.vtype;
         with (Failure reason) -> begin
-          (* Go ahead *)
-          let f = if !ignore_merge_conflicts then Cil.warning else Cil.error in
-          f "Incompatible declaration for %s (from %s(%d)). Previous was at %a (from %s (%d)) %s "
+          (* Go ahead when ignoring conflicts *)
+          let f = if !ignore_merge_conflicts then Cil.warning else Cil.fatal in
+          f "@[<hov>Incompatible@ declaration@ for@ %s@ (included from @ %s).@ \
+Previous@ was@ at@ %a@ (include from@ %s)@ %s]"
             vi.vname
-            (H.find fileNames !currentFidx) !currentFidx
+            (H.find fileNames !currentFidx)
             d_loc oldloc
-            (H.find fileNames oldvinode.nfidx) oldvinode.nfidx
+            (H.find fileNames oldvinode.nfidx)
             reason;
           vi.vtype
         end
@@ -1410,20 +1423,19 @@ object (self)
         else begin
           match findReplacement true sEq !currentFidx f.fcomp.cname with
             None -> DoChildren (* We did not replace it *)
-          | Some (ci', oldfidx) -> begin
+          | Some (ci', _oldfidx) -> begin
               (* First, find out the index of the original field *)
               let rec indexOf (i: int) = function
-                  [] ->
-                     (Cilmsg.fatal "Cannot find field %s in %s(%d)"
-                           f.fname (compFullName f.fcomp) !currentFidx)
+                  [] -> Cilmsg.fatal "Cannot find field %s in %s"
+                    f.fname (compFullName f.fcomp)
                 | f' :: _ when f' == f -> i
                 | _ :: rest -> indexOf (i + 1) rest
               in
               let index = indexOf 0 f.fcomp.cfields in
               if List.length ci'.cfields <= index then
-                 (Cilmsg.fatal "Too few fields in replacement %s(%d) for %s(%d)"
-                       (compFullName ci') oldfidx
-                       (compFullName f.fcomp) !currentFidx);
+                 Cilmsg.fatal "Too few fields in replacement %s for %s"
+                   (compFullName ci')
+                   (compFullName f.fcomp);
               let f' = List.nth ci'.cfields index in
               ChangeDoChildrenPost (Field (f', o), fun x -> x)
           end
@@ -1439,20 +1451,19 @@ object (self)
         else begin
           match findReplacement true sEq !currentFidx f.fcomp.cname with
             None -> DoChildren (* We did not replace it *)
-          | Some (ci', oldfidx) -> begin
+          | Some (ci', _oldfidx) -> begin
               (* First, find out the index of the original field *)
               let rec indexOf (i: int) = function
-                  [] ->
-                     (Cilmsg.fatal "Cannot find field %s in %s(%d)"
-                           f.fname (compFullName f.fcomp) !currentFidx)
+                  [] -> Cilmsg.fatal "Cannot find field %s in %s"
+                    f.fname (compFullName f.fcomp)
                 | f' :: _ when f' == f -> i
                 | _ :: rest -> indexOf (i + 1) rest
               in
               let index = indexOf 0 f.fcomp.cfields in
               if List.length ci'.cfields <= index then
-                 (Cilmsg.fatal "Too few fields in replacement %s(%d) for %s(%d)"
-                       (compFullName ci') oldfidx
-                       (compFullName f.fcomp) !currentFidx);
+                 Cilmsg.fatal "Too few fields in replacement %s for %s"
+                   (compFullName ci')
+                   (compFullName f.fcomp);
               let f' = List.nth ci'.cfields index in
               ChangeDoChildrenPost (TField (f', o), fun x -> x)
           end
@@ -1486,9 +1497,9 @@ class renameInlineVisitorClass = object
         None -> DoChildren
       | Some (vi', oldfidx) ->
           if debugMerge then
-              (Cilmsg.debug "Renaming var %s(%d) to %s(%d)"
-                        vi.vname
-                        !currentFidx vi'.vname oldfidx);
+              Cilmsg.debug "Renaming var %s(%d) to %s(%d)"
+                vi.vname
+                !currentFidx vi'.vname oldfidx;
           vi'.vreferenced <- true;
           ChangeTo vi'
     end
@@ -1749,7 +1760,7 @@ end
    * representative types or variables. We set the referenced flags once we
    * have replaced the names. *)
 let oneFilePass2 (f: file) =
-  (Cilmsg.feedback ~level:2 "Final merging phase (%d): %s" !currentFidx f.fileName);
+  Cilmsg.feedback ~level:2 "Final merging phase: %s" f.fileName;
   currentDeclIdx := 0; (* Even though we don't need it anymore *)
   H.clear varUsedAlready;
   H.clear originalVarNames;
@@ -1757,11 +1768,17 @@ let oneFilePass2 (f: file) =
    * before knowing that we can throw them away, then we mark this flag so
    * that we can make another pass over the file *)
   let repeatPass2 = ref false in
+
+  (* set to true if we need to make an additional path for changing tentative
+     definition into plain declaration because a real definition has been found.
+   *)
+  let replaceTentativeDefn = ref false in
+
   (* Keep a pointer to the contents of the file so far *)
   let savedTheFile = !theFile in
 
   let processOneGlobal (g: global) : unit =
-      (* Process a varinfo. Reuse an old one, or rename it if necessary *)
+    (* Process a varinfo. Reuse an old one, or rename it if necessary *)
     let processVarinfo (vi: varinfo) (vloc: location) : varinfo =
       if vi.vreferenced then
         vi (* Already done *)
@@ -1777,10 +1794,10 @@ let oneFilePass2 (f: file) =
           in
 	  (* Remember the original name *)
           H.add originalVarNames newName vi.vname;
-          if debugMerge then (Cilmsg.debug "renaming %s at %a to %s"
-                                           vi.vname
-                                           d_loc vloc
-                                           newName);
+          if debugMerge then Cilmsg.debug "renaming %s at %a to %s"
+                                vi.vname
+                                d_loc vloc
+                                newName;
           vi.vname <- newName;
           vi.vreferenced <- true;
           Cil_const.set_vid vi;
@@ -1803,11 +1820,12 @@ let oneFilePass2 (f: file) =
           CurrentLoc.set l;
           incr currentDeclIdx;
           let vi' = processVarinfo vi l in
+          let spec' = visitCilFunspec renameVisitor spec in
           if vi != vi' then begin
             (* Drop the decl, keep the spec *)
-            mergeSpec vi' vi spec end
+            mergeSpec vi' vi spec' end
           else if H.mem emittedVarDecls vi'.vname then begin
-            mergeSpec vi' vi spec
+            mergeSpec vi' vi spec'
           end else begin
             H.add emittedVarDecls vi'.vname true; (* Remember that we emitted
                                                    * it  *)
@@ -1829,19 +1847,22 @@ let oneFilePass2 (f: file) =
               (* previously defined; same initializer? *)
               if (equalInitOpts prevInitOpt init.init)
                 || (init.init = None) then (
-                false  (* do not emit *)
-              )
+                  false  (* do not emit *)
+		)
               else if prevInitOpt = None then (
-                (* We have an initializer, but the previous one didn't.
-                   We should really convert the previous global from GVar
-                   to GVarDecl, but that's not convenient to do here. *)
+                (* The previous occurence was only a tentative defn. Now,
+                   we have a real one. Set the correct value in the table,
+                   and tell that we need to change the previous into a GVarDecl
+                 *)
+                H.replace emittedVarDefn vi'.vname(vi',init.init,l);
+                replaceTentativeDefn:=true;
                 true
               )
               else (
                 (* Both GVars have initializers. *)
-                (Cil.error "global var %s at %a has different initializer than %a"
-                              vi'.vname
-                              d_loc l  d_loc prevLoc);
+                Cil.error "global var %s at %a has different initializer than %a"
+                  vi'.vname
+                  d_loc l  d_loc prevLoc;
                 false
               )
             with Not_found -> (
@@ -1860,9 +1881,8 @@ let oneFilePass2 (f: file) =
           (* We apply the renaming *)
           let vi = processVarinfo fdec.svar l in
           if fdec.svar != vi then begin
-            (try
-              add_alpha_renaming vi (Cil.getFormalsDecl vi) fdec.sformals;
-            with Not_found -> ());
+	    (try add_alpha_renaming vi (Cil.getFormalsDecl vi) fdec.sformals
+	     with Not_found -> ());
             fdec.svar <- vi
           end;
           (* Get the original name. *)
@@ -1872,9 +1892,9 @@ let oneFilePass2 (f: file) =
           in
           (* Go in there and rename everything as needed *)
           let fdec' =
-            match visitCilGlobal renameVisitor g with
-              [GFun(fdec', _)] -> fdec'
-            | _ -> (Cilmsg.fatal "renameVisitor for GFun returned something else")
+	    match visitCilGlobal renameVisitor g with
+            | [ GFun(fdec', _) ] -> fdec'
+            | _ -> Cilmsg.fatal "renameVisitor for GFun returned something else"
           in
           let g' = GFun(fdec', l) in
           (* Now restore the parameter names *)
@@ -1887,9 +1907,9 @@ let oneFilePass2 (f: file) =
             end
           in
           if foundthem then begin
-            let argl = argsToList args in
-            if List.length oldnames <> List.length argl then
-              (Cil.fatal "After merging the function has more arguments");
+            let _argl = argsToList args in
+            if List.length oldnames <> List.length fdec.sformals then
+              Cil.fatal "After merging the function has different arguments";
             List.iter2
               (fun oldn a -> if oldn <> "" then a.vname <- oldn)
               oldnames fdec.sformals;
@@ -1919,7 +1939,7 @@ let oneFilePass2 (f: file) =
                   n :: rest ->
                     oldNames := rest;
                     v.vname <- n
-                | _ ->  (Cilmsg.fatal "undoRenameOne")
+                | _ ->  Cilmsg.fatal "undoRenameOne"
               in
               (* Remember the original type *)
               let origType = fdec'.svar.vtype in
@@ -1952,19 +1972,19 @@ let oneFilePass2 (f: file) =
                 (Some (l, !currentDeclIdx))
             in
             if debugInlines then begin
-              (Cilmsg.debug "getNode %s(%d) with loc=%a. declidx=%d"
-                        inode.nname inode.nfidx
-                        d_nloc inode.nloc
-                        !currentDeclIdx);
-              (Cilmsg.debug
-                        "Looking for previous definition of inline %s(%d)"
-                        origname !currentFidx);
+              Cilmsg.debug "getNode %s(%d) with loc=%a. declidx=%d"
+                inode.nname inode.nfidx
+                d_nloc inode.nloc
+                !currentDeclIdx;
+              Cilmsg.debug
+                "Looking for previous definition of inline %s(%d)"
+                origname !currentFidx;
             end;
             try
               let oldinode = H.find inlineBodies printout in
               if debugInlines then
-                (Cilmsg.debug "  Matches %s(%d)"
-                          oldinode.nname oldinode.nfidx);
+                Cilmsg.debug "  Matches %s(%d)"
+                  oldinode.nname oldinode.nfidx;
               (* There is some other inline function with the same printout.
                * We should reuse this, but watch for the case when the inline
                * was already used. *)
@@ -1972,9 +1992,9 @@ let oneFilePass2 (f: file) =
                 if mergeInlinesRepeat then begin
                   repeatPass2 := true
                 end else begin
-                  (Cil.warning
-		     "Inline function %s because it is used before it is defined"
-		     fdec'.svar.vname);
+                  Cil.warning
+		    "Inline function %s because it is used before it is defined"
+		    fdec'.svar.vname;
                   raise Not_found
                 end
               end;
@@ -1986,50 +2006,50 @@ let oneFilePass2 (f: file) =
               fdec'.svar.vname <- origname;
               () (* Drop this definition *)
             with Not_found -> begin
-              if debugInlines then (Cilmsg.debug " Not found");
+              if debugInlines then Cilmsg.debug " Not found";
               H.add inlineBodies printout inode;
               mergePushGlobal g'
             end
           end else begin
             (* either the function is not inline, or we're not attempting to
              * merge inlines *)
-            if (mergeGlobals &&
-                not fdec'.svar.vinline &&
-                fdec'.svar.vstorage <> Static) then
-              begin
-                (* sm: this is a non-inline, non-static function.  I want to
-                * consider dropping it if a same-named function has already
-                * been put into the merged file *)
-                let curSum = (functionChecksum fdec') in
-                try
-                  let _prevFun, prevLoc, prevSum =
-                    (H.find emittedFunDefn fdec'.svar.vname) in
-                  (* previous was found *)
-                  if (curSum = prevSum) then
-                    Cil.warning
-                      "dropping duplicate def'n of func %s at %a in favor of that at %a"
-                      fdec'.svar.vname
-                      d_loc l  d_loc prevLoc
-                  else begin
-                    (* the checksums differ, so print a warning but keep the
-                     * older one to avoid a link error later.  I think this is
-		     * a reasonable approximation of what ld does. *)
-                    Cil.warning
-		      "def'n of func %s at %a (sum %d) conflicts with the one at %a (sum %d); keeping the one at %a."
-                      fdec'.svar.vname
-                      d_loc l  curSum  d_loc prevLoc
-		      prevSum d_loc prevLoc
-                  end
-                with Not_found -> begin
-                  (* there was no previous definition *)
-                  (mergePushGlobal g');
-                  (H.add emittedFunDefn fdec'.svar.vname (fdec', l, curSum))
+            if mergeGlobals
+	      && not fdec'.svar.vinline
+	      && fdec'.svar.vstorage <> Static
+	    then begin
+              (* sm: this is a non-inline, non-static function.  I want to
+               * consider dropping it if a same-named function has already
+               * been put into the merged file *)
+              let curSum = (functionChecksum fdec') in
+              try
+                let _prevFun, prevLoc, prevSum =
+                  (H.find emittedFunDefn fdec'.svar.vname) in
+                (* previous was found *)
+                if (curSum = prevSum) then
+                  Cil.warning
+                    "dropping duplicate def'n of func %s at %a in favor of that at %a"
+                    fdec'.svar.vname
+                    d_loc l  d_loc prevLoc
+                else begin
+                  (* the checksums differ, so print a warning but keep the
+                   * older one to avoid a link error later.  I think this is
+		   * a reasonable approximation of what ld does. *)
+                  Cil.warning
+		    "def'n of func %s at %a (sum %d) conflicts with the one at %a (sum %d); keeping the one at %a."
+                    fdec'.svar.vname
+                    d_loc l  curSum  d_loc prevLoc
+		    prevSum d_loc prevLoc
                 end
-              end else begin
-                (* not attempting to merge global functions, or it was static
-                 * or inline *)
-                mergePushGlobal g'
+              with Not_found -> begin
+                (* there was no previous definition *)
+                (mergePushGlobal g');
+                (H.add emittedFunDefn fdec'.svar.vname (fdec', l, curSum))
               end
+            end else begin
+              (* not attempting to merge global functions, or it was static
+               * or inline *)
+              mergePushGlobal g'
+            end;
           end
 
       | GCompTag (ci, l) as g -> begin
@@ -2043,14 +2063,16 @@ let oneFilePass2 (f: file) =
                 (* A new one, we must rename it and keep the definition *)
                 (* Make sure this is root *)
                 (try
-                  let nd = H.find sEq (!currentFidx, ci.cname) in
-                  if nd.nrep != nd then
-                     (Cilmsg.fatal "Setting creferenced for struct %s(%d) which is not root!"
-                           ci.cname !currentFidx);
-                with Not_found -> begin
-                   (Cilmsg.fatal "Setting creferenced for struct %s(%d) which is not in the sEq!"
-                         ci.cname !currentFidx);
-                end);
+                   let nd = H.find sEq (!currentFidx, ci.cname) in
+                   if nd.nrep != nd then
+                     Cilmsg.fatal "Setting creferenced for struct %s which is \
+                         not root!"
+                       ci.cname;
+                 with Not_found -> begin
+                   Cilmsg.fatal "Setting creferenced for struct %s which is not \
+                       in the sEq!"
+                     ci.cname;
+                 end);
                 let newname, _ =
                   A.newAlphaName sAlpha None ci.cname (CurrentLoc.get ()) in
                 ci.cname <- newname;
@@ -2064,9 +2086,9 @@ let oneFilePass2 (f: file) =
                 (* We are not the representative. Drop this declaration
                  * because we'll not be using it. *)
                 ()
-            end
+              end
           end
-      end
+	end
       | GEnumTag (ei, l) as g -> begin
           CurrentLoc.set l;
           incr currentDeclIdx;
@@ -2086,13 +2108,13 @@ let oneFilePass2 (f: file) =
                      let newname,_= A.newAlphaName vtAlpha None item.einame
                        item.eiloc
                      in item.einame <- newname)
-                ei.eitems;
+                  ei.eitems;
                 mergePushGlobals (visitCilGlobal renameVisitor g);
             | Some (_ei', _) -> (* Drop this since we are reusing it from
-                                * before *)
+                                 * before *)
                 ()
           end
-      end
+	end
       | GCompTagDecl (ci, l) -> begin
           CurrentLoc.set l; (* This is here just to introduce an undefined
                              * structure. But maybe the structure was defined
@@ -2106,7 +2128,7 @@ let oneFilePass2 (f: file) =
             (* Keep it as a declaration *)
             mergePushGlobal g;
           end
-      end
+	end
 
       | GEnumTagDecl (_ei, l) ->
           CurrentLoc.set l;
@@ -2130,8 +2152,8 @@ let oneFilePass2 (f: file) =
                 ti.treferenced <- true;
                 mergePushGlobals (visitCilGlobal renameVisitor g);
             | Some (_ti', _) ->(* Drop this since we are reusing it from
-                * before *)
-                  ()
+				* before *)
+                ()
           end
         end
       | GAnnot (a, l) as g ->
@@ -2139,22 +2161,39 @@ let oneFilePass2 (f: file) =
           incr currentDeclIdx;
           global_annot_pass2 g a
       | g -> mergePushGlobals (visitCilGlobal renameVisitor g)
-  with e -> begin
-    Cilmsg.debug "error when merging global %a: %s" d_global g (Printexc.to_string e) ;
-    (*"error when merging global: %s\n" (Printexc.to_string e);*)
-    mergePushGlobal (GText (Pretty_utils.sfprintf "/* error at %t:" d_thisloc));
-    mergePushGlobal g;
-    mergePushGlobal (GText ("*************** end of error*/"));
-    raise e
-  end
+    with e -> begin
+      Cilmsg.debug "error when merging global %a: %s" d_global g
+	(Printexc.to_string e);
+      mergePushGlobal (GText (Pretty_utils.sfprintf "/* error at %t:" d_thisloc));
+      mergePushGlobal g;
+      mergePushGlobal (GText ("*************** end of error*/"));
+      raise e
+    end
   in
   (* Now do the real PASS 2 *)
   List.iter processOneGlobal f.globals;
+  (* Replace tentative definition by a declaration when we found a real
+     definition somewhere else *)
+  if !replaceTentativeDefn then begin
+    (* Stay tail-recursive, the list of globals can be huge. *)
+    theFile :=
+      List.rev
+        (List.rev_map
+           (function
+                GVar(vi,{init=None},loc) as g ->
+                  (try let (_,real_init,_) = H.find emittedVarDefn vi.vname
+                   in (match real_init with
+                           None -> g
+                         | Some _ -> GVarDecl(empty_funspec(),vi,loc))
+                   with Not_found -> g)
+              | g -> g)
+           !theFile)
+       end;
   (* See if we must re-visit the globals in this file because an inline that
    * is being removed was used before we saw the definition and we decided to
    * remove it *)
   if mergeInlinesRepeat && !repeatPass2 then begin
-    (Cilmsg.feedback "Repeat final merging phase (%d): %s" !currentFidx f.fileName);
+    Cilmsg.feedback "Repeat final merging phase: %s" f.fileName;
     (* We are going to rescan the globals we have added while processing this
      * file. *)
     let theseGlobals : global list ref = ref [] in
@@ -2163,7 +2202,7 @@ let oneFilePass2 (f: file) =
       if tail == l then ()
       else
         match l with
-        | [] ->  (Cilmsg.fatal "mergecil: scanUntil could not find the marker")
+        | [] ->  Cilmsg.fatal "mergecil: scanUntil could not find the marker"
         | g :: rest ->
             theseGlobals := g :: !theseGlobals;
             scanUntil tail rest
@@ -2177,11 +2216,11 @@ let oneFilePass2 (f: file) =
                  theFile := (visitCilGlobal renameInlinesVisitor g) @ !theFile)
       !theseGlobals;
     (* Now check if we have inlines that we could not remove
-    H.iter (fun name _ ->
-      if not (H.mem inlinesRemoved name) then
-        ignore (warn "Could not remove inline %s. I have no idea why!\n"
-                  name))
-      inlinesToRemove *)
+       H.iter (fun name _ ->
+       if not (H.mem inlinesRemoved name) then
+       ignore (warn "Could not remove inline %s. I have no idea why!\n"
+       name))
+       inlinesToRemove *)
   end
 
 
@@ -2285,3 +2324,9 @@ let merge (files: file list) (newname: string) : file =
     end
   else
     res
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

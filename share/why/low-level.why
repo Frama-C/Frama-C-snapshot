@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -51,41 +52,42 @@ logic Mptr : memory_type
 
 logic sizeof : memory_type -> int
 
-type address
-logic base : int -> address
-logic shift : address, int -> address
-logic baseOf : address -> int
-logic offsetOf : address -> int
+logic base : int -> 'a pointer
+logic shift : 'a pointer, int -> 'a pointer
+logic baseOf : 'a pointer -> int
+logic offsetOf : 'a pointer -> int
 
-predicate disjoint(a:address, t:memory_type, a':address, t':memory_type) =
+predicate disjoint(a:'a pointer, t:memory_type, a':'b pointer, t':memory_type) =
 baseOf(a) <> baseOf(a')
 or offsetOf(a) + sizeof(t) <= offsetOf(a')
 or offsetOf(a') + sizeof(t') <= offsetOf(a)
+
+logic defined : memory,'a pointer -> prop
 
 (* 2. Values *)
 
 type value
 logic Vint : int -> value
 logic Vfloat : real -> value
-logic Vptr : address -> value
+logic Vptr : 'a pointer -> value
 
-logic vtoa : value -> address
-logic atov : address -> value
+logic vtoa : value -> 'a pointer
+logic atov : 'a pointer -> value
 
-axiom vtoa_atov_inv : forall a:address. vtoa(atov(a)) = a
+axiom vtoa_atov_inv : forall a:'a pointer. vtoa(atov(a)) = a
 
 (* 3. Memory access and update *)
 
-logic acc : memory, memory_type, address -> value
+logic acc : memory, memory_type, 'a pointer -> value
 
-logic upd : memory, memory_type, address, value -> memory
+logic upd : memory, memory_type, 'a pointer, value -> memory
 
 axiom acc_upd_eq : 
-  forall m:memory. forall a:address. forall v:value. forall t: memory_type.
+  forall m:memory. forall a: 'a pointer. forall v:value. forall t: memory_type.
   acc(upd(m,t,a,v),t,a) = v
 
 axiom acc_upd_neq : 
-  forall m:memory. forall a, a':address.
+  forall m:memory. forall a, a':'a pointer.
   forall v:value. forall t, t': memory_type.
   disjoint(a,t,a',t') -> acc(upd(m,t,a,v),t',a') = acc(m,t',a')
 

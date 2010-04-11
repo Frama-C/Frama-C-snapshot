@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
   (*
@@ -52,7 +53,7 @@ open Cilutil
 open Cil_const
 open Logic_const
 module Stack = S
-open Format
+open Format open Pervasives
 module C = Cilutil
 module H = Hashtbl
 module IH = Inthash
@@ -241,7 +242,7 @@ module TheMachine =
 	 theMachineProject := m;
 	 copyMachine !theMachineProject theMachine
        let clear m = copyMachine (createMachine ()) m
-       let clear_if_project _ _ = false
+       let clear_some_projects _ _ = false
      end)
     (struct
        let name = "theMachine"
@@ -892,6 +893,8 @@ class type cilVisitor = object
 
   method vlogic_type_info_use: logic_type_info -> logic_type_info visitAction
 
+  method vlogic_type_def: logic_type_def -> logic_type_def visitAction
+
   method vlogic_ctor_info_decl: logic_ctor_info -> logic_ctor_info visitAction
 
   method vlogic_ctor_info_use: logic_ctor_info -> logic_ctor_info visitAction
@@ -1194,6 +1197,14 @@ let rec loop = function
       zero
     end
 
+(* Claude Marché: workaround because original string is lost *)
+let parseInt (str: string) : exp =
+  let e = parseInt str in
+  match e.enode with
+    | Const(CInt64(i,ik,None)) ->
+        {e with enode = Const(CInt64(i,ik,Some str)) }
+    | _ -> assert false
+
 let mkStmt ?(valid_sid=false) (sk: stmtkind) : stmt =
   { skind = sk;
     labels = [];
@@ -1355,6 +1366,12 @@ and findAttribute (s: string) (al: attribute list) : attrparam list =
      | Attr (an, param) when an = s -> param @ acc
      | _ -> acc)
     [] al
+
+let qualifier_attributes = [ "const"; "restrict"; "volatile"]
+
+let filter_qualifier_attributes al =
+  List.filter
+    (fun a -> List.mem (attributeName a) qualifier_attributes) al
 
 (* sm: *)
 let hasAttribute s al =
@@ -1689,13 +1706,13 @@ external parse : string -> file = "cil_main"
 
 let d_annotation_status fmt s =
   match s with
-  | Unknown -> fprintf fmt "No proof attempted@\n"
+  | Unknown -> fprintf fmt "No proof attempted"
   | Checked {emitter=s; valid=True} ->
-      fprintf fmt "Valid according to %s@\n" s
+      fprintf fmt "Valid according to %s" s
   | Checked {emitter=s; valid=False} ->
-      fprintf fmt "NOT valid according to %s@\n" s
+      fprintf fmt "NOT valid according to %s" s
   | Checked {emitter=s; valid=Maybe} ->
-      fprintf fmt "Unknown (%s could not decide the status for this property)@\n" s
+      fprintf fmt "Unknown (%s could not decide the status for this property)" s
 
 
 let d_ikind fmt c =
@@ -1865,7 +1882,7 @@ let getParenthLevel e = match (stripInfo e).enode with
   | Const _ -> 0                        (* Constants *)
 
 let getParenthLevelLogic = function
-  | Tlambda _ | Trange _ -> 90
+  | Tlambda _ | Trange _ | Tlet _ -> 90
   | TBinOp((LAnd | LOr), _,_) -> 80
                                         (* Bit operations. *)
   | TBinOp((BOr|BXor|BAnd),_,_) -> bitwiseLevel (* 75 *)
@@ -2042,6 +2059,14 @@ let typeOf_pointed typ =
   match unrollType typ with
   | TPtr (typ,_) -> typ
   | _ -> assert false
+
+(** Returns the type of the elements of the array. Asserts it is an array type
+*)
+let typeOf_array_elem t =
+  match unrollType t with
+  | TArray (ty_elem, _, _, _) -> ty_elem
+  | _ -> assert false
+
 
 (**** Compute the type of an expression ****)
 let rec typeOf (e: exp) : typ =
@@ -3335,6 +3360,7 @@ let range_loc loc1 loc2 = fst loc1, snd loc2
 
 let pred_body = function
   | LBpred a -> a
+  | LBnone
   | LBreads _
   | LBinductive _
   | LBterm _ -> Cilmsg.fatal "definition expected in Cil.pred_body"
@@ -3354,6 +3380,9 @@ class type cilPrinter = object
 
   method current_function: varinfo option
     (** Returns the [varinfo] corresponding to the function being printed *)
+
+  method has_annot: bool
+    (** true if [current_stmt] has some annotations attached to it. *)
 
   method current_stmt: stmt option
     (** Returns the stmt being printed *)
@@ -3452,7 +3481,11 @@ class type cilPrinter = object
     (** Print initializers. This can be slow and is used by
      * {!Cil.printGlobal} but not by {!Cil.dumpGlobal}. *)
 
-  method pLogic_type: Format.formatter -> logic_type -> unit
+  method pLogic_type:
+    (Format.formatter -> unit) option ->
+    Format.formatter -> logic_type -> unit
+    (** The first argument gives the name of the declared variable. see pType for more
+        information. *)
 
   method pTerm: Format.formatter -> term -> unit
 
@@ -3463,6 +3496,8 @@ class type cilPrinter = object
   method pTerm_offset: Format.formatter -> term_offset -> unit
 
   method pLogic_info_use: Format.formatter -> logic_info -> unit
+
+  method pLogic_type_def: Format.formatter -> logic_type_def -> unit
 
   method pLogic_var: Format.formatter -> logic_var -> unit
 
@@ -3481,11 +3516,24 @@ class type cilPrinter = object
 
   method pBehavior: Format.formatter -> funbehavior -> unit
 
+  method pRequires: Format.formatter -> identified_predicate -> unit
+  method pPost_cond: Format.formatter ->
+    (termination_kind * identified_predicate) -> unit
+  method pAssumes: Format.formatter -> identified_predicate -> unit
+
+  method pComplete_behaviors: Format.formatter -> string list -> unit
+  method pDisjoint_behaviors: Format.formatter -> string list -> unit
+
+  method pTerminates: Format.formatter -> identified_predicate -> unit
+
   method pSpec: Format.formatter -> funspec -> unit
 
   method pZone: Format.formatter -> identified_term zone -> unit
 
   method pAssigns:
+    string -> Format.formatter -> identified_term assigns list -> unit
+
+  method pFrom:
     string -> Format.formatter -> identified_term assigns -> unit
 
   method pStatus : Format.formatter -> Cil_types.annot_status -> unit
@@ -3517,7 +3565,7 @@ let is_empty_funspec spec =
   spec.spec_complete_behaviors = [] && spec.spec_disjoint_behaviors = []
 
 (* Make a varinfo. Used mostly as a helper function below  *)
-let makeVarinfo ?(logic=false) global formal name typ =
+let makeVarinfo ?(logic=false) ?(generated=true) global formal name typ =
   (* Strip const from type for locals *)
   let vi =
     { vorig_name = name;
@@ -3526,7 +3574,7 @@ let makeVarinfo ?(logic=false) global formal name typ =
       vglob = global;
       vdefined = false;
       vformal = formal;
-      vfunction_scope = false;
+      vgenerated = generated;
       vtype = if formal || global then typ
       else typeRemoveAttributes ["const"] typ;
       vdecl = locUnknown;
@@ -3558,7 +3606,7 @@ module FormalsDecl =
 let selfFormalsDecl = FormalsDecl.self
 
 let makeFormalsVarDecl (n,t,a) =
-  let vi = makeVarinfo false true n t in
+  let vi = makeVarinfo ~generated:false false true n t in
   vi.vattr <- a;
   vi
 
@@ -3588,9 +3636,13 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     assert (current_function <> None);
     current_function <- None
 
+  val mutable has_annot = false
+  method has_annot = has_annot
+
   method current_function = current_function
   method private push_stmt s = Stack.push s current_stmt
-  method private pop_stmt s = ignore (Stack.pop current_stmt); s
+  method private pop_stmt s =
+    ignore (Stack.pop current_stmt); has_annot<-false; s
   method current_stmt =
     try Some (Stack.top current_stmt) with Stack.Empty -> None
 
@@ -3782,9 +3834,9 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | Set(lv,e,_) -> begin
         (* Be nice to some special cases *)
         match e.enode with
-            BinOp((PlusA|PlusPI|IndexPI),
-                  {enode = Lval(lv')},
-                  {enode=Const(CInt64(one,_,_))},_)
+          BinOp((PlusA|PlusPI|IndexPI),
+                {enode = Lval(lv')},
+                {enode=Const(CInt64(one,_,_))},_)
             when compareLval lv lv' && one = Int64.one
 	      && not miscState.printCilAsIs ->
 		fprintf fmt "%a ++%s"
@@ -3831,13 +3883,13 @@ class defaultCilPrinterClass : cilPrinter = object (self)
            [dest; {enode = SizeOf t}; adest], l)
         when vi.vname = "__builtin_va_arg" && not miscState.printCilAsIs ->
         let destlv = match (stripCasts adest).enode with
-            AddrOf destlv -> destlv
-              (* If this fails, it's likely that an extension interfered
-		 with the AddrOf *)
-          | _ ->
-	      Cilmsg.fatal ~source:(source l)
-		"Encountered unexpected call to %s with dest %a"
-		vi.vname self#pExp adest
+          AddrOf destlv -> destlv
+            (* If this fails, it's likely that an extension interfered
+	       with the AddrOf *)
+        | _ ->
+	    Cilmsg.fatal ~source:(source l)
+	      "Encountered unexpected call to %s with dest %a"
+	      vi.vname self#pExp adest
         in
         fprintf fmt "%a = __builtin_va_arg (@[%a,@ %a@])%s"
           self#pLval destlv
@@ -3880,12 +3932,12 @@ class defaultCilPrinterClass : cilPrinter = object (self)
         (match dest with
            None -> ()
          | Some lv -> fprintf fmt "%a = " self#pLval lv );
-          (* Now the call itself *)
-          fprintf fmt "%a(%a, %a)%s"
-            self#pVarName vi.vname
-            (self#pType None) t1
-            (self#pType None) t2
-            printInstrTerminator
+            (* Now the call itself *)
+            fprintf fmt "%a(%a, %a)%s"
+              self#pVarName vi.vname
+              (self#pType None) t1
+              (self#pType None) t2
+              printInstrTerminator
     | Call(_, {enode = Lval(Var vi, NoOffset)}, _, l)
         when vi.vname = "__builtin_types_compatible_p"
 	  && not miscState.printCilAsIs ->
@@ -3969,6 +4021,7 @@ class defaultCilPrinterClass : cilPrinter = object (self)
           fprintf fmt "@])%s" printInstrTerminator
         end
     | Code_annot (annot, l) ->
+        has_annot <- true;
 	if logic_printer_enabled then
 	  begin
 	    self#pLineDirective ~forcefile:false fmt l ;
@@ -3994,9 +4047,9 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 	| _ -> false
       in
       match s.labels with
-	| [] -> ()
-	| [l] when is_simple s.skind -> self#pLabel fmt l
-	| _ -> List.iter (fprintf fmt "%a@ " self#pLabel) s.labels
+      | [] -> ()
+      | [l] when is_simple s.skind -> self#pLabel fmt l
+      | _ -> List.iter (fprintf fmt "%a@ " self#pLabel) s.labels
     end
 
   method pAnnotatedStmt (next: stmt) fmt (s: stmt) =
@@ -4018,9 +4071,9 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | Default _ -> fprintf fmt "default: "
 
   method requireBraces blk =
-    match blk.bstmts with
-      | [_] | [] -> blk.battrs <> []
-      | _::_::_ -> true
+    match blk.bstmts, blk.battrs, blk.blocals with
+    | ([_] | []),[],[] -> false
+    | _ -> self#has_annot
 
   method private pInnerBlock ?(inblock=true) ?(forcenewline=false) fmt blk =
     let rec iterblock dosep newlinesep fmt = function
@@ -4028,8 +4081,8 @@ class defaultCilPrinterClass : cilPrinter = object (self)
       | s_cur :: tail ->
 	  let s_next =
 	    match tail with
-	      | s :: _ -> s
-	      | [] -> invalidStmt
+	    | s :: _ -> s
+	    | [] -> invalidStmt
 	  in
 	  if dosep then
 	    if newlinesep
@@ -4057,11 +4110,13 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 	  fprintf fmt "@\n" ;
 	  iterblock fmt tail
     in
-    if force_paren then fprintf fmt "{";
+    if force_paren then fprintf fmt "@[{@[<hov 1>@ ";
+    if Cilmsg.debug_atleast 1 then fprintf fmt "@\n/* %a */@\n"
+      (Pretty_utils.pp_list
+         ~sep:("," ^^ Pretty_utils.space_sep) self#pVar) blk.blocals;
     if blk.battrs <> [] then self#pAttrsGen true fmt blk.battrs ;
     iterblock fmt blk.bstmts ;
-    if force_paren then fprintf fmt "}";
-    fprintf fmt "@]@\n"
+    if force_paren then fprintf fmt "@]@;}@]@\n";
 
   (* Store here the name of the last file printed in a line number. This is
    * private to the object *)
@@ -4165,9 +4220,9 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | If(be,t,{bstmts=[{skind=Goto(gref,_);labels=[]}]; battrs=[]},l)
         when !gref == next && not miscState.printCilAsIs ->
 	self#pLineDirective ~forcefile:false fmt l ;
-	Pretty_utils.pp_open_block fmt "if (%a) {" self#pExp be ;
-	self#pInnerBlock fmt t ;
-	Pretty_utils.pp_close_block fmt "}"
+	  Pretty_utils.pp_open_block fmt "if (%a) {" self#pExp be ;
+	  self#pInnerBlock fmt t ;
+	  Pretty_utils.pp_close_block fmt "}"
 
     | If(be,{bstmts=[];battrs=[]},e,l) when not miscState.printCilAsIs ->
 	self#pLineDirective ~forcefile:false fmt l ;
@@ -4179,10 +4234,10 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | If(be,{bstmts=[{skind=Goto(gref,_);labels=[]}]; battrs=[]},e,l)
         when !gref == next && not miscState.printCilAsIs ->
 	self#pLineDirective ~forcefile:false fmt l ;
-	Pretty_utils.pp_open_block fmt "if (%a) {"
-          self#pExp (dummy_exp(UnOp(LNot,be,intType))) ;
-	self#pInnerBlock fmt e ;
-	Pretty_utils.pp_close_block fmt "}"
+	  Pretty_utils.pp_open_block fmt "if (%a) {"
+            self#pExp (dummy_exp(UnOp(LNot,be,intType))) ;
+	  self#pInnerBlock fmt e ;
+	  Pretty_utils.pp_close_block fmt "}"
 
     | If(be,t,e,l) ->
 	self#pLineDirective ~forcefile:false fmt l ;
@@ -4215,10 +4270,11 @@ class defaultCilPrinterClass : cilPrinter = object (self)
           try
             let rec skipEmpty = function
                 [] -> []
-              | {skind=Instr (Skip _);labels=[]} :: rest -> skipEmpty rest
+              | {skind=Instr (Skip _);labels=[]} as h :: rest
+                  when self#may_be_skipped h-> skipEmpty rest
               | x -> x
             in
-           let term, bodystmts =
+            let term, bodystmts =
               (* Bill McCloskey: Do not remove the If if it has labels *)
               match skipEmpty b.bstmts with
                 {skind=If(e,tb,fb,_)} as to_skip :: rest
@@ -4226,16 +4282,16 @@ class defaultCilPrinterClass : cilPrinter = object (self)
                     not miscState.printCilAsIs && self#may_be_skipped to_skip ->
                       begin
                         match skipEmpty tb.bstmts, skipEmpty fb.bstmts with
-                          [], {skind=Break _; labels=[]} :: _  -> e, rest
-                        | {skind=Break _; labels=[]} :: _, []
+                          [], {skind=Break _; labels=[]}::_  -> e, rest
+                        | {skind=Break _; labels=[]}::_, []
                             -> dummy_exp (UnOp(LNot, e, intType)), rest
                         | _ -> raise Not_found
                       end
               | _ -> raise Not_found
             in
             let b = match skipEmpty bodystmts with
-                [{ skind=Block b}] -> b
-              | _ -> { b with bstmts = bodystmts }
+              [{ skind=Block b} as s ] when self#may_be_skipped s -> b
+            | _ -> { b with bstmts = bodystmts }
             in
             self#pLineDirective fmt l ;
 	    Pretty_utils.pp_open_block fmt "while (%a) {" self#pExp term ;
@@ -4252,11 +4308,11 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 
     | Block b ->
 	if (match b.bstmts with [] | [_] -> true | _ -> false)
-	then self#pInnerBlock ~inblock:false fmt b
+	then self#pBlock ~toplevel:false fmt b
 	else
 	  begin
 	    if verbose then Pretty_utils.pp_open_block fmt "/*block:begin*/@ " ;
-	    self#pInnerBlock ~inblock:verbose fmt b ;
+	    self#pBlock ~toplevel:false fmt b ;
 	    if verbose then Pretty_utils.pp_close_block fmt "/*block:end*/" ;
 	  end
 
@@ -4373,14 +4429,14 @@ class defaultCilPrinterClass : cilPrinter = object (self)
         self#opt_funspec fmt funspec;
         if not miscState.printCilAsIs && BuiltinFunctions.mem vi.vname then
 	  begin
-          (* Compiler builtins need no prototypes. Just print them in
-             comments. *)
-          fprintf fmt "/* compiler builtin: @\n   %a;   */@\n"
-            self#pVDecl vi
-        end else begin
-          self#pLineDirective fmt l;
-          fprintf fmt "%a;@\n" self#pVDecl vi
-        end;
+            (* Compiler builtins need no prototypes. Just print them in
+               comments. *)
+            fprintf fmt "/* compiler builtin: @\n   %a;   */@\n"
+              self#pVDecl vi
+          end else begin
+            self#pLineDirective fmt l;
+            fprintf fmt "%a;@\n" self#pVDecl vi
+          end;
         if isFunctionType vi.vtype then self#out_current_function
 
 
@@ -4448,7 +4504,7 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 
   method private opt_funspec fmt funspec =
     if logic_printer_enabled && not (is_empty_funspec funspec) then
-       fprintf fmt "/*@[@@ %a@]*/@\n" self#pSpec funspec
+      fprintf fmt "/*@[@@ %a@]*/@\n" self#pSpec funspec
 
   method private pFunDecl fmt f =
     (* declaration. *)
@@ -4844,24 +4900,36 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 
   (* Logic annotations printer *)
 
-  method pLogic_type fmt = function
-    | Ctype typ -> self#pType None fmt typ
-    | Linteger -> pp_print_string fmt "integer"
-    | Lreal -> pp_print_string fmt "real"
+  method pLogic_type name fmt =
+    let pname = match name with
+      | Some d -> (fun fmt -> Format.fprintf fmt "@ %t" d)
+      | None -> (fun _ -> ())
+    in
+    function
+    | Ctype typ -> self#pType name fmt typ
+    | Linteger ->
+        let res = if !print_utf8 then Utf8_logic.integer else "integer" in
+        Format.fprintf fmt "%s%t" res pname
+    | Lreal ->
+        let res = if !print_utf8 then Utf8_logic.real else "real" in
+        Format.fprintf fmt "%s%t" res pname
+    | Ltype ({ lt_name = name},[]) when name = Utf8_logic.boolean->
+        let res = if !print_utf8 then Utf8_logic.boolean else "boolean" in
+        Format.fprintf fmt "%s%t" res pname
     | Ltype (s,l) ->
-        fprintf fmt "%a%a" self#pVarName s.lt_name
+        fprintf fmt "%a%a%t" self#pVarName s.lt_name
           (pretty_list_del (fun fmt -> fprintf fmt "<@[")
              (fun fmt -> fprintf fmt "@]>@ ")
              (* the space avoids the issue of list<list<int>> where the double >
                 would be read as a shift. It could be optimized away in most of
                 the cases.
              *)
-             (space_sep ",") self#pLogic_type) l
+             (space_sep ",") (self#pLogic_type None)) l pname
     | Larrow (args,rt) ->
-        fprintf fmt "@[@[<2>{@ %a@]@}@]%a"
-          (pretty_list (space_sep ",") self#pLogic_type) args
-          self#pLogic_type rt
-    | Lvar s -> fprintf fmt "%a" self#pVarName s
+        fprintf fmt "@[@[<2>{@ %a@]}@]%a%t"
+          (pretty_list (space_sep ",") (self#pLogic_type None)) args
+          (self#pLogic_type None) rt pname
+    | Lvar s -> fprintf fmt "%a%t" self#pVarName s pname
 
   method private pTermPrec contextprec fmt e =
     let thisLevel = getParenthLevelLogic e.term_node in
@@ -4977,9 +5045,30 @@ class defaultCilPrinterClass : cilPrinter = object (self)
                                  self#pPredicate_named p))
           pred
     | Trange(low,high) ->
-        fprintf fmt "%a@;..@;%a"
+        fprintf fmt "@[%a..@,%a@]"
           (pretty_opt (self#pTermPrec current_level)) low
           (pretty_opt (self#pTermPrec current_level)) high
+    | Tlet(def,body) ->
+        assert
+          (Cilmsg.verify (def.l_labels = [])
+             "invalid logic construction: local definition with label");
+        assert
+          (Cilmsg.verify (def.l_tparams = [])
+             "invalid logic construction: polymorphic local definition");
+        let v = def.l_var_info in
+        let args = def.l_profile in
+        let pp_defn = match def.l_body with
+          | LBterm t -> fun fmt -> self#pTerm fmt t
+          | LBpred p -> fun fmt -> self#pPredicate_named fmt p
+          | LBnone
+          | LBreads _ | LBinductive _ -> fatal "invalid logic local definition"
+        in
+        fprintf fmt "@[\\let@ %a@ =@ %t%t;@ %a@]"
+          self#pLogic_var v
+          (fun fmt -> if args <> [] then
+             fprintf fmt "@[<2>\\lambda@ %a;@]@ " self#pQuantifiers args)
+          pp_defn
+          (self#pTermPrec current_level) body
 
   method private pTerm_lvalPrec contextprec fmt lv =
     if getParenthLevelLogic (TLval lv) > contextprec then
@@ -5017,7 +5106,8 @@ class defaultCilPrinterClass : cilPrinter = object (self)
   method pQuantifiers fmt l =
     pretty_list (space_sep ",")
       (fun fmt lv ->
-         fprintf fmt "%a@ %a" self#pLogic_type lv.lv_type self#pLogic_var lv)
+         let pvar fmt = self#pLogic_var fmt lv in
+         self#pLogic_type (Some pvar) fmt lv.lv_type)
       fmt l
 
   method pPredicate fmt p =
@@ -5068,9 +5158,28 @@ class defaultCilPrinterClass : cilPrinter = object (self)
     | Pif (e, p1, p2) ->
         fprintf fmt "@[<2>(%a?@ %a:@ %a)@]"
           term e self#pPredicate_named p1 self#pPredicate_named p2
-    | Plet (v, t, p) ->
-        fprintf fmt "@[(@[let %a =@]@ @[%a@]@ @[in %a@])@]"
-	  self#pLogic_var v term t self#pPredicate_named p
+    | Plet (def, p) ->
+        assert
+          (Cilmsg.verify (def.l_labels = [])
+             "invalid logic construction: local definition with label");
+        assert
+          (Cilmsg.verify (def.l_tparams = [])
+             "invalid logic construction: polymorphic local definition");
+        let v = def.l_var_info in
+        let args = def.l_profile in
+        let pp_defn = match def.l_body with
+          | LBterm t -> fun fmt -> self#pTerm fmt t
+          | LBpred p -> fun fmt -> self#pPredicate_named fmt p
+          | LBnone    
+          | LBreads _ | LBinductive _ -> fatal "invalid logic local definition"
+        in
+        fprintf fmt "@[\\let@ %a@ =@ %t%t;@ %a@]"
+          self#pLogic_var v
+          (fun fmt ->
+             if args <> [] then
+               fprintf fmt "@[<2>\\lambda@ %a;@]@ " self#pQuantifiers args)
+          pp_defn
+          self#pPredicate_named p
     | Pforall (quant,pred) ->
         fprintf fmt "@[(@[%s %a;@]@ %a)@]"
           (if !print_utf8 then Utf8_logic.forall else "\\forall")
@@ -5135,20 +5244,62 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 
   method private pDecrement kw fmt (t, rel) =
     match rel with
-      None -> fprintf fmt "@[<2>%s@ %a;@]@\n" kw self#pTerm t
+      None -> fprintf fmt "@[<2>%s@ %a;@]" kw self#pTerm t
     | Some str ->
         (*TODO: replace this string with an interpreted variable*)
-        fprintf fmt "@[<2>%s@ %a@ for@ %s;@]@\n" kw self#pTerm t str
+        fprintf fmt "@[<2>%s@ %a@ for@ %s;@]" kw self#pTerm t str
 
   method pDecreases fmt v = self#pDecrement "decreases" fmt v
 
   method pLoop_variant fmt v = self#pDecrement "loop variant" fmt v
 
+  method pAssumes fmt p =
+    fprintf fmt "@[<2>assumes @[%a@];@]" self#pIdentified_predicate p
+
+  method pPost_cond fmt (k,p) =
+    let kw = match k with
+        Normal -> "ensures"
+      | Exits -> "exits"
+      | Breaks -> "breaks"
+      | Continues -> "continue"
+      | Returns -> "returns"
+    in
+    fprintf fmt "@[<2>%s @[%a@];@]" kw self#pIdentified_predicate p
+
   method pBehavior fmt b =
-    fprintf fmt "@[behavior %s:@\n  @[%a%a%a@]@]"
-      b.b_name (self#preds "assumes") b.b_assumes
-      (self#preds "ensures") b.b_ensures
-      (pretty_list nl_sep (self#pAssigns "assigns")) b.b_assigns
+      fprintf fmt "behavior %s:@\n  @[%a%a%a@]"
+        b.b_name
+        (pretty_list_del ignore nl_sep nl_sep self#pAssumes) b.b_assumes
+        (pretty_list_del ignore nl_sep nl_sep self#pPost_cond) b.b_post_cond
+        (fun fmt l -> match l with
+         | [] -> ()
+         | _ -> self#pAssigns "assigns" fmt l) b.b_assigns
+
+  method pRequires fmt p =
+    fprintf fmt "@[<2>requires @[%a@];@]"
+      self#pIdentified_predicate p
+
+  method pTerminates fmt p =
+    fprintf fmt "@[<2>terminates @[%a@];@]"
+      self#pIdentified_predicate p
+
+  method pComplete_behaviors fmt p =
+    fprintf fmt "@[<2>complete behaviors @[%a@];@]"
+      (pretty_list_del
+            ignore
+            ignore
+            (space_sep ",")
+            Format.pp_print_string)
+      p
+
+  method pDisjoint_behaviors fmt p =
+    fprintf fmt "@[<2>disjoint behaviors @[%a@];@]"
+      (pretty_list_del
+            ignore
+            ignore
+            (space_sep ",")
+            Format.pp_print_string)
+      p
 
   method pSpec fmt { spec_requires = requires;
                      spec_behavior = behaviors;
@@ -5158,29 +5309,35 @@ class defaultCilPrinterClass : cilPrinter = object (self)
                      spec_disjoint_behaviors = disjoint;
                    } =
     fprintf fmt "@[%a%a%a%a%a%a@]"
-      (self#preds "requires") requires
-      (pretty_opt
-         (fun fmt p -> fprintf fmt "@[<2>terminates@ %a;@]@\n"
-            self#pIdentified_predicate p)) terminates
+      (pretty_list_del ignore nl_sep nl_sep self#pRequires) requires
+      (pretty_opt_nl self#pTerminates) terminates
       (pretty_list nl_sep self#pBehavior) behaviors
-      (pretty_list_del nl_sep nl_sep nl_sep
-         (pretty_list_del
-            (space_sep "complete behaviors")
-            (space_sep ";")
-            (space_sep ",")
-            Format.pp_print_string)) complete
-      (pretty_list_del nl_sep nl_sep nl_sep
-         (pretty_list_del
-            (space_sep "disjoint behaviors")
-            (space_sep ";")
-            (space_sep ",")
-            Format.pp_print_string)) disjoint
-      (pretty_opt (self#pDecrement "decreases")) variant
+      (pretty_list_del ignore nl_sep nl_sep self#pComplete_behaviors) complete
+      (pretty_list_del ignore nl_sep nl_sep self#pDisjoint_behaviors) disjoint
+      (pretty_opt_nl self#pDecreases) variant
 
-  method private pAssigns kw fmt (base,deps) =
-    fprintf fmt "@[<2>%s@ %a%a;@]" kw self#pZone base
-      (pretty_list_del (swap fprintf "@ \\from@ ") (fun _ -> ())
-         (space_sep ",") self#pZone) deps
+  method pAssigns kw fmt l =
+      let with_from = List.filter (function (_,[]) -> false | _ -> true) l in
+      let without_result =
+        List.filter
+          (function (Location a,_) -> not (Logic_const.is_result a.it_content)
+             | Nothing,_ -> true)
+          l
+      in
+      let sep = match without_result with
+          [] -> (fun _ -> ())
+        | _ -> nl_sep
+      in
+      pretty_list_del (space_sep kw) (fun fmt -> fprintf fmt ";")
+        (space_sep ",") (fun fmt (x,_) -> self#pZone fmt x) fmt without_result;
+      pretty_list_del sep (fun _ -> ()) nl_sep
+        (self#pFrom kw) fmt with_from
+
+  method pFrom kw fmt (base,deps) =
+    fprintf fmt "%s@ %a%a;" kw self#pZone base
+          (pretty_list_del (swap fprintf "@ \\from@ ") (fun _ -> ())
+             (space_sep ",") self#pZone) deps
+
 
   method pZone fmt locs =
     match locs with
@@ -5233,17 +5390,7 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 	   (fun fmt -> fprintf fmt "for ") (fun fmt -> fprintf fmt ": ")
 	   (space_sep ",") pp_print_string)
 	  behav
-	  (self#pAssigns "loop assigns") a
-(*
-    | ALoopBehavior(behav,inv,ass) ->
-	fprintf fmt "@[<2>%a%a%a@]@\n"
-	  (pretty_list_del
-	     (fun fmt -> fprintf fmt "for ") (fun fmt -> fprintf fmt ": ")
-	     (space_sep ",") pp_print_string)
-	  behav
-	  (pretty_list nl_sep self#pLoopInv) inv
-	  (pretty_list nl_sep (self#pAssigns "loop assigns")) ass
-*)
+	  (self#pAssigns "loop assigns") [a]
     | AInvariant(behav,true, i) ->
 	fprintf fmt "@[<2>%aloop invariant@ %a;@]"
 	(pretty_list_del
@@ -5257,14 +5404,15 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 	   (space_sep ",") pp_print_string)
 	  behav
           self#pPredicate_named i
-    | AVariant v -> self#pDecrement "loop variant" fmt v
+    | AVariant v -> self#pLoop_variant fmt v
 
   method private pLoopInv fmt p =
     fprintf fmt "@[<2>loop invariant@ %a;@]"
       self#pPredicate_named p
 
   method private pLogicPrms fmt arg =
-    fprintf fmt "%a@ %a" self#pLogic_type arg.lv_type self#pLogic_var arg
+    let pvar fmt = self#pLogic_var fmt arg in
+    self#pLogic_type (Some pvar) fmt arg.lv_type
 
   method private pTypeParameters fmt tvars =
     pretty_list_del
@@ -5315,21 +5463,14 @@ class defaultCilPrinterClass : cilPrinter = object (self)
         fprintf fmt "@[type@ %a%a%a;@]@\n"
           self#pVarName ti.lt_name self#pTypeParameters ti.lt_params
           (pretty_opt
-             (fun fmt l -> fprintf fmt "@ =@ @[%a@]"
-                (pretty_list (fun fmt -> fprintf fmt "@ |@ ")
-                   (fun fmt info ->
-                      fprintf fmt "%s@[%a@]" info.ctor_name
-                        (pretty_list_del
-                           (fun fmt -> fprintf fmt "@[(")
-                           (fun fmt -> fprintf fmt ")@]")
-                           (space_sep ",")
-                           self#pLogic_type) info.ctor_params)) l)) ti.lt_ctors
+             (fun fmt d -> fprintf fmt "@ =@ @[%a@]" self#pLogic_type_def d))
+          ti.lt_def
      | Dfun_or_pred li ->
 	begin
 	  match li.l_type with
 	    | Some rt ->
 		fprintf fmt "@[<hov 2>logic %a"
-		  self#pLogic_type rt
+		  (self#pLogic_type None) rt
 	    | None ->
 		fprintf fmt "@[<hov 2>predicate"
 	end;
@@ -5343,6 +5484,8 @@ class defaultCilPrinterClass : cilPrinter = object (self)
              (space_sep ",") self#pLogicPrms) li.l_profile;
 	begin
 	  match li.l_body with
+	    | LBnone ->
+		fprintf fmt ";"
 	    | LBreads reads ->
 		fprintf fmt "%a;"
 		  (pretty_list_del
@@ -5353,17 +5496,6 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 	    | LBpred def ->
 		fprintf fmt "=@ %a;"
 		  self#pPredicate_named def
-(*
-	    | LBaxiomatic axioms ->
-		fprintf fmt "{@ %a}"
-		  (pretty_list_del
-		     (fun fmt -> Format.fprintf fmt "@[<v 0>")
-		     (fun fmt -> Format.fprintf fmt "@]@\n")
-		     nl_sep
-		     (fun fmt (id,p) ->
-			Format.fprintf fmt "axiom %s: %a;" id
-			  self#pPredicate_named p)) axioms
-*)
 	    | LBinductive indcases ->
 		fprintf fmt "{@ %a}"
 		  (pretty_list_del
@@ -5391,6 +5523,19 @@ class defaultCilPrinterClass : cilPrinter = object (self)
 	     nl_sep
 	     self#pAnnotation)
 	  decls
+
+  method pLogic_type_def fmt = function
+    | LTsum l ->
+        pretty_list (fun fmt -> fprintf fmt "@ |@ ")
+          (fun fmt info ->
+             fprintf fmt "%s@[%a@]" info.ctor_name
+               (pretty_list_del
+                  (fun fmt -> fprintf fmt "@[(")
+                  (fun fmt -> fprintf fmt ")@]")
+                  (space_sep ",")
+                  (self#pLogic_type None)) info.ctor_params) fmt l
+    | LTsyn typ -> self#pLogic_type None fmt typ
+
 end (* class defaultCilPrinterClass *)
 
 let defaultCilPrinter = new defaultCilPrinterClass
@@ -5433,7 +5578,7 @@ let printTerm_lval pp fmt lv = pp#pTerm_lval fmt lv
 
 let printLogic_var pp fmt lv = pp#pLogic_var fmt lv
 
-let printLogic_type pp fmt lv = pp#pLogic_type fmt lv
+let printLogic_type pp fmt lv = pp#pLogic_type None fmt lv
 
 let printTerm pp fmt t = pp#pTerm fmt t
 
@@ -5827,15 +5972,16 @@ let rec findUniqueName ?(suffix="") fdec name =
     end else
       current_name
 
-let makeLocal ?(formal=false) fdec name typ = (* a helper function *)
+let makeLocal ?(generated=true) ?(formal=false) fdec name typ =
+  (* a helper function *)
   let name = findUniqueName fdec name in
   fdec.smaxid <- 1 + fdec.smaxid;
-  let vi = makeVarinfo false formal name typ in
+  let vi = makeVarinfo ~generated false formal name typ in
   vi
 
 (* Make a local variable and add it to a function *)
-let makeLocalVar fdec ?(insert = true) name typ =
-  let vi = makeLocal fdec name typ in
+let makeLocalVar fdec ?(generated=true) ?(insert = true) name typ =
+  let vi = makeLocal ~generated fdec name typ in
   if insert then fdec.slocals <- fdec.slocals @ [vi];
   vi
 
@@ -5936,21 +6082,23 @@ let makeFormalVar fdec ?(where = "$") name typ : varinfo =
 
    (* Make a global variable. Your responsibility to make sure that the name
     * is unique *)
-let makeGlobalVar ?logic name typ =
-  let vi = makeVarinfo ?logic true false name typ in
+let makeGlobalVar ?logic ?generated name typ =
+  let vi = makeVarinfo ?logic ?generated true false name typ in
   vi
 
 (* Make an empty function *)
 let emptyFunction name =
-  let r = { svar  = makeGlobalVar name (TFun(voidType, Some [], false,[]));
-    smaxid = 0;
-    slocals = [];
-    sformals = [];
-    sbody = mkBlock [];
-    smaxstmtid = None;
-    sallstmts = [];
-    sspec =   empty_funspec ()
-  }
+  let r =
+    { svar  = makeGlobalVar
+        ~generated:false name (TFun(voidType, Some [], false,[]));
+      smaxid = 0;
+      slocals = [];
+      sformals = [];
+      sbody = mkBlock [];
+      smaxstmtid = None;
+      sallstmts = [];
+      sspec =   empty_funspec ()
+    }
   in
   setFormalsDecl r.svar r.svar.vtype;
   r
@@ -6039,7 +6187,7 @@ let doVisit (vis: 'visitor)
       SkipChildren -> node'
   | ChangeTo node' -> node'
   | ChangeToPost (node',f) -> f node'
-  | _ -> (* DoChildren and ChangeDoChildrenPost *)
+  | DoChildren | JustCopy | ChangeDoChildrenPost _ | JustCopyPost _ ->
       let nodepre = match action with
         ChangeDoChildrenPost (node', _) -> node'
       | _ -> node'
@@ -6291,6 +6439,11 @@ and childrenTermNode vis tn =
         let high' = optMapNoCopy (visitCilTerm vis) high in
         if low != low' || high != high' then Trange(low',high')
         else tn
+    | Tlet(def,body) ->
+        let def'= visitCilLogicInfo vis def in
+        let body' = visitCilTerm vis body in
+        if def != def' || body != body' then
+          Tlet(def',body') else tn
 
 and visitCilLogicLabel vis l =
   match l with
@@ -6341,18 +6494,14 @@ and visitCilLogicInfo vis li =
 and childrenLogicInfo vis li =
   let lt = optMapNoCopy (visitCilLogicType vis) li.l_type in
   let lp = mapNoCopy (visitCilLogicVarDecl vis) li.l_profile in
-(*    (fun p ->
-       let lt' = visitCilLogicType vis p.lv_type in
-         if lt' != p.lv_type then { p with lv_type = lt'} else p)
-    li.l_profile
-
-  in
-*)
+  let vi = visitCilLogicVarDecl vis li.l_var_info in
   li.l_type <- lt;
   li.l_profile <- lp;
+  li.l_var_info <- vi;
   li.l_body <-
     begin
       match li.l_body with
+        | LBnone -> li.l_body
 	| LBreads ol ->
             let l = mapNoCopy (visitCilIdLocations vis) ol in
             if l != ol then LBreads l else li.l_body
@@ -6378,9 +6527,20 @@ and visitCilLogicTypeInfo vis lt =
     vis#vlogic_type_info_decl childrenLogicTypeInfo lt
 
 and childrenLogicTypeInfo vis lt =
-  let ctors =
-    optMapNoCopy (mapNoCopy (visitCilLogicCtorInfoAddTable vis)) lt.lt_ctors
-  in lt.lt_ctors <- ctors; lt
+  let def = optMapNoCopy (visitCilLogicTypeDef vis) lt.lt_def in
+  lt.lt_def <- def; lt
+
+and visitCilLogicTypeDef vis def =
+  doVisitCil vis (fun x -> x) vis#vlogic_type_def childrenLogicTypeDef def
+
+and childrenLogicTypeDef vis def =
+  match def with
+    | LTsum l ->
+        let l' = mapNoCopy (visitCilLogicCtorInfoAddTable vis) l in
+        if l != l' then LTsum l' else def
+    | LTsyn typ ->
+        let typ' = visitCilLogicType vis typ in
+        if typ != typ' then LTsyn typ else def
 
 and visitCilLogicCtorInfoAddTable vis ctor =
   let ctor' = visitCilLogicCtorInfo vis ctor in
@@ -6520,12 +6680,11 @@ and childrenPredicate vis p =
         if t' != t || ptrue' != ptrue || pfalse' != pfalse then
           Pif(t', ptrue',pfalse')
         else p
-    | Plet(var,t,p1) ->
-        let var' = visitCilLogicVarDecl vis var in
-        let t' = vTerm t in
+    | Plet(def,p1) ->
+        let def' = visitCilLogicInfo vis def in
         let p1' = vPred p1 in
-        if var' != var || t' != t || p1' != p1 then
-          Plet(var',t',p1')
+        if def' != def || p1' != p1 then
+          Plet(def',p1')
         else p
     | Pforall(quant,p1) ->
         let quant' = visitCilQuantifiers vis quant in
@@ -6593,7 +6752,11 @@ and visitCilBehavior vis b =
 
 and childrenBehavior vis b =
   b.b_assumes <- visitCilPredicates vis b.b_assumes;
-  b.b_ensures <- visitCilPredicates vis b.b_ensures;
+  b.b_post_cond <-
+    mapNoCopy
+    (function ((k,p) as pc) ->
+       let p' = visitCilIdPredicate vis p in if p != p' then (k,p') else pc)
+    b.b_post_cond;
   b.b_assigns <- mapNoCopy (visitCilAssigns vis) b.b_assigns;
   b
 
@@ -6679,9 +6842,17 @@ and childrenAnnotation vis a =
         if p' != p then Dlemma(s,is_axiom,labels,tvars,p') else a
     | Dinvariant p ->
         let p' = visitCilLogicInfo vis p in
+        if vis#behavior.is_copy_behavior then
+          Queue.add
+            (fun () -> Logic_env.add_logic_function_gen (fun _ _ -> false) p')
+            vis#get_filling_actions;
         if p' != p then Dinvariant p' else a
     | Dtype_annot ta ->
         let ta' = visitCilLogicInfo vis ta in
+        if vis#behavior.is_copy_behavior then
+          Queue.add
+            (fun () -> Logic_env.add_logic_function_gen (fun _ _ -> false) ta')
+            vis#get_filling_actions;
         if ta' != ta then Dtype_annot ta' else a
     | Daxiomatic(id,l) ->
 (*
@@ -6971,8 +7142,9 @@ and childrenStmt (toPrepend: instr list ref) (vis:cilVisitor) (s:stmt): stmt =
         let b' = fBlock b in
         (* the stmts in b should have cleaned up after themselves.*)
         assertEmptyQueue vis;
-        (* Don't do stmts, but we better not change those *)
-        if e' != e || b' != b then Switch (e', b', stmts, l) else s.skind
+        let stmts' = mapNoCopy (visitCilStmt vis#plain_copy_visitor) stmts in
+        if e' != e || b' != b || stmts' != stmts then
+          Switch (e', b', stmts', l) else s.skind
     | Instr i ->
         begin match fInst i with
 	  | [i'] when i' == i -> s.skind
@@ -7319,7 +7491,7 @@ and childrenGlobal (vis: cilVisitor) (g: global) : global =
           visitCilFunspec vis spec
         else begin
           assert (is_empty_funspec spec);
-          spec
+          empty_funspec ()
         end
       in
       if v' != v || spec' != spec || form != form' then
@@ -7469,6 +7641,8 @@ object(self)
 
   method vlogic_type_info_use _ = DoChildren
 
+  method vlogic_type_def _ = DoChildren
+
   method vlogic_ctor_info_decl _ = DoChildren
 
   method vlogic_ctor_info_use _ = DoChildren
@@ -7597,7 +7771,7 @@ let findOrCreateFunc (f:file) (name:string) (t:typ) : varinfo =
       | _ :: rest -> search rest (* tail recursive *)
       | [] -> (*not found, so create one *)
           let t' = unrollTypeDeep t in
-	  let new_decl = makeGlobalVar name t' in
+	  let new_decl = makeGlobalVar ~generated:false name t' in
           setFormalsDecl new_decl t';
 	  f.globals <- GVarDecl(empty_funspec (), new_decl, locUnknown) :: f.globals;
 	  new_decl
@@ -8050,30 +8224,40 @@ let isStructOrUnionType t =
   | _ -> false
 
 
-let rec isConstant e = match (stripInfo e).enode with
+let rec isConstantGen f e = match (stripInfo e).enode with
   | Info _ -> assert false
-  | Const _ -> true
-  | UnOp (_, e, _) -> isConstant e
-  | BinOp (_, e1, e2, _) -> isConstant e1 && isConstant e2
+  | Const c -> f c
+  | UnOp (_, e, _) -> isConstantGen f e
+  | BinOp (_, e1, e2, _) -> isConstantGen f e1 && isConstantGen f e2
   | Lval (Var vi, NoOffset) ->
       (vi.vglob && isArrayType vi.vtype || isFunctionType vi.vtype)
   | Lval _ -> false
   | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> true
-  | CastE (_, e) -> isConstant e
+  (* see ISO 6.6.6 *)
+  | CastE(t,{ enode = Const(CReal _)}) when isIntegralType t -> true
+  | CastE (_, e) -> isConstantGen f e
   | AddrOf (Var vi, off) | StartOf (Var vi, off)
-        -> vi.vglob && isConstantOffset off
+        -> vi.vglob && isConstantOffsetGen f off
   | AddrOf (Mem e, off) | StartOf(Mem e, off)
-        -> isConstant e && isConstantOffset off
+        -> isConstantGen f e && isConstantOffsetGen f off
 
-and isConstantOffset = function
+and isConstantOffsetGen f = function
     NoOffset -> true
-  | Field(_fi, off) -> isConstantOffset off
-  | Index(e, off) -> isConstant e && isConstantOffset off
+  | Field(_fi, off) -> isConstantOffsetGen f off
+  | Index(e, off) -> isConstantGen f e && isConstantOffsetGen f off
+
+let isConstant e = isConstantGen (fun _ -> true) e
+let isConstantOffset o = isConstantOffsetGen (fun _ -> true) o
+
+let isIntegerConstant e =
+  isConstantGen
+    (function
+         CInt64 _ | CChr _ | CEnum _ -> true
+       | CStr _ | CWStr _ | CReal _ -> false) e
 
 let getCompField (cinfo:compinfo) (fieldName:string) : fieldinfo =
   (List.find (fun fi -> fi.fname = fieldName) cinfo.cfields)
 
-(* TODO: remove ALL attributes including volatile...*)
 let need_cast oldt newt =
   not
     (equals
@@ -8561,7 +8745,16 @@ let get_switch_count () =
   switch_count := 1 + !switch_count ;
   !switch_count
 
-let switch_label = ref (-1)
+(* This alphaTable is used to prevent collision of label names when
+   transforming switch statements and loops. It uses a *unit*
+   alphaTableData ref because there isn't any information we need to
+   carry around. *)
+let labelAlphaTable : (string, unit A.alphaTableData ref) H.t =
+  H.create 11
+
+let freshLabel (base:string) =
+  fst (A.newAlphaName labelAlphaTable None base ())
+
 
 let rec xform_switch_stmt
     ?(keepSwitch=false) s break_dest cont_dest label_index = begin
@@ -8577,13 +8770,13 @@ let rec xform_switch_stmt
 	      else
 		Int64.to_string value
 	  | None ->
-	      incr switch_label;
-	      "exp_" ^ string_of_int !switch_label
+              "exp"
 	in
 	let str = Format.sprintf "switch_%d_%s" label_index suffix in
-	(Label(str,l,false))
-    | Default(l) -> (Label(Printf.sprintf
-        "switch_%d_default" label_index,l,false))
+          (Label(freshLabel str,l,false))
+    | Default(l) -> Label(freshLabel
+                            (Printf.sprintf "switch_%d_default" label_index),
+                          l, false)
     ) s.labels ;
   match s.skind with
   | Instr _ | Return _ | Goto _  -> ()
@@ -8607,7 +8800,7 @@ let rec xform_switch_stmt
 	let i = get_switch_count () in
 	let break_stmt = mkStmt (Instr (Skip locUnknown)) in
 	break_stmt.labels <-
-	  [Label((Printf.sprintf "switch_%d_break" i),l,false)] ;
+	  [Label(freshLabel (Printf.sprintf "switch_%d_break" i), l, false)] ;
 	let switch_stmt = mkStmt s.skind in
 	let break_block = mkBlock [ switch_stmt; break_stmt ] in
 	s.skind <- Block break_block;
@@ -8636,7 +8829,7 @@ let rec xform_switch_stmt
       let i = get_switch_count () in
       let break_stmt = mkStmt (Instr (Skip locUnknown)) in
       break_stmt.labels <-
-				[Label((Printf.sprintf "switch_%d_break" i),l,false)] ;
+	[Label(freshLabel (Printf.sprintf "switch_%d_break" i), l, false)] ;
       let break_block = mkBlock [ break_stmt ] in
       let body_block = b in
       let body_if_stmtkind = (If(zero,body_block,break_block,l)) in
@@ -8690,10 +8883,10 @@ let rec xform_switch_stmt
           let i = get_switch_count () in
           let break_stmt = mkStmt (Instr (Skip locUnknown)) in
           break_stmt.labels <-
-						[Label((Printf.sprintf "while_%d_break" i),l,false)] ;
+	    [Label(freshLabel (Printf.sprintf "while_%d_break" i),l,false)] ;
           let cont_stmt = mkStmt (Instr (Skip locUnknown)) in
           cont_stmt.labels <-
-						[Label((Printf.sprintf "while_%d_continue" i),l,false)] ;
+	    [Label(freshLabel (Printf.sprintf "while_%d_continue" i),l,false)] ;
           b.bstmts <- cont_stmt :: b.bstmts ;
           let this_stmt = mkStmt
             (Loop(a,b,l,Some(cont_stmt),Some(break_stmt))) in
@@ -8727,10 +8920,32 @@ end and xform_switch_block
       b.bstmts ;
     raise e
 
+(* Enter all the labels in a function into an alpha renaming table to
+   prevent duplicate labels when transforming loops and switch
+   statements. *)
+class registerLabelsVisitor : cilVisitor = object
+  inherit nopCilVisitor
+  method vstmt { labels = labels } = begin
+    List.iter
+      (function
+         | Label (name,_,_) -> A.registerAlphaName labelAlphaTable None name ()
+         | _ -> ())
+      labels;
+    DoChildren
+  end
+  method vexpr _ = SkipChildren
+  method vtype _ = SkipChildren
+  method vinst _ = SkipChildren
+end
+
 (* prepare a function for computeCFGInfo by removing break, continue,
  * default and switch statements/labels and replacing them with Ifs and
  * Gotos. *)
 let prepareCFG ?(keepSwitch=false) (fd : fundec) : unit =
+  (* Labels are local to a function, so start with a clean slate by
+     clearing labelAlphaTable. Then register all labels. *)
+  H.clear labelAlphaTable;
+  ignore (visitCilFunction (new registerLabelsVisitor) fd);
   xform_switch_block ~keepSwitch fd.sbody
       (fun () -> failwith "prepareCFG: break with no enclosing loop")
       (fun () -> failwith "prepareCFG: continue with no enclosing loop") (-1)
@@ -9061,9 +9276,22 @@ let rec free_vars_term bound_vars t = match t.term_node with
         List.fold_left (fun acc v -> C.LogicVarSet.add v acc) bound_vars q
       in
       let fv = free_vars_term new_bv t in
-      match p with
-          None -> fv
-        | Some p -> C.LogicVarSet.union fv (free_vars_predicate new_bv p)
+      (match p with
+           None -> fv
+         | Some p -> C.LogicVarSet.union fv (free_vars_predicate new_bv p))
+  | Tlet(d,b) ->
+      let fvd =
+        match d.l_body with
+          | LBterm term -> free_vars_term bound_vars term
+          | LBpred p -> free_vars_predicate bound_vars p
+          | LBnone
+          | LBreads _ | LBinductive _ ->
+              Cilmsg.fatal
+                "definition of local variable %s is not a term or a predicate"
+                d.l_var_info.lv_name
+      in
+      let fvb = free_vars_term (C.LogicVarSet.add d.l_var_info bound_vars) b in
+      C.LogicVarSet.union fvd fvb
 
 and free_vars_lval bv (h,o) =
    C.LogicVarSet.union (free_vars_lhost bv h) (free_vars_term_offset bv o)
@@ -9123,15 +9351,24 @@ and free_vars_predicate bound_vars p = match p.content with
         (C.LogicVarSet.union
            (free_vars_predicate bound_vars p1)
            (free_vars_predicate bound_vars p2))
-  | Plet (log_v, t, p) ->
-      let new_bv = C.LogicVarSet.add log_v bound_vars in
-      C.LogicVarSet.union
-        (free_vars_term new_bv t)
-        (free_vars_predicate new_bv p)
+  | Plet (d, p) ->
+      let fvd =
+        match d.l_body with
+            | LBterm t -> free_vars_term bound_vars t
+            | LBpred p -> free_vars_predicate bound_vars p
+            | LBnone
+            | LBreads _ | LBinductive _ ->
+                Cilmsg.fatal
+                  "Local logic var %s is not a defined term or predicate"
+                  d.l_var_info.lv_name
+      in
+      let new_bv = C.LogicVarSet.add d.l_var_info bound_vars in
+      C.LogicVarSet.union fvd (free_vars_predicate new_bv p)
 
-  | Pforall (lvs,p)
-  | Pexists (lvs,p) ->
-      let new_bv= List.fold_left (Extlib.swap C.LogicVarSet.add) bound_vars lvs in
+  | Pforall (lvs,p) | Pexists (lvs,p) ->
+      let new_bv =
+        List.fold_left (Extlib.swap C.LogicVarSet.add) bound_vars lvs
+      in
       free_vars_predicate new_bv p
 
 let extract_free_logicvars_from_term t =
@@ -9151,8 +9388,7 @@ class alpha_conv tbl ltbl =
 object
   inherit nopCilVisitor
   method vvrbl v =
-    try
-      let v' = Hashtbl.find tbl v.vid in ChangeTo v'
+    try let v' = Hashtbl.find tbl v.vid in ChangeTo v'
     with Not_found -> DoChildren
   method vlogic_var_use v =
     try let v' = Hashtbl.find ltbl v.lv_id in ChangeTo v'
@@ -9162,15 +9398,15 @@ end
 let create_alpha_renaming old_args new_args =
   let conversion = Hashtbl.create 7 in
   let lconversion = Hashtbl.create 7 in
-  List.iter2 (fun old_vi new_vi ->
-                Hashtbl.add conversion old_vi.vid new_vi;
-                match old_vi.vlogic_var_assoc, new_vi.vlogic_var_assoc with
-                    None, _ -> () (* nothing to convert in logic spec. *)
-                  | Some old_lv, Some new_lv ->
-                      Hashtbl.add lconversion old_lv.lv_id new_lv
-                  | Some old_lv, None ->
-                      Hashtbl.add lconversion old_lv.lv_id (cvar_to_lvar new_vi)
-             )
+  List.iter2
+    (fun old_vi new_vi ->
+       Hashtbl.add conversion old_vi.vid new_vi;
+       match old_vi.vlogic_var_assoc, new_vi.vlogic_var_assoc with
+       | None, _ -> () (* nothing to convert in logic spec. *)
+       | Some old_lv, Some new_lv ->
+           Hashtbl.add lconversion old_lv.lv_id new_lv
+       | Some old_lv, None ->
+           Hashtbl.add lconversion old_lv.lv_id (cvar_to_lvar new_vi))
     old_args new_args;
   new alpha_conv conversion lconversion
 

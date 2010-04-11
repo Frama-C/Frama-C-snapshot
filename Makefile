@@ -2,8 +2,9 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2009                                               #
-#    CEA   (Commissariat à l'Énergie Atomique)                           #
+#  Copyright (C) 2007-2010                                               #
+#    CEA   (Commissariat à l'énergie atomique et aux énergies            #
+#           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
 #           Automatique)                                                 #
 #                                                                        #
@@ -23,6 +24,7 @@
 
 # This file is the main makefile of Frama-C.
 
+FRAMAC_SRC=.
 MAKECONFIG_DIR=share
 
 include share/Makefile.common
@@ -33,7 +35,7 @@ include share/Makefile.common
 
 # the directory where compiled plugin files are stored
 PLUGIN_LIB_DIR	= lib/plugins
-PLUGIN_GUI_LIB_DIR= lib/gui
+PLUGIN_GUI_LIB_DIR= lib/plugins/gui
 
 # the directory where the other Makefiles are
 FRAMAC_SHARE	= share
@@ -63,7 +65,6 @@ PLUGIN_DYN_GUI_CMO_LIST :=
 PLUGIN_DYN_GUI_CMX_LIST :=
 PLUGIN_TYPES_CMO_LIST :=
 PLUGIN_TYPES_CMX_LIST :=
-PLUGIN_GENERATED_LIST :=
 PLUGIN_DEP_LIST:=
 PLUGIN_DOC_LIST :=
 PLUGIN_DOC_DIRS :=
@@ -114,8 +115,10 @@ FILES_FOR_OCAMLDEP+=$(PLUGIN_LIB_DIR)/*.mli \
 		$(addsuffix /*.ml, $(UNPACKED_DIRS))
 
 # Flags to use by ocamlc and ocamlopt
-BFLAGS	= $(FLAGS) $(DEBUG) $(INCLUDES) $(COVERAGE_COMPILER_BYTE)
-OFLAGS	= $(FLAGS) $(DEBUG) $(INCLUDES) $(COVERAGE_COMPILER_OPT)
+BFLAGS	= $(FLAGS) $(DEBUG) $(INCLUDES) $(COVERAGE_COMPILER_BYTE) \
+	  $(OCAMLVIZ_COMPILER_BYTE)
+OFLAGS	= $(FLAGS) $(DEBUG) $(INCLUDES) $(COVERAGE_COMPILER_OPT) $(GPROFOPT) \
+	  $(OCAMLVIZ_COMPILER_OPT)
 
 BLINKFLAGS = $(BFLAGS) -linkall -custom
 OLINKFLAGS = $(OFLAGS) -linkall
@@ -135,33 +138,41 @@ endif
 
 OPT_LIBS+= $(GEN_OPT_LIBS)
 
-# files to be included in the distribution.
-# plugins may add some files to this list if they include files that are
-# not in $PLUGIN_DIR
+# Kernel files to be included in the distribution.
+# Plug-ins should use PLUGIN_DISTRIB_EXTERNAL if they export something else
+# than *.ml* files in their directory.
+# NB: configure for the distribution is generated in the distrib directory
+# itself, rather than copied: otherwise, it could include references to
+# non-distributed plug-ins.
 DISTRIB_FILES:=cil/*/*.ml* cil/src/*/*.ml* cil/*/*.in cil/LICENSE	\
       cil/CHANGES cil/doc/*.html cil/doc/*.tex cil/doc/*.gif		\
       share/frama-c.rc man/frama-c.1 cil/doc/*.pdf cil/doc/api/*.html	\
       cil/doc/examples/*.txt doc/manuals/*.pdf doc/README		\
       doc/code/*.ml* doc/code/*.css doc/code/*.txt			\
-      doc/code/toc_head.htm doc/code/toc_tail.htm tests/*/*.c		\
-      tests/*/*.h tests/*/*.ml ptests/*.ml*				\
-      tests/wp/test_config_dev.system_why				\
-      tests/wp/test_config_dev.local_why configure.in Makefile		\
-      share/Makefile.plugin configure share/Makefile.dynamic		\
-      share/Makefile.dynamic_config.internal				\
+      doc/code/toc_head.htm doc/code/toc_tail.htm 			\
+      share/frama-c.ico share/frama-c.gif				\
+      tests/*/*.c tests/*/*.h tests/*/*.ml ptests/*.ml* configure.in	\
+      Makefile share/Makefile.kernel share/Makefile.plugin		\
+      share/Makefile.dynamic share/Makefile.dynamic_config.internal	\
       share/Makefile.dynamic_config.external Changelog config.h.in	\
-      VERSION $(filter-out CVS,licenses/*) share/*.c share/*.h		\
+      VERSION $(filter-out CVS,licenses/*)              		\
+      share/*.c share/*.h share/libc/*.c share/libc/*.h                 \
+      share/libc/sys/*.h share/libc/netinet/*.h                         \
+      share/acsl.el share/frama-c.gif share/frama-c.ico                 \
+      share/known_plugins.ac                                            \
       share/configure.ac share/Makefile.config.in			\
       share/Makefile.common share/Makefile.plugin			\
-      share/Makefile.dynamic 						\
-      share/why/*.why share/why/Makefile share/why/*.why.src		\
-      $(filter-out %kui%,src/kernel/*.ml*) external/ptmap.ml*		\
-      external/unmarshal*.ml* src/ai/*.ml* src/buckx/*.ml*		\
-      src/buckx/*.c src/gui/*.ml* src/lib/*.ml* src/logic/*.ml*		\
-      src/memory_state/*.ml* src/misc/*.ml* src/project/*.ml*		\
-      src/toplevel/*.ml* bin/sed_get_make_major bin/sed_get_make_minor	\
-      bin/sed_inplace INSTALL .make-clean .make-clean-stamp		\
-      .make-ocamlgraph-stamp
+      share/Makefile.dynamic share/why/*.why share/why/Makefile		\
+      share/Makefile.dynamic_config.external                            \
+      share/Makefile.dynamic_config.internal                            \
+      share/why/*.why share/why/Makefile                 		\
+      share/why/*.why.src $(filter-out %kui%,src/kernel/*.ml*)		\
+      external/ptmap.ml* external/unmarshal*.ml* src/ai/*.ml*		\
+      src/buckx/*.ml* src/buckx/*.c src/gui/*.ml* src/lib/*.ml*		\
+      src/logic/*.ml* src/memory_state/*.ml* src/misc/*.ml*		\
+      src/project/*.ml* src/toplevel/*.ml* bin/sed_get_make_major	\
+      bin/sed_get_make_minor bin/sed_inplace INSTALL INSTALL_WITH_WHY	\
+      .make-clean .make-clean-stamp .make-ocamlgraph-stamp
 
 ################
 # Main targets #
@@ -173,46 +184,41 @@ EXTRAS	+= gui
 endif
 endif
 
-all:: byte $(EXTRAS) $(OCAMLBEST) share/Makefile.dynamic_config \
-      share/Makefile.kernel
-	for plugin in $(EXTERNAL_PLUGINS); do \
-	$(MAKE) FRAMAC_LIBDIR=$(FRAMAC_SRC)/lib/fc FRAMAC_SHARE=$(FRAMAC_SRC)/share -C $$plugin all; \
-	done
+all:: byte $(EXTRAS) $(OCAMLBEST)
 
 clean::
 	$(PRINT_RM) $(OBJ_PERFCOUNT)
 	$(RM) $(OBJ_PERFCOUNT)
-	for plugin in $(EXTERNAL_PLUGINS); do \
-	$(MAKE) FRAMAC_LIBDIR=$(FRAMAC_SRC)/lib/fc FRAMAC_SHARE=$(FRAMAC_SRC)/share -C $$plugin clean; \
-	done
 
 .PHONY: top opt byte dist bdist archclean rebuild
 top: bin/toplevel.top$(EXE)
-byte: bin/toplevel.byte$(EXE)
-opt: bin/toplevel.opt$(EXE)
+
+byte:: bin/toplevel.byte$(EXE) \
+      share/Makefile.dynamic_config share/Makefile.kernel
+	$(MAKE) install-kernel-byte FRAMAC_LIBDIR=lib/fc
+
+opt:: bin/toplevel.opt$(EXE) \
+     share/Makefile.dynamic_config share/Makefile.kernel
+	$(MAKE) install-kernel-opt FRAMAC_LIBDIR=lib/fc
 
 dist: clean
 	$(QUIET_MAKE) OPTIM="-unsafe -noassert" DEBUG="" all
+
 bdist: clean
 	$(QUIET_MAKE) OPTIM="-unsafe -noassert" DEBUG="" byte
 
 ifneq ("$(OCAMLGRAPH_LOCAL)","")
 archclean: clean
-	$(PRINT_RM) ocamlgraph
-	$(QUIET_MAKE) -C $(OCAMLGRAPH_LOCAL) distclean
-	$(PRINT_CONFIG) ocamlgraph
+	$(MAKE) -C $(OCAMLGRAPH_LOCAL) distclean
 	cd $(OCAMLGRAPH_LOCAL) ; ./configure
 
 rebuild: archclean
-	$(PRINT_BUILD) ocamlgraph
 	$(MAKE) -C $(OCAMLGRAPH_LOCAL)
-	$(PRINT_BUILD) all
 	$(QUIET_MAKE) all
 else
 archclean: clean
 
 rebuild: archclean
-	$(PRINT_BUILD) all
 	$(QUIET_MAKE) all
 endif
 
@@ -234,6 +240,32 @@ INCLUDES+=$(COVERAGE_COMPILER_BYTE)
 GEN_BYTE_LIBS+=$(COVERAGE_LIB_BYTE)
 GEN_OPT_LIBS+=$(COVERAGE_LIB_OPT)
 SRC_DIRS+=$(COVERAGE_PATH)
+
+########################
+# Ocamlviz (profiling) #
+########################
+
+# To use OCamlviz you need to fix its makefile :-(
+# In $(OCAMLVIZ_PATH)/Makefile.in change the line
+# OCAMLVIZCMO = $(PROTOCOLCMO) src/monitor_impl.cmo src/ocamlviz.cmo src/ocamlviz_threads.cmo
+# into
+# OCAMLVIZCMO = $(PROTOCOLCMO) src/monitor_impl.cmo src/ocamlviz.cmo
+# Then run "./configure && make" in $(OCAMLVIZ_PATH)
+# You need to set $(OCAMLVIZ_PATH) according to your own setup.
+# Only one instance of Frama-C can be launched at a time when Ocamlviz is on.
+USE_OCAMLVIZ_TOOL=no
+ifeq ($(USE_OCAMLVIZ_TOOL),yes)
+OCAMLVIZ_PATH=EXTERNAL/ocamlviz
+OCAMLVIZ_COMPILER_BYTE=-I $(OCAMLVIZ_PATH)/src
+# -pp "camlp4 pa_o.cmo str.cma $(OCAMLVIZ_PATH)/camlp4/pa_ocamlviz.cmo pr_o.cmo"
+# Seems really broken and generates fatal warnings
+OCAMLVIZ_COMPILER_OPT=-I $(OCAMLVIZ_PATH)/src
+OCAMLVIZ_LIB_BYTE=$(OCAMLVIZ_PATH)/libocamlviz.cma
+OCAMLVIZ_LIB_OPT=$(OCAMLVIZ_PATH)/libocamlviz.cmxa
+endif
+
+BYTE_LIBS+=$(OCAMLVIZ_LIB_BYTE)
+OPT_LIBS+=$(OCAMLVIZ_LIB_OPT)
 
 ##############
 # Ocamlgraph #
@@ -349,12 +381,13 @@ endif # testing ocamlgraph is local
 # change '.make-ocamlgraph-stamp' before 'cvs commit'
 .make-ocamlgraph: .make-ocamlgraph-stamp
 	touch $@
-# Inline the rules of "untar-ocamlgraph" here 
+# Inline the rules of "untar-ocamlgraph" here
 # because calling a recursive make does not work
 	$(PRINT_UNTAR) ocamlgraph
 	$(RM) -r $(OCAMLGRAPH_LOCAL)
 	$(TAR) xzf ocamlgraph.tar.gz
 	cd $(OCAMLGRAPH_LOCAL) && ./configure
+	$(MAKE) clean
 
 include .make-ocamlgraph
 DISTRIB_FILES += .make-ocamlgraph
@@ -369,10 +402,34 @@ untar-ocamlgraph:
 	$(RM) -r $(OCAMLGRAPH_LOCAL)
 	$(TAR) xzf $<
 	cd $(OCAMLGRAPH_LOCAL) && ./configure
+	$(MAKE) clean
 
 ##################
 # Frama-C Kernel #
 ##################
+
+# Printexc library
+##################
+
+GENERATED += src/lib/printexc_common_interface.ml
+
+ifeq ($(HAS_OCAML311),yes) # ocaml >= 3.11
+
+src/lib/printexc_common_interface.ml: src/lib/printexc_311_or_higher.ml \
+		share/Makefile.config Makefile
+	$(PRINT_MAKING) $@
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+else
+
+src/lib/printexc_common_interface.ml: src/lib/printexc_lower_311.ml \
+		share/Makefile.config Makefile
+	$(PRINT_MAKING) $@
+	$(CP) $< $@
+	$(CHMOD_RO) $@
+
+endif
 
 # Dynlink library
 #################
@@ -398,7 +455,7 @@ src/lib/dynlink_common_interface.ml: src/lib/bad_dynlink_311_or_higher.ml \
 	$(CP) $< $@
 	$(CHMOD_RO) $@
 
-else # no dynlink at all (for instance no native compiler)
+else # ocaml >= 3.11 but no dynlink at all (for instance no native compiler)
 
 # Just for ocamldep
 src/lib/dynlink_common_interface.ml: src/lib/dynlink_311_or_higher.ml \
@@ -418,6 +475,7 @@ src/lib/dynlink_common_interface.cmo: src/lib/dynlink_311_or_higher.ml \
 	$(CHMOD_RO) src/lib/dynlink_common_interface.ml
 	$(PRINT_OCAMLC) $@
 	$(OCAMLC) -c $(BFLAGS) src/lib/dynlink_common_interface.ml
+	touch .depend
 
 src/lib/dynlink_common_interface.o src/lib/dynlink_common_interface.cmx: src/lib/no_dynlink_opt.ml share/Makefile.config Makefile
 	$(PRINT_MAKING) src/lib/dynlink_common_interface.ml
@@ -425,6 +483,7 @@ src/lib/dynlink_common_interface.o src/lib/dynlink_common_interface.cmx: src/lib
 	$(CHMOD_RO) src/lib/dynlink_common_interface.ml
 	$(PRINT_OCAMLOPT) $@
 	$(OCAMLOPT) -c $(OFLAGS) src/lib/dynlink_common_interface.ml
+	touch .depend
 
 endif
 
@@ -467,7 +526,7 @@ EXTERNAL_LIB_CMO = unmarshal unmarshal_nums
 EXTERNAL_LIB_CMO:= $(patsubst %, external/%.cmo, $(EXTERNAL_LIB_CMO))
 CMO	+= $(EXTERNAL_LIB_CMO)
 
-LIB_CMO = dynlink_common_interface \
+LIB_CMO = printexc_common_interface dynlink_common_interface \
 	extlib \
 	pretty_utils \
 	hook \
@@ -479,7 +538,7 @@ LIB_CMO = dynlink_common_interface \
 LIB_CMO:= $(patsubst %, src/lib/%.cmo, $(LIB_CMO))
 CMO	+= $(LIB_CMO)
 
-# Very first files to be linked (most modules used them)
+# Very first files to be linked (most modules use them)
 ###############################
 
 FIRST_CMO= config gui_init log cmdline journal
@@ -575,6 +634,7 @@ CIL_CMO = \
 		mergecil.cmo rmtmps.cmo \
 		logic/logic_typing.cmo \
 		frontc/cprint.cmo \
+		frontc/cabscond.cmo \
 		frontc/cabsvisit.cmo frontc/cabs2cil.cmo \
 		frontc/clexer.cmo frontc/cparser.cmo \
 		logic/logic_preprocess.cmo \
@@ -627,6 +687,7 @@ src/buckx/buckx_c.o: src/buckx/buckx_c.c
 
 # cannot use $(CONFIG_CMO) here :-(
 KERNEL_CMO= \
+	src/kernel/kernel_datatype.cmo \
 	src/kernel/messages.cmo \
 	src/kernel/dynamic.cmo \
 	src/kernel/ast_printer.cmo \
@@ -681,15 +742,16 @@ KERNEL_CMO= \
 	src/kernel/loop.cmo \
 	$(PLUGIN_TYPES_CMO_LIST) \
 	src/kernel/db.cmo  \
+	src/kernel/command.cmo \
 	src/logic/translate_lightweight.cmo \
 	src/kernel/file.cmo \
-	src/misc/debug.cmo \
 	src/misc/filter.cmo \
 	src/kernel/special_hooks.cmo \
 	src/memory_state/widen.cmo \
 	src/memory_state/bit_model_access.cmo \
 	src/logic/logic_interp.cmo \
-	src/logic/infer_annotations.cmo
+	src/logic/infer_annotations.cmo \
+	src/logic/properties_status.cmo
 CMO	+= $(KERNEL_CMO)
 
 MLI_ONLY+= src/kernel/db_types.mli
@@ -705,7 +767,6 @@ NO_MLI+= src/ai/my_bigint.mli \
 	src/memory_state/function_Froms.mli \
 	src/memory_state/cvalue_type.mli \
 	src/kernel/unroll_loops.mli \
-	src/misc/debug.mli \
 	src/memory_state/widen.mli
 
 # Common startup module
@@ -783,11 +844,26 @@ include share/Makefile.plugin
 PLUGIN_ENABLE:=$(ENABLE_VALUE)
 PLUGIN_NAME:=Value
 PLUGIN_DIR:=src/value
-PLUGIN_CMO:= kf_state value_parameters eval kinstr register
+PLUGIN_CMO:= kf_state value_parameters library_functions mark_noresults \
+            value_util builtins eval kinstr register
 PLUGIN_GUI_CMO:=register_gui
 PLUGIN_HAS_MLI:=yes
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
+include share/Makefile.plugin
+
+################################################
+# Runtime Error Annotation Generation analysis #
+################################################
+
+PLUGIN_ENABLE:=$(ENABLE_RTE)
+PLUGIN_NAME:=RteGen
+PLUGIN_DIR:=src/rte
+PLUGIN_CMO:= rte_parameters rte register
+# PLUGIN_GUI_CMO:=register_gui
+PLUGIN_HAS_MLI:=yes
+# PLUGIN_NO_TEST:=yes
+PLUGIN_DISTRIBUTED:=no
 include share/Makefile.plugin
 
 #################
@@ -837,7 +913,7 @@ include share/Makefile.plugin
 PLUGIN_ENABLE:=$(ENABLE_POSTDOMINATORS)
 PLUGIN_NAME:=Postdominators
 PLUGIN_DIR:=src/postdominators
-PLUGIN_CMO:= print compute
+PLUGIN_CMO:= postdominators_parameters print compute
 PLUGIN_HAS_MLI:=yes
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
@@ -868,60 +944,6 @@ PLUGIN_DIR:=src/semantic_callgraph
 PLUGIN_CMO:= options register
 PLUGIN_HAS_MLI:=yes
 PLUGIN_NO_TEST:=yes
-PLUGIN_DISTRIBUTED:=yes
-include share/Makefile.plugin
-
-######
-# wp #
-######
-
-# Extension of the GUI for wp is compilable
-# only if gnomecanvas is available
-ifeq ($(HAS_GNOMECANVAS),yes)
-PLUGIN_GUI_CMO:=wp_gui
-else
-PLUGIN_UNDOC:=wp_gui.ml
-endif
-
-PLUGIN_ENABLE:=$(ENABLE_WP)
-PLUGIN_NAME:=Wp
-PLUGIN_DIR:=src/wp
-PLUGIN_CMO:= wp_parameters macros normAtLabels \
-             fol why_output \
-	     types why_ops wpFol \
-             cil2cfg wpAnnot \
-	     toprop call calculus translate \
-	     mvar model0 model1 \
-	     mmem model2 lowlevel_model \
-	     register
-# I don't know why, but ocamldoc doesn't like this file
-PLUGIN_UNDOC:= translate.ml
-PLUGIN_INTRO:=doc/code/intro_wp.txt
-PLUGIN_HAS_MLI:=yes
-PLUGIN_DISTRIBUTED:=no
-PLUGIN_DISTRIB_BIN:=no
-# ifeq (@HAS_ALTERGO@,no)
-# PLUGIN_NO_DEFAULT_TEST:=yes
-# endif
-
-include share/Makefile.plugin
-
-WP_LIB_DIR=share/why
-include $(WP_LIB_DIR)/Makefile
-lib/plugins/Wp.cmo : $(WP_LIB_FILES)
-
-#####################
-# Security analysis #
-#####################
-
-PLUGIN_ENABLE:=$(ENABLE_SECURITY)
-PLUGIN_NAME:=Security
-PLUGIN_DIR:=src/security
-PLUGIN_CMO:= options lattice model components analysis register
-PLUGIN_GUI_CMO:=register_gui
-PLUGIN_HAS_MLI:=yes
-PLUGIN_UNDOC:=analysis.ml
- # ocamldoc doesn't like recursive modules!
 PLUGIN_DISTRIBUTED:=yes
 include share/Makefile.plugin
 
@@ -1031,15 +1053,21 @@ include share/Makefile.plugin
 
 FILES_FOR_OCAMLDEP+=$(TEST_SLICING_ML)
 
-#######################
-# Aorai : ltl_to_acsl #
-#######################
+#####################
+# External plug-ins #
+#####################
 
-PLUGIN_ENABLE	:=$(ENABLE_LTL_TO_ACSL)
-PLUGIN_DIR	:=src/ltl_to_acsl
-PLUGIN_DYNAMIC  :=$(DYNAMIC_LTL_TO_ACSL)
-DISTRIB_FILES += $(PLUGIN_DIR)/Makefile
-include $(PLUGIN_DIR)/Makefile
+define INCLUDE_PLUGIN
+FRAMAC_INTERNAL:=yes
+FRAMAC_MAKE:=yes
+FRAMAC_SHARE:=./share
+FRAMAC_PLUGIN:=lib/plugins
+FRAMAC_PLUGIN_GUI:=lib/plugins/gui
+PLUGIN_DIR:=$(1)
+include $(1)/Makefile
+endef
+
+$(foreach p, $(EXTERNAL_PLUGINS), $(eval $(call INCLUDE_PLUGIN,$p)))
 
 ###############################################################################
 #                                                                             #
@@ -1057,7 +1085,7 @@ CMX	= $(CMO:.cmo=.cmx)
 CMI	= $(CMO:.cmo=.cmi)
 
 ALL_CMO	= $(CMO) $(PLUGIN_CMO_LIST) $(STARTUP_CMO)
-ALL_CMX	= $(patsubst %.cma, %.cmxa, $(ALL_CMO:.cmo=.cmx))
+ALL_CMX	= $(CMX) $(PLUGIN_CMX_LIST) $(STARTUP_CMX)
 
 FILES_FOR_OCAMLDEP+= $(addsuffix /*.mli, $(FRAMAC_SRC_DIRS)) \
 	$(addsuffix /*.ml, $(FRAMAC_SRC_DIRS))
@@ -1072,13 +1100,15 @@ MODULES_TODOC+=$(MLI_ONLY) \
 ############
 
 ALL_BATCH_CMO= $(filter-out src/kernel/gui_init.cmo, $(ALL_CMO))
-ALL_BATCH_CMX= $(patsubst %.cma, %.cmxa, $(ALL_BATCH_CMO:.cmo=.cmx))
+# ALL_BATCH_CMX is not a translation of ALL_BATCH_CMO with cmo -> cmx
+# in case native dynlink is not available: dynamic plugin are linked
+# dynamically in bytecode and statically in native code...
+ALL_BATCH_CMX= $(filter-out src/kernel/gui_init.cmx, $(ALL_CMX))
 
 bin/toplevel.byte$(EXE): $(ALL_BATCH_CMO) $(GEN_BYTE_LIBS) \
 			$(PLUGIN_DYN_CMO_LIST)
 	$(PRINT_LINKING) $@
 	$(OCAMLC) $(BLINKFLAGS) -o $@ $(BYTE_LIBS) $(ALL_BATCH_CMO)
-	$(MAKE) install-kernel-byte FRAMAC_LIBDIR=lib/fc
 
 bin/toplevel.prof$(EXE): $(ALL_BATCH_CMO) $(GEN_BYTE_LIBS) \
 			$(PLUGIN_DYN_CMO_LIST)
@@ -1095,22 +1125,21 @@ bin/toplevel.top$(EXE): $(ALL_BATCH_CMO) src/toplevel/toplevel_topdirs.cmo \
 bin/toplevel.opt$(EXE): $(ALL_BATCH_CMX) $(GEN_OPT_LIBS) $(PLUGIN_DYN_CMX_LIST)
 	$(PRINT_LINKING) $@
 	$(OCAMLOPT) $(OLINKFLAGS) -o $@ $(OPT_LIBS) $(ALL_BATCH_CMX)
-	$(MAKE) install-kernel-opt FRAMAC_LIBDIR=lib/fc
 
-share/Makefile.kernel: Makefile
+share/Makefile.kernel: Makefile share/Makefile.config share/Makefile.common
 	$(PRINT_MAKING) $@
 	$(RM) $@
 	$(ECHO) "# This makefile was automatically generated." > $@
 	$(ECHO) "# Do not modify." >> $@
 	$(ECHO) "ifeq (\$$(FRAMAC_INTERNAL),yes)" >> $@
-	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES), $(BLINKFLAGS)) $(foreach d, $(INCLUDES:-I%=%), -I $(FRAMAC_SRC)/$(d))" >> $@
-	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_SRC)/, $(GEN_BYTE_LIBS))" >> $@
+	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES), $(BLINKFLAGS)) $(foreach d, $(INCLUDES:-I%=%), -I $(FRAMAC_TOP_SRCDIR)/$(d))" >> $@
+	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(GEN_BYTE_LIBS))" >> $@
 	$(ECHO) "DYN_BYTE_LIBS=$(filter-out $(GEN_BYTE_LIBS), $(BYTE_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_SRC)/, $(notdir $(ALL_BATCH_CMO)))" >> $@
-	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES), $(OLINKFLAGS)) $(foreach d, $(INCLUDES:-I%=%), -I $(FRAMAC_SRC)/$(d))" >> $@
-	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_SRC)/, $(GEN_OPT_LIBS))" >> $@
+	$(ECHO) "DYN_ALL_BATCH_CMO=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(notdir $(ALL_BATCH_CMO)))" >> $@
+	$(ECHO) "DYN_OLINKFLAGS=$(filter-out $(INCLUDES), $(OLINKFLAGS)) $(foreach d, $(INCLUDES:-I%=%), -I $(FRAMAC_TOP_SRCDIR)/$(d))" >> $@
+	$(ECHO) "DYN_GEN_OPT_LIBS=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(GEN_OPT_LIBS))" >> $@
 	$(ECHO) "DYN_OPT_LIBS=$(filter-out $(GEN_OPT_LIBS), $(OPT_LIBS))" >> $@
-	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_SRC)/, $(ALL_BATCH_CMX))" >> $@
+	$(ECHO) "DYN_ALL_BATCH_CMX=$(addprefix $(FRAMAC_TOP_SRCDIR)/, $(ALL_BATCH_CMX))" >> $@
 	$(ECHO) "else" >> $@
 	$(ECHO) "DYN_BLINKFLAGS=$(filter-out $(INCLUDES), $(BLINKFLAGS))" >> $@
 	$(ECHO) "DYN_GEN_BYTE_LIBS=$(addprefix $(FRAMAC_LIBDIR)/, $(notdir $(GEN_BYTE_LIBS)))" >> $@
@@ -1150,8 +1179,8 @@ ifeq ($(HAS_GTKSOURCEVIEW),yes)
 ifeq ($(HAS_LEGACY_GTKSOURCEVIEW),yes)
 GUI_INCLUDES  += -I +lablgtksourceview
 endif
-BYTE_GUI_LIBS += lablgtksourceview.cma
-OPT_GUI_LIBS  += lablgtksourceview.cmxa
+BYTE_GUI_LIBS += lablgtksourceview2.cma
+OPT_GUI_LIBS  += lablgtksourceview2.cmxa
 endif
 
 src/gui/filetree.ml: Makefile
@@ -1178,9 +1207,17 @@ PLUGIN_DISTRIBUTED:=yes
 # PLUGIN_HAS_MLI:=yes
 PLUGIN_DIR:=src/gui
 #PLUGIN_CMO:=
-PLUGIN_CMO:= gtk_helper source_viewer pretty_source source_manager warning_manager \
-	 filetree launcher design project_manager \
-	 about_dialog
+PLUGIN_CMO:= gtk_helper \
+	source_viewer pretty_source source_manager \
+	warning_manager \
+	filetree \
+	launcher \
+	menu_manager \
+	design \
+	project_manager \
+	debug_manager \
+	about_dialog # \
+	property_navigator
 PLUGIN_BFLAGS:=-I +lablgtk2
 PLUGIN_OFLAGS:=-I +lablgtk2
 PLUGIN_LINK_BFLAGS:=-I +lablgtk2
@@ -1197,14 +1234,29 @@ gui: lib/plugins/Gui.cmo
 
 else
 
-GUICMO += gtk_helper source_viewer pretty_source source_manager warning_manager \
-	 filetree launcher design project_manager \
-	 about_dialog
-GUICMO:= $(patsubst %, src/gui/%.cmo, $(GUICMO)) $(PLUGIN_GUI_CMO_LIST)
+SINGLE_GUI_CMO:= gui_parameters \
+	gtk_helper \
+	source_viewer pretty_source source_manager \
+	warning_manager \
+	filetree \
+	launcher \
+	menu_manager \
+	design \
+	analyses_manager file_manager project_manager debug_manager \
+	help_manager # \
+	property_navigator
+SINGLE_GUI_CMO:= $(patsubst %, src/gui/%.cmo, $(SINGLE_GUI_CMO))
+
+SINGLE_GUI_CMI = $(SINGLE_GUI_CMO:.cmo=.cmi)
+SINGLE_GUI_CMX = $(SINGLE_GUI_CMO:.cmo=.cmx)
+
+GUICMO += $(SINGLE_GUI_CMO) $(PLUGIN_GUI_CMO_LIST)
 
 MODULES_TODOC+= $(addprefix src/gui/,$(addsuffix .mli,\
-		gtk_helper source_viewer source_manager warning_manager \
-		pretty_source filetree launcher design project_manager))
+		gui_parameters gtk_helper source_viewer pretty_source \
+	        source_manager warning_manager filetree launcher menu_manager \
+		design file_manager project_manager help_manager))# \
+		property_navigator))
 
 GUICMI = $(GUICMO:.cmo=.cmi)
 GUICMX = $(GUICMO:.cmo=.cmx)
@@ -1217,29 +1269,36 @@ $(PLUGIN_DEP_GUI_CMX_LIST) $(PLUGIN_DYN_DEP_GUI_CMX_LIST): OFLAGS+= $(GUI_INCLUD
 
 .PHONY:gui
 
-gui: bin/viewer.byte$(EXE) bin/viewer.$(OCAMLBEST)$(EXE)
+gui:: bin/viewer.byte$(EXE) bin/viewer.opt$(EXE) \
+      share/Makefile.dynamic_config share/Makefile.kernel
+	$(MAKE) install-gui FRAMAC_LIBDIR=lib/fc
+
+ALL_GUI_CMO= $(ALL_CMO) $(GRAPH_GUICMO) $(GUICMO)
+ALL_GUI_CMX= $(patsubst %.cma, %.cmxa, $(ALL_GUI_CMO:.cmo=.cmx))
 
 bin/viewer.byte$(EXE): BYTE_LIBS+=$(BYTE_GUI_LIBS) $(GRAPH_GUICMO)
-bin/viewer.byte$(EXE): $(ALL_CMO) $(GRAPH_GUICMO) $(GUICMO) \
-			$(GEN_BYTE_LIBS) \
+bin/viewer.byte$(EXE): $(ALL_GUI_CMO) $(GEN_BYTE_LIBS) \
 			$(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_GUI_CMO_LIST)
 	$(PRINT_LINKING) $@
 	$(OCAMLC) $(BLINKFLAGS) -o $@ $(BYTE_LIBS) \
-		$(CMO) \
-		$(filter-out $(patsubst lib/gui/%.cmo, lib/plugins/%.cmo, $(PLUGIN_GUI_CMO_LIST)), $(PLUGIN_CMO_LIST)) \
-		$(GUICMO) $(STARTUP_CMO)
-	$(MAKE) install-gui FRAMAC_LIBDIR=lib/fc
+	  $(CMO) \
+	  $(filter-out \
+	    $(patsubst $(PLUGIN_GUI_LIB_DIR)/%.cmo, $(PLUGIN_LIB_DIR)/%.cmo, \
+	      $(PLUGIN_GUI_CMO_LIST)), \
+	    $(PLUGIN_CMO_LIST)) \
+	  $(GUICMO) $(STARTUP_CMO)
 
 bin/viewer.opt$(EXE): OPT_LIBS+= $(OPT_GUI_LIBS) $(GRAPH_GUICMX)
-bin/viewer.opt$(EXE): $(ALL_CMX) $(GRAPH_GUICMX) $(GUICMX) \
-			$(STARTUP_CMX) $(GEN_OPT_LIBS) $(GRAPH_GUIO) \
+bin/viewer.opt$(EXE): $(ALL_GUI_CMX) $(GEN_OPT_LIBS) $(GRAPH_GUIO) \
 			$(PLUGIN_DYN_CMX_LIST) $(PLUGIN_DYN_GUI_CMX_LIST)
 	$(PRINT_LINKING) $@
 	$(OCAMLOPT) $(OLINKFLAGS) -o $@ $(OPT_LIBS) \
-		$(CMX) \
-		$(filter-out $(patsubst lib/gui/%.cmx, lib/plugins/%.cmx, $(PLUGIN_GUI_CMX_LIST)), $(PLUGIN_CMX_LIST)) \
-		$(GUICMX) $(STARTUP_CMX)
-	$(MAKE) install-gui FRAMAC_LIBDIR=lib/fc
+	  $(CMX) \
+	  $(filter-out \
+	    $(patsubst $(PLUGIN_GUI_LIB_DIR)/%.cmx, $(PLUGIN_LIB_DIR)/%.cmx, \
+	      $(PLUGIN_GUI_CMX_LIST)), \
+	    $(PLUGIN_CMX_LIST)) \
+	  $(GUICMX) $(STARTUP_CMX)
 endif
 endif
 
@@ -1273,15 +1332,20 @@ $(CONFIG_FILE): VERSION share/Makefile.config Makefile
 	$(ECHO) "let version = \""$(VERSION)"\"" >> $@
 	$(ECHO) "let date = \""`LC_ALL=C date`"\"" >> $@
 	$(ECHO) "let is_gui = ref false" >> $@
+	$(ECHO) "let ocamlc = \""$(OCAMLC)"\"" >> $@
+	$(ECHO) "let ocamlopt = \""$(OCAMLOPT)"\"" >> $@
 	$(ECHO) "let datadir = try Sys.getenv \"FRAMAC_SHARE\" with Not_found -> \"$(FRAMAC_DATADIR)\"" >> $@
 	$(ECHO) "let libdir = try Sys.getenv \"FRAMAC_LIB\" with Not_found -> \"$(FRAMAC_LIBDIR)\"" >> $@
 	$(ECHO) "let plugin_dir = try Sys.getenv \"FRAMAC_PLUGIN\" with Not_found -> try (Sys.getenv \"FRAMAC_LIB\") ^ \"/plugins\" with Not_found -> \"$(FRAMAC_PLUGINDIR)\"" >> $@
 	$(ECHO) "let static_plugins = [" \
-		$(subst $(space),"; ",$(foreach p,$(PLUGIN_LIST),\"$(notdir $p)\")) \
-		"]" >> $@
+	  $(subst $(space),"; ",$(foreach p,$(PLUGIN_LIST),\"$(notdir $p)\")) \
+	  "]" >> $@
 	$(ECHO) "let static_gui_plugins = [" \
-		$(subst $(space),"; ",$(foreach p,$(PLUGIN_GUI_CMO_LIST),\"$(notdir $(patsubst %.cmo,%,$p))\")) \
-		"]" >> $@
+	  $(subst $(space),"; ",$(foreach p,$(PLUGIN_GUI_CMO_LIST),\"$(notdir $(patsubst %.cmo,%,$p))\")) \
+	  "]" >> $@
+	$(ECHO) "let compilation_unit_names = [" \
+	  $(subst $(space),"; ",$(foreach p,$(ALL_GUI_CMO),\"$(notdir $(patsubst %.cmo,%,$p))\")) \
+	"]" >> $@
 	$(CHMOD_RO) $@
 
 #########
@@ -1289,11 +1353,20 @@ $(CONFIG_FILE): VERSION share/Makefile.config Makefile
 #########
 
 .PHONY: tests oracles btests tests_dist
-tests: byte opt ptests
+tests:: byte opt ptests
 	$(PRINT_EXEC) ptests
 	time -p ./bin/ptests.byte$(EXE) $(PLUGIN_TESTS_LIST)
 	for plugin in $(EXTERNAL_PLUGINS); do \
-	$(MAKE) FRAMAC_LIBDIR=$(FRAMAC_SRC)/lib/fc FRAMAC_SHARE=$(FRAMAC_SRC)/share -C $$plugin tests; \
+           if $(MAKE) --quiet FRAMAC_SHARE=$(FRAMAC_TOP_SRCDIR)/share -C $$plugin run_tests 2> /dev/null; \
+	  then \
+	    if test -d tests/`basename $$plugin `; then \
+	      echo ; \
+	      echo "TESTING PLUG-IN `basename $$plugin ` (from frama-c)"; \
+	      time -p ./bin/ptests.byte$(EXE) `basename $$plugin `; \
+	    else \
+	      $(call external_make,$$plugin,tests); \
+	    fi; \
+	  fi \
 	done
 
 oracles: opt ptests
@@ -1349,7 +1422,8 @@ tests/dynamic/Apply.cmo:tests/dynamic_plugin/apply.cmo
 DYNAMIC_TESTS_TARGETS=tests/dynamic/empty.cmo tests/dynamic/empty_gui.cmo \
 	tests/dynamic/.cmo tests/dynamic/empty.cmofoo \
 	tests/dynamic/Register_mod1.cmo tests/dynamic/Register_mod2.cmo \
-	tests/dynamic/Apply.cmo tests/dynamic/abstract.cmo
+	tests/dynamic/Apply.cmo \
+	tests/dynamic/abstract.cmo tests/dynamic/abstract2.cmo
 
 .PHONY:tests/dynamic/all
 tests/dynamic/all:
@@ -1385,9 +1459,9 @@ endif
 .PHONY: wc doc doc-distrib
 
 wc:
-	ocamlwc -p external/*.ml* cil/*/*.ml cil/*/*.ml[ily] cil/src/*/*.ml[ily] cil/src/*/*.ml[ly] src/*/*.ml src/*/*.ml[iyl] 
+	ocamlwc -p external/*.ml* cil/*/*.ml cil/*/*.ml[ily] cil/src/*/*.ml[ily] cil/src/*/*.ml[ly] src/*/*.ml src/*/*.ml[iyl]
 
-# private targets, usefull for recompiling the doc without dependencies 
+# private targets, usefull for recompiling the doc without dependencies
 # (too long!)
 .PHONY: doc-kernel doc-index plugins-doc doc-update doc-tgz
 
@@ -1395,6 +1469,11 @@ ifeq ("$(OCAMLDOC)","ocamldoc.opt")
 DOC_PLUGIN=$(DOC_DIR)/docgen.cmxs
 else
 DOC_PLUGIN=$(DOC_DIR)/docgen.cmo
+endif
+
+DOC_DEPEND=$(MODULES_TODOC) byte $(DOC_PLUGIN)
+ifneq ($(ENABLE_GUI),no)
+DOC_DEPEND+=bin/viewer.byte
 endif
 
 $(DOC_DIR)/docgen.cmo: $(DOC_DIR)/docgen.ml
@@ -1411,7 +1490,7 @@ clean::
 	$(RM) $(DOC_DIR)/docgen.cm*
 
 DOC_NOT_FOR_DISTRIB=yes
-plugins-doc: 
+plugins-doc:
 	$(QUIET_MAKE) \
 	 $(if $(DOC_NOT_FOR_DISTRIB), $(PLUGIN_DOC_LIST), \
 	   $(filter \
@@ -1432,7 +1511,7 @@ STDLIB_FILES:=map set pervasives big_int list array string char marshal \
 	printf format scanf hashtbl buffer sys
 STDLIB_FILES:=$(patsubst %, $(OCAMLLIB)/%.mli, $(STDLIB_FILES))
 
-doc-kernel: #dependencies in doc target
+doc-kernel: $(DOC_DEPEND)
 	$(PRINT_DOC) Kernel Documentation
 	$(MKDIR) $(DOC_DIR)/html
 	$(RM) $(DOC_DIR)/html/*.html
@@ -1451,17 +1530,14 @@ doc-index: #dependencies in doc target
 
 doc-update: doc-kernel plugins-doc doc-index
 
-DOC_DEPEND=$(MODULES_TODOC) byte $(DOC_PLUGIN)
-ifneq ($(ENABLE_GUI),no)
-DOC_DEPEND+=bin/viewer.byte
-endif
-doc: $(DOC_DEPEND)
+doc:: $(DOC_DEPEND)
 	$(QUIET_MAKE) doc-kernel plugins-doc doc-index
 
 doc-tgz:
 	$(PRINT_MAKING) frama-c-api.tar.gz
 	cd $(DOC_DIR); \
-	  $(TAR) zcf tmp.tgz index.html *.css *.png html \
+	  $(TAR) zcf tmp.tgz index.html \
+	   $(notdir $(wildcard $(DOC_DIR)/*.css $(DOC_DIR)/*.png)) html \
 	  $(foreach p, $(PLUGIN_DISTRIBUTED_NAME_LIST), \
 	    $(notdir $($(p)_DOC_DIR)))
 	$(MKDIR) frama-c-api
@@ -1470,7 +1546,7 @@ doc-tgz:
 	$(TAR) zcf frama-c-api.tar.gz frama-c-api
 	$(RM) -r frama-c-api $(DOC_DIR)/tmp.tgz
 
-doc-distrib: 
+doc-distrib:
 	$(QUIET_MAKE) clean-doc
 	$(QUIET_MAKE) doc DOC_NOT_FOR_DISTRIB=
 	$(QUIET_MAKE) doc-tgz
@@ -1516,7 +1592,7 @@ oug:
 	cat cmx.files >> ml0.files
 	(ls -U `cat ml0.files` | grep -v sparecode > ml.files | true)
 	cp ml.files files
-	oug.x --debug 0 -I `ocamlc -where` $(INCLUDES) -I src/value -I src/pdg -I src/slicing -I src/security -I +lablgtk2 --no-reduce --dump dump.oug `cat files`
+	oug.x --debug 0 -I `ocamlc -where` $(INCLUDES) -I src/value -I src/pdg -I src/slicing -I src/security_slicing -I +lablgtk2 --no-reduce --dump dump.oug `cat files`
 	oug.x --load dump.oug --no-reduce --useless-elements useless.txt --aliases-used --print-loc --progress
 	oug.x --load dump.oug --useless-elements useless-reduced.txt --aliases-used --print-loc --progress
 
@@ -1538,9 +1614,6 @@ endif
 
 .PHONY: install-kernel-byte install-kernel-opt install-gui
 
-.install-kernel-byte: $(ALL_BATCH_CMO) $(GEN_BYTE_LIBS)
-	$(MAKE) install-kernel-byte
-
 install-kernel-byte:
 	$(PRINT_CP) bytecode kernel API
 	$(MKDIR) $(FRAMAC_LIBDIR)
@@ -1549,35 +1622,43 @@ install-kernel-byte:
 	$(CP) $(wildcard $(foreach d,$(filter-out $(FILTER_INTERFACE_DIRS),$(INCLUDES:-I%=%)), $(d)/*.cmi)) $(FRAMAC_LIBDIR)
 	$(CP) $(ALL_BATCH_CMO) $(filter-out %.o, $(GEN_BYTE_LIBS:.cmo=.cmi)) \
 		$(GEN_BYTE_LIBS) $(FRAMAC_LIBDIR)
-	touch .install-kernel-byte
 
-install-kernel-opt: .install-kernel-byte
+install-kernel-opt:
 	$(PRINT_CP) native kernel API
-	$(CP) $(ALL_BATCH_CMX) $(ALL_BATCH_CMX:.cmx=.o) $(FRAMAC_LIBDIR)
-	$(CP) $(filter-out %.o, $(GEN_OPT_LIBS)) $(GEN_OPT_LIBS:.cmx=.o) \
-		$(FRAMAC_LIBDIR)
+	$(CP) $(ALL_BATCH_CMX) $(filter %.o,$(ALL_BATCH_CMX:.cmx=.o)) \
+	 $(FRAMAC_LIBDIR)
+	$(CP) $(filter-out %.o, $(GEN_OPT_LIBS)) \
+	  $(filter %.o,$(GEN_OPT_LIBS:.cmx=.o)) $(FRAMAC_LIBDIR)
 
 install-gui:
 	$(PRINT_CP) gui API
 	$(MKDIR) $(FRAMAC_LIBDIR)
 	if [ "$(ENABLE_GUI)" != "no" ]; then \
-	  $(CP) src/gui/*.cmi $(FRAMAC_LIBDIR); \
+	  $(CP) $(SINGLE_GUI_CMI) $(SINGLE_GUI_CMO) $(SINGLE_GUI_CMX) \
+	    $(FRAMAC_LIBDIR); \
         fi
 
 .PHONY: install
-install:
+install::
 	$(PRINT_MAKING) destination directories
 	$(MKDIR) $(BINDIR)
 	$(MKDIR) $(MANDIR)/man1
 	$(MKDIR) $(FRAMAC_PLUGINDIR)/gui
-	$(MKDIR) $(FRAMAC_DATADIR)
+	$(MKDIR) $(FRAMAC_DATADIR)/libc/sys
+	$(MKDIR) $(FRAMAC_DATADIR)/libc/netinet
 	$(PRINT_CP) shared files
-	$(CP) -R share/frama-c.rc share/*.c share/*.h share/why \
+	$(CP) -R share/frama-c.rc share/frama-c.ico share/frama-c.gif \
+	  share/*.c share/*.h share/acsl.el share/why \
 	  share/Makefile.dynamic share/Makefile.plugin share/Makefile.kernel \
-	  share/Makefile.config share/Makefile.common \
+	  share/Makefile.config share/Makefile.common share/configure.ac \
+	  share/known_plugins.ac \
 	  $(FRAMAC_DATADIR)
 	$(CP) share/Makefile.dynamic_config.external \
               $(FRAMAC_DATADIR)/Makefile.dynamic_config
+	$(PRINT_CP) C standard library
+	$(CP) -R share/libc/*.c share/libc/*.h $(FRAMAC_DATADIR)/libc
+	$(CP) -R share/libc/sys/*.h $(FRAMAC_DATADIR)/libc/sys
+	$(CP) -R share/libc/netinet/*.h $(FRAMAC_DATADIR)/libc/netinet
 	$(PRINT_CP) binaries
 	$(CP) bin/toplevel.$(OCAMLBEST) $(BINDIR)/frama-c$(EXE)
 	$(CP) bin/toplevel.byte$(EXE) $(BINDIR)/frama-c.byte$(EXE)
@@ -1595,35 +1676,35 @@ install:
 	$(PRINT_CP) manuals
 	if [ -d doc/manuals ]; then $(CP) -R doc/manuals $(FRAMAC_DATADIR); fi
 	$(PRINT_CP) dynamic plug-ins
-	if [ -d lib/plugins -a "$(PLUGIN_DYN_EXISTS)" = "yes" ]; then \
-	  $(CP)  $(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_CMX_LIST) \
+	if [ -d $(FRAMAC_PLUGIN) -a "$(PLUGIN_DYN_EXISTS)" = "yes" ]; then \
+	  $(CP)  $(patsubst %.cma,%.cmi,$(PLUGIN_DYN_CMO_LIST:%.cmo=%.cmi)) \
+		 $(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_CMX_LIST) \
 		 $(FRAMAC_PLUGINDIR); \
 	fi
 	$(PRINT_CP) dynamic gui plug-ins
-	if [ -d lib/gui -a "$(PLUGIN_DYN_GUI_EXISTS)" = "yes" ]; then \
-	  $(CP)  $(PLUGIN_DYN_GUI_CMO_LIST) $(PLUGIN_DYN_GUI_CMX_LIST) \
+	if [ -d $(FRAMAC_PLUGIN_GUI) -a "$(PLUGIN_DYN_GUI_EXISTS)" = "yes" ]; \
+	then \
+	  $(CP)  $(PLUGIN_DYN_GUI_CMO_LIST:.cmo=.cmi) \
+		 $(PLUGIN_DYN_GUI_CMO_LIST) $(PLUGIN_DYN_GUI_CMX_LIST) \
 		 $(FRAMAC_PLUGINDIR)/gui; \
 	fi
-	$(MAKE) install-kernel-byte install-kernel-opt
+	$(MAKE) install-kernel-byte
+	if [ "$(OCAMLBEST)" = "opt" ]; then \
+		$(MAKE) install-kernel-opt; \
+	fi
 	$(MAKE) install-gui
 	$(PRINT_CP) man pages
-	$(CP) man/frama-c.1 $(MANDIR)/man1
+	$(CP) man/frama-c.1 $(MANDIR)/man1/frama-c.1
 	$(CP) man/frama-c.1 $(MANDIR)/man1/frama-c-gui.1
-	for plugin in $(EXTERNAL_PLUGINS); do \
-	  $(MAKE) FRAMAC_LIBDIR=$(FRAMAC_LIBDIR) FRAMAC_SHARE=$(FRAMAC_SRC)/share -C $$plugin install; \
-	done
 
 .PHONY: uninstall
-uninstall:
+uninstall::
 	$(PRINT_RM) installed binaries
 	$(RM) $(BINDIR)/frama-c* $(BINDIR)/ptests.byte
 	$(PRINT_RM) installed shared files
 	$(RM) -R $(FRAMAC_DATADIR)
 	$(PRINT_RM) installed libraries
 	$(RM) -R $(FRAMAC_LIBDIR) $(FRAMAC_PLUGINDIR)
-	for plugin in $(EXTERNAL_PLUGINS); do \
-	$(MAKE) FRAMAC_LIBDIR=$(FRAMAC_LIBDIR) FRAMAC_SHARE=$(FRAMAC_SRC)/share -C $$plugin uninstall; \
-	done
 
 ################################
 # File headers: license policy #
@@ -1633,7 +1714,7 @@ MODIFIED_MENHIR=external/ptmap.ml*
 
 CIL	= cil/ocamlutil/*.ml* cil/ocamlutil/perfcount.c.in \
 	cil/src/*.ml* \
-	cil/src/ext/*.ml* cil/src/ext/pta/*.ml* \
+	cil/src/ext/*.ml* \
 	cil/src/frontc/*.ml*
 
 CEA_INRIA_LGPL	= Makefile configure.in config.h.in \
@@ -1643,21 +1724,25 @@ CEA_INRIA_LGPL	= Makefile configure.in config.h.in \
 	src/slicing_types/*.ml* src/slicing/*.ml* doc/code/intro_slicing.txt \
 	src/scope/*.ml* doc/code/intro_scope.txt \
 	src/sparecode/*.ml* doc/code/intro_sparecode.txt \
-	src/wp/*.ml* doc/code/intro_wp.txt \
-	share/why/*.why \
+	src/wp/*.ml* src/wp/configure.ac src/wp/Makefile.in \
+	doc/code/intro_wp.txt \
+	share/why/*.why* share/why/Makefile \
 	man/frama-c.1
 
 INRIA_LGPL=
+
 INRIA_BSD= external/unmarshal*.ml*
-INSA_INRIA_LGPL= src/ltl_to_acsl/*.ml* src/ltl_to_acsl/Makefile
+
+INSA_INRIA_LGPL= src/aorai/*.ml* src/aorai/Makefile.in src/aorai/configure.ac
 
 CEA_LGPL= share/Makefile.config.in share/Makefile.common \
 	share/Makefile.plugin share/Makefile.dynamic \
 	share/Makefile.dynamic_config.internal \
 	share/Makefile.dynamic_config.external \
-	share/configure.ac configure.ml \
+	share/configure.ac share/known_plugins.ac configure.ml \
 	share/*.c share/*.h \
 	share/libc/*.c share/libc/*.h \
+	share/libc/sys/*.h share/libc/netinet/*.h \
 	share/frama-c.rc \
 	src/ai/*.ml* \
 	src/buckx/*.ml* src/buckx/*.[cS] \
@@ -1668,53 +1753,64 @@ CEA_LGPL= share/Makefile.config.in share/Makefile.common \
 	src/impact/*.ml* \
 	src/kernel/*.ml* \
 	src/lib/*.ml* \
+	src/logic/properties_status.ml* \
 	src/memory_state/*.ml* \
 	src/metrics/*.ml* \
 	src/misc/*.ml* \
 	src/occurrence/*.ml* doc/code/intro_occurrence.txt \
 	src/postdominators/*.ml* \
 	src/project/*.ml* \
-	src/security/*.ml* \
+	src/security_slicing/*.ml* \
+	src/security_slicing/configure.ac src/security_slicing/Makefile.in \
 	src/semantic_callgraph/*.ml* \
 	src/syntactic_callgraph/*.ml* \
 	src/toplevel/*.ml* \
 	src/users/*.ml* \
 	src/value/*.ml* \
-	src/a3export/*.ml* src/a3export/Makefile \
 	src/dummy/*/*.ml* \
 	src/dummy/*/Makefile \
+	src/rte/*.ml* \
 	ptests/*.ml* \
 	doc/code/docgen.ml \
 	doc/code/style.css \
-	doc/code/intro_plugin.txt \
+	doc/code/intro_plugin.txt doc/code/intro_kernel_plugin.txt \
 	doc/code/toc_head.htm doc/code/toc_tail.htm \
 	bin/lithium2beryllium.sh
 
 CEA_PROPRIETARY:= src/modular_dependencies/*.ml* \
-        share/*.cc share/miel-mode.el \
-	src/mthread/*.ml*
+        share/miel-mode.el \
+	src/mthread/*.ml* \
+	src/a3export/*.ml* src/a3export/Makefile
+
+ACSL_EL	:= share/acsl.el
 
 LICENSES= MODIFIED_MENHIR CEA_LGPL CEA_PROPRIETARY CEA_INRIA_LGPL INRIA_LGPL \
-	CIL MODIFIED_CAMLLIB INSA_INRIA_LGPL INRIA_BSD
+	CIL MODIFIED_CAMLLIB INSA_INRIA_LGPL INRIA_BSD ACSL_EL
 
 .PHONY: headers
-headers: clean
+headers::
 	@echo "Applying Headers..."
 	$(foreach l,$(LICENSES),\
-	$(foreach f,$($l),$(shell $(HEADACHE) -c share/headache_config -h headers/$l $f)))
+	$(foreach f,$(wildcard $($l)),$(shell if test -f $f; then $(HEADACHE) -c share/headache_config -h headers/$l $f; fi)))
 
-NO_CHECK_HEADERS=cil/doc/* cil/doc/*/* tests/*/* doc/manuals/*.pdf \
+NO_CHECK_HEADERS=cil/doc/* cil/doc/*/* cil/src/legacy/* \
+                 tests/*/* doc/manuals/*.pdf \
 	         doc/README cil/LICENSE cil/CHANGES Changelog .make* \
-	         licenses/* VERSION INSTALL bin/sed* src/lib/rangemap.ml
+	         licenses/* VERSION INSTALL bin/sed* src/lib/rangemap.ml \
+	         share/Makefile.kernel share/frama-c.ico share/frama-c.gif \
+		 INSTALL_WITH_WHY
 
 .PHONY: check-headers
-check-headers: clean
+check-headers:
 	@echo "Checking Headers..."
+	EXIT_VALUE=0; \
 	$(foreach f,$(wildcard $(DISTRIB_FILES)),\
 	  $(if $(findstring $(f),\
 	          $(wildcard $(NO_CHECK_HEADERS)) \
 	          $(wildcard $(foreach l,$(LICENSES),$(value $l)))),,\
-               echo "file $(f) does not have a proper license";))
+               EXIT_VALUE=1; \
+               echo "file $(f) does not have a proper license";)) \
+	exit $$EXIT_VALUE
 
 ########################################################################
 # Makefile is rebuilt whenever Makefile.in or configure.in is modified #
@@ -1793,8 +1889,7 @@ clean-gui::
 
 clean:: $(PLUGIN_LIST:=_CLEAN) $(PLUGIN_DYN_LIST:=_CLEAN) \
 		clean-tests clean-journal
-	$(PRINT_RM) plugins
-	$(RM) $(PLUGIN_GENERATED_LIST)
+	$(PRINT_RM) $(PLUGIN_LIB_DIR)
 	$(RM) $(PLUGIN_LIB_DIR)/*.mli $(PLUGIN_LIB_DIR)/*.cm* \
 	  $(PLUGIN_LIB_DIR)/*.o
 	$(RM) $(PLUGIN_GUI_LIB_DIR)/*.mli $(PLUGIN_GUI_LIB_DIR)/*.cm* \
@@ -1816,12 +1911,14 @@ distclean-ocamlgraph:
 	$(PRINT_RM) ocamlgraph
 	if [ -f ocamlgraph/Makefile ]; then \
 	  $(MAKE) --silent -C ocamlgraph distclean; \
+	  cd ocamlgraph; ./configure; \
 	fi
 
 dist-clean distclean:: clean clean-doc distclean-ocamlgraph
 	$(PRINT_RM) config
 	$(RM) share/Makefile.config
 	$(RM) config.cache config.log config.h
+	$(RM) -r autom4te.cache
 	$(PRINT_RM) dummy plug-ins
 	$(RM) src/dummy/*/*.cm* src/dummy/*/*.o src/dummy/*/*.a \
 		src/dummy/*/*.annot src/dummy/*/*~ src/dummy/*/*.output \
@@ -1835,20 +1932,24 @@ GENERATED+=ptests/ptests_config.ml
 PLUGIN_DEP_LIST:=$(PLUGIN_LIST) $(PLUGIN_DYN_LIST)
 
 .PHONY: depend
-.depend: $(PLUGIN_DEP_LIST:%=%_DEP)
-depend:  $(PLUGIN_DEP_LIST:%=%_DEP_REDO)
+.depend::
+depend::  $(PLUGIN_DEP_LIST:%=%_DEP_REDO)
 
-.depend depend: $(GENERATED) share/Makefile.dynamic_config share/Makefile.kernel
+$(ALL_CMO) $(ALL_CMX): | .depend
+
+.depend depend:: $(GENERATED) share/Makefile.dynamic_config share/Makefile.kernel $(PLUGIN_DEP_LIST:%=%_DEP)
 	$(PRINT_MAKING) .depend
 	$(RM) .depend
-	if test "$(PLUGIN_DEP_LIST)" != ""; then \
-	  $(CAT) $(foreach d, $(PLUGIN_DEP_LIST), $(dir $d).depend) > .depend; \
+	if test "$(PLUGIN_DEP_LIST)" != " "; then \
+	  $(CAT) $(foreach d, $(PLUGIN_DEP_LIST), $(dir $d).depend) \
+	    > .depend; \
+	else \
+	  touch .depend; \
 	fi
 	$(OCAMLDEP) $(DEP_FLAGS) $(FILES_FOR_OCAMLDEP) >> .depend
 	$(CHMOD_RO) .depend
-	for plugin in $(EXTERNAL_PLUGINS); do \
-	$(MAKE) FRAMAC_LIBDIR=$(FRAMAC_SRC)/lib/fc FRAMAC_SHARE=$(FRAMAC_SRC)/share -C $$plugin depend; \
-	done
+
+$(ALL_CMO) $(ALL_CMX): | .depend
 
 include .depend
 
@@ -1881,11 +1982,18 @@ endif
 #	$(OCAMLOPT) -I ptests -dtypes -thread -o $@ \
 #            unix.cmxa threads.cmxa str.cmxa dynlink.cmxa $^
 
-ptests/ptests_config.ml: Makefile
+#         "let default_suites = ref [" $(PLUGIN_TESTS_LIST:%='"%";') "];;" >> $@
+
+ptests/ptests_config.ml: Makefile share/Makefile.config
 	$(PRINT_MAKING) $@
 	$(RM) $@
+	if test "$(OCAMLVERSION:3.10%=3.10)" = "3.10"; then \
+	  $(ECHO) "Dynlink.init ();;" > $@; \
+	else \
+	  touch $@; \
+	fi
 	$(ECHO) \
-         "let default_suites = ref [" $(PLUGIN_TESTS_LIST:%='"%";') "];;" > $@
+         "let default_suites : string list ref = ref [" $(PLUGIN_TESTS_LIST:%='"%";') "];;" >> $@
 	$(ECHO) \
 	 "let no_native_dynlink = " \
          $(subst yes,false,$(subst no,true,$(USABLE_NATIVE_DYNLINK))) ";;" \
@@ -1901,8 +2009,11 @@ ptests/ptests_config.ml: Makefile
  \"plugins\");;" >> $@
 	$(ECHO) \
 	"let framac_plugin_gui = ref \
+(Filename.concat !framac_plugin \"gui\");;" >> $@
+	$(ECHO) \
+	"let framac_lib = ref \
 (Filename.concat (Filename.concat Filename.current_dir_name \"lib\")\
- \"gui\");;" >> $@
+\"fc\");;" >> $@
 	$(CHMOD_RO) $@
 
 GENERATED+=ptests/ptests_config.ml
@@ -1915,11 +2026,12 @@ STANDALONE_PLUGINS_FILES = \
 	$(addprefix src/dummy/hello_world/, hello_world.ml Makefile) \
 	$(addprefix src/dummy/untyped_metrics/, count_for.ml Makefile)
 
-DISTRIB_FILES+= $(PLUGIN_DISTRIBUTED_LIST) $(PLUGIN_DIST_DOC_LIST) $(STANDALONE_PLUGINS_FILES)
+DISTRIB_FILES+= $(PLUGIN_DISTRIBUTED_LIST) $(PLUGIN_DIST_EXTERNAL_LIST) \
+                $(PLUGIN_DIST_DOC_LIST) $(STANDALONE_PLUGINS_FILES)
 
 EXPORT=frama-c-$(VERSION)
 
-src-distrib: src-distrib-ocamlgraph $(PLUGIN_DIST_EXTERNAL_LIST)
+src-distrib: src-distrib-ocamlgraph
 	$(PRINT_TAR) tmp-distrib
 	$(TAR) cf tmp.tar $(DISTRIB_FILES)
 	$(PRINT_MAKING) export directories
@@ -1928,7 +2040,7 @@ src-distrib: src-distrib-ocamlgraph $(PLUGIN_DIST_EXTERNAL_LIST)
 	$(MKDIR) $(EXPORT)/lib/gui
 	$(MKDIR) $(EXPORT)/external
 	$(PRINT_UNTAR) tmp-distrib
-	cd $(EXPORT); $(TAR) xf ../tmp.tar;
+	cd $(EXPORT); $(TAR) xf ../tmp.tar; autoconf
 	$(PRINT_RM) tmp-distrib
 	$(RM) tmp.tar
 	$(PRINT_MAKING) test directories
@@ -1945,7 +2057,6 @@ bin-distrib: depend configure Makefile
 	$(PRINT_MAKING) bin-distrib
 	$(RM) -r $(VERSION)
 	./configure $(CONFIG_DISTRIB_BIN)
-	$(QUIET_MAKE)
 	$(QUIET_MAKE) DESTDIR=$(FRAMAC_SRC)/$(VERSION) install
 	$(CP) README $(VERSION)
 

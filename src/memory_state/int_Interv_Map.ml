@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -21,7 +22,11 @@
 
 open Abstract_interp
 open Abstract_value
-  include Rangemap.Make(Int_Interv)
+
+module Make(Value: Rangemap.ValueType) =
+struct
+
+  include Rangemap.Make(Int_Interv)(Value)
 
   let check (bi,ei) = assert (Int.le bi ei)
 
@@ -44,7 +49,7 @@ open Abstract_value
 	   pretty_v v)
       m;
     Format.fprintf fmt "}"
-      
+
 
   let enlarge_to_right ~extend_right same_values ei new_vv acc =
     if extend_right then
@@ -169,7 +174,7 @@ open Abstract_value
     result
 
   let remove_itv _fuzzy_order (start,stop as ss) to_ =
-    let concerned_intervals = 
+    let concerned_intervals =
       concerned_intervals Int_Interv.fuzzy_order ss to_ in
       List.fold_left
         (fun acc (bi,ei as i,vv) ->
@@ -186,3 +191,4 @@ open Abstract_value
 
 
 
+end

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -91,7 +92,7 @@ module Make_bitwise (V:With_default) = struct
 
   module LOffset = Offsetmap_bitwise.Make(V)
   module LBase = struct
-    include Ptmap.Generic(Base)(LOffset)(struct let v = [[]] end)
+    include Ptmap.Make(Base)(LOffset)(struct let v = [[]] end)
     let find_or_default base m =
       try
 	find base m
@@ -107,10 +108,6 @@ module Make_bitwise (V:With_default) = struct
 
   let name = Project.Datatype.extend_name "Lmap_bitwise" LOffset.Datatype.name
 
-  let rehash = function
-    | Top -> Top
-    | Map x -> Map (LBase.Datatype.rehash x)
-
   let hash = function
     | Top -> 0
     | Map x -> LBase.tag x
@@ -120,14 +117,14 @@ module Make_bitwise (V:With_default) = struct
   | Top,_|_,Top -> false
   | Map m1, Map m2 -> LBase.equal m1 m2
 
-  module Datatype = 
+  module Datatype =
     Project.Datatype.Register
       (struct
-	 type tt = t
+	 type tt = t = Top | Map of LBase.t
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 open Unmarshal
+	 let descr = Structure (Sum [| [| LBase.Datatype.descr |] |])
 	 let name = name
        end)
   let () = Datatype.register_comparable ~hash ~equal ()

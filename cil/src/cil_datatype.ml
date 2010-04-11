@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,10 +35,9 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
-
-(* $Id: cil_datatype.ml,v 1.5 2009-02-23 12:52:18 uid562 Exp $ *)
 
 open Cil_types
 open Cilutil
@@ -76,6 +75,13 @@ module Varinfo = struct
   let compare = VarinfoComparable.compare
   let () = register_comparable ~hash ~equal ~compare ()
 end
+module VarinfoSet = Datatype.Make_Set(
+  struct
+    include Cilutil.VarinfoSet
+    let descr = Unmarshal.t_set_unchangedcompares Varinfo.descr
+  end)
+  (Varinfo)
+module VarinfoList = Datatype.List(Varinfo)
 
 module Location = struct
   include Project.Datatype.Imperative
@@ -101,13 +107,41 @@ module UntypedFile =
 
 module UntypedFiles = Datatype.List(UntypedFile)
 
-module InitInfo =
+module Initinfo =
   Project.Datatype.Imperative
     (struct
        type t = initinfo
        let copy _ = assert false (* TODO: deep copy *)
        let name = "initinfo"
      end)
+
+module InitInfo = Initinfo
+
+module Enuminfo =
+  Project.Datatype.Imperative
+    (struct
+       type t = enuminfo
+       let name = "enuminfo"
+       let copy _ = assert false
+     end)
+module EnuminfoSet = Datatype.Make_Set(
+  struct include Cilutil.EnuminfoSet
+         let descr = Unmarshal.t_set_unchangedcompares Enuminfo.descr
+  end)
+  (Enuminfo)
+
+module Typeinfo =
+  Project.Datatype.Imperative
+    (struct
+       type t = typeinfo
+       let name = "typeinfo"
+       let copy _ = assert false
+     end)
+module TypeinfoSet = Datatype.Make_Set(
+  struct include Cilutil.TypeinfoSet
+         let descr = Unmarshal.t_set_unchangedcompares Typeinfo.descr
+  end)
+  (Typeinfo)
 
 (** {3 Annotations} *)
 
@@ -164,15 +198,14 @@ module Logic_Ctor_Info =
        let name = "logic_ctor_info"
      end)
 
-module Lval = struct
-  include Project.Datatype.Imperative
+module Lval =
+  Project.Datatype.Imperative
     (struct
        type t = lval
        let copy _ = assert false (* todo *)
        let name = "lval"
      end)
-  let () = register_comparable ~compare:LvalComparable.compare ()
-end
+let () = Lval.register_comparable ~compare:LvalComparable.compare ()
 
 module Kinstr = struct
   include Project.Datatype.Imperative
@@ -192,17 +225,26 @@ module Kinstr = struct
   let () = register_comparable ~hash ~compare ()
 end
 
+module Annotation_Status =
+  Project.Datatype.Imperative
+    (struct
+       type t = annotation_status
+       let name = "annotation_status"
+       let copy _ = assert false
+     end)
+
 module Annot_Status =
   Project.Datatype.Imperative
-    (struct type t = annot_status
-            let name = "annot_status"
-            let copy _ = assert false
+    (struct
+       type t = annot_status
+       let name = "annot_status"
+       let copy _ = assert false
      end)
 
 module Annot_Status_List = Datatype.List(Annot_Status)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -29,7 +30,7 @@ open Cil_types
 (** Local logic environment *)
 module Lenv : sig
   type t
-  val empty : t
+  val empty : unit -> t
 end
 
 
@@ -52,9 +53,6 @@ module Make
       val add_logic_type: string -> logic_type_info -> unit
       val add_logic_ctor: string -> logic_ctor_info -> unit
 
-(*
-      val find_logic_function: string -> logic_info
-*)
       val find_all_logic_functions : string -> Cil_types.logic_info list
       val find_logic_type: string -> logic_type_info
       val find_logic_ctor: string -> logic_ctor_info
@@ -62,19 +60,25 @@ module Make
     end) :
 sig
 
-  (** type-checks a term. The optional boolean is true by default and indicates
-      whether arrays automatically decay as pointer to their first element.
-   *)
+  (** type-checks a term. *)
   val term : Lenv.t -> Logic_ptree.lexpr -> term
 
   val predicate : Lenv.t -> Logic_ptree.lexpr -> predicate named
 
-  val code_annot : Logic_ptree.code_annot -> code_annotation
+  (** [code_annot loc behaviors rt annot] type-checks an in-code annotation.
+    @param loc current location
+    @param behaviors list of existing behaviors
+    @param rt return type of current function
+    @param annot the annotation
+   *)
+  val code_annot :
+    Cil_types.location -> string list ->
+    Cil_types.logic_type -> Logic_ptree.code_annot -> code_annotation
 
   val type_annot :
     location -> Logic_ptree.type_annot -> logic_info
 
-  val annot : location -> Logic_ptree.decl -> global_annotation
+  val annot : Logic_ptree.decl -> global_annotation
 
   val funspec :
     varinfo -> (varinfo list) option -> typ -> Logic_ptree.spec -> funspec
@@ -87,11 +91,11 @@ val append_old_and_post_labels: Lenv.t -> Lenv.t
 (** appends the Here label in the environment *)
 val append_here_label: Lenv.t -> Lenv.t
 
-(** creates an environment containing only the "Pre" label *)
-val make_pre_label: unit -> Lenv.t
-
-(** creates an environment containing only the "Here" label *)
-val make_here_label: unit -> Lenv.t
+(** appends the "Pre" label in the environment 
+    when [pre_is_old] is true, it adds it has a synonym for "Old".
+    (the latter should be set when typing function contracts)
+*)
+val append_pre_label: pre_is_old:bool -> Lenv.t -> Lenv.t
 
 (*
 Local Variables:

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -32,25 +33,25 @@ exception Ignore
 
 class do_it = object(self)
   inherit nopCilVisitor as super
-  val mutable current_stmt = Kglobal
   val mutable derefs = Zone.bottom
-
-  method set_current_stmt s = Kstmt s
 
   method result = derefs
 
   method join new_ =
     derefs <- Zone.join new_ derefs;
 
-  method vstmt s =
-    current_stmt <- Kstmt s;
+(*  method vstmt s =
     DoChildren
+*)
 
   method vlval (base,_ as lv) =
     begin match base with
       | Var _ -> ()
       | Mem e ->
-	  let state = Value.get_state current_stmt in
+	  let state = 
+	    Value.get_state 
+	      (Kstmt (Cilutil.out_some self#current_stmt)) 
+	  in
 	  let r = !Value.eval_expr  ~with_alarms:CilE.warn_none_mode state e in
 	  self#join (valid_enumerate_bits (loc_without_size_to_loc lv r))
     end;
@@ -135,8 +136,6 @@ let pretty_external fmt kf =
   Format.fprintf fmt "@[Derefs for function %a:@\n@[<hov 2>  %a@]@]@\n"
     Kernel_function.pretty_name kf
     Zone.pretty (get_external kf)
-
-(* let display () = iter_on_functions (pretty_internal Format.std_formatter)*)
 
 let () =
   Db.Derefs.self_internal := Internals.self;

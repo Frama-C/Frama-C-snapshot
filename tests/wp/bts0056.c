@@ -3,10 +3,14 @@ int T[10];
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // loop assigns not translatable to C lval
 
-//@ ensures T[5] == \old(T[5]);
+/*@ assigns  T[0..4];
+    ensures T[5] == \old(T[5]);
+*/
 void assign_T (void) {
   int i;
-  //@ loop assigns i, T[0..4];
+  /*@ loop assigns i, T[0..4];
+    @ loop invariant 0 <= i;
+    */
   for (i = 0; i < 5; i++) {
     T[i] ++;
   }
@@ -24,3 +28,5 @@ void assign_S (void) {
   }
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+int main (void) {return 0;}

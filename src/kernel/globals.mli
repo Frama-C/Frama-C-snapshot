@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -60,7 +61,12 @@ module Functions: sig
   
   (** Should not be used.
       Used [Kernel_function.Datatype] instead. *)
-  module KF_Datatype: Project.Datatype.S with type t = kernel_function
+  module KF_Datatype: 
+    sig
+      include Project.Datatype.S with type t = kernel_function
+      val pretty : Format.formatter -> Db_types.kernel_function -> unit
+      val id : t -> int
+    end
 
   val self: Project.Computation.t
 
@@ -72,7 +78,11 @@ module Functions: sig
   val get_vi: kernel_function -> varinfo
 
   val get_glob_init: ?main_name:string -> file -> kernel_function
-    (** @return the internal function for global initializations. *)
+    (** Similar to [Cil.getGlobInit], except it registers the newly created
+	function.
+	@deprecated using this function is incorrect since it modifies the
+	current AST (see Plug-in Development Guide, Section "Using Projects").
+	@return the internal function for global initializations. *)
 
   (** {2 Searching} *)
 
@@ -132,23 +142,36 @@ end
 (** Globals associated to filename. *)
 module FileIndex : sig
 
+  val self: Project.Computation.t
+    (** The state kind corresponding to the table of global C symbols.
+	@since Boron-20100401 *)
+
+  (** {2 Getters} *)
+
+  val get_symbols : filename:string -> global list
+    (** All global C symbols of the given module.
+	@since Boron-20100401 *)
+
   val find : filename:string -> string * (global list)
-    (** Global list for valviewer. The file name to display is returned. *)
+    (** All global C symbols for valviewer. 
+	The file name to display is returned, and the [global] list reversed. *)
+
+  val get_files: unit -> string list
+    (** Get the files list containing all [global] C symbols. *)
+
+  (** {2 Searching among all [global] C symbols} *)
 
   val get_globals : filename:string -> (varinfo * initinfo) list
     (** Global variables of the given module for the kernel user interface *)
 
   val get_functions : filename:string -> kernel_function list
-    (** Global variables of the given module for the kernel user interface *)
+    (** Global functions of the given module for the kernel user interface *)
 
   val kernel_function_of_local_var_or_param_varinfo :
     varinfo -> (kernel_function * bool)
     (** kernel_function where the local variable or formal parameter is
 	declared. The boolean result is true for a formal parameter. 
 	@raise Not_found if the varinfo is a global one. *)
-
-  val get_files: unit -> string list
-    (** Get the files list containing globals. *)
 
 end
 
@@ -177,6 +200,6 @@ val has_entry_point: unit -> bool
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

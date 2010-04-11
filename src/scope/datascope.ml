@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -27,7 +28,7 @@
 open Cil_types
 open Db_types
 
-module R : Plugin.S =  
+module R : Plugin.S =
   Plugin.Register
     (struct
        let name = "scope"
@@ -43,6 +44,7 @@ a mapping between each zone and the statements that are modifying it.
 (** Statement identifier *)
 module Sid = struct
   type t = int
+  let name = "sid"
   let compare = compare
   let hash x = x
   let id x = x
@@ -140,9 +142,10 @@ let register_modified_zones lmap stmt inst =
                     ~with_alarms:CilE.warn_none_mode
                     (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
                 in
-                  List.fold_left
-                    (fun lmap kf -> process_froms lmap (!Db.From.get kf))
-                    lmap called_functions
+                  Kernel_function.Set.fold
+                    (fun kf lmap -> process_froms lmap (!Db.From.get kf))
+                    called_functions
+		    lmap
           end
       | _ -> lmap
 
@@ -213,6 +216,7 @@ module GenStates (S : sig
   let add = Inthash.add states
   let iter f = Inthash.iter f states
   let fold f = Inthash.fold f states
+  let length () = Inthash.length states
 
   let pretty fmt infos =
     Inthash.iter
@@ -269,7 +273,7 @@ module ForwardScope (X : sig val modified : stmt -> bool end ) = struct
     if state = State.Start then State.SameVal else state
 
   let combinePredecessors _stmt ~old new_ =
-    assert (R.verify (new_ <> State.Start) 
+    assert (R.verify (new_ <> State.Start)
               "forward traversal shouldn't go through Start !");
     State.test_and_merge ~old new_
 
@@ -344,8 +348,8 @@ let get_data_scope_at_stmt kf stmt lval =
   let zone = Locations.Zone.join dpds zone in
   let allstmts, info = compute kf in
   let modif_stmts = InitSid.find info zone in
-  let (f_scope, fb_scope, b_scope) as all = 
-    find_scope allstmts modif_stmts stmt 
+  let (f_scope, fb_scope, b_scope) =
+    find_scope allstmts modif_stmts stmt
   in
     R.debug
       "@[<hv 4>get_data_scope_at_stmt %a at %d @\n\
@@ -354,13 +358,13 @@ let get_data_scope_at_stmt kf stmt lval =
       (* stmt at *)
       Locations.Zone.pretty zone stmt.sid
       (* modified by *)
-      (Cilutil.print_list Cilutil.space Sid.pretty) 
+      (Cilutil.print_list Cilutil.space Sid.pretty)
       (SidSet.to_list ~keep_default:false modif_stmts)
       (* scope *)
       Cilutil.StmtSet.pretty f_scope
       Cilutil.StmtSet.pretty fb_scope
       Cilutil.StmtSet.pretty b_scope;
-  all
+    (f_scope, (fb_scope, b_scope))
 
 exception ToDo
 
@@ -508,10 +512,10 @@ end (* class check_annot_visitor *)
 
 let f_check_asserts () =
   let visitor = new check_annot_visitor in
-  ignore (Visitor.visitFramacFile 
+  ignore (Visitor.visitFramacFile
             (visitor:>Visitor.frama_c_visitor)
             (Ast.get ()));
-  visitor#get_to_be_removed () 
+  visitor#get_to_be_removed ()
 
 let check_asserts () =
   R.feedback "check if there are some redondant assertions...";
@@ -557,11 +561,40 @@ let rm_asserts () =
   ignore (Visitor.visitFramacFile (visitor:>Visitor.frama_c_visitor)
             (Ast.get ()))
 
+(* let code_annotation_type = ??? TODO *)
 
 (** Register external functions into Db. *)
 let () =
-  Db.Scope.get_data_scope_at_stmt := get_data_scope_at_stmt;
-  Db.Scope.get_prop_scope_at_stmt := get_prop_scope_at_stmt;
-  Db.Scope.check_asserts := check_asserts;
-  Db.Scope.rm_asserts := rm_asserts;
+  Db.register (* kernel_function -> stmt -> lval ->
+       Cilutil.StmtSet.t * Cilutil.StmtSet.t * Cilutil.StmtSet.t *)
+    (Db.Journalize
+       ("Scope.get_data_scope_at_stmt",
+        Type.func3
+	  Kernel_type.kernel_function
+          Kernel_type.stmt
+          Kernel_type.lval
+          (Type.couple Kernel_type.stmt_set
+             (Type.couple Kernel_type.stmt_set Kernel_type.stmt_set))))
+  Db.Scope.get_data_scope_at_stmt get_data_scope_at_stmt;
+
+   Db.register (* (kernel_function -> stmt -> code_annotation ->
+       Cilutil.StmtSet.t * code_annotation list *)
+      Db.Journalization_not_required (* TODO *)
+     (* (Db.Journalize("Scope.get_prop_scope_at_stmt",
+                    Type.func Kernel_type.kernel_function
+                     (Type.func Kernel_type.stmt
+                        (Type.func code_annotation_type
+                           (Type.couple  Kernel_type.stmt_set
+                              (Type.list code_annotation_type)))))) *)
+     Db.Scope.get_prop_scope_at_stmt  get_prop_scope_at_stmt;
+
+   Db.register (* unit -> code_annotation list *)
+      Db.Journalization_not_required (* TODO *)
+     (* (Db.Journalize("Scope.check_asserts",
+                    Type.func Type.unit  (Type.list code_annotation_type))) *)
+     Db.Scope.check_asserts check_asserts;
+
+  Db.register
+    (Db.Journalize ("Scope.rm_asserts", Type.func Type.unit Type.unit))
+    Db.Scope.rm_asserts rm_asserts;
 

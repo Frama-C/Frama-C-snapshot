@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -37,15 +38,15 @@ exception OnlyOneEntryPointSlice
 * able to compute the Pdg. *)
 exception NoPdg
 
-(** {2 Public types} 
+(** {2 Public types}
   * These types are the only one that should be used by the API functions.
-  * Public type definitions should be hidden to the outside world, 
+  * Public type definitions should be hidden to the outside world,
   * but it is not really possible to have abstract types since Slicing has to
   * use Db.Slicing functions...  So, it is up to the user of this module to use
-  * only this public part.  
+  * only this public part.
  *)
 
-(** contains global things that has been computed so far 
+(** contains global things that has been computed so far
   for the slicing project.
   This includes :
   - the slices of the functions,
@@ -53,8 +54,8 @@ exception NoPdg
   *)
 type sl_project   = SlicingInternals.t_project
 
-(** Type of the selections 
-* (we store the varinfo because we cannot use the kernel_function in this file) 
+(** Type of the selections
+* (we store the varinfo because we cannot use the kernel_function in this file)
 * *)
 type sl_select  = (Cil_types.varinfo * SlicingInternals.t_fct_user_crit)
 
@@ -70,8 +71,8 @@ type sl_mark = SlicingInternals.t_pdg_mark
 (** {3 For the journalization of values of these types} *)
 
 let pp_sl_project p_caller fmt p =
-  let pp fmt = 
-    Format.fprintf fmt "@[<hv 2>!Db.Slicing.Project.from_unique_name@;%S@]" 
+  let pp fmt =
+    Format.fprintf fmt "@[<hv 2>!Db.Slicing.Project.from_unique_name@;%S@]"
       p.SlicingInternals.name
   in
   Type.par p_caller Type.Call fmt pp
@@ -82,36 +83,34 @@ let dyn_sl_project =
     ~value_name:(Some "SlicingTypes.dyn_sl_project")
     ~pp:pp_sl_project
     ~varname:(fun s -> "sl_project_" ^ s.SlicingInternals.name)
-    SlicingInternals.dummy_t_project
+    [ SlicingInternals.dummy_t_project ]
 
-    
-let dummy_sl_select = 
+
+let dummy_sl_select =
   Kernel_type.varinfo_dummy, SlicingInternals.dummy_t_fct_user_crit
-    
+
 let dyn_sl_select =
   Type.register
     ~name:"Db.Slicing.Selection.t"
     ~value_name:(Some "SlicingTypes.dyn_sl_select")
     ~varname:(fun _ -> "sl_select")
-    dummy_sl_select
+    [ dummy_sl_select ]
 
-    
 let dyn_sl_selects =
   Type.register
     ~name:"Db.Slicing.Selection.t_set"
     ~value_name:(Some "SlicingTypes.dyn_sl_selects")
     ~varname:(fun _ -> "sl_select_set")
-    (Cilutil.VarinfoMap.empty:sl_selects)
+    [ (Cilutil.VarinfoMap.empty : sl_selects) ]
 
-    
 let pp_sl_fct_slice p_caller fmt ff =
   let pp fmt =
     Format.fprintf fmt
       "@[<hv 2>!Db.Slicing.Slice.from_num_id@;%a@;%a@;%d@]"
-      (Type.pp dyn_sl_project Type.Call) 
+      (Type.pp dyn_sl_project Type.Call)
       ff.SlicingInternals.ff_fct.SlicingInternals.fi_project
-      (Type.pp Kernel_type.kernel_function Type.Call) 
-      ff.SlicingInternals.ff_fct.SlicingInternals.fi_kf 
+      (Type.pp Kernel_type.kernel_function Type.Call)
+      ff.SlicingInternals.ff_fct.SlicingInternals.fi_kf
       ff.SlicingInternals.ff_id
   in
   Type.par p_caller Type.Call fmt pp
@@ -122,8 +121,8 @@ let dyn_sl_fct_slice =
     ~value_name:(Some "SlicingTypes.dyn_sl_fct_slice")
     ~pp:pp_sl_fct_slice
     ~varname:(fun _ -> "sl_slice")
-    SlicingInternals.dummy_t_fct_slice
-    
+    [ SlicingInternals.dummy_t_fct_slice ]
+
 let pp_sl_mark p fmt m =
   let pp = match m.SlicingInternals.m1, m.SlicingInternals.m2 with
     | SlicingInternals.Spare, _ -> None
@@ -132,16 +131,16 @@ let pp_sl_mark p fmt m =
         if (PdgTypes.Dpd.is_bottom mark2) then
 	  (* use [!Db.Slicing.Mark.make] contructor *)
           Some (fun fmt ->
-                  Format.fprintf fmt "@[<hv 2>!Db.Slicing.Mark.make@;~addr:%b@;~data:%b@;~ctrl:%b@]" 
+                  Format.fprintf fmt "@[<hv 2>!Db.Slicing.Mark.make@;~addr:%b@;~data:%b@;~ctrl:%b@]"
                     (PdgTypes.Dpd.is_addr mark1)
 		    (PdgTypes.Dpd.is_data mark1)
 		    (PdgTypes.Dpd.is_ctrl mark1))
-        else 
+        else
 	  None
   in
   let pp = match pp with
     | Some pp -> pp
-    | None -> 
+    | None ->
 	let pp fmt sub_m = match sub_m with
 	    (* use internals constructors *)
           | SlicingInternals.Spare -> Format.fprintf fmt "SlicingInternals.Spare"
@@ -152,17 +151,17 @@ let pp_sl_mark p fmt m =
 		(PdgTypes.Dpd.is_ctrl pdg_m)
 	in
         fun fmt ->
-          Format.fprintf fmt "@[<hv 2>SlicingInternals.create_sl_mark@;~m1:%a@;~m2:%a@]" 
+          Format.fprintf fmt "@[<hv 2>SlicingInternals.create_sl_mark@;~m1:%a@;~m2:%a@]"
             pp m.SlicingInternals.m1 pp m.SlicingInternals.m2
   in Type.par p Type.Call fmt pp
-       
+
 let dyn_sl_mark =
   Type.register
     ~name:"Db.Slicing.Mark.t"
     ~value_name:(Some "SlicingTypes.dyn_sl_mark")
     ~pp:pp_sl_mark
     ~varname:(fun _ -> "sl_mark")
-    SlicingInternals.dummy_t_pdg_mark
+    [ SlicingInternals.dummy_t_pdg_mark ]
 
 (*
 Local Variables:

@@ -1,0 +1,755 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+include "integer.why"
+include "real.why"
+include "bool.why"
+
+(* ------------------------------------------------------------------------ *)
+(* ---   Store is a basic Load/Store Memory Model                       --- *)
+(* ------------------------------------------------------------------------ *)
+
+
+(** memory designs maps from location to value **)
+type memory 
+
+
+(* ------------------------------------------------------------------------ *)
+(* ---   Specification of Locations                                     --- *)
+(* ------------------------------------------------------------------------ *)
+
+(** [null] special location **) 
+
+logic null : pointer 
+
+(* --- Locations Algebra  --- *) 
+
+(** [variable(x)] returns a location associated to [x] **) 
+logic variable : name -> pointer
+
+(** [shift(l,i)] shifts the location [l] by [i] **)
+logic shift    : pointer , int -> pointer
+
+(** [field(l,ty,f)] returns the location of the field [f] of a record [ty] 
+    since [l]  **)
+logic field    : pointer,name,name -> pointer
+
+(** [ufield(l,ty,f)] returns the location of thefield [f] of union [ty] 
+    since [l] **)
+logic ufield    : pointer,name,name -> pointer
+
+(** [offset(l)] returns the delta between the root of the path of [l] 
+    and [l] **) 
+logic offset: pointer -> int
+
+(** [is_null(l)] tests if the location [l] is null **)
+logic is_null : pointer -> bool
+
+(** Association of variable to location is bijective (uniqness) **)
+axiom var_uniq : 
+ forall x,y: name. variable(x) = variable(y) -> x=y
+
+(** Null is a null pointer ! **)
+axiom is_null_def: is_null(null)=true
+
+
+(* --- Locations Arithmetic  --- *)
+
+(** [minus_pointer(l1,l2)] returns the delta between two location**)
+logic minus_pointer : pointer,pointer -> int 
+
+(** [equal_pointer(l1,l2)] tests equality between locations [l1] and 
+    [l2] **)
+logic equal_pointer : pointer,pointer -> bool
+
+(** [lt_pointer(l1,l2)] tests "lt comparison" between locations [l1] and 
+    [l2] **)
+logic lt_pointer: pointer,pointer -> bool
+
+(** [equal_pointer(l1,l2)] tests "le_comparison" between locations [l1] and 
+    [l2] **)
+logic le_pointer: pointer,pointer -> bool
+
+axiom equal_pointer_def: 
+ forall l1,l2:pointer. 
+       l1=l2 -> equal_pointer(l1,l2)=true
+
+axiom equal_pointer_sym: 
+ forall l1,l2:pointer.  
+   equal_pointer(l1,l2)=true ->
+   equal_pointer(l2,l1)=true	
+
+axiom equal_pointer_trans: 
+ forall l1,l2,l3:pointer.  
+   equal_pointer(l1,l2)=true ->
+   equal_pointer(l2,l3)=true ->
+   equal_pointer(l1,l3)=true	
+
+axiom le_pointer_def: 
+ forall l1,l2:pointer. 
+  le_pointer(l1,l2) = true <-> 
+  (equal_pointer(l1,l2)=true or 
+   lt_pointer(l1,l2) = true)
+
+(* ---- Specification of Offset --- *)
+
+axiom offset_shift: 
+ forall l:pointer. forall i:int. 
+  offset(shift(l,i)) = offset(l)+i 
+
+axiom offset_var : 
+ forall a:name. 
+ offset(variable(a)) = 0
+
+axiom offset_field: 
+ forall f:name. forall l:pointer. forall ty:name.
+ offset(field(l,ty,f)) = 0
+
+axiom offset_ufield: 
+ forall f:name. forall l:pointer. forall ty:name.
+ offset(ufield(l,ty,f)) = 0
+
+(* --- Specification of Shift --- *)
+
+axiom shift_0 : 
+ forall l:pointer. shift(l,0) = l
+
+axiom shift_shift : 
+ forall l:pointer. forall i,j:int.
+  shift(shift(l,i),j)  = shift(l,i+j)
+      
+(* ------------------------------------------------------------------------ *)
+(* ---   Specification of Memory Pathes                                 --- *)
+(* ------------------------------------------------------------------------ *)
+
+type root
+
+(* --- Roots Algebra --- *)
+
+(** [var_root(x)] variable [x] is a root of the path **)
+logic var_root : name -> root
+
+(** [field_root(r,f)] the root of record's field 
+    are both the field [f] and the root of the record [r] **)
+logic field_root : root,name -> root
+
+(** [ufield_root(r,f,u)]the root of union's field 
+    are both the field [f] and the root of the union [r]  **)
+logic ufield_root : root,name -> root
+
+(* --- Specification of root separation --- *)
+ 
+logic sepvar : root, int, root, int -> prop
+
+logic sepufield : root,root -> prop
+
+logic sepfield : root,root -> prop
+
+axiom sep_ufield_def : 
+ forall r1,r2: root.
+  forall f1,f2 : name. 
+  sepufield(ufield_root(r1,f1),ufield_root(r2,f2)) <-> r1 <> r2 
+
+axiom sep_field_def : 
+ forall r1,r2: root.
+  forall f1,f2 : name. 
+  sepfield(field_root(r1,f1),field_root(r2,f2)) <-> (r1 = r2 -> f1 <>f2)
+
+axiom sep_var_def : 
+  forall a,b:name. forall i,j:int. 
+  sepvar(var_root(a),i,var_root(b),j) <->(a=b -> i<>j) 
+
+
+(* --- Specification of the Root Path Calculus --- *)
+
+
+logic root_path : pointer -> root 
+
+axiom var_root_path : 
+  forall x:name. 
+  root_path (variable (x)) = var_root (x)
+
+axiom field_root_path : 
+   forall l:pointer.forall f:name. forall ty:name. 
+   root_path(field(l,ty,f)) = field_root (root_path(l),f)
+
+axiom ufield_root_path : 
+   forall l:pointer. forall f:name. forall ty:name.
+   root_path (ufield(l,ty,f)) = ufield_root (root_path(l),f)
+
+axiom root_path_shift : 
+ forall l:pointer. forall i:int. 
+  root_path(shift(l,i))= root_path(l)
+
+
+axiom minus_pointer_def: 
+ forall l1,l2:pointer. 
+ 	root_path(l1) =root_path(l2) ->
+	minus_pointer(l1,l2) = offset(l1) - offset(l2)
+
+axiom lt_pointer_def: 
+ forall l1,l2 : pointer.  
+     root_path(l1)=root_path(l2) -> 
+     lt_pointer(l1,l2)=lt_int_bool(offset(l1),offset(l2)) 
+
+
+(* ------------------------------------------------------------------------ *)
+(* ---   Specification of The Core Property Separation                  --- *)
+(* ------------------------------------------------------------------------ *)
+
+(** [separated(l1,l2)] holds if [l1] and [l2] are separated location **)
+logic separated : pointer , pointer -> prop
+
+(** Separated predicate is symmetric **)
+axiom separated_sym : 
+ forall l0,l1: pointer. separated(l0,l1) -> separated(l1,l0)
+
+(** Two locs are separated if roots of their path are separated : **)
+ (** a: Case structure field as roots **)
+axiom sepfield_def: 
+ forall p,q:pointer. 
+    sepfield(root_path(p),root_path(q)) -> separated(p,q)
+ 
+(** b: Case variable as roots **)
+axiom sepvar_def: 
+ forall p,q:pointer. 
+  sepvar(root_path(p),offset(p),root_path(q),offset(q)) -> separated(p,q)
+
+(** c: Case union field as roots **)
+axiom usepfield_def: 
+ forall p,q:pointer. 
+    sepfield(root_path(p),root_path(q)) -> separated(p,q)
+
+(** Cases of differents kind of root **)
+axiom sep_field_var: 
+  forall l:pointer. forall f,n:name. forall ty:name. 
+  separated(field(l,ty,f),variable(n))
+
+axiom sep_ufield_var: 
+  forall l:pointer. forall f,n:name. forall ty:name.
+  separated(ufield(l,ty,f),variable(n))
+
+axiom sep_ufield_field: 
+  forall l0,l1:pointer. forall f0,f1,n:name. forall ty0,ty1:name.
+  separated(ufield(l0,ty0,f0),field(l1,ty1,f1))
+
+axiom equal_pointer_neq: 
+ forall l1,l2:pointer. 
+      separated(l1,l2) -> equal_pointer(l1,l2) = false
+
+(** Inheritance of separated property **) 
+
+axiom inh_sep_field : 
+ forall l1,l2:pointer. 
+     separated(l1,l2) -> 
+        (forall f:name. forall ty:name. separated(l1,field(l2,ty,f)))
+
+axiom inh_sep_ufield : 
+ forall l1,l2:pointer. 
+     separated(l1,l2) -> 
+        (forall f:name. forall ty:name. separated(l1,ufield(l2,ty,f)))
+
+axiom inh_sep_shift : 
+ forall l1,l2:pointer. 
+     separated(l1,l2) -> 
+        (forall i:int. separated(l1,shift(l2,i))) 
+
+axiom inh_sep_field_right : 
+ forall l1,l2:pointer. 
+     separated(l1,l2) -> 
+        (forall f:name. forall ty:name. separated(field(l1,ty,f),l2))
+
+axiom inh_sep_ufield_right : 
+ forall l1,l2:pointer. 
+     separated(l1,l2) -> 
+        (forall f:name. forall ty:name. separated(ufield(l1,ty,f),l2))
+
+axiom inh_sep_shift_right : 
+ forall l1,l2:pointer. 
+     separated(l1,l2) -> 
+        (forall i:int. separated(shift(l1,i),l2)) 
+(* ------------------------------------------------------------------------ *)
+(* ---   Specification of a Memory State                                --- *)
+(* ------------------------------------------------------------------------ *)
+
+(** [load(m,l,ft)] returns the value of format [ft] associates to [l] 
+    in [m] **)
+logic load  : memory , pointer , 'a format -> 'a 
+
+(** [store(m,l,ft,v)] returns a memory such as  
+      pointer [l] maps to value [v] of format [ft] and 
+      other pointer maps as in [m] **)
+logic store : memory , pointer , 'a format , 'a -> memory   
+
+(** load a just stored value returns this value **)
+axiom load_store_same : 
+ forall m: memory.
+ forall l:pointer. 
+ forall v:'a. 
+ forall ft:'a format. 
+  load (store(m,l,ft,v),l,ft) = v
+
+ 
+(** load commutes with a store in a separated pointer **)
+axiom load_store_sep :
+ forall m: memory.
+ forall l0,l1:pointer. 
+ forall ft0:'a format.  
+ forall ft1:'b format.  
+ forall v:'a. 
+  separated(l0,l1) ->
+  load (store(m,l0,ft0,v),l1,ft1) = load(m,l1,ft1)
+
+(** Two equal pointer maps to the same value **) 
+axiom equal_pointer_load: 
+ forall m: memory.
+ forall l0,l1:pointer. 
+ forall ft:'a format. 
+ equal_pointer(l0,l1) = true ->
+ load(m,l0,ft) = load(m,l1,ft) 
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Specification of Record and Union assignment and Comparison      --- *)
+(* ------------------------------------------------------------------------ *)
+
+axiom load_store_struct : 
+ forall m:memory.
+ forall l,l':pointer. 
+ forall x:name. forall f : name. 
+ forall ft :'a format.
+   load (store(m,l,record_format(x),
+         load(m,l',record_format(x))),
+	field(l,x,f),ft) = 
+   load(m,field(l',x,f),ft)
+
+
+axiom get_field_record : 
+ forall m:memory. 
+  forall l:pointer. 
+   forall x,f:name. forall dt: 'a format.
+      data_get_field( load(m,l,record_format(x)),f,dt) = 
+      load(m,field(l,x,f),dt)
+
+axiom set_field_record : 
+ forall m:memory. 
+  forall l:pointer. 
+   forall x,f:name. 
+    forall v:'a. forall dt:'a format.  
+      data_set_field(load(m,l,record_format(x)),f,dt,v) = 
+      load(store(m,field(l,x,f),dt,v),l,record_format(x))
+
+axiom get_ufield_union : 
+ forall m:memory. 
+  forall l:pointer. 
+   forall x,f:name. forall dt: 'a format.
+      data_get_ufield( load(m,l,union_format(x)),f,dt) = 
+      load(m,ufield(l,x,f),dt)
+
+(* ------------------------------------------------------------------------ *)
+(* --- Specification of Region                                          --- *)
+(* ------------------------------------------------------------------------ *)
+
+
+
+logic rdisjoint: pointer set, pointer set -> prop
+logic rload : memory, pointer set, 'a format -> 'a set
+logic store_rshift : pointer set,int set -> pointer set
+logic rfield : pointer set, name,name -> pointer set   
+logic rufield : pointer set, name,name -> pointer set 
+
+
+
+axiom rdisj_region_def: 
+ forall r1,r2 : pointer set. 
+  inter(r1,r2) = empty <-> rdisjoint(r1,r2)
+
+axiom rdisj_region_singleton: 
+ forall l:pointer. forall r: pointer set. 
+ rdisjoint(singleton(l),r) <-> not (member(l,r))
+
+
+axiom rdisjoint_separated: 
+ forall l0,l1: pointer. 
+ rdisjoint(singleton(l0),singleton(l1)) <-> separated(l0,l1)
+
+axiom rdisjoint_separated_region: 
+ forall r1,r2: pointer set. 
+  rdisjoint(r1,r2) <->
+     (forall l1:pointer. member(l1,r1) ->
+       (forall l2: pointer. member(l2,r2) -> 
+                   separated(l1,l2)))
+
+
+axiom rload_def: 
+ forall m:memory.	
+ forall r: pointer set.	 
+ forall ft: 'a format. 
+     (forall l: pointer. 
+     	     member(l,r) <-> member(load(m,l,ft),rload(m,r,ft))) 
+ 
+
+axiom rfield_def: 
+ forall r: pointer set.
+  forall f: name. forall ty:name.
+  (forall l:pointer. member(l,r) <-> member(field(l,ty,f),rfield(r,ty,f)))
+
+axiom rufield_def: 
+ forall r: pointer set.
+  forall f: name.forall ty:name.
+  (forall l:pointer. member(l,r) <-> member(ufield(l,ty,f),rufield(r,ty,f)))
+
+axiom store_rshift_def_1: 
+ forall r: pointer set.
+  forall si: int set.
+  (forall l:pointer. forall i:int.
+    member(l,r) and member(i,si) -> member(shift(l,i),store_rshift(r,si)))
+
+axiom store_rshift_def_2 : 
+ forall r: pointer set.
+  forall si: int set.
+ (forall lf:pointer. 
+     member(lf,store_rshift(r,si)) ->
+       exists l:pointer. exists i:int. 
+         lf = shift(l,i) and
+	 member(l,r) and 
+	 member(i,si))
+
+
+axiom rfield_singleton : 
+ forall f:name. forall l: pointer. forall ty:name. 
+    rfield(singleton(l),ty,f) = singleton(field(l,ty,f))
+
+axiom rufield_singleton : 
+ forall f:name. forall l: pointer. forall ty:name. 
+    rufield(singleton(l),ty,f) = singleton(ufield(l,ty,f))
+
+axiom rload_singleton : 
+ forall m:memory.	
+ forall l:pointer. 	 
+ forall ft: 'a format. 
+ rload(m,singleton(l),ft) = singleton(load(m,l,ft))  
+
+axiom rshift_singleton: 
+ forall l:pointer. forall i:int. 
+  store_rshift(singleton(l),singleton(i)) = singleton(shift(l,i))
+
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Specification of the Validity of a Pointer into a memory state       --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic valid_pointer : memory, pointer -> prop
+logic valid_set : memory, pointer set -> prop
+logic valid_range: memory, pointer, int set -> prop 
+
+(** Validity of a pointer set in a memory axiomatics **) 
+axiom valid_set_member: 
+ forall m: memory. 
+ forall r: pointer set. 
+ valid_set (m,r) <-> 
+ (forall l:pointer. member(l,r) -> valid_pointer(m,l))
+
+(** Null pointer isn't valid **)
+axiom valid_not_null: 
+ forall m:memory.  not (valid_pointer(m,null))
+
+(** A valid pointer can't be equal to null **)
+axiom valid_not_null_equal:  
+  forall l:pointer. forall m:memory. 
+  valid_pointer (m,l) -> equal_pointer(l,null)=false
+
+(** A stored pointer is valid in the store out memory **)
+axiom valid_store_same : 
+ forall l:pointer. 
+  forall ft: 'a format. 
+   forall v:'a.
+     forall m:memory. 
+      valid_pointer(store(m,l,ft,v),l)   
+
+axiom valid_pointer_store_trans : 
+ forall l:pointer. 
+  forall ft: 'a format. 
+   forall v:'a.
+     forall m:memory. 
+      forall l':pointer.
+       valid_pointer(m,l') -> valid_pointer(store(m,l,ft,v),l')
+     
+(** A valid pointer still been valid after a storage **) 
+axiom valid_store_trans : 
+ forall l:pointer. 
+  forall ft: 'a format. 
+   forall v:'a.
+     forall m:memory. 
+      forall l':pointer set.
+       valid_set(m,l') -> valid_set(store(m,l,ft,v),l')   
+
+axiom valid_range_trans : 
+ forall l:pointer. forall ft: 'a format. forall v:'a.
+  forall m:memory.  forall l':pointer. forall rg : int set . 
+       valid_range(m,l',rg) -> 
+       valid_range(store(m,l,ft,v),l',rg)
+
+
+axiom valid_not_valid_diff : 
+ forall m:memory. forall l,l':pointer. 
+   valid_pointer(m,l) ->
+   not (valid_pointer(m,l'))  -> l <> l'
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Managment of Pointeral Scope                                         --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic local_separated : memory, pointer -> prop 
+
+(** A pointer associates to a pointeral variable is separated of 
+    all other pointers **)
+axiom pointeral_separated_def: 
+ forall l:pointer. 
+  forall m: memory.  
+     forall l0: pointer. separated(l, load(m,l0,pointer_format)) <-> 
+     local_separated(m,l)
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Specific Charactistics of Store                                  --- *)
+(* ------------------------------------------------------------------------ *)
+
+(** In Store two locs are equal or separated. Lack of 
+    heterogen cast induices absence of overlapping. **) 
+axiom no_heterogen_cast: 
+ forall l1,l2: pointer. 
+  separated(l1,l2) or equal_pointer(l1,l2)=true
+
+(** Transitivy of separated by equal_pointer. **)
+axiom equal_pointer_sep_trans: 
+  forall l1,l2:pointer. 
+      equal_pointer(l1,l2)=true ->
+      (forall l:pointer. separated(l1,l) -> separated(l2,l))
+
+(** All fields of an union object are equal **)
+axiom ufield_load: 
+ forall l:pointer. forall f1,f2:name. forall ty:name. 
+  (forall ft:'a format. forall m: memory. 
+      load(m,ufield(l,ty,f1),ft) = load(m,ufield(l,ty,f2),ft)) 
+ 
+(** All fields of an union object are equal **)
+axiom ufield_eq_ptr: 
+ forall l:pointer. forall f1,f2:name. forall ty:name.
+  equal_pointer(ufield(l,ty,f1),ufield(l,ty,f2))=true
+
+
+(** Added axiomatics, models invariant **)
+axiom no_self_reference: 
+ forall m: memory. 
+  forall p:pointer. 
+   separated(load(m,p,pointer_format),p)
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Specifiation of acsl base adress                                 --- *)
+(* ------------------------------------------------------------------------ *)
+
+
+
+logic acsl_base: pointer-> pointer
+
+axiom base_variable: 
+ forall l:name. acsl_base(variable(l)) = variable(l)
+
+axiom base_field : 
+ forall f:name. forall l:pointer. forall ty:name.
+  acsl_base(field(l,ty,f)) = acsl_base(l)
+
+axiom base_ufield : 
+ forall f:name. forall l:pointer. forall ty:name.  
+ acsl_base(ufield(l,ty,f)) = acsl_base(l)
+
+
+axiom base_shift : 
+ forall l:pointer. forall i:int. acsl_base(shift(l,i)) = acsl_base(l) 
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Functional Specification of sep_region                           --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic sep_region : pointer , pointer set -> prop
+
+axiom sep_region_nil : 
+ forall l: pointer. sep_region(l,empty)
+
+axiom sep_region_singleton: 
+ forall l,l1: pointer. 
+   separated(l,l1) <-> sep_region(l,singleton(l1))
+
+axiom sep_region_union_singleton_left: 
+ forall l,l1: pointer. forall r: pointer set.
+   separated(l,l1) and sep_region(l,r) <-> sep_region(l,union(singleton(l1),r))
+
+(* ------------------------------------------------------------------------ *)
+(* --- Functional Specification of Havoc                                --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic havoc : memory,pointer set -> memory
+
+
+axiom havoc_def_not : 
+ forall m:memory. 
+ forall r: pointer set.
+ forall l:pointer. 
+ sep_region(l,r) -> forall ft:'a format.
+  load(havoc(m,r),l,ft) = load(m,l,ft) 
+
+axiom havoc_store : 
+ forall m:memory. 
+ forall r: pointer set.
+ forall l:pointer. 
+ forall ft:'a format. 
+ forall v:'a. 
+    member(l,r) -> 
+    store(havoc(m,r),l,ft,v) = havoc(store(m,l,ft,v),r)
+
+axiom havoc_equiv_region: 
+ forall m:memory. 
+  forall r1,r2: pointer set. 
+       equiv(r1,r2) ->
+       havoc(m,r1) = havoc(m,r2) 
+
+axiom havoc_nothing : 
+ forall m:memory. 
+  forall l:pointer. 
+  forall ft: 'a format. 
+  load(havoc(m,empty),l,ft) = load(m,l,ft)
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Relation Specifiation of Havoc                                   --- *)
+(* ------------------------------------------------------------------------ *)
+
+
+logic is_havoc : memory , pointer set, memory -> prop
+(*
+axiom is_havoc_def: 
+ forall m_init,m_final:memory. 
+  forall r:pointer set. 
+   (forall l:pointer. 
+     valid_pointer(m_init,l) ->
+     sep_region(l,r) -> forall ft:'a format. 
+         load(m_init,l,ft) = load(m_final,l,ft)) <->
+  is_havoc(m_init,r,m_final)
+
+axiom is_havoc_incr : 
+ forall m,m':memory. 
+  forall r: pointer set. 
+   forall l:pointer. forall v:'a. forall ft:'a format.
+        is_havoc (store(m,l,ft,v),r,m') ->
+        member(l,r) -> 
+	is_havoc(m,r,m')
+*)
+
+axiom is_havoc_reflexive : 
+ forall m:memory. 
+  forall r:pointer set. 
+   is_havoc(m,r,m)
+
+axiom is_havoc_transitive : 
+ forall m1,m2,m3:memory. 
+  forall r: pointer set. 
+  is_havoc(m1,r,m2) ->
+  is_havoc(m2,r,m3) ->
+  is_havoc(m1,r,m3)
+
+axiom is_havoc_equiv_region: 
+ forall m,m':memory. 
+  forall r1,r2: pointer set. 
+       equiv(r1,r2) ->
+       is_havoc(m,r1,m') ->
+       is_havoc(m,r2,m') 
+
+axiom is_havoc_store : 
+  forall m:memory. 
+ forall r: pointer set.
+ forall l:pointer. 
+ forall ft:'a format. 
+ forall v:'a. 
+   member(l,r) ->
+   is_havoc(m,r,store(m,l,ft,v)) 
+
+
+axiom is_havoc_trans : 
+  forall m,m':memory. 
+ forall r: pointer set.
+ forall l:pointer. 
+ forall ft:'a format. 
+ forall v:'a. 
+   member(l,r) -> is_havoc(m,r,m') ->
+   is_havoc(m,r,store(m',l,ft,v)) 
+
+axiom is_havoc_havoc : 
+  forall m:memory. 
+ forall r: pointer set.
+   is_havoc(m,r,havoc(m,r)) 
+
+axiom is_havoc_havoc_empty : 
+  forall m,m':memory. 
+ forall r: pointer set.
+   is_havoc(m,r,m') ->
+   is_havoc(m,r,havoc(m',empty)) 
+
+axiom is_havoc_havoc_empty_store : 
+  forall m,m':memory. 
+ forall r: pointer set.
+  forall l: pointer. forall v:'a. forall ft:'a format.
+   is_havoc(m,r,store(m',l,ft,v)) ->
+   is_havoc(m,r,store(havoc(m',empty),l,ft,v)) 
+
+
+axiom is_havoc_havoc_same:  
+ forall m,m':memory. 
+ forall r: pointer set.
+ is_havoc(m,r,m') -> is_havoc(m,r,havoc(m',r))
+
+axiom is_havoc_havoc_union_left:  
+ forall m,m':memory. 
+ forall r,r': pointer set.
+ is_havoc(m,union(r,r'),m') -> is_havoc(m,union(r,r'),havoc(m',r))
+
+axiom is_havoc_havoc_union_right:  
+ forall m,m':memory. 
+ forall r,r': pointer set.
+ is_havoc(m,union(r',r),m') -> is_havoc(m,union(r',r),havoc(m',r))
+
+
+axiom is_havoc_load_out: 
+ forall m,m':memory. 
+ forall r: pointer set.
+ forall l:pointer. 
+ forall ft:'a format.
+  is_havoc(m,r,m') -> 
+  sep_region(l,r) -> 
+  load(m',l,ft) = load(m,l,ft)  
+ 

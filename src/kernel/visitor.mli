@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: visitor.mli,v 1.21 2009-02-23 14:49:04 uid568 Exp $ *)
-
 open Cil_types
 open Db_types
 
@@ -32,8 +31,7 @@ open Db_types
     redefined in inherited classes, while the corresponding ones from
     {!Cil.cilVisitor} {b must} retain their values as defined here. Otherwise,
     annotations may not be visited properly. The replaced functions are
-    - {t vfile} (use {t vfile_aux} instead)
-    - {t vstmt} (use {t vstmt_aux} instead)
+     - {t vstmt} (use {t vstmt_aux} instead)
     - {t vglob} (use {t vglob_aux} instead)
 
     {b A few hints on how to use correctly this visitor}
@@ -111,8 +109,8 @@ val visitFramacFile: frama_c_visitor -> file -> unit
 
 (** A visitor for the whole file that does not change the globals (but maybe
  * changes things inside the globals). Use this function instead of
- * {!Cil.visitCilFile} whenever appropriate because it is more efficient for
- * long files.
+ * {!Visitor.visitFramacFile} whenever appropriate because it is more
+    efficient for long files.
     @plugin development guide *)
 val visitFramacFileSameGlobals: frama_c_visitor -> file -> unit
 
@@ -192,6 +190,6 @@ val visitFramacBehaviors:
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

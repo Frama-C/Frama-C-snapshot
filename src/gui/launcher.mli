@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,7 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** The Frama-C launcher.
+    That is the dialog box for configuring and running Frama-C with the new
+    parameter values. *)
 
+(** Subtype of {!Design.main_window_extension_points} which is required to show
+    the launcher. *)
 class type basic_main = object 
   inherit Gtk_helper.host
   method main_window: GWindow.window
@@ -27,6 +33,7 @@ class type basic_main = object
 end
 
 val show: ?height:int -> ?width:int -> host:basic_main -> unit -> unit
+  (** Display the Frama-C launcher. *)
 
 (*
 Local Variables:

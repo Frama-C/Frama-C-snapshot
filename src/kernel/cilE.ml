@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,36 +20,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cilE.ml,v 1.69 2009-03-11 09:31:39 uid528 Exp $ *)
-
 (** Cil extensions for Frama-C *)
 
 open Cil_types
 open Cilutil
 open Cil
-open Db_types
 
 let debug = false
 
-let add_predicate p =
-  if not (Logic_env.is_logic_function p.bl_name) then
-    Logic_builtin.add p
-
 let init_builtins () =
-  add_predicate
-  { bl_name = "\\pointer_comparable";
-    bl_profile = [("p1",  (Ctype Cil.voidPtrType));
-                  ("p2",  (Ctype Cil.voidPtrType))];
-    bl_type = None;
-    bl_params = [];
-    bl_labels = [];
-    (* TODO: give an explicit definition *)
-  }
+  let add t1 t2 =
+    Logic_builtin.add
+      { bl_name = "\\pointer_comparable";
+        bl_profile = [("p1",  t1); ("p2", t2)];
+        bl_type = None;
+        bl_params = [];
+        bl_labels = [];
+        (* TODO: give an explicit definition *)
+      }
+  in
+  let object_ptr = Ctype Cil.voidPtrType in
+  let fun_ptr = Ctype (TPtr(TFun(Cil.voidType,None,false,[]),[])) in
+  add object_ptr object_ptr;
+  add fun_ptr fun_ptr;
+  add object_ptr fun_ptr;
+  add fun_ptr object_ptr
 
 let () = Logic_env.Builtins.extend init_builtins
 
 let warn fmt = Cil.warn fmt
-let warn_once fmt = 
+let warn_once fmt =
   let b = Buffer.create 80 in
   let bfmt = Format.formatter_of_buffer b in
   Format.kfprintf
@@ -231,7 +232,7 @@ let warn_div warn_mode =
 	| _,SyNone -> ()
 	| _,(SyUnOp _ | SyMem _ | SySep _) -> assert false
 	| ki,SyBinOp ((Div|Mod),_,exp_d) ->
-	    let lexpr = Logic_utils.expr_to_term exp_d in
+	    let lexpr = Logic_utils.expr_to_term ~cast:true exp_d in
 	    let annotation =
               Logic_const.new_code_annotation
 		(AAssert ([],
@@ -243,45 +244,43 @@ let warn_div warn_mode =
 	|_,SyBinOp (_,_,_) -> assert false
       end
 
-let warn_signed_overflow warn_mode =
+let warn_signed_overflow warn_mode e mn mx =
   match warn_mode.others with
     Aignore -> ()
   | Acall f -> f()
   | Alog ->
-      begin
-	match get_syntactic_context () with
-	| _,SyNone -> ()
-	| _,(SyMem _ | SySep _) -> assert false
-	| ki, SyUnOp ({enode=UnOp(Neg,exp,_)}) ->
-	    ignore (ki);
-	    let _exp_l = Logic_utils.expr_to_term exp in
-	    let annotation =
-              Logic_const.new_code_annotation
-		(AAssert ([],
-			 Logic_const.ptrue,
-                         value_analysis_alarm_status ()))
+      ( match get_syntactic_context () with
+	ki, _ ->
+	  begin
+	    let exp_l = 
+	      match e.enode with
+	      | BinOp (op, l, r, _) ->
+		  let l_l = Logic_utils.expr_to_term ~cast:true l in
+		  let r_l = Logic_utils.expr_to_term ~cast:true r in
+		  TBinOp (op, l_l, r_l)
+	      | UnOp (op, ie, _) ->
+		  let ie_l = Logic_utils.expr_to_term ~cast:true ie in
+		  TUnOp (op, ie_l)
+	      | _ -> assert false
+	    in
+	    let exp_l = 
+	      Logic_const.term exp_l Linteger
+	    in
+            let lexpr = Logic_const.tinteger_s64 mn in
+            let rexpr = Logic_const.tinteger_s64 mx in
+            let p0 = Logic_const.prel(Rle, lexpr, exp_l) in
+            let p1 = Logic_const.prel(Rle, exp_l, rexpr) in
+            let p = Logic_const.pand (p0,p1) in
+            let annotation =
+              Logic_const.new_code_annotation 
+		(AAssert ([],p,value_analysis_alarm_status ()))
             in
-	    if Alarms.register ki Alarms.Signed_overflow_alarm annotation 
+	    if Alarms.register ki Alarms.Signed_overflow_alarm annotation
 	    then
-              warn "signed overflow: %a" 
+              warn "signed overflow, should be between %Ld and %Ld: %a"
+		mn mx
 		!Ast_printer.d_code_annotation annotation
-	| ki,SyBinOp ((Shiftlt|Mult|MinusPP|MinusPI|IndexPI|PlusPI|PlusA|Div|Mod|MinusA as _binop),exp_l,exp_r) ->
-	    let _l_exp_l = Logic_utils.expr_to_term exp_l in
-	    let _l_exp_r = Logic_utils.expr_to_term exp_r in
-	    let annotation =
-              Logic_const.new_code_annotation
-		(AAssert ([],
-			 Logic_const.ptrue,
-                         value_analysis_alarm_status ()))
-            in
-	    if Alarms.register ki Alarms.Signed_overflow_alarm annotation 
-	    then
-              warn "signed overflow: %a" 
-		!Ast_printer.d_code_annotation annotation
-	|_,SyBinOp ((LOr|LAnd|BOr|BXor|BAnd|Shiftrt|Eq|Ne|Ge|Le|Gt|Lt),_,_) 
-	|_,SyUnOp _ -> 
-	   assert false
-      end
+	  end)
 
 let warn_shift warn_mode size =
   match warn_mode.others with
@@ -293,7 +292,7 @@ let warn_shift warn_mode size =
     | _,SyNone -> ()
     | _,(SyUnOp _ | SyMem _ | SySep _)-> assert false
     | ki,SyBinOp ((Shiftrt | Shiftlt),_,exp_d) ->
-	let lexpr = Logic_utils.expr_to_term exp_d in
+	let lexpr = Logic_utils.expr_to_term ~cast:true exp_d in
 	let annotation =
           Logic_const.new_code_annotation
             (AAssert
@@ -323,7 +322,7 @@ let warn_mem warn_mode msg =
     | _,(SyBinOp _ | SyUnOp _ | SySep _) -> assert false
     | ki,SyMem lv_d ->
         let term = mkAddrOrStartOf lv_d in
-        let lexpr = Logic_utils.expr_to_term term in
+        let lexpr = Logic_utils.expr_to_term ~cast:true term in
         let annotation =
           Logic_const.new_code_annotation
             (AAssert ([],
@@ -347,8 +346,8 @@ let warn_index warn_mode msg =
     | _,SyNone -> ()
     | _,(SyMem _ | SyUnOp _ | SySep _) -> assert false
     | ki ,SyBinOp (IndexPI,e1,e2) ->
-        let lexpr = Logic_utils.expr_to_term e1 in
-        let rexpr = Logic_utils.expr_to_term e2 in
+        let lexpr = Logic_utils.expr_to_term ~cast:true e1 in
+        let rexpr = Logic_utils.expr_to_term ~cast:true e2 in
         let p0 = Logic_const.prel(Rle, lzero(), lexpr) in
         let p1 = Logic_const.prel(Rlt, lexpr, rexpr) in
         let p = Logic_const.pand (p0,p1) in
@@ -366,10 +365,37 @@ let warn_mem_read warn_mode = warn_mem warn_mode "read"
 let warn_mem_write warn_mode = warn_mem warn_mode "write"
 
 let comparable_pointers t1 t2 =
+  let preds = Logic_env.find_all_logic_functions "\\pointer_comparable" in
+  let cfct_ptr = TPtr (TFun(Cil.voidType,None,false,[]),[]) in
+  let fct_ptr = Ctype cfct_ptr in
+  let obj_ptr = Ctype Cil.voidPtrType in
+  let discriminate t =
+    match t.term_type with
+      | Ctype ty ->
+          (match Cil.unrollType ty with
+               TPtr(TFun _,_) ->
+                 Logic_const.term (TCastE(cfct_ptr,t)) fct_ptr, fct_ptr
+             | TPtr _  -> t, obj_ptr
+             | TInt _ when Cil.isLogicZero t -> t, obj_ptr
+             | TVoid _ | TInt _ | TFloat _ | TFun _ | TNamed _
+             | TComp _ | TEnum _ | TBuiltin_va_list _
+             | TArray _ ->
+                 Logic_const.term (TCastE(Cil.voidPtrType,t)) obj_ptr, obj_ptr)
+      | _ -> Logic_const.term (TCastE(Cil.voidPtrType,t)) obj_ptr, obj_ptr
+
+  in
+  let t1, ty1 = discriminate t1 in
+  let t2, ty2 = discriminate t2 in
   let pi =
-    match Logic_env.find_all_logic_functions "\\pointer_comparable" with
-      | [i] -> i
-      | _ -> assert false
+    try
+      List.find
+        (function
+             { l_profile = [v1; v2] } ->
+               Logic_utils.is_same_type v1.lv_type ty1 &&
+                 Logic_utils.is_same_type v2.lv_type ty2
+           | _ -> false) preds
+    with Not_found ->
+      Cilmsg.fatal "built-in predicate \\pointer_comparable not found"
   in
   Papp (pi, [], [t1;t2])
 
@@ -383,8 +409,8 @@ let warn_pointer_comparison warn_mode =
   | _,SyNone -> ()
   | _,(SyUnOp _ | SyMem _ | SySep _) -> assert false
   | ki,SyBinOp ((Eq|Ne|Ge|Le|Gt|Lt),exp_l,exp_r) ->
-      let lexpr_l = Logic_utils.expr_to_term exp_l in
-      let lexpr_r = Logic_utils.expr_to_term exp_r in
+      let lexpr_l = Logic_utils.expr_to_term ~cast:true exp_l in
+      let lexpr_r = Logic_utils.expr_to_term ~cast:true exp_r in
       let annotation =
         Logic_const.new_code_annotation
           (AAssert ([],
@@ -410,7 +436,7 @@ let result_nan_infinite op t1 t2 =
   | Div -> "/"
   | _ -> "OP"
   in
-  let op = Logic_utils.expr_to_term (dummy_exp (Const (CStr op))) in
+  let op = Logic_utils.expr_to_term ~cast:true (dummy_exp (Const (CStr op))) in
   Papp (pi, [], [op; t1; t2])
 
 let warn_result_nan_infinite warn_mode =
@@ -423,8 +449,8 @@ let warn_result_nan_infinite warn_mode =
   | _,SyNone -> ()
   | _,(SyUnOp _ | SyMem _ | SySep _) -> assert false
   | ki,SyBinOp (op, exp_l, exp_r) ->
-      let lexpr_l = Logic_utils.expr_to_term exp_l in
-      let lexpr_r = Logic_utils.expr_to_term exp_r in
+      let lexpr_l = Logic_utils.expr_to_term ~cast:true exp_l in
+      let lexpr_r = Logic_utils.expr_to_term ~cast:true exp_r in
       let annotation =
         Logic_const.new_code_annotation
           (AAssert
@@ -472,8 +498,8 @@ let warn_separated warn_mode =
             | _,SyNone -> ()
             | _,(SyBinOp _ | SyUnOp _ | SyMem _ ) -> assert false
             | ki,SySep(lv1,lv2) ->
-                let llv1 = Logic_utils.expr_to_term lv1 in
-                let llv2 = Logic_utils.expr_to_term lv2 in
+                let llv1 = Logic_utils.expr_to_term ~cast:true lv1 in
+                let llv2 = Logic_utils.expr_to_term ~cast:true lv2 in
                 let alarm =
                   Logic_const.pseparated ~loc:(Instr.loc ki) [llv1; llv2]
                 in let annotation =
@@ -482,11 +508,12 @@ let warn_separated warn_mode =
                 in
                 if Alarms.register ki Alarms.Separation_alarm annotation then
                 warn
-                  "multiple accesses in unspecified order. \
+                  "undefined multiple accesses in expression. \
                    assert \\separated(%a,%a);" d_exp lv1 d_exp lv2
         end
+
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

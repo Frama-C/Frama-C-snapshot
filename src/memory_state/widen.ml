@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -50,15 +51,15 @@ object (* visit all sub-expressions from [kf] definition *)
         SkipChildren
       in
       begin match s.skind with
-      | Loop (_, bl,_,_,_) ->
-          let annot = Annotations.get s in
+      | Loop (_, bl, _, _, _) ->
+          let annot = Annotations.get_all_annotations s in
           let l_pragma =
             Ast_info.lift_annot_list_func
               Logic_utils.extract_loop_pragma annot
           in
           let widening_stmts = match bl.bstmts with
-          | [] -> [s]
-          | x::_ -> [s;x]
+            | [] -> [ s]
+            | x :: _ -> [ s; x ]
           in
           (* Look at the loop pragmas *)
           let is_pragma_widen_variables = ref false
@@ -73,7 +74,8 @@ object (* visit all sub-expressions from [kf] definition *)
                          Base.pretty (Base.Var vi); *)
                       (vid::lv, lt)
                   | _ -> (lv, t::lt)
-                in begin match List.fold_left f ([], []) l with
+                in 
+		begin match List.fold_left f ([], []) l with
                 | (lv, []) ->
                     (* the annotation is empty or else, there are only variables *)
                     let var_hints = List.fold_right BaseSet.add lv BaseSet.empty
@@ -194,12 +196,14 @@ object (* visit all sub-expressions from [kf] definition *)
       begin
         let e1,e2 = constFold true e1, constFold true e2 in
         match (Cil.isInteger e1, Cil.isInteger e2, e1, e2) with
-        | Some int64, _, _, { enode = Lval (Var varinfo, _)} ->
+        | Some int64, _, 
+	  _, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})|Lval (Var varinfo, _))}->
 	    add
 	      (Base.create_varinfo varinfo)
 	      (add1 (Ival.Widen_Hints.V.of_int64 int64));
             SkipChildren
-        | _, Some int64, {enode = Lval (Var varinfo, _)}, _ ->
+        | _, Some int64, 
+	  {enode=(CastE(_, { enode=Lval (Var varinfo, _)})|Lval (Var varinfo, _))}, _ ->
 	    add
 	      (Base.create_varinfo varinfo)
 	      (add2 (Ival.Widen_Hints.V.of_int64 int64));

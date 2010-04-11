@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -105,28 +106,27 @@ module G :
         val dst : t -> Node.t
         val label : t -> label
       end
-    type edge = E.t
 
     val create : unit -> t
 
     val add_elem : t -> PdgIndex.Key.t -> Node.t
     val add_dpd : t -> Node.t -> 
       Dpd.td -> Locations.Zone.t option -> Node.t -> unit
-    (* val replace_dpd : t -> edge -> Dpd.t -> unit *)
-    (* val find_dpd : t -> Node.t -> Node.t -> edge * Dpd.t *)
+    (* val replace_dpd : t -> E.t -> Dpd.t -> unit *)
+    (* val find_dpd : t -> Node.t -> Node.t -> E.t * Dpd.t *)
 
     val succ : t -> Node.t -> Node.t list
     val pred : t -> Node.t -> Node.t list
 
     val iter_vertex : (Node.t -> unit) -> t -> unit
-    val iter_edges_e : (edge -> unit) -> t -> unit
-    val iter_succ_e : (edge -> unit) -> t -> Node.t -> unit
-    val fold_succ_e : (edge -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
+    val iter_edges_e : (E.t -> unit) -> t -> unit
+    val iter_succ_e : (E.t -> unit) -> t -> Node.t -> unit
+    val fold_succ_e : (E.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
     val fold_succ : (Node.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
-    val iter_pred_e : (edge -> unit) -> t -> Node.t -> unit
+    val iter_pred_e : (E.t -> unit) -> t -> Node.t -> unit
     val fold_pred : (Node.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
 
-    val edge_dpd : edge -> Dpd.t * Locations.Zone.t option
+    val edge_dpd : E.t -> Dpd.t * Locations.Zone.t option
     val pretty_edge_label : Format.formatter -> E.label -> unit
   end
 
@@ -148,7 +148,8 @@ type t_data_state =
 module Pdg :
   sig
     (** can be raised by most of the functions when called with a Top PDG.
-     * Top means that we were not abled to compute the PDG for this fonction. *)
+        Top means that we were not abled to compute the PDG for this 
+        function. *)
     exception Top
 
     exception Bottom
@@ -181,12 +182,9 @@ module Pdg :
 
     (* val get_all_direct_edges : t -> Node.t -> 
       (Dpd.t * Locations.Zone.t option * Node.t) list U*)
-
-  end
-
-module InternalPdg :
-  sig
-    type t = Pdg.t
+    val pretty : ?bw:bool -> Format.formatter -> t -> unit
+    val pretty_graph : ?bw:bool -> Format.formatter -> G.t -> unit
+    val pretty_node: Format.formatter -> Node.t -> unit
 
     type t_index = (Node.t, unit) PdgIndex.FctIndex.t
     val get_index : t -> t_index
@@ -194,9 +192,18 @@ module InternalPdg :
     (** [make fundec graph states index] *)
     val make :
       Kernel_function.t -> G.t -> t_data_state Inthash.t -> t_index -> t
-
     val get_states : t -> t_data_state Inthash.t 
+
+    val build_dot: string -> t -> unit
+  end
+
+
+(*
+module InternalPdg :
+  sig
+    type t = Pdg.t
 
     (** Be careful: this function shouldn't be used except by PDG itself ! *)
     val get_graph : t -> G.t
   end
+*)

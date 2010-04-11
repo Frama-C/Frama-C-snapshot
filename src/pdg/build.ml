@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -44,7 +45,6 @@ module G = PdgTypes.G
 module Dpd = PdgTypes.Dpd
 module FI = PdgIndex.FctIndex
 module Key = PdgIndex.Key
-module PI = PdgTypes.InternalPdg
 
 (* exception Err_Top of string *)
 exception Err_Bot of string
@@ -70,9 +70,7 @@ let is_variadic kf =
     *)
 let add_dpd_in_g graph v1 dpd_kind part_opt v2 =
   (* let part_opt = match part_opt with Some _ | None -> None in *)
-  P.debug ~level:2 "add_dpd : %a -> %a@." 
-    Macros.pretty_node v1
-    Macros.pretty_node v2;
+  P.debug "add_dpd : %a -> %a@." Macros.pretty_node v1 Macros.pretty_node v2;
   G.add_dpd graph v1 dpd_kind part_opt v2
 
 (** Module to build the PDG. *)
@@ -203,7 +201,7 @@ module BuildPdg : sig
                (PdgTypes.Node.t * Dpd.td * Locations.Zone.t) list;
              graph : G.t;
              states : State.t_states;
-             index : PdgTypes.InternalPdg.t_index;
+             index : PdgTypes.Pdg.t_index;
 
              ctrl_dpds : (SimpleNodeSet.t) InstrHashtbl.t ;
                        (** The nodes to which each stmt control-depend on.
@@ -238,7 +236,7 @@ module BuildPdg : sig
   let add_to_inputs pdg n dk zone =
     pdg.other_inputs <- (n, dk, zone) :: pdg.other_inputs
 
-  let pretty fmt pdg = Print.pretty_pdg_graph fmt (graph pdg)
+  let pretty fmt pdg = PdgTypes.Pdg.pretty_graph fmt pdg.graph
 
     (** add a node to the PDG, but if it is associated with a stmt,
         check before if it doesn't exist already (useful for loops).
@@ -247,7 +245,7 @@ module BuildPdg : sig
   let add_elem pdg key =
     let add_new_node key =
       let new_node = G.add_elem (graph pdg) key in
-      P.debug ~level:2 "add_new_node %a @." Print.pretty_node new_node;
+      P.debug "add_new_node %a @." PdgTypes.Node.pretty new_node;
       new_node
     in
     let index = nodes_index pdg in
@@ -673,7 +671,7 @@ module BuildPdg : sig
           in
           let from_table = froms.Function_Froms.deps_table in
           let new_state =
-            try Lmap_bitwise.From_Model.fold process_out from_table state 
+            try Lmap_bitwise.From_Model.fold process_out from_table state
             with Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
               process_out Locations.Zone.top (false, Locations.Zone.top) state
           in
@@ -692,8 +690,8 @@ module BuildPdg : sig
     add_ctrl_dpds pdg ;
     P.debug ~level:2 "finalize_pdg ok";
     let states = get_states pdg in
-    let pdg = PdgTypes.InternalPdg.make pdg.fct
-                               pdg.graph states pdg.index in
+    let pdg = PdgTypes.Pdg.make pdg.fct pdg.graph states pdg.index 
+    in
     pdg
 
 end
@@ -749,21 +747,19 @@ let process_args pdg st stmt argl =
    and [new_state] the state to modify.
 * Process call outputs (including returned value) *)
 let call_ouputs  pdg state_before_call state_with_inputs stmt
-      lvaloption froms fct_dpds =
+    lvaloption froms fct_dpds =
   (* be carefull to get every inputs from state_with_inputs
-  * to avoid mixing in and out *)
+   * to avoid mixing in and out *)
   let froms_deps_return = froms.Function_Froms.deps_return in
   let from_table = froms.Function_Froms.deps_table in
-    if M.has_debug 1 then
-      begin
-	let print_outputs fmt =
-	  Format.fprintf fmt "call outputs  : %a"
-            Lmap_bitwise.From_Model.pretty from_table;
-          if not (lvaloption = None) then
-            Format.fprintf fmt "\t and \\result %a@."
-              Lmap_bitwise.From_Model.LOffset.pretty froms_deps_return
-	in P.result "%t" print_outputs
-      end;
+  let print_outputs fmt =
+    Format.fprintf fmt "call outputs  : %a"
+      Lmap_bitwise.From_Model.pretty from_table;
+    if not (lvaloption = None) then
+      Format.fprintf fmt "\t and \\result %a@."
+        Lmap_bitwise.From_Model.LOffset.pretty froms_deps_return
+  in
+  Pdg_parameters.debug "%t" print_outputs;
   let new_state =
     match lvaloption with
       | None -> state_before_call
@@ -784,7 +780,7 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
       (new_state, numout+1)
   in
   let (new_state, _num) =
-    try Lmap_bitwise.From_Model.fold process_out from_table (new_state, 1) 
+    try Lmap_bitwise.From_Model.fold process_out from_table (new_state, 1)
     with  Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
       process_out Locations.Zone.top (false, Locations.Zone.top) (new_state, 1)
   in new_state
@@ -807,10 +803,11 @@ let process_call pdg state stmt lvaloption funcexp argl =
     try let froms = !Db.From.Callwise.find (Kstmt stmt) in Some froms
     with Not_found -> None (* don't have callwise analysis (-calldeps option) *)
   in
-  let process_simple_call called_kf =
+  let process_simple_call called_kf acc =
     let state_with_inputs =
       BuildPdg.process_call_params pdg state_with_args stmt called_kf arg_nodes
     in
+    let r =
       match mixed_froms with
         | Some _ -> state_with_inputs (* process outputs later *)
         | None -> (* don't have callwise analysis (-calldeps option) *)
@@ -819,8 +816,9 @@ let process_call pdg state stmt lvaloption funcexp argl =
               call_ouputs pdg state_before_call state_with_inputs
                 stmt lvaloption froms funcexp_dpds
             in state_for_this_call
+    in r :: acc
   in
-  let state_for_each_call = List.map process_simple_call called_functions in
+  let state_for_each_call = Kernel_function.Set.fold process_simple_call called_functions [] in
   let new_state =
     match state_for_each_call with
     | [] ->
@@ -945,6 +943,7 @@ module Computer (Param:sig
     let replace = Inthash.replace states
     let add = Inthash.add states
     let iter f = Inthash.iter f states
+    let length () = Inthash.length states
   end
 
 (*
@@ -1095,16 +1094,16 @@ let compute_pdg_for_f kf =
 
 let degenerated top kf =
   P.feedback "%s for function %a"
-    (if top then "Top" else "Bottom") 
+    (if top then "Top" else "Bottom")
     Kernel_function.pretty_name kf;
   if top then PdgTypes.Pdg.top kf else PdgTypes.Pdg.bottom kf
 
 let compute_pdg kf =
   if not (Db.Value.is_computed ()) then !Db.Value.compute ();
 
-  P.feedback "computing for function %a" 
+  P.feedback "computing for function %a"
     Kernel_function.pretty_name kf;
-  
+
   try
 
     if is_variadic kf then
@@ -1114,20 +1113,20 @@ let compute_pdg kf =
 
     P.feedback "done for function %a"
       Kernel_function.pretty_name kf;
-    
+
     (* Datascope.compute kf; *)
     pdg
 
   with
-    | Err_Bot what -> 
+    | Err_Bot what ->
 	P.warning "%s" what ;
 	degenerated false kf
-	  
-    | PdgTypes.Pdg_Internal_Error what -> 
+
+    | PdgTypes.Pdg_Internal_Error what ->
 	P.failure "%s" what ;
 	degenerated true kf
 
-    | State.Cannot_fold -> 
+    | State.Cannot_fold ->
 	P.failure "too imprecise value analysis : abort" ;
 	degenerated true kf
 

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: extlib.mli,v 1.16 2009-02-13 07:59:29 uid562 Exp $ *)
-
 (** Useful operations.
 
     This module does not depend of any of frama-c module.
@@ -28,8 +27,6 @@
 
 val nop: 'a -> unit
   (** Do nothing. *)
-
-val find_or_none: ('a -> 'b) -> 'a -> 'b option
 
 val adapt_filename: string -> string
   (** Ensure that the given filename has the extension "cmo" in bytecode
@@ -42,6 +39,8 @@ val adapt_filename: string -> string
    t1 is before t2 in the finite sequence
    [0; 1; ..; max_int; min_int; min_int-1; -1] *)
 val max_cpt: int -> int -> int
+
+val number_to_color: int -> int
 
 (* ************************************************************************* *)
 (** {2 Function builders} *)
@@ -79,6 +78,9 @@ val as_singleton: 'a list -> 'a
 val filter_out: ('a -> bool) -> 'a list -> 'a list
   (** Filter out elements that pass the test *)
 
+val filter_map: ('a -> bool) -> ('a -> 'b) -> 'a list -> 'b list
+  (** Combines [filter] and [map]. *)
+
 val product_fold: ('a -> 'b -> 'c -> 'a) -> 'a -> 'b list -> 'c list -> 'a
 (** [product f acc l1 l2] is similar to [fold_left f acc l12] with l12 the
     list of all pairs of an elt of [l1] and an elt of [l2]
@@ -88,6 +90,17 @@ val product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   (** [product f l1 l2] applies [f] to all the pairs of an elt of [l1] and
       an element of [l2].
    *)
+
+val find_index: ('a -> bool) -> 'a list -> int
+  (** returns the index (starting at 0) of the first element verifying the
+      condition
+      @raise Not_found if no element in the list matches the condition
+   *)
+
+val list_compare : ('a -> 'a -> int) -> 'a list -> 'a list -> int
+  (** Generic list comparison function, where the elements are compared
+      with the specified function
+      @since Boron-20100401 *)
 
 (* ************************************************************************* *)
 (** {2 Options} *)
@@ -108,8 +121,34 @@ val the: 'a option -> 'a
   (** @raise Invalid_argument if the value is none.
       @plugin development guide *)
 
+val find_or_none: ('a -> 'b) -> 'a -> 'b option
+
+val opt_equal : ('a -> 'a -> bool) -> 'a option -> 'a option -> bool
+
+val opt_compare : ('a -> 'a -> int) -> 'a option -> 'a option -> int
+  (** @since Boron-20100401 *)
+
+(* ************************************************************************* *)
+(** {2 Strings} *)
+(* ************************************************************************* *)
+
+val string_prefix: ?strict:bool -> string -> string -> bool
+  (** [string_prefix ~strict p s] returns [true] if and only if [p] is a
+      prefix of the string [s]. If [strict] is true, the prefix must be strict
+      (that is, [s] must moreover be strictly longer than [p]. [strict]
+      is false by default.
+
+      @since Boron-20100401 *)
+
+(* ************************************************************************* *)
+(** {2 Performance} *)
+(* ************************************************************************* *)
+
 external getperfcount: unit -> int = "getperfcount"
 external getperfcount1024: unit -> int = "getperfcount1024"
+
+val time: ?msg:string -> ('a -> 'b) -> 'a -> 'b
+val time1024: ?msg:string -> ('a -> 'b) -> 'a -> 'b
 
 external address_of_value: 'a -> int = "address_of_value"
 
@@ -120,18 +159,20 @@ external address_of_value: 'a -> int = "address_of_value"
 val try_finally: finally:(unit -> unit) -> ('a -> 'b) -> 'a -> 'b
 
 (* ************************************************************************* *)
-(** {2 Launching an external process} *)
+(** System commands *)
 (* ************************************************************************* *)
 
-val full_command :
-  string -> string array
-  -> stdin:Unix.file_descr
-  -> stdout:Unix.file_descr
-  -> stderr:Unix.file_descr
-  -> int
-  (** Same arguments as {Unix.create_process} but returns only when
-      execution is complete. It returns the exit code of the executed
-      process. *)
+val cleanup_at_exit: string -> unit
+  (** [cleanup_at_exit file] indicates that [file] must be removed when the
+      program exits (except if exit is caused by a signal).
+      If [file] does not exist, nothing happens. *)
+
+val temp_file_cleanup_at_exit: string -> string -> string
+  (** Similar to [Filename.temp_file] except that the temporary file will be
+      deleted at the end of the execution (see above). *)
+
+val safe_remove: string -> unit
+  (** Tries to delete a file and never fails. *)
 
 (*
 Local Variables:

@@ -81,7 +81,7 @@ let get_stmt sid = fst (Kernel_function.find_from_sid sid)
 (** build the [zone] which represents [data] before [kinst] *)
 let get_zones str_data (kinst, kf) =
   let lval_term = !Db.Properties.Interp.lval kf kinst str_data in
-  let lval = !Db.Properties.Interp.term_lval_to_lval lval_term in
+  let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Cil_types.Kstmt kinst) lval in
     Locations.valid_enumerate_bits loc
 ;;

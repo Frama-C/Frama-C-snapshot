@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -93,7 +94,7 @@ class do_it = object(self)
 	      current_stmt exp
           in
           self#join deps_callees;
-          List.iter
+          Kernel_function.Set.iter
 	    (fun kf -> self#join (!Db.Inputs.get_external kf))
 	    callees;
           List.iter

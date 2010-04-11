@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: ast_info.ml,v 1.39 2009-02-23 12:52:19 uid562 Exp $ *)
 
 open Db_types
 open Cil_types
@@ -110,13 +109,15 @@ let is_trivial_annotation = function
 let is_trivial_rooted_assertion = function
   | User ca | AI(_, ca) -> is_trivial_annotation ca.annot_content
 
-let behavior_postcondition b =
+let behavior_postcondition b k =
   let assumes =
     Logic_const.pold
       (Logic_const.pands (List.map Logic_const.pred_of_id_pred b.b_assumes))
   in
   let postcondition =
-    Logic_const.pands (List.map Logic_const.pred_of_id_pred b.b_ensures)
+    Logic_const.pands
+      (Extlib.filter_map (fun (x,_) -> x = k)
+         (Logic_const.pred_of_id_pred $ snd) b.b_post_cond)
   in
   Logic_const.pimplies (assumes,postcondition)
 
@@ -310,21 +311,16 @@ let is_cea_function name =
 
 let is_cea_alloc name = name = "Frama_C_alloc_infinite"
 let is_cea_alloc_with_validity name = name = "Frama_C_alloc_size"
-let name_cea_offset = "Frama_C_offset"
-let is_cea_offset name =  name = name_cea_offset
 let is_cea_dump_function name = name = "CEA_DUMP" || name = "Frama_C_dump_each"
-let is_frama_c_base_aligned name = name = "Frama_C_is_base_aligned"
 
 let is_frama_c_builtin n =
   is_cea_dump_function n ||
     is_cea_function n ||
     is_cea_alloc n ||
-    is_cea_alloc_with_validity n ||
-    is_cea_offset n ||
-    is_frama_c_base_aligned n
-
+    is_cea_alloc_with_validity n 
+     
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

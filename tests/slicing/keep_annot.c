@@ -20,6 +20,7 @@ void g (las * p)
   //@ assert 0.0<=p->b<=1.0;
 }
 
+//@assigns *p;
 void f (las * p)
 { g(p);
   //@ assert 0.0<=p->b<=1.0;

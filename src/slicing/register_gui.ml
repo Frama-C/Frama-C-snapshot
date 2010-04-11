@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -23,36 +24,36 @@
 
 (*i $Id: register_gui.ml,v 1.41 2009-02-05 12:35:06 uid568 Exp $ i*)
 open Cil_types
-open Cilutil 
+open Cilutil
 
-module Enable = 
+module Enable =
   Computation.Ref
     (struct include Datatype.Bool
-            let default () = false 
+            let default () = false
      end)
-    (struct 
+    (struct
        let name = "Slicing_gui.State"
        let dependencies = []
      end)
-    
-   
+
+
 (* for slicing callback *)
 let mk_selection fselect = fselect Db.Slicing.Select.empty_selects
-  
+
 (* for slicing callback *)
 let mk_selection_cad fselect =
   mk_selection fselect (!Db.Slicing.Mark.make ~ctrl:true ~addr:true ~data:true)
-    
+
 (* for slicing callback *)
 let mk_selection_all fselect =
   mk_selection fselect ~spare:false
-    
+
 (* for slicing callback *)
 let mk_slice selection =
   let n = string_of_int (1 + List.length (!Db.Slicing.Project.get_all ())) in
   let project = !Db.Slicing.Project.mk_project ("Slicing "^ n) in
     !Db.Slicing.Request.add_persistent_selection project selection ;
-    !Db.Slicing.Request.apply_all_internal project;          
+    !Db.Slicing.Request.apply_all_internal project;
     if SlicingParameters.Mode.Callers.get () then
       !Db.Slicing.Slice.remove_uncalled project;
     let new_project = !Db.Slicing.Project.extract ((!Db.Slicing.Project.get_name project)^ " export") project in
@@ -68,36 +69,41 @@ let add_item (factory:GMenu.menu GMenu.factory) ~callback name arg_opt =
       | Some arg -> (* add the menu item with its callback *)
           ignore (factory#add_item name ~callback:(fun () -> callback arg))
 
-(* To inform the user about a status. *)       
+(* To inform the user about a status. *)
 let gui_annot_info (main_ui:Design.main_window_extension_points) ~level txt =
-  if (SlicingParameters.Verbose.get () >= level) then begin
+  if (SlicingParameters.verbose_atleast level) then begin
     main_ui#annot_window#buffer#insert ((txt ()) ^ ".\n")
   end
-      
-(* To inform the user about an action. *)       
+
+(* To inform the user about an action. *)
 let gui_annot_action (main_ui:Design.main_window_extension_points) txt =
-  if (SlicingParameters.Verbose.get () >= 0) then
-    begin
-      let tag_style_italic = Gtk_helper.make_tag main_ui#annot_window#buffer ~name:"slicing:style italic" [`STYLE `ITALIC] in
-        main_ui#annot_window#buffer#insert ~tags:[tag_style_italic] ((txt ()) ^ "\n")
-    end
-      
-(* To inform the user about an error. *)       
+  if SlicingParameters.verbose_atleast 2 then
+    let tag_style_italic = 
+      Gtk_helper.make_tag 
+        main_ui#annot_window#buffer 
+        ~name:"slicing:style italic" 
+        [`STYLE `ITALIC] 
+    in
+    main_ui#annot_window#buffer#insert 
+      ~tags:[tag_style_italic] 
+      ((txt ())^"\n")
+        
+(* To inform the user about an error. *)
 let gui_mk_slice (main_ui:Design.main_window_extension_points) selection ~info =
   gui_annot_action main_ui info;
   let new_project = mk_slice selection in (* ... slicing computation *)
-  gui_annot_action main_ui 
+  gui_annot_action main_ui
     (fun () -> "Slice exported to project: " ^ (Project.name new_project));
   main_ui#rehighlight ()
 
 
-let msg_appl_compute_values = "Activating Slicing Plug-in by running Value Analysis first"      
+let msg_appl_compute_values = "Activating Slicing Plug-in by running Value Analysis first"
 let msg_help_compute_values = "Activates Slicing Plug-in by running Value Analysis first."
 let msg_help_enable_gui = "Enables/Disables the Slicing GUI."
 let msg_help_libraries = "Allows/Disallows the use of the -slicing-level option for calls to undefined functions."
 
 let gui_compute_values (main_ui:Design.main_window_extension_points) =
-  if not (Db.Value.is_computed ()) 
+  if not (Db.Value.is_computed ())
   then begin
     let tag_style_oblique = Gtk_helper.make_tag main_ui#annot_window#buffer ~name:"slicing:style oblique" [`STYLE `OBLIQUE  ; ] in
       main_ui#annot_window#buffer#insert  "[Slicing] activation requires an execution of a ";
@@ -117,17 +123,17 @@ let gui_apply_action (main_ui:Design.main_window_extension_points) f x ~info =
   gui_annot_action main_ui info
 
 let get_setting_option_text txt = "Setting option " ^ txt ^ " for the current project"
-  
+
 let gui_toggle_slice_undef (main_ui:Design.main_window_extension_points) =
   let slice_undef = not (SlicingParameters.Mode.SliceUndef.get ()) in
     gui_apply_action main_ui SlicingParameters.Mode.SliceUndef.set slice_undef
       ~info:(fun () ->
-               
+
                if slice_undef then (get_setting_option_text "-slice-undef-functions" )^
                  ". Allow the use of the slicing level for calls to undefined functions"
                else (get_setting_option_text "-no-slice-undef-functions") ^
                  ". Forbid the slicing of prototypes of undefined functions")
-    
+
 let gui_set_project (main_ui:Design.main_window_extension_points) proj_opt =
   gui_apply_action main_ui !Db.Slicing.Project.set_project proj_opt
     ~info:(fun () ->
@@ -135,15 +141,15 @@ let gui_set_project (main_ui:Design.main_window_extension_points) proj_opt =
                (fun project -> ("Highlighting for " ^ (!Db.Slicing.Project.get_name project)))
                proj_opt) ;
   main_ui#rehighlight ()
-      
+
 let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
-    (main_ui:Design.main_window_extension_points) ~button localizable = 
-  if (not (Db.Value.is_computed ())) || not (Enable.get ())  
+    (main_ui:Design.main_window_extension_points) ~button localizable =
+  if (not (Db.Value.is_computed ())) || not (Enable.get ())
   then
-    ignore 
+    ignore
       (popup_factory#add_item "_Slicing ..."
 	 ~callback:
-	 (fun () -> 
+	 (fun () ->
 	    if (not (Db.Value.is_computed ()))
 	    then gui_compute_values main_ui ;
 	    if Db.Value.is_computed ()
@@ -151,12 +157,12 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
   else
     let slicing_project = !Db.Slicing.Project.get_project () in
     if button = 1 then
-      begin let level = 0 in
+      begin let level = 1 in
       let slicing_view project =
         gui_annot_info main_ui ~level (fun () -> "Highlighting for " ^ (!Db.Slicing.Project.get_name project))
-      in 
+      in
       Extlib.may slicing_view slicing_project;
-      if SlicingParameters.Verbose.get () > level then begin
+      if SlicingParameters.verbose_atleast level then begin
         let slicing_mark project =
           let slicing_mark kf get_mark =
             (* use -slicing-debug -verbose to get slicing mark information *)
@@ -189,18 +195,18 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
           | Pretty_source.PVDecl (Some kf,vi) -> slicing_mark kf (fun slice -> !Db.Slicing.Slice.get_mark_from_local_var slice vi)
           | _ -> ()
         in Extlib.may slicing_mark slicing_project
-      end 
-      end 
+      end
+      end
     else if button = 3 then begin
       let submenu = popup_factory#add_submenu "Slicing" in
-      let slicing_factory = 
-        new Design.protected_menu_factory (main_ui:>Gtk_helper.host) submenu 
+      let slicing_factory =
+        new Design.protected_menu_factory (main_ui:>Gtk_helper.host) submenu
       in
-      (* definitions for slicing plug-in *)        
+      (* definitions for slicing plug-in *)
       let add_slicing_item name = add_item slicing_factory name in
       let mk_slice = gui_mk_slice main_ui in
       let add_slice_menu kf_opt kf_ki_opt =
-        
+
         add_slicing_item "Slice calls to"
           kf_opt
           ~callback:(fun kf ->
@@ -210,7 +216,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                          ((mk_selection_all !Db.Slicing.Select.select_func_calls_to) kf));
         add_slicing_item "Slice calls into"
           kf_opt
-          ~callback:(fun kf -> 
+          ~callback:(fun kf ->
                        mk_slice
                          ~info:(fun () -> Pretty_utils.sfprintf "Request for slicing entrance into function %a"
                                   Kernel_function.pretty_name kf)
@@ -298,15 +304,15 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
                                   ki.sid)
                          ((mk_selection_all !Db.Slicing.Select.select_stmt_ctrl) ki kf))
       in
-      let some_kf_from_vi vi = 
+      let some_kf_from_vi vi =
 	try let kf = Globals.Functions.get vi in
         if Enable.get () && !Db.Value.is_called kf then Some kf else None
         with Not_found -> None in
-      let some_kf_from_lv  lv = 
+      let some_kf_from_lv  lv =
         match lv with
         | Var vi,_ -> some_kf_from_vi vi
         | _ -> None in
-      let some_kf_ki kf ki = 
+      let some_kf_ki kf ki =
 	if Enable.get ()
           && !Db.Value.is_called kf
           && Db.Value.is_accessible (Cil_types.Kstmt ki)
@@ -343,26 +349,33 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
            | None -> add_highlight_menu (Some()))
         projects;
     end
-        
-let slicing_highlighter 
-    (buffer:GSourceView.source_buffer) localizable ~start ~stop =
+
+let slicing_highlighter
+    (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
   if Enable.get () then begin
     (* Definition for highlight 'Slicing' *)
     let highlight project =
-      let ki = match localizable with 
-        | Pretty_source.PStmt (_,stmt) 
+      let ki = match localizable with
+        | Pretty_source.PStmt (_,stmt)
 	| Pretty_source.PCodeAnnot (_,stmt,_) -> Kstmt stmt
-        | Pretty_source.PLval (_,ki,_) | Pretty_source.PTermLval(_,ki,_) 
-        | Pretty_source.PPredicate (_,ki,_) -> ki
-        | Pretty_source.PVDecl _ | Pretty_source.PGlobal _ 
+        | Pretty_source.PLval (_,ki,_) | Pretty_source.PTermLval(_,ki,_)
+        | Pretty_source.PAssigns (_,ki,_,_)
+        | Pretty_source.PPredicate (_,ki,_)
+        | Pretty_source.PPost_cond (_,ki,_,_)
+        | Pretty_source.PAssumes (_,ki,_,_)
+        | Pretty_source.PDisjoint_behaviors (_,ki,_)
+        | Pretty_source.PComplete_behaviors (_,ki,_)
+        | Pretty_source.PTerminates (_,ki,_)| Pretty_source.PVariant (_,ki,_)
+        | Pretty_source.PRequires (_,ki,_,_) -> ki
+        | Pretty_source.PVDecl _ | Pretty_source.PGlobal _
         | Pretty_source.PBehavior _ -> Kglobal
       in
-      if Db.Value.is_accessible ki then 
-        let unused_code_area = 
+      if Db.Value.is_accessible ki then
+        let unused_code_area =
 	  Gtk_helper.make_tag buffer ~name:"slicing_unused" [`STRIKETHROUGH true ] in
-        let spare_code_area = 
+        let spare_code_area =
 	  Gtk_helper.make_tag buffer ~name:"slicing_spare" [`UNDERLINE `LOW] in
-        let necessary_code_area = 
+        let necessary_code_area =
 	  Gtk_helper.make_tag buffer ~name:"slicing_necessary" [`BACKGROUND "green"] in
         let apply_on_one_project_and_merge_slices kf pb pe mark_of_slice =
           let apply_mark mark =
@@ -424,31 +437,38 @@ let slicing_highlighter
 	      pe
 	      (fun _ slice -> !Db.Slicing.Slice.get_mark_from_local_var slice vi)
         in
-        match localizable with 
+        match localizable with
         | Pretty_source.PStmt (kf,stmt) -> tag_stmt kf stmt start stop
-        | Pretty_source.PVDecl (Some kf,vi) -> tag_vdecl kf vi start stop 
+        | Pretty_source.PVDecl (Some kf,vi) -> tag_vdecl kf vi start stop
         | Pretty_source.PVDecl (None,_)
         | Pretty_source.PLval _
         | Pretty_source.PCodeAnnot _
-        | Pretty_source.PTermLval _ 
-	| Pretty_source.PGlobal _ 
-        | Pretty_source.PBehavior _ | Pretty_source.PPredicate _ -> ()
-    in 
+        | Pretty_source.PTermLval _
+	| Pretty_source.PGlobal _
+        | Pretty_source.PBehavior _ | Pretty_source.PPredicate _
+        | Pretty_source.PAssigns _
+        | Pretty_source.PPost_cond _
+        | Pretty_source.PAssumes _
+        | Pretty_source.PDisjoint_behaviors _
+        | Pretty_source.PComplete_behaviors _
+        | Pretty_source.PTerminates _| Pretty_source.PVariant _
+        | Pretty_source.PRequires _ -> ()
+    in
     let slicing_project = !Db.Slicing.Project.get_project () in
     (* 2. Highlights the 'Slicing' *)
-    Extlib.may highlight slicing_project         
+    Extlib.may highlight slicing_project
   end
 
 let none_text = "<i>None</i>"
 
-let rebuild_model ((_, (model, _column)) as combo_box_text) = 
+let rebuild_model ((_, (model, _column)) as combo_box_text) =
   model#clear ();
   GEdit.text_combo_add combo_box_text none_text;
-  List.iter 
-    (fun p -> GEdit.text_combo_add combo_box_text (!Db.Slicing.Project.get_name p)) 
+  List.iter
+    (fun p -> GEdit.text_combo_add combo_box_text (!Db.Slicing.Project.get_name p))
     (List.rev (!Db.Slicing.Project.get_all()))
 
-let refresh_combo_box ((combo_box, (model, _column)) as combo_box_text) 
+let refresh_combo_box ((combo_box, (model, _column)) as combo_box_text)
     slicing_project sensitive =
   let nb_combo_elts = model#iter_n_children None in
   let projects = List.rev (!Db.Slicing.Project.get_all()) in
@@ -466,25 +486,25 @@ let refresh_combo_box ((combo_box, (model, _column)) as combo_box_text)
   combo_box#set_active !nth_proj;
   combo_box#misc#set_sensitive sensitive
 
-    
+
 let gui_set_slicing_debug (main_ui:Design.main_window_extension_points) v =
   let old = SlicingParameters.Verbose.get () in
-    if v != old then (* Otherwise set is done at every refreshing *)
+    if v <> old then (* Otherwise set is done at every refreshing *)
       gui_apply_action main_ui SlicingParameters.Verbose.set v
         ~info:(fun () -> get_setting_option_text ("-slicing-debug \"-debug " ^ (string_of_int v) ^ "\""))
-    
+
 let gui_set_slicing_level (main_ui:Design.main_window_extension_points) v =
   let old = SlicingParameters.Mode.Calls.get () in
     if v != old then (* Otherwise set is done at every refreshing *)
       gui_apply_action main_ui SlicingParameters.Mode.Calls.set v
         ~info:(fun () -> get_setting_option_text ("-slicing-level " ^ (string_of_int v)))
-        
+
 let gui_set_slicing_undef_functions (main_ui:Design.main_window_extension_points) v =
   let old = SlicingParameters.Mode.SliceUndef.get () in
     if v != old then (* Otherwise set is done at every refreshing *)
       gui_apply_action main_ui SlicingParameters.Mode.SliceUndef.set v
         ~info:(fun () -> get_setting_option_text (if v then "-slicing-undef-functions" else "-no-slice-undef-functions"))
-        
+
 let slicing_panel (main_ui:Design.main_window_extension_points) =
   let w = GPack.vbox  () in
   let hbox1 = GPack.hbox
@@ -495,7 +515,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
       main_ui#help_message b "%s" msg_help_compute_values ;
       ignore (b#connect#pressed
                 (fun () -> gui_compute_values main_ui ));
-      
+
       b
   in
   let combo_box_text =
@@ -507,7 +527,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
                 (fun () ->
                    match combo_box#active_iter with
                      | None -> ()
-                     | Some row -> 
+                     | Some row ->
                          let slicing_project_name =
                            (* get the text entry related to the current slicing project *)
                            Extlib.may_map !Db.Slicing.Project.get_name ~dft:none_text (!Db.Slicing.Project.get_project ())
@@ -521,27 +541,27 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
       combo_box_text
   in
   let table = GPack.table ~columns:2 ~rows:2 ~homogeneous:true ~packing:w#pack () in
-    
+
   let hbox2 = GPack.hbox ~packing:(table#attach ~left:1 ~top:0) () in
-    
-  (* [enabled_button] to give slicing menu available *)    
-  let enable_refresh () = 
+
+  (* [enabled_button] to give slicing menu available *)
+  let enable_refresh () =
     gui_compute_values main_ui ;
     main_ui#rehighlight ()
-  in 
+  in
   let enabled_button =
-    let b = GButton.check_button 
+    let b = GButton.check_button
       ~label:"Enable"
       ~active:(Enable.get ())
       ~packing:(table#attach ~left:0 ~top:0) () in
       main_ui#help_message b "%s" msg_help_enable_gui ;
-      ignore (b#connect#toggled 
-                ~callback:(fun () -> 
+      ignore (b#connect#toggled
+                ~callback:(fun () ->
                              Enable.set b#active;
                              enable_refresh ()));
       b
   in
-  let verbose_refresh = Gtk_helper.on_int ~lower:0 ~upper:3 
+  let verbose_refresh = Gtk_helper.on_int ~lower:0 ~upper:3
     hbox2
     "Verbosity"
      ~sensitive:Enable.get
@@ -549,9 +569,9 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
     (gui_set_slicing_debug main_ui)
   in
   let hbox3 = GPack.hbox ~packing:(table#attach ~left:1 ~top:1) () in
-    (* [slice_undef_button] related to -slice-undef option *)    
+    (* [slice_undef_button] related to -slice-undef option *)
   let slice_undef_button =
-    let b = GButton.check_button 
+    let b = GButton.check_button
       ~label:"Libraries"
       ~active:(Enable.get ())
       ~packing:(table#attach ~left:0 ~top:1) () in
@@ -562,10 +582,10 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
       b
   in
   let level_refresh = Gtk_helper.on_int ~lower:0 ~upper:3
-    hbox3 
+    hbox3
     "Level"
     ~sensitive:Enable.get
-    SlicingParameters.Mode.Calls.get 
+    SlicingParameters.Mode.Calls.get
     (gui_set_slicing_level main_ui)
   in
     Project.register_after_set_current_hook
@@ -579,31 +599,31 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
       activate_button#misc#set_sensitive (not value_is_computed) ;
       enabled_button#misc#set_sensitive value_is_computed ;
       slice_undef_button#misc#set_sensitive enabled ;
-      
+
       verbose_refresh ();
       level_refresh ();
 
-      if enabled_button#active <> enabled then 
+      if enabled_button#active <> enabled then
 	begin
           enabled_button#set_active enabled ;
           enable_refresh ();
 	end;
 
       slice_undef_button#set_active (SlicingParameters.Mode.SliceUndef.get());
-  
+
       ignore (refresh_combo_box combo_box_text slicing_project (enabled && value_is_computed))
-    in 
+    in
     refresh () ;
     "Slicing",w#coerce,Some refresh
-        
-let file_tree_decorate (file_tree:Filetree.t) = 
-  file_tree#append_pixbuf_column 
-    "Slicing"  
-    (fun globs -> 
+
+let file_tree_decorate (file_tree:Filetree.t) =
+  file_tree#append_pixbuf_column
+    "Slicing"
+    (fun globs ->
        Extlib.may_map
          (fun project ->
             if (List.exists
-                  (fun glob -> match glob with 
+                  (fun glob -> match glob with
                      | GFun ({svar = vi},_ ) ->
                          begin
                            try
@@ -612,9 +632,9 @@ let file_tree_decorate (file_tree:Filetree.t) =
                                 || ( [] != (!Db.Slicing.Slice.get_all project kf))
                            with Not_found -> false
                          end
-                     |  _ -> false) 
+                     |  _ -> false)
                   globs) then
-              [`STOCK_ID "gtk-yes"]
+              [`STOCK_ID "gtk-apply"]
             else
               [`STOCK_ID ""])
          ~dft:[`STOCK_ID ""]
@@ -633,5 +653,3 @@ Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"
 End:
 *)
-
-

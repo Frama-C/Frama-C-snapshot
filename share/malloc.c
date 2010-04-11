@@ -2,8 +2,9 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2009                                               */
-/*    CEA (Commissariat à l'Énergie Atomique)                             */
+/*  Copyright (C) 2007-2010                                               */
+/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
 /*  Lesser General Public License as published by the Free Software       */
@@ -55,13 +56,13 @@ extern void*Frama_C_alloc_infinite(const char *);
 */
 #define FRAMA_C_STRINGIFY(x) #x
 #define FRAMA_C_XSTRINGIFY(x) FRAMA_C_STRINGIFY(x)
-#define malloc(x) (Frama_C_malloc_at_pos(x,__FILE__ "_function_" __func__ "_line_" FRAMA_C_XSTRINGIFY(__LINE__)))
+#define malloc(x) (Frama_C_malloc_at_pos(x,__FILE__ "_line_" FRAMA_C_XSTRINGIFY(__LINE__)))
 #define FRAMA_C_LOCALIZE_WARNING(x) (x " file " __FILE__ " line " FRAMA_C_XSTRINGIFY(__LINE__))
 #define FRAMA_C_VALID 1
 #define FRAMA_C_FREED 2
 
- static void *Frama_C_malloc_at_pos(size_t size,const char* file) {
-   static counter = 0;
+static void *Frama_C_malloc_at_pos(size_t size,const char* file) {
+  static int counter = 0;
   counter++;
   char *base = Frama_C_alloc_infinite(file);
   char *tag = Frama_C_alloc_infinite(base);

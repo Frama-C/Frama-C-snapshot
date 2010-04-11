@@ -2,8 +2,9 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2009                                               */
-/*    CEA   (Commissariat à l'Énergie Atomique)                           */
+/*  Copyright (C) 2007-2010                                               */
+/*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
+/*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
 /*                                                                        */
@@ -66,31 +67,35 @@
 
   let is_rt_type () = !rt_type
 
+  let loc_decl d = { decl_node = d; decl_loc = loc () }
+
 %}
 
 %token <string> IDENTIFIER TYPENAME
 %token <bool*string> STRING_LITERAL
 %token <Logic_ptree.constant> CONSTANT
 %token LPAR RPAR IF ELSE COLON COLON2 COLONCOLON DOT DOTDOT DOTDOTDOT
-%token INT INTEGER REAL FLOAT LT GT LE GE EQ NE COMMA ARROW EQUAL
+%token INT INTEGER REAL BOOLEAN FLOAT LT GT LE GE EQ NE COMMA ARROW EQUAL
 %token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AT RESULT BLOCK_LENGTH BASE_ADDR
 %token VALID VALID_INDEX VALID_RANGE FRESH DOLLAR
 %token QUESTION MINUS PLUS STAR AMP SLASH PERCENT LSQUARE RSQUARE EOF
 %token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT SEMICOLON NULL EMPTY
 %token REQUIRES ENSURES ASSIGNS LOOP NOTHING SLICE IMPACT PRAGMA FROM
-%token READS LOGIC PREDICATE INDUCTIVE AXIOMATIC AXIOM LEMMA LBRACE RBRACE GHOST CASE
+%token EXITS BREAKS CONTINUES RETURNS
+%token READS LOGIC PREDICATE INDUCTIVE AXIOMATIC AXIOM LEMMA LBRACE RBRACE
+%token GHOST CASE
 %token VOID CHAR SIGNED UNSIGNED SHORT LONG DOUBLE STRUCT ENUM UNION
 %token BSUNION INTER
 %token LTCOLON COLONGT TYPE BEHAVIOR BEHAVIORS ASSUMES COMPLETE DISJOINT
 %token TERMINATES
 %token HAT HATHAT PIPE TILDE GTGT LTLT
-%token SIZEOF LAMBDA
+%token SIZEOF LAMBDA LET
 %token TYPEOF BSTYPE
 
 %right prec_named
 %nonassoc IDENTIFIER TYPENAME SEPARATED
-%nonassoc prec_forall prec_exists prec_lambda
+%nonassoc prec_forall prec_exists prec_lambda LET
 %right QUESTION prec_question
 %right IMPLIES IFF
 %left OR
@@ -111,8 +116,8 @@
 %left DOT ARROW LSQUARE
 %right prec_par
 
-%type <Logic_ptree.lexpr> lexpr
-%start lexpr
+%type <Logic_ptree.lexpr> lexpr_eof
+%start lexpr_eof
 
 %type <Logic_ptree.annot> annot
 %start annot
@@ -153,7 +158,7 @@ ne_lexpr_list:
 ;
 
 lexpr_rel:
-| lexpr_inner %prec prec_no_rel { $1 }
+| lexpr_end_rel %prec prec_no_rel { $1 }
 | lexpr_inner rel_list %prec prec_rel_list
       { let rel, rhs, _, oth_rel = $2 in
         let loc = loc_start $1, loc_end rhs in
@@ -254,24 +259,30 @@ relation:
   | GE    { Ge }
   | EQ    { Eq }
   | NE    { Neq }
+    /* C. Marche: added to produce better error messages */
+  | EQUAL {
+      let l = loc () in
+      raise
+        (Not_well_formed(l,
+                         "Assignment operators not allowed in annotations."))
+    }
+
 ;
 
 range:
 | lexpr_option DOTDOT lexpr_option { info (PLrange($1,$3)) }
 
+lexpr_eof:
+| lexpr EOF { $1 }
+;
+
 lexpr:
   /* predicates */
-  lexpr IMPLIES lexpr { info (PLimplies ($1, $3)) }
+| lexpr IMPLIES lexpr { info (PLimplies ($1, $3)) }
 | lexpr IFF lexpr { info (PLiff ($1, $3)) }
 | lexpr OR lexpr     { info (PLor ($1, $3)) }
 | lexpr AND lexpr    { info (PLand ($1, $3)) }
 | lexpr HATHAT lexpr    { info (PLxor ($1, $3)) }
-| FORALL binders SEMICOLON lexpr  %prec prec_forall
-      { info (PLforall ($2, $4)) }
-| EXISTS binders SEMICOLON lexpr  %prec prec_exists
-      { info (PLexists ($2, $4)) }
-| LAMBDA binders SEMICOLON lexpr  %prec prec_lambda
-      { info (PLlambda ($2,$4)) }
 /* terms */
 | lexpr AMP lexpr { info (PLbinop ($1, Bbw_and, $3)) }
 | lexpr PIPE lexpr { info (PLbinop ($1, Bbw_or, $3)) }
@@ -280,11 +291,23 @@ lexpr:
     { info (PLif ($1, $3, $5)) }
 /* both terms and predicates */
 | identifier COLON lexpr %prec prec_named { info (PLnamed ($1, $3)) }
+| TYPENAME COLON lexpr %prec prec_named { info (PLnamed ($1, $3)) }
 | lexpr_rel %prec prec_rel_list { $1 }
 ;
 
+lexpr_end_rel:
+  lexpr_inner %prec prec_no_rel { $1 }
+| LET identifier EQUAL lexpr SEMICOLON lexpr %prec LET {info (PLlet($2,$4,$6))}
+| FORALL binders SEMICOLON lexpr  %prec prec_forall
+      { info (PLforall ($2, $4)) }
+| EXISTS binders SEMICOLON lexpr  %prec prec_exists
+      { info (PLexists ($2, $4)) }
+| LAMBDA binders SEMICOLON lexpr  %prec prec_lambda
+      { info (PLlambda ($2,$4)) }
+;
+
 rel_list:
-  relation lexpr_inner %prec prec_rel_list
+  relation lexpr_end_rel %prec prec_rel_list
   { $1, $2, fst(relation_sense $1 Unknown), None }
 | relation lexpr_inner rel_list %prec prec_rel_list
   {
@@ -334,21 +357,31 @@ decl_spec:
 ;
 
 var_spec:
-|       var_spec_bis { $1 }
+|       var_spec_bis { let (outer, inner,name) = $1 in
+                       ((fun x -> outer (inner x)), name)}
 | stars var_spec_bis
-  { let (modif, name) = $2 in
-      ((fun x -> $1 (modif x)), name) }
+  { let (outer, inner, name) = $2 in
+      ((fun x -> outer (inner ($1 x))), name) }
+;
+
+constant_option:
+  CONSTANT { Some $1 }
+| /* empty */ { None }
 ;
 
 var_spec_bis:
-| identifier     { ((fun x -> x), $1) }
-| var_spec_bis LSQUARE lexpr_option RSQUARE
-      { (* TODO: use size information for LTarray - $3 *)
-        let (modif, name) = $1 in
-          ((fun x -> LTarray (modif x)), name)
+| identifier     { ((fun x -> x),(fun x -> x), $1) }
+| var_spec_bis LSQUARE constant_option RSQUARE
+      {
+        let (outer, inner, name) = $1 in
+          (outer, (fun x -> inner (LTarray (x,$3))), name)
       }
-| LPAR var_spec RPAR { $2 }
-| var_spec_bis LPAR abs_param_type_list RPAR { (* TODO *) raise Parse_error }
+| LPAR var_spec RPAR { let (modif, name) = $2 in (modif, (fun x -> x), name) }
+| var_spec_bis LPAR abs_param_type_list RPAR
+      { let (outer, inner,name) = $1 in
+        let params = $3 in
+        (outer, (fun x -> inner (LTarrow (params,x))), name)
+      }
 ;
 
 abs_param_type_list:
@@ -366,7 +399,7 @@ abs_param_list:
 since its name can be omitted
 */
 abs_param:
-| parameter { $1 }
+| logic_type { $1 }
 ;
 
 /*** restricted type expressions ***/
@@ -408,11 +441,12 @@ abs_spec:
 | stars abs_spec_bis      %prec TYPENAME { fun t -> $2 ($1 t) }
 | stars abs_spec_bis tabs                { fun t -> $2 ($3 ($1 t)) }
 |       abs_spec_bis tabs                { fun t -> $1 ($2 t) }
+|       abs_spec_bis      %prec TYPENAME { $1 }
 ;
 
 abs_spec_bis:
 | LPAR abs_spec RPAR { $2 }
-| abs_spec_bis LPAR abs_param_type_list RPAR { (* TODO *) raise Parse_error };
+| abs_spec_bis LPAR abs_param_type_list RPAR { fun t -> $1 (LTarrow($3,t)) };
 ;
 
 stars:
@@ -421,19 +455,20 @@ stars:
 ;
 
 tabs:
-| LSQUARE lexpr_option RSQUARE %prec TYPENAME
-    {  (* TODO: use size information for LTarray - $2 *)
-      fun t -> LTarray t
+| LSQUARE constant_option RSQUARE %prec TYPENAME
+    {
+      fun t -> LTarray (t,$2)
     }
-| LSQUARE lexpr_option RSQUARE tabs
-    {  (* TODO: use size information for LTarray - $2 *)
-      fun t -> LTarray ($4 t)
+| LSQUARE constant_option RSQUARE tabs
+    {
+      fun t -> (LTarray ($4 t,$2))
     }
 ;
 
 type_spec:
 | INTEGER        { LTinteger }
 | REAL           { LTreal }
+| BOOLEAN        { LTnamed (Utf8_logic.boolean,[]) }
 | VOID           { LTvoid }
 | CHAR           { LTint IChar }       /** [char] */
 | SIGNED CHAR    { LTint ISChar }      /** [signed char] */
@@ -489,6 +524,10 @@ full_identifier:
 enter_kw_c_mode identifier exit_kw_c_mode { $2 }
 ;
 
+full_identifier_or_typename:
+enter_kw_c_mode identifier_or_typename exit_kw_c_mode { $2 }
+;
+
 full_parameters:
 enter_kw_c_mode ne_parameters exit_kw_c_mode { $2 }
 ;
@@ -532,12 +571,20 @@ requires:
 behavior_body:
   /* epsilon */ { [],[],[] }
 | ne_behavior_body { $1 }
+;
+
+post_cond:
+  ENSURES { Normal }
+| EXITS   { Exits }
+| BREAKS  { Breaks }
+| CONTINUES { Continues }
+| RETURNS { Returns }
 
 ne_behavior_body:
 | ASSUMES full_lexpr SEMICOLON behavior_body
     { let a,b,c = $4 in $2::a,b,c }
-| ENSURES full_lexpr SEMICOLON behavior_body
-    { let a,b,c = $4 in a,$2::b,c }
+| post_cond full_lexpr SEMICOLON behavior_body
+    { let a,b,c = $4 in a,($1,$2)::b,c }
 | ASSIGNS full_assigns SEMICOLON behavior_body
     { let a,b,c = $4 in
       let assigns =
@@ -551,7 +598,7 @@ ne_behavior_body:
     }
 /* Grammar Extensibility for plugins
 | identifier ENSURES string SEMICOLON behavior_body
-	{ 
+	{
 	  let custom_parser, typing_function = H.find $1 in
 	   {custom_name=$1;
 	    custom_type = typing_function;
@@ -564,74 +611,90 @@ ne_behavior_body:
 
 behaviors:
   /* epsilon */ { [] }
-| BEHAVIOR full_identifier COLON behavior_body behaviors
+| BEHAVIOR full_identifier_or_typename COLON behavior_body behaviors
       { let (assumes,ensures,assigns) = $4 in
         Logic_utils.check_assigns ~loc:(loc()) assigns;
         {b_name=$2; b_assumes = assumes;
-         b_ensures = ensures;
+         b_post_cond = ensures;
          b_assigns = assigns}::$5 }
 ;
 
 simple_behavior_body:
+/*
   behavior_body terminates behavior_body
       { let (assumes1, ensures1, assigns1) = $1 in
         let (assumes2, ensures2,assigns2) = $3 in
         (Some $2, (assumes1 @ assumes2,
                       ensures1 @ ensures2, assigns1 @ assigns2))
       }
-| behavior_body { (None, $1) }
+*/
+| behavior_body { ((*None,*) $1) }
 ;
 
 behaviors_or_default:
 | simple_behavior_body behaviors
-    { let (terminates,(assumes,ensures,assigns)) = $1 in
+    { let ((* terminates, *)(assumes,ensures,assigns)) = $1 in
       let behaviors =
         if (*TODO: enforce to have a default behavior true || *)
            assumes <> [] || ensures <> [] || assigns <> [] then
           { b_name = "default";b_assumes = assumes;
-            b_ensures = ensures;
+            b_post_cond = ensures;
             b_assigns = assigns} :: $2
         else $2
       in
-      terminates, behaviors
+      (* terminates, *)behaviors
     }
 ;
 
-terminates: TERMINATES lexpr SEMICOLON { $2 }
+terminates:
+| /* epsilon */              { None }
+| TERMINATES lexpr SEMICOLON { Some $2 }
 ;
 
-ne_full_identifier_list:
-  full_identifier { [$1] }
-| full_identifier COMMA ne_full_identifier_list {$1 :: $3}
+ne_full_identifier_or_typename_list:
+  full_identifier_or_typename { [$1] }
+| full_identifier_or_typename COMMA ne_full_identifier_or_typename_list
+      {$1 :: $3}
+;
+
+full_identifier_or_typename_list:
+  /* epsilon */ { [] }
+| ne_full_identifier_or_typename_list { $1 }
 ;
 
 complete_or_disjoint:
   /* epsilon */ { [],[] }
-| COMPLETE BEHAVIORS ne_full_identifier_list SEMICOLON complete_or_disjoint
+| COMPLETE BEHAVIORS full_identifier_or_typename_list SEMICOLON
+      complete_or_disjoint
       { let (complete,disjoint) = $5 in ($3::complete, disjoint) }
-| DISJOINT BEHAVIORS ne_full_identifier_list SEMICOLON complete_or_disjoint
+| DISJOINT BEHAVIORS full_identifier_or_typename_list SEMICOLON
+          complete_or_disjoint
       { let (complete,disjoint) = $5 in (complete, $3::disjoint) }
 
 spec:
-  requires behaviors_or_default complete_or_disjoint decreases
+  requires terminates decreases behaviors_or_default complete_or_disjoint EOF
       {
         { spec_requires = $1;
-          spec_behavior = snd $2;
-          spec_variant = $4;
-          spec_terminates = fst $2;
-          spec_complete_behaviors = fst $3;
-          spec_disjoint_behaviors = snd $3;
+          spec_terminates = $2;
+          spec_variant = $3;
+          spec_behavior = $4;
+          spec_complete_behaviors = fst $5;
+          spec_disjoint_behaviors = snd $5;
         },loc() }
 ;
 
 /* Spec are parsed after the function prototype itself. This rule distinguishes
-   between spec and other annotations by the first key word of the annotation.
+   between spec and other annotations by the first keyword of the annotation.
    in order to return the appropriate token in clexer.mll
 */
 is_spec:
   REQUIRES { () }
 | BEHAVIOR { () }
 | ENSURES { () }
+| EXITS { () }
+| BREAKS { () }
+| CONTINUES { () }
+| RETURNS { () }
 | ASSIGNS { () }
 | DECREASES { () }
 | TERMINATES { () }
@@ -658,7 +721,7 @@ loop_annot_stack:
     { let (i,a,b,v,p) = $2 in ($1::i,a,b,v,p) }
 | loop_effects loop_annot_opt
     { let (i,a,b,v,p) = $2 in (i,$1 @ a,b,v,p) }
-| FOR ne_full_identifier_list COLON loop_annot_opt
+| FOR ne_full_identifier_or_typename_list COLON loop_annot_opt
     { let (i,a,b,v,p) = $4 in
       let behav = $2 in
       let invs = List.map (fun i -> AInvariant(behav,true,i)) i in
@@ -707,7 +770,7 @@ decreases:
 code_annotation:
   slice_pragma     { APragma (Slice_pragma $1) }
 | impact_pragma    { APragma (Impact_pragma $1) }
-| FOR ne_full_identifier_list COLON ASSERT full_lexpr SEMICOLON
+| FOR ne_full_identifier_or_typename_list COLON ASSERT full_lexpr SEMICOLON
       { AAssert ($2,$5,{status=Cil_types.Unknown}) }
 | ASSERT full_lexpr SEMICOLON    { AAssert ([],$2,{status=Cil_types.Unknown}) }
 | INVARIANT full_lexpr SEMICOLON { AInvariant ([],false,$2) }
@@ -784,19 +847,19 @@ poly_id_type_add_typename:
 | poly_id_type { let (id,_) = $1 in Logic_env.add_typename id; $1 }
 
 poly_id:
-| poly_id_type { let (name,ty_vars) = $1 in
-                 (name,[],ty_vars)
-               }
-| full_identifier LBRACE ne_label_list RBRACE {
-    enter_type_variables_scope [];
-    ($1,$3,[]) }
-| full_identifier LBRACE ne_label_list RBRACE LT ne_tvar_list GT {
-    enter_type_variables_scope $6;
-    $1,$3,$6
-  }
+| poly_id_type { let (id,tvar) = $1 in (id,[],tvar) }
+| full_identifier LBRACE ne_label_list RBRACE
+      { enter_type_variables_scope []; ($1,$3,[]) }
+| full_identifier LBRACE ne_label_list RBRACE LT ne_tvar_list GT
+      { enter_type_variables_scope $6; $1,$3,$6 }
 
 identifier:
 | IDENTIFIER { $1 }
+;
+
+identifier_or_typename:
+| IDENTIFIER { $1 }
+| TYPENAME { $1 }
 ;
 
 opt_parameters:
@@ -837,9 +900,9 @@ logic_def:
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
       LDlemma (id, false, labels, tvars, $4) }
-| AXIOMATIC identifier LBRACE logic_decls RBRACE
+| AXIOMATIC full_identifier_or_typename LBRACE logic_decls RBRACE
     { LDaxiomatic($2,$4) }
-| TYPE poly_id_type_add_typename EQUAL datacons_list SEMICOLON
+| TYPE poly_id_type_add_typename EQUAL typedef SEMICOLON
         { let (id,tvars) = $2 in
           exit_type_variables_scope ();
           LDtype(id,tvars,Some $4)
@@ -852,13 +915,13 @@ deprecated_logic_decl:
     { let (id, labels, tvars) = $3 in
       exit_type_variables_scope ();
       Format.eprintf "Warning: deprecated logic declaration '%s', should be declared inside an axiomatic block@." id;
-      LDlogic_reads (id, labels, tvars, $2, $4, []) }
+      LDlogic_reads (id, labels, tvars, $2, $4, None) }
 /* OBSOLETE: predicate declaration */
 | PREDICATE poly_id opt_parameters SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
       Format.eprintf "Warning: deprecated logic declaration `%s', should be declared inside an axiomatic block@." id;
-      LDpredicate_reads (id, labels, tvars, $3, []) }
+      LDpredicate_reads (id, labels, tvars, $3, None) }
 /* OBSOLETE: type declaration */
 | TYPE poly_id_type SEMICOLON
     { let (id,tvars) = $2 in
@@ -872,7 +935,7 @@ deprecated_logic_decl:
 logic_decls:
 | /* epsilon */
     { [] }
-| logic_decl logic_decls
+| logic_decl_loc logic_decls
     { $1::$2 }
 ;
 
@@ -901,23 +964,31 @@ logic_decl:
       LDlemma (id, true, labels, tvars, $4) }
 ;
 
+logic_decl_loc:
+logic_decl { loc_decl $1 }
+
+
+
 reads_clause:
 | /* epsilon */
-    { [] }
+    { None }
 | READS tsets
-    { $2 }
+    { Some $2 }
+| READS NOTHING
+    { Some [] }
 ;
+
+typedef:
+  ne_datacons_list { TDsum $1 }
+| full_logic_type { TDsyn $1 }
 
 datacons_list:
   /* epsilon */ { [] }
-| ne_datacons_list { $1 }
-| datacons { [$1] }
-| datacons ne_datacons_list { $1 :: $2}
-;
+| PIPE datacons datacons_list { $2 :: $3 }
 
 ne_datacons_list:
-  PIPE datacons { [$2] }
-| PIPE datacons ne_datacons_list { $2 :: $3 }
+| datacons datacons_list { $1 :: $2 }
+| PIPE datacons datacons_list { $2 :: $3 }
 ;
 
 datacons:
@@ -958,8 +1029,8 @@ annot:
 ;
 
 decl_list:
-  decl { [(loc(), $1)] }
-| decl decl_list { (loc(),$1) :: $2 }
+  decl { [loc_decl $1] }
+| decl decl_list { (loc_decl $1) :: $2 }
 
 annotation:
   decl_list             { Adecl ($1) }
@@ -1094,6 +1165,11 @@ wildcard:
 | TYPEOF { () }
 | BSTYPE { () }
 | SEPARATED { () }
+| EXITS { () }
+| RETURNS { () }
+| BREAKS { () }
+| CONTINUES { () }
+| LET { () }
 ;
 
 %%

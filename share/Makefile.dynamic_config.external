@@ -2,8 +2,9 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2009                                               #
-#    CEA (Commissariat à l'Énergie Atomique)                             #
+#  Copyright (C) 2007-2010                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
 #  Lesser General Public License as published by the Free Software       #
@@ -20,9 +21,12 @@
 ##########################################################################
 
 export FRAMAC_INTERNAL=no
-export FRAMAC_PLUGIN=$(FRAMAC_LIBDIR)/plugins
-export FRAMAC_GUI_PLUGIN=$(FRAMAC_LIBDIR)/gui
+export FRAMAC_PLUGINDIR="$(FRAMAC_LIBDIR)/plugins"
+export FRAMAC_GUI_PLUGIN="$(FRAMAC_LIBDIR)/gui"
+export FRAMAC_PLUGIN_TEST=.
+export FRAMAC_GUI_PLUGIN_TEST=.
 export FRAMAC_OPT=$(BINDIR)/frama-c$(EXE)
 export FRAMAC_BYTE=$(BINDIR)/frama-c.byte$(EXE)
-export FRAMAC_INCLUDES=-I $(FRAMAC_LIBDIR)
+export FRAMAC_INCLUDES=-I "$(FRAMAC_LIBDIR)"
+export FRAMAC_LIB="$(FRAMAC_LIBDIR)"
 export PTESTS=$(BINDIR)/ptests.byte$(EXE)

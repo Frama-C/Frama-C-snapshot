@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -40,6 +41,13 @@ module ForceCallDeps =
        let descr = "force callsite-wise dependencies"
      end)
 
+module PathDeps =
+False
+    (struct
+       let option_name = "-experimental-path-deps"
+       let descr = "experimental"
+     end)
+  
 
 
 (*

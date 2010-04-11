@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -18,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: alarms.ml,v 1.19 2008-10-07 09:27:47 uid570 Exp $ *)
 
 open Cil_types
 open Cil
@@ -69,7 +68,6 @@ module AlarmSet = struct
   let name = "alarmSet"
 end
 
-(*let (tbl:AlarmSet.t InstrHashtbl.t) = InstrHashtbl.create 7*)
 module Alarms =
   Cil_computation.InstrHashtbl
     (Project.Datatype.Persistent(AlarmSet))
@@ -101,6 +99,8 @@ let register ki t formula =
 
 let clear () = Alarms.clear ()
 
+let iter f = Alarms.iter (fun ki set -> AlarmSet.iter (fun v -> f ki v) set)
+
 let fold f acc =
   Alarms.fold
     (fun ki set acc -> AlarmSet.fold (fun v acc -> f ki v acc) set acc)
@@ -112,6 +112,6 @@ let fold_kinstr ki f acc =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

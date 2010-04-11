@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -85,7 +86,16 @@ val d_term_offset: (Format.formatter -> term_offset -> unit) ref
 
 val d_predicate_named: (Format.formatter -> predicate named -> unit) ref
 val d_code_annotation: (Format.formatter -> code_annotation -> unit) ref
+val d_rooted_code_annotation_before_after: 
+  (Format.formatter -> Db_types.rooted_code_annotation Db_types.before_after -> 
+     unit) ref
 val d_funspec: (Format.formatter -> funspec -> unit) ref
 val d_annotation: (Format.formatter -> global_annotation -> unit) ref
 
 val d_file: (Format.formatter -> file -> unit) ref
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

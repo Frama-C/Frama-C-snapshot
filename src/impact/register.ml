@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.16 2009-02-13 07:59:29 uid562 Exp $ *)
-
 open Cil
 open Cil_types
 open Db_types
@@ -33,7 +32,12 @@ let print_results fmt a =
 
 let from_stmt s =
   let kf = snd (Kernel_function.find_from_sid s.sid) in
-  !Security.impact_analysis kf s
+  Dynamic.get
+    ~plugin:"Security_slicing"
+    "impact_analysis"
+    (Type.func2 Kernel_type.kernel_function
+       Kernel_type.stmt (Type.list Kernel_type.stmt))
+    kf s
 
 let compute_one_stmt s =
   debug "computing impact of statement %d" s.sid;
@@ -94,13 +98,13 @@ let compute_pragmas () =
 	 match (Globals.Functions.find_def_by_name s).fundec with
 	 | Definition(f, _) -> ignore (visitFramacFunction visitor f)
 	 | Declaration _ -> assert false
-       with Not_found -> 
+       with Not_found ->
 	 fatal "function %s not found@." s);
   (* compute impact analyses on [!pragmas] *)
   let res = on_pragma (fun acc s -> compute_one_stmt s @ acc) [] !pragmas in
   if Options.Slicing.get () then ignore (slice res)
 
-let main _fmt = 
+let main _fmt =
   if is_on () then begin
     feedback "beginning analysis";
     assert (not (Pragma.is_empty ()));

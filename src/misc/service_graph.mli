@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -35,13 +36,13 @@ module Make
      val fold_pred : (V.t -> 'a -> 'a) -> t -> V.t -> 'a -> 'a
      val in_degree: t -> V.t -> int
      val datatype_name: string
-   end) : 
+   end) :
 sig
 
-  type vertex = private 
+  type vertex = private
       { node: G.V.t; mutable is_root: bool; mutable root: vertex }
 
-  type edge = private Inter_services | Inter_functions | Function_to_service 
+  type edge = private Inter_services | Inter_functions | Both
 
   module CallG: sig
     include Graph.Sig.G with type V.t = vertex and type E.label = edge
@@ -52,11 +53,11 @@ sig
   val compute: G.t -> Cilutil.StringSet.t -> CallG.t
   val output_graph: out_channel -> CallG.t -> unit
 
-  module TP: Graph.Graphviz.GraphWithDotAttrs 
+  module TP: Graph.Graphviz.GraphWithDotAttrs
     with type t = CallG.t
     and type V.t = vertex
     and type E.t = CallG.E.t
-    (** @since Beryllium-20090901+dev *)
+    (** @since Beryllium-20090902 *)
 
 (*
   (** Graph of services *)
@@ -80,7 +81,7 @@ sig
       (** @since Beryllium-20090901 *)
 *)
 end
-  
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

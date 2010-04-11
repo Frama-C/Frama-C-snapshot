@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -52,6 +53,14 @@ module Cluster = struct
             (* maps the values in the relation to an offset indicating
                their position wrt each other *)
 	virtual_to_real : Location_Bits.t }
+
+  let descr = Unmarshal.t_tuple
+    [| Unmarshal.Abstract;
+       Int.descr;
+       V_Offsetmap.Datatype.descr;
+       Relation_between.Datatype.descr;
+       Location_Bits.Datatype.descr |]
+
 
   let compare x y = Pervasives.compare x.id y.id
   let equal x y = x.id = y.id
@@ -148,7 +157,7 @@ module Cluster = struct
       ~rel:new_rel
 
   type tt = t
-
+(*
   module H = Hashtbl.Make(struct
 			    type t = tt
 			    let hash c = c.id
@@ -159,35 +168,29 @@ module Cluster = struct
 
   let rehash c =
     try
-      H.find rehash_table c
+      H.find rehash_table c;
+      c
     with Not_found ->
       cluster_counter := Extlib.max_cpt c.id !cluster_counter;
-      let c' =
-	{ c with contents =
-	    V_Offsetmap.Datatype.rehash c.contents;
-	    rel = Relation_between.Datatype.rehash c.rel;
-	    virtual_to_real = Location_Bits.Datatype.rehash c.virtual_to_real }
-      in
-      H.add rehash_table c c';
-      c'
-
-  module Datatype = 
+      H.add rehash_table c ();
+      c
+*)
+  module Datatype =
     Project.Datatype.Register
       (struct
 	 type t = tt
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let descr = Project.no_descr
 	 let copy _ = assert false (* TODO *)
 	 let name = "Cluster"
        end)
   let () =
-    Datatype.register_comparable ~compare ~equal ~hash ();
-    Project.register_after_load_hook (fun () -> H.clear rehash_table)
+    Datatype.register_comparable ~compare ~equal ~hash ()
+(*    Project.register_after_load_hook (fun () -> H.clear rehash_table)*)
 
 end
 
 module ClusterSet = struct
-  module S = Set.Make(Cluster)
+  module S = Unmarshal.SetWithDescr(Cluster)
   include S
   module Datatype = Datatype.Make_Set(S)(Cluster.Datatype)
 end
@@ -199,10 +202,6 @@ struct
   module Top_Param = VarinfoSetLattice
   type t = cluster_info
   type widen_hint = unit
-
-  let rehash = function
-    | No_cluster | Bottom_cluster as x -> x
-    | Cluster c -> Cluster (Cluster.rehash c)
 
   let hash v =
     match v with
@@ -225,13 +224,12 @@ struct
 
   let id = "Cluster_info"
 
-  module Datatype = 
+  module Datatype =
     Project.Datatype.Register
       (struct
 	 type t = cluster_info
 	 let copy _ = assert false (* TODO *)
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let descr = Project.no_descr
 	 let name = id
        end)
   let () = Datatype.register_comparable ~hash ~equal ()
@@ -669,11 +667,10 @@ module type Model_S = sig
   type widen_hint = Model.widen_hint
   type cluster
   module Datatype : Project.Datatype.S with type t = t
-  val rehash: t -> t
   val is_reachable : t -> bool
   val pretty : Format.formatter -> t -> unit
   val pretty_without_null : Format.formatter -> t -> unit
-  val pretty_filter : 
+  val pretty_filter :
     Format.formatter -> t -> Zone.t -> (Base.t -> bool) -> unit
   val join : t -> t -> t
   val find : with_alarms:CilE.warn_mode -> t -> location -> Location_Bytes.t
@@ -693,6 +690,7 @@ module type Model_S = sig
   val bottom : t
   val inject : Model.t -> t
   val empty : t
+  val is_top: t -> bool
   val value_state : t -> Model.t
   val drop_relations : t -> t
   val filter_base : (Base.t -> bool) -> t -> t
@@ -742,11 +740,11 @@ module Model : Model_S = struct
 
   let pretty fmt (x,y) =
     Model.pretty fmt x;
-    if Parameters.Debug.get () > 0 then pretty_tt fmt y
+    if Kernel.debug_atleast 1 then pretty_tt fmt y
 
   let pretty_without_null fmt (x,y) =
     Model.pretty_without_null fmt x;
-    if Parameters.Debug.get () > 0 then pretty_tt fmt y
+    if Kernel.debug_atleast 1 then pretty_tt fmt y
 
   let pretty_filter fmt (x,_y) outs refilter =
     Model.pretty_filter fmt x outs refilter
@@ -775,6 +773,7 @@ module Model : Model_S = struct
   let bottom = Model.bottom, empty_tt
   let empty = Model.empty, empty_tt
 
+  let is_top (a,_) = Model.equal a Model.empty
   let inject s = s, empty_tt
 
   let add_binding ~with_alarms ~exact (s,rel) left v =
@@ -876,13 +875,6 @@ module Model : Model_S = struct
 	   None)
     with Location_Bits.Error_Top -> raise Use_Main_Memory
 
-  let rehash ((a, b as _r:t)) =
-(*    Format.printf "rehashing %a@." pretty r;*)
-    Model.Datatype.rehash a,
-    { participation_map =
-	Participation_Map.Datatype.rehash b.participation_map;
-      all_clusters = ClusterSet.Datatype.rehash b.all_clusters }
-
   let hash (a, _b) = Model.hash a (*+ 97*hash b*)
 
   let filter_base_tt f a =
@@ -918,13 +910,13 @@ module Model : Model_S = struct
            List.map Locations.loc_of_varinfo block.Cil_types.blocals @ acc)
         [] blocks
     in
-    let state' =
+   let state' =
       List.fold_left Cvalue_type.Model.add_binding_unspecified state locals
     in
     let r' = filter_base_tt (fun v -> not (List.exists
                                              (Base.is_block_local v) blocks)) r
-    in (state', r')
-
+    in
+     (state', r')
   let compute_actual_final_from_generic (a,_a') (b,_b') loc instanciation =
     let a,b = Model.compute_actual_final_from_generic a b loc instanciation in
     (a,empty_tt),b
@@ -1233,13 +1225,13 @@ module Model : Model_S = struct
 	    m.all_clusters
 	    empty_tt
     in
-    (*Format.printf
+(*    Format.printf
       "propagate_change_from_real_to_virt:loc:%a@\nval:%a@\norig state:%a@\nresult: %a@\n"
       Location_Bits.pretty loc.loc
       V.pretty value
-      pretty m
+      pretty (main_mem,m)
       pretty result;
-    *)
+*)
     result
 
   let reduce_binding (main, map as _state) left value =
@@ -1253,7 +1245,7 @@ module Model : Model_S = struct
 	   all of which are in the same cluster *)
 	begin match Participation_Map.find map.participation_map left with
 	| Cluster c ->
-(*	    Format.printf "cluster: %a@." 	      
+(*	    Format.printf "cluster: %a@."
 	      Cluster.pretty c ; *)
 	    let left_offset =
 	      Relation_between.find ~with_alarms:CilE.warn_none_mode c.Cluster.rel left
@@ -1424,7 +1416,7 @@ module Model : Model_S = struct
 		    in
 		    assert (V.cardinal_zero_or_one delta);
 		    let rel =
-		      Relation_between.fold_single_bindings			
+		      Relation_between.fold_single_bindings
 			~size
 			(fun loc v acc ->
 			  let new_v =
@@ -1584,9 +1576,15 @@ module Model : Model_S = struct
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
-	 let rehash = rehash
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name = "Relations_type.Model.State"
+	 open Unmarshal
+	 let descr =
+	   t_tuple
+	     [| Cvalue_type.Model.Datatype.descr;
+		t_record
+		  [| Participation_Map.Datatype.descr;
+		     ClusterSet.Datatype.descr |]
+	     |]
        end)
   let () = Datatype.register_comparable ~hash ~equal ()
 
@@ -1594,6 +1592,6 @@ end
 
 (*
 Local Variables:
-compile-command: "make -C ../.. -j 3"
+compile-command: "make -C ../.."
 End:
 *)

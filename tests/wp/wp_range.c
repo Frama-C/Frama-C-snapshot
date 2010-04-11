@@ -1,3 +1,5 @@
+// le tout passe avec z3
+// frama-c-gui -wp-mm 2 -wp-prover z3 wp_range.c &
 
 
 int T[10];

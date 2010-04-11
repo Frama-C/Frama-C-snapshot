@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -62,10 +63,6 @@ let call_stack : kernel_function Stack.t =
   Stack.create ()
     (* Stack of function being processed *)
 
-let find_deps_no_transitivity = !From.find_deps_no_transitivity
-  (* The value of the expression [expr], just before executing the statement [instr],
-     is a function of the values of the returned zones. *)
-
 module Computer (REACH:sig
                    val stmt_can_reach : stmt -> stmt -> bool
                  end) = struct
@@ -111,7 +108,7 @@ module Computer (REACH:sig
           (* update [over_inputs] using the [exp] condition:
              I+ = I+ \/+ (D+(exp) /+ O-)
           *)
-          let inputs = find_deps_no_transitivity (Kstmt s) exp in
+          let inputs = !From.find_deps_no_transitivity (Kstmt s) exp in
             {data with
                over_inputs =
                 Zone.join data.over_inputs
@@ -177,7 +174,7 @@ module Computer (REACH:sig
           (fun state ->
 
              let exp_inputs_deps =
-               find_deps_no_transitivity kinstr exp
+               !From.find_deps_no_transitivity kinstr exp
              in
              add_with_additional_var
                lv
@@ -203,12 +200,12 @@ module Computer (REACH:sig
                  (* inputs used by [funcexp], inputs for the evaluation of [funcexp] and its [argl] *)
                  List.fold_right
 		   (fun arg inputs ->
-                      let arg_inputs = find_deps_no_transitivity kinstr arg
+                      let arg_inputs = !From.find_deps_no_transitivity kinstr arg
 		      in Zone.join inputs arg_inputs)
 		   argl
                    acc_funcexp_inputs
                in let result =
-                   match called_vinfos with
+                   match Kernel_function.Set.elements called_vinfos with
                      | [] -> { over_inputs = acc_funcexp_arg_inputs ;
                                under_outputs = state.under_outputs }
                      | h::t ->
@@ -306,8 +303,7 @@ let compute_internal_using_cfg kf =
       let module Computer =
         Computer(struct let stmt_can_reach = Stmts_graph.stmt_can_reach kf end)
       in
-      let module Compute = Dataflow.ForwardsDataFlow(Computer)
-      in
+      let module Compute = Dataflow.ForwardsDataFlow(Computer) in
       Stack.iter
         (fun g -> if kf == g then begin
            Inout_parameters.warning ~current:true
@@ -319,21 +315,21 @@ let compute_internal_using_cfg kf =
       Stack.push kf call_stack;
       let res_if_termination = (* result if termination *)
         match f.sbody.bstmts with
-        [] -> assert false
-      | start :: _ ->
-          let ret_id = Kernel_function.find_return kf in
-          (* We start with only the start block *)
-          Computer.StmtStartData.add
-            start.sid
-            (Computer.computeFirstPredecessor
-               start
-               empty);
-          Compute.compute [start];
-          let _poped = Stack.pop call_stack in
-          try
-            Computer.StmtStartData.find ret_id.sid
-          with Not_found ->
-            non_terminating
+          [] -> assert false
+	| start :: _ ->
+            let ret_id = Kernel_function.find_return kf in
+            (* We start with only the start block *)
+            Computer.StmtStartData.add
+              start.sid
+              (Computer.computeFirstPredecessor
+		 start
+		 empty);
+            Compute.compute [start];
+            let _poped = Stack.pop call_stack in
+            try
+              Computer.StmtStartData.find ret_id.sid
+            with Not_found ->
+              non_terminating
       in
 
       { Inout_type.over_inputs_if_termination = res_if_termination.over_inputs ;

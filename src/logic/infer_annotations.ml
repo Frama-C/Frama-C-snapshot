@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -35,7 +36,7 @@ let assigns_from_prototype vi =
   let formals = try let formals = getFormalsDecl vi in
   (* Do ignore anonymous names *)
   List.filter (fun vi -> vi.vname <> "") formals
-  with Not_found -> [] 
+  with Not_found -> []
     (* this may happen for function pointer used as formal parameters.*)
   in
   let rtyp, _, _, _ = splitFunctionTypeVI vi in
@@ -120,13 +121,18 @@ let assigns_from_prototype vi =
   in
   match deps with [] -> [Nothing,[]] | l -> l
 
+let is_frama_c_builtin name =
+  (Ast_info.is_frama_c_builtin name)
+  ||
+    (!Db.Value.mem_builtin name)
+
 let populate_funspec kf =
   assert (not (Kernel_function.is_definition kf));
   let name = Kernel_function.get_name kf in
   let assigns = assigns_from_prototype (Kernel_function.get_vi kf) in
   let set_assigns behavior = match behavior.b_assigns with
     | [] ->
-	if not (Ast_info.is_frama_c_builtin name) then begin
+	if not (is_frama_c_builtin name) then begin
           let pretty_behavior = if behavior.b_name = "default" then "" else
             " for behavior " ^ behavior.b_name
           in
@@ -140,12 +146,12 @@ let populate_funspec kf =
   in
   match kf.spec.spec_behavior with
   | [] ->
-      if not (Ast_info.is_frama_c_builtin name) then begin
+      if not (is_frama_c_builtin name) then begin
         CilE.log_once
           "No code for function %a, default assigns generated"
           Kernel_function.pretty_name kf;
       end;
-      kf.spec.spec_behavior <- [{b_name = "generated"; b_ensures = [] ;
+      kf.spec.spec_behavior <- [{b_name = "generated"; b_post_cond = [] ;
                                  b_assumes = []; b_assigns = assigns}](*;
       CilE.log_once "assigns generated:@\n%a"
       d_funspec kf.spec*)

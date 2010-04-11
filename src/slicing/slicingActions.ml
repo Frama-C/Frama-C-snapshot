@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -232,7 +233,8 @@ let print_sel_marks_list fmt to_select =
     | PdgMarks.SelIn l -> 
         Format.fprintf fmt "(UndefIn %a:%a)" 
           Locations.Zone.pretty l Marks.pretty_mark m
-  in List.iter print_sel to_select
+  in match to_select with [] -> Format.fprintf fmt "<empty>"
+    | _ -> List.iter print_sel to_select
 
 let print_ndm fmt (nodes, ndm_list) =
   Format.fprintf fmt "(%a,%a)" print_nodes nodes 

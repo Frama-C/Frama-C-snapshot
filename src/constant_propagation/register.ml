@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -30,6 +31,10 @@ class propagate project fnames ~cast_intro = object(self)
 
   val mutable operate = false
 
+  val mutable known_globals = Cilutil.VarinfoSet.empty
+
+  val mutable must_add_decl = Cilutil.VarinfoSet.empty
+
   method private on_current_stmt nothing f =
     match self#current_stmt with
     | None | Some ({ skind = Return _}) -> nothing
@@ -42,7 +47,7 @@ class propagate project fnames ~cast_intro = object(self)
       Cilutil.StringSet.is_empty fnames || Cilutil.StringSet.mem name fnames;
     if operate then
       PropagationParameters.feedback
-	~level:2 
+	~level:2
 	"propagated constant in function %s"
         (fundec.svar.vname);
     DoChildren
@@ -51,7 +56,7 @@ class propagate project fnames ~cast_intro = object(self)
     self#on_current_stmt
       DoChildren
       (fun ki ->
-         PropagationParameters.debug ~level:2 
+         PropagationParameters.debug ~level:2
 	   "Replacing %a ?" !Ast_printer.d_exp expr;
          let type_of_expr = typeOf expr in
          try
@@ -66,30 +71,44 @@ class propagate project fnames ~cast_intro = object(self)
            let mkCast ~e ~newt =
              (* introduce a new cast or do not expand [e] *)
              let exp = mkCast e newt in
-             if cast_intro then 
+             if cast_intro then
 	       exp
              else
                match exp.enode with
-               | CastE _ -> 
+               | CastE _ ->
 		   if exp == e (* older cast, no new cast added *) then
                      exp
                    else
 		     (* without [cast_intro], introducing such a cast is not
 			allowed: do not expand [e] *)
 		     raise Cannot_expand
-               | _ -> 
+               | _ ->
 		   (* remember the change done by [mkCast] (if any).
 		      note that [mkCast] make some modifications, even if it
 		      does not introduce a new cast. *)
 		   exp
            in
            let evaled = !Value.access_expr ki expr in
-           let k,m = Cvalue_type.V.find_lonely_binding evaled in begin
+           let k,m = Cvalue_type.V.find_lonely_binding evaled in
+           let can_replace vi =
+             vi.vglob ||
+               Extlib.may_map
+               (Kernel_function.is_formal_or_local vi) ~dft:false
+               self#current_kf
+           in
+           begin
              match k with
-             | Base.Var (vi,_) | Base.Initialized_Var (vi,_)
-		   when not vi.vlogic ->
-                 (* This is a pointer coming for C code *)
-                 PropagationParameters.debug 
+               | Base.Var (vi,_) | Base.Initialized_Var (vi,_)
+		     when not vi.vlogic && can_replace vi ->
+                   if vi.vglob && not (Cilutil.VarinfoSet.mem vi known_globals)
+                   then begin
+                     let vi = Visitor.visitFramacVarDecl
+                       (self:>Visitor.frama_c_visitor) vi
+                     in
+                     must_add_decl <- Cilutil.VarinfoSet.add vi must_add_decl;
+                   end;
+                   (* This is a pointer coming for C code *)
+                   PropagationParameters.debug
                    "Trying replacing %a from a pointer value {&%a + %a}"
                    !Ast_printer.d_exp expr
                    Base.pretty k
@@ -130,7 +149,7 @@ class propagate project fnames ~cast_intro = object(self)
                           (Abstract_interp.Int.to_int64 v1)
                  in let change_to = (* Give it the right type! *)
                    mkCast ~e:shifted ~newt:type_of_expr
-                 in 
+                 in
                  PropagationParameters.debug "Replacing %a with %a"
                    !Ast_printer.d_exp expr
                    !Ast_printer.d_exp change_to;
@@ -141,7 +160,7 @@ class propagate project fnames ~cast_intro = object(self)
                      try
                        (* This is an integer *)
                        let v = Ival.project_int m in
-                       PropagationParameters.debug 
+                       PropagationParameters.debug
 			 "Trying replacing %a with a numeric value: %a"
                          !Ast_printer.d_exp expr
                          Abstract_interp.Int.pretty v;
@@ -150,7 +169,7 @@ class propagate project fnames ~cast_intro = object(self)
 			   ~signed:true
 			   ~size:(Abstract_interp.Int.of_int 64)
 			   ~value:v
-			 in 
+			 in
                          (* PropagationParameters.debug "XXXXXXXX v=%a v1=%a"
 			    Abstract_interp.Int.pretty v
 			    Abstract_interp.Int.pretty v1; *)
@@ -162,7 +181,7 @@ class propagate project fnames ~cast_intro = object(self)
                    end
                  in let change_to =  (* Give it the right type ! *)
                    mkCast ~e ~newt:(type_of_expr)
-                 in 
+                 in
                  PropagationParameters.debug "Replacing %a with %a"
                    !Ast_printer.d_exp expr
                    !Ast_printer.d_exp change_to;
@@ -172,6 +191,21 @@ class propagate project fnames ~cast_intro = object(self)
 
            end
          with Not_found | Cannot_expand -> DoChildren)
+
+  method vvdec v =
+    if v.vglob then known_globals <- Cilutil.VarinfoSet.add v known_globals;
+    DoChildren
+
+  method vglob_aux g =
+    must_add_decl <- Cilutil.VarinfoSet.empty;
+    let add_decl l =
+      Cilutil.VarinfoSet.fold
+        (fun x l ->
+           PropagationParameters.feedback ~level:2
+             "Adding declaration of global %a" !Ast_printer.d_var x;
+           GVarDecl(Cil.empty_funspec(),x,x.vdecl)::l)
+        must_add_decl l
+    in ChangeDoChildrenPost([g],add_decl)
 
   method vlval lv =
     let simplify (host,offs as lv) = match host with
@@ -201,7 +235,7 @@ let journalized_get =
     Result.memo
       (fun _ ->
 	 !Value.compute ();
-	 let fresh_project = 
+	 let fresh_project =
 	   File.create_project_from_visitor
 	     "propagated"
 	     (fun prj -> new propagate prj fnames cast_intro)
@@ -213,8 +247,8 @@ let journalized_get =
   in
   Journal.register
     "!Db.Constant_Propagation.get"
-    (Type.func Kernel_type.string_set
-       (Type.func ~label:("cast_intro",None) Type.bool Project.ty))
+    (Type.func2 Kernel_type.string_set
+       ~label2:("cast_intro",None) Type.bool Project.ty)
     get
 
 (* add labels *)
@@ -240,16 +274,18 @@ let main () =
   (* must called the function stored in [Db] for journalisation purpose *)
   if force_semantic_folding then !Db.Constant_Propagation.compute ()
 
-let () = 
+let () =
   Db.Main.extend main;
   Db.register Db.Journalization_not_required Db.Constant_Propagation.get get;
-  Db.register_compute 
-    "Constant_Propagation.compute"
-    [ PropagationParameters.SemanticConstFold.self; 
-      PropagationParameters.SemanticConstFolding.self; 
+  let _self =
+    Db.register_compute
+      "Constant_Propagation.compute"
+      [ PropagationParameters.SemanticConstFold.self;
+      PropagationParameters.SemanticConstFolding.self;
       Result.self ]
-    Db.Constant_Propagation.compute 
-    compute;
+      Db.Constant_Propagation.compute
+      compute;
+  in ()
 
 (*
 Local Variables:

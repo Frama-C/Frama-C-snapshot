@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -46,7 +47,7 @@ val resolv_func_vinfo :
   with_alarms:CilE.warn_mode ->
   Locations.Zone.t option ->
   Db.Value.state ->
-  Cil_types.exp -> Locations.Zone.t option * Db_types.kernel_function list
+  Cil_types.exp -> Locations.Zone.t option * Kernel_function.Set.t
 
 exception Leaf
 

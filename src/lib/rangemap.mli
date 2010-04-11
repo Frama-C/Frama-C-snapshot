@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -26,14 +27,14 @@
     This module implements applicative association tables, also known as
     finite maps or dictionaries, given a total ordering function
     over the keys.
-    
+
     All operations over maps are purely applicative (no side-effects).
     The implementation uses balanced binary trees, and therefore searching
-    and insertion take time logarithmic in the size of the map. 
-    
+    and insertion take time logarithmic in the size of the map.
+
     @plugin development guide *)
 
-module type OrderedType = 
+module type OrderedType =
   sig
 
     type t
@@ -46,45 +47,60 @@ module type OrderedType =
           and [f e1 e2] is strictly positive if [e1] is greater than [e2].
           Example: a suitable ordering function is the generic structural
           comparison function {!Pervasives.compare}. *)
+    val hash: t -> int
+    val descr: Unmarshal.t
   end
 (** Input signature of the functor {!Map.Make}. *)
 
+module type ValueType =
+  sig
+    type t
+    val hash: t -> int
+    val descr: Unmarshal.t
+  end
+
 type fuzzy_order = Above | Below | Match
 
-module type S =
+module Make (Ord : OrderedType) (Value : ValueType):
   sig
-    type key
+    type key = Ord.t
     (** The type of the map keys. *)
 
-    type (+'a) t =
+    type t =
         Empty
-      | Node of 'a t * key * 'a * 'a t * int
-    (** The type of maps from type [key] to type ['a]. *)
+      | Node of t * key * Value.t * t * int * int
+    (** The type of maps from type [key] to type [Value.t]. *)
 
-    val empty: 'a t
+    val descr : Unmarshal.t
+
+    val create :  t -> key -> Value.t -> t -> t
+
+    val hash : t -> int
+
+    val empty: t
     (** The empty map. *)
 
-    val is_empty: 'a t -> bool
+    val is_empty: t -> bool
     (** Test whether a map is empty or not. *)
 
-    val add: key -> 'a -> 'a t -> 'a t
+    val add: key -> Value.t -> t -> t
     (** [add x y m] returns a map containing the same bindings as
        [m], plus a binding of [x] to [y]. If [x] was already bound
        in [m], its previous binding disappears. *)
 
-    val find: key -> 'a t -> 'a
+    val find: key -> t -> Value.t
     (** [find x m] returns the current binding of [x] in [m],
        or raises [Not_found] if no such binding exists. *)
 
-    val remove: key -> 'a t -> 'a t
+    val remove: key -> t -> t
     (** [remove x m] returns a map containing the same bindings as
        [m], except for [x] which is unbound in the returned map. *)
 
-    val mem: key -> 'a t -> bool
+    val mem: key -> t -> bool
     (** [mem x m] returns [true] if [m] contains a binding for [x],
        and [false] otherwise. *)
 
-    val iter: (key -> 'a -> unit) -> 'a t -> unit
+    val iter: (key -> Value.t -> unit) -> t -> unit
     (** [iter f m] applies [f] to all bindings in map [m].
        [f] receives the key as first argument, and the associated value
        as second argument.  The bindings are passed to [f] in increasing
@@ -92,56 +108,54 @@ module type S =
        Only current bindings are presented to [f]:
        bindings hidden by more recent bindings are not passed to [f]. *)
 
-    val map: ('a -> 'b) -> 'a t -> 'b t
+    val map: (Value.t -> Value.t) -> t -> t
     (** [map f m] returns a map with same domain as [m], where the
        associated value [a] of all bindings of [m] has been
        replaced by the result of the application of [f] to [a].
        The bindings are passed to [f] in increasing order
        with respect to the ordering over the type of the keys. *)
 
-    val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
+    val mapi: (key -> Value.t -> Value.t) -> t -> t
     (** Same as {!Map.S.map}, but the function receives as arguments both the
        key and the associated value for each binding of the map. *)
 
-    val mapii: (key -> 'a -> key*'b) -> 'a t -> 'b t
+    val mapii: (key -> Value.t -> key*Value.t) -> t -> t
     (** Same as {!Map.S.mapi}, but the function also returns a new key.
 	the modification applied on the keys must be compatible
 	with the order on the keys. *)
 
-    val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+    val fold: (key -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold f m a] computes [(f kN dN ... (f k1 d1 a)...)],
        where [k1 ... kN] are the keys of all bindings in [m]
        (in increasing order), and [d1 ... dN] are the associated data. *)
 
-    val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
+    val compare: (Value.t -> Value.t -> int) -> t -> t -> int
     (** Total ordering between maps.  The first argument is a total ordering
         used to compare data associated with equal keys in the two maps. *)
 
-    val equal: ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+    val equal: (Value.t -> Value.t -> bool) -> t -> t -> bool
     (** [equal cmp m1 m2] tests whether the maps [m1] and [m2] are
        equal, that is, contain equal keys and associate them with
        equal data.  [cmp] is the equality predicate used to compare
        the data associated with the keys. *)
 
-    val fold_range: (key -> fuzzy_order) -> 
-                       (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+    val fold_range: (key -> fuzzy_order) ->
+                       (key -> Value.t -> Value.t -> Value.t) -> t -> Value.t -> Value.t
 
-   val height: 'a t -> int
+   val height: t -> int
 
-   val concerned_intervals: (key -> key -> fuzzy_order) -> 
-     key -> 'a t -> (key*'a) list
+   val concerned_intervals: (key -> key -> fuzzy_order) ->
+     key -> t -> (key*Value.t) list
 
    exception Empty_rangemap
-   val lowest_binding : 'a t -> key * 'a
+   val lowest_binding : t -> key * Value.t
     exception No_such_binding
-   val lowest_binding_above : (key -> bool) -> 'a t -> key * 'a
-   val merge : 'a t -> 'a t -> 'a t
-   val add_whole : (key -> key -> fuzzy_order) -> key -> 'a -> 'a t -> 'a t
-   val remove_whole : (key -> key -> fuzzy_order) -> key -> 'a t -> 'a t
+   val lowest_binding_above : (key -> bool) -> t -> key * Value.t
+   val merge : t -> t -> t
+   val add_whole : (key -> key -> fuzzy_order) -> key -> Value.t -> t -> t
+   val remove_whole : (key -> key -> fuzzy_order) -> key -> t -> t
   end
-(** Output signature of the functor {!Map.Make}. *)
 
-module Make (Ord : OrderedType) : S with type key = Ord.t
 (** Functor building an implementation of the map structure
    given a totally ordered type. *)
 

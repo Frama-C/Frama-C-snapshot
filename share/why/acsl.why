@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -70,4 +71,10 @@ logic bor : int, int -> int
 logic bxor : int, int -> int
 logic lshift : int, int -> int
 logic rshift : int, int -> int
+
+logic relation_int : bool -> int
+axiom relation_true : relation_int(true) = 1
+axiom relation_false : relation_int(false) = 0
+axiom relation_def1 : forall x:bool. relation_int(x)=1 <-> x=true
+axiom relation_def0 : forall x:bool. relation_int(x)=0 <-> x=false
 

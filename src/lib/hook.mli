@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -30,13 +31,18 @@ module type S = sig
   type param
     (** Type of the parameter of the functions registered in the hook. *)
 
-  val extend: (param -> unit) -> unit
+  type result
+    (** Type of the result of the functions.
+        result can be unit (for iterative hooks) or param (for folding hooks)
+     *)
+
+  val extend: (param -> result) -> unit
     (** Add a new function to the hook. *)
 
-  val apply: param -> unit
-    (** Apply all the functions of the hook on the given parameter. 
+  val apply: param -> result
+    (** Apply all the functions of the hook on the given parameter.
 	These functions are applied from the least recently entered to the most
-	recently entered. *)
+	recently entered.*)
 
   val is_empty: unit -> bool
     (** Is no function already registered in the hook? *)
@@ -49,11 +55,15 @@ module type S = sig
 
 end
 
+module type Iter_hook = S with type result = unit
+
 (** Make a new empty hook from a given type of parameters. *)
-module Build(P:sig type t end) : S with type param = P.t
+module Build(P:sig type t end) : Iter_hook with type param = P.t
 
 (** Make a new empty hook from [unit]. *)
-module Make(X:sig end) : S with type param = unit
+module Make(X:sig end) : S with type param = unit and type result = unit
+
+module Fold(P: sig type t end): S with type param = P.t and type result = P.t
 
 (*
 Local Variables:

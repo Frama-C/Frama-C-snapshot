@@ -1,6 +1,6 @@
 type token =
   | SPEC of (Lexing.position * string)
-  | DECL of ((Cabs.cabsloc * Logic_ptree.decl) list)
+  | DECL of (Logic_ptree.decl list)
   | CODE_ANNOT of (Logic_ptree.code_annot * Cabs.cabsloc)
   | LOOP_ANNOT of (Logic_ptree.code_annot list * Cabs.cabsloc)
   | ATTRIBUTE_ANNOT of (string * Cabs.cabsloc)

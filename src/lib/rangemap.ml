@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -27,89 +28,82 @@ module type OrderedType =
   sig
     type t
     val compare: t -> t -> int
+    val hash: t -> int
+    val descr: Unmarshal.t
+  end
+
+module type ValueType =
+  sig
+    type t
+    val hash: t -> int
+    val descr: Unmarshal.t
   end
 
 type fuzzy_order = Above | Below | Match
 
-module type S =
-  sig
-    type key
-    (* type +'a t *)
-    type +'a t =
-        Empty
-      | Node of 'a t * key * 'a * 'a t * int
-    val empty: 'a t
-    val is_empty: 'a t -> bool
-    val add: key -> 'a -> 'a t -> 'a t
-    val find: key -> 'a t -> 'a
-    val remove: key -> 'a t -> 'a t
-    val mem:  key -> 'a t -> bool
-    val iter: (key -> 'a -> unit) -> 'a t -> unit
-    val map: ('a -> 'b) -> 'a t -> 'b t
-    val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
-    val mapii: (key -> 'a -> key*'b) -> 'a t -> 'b t
-    val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    val equal: ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    val fold_range: (key -> fuzzy_order) -> 
-                       (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    val height : 'a t -> int
-    val concerned_intervals: (key -> key -> fuzzy_order) -> 
-      key -> 'a t -> (key*'a) list
-    exception Empty_rangemap
-    val lowest_binding : 'a t -> (key * 'a)
-    exception No_such_binding
-   val lowest_binding_above : (key -> bool) -> 'a t -> key * 'a
-    val merge : 'a t -> 'a t -> 'a t
-    val add_whole : (key -> key -> fuzzy_order) -> key -> 'a -> 'a t -> 'a t
-    val remove_whole : (key -> key -> fuzzy_order) -> key -> 'a t -> 'a t
-  end
-
-module Make(Ord: OrderedType) = struct
+module Make(Ord: OrderedType)(Value:ValueType) = struct
 
     type key = Ord.t
 
-    type 'a t =
+    type t =
         Empty
-      | Node of 'a t * key * 'a * 'a t * int
+      | Node of t * key * Value.t * t * int * int
+	  (* the last two are height and hash in this order *)
+
+    let descr =
+      let rec t_map =
+	Unmarshal.Structure
+	  (Unmarshal.Sum
+	     [| [| t_map; Ord.descr; Value.descr; t_map;
+		   Unmarshal.Abstract; Unmarshal.Abstract |] |] )
+      in
+      t_map
 
     let height = function
         Empty -> 0
-      | Node(_,_,_,_,h) -> h
+      | Node(_,_,_,_,h,_) -> h
+
+    let hash = function
+	Empty -> 13
+      | Node(_,_,_,_,_,h) -> h
 
     let create l x d r =
       let hl = height l and hr = height r in
-      Node(l, x, d, r, (if hl >= hr then hl + 1 else hr + 1))
+      let hashl = hash l and hashr = hash r in
+      let hashbinding = Hashtbl.hash (Ord.hash x, Value.hash d) in
+      let hashtree = 289 (* =17*17 *) * hashl + 17 * hashbinding + hashr in
+      Node(l, x, d, r, (if hl >= hr then hl + 1 else hr + 1), hashtree)
+
 
     let bal l x d r =
-      let hl = match l with Empty -> 0 | Node(_,_,_,_,h) -> h in
-      let hr = match r with Empty -> 0 | Node(_,_,_,_,h) -> h in
+      let hl = match l with Empty -> 0 | Node(_,_,_,_,h,_) -> h in
+      let hr = match r with Empty -> 0 | Node(_,_,_,_,h,_) -> h in
       if hl > hr + 2 then begin
         match l with
           Empty -> invalid_arg "Rangemap.bal"
-        | Node(ll, lv, ld, lr, _) ->
+        | Node(ll, lv, ld, lr, _, _) ->
             if height ll >= height lr then
               create ll lv ld (create lr x d r)
             else begin
               match lr with
                 Empty -> invalid_arg "Rangemap.bal"
-              | Node(lrl, lrv, lrd, lrr, _)->
+              | Node(lrl, lrv, lrd, lrr, _, _)->
                   create (create ll lv ld lrl) lrv lrd (create lrr x d r)
             end
       end else if hr > hl + 2 then begin
         match r with
           Empty -> invalid_arg "Rangemap.bal"
-        | Node(rl, rv, rd, rr, _) ->
+        | Node(rl, rv, rd, rr, _, _) ->
             if height rr >= height rl then
               create (create l x d rl) rv rd rr
             else begin
               match rl with
                 Empty -> invalid_arg "Rangemap.bal"
-              | Node(rll, rlv, rld, rlr, _) ->
+              | Node(rll, rlv, rld, rlr, _, _) ->
                   create (create l x d rll) rlv rld (create rlr rv rd rr)
             end
       end else
-        Node(l, x, d, r, (if hl >= hr then hl + 1 else hr + 1))
+        create l x d r
 
     let empty = Empty
 
@@ -117,11 +111,11 @@ module Make(Ord: OrderedType) = struct
 
     let rec add x data = function
         Empty ->
-          Node(Empty, x, data, Empty, 1)
-      | Node(l, v, d, r, h) ->
+          create Empty x data Empty
+      | Node(l, v, d, r, _, _) ->
           let c = Ord.compare x v in
           if c = 0 then
-            Node(l, x, data, r, h)
+	    create l x data r
           else if c < 0 then
             bal (add x data l) v d r
           else
@@ -130,7 +124,7 @@ module Make(Ord: OrderedType) = struct
    let rec find x = function
         Empty ->
           raise Not_found
-      | Node(l, v, d, r, _) ->
+      | Node(l, v, d, r, _, _) ->
           let c = Ord.compare x v in
           if c = 0 then d
           else find x (if c < 0 then l else r)
@@ -138,19 +132,19 @@ module Make(Ord: OrderedType) = struct
     let rec mem x = function
         Empty ->
           false
-      | Node(l, v, _d, r, _) ->
+      | Node(l, v, _d, r, _, _) ->
           let c = Ord.compare x v in
           c = 0 || mem x (if c < 0 then l else r)
 
     let rec min_binding = function
         Empty -> raise Not_found
-      | Node(Empty, x, d, _r, _) -> (x, d)
-      | Node(l, _x, _d, _r, _) -> min_binding l
+      | Node(Empty, x, d, _r, _, _) -> (x, d)
+      | Node(l, _x, _d, _r, _, _) -> min_binding l
 
     let rec remove_min_binding = function
         Empty -> invalid_arg "Rangemap.remove_min_elt"
-      | Node(Empty, _x, _d, r, _) -> r
-      | Node(l, x, d, r, _) -> bal (remove_min_binding l) x d r
+      | Node(Empty, _x, _d, r, _, _) -> r
+      | Node(l, x, d, r, _, _) -> bal (remove_min_binding l) x d r
 
     let merge t1 t2 =
       match (t1, t2) with
@@ -163,7 +157,7 @@ module Make(Ord: OrderedType) = struct
     let rec remove x = function
         Empty ->
           Empty
-      | Node(l, v, d, r, _h) ->
+      | Node(l, v, d, r, _, _h) ->
           let c = Ord.compare x v in
           if c = 0 then
             merge l r
@@ -174,36 +168,35 @@ module Make(Ord: OrderedType) = struct
 
     let rec iter f = function
         Empty -> ()
-      | Node(l, v, d, r, _) ->
+      | Node(l, v, d, r, _, _) ->
           iter f l; f v d; iter f r
 
     let rec map f = function
         Empty               -> Empty
-      | Node(l, v, d, r, h) -> Node(map f l, v, f d, map f r, h)
-
+      | Node(l, v, d, r, _, _h) -> create (map f l) v (f d) (map f r)
     let rec mapi f = function
         Empty               -> Empty
-      | Node(l, v, d, r, h) -> Node(mapi f l, v, f v d, mapi f r, h)
+      | Node(l, v, d, r, _, _h) -> create (mapi f l) v (f v d) (mapi f r)
 
     let rec mapii f = function
       | Empty -> Empty
-      | Node(l, v, d, r, h) -> 
+      | Node(l, v, d, r, _, _) ->
 	  let new_v, new_d = f v d in
-	  Node(mapii f l, new_v, new_d, mapii f r, h)
+	  create (mapii f l) new_v new_d (mapii f r)
 
     (* Modified from Caml library : fold applies [f] to bindings in order. *)
     let rec fold f m accu =
       match m with
         Empty -> accu
-      | Node(l, v, d, r, _) ->
+      | Node(l, v, d, r, _, _) ->
           fold f r (f v d (fold f l accu))
 
-    type 'a enumeration = End | More of key * 'a * 'a t * 'a enumeration
+    type enumeration = End | More of key * Value.t * t * enumeration
 
     let rec cons_enum m e =
       match m with
         Empty -> e
-      | Node(l, v, d, r, _) -> cons_enum l (More(v, d, r, e))
+      | Node(l, v, d, r, _, _) -> cons_enum l (More(v, d, r, e))
 
     let compare cmp m1 m2 =
       let rec compare_aux e1 e2 =
@@ -233,25 +226,25 @@ module Make(Ord: OrderedType) = struct
     let rec fold_range o f m accu =
       match m with
         Empty -> accu
-      | Node(l, v, d, r, _) ->
+      | Node(l, v, d, r, _, _) ->
 	  let compar = o v in
-	  let accu1 = 
+	  let accu1 =
 	    if compar = Match || compar = Above
 	    then fold_range o f l accu
 	    else accu
 	  in
 	  let accu2 =
-	    if compar = Match 
+	    if compar = Match
 	    then f v d accu1
 	    else accu1
 	  in
 	  if compar = Match || compar = Below
 	  then fold_range o f r accu2
 	  else accu2
-    
+
     let cons k v l = (k,v) :: l
-      
-    let concerned_intervals fuzzy_order i m =       
+
+    let concerned_intervals fuzzy_order i m =
       fold_range (fuzzy_order i) cons m []
 
     let remove_whole fuzzy_order i m =
@@ -266,15 +259,15 @@ module Make(Ord: OrderedType) = struct
 
     let rec lowest_binding m =
       match m with
-	Node(Empty,k,v,_,_) -> k,v
-      | Node(t,_,_,_,_) -> lowest_binding t
+	Node(Empty,k,v,_,_, _) -> k,v
+      | Node(t,_,_,_,_, _) -> lowest_binding t
       | Empty -> raise Empty_rangemap
 
     exception No_such_binding
 
     let rec lowest_binding_above o m =
       match m with
-      | Node(l,k,v,r,_) -> 
+      | Node(l,k,v,r,_, _) ->
 	  if o k
 	  then begin
 	    try
@@ -286,5 +279,5 @@ module Make(Ord: OrderedType) = struct
 
     let merge m1 m2 =
       fold (fun k v acc -> add k v acc) m1 m2
-	
+
 end

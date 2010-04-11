@@ -9,7 +9,7 @@ static int i = 42;
 
 /*@ predicate p{Here}(int x) = x >= i; */
 
-/*@ logic integer li; */
+/*@ axiomatic Bar { logic integer li; } */
 
 /*@ ensures i == li; */
 void test() { }

@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (* -------------------------------------------------------------------------- *)
@@ -46,8 +47,8 @@ include Log.Register
   (struct
      let channel = Log.kernel_channel_name
      let label = Log.kernel_label_name
-     let verbose_atleast n = Cmdline.kernel_verbose_level >= n
-     let debug_atleast n = Cmdline.kernel_debug_level >= n
+     let verbose_atleast n = !Cmdline.kernel_verbose_atleast_ref n
+     let debug_atleast n = !Cmdline.kernel_debug_atleast_ref n
    end)
 
 let hadErrors = ref false
@@ -75,3 +76,9 @@ let on_errors_abort fmt =
     
 let warnFlag = false
 let warnOpt fmt = if warnFlag then warning fmt else Log.nullprintf fmt
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -29,9 +30,8 @@ class type basic_main = object
   method reset: unit -> unit
 end
 
-
 let run (host:basic_main) dialog () =
-  ignore (host#protect ~parent:(dialog :> GWindow.window_skel) 
+  ignore (host#protect ~cancelable:true ~parent:(dialog :> GWindow.window_skel) 
     (fun () -> 
        dialog#destroy ();
        Parameters_hook.apply ();
@@ -85,18 +85,16 @@ let add_parameter (box:GPack.box) p =
       Parameters_hook.extend (on_string_set ~use_markup box name get set);
       use_markup
   
-let mk_text ~highlight box text =
-  let buffer = GText.buffer ~text () in
-  let ppt = `BACKGROUND_GDK (box#misc#style#bg `PRELIGHT) in
-  let tag =
-    if highlight then buffer#create_tag [ `FOREGROUND "red"; ppt ]
-    else buffer#create_tag [ ppt ]
-  in
-  buffer#apply_tag tag ~start:buffer#start_iter ~stop:buffer#end_iter;
-  (GText.view ~buffer () :> GObj.widget)
+let mk_text ~highlight text =
+  let markup = 
+    if highlight then Format.sprintf "<span foreground=\"red\">%s</span>" text 
+    else text
+  in 
+  let label = GMisc.label ~markup () in
+  label#coerce
 
-let set_expander_text box exp s highlight =
-  let text = mk_text ~highlight box s in
+let set_expander_text exp s highlight =
+  let text = mk_text ~highlight s in
   exp#set_label_widget text;
   exp#set_expanded highlight
 
@@ -107,7 +105,7 @@ let add_group (box:GPack.box) label options =
     else
       let expander = GBin.expander ~packing:box#pack () in
       let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
-      GPack.vbox ~packing:frame#add (), set_expander_text box expander label
+      GPack.vbox ~packing:frame#add (), set_expander_text expander label
   in
   let highlight = 
     List.fold_right
@@ -122,14 +120,23 @@ let add_plugin (box:GPack.box) p =
   let expander = GBin.expander ~packing:(box#pack ~padding:2) () in
   let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
   let vbox = GPack.vbox ~packing:frame#add () in
-  ignore (GMisc.label ~text:p.Plugin.p_descr ~packing:vbox#pack ());
-  let highlight =
-    Hashtbl.fold
-      (fun l g b -> let is_set = add_group vbox l g in b || is_set) 
-      p.Plugin.p_parameters
-      false
+  let markup = "<b>" ^ p.Plugin.p_descr ^ "</b>" in
+  ignore (GMisc.label ~markup ~packing:(vbox#pack ~padding:4) ());
+  let sorted_groups =
+    List.sort
+      (fun (s1, _) (s2, _) -> String.compare s1 s2)
+      (Hashtbl.fold
+	 (fun l g acc -> if g = [] then acc else (l, g) :: acc)
+	 p.Plugin.p_parameters
+	 [])
   in
-  set_expander_text vbox expander p.Plugin.p_name highlight
+  let highlight = 
+    List.fold_left
+      (fun b (l, g) -> let is_set = add_group vbox l g in b || is_set) 
+      false
+      sorted_groups
+  in
+  set_expander_text expander p.Plugin.p_name highlight
 
 let show ?height ?width ~(host:basic_main) () = 
   let dialog =

@@ -1,15 +1,3 @@
-/* run.config
-OPT: -wp-mm 1 -wp-debug 1 -journal-disable  -wp-no-proof
-OPT: -wp-mm 0 -wp-fct main -wp-debug 1 -journal-disable  -wp-no-proof
-OPT: -wp-mm 2 -wp-debug 1 -journal-disable  -wp-no-proof
-OPT: -wp-mm 0 -wp-fct f -wp-behav b2 -wp-debug 1 -wp-bot -journal-disable  -wp-no-proof
-*/
-/* run.config_dev
-OPT: -wp-mm 1 -wp-debug 2 -journal-disable  -wp-proof
-OPT: -wp-mm 0 -wp-fct main -wp-debug 2 -journal-disable  -wp-proof
-OPT: -wp-mm 2 -wp-debug 2 -journal-disable  -wp-proof
-OPT: -wp-mm 0 -wp-fct f -wp-behav b2 -wp-debug 2 -wp-bot -journal-disable  -wp-proof
-*/
 
 /*@ requires \valid(p+1) ;
   ensures *(p+1) == 56 ; */

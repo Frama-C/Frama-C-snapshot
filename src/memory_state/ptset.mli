@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -23,22 +24,30 @@
 
 (** Sets over ordered types.
 
-   This module implements the set data structure, given a total ordering
-   function over the set elements. All operations over sets
+   This module implements the set data structure.
+   All operations over sets
    are purely applicative (no side-effects).
-   The implementation uses balanced binary trees, and is therefore
-   reasonably efficient: insertion and membership take time
-   logarithmic in the size of the set, for instance.
 *)
 
 (** Input signature of the functor {!Set.Make}. *)
+module type Id_Datatype = sig
+  type t
+  val id: t -> int
+  val name : string
+  val pretty : Format.formatter -> t -> unit
+  val equal : t -> t -> bool
+  module Datatype : Project.Datatype.S with type t = t
+end
 
+(** Output signature of the functor {!Set.Make}. *)
 module type S = sig
     type elt
     (** The type of the set elements. *)
 
     type t
     (** The type of sets. *)
+
+    val descr: Unmarshal.t
 
     val empty: t
     (** The empty set. *)
@@ -59,6 +68,8 @@ module type S = sig
     val remove: elt -> t -> t
     (** [remove x s] returns a set containing all elements of [s],
        except [x]. If [x] was not in [s], [s] is returned unchanged. *)
+
+    val elements: t -> elt list
 
     val union: t -> t -> t
     (** Set union. *)
@@ -111,16 +122,19 @@ module type S = sig
 *)
     val cardinal: t -> int
     (** Return the number of elements of a set. *)
-(*
+
     val min_elt: t -> elt
     (** Return the smallest element of the given set
        (with respect to the [Ord.compare] ordering), or raise
        [Not_found] if the set is empty. *)
-
+(*
     val max_elt: t -> elt
     (** Same as {!Set.S.min_elt}, but returns the largest element of the
        given set. *)
+*)
+    val contains_single_elt: t -> elt option
 
+(*
     val choose: t -> elt
     (** Return one element of the given set, or raise [Not_found] if
        the set is empty. Which element is chosen is unspecified,
@@ -138,12 +152,14 @@ module type S = sig
 end
 
 module Make
-  (X:sig 
-     type t 
-     val id : t -> int 
+  (X:sig
+     type t
+     val id : t -> int
      val name : string
      val pretty : Format.formatter -> t -> unit
-   end) 
+     val equal : t -> t -> bool
+     module Datatype : Project.Datatype.S with type t = t
+   end)
   : S with type elt = X.t
 (*
 Local Variables:

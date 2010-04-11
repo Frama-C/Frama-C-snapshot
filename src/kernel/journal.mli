@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,9 +20,39 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: journal.mli,v 1.15 2009-01-28 14:34:54 uid568 Exp $ *)
-
 (** Journalization of functions *)
+
+(* ****************************************************************************)
+(** {2 Journalization} *)
+(* ****************************************************************************)
+
+val register:
+  string ->
+  'a Type.t ->
+  ?comment:(Format.formatter -> unit) ->
+  ?is_dyn:bool ->
+  'a ->
+  'a
+    (** [register name ty ~comment ~is_dyn v] journalizes the value [v]
+	of type [ty] with the name [name]. [name] must exactly match the caml
+	long name of the value (i.e. "List.iter" and not "iter" even though the
+	module List is already opened). Journalisation of anonymous value is
+	not possible.
+
+	If the [comment] argument is set, the given pretty printer will be
+	applied in an ocaml comment when the function is journalized.
+
+	Set [is_dyn] to [true] to journalize a dynamic function. *)
+
+val never_write: string -> 'a -> 'a
+  (** [never_write name f] returns a closure [g] observationaly equal to [f]
+      except that trying to write a call to [g] in the journal is an error. If
+      [f] is not a closure, then [never_write name f] raises
+      [Invalid_argument]. *)
+
+val prevent: ('a -> 'b) -> 'a -> 'b
+  (** [prevent f x] applies [x] to [f] without printing anything in the
+      journal, even if [f] is journalized. *)
 
 (* ****************************************************************************)
 (** {2 Journal management} *)
@@ -35,10 +66,9 @@ val set_name: string -> unit
       written. The new filename is [name ^ ".ml"]. *)
 
 val write: unit -> unit
-  (** [write ()] writes the content of the journal into the given file 
-      (without clearing the journal). *)
-
-val prevent: ('a -> 'b) -> 'a -> 'b
+  (** [write ()] writes the content of the journal into the file set by
+      [set_name] (or in "frama_c_journal.ml" by default);
+      without clearing the journal. *)
 
 val save: unit -> unit
   (** Save the current state of the journal for future restauration.
@@ -49,43 +79,15 @@ val restore: unit -> unit
       @since Beryllium-20090901 *)
 
 (* ****************************************************************************)
-(** {2 Journalization} *)
-(* ****************************************************************************)
-
-val register: 
-  string -> 
-  'a Type.t ->
-  ?comment:(Format.formatter -> unit) ->
-  ?is_dyn:bool ->
-  'a -> 
-  'a
-    (** [register n ty ~comment:pp ~register:r v] journalizes the value [v] 
-	of type [ty] with the name [n]. [n] must exactly  match the FQN
-	of the value (i.e. "List.iter" and not "iter" even though the module
-	List is already opened). If the [comment] argument is set, the given 
-	pretty printer [pp]would be applied when the is journalized. 
-
-	Set [is_dyn] to true to journalize dynamic function. *)
-
-val never_write: string -> 'a -> 'a
-  (** [never_write name f] returns a closure [g] observationaly equal to [f]
-      except that trying to write a call to [g] in the journal is an error. If
-      [f] is not a closure, then [never_write name f] raises
-      [Invalid_argument]. *)
-
-(* ****************************************************************************)
 (** {2 Internal use only} *)
 (* ****************************************************************************)
 
 val keep_file: string -> unit
-
-(** This function has not to be used explictely. Only offers functions 
-    retrieving when running a journal file. *)
-
-exception LoadingError of string
+  (** This function has not to be used explictely. Only offers functions
+      retrieving when running a journal file. *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

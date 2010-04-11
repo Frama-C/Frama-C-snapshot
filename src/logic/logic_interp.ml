@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -59,8 +60,7 @@ let code_annot kf stmt ~before:_ s =
   let file = Ast.get () in
   let loc = snd (Cabshelper.currentLoc ()) in
   let pa = match Logic_lexer.annot (loc, s) with
-    | Logic_ptree.Acode_annot (_,a) ->
-	a
+    | Logic_ptree.Acode_annot (_,a) -> a
     | _ ->
 	error (loc_stmt stmt)
 	  "Syntax error (expecting a code annotation)"
@@ -69,7 +69,7 @@ let code_annot kf stmt ~before:_ s =
     Logic_typing.Make
       (struct
 	 let annonCompFieldName = Cabs2cil.annonCompFieldName
-	 let conditionalConversion = Cabs2cil.conditionalConversion
+	 let conditionalConversion = Cabs2cil.logicConditionalConversion
 
 	 let find_var x = find_var kf stmt file x
 
@@ -86,7 +86,8 @@ let code_annot kf stmt ~before:_ s =
 	   add_logic_function_gen Logic_utils.is_same_logic_profile
        end)
   in
-  LT.code_annot pa
+  LT.code_annot (loc_stmt stmt) []
+    (Ctype (Kernel_function.get_return_type kf)) pa
 
 let expr kf stmt s =
   let file = Ast.get () in
@@ -101,7 +102,7 @@ let expr kf stmt s =
 	 let annonCompFieldName = Cabs2cil.annonCompFieldName
 	 let integralPromotion = Cabs2cil.integralPromotion
 	 let arithmeticConversion = Cabs2cil.arithmeticConversion
-	 let conditionalConversion = Cabs2cil.conditionalConversion
+	 let conditionalConversion = Cabs2cil.logicConditionalConversion
 
 	 let find_var x = find_var kf stmt file x
 
@@ -120,7 +121,7 @@ let expr kf stmt s =
 
        end)
   in
-  LT.term (Logic_typing.make_here_label ()) pa_expr
+  LT.term (Logic_typing.append_here_label (Logic_typing.Lenv.empty())) pa_expr
 
 let lval kf stmt s =
   match (expr kf stmt s).term_node with
@@ -139,7 +140,8 @@ let rec logic_type_to_typ = function
   | Linteger -> TInt(ILongLong,[]) (*TODO: to have an unlimited integer type
                                     in the logic interpretation*)
   | Lreal -> TFloat(FLongDouble,[]) (* TODO: handle reals, not floats... *)
-  | Ltype({lt_name = "boolean"},[]) -> TInt(ILongLong,[])
+  | Ltype({lt_name = name},[]) when name = Utf8_logic.boolean  ->
+      TInt(ILongLong,[])
   | Ltype({lt_name = "set"},[t]) -> logic_type_to_typ t
   | Ltype _ | Lvar _ | Larrow _ -> error_lval ()
 
@@ -224,7 +226,7 @@ let rec force_term_to_exp t =
     | Tapp _ | TDataCons _ | Tif _ | Told _ | Tat _ | Tbase_addr _
     | Tblock_length _ | Tnull | TCoerce _ | TCoerceE _ | TUpdate _
     | Tlambda _ | Ttypeof _ | Ttype _ | Tcomprehension _
-    | Tunion _ | Tinter _ | Tempty_set | Trange _
+    | Tunion _ | Tinter _ | Tempty_set | Trange _ | Tlet _
         ->
         add_opaque_term t empty_term_env
   in
@@ -751,49 +753,54 @@ let singleton f loc =
       [ l ] -> l
     | _ -> error_lval()
 
-let rec loc_lval_to_lval (lh, lo) =
-  product (fun x y -> (x,y)) (loc_lhost_to_lhost lh) (loc_offset_to_offset lo)
-and loc_lhost_to_lhost = function
+let rec loc_lval_to_lval ~result (lh, lo) =
+  product (fun x y -> (x,y)) 
+    (loc_lhost_to_lhost ~result lh) 
+    (loc_offset_to_offset ~result lo)
+and loc_lhost_to_lhost ~result = function
   | TVar lvar -> [Var (logic_var_to_var lvar)]
-  | TMem lterm -> List.map (fun x -> Mem x) (loc_to_exp lterm)
-  | TResult _ -> error_lval()
-and loc_offset_to_offset = function
+  | TMem lterm -> List.map (fun x -> Mem x) (loc_to_exp ~result lterm)
+  | TResult _ -> 
+      ( match result with
+	None -> error_lval()
+      | Some v -> [Var v])
+and loc_offset_to_offset ~result = function
   | TNoOffset -> [NoOffset]
   | TField (fi, lo) ->
-      List.map (fun x -> Field (fi,x)) (loc_offset_to_offset lo)
+      List.map (fun x -> Field (fi,x)) (loc_offset_to_offset ~result lo)
   | TIndex (lexp, lo) ->
       product (fun x y -> Index(x,y))
-        (loc_to_exp lexp) (loc_offset_to_offset lo)
-and loc_to_exp {term_node = lnode ; term_type = ltype} =
+        (loc_to_exp ~result lexp) (loc_offset_to_offset ~result lo)
+and loc_to_exp ~result {term_node = lnode ; term_type = ltype} =
   match lnode with
-  | TLval lv -> List.map (fun x -> new_exp(Lval x)) (loc_lval_to_lval lv)
-  | TAddrOf lv -> List.map (fun x -> new_exp (AddrOf x)) (loc_lval_to_lval lv)
-  | TStartOf lv -> List.map (fun x -> new_exp (StartOf x)) (loc_lval_to_lval lv)
-  | TSizeOfE lexp -> List.map (fun x -> new_exp (SizeOfE x)) (loc_to_exp lexp)
-  | TAlignOfE lexp -> List.map (fun x -> new_exp (AlignOfE x)) (loc_to_exp lexp)
+  | TLval lv -> List.map (fun x -> new_exp(Lval x)) (loc_lval_to_lval ~result lv)
+  | TAddrOf lv -> List.map (fun x -> new_exp (AddrOf x)) (loc_lval_to_lval ~result lv)
+  | TStartOf lv -> List.map (fun x -> new_exp (StartOf x)) (loc_lval_to_lval ~result lv)
+  | TSizeOfE lexp -> List.map (fun x -> new_exp (SizeOfE x)) (loc_to_exp ~result lexp)
+  | TAlignOfE lexp -> List.map (fun x -> new_exp (AlignOfE x)) (loc_to_exp ~result lexp)
   | TUnOp (unop, lexp) ->
       List.map
         (fun x -> new_exp (UnOp (unop, x, logic_type_to_typ ltype)))
-        (loc_to_exp lexp)
+        (loc_to_exp ~result lexp)
   | TBinOp (binop, lexp1, lexp2) ->
       product
         (fun x y -> new_exp (BinOp (binop, x,y, logic_type_to_typ ltype)))
-        (loc_to_exp lexp1) (loc_to_exp lexp2)
+        (loc_to_exp ~result lexp1) (loc_to_exp ~result lexp2)
   | TSizeOfStr string -> [new_exp (SizeOfStr string)]
   | TConst constant -> [new_exp (Const constant)]
   | TCastE (typ, lexp) ->
-      List.map (fun x -> new_exp (CastE (typ, x))) (loc_to_exp lexp)
+      List.map (fun x -> new_exp (CastE (typ, x))) (loc_to_exp ~result lexp)
   | TAlignOf typ -> [new_exp (AlignOf typ)]
   | TSizeOf typ -> [new_exp (SizeOf typ)]
   | Trange (Some low, Some high) ->
-      let low = singleton loc_to_exp low in
-      let high = singleton loc_to_exp high in
+      let low = singleton (loc_to_exp ~result) low in
+      let high = singleton (loc_to_exp ~result) high in
       range low high
-  | Tunion l -> List.concat (List.map loc_to_exp l)
+  | Tunion l -> List.concat (List.map (loc_to_exp ~result) l)
   | Tempty_set -> []
   | Tinter _ | Tcomprehension _ -> error_lval()
  (* additional constructs *)
-  | Tapp _ | Tlambda _ | Trange _
+  | Tapp _ | Tlambda _ | Trange _   | Tlet _
   | TDataCons _
   | Tif _
   | Told _
@@ -804,12 +811,12 @@ and loc_to_exp {term_node = lnode ; term_type = ltype} =
   | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
     -> error_lval ()
 
-let rec loc_to_lval t =
+let rec loc_to_lval ~result t =
   match t.term_node with
-  | TLval lv -> loc_lval_to_lval lv
-  | TAddrOf lv -> loc_lval_to_lval lv
-  | TStartOf lv -> loc_lval_to_lval lv
-  | Tunion l1 -> List.concat (List.map loc_to_lval l1)
+  | TLval lv -> loc_lval_to_lval ~result lv
+  | TAddrOf lv -> loc_lval_to_lval ~result lv
+  | TStartOf lv -> loc_lval_to_lval ~result lv
+  | Tunion l1 -> List.concat (List.map (loc_to_lval ~result) l1)
   | Tempty_set -> []
   | Tinter _ -> error_lval() (* TODO *)
   | Tcomprehension _ -> error_lval()
@@ -817,27 +824,27 @@ let rec loc_to_lval t =
   | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _ | Told _
   | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull | Trange _
   | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
-  | Ttypeof _ | Ttype _ ->
+  | Ttypeof _ | Ttype _ | Tlet _ ->
       error_lval ()
 
-let loc_to_loc state content =
-  let unprotected content = 
-    let lvals = loc_to_lval content in
+let loc_to_loc ~result state content =
+  let unprotected content =
+    let lvals = loc_to_lval ~result content in
       List.fold_left
         (fun acc lval ->
 	   let loc = !Db.Value.lval_to_loc_state state lval in
 	   let s = loc.Locations.size in
-	     assert (Locations.loc_equal acc Locations.loc_bottom || 
+	     assert (Locations.loc_equal acc Locations.loc_bottom ||
 		       Int_Base.equal s acc.Locations.size);
-	     Locations.make_loc 
-	       (Locations.Location_Bits.join 
+	     Locations.make_loc
+	       (Locations.Location_Bits.join
 		  loc.Locations.loc
 		  acc.Locations.loc)
 	       s)
         Locations.loc_bottom
 	lvals
   in
-  begin try	  
+  begin try
     unprotected content
   with
       Invalid_argument "not an lvalue" as e ->
@@ -846,42 +853,42 @@ let loc_to_loc state content =
 	      TLval (TVar v, _o) ->
 		let c_v = logic_var_to_var v in
 		let base = Base.create_varinfo c_v in
-		let loc = 
+		let loc =
 		  Locations.Location_Bits.inject_top_origin
 		    Origin.top
 		    (Locations.Location_Bits.Top_Param.O.singleton base)
 
 		in
 		  Locations.make_loc loc Int_Base.top
-	    | TLval (TMem {term_node=TBinOp((IndexPI|PlusPI) , 
+	    | TLval (TMem {term_node=TBinOp((IndexPI|PlusPI) ,
 					    t1,_o1)},
 		     _o2) ->
-		let deref_lvals = 
-		  !Db.Properties.Interp.loc_to_lval t1
+		let deref_lvals =
+		  !Db.Properties.Interp.loc_to_lval ~result:None t1
 		in
 		  (* Format.printf "input: %a@."
 		     Cvalue_type.V.pretty input_contents ; *)
-		let deref_loc = 
-		  List.fold_left 
+		let deref_loc =
+		  List.fold_left
 		    (fun acc lv ->
-		       let loc = 
+		       let loc =
 			 !Db.Value.lval_to_loc_state state lv
 		       in
 			 Locations.Location_Bits.join loc.Locations.loc acc)
 		    Locations.Location_Bits.bottom
 		    deref_lvals
 		in
-		let deref_loc = 
+		let deref_loc =
 		  Locations.Location_Bits.topify_arith_origin deref_loc
-		in 
+		in
 		let loc_bytes =
 		  Relations_type.Model.find ~with_alarms:CilE.warn_none_mode
 		    state
 		    (Locations.make_loc deref_loc Int_Base.top)
 		in
-		let loc = 
-		  Locations.make_loc 
-		    (Locations.loc_bytes_to_loc_bits loc_bytes) 
+		let loc =
+		  Locations.make_loc
+		    (Locations.loc_bytes_to_loc_bits loc_bytes)
 		    Int_Base.top
 		in
 		  loc
@@ -889,18 +896,18 @@ let loc_to_loc state content =
 	  end
   end
 
-let identified_term_zone_to_loc state t =
+let identified_term_zone_to_loc ~result state t =
   match t with
-      Location t -> loc_to_loc state t.it_content 
+      Location t -> loc_to_loc ~result state t.it_content
     | Nothing -> Locations.loc_bottom
-	
-let rec loc_to_offset loc =
+
+let rec loc_to_offset ~result loc =
   let rec aux h =
     function
         TLval(h',o) | TStartOf (h',o) ->
-          (match h with None -> Some h', loc_offset_to_offset o
+          (match h with None -> Some h', loc_offset_to_offset ~result o
              | Some h when Logic_utils.is_same_lhost h h' ->
-                 Some h, loc_offset_to_offset o
+                 Some h, loc_offset_to_offset ~result o
              | Some _ -> error_lval()
           )
       | Tat ({ term_node = TLval(TResult _,_)} as lv,LogicLabel "Post") ->
@@ -914,16 +921,17 @@ let rec loc_to_offset loc =
       | TConst _ | TCastE _ | TAlignOf _ | TSizeOf _ | Tapp _ | Tif _ | Told _
       | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
       | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
-      | Ttypeof _ | Ttype _ | Tcomprehension _ | Tinter _ -> error_lval ()
+      | Ttypeof _ | Ttype _ | Tcomprehension _ | Tinter _ | Tlet _
+          -> error_lval ()
   in snd (aux None loc.term_node)
 
-let term_lval_to_lval = singleton loc_lval_to_lval
+let term_lval_to_lval ~result = singleton (loc_lval_to_lval ~result)
 
-let term_to_lval = singleton loc_to_lval
+let term_to_lval ~result = singleton (loc_to_lval ~result)
 
-let term_to_exp = singleton loc_to_exp
+let term_to_exp ~result = singleton (loc_to_exp ~result)
 
-let term_offset_to_offset = singleton loc_offset_to_offset
+let term_offset_to_offset ~result = singleton (loc_offset_to_offset ~result)
 
 class make_pre_var formals =
 object(self)
@@ -959,7 +967,10 @@ object(self)
     JustCopy
 
   method vbehavior b =
-    b.b_ensures <- Cil.visitCilPredicates (self:>Cil.cilVisitor) b.b_ensures;
+    b.b_post_cond <-
+      List.map
+      (fun (k,p) -> (k,Cil.visitCilIdPredicate (self:>Cil.cilVisitor) p))
+         b.b_post_cond;
     JustCopy
 
   initializer Stack.push false is_under_pre
@@ -1226,9 +1237,10 @@ module To_zone : sig
 
       method vterm t =
         match t.term_node with
-          TAddrOf _ | TLval _ | TStartOf _  ->
+          | TAddrOf _ | TLval (TMem _,_)
+          | TLval(TVar {lv_origin = Some _},_) | TStartOf _  ->
             let exp = try (* to be removed *)
-              !Db.Properties.Interp.term_to_exp t
+              !Db.Properties.Interp.term_to_exp ~result:None t
             with Invalid_argument str ->
               raise (Extlib.NotYetImplemented ("[logic_interp] "^ str))
             in
@@ -1238,14 +1250,14 @@ module To_zone : sig
             with Invalid_argument str ->
               raise (Extlib.NotYetImplemented ("[logic_interp] "^ str))
             in add_result current_before current_ki loc; SkipChildren
-        | Told _ | Tat (_, LogicLabel "Old") -> self#change_label_to_old t
-        | Tat (_, LogicLabel "Here") -> self#change_label_to_here t
-        | Tat (_, LogicLabel "Pre") -> self#change_label_to_pre t
-        | Tat (_, LogicLabel "Post") -> self#change_label_to_post t
-        | Tat (_, StmtLabel st) -> self#change_label_to_stmt !st t
-        | Tat(_,LogicLabel s) ->
+          | Told _ | Tat (_, LogicLabel "Old") -> self#change_label_to_old t
+          | Tat (_, LogicLabel "Here") -> self#change_label_to_here t
+          | Tat (_, LogicLabel "Pre") -> self#change_label_to_pre t
+          | Tat (_, LogicLabel "Post") -> self#change_label_to_post t
+          | Tat (_, StmtLabel st) -> self#change_label_to_stmt !st t
+          | Tat(_,LogicLabel s) ->
             failwith ("unknown logic label" ^ s)
-        | _ -> DoChildren
+          | _ -> DoChildren
     end
 
     (** Entry point to get the list of [ki] * [Locations.Zone.t]
@@ -1438,20 +1450,17 @@ module To_zone : sig
 
     (** Used by annotations entry points. *)
     let get_from_stmt_annots code_annot_filter ((ki, _kf) as stmt) =
-      match code_annot_filter with
-      | Some code_annot_filter ->
-          let code_annot_list = Annotations.get ki in
-          let loop_body_opt = match ki.skind with
-              Loop(_,{bstmts=body::_},_,_,_) -> Some body
-            | _ -> None
-          in
-          List.iter
-            (fun a ->
-               if code_annot_filter a then
-                 get_zone_from_annotation a stmt loop_body_opt)
-            code_annot_list
-      | None -> ()
-
+      Extlib.may
+	(fun caf ->
+           let loop_body_opt = match ki.skind with
+             | Loop(_, { bstmts = body :: _ }, _, _, _) -> Some body
+             | _ -> None
+           in
+           Annotations.single_iter_stmt
+             (fun a ->
+		if caf a then get_zone_from_annotation a stmt loop_body_opt)
+             ki)
+	code_annot_filter
 
     (** Used by annotations entry points. *)
     let from_ki_annot annot ~before ((ki, _kf) as stmt) =
@@ -1550,9 +1559,8 @@ let () =
   Properties.Interp.To_zone.from_func_annots := To_zone.from_func_annots;
   Properties.Interp.To_zone.code_annot_filter := To_zone.code_annot_filter
 
-
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

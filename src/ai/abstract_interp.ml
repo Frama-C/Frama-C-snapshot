@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -70,7 +71,7 @@ module type Lattice_With_Diff = sig
     (** [diff t1 t2] is an over-approximation of [t1-t2].
        Returns [t1] if [t2] is not a singleton. *)
 
-  val fold_enum : 
+  val fold_enum :
     split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
   val splitting_cardinal_less_than:
     split_non_enumerable:int -> t -> int -> int
@@ -124,7 +125,9 @@ end
 
 module type Value = sig
   type t
-  val pretty: Format.formatter -> t -> unit
+  val name : string
+(*  val id : t -> int *)
+  val pretty : Format.formatter -> t -> unit
   val compare : t -> t -> int
   val hash: t -> int
   module Datatype: Project.Datatype.S with type t = t
@@ -186,7 +189,21 @@ end
 module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
   exception Error_Top
   exception Error_Bottom
-  module O = Set.Make(V)
+  module O =
+    struct
+      include Set.Make(V)
+      let contains_single_elt s =
+	try
+	  let mi = min_elt s in
+	  let ma = max_elt s in
+	  if mi == ma
+	  then (* exactly one elt *)
+	    Some mi
+	  else None
+	with Not_found -> None
+      let descr = Unmarshal.t_set_unchangedcompares V.Datatype.descr
+	(* TODO: really unchangedcompares? *)
+    end
   type tt = Set of O.t | Top
   type t = tt = Set of O.t | Top
   type y = O.t
@@ -334,29 +351,20 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
   | Top -> true
   | Set s -> O.mem v s
 
-  module Datatype = 
+  module Datatype =
     Project.Datatype.Register
       (struct
 	 type t = tt
 	 let copy _ = assert false
-	 let rehash x = match x with
-	   | Top -> x
-	   | Set s ->
-	       inject (O.fold (fun x -> O.add (V.Datatype.rehash x)) s O.empty)
-	 let descr = Unmarshal.Abstract (* TODO *)
+	 open Unmarshal
+	 let descr = Structure (Sum [| [| O.descr |] |])
 	 let name = Project.Datatype.extend_name "lattice_set" V.Datatype.name
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ~compare ()
 
 end
 
-module type Value_With_Id = sig
-  include Value
-  val id: t -> int
-  val name : string
-end
-
-module Make_Hashconsed_Lattice_Set(V:Value_With_Id)
+module Make_Hashconsed_Lattice_Set(V: Ptset.Id_Datatype)
   : Lattice_Set with type O.elt=V.t =
 struct
   exception Error_Top
@@ -375,13 +383,13 @@ struct
       Top -> 12373
     | Set s ->
 	let f v acc =
-	  67 * acc + (V.hash v)
+	  67 * acc + (V.id v)
 	in
 	O.fold f s 17
 
   let tag = hash
 
-  let equal e1 e2 = 
+  let equal e1 e2 =
     if e1==e2 then true
     else
       match e1,e2 with
@@ -511,14 +519,11 @@ struct
   module Datatype =
     Project.Datatype.Register
       (struct
-	 type t = tt
+	 type t = tt = Set of O.t | Top
 	 let copy _ = assert false
-	 let rehash x = match x with
-	   | Top -> x
-	   | Set s ->
-	       inject (O.fold (fun x -> O.add (V.Datatype.rehash x)) s O.empty)
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
-	 let name = Project.Datatype.extend_name 
+	 open Unmarshal
+	 let descr = Structure(Sum [| [| O.descr |] |])
+	 let name = Project.Datatype.extend_name
 	     "hashconsed_lattice_set" V.Datatype.name
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ()
@@ -544,13 +549,14 @@ struct
   module Datatype =
     Project.Datatype.Register
       (struct
-	type tt = t
+	 type tt = t
 	type t = tt
 	let copy _ = assert false (* TODO *)
-	let rehash (v, w) = V.Datatype.rehash v, W.Datatype.rehash w
-	let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	open Unmarshal
+	let descr =
+	  Structure (Sum [| [| V.Datatype.descr; W.Datatype.descr |] |])
 	let name =
-	  Project.Datatype.extend_name2 
+	  Project.Datatype.extend_name2
 	    "lattice_pair" V.Datatype.name W.Datatype.name
       end)
   let () = Datatype.register_comparable ~hash ~equal ()
@@ -625,7 +631,7 @@ struct
 	in
 	V.to_int (aux l V.zero)
 
-  let splitting_cardinal_less_than ~split_non_enumerable _v _n = 
+  let splitting_cardinal_less_than ~split_non_enumerable _v _n =
     ignore (split_non_enumerable);
     assert false
 
@@ -803,12 +809,9 @@ struct
       (struct
 	 type t = tt
 	 let copy _ = assert false (* TODO *)
-	 let rehash x = match x with
-	   | Top -> x
-	   | Set l -> inject (List.map Interval.Datatype.rehash l)
 	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
 	 let name =
-	   Project.Datatype.extend_name 
+	   Project.Datatype.extend_name
 	     "lattice_interval_set" Interval.Datatype.name
        end)
   let () = Datatype.register_comparable ~hash ~equal ()
@@ -914,12 +917,10 @@ module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
   module Datatype =
     Project.Datatype.Register
       (struct
-	 type t = tt
+	 type t = tt = Top | Bottom | Value of l
 	 let copy _ = assert false (* TODO *)
-	 let rehash x = match x with
-	   | Top | Bottom -> x
-	   | Value v -> inject (V.Datatype.rehash v)
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 open Unmarshal
+	 let descr = Structure (Sum [| [| V.Datatype.descr |] |])
 	 let name = Project.Datatype.extend_name "lattice_base" V.Datatype.name
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ()
@@ -929,8 +930,10 @@ end
 module Int = struct
   open My_bigint
   type t = big_int
+  let descr = Unmarshal.Abstract
 
   module Datatype = Datatype.BigInt
+  let name = Datatype.name
 
   let zero = zero_big_int
   let one = unit_big_int
@@ -1011,10 +1014,10 @@ module Int = struct
   let cast ~size ~signed ~value =
     let factor = two_power size in
     let mask = two_power (sub size one) in
-    
+
     if (not signed) then pos_rem value factor
     else
-      if equal (logand mask value) zero 
+      if equal (logand mask value) zero
     then logand value (pred mask)
     else
       logor (lognot (pred mask)) value
@@ -1155,7 +1158,9 @@ module Int = struct
 end
 
 module type Key = sig
-  include Map.OrderedType
+  type t
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
   val pretty : Format.formatter -> t -> unit
   val is_null : t -> bool
   val null : t
@@ -1171,7 +1176,8 @@ module VarinfoSetLattice = Make_Hashconsed_Lattice_Set
      type t = varinfo
      module Datatype = Cil_datatype.Varinfo
      let compare v1 v2 = compare v1.vid v2.vid
-     let pretty fmt v = 
+     let equal v1 v2 = v1.vid = v2.vid
+     let pretty fmt v =
        Format.fprintf fmt "@[%a@]" !Ast_printer.d_ident v.vname
      let hash v = v.vid
      let id v = v.vid
@@ -1182,6 +1188,7 @@ module LocationSetLattice = struct
   include Make_Lattice_Set
     (struct
        type t = Cil_types.location
+       let name = "source location"
        module Datatype = Cil_datatype.Location
        let compare = Pervasives.compare
        let pretty fmt (b,_e) =
@@ -1325,15 +1332,13 @@ struct
   module Datatype =
     Project.Datatype.Register
       (struct
-	 type t = tt
+	 type t = tt = Product of t1*t2 | Bottom
 	 let copy _ = assert false (* TODO *)
-	 let rehash x = match x with
-	   | Bottom -> x
-	   | Product(v1, v2) ->
-	       inject (L1.Datatype.rehash v1) (L2.Datatype.rehash v2)
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 open Unmarshal
+	 let descr =
+	   Structure (Sum [| [| L1.Datatype.descr; L2.Datatype.descr |] |])
 	 let name =
-	   Project.Datatype.extend_name2 
+	   Project.Datatype.extend_name2
 	     "lattice_product" L1.Datatype.name L2.Datatype.name
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ()
@@ -1468,11 +1473,7 @@ struct
       (struct
 	 type t = sum
 	 let copy _ = assert false (* TODO *)
-	 let rehash x = match x with
-	   | Top | Bottom -> x
-	   | T1 v -> inject_t1 (L1.Datatype.rehash v)
-	   | T2 v -> inject_t2 (L2.Datatype.rehash v)
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let descr = Project.no_descr
 	 let name =
 	   Project.Datatype.extend_name2 "lattice_sum"
 	     L1.Datatype.name L2.Datatype.name

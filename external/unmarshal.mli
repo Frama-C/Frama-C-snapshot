@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2009 INRIA                                              *)
+(*  Copyright (C) 2009-2010 INRIA                                         *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -65,7 +65,11 @@ type t =
   | Transform of t * (Obj.t -> Obj.t)
   | Return of t * (unit -> Obj.t)
   | Dynamic of (unit -> t)
-and structure = Sum of t array array | Array of t
+
+and structure =
+  | Sum of t array array
+  | Dependent_pair of t * (Obj.t -> t)
+  | Array of t
 ;;
 (** Type [t] is used to describe the type of the data to be read and
 the transformations to be applied to the data.
@@ -77,14 +81,24 @@ representation of the data.
 
 [Structure a] is used to provide a description of the representation
 of the data, along with optional transformation functions for
-parts of the data.  [a] is either [Array(t)], indicating that
-the data is an array of values of the same type, each value being
-described by [t], or, for a non-array type, [Sum(a)] where [a] is
-an array describing the non-constant constructors of 
-the type being described (in the order of their
-declarations in that type).  Each element of this latter array is an
-array of [t] that describes (in order) the fields of the
-corresponding constructor.  The shape of [a] must match the shape
+parts of the data.
+
+[a] can be:
+- [Array(t)], indicating that
+  the data is an array of values of the same type, each value being
+  described by [t].
+- [Sum(c)] for describing a non-array type where [c] is
+  an array describing the non-constant constructors of
+  the type being described (in the order of their
+  declarations in that type).  Each element of this latter array is an
+  array of [t] that describes (in order) the fields of the
+  corresponding constructor.
+- [Dependent_pair(e,f)] for instructing the unmarshaler to
+  reconstruct the first component of a pair first, using [e] as
+  its description, and to apply function [f] to this value in order
+  to get the description of the pair's second component.
+
+The shape of [a] must match the shape
 of the representation of the type of the data being imported, or
 [input_val] may report an error when the data doesn't match the
 description.
@@ -111,7 +125,7 @@ val input_val : in_channel -> t -> 'a;;
 *)
 
 val null : Obj.t;;
-(** recursive values cannot, be completely formed at the time
+(** recursive values cannot be completely formed at the time
 they are passed to their transformation function.  When traversing
 a recursive value, the transformation function must check the
 fields for physical equality to [null] (with the function [==])
@@ -139,6 +153,12 @@ val t_list : t -> t;;
 val t_ref : t -> t;;
 val t_option : t -> t;;
 
+val t_hashtbl_unchangedhashs : t -> t -> t
+val t_hashtbl_changedhashs :
+  (int -> 'table) -> ('table -> 'key -> 'value -> unit) -> t -> t -> t
+
+val t_set_unchangedcompares : t -> t
+val t_map_unchangedcompares : t -> t -> t
 
 (** Functions for writing deserializers. *)
 
@@ -158,3 +178,30 @@ val read32u : in_channel -> int;;
 val read64u : in_channel -> int;;
 val readblock : in_channel -> Obj.t -> int -> int -> unit;;
 val readblock_rev : in_channel -> Obj.t -> int -> int -> unit;;
+
+
+
+(** Pre-specialized functors for Ocaml sets and maps *)
+
+module type ORDEREDDESCR = sig
+  val descr: t
+  include Set.OrderedType
+end
+
+module type SetDescr = sig
+  val descr: t
+  include Set.S
+end
+
+module SetWithDescr(Data: ORDEREDDESCR) : SetDescr
+  with type elt = Data.t
+  and type t = Set.Make(Data).t
+
+module type MapDescr = sig
+  val descr: t -> t
+  include Map.S
+end
+
+module MapWithDescr(Data: ORDEREDDESCR) : MapDescr
+  with type key = Data.t
+  and type 'a t = 'a Map.Make(Data).t

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -558,13 +559,15 @@ end = struct
 
   let find_call idx call =
     let rec find l = match l with
-      | [] -> raise NotFound
+      | [] ->  raise NotFound
       | (call1, e1) :: tl ->
-          let sid = call.sid in let sid1 = call1.sid in
+          let sid = call.sid in 
+          let sid1 = call1.sid in
           if sid = sid1 then e1
           else if sid < sid1 then raise NotFound
           else find tl
-    in find idx.calls
+    in 
+    find idx.calls
 
   let find_call_key idx key =
     match key with
@@ -588,7 +591,7 @@ end = struct
       Signature.find_info sgn1 k
 
   let find_all_info_sig_call idx call =
-    let (_e1, sgn1) = find_call idx call in
+      let (_e1, sgn1) = find_call idx call in
       Signature.fold (fun l (_k,i) -> i::l) [] sgn1
 
   let add_replace idx key e replace =

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -95,7 +96,7 @@ let expr_to_kernel_function_state ~with_alarms state ~deps exp =
    try
       let deps, r = resolv_func_vinfo ~with_alarms deps state exp in
       Zone.out_some_or_bottom deps, r
-    with Leaf -> Zone.out_some_or_bottom deps, []
+    with Leaf -> Zone.out_some_or_bottom deps, Kernel_function.Set.empty
 
 let expr_to_kernel_function kinstr  ~with_alarms ~deps exp =
   CilE.start_stmt kinstr;
@@ -115,34 +116,32 @@ exception Top_input
 let assigns_to_zone_inputs_state state assigns =
   try
     let treat_one_zone acc (_,ins) =
-      match ins with
-          [] -> raise Top_input
-        | ins ->
-            (try
-               List.fold_left
-                 (fun acc loc ->
-                    let clocs = match loc with
-                        Location loc ->
-                          !Db.Properties.Interp.loc_to_lval loc.it_content
-                      | Nothing -> []
-                    in
-                    List.fold_left
-                      (fun acc cin ->
-                         Zone.join acc
-                           (!Db.Value.lval_to_zone_state state cin))
-                      acc clocs)
-                 acc ins
-             with Invalid_argument "not an lvalue" ->
-               CilE.warn_once "Can not interpret assigns clause; Ignoring.";
-               raise Top_input)
+      if ins = [] then raise Top_input;
+      List.fold_left
+	(fun acc term ->
+	  let loc_ins = 
+	    !Db.Properties.Interp.identified_term_zone_to_loc ~result:None
+	      state
+	      term
+	  in
+	  Zone.join 
+	    acc 
+	    (Locations.valid_enumerate_bits loc_ins))
+	acc
+	ins
     in
     match assigns with
-        [] -> Zone.bottom (*VP This corresponds to the old code (v1.9)
-                              Not sure this is what we really want, though.
-                             *)
-      | [Nothing,_] -> Zone.bottom
-      | _ -> List.fold_left treat_one_zone Zone.bottom assigns
-  with Top_input -> Zone.top
+      [] -> Zone.bottom (*VP This corresponds to the old code (v1.9)
+                          Not sure this is what we really want, though.
+                        *)
+    | [Nothing,_] -> Zone.bottom
+    | _ -> 
+	List.fold_left treat_one_zone Zone.bottom assigns
+  with 
+    Top_input -> Zone.top 
+  | Invalid_argument "not an lvalue" ->
+      CilE.warn_once "Failed to interpret assigns clause in inputs";
+       Zone.top 
 
 let lval_to_offsetmap  kinstr lv ~with_alarms =
   CilE.start_stmt kinstr;

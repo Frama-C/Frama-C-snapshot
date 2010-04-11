@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (*
@@ -99,22 +100,15 @@ let oneret (f: fundec) : unit =
 
   (* Memoize the return result variable. Use only if hasRet *)
   let lastloc = ref locUnknown in
-  let retVar : varinfo option ref = ref None in
-  let getRetVar (_x: unit) : varinfo =
+  let getRetVar =
+    let retVar : varinfo option ref = ref None in
+    fun () ->
       match !retVar with
-	Some rv ->
-(*	  Format.printf "variable %s glob %b formal %b function_scope%b@."
-	    rv.vname
-	    rv.vglob
-	    rv.vformal
-	    rv.vfunction_scope; *)
-	  if not rv.vglob && not rv.vformal
-	  then rv.vfunction_scope <- true;
-	  rv
+	Some rv -> rv
       | None -> begin
             let rv = makeLocalVar f "__retres" retTyp in (* don't collide *)
-	    rv.vfunction_scope <- true;
             retVar := Some rv;
+            f.sbody.blocals <- rv::f.sbody.blocals;
             rv
 	end
   in
@@ -158,11 +152,8 @@ let oneret (f: fundec) : unit =
 
     | [] -> []
 
-    | [{skind=Return (Some ({enode = Lval(Var rv,NoOffset)}), _l)} as s]
-        when mainbody && not !haveGoto
-          ->
-	if not rv.vglob && not rv.vformal
-	then rv.vfunction_scope <- true;
+    | [{skind=Return (Some ({enode = Lval(Var _,NoOffset)}), _l)} as s]
+        when mainbody && not !haveGoto ->
 	[s]
 
     | ({skind=Return (retval, l)} as s) :: rests ->

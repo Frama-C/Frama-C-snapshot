@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,7 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
 (******************************************************************)
@@ -48,11 +49,13 @@
 module type OrderedType =
   sig
     include Set.OrderedType
+    val descr : Unmarshal.t
   end
 
 module type S =
   sig
     include Set.S
+    val descr : Unmarshal.t
     val nearest_elt_le: elt -> t -> elt
     val nearest_elt_ge: elt -> t -> elt
   end
@@ -61,6 +64,8 @@ module Make(Ord: OrderedType) =
   struct
     type elt = Ord.t
     type t = Empty | Node of t * elt * t * int
+
+    let descr = Unmarshal.t_set_unchangedcompares Ord.descr
 
     (* Sets are represented by balanced binary trees (the heights of the
        children differ by at most 2 *)

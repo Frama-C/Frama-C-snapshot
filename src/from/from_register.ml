@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -37,7 +38,7 @@ module Functionwise_Dependencies =
     (Function_Froms.Datatype)
     (struct
        let name = "functionwise_from"
-       let size = 97
+       let size = 17
        let dependencies = [ Value.self ]
      end)
 
@@ -50,7 +51,7 @@ module Callwise_Dependencies =
     (Function_Froms.Datatype)
     (struct
        let name = "callwise_from"
-       let size = 97
+       let size = 17
        let dependencies = [ Value.self ]
      end)
 
@@ -68,7 +69,7 @@ module type Values_To_Use_Sig = sig
     (Cil_types.kinstr ->
       with_alarms:CilE.warn_mode ->
       deps:Locations.Zone.t option ->
-      Cil_types.exp -> Locations.Zone.t * Db_types.kernel_function list) ref
+      Cil_types.exp -> Locations.Zone.t * Kernel_function.Set.t) ref
 
   val get_state : Cil_types.kinstr -> Db.Value.state
   val access_expr : (Cil_types.kinstr -> Cil_types.exp -> Db.Value.t) ref
@@ -384,6 +385,26 @@ struct
                  kinstr
                  funcexp
              in
+             let funcexp_deps =
+               (* dependencies for the evaluation of [funcexp] *)
+               !Db.From.access funcexp_deps state.deps_table in
+             let additional_deps =
+               Zone.join d.additional_deps funcexp_deps
+             in
+             let args_froms =
+               List.map
+		 (fun arg ->
+                   match arg with
+                     (* TODO : optimize the dependencies on subfields
+                        | Lval lv ->
+                        Lvalue
+                        (From_Model.LBase.find
+                        (Interp_loc.lval_to_loc_with_deps kinstr lv))
+                     *)
+                   | _ ->
+		       Froms (find_deps kinstr d.deps_table arg))
+		 argl
+             in
              let do_on kernel_function =
                let called_vinfo = Kernel_function.get_vi kernel_function in
 	       if Ast_info.is_cea_function called_vinfo.vname then
@@ -392,20 +413,6 @@ struct
                  let { Function_Froms.deps_return = return_from;
                        deps_table = called_func_froms } =
                    Froms_To_Use.get kernel_function kinstr
-                 in
-                 let args_froms =
-                   List.map
-		     (fun arg ->
-                        match arg with
-                          (* TODO : optimize the dependencies on subfields
-                             | Lval lv ->
-                             Lvalue
-                             (From_Model.LBase.find
-                             (Interp_loc.lval_to_loc_with_deps kinstr lv))
-                          *)
-                        | _ ->
-		            Froms (find_deps kinstr d.deps_table arg))
-		     argl
                  in
                  let formal_args =
 		   Kernel_function.get_formals kernel_function
@@ -423,12 +430,6 @@ struct
                         (List.length formal_args)
                         (List.length args_froms))
                  end;
-                 let funcexp_deps =
-                   (* dependencies for the evaluation of [funcexp] *)
-                   !Db.From.access funcexp_deps state.deps_table in
-                 let additional_deps =
-                   Zone.join d.additional_deps funcexp_deps
-                 in
                  let substitute =
 		   cached_substitute
                      state.deps_table
@@ -503,23 +504,21 @@ struct
                            new_state
                       ))
              in
-             let fold_no_neutral l =
-               match l with
-               | [] -> state
-               | h::t ->
-                   let acc = do_on h (* First call *)
-                   in List.fold_left (* Combine other calls *)
-                        (fun acc_memory called_vinfo ->
-                           let done_on = do_on called_vinfo in
-                           {state with
-                              deps_table = Lmap_bitwise.From_Model.join
-                               done_on.deps_table
-                               acc_memory.deps_table})
-                        acc
-                        t
-             in
+	     let f f acc =
+	       let p = do_on f in
+		 match acc with
+		     None -> Some p
+		   | Some acc_memory ->
+		       Some
+			 {state with
+			    deps_table = Lmap_bitwise.From_Model.join
+                             p.deps_table
+                             acc_memory.deps_table}
+	     in
 	     try
-	       fold_no_neutral called_vinfos
+	       ( match Kernel_function.Set.fold f called_vinfos None with
+		   None -> state
+		 | Some s -> s)
 	     with Call_did_not_take_place -> state
           )
     | _ -> Dataflow.Default
@@ -537,32 +536,34 @@ struct
 
   (* Remove all local variables and formals from table *)
   let externalize return fundec state =
-    let deps_return = (match return.skind with
-                         | Return (Some ({enode = Lval v}),_) ->
-                             let deps, target =
-                               !Values_To_Use.lval_to_loc_with_deps
-                                 ~with_alarms:CilE.warn_none_mode
-				 ~deps:Zone.bottom
-                                 (Kstmt return)
-                                 v
-                             in
-                             Lmap_bitwise.From_Model.LOffset.join
-                               (Lmap_bitwise.From_Model.find_base
-                                  state.deps_table deps)
-                               (Lmap_bitwise.From_Model.find_base
-                                  state.deps_table
-                                  (valid_enumerate_bits target))
-(*
-                               (!Db.From.access deps state.deps_table)
-                               (!Db.From.access (valid_enumerate_bits target) state.deps_table)
-*)
-                         | Return (None,_) ->
-                             Lmap_bitwise.From_Model.LOffset.empty
-                         | _ -> assert false)
+    let deps_return = 
+      (match return.skind with
+      | Return (Some ({enode = Lval v}),_) ->
+          let deps, target =
+            !Values_To_Use.lval_to_loc_with_deps
+              ~with_alarms:CilE.warn_none_mode
+	      ~deps:Zone.bottom
+              (Kstmt return)
+              v
+          in
+          Lmap_bitwise.From_Model.LOffset.join
+            (Lmap_bitwise.From_Model.find_base
+                state.deps_table deps)
+            (Lmap_bitwise.From_Model.find_base
+                state.deps_table
+                (valid_enumerate_bits target))
+	    (*
+              (!Db.From.access deps state.deps_table)
+              (!Db.From.access (valid_enumerate_bits target) state.deps_table)
+	    *)
+      | Return (None,_) ->
+          Lmap_bitwise.From_Model.LOffset.empty
+      | _ -> assert false)
     in
-    let deps_table = Lmap_bitwise.From_Model.filter_base
-      (fun v -> not (Base.is_formal_or_local v fundec))
-      state.deps_table
+    let deps_table = 
+      Lmap_bitwise.From_Model.filter_base
+	(fun v -> not (Base.is_formal_or_local v fundec))
+	state.deps_table
     in
     { deps_return = deps_return;
       Function_Froms.deps_table = deps_table }
@@ -633,10 +634,22 @@ let compute_using_cfg kf = match kf.fundec with
                  start
                  state);
             Compute.compute [start];
+	    if not (Db.From.Record_From_Callbacks.is_empty ())
+	    then begin
+		From_parameters.feedback "Now calling From callbacks";
+		let states = 
+		  Inthash.create (Computer.StmtStartData.length ())
+		in
+		Computer.StmtStartData.iter
+		  (fun k record ->
+		    Inthash.add states k record.deps_table);
+		Db.From.Record_From_Callbacks.apply (call_stack, states)
+	      end;
             let _poped = Stack.pop call_stack in
             let last_from =
               try
-		if Db.Value.is_reachable (Values_To_Use.get_state (Kstmt ret_id))
+		if Db.Value.is_reachable 
+		  (Values_To_Use.get_state (Kstmt ret_id))
 		then
                   Computer.externalize
                   ret_id
@@ -685,6 +698,7 @@ let compute_using_prototype_for_state state kf =
                               (match loc with
                                    Location loc ->
                                      !Properties.Interp.loc_to_lval
+				       ~result:None
                                        loc.it_content
                                  | Nothing -> []
                               ))
@@ -703,7 +717,7 @@ let compute_using_prototype_for_state state kf =
                        try
                          !Value.lval_to_zone_state state lv
                        with Invalid_argument "not an lvalue" ->
-                         From_parameters.result ~once:true ~current:true 
+                         From_parameters.result ~once:true ~current:true
                            "Unable to extract assigns in %a"
                            Kernel_function.pretty_name kf;
                          Zone.top
@@ -713,7 +727,8 @@ let compute_using_prototype_for_state state kf =
                   acc
                   (match out with
                        Location out ->
-                         !Properties.Interp.loc_to_lval out.it_content
+                         !Properties.Interp.loc_to_lval ~result:None
+			   out.it_content
                      | Nothing -> []
                   )
               with Invalid_argument "not an lvalue" ->
@@ -726,7 +741,8 @@ let compute_using_prototype_for_state state kf =
               try
                 let coffs = match out with
                     Location out ->
-                      !Properties.Interp.loc_to_offset out.it_content
+                      !Properties.Interp.loc_to_offset ~result:None
+			out.it_content
                   | Nothing -> []
                 in
                 List.fold_left
@@ -740,7 +756,7 @@ let compute_using_prototype_for_state state kf =
                        (input_zone ins) acc)
                   acc coffs
               with Invalid_argument "not an lvalue" | SizeOfError _ ->
-                From_parameters.result  ~once:true ~current:true 
+                From_parameters.result  ~once:true ~current:true
                   "Unable to extract a proper offset. Using FROM for the whole \\result";
                 Lmap_bitwise.From_Model.LOffset.add_iset ~exact:false
                   (Abstract_value.Int_Intervals.from_ival_size
@@ -782,6 +798,7 @@ let compute_and_return kf =
 	  s := !s^" <-"^(Pretty_utils.sfprintf "%a" Kernel_function.pretty_name kf))
        call_stack;
      !s);
+  !Db.progress ();
 
   let result = match kf.fundec with
     | Definition _ ->
@@ -790,7 +807,9 @@ let compute_and_return kf =
         compute_using_prototype kf
   in
   Recording_To_Do.record_kf kf result;
-  From_parameters.feedback "Done for function %a" Kernel_function.pretty_name kf;
+  From_parameters.feedback
+    "Done for function %a" Kernel_function.pretty_name kf;
+  !Db.progress ();
   CurrentLoc.set call_site_loc;
   result
 
@@ -857,8 +876,7 @@ let record_callwise_dependencies_in_db call_site froms =
     Callwise_Dependencies.add call_site froms
 
 let call_for_individual_froms (state, call_stack) =
-  if  Parameters.Dynamic.Bool.get "-calldeps"
-  then begin
+  if From_parameters.ForceCallDeps.get () then begin
     let current_function, call_site = List.hd call_stack in
     match current_function.fundec with
       Definition _ ->
@@ -880,8 +898,7 @@ let call_for_individual_froms (state, call_stack) =
   end
 
 let record_for_individual_froms (call_stack, instrstates) =
-  if  Parameters.Dynamic.Bool.get "-calldeps"
-  then begin
+  if From_parameters.ForceCallDeps.get () then begin
     let module Froms_To_Use =
 	struct
 	  let get _f callsite =
@@ -956,46 +973,45 @@ let record_for_individual_froms (call_stack, instrstates) =
 let () =
   Cmdline.run_after_configuring_stage
     (fun () ->
-       if Parameters.Dynamic.Bool.get "-calldeps" then begin
+       if From_parameters.ForceCallDeps.get() then begin
 	 Db.Value.Record_Value_Callbacks.extend record_for_individual_froms;
 	 Db.Value.Call_Value_Callbacks.extend call_for_individual_froms
        end)
 
 let find_available kinstr =
-  if Parameters.Dynamic.Bool.get "-deps"
-  then begin
-      try
-	Callwise_Dependencies.find kinstr
-      with Not_found ->
-	From_parameters.fatal "internal error 457 : From.find_available called on non-Call statement, or called too early."
-    end
+  if From_parameters.ForceDeps.get () then begin
+    try
+      Callwise_Dependencies.find kinstr
+    with Not_found ->
+      From_parameters.fatal "internal error 457 : From.find_available called on non-Call statement, or called too early."
+  end
   else begin
-      match kinstr with
-      | Kstmt ({skind = Instr(Call (_,funcexp,_,_))}) ->
-	  let _, called_functions =
-	    !Value.expr_to_kernel_function
-	      ~with_alarms:CilE.warn_none_mode
-	      kinstr ~deps:None funcexp
+    match kinstr with
+    | Kstmt ({skind = Instr(Call (_,funcexp,_,_))}) ->
+	let _, called_functions =
+	  !Value.expr_to_kernel_function
+	    ~with_alarms:CilE.warn_none_mode
+	    kinstr ~deps:None funcexp
+	in
+	let treat_kf _kf acc =
+	  let kf_froms = (assert false)
 	  in
-	  let treat_kf _kf acc =
-	    let kf_froms = (assert false)
-	    in
-	    match acc with
-	      None -> Some kf_froms
-	    | Some froms ->
-		Some (Function_Froms.join kf_froms froms)
-	  in
-	  let froms =
-	    List.fold_right treat_kf called_functions None
-	  in
-	  begin
-	    match froms with
-	      None -> assert false (* TODO: do something *)
-	    | Some f -> f
-	  end
-      | _ ->
-	  From_parameters.fatal "internal error 458 : From.find_available called on non-Call statement."
-    end
+	  match acc with
+	    None -> Some kf_froms
+	  | Some froms ->
+	      Some (Function_Froms.join kf_froms froms)
+	in
+	let froms =
+	  Kernel_function.Set.fold treat_kf called_functions None
+	in
+	begin
+	  match froms with
+	    None -> assert false (* TODO: do something *)
+	  | Some f -> f
+	end
+    | _ ->
+	From_parameters.fatal "internal error 458 : From.find_available called on non-Call statement."
+  end
 
 let display fmt =
   Format.fprintf fmt "@[";
@@ -1019,10 +1035,146 @@ let force_compute_all_calldeps ()=
       ();
   !Db.Value.compute ()
 
+module Functionwise_Pathdeps =
+  Kernel_function.Make_Table
+    (Zone.Datatype)
+    (struct
+       let name = "functionwise_pathdeps"
+       let size = 17
+       let dependencies = [ Value.self ]
+     end)
+
+class do_pathdepscheck froms = object(self)
+  inherit nopCilVisitor as super
+  val mutable inputs = Zone.bottom
+
+  method result = inputs
+
+  method join new_ =
+    inputs <- Zone.join new_ inputs;
+
+  method vstmt s =
+    match s.skind with
+    | UnspecifiedSequence seq ->
+        List.iter
+          (fun (stmt,_,_,_) ->
+            ignore (visitCilStmt (self:>cilVisitor) stmt))
+          seq;
+        SkipChildren (* do not visit the additional lvals *)
+    | If (_cond, _th, _el, _) ->
+	DoChildren (* for _cond and for the statements in _th, _el *)
+    | Loop _ | Block _ ->
+	DoChildren (* for the statements *)
+    | Instr _ ->
+	DoChildren (* for Calls *)
+    | Return _ | Goto _ | Break _ | Continue _ ->
+	SkipChildren
+    | Switch _ | TryExcept _ | TryFinally _ -> assert false
+
+  method stmt_froms = 
+    let stmt = out_some (self#current_stmt) in
+    Inthash.find froms stmt.sid
+
+  method vlval lv =
+    let deps,loc =
+      !Value.lval_to_loc_with_deps
+        ~with_alarms:CilE.warn_none_mode
+	~deps:Zone.bottom
+	(Kstmt (out_some self#current_stmt))
+	lv
+    in
+    let bits_loc = valid_enumerate_bits loc in
+    let all = Zone.join bits_loc deps in
+    let froms = self#stmt_froms in
+    let all_f = Lmap_bitwise.From_Model.find froms all in
+    self#join all_f;
+    Format.printf "lval: all %a all_f %a@."
+      Zone.pretty all
+      Zone.pretty all_f;
+    SkipChildren
+
+  method vinst i =
+    if Value.is_reachable (Value.get_state (Kstmt (out_some self#current_stmt)))
+    then begin
+      match i with
+      | Call (_lv_opt,exp,_args,_) ->
+	  let current_stmt = Kstmt (out_some self#current_stmt) in
+          let deps_callees, callees =
+            !Value.expr_to_kernel_function
+              ~with_alarms:CilE.warn_none_mode
+	      ~deps:(Some Zone.bottom)
+	      current_stmt exp
+          in
+          let all = 
+	    Kernel_function.Set.fold
+	      (fun kf acc -> Zone.join acc (Functionwise_Pathdeps.find kf))
+	      callees
+	      deps_callees 
+	  in
+	  let froms = self#stmt_froms in
+	  let all_f = Lmap_bitwise.From_Model.find froms all in
+	  self#join all_f;
+	  Format.printf "Call: all %a all_f %a@."
+	    Zone.pretty all
+	    Zone.pretty all_f;
+          SkipChildren 
+      | _ -> SkipChildren
+    end
+    else SkipChildren
+
+  method vexpr exp =
+    match exp.enode with
+    | AddrOf lv | StartOf lv ->
+	let deps,_loc =
+	  !Value.lval_to_loc_with_deps
+            ~with_alarms:CilE.warn_none_mode
+	    ~deps:Zone.bottom
+	    (Kstmt (out_some self#current_stmt))
+	    lv
+	in
+	let froms = self#stmt_froms in
+	let deps_f = Lmap_bitwise.From_Model.find froms deps in
+	self#join deps_f;
+	Format.printf "AddrOf: deps %a deps_f %a@."
+	  Zone.pretty deps
+	  Zone.pretty deps_f;
+	SkipChildren
+    | _ -> DoChildren
+
+end
+
+
+
+
+let check_pathdeps (stack, froms) =
+  let kf = Cilutil.Stack.top stack in
+  Format.printf "Computing path dependencies for %s@." 
+    (Kernel_function.get_name kf);
+  match kf.fundec with
+    Definition (f, _) -> begin
+      let computer = new do_pathdepscheck froms in
+      ignore (visitCilFunction (computer:>cilVisitor) f);  
+      let result = computer#result in
+      Format.printf "Path dependencies: %a@."
+	Zone.pretty result;
+      try
+	ignore (Functionwise_Pathdeps.find kf);
+	assert false
+      with Not_found ->
+	Functionwise_Pathdeps.add kf result
+      end
+  | Declaration _ ->
+      assert false
+
+
 let main () =
+  if From_parameters.PathDeps.get ()
+  then Db.From.Record_From_Callbacks.extend check_pathdeps;
+
+
   let not_quiet = From_parameters.verbose_atleast 1 in
-  let forcedeps = Parameters.Dynamic.Bool.get "-deps" in
-  let forcecalldeps = Parameters.Dynamic.Bool.get "-calldeps" in
+  let forcedeps = From_parameters.ForceDeps.get () in
+  let forcecalldeps = From_parameters.ForceCallDeps.get () in
   if forcedeps then begin
     !Db.From.compute_all ();
     From_parameters.result "%t@\n====== DEPENDENCIES COMPUTED ======" !Db.From.display
@@ -1030,7 +1182,7 @@ let main () =
   if forcecalldeps then !Db.From.compute_all_calldeps ();
   if not_quiet && forcecalldeps then begin
     From_parameters.result "====== DISPLAYING CALLWISE DEPENDENCIES ======@\n%t@\n====== END OF CALLWISE DEPENDENCIES ======"
-      (fun fmt -> 
+      (fun fmt ->
          !Db.From.Callwise.iter
            (fun ki d ->
               let id,typ =
@@ -1040,31 +1192,41 @@ let main () =
 	            Kernel_function.get_type (fst (Globals.entry_point ()))
 	        | Cil_types.Kstmt s ->
                     string_of_int s.Cil_types.sid,
-                    match Db.Value.call_to_kernel_function s with
-                    | [] -> assert false
-                    | f :: _ -> Kernel_function.get_type f
+	            let f =
+                       try
+                         Kernel_function.Set.min_elt
+			   (Db.Value.call_to_kernel_function s)
+                       with Not_found -> assert false
+		    in
+                    Kernel_function.get_type f
               in
-	      Format.fprintf fmt 
-                "@[call %s:@ %a@\n@]" 
+	      Format.fprintf fmt
+                "@[call %s:@ %a@\n@]"
                 id (Function_Froms.pretty_with_type typ) d))
   end
 
 let () = Db.Main.extend main
 
 let () =
-  Db.register_compute "From.compute_all"
-    [Functionwise_Dependencies.self]
-    Db.From.compute_all
-    force_compute_all;
-  Db.register_guarded_compute
-    "From.compute_all_calldeps"
-    Callwise_Dependencies.is_computed
-    Db.From.compute_all_calldeps
-    force_compute_all_calldeps;
+  let _self =
+    Db.register_compute "From.compute_all"
+      [Functionwise_Dependencies.self]
+      Db.From.compute_all
+      force_compute_all
+  in
+    Db.register_guarded_compute
+      "From.compute_all_calldeps"
+      Callwise_Dependencies.is_computed
+      Db.From.compute_all_calldeps
+      force_compute_all_calldeps;
 
-  Db.From.display := display;
-  Db.From.Callwise.iter := Callwise_Dependencies.iter;
-  Db.From.Callwise.find := Callwise_Dependencies.find
+    Db.From.display := display;
+    Db.From.Callwise.iter := Callwise_Dependencies.iter;
+    Db.From.Callwise.find := Callwise_Dependencies.find
+
+
+      
+
 
 (*
 Local Variables:

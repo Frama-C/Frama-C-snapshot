@@ -3,7 +3,7 @@
 
 /*@ axiomatic IsMax {
   @  predicate is_max{L}(integer max, int t[], integer length);
-  @     // reads t[..]; 
+  @     // reads t[..];
   @  axiom max_gt{L}:
   @    \forall int t[], integer max, length, i;
   @      is_max(max,t,length) ==> 0 <= i < length ==> t[i] <= max;
@@ -18,7 +18,7 @@
   @    assumes n > 0;
   @    ensures 0<= \result < n &&
   @            (\forall int i; 0 <= i < n ==> t[\result] >= t[i]) &&
-  @            is_max(t[\result],t,n);
+  @            is_max(t[\result],(int[])t,n);
   @  behavior empty:
   @    assumes n <= 0;
   @    ensures \result == -1;
@@ -30,7 +30,7 @@ int max(int t[], int n) {
   /*@ ghost max = t[0]; */
   /*@ loop invariant
     (\forall int j; 0<= j < i ==> t[imax] >= t[j]) &&
-    is_max(max,t,i-1);
+    is_max(max,(int[])t,i-1);
   */
   for(i = 1; i < n; i++) {
     if (t[i] > t[imax]) {

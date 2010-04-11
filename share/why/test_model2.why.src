@@ -1,4 +1,102 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
+(*    INRIA (Institut National de Recherche en Informatique et en         *)
+(*           Automatique)                                                 *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version v2.1                *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
 
+logic m:memory
+
+(* Declaration of a global variable : int * p *)
+logic addr_p:int pointer pointer
+axiom base_id_p: int_base_addr(addr_p) = 200
+axiom p_in_scope : valid_in_scope (m, addr_p)
+
+(* Proof obligation for : 
+void f (int x) { 
+  /*@ assert \valid(p) ==> p != &x; */ 
+} 
+*)
+goal glob_p_disj_var_loc :
+
+ (* pre : \valid (p) *)
+  valid_in_scope (m, (acc (m, addr_p))) ->
+
+ forall addr_x:int pointer. int_base_addr(addr_x) = 100 ->
+ not valid_in_scope (m, addr_x) ->
+ let mx = upd_scope (m, 100, true) in 
+
+   acc (mx, addr_p) <> addr_x
+
+(* Proof obligation for :
+//@ assigns \nothing;
+void f (void) { int x = 2; }
+*)
+goal assign_nothing :
+
+  forall addr_x:int pointer. (int_base_addr(addr_x) = 100) ->
+  not valid_in_scope (m, addr_x) ->
+  let m_in = upd_scope (m, 100, true) in
+
+  let m1 = upd (m_in, addr_x, 2) in
+
+  let m_end = upd_scope (m1, 100, false) in
+
+  forall p:'a pointer. 
+  valid_in_scope (m_end, p) -> acc(m_end, p) = acc(m, p)
+
+(* Proof obligation for :
+//@ ensures ~ \valid(p);
+void f (void) { int x; p = &x; }
+*)
+goal invalid_free :
+
+  forall addr_x:int pointer. (int_base_addr(addr_x) = 100) ->
+  not valid_in_scope (m, addr_x) ->
+  let m_in = upd_scope (m, 100, true) in
+
+  let m1 = upd (m_in, addr_p, addr_x) in
+
+  let m_end = upd_scope (m1, 100, false) in
+  not valid_in_scope (m_end, acc (m_end, addr_p))
+
+(*  Proof obligation for :
+//@ requires \valid (q) ; ensures \result == 3 ;
+int wptr (int *q) {
+  *q = 3;
+  return *q;
+}
+=> the precondition must be put between declaration and update scope of
+   parameters.
+*)
+goal ptr_param :
+  forall addr_q:int pointer pointer. int_base_addr(addr_q) = 387 ->
+  not valid_in_scope(m, addr_q) ->
+
+  valid_pointer (acc(m, addr_q)) -> (* precondition before upd_scope *)
+
+  let m_in = upd_scope(m, 387, true) in
+
+  let m1 = upd(m_in, acc(m_in, addr_q), 3) in
+  let res = acc(m1, acc (m1, addr_q)) in 
+  res = 3
 
 
 (* TODO : add some more tests... *)

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA   (Commissariat à l'Énergie Atomique)                           *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -21,10 +22,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let has_debug n = Pdg_parameters.verbose_atleast (n+1)
-
-let debug n format = Pdg_parameters.result ~level:(n+1) format
-
 let bug msg = raise (PdgTypes.Pdg_Internal_Error msg)
 
 let cbug cond msg = if not cond then bug msg
@@ -33,8 +30,7 @@ let pretty_node fmt n = PdgTypes.Node.pretty fmt n
 
 let get_pdg_kf pdg = PdgTypes.Pdg.get_kf pdg
 
-let pdg_name pdg =
-  Kernel_function.get_name (get_pdg_kf pdg)
+let pdg_name pdg = Kernel_function.get_name (get_pdg_kf pdg)
 
 
 (*

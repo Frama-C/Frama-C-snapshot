@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -24,12 +25,14 @@
 module type S = sig
   type elt
   type t
+  val descr: Unmarshal.t
   val empty: t
   val is_empty: t -> bool
   val mem: elt -> t -> bool
   val add: elt -> t -> t
   val singleton: elt -> t
   val remove: elt -> t -> t
+  val elements: t -> elt list
   val union: t -> t -> t
   val inter: t -> t -> t
   val diff: t -> t -> t
@@ -43,31 +46,38 @@ module type S = sig
   val filter: (elt -> bool) -> t -> t
 (*  val partition: (elt -> bool) -> t -> t * t*)
   val cardinal: t -> int
-(*  val min_elt: t -> elt
-  val max_elt: t -> elt
-  val choose: t -> elt
+  val min_elt: t -> elt
+(*  val max_elt: t -> elt
+*)
+  val contains_single_elt: t -> elt option
+(*  val choose: t -> elt
   val split: elt -> t -> t * bool * t*)
 end
 
-module Make
-  (X: sig
-     type t 
-     val id: t -> int  
-     val name : string
-     val pretty : Format.formatter -> t -> unit
-   end) = struct
+module type Id_Datatype = sig
+  type t
+  val id: t -> int
+  val name : string
+  val pretty : Format.formatter -> t -> unit
+  val equal : t -> t -> bool
+  module Datatype : Project.Datatype.S with type t = t
+end
+
+module Make(X: Id_Datatype) = struct
 
   include
-    Ptmap.Generic
+    Ptmap.Make
       (X)
-      (struct 
-	 type t = unit 
+      (struct
+	 type t = unit
 	 let tag () = 0
 	 let equal () () = true
 	 let pretty fmt () = Format.fprintf fmt "()"
 	 module Datatype = Datatype.Unit
        end)
       (struct let v = [] end)
+
+  let descr = Datatype.descr
 
   type elt = X.t
 
@@ -81,7 +91,7 @@ module Make
       let e = getperfcount () in
       let diff = e - b in
       cpt := !cpt + diff;
-      Format.eprintf "timing of %s (in %s): %d (%d)@." 
+      Format.eprintf "timing of %s (in %s): %d (%d)@."
         name Datatype.name !cpt diff;
       res
 
@@ -93,7 +103,7 @@ module Make
       let e = getperfcount () in
       let diff = e - b in
       cpt := !cpt + diff;
-      Format.eprintf "timing of %s (in %s): %d (%d)@." 
+      Format.eprintf "timing of %s (in %s): %d (%d)@."
         name Datatype.name !cpt diff;
       res
 
@@ -101,24 +111,34 @@ module Make
   let iter f = iter (fun x () -> f x)
   let fold f = fold (fun x () -> f x)
 
+  let elements s = fold (fun h t -> h::t) s []
+
+  let contains_single_elt s =
+    match is_singleton s with
+      Some (k, _v) -> Some k
+    | None -> None
+
+  let min_elt s =
+    fst (min_binding s)
+
   let filter f s = fold (fun x acc -> if f x then add x acc else acc) s empty
 
   let mem x s = try find x s; true with Not_found -> false
 
-  let diff s1 s2 = 
+  let diff s1 s2 =
     fold (fun x acc -> if mem x s2 then acc else add x acc) s1 empty
 
-  let inter s1 s2 = 
+  let inter s1 s2 =
     fold (fun x acc -> if mem x s1 then add x acc else acc) s2 empty
 (*  let inter = time2 "inter" inter*)
 
-  let union = 
-    generic_merge ~cache:("Ptset.union", 12) ~decide:(fun _k  _ _ -> ())
+  let union =
+    generic_merge ~cache:("Ptset.union", 12) ~decide:(fun _ _ _ -> ())
 (*  let union = time2 "union" union*)
 
   let singleton x = add x empty
 
-  let exists f s = 
+  let exists f s =
     try
       iter (fun x -> if f x then raise Exit) s;
       false

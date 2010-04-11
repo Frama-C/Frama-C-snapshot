@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -85,7 +86,9 @@ val warn_div : warn_mode -> unit
 val warn_shift : warn_mode -> int -> unit
 val warn_mem_read : warn_mode -> unit
 val warn_mem_write : warn_mode -> unit
-val warn_signed_overflow : warn_mode -> unit
+val warn_signed_overflow :    warn_mode ->
+           Cil_types.exp ->
+           Int64.t -> Int64.t -> unit
 val warn_index : warn_mode -> string -> unit
 val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit
@@ -98,6 +101,6 @@ val warn_separated : warn_mode -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

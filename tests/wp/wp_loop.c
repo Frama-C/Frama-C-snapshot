@@ -1,15 +1,3 @@
-/* run.config
-OPT: -wp-mm 0 -wp-debug 1 -journal-disable -wp-no-proof
-OPT: -wp-mm 1 -wp-debug 1 -journal-disable -wp-no-proof
-OPT: -wp-mm 2 -wp-debug 1 -journal-disable -wp-no-proof
-COMMENT: -wp-mm 3 -wp-debug 2 -lib-entry  -journal-disable
-COMMENT: -wp-mm 3 ne passe pas (bouclage ergo ???)
-*/
-/* run.config_dev
-OPT: -wp-mm 0 -wp-debug 2 -journal-disable -wp-proof
-OPT: -wp-mm 1 -wp-debug 2 -journal-disable -wp-proof
-OPT: -wp-mm 2 -wp-debug 2 -journal-disable -wp-proof
-*/
 
 //@ assigns \nothing;
 void infinite (int c) {
@@ -119,3 +107,47 @@ void loop_assert () {
   }
 }
 
+int loop_assigns () {
+  int i = 0;
+  int s = 0;
+  /*@ loop assigns i, s; 
+   */
+  while (i < 10) {
+    s += i;
+    i++;
+  }
+  return s;
+}
+
+//@ requires 0 <= n; // notice that we should be able to relax that.
+int loop_var (int n) {
+  int i, s = 0;
+  /*@ loop variant (n - i);
+    @ loop assigns i, s;
+  */
+  for (i = 0; i < n; i++) {
+    s++;
+  }
+  return s;
+}
+
+int loop_inv_only (int n) {
+  int i, s = 0;
+  /*@ loop invariant 0 <= i && s == i;
+      loop assigns i,s ; */
+  for (i = 0; i < n; i++) {
+    s++;
+  }
+  return s;
+}
+
+//@ ensures \result == -1 || T[\result] == a;
+int find (int a) {
+  int i;
+  //@ loop assigns i;
+  for (i = 0; i < 10; i++) {
+    if (T[i] == a) return i;
+  }
+  return -1;
+}
+int main (void) { return 0 ; }

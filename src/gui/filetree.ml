@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -20,15 +21,16 @@
 (**************************************************************************)
 
 open Cil_types
+# 24 "filetree_custom.ml"
 open Extlib
 open Gtk_helper
 
 class type t =  object
-  method model : GTree.model_filter
+  method model : GTree.model
   method set_file_attribute:
-    ?strikethrough:bool -> ?visible:bool -> ?text:string -> string -> unit
+    ?strikethrough:bool -> ?text:string -> string -> unit
   method set_global_attribute:
-    ?strikethrough:bool -> ?visible:bool -> ?text:string -> varinfo -> unit
+    ?strikethrough:bool -> ?text:string -> varinfo -> unit
   method add_select_function :
     (was_activated:bool -> activating:bool -> global list -> unit) -> unit
   method append_pixbuf_column:
@@ -178,8 +180,7 @@ end
 module MYTREE = struct
 type storage = { mutable name : string;
                  mutable globals: global array;
-                 mutable strikethrough: bool;
-                 mutable visible: bool }
+                 mutable strikethrough: bool}
 
 
 type t = File of storage*t list | Global of storage
@@ -197,22 +198,23 @@ let default_storage s globals =
   name = s;
   globals = globals;
   strikethrough = false;
-  visible = true
  }
 
-  (* Set up the columns *)
+(* Set up the columns *)
 let column_list = new GTree.column_list
 let filename_col = column_list#add Gobject.Data.string
 let (glob_col:global list GTree.column) = column_list#add Gobject.Data.caml
 let strikethrough_col = column_list#add Gobject.Data.boolean
-let visible_col = column_list#add Gobject.Data.boolean
+let is_function_col = column_list#add Gobject.Data.boolean
 
 let custom_value _ t ~column =
     match column with
     | 0 -> (* filename_col *) `STRING (Some (get_storage t).name)
     | 1 -> (* glob_col *) `CAML (Obj.repr ((get_storage t).globals))
     | 2 -> (* strikethrough_col *) `BOOL (get_storage t).strikethrough
-    | 3 -> (* visible_col *)  `BOOL (get_storage t).visible
+    | 3 -> (* is_function_col *) `BOOL (match (get_storage t).globals with 
+                                        | [| GFun _ |] -> true
+                                        | _ -> false)
     | _ -> assert false
 
 let make_file fname : t =
@@ -220,8 +222,15 @@ let make_file fname : t =
  let storage = default_storage display_name (Array.of_list globs) in
  let sons =  List.fold_left
    (fun acc glob -> match glob with
-    | GFun ({svar={vname=name}},_) ->
-       (Global(default_storage name [|glob|]))::acc
+    | GFun ({svar={vname=name}},_) 
+    | GVar({vname=name},_,_) ->
+        (Global(default_storage name [|glob|]))::acc
+        
+    | GVarDecl(_,({vname=name} as vi),_) ->
+        if Cil.isFunctionType vi.vtype (* use lazyness of && *)
+	  && Kernel_function.is_definition (Globals.Functions.get vi)
+        then acc
+        else (Global(default_storage name [|glob|]))::acc
     | _ -> acc)
     []
     globs
@@ -232,13 +241,11 @@ end
 
 module MODEL=MAKE(MYTREE)
 
-
 module FileTree_Datatype =
   Project.Datatype.Imperative
     (struct
        type t =
            MODEL.custom_tree_class
-           * GTree.model_filter
            * (Gtk.tree_path*MODEL.custom_tree) Cilutil.VarinfoHashtbl.t
            * (string, (Gtk.tree_path*MODEL.custom_tree)) Hashtbl.t
            * Gtk.tree_path
@@ -252,10 +259,7 @@ module State = struct
     (struct include FileTree_Datatype
             let default () =
               let m1 = MODEL.custom_tree () in
-              let m2 = GTree.model_filter (m1:>GTree.model) in
-              (* Useless with > 2.12 LablGtk *)
-              Gc.finalise (fun m1 -> m1#clear ()) m1;
-              m1,m2,
+              m1,
               Cilutil.VarinfoHashtbl.create 17,
               Hashtbl.create 17,GTree.Path.create []
 
@@ -272,7 +276,7 @@ module State = struct
   let get () =
     if is_computed () then get ()
     else
-      let model,model_filtered,_,_,_ = get () in
+      let model,_,_,_ = get () in
       (** Let's fill up the model with all files and functions. *)
       let files = Globals.FileIndex.get_files () in
       List.iter
@@ -292,32 +296,26 @@ module State = struct
          | MYTREE.File (storage,_) ->
              Hashtbl.add file_path_tbl storage.MYTREE.name (path,row)
          | MYTREE.Global storage ->
-             let vi =
-	       match storage.MYTREE.globals with
-	       | [| GFun ({svar=vi},_) |] -> vi
-               | _ -> assert false
-             in
-             Cilutil.VarinfoHashtbl.add global_path_tbl vi (path,row));
+	     match storage.MYTREE.globals with
+               (* Only one element in this array by invariant: this is a leaf*)
+	     | [| GFun ({svar=vi},_) 
+               | GVar(vi,_,_) | GVarDecl(_,vi,_) |] -> 
+                 Cilutil.VarinfoHashtbl.add global_path_tbl vi (path,row)
+             | _ -> (* no cache for other globals yet *) ());
         false
       in
       model#custom_foreach cache; (* fills up the cache *)
 
-      (** Filtering *)
-      model_filtered#set_visible_column MYTREE.visible_col;
-
       (* These must be put in a global variable. *)
-      let r =
-        model,model_filtered, global_path_tbl, file_path_tbl,GTree.Path.create []
-      in
+      let r = model,global_path_tbl, file_path_tbl,GTree.Path.create [] in
       set r;
       mark_as_computed ();
       r
-
 end
 
 let make (tree_view:GTree.view) =
 
-  let model,model_filtered,global_path_tbl, file_path_tbl, activated_path = State.get () in
+  let model,global_path_tbl, file_path_tbl, activated_path = State.get () in
 
   (** View part *)
   let source_column = GTree.view_column ~title:"Source file" () in
@@ -325,15 +323,17 @@ let make (tree_view:GTree.view) =
   let str_renderer = GTree.cell_renderer_text [] in
   source_column#pack str_renderer;
   source_column#add_attribute str_renderer "text" MYTREE.filename_col;
-  source_column#add_attribute str_renderer "strikethrough" MYTREE.strikethrough_col;
+  source_column#add_attribute str_renderer "strikethrough" 
+    MYTREE.strikethrough_col;
+  source_column#add_attribute str_renderer "underline" 
+    MYTREE.is_function_col;
 
   let _ = tree_view#append_column source_column in
 
-  tree_view#set_model (Some (model_filtered:>GTree.model));
+  tree_view#set_model (Some (model:>GTree.model));
 
-  let set_row model ?strikethrough ?visible ?text (path,raw_row) =
+  let set_row model ?strikethrough ?text (path,raw_row) =
     let row = raw_row.MODEL.finfo in
-    may (fun b -> (MYTREE.get_storage row).MYTREE.visible <- b) visible;
     may
       (fun b -> (MYTREE.get_storage row).MYTREE.strikethrough <- b)
       strikethrough;
@@ -343,13 +343,13 @@ let make (tree_view:GTree.view) =
   in
 
   let set_file_attribute
-      file_path_tbl model ?strikethrough ?visible ?text filename =
-    set_row model ?strikethrough ?visible ?text
+      file_path_tbl model ?strikethrough ?text filename =
+    set_row model ?strikethrough ?text
       (Hashtbl.find file_path_tbl filename)
   in
   let set_global_attribute
-      global_path_tbl model ?strikethrough ?visible ?text global =
-    set_row model ?strikethrough ?visible ?text
+      global_path_tbl model ?strikethrough ?text global =
+    set_row model ?strikethrough ?text
       (Cilutil.VarinfoHashtbl.find global_path_tbl global)
   in
   let myself = object(self)
@@ -358,7 +358,7 @@ let make (tree_view:GTree.view) =
     val mutable file_path_tbl = file_path_tbl
     val mutable global_path_tbl = global_path_tbl
     val mutable model_custom = model
-    val mutable model = model_filtered
+    val mutable model = model
     val mutable activated_path = activated_path
       (* prevent double selection and restore activated path *)
 
@@ -389,10 +389,12 @@ let make (tree_view:GTree.view) =
     method private set_row_attribute = set_row self#model_custom
     method reset () = self#reset_internal ()
 
+    val mutable force_selection = false
+
     method private enable_select_functions () =
       let select path deactivating =
 	let fail e =
-          Kernel.error
+          Gui_parameters.error
             "selector handler got an internal error, please report: %s"
             (Printexc.to_string e)
 	in
@@ -402,26 +404,31 @@ let make (tree_view:GTree.view) =
             (Array.length (GTree.Path.get_indices activated_path) > 0) &&
               GTree.Path.to_string activated_path = path_s
           in
-	  if not was_activated && not deactivating then
-	    (activated_path <- path;
-             State.set (model_custom,model,global_path_tbl,file_path_tbl, path);
-             let {MODEL.finfo=t} =
-               match self#model_custom#custom_get_iter path  with
-               | Some s ->s | None -> assert false
-             in
-	     let globs = (MYTREE.get_storage t).MYTREE.globals in
-	     (*Format.printf "Select function %b on path %s@." (not
-	       deactivating) path_s;*)
-             let globs = Array.to_list globs in
-	     List.iter
-	       (fun f ->
-		  try
-		    f ~was_activated ~activating:(not deactivating) globs
-		  with e-> fail e)
-	       select_functions);
+	  if (force_selection || not was_activated) && not deactivating
+          then begin 
+            activated_path <- path; 
+            State.set (model_custom,global_path_tbl,file_path_tbl, path);
+            let {MODEL.finfo=t} =
+              match self#model_custom#custom_get_iter path  with
+              | Some s ->s | None -> assert false
+            in
+	    let globs = (MYTREE.get_storage t).MYTREE.globals in
+	    (*Format.printf "Select function %b on path %s@." 
+              (not deactivating) path_s;*)
+            let globs = Array.to_list globs in
+	    List.iter
+	      (fun f ->
+		 try
+		   f ~was_activated:(not force_selection && was_activated)
+                     ~activating:(not deactivating) globs
+		 with e-> fail e)
+	      select_functions
+          end;
+          force_selection <- false;
 	  true
 	with e ->
-          Kernel.error "gui could not select row in filetree, please report: %s"
+          Gui_parameters.error
+	    "gui could not select row in filetree, please report: %s"
 	    (Printexc.to_string e);
           true
       in
@@ -443,21 +450,18 @@ let make (tree_view:GTree.view) =
 	()
 
     method private reset_internal () =
-      let mc,mf,gc,fc,path = State.get () in
-      tree_view#set_model (Some (mf:>GTree.model));
+      let mc,gc,fc,path = State.get () in
+      tree_view#set_model (Some (mc:>GTree.model));
       model_custom <- mc;
-      model <- mf;
+      model <- mc;
       global_path_tbl<-gc;
       file_path_tbl<-fc;
       activated_path <- path;
       expand_to_path tree_view path;
+      force_selection <- true;
       tree_view#selection#select_path path
 
     initializer
-      Project.register_after_set_current_hook
-	~user_only:true (fun _ -> self#reset_internal ());
-      Project.register_after_load_hook
-	(fun _ -> self#reset_internal ());
       self#enable_select_functions ()
 
   end

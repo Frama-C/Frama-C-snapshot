@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,11 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: datatype.mli,v 1.17 2008-11-18 12:13:41 uid568 Exp $ *)
-
-(** Datatype implementations and builders. 
+(** Datatype implementations and builders.
     Provide ways to implement signature [Project.Datatype.OUTPUT] without
-    directly apply functor [Project.Datatype.Register]. 
+    directly apply functor [Project.Datatype.Register].
     @plugin development guide *)
 
 open Project.Datatype
@@ -60,7 +59,7 @@ module OptionRef(Data:S) : S with type t = Data.t option ref
 
 (** {3 Lists} *)
 
-(** Generic functor building a list of data. 
+(** Generic functor building a list of data.
     @plugin development guide *)
 module List(Data:S) : S with type t = Data.t list
 
@@ -88,6 +87,7 @@ module Make_Hashtbl(H: HASHTBL)(Data:S) : S with type t = Data.t H.t
 module type SET = sig
   type elt
   type t
+  val descr: Unmarshal.t
   val empty: t
   val singleton: elt -> t
   val add: elt -> t -> t
@@ -113,6 +113,7 @@ module Set(Data: S) : S with type t = Set.Make(Data).t
 module type MAP = sig
   type key
   type 'a t
+  val descr:Unmarshal.t -> Unmarshal.t
   val empty: 'a t
   val add: key -> 'a -> 'a t -> 'a t
   val iter: (key -> 'a -> unit) -> 'a t -> unit
@@ -142,6 +143,6 @@ module Project : S with type t = Project.t
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

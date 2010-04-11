@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -24,19 +25,20 @@ include Plugin.S
 
 module ForceValues: Plugin.BOOL
 
-module WarnUnspecifiedOrder: Plugin.BOOL
-  (** Warns for unspecified sequences containing at least one writes *)
-
 module PropagateTop: Plugin.BOOL
 
 module AutomaticContextMaxDepth: Plugin.INT
 module AutomaticContextMaxWidth: Plugin.INT
 
+module AllRoundingModes: Plugin.BOOL
+
 module MemFunctions: Plugin.STRING_SET
 module MemExecAll: Plugin.BOOL
 
-module KeepOnlyLastRun: Plugin.BOOL
-  (** Keep only last run of value analysis. This is a debugging option. *)
+module NoResultsFunctions: Plugin.STRING_SET
+module NoResultsAll: Plugin.BOOL
+
+module SignedOverflow: Plugin.BOOL
 
 module MemoryFootprint: Plugin.INT
 
@@ -46,9 +48,6 @@ module AllocatedContextValid: Plugin.BOOL
 module ArrayPrecisionLevel: Plugin.INT
 
 module WideningLevel: Plugin.INT
+module SlevelFunction: Plugin.STRING_HASHTBL with type value = int
 
-
-
-
-
-
+module Subdivide_float_in_expr: Plugin.INT

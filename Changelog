@@ -1,7 +1,7 @@
 ###############################################################################
 # Preliminary notes:                                                          #
 # ------------------                                                          #
-# Mark "-": change with an impact for users.                                  #
+# Mark "-": change with an impact for users (and possibly developers).        #
 # Mark "o": change with an impact for developers only.                        #
 # Mark "+": change for Frama-C-commits audience (not in html version)         #
 # Mark "*": bug fixed.                                                        #
@@ -11,24 +11,193 @@
 # For compatibility with old change log formats:                              #
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
-# Do not write changes between 2 svn releases that are not visible to         #
-# end-user.                                                                   #
-###############################################################################
+
+##################################
+Open Source Release Boron_20100401
+##################################
+
+-  Kernel     [2010/04/12] Preliminary standard C library in $FRAMAC_SHARE/libc
+o* Cil        [2010/04/12] New hook after Cabs elaboration (fix bug #!446)
+o! Kernel     [2010/04/12] Slight modification of Hook API
+o* Configure  [2010/04/09] Improved dependencies handling (fix #!054)
+-  Value      [2010/04/08] Experimental new option -val-signed-overflow-alarms
+-  Value      [2010/04/04] Experimental new option -subdivide-float-var
+-  Logic      [2010/04/02] Adding "\pi" as built-in symbol
+-! Configure  [2010/03/24] Compiling the GUI now requires LablGnomeCanvas.
+-* Makefile   [2010/03/24] Fix bug for generating .o files through recursive
+	      calls to Make in quiet mode (VERBOSEMAKE unset)
+o! Kernel     [2010/03/23] Dynamic.register and Dynamic.get are more
+	      robust, but take an extra parameter
+-  Value      [2010/03/23] New options -no-results and -no-results-function,
+	      improved replacements for undocumented option -klr
+-+ Kernel     [2010/03/23] New saving/loading algorithms. Option -load is
+	      faster, and rid of its previous allocation peak
+-! Logic      [2010/03/22] Support for "reads \nothing"
+-! Logic      [2010/03/19] Support for type abbreviation in logic
+-  Value      [2010/03/11] Suppressed undocumented option -klr
+-  Value      [2010/03/10] New option -slevel-function f:n for fine-tuning
+	      semantic unrolling.
+-  Kernel     [2010/03/05] New option "-plugin-h" as an alias for option
+	      "-plugin-help"
+-  Logic      [2010/02/23] If a C typedef integer, real or boolean exists, it
+	      takes precedence over corresponding logic type. The logic type
+	      remains accessible through its utf-8 denomination.
+-  Value      [2010/02/22] Interpreting post-conditions about \result
+	      in contracts for functions that have implementations.
+o! Kernel     [2010/02/22] Type changes in Db.Properties.Interp. Use
+	      ~result:None to get your plug-in to compile again.
+o! Kernel     [2010/02/22] Kernel_function.Set now implemented with Patricia.
+o! Value      [2010/02/21] Changed type of functions
+	      Db.Value.*_to_kernel_function. These functions now return a
+	      Kernel_function.Set.t. Use Kernel_function.Set.elements to
+	      transform this set into a list.
+o! Project    [2010/02/19] Project.register_todo_on_clear is deprecated
+	      and replaced by Project.register_todo_before_clear
+-  Value      [2010/02/19] Improved precision when loop index has type
+	      char or short. Fixes bug #325
+o! Kernel     [2010/02/17] Log.protect is replaced by Cmdline.protect
+-!* Logic     [2010/02/17] Arrays and pointers are distinct in the logic, as
+	      per ACSL reference. Fixes bug #396
+-* Makefile   [2010/02/16] Fixed 'make clean' in plug-in directory (bug #!407)
+o! Kernel     [2010/02/15] Major changes in API of module Annotations: add
+	      possible dependencies from/to a single annotation of a statement
+-+ Value      [2010/02/14] New options -no-results and -no-results-all,
+	      improved replacements for undocumented option -klr
+-! Value      [2010/02/14] Clarified progress messages
+-* Cil        [2010/02/10] Fix crash in parser when double definition of
+	      variable in two different files, in some order (fixed bug #213)
+-  Slicing    [2010/02/04] Assigns clauses was missing from the sliced program
+	      (fixed bug #393)
+-!* Logic     [2010/02/03] Full support for \let (fixed bug #!344)
+-  Kernel     [2010/02/03] Backtrace when Frama-C is crashing (only if
+	      Frama-C is compiled with caml >= 3.11.0)
+-  Security_slicing [2010/02/01] New experimental and quite undocumented
+	      plug-in. Sub-part of the old plug-in security. Only usable
+	      through the GUI.
+-! Security   [2010/02/01] No more distributed.
+-* Cil        [2010/02/01] Bug fixed with incompatible declarations of C
+	      functions
+-* Logic      [2010/01/29] complete/disjoint behaviors do not accept
+	      undefined behaviors anymore (fixed bug #364)
+-* Logic      [2010/01/27] Default label is "Old" inside \old(...)
+-  Value      [2010/01/25] New display option -float-relative
+-* Value      [2010/01/25] Fixed uncaught exception that could happen
+              in analysis of programs with floating-point operations.
+-  Value      [2010/01/22] Preliminary support of post-conditions for
+	      library functions.
+-  Value      [2010/01/21] Take into account all known flush-to-zero
+	      floating-point variants. No option seems necessary for now.
+-  Value      [2010/01/20] Improved precision of floating-point operations
++-* Logic     [2010/01/18] \let is supported (except \let id = pred; pred)
+-  GUI        [2010/01/18] Add a menu entry for setting C source files of
+	      the current project
+-* GUI        [2010/01/18] Fixed bug while choosing 'New project' if
+	      -cpp-command is set (fixed bug #374)
+-  GUI        [2010/01/18] New menu entries for loading ocaml scripts and
+	      ocaml object files (fixed issue #!318)
+-! Inout      [2010/01/17] -out and -out-external now obey -inout-verbose option
+	      Generated logs re-ordered a little.
+-  GUI        [2010/01/15] Plug-in panels can be detached with drag and drop.
+o! Kernel     [2010/01/15] Type.register is more robust but gets a
+	      modified interface (fixed issue #!276)
+-* Kernel     [2010/01/15] -load-script did not clean up compiled files
+	      after exiting (fixed bug #!371)
+-  Impact     [2010/01/15] In the GUI filetree, for each function, a
+	      bullet shows if some statements are highlighted
+-  GUI        [2010/01/15] Now possible to save/load a single project
+	      (fixed issue #!9)
+o! Kernel     [2010/01/14] New implementation of save/load with small
+	      changes in the project API. Loading is now rid of its
+	      previous allocation peak and faster.
+-  GUI        [2010/01/14] View property status in GUI. Fixed a bug on reset
+	      with strange reactive zones in default buffer.
+-* Logic      [2010/01/14] More utf-8 identifier accepted (fixes bug #366)
+-* Value      [2010/01/13] Fixed bug #372
+-  Value      [2010/01/08] New option -all-rounding-modes (floating-point)
+	      New dependency on C99 functions to control the FPU.
+o! GUI        [2009/12/17] New implementation for the menubar and the
+	      toolbar. API fully changed for adding an item in these bars.
+-! GUI        [2009/12/04] Drop gtksourceview 1.x dependency and replace it
+	      with gtksourceview 2.x.
+-* Makefile   [2009/12/03] Some GUI library files was not installed
+o  Kernel     [2009/11/30] Support for dynamic uses of StringSet parameters
+-* Kernel     [2009/11/30] -kernel-debug and -kernel-verbose did not work
+	      as expected (bts #!343).
+-  Configure  [2009/11/27] Dynamic plug-ins are now statically linked by
+	      default whenever native dynlink is not usable (bts #!301).
+o! Kernel     [2009/11/24] Use of global logic constants is now a
+	      TLval (TVar _,TNoOffset) instead of TApp(_,[])
+-  Value      [2009/11/24] Handling of behavior-specific assertions now
+	      correct (albeit imprecise).
+-! Kernel     [2009/11/19] The journal is generated only if the GUI is
+	      crashing, or if the option -journal-enable is explicitely
+	      set (fixed issue #!330).
++-  Value      [2009/11/19] New option -slevel-exclude f for fine-tuning
+	      semantic unrolling.
+-  Logic      [2009/11/13] ordering of clauses in contracts
+-* Logic      [2009/11/10] Fixed bug #228, #327 (syntax garbage at end of
+	      contracts)
+-  GUI        [2009/11/09] Now possible to delete the current project.
+-  GUI        [2009/11/09] New shortcut buttons.
+-  GUI        [2009/11/04] Options *-verbose, *-debug and -quiet are now
+	      settable via the launcher dialog box (bts #!317).
+-* Logic      [2009/11/04] Fixed bug #272 (complete behaviors wo name)
+-  Logic      [2009/11/03] Better error message when using = in annotations
+-* Makefile   [2009/11/02] Fixed bug #310: improve robustness againts new
+	      ocaml warnings.
+-  Kernel     [2009/11/02] New option -no-dynlink in order to prevent
+	      loading of dynamic plug-ins.
+-* Makefile   [2009/10/28] Fixed bug #305: make did not terminate when all
+	      plug-ins were disabled.
+-* Configure  [2009/10/28] Fixed bug with -help.
+-  Kernel     [2009/10/28] Better -*-help.
+-  Kernel     [2009/10/28] Better error messages when a dynamic plug-in
+	      cannot be loaded.
+-  Kernel     [2009/10/21] Clarification of the multiple accesses warning.
+	      Becomes "undefined multiple accesses in expression".
+-* Value      [2009/10/21] Some "loss of precision" messages were
+	      duplicated and failed to be localized. Fixed.
+o  Kernel     [2009/10/18] Extlib now contains various functions to replace
+	      Sys.command but with portability and efficiency in mind.
+-*! Logic     [2009/10/16] Support for abrupt clauses; Modifies AST
+-  Syntactic_callgraph [2009/10/15] Big speedup for showing the callgraph in
+	      the GUI. Require ocamlgraph >= 1.4.
+o! Kernel     [2009/10/13] Module Db.Properties.Status replaced by module
+	      Properties_status.
+o! Kernel     [2009/10/13] Function Db.Properties.predicate_on_stmt and
+	      Db.Properties.get_user_assert does not exist anymore.
+-* Value      [2009/10/12] Synthetic validity status for assertions.
+-* Syntactic_callgraph [2009/10/12] Fixed bug in services computation.
+-* GUI        [2009/10/09] Instantaneous actions are no longer cancelable but
+	      are as fast as possible now.
+o! GUI        [2009/10/09] Methods protect and full_protect of
+	      main_window_extension_points now have an additional arguments.
+o  Kernel     [2009/10/08] Add unique id for elements in Db.Properties.Status
+	      tables.
+-  Kernel     [2009/10/08] Add status for all clauses
+-  Cil        [2009/10/08] Extend logic pretty printer to handle all specific
+	      clauses
+-! GUI        [2009/10/08] Extend type Pretty_source.localizable
+o! Cil        [2009/09/28] pAssigns now prints directly a whole list of assigns
+-  GUI	      [2009/09/28] Assigns clauses are now localizable in GUI
+-  Value      [2009/09/25] Improved treatment of "assigns p[..]" clauses
+	      in -input
 
 ######################################
 Open Source Release Beryllium_20090902
 ######################################
+
 -* Obfuscator [2009/09/23] obfuscator does not lose links between logic
-	      and C variables anymore (bts #250). 
+	      and C variables anymore (bts #250).
 	      Obfuscator now gives a specific name to formal parameters.
 -  Journal    [2009/09/23] Better handling of exceptions.
--! Value      [2009/09/21] Computed values not displayed on -load. Use -val 
-		-load to force display of computed values. 
+-! Value      [2009/09/21] Computed values not displayed on -load. Use -val
+		-load to force display of computed values.
 		Use -val -quiet to compute without printing results.
 o  Cil        [2009/09/21] New pIdentifiedPredicate method in pretty-printer
 -* GUI        [2009/09/21] Elimination of repeated messages (bts #237).
--! GUI        [2009/09/18] Improvement of the GUI of syntactic callgraph.
-	      Require ocamlgraph > 1.2.
+-! Syntactic callgraph [2009/09/18] Improvement of the GUI of syntactic
+	      callgraph. Require ocamlgraph > 1.2.
 -  Kernel     [2009/09/18] Slightly less false alarms with
 	      -warn-unspecified-order
 o  Cil        [2009/09/18] Deprecated Cil.get_status.
@@ -70,7 +239,7 @@ o* Makefile   [2009/09/18] Fixed bugs with the use of PLUGIN_EXTRA_BYTE
 Open Source Release Beryllium_20090901
 ######################################
 
--! GUI        [2009/08/27] New design of the callgraph in the GUI.
+-! Syntactic callgraph [2009/08/27] New design of the callgraph in the GUI.
 	      Frama-C now requires ocamlgraph 1.2.
 -  Logic      "reads" clauses on logic functions and predicates, which
 	      disappeared with the introduction of axiomatic blocks, have been
@@ -534,3 +703,4 @@ Binary release Hydrogen_20080302
 ###########################################
 First Open Source Release Hydrogen_20080301
 ###########################################
+- First release

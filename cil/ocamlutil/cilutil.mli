@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2001-2003,                                              *)
+(*  Copyright (C) 2001-2003                                               *)
 (*   George C. Necula    <necula@cs.berkeley.edu>                         *)
 (*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
 (*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
@@ -35,11 +35,15 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                           *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'Énergie Atomique).             *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
 (**************************************************************************)
 
+
 (** A bunch of generally useful functions.
-    @plugin development guide *)
+    @plugin development guide
+    @deprecated the whole module should migrate to {! Extlib}
+*)
 
 open Cil_types
 open Pretty_utils
@@ -187,8 +191,6 @@ val valOf : 'a option -> 'a
 
 val out_some : 'a option -> 'a
   (** @plugin development guide *)
-
-val opt_map: ('a -> 'b) -> 'a option -> 'b option
 
 val opt_bind: ('a -> 'b option) -> 'a option -> 'b option
 
@@ -374,6 +376,9 @@ val get_globalLoc: global -> location
 (** Return the location of a statement, or locUnknown *)
 val get_stmtLoc: stmtkind -> location
 
+(** Return the location of a code annotation, or None *)
+val get_code_annotationLoc: code_annotation -> location option
+
 module StringMap : Map.S with type key = String.t
 module StringSet : sig include Set.S with type elt = String.t
     val pretty : Format.formatter ->  t -> unit
@@ -426,6 +431,7 @@ sig
        replaced by the result of the application of [f] to [a].
        The bindings are passed to [f] in increasing order
        with respect to the ordering over the type of the keys. *)
+ 
 
     val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
     (** Same as {!Map.S.map}, but the function receives as arguments both the
@@ -435,9 +441,6 @@ sig
     (** [fold f m a] computes [(f kN dN ... (f k1 d1 a)...)],
        where [k1 ... kN] are the keys of all bindings in [m]
        (in increasing order), and [d1 ... dN] are the associated data. *)
-
-    val fold_range : (key -> Rangemap.fuzzy_order) ->
-      (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 
     val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
     (** Total ordering between maps.  The first argument is a total ordering
@@ -477,20 +480,27 @@ module InstrHashtbl : Hashtbl.S with type key = kinstr
 module StmtMap :
 sig include Map.S with type key = Cil_types.stmt
     val pretty : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
+    val descr: Unmarshal.t -> Unmarshal.t
 end
 
 (** [Set] of [Cil_types.stmt] with a pretty printer.
     @plugin development guide *)
-module StmtSet : sig include Set.S with type elt = Cil_types.stmt
-    val pretty : Format.formatter ->  t -> unit
+module StmtSet : sig 
+  include Set.S with type elt = Cil_types.stmt
+  val pretty : Format.formatter ->  t -> unit
+  val descr: Unmarshal.t
 end
 
-module StmtComparable : Graph.Sig.COMPARABLE with type t = Cil_types.stmt
+module StmtComparable : sig
+  include Graph.Sig.COMPARABLE with type t = Cil_types.stmt
+  val descr: Unmarshal.t
+end
 
 (** [Hashtbl] of [Cil_types.stmt] with a pretty printer.
     @plugin development guide *)
-module StmtHashtbl : sig include Hashtbl.S with type key = Cil_types.stmt
-    val pretty : Format.formatter ->  'a t  -> unit
+module StmtHashtbl : sig 
+  include Hashtbl.S with type key = Cil_types.stmt
+  val pretty : Format.formatter ->  'a t  -> unit
 end
 
 module KinstrComparable : Graph.Sig.COMPARABLE with type t = Cil_types.kinstr
@@ -504,6 +514,66 @@ end
 module VarinfoHashtbl : Hashtbl.S with type key = Cil_types.varinfo
 module VarinfoMap : Map.S with type key = Cil_types.varinfo
 module VarinfoSet : Set.S with type elt = Cil_types.varinfo
+
+(** For comparison of [Cil_types.enuminfo]. 
+     @since Boron-20100401 *)
+module EnuminfoComparable : sig
+  type t = enuminfo
+  val compare: t -> t -> int
+  val hash: t -> int
+  val equal: t -> t -> bool
+end
+
+(** [Hashtbl] of [Cil_types.enuminfo]. 
+     @since Boron-20100401 *)
+module EnuminfoHashtbl : Hashtbl.S with type key = Cil_types.enuminfo
+
+(** [Map] of [Cil_types.enuminfo]. 
+    @since Boron-20100401 *)
+module EnuminfoMap : Map.S with type key = Cil_types.enuminfo
+
+(** [Set] of [Cil_types.enuminfo]. 
+    @since Boron-20100401 *)
+module EnuminfoSet : Set.S with type elt = Cil_types.enuminfo
+
+(** For comparison of [Cil_types.enuminfo]. 
+     @since Boron-20100401 *)
+module EnumitemComparable : sig
+  type t = enumitem
+  val compare: t -> t -> int
+  val hash: t -> int
+  val equal: t -> t -> bool
+end
+
+(** For comparison of [Cil_types.typeinfo]. 
+     @since Boron-20100401 *)
+module CompinfoComparable : sig
+  type t = compinfo
+  val compare: t -> t -> int
+  val hash: t -> int
+  val equal: t -> t -> bool
+end
+
+(** For comparison of [Cil_types.typeinfo]. 
+     @since Boron-20100401 *)
+module TypeinfoComparable : sig
+  type t = typeinfo
+  val compare: t -> t -> int
+  val hash: t -> int
+  val equal: t -> t -> bool
+end
+
+(** [Hashtbl] of [Cil_types.typeinfo]. 
+     @since Boron-20100401 *)
+module TypeinfoHashtbl : Hashtbl.S with type key = Cil_types.typeinfo
+
+(** [Map] of [Cil_types.typeinfo]. 
+    @since Boron-20100401 *)
+module TypeinfoMap : Map.S with type key = Cil_types.typeinfo
+
+(** [Set] of [Cil_types.typeinfo]. 
+    @since Boron-20100401 *)
+module TypeinfoSet : Set.S with type elt = Cil_types.typeinfo
 
 module LogicVarComparable : sig
   type t = logic_var
@@ -586,6 +656,9 @@ val pretty_list_del:
   (formatter -> 'a -> unit) -> formatter -> 'a list -> unit
 
 val pretty_opt:
+  (formatter -> 'a -> unit) -> formatter -> 'a option -> unit
+
+val pretty_opt_nl:
   (formatter -> 'a -> unit) -> formatter -> 'a option -> unit
 
 (** separator + breakable space *)

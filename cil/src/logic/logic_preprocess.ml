@@ -1,9 +1,8 @@
-# 25 "cil/src/logic/logic_preprocess.mll"
+# 26 "cil/src/logic/logic_preprocess.mll"
  
   open Lexing
   type state = NORMAL | SLASH | INCOMMENT
   type end_of_buffer = NEWLINE | SPACE | CHAR
-  let debug = false
   let buf = Buffer.create 1024
   let macros = Buffer.create 1024
   let beg_of_line = Buffer.create 8
@@ -13,7 +12,19 @@
   let curr_line = ref 1
   let is_ghost = ref false
   let begin_annot_line = ref 1
+
+  let reset () =
+    Buffer.clear buf;
+    Buffer.clear macros;
+    Buffer.clear beg_of_line;
+    is_newline := CHAR;
+    curr_file := "";
+    curr_line := 1;
+    is_ghost := false;
+    begin_annot_line := 1
+
   let preprocess_annot cpp outfile =
+    let debug = Cilmsg.debug_atleast 3 in
     let (ppname, ppfile) = Filename.open_temp_file "ppannot" ".c" in
     Buffer.output_buffer ppfile macros;
     (* NB: the three extra spaces replace the begining of the annotation
@@ -87,7 +98,7 @@
     incr curr_line;
     Buffer.clear beg_of_line
 
-# 91 "cil/src/logic/logic_preprocess.ml"
+# 102 "cil/src/logic/logic_preprocess.ml"
 let __ocaml_lex_tables = {
   Lexing.lex_base = 
    "\000\000\249\255\250\255\251\255\001\000\002\000\012\000\000\000\
@@ -445,11 +456,11 @@ and __ocaml_lex_main_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.new_engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 115 "cil/src/logic/logic_preprocess.mll"
+# 127 "cil/src/logic/logic_preprocess.mll"
                                                                       m
-# 451 "cil/src/logic/logic_preprocess.ml"
+# 462 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_mem.(1) in
-# 117 "cil/src/logic/logic_preprocess.mll"
+# 129 "cil/src/logic/logic_preprocess.mll"
       (
         if not (List.mem m blacklisted_macros) then
           Buffer.add_string macros (lexeme lexbuf);
@@ -457,20 +468,20 @@ let
         make_newline ();
         main cpp outfile lexbuf
       )
-# 461 "cil/src/logic/logic_preprocess.ml"
+# 472 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
 let
-# 124 "cil/src/logic/logic_preprocess.mll"
+# 136 "cil/src/logic/logic_preprocess.mll"
                                                        line
-# 467 "cil/src/logic/logic_preprocess.ml"
+# 478 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_mem.(1)
 and
-# 125 "cil/src/logic/logic_preprocess.mll"
+# 137 "cil/src/logic/logic_preprocess.mll"
                                      file
-# 472 "cil/src/logic/logic_preprocess.ml"
+# 483 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(2) lexbuf.Lexing.lex_mem.(3) in
-# 126 "cil/src/logic/logic_preprocess.mll"
+# 138 "cil/src/logic/logic_preprocess.mll"
     ( (try
         curr_line := (int_of_string line) -1
        with Failure "int_of_string" -> curr_line:= -1);
@@ -479,15 +490,15 @@ and
       make_newline();
       main cpp outfile lexbuf
     )
-# 483 "cil/src/logic/logic_preprocess.ml"
+# 494 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
 let
-# 134 "cil/src/logic/logic_preprocess.mll"
+# 146 "cil/src/logic/logic_preprocess.mll"
                 c
-# 489 "cil/src/logic/logic_preprocess.ml"
+# 500 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf (lexbuf.Lexing.lex_start_pos + 2) in
-# 134 "cil/src/logic/logic_preprocess.mll"
+# 146 "cil/src/logic/logic_preprocess.mll"
                    (
       if c = !Clexer.annot_char then begin
         is_newline:=CHAR;
@@ -500,15 +511,15 @@ let
         Buffer.add_string beg_of_line "   ";
         comment cpp outfile c lexbuf;
       end)
-# 504 "cil/src/logic/logic_preprocess.ml"
+# 515 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
 let
-# 146 "cil/src/logic/logic_preprocess.mll"
+# 158 "cil/src/logic/logic_preprocess.mll"
                 c
-# 510 "cil/src/logic/logic_preprocess.ml"
+# 521 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf (lexbuf.Lexing.lex_start_pos + 2) in
-# 146 "cil/src/logic/logic_preprocess.mll"
+# 158 "cil/src/logic/logic_preprocess.mll"
                    (
       if c = !Clexer.annot_char then begin
         Buffer.clear buf;
@@ -525,31 +536,31 @@ let
         output_string outfile (lexeme lexbuf);
         oneline_comment cpp outfile lexbuf;
       end)
-# 529 "cil/src/logic/logic_preprocess.ml"
+# 540 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
-# 162 "cil/src/logic/logic_preprocess.mll"
+# 174 "cil/src/logic/logic_preprocess.mll"
          ( flush outfile )
-# 534 "cil/src/logic/logic_preprocess.ml"
+# 545 "cil/src/logic/logic_preprocess.ml"
 
   | 5 ->
-# 163 "cil/src/logic/logic_preprocess.mll"
+# 175 "cil/src/logic/logic_preprocess.mll"
          (
       make_newline ();
       output_char outfile '\n'; main cpp outfile lexbuf )
-# 541 "cil/src/logic/logic_preprocess.ml"
+# 552 "cil/src/logic/logic_preprocess.ml"
 
   | 6 ->
 let
-# 166 "cil/src/logic/logic_preprocess.mll"
+# 178 "cil/src/logic/logic_preprocess.mll"
          c
-# 547 "cil/src/logic/logic_preprocess.ml"
+# 558 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 166 "cil/src/logic/logic_preprocess.mll"
+# 178 "cil/src/logic/logic_preprocess.mll"
            (
       Buffer.add_char beg_of_line ' ';
       output_char outfile c; main cpp outfile lexbuf )
-# 553 "cil/src/logic/logic_preprocess.ml"
+# 564 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_main_rec cpp outfile lexbuf __ocaml_lex_state
 
@@ -559,48 +570,48 @@ and __ocaml_lex_maybe_ghost_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 171 "cil/src/logic/logic_preprocess.mll"
+# 183 "cil/src/logic/logic_preprocess.mll"
                  space
-# 565 "cil/src/logic/logic_preprocess.ml"
+# 576 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
-# 171 "cil/src/logic/logic_preprocess.mll"
+# 183 "cil/src/logic/logic_preprocess.mll"
                       (
      Buffer.add_string buf space;
      maybe_ghost cpp outfile lexbuf )
-# 571 "cil/src/logic/logic_preprocess.ml"
+# 582 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 174 "cil/src/logic/logic_preprocess.mll"
+# 186 "cil/src/logic/logic_preprocess.mll"
          (
       is_newline := NEWLINE;
       incr curr_line;
       Buffer.add_char buf '\n';
       maybe_ghost cpp outfile lexbuf
     )
-# 581 "cil/src/logic/logic_preprocess.ml"
+# 592 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 181 "cil/src/logic/logic_preprocess.mll"
+# 193 "cil/src/logic/logic_preprocess.mll"
       ( is_ghost := true;
         Buffer.add_string buf "     ";
         annot cpp outfile lexbuf
       )
-# 589 "cil/src/logic/logic_preprocess.ml"
+# 600 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
-# 186 "cil/src/logic/logic_preprocess.mll"
+# 198 "cil/src/logic/logic_preprocess.mll"
          ( main cpp outfile lexbuf )
-# 594 "cil/src/logic/logic_preprocess.ml"
+# 605 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
 let
-# 187 "cil/src/logic/logic_preprocess.mll"
+# 199 "cil/src/logic/logic_preprocess.mll"
          c
-# 600 "cil/src/logic/logic_preprocess.ml"
+# 611 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 187 "cil/src/logic/logic_preprocess.mll"
+# 199 "cil/src/logic/logic_preprocess.mll"
            ( Buffer.add_char buf c; is_ghost:=false; annot cpp outfile lexbuf)
-# 604 "cil/src/logic/logic_preprocess.ml"
+# 615 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_maybe_ghost_rec cpp outfile lexbuf __ocaml_lex_state
 
@@ -610,45 +621,45 @@ and __ocaml_lex_maybe_oneline_ghost_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 189 "cil/src/logic/logic_preprocess.mll"
+# 201 "cil/src/logic/logic_preprocess.mll"
                  space
-# 616 "cil/src/logic/logic_preprocess.ml"
+# 627 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
-# 189 "cil/src/logic/logic_preprocess.mll"
+# 201 "cil/src/logic/logic_preprocess.mll"
                       (
      Buffer.add_string buf space;
      maybe_oneline_ghost cpp outfile lexbuf )
-# 622 "cil/src/logic/logic_preprocess.ml"
+# 633 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 192 "cil/src/logic/logic_preprocess.mll"
+# 204 "cil/src/logic/logic_preprocess.mll"
          (
       incr curr_line;
       main cpp outfile lexbuf
     )
-# 630 "cil/src/logic/logic_preprocess.ml"
+# 641 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 197 "cil/src/logic/logic_preprocess.mll"
+# 209 "cil/src/logic/logic_preprocess.mll"
       ( is_ghost := true;
         Buffer.add_string buf "     ";
         oneline_annot cpp outfile lexbuf
       )
-# 638 "cil/src/logic/logic_preprocess.ml"
+# 649 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
 let
-# 201 "cil/src/logic/logic_preprocess.mll"
+# 213 "cil/src/logic/logic_preprocess.mll"
          c
-# 644 "cil/src/logic/logic_preprocess.ml"
+# 655 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 202 "cil/src/logic/logic_preprocess.mll"
+# 214 "cil/src/logic/logic_preprocess.mll"
       (
         Buffer.add_char buf c;
         is_ghost:=false;
         oneline_annot cpp outfile lexbuf
       )
-# 652 "cil/src/logic/logic_preprocess.ml"
+# 663 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_maybe_oneline_ghost_rec cpp outfile lexbuf __ocaml_lex_state
 
@@ -657,43 +668,43 @@ and annot cpp outfile lexbuf =
 and __ocaml_lex_annot_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 208 "cil/src/logic/logic_preprocess.mll"
+# 220 "cil/src/logic/logic_preprocess.mll"
           ( preprocess_annot cpp outfile; main cpp outfile lexbuf )
-# 663 "cil/src/logic/logic_preprocess.ml"
+# 674 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 209 "cil/src/logic/logic_preprocess.mll"
+# 221 "cil/src/logic/logic_preprocess.mll"
          ( is_newline := NEWLINE;
            incr curr_line;
            Buffer.add_char buf '\n';
            annot cpp outfile lexbuf )
-# 671 "cil/src/logic/logic_preprocess.ml"
+# 682 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 213 "cil/src/logic/logic_preprocess.mll"
+# 225 "cil/src/logic/logic_preprocess.mll"
         (
       if !is_newline = NEWLINE then is_newline:=SPACE;
       Buffer.add_char buf ' ';
       annot cpp outfile lexbuf )
-# 679 "cil/src/logic/logic_preprocess.ml"
+# 690 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
-# 217 "cil/src/logic/logic_preprocess.mll"
+# 229 "cil/src/logic/logic_preprocess.mll"
          (
       if !is_newline = NEWLINE then is_newline:=SPACE;
       Buffer.add_char buf ' '; annot cpp outfile lexbuf )
-# 686 "cil/src/logic/logic_preprocess.ml"
+# 697 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
 let
-# 220 "cil/src/logic/logic_preprocess.mll"
+# 232 "cil/src/logic/logic_preprocess.mll"
          c
-# 692 "cil/src/logic/logic_preprocess.ml"
+# 703 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 220 "cil/src/logic/logic_preprocess.mll"
+# 232 "cil/src/logic/logic_preprocess.mll"
            ( is_newline := CHAR;
              Buffer.add_char buf c; annot cpp outfile lexbuf )
-# 697 "cil/src/logic/logic_preprocess.ml"
+# 708 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_annot_rec cpp outfile lexbuf __ocaml_lex_state
 
@@ -702,7 +713,7 @@ and comment cpp outfile c lexbuf =
 and __ocaml_lex_comment_rec cpp outfile c lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 225 "cil/src/logic/logic_preprocess.mll"
+# 237 "cil/src/logic/logic_preprocess.mll"
         (
       Buffer.add_char beg_of_line ' ';
       output_string outfile (lexeme lexbuf);
@@ -711,26 +722,26 @@ and __ocaml_lex_comment_rec cpp outfile c lexbuf __ocaml_lex_state =
       else
         comment cpp outfile '/' lexbuf
       )
-# 715 "cil/src/logic/logic_preprocess.ml"
+# 726 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 233 "cil/src/logic/logic_preprocess.mll"
+# 245 "cil/src/logic/logic_preprocess.mll"
          ( make_newline (); output_char outfile '\n';
            comment cpp outfile '\n' lexbuf )
-# 721 "cil/src/logic/logic_preprocess.ml"
+# 732 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
 let
-# 235 "cil/src/logic/logic_preprocess.mll"
+# 247 "cil/src/logic/logic_preprocess.mll"
          c
-# 727 "cil/src/logic/logic_preprocess.ml"
+# 738 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 235 "cil/src/logic/logic_preprocess.mll"
+# 247 "cil/src/logic/logic_preprocess.mll"
            (
       Buffer.add_char beg_of_line ' ';
       output_char outfile c;
       comment cpp outfile c lexbuf)
-# 734 "cil/src/logic/logic_preprocess.ml"
+# 745 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_comment_rec cpp outfile c lexbuf __ocaml_lex_state
 
@@ -739,27 +750,27 @@ and oneline_annot cpp outfile lexbuf =
 and __ocaml_lex_oneline_annot_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 241 "cil/src/logic/logic_preprocess.mll"
+# 253 "cil/src/logic/logic_preprocess.mll"
              (
       incr curr_line;
       preprocess_annot cpp outfile;
       main cpp outfile lexbuf )
-# 748 "cil/src/logic/logic_preprocess.ml"
+# 759 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 245 "cil/src/logic/logic_preprocess.mll"
+# 257 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_char buf ' '; oneline_annot cpp outfile lexbuf )
-# 753 "cil/src/logic/logic_preprocess.ml"
+# 764 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
 let
-# 246 "cil/src/logic/logic_preprocess.mll"
+# 258 "cil/src/logic/logic_preprocess.mll"
          c
-# 759 "cil/src/logic/logic_preprocess.ml"
+# 770 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 246 "cil/src/logic/logic_preprocess.mll"
+# 258 "cil/src/logic/logic_preprocess.mll"
            ( Buffer.add_char buf c; oneline_annot cpp outfile lexbuf )
-# 763 "cil/src/logic/logic_preprocess.ml"
+# 774 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_oneline_annot_rec cpp outfile lexbuf __ocaml_lex_state
 
@@ -768,37 +779,39 @@ and oneline_comment cpp outfile lexbuf =
 and __ocaml_lex_oneline_comment_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 251 "cil/src/logic/logic_preprocess.mll"
+# 263 "cil/src/logic/logic_preprocess.mll"
       ( make_newline();
         output_string outfile (lexeme lexbuf);
         main cpp outfile lexbuf)
-# 776 "cil/src/logic/logic_preprocess.ml"
+# 787 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
 let
-# 254 "cil/src/logic/logic_preprocess.mll"
+# 266 "cil/src/logic/logic_preprocess.mll"
          c
-# 782 "cil/src/logic/logic_preprocess.ml"
+# 793 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 254 "cil/src/logic/logic_preprocess.mll"
+# 266 "cil/src/logic/logic_preprocess.mll"
            ( output_char outfile c; oneline_comment cpp outfile lexbuf)
-# 786 "cil/src/logic/logic_preprocess.ml"
+# 797 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_oneline_comment_rec cpp outfile lexbuf __ocaml_lex_state
 
 ;;
 
-# 256 "cil/src/logic/logic_preprocess.mll"
+# 268 "cil/src/logic/logic_preprocess.mll"
  
   let file cpp filename =
+    reset ();
     let inchan = open_in_bin filename in
     let lex = Lexing.from_channel inchan in
     let (ppname, ppfile) = Filename.open_temp_file
       (Filename.basename filename) ".pp"
     in
+    Extlib.cleanup_at_exit ppname;  
     main cpp ppfile lex;
     close_in inchan;
     close_out ppfile;
     ppname
 
-# 805 "cil/src/logic/logic_preprocess.ml"
+# 818 "cil/src/logic/logic_preprocess.ml"

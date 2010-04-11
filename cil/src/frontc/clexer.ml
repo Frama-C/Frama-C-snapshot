@@ -1,4 +1,4 @@
-# 46 "cil/src/frontc/clexer.mll"
+# 47 "cil/src/frontc/clexer.mll"
  
 open Cparser
 exception Eof
@@ -1876,7 +1876,7 @@ let rec initial lexbuf =
 and __ocaml_lex_initial_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 499 "cil/src/frontc/clexer.mll"
+# 500 "cil/src/frontc/clexer.mll"
       ( 
 	do_lex_comment comment lexbuf ;
 	addWhite lexbuf ;
@@ -1886,11 +1886,11 @@ and __ocaml_lex_initial_rec lexbuf __ocaml_lex_state =
 
   | 1 ->
 let
-# 505 "cil/src/frontc/clexer.mll"
+# 506 "cil/src/frontc/clexer.mll"
                         c
 # 1892 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme_char lexbuf (lexbuf.Lexing.lex_start_pos + 2) in
-# 506 "cil/src/frontc/clexer.mll"
+# 507 "cil/src/frontc/clexer.mll"
     ( if c = !annot_char then begin
 	Cabshelper.continue_annot
 	  (currentLoc ())
@@ -1911,7 +1911,7 @@ let
 # 1912 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 525 "cil/src/frontc/clexer.mll"
+# 526 "cil/src/frontc/clexer.mll"
     ( do_lex_comment onelinecomment lexbuf ;
       E.newline();
       if is_oneline_ghost () then begin
@@ -1926,11 +1926,11 @@ let
 
   | 3 ->
 let
-# 536 "cil/src/frontc/clexer.mll"
+# 537 "cil/src/frontc/clexer.mll"
                     c
 # 1932 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme_char lexbuf (lexbuf.Lexing.lex_start_pos + 2) in
-# 537 "cil/src/frontc/clexer.mll"
+# 538 "cil/src/frontc/clexer.mll"
     ( if c = !annot_char then begin
 	Cabshelper.continue_annot
 	  (currentLoc())
@@ -1959,12 +1959,12 @@ let
 # 1960 "cil/src/frontc/clexer.ml"
 
   | 4 ->
-# 562 "cil/src/frontc/clexer.mll"
+# 563 "cil/src/frontc/clexer.mll"
            (addWhite lexbuf; initial lexbuf)
 # 1965 "cil/src/frontc/clexer.ml"
 
   | 5 ->
-# 563 "cil/src/frontc/clexer.mll"
+# 564 "cil/src/frontc/clexer.mll"
                                         ( E.newline ();
                                           if !pragmaLine then
                                             begin
@@ -1983,7 +1983,7 @@ let
 # 1984 "cil/src/frontc/clexer.ml"
 
   | 6 ->
-# 578 "cil/src/frontc/clexer.mll"
+# 579 "cil/src/frontc/clexer.mll"
                                         ( addWhite lexbuf;
                                           E.newline ();
                                           initial lexbuf
@@ -1991,27 +1991,27 @@ let
 # 1992 "cil/src/frontc/clexer.ml"
 
   | 7 ->
-# 582 "cil/src/frontc/clexer.mll"
+# 583 "cil/src/frontc/clexer.mll"
          ( addWhite lexbuf; hash lexbuf)
 # 1997 "cil/src/frontc/clexer.ml"
 
   | 8 ->
-# 583 "cil/src/frontc/clexer.mll"
+# 584 "cil/src/frontc/clexer.mll"
                                    ( PRAGMA (currentLoc ()) )
 # 2002 "cil/src/frontc/clexer.ml"
 
   | 9 ->
-# 584 "cil/src/frontc/clexer.mll"
+# 585 "cil/src/frontc/clexer.mll"
           ( CST_CHAR (chr lexbuf, currentLoc ()))
 # 2007 "cil/src/frontc/clexer.ml"
 
   | 10 ->
-# 585 "cil/src/frontc/clexer.mll"
+# 586 "cil/src/frontc/clexer.mll"
           ( CST_WCHAR (chr lexbuf, currentLoc ()) )
 # 2012 "cil/src/frontc/clexer.ml"
 
   | 11 ->
-# 586 "cil/src/frontc/clexer.mll"
+# 587 "cil/src/frontc/clexer.mll"
          (  addLexeme lexbuf; (* '"' *)
 (* matth: BUG:  this could be either a regular string or a wide string.
  *  e.g. if it's the "world" in
@@ -2026,7 +2026,7 @@ let
 # 2027 "cil/src/frontc/clexer.ml"
 
   | 12 ->
-# 597 "cil/src/frontc/clexer.mll"
+# 598 "cil/src/frontc/clexer.mll"
            ( (* weimer: wchar_t string literal *)
                                           try CST_WSTRING(str lexbuf, currentLoc ())
                                           with e ->
@@ -2036,276 +2036,276 @@ let
 # 2037 "cil/src/frontc/clexer.ml"
 
   | 13 ->
-# 603 "cil/src/frontc/clexer.mll"
+# 604 "cil/src/frontc/clexer.mll"
              (CST_FLOAT (Lexing.lexeme lexbuf, currentLoc ()))
 # 2042 "cil/src/frontc/clexer.ml"
 
   | 14 ->
-# 604 "cil/src/frontc/clexer.mll"
+# 605 "cil/src/frontc/clexer.mll"
             (CST_INT (Lexing.lexeme lexbuf, currentLoc ()))
 # 2047 "cil/src/frontc/clexer.ml"
 
   | 15 ->
-# 605 "cil/src/frontc/clexer.mll"
+# 606 "cil/src/frontc/clexer.mll"
             (CST_INT (Lexing.lexeme lexbuf, currentLoc ()))
 # 2052 "cil/src/frontc/clexer.ml"
 
   | 16 ->
-# 606 "cil/src/frontc/clexer.mll"
+# 607 "cil/src/frontc/clexer.mll"
             (CST_INT (Lexing.lexeme lexbuf, currentLoc ()))
 # 2057 "cil/src/frontc/clexer.ml"
 
   | 17 ->
-# 607 "cil/src/frontc/clexer.mll"
+# 608 "cil/src/frontc/clexer.mll"
              (EOF)
 # 2062 "cil/src/frontc/clexer.ml"
 
   | 18 ->
-# 608 "cil/src/frontc/clexer.mll"
+# 609 "cil/src/frontc/clexer.mll"
            (ELLIPSIS)
 # 2067 "cil/src/frontc/clexer.ml"
 
   | 19 ->
-# 609 "cil/src/frontc/clexer.mll"
+# 610 "cil/src/frontc/clexer.mll"
           (PLUS_EQ)
 # 2072 "cil/src/frontc/clexer.ml"
 
   | 20 ->
-# 610 "cil/src/frontc/clexer.mll"
+# 611 "cil/src/frontc/clexer.mll"
           (MINUS_EQ)
 # 2077 "cil/src/frontc/clexer.ml"
 
   | 21 ->
-# 611 "cil/src/frontc/clexer.mll"
+# 612 "cil/src/frontc/clexer.mll"
           (STAR_EQ)
 # 2082 "cil/src/frontc/clexer.ml"
 
   | 22 ->
-# 612 "cil/src/frontc/clexer.mll"
+# 613 "cil/src/frontc/clexer.mll"
           (SLASH_EQ)
 # 2087 "cil/src/frontc/clexer.ml"
 
   | 23 ->
-# 613 "cil/src/frontc/clexer.mll"
+# 614 "cil/src/frontc/clexer.mll"
           (PERCENT_EQ)
 # 2092 "cil/src/frontc/clexer.ml"
 
   | 24 ->
-# 614 "cil/src/frontc/clexer.mll"
+# 615 "cil/src/frontc/clexer.mll"
           (PIPE_EQ)
 # 2097 "cil/src/frontc/clexer.ml"
 
   | 25 ->
-# 615 "cil/src/frontc/clexer.mll"
+# 616 "cil/src/frontc/clexer.mll"
           (AND_EQ)
 # 2102 "cil/src/frontc/clexer.ml"
 
   | 26 ->
-# 616 "cil/src/frontc/clexer.mll"
+# 617 "cil/src/frontc/clexer.mll"
           (CIRC_EQ)
 # 2107 "cil/src/frontc/clexer.ml"
 
   | 27 ->
-# 617 "cil/src/frontc/clexer.mll"
+# 618 "cil/src/frontc/clexer.mll"
            (INF_INF_EQ)
 # 2112 "cil/src/frontc/clexer.ml"
 
   | 28 ->
-# 618 "cil/src/frontc/clexer.mll"
+# 619 "cil/src/frontc/clexer.mll"
            (SUP_SUP_EQ)
 # 2117 "cil/src/frontc/clexer.ml"
 
   | 29 ->
-# 619 "cil/src/frontc/clexer.mll"
+# 620 "cil/src/frontc/clexer.mll"
           (INF_INF)
 # 2122 "cil/src/frontc/clexer.ml"
 
   | 30 ->
-# 620 "cil/src/frontc/clexer.mll"
+# 621 "cil/src/frontc/clexer.mll"
           (SUP_SUP)
 # 2127 "cil/src/frontc/clexer.ml"
 
   | 31 ->
-# 621 "cil/src/frontc/clexer.mll"
+# 622 "cil/src/frontc/clexer.mll"
            (EQ_EQ)
 # 2132 "cil/src/frontc/clexer.ml"
 
   | 32 ->
-# 622 "cil/src/frontc/clexer.mll"
+# 623 "cil/src/frontc/clexer.mll"
            (EXCLAM_EQ)
 # 2137 "cil/src/frontc/clexer.ml"
 
   | 33 ->
-# 623 "cil/src/frontc/clexer.mll"
+# 624 "cil/src/frontc/clexer.mll"
           (INF_EQ)
 # 2142 "cil/src/frontc/clexer.ml"
 
   | 34 ->
-# 624 "cil/src/frontc/clexer.mll"
+# 625 "cil/src/frontc/clexer.mll"
           (SUP_EQ)
 # 2147 "cil/src/frontc/clexer.ml"
 
   | 35 ->
-# 625 "cil/src/frontc/clexer.mll"
+# 626 "cil/src/frontc/clexer.mll"
          (EQ)
 # 2152 "cil/src/frontc/clexer.ml"
 
   | 36 ->
-# 626 "cil/src/frontc/clexer.mll"
+# 627 "cil/src/frontc/clexer.mll"
          (INF)
 # 2157 "cil/src/frontc/clexer.ml"
 
   | 37 ->
-# 627 "cil/src/frontc/clexer.mll"
+# 628 "cil/src/frontc/clexer.mll"
          (SUP)
 # 2162 "cil/src/frontc/clexer.ml"
 
   | 38 ->
-# 628 "cil/src/frontc/clexer.mll"
+# 629 "cil/src/frontc/clexer.mll"
           (PLUS_PLUS (currentLoc ()))
 # 2167 "cil/src/frontc/clexer.ml"
 
   | 39 ->
-# 629 "cil/src/frontc/clexer.mll"
+# 630 "cil/src/frontc/clexer.mll"
           (MINUS_MINUS (currentLoc ()))
 # 2172 "cil/src/frontc/clexer.ml"
 
   | 40 ->
-# 630 "cil/src/frontc/clexer.mll"
+# 631 "cil/src/frontc/clexer.mll"
           (ARROW)
 # 2177 "cil/src/frontc/clexer.ml"
 
   | 41 ->
-# 631 "cil/src/frontc/clexer.mll"
+# 632 "cil/src/frontc/clexer.mll"
          (PLUS (currentLoc ()))
 # 2182 "cil/src/frontc/clexer.ml"
 
   | 42 ->
-# 632 "cil/src/frontc/clexer.mll"
+# 633 "cil/src/frontc/clexer.mll"
          (MINUS (currentLoc ()))
 # 2187 "cil/src/frontc/clexer.ml"
 
   | 43 ->
-# 634 "cil/src/frontc/clexer.mll"
+# 635 "cil/src/frontc/clexer.mll"
                     ( if is_ghost_code () then might_end_ghost lexbuf
                       else
                         STAR (currentLoc ()))
 # 2194 "cil/src/frontc/clexer.ml"
 
   | 44 ->
-# 637 "cil/src/frontc/clexer.mll"
+# 638 "cil/src/frontc/clexer.mll"
          (SLASH)
 # 2199 "cil/src/frontc/clexer.ml"
 
   | 45 ->
-# 638 "cil/src/frontc/clexer.mll"
+# 639 "cil/src/frontc/clexer.mll"
          (PERCENT)
 # 2204 "cil/src/frontc/clexer.ml"
 
   | 46 ->
-# 639 "cil/src/frontc/clexer.mll"
+# 640 "cil/src/frontc/clexer.mll"
          (EXCLAM (currentLoc ()))
 # 2209 "cil/src/frontc/clexer.ml"
 
   | 47 ->
-# 640 "cil/src/frontc/clexer.mll"
+# 641 "cil/src/frontc/clexer.mll"
           (AND_AND (currentLoc ()))
 # 2214 "cil/src/frontc/clexer.ml"
 
   | 48 ->
-# 641 "cil/src/frontc/clexer.mll"
+# 642 "cil/src/frontc/clexer.mll"
           (PIPE_PIPE)
 # 2219 "cil/src/frontc/clexer.ml"
 
   | 49 ->
-# 642 "cil/src/frontc/clexer.mll"
+# 643 "cil/src/frontc/clexer.mll"
          (AND (currentLoc ()))
 # 2224 "cil/src/frontc/clexer.ml"
 
   | 50 ->
-# 643 "cil/src/frontc/clexer.mll"
+# 644 "cil/src/frontc/clexer.mll"
          (PIPE)
 # 2229 "cil/src/frontc/clexer.ml"
 
   | 51 ->
-# 644 "cil/src/frontc/clexer.mll"
+# 645 "cil/src/frontc/clexer.mll"
          (CIRC)
 # 2234 "cil/src/frontc/clexer.ml"
 
   | 52 ->
-# 645 "cil/src/frontc/clexer.mll"
+# 646 "cil/src/frontc/clexer.mll"
          (QUEST)
 # 2239 "cil/src/frontc/clexer.ml"
 
   | 53 ->
-# 646 "cil/src/frontc/clexer.mll"
+# 647 "cil/src/frontc/clexer.mll"
          (COLON)
 # 2244 "cil/src/frontc/clexer.ml"
 
   | 54 ->
-# 647 "cil/src/frontc/clexer.mll"
+# 648 "cil/src/frontc/clexer.mll"
                 (TILDE (currentLoc ()))
 # 2249 "cil/src/frontc/clexer.ml"
 
   | 55 ->
-# 649 "cil/src/frontc/clexer.mll"
+# 650 "cil/src/frontc/clexer.mll"
                (dbgToken (LBRACE (currentLoc ())))
 # 2254 "cil/src/frontc/clexer.ml"
 
   | 56 ->
-# 650 "cil/src/frontc/clexer.mll"
+# 651 "cil/src/frontc/clexer.mll"
                (dbgToken (RBRACE (currentLoc ())))
 # 2259 "cil/src/frontc/clexer.ml"
 
   | 57 ->
-# 651 "cil/src/frontc/clexer.mll"
+# 652 "cil/src/frontc/clexer.mll"
           (LBRACKET)
 # 2264 "cil/src/frontc/clexer.ml"
 
   | 58 ->
-# 652 "cil/src/frontc/clexer.mll"
+# 653 "cil/src/frontc/clexer.mll"
           (RBRACKET)
 # 2269 "cil/src/frontc/clexer.ml"
 
   | 59 ->
-# 653 "cil/src/frontc/clexer.mll"
+# 654 "cil/src/frontc/clexer.mll"
                (dbgToken (LPAREN (currentLoc ())) )
 # 2274 "cil/src/frontc/clexer.ml"
 
   | 60 ->
-# 654 "cil/src/frontc/clexer.mll"
+# 655 "cil/src/frontc/clexer.mll"
           (RPAREN)
 # 2279 "cil/src/frontc/clexer.ml"
 
   | 61 ->
-# 655 "cil/src/frontc/clexer.mll"
+# 656 "cil/src/frontc/clexer.mll"
                (dbgToken (SEMICOLON (currentLoc ())) )
 # 2284 "cil/src/frontc/clexer.ml"
 
   | 62 ->
-# 656 "cil/src/frontc/clexer.mll"
+# 657 "cil/src/frontc/clexer.mll"
           (COMMA)
 # 2289 "cil/src/frontc/clexer.ml"
 
   | 63 ->
-# 657 "cil/src/frontc/clexer.mll"
+# 658 "cil/src/frontc/clexer.mll"
           (DOT)
 # 2294 "cil/src/frontc/clexer.ml"
 
   | 64 ->
-# 658 "cil/src/frontc/clexer.mll"
+# 659 "cil/src/frontc/clexer.mll"
              (SIZEOF (currentLoc ()))
 # 2299 "cil/src/frontc/clexer.ml"
 
   | 65 ->
-# 659 "cil/src/frontc/clexer.mll"
+# 660 "cil/src/frontc/clexer.mll"
                                         ( if !Cprint.msvcMode then
                                              MSASM (msasm lexbuf, currentLoc ())
                                           else (ASM (currentLoc ())) )
 # 2306 "cil/src/frontc/clexer.ml"
 
   | 66 ->
-# 664 "cil/src/frontc/clexer.mll"
+# 665 "cil/src/frontc/clexer.mll"
                                         ( matchingParsOpen := 0;
                                           let _ = matchingpars lexbuf in
                                           addWhite lexbuf;
@@ -2314,42 +2314,42 @@ let
 # 2315 "cil/src/frontc/clexer.ml"
 
   | 67 ->
-# 671 "cil/src/frontc/clexer.mll"
+# 672 "cil/src/frontc/clexer.mll"
                                         (AT_TRANSFORM (currentLoc ()))
 # 2320 "cil/src/frontc/clexer.ml"
 
   | 68 ->
-# 672 "cil/src/frontc/clexer.mll"
+# 673 "cil/src/frontc/clexer.mll"
                                         (AT_TRANSFORMEXPR (currentLoc ()))
 # 2325 "cil/src/frontc/clexer.ml"
 
   | 69 ->
-# 673 "cil/src/frontc/clexer.mll"
+# 674 "cil/src/frontc/clexer.mll"
                                         (AT_SPECIFIER (currentLoc ()))
 # 2330 "cil/src/frontc/clexer.ml"
 
   | 70 ->
-# 674 "cil/src/frontc/clexer.mll"
+# 675 "cil/src/frontc/clexer.mll"
                                         (AT_EXPR (currentLoc ()))
 # 2335 "cil/src/frontc/clexer.ml"
 
   | 71 ->
-# 675 "cil/src/frontc/clexer.mll"
+# 676 "cil/src/frontc/clexer.mll"
                                         (AT_NAME)
 # 2340 "cil/src/frontc/clexer.ml"
 
   | 72 ->
-# 679 "cil/src/frontc/clexer.mll"
+# 680 "cil/src/frontc/clexer.mll"
                                         (addWhite lexbuf; initial lexbuf )
 # 2345 "cil/src/frontc/clexer.ml"
 
   | 73 ->
-# 680 "cil/src/frontc/clexer.mll"
+# 681 "cil/src/frontc/clexer.mll"
            (scan_ident (Lexing.lexeme lexbuf))
 # 2350 "cil/src/frontc/clexer.ml"
 
   | 74 ->
-# 682 "cil/src/frontc/clexer.mll"
+# 683 "cil/src/frontc/clexer.mll"
   ( if is_oneline_ghost() then begin
       exit_oneline_ghost (); RGHOST
     end
@@ -2358,7 +2358,7 @@ let
 # 2359 "cil/src/frontc/clexer.ml"
 
   | 75 ->
-# 687 "cil/src/frontc/clexer.mll"
+# 688 "cil/src/frontc/clexer.mll"
        (E.parse_error "Invalid symbol")
 # 2364 "cil/src/frontc/clexer.ml"
 
@@ -2369,12 +2369,12 @@ and might_end_ghost lexbuf =
 and __ocaml_lex_might_end_ghost_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 690 "cil/src/frontc/clexer.mll"
+# 691 "cil/src/frontc/clexer.mll"
         ( exit_ghost_code(); RGHOST )
 # 2375 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 691 "cil/src/frontc/clexer.mll"
+# 692 "cil/src/frontc/clexer.mll"
        ( STAR (currentLoc()) )
 # 2380 "cil/src/frontc/clexer.ml"
 
@@ -2385,12 +2385,12 @@ and comment buffer lexbuf =
 and __ocaml_lex_comment_rec buffer lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 694 "cil/src/frontc/clexer.mll"
+# 695 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; )
 # 2391 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 695 "cil/src/frontc/clexer.mll"
+# 696 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; lex_comment comment buffer lexbuf )
 # 2396 "cil/src/frontc/clexer.ml"
 
@@ -2401,12 +2401,12 @@ and onelinecomment buffer lexbuf =
 and __ocaml_lex_onelinecomment_rec buffer lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 698 "cil/src/frontc/clexer.mll"
+# 699 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; )
 # 2407 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 699 "cil/src/frontc/clexer.mll"
+# 700 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; lex_comment onelinecomment buffer lexbuf )
 # 2412 "cil/src/frontc/clexer.ml"
 
@@ -2417,22 +2417,22 @@ and matchingpars lexbuf =
 and __ocaml_lex_matchingpars_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 702 "cil/src/frontc/clexer.mll"
+# 703 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; E.newline (); matchingpars lexbuf )
 # 2423 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 703 "cil/src/frontc/clexer.mll"
+# 704 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; matchingpars lexbuf )
 # 2428 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 704 "cil/src/frontc/clexer.mll"
+# 705 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; incr matchingParsOpen; matchingpars lexbuf )
 # 2433 "cil/src/frontc/clexer.ml"
 
   | 3 ->
-# 705 "cil/src/frontc/clexer.mll"
+# 706 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; decr matchingParsOpen;
                   if !matchingParsOpen = 0 then
                      ()
@@ -2442,21 +2442,21 @@ and __ocaml_lex_matchingpars_rec lexbuf __ocaml_lex_state =
 # 2443 "cil/src/frontc/clexer.ml"
 
   | 4 ->
-# 711 "cil/src/frontc/clexer.mll"
+# 712 "cil/src/frontc/clexer.mll"
          ( addWhite lexbuf; 
 		  do_lex_comment comment lexbuf ;
                   matchingpars lexbuf )
 # 2450 "cil/src/frontc/clexer.ml"
 
   | 5 ->
-# 714 "cil/src/frontc/clexer.mll"
+# 715 "cil/src/frontc/clexer.mll"
         ( addWhite lexbuf; (* '"' *)
                   let _ = str lexbuf in
                   matchingpars lexbuf )
 # 2457 "cil/src/frontc/clexer.ml"
 
   | 6 ->
-# 717 "cil/src/frontc/clexer.mll"
+# 718 "cil/src/frontc/clexer.mll"
                  ( addWhite lexbuf; matchingpars lexbuf )
 # 2462 "cil/src/frontc/clexer.ml"
 
@@ -2467,17 +2467,17 @@ and hash lexbuf =
 and __ocaml_lex_hash_rec lexbuf __ocaml_lex_state =
   match Lexing.new_engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 721 "cil/src/frontc/clexer.mll"
+# 722 "cil/src/frontc/clexer.mll"
         ( addWhite lexbuf; E.newline (); initial lexbuf)
 # 2473 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 722 "cil/src/frontc/clexer.mll"
+# 723 "cil/src/frontc/clexer.mll"
          ( addWhite lexbuf; hash lexbuf)
 # 2478 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 723 "cil/src/frontc/clexer.mll"
+# 724 "cil/src/frontc/clexer.mll"
          ( addWhite lexbuf; (* We are seeing a line number. This is the number for the
                    * next line *)
                  let s = Lexing.lexeme lexbuf in
@@ -2494,29 +2494,29 @@ and __ocaml_lex_hash_rec lexbuf __ocaml_lex_state =
 # 2495 "cil/src/frontc/clexer.ml"
 
   | 3 ->
-# 736 "cil/src/frontc/clexer.mll"
+# 737 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; hash lexbuf )
 # 2500 "cil/src/frontc/clexer.ml"
 
   | 4 ->
 let
-# 739 "cil/src/frontc/clexer.mll"
+# 740 "cil/src/frontc/clexer.mll"
                                      pragmaName
 # 2506 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_curr_pos in
-# 740 "cil/src/frontc/clexer.mll"
+# 741 "cil/src/frontc/clexer.mll"
                 ( let here = currentLoc () in
                   PRAGMA_LINE (pragmaName ^ pragma lexbuf, here)
                 )
 # 2512 "cil/src/frontc/clexer.ml"
 
   | 5 ->
-# 743 "cil/src/frontc/clexer.mll"
+# 744 "cil/src/frontc/clexer.mll"
                 ( pragmaLine := true; PRAGMA (currentLoc ()) )
 # 2517 "cil/src/frontc/clexer.ml"
 
   | 6 ->
-# 744 "cil/src/frontc/clexer.mll"
+# 745 "cil/src/frontc/clexer.mll"
             ( addWhite lexbuf; endline lexbuf)
 # 2522 "cil/src/frontc/clexer.ml"
 
@@ -2527,17 +2527,17 @@ and file lexbuf =
 and __ocaml_lex_file_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 747 "cil/src/frontc/clexer.mll"
+# 748 "cil/src/frontc/clexer.mll"
                       (addWhite lexbuf; E.newline (); initial lexbuf)
 # 2533 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 748 "cil/src/frontc/clexer.mll"
+# 749 "cil/src/frontc/clexer.mll"
           (addWhite lexbuf; file lexbuf)
 # 2538 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 749 "cil/src/frontc/clexer.mll"
+# 750 "cil/src/frontc/clexer.mll"
                                 ( addWhite lexbuf;  (* '"' *)
                                    let n = Lexing.lexeme lexbuf in
                                    let n1 = String.sub n 1
@@ -2547,7 +2547,7 @@ and __ocaml_lex_file_rec lexbuf __ocaml_lex_state =
 # 2548 "cil/src/frontc/clexer.ml"
 
   | 3 ->
-# 756 "cil/src/frontc/clexer.mll"
+# 757 "cil/src/frontc/clexer.mll"
       (addWhite lexbuf; endline lexbuf)
 # 2553 "cil/src/frontc/clexer.ml"
 
@@ -2558,17 +2558,17 @@ and endline lexbuf =
 and __ocaml_lex_endline_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 759 "cil/src/frontc/clexer.mll"
+# 760 "cil/src/frontc/clexer.mll"
                 ( addWhite lexbuf; E.newline (); initial lexbuf)
 # 2564 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 760 "cil/src/frontc/clexer.mll"
+# 761 "cil/src/frontc/clexer.mll"
                                 ( EOF )
 # 2569 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 761 "cil/src/frontc/clexer.mll"
+# 762 "cil/src/frontc/clexer.mll"
       ( addWhite lexbuf; endline lexbuf)
 # 2574 "cil/src/frontc/clexer.ml"
 
@@ -2579,12 +2579,12 @@ and pragma lexbuf =
 and __ocaml_lex_pragma_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 764 "cil/src/frontc/clexer.mll"
+# 765 "cil/src/frontc/clexer.mll"
                         ( E.newline (); "" )
 # 2585 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 765 "cil/src/frontc/clexer.mll"
+# 766 "cil/src/frontc/clexer.mll"
                         ( let cur = Lexing.lexeme lexbuf in
                           cur ^ (pragma lexbuf) )
 # 2591 "cil/src/frontc/clexer.ml"
@@ -2596,32 +2596,32 @@ and str lexbuf =
 and __ocaml_lex_str_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 769 "cil/src/frontc/clexer.mll"
+# 770 "cil/src/frontc/clexer.mll"
                         ([])
 # 2602 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 770 "cil/src/frontc/clexer.mll"
+# 771 "cil/src/frontc/clexer.mll"
              (addLexeme lexbuf; lex_hex_escape str lexbuf)
 # 2607 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 771 "cil/src/frontc/clexer.mll"
+# 772 "cil/src/frontc/clexer.mll"
              (addLexeme lexbuf; lex_oct_escape str lexbuf)
 # 2612 "cil/src/frontc/clexer.ml"
 
   | 3 ->
-# 772 "cil/src/frontc/clexer.mll"
+# 773 "cil/src/frontc/clexer.mll"
           (addLexeme lexbuf; lex_simple_escape str lexbuf)
 # 2617 "cil/src/frontc/clexer.ml"
 
   | 4 ->
-# 773 "cil/src/frontc/clexer.mll"
+# 774 "cil/src/frontc/clexer.mll"
                         (E.parse_error "unterminated string" )
 # 2622 "cil/src/frontc/clexer.ml"
 
   | 5 ->
-# 774 "cil/src/frontc/clexer.mll"
+# 775 "cil/src/frontc/clexer.mll"
      (addLexeme lexbuf; lex_unescaped str lexbuf)
 # 2627 "cil/src/frontc/clexer.ml"
 
@@ -2632,32 +2632,32 @@ and chr lexbuf =
 and __ocaml_lex_chr_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 777 "cil/src/frontc/clexer.mll"
+# 778 "cil/src/frontc/clexer.mll"
               ([])
 # 2638 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 778 "cil/src/frontc/clexer.mll"
+# 779 "cil/src/frontc/clexer.mll"
              (lex_hex_escape chr lexbuf)
 # 2643 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 779 "cil/src/frontc/clexer.mll"
+# 780 "cil/src/frontc/clexer.mll"
              (lex_oct_escape chr lexbuf)
 # 2648 "cil/src/frontc/clexer.ml"
 
   | 3 ->
-# 780 "cil/src/frontc/clexer.mll"
+# 781 "cil/src/frontc/clexer.mll"
           (lex_simple_escape chr lexbuf)
 # 2653 "cil/src/frontc/clexer.ml"
 
   | 4 ->
-# 781 "cil/src/frontc/clexer.mll"
+# 782 "cil/src/frontc/clexer.mll"
                         ( E.parse_error "unterminated char" )
 # 2658 "cil/src/frontc/clexer.ml"
 
   | 5 ->
-# 782 "cil/src/frontc/clexer.mll"
+# 783 "cil/src/frontc/clexer.mll"
      (lex_unescaped chr lexbuf)
 # 2663 "cil/src/frontc/clexer.ml"
 
@@ -2668,17 +2668,17 @@ and msasm lexbuf =
 and __ocaml_lex_msasm_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 785 "cil/src/frontc/clexer.mll"
+# 786 "cil/src/frontc/clexer.mll"
                         ( msasm lexbuf )
 # 2674 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 786 "cil/src/frontc/clexer.mll"
+# 787 "cil/src/frontc/clexer.mll"
                         ( msasminbrace lexbuf )
 # 2679 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 787 "cil/src/frontc/clexer.mll"
+# 788 "cil/src/frontc/clexer.mll"
                         ( let cur = Lexing.lexeme lexbuf in
                           cur ^ (msasmnobrace lexbuf) )
 # 2685 "cil/src/frontc/clexer.ml"
@@ -2690,12 +2690,12 @@ and msasminbrace lexbuf =
 and __ocaml_lex_msasminbrace_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 791 "cil/src/frontc/clexer.mll"
+# 792 "cil/src/frontc/clexer.mll"
                         ( "" )
 # 2696 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 792 "cil/src/frontc/clexer.mll"
+# 793 "cil/src/frontc/clexer.mll"
                         ( let cur = Lexing.lexeme lexbuf in
                           cur ^ (msasminbrace lexbuf) )
 # 2702 "cil/src/frontc/clexer.ml"
@@ -2707,21 +2707,21 @@ and msasmnobrace lexbuf =
 and __ocaml_lex_msasmnobrace_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 795 "cil/src/frontc/clexer.mll"
+# 796 "cil/src/frontc/clexer.mll"
                         ( lexbuf.Lexing.lex_curr_pos <-
                                lexbuf.Lexing.lex_curr_pos - 1;
                           "" )
 # 2715 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 798 "cil/src/frontc/clexer.mll"
+# 799 "cil/src/frontc/clexer.mll"
                         ( lexbuf.Lexing.lex_curr_pos <-
                                lexbuf.Lexing.lex_curr_pos - 5;
                           "" )
 # 2722 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 801 "cil/src/frontc/clexer.mll"
+# 802 "cil/src/frontc/clexer.mll"
                         ( let cur = Lexing.lexeme lexbuf in
 
                           cur ^ (msasmnobrace lexbuf) )
@@ -2734,7 +2734,7 @@ and annot_first_token lexbuf =
 and __ocaml_lex_annot_first_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 806 "cil/src/frontc/clexer.mll"
+# 807 "cil/src/frontc/clexer.mll"
             (
       if is_oneline_ghost () then E.parse_error "nested ghost code";
       Buffer.clear buf;
@@ -2745,21 +2745,21 @@ and __ocaml_lex_annot_first_token_rec lexbuf __ocaml_lex_state =
 
   | 1 ->
 let
-# 812 "cil/src/frontc/clexer.mll"
+# 813 "cil/src/frontc/clexer.mll"
                          c
 # 2751 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 812 "cil/src/frontc/clexer.mll"
+# 813 "cil/src/frontc/clexer.mll"
                            ( Buffer.add_char buf c; annot_first_token lexbuf )
 # 2755 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 813 "cil/src/frontc/clexer.mll"
+# 814 "cil/src/frontc/clexer.mll"
          ( E.newline(); Buffer.add_char buf '\n'; annot_first_token lexbuf )
 # 2760 "cil/src/frontc/clexer.ml"
 
   | 3 ->
-# 814 "cil/src/frontc/clexer.mll"
+# 815 "cil/src/frontc/clexer.mll"
        ( annot_token lexbuf )
 # 2765 "cil/src/frontc/clexer.ml"
 
@@ -2770,28 +2770,28 @@ and annot_token lexbuf =
 and __ocaml_lex_annot_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 816 "cil/src/frontc/clexer.mll"
+# 817 "cil/src/frontc/clexer.mll"
          ( let s = Buffer.contents buf in
            make_annot s )
 # 2777 "cil/src/frontc/clexer.ml"
 
   | 1 ->
-# 818 "cil/src/frontc/clexer.mll"
+# 819 "cil/src/frontc/clexer.mll"
          ( E.parse_error "Unterminated annotation" )
 # 2782 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 819 "cil/src/frontc/clexer.mll"
+# 820 "cil/src/frontc/clexer.mll"
          (E.newline(); Buffer.add_char buf '\n'; annot_token lexbuf )
 # 2787 "cil/src/frontc/clexer.ml"
 
   | 3 ->
 let
-# 820 "cil/src/frontc/clexer.mll"
+# 821 "cil/src/frontc/clexer.mll"
          c
 # 2793 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 820 "cil/src/frontc/clexer.mll"
+# 821 "cil/src/frontc/clexer.mll"
            ( Buffer.add_char buf c; annot_token lexbuf )
 # 2797 "cil/src/frontc/clexer.ml"
 
@@ -2802,7 +2802,7 @@ and annot_one_line lexbuf =
 and __ocaml_lex_annot_one_line_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 823 "cil/src/frontc/clexer.mll"
+# 824 "cil/src/frontc/clexer.mll"
             (
       if is_oneline_ghost () then E.parse_error "nested ghost code";
       enter_oneline_ghost (); LGHOST
@@ -2811,16 +2811,16 @@ and __ocaml_lex_annot_one_line_rec lexbuf __ocaml_lex_state =
 
   | 1 ->
 let
-# 827 "cil/src/frontc/clexer.mll"
+# 828 "cil/src/frontc/clexer.mll"
                          c
 # 2817 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 827 "cil/src/frontc/clexer.mll"
+# 828 "cil/src/frontc/clexer.mll"
                            ( Buffer.add_char buf c; annot_one_line lexbuf )
 # 2821 "cil/src/frontc/clexer.ml"
 
   | 2 ->
-# 828 "cil/src/frontc/clexer.mll"
+# 829 "cil/src/frontc/clexer.mll"
        ( annot_one_line_logic lexbuf )
 # 2826 "cil/src/frontc/clexer.ml"
 
@@ -2831,17 +2831,17 @@ and annot_one_line_logic lexbuf =
 and __ocaml_lex_annot_one_line_logic_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 830 "cil/src/frontc/clexer.mll"
+# 831 "cil/src/frontc/clexer.mll"
          ( E.newline (); make_annot (Buffer.contents buf) )
 # 2837 "cil/src/frontc/clexer.ml"
 
   | 1 ->
 let
-# 831 "cil/src/frontc/clexer.mll"
+# 832 "cil/src/frontc/clexer.mll"
          c
 # 2843 "cil/src/frontc/clexer.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 831 "cil/src/frontc/clexer.mll"
+# 832 "cil/src/frontc/clexer.mll"
            ( Buffer.add_char buf c; annot_one_line_logic lexbuf )
 # 2847 "cil/src/frontc/clexer.ml"
 
@@ -2849,7 +2849,7 @@ let
 
 ;;
 
-# 833 "cil/src/frontc/clexer.mll"
+# 834 "cil/src/frontc/clexer.mll"
  
 
 

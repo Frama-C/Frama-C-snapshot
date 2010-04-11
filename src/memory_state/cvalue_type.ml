@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -48,9 +49,9 @@ module V = struct
 
   let contains_zero loc =
     try
-      let is_valid_offset base offset = 
+      let is_valid_offset base offset =
 	match base with
-	  Base.Null -> 
+	  Base.Null ->
 	    if Ival.contains_zero offset then raise Base.Not_valid_offset
 	| _ ->
 	    let bits_offset = Ival.scale (Bit_utils.sizeofchar()) offset in
@@ -62,7 +63,7 @@ module V = struct
           Location_Bytes.M.iter is_valid_offset m;
           false
     with
-    | Int_Base.Error_Top | Int_Base.Error_Bottom 
+    | Int_Base.Error_Top | Int_Base.Error_Bottom
     | Base.Not_valid_offset -> true
 
   let contains_non_zero v =
@@ -87,19 +88,17 @@ module V = struct
       inject_ival ival1, inject_ival ival2
     with Not_based_on_null -> assert false
 
-  let compare_min_float l1 l2 = 
+  let compare_bound ival_compare_bound l1 l2 =
     try
       let f1 = find_ival l1 in
       let f2 = find_ival l2 in
-      Ival.compare_min_float f1 f2
+      ival_compare_bound f1 f2
     with Not_based_on_null -> assert false
 
- let compare_max_float l1 l2 = 
-    try
-      let f1 = find_ival l1 in
-      let f2 = find_ival l2 in
-      Ival.compare_max_float f1 f2
-    with Not_based_on_null -> assert false
+  let compare_min_float = compare_bound Ival.compare_min_float
+  let compare_max_float = compare_bound Ival.compare_max_float
+  let compare_min_int = compare_bound Ival.compare_min_int
+  let compare_max_int = compare_bound Ival.compare_max_int
 
   let filter_comparison ival_filter e1 ~cond_expr =
     match e1 with
@@ -322,7 +321,7 @@ module V = struct
        | Alog ->
            match e1,e2 with
            | Map _, Map _ ->
-               CilE.warn_once "Operation %a %s %a incurs a loss of precision" 
+               CilE.warn_once "Operation %a %s %a incurs a loss of precision"
                  pretty e1
 		 info
                  pretty e2
@@ -341,8 +340,8 @@ module V = struct
        | Aignore -> ()
        | Acall f -> f ()
        | Alog -> match e1 with
-         | Map _ -> 
-	     warn_once "Operation %s %a incurs a loss of precision" 
+         | Map _ ->
+	     warn_once "Operation %s %a incurs a loss of precision"
 	       info pretty e1
          | _ -> ());
       topify_arith_origin e1
@@ -359,8 +358,13 @@ module V = struct
       | Alog -> warn_once "cast float to int : alarm (TODO)");
      topify_arith_origin v
 
- let cast_int_to_float ~with_alarms v =
-   unary_arithmetic_function ~with_alarms "integer promotion" Ival.cast_int_to_float v
+ let cast_int_to_float ~with_alarms rounding_mode v =
+   unary_arithmetic_function ~with_alarms "integer conversion to float"
+     (fun i ->
+       let ok, r = Ival.cast_int_to_float rounding_mode i in
+       if not ok then warn_once "TODO: overflow in integer conversion to float";
+       r)
+     v
 
   let div ~with_alarms e1 e2 =
     if equal e2 singleton_one
@@ -657,18 +661,15 @@ module V_Or_Uninitialized = struct
 
   let hash = tag
 
-  type tt = t
+  type tt = t = { initialized : bool; no_escaping_adr : bool; v : V.t}
   module Datatype =
     Project.Datatype.Register
       (struct
-	 type t = tt
+	 type t = tt = { initialized: bool; no_escaping_adr: bool; v: V.t}
 	 let copy _ = assert false (* TODO *)
-	 let rehash t =
-           let rehashed_v = V.Datatype.rehash t.v in
-           {initialized=t.initialized;
-            no_escaping_adr=t.no_escaping_adr;
-            v = rehashed_v }
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
+	 let descr =
+	   Unmarshal.t_record
+	     [| Unmarshal.Abstract; Unmarshal.Abstract; V.Datatype.descr |]
 	 let name = id
        end)
   let () = Datatype.register_comparable ~hash:tag ~equal ()

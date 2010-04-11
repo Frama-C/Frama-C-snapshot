@@ -14,7 +14,7 @@
  */
 
 /*@ requires
-  @   n >= 0 && \valid_range(t,0,n-1) && sorted(t,n-1);
+  @   n >= 0 && \valid_range(t,0,n-1) && sorted((int[])t,n-1);
   @ behavior search_success:
   @   ensures \result >= 0 ==> t[\result] == v;
   @ behavior search_failure:

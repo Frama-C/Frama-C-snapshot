@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -39,10 +40,10 @@ let main () =
       (fun kf ->
 	 let name = Kernel_function.get_name kf in
 	 if Kernel_function.is_definition kf &&
-	   (Value_parameters.MemExecAll.get () 
+	   (Value_parameters.MemExecAll.get ()
 	    || Cilutil.StringSet.mem name mem_functions)
 	 then begin
-	   Value_parameters.feedback "== function %a" 
+	   Value_parameters.feedback "== function %a"
 	     Kernel_function.pretty_name kf;
 	   try
 	     !Db.Value.memoize kf
@@ -63,33 +64,42 @@ let main () =
   let display_val =
     Value_parameters.verbose_atleast 1 && Value_parameters.ForceValues.get ()
   in
-  
-  let force_inout = List.exists Parameters.Dynamic.Bool.get [
-    "-deref" ;
-    "-out" ;
-    "-inout" ;
-    "-input" ;
-    "-out-external" ;
-    "-input-with-formals" ;
-  ] in
+
+  let force_inout =
+    (* Parameters.Dynamic.Bool.get only available if use_type is ok *)
+    Cmdline.use_type && List.exists
+      (fun s ->
+	 try Parameters.Dynamic.Bool.get s
+	 with
+	 | Type.StringTbl.Unbound_value _
+	 | Type.StringTbl.Incompatible_type _ ->
+	     false (* plug-in not available in a compatible version *))
+      [
+	"-deref" ;
+	"-out" ;
+	"-inout" ;
+	"-input" ;
+	"-out-external" ;
+	"-input-with-formals" ;
+      ]
+  in
 
   (* Iteration *)
 
   if display_val || force_inout then
     begin
       let job opt display compute kf =
-	if Parameters.Dynamic.Bool.get opt then
-	  if Value_parameters.verbose_atleast 1 
+	(* Parameters.Dynamic.Bool.get only available if use_type is ok *)
+	if Cmdline.use_type && Parameters.Dynamic.Bool.get opt then
+	  if Value_parameters.verbose_atleast 1
 	  then Value_parameters.result "%a" !display kf
 	  else !compute kf
       in
       let nothing = ref (fun _kf -> ()) in
       !Db.Semantic_Callgraph.topologically_iter_on_functions
 	(fun kf ->
-	   if Kernel_function.is_definition kf then 
+	   if Kernel_function.is_definition kf then
 	     begin
-	       job "-out" Db.Outputs.display Db.Outputs.compute kf ;
-	       job "-out-external" Db.Outputs.display_external Db.Outputs.compute kf ;
 	       job "-input" Db.Inputs.display Db.Inputs.compute kf ;
 	       job "-input-with-formals" Db.Inputs.display_with_formals nothing kf ;
 	       job "-inout" Db.InOutContext.display Db.InOutContext.compute kf ;

@@ -2,8 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2009                                               *)
-(*    CEA (Commissariat à l'Énergie Atomique)                             *)
+(*  Copyright (C) 2007-2010                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -19,9 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: cil_state.mli,v 1.15 2008-12-10 12:53:14 uid568 Exp $ *)
-
-(** Access to the Cil AST which must be used from Frama-C. 
+(** Access to the Cil AST which must be used from Frama-C.
     @plugin development guide *)
 
 exception Bad_Initialisation of string
@@ -45,10 +44,10 @@ end
 val get: unit -> Cil_types.file
   (** Get the cil file representation.
       One of the initialisation function of module {!File} has to be called
-      before using this function. 
+      before using this function.
       @raise Bad_Initialization if neither {!File.init_from_c_files}
       nor {!File.init_project_from_cil_file} nor {!File.init_from_cmdline} was
-      called before. 
+      called before.
       @plugin development guide *)
 
 val compute: unit -> unit
@@ -61,7 +60,7 @@ val is_computed: unit -> bool
   (** @return true if the AST has been computed. *)
 
 val self: Project.Computation.t
-  (** The state kind associated to the cil AST. 
+  (** The state kind associated to the cil AST.
       @plugin development guide *)
 
 val depend: Project.Computation.t -> unit
@@ -74,9 +73,9 @@ val set_default_initialization: (unit -> unit) -> unit
   (** Should not be used by casual users. *)
 
 val mark_as_computed: unit -> unit
-  (** Should not be used by casual users. 
+  (** Should not be used by casual users.
       @since Beryllium-20090901 *)
-  
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"
