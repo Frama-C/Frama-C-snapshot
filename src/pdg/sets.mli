@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -33,11 +33,11 @@ type t_nodes_and_undef = (t_node * t_loc option) list * t_loc option
 
 (** {2 PDG nodes for some elements} *)
 
-val find_stmt_node : t_pdg -> Cil_types.stmt -> t_node 
+val find_stmt_node : t_pdg -> Cil_types.stmt -> t_node
 val find_simple_stmt_nodes : t_pdg -> Cil_types.stmt -> t_node list
 val find_stmt_and_blocks_nodes : t_pdg -> Cil_types.stmt -> t_node list
 (*val find_nodes_for_stmt_id : t_pdg -> int -> t_node list*)
-val find_location_nodes_at_stmt : 
+val find_location_nodes_at_stmt :
   t_pdg -> Cil_types.stmt -> before:bool -> t_loc -> t_nodes_and_undef
 val find_location_nodes_at_end : t_pdg -> t_loc -> t_nodes_and_undef
 val find_location_nodes_at_begin : t_pdg -> t_loc -> t_nodes_and_undef
@@ -48,24 +48,24 @@ val find_output_node : t_pdg -> t_node
 val find_all_input_nodes : t_pdg -> t_node list
 val find_entry_point_node : t_pdg -> t_node
 val find_top_input_node : t_pdg -> t_node
-val find_output_nodes : 
-    t_pdg -> PdgIndex.Signature.t_out_key -> t_nodes_and_undef
+val find_output_nodes :
+  t_pdg -> PdgIndex.Signature.t_out_key -> t_nodes_and_undef
 
 
-val find_call_ctrl_node : t_pdg -> Cil_types.stmt -> t_node 
+val find_call_ctrl_node : t_pdg -> Cil_types.stmt -> t_node
 val find_call_num_input_node : t_pdg -> Cil_types.stmt -> int -> t_node
-val find_call_input_nodes : 
+val find_call_input_nodes :
   t_pdg -> Cil_types.stmt -> PdgIndex.Signature.t_in_key -> t_nodes_and_undef
 val find_call_output_node : t_pdg -> Cil_types.stmt -> t_node
 
-val find_call_stmts: 
-  Db_types.kernel_function -> caller:Db_types.kernel_function -> 
+val find_call_stmts:
+  Db_types.kernel_function -> caller:Db_types.kernel_function ->
   Cil_types.stmt list
 
-val find_call_out_nodes_to_select : 
-    t_pdg -> t_node list -> t_pdg ->  Cil_types.stmt -> t_node list
-val find_in_nodes_to_select_for_this_call : 
-    t_pdg -> t_node list -> Cil_types.stmt -> t_pdg -> t_node list
+val find_call_out_nodes_to_select :
+  t_pdg -> t_node list -> t_pdg ->  Cil_types.stmt -> t_node list
+val find_in_nodes_to_select_for_this_call :
+  t_pdg -> t_node list -> Cil_types.stmt -> t_pdg -> t_node list
 
 (* direct dependencies only :
  * This means the nodes that have an edge to the given node. *)

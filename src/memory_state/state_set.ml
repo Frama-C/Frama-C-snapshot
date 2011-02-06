@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,59 +20,70 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: state_set.ml,v 1.8 2009-02-24 17:53:39 uid527 Exp $ *)
+module Sindexed = 
+  Hashtbl.Make
+    (struct
+      type t = Cvalue_type.Model.subtree
+      let hash = Cvalue_type.Model.hash_subtree
+      let equal = Cvalue_type.Model.equal_subtree
+    end)
 
-type t = Relations_type.Model.t list
-let fold = List.fold_right
-let iter = List.iter
-let exists = List.exists
-let for_all = List.for_all
-let filter = List.filter
-let is_empty l = l =[]
-let empty = []
-let elements e = e
-let length s = List.length s
+let sentinel = Sindexed.create 1
+
+type t = 
+    { t : Relations_type.Model.t Sindexed.t ;
+      o : Relations_type.Model.t list }
+
+let fold f acc { t = t ; o = o } = 
+  List.fold_left f (Sindexed.fold (fun _k v a -> f a v) t acc) o
+
+let of_list l = { t = sentinel ; o = l }
+
+let iter f { t = t ; o = o } = 
+  Sindexed.iter (fun _k v -> f v) t;
+  List.iter f o
+  
+exception Found
+
+let empty = { t = sentinel ; o = [] }
+
+let is_empty t = t.t == sentinel && t.o = []
+
+let exists f s = 
+  try
+    iter (fun v -> if f v then raise Found) s;
+    false
+  with Found -> true
+
+let length s = List.length s.o + Sindexed.length s.t
 
 exception Unchanged
-let pretty fmt set =
-  List.iter
+let pretty fmt s =
+  iter
     (fun state ->
-       Format.fprintf fmt "set contains %a@\n"
-	 Relations_type.Model.pretty state)
-    set
+      Format.fprintf fmt "set contains %a@\n"
+	Relations_type.Model.pretty state)
+    s
 
-let rec length_at_most_n l n =
-  if n < 0 
-  then false
-  else match l with
-    [] -> true
-  | _ :: t -> length_at_most_n t (pred n)
-      
-let add_exn v s =
-(*  let len = List.length s in if len >= 3 then
-      Format.printf "State_set:%4d@." (List.length s); *)
-  if length_at_most_n s 50
-  then begin
-      if (not (Relations_type.Model.is_reachable v)) ||
-	List.exists
-	(fun e -> Relations_type.Model.is_included v e)
-	s
-      then raise Unchanged
-      else
-	let s =
-	  List.filter
-	    (fun e -> not (Relations_type.Model.is_included e v))
-	    s
-	in
-	v::s
-    end
-  else begin
-      if Relations_type.Model.is_reachable v then v :: s else raise Unchanged 
-    end
+let add_to_list v s =
+  if 
+    List.exists
+      (fun e -> Relations_type.Model.is_included v e)
+      s
+  then raise Unchanged;
+(*  let nl, ns =
+    filter
+      (fun e -> not (Relations_type.Model.is_included e v))
+      w
+  in *)
+  v :: s
 
+let add_exn v s = 
+  if not (Relations_type.Model.is_reachable v)
+  then raise Unchanged;
+  { s with o = add_to_list v s.o }
 
-
-let merge_into a b =
+let merge_into sa sb = 
   let unchanged = ref true in
   let f acc e =
     try
@@ -82,39 +93,40 @@ let merge_into a b =
     with Unchanged ->
       acc
   in
-  let result = List.fold_left f b a in
+  let result = fold f sb sa in
   if !unchanged then raise Unchanged;
   result
+
 
 let add v s =
   try
     add_exn v s
   with Unchanged -> s
 
-let singleton v = add v []
+let unsafe_add v s = { s with o = v :: s.o }
 
-let cardinal = List.length
+let singleton v = add v empty
 
-let join l =
-  List.fold_left
+let join s =
+  fold
     Relations_type.Model.join 
     Relations_type.Model.bottom 
-    l
+    s
 
-let join_dropping_relations l =
+let join_dropping_relations s =
   Relations_type.Model.inject
-    (List.fold_left
+    (fold
 	(fun x y -> 
-	  snd (Cvalue_type.Model.join 
-		  x 
-		  (Relations_type.Model.value_state y)))
-	  Cvalue_type.Model.bottom 
-	  l)
+          snd (Cvalue_type.Model.join (Relations_type.Model.value_state y) x))
+	Cvalue_type.Model.bottom
+	s)
+
+let fold f acc s = fold (fun acc v -> f v acc) s acc
 
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.. -j 4"
 End:
 *)
 

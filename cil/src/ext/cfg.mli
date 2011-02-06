@@ -69,6 +69,34 @@ val printCfgChannel : Format.formatter -> fundec -> unit
 (** Print control flow graph (in dot form) for fundec to file *)
 val printCfgFilename : string -> fundec -> unit
 
+(* [VP] These two functions were initially in Cil, but now depends on stuff in
+   Logic_utils. Put there to avoid circular dependencies. *)
+
+(** Prepare a function for CFG information computation by
+  * {!Cil.computeCFGInfo}. This function converts all [Break], [Switch],
+  * [Default] and [Continue] {!Cil_types.stmtkind}s and {!Cil_types.label}s into [If]s
+  * and [Goto]s, giving the function body a very CFG-like character. This
+  * function modifies its argument in place. *)
+val prepareCFG: ?keepSwitch:bool -> fundec -> unit
+
+(** Compute the CFG information for all statements in a fundec and return a
+  * list of the statements. The input fundec cannot have [Break], [Switch],
+  * [Default], or [Continue] {!Cil_types.stmtkind}s or {!Cil_types.label}s. Use
+  * {!Cil.prepareCFG} to transform them away.  The second argument should
+  * be [true] if you wish a global statement number, [false] if you wish a
+  * local (per-function) statement numbering. The list of statements is set
+  * in the sallstmts field of a fundec.
+  *
+  * NOTE: unless you want the simpler control-flow graph provided by
+  * prepareCFG, or you need the function's smaxstmtid and sallstmt fields
+  * filled in, we recommend you use [Cfg.computeFileCFG] instead of this
+  * function to compute control-flow information.
+  * [Cfg.computeFileCFG] is newer and will handle switch, break, and
+  * continue correctly.*)
+val computeCFGInfo: fundec -> bool -> unit
+
+(* [VP] End import from Cil *)
+
 (*
 (* Next statement id that will be assigned. *)
 val start_id: int ref

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 open Cil_types
 open Cil
-open Cilutil
+open Cil_datatype
 open Db_types
 open Db
 open Extlib
@@ -103,24 +103,11 @@ let search_security_requirements () =
 (** {2 Computing security components} *)
 (* ************************************************************************* *)
 
-include Cilutil.StmtComparable
-    (** A security component of a statement [s] is given by [s]. *)
-
 open PdgIndex
 
 let get_node_stmt node = Key.stmt (!Pdg.node_key node)
 
-module NodeKf = struct
-  type t = PdgTypes.Node.t * kernel_function
-  let compare (n1, kf1) (n2, kf2) =
-    let n = PdgTypes.Node.compare n1 n2 in
-    if n = 0 then Kernel_function.compare kf1 kf2 else n
-  let equal (n1, kf1) (n2, kf2) =
-    Kernel_function.equal kf1 kf2 && PdgTypes.Node.equal n1 n2
-  let hash (n, kf) = 7 * Kernel_function.hash kf + PdgTypes.Node.hash n
-  module Datatype =
-    Datatype.Couple(PdgTypes.Node.Datatype)(Kernel_function.Datatype)
-end
+module NodeKf = Datatype.Pair(PdgTypes.Node)(Kernel_function)
 
 type bwd_kind = Direct | Indirect
 type fwd_kind = Impact | Security
@@ -505,9 +492,9 @@ module Component = struct
 		    else
 		      let stmt = Key.call_from_id id in
 		      let called_kfs =
-			Kernel_function.Set.elements
-			(try Value.call_to_kernel_function stmt
-			with Value.Not_a_call -> assert false)
+			Kernel_function.Hptset.elements
+			  (try Value.call_to_kernel_function stmt
+			   with Value.Not_a_call -> assert false)
 		      in
 		      let todolist =
 			List.fold_left
@@ -679,12 +666,12 @@ module Component = struct
 	(fun (n,_) _ acc ->
 	   Extlib.may_map
 	     ~dft:acc
-	     (fun s -> StmtSet.add s acc)
+	     (fun s -> Stmt.Set.add s acc)
 	     (get_node_stmt n))
 	res
-	StmtSet.empty
+	Stmt.Set.empty
     in
-    StmtSet.elements set
+    Stmt.Set.elements set
 
   let get_component kind stmt =
     let _, kf = Kernel_function.find_from_sid stmt.sid in
@@ -699,14 +686,14 @@ module Component = struct
 	   if check v then
 	     Extlib.may_map
 	       ~dft:acc
-	       (fun s -> StmtSet.add s acc)
+	       (fun s -> Stmt.Set.add s acc)
 	       (get_node_stmt n)
 	   else
 	     acc)
 	(action kf stmt)
-	StmtSet.empty
+	Stmt.Set.empty
     in
-    StmtSet.elements set
+    Stmt.Set.elements set
 
   let iter use_ctrl_dpds f kf stmt =
     let action = if use_ctrl_dpds then whole else direct in
@@ -723,7 +710,7 @@ let register name arg =
     ~journalize:true
     ~plugin:"Security_slicing"
     name
-    (Type.func Kernel_type.stmt (Type.list Kernel_type.stmt))
+    (Datatype.func Stmt.ty (Datatype.list Stmt.ty))
     (Component.get_component arg)
 
 let get_direct_component = register "get_direct_component" Component.Direct
@@ -739,13 +726,12 @@ let impact_analysis =
     ~plugin:"Security_slicing"
     "impact_analysis"
     ~journalize:true
-    (Type.func2
-       Kernel_type.kernel_function
-       Kernel_type.stmt
-       (Type.list Kernel_type.stmt))
+    (Datatype.func2 Kernel_function.ty Stmt.ty (Datatype.list Stmt.ty))
     (Component.forward Component.Impact)
 
 (* ************************************************************************ *)
+
+type t = stmt
 
 (** Security component table: a security component is represented by the
     statement at which a security verification should occur.  It is associated
@@ -753,20 +739,28 @@ let impact_analysis =
 module Components : sig
   val add: t -> stmt -> unit
   val find: t -> stmt list
-  val self: Project.Computation.t
+  val self: State.t
   val fold_fold:
     ('b -> t -> 'a -> 'b) -> ('a -> Cil_types.stmt -> 'a) -> 'b -> 'a -> 'b
 end = struct
 
   module S =
-    Computation.Hashtbl
-      (Cilutil.StmtComparable)
-      (Datatype.Ref(Datatype.List(Cil_datatype.Stmt)))
+    State_builder.Hashtbl
+      (Stmt.Hashtbl)
+      (Datatype.Ref(Datatype.List(Stmt)))
       (struct
 	 let name = "Components"
 	 let size = 7
-	 let dependencies = []
+	 let dependencies = [ Ast.self; Db.Value.self ]
+         let kind = `Internal
        end)
+
+  let () =
+    Cmdline.run_after_extended_stage
+      (fun () ->
+	State_dependency_graph.Static.add_codependencies
+	  ~onto:S.self
+	  [ !Db.Pdg.self ])
 
   let add c =
     let l = S.memo (fun _ -> ref []) c in
@@ -782,7 +776,7 @@ end = struct
 end
 (*
 module Nodes =
-  Computation.SetRef
+  State_builder.SetRef
     (struct include NodeKf.Datatype let compare = NodeKf.compare end)
     (struct
        let name = "Components.Nodes"
@@ -793,7 +787,7 @@ let use_ctrl_dependencies = ref false
 
 (** Set tables [Components] and [Stmts]. *)
 let compute, self =
-  Computation.apply_once
+  State_builder.apply_once
     "Components.compute"
     [ Security_Annotations.self ]
     (fun () ->
@@ -816,15 +810,15 @@ let compute, self =
 let () =
   Cmdline.run_after_extended_stage
     (fun () ->
-       Project.Computation.add_dependency self !Pdg.self;
-       Project.Computation.add_dependency Nodes.self self;
-       Project.Computation.add_dependency Components.self self)
+       Project.State_builder.add_dependency self !Pdg.self;
+       Project.State_builder.add_dependency Nodes.self self;
+       Project.State_builder.add_dependency Components.self self)
 
 let get_component =
   Dynamic.register
   ~journalize:true
   "Security.get_component"
-  (Type.func Kernel_type.stmt (Type.list Kernel_type.stmt))
+  (Datatype.func Kernel_type.stmt (Datatype.list Kernel_type.stmt))
   (fun s -> compute (); Components.find s)
 
 (* ************************************************************************ *)
@@ -862,11 +856,11 @@ let slice =
   Dynamic.register
     "Security_slicing.slice"
     ~journalize:true
-    (Type.func Type.bool Project.ty)
+    (Datatype.func Datatype.bool Project.ty)
     slice
 *)
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

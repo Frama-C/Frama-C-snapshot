@@ -45,7 +45,7 @@ open Cil_types
 val voidType: typ
 
 (** forward reference to current location (see {!Cil.CurrentLoc})*)
-module CurrentLoc: Computation.REF_OUTPUT with type data = location
+module CurrentLoc: State_builder.Ref with type data = location
 
 (** Pretty-print a location *)
 val d_loc: Format.formatter -> location -> unit
@@ -65,14 +65,16 @@ module Build_Counter(Name:sig val name:string end) : sig
   val next: unit -> int
   val reset: unit -> unit
   val get: unit -> int
+  val self: State.t
 end
 
-val varinfo_from_vid: int -> varinfo
-  (** @return the varinfo corresponding to the given id.
-      @raise Not_found if the given id does not match any varinfo. *)
+module Vid: sig
+  val next: unit -> int
+  val reset: unit -> unit
+  val get: unit -> int
+  val self: State.t
+end
 
-val varinfos_self: Project.Computation.t
-  (** State of the varinfos table. *)
 
 (** set the vid to a fresh number. *)
 val set_vid: varinfo -> unit
@@ -91,3 +93,9 @@ val make_logic_var : string -> logic_type -> logic_var
 
 (** Create a fresh logical variable giving its name and type. *)
 val make_logic_info : string -> (* logic_type -> *) logic_info
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

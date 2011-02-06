@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,16 +35,16 @@ let show main_ui =
   in
   let copyright (* should be automatically generated *) =
     "\t Â© CEA and INRIA for the Frama-C kernel and plug-ins pdg, scope, \
-slicing and spacerecode
+slicing and sparecode\n\
 \t Â© CEA for the GUI and plug-ins constant propagation, from, inout, impact, \
 metrics, occurrence postdominators, security_slicing, semantic callgraph, \
-syntactic callgraph, users and value.
-
+syntactic callgraph, users and value.\n\
+\n\
 See the particular header of each source file for details."
   in
   let license (* should be automatically generated *) =
     "Licences of the Frama-C kernel and plug-ins are either under LGPL v2.1, \
-or BSD.
+or BSD.\n\
 See the particular header of each source file for details."
   in
   let dialog =
@@ -79,13 +79,14 @@ source code of software written in C."
 let () =
   Design.register_extension
     (fun window ->
+       let menu_manager = window#menu_manager () in
        let _helpitem, helpmenu =
-	 window#menu_manager#add_menu "_Help"
-	   ~pos:(List.length window#menu_manager#factory#menu#children)
+	 menu_manager#add_menu "_Help"
+	   ~pos:(List.length menu_manager#factory#menu#children)
        in
 (*       helpitem#set_right_justified true;*)
        ignore
-	 (window#menu_manager#add_entries
+	 (menu_manager#add_entries
 	    helpmenu
 	    [ Menu_manager.Menubar(Some `ABOUT, "About"),
 	      fun () -> show window ]))

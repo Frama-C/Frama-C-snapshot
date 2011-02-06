@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,21 +20,30 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type t =
+type tt =
     { over_inputs_if_termination :  Locations.Zone.t ;
       under_outputs_if_termination : Locations.Zone.t ;
       over_inputs : Locations.Zone.t }
-type tt = t
+
 open Locations
 
-module Datatype = struct
-  include Project.Datatype.Register
-    (struct
-       type t = tt
-       let descr = Project.no_descr
-       let copy _ = assert false (* TODO *)
-       let name = "inout"
-     end)
+include Datatype.Make
+(struct
+  include Datatype.Serializable_undefined
+  type t = tt
+  let structural_descr =
+    Structural_descr.t_record
+      [| Locations.Zone.packed_descr;
+	 Locations.Zone.packed_descr;
+	 Locations.Zone.packed_descr |]
+  let reprs =
+    List.map
+      (fun z ->
+	{ over_inputs_if_termination = z;
+	  under_outputs_if_termination = z;
+	  over_inputs = z })
+      Locations.Zone.reprs
+  let name = "Inout_type"
   let hash
       { over_inputs_if_termination = a;
         under_outputs_if_termination = b;
@@ -48,5 +57,11 @@ module Datatype = struct
         under_outputs_if_termination = b';
         over_inputs = c'} =
     Zone.equal a a' && Zone.equal b b' && Zone.equal c c'
-  let () = register_comparable ~hash ~equal ()
-end
+  let mem_project = Datatype.never_any_project
+ end)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

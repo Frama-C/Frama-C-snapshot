@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -47,11 +47,25 @@
     is_ghost := false;
     begin_annot_line := 1
 
+  let backslash = "__BACKSLASH__"
+
+  let abort_preprocess reason outfile =
+    let source = { Log.src_file = !curr_file;
+                   Log.src_line = !curr_line }
+    in
+    Cilmsg.error ~source
+      "Can't preprocess annotation: %s\nAnnotation will be kept as is"
+      reason;
+    Buffer.output_buffer outfile buf
+
   let preprocess_annot cpp outfile =
+    (*Printf.printf "Preprocessing annotation:\n%!";
+    Buffer.output_buffer stdout buf;
+    print_newline(); *)
     let debug = Cilmsg.debug_atleast 3 in
     let (ppname, ppfile) = Filename.open_temp_file "ppannot" ".c" in
     Buffer.output_buffer ppfile macros;
-    (* NB: the three extra spaces replace the begining of the annotation
+    (* NB: the three extra spaces replace the beginning of the annotation
        in order to keep the columns count accurate (at least until there's
        a macro expansion).
     *)
@@ -68,9 +82,7 @@
     output_string outfile "/*@";
     if !is_ghost then output_string outfile " ghost\n";
     if res <> 0 then begin
-    Printf.eprintf
-      "Warning: could not preprocess logical annotation. Keeping as is%!";
-    Buffer.output_buffer outfile buf;
+      abort_preprocess "Preprocessor call exited with an error" outfile;
     if not debug then (try Sys.remove cppname with Sys_error _ -> ())
     end else begin
     try
@@ -91,7 +103,10 @@
                      | INCOMMENT -> ()
                   )
               | '\n' -> state:=NORMAL
-              | _ -> ());
+              | _ -> (match !state with
+                          SLASH->state:=NORMAL
+                        | NORMAL | INCOMMENT -> ())
+           );
            Buffer.add_char tmp_buf !x;
            x:=c;
          done;
@@ -103,19 +118,21 @@
              (* one-line annotations get a new line anyway. *)
              if !state = INCOMMENT then
              Buffer.add_char tmp_buf '\n';
-             Buffer.output_buffer outfile tmp_buf;
+             let res = Buffer.contents tmp_buf in
+             let res =
+               Str.global_replace (Str.regexp_string backslash) "\\\\" res
+             in
+             (* Printf.printf "after preprocessing:\n%s%!" res; *)
+             output_string outfile res;
              close_in tmp;
              if not debug then Sys.remove cppname)
     with
-      | Sys_error _ ->
+      | Sys_error e ->
           if not debug then (try Sys.remove cppname with Sys_error _ -> ());
-          Printf.eprintf
-            "Warning: could not preprocess logical annotation. \
-             Keeping as is%!";
-          Buffer.output_buffer outfile buf;
+          abort_preprocess ("System error: " ^ e) outfile
 
     end;
-    Printf.fprintf outfile "*/\n# %d %s\n" !curr_line !curr_file;
+    Printf.fprintf outfile "*/\n# %d %s\n%!" !curr_line !curr_file;
     Buffer.clear buf
 
   let make_newline () =
@@ -222,6 +239,8 @@ and annot cpp outfile = parse
            incr curr_line;
            Buffer.add_char buf '\n';
            annot cpp outfile lexbuf }
+  | "//" { Buffer.add_string buf "//";
+           annot_comment cpp outfile lexbuf }
   | '@' {
       if !is_newline = NEWLINE then is_newline:=SPACE;
       Buffer.add_char buf ' ';
@@ -229,8 +248,46 @@ and annot cpp outfile = parse
   | ' '  {
       if !is_newline = NEWLINE then is_newline:=SPACE;
       Buffer.add_char buf ' '; annot cpp outfile lexbuf }
+  (* We're not respecting char count here. Maybe using '$' would do it,
+     as cpp is likely to count it as part of an identifier, but this would
+     imply that we can not speak about $ ident in annotations.
+   *)
+  | '\\' { Buffer.add_string buf backslash; annot cpp outfile lexbuf }
+  | '\'' { Buffer.add_char buf '\''; char annot cpp outfile lexbuf }
+  | '"'  { Buffer.add_char buf '"'; string annot cpp outfile lexbuf }
   | _ as c { is_newline := CHAR;
              Buffer.add_char buf c; annot cpp outfile lexbuf }
+
+and annot_comment cpp outfile = parse
+  | '\n' { incr curr_line; is_newline:=NEWLINE;
+           Buffer.add_char buf '\n'; annot cpp outfile lexbuf
+         }
+  | eof { abort_preprocess "eof in the middle of a comment" outfile }
+  | _ as c { Buffer.add_char buf c; annot_comment cpp outfile lexbuf }
+
+and char annot cpp outfile = parse
+
+  | '\n' { incr curr_line; is_newline:=NEWLINE;
+           Buffer.add_char buf '\n'; char annot cpp outfile lexbuf
+         }
+  | '\'' { is_newline:=CHAR;
+           Buffer.add_char buf '\''; annot cpp outfile lexbuf }
+  | "\\'" { is_newline:=CHAR;
+            Buffer.add_string buf "\\'"; char annot cpp outfile lexbuf }
+  | eof { abort_preprocess "eof while parsing a char literal" outfile }
+  | _ as c { is_newline:=CHAR;
+             Buffer.add_char buf c; char annot cpp outfile lexbuf }
+
+and string annot cpp outfile = parse
+  | '\n' { incr curr_line; is_newline:=NEWLINE;
+           Buffer.add_char buf '\n'; string annot cpp outfile lexbuf
+         }
+  | '"' { is_newline:=CHAR; Buffer.add_char buf '"'; annot cpp outfile lexbuf }
+  | "\\\"" { is_newline:=CHAR;
+             Buffer.add_string buf "\\\""; string annot cpp outfile lexbuf }
+  | eof { abort_preprocess "eof while parsing a string literal" outfile }
+  | _ as c { is_newline:=CHAR;
+             Buffer.add_char buf c; string annot cpp outfile lexbuf }
 
 and comment cpp outfile c =
 parse
@@ -244,6 +301,7 @@ parse
       }
   | '\n' { make_newline (); output_char outfile '\n';
            comment cpp outfile '\n' lexbuf }
+  | eof { abort_preprocess "eof while parsing C comment" outfile}
   | _ as c {
       Buffer.add_char beg_of_line ' ';
       output_char outfile c;
@@ -255,6 +313,9 @@ and oneline_annot cpp outfile = parse
       preprocess_annot cpp outfile;
       main cpp outfile lexbuf }
   | '@'  { Buffer.add_char buf ' '; oneline_annot cpp outfile lexbuf }
+  | '\\' { Buffer.add_string buf backslash; oneline_annot cpp outfile lexbuf }
+  | '\'' { Buffer.add_char buf '\''; char oneline_annot cpp outfile lexbuf }
+  | '"'  { Buffer.add_char buf '"'; string oneline_annot cpp outfile lexbuf }
   | _ as c { Buffer.add_char buf c; oneline_annot cpp outfile lexbuf }
 
 and oneline_comment cpp outfile =
@@ -273,7 +334,7 @@ parse
     let (ppname, ppfile) = Filename.open_temp_file
       (Filename.basename filename) ".pp"
     in
-    Extlib.cleanup_at_exit ppname;  
+    Extlib.cleanup_at_exit ppname;
     main cpp ppfile lex;
     close_in inchan;
     close_out ppfile;

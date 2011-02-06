@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,55 +21,52 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
 open Db
 open Db_types
 open Locations
+open Visitor
 
 let call_stack = Stack.create ()
 exception Ignore
 
 class do_it = object(self)
-  inherit nopCilVisitor as super
-  val mutable current_stmt = Kglobal
+  inherit frama_c_inplace as super
   val mutable inputs = Zone.bottom
-
-  method set_current_stmt s = current_stmt <- Kstmt s
 
   method result = inputs
 
   method join new_ =
     inputs <- Zone.join new_ inputs;
 
-  method vstmt s =
-    current_stmt <- Kstmt s;
+  method vstmt_aux s =
     match s.skind with
       | UnspecifiedSequence seq ->
           List.iter
-            (fun (stmt,_,_,_) ->
-               ignore (visitCilStmt (self:>cilVisitor) stmt))
+            (fun (stmt,_,_,_,_) ->
+               ignore (visitFramacStmt (self:>frama_c_visitor) stmt))
             seq;
-          SkipChildren (* do not visit the additional lvals *)
-      | _ -> super#vstmt s
+          Cil.SkipChildren (* do not visit the additional lvals *)
+      | _ -> super#vstmt_aux s
 
   method vlval lv =
     let deps,loc =
       !Value.lval_to_loc_with_deps
         ~with_alarms:CilE.warn_none_mode
 	~deps:Zone.bottom
-	current_stmt lv
+	self#current_kinstr
+	lv
     in
     let bits_loc = valid_enumerate_bits loc in
     self#join deps;
     self#join bits_loc;
-    SkipChildren
+    Cil.SkipChildren
 
   method do_assign lv =
     let deps,_loc =
       !Value.lval_to_loc_with_deps
         ~with_alarms:CilE.warn_none_mode
 	~deps:Zone.bottom
-	current_stmt
+	self#current_kinstr
 	lv
     in
     (*      Format.printf "do_assign deps:%a@."
@@ -77,12 +74,12 @@ class do_it = object(self)
     self#join deps;
 
   method vinst i =
-    if Value.is_reachable (Value.get_state current_stmt) then begin
+    if Value.is_reachable (Value.get_state self#current_kinstr) then begin
       match i with
       | Set (lv,exp,_) ->
           self#do_assign lv;
-          ignore (visitCilExpr (self:>cilVisitor) exp);
-          SkipChildren
+          ignore (visitFramacExpr (self:>frama_c_visitor) exp);
+          Cil.SkipChildren
 
       | Call (lv_opt,exp,args,_) ->
           (match lv_opt with None -> ()
@@ -91,19 +88,19 @@ class do_it = object(self)
             !Value.expr_to_kernel_function
               ~with_alarms:CilE.warn_none_mode
 	      ~deps:(Some Zone.bottom)
-	      current_stmt exp
+	      self#current_kinstr exp
           in
           self#join deps_callees;
-          Kernel_function.Set.iter
+          Kernel_function.Hptset.iter
 	    (fun kf -> self#join (!Db.Inputs.get_external kf))
 	    callees;
           List.iter
-	    (fun exp -> ignore (visitCilExpr (self:>cilVisitor) exp))
+	    (fun exp -> ignore (visitFramacExpr (self:>frama_c_visitor) exp))
 	    args;
-          SkipChildren
-      | _ -> DoChildren
+          Cil.SkipChildren
+      | _ -> Cil.DoChildren
     end
-    else SkipChildren
+    else Cil.SkipChildren
 
   method vexpr exp =
     match exp.enode with
@@ -112,30 +109,31 @@ class do_it = object(self)
 	  !Value.lval_to_loc_with_deps
             ~with_alarms:CilE.warn_none_mode
 	    ~deps:Zone.bottom
-	    current_stmt lv
+	    self#current_kinstr lv
 	in
 	self#join deps;
-	SkipChildren
-    | _ -> DoChildren
+	Cil.SkipChildren
+    | _ -> Cil.DoChildren
 
 end
 
 let statement stmt =
   let computer = new do_it in
-  ignore (visitCilStmt (computer:>cilVisitor) stmt);
+  ignore (visitFramacStmt (computer:>frama_c_visitor) stmt);
   computer#result
 
 let expr stmt e =
   let computer = new do_it in
-  computer#set_current_stmt stmt;
-  ignore (visitCilExpr (computer:>cilVisitor) e);
+  computer#push_stmt stmt;
+  ignore (visitFramacExpr (computer:>frama_c_visitor) e);
   computer#result
 
 module Internals =
   Kf_state.Make
     (struct
-       let name = "internal_inputs"
+       let name = "Internal inputs"
        let dependencies = [ Value.self ]
+       let kind = `Correctness
      end)
 
 let get_internal =
@@ -160,7 +158,7 @@ let get_internal =
 
 	      Stack.push kf call_stack;
 	      let computer = new do_it in
-	      ignore (visitCilFunction (computer:>cilVisitor) f);
+	      ignore (visitFramacFunction (computer:>frama_c_visitor) f);
 	      let _ = Stack.pop call_stack in
 	      computer#result
 	    with Ignore ->
@@ -171,26 +169,20 @@ let get_internal =
            let assigns = Ast_info.merge_assigns behaviors in
              !Value.assigns_to_zone_inputs_state state assigns)
 
-let externalize fundec =
-  match fundec with
-  | Definition (fundec,_) ->
-      Zone.filter_base
-        (fun v -> not (Base.is_formal_or_local v fundec))
-  | Declaration (_,vd,_,_) ->
-      Zone.filter_base
-        (fun v -> not (Base.is_formal_of_prototype v vd))
-
-
-
 module Externals =
   Kf_state.Make
     (struct
-       let name = "external_inputs"
+       let name = "External inputs"
        let dependencies = [ Internals.self ]
+       let kind = `Correctness
      end)
 
 let get_external =
-  Externals.memo (fun kf -> externalize kf.fundec (get_internal kf))
+  Externals.memo
+    (fun kf ->
+      Zone.filter_base
+	(Db.accept_base ~with_formals:false kf)
+	(get_internal kf))
 
 let remove_locals_keep_formals fundec =
   match fundec with
@@ -202,14 +194,17 @@ let remove_locals_keep_formals fundec =
 module With_formals =
   Kf_state.Make
     (struct
-       let name = "with_formals_inputs"
+       let name = "Inputs with formals"
        let dependencies = [ Internals.self ]
+       let kind = `Correctness
      end)
 
 let get_with_formals =
-  With_formals.memo
-    (fun kf -> remove_locals_keep_formals kf.fundec (get_internal kf))
-
+  Externals.memo
+    (fun kf ->
+      Zone.filter_base
+	(Db.accept_base ~with_formals:true kf)
+	(get_internal kf))
 
 let compute_external kf = ignore (get_external kf)
 
@@ -222,10 +217,6 @@ let pretty_with_formals fmt kf =
   Format.fprintf fmt "@[Inputs (with formals) for function %a:@\n@[<hov 2>  %a@]@]@\n"
     Kernel_function.pretty_name kf
     Zone.pretty (get_with_formals kf)
-
-(* unused:
-let display () = iter_on_functions (pretty_internal Format.std_formatter)
-*)
 
 let () =
   Db.Inputs.self_internal := Internals.self;

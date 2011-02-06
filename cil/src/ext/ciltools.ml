@@ -99,7 +99,7 @@ let box_int_to_exp (n : int64) (ye : typ) : exp =
   let tp = unrollType ye in
   match tp with 
     TInt (i, _) -> 
-      kinteger64 i n 
+      kinteger64 ~loc:Cil_datatype.Location.unknown i n 
   | _ -> raise Not_an_integer
 
 let cil_to_ocaml_int (e : exp) : (int64 * int * sign) = 
@@ -255,9 +255,3 @@ end
 let globally_unique_sids f =
   let thisVisitor = new sidVisitor in
   visitCilFileSameGlobals thisVisitor f 
-
-(** Comparing expressions without a Out_of_memory error **********************)
-
-let compare_exp x y =
-  compare x y
-    

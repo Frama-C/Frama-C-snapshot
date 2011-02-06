@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -25,7 +25,7 @@ include Plugin.Register
   (struct
      let name = "aorai"
      let shortname = "aorai"
-     let descr = "verification of behavioral properties (experimental)"
+     let help = "verification of behavioral properties (experimental)"
    end)
 
 module Ltl_File =
@@ -33,7 +33,8 @@ module Ltl_File =
     (struct
        let option_name = "-aorai-ltl"
        let arg_name = ""
-       let descr = "specifies file name for LTL property"
+       let help = "specifies file name for LTL property"
+       let kind = `Correctness
      end)
 
 module To_Buchi =
@@ -41,8 +42,9 @@ module To_Buchi =
     (struct
        let option_name = "-aorai-to-buchi"
        let arg_name = "f"
-       let descr =
+       let help =
 	 "only generates the buchi automata (in Promela language) in file <s>"
+       let kind = `Tuning
      end)
 
 module Buchi =
@@ -50,8 +52,9 @@ module Buchi =
     (struct
        let option_name = "-aorai-buchi"
        let arg_name = "f"
-       let descr = "considers the property described by the buchi automata (in
-  Promela language) from file <f>."
+       let help = "considers the property helpibed by the buchi automata (in \
+Promela language) from file <f>."
+       let kind = `Correctness
      end)
 
 module Ya =
@@ -59,16 +62,18 @@ module Ya =
     (struct
        let option_name = "-aorai-automata"
        let arg_name = "f"
-       let descr = "considers the property described by the ya automata (in
-  Ya language) from file <f>."
+       let help = "considers the property helpibed by the ya automata (in \
+Ya language) from file <f>."
+       let kind = `Correctness
      end)
 
 
 module Output_Spec =
   False(struct
 	  let option_name = "-aorai-show-op-spec"
-	  let descr =
+	  let help =
 	    "displays computed pre and post-condition of each operation"
+       let kind = `Tuning
 	end)
 
 module Output_C_File =
@@ -76,65 +81,77 @@ module Output_C_File =
     (struct
        let option_name = "-aorai-output-c-file"
        let arg_name = ""
-       let descr = "specifies generated file name for annotated C code"
+       let help = "specifies generated file name for annotated C code"
+       let kind = `Tuning
      end)
 
 module Dot =
   False(struct
 	  let option_name = "-aorai-dot"
-	  let descr = "generates a dot file of the Buchi automata"
+	  let help = "generates a dot file of the Buchi automata"
+          let kind = `Tuning
 	end)
 
 module DotSeparatedLabels =
   False(struct
           let option_name = "-aorai-dot-sep-labels"
-          let descr = "tells dot to not output guards directly over the edges"
+          let help = "tells dot to not output guards directly over the edges"
+          let kind = `Tuning
         end)
 
 module AbstractInterpretation =
   False(struct
 	  let option_name = "-aorai-simple-AI"
-	  let descr = "use simple abstract interpretation"
+	  let help = "use simple abstract interpretation"
+          let kind = `Tuning
 	end)
 
 module AbstractInterpretationOff  =
   False(struct
 	  let option_name = "-aorai-AI-off"
-	  let descr = "does not use abstract interpretation"
+	  let help = "does not use abstract interpretation"
+          let kind = `Tuning
 	end)
 
 let () = Plugin.set_negative_option_name "-aorai-spec-off"
 module Axiomatization =
   True(struct
 	 let option_name = "-aorai-spec-on"
-	 let descr = "if set, does not axiomatize automata"
+	 let help = "if set, does not axiomatize automata"
+       let kind = `Correctness
        end)
 
 module ConsiderAcceptance =
   False(struct
 	 let option_name = "-aorai-acceptance"
-	 let descr = "if set, considers acceptation states"
+	 let help = "if set, considers acceptation states"
+         let kind = `Correctness
        end)
 
 module AutomataSimplification=
   True
     (struct
        let option_name = "-aorai-raw-auto"
-       let descr = "If set, does not simplify automata"
+       let help = "If set, does not simplify automata"
+       let kind = `Tuning
      end)
 
 module Test =
   Zero(struct
 	 let option_name = "-aorai-test"
 	 let arg_name = ""
-	 let descr = "Testing mode (0 = no test)"
+	 let help = "Testing mode (0 = no test)"
+       let kind = `Tuning
        end)
 
 module AddingOperationNameAndStatusInSpecification =
- 	False(struct
-		let option_name = "-aorai-add-oper"
-		let descr = "Adding current operation name (and statut) in pre/post conditions"
-		end)
+  False
+    (struct
+      let option_name = "-aorai-add-oper"
+      let help = "Adding current operation name (and statut) in pre/post \
+conditions"
+      let kind = `Correctness
+     end)
 
 let is_on () =
   not (Ltl_File.is_default () && To_Buchi.is_default () &&
@@ -151,14 +168,12 @@ let init () =
 
 let () =
   Cmdline.run_after_configuring_stage init;
-  Parameters.SimplifyCfg.depend Ltl_File.self;
-  Parameters.SimplifyCfg.depend To_Buchi.self;
-  Parameters.SimplifyCfg.depend Buchi.self;
-  Parameters.SimplifyCfg.depend Ya.self;
-  Parameters.KeepSwitch.depend Ltl_File.self;
-  Parameters.KeepSwitch.depend To_Buchi.self;
-  Parameters.KeepSwitch.depend Buchi.self;
-  Parameters.KeepSwitch.depend Ya.self
+  let add_codeps onto =
+    State_dependency_graph.Static.add_codependencies
+      ~onto [ Ltl_File.self; To_Buchi.self; Buchi.self; Ya.self ]
+  in
+  add_codeps Parameters.SimplifyCfg.self;
+  add_codeps Parameters.KeepSwitch.self
 
 let promela_file () =
   if Buchi.get () = "" then To_Buchi.get () else Buchi.get ()
@@ -168,6 +183,6 @@ let advance_abstract_interpretation () =
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

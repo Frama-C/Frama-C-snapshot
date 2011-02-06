@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -41,13 +41,13 @@ type t_dpds_kind = PdgTypes.Dpd.td
 type t_nodes_and_undef = (t_node * t_loc option) list * t_loc option
 
 let get_init_state pdg =
-  try State.get_init_state (PdgTypes.Pdg.get_states pdg)
+  try Pdg_state.get_init_state (PdgTypes.Pdg.get_states pdg)
   with Not_found -> assert false
 let get_last_state pdg =
-  try State.get_last_state (PdgTypes.Pdg.get_states pdg)
+  try Pdg_state.get_last_state (PdgTypes.Pdg.get_states pdg)
   with Not_found -> raise Db.Pdg.NotFound (* no last state: strange ! *)
 let get_stmt_state pdg stmt =
-  try State.get_stmt_state (PdgTypes.Pdg.get_states pdg) stmt
+  try Pdg_state.get_stmt_state (PdgTypes.Pdg.get_states pdg) stmt
   with Not_found -> raise Db.Pdg.NotFound (* probably an unreachable stmt *)
 
 let find_node pdg key = FI.find_info  (PdgTypes.Pdg.get_index pdg) key
@@ -58,7 +58,7 @@ let find_node pdg key = FI.find_info  (PdgTypes.Pdg.get_index pdg) key
 *)
 let find_simple_stmt_nodes pdg stmt =
   let key = K.stmt_key stmt in
-    FI.find_all (PdgTypes.Pdg.get_index pdg) key
+  FI.find_all (PdgTypes.Pdg.get_index pdg) key
 
 let rec add_stmt_nodes pdg nodes s =
   let s_nodes = find_simple_stmt_nodes pdg s in
@@ -92,19 +92,21 @@ let find_stmt_node pdg stmt =
 
 let find_entry_point_node pdg =
   try
-    let key = K.entry_point in find_node pdg key
-  with PdgIndex.NotFound -> assert false
+    let key = K.entry_point in
+    find_node pdg key
+  with PdgIndex.NotFound ->
+    assert false
 
 let find_top_input_node pdg =
   let key = K.top_input in find_node pdg key
 
 
 let find_loc_nodes pdg state loc =
-  let nodes, undef = State.get_loc_nodes state loc in
+  let nodes, undef = Pdg_state.get_loc_nodes state loc in
   let nodes, undef = match undef with
     | Some undef ->
       let state = get_init_state pdg in
-      let init_nodes, init_undef = State.get_loc_nodes state undef in
+      let init_nodes, init_undef = Pdg_state.get_loc_nodes state undef in
       let init_nodes = match loc with
         | Locations.Zone.Top(_,_) ->
             begin
@@ -117,7 +119,7 @@ let find_loc_nodes pdg state loc =
         nodes, init_undef
     | None -> nodes, undef
   in
-    nodes, undef
+  nodes, undef
 
 let find_location_nodes_at_stmt pdg stmt ~before loc =
   let get_nodes state = find_loc_nodes pdg state loc in
@@ -158,17 +160,21 @@ let find_location_nodes_at_begin pdg loc =
   in
   let state = match stmts with
     | [] -> get_last_state pdg
-    | stmt::_ -> get_stmt_state pdg stmt
-  in find_loc_nodes pdg state loc
+    | stmt :: _ -> get_stmt_state pdg stmt
+  in
+  find_loc_nodes pdg state loc
 
 let find_label_node pdg label_stmt label =
-  let key = K.label_key label_stmt label in find_node pdg key
+  let key = K.label_key label_stmt label in
+  find_node pdg key
 
 let find_decl_var_node pdg v =
-  let key = K.decl_var_key v in find_node pdg key
+  let key = K.decl_var_key v in
+  find_node pdg key
 
 let find_output_node pdg =
-  let key = K.output_key in find_node pdg key
+  let key = K.output_key in
+  find_node pdg key
 
 let find_input_node pdg numin =
   let sgn = FI.sgn (PdgTypes.Pdg.get_index pdg) in
@@ -179,46 +185,39 @@ let find_all_input_nodes pdg =
   let add acc (_in_key, info) = info::acc in
   PdgIndex.Signature.fold_all_inputs add [] sgn
 
-    (*
-let find_all_output_nodes pdg =
-  let sgn = FI.sgn (PI.get_index pdg) in
-  let add acc (_key, info) = info::acc in
-  PdgIndex.Signature.fold_all_outputs add [] sgn
-  *)
-
 let find_call_input_nodes pdg_caller call_stmt in_key =
   match in_key with
-    | PdgIndex.Signature.InCtrl
-    | PdgIndex.Signature.InNum _ ->
-        let idx = PdgTypes.Pdg.get_index pdg_caller in
-        let _, call_sgn = FI.find_call idx call_stmt in
-        let node = PdgIndex.Signature.find_in_info call_sgn in_key in
-          [(node,None)], None
-    | PdgIndex.Signature.InImpl zone ->
-        let nodes, undef =
-          find_location_nodes_at_stmt pdg_caller call_stmt ~before:true zone
-        in nodes, undef
+  | PdgIndex.Signature.InCtrl
+  | PdgIndex.Signature.InNum _ ->
+    let idx = PdgTypes.Pdg.get_index pdg_caller in
+    let _, call_sgn = FI.find_call idx call_stmt in
+    let node = PdgIndex.Signature.find_in_info call_sgn in_key in
+    [ node, None ], None
+  | PdgIndex.Signature.InImpl zone ->
+    find_location_nodes_at_stmt pdg_caller call_stmt ~before:true zone
 
 let find_call_ctrl_node pdg stmt =
-  let key = K.call_ctrl_key stmt in find_node pdg key
+  let key = K.call_ctrl_key stmt in
+  find_node pdg key
 
 let find_call_num_input_node pdg call num_in =
   if num_in = 0 then Pdg_parameters.fatal "0 is not an input number" ;
-  let key = K.call_input_key call num_in in find_node pdg key
+  let key = K.call_input_key call num_in in
+  find_node pdg key
 
 let find_call_output_node pdg call =
-  let key = K.call_outret_key call in find_node pdg key
+  let key = K.call_outret_key call in
+  find_node pdg key
 
 let find_output_nodes called_pdg out_key =
   match out_key with
-  | PdgIndex.Signature.OutRet ->
-      [ ((find_output_node called_pdg),None) ], None
+  | PdgIndex.Signature.OutRet -> [ find_output_node called_pdg, None ], None
   | PdgIndex.Signature.OutLoc out -> find_location_nodes_at_end called_pdg out
 
 let is_call_to_f stmt f_varinfo =
   match stmt.skind with
   | Instr (Call (_, {enode = Lval (Var v, NoOffset)}, _, _)) ->
-      if v.vid = f_varinfo.vid then true else false
+    v.vid = f_varinfo.vid
   | _ -> false
 
 let find_call_stmts kf ~caller =
@@ -233,11 +232,11 @@ let find_call_stmts kf ~caller =
 
 
 (** {2 Build sets of nodes}
- * This parts groups the functions that build sets from the pdg.
+
+    This parts groups the functions that build sets from the pdg.
     Made to answer user questions rather that to build slice marks,
     because efficient marking doesn't need to build this sets.
-    However, it might be useful to prove that it is the same...
- *)
+    However, it might be useful to prove that it is the same... *)
 
 (** add the node in the list if it is not already in. *)
 let add_node_in_list node node_list =
@@ -288,7 +287,7 @@ let get_both_dpds pdg n =
 
 (** gives the list of nodes that the given node depends on,
     without looking at the kind of dependency. *)
-let direct_dpds pdg node =  filter_nodes (P.get_all_direct_dpds pdg node)
+let direct_dpds pdg node = filter_nodes (P.get_all_direct_dpds pdg node)
 
 (** gives the list of nodes that the given node depends on,
     with a given kind of dependency. *)
@@ -303,26 +302,24 @@ let direct_addr_dpds = direct_x_dpds D.Addr
     for all the [nodes] *)
 
 (** @return a list containing the initial nodes and all their dependencies. *)
-let all_rec_dpds pdg nodes =
-  custom_related_nodes (direct_dpds pdg) nodes
+let all_rec_dpds pdg nodes = custom_related_nodes (direct_dpds pdg) nodes
 
 let find_nodes_all_x_dpds dpd_type pdg nodes =
   let merge_dpds node_list node =
     let node_dpds = direct_x_dpds dpd_type pdg node in
-      add_nodes_and_custom_dpds (direct_dpds pdg) node_list node_dpds
+    add_nodes_and_custom_dpds (direct_dpds pdg) node_list node_dpds
   in
   List.fold_left merge_dpds [] nodes
 
 (** gives the [dpd_type] dependencies of the node,
     and recursively, all the dependencies of those nodes
     (regardless to their kind) *)
-let all_x_dpds dpd_type pdg node =
-  find_nodes_all_x_dpds dpd_type pdg [node]
+let all_x_dpds dpd_type pdg node = find_nodes_all_x_dpds dpd_type pdg [node]
 
 let find_nodes_all_dpds pdg nodes =
   let merge_dpds node_list node =
     let node_dpds = direct_dpds pdg node in
-      add_nodes_and_custom_dpds (direct_dpds pdg) node_list node_dpds
+    add_nodes_and_custom_dpds (direct_dpds pdg) node_list node_dpds
   in
   List.fold_left merge_dpds [] nodes
 
@@ -333,8 +330,7 @@ let find_nodes_all_addr_dpds = find_nodes_all_x_dpds D.Addr
 (** {3 Forward} build sets of the nodes that depend on given nodes *)
 
 (** @return the list of nodes that directly depend on the given node *)
-let direct_uses pdg node =
-  filter_nodes (P.get_all_direct_codpds pdg node)
+let direct_uses pdg node = filter_nodes (P.get_all_direct_codpds pdg node)
 
 let direct_x_uses dpd_type pdg node =
   filter_nodes (P.get_x_direct_codpds dpd_type pdg node)
@@ -349,7 +345,7 @@ let all_uses pdg nodes =
     let codpds = P.get_all_direct_codpds pdg node in
     let codpds = filter_nodes codpds in
     let get n = filter_nodes (P.get_all_direct_codpds pdg n) in
-      add_nodes_and_custom_dpds get node_list codpds
+    add_nodes_and_custom_dpds get node_list codpds
   in
   List.fold_left add_codpds [] nodes
 
@@ -361,16 +357,16 @@ let all_related_nodes pdg nodes =
   custom_related_nodes (get_both_dpds pdg) nodes
 
 (** @return the call outputs nodes [out] such that
-            [find_output_nodes pdg_called out_key]
-            intersects [called_selected_nodes].
-  *)
-let find_call_out_nodes_to_select pdg_called called_selected_nodes
-    pdg_caller call_stmt  =
+    [find_output_nodes pdg_called out_key]
+    intersects [called_selected_nodes]. *)
+let find_call_out_nodes_to_select
+    pdg_called called_selected_nodes pdg_caller call_stmt
+    =
   Pdg_parameters.debug ~level:2
     "[pdg:find_call_out_nodes_to_select] for call sid:%d@."
     call_stmt.sid;
-  let _, call_sgn = 
-    FI.find_call (PdgTypes.Pdg.get_index pdg_caller) call_stmt 
+  let _, call_sgn =
+    FI.find_call (PdgTypes.Pdg.get_index pdg_caller) call_stmt
   in
   let called_selected_nodes_set =
     PdgTypes.NodeSet.add_list called_selected_nodes in

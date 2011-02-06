@@ -39,9 +39,6 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(* rmtmps.ml *)
-(* implementation for rmtmps.mli *)
-
 let level=666
 
 open Cil_types
@@ -333,7 +330,7 @@ let hasExportingAttribute funvar =
  * - functions bearing a "constructor" or "destructor" attribute
  * - functions declared extern but not inline
  * - functions declared neither inline nor static
- *
+ * - the function named "main"
  * gcc incorrectly (according to C99) makes inline functions visible to
  * the linker.  So we can only remove inline functions on MSVC.
  *)
@@ -341,31 +338,30 @@ let hasExportingAttribute funvar =
 let isExportedRoot global =
   let result, _reason = match global with
   | GVar ({vstorage = Static}, _, _) ->
-      false, "static variable"
+    false, "static variable"
   | GVar _ ->
-      true, "non-static variable"
+    true, "non-static variable"
   | GFun ({svar = v}, _) -> begin
-      if hasExportingAttribute v then
-	true, "constructor or destructor function"
-      else if v.vstorage = Static then
-        not !rmUnusedStatic, "static function"
-      else if v.vinline && v.vstorage != Extern
-              && (theMachine.msvcMode || !rmUnusedInlines) then
-        false, "inline function"
-      else
-	true, "other function"
+    if hasExportingAttribute v then
+      true, "constructor or destructor function"
+    else if v.vstorage = Static then
+      not !rmUnusedStatic, "static function"
+    else if v.vinline && v.vstorage != Extern
+         && (theMachine.msvcMode || !rmUnusedInlines) then
+      false, "inline function"
+    else
+      true, "other function"
   end
   | GVarDecl(_,v,_) when hasAttribute "alias" v.vattr ->
-      true, "has GCC alias attribute"
-(*  | GVarDecl(spec,_,_) when not (Cil.is_empty_funspec spec) ->
-      true, "has formal spec"
-*)
+    true, "has GCC alias attribute"
+  | GVarDecl(spec,v,_) when not (Cil.is_empty_funspec spec) ->
+    v.vname="main", "main has formal spec"
   | GAnnot _ -> true, "global annotation"
   | _ ->
-      false, "neither function nor variable nor annotation"
+    false, "neither function nor variable nor annotation"
   in
-(*  trace (dprintf "isExportedRoot %a -> %b, %s@!"
-           d_shortglobal global result reason);*)
+  (*  trace (dprintf "isExportedRoot %a -> %b, %s@!"
+      d_shortglobal global result reason);*)
   result
 
 
@@ -509,7 +505,9 @@ class markReachableVisitor
 	      (Cilmsg.debug ~level "marking transitive use: enum %s\n" e.ename);
 	      e.ereferenced <- true;
 	      visitAttrs attrs;
-	      visitAttrs e.eattr
+	      visitAttrs e.eattr;
+              (* Must visit the value attributed to the enum constants *)
+              ignore (visitCilEnumInfo (self:>cilVisitor) e);
 	    end;
 	  old
 
@@ -598,36 +596,36 @@ let markReachable file isRoot =
 (* We keep only one label, preferably one that was not introduced by CIL.
  * Scan a list of labels and return the data for the label that should be
  * kept, and the remaining filtered list of labels *)
-let labelsToKeep (ll: label list) : (string * location * bool) * label list =
-  let rec loop (sofar: string * location * bool) = function
+let labelsToKeep is_removable ll =
+  let rec loop sofar = function
       [] -> sofar, []
     | l :: rest ->
         let newlabel, keepl =
           match l with
           | Case _ | Default _ -> sofar, true
-          | Label (ln, lloc, isorig) -> begin
-              match isorig, sofar with
-              | false, ("", _, _) ->
+          | Label (ln, _, _) as lab -> begin
+              match is_removable lab, sofar with
+              | true, ("", _) ->
                   (* keep this one only if we have no label so far *)
-                  (ln, lloc, isorig), false
-              | false, _ -> sofar, false
-              | true, (_, _, false) ->
+                  (ln, lab), false
+              | true, _ -> sofar, false
+              | false, (_, lab') when is_removable lab' ->
                   (* this is an original label; prefer it to temporary or
                    * missing labels *)
-                  (ln, lloc, isorig), false
-              | true, _ -> sofar, false
+                  (ln, lab), false
+              | false, _ -> sofar, false
           end
         in
         let newlabel', rest' = loop newlabel rest in
         newlabel', (if keepl then l :: rest' else rest')
   in
-  loop ("", Cilutil.locUnknown, false) ll
+  loop ("", Label("", Cil_datatype.Location.unknown, false)) ll
 
-class markUsedLabels (labelMap: (string, unit) H.t) =
+class markUsedLabels is_removable (labelMap: (string, unit) H.t) =
   let keep_label dest =
-  let (ln, _, _), _ = labelsToKeep !dest.labels in
+  let (ln, _), _ = labelsToKeep is_removable !dest.labels in
   if ln = "" then
-    Cilmsg.fatal "Statement have no label:@\n%a" Cil.d_stmt !dest ;
+    Cilmsg.fatal "Statement has no label:@\n%a" Cil.d_stmt !dest ;
   (* Mark it as used *)
   H.replace labelMap ln ()
 in
@@ -667,16 +665,17 @@ object
   method vtype _ = SkipChildren
                                                         end
 
-class removeUnusedLabels (labelMap: (string, unit) H.t) = object
+class removeUnusedLabels is_removable (labelMap: (string, unit) H.t) = object
   inherit nopCilVisitor
 
   method vstmt (s: stmt) =
-    let (ln, lloc, lorig), lrest = labelsToKeep s.labels in
+    let (ln, lab), lrest = labelsToKeep is_removable s.labels in
     s.labels <-
        (if ln <> "" &&
-          (H.mem labelMap ln || lorig) (* keep user-provided labels *)
+          (H.mem labelMap ln || not (is_removable lab))
+          (* keep user-provided labels *)
         then (* We had labels *)
-         (Label(ln, lloc, lorig) :: lrest)
+         (lab :: lrest)
        else
          lrest);
     DoChildren
@@ -723,6 +722,20 @@ let uninteresting =
   Str.regexp pattern
 
 
+let label_removable = function
+    Label (_,_,user) -> not user
+  | Case _ | Default _ -> false
+
+let remove_unused_labels ?(is_removable=label_removable) func =
+  (* We also want to remove unused labels. We do it all here, including
+   * marking the used labels *)
+  let usedLabels:(string, unit) H.t = H.create 13 in
+  ignore
+    (visitCilBlock (new markUsedLabels is_removable usedLabels) func.sbody);
+  (* And now we scan again and we remove them *)
+  ignore
+    (visitCilBlock (new removeUnusedLabels is_removable usedLabels) func.sbody)
+
 let removeUnmarked isRoot file =
   let removedLocals = ref [] in
 
@@ -762,12 +775,7 @@ let removeUnmarked isRoot file =
            end
            in
            ignore (visitCilBlock remove_blocals func.sbody);
-           (* We also want to remove unused labels. We do it all here, including
-            * marking the used labels *)
-           let usedLabels:(string, unit) H.t = H.create 13 in
-           ignore (visitCilBlock (new markUsedLabels usedLabels) func.sbody);
-           (* And now we scan again and we remove them *)
-           ignore (visitCilBlock (new removeUnusedLabels usedLabels) func.sbody);
+           remove_unused_labels func;
 	   true
 
     (* all other globals are retained *)
@@ -824,3 +832,9 @@ let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
 	  (Cilmsg.warning "%d unused local variables removed:@!%a"
 	     count (Pretty_utils.pp_list ~sep:",@," Format.pp_print_string) removedLocals)
     end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

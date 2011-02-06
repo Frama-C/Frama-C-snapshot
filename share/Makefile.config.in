@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -50,6 +50,7 @@ MANDIR		?="$(DESTDIR)@mandir@"
 FRAMAC_LIBDIR	?=$(LIBDIR)/frama-c
 FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
 FRAMAC_DATADIR 	?=$(DATADIR)/frama-c
+EMACS_DATADIR	?=$(DATADIR)/emacs/site-lisp
 
 ###############
 # Ocaml stuff #
@@ -83,9 +84,9 @@ OCAMLWIN32	?=@OCAMLWIN32@
 #############
 
 # ocamlgraph
-OCAMLGRAPH 	?=@OCAMLGRAPH@
-OCAMLGRAPH_LOCAL ?=@OCAMLGRAPH_LOCAL@
-OCAMLGRAPH_HOME ?=@OCAMLGRAPH_HOME@
+OCAMLGRAPH_INCLUDE?=@OCAMLGRAPH_INCLUDE@ # ocamlgraph compilation directive
+OCAMLGRAPH_LOCAL  ?=@OCAMLGRAPH_LOCAL@
+OCAMLGRAPH_HOME   ?=@OCAMLGRAPH_HOME@
 
 # lablgtk
 HAS_LABLGTK	?=@HAS_LABLGTK@
@@ -108,6 +109,7 @@ LABLGLADECC	?=@LABLGLADECC@ -hide-default
 
 OTAGS		?=@OTAGS@
 DOT		?=@DOT@
+HAS_DOT		?=@HAS_DOT@
 
 HEADACHE 	?= headache -c $(FRAMAC_SRC)/headers/headache_config.txt
 
@@ -130,21 +132,22 @@ THREAD_IS_KEYWORD ?=@THREAD_IS_KEYWORD@
 
 EXTERNAL_PLUGINS ?=@EXTERNAL_PLUGINS@
 
-# Others
-ENABLE_GUI	?=@ENABLE_GUI@
-ENABLE_SYNTACTIC_CALLGRAPH ?=@ENABLE_SYNTACTIC_CALLGRAPH@
-ENABLE_OCCURRENCE ?=@ENABLE_OCCURRENCE@
-ENABLE_METRICS	?=@ENABLE_METRICS@
-ENABLE_VALUE	?=@ENABLE_VALUE@
-ENABLE_FROM	?=@ENABLE_FROM@
-ENABLE_USERS	?=@ENABLE_USERS@
-ENABLE_CONSTANT_PROPAGATION ?=@ENABLE_CONSTANT_PROPAGATION@
-ENABLE_POSTDOMINATORS ?=@ENABLE_POSTDOMINATORS@
-ENABLE_INOUT	?=@ENABLE_INOUT@
-ENABLE_SEMANTIC_CALLGRAPH ?=@ENABLE_SEMANTIC_CALLGRAPH@
-ENABLE_IMPACT	?=@ENABLE_IMPACT@
-ENABLE_PDG	?=@ENABLE_PDG@
-ENABLE_RTE	?=@ENABLE_RTE@
-ENABLE_SCOPE	?=@ENABLE_SCOPE@
-ENABLE_SPARECODE ?=@ENABLE_SPARECODE@
-ENABLE_SLICING	?=@ENABLE_SLICING@
+# Integrated plugins
+ENABLE_FROM_ANALYSIS              ?=@ENABLE_FROM_ANALYSIS@
+ENABLE_GUI	                  ?=@ENABLE_GUI@
+ENABLE_IMPACT	                  ?=@ENABLE_IMPACT@
+ENABLE_INOUT	                  ?=@ENABLE_INOUT@
+ENABLE_METRICS	                  ?=@ENABLE_METRICS@
+ENABLE_OCCURRENCE                 ?=@ENABLE_OCCURRENCE@
+ENABLE_PDG	                  ?=@ENABLE_PDG@
+ENABLE_POSTDOMINATORS             ?=@ENABLE_POSTDOMINATORS@
+ENABLE_REPORT                     ?=@ENABLE_REPORT@
+ENABLE_RTE_ANNOTATION             ?=@ENABLE_RTE_ANNOTATION@
+ENABLE_SCOPE	                  ?=@ENABLE_SCOPE@
+ENABLE_SEMANTIC_CALLGRAPH         ?=@ENABLE_SEMANTIC_CALLGRAPH@
+ENABLE_SEMANTIC_CONSTANT_FOLDING  ?=@ENABLE_SEMANTIC_CONSTANT_FOLDING@
+ENABLE_SLICING	                  ?=@ENABLE_SLICING@
+ENABLE_SPARECODE                  ?=@ENABLE_SPARECODE@
+ENABLE_SYNTACTIC_CALLGRAPH        ?=@ENABLE_SYNTACTIC_CALLGRAPH@
+ENABLE_USERS	                  ?=@ENABLE_USERS@
+ENABLE_VALUE_ANALYSIS             ?=@ENABLE_VALUE_ANALYSIS@

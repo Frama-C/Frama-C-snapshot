@@ -74,6 +74,24 @@ val abort_loc : (string*int) -> ('a, Format.formatter, unit, 'b) format4 -> 'a
   * an html version at http://manju.cs.berkeley.edu/cil.
     @plugin development guide *)
 
+(** returns [true] if the given name refers to a special built-in function.
+    A special built-in function can have any number of arguments. It is up to
+    the plug-ins to know what to do with it.
+    @since Boron-20100401-dev
+*)
+val is_special_builtin: string -> bool
+
+(** register a new special built-in function *)
+val add_special_builtin: string -> unit
+
+(** register a new family of special built-in functions.
+    @since Boron-20100401-dev
+*)
+val add_special_builtin_family: (string -> bool) -> unit
+
+(** initialize the C built-ins. Should be called once per project, after the
+    machine has been set. *)
+val init_builtins: unit -> unit
 
 (** Call this function to perform some initialization. Call if after you have
   * set [Cil.msvcMode].
@@ -92,6 +110,7 @@ val initCIL: (unit -> unit) -> unit
  * function [Frontc.setMSVCMode: unit -> unit]. *)
 
 open Cil_types
+open Cil_datatype
 
 type theMachine = private
     { (** Whether the pretty printer should print output for the MS VC
@@ -132,7 +151,10 @@ type theMachine = private
 val theMachine : theMachine
   (** Current machine description *)
 
-val selfMachine: Project.Computation.t
+val selfMachine: State.t
+
+val selfMachine_is_computed: ?project:Project.project -> unit -> bool
+  (** whether current project has set its machine description. *)
 
 val set_msvcMode: bool -> unit
   (** Must be called before {!Cil.initCIL}. *)
@@ -232,7 +254,7 @@ val setFunctionTypeMakeFormals: fundec -> typ -> unit
  * {!Cil.makeTempVar}. *)
 val setMaxId: fundec -> unit
 
-val selfFormalsDecl: Project.Computation.t
+val selfFormalsDecl: State.t
   (** state of the table associating formals to each prototype. *)
 
 val makeFormalsVarDecl: (string * typ * attributes) -> varinfo
@@ -290,10 +312,18 @@ val findOrCreateFunc: file -> string -> typ -> varinfo
 module Sid: sig
   val next: unit -> int
   val get: unit -> int
+  val self: State.t
+  val reset: unit -> unit
+end
+
+module Eid: sig
+  val next: unit -> int
+  val get: unit -> int
+  val self: State.t
 end
 
 (** creates an expression with a fresh id *)
-val new_exp: exp_node -> exp
+val new_exp: loc:location -> exp_node -> exp
 
 (** creates an expression with a dummy id.
     Use with caution, {i i.e.} not on expressions that may be put in the AST.
@@ -302,30 +332,6 @@ val dummy_exp: exp_node -> exp
 
 (** Return [true] on case and default labels, [false] otherwise. *)
 val is_case_label: label -> bool
-
-(** Prepare a function for CFG information computation by
-  * {!Cil.computeCFGInfo}. This function converts all [Break], [Switch],
-  * [Default] and [Continue] {!Cil_types.stmtkind}s and {!Cil_types.label}s into [If]s
-  * and [Goto]s, giving the function body a very CFG-like character. This
-  * function modifies its argument in place. *)
-val prepareCFG: ?keepSwitch:bool -> fundec -> unit
-
-(** Compute the CFG information for all statements in a fundec and return a
-  * list of the statements. The input fundec cannot have [Break], [Switch],
-  * [Default], or [Continue] {!Cil_types.stmtkind}s or {!Cil_types.label}s. Use
-  * {!Cil.prepareCFG} to transform them away.  The second argument should
-  * be [true] if you wish a global statement number, [false] if you wish a
-  * local (per-function) statement numbering. The list of statements is set
-  * in the sallstmts field of a fundec.
-  *
-  * NOTE: unless you want the simpler control-flow graph provided by
-  * prepareCFG, or you need the function's smaxstmtid and sallstmt fields
-  * filled in, we recommend you use [Cfg.computeFileCFG] instead of this
-  * function to compute control-flow information.
-  * [Cfg.computeFileCFG] is newer and will handle switch, break, and
-  * continue correctly.*)
-val computeCFGInfo: fundec -> bool -> unit
-
 
 (** Create a deep copy of a function. There should be no sharing between the
  * copy and the original function *)
@@ -351,9 +357,9 @@ val invalidStmt: stmt
   *
   * This map replaces [gccBuiltins] and [msvcBuiltins] in previous
   * versions of CIL.*)
-module BuiltinFunctions :
-  Computation.HASHTBL_OUTPUT with type key = string
-			     and type data = typ * typ list * bool
+module Builtin_functions :
+  State_builder.Hashtbl with type key = string
+			and type data = typ * typ list * bool
 
 (** This is used as the location of the prototypes of builtin functions. *)
 val builtinLoc: location
@@ -364,7 +370,7 @@ val range_loc: location -> location -> location
 (** {b Values for manipulating initializers} *)
 
 (** Make a initializer for zero-ing a data type *)
-val makeZeroInit: typ -> init
+val makeZeroInit: loc:location -> typ -> init
 
 (** Fold over the list of initializers in a Compound (not also the nested
  * ones). [doinit] is called on every present initializer, even if it is of
@@ -507,6 +513,9 @@ val separateStorageModifiers: attribute list -> attribute list * attribute list
 
 (** True if the argument is a character type (i.e. plain, signed or unsigned) *)
 val isCharType: typ -> bool
+
+(** True if the argument is a short type (i.e. signed or unsigned) *)
+val isShortType: typ -> bool
 
 (** True if the argument is a pointer to a character type
     (i.e. plain, signed or unsigned) *)
@@ -658,13 +667,15 @@ val makeVarinfo:
 *)
 val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
 
-(** Make a local variable and add it to a function's slocals (only if insert =
-    true, which is the default). Make sure you know what you are doing if you
-    set insert=false.
+(** Make a local variable and add it to a function's slocals and to the given
+    block (only if insert = true, which is the default).
+    Make sure you know what you are doing if you set insert=false.
     [generated] is passed to {!Cil.makeVarinfo}.
+    The variable is attached to the toplevel block if [scope] is not specified.
  *)
 val makeLocalVar:
-  fundec -> ?generated:bool -> ?insert:bool -> string -> typ -> varinfo
+  fundec -> ?scope:block -> ?generated:bool -> ?insert:bool
+  -> string -> typ -> varinfo
 
 (** Make a pseudo-variable to use as placeholder in term to expression
     conversions. Its logic field is set. They are always generated. *)
@@ -674,9 +685,12 @@ val makePseudoVar: typ -> varinfo
     the temporary variable will be generated based on the given name hint so
     that to avoid conflicts with other locals.
     Optionally, you can give the variable a description of its contents.
-    Temporary variables are always generated.
+    Temporary variables are always considered as generated variables.
+    If [insert] is true (the default), the variable will be inserted
+    among other locals of the function. The value for [insert] should
+    only be changed if you are completely sure this is not useful.
  *)
-val makeTempVar: fundec -> ?name:string -> ?descr:string ->
+val makeTempVar: fundec -> ?insert:bool -> ?name:string -> ?descr:string ->
                  ?descrpure:bool -> typ -> varinfo
 
 (** Make a global variable. Your responsibility to make sure that the name
@@ -689,12 +703,6 @@ val makeGlobalVar: ?logic:bool -> ?generated:bool -> string -> typ -> varinfo
  *)
 val copyVarinfo: varinfo -> string -> varinfo
 
-val varinfo_from_vid: int -> varinfo
-  (** @return the varinfo corresponding to the given id.
-      @raise Not_found if the given id does not match any varinfo. *)
-
-val varinfos_self: Project.Computation.t
-  (** State of the varinfos table. *)
 
 (** Returns the last offset in the chain. *)
 val lastOffset: offset -> offset
@@ -744,29 +752,32 @@ val typeTermOffset: logic_type -> term_offset -> logic_type
 (* Construct integer constants *)
 
 (** 0 *)
-val zero: exp
+val zero: loc:Location.t -> exp
 
 (** 1 *)
-val one: exp
+val one: loc:Location.t -> exp
 
 (** -1 *)
-val mone: exp
+val mone: loc:Location.t -> exp
 
 
 (** Construct an integer of a given kind, using OCaml's int64 type. If needed
   * it will truncate the integer to be within the representable range for the
-  * given kind. *)
-val kinteger64: ikind -> int64 -> exp
+  * given kind. The integer can have an optional literal representation. *)
+val kinteger64_repr: loc:location -> ikind -> int64 -> string option -> exp
+
+(** Construct an integer of a given kind without literal representation. *)
+val kinteger64: loc:location -> ikind -> int64 -> exp
 
 (** Construct an integer of a given kind. Converts the integer to int64 and
   * then uses kinteger64. This might truncate the value if you use a kind
   * that cannot represent the given integer. This can only happen for one of
   * the Char or Short kinds *)
-val kinteger: ikind -> int -> exp
+val kinteger: loc:location -> ikind -> int -> exp
 
 (** Construct an integer of kind IInt. You can use this always since the
     OCaml integers are 31 bits and are guaranteed to fit in an IInt *)
-val integer: int -> exp
+val integer: loc:location -> int -> exp
 
 
 (** True if the given expression is a (possibly cast'ed)
@@ -796,10 +807,6 @@ val isLogicZero: term -> bool
 (** True if the given term is [\null] or a constant null pointer*)
 val isLogicNull: term -> bool
 
-(** @deprecated Since Beryllium-20090902, use
-    !Db.Properties.Status.code_annotation *)
-val get_status : code_annotation -> annot_status
-
 (** gives the value of a wide char literal. *)
 val reduce_multichar: Cil_types.typ -> int64 list -> int64
 
@@ -813,12 +820,11 @@ val interpret_character_constant:
   Returns CInt64(sign-extened c, IInt, None) *)
 val charConstToInt: char -> constant
 
-(** Do constant folding on an expression. If the first argument is true then
+(** Do constant folding on an expression. If the first argument is [true] then
     will also compute compiler-dependent expressions such as sizeof.
     See also {!Cil.constFoldVisitor}, which will run constFold on all
     expressions in a given AST node.*)
 val constFold: bool -> exp -> exp
-
 
 (** Do constant folding on an term at toplevel only.
     This uses compiler-dependent informations and will
@@ -832,9 +838,9 @@ val constFoldTermNodeAtTop:  term_node -> term_node
 val constFoldTerm: bool -> term -> term
 
 (** Do constant folding on a binary operation. The bulk of the work done by
-    [constFold] is done here. If the first argument is true then
+    [constFold] is done here. If the second argument is true then
     will also compute compiler-dependent expressions such as [sizeof]. *)
-val constFoldBinOp: bool -> binop -> exp -> exp -> typ -> exp
+val constFoldBinOp: loc:location -> bool -> binop -> exp -> exp -> typ -> exp
 
 (** [true] if the two expressions are syntactically the same. *)
 val compareExp: exp -> exp -> bool
@@ -853,13 +859,13 @@ val var: varinfo -> lval
 
 (** Make an AddrOf. Given an lvalue of type T will give back an expression of
     type ptr(T). It optimizes somewhat expressions like "& v" and "& v[0]"  *)
-val mkAddrOf: lval -> exp
+val mkAddrOf: loc:location -> lval -> exp
 
 
 (** Like mkAddrOf except if the type of lval is an array then it uses
     StartOf. This is the right operation for getting a pointer to the start
     of the storage denoted by lval. *)
-val mkAddrOrStartOf: lval -> exp
+val mkAddrOrStartOf: loc:location -> lval -> exp
 
 (** Make a Mem, while optimizing AddrOf. The type of the addr must be
     TPtr(t) and the type of the resulting lval is t. Note that in CIL the
@@ -872,7 +878,7 @@ val mkMem: addr:exp -> off:offset -> lval
 val mkTermMem: addr:term -> off:term_offset -> term_lval
 
 (** Make an expression that is a string constant (of pointer type) *)
-val mkString: string -> exp
+val mkString: loc:location -> string -> exp
 
 (** [true] if both types are not equivalent. *)
 val need_cast: typ -> typ -> bool
@@ -906,7 +912,7 @@ val stripCastsButLastInfo: exp -> exp
 val exp_info_of_term: term -> exp_info
 
 (** Constructs a term from a term node and an expression information *)
-val term_of_exp_info: term_node -> exp_info -> term
+val term_of_exp_info: location -> term_node -> exp_info -> term
 
 (** Map some function on underlying expression if Info or else on expression *)
 val map_under_info: (exp -> exp) -> exp -> exp
@@ -931,8 +937,10 @@ val is_fully_arithmetic: typ -> bool
 
 (** Convert a string representing a C integer literal to an expression.
  * Handles the prefixes 0x and 0 and the suffixes L, U, UL, LL, ULL *)
-val parseInt: string -> exp
+val parseInt: loc:location -> string -> exp
 
+(** true if the given variable appears in the expression. *)
+val appears_in_expr: varinfo -> exp -> bool
 
 (**********************************************)
 (** {b Values for manipulating statements} *)
@@ -941,7 +949,7 @@ val parseInt: string -> exp
     if [valid_sid] is false (the default),
     or to a valid sid if [valid_sid] is true,
     and [labels], [succs] and [preds] to the empty list *)
-val mkStmt: ?valid_sid:bool -> stmtkind -> stmt
+val mkStmt: ?ghost:bool -> ?valid_sid:bool -> stmtkind -> stmt
 
 (* make the [new_stmtkind] changing the CFG relatively to [ref_stmt] *)
 val mkStmtCfg: before:bool -> new_stmtkind:stmtkind -> ref_stmt:stmt -> stmt
@@ -954,14 +962,14 @@ val mkBlock: stmt list -> block
 val mkStmtCfgBlock: stmt list -> stmt
 
 (** Construct a statement consisting of just one instruction *)
-val mkStmtOneInstr: instr -> stmt
+val mkStmtOneInstr: ?ghost:bool -> instr -> stmt
 
 (** Try to compress statements so as to get maximal basic blocks.
  * use this instead of List.@ because you get fewer basic blocks *)
 (*val compactStmts: stmt list -> stmt list*)
 
 (** Returns an empty statement (of kind [Instr]) *)
-val mkEmptyStmt: ?loc:location -> unit -> stmt
+val mkEmptyStmt: ?ghost:bool -> ?loc:location -> unit -> stmt
 
 (** A instr to serve as a placeholder *)
 val dummyInstr: instr
@@ -986,7 +994,7 @@ val mkFor: start:stmt list -> guard:exp -> next: stmt list ->
 
 (** creates a block with empty attributes from an unspecified sequence. *)
 val block_from_unspecified_sequence:
-  (stmt * lval list * lval list * lval list) list -> block
+  (stmt * lval list * lval list * lval list * stmt ref list) list -> block
 
 (**************************************************)
 (** {b Values for manipulating attributes} *)
@@ -1001,6 +1009,9 @@ type attributeClass =
         (** Attribute of a function type. If argument is true and we are on
             MSVC then the attribute is printed just before the function name *)
   | AttrType  (** Attribute of a type *)
+
+val register_shallow_attribute: string -> unit
+  (** Register an attribute that will never be pretty printed. *)
 
 val registerAttribute: string -> attributeClass -> unit
   (** Add a new attribute with a specified class *)
@@ -1117,6 +1128,31 @@ type 'a visitAction =
                                            the node if any of the children
                                            has changed and then apply the
                                            function on the node *)
+
+
+val mk_behavior : 
+  ?name:string -> 
+  ?assumes:('a list) -> 
+  ?requires:('a list) -> 
+  ?post_cond:((termination_kind * 'a) list) -> 
+  ?assigns:('b Cil_types.assigns ) ->
+  ?extended:((string * int * 'a list) list) -> 
+  unit -> 
+  ('a, 'b) Cil_types.behavior
+  (** @since Carbon-20101201
+      returns a dummy behavior with the default name [Cil.default_behavior_name].
+      invariant: [b_assumes] must always be
+      empty for behavior named [Cil.default_behavior_name] *)
+
+val default_behavior_name: string
+  (** @since Carbon-20101201  *)
+
+val is_default_behavior: ('a,'b) behavior -> bool
+val find_default_behavior: funspec -> funbehavior option
+  (** @since Carbon-20101201  *)
+
+val find_default_requires: ('a, 'b) behavior list -> 'a list
+  (** @since Carbon-20101201  *)
 
 
 type visitor_behavior
@@ -1331,6 +1367,13 @@ class type cilVisitor = object
 
         {b NB:} for copy visitor, the stmt is the original one (use
         [get_stmt] to obtain the corresponding copy)
+        @deprecated Carbon-20101201 use current_kinstr instead
+     *)
+
+  method current_kinstr: kinstr
+    (** [Kstmt stmt] when visiting statement stmt, [Kglobal] when called outside
+        of a statement.
+        @since Carbon-20101201
      *)
 
   method push_stmt : stmt -> unit
@@ -1392,8 +1435,11 @@ class type cilVisitor = object
   method vslice_pragma: term slice_pragma -> term slice_pragma visitAction
   method vimpact_pragma: term impact_pragma -> term impact_pragma visitAction
 
-  method vzone:
-    identified_term zone -> identified_term zone visitAction
+  method vdeps:
+    identified_term deps -> identified_term deps visitAction
+
+  method vfrom:
+    identified_term from -> identified_term from visitAction
 
   method vcode_annot: code_annotation -> code_annotation visitAction
 
@@ -1407,11 +1453,6 @@ class type cilVisitor = object
   (** get the queue of actions to be performed at the end of a full copy.
       @plugin development guide *)
   method get_filling_actions: (unit -> unit) Queue.t
-
-  (** Used at the beginning of the visit of a whole file to update
-      global logic tables with copied informations when needed.
-   *)
-  method set_logic_tables: unit -> unit
 
 end
 
@@ -1480,6 +1521,8 @@ val visitCilFunction: cilVisitor -> fundec -> fundec
 (* Visit an expression *)
 val visitCilExpr: cilVisitor -> exp -> exp
 
+val visitCilEnumInfo: cilVisitor -> enuminfo -> enuminfo
+
 (** Visit an lvalue *)
 val visitCilLval: cilVisitor -> lval -> lval
 
@@ -1514,6 +1557,12 @@ val visitCilAttributes: cilVisitor -> attribute list -> attribute list
 val visitCilAnnotation: cilVisitor -> global_annotation -> global_annotation
 
 val visitCilCodeAnnotation: cilVisitor -> code_annotation -> code_annotation
+
+val visitCilDeps:
+  cilVisitor -> identified_term deps -> identified_term deps
+
+val visitCilFrom:
+  cilVisitor -> identified_term from -> identified_term from
 
 val visitCilAssigns:
   cilVisitor -> identified_term assigns -> identified_term assigns
@@ -1569,7 +1618,7 @@ val forgcc: string -> string
 (** A reference to the current location. If you are careful to set this to
  * the current location then you can use some built-in logging functions that
  * will print the location. *)
-module CurrentLoc: Computation.REF_OUTPUT with type data = location
+module CurrentLoc: State_builder.Ref with type data = location
 
 (** A reference to the current global being visited *)
 val currentGlobal: global ref
@@ -1615,11 +1664,14 @@ val d_storage: Format.formatter -> storage -> unit
 (** Pretty-print a constant *)
 val d_const: Format.formatter -> constant -> unit
 
-(** returns a dummy specification *)
+(** @return a dummy specification *)
 val empty_funspec : unit -> funspec
 
-(** returns true if the given spec is empty. *)
+(** @return true if the given spec is empty. *)
 val is_empty_funspec: funspec -> bool
+
+(** @return true if the given behavior is empty. *)
+val is_empty_behavior: funbehavior -> bool
 
 val derefStarLevel: int
 val indexLevel: int
@@ -1639,6 +1691,9 @@ val getParenthLevel: exp -> int
 
 val getParenthLevelLogic:term_node -> int
 
+(** keyword corresponding to a given termination kind. *)
+val get_termination_kind_name: termination_kind -> string
+
 (** A printer interface for CIL trees. Create instantiations of
  * this type by specializing the class {!defaultCilPrinterClass}. *)
 (** A printer interface for CIL trees. Create instantiations of
@@ -1655,6 +1710,9 @@ class type cilPrinter = object
 
   method current_function: varinfo option
     (** Returns the [varinfo] corresponding to the function being printed *)
+
+  method current_behavior: funbehavior option
+    (** Returns the [funbehavior] being pretty-printed. *)
 
   method has_annot: bool
     (** true if [current_stmt] has some annotations attached to it. *)
@@ -1701,8 +1759,13 @@ class type cilPrinter = object
 
   method requireBraces: block -> bool
 
-  method pBlock: ?toplevel:bool -> Format.formatter -> block -> unit
-    (** Print a block. *)
+  method pBlock: ?nobrace:bool -> ?forcenewline:bool ->
+    Format.formatter -> block -> unit
+    (** Prints a block.
+        @param nobrace defaults to true and indicates
+        that no braces will be put around the block.
+        @param forcenewline defaults to false and indicates that each
+        statement should be put on its own line. *)
 
   method pGlobal: Format.formatter -> global -> unit
     (** Global (vars, types, etc.). This can be slow. *)
@@ -1817,16 +1880,15 @@ class type cilPrinter = object
 
   method pSpec: Format.formatter -> funspec -> unit
 
-  method pZone: Format.formatter -> identified_term zone -> unit
-
     (** pAssigns is parameterized by its introducing keyword
         (i.e. loop_assigns or assigns)
      *)
-  method pAssigns:
-    string -> Format.formatter -> identified_term assigns list -> unit
+   method pAssigns:
+     string -> Format.formatter -> identified_term assigns -> unit
 
   (** prints an assignment with its dependencies. *)
-  method pFrom: string -> Format.formatter -> identified_term assigns -> unit
+   method pFrom:
+     string -> Format.formatter -> identified_term from -> unit
 
   method pStatus : Format.formatter -> Cil_types.annot_status -> unit
 
@@ -1907,6 +1969,18 @@ val printCode_annotation:
 val printFunspec: cilPrinter -> Format.formatter -> funspec -> unit
 val printAnnotation: cilPrinter -> Format.formatter -> global_annotation -> unit
 
+(** pretty prints an assigns clause. The string is the keyword used ([assigns]
+    or [loop assigns])
+*)
+val printAssigns: 
+  cilPrinter -> string -> Format.formatter -> identified_term assigns -> unit
+
+(** pretty prints a functional dependencies clause. 
+    The string is the keyword used ([assigns] or [loop assigns])
+*)
+val printFrom: 
+  cilPrinter -> string -> Format.formatter -> identified_term from -> unit
+
 (** Pretty-print a type using {!Cil.defaultCilPrinter} *)
 val d_type: Format.formatter -> typ -> unit
 
@@ -1971,11 +2045,16 @@ val d_annotation_status: Format.formatter -> annotation_status -> unit
 
 val d_status: Format.formatter -> annot_status -> unit
 val d_predicate_named: Format.formatter -> predicate named -> unit
+val d_identified_predicate: Format.formatter -> identified_predicate -> unit
 val d_code_annotation: Format.formatter -> code_annotation -> unit
 val d_funspec: Format.formatter -> funspec -> unit
 val d_annotation: Format.formatter -> global_annotation -> unit
 val d_decreases: Format.formatter -> term variant -> unit
 val d_loop_variant: Format.formatter -> term variant -> unit
+val d_assigns: Format.formatter -> identified_term assigns -> unit
+val d_from: Format.formatter -> identified_term from -> unit
+val d_loop_assigns: Format.formatter -> identified_term assigns -> unit
+val d_loop_from: Format.formatter -> identified_term from -> unit
 
 (** Versions of the above pretty printers, that don't print #line directives *)
 val dn_exp       : Format.formatter -> exp -> unit
@@ -2075,12 +2154,24 @@ val empty_size_cache : unit -> bitsSizeofTypCache
  * call {!Cil.initCIL}. Remember that on GCC sizeof(void) is 1! *)
 val bitsSizeOf: typ -> int
 
+(* Returns the number of bytes to represent the given integer kind depending
+   on the curretn machdep. *)
+val bytesSizeOfInt: ikind -> int
+
+(* Returns the signedness of the given integer kind depending
+   on the curretn machdep. *)
+val isSigned: ikind -> bool
+
+(* Returns a unique number representing the integer
+   conversion rank. *)
+val rank: ikind -> int
+
 val truncateInteger64: ikind -> int64 -> int64 * bool
 
 (** The size of a type, in bytes. Returns a constant expression or a "sizeof"
  * expression if it cannot compute the size. This function is architecture
  * dependent, so you should only call this after you call {!Cil.initCIL}.  *)
-val sizeOf: typ -> exp
+val sizeOf: loc:location -> typ -> exp
 
 (** The size of a type, in bytes. Raises {!Cil.SizeOfError} when it cannot
     compute the size. *)
@@ -2182,17 +2273,17 @@ val lconstant : ?loc:location -> Int64.t -> term
 val close_predicate : predicate named -> predicate named
 
 (** extract [varinfo] elements from an [exp] *)
-val extract_varinfos_from_exp : exp -> Cilutil.VarinfoSet.t
+val extract_varinfos_from_exp : exp -> Varinfo.Set.t
 
 (** extract [varinfo] elements from an [lval] *)
-val extract_varinfos_from_lval : lval -> Cilutil.VarinfoSet.t
+val extract_varinfos_from_lval : lval -> Varinfo.Set.t
 
 (** extract [logic_var] elements from a [term] *)
-val extract_free_logicvars_from_term : term -> Cilutil.LogicVarSet.t
+val extract_free_logicvars_from_term : term -> Logic_var.Set.t
 
 (** extract [logic_var] elements from a [predicate] *)
 val extract_free_logicvars_from_predicate :
-  predicate named -> Cilutil.LogicVarSet.t
+  predicate named -> Logic_var.Set.t
 
 (** creates a visitor that will replace in place uses of var in the first
     list by their counterpart in the second list.

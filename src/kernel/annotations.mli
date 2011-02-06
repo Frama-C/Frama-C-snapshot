@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,35 +21,37 @@
 (**************************************************************************)
 
 (** Annotations associated with a statement.
+    The AST should be computed before calling functions of this module.
     @plugin development guide *)
 
 open Cil_types
 open Db_types
 
-val add: 
-  stmt -> Project.Computation.t list -> rooted_code_annotation before_after -> 
-  unit
-    (** Associate one more annotation with the given stmt. 
+val get_code_annotation:
+  rooted_code_annotation before_after -> code_annotation
+(** extract the undecorated [code_annotation] from an annotation. *)
+
+(* TODO: why a list here? *)
+val add: stmt -> State.t list -> rooted_code_annotation before_after -> unit
+    (** Associate one more annotation with the given stmt.
 	The list is the states required for computing this binding.
-	See {!Computation.DASHTBL_OUTPUT.add} for details.
+	See {!State_builder.DASHTBL_OUTPUT.add} for details.
 	@modify Boron-20100401 *)
 
-val add_assert: 
-  stmt -> Project.Computation.t list -> before:bool -> predicate named -> unit
+val add_assert: stmt -> State.t list -> before:bool -> predicate named -> unit
   (** Associate one more assertion annotation with the given stmt.
       The list is the states required for computing this binding.
-      @modify Boron-20100401 *)
+      @modify Boron-20100401
+      @plugin development guide *)
 
-val add_alarm: 
-  stmt -> Project.Computation.t list -> before:bool -> Alarms.t -> 
-  predicate named -> unit
+val add_alarm:
+  stmt -> State.t list -> before:bool -> Alarms.t -> predicate named -> unit
   (** Associate one more alarm annotation with the given stmt.
       The list is the states required for computing this binding.
       @modify Boron-20100401 *)
 
-val replace: 
-  reset:bool -> 
-  stmt -> Project.Computation.t list -> rooted_code_annotation before_after -> 
+val replace:
+  reset:bool -> stmt -> State.t list -> rooted_code_annotation before_after ->
   unit
   (** Associate the given annotation with the given stmt.
       Previous annotations of this stmt disappear.
@@ -57,54 +59,51 @@ val replace:
       @modify Boron-20100401 *)
 
 val reset_stmt: reset:bool -> stmt -> unit
-  (** Erase all the annotations associated to the given stmt. 
+  (** Erase all the annotations associated to the given stmt.
       [reset] is [true] iff all the dependencies of all the bindings of this
       statement must be cleared.
       @modify Boron-20100401 *)
 
-val get: 
-  ?who: Project.Computation.t list -> stmt -> Project.Computation.t -> 
-  (rooted_code_annotation before_after * Project.Computation.t) list
+val get:
+  ?who: State.t list -> stmt -> State.t ->
+  (rooted_code_annotation before_after * State.t) list
     (** Return all the bindings associated with the stmt and state.
-	See {!Computation.DASHTBL_OUTPUT.find_all_local} for details.
+	See {!State_builder.DASHTBL_OUTPUT.find_all_local} for details.
 	@since Boron-20100401 *)
 
-val get_annotations: 
-  ?who: Project.Computation.t list -> stmt -> Project.Computation.t -> 
+val get_annotations:
+  ?who: State.t list -> stmt -> State.t ->
   rooted_code_annotation before_after list
-    (** Return all the annotations associated with the stmt and state.  
+    (** Return all the annotations associated with the stmt and state.
 	@since Boron-20100401 *)
 
-val get_all: 
-  ?who: Project.Computation.t list -> stmt -> 
-  (rooted_code_annotation before_after * Project.Computation.t) list
-    (** Return all the bindings associated with the stmt. 
+val get_all:
+  ?who: State.t list -> stmt ->
+  (rooted_code_annotation before_after * State.t) list
+    (** Return all the bindings associated with the stmt.
 	@modify Boron-20100401 *)
 
-val get_all_annotations: 
-  ?who: Project.Computation.t list -> stmt ->
+val get_all_annotations:
+  ?who: State.t list -> stmt ->
   rooted_code_annotation before_after list
-    (** Return all the annotations associated with the stmt. 
+    (** Return all the annotations associated with the stmt.
 	since Boron-20100401 *)
 
-val get_by_state: 
-  stmt -> 
-  (Project.Computation.t * rooted_code_annotation before_after list) list
-    (** Return all the annotations associated with the stmt 
+val get_by_state:
+  stmt -> (State.t * rooted_code_annotation before_after list) list
+    (** Return all the annotations associated with the stmt
 	and sorted by states.
 	@since Boron-20100401 *)
 
 val get_filter:
-  (code_annotation -> bool) -> stmt ->
-  rooted_code_annotation before_after list
+  (code_annotation -> bool) -> stmt -> rooted_code_annotation before_after list
     (** Returns all the annotation associated with the stmt that respects
         the given condition. Use it in conjunction with Logic_utils.is_*
         to retrieve a particular kind of annotations. *)
 
 val iter_stmt:
-  (Project.Computation.t -> rooted_code_annotation before_after -> unit) 
-  -> stmt
-  -> unit
+  (State.t option -> rooted_code_annotation before_after * State.t -> unit) ->
+  stmt -> unit
   (** Iterator on each bindings of the given statement.
       @since Boron-20100401 *)
 
@@ -115,9 +114,8 @@ val single_iter_stmt:
       @since Boron-20100401 *)
 
 val fold_stmt:
-  (Project.Computation.t -> rooted_code_annotation before_after -> 'a -> 'a) 
-  -> stmt
-  -> 'a -> 'a
+  (State.t option -> rooted_code_annotation before_after * State.t -> 'a -> 'a)
+  -> stmt -> 'a -> 'a
   (** Folder on each bindings of the given statement
       @since Boron-20100401 *)
 
@@ -128,40 +126,33 @@ val single_fold_stmt:
       @since Boron-20100401 *)
 
 val iter:
-  (stmt -> Project.Computation.t -> rooted_code_annotation before_after -> 
-     unit) 
+  (stmt -> State.t option ->
+   rooted_code_annotation before_after * State.t -> unit)
   -> unit
-  (** Iterator on each bindings.
-      @since Boron-20100401 *)
+(** Iterator on each bindings.
+    @since Boron-20100401 *)
 
 val fold:
-  (stmt -> Project.Computation.t -> rooted_code_annotation before_after -> 
-     'a -> 'a) 
+  (stmt -> State.t option ->
+   rooted_code_annotation before_after * State.t -> 'a -> 'a)
   -> 'a -> 'a
   (** Folder on each bindings.
       @since Boron-20100401 *)
 
 val filter:
   reset:bool ->
-  (stmt -> Project.Computation.t -> rooted_code_annotation before_after ->
-  bool)
-  -> stmt -> unit
+  (stmt -> State.t option -> rooted_code_annotation before_after -> bool) ->
+  stmt -> unit
   (** Filter the bindings associated to the given statement.
-      See {!Computation.DASHTBL_OUTPUT.filter} for details.
+      See {!State_builder.DASHTBL_OUTPUT.filter} for details.
       @since Boron-20100401 *)
 
-val iter_stmt:
-  (Project.Computation.t -> rooted_code_annotation before_after -> unit)
-  -> stmt -> unit
-  (** Iterator on each bindings associated to the given statement
-      @since Boron-20100401 *)
-  
-val self: Project.Computation.t
+val self: State.t
   (** Internal states of the table associated annotations to statements.
       @since Boron-20100401 *)
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

@@ -75,7 +75,11 @@ let mergeInlines = true
 
 let mergeInlinesRepeat = mergeInlines && true
 
-let mergeInlinesWithAlphaConvert = mergeInlines && true
+(* This may become an option of Frama-C. The default value has been changed
+   to false after Boron to fix bts#524.
+*)
+let mergeInlinesWithAlphaConvert = mergeInlines && false
+
 
 (* when true, merge duplicate definitions of externally-visible functions;
  * this uses a mechanism which is faster than the one for inline functions,
@@ -134,8 +138,13 @@ let mkSelfNode (eq: (int * string, 'a node) H.t) (* The equivalence table *)
                   nrep  = res; nmergedSyns = false; }
   in
   H.add eq (fidx, name) res; (* Add it to the proper table *)
-  if mergeSynonyms && not (prefix "__anon" name) then
-    H.add syn name res;
+  (* mergeSynonyms is not active for anonymous types, probably because it is
+     licit to have two distinct anonymous types in two different files
+     (which should not be merged). However, for anonymous enums, they
+     can, and are, in fact merged by CIL. Hence, we permit the merging of
+     anonymous enums with the same base name *)
+  if mergeSynonyms && (not (prefix "__anon" name) || prefix "__anonenum" name)
+  then H.add syn name res;
   res
 
 let debugFind = false
@@ -306,7 +315,7 @@ let lcEq: (int * string, logic_ctor_info node) H.t = H.create 111 (* Logic const
 let laEq: (int * string, (string * global_annotation list) node) H.t = H.create 111
   (* Axiomatics *)
 let llEq: (int * string, (string * (bool * logic_label list * string list *
-                          predicate named)) node) H.t = H.create 111
+                          predicate named * location)) node) H.t = H.create 111
 
 exception NotHere
 let translate table data get_info =
@@ -351,7 +360,7 @@ let ltSyn: (string, logic_type_info node) H.t = H.create 111
 let lcSyn: (string, logic_ctor_info node) H.t = H.create 111
 let laSyn: (string, (string * global_annotation list) node) H.t = H.create 111
 let llSyn: (string, (string * (bool * logic_label list * string list *
-                                 predicate named)) node) H.t = H.create 111
+                                 predicate named * location)) node) H.t = H.create 111
 
 (** A global environment for variables. Put in here only the non-static
   * variables, indexed by their name.  *)
@@ -515,12 +524,14 @@ let init ?(all=true) () =
   H.clear originalVarNames;
   if all then Logic_env.prepare_tables ()
 
-let rec global_annot_pass1 l g = match g with
-| Daxiomatic(id,decls) ->
+let rec global_annot_pass1 g = match g with
+| Daxiomatic(id,decls,l) ->
+    CurrentLoc.set l;
     ignore (getNode laEq laSyn !currentFidx id (id,decls)
               (Some (l,!currentDeclIdx)));
-     List.iter (global_annot_pass1 l) decls
-| Dfun_or_pred li ->
+     List.iter global_annot_pass1 decls
+| Dfun_or_pred (li,l) ->
+    CurrentLoc.set l;
     (* FIXME: this is a copy of above, is it still correct for predicate ? *)
     let mynode = getNode lfEq lfSyn !currentFidx li.l_var_info.lv_name li None in
     (* NB: in case of mix decl/def it is the decl location that is taken. *)
@@ -528,27 +539,33 @@ let rec global_annot_pass1 l g = match g with
       ignore (getNode lfEq lfSyn !currentFidx li.l_var_info.lv_name li
                (Some (l, !currentDeclIdx)))
 
-| Dtype_annot pi ->
+| Dtype_annot (pi,l) ->
+    CurrentLoc.set l;
     ignore (getNode lfEq lfSyn !currentFidx pi.l_var_info.lv_name pi
               (Some (l, !currentDeclIdx)))
-| Dinvariant pi  ->
+| Dinvariant (pi,l)  ->
+    CurrentLoc.set l;
     ignore (getNode lfEq lfSyn !currentFidx pi.l_var_info.lv_name pi
               (Some (l, !currentDeclIdx)))
-| Dtype info ->
+| Dtype (info,l) ->
+    CurrentLoc.set l;
     ignore (getNode ltEq ltSyn !currentFidx info.lt_name info
               (Some (l, !currentDeclIdx)))
 
-| Dlemma (n,is_ax,labs,typs,st) ->
-    ignore (getNode llEq llSyn !currentFidx n (n,(is_ax,labs,typs,st))
+| Dlemma (n,is_ax,labs,typs,st,l) ->
+    CurrentLoc.set l;
+    ignore (getNode llEq llSyn !currentFidx n (n,(is_ax,labs,typs,st,l))
               (Some (l, !currentDeclIdx)))
-
-
 
 (* Some enumerations have to be turned into an integer. We implement this by
  * introducing a special enumeration type which we'll recognize later to be
  * an integer *)
 let intEnumInfo =
-  { ename = "!!!intEnumInfo!!!"; (* This is otherwise invalid *)
+  let name = "!!!intEnumInfo!!!"
+    (* invalid C name. Can't clash with anything. *)
+  in
+  { eorig_name = name;
+    ename = name;
     eitems = [];
     eattr = [];
     ereferenced = false;
@@ -556,7 +573,7 @@ let intEnumInfo =
 (* And add it to the equivalence graph *)
 let intEnumInfoNode =
   getNode eEq eSyn 0 intEnumInfo.ename intEnumInfo
-                     (Some (Cilutil.locUnknown, 0))
+                     (Some (Cil_datatype.Location.unknown, 0))
 
     (* Combine the types. Raises the Failure exception with an error message.
      * isdef says whether the new type is for a definition *)
@@ -569,6 +586,10 @@ type combineWhat =
                    * prototype *)
   | CombineOther
 
+let same_int64 e1 e2 =
+  match (constFold true e1).enode, (constFold true e2).enode with
+    | Const(CInt64(i, _, _)), Const(CInt64(i', _, _)) -> i = i'
+    | _ -> false
 
 let rec combineTypes (what: combineWhat)
     (oldfidx: int)  (oldt: typ)
@@ -577,20 +598,28 @@ let rec combineTypes (what: combineWhat)
   | TVoid olda, TVoid a -> TVoid (addAttributes olda a)
   | TInt (oldik, olda), TInt (ik, a) ->
       let combineIK oldk k =
-        if oldk == k then oldk else
-          (* GCC allows a function definition to have a more precise integer
-           * type than a prototype that says "int" *)
-          if not theMachine.msvcMode && oldk = IInt && bitsSizeOf t <= 32
-            && (what = CombineFunarg || what = CombineFunret)
+        if oldk == k
+        then oldk
+        else
+          if bytesSizeOfInt oldk=bytesSizeOfInt k && isSigned oldk=isSigned k
           then
-            k
-          else (
-            let msg =
-              Pretty_utils.sfprintf
-		"(different integer types %a and %a)"
-		d_type oldt d_type t
-            in
-            raise (Failure msg))
+            (* the types contain the same sort of values but are not equal.
+               For example on x86_16 machep unsigned short and unsigned int. *)
+            if rank oldk<rank k then k else oldk
+          else
+            (* GCC allows a function definition to have a more precise integer
+             * type than a prototype that says "int" *)
+            if not theMachine.msvcMode && oldk = IInt && bitsSizeOf t <= 32
+              && (what = CombineFunarg || what = CombineFunret)
+            then
+              k
+            else (
+              let msg =
+                Pretty_utils.sfprintf
+		  "(different integer types %a and %a)"
+		  d_type oldt d_type t
+              in
+              raise (Failure msg))
       in
       TInt (combineIK oldik ik, addAttributes olda a)
 
@@ -636,13 +665,7 @@ let rec combineTypes (what: combineWhat)
         | Some _, None -> oldsz
         | None, None -> oldsz
         | Some oldsz', Some sz' ->
-            let samesz =
-              match (constFold true oldsz').enode, (constFold true sz').enode
-              with
-                Const(CInt64(oldi, _, _)), Const(CInt64(i, _, _)) -> oldi = i
-              | _, _ -> false
-            in
-            if samesz then oldsz else
+            if same_int64 oldsz' sz' then oldsz else
               raise (Failure "(different array sizes)")
       in
       TArray (combbt, combinesz, empty_size_cache (), addAttributes olda a)
@@ -788,8 +811,8 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
           Pretty_utils.sfprintf
             "\n\tFailed assumption that %s and %s are isomorphic %s@?%a@?%a"
             (compFullName oldci) (compFullName ci) reason
-            dn_global (GCompTag(oldci,Cilutil.locUnknown))
-            dn_global (GCompTag(ci,Cilutil.locUnknown))
+            dn_global (GCompTag(oldci, Cil_datatype.Location.unknown))
+            dn_global (GCompTag(ci, Cil_datatype.Location.unknown))
         in
         raise (Failure msg)
     end else begin
@@ -828,14 +851,7 @@ and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
         (fun old_item item ->
            if old_item.einame <> item.einame then
              raise (Failure "(different names for enumeration items)");
-           let samev =
-             match ((constFold true old_item.eival).enode,
-                    (constFold true item.eival).enode)
-             with
-               Const(CInt64(oldi, _, _)), Const(CInt64(i, _, _)) -> oldi = i
-             | _ -> false
-           in
-           if not samev then
+           if not (same_int64 old_item.eival item.eival) then
              raise (Failure "(different values for enumeration items)"))
         oldei.eitems ei.eitems;
       (* Set the representative *)
@@ -979,13 +995,13 @@ let matchLogicLemma oldfidx (oldid, _ as oldnode) fidx (id, _ as node) =
   let lnode = getNode llEq llSyn fidx id node None in
   if oldlnode == lnode then ()
   else begin
-    let (oldid,(oldax,oldlabs,oldtyps,oldst)) = oldlnode.ndata in
+    let (oldid,(oldax,oldlabs,oldtyps,oldst,oldloc)) = oldlnode.ndata in
     let oldfidx = oldlnode.nfidx in
-    let (id,(ax,labs,typs,st)) = lnode.ndata in
+    let (id,(ax,labs,typs,st,loc)) = lnode.ndata in
     let fidx = lnode.nfidx in
     if Logic_utils.is_same_global_annotation
-      (Dlemma (oldid,oldax,oldlabs,oldtyps,oldst))
-      (Dlemma (id,ax,labs,typs,st))
+      (Dlemma (oldid,oldax,oldlabs,oldtyps,oldst,oldloc))
+      (Dlemma (id,ax,labs,typs,st,loc))
     then begin
       if oldfidx < fidx then
         lnode.nrep <- oldlnode.nrep
@@ -1150,7 +1166,7 @@ Previous@ was@ at@ %a@ (include from@ %s)@ %s]"
        | GAnnot (gannot,l) ->
            CurrentLoc.set l;
            incr currentDeclIdx;
-           global_annot_pass1 l gannot
+           global_annot_pass1 gannot
        | _ -> ())
     f.globals
 
@@ -1247,6 +1263,25 @@ let rename_associated_logic_var lv =
                        | Some lv' -> ChangeTo lv')
                   end
           end
+in
+let find_enumitem_replacement ei =
+  match findReplacement true eEq !currentFidx ei.eihost.ename with
+      None -> None
+    | Some (enum,_) ->
+        if enum == intEnumInfo then begin
+          (* Two different enums have been merged into an int type.
+             Switch to an integer constant. *)
+          match (constFold true ei.eival).enode with
+            | Const c -> Some c
+            | _ -> fatal "non constant value for an enum item"
+        end else begin
+          (* Merged with an isomorphic type. Find the appropriate enumitem *)
+          let n = Extlib.find_index (fun e -> e.einame = ei.einame)
+            ei.eihost.eitems in
+          let ei' = List.nth enum.eitems n in
+          assert (same_int64 ei.eival ei'.eival);
+          Some (CEnum ei')
+        end
 in
 object (self)
   inherit nopCilVisitor
@@ -1414,6 +1449,29 @@ object (self)
 
     | _ -> DoChildren
 
+  method vexpr e =
+    match e.enode with
+      | Const (CEnum ei) ->
+          (match find_enumitem_replacement ei with
+               None -> DoChildren
+             | Some c ->
+                 ChangeTo { e with enode = Const c })
+      | _ -> DoChildren
+
+  method vterm e =
+    match e.term_node with
+      | TConst(CEnum ei) ->
+          (match find_enumitem_replacement ei with
+               None -> DoChildren
+             | Some c ->
+                 let t = visitCilLogicType (self:>cilVisitor) e.term_type in
+                 ChangeTo
+                   { e with
+                       term_node = TConst c;
+                       term_type = t
+                   })
+      | _ -> DoChildren
+
   (* The Field offset might need to be changed to use new compinfo *)
   method voffs = function
       Field (f, o) -> begin
@@ -1540,8 +1598,9 @@ let collect_type_vars l =
 
 let rec logic_annot_pass2 ~in_axiomatic g a = match a with
 
-| Dfun_or_pred li ->
+| Dfun_or_pred (li,l) ->
     begin
+      CurrentLoc.set l;
       match findReplacement true lfEq !currentFidx li.l_var_info.lv_name with
 	| None ->
 	    if not in_axiomatic then
@@ -1551,8 +1610,9 @@ let rec logic_annot_pass2 ~in_axiomatic g a = match a with
 	    (* FIXME: should we perform same actions
 	       as the case Dlogic_reads above ? *)
     end
-| Dtype t ->
+| Dtype (t,l) ->
     begin
+      CurrentLoc.set l;
       match findReplacement true ltEq !currentFidx t.lt_name with
       | None ->
 	  if not in_axiomatic then
@@ -1561,8 +1621,9 @@ let rec logic_annot_pass2 ~in_axiomatic g a = match a with
             t.lt_name (H.find ltEq (!currentFidx,t.lt_name)).ndata
       | Some _ -> ()
     end
-| Dinvariant {l_var_info = {lv_name = n}} ->
+| Dinvariant ({l_var_info = {lv_name = n}},l) ->
     begin
+      CurrentLoc.set l;
       match findReplacement true lfEq !currentFidx n with
       | None ->
 	  assert (not in_axiomatic);
@@ -1570,26 +1631,30 @@ let rec logic_annot_pass2 ~in_axiomatic g a = match a with
           Logic_utils.add_logic_function (H.find lfEq (!currentFidx,n)).ndata
       | Some _ -> ()
     end
-| Dtype_annot n ->
+| Dtype_annot (n,l) ->
     begin
+      CurrentLoc.set l;
       match findReplacement true lfEq !currentFidx n.l_var_info.lv_name with
       | None ->
           let g = visitCilGlobal renameVisitor g in
 	  if not in_axiomatic then
             mergePushGlobals g;
-          Logic_utils.add_logic_function (H.find lfEq (!currentFidx,n.l_var_info.lv_name)).ndata
+          Logic_utils.add_logic_function
+            (H.find lfEq (!currentFidx,n.l_var_info.lv_name)).ndata
       | Some _ -> ()
     end
-| Dlemma (n,_,_,_,_) ->
+| Dlemma (n,_,_,_,_,l) ->
     begin
+      CurrentLoc.set l;
       match findReplacement true llEq !currentFidx n with
           None ->
             if not in_axiomatic then
               mergePushGlobals (visitCilGlobal renameVisitor g)
         | Some _ -> ()
     end
-| Daxiomatic(n,l) ->
+| Daxiomatic(n,l,loc) ->
     begin
+      CurrentLoc.set loc;
       match findReplacement true laEq !currentFidx n with
           None ->
             assert (not in_axiomatic);
@@ -1616,7 +1681,7 @@ begin
      * computation in hopes of avoiding accidental collision.. *)
     match s.skind with
     | UnspecifiedSequence seq ->
-        131*(stmtListSum (List.map (fun (x,_,_,_) -> x) seq)) + 127
+        131*(stmtListSum (List.map (fun (x,_,_,_,_) -> x) seq)) + 127
     | Instr _ -> 13 + 67
     | Return(_) -> 17
     | Goto(_) -> 19
@@ -1924,9 +1989,11 @@ let oneFilePass2 (f: file) =
               miscState.lineDirectiveStyle <- None;
               (* Temporarily set the name to all functions in the same way *)
               let newname = fdec'.svar.vname in
-              fdec'.svar.vname <- "@@alphaname@@";
               (* If we must do alpha conversion then temporarily set the
-               * names of the local variables and formals in a standard way *)
+               * names of the function, local variables and formals in a
+	       * standard way *)
+              if mergeInlinesWithAlphaConvert then
+		fdec'.svar.vname <- "@@alphaname@@";
               let nameId = ref 0 in
               let oldNames : string list ref = ref [] in
               let renameOne (v: varinfo) =
@@ -2225,7 +2292,7 @@ let oneFilePass2 (f: file) =
 
 
 let merge_specs orig to_merge =
-  let initial = { orig with spec_requires = orig.spec_requires } in
+  let initial = { orig with spec_behavior = orig.spec_behavior } in
   let merge_one_spec spec =
     if is_same_spec initial spec then ()
     else Logic_utils.merge_funspec orig spec
@@ -2260,6 +2327,8 @@ match g with
 
 let merge (files: file list) (newname: string) : file =
   init ();
+
+  Cilmsg.push_errors ();
 
   (* Make the first pass over the files *)
   currentFidx := 0;
@@ -2314,19 +2383,23 @@ let merge (files: file list) (newname: string) : file =
   (* We have made many renaming changes and sometimes we have just guessed a
    * name wrong. Make sure now that the local names are unique. *)
   uniqueVarNames res;
-  if Cilmsg.had_errors () then
-    begin
-      Cilmsg.error "Error during linking@." ;
-      { fileName = newname;
-	globals = [];
-	globinit = None;
-	globinitcalled = false }
-    end
-  else
-    res
+  let res =
+    if Cilmsg.had_errors () then
+      begin
+        Cilmsg.error "Error during linking@." ;
+        { fileName = newname;
+	  globals = [];
+	  globinit = None;
+	  globinitcalled = false }
+      end
+    else
+      res
+  in
+  Cilmsg.pop_errors ();
+  res
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

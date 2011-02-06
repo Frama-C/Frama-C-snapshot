@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,6 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
+#include "assert.h"
+
 __attribute__ ((__noreturn__)) void __FC_abort (void) {
   Frama_C_abort ();
 }
@@ -28,5 +30,3 @@ void __FC_assert(char* file,int line,char*expr) {
   Frama_C_show_each_warning("Assertion may fail",file,line,expr);
   Frama_C_abort ();
 }
-
-

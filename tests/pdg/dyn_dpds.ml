@@ -11,7 +11,7 @@ let get_zones str_data (kinst, kf) =
   let loc =
     !Db.From.find_deps_no_transitivity
       (Cil_types.Kstmt kinst)
-      (Cil.new_exp (Cil_types.Lval lval))
+      (Cil.new_exp ~loc:Cil_datatype.Location.unknown (Cil_types.Lval lval))
   in
   loc
 ;;

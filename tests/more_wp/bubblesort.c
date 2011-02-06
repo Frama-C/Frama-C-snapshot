@@ -1,14 +1,14 @@
 int a[100];
 
  /*@
- predicate my_sorted_array(int * old_a, integer start_index, integer end_index) =
+ predicate my_sorted_array(int old_a[], integer start_index, integer end_index) =
    \forall integer k1, k2;
     start_index <= k1 <= k2 <= end_index ==> a[k1] <= a[k2];
 */
  
 
 /*@
- predicate all_smaller_than_the_last (int* old_a, integer start_index, integer end_index) =
+ predicate all_smaller_than_the_last (int old_a[], integer start_index, integer end_index) =
    \forall integer k1;
     start_index <= k1 < end_index ==> a[k1] <= a[end_index];
 */

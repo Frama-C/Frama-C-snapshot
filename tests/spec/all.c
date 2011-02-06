@@ -34,8 +34,16 @@
 
 /*@
   behavior b :
-   requires \valid(p);
    assumes \true;
+   requires \valid(p);
+   ensures 0 == 1 ;
+   assigns *p \from G ;
+*/                                                       // OK
+void h(int G,int*p) ;
+/*@
+  behavior b :
+   assumes \true;
+   requires \valid(p);
    ensures 0 == 1 ;
    assigns *p \from G = G + 77;
 */                                                       // KO
@@ -61,6 +69,11 @@ struct st { int a, b ; } ;
 /*@ axiomatic St { logic struct st fl(struct st s) ; } */ //OK
 /*@ ensures fl(s).a == \result.a ; */ // KO
 struct st fc (struct st s) {return s;}
+
+void fd(char *x) { 
+  /*@ assert (const char*)x == (char * const) x; */
+  return;
+}
 
 /*@ logic integer x = 1 ; */                              // OK
 /*@ axiomatic Test2 {logic integer y ;} */                // OK

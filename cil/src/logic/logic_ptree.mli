@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -71,12 +71,20 @@ type lexpr = {
 
 (* PL is for Parsed Logic *)
 (** kind of expression. *)
+and path_elt =
+    (** construct inside a functional update. *)
+  | PLpathField of string
+  | PLpathIndex of lexpr
+
+and update_term =
+  | PLupdateTerm of lexpr
+  | PLupdateCont of ((path_elt list) * update_term) list
 and lexpr_node =
     (* both terms and predicates *)
   | PLvar of string (** a variable *)
   | PLapp of string * string list * lexpr list (** an application. *)
       (* terms *)
-  | PLlambda of (logic_type * string) list * lexpr (** a lambda abstraction. *)
+  | PLlambda of quantifiers * lexpr (** a lambda abstraction. *)
   | PLlet of string * lexpr * lexpr (** local binding. *)
   | PLconstant of constant (** a constant. *)
   | PLunop of unop * lexpr (** unary operator. *)
@@ -99,8 +107,10 @@ and lexpr_node =
       (** coercion of an expression in a given type. *)
   | PLcoercionE of lexpr * lexpr
       (** coercion of the first expression into the type of the second one. *)
-  | PLupdate of lexpr * string * lexpr
+  | PLupdate of lexpr * (path_elt list) * update_term
       (** functional update of the field of a structure. *)
+  | PLinitIndex of (lexpr * lexpr) list (** array constructor. *)
+  | PLinitField of (string * lexpr) list (** struct/union constructor. *)
   | PLtypeof of lexpr (** type tag for an expression. *)
   | PLtype of logic_type (** type tag for a C type. *)
       (* predicates *)
@@ -119,7 +129,8 @@ and lexpr_node =
   | PLvalid of lexpr (** pointer is valid. *)
   | PLvalid_index of lexpr * lexpr
       (** [PLvalid_index(p,i)] indicates that accessing the [i]th element
-          of [p] is valid.*)
+          of [p] is valid.
+       *)
   | PLvalid_range of lexpr * lexpr * lexpr
       (** same as [PLvalid_index], but for a range of indices. *)
   | PLseparated of lexpr list
@@ -132,6 +143,8 @@ and lexpr_node =
   | PLcomprehension of lexpr * quantifiers * lexpr option
       (** set of expression defined in comprehension
           ({t \{ e | integer i; P(i)\}})*)
+  | PLsingleton of lexpr
+      (** singleton sets. *)
   | PLunion of lexpr list
       (** union of sets. *)
   | PLinter of lexpr list
@@ -213,6 +226,10 @@ and decl_node =
             represents a block of axiomatic definitions.*)
   | LDinvariant of string * lexpr (** global invariant. *)
   | LDtype_annot of type_annot    (** type invariant. *)
+  | LDvolatile of lexpr * (string option * string option)
+      (** volatile clause read/write. *)
+
+and deps = lexpr Cil_types.deps (** C locations. *)
 
 (** specification of a C function. *)
 type spec = (lexpr, lexpr, lexpr) Cil_types.spec
@@ -227,6 +244,7 @@ type variant = lexpr Cil_types.variant
 (** all kind of annotations*)
 type annot =
   | Adecl of decl list (** global annotation. *)
+  | Afor_spec of (location * string list * spec)
   | Aspec  (* the real spec is parsed afterwards.
               See cparser.mly (grammar rules involving SPEC) for
               more details.
@@ -235,6 +253,23 @@ type annot =
   | Aloop_annot of location * code_annot list (** loop annotation. *)
   | Aattribute_annot of location * string (** attribute annotation. *)
 
+
+(** ACSL extension for external spec file **)
+type ext_decl =
+  | Ext_decl of decl 
+  | Ext_macro of string * lexpr
+  | Ext_include of bool * string
+
+type ext_function = 
+  | Ext_spec of spec (* function spec *)
+  | Ext_loop_spec of string * annot (* loop annotation or
+			   code annotation relative to the loop body. *)
+  | Ext_stmt_spec of string * annot (* code annotation. *)
+  | Ext_glob of ext_decl
+
+type ext_module = string * ext_decl list * (string * ext_function list) list
+
+type ext_spec = ext_module list
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../../.."

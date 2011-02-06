@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,9 @@ open Cil
 open Callgraph
 open Options
 
+
+let entry_point_ref = ref None
+
 module Service =
   Service_graph.Make
     (struct
@@ -40,6 +43,9 @@ module Service =
              | _ -> `Style `Bold ]
 	 let equal v1 v2 = id v1 = id v2
 	 let hash = id
+	 let entry_point () = match !entry_point_ref with
+	   | None -> assert false
+	   | Some v -> v
        end
        let iter_vertex f = Hashtbl.iter (fun _ -> f)
        let iter_succ f _g v = Inthash.iter (fun _ -> f) v.cnCallees
@@ -49,36 +55,44 @@ module Service =
      end)
 
 module CG =
-  Computation.OptionRef
+  State_builder.Option_ref
     (Service.CallG.Datatype)
     (struct
        let name = name
        let dependencies = [ Ast.self ]
+       let kind = `Correctness
      end)
 
 let get_init_funcs cg =
+  (* already checked that this entry point is ok *)
   let entry_point_name = Parameters.MainFunction.get () in
   let init_funcs = (* entry point is always a root *)
-    Cilutil.StringSet.add entry_point_name (InitFunc.get ()) 
+    Datatype.String.Set.add entry_point_name (InitFunc.get ())
   in
   (* Add the callees of entry point as roots *)
-  Cilutil.StringSet.union 
-    (try 
-       let callees = 
-	 (Hashtbl.find cg entry_point_name).Callgraph.cnCallees
-       in
-       Inthash.fold (fun _ v acc -> match v.Callgraph.cnInfo with
-		     | Callgraph.NIVar ({vname=n},_) -> 
-			 Cilutil.StringSet.add n acc
-		     | _ -> acc)
-	 callees Cilutil.StringSet.empty
-     with Not_found -> Cilutil.StringSet.empty)
+  Datatype.String.Set.union
+    (try
+       let callees = (Hashtbl.find cg entry_point_name).Callgraph.cnCallees in
+       Inthash.fold
+	 (fun _ v acc -> match v.Callgraph.cnInfo with
+	 | Callgraph.NIVar ({vname=n},_) -> Datatype.String.Set.add n acc
+	 | _ -> acc)
+	 callees
+	 Datatype.String.Set.empty
+     with Not_found ->
+       Datatype.String.Set.empty)
     init_funcs
 
 let compute () =
   feedback "beginning analysis";
-  let p = Ast.get () in 
+  let p = Ast.get () in
+  (* fixes bts#587: check that Parameters.MainFunction.get is valid. *)
+  ignore (Globals.entry_point ());
   let cg = computeGraph p in
+  entry_point_ref :=
+    Some
+    (try Hashtbl.find cg (Parameters.MainFunction.get ())
+     with Not_found -> assert false);
   let init_funcs = get_init_funcs cg in
   let cg = Service.compute cg init_funcs in
   CG.mark_as_computed ();
@@ -88,7 +102,7 @@ let compute () =
 let get () = CG.memo compute
 (*
 module SG =
-  Computation.OptionRef
+  State_builder.OptionRef
     (Service.SG.Datatype)
     (struct
        let name = name ^ " (service only)"
@@ -97,7 +111,7 @@ module SG =
 
 let get_services () = SG.memo (fun () -> Service.compute_services (get ()))
 *)
-let dump () = 
+let dump () =
   let output =
 (*    if ServicesOnly.get () then
       let sg = get_services () in
@@ -116,15 +130,15 @@ let dump () =
     error
       "error while dumping the syntactic callgraph: %s"
       (Printexc.to_string e)
-    
-let () = 
+
+let () =
   Db.register_guarded_compute
     "Syntactic_Callgraph.dump"
     (fun () -> Filename.get () = "" || CG.is_computed ())
     Db.Syntactic_Callgraph.dump
     dump
 
-let () = 
+let () =
   (* Do not directly use [dump]: function in [Db] is guarded and apply only if
      required. *)
   Db.Main.extend (fun _fmt -> !Db.Syntactic_Callgraph.dump ())

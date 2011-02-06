@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: kinstr.ml,v 1.20 2009-02-13 07:59:30 uid562 Exp $ *)
 
 open Cil_types
 open Eval
@@ -96,7 +94,7 @@ let expr_to_kernel_function_state ~with_alarms state ~deps exp =
    try
       let deps, r = resolv_func_vinfo ~with_alarms deps state exp in
       Zone.out_some_or_bottom deps, r
-    with Leaf -> Zone.out_some_or_bottom deps, Kernel_function.Set.empty
+    with Leaf -> Zone.out_some_or_bottom deps, Kernel_function.Hptset.empty
 
 let expr_to_kernel_function kinstr  ~with_alarms ~deps exp =
   CilE.start_stmt kinstr;
@@ -116,32 +114,34 @@ exception Top_input
 let assigns_to_zone_inputs_state state assigns =
   try
     let treat_one_zone acc (_,ins) =
-      if ins = [] then raise Top_input;
-      List.fold_left
-	(fun acc term ->
-	  let loc_ins = 
-	    !Db.Properties.Interp.identified_term_zone_to_loc ~result:None
-	      state
-	      term
-	  in
-	  Zone.join 
-	    acc 
-	    (Locations.valid_enumerate_bits loc_ins))
-	acc
-	ins
+      match ins with 
+          FromAny -> raise Top_input
+        | From l ->
+          List.fold_left
+	    (fun acc term ->
+	      let loc_ins =
+	        !Db.Properties.Interp.identified_term_zone_to_loc ~result:None
+	          state
+	          term
+	      in
+	      Zone.join
+	        acc
+	        (Locations.valid_enumerate_bits loc_ins))
+	    acc
+	    l
     in
     match assigns with
-      [] -> Zone.bottom (*VP This corresponds to the old code (v1.9)
-                          Not sure this is what we really want, though.
-                        *)
-    | [Nothing,_] -> Zone.bottom
-    | _ -> 
-	List.fold_left treat_one_zone Zone.bottom assigns
-  with 
-    Top_input -> Zone.top 
+      WritesAny -> Zone.bottom  (*VP This corresponds to the old code 
+                                  (cvs rev 1.9)
+                                  Not sure this is what we really want, though.
+                                 *)
+    | Writes [] -> Zone.bottom
+    | Writes l  -> List.fold_left treat_one_zone Zone.bottom l
+  with
+    Top_input -> Zone.top
   | Invalid_argument "not an lvalue" ->
       CilE.warn_once "Failed to interpret assigns clause in inputs";
-       Zone.top 
+       Zone.top
 
 let lval_to_offsetmap  kinstr lv ~with_alarms =
   CilE.start_stmt kinstr;
@@ -150,13 +150,15 @@ let lval_to_offsetmap  kinstr lv ~with_alarms =
     (lval_to_loc ~with_alarms state lv)
   in
   let offsetmap =
-    Relations_type.Model.copy_offsetmap loc state
+    Relations_type.Model.copy_offsetmap ~with_alarms loc state
   in
   CilE.end_stmt ();
   offsetmap
 
-
-
+let lval_to_offsetmap_state state lv =
+  let with_alarms = CilE.warn_none_mode in
+  let loc = Locations.valid_part (lval_to_loc ~with_alarms state lv) in
+  Relations_type.Model.copy_offsetmap ~with_alarms loc state
 
 
 let () =
@@ -175,15 +177,16 @@ let () =
   Db.Value.lval_to_zone_state := lval_to_zone_state;
   Db.Value.lval_to_zone := lval_to_zone;
   Db.Value.lval_to_offsetmap := lval_to_offsetmap;
+  Db.Value.lval_to_offsetmap_state := lval_to_offsetmap_state;
   Db.Value.assigns_to_zone_inputs_state := assigns_to_zone_inputs_state;
   Db.Value.eval_expr := eval_expr;
   Db.Value.eval_lval :=
     (fun ~with_alarms deps state lval ->
-      let _, deps, r = eval_lval  ~with_alarms deps state lval in
+      let _, deps, r = eval_lval ~conflate_bottom:true ~with_alarms deps state lval in
       deps, r)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

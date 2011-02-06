@@ -3,9 +3,8 @@
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 let use_dot =
-  if (Unix.WEXITED 0) = Unix.system ("which dot > /dev/null 2>&1") then
-    true
-  else false
+  Sys.os_type <> "Win32" 
+  && (Unix.WEXITED 0) = Unix.system ("which dot > /dev/null 2>&1") 
 
 (* function to append [string_of_int n] on 3 char to basename. *)
 let nth_name basename n = 

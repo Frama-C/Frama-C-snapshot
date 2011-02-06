@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,22 +28,22 @@ module type Lattice_with_rehash = Lattice_With_Diff
 
 module Make
   (K : Key)
-    (Top_Param : Lattice_Set with type O.elt=K.t)
+  (Top_Param : Lattice_Set with type O.elt=K.t)
   (V : Lattice_with_rehash)
-  (L:sig val v : (K.t * V.t) list list end)
-  (Null_Behavior:sig val zone:bool end)
+  (L: sig val v : (K.t * V.t) list list end)
+  (Null_Behavior: sig val zone: bool end)
   =
 struct
+
 (*  module Top_Param = Make_Hashconsed_Lattice_Set(K) *)
 
-  module M = (* Mergemap.Make (K) *)
-    Ptmap.Make(K)(V)(struct let v = [] :: [K.null,V.top]::L.v end)
+  module M =
+    Hptmap.Make(K)(V)(Hptmap.Comp_unused)(struct let v = [] :: [K.null,V.top]::L.v end)
 
   module Top_Param = Top_Param
 
   type map_t = M.t
-  type t = Top of Top_Param.t * Origin.t | Map of map_t
-  type tt = t = Top of Top_Param.t * Origin.t | Map of map_t
+  type tt = Top of Top_Param.t * Origin.t | Map of map_t
     (* Invariant :
        [Top (s,_)] ok if [Top_Param.null] is not in [s]
        [Top (emptyset,_)] is injected to [Map (Null,Top)] *)
@@ -139,6 +139,29 @@ struct
 	  M.equal m1 m2
       | _ -> false
 
+  let compare =
+    if M.compare == Datatype.undefined ||
+      Top_Param.compare == Datatype.undefined ||
+      Origin.compare == Datatype.undefined
+    then (Kernel.debug "%s map_lattice, missing comparison function: %b %b %b"
+            M.name
+            (M.compare == Datatype.undefined)
+            (Top_Param.compare == Datatype.undefined)
+            (Origin.compare == Datatype.undefined);
+          Datatype.undefined)
+    else
+      fun m1 m2 ->
+        if m1 == m2 then 0
+        else match m1, m2 with
+          | Top _, Map _ -> -1
+          | Map _, Top _ -> 1
+          | Map m1, Map m2 -> M.compare m1 m2
+          | Top (s, a), Top (s', a') ->
+              let r = Top_Param.compare s s' in
+              if r = 0 then Origin.compare a a'
+              else r
+
+
   let is_bottom b = equal b bottom
 
   let check_join_assert = ref 0
@@ -191,8 +214,8 @@ struct
 	  pretty m1 pretty m2 pretty result;*)
 	result
 
-  let cached_fold ~cache ~f ~projection ~joiner ~empty =
-    let folded_f = M.cached_fold ~cache ~f ~joiner ~empty in
+  let cached_fold ~cache ~temporary ~f ~projection ~joiner ~empty =
+    let folded_f = M.cached_fold ~cache ~temporary ~f ~joiner ~empty in
     function m ->
       match m with
 	Top (Top_Param.Top, _) -> raise Error_Top
@@ -256,13 +279,47 @@ struct
     | Map m ->
         Map (M.fold (fun k _ acc -> if f k then acc else M.remove k acc) m m)
 
-  (* Ce code ne devrait plus perdre des origines. [BM] [PC] *)
-  let meet, narrow =
+  let meet m1 m2 =
+    if m1 == m2 then m1 else
+      match m1, m2 with
+      | Top (x1, a1), Top (x2, a2) ->
+	  let meet_topparam = Top_Param.meet x1 x2 in
+	  Top (meet_topparam, Origin.meet a1 a2)
+      | Top (Top_Param.Top, _), (Map _ as x)
+      | (Map _ as x),Top (Top_Param.Top, _) -> x
+      | Top (Top_Param.Set set, _), (Map _ as x)
+      | (Map _ as x), Top (Top_Param.Set set, _) ->
+          filter_base (fun v -> is_in_set ~set v) x
+      | Map m1, Map m2 ->
+	  let merge_key k v acc =
+	    add_or_bottom k (V.meet v (find_or_bottom k m2)) acc 
+	  in
+	  Map (M.fold merge_key m1 M.empty)
+
+(*
+  let narrow m1 m2 =
+    if m1 == m2 then m1 else
+      match m1, m2 with
+      | Top (x1, a1), Top (x2, a2) ->
+	  Top (Top_Param.narrow x1 x2, Origin.narrow a1 a2)
+      | Top (Top_Param.Top, _), (Map _ as x)
+      | (Map _ as x),Top (Top_Param.Top, _) -> x
+      | Top (Top_Param.Set set, _), (Map _ as x)
+      | (Map _ as x), Top (Top_Param.Set set, _) ->
+          filter_base (fun v -> is_in_set ~set v) x
+      | Map m1, Map m2 ->
+	  let merge_key k v acc =
+	    add_or_bottom k (V.narrow v (find_or_bottom k m2)) acc 
+	  in
+	  Map (M.fold merge_key m1 M.empty)
+*)
+
+
+let narrow =
     let intersect f origin m1 m2 =
       if m1 == m2 then m1 else
         match m1, m2 with
         | Top (x1, a1), Top (x2, a2) ->
-
 	    let meet_topparam = Top_Param.meet x1 x2 in
 	    Top (meet_topparam, origin x1 a1 x2 a2)
         | Top (Top_Param.Top, _), (Map _ as x)
@@ -274,16 +331,7 @@ struct
 	    let merge_key k v acc =
 	      add_or_bottom k (f v (find_or_bottom k m2)) acc in
 	    Map (M.fold merge_key m1 M.empty)
-    in
-    let compute_origin_meet x1 a1 x2 a2 =
-      if Top_Param.equal x1 x2 then
-	Origin.meet a1 a2
-      else if Top_Param.is_included x1 x2
-      then a1
-      else if Top_Param.is_included x2 x1
-      then a2
-      else Origin.bottom
-    in
+    in 
     let compute_origin_narrow x1 a1 x2 a2 =
       if Top_Param.equal x1 x2 then
 	Origin.narrow a1 a2
@@ -293,22 +341,38 @@ struct
       then a2
       else Origin.top
     in
-    (intersect V.meet compute_origin_meet),
     (fun x y -> let r = intersect V.narrow compute_origin_narrow x y in
 (*     Format.printf "Map_Lattice.narrow %a and %a ===> %a@\n"
        pretty x pretty y pretty r;  *)
      r)
 
-  let widen wh m1 m2 =
-    match m1, m2 with
-    | _ , Top _ -> m2 (* there is a finite number of Base and get_top points. *)
-    | Top _, _ -> assert false (* m2 should be bigger than m1 *)
-    | Map m1, Map m2 ->
-	let widen_key k v acc =
-          let (_, wh_k_v) = wh in
-          M.add k (V.widen (wh_k_v k) (find_or_bottom k m1) v) acc
-	in
-	Map  (M.fold widen_key m2 M.empty)
+
+
+
+  let widen wh =
+    let (_, wh_k_v) = wh in
+    let widen_map =
+    let decide k v1 v2 =
+      let v1 = match v1 with
+	None -> V.bottom
+      | Some v1 -> v1
+      in
+      let v2 = match v2 with
+	None -> V.bottom
+      | Some v2 -> v2
+      in
+      V.widen (wh_k_v k) v1 v2
+    in
+    M.generic_merge
+      ~cache:("map_Lattice.widen",0)
+      ~decide
+    in
+    fun m1 m2 ->
+      match m1, m2 with
+      | _ , Top _ -> m2
+      | Top _, _ -> assert false (* m2 should be bigger than m1 *)
+      | Map m1, Map m2 ->
+	  Map (widen_map m1 m2)
 
   let equal m1 m2 =
     m1 == m2 ||
@@ -355,7 +419,7 @@ struct
     assert
       (let n = succ !check_is_included_assert in
        check_is_included_assert := n;
-       n land 63 <> 0 ||
+      n land 63 <> 0 || 
       (let mee = meet m1 m2 in
        let eq = equal mee m1  in
        if (eq <> new_)
@@ -576,19 +640,26 @@ struct
   let fold_enum_by_base f m acc =
     fold_i (fun k v acc -> f (inject k v) acc) m acc
 
-  module Datatype =
-    Project.Datatype.Register
+  include Datatype.Make_with_collections
       (struct
-	 type t = tt = Top of Top_Param.t * Origin.t | Map of map_t
-	 let copy _ = assert false (* TODO *)
-	 let name = Project.Datatype.extend_name "map_lattice" M.Datatype.name
-	 open Unmarshal
-	 let descr =
-	   Structure
-	     (Sum [| [| Top_Param.Datatype.descr; Abstract |];
-		     [| M.Datatype.descr |] |])
+	type t = tt
+	let name = M.name ^ " map_lattice"
+	let structural_descr =
+	   Structural_descr.Structure
+	     (Structural_descr.Sum
+		[| [| Top_Param.packed_descr; Structural_descr.p_abstract |];
+		   [| M.packed_descr |] |])
+	let reprs = List.map (fun m -> Map m) M.reprs
+	let equal = equal
+	let compare = compare
+	let hash = hash
+	let rehash = Datatype.identity
+	let copy = Datatype.undefined
+	let internal_pretty_code = Datatype.pp_fail
+	let pretty = pretty
+	let mem_project = Datatype.never_any_project
+	let varname = Datatype.undefined
        end)
-  let () = Datatype.register_comparable ~hash ~equal ()
 
 end
 
@@ -618,3 +689,9 @@ end
 
   end
  *)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

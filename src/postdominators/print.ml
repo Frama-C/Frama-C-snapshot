@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,13 +21,14 @@
 (**************************************************************************)
 
 open Cil_types
-open Cilutil
+open Cil_datatype
 
 let pretty_stmt fmt s =
   let key = PdgIndex.Key.stmt_key s in !Db.Pdg.pretty_key fmt key
 
 module Printer = struct
-  type t = string * (StmtSet.t option InstrHashtbl.t)
+
+  type t = string * (Stmt.Set.t option Kinstr.Hashtbl.t)
   module V = struct
     type t = Cil_types.stmt * bool
     let pretty fmt v = pretty_stmt fmt v
@@ -45,7 +46,7 @@ module Printer = struct
       let has_postdom = match postdom with None -> false | _ -> true in
       f (s, has_postdom)
     in
-    InstrHashtbl.iter do_s graph
+    Kinstr.Hashtbl.iter do_s graph
 
   let iter_edges_e f (_, graph) =
     let do_s ki postdom =
@@ -53,8 +54,9 @@ module Printer = struct
       match postdom with None -> ()
       | Some postdom ->
         let do_edge p = f ((s, true), (p, true)) in
-          StmtSet.iter do_edge postdom
-    in InstrHashtbl.iter do_s graph
+        Stmt.Set.iter do_edge postdom
+    in
+    Kinstr.Hashtbl.iter do_s graph
 
 
   let vertex_name (s, _) = string_of_int s.sid
@@ -82,18 +84,18 @@ module PostdomGraph = Graph.Graphviz.Dot(Printer)
 
 let get_postdom kf graph s =
   try
-    match InstrHashtbl.find graph (Kstmt s) with
-    | None -> StmtSet.empty
+    match Kinstr.Hashtbl.find graph (Kstmt s) with
+    | None -> Stmt.Set.empty
     | Some l -> l
   with Not_found ->
     try
       let postdom = !Db.Postdominators.stmt_postdominators kf s in
-      let postdom = StmtSet.remove s postdom in
+      let postdom = Stmt.Set.remove s postdom in
       Postdominators_parameters.debug "postdom for %d:%a = %a\n"
-        s.sid pretty_stmt s StmtSet.pretty postdom;
-      InstrHashtbl.add graph (Kstmt s) (Some postdom); postdom
+        s.sid pretty_stmt s Stmt.Set.pretty postdom;
+      Kinstr.Hashtbl.add graph (Kstmt s) (Some postdom); postdom
     with Db.Postdominators.Top ->
-      InstrHashtbl.add graph (Kstmt s) None;
+      Kinstr.Hashtbl.add graph (Kstmt s) None;
       raise Db.Postdominators.Top
 
 (** [s_postdom] are [s] postdominators, including [s].
@@ -103,11 +105,11 @@ let get_postdom kf graph s =
 *)
 let reduce kf graph s =
   let remove p s_postdom =
-    if StmtSet.mem p s_postdom
+    if Stmt.Set.mem p s_postdom
     then
       try
         let p_postdom = get_postdom kf graph p in
-        let s_postdom = StmtSet.diff s_postdom p_postdom
+        let s_postdom = Stmt.Set.diff s_postdom p_postdom
         in s_postdom
       with Db.Postdominators.Top -> assert false
                                    (* p postdom s -> cannot be top *)
@@ -115,10 +117,10 @@ let reduce kf graph s =
   in
   try
     let postdom = get_postdom kf graph s in
-    let postdom = StmtSet.fold remove postdom postdom in
+    let postdom = Stmt.Set.fold remove postdom postdom in
     Postdominators_parameters.debug "new postdom for %d:%a = %a\n"
-      s.sid pretty_stmt s StmtSet.pretty postdom;
-    InstrHashtbl.replace graph (Kstmt s) (Some postdom)
+      s.sid pretty_stmt s Stmt.Set.pretty postdom;
+    Kinstr.Hashtbl.replace graph (Kstmt s) (Some postdom)
   with Db.Postdominators.Top ->
     ()
 
@@ -131,7 +133,7 @@ let build_dot filename kf =
     | Db_types.Declaration _ ->
 	Kernel.abort "cannot compute for a function without body"
   in
-  let graph = InstrHashtbl.create (List.length stmts) in
+  let graph = Kinstr.Hashtbl.create (List.length stmts) in
   let _ = build_reduced_graph kf graph stmts in
   let name = Kernel_function.get_name kf in
   let title = "Postdominators for function " ^ name in
@@ -139,3 +141,8 @@ let build_dot filename kf =
   PostdomGraph.output_graph file (title, graph);
   close_out file
 
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

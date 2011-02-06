@@ -4,6 +4,7 @@
 
    lemma foo: \forall int* p,n; is_valid_int_range(p,n) <==> \valid_range(p,0,n-1);
 
+   
 */
 
 
@@ -28,8 +29,8 @@ int equal(const int* a, int n, const int* b)
 {
   /*@
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[k] == b[k];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[i] != b[i])
@@ -60,8 +61,8 @@ int find(const int* a, int n, int val)
 {
   /*@
     loop invariant 0 <= i <= n;
-    loop   variant n-i;
     loop invariant \forall int k; 0 <= k < i ==> a[k] != val;
+    loop   variant n-i;
    */
   for (int i = 0; i < n; i++)
     if (a[i] == val)
@@ -97,8 +98,8 @@ int find2(const int* a, int n, int val)
 {
   /*@
     loop invariant 0 <= i <= n;
-    loop   variant n-i;
     loop invariant !found(a, i, val);
+    loop   variant n-i;
    */
   for (int i = 0; i < n; i++)
     if (a[i] == val)
@@ -135,8 +136,8 @@ int find_first_of(const int* a, int m, const int* b, int n)
 {
   /*@
      loop invariant 0 <= i <= m;
-     loop   variant m-i;
      loop invariant !found_first_of(a, i, b, n);
+     loop   variant m-i;
   */
   for(int i = 0; i < m; i++)
      if (find(b, n, a[i]) < n)
@@ -169,10 +170,10 @@ int max_element(const int* a, int n)
   int max = 0;
   /*@
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant 0 <= max < n;
      loop invariant \forall int k; 0 <= k < i   ==> a[k] <= a[max];
      loop invariant \forall int k; 0 <= k < max ==> a[k] < a[max];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[max] < a[i])
@@ -228,9 +229,9 @@ int count(const int* a, int n, int val)
   int cnt = 0;
   /*@
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant 0 <= cnt <= i;
      loop invariant cnt == counting(a, i, val);
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[i] == val)
@@ -274,12 +275,12 @@ void swap_ranges(int* a, int n, int* b)
      loop assigns b[0..i-1];
 
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
-
      loop invariant \forall int k; 0 <= k < i ==>
                      a[k] == \at(b[k],Pre);
      loop invariant \forall int k; 0 <= k < i ==>
                      b[k] == \at(a[k],Pre);
+
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      swap(&a[i], &b[i]);
@@ -296,8 +297,8 @@ void fill(int* a, int n, int val)
 {
   /*@
   loop invariant 0 <= i <= n;
-  loop   variant n-i;
   loop invariant \forall int k; 0 <= k < i ==> a[k] == val;
+  loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      a[i] = val;
@@ -316,8 +317,8 @@ void copy(const int* a, int n, int* b)
   /*@
      loop assigns b[0..i-1];
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[k] == b[k];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; ++i)
      b[i] = a[i];
@@ -340,11 +341,11 @@ int replace_copy(const int* a, int n, int* b, int old_val, int
   /*@
      loop assigns b[0..i-1];
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int j; 0 <= j < i ==>
                      a[j] == old_val && b[j] == new_val ||
                      a[j] != old_val && b[j] == a[j];
-  */
+    loop   variant n-i;
+   */
   for (int i = 0; i < n; ++i)
      b[i] = (a[i] == old_val ? new_val : a[i]);
 
@@ -371,15 +372,15 @@ int remove_copy(const int* a, int n, int* b, int val)
      loop assigns b[0..j-1];
 
      loop invariant 0 <= j <= i <= n;
-     loop   variant n-i;
-
      loop invariant \forall int k; j <= k < n ==>
                       b[k] == \at(b[k],Pre);
      loop invariant \forall int k; 0 <= k < j ==> b[k] != val;
      loop invariant \forall int x; x != val ==>
                       counting(a,i,x) == counting(b,j,x);
      loop invariant j == i - counting(a,i,val);
-  */
+
+     loop   variant n-i;
+   */
   for (int i = 0; i < n; ++i)
      if (a[i] != val)
        b[j++] = a[i];
@@ -399,8 +400,8 @@ void iota(int* a, int n, int val)
   /*@
      loop assigns a[0..i-1];
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[k] == val+k;
+     loop   variant n-i;
   */
   for(int i = 0; i < n; ++i)
      a[i] = val + i;
@@ -436,9 +437,9 @@ int adjacent_find(int* a, int n)
 
   /*@
      loop invariant 0 <= i < n;
-     loop   variant n-i;
      loop invariant !adjacent_found(a, i);
      loop invariant 0 < i ==> a[i-1] != a[i];
+     loop   variant n-i;
   */
   for (int i = 0; i < n-1; i++)
      if (a[i] == a[i+1])
@@ -470,9 +471,9 @@ int min_element(int* a, int n)
   /*@
      loop invariant 0 <= i   <= n;
      loop invariant 0 <= min <  n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[min] <= a[k];
      loop invariant \forall int k; 0 <= k < min ==> a[min] < a[k];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[i] < a[min])

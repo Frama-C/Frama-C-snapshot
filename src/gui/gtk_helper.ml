@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,6 +33,115 @@ let framac_logo, framac_icon =
       "Frama-C images not found. Is FRAMAC_SHARE correctly set?";
     None, None
 
+module Icon = struct
+
+  type kind = Frama_C | Left | Right | Relies_on_valid_hyp | Failed
+              | Maybe | Attach | Check
+              | Custom of string 
+
+  let default_icon = 
+    [| "12 12 2 1";
+       ". c #ffffff";
+       "# c #000000";
+       "############";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "#..........#";
+       "############"|]
+
+  let builtins =
+    [(Frama_C,"frama-c.ico");
+     (Left,"left.png");
+     (Right,"right.png");
+     (Relies_on_valid_hyp,"relies_on_hyp.png");
+     (Failed, "failed.png");
+     (Maybe, "maybe.png");
+     (Attach, "attach.png");
+     (Check,"check.png"); 
+    ]
+
+  type icon = Filename of string | Pixbuf of GdkPixbuf.pixbuf
+
+  let h = Hashtbl.create 7
+
+  let () = 
+    List.iter 
+      (fun (k,f) -> Hashtbl.add h k (Filename f)) 
+      builtins
+
+  let get k =
+  try match Hashtbl.find h k with
+  | Filename f -> 
+    let p = 
+      try GdkPixbuf.from_file (Config.datadir ^ "/" ^ f)
+      with Glib.GError _ ->
+        Gui_parameters.warning ~once:true
+          "Frama-C images not found. Is FRAMAC_SHARE correctly set?";
+        GdkPixbuf.from_xpm_data default_icon
+    in
+    Hashtbl.replace h k (Pixbuf p);
+    p
+  | Pixbuf p -> p
+  with Not_found -> assert false
+
+  let register ~name ~file = Hashtbl.replace h (Custom name) (Filename file)
+    
+end
+
+module Configuration = struct
+  include Cilutil
+  let configuration_file =(* This is the user home directory *)
+    Filename.concat (try Sys.getenv "USERPROFILE" (*Win32*) with Not_found ->
+		       try Sys.getenv "HOME" (*Unix like*) with Not_found ->
+			 ".")
+      "frama-c-gui.config"
+  let load () =
+    Cilutil.loadConfiguration configuration_file
+  let save () =
+    Cilutil.saveConfiguration configuration_file
+  let () = Cmdline.at_normal_exit save
+  let set = setConfiguration
+  let find = findConfiguration
+  let find_int ?default key =
+    try findConfigurationInt key
+    with Not_found -> match default with
+      | None -> raise Not_found
+      | Some v ->
+	  set key (ConfInt v);
+	  v
+
+  let use_int = useConfigurationInt
+  let find_float ?default key =
+    try findConfigurationFloat key
+    with Not_found -> match default with
+      | None -> raise Not_found
+      | Some v ->
+	  set key (ConfFloat v);
+	  v
+  let use_float = useConfigurationFloat
+
+  let find_bool ?default key =
+    try findConfigurationBool key
+    with Not_found -> match default with
+      | None -> raise Not_found
+      | Some v ->
+	  set key (ConfBool v);
+	  v
+
+  let use_bool = useConfigurationBool
+  let find_string = findConfigurationString
+  let use_string = useConfigurationString
+  let find_list = findConfigurationList
+  let use_list = useConfigurationList
+
+end
 let apply_tag b tag pb pe =
   let b = (b:>GText.buffer) in
   let start = b#get_iter (`OFFSET pb) in
@@ -49,12 +158,13 @@ let cleanup_tag b tag =
   let b = (b:>GText.buffer) in
   b#remove_tag tag ~start:b#start_iter ~stop:b#end_iter
 
-(* this table shall not be projectified: it contains trans-project informations *)
+(* This table shall not be projectified: it contains trans-project
+   informations *)
 module IntHashtbl =
   Hashtbl.Make(struct
                  type t = int
                  let hash = Hashtbl.hash
-                 let equal = (=)
+                 let equal : int -> int -> bool = (=)
                end)
 
 let tag_names = IntHashtbl.create 17
@@ -64,7 +174,7 @@ let cleanup_all_tags b =
   let stop = b#end_iter in
   try
   let tags = IntHashtbl.find tag_names (Oo.id b) in
-  Cilutil.StringSet.iter (fun s -> b#remove_tag_by_name s ~start ~stop) tags
+  Datatype.String.Set.iter (fun s -> b#remove_tag_by_name s ~start ~stop) tags
   with Not_found -> ()
 
 let make_tag (buffer:< tag_table : Gtk.text_tag_table;
@@ -76,9 +186,9 @@ let make_tag (buffer:< tag_table : Gtk.text_tag_table;
       let oid = Oo.id buffer in
       let old_set =
         try IntHashtbl.find tag_names oid
-        with Not_found -> Cilutil.StringSet.empty
+        with Not_found -> Datatype.String.Set.empty
       in
-      IntHashtbl.replace tag_names oid (Cilutil.StringSet.add name old_set);
+      IntHashtbl.replace tag_names oid (Datatype.String.Set.add name old_set);
       buffer#create_tag ~name l
   | Some t -> new GText.tag t
 
@@ -97,7 +207,7 @@ let make_formatter ?(flush= fun () -> ()) t =
   let t = (t:>GText.buffer) in
   let fmt_emit s start length =
     let subs = String.sub s start length in
-    t#insert subs
+    t#insert ~iter:t#end_iter subs
   in
   Format.make_formatter fmt_emit flush
 
@@ -244,24 +354,29 @@ type 'a chooser =
 (* --- Bundle of fields                                                 --- *)
 (* ------------------------------------------------------------------------ *)
 
-let on_bool ?use_markup (container:GPack.box) label get set =
-  let result = ref (get()) in
-  let container = GPack.hbox ~packing:container#pack () in
-  let button =
-    GButton.check_button ~packing:container#pack ~active:!result ()
-  in
-  ignore (mk_label ?use_markup container ~xalign:0. label);
-  ignore
-    (button#connect#toggled
-       ~callback:
-       (fun () -> result := button#active));
-  (fun () -> set !result)
+let do_tooltip ?tooltip obj = match tooltip with
+  | None -> ()
+  | Some text ->
+    let tooltip = GData.tooltips () in
+    tooltip#set_tip ~text obj#coerce
 
-let on_bool_radio ?use_markup
+let on_bool ?tooltip ?use_markup (container:GPack.box) label get set =
+  let result = ref (get ()) in
+  let container = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip container;
+  let button =
+    GButton.check_button ~packing:container#pack ~active:!result () in
+  ignore (mk_label ?use_markup container ~xalign:0. label);
+  ignore (button#connect#toggled ~callback:(fun () -> set button#active));
+  let update () = button#set_active (get()) in
+  (fun () -> update ())
+
+let on_bool_radio ?tooltip ?use_markup
     (container:GPack.box) label_true label_false get set =
-  let result = ref (get()) in
+  let result = ref (get ()) in
   let frame = GBin.frame ~border_width:5 ~packing:container#pack () in
   let container = GPack.hbox ~packing:frame#add () in
+  do_tooltip ?tooltip container;
   let label_true_button =
     GButton.radio_button ~packing:container#pack ~active:!result ()
   in
@@ -280,11 +395,12 @@ let on_bool_radio ?use_markup
   (fun () -> set !result)
 
 let range_selector
-    ?use_markup (container:GPack.box) ~label ~lower ~upper
+    ?tooltip ?use_markup (container:GPack.box) ~label ~lower ~upper
     set get =
   let container = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip container;
   let x =
-    GEdit.spin_button ~digits:0 ~packing:(container#pack ~padding:10)()
+    GEdit.spin_button ~digits:0 ~packing:(container#pack ~padding:10) ()
   in
   x#adjustment#set_bounds
     ~lower:(float lower) ~upper:(float upper) ~step_incr:1. ();
@@ -297,11 +413,12 @@ let range_selector
   (fun () -> x#adjustment#set_value (float (get ())))
 
 let on_int
-    ?use_markup ?(lower=0) ?(upper=max_int)
+    ?tooltip ?use_markup ?(lower=0) ?(upper=max_int)
     ?(sensitive=(fun () -> true)) ?width
     (container:GPack.box) label get set =
-  let result = ref (get()) in
+  let result = ref (get ()) in
   let container = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip container;
   let non_fixed = width=None in
   let spin = GEdit.spin_button ~digits:0
     ?width ~packing:(container#pack ~expand:non_fixed ~fill:non_fixed) ()
@@ -315,14 +432,15 @@ let on_int
        (fun () -> result := spin#value_as_int));
   let label = mk_label ?use_markup ~xalign:0. container label in
   (fun () ->
-     label#misc#set_sensitive (sensitive ()) ;
-     spin#misc#set_sensitive (sensitive ()) ;
-     set !result)
+    label#misc#set_sensitive (sensitive ());
+    spin#misc#set_sensitive (sensitive ());
+    set !result)
 
-let on_string ?use_markup ?(validator=(fun _ -> true))
+let on_string ?tooltip ?use_markup ?(validator=(fun _ -> true))
     (container:GPack.box) label get set =
   let result = ref (get ()) in
   let container = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip container;
   let entry = GEdit.entry ~packing:container#pack ~text:!result () in
   let callback _ =
     let text =  entry#text in
@@ -333,9 +451,10 @@ let on_string ?use_markup ?(validator=(fun _ -> true))
   ignore (mk_label ?use_markup ~xalign:0. container label);
   (fun () -> set !result)
 
-let on_string_set ?use_markup (container:GPack.box) label get set =
+let on_string_set ?tooltip ?use_markup (container:GPack.box) label get set =
   let result = ref (get ()) in
   let container = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip container;
   let entry = GEdit.entry ~packing:container#pack ~text:!result () in
   let callback _ = result := entry#text; false in
   ignore (entry#event#connect#focus_out ~callback);
@@ -343,10 +462,11 @@ let on_string_set ?use_markup (container:GPack.box) label get set =
   (fun () -> set !result)
 
 let on_string_completion
-    ?use_markup ?(validator=(fun _ -> true)) completions (container:GPack.box)
-    label get set =
-  let result = ref (get()) in
+    ?tooltip ?use_markup ?(validator=(fun _ -> true)) completions
+    (container:GPack.box) label get set =
+  let result = ref (get ()) in
   let box = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip box;
   let entry = string_selector completions box#pack in
   ignore (mk_label ?use_markup ~xalign:0. box label);
   let () = entry#set_text !result in
@@ -358,13 +478,15 @@ let on_string_completion
   ignore (entry#event#connect#focus_out ~callback);
   (fun () -> set !result)
 
-let on_combo values ?(use_markup=false) ?width (container:GPack.box) label get set =
-  let rec select i x = function
+let on_combo
+    values ?tooltip ?(use_markup=false) ?width (container:GPack.box)
+    label get set =
+  let rec select i (x:string) = function
     | [] -> (-1)
     | y::ys -> if x=y then i else select (succ i) x ys
   in
-  let result = ref (get ()) in
   let container = GPack.hbox ~packing:container#pack () in
+  do_tooltip ?tooltip container;
   let non_fixed = width=None in
   let combo_box, (_model, column) =
     GEdit.combo_box_text
@@ -378,15 +500,27 @@ let on_combo values ?(use_markup=false) ?width (container:GPack.box) label get s
       | None -> ()
       | Some row -> set (combo_box#model#get ~row ~column)
   in
-  let k = select 0 !result values in
-  if k >= 0 then combo_box#set_active k ;
+  let update () =
+    let result = ref (get ()) in
+    let k = select 0 !result values in
+      if k >= 0 then combo_box#set_active k
+  in
   ignore (combo_box#connect#changed callback) ;
   ignore (mk_label ~use_markup ~xalign:0. container label) ;
-  (fun () -> set !result)
+  (fun () -> update ())
 
 (* ------------------------------------------------------------------------ *)
 (* --- Misc                                                             --- *)
 (* ------------------------------------------------------------------------ *)
+
+let save_paned_ratio key (paned:GPack.paned) =
+  let paned_min_pos = paned#min_position in
+  let paned_max_pos = paned#max_position in
+  let length = paned_max_pos - paned_min_pos in
+  let ratio = if length = 0 then 0.5
+  else (float_of_int paned#position)/.(float_of_int length)
+  in
+  Configuration.set key (Configuration.ConfFloat ratio)
 
 let place_paned (paned:GPack.paned) factor =
   let paned_min_pos = paned#min_position in
@@ -396,6 +530,50 @@ let place_paned (paned:GPack.paned) factor =
   paned#set_position (paned_min_pos + offset)
 
 let old_gtk_compat f x = try f x with Not_found -> ()
+
+let trace_event (w:GObj.event_ops) =
+  let string_of_event x =
+    match GdkEvent.get_type x with
+      | `NOTHING -> "nothing"
+      | `DELETE -> "delete"
+      | `DESTROY -> "destroy"
+      | `EXPOSE -> "expose"
+      | `MOTION_NOTIFY -> "motion-notify"
+      | `BUTTON_PRESS -> "button-press"
+      | `TWO_BUTTON_PRESS -> "2 button-press"
+      | `THREE_BUTTON_PRESS -> "3 button-press"
+      | `BUTTON_RELEASE -> "button-release"
+      | `KEY_PRESS -> "key-press"
+      | `KEY_RELEASE  -> "key-release"
+      | `ENTER_NOTIFY  -> "enter-notfiy"
+      | `LEAVE_NOTIFY -> "leave-notify"
+      | `FOCUS_CHANGE  -> "focus-change"
+      | `CONFIGURE -> "configure"
+      | `MAP -> "map"
+      | `UNMAP -> "unmap"
+      | `PROPERTY_NOTIFY -> "property-notify"
+      | `SELECTION_CLEAR -> "selection-clear"
+      | `SELECTION_REQUEST -> "selection-request"
+      | `SELECTION_NOTIFY -> "selection-notify"
+      | `PROXIMITY_IN -> "proximity-in"
+      | `PROXIMITY_OUT -> "proximiy-out"
+      | `DRAG_ENTER -> "drag-enter"
+      | `DRAG_LEAVE -> "drag-leave"
+      | `DRAG_MOTION -> "drag-motion"
+      | `DRAG_STATUS -> "drag-status"
+      | `DROP_START -> "drop-start"
+      | `DROP_FINISHED -> "drop-finish"
+      | `CLIENT_EVENT -> "client-event"
+      | `VISIBILITY_NOTIFY -> "visibility-notify"
+      | `NO_EXPOSE-> "no-expose"
+      | `SCROLL -> "scroll"
+      | `WINDOW_STATE -> "window-state"
+      | `SETTING -> "setting"
+  in
+  ignore (w#connect#any
+    ~callback:(fun e ->
+		 Format.eprintf "TRACING event: %s@." (string_of_event e);
+		 false))
 
 module MAKE_CUSTOM_LIST
   (A:sig
@@ -444,7 +622,7 @@ struct
       let nidx = succ row.fidx in
 	self#find_opt nidx
 
-    method custom_iter_children (rowopt:custom_list option) :custom_list option =
+    method custom_iter_children (rowopt:custom_list option):custom_list option =
       match rowopt with
       | None -> self#find_opt 0
       | Some _ -> None
@@ -516,55 +694,67 @@ object(self:#host)
     let bfmt = Format.formatter_of_buffer b in
     Format.kfprintf
       (function fmt ->
-	 Format.pp_print_flush fmt ();
-	 let content = Buffer.contents b in
-         self#error_string ?parent content)
+	Format.pp_print_flush fmt ();
+	let content = Buffer.contents b in
+        self#error_string ?parent content)
       bfmt
       fmt
+
+  method private display_toplevel_error ?parent ~cancelable e =
+    Cmdline.error_occured ();
+    if cancelable then Project.Undo.clear_breakpoint ();
+    self#error ?parent "%s" (Cmdline.protect e)
 
   method protect ~cancelable ?(parent:GWindow.window_skel option) f =
     ignore (self#full_protect ~cancelable ?parent f)
 
   method full_protect ~cancelable ?(parent:GWindow.window_skel option) f =
+    let cancelable = cancelable && Gui_parameters.Undo.get () in
     try
       if cancelable then Project.Undo.breakpoint ();
       let old_gui_unlocked = !gui_unlocked in
       let res =
         Extlib.try_finally
           ~finally:(fun () -> if old_gui_unlocked then begin
-                      Unlock.apply ();
-                      gui_unlocked := true
-                    end)
+            Unlock.apply ();
+            gui_unlocked := true
+          end)
           (fun () ->
-             if old_gui_unlocked then begin
-               Lock.apply cancelable;
-               gui_unlocked := false;
-             end;
-             f ())
+            if old_gui_unlocked then begin
+              Lock.apply cancelable;
+              gui_unlocked := false;
+            end;
+            f ())
           ()
       in
       if cancelable then Project.Undo.clear_breakpoint ();
       Some res
     with
     | Cmdline.Exit ->
-	if cancelable then Project.Undo.clear_breakpoint ();
-        None
+      if cancelable then Project.Undo.clear_breakpoint ();
+      None
     | Sys.Break | Db.Cancel ->
-	if cancelable then Project.Undo.restore ();
-	self#error ?parent "Stopping current computation on user request.";
-        None
+      if cancelable then Project.Undo.restore ();
+      self#error ?parent "Stopping current computation on user request.";
+      None
+    | Globals.No_such_entry_point msg ->
+      (try
+	 Gui_parameters.abort "%s" msg
+       with
+       | Log.AbortError _ as e ->
+	 self#display_toplevel_error ?parent ~cancelable e;
+	 None
+       | _ -> assert false)
     | e when Cmdline.catch_at_toplevel e ->
-	Cmdline.error_occured ();
-	if cancelable then Project.Undo.clear_breakpoint ();
-	self#error ?parent "%s" (Cmdline.protect e);
-        None
+      self#display_toplevel_error ?parent ~cancelable e;
+      None
     | e ->
-	Cmdline.error_occured ();
-	raise e
+      Cmdline.error_occured ();
+      raise e
 
 end
 
-let make_text_page (notebook:GPack.notebook) title =
+let make_text_page ?pos (notebook:GPack.notebook) title =
   let make_tab_label (notebook:GPack.notebook) =
     let flash_title = Format.sprintf "<i>%s</i>" title in
     let tab_label = GMisc.label ~markup:title () in
@@ -572,7 +762,7 @@ let make_text_page (notebook:GPack.notebook) title =
       ~vpolicy:`AUTOMATIC
       ~hpolicy:`AUTOMATIC
       ~packing:
-      (fun w -> ignore (notebook#append_page ~tab_label:tab_label#coerce w))
+      (fun w -> ignore (notebook#insert_page ?pos ~tab_label:tab_label#coerce w))
       ()
     in
     let flash b =
@@ -671,8 +861,32 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
        ());
   dialog#destroy ()
 
+let spawn_command ?(timeout=0) ?stdout ?stderr s args f =
+  let check_result = Command.command_async s ?stdout ?stderr args in
+  let has_timeout = timeout > 0 in
+  let hang_on = float_of_int timeout in
+  let starting_time = if has_timeout then Unix.time () else 0. in
+  let for_idle () =
+    match check_result () with
+    | Command.Not_ready kill -> 
+        if has_timeout && Unix.time () -. starting_time >= hang_on then
+          begin
+            kill ();
+            f (Unix.WSIGNALED Sys.sigalrm);
+            false
+          end 
+        else true
+    | Command.Result p -> f p; false
+  in
+  let prio = Glib.int_of_priority `LOW in
+  ignore (Glib.Idle.add ~prio for_idle)
+
+let () =
+  Task.on_idle := 
+    (fun f -> ignore (Glib.Timeout.add ~ms:50 ~callback:f))
+
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,32 +20,31 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen_type.mli,v 1.15 2008-10-03 13:09:17 uid568 Exp $ *)
-open BaseUtils
-  
-type t
-  
-type widen_hint = Ival.Widen_Hints.t
-    
+include Datatype.S
+
 (** Key for the first map : from Base.t to Ival.Widen_Hints.t *)
 type var_key = Default | All | VarKey of Base.t
 
-(** Key for the second map : from stmt to the first map *)
-type stmt_key = Cil_types.stmt option
- 
 (** an [empty] set of hints *)
 val empty : t
-  
+
 (** a [default] set of hints *)
 val default : t
-  
-(** add a set of hints for a [stmt, var], [Default] or [All] (stmts, keys) *)
-val add_num_hints : stmt_key -> var_key -> widen_hint -> t -> t
-  
-(** add a set of Base for a [stmt] *)
-val add_var_hints : Cil_types.stmt -> BaseSet.t -> t -> t
-  
-(** widen hints from a [Cil_types.stmt, Base] *)
-val hints_from_keys : Cil_types.stmt -> t -> (BaseSet.t * (Base.t -> Locations.Location_Bytes.widen_hint))
 
-module Datatype : Project.Datatype.S with type t = t
+(** add a set of hints for a [stmt, var], [Default] or [All] (stmts, keys) *)
+val add_num_hints:
+  Cil_types.stmt option -> var_key -> Ival.Widen_Hints.t -> t -> t
+
+(** add a set of Base for a [stmt] *)
+val add_var_hints : Cil_types.stmt -> Base.Set.t -> t -> t
+
+(** widen hints from a [Cil_types.stmt, Base] *)
+val hints_from_keys :
+  Cil_types.stmt -> t ->
+  Base.Set.t * (Base.t -> Locations.Location_Bytes.widen_hint)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

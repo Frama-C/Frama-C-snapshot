@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -27,12 +27,14 @@ open Promelaast
 val setLtl_expressions : (string, (Cil_types.exp* string*Cil_types.predicate)) Hashtbl.t -> unit
 
 (** Given a condition, this function does some logical simplifications. *)
-val simplifyCond: condition -> condition
+val simplifyCond: condition -> (condition)*(Promelaast.condition list list)
 
 (** Given a transition list, this function returns the same transition list with simplifyCond done on each cross condition. Uncrossable transition are removed. *)
-val simplifyTrans: trans list -> trans list
+val simplifyTrans: trans list -> (trans list)*(Promelaast.condition list list list)
 
+val dnfToCond : (Promelaast.condition list list) -> Promelaast.condition
 
+val simplifyDNFwrtCtx : Promelaast.condition list list -> string -> Promelaast.funcStatus -> Promelaast.condition list list
 
 (*
 Local Variables:

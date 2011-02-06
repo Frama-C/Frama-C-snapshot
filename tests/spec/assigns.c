@@ -6,8 +6,8 @@ struct list {
 /*@ predicate reachable{L}(struct list *root, struct list *to) =
   @   root == to || root != \null && reachable(root->next,to) ;
   @*/
-
-//@ assigns *p;
+int * q;
+//@ assigns *p; assigns *p,q;
 void reset(int *p) { *p = 0; }
 
 // three equivalent assigns clauses

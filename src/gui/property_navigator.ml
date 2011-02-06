@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,36 +21,125 @@
 (**************************************************************************)
 
 (* This is the panel to control the status of properties. *)
+open Properties_status
 open Design
 open Cil_types
 open Db_types
 
-type property = {module_name:string;
-                 function_name:string;
-                 kind:Project.Computation.t;
-		 status_states: Project.Computation.t list;
-                 status_name:string;
-                 visible:bool;}
+type property = {
+  consolidated_tree : Consolidation_tree.t;
+  module_name:string;
+  function_name:string;
+  kind:string;
+  status_states: State.t list;
+  status_name:string;
+  status_bg:Gdk.color;
+  status_icon:string;
+  visible:bool;
+  ip: Property.t;
+}
 
-let graph_window main_window title states =
+module M = struct
+  open Properties_status.Consolidation_tree
+  exception No_more_valid_status
+  exception Not_valid
+  let rec relies_on_valid_hyps_only t =
+    (* the consolidated status of [t] is valid iff at least one valid status of
+       [t] relies on valid hypothesis only. *)
+    let status =
+      (* put the valid status first *)
+      List.sort
+	(fun s1 s2 -> match s1.value, s2.value with
+	| (Checked { valid = True }, _), _ -> -1
+	| _, (Checked { valid = True }, _) -> 1
+	| _, _ -> 0)
+	t.status
+    in
+    let is_valid_status s =
+      (* return [true] iff each hypothesis of [s] is valid and relies itself
+	 on valid hypothesis *)
+      try
+	List.iter
+	  (fun h ->
+	    match Properties_status.strongest h.property with
+	    | Checked { valid = True }, _ ->
+	      if not (relies_on_valid_hyps_only h) then raise Not_valid
+	    | (Unknown | Checked { valid = False | Maybe }), _ ->
+	      raise Not_valid)
+	  s.hypothesis;
+	(* [TODO JS 2010/11/09] introduce cluster handling here *)
+	true
+      with Not_valid ->
+	false
+    in
+    (* The following assumes that valid status come first. *)
+    try
+      List.iter
+	(fun s -> match s.value with
+	| Checked { valid = True }, _ -> if is_valid_status s then raise Exit
+	| (Unknown | Checked { valid = False | Maybe }), _ ->
+	  raise No_more_valid_status)
+	status;
+      false
+    with
+    | No_more_valid_status -> false
+    | Exit -> true
+end
+let relies_on_valid_hyps_only = M.relies_on_valid_hyps_only
+
+let rec make_property forest ~ip ~status_states ~status_name
+    ~module_name ~function_name =
+  try
+    let ctree =
+      List.find
+	(fun x -> Property.equal ip x.Consolidation_tree.property)
+	forest
+    in
+    let function_name = match Property.get_kf ip with
+      | None -> (* Blob properties have lost this information*) function_name
+      | Some kf -> Pretty_utils.sfprintf "%a" Kernel_function.pretty_name kf
+    in
+    let status_states = List.map
+      (fun s -> snd s.Consolidation_tree.value)
+      ctree.Consolidation_tree.status
+    in
+    let kind = State.get_name ctree.Consolidation_tree.state in
+    let status_bg= GDraw.color
+      (`NAME (if relies_on_valid_hyps_only ctree then "green" else "orange"))
+    in
+    let status_icon =
+      match Properties_status.strongest ip with
+	| Checked { valid = True }, _ -> "gtk-yes"
+	| Checked { valid = False }, _ -> "gtk-no"
+	| Checked { valid = Maybe }, _ -> "gtk-dialog-question"
+	| Unknown, _ -> "gtk-info"
+    in
+    { consolidated_tree = ctree;
+      module_name = module_name;
+      function_name = function_name;
+      visible = true;
+      ip=ip;
+      kind=kind;
+      status_states = status_states;
+      status_name = status_name;
+      status_bg=status_bg;
+      status_icon=status_icon}
+  with Not_found ->
+    make_property [ Consolidation_tree.get ip ]
+      ~ip ~status_states ~status_name
+      ~module_name ~function_name
+
+let graph_window main_window title states ip =
   if states <> [] then
     let state_dependency_graph ~packing =
-      let dot_file =
+      let f =
 	Extlib.temp_file_cleanup_at_exit
-	  "framac_partial_state_dependency_graph" "dot"
+	  "framac_property_status_navigator_graph" "dot"
       in
-      let only =
-	List.fold_left
-	  (fun acc s ->
-	     Project.Selection.add s Kind.Select_Dependencies acc)
-	  Project.Selection.empty
-	  states
-      in
-      Project.Computation.dump_dynamic_dependencies ~only dot_file;
-      let model = Dgraph.DGraphModel.read_dot dot_file in
-      let view = Dgraph.DGraphView.view ~aa:true ~packing model in
-      view#connect_highlighting_event ();
-      view
+      Properties_status.Consolidation_tree.dump
+	(Properties_status.Consolidation_tree.get_graph ip)
+	f;
+      snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing f)
     in
     let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
     let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
@@ -59,34 +148,80 @@ let graph_window main_window title states =
 	~width ~height ~title ~allow_shrink:true ~allow_grow:true
 	~position:`CENTER ()
     in
-    let scroll =
-      GBin.scrolled_window
-	~packing:window#add ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
-    in
-    let view = state_dependency_graph ~packing:scroll#add in
-    ignore (view#set_center_scroll_region true);
+    let view = state_dependency_graph ~packing:window#add in
     window#show ();
     view#adapt_zoom ()
 
-let make_panel
-    (main_ui:main_window_extension_points)
-    :(string*GObj.widget*(unit-> unit) option) =
+module Refreshers:
+sig
+  module Ensures: State_builder.Ref with type data = bool
+  module RTE: State_builder.Ref with type data = bool
+  module Preconditions: State_builder.Ref with type data = bool
+  module Behaviors: State_builder.Ref with type data = bool
+  module Assigns: State_builder.Ref with type data = bool
+  module Assert: State_builder.Ref with type data = bool
+  module Invariant: State_builder.Ref with type data = bool
+  module Variant: State_builder.Ref with type data = bool
+  module StmtSpec: State_builder.Ref with type data = bool
+  module OnlyCurrent: State_builder.Ref with type data = bool
+
+  val pack: GPack.box -> unit
+  val apply: unit -> unit
+end
+=
+struct
+  (* Function to be called during the idle time of the GUI *)
+  let refreshers = ref []
+  let add_refresher f = refreshers := f::!refreshers
+
+  module Add(X: sig val name: string end) = struct
+    include State_builder.Ref
+      (Datatype.Bool)
+      (struct
+	let name = "show " ^ X.name
+	let dependencies = []
+	let kind = `Internal
+	let default () = true
+       end)
+    let add hb = add_refresher (Gtk_helper.on_bool hb X.name get set)
+  end
+
+  let apply () = List.iter (fun f -> f ()) !refreshers
+
+  module Preconditions = Add(struct let name = "preconditions" end)
+  module Ensures = Add(struct let name = "postconditions" end)
+  module RTE = Add(struct let name = "RTE" end)
+  module Behaviors = Add(struct let name = "behaviors" end)
+  module Assigns = Add(struct let name = "assigns" end)
+  module Assert = Add(struct let name = "assert" end)
+  module Invariant = Add(struct let name = "invariant" end)
+  module Variant = Add(struct let name = "variant" end)
+  module StmtSpec = Add(struct let name = "stmt contract" end)
+  module OnlyCurrent = Add(struct let name = "only selected" end)
+
+  let pack hb =
+    Preconditions.add hb;
+    Ensures.add hb;
+    RTE.add hb;
+    Behaviors.add hb;
+    Assigns.add hb;
+    Assert.add hb;
+    Invariant.add hb;
+    Variant.add hb;
+    StmtSpec.add hb;
+    OnlyCurrent.add hb
+end
+
+open Refreshers
+
+let make_panel (main_ui:main_window_extension_points) =
   let container = GPack.vbox ()
   in
   let module L = struct
     type t = property
     let column_list = new GTree.column_list
-    let module_name_col = column_list#add Gobject.Data.string
-    let function_name_col = column_list#add Gobject.Data.string
-    let kind_name_col = column_list#add Gobject.Data.string
-    let status_name_col = column_list#add Gobject.Data.string
-    let custom_value (_:Gobject.g_type) t ~column : Gobject.basic =
-      match column with
-	| 0 -> (* module_name *)   `STRING (Some t.module_name)
-	| 1 -> (* function_name *)  `STRING (Some t.function_name)
-	| 2 -> (* kind *) `STRING (Some (Project.Computation.name t.kind))
-	| 3 -> (* status *) `STRING (Some t.status_name)
-	| _ -> assert false
+    let custom_value (_:Gobject.g_type) _t ~column:_ : Gobject.basic =
+      assert false
   end
   in
   let module MODEL =  Gtk_helper.MAKE_CUSTOM_LIST(L) in
@@ -99,7 +234,8 @@ let make_panel
       ~hpolicy:`AUTOMATIC
       ~packing:(container#pack ~expand:true ~fill:true)
       ()
-  in let view = GTree.view
+  in
+  let view = GTree.view
     ~rules_hint:true
     ~headers_visible:true
     ~packing:sc#add ()
@@ -108,9 +244,23 @@ let make_panel
     (view#connect#row_activated
        ~callback:(fun path _col ->
 		    match model#custom_get_iter path with
-		      | Some {MODEL.finfo={status_states=l}} ->
-			  graph_window main_ui#main_window "Dependencies" l
-		      | None -> ()));
+		    | Some {MODEL.finfo={status_states=l; ip = ip;}} ->
+			graph_window main_ui#main_window "Dependencies" l ip
+		    | None -> ()));
+  view#selection#set_select_function
+    (fun path currently_selected ->
+       if not currently_selected then
+         begin match model#custom_get_iter path with
+         | Some {MODEL.finfo={ip = ip;}} ->
+             (match Property.get_kf ip with
+             | Some kf ->
+               main_ui#file_tree#select_global (Kernel_function.get_vi kf)
+             (*TODO: select the Property.get_kinstr *)
+             | None -> ())
+         | None -> ()
+         end;
+       true);
+
   let top = `YALIGN 0.0 in
 
   (* Module name column viewer *)
@@ -118,15 +268,16 @@ let make_panel
   let m_module_name_renderer renderer (lmodel:GTree.model) iter =
     let (path:Gtk.tree_path) = lmodel#get_path iter  in
     match model#custom_get_iter path with
-      | Some {MODEL.finfo={module_name=m}} ->
-          renderer#set_properties [`TEXT m]
-      | None -> ()
+    | Some {MODEL.finfo={module_name=m}} ->
+        renderer#set_properties [`TEXT m]
+    | None -> ()
   in
   let module_cview = GTree.view_column
     ~title:"Module" ~renderer:(module_name_renderer,[]) ()
   in
   module_cview#set_cell_data_func
     module_name_renderer (m_module_name_renderer module_name_renderer);
+  module_cview#set_resizable true;
   ignore (view#append_column module_cview);
 
   (* Function name column viewer *)
@@ -134,15 +285,16 @@ let make_panel
   let m_function_name_renderer renderer (lmodel:GTree.model) iter =
     let (path:Gtk.tree_path) = lmodel#get_path iter  in
     match model#custom_get_iter path with
-      | Some {MODEL.finfo={function_name=m}} ->
-          renderer#set_properties [`TEXT m]
-      | None -> ()
+    | Some {MODEL.finfo={function_name=m}} ->
+        renderer#set_properties [`TEXT m]
+    | None -> ()
   in
   let function_cview = GTree.view_column
     ~title:"Function" ~renderer:(function_name_renderer,[]) ()
   in
   function_cview#set_cell_data_func
     function_name_renderer (m_function_name_renderer function_name_renderer);
+  function_cview#set_resizable true;
   ignore (view#append_column function_cview);
 
   (* Kind name column viewer *)
@@ -150,194 +302,231 @@ let make_panel
   let m_kind_name_renderer renderer (lmodel:GTree.model) iter =
     let (path:Gtk.tree_path) = lmodel#get_path iter  in
     match model#custom_get_iter path with
-      | Some {MODEL.finfo={kind=k}} ->
-          renderer#set_properties [`TEXT (Project.Computation.name k)]
-      | None -> ()
+    | Some {MODEL.finfo={kind=k}} ->
+        renderer#set_properties [ `TEXT k ]
+    | None -> ()
   in
   let kind_cview = GTree.view_column
     ~title:"Kind" ~renderer:(kind_name_renderer,[]) ()
   in
   kind_cview#set_cell_data_func
     kind_name_renderer (m_kind_name_renderer kind_name_renderer);
+  kind_cview#set_resizable true;
   ignore (view#append_column kind_cview);
+
+  (* Status colored column viewer *)
+  let status_color_renderer = GTree.cell_renderer_pixbuf [top] in
+  let m_status_color_renderer renderer (lmodel:GTree.model) iter =
+    let (path:Gtk.tree_path) = lmodel#get_path iter  in
+    match model#custom_get_iter path with
+    | Some {MODEL.finfo={status_bg=color;status_icon=status_icon}} ->
+        renderer#set_properties [`CELL_BACKGROUND_GDK color;
+				 `STOCK_ID status_icon]
+    | None -> ()
+  in
+  let status_color_cview = GTree.view_column
+    ~title:"Status" ~renderer:(status_color_renderer,[]) ()
+  in
+  status_color_cview#set_cell_data_func
+    status_color_renderer (m_status_color_renderer status_color_renderer);
+  status_color_cview#set_resizable true;
+  ignore (view#append_column status_color_cview);
 
   (* Status name column viewer *)
   let status_name_renderer = GTree.cell_renderer_text [top] in
   let m_status_name_renderer renderer (lmodel:GTree.model) iter =
     let (path:Gtk.tree_path) = lmodel#get_path iter  in
     match model#custom_get_iter path with
-      | Some {MODEL.finfo={status_name=m}} ->
-          renderer#set_properties [`TEXT m]
-      | None -> ()
+    | Some {MODEL.finfo={status_name=m}} ->
+        renderer#set_properties [`TEXT m]
+    | None -> ()
   in
   let status_cview = GTree.view_column
-    ~title:"Status" ~renderer:(status_name_renderer,[]) ()
+    ~title:"Textual Status" ~renderer:(status_name_renderer,[]) ()
   in
   status_cview#set_cell_data_func
     status_name_renderer (m_status_name_renderer status_name_renderer);
+  status_cview#set_resizable true;
   ignore (view#append_column status_cview);
-
   view#set_model (Some model#coerce);
 
   let hb = GPack.hbox  ~packing:container#pack () in
+  Refreshers.pack hb;
 
-  (* Function to be called during the idle time of the GUI *)
-  let refreshers = ref [] in
-  let add_refresher f = refreshers := f::!refreshers in
-  let module Add_Refresher(X: sig val name: string end) = struct
-    include Computation.Ref
-      (struct include Datatype.Bool let default () = true end)
-      (struct let name = "show " ^ X.name let dependencies = [] end)
-    let () = add_refresher (Gtk_helper.on_bool hb X.name get set)
-  end
-  in
-  let module Ensures = Add_Refresher(struct let name = "ensures" end) in
-  let module RTE = Add_Refresher(struct let name = "RTE" end) in
-  let module Preconditions =
-    Add_Refresher(struct let name = "preconditions" end)
-  in
-  let module Behaviors = Add_Refresher(struct let name = "behaviors" end) in
-  let module Assigns = Add_Refresher(struct let name = "assigns" end) in
-  let module Assert = Add_Refresher(struct let name = "assert" end) in
-
-  let status_string status state =
-    match status with
-      | Unknown -> Pretty_utils.sfprintf "%a" Cil.d_annotation_status status
-      | Checked _ ->
-	  Pretty_utils.sfprintf "%a" Cil.d_annotation_status
-	    status ^ " (" ^ Project.Computation.name state ^ ")"
+  (* [VP 2011-01-29] seems like some ip do not have an associated option to
+     let them be visible. *)
+  let visible ip =
+    match ip with
+        Property.IPBlob _ -> false
+      | Property.IPPredicate(Property.PKRequires _,_,Kglobal,_) -> 
+        Preconditions.get ()
+      | Property.IPPredicate(Property.PKRequires _,_,Kstmt _,_) ->
+        Preconditions.get () && StmtSpec.get ()
+      | Property.IPPredicate(Property.PKAssumes _,_,_,_) -> false
+      | Property.IPPredicate(Property.PKEnsures _,_,Kglobal,_) -> Ensures.get ()
+      | Property.IPPredicate(Property.PKEnsures _,_,Kstmt _,_) -> 
+        Ensures.get() && StmtSpec.get()
+      | Property.IPPredicate(Property.PKTerminates,_,_,_) -> false
+      | Property.IPAxiom _ -> false
+      | Property.IPComplete _ -> false
+      | Property.IPDisjoint _ -> false
+      | Property.IPCodeAnnot(_,_,{annot_content = AAssert _}) -> Assert.get ()
+      | Property.IPCodeAnnot(_,_,{annot_content = AInvariant _}) -> 
+        Invariant.get ()
+      | Property.IPCodeAnnot(_,_,{annot_content = APragma _}) -> false
+      | Property.IPCodeAnnot _ -> assert false
+      | Property.IPBehavior (_,Kglobal,_) -> Behaviors.get ()
+      | Property.IPBehavior (_,Kstmt _,_) -> Behaviors.get () && StmtSpec.get ()
+      | Property.IPAssigns (_,Kglobal,_,_) -> Assigns.get ()
+      | Property.IPAssigns (_,Kstmt _,Property.Id_code_annot _,_) -> 
+        Assigns.get ()
+      | Property.IPAssigns (_,Kstmt _,Property.Id_behavior _,_) -> 
+        Assigns.get() && StmtSpec.get()
+      | Property.IPFrom _ -> false
+      | Property.IPDecrease _ -> Variant.get ()
   in
   let fill_model () =
+    let status_string status (state: State.t option)=
+      match status with
+      | Unknown -> Pretty_utils.sfprintf "%a" Cil.d_annotation_status status
+      | Checked _ ->
+          assert (not (state = None));
+          Pretty_utils.sfprintf "%a" Cil.d_annotation_status status
+    in
+    let get_states = function
+      | None -> []
+      | Some s -> [ s ]
+    in
+    let forest= Properties_status.Consolidation_tree.get_all () in
     let files = Globals.FileIndex.get_files () in
+    (* We only display the name of the file *)
+    let files = List.map
+      (fun file->(Globals.FileIndex.get_functions file,Filename.basename file))
+      files
+    in
     List.iter
-      (fun file ->
-	 let kfs = Globals.FileIndex.get_functions file in
-         let file_base = Filename.basename file in
+      (fun (kfs, file_base) ->
+	let add_ip ip =
+          let status, state = Properties_status.strongest ip in
+          let function_name =
+            (Extlib.may_map
+               (fun f -> Kernel_function.get_name f ^ ": ") ~dft:"" 
+               (Property.get_kf ip))
+            ^ (Extlib.may_map 
+                 (fun b -> "behavior " ^ b.b_name ^ ": ") ~dft:""
+                 (Property.get_behavior ip))
+          in
+          if visible ip then
+            append
+	      (make_property
+	         forest
+	         ~module_name:file_base
+	         ~function_name
+	         ~status_states:(get_states state)
+	         ~status_name:(status_string status state)
+                 ~ip)
+	in
 	 List.iter
-           (fun kf -> if Kernel_function.is_definition kf then begin
-	      let kf_name = Kernel_function.get_name kf in
-	      let spec = Kernel_function.get_spec kf in
-	      List.iter
-		(fun (rte_status, status_states, rte_status_get) ->
-
-		   append {module_name=file_base;
-			   function_name= kf_name;
-			   kind=rte_status; (* "Runtime Errors"; *)
-			   status_states = [ status_states kf ];
-			   status_name =
-		       if rte_status_get kf then "Generated"
-		       else "not Generated";
-			   visible= RTE.get ()} )
-		(Properties_status.get_all_status ()) (* rte_status_name_get *) ;
-	      (*
-		append {module_name=file_base;
-		function_name= kf_name;
-		kind_name="Preconditions";
-		status =
-                if Properties_status.Called_Precond_Generated.get kf then
-		"Generated"
-                else "not Generated";
-		visible= Preconditions.get ()};
-	      *)
-	      List.iter
-                (fun behavior ->
-                   let function_name = kf_name^": behavior "^behavior.b_name in
-		   let behavior_id = kf,Kglobal,behavior in
-                   let status, state =
-                     Properties_status.Behavior.strongest behavior_id
-                   in
-                   append {module_name=file_base;
-			   function_name= function_name;
-			   kind=Properties_status.Behavior.self;
-			   status_states=
-		       Properties_status.Behavior.get_all_states behavior_id;
-			   status_name=status_string status state;
-                           visible=Behaviors.get ()};
-		   if behavior.b_assigns <> [] then begin
-		     let assigns_id =
-		       kf,Kglobal, Some behavior,behavior.b_assigns
-		     in
-                     let status, state =
-		       Properties_status.Assigns.strongest assigns_id
-                     in
-                     append {module_name=file_base;
-			     function_name= function_name;
-		             kind=Properties_status.Assigns.self;
-			     status_states=
-			 Properties_status.Assigns.get_all_states assigns_id;
-		             status_name= status_string status state;
-                             visible=Assigns.get ()};
-		   end;
-                   List.iter
-                     (fun (_,post) ->
-                        let status, state =
-                          Properties_status.Predicate.strongest post
+           (fun kf ->
+              if Kernel_function.is_definition kf
+                && (not (OnlyCurrent.get ()) ||
+                      let kfvi = Kernel_function.get_vi kf in
+                      List.exists
+                        (fun g -> match g with
+                         | GFun (f,_) -> Cil_datatype.Varinfo.equal f.svar kfvi
+                         | _ -> false)
+                        main_ui#file_tree#selected_globals)
+              then begin
+		let rte_get_all_status = !Db.RteGen.get_all_status in
+	        let kf_name = Kernel_function.get_name kf in
+	        List.iter
+		  (fun (rte_status, status_states, rte_status_get) ->
+                     if RTE.get () then
+		       append
+		         (make_property forest
+			    ~module_name:file_base
+			    ~function_name:kf_name
+			    ~status_states:[ status_states kf ]
+			    ~status_name:(if rte_status_get kf then "Generated"
+				          else "not Generated")
+                            ~ip:(Property.ip_blob rte_status)))
+		  (rte_get_all_status ());
+                let add_spec spec code_annotations =
+                  let ip_spec = Property.ip_of_spec kf Kglobal spec in
+                  let ip_annot = 
+                    List.fold_right
+                      (fun (stmt,loc_ca) acc -> 
+                        let ca = 
+                          match loc_ca with
+                            | Before(User ca|AI(_,ca))
+			    | After(User ca | AI(_,ca)) -> ca
                         in
-                        append {module_name=file_base;
-			        function_name= function_name;
-			        kind=Properties_status.Predicate.self;
-			        status_name=status_string status state;
-				status_states=
-			    Properties_status.Predicate.get_all_states post;
-                                visible=Ensures.get ()})
-                     behavior.b_post_cond;)
-                spec.spec_behavior;
-              List.iter
-                (fun (_stmt,(Before(User ca|AI(_,ca))|After(User ca|AI(_,ca)))) ->
-                   match ca.annot_content with
-                     | AAssert (_labels,_predicate,_) ->
-                         let status, state =
-			   Properties_status.CodeAnnotation.strongest ca
-                         in
-                         append {module_name=file_base;
-			         function_name= kf_name;
-			         kind=Properties_status.CodeAnnotation.self;
-			         status_name=status_string status state;
-				 status_states=
-			     Properties_status.CodeAnnotation.get_all_states ca;
-                                 visible=Assert.get ()}
-                     |APragma _|AAssigns (_, _)|AVariant _
-                     |AInvariant (_, _, _)|AStmtSpec _
-                                    -> ())
-                (Kernel_function.code_annotations kf)
-	    end)
+                        Property.ip_of_code_annot kf stmt ca @ acc)
+                      code_annotations []
+                  in
+                  List.iter add_ip ip_spec;
+                  List.iter add_ip ip_annot;
+                in
+	        add_spec
+                  (Kernel_function.get_spec kf)
+                  (Kernel_function.code_annotations kf)
+	      end)
 	   kfs)
-      (List.sort Pervasives.compare files)
+      (List.sort (fun (_, f1) (_, f2) -> String.compare f1 f2) files)
   in
   let refresh_button = GButton.button ~label:"Refresh" ~packing:hb#add () in
-  let (_:GtkSignal.id) = refresh_button#connect#released
-    ~callback:(fun _ -> clear (); fill_model ())
-  in
+  ignore
+    (let callback _ =
+      main_ui#protect ~cancelable:false
+        (fun () ->
+	  clear ();
+          Refreshers.apply ();
+          fill_model ())
+    in
+    refresh_button#connect#released ~callback);
   (* To fill at startup:
      let (_:GtkSignal.id) = view#misc#connect#after#realize fill_model in *)
-  "Properties (I'm not there)",container#coerce,
-  Some (fun () -> List.iter (fun f -> f()) !refreshers)
-
-
-(* Graphical markers in text showing the status of properties. *)
-let highlighter (main_ui:Design.main_window_extension_points) =
-  let make_marker name stock =
-    let pixbuf =
-      main_ui#source_viewer#misc#render_icon ~size:`MENU stock
-    in
-    main_ui#source_viewer#set_mark_category_pixbuf ~category:name
-      (Some pixbuf)
+  let (_:int) = main_ui#lower_notebook#append_page
+    ~tab_label:(GMisc.label ~text:"Properties" ())#coerce
+    (container#coerce)
   in
-  make_marker "true" `YES;
-  make_marker "false" `NO;
-  make_marker "maybe" `DIALOG_QUESTION;
-  make_marker "nottried" `INFO;
+  register_reset_extension (fun _ -> Refreshers.apply ())
+
+
+(* Graphical markers in text showing the status of properties.
+   Aka. "bullets" in left margin *)
+let highlighter (main_ui:Design.main_window_extension_points) =
+  let _pixbuf_from_stock stock =
+    main_ui#source_viewer#misc#render_icon ~size:`MENU stock 
+  in
+  let make_marker name pixbuf =
+    main_ui#source_viewer#set_mark_category_pixbuf ~category:name (Some pixbuf)
+  in
+  make_marker "true" (Gtk_helper.Icon.get Gtk_helper.Icon.Check);
+  (* "true" used to be (pixbuf_from_stock `YES) *)
+  make_marker "implied" (Gtk_helper.Icon.get 
+                           Gtk_helper.Icon.Relies_on_valid_hyp);
+  make_marker "false" (Gtk_helper.Icon.get Gtk_helper.Icon.Failed);
+  make_marker "maybe" (Gtk_helper.Icon.get Gtk_helper.Icon.Maybe);
+  make_marker "nottried" (Gtk_helper.Icon.get Gtk_helper.Icon.Attach);
   main_ui#source_viewer#set_show_line_marks true;
-  let mark_with_status (buffer:GSourceView2.source_buffer) start status =
+  let mark_with_status (buffer:GSourceView2.source_buffer) start ip =
+    let status = Properties_status.strongest ip in
     match fst status with
     | Unknown ->
         ignore(buffer#create_source_mark ~category:"nottried"
 		 (buffer#get_iter_at_char start))
     | Checked {valid = v} ->
         ignore(buffer#create_source_mark
-		 ~category: (match v with | True -> "true"
-			     | False -> "false"
-			     | Maybe -> "maybe")
+		 ~category: (match v with 
+                 | True -> if
+                     relies_on_valid_hyps_only (Consolidation_tree.get ip)
+                   then       
+                     "true"
+                   else
+                     "implied"
+		 | False -> "false"
+		 | Maybe -> "maybe")
 		 (buffer#get_iter_at_char start))
   in
   fun (buffer:GSourceView2.source_buffer) localizable ~start ~stop:_ ->
@@ -346,42 +535,21 @@ let highlighter (main_ui:Design.main_window_extension_points) =
       (buffer#get_iter_at_char start)
       () ;
   match localizable with
-  | Pretty_source.PCodeAnnot (_kf,_stmt,annot) ->
-      mark_with_status buffer
-        start
-        (Properties_status.CodeAnnotation.strongest annot)
-  | Pretty_source.PBehavior kb ->
-      mark_with_status buffer
-	start
-	(Properties_status.Behavior.strongest kb)
-  | Pretty_source.PPredicate (_,_,p)
-  | Pretty_source.PPost_cond (_,_,_,(_,p))
-      (*    | Pretty_source.PAssumes (_,_,_,p) *)
-  | Pretty_source.PRequires (_,_,_,p)
-  | Pretty_source.PTerminates (_,_,p) ->
-      mark_with_status buffer
-        start
-        (Properties_status.Predicate.strongest p)
-  | Pretty_source.PAssigns a ->
-      mark_with_status buffer
-        start
-        (Properties_status.Assigns.strongest a)
-  | Pretty_source.PDisjoint_behaviors b ->
-      mark_with_status buffer
-        start
-        (Properties_status.Disjoint.strongest b)
-  | Pretty_source.PComplete_behaviors b ->
-      mark_with_status buffer
-        start
-        (Properties_status.Complete.strongest b)
-  | Pretty_source.PVariant _
+  | Pretty_source.PIP (Property.IPPredicate (Property.PKAssumes _,_,_,_)) ->
+      (* Assumes clause do not get a bullet*)
+      ()
+  | Pretty_source.PIP ip ->
+    (*Format.printf "MARK again:%d (STRONGEST='%a' ALL='%a')@." start 
+      Cil.d_annotation_status
+      (fst (Properties_status.strongest ip))
+      Properties_status.pretty_all ip;*)
+    mark_with_status buffer start ip
   | Pretty_source.PGlobal _| Pretty_source.PVDecl _
   | Pretty_source.PTermLval _| Pretty_source.PLval _
-  | Pretty_source.PStmt _
-  | Pretty_source.PAssumes _ -> ()
+  | Pretty_source.PStmt _ -> ()
 
 let extend (main_ui:main_window_extension_points) =
-  main_ui#register_panel make_panel;
+  make_panel main_ui;
   main_ui#register_source_highlighter (highlighter main_ui)
 
 let () = Design.register_extension extend

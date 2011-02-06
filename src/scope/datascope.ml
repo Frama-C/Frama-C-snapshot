@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -27,13 +27,15 @@
 
 open Cil_types
 open Db_types
+module IH = Inthash
+open Cil_datatype
 
 module R : Plugin.S =
   Plugin.Register
     (struct
        let name = "scope"
        let shortname = "scope"
-       let descr = "data dependencies higher level functions"
+       let help = "data dependencies higher level functions"
      end)
 
 (** {2 Computing a mapping between zones and modifying statements}
@@ -43,20 +45,14 @@ a mapping between each zone and the statements that are modifying it.
 
 (** Statement identifier *)
 module Sid = struct
-  type t = int
-  let name = "sid"
-  let compare = compare
-  let hash x = x
-  let id x = x
+  include Datatype.Int
   let default = -1
-  let pretty fmt v = Format.fprintf fmt "sid:%d" v
-  module Datatype = Datatype.Int
 end
 
 (** set of values to store for each data *)
 module SidSet = struct
 
-  include Abstract_interp.Make_Lattice_Set (Sid)
+  include Abstract_interp.Make_Lattice_Set(Sid)
 
   let default _v _a _b : t = inject_singleton Sid.default
   let defaultall _v : t = inject_singleton Sid.default
@@ -142,7 +138,7 @@ let register_modified_zones lmap stmt inst =
                     ~with_alarms:CilE.warn_none_mode
                     (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
                 in
-                  Kernel_function.Set.fold
+                  Kernel_function.Hptset.fold
                     (fun kf lmap -> process_froms lmap (!Db.From.get kf))
                     called_functions
 		    lmap
@@ -185,7 +181,7 @@ module State = struct
     | SameVal, SameVal -> SameVal
     in b
 
-  let equal b1 b2 = (b1 = b2)
+  let equal (b1 : t) b2 = (b1 = b2)
 
   let test_and_merge ~old new_ =
     let result = merge new_ old in
@@ -203,23 +199,23 @@ module GenStates (S : sig
                   end)
   = struct
   type data = S.t
-  type t = data Inthash.t
+  type t = data IH.t
 
-  let states:t = Inthash.create 50
-  let clear () = Inthash.clear states
+  let states:t = IH.create 50
+  let clear () = IH.clear states
 
-  let add = Inthash.add states
-  let find = Inthash.find states
-  let mem = Inthash.mem states
-  let find = Inthash.find states
-  let replace = Inthash.replace states
-  let add = Inthash.add states
-  let iter f = Inthash.iter f states
-  let fold f = Inthash.fold f states
-  let length () = Inthash.length states
+  let add = IH.add states
+  let find = IH.find states
+  let mem = IH.mem states
+  let find = IH.find states
+  let replace = IH.replace states
+  let add = IH.add states
+  let iter f = IH.iter f states
+  let fold f = IH.fold f states
+  let length () = IH.length states
 
   let pretty fmt infos =
-    Inthash.iter
+    IH.iter
       (fun k v -> Format.fprintf fmt "Stmt:%d\n%a\n======" k S.pretty v)
       infos
 end
@@ -285,7 +281,7 @@ module ForwardScope (X : sig val modified : stmt -> bool end ) = struct
   let stmt_can_reach _ _ = true
   let filterStmt _stmt = true
 
-  let doGuard _ _ _ = Dataflow.GDefault
+  let doGuard _ _ _ = Dataflow.GDefault, Dataflow.GDefault
 
   let doEdge _ _ d = d
 end
@@ -303,7 +299,7 @@ let add_s sid acc =
     (* we add only 'simple' statements *)
     match s.skind with
       | Instr _ | Return _ | Continue _ | Break _ | Goto _
-        -> Cilutil.StmtSet.add s acc
+        -> Stmt.Set.add s acc
       | Block _ | Switch _ | If _ | UnspecifiedSequence _ | Loop _
       | TryExcept _ | TryFinally _
         -> acc
@@ -328,14 +324,14 @@ let find_scope allstmts modif_stmts s =
       | _ -> acc
   in
   let _ = backward_data_scope allstmts modif_stmts s in
-  let bw = States.fold (add false) Cilutil.StmtSet.empty in
+  let bw = States.fold (add false) Stmt.Set.empty in
 
   let _ = forward_data_scope modif_stmts s in
-  let fw = States.fold (add true) Cilutil.StmtSet.empty in
+  let fw = States.fold (add true) Stmt.Set.empty in
 
-  let fb = Cilutil.StmtSet.inter bw fw in
-  let fw = Cilutil.StmtSet.diff fw fb in
-  let bw = Cilutil.StmtSet.diff bw fb in
+  let fb = Stmt.Set.inter bw fw in
+  let fw = Stmt.Set.diff fw fb in
+  let bw = Stmt.Set.diff bw fb in
     fw, fb, bw
 
 (** Try to find the statement set where [data] has the same value than
@@ -361,15 +357,14 @@ let get_data_scope_at_stmt kf stmt lval =
       (Cilutil.print_list Cilutil.space Sid.pretty)
       (SidSet.to_list ~keep_default:false modif_stmts)
       (* scope *)
-      Cilutil.StmtSet.pretty f_scope
-      Cilutil.StmtSet.pretty fb_scope
-      Cilutil.StmtSet.pretty b_scope;
+      Stmt.Set.pretty f_scope
+      Stmt.Set.pretty fb_scope
+      Stmt.Set.pretty b_scope;
     (f_scope, (fb_scope, b_scope))
 
 exception ToDo
 
 let get_annot_zone kf stmt annot =
-  try
     let add_zone z info =
       let s = info.Db.Properties.Interp.To_zone.ki in
       let before = info.Db.Properties.Interp.To_zone.before in
@@ -385,16 +380,12 @@ let get_annot_zone kf stmt annot =
     let (info, _), _ =
       !Db.Properties.Interp.To_zone.from_stmt_annot annot
         ~before:true (stmt, kf)
-    in
-    let zone = List.fold_left add_zone Locations.Zone.bottom info in
-      R.debug "[get_annot_zone] need %a" Locations.Zone.pretty zone ;
-      zone
-  with Extlib.NotYetImplemented _ | ToDo ->
-      begin
-        R.warning
-	  "[get_annot_zone] don't know how to compute zone: skip this annotation";
-        raise ToDo
-      end
+    in match info with
+      | None -> raise ToDo
+      | Some info ->
+          let zone = List.fold_left add_zone Locations.Zone.bottom info in
+            R.debug "[get_annot_zone] need %a" Locations.Zone.pretty zone ;
+            zone
 
 (** add [annot] to [acc] if it is not already in.
   * Return [true] if it has been added.
@@ -415,7 +406,7 @@ let rec add_annot annot acc =
 let check_stmt_annots pred s acc =
   let check acc annot =
     match annot with
-      | Before (AI (_, ({annot_content= AAssert (_, p, _) } as annot))) ->
+      | Before (AI (_, ({annot_content= AAssert (_, p) } as annot))) ->
           if Logic_utils.is_same_named_predicate p pred
           then begin
             let acc, added = add_annot annot acc in
@@ -439,7 +430,7 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
     stmt.sid Kernel_function.pretty_name kf
     !Ast_printer.d_code_annotation annot;
 
-  let sets = (Cilutil.StmtSet.empty, to_be_removed) in
+  let sets = (Stmt.Set.empty, to_be_removed) in
     try
       let zone =  get_annot_zone kf stmt annot in
 
@@ -447,7 +438,7 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
       let modif_stmts = InitSid.find info zone in
       let _ = forward_data_scope modif_stmts stmt in
       let pred = match annot.annot_content with
-        | AAssert (_, p, _) -> p
+        | AAssert (_, p) -> p
         | _ -> R.abort "only 'assert' are handeled here"
       in
       let add sid x ((acc_scope, acc_to_be_rm) as acc) =
@@ -466,7 +457,10 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
       in
       let sets = States.fold add sets in
         sets
-    with ToDo -> sets
+    with ToDo ->
+      R.warning
+        "[get_annot_zone] don't know how to compute zone: skip this annotation";
+      sets
 
 (** Collect the annotations that can be removed because they are redondant. *)
 class check_annot_visitor = object(self)
@@ -486,7 +480,7 @@ class check_annot_visitor = object(self)
     in
     let before = self#is_annot_before in
     let _ = match annot.annot_content with
-        | AAssert (_, _, _) ->
+        | AAssert (_, _) ->
             if before then begin
               R.debug ~level:2 "[check] annot %d at stmt %d in %a : %a@."
                 annot.annot_id stmt.sid Kernel_function.pretty_name kf
@@ -540,11 +534,10 @@ class rm_annot_visitor to_be_removed = object
     if not_in then (* not to be removed *)  Cil.SkipChildren
     else (* is to be removed *)
       match annot.annot_content with
-      | AAssert (_, p, _) ->
+      | AAssert (_, p) ->
           R.debug ~level:2 "[rm_asserts] removing redundant %a@." Cil.d_code_annotation annot;
-          let status = Checked {emitter="scope"; valid = Maybe} in
           let p = { p with content = Ptrue } in
-          let aassert = AAssert ([], p, {status = status}) in
+          let aassert = AAssert ([], p) in
           let annot = { annot with annot_content = aassert } in
           Cil.ChangeTo annot
       | _ -> Cil.SkipChildren
@@ -566,35 +559,35 @@ let rm_asserts () =
 (** Register external functions into Db. *)
 let () =
   Db.register (* kernel_function -> stmt -> lval ->
-       Cilutil.StmtSet.t * Cilutil.StmtSet.t * Cilutil.StmtSet.t *)
+       Stmt.Set.t * Stmt.Set.t * Stmt.Set.t *)
     (Db.Journalize
        ("Scope.get_data_scope_at_stmt",
-        Type.func3
-	  Kernel_type.kernel_function
-          Kernel_type.stmt
-          Kernel_type.lval
-          (Type.couple Kernel_type.stmt_set
-             (Type.couple Kernel_type.stmt_set Kernel_type.stmt_set))))
+        Datatype.func3
+	  Kernel_function.ty
+          Stmt.ty
+          Lval.ty
+          (Datatype.pair Stmt.Set.ty (Datatype.pair Stmt.Set.ty Stmt.Set.ty))))
   Db.Scope.get_data_scope_at_stmt get_data_scope_at_stmt;
 
    Db.register (* (kernel_function -> stmt -> code_annotation ->
-       Cilutil.StmtSet.t * code_annotation list *)
+       Stmt.Set.t * code_annotation list *)
       Db.Journalization_not_required (* TODO *)
      (* (Db.Journalize("Scope.get_prop_scope_at_stmt",
-                    Type.func Kernel_type.kernel_function
-                     (Type.func Kernel_type.stmt
-                        (Type.func code_annotation_type
-                           (Type.couple  Kernel_type.stmt_set
-                              (Type.list code_annotation_type)))))) *)
+                    Datatype.func Kernel_type.kernel_function
+                     (Datatype.func Kernel_type.stmt
+                        (Datatype.func code_annotation_type
+                           (Datatype.couple  Kernel_type.stmt_set
+                              (Datatype.list code_annotation_type)))))) *)
      Db.Scope.get_prop_scope_at_stmt  get_prop_scope_at_stmt;
 
    Db.register (* unit -> code_annotation list *)
       Db.Journalization_not_required (* TODO *)
      (* (Db.Journalize("Scope.check_asserts",
-                    Type.func Type.unit  (Type.list code_annotation_type))) *)
+                    Datatype.func Datatype.unit  (Datatype.list code_annotation_type))) *)
      Db.Scope.check_asserts check_asserts;
 
   Db.register
-    (Db.Journalize ("Scope.rm_asserts", Type.func Type.unit Type.unit))
+    (Db.Journalize
+       ("Scope.rm_asserts", Datatype.func Datatype.unit Datatype.unit))
     Db.Scope.rm_asserts rm_asserts;
 

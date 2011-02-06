@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -33,18 +33,62 @@ open Spec_tools
 
 
 
-
 let init_specification () =
   List.iter
     (fun name ->
        let pre,_ = Data_for_aorai.get_func_pre name in
        let post_st,post_tr = mk_empty_pre_or_post_bycase () in
-       Array.iteri (fun index _ -> if pre.(index) then post_st.(index)<- fst (Data_for_aorai.get_func_post name) ) post_st;
-       Array.iteri (fun index _ -> if pre.(index) then post_tr.(index)<- snd (Data_for_aorai.get_func_post name) ) post_tr;
+       Array.iteri 
+	 (fun index _ -> 
+	    if pre.(index) then begin
+	      post_st.(index)<- fst (Data_for_aorai.get_func_post name) ;
+	      post_tr.(index)<- snd (Data_for_aorai.get_func_post name) 
+	    end
+	 ) 
+	 post_st;
+       
+       (* Use Dijsktra algorithm to remove unreachable states *)
+       Array.iteri 
+	 (fun st1 post -> 
+	    Array.iteri  
+	      (fun st2 b -> 
+		 if b then 
+		   if not (Path_analysis.existing_path (Data_for_aorai.getAutomata())  st1 st2) then
+		     begin
+		       post_st.(st1).(st2) <- false;
+		       if Aorai_option.verbose_atleast 2 then 
+			 Aorai_option.feedback "Function %s : state %s unreachable in post from %s (Dijkstra simplification).\n" name (Data_for_aorai.getStateName st2) (Data_for_aorai.getStateName st1)
+		     end
+	      )
+	      post ;
+	 )
+	 post_st; 
 
+
+       (* Removing transitions corresponding to unreachable states *)
+       Array.iteri 
+	 (fun st1 _ -> 
+	    List.iter
+	      (fun (tr:Promelaast.trans) -> 
+		 let st2 = tr.Promelaast.stop.Promelaast.nums in
+		 if (not (post_st.(st1).(st2))) && 
+		   post_tr.(st1).(tr.Promelaast.numt) then 
+		     begin
+		       post_tr.(st1).(tr.Promelaast.numt) <- false;
+		       if Aorai_option.verbose_atleast 2 then 
+			 Aorai_option.feedback "Function %s : transition %d reaches an unreachable state in post from %s (Dijkstra simplification).\n" name tr.Promelaast.numt (Data_for_aorai.getStateName st1)
+		     end
+	      )
+	      (snd (Data_for_aorai.getAutomata()))
+	 )
+	 post_tr; 
+       
+
+	    
        Data_for_aorai.set_func_post_bycase name (post_st,post_tr)
     )
     (Data_for_aorai.getFunctions_from_c ())
+    
 
 
 
@@ -368,7 +412,7 @@ class visit_propagating_pre_post_constraints_bycase (auto:Promelaast.buchautomat
 	     Post2 : Post condition of an iteration
 
 
-	     Computation of conditions :
+	     State_builder.of conditions :
 
 	     Initially :
  	       Pre1 is given
@@ -816,7 +860,7 @@ class visit_propagating_pre_post_constraints_bycase (auto:Promelaast.buchautomat
 
 
     in
-    (* This computation is done from end to begining *)
+    (* This computation is done from end to beginning *)
     prop (List.rev stmt_l) (post_st,post_tr)
 
   in

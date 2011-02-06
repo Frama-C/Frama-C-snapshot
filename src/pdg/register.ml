@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,21 +22,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let compute kf =
-  let pdg = Build.compute_pdg kf in
-      (* Annot.add_annotations kf pdg; *)
-  pdg
+let compute = Build.compute_pdg
 
 let pretty ?(bw=false) fmt pdg =
     let kf = PdgTypes.Pdg.get_kf pdg in
     Format.fprintf fmt "@[RESULT for %s:@]@\n@[%a@]"
-      (Kernel_function.get_name kf) (PdgTypes.Pdg.pretty ~bw) pdg
+      (Kernel_function.get_name kf) (PdgTypes.Pdg.pretty_bw ~bw) pdg
 
 let pretty_node short =
   if short then PdgTypes.Node.pretty
   else PdgTypes.Pdg.pretty_node
-
-let pretty_key = Print.pretty_key
 
 let print_dot pdg filename =
   PdgTypes.Pdg.build_dot filename pdg;
@@ -44,18 +39,20 @@ let print_dot pdg filename =
 
 module Tbl =
   Kernel_function.Make_Table
-    (PdgTypes.Pdg.Datatype)
+    (PdgTypes.Pdg)
     (struct
        let name = "Pdg.State"
        let dependencies = [] (* postponed *)
        let size = 97
+       let kind = `Correctness
     end)
 
 let () =
   Cmdline.run_after_extended_stage
     (fun () ->
-       let add = Project.Computation.add_dependency Tbl.self in
-       add !Db.From.self)
+       State_dependency_graph.Static.add_codependencies
+	 ~onto:Tbl.self
+	 [ !Db.From.self ])
 
 (** Register external functions into Db. *)
 let () =
@@ -87,7 +84,7 @@ let () =
   Db.Pdg.find_fun_postcond_nodes := Annot.find_fun_postcond_nodes;
 
   Db.Pdg.find_call_out_nodes_to_select := Sets.find_call_out_nodes_to_select;
-  Db.Pdg.find_in_nodes_to_select_for_this_call := 
+  Db.Pdg.find_in_nodes_to_select_for_this_call :=
          Sets.find_in_nodes_to_select_for_this_call;
 
   Db.Pdg.direct_dpds := Sets.direct_dpds;
@@ -113,13 +110,11 @@ let () =
 
   Db.Pdg.pretty := pretty ;
   Db.Pdg.pretty_node := pretty_node ;
-  Db.Pdg.pretty_key := pretty_key ;
+  Db.Pdg.pretty_key := PdgIndex.Key.pretty;
   Db.Pdg.extract := print_dot
 
-  (*Db.Pdg.translate_marks_to_prop := Marks.add_new_marks_to_rqs*)
-
-(* polymorphic functions : cannot be registered in Db.
-* Can be used through Pdg.Register (see Pdg.mli) *)
+(* Polymorphic functions : cannot be registered in Db.
+   Can be used through Pdg.Register (see Pdg.mli) *)
 let translate_marks_to_prop = Marks.translate_marks_to_prop
 let call_out_marks_to_called = Marks.call_out_marks_to_called
 let in_marks_to_caller = Marks.in_marks_to_caller
@@ -128,32 +123,31 @@ let translate_in_marks = Marks.translate_in_marks
 module F_Proj (C : PdgMarks.T_Config) = Marks.F_Proj (C)
 
 (* Didn't manage to make it work. Got message : run: couldn't run the server
-let _ = 
+let _ =
   Format.printf "try to run ocamlviz@.";
   Ocamlviz.init ()
 *)
 
 let main () =
-  let force_pdg = 
+  let force_pdg =
     Pdg_parameters.BuildAll.get ()
-    || not (Cilutil.StringSet.is_empty (Pdg_parameters.BuildFct.get ()))
+    || not (Datatype.String.Set.is_empty (Pdg_parameters.BuildFct.get ()))
   in
   if force_pdg then begin
     Pdg_parameters.feedback "in progress...";
     let do_kf_pdg kf =
       let fname = Kernel_function.get_name kf in
       if Pdg_parameters.BuildAll.get () ||
-	Cilutil.StringSet.mem fname (Pdg_parameters.BuildFct.get ())
-      then begin
+	Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
+      then
 	let pdg = !Db.Pdg.get kf in
         let dot_postdom = Pdg_parameters.DotPostdomBasename.get () in
-          if dot_postdom <> "" then !Db.Postdominators.print_dot dot_postdom kf;
+        if dot_postdom <> "" then !Db.Postdominators.print_dot dot_postdom kf;
         let bw  = Pdg_parameters.PrintBw.get () in
 	Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
-	if Pdg_parameters.DotBasename.get () <> "" then
-          !Db.Pdg.extract pdg
-	    (Pdg_parameters.DotBasename.get ()^"."^fname^".dot")
-      end
+	let dot_basename = Pdg_parameters.DotBasename.get () in
+	if dot_basename <> "" then
+          !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
     in
     !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
     if Pdg_parameters.BuildAll.get () then
@@ -165,6 +159,6 @@ let () = Db.Main.extend main
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.. -j"
+  compile-command: "make -C ../.."
   End:
 *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,18 +20,37 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register_gui.ml,v 1.23 2009-02-13 07:59:29 uid562 Exp $ *)
-
 open Pretty_source
 open Gtk_helper
 open Db
 open Cil_types
-open Cilutil
+open Cil_datatype
 
 module Enabled=
-  Computation.Ref
-    (struct include Datatype.Bool let default () = true end)
-    (struct let name = "Occurrence_gui.Enabled" let dependencies = [] end)
+  State_builder.Ref
+    (Datatype.Bool)
+    (struct
+      let name = "Occurrence_gui.Enabled"
+      let dependencies = []
+      let kind = `Internal
+      let default () = true
+     end)
+
+let _ =
+  Dynamic.register
+    ~plugin:"Occurrence"
+    ~journalize:false
+    "Enabled.set"
+    (Datatype.func Datatype.bool Datatype.unit)
+    Enabled.set
+
+let _ =
+  Dynamic.register
+    ~plugin:"Occurrence"
+    ~journalize:false
+    "Enabled.get"
+    (Datatype.func Datatype.unit Datatype.bool)
+    Enabled.get
 
 let find_occurrence (main_ui:Design.main_window_extension_points) vi () =
   ignore (!Db.Occurrence.get vi);
@@ -59,30 +78,29 @@ let occurrence_highlighter buffer loc ~start ~stop =
         in
         match loc with
         | PLval (_, ki, lval) ->
-	    let same_lval (k, l) =
-	      KinstrComparable.equal k ki && Cilutil.equals l lval
-	    in
+	    let same_lval (k, l) = Kinstr.equal k ki && Lval.equal l lval in
 	    if List.exists same_lval result then highlight ()
         | PTermLval (_,ki,term_lval) ->
 	    let same_tlval (k, l) =
               Logic_utils.is_same_tlval
 	        (Logic_utils.lval_to_term_lval ~cast:true l)
 	        term_lval
-	      && KinstrComparable.equal k ki
+	      && Kinstr.equal k ki
 	    in
 	    if List.exists same_tlval result then highlight ()
-        | PVDecl(_, vi') when VarinfoComparable.equal vi vi' ->
+        | PVDecl(_, vi') when Varinfo.equal vi vi' ->
 	    highlight ()
-        | PVDecl _ | PStmt _ | PCodeAnnot _ | PGlobal _ | PAssigns _
-        | PBehavior _ | PPredicate _
-        | PPost_cond _| PAssumes _| PDisjoint_behaviors _| PComplete_behaviors _
-        | PTerminates _| PVariant _| PRequires _ ->
-	    ()
+        | PVDecl _ | PStmt _ | PGlobal _ | PIP _ -> ()
 
 module FollowFocus =
-  Computation.Ref
-    (struct include Datatype.Bool let default () = false end)
-    (struct let name = "Occurrence_gui.FollowFocus" let dependencies = [] end)
+  State_builder.Ref
+    (Datatype.Bool)
+    (struct
+      let name = "Occurrence_gui.FollowFocus"
+      let dependencies = []
+      let kind = `Internal
+      let default () = false
+     end)
 
 let occurrence_panel main_ui =
   let w = GPack.vbox  () in
@@ -171,19 +189,19 @@ let file_tree_decorate (file_tree:Filetree.t) =
        | None -> (* occurrence not computed *)
            [`STOCK_ID ""]
        | Some (result, _) ->
-           let in_globals globs (ki,_) =
-             let kf = Globals.Functions.find_englobing_kf ki in
-             match kf with
-             | None -> false
-             | Some kf ->
-                 let {vid=v0} = Kernel_function.get_vi kf in
-                 List.exists
-                   (fun glob -> match glob with
-                    | GFun ({svar ={vid=v1}},_ ) -> v1=v0
-                    |  _ -> false)
-                   globs
+           let in_globals (ki,_) =
+             match ki with
+               | Kglobal -> false
+               | Kstmt stmt ->
+                   let kf = Kernel_function.find_englobing_kf stmt in
+                   let {vid=v0} = Kernel_function.get_vi kf in
+                   List.exists
+                     (fun glob -> match glob with
+                        | GFun ({svar ={vid=v1}},_ ) -> v1=v0
+                        |  _ -> false)
+                     globs
            in
-           if List.exists (in_globals globs) result then [`STOCK_ID "gtk-apply"]
+           if List.exists in_globals result then [`STOCK_ID "gtk-apply"]
            else [`STOCK_ID ""])
 
 let main main_ui =
@@ -196,6 +214,6 @@ let () = Design.register_extension main
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

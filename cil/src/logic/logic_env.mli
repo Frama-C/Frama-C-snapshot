@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -27,16 +27,16 @@
 open Cil_types
 
 (** {2 Global Tables} *)
-module LogicInfo: Computation.HASHTBL_OUTPUT
+module Logic_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_info
 
-module LogicTypeInfo: Computation.HASHTBL_OUTPUT
+module Logic_type_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_type_info
 
-module LogicCtorInfo: Computation.HASHTBL_OUTPUT
+module Logic_ctor_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_ctor_info
 
-val builtin_states: Project.Selection.t
+val builtin_states: State.t list
 
 (** {2 Shortcuts to the functions of the modules above} *)
 
@@ -50,7 +50,9 @@ val prepare_tables : unit -> unit
     which decides whether two logic_info are identical. It is intended
     to be Logic_utils.is_same_logic_profile, but this one can not be
     called from here since it will cause a circular dependency
-    Logic_env <- Logic_utils <- Cil <- Logic_env
+    Logic_env <- Logic_utils <- Cil <- Logic_env.
+    {b Do not use this function directly} unless you're really sure about
+    what you're doing. Use {!Logic_utils.add_logic_function} instead.
 *)
 val add_logic_function_gen:
   (logic_info -> logic_info -> bool) -> logic_info -> unit
@@ -67,6 +69,14 @@ module Builtins: sig
     (** request an addition in the environment. Use one of the functions below
         in the body of the argument.
      *)
+end
+
+(** logic function/predicates that are effectively used in current project. *)
+module Logic_builtin_used: sig
+  val add: logic_info -> unit
+  val mem: logic_info -> bool
+  val iter: (logic_info -> unit) -> unit
+  val self: State.t
 end
 
 (** see add_logic_function_gen above *)
@@ -128,7 +138,13 @@ val typename_status: string -> bool
 val builtin_types_as_typenames: unit -> unit
 
 (** {2 Internal use} *)
-(** Used to postpone dependency of Lenv global tables wrt Cil_state, which
-    is initialized afterwards.
+
+val init_dependencies: State.t -> unit
+  (** Used to postpone dependency of Lenv global tables wrt Cil_state, which
+      is initialized afterwards. *)
+
+(*
+  Local Variables:
+  compile-command: "make -C ../../.."
+  End:
 *)
-val init_dependencies: Project.Computation.t -> unit

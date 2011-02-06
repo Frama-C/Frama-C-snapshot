@@ -48,9 +48,9 @@ int count(const int* a, int n, int val)
   int cnt = 0;
   /*@
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant 0 <= cnt <= i;
      loop invariant cnt == counting(a, i, val);
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[i] == val)

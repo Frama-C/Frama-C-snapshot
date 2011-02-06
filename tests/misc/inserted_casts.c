@@ -1,12 +1,7 @@
-/* run.config_no_native_dynlink
-   EXECNOW: make -s tests/misc/inserted_casts_plugin/inserted_casts.cmo
-   CMD: FRAMAC_PLUGIN=tests/misc/inserted_casts_plugin bin/toplevel.byte
-   OPT: -print
-*/
 /* run.config
    EXECNOW: make -s tests/misc/inserted_casts_plugin/inserted_casts.cmxs
-   CMD: FRAMAC_PLUGIN=tests/misc/inserted_casts_plugin bin/toplevel.opt
-   OPT: -print
+   CMD: bin/toplevel.opt
+   OPT: -print -load-module tests/misc/inserted_casts_plugin/inserted_casts.cmxs
 */
 int f(int b)
 {

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -146,7 +146,7 @@ end = struct
       !Db.Value.expr_to_kernel_function ~with_alarms:CilE.warn_none_mode
         (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
     in
-      Kernel_function.Set.elements called_functions
+    Kernel_function.Hptset.elements called_functions
 
   (** [call_id] is a call to [g] in [f].
   * we don't want [f] to call [g] anymore, so we have to update [g] [called_by]
@@ -418,7 +418,7 @@ end = struct
   (** compute the marks to propagate in [pdg_caller] when the called function
  * have the [to_prop] marks.
  * @param fi_to_call is used to compute [more_inputs] only :
- *        a persistant input mark is not considered as a new input.
+ *        a persistent input mark is not considered as a new input.
  * *)
   let marks_for_caller_inputs pdg_caller old_marks call to_prop fi_to_call =
     assert (not (PdgTypes.Pdg.is_top pdg_caller));
@@ -571,8 +571,11 @@ end = struct
 
    (** TODO :
    * this function should disappear when the parameter declarations will
-   * be handled... *)
-  let mark_visible_inputs ff_marks to_prop =
+   * be handled...
+   * See TODO in Pdg.Build.do_param
+   * *)
+  let mark_visible_inputs _ff_marks to_prop =
+      (*
     let pdg, _ = ff_marks  in
     let kf = M.get_pdg_kf pdg in
     let param_list = Kernel_function.get_formals kf in
@@ -595,6 +598,8 @@ end = struct
     in
     let new_marks = check_in_params 1 param_list in
     mark_and_propagate ff_marks ~to_prop new_marks
+    *)
+    to_prop
 
   let mark_visible_output ff_marks =
     let pdg, _ = ff_marks  in
@@ -736,7 +741,7 @@ let examine_calls ff new_marks_in_call_outputs =
   in FctMarks.fold_calls process_this_call ff []
 
 (** build a new empty slice in the given [fct_info].
-* If the function has some persistant selection, let's copy it in the new slice.
+* If the function has some persistent selection, let's copy it in the new slice.
 * Notice that there can be at most one slice for the application entry point
 * (main), but we allow to have several slice for a library entry point.
 * @param build_actions (bool) is useful if the function has some persistent
@@ -885,7 +890,7 @@ let prop_persistant_marks proj fi to_prop actions =
 * and [propagate=true], also generates the actions to make every calls to this
 * function visible. *)
 let add_marks_to_fi proj fi nodes_marks propagate actions =
-  SlicingParameters.debug ~level:2 "[Fct_Slice.add_marks_to_fi] (persistant)";
+  SlicingParameters.debug ~level:2 "[Fct_Slice.add_marks_to_fi] (persistent)";
   let marks, are_new_marks =
     match FctMarks.fi_marks fi with
       | Some m -> m, false
@@ -1403,27 +1408,28 @@ let merge_fun_callers get_list get_value merge is_top acc proj kf =
   if is_top acc then acc
   else begin
     let acc = ref acc in
-    let table = ref VarinfoSet.empty in
+    let table = ref Cil_datatype.Varinfo.Set.empty in
       try
         let merge m =
           acc := merge m !acc ;
           if is_top !acc then
-            raise StopMerging (* acceleration when top is reached *)
+	    raise StopMerging (* acceleration when top is reached *)
         in
         let rec merge_fun_callers kf =
           let merge_fun_caller (kf,_) = merge_fun_callers kf in
           let vf = Kernel_function.get_vi kf in
-            if VarinfoSet.mem vf !table
-            then () (* no way to add something, the [kf] contribution is already accumulated. *)
-            else
-              begin
-                table := VarinfoSet.add vf !table ;
-                List.iter (fun x -> merge (get_value x)) (get_list proj kf) ;
-                List.iter merge_fun_caller (!Db.Value.callers kf)
-              end
-        in merge_fun_callers kf ;
-          !acc
-      with StopMerging -> !acc
+          if not (Cil_datatype.Varinfo.Set.mem vf !table) then begin
+            table := Cil_datatype.Varinfo.Set.add vf !table ;
+            List.iter (fun x -> merge (get_value x)) (get_list proj kf) ;
+            List.iter merge_fun_caller (!Db.Value.callers kf)
+          end
+	(*  else no way to add something, the [kf] contribution is already
+	    accumulated. *)
+        in
+	merge_fun_callers kf;
+        !acc
+      with StopMerging ->
+	!acc
   end
 
 (** The mark [m] related to all statements of a source function [kf].

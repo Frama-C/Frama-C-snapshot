@@ -45,48 +45,11 @@ open Cil_types
 module H = Hashtbl
 module IH = Inthash
 
+open Cil_datatype
+
 let ($) f g x = f (g x)
 
 let swap f x y = f y x
-
-(*TODO: remove
-exception GotSignal of int
-let withTimeout (secs: float) (* Seconds for timeout *)
-                (handler: int -> 'b) (* What to do if we have a timeout. The
-                                        * argument passed is the signal number
-                                        * received. *)
-                (f: 'a -> 'b) (* The function to run *)
-                (arg: 'a) (* And its argument *)
-   : 'b =
-  let oldHandler =
-    Sys.signal Sys.sigalrm
-      (Sys.Signal_handle
-         (fun i ->
-           ignore (E.log "Got signal %d\n" i);
-           raise (GotSignal i)))
-  in
-  let reset_sigalrm () =
-    ignore (Unix.setitimer Unix.ITIMER_REAL { Unix.it_value = 0.0;
-                                              Unix.it_interval = 0.0;});
-    Sys.set_signal Sys.sigalrm oldHandler;
-  in
-  ignore (Unix.setitimer Unix.ITIMER_REAL
-            { Unix.it_value    = secs;
-              Unix.it_interval = 0.0;});
-  (* ignore (Unix.alarm 2); *)
-  try
-    let res = f arg in
-    reset_sigalrm ();
-    res
-  with exc -> begin
-    reset_sigalrm ();
-    ignore (E.log "Got an exception\n");
-    match exc with
-      GotSignal i ->
-        handler i
-    | _ -> raise exc
-  end
-*)
 
 (** Print a hash table *)
 let docHash ?(sep=format_of_string ",@ ") entry fmt h =
@@ -115,9 +78,6 @@ let keys (h: ('a, 'b) H.t) : 'a list =
 let hash_copy_into (hfrom: ('a, 'b) H.t) (hto: ('a, 'b) H.t) : unit =
   H.clear hto;
   H.iter (H.add hto) hfrom
-
-let anticompare a b = compare b a
-;;
 
 
 let rec list_drop (n : int) (xs : 'a list) : 'a list =
@@ -450,86 +410,6 @@ let fold_for ~(init: 'a) ~(lo: int) ~(hi: int) (f: int -> 'a -> 'a) =
 
 (************************************************************************)
 
-module type STACK = sig
-  type 'a t
-  (** The type of stacks containing elements of type ['a]. *)
-
-  exception Empty
-    (** Raised when {!Cilutil.STACK.pop} or {!Cilutil.STACK.top} is applied to
-	an empty stack. *)
-
-  val create : unit -> 'a t
-  (** Return a new stack, initially empty. *)
-
-  val push : 'a -> 'a t -> unit
-  (** [push x s] adds the element [x] at the top of stack [s]. *)
-
-  val pop : 'a t -> 'a
-  (** [pop s] removes and returns the topmost element in stack [s],
-     or raises [Empty] if the stack is empty. *)
-
-  val top : 'a t -> 'a
-  (** [top s] returns the topmost element in stack [s],
-     or raises [Empty] if the stack is empty. *)
-
-  val clear : 'a t -> unit
-  (** Discard all elements from a stack. *)
-
-  val copy : 'a t -> 'a t
-  (** Return a copy of the given stack. *)
-
-  val is_empty : 'a t -> bool
-  (** Return [true] if the given stack is empty, [false] otherwise. *)
-
-  val length : 'a t -> int
-  (** Return the number of elements in a stack. *)
-
-  val iter : ('a -> unit) -> 'a t -> unit
-  (** [iter f s] applies [f] in turn to all elements of [s],
-     from the element at the top of the stack to the element at the
-     bottom of the stack. The stack itself is unchanged. *)
-end
-
-module Stack = struct
-
-  type 'a t = { mutable length : int;
-                stack : 'a Stack.t; }
-
-  exception Empty
-
-  let create () = { length = 0;
-                    stack = Stack.create(); }
-
-  let push x s =
-    s.length <- s.length + 1;
-    Stack.push x s.stack
-
-  let pop s =
-    s.length <- s.length - 1;
-    Stack.pop s.stack
-
-  let top s =
-    Stack.top s.stack
-
-  let clear s =
-    s.length <- 0;
-    Stack.clear s.stack
-
-  let copy s = { length = s.length;
-		 stack = Stack.copy s.stack; }
-
-  let is_empty s =
-    Stack.is_empty s.stack
-
-  let length s = s.length
-
-  let iter f s =
-    Stack.iter f s.stack
-
-end
-
-(************************************************************************)
-
 let absoluteFilename (fname: string) =
   if Filename.is_relative fname then
     Filename.concat (Sys.getcwd ()) fname
@@ -602,18 +482,29 @@ let findConfigurationInt (key: string) : int =
   match findConfiguration key with
     ConfInt i -> i
   | _ ->
-      (Cilmsg.warning "Configuration %s is not an integer" key);
+      Cilmsg.warning "Configuration %s is not an integer" key;
+      raise Not_found
+
+let findConfigurationFloat (key: string) : float =
+  match findConfiguration key with
+    ConfFloat i -> i
+  | _ ->
+      Cilmsg.warning "Configuration %s is not a float" key;
       raise Not_found
 
 let useConfigurationInt (key: string) (f: int -> unit) =
   try f (findConfigurationInt key)
   with Not_found -> ()
 
+let useConfigurationFloat (key: string) (f: float -> unit) =
+  try f (findConfigurationFloat key)
+  with Not_found -> ()
+
 let findConfigurationString (key: string) : string =
   match findConfiguration key with
     ConfString s -> s
   | _ ->
-      (Cilmsg.warning "Configuration %s is not a string" key);
+      Cilmsg.warning "Configuration %s is not a string" key;
       raise Not_found
 
 let useConfigurationString (key: string) (f: string -> unit) =
@@ -625,7 +516,7 @@ let findConfigurationBool (key: string) : bool =
   match findConfiguration key with
     ConfBool b -> b
   | _ ->
-      (Cilmsg.warning "Configuration %s is not a boolean" key);
+      Cilmsg.warning "Configuration %s is not a boolean" key;
       raise Not_found
 
 let useConfigurationBool (key: string) (f: bool -> unit) =
@@ -636,7 +527,7 @@ let findConfigurationList (key: string) : configData list  =
   match findConfiguration key with
     ConfList l -> l
   | _ ->
-      (Cilmsg.warning "Configuration %s is not a list" key);
+      Cilmsg.warning "Configuration %s is not a list" key;
       raise Not_found
 
 let useConfigurationList (key: string) (f: configData list -> unit) =
@@ -667,7 +558,7 @@ let saveConfiguration (fname: string) =
 
       | ConfString s ->
           if String.contains s '"' then
-            (Cilmsg.fatal "Guilib: configuration string contains quotes");
+            Cilmsg.fatal "Guilib: configuration string contains quotes";
           Buffer.add_char buff '"';
           Buffer.add_string buff s;
           Buffer.add_char buff '"'; (* '"' *)
@@ -682,19 +573,19 @@ let saveConfiguration (fname: string) =
   in
   try
     let oc = open_out fname in
-    (Cilmsg.feedback "Saving configuration to %s\n" (absoluteFilename fname));
+    Cilmsg.debug "Saving configuration to %s@." (absoluteFilename fname);
     H.iter (fun k c ->
       output_string oc (k ^ "\n");
       output_string oc ((configToString c) ^ "\n"))
       configurationData;
     close_out oc
   with _ ->
-    (Cilmsg.warning "Cannot open configuration file %s\n" fname)
+    Cilmsg.warning "Cannot open configuration file %s\n" fname
 
 
 (** Make some regular expressions early *)
-let intRegexp = Str.regexp "i\\([0-9]+\\);"
-let floatRegexp = Str.regexp "f\\([0-9]+\\.[0-9]+\\);"
+let intRegexp = Str.regexp "i\\([^;]+\\);"
+let floatRegexp = Str.regexp "f\\([^;]+\\);"
 let boolRegexp = Str.regexp "b\\(\\(true\\)\\|\\(false\\)\\);"
 let stringRegexp = Str.regexp "\"\\([^\"]*\\)\""
 
@@ -707,13 +598,20 @@ let loadConfiguration (fname: string) : unit =
 
     let rec getOne () : configData =
       if !idx >= l then raise Not_found;
-
       if Str.string_match intRegexp s !idx then begin
         idx := Str.match_end ();
-        ConfInt (int_of_string (Str.matched_group 1 s))
+	let p = Str.matched_group 1 s in
+        (try ConfInt (int_of_string p)
+	 with Failure "int_of_string" ->
+	   Cilmsg.warning "Invalid integer configuration element %s" p;
+	   raise Not_found)
       end else if Str.string_match floatRegexp s !idx then begin
         idx := Str.match_end ();
-        ConfFloat (float_of_string (Str.matched_group 1 s))
+	let p = Str.matched_group 1 s in
+        (try ConfFloat (float_of_string p)
+	 with Failure "float_of_string" ->
+	   Cilmsg.warning "Invalid float configuration element %s" p;
+	   raise Not_found)
       end else if Str.string_match boolRegexp s !idx then begin
         idx := Str.match_end ();
         ConfBool (bool_of_string (Str.matched_group 1 s))
@@ -725,7 +623,7 @@ let loadConfiguration (fname: string) : unit =
         incr idx;
         let rec loop (acc: configData list) : configData list =
           if !idx >= l then begin
-            (Cilmsg.warning "Non-terminated list in configuration %s" s);
+            Cilmsg.warning "Non-terminated list in configuration %s" s;
             raise Not_found
           end;
           if String.get s !idx = ']' then begin
@@ -736,8 +634,8 @@ let loadConfiguration (fname: string) : unit =
         in
         ConfList (loop [])
       end else begin
-        (Cilmsg.warning "Bad configuration element in a list: %s\n"
-                  (String.sub s !idx (l - !idx)));
+        Cilmsg.warning "Bad configuration element in a list: %s"
+                  (String.sub s !idx (l - !idx));
         raise Not_found
       end
     in
@@ -745,7 +643,7 @@ let loadConfiguration (fname: string) : unit =
   in
   (try
     let ic = open_in fname in
-    (Cilmsg.feedback "Loading configuration from %s\n" (absoluteFilename fname));
+    Cilmsg.debug "Loading configuration from %s@." (absoluteFilename fname);
     (try
       while true do
         let k = input_line ic in
@@ -817,7 +715,7 @@ let registerSymbolName (n: string) : symbol =
 (** Register a range of symbols. The mkname function will be invoked for
  * indices starting at 0 *)
 let registerSymbolRange (count: int) (mkname: int -> string) : symbol =
-  if count < 0 then (Cilmsg.fatal "registerSymbolRange: invalid counter");
+  if count < 0 then Cilmsg.fatal "registerSymbolRange: invalid counter";
   let first = !nextSymbolId in
   nextSymbolId := !nextSymbolId + count;
   symbolRangeNaming :=
@@ -837,7 +735,7 @@ let symbolName (id: symbol) : string =
       IH.add symbolNames id n;
       n
     with Not_found ->
-      (Cilmsg.warning "Cannot find the name of symbol %d" id);
+      Cilmsg.warning "Cannot find the name of symbol %d" id;
       "symbol" ^ string_of_int id
 
 (************************************************************************)
@@ -872,66 +770,7 @@ end
 
 (*********************************************************************)
 
-let equals x1 x2 : bool =
-  (compare x1 x2) = 0
-
-let locUnknown = Lexing.dummy_pos,Lexing.dummy_pos
-
-let get_instrLoc = function
-  | Set(_, _, loc)
-  | Call(_, _, _, loc)
-  | Asm(_, _, _, _, _, loc)
-  | Skip loc -> loc
-  | Code_annot (_,loc) -> loc
-
-let get_globalLoc = function
-  | GFun(_,l) -> (l)
-  | GType(_,l) -> (l)
-  | GEnumTag(_,l) -> (l)
-  | GEnumTagDecl(_,l) -> (l)
-  | GCompTag(_,l) -> (l)
-  | GCompTagDecl(_,l) -> (l)
-  | GVarDecl(_,_,l) -> (l)
-  | GVar(_,_,l) -> (l)
-  | GAsm(_,l) -> (l)
-  | GPragma(_,l) -> (l)
-  | GAnnot (_,l) -> l
-  | GText(_) -> locUnknown
-
-let rec get_stmtLoc = function
-  | Instr hd -> get_instrLoc(hd)
-  | Return(_, loc) -> loc
-  | Goto(_, loc) -> loc
-  | Break(loc) -> loc
-  | Continue(loc) -> loc
-  | If(_, _, _, loc) -> loc
-  | Switch (_, _, _, loc) -> loc
-  | Loop (_, _, loc, _, _) -> loc
-  | Block b ->
-      (match b.bstmts with
-      | [] -> locUnknown
-      | stmt :: _ -> get_stmtLoc stmt.skind)
-  | UnspecifiedSequence ((s,_,_,_)::_) -> get_stmtLoc s.skind
-  | UnspecifiedSequence [] -> locUnknown
-  | TryFinally (_, _, l) -> l
-  | TryExcept (_, _, _, l) -> l
-
-let rec get_code_annotationLoc ca =
-  match ca.annot_content with
-  | AAssert(_,{loc=loc},_)
-  | AInvariant(_,_,{loc=loc})
-  | AVariant({term_loc=loc},_)
-    -> Some loc
-  | AAssigns _ | APragma _
-  | AStmtSpec _ -> None
-
-
-module StringMap = Map.Make(String)
-module StringSet = struct
-  include Set.Make(String)
-  let pretty fmt s = iter (fun x -> Format.fprintf fmt "%s " x) s
-end
-
+let equals x1 x2 : bool = compare x1 x2 = 0
 
 module GenericMapl (FX: Map.OrderedType) =
 struct
@@ -1019,7 +858,7 @@ end
 
 module Mapl_Make (X:Map.OrderedType) = GenericMapl(X)
 
-module IntMapl = Mapl_Make(struct type t = int let compare = Pervasives.compare end)
+module IntMapl = Mapl_Make(struct type t = int let compare = Datatype.Int.compare end)
 
 let printStages = ref false
 
@@ -1073,304 +912,22 @@ let space_sep s fmt = fprintf fmt "%s@ " s
 
 open Cil_types
 
-
-module StmtComparable = struct
-  type t = stmt
-  let compare t1 t2 = compare t1.sid t2.sid
-  let hash t1 = t1.sid
-  let equal t1 t2 = t1.sid = t2.sid
-  let descr = Unmarshal.Abstract
-end
-
-module KinstrComparable = struct
-  type t= kinstr
-  let compare a b = match a,b with
-  | Kglobal,Kglobal -> 0
-  | Kglobal,_ -> 1
-  | _,Kglobal -> -1
-  | Kstmt a, Kstmt b -> StmtComparable.compare a b
-
-  let hash = function Kglobal -> 0 |  Kstmt s -> StmtComparable.hash s
-  let equal a b = compare a b = 0
-
-end
-
-
-module Instr = struct
-
-  type t = kinstr
-
-  let pretty fmt = function
-    | Kstmt s -> Format.fprintf fmt "Kstmt %d" s.sid
-    | Kglobal -> Format.fprintf fmt "Kglobal"
-
-  let compare i1 i2 =
-    match i1, i2 with
-    | Kglobal, Kglobal -> 0
-    | Kglobal, _ -> 1
-    | _, Kglobal -> -1
-    | Kstmt s1, Kstmt s2 -> Pervasives.compare s1.sid s2.sid
-
-  let equal t1 t2 = (compare t1 t2) = 0
-
-  let hash i =
-    match i with
-      Kglobal -> 1 lsl 29
-    | Kstmt s -> s.sid
-
-  let instr_loc = function
-    | Skip l -> l
-    | Set (_,_,l) -> l
-    | Call (_,_,_,l) -> l
-    | Asm (_,_,_,_,_,l) -> l
-    | Code_annot (_,l) -> l
-
-  let loc = function
-    | Kstmt st -> get_stmtLoc st.skind
-    | Kglobal -> assert false
-
-end
-
-module InstrMapl =
-  struct
-    include Mapl_Make(Instr)
-  end
-
-module InstrHashtbl = Hashtbl.Make(Instr)
-
-(** [Map] indexed by [Cil_types.stmt] with a customizable pretty printer *)
-module StmtMap = struct
-  include Map.Make(StmtComparable)
-  let pretty pretty_v fmt =
-    iter (fun k v -> Format.fprintf fmt "%d: {%a}\n" k.sid pretty_v v)
-  let descr = Unmarshal.t_map_unchangedcompares StmtComparable.descr
-end
-
-module StmtSet = struct
-  include Set.Make(StmtComparable)
-  let pretty fmt s = iter (fun x -> Format.fprintf fmt "%d; " x.sid) s
-  let descr = Unmarshal.t_set_unchangedcompares StmtComparable.descr
-end
-
-module StmtHashtbl = struct
-  include Hashtbl.Make(StmtComparable)
-  let pretty fmt s = iter (fun k _v -> Format.fprintf fmt "%d; " k.sid) s
-end
-
-module VarinfoComparable = struct
-  type t = varinfo
-  let compare v1 v2 = Pervasives.compare v1.vid v2.vid
-  let hash v = Hashtbl.hash v.vid
-  let equal v1 v2 = v1.vid = v2.vid
-end
-
-module VarinfoHashtbl = Hashtbl.Make(VarinfoComparable)
-module VarinfoMap = Map.Make(VarinfoComparable)
-module VarinfoSet = Set.Make(VarinfoComparable)
-
-module EnuminfoComparable = struct
-  type t = enuminfo
-  let compare v1 v2 = Pervasives.compare v1.ename v2.ename
-  let hash v = Hashtbl.hash v.ename
-  let equal v1 v2 = v1.ename = v2.ename
-end
-
-module EnuminfoHashtbl = Hashtbl.Make(EnuminfoComparable)
-module EnuminfoMap = Map.Make(EnuminfoComparable)
-module EnuminfoSet = Set.Make(EnuminfoComparable)
-(** @since Beryllium-20090902+dev *)
-
-module EnumitemComparable = struct
-  type t = enumitem
-  let compare v1 v2 = Pervasives.compare v1.einame v2.einame
-  let hash v = Hashtbl.hash v.einame
-  let equal v1 v2 = v1.einame = v2.einame
-end
-
-module CompinfoComparable = struct
-  type t = compinfo
-  let compare v1 v2 = Pervasives.compare v1.ckey v2.ckey
-  let hash v = Hashtbl.hash v.ckey
-  let equal v1 v2 = v1.ckey = v2.ckey
-end
-
-module TypeinfoComparable = struct
-  type t = typeinfo
-  let compare v1 v2 = Pervasives.compare v1.tname v2.tname
-  let hash v = Hashtbl.hash v.tname
-  let equal v1 v2 = v1.tname = v2.tname
-end
-
-module TypeinfoHashtbl = Hashtbl.Make(TypeinfoComparable)
-module TypeinfoMap = Map.Make(TypeinfoComparable)
-module TypeinfoSet = Set.Make(TypeinfoComparable)
-
-module LogicVarComparable = struct
-  type t = logic_var
-  let compare lv1 lv2 = compare lv1.lv_id lv2.lv_id
-  let hash v = Hashtbl.hash v.lv_id
-  let equal v1 v2 = v1.lv_id = v2.lv_id
-end
-
-module LogicVarHashtbl = Hashtbl.Make(LogicVarComparable)
-module LogicVarSet = Set.Make(LogicVarComparable)
-module LogicVarMap = Map.Make(LogicVarComparable)
-
-module FieldinfoComparable = struct
-  type t = fieldinfo
-  let fid fi = fi.fcomp.ckey, fi.fname
-  let compare f1 f2 = Pervasives.compare (fid f1) (fid f2)
-  let hash f1 = Hashtbl.hash (fid f1)
-  let equal f1 f2 = (fid f1) = (fid f2)
-end
-
-module FieldinfoHashtbl = Hashtbl.Make(FieldinfoComparable)
-module FieldinfoSet = Set.Make(FieldinfoComparable)
-module FieldinfoMap = Map.Make(FieldinfoComparable)
-
-let pTypeSig : (typ -> typsig) ref =
-  ref (fun _ -> (Cilmsg.fatal "pTypeSig not initialized"))
-
-module TypeComparable = struct
-  type t = typ
-  let tid ty = !pTypeSig ty
-  let compare ty1 ty2 = Pervasives.compare (tid ty1) (tid ty2)
-  let hash ty1 = Hashtbl.hash (tid ty1)
-  let equal ty1 ty2 = (tid ty1) = (tid ty2)
-end
-
-module TypeHashtbl = Hashtbl.Make(TypeComparable)
-module TypeSet = Set.Make(TypeComparable)
-
-let compare_chain cmp x1 x2 next arg =
-  let res = cmp x1 x2 in if res = 0 then next arg else res
-
-let compare_fieldinfo = FieldinfoComparable.compare
-
-let compare_typ = TypeComparable.compare
-
-let rec compare_constant c1 c2 =
-  match (c1,c2) with
-      CInt64(v1,k1,_), CInt64(v2,k2,_) ->
-        compare_chain Pervasives.compare v1 v2
-          (Pervasives.compare k1) k2
-    | CStr s1, CStr s2 -> Pervasives.compare s1 s2
-    | CWStr s1, CWStr s2 -> Pervasives.compare s1 s2
-    | CChr c1, CChr c2 -> Pervasives.compare c1 c2
-    | CReal (f1,k1,_), CReal(f2,k2,_) ->
-        compare_chain Pervasives.compare f1 f2
-          (Pervasives.compare k1) k2
-    | CEnum e1, CEnum e2 -> Pervasives.compare e1.einame e2.einame
-    | (CInt64 _, (CStr _ | CWStr _ | CChr _ | CReal _ | CEnum _)) -> 1
-    | (CStr _, (CWStr _ | CChr _ | CReal _ | CEnum _)) -> 1
-    | (CWStr _, (CChr _ | CReal _ | CEnum _)) -> 1
-    | (CChr _, (CReal _ | CEnum _)) -> 1
-    | (CReal _, CEnum _) -> 1
-    | (CStr _ | CWStr _ | CChr _ | CReal _ | CEnum _),
-       (CInt64 _ | CStr _ | CWStr _ | CChr _ | CReal _) -> -1
-
-and compare_exp e1 e2 =
-  match e1.enode,e2.enode with
-      Const c1, Const c2 -> compare_constant c1 c2
-    | Lval l1, Lval l2 -> compare_lval l1 l2
-    | SizeOf t1, SizeOf t2 -> compare_typ t1 t2
-    | SizeOfE e1, SizeOfE e2 -> compare_exp e1 e2
-    | SizeOfStr s1, SizeOfStr s2 -> String.compare s1 s2
-    | AlignOf t1, AlignOf t2 -> compare_typ t1 t2
-    | AlignOfE e1, AlignOfE e2 -> compare_exp e1 e2
-    | UnOp(u1,e1,t1), UnOp(u2,e2,t2) ->
-        compare_chain Pervasives.compare u1 u2
-          (compare_chain compare_exp e1 e2 (compare_typ t1)) t2
-    | BinOp(b1,fop1,sop1,t1), BinOp(b2,fop2,sop2,t2) ->
-        compare_chain Pervasives.compare b1 b2
-          (compare_chain compare_exp fop1 fop2
-             (compare_chain compare_exp sop1 sop2
-                (compare_typ t1))) t2
-    | CastE(t1,e1), CastE(t2,e2) ->
-        compare_chain compare_typ t1 t2 (compare_exp e1) e2
-    | AddrOf l1, AddrOf l2 -> compare_lval l1 l2
-    | StartOf l1,StartOf l2 -> compare_lval l1 l2
-    | Info(e1,_), Info(e2,_) ->
-        (* context of translation from logic is irrelevant*)
-        compare_exp e1 e2
-    | (Const _,
-       (Lval _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
-       | AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _
-       | Info _)) -> 1
-    | (Lval _,
-       (SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _
-       | UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
-    | (SizeOf _,
-       (SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ | UnOp _
-       | BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
-    | (SizeOfE _,
-       (SizeOfStr _ | AlignOf _ | AlignOfE _ | UnOp _ | BinOp _ | CastE _
-       | AddrOf _ | StartOf _ | Info _)) -> 1
-    | (SizeOfStr _,
-       (AlignOf _ | AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _
-       | StartOf _ | Info _)) -> 1
-    | (AlignOf _,
-       (AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _
-       | StartOf _ | Info _)) -> 1
-    | (AlignOfE _,
-       (UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
-    | (UnOp _, (BinOp _ | CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
-    | (BinOp _, (CastE _ | AddrOf _ | StartOf _ | Info _)) -> 1
-    | (CastE _, (AddrOf _ | StartOf _ | Info _)) -> 1
-    | (AddrOf _, (StartOf _ | Info _)) -> 1
-    | (StartOf _, Info _) -> 1
-    | ((Lval _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
-       | AlignOfE _ | UnOp _ | BinOp _ | CastE _
-       | AddrOf _ | StartOf _ | Info _),
-       (Const _ | Lval _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _
-       | AlignOfE _ | UnOp _ | BinOp _ | CastE _ | AddrOf _ | StartOf _))
-      -> -1
-
-and compare_lval (h1,o1) (h2,o2) =
-  compare_chain compare_lhost h1 h2 (compare_offset o1) o2
-
-and compare_lhost h1 h2 =
-  match h1,h2 with
-      Var v1, Var v2 -> Pervasives.compare v1.vid v2.vid
-    | Mem e1, Mem e2 -> compare_exp e1 e2
-    | Var _, Mem _ -> 1
-    | Mem _, Var _ -> -1
-
-and compare_offset o1 o2 =
-  match o1,o2 with
-      NoOffset, NoOffset -> 0
-    | Field(f1,o1), Field(f2,o2) ->
-        compare_chain compare_fieldinfo f1 f2 (compare_offset o1) o2
-    | Index(e1,o1), Index(e2,o2) ->
-        compare_chain compare_exp e1 e2 (compare_offset o1) o2
-    | (NoOffset, (Field _ | Index _)) -> 1
-    | (Field _, Index _) -> 1
-    | ((Field _ | Index _), (NoOffset | Field _ )) -> -1
-
-module LvalComparable = struct
-  type t = Cil_types.lval
-  let compare = compare_lval
-end
-
-module LvalSet = Set.Make(LvalComparable)
+module InstrMapl = Mapl_Make(Kinstr)
 
 let out_some v = match v with
 | None -> assert false
 | Some v -> v
 
 type opaque_term_env = {
-  term_lhosts: term_lhost VarinfoMap.t;
-  terms: term VarinfoMap.t;
-  vars: logic_var VarinfoMap.t;
+  term_lhosts: term_lhost Varinfo.Map.t;
+  terms: term Varinfo.Map.t;
+  vars: logic_var Varinfo.Map.t;
 }
 
-type opaque_exp_env = {
-  exps: exp VarinfoMap.t;
-}
-
+type opaque_exp_env = { exps: exp Varinfo.Map.t }
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(*i $Id: register_gui.ml,v 1.13 2008-12-21 17:34:22 uid528 Exp $ i*)
 
 open Cil_types
 open Cil
@@ -57,6 +55,32 @@ let gui_compute_values  (main_ui:Design.main_window_extension_points) =
   then main_ui#launcher ()
 
 
+module After_States =
+  State_builder.Hashtbl(Cil_datatype.Stmt.Hashtbl)(Relations_type.Model)
+    (struct
+       let name = "Register_gui.After_states"
+       let dependencies = [Db.Value.self]
+       let kind = `Correctness
+       let size = 257
+     end)
+
+(* We unconditionnally monitor the states after a statement to
+   correctly display the "After statement" information of the gui *)
+let () = 
+  Db.Value.Record_Value_After_Callbacks.extend
+    (fun (_stack, h) ->
+       Cil_datatype.Stmt.Hashtbl.iter
+         (fun stmt state ->
+            try
+              let prev = After_States.find stmt in
+              After_States.replace stmt (Relations_type.Model.join prev state)
+            with Not_found ->
+              After_States.add stmt state
+         ) h
+    )
+              
+
+
 let rec to_do_on_select
     (popup_factory:GMenu.menu GMenu.factory)
     (main_ui:Design.main_window_extension_points) button_nb selected
@@ -78,7 +102,7 @@ let rec to_do_on_select
 		      let n = ( match outs with
                       | Some outs ->
                           Pretty_utils.sfprintf
-			    "Modifies %a@\n" Db.Outputs.pretty outs
+			    "Modifies @[<hov>%a@]@\n" Db.Outputs.pretty outs
                       | _ -> "\n");
 		      in annot#insert n
 		    end else annot#insert "This code is dead\n";
@@ -97,19 +121,35 @@ let rec to_do_on_select
 		      let value = !Db.Value.access ki lv in
 		      annot#insert (Pretty_utils.sfprintf "Before statement:@\n%a %s %a@\n"
 				       !Ast_printer.d_lval lv inset_utf8 Db.Value.pretty value));
-		  (try
-		      let offsetmap_after = !Db.Value.lval_to_offsetmap_after ki lv in
-		      annot#insert "At next statement:\n";
-		      annot#insert (Pretty_utils.sfprintf "%a\n" (pretty_offsetmap lv)  offsetmap_after);
-		    with Not_found -> ());
+		  ((* Ugly hack: we use this condition to determine
+                      if the after states have been computed *)
+                    if After_States.length () > 0 then
+                      match ki with
+                        | Kstmt ({ skind = Instr _} as stmt) ->
+                            let state =
+                              try After_States.find stmt
+                              with Not_found -> Relations_type.Model.bottom
+                            in
+		            let offsetmap_after =
+                              !Db.Value.lval_to_offsetmap_state state lv in
+		            annot#insert (Pretty_utils.sfprintf
+                                            "After statement:\n%a\n"
+                                            (pretty_offsetmap lv)
+                                            offsetmap_after);
+                        | Kglobal | Kstmt _ -> ()
+                    else
+                      try
+                        let offsetmap_after =
+                          !Db.Value.lval_to_offsetmap_after ki lv in
+                        annot#insert "At next statement:\n";
+                        annot#insert (Pretty_utils.sfprintf "%a\n"
+                                        (pretty_offsetmap lv) offsetmap_after);
+                      with Not_found -> ()
+                  );
 		end
 	  | PTermLval _ -> () (* JS: TODO (?) *)
 	  | PVDecl (_kf,_vi) -> ()
-	  | PCodeAnnot _ | PGlobal _ | PAssigns _
-          | PBehavior _ | PPredicate _
-          | PPost_cond _| PAssumes _
-          | PDisjoint_behaviors _| PComplete_behaviors _
-          | PTerminates _| PVariant _| PRequires _ -> ()
+	  | PGlobal _  | PIP _ -> ()
 	end
     end
   else if button_nb = 3
@@ -196,7 +236,7 @@ let rec to_do_on_select
 			  annot#insert txt
                       end
 		  with e ->
-	            main_ui#error "Invalid expression: %s" (Printexc.to_string e)
+	            main_ui#error "Invalid expression: %s" (Cmdline.protect e)
               in
               begin
 		try
@@ -267,33 +307,76 @@ let rec to_do_on_select
             )
           end
       | PTermLval _ -> () (* No C function calls in logic *)
-      | PCodeAnnot _ | PGlobal _ | PBehavior _
-      | PPredicate _ | PAssigns _
-      | PPost_cond _
-      | PAssumes _| PDisjoint_behaviors _| PComplete_behaviors _
-      | PTerminates _| PVariant _| PRequires _ -> ()
+      | PGlobal _ -> ()
+      | PIP _ -> ()
     end
+
+module UsedVarState =
+  Cil_state_builder.Varinfo_hashtbl
+    (Datatype.Bool)
+    (struct
+       let size = 17
+       let name = "Value.Gui.UsedVarState"
+       let dependencies = [ !Db.Inputs.self_external;
+                            !Db.Outputs.self_external; ]
+       let kind = `Internal
+     end)
+
+let used_var var =
+  try
+    UsedVarState.find var
+  with Not_found ->
+    let return v = UsedVarState.add var v; v in
+    try
+      let f = fst (Globals.entry_point ()) in
+      let inputs = !Db.Inputs.get_external f
+      and outputs = !Db.Outputs.get_external f in
+      let b = Base.create_varinfo var in
+      return (Locations.Zone.mem_base b inputs ||
+              Locations.Zone.mem_base b outputs)
+    with e ->
+      Gui_parameters.error ~once:true
+        "Exception during usability analysis of var %s: %s"
+        var.vname (Printexc.to_string e);
+      return true (* No really sane value, so in doubt... *)
 
 
 let reset (main_ui:Design.main_window_extension_points) =
-    Globals.Functions.iter
+  Globals.Functions.iter
       (fun kf ->
          try
            let vi = Kernel_function.get_vi kf in
+
            main_ui#file_tree#set_global_attribute
              ~strikethrough:(Value.is_computed () && not (!Value.is_called kf))
              vi
-         with Not_found -> ())
+         with Not_found -> ());
+  Globals.Vars.iter
+    (fun vi _ ->
+       if vi.vlogic = false then
+         main_ui#file_tree#set_global_attribute
+           ~strikethrough:(Value.is_computed () && not (used_var vi))
+           vi
+    );
+  List.iter
+    (fun file ->
+       (* the display name removes the path *)
+       let name, _globals = Globals.FileIndex.find file in
+       let globals_state = main_ui#file_tree#get_file_globals name in
+       main_ui#file_tree#set_file_attribute
+         ~strikethrough:(Value.is_computed () &&
+                         List.for_all snd globals_state)
+         name
+    )
+    (Globals.FileIndex.get_files ())
 
 module DegeneratedHighlighted =
-  Computation.Ref
-    (struct
-       include Datatype.Option(Pretty_source.Localizable_Datatype)
-       let default () = None
-     end)
+  State_builder.Option_ref
+    (Pretty_source.Localizable)
     (struct
        let name = "Value_gui.DegeneratedHighlightedState"
        let dependencies = [ Ast.self ]
+       let kind = `Internal
      end)
 
 let main (main_ui:Design.main_window_extension_points) =
@@ -322,20 +405,11 @@ let main (main_ui:Design.main_window_extension_points) =
              [`BACKGROUND "orange" ]
            in
            apply_tag buffer orange_area start stop)
-      (DegeneratedHighlighted.get ());
+      (DegeneratedHighlighted.get_option ());
 
     (* highlight dead code areas if values were computed.*)
     if Db.Value.is_computed () then
-      let ki = match localizable with
-      | PStmt (_,stmt) | PCodeAnnot (_,stmt,_) -> Kstmt stmt
-      | PLval (_,ki,_) | PTermLval(_,ki,_) | PAssigns (_,ki,_,_)
-      | PPredicate (_,ki,_)
-      | PPost_cond (_,ki,_,_)
-      | PAssumes (_,ki,_,_) | PDisjoint_behaviors (_,ki,_)
-      | PComplete_behaviors (_,ki,_)
-      | PTerminates (_,ki,_)| PVariant (_,ki,_)| PRequires (_,ki,_,_) -> ki
-      | PVDecl _ | PGlobal _ | PBehavior _ -> Kglobal
-      in
+      let ki = ki_of_localizable localizable in
       if not (Value.is_accessible ki) then
         let dead_code_area =
           make_tag
@@ -376,12 +450,12 @@ let degeneration_occurred ki lv =
             app
             1
 	    localizable;
-          DegeneratedHighlighted.set (Some localizable);
+          DegeneratedHighlighted.set localizable;
           app#rehighlight ();
           app#scroll localizable
           (*match ki with
 	    | Kstmt st ->
-            let l =  (get_stmtLoc st.skind) in
+            let l =  (Cil_datatype.Stmt.loc st.skind) in
             select_locs ~file:l.file ~line:l.line app#source_viewer
 	    | _ -> ()*);
              false(*do it once only*)));
@@ -395,6 +469,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

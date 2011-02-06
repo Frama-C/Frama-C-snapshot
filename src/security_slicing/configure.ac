@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -36,9 +36,9 @@ check_plugin(security_slicing,PLUGIN_RELATIVE_PATH(plugin_file),
 
 if test "$ENABLE_SECURITY_SLICING" != "no"; then
   plugin_require(security_slicing,slicing)
-  plugin_require(security_slicing,value)
+  plugin_require(security_slicing,value_analysis)
   plugin_require(security_slicing,pdg)
-  plugin_require(security_slicing,gui)
+  plugin_use(security_slicing,gui)
   check_plugin_dependencies
 fi
 

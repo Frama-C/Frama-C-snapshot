@@ -20,16 +20,18 @@
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
+
+
 #if 0
-
 #include "check_specs.h"
-
 #if 0
 #include <C:/Frama-C/share/frama-c/jessie/jessie_prolog.h>
 #else
 #include </usr/local/share/frama-c/jessie/jessie_prolog.h>
 #endif
 #endif
+
+#include "jessie_prolog.h"
 
 #define MAX_CANDIDATES 20
 #define MAX_STRING_SIZE 255

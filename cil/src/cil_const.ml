@@ -44,14 +44,13 @@ open Format
 open Cil_types
 
 module CurrentLoc =
-  Computation.Ref
-    (struct
-       include Cil_datatype.Location
-       let default () = Lexing.dummy_pos, Lexing.dummy_pos
-     end)
+  State_builder.Ref
+    (Cil_datatype.Location)
     (struct
        let dependencies = []
        let name = "CurrentLoc"
+       let kind = `Internal
+       let default () = Cil_datatype.Location.unknown
      end)
 
 let voidType = TVoid([])
@@ -77,54 +76,35 @@ module Build_Counter(Name:sig val name:string end) : sig
   val next: unit -> int
   val reset: unit -> unit
   val get: unit -> int
+  val self: State.t
 end = struct
-  include Computation.Ref
-    (struct include Datatype.Int let default () = 0 end)
+  include State_builder.Zero_ref
     (struct
        let dependencies = []
        let name = Name.name
+       let kind = `Internal
      end)
   let next () =
     let n = get () in
-    if n = -1 then
-      fatal "Too many values for counter %s. Please report.@." Name.name;
+    if n = -1 then fatal "Too many values for counter %s." Name.name;
     set (succ n);
     get ()
   let reset = clear
 end
 
-module VarInfos =
-  Computation.Make_Hashtbl
-    (Inthash)
-    (Cil_datatype.Varinfo)
-    (struct
-       let name = "VarInfos"
-       let dependencies = []
-       let size = 17
-     end)
 
-let varinfos_self = VarInfos.self
-let varinfo_from_vid = VarInfos.find
+module Vid = Build_Counter(struct let name = "vid" end)
 
-(** smart constructors for some Cil data types *)
-let set_vid, copy_with_new_vid, (* copy_with_new_lvid, *) new_raw_id =
-  (* [new_vid] should never be used by foreign functions *)
-  let new_vid =
-    let module M = Build_Counter(struct let name = "vid" end) in
-    M.next
-  in
-  (fun v ->
-     let n = new_vid () in
-     v.vid <- n;
-     ignore (VarInfos.memo ~change:(fun _ -> assert false) (fun _ -> v) n)),
-  (fun v ->
-     let n = new_vid () in
-     let v' = { v with vid = n } in
-     VarInfos.memo ~change:(fun _ -> assert false) (fun _ -> v') n),
-(*
-  (fun lv -> { lv with lv_id = new_vid () }),
-*)
-  new_vid
+let set_vid v =
+  let n = Vid.next () in
+  v.vid <- n
+
+let copy_with_new_vid v =
+  let n = Vid.next () in
+  { v with vid = n }
+;;
+
+let new_raw_id = Vid.next
 
 let make_logic_var x typ =
   {lv_name = x; lv_id = new_raw_id(); lv_type = typ; lv_origin = None }
@@ -139,3 +119,9 @@ let make_logic_info x =
     l_profile = [];
     l_body = LBnone;
   }
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

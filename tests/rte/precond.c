@@ -31,7 +31,7 @@ int f(int x, int y, float z) {
 /*@ requires is_valid_int_range(p,i);
  */
 int g(int* p, int i) {
-  if (i >= 1) 
+  if (i >= 1)
     return p[i-1];
   else return 0;
 }
@@ -44,7 +44,7 @@ int h(int* p) {
 
 /*@ requires \valid(p->next);
    // requires \valid(&p->next);
-   // requires \valid(&p->val);  
+   // requires \valid(&p->val);
     requires \valid(p);
  */
 cell* set(cell* p, int v) {
@@ -52,7 +52,7 @@ cell* set(cell* p, int v) {
   return p->next;
 }
 
-/*@ requires \valid(cIn.next);    
+/*@ requires \valid(cIn.next);
     requires global > 0;
  */
 int next_val(cell cIn) {
@@ -61,7 +61,7 @@ int next_val(cell cIn) {
 
 typedef struct top {
   int topv;
-  cell* next;  
+  cell* next;
   cell* pred;
 } top;
 
@@ -79,7 +79,7 @@ int top_next(top tIn) {
   return next_val(*tIn.next);
 }
 
-/*@ 
+/*@
     requires \valid(tab_top);
     requires \valid(&tab_top);
     requires \valid(tab_top[i]->next);
@@ -160,7 +160,7 @@ int main() {
   set(ptabT[2]->pred,15);
   set(tabT[1].pred,10);
   next_val(*(ptabT[1]->next));
-  
+
   top_set(&T, 3);
   top_set(&tabT[1],2);
   top_set(ptabT[1],4);

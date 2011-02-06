@@ -10,7 +10,12 @@ int (*pt)[3][4] = ttt ; // int (*)[3][4] and TT* are identical
   @ }
   @*/
 
+//KO: implicit conversion from array to pointer
 /*@ requires P(ttt) ;
-  @ requires Q(&ttt[0]) ;
+ */
+void g();
+
+//OK: explicit conversion.
+/*@ requires Q(&ttt[0]) ;
   @*/
 void f() { }

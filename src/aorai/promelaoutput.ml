@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -56,9 +56,9 @@ let rec string_of_condition = function
     | PEq (c1,c2)      -> (string_of_condition_arith c1)^"=" ^(string_of_condition_arith c2)
     | PNeq (c1,c2)     -> (string_of_condition_arith c1)^"<>"^(string_of_condition_arith c2)
     | PBoolVar (s)     -> "BoolVar("^s^")"*)
-    | PIndexedExp (s) 
-    | PFuncReturn (s, _) 
-    | PFuncParam (s, _, _) -> Data_for_aorai.get_str_exp_from_tmpident s
+    | PIndexedExp (s)      -> Data_for_aorai.get_str_exp_from_tmpident s
+    | PFuncReturn (s, f)   -> "("^f^"()."^(Data_for_aorai.get_str_exp_from_tmpident s)^")"
+    | PFuncParam (s, f, _) -> "("^f^"()."^(Data_for_aorai.get_str_exp_from_tmpident s)^")"
 
 (*let c_string_of_condition_arith = function
     | PVar s           -> s
@@ -86,11 +86,11 @@ let rec c_string_of_condition = function
 
 
 let trans_label num = "tr"^string_of_int(num)
-
 let string_of_trans num cross=
   (trans_label num) ^" : "^(string_of_condition cross)
 
-let string_of_state st = st.name
+let state_label num = "st"^string_of_int(num)
+let string_of_state st = (state_label st.nums) ^" : "^(st.name)
 
 let print_bool3 b =
   Format.print_string (match b with

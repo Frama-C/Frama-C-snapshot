@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,39 +26,30 @@ open Locations
 
 exception Bitwise_cannot_copy
 
-module type Location_map_bitwise =
-sig
+module type Location_map_bitwise = sig
+
   type y
-  type t
+  include Datatype.S
 
-  module Datatype: Project.Datatype.S with type t = t
-
-  module LOffset :
-  sig
-    type t
+  module LOffset: sig
+    include Datatype.S
     val find_intervs : (Int.t -> Int.t -> y) ->
       Int_Intervals.t -> t -> y
     val map: ((bool * y) -> (bool * y)) -> t -> t
     val fold :
       (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
     val join: t -> t -> t
-    val pretty : Format.formatter -> t -> unit
     val pretty_with_type:
       Cil_types.typ option -> Format.formatter -> t -> unit
     val collapse : t -> y
     val empty : t
     val is_empty: t->bool
     val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-    val equal : t -> t -> bool
     val tag : t -> int
-    module Datatype: Project.Datatype.S with type t = t
   end
 
-  val pretty : Format.formatter -> t -> unit
   val empty : t
   val join : t -> t -> t
-  val equal : t -> t -> bool
-  val hash : t -> int
 
   val is_included : t -> t -> bool
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
@@ -90,44 +81,66 @@ end
 
 module Make_bitwise (V:With_default) = struct
 
-  module LOffset = Offsetmap_bitwise.Make(V)
-  module LBase = struct
-    include Ptmap.Make(Base)(LOffset)(struct let v = [[]] end)
-    let find_or_default base m =
-      try
-	find base m
-      with Not_found ->
-	LOffset.empty
+  module LOffset = struct
+    include Offsetmap_bitwise.Make(V)
+    let real_copy = copy
+    let copy = Datatype.undefined
   end
 
-  type t = Top | Map of LBase.t
+  module LBase = struct
+    include Hptmap.Make(Base)(LOffset)(Hptmap.Comp_unused)(struct let v = [[]] end)
+    let find_or_default base m =
+      try find base m with Not_found ->	LOffset.empty
+  end
+
+  type tt = Top | Map of LBase.t
   type y = V.t
   let empty = Map LBase.empty
 
   exception Cannot_fold
-
-  let name = Project.Datatype.extend_name "Lmap_bitwise" LOffset.Datatype.name
 
   let hash = function
     | Top -> 0
     | Map x -> LBase.tag x
 
   let equal a b = match a,b with
-  | Top,Top -> true
-  | Top,_|_,Top -> false
-  | Map m1, Map m2 -> LBase.equal m1 m2
+    | Top,Top -> true
+    | Top,_|_,Top -> false
+    | Map m1, Map m2 -> LBase.equal m1 m2
 
-  module Datatype =
-    Project.Datatype.Register
+  let pretty fmt m =
+    match m with
+      Top -> Format.fprintf fmt "@[<v>FROMTOP@]"
+    | Map m ->
+        Format.fprintf fmt "@[<v>";
+	(LBase.iter
+          (fun base offs ->
+             Format.fprintf fmt "%a@[<v>%a@]@,"
+               Base.pretty base
+               (LOffset.pretty_with_type (Base.typeof base))
+               offs
+          )
+          m);
+        Format.fprintf fmt "@]"
+
+  include Datatype.Make
       (struct
-	 type tt = t = Top | Map of LBase.t
-	 type t = tt
-	 let copy _ = assert false (* TODO *)
-	 open Unmarshal
-	 let descr = Structure (Sum [| [| LBase.Datatype.descr |] |])
-	 let name = name
+	type t = tt
+	let reprs = Top :: List.map (fun b -> Map b) LBase.reprs
+	let structural_descr =
+	  Structural_descr.Structure
+	    (Structural_descr.Sum [| [| LBase.packed_descr |] |])
+	 let name = LOffset.name ^ " lmap_bitwise"
+	let hash = hash
+	let equal = equal
+	let compare = Datatype.undefined
+	let pretty = pretty
+	let internal_pretty_code = Datatype.undefined
+	let rehash = Datatype.identity
+	let copy = Datatype.undefined
+	let varname = Datatype.undefined
+	let mem_project = Datatype.never_any_project
        end)
-  let () = Datatype.register_comparable ~hash ~equal ()
 
   let fold f m acc =
     match m with
@@ -148,21 +161,6 @@ module Make_bitwise (V:With_default) = struct
     match m with
     | Top -> raise Cannot_fold
     | Map m -> LBase.fold f m acc
-
-  let pretty fmt m =
-    match m with
-      Top -> Format.fprintf fmt "@[<v>FROMTOP@]"
-    | Map m ->
-        Format.fprintf fmt "@[<v>";
-	(LBase.iter
-          (fun base offs ->
-             Format.fprintf fmt "%a@[<v>%a@]@,"
-               Base.pretty base
-               (LOffset.pretty_with_type (Base.typeof base))
-               offs
-          )
-          m);
-        Format.fprintf fmt "@]"
 
   let add_interval ~exact varid itv v map =
     let offsetmap_orig =
@@ -249,12 +247,10 @@ module Make_bitwise (V:With_default) = struct
      pretty result;*)
    result
 
-  exception Error_Top
-
   let map2 f m1 m2 =
     match m1, m2 with
       | Top, _ | _, Top ->
-         raise Error_Top
+          Top
       | Map m1, Map m2 ->
          let treat_base varid offsmap1 acc =
 	   let offsmap_result =
@@ -313,16 +309,13 @@ module Make_bitwise (V:With_default) = struct
   let join x y =
     let r1 = join x y in
     let r2 =
-      try
-	map2
-	  (fun x y ->
-	     match x,y with
+      map2
+	(fun x y ->
+	   match x,y with
 	     | Some (bx, x), Some (by, y) -> bx || by, V.join x y
 	     | Some (_, x), None | None, Some (_, x) -> true, x
 	     | None, None -> assert false)
-	  x y
-      with Error_Top ->
-	Top
+	x y
     in
     if not (is_included r1 r2 && is_included r2 r1)
     then begin
@@ -379,8 +372,11 @@ module Make_bitwise (V:With_default) = struct
                 let base = Base.create_varinfo v in
                 let (i1,i2) =
                   match Base.validity base with
-                      Base.Unknown (i1,i2) | Base.Known(i1,i2) -> (i1,i2)
-                    | Base.All -> assert false
+		  | Base.Periodic(i1, _, p) ->
+		      assert (Int.is_zero i1);
+		      i1, Int.pred p
+                  | Base.Unknown (i1,i2) | Base.Known(i1,i2) -> (i1,i2)
+                  | Base.All -> assert false
                         (* not supposed to happen for a local*)
                 in
                 if Int.lt i2 i1 then assert false (* not supposed to happen
@@ -452,7 +448,6 @@ module Make_bitwise (V:With_default) = struct
 	 if unchanged then raise Zone_unchanged;
 	 zone
 
-
   let copy_offsetmap ~f src_loc m =
     let result =
       begin
@@ -473,13 +468,15 @@ module Make_bitwise (V:With_default) = struct
                     (fun start acc ->
                       let stop = Int.pred (Int.add start size) in
 		      match validity with
+		      | Base.Periodic _ ->
+			  raise Bitwise_cannot_copy
 		      | (Base.Known (b,e) | Base.Unknown (b,e)) when Int.lt start b
 			    || Int.gt stop e ->
 			  acc
 		      | Base.Known _ | Base.All | Base.Unknown _ ->
 			  let default = V.default k_src in
 			  let copy =
-			    LOffset.copy ~f:(Some (f, default))
+			    LOffset.real_copy ~f:(Some (f, default))
 			      offsetmap_src start stop
 			  in
 			  let r = match acc with
@@ -546,6 +543,8 @@ module Make_bitwise (V:With_default) = struct
             (fun start_to acc ->
 	      let stop_to = Int.pred (Int.add start_to size) in
 	      match validity with
+	      | Base.Periodic _ ->
+		  raise Bitwise_cannot_copy
 	      | Base.Known (b,e) | Base.Unknown (b,e) when Int.lt start_to b || Int.gt stop_to e ->
 		  CilE.warn_mem_write CilE.warn_all_mode;
 		  acc
@@ -616,6 +615,6 @@ module From_Model = Make_bitwise(Locations.Zone)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

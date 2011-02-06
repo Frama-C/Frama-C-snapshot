@@ -40,3 +40,9 @@
 (**************************************************************************)
 
 val obfuscate : Cil_types.file ->(string, string) Hashtbl.t
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

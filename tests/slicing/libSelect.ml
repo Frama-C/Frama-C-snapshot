@@ -42,9 +42,9 @@ let print_project project = !S.Project.pretty fmt project ;;
 let print_requests project = !S.Request.pretty fmt project ;;
 
 (* construit l'application correspondant au projet, et affiche le résultat *)
-let extract_and_print project = 
+let extract_and_print project =
   let prj = !S.Project.extract "Sliced code" project in
-  File.pretty ~prj ()
+  File.pretty_ast ~prj ()
 
 
 (*--------------------------*)

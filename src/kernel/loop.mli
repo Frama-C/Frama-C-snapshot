@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,16 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: loop.mli,v 1.9 2008-11-18 12:13:41 uid568 Exp $ *)
-
-(** Operations on (natural) loops. 
+(** Operations on (natural) loops.
     @plugin development guide *)
 
 open Cil_types
 open Db_types
 
 exception No_such_while
-val get_loop_stmts : kernel_function -> stmt -> Cilutil.StmtSet.t
+val get_loop_stmts : kernel_function -> stmt -> Cil_datatype.Stmt.Set.t
   (** Precondition: the kernel function is not a leaf function.
       @raise No_such_while if [stmt.skind] is not a [While]. *)
 
@@ -41,6 +39,6 @@ val while_for_natural_loop : kernel_function -> stmt -> stmt
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

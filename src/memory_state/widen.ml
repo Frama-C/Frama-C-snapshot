@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,23 +20,23 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: widen.ml,v 1.40 2009-02-13 07:59:29 uid562 Exp $ *)
-
 open Cil
 open Cil_types
+open Cil_datatype
 open Db
 open Db_types
 open Abstract_value
-open BaseUtils
-open Cilutil
 open Visitor
 
-class widen_visitor kf init_widen_hints (init_enclosing_loop_info:(Cil_types.stmt list * StmtSet.t) option) =
-object (* visit all sub-expressions from [kf] definition *)
+class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
+  (* visit all sub-expressions from [kf] definition *)
+
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (Cil.inplace_visit())
+
   val widen_hints = init_widen_hints
   val enclosing_loop_info = init_enclosing_loop_info
+
   method vstmt (s:stmt) =
     begin
       let infer_widen_variables bl enclosing_loop_info =
@@ -74,16 +74,24 @@ object (* visit all sub-expressions from [kf] definition *)
                          Base.pretty (Base.Var vi); *)
                       (vid::lv, lt)
                   | _ -> (lv, t::lt)
-                in 
+                in
 		begin match List.fold_left f ([], []) l with
                 | (lv, []) ->
-                    (* the annotation is empty or else, there are only variables *)
-                    let var_hints = List.fold_right BaseSet.add lv BaseSet.empty
+                    (* the annotation is empty or else,
+		       there are only variables *)
+                    let var_hints =
+		      List.fold_left
+			(fun s x -> Base.Set.add x s)
+			Base.Set.empty
+			lv
                     in
                     List.iter
                       (fun widening_stmt ->
                          widen_hints :=
-                           Widen_type.add_var_hints widening_stmt var_hints !widen_hints)
+                           Widen_type.add_var_hints
+			   widening_stmt
+			   var_hints
+			   !widen_hints)
                       widening_stmts;
                     is_pragma_widen_variables := true
 
@@ -143,16 +151,15 @@ object (* visit all sub-expressions from [kf] definition *)
                      | {bstmts =
                            ({skind = Break _; succs = [stmt]}|
                                  {skind = Goto ({contents=stmt},_)})::_}
-                         when not (StmtSet.mem stmt loop_stmts) ->
+                         when not (Stmt.Set.mem stmt loop_stmts) ->
                          let varinfos = extract_varinfos_from_exp exp
                          in let var_hints =
-                           VarinfoSet.fold
+                           Varinfo.Set.fold
                              (fun vi lv ->
                                 (*Format.printf "Inferring pragma for widening variable: %a.\n" Base.pretty (Base.Var vi);*)
-                                BaseSet.add
-                                  (Base.create_varinfo vi) lv)
+                               Base.Set.add (Base.create_varinfo vi) lv)
                              varinfos
-                             BaseSet.empty
+                             Base.Set.empty
                          in
                          List.iter
                            (fun widening_stmt ->
@@ -196,13 +203,13 @@ object (* visit all sub-expressions from [kf] definition *)
       begin
         let e1,e2 = constFold true e1, constFold true e2 in
         match (Cil.isInteger e1, Cil.isInteger e2, e1, e2) with
-        | Some int64, _, 
+        | Some int64, _,
 	  _, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})|Lval (Var varinfo, _))}->
 	    add
 	      (Base.create_varinfo varinfo)
 	      (add1 (Ival.Widen_Hints.V.of_int64 int64));
             SkipChildren
-        | _, Some int64, 
+        | _, Some int64,
 	  {enode=(CastE(_, { enode=Lval (Var varinfo, _)})|Lval (Var varinfo, _))}, _ ->
 	    add
 	      (Base.create_varinfo varinfo)
@@ -241,11 +248,12 @@ let compute_widen_hints kf _s default_widen_hints = (* [s] isn't used yet *)
 
 module Hints =
   Kernel_function.Make_Table
-    (Widen_type.Datatype)
+    (Widen_type)
     (struct
        let name = "Widen.Hints"
        let size = 97
        let dependencies = [ Ast.self ]
+       let kind = `Tuning
      end)
 
 let getWidenHints (kf:kernel_function) (s:stmt) =

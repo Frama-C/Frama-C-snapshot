@@ -1,12 +1,7 @@
-/* run.config_no_native_dynlink
-   EXECNOW: make -s tests/spec/rewrite_ensures.cmo
-   CMD: FRAMAC_PLUGIN=tests/spec bin/toplevel.byte
-   OPT: -print
-*/
 /* run.config
    EXECNOW: make -s tests/spec/rewrite_ensures.cmxs
-   CMD: FRAMAC_PLUGIN=tests/spec bin/toplevel.opt
-   OPT: -print
+   CMD: bin/toplevel.opt
+   OPT: -print -load-module tests/spec/rewrite_ensures.cmxs
 */
 
 /*@

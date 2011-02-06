@@ -1,7 +1,9 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main sizeof_enum1 -journal-disable
+  OPT: -cpp-command "gcc -C -E -I. %1 > %2" -memory-footprint 1 -val -deps -out -input  -main sizeof_enum1 -journal-disable
 */
+
+/* This test of enums doubles with a test of the % syntax in -cpp-command */
 
 #define BIT_DE_SIGNE_1 (0x98765432)
 #define BIT_DE_SIGNE_0 (0x12345678)

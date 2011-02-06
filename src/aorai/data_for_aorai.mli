@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -168,6 +168,8 @@ val getAutomata : unit -> Promelaast.buchautomata
 (** Stores the buchi automata and its variables and functions as such as it  is return by the parsing *)
 val setAutomata : Promelaast.buchautomata -> (string, string) Hashtbl.t -> (string, string) Hashtbl.t -> unit
 
+val setCondOfParametrizedTransition : Promelaast.condition list list array -> unit
+val getParametrizedCondOfTransition : int -> Promelaast.condition list list
 
 (** return the number of transitions of the automata *)
 val getNumberOfTransitions : unit -> int
@@ -201,7 +203,7 @@ val isIgnoredFunction : string -> bool
     It returns true if and only if these checks are ok. *)
 val check_consistency : unit -> bool
 
-
+val getStateName : int -> string
 
 (* ************************************************************************* *)
 (**{b Variables information} Usually it seems very usefull to access to varinfo

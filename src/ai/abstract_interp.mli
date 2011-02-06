@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,14 +33,10 @@ module type Lattice = sig
 
   exception Error_Top
   exception Error_Bottom
-  type t (** type of element of the lattice *)
+
+  include Datatype.S (** datatype of element of the lattice *)
   type widen_hint (** hints for the widening *)
 
-(*  val compare : t -> t -> int
-    (** Does not need to be compatible with [is_included].
-	Must be a total ordering function *)
-*)
-  val equal: t -> t -> bool
   val join: t -> t -> t (** over-approximation of union *)
   val link: t -> t -> t (** under-approximation of union *)
   val meet: t -> t -> t (** under-approximation of intersection *)
@@ -51,7 +47,6 @@ module type Lattice = sig
   val is_included: t -> t -> bool
   val is_included_exn: t -> t -> unit
   val intersects: t -> t -> bool
-  val pretty: Format.formatter -> t -> unit
 
   val widen: widen_hint -> t -> t -> t
     (** [widen h t1 t2] is an over-approximation of [join t1 t2].
@@ -65,11 +60,10 @@ module type Lattice = sig
 
   val tag : t -> int
 
-  module Datatype: Project.Datatype.S with type t = t
-
 end
 
 module type Lattice_With_Diff = sig
+
   include Lattice
 
   val diff : t -> t -> t
@@ -83,9 +77,9 @@ module type Lattice_With_Diff = sig
     split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
   val splitting_cardinal_less_than:
     split_non_enumerable:int -> t -> int -> int
-  val hash : t -> int
+
   val pretty_debug : Format.formatter -> t -> unit
-  val name : string
+
 end
 
 module type Lattice_Product = sig
@@ -116,10 +110,9 @@ module type Lattice_Base = sig
 end
 
 module type Lattice_Set = sig
-  module O: Ptset.S
+  module O: Hptset.S
   type tt = private Set of O.t | Top
   include Lattice with type t = tt and type widen_hint = O.t
-  val hash : t -> int
   val inject_singleton: O.elt -> t
   val inject: O.t -> t
   val empty: t
@@ -131,14 +124,7 @@ module type Lattice_Set = sig
   val mem : O.elt -> t -> bool
 end
 
-module type Value = sig
-  type t
-  val name : string
-  val pretty: Format.formatter -> t -> unit
-  val compare : t -> t -> int
-  val hash: t -> int
-  module Datatype: Project.Datatype.S with type t = t
-end
+module type Value = Datatype.S_with_collections
 
 module type Arithmetic_Value = sig
   include Value
@@ -146,7 +132,6 @@ module type Arithmetic_Value = sig
   val le : t -> t -> bool
   val ge : t -> t -> bool
   val lt : t -> t -> bool
-  val eq : t -> t -> bool
   val add : t -> t -> t
   val sub : t -> t -> t
   val mul : t -> t -> t
@@ -161,10 +146,10 @@ module type Arithmetic_Value = sig
   val one : t
   val two : t
   val four : t
+  val onethousand : t
   val minus_one : t
   val is_zero : t -> bool
   val is_one : t -> bool
-  val equal : t -> t -> bool
   val pgcd : t -> t -> t
   val ppcm : t -> t -> t
   val min : t -> t -> t
@@ -190,23 +175,20 @@ module type Arithmetic_Value = sig
   val lognot : t -> t
   val power_two : int -> t
   val two_power : t -> t
-  val extract_bits : with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
+  val extract_bits : start:t -> stop:t -> t -> t
 end
 
 module Int : sig
   include Arithmetic_Value with type t = My_bigint.big_int
-  val descr: Unmarshal.t
-  val pretty_s : unit -> t -> string
-  val neq : t -> t -> bool
-  val to_int64 : t -> int64
+  val small_nums : t array
   val zero : t
+  val four : t
   val eight : t
+  val thirtytwo : t
   val div : t -> t -> t
 
   val billion_one : t
-  val hash : t -> int
   val tag : t -> int
-  val equal : t -> t -> bool
   val log_shift_right : t -> t -> t
   val shift_right : t -> t -> t
   val shift_left : t -> t -> t
@@ -214,15 +196,14 @@ module Int : sig
   val to_int : t -> int
   val of_int : int -> t
   val of_int64 : int64 -> t
+  val to_int64 : t -> int64
   val of_string : string -> t
   val to_string : t -> string
   val to_float : t -> float
   val of_float : 'a -> 'b
   val minus_one : t
-  val pretty : Format.formatter -> t -> unit
   val pretty_debug : Format.formatter -> t -> unit
   val is_zero : t -> bool
-  val compare : t -> t -> int
   val is_one : t -> bool
   val pos_div : t -> t -> t
   val pos_rem : t -> t -> t
@@ -232,7 +213,6 @@ module Int : sig
   val c_rem : t -> t -> t
   val power_two : int -> t
   val extract_bits :
-    with_alarms:CilE.warn_mode ->
     start:t ->
     stop:t -> t -> t
   val is_even : t -> bool
@@ -258,19 +238,12 @@ end
 
 module Make_Lattice_Base (V : Value) : Lattice_Base with type l = V.t
 
-module Make_Pair (V:Value)(W:Value) :
-  sig
-    type t = V.t * W.t
-    val compare : t -> t -> int
-    val pretty : Format.formatter -> t -> unit
-  end
+module Make_Pair (V:Value)(W:Value) : Datatype.S with type t = V.t * W.t
 
-module Make_Lattice_Interval_Set (V:Arithmetic_Value) :
-sig
+module Make_Lattice_Interval_Set (V:Arithmetic_Value) : sig
   type elt = Make_Pair(V)(V).t
   type tt = private Top | Set of elt list
   include Lattice with type t = tt
-  val hash : t -> int
   val inject_one : size:V.t -> value:V.t -> t
   val inject_bounds : V.t -> V.t -> t
   val inject : elt list -> t
@@ -281,34 +254,32 @@ end
 
 module Make_Lattice_Set (V : Value) : Lattice_Set with type O.elt=V.t
 
-module Make_Hashconsed_Lattice_Set (V : Ptset.Id_Datatype)
+module Make_Hashconsed_Lattice_Set(V : Hptset.Id_Datatype)
   : Lattice_Set with type O.elt=V.t
 
-module LocationSetLattice :
-sig include Lattice_Set with type O.elt = Cil_types.location
-    val currentloc_singleton : unit -> t
+module LocationSetLattice : sig
+  include Lattice_Set with type O.elt = Cil_types.location
+  val currentloc_singleton : unit -> t
+    val compare:t -> t -> int
 end
 
-module type Key =
-sig
-  type t
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-  val pretty : Format.formatter -> t -> unit
+module type Key = sig
+  include Datatype.S
   val is_null : t -> bool
   val null : t
-  val hash : t -> int
   val id : t -> int
-  val name : string
-  module Datatype : Project.Datatype.S with type t = t
 end
 
 module VarinfoSetLattice : Lattice_Set with type O.elt = Cil_types.varinfo
 
-module type Collapse = sig
-  val collapse : bool
-end
+module type Collapse = sig val collapse : bool end
 
 (** If [C.collapse] then [L1.bottom,_] = [_,L2.bottom] = [bottom] *)
 module Make_Lattice_Product (L1:Lattice) (L2:Lattice) (C:Collapse):
   Lattice_Product with type t1 = L1.t and type t2 = L2.t
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,8 @@
 (**************************************************************************)
 
 (** Information about version of Frama-C.
-    
-    The body of this module is generated from Makefile.in.
+
+    The body of this module is generated from Makefile.
     @plugin development guide *)
 
 val version: string
@@ -32,7 +32,7 @@ val date: string
   (** Compilation date. *)
 
 val is_gui: bool ref
-  (** Is the Frama-C GUI running? 
+  (** Is the Frama-C GUI running?
       @since Beryllium-20090601-beta1 *)
 
 val ocamlc: string
@@ -64,8 +64,13 @@ val compilation_unit_names: string list
   (** List of names of all kernel compilation units.
       @since Boron-20100401 *)
 
+val dot: string option
+(** Dot command name.
+    @return [None] if `dot' is not installed.
+    @since Carbon-20101201 *)
+
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

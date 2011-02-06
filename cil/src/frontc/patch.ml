@@ -91,54 +91,28 @@ let extractPatternVar (s : string) : string =
 
 
 (* a few debugging printers.. *)
-let printExpr (e : expression) =
-begin
-  if verbose then (
-    Cprint.print_expression e; Cprint.force_new_line ();
-    Cprint.flush ()
-  )
-end
+let printExpr fmt (e : expression) =
+  if verbose then Format.fprintf fmt "%a@." Cprint.print_expression e
 
-let printSpec (spec: spec_elem list) =
-begin
-  if verbose then (
-    Cprint.print_specifiers spec;  Cprint.force_new_line ();
-    Cprint.flush ()
-  )
-end
+let printSpec fmt (spec: spec_elem list) =
+  if verbose then
+    Format.fprintf fmt "%a@." Cprint.print_specifiers spec
 
-let printSpecs (pat : spec_elem list) (tgt : spec_elem list) =
-begin
-  (printSpec pat);
-  (printSpec tgt)
-end
+let printSpecs fmt (pat,tgt) =
+  printSpec fmt pat; printSpec fmt tgt
 
-let printDecl (pat : name) (tgt : name) =
-begin
-  if verbose then (
-    Cprint.print_name pat;  Cprint.force_new_line ();
-    Cprint.print_name tgt;  Cprint.force_new_line ();
-    Cprint.flush ()
-  )
-end
+let printDecl fmt (pat,tgt) =
+  if verbose then
+    Format.fprintf fmt "%a@\n%a@." Cprint.print_name pat Cprint.print_name tgt
 
-let printDeclType (pat : decl_type) (tgt : decl_type) =
-begin
-  if verbose then (
-    Cprint.print_decl "__missing_field_name" pat;  Cprint.force_new_line ();
-    Cprint.print_decl "__missing_field_name" tgt;  Cprint.force_new_line ();
-    Cprint.flush ()
-  )
-end
+let printDeclType fmt (pat,tgt) =
+  if verbose then
+    Format.fprintf fmt "%a@\n%a@."
+      (Cprint.print_decl "__missing_field_name") pat
+      (Cprint.print_decl "__missing_field_name") tgt
 
-let printDefn (d : definition) =
-begin
-  if verbose then (
-    Cprint.print_def d;
-    Cprint.flush ()
-  )
-end
-
+let printDefn fmt (d : definition) =
+  if verbose then Format.fprintf fmt "%a@." Cprint.print_def d
 
 (* class to describe how to modify the tree for subtitution *)
 class substitutor (bindings : binding list) = object(self)
@@ -161,7 +135,7 @@ class substitutor (bindings : binding list) = object(self)
 
   method vexpr (e:expression) : expression visitAction =
   begin
-    match e with
+    match e.expr_node with
     | EXPR_PATTERN(name) -> (
         match (self#findBinding name) with
         | BExpr(_, expr) -> ChangeTo(expr)    (* substitute bound expression *)
@@ -197,8 +171,8 @@ class substitutor (bindings : binding list) = object(self)
 
   method vspec (specList: specifier) : specifier visitAction =
   begin
-    if verbose then Format.eprintf "substitutor: vspec\n" ;
-    (printSpec specList);
+    if verbose then
+      Format.eprintf "@[substitutor: vspec@\n%a" printSpec specList;
 
     (* are any of the specifiers SpecPatterns?  we have to check the entire *)
     (* list, not just the head, because e.g. "typedef @specifier(foo)" has *)
@@ -220,7 +194,8 @@ class substitutor (bindings : binding list) = object(self)
               | SpecPattern(name) -> (
                   match (self#findBinding name) with
                     | BSpecifier(_, replacement) -> (
-			if verbose then Format.eprintf "replacing pattern %s\n" name ;
+			if verbose then
+                          Format.eprintf "replacing pattern %s\n" name ;
 			replacement
                       )
                     | _ -> raise (BadBind ("wrong type: " ^ name))
@@ -261,19 +236,20 @@ let unifyExprFwd : (expression -> expression -> binding list) ref
 
 (* substitution for expressions *)
 let substExpr (bindings : binding list) (expr : expression) : expression =
-begin
-  ((if verbose then Format.eprintf "substExpr with %d bindings\n" (List.length bindings)));
-  (printExpr expr);
+  if verbose then
+    Format.eprintf "substExpr with %d bindings@\n%a"
+      (List.length bindings) printExpr expr;
 
   (* apply the transformation *)
-  let result = (visitCabsExpression (new substitutor bindings :> cabsVisitor) expr) in
-  (printExpr result);
-
+  let result =
+    (visitCabsExpression (new substitutor bindings :> cabsVisitor) expr)
+  in
+  printExpr Format.err_formatter result;
   result
-end
 
 let d_loc fmt loc =
-  Format.fprintf fmt "%s:%d" (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
+  Format.fprintf fmt "%s:%d"
+    (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
 
 (* class to describe how to modify the tree when looking for places *)
 (* to apply expression transformers *)
@@ -289,7 +265,8 @@ class exprTransformer (srcpattern : expression) (destpattern : expression)
 
       (* match! *)
       if verbose then
-	Format.eprintf "expr match: patch line %d, src %a" patchline d_loc srcloc ;
+	Format.eprintf "expr match: patch line %d, src %a"
+          patchline d_loc srcloc ;
       ChangeTo(substExpr bindings destpattern)
     )
 
@@ -338,8 +315,6 @@ begin
   let src : definition list = List.map snd (snd srcFile) in
 
   (* trace "patchTime" (dprintf "applyPatch start: %f\n" (gettime ()))); *)
-  if verbose then Cprint.out := stdout      (* hack *)
-  else ();
 
   (* more hackery *)
   unifyExprFwd := unifyExpr;
@@ -352,7 +327,7 @@ begin
         if verbose then
           Format.eprintf "considering applying defn pattern at line %d to src at %a\n"
             (fst loc).Lexing.pos_lnum d_loc (get_definitionloc d);
-	
+
         (* see if the source pattern matches the definition 'd' we have *)
         try (
           let bindings = (unifyDefn srcpattern d) in
@@ -405,14 +380,6 @@ begin
   let result : definition list =
     (List.flatten (List.map (fun d -> (patchDefn patch d)) src)) in
 
-  (*Cprint.print_defs result;*)
-
-  if verbose then (
-    (* avoid flush bug? yes *)
-    Cprint.force_new_line ();
-    Cprint.flush ()
-  );
-
   (if verbose then Format.eprintf "applyPatch finish: %f\n" (gettime ()));
   (srcFname, List.map (fun x -> false,x) result)
 end
@@ -455,37 +422,35 @@ begin
 end
 
 and unifySpecifier (pat : spec_elem) (tgt : spec_elem) : binding list =
-begin
-  (if verbose then (Format.eprintf "unifySpecifier\n"));
-  (printSpecs [pat] [tgt]);
+  if verbose then
+    Format.eprintf "@[unifySpecifier@\n%a@]" printSpecs ([pat], [tgt]);
 
   if (pat = tgt) then [] else
-
-  match pat, tgt with
-  | SpecType(tspec1), SpecType(tspec2) ->
-      (unifyTypeSpecifier tspec1 tspec2)
-  | SpecPattern(name), _ ->
-      (* record that future occurrances of @specifier(name) will yield this specifier *)
-      if verbose then
-        ((Format.eprintf "found specifier match for %s\n" name));
-      [BSpecifier(name, [tgt])]
-  | _,_ -> (
-      (* no match *)
-      if verbose then (
-        ((Format.eprintf "mismatching specifiers\n"));
-      );
-      raise NoMatch
-   )
-end
+    begin
+      match pat, tgt with
+        | SpecType(tspec1), SpecType(tspec2) ->
+            (unifyTypeSpecifier tspec1 tspec2)
+        | SpecPattern(name), _ ->
+            (* record that future occurrances of @specifier(name) will yield this specifier *)
+            if verbose then
+              ((Format.eprintf "found specifier match for %s\n" name));
+            [BSpecifier(name, [tgt])]
+        | _,_ -> (
+            (* no match *)
+            if verbose then (
+              ((Format.eprintf "mismatching specifiers\n"));
+            );
+            raise NoMatch
+          )
+    end
 
 and unifySpecifiers (pat : spec_elem list) (tgt : spec_elem list) : binding list =
-begin
-  (if verbose then (Format.eprintf "unifySpecifiers\n"));
-  (printSpecs pat tgt);
+  if verbose then
+    Format.eprintf "@[unifySpecifiers@\n%a@]" printSpecs (pat, tgt);
 
   (* canonicalize the specifiers by sorting them *)
-  let pat' = (List.stable_sort compare pat) in
-  let tgt' = (List.stable_sort compare tgt) in
+  let pat' = (List.stable_sort Extlib.compare_basic pat) in
+  let tgt' = (List.stable_sort Extlib.compare_basic tgt) in
 
   (* if they are equal, they match with no further checking *)
   if (pat' = tgt') then [] else
@@ -513,7 +478,6 @@ begin
      )
   in
   (loop pat tgt)
-end
 
 and unifyTypeSpecifier (pat: typeSpecifier) (tgt: typeSpecifier) : binding list =
 begin
@@ -611,9 +575,8 @@ and unifyDeclarators (pat : name list) (tgt : name list) : binding list =
   (unifyList pat tgt unifyDeclarator)
 
 and unifyDeclarator (pat : name) (tgt : name) : binding list =
-begin
-  (if verbose then (Format.eprintf "unifyDeclarator\n"));
-  (printDecl pat tgt);
+  if verbose then
+    Format.eprintf "@[unifyDeclarator@\n%a@]" printDecl (pat, tgt);
 
   match pat, tgt with
   | (pname, pdtype, pattr, _ploc),
@@ -621,12 +584,10 @@ begin
       (mustEq pattr tattr);
       (unifyDeclType pdtype tdtype) @
       (unifyString pname tname)
-end
 
 and unifyDeclType (pat : decl_type) (tgt : decl_type) : binding list =
-begin
-  (if verbose then (Format.eprintf "unifyDeclType\n"));
-  (printDeclType pat tgt);
+  if verbose then
+    Format.eprintf "@[unifyDeclType@\n%a@]" printDeclType (pat, tgt);
 
   match pat, tgt with
   | JUSTBASE, JUSTBASE -> []
@@ -654,7 +615,6 @@ begin
         ((Format.eprintf "mismatching decl_types\n"));
       raise NoMatch
     )
-end
 
 and unifySingleNames (pat : single_name list) (tgt : single_name list) : binding list =
 begin
@@ -698,7 +658,6 @@ begin
 end
 
 and unifyExpr (pat : expression) (tgt : expression) : binding list =
-begin
   (* if they're equal, that's good enough *)
   if (pat = tgt) then [] else
 
@@ -706,7 +665,7 @@ begin
   let ue = unifyExpr in
 
   (* because of the equality check above, I can omit some cases *)
-  match pat, tgt with
+  match pat.expr_node, tgt.expr_node with
   | UNARY(pop, pexpr),
     UNARY(top, texpr) ->
       (mustEq pop top);
@@ -768,14 +727,11 @@ begin
       if verbose then
         ((Format.eprintf "found expr match for %s\n" name));
       [BExpr(name, tgt)]
-  | a, b ->
-      if verbose then (
-        ((Format.eprintf "mismatching expression\n"));
-        (printExpr a);
-        (printExpr b)
-      );
+  | _ ->
+      if verbose then
+        Format.eprintf "@[mismatching expression@\n%a%a@]"
+          printExpr pat printExpr tgt;
       raise NoMatch
-end
 
 and unifyInitExpr (pat : init_expression) (tgt : init_expression) : binding list =
 begin
@@ -820,15 +776,11 @@ and unifyExprs (pat : expression list) (tgt : expression list) : binding list =
 
 (* given the list of bindings 'b', substitute them into 'd' to yield a new definition *)
 and substDefn (bindings : binding list) (defn : definition) : definition =
-begin
-  (if verbose then (Format.eprintf "substDefn with %d bindings\n" (List.length bindings)));
-  (printDefn defn);
+  if verbose then
+    Format.eprintf "@[substDefn with %d bindings@\n%a@]"
+      (List.length bindings) printDefn defn;
 
   (* apply the transformation *)
   match (visitCabsDefinition (new substitutor bindings :> cabsVisitor) defn) with
   | [d] -> d    (* expect a singleton list *)
   | _ -> (failwith "didn't get a singleton list where I expected one")
-end
-
-
-(* end of file *)

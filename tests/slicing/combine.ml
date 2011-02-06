@@ -11,8 +11,9 @@ let f_slice_names kf src_called fnum =
 let f_slice_names =
   Journal.register
     "Combine.f_slice_names"
-    (Type.func Kernel_type.kernel_function
-       (Type.func Type.bool (Type.func Type.int Type.string)))
+    (Datatype.func Kernel_function.ty
+       (Datatype.func Datatype.bool
+	  (Datatype.func Datatype.int Datatype.string)))
     f_slice_names
 
 let main _ =
@@ -41,7 +42,7 @@ let main _ =
 
   let proj2 = !S.Project.extract "slicing_result" ~f_slice_names project in
   Project.set_current proj2;
-  Format.printf "After Slicing :@." ; File.pretty ();
+  Format.printf "After Slicing :@." ; File.pretty_ast ();
 
   (*
     let infos = object
@@ -64,12 +65,14 @@ let main _ =
   *)
 
   !Db.Value.compute ();
-  let all = Cilutil.StringSet.empty in
+  let all = Datatype.String.Set.empty in
   let proj3 = !Db.Constant_Propagation.get all ~cast_intro:true in
   Project.set_current proj3;
-  Format.printf "After Constant propagation :@." ; File.pretty ~prj:proj3 ();
+  Format.printf "After Constant propagation :@.";
+  File.pretty_ast ~prj:proj3 ();
 
   let proj4 = !Db.Sparecode.get ~select_annot:true ~select_slice_pragma:true in
-  Format.printf "After Sparecode :@." ; File.pretty ~prj:proj4 ();;
+  Format.printf "After Sparecode :@.";
+  File.pretty_ast ~prj:proj4 ();;
 
 let () = Db.Main.extend main

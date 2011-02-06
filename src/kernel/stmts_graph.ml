@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ open Cil
 open Db_types
 open Cilutil
 
-module SG = Graph.Imperative.Digraph.Concrete(StmtComparable)
+module SG = Graph.Imperative.Digraph.Concrete(Cil_datatype.Stmt)
 
 module PathChecker = Graph.Path.Check(SG)
 
@@ -125,21 +125,21 @@ let get_graph kf = match kf.stmts_graph with
   | None ->
       compute_stmtgraph kf;
       (match kf.stmts_graph with None -> assert false | Some f -> f);
-  | Some f -> 
+  | Some f ->
       f
 
 let stmt_can_reach kf s1 s2 =
-  if Kernel.debug_atleast 1 then
-    Kernel.debug "CHECK PATH %d->%d@\n" s1.sid s2.sid;
+  Kernel.debug ~level:4 "CHECK PATH %d->%d@\n" s1.sid s2.sid;
   check_path (get_graph kf) s1 s2
 
-module Reachable_Stmts = 
-  Cil_computation.StmtHashtbl
+module Reachable_Stmts =
+  Cil_state_builder.Stmt_hashtbl
     (Cil_datatype.Stmt)
     (struct
        let name = "reachable_stmts"
        let size = 97
        let dependencies = [ Ast.self ]
+       let kind = `Internal
      end)
 
 let reachable_stmts kf s =
@@ -148,9 +148,9 @@ let reachable_stmts kf s =
     if Reachable_Stmts.mem s then
       Reachable_Stmts.find_all s
     else begin
-      SG.iter_succ 
-	(fun s' -> 
-	   Reachable_Stmts.add s s'; 
+      SG.iter_succ
+	(fun s' ->
+	   Reachable_Stmts.add s s';
 	   List.iter (Reachable_Stmts.add s) (apply s'))
 	g
 	s;

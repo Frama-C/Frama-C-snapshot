@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,13 +26,18 @@ open Locations
 open Abstract_interp
 
 module Retres =
-  Cil_computation.VarinfoHashtbl
+  Cil_state_builder.Varinfo_hashtbl
     (Cil_datatype.Varinfo)
       (struct
 	 let name = "retres_variable"
 	 let size = 9
 	 let dependencies = [Ast.self]
+         let kind = `Internal
        end)
+
+let () =
+  State_dependency_graph.Static.add_dependencies
+    ~from:Retres.self [ Db.Value.self ]
 
 let get f_vi =
   try
@@ -43,19 +48,14 @@ let get f_vi =
     Retres.add f_vi rv;
     rv
 
-
-let add_dependency = Project.Computation.add_dependency Db.Value.self
-
-let () = add_dependency Retres.self
-
 let add_retres_to_state f_vi offsetmap state =
   let retres_vi = get f_vi in
   let retres_base = Base.create_varinfo retres_vi in
   let loc = Location_Bits.inject retres_base Ival.zero in
-  let size = 
-    try 
-      Int.of_int (bitsSizeOf retres_vi.vtype) 
-    with SizeOfError _ -> 
+  let size =
+    try
+      Int.of_int (bitsSizeOf retres_vi.vtype)
+    with SizeOfError _ ->
       Value_parameters.abort "library function return type size unknown. Please report"
   in
   Some retres_vi,

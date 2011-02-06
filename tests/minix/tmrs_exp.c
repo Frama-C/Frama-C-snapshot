@@ -38,8 +38,8 @@ void tmrs_exptimers (timer_t **tmrs, clock_t now, clock_t *new_head);
 /*===========================================================================*
  *				tmrs_exptimers				     *
  *===========================================================================*/
-//@ predicate ptime_var(clock_t * time) {\valid(time) && *time >= 0 && *time <= 2147483647}
-//@ predicate time_var(clock_t time) {time >= 0 && time <= 2147483647}
+//@ predicate ptime_var(clock_t * time) = \valid(time) && *time >= 0 && *time <= 2147483647 ;
+//@ predicate time_var(clock_t time) = time >= 0 && time <= 2147483647;
 
 /*@ requires \valid(tmrs) && ptime_var(new_head) && time_var(now);
   @ ensures \valid(new_head);

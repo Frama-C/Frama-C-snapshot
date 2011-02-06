@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,10 +22,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: dpds_gui.ml,v 1.18 2009-01-06 10:00:45 uid530 Exp $ *)
-
-
+open Properties_status
+open Pretty_source
 open Cil_types
+open Cil_datatype
 open Db_types
 
 let add_tag buffer (name, tag_prop) start stop =
@@ -55,8 +55,8 @@ let ask_for_lval (main_ui:Design.main_window_extension_points) kf stmt =
       | Some txt ->
           try
             let term_lval = !Db.Properties.Interp.lval kf stmt txt in
-            let lval = 
-	      !Db.Properties.Interp.term_lval_to_lval ~result:None term_lval 
+            let lval =
+	      !Db.Properties.Interp.term_lval_to_lval ~result:None term_lval
 	    in
               Some (txt, lval)
           with e ->
@@ -65,38 +65,15 @@ let ask_for_lval (main_ui:Design.main_window_extension_points) kf stmt =
             None
 
 let get_kf_stmt_opt localizable =
-  match localizable with
-    | Pretty_source.PTermLval(Some kf, Kstmt stmt, _)
-    | Pretty_source.PLval (Some kf, Kstmt stmt, _)
-    | Pretty_source.PStmt (kf,stmt)
-    | Pretty_source.PCodeAnnot (kf, stmt, _)
-    | Pretty_source.PAssigns (kf, Kstmt stmt, _, _)
-    | Pretty_source.PPredicate (Some kf, Kstmt stmt, _)
-    | Pretty_source.PPost_cond (kf,Kstmt stmt,_,_)
-    | Pretty_source.PAssumes (kf,Kstmt stmt,_,_)
-    | Pretty_source.PDisjoint_behaviors (kf,Kstmt stmt,_)
-    | Pretty_source.PComplete_behaviors (kf,Kstmt stmt,_)
-    | Pretty_source.PTerminates (kf,Kstmt stmt,_)
-    | Pretty_source.PVariant (kf,Kstmt stmt,_)
-    | Pretty_source.PRequires (kf,Kstmt stmt,_,_)
-      -> Some (kf, stmt)
-    | Pretty_source.PTermLval (_, _, _)
-    | Pretty_source.PLval (_, _, _)
-    | Pretty_source.PGlobal _
-    | Pretty_source.PVDecl _
-    | Pretty_source.PBehavior _
-    | Pretty_source.PPredicate (_, _, _)
-    | Pretty_source.PAssigns _
-    | Pretty_source.PPost_cond _| Pretty_source.PAssumes _
-    | Pretty_source.PDisjoint_behaviors _| Pretty_source.PComplete_behaviors _
-    | Pretty_source.PTerminates _| Pretty_source.PVariant _
-    | Pretty_source.PRequires _
-      -> None
+  match (Pretty_source.kf_of_localizable localizable,
+         Pretty_source.ki_of_localizable localizable)
+  with
+      Some kf, Kstmt st -> Some(kf,st)
+    | Some _, Kglobal | None, _ -> None
 
-let get_annot_opt localizable =
-  match localizable with
-    | Pretty_source.PCodeAnnot (_kf, _stmt, annot)  -> Some annot
-    | _ -> None
+let get_annot_opt localizable = match localizable with
+  | Pretty_source.PIP(Property.IPCodeAnnot(_,_,annot)) -> Some annot
+  | _ -> None
 
 
 (** [kf_stmt_opt] is used if we want to ask the lval to the user in a popup *)
@@ -106,22 +83,21 @@ let get_lval_opt main_ui kf_stmt_opt localizable =
         let lv_txt = Pretty_utils.sfprintf "%a" Cil.d_lval lv in
         Some (lv_txt, lv)
     | _ ->
-       ( match kf_stmt_opt with 
+       ( match kf_stmt_opt with
 	 None -> None
        | Some (kf, stmt) ->
-              match (ask_for_lval main_ui kf stmt) with 
+              match (ask_for_lval main_ui kf stmt) with
 		None -> None
               | Some (lv_txt, lv) -> Some (lv_txt, lv))
 
 module Make_StmtSetState (Info:sig val name: string end) =
-  Computation.Ref
-    (struct
-       include Cil_datatype.StmtSet
-       let default () = Cilutil.StmtSet.empty
-     end)
+  State_builder.Ref
+    (Stmt.Set)
     (struct
        let name = Info.name
        let dependencies = [ Db.Value.self ]
+       let kind = `Internal
+       let default () = Stmt.Set.empty
      end)
 
 module type DpdCmdSig = sig
@@ -157,9 +133,9 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
       ^"For more information, please look at the Scope plugin documentation.")
 
   let get_info _kf_stmt_opt =
-    if Cilutil.StmtSet.is_empty (Fscope.get ())
-      && Cilutil.StmtSet.is_empty (FBscope.get ())
-      && Cilutil.StmtSet.is_empty (Bscope.get ())
+    if Stmt.Set.is_empty (Fscope.get ())
+      && Stmt.Set.is_empty (FBscope.get ())
+      && Stmt.Set.is_empty (Bscope.get ())
     then ""
     else "[scope] selected"
 
@@ -169,9 +145,9 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
     "[scope] computed"
 
   let tag_stmt stmt =
-    if Cilutil.StmtSet.mem stmt (Fscope.get()) then scope_f_tag
-    else if Cilutil.StmtSet.mem stmt (FBscope.get()) then scope_fb_tag
-    else if Cilutil.StmtSet.mem stmt (Bscope.get()) then scope_b_tag
+    if Stmt.Set.mem stmt (Fscope.get()) then scope_f_tag
+    else if Stmt.Set.mem stmt (FBscope.get()) then scope_fb_tag
+    else if Stmt.Set.mem stmt (Bscope.get()) then scope_b_tag
     else empty_tag
 
 end
@@ -185,15 +161,13 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
       (struct let name = "Dpds_gui.Highlighter.Pscope" end)
 
   module Pscope_warn =
-    Computation.Ref
-    (struct
-       include Datatype.List (Cil_datatype.Code_Annotation)
-      let default () = []
-     end)
-    (struct
-       let name = "Dpds_gui.Highlighter.Pscope_warn"
-       let dependencies = [ Db.Value.self ]
-     end)
+    State_builder.List_ref
+      (Code_annotation)
+      (struct
+	let name = "Dpds_gui.Highlighter.Pscope_warn"
+	let dependencies = [ Db.Value.self ]
+	let kind = `Internal
+       end)
 
   let clear () = Pscope.clear(); Pscope_warn.clear()
 
@@ -202,7 +176,7 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
       ^"For more information, please look at the Scope plugin documentation.")
 
   let get_info _kf_stmt_opt =
-    if Cilutil.StmtSet.is_empty (Pscope.get ())
+    if Stmt.Set.is_empty (Pscope.get ())
     then ""
     else "[prop_scope] selected"
 
@@ -213,7 +187,7 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
 
   let tag_stmt stmt =
     (*if Cilutil.StmtSet.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
-    else*) if Cilutil.StmtSet.mem stmt (Pscope.get()) then scope_p_tag
+    else*) if Stmt.Set.mem stmt (Pscope.get()) then scope_p_tag
     else empty_tag
 
   let tag_annot annot =
@@ -236,11 +210,11 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
       ^"highlight the statements that define the value of D at L,\n\t"
       ^"and print a message if a part of D might be undefined.\n\t"
       ^"Notice that 'undefined' only means here "
-      ^"not defined on some path from the begining of the function.")
+      ^"not defined on some path from the beginning of the function.")
 
 
   let get_info _kf_stmt_opt =
-    if Cilutil.StmtSet.is_empty (ShowDefState.get()) then  ""
+    if Stmt.Set.is_empty (ShowDefState.get()) then  ""
     else "[show_def] selected"
 
   let compute kf stmt lv =
@@ -257,7 +231,7 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
             ShowDefState.set defs; msg
 
   let tag_stmt stmt =
-    if Cilutil.StmtSet.mem stmt (ShowDefState.get())
+    if Stmt.Set.mem stmt (ShowDefState.get())
     then show_def_tag else empty_tag
 
 end
@@ -267,13 +241,14 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
   type t_in = lval
 
   module ZonesState =
-    Computation.OptionRef
-      (Datatype.Couple
-	 (Cil_datatype.IntHashtbl(Locations.Zone.Datatype))
-         (Cil_datatype.StmtSet))
+    State_builder.Option_ref
+      (Datatype.Pair
+	 (Int_hashtbl.Make(Locations.Zone))
+         (Stmt.Set))
       (struct
          let name = "Dpds_gui.Highlighter.ZonesState"
          let dependencies = [ Db.Value.self ]
+         let kind = `Internal
        end)
 
   let clear () = ZonesState.clear ()
@@ -306,7 +281,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
     let is_used =
       try
         let _zones, used =  ZonesState.get () in
-          Cilutil.StmtSet.mem stmt used
+        Stmt.Set.mem stmt used
       with Not_found -> false
     in
       if is_used then zones_used_tag else empty_tag
@@ -330,12 +305,12 @@ let help (main_ui:Design.main_window_extension_points) =
     add ("Reset : reset the internal state for all the previous commands.")
 
 module DpdsState =
-  Computation.OptionRef
-    (Datatype.Triple
-       (Kernel_function.Datatype)(Cil_datatype.Stmt)(Datatype.String))
+  State_builder.Option_ref
+    (Datatype.Triple(Kernel_function)(Stmt)(Datatype.String))
     (struct
        let name = "Dpds_gui.Highlighter.DpdsState"
        let dependencies = [ Db.Value.self ]
+       let kind = `Internal
      end)
 
 let reset () =
@@ -414,29 +389,16 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
     let put_tag tag = match tag with ("",[]) -> ()
       | _ -> add_tag buffer tag start stop
     in
-      match localizable with
-        | Pretty_source.PStmt (_,stmt) ->
-            begin
-                if start_s.sid = stmt.sid then put_tag scope_start_tag;
-                put_tag (Pscope.tag_stmt stmt);
-                put_tag (DataScope.tag_stmt stmt);
-                put_tag (Zones.tag_stmt stmt );
-                put_tag (ShowDef.tag_stmt stmt)
-            end
-	| Pretty_source.PCodeAnnot (_, _, annot) ->
-            put_tag (Pscope.tag_annot annot)
-        | Pretty_source.PVDecl _
-        | Pretty_source.PTermLval _
-        | Pretty_source.PLval _
-	| Pretty_source.PGlobal _
-        | Pretty_source.PBehavior _
-        | Pretty_source.PAssigns _
-        | (*TODO?*) Pretty_source.PPredicate _
-        | Pretty_source.PPost_cond _| Pretty_source.PAssumes _
-        | Pretty_source.PDisjoint_behaviors _| Pretty_source.PComplete_behaviors _
-        | Pretty_source.PTerminates _| Pretty_source.PVariant _
-        | Pretty_source.PRequires _
-          -> ()
+    match localizable with
+    | PStmt (_,stmt) ->
+      if start_s.sid = stmt.sid then put_tag scope_start_tag;
+      put_tag (Pscope.tag_stmt stmt);
+      put_tag (DataScope.tag_stmt stmt);
+      put_tag (Zones.tag_stmt stmt );
+      put_tag (ShowDef.tag_stmt stmt)
+    | PIP (Property.IPCodeAnnot (_, _, annot)) ->
+      put_tag (Pscope.tag_annot annot)
+    | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
   with Not_found -> ()
 
 (** To add a sensitive/unsensitive menu item to a [factory].

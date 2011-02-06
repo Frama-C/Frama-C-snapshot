@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,13 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: subst.ml,v 1.6 2008-04-01 09:25:21 uid568 Exp $ *)
-
 open Cil_types
 open Cil
 
-module M =
-  Map.Make(struct type t = varinfo let compare x y = compare x.vid y.vid end)
+module M = Cil_datatype.Varinfo.Map
 
 type t = exp M.t
 
@@ -59,4 +56,10 @@ let expr ?(trans=true) e subst =
   let e = expr e in
   e, !modified
 
-let lval ?trans x = expr ?trans (new_exp (Lval x))
+let lval ?trans x = expr ?trans (new_exp ~loc:Cil_datatype.Location.unknown (Lval x))
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

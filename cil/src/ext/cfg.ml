@@ -39,16 +39,16 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-
-
 (* Authors: Aman Bhargava, S. P. Rahul *)
 (* sfg: this stuff was stolen from optim.ml - the code to print the cfg as
    a dot graph is mine *)
 
-(*open Pretty*)
 open Cil
+open Cil_const
 open Cil_types
-(*module E=Errormsg*)
+open Cil_datatype
+open Logic_utils
+open Logic_const
 
 (* entry points: cfgFun, printCfgChannel, printCfgFilename *)
 
@@ -231,7 +231,7 @@ let rec forallStmts todo (fd : fundec) =
 
 let d_cfgnodename fmt (s : stmt) = Format.fprintf fmt "%d" s.sid
 
-let d_cfgnodelabel fmt (s : stmt) = 
+let d_cfgnodelabel fmt (s : stmt) =
   let label =
     begin
       match s.skind with
@@ -254,13 +254,13 @@ let d_cfgedge src fmt dest =
   Format.fprintf fmt "%a -> %a"
     d_cfgnodename src
     d_cfgnodename dest
-    
+
 let d_cfgnode fmt (s : stmt) =
   Format.fprintf fmt "%a [label=\"%a\"]\n\t@[<hov 2>%a@]"
     d_cfgnodename s
     d_cfgnodelabel s
     (Pretty_utils.pp_list ~sep:"@." (d_cfgedge s)) s.succs
-    
+
 (**********************************************************************)
 (* entry points *)
 
@@ -305,6 +305,506 @@ let computeFileCFG (f : file) =
   iterGlobals f (fun g ->
     match g with GFun(fd,_) -> cfgFun fd
       | _ -> ())
+
+(* Cfg computation *)
+
+open Cil_types
+open Logic_utils
+open Logic_const
+open Cil_const
+open Cil
+
+let statements : stmt list ref = ref []
+(* Clear all info about the CFG in statements *)
+
+class clear : cilVisitor = object
+  inherit nopCilVisitor
+  method vstmt s = begin
+    s.sid <- Sid.next ();
+    statements := s :: !statements;
+    s.succs <- [] ;
+    s.preds <- [] ;
+    DoChildren
+  end
+  method vexpr _ = SkipChildren
+  method vtype _ = SkipChildren
+  method vinst _ = SkipChildren
+end
+
+let link source dest = begin
+  if not (List.mem dest source.succs) then
+    source.succs <- dest :: source.succs ;
+  if not (List.mem source dest.preds) then
+    dest.preds <- source :: dest.preds
+end
+let trylink source dest_option = match dest_option with
+    None -> ()
+  | Some(dest) -> link source dest
+
+
+ (** Compute the successors and predecessors of a block, given a fallthrough *)
+let rec succpred_block b fallthrough =
+  let rec handle sl = match sl with
+      [] -> ()
+    | [a] -> succpred_stmt a fallthrough
+    | hd :: ((next :: _) as tl) ->
+      succpred_stmt hd (Some next) ;
+      handle tl
+  in handle b.bstmts
+
+
+and succpred_stmt s fallthrough =
+  match s.skind with
+      Instr _ -> trylink s fallthrough
+    | Return _ -> ()
+    | Goto(dest,_) -> link s !dest
+    | Break _
+    | Continue _
+    | Switch _ ->
+      failwith "computeCFGInfo: cannot be called on functions with break, continue or switch statements. Use prepareCFG first to remove them."
+
+    | If(_e1,b1,b2,_) ->
+      (match b1.bstmts with
+	  [] -> trylink s fallthrough
+        | hd :: _ -> (link s hd ; succpred_block b1 fallthrough )) ;
+      (match b2.bstmts with
+	  [] -> trylink s fallthrough
+        | hd :: _ -> (link s hd ; succpred_block b2 fallthrough ))
+
+    | Loop(_,b,_,_,_) ->
+      begin match b.bstmts with
+	  [] -> failwith "computeCFGInfo: empty loop"
+        | hd :: _ ->
+	  link s hd ;
+	  succpred_block b (Some(hd))
+      end
+
+    | Block(b) -> begin match b.bstmts with
+	[] -> trylink s fallthrough
+	| hd :: _ -> link s hd ;
+	  succpred_block b fallthrough
+    end
+    | UnspecifiedSequence (((s1,_,_,_,_)::_) as seq) ->
+      link s s1;
+      succpred_block (block_from_unspecified_sequence seq) fallthrough
+    | UnspecifiedSequence [] ->
+      trylink s fallthrough
+    | TryExcept _ | TryFinally _ ->
+      failwith "computeCFGInfo: structured exception handling not implemented"
+
+
+ (* This alphaTable is used to prevent collision of label names when
+    transforming switch statements and loops. It uses a *unit*
+    alphaTableData ref because there isn't any information we need to
+    carry around. *)
+let labelAlphaTable : (string, unit Alpha.alphaTableData ref) Hashtbl.t =
+  Hashtbl.create 11
+
+let freshLabel (base:string) =
+  fst (Alpha.newAlphaName labelAlphaTable None base ())
+
+
+let xform_switch_block ?(keepSwitch=false) b =
+  let breaks_stack = Stack.create () in
+  let continues_stack = Stack.create () in
+   (* NB: these are two stacks of stack, as the scope of
+      breaks/continues clauses depends on two things: First,
+      /*@ breaks P */ while(1) {} is not the same thing as
+      while(1) { /*@ breaks P */ }:
+      only the latter applies to the break of the current loop.
+      Second
+      while(1) { /*@ breaks P1 */ { /*@ breaks P2 */{}}}
+      requires maintaining an inner stack, since the breaks
+      of the current loop are under two different, nested, breaks
+      clauses *)
+  let () = Stack.push (Stack.create()) breaks_stack in
+  let () = Stack.push (Stack.create()) continues_stack in
+  let assert_of_clause f ca =
+    match ca.annot_content with
+      | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | APragma _ -> ptrue
+      | AStmtSpec s ->
+        List.fold_left
+          (fun acc bhv ->
+            pand
+              (acc,
+               pimplies
+                 (pands
+                    (List.map
+                       (fun p ->
+                         pold ~loc:p.ip_loc
+                           (Logic_utils.named_of_identified_predicate p))
+                       bhv.b_assumes),
+                  pands
+                    (List.fold_left
+                       (fun acc (kind,p) ->
+                         if f kind then
+                           Logic_utils.named_of_identified_predicate p
+                           :: acc
+                         else acc)
+                       [ptrue] bhv.b_post_cond)
+                 )))
+          ptrue s.spec_behavior
+  in
+  let assert_of_continues ca =
+    assert_of_clause (function Continues -> true | _ -> false) ca
+  in
+  let assert_of_breaks ca =
+    assert_of_clause (function Breaks -> true | _ -> false) ca
+  in
+  let add_clause s ca =
+    let cont_clause = assert_of_continues ca in
+    let break_clause = assert_of_breaks ca in
+    if not (Stack.is_empty continues_stack) then begin
+      let old_clause = Stack.top continues_stack in
+      let cont_clause = Logic_utils.translate_old_label s cont_clause in
+      Stack.push cont_clause old_clause;
+    end else begin
+      Cilmsg.fatal "No stack where to put continues clause"
+    end;
+    if not (Stack.is_empty breaks_stack) then begin
+      let old_clause = Stack.top breaks_stack in
+      let break_clause = Logic_utils.translate_old_label s break_clause
+      in
+      Stack.push break_clause old_clause;
+    end else begin
+      Cilmsg.fatal "No stack where to put breaks clause"
+    end
+  in
+  let rec popn n =
+    if n > 0 then begin
+      if
+        Stack.is_empty breaks_stack || Stack.is_empty continues_stack
+      then
+        fatal "Cannot remove breaks/continues in clause stack";
+      let breaks = Stack.top breaks_stack in
+      if Stack.is_empty breaks then
+        fatal "Cannot remove breaks in toplevel clause stack";
+      ignore (Stack.pop breaks);
+      let continues = Stack.top continues_stack in
+      if Stack.is_empty continues then
+        fatal "Cannot remove continues in toplevel clause stack";
+      ignore (Stack.pop continues);
+      popn (n-1);
+    end
+  in
+  let rec xform_switch_stmt stmts break_dest cont_dest label_index popstack =
+    match stmts with
+        [] -> []
+      | s :: rest ->
+        begin
+          CurrentLoc.set (Stmt.loc s);
+          if not keepSwitch then
+            s.labels <- List.map (fun lab -> match lab with
+                Label _ -> lab
+              | Case(e,l) ->
+	        let suffix =
+	          match isInteger e with
+	            | Some value ->
+	              if value < Int64.zero then
+		        "neg_" ^ Int64.to_string (Int64.neg value)
+	              else
+		        Int64.to_string value
+	            | None ->
+	              "exp"
+	        in
+	        let str = Format.sprintf "switch_%d_%s" label_index suffix in
+	        (Label(freshLabel str,l,false))
+              | Default(l) ->
+                Label(freshLabel
+		        (Printf.sprintf "switch_%d_default" label_index),
+		      l, false)
+            ) s.labels ;
+          match s.skind with
+            | Instr (Code_annot (ca,_)) ->
+              add_clause s ca;
+              s::
+                xform_switch_stmt
+                rest break_dest cont_dest label_index (popstack+1)
+            | Instr _ | Return _ | Goto _  ->
+              popn popstack;
+              s::
+                xform_switch_stmt
+                rest break_dest cont_dest label_index 0
+            | Break(l) ->
+              if Stack.is_empty breaks_stack then
+                Cilmsg.fatal "empty breaks stack";
+              let goto_stmt =  mkStmt (Goto(break_dest (),l)) in
+              let breaks = Stack.top breaks_stack in
+              let assertion = ref ptrue in
+              Stack.iter (fun p -> assertion := pand (p,!assertion)) breaks;
+              (match !assertion with
+                  { content = Ptrue } ->
+                    popn popstack;
+                    goto_stmt ::
+                      xform_switch_stmt
+                      rest break_dest cont_dest label_index 0
+                | p ->
+                  let a = Logic_const.new_code_annotation (AAssert ([],p)) in
+                  let assertion = mkStmt (Instr(Code_annot(a,l))) in
+                  popn popstack;
+                  assertion::goto_stmt::
+                    xform_switch_stmt
+                    rest break_dest cont_dest label_index 0)
+            | Continue(l) ->
+              if Stack.is_empty continues_stack then
+                Cilmsg.fatal "empty continues stack";
+              let goto_stmt = mkStmt (Goto(cont_dest (),l)) in
+              let continues = Stack.top continues_stack in
+              let assertion = ref ptrue in
+              Stack.iter (fun p -> assertion := pand(p,!assertion)) continues;
+              (match !assertion with
+                  { content = Ptrue } ->
+                    popn popstack;
+                    goto_stmt ::
+                      xform_switch_stmt
+                      rest break_dest cont_dest label_index 0
+                | p ->
+                  let a = Logic_const.new_code_annotation (AAssert([],p)) in
+                  let assertion = mkStmt (Instr(Code_annot(a,l))) in
+                  popn popstack;
+                  assertion::goto_stmt::
+                    xform_switch_stmt
+                    rest break_dest cont_dest label_index 0)
+            | If(e,b1,b2,l) ->
+              let b1 = xform_switch_block b1 break_dest cont_dest label_index
+              in
+              let b2 = xform_switch_block b2 break_dest cont_dest label_index
+              in
+              popn popstack;
+              s.skind <- If(e,b1,b2,l);
+              s:: xform_switch_stmt rest break_dest cont_dest label_index 0
+            | Switch(e,b,sl,l) ->
+              if keepSwitch then begin
+                let label_index = label_index + 1 in
+                let break_stmt = mkStmt (Instr (Skip Location.unknown)) in
+                break_stmt.labels <-
+                  [Label
+                      (freshLabel
+                         (Printf.sprintf "switch_%d_break" label_index),
+                       l, false)] ;
+                Stack.push (Stack.create()) breaks_stack;
+                let b =
+                  xform_switch_block
+                    b (fun () -> ref break_stmt) cont_dest label_index
+                in
+                ignore (Stack.pop breaks_stack);
+                popn popstack;
+                s.skind <- Switch (e,b,sl,l);
+                s::break_stmt::
+                  xform_switch_stmt rest break_dest cont_dest label_index 0
+              end else begin
+                 (* change
+	          * switch (se) {
+	          *   case 0: s0 ;
+	          *   case 1: s1 ; break;
+	          *   ...
+	          * }
+	          *
+	          * into:
+	          *
+	          * if (se == 0) goto label_0;
+	          * else if (se == 1) goto label_1;
+	          * ...
+	          * else goto label_break;
+                  *  { // body_block
+	          *  label_0: s0;
+	          *  label_1: s1; goto label_break;
+	          *  ...
+	          * }
+	          * label_break: ; // break_stmt
+	          *
+	          *)
+                let label_index = label_index + 1 in
+                let break_stmt = mkStmt (Instr (Skip Location.unknown)) in
+                break_stmt.labels <-
+	          [Label(freshLabel
+                           (Printf.sprintf
+                              "switch_%d_break" label_index), l, false)] ;
+                 (* The default case, if present, must be used only if *all*
+                    non-default cases fail [ISO/IEC 9899:1999, §6.8.4.2, ¶5]. As a
+                    result, we sort the order in which we handle the labels (but not the
+                    order in which we print out the statements, so fall-through still
+                    works as expected). *)
+                let compare_choices s1 s2 = match s1.labels, s2.labels with
+                  | (Default(_) :: _), _ -> 1
+                  | _, (Default(_) :: _) -> -1
+                  | _, _ -> 0
+                in
+                let rec handle_choices sl =
+                  match sl with
+	              [] ->
+                        (* If there's no case that matches and no default,
+                           we just skip the entire switch (6.8.4.2.5)*)
+                        Goto (ref break_stmt,l)
+                    | stmt_hd :: stmt_tl ->
+	              let rec handle_labels lab_list =
+	                match lab_list with
+	                    [] -> handle_choices stmt_tl
+	                  | Case(ce,cl) :: lab_tl ->
+                              (* begin replacement: *)
+	                    let pred =
+		              match ce.enode with
+		                  Const (CInt64 (0L,_,_)) ->
+		                    new_exp ~loc:ce.eloc (UnOp(LNot,e,intType))
+		                | _ ->
+		                  new_exp ~loc:ce.eloc (BinOp(Eq,e,ce,intType))
+	                    in
+                              (* end replacement *)
+	                    let then_block =
+                              mkBlock [ mkStmt (Goto(ref stmt_hd,cl)) ] in
+	                    let else_block =
+                              mkBlock [ mkStmt (handle_labels lab_tl) ] in
+	                    If(pred,then_block,else_block,cl)
+	                  | Default(dl) :: lab_tl ->
+	                      (* ww: before this was 'if (1) goto label',
+                                 but as Ben points out this might confuse
+                                 someone down the line who doesn't have special
+                                 handling for if(1) into thinking
+                                 that there are two paths here.
+                                 The simpler 'goto label' is what we want. *)
+	                    Block(mkBlock [ mkStmt (Goto(ref stmt_hd,dl)) ;
+			                    mkStmt (handle_labels lab_tl) ])
+	                  | Label(_,_,_) :: lab_tl -> handle_labels lab_tl
+                      in
+	              handle_labels stmt_hd.labels
+                in
+                let sl = List.sort compare_choices sl in
+                let ifblock = mkStmt (handle_choices sl) in
+                Stack.push (Stack.create()) breaks_stack;
+                let switch_block =
+                  xform_switch_block
+                    b (fun () -> ref break_stmt) cont_dest label_index
+                in
+                ignore (Stack.pop breaks_stack);
+                popn popstack;
+                s.skind <- Block switch_block;
+                (match switch_block.bstmts with
+                    ({ skind = Instr(Code_annot _) } as ca):: tl ->
+                      (* We move the annotation outside of the block, since
+                         the \old would otherwise be attached to a label which
+                         by construction is never reached.
+                       *)
+                      switch_block.bstmts <- ca :: ifblock :: tl
+                  | l -> switch_block.bstmts <- ifblock :: l);
+                s :: break_stmt ::
+                  xform_switch_stmt rest break_dest cont_dest label_index 0
+              end
+            | Loop(a,b,l,_,_) ->
+	      let label_index = label_index + 1 in
+	      let break_stmt =
+	        mkStmt (Instr (Skip Location.unknown))
+	      in
+              break_stmt.labels <-
+	        [Label(freshLabel
+                         (Printf.sprintf
+                            "while_%d_break" label_index),l,false)] ;
+              let cont_stmt = mkStmt (Instr (Skip Location.unknown)) in
+              cont_stmt.labels <-
+	        [Label
+                    (freshLabel
+                       (Printf.sprintf
+                          "while_%d_continue" label_index),l,false)] ;
+              b.bstmts <- cont_stmt :: b.bstmts ;
+              let my_break_dest () = ref break_stmt in
+              let my_cont_dest () = ref cont_stmt in
+              Stack.push (Stack.create ()) breaks_stack;
+              Stack.push (Stack.create ()) continues_stack;
+              let b =
+                xform_switch_block b my_break_dest my_cont_dest label_index
+              in
+              s.skind <- Loop(a,b,l,Some(cont_stmt),Some(break_stmt));
+              break_stmt.succs <- s.succs ;
+              ignore (Stack.pop breaks_stack);
+              ignore (Stack.pop continues_stack);
+              popn popstack;
+              s :: break_stmt ::
+                xform_switch_stmt rest break_dest cont_dest label_index 0
+            | Block b ->
+              let b = xform_switch_block b break_dest cont_dest label_index in
+              popn popstack;
+              s.skind <- Block b;
+              s :: xform_switch_stmt rest break_dest cont_dest label_index 0
+            | UnspecifiedSequence seq ->
+              let seq =
+                xform_switch_unspecified seq break_dest cont_dest label_index
+              in
+              popn popstack;
+              s.skind <- UnspecifiedSequence seq;
+              s :: xform_switch_stmt rest break_dest cont_dest label_index 0
+            | TryExcept _ | TryFinally _ ->
+              Cilmsg.fatal
+                "xform_switch_statement: \
+                  structured exception handling not implemented"
+        end
+  and xform_switch_block b break_dest cont_dest label_index =
+     (* [VP] I fail to understand what link_succs is supposed to do. The head
+        of the block has as successors all the statements in the block? *)
+     (*     let rec link_succs sl = match sl with
+            | [] -> ()
+            | hd :: tl -> (if hd.succs = [] then hd.succs <- tl) ; link_succs tl
+            in
+            link_succs b.bstmts ; *)
+    { b with bstmts =
+        xform_switch_stmt b.bstmts break_dest cont_dest label_index 0 }
+  and xform_switch_unspecified seq break_dest cont_dest label_index =
+    let treat_one (s,m,w,r,c) =
+       (* NB: this assumes that we don't have any statement contract in
+          an unspecified sequence.
+        *)
+      let res = xform_switch_stmt [s] break_dest cont_dest label_index 0
+      in
+      (List.hd res, m,w,r,c)
+      ::(List.map (fun s -> (s,[],[],[],[])) (List.tl res))
+    in
+    (List.concat (List.map treat_one seq))
+  in
+  xform_switch_block b
+    (fun () -> Cilmsg.abort "break outside of loop or switch")
+    (fun () -> Cilmsg.abort "continues outside of loop")
+    (-1)
+
+(* Enter all the labels in a function into an alpha renaming table to
+   prevent duplicate labels when transforming loops and switch
+   statements. *)
+class registerLabelsVisitor : cilVisitor = object
+  inherit nopCilVisitor
+  method vstmt { labels = labels } = begin
+    List.iter
+      (function
+        | Label (name,_,_) ->
+          Alpha.registerAlphaName labelAlphaTable None name ()
+        | _ -> ())
+      labels;
+    DoChildren
+  end
+  method vexpr _ = SkipChildren
+  method vtype _ = SkipChildren
+  method vinst _ = SkipChildren
+end
+
+(* prepare a function for computeCFGInfo by removing break, continue,
+ * default and switch statements/labels and replacing them with Ifs and
+ * Gotos. *)
+let prepareCFG ?(keepSwitch=false) (fd : fundec) : unit =
+  (* Labels are local to a function, so start with a clean slate by
+     clearing labelAlphaTable. Then register all labels. *)
+  Hashtbl.clear labelAlphaTable;
+  ignore (visitCilFunction (new registerLabelsVisitor) fd);
+  let b = xform_switch_block ~keepSwitch fd.sbody in
+  fd.sbody <- b
+
+(* make the cfg and return a list of statements *)
+let computeCFGInfo (f : fundec) (global_numbering : bool) : unit =
+  if not global_numbering then Sid.reset ();
+  statements := [];
+  let clear_it = new clear in
+  ignore (visitCilBlock clear_it f.sbody) ;
+  f.smaxstmtid <- Some (Sid.get ()) ;
+  succpred_block f.sbody (None);
+  let res = List.rev !statements in
+  statements := [];
+  f.sallstmts <- res;
+  ()
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,15 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: Occurrence.mli,v 1.3 2008-11-04 10:05:05 uid568 Exp $ *)
-
-(** Metrics plugin. *)
+(** Occurence plug-in. *)
 
 (** No function is directly exported: they are registered in
     {!Db.Occurrence}. *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,7 +70,7 @@ let catch_sysreaddir s =
   | [] | [ _ ] | _ :: _ :: _ :: _ ->
       raise (Sys_error s)
 
-(* To determine if we have a ocaml version lower than 3.11 or not *)
+(* To determine if we have a OCaml version lower than 3.11 or not *)
 let is_lower_than_311 =
   try
     ignore (Dynlink_common_interface.init ());
@@ -115,7 +115,7 @@ let init_paths () = List.iter add_path (default_path ())
 (** @return read path and check error in the same times *)
 let read_path path=
   (* sorting ensures a deterministic results of listing directories *)
-  try List.sort Pervasives.compare (Array.to_list (Sys.readdir path))
+  try List.sort String.compare (Array.to_list (Sys.readdir path))
   with Sys_error s -> catch_sysreaddir s; []
 
 (* ************************************************************************* *)
@@ -166,7 +166,7 @@ end = struct
 	       end
 	     in
 	     let l = Hashtbl.fold (fun n d acc -> (n, d) :: acc) tbl [] in
-	     List.iter print (List.sort Pervasives.compare l)
+	     List.iter print (List.sort Extlib.compare_basic l)
 	   in
 	   warning ~append "cannot load %d plug-ins (%s).@\n" len msg)
       tbl;
@@ -175,7 +175,7 @@ end = struct
 end
 
 module Modules : sig
-  val register: string -> bool
+  val register_once: string -> bool
   val unregister: string -> unit
 end = struct
 
@@ -192,7 +192,7 @@ end = struct
     List.iter (fun s -> add (s ^ "_gui")) Config.static_gui_plugins;
     List.iter disable Config.compilation_unit_names
 
-  let register s =
+  let register_once s =
     if Names.mem s !module_names then
       false
     else begin
@@ -220,17 +220,11 @@ end
 let object_file_extension =
   if Dynlink_common_interface.is_native then ".cmxs" else ".cm[oa]"
 
-(** @return say if a module, which have the given name, is in the given path. A
-    module is consider in a path if you can retrieve his .cmo or .cmxs *)
-let is_module_in_path name path=
-  let list_of_files= read_path path in
-  let regexp_file=
-    Str.regexp (name ^ "\\" ^ object_file_extension ^ "$")
+let dynlink_file path module_name =
+  let error msg details =
+    Modules.unregister module_name;
+    Loading_error_messages.add (String.capitalize module_name) msg details
   in
-  List.exists (fun file -> Str.string_match regexp_file file 0) list_of_files
-
-(** Loads the module [name_module] in [path] if it is not already loaded. *)
-let include_module_path path module_name =
   let file =
     if Dynlink_common_interface.is_native then
       Filename.concat path (module_name ^ object_file_extension)
@@ -240,44 +234,43 @@ let include_module_path path module_name =
       if Sys.file_exists cma then cma else cmo
     end
   in
-  let error msg details =
-    Modules.unregister module_name;
-    Loading_error_messages.add (String.capitalize module_name) msg details
-  in
-  if Modules.register module_name then begin
-    feedback ~level:3 "loading file %S" file;
-    try
-      Dynlink_common_interface.loadfile file;
-    with
-    | Dynlink_common_interface.Error e ->
-	(match e with
-	 | Dynlink_common_interface.Not_a_bytecode_file s ->
-	     error "not a bytecode file" s
-	 | Dynlink_common_interface.File_not_found s ->
-	     error "file not found" s
-	 | Dynlink_common_interface.Inconsistent_import _
-	 | Dynlink_common_interface.Linking_error _
-	 | Dynlink_common_interface.Corrupted_interface _
-	 | Dynlink_common_interface.Cannot_open_dll _
-	 | Dynlink_common_interface.Inconsistent_implementation _
-	 | Dynlink_common_interface.Unavailable_unit _ ->
-	     error
-	       (Format.sprintf "incompatible with %s" Config.version)
-	       (Dynlink_common_interface.error_message e)
-	 | Dynlink_common_interface.Unsafe_file -> assert false)
-    | Sys_error _ as e ->
-	error "system error" (Printexc.to_string e)
-    | e ->
-	fatal "unexpected exception %S" (Printexc.to_string e)
-  end
+  try
+    Dynlink_common_interface.loadfile file
+  with
+  | Dynlink_common_interface.Error e ->
+    (match e with
+    | Dynlink_common_interface.Not_a_bytecode_file s ->
+      error "not a bytecode file" s
+    | Dynlink_common_interface.File_not_found s ->
+      error "file not found" s
+    | Dynlink_common_interface.Inconsistent_import _
+    | Dynlink_common_interface.Linking_error _
+    | Dynlink_common_interface.Corrupted_interface _
+    | Dynlink_common_interface.Cannot_open_dll _
+    | Dynlink_common_interface.Inconsistent_implementation _
+    | Dynlink_common_interface.Unavailable_unit _ ->
+      error
+	(Format.sprintf "incompatible with %s" Config.version)
+	(Dynlink_common_interface.error_message e)
+    | Dynlink_common_interface.Unsafe_file -> assert false)
+  | Sys_error _ as e ->
+    error "system error" (Printexc.to_string e)
+  | e ->
+    fatal "unexpected exception %S" (Printexc.to_string e)
 
-(** @return loads a module with the given name *)
-let include_module name_module =
-  List.iter
-    (fun path ->
-       if is_module_in_path name_module path then
-         include_module_path path name_module)
-    !all_path
+let load_module_from_unknown_path name =
+  if Modules.register_once name then
+    let regexp =
+      Str.regexp_case_fold (name ^ "\\" ^ object_file_extension ^ "$")
+    in
+    let check_path path =
+      let files= read_path path in
+      List.exists (fun file -> Str.string_match regexp file 0) files
+    in
+    List.iter
+      (fun path -> if check_path path then dynlink_file path name)
+      !all_path;
+    Loading_error_messages.print ()
 
 let extract_filename f =
   try Filename.chop_extension f with Invalid_argument _ -> f
@@ -286,7 +279,7 @@ let load_module =
   let load f =
     let name = Filename.basename (extract_filename f) in
     let dir = Filename.dirname f in
-    include_module_path dir name;
+    if Modules.register_once name then dynlink_file dir name;
     Loading_error_messages.print ()
   in
   dynlink_available load
@@ -301,12 +294,14 @@ let load_script =
       else name ^ ".cmo"
     in
     let cmd =
-      Format.sprintf "%s -w Ly -warn-error A -I %s%t -I %s %s"
+      Format.sprintf "%s -w Ly -warn-error A -I %s%s%t -I %s %s"
 	(if Dynlink_common_interface.is_native then
 	   Config.ocamlopt ^ " -shared -o " ^ gen_name
 	 else
 	   Config.ocamlc ^ " -c")
 	Config.libdir
+	(if !Config.is_gui then " -I +lablgtk2"
+	 else "")
 	(fun () -> List.fold_left (fun acc s -> " -I " ^ s ^ acc) "" !all_path)
 	dir
 	ml_name
@@ -338,8 +333,9 @@ let load_all_modules =
     let files = read_path d in
     let files = List.filter filter files in
     let modules = List.map Filename.chop_extension files in
+    let load f = if Modules.register_once f then dynlink_file d f in
     (* order of loading inside a directory remains system-independent *)
-    List.iter (include_module_path d) (List.sort String.compare modules)
+    List.iter load (List.sort String.compare modules)
   in
   let load_all () =
     init_paths ();
@@ -353,7 +349,8 @@ let load_all_modules =
 (** {2 Registering and accessing dynamic values} *)
 (* ************************************************************************* *)
 
-let dynamic_values = Type.StringTbl.create 97
+module Tbl = Type.String_tbl(struct type 'a t = 'a end)
+let dynamic_values = Tbl.create 97
 
 let register ~plugin name ty ~journalize f =
   if Cmdline.use_type then begin
@@ -362,28 +359,33 @@ let register ~plugin name ty ~journalize f =
       if journalize then
 	let comment fmt =
 	  Format.fprintf fmt
-	    "@[<hov 2>Applying@;dynamic@;functions@;%S@;of@;type@;%s@]"
+	    "@[<hov>Applying@;dynamic@;functions@;%S@;of@;type@;%s@]"
 	    name
 	    (Type.name ty)
 	in
 	let jname =
-	  Format.fprintf Format.str_formatter "Dynamic.get ~plugin:%S %S %t"
-	    plugin name (Type.pp_value_name ty Type.Call);
+	  Format.fprintf
+	    Format.str_formatter
+	    "@[<hov 2>Dynamic.get@;~plugin:%S@;%S@;%t@]@]"
+	    plugin name
+	    (Type.pp_ml_name ty Type.Call);
 	  Format.flush_str_formatter ()
 	in
 	Journal.register jname ty ~is_dyn:true ~comment f
       else
 	f
     in
-    Type.StringTbl.add dynamic_values (plugin ^ "." ^ name) ty f
+    Tbl.add dynamic_values (plugin ^ "." ^ name) ty f
   end else
     f
 
+exception Incompatible_type = Tbl.Incompatible_type
+exception Unbound_value = Tbl.Unbound_value
+
 let get ~plugin name ty =
   if Cmdline.use_type then begin
-    include_module plugin;
-    include_module (String.uncapitalize plugin);
-    Type.StringTbl.find dynamic_values (plugin ^ "." ^ name) ty
+    load_module_from_unknown_path plugin;
+    Tbl.find dynamic_values (plugin ^ "." ^ name) ty
   end else
     abort "cannot access value %s in the 'no obj' mode" name
 
@@ -407,6 +409,6 @@ end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -32,8 +32,8 @@ int find2(const int* a, int n, int val)
 {
   /*@
     loop invariant 0 <= i <= n;
-    loop   variant n-i;
     loop invariant !found(a, i, val);
+    loop   variant n-i;
    */
   for (int i = 0; i < n; i++)
     if (a[i] == val)

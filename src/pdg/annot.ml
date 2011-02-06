@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,10 +22,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: annot.ml,v 1.25 2008-11-20 08:57:36 uid530 Exp $ *)
-
 open Cil_types
-open Cilutil
+open Cil_datatype
 
 module M = Macros
 module G = PdgTypes.G
@@ -33,63 +31,76 @@ module Dpd = PdgTypes.Dpd
 module FI = PdgIndex.FctIndex
 module Key = PdgIndex.Key
 
-let add_info_nodes pdg (nodes_acc, undef_acc) info =
-  let stmt = info.Db.Properties.Interp.To_zone.ki in
-  let before = info.Db.Properties.Interp.To_zone.before in
-  let zone = info.Db.Properties.Interp.To_zone.zone in
-  Pdg_parameters.debug ~level:2 "[pdg:annotation] need %a %s stmt %d@."
-    Locations.Zone.pretty zone
-    (if before then "before" else "after") stmt.sid;
-  let nodes, undef_loc =
-    Sets.find_location_nodes_at_stmt pdg stmt before zone
-  in
-  let undef_acc = match undef_acc, undef_loc with
-    | None, _ -> undef_loc
-    | _, None -> undef_acc
-    | Some z1, Some z2 -> Some (Locations.Zone.join z1 z2)
-  in
-  (nodes @ nodes_acc, undef_acc)
+type data_info = ((PdgTypes.Node.t * Locations.Zone.t option) list
+                   * Locations.Zone.t option) option
 
+type ctrl_info = PdgTypes.Node.t list
 
-let zone_info_nodes pdg (list_info, list_info_decl) =
-  let data_dpds = ([], None) in
-  let data_dpds = List.fold_left (add_info_nodes pdg) data_dpds list_info in
+type decl_info =  PdgTypes.Node.t list
+
+let zone_info_nodes pdg data_info =
+  let add_info_nodes pdg (nodes_acc, undef_acc) info =
+    let stmt = info.Db.Properties.Interp.To_zone.ki in
+    let before = info.Db.Properties.Interp.To_zone.before in
+    let zone = info.Db.Properties.Interp.To_zone.zone in
+      Pdg_parameters.debug ~level:2 "[pdg:annotation] need %a %s stmt %d@."
+        Locations.Zone.pretty zone
+        (if before then "before" else "after") stmt.sid;
+      let nodes, undef_loc =
+        Sets.find_location_nodes_at_stmt pdg stmt before zone
+      in
+      let undef_acc = match undef_acc, undef_loc with
+        | None, _ -> undef_loc
+        | _, None -> undef_acc
+        | Some z1, Some z2 -> Some (Locations.Zone.join z1 z2)
+      in
+        (nodes @ nodes_acc, undef_acc)
+  in match data_info with
+    | None -> None (* To_zone.xxx didn't manage to compute the zone *)
+    | Some data_info ->
+        let data_dpds = ([], None) in
+        let data_dpds =
+          List.fold_left (add_info_nodes pdg) data_dpds data_info
+        in Some data_dpds
+
+let get_decl_nodes pdg decl_info =
   let add_decl_nodes decl_var nodes_acc =
-    let node = !Db.Pdg.find_decl_var_node pdg decl_var in
+    let node = Sets.find_decl_var_node pdg decl_var in
       node::nodes_acc
   in
-  let decl_nodes = VarinfoSet.fold add_decl_nodes list_info_decl [] in
-    decl_nodes, data_dpds
+  Varinfo.Set.fold add_decl_nodes decl_info []
 
 let find_nodes_for_function_contract pdg f_interpret =
   let kf = M.get_pdg_kf pdg in
-  try
-    let _def = Kernel_function.get_definition kf in
-    let info = f_interpret kf in
-    let decl_nodes, data_dpds = zone_info_nodes pdg info in
-      decl_nodes, data_dpds
-  with Kernel_function.No_Definition -> (* TODO ! *)
-    raise (Extlib.NotYetImplemented
-             "[pdg:find_nodes_for_function_contract] on function declarations")
-    | Extlib.NotYetImplemented msg ->
-    raise (Extlib.NotYetImplemented
-             ("[pdg:find_nodes_for_function_contract] to_zone : "^msg))
+  let (data_info, decl_info) = f_interpret kf in
+  let data_dpds = zone_info_nodes pdg data_info in
+  let decl_nodes = get_decl_nodes pdg decl_info in
+    decl_nodes, data_dpds
 
 let find_fun_precond_nodes (pdg:PdgTypes.Pdg.t) p =
+  let named_p = { name = []; loc = Location.unknown; content = p } in
   let f_interpret kf =
     let f_ctx = !Db.Properties.Interp.To_zone.mk_ctx_func_contrat
                   ~state_opt:(Some true) kf in
-    let named_p = { name = []; loc = locUnknown; content = p } in
       !Db.Properties.Interp.To_zone.from_pred named_p f_ctx
   in find_nodes_for_function_contract pdg f_interpret
 
 let find_fun_postcond_nodes pdg p =
+  let named_p = { name = []; loc = Location.unknown; content = p } in
   let f_interpret kf =
     let f_ctx = !Db.Properties.Interp.To_zone.mk_ctx_func_contrat
                   ~state_opt:(Some false) kf in
-    let named_p = { name = []; loc = locUnknown; content = p } in
       !Db.Properties.Interp.To_zone.from_pred named_p f_ctx
-  in find_nodes_for_function_contract pdg f_interpret
+  in let nodes,deps = find_nodes_for_function_contract pdg f_interpret
+  in let nodes = 
+      (* find is \result is used in p, and if it is the case, 
+       * add the node [Sets.find_output_node pdg] 
+       * to the returned list of nodes.
+       *)
+      if !Db.Properties.Interp.to_result_from_pred named_p then
+	(Sets.find_output_node pdg)::nodes
+      else nodes
+  in nodes,deps
 
 let find_fun_variant_nodes pdg t =
   let f_interpret kf =
@@ -107,10 +118,11 @@ let find_code_annot_nodes pdg ~before stmt annot =
     try
       begin
         let kf = M.get_pdg_kf pdg in
-        let info, pragmas =
+        let (data_info, decl_info), pragmas =
           !Db.Properties.Interp.To_zone.from_stmt_annot annot ~before (stmt, kf)
         in
-        let decl_nodes, data_dpds = zone_info_nodes pdg info in
+        let data_dpds = zone_info_nodes pdg data_info in
+        let decl_nodes = get_decl_nodes pdg decl_info in
         let stmt_key = Key.stmt_key stmt in
         let stmt_node = match stmt_key with
           | Key.Stmt _ -> !Db.Pdg.find_stmt_node pdg stmt
@@ -123,8 +135,7 @@ let find_code_annot_nodes pdg ~before stmt annot =
         (* can safely ignore pragmas.ctrl
          * because we already have the ctrl dpds from the stmt node. *)
         let stmt_pragmas = pragmas.Db.Properties.Interp.To_zone.stmt in
-        let ctrl_dpds =
-          Cilutil.StmtSet.fold add_stmt_nodes stmt_pragmas ctrl_dpds in
+        let ctrl_dpds = Stmt.Set.fold add_stmt_nodes stmt_pragmas ctrl_dpds in
         if Pdg_parameters.debug_atleast 2 then begin
           let p fmt (n,z) = match z with
             | None -> PdgTypes.Node.pretty fmt n
@@ -132,18 +143,22 @@ let find_code_annot_nodes pdg ~before stmt annot =
                 PdgTypes.Node.pretty n Locations.Zone.pretty z
           in
           let pl fmt l = List.iter (fun n -> Format.fprintf fmt " %a" p n) l in
-          let data_nodes, data_undef = data_dpds in
           Pdg_parameters.debug " ctrl nodes = %a"
             PdgTypes.Node.pretty_list ctrl_dpds;
           Pdg_parameters.debug " decl nodes = %a"
             PdgTypes.Node.pretty_list decl_nodes;
-          Pdg_parameters.debug " data nodes = %a"
-            pl data_nodes;
-          match data_undef with
-	  | None -> ()
-          | Some data_undef ->
-              Pdg_parameters.debug " data undef = %a"
-		Locations.Zone.pretty data_undef;
+          match data_dpds with
+            | None ->
+                Pdg_parameters.debug " data nodes = None (failed to compute)"
+            | Some (data_nodes, data_undef) ->
+                begin
+                Pdg_parameters.debug " data nodes = %a" pl data_nodes;
+                match data_undef with
+                  | None -> ()
+                  | Some data_undef ->
+                      Pdg_parameters.debug " data undef = %a"
+                        Locations.Zone.pretty data_undef;
+                end
         end;
         ctrl_dpds, decl_nodes, data_dpds
       end
@@ -157,34 +172,8 @@ let find_code_annot_nodes pdg ~before stmt annot =
     raise PdgIndex.NotFound (* unreachable statement *)
   end
 
-
-       (*
-class annotations_visitor prj pdg = object (self)
-  inherit Visitor.generic_frama_c_visitor  (Cil.inplace_visit ()) prj
-
-  method vcode_annot annot =
-    let _ =
-      try
-        let stmt = Cilutil.valOf self#current_stmt in
-        let before = self#is_annot_before in
-          ignore (find_code_annot_nodes pdg before stmt annot)
-      with PdgIndex.NotFound -> (* unreachable *) ()
-    in Cil.SkipChildren
-end
-
-let add_annotations kf pdg =
-  if Pdg_parameters.debug 2 () then
-    Format.printf "[pdg] synchronize annotations for function %s@."
-      (Kernel_function.get_name kf);
-  match kf.Db_types.fundec with
-  | Db_types.Declaration _ -> ()
-  | Db_types.Definition(f, _) ->
-      let visit = new annotations_visitor (Project.current ()) pdg in
-        ignore (Cil.visitCilFunction (visit :> Cil.cilVisitor) f)
-        *)
-
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

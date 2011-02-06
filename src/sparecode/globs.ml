@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -28,11 +28,11 @@ open Cil
 
 let debug format = Sparecode_params.debug ~level:2 format
 
-let used_variables = Hashtbl.create 123
-let var_init = Hashtbl.create 123
-let used_typeinfo = Hashtbl.create 123
-let used_compinfo = Hashtbl.create 123
-let used_enuminfo = Hashtbl.create 123
+let used_variables = Hashtbl.create 257
+let var_init = Hashtbl.create 257
+let used_typeinfo = Hashtbl.create 257
+let used_compinfo = Hashtbl.create 257
+let used_enuminfo = Hashtbl.create 257
 
 let clear_tables () =
   Hashtbl.clear used_variables;
@@ -98,6 +98,7 @@ class collect_visitor = object (self)
         (match init.init with None -> ()
                             | Some i -> Hashtbl.add var_init v i);
         Cil.SkipChildren
+    | GVarDecl(_,v,_) when isFunctionType v.vtype -> DoChildren
     | _ -> Cil.SkipChildren
 
 end
@@ -140,15 +141,23 @@ class filter_visitor  prj = object
       | _ -> Cil.DoChildren
   end
 
-module Result = 
-  Computation.Hashtbl
-    (Datatype.String)
-    (Datatype.Project)
-    (struct 
-       let name = "Sparecode.Globs.Result" 
+module Result =
+  State_builder.Hashtbl
+    (Datatype.String.Hashtbl)
+    (Project.Datatype)
+    (struct
+       let name = "Sparecode without unused globals"
        let size = 7
-       let dependencies = [] 
+       let dependencies = [ Ast.self ] (* delayed, see below *)
+       let kind = `Correctness
      end)
+
+let () =
+  Cmdline.run_after_extended_stage
+    (fun () ->
+       State_dependency_graph.Static.add_codependencies
+	 ~onto:Result.self
+         [ !Db.Pdg.self; !Db.Outputs.self_external ])
 
 let rm_unused_decl =
   Result.memo
@@ -162,7 +171,7 @@ let rm_unused_decl =
        let visitor = new filter_visitor in
        let new_prj = File.create_project_from_visitor new_proj_name visitor in
        let ctx = Parameters.get_selection_context () in
-       Project.copy ~only:ctx new_prj;
+       Project.copy ~selection:ctx new_prj;
        new_prj)
 
 (*

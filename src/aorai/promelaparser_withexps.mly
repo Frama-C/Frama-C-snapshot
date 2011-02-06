@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    INSA  (Institut National des Sciences Appliquees)                   */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -49,6 +49,9 @@ let ident_count=ref 0
 let get_fresh_ident () =
   ident_count:=!ident_count+1;
   ("buchfreshident"^(string_of_int !ident_count))
+
+(*TODO: give a proper loc*)
+let new_exp =  Cil.new_exp ~loc:(Cil.CurrentLoc.get())
 
 %}
 
@@ -108,8 +111,10 @@ promela
 	    Data_for_aorai.setLtl_expressions observed_expressions;
 	    Logic_simplification.setLtl_expressions observed_expressions;
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans $3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
+	    let (transitions,pcondsl) = Logic_simplification.simplifyTrans $3 in
+	    let conds = Array.make (List.length transitions) [] in
+	    List.iter2 (fun t pc -> t.numt<-(!n); conds.(!n)<-pc; n:=!n+1) transitions pcondsl;
+	    Data_for_aorai.setCondOfParametrizedTransition conds;
 
 	    ((states , transitions),observed_vars,observed_funcs)
 	}
@@ -127,8 +132,10 @@ promela
 	    Data_for_aorai.setLtl_expressions observed_expressions;
 	    Logic_simplification.setLtl_expressions observed_expressions;
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans $3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
+	    let (transitions,pcondsl) = Logic_simplification.simplifyTrans $3 in
+	    let conds = Array.make (List.length transitions) [] in
+	    List.iter2 (fun t pc -> t.numt<-(!n); conds.(!n)<-pc; n:=!n+1) transitions pcondsl;
+	    Data_for_aorai.setCondOfParametrizedTransition conds;
 
 
 	    ((states , transitions),observed_vars,observed_funcs) }
@@ -311,27 +318,27 @@ guard
 logic_relation
 	: arith_relation PROMELA_EQ  arith_relation
             { (	Cil_types.Prel(Cil_types.Req, Logic_utils.expr_to_term ~cast:true $1 ,Logic_utils.expr_to_term  ~cast:true $3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Eq, $1 , $3 , Cil.intType)) )
+		new_exp (Cil_types.BinOp(Cil_types.Eq, $1 , $3 , Cil.intType)) )
 	    }
 	| arith_relation PROMELA_LT  arith_relation
             { (	Cil_types.Prel(Cil_types.Rlt, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Lt, $1 , $3 , Cil.intType)) )
+		new_exp (Cil_types.BinOp(Cil_types.Lt, $1 , $3 , Cil.intType)) )
 	    }
 	| arith_relation PROMELA_GT  arith_relation
             { (	Cil_types.Prel(Cil_types.Rgt, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		Cil.new_exp(Cil_types.BinOp(Cil_types.Gt, $1 , $3 , Cil.intType)) )
+		new_exp(Cil_types.BinOp(Cil_types.Gt, $1 , $3 , Cil.intType)) )
 	    }
 	| arith_relation PROMELA_LE  arith_relation
             { (	Cil_types.Prel(Cil_types.Rle, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Le, $1 , $3 , Cil.intType) ))
+		new_exp (Cil_types.BinOp(Cil_types.Le, $1 , $3 , Cil.intType) ))
 	    }
 	| arith_relation PROMELA_GE  arith_relation
             { (	Cil_types.Prel(Cil_types.Rge, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Ge, $1 , $3 , Cil.intType) ))
+		new_exp (Cil_types.BinOp(Cil_types.Ge, $1 , $3 , Cil.intType) ))
 	    }
 	| arith_relation PROMELA_NEQ arith_relation
             { (	Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Ne , $1 , $3 , Cil.intType) ))
+		new_exp (Cil_types.BinOp(Cil_types.Ne , $1 , $3 , Cil.intType) ))
 	    }
 	| arith_relation
 	    { (	Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1 ,
@@ -346,9 +353,9 @@ logic_relation
 /* returns a Cil_types.exp expression */
 arith_relation
         : arith_relation_mul PROMELA_PLUS arith_relation
-            { Cil.new_exp (Cil_types.BinOp(Cil_types.PlusA, $1 , $3 , Cil.intType)) }
+            { new_exp (Cil_types.BinOp(Cil_types.PlusA, $1 , $3 , Cil.intType)) }
 	| arith_relation_mul PROMELA_MINUS arith_relation
-            { Cil.new_exp (Cil_types.BinOp(Cil_types.MinusA, $1 , $3 , Cil.intType)) }
+            { new_exp (Cil_types.BinOp(Cil_types.MinusA, $1 , $3 , Cil.intType)) }
 	| arith_relation_mul
 	    { $1 }
   ;
@@ -356,11 +363,11 @@ arith_relation
 
 arith_relation_mul
 	: arith_relation_mul PROMELA_DIV access_or_const
-            { Cil.new_exp (Cil_types.BinOp(Cil_types.Div, $1 , $3 , Cil.intType)) }
+            { new_exp (Cil_types.BinOp(Cil_types.Div, $1 , $3 , Cil.intType)) }
 	| arith_relation_mul PROMELA_STAR access_or_const
-            { Cil.new_exp (Cil_types.BinOp(Cil_types.Mult, $1 , $3 , Cil.intType)) }
+            { new_exp (Cil_types.BinOp(Cil_types.Mult, $1 , $3 , Cil.intType)) }
 	| arith_relation_mul PROMELA_MODULO access_or_const
-            { Cil.new_exp (Cil_types.BinOp(Cil_types.Mod, $1 , $3 , Cil.intType)) }
+            { new_exp (Cil_types.BinOp(Cil_types.Mod, $1 , $3 , Cil.intType)) }
 	| access_or_const
 	    { $1 }
   ;
@@ -368,9 +375,11 @@ arith_relation_mul
 /* returns a Lval exp or a Const exp*/
 access_or_const
         : PROMELA_INT
-            { Cil.new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string $1,Cil_types.IInt, Some($1))))}
+            { new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string $1,Cil_types.IInt, Some($1))))}
+        | PROMELA_MINUS PROMELA_INT
+            { new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string ("-"^$2),Cil_types.IInt, Some("-"^$2))))}
 	| access
-            { Cil.new_exp (Cil_types.Lval($1)) }
+            { new_exp (Cil_types.Lval($1)) }
 	| PROMELA_LPAREN arith_relation PROMELA_RPAREN
 	    { $2 }
   ;

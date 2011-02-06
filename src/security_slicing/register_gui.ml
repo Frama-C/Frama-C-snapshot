@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,11 +26,12 @@ open Db
 open Cil_types
 
 module Make_HighlighterState(Info:sig val name: string end) =
-  Computation.Ref
-    (struct include Cil_datatype.StmtList let default () = [] end)
+  State_builder.List_ref
+    (Cil_datatype.Stmt)
     (struct
        let name = Info.name
        let dependencies = [ Ast.self ]
+       let kind = `Internal
      end)
 
 module ForwardHighlighterState =
@@ -57,10 +58,7 @@ let security_highlighter buffer loc ~start ~stop =
       if List.exists (fun k -> k.sid=s.sid) d then begin
         let tag = make_tag buffer"direct" [`BACKGROUND  "green" ] in
         apply_tag buffer tag start stop end
-  | PVDecl _ | PTermLval _ | PLval _ | PCodeAnnot _ | PGlobal _
-  | PBehavior _ | PPredicate _ | PAssigns _
-  | PPost_cond _| PAssumes _| PDisjoint_behaviors _| PComplete_behaviors _
-  | PTerminates _| PVariant _| PRequires _ -> ()
+  | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
 
 let security_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
@@ -78,8 +76,7 @@ let security_selector
 		DirectHighlighterState.set
 		  (Components.get_direct_component ki);
 		main_ui#rehighlight ()))
-    | _ ->
-	()
+    | _ -> ()
 
 let main main_ui =
   main_ui#register_source_selector security_selector;
@@ -89,6 +86,6 @@ let () = Design.register_extension main
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.. -j"
+  compile-command: "LC_ALL=C make -C ../.."
   End:
 *)

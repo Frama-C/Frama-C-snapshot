@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    INSA  (Institut National des Sciences Appliquees)                   */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -75,7 +75,7 @@ promela
 	      ) observed_states []
 	    in 
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans $3 in
+	    let (transitions,_) = Logic_simplification.simplifyTrans $3 in
 	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
 	    ((states , transitions),observed_vars,observed_funcs)
@@ -92,7 +92,7 @@ promela
 	      ) observed_states []
 	    in
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans $3 in
+	    let (transitions,_) = Logic_simplification.simplifyTrans $3 in
 	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
 

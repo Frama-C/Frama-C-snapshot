@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,48 +21,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: bool3.ml,v 1.2 2008-10-02 13:33:29 uid588 Exp $ *)
+type t =
+  | True
+  | False
+  | Undefined
 
+let bool3and c1 c2 = match c1, c2 with
+  | True, True -> True
 
-type bool3 =
-    | True
-    | False
-    | Undefined
+  | _, False
+  | False, _ -> False
 
+  | Undefined, _
+  | _, Undefined -> Undefined
 
-let bool3and c1 c2 =
-  match (c1,c2) with
-    | (True,True) -> True
+let bool3or c1 c2 = match c1, c2 with
+  | True, _
+  | _, True -> True
 
-    | (_,False)
-    | (False,_) -> False
+  | _, Undefined
+  | Undefined, _ -> Undefined
 
-    | (Undefined,_)
-    | (_,Undefined)
-      -> Undefined
+  | False, False -> False
 
-let bool3or c1 c2 =
-  match (c1,c2) with
-    | (True,_)
-    | (_,True) -> True
-
-    | (_,Undefined)
-    | (Undefined,_) -> Undefined
-
-    | (False,False) -> False
-
-let bool3not c =
-  match c with
-    | True -> False
-    | False -> True
-    | Undefined -> Undefined
-
-
-
-
+let bool3not c = match c with
+  | True -> False
+  | False -> True
+  | Undefined -> Undefined
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

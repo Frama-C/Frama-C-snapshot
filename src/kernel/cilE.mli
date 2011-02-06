@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,13 +32,15 @@ val log_once : ('a, Format.formatter, unit, unit) format4 -> 'a
 
 (** Restore correct gotos after a statement substitution *)
 val update_gotos :
-  Cil_types.stmt Cilutil.StmtMap.t -> Cil_types.block -> Cil_types.block
+  Cil_types.stmt Cil_datatype.Stmt.Map.t -> Cil_types.block ->
+  Cil_types.block
 
 type syntactic_context =
   | SyNone
   | SyBinOp of Cil_types.binop * Cil_types.exp * Cil_types.exp
   | SyUnOp of  Cil_types.exp
   | SyMem of  Cil_types.lval
+  | SyMemLogic of Cil_types.term
   | SySep of Cil_types.exp * Cil_types.exp
       (** assert that two locations must be separated *)
 
@@ -52,7 +54,7 @@ val get_syntactic_context : unit -> Cil_types.kinstr*syntactic_context
 type alarm_behavior =
   | Aignore
       (** pretend that the problematic values do not happen *)
-  | Alog 
+  | Alog
       (** log the alarm using the global variable that has been set
 	  with set_syntactic_context, and continue,
 	  pretending that the problematic values do not happen *)
@@ -60,7 +62,7 @@ type alarm_behavior =
       (** call function -- in a future version, more information will be
 	  passed to the function *)
 
-type warn_mode = 
+type warn_mode =
     { unspecified: alarm_behavior;
       others: alarm_behavior;
       imprecision_tracing: alarm_behavior }
@@ -88,7 +90,7 @@ val warn_mem_read : warn_mode -> unit
 val warn_mem_write : warn_mode -> unit
 val warn_signed_overflow :    warn_mode ->
            Cil_types.exp ->
-           Int64.t -> Int64.t -> unit
+           Int64.t option -> Int64.t option -> unit
 val warn_index : warn_mode -> string -> unit
 val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit

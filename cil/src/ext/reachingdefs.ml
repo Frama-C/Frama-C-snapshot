@@ -81,7 +81,7 @@ module IOS =
     type t = int option
     let compare io1 io2 =
       match io1, io2 with
-	Some i1, Some i2 -> Pervasives.compare i1 i2
+	Some i1, Some i2 -> Datatype.Int.compare i1 i2
       | Some _i1, None -> 1
       | None, Some _i2 -> -1
       | None, None -> 0
@@ -382,7 +382,7 @@ module ReachingDef =
       end
 
 
-    let doGuard _ _condition _ = DF.GDefault
+    let doGuard _ _condition _ = DF.GDefault, DF.GDefault
 
     let filterStmt _stm = true
 
@@ -479,7 +479,7 @@ let clearMemos () =
 (* Cil.fundec -> unit *)
 let computeRDs fdec =
   try
-    if compare fdec.svar.vname (!debug_fn) = 0 then
+    if String.compare fdec.svar.vname (!debug_fn) = 0 then
       (debug := true;
        Cilmsg.debug "%s =\n%a\n" (!debug_fn) d_block fdec.sbody);
     let bdy = fdec.sbody in
@@ -497,10 +497,10 @@ let computeRDs fdec =
     ignore(ReachingDef.computeFirstPredecessor fst_stm ((), 0, fst_iosh));
     if !debug then Cilmsg.debug "computeRDs: fst_stm.sid=%d\n" fst_stm.sid ;
     RD.compute [fst_stm];
-    if compare fdec.svar.vname (!debug_fn) = 0 then
+    if String.compare fdec.svar.vname (!debug_fn) = 0 then
       debug := false
     (* now ReachingDef.stmtStartData has the reaching def data in it *)
-  with Failure "hd" -> if compare fdec.svar.vname (!debug_fn) = 0 then
+  with Failure "hd" -> if String.compare fdec.svar.vname (!debug_fn) = 0 then
     debug := false
 
 (* return the definitions that reach the statement

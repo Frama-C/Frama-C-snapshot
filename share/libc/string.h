@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -41,10 +41,9 @@ extern int memcmp (const void *s1, const void *s2, size_t n);
 
 /*@ requires \valid_range((char*)s,0,n - 1);
   @ assigns \nothing;
-  @ ensures \result == s;
-  @ ensures \base_addr((char*)\result) == \base_addr((char*)s);
   @ behavior found:
   @   assumes memchr((char*)s,c,n);
+  @   ensures \base_addr((char*)\result) == \base_addr((char*)s);
   @   ensures *(char*)\result == c;
   @ behavior not_found:
   @   assumes ! memchr((char*)s,c,n);

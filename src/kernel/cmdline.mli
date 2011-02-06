@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,9 +29,8 @@
 
 type stage = Early | Extending | Extended | Exiting | Loading | Configuring
     (** The different stages, from the first to be executed to the last one.
-	@plugin development guide 
-	@since Beryllium-20090601-beta1
-    *)
+	@plugin development guide
+	@since Beryllium-20090601-beta1 *)
 
 val run_after_early_stage: (unit -> unit) -> unit
   (** Register an action to be executed at the end of the early stage.
@@ -81,6 +80,12 @@ val run_after_configuring_stage: (unit -> unit) -> unit
   (** Register an action to be executed at the end of the configuring stage.
       @plugin development guide
       @since Beryllium-20090601-beta1 *)
+
+val run_after_setting_files: (string list -> unit) -> unit
+(** Register an action to be executed just after setting the files put on the
+    command line. The argument of the function is the list of files.
+    @plugin development guide
+    @since Carbon-20101201 *)
 
 val protect: exn -> string
   (** Messages for exceptions raised by Frama-C
@@ -132,11 +137,18 @@ val bail_out: unit -> 'a
 
     These functions should not be used by a standard plug-in developer. *)
 
-val parse_and_boot: (unit -> (unit -> unit) -> unit) -> (unit -> unit) -> unit
-  (** Not for casual users. [parse_and_boot get_toplevel play] performs the
-      parsing of the command line, then play the analysis with the good
-      toplevel provided by [get_toplevel].
-      @since Beryllium-20090901 *)
+val parse_and_boot:
+  (string option -> (unit -> unit) -> unit) ->
+  (unit -> (unit -> unit) -> unit) ->
+  (unit -> unit) -> unit
+(** Not for casual users.
+    [parse_and_boot on_from_name get_toplevel play] performs the
+    parsing of the command line, then play the analysis with the good
+    toplevel provided by [get_toplevel]. [on_from_name] is [Project.on] on the
+    project corresponding to the given (unique) name (or the default project if
+    [None]).
+    @since Beryllium-20090901
+    @modify Carbon-20101201 *)
 
 val nb_given_options: unit -> int
   (** Number of options provided by the user on the command line.
@@ -155,8 +167,8 @@ val plugin_help: string -> exit
   (** Display the help of the given plug-in (given by its shortname).
       @since Beryllium-20090601-beta1 *)
 
-val add_plugin: ?short:string -> string -> descr:string -> unit
-  (** [add_plugin ~short name ~descr] adds a new plug-in recognized by the
+val add_plugin: ?short:string -> string -> help:string -> unit
+  (** [add_plugin ~short name ~help] adds a new plug-in recognized by the
       command line of Frama-C. If the shortname is not specified, then the name
       is used as the shortname. By convention, if the name and the shortname
       are equal to "", then the register "plug-in" is the Frama-C kernel
@@ -167,8 +179,12 @@ val add_plugin: ?short:string -> string -> descr:string -> unit
 module Group : sig
   type t (** @since Beryllium-20090901 *)
   val default: t (** @since Beryllium-20090901 *)
-  val add: plugin:string -> string -> t
-    (** Add a new group of options to the given plugin
+  val add: ?memo:bool -> plugin:string -> string -> t * bool
+    (** Add a new group of options to the given plugin.
+        If [memo] is [true], just return the already registered group if any.
+        If [memo] is [false], cannot add twice a group with the same name.
+        @return the group corresponding to the given name. Also return [true]
+        iff the group has just been created.
 	@since Beryllium-20090901 *)
   val name: t -> string
     (** @since Beryllium-20090901 *)
@@ -182,24 +198,51 @@ type option_setting =
   | String_list of (string list -> unit)
 
 val add_option:
-  ?prefix:bool ->
   string ->
   plugin:string ->
   group:Group.t ->
   stage ->
   ?argname:string ->
-  descr:string option ->
-  ext_descr:(unit,Format.formatter,unit) format ->
+  help:string option ->
+  ext_help:(unit,Format.formatter,unit) format ->
   option_setting ->
   unit
-    (** [add_option ~prefix name ~plugin stage ~argname ~descr setting]
-	adds a new option recognized by the command line of Frama-C.
-	The prefix is unused for now. [plugin] is the shortname of the plug-in.
+    (** [add_option name ~plugin stage ~argname ~help setting]
+	adds a new option of the given [name] recognized by the command line of
+	Frama-C. If the [name] is the empty string, nothing is done.
+	[plugin] is the shortname of the plug-in.
 	[argname] is the name of the argument which can be used of the
-	description [descr]. Both of them are used by the help of the
-	registered option. If [descr] is [None], then the option is not shown
+	helpiption [help]. Both of them are used by the help of the
+	registered option. If [help] is [None], then the option is not shown
 	in the help.
-	@since Beryllium-20090601-beta1 *)
+	@since Beryllium-20090601-beta1
+	@modify Carbon-20101201 *)
+
+val add_option_without_action:
+  string ->
+  plugin:string ->
+  group:Group.t ->
+  ?argname:string ->
+  help:string option ->
+  ext_help:(unit,Format.formatter,unit) format ->
+  unit ->
+  unit
+(** Equivalent to [add_option] without option setting.
+    Thus do not add the option to any stage of the command line...
+    Thus should not be used by casual users ;-).
+    @since Carbon-20101201 *)
+
+val add_aliases:
+  string ->
+  plugin:string ->
+  group:Group.t ->
+  stage ->
+  string list ->
+  unit
+(** [add_aliases orig plugin group aliases] adds a list of aliases to the given
+    option name [orig].
+    @Invalid_argument if an alias name is the empty string
+    @since Carbon-20101202+dev *)
 
 (** {2 Special parameters}
 

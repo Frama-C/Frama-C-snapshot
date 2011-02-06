@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -83,13 +83,13 @@ object(self)
       let text = msg ^ string_of_int n in
       ignore (GMisc.label ~text ~packing:a_vbox#add ())
     in
-    add_label "#Lines of source code: " slocs;
-    add_label "#Lines of if statements: " ifs;
-    add_label "#Lines of assignments: " assigns;
-    add_label "#Lines of loops: " loops;
-    add_label "#Lines of function calls: " calls;
-    add_label "#Lines of gotos: " gotos;
-    add_label "#Lines of memory accesses: " mems;
+    add_label "Lines of source code: " slocs;
+    add_label "# of if statements: " ifs;
+    add_label "# of assignments: " assigns;
+    add_label "# of loops: " loops;
+    add_label "# of function calls: " calls;
+    add_label "# of gotos: " gotos;
+    add_label "# of indirect memory accesses: " mems;
     add_label "Cyclomatic complexity: " cyclos;
     let close_button = GButton.button ~stock:`OK ~packing:a_vbox#add () in
     close_button#set_border_width 10;
@@ -100,27 +100,28 @@ object(self)
   method display_localizable localizable () =
     begin
       match localizable with
-      | PVDecl (Some kf,_) -> (* Process only the function selected *)
-	  begin
-	    (* Get the global of this function *)
-	    fct_to_check <- (get_global kf);
-	    self#do_cyclo main_ui;
-	  end
-      | _  -> ()
+	| PVDecl (Some kf,_) -> (* Process only the function selected *)
+	    begin
+	      (* Get the global of this function *)
+	      fct_to_check <- (get_global kf);
+	      self#do_cyclo main_ui;
+	    end
+	| _  -> ()
     end
 
   method cyclo_selector
     (popup_factory:GMenu.menu GMenu.factory) _main_ui ~button localizable =
     Metrics_parameters.debug "cyclo_selector";
     if button = 3 then
-      let callback () =
-        Metrics_parameters.debug "cyclo_selector - callback";
-        self#display_localizable localizable  ()
-      in
-      ignore (popup_factory#add_item "Metrics" ~callback:callback)
-
+      match localizable with
+	| PVDecl (Some _, _) ->
+	    let callback () =
+              Metrics_parameters.debug "cyclo_selector - callback";
+              self#display_localizable localizable  ()
+	    in
+	    ignore (popup_factory#add_item "Metrics" ~callback:callback)
+	| _ -> ()
   initializer
-    Metrics_parameters.debug "Cyclo init";
     main_ui#register_source_selector self#cyclo_selector
 
 end
@@ -223,8 +224,10 @@ let make_panel _main_ui =
       goto_label#set_text (string_of_int gotos);
       assign_label#set_text (string_of_int assigns);
       mem_label#set_text (string_of_int mem_access);
-      func_label#set_text (string_of_int (Cilutil.VarinfoHashtbl.length fs));
-      proto_label#set_text (string_of_int(Cilutil.VarinfoHashtbl.length fws));
+      func_label#set_text
+	(string_of_int (Cil_datatype.Varinfo.Hashtbl.length fs));
+      proto_label#set_text
+	(string_of_int(Cil_datatype.Varinfo.Hashtbl.length fws));
       cyclo_label#set_text (string_of_int cycl)
     with Not_found ->
       update_button#misc#set_sensitive true ;

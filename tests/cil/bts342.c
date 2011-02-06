@@ -1,3 +1,7 @@
+/* run.config
+   DONTRUN: invalid C file
+*/
+
 typedef struct { int i1; int i2; } s;
 
 /*@ requires

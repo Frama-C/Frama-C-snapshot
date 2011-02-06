@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,10 @@
 
 open Cil
 open Cil_types
+module FC_file = File
+open Cil_datatype
 open Db
+
 exception Cannot_expand
 
 (** This visitor also performs a deep copy. *)
@@ -31,9 +34,9 @@ class propagate project fnames ~cast_intro = object(self)
 
   val mutable operate = false
 
-  val mutable known_globals = Cilutil.VarinfoSet.empty
+  val mutable known_globals = Varinfo.Set.empty
 
-  val mutable must_add_decl = Cilutil.VarinfoSet.empty
+  val mutable must_add_decl = Varinfo.Set.empty
 
   method private on_current_stmt nothing f =
     match self#current_stmt with
@@ -44,7 +47,8 @@ class propagate project fnames ~cast_intro = object(self)
   method vfunc fundec =
     let name = fundec.svar.vname in
     operate <-
-      Cilutil.StringSet.is_empty fnames || Cilutil.StringSet.mem name fnames;
+      Datatype.String.Set.is_empty fnames
+    || Datatype.String.Set.mem name fnames;
     if operate then
       PropagationParameters.feedback
 	~level:2
@@ -100,12 +104,12 @@ class propagate project fnames ~cast_intro = object(self)
              match k with
                | Base.Var (vi,_) | Base.Initialized_Var (vi,_)
 		     when not vi.vlogic && can_replace vi ->
-                   if vi.vglob && not (Cilutil.VarinfoSet.mem vi known_globals)
+                   if vi.vglob && not (Varinfo.Set.mem vi known_globals)
                    then begin
                      let vi = Visitor.visitFramacVarDecl
                        (self:>Visitor.frama_c_visitor) vi
                      in
-                     must_add_decl <- Cilutil.VarinfoSet.add vi must_add_decl;
+                     must_add_decl <- Varinfo.Set.add vi must_add_decl;
                    end;
                    (* This is a pointer coming for C code *)
                    PropagationParameters.debug
@@ -113,7 +117,7 @@ class propagate project fnames ~cast_intro = object(self)
                    !Ast_printer.d_exp expr
                    Base.pretty k
                    Ival.pretty m;
-                 let base =  mkAddrOrStartOf (var vi) in
+                 let base =  mkAddrOrStartOf ~loc:expr.eloc (var vi) in
                  let offset = Ival.project_int m in (* these are bytes *)
                  let shifted =
                    if Abstract_interp.Int.is_zero offset then base
@@ -173,7 +177,9 @@ class propagate project fnames ~cast_intro = object(self)
                          (* PropagationParameters.debug "XXXXXXXX v=%a v1=%a"
 			    Abstract_interp.Int.pretty v
 			    Abstract_interp.Int.pretty v1; *)
-                         kinteger64 IULongLong (Abstract_interp.Int.to_int64 v1)
+                         kinteger64 ~loc:expr.eloc
+                           IULongLong
+                           (Abstract_interp.Int.to_int64 v1)
                        with Failure _ -> raise Cannot_expand
                      with Ival.Not_Singleton_Int->
 		       (* TODO: floats *)
@@ -193,13 +199,13 @@ class propagate project fnames ~cast_intro = object(self)
          with Not_found | Cannot_expand -> DoChildren)
 
   method vvdec v =
-    if v.vglob then known_globals <- Cilutil.VarinfoSet.add v known_globals;
+    if v.vglob then known_globals <- Varinfo.Set.add v known_globals;
     DoChildren
 
   method vglob_aux g =
-    must_add_decl <- Cilutil.VarinfoSet.empty;
+    must_add_decl <- Varinfo.Set.empty;
     let add_decl l =
-      Cilutil.VarinfoSet.fold
+      Varinfo.Set.fold
         (fun x l ->
            PropagationParameters.feedback ~level:2
              "Adding declaration of global %a" !Ast_printer.d_var x;
@@ -215,19 +221,20 @@ class propagate project fnames ~cast_intro = object(self)
 
 end
 
+module Result_pair = Datatype.Pair(Datatype.String.Set)(Datatype.Bool)
 module Result =
-  Computation.Hashtbl
-    (struct
-       type t = Cilutil.StringSet.t * bool
-       let hash = Hashtbl.hash
-       let equal (s1,b1) (s2,b2) = b1 = b2 && Cilutil.StringSet.equal s1 s2
-     end)
-    (Datatype.Project)
+  State_builder.Hashtbl
+    (Datatype.Hashtbl
+       (Hashtbl.Make(Result_pair))
+       (Result_pair)
+       (struct let module_name = "Semantical constant propagation" end))
+    (Project.Datatype)
     (struct
        let size = 7
-       let name = "Constant_Propagation"
-       let dependencies = [ Value.self;
-			    PropagationParameters.CastIntro.self ]
+       let name = "Semantical constant propagation"
+       let dependencies =
+	 [ Value.self; PropagationParameters.CastIntro.self ]
+       let kind = `Correctness
      end)
 
 let journalized_get =
@@ -236,19 +243,22 @@ let journalized_get =
       (fun _ ->
 	 !Value.compute ();
 	 let fresh_project =
-	   File.create_project_from_visitor
+	   FC_file.create_project_from_visitor
 	     "propagated"
 	     (fun prj -> new propagate prj fnames cast_intro)
 	 in
 	 let ctx = Parameters.get_selection_context () in
-	 Project.copy ~only:ctx fresh_project;
+	 Project.copy ~selection:ctx fresh_project;
 	 fresh_project)
       (fnames, cast_intro)
   in
   Journal.register
     "!Db.Constant_Propagation.get"
-    (Type.func2 Kernel_type.string_set
-       ~label2:("cast_intro",None) Type.bool Project.ty)
+    (Datatype.func2
+       Datatype.String.Set.ty
+       ~label2:("cast_intro",None)
+       Datatype.bool
+       Project.ty)
     get
 
 (* add labels *)
@@ -262,13 +272,13 @@ let compute () =
   let cast_intro = PropagationParameters.CastIntro.get () in
   let propagated = !Db.Constant_Propagation.get fnames cast_intro in
   if PropagationParameters.SemanticConstFolding.get () then
-    File.pretty ~prj:propagated ();
+    FC_file.pretty_ast ~prj:propagated ();
   PropagationParameters.feedback  "constant propagation done"
 
 let main () =
   let force_semantic_folding =
     PropagationParameters.SemanticConstFolding.get ()
-    || not (Cilutil.StringSet.is_empty
+    || not (Datatype.String.Set.is_empty
 	      (PropagationParameters.SemanticConstFold.get ()))
   in
   (* must called the function stored in [Db] for journalisation purpose *)

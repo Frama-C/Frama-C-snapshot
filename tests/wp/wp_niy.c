@@ -1,6 +1,3 @@
-/* run.config
-   DONTRUN: don't run a test which raises an exception
-*/
 /*@ 
  requires n >= 0;
  terminates \true;
@@ -51,8 +48,8 @@ int abrupt (int x) {
     while (x > 0) {
       /*@ breaks x % 11 == 0 && x == \old (x );
         @ continues (x +1) % 11 != 0 && x % 7 == 0 && x == \old (x ) -1;
-        // @ returns ( \result +2) % 11 != 0 && ( \result +1) % 7 != 0
-        // @           && \result % 5 == 0 && \result == \old (x ) -2;
+        @ returns ( \result +2) % 11 != 0 && ( \result +1) % 7 != 0
+        @           && \result % 5 == 0 && \result == \old (x ) -2;
         @ ensures (x +3) % 11 != 0 && ( x +2) % 7 != 0 && (x +1) % 5 != 0
         @           && x == \old (x ) -3;
         @ */

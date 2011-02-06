@@ -36,7 +36,7 @@
 
 (* caml_unmarshal by Ineffable Casters *)
 
-(* Version 3.11.1.8 *)
+(* Version 3.11.2.0 *)
 
 (** This module provides a function [input_val], similar in
 functionality to the standard library function [Marshal.from_channel].
@@ -139,6 +139,7 @@ function, but using this one is more efficient. *)
 
 (** Convenience functions for describing transformations. *)
 
+val t_unit : t;;
 val t_int : t;;
 val t_string : t;;
 val t_float : t;;
@@ -152,6 +153,9 @@ val t_tuple : t array -> t;;
 val t_list : t -> t;;
 val t_ref : t -> t;;
 val t_option : t -> t;;
+val t_array : t -> t;;
+
+val t_queue: t -> t;;
 
 val t_hashtbl_unchangedhashs : t -> t -> t
 val t_hashtbl_changedhashs :
@@ -178,30 +182,3 @@ val read32u : in_channel -> int;;
 val read64u : in_channel -> int;;
 val readblock : in_channel -> Obj.t -> int -> int -> unit;;
 val readblock_rev : in_channel -> Obj.t -> int -> int -> unit;;
-
-
-
-(** Pre-specialized functors for Ocaml sets and maps *)
-
-module type ORDEREDDESCR = sig
-  val descr: t
-  include Set.OrderedType
-end
-
-module type SetDescr = sig
-  val descr: t
-  include Set.S
-end
-
-module SetWithDescr(Data: ORDEREDDESCR) : SetDescr
-  with type elt = Data.t
-  and type t = Set.Make(Data).t
-
-module type MapDescr = sig
-  val descr: t -> t
-  include Map.S
-end
-
-module MapWithDescr(Data: ORDEREDDESCR) : MapDescr
-  with type key = Data.t
-  and type 'a t = 'a Map.Make(Data).t

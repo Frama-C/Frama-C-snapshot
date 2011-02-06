@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,30 +20,69 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.11 2008-11-06 13:03:28 uid568 Exp $ *)
+module H = Hashtbl
 
 open Db_types
 open Db
 open Options
+open Cil_types
 
 module SGraph =
   Graph.Imperative.Digraph.ConcreteLabeled
-    (Kernel_function)
-    (struct include Cilutil.StmtComparable let default = Cil.dummyStmt end)
+    (struct
+       type t =  Kernel_function.t
+         (* Basic comparison of kernel function compares on vid.
+            As this has an impact to results shown to the user, it's better
+            to use an ordering which depends only on the input itself, not
+            how the numbering of varinfo is done internally
+          *)
+       let equal = Kernel_function.equal
+       let hash kf = H.hash (Kernel_function.get_name kf)
+       let compare kf1 kf2 =
+         if kf1 == kf2 then 0
+         else
+           let res =
+             String.compare
+               (Kernel_function.get_name kf1)
+               (Kernel_function.get_name kf2)
+           in
+           if res <> 0 then res
+           else
+             String.compare
+               (Kernel_function.get_vi kf1).vname
+               (Kernel_function.get_vi kf2).vname
+     end)
+    (struct include Cil_datatype.Stmt let default = Cil.dummyStmt end)
 
-module SGState = 
-  Computation.OptionRef
-    (Project.Datatype.Imperative(struct include SGraph let name="sgraph" end))
-    (struct let name = "SGState" let dependencies = [Value.self] end)
+module SGState =
+  State_builder.Option_ref
+    (Datatype.Make
+       (struct
+	 (* [JS 2010/09/27] do better? *)
+	 include Datatype.Serializable_undefined
+	 type t = SGraph.t
+	 let name = "SGraph"
+	 let reprs = [ SGraph.create () ]
+	 let mem_project = Datatype.never_any_project
+	end))
+    (struct
+      let name = "SGState"
+      let dependencies = [ Value.self ]
+      let kind = `Correctness
+     end)
 
 module SCQueue =
-  Computation.Queue
-    (Kernel_function.Datatype)
-    (struct let name = "SCQueue" let dependencies = [ SGState.self ] end)
+  State_builder.Queue
+    (Kernel_function)
+    (struct
+      let name = "SCQueue"
+      let dependencies = [ SGState.self ]
+      let kind = `Internal
+     end)
 
 let callgraph () =
   SGState.memo
-    (fun () -> 
+    (fun () ->
        let g = SGraph.create () in
        !Value.compute ();
        Globals.Functions.iter
@@ -56,7 +95,7 @@ let callgraph () =
 	           call_sites)
 	      (!Value.callers kf));
        g)
-    
+
 module Service =
   Service_graph.Make
     (struct
@@ -67,11 +106,15 @@ module Service =
          let id v = (Kernel_function.get_vi v).Cil_types.vid
          let name = Kernel_function.get_name
          let attributes v =
-           [ `Style 
+           [ `Style
                (if Kernel_function.is_definition v then `Bold
                 else `Dotted) ]
 	 let equal = Kernel_function.equal
 	 let hash = Kernel_function.hash
+	 let entry_point () =
+	   fst
+	     (try Globals.entry_point ()
+	      with Globals.No_such_entry_point _ -> assert false)
        end
        let iter_vertex = SGraph.iter_vertex
        let iter_succ = SGraph.iter_succ
@@ -80,34 +123,35 @@ module Service =
        let in_degree = SGraph.in_degree
      end)
 
-module ServiceState = 
-  Computation.OptionRef
+module ServiceState =
+  State_builder.Option_ref
     (Service.CallG.Datatype)
-    (struct 
+    (struct
        let name = "SemanticsServicestate"
-       let dependencies = 
+       let dependencies =
          [ SGState.self; Parameters.MainFunction.self; InitFunc.self ]
+       let kind = `Internal
      end)
 
 let get_init_funcs () =
   let entry_point_name = Parameters.MainFunction.get () in
-  let init_funcs = 
+  let init_funcs =
     (* entry point is always a root *)
-    Cilutil.StringSet.add entry_point_name (InitFunc.get ()) 
+    Datatype.String.Set.add entry_point_name (InitFunc.get ())
   in
   (* Add the callees of entry point as roots *)
   let callees =
     let kf = fst (Globals.entry_point ()) in
-    !Db.Users.get kf 
+    !Db.Users.get kf
   in
-  Kernel_function.Set.fold
-    (fun kf acc -> Cilutil.StringSet.add (Kernel_function.get_name kf) acc)
+  Kernel_function.Hptset.fold
+    (fun kf acc -> Datatype.String.Set.add (Kernel_function.get_name kf) acc)
     callees
     init_funcs
 
-let compute () = 
+let compute () =
   feedback "beginning analysis";
-  let cg = 
+  let cg =
     Service.compute
       (callgraph ())
       (get_init_funcs ())
@@ -130,15 +174,15 @@ let dump () =
     error
       "error while dumping the semantic callgraph: %s"
       (Printexc.to_string e)
-    
-let () = 
+
+let () =
   Db.register_guarded_compute
     "Semantic_Callgraph.dump"
     (fun () -> Filename.get () = "" || ServiceState.is_computed ())
     Db.Semantic_Callgraph.dump
     dump
 
-let () = 
+let () =
   (* Do not directly use [dump]: function in [Db] is guarded and apply only if
      required. *)
   Db.Main.extend (fun _fmt -> !Db.Semantic_Callgraph.dump ())
@@ -150,12 +194,36 @@ let topologically_iter_on_functions =
     if SCQueue.is_empty () then T.iter SCQueue.add (callgraph ());
     SCQueue.iter f
 
+let iter_on_callers f kf =
+  let cg = callgraph () in
+  let module V = Hashtbl.Make(Kernel_function) in
+  let visited = V.create 17 in
+  let rec aux kf =
+    if SGraph.mem_vertex cg kf then
+      SGraph.iter_succ
+	(fun caller ->
+	  if not (V.mem visited caller) then begin
+	    f caller;
+	    V.add visited caller ();
+	    aux caller
+	  end)
+	cg
+	kf
+    else
+      Options.warning ~once:true
+	"Function %s not registered in semantic callgraph. Skipped."
+	(Kernel_function.get_name kf)
+  in
+  aux kf
+
 let () =
   Db.Semantic_Callgraph.topologically_iter_on_functions :=
-    topologically_iter_on_functions
+    topologically_iter_on_functions;
+  Db.Semantic_Callgraph.iter_on_callers := iter_on_callers
+
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

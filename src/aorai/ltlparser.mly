@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    INSA  (Institut National des Sciences Appliquees)                   */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -36,6 +36,7 @@ let get_fresh_ident () =
   ident_count:=!ident_count+1;
   ("buchfreshident"^(string_of_int !ident_count))
 
+let new_exp =  new_exp ~loc:(CurrentLoc.get())(*TODO: give a proper loc*)
 %}
 
 
@@ -196,6 +197,8 @@ arith_relation_mul
 access_or_const
         : LTL_INT
             { new_exp (Const(CInt64(Int64.of_string $1,IInt, Some($1))))}
+        | LTL_MINUS LTL_INT
+            { new_exp (Const(CInt64(Int64.of_string ("-"^$2),IInt, Some("-"^$2))))}
 	| access
             { new_exp (Lval($1)) }
 	| LTL_LPAREN arith_relation LTL_RPAREN

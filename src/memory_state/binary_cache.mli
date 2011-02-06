@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module MemoryFootprint : Computation.REF_OUTPUT with type data = int
+module MemoryFootprint : State_builder.Ref with type data = int
 
 module type Cacheable =
 sig
@@ -36,15 +36,12 @@ sig
   val sentinel : t
 end
 
-module Bool_Result : Result with type t = bool
-
 module Make_Symetric :
   functor (H : Cacheable) -> functor (R : Result) ->
     sig
       val clear : unit -> unit
       val merge : (H.t -> H.t -> R.t) -> H.t -> H.t -> R.t
     end
-
 
 module Make_Asymetric :
   functor (H : Cacheable) -> functor (R : Result) ->
@@ -53,11 +50,22 @@ module Make_Asymetric :
       val merge : (unit -> R.t) -> H.t -> H.t -> R.t
     end
 
-module Make_Het :
-functor (H1 : Cacheable) -> 
-  functor (H2 : Cacheable) -> 
-    functor (R : Result) ->
-  sig
-    val clear : unit -> unit
-    val merge : (unit -> R.t) -> H1.t -> H2.t -> R.t
-  end
+module Make_Binary :
+  functor (H0 : Cacheable) -> functor (H1 : Cacheable) ->
+    sig
+      val clear : unit -> unit
+      val merge : (unit -> bool) -> H0.t -> H1.t -> bool
+    end
+
+module Make_Het1_1_4 :
+functor (H0 : Cacheable) ->
+  functor (H1 : Cacheable) ->
+    functor (H2 : Cacheable) ->
+      functor (R : Result) ->
+sig
+  val clear : unit -> unit
+  val merge : 
+    (unit -> R.t) -> 
+      H0.t -> H1.t -> H2.t -> H2.t -> H2.t -> H2.t -> R.t
+end
+

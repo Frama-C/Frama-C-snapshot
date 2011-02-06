@@ -1,6 +1,6 @@
-/* run.config
-   DONTRUN: don't run a test which raises an exception
-*/
+
+
+
 
 int T[10];
 

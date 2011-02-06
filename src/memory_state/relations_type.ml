@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,21 +28,17 @@ open Cvalue_type
 (* To be raised whenever we need to fall back to values computations *)
 exception Use_Main_Memory
 
+module V_Offsetmap_For_Relations = Offsetmap.Make(V)
 
-module V_Offsetmap_For_Relations= Offsetmap.Make(V)
-
-module Partial_lmap =
-  Lmap_whole.Make_LOffset(V)(V_Offsetmap_For_Relations)
-
+module Partial_lmap = Lmap_whole.Make_LOffset(V)(V_Offsetmap_For_Relations)
 
 module Relation_between =
   Partial_lmap.Make
-    (struct let default_offsetmap _ = V_Offsetmap_For_Relations.empty
-    end)
-
+    (struct let default_offsetmap _ = V_Offsetmap_For_Relations.empty end)
 
 module Cluster = struct
-  type t =
+
+  type tt =
       { id : int; (* unique identifier *)
 	size : Int.t; (* size of the values that are in the relation *)
 	contents : V_Offsetmap.t;
@@ -54,15 +50,7 @@ module Cluster = struct
                their position wrt each other *)
 	virtual_to_real : Location_Bits.t }
 
-  let descr = Unmarshal.t_tuple
-    [| Unmarshal.Abstract;
-       Int.descr;
-       V_Offsetmap.Datatype.descr;
-       Relation_between.Datatype.descr;
-       Location_Bits.Datatype.descr |]
-
-
-  let compare x y = Pervasives.compare x.id y.id
+  let compare x y = Datatype.Int.compare x.id y.id
   let equal x y = x.id = y.id
   let hash t = t.id
 
@@ -128,7 +116,6 @@ module Cluster = struct
     c
 
   exception Stop
-
   exception No_more_cluster
 
   let filter_base f c =
@@ -156,51 +143,70 @@ module Cluster = struct
       ~virtual_to_real:c.virtual_to_real
       ~rel:new_rel
 
-  type tt = t
-(*
-  module H = Hashtbl.Make(struct
-			    type t = tt
-			    let hash c = c.id
-			    let equal c d = c.id = d.id
-			  end)
+  include Datatype.Make_with_collections
+    (struct
+      type t = tt
+      let name = "Relation_types.Cluster"
+      let structural_descr =
+	Structural_descr.t_tuple
+	  [| Structural_descr.p_int;
+	     Int.packed_descr;
+	     V_Offsetmap.packed_descr;
+	     Relation_between.packed_descr;
+	     Location_Bits.packed_descr |]
+      let reprs =
+	List.fold_left
+	  (fun acc o ->
+	    List.fold_left
+	      (fun acc r ->
+		List.fold_left
+		  (fun acc l ->
+		    { id = -1;
+		      size = Int.zero;
+		      contents = o;
+		      rel = r;
+		      virtual_to_real = l }
+		    :: acc)
+		  acc
+		  Location_Bits.reprs)
+	      acc
+	      Relation_between.reprs)
+	  []
+	  V_Offsetmap.reprs
+      let hash = hash
+      let compare = compare
+      let equal = equal
+      let pretty = pretty
+      let rehash = Datatype.identity
+(*	let module H =
+	      Hashtbl.Make(struct
+		type t = tt
+		let hash c = c.id
+		let equal c d = c.id = d.id
+	      end)
+	in
+	let rehash_table = H.create 17 in
+	fun c ->
+	  try
+	    H.find rehash_table c;
+	    c
+	  with Not_found ->
+	    cluster_counter := Extlib.max_cpt c.id !cluster_counter;
+	    H.add rehash_table c ();
+	    c*)
+      let copy = Datatype.undefined
+      let internal_pretty_code = Datatype.undefined
+      let varname = Datatype.undefined
+      let mem_project = Datatype.never_any_project
+     end)
 
-  let rehash_table = H.create 17
-
-  let rehash c =
-    try
-      H.find rehash_table c;
-      c
-    with Not_found ->
-      cluster_counter := Extlib.max_cpt c.id !cluster_counter;
-      H.add rehash_table c ();
-      c
-*)
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = tt
-	 let descr = Project.no_descr
-	 let copy _ = assert false (* TODO *)
-	 let name = "Cluster"
-       end)
-  let () =
-    Datatype.register_comparable ~compare ~equal ~hash ()
-(*    Project.register_after_load_hook (fun () -> H.clear rehash_table)*)
-
-end
-
-module ClusterSet = struct
-  module S = Unmarshal.SetWithDescr(Cluster)
-  include S
-  module Datatype = Datatype.Make_Set(S)(Cluster.Datatype)
 end
 
 type cluster_info = No_cluster | Cluster of Cluster.t | Bottom_cluster
 
-module Cluster_Info =
-struct
+module Cluster_Info = struct
+
   module Top_Param = VarinfoSetLattice
-  type t = cluster_info
   type widen_hint = unit
 
   let hash v =
@@ -218,24 +224,38 @@ struct
     | _, No_cluster -> -1
     | Bottom_cluster, _ -> 1
     | _, Bottom_cluster -> -1
-    | Cluster c1, Cluster c2 -> compare c1.Cluster.id c2.Cluster.id
+    | Cluster c1, Cluster c2 -> Datatype.Int.compare c1.Cluster.id c2.Cluster.id
 
   let equal x y = compare x y = 0
 
-  let id = "Cluster_info"
+  let pretty fmt v = match v with
+    | No_cluster -> Format.fprintf fmt "NoCluster"
+    | Bottom_cluster -> Format.fprintf fmt "BottomCluster"
+    | Cluster c -> Cluster.pretty fmt c
 
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = cluster_info
-	 let copy _ = assert false (* TODO *)
-	 let descr = Project.no_descr
-	 let name = id
-       end)
-  let () = Datatype.register_comparable ~hash ~equal ()
+  include Datatype.Make
+  (struct
+    type t = cluster_info
+    let name = "Relation_types.Cluster_Info"
+    let reprs =
+      No_cluster
+      :: Bottom_cluster
+      :: List.map (fun c -> Cluster c) Cluster.reprs
+    let structural_descr =
+      Structural_descr.Structure
+	(Structural_descr.Sum [| [| Cluster.packed_descr |] |])
+    let hash = hash
+    let equal = equal
+    let compare = compare
+    let pretty = pretty
+    let rehash = Datatype.identity
+    let copy = Datatype.undefined
+    let internal_pretty_code = Datatype.undefined
+    let varname = Datatype.undefined
+    let mem_project = Datatype.never_any_project
+   end)
 
   let project _ = assert false
-
 
   let join x y =
     match x, y with
@@ -258,15 +278,8 @@ struct
   let narrow _ = assert false (* Not implemented yet. *)
   let widen _ = assert false (* Not implemented yet. *)
 
-  let little_endian_merge_bits ~total_length:_ ~value:_ ~offset:_ _ = No_cluster
-  let big_endian_merge_bits ~total_length:_ ~length:_ ~value:_ ~offset:_ _ = No_cluster
-  let shift_left ~with_alarms:_ ~size:_ _ _ = No_cluster
-  let bitwise_or ~size:_ _ _ = No_cluster
-
-  let pretty fmt v = match v with
-    | No_cluster -> Format.fprintf fmt "NoCluster"
-    | Bottom_cluster -> Format.fprintf fmt "BottomCluster"
-    | Cluster c -> Cluster.pretty fmt c
+  let little_endian_merge_bits ~conflate_bottom:_ ~total_length:_ ~value:_ ~offset:_ _ = No_cluster
+  let big_endian_merge_bits ~conflate_bottom:_ ~total_length:_ ~length:_ ~value:_ ~offset:_ _ = No_cluster
 
   let intersects _ = assert false
   let is_included _ = assert false
@@ -298,7 +311,7 @@ struct
   let is_isotropic x = equal x top
 
   exception Cannot_extract
-  let extract_bits ~with_alarms:_ ~start:_ ~stop:_  _ =
+  let extract_bits ~start:_ ~stop:_  _ =
     raise Cannot_extract
 end
 
@@ -329,6 +342,7 @@ module Participation_Map = struct
     | Cluster c -> Format.fprintf fmt "C:%d" c.Cluster.id
     | No_cluster -> Format.fprintf fmt "C:no"
     | Bottom_cluster -> Format.fprintf fmt "C:bottom"
+    let pretty_c_assert _lv _s _fmt _v = assert false
   end
 
   module Cluster_Info_Offsetmap = Offsetmap.Make(Cluster_Info_plus)
@@ -338,36 +352,42 @@ module Participation_Map = struct
 
   open Partial_Participation_Map
 
-  include Make(struct let default_offsetmap _ = Cluster_Info_Offsetmap.empty end)
+  include 
+      Make(struct let default_offsetmap _ = Cluster_Info_Offsetmap.empty end)
 
   let add_binding s x =
-    assert (Location_Bits.cardinal_zero_or_one x.loc);
+    assert (Location_Bits.is_relationable x.loc);
     add_binding s ~exact:true x
 
-  let find m l =
+
+  let add_whole loc v m =
+    assert (Location_Bits.is_relationable loc.loc);
+    add_whole loc v m
+
+  let find  m l =
     try
-      find ~with_alarms:CilE.warn_none_mode m l
+      find  ~with_alarms:CilE.warn_none_mode m l
     with Cluster_Info.Cannot_extract -> No_cluster
 
 end
 
 type tt =
     { participation_map : Participation_Map.t;
-      all_clusters : ClusterSet.t }
+      all_clusters : Cluster.Set.t }
 
 let pretty_tt fmt v =
   Format.fprintf fmt
     "PartMap:%a@\nClusters=%a@\n"
     Participation_Map.pretty v.participation_map
     (fun fmt () ->
-       ClusterSet.iter
+       Cluster.Set.iter
 	 (fun c -> Format.fprintf fmt "Cluster:%a@\n" Cluster.pretty c)
          v.all_clusters)
     ()
 
 let empty_tt =
   { participation_map = Participation_Map.empty;
-    all_clusters = ClusterSet.empty}
+    all_clusters = Cluster.Set.empty}
 
 let index_cluster_into_participation_map cluster pmap =
   let copy_loc loc _ acc =
@@ -390,17 +410,19 @@ let remove_cluster_from_participation_map cluster pmap =
     cluster.Cluster.rel
     pmap
 
-
 let check_tt map =
-  ClusterSet.fold
+  Cluster.Set.fold
     (fun c () ->
       Relation_between.fold
         ~size:c.Cluster.size
 	(fun loc _ () ->
 	  match Participation_Map.find map.participation_map loc with
-	    Cluster other_c ->
-	      assert (Cluster.equal c other_c)
-	  | _ -> assert false)
+	    Cluster other_c when Cluster.equal c other_c ->
+	      ()
+	  | _ ->
+	      Format.printf "Relation_type.check_tt %a@."
+		pretty_tt map;
+	      assert false)
 	c.Cluster.rel
 	())
     map.all_clusters
@@ -413,7 +435,7 @@ let add_new_cluster new_cluster map =
       new_cluster
       map.participation_map
   in
-  let new_all_clusters = ClusterSet.add new_cluster map.all_clusters in
+  let new_all_clusters = Cluster.Set.add new_cluster map.all_clusters in
   let result =
     { participation_map = new_participation_map;
       all_clusters = new_all_clusters; }
@@ -434,9 +456,9 @@ let replace_cluster ~old_cluster ~new_cluster map =
       map.participation_map
   in
   let new_all_clusters =
-    ClusterSet.add
+    Cluster.Set.add
       new_cluster
-      (ClusterSet.remove old_cluster map.all_clusters)
+      (Cluster.Set.remove old_cluster map.all_clusters)
   in
   let result =
     { participation_map = new_participation_map;
@@ -451,8 +473,7 @@ let remove_cluster ~old_cluster map =
       old_cluster
       map.participation_map
   in
-  let new_all_clusters = ClusterSet.remove old_cluster map.all_clusters
-  in
+  let new_all_clusters = Cluster.Set.remove old_cluster map.all_clusters in
   let result =
     { participation_map = new_participation_map;
       all_clusters = new_all_clusters; }
@@ -466,7 +487,9 @@ let replace_cluster ~old_cluster ~new_cluster map =
 *)
 
 let virtual_to_real main_memory loc =
-  loc_bytes_to_loc_bits (Model.find ~with_alarms:CilE.warn_none_mode main_memory loc)
+  loc_bytes_to_loc_bits
+    (Model.find ~conflate_bottom:true ~with_alarms:CilE.warn_none_mode
+	main_memory loc)
 
 exception Tt_not_included
 
@@ -480,10 +503,11 @@ let is_included_rel tt1 c2 =
 	      if Int.compare c2.Cluster.size c1.Cluster.size <> 0
 	      then raise Tt_not_included;
 	      let v1 =
-                Relation_between.find ~with_alarms:CilE.warn_none_mode c1.Cluster.rel loc
+                Relation_between.find ~with_alarms:CilE.warn_none_mode 
+		  c1.Cluster.rel loc
               in
 	      let diff = V.add_untyped (Int_Base.minus_one) v2 v1 in
-	      let diff_ival = V.find_ival diff in
+	      let diff_ival = V.project_ival diff in
 	      if not (Ival.cardinal_zero_or_one diff_ival)
 	      then raise Tt_not_included;
 	      Some (c1,diff)
@@ -544,160 +568,165 @@ let is_included_tt tt1 tt2 =
     then raise Tt_not_included
   in
   try
-    ClusterSet.iter check_cluster tt2.all_clusters;
+    Cluster.Set.iter check_cluster tt2.all_clusters;
     true
-  with Tt_not_included -> false
-
-module HInt = Hashtbl.Make(Int)
+  with Tt_not_included ->
+    false
 
 let find_hint h k =
-  try
-    HInt.find h k
+  try Int.Hashtbl.find h k
   with Not_found -> []
 
 let join (m1 : tt) (m2 : tt) =
   let f cluster1 cluster2 acc =
-    if Int.neq cluster1.Cluster.size cluster2.Cluster.size
+    if not (Int.equal cluster1.Cluster.size cluster2.Cluster.size)
     then acc
     else (* Clusters have the same size for the values *)
-(*      if cluster1.Cluster.id = cluster2.Cluster.id then ((*variables de cluster2*),cluster2)::acc
-      else -- optimisation qui nécessite de réfléchir pour être activée *)
-        let h = HInt.create 7 in
-          Relation_between.fold_single_bindings
-            ~size:cluster1.Cluster.size
-            (fun loc1 v1 _acc ->
-               let v2 =
-		 Relation_between.find ~with_alarms:CilE.warn_none_mode
-		   cluster2.Cluster.rel
-		   loc1
-	       in
-                 if Location_Bytes.cardinal_zero_or_one v2 then
-                   let delta = V.add_untyped
-                     Int_Base.minus_one
-                     v1 v2
-                   in
-                     try
-                       let delta_i =
-                         Ival.project_int
-			   (V.find_ival delta)
-                       in
-                         HInt.replace h delta_i (loc1::(find_hint h delta_i))
-                     with
-                       | V.Not_based_on_null
-                       | Ival.Not_Singleton_Int ->  ())
-            cluster1.Cluster.rel
-            ();
-	let create_subcluster
-	    offs locs acc =
-	  let offs = Int.mul offs (Bit_utils.sizeofchar()) in
-(*	  if not (Int.is_zero offs) then
-	    Format.printf "shift:%a@\n" Int.pretty offs; *)
-	  let _,new_contents =
-	      V_Offsetmap.join
-		  (V_Offsetmap.shift offs cluster1.Cluster.contents)
-		  cluster2.Cluster.contents
+	(*      if cluster1.Cluster.id = cluster2.Cluster.id then ((*variables de cluster2*),cluster2)::acc
+		else -- optimisation qui nécessite de réfléchir pour être activée *)
+      let h = Int.Hashtbl.create 7 in
+      Relation_between.fold_single_bindings
+        ~size:cluster1.Cluster.size
+        (fun loc1 v1 _acc ->
+          let v2 =
+	    Relation_between.find ~with_alarms:CilE.warn_none_mode
+	      cluster2.Cluster.rel
+	      loc1
 	  in
-	  match locs with
-	  | [] -> assert false (* HInt.fold should not call this function
-				  on the empty list *)
-	  | [_] when V_Offsetmap.is_empty new_contents ->
-	      (* there is no information in this cluster. *)
-	      acc
-	  | _ ->
-	      let new_rel =
-                List.fold_left
-                  (fun acc loc ->
-                     Location_Bits.fold_enum
-		       ~split_non_enumerable:(-1)
-                       (fun loc_no_size acc ->
-                          let loc = make_loc loc_no_size loc.size in
-                          let v = Relation_between.find
-                            ~with_alarms:CilE.warn_none_mode
-                            cluster2.Cluster.rel
-                            loc
-                          in
-                          assert (Location_Bits.cardinal_zero_or_one loc.loc);
-                          Relation_between.add_whole loc v acc)
-                       loc.loc
-                       acc)
-                  Relation_between.empty
-                  locs
+          if Location_Bytes.cardinal_zero_or_one v2 then
+            let delta = V.add_untyped
+              Int_Base.minus_one
+              v1 v2
+            in
+            try
+              let delta_i =
+                Ival.project_int
+		  (V.project_ival delta)
               in
-	      let new_virtual_to_real =
-		Location_Bits.join
-		  (Location_Bits.location_shift
-		     (Ival.inject_singleton (Int.neg offs))
-		     cluster1.Cluster.virtual_to_real)
-		  cluster2.Cluster.virtual_to_real
-	      in
-	      let new_cluster =
-		Cluster.make
-		  ~size:cluster1.Cluster.size
-		  ~contents:new_contents
-		  ~rel:new_rel
-		  ~virtual_to_real:new_virtual_to_real
-	      in
-	      add_new_cluster new_cluster acc
+              Int.Hashtbl.replace h delta_i (loc1::(find_hint h delta_i))
+            with
+            | V.Not_based_on_null
+            | Ival.Not_Singleton_Int ->  ())
+        cluster1.Cluster.rel
+	();
+      let create_subcluster
+	  offs locs acc =
+	let offs = Int.mul offs (Bit_utils.sizeofchar()) in
+	  (*	  if not (Int.is_zero offs) then
+		  Format.printf "shift:%a@\n" Int.pretty offs; *)
+	let _,new_contents =
+	  V_Offsetmap.join
+	    (V_Offsetmap.shift offs cluster1.Cluster.contents)
+	    cluster2.Cluster.contents
 	in
-        HInt.fold
-	  create_subcluster
-          h
-          acc
+	match locs with
+	| [] -> assert false (* Int.Hashtbl.fold should not call this function
+				on the empty list *)
+	| [_] when V_Offsetmap.is_empty new_contents ->
+	      (* there is no information in this cluster. *)
+	  acc
+	| _ ->
+	  let new_rel =
+            List.fold_left
+              (fun acc loc ->
+                Location_Bits.fold_enum
+		  ~split_non_enumerable:(-1)
+                  (fun loc_no_size acc ->
+                    let loc = make_loc loc_no_size loc.size in
+                    let v = Relation_between.find
+                      ~with_alarms:CilE.warn_none_mode
+                      cluster2.Cluster.rel
+                      loc
+                    in
+                    assert (Location_Bits.cardinal_zero_or_one loc.loc);
+                    Relation_between.add_whole loc v acc)
+                  loc.loc
+                  acc)
+              Relation_between.empty
+              locs
+          in
+	  let new_virtual_to_real =
+	    Location_Bits.join
+	      (Location_Bits.location_shift
+		 (Ival.inject_singleton (Int.neg offs))
+		 cluster1.Cluster.virtual_to_real)
+	      cluster2.Cluster.virtual_to_real
+	  in
+	  let new_cluster =
+	    Cluster.make
+	      ~size:cluster1.Cluster.size
+	      ~contents:new_contents
+	      ~rel:new_rel
+	      ~virtual_to_real:new_virtual_to_real
+	  in
+	  add_new_cluster new_cluster acc
+      in
+      Int.Hashtbl.fold create_subcluster h acc
   in
   let final_state =
-    ClusterSet.fold
+    Cluster.Set.fold
       (fun cluster1 acc ->
-	 ClusterSet.fold
-	   (fun cluster2 acc ->
-	     f cluster1 cluster2 acc)
-	   m2.all_clusters
-	   acc
+	Cluster.Set.fold
+	  (fun cluster2 acc ->
+	    f cluster1 cluster2 acc)
+	  m2.all_clusters
+	  acc
       )
       m1.all_clusters
       empty_tt
   in
-(*  Format.printf "relation join:%a %a -> %a@\n"
-    pretty_tt m1
-    pretty_tt m2
-    pretty_tt final_state; *)
+  (*  Format.printf "relation join:%a %a -> %a@\n"
+      pretty_tt m1
+      pretty_tt m2
+      pretty_tt final_state; *)
   final_state
 
 module type Model_S = sig
-  type t
+  include Datatype.S
   type widen_hint = Model.widen_hint
   type cluster
-  module Datatype : Project.Datatype.S with type t = t
   val is_reachable : t -> bool
-  val pretty : Format.formatter -> t -> unit
+  val pretty_c_assert : Format.formatter -> t -> unit
   val pretty_without_null : Format.formatter -> t -> unit
   val pretty_filter :
     Format.formatter -> t -> Zone.t -> (Base.t -> bool) -> unit
   val join : t -> t -> t
-  val find : with_alarms:CilE.warn_mode -> t -> location -> Location_Bytes.t
+  val find :
+    conflate_bottom:bool ->
+    with_alarms:CilE.warn_mode ->
+    t ->
+    location ->
+    Location_Bytes.t
   val find_unspecified : with_alarms:CilE.warn_mode -> t -> location ->
     Cvalue_type.V_Or_Uninitialized.t
 
   val add_binding :
-    with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> Location_Bytes.t -> t
+    with_alarms:CilE.warn_mode ->
+    exact:bool ->
+    t ->
+    location ->
+    Location_Bytes.t ->
+    t
   val add_binding_unspecified : t -> location -> t
 
   val reduce_binding : t -> location -> Location_Bytes.t -> t
   val is_included : t -> t -> bool
-  val equal : t -> t -> bool
   val is_included_actual_generic :
-    Zone.t -> t -> t -> Locations.Location_Bytes.t BaseUtils.BaseMap.t
+    Zone.t -> t -> t -> Location_Bytes.t Base.Map.t
   val widen :  widen_hint -> t -> t -> (bool * t)
   val bottom : t
   val inject : Model.t -> t
-  val empty : t
+  val empty_map : t
+  val top : t
   val is_top: t -> bool
   val value_state : t -> Model.t
   val drop_relations : t -> t
   val filter_base : (Base.t -> bool) -> t -> t
+  val remove_base : Base.t -> t -> t
   val clear_state_from_locals : Cil_types.fundec -> t -> t
   val uninitialize_locals: Cil_types.block list -> t -> t
   val compute_actual_final_from_generic :
-    t -> t -> Zone.t -> Model.instanciation -> t*Location_Bits.Top_Param.t
+    t -> t -> Zone.t -> Model.instanciation -> t * Location_Bits.Top_Param.t
   val is_included_by_location_enum :  t -> t -> Zone.t -> bool
 
   val find_mem : location -> Int_Base.t ->
@@ -724,23 +753,34 @@ module type Model_S = sig
     location ->
     Ival.t ->
     Int.t -> t -> Cvalue_type.V_Offsetmap.t
-  val copy_offsetmap :
+  val copy_offsetmap : with_alarms:CilE.warn_mode ->
     Locations.location -> t -> Cvalue_type.V_Offsetmap.t option
+
+  val comp_prefixes: t -> t -> unit
+  val find_prefix : t -> Hptmap.prefix -> Cvalue_type.Model.subtree option
+
 end
 
-module Model : Model_S = struct
-  type t = Model.t * tt
+module Model : Model_S with type t = Cvalue_type.Model.t * tt = struct
+
+  type model = Cvalue_type.Model.t * tt
   type widen_hint = Model.widen_hint
   type cluster = Cluster.t
+
   let is_reachable (x,_) = Model.is_reachable x
+
   let create_initial ~base ~v ~modu ~state:(s,r) =
     (Model.create_initial ~base ~v ~modu ~state:s),r
 
-  let copy_offsetmap l (x,_) = Model.copy_offsetmap l x
+  let copy_offsetmap ~with_alarms l (x,_) =
+    Model.copy_offsetmap ~with_alarms l x
 
   let pretty fmt (x,y) =
     Model.pretty fmt x;
     if Kernel.debug_atleast 1 then pretty_tt fmt y
+
+  let pretty_c_assert fmt (x,_) =
+    Model.pretty_c_assert fmt x
 
   let pretty_without_null fmt (x,y) =
     Model.pretty_without_null fmt x;
@@ -768,12 +808,14 @@ module Model : Model_S = struct
 
   let find_unspecified ~with_alarms (x,_) loc = Model.find_unspecified ~with_alarms x loc
 
-  let find ~with_alarms (x,_) loc = Model.find ~with_alarms x loc
+  let find ~conflate_bottom ~with_alarms (x,_) loc =
+    Model.find ~conflate_bottom ~with_alarms x loc
 
   let bottom = Model.bottom, empty_tt
-  let empty = Model.empty, empty_tt
+  let top = Model.top, empty_tt
+  let empty_map = Model.empty_map, empty_tt
 
-  let is_top (a,_) = Model.equal a Model.empty
+  let is_top (a,_) = Model.equal a Model.top
   let inject s = s, empty_tt
 
   let add_binding ~with_alarms ~exact (s,rel) left v =
@@ -815,6 +857,9 @@ module Model : Model_S = struct
 
   let drop_relations (a,_a') = a, empty_tt
 
+  let comp_prefixes (a, _) (b, _) = Model.comp_prefixes a b
+  let find_prefix (a, _) prefix = Model.find_prefix a prefix
+
   let copy_from_virtual
       sub_left_loc
       (target_offset : Ival.t) target_size (_main, map) =
@@ -834,7 +879,7 @@ module Model : Model_S = struct
 	    Relation_between.find ~with_alarms:CilE.warn_none_mode c.Cluster.rel loc
 	  in
 	  try
-	    let cluster_offset = V.find_ival cluster_offset in
+	    let cluster_offset = V.project_ival cluster_offset in
 (*	    Format.printf "cluster_o:%a target_o:%a@\n"
 	      Ival.pretty cluster_offset Ival.pretty target_offset; *)
 	    let cluster_offset =
@@ -852,7 +897,7 @@ module Model : Model_S = struct
 	    try
 		let f offs acc =
 		  let copy =
-		    V_Offsetmap.copy
+		    V_Offsetmap.copy_offsmap
 		      c.Cluster.contents
 		      offs (Int.pred (Int.add offs target_size))
 		  in
@@ -878,7 +923,7 @@ module Model : Model_S = struct
   let hash (a, _b) = Model.hash a (*+ 97*hash b*)
 
   let filter_base_tt f a =
-    ClusterSet.fold
+    Cluster.Set.fold
       (fun cl acc -> try add_new_cluster (Cluster.filter_base f cl) acc
        with Cluster.No_more_cluster -> acc)
       a.all_clusters
@@ -888,6 +933,10 @@ module Model : Model_S = struct
     Model.filter_base f a,
     filter_base_tt f a'
 
+  let remove_base b (a,a') =
+    assert (a' == empty_tt);
+    Model.remove_base b a,
+    empty_tt
 
   let clear_state_from_locals fundec (state,r) =
     let locals = List.map Base.create_varinfo fundec.Cil_types.slocals in
@@ -906,9 +955,13 @@ module Model : Model_S = struct
   let uninitialize_locals blocks (state,r) =
     let locals =
       List.fold_left
-        (fun acc block ->
-           List.map Locations.loc_of_varinfo block.Cil_types.blocals @ acc)
-        [] blocks
+	(fun acc block ->
+	  List.fold_left
+	    (fun acc vi -> (Locations.loc_of_varinfo vi) :: acc)
+	    acc
+	    block.Cil_types.blocals)
+        []
+	blocks
     in
    let state' =
       List.fold_left Cvalue_type.Model.add_binding_unspecified state locals
@@ -917,6 +970,7 @@ module Model : Model_S = struct
                                              (Base.is_block_local v) blocks)) r
     in
      (state', r')
+
   let compute_actual_final_from_generic (a,_a') (b,_b') loc instanciation =
     let a,b = Model.compute_actual_final_from_generic a b loc instanciation in
     (a,empty_tt),b
@@ -928,7 +982,7 @@ module Model : Model_S = struct
       (loc : Locations.location)
       (target_size : Int_Base.t)
       (target_offset : Ival.t)
-      (_main_memory, map : t) =
+      (_main_memory, map : model) =
     let losize = loc.size in
     let treat_one_exact_location l acc =
       assert (Location_Bits.cardinal_zero_or_one l);
@@ -941,12 +995,14 @@ module Model : Model_S = struct
           raise Use_Main_Memory;
       | Cluster c ->
 	  let cluster_offset =
-            Relation_between.find ~with_alarms:CilE.warn_none_mode c.Cluster.rel loc
+            Relation_between.find ~with_alarms:CilE.warn_none_mode 
+	      c.Cluster.rel
+	      loc
           in
 	  try
 	    let cluster_offset =
               Ival.scale (Bit_utils.sizeofchar())
-		(V.find_ival cluster_offset)
+		(V.project_ival cluster_offset)
             in
 	    let actual_offset =
 	      Ival.sub target_offset cluster_offset
@@ -963,15 +1019,25 @@ module Model : Model_S = struct
 	    then raise Use_Main_Memory;
 	    try
 	      let target_size = Int_Base.project target_size in
-	      let r = (V_Offsetmap.find_ival
-                ~validity:Base.All
-                ~with_alarms:CilE.warn_none_mode (* anyway, there is no validity *)
-		actual_offset c.Cluster.contents target_size
-                (V_Or_Uninitialized.initialized acc)).V_Or_Uninitialized.v
+              let acc = V_Or_Uninitialized.initialized acc in
+	      let r =
+		V_Or_Uninitialized.get_v
+		  (V_Or_Uninitialized.join
+                      (V_Offsetmap.find_ival
+			  ~conflate_bottom:true
+                          ~validity:Base.All
+                          ~with_alarms:CilE.warn_none_mode
+                          (* anyway, there is no validity *)
+		          actual_offset c.Cluster.contents target_size)
+                      acc
+                  )
               in
               (*Format.printf "find_mem: %a@\n" V.pretty r;*)
               r
-	    with Int_Base.Error_Top | Not_found (* from LOffset.find_ival *)
+	    with Int_Base.Error_Top
+	    (* suppressed this exception from find_ival.
+	       Wondering if it could come from somewhere else
+	       | Not_found (* from LOffset.find_ival *) *)
 	          -> raise Use_Main_Memory
 	  with V.Not_based_on_null -> raise Use_Main_Memory
     in
@@ -1070,7 +1136,7 @@ module Model : Model_S = struct
 	      begin try
 	          let intrinsic_offset =
                     Ival.scale (Bit_utils.sizeofchar())
-		      (V.find_ival intrinsic_offset)
+		      (V.project_ival intrinsic_offset)
 	          in
 	          assert (Ival.cardinal_zero_or_one intrinsic_offset);
 	          let offset = Ival.sub target_offset intrinsic_offset in
@@ -1128,12 +1194,12 @@ module Model : Model_S = struct
           in
 	  let invalidated_clusters =
 	    List.fold_right
-	      (function Cluster c -> ClusterSet.add c | _ -> assert false)
+	      (function Cluster c -> Cluster.Set.add c | _ -> assert false)
 	      invalidated_clusters
-	      ClusterSet.empty
+	      Cluster.Set.empty
 	  in
           let m =
-	    ClusterSet.fold
+	    Cluster.Set.fold
               (fun cluster acc ->
                  if List.exists (Cluster.equal cluster) protected_clusters
 		 then acc
@@ -1214,13 +1280,13 @@ module Model : Model_S = struct
 	              ~virtual_to_real:cluster.Cluster.virtual_to_real
                   else raise No_information
 	      in
-	      { all_clusters = ClusterSet.add new_cluster acc.all_clusters;
+	      { all_clusters = Cluster.Set.add new_cluster acc.all_clusters;
 	        participation_map =
                   index_cluster_into_participation_map new_cluster acc.participation_map }
             with  No_information -> acc
           in
 	  main_mem,
-	  ClusterSet.fold
+	  Cluster.Set.fold
 	    treat_cluster
 	    m.all_clusters
 	    empty_tt
@@ -1284,7 +1350,7 @@ module Model : Model_S = struct
     match left.size with
     | Int_Base.Bottom -> assert false
     | Int_Base.Value size when
-	(Location_Bits.cardinal_zero_or_one left.loc)
+	(Location_Bits.is_relationable left.loc)
 	&& Int_Base.equal left.size right.size
 	&& not (Zone.intersects
 		  (valid_enumerate_bits left)
@@ -1432,7 +1498,7 @@ module Model : Model_S = struct
 		    in
 (*		    Format.printf "rel:%a@."
 		      Relation_between.pretty rel;*)
-		    let delta = Ival.project_int (V.find_ival delta) in
+		    let delta = Ival.project_int (V.project_ival delta) in
 		    let offset = Int.neg (Int.mul (Bit_utils.sizeofchar()) delta)
 		    in
 		    let shifted_left_content =
@@ -1459,7 +1525,7 @@ module Model : Model_S = struct
 		    let map = remove_cluster ~old_cluster:c map in
 		    main, (replace_cluster ~new_cluster ~old_cluster:cleft map)
 		    with V.Not_based_on_null ->
-		      (* from find_ival *) state
+		      (* from project_ival *) state
 		  else
 		    state
 	      | _ -> state)
@@ -1502,7 +1568,7 @@ module Model : Model_S = struct
 (*    Format.printf "compute_diff called@\n";*)
     let result =
       match Participation_Map.find map.participation_map right, right.size with
-      | Cluster cr, Int_Base.Value s when Int.eq s cr.Cluster.size ->
+      | Cluster cr, Int_Base.Value s when Int.equal s cr.Cluster.size ->
           begin match Participation_Map.find map.participation_map left with
           | Cluster cl when same_clusters cl cr ->
               V.add_untyped (Int_Base.minus_one)
@@ -1526,7 +1592,7 @@ module Model : Model_S = struct
     let offset = Ival.neg offset in
     match Participation_Map.find map.participation_map loc, loc.size with
     | Cluster cr, Int_Base.Value s when
-        Int.eq s cr.Cluster.size
+        Int.equal s cr.Cluster.size
         && Location_Bits.cardinal_zero_or_one loc.loc
 	&& Ival.cardinal_zero_or_one offset
         && (try
@@ -1569,24 +1635,34 @@ module Model : Model_S = struct
           result
     | _ -> propagate_change_from_real_to_virt ~protected_clusters:[] loc initial right
 
-  type tt = t
-
-  module Datatype =
-    Project.Datatype.Register
+  include Datatype.Make
       (struct
-	 type t = tt
-	 let copy _ = assert false (* TODO *)
-	 let name = "Relations_type.Model.State"
-	 open Unmarshal
-	 let descr =
-	   t_tuple
-	     [| Cvalue_type.Model.Datatype.descr;
-		t_record
-		  [| Participation_Map.Datatype.descr;
-		     ClusterSet.Datatype.descr |]
-	     |]
+	 type t = model
+	 let name = "Relations_type.Model"
+	 let structural_descr =
+	   Structural_descr.t_tuple
+	     [| Cvalue_type.Model.packed_descr;
+		Structural_descr.pack
+		  (Structural_descr.t_record
+		     [| Participation_Map.packed_descr;
+			Cluster.Set.packed_descr |]) |]
+	 let reprs =
+	   List.map
+	     (fun m ->
+	       m,
+	       { participation_map = Participation_Map.empty;
+		 all_clusters = Cluster.Set.empty })
+	     Cvalue_type.Model.reprs
+	 let hash = hash
+	 let equal = equal
+	 let compare = Datatype.undefined
+	 let pretty = pretty
+	 let rehash = Datatype.identity
+	 let copy = Datatype.undefined
+	 let internal_pretty_code = Datatype.pp_fail
+	 let varname = Datatype.undefined
+	 let mem_project = Datatype.never_any_project
        end)
-  let () = Datatype.register_comparable ~hash ~equal ()
 
 end
 

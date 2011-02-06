@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,14 +35,14 @@ module Make(D: DATA) = struct
 
   let is_empty t = t.first = [] && t.last = []
 
-  let clear t = 
-    t.first <- []; 
+  let clear t =
+    t.first <- [];
     t.last <- []
 
   let add x t = t.first <- x :: t.first
   let add_at_end x t = t.last <- x :: t.last
 
-  let singleton x = 
+  let singleton x =
     let q = create () in
     add x q;
     q
@@ -61,9 +61,8 @@ module Make(D: DATA) = struct
 	 | [] -> assert false
 	 | x :: _ -> x)
     | x :: _, _ -> x
-	  
 
-  let mem x t = 
+  let mem x t =
     let list_mem x = List.exists (D.equal x) in
     list_mem x t.first || list_mem x t.last
 
@@ -72,7 +71,7 @@ module Make(D: DATA) = struct
     List.fold_right (fun x acc -> if f x then x :: acc else acc) t.first l
 
   let find f t =
-    try List.find f t.last 
+    try List.find f t.last
     with Not_found -> List.find f (List.rev t.first)
 
   (* the returned boolean is a flag which is [true] when removing occurs. *)
@@ -84,7 +83,7 @@ module Make(D: DATA) = struct
     in
     aux []
 
-  let remove_with_flag x t = 
+  let remove_with_flag x t =
     let first, b = remove_from_list x t.first in
     if b then begin
       t.first <- first;
@@ -104,12 +103,12 @@ module Make(D: DATA) = struct
     if not (remove_with_flag x t) then invalid_arg "Qstack.move_at_end";
     add_at_end x t
 
-  let iter f t = 
-    List.iter f t.first; 
+  let iter f t =
+    List.iter f t.first;
     List.fold_right (fun p () -> f p) t.last ()
 
-  let map f t = 
-    t.first <- List.map f t.first; 
+  let map f t =
+    t.first <- List.map f t.first;
     t.last <- List.rev_map (fun p -> f p) t.last
 
   let fold f acc t =
@@ -118,22 +117,22 @@ module Make(D: DATA) = struct
 
   let length t = List.length t.first + List.length t.last
 
-  let nth n t = 
+  let nth n t =
     try List.nth t.first n
-    with Failure _ -> 
+    with Failure _ ->
       try List.nth (List.rev t.last) (n - List.length t.first)
       with Failure s -> invalid_arg s
 
-  let idx x t = 
+  let idx x t =
     let i = ref 0 in
-    try 
-      iter (fun e -> 
+    try
+      iter (fun e ->
               if D.equal e x then raise Exit;
               incr i)
         t;
       raise Not_found
     with Exit -> !i
-    
+
 end
 
 (*

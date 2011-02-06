@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,35 +20,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kf_state.ml,v 1.14 2008-10-03 13:09:16 uid568 Exp $ *)
-
 module type S = sig
   type data
-  val memo: 
+  val memo:
     (Db_types.kernel_function -> data) -> Db_types.kernel_function -> data
-  val self: Project.Computation.t
+  val self: State.t
 end
 
-module type INFO = sig
-  val name: string
-  val dependencies: Project.Computation.t list
-    (** Additional dependencies of the built state. *)
-end
-
-module Build(X:Project.Datatype.S)(Info:Signature.NAME_DPDS) = struct
-  
+module Build(X: Datatype.S)(Info: State_builder.Info) = struct
   include Kernel_function.Make_Table(X)(struct include Info let size = 97 end)
-
   let memo f = memo f
     (* eta-expansion in order to ignore the optional argument of [memo] *)
-
 end
 
-module Make = Build(Locations.Zone.Datatype)
-module Context = Build(Inout_type.Datatype)
+module Make = Build(Locations.Zone)
+module Context = Build(Inout_type)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

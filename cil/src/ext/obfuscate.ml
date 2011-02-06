@@ -41,6 +41,7 @@
 
 open Cil
 open Cil_types
+open Cil_datatype
 
 class renamer prefix dictionary = object
   val prefix = prefix
@@ -63,9 +64,11 @@ class obfuscateVisitor dictionary = object
   val functions = new renamer "F" dictionary
   val formals = new renamer "f" dictionary
 
+  val varinfos_visited = Varinfo.Hashtbl.create 17
+
   method vglob global =
     begin match global with
-    | GType (ty,_) -> ty.tname <- typ#fresh ty.tname 
+    | GType (ty,_) -> ty.tname <- typ#fresh ty.tname
     | _ -> ()
     end;
     DoChildren
@@ -79,14 +82,24 @@ class obfuscateVisitor dictionary = object
   method venumitem ei = ei.einame <- enum#fresh ei.einame; DoChildren
 
   method vvdec vi =
-    if isFunctionType vi.vtype then
-      begin if vi.vname <> "main" then vi.vname <- functions#fresh vi.vname end
-    else
-      vi.vname <-
-        if vi.vglob then var#fresh vi.vname
-        else if vi.vformal then formals#fresh vi.vname
-        else local#fresh vi.vname;
-    DoChildren
+    (* Varinfo can be visited (and obfuscated) more than once:
+       functions for their declaration and definition, variables
+       as parts of the type of the function, and in the body of
+       the function declaration, etc. Thus we make sure that the
+       obfuscator does not visit them twice *)
+    try
+      Varinfo.Hashtbl.find varinfos_visited vi;
+      SkipChildren
+    with Not_found ->
+      if isFunctionType vi.vtype then begin
+	if vi.vname <> "main" then vi.vname <- functions#fresh vi.vname
+      end else
+        vi.vname <-
+          if vi.vglob then var#fresh vi.vname
+          else if vi.vformal then formals#fresh vi.vname
+          else local#fresh vi.vname;
+      Varinfo.Hashtbl.add varinfos_visited vi ();
+      DoChildren
 end
 
 let obfuscate file =
@@ -94,3 +107,9 @@ let obfuscate file =
   let v = new obfuscateVisitor dictionary in
   visitCilFileSameGlobals (v:>cilVisitor) file;
   dictionary
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

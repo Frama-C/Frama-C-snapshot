@@ -2,8 +2,11 @@
 ;                                                                        ;
 ;  This file is part of Frama-C.                                         ;
 ;                                                                        ;
-;  Copyright (C) 2008                                                    ;
-;    Pierre ROUX                                                         ;
+;  Copyright (C) 2008-2011                                               ;
+;    Pierre Roux                                                         ;
+;                                                                        ;
+;  Copyright (C) 2009-2011                                               ;
+;    CEA LIST                                                            ;
 ;                                                                        ;
 ;  you can redistribute it and/or modify it under the terms of the GNU   ;
 ;  Lesser General Public License as published by the Free Software       ;
@@ -16,9 +19,6 @@
 ;                                                                        ;
 ;  See the GNU Lesser General Public License version 2.1                 ;
 ;  for more details (enclosed in the file licenses/LGPLv2.1).            ;
-;                                                                        ;
-;  File modified by CEA (Commissariat à l'énergie atomique et aux        ;
-;                        énergies alternatives).                         ;
 ;                                                                        ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -33,7 +33,7 @@
 
 (setq auto-mode-alist
       (append
-       '(("\\.[ch]" . acsl-mode))
+       '(("\\.[chi]" . acsl-mode))
        auto-mode-alist))
 
 ;; you can then load the mode in emacs with M-x acsl-mode
@@ -151,7 +151,7 @@
 
 (require 'custom)
 
-(defcustom acsl-jessie-gui-prog-name "frama-c -jessie-analysis -jessie-gui"
+(defcustom acsl-jessie-gui-prog-name "frama-c -jessie"
   "Frama-C/Jessie executable name."
   :group 'acsl
   :type 'string)

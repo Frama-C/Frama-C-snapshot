@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,19 +20,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let filter name extension = 
+let filter name extension =
   let f = GFile.filter ~name () in
   f#add_pattern ("*" ^ extension);
   f
 
-let run title filter_name extension loader 
-    (host_window: Design.main_window_extension_points) 
+let run title filter_name extension loader
+    (host_window: Design.main_window_extension_points)
     =
-  let dialog = 
+  let dialog =
     GWindow.file_chooser_dialog
       ~action:`OPEN
       ~title
-      ~parent:host_window#main_window () 
+      ~parent:host_window#main_window ()
   in
   dialog#add_button_stock `CANCEL `CANCEL ;
   dialog#add_select_button_stock `EXECUTE `EXECUTE ;
@@ -41,17 +41,17 @@ let run title filter_name extension loader
     (fun () ->
        match dialog#run () with
        | `EXECUTE ->
-	   let run f = 
+	   let run f =
 	     loader f;
 	     !Db.Main.play ();
 	     host_window#reset ()
 	   in
 	   Extlib.may run dialog#filename;
-       | `DELETE_EVENT | `CANCEL -> 
+       | `DELETE_EVENT | `CANCEL ->
 	   ());
   dialog#destroy ()
 
-let run_script = 
+let run_script =
   run "Execute an OCaml script" "OCaml sources" ".ml" Dynamic.load_script
 
 let run_module =
@@ -59,46 +59,48 @@ let run_module =
     Dynamic.load_module
 
 let insert (main_ui: Design.main_window_extension_points) =
-  let menu_manager = main_ui#menu_manager in
+  let menu_manager = main_ui#menu_manager () in
   let stop = ref (fun () -> assert false) (* delayed *) in
   let default_analyses_items =
     menu_manager#add_plugin
       [
 	Menu_manager.ToolMenubar(`PROPERTIES, "Configure and run analyses"),
 	main_ui#launcher;
-	Menu_manager.Menubar(Some `EXECUTE, "Compile and run an Ocaml Script"),
+	Menu_manager.Menubar(Some `EXECUTE, "Compile and run an OCaml Script"),
 	(fun () -> run_script main_ui);
-	Menu_manager.Menubar(None, "Load and run an Ocaml Module"),
+	Menu_manager.Menubar(None, "Load and run an OCaml Module"),
 	(fun () -> run_module main_ui);
-	Menu_manager.Toolbar(`STOP, "Stop running analyses"), 
+	Menu_manager.Toolbar(`STOP, "Stop running analyses"),
 	(fun () -> !stop ()) (* eta-expansion required *)
       ]
   in
   default_analyses_items.(0)#add_accelerator `CONTROL 'r';
   let stop_button = Extlib.the default_analyses_items.(3)#tool_button in
   stop_button#misc#set_sensitive false;
-  stop := 
+  let old_progress = ref !Db.progress in
+  stop :=
     (fun () ->
-       let old_progress = !Db.progress in
-       Db.progress := 
+       stop_button#misc#set_sensitive false;
+       Db.progress :=
 	 (fun () ->
-            Db.progress := old_progress;
-            stop_button#misc#set_sensitive false;
+            Db.progress := !old_progress;
             raise Db.Cancel));
   Gtk_helper.register_locking_machinery
     ~lock_last:true
-    ~lock:(fun cancelable -> 
+    ~lock:(fun cancelable ->
+             old_progress := !Db.progress;
 	     menu_manager#set_sensitive false;
 	     stop_button#misc#set_sensitive cancelable)
-    ~unlock:(fun () -> 
+    ~unlock:(fun () ->
+               Db.progress := !old_progress;
 	       menu_manager#set_sensitive true;
 	       stop_button#misc#set_sensitive false)
     ()
 
 let () = Design.register_extension insert
-    
+
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

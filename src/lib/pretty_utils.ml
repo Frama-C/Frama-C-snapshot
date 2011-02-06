@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,12 +20,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pretty_utils.ml,v 1.5 2008-11-04 10:05:05 uid568 Exp $ *)
-
 let sfprintf fmt =
-  let b = Buffer.create 5 in
+  let b = Buffer.create 20 in
   let return fmt = Format.pp_print_flush fmt (); Buffer.contents b in
   Format.kfprintf return (Format.formatter_of_buffer b) fmt
+
+let to_string pp x =
+  let b = Buffer.create 20 in
+  let f = Format.formatter_of_buffer b in
+  pp f x ;
+  Format.pp_print_flush f () ;
+  Buffer.contents b
 
 let no_sep = format_of_string ""
 let space_sep = format_of_string "@ "
@@ -78,6 +83,20 @@ let pp_array
 	  Format.fprintf f suf ;
 	end
 
+let pp_iter 
+    ?(pre=format_of_string "@[")
+    ?(sep=format_of_string "")
+    ?(suf=format_of_string "@]")
+    iter pp fmt v =
+  let need_sep = ref false in
+  Format.fprintf fmt pre;
+  iter (fun v ->
+          if !need_sep then Format.fprintf fmt sep else need_sep := true;
+          pp fmt v;
+       ) v;
+  Format.fprintf fmt suf;
+;;
+
 let pp_opt
     ?(pre=format_of_string "")  ?(suf=format_of_string "") pp_elt f o =
   match o with
@@ -110,6 +129,25 @@ let pp_blocklist ?(left="{") ?(right="}") f out =
 let pp_open_block out msg =
   Format.fprintf out ("@[<hv 0>@[<hv 2>" ^^ msg)
 let pp_close_block out msg = Format.fprintf out ("@]@ " ^^ msg ^^ "@]")
+
+let pp_trail pp fmt x =
+  begin
+    Format.fprintf fmt "@[<h 0>(**" ;
+    let out newlined fmt s k n =
+      for i=k to k+n-1 do
+	if !newlined then 
+	  ( Format.fprintf fmt "@\n * " ; newlined := false ) ;
+	if s.[i] = '\n' 
+	  then newlined := true
+	else Format.pp_print_char fmt s.[i]
+      done
+    in
+    let nwl = ref true in
+    let ftt = Format.make_formatter (out nwl fmt) (fun () -> ()) in
+    pp ftt x ;
+    Format.pp_print_flush ftt () ;
+    Format.fprintf fmt "@\n **)@]" ;
+  end
 
 (*
 Local Variables:

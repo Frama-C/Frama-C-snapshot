@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,13 +22,16 @@
 
 include Plugin.S
 
-
 module ForceValues: Plugin.BOOL
 
 module PropagateTop: Plugin.BOOL
 
 module AutomaticContextMaxDepth: Plugin.INT
 module AutomaticContextMaxWidth: Plugin.INT
+
+module SeparateStmtStart:  Plugin.STRING_SET
+module SeparateStmtWord:  Plugin.INT
+module SeparateStmtOf:  Plugin.INT
 
 module AllRoundingModes: Plugin.BOOL
 
@@ -40,10 +43,15 @@ module NoResultsAll: Plugin.BOOL
 
 module SignedOverflow: Plugin.BOOL
 
+module IgnoreRecursiveCalls: Plugin.BOOL
+
 module MemoryFootprint: Plugin.INT
 
 module SemanticUnrollingLevel: Plugin.INT
+
 module AllocatedContextValid: Plugin.BOOL
+
+module UndefinedPointerComparisonPropagateAll: Plugin.BOOL
 
 module ArrayPrecisionLevel: Plugin.INT
 
@@ -51,3 +59,9 @@ module WideningLevel: Plugin.INT
 module SlevelFunction: Plugin.STRING_HASHTBL with type value = int
 
 module Subdivide_float_in_expr: Plugin.INT
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

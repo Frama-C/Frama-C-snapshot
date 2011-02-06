@@ -40,23 +40,80 @@
 (**************************************************************************)
 
 (** Registers a new hook that will be applied each time a side-effect free
-    expression whose result is unused is dropped.
+    expression whose result is unused is dropped. The string is the name
+    of the current function.
 *)
-val register_ignore_pure_exp_hook:
-  (string -> Cil_types.location -> Cil_types.exp -> unit) -> unit
+val register_ignore_pure_exp_hook: (string -> Cil_types.exp -> unit) -> unit
+
+(** new hook called when an implicit prototype is generated.
+    @since Carbon-20101201
+*)
+val register_implicit_prototype_hook: (Cil_types.varinfo -> unit) -> unit
+
+(** new hook called when two conflicting declarations are found.
+    The hook takes as argument the old and new varinfo, and a
+    description of the issue.
+    @since Carbon-20101201
+*)
+val register_incompatible_decl_hook:
+  (Cil_types.varinfo -> Cil_types.varinfo -> string -> unit) -> unit
+
+(** new hook called when a definition has a compatible but not
+    strictly identical prototype than its declaration
+    The hook takes as argument the old and new varinfo. Note that only the
+    old varinfo is kept in the AST, and that its type will be modified in
+    place just after to reflect the merge of the prototypes.
+    @since Carbon-20101201
+*)
+val register_different_decl_hook:
+  (Cil_types.varinfo -> Cil_types.varinfo -> unit) -> unit
+
+
+(** new hook called when encountering a definition of a local function. The hook
+    take as argument the varinfo of the local function.
+    @since Carbon-20101201
+*)
+val register_local_func_hook: (Cil_types.varinfo -> unit) -> unit
+
+(** new hook called when side-effects are dropped.
+The first argument is the original expression, the second one
+the (side-effect free) normalized expression.
+*)
+val register_ignore_side_effect_hook:
+  (Cabs.expression -> Cil_types.exp -> unit) -> unit
+
+(** new hook called when an expression with side-effect is evaluated
+    conditionally (RHS of && or ||, 2nd and 3rd term of ?:). Note that in case
+    of nested conditionals, only the innermost expression with side-effects
+    will trigger the hook (for instance, in [(x && (y||z++))],
+    we have a warning on [z++], not on [y||z++], and similarly, on
+    [(x && (y++||z))], we only have a warning on [y++]).
+    - First expression is the englobing expression
+    - Second expression is the expression with side effects.
+*)
+val register_conditional_side_effect_hook:
+  (Cabs.expression -> Cabs.expression -> unit) -> unit
 
 val convFile: Cabs.file -> Cil_types.file
-
-(** NDC added command line parameter.
-    Turn on tranformation that forces correct parameter evaluation order *)
-val forceRLArgEval: bool ref
 
 (** Set this integer to the index of the global to be left in CABS form. Use
     -1 to disable *)
 val nocil: int ref
 
+(* NB: The three flags below are controlled by Frama-C parameters. Do not
+   change their default value here, but in parameters.ml. *)
+
+(** Turn on tranformation that forces right to left
+    parameter evaluation order *)
+val forceRLArgEval: bool ref
+
 (** Indicates whether we're allowed to duplicate small chunks of code. *)
 val allowDuplication: bool ref
+
+(** Allows to have implicit cast between value returned by a function and
+    the lval it is assigned to.
+ *)
+val doCollapseCallCast: bool ref
 
 (** A hook into the code that creates temporary local vars.  By default this
   is the identity function, but you can overwrite it if you need to change the
@@ -85,13 +142,21 @@ val fresh_global : string -> string
 val prefix : string -> string -> bool
 
 val annonCompFieldName : string
+
+val find_field_offset:
+  (Cil_types.fieldinfo -> bool) -> Cil_types.fieldinfo list -> Cil_types.offset
+(** returns the offset (can be more than one field in case of unnamed members)
+    corresponding to the first field matching the condition.
+    @raise Not_found if no such field exists.
+ *)
+
 val logicConditionalConversion: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 val arithmeticConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 val integralPromotion : Cil_types.typ -> Cil_types.typ
 
 (** local information needed to typecheck expressions and statements *)
 type local_env = private
-    { authorized_reads: Cilutil.LvalSet.t;
+    { authorized_reads: Cil_datatype.Lval.Set.t;
       (** sets of lvalues that can be read regardless of a potential
           write access between sequence points. Mainly for tmp variables
           introduced by the normalization.
@@ -123,7 +188,7 @@ val blockInit :
   Cil_types.lval -> Cil_types.init -> Cil_types.typ -> Cil_types.block
 
 (** Applies [mkAddrOf] after marking variable whose address is taken. *)
-val mkAddrOfAndMark : Cil_types.lval -> Cil_types.exp
+val mkAddrOfAndMark : Cil_types.location -> Cil_types.lval -> Cil_types.exp
 
 (** If called, sets a flag so that [continue] in while loops get transformed
     into forward gotos, like it is already done in do-while and for loops. *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,19 +26,27 @@ type t
 exception Unchanged
 val pretty : Format.formatter -> t -> unit
 val add : Relations_type.Model.t -> t -> t
-val fold : (Relations_type.Model.t -> 'a -> 'a) -> t -> 'a -> 'a
+val unsafe_add : Relations_type.Model.t -> t -> t
+val fold : ( Relations_type.Model.t -> 'a -> 'a) -> t -> 'a  -> 'a
 val iter : (Relations_type.Model.t -> unit) -> t -> unit
 val merge_into : t -> t -> t
 val join : t -> Relations_type.Model.t
 val join_dropping_relations : t -> Relations_type.Model.t
 val exists : (Relations_type.Model.t -> bool) -> t -> bool
-val filter : (Relations_type.Model.t -> bool) -> t -> t
 val is_empty : t -> bool
-val singleton : Relations_type.Model.t -> t
-val cardinal : t -> int
-val empty : t
 val length : t -> int
+val empty : t
+val singleton : Relations_type.Model.t -> t
+val of_list : Relations_type.Model.t list -> t
+(*
+val filter : (Relations_type.Model.t -> bool) -> t -> t
 
+
+
+
+val length : t -> int
+val nth : t -> int -> Relations_type.Model.t
+*)
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"

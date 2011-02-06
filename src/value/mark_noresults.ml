@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,21 +26,26 @@ class mark_visitor = object(_self)
   inherit Cil.nopCilVisitor as super
 
   method vstmt s =
-    Db.Value.update_table (Kstmt s) Relations_type.Model.empty;
+    Db.Value.update_table (Kstmt s) Relations_type.Model.top;
     Cil.DoChildren
 
 end
 
+let should_memorize_function name =
+  not (Value_parameters.NoResultsAll.get()
+     || (Datatype.String.Set.mem
+          name.svar.vname (Value_parameters.NoResultsFunctions.get ())))
+
+
 let run () =
-  let names = (Value_parameters.NoResultsFunctions.get ()) in
-    if Value_parameters.NoResultsAll.get() ||
-      not (Cilutil.StringSet.is_empty names)
-    then
-      let visitor = new mark_visitor in
-	Globals.Functions.iter_on_fundecs
-	  (fun afundec -> 
-	     if Value_parameters.NoResultsAll.get() ||
-	       Cilutil.StringSet.mem afundec.svar.vname names
-	     then
-	       ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) afundec);)
-    
+  let names = Value_parameters.NoResultsFunctions.get () in
+  if Value_parameters.NoResultsAll.get() ||
+    not (Datatype.String.Set.is_empty names)
+  then
+    let visitor = new mark_visitor in
+    Globals.Functions.iter_on_fundecs
+      (fun afundec ->
+         if not (should_memorize_function afundec)
+	 then
+	  ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) afundec);)
+

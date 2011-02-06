@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,6 +43,8 @@ class type frama_c_visitor = object
     Db_types.rooted_code_annotation list visitAction
   method is_annot_before: bool
   method current_kf: kernel_function option
+  method set_current_kf: kernel_function -> unit
+  method reset_current_kf: unit -> unit
 end
 
 (** Extension to the cil visitor that is aware of kernel function
@@ -58,8 +60,8 @@ class generic_frama_c_visitor prj behavior: frama_c_visitor =
         let ca' = visitCilCodeAnnotation (vis:> cilVisitor) ca in
         if ca != ca' then User ca' else rca
     | AI (cause,ca) ->
-        let ca' = visitCilCodeAnnotation (vis:> cilVisitor) ca in
-        if ca != ca' then AI(cause,ca') else rca
+      let ca' = visitCilCodeAnnotation (vis:> cilVisitor) ca in
+      if ca != ca' then AI(cause,ca') else rca
   in
   let visitRooted_code_annotation (vis: frama_c_visitor) ca =
     doVisitList vis vis#frama_c_plain_copy
@@ -69,8 +71,8 @@ class generic_frama_c_visitor prj behavior: frama_c_visitor =
 
 object(self)
   inherit genericCilVisitor ~prj behavior as super
-    (* top of the stack indicates if we are before or after the current
-       statement. *)
+  (* top of the stack indicates if we are before or after the current
+     statement. *)
   val before = Stack.create ()
 
   val mutable current_kf = None
@@ -79,9 +81,9 @@ object(self)
 
   method plain_copy_visitor = (self#frama_c_plain_copy :> Cil.cilVisitor)
 
-  method private set_current_kf kf = current_kf <- Some kf
+  method set_current_kf kf = current_kf <- Some kf
 
-  method private reset_current_kf () = current_kf <- None
+  method reset_current_kf () = current_kf <- None
 
   method current_kf = current_kf
 
@@ -96,55 +98,85 @@ object(self)
     let abefore,aafter =
       List.fold_left
         (fun (b, a) x -> match x with
-	 | Before x -> x :: b, a
-	 | After x -> b, x :: a)
+	| Before x -> x :: b, a
+	| After x -> b, x :: a)
         ([], [])
 	annots
     in
     let compare_rooted x y =
       let id1 = match x with User ca | AI(_,ca) -> ca.annot_id in
       let id2 = match y with User ca | AI(_,ca) -> ca.annot_id in
-      if id1 < id2 then -1 else if id2 > id1 then 1 else 0
-    in
+      if id1 < id2 then -1 else if id2 < id1 then 1 else 0
     (* Annotations will be visited and more importantly added in the
        same order as they were in the original AST.  *)
+    in
     let abefore = List.sort compare_rooted abefore in
     let aafter = List.sort compare_rooted aafter in
     let make_children_annot vis =
       Stack.push true before;
-      let abefore' =
-        List.filter
-          (fun x -> not (Ast_info.is_trivial_rooted_assertion x))
-          (List.flatten
-             (List.map (visitRooted_code_annotation (self:>frama_c_visitor))
-                abefore))
+      let res_before, remove_before =
+        List.fold_left
+          (fun (res,remove) x ->
+            let curr_res, keep_curr =
+               (* only keeps non-trivial non-already existing annotations *)
+              List.fold_left
+                (fun (res,keep) y ->
+                  let current = x == y in
+                  let res =
+                    if
+                      (* if x is trivial, keep all annotations, including
+                         trivial ones. *)
+                      (not (Ast_info.is_trivial_rooted_assertion y)
+                       || (Ast_info.is_trivial_rooted_assertion x))
+                      &&
+                      (not current || Cil.is_copy_behavior vis#behavior)
+                    then y::res else res
+                  in (res, keep || current))
+                ([],false)
+                (visitRooted_code_annotation (vis:>frama_c_visitor) x)
+            in
+            (res @ curr_res, if keep_curr then remove else x::remove)
+          )
+          ([],[])
+          abefore
       in
       ignore (Stack.pop before); Stack.push false before;
       let aafter' =
-        List.filter (fun x -> not (Ast_info.is_trivial_rooted_assertion x))
-          (List.flatten
-             (List.map
-                (visitRooted_code_annotation (vis:>frama_c_visitor)) aafter))
+        List.flatten
+          (List.map
+             (visitRooted_code_annotation (vis:>frama_c_visitor)) aafter)
+      in
+      let res_after =
+        List.filter
+          (fun x -> not (Ast_info.is_trivial_rooted_assertion x) &&
+            not (List.memq x aafter))
+          aafter'
+      in
+      let remove_after =
+        List.filter (fun x -> not (List.memq x aafter')) aafter
       in
       ignore(Stack.pop before);
-      (abefore',aafter')
+      (res_before, res_after, remove_before @ remove_after)
     in
-    let change_stmt stmt (abefore',aafter') =
-      Queue.add
-        (fun () ->
-           (* Remove all annotations that are physically equal to
-              one of the annotations that existed before the visit.
-              They will be re-added if needed.
-
-	      Keep annotations that have been added by visiting the statement
-	      itself (by vstmt_aux) *)
-	   Annotations.filter
-	     ~reset:false
-	     (fun _ _ x -> not (List.memq x annots))
-	     stmt;
-	   List.iter (fun x -> Annotations.add stmt [ ] (Before x)) abefore';
-	   List.iter (fun x -> Annotations.add stmt [ ] (After x)) aafter')
-        self#get_filling_actions
+    let change_stmt stmt (res_before, res_after, remove) =
+      if (res_before <> [] || res_after <> [] || remove <> []) then begin
+(*        Format.printf "adding before: %d@\nadding after: %d@\nremoving %d@."
+          (List.length res_before)
+	  (List.length res_after)
+	  (List.length remove);*)
+	let add_annot = Annotations.add stmt [] in
+        Queue.add
+          (fun () ->
+            if remove <> [] then
+              Annotations.filter ~reset:true
+                (fun _ _ annot ->
+                  not
+		    (List.memq (Ast_info.before_after_content annot) remove))
+                stmt;
+	    List.iter (fun x -> add_annot (Before x)) (List.rev res_before);
+	    List.iter (fun x -> add_annot (After x)) res_after)
+          self#get_filling_actions
+      end
     in
     let post_action stmt = change_stmt stmt (make_children_annot self); stmt in
     let copy stmt =
@@ -152,13 +184,13 @@ object(self)
         (make_children_annot self#frama_c_plain_copy); stmt
     in
     match res with
-    | SkipChildren -> change_stmt stmt (abefore,aafter); res
+    | SkipChildren -> res
     | JustCopy -> JustCopyPost copy
     | JustCopyPost f -> JustCopyPost (f $ copy)
     | DoChildren -> ChangeDoChildrenPost (stmt, post_action)
     | ChangeTo _ | ChangeToPost _ -> res
     | ChangeDoChildrenPost (stmt,f) ->
-        ChangeDoChildrenPost (stmt, f $ post_action)
+      ChangeDoChildrenPost (stmt, f $ post_action)
 
   method vstmt_aux _ = DoChildren
   method vglob_aux _ = DoChildren
@@ -182,9 +214,9 @@ object(self)
 	  end
 	  else None
       | GFun _ ->
-          let spec' = visitCilFunspec (self:> cilVisitor)
-            (Extlib.the current_kf).spec in
-          Some spec'
+        let spec' = visitCilFunspec (self:> cilVisitor)
+          (Extlib.the current_kf).spec in
+        Some spec'
       | _ -> None
     in
     let get_spec () =
@@ -205,48 +237,48 @@ object(self)
             Queue.add (fun () -> Globals.Vars.add vi init)
               self#get_filling_actions
       | GVarDecl(_,v,l) when isFunctionType v.vtype ->
-          let spec = match spec with
+        let spec = match spec with
             None -> Cil.empty_funspec ()
           | Some spec -> spec
-          in
-          let orig_spec = (Extlib.the current_kf).spec in
-          if cond || (not (Cil.is_empty_funspec spec) &&
-                        not (Cil.is_empty_funspec orig_spec) &&
-                        spec != orig_spec)
-          then
-	    Queue.add
-              (fun () ->
-                 Globals.Functions.replace_by_declaration spec v l)
-	      self#get_filling_actions;
+        in
+        let orig_spec = (Extlib.the current_kf).spec in
+        if cond || (not (Cil.is_empty_funspec spec) &&
+                      not (Cil.is_empty_funspec orig_spec) &&
+                      spec != orig_spec)
+        then
+	  Queue.add
+            (fun () ->
+              Globals.Functions.replace_by_declaration spec v l)
+	    self#get_filling_actions;
 
       | GVarDecl (_,({vstorage=Extern} as v),_) ->
-          if cond then
-            Queue.add (fun () -> Globals.Vars.add_decl v)
-              self#get_filling_actions
+        if cond then
+          Queue.add (fun () -> Globals.Vars.add_decl v)
+            self#get_filling_actions
       | GFun(f,l) ->
-          if cond then begin
-            let spec =
-              match spec with
-                None -> Cil.empty_funspec ()
-              | Some spec -> spec
-            in
-	    Queue.add
-	      (fun () ->
-		 Kernel.debug
-		   "@[Adding definition %s (vid: %d) for project %s@\n\
+        if cond then begin
+          let spec =
+            match spec with
+              None -> Cil.empty_funspec ()
+            | Some spec -> spec
+          in
+	  Queue.add
+	    (fun () ->
+	      Kernel.debug
+		"@[Adding definition %s (vid: %d) for project %s@\n\
                       body: %a@\n@]@."
-		   f.svar.vname f.svar.vid
-                   (Project.name (Project.current()))
-                   !Ast_printer.d_block f.sbody
-                 ;
-	         if is_definition f.svar then
-		   failwith
-                     "trying to redefine an existing kernel function"
-	         else
-		   Globals.Functions.replace_by_definition spec f l
-              )
-	      self#get_filling_actions
-          end
+		f.svar.vname f.svar.vid
+                (Project.get_name (Project.current()))
+                !Ast_printer.d_block f.sbody
+              ;
+	      if is_definition f.svar then
+		failwith
+                  "trying to redefine an existing kernel function"
+	      else
+		Globals.Functions.replace_by_definition spec f l
+            )
+	    self#get_filling_actions
+        end
       | _ -> ()
     in
     let post_action g =
@@ -263,9 +295,9 @@ object(self)
     | JustCopyPost f -> JustCopyPost (f $ post_action)
     | DoChildren -> ChangeDoChildrenPost([g],post_action)
     | ChangeTo l ->
-        List.iter (fun g -> change_glob g None) l;
-        if has_kf then self#reset_current_kf();
-        res
+      List.iter (fun g -> change_glob g None) l;
+      if has_kf then self#reset_current_kf();
+      res
     | ChangeToPost (l,f) -> ChangeToPost (l, f $ post_action)
     | ChangeDoChildrenPost (g,f) -> ChangeDoChildrenPost (g, f $ post_action)
 end
@@ -287,7 +319,9 @@ let visitFramacGlobal vis g =
   vis#fill_global_tables; g'
 
 let visitFramacFunction vis f =
+  vis#set_current_kf (Globals.Functions.get f.svar);
   let f' = visitCilFunction (vis:>cilVisitor) f in
+  vis#reset_current_kf ();
   vis#fill_global_tables; f'
 
 let visitFramacExpr vis e =
@@ -344,6 +378,14 @@ let visitFramacCodeAnnotation vis c =
 
 let visitFramacAssigns vis a =
   let a' = visitCilAssigns (vis:>cilVisitor) a in
+  vis#fill_global_tables; a'
+
+let visitFramacFrom vis a =
+  let a' = visitCilFrom (vis:>cilVisitor) a in
+  vis#fill_global_tables; a'
+
+let visitFramacDeps vis a =
+  let a' = visitCilDeps (vis:>cilVisitor) a in
   vis#fill_global_tables; a'
 
 let visitFramacFunspec vis f =

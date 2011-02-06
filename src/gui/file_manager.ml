@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,7 @@ let add_files host_window =
     (Parameters.Files.get ())
     (fun filenames ->
        Parameters.Files.set filenames;
-       if Ast.is_computed () then 
+       if Ast.is_computed () then
 	 Gui_parameters.warning "Input files unchanged. Ignored."
        else begin
 	 File.init_from_cmdline ();
@@ -46,11 +46,11 @@ let save_in (host_window: Design.main_window_extension_points) parent name =
 
 (** Save a project file. Choose a filename *)
 let save_file_as (host_window: Design.main_window_extension_points) =
-  let dialog = 
+  let dialog =
     GWindow.file_chooser_dialog
       ~action:`SAVE
       ~title:"Save the current session"
-      ~parent:host_window#main_window () 
+      ~parent:host_window#main_window ()
   in
   (*dialog#set_do_overwrite_confirmation true ; only in later lablgtk2 *)
   dialog#add_button_stock `CANCEL `CANCEL ;
@@ -68,7 +68,7 @@ let save_file_as (host_window: Design.main_window_extension_points) =
 let save_file (host_window: Design.main_window_extension_points) =
   match !filename with
   | None -> save_file_as host_window
-  | Some f -> 
+  | Some f ->
       save_in host_window (host_window#main_window :> GWindow.window_skel) f
 
 (** Load a project file *)
@@ -91,33 +91,34 @@ let load_file (host_window: Design.main_window_extension_points) =
   dialog#destroy ()
 
 let insert (host_window: Design.main_window_extension_points) =
-  let _, filemenu = host_window#menu_manager#add_menu "_File" in
+  let menu_manager = host_window#menu_manager () in
+  let _, filemenu = menu_manager#add_menu "_File" in
   let file_items =
-    host_window#menu_manager#add_entries
+    menu_manager#add_entries
       filemenu
-      [ 
+      [
 	Menu_manager.ToolMenubar(`FILE, "Set C source files"),
 	(fun () -> add_files host_window);
-	Menu_manager.ToolMenubar(`SAVE, "Save session"), 
+	Menu_manager.ToolMenubar(`SAVE, "Save session"),
 	(fun () -> save_file host_window);
 	Menu_manager.ToolMenubar(`SAVE_AS, "Save session as"),
 	(fun () -> save_file_as host_window);
 	Menu_manager.ToolMenubar(`REVERT_TO_SAVED, "Load session"),
-	(fun () -> load_file host_window) 
+	(fun () -> load_file host_window)
       ]
   in
   file_items.(1)#add_accelerator `CONTROL 's';
   file_items.(3)#add_accelerator `CONTROL 'l';
   let stock = `QUIT in
   let quit_item =
-    host_window#menu_manager#add_entries
+    menu_manager#add_entries
       filemenu
       [ Menu_manager.Menubar(Some stock, "Exit Frama-C"), Cmdline.bail_out ]
   in
   quit_item.(0)#add_accelerator `CONTROL 'q';
   ignore
-    (host_window#menu_manager#add_entries
-       filemenu 
+    (menu_manager#add_entries
+       filemenu
        ~pos:0
        [ Menu_manager.Toolbar(stock, "Exit Frama-C"), Cmdline.bail_out ])
 

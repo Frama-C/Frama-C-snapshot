@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,11 +21,13 @@
 (**************************************************************************)
 
 module MemoryFootprint =
-  Computation.Ref
-    (struct include Datatype.Int let default () = 2 end)
+  State_builder.Ref
+    (Datatype.Int)
     (struct
        let name = "Buckx.MemoryFootprint"
        let dependencies = []
+       let kind = `Internal
+       let default () = 2
      end)
 
 module type WeakHashable =
@@ -86,4 +88,14 @@ end
 let () =
   let gc_params = Gc.get () in
   Gc.set
-    { gc_params with Gc.minor_heap_size = 2 lsl 18 };
+    { gc_params with
+      Gc.minor_heap_size = 1 lsl 19 ;
+      major_heap_increment = 1 lsl 21;
+      (* space_overhead = 40 ; max_overhead = 100 *)
+    };
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

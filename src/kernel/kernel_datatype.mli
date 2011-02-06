@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,14 +25,21 @@
 
 open Db_types
 
-module Rooted_Code_Annotation : 
-  Project.Datatype.S with type t = rooted_code_annotation
+module Rooted_code_annotation:
+  Datatype.S with type t = rooted_code_annotation
 
-module Before_After(A:Project.Datatype.S) : 
-  Project.Datatype.S with type t = A.t before_after
+module Before_after(A: Datatype.S) :
+  Datatype.S with type t = A.t before_after
 
-module Rooted_Code_Annotation_Before_After : 
-  Project.Datatype.S with type t = rooted_code_annotation before_after
+module Rooted_code_annotation_before_after:
+  Datatype.S with type t = rooted_code_annotation before_after
+
+module Kernel_function: sig
+  include Datatype.S_with_collections with type t = kernel_function
+  val id: t -> int
+end
+
+module Localisation: Datatype.S with type t = localisation
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,7 @@ module Make
 	 (** assume is >= 0 and unique for each vertices of the graph *)
        val name: t -> string
        val attributes: t -> Graph.Graphviz.DotAttributes.vertex list
+       val entry_point: unit -> t
      end
      val iter_vertex : (V.t -> unit) -> t -> unit
      val iter_succ : (V.t -> unit) -> t -> V.t -> unit
@@ -46,44 +47,47 @@ sig
 
   module CallG: sig
     include Graph.Sig.G with type V.t = vertex and type E.label = edge
-    type tt = t
-    module Datatype: Project.Datatype.S with type t = tt
+    module Datatype: Datatype.S with type t = t
   end
 
-  val compute: G.t -> Cilutil.StringSet.t -> CallG.t
+  val compute: G.t -> Datatype.String.Set.t -> CallG.t
   val output_graph: out_channel -> CallG.t -> unit
+
+  val entry_point: unit -> CallG.V.t
+  (** [compute] must be called before
+      @since Carbon-20101201 *)
 
   module TP: Graph.Graphviz.GraphWithDotAttrs
     with type t = CallG.t
     and type V.t = vertex
     and type E.t = CallG.E.t
-    (** @since Beryllium-20090902 *)
+(** @since Beryllium-20090902 *)
 
 (*
-  (** Graph of services *)
+(** Graph of services *)
 
   module SS: Set.S with type elt = G.V.t
   type service_vertex = private
-      { service: int; mutable root: G.V.t; mutable nodes: SS.t }
-      (** @since Beryllium-20090901 *)
+  { service: int; mutable root: G.V.t; mutable nodes: SS.t }
+(** @since Beryllium-20090901 *)
 
-  (** @since Beryllium-20090901 *)
+(** @since Beryllium-20090901 *)
   module SG : sig
-    include Graph.Sig.G with type V.t = service_vertex
-    type tt = t
-    module Datatype: Project.Datatype.S with type t = tt
+  include Graph.Sig.G with type V.t = service_vertex
+  type tt = t
+  module Datatype: Project.Datatype.S with type t = tt
   end
 
   val compute_services: CallG.t -> SG.t
-      (** @since Beryllium-20090901 *)
+(** @since Beryllium-20090901 *)
 
   val output_services: out_channel -> SG.t -> unit
-      (** @since Beryllium-20090901 *)
-*)
+(** @since Beryllium-20090901 *)
+ *)
 end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

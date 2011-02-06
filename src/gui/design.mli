@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,7 +49,7 @@ class type main_window_extension_points = object
   method toplevel : main_window_extension_points
     (** The whole GUI aka self *)
 
-  method menu_manager: Menu_manager.menu_manager
+  method menu_manager: unit -> Menu_manager.menu_manager
     (** The object managing the menubar and the toolbar.
 	@since Boron-20100401 *)
 
@@ -63,8 +63,13 @@ class type main_window_extension_points = object
     (** The main window *)
 
   method annot_window : GText.view
-    (** The information pannel.
-        The text is cleared whenever the selection is changed. *)
+    (** The information panel.
+        The text is automatically cleared whenever the selection is changed.
+	You should not directly use the buffer contained in the annot_window
+	to add text. Use the method [pretty_information].
+    *)
+  method pretty_information : 'a.  ('a, Format.formatter, unit) format -> 'a
+    (** Pretty print a message in the [annot_window]. *)
 
   method lower_notebook : GPack.notebook
     (** The lower notebook with messages tabs *)
@@ -78,13 +83,21 @@ class type main_window_extension_points = object
   method display_globals : global list -> unit
     (** Display globals in the general [source_view]. *)
 
+  method reactive_buffer: reactive_buffer option
+  (** The buffer containing the AST.
+      @since Carbon-20101201 *)
+
   (** {4 Original source viewer}  *)
 
   method original_source_viewer : Source_manager.t
     (** The multi-tab source file display widget. *)
 
-  method view_original : location -> unit
-    (** Display the given [location] in the [original_source_viewer] *)
+
+  method view_stmt : stmt -> unit
+    (** Display the given [stmt] in the [source_viewer] and in the
+        [original_source_viewer]
+      @since Carbon-20101201 *)
+
 
   method view_original_stmt : stmt -> location
     (** Display the given [stmt] in the [original_source_viewer] *)

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -24,16 +24,15 @@ m4_ifdef([FRAMAC_MAIN_AUTOCONF],,
          [m4_ifdef([plugin_file],
              [AC_INIT(plugin_file)],
              [AC_INIT(aclocal.m4)])
-             m4_ifndef([FRAMAC_SHARE],
-               [m4_define([FRAMAC_SHARE_ENV],
-               [m4_normalize(m4_esyscmd([echo $FRAMAC_SHARE]))])
-                 m4_define([FRAMAC_SHARE],
-               [m4_ifval(FRAMAC_SHARE_ENV,[FRAMAC_SHARE_ENV],
-                 [m4_esyscmd(frama-c -print-path)])])
-               ])
-             AC_CHECK_FILE([FRAMAC_SHARE/known_plugins.ac],
-                           [. FRAMAC_SHARE/known_plugins.ac])
-         ])
+          [KNOWN_PLUGINS=$(frama-c -help | \
+            sed -e '0,/^\*\*\*\*\*/ d' \
+                -e 's/\([^ ][^ ]*\( [^ ][^ ]*\)*\)  .*/\1/' \
+                -e '/^ /d' -e '/^$/d' | \
+            tr "a-z- " "A-Z__")
+          for plugin in ${KNOWN_PLUGINS}; do
+            export $(echo ENABLE_$plugin)=yes
+          done]
+          AC_CHECK_PROG(ENABLE_GUI,[frama-c-gui],[yes],[no])])
 
 m4_define([PLUGIN_RELATIVE_PATH],
 	  [m4_ifdef([plugin_prefix],plugin_prefix/$1,$1)])
@@ -43,7 +42,7 @@ upper() {
 }
 
 lower() {
-  echo "$1" | tr "A-Z_" "a-z-"
+  echo "$1" | tr "A-Z" "a-z"
 }
 
 m4_define([tovarname],[m4_esyscmd(printf "%s" $1 | tr "a-z-" "A-Z_")])
@@ -149,9 +148,9 @@ m4_if("PLUGIN_DYNAMIC","yes",
    # static plug-in
    [[DYNAMIC_]UP=no])
 
+AC_SUBST([ENABLE_]UP)
+AC_SUBST([DYNAMIC_]UP)
 echo "PLUGIN_NAME... $ENABLE"
-AC_SUBST(ENABLE_UP)
-AC_SUBST(DYNAMIC_UP)
 m4_undefine([PLUGIN_NAME])
 m4_undefine([PLUGIN_FILE])
 m4_undefine([PLUGIN_MSG])
@@ -197,25 +196,30 @@ m4_define([configure_library],
     if test -n "require" -o -n "use" -o "$force_check" = "yes"; then
       if test "$has" = "no"; then
         AC_MSG_WARN([msg])
+        reason="PROG missing"
         $5
         for p in require; do
-          ep=ENABLE_`upper "$p"`
+	  up=`upper "$p"`
+          ep=ENABLE_$up
           eval enable_p=\$$ep
           if test "$enable_p" != "no"; then
             fp=FORCE_`upper "$p"`
 	    if eval test "\$$fp" = "yes"; then
-	      AC_MSG_ERROR([$p requested but PROG missing.])
+	      AC_MSG_ERROR([$p requested but $reason.])
 	    fi
 	    eval $ep="no\ \(see\ warning\ about\ PROG\)"
-            AC_MSG_WARN([$p disabled because PROG missing.])
+            AC_MSG_WARN([$p disabled because $reason.])
+	    eval INFO_$up=\", $reason\"
           fi
         done
         for p in use; do
-          ep=ENABLE_`upper "$p"`
+          up=`upper "$p"`
+          ep=ENABLE_$up
           eval eep="\$$ep"
 	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
 	    eval $ep="partial\ \(see\ warning\ about\ PROG\)"
-            AC_MSG_WARN([$p partially enabled because PROG missing.])
+            AC_MSG_WARN([$p partially enabled because $reason.])
+	    eval INFO_$up=\", $reason\"
           fi
         done
       fi
@@ -261,24 +265,29 @@ AC_CHECK_PROG(has,$file,yes,no)
   if test -n "require" -o -n "use" -o "$force_check" = "yes"; then
     if test "$has" = "no"; then
       AC_MSG_WARN([msg])
+      reason="PROG missing"
       for p in require; do
-        ep=ENABLE_`upper "$p"`
+        up=`upper "$p"`
+        ep=ENABLE_$up
         eval enable_p=\$$ep
         if test "$enable_p" != "no"; then
           fp=FORCE_`upper "$p"`
 	  if eval test "\$$fp" = "yes"; then
-	    AC_MSG_ERROR([$p requested but PROG missing.])
+	    AC_MSG_ERROR([$p requested but $reason.])
 	  fi
 	  eval $ep="no\ \(see\ warning\ about\ PROG\)"
-	  AC_MSG_WARN([$p disabled because PROG missing.])
+	  AC_MSG_WARN([$p disabled because $reason.])
+	  eval INFO_$up=\", $reason\"
         fi
       done
       for p in use; do
-        ep=ENABLE_`upper "$p"`
+        up=`upper "$p"`
+        ep=ENABLE_$up
         eval eep="\$$ep"
 	if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
 	  eval $ep="partial\ \(see\ warning\ about\ PROG\)"
-	  AC_MSG_WARN([$p partially enabled because PROG missing.])
+	  AC_MSG_WARN([$p partially enabled because $reason.])
+	  eval INFO_$up=\", $reason\"
         fi
       done
     else
@@ -395,6 +404,7 @@ check_and_propagate () {
 	  AC_MSG_WARN([$lp only partially enable because $reason.])
         fi
       fi
+      eval INFO_$up=\", $reason\"
     fi
   done
   # for each users
@@ -418,6 +428,7 @@ check_and_propagate () {
       if test "$reason" != "$3"; then
         AC_MSG_WARN([$lp only partially enabled because $reason.])
       fi
+      eval INFO_$up=\", $reason\"
     fi
   done
 }
@@ -455,6 +466,7 @@ check_required_used () {
       eval $m=\"no\ \($reason\)\"
       p_name=`lower $1`
       AC_MSG_WARN([$p_name disabled because $reason.])
+      eval INFO_$1=\", $reason\"
     else
       for p in $used; do
         up=`upper $p`
@@ -470,6 +482,7 @@ check_required_used () {
         eval $m=\"partial\ \($reason\)\"
         p_name=`lower $1`
         AC_MSG_WARN([$p_name partially enabled because $reason.])
+        eval INFO_$1=\", $reason\"
       fi
     fi
 

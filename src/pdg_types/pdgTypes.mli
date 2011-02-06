@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,10 +22,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pdgTypes.mli,v 1.44 2009-01-23 13:41:47 uid526 Exp $*)
-
 (** This module defines the types that are used to store the PDG of a
-    function. 
+    function.
     @plugin development guide *)
 
 exception Pdg_Internal_Error of string
@@ -58,7 +56,7 @@ module Dpd :
 
     val compare : t -> t -> int
     val equal : t -> t -> bool
-      
+
     val combine : t -> t -> t
     val add : t -> td -> t
     val inter : t -> t -> t
@@ -68,23 +66,17 @@ module Dpd :
   end
 
 (** A node of the PDG : includes some information to know where it comes
-    from. *) 
-module Node :
-  sig
-    type t
-    val compare : t -> t -> int
-    val equal : t -> t -> bool
-    val hash : t -> int
-    val elem_id : t -> int
-    val elem_key : t -> PdgIndex.Key.t
-    val stmt : t ->  Cil_types.stmt option
-    val equivalent : t -> PdgIndex.Key.t -> bool
-    val pretty : Format.formatter -> t -> unit
-    val pretty_list : Format.formatter -> t list -> unit
-    val pretty_with_part : 
-          Format.formatter -> (t * Locations.Zone.t option) -> unit
-    module Datatype: Project.Datatype.S with type t = t
-  end
+    from. *)
+module Node : sig
+  include Datatype.S
+  val elem_id : t -> int
+  val elem_key : t -> PdgIndex.Key.t
+  val stmt : t ->  Cil_types.stmt option
+  val equivalent : t -> PdgIndex.Key.t -> bool
+  val pretty_list : Format.formatter -> t list -> unit
+  val pretty_with_part :
+    Format.formatter -> (t * Locations.Zone.t option) -> unit
+end
 
 module NodeSet : sig
   include Set.S with type elt = Node.t
@@ -100,7 +92,7 @@ module G :
     module V : sig type t = Node.t end
     module E :
       sig
-        type t 
+        type t
         type label
         val src : t -> Node.t
         val dst : t -> Node.t
@@ -110,7 +102,7 @@ module G :
     val create : unit -> t
 
     val add_elem : t -> PdgIndex.Key.t -> Node.t
-    val add_dpd : t -> Node.t -> 
+    val add_dpd : t -> Node.t ->
       Dpd.td -> Locations.Zone.t option -> Node.t -> unit
     (* val replace_dpd : t -> E.t -> Dpd.t -> unit *)
     (* val find_dpd : t -> Node.t -> Node.t -> E.t * Dpd.t *)
@@ -136,74 +128,63 @@ module NodeSetLattice : sig
   val defaultall : Base.t -> t
 end
 
-module LocInfo :  
+module LocInfo :
   Lmap_bitwise.Location_map_bitwise with type y = NodeSetLattice.t
 
 (** a [DataState] object is associated with a program point
  * and provides a mapping between a location and some nodes in the PDG
- * that are used to compute the location value at that point. *) 
+ * that are used to compute the location value at that point. *)
 type t_data_state =
   { loc_info : LocInfo.t ; under_outputs : Locations.Zone.t }
 
-module Pdg :
-  sig
+module Pdg : sig
+
+  exception Top
     (** can be raised by most of the functions when called with a Top PDG.
-        Top means that we were not abled to compute the PDG for this 
+        Top means that we were not abled to compute the PDG for this
         function. *)
-    exception Top
 
-    exception Bottom
+  exception Bottom
 
-    type t
-    module Datatype : Project.Datatype.S with type t = t
-      (** @plugin development guide *)
+  include Datatype.S
+  (** @plugin development guide *)
 
-    (** @param name of the function associated with that PDG *)
-    val top : Kernel_function.t -> t
-    val bottom : Kernel_function.t -> t
+  (** @param name of the function associated with that PDG *)
+  val top : Kernel_function.t -> t
+  val bottom : Kernel_function.t -> t
 
-    val is_top : t -> bool
-    val is_bottom : t -> bool
+  val is_top : t -> bool
+  val is_bottom : t -> bool
 
-    val get_kf : t -> Kernel_function.t
+  val get_kf : t -> Kernel_function.t
 
-    val iter_nodes : (Node.t -> unit) -> t -> unit
+  val iter_nodes : (Node.t -> unit) -> t -> unit
 
-    val fold_call_nodes : 
-        ('a -> Node.t -> 'a) -> 'a -> t -> Cil_types.stmt -> 'a
+  val fold_call_nodes :
+    ('a -> Node.t -> 'a) -> 'a -> t -> Cil_types.stmt -> 'a
 
-    type dpd_info = (Node.t * Locations.Zone.t option)
+  type dpd_info = (Node.t * Locations.Zone.t option)
 
-    val get_all_direct_dpds : t -> Node.t -> dpd_info list
-    val get_x_direct_dpds : Dpd.td -> t -> Node.t -> dpd_info list
+  val get_all_direct_dpds : t -> Node.t -> dpd_info list
+  val get_x_direct_dpds : Dpd.td -> t -> Node.t -> dpd_info list
 
-    val get_all_direct_codpds : t -> Node.t -> dpd_info list
-    val get_x_direct_codpds : Dpd.td -> t -> Node.t -> dpd_info list
+  val get_all_direct_codpds : t -> Node.t -> dpd_info list
+  val get_x_direct_codpds : Dpd.td -> t -> Node.t -> dpd_info list
 
-    (* val get_all_direct_edges : t -> Node.t -> 
-      (Dpd.t * Locations.Zone.t option * Node.t) list U*)
-    val pretty : ?bw:bool -> Format.formatter -> t -> unit
-    val pretty_graph : ?bw:bool -> Format.formatter -> G.t -> unit
-    val pretty_node: Format.formatter -> Node.t -> unit
+  (* val get_all_direct_edges : t -> Node.t ->
+     (Dpd.t * Locations.Zone.t option * Node.t) list U*)
+  val pretty_bw : ?bw:bool -> Format.formatter -> t -> unit
+  val pretty_graph : ?bw:bool -> Format.formatter -> G.t -> unit
+  val pretty_node: Format.formatter -> Node.t -> unit
 
-    type t_index = (Node.t, unit) PdgIndex.FctIndex.t
-    val get_index : t -> t_index
+  type t_index = (Node.t, unit) PdgIndex.FctIndex.t
+  val get_index : t -> t_index
 
-    (** [make fundec graph states index] *)
-    val make :
-      Kernel_function.t -> G.t -> t_data_state Inthash.t -> t_index -> t
-    val get_states : t -> t_data_state Inthash.t 
+  (** [make fundec graph states index] *)
+  val make :
+    Kernel_function.t -> G.t -> t_data_state Inthash.t -> t_index -> t
+  val get_states : t -> t_data_state Inthash.t
 
-    val build_dot: string -> t -> unit
-  end
+  val build_dot: string -> t -> unit
 
-
-(*
-module InternalPdg :
-  sig
-    type t = Pdg.t
-
-    (** Be careful: this function shouldn't be used except by PDG itself ! *)
-    val get_graph : t -> G.t
-  end
-*)
+end

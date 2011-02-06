@@ -27,8 +27,8 @@ void fill(int* a, int n, int val)
 {
   /*@
   loop invariant 0 <= i <= n;
-  loop   variant n-i;
   loop invariant \forall int k; 0 <= k < i ==> a[k] == val;
+  loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      a[i] = val;

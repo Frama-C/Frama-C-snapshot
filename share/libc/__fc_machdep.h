@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -86,6 +86,6 @@
 
 #endif
 
-#define __umax(oct) (((1 << (oct*__CHAR_BIT))-1))
-#define __smin(oct) (-(1 << (oct*__CHAR_BIT - 1)))
-#define __smax(oct) ((1 << (oct*__CHAR_BIT - 1))-1)
+#define __umax(oct,TYP) ((((1##TYP << (oct*__CHAR_BIT - 1))*2)-1))
+#define __smin(oct,TYP) (-(1##TYP << (oct*__CHAR_BIT - 1)))
+#define __smax(oct,TYP) ((1##TYP << (oct*__CHAR_BIT - 1))-1)

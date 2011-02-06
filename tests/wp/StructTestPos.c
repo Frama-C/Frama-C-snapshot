@@ -34,7 +34,7 @@ struct S s;
 
 /*@ requires s.a == 5; 
     assigns s.a; 
-    ensures \result == {s for a = (int)4 }; 
+    ensures \result == {s \with .a = (int)4 }; 
 */
 struct S ret_struct(void)
 {

@@ -48,7 +48,8 @@
 open Cil_types
 open Pretty_utils
 
-val docHash : ?sep:sformat -> ('a,'b) formatter2 -> (('a, 'b) Hashtbl.t) formatter
+val docHash :
+  ?sep:sformat -> ('a,'b) formatter2 -> (('a, 'b) Hashtbl.t) formatter
 
 val hash_to_list: ('a, 'b) Hashtbl.t -> ('a * 'b) list
 
@@ -63,9 +64,6 @@ val swap: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 (** Copy a hash table into another *)
 val hash_copy_into: ('a, 'b) Hashtbl.t -> ('a, 'b) Hashtbl.t -> unit
 
-(** First, a few utility functions I wish were in the standard prelude *)
-
-val anticompare: 'a -> 'a -> int
 
 val list_drop : int -> 'a list -> 'a list
 val list_droptail : int -> 'a list -> 'a list
@@ -110,57 +108,23 @@ val filterNoCopy: ('a -> bool) -> 'a list -> 'a list
 (** Join a list of strings *)
 val joinStrings: string -> string list -> string
 
-
-(**** Now in growArray.mli
-
-(** Growable arrays *)
-type 'a growArrayFill =
-    Elem of 'a
-  | Susp of (int -> 'a)
-
-type 'a growArray = {
-            gaFill: 'a growArrayFill;
-            (** Stuff to use to fill in the array as it grows *)
-
-    mutable gaMaxInitIndex: int;
-            (** Maximum index that was written to. -1 if no writes have
-             * been made.  *)
-
-    mutable gaData: 'a array;
-  }
-
-val newGrowArray: int -> 'a growArrayFill -> 'a growArray
-(** [newGrowArray initsz fillhow] *)
-
-val getReg: 'a growArray -> int -> 'a
-val setReg: 'a growArray -> int -> 'a -> unit
-val copyGrowArray: 'a growArray -> 'a growArray
-val deepCopyGrowArray: 'a growArray -> ('a -> 'a) -> 'a growArray
-
-
-val growArray_iteri:  (int -> 'a -> unit) -> 'a growArray -> unit
-(** Iterate over the initialized elements of the array *)
-
-val growArray_foldl: ('acc -> 'a -> 'acc) -> 'acc ->'a growArray -> 'acc
-(** Fold left over the initialized elements of the array *)
-
-****)
-
 (** hasPrefix prefix str returns true with str starts with prefix *)
 val hasPrefix: string -> string -> bool
 
-
-(** Given a ref cell, produce a thunk that later restores it to its current value *)
+(** Given a ref cell, produce a thunk that later restores it to its current
+    value *)
 val restoreRef: ?deepCopy:('a -> 'a) -> 'a ref -> unit -> unit
 
-(** Given a hash table, produce a thunk that later restores it to its current value *)
+(** Given a hash table, produce a thunk that later restores it to its
+    current value *)
 val restoreHash: ?deepCopy:('b -> 'b) -> ('a, 'b) Hashtbl.t -> unit -> unit
 
 (** Given an integer hash table, produce a thunk that later restores it to
- * its current value *)
+    its current value. *)
 val restoreIntHash: ?deepCopy:('b -> 'b) -> 'b Inthash.t -> unit -> unit
 
-(** Given an array, produce a thunk that later restores it to its current value *)
+(** Given an array, produce a thunk that later restores it to its current
+    value. *)
 val restoreArray: ?deepCopy:('a -> 'a) -> 'a array -> unit -> unit
 
 
@@ -183,9 +147,6 @@ val tryFinally:
                           * used when an exception is thrown *)
     'a -> 'b
 
-
-
-
 (** Get the value of an option.  Raises Failure if None *)
 val valOf : 'a option -> 'a
 
@@ -206,50 +167,6 @@ val opt_iter: ('a -> unit) -> 'a option -> unit
  *)
 val fold_for : init:'a -> lo:int -> hi:int -> (int -> 'a -> 'a) -> 'a
 
-(************************************************************************)
-
-module type STACK = sig
-  type 'a t
-  (** The type of stacks containing elements of type ['a]. *)
-
-  exception Empty
-    (** Raised when {!Cilutil.STACK.pop} or {!Cilutil.STACK.top} is applied to
-	an  empty stack. *)
-
-  val create : unit -> 'a t
-
-
-  val push : 'a -> 'a t -> unit
-  (** [push x s] adds the element [x] at the top of stack [s]. *)
-
-  val pop : 'a t -> 'a
-  (** [pop s] removes and returns the topmost element in stack [s],
-     or raises [Empty] if the stack is empty. *)
-
-  val top : 'a t -> 'a
-  (** [top s] returns the topmost element in stack [s],
-     or raises [Empty] if the stack is empty. *)
-
-  val clear : 'a t -> unit
-  (** Discard all elements from a stack. *)
-
-  val copy : 'a t -> 'a t
-  (** Return a copy of the given stack. *)
-
-  val is_empty : 'a t -> bool
-  (** Return [true] if the given stack is empty, [false] otherwise. *)
-
-  val length : 'a t -> int
-  (** Return the number of elements in a stack. *)
-
-  val iter : ('a -> unit) -> 'a t -> unit
-  (** [iter f s] applies [f] in turn to all elements of [s],
-     from the element at the top of the stack to the element at the
-     bottom of the stack. The stack itself is unchanged. *)
-end
-
-module Stack : STACK
-
 (************************************************************************
    Configuration
 ************************************************************************)
@@ -268,15 +185,14 @@ val loadConfiguration: string -> unit
 (** Save the configuration in a file. Overwrites the previous values *)
 val saveConfiguration: string -> unit
 
-
 (** Clear all configuration data *)
 val clearConfiguration: unit -> unit
 
 (** Set a configuration element, with a key. Overwrites the previous values *)
 val setConfiguration: string -> configData -> unit
 
-(** Find a configuration elements, given a key. Raises Not_found if it canont
- * find it *)
+(** Find a configuration elements, given a key. Raises Not_found if it cannot
+    * find it *)
 val findConfiguration: string -> configData
 
 (** Like findConfiguration but extracts the integer *)
@@ -286,6 +202,8 @@ val findConfigurationInt: string -> int
  * the given function. Otherwise, does nothing *)
 val useConfigurationInt: string -> (int -> unit) -> unit
 
+val findConfigurationFloat: string -> float
+val useConfigurationFloat: string -> (float -> unit) -> unit
 
 val findConfigurationBool: string -> bool
 val useConfigurationBool: string -> (bool -> unit) -> unit
@@ -364,26 +282,6 @@ end
    pointers. *)
 val equals: 'a -> 'a -> bool
 
-(** Represents a location that cannot be determined *)
-val locUnknown: location
-
-(** Return the location of an instruction *)
-val get_instrLoc: instr -> location
-
-(** Return the location of a global, or locUnknown *)
-val get_globalLoc: global -> location
-
-(** Return the location of a statement, or locUnknown *)
-val get_stmtLoc: stmtkind -> location
-
-(** Return the location of a code annotation, or None *)
-val get_code_annotationLoc: code_annotation -> location option
-
-module StringMap : Map.S with type key = String.t
-module StringSet : sig include Set.S with type elt = String.t
-    val pretty : Format.formatter ->  t -> unit
-end
-
 module type Mapl=
 sig
     type key
@@ -431,7 +329,7 @@ sig
        replaced by the result of the application of [f] to [a].
        The bindings are passed to [f] in increasing order
        with respect to the ordering over the type of the keys. *)
- 
+
 
     val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
     (** Same as {!Map.S.map}, but the function receives as arguments both the
@@ -464,170 +362,13 @@ module IntMapl : sig
   val find : key -> 'a map -> 'a list
 end
 
-module Instr : sig
-  type t = kinstr
-  val compare: t -> t -> int
-  val equal: t -> t -> bool
-  val hash: t -> int
-  val pretty:  Format.formatter -> t -> unit
-  val loc: t -> location
-end
-
-module InstrMapl : Mapl with type key = kinstr
-module InstrHashtbl : Hashtbl.S with type key = kinstr
-
-(** [Map] indexed by [Cil_types.stmt] with a customizable pretty printer *)
-module StmtMap :
-sig include Map.S with type key = Cil_types.stmt
-    val pretty : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
-    val descr: Unmarshal.t -> Unmarshal.t
-end
-
-(** [Set] of [Cil_types.stmt] with a pretty printer.
-    @plugin development guide *)
-module StmtSet : sig 
-  include Set.S with type elt = Cil_types.stmt
-  val pretty : Format.formatter ->  t -> unit
-  val descr: Unmarshal.t
-end
-
-module StmtComparable : sig
-  include Graph.Sig.COMPARABLE with type t = Cil_types.stmt
-  val descr: Unmarshal.t
-end
-
-(** [Hashtbl] of [Cil_types.stmt] with a pretty printer.
-    @plugin development guide *)
-module StmtHashtbl : sig 
-  include Hashtbl.S with type key = Cil_types.stmt
-  val pretty : Format.formatter ->  'a t  -> unit
-end
-
-module KinstrComparable : Graph.Sig.COMPARABLE with type t = Cil_types.kinstr
-
-module VarinfoComparable : sig
-  type t = varinfo
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-module VarinfoHashtbl : Hashtbl.S with type key = Cil_types.varinfo
-module VarinfoMap : Map.S with type key = Cil_types.varinfo
-module VarinfoSet : Set.S with type elt = Cil_types.varinfo
-
-(** For comparison of [Cil_types.enuminfo]. 
-     @since Boron-20100401 *)
-module EnuminfoComparable : sig
-  type t = enuminfo
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-
-(** [Hashtbl] of [Cil_types.enuminfo]. 
-     @since Boron-20100401 *)
-module EnuminfoHashtbl : Hashtbl.S with type key = Cil_types.enuminfo
-
-(** [Map] of [Cil_types.enuminfo]. 
-    @since Boron-20100401 *)
-module EnuminfoMap : Map.S with type key = Cil_types.enuminfo
-
-(** [Set] of [Cil_types.enuminfo]. 
-    @since Boron-20100401 *)
-module EnuminfoSet : Set.S with type elt = Cil_types.enuminfo
-
-(** For comparison of [Cil_types.enuminfo]. 
-     @since Boron-20100401 *)
-module EnumitemComparable : sig
-  type t = enumitem
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-
-(** For comparison of [Cil_types.typeinfo]. 
-     @since Boron-20100401 *)
-module CompinfoComparable : sig
-  type t = compinfo
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-
-(** For comparison of [Cil_types.typeinfo]. 
-     @since Boron-20100401 *)
-module TypeinfoComparable : sig
-  type t = typeinfo
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-
-(** [Hashtbl] of [Cil_types.typeinfo]. 
-     @since Boron-20100401 *)
-module TypeinfoHashtbl : Hashtbl.S with type key = Cil_types.typeinfo
-
-(** [Map] of [Cil_types.typeinfo]. 
-    @since Boron-20100401 *)
-module TypeinfoMap : Map.S with type key = Cil_types.typeinfo
-
-(** [Set] of [Cil_types.typeinfo]. 
-    @since Boron-20100401 *)
-module TypeinfoSet : Set.S with type elt = Cil_types.typeinfo
-
-module LogicVarComparable : sig
-  type t = logic_var
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-
-module LogicVarHashtbl : Hashtbl.S with type key = Cil_types.logic_var
-module LogicVarMap: Map.S with type key = Cil_types.logic_var
-module LogicVarSet: Set.S with type elt = Cil_types.logic_var
-
-
-module FieldinfoComparable : sig
-  type t = fieldinfo
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-module FieldinfoHashtbl : Hashtbl.S with type key = Cil_types.fieldinfo
-module FieldinfoSet : Set.S with type elt = Cil_types.fieldinfo
-module FieldinfoMap : Map.S with type key = Cil_types.fieldinfo
-
-val pTypeSig : (Cil_types.typ -> Cil_types.typsig) ref
-
-module TypeComparable : sig
-  type t = typ
-  val compare: t -> t -> int
-  val hash: t -> int
-  val equal: t -> t -> bool
-end
-
-module TypeHashtbl : Hashtbl.S with type key = Cil_types.typ
-module TypeSet : Set.S with type elt = Cil_types.typ
-
-module LvalComparable: sig
-  type t = lval
-  val compare: t -> t -> int
-(* uneeded and not implemented for now *)
-(*  val hash: t -> int
-  val equal: t -> t -> bool
-*)
-end
-
-(* module LvalHashtbl: Hashtbl.S with type key = Cil_types.lval *)
-module LvalSet: Set.S with type elt = Cil_types.lval
-
 val printStages : bool ref
 
 (* pretty-printing *)
 
 open Format
 
-(** Deprecated: see pretty_list instead *)
+(** @deprecated Boron-20100401 see pretty_list instead *)
 val print_list :
   (formatter -> unit -> unit) ->
   (formatter -> 'a -> unit) -> formatter -> 'a list -> unit
@@ -669,18 +410,16 @@ val nl_sep: formatter -> unit
 
 (** Environment for placeholders in term to exp translation *)
 type opaque_term_env = {
-  term_lhosts: term_lhost VarinfoMap.t;
-  terms: term VarinfoMap.t;
-  vars: logic_var VarinfoMap.t;
+  term_lhosts: term_lhost Cil_datatype.Varinfo.Map.t;
+  terms: term Cil_datatype.Varinfo.Map.t;
+  vars: logic_var Cil_datatype.Varinfo.Map.t;
 }
 
 (** Environment for placeholders in exp to term translation *)
-type opaque_exp_env = {
-  exps: exp VarinfoMap.t;
-}
+type opaque_exp_env = { exps: exp Cil_datatype.Varinfo.Map.t }
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

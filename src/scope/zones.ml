@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,10 +22,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cilutil
-open Cil_types
-
 module R = Datascope.R
+module IH = Inthash
+
+open Cil_datatype
+open Cil_types
 
 module Data = struct
   type t = Locations.Zone.t
@@ -36,21 +37,20 @@ module Data = struct
   let diff = Locations.Zone.diff (* over-approx *)
   let pretty fmt z = Format.fprintf fmt "@[<h 1>%a@]" Locations.Zone.pretty z
 
-  let var_zone v = Locations.valid_enumerate_bits (Locations.loc_of_varinfo v)
   let exp_zone stmt exp = !Db.From.find_deps_no_transitivity (Kstmt stmt) exp
 end
 
 module Ctx = struct
-  type t = Data.t Inthash.t
-  let create = Inthash.create
-  let find = Inthash.find
+  type t = Data.t IH.t
+  let create = IH.create
+  let find = IH.find
   let add ctx k d =
     let d =
       try let old_d = find ctx k in Data.merge old_d d with Not_found -> d
-    in Inthash.replace ctx k d
-  (* let mem = Inthash.mem : useless because Ctx has to be initialized to bot *)
+    in IH.replace ctx k d
+  (* let mem = IH.mem : useless because Ctx has to be initialized to bot *)
   let pretty fmt infos =
-    Inthash.iter
+    IH.iter
       (fun k d -> Format.fprintf fmt "Stmt:%d -> %a@\n" k Data.pretty d)
       infos
 end
@@ -108,7 +108,7 @@ let process_froms data_after froms =
 let process_call_args data called_kf stmt args =
   let param_list = Kernel_function.get_formals called_kf in
   let asgn_arg_to_param data param arg =
-    let param_zone = Data.var_zone param in
+    let param_zone = Locations.zone_of_varinfo param in
     let arg_dpds = Data.exp_zone stmt arg in
     let exact = true in (* param is always a variable so asgn is exact *)
     let _used, data =
@@ -150,15 +150,17 @@ let process_call data_after stmt lvaloption funcexp args =
         (* notice that we use the same old data for each possible call *)
         (process_one_call data_after stmt lvaloption (!Db.From.get kf))::acc
       in
-      let l = Kernel_function.Set.fold do_call called_functions []
-      in (* in l, we have one result for each possible function called *)
-        List.fold_left
-           (fun (acc_u,acc_d) (u,d) -> (acc_u || u), Data.merge acc_d d)
-           (false, Data.bottom) l
-  in if used then
+      let l = Kernel_function.Hptset.fold do_call called_functions [] in
+	(* in l, we have one result for each possible function called *)
+      List.fold_left
+        (fun (acc_u,acc_d) (u,d) -> (acc_u || u), Data.merge acc_d d)
+        (false, Data.bottom)
+	l
+  in
+  if used then
     let data =
       (* no problem of order because parameters are disjoint for sure *)
-      Kernel_function.Set.fold
+      Kernel_function.Hptset.fold
 	(fun kf data -> process_call_args data kf stmt args)
 	called_functions
         data
@@ -186,13 +188,13 @@ module Computer (Param:sig val states : Ctx.t end) = struct
 
   module StmtStartData = struct
     type data = t
-    let clear () = Inthash.clear Param.states
-    let mem = Inthash.mem Param.states
-    let find = Inthash.find Param.states
-    let replace = Inthash.replace Param.states
-    let add = Inthash.add Param.states
-    let iter f = Inthash.iter f Param.states
-    let length () = Inthash.length Param.states
+    let clear () = IH.clear Param.states
+    let mem = IH.mem Param.states
+    let find = IH.find Param.states
+    let replace = IH.replace Param.states
+    let add = IH.add Param.states
+    let iter f = IH.iter f Param.states
+    let length () = IH.length Param.states
   end
 
   let combineStmtStartData _stmt ~old new_ =
@@ -228,7 +230,7 @@ end
 let compute_ctrl_info pdg ctrl_part used_stmts =
   let module CtrlComputer = Computer (struct let states = ctrl_part end) in
   let module CtrlCompute = Dataflow.BackwardsDataFlow(CtrlComputer) in
-  let seen = Inthash.create 50 in
+  let seen = IH.create 50 in
   let rec add_node_ctrl_nodes new_stmts node =
     let ctrl_nodes = !Db.Pdg.direct_ctrl_dpds pdg node in
       List.fold_left add_ctrl_node new_stmts ctrl_nodes
@@ -240,21 +242,21 @@ let compute_ctrl_info pdg ctrl_part used_stmts =
       | Some stmt ->
           R.debug ~level:2 "[zones] node %a is stmt %d@."
             PdgTypes.Node.pretty ctrl_node stmt.sid;
-          if Inthash.mem seen stmt.sid then new_stmts
+          if IH.mem seen stmt.sid then new_stmts
           else
             let ctrl_zone = match stmt.skind with
               | Switch (exp,_,_,_) |  If (exp,_,_,_) -> Data.exp_zone stmt exp
               | _ -> Data.bottom
             in Ctx.add ctrl_part stmt.sid ctrl_zone;
-               Inthash.add seen stmt.sid ();
+               IH.add seen stmt.sid ();
                R.debug ~level:2 "[zones] add ctrl zone %a at stmt %d@."
                  Data.pretty ctrl_zone stmt.sid;
                stmt::new_stmts
   and add_stmt_ctrl new_stmts stmt =
     R.debug ~level:1 "[zones] add ctrl of stmt %d@." stmt.sid;
-    if Inthash.mem seen stmt.sid then new_stmts
+    if IH.mem seen stmt.sid then new_stmts
     else begin
-      Inthash.add seen stmt.sid ();
+      IH.add seen stmt.sid ();
       match !Db.Pdg.find_simple_stmt_nodes pdg stmt with
         | [] -> []
         | n::_ -> add_node_ctrl_nodes new_stmts n
@@ -293,7 +295,8 @@ let compute kf stmt lval =
     else compute_ctrl_info (!Db.Pdg.get kf) ctrl_part used_stmts
   in
   let all_used_stmts =
-    List.fold_left (fun e acc -> StmtSet.add acc e) StmtSet.empty all_used_stmts
+    List.fold_left
+      (fun e acc -> Stmt.Set.add acc e) Stmt.Set.empty all_used_stmts
   in
   all_used_stmts, data_part
 
@@ -302,7 +305,7 @@ let get stmt_zones stmt =
 
 let pretty fmt stmt_zones =
   let pp s d = Format.fprintf fmt "Stmt:%d -> %a@." s Data.pretty d
-  in Inthash.iter pp stmt_zones
+  in IH.iter pp stmt_zones
 
        (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
@@ -319,55 +322,49 @@ let compute_defs kf stmt lval =
     let add_node defs (node,_z) =
       match PdgIndex.Key.stmt (!Db.Pdg.node_key node) with
         | None -> defs
-        | Some s -> StmtSet.add s defs
+        | Some s -> Stmt.Set.add s defs
     in
     (* select corresponding stmts *)
-    let defs = List.fold_left add_node StmtSet.empty nodes in
-      Some (defs, undef)
-  with Db.Pdg.Bottom | Db.Pdg.Top | Db.Pdg.NotFound -> None
+    let defs = List.fold_left add_node Stmt.Set.empty nodes in
+    Some (defs, undef)
+  with Db.Pdg.Bottom | Db.Pdg.Top | Db.Pdg.NotFound ->
+    None
 
        (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
-
-(* type t_data = Data.t -> Locations.Zone.t *)
-let data_ty = Locations.Zone.ty
-
-(* type t_zones = Ctx.t -> Locations.Zone.t Inthash.t *)
-let zones_ty = Type.hashtbl Type.int data_ty
-
 
 let () =
   Db.register (* kernel_function -> stmt -> lval -> StmtSet.t * t_zones *)
     Db.Journalization_not_required (* TODO *)
     (*
     (Db.Journalize("Scope.build_zones",
-                   Type.func Kernel_type.kernel_function
-                     (Type.func Kernel_type.stmt
-                        (Type.func Kernel_type.lval
-                           (Type.couple Kernel_type.stmt_set zones_ty)))))
+                   Datatype.func Kernel_type.kernel_function
+                     (Datatype.func Kernel_type.stmt
+                        (Datatype.func Kernel_type.lval
+                           (Datatype.couple Kernel_type.stmt_set zones_ty)))))
                            *)
     Db.Scope.build_zones compute;
 
   Db.register (* t_zones ->  Cil_types.stmt -> Locations.Zone.t *)
     Db.Journalization_not_required (* TODO *)
     (*(Db.Journalize("Scope.get_zones",
-                   Type.func zones_ty (Type.func Kernel_type.stmt data_ty)))*)
+                   Datatype.func zones_ty (Datatype.func Kernel_type.stmt data_ty)))*)
   Db.Scope.get_zones get;
 
   Db.register (* (Format.formatter -> t_zones -> unit) *)
     Db.Journalization_not_required (* TODO *)
     (*(Db.Journalize("Scope.pretty_zones",
-                   Type.func Type.formatter (Type.func zones_ty Type.unit)))*)
+                   Datatype.func Datatype.formatter (Datatype.func zones_ty Datatype.unit)))*)
   Db.Scope.pretty_zones pretty;
 
   Db.register (* kernel_function -> stmt -> lval ->
                     (Cilutil.StmtSet.t * Locations.Zone.t option) option *)
     (Db.Journalize
        ("Scope.get_defs",
-	Type.func3
-	  Kernel_type.kernel_function
-	  Kernel_type.stmt
-	  Kernel_type.lval
-	  (Type.option
-	     (Type.couple Kernel_type.stmt_set (Type.option data_ty)))))
+	Datatype.func3
+	  Kernel_function.ty
+	  Stmt.ty
+	  Lval.ty
+	  (Datatype.option
+	     (Datatype.pair Stmt.Set.ty (Datatype.option Locations.Zone.ty)))))
     Db.Scope.get_defs compute_defs
 

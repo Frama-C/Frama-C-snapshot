@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,22 +20,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val enable_collect: unit -> unit 
-  (** Do collect messages *)
-
-val disable_echo: unit -> unit 
-  (** Do not display messages on stderr *)
-
-val dump_messages: unit -> unit
-  (** Dump collected messages to standard channels *)
+(** Stored messages. Storing of messages can be changed using
+    {Parameters.Collect_messages.set} (at initialization time only);
+    currently, only warning and error messages are stored if thus
+    requested. *)
 
 val iter: (int -> Log.event -> unit) -> unit
-val clear: unit -> unit
+  (** Iter over all stored messages. The messages are not passed in emission
+      order, but the [int] argument can be used to sort them if needed *)
 
-val depend: Project.Computation.t -> unit
-  (** Add a dependency from the internal state of the messages manager to the
-      given internal state. *)
+val dump_messages: unit -> unit
+  (** Dump stored messages to standard channels *)
 
+val self: State.t
+  (** Internal state of stored messages *)
 
 (*
 Local Variables:

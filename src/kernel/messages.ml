@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,55 +23,58 @@
 open Cil_types
 open Format
 
-module MessageMap =
-  Computation.Make_Hashtbl
-    (Inthash)
-    (Project.Datatype.Persistent
-       (struct type t = Log.event let name = "message" end))
+module Messages =
+  State_builder.Hashtbl
+    (Cil_datatype.Int_hashtbl)
+    (Datatype.Make
+       (struct
+	 include Datatype.Serializable_undefined
+	 open Log
+	 type t = event
+	 let name = "message"
+	 let reprs =
+	   [ { evt_kind = Failure;
+	       evt_plugin = "";
+	       evt_source = None;
+	       evt_message = "" } ]
+	 let mem_project = Datatype.never_any_project
+	end))
     (struct
        let name = "message_table"
        let size = 17
        let dependencies = []
+       let kind = `Internal
      end)
 
-module MessageCounter =
-  Computation.Ref
-    (struct include Datatype.Int let default () = 0 end)
-    (struct
-       let name = "message_counter"
-       let dependencies = []
-     end)
+let self = Messages.self
 
-let depend s = MessageMap.depend s; MessageCounter.depend s
-
-let clear () = MessageCounter.clear () ; MessageMap.clear ()
-let iter f = MessageMap.iter f
+let iter f = Messages.iter f
 
 let enable_collect =
-  let enabled = ref false in
+  let not_yet = ref true in
   fun () ->
-    if !enabled = false then (
-      enabled := true;
-      Cilmsg.debug "Enable collection of error messages." ;
+    if !not_yet then begin
+      Kernel.debug "enable collection of error messages.";
       let emit e =
-        let c = MessageCounter.get () in
-        MessageMap.add c e ;
-        MessageCounter.set (succ c)
+        let c = Messages.length () in
+        Messages.add c e ;
       in
-      begin
-        Log.add_listener ~kind:[Log.Error;Log.Warning] emit ;
-      end)
+      Log.add_listener ~kind:[ Log.Error; Log.Warning ] emit;
+      not_yet := false
+    end
 
-let disable_echo () =
-  begin
-    Cilmsg.debug "Disable echo for error messages" ;
-    Log.set_echo ~kind:[Log.Error;Log.Warning] false ;
-  end
+let () =
+  let run () = if Parameters.Collect_messages.get () then enable_collect () in
+  (* Set by the user on the command-line *)
+  Cmdline.run_after_early_stage run;
+  (* Set by a plugin *)
+  Cmdline.run_after_configuring_stage run;
+;;
 
-let dump_messages () = MessageMap.iter (fun _ e -> Log.echo e)
+let dump_messages () = Messages.iter (fun _ e -> Log.echo e)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

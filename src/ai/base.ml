@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,13 +39,15 @@ type validity =
   | All
   | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
   | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
+  | Periodic of Abstract_interp.Int.t*Abstract_interp.Int.t*
+      Abstract_interp.Int.t
 
-type t =
-  | Var of varinfo*validity
-  | Initialized_Var of varinfo*validity
+type base =
+  | Var of varinfo * validity
+  | Initialized_Var of varinfo * validity
       (** base that is implicitely initialized. *)
-  | Null (** base for adresses like [(int* )0x123] *)
-  | String of int*string (** String constants *)
+  | Null (** base for addresses like [(int* )0x123] *)
+  | String of int * string (** String constants *)
   | Cell_class of cell_class_attributes (** a class of memory cells *)
 
 let invalid = Known(Int.one, Int.zero)
@@ -71,6 +73,10 @@ let pretty_validity fmt v =
   | All -> Format.fprintf fmt "All"
   | Unknown (b,e)  -> Format.fprintf fmt "Unknown %a-%a" Int.pretty b Int.pretty e
   | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
+  | Periodic (b,e,p)  ->
+      Format.fprintf fmt "Periodic %a-%a (%a)"
+	Int.pretty b Int.pretty e
+	Int.pretty p
 
 let pretty fmt t = Format.fprintf fmt "%s"
   (match t with
@@ -88,7 +94,7 @@ let pretty_caml fmt t =
       Base.
 *)
 
-let compare v1 v2 = Pervasives.compare (id v1) (id v2)
+let compare v1 v2 = Datatype.Int.compare (id v1) (id v2)
 
 let typeof v =
   match v with
@@ -102,7 +108,7 @@ let bits_sizeof v =
   match v with
     | String (_,s) ->
         Int_Base.inject
-          (Int.mul (Int.of_int 8) (Int.succ (Int.of_int (String.length s))))
+          (Int.mul Int.eight (Int.succ (Int.of_int (String.length s))))
     | Null -> Int_Base.top
     | Cell_class c ->
 	Bit_utils.sizeof c.ctyp
@@ -117,25 +123,23 @@ let bits_sizeof v =
 
 (** All absolute address are invalid *)
 module MinValidAbsoluteAddress =
-  Computation.Ref
-    (struct
-       include Abstract_interp.Int.Datatype
-       let default () = Abstract_interp.Int.zero
-     end)
+  State_builder.Ref
+    (Abstract_interp.Int)
     (struct
        let name = "MinValidAbsoluteAddress"
        let dependencies = []
+       let kind = `Internal
+       let default () = Abstract_interp.Int.zero
      end)
 
 module MaxValidAbsoluteAddress =
-  Computation.Ref
-    (struct
-       include Abstract_interp.Int.Datatype
-       let default () = Abstract_interp.Int.minus_one
-     end)
+  State_builder.Ref
+    (Abstract_interp.Int)
     (struct
        let name = "MaxValidAbsoluteAddress"
        let dependencies = []
+       let kind = `Internal
+       let default () = Abstract_interp.Int.minus_one
      end)
 
 let () =
@@ -144,9 +148,9 @@ let () =
        try Scanf.sscanf x "%Li-%Li"
 	 (fun min max ->
 	    let mul8 = Int64.mul 8L in
-            MinValidAbsoluteAddress.set 
+            MinValidAbsoluteAddress.set
 	      (Abstract_interp.Int.of_int64 (mul8 min));
-            MaxValidAbsoluteAddress.set 
+            MaxValidAbsoluteAddress.set
 	      (Abstract_interp.Int.of_int64
 		 (Int64.pred (mul8 (Int64.succ max)))))
        with End_of_file | Scanf.Scan_failure _ | Failure _ as e ->
@@ -174,7 +178,8 @@ exception Not_valid_offset
 
 let is_valid_offset size base offset =
   match validity base with
-  | Known (min_valid,max_valid) ->
+  | Known (min_valid,max_valid)
+  | Periodic (min_valid, max_valid, _)->
       let min = Ival.min_int offset in
       begin match min with
       | None -> raise Not_valid_offset
@@ -189,6 +194,12 @@ let is_valid_offset size base offset =
       end
   | Unknown _ -> raise Not_valid_offset
   | All -> ()
+
+let is_function base =
+  match base with
+    String _ | Null | Cell_class _ | Initialized_Var _ -> false
+  | Var(v,_) ->
+      isFunctionType v.vtype
 
 (*
   let is_volatile v =
@@ -225,6 +236,11 @@ let is_any_local v =
       not v.vlogic && not v.vglob && not v.vformal
   | Null | String _ | Cell_class _  -> false
 
+let is_global v =
+  match v with
+  | Var (v,_) | Initialized_Var (v,_) -> v.vglob
+  | Null | String _ | Cell_class _  -> true
+
 let is_formal_or_local v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
@@ -240,6 +256,11 @@ let is_formal_of_prototype v vi =
 let is_local v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_local v fundec
+  | Null | String _ | Cell_class _   -> false
+
+let is_formal v fundec =
+  match v with
+  | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_formal v fundec
   | Null | String _ | Cell_class _   -> false
 
 let is_block_local v block =
@@ -263,62 +284,97 @@ let validity_from_type v =
       (*Format.printf "Got %a for %s@\n" Int.pretty size v.vname;*)
       Known (Int.zero,Int.pred size)
   | Int_Base.Value size ->
-      assert (Int.eq size Int.zero);
+      assert (Int.equal size Int.zero);
       Unknown (Int.zero, Bit_utils.max_bit_address ())
 
 exception Not_a_variable
 
-let get_varinfo t =
-  match t with
+module D = Datatype.Make_with_collections
+  (struct
+    type t = base
+    let name = "Base"
+    let structural_descr = Structural_descr.Abstract (* TODO better *)
+    let reprs = [ Null; String(-1, "") ]
+    let equal = equal
+    let compare = compare
+    let pretty = pretty
+    let hash = hash
+    let mem_project = Datatype.never_any_project
+    let internal_pretty_code = Datatype.pp_fail
+    let rehash = Datatype.identity
+    let copy = Datatype.undefined
+    let varname = Datatype.undefined
+   end)
+
+include D
+
+module VarinfoLogic =
+  Cil_state_builder.Varinfo_hashtbl
+    (D)
+    (struct
+       let name = "Base.VarinfoLogic"
+       let dependencies = [ Ast.self ]
+       let size = 257
+       let kind = `Internal
+     end)
+
+let get_varinfo t = match t with
   | Var (t,_) | Initialized_Var (t,_) -> t
   | _ -> raise Not_a_variable
 
+let regexp = Str.regexp "Frama_C_periodic[^0-9]*\\([0-9]+\\)"
+
 let create_varinfo varinfo =
   assert (not varinfo.vlogic);
-  Var (varinfo,validity_from_type varinfo)
+  let validity = validity_from_type varinfo in
+  let name = varinfo.vname in
+  let validity =
+    if Str.string_match regexp name 0
+    then
+      let period = Str.matched_group 1 name in
+      let period = int_of_string period in
+      CilE.warn_once "Periodic variable %s of period %d@."
+	name
+	period;
+      match validity with
+      | Known(mn, mx) ->
+	  assert (Int.is_zero mn);
+	  Periodic(mn, mx, Int.of_int period)
+      | _ -> assert false
+    else validity
+  in
+  Var (varinfo, validity)
 
 let create_logic varinfo validity =
-  assert varinfo.vlogic;
-  Var (varinfo,validity)
+  assert (varinfo.vlogic && not (VarinfoLogic.mem varinfo));
+  let base = Var (varinfo,validity) in
+  VarinfoLogic.add varinfo base;
+  base
 
 let create_initialized varinfo validity =
   assert varinfo.vlogic;
   Initialized_Var (varinfo,validity)
 
-type base = t
+let find varinfo =
+  if varinfo.vlogic then VarinfoLogic.find varinfo
+  else create_varinfo varinfo
 
 module LiteralStrings =
-  Computation.Hashtbl
-    (Datatype.String)
-    ((* The function [copy] is used here but persistent strings are not
-	required. *)
-      Project.Datatype.Imperative
-	(struct
-	   type t = base
-	   let copy = function
-	     | String _ as b -> b
-	     | _ -> assert false
-	   let name = "LiteralStrings"
-	 end))
+  State_builder.Hashtbl
+    (Datatype.String.Hashtbl)
+    (D)
     (struct
-       let name = name
-       let dependencies = [Ast.self]
+       let name = "litteral strings"
+       let dependencies = [ Ast.self ]
        let size = 17
+       let kind = `Internal
      end)
 
 let create_string s =
   LiteralStrings.memo (fun _ -> String (Cil_const.new_raw_id (), s)) s
 
-module Datatype =
-  Project.Datatype.Imperative
-    (struct
-       type t = base
-       let copy _ = assert false (* TODO if required *)
-       let name = "base"
-     end)
-
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

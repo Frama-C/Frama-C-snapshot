@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -57,7 +57,7 @@ let get_pred_from_tmpident var =
   with _ -> raise_error ("TMP Variable ("^var^") not declared in hashtbl")
 
 let debug_ltl_expressions () =
-  Aorai_option.feedback "  Known ltl expressions: \n";
+  Aorai_option.feedback "  Known ltl expressions: \n"; 
   Hashtbl.iter
     (fun key (_,str,_) ->
        Aorai_option.feedback "  Var tmp : %s  ~~~> exp : %s\n" key str
@@ -143,6 +143,9 @@ let buch_sync   = "Aorai_Sync"                           (* Deprecated ? *)
 (* Buchi automata as stored after parsing *)
 let automata = ref ([],[])
 
+(* Each transition with a parametrized cross condition (call param access or return value access) has its parametrized part stored in this array. *)
+let cond_of_parametrizedTransitions = ref (Array.make (1) [])
+
 (* List of variables name observed in the promela file *)
 let variables_from_auto = ref []
 (* List of functions name observed in the promela file *)
@@ -177,7 +180,29 @@ let setAutomata auto vars funcs =
   functions_from_auto:=Hashtbl.fold (fun k _ l -> k::l) funcs [];
   automata:=auto;
   setNumberOfStates  (getNumberOfStates ());
-  setNumberOfTransitions (getNumberOfTransitions  ())
+  setNumberOfTransitions (getNumberOfTransitions  ());
+  if (Array.length !cond_of_parametrizedTransitions) < (getNumberOfTransitions  ()) then 
+    cond_of_parametrizedTransitions := Array.make (getNumberOfTransitions  ()) []
+
+
+
+let getStateName num =
+  List.fold_left
+    (fun name st -> if st.nums=num then st.name else name)
+    ""
+    (fst !automata)
+    
+
+
+(* Each transition with a parametrized cross condition (call param access or return value access) has its parametrized part stored in an array. *)
+let setCondOfParametrizedTransition conds =
+  cond_of_parametrizedTransitions := conds
+
+let getParametrizedCondOfTransition tr =
+  !cond_of_parametrizedTransitions.(tr)
+
+
+
 
 
 (** Initializes some tables according to data from Cil AST. *)
@@ -302,7 +327,7 @@ let set_returninfo funcname vi =
   Hashtbl.add paraminfos (funcname,"\\return")  vi
 
 
-(* Given a function name and a param name, it returns the varinfo associated to the given param.
+(* Given a function name, it returns the varinfo associated to the given param.
     If the variable is not found then an error message is print and an assert false is raised. *)
 let get_returninfo funcname =
   try
@@ -345,7 +370,7 @@ let set_func_pre func status =
 
 (** Returns the post condition associated to the given C function *)
 let get_func_post ?(securised=false) func =
-  try Hashtbl.find post_status func
+  try let (s,t) = (Hashtbl.find post_status func) in (Array.copy s,Array.copy t)
   with _ ->
     if securised  then mk_full_pre_or_post()
     else raise_error ("(data_for_aorai.get_func_post). Status : Function '"^func^"' postcondition not found")
@@ -584,7 +609,7 @@ let removeUnusedTransitionsAndStates () =
 
 
 (* Step 3 : rewritting stored information *)
-  (* Rewritting automata *)
+  (* Rewritting automata and parametrized conditions *)
   let sts = List.rev (List.fold_left
 			(fun newl st ->
 			   let newn= !replaceStates.(st.nums) in
@@ -599,7 +624,17 @@ let removeUnusedTransitionsAndStates () =
 			   else begin tr.numt<-newn;tr::newl end
 			)
 			[] (snd !automata)) in
+  let cds = ref (Array.make (newNbTrans) []) in
+  List.iter
+    (fun tr ->
+       let newn= !replaceTransitions.(tr.numt) in
+       if newn= -1 then ()
+       else !cds.(newn) <- !cond_of_parametrizedTransitions.(tr.numt)
+    )
+    (snd !automata);
+  
   automata:=(sts,trs);
+  cond_of_parametrizedTransitions := !cds;
 
   (* Rewritting size of automata cached in Spec_tools *)
   setNumberOfStates newNbStates;

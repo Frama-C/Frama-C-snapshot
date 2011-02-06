@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -28,6 +28,10 @@
 open Cil_types
 open Db_types
 
+module To_zone : sig
+  val  not_yet_implemented : string ref
+end
+
 (** returns a copy of the spec in which all formals in an ensures clause
     are guarded by an \at(x,Old). *)
 val formals_in_ensures: kernel_function -> funspec
@@ -36,6 +40,6 @@ exception Error of location * string
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

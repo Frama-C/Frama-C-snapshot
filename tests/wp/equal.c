@@ -28,8 +28,8 @@ int equal(const int* a, int n, const int* b)
 {
   /*@
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[k] == b[k];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[i] != b[i])

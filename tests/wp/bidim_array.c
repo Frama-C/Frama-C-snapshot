@@ -1,21 +1,3 @@
-/* run.config
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof none
-   OPT:  -journal-disable -wp -wp-model Hoare -wp-proof none
-*/ 
-
-/* run.config_ergo
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof alt-ergo
-*/
-
-/* run.config_z3
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof z3
-*/
-
-/* run.config_simplify
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof simplify
-*/
-
-
 /* 
    kind : Positive
    model name : Store ; bhv : Provable
@@ -24,7 +6,7 @@
 
 int a[5][10] = {0, };
 
-/*@ assigns a[..][..];
+/*@ assigns a[..][..]; 
     ensures a[1][3] == 42;
  */
 void f(void)

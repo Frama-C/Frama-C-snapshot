@@ -24,7 +24,12 @@ int G;
   ensures G==3;
 */
 void g(void) {
-  G = 3;
+  int i=0 ;
+  while (i < 3)
+    //@ for be: invariant 0<=i<3;
+    //@ for be: assert 0<=i<3;
+    i++; 
+  G = i;
 }
 
 void main(void) {

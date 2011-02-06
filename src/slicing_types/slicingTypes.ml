@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -57,10 +57,20 @@ type sl_project   = SlicingInternals.t_project
 (** Type of the selections
 * (we store the varinfo because we cannot use the kernel_function in this file)
 * *)
-type sl_select  = (Cil_types.varinfo * SlicingInternals.t_fct_user_crit)
+type sl_select = Cil_types.varinfo * SlicingInternals.t_fct_user_crit
+
+module Fct_user_crit =
+  Datatype.Make
+    (struct
+      include Datatype.Undefined (* TODO: unmarshal *)
+      type t = SlicingInternals.t_fct_user_crit
+      let reprs = [ SlicingInternals.dummy_t_fct_user_crit ]
+      let name = "SlicingTypes.Fct_user_crit"
+      let mem_project = Datatype.never_any_project
+     end)
 
 (** A set of selections, grouped by function *)
-type sl_selects = (SlicingInternals.t_fct_user_crit Cilutil.VarinfoMap.t)
+module Sl_selects = Cil_datatype.Varinfo.Map
 
 (** Function slice *)
 type sl_fct_slice = SlicingInternals.t_fct_slice
@@ -77,51 +87,56 @@ let pp_sl_project p_caller fmt p =
   in
   Type.par p_caller Type.Call fmt pp
 
-let dyn_sl_project =
-  Type.register
-    ~name:"Db.Slicing.Project.t"
-    ~value_name:(Some "SlicingTypes.dyn_sl_project")
-    ~pp:pp_sl_project
-    ~varname:(fun s -> "sl_project_" ^ s.SlicingInternals.name)
-    [ SlicingInternals.dummy_t_project ]
+module Sl_project =
+  Datatype.Make
+    (struct
+      include Datatype.Undefined (* TODO: unmarshal *)
+      type t = sl_project
+      let reprs = [ SlicingInternals.dummy_t_project ]
+      let name = "SlicingTypes.Sl_project"
+      let internal_pretty_code = pp_sl_project
+      let varname s = "sl_project_" ^ s.SlicingInternals.name
+      let mem_project f s = f s.SlicingInternals.application
+     end)
 
-
-let dummy_sl_select =
-  Kernel_type.varinfo_dummy, SlicingInternals.dummy_t_fct_user_crit
-
-let dyn_sl_select =
-  Type.register
-    ~name:"Db.Slicing.Selection.t"
-    ~value_name:(Some "SlicingTypes.dyn_sl_select")
-    ~varname:(fun _ -> "sl_select")
-    [ dummy_sl_select ]
-
-let dyn_sl_selects =
-  Type.register
-    ~name:"Db.Slicing.Selection.t_set"
-    ~value_name:(Some "SlicingTypes.dyn_sl_selects")
-    ~varname:(fun _ -> "sl_select_set")
-    [ (Cilutil.VarinfoMap.empty : sl_selects) ]
+module Sl_select =
+  Datatype.Make
+    (struct
+      include Datatype.Undefined (* TODO: unmarshal *)
+      type t = sl_select
+      let reprs =
+	List.map
+	  (fun v -> v, SlicingInternals.dummy_t_fct_user_crit)
+	  Cil_datatype.Varinfo.reprs
+      let name = "SlicingTypes.Sl_select"
+      let mem_project = Datatype.never_any_project
+     end)
 
 let pp_sl_fct_slice p_caller fmt ff =
   let pp fmt =
     Format.fprintf fmt
       "@[<hv 2>!Db.Slicing.Slice.from_num_id@;%a@;%a@;%d@]"
-      (Type.pp dyn_sl_project Type.Call)
+      (Sl_project.internal_pretty_code Type.Call)
       ff.SlicingInternals.ff_fct.SlicingInternals.fi_project
-      (Type.pp Kernel_type.kernel_function Type.Call)
+      (Kernel_function.internal_pretty_code Type.Call)
       ff.SlicingInternals.ff_fct.SlicingInternals.fi_kf
       ff.SlicingInternals.ff_id
   in
   Type.par p_caller Type.Call fmt pp
 
-let dyn_sl_fct_slice =
-  Type.register
-    ~name:"Db.Slicing.Slice.t"
-    ~value_name:(Some "SlicingTypes.dyn_sl_fct_slice")
-    ~pp:pp_sl_fct_slice
-    ~varname:(fun _ -> "sl_slice")
-    [ SlicingInternals.dummy_t_fct_slice ]
+module Sl_fct_slice =
+  Datatype.Make
+    (struct
+      include Datatype.Undefined (* TODO: unmarshal *)
+      open SlicingInternals
+      type t = t_fct_slice
+      let name = "SlicingTypes.Sl_fct_slice"
+      let reprs = [ dummy_t_fct_slice ]
+      let internal_pretty_code = pp_sl_fct_slice
+      let mem_project f x = f x.ff_fct.fi_project.application
+     end)
+
+let dyn_sl_fct_slice = Sl_fct_slice.ty
 
 let pp_sl_mark p fmt m =
   let pp = match m.SlicingInternals.m1, m.SlicingInternals.m2 with
@@ -155,16 +170,28 @@ let pp_sl_mark p fmt m =
             pp m.SlicingInternals.m1 pp m.SlicingInternals.m2
   in Type.par p Type.Call fmt pp
 
-let dyn_sl_mark =
-  Type.register
-    ~name:"Db.Slicing.Mark.t"
-    ~value_name:(Some "SlicingTypes.dyn_sl_mark")
-    ~pp:pp_sl_mark
-    ~varname:(fun _ -> "sl_mark")
-    [ SlicingInternals.dummy_t_pdg_mark ]
+module Sl_mark =
+  Datatype.Make_with_collections
+    (struct
+      type t = SlicingInternals.t_pdg_mark
+      let name = "SlicingTypes.Sl_mark"
+      let structural_descr = Structural_descr.Unknown
+      let reprs = [ SlicingInternals.dummy_t_pdg_mark ]
+      let compare = SlicingInternals.compare_pdg_mark
+      let equal : t -> t -> bool = ( = )
+      let hash = Hashtbl.hash
+      let copy = Datatype.undefined
+      let rehash = Datatype.undefined
+      let internal_pretty_code = pp_sl_mark
+      let pretty = Datatype.from_pretty_code
+      let mem_project = Datatype.never_any_project
+      let varname = Datatype.undefined
+     end)
+
+let dyn_sl_mark = Sl_mark.ty
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

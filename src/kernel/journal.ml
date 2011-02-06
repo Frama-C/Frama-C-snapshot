@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,7 +62,9 @@ module Sentences = struct
 
   let sentences : t Queue.t = Queue.create ()
 
-  let add print exn = Queue.add { sentence = print; raise_exn = exn } sentences
+  let add print exn =
+    Queue.add { sentence = print; raise_exn = exn } sentences
+
   let write fmt =
     let finally_raised = ref false in
     (* printing the sentences *)
@@ -130,7 +132,8 @@ let print_trailer fmt =
   Format.fprintf fmt
     "@[<hv 2>let main : unit -> unit =@;@[<hv 2>Dynamic.register@;~plugin:%S@;\"main\"@;"
     (String.capitalize (Filename.basename (get_name ())));
-  Format.fprintf fmt "@[<hv 2>(Type.func@;Type.unit@;Type.unit)@]@;";
+  Format.fprintf fmt
+    "@[<hv 2>(Datatype.func@;Datatype.unit@;Datatype.unit)@]@;";
   Format.fprintf fmt "~journalize:false@;main@]@]@\n@\n";
   Format.fprintf fmt "@[(* Hooking *)@]@\n";
   Format.fprintf fmt "@[<hv 2>let () =@;";
@@ -191,7 +194,7 @@ let write () =
 let () =
   (* write the journal iff it is enable and
      - either an error occurs;
-     - or the user explicitely wanted it. *)
+     - or the user explicitly wanted it. *)
   if Cmdline.journal_enable then begin
     Cmdline.at_error_exit write;
     if Cmdline.journal_isset then Cmdline.at_normal_exit write
@@ -200,6 +203,44 @@ let () =
 (* ****************************************************************************)
 (** {2 Journalization} *)
 (* ****************************************************************************)
+
+module Binding: sig
+  val add: 'a Type.t -> 'a -> string -> unit
+    (** [add ty v var] binds the value [v] to the variable name [var].  Thus,
+	[pp ty v] prints [var] and not use the standard pretty printer.  Very
+	useful to pretty print values with no associated pretty printer. *)
+  exception Name_already_exists of string
+  val add_once: 'a Type.t -> 'a -> string -> unit
+    (** Same as function [add] above but raise the exception [Already_exists]
+	if the binding previously exists *)
+  val find: 'a Type.t -> 'a -> string
+end = struct
+
+  let bindings : string Type.Obj_tbl.t = Type.Obj_tbl.create ()
+
+  let add ty v var =
+    Type.Obj_tbl.add bindings ty v var (* eta-expansion required *)
+
+  (* add bindings for [Format.std_formatter] and [Format.err_formatter] *)
+  let () =
+    add Datatype.formatter Format.std_formatter "Format.std_formatter";
+    add Datatype.formatter Format.err_formatter "Format.err_formatter"
+
+  exception Name_already_exists of string
+  let check_name s =
+    let error () =
+      Format.eprintf "[Type] A value of name %s already exists@." s;
+      raise (Name_already_exists s)
+    in
+    Type.Obj_tbl.iter bindings (fun s' -> if s = s' then error ())
+
+  let add_once ty x s =
+    check_name s;
+    add ty x s
+
+  let find ty v = Type.Obj_tbl.find bindings ty v (* eta-expansion required *)
+
+end
 
 exception Not_writable of string
 let never_write name f =
@@ -212,13 +253,25 @@ let never_write name f =
   else
     f
 
-let pp ty fmt (x:Obj.t) =
-  try Type.pp ty Type.Call fmt (Obj.obj x)
-  with Type.NoPrinter _ ->
-    fatal
-      "no printer registered for value of type %s.
+let pp ty fmt (o:Obj.t) =
+  assert Cmdline.use_type;
+  let x = Obj.obj o in
+  try Format.fprintf fmt "%s" (Binding.find ty x);
+  with Not_found ->
+    let pp = Datatype.internal_pretty_code ty in
+    if pp == Datatype.undefined then
+      fatal
+	"no printer registered for value of type %s.@\n\
 Journalisation is not possible. Aborting"
-      (Type.name ty)
+	(Type.name ty);
+    if pp == Datatype.pp_fail then
+      Format.fprintf
+        fmt
+        "@[<hov 2>failwith @[<hov 2>\"no@ code@ for@ pretty@ printer@ of@ type@ @[%s@]:@ running@ the@ journal@ will@ fail.\"@]@]"
+(*        (Type.pp_ml_name ty Type.NoPar)*)
+        (Type.name ty)
+    else
+      pp Type.Call fmt x
 
 let gen_binding =
   let ids = Hashtbl.create 7 in
@@ -233,14 +286,15 @@ let gen_binding =
   in
   gen
 
-let extend_continuation f_acc pp_arg opt_label arg fmt =
+let extend_continuation f_acc pp_arg opt_label opt_arg arg fmt =
   f_acc fmt;
-  match opt_label with
-  | None (* no label *) -> Format.fprintf fmt "@;%a" pp_arg arg;
-  | Some (_, Some f) when f () == arg ->
-      (* [arg] is the default value of the optional label *)
-      ()
-  | Some (l, _) (* other label *) -> Format.fprintf fmt "@;~%s:%a" l pp_arg arg
+  match opt_label, opt_arg with
+  | None, None (* no label *) -> Format.fprintf fmt "@;%a" pp_arg arg;
+  | None, Some _ -> assert false
+  | Some _, Some f when f () == arg ->
+    (* [arg] is the default value of the optional label *)
+    ()
+  | Some l, _ (* other label *) -> Format.fprintf fmt "@;~%s:%a" l pp_arg arg
 
 (* print any comment *)
 let print_comment fmt pp = match pp with
@@ -248,22 +302,24 @@ let print_comment fmt pp = match pp with
   | Some pp -> Format.fprintf fmt "(* %t *)@;" pp
 
 let print_sentence f_acc is_dyn comment ?value ty fmt =
+  assert Cmdline.use_type;
   print_comment fmt comment;
   (* open a new box for the sentence *)
   Format.fprintf fmt "@[<hv 2>";
   (* add a let binding whenever the return type is not unit *)
-  if not (Type.equal ty Type.unit) then
+  if not (Type.equal ty Datatype.unit) then
     Format.fprintf fmt "let %t=@;"
       (fun fmt ->
 	 let binding =
-	   match Type.varname ty, value with
-	   | None, _ | _, None ->
+	   let varname = Datatype.varname ty in
+	   match varname == Datatype.undefined, value with
+	   | true, _ | _, None ->
 	       "__" (* no binding nor value: ignore the result *)
-	   | Some f, Some value ->
+	   | false, Some value ->
 	       (* bind to a fresh variable name *)
 	       let v = Obj.obj value in
-	       let b = gen_binding (f v) in
-	       Type.Binding.add ty v b;
+	       let b = gen_binding (varname v) in
+	       Binding.add ty v b;
 	       b
 	 in
 	 Format.fprintf fmt "%s" binding;
@@ -273,7 +329,7 @@ let print_sentence f_acc is_dyn comment ?value ty fmt =
   (* pretty print the sentence itself in a box *)
   Format.fprintf fmt "@[<hv 2>%t@]" f_acc;
   (* close the sentence *)
-  if Type.equal ty Type.unit then Format.fprintf fmt ";@]@;"
+  if Type.equal ty Datatype.unit then Format.fprintf fmt ";@]@;"
   else Format.fprintf fmt "@;<1 -2>in@]@;"
 
 let add_sentence f_acc is_dyn comment ?value ty =
@@ -282,9 +338,9 @@ let add_sentence f_acc is_dyn comment ?value ty =
 let catch_exn f_acc is_dyn comment ret_ty exn =
   let s_exn = Printexc.to_string exn in
   (* [s_exn] is not necessarily a valid OCaml exception.
-     So don't use it in an ocaml code. *)
+     So don't use it in OCaml code. *)
   let comment fmt =
-    Format.fprintf fmt "@[<hv 2>exception %s@;raised on:@]%t" s_exn
+    Format.fprintf fmt "@[<hv 2>exception %s@;raised on: @]%t" s_exn
       (fun fmt -> Extlib.may (fun f -> f fmt) comment)
   in
   let print fmt =
@@ -301,6 +357,7 @@ let catch_exn f_acc is_dyn comment ret_ty exn =
   Sentences.add print true
 
 let rec journalize_function f_acc ty is_dyn comment (x:Obj.t) =
+  assert Cmdline.use_type;
   if Type.Function.is_instance_of ty then begin
     (* [ty] is a function type value:
        there exists [a] and [b] such than [ty = a -> b] *)
@@ -308,35 +365,36 @@ let rec journalize_function f_acc ty is_dyn comment (x:Obj.t) =
     let (a:'a Type.t), (b:'b Type.t), opt_label =
       Type.Function.get_instance ty
     in
+    let opt_arg = Type.Function.get_optional_argument ty in
     Obj.repr
       (fun (y:'a) ->
-	 if !started (*|| !running*) then
-	   (* prevent journalisation if you're journalizing another function *)
-	   Obj.repr (Obj.obj x y)
-	 else begin
-	   let old_started = !started in
-	   try
-	     (* [started] prevents journalization of function call
-		inside another one *)
-	     started := true;
-	     (* apply the closure [x] to its argument [y] *)
-	     let xy = Obj.obj x y in
-	     started := old_started;
-	     (* extend the continuation and continue *)
-	     let f_acc = extend_continuation f_acc (pp a) opt_label y in
-	     journalize_function f_acc b is_dyn comment xy
-	   with
-	   | Not_writable name ->
-	       started := old_started;
-	       fatal
-		 "a call to the function %S cannot be written in the journal"
-		 name
-	   | exn as e->
-	       let f_acc = extend_continuation f_acc (pp a) opt_label y in
-	       catch_exn f_acc is_dyn comment b exn;
-	       started := old_started;
-	       raise e
-	 end)
+	if !started then
+	  (* prevent journalisation if you're journalizing another function *)
+	  Obj.repr (Obj.obj x y)
+	else begin
+	  let old_started = !started in
+	  try
+	    (* [started] prevents journalization of function call
+	       inside another one *)
+	    started := true;
+	    (* apply the closure [x] to its argument [y] *)
+	    let xy = Obj.obj x y in
+	    started := old_started;
+	    (* extend the continuation and continue *)
+	    let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
+	    journalize_function f_acc b is_dyn comment xy
+	  with
+	  | Not_writable name ->
+	    started := old_started;
+	    fatal
+	      "a call to the function %S cannot be written in the journal"
+	      name
+	  | exn as e ->
+	    let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
+	    catch_exn f_acc is_dyn comment b exn;
+	    started := old_started;
+	    raise e
+	end)
   end else begin
     if not !started then add_sentence f_acc is_dyn comment ~value:x ty;
     x
@@ -344,9 +402,10 @@ let rec journalize_function f_acc ty is_dyn comment (x:Obj.t) =
 
 let register s ty ?comment ?(is_dyn=false) x =
   if Cmdline.journal_enable then begin
+    assert Cmdline.use_type;
     if s = "" then
       abort "[Journal.register] the given name should not be \"\"";
-    Type.Binding.add_once ty x s;
+    Binding.add_once ty x s;
     if Type.Function.is_instance_of ty then begin
       let x' = Obj.repr x in
       let f_acc fmt = pp ty fmt x' in
@@ -366,6 +425,6 @@ let prevent f x =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

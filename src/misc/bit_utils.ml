@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ let warn_if_zero ty r =
   if r = 0 then
     (ignore
        (Cil.error
-          "size of '%a' is zero. Check your code or your configuration."
+          "size of '%a' is zero. Check target code or Frama-C -machdep option."
           !Ast_printer.d_type ty);
      exit 1;);
   r
@@ -179,8 +179,9 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
         align size start stop req_size;*)
   let raw_bits c start stop =
     let cond =
-      env.use_align && (Int.neq (Int.pos_rem start env.rh_size) align
-                        || Int.neq req_size env.rh_size) in
+      env.use_align && ((not (Int.equal (Int.pos_rem start env.rh_size) align))
+                         || (not (Int.equal req_size env.rh_size))) 
+    in
     Format.fprintf env.fmt "[%sbits %a to %a]%s"
       (if Kernel.debug_atleast 1 then String.make 1 c else "")
       Int.pretty start
@@ -204,11 +205,11 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
             | Other -> Int.of_int (bitsSizeOf typ)
             | Bitfield i -> Int.of_int64 i
         in
-        (if Int.eq start Int.zero
-           && Int.eq size req_size then
+        (if Int.is_zero start 
+           && Int.equal size req_size then
              (** pretty print a full offset *)
              (if not env.use_align ||
-		(Int.eq start align && Int.eq env.rh_size size)
+		(Int.equal start align && Int.equal env.rh_size size)
 	      then ()
 	      else (env.misaligned <- true ;
 		    Format.pp_print_char env.fmt '#'))
@@ -311,14 +312,14 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 
       | TArray (typ, _, _, _) ->
           let size = Int.of_int (bitsSizeOf typ) in
-          if Int.eq size Int.zero then
+          if Int.is_zero size then
             raw_bits 'z' start stop
           else
           let start_case = Int.pos_div start size in
           let stop_case =  Int.pos_div stop size in
           let rem_start_size = Int.pos_rem start size in
           let rem_stop_size = Int.pos_rem stop size in
-          if Int.eq start_case stop_case then (** part of one element *)
+          if Int.equal start_case stop_case then (** part of one element *)
             let new_align =
               Int.pos_rem
                 (Int.sub align (Int.mul start_case size))
@@ -329,19 +330,19 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
               ~align:new_align
               ~start:rem_start_size
               ~stop:rem_stop_size
-	  else
-            if Int.eq (Int.rem start env.rh_size) align
-              && (Int.eq (Int.rem size env.rh_size) Int.zero) then
+	  else if Int.equal (Int.rem start env.rh_size) align
+              && (Int.is_zero (Int.rem size env.rh_size)) 
+	  then
                 let pred_size = Int.pred size in
                 let start_full_case =
-                  if Int.eq rem_start_size Int.zero then start_case
+                  if Int.is_zero rem_start_size then start_case
                   else Int.succ start_case
                 in
                 let stop_full_case =
-                  if Int.eq rem_stop_size pred_size then stop_case
+                  if Int.equal rem_stop_size pred_size then stop_case
                   else Int.pred stop_case
                 in
-                let first_part = if Int.eq rem_start_size Int.zero
+                let first_part = if Int.is_zero rem_start_size
                 then []
                 else [ArrayPart(start_case,start_case,
 				typ,align,rem_start_size,pred_size)]
@@ -353,14 +354,14 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 				  typ,align,Int.zero,pred_size)]
                 in
                 let last_part =
-                  if Int.eq rem_stop_size pred_size
+                  if Int.equal rem_stop_size pred_size
 		  then []
                   else [ArrayPart(stop_case,stop_case,
 				  typ,align,Int.zero,rem_stop_size)]
                 in
 		let do_part = function
 		  | ArrayPart(start_index,stop_index,typ,align,start,stop) ->
-		      if Int.eq start_index stop_index then
+		      if Int.equal start_index stop_index then
 			Format.fprintf env.fmt "[%a]"
 			  Int.pretty start_index
 		      else

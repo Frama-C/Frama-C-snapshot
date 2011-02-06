@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -37,7 +37,7 @@ let find_sub_stmts st = match st.skind with
 | If(_,bl1,bl2,_) | TryExcept (bl1, _, bl2, _)
 | TryFinally (bl1, bl2, _) -> bl1.bstmts@bl2.bstmts
 | Block bl | Loop (_,bl, _, _, _) | Switch (_, bl, _, _) ->  bl.bstmts
-| UnspecifiedSequence seq -> List.map (fun (x,_,_,_) -> x) seq
+| UnspecifiedSequence seq -> List.map (fun (x,_,_,_,_) -> x) seq
 | Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _  -> []
 
 let str_call_sig ff call fmt =
@@ -185,10 +185,10 @@ module PrintProject = struct
       f ((Slice ff_caller, dest), Some call) in
     let do_f _f_var fi =
       List.iter (do_edge (Src fi)) fi.T.f_called_by;
-      let do_ff ff = List.iter (do_edge (Slice ff)) ff.T.ff_called_by
-      in List.iter do_ff (M.fi_slices fi)
+      let do_ff ff = List.iter (do_edge (Slice ff)) ff.T.ff_called_by in
+      List.iter do_ff (M.fi_slices fi)
     in
-      Cilutil.VarinfoHashtbl.iter do_f proj.T.functions
+    Cil_datatype.Varinfo.Hashtbl.iter do_f proj.T.functions
 
   let iter_edges_actions f proj =
     let rec do_act_edge n rq_list = match rq_list with
@@ -330,3 +330,9 @@ let build_dot_project filename title project =
   let file = open_out filename in
     PrintProjGraph.output_graph file (title, project);
     close_out file
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

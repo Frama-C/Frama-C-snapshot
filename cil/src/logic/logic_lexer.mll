@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -82,6 +82,7 @@
         "assert", ASSERT, false;
         "assigns", ASSIGNS, false;
         "assumes", ASSUMES, false;
+        "at", EXT_AT, false;(* ACSL extension for external spec file *)
         "axiom", AXIOM, false;
         "axiomatic", AXIOMATIC, false;
         "behavior", BEHAVIOR, false;
@@ -90,7 +91,9 @@
 	"case", CASE, true;
         "char", CHAR, true;
         "complete", COMPLETE, false;
+        "const", CONST, true;
         "continues", CONTINUES, false;
+        "contract", CONTRACT, false;(* ACSL extension for external spec file *)
         "decreases", DECREASES, false;
         "disjoint", DISJOINT, false;
         "double", DOUBLE, true;
@@ -98,18 +101,23 @@
         "ensures", ENSURES, false ;
         "enum", ENUM, true;
         "exits", EXITS, false;
+        "function", FUNCTION, false;(* ACSL extension for external spec file *)
         "float", FLOAT, true;
         "for", FOR, true;
+        "global",    GLOBAL, false;
         "if", IF, true;
+	"impact", IMPACT, false;
 	"inductive", INDUCTIVE, false;
+	"include", INCLUDE, false;(* ACSL extension for external spec file *)
         "int", INT, true;
         "invariant", INVARIANT, false;
-        "global",    GLOBAL, false;
         "label", LABEL, false;
         "lemma", LEMMA, false;
+        "let", EXT_LET, false;(* ACSL extension for external spec file *)
         "logic", LOGIC, false;
         "long", LONG, true;
         "loop", LOOP, false;
+        "module", MODULE, false;(* ACSL extension for external spec file *)
         "pragma", PRAGMA, false;
         "predicate", PREDICATE, false;
         "reads", READS, false;
@@ -119,7 +127,6 @@
         "signed", SIGNED, true;
         "sizeof", SIZEOF, true;
         "slice", SLICE, false;
-	"impact", IMPACT, false;
         "struct", STRUCT, true;
         "terminates", TERMINATES, false;
         "type", TYPE, false;
@@ -127,6 +134,8 @@
         "unsigned", UNSIGNED, true;
         "variant", VARIANT, false;
         "void", VOID, true;
+        "volatile", VOLATILE, true;
+        "writes", WRITES, false;
       ];
     List.iter (fun (x, y) -> Hashtbl.add type_kw x y)
       ["integer", INTEGER; "real", REAL; "boolean", BOOLEAN; ];
@@ -170,6 +179,7 @@
         "\\valid", VALID;
         "\\valid_index", VALID_INDEX;
         "\\valid_range", VALID_RANGE;
+        "\\with", WITH;
       ];
     fun lexbuf ->
       let s = lexeme lexbuf in
@@ -250,7 +260,8 @@ rule token = parse
 
   | '0'['x''X'] rH+ rIS?    { CONSTANT (IntConstant (lexeme lexbuf)) }
   | '0' rD+ rIS?            { CONSTANT (IntConstant (lexeme lexbuf)) }
-  | rD+ rIS?                { CONSTANT (IntConstant (lexeme lexbuf)) }
+  | rD+                     { CONSTANT10 (lexeme lexbuf) }
+  | rD+ rIS                 { CONSTANT (IntConstant (lexeme lexbuf)) }
   | ('L'? "'" as prelude) (([^'\'''\n']|"\\'")+ as content) "'"
       {
         let b = Buffer.create 5 in
@@ -437,7 +448,7 @@ and endline = parse
           Cil.error_loc (
 	    lb.lex_curr_p.Lexing.pos_fname,
 	    lb.lex_curr_p.Lexing.pos_lnum)
-            "syntax error while parsing annotation@.";
+            "unexpected token '%s'@." (Lexing.lexeme lb);
           Logic_utils.exit_kw_c_mode ();
           raise Parsing.Parse_error
 
@@ -460,6 +471,9 @@ and endline = parse
   let annot = parse_from_location Logic_parser.annot
 
   let spec = parse_from_location Logic_parser.spec
+
+  (* ACSL extension for external spec file *)
+  let ext_spec = parse_from_location Logic_parser.ext_spec
 
 }
 

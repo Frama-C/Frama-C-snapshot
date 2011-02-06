@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Extlib
 open Cil_types
 open Db_types
 
@@ -28,7 +29,8 @@ open Db_types
 (* ************************************************************************* *)
 
 let dummy () =
-  { fundec = Definition (Cil.emptyFunction "@dummy@", Cilutil.locUnknown);
+  { fundec =
+      Definition (Cil.emptyFunction "@dummy@", Cil_datatype.Location.unknown);
     return_stmt = None;
     spec = Cil.empty_funspec ();
     stmts_graph = None }
@@ -37,8 +39,7 @@ let get_vi kf = Ast_info.Function.get_vi kf.fundec
 let get_id kf = (get_vi kf).vid
 let get_name kf = (get_vi kf).vname
 
-let get_location kf =
- match kf.fundec with
+let get_location kf = match kf.fundec with
   | Definition (_, loc) -> loc
   | Declaration (_,vi,_, _) -> vi.vdecl
 
@@ -68,23 +69,26 @@ let get_definition kf = match kf.fundec with
 (** {2 Kernel functions are comparable} *)
 (* ************************************************************************* *)
 
-module D = Datatype
-module Datatype = Globals.Functions.KF_Datatype
-include Datatype
+include Kernel_datatype.Kernel_function
 
 (* ************************************************************************* *)
 (** {2 Searching} *)
 (* ************************************************************************* *)
 
 module Kf =
-  Computation.OptionRef
-    (Cil_datatype.IntHashtbl
-       (D(*atatype*).Triple(Datatype)(Cil_datatype.Stmt)
-          (D.List(Cil_datatype.Block))))
+  State_builder.Option_ref
+    (Cil_datatype.Int_hashtbl.Make
+       (Datatype.Triple
+	  (Kernel_datatype.Kernel_function)
+	  (Cil_datatype.Stmt)
+          (Datatype.List(Cil_datatype.Block))))
     (struct
        let name = "KF"
        let dependencies = [ Ast.self ]
+       let kind = `Internal
      end)
+
+let self = Kf.self
 
 let clear_sid_info () = Kf.clear ()
 
@@ -124,13 +128,19 @@ let find_from_sid sid =
   let kf,s,_ = Inthash.find table sid in
   s, kf
 
+let find_englobing_kf stmt =
+  snd (find_from_sid stmt.sid)
+
 let blocks_closed_by_edge s1 s2 =
-  let table = compute () in
-  if  not (List.memq s2 s1.succs) then
+  if not (List.exists (Cil_datatype.Stmt.equal s2) s1.succs) then
     raise (Invalid_argument "Kernel_function.edge_exits_block");
+  let table = compute () in
   try
   let _,_,b1 = Inthash.find table s1.sid in
   let _,_,b2 = Inthash.find table s2.sid in
+  Kernel.debug ~level:2
+    "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
+    !Ast_printer.d_stmt s1 (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b1 !Ast_printer.d_stmt s2 (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b2;
   let rec aux acc = function
       [] -> acc
     | inner_block::others ->
@@ -150,7 +160,6 @@ let find_enclosing_block s =
 let find_all_enclosing_blocks s =
    let table = compute () in
   let (_,_,b) = Inthash.find table s.sid in b
-
 
 exception Got_return of stmt
 let find_return kf =
@@ -211,6 +220,71 @@ let find_label kf label =
       with Found_label s -> s
 
 (* ************************************************************************* *)
+(** {2 CallSites} *)
+(* ************************************************************************* *)
+
+module CallSite = Datatype.Pair(Kernel_datatype.Kernel_function)(Cil_datatype.Stmt)
+module CallSites = Kernel_datatype.Kernel_function.Hashtbl
+module KfCallers = State_builder.Option_ref(CallSites.Make(Datatype.List(CallSite)))
+  (struct
+     let name = "Kf.CallSites"
+     let dependencies = [ Ast.self ]
+     let kind = `Internal
+   end)
+
+let called_kernel_function fct =
+  match fct.enode with
+    | Lval (Var vinfo,NoOffset) -> 
+	(try Some(Globals.Functions.get vinfo) with Not_found -> None)
+    | _ -> None
+	
+class callsite_visitor hmap =
+object(self)
+  inherit Cil.nopCilVisitor
+  val mutable current_kf = None
+  method private kf = match current_kf with None -> assert false | Some kf -> kf
+
+  (* Go into functions *)
+  method vglob = function
+    | GFun(fd,_) -> 
+	current_kf <- Some(Globals.Functions.get fd.svar) ; 
+	Cil.DoChildren
+    | _ -> Cil.SkipChildren
+
+  (* Inspect stmt calls *)
+  method vstmt stmt =
+    match stmt.skind with
+      | Instr(Call(_,fct,_,_)) ->
+	  begin
+	    match called_kernel_function fct with
+	      | None -> Cil.SkipChildren
+	      | Some ckf ->
+		  let sites = try CallSites.find hmap ckf with Not_found -> [] in
+		  CallSites.replace hmap ckf ((self#kf,stmt)::sites) ;
+		  Cil.SkipChildren
+	  end
+      | Instr _ -> Cil.SkipChildren
+      | _ -> Cil.DoChildren
+
+  (* Skip many other things ... *)
+  method vexpr _ = Cil.SkipChildren
+  method vtype _ = Cil.SkipChildren
+
+end
+
+let compute_callsites () =
+  let ast = Ast.get () in
+  let hmap = CallSites.create 97 in 
+  let visitor = new callsite_visitor hmap in
+  Cil.visitCilFile (visitor :> Cil.cilVisitor) ast ; 
+  hmap
+
+let find_syntactic_callsites kf =
+  let table = KfCallers.memo compute_callsites in
+  try CallSites.find table kf
+  with Not_found -> []
+
+(* ************************************************************************* *)
 (** {2 Checkers} *)
 (* ************************************************************************* *)
 
@@ -238,7 +312,8 @@ let is_local v kf = match kf.fundec with
     | Definition(fd, _) -> Ast_info.Function.is_local v fd
     | Declaration _ -> false
 
-let is_formal_or_local v kf = (not v.vglob) && is_formal v kf || is_local v kf
+let is_formal_or_local v kf =
+  (not v.vglob) && (is_formal v kf || is_local v kf)
 
 (* ************************************************************************* *)
 (** {2 Specifications} *)
@@ -262,7 +337,9 @@ let postcondition kf k =
 
 let precondition kf =
   Logic_const.pands
-    (List.map Logic_const.pred_of_id_pred (get_spec kf).spec_requires)
+    (List.map
+       (fun b -> Ast_info.behavior_precondition b)
+       (get_spec kf).spec_behavior)
 
 let code_annotations kf =
   try
@@ -278,6 +355,37 @@ let code_annotations kf =
   with No_Definition ->
     []
 
+let internal_function_behaviors kf =
+  try
+    let def = get_definition kf in
+    List.fold_left
+      (fun known_names stmt ->
+         List.fold_left
+           (fun known_names spec ->
+              (List.map (fun x -> x.b_name) spec.spec_behavior) @ known_names)
+           known_names
+           (Logic_utils.extract_contract
+              (List.map
+                 Annotations.get_code_annotation
+                 (Annotations.get_all_annotations stmt))))
+      []
+      def.sallstmts
+  with No_Definition -> []
+
+let spec_function_behaviors kf =
+  List.map (fun x -> x.b_name) (get_spec kf).spec_behavior
+
+let all_function_behaviors kf =
+  (internal_function_behaviors kf) @ (spec_function_behaviors kf)
+
+let fresh_behavior_name kf name =
+  let existing_behaviors = all_function_behaviors kf in
+  let rec aux i =
+    let name = name ^ "_" ^ (string_of_int i) in
+    if List.mem name existing_behaviors then aux (i+1)
+    else name
+  in if List.mem name existing_behaviors then aux 0 else name
+
 (* ************************************************************************* *)
 (** {2 Pretty printer} *)
 (* ************************************************************************* *)
@@ -288,18 +396,15 @@ let pretty_name fmt kf = Ast_info.pretty_vname fmt (get_vi kf)
 (** {2 Collections} *)
 (* ************************************************************************* *)
 
-module Make_Table = Computation.Hashtbl(Datatype)
+module Make_Table =
+  State_builder.Hashtbl(Kernel_datatype.Kernel_function.Hashtbl)
 
-module Set = struct
-  module S = Ptset.Make(struct include Datatype module Datatype = Datatype end)
-  include S
-  module Datatype = D.Make_Set(S)(Datatype)
+module Hptset = struct
+  include Hptset.Make(Kernel_datatype.Kernel_function)
+  (* [JS 2010/09/27] preserve the old behavior (before introducing generic
+     pretty printers *)
   let pretty fmt =
     iter (fun kf -> Format.fprintf fmt "@[%a@ @]" pretty_name kf)
-end
-
-module Queue = struct
-  module Datatype = D.Queue(Datatype)
 end
 
 (* ************************************************************************* *)
@@ -312,6 +417,6 @@ let register_stmt kf s b =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

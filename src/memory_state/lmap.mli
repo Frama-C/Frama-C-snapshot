@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,15 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap.mli,v 1.73 2008-12-18 09:34:21 uid527 Exp $ i*)
-
 (** Functors making map indexed by locations.
     @plugin development guide *)
 
 open Abstract_interp
 open Abstract_value
 open Locations
-open BaseUtils
 
 exception Cannot_copy
 
@@ -37,51 +34,52 @@ sig
   type y (** type of the values associated to the locations *)
   type loffset
   type widen_hint_offsetmap
-(*  module LOffset : Offsetmap.S with type y = y
-			       and type widen_hint = widen_hint_offsetmap
-*)
+
   module Make
     (Default_offsetmap: sig val default_offsetmap : Base.t -> loffset end):
   sig
-    type t (** the type of a map *)
+    module LBase : 
+    sig 
+      type t
+      val iter : (Base.base -> loffset -> unit) -> t -> unit
+    end
 
-    type widen_hint = bool * BaseSet.t * (Base.t -> widen_hint_offsetmap)
+    type tt = private Bottom | Top | Map of LBase.t
 
-    type instanciation = Location_Bytes.t BaseMap.t
+    include Datatype.S with type t = tt 
 
-    module Datatype : Project.Datatype.S with type t = t
+    type widen_hint = bool * Base.Set.t * (Base.t -> widen_hint_offsetmap)
+    type instanciation = Location_Bytes.t Base.Map.t
 
     val inject : Base.t -> loffset -> t
 
     val add_offsetmap :  Base.t -> loffset -> t -> t
 
-    val pretty : Format.formatter -> t -> unit
     val pretty_without_null : Format.formatter -> t -> unit
-    val pretty_filter: 
+    val pretty_filter:
       Format.formatter -> t -> Locations.Zone.t -> (Base.t -> bool) -> unit
-    val add_binding: 
+    val add_binding:
       with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
 
-    val find : with_alarms:CilE.warn_mode -> t -> location -> y
+    val find :
+      conflate_bottom:bool -> with_alarms:CilE.warn_mode -> t -> location -> y
 
     val join : t -> t -> location list * t
     val is_included : t -> t -> bool
-    val equal : t -> t -> bool
-    val hash : t -> int
-    val is_included_actual_generic :
-      Zone.t -> t -> t -> instanciation
+    val is_included_actual_generic : Zone.t -> t -> t -> instanciation
 
-    (** Every location is associated to [VALUE.top] in [empty].*)
-    val empty : t
-    val is_empty : t -> bool
+    val top: t
 
-    (** Every location is associated to [VALUE.bottom] in [bottom].
-        This state can be reached only in dead code. *)
+    (** Empty map. Casual users do not need this.*)
+    val empty_map : t
+    val is_empty_map : t -> bool
+
+    (** Every location is associated to [VALUE.bottom] in [bottom].  This state
+        can be reached only in dead code. *)
     val bottom : t
     val is_reachable : t -> bool
 
     val widen : widen_hint-> t -> t -> (bool * t)
-
 
     val filter_base : (Base.t -> bool) -> t -> t
 
@@ -90,14 +88,14 @@ sig
 
     (** Removes the base if it is present. Does nothing otherwise. *)
     val remove_base : Base.t -> t -> t
-    
-  val reduce_binding : with_alarms:CilE.warn_mode ->
-    t -> Locations.location -> y -> t  
+
+    val reduce_binding :
+      with_alarms:CilE.warn_mode -> t -> Locations.location -> y -> t
 
     (** [copy_paste src dst state] returns a modified version of [state] in
         which everything present in [src] has been copied onto [dst]. [src] and
         [dst] must have the same size. The write operation is exact iff [dst]
-        is exact. 
+        is exact.
 	@raise Cannot_copy if copy is not possible. *)
     val copy_paste : location -> location -> t -> t
 
@@ -105,28 +103,25 @@ sig
     val paste_offsetmap :
       loffset -> Location_Bits.t -> Int.t -> Int.t -> t -> t
 
-    (** May return [None] as a bottom loffset.
-        @raise Cannot_copy if copy is not possible. *)
-    val copy_offsetmap : Locations.location -> t -> loffset option
+    (** May return [None] as a bottom loffset. *)
+    val copy_offsetmap :
+      with_alarms:CilE.warn_mode -> Locations.location -> t -> loffset option
 
     val compute_actual_final_from_generic :
       t -> t -> Locations.Zone.t -> instanciation -> t*Location_Bits.Top_Param.t
 
     val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 
-      
     (** @raise Invalid_argument if one location is not aligned or of size
         different of [size].
         @raise Error_Bottom if [m] is bottom. *)
     val fold : size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
-      
 
-  (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
-     or of size different of [size].
-      @raise Error_Bottom if [m] is bottom.  *)
-    val fold_single_bindings : 
+    (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
+	or of size different of [size].
+	@raise Error_Bottom if [m] is bottom.  *)
+    val fold_single_bindings :
       size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
-
 
     (** [fold_base f m] calls [f] on all bases bound to non top
 	offsetmaps in the non bottom map [m].
@@ -142,6 +137,12 @@ sig
     val add_whole: location -> y -> t -> t
     val remove_whole: location -> t -> t
 
+    val comp_prefixes: t -> t -> unit
+    type subtree
+    val find_prefix : t -> Hptmap.prefix -> subtree option
+    val hash_subtree : subtree -> int
+    val equal_subtree : subtree -> subtree -> bool
+
     (** [reciprocal_image m b] is the set of bits in the map [m] that may lead
         to Top([b]) and  the location in [m] where one may read an address
         [b]+_ *)
@@ -155,23 +156,33 @@ sig
       v:y ->
       modu:Int.t ->
       state:t -> t
+
     exception Error_Bottom
 
     val cached_fold :
       f:(Base.t -> loffset -> 'a) ->
-      cache:string * int -> joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
+      cache:string * int -> temporary:bool ->
+      joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
 
     val cached_map :
       f:(Base.t -> loffset -> loffset) ->
-      cache:string * int ->
+      cache:string * int -> temporary:bool ->
       t -> t
+
+    exception Found_prefix of Hptmap.prefix * subtree * subtree
   end
 end
 
 module Make_LOffset
-  (VALUE:Lattice_With_Isotropy.S) 
-  (LOffset:Offsetmap.S with type y = VALUE.t 
+  (VALUE:Lattice_With_Isotropy.S)
+  (LOffset:Offsetmap.S with type y = VALUE.t
 		       and type widen_hint = VALUE.widen_hint) :
   Location_map with type y = VALUE.t
 	       and type widen_hint_offsetmap = VALUE.widen_hint
 	       and type loffset = LOffset.t
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

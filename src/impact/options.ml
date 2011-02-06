@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ include Plugin.Register
   (struct
      let name = "impact"
      let shortname = "impact"
-     let descr = "impact analysis (experimental)"
+     let help = "impact analysis (experimental)"
    end)
 
 module Pragma =
@@ -32,27 +32,30 @@ module Pragma =
     (struct
        let option_name = "-impact-pragma"
        let arg_name = "f1, ..., fn"
-       let descr = "use the impact pragmas in the code of functions f1,...,fn"
+       let help = "use the impact pragmas in the code of functions f1,...,fn"
+       let kind = `Correctness
      end)
 
 module Print =
   False
     (struct
        let option_name = "-impact-print"
-       let descr = "print the impacted stmt"
+       let help = "print the impacted stmt"
+       let kind = `Tuning
      end)
 
 module Slicing =
   False
     (struct
        let option_name = "-impact-slicing"
-       let descr = "slice from the impacted stmt"
+       let help = "slice from the impacted stmt"
+       let kind = `Tuning
      end)
 
 let is_on () = not (Pragma.is_empty ())
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

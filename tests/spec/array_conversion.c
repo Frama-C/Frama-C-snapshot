@@ -10,6 +10,14 @@ foo X = {0,1,2,3};
 // not be seen as a pointer.
 /* @ lemma tauto: \forall foo a; p1(a) <==> q1(a); */
 
+// There's a slight difference between the two following lemmas: the first
+// one speaks of the address of X, while the second speaks of the address of the
+// first element of X (the type is different in particular)
+
+/*@ lemma vaddrof: \valid(&X); */
+
+/*@ lemma vaddrof2: \valid(&X[0]); */
+
 /*@ lemma tauto1{L}: q1(X); */
 
 /*@ requires p1(x); */

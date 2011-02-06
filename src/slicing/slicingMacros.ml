@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -38,7 +38,7 @@ exception Break
 
 (** {2 Debug and utils} *)
 
-let cbug assert_cond msg = 
+let cbug assert_cond msg =
   if not assert_cond then raise (SlicingTypes.Slicing_Internal_Error msg)
 
 let bug msg = raise (SlicingTypes.Slicing_Internal_Error msg)
@@ -56,18 +56,18 @@ let translate_num_to_slicing_level n =
   match n with
       | 0 -> T.DontSlice
       | 1 -> T.DontSliceButComputeMarks
-      | 2 -> T.MinNbSlice 
+      | 2 -> T.MinNbSlice
       | 3 -> T.MaxNbSlice
       | _ -> raise SlicingTypes.WrongSlicingLevel
 
 let get_default_level_option defined_function =
-  if defined_function || (SlicingParameters.Mode.SliceUndef.get ()) then 
+  if defined_function || (SlicingParameters.Mode.SliceUndef.get ()) then
     translate_num_to_slicing_level (SlicingParameters.Mode.Calls.get ())
-  else T.DontSlice 
+  else T.DontSlice
 
-let get_str_default_level_option defined_function = 
+let get_str_default_level_option defined_function =
   str_level_option (get_default_level_option defined_function)
-                     
+
 (** {2 Getting [fct_info] and others } *)
 
 let get_proj_appli proj = proj.T.application
@@ -81,31 +81,33 @@ let ff_svar ff = fi_svar (ff.T.ff_fct)
 (** {4 getting [fct_info]} *)
 
 (** Get the fct_info if it exists or build a new fct_info. *)
-let get_kf_fi proj kf = 
+let get_kf_fi proj kf =
   let fct_var = Kernel_function.get_vi kf in
-  try
-    let fi = Cilutil.VarinfoHashtbl.find proj.T.functions fct_var in fi
-  with Not_found -> 
-    let fi_def, is_def = 
+  try Cil_datatype.Varinfo.Hashtbl.find proj.T.functions fct_var
+  with Not_found ->
+    let fi_def, is_def =
       try let def = Kernel_function.get_definition kf in Some def, true
       with Kernel_function.No_Definition -> None, false
     in
-    let new_fi = { 
+    let new_fi = {
       T.fi_kf = kf;
       T.fi_def = fi_def;
       T.fi_project = proj;
       T.fi_top = None;
       T.fi_level_option = get_default_level_option is_def;
-      T.fi_init_marks = None ; 
-      T.fi_slices = [] ; 
-      T.fi_next_ff_num = 1; 
+      T.fi_init_marks = None ;
+      T.fi_slices = [] ;
+      T.fi_next_ff_num = 1;
       T.f_called_by = [] }
     in
-      Cilutil.VarinfoHashtbl.add proj.T.functions fct_var new_fi;
-      new_fi
+    Cil_datatype.Varinfo.Hashtbl.add proj.T.functions fct_var new_fi;
+    new_fi
 
-let fold_fi f acc proj = 
-  Cilutil.VarinfoHashtbl.fold (fun _v fi acc -> f acc fi) proj.T.functions acc
+let fold_fi f acc proj =
+  Cil_datatype.Varinfo.Hashtbl.fold
+    (fun _v fi acc -> f acc fi)
+    proj.T.functions
+    acc
 
 let ff_fi ff = ff.T.ff_fct
 
@@ -133,12 +135,12 @@ let f_name f = match f with
 
 let ff_src_name ff = fi_name (ff_fi ff)
 
-let pdg_name pdg = 
+let pdg_name pdg =
   Kernel_function.get_name ( PdgTypes.Pdg.get_kf pdg)
 
 (** {4 getting [kernel_function]} *)
 
-let get_fi_kf fi = fi.T.fi_kf 
+let get_fi_kf fi = fi.T.fi_kf
 
 let get_ff_kf ff =  let fi = ff_fi ff in get_fi_kf fi
 
@@ -173,12 +175,12 @@ let fi_slices fi = fi.T.fi_slices
 
 (** {4 Comparisons} *)
 
-let equal_fi fi1 fi2 = 
+let equal_fi fi1 fi2 =
   let v1 = fi_svar fi1 in
   let v2 = fi_svar fi2 in
     v1.vid = v2.vid
 
-let equal_ff ff1 ff2 = (equal_fi ff1.T.ff_fct ff2.T.ff_fct) && 
+let equal_ff ff1 ff2 = (equal_fi ff1.T.ff_fct ff2.T.ff_fct) &&
                        ((get_ff_id ff1) = (get_ff_id ff2))
 
 let equal_f f1 f2 =
@@ -186,7 +188,7 @@ let equal_f f1 f2 =
     | T.FctSrc fi1, T.FctSrc fi2 -> equal_fi fi1 fi2
     | T.FctSliced ff1, T.FctSliced ff2 -> equal_ff ff1 ff2
     | _ -> false
-  
+
 
 (** {2 Calls} *)
 
@@ -198,23 +200,25 @@ let same_ff_call (f1,c1) (f2,c2) =
 let is_call_stmt stmt =
   match stmt.skind with Instr (Call _) -> true | _ -> false
 
-let get_called_kf call_stmt =
-  match call_stmt.skind with 
-    | Instr (Call (_, funcexp,_,_)) ->
-        let _funcexp_dpds, called_functions =
-          !Db.Value.expr_to_kernel_function 
-             ~with_alarms:CilE.warn_none_mode
-            (Kstmt call_stmt) ~deps:(Some Locations.Zone.bottom) funcexp in
-          (match Kernel_function.Set.contains_single_elt called_functions with 
-	  | Some kf -> kf
-          | _ -> raise SlicingTypes.PtrCallExpr)
-    | _ -> raise (Invalid_argument "Not a call statement !")
+let get_called_kf call_stmt = match call_stmt.skind with
+  | Instr (Call (_, funcexp,_,_)) ->
+    let _funcexp_dpds, called_functions =
+      !Db.Value.expr_to_kernel_function
+        ~with_alarms:CilE.warn_none_mode
+	~deps:(Some Locations.Zone.bottom)
+        (Kstmt call_stmt)
+	funcexp
+    in
+    (match Kernel_function.Hptset.contains_single_elt called_functions with
+     | Some kf -> kf
+     | _ -> raise SlicingTypes.PtrCallExpr)
+  | _ -> invalid_arg "Not a call statement !"
 
 let is_variadic kf =
   let varf = Kernel_function.get_vi kf in
-    match varf.vtype with
-        TFun (_, _, is_variadic, _) -> is_variadic
-      | _ -> (bug "The variable of a kernel_function has to be a function !")
+  match varf.vtype with
+  | TFun (_, _, is_variadic, _) -> is_variadic
+  | _ -> (bug "The variable of a kernel_function has to be a function !")
 
 (** get the [fct_info] of the called function, if we know it *)
 let get_fi_call proj call =
@@ -231,9 +235,9 @@ let is_src_fun_called proj kf =
   match fi.T.f_called_by with [] -> false | _ -> true
 
 let is_src_fun_visible proj kf =
-  let is_fi_top fi = match fi.T.fi_top with None -> false | Some _ -> true 
+  let is_fi_top fi = match fi.T.fi_top with None -> false | Some _ -> true
   in is_src_fun_called proj kf || is_fi_top (get_kf_fi proj kf)
-    
+
 let get_calls_to_ff ff = ff.T.ff_called_by
 
 let get_calls_to_src fi = fi.T.f_called_by
@@ -248,6 +252,6 @@ let has_persistent_selection proj kf =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

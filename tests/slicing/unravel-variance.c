@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -slice-print -slice-calls printf1 -journal-disable
-   OPT: -slice-print -slice-calls printf2 -journal-disable
-   OPT: -slice-print -slice-calls printf3 -journal-disable
-   OPT: -slice-print -slice-calls printf4 -journal-disable
-   OPT: -slice-print -slice-calls printf5 -journal-disable
+   OPT: -slice-print -slice-calls printf1 -journal-disable -float-normal
+   OPT: -slice-print -slice-calls printf2 -journal-disable -float-normal
+   OPT: -slice-print -slice-calls printf3 -journal-disable -float-normal
+   OPT: -slice-print -slice-calls printf4 -journal-disable -float-normal
+   OPT: -slice-print -slice-calls printf5 -journal-disable -float-normal
    */
 /* Small example devired from examples given for UNRAVEL tool : */
 

@@ -702,6 +702,7 @@ register_custom "_n"
   )
 ;;
 
+let t_unit = Abstract;;
 let t_int = Abstract;;
 let t_string = Abstract;;
 let t_float = Abstract;;
@@ -717,6 +718,7 @@ let t_ref a = t_record [| a |];;
 let t_option = t_ref;;
 
 let t_array a = Structure (Array a)
+let t_queue a = t_record [| t_int; t_list a |]
 
 (**** Hash tables ****)
 
@@ -772,32 +774,3 @@ let t_map_unchangedcompares t_key t_elt =
     Structure (Sum [| [| t_map; t_key; t_elt; t_map; Abstract |] |] )
   in
   t_map
-
-
-(** Pre-specialized functors for sets and maps *)
-
-module type ORDEREDDESCR = sig
-  val descr: t
-  include Set.OrderedType
-end
-
-module type SetDescr = sig
-  val descr: t
-  include Set.S
-end
-
-module SetWithDescr(Data: ORDEREDDESCR) = struct
-  include Set.Make(Data)
-  let descr = t_set_unchangedcompares Data.descr
-end
-
-module type MapDescr = sig
-  val descr: t -> t
-  include Map.S
-end
-
-module MapWithDescr(Data: ORDEREDDESCR) = struct
-  include Map.Make(Data)
-  let descr = t_map_unchangedcompares Data.descr
-end
-

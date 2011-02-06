@@ -17,10 +17,9 @@ int find(int n)
 /*@
    assigns \nothing;
    behavior DUMMY : 
-   ensures \result == n;
+     ensures \result == n;
    behavior FOO : 
-   assigns \nothing;
-   ensures \result == n; 
+     ensures \result == n; 
 */
 int find_behav(int n)
 {

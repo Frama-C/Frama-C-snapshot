@@ -1,13 +1,12 @@
-open Type
+open Datatype
 
 module Param =
   Plugin.Register
     (struct
        let name = "apply"
        let shortname = "apply"
-       let descr = "testing purpose"
+       let help = "testing purpose"
        let module_name = "Apply.Param"
-       let is_dynamic = true
      end)
 
 module Test =
@@ -15,20 +14,23 @@ module Test =
     (struct
        let option_name = "-dynamic-test"
        let module_name = "Apply.Test"
-       let descr = "print dynamic test"
+       let help = "print dynamic test"
+       let kind = `Irrelevant
      end)
+
+
 
 let main () =
   if Parameters.Dynamic.Bool.get "-dynamic-test" then begin
     ignore (Dynamic.get ~plugin:"Register_mod2" "g_test" (func int int) 41);
     try
       Dynamic.get ~plugin:"Register_mod2" "g_test"
-	(func int (func (list char) (func (couple string float) unit)))
+	(func int (func (list char) (func (pair string float) unit)))
 	42 ['a'] ("r",6.8)
-    with Type.StringTbl.Incompatible_type s ->
+    with Dynamic.Incompatible_type s ->
       Param.feedback "%s" s;
       try Dynamic.get ~plugin:"Register_mod2" "unknown" (func unit unit) ()
-      with Type.StringTbl.Unbound_value s ->
+      with Dynamic.Unbound_value s ->
 	Param.feedback "value %S not registered" s
   end
 

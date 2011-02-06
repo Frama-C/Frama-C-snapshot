@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,11 @@ val make : packing:(GObj.widget -> unit) -> t
 
 val make_unpacked : unit -> t
 
-val load_file : t -> filename:string -> line:int -> unit
+val load_file : ?title:string -> t -> filename:string -> line:int -> unit
+  (** If [line] is 0 then the last line of the text is shown.
+      If [line] is less that 0 then no scrolling occurs.
+      If [title] is not provided the page title is the filename.
+  *)
 
 (** Lowlevel interface *)
 

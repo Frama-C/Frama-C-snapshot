@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,6 @@
 
 (** This file contains the source viewer muli-tabs widget window *)
 
-(* ABP added 1 line *)
 open Pretty_source
 
 type source_tab = {
@@ -226,14 +225,16 @@ let with_file name ~f =
     close_in ic (*; !flash_info ("Error: "^Printexc.to_string exn)*)
  with _exn -> ()
 
-let load_file w ~filename ~line =
+let load_file ?title w ~filename ~line =
   Gui_parameters.debug "Opening file %S line %d" filename line;
   let filename_info =
     begin
       try Hashtbl.find w.tbl filename
       with Not_found ->
-        let label = GMisc.label ~text:filename () in
-
+        let label = GMisc.label 
+          ~text:(match title with None -> filename | Some s -> s) 
+          () 
+        in
         let sw = GBin.scrolled_window
 	  ~vpolicy:`AUTOMATIC
 	  ~hpolicy:`AUTOMATIC
@@ -264,10 +265,11 @@ let load_file w ~filename ~line =
         buffer#set_text s;
         let select_line line =
           w.notebook#goto_page page_num;
-          let it = buffer#get_iter (`LINE (line-1)) in
-          buffer#place_cursor ~where:it;
-          let y = if buffer#line_count < 20 then 0.23 else 0.3 in
-          window#scroll_to_mark ~use_align:true ~yalign:y `INSERT
+          if line >= 0 then
+            let it = buffer#get_iter (`LINE (line-1)) in
+            buffer#place_cursor ~where:it;
+            let y = if buffer#line_count < 20 then 0.23 else 0.3 in
+            window#scroll_to_mark ~use_align:true ~yalign:y `INSERT
         in
         let result = { tab_name = filename; select_line = select_line;}
         in

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -22,7 +22,7 @@
 (**************************************************************************)
 
 open Promelaast
-
+open Bool3
 
 let rec condToDNF cond = 
   (*Typage : condition --> liste de liste de termes (disjonction de conjonction de termes)
@@ -74,7 +74,7 @@ let removeTerm term lterm =
     lterm
 
 
-(** Given a list of termes, if a positive call or return is present, then all negative ones are obvious and removed *)
+(** Given a list of terms, if a positive call or return is present, then all negative ones are obvious and removed *)
 let positiveCallOrRet clause = 
   let positive = ref None in 
   let isFalse = ref false in
@@ -82,55 +82,115 @@ let positiveCallOrRet clause =
     List.fold_left
       (fun treated term -> 
 	 match term with 
-	   | PCall (s)  as t -> 
+	   | PFuncParam (_,s,_) as t -> 
 	       begin match !positive with
 		 | None -> 
 		     positive:= Some(t) ; 
 		     t::treated
-		       
-		 | Some(PCall (a))
+
 		 | Some(PFuncParam (_,a,_)) ->
-		     (* Two positives on two different functions *) 
 		     if (String.compare a s)<>0 then isFalse:=true;
-		     (* Already present. Removed from list *)
 		     treated 
 			 
 		 | Some(PReturn (_))
 		 | Some(PFuncReturn (_,_)) -> 
-		     (* Two positives on two different function or Call and Ret on the same function. Always False  *)
 		     isFalse:=true;
 		     []
 		       
 		 | Some(PCallOrReturn (a)) -> 
-		     (* Two positives on two different functions *) 
 		     if (String.compare a s)<>0 then isFalse:=true;
-		     (* More specific information *)
+		     (* More specific information found in t *)
 		     positive:= Some(t) ; 
 		     t::(removeTerm (PCallOrReturn (a)) treated)
+
+		 | Some(PCall (a)) -> 
+		     if (String.compare a s)<>0 then isFalse:=true;
+		     (* More specific information found in t *)
+		     positive:= Some(t) ; 
+		     t::(removeTerm (PCall (a)) treated)
 			 
-		 | _ -> assert false (* This Variable has to contain only positive call, ret or call/ret conditions *)
+		 | _ -> assert false (* This Variable has to contain only positive call, 
+					ret or call/ret conditions *)
 	       end
-		 
-	   | PReturn (s) as t ->
+
+
+	   | PCall(s) as t-> 
 	       begin match !positive with
 		 | None -> 
 		     positive:= Some(t) ; 
 		     t::treated
 		       
-		 | Some(PReturn (a))
-		 | Some(PFuncReturn (_,a)) -> 
-		     (* Two positives on two different functions *) 
+		 | Some(PCall (a)) 
+		 | Some(PFuncParam (_,a,_)) ->
 		     if (String.compare a s)<>0 then isFalse:=true;
-		     (* Already present. Removed from list *)
 		     treated 
 			 
+		 | Some(PReturn (_))
+		 | Some(PFuncReturn (_,_)) -> 
+		     isFalse:=true;
+		     []
+		       
+		 | Some(PCallOrReturn (a)) -> 
+		     if (String.compare a s)<>0 then isFalse:=true;
+		     positive:= Some(t) ; 
+		     t::(removeTerm (PCallOrReturn (a)) treated)
+			 
+		 | _ -> assert false (* This Variable has to contain only positive call, 
+					ret or call/ret conditions *)
+	       end
+
+
+
+		 
+	   | PFuncReturn (_,s) as t ->
+	       begin match !positive with
+		 | None -> 
+		     positive:= Some(t) ; 
+		     t::treated
+
+		 | Some(PFuncReturn (_,a)) -> 
+		     if (String.compare a s)<>0 then isFalse:=true;
+		     treated
 			 
 		 | Some(PCall (_))
 		 | Some(PFuncParam (_,_,_)) ->
-		     (* Two positives on two different function or Call and Ret on the same function. Always False  *)
 		     isFalse:=true;
 		     []
+			 
+		 | Some(PReturn (a)) -> 
+		     (* Two positives on two different functions *) 
+		     if (String.compare a s)<>0 then isFalse:=true;
+		     (* More specific information *)
+		     positive:= Some(t) ; 
+		     t::(removeTerm (PReturn (a)) treated)
 
+ 
+		 | Some(PCallOrReturn (a)) -> 
+		     (* Two positives on two different functions *) 
+		     if (String.compare a s)<>0 then isFalse:=true;
+		     (* More specific information *)
+		     positive:= Some(t) ; 
+		     t::(removeTerm (PCallOrReturn (a)) treated)
+			 
+		 | _ -> assert false (* This Variable has to contain only positive call, 
+					ret or call/ret conditions *)
+	       end
+		 
+	   | PReturn (s)  as t -> 
+	       begin match !positive with
+		 | None -> 
+		     positive:= Some(t) ; 
+		     t::treated
+		       
+		 | Some(PReturn (a)) 
+		 | Some(PFuncReturn (_,a)) -> 
+		     if (String.compare a s)<>0 then isFalse:=true;
+		     treated 
+
+		 | Some(PCall (_))
+		 | Some(PFuncParam (_,_,_)) ->
+		     isFalse:=true;
+		     []
 			 
 		 | Some(PCallOrReturn (a)) -> 
 		     (* Two positives on two different functions *) 
@@ -139,9 +199,10 @@ let positiveCallOrRet clause =
 		     positive:= Some(t) ; 
 		     t::(removeTerm (PCallOrReturn (a)) treated)
 			 
-		 | _ -> assert false (* This Variable has to contain only positive call, ret or call/ret conditions *)
+		 | _ -> assert false (* This Variable has to contain only positive call, 
+					ret or call/ret conditions *)
 	       end
-		 
+
 		 
 	   | PCallOrReturn(s) as t -> 
 	       begin match !positive with
@@ -150,34 +211,22 @@ let positiveCallOrRet clause =
 		     t::treated
 		       
 		 | Some(PReturn (a))
-		 | Some(PFuncReturn (_,a)) -> 
-		     (* Two positives on two different functions *) 
-		     if (String.compare a s)<>0 then isFalse:=true;
-		     (* More specific information already present *)
-		     treated 
-			 
-			 
+		 | Some(PFuncReturn (_,a)) 
 		 | Some(PCall (a))
-		 | Some(PFuncParam (_,a,_)) ->
-		     (* Two positives on two different functions *) 
-		     if (String.compare a s)<>0 then isFalse:=true;
-		     (* More specific information already present *)
-		     treated 
-			 
-			 
+		 | Some(PFuncParam (_,a,_)) 
 		 | Some(PCallOrReturn (a)) -> 
 		     (* Two positives on two different functions *) 
 		     if (String.compare a s)<>0 then isFalse:=true;
-		     (* Already present. Removed from list *)
+		     (* More specific information already present *)
 		     treated 
 			 
-			 
-		 | _ -> assert false (* This Variable has to contain only positive call, ret or call/ret conditions *)
+		 | _ -> assert false (* This Variable has to contain only positive call, 
+					ret or call/ret conditions *)
 	       end
 		 
 		 
 		 
-	     | _ as t -> t::treated
+	   | _ as t -> t::treated
       )
       []
       clause
@@ -189,23 +238,21 @@ let positiveCallOrRet clause =
     let res =
       match !positive with 
 	| None -> computePositive
-	| Some(PCall(name)) -> 
+	| Some(PCall(name))
+	| Some(PFuncParam(_,name,_)) -> 
 	    List.fold_left
 	      (fun treated term -> 
 		match term with 
-		  | PNot(PCall (s)) -> 
-		      (* Two opposite information *) 
-		      if (String.compare name s)=0 then isFalse:=true;
-		      (* Positive information more specific than negative one *)
-		      treated 
-
-		  | PNot(PReturn (_)) -> 
-		      (* Positive information more specific than negative one *)
-		      treated 
-
+		  | PNot(PCall (s)) 
+		  | PNot(PFuncParam (_,s,_)) 
 		  | PNot(PCallOrReturn (s)) -> 
 		      (* Two opposite information *) 
 		      if (String.compare name s)=0 then isFalse:=true;
+		      (* Positive information more specific than negative one *)
+		      treated 
+
+		  | PNot(PReturn (_)) 
+		  | PNot(PFuncReturn (_,_)) ->
 		      (* Positive information more specific than negative one *)
 		      treated 
 
@@ -214,21 +261,19 @@ let positiveCallOrRet clause =
 	      []
 	      computePositive
 
-	| Some(PReturn (name))->
+	| Some(PReturn (name))
+	| Some(PFuncReturn (_,name)) ->
 	    List.fold_left
 	      (fun treated term -> 
 		match term with 
-		  | PNot(PCall (_)) -> 
+		  | PNot(PCall (_)) 
+		  | PNot(PFuncParam (_,_,_)) ->
 		      (* Positive information more specific than negative one *)
 		      treated 
 
-		  | PNot(PReturn (s)) -> 
-		      (* Two opposite information *) 
-		      if (String.compare name s)=0 then isFalse:=true;
-		      (* Positive information more specific than negative one *)
-		      treated 
-
-		  | PNot(PCallOrReturn (s)) -> 
+		  | PNot(PReturn (s))
+		  | PNot(PCallOrReturn (s))
+		  | PNot(PFuncReturn (_,s))   -> 
 		      (* Two opposite information *) 
 		      if (String.compare name s)=0 then isFalse:=true;
 		      (* Positive information more specific than negative one *)
@@ -244,14 +289,16 @@ let positiveCallOrRet clause =
 	    List.fold_left
 	      (fun treated term -> 
 		match term with 
-		  | PNot(PCall (s)) -> 
+		  | PNot(PCall (s))
+		  | PNot(PFuncParam (_,s,_)) -> 
 		      if (String.compare name s)=0 then 
 			(PReturn(s))::(removeTerm (PCallOrReturn (name)) treated)
 		      else
 			(* Positive information more specific than negative one *)
 			treated 
 			
-		  | PNot(PReturn (s)) -> 
+		  | PNot(PReturn (s))
+		  | PNot(PFuncReturn (_,s))  -> 
 		      if (String.compare name s)=0 then 
 			(PCall(s))::(removeTerm (PCallOrReturn (name)) treated)
 		      else
@@ -272,7 +319,8 @@ let positiveCallOrRet clause =
 
 
 	      
-	| _ -> assert false (* This Variable has to contain only positive call, ret or call/ret conditions *)
+	| _ -> assert false (* This Variable has to contain only positive call, 
+			       ret or call/ret conditions *)
     in
     if !isFalse then 
       [] 
@@ -311,7 +359,7 @@ let expAreEqual e1 e2 =
 	     (* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! *)
 	     (* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! *)
 	     (* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! *)
-	     (* Ici, pour les tests on lit s1 et s2, amis il faudrait dereferencer comme suit : 
+	     (* Ici, pour les tests on lit s1 et s2, mais il faudrait dereferencer comme suit : 
    		       PIndexedExp (s) -> Data_for_aorai.get_str_exp_from_tmpident s
 		Ou bien 
 		       PIndexedExp (s) -> Data_for_aorai.get_exp_from_tmpident s
@@ -329,7 +377,8 @@ let expAreEqual e1 e2 =
 
 
 
-(** Given a list of termes, if a positive call or return is present, then all negative ones are obvious and removed *)
+(** Given a list of terms, if a positive call or return is present, 
+    then all negative ones are obvious and removed *)
 let simplify clause = 
   let isFalse = ref false in
   let result  = ref [] in
@@ -461,6 +510,9 @@ let simplifyClauses clauses =
   !result
 
 	
+(** Given a DNF condition, it returns a condition in Promalaast.condition form. 
+    WARNING : empty lists not supported
+*)
 let dnfToCond d = 
   let isTrue =ref false in
   
@@ -479,18 +531,43 @@ let dnfToCond d =
   in
   if !isTrue then PTrue else res
       
-      
-(** Given a condition, this function does some logical simplifications. *)
+
+
+let dnfToParametrized clausel =
+  List.fold_left
+    (fun cll cl -> 
+       let onlypcond_cl = 
+	 List.fold_left
+	   (fun res term ->
+	      match term with
+		| PFuncReturn (_,_) 
+		| PFuncParam (_, _,_) as c -> c::res
+		| _ -> res
+		    
+	   )
+	   []
+	   cl 
+       in 
+       if onlypcond_cl=[] then cll else onlypcond_cl::cll
+    )
+    []
+    clausel
+
+
+
+(** Given a condition, this function does some logical simplifications. 
+    It returns both the simplified condition and a disjunction of conjunctions of parametrized call or return.
+*)
 let simplifyCond condition = 
   (* Step 1 : Condition is translate into Disjunctive Normal Form *)
-  let res = condToDNF condition in 
+  let res1 = condToDNF condition in 
   
   (* Step 2 : Positive Call/Ret are used to simplify negative ones *)
   let res = List.fold_left (fun lclauses clause -> 
 			      let c=(positiveCallOrRet clause) in
 			      if c=[] then lclauses
 			      else c::lclauses 
-			   ) [] res in
+			   ) [] res1 in
 
 
   (* Step 3 : simplification between exprs inside a clause *)
@@ -505,22 +582,119 @@ let simplifyCond condition =
   let res = simplifyClauses res in
 
   (* Last step : list of list translate back into condition type. *)
-  if res=[] then PFalse
-  else (dnfToCond res)
+  if res=[] then (PFalse,[])
+  else ((dnfToCond res),(*dnfToParametrized*) res)
     
     
 
-(** Given a transition, this function returns the same transition with simplifyCond done on its cross condition *)
+(** Given a list of transitions, this function returns the same list of transition with simplifyCond done on its cross condition *)
 let simplifyTrans transl =
-  List.fold_left (fun ltr tr -> 
+  List.fold_left (fun (ltr,lpcond) tr -> 
+		    let (crossCond , pcond ) = simplifyCond (tr.cross) in
+		    (* pcond stands for parametrized condition : disjunction of conjunctions of parametrized call/return *)
 		    let tr'={ start = tr.start ;
 			      stop  = tr.stop  ;
-			      cross = simplifyCond (tr.cross) ;
+			      cross = crossCond ;
 			      numt  = tr.numt
 			    }
 		    in
-		    if tr'.cross <> PFalse then tr'::ltr else ltr
-		 ) [] (List.rev transl)
+		    if tr'.cross <> PFalse then (tr'::ltr,pcond::lpcond) else (ltr,lpcond)
+		 ) ([],[]) (List.rev transl)
+
+
+
+
+
+
+
+(** Given a DNF condition, it returns the same condition simplified according 
+    to the context (function name and status). Hence, the returned condition 
+    is without any Call/Return stmts. 
+*)
+let simplifyDNFwrtCtx (dnf:Promelaast.condition list list) (f:string) (status:Promelaast.funcStatus) =
+  let rec simplCNFwrtCtx (cnf:Promelaast.condition list) =
+    match cnf with
+      | [] -> (True,[PTrue])
+      | PTrue::l -> simplCNFwrtCtx l
+      | PFalse::_ ->(False, [PFalse])
+
+      | PIndexedExp(s)::l -> 
+	  let (b,l2) = simplCNFwrtCtx l in
+	  if b=False then (False, [PFalse])
+	  else (Undefined,PIndexedExp(s)::l2)
+
+      | PCall(s)::l -> 
+	  if (String.compare f s)=0 && status=Promelaast.Call then
+	    simplCNFwrtCtx l
+	  else
+	    (False, [PFalse])
+
+      | PReturn(s)::l ->
+	  if (String.compare f s)=0 && status=Promelaast.Return then
+	    simplCNFwrtCtx l
+	  else
+	    (False, [PFalse])
+
+      | PCallOrReturn(s)::l -> 
+	  if (String.compare f s)=0 then
+	    simplCNFwrtCtx l
+	  else
+	    (False, [PFalse])
+
+
+
+      | PFuncReturn (hash, s)::l ->
+	  if (String.compare f s)=0 && status=Promelaast.Return then
+	    let (b,l2)= simplCNFwrtCtx l in
+	    if b=False then 
+	      (False, [PFalse])
+	    else
+	      (Undefined,PFuncReturn(hash,s)::l2) 
+	  else 
+	    (False, [PFalse])
+
+
+      | PFuncParam (hash, s, vl)::l ->  
+	  if (String.compare f s)=0 && status=Promelaast.Call then
+	    let (b,l2)= simplCNFwrtCtx l in
+	    if b=False then 
+	      (False, [PFalse])
+	    else
+	      (Undefined,PFuncParam(hash,s,vl)::l2)
+	    
+	  else
+	    (False, [PFalse])
+
+
+      | PNot(c)::l -> 
+	  let (b1,l1) = simplCNFwrtCtx [c] in
+	  if b1=True then (False, [PFalse])
+	  else
+	    if b1=False then simplCNFwrtCtx l
+	    else
+	      begin
+		let nl1 = PNot(List.hd l1) in
+		
+		let (b2,l2) = simplCNFwrtCtx l in
+		if b2=False then (False, [PFalse])
+		else (Undefined,nl1::l2)
+	      end
+		
+    
+
+      | PAnd (_,_) ::_
+      | POr (_,_)::_ -> assert false 
+  in
+  
+  List.fold_left
+    (fun res cll -> let (_,c) = simplCNFwrtCtx cll in 
+     c::res)
+    []
+    dnf
+
+
+
+
 
 
 

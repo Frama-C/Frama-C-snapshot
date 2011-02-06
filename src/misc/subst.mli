@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: subst.mli,v 1.6 2008-04-01 09:25:21 uid568 Exp $ *)
-
-(** Substitution of varinfos by exps *)
+(** Substitution of varinfos by exps.
+    @deprecated Carbon-20101201 *)
 
 open Cil_types
 
@@ -47,3 +46,9 @@ val expr: ?trans:bool -> exp -> t -> exp * bool
 
 val lval: ?trans:bool -> lval -> t -> exp * bool
   (** Apply the substitution to a lvalue. *)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

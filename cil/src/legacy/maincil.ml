@@ -83,9 +83,9 @@ let makeCFGFeature : Cil.featureDescr =
       ignore (Partial.calls_end_basic_blocks f) ; 
       ignore (Partial.globally_unique_vids f) ; 
       Cil.iterGlobals f (fun glob -> match glob with
-        C.GFun(fd,_) -> Cil.prepareCFG fd ;
+        C.GFun(fd,_) -> Cfg.prepareCFG fd ;
                       (* jc: blockinggraph depends on this "true" arg *)
-                      ignore (Cil.computeCFGInfo fd true)
+                      ignore (Cfg.computeCFGInfo fd true)
       | _ -> ()) 
     );
     Cil.fd_post_check = true;

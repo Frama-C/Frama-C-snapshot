@@ -5,7 +5,6 @@
 int main() {
   
   int x=0,y=0,z=0;
-  unsigned int ux=0,uy=0,uz=0;
 
   z = (int) 0x7fffffff + (int) 0x7fffffff; /* false */
   z =  - 0x7fffffff - 0x7fffffff; /* false */

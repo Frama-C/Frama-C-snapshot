@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,41 @@ open Db_types
 open Extlib
 open Pretty_utils
 
-module IntSet = Set.Make(struct type t = int let compare = compare end)
+let compare_annotations la1 la2 =
+  let la1 = Annotations.get_code_annotation la1 in
+  let la2 = Annotations.get_code_annotation la2 in
+  let total_order = Datatype.Int.compare la1.annot_id la2.annot_id in
+  match la1.annot_content,la2.annot_content with
+      AAssert _, AAssert _ -> total_order
+    | AAssert _,_ -> -1
+    | AStmtSpec _, AStmtSpec _ -> total_order
+    | AStmtSpec _, AAssert _ -> 1
+    | AStmtSpec _,_ -> -1
+    | AInvariant _, AAssert _ -> 1
+    | AInvariant _, AStmtSpec _ -> 1
+    | AInvariant ([],_,_), AInvariant ([],_,_) -> total_order
+    | AInvariant ([],_,_), AAssigns ([],_) -> total_order
+    | AInvariant ([],_,_),_ -> -1
+    | AInvariant _, AInvariant([],_,_) -> 1
+    | AInvariant _, AAssigns([],_) -> 1
+    | AInvariant _, AInvariant _ -> total_order
+    | AInvariant _, AAssigns _ -> total_order
+    | AInvariant _, _ -> -1
+    | AAssigns _, AAssert _ -> 1
+    | AAssigns _, AStmtSpec _ -> 1
+    | AAssigns([],_),  AInvariant ([],_,_) -> total_order
+    | AAssigns([],_), AAssigns ([],_) -> total_order
+    | AAssigns ([],_), _ -> -1
+    | AAssigns _, AInvariant([],_,_) -> 1
+    | AAssigns _, AAssigns([],_) -> 1
+    | AAssigns _, AInvariant _ -> total_order
+    | AAssigns _, AAssigns _ -> total_order
+    | AAssigns _, _ -> -1
+    | AVariant _, APragma _ -> -1
+    | AVariant _, AVariant _ -> total_order
+    | AVariant _, _ -> 1
+    | APragma _, APragma _ -> total_order
+    | APragma _, _ -> 1
 
 (* All annotation are extracted from Db.
    Generated global annotations are inserted before
@@ -38,7 +72,7 @@ class print () = object(self)
 
   val mutable first_function_definition = true
 
-  val mutable declared_globs = IntSet.empty
+  val mutable declared_globs = Datatype.Int.Set.empty
 
   val mutable is_fun_def = false
 
@@ -95,12 +129,12 @@ class print () = object(self)
   method pVDecl fmt vi =
     (try
        let kf = Globals.Functions.get vi in
-       if not (IntSet.mem vi.vid declared_globs) &&
+       if not (Datatype.Int.Set.mem vi.vid declared_globs) &&
          (is_fun_def || not (Ast_info.Function.is_definition kf.fundec))
        then begin
-         declared_globs <- IntSet.add vi.vid declared_globs;
+         declared_globs <- Datatype.Int.Set.add vi.vid declared_globs;
          (* pretty prints the spec, but not for built-ins*)
-         if not (Cil.BuiltinFunctions.mem vi.vname) then
+         if not (Cil.Builtin_functions.mem vi.vname) then
            self#pretty_funspec fmt kf
        end
      with Not_found -> ());
@@ -128,6 +162,7 @@ class print () = object(self)
   method private pLoopAnnotations fmt annots =
     if annots <> [] then
       begin
+        let annots = List.sort compare_annotations annots in
 	Pretty_utils.pp_open_block fmt "/*@@ " ;
         Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep
 	  self#pInsertedAnnotation
@@ -148,7 +183,7 @@ class print () = object(self)
 
   method pAnnotatedStmt next fmt s =
     (* To debug location setting:
-       (let loc = fst (Cilutil.get_stmtLoc s.skind) in
+       (let loc = fst (Cil_datatype.Stmt.loc s.skind) in
        Format.fprintf fmt "/*Loc=%s:%d*/" loc.Lexing.pos_fname loc.Lexing.pos_lnum); *)
 
     (* print the labels *)
@@ -161,7 +196,7 @@ class print () = object(self)
     (* print the annotations *)
     let all_annot =
       List.sort
-	Kernel_datatype.Rooted_Code_Annotation_Before_After.compare
+	Kernel_datatype.Rooted_code_annotation_before_after.compare
 	(Annotations.get_all_annotations s)
     in
     match all_annot with
@@ -189,9 +224,9 @@ class print () = object(self)
 	begin
 	  let s_block = annot_after <> [] || loop_annot_after <> [] in
 	  if s_block then Pretty_utils.pp_open_block fmt "{" ;
-	  self#pLoopAnnotations fmt loop_annot_before ;
 	  self#pAnnotations fmt annot_before ;
-	  if s.ghost then Pretty_utils.pp_open_block fmt "/*@@ ghost" ;
+	  self#pLoopAnnotations fmt loop_annot_before ;
+	  if s.ghost then Pretty_utils.pp_open_block fmt "/*@@ ghost " ;
 	  self#pStmtKind next fmt s.skind;
 	  if s.ghost then Pretty_utils.pp_close_block fmt "@ */@\n" ;
 	  self#pLoopAnnotations fmt loop_annot_after ;
@@ -200,13 +235,17 @@ class print () = object(self)
 	end
 
   method requireBraces blk =
-    match blk.bstmts with
-    | [ _ ] | [] when blk.battrs = [] ->
-	false
-    | _ ->
-	match self#current_stmt with
-	| None -> false
-	| Some stmt -> Annotations.get_all stmt <> []
+    match blk.blocals with
+        [] ->
+          begin
+            match blk.bstmts with
+              | [ _ ] | [] when blk.battrs = [] && blk.blocals = [] -> false
+              | _ ->
+	          match self#current_stmt with
+	            | None -> false
+	            | Some stmt -> Annotations.get_all stmt <> []
+          end
+      | _ -> true
 
 
   (** Get the comment out of a location if there is one *)

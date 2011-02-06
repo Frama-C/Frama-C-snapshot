@@ -66,7 +66,10 @@ let get_fresh_ident () =
   ident_count:=!ident_count+1;
   ("buchfreshident"^(string_of_int !ident_count))
 
-# 70 "src/aorai/promelaparser_withexps.ml"
+(*TODO: give a proper loc*)
+let new_exp =  Cil.new_exp ~loc:(Cil.CurrentLoc.get())
+
+# 73 "src/aorai/promelaparser_withexps.ml"
 let yytransl_const = [|
   257 (* PROMELA_OR *);
   258 (* PROMELA_AND *);
@@ -118,8 +121,8 @@ let yylhs = "\255\255\
 \009\000\009\000\009\000\009\000\009\000\009\000\009\000\009\000\
 \009\000\010\000\010\000\010\000\010\000\010\000\010\000\010\000\
 \011\000\011\000\011\000\012\000\012\000\012\000\012\000\013\000\
-\013\000\013\000\014\000\014\000\015\000\015\000\016\000\016\000\
-\016\000\016\000\000\000"
+\013\000\013\000\013\000\014\000\014\000\015\000\015\000\016\000\
+\016\000\016\000\016\000\000\000"
 
 let yylen = "\002\000\
 \005\000\006\000\003\000\001\000\002\000\002\000\001\000\002\000\
@@ -127,120 +130,122 @@ let yylen = "\002\000\
 \001\000\001\000\001\000\001\000\002\000\003\000\003\000\003\000\
 \001\000\003\000\003\000\003\000\003\000\003\000\003\000\001\000\
 \003\000\003\000\001\000\003\000\003\000\003\000\001\000\001\000\
-\001\000\003\000\003\000\001\000\004\000\001\000\002\000\004\000\
-\001\000\003\000\002\000"
+\002\000\001\000\003\000\003\000\001\000\004\000\001\000\002\000\
+\004\000\001\000\003\000\002\000"
 
 let yydefred = "\000\000\
-\000\000\000\000\000\000\051\000\000\000\000\000\000\000\004\000\
+\000\000\000\000\000\000\052\000\000\000\000\000\000\000\004\000\
 \000\000\000\000\008\000\000\000\000\000\011\000\000\000\010\000\
 \005\000\006\000\000\000\003\000\001\000\000\000\000\000\014\000\
 \002\000\000\000\019\000\000\000\000\000\040\000\000\000\000\000\
-\017\000\018\000\016\000\000\000\025\000\000\000\000\000\039\000\
-\000\000\000\000\046\000\009\000\000\000\013\000\020\000\021\000\
-\012\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\017\000\018\000\016\000\000\000\025\000\000\000\000\000\
+\039\000\000\000\000\000\047\000\009\000\000\000\013\000\020\000\
+\021\000\012\000\000\000\000\000\000\000\000\000\041\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\024\000\042\000\050\000\000\000\000\000\000\000\000\000\000\000\
-\026\000\027\000\028\000\029\000\030\000\031\000\033\000\034\000\
-\036\000\037\000\038\000\043\000\000\000\048\000\015\000\000\000\
-\045\000"
+\000\000\000\000\024\000\043\000\051\000\000\000\000\000\000\000\
+\000\000\000\000\026\000\027\000\028\000\029\000\030\000\031\000\
+\033\000\034\000\036\000\037\000\038\000\044\000\000\000\049\000\
+\015\000\000\000\046\000"
 
 let yydgoto = "\002\000\
 \004\000\007\000\008\000\009\000\017\000\010\000\023\000\024\000\
-\036\000\037\000\038\000\039\000\040\000\041\000\042\000\043\000"
+\037\000\038\000\039\000\040\000\041\000\042\000\043\000\044\000"
 
-let yysindex = "\006\000\
-\014\255\000\000\020\255\000\000\043\255\045\255\000\255\000\000\
-\052\255\043\255\000\000\050\255\066\000\000\000\077\255\000\000\
-\000\000\000\000\100\000\000\000\000\000\007\255\254\254\000\000\
-\000\000\035\255\000\000\128\255\109\255\000\000\035\255\030\255\
-\000\000\000\000\000\000\101\255\000\000\120\255\121\255\000\000\
-\167\255\172\255\000\000\000\000\035\255\000\000\000\000\000\000\
-\000\000\174\255\185\255\072\255\240\254\030\255\167\255\035\255\
-\035\255\198\255\253\254\253\254\253\254\253\254\253\254\253\254\
-\253\254\253\254\253\254\253\254\253\254\197\255\253\254\199\255\
-\000\000\000\000\000\000\240\254\067\255\207\255\200\255\253\254\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\178\255\000\000\000\000\194\255\
-\000\000"
+let yysindex = "\003\000\
+\014\255\000\000\041\255\000\000\085\255\126\255\002\255\000\000\
+\139\255\085\255\000\000\001\255\148\000\000\000\143\255\000\000\
+\000\000\000\000\159\000\000\000\000\000\010\255\250\254\000\000\
+\000\000\038\255\000\000\182\255\164\255\000\000\038\255\192\255\
+\037\255\000\000\000\000\000\000\104\255\000\000\039\255\124\255\
+\000\000\173\255\176\255\000\000\000\000\038\255\000\000\000\000\
+\000\000\000\000\178\255\006\255\076\255\075\255\000\000\037\255\
+\173\255\038\255\038\255\202\255\255\254\255\254\255\254\255\254\
+\255\254\255\254\255\254\255\254\255\254\255\254\255\254\201\255\
+\255\254\203\255\000\000\000\000\000\000\075\255\052\255\211\255\
+\204\255\255\254\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\000\000\183\255\000\000\
+\000\000\197\255\000\000"
 
 let yyrindex = "\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\094\255\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\140\255\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\183\255\054\255\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\003\255\169\255\000\000\
-\138\255\088\255\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\154\255\152\255\000\000\104\255\000\000\
+\000\000\000\000\000\000\186\255\057\255\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\000\000\004\255\172\255\
+\000\000\141\255\091\255\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\068\255\155\255\000\000\000\000\
+\107\255\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+\000\000\000\000\000\000\000\000\000\000\000\000\084\255\188\255\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
 \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\182\255\044\255\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-\000\000"
+\000\000\000\000\000\000"
 
 let yygindex = "\000\000\
-\000\000\000\000\202\000\205\000\000\000\000\000\000\000\193\000\
-\251\255\000\000\225\255\000\000\129\000\226\255\000\000\000\000"
+\000\000\000\000\206\000\209\000\000\000\000\000\000\000\197\000\
+\013\000\000\000\225\255\000\000\130\000\226\255\000\000\000\000"
 
-let yytablesize = 216
-let yytable = "\052\000\
-\053\000\055\000\075\000\032\000\032\000\044\000\001\000\029\000\
-\030\000\026\000\027\000\028\000\045\000\012\000\080\000\070\000\
-\013\000\029\000\030\000\003\000\048\000\032\000\032\000\076\000\
-\031\000\051\000\032\000\081\000\082\000\083\000\084\000\085\000\
-\086\000\087\000\088\000\005\000\032\000\026\000\027\000\047\000\
-\029\000\033\000\034\000\035\000\022\000\029\000\030\000\054\000\
-\096\000\053\000\077\000\078\000\031\000\006\000\049\000\049\000\
-\014\000\011\000\015\000\032\000\006\000\016\000\022\000\022\000\
-\032\000\021\000\019\000\056\000\057\000\033\000\034\000\035\000\
-\049\000\049\000\049\000\049\000\049\000\049\000\049\000\049\000\
-\049\000\049\000\049\000\049\000\049\000\049\000\049\000\049\000\
-\044\000\044\000\074\000\022\000\059\000\060\000\061\000\062\000\
-\063\000\064\000\007\000\025\000\007\000\056\000\057\000\007\000\
-\047\000\047\000\044\000\044\000\044\000\044\000\044\000\044\000\
-\044\000\044\000\044\000\044\000\044\000\044\000\044\000\044\000\
-\058\000\044\000\047\000\047\000\047\000\047\000\047\000\047\000\
-\047\000\047\000\047\000\047\000\047\000\047\000\047\000\049\000\
-\047\000\047\000\041\000\041\000\059\000\060\000\061\000\062\000\
-\063\000\064\000\050\000\065\000\066\000\067\000\068\000\069\000\
-\041\000\041\000\032\000\032\000\041\000\041\000\041\000\041\000\
-\041\000\041\000\041\000\041\000\041\000\041\000\041\000\041\000\
-\041\000\035\000\035\000\041\000\041\000\041\000\041\000\041\000\
-\041\000\041\000\041\000\041\000\041\000\041\000\041\000\020\000\
-\020\000\056\000\057\000\035\000\035\000\035\000\035\000\035\000\
-\035\000\035\000\035\000\089\000\090\000\091\000\070\000\093\000\
-\023\000\023\000\020\000\073\000\071\000\072\000\079\000\092\000\
-\057\000\094\000\095\000\097\000\074\000\020\000\018\000\046\000"
+let yytablesize = 220
+let yytable = "\053\000\
+\054\000\045\000\057\000\001\000\032\000\032\000\058\000\059\000\
+\046\000\029\000\030\000\006\000\026\000\027\000\028\000\012\000\
+\082\000\019\000\013\000\003\000\029\000\030\000\032\000\032\000\
+\075\000\078\000\032\000\031\000\033\000\083\000\084\000\085\000\
+\086\000\087\000\088\000\089\000\090\000\032\000\049\000\033\000\
+\026\000\027\000\048\000\052\000\034\000\035\000\036\000\029\000\
+\029\000\030\000\098\000\054\000\058\000\059\000\056\000\031\000\
+\005\000\050\000\050\000\061\000\062\000\063\000\064\000\065\000\
+\066\000\032\000\033\000\033\000\032\000\032\000\079\000\080\000\
+\034\000\035\000\036\000\050\000\050\000\050\000\050\000\050\000\
+\050\000\050\000\050\000\050\000\050\000\050\000\050\000\050\000\
+\050\000\050\000\050\000\045\000\045\000\077\000\076\000\006\000\
+\061\000\062\000\063\000\064\000\065\000\066\000\023\000\023\000\
+\058\000\059\000\072\000\048\000\048\000\045\000\045\000\045\000\
+\045\000\045\000\045\000\045\000\045\000\045\000\045\000\045\000\
+\045\000\045\000\045\000\060\000\045\000\048\000\048\000\048\000\
+\048\000\048\000\048\000\048\000\048\000\048\000\048\000\048\000\
+\048\000\048\000\011\000\048\000\048\000\042\000\042\000\014\000\
+\007\000\015\000\007\000\021\000\016\000\007\000\067\000\068\000\
+\069\000\070\000\071\000\042\000\042\000\022\000\025\000\042\000\
+\042\000\042\000\042\000\042\000\042\000\042\000\042\000\042\000\
+\042\000\042\000\042\000\042\000\035\000\035\000\042\000\042\000\
+\042\000\042\000\042\000\042\000\042\000\042\000\042\000\042\000\
+\042\000\042\000\020\000\020\000\022\000\050\000\035\000\035\000\
+\035\000\035\000\035\000\035\000\035\000\035\000\091\000\092\000\
+\093\000\051\000\095\000\055\000\072\000\020\000\022\000\022\000\
+\073\000\074\000\081\000\094\000\059\000\096\000\097\000\076\000\
+\099\000\020\000\018\000\047\000"
 
 let yycheck = "\031\000\
-\031\000\032\000\019\001\001\001\002\001\008\001\001\000\011\001\
-\012\001\003\001\004\001\005\001\015\001\014\001\018\001\032\001\
-\017\001\011\001\012\001\006\001\026\000\019\001\020\001\054\000\
-\018\001\031\000\030\001\059\000\060\000\061\000\062\000\063\000\
-\064\000\065\000\066\000\016\001\030\001\003\001\004\001\005\001\
-\011\001\035\001\036\001\037\001\001\001\011\001\012\001\018\001\
-\080\000\080\000\056\000\057\000\018\001\011\001\001\001\002\001\
-\005\001\013\001\007\001\030\001\011\001\010\001\019\001\020\001\
-\030\001\000\000\017\001\001\001\002\001\035\001\036\001\037\001\
-\019\001\020\001\021\001\022\001\023\001\024\001\025\001\026\001\
-\027\001\028\001\029\001\030\001\031\001\032\001\033\001\034\001\
-\001\001\002\001\019\001\015\001\021\001\022\001\023\001\024\001\
-\025\001\026\001\005\001\000\000\007\001\001\001\002\001\010\001\
-\001\001\002\001\019\001\020\001\021\001\022\001\023\001\024\001\
-\025\001\026\001\027\001\028\001\029\001\030\001\031\001\032\001\
-\020\001\034\001\019\001\020\001\021\001\022\001\023\001\024\001\
-\025\001\026\001\027\001\028\001\029\001\030\001\031\001\008\001\
-\033\001\034\001\001\001\002\001\021\001\022\001\023\001\024\001\
-\025\001\026\001\038\001\027\001\028\001\029\001\030\001\031\001\
-\001\001\002\001\001\001\002\001\019\001\020\001\021\001\022\001\
-\023\001\024\001\025\001\026\001\027\001\028\001\029\001\030\001\
-\031\001\001\001\002\001\034\001\021\001\022\001\023\001\024\001\
-\025\001\026\001\027\001\028\001\029\001\030\001\031\001\001\001\
-\002\001\001\001\002\001\019\001\020\001\021\001\022\001\023\001\
-\024\001\025\001\026\001\067\000\068\000\069\000\032\001\071\000\
-\019\001\020\001\020\001\019\001\033\001\032\001\009\001\011\001\
-\002\001\011\001\011\001\034\001\019\001\012\000\010\000\023\000"
+\031\000\008\001\033\000\001\000\001\001\002\001\001\001\002\001\
+\015\001\011\001\012\001\011\001\003\001\004\001\005\001\014\001\
+\018\001\017\001\017\001\006\001\011\001\012\001\019\001\020\001\
+\019\001\056\000\028\001\018\001\030\001\061\000\062\000\063\000\
+\064\000\065\000\066\000\067\000\068\000\028\001\026\000\030\001\
+\003\001\004\001\005\001\031\000\035\001\036\001\037\001\011\001\
+\011\001\012\001\082\000\082\000\001\001\002\001\018\001\018\001\
+\016\001\001\001\002\001\021\001\022\001\023\001\024\001\025\001\
+\026\001\028\001\030\001\030\001\001\001\002\001\058\000\059\000\
+\035\001\036\001\037\001\019\001\020\001\021\001\022\001\023\001\
+\024\001\025\001\026\001\027\001\028\001\029\001\030\001\031\001\
+\032\001\033\001\034\001\001\001\002\001\019\001\019\001\011\001\
+\021\001\022\001\023\001\024\001\025\001\026\001\019\001\020\001\
+\001\001\002\001\032\001\001\001\002\001\019\001\020\001\021\001\
+\022\001\023\001\024\001\025\001\026\001\027\001\028\001\029\001\
+\030\001\031\001\032\001\020\001\034\001\019\001\020\001\021\001\
+\022\001\023\001\024\001\025\001\026\001\027\001\028\001\029\001\
+\030\001\031\001\013\001\033\001\034\001\001\001\002\001\005\001\
+\005\001\007\001\007\001\000\000\010\001\010\001\027\001\028\001\
+\029\001\030\001\031\001\001\001\002\001\015\001\000\000\019\001\
+\020\001\021\001\022\001\023\001\024\001\025\001\026\001\027\001\
+\028\001\029\001\030\001\031\001\001\001\002\001\034\001\021\001\
+\022\001\023\001\024\001\025\001\026\001\027\001\028\001\029\001\
+\030\001\031\001\001\001\002\001\001\001\008\001\019\001\020\001\
+\021\001\022\001\023\001\024\001\025\001\026\001\069\000\070\000\
+\071\000\038\001\073\000\012\001\032\001\020\001\019\001\020\001\
+\033\001\032\001\009\001\011\001\002\001\011\001\011\001\019\001\
+\034\001\012\000\010\000\023\000"
 
 let yynames_const = "\
   PROMELA_OR\000\
@@ -292,7 +297,7 @@ let yyact = [|
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
     Obj.repr(
-# 97 "src/aorai/promelaparser_withexps.mly"
+# 100 "src/aorai/promelaparser_withexps.mly"
                                                                  ( 
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
@@ -307,17 +312,19 @@ let yyact = [|
 	    Data_for_aorai.setLtl_expressions observed_expressions;
 	    Logic_simplification.setLtl_expressions observed_expressions;
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans _3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
+	    let (transitions,pcondsl) = Logic_simplification.simplifyTrans _3 in
+	    let conds = Array.make (List.length transitions) [] in
+	    List.iter2 (fun t pc -> t.numt<-(!n); conds.(!n)<-pc; n:=!n+1) transitions pcondsl;
+	    Data_for_aorai.setCondOfParametrizedTransition conds;
 
 	    ((states , transitions),observed_vars,observed_funcs)
 	)
-# 316 "src/aorai/promelaparser_withexps.ml"
+# 323 "src/aorai/promelaparser_withexps.ml"
                : (Promelaast.buchautomata * (string, string) Hashtbl.t * (string, string) Hashtbl.t)))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 3 : 'states) in
     Obj.repr(
-# 116 "src/aorai/promelaparser_withexps.mly"
+# 121 "src/aorai/promelaparser_withexps.mly"
                                                                                    (
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
@@ -332,38 +339,40 @@ let yyact = [|
 	    Data_for_aorai.setLtl_expressions observed_expressions;
 	    Logic_simplification.setLtl_expressions observed_expressions;
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans _3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
+	    let (transitions,pcondsl) = Logic_simplification.simplifyTrans _3 in
+	    let conds = Array.make (List.length transitions) [] in
+	    List.iter2 (fun t pc -> t.numt<-(!n); conds.(!n)<-pc; n:=!n+1) transitions pcondsl;
+	    Data_for_aorai.setCondOfParametrizedTransition conds;
 
 
 	    ((states , transitions),observed_vars,observed_funcs) )
-# 341 "src/aorai/promelaparser_withexps.ml"
+# 350 "src/aorai/promelaparser_withexps.ml"
                : (Promelaast.buchautomata * (string, string) Hashtbl.t * (string, string) Hashtbl.t)))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
-# 140 "src/aorai/promelaparser_withexps.mly"
+# 147 "src/aorai/promelaparser_withexps.mly"
                                          ( 
 	    _1@_3
 	    (*let (s1,t1)=$1 in
 	    let (s2,t2)=$3 in
 	      (s1@s2,t1@t2)*)
 	  )
-# 354 "src/aorai/promelaparser_withexps.ml"
+# 363 "src/aorai/promelaparser_withexps.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
-# 146 "src/aorai/promelaparser_withexps.mly"
+# 153 "src/aorai/promelaparser_withexps.mly"
          ( _1 )
-# 361 "src/aorai/promelaparser_withexps.ml"
+# 370 "src/aorai/promelaparser_withexps.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'state_labels) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'state_body) in
     Obj.repr(
-# 150 "src/aorai/promelaparser_withexps.mly"
+# 157 "src/aorai/promelaparser_withexps.mly"
                                   (
 	  let (stl,trans)=_1 in
 	  let (trl,force_final)=_2 in
@@ -392,31 +401,31 @@ let yyact = [|
 
 
 	)
-# 396 "src/aorai/promelaparser_withexps.ml"
+# 405 "src/aorai/promelaparser_withexps.ml"
                : 'state))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'label) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'state_labels) in
     Obj.repr(
-# 181 "src/aorai/promelaparser_withexps.mly"
+# 188 "src/aorai/promelaparser_withexps.mly"
                              ( 
 	    let (stl1,trl1)=_1 in
 	    let (stl2,trl2)=_2 in
 	      (stl1@stl2,trl1@trl2) 
 	)
-# 408 "src/aorai/promelaparser_withexps.ml"
+# 417 "src/aorai/promelaparser_withexps.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'label) in
     Obj.repr(
-# 186 "src/aorai/promelaparser_withexps.mly"
+# 193 "src/aorai/promelaparser_withexps.mly"
          ( _1 )
-# 415 "src/aorai/promelaparser_withexps.ml"
+# 424 "src/aorai/promelaparser_withexps.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
-# 190 "src/aorai/promelaparser_withexps.mly"
+# 197 "src/aorai/promelaparser_withexps.mly"
                                       (
 	  begin
     (* Step 0 : trans is the set of new transitions and old is the description of the current state *)
@@ -456,53 +465,53 @@ let yyact = [|
 	    ([old],!trans)
 	  end
 	)
-# 460 "src/aorai/promelaparser_withexps.ml"
+# 469 "src/aorai/promelaparser_withexps.ml"
                : 'label))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     Obj.repr(
-# 233 "src/aorai/promelaparser_withexps.mly"
+# 240 "src/aorai/promelaparser_withexps.mly"
                                             ( (_2,false) )
-# 467 "src/aorai/promelaparser_withexps.ml"
+# 476 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 234 "src/aorai/promelaparser_withexps.mly"
+# 241 "src/aorai/promelaparser_withexps.mly"
                 ( ([],false) )
-# 473 "src/aorai/promelaparser_withexps.ml"
+# 482 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 235 "src/aorai/promelaparser_withexps.mly"
+# 242 "src/aorai/promelaparser_withexps.mly"
                  ( ([],true) )
-# 479 "src/aorai/promelaparser_withexps.ml"
+# 488 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 236 "src/aorai/promelaparser_withexps.mly"
+# 243 "src/aorai/promelaparser_withexps.mly"
                                                             ( ([],true) )
-# 485 "src/aorai/promelaparser_withexps.ml"
+# 494 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
-# 241 "src/aorai/promelaparser_withexps.mly"
+# 248 "src/aorai/promelaparser_withexps.mly"
                                  ( _1@[_2] )
-# 493 "src/aorai/promelaparser_withexps.ml"
+# 502 "src/aorai/promelaparser_withexps.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
-# 242 "src/aorai/promelaparser_withexps.mly"
+# 249 "src/aorai/promelaparser_withexps.mly"
               ( [_1] )
-# 500 "src/aorai/promelaparser_withexps.ml"
+# 509 "src/aorai/promelaparser_withexps.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'guard) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 246 "src/aorai/promelaparser_withexps.mly"
+# 253 "src/aorai/promelaparser_withexps.mly"
                                                                                     (
 	  let s=
 	    try
@@ -515,75 +524,75 @@ let yyact = [|
 	  in
 	    (_2,s)
 	)
-# 519 "src/aorai/promelaparser_withexps.ml"
+# 528 "src/aorai/promelaparser_withexps.ml"
                : 'transition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 262 "src/aorai/promelaparser_withexps.mly"
+# 269 "src/aorai/promelaparser_withexps.mly"
      ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCallOrReturn _1 )
-# 526 "src/aorai/promelaparser_withexps.ml"
+# 535 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 264 "src/aorai/promelaparser_withexps.mly"
+# 271 "src/aorai/promelaparser_withexps.mly"
      ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCall _1 )
-# 533 "src/aorai/promelaparser_withexps.ml"
+# 542 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 266 "src/aorai/promelaparser_withexps.mly"
+# 273 "src/aorai/promelaparser_withexps.mly"
      ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PReturn _1 )
-# 540 "src/aorai/promelaparser_withexps.ml"
+# 549 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 268 "src/aorai/promelaparser_withexps.mly"
+# 275 "src/aorai/promelaparser_withexps.mly"
             ( PTrue )
-# 546 "src/aorai/promelaparser_withexps.ml"
+# 555 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 270 "src/aorai/promelaparser_withexps.mly"
+# 277 "src/aorai/promelaparser_withexps.mly"
             ( PFalse )
-# 552 "src/aorai/promelaparser_withexps.ml"
+# 561 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 272 "src/aorai/promelaparser_withexps.mly"
+# 279 "src/aorai/promelaparser_withexps.mly"
      ( PNot _2 )
-# 559 "src/aorai/promelaparser_withexps.ml"
+# 568 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 274 "src/aorai/promelaparser_withexps.mly"
+# 281 "src/aorai/promelaparser_withexps.mly"
      ( PAnd (_1,_3) )
-# 567 "src/aorai/promelaparser_withexps.ml"
+# 576 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 276 "src/aorai/promelaparser_withexps.mly"
+# 283 "src/aorai/promelaparser_withexps.mly"
             ( POr (_1,_3) )
-# 575 "src/aorai/promelaparser_withexps.ml"
+# 584 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'guard) in
     Obj.repr(
-# 278 "src/aorai/promelaparser_withexps.mly"
+# 285 "src/aorai/promelaparser_withexps.mly"
      ( _2 )
-# 582 "src/aorai/promelaparser_withexps.ml"
+# 591 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logic_relation) in
     Obj.repr(
-# 283 "src/aorai/promelaparser_withexps.mly"
+# 290 "src/aorai/promelaparser_withexps.mly"
      (
 
 	      let id = get_fresh_ident () in
@@ -606,201 +615,208 @@ let yyact = [|
 
 	      res
 	    )
-# 610 "src/aorai/promelaparser_withexps.ml"
+# 619 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 313 "src/aorai/promelaparser_withexps.mly"
+# 320 "src/aorai/promelaparser_withexps.mly"
             ( (	Cil_types.Prel(Cil_types.Req, Logic_utils.expr_to_term ~cast:true _1 ,Logic_utils.expr_to_term  ~cast:true _3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Eq, _1 , _3 , Cil.intType)) )
+		new_exp (Cil_types.BinOp(Cil_types.Eq, _1 , _3 , Cil.intType)) )
 	    )
-# 620 "src/aorai/promelaparser_withexps.ml"
+# 629 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 317 "src/aorai/promelaparser_withexps.mly"
+# 324 "src/aorai/promelaparser_withexps.mly"
             ( (	Cil_types.Prel(Cil_types.Rlt, Logic_utils.expr_to_term ~cast:true _1 , Logic_utils.expr_to_term ~cast:true _3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Lt, _1 , _3 , Cil.intType)) )
+		new_exp (Cil_types.BinOp(Cil_types.Lt, _1 , _3 , Cil.intType)) )
 	    )
-# 630 "src/aorai/promelaparser_withexps.ml"
+# 639 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 321 "src/aorai/promelaparser_withexps.mly"
+# 328 "src/aorai/promelaparser_withexps.mly"
             ( (	Cil_types.Prel(Cil_types.Rgt, Logic_utils.expr_to_term ~cast:true _1 , Logic_utils.expr_to_term ~cast:true _3),
-		Cil.new_exp(Cil_types.BinOp(Cil_types.Gt, _1 , _3 , Cil.intType)) )
+		new_exp(Cil_types.BinOp(Cil_types.Gt, _1 , _3 , Cil.intType)) )
 	    )
-# 640 "src/aorai/promelaparser_withexps.ml"
+# 649 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 325 "src/aorai/promelaparser_withexps.mly"
+# 332 "src/aorai/promelaparser_withexps.mly"
             ( (	Cil_types.Prel(Cil_types.Rle, Logic_utils.expr_to_term ~cast:true _1 , Logic_utils.expr_to_term ~cast:true _3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Le, _1 , _3 , Cil.intType) ))
+		new_exp (Cil_types.BinOp(Cil_types.Le, _1 , _3 , Cil.intType) ))
 	    )
-# 650 "src/aorai/promelaparser_withexps.ml"
+# 659 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 329 "src/aorai/promelaparser_withexps.mly"
+# 336 "src/aorai/promelaparser_withexps.mly"
             ( (	Cil_types.Prel(Cil_types.Rge, Logic_utils.expr_to_term ~cast:true _1 , Logic_utils.expr_to_term ~cast:true _3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Ge, _1 , _3 , Cil.intType) ))
+		new_exp (Cil_types.BinOp(Cil_types.Ge, _1 , _3 , Cil.intType) ))
 	    )
-# 660 "src/aorai/promelaparser_withexps.ml"
+# 669 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 333 "src/aorai/promelaparser_withexps.mly"
+# 340 "src/aorai/promelaparser_withexps.mly"
             ( (	Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true _1 , Logic_utils.expr_to_term ~cast:true _3),
-		Cil.new_exp (Cil_types.BinOp(Cil_types.Ne , _1 , _3 , Cil.intType) ))
+		new_exp (Cil_types.BinOp(Cil_types.Ne , _1 , _3 , Cil.intType) ))
 	    )
-# 670 "src/aorai/promelaparser_withexps.ml"
+# 679 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 337 "src/aorai/promelaparser_withexps.mly"
+# 344 "src/aorai/promelaparser_withexps.mly"
      ( (	Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true _1 ,
 		     Logic_const.term
 		       (Cil_types.TConst(Cil_types.CInt64(Int64.of_int 0,Cil_types.IInt,Some("0"))))
 		       (Cil_types.Ctype Cil.intType)),
 		_1)
 	    )
-# 682 "src/aorai/promelaparser_withexps.ml"
+# 691 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 349 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.BinOp(Cil_types.PlusA, _1 , _3 , Cil.intType)) )
-# 690 "src/aorai/promelaparser_withexps.ml"
+# 356 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.BinOp(Cil_types.PlusA, _1 , _3 , Cil.intType)) )
+# 699 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
-# 351 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.BinOp(Cil_types.MinusA, _1 , _3 , Cil.intType)) )
-# 698 "src/aorai/promelaparser_withexps.ml"
+# 358 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.BinOp(Cil_types.MinusA, _1 , _3 , Cil.intType)) )
+# 707 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation_mul) in
     Obj.repr(
-# 353 "src/aorai/promelaparser_withexps.mly"
+# 360 "src/aorai/promelaparser_withexps.mly"
      ( _1 )
-# 705 "src/aorai/promelaparser_withexps.ml"
+# 714 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 359 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.BinOp(Cil_types.Div, _1 , _3 , Cil.intType)) )
-# 713 "src/aorai/promelaparser_withexps.ml"
+# 366 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.BinOp(Cil_types.Div, _1 , _3 , Cil.intType)) )
+# 722 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 361 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.BinOp(Cil_types.Mult, _1 , _3 , Cil.intType)) )
-# 721 "src/aorai/promelaparser_withexps.ml"
+# 368 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.BinOp(Cil_types.Mult, _1 , _3 , Cil.intType)) )
+# 730 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 363 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.BinOp(Cil_types.Mod, _1 , _3 , Cil.intType)) )
-# 729 "src/aorai/promelaparser_withexps.ml"
+# 370 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.BinOp(Cil_types.Mod, _1 , _3 , Cil.intType)) )
+# 738 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
-# 365 "src/aorai/promelaparser_withexps.mly"
+# 372 "src/aorai/promelaparser_withexps.mly"
      ( _1 )
-# 736 "src/aorai/promelaparser_withexps.ml"
+# 745 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 371 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string _1,Cil_types.IInt, Some(_1)))))
-# 743 "src/aorai/promelaparser_withexps.ml"
+# 378 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string _1,Cil_types.IInt, Some(_1)))))
+# 752 "src/aorai/promelaparser_withexps.ml"
+               : 'access_or_const))
+; (fun __caml_parser_env ->
+    let _2 = (Parsing.peek_val __caml_parser_env 0 : string) in
+    Obj.repr(
+# 380 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string ("-"^_2),Cil_types.IInt, Some("-"^_2)))))
+# 759 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
-# 373 "src/aorai/promelaparser_withexps.mly"
-            ( Cil.new_exp (Cil_types.Lval(_1)) )
-# 750 "src/aorai/promelaparser_withexps.ml"
+# 382 "src/aorai/promelaparser_withexps.mly"
+            ( new_exp (Cil_types.Lval(_1)) )
+# 766 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'arith_relation) in
     Obj.repr(
-# 375 "src/aorai/promelaparser_withexps.mly"
+# 384 "src/aorai/promelaparser_withexps.mly"
      ( _2 )
-# 757 "src/aorai/promelaparser_withexps.ml"
+# 773 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 382 "src/aorai/promelaparser_withexps.mly"
+# 391 "src/aorai/promelaparser_withexps.mly"
             ( 
               let (my_host,my_offset) = (_1) in
               
               let new_offset = Utils_parser.add_offset my_offset (Utils_parser.get_new_offset my_host my_offset _3) in
               (my_host,new_offset))
-# 769 "src/aorai/promelaparser_withexps.ml"
+# 785 "src/aorai/promelaparser_withexps.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_array) in
     Obj.repr(
-# 389 "src/aorai/promelaparser_withexps.mly"
+# 398 "src/aorai/promelaparser_withexps.mly"
      (_1)
-# 776 "src/aorai/promelaparser_withexps.ml"
+# 792 "src/aorai/promelaparser_withexps.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'access_array) in
     let _3 = (Parsing.peek_val __caml_parser_env 1 : 'access_or_const) in
     Obj.repr(
-# 393 "src/aorai/promelaparser_withexps.mly"
+# 402 "src/aorai/promelaparser_withexps.mly"
      ( Cil.addOffsetLval (Cil_types.Index (_3,Cil_types.NoOffset)) _1)
-# 784 "src/aorai/promelaparser_withexps.ml"
+# 800 "src/aorai/promelaparser_withexps.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_leaf) in
     Obj.repr(
-# 395 "src/aorai/promelaparser_withexps.mly"
+# 404 "src/aorai/promelaparser_withexps.mly"
      (_1)
-# 791 "src/aorai/promelaparser_withexps.ml"
+# 807 "src/aorai/promelaparser_withexps.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
-# 400 "src/aorai/promelaparser_withexps.mly"
+# 409 "src/aorai/promelaparser_withexps.mly"
             ( Aorai_option.fatal "NOT YET IMPLEMENTED : *A dereferencement access." )
-# 798 "src/aorai/promelaparser_withexps.ml"
+# 814 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : string) in
     let _4 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 405 "src/aorai/promelaparser_withexps.mly"
+# 414 "src/aorai/promelaparser_withexps.mly"
             ( 
 	      if(String.compare _4 "return")=0 then
 		begin
@@ -828,21 +844,21 @@ let yyact = [|
 			Cil.var ( Data_for_aorai.get_paraminfo _1 _4)
 		end
 	    )
-# 832 "src/aorai/promelaparser_withexps.ml"
+# 848 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 437 "src/aorai/promelaparser_withexps.mly"
+# 446 "src/aorai/promelaparser_withexps.mly"
      ( Cil.var ( Data_for_aorai.get_varinfo _1) )
-# 839 "src/aorai/promelaparser_withexps.ml"
+# 855 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'access) in
     Obj.repr(
-# 439 "src/aorai/promelaparser_withexps.mly"
+# 448 "src/aorai/promelaparser_withexps.mly"
      ( _2 )
-# 846 "src/aorai/promelaparser_withexps.ml"
+# 862 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 (* Entry promela *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

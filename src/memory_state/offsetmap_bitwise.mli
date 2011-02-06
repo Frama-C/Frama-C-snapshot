@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,17 +27,15 @@ type itv = Int.t * Int.t
 
 module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
 
-  type t
-
-  module Datatype : Project.Datatype.S with type t = t
-  val empty : t
+  include Datatype.S_no_copy
   val degenerate : V.t -> t
   val pretty_with_type : Cil_types.typ option -> Format.formatter -> t -> unit
-  val pretty: Format.formatter -> t -> unit
-  val is_empty : t -> bool
-  val find : (Int.t -> Int.t -> V.t) -> itv -> t -> V.t
 
-  val find_intervs : (Int.t -> Int.t -> V.t) -> 
+  val empty : t
+  val is_empty : t -> bool
+
+  val find : (Int.t -> Int.t -> V.t) -> itv -> t -> V.t
+  val find_intervs : (Int.t -> Int.t -> V.t) ->
     Int_Intervals.t -> t -> V.t
 
   val add : itv -> V.t -> t -> t
@@ -54,13 +52,13 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
   val is_included_exn : t -> t -> unit
   val map_and_merge : (V.t -> V.t) -> t -> t -> t
   val map :  (bool * V.t -> bool * V.t) -> t -> t
-  val map2 : 
-    ((bool * V.t) option -> (bool * V.t) option -> bool * V.t) 
+  val map2 :
+    ((bool * V.t) option -> (bool * V.t) option -> bool * V.t)
     -> t -> t -> t
-  val fold : 
+  val fold :
     (Int_Intervals.t -> bool * V.t -> 'a -> 'a) -> t -> 'a -> 'a
 
-  val copy_paste : 
+  val copy_paste :
     f:((bool*V.t -> bool*V.t) * (Int.t -> Int.t -> V.t)) option ->
     t -> Int.t -> Int.t -> Int.t -> t -> t
 
@@ -69,7 +67,6 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
     f:((bool*V.t -> bool*V.t) * (Int.t -> Int.t -> V.t)) option ->
     t -> Int.t -> Int.t -> t
 
-  val equal: t -> t -> bool
   val tag: t -> int
 
 end

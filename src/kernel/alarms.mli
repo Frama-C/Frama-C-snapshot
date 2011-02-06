@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,22 +35,26 @@ type t =
   | Separation_alarm
   | Other_alarm
 
+type alarm = t * Cil_types.code_annotation * Cil_types.annot_status
+
+module Alarm_datatype: Datatype.S with type t = alarm
+
 val pretty : Format.formatter -> t -> unit
-val register: Cil_types.kinstr -> t -> Cil_types.code_annotation -> bool
+val register: Cil_types.kinstr -> alarm -> bool
 val clear: unit -> unit
 
-val iter: (Cil_types.kinstr -> (t * Cil_types.code_annotation) -> unit) -> unit
+val iter: (Cil_types.kinstr -> alarm -> unit) -> unit
 
-val fold: 
-  (Cil_types.kinstr -> (t * Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
+val fold:
+  (Cil_types.kinstr -> alarm -> 'a -> 'a) -> 'a -> 'a
 
-val fold_kinstr: 
-  Cil_types.kinstr -> ((t*Cil_types.code_annotation) -> 'a -> 'a) -> 'a -> 'a
+val fold_kinstr:
+  Cil_types.kinstr -> (alarm -> 'a -> 'a) -> 'a -> 'a
 
-val self: Project.Computation.t
+val self: State.t
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

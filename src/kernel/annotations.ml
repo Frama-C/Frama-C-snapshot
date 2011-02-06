@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,46 +20,55 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Extlib
 open Cil_types
 open Db_types
 open Cil
 
+let get_code_annotation = function
+  | Before (User ca) | After (User ca)
+  | Before (AI (_,ca)) | After(AI(_,ca)) -> ca
+
 module AnnotState =
-  Computation.Dashtbl
-    (Cilutil.StmtComparable)
-    (Ast_info.Datatype_Annotation)
+  State_builder.Dashtbl
+    (Dashtbl.Default_key_marshaler(Cil_datatype.Stmt))
+    (Dashtbl.Default_data_marshaler
+       (Kernel_datatype.Rooted_code_annotation_before_after))
     (struct
        let name = "Annotations"
        let size = 17
        let dependencies = [ Ast.self ]
+       let kind = `Internal
+       let internal_kind = `Correctness
      end)
 
-let add = AnnotState.add
+let get_name a =
+  let old = Parameters.UseUnicode.get () in
+  Parameters.UseUnicode.set false;
+  let s =
+    Pretty_utils.sfprintf
+      "%a" !Ast_printer.d_rooted_code_annotation_before_after a
+  in
+  Parameters.UseUnicode.set old;
+  s
+
+let add stmt states a = AnnotState.add (get_name a) stmt states a
 
 let add_assert stmt states ~before a =
-  let a =
-    User (Logic_const.new_code_annotation (AAssert ([],a,{status=Unknown})))
-  in
-  let v = if before then Before a else After a in
-  if not (List.for_all
-	    (fun s -> List.memq v (AnnotState.find_all_local_data stmt s))
-	    states)
-  then add stmt states v
+  let a = User (Logic_const.new_code_annotation (AAssert ([],a))) in
+  add stmt states (if before then Before a else After a)
 
 let add_alarm stmt states ~before alarm a =
-  let a =
-    AI (alarm,
-	Logic_const.new_code_annotation
-	  (AAssert ([], a, { status = Unknown })))
-  in
+  let a = AI (alarm, Logic_const.new_code_annotation (AAssert ([], a))) in
   add stmt states (if before then Before a else After a)
 
 let reset_stmt = AnnotState.remove_all
-let replace = AnnotState.replace
+let replace ~reset stmt states a =
+  AnnotState.replace (get_name a) ~reset stmt states a
 
 let get = AnnotState.find_all_local
 let get_annotations = AnnotState.find_all_local_data
-let get_state = AnnotState.find_all_local_state
+let get_state = AnnotState.find_all_local_states
 
 let get_all = AnnotState.find_all
 let get_all_annotations = AnnotState.find_all_data
@@ -69,11 +78,7 @@ let get_by_state stmt =
   List.map (fun s -> s, get_annotations stmt s) (get_all_states stmt)
 
 let get_filter f stmt =
-  List.filter
-    (function
-     | Before (User ca) | After (User ca)
-     | Before (AI (_,ca)) | After(AI(_,ca)) -> f ca)
-    (get_all_annotations stmt)
+  List.filter (f $ get_code_annotation) (get_all_annotations stmt)
 
 let iter = AnnotState.iter
 let iter_stmt = AnnotState.iter_key
@@ -87,13 +92,8 @@ let filter = AnnotState.filter
 
 let self = AnnotState.self
 
-let add_dependency stmt state =
-  List.iter
-    (fun s -> AnnotState.add_dependency s state)
-    (get_all_states stmt)
-
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

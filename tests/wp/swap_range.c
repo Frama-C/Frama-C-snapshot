@@ -44,12 +44,12 @@ void swap_ranges(int* a, int n, int* b)
      loop assigns b[0..i-1];
 
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
-
      loop invariant \forall int k; 0 <= k < i ==>
                      a[k] == \at(b[k],Pre);
      loop invariant \forall int k; 0 <= k < i ==>
                      b[k] == \at(a[k],Pre);
+
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      swap(&a[i], &b[i]);

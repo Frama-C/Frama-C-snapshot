@@ -116,13 +116,16 @@ module type ForwardsTransfer = sig
    * [(Cil.CurrentLoc.get ())] is set before calling this. The default action is to
    * continue with the state unchanged. *)
 
-  val doGuard: Cil_types.stmt -> Cil_types.exp -> t -> t guardaction
-  (** Generate the successor to an If statement assuming the given expression
-    * is nonzero.  Analyses that don't need guard information can return
-    * GDefault; this is equivalent to returning GUse of the input.
+  val doGuard: Cil_types.stmt -> Cil_types.exp -> t -> 
+    t guardaction * t guardaction
+  (** Generate the successors [th, el] to an 
+    *  If statement assuming the given expression
+    * is respectively nonzero and zero. 
+    * Analyses that don't need guard information can return
+    * GDefault, GDefault; this is equivalent to returning GUse of the input.
     * A return value of GUnreachable indicates that this half of the branch
     * will not be taken and should not be explored.  This will be called
-    * twice per If, once for "then" and once for "else".
+    * once per If.
     * [stmt] is the corresponding [If] statement FYI only.
     *)
 

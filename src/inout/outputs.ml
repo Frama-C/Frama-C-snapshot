@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
+open Visitor
 open Db
 open Db_types
 open Locations
@@ -30,30 +30,30 @@ let call_stack = Stack.create ()
 exception Ignore
 
 class do_it = object(self)
-  inherit nopCilVisitor as super
-  val mutable current_stmt = Kglobal
+  inherit Visitor.frama_c_inplace as super
   val mutable outs = Zone.bottom
-
-  method set_current_stmt s = Kstmt s
 
   method result = outs
 
-  method vstmt s =
-    current_stmt <- Kstmt s;
+  method vstmt_aux s =
     match s.skind with
         UnspecifiedSequence seq ->
           List.iter
-            (fun (stmt,_,_,_) ->
-               ignore(visitCilStmt (self:>cilVisitor) stmt))
+            (fun (stmt,_,_,_,_) ->
+               ignore(visitFramacStmt (self:>frama_c_visitor) stmt))
           seq;
-          SkipChildren
-      | _ -> super#vstmt s
+          Cil.SkipChildren
+      | _ -> super#vstmt_aux s
 
   method join new_ =
     outs <- Zone.join new_ outs;
 
   method do_assign lv =
-    let loc = !Value.lval_to_loc ~with_alarms:CilE.warn_none_mode current_stmt lv in
+    let loc =
+      !Value.lval_to_loc ~with_alarms:CilE.warn_none_mode
+	self#current_kinstr
+	lv
+    in
     if not (Location_Bits.equal loc.loc Location_Bits.bottom)
     then
       begin
@@ -64,7 +64,7 @@ class do_it = object(self)
           Inout_parameters.debug ~current:true
 	    "Problem with %a@\nValue at this point:@\n%a"
 	    !Ast_printer.d_lval lv
-	    Value.pretty_state (Value.get_state current_stmt) ;
+	    Value.pretty_state (Value.get_state self#current_kinstr) ;
 	let bits_loc = valid_enumerate_bits loc in
         self#join bits_loc
       end
@@ -77,32 +77,38 @@ class do_it = object(self)
              | Some lv -> self#do_assign lv);
           let _, callees =
 	    !Value.expr_to_kernel_function
-	      ~with_alarms:CilE.warn_none_mode ~deps:None current_stmt exp
+	      ~with_alarms:CilE.warn_none_mode
+	      ~deps:None
+	      self#current_kinstr
+	      exp
 	  in
-          Kernel_function.Set.iter (fun kf -> self#join (!Db.Outputs.get_external kf)) callees
+          Kernel_function.Hptset.iter
+	    (fun kf -> self#join (!Db.Outputs.get_external kf)) callees
       | _ -> ()
     end;
-    SkipChildren
+    Cil.SkipChildren
 
 end
 
 let statement stmt =
   let computer = new do_it in
-  ignore (visitCilStmt (computer:>cilVisitor) stmt);
+  ignore (visitFramacStmt (computer:>frama_c_visitor) stmt);
   computer#result
 
 module Internals =
   Kf_state.Make
     (struct
-       let name = "internal_outs"
+       let name = "Internal outs"
        let dependencies = [ Value.self ]
+       let kind = `Correctness
      end)
 
 let get_internal =
   Internals.memo
     (fun kf ->
-       !Value.compute ();
-       match kf.fundec with
+      !Value.compute ();
+      let result_with_spurious_locals =
+	match kf.fundec with
        | Definition (f,_) ->
            (try
 	      Stack.iter
@@ -120,74 +126,54 @@ let get_internal =
 
 	      Stack.push kf call_stack;
 	      let computer = new do_it in
-	      ignore (visitCilFunction (computer:>cilVisitor) f);
+	      ignore (visitFramacFunction (computer:>frama_c_visitor) f);
 	      let _ = Stack.pop call_stack in
 	      computer#result
-		(*
-		  let initial_stmt = find_first_stmt kf in
-		  let initial_state = Value.get_state initial_stmt in
-		  let inputs = InOutContext.get_over_input_context
-		  (!InOutContext.get_external kf)
-		  in
-		  let out_bases =
-		  Zone.fold_bases
-		  BaseUtils.BaseSet.add
-		  res
-		  BaseUtils.BaseSet.empty
-		  in
-		  let access_path = Access_path.compute initial_state out_bases in
-		  let access_path = Access_path.filter access_path inputs in
-		*)
-		(*TODO*)
-            with Ignore ->
-	      Zone.bottom)
+            with Ignore -> Zone.bottom)
        | Declaration (_,_,_,_) ->
            let behaviors =
 	     !Value.valid_behaviors kf (Value.get_initial_state kf)
            in
            let assigns = Ast_info.merge_assigns behaviors in
-           (try
-              let state = Value.get_initial_state kf in
-              List.fold_left
-                (fun acc (loc,_) ->
-                   match loc with
-                       Location loc ->
-			 let c = loc.it_content in
-                         if (Logic_utils.is_result c)
-                         then acc
-                         else
-			   let loc = 
-			     !Properties.Interp.loc_to_loc ~result:None 
-			       state
-			       c
-			   in
- 		             Zone.join
-			       acc
-			       (Locations.valid_enumerate_bits loc)
-                     | Nothing -> acc
-                )
-                Zone.bottom
-		assigns
-            with Invalid_argument "not an lvalue" ->
-              Cil.warn "unsupported assigns clause for function %a; Ignoring it."
-                Kernel_function.pretty_name kf;
-              Zone.bottom)
+           (match assigns with
+               WritesAny -> 
+               (* [VP 2011-01-28] Should not be bottom, but top is likely to
+                  lead to a quick degeneration.
+                *)
+                 Zone.bottom
+             | Writes assigns ->
+               (try
+                  let state = Value.get_initial_state kf in
+                  List.fold_left
+                    (fun acc (loc,_) ->
+		      let c = loc.it_content in
+                      if (Logic_utils.is_result c)
+                      then acc
+                      else
+		        let loc =
+		          !Properties.Interp.loc_to_loc ~result:None state c
+		        in
+ 		        Zone.join acc (Locations.valid_enumerate_bits loc))
+                    Zone.bottom
+		    assigns
+                with Invalid_argument "not an lvalue" ->
+                  Cil.warn 
+                    "unsupported assigns clause for function %a; Ignoring it."
+                    Kernel_function.pretty_name kf;
+                  Zone.bottom))
+      in
+      Zone.filter_base (Db.accept_base_internal kf) result_with_spurious_locals
     )
 
 let externalize kf x =
-  if Kernel_function.is_definition kf then
-    let fundec = Kernel_function.get_definition kf in
-    Zone.filter_base
-      (fun v -> not (Base.is_formal_or_local v fundec))
-      x
-  else
-    x
+  Zone.filter_base (Db.accept_base ~with_formals:false kf) x
 
 module Externals =
   Kf_state.Make
     (struct
-       let name = "external_outs"
+       let name = "External outs"
        let dependencies = [ Internals.self ]
+       let kind = `Correctness
      end)
 
 let get_external =
@@ -208,11 +194,6 @@ let pretty_external fmt kf =
       Zone.pretty (get_external kf)
   with Not_found ->
     ()
-
-
-(* unused:
-let display () = iter_on_functions (pretty_internal Format.std_formatter)
-*)
 
 let () =
   Db.Outputs.self_internal := Internals.self;

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    INSA  (Institut National des Sciences Appliquees)                   #
 #    INRIA (Institut National de Recherche en Informatique et en         #
 #           Automatique)                                                 #
@@ -49,6 +49,7 @@ PLUGIN_CMO:= bool3 \
 	spec_tools \
 	aorai_option \
 	cil_manipulation \
+	path_analysis \
 	data_for_aorai \
 	promelaoutput \
 	logic_simplification \
@@ -69,15 +70,21 @@ PLUGIN_CMO:= bool3 \
 	aorai_register
 PLUGIN_CMI:= ltlast \
 	promelaast
+
+
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= Makefile.in configure.ac configure
+PLUGIN_HAS_EXT_DOC:=no # [JS 2010/07/28] was 'yes'
+                       # but prevent 'make src-distrib to work
 
 # if ltltoba is not present, do not attempt to run any test.
 ifneq (@HAS_LTLTOBA@,yes)
 PLUGIN_NO_TEST:=yes
 PLUGIN_NO_DEFAULT_TEST:=yes
 endif
+
+PLUGIN_INTERNAL_TEST:=yes
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 
@@ -92,3 +99,59 @@ endif
 $(Aorai_DIR)/Makefile: $(Aorai_DIR)/Makefile.in \
 			$(CONFIG_STATUS_DIR)/config.status
 	cd $(CONFIG_STATUS_DIR) && ./config.status
+
+
+LOCAL_SRC_DIR=aorai
+COMMON_FILES_TO_COPY=$(PLUGIN_DISTRIB_EXTERNAL) Makefile.in YA.README INSTALL VERSIONS.txt
+FRAMAC_SRC_ROOT=../..
+LOCAL_WEB_ROOT=/home/nstouls/Projets/AMAZONES/ForgeINRIA/main/aorai/
+LOCAL_WEB_DIFFUSION=$(LOCAL_WEB_ROOT)/site/src/site/resources
+TODAY=`date  +"%d-%m-%Y - %T"`
+TAGIN=<\!--START DATE-->
+TAGOUT=<\!--END DATE-->
+INDEX=$(LOCAL_WEB_DIFFUSION)/index.html
+
+pre-release:
+	mkdir -p $(LOCAL_SRC_DIR)/doc
+
+	@echo '## Generating bin and doc'
+	@make -C $(FRAMAC_SRC_ROOT) depend --quiet
+	@make -C $(FRAMAC_SRC_ROOT) --quiet
+	@make -C $(FRAMAC_SRC_ROOT) $(PLUGIN_NAME)_DOC --quiet
+	cp -r $(FRAMAC_SRC_ROOT)/doc/code/aorai $(LOCAL_SRC_DIR)/doc/.
+	cp  $(FRAMAC_SRC_ROOT)/doc/code/frama-c.png $(LOCAL_SRC_DIR)/doc/.
+	cp  $(FRAMAC_SRC_ROOT)/doc/code/style.css $(LOCAL_SRC_DIR)/doc/.
+
+	@make -C $(FRAMAC_SRC_ROOT)/doc/aorai/  --quiet
+	@make -C $(FRAMAC_SRC_ROOT)/doc/aorai/ install  --quiet
+	cp  $(FRAMAC_SRC_ROOT)/doc/manuals/aorai-manual.pdf $(LOCAL_SRC_DIR)/doc/.
+	cp  $(FRAMAC_SRC_ROOT)/doc/manuals/aorai-example.tgz $(LOCAL_SRC_DIR)/doc/.
+
+	@echo '## Deployment for local release'
+	@make clean --quiet
+# SRC directory generation
+	if [ -d autom4te.cache ] ; then rm -rf  autom4te.cache ; fi
+	cp *.* $(LOCAL_SRC_DIR)
+
+# Commun files copy
+	for f in $(COMMON_FILES_TO_COPY) ; do \
+		cp $$f $(LOCAL_SRC_DIR)/. ; \
+	done
+
+	@echo "## Generating archive"
+	tar -czf $(LOCAL_SRC_DIR).tgz $(LOCAL_SRC_DIR)
+	@echo "## Done."
+	@echo "## Please make 'pre-release-deploy' to move archive to $(LOCAL_WEB_DIFFUSION)"
+
+pre-release-deploy: $(LOCAL_SRC_DIR).tgz
+	@echo "## Moving archive to $(LOCAL_WEB_DIFFUSION)"
+	mv $(LOCAL_SRC_DIR).tgz $(LOCAL_WEB_DIFFUSION)
+	cat $(INDEX) | sed "s/$(TAGIN).*$(TAGOUT)/$(TAGIN)$(TODAY)$(TAGOUT)/" $(INDEX) > $(INDEX)2
+	mv $(INDEX)2 $(INDEX)
+	@echo "## Website updated"
+	cd $(LOCAL_WEB_ROOT) && ./CreateHTML.sh
+
+clean-all:
+	@make clean
+	@echo '## Removing generated directories'
+	@rm -rf $(LOCAL_SRC_DIR)

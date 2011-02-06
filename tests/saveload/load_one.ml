@@ -17,9 +17,9 @@ let main2 () =
   !Db.Value.compute ();
   let prj = Project.create_by_copy "copy" in
   Format.printf "INIT AST@.";
-  File.pretty ();
+  File.pretty_ast ();
   Format.printf "COPY AST@.";
-  File.pretty ~prj ()
+  File.pretty_ast ~prj ()
 
 let () = Db.Main.extend main2
 

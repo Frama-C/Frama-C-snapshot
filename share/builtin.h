@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -43,17 +43,26 @@ void *Frama_C_nondet_ptr(void *a, void *b);
  */
 int Frama_C_interval(int min, int max);
 
-/*@ assigns \result \from min, max, Frama_C_entropy_source;
-    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+/*@
+  requires min <= max;
+  ensures min <= \result <= max;
+  assigns \result \from min, max, Frama_C_entropy_source;
+  assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 float Frama_C_float_interval(float min, float max);
 
 /*@
-  assigns ((char *)dest)[0] \from ((char *)src)[0];
-// supported, but not really treated...
-//  assigns ((char *)dest)[0..n-1] \from ((char *)src)[0..n-1];
+  requires min <= max;
+  ensures min <= \result <= max;
+  assigns \result \from min, max, Frama_C_entropy_source;
+  assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+ */
+double Frama_C_double_interval(double min, double max);
+
+/*@
+  assigns dest[0..n-1] \from src[0..n-1] ;
 */
-void Frama_C_memcpy(void *dest, const void *src, unsigned long n);
+void Frama_C_memcpy(char *dest, const char *src, unsigned long n);
 
 /*@
   assigns \empty;

@@ -1,5 +1,5 @@
 /* run.config
-   DONTRUN: don't run a test which raises an exception
+   DONTRUN: don't run a test which raises an exception (PdgTypes.Pdg.Top)
    OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable -main main_top
    OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable -main main_call_top
 */

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -27,6 +27,8 @@
   * but it is not really possible to have abstract types since Slicing has to
   * use Db.Slicing functions...
  *)
+
+open Cil_datatype
 
 (** {3 About the PDG}
 * As the PDG is not defined here anymore, look at
@@ -53,15 +55,30 @@ type t_level_option =
                    (but merge slices with the same visibility,
                     even if they don't have the same marks) *)
 
-
 (** {3 About function slice} *)
 
 (** Kinds of elementary marks. *)
 type t_mark = Cav of PdgTypes.Dpd.t
             | Spare
 
+let compare_mark m1 m2 =
+  if m1 == m2 then 0
+  else match m1, m2 with
+    | Spare, Spare -> 0
+    | Cav d1, Cav d2 -> PdgTypes.Dpd.compare d1 d2
+    | Cav _, Spare -> -1
+    | Spare, Cav _ -> 1
+
+
 (** Each PDG element has 2 marks to deal with interprocedural propagation *)
 type t_pdg_mark = {m1 : t_mark ; m2 : t_mark }
+
+let compare_pdg_mark p1 p2 =
+  if p1 == p2 then 0
+  else
+    let r = compare_mark p1.m1 p2.m1 in
+    if r = 0 then compare_mark p1.m2 p2.m2 else r
+
 
 type t_call_id =  Cil_types.stmt
 
@@ -84,9 +101,11 @@ and t_fct_info = {
   mutable f_called_by : t_called_by;
           (** calls in slices that call source fct *)
 }
+
 and
   (** to represent where a function is called. *)
   t_called_by = (t_fct_slice * t_call_id) list
+
 and
 (** Function slice :
     created as soon as there is a criterion to compute it,
@@ -98,31 +117,38 @@ and
     mutable ff_marks : t_ff_marks;
     mutable ff_called_by : t_called_by
     }
+
 and
 (** [t_fct_id] is used to identify either a source function or a sliced one.*)
   t_fct_id =
   | FctSrc of t_fct_info  (** source function *)
   | FctSliced of t_fct_slice (** sliced function *)
+
 and
   t_called_fct =
   | CallSrc of t_fct_info option
     (** call the source function (might be unknown if the call uses pointer) *)
   | CallSlice of t_fct_slice
+
 and
   (** information about a call in a slice which gives the function to call *)
   t_call_info = t_called_fct option
+
 and
 (** main part of a slice = mapping between the function elements
   * and information about them in the slice. *)
   t_marks_index = (t_pdg_mark, t_call_info) PdgIndex.FctIndex.t
+
 and
   t_ff_marks = PdgTypes.Pdg.t * t_marks_index
+
 and
   t_project = { name : string ;
                 application : Project.t ;
-                functions : t_fct_info Cilutil.VarinfoHashtbl.t;
+                functions : t_fct_info Varinfo.Hashtbl.t;
                 mutable actions : t_criterion list;
               }
+
 and
 (** Slicing criterion at the application level.
     When applied, they are translated into [t_fct_criterion]
@@ -135,7 +161,6 @@ and
     * Its application generates requests to add persistent selection
     * to all the function callers. *)
   | CaOther
-
 
 and
 (** Base criterion for the functions. These are the only one that can
@@ -209,29 +234,7 @@ and
   t_criterion =
   CrAppli of t_appli_criterion | CrFct of t_fct_criterion
 
-
 (** {2 Internals values} *)
-
-(** In order to share as much as possible identical slicing marks *)
-module Sl_mark_table = struct
-  module H = Hashtbl.Make(struct
-                            type t = t_pdg_mark
-                            let equal = (=)
-                            let hash = Hashtbl.hash
-                          end)
-
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = t_pdg_mark
-	 let descr = Project.no_descr
-	 let copy _ = assert false (* TODO *)
-	 let name = "HashTable for Db.Slicing.Mark.t"
-       end)
-  let () =
-      Datatype.register_comparable ~compare ();
-
-end
 
 (** Internal function allowing creation of slicing marks
     which can break their type invariant ! *)
@@ -241,11 +244,11 @@ let create_sl_mark ~m1 ~m2 = { m1 = m1; m2 = m2 }
 let dummy_t_pdg_mark = {m1 = Spare ; m2 = Spare }
 
 (** The whole project. *)
-let dummy_t_project = {
-  name = ""; application = Project.dummy;
-  functions = Cilutil.VarinfoHashtbl.create 0;
-  actions = []
-}
+let dummy_t_project =
+  { name = "";
+    application = Project_skeleton.dummy;
+    functions = Varinfo.Hashtbl.create 0;
+    actions = [] }
 
 let dummy_t_fct_info = {
   fi_kf = Kernel_function.dummy () ;
@@ -275,6 +278,6 @@ let dummy_t_fct_user_crit = CuTop dummy_t_pdg_mark
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

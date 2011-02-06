@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Wrapper for [Printexc] compatible with all ocaml versions.
+(** Wrapper for [Printexc] compatible with all OCaml versions.
     @since Boron-20100401 *)
 
 (** Facilities for printing exceptions. *)
@@ -56,7 +56,7 @@ val print_backtrace: out_channel -> unit
     and where it was propagated through function calls. 
 
     @raise No_backtrace if this feature is not available 
-    (ocaml < 3.11). *)
+    (OCaml < 3.11). *)
 
 val get_backtrace: unit -> string
 (** [Printexc.get_backtrace ()] returns a string containing the
@@ -64,7 +64,7 @@ val get_backtrace: unit -> string
     print. 
 
     @raise No_backtrace if this feature is not available 
-    (ocaml < 3.11). *)
+    (OCaml < 3.11). *)
 
 val record_backtrace: bool -> unit
 (** [Printexc.record_backtrace b] turns recording of exception backtraces
@@ -73,14 +73,14 @@ val record_backtrace: bool -> unit
     through the [OCAMLRUNPARAM] variable. 
 
     @raise No_backtrace if this feature is not available 
-    (ocaml < 3.11). *)
+    (OCaml < 3.11). *)
 
 val backtrace_status: unit -> bool
 (** [Printexc.backtrace_status()] returns [true] if exception
     backtraces are currently recorded, [false] if not. 
 
     @raise No_backtrace if this feature is not available 
-    (ocaml < 3.11). *)
+    (OCaml < 3.11). *)
 
 (*
 Local Variables:

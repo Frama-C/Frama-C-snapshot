@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -26,7 +26,7 @@ type t
 
 (** Compute some information on the function in order to be able to compute
 * the control dependencies later on *)
-val compute : Db_types.kernel_function -> t
+val compute : Kernel_function.t -> t
 
 (** Compute the list of the statements that should have a control dependency
 * on the given IF statement. *)
@@ -39,3 +39,9 @@ val get_if_controled_stmts : t -> Cil_types.stmt -> Cil_types.stmt list
    {v L : body ; goto L; v}
 * *)
 val get_jump_controled_stmts : t -> Cil_types.stmt -> Cil_types.stmt list
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

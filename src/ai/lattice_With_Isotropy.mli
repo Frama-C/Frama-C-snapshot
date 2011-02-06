@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,24 +21,21 @@
 (**************************************************************************)
 
 module type S = sig
+
   open Abstract_interp
   include Lattice
   module Top_Param : Lattice_Set
-    
+
   (** Are the bits independent? *)
   val is_isotropic : t -> bool
-  val hash: t -> int
   val cast : with_alarms:CilE.warn_mode -> size:Int.t -> signed:bool -> t -> t
-  val extract_bits : with_alarms:CilE.warn_mode -> start:Int.t -> stop:Int.t -> t -> t
-  val bitwise_or : size:int -> t -> t -> t
-  val shift_left : with_alarms:CilE.warn_mode -> size:int -> t -> t -> t
+  val extract_bits : start:Int.t -> stop:Int.t -> t -> bool * t
   val little_endian_merge_bits :
-    total_length:int -> value:t -> offset:Int.t -> t -> t
+    conflate_bottom:bool -> total_length:int -> value:t -> offset:Int.t -> t -> t
   val big_endian_merge_bits :
-    total_length:int -> length:Int.t -> value:t -> offset:Int.t -> t -> t
+    conflate_bottom:bool -> total_length:int -> length:Int.t -> value:t -> offset:Int.t -> t -> t
 
-
-  (* Make a top for integers or pointers *)
+  (* Make isotropic *)
   val topify_merge_origin : t -> t
   val topify_arith_origin : t -> t
   val inject_top_origin : Origin.t -> Top_Param.O.t -> t
@@ -51,18 +48,22 @@ module type S = sig
   val singleton_zero : t
   val of_char : char -> t
 
-(* [is_included_actual_generic bases actual generic]
-     returns [i] if the hidden variables of [generic] can
-     be instanciated with an instanciation [i] so that [actual]
-     is included in "[i(generic)]". Raises [Is_not_included]
-     if the instanciation was not found. *)
+  (** [is_included_actual_generic bases actual generic]
+      returns [i] if the hidden variables of [generic] can
+      be instanciated with an instanciation [i] so that [actual]
+      is included in "[i(generic)]". Raises [Is_not_included]
+      if the instanciation was not found. *)
   val is_included_actual_generic :
-    BaseUtils.BaseSet.t ->
-    BaseUtils.BaseSet.t ref -> 
-    Locations.Location_Bytes.t BaseUtils.BaseMap.t ref -> t -> t -> unit
+    Base.Set.t ->
+    Base.Set.t ref ->
+    Locations.Location_Bytes.t Base.Map.t ref ->
+    t ->
+    t ->
+    unit
 
   val project : t -> Locations.Location_Bytes.t
-  val id : string
+
+  val pretty_c_assert : string -> Int.t -> Format.formatter -> t -> unit
 
 end
 

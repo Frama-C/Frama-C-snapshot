@@ -180,7 +180,7 @@ let yyact = [|
 	      ) observed_states []
 	    in 
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans _3 in
+	    let (transitions,_) = Logic_simplification.simplifyTrans _3 in
 	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
 	    ((states , transitions),observed_vars,observed_funcs)
@@ -203,7 +203,7 @@ let yyact = [|
 	      ) observed_states []
 	    in
 	    let n=ref 0 in
-	    let transitions = Logic_simplification.simplifyTrans _3 in
+	    let (transitions,_) = Logic_simplification.simplifyTrans _3 in
 	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
 
 

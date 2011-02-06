@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -26,15 +26,16 @@ include Plugin.Register
   (struct
      let name = "pdg"
      let shortname = "pdg"
-     let descr = "Program Dependence Graph"
+     let help = "Program Dependence Graph"
    end)
 
 module BuildAll =
   False
     (struct
        let option_name = "-pdg"
-       let descr =
+       let help =
          "build the dependence graph of each function for the slicing tool"
+       let kind = `Tuning
      end)
 
 module BuildFct =
@@ -42,13 +43,15 @@ module BuildFct =
     (struct
        let option_name = "-fct-pdg"
        let arg_name = ""
-       let descr = "build the dependence graph for the specified function"
+       let help = "build the dependence graph for the specified function"
+       let kind = `Tuning
      end)
 
 module PrintBw =
   False(struct
           let option_name = "-codpds"
-          let descr = "print the co-dependencies rather than the dependencies"
+          let help = "print the co-dependencies rather than the dependencies"
+          let kind = `Tuning
         end)
 
 module DotBasename =
@@ -56,7 +59,8 @@ module DotBasename =
     (struct
        let option_name = "-dot-pdg"
        let arg_name = "basename"
-       let descr = "put the PDG of function <f> in basename.f.dot"
+       let help = "put the PDG of function <f> in basename.f.dot"
+       let kind = `Tuning
      end)
 
 module DotPostdomBasename =
@@ -64,6 +68,7 @@ module DotPostdomBasename =
     (struct
        let option_name = "-dot-postdom"
        let arg_name = "f"
-       let descr = "put the postdominators of function <f> in basename.f.dot"
+       let help = "put the postdominators of function <f> in basename.f.dot"
+       let kind = `Tuning
      end)
 

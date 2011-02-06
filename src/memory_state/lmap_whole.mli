@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,56 +20,52 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*i $Id: lmap_whole.mli,v 1.13 2008-10-03 13:09:16 uid568 Exp $ i*)
-
 (** Functor making map for whole values with locations as keys *)
 
 open Abstract_interp
 open Abstract_value
 open Locations
-open BaseUtils
 
 exception Cannot_copy
 
-
-module Make_LOffset (VALUE:Lattice_With_Isotropy.S) (LOffset : Offsetmap.S with type y = VALUE.t and type widen_hint = VALUE.widen_hint) :
+module Make_LOffset
+  (VALUE:Lattice_With_Isotropy.S)
+  (LOffset : Offsetmap.S with type y = VALUE.t
+			 and type widen_hint = VALUE.widen_hint) :
 sig
+
   type y = VALUE.t (** type of the values associated to the locations *)
   type widen_hint_offsetmap = VALUE.widen_hint
 (*  module LOffset : Offsetmap.S with type y = y
 			       and type widen_hint = widen_hint_offsetmap
 *)
-  module Make (Default_offsetmap :
-    sig
-      val default_offsetmap : Base.t -> LOffset.t
-    end) :
+
+  module Make
+    (Default_offsetmap : sig val default_offsetmap : Base.t -> LOffset.t end) :
   sig
-    type t (** the type of a map *)
 
-    type widen_hint = bool * BaseSet.t * (Base.t -> widen_hint_offsetmap)
+    include Datatype.S (** the datype of a map *)
 
-    type instanciation = Location_Bytes.t BaseMap.t
-
-    module Datatype : Project.Datatype.S with type t = t
+    type widen_hint = bool * Base.Set.t * (Base.t -> widen_hint_offsetmap)
+    type instanciation = Location_Bytes.t Base.Map.t
 
     val inject : Base.t -> LOffset.t -> t
 
-    val pretty : Format.formatter -> t -> unit
     val pretty_without_null : Format.formatter -> t -> unit
     val pretty_filter :
       Format.formatter ->
       t -> Locations.Zone.t -> unit
-    val add_binding : with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
+    val add_binding :
+      with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> y -> t
 
-    val find : with_alarms:CilE.warn_mode -> t -> location -> y
+    val find :
+      with_alarms:CilE.warn_mode -> t -> location -> y
 
     val concerned_bindings : t -> location -> y list
 
     val join : t -> t -> t
     val is_included : t -> t -> bool
-    val equal : t -> t -> bool
-    val is_included_actual_generic :
-      Zone.t -> t -> t -> instanciation
+    val is_included_actual_generic : Zone.t -> t -> t -> instanciation
 
     (** Every location is associated to [VALUE.top] in [empty].*)
     val empty : t
@@ -81,25 +77,23 @@ sig
     val is_reachable : t -> bool
 
     val widen : widen_hint-> t -> t -> (bool * t)
-
-
     val filter_base : (Base.t -> bool) -> t -> t
 
-    (** Raises [Not_found] if the varid is not present in the map *)
+    (** @raise Not_found if the varid is not present in the map *)
     val find_base : Base.t -> t -> LOffset.t
 
-    (** [copy_paste src dst state] returns a modified version of [state] in which
-        everything present in [src] has been copied onto [dst]. [src] and [dst]
-        must have the same size. The write operation is exact iff [dst] is
-        exact. May raise [Cannot_copy]. *)
+    (** [copy_paste src dst state] returns a modified version of [state] in
+        which everything present in [src] has been copied onto [dst]. [src] and
+        [dst] must have the same size. The write operation is exact iff [dst]
+        is exact. May raise [Cannot_copy]. *)
     val copy_paste : location -> location -> t -> t
 
-    (**May raise [Cannot_copy]. *)
+    (** @raise Cannot_copy when ... *)
     val paste_offsetmap :
       LOffset.t -> Location_Bits.t -> Int.t -> Int.t -> t -> t
 
     (** May return [None] as a bottom LOffset.t
-        May raise [Cannot_copy].*)
+        @raise Cannot_copy when ...*)
     val copy_offsetmap : Locations.location -> t -> LOffset.t option
 
     val compute_actual_final_from_generic :
@@ -110,9 +104,10 @@ sig
     (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
         or of size different of [size]. *)
     val fold : size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
-  (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
-     or of size different of [size].*)
-    val fold_single_bindings : 
+
+    (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
+	or of size different of [size].*)
+    val fold_single_bindings :
       size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
 
     (** [fold_base f m] calls [f] on all bases bound to non top values in [m] *)
@@ -122,27 +117,36 @@ sig
     val add_whole: location -> y -> t -> t
     val remove_whole: location -> t -> t
 
-    (** [reciprocal_image m b] is the set of bits in the map [m] that may lead to
-        Top([b]) and  the location in [m] where one may read an address [b]+_ *)
+    (** [reciprocal_image m b] is the set of bits in the map [m] that may lead
+        to Top([b]) and the location in [m] where one may read an address
+        [b]+_ *)
     val reciprocal_image : Base.t -> t -> Zone.t*Location_Bits.t
-      (*
-        val create_initialized_var :
-        Cil_types.varinfo -> Base.validity -> LOffset.t -> Base.t
-      *)
+    (*
+      val create_initialized_var :
+      Cil_types.varinfo -> Base.validity -> LOffset.t -> Base.t
+     *)
     val create_initial :
       base:Base.t ->
       v:y ->
       modu:Int.t ->
       state:t -> t
-  exception Error_Bottom
 
-  val cached_fold :
-    f:(Base.t -> LOffset.t -> 'a) ->
-    cache:string * int -> joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
+    val cached_fold :
+      f:(Base.t -> LOffset.t -> 'a) ->
+      cache:string * int -> temporary:bool ->
+      joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
 
     val cached_map :
 	f:(Base.t -> LOffset.t -> LOffset.t) ->
-	  cache:string * int ->
+	  cache:string * int ->     temporary:bool ->
 	    t -> t
+
  end
+
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

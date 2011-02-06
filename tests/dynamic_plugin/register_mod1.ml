@@ -1,5 +1,5 @@
 module L = List
-open Type
+open Datatype
 module List = L
 
 (* Test with a mutual recursive function *)

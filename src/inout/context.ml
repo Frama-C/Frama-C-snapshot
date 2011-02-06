@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,9 +31,6 @@ open Abstract_value
 (* Computation of over-approximed operational inputs:
    An acurate computation of these inputs needs the computation of
    under-approximed outputs.
-   Computation principle for the treatement of a basic statement:
-   *  I_new+ = I_old+ \/+ (Rd+(stmt) /+ O_old-)
-   *  O_new- = O_old- \/-  Wr-(stmt)
 *)
 
 type compute_t =
@@ -42,22 +39,40 @@ type compute_t =
 
 (* Initial value for the computation *)
 let empty =
-  { (* initial value for the computation of over_inputs *)
+  {
     over_inputs = Zone.bottom;
     under_outputs = Zone.bottom;
   }
 
-let non_terminating =
+let bottom =
   {
     over_inputs = Zone.bottom ;
     under_outputs = Zone.top
   }
 
-(*
-let unknown =
-  { over_inputs = Zone.top ;
-  under_outputs = Zone.bottom }
-*)
+let join c1 c2 =
+  { over_inputs = Zone.join c1.over_inputs c2.over_inputs;
+    under_outputs = Zone.meet c1.under_outputs c2.under_outputs;
+  }
+
+let is_included c1 c2 =
+  Zone.is_included c1.over_inputs c2.over_inputs &&
+    Zone.is_included c2.under_outputs c1.under_outputs
+
+let catenate c1 c2 =
+  { over_inputs =
+      Zone.join
+	c1.over_inputs
+	(Zone.diff c2.over_inputs c1.under_outputs);
+    under_outputs = Zone.link c1.under_outputs c2.under_outputs }
+
+let pretty fmt x =
+  Format.fprintf fmt
+    "@[Over-approximated operational inputs: %a@]@\n\
+       @[Under-approximated operational outputs: %a@]"
+    Zone.pretty x.over_inputs
+    Zone.pretty x.under_outputs
+
 
 let call_stack : kernel_function Stack.t =
   Stack.create ()
@@ -74,9 +89,11 @@ module Computer (REACH:sig
 
   let stmt_can_reach = REACH.stmt_can_reach
 
-  let under_inputs_termination_no_depend = ref Zone.bottom
+  let non_terminating_callees_inputs = ref Zone.bottom
 
   type t = compute_t
+
+  let pretty = pretty
 
   module StmtStartData =
     Dataflow.StmtStartData(struct type t = compute_t let size = 107 end)
@@ -85,11 +102,6 @@ module Computer (REACH:sig
     Format.fprintf fmt "Statement: %d@\n"
       k;
     InOutContext.pretty fmt v
-
-  let pretty fmt x =
-    Format.fprintf fmt "@[Over-approximated operational inputs: %a@]@\n@[Under-approximated operational outputs: %a@]"
-      Zone.pretty x.over_inputs
-      Zone.pretty x.under_outputs
 
   let display fmt f =
     Format.fprintf fmt "=========INOUT CONTEXT START=======@\n";
@@ -100,14 +112,11 @@ module Computer (REACH:sig
 
   let copy (d: t) = d
 
-
   let computeFirstPredecessor (s: stmt) data =
     match s.skind with
       | Switch (exp,_,_,_)
-      | If (exp,_,_,_) ->
-          (* update [over_inputs] using the [exp] condition:
-             I+ = I+ \/+ (D+(exp) /+ O-)
-          *)
+      | If (exp,_,_,_)
+      | Return (Some exp, _) ->
           let inputs = !From.find_deps_no_transitivity (Kstmt s) exp in
             {data with
                over_inputs =
@@ -115,28 +124,12 @@ module Computer (REACH:sig
                   (Zone.diff inputs data.under_outputs)}
       | _ -> data
 
-  let combinePredecessors
-      (s: stmt)
-      ~old:{under_outputs = old_outputs;
-            over_inputs = old_inputs}
-      new_ =
-    let {under_outputs = new_outputs;
-         over_inputs = new_inputs} = computeFirstPredecessor s new_
-    in
-    let result_inputs = Zone.join old_inputs new_inputs in
-    (* over-approximation :
-       I+ = I_old+ \/+ (I_new+  \/+ (D+(exp) /+ Onew-)
-    *)
-    let result_outputs = Zone.meet old_outputs new_outputs in
-    (* under-approximation :
-       O- = O_old- /\- O_new-
-    *)
-    if Zone.is_included result_inputs old_inputs
-      (* test for an over-approximation *)
-      && Zone.is_included old_outputs result_outputs
-      (* test for an under-approximation *)
+  let combinePredecessors (s: stmt) ~old new_ =
+    let new_c = computeFirstPredecessor s new_ in
+    let result = join new_c old in
+    if is_included result old
     then None
-    else Some {under_outputs = result_outputs; over_inputs = result_inputs}
+    else Some result
 
   let resolv_func_vinfo ?deps kinstr funcexp =
     !Value.expr_to_kernel_function ?deps kinstr funcexp
@@ -146,10 +139,8 @@ module Computer (REACH:sig
     in
     let add_with_additional_var k j st =
       let deps, looking_for =
-        (* The modified tsets are [looking_for], those address are
-           function of [deps]. *)
         !Value.lval_to_loc_with_deps
-           ~with_alarms:CilE.warn_none_mode
+          ~with_alarms:CilE.warn_none_mode
           ~deps:j
           kinstr
           k
@@ -157,13 +148,14 @@ module Computer (REACH:sig
       let new_inputs =
         Zone.join st.over_inputs (Zone.diff deps st.under_outputs) in
       let new_outputs =
-        if Location_Bits.cardinal_zero_or_one looking_for.loc
+        if Locations.valid_cardinal_zero_or_one looking_for
         then
           (* There is only one modified zone. So, this is an exact output.
              Add it into the under-approximed outputs. *)
-          Zone.link st.under_outputs (Locations.valid_enumerate_bits looking_for)
-        else (* Impossible to add these outputs into the under-approximed outputs. *)
-          st.under_outputs
+          Zone.link
+	    st.under_outputs
+	    (Locations.valid_enumerate_bits looking_for)
+        else st.under_outputs
       in
       { over_inputs = new_inputs;
         under_outputs = new_outputs }
@@ -172,7 +164,6 @@ module Computer (REACH:sig
     | Set (lv, exp, _) ->
         Dataflow.Post
           (fun state ->
-
              let exp_inputs_deps =
                !From.find_deps_no_transitivity kinstr exp
              in
@@ -183,69 +174,61 @@ module Computer (REACH:sig
     | Call (lvaloption,funcexp,argl,_) ->
         Dataflow.Post
           (fun state ->
-               let funcexp_inputs, called_vinfos =
-                 (* [funcexp_inputs]: inputs for the evaluation of [funcexp],
-                    [called_vinfos]: list of called functions *)
-                 resolv_func_vinfo
-                   ~with_alarms:CilE.warn_none_mode
-                   ~deps:Zone.bottom
-                   kinstr
-                   funcexp
-               in
-               let acc_funcexp_inputs =
-                 (* inputs used by [funcexp] and inputs for the evaluation of [funcexp] *)
-                 Zone.join funcexp_inputs state.over_inputs
-               in
-               let acc_funcexp_arg_inputs =
-                 (* inputs used by [funcexp], inputs for the evaluation of [funcexp] and its [argl] *)
-                 List.fold_right
-		   (fun arg inputs ->
-                      let arg_inputs = !From.find_deps_no_transitivity kinstr arg
-		      in Zone.join inputs arg_inputs)
-		   argl
-                   acc_funcexp_inputs
-               in let result =
-                   match Kernel_function.Set.elements called_vinfos with
-                     | [] -> { over_inputs = acc_funcexp_arg_inputs ;
-                               under_outputs = state.under_outputs }
-                     | h::t ->
-                         let do_on kernel_function =
-                           let { over_inputs_if_termination = called_inputs;
-                                 under_outputs_if_termination = called_outputs ;
-
-                                 Inout_type.over_inputs = called_input_termination_no_depend} = !Db.InOutContext.get_external kernel_function
-
-                           in
-                           let _ = under_inputs_termination_no_depend := Zone.join
-                             !under_inputs_termination_no_depend
-                             (Zone.diff called_input_termination_no_depend state.under_outputs);
-                           in { over_inputs = (* the real inputs of the call to those of the curent state *)
-                                 Zone.diff called_inputs state.under_outputs;
-                                under_outputs = called_outputs }
-                         in
-                         let acc = do_on h (* First call *)
-                         in let done_on = List.fold_left (* Combine other calls *)
-                             (fun acc_memory called_vinfo ->
-                                let done_on = do_on called_vinfo
-                                in {over_inputs = Zone.join done_on.over_inputs acc_memory.over_inputs; (* over-approximation *)
-                                    under_outputs = Zone.meet done_on.under_outputs acc_memory.under_outputs (* under-approximation intersec*)
-                                   })
-                             acc
-                             t
-                         in (* state just after the call, but before the result asssigment *)
-                           { over_inputs = Zone.join acc_funcexp_arg_inputs done_on.over_inputs ;
-                             under_outputs = Zone.link state.under_outputs done_on.under_outputs (* under-approximed union *) }
-               in let result =
-                   (* Treatement for the eventual assignement of the call result *)
-                   (match lvaloption with
-                    | None -> result
-                    | Some lv ->
-                        add_with_additional_var
-                          lv
-                          Zone.bottom (* Inputs are already got using [!InOutContext.get_external kernel_function]. *)
-                          result)
-               in result
-)
+             let funcexp_inputs, called_vinfos =
+               resolv_func_vinfo
+                 ~with_alarms:CilE.warn_none_mode
+                 ~deps:Zone.bottom
+                 kinstr
+                 funcexp
+             in
+             let acc_funcexp_inputs =
+               (* inputs used by [funcexp] and inputs
+		  for the evaluation of [funcexp] *)
+               Zone.join funcexp_inputs state.over_inputs
+             in
+             let acc_funcexp_arg_inputs =
+               (* add the inputs of [argl] *)
+               List.fold_right
+		 (fun arg inputs ->
+                    let arg_inputs = !From.find_deps_no_transitivity kinstr arg
+		    in Zone.join inputs arg_inputs)
+		 argl
+                 acc_funcexp_inputs
+             in
+	     let state = { state with over_inputs = acc_funcexp_arg_inputs } in
+	     let for_functions =
+	       Kernel_function.Hptset.fold
+		 (fun called_vinfo acc  ->
+                   let { Inout_type.over_inputs_if_termination = called_inputs_term;
+                         under_outputs_if_termination = called_outputs ;
+                         over_inputs = called_inputs} =
+                     !Db.InOutContext.get_external called_vinfo
+                   in
+		   non_terminating_callees_inputs :=
+		     Zone.join
+		       !non_terminating_callees_inputs
+		       (Zone.diff called_inputs state.under_outputs);
+		   let for_function =
+		     { over_inputs = called_inputs_term;
+		       under_outputs = called_outputs }
+		   in
+		   join for_function acc)
+		 called_vinfos
+		 bottom
+	     in
+(*	     Format.printf "functions: %a@." pretty for_functions; *)
+	     let result = catenate state for_functions in
+	     let result =
+               (* Treatment for the possible assignment of the call result *)
+               (match lvaloption with
+                | None -> result
+                | Some lv ->
+                    add_with_additional_var
+                      lv
+                      Zone.bottom
+                      result)
+             in result
+          )
     | _ -> Dataflow.Default
 
   let doStmt (s: stmt) (_d: t) =
@@ -255,14 +238,10 @@ module Computer (REACH:sig
   let filterStmt (s:stmt) =
     let state = Value.noassert_get_state (Kstmt s) in
     Value.is_reachable state
-(*
-  let clear_for_function f =
-    StmtStartData.clear ();
-    StmtStartData.iter (StmtStartData.add stmtStartData) f
-*)
+
   let doGuard s _e _t =
     current_stmt := Kstmt s;
-    Dataflow.GDefault
+    Dataflow.GDefault, Dataflow.GDefault
 
   let doEdge _ _ d = d
 
@@ -272,24 +251,15 @@ let get_using_prototype kf =
   let state = Value.get_initial_state kf in
   let behaviors = !Value.valid_behaviors kf state in
   let assigns = Ast_info.merge_assigns behaviors in
-  let over_inputs_if_termination =
+  let inputs =
     !Value.assigns_to_zone_inputs_state state assigns
   in
+(*  Format.printf "proto inputs from assigns: %a@."
+    Zone.pretty over_inputs_if_termination; *)
   { Inout_type.under_outputs_if_termination =
-      (* car les sorties sûre ne sont pas spécifiées ! *)
       Zone.bottom ;
-    over_inputs_if_termination =
-      (* [over_inputs_if_termination] = [Zone.top] ou [over_inputs_if_termination] ?
-         La valeur [over_inputs_if_termination] est légèrement incorrect car les
-	 le détail de l'implementation n'est pas précisé dans la spécification.
-         La meilleure implementation peut se contenter [over_inputs_if_termination]
-         comme entrées opérationelles. *)
-      over_inputs_if_termination;
-    over_inputs =
-      (* [over_inputs] = [Zone.top] ou [over_inputs_if_termination] ?
-         La valeur [over_inputs_if_termination] est légèrement incorrect car les
-	 fonctions feuilles ne sont pas specifiées en cas de non terminaison. *)
-      over_inputs_if_termination
+    over_inputs_if_termination = inputs;
+    over_inputs = inputs
   }
 
 let compute_internal_using_prototype kf =
@@ -301,7 +271,8 @@ let compute_internal_using_cfg kf =
   let compute_for_definition kf f =
     try
       let module Computer =
-        Computer(struct let stmt_can_reach = Stmts_graph.stmt_can_reach kf end)
+        Computer
+	  (struct let stmt_can_reach = Stmts_graph.stmt_can_reach kf end)
       in
       let module Compute = Dataflow.ForwardsDataFlow(Computer) in
       Stack.iter
@@ -313,29 +284,31 @@ let compute_internal_using_cfg kf =
          end)
         call_stack;
       Stack.push kf call_stack;
-      let res_if_termination = (* result if termination *)
+      let res_if_termination =
         match f.sbody.bstmts with
           [] -> assert false
 	| start :: _ ->
             let ret_id = Kernel_function.find_return kf in
-            (* We start with only the start block *)
             Computer.StmtStartData.add
               start.sid
               (Computer.computeFirstPredecessor
 		 start
 		 empty);
             Compute.compute [start];
-            let _poped = Stack.pop call_stack in
+            ignore (Stack.pop call_stack);
             try
               Computer.StmtStartData.find ret_id.sid
-            with Not_found ->
-              non_terminating
+            with Not_found -> bottom
       in
 
-      { Inout_type.over_inputs_if_termination = res_if_termination.over_inputs ;
+      { Inout_type.over_inputs_if_termination = res_if_termination.over_inputs;
 	under_outputs_if_termination = res_if_termination.under_outputs ;
-	over_inputs = let acc = Computer.under_inputs_termination_no_depend
-        in Computer.StmtStartData.iter (fun _sid data -> acc := Zone.join data.over_inputs !acc) ; !acc }
+	over_inputs =
+	  let acc = Computer.non_terminating_callees_inputs
+          in
+          Computer.StmtStartData.iter
+	    (fun _sid data -> acc := Zone.join data.over_inputs !acc);
+          !acc}
 
     with Exit ->
       { Inout_type.over_inputs_if_termination = empty.over_inputs ;
@@ -346,7 +319,7 @@ let compute_internal_using_cfg kf =
   match kf.fundec with
   | Declaration _ ->
       invalid_arg
-	"compute_using_cfg cannot be called on leaf functions"
+	"compute_using_cfg cannot be called on library functions"
   | Definition (f, _) ->
       compute_for_definition kf f
 
@@ -354,8 +327,9 @@ let compute_internal_using_cfg kf =
 module Internals =
   Kf_state.Context
     (struct
-       let name = "internal_inouts"
+       let name = "Internal inouts"
        let dependencies = [ Value.self ]
+       let kind = `Correctness
      end)
 
 let get_internal =
@@ -381,35 +355,44 @@ let get_internal =
 	 Kernel_function.pretty_name kf;
        res)
 
-let get_external_using_prototype = get_using_prototype
+  let externalize ~with_formals kf =
+    Zone.filter_base (Db.accept_base ~with_formals kf)
 
-let externalize fundec =
-  match fundec with
-  | Definition (fundec,_) ->
-      Zone.filter_base
-        (fun v -> not (Base.is_formal_or_local v fundec))
-  | Declaration (_,vd,_,_) ->
-      Zone.filter_base
-        (fun v -> not (Base.is_formal_of_prototype v vd))
+let raw_get_external ~with_formals kf =
+  let internals = get_internal kf in
+  let filter = externalize ~with_formals kf in
+
+  { Inout_type.over_inputs_if_termination =
+      (let r =
+	filter internals.Inout_type.over_inputs_if_termination
+      in
+(*      Format.printf "filtered -> %a@." Zone.pretty r; *)
+      r);
+    under_outputs_if_termination =
+      filter internals.Inout_type.under_outputs_if_termination;
+    over_inputs = filter internals.Inout_type.over_inputs }
 
 module Externals =
   Kf_state.Context
     (struct
-       let name = "external_inouts"
+       let name = "External inouts"
        let dependencies = [ Internals.self ]
+       let kind = `Correctness
      end)
-
-let get_external =
-  Externals.memo
-    (fun kf ->
-       let internals = get_internal kf in
-       let filter = externalize kf.fundec in
-
-	 { Inout_type.over_inputs_if_termination = filter internals.Inout_type.over_inputs_if_termination;
-           under_outputs_if_termination = filter internals.Inout_type.under_outputs_if_termination;
-	   over_inputs = filter internals.Inout_type.over_inputs })
-
+let get_external = Externals.memo (raw_get_external ~with_formals:false)
 let compute_external kf = ignore (get_external kf)
+
+module Externals_With_Formals =
+  Kf_state.Context
+    (struct
+       let name = "External inouts with formals"
+       let dependencies = [ Internals.self ]
+       let kind = `Correctness
+     end)
+let get_external_with_formals =
+  Externals_With_Formals.memo (raw_get_external ~with_formals:true)
+let compute_external_with_formals kf = ignore (get_external_with_formals kf)
+
 
 let pretty_internal fmt kf =
   Format.fprintf fmt "@[InOut (internal) for function %a:@\n%a@]@\n"
@@ -421,8 +404,13 @@ let pretty_external fmt kf =
     Kernel_function.pretty_name kf
     InOutContext.pretty (get_external kf)
 
+let pretty_external_with_formals fmt kf =
+  Format.fprintf fmt "@[InOut (with formals) for function %a:@\n%a@]@\n"
+    Kernel_function.pretty_name kf
+    InOutContext.pretty (get_external_with_formals kf)
+
+
 let () =
-  (* Derefs.statement := statement; *)
   InOutContext.self_internal := Internals.self;
   InOutContext.self_external := Externals.self;
   InOutContext.get_internal := get_internal;
@@ -432,6 +420,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

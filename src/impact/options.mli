@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,17 +24,17 @@ include Plugin.S
 
 module Pragma: Plugin.STRING_SET
   (** Use pragmas of given function. *)
-  
+
 module Print: Plugin.BOOL
   (** Print the impacted stmt on stdout. *)
 
 module Slicing: Plugin.BOOL
   (** Slicing from the impacted stmt. *)
-  
+
 val is_on: unit -> bool
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -1,4 +1,8 @@
 
+/* run.config_phoare
+  OPT:  -journal-disable -wp -wp-model Hoare -wp-proof alt-ergo -wp-print -wp-verbose 2
+*/
+
 int G;
 void main(int a, int b) {
   if (a > b) { int tmp = a; a = b; b = tmp; }

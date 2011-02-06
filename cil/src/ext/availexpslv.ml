@@ -357,7 +357,7 @@ module AvailableExps =
 
     let doStmt _stm _astate = DF.SDefault
 
-    let doGuard _ _c _astate = DF.GDefault
+    let doGuard _ _c _astate = DF.GDefault, DF.GDefault
 
     let filterStmt _stm = true
 

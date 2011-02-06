@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA   (Commissariat à l'énergie atomique et aux énergies            #
 #           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -105,7 +105,7 @@ OCAML_ANNOT_OPTION="-dtypes"
 # we extract Ocaml version number and library path
 # "sed -n" is the posix version of "sed --quiet"
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-echo $ECHO_N "ocaml version is $OCAMLVERSION: $ECHO_C"
+echo $ECHO_N "OCaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
   3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.10.1."; exit 2;;
   3.10.0) echo "${ECHO_T}Warning: unsupported version." ;
@@ -117,8 +117,8 @@ case $OCAMLVERSION in
            exit 2;
          fi
          ;;
-  3.10*) echo "${ECHO_T}Good!";;
-  3.1*) echo "${ECHO_T}Good!"; OCAML_ANNOT_OPTION="-annot";;
+  3.10*) echo "${ECHO_T}good!";;
+  3.1*) echo "${ECHO_T}good!"; OCAML_ANNOT_OPTION="-annot";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
@@ -218,76 +218,80 @@ if test "$OCAMLYACC" = no ; then
 	AC_MSG_ERROR(Cannot find ocamlyacc.)
 fi
 
-# ocamlgraph
+##############
+# ocamlgraph #
+##############
+
 OCAMLGRAPH_LOCAL=""
 OCAMLGRAPH_HOME=$OCAMLLIB/ocamlgraph
-OCAMLGRAPH="-I +ocamlgraph"
 OCAMLGRAPH_EXISTS=no
+OCAMLGRAPH_INCLUDE=
 
-AC_CHECK_FILE($OCAMLGRAPH_HOME,OCAMLGRAPH_EXISTS=yes)
+# check if any ocamlgraph is installed in the right place
+AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,
+              OCAMLGRAPH_EXISTS="yes" OCAMLGRAPH_INCLUDE="-I +ocamlgraph")
 
-if test "$OCAMLGRAPH_EXISTS" = "no"; then
-   OCAMLGRAPH_TEST=$OCAMLLIB
-   OCAMLGRAPH=
-   AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,OCAMLGRAPH_EXISTS=yes)
-fi
-
-# Is the installed version compatible?
+# if any, check if it is a compatible version
 if test "$OCAMLGRAPH_EXISTS" = "yes"; then
- test_ocamlgraph_version='print_string Graph.Version.version;;'
- echo $test_ocamlgraph_version > test_ocamlgraph.ml
- if ocamlc -o test_ocamlgraph $OCAMLGRAPH graph.cmo test_ocamlgraph.ml 2> /dev/null; then
-  OCAMLGRAPH_VERSION=`./test_ocamlgraph`
-  case $OCAMLGRAPH_VERSION in
-  1.4) AC_MSG_NOTICE([ocamlgraph $OCAMLGRAPH_VERSION found]);;
-  *) AC_MSG_NOTICE([ocamlgraph $OCAMLGRAPH_VERSION is incompatible with Frama-C. Will switch to a local version.])
-     OCAMLGRAPH_EXISTS=no
-;;
-  esac
- else
-   AC_MSG_NOTICE([The installed version of ocamlgraph is incompatible with Frama-C. Will switch to a local one.])
-   OCAMLGRAPH_EXISTS=no
- fi
- rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
+  test_ocamlgraph_version='print_string Graph.Version.version;;'
+  echo $test_ocamlgraph_version > test_ocamlgraph.ml
+  if ocamlc -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
+       test_ocamlgraph.ml 2> /dev/null; \
+  then
+    OCAMLGRAPH_VERSION=`./test_ocamlgraph`
+    case $OCAMLGRAPH_VERSION in
+    1.7) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
+    *)   AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C.])
+         OCAMLGRAPH_EXISTS=no
+  	 OCAMLGRAPH_INCLUDE=;;
+    esac
+  else
+    AC_MSG_NOTICE([your OcamlGraph version is incompatible with Frama-C.])
+    OCAMLGRAPH_EXISTS=no
+    OCAMLGRAPH_INCLUDE=
+  fi
+  rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
 fi
 
-#revert back to local version of ocamlgraph
-
+# revert back to local version of ocamlgraph
 if test "$OCAMLGRAPH_EXISTS" = "no"; then
-   AC_MSG_NOTICE([Switching to local ocamlgraph])
-   OCAMLGRAPH_LOCAL=ocamlgraph
-   OCAMLGRAPH_HOME=
+  AC_MSG_NOTICE([switching to OcamlGraph provided by Frama-C])
+  OCAMLGRAPH_LOCAL=ocamlgraph
+  OCAMLGRAPH_HOME=
 
-   OCAMLGRAPH_TEST=$OCAMLGRAPH_LOCAL
-   OCAMLGRAPH="-I lib"
-   AC_CHECK_FILE($OCAMLGRAPH_TEST,OCAMLGRAPH_EXISTS=yes)
-
-   if test "$OCAMLGRAPH_EXISTS" = "no"; then
+  AC_CHECK_FILE($OCAMLGRAPH_LOCAL,OCAMLGRAPH_EXISTS=yes)
+  if test "$OCAMLGRAPH_EXISTS" = "no"; then
     AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_EXISTS=yes)
     if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-         AC_MSG_NOTICE([Unarchiving ocamlgraph.tar.gz])
-         tar zxf ocamlgraph.tar.gz
+      # ocamlgraph.tar.gz exists, but no directory ocamlgraph
+      AC_MSG_NOTICE([unarchiving ocamlgraph.tar.gz])
+      tar zxf ocamlgraph.tar.gz
+    else
+      # neither directory ocamlgraph, nor ocamlgraph.tar.gz exists
+      # broken distrib indeed
+      AC_MSG_ERROR([cannot find OcamlGraph in the current directory.
+   Quite strange: would your Frama-C distribution be corrupted?
+   Anyway:
+   1. download the latest version from http://ocamlgraph.lri.fr/download
+   2. install it by './configure && make && make install'
+   3. rerun ./configure here])
     fi
-   else
+  else
     AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_TAR=yes)
     if test "$OCAMLGRAPH_TAR" = "yes"; then
-     if test ocamlgraph.tar.gz -nt ocamlgraph; then
-       rm -rf ocamlgraph
-       AC_MSG_NOTICE([ocamlgraph updated])
-       tar zxf ocamlgraph.tar.gz
-     fi
+      # both directory ocamlgraph and ocamlgraph.tar.gz exist at the same time
+      # untar only if the tar is newer than the directory
+      if test ocamlgraph.tar.gz -nt ocamlgraph; then
+        AC_MSG_NOTICE([find a newer OcamlGraph version: OcamlGraph updated!])
+        rm -rf ocamlgraph
+        tar zxf ocamlgraph.tar.gz
+      fi
     fi
-   fi
+  fi
 
-   if test "$OCAMLGRAPH_EXISTS" = "no"; then
-      AC_MSG_ERROR(Cannot find $OCAMLGRAPH_LOCAL in current directory
-      Please download the latest version from http://ocamlgraph.lri.fr/download
-      Compile it in "ocamlgraph" then rerun ./configure)
-   else
-      AC_CHECK_FILE($OCAMLGRAPH_TEST/Makefile,,
-      AC_MSG_NOTICE([Configuring ocamlgraph])
-        [(cd $OCAMLGRAPH_TEST && ./configure > /dev/null)])
-   fi
+  # Anyway reconfigure OcamlGraph while reconfiguring Frama-C
+  AC_MSG_NOTICE([configuring ocamlgraph...])
+  (cd $OCAMLGRAPH_LOCAL && ./configure > /dev/null)
 fi
 
 #################################################
@@ -489,10 +493,6 @@ REQUIRE_LABLGTK=
 USE_LABLGTK=
 HAS_LABLGTK=
 
-REQUIRE_APRON=
-USE_APRON=
-HAS_APRON=no
-
 REQUIRE_NATIVE_DYNLINK=
 USE_NATIVE_DYNLINK=
 HAS_NATIVE_DYNLINK=uncheck
@@ -523,23 +523,23 @@ PLUGINS_FORCE_LIST=
 # constant propagation
 ######################
 
-check_plugin(constant_propagation, src/constant_propagation,
+check_plugin(semantic_constant_folding, src/constant_propagation,
              [support for constant propagation plugin], yes, no)
-plugin_require(constant_propagation,value)
+
+plugin_require(semantic_constant_folding,value_analysis)
 
 # from
 ######
 
-check_plugin(from,src/from,[support for from analysis],yes,no)
+check_plugin(from_analysis,src/from,[support for from analysis],yes,no)
 
-plugin_require(from,value)
+plugin_require(from_analysis,value_analysis)
 
 # gui
 #####
 
 check_plugin(gui,src/gui,[support for gui],yes,no)
 
-plugin_require_external(gui,lablgtk)
 plugin_require_external(gui,gnomecanvas)
 plugin_use_external(gui,dot)
 
@@ -550,13 +550,14 @@ check_plugin(impact,src/impact,[support for impact plugin],yes,no)
 
 plugin_use(impact,gui)
 plugin_use(impact,slicing)
+plugin_require(impact,security_slicing)
 
 # inout
 #######
 
 check_plugin(inout,src/inout,[support for inout analysis],yes,no)
-plugin_require(inout,from)
-plugin_require(inout,value)
+plugin_require(inout,from_analysis)
+plugin_require(inout,value_analysis)
 
 # metrics
 #########
@@ -568,20 +569,14 @@ check_plugin(metrics,src/metrics,[support for metrics analysis],yes,no)
 
 check_plugin(occurrence,src/occurrence,[support for occurrence analysis],yes,no)
 plugin_use(occurrence,gui)
-plugin_require(occurrence,value)
-
-# occurrence_dyn
-#################
-
-dnl check_plugin(occurrence_dyn,src/occurrence_dyn,
-dnl 	[support for occurrence analysis (full dynamic)],yes,yes)
+plugin_require(occurrence,value_analysis)
 
 # pdg
 #####
 
 check_plugin(pdg,src/pdg,[support for pdg plugin],yes,no,pdg_types)
-plugin_require(pdg,from)
-plugin_require(pdg,value)
+plugin_require(pdg,from_analysis)
+plugin_require(pdg,value_analysis)
 
 # postdominators
 ################
@@ -592,21 +587,26 @@ check_plugin(postdominators,src/postdominators,
 # rte
 #####
 
-check_plugin(rte,src/rte,[support for runtime error annotation],yes,no)
+check_plugin(rte_annotation,src/rte,[support for runtime error annotation],yes,no)
+
+# report
+########
+
+check_plugin(report,src/report,[ACSL properties status report],yes,no)
 
 # scope
 ############
 
 check_plugin(scope,src/scope,[support for scope plugin],yes,no)
 plugin_require(scope,postdominators)
-plugin_require(scope,value)
+plugin_require(scope,value_analysis)
 
 # semantic callgraph
 ####################
 
 check_plugin(semantic_callgraph,src/semantic_callgraph,
-             [support for semantic_callgraph],yes,no)
-plugin_require(semantic_callgraph,value)
+             [support for semantic callgraph],yes,no)
+plugin_require(semantic_callgraph,value_analysis)
 plugin_require(semantic_callgraph,users)
 
 # slicing
@@ -614,9 +614,9 @@ plugin_require(semantic_callgraph,users)
 
 check_plugin(slicing,src/slicing,[support for slicing plugin],yes,no,
              src/slicing_types)
-plugin_require(slicing,from)
+plugin_require(slicing,from_analysis)
 plugin_require(slicing,pdg)
-plugin_require(slicing,value)
+plugin_require(slicing,value_analysis)
 plugin_use(slicing,gui)
 
 # spare code
@@ -624,7 +624,7 @@ plugin_use(slicing,gui)
 
 check_plugin(sparecode,src/sparecode,[support for sparecode plugin],yes,no)
 plugin_require(sparecode,pdg)
-plugin_require(sparecode,value)
+plugin_require(sparecode,value_analysis)
 
 # syntactic callgraph
 #####################
@@ -639,16 +639,16 @@ plugin_use(syntactic_callgraph,gui)
 #######
 
 check_plugin(users,src/users,[support for users analysis],yes,no)
-plugin_require(users,value)
+plugin_require(users,value_analysis)
 
 # value
 #######
 
-check_plugin(value,src/value,[support for value analysis],yes,no,
+check_plugin(value_analysis,src/value,[support for value analysis],yes,no,
              [src/ai src/buckx])
-plugin_require(value,from)
-plugin_require(value,scope)
-plugin_use(value,gui)
+plugin_require(value_analysis,from_analysis)
+plugin_require(value_analysis,scope)
+plugin_use(value_analysis,gui)
 
 ####################
 # External plugins #
@@ -709,48 +709,48 @@ new_section "configure tools and libraries used by some plug-ins"
 
 # lablgtk2
 ##########
+
+REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
+USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
+
 configure_library([LABLGTK],[$OCAMLLIB/lablgtk2/lablgtk.$LIB_SUFFIX],
                   [lablgtk2/lablgtk.$LIB_SUFFIX not found.],no)
 
-# Gtksourceview
-###############
-REQUIRE_GTKSOURCEVIEW=
-USE_GTKSOURCEVIEW=
-HAS_GTKSOURCEVIEW=
-FORCE_GTKSOURCEVIEW="yes"
+if test "$HAS_LABLGTK" = "yes"; then
 
-if test "$FORCE_GTKSOURCEVIEW" = "yes"; then
-  REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
-  USE_GTKSOURCEVIEW="$USE_LABLGTK"
-else
-  if test "$has" = "yes"; then
-    USE_GTKSOURCEVIEW="$REQUIRE_LABLGTK$USE_LABLGTK"
+  # Gtksourceview
+  ###############
+  REQUIRE_GTKSOURCEVIEW=
+  USE_GTKSOURCEVIEW=
+  HAS_GTKSOURCEVIEW=
+  FORCE_GTKSOURCEVIEW="yes"
+
+  if test "$FORCE_GTKSOURCEVIEW" = "yes"; then
+    REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
+    USE_GTKSOURCEVIEW="$USE_LABLGTK"
+  else
+    if test "$has" = "yes"; then
+      USE_GTKSOURCEVIEW="$REQUIRE_LABLGTK$USE_LABLGTK"
+    fi
   fi
-fi
 
-configure_library([GTKSOURCEVIEW],
-                  [$OCAMLLIB/lablgtk2/lablgtksourceview2.$LIB_SUFFIX],
-                  [lablgtksourceview2.$LIB_SUFFIX not found],
-		  no)
+  configure_library([GTKSOURCEVIEW],
+                    [$OCAMLLIB/lablgtk2/lablgtksourceview2.$LIB_SUFFIX],
+                    [lablgtksourceview2.$LIB_SUFFIX not found],
+		    no)
 
-# Gnomecanvas
-#############
-configure_library([GNOMECANVAS],[$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX],
-                  [lablgnomecanvas.$LIB_SUFFIX not found],
-		  no)
+  # Gnomecanvas
+  #############
+  configure_library([GNOMECANVAS],[$OCAMLLIB/lablgtk2/lablgnomecanvas.$LIB_SUFFIX],
+                    [lablgnomecanvas.$LIB_SUFFIX not found],
+	  	    no)
+
+fi # $HAS_LABLGTK=yes
 
 # dot and xdot tools
 ####################
 
 configure_tool([DOT],[dot],[dot not found: you should install GraphViz],no)
-
-# Apron library
-###############
-
-# [JS 2009/03/25] apron must be configured before why/jc which uses $HAS_APRON
-configure_library([APRON],
-	          [/usr/local/lib/apron.a,/usr/lib/apron.a],
- 		  [apron not found])
 
 # Native dynlink
 ################
@@ -796,10 +796,12 @@ fi
 HAS_USABLE_NATIVE_DYNLINK=no
 
 if test "$HAS_NATIVE_DYNLINK" != "no" ; then
-  echo "Dynlink.loadfile \"foo\";;" > test_dynlink.ml
-  if ($OCAMLOPT -shared -o test_dynlink.cmxs test_dynlink.ml) 2> /dev/null ; \
+  echo "let f x y = Dynlink.loadfile \"foo\"; ignore (Dynlink.is_native); abs_float (x -. y)" > test_dynlink.ml
+  if ($OCAMLOPT -shared -linkall -o test_dynlink.cmxs test_dynlink.ml) \
+    2> /dev/null ; \
   then
     HAS_USABLE_NATIVE_DYNLINK=yes
+    AC_MSG_RESULT([native dynlink works fine. Great.])
   else
     REQUIRE_USABLE_NATIVE_DYNLINK=$REQUIRE_NATIVE_DYNLINK
     USE_USABLE_NATIVE_DYNLINK=$USE_NATIVE_DYNLINK
@@ -827,10 +829,12 @@ if test "$HAS_LABLGTK" = "yes"; then
 #   we don't have a good version of lablgtk2:
 #   configure a dummy library "customtree" in order to
 #   configure plug-ins depending on lablgtk2 in a proper way
+    REQUIRE_CUSTOMTREE="$REQUIRE_LABLGTK"
+    USE_CUSTOMTREE="$USE_LABLGTK"
     configure_library(
-      [LABLGTK],
+      [CUSTOMTREE],
       [custom-tree-model],
-      [lablgtk2's custom tree model unavailable. You need at least LablGtk 2.12.],
+      [lablgtk2's custom tree model unavailable. You need at least LablGtk 2.14.],
       yes
     )
   fi
@@ -843,9 +847,6 @@ fi
 
 new_section "checking for plug-in dependencies"
 
-#VP: can we wipe out miel from here? It's the only remaining occurrence.
-USE_GUI="$USE_GUI miel"
-
 check_frama_c_dependencies
 
 ############################
@@ -856,7 +857,8 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 AC_SUBST(VERBOSEMAKE)
 AC_SUBST(DOT)
-AC_SUBST(OCAMLGRAPH)
+AC_SUBST(HAS_DOT)
+AC_SUBST(OCAMLGRAPH_INCLUDE)
 AC_SUBST(OCAMLGRAPH_LOCAL)
 AC_SUBST(OCAMLGRAPH_HOME)
 AC_SUBST(OCAMLBEST)
@@ -905,8 +907,6 @@ chmod a-w cil/ocamlutil/perfcount.c share/Makefile.config
 
 new_section "summary: plug-ins available"
 
-rm -f share/known_plugins.ac
-
 for plugin in m4_flatten(PLUGINS_LIST); do
   n=NAME_$plugin
   e=ENABLE_$plugin
@@ -927,7 +927,6 @@ for plugin in m4_flatten(PLUGINS_LIST); do
   else
     res=$ev;
   fi
-  echo "$e=$ev" >> share/known_plugins.ac
   AC_MSG_NOTICE([$nv: $res$iv])
 done
 

@@ -29,8 +29,8 @@ void copy(const int* a, int n, int* b)
   /*@
      loop assigns b[0..i-1];
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[k] == b[k];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; ++i)
      b[i] = a[i];

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: users_register.ml,v 1.17 2008-11-18 12:13:41 uid568 Exp $ *)
-
 (**  @plugin development guide *)
 
 include
@@ -29,7 +27,7 @@ include
     (struct
        let name = "users"
        let shortname = "users"
-       let descr = "function callees"
+       let help = "function callees"
      end)
 
 (** @plugin development guide *)
@@ -37,18 +35,20 @@ module ForceUsers =
   False
     (struct
        let option_name = "-users"
-       let descr = "compute function callees"
+       let help = "compute function callees"
+       let kind = `Tuning
      end)
 
 open Db
 
 module Users =
   Kernel_function.Make_Table
-    (Kernel_function.Set.Datatype)
-    (struct 
-       let name = "Users" 
-       let size = 17 
+    (Kernel_function.Hptset)
+    (struct
+       let name = "Users"
+       let size = 17
        let dependencies = [ Value.self; ForceUsers.self ]
+       let kind = `Correctness
      end)
 
 let call_for_users (_state, call_stack) =
@@ -57,10 +57,10 @@ let call_for_users (_state, call_stack) =
   | [] -> assert false
   | (current_function, _call_site) :: tail ->
       let treat_element (user, _call_site) =
-	ignore 
+	ignore
 	  (Users.memo
-	     ~change:(Kernel_function.Set.add current_function)
-	     (fun _ -> Kernel_function.Set.singleton current_function)
+	     ~change:(Kernel_function.Hptset.add current_function)
+	     (fun _ -> Kernel_function.Hptset.singleton current_function)
 	     user)
       in
       List.iter treat_element tail
@@ -70,15 +70,14 @@ let add_value_hook () = Db.Value.Call_Value_Callbacks.extend call_for_users
 let init () = if ForceUsers.get () then add_value_hook ()
 let () = Cmdline.run_after_configuring_stage init
 
-let get kf = 
+let get kf =
   if Users.is_computed () then
     Users.find kf
   else begin
     if Db.Value.is_computed () then begin
       feedback "requiring again the computation of the value analysis";
       Project.clear
-	~only:
-	(Project.Selection.singleton Db.Value.self Kind.Select_Dependencies)
+	~selection:(State_selection.Dynamic.with_dependencies Db.Value.self)
 	()
     end else
       feedback ~level:2 "requiring the computation of the value analysis";
@@ -90,7 +89,7 @@ let get kf =
 let () = Db.Users.get := get
 
 let main () =
-  if ForceUsers.get () then 
+  if ForceUsers.get () then
     begin
       result "====== DISPLAYING USERS ======@\n%t\
               ====== END OF USERS =========="
@@ -100,8 +99,8 @@ let main () =
 		try
 		  Format.fprintf fmt "@[%a: @[%a@]@]@\n"
 		    Kernel_function.pretty_name kf
-		    Kernel_function.Set.pretty (!Db.Users.get kf)
-		with Not_found -> 
+		    Kernel_function.Hptset.pretty (!Db.Users.get kf)
+		with Not_found ->
 		  () (* [kf] is not called during analysis *))
 	) ;
     end
@@ -110,6 +109,6 @@ let () = Db.Main.extend main
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j 4"
+compile-command: "make -C ../.."
 End:
 *)

@@ -1,3 +1,7 @@
+/* run.config_phoare
+  OPT:  -journal-disable -wp -wp-model Hoare -wp-proof alt-ergo -wp-verbose 2
+*/
+
 int T[10];
 
 /*@ assigns  T[0..4];
@@ -16,10 +20,12 @@ void assign_T (void) {
 struct Ts { int a; int t[10]; };
 struct Ts S;
 
-//@ ensures (T[5] == \old(T[5])) && (S.a == \old(S.a));
+/*@ ensures (T[5] == \old(T[5]));
+    ensures (S.a == \old(S.a));
+*/
 void assign_S (void) {
   int i;
-  //@ loop assigns i, S;
+  //@ loop assigns i, S.t[..];
   for (i = 0; i < 5; i++) {
     S.t[i] = T[i];
   }

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,4 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: context.mli,v 1.6 2008-04-01 09:25:20 uid568 Exp $ *)
+val pretty_internal: Format.formatter -> Db_types.kernel_function -> unit
+val pretty_external_with_formals: Format.formatter -> Db_types.kernel_function -> unit
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.. -j"
+End:
+*)

@@ -62,7 +62,7 @@ int g (int a, int b, int c) {
 
 int caller (int cond, int t, int u, int v) {
   int x1 = 0, y1 = 0, z1 = 0, a1 = 0, b1 = 0, c1 = 0;
-  int (*pf)(int, int) = cond ? &f : &g;
+  int (*pf)(int, int, int) = cond ? &f : &g;
   f(x1, y1, z1);
   g(a1, b1, c1);
   return (*pf)(t, u, v);

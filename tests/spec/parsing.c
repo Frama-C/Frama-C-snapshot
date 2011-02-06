@@ -18,3 +18,7 @@
 /*@ lemma bidon4{Here}:
   @   \forall int *t; (! t[0]) < 0;
   @*/
+
+/*@ predicate foo{L}(int* a,int* b, int length) = 
+   ! \forall integer k; 0 <= k < length ==> a[k] == b[k]; 
+*/

@@ -310,7 +310,7 @@ and childrenStatement vis s =
       let e' = ve e in
       let s1' = vs l s1 in
       if e' != e || s1' != s1 then {s with stmt_node = DOWHILE (a, e', s1', l)} else s
-  | FOR (a, fc1, e2, e3, s4, l, l') ->
+  | FOR (a, fc1, e2, e3, s4, l) ->
       let _ = vis#vEnterScope () in
       let fc1' =
         match fc1 with
@@ -330,7 +330,7 @@ and childrenStatement vis s =
       let s4' = vs l s4 in
       let _ = vis#vExitScope () in
       if fc1' != fc1 || e2' != e2 || e3' != e3 || s4' != s4
-      then {s with stmt_node = FOR (a, fc1', e2', e3', s4', l, l')} else s
+      then {s with stmt_node = FOR (a, fc1', e2', e3', s4', l)} else s
   | BREAK _ | CONTINUE _ | GOTO _ -> s
   | RETURN (e, l) ->
       let e' = ve e in
@@ -399,67 +399,74 @@ and visitCabsExpression vis (e: expression) : expression =
   doVisit vis vis#vexpr childrenExpression e
 and childrenExpression vis e =
   let ve e = visitCabsExpression vis e in
-  match e with
+  match e.expr_node with
     NOTHING | LABELADDR _ -> e
   | UNARY (uo, e1) ->
       let e1' = ve e1 in
-      if e1' != e1 then UNARY (uo, e1') else e
+      if e1' != e1 then { e with expr_node = UNARY (uo, e1')} else e
   | BINARY (bo, e1, e2) ->
       let e1' = ve e1 in
       let e2' = ve e2 in
-      if e1' != e1 || e2' != e2 then BINARY (bo, e1', e2') else e
+      if e1' != e1 || e2' != e2 then
+        { e with expr_node = BINARY (bo, e1', e2')} else e
   | QUESTION (e1, e2, e3) ->
       let e1' = ve e1 in
       let e2' = ve e2 in
       let e3' = ve e3 in
       if e1' != e1 || e2' != e2 || e3' != e3 then
-        QUESTION (e1', e2', e3') else e
+        { e with expr_node = QUESTION (e1', e2', e3')} else e
   | CAST ((s, dt), ie) ->
       let s' = visitCabsSpecifier vis s in
       let dt' = visitCabsDeclType vis false dt in
       let ie' = visitCabsInitExpression vis ie in
-      if s' != s || dt' != dt || ie' != ie then CAST ((s', dt'), ie') else e
+      if s' != s || dt' != dt || ie' != ie then
+        { e with expr_node = CAST ((s', dt'), ie')} else e
   | CALL (f, el) ->
       let f' = ve f in
       let el' = mapNoCopy ve el in
-      if f' != f || el' != el then CALL (f', el') else e
+      if f' != f || el' != el then
+        { e with expr_node = CALL (f', el')} else e
   | COMMA el ->
       let el' = mapNoCopy ve el in
-      if el' != el then COMMA (el') else e
+      if el' != el then { e with expr_node = COMMA (el') } else e
   | CONSTANT _ -> e
   | PAREN e1 ->
       let e1' = ve e1 in
-      if e1' != e1 then PAREN (e1') else e
+      if e1' != e1 then { e with expr_node = PAREN (e1') } else e
   | VARIABLE s ->
       let s' = vis#vvar s in
-      if s' != s then VARIABLE s' else e
+      if s' != s then { e with expr_node = VARIABLE s' } else e
   | EXPR_SIZEOF (e1) ->
       let e1' = ve e1 in
-      if e1' != e1 then EXPR_SIZEOF (e1') else e
+      if e1' != e1 then { e with expr_node = EXPR_SIZEOF (e1') } else e
   | TYPE_SIZEOF (s, dt) ->
       let s' = visitCabsSpecifier vis s in
       let dt' = visitCabsDeclType vis false dt in
-      if s' != s || dt' != dt then TYPE_SIZEOF (s' ,dt') else e
+      if s' != s || dt' != dt then
+        { e with expr_node = TYPE_SIZEOF (s' ,dt') } else e
   | EXPR_ALIGNOF (e1) ->
       let e1' = ve e1 in
-      if e1' != e1 then EXPR_ALIGNOF (e1') else e
+      if e1' != e1 then { e with expr_node = EXPR_ALIGNOF e1'} else e
   | TYPE_ALIGNOF (s, dt) ->
       let s' = visitCabsSpecifier vis s in
       let dt' = visitCabsDeclType vis false dt in
-      if s' != s || dt' != dt then TYPE_ALIGNOF (s' ,dt') else e
+      if s' != s || dt' != dt then
+        { e with expr_node = TYPE_ALIGNOF (s' ,dt')}
+      else e
   | INDEX (e1, e2) ->
       let e1' = ve e1 in
       let e2' = ve e2 in
-      if e1' != e1 || e2' != e2 then INDEX (e1', e2') else e
+      if e1' != e1 || e2' != e2 then { e with expr_node = INDEX (e1', e2') }
+      else e
   | MEMBEROF (e1, n) ->
       let e1' = ve e1 in
-      if e1' != e1 then MEMBEROF (e1', n) else e
+      if e1' != e1 then { e with expr_node = MEMBEROF (e1', n)} else e
   | MEMBEROFPTR (e1, n) ->
       let e1' = ve e1 in
-      if e1' != e1 then MEMBEROFPTR (e1', n) else e
+      if e1' != e1 then { e with expr_node = MEMBEROFPTR (e1', n) } else e
   | GNU_BODY b ->
       let b' = visitCabsBlock vis b in
-      if b' != b then GNU_BODY b' else e
+      if b' != b then { e with expr_node = GNU_BODY b' } else e
   | EXPR_PATTERN _ -> e
 
 and visitCabsInitExpression vis (ie: init_expression) : init_expression =

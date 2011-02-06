@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,13 +32,11 @@ val adapt_filename: string -> string
   (** Ensure that the given filename has the extension "cmo" in bytecode
       and "cmxs" in native *)
 
-(* [max_cpt t1 t2] returns the maximum of [t1] and [t2] wrt the total ordering
-   induced by tags creation. This ordering is defined as follow:
-   forall tags t1 t2,
-   t1 <= t2 iff
-   t1 is before t2 in the finite sequence
-   [0; 1; ..; max_int; min_int; min_int-1; -1] *)
 val max_cpt: int -> int -> int
+(** [max_cpt t1 t2] returns the maximum of [t1] and [t2] wrt the total ordering
+    induced by tags creation. This ordering is defined as follow: forall tags t1
+    t2, t1 <= t2 iff t1 is before t2 in the finite sequence [0; 1; ..; max_int;
+    min_int; min_int-1; -1] *)
 
 val number_to_color: int -> int
 
@@ -47,7 +45,9 @@ val number_to_color: int -> int
 (* ************************************************************************* *)
 
 exception NotYetImplemented of string
-  (** @plugin development guide *)
+(** Use function {!not_yet_implemented} to raise this exception.
+    Do never catch it yourself: let the kernel do the job.
+    @plugin development guide *)
 
 val not_yet_implemented: string -> 'a
   (** @raise NotYetImplemented with the given string. *)
@@ -55,7 +55,7 @@ val not_yet_implemented: string -> 'a
 val mk_fun: string -> ('a -> 'b) ref
   (** build a reference to an unitialized function (which raises
       [NotYetImplemented] if it is called).
-      @deprecated since Beryllium-20090601-beta1+dev *)
+      @deprecated since Beryllium-20090901 *)
 
 (* ************************************************************************* *)
 (** {2 Function combinators} *)
@@ -101,6 +101,11 @@ val list_compare : ('a -> 'a -> int) -> 'a list -> 'a list -> int
   (** Generic list comparison function, where the elements are compared
       with the specified function
       @since Boron-20100401 *)
+
+val list_of_opt: 'a option -> 'a list
+  (** converts an option into a list with 0 or 1 elt.
+      @since Carbon-20111201-beta2+dev
+   *)
 
 (* ************************************************************************* *)
 (** {2 Options} *)
@@ -171,8 +176,28 @@ val temp_file_cleanup_at_exit: string -> string -> string
   (** Similar to [Filename.temp_file] except that the temporary file will be
       deleted at the end of the execution (see above). *)
 
+val temp_dir_cleanup_at_exit: string -> string
+
 val safe_remove: string -> unit
   (** Tries to delete a file and never fails. *)
+
+val safe_remove_dir: string -> unit
+
+val terminate_process: int -> unit
+  (** Terminate a process id. *)
+
+val usleep: int -> unit
+  (** Unix function that sleep for [n] microseconds.
+      See [man usleep] for details.
+      Should not be used under Win32. *)
+
+(* ************************************************************************* *)
+(** Comparison functions *)
+(* ************************************************************************* *)
+
+(** Use this function instead of [Pervasives.compare], as this makes
+    it easier to find incorrect uses of the latter *)
+external compare_basic: 'a -> 'a -> int = "%compare"
 
 (*
 Local Variables:

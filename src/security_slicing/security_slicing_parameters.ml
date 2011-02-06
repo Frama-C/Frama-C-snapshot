@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ module P = Plugin.Register
   (struct
      let name = "security-slicing"
      let shortname = "security-slicing"
-     let descr = "security slicing (experimental, undocumented)"
+     let help = "security slicing (experimental, undocumented)"
    end)
 include P
 
@@ -32,7 +32,8 @@ module Slicing =
   False
     (struct
        let option_name = "-security-slicing"
-       let descr = "perfom the security slicing analysis"
+       let help = "perfom the security slicing analysis"
+       let kind = `Tuning
      end)
 
 (*

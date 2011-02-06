@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,22 +27,22 @@ type validity =
   | All
   | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
   | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
+  | Periodic of Abstract_interp.Int.t*Abstract_interp.Int.t*
+      Abstract_interp.Int.t
 
-type t = private
-  | Var of Cil_types.varinfo*validity (** Base for uninitialized variables *)
-  | Initialized_Var of Cil_types.varinfo*validity
+type base = private
+  | Var of Cil_types.varinfo * validity (** Base for uninitialized variables *)
+  | Initialized_Var of Cil_types.varinfo * validity
       (** Base for variables initialized to zero . *)
-  | Null (** Base for adresses like [(int* )0x123] *)
-  | String of int*string (** String constants *)
+  | Null (** Base for addresses like [(int* )0x123] *)
+  | String of int * string (** String constants *)
   | Cell_class of cell_class_attributes (** A class of memory cells *)
 
-val pretty : Format.formatter -> t -> unit
+include Datatype.S_with_collections with type t = base
+
 val pretty_validity : Format.formatter -> validity -> unit
 
-val compare : t -> t -> int
 val typeof : t -> Cil_types.typ option
-val hash : t -> int
-val equal : t -> t -> bool
 val null : t
 
 val is_null : t -> bool
@@ -54,11 +54,15 @@ val validity : t -> validity
 exception Not_valid_offset
 val is_valid_offset : Abstract_interp.Int.t -> t -> Ival.t -> unit
 
+val is_function : t -> bool
+
 val is_formal_or_local : t -> Cil_types.fundec -> bool
 val is_any_formal_or_local : t -> bool
 val is_any_local : t -> bool
+val is_global : t -> bool
 val is_formal_of_prototype : t -> Cil_types.varinfo -> bool
 val is_local: t -> Cil_types.fundec -> bool
+val is_formal: t -> Cil_types.fundec -> bool
 val is_block_local: t -> Cil_types.block -> bool
 val is_hidden_variable : t -> bool
 val validity_from_type : Cil_types.varinfo -> validity
@@ -76,10 +80,17 @@ val create_logic :  Cil_types.varinfo -> validity -> t
   (** Return the base corresponding to a logic variable. This function's name
       is short for "create_from_logic". *)
 
+val find: Cil_types.varinfo -> t
+  (** Return the base corresponding to a variable. *)
+
 val create_initialized :  Cil_types.varinfo -> validity -> t
 val create_string : string -> t
 
-module Datatype: Project.Datatype.S with type t = t
-
 val min_valid_absolute_address: unit -> Abstract_interp.Int.t
 val max_valid_absolute_address: unit -> Abstract_interp.Int.t
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

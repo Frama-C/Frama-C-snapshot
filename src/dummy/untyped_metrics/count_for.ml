@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ module Self =
        let name = "For loops counter"
        let shortname = "for_counter"
        let module_name = "Untyped_metrics.Count_for.Self"
-       let descr = "For counter on untyped AST"
+       let help = "For counter on untyped AST"
        let is_dynamic = true
      end)
 
@@ -38,7 +38,8 @@ module Enabled = Self.False
   (struct
      let module_name = "Count_for.Enabled"
      let option_name = "-count-for"
-     let descr = "count the for loops"
+     let help = "count the for loops"
+     let kind = `Tuning
    end)
 
 open Cabs

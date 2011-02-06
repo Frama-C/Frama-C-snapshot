@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Initial_datatype = Datatype
+
 include
-  Computation.OptionRef
+  State_builder.Option_ref
     (Cil_datatype.File)
     (struct
        let name = "AST"
@@ -32,16 +34,18 @@ include
 	   Parameters.UnrollingLevel.self;
 	   Parameters.Constfold.self;
 	   Parameters.ReadAnnot.self;
-	   Parameters.PreprocessAnnot.self ]
+	   Parameters.PreprocessAnnot.self;
+           Cil.selfFormalsDecl;
+         ]
+       let kind = `Internal
      end)
 
 let mark_as_computed () = mark_as_computed () (* eta-expansion required *)
 
 let () =
-  Messages.depend self;
+  State_dependency_graph.Static.add_dependencies
+    ~from:self [ Cil.selfFormalsDecl; Alarms.self; Messages.self ];
   Logic_env.init_dependencies self;
-  Project.Computation.add_dependency Cil.varinfos_self self;
-  Project.Computation.add_dependency Cil.selfFormalsDecl self
 
 exception Bad_Initialisation of string
 
@@ -52,13 +56,14 @@ let set_default_initialization f = default_initialization := f
 
 let force_compute () =
   Kernel.feedback ~level:2 "computing the AST";
-  !default_initialization ()
+  !default_initialization ();
+  get ()
 
-let get () = memo (fun () -> force_compute (); get ())
+let get () = memo (fun () -> force_compute ())
 
 let is_computed () = is_computed ()
 
-let compute () = if not (is_computed ()) then force_compute ()
+let compute () = if not (is_computed ()) then ignore (force_compute ())
 
 let set_file file =
   let change old_file =
@@ -69,19 +74,22 @@ let set_file file =
 
 module UntypedFiles = struct
 
-  include Computation.OptionRef
-    (Cil_datatype.UntypedFiles)
+  include State_builder.Option_ref
+    (Initial_datatype.List(Cil_datatype.Cabs_file))
     (struct
        let name = "Untyped AST"
-       let dependencies = [ Cil.selfMachine ] (* delayed until file.ml *)
+       let dependencies = (* the others delayed until file.ml *)
+	 [ Cil.selfMachine;
+	   self (* can't be computed without the AST *) ]
+       let kind = `Internal
      end)
 
-  let get () = memo (fun () -> force_compute (); get ())
+  let get () = memo (fun () -> ignore (force_compute ()); get ())
 
 end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

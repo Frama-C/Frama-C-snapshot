@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    INSA  (Institut National des Sciences Appliquees)                   */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -33,6 +33,7 @@ open Format
 type trans = Pred of Promelaast.condition | Otherwise
 
 let observed_states      = Hashtbl.create 1
+let prefetched_states    = Hashtbl.create 1
 let observed_vars        = Hashtbl.create 1
 let observed_funcs       = Hashtbl.create 1
 let observed_expressions = Hashtbl.create 97
@@ -54,6 +55,7 @@ let get_fresh_ident () =
 
 
 let fetch_and_create_state name =
+  Hashtbl.remove prefetched_states name ;
   try
     Hashtbl.find observed_states name
   with
@@ -65,6 +67,19 @@ let fetch_and_create_state name =
       s
 ;;
 
+let prefetch_and_create_state name =
+    if (Hashtbl.mem prefetched_states name) or not (Hashtbl.mem observed_states name) then
+      begin
+	let s= fetch_and_create_state name in 
+	Hashtbl.add prefetched_states name name;
+	s
+      end 
+    else
+      (fetch_and_create_state name)
+;;
+
+(*TODO: give a proper loc*)
+let new_exp =  Cil.new_exp ~loc:(Cil.CurrentLoc.get())
 
 %}
 
@@ -131,11 +146,24 @@ main
 	   st::l)
         observed_states []
     in
+    if Hashtbl.length prefetched_states >0 then 
+      begin
+	let r = Hashtbl.fold
+	  (fun s n _ -> s^"Error: the state '"^n^"' is used but never defined.\n")
+	  prefetched_states 
+	  ""
+	in
+	Aorai_option.abort "%s" r
+      end;
+  
     Data_for_aorai.setLtl_expressions observed_expressions;
     Logic_simplification.setLtl_expressions observed_expressions;
     let n=ref 0 in
-    let transitions = Logic_simplification.simplifyTrans $2 in
-    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
+    let (transitions,pcondsl) = Logic_simplification.simplifyTrans $2 in
+    let conds = Array.make (List.length transitions) [] in
+    List.iter2 (fun t pc -> t.numt<-(!n); conds.(!n)<-pc; n:=!n+1) transitions pcondsl;
+    Data_for_aorai.setCondOfParametrizedTransition conds;
+
 
     ((states , transitions),observed_vars,observed_funcs)
   }
@@ -205,9 +233,9 @@ transitions  /*=>  [transition; ...] */
 
 
 transition  /*=>  (guard, state) */
-  : LCURLY guard RCURLY RARROW IDENTIFIER { (Pred $2, fetch_and_create_state $5) }
-  | OTHERWISE RARROW IDENTIFIER {(Otherwise, fetch_and_create_state $3) }
-  | RARROW IDENTIFIER { (Pred PTrue, fetch_and_create_state $2) }
+  : LCURLY guard RCURLY RARROW IDENTIFIER { (Pred $2, prefetch_and_create_state $5) }
+  | OTHERWISE RARROW IDENTIFIER {(Otherwise, prefetch_and_create_state $3) }
+  | RARROW IDENTIFIER { (Pred PTrue, prefetch_and_create_state $2) }
   ;
 
 
@@ -242,7 +270,7 @@ guard
 
 	      Hashtbl.add observed_vars id id ;
 
-	      let res = 
+	      let res =
 		match !observed_expr_is_param with
 		  | Only_vars -> PIndexedExp id
 		  | Func_param (f,l) -> PFuncParam (id,f,l)
@@ -264,27 +292,27 @@ logic_relation
   : arith_relation EQ arith_relation {
     ( Cil_types.Prel(Cil_types.Req, Logic_utils.expr_to_term ~cast:true $1,
 	  	                    Logic_utils.expr_to_term ~cast:true $3),
-      Cil.new_exp(Cil_types.BinOp(Cil_types.Eq, $1 , $3 , Cil.intType)) ) }
+      new_exp(Cil_types.BinOp(Cil_types.Eq, $1 , $3 , Cil.intType)) ) }
   | arith_relation LT arith_relation {
     ( Cil_types.Prel(Cil_types.Rlt, Logic_utils.expr_to_term ~cast:true $1,
 		                    Logic_utils.expr_to_term ~cast:true $3),
-      Cil.new_exp(Cil_types.BinOp(Cil_types.Lt, $1 , $3 , Cil.intType)) ) }
+      new_exp(Cil_types.BinOp(Cil_types.Lt, $1 , $3 , Cil.intType)) ) }
   | arith_relation GT arith_relation {
     ( Cil_types.Prel(Cil_types.Rgt, Logic_utils.expr_to_term ~cast:true $1,
 		                    Logic_utils.expr_to_term ~cast:true $3),
-      Cil.new_exp(Cil_types.BinOp(Cil_types.Gt, $1 , $3 , Cil.intType)) ) }
+      new_exp(Cil_types.BinOp(Cil_types.Gt, $1 , $3 , Cil.intType)) ) }
   | arith_relation LE  arith_relation {
     ( Cil_types.Prel(Cil_types.Rle, Logic_utils.expr_to_term ~cast:true $1,
 		                    Logic_utils.expr_to_term ~cast:true $3),
-      Cil.new_exp(Cil_types.BinOp(Cil_types.Le, $1 , $3 , Cil.intType)) ) }
+      new_exp(Cil_types.BinOp(Cil_types.Le, $1 , $3 , Cil.intType)) ) }
   | arith_relation GE arith_relation {
     ( Cil_types.Prel(Cil_types.Rge, Logic_utils.expr_to_term ~cast:true $1,
 		                    Logic_utils.expr_to_term ~cast:true $3),
-      Cil.new_exp(Cil_types.BinOp(Cil_types.Ge, $1 , $3 , Cil.intType) )) }
+      new_exp(Cil_types.BinOp(Cil_types.Ge, $1 , $3 , Cil.intType) )) }
   | arith_relation NEQ arith_relation {
     ( Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1,
 		                    Logic_utils.expr_to_term ~cast:true $3),
-      Cil.new_exp(Cil_types.BinOp(Cil_types.Ne, $1 , $3 , Cil.intType) )) }
+      new_exp(Cil_types.BinOp(Cil_types.Ne, $1 , $3 , Cil.intType) )) }
   | arith_relation %prec TRUE {
     ( Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1,
 		     Logic_const.term(Cil_types.TConst(Cil_types.CInt64(Int64.of_int 0,Cil_types.IInt,Some("0"))))
@@ -294,31 +322,33 @@ logic_relation
 /* returns a Cil_types.exp expression */
 arith_relation
   : arith_relation_mul PLUS arith_relation {
-    Cil.new_exp (Cil_types.BinOp(Cil_types.PlusA, $1 , $3 , Cil.intType)) }
+    new_exp (Cil_types.BinOp(Cil_types.PlusA, $1 , $3 , Cil.intType)) }
   | arith_relation_mul MINUS arith_relation {
-    Cil.new_exp (Cil_types.BinOp(Cil_types.MinusA, $1 , $3 , Cil.intType)) }
+    new_exp (Cil_types.BinOp(Cil_types.MinusA, $1 , $3 , Cil.intType)) }
   | arith_relation_mul { $1 }
   ;
 
 
 arith_relation_mul
   : arith_relation_mul SLASH access_or_const {
-    Cil.new_exp (Cil_types.BinOp(Cil_types.Div, $1 , $3 , Cil.intType)) }
+    new_exp (Cil_types.BinOp(Cil_types.Div, $1 , $3 , Cil.intType)) }
   | arith_relation_mul STAR access_or_const {
-    Cil.new_exp (Cil_types.BinOp(Cil_types.Mult, $1 , $3 , Cil.intType)) }
+    new_exp (Cil_types.BinOp(Cil_types.Mult, $1 , $3 , Cil.intType)) }
   | arith_relation_mul PERCENT access_or_const {
-    Cil.new_exp (Cil_types.BinOp(Cil_types.Mod, $1 , $3 , Cil.intType)) }
+    new_exp (Cil_types.BinOp(Cil_types.Mod, $1 , $3 , Cil.intType)) }
   | access_or_const { $1 }
   ;
 
 /* returns a Lval exp or a Const exp*/
 access_or_const
   : INT
-            { Cil.new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string $1,Cil_types.IInt, Some($1))))}
+      { new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string $1,Cil_types.IInt, Some($1))))}
+  | MINUS INT 
+      { new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string ("-"^$2),Cil_types.IInt, Some("-"^$2))))}
   | access %prec TRUE
-            { Cil.new_exp (Cil_types.Lval($1)) }
+      { new_exp (Cil_types.Lval($1)) }
   | LPAREN arith_relation RPAREN
-	    { $2 }
+      { $2 }
   ;
 
 
@@ -343,10 +373,10 @@ access_leaf
   : STAR access
             { Aorai_option.fatal "NOT YET IMPLEMENTED : *A dereferencement access." }
   | IDENTIFIER FUNC DOT IDENTIFIER
-            { 
+            {
 	      if(String.compare $4 "return")=0 then
 		begin
-		  if not (!observed_expr_is_param=Only_vars) then 
+		  if not (!observed_expr_is_param=Only_vars) then
 		    Aorai_option.abort "An expression can not contain at same time a reference of a returned value and itself or a reference to a param";
 
 		  observed_expr_is_param := Func_ret $1;
@@ -355,17 +385,17 @@ access_leaf
 	      else
 		begin
 		  match !observed_expr_is_param with
-		    | Func_ret _ -> 
+		    | Func_ret _ ->
 			Aorai_option.abort "An expression can not contain both a reference of a returned value and another reference to itself or a reference to a param";
 
-		    | Func_param (f,_) when not (f=$1) -> 
+		    | Func_param (f,_) when not (f=$1) ->
 			Aorai_option.abort "An expression can not contain both references two different called functions.";
 
-		    | Only_vars -> 
+		    | Only_vars ->
 			observed_expr_is_param:=Func_param ($1,[$4]);
 			Cil.var ( Data_for_aorai.get_paraminfo $1 $4)
 
-		    | Func_param (_,l) -> 
+		    | Func_param (_,l) ->
 			observed_expr_is_param:=Func_param ($1,$4::l);
 			Cil.var ( Data_for_aorai.get_paraminfo $1 $4)
 		end

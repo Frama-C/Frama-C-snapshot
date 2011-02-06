@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,8 +31,8 @@ open Db_types
     redefined in inherited classes, while the corresponding ones from
     {!Cil.cilVisitor} {b must} retain their values as defined here. Otherwise,
     annotations may not be visited properly. The replaced functions are
-     - {t vstmt} (use {t vstmt_aux} instead)
-    - {t vglob} (use {t vglob_aux} instead)
+    - [vstmt] (use [vstmt_aux] instead)
+    - [vglob] (use [vglob_aux] instead)
 
     {b A few hints on how to use correctly this visitor}
 
@@ -82,6 +82,12 @@ class type frama_c_visitor = object
         {b NB:} for copy visitors, the link is to the original kf (anyway,
         the new kf is created only after the visit is over) *)
 
+
+  method set_current_kf: kernel_function -> unit
+    (** Internal use only. *)
+
+  method reset_current_kf: unit -> unit
+    (** Internal use only. *)
 end
 
 class generic_frama_c_visitor:
@@ -120,7 +126,7 @@ val visitFramacGlobal: frama_c_visitor -> global -> global list
 (** Visit a function definition *)
 val visitFramacFunction: frama_c_visitor -> fundec -> fundec
 
-(* Visit an expression *)
+(** Visit an expression *)
 val visitFramacExpr: frama_c_visitor -> exp -> exp
 
 (** Visit an lvalue *)
@@ -162,6 +168,12 @@ val visitFramacCodeAnnotation:
 
 val visitFramacAssigns:
   frama_c_visitor -> identified_term assigns -> identified_term assigns
+
+val visitFramacFrom:
+  frama_c_visitor -> identified_term from -> identified_term from
+
+val visitFramacDeps:
+  frama_c_visitor -> identified_term deps -> identified_term deps
 
 val visitFramacFunspec: frama_c_visitor -> funspec -> funspec
 

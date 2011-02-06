@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,6 +49,7 @@ let number_to_color n =
     number := !number lsr 3
   done;
   !color
+
 
 (* ************************************************************************* *)
 (** {2 Function builders} *)
@@ -97,14 +98,21 @@ let find_index f l =
     | x::l -> if f x then i else aux (i+1) l
   in aux 0 l
 
-let rec list_compare f l1 l2 = match l1, l2 with
-  | [], [] -> 0
-  | [], _ :: _ -> -1
-  | _ :: _, [] -> 1
-  | e1 :: q1, e2 :: q2 ->
-      let r = f e1 e2 in
-      if r = 0 then list_compare f q1 q2
-      else r
+let rec list_compare cmp_elt l1 l2 =
+  if l1 == l2 then 0
+  else
+    match l1, l2 with
+      | [], [] -> assert false (* included in l1 == l2 above *)
+      | [], _ :: _ -> 1
+      | _ :: _, [] -> -1
+      | v1::r1, v2::r2 ->
+          let c = cmp_elt v1 v2 in
+          if c = 0 then list_compare cmp_elt r1 r2 else c
+
+let list_of_opt = 
+  function
+    | None -> []
+    | Some x -> [x]
 
 (* ************************************************************************* *)
 (** {2 Options} *)
@@ -167,6 +175,12 @@ let time1024 ?msg f x = gentime getperfcount1024 ?msg f x
 
 external address_of_value: 'a -> int = "address_of_value"
 
+external terminate_process: int -> unit = "terminate_process" 
+  (* In src/buckx/buckx_c.c *)
+
+external usleep: int -> unit = "ml_usleep" 
+  (* In src/buckx/buckx_c.c ; man usleep for details. *)
+
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
 (* ************************************************************************* *)
@@ -186,14 +200,40 @@ let try_finally ~finally f x =
 
 let safe_remove f = try Unix.unlink f with Unix.Unix_error _ -> ()
 
-let cleanup_at_exit name =
-  let cleanup () = safe_remove name in at_exit cleanup
+let rec safe_remove_dir d =
+  try
+    Array.iter
+      (fun a ->
+	 let f = Printf.sprintf "%s/%s" d a in 
+	 if Sys.is_directory f then safe_remove_dir f else safe_remove f
+      ) (Sys.readdir d) ;
+    Unix.rmdir d
+  with Unix.Unix_error _ | Sys_error _ -> ()
+
+let cleanup_at_exit f = at_exit (fun () -> safe_remove f)
 
 let temp_file_cleanup_at_exit s1 s2 =
-  let file = Filename.temp_file s1 s2 in
-    cleanup_at_exit file;
-    file
+  let (file,out) = Filename.open_temp_file s1 s2 in
+  (try close_out out with Unix.Unix_error _ -> ()) ;
+  at_exit (fun () -> safe_remove file) ;
+  file
 
+let temp_dir_cleanup_at_exit base =
+  let rec try_dir_cleanup_at_exit limit base =
+    let file = Filename.temp_file base ".tmp" in
+    let dir = Filename.chop_extension file ^ ".dir" in
+    try
+      Unix.mkdir dir 0o700 ;
+      at_exit (fun () -> safe_remove_dir dir ; safe_remove file) ;
+      dir
+    with Unix.Unix_error _ ->
+      if limit < 0 then
+	let msg =
+	  Printf.sprintf "Impossible to create temporary directory ('%s')" dir
+	in failwith msg
+      else
+	try_dir_cleanup_at_exit (pred limit) base
+  in try_dir_cleanup_at_exit 10 base
 
 (* ************************************************************************* *)
 (** Strings *)
@@ -204,6 +244,12 @@ let string_prefix ?(strict=false) prefix s =
   String.length s >= String.length prefix + add
   && String.sub s 0 (String.length prefix) = prefix
 
+
+(* ************************************************************************* *)
+(** Comparison functions *)
+(* ************************************************************************* *)
+
+external compare_basic: 'a -> 'a -> int = "%compare"
 (*
 Local Variables:
 compile-command: "make -C ../.."

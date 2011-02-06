@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,103 +24,120 @@ open Gtk_helper
 
 module Parameters_hook = Hook.Make(struct end)
 
-class type basic_main = object 
+class type basic_main = object
   inherit host
   method main_window: GWindow.window
   method reset: unit -> unit
 end
 
 let run (host:basic_main) dialog () =
-  ignore (host#protect ~cancelable:true ~parent:(dialog :> GWindow.window_skel) 
-    (fun () -> 
+  ignore (host#protect ~cancelable:true ~parent:(dialog :> GWindow.window_skel)
+    (fun () ->
        dialog#destroy ();
        Parameters_hook.apply ();
-       !Db.Main.play (); 
+       !Db.Main.play ();
        host#reset ()));
   Parameters_hook.clear ()
 
-let add_parameter (box:GPack.box) p = 
+let add_parameter (box:GPack.box) p =
   let name = p.Plugin.o_name in
+  let tooltip = p.Plugin.o_help in
   let highlight s = "<span foreground=\"red\">" ^ s ^ "</span>" in
   let hname = highlight name in
   match p.Plugin.o_kind with
   | Plugin.Bool ({ Plugin.get = get; set = set; is_set = is_set }, None) ->
-      let use_markup = is_set () in
-      let name = if use_markup then hname else name in
-      Parameters_hook.extend (on_bool ~use_markup box name get set);
-      use_markup
-  | Plugin.Bool ({ Plugin.get = get; set = set; is_set = is_set }, 
+    let use_markup = is_set () in
+    let name = if use_markup then hname else name in
+    (* fix bts#510: a parameter [p] must be set if and only if it is set by the
+       user in the launcher. In particular, it must not be reset to its old
+       value if setting another parameter [p'] modifies [p] via hooking. *)
+    let old = get () in
+    let set r = if r <> old then set r in
+    Parameters_hook.extend (on_bool ~tooltip ~use_markup box name get set);
+    use_markup
+  | Plugin.Bool ({ Plugin.get = get; set = set; is_set = is_set },
 		 Some negative_name) ->
-      let use_markup = is_set () in
-      let name, negative_name = 
-	if use_markup then hname, highlight negative_name 
-	else name, negative_name
-      in
-      Parameters_hook.extend 
-	(on_bool_radio ~use_markup box name negative_name get set);
-      use_markup
+    let use_markup = is_set () in
+    let name, negative_name =
+      if use_markup then hname, highlight negative_name
+      else name, negative_name
+    in
+    let old = get () in
+    let set r = if r <> old then set r in
+    Parameters_hook.extend
+      (on_bool_radio ~tooltip ~use_markup box name negative_name get set);
+    use_markup
   | Plugin.Int ({ Plugin.get = get; set = set; is_set = is_set }, range) ->
-      let use_markup = is_set () in
-      let name = if use_markup then hname else name in
-      let lower, upper = range () in
-      Parameters_hook.extend 
-	(on_int ~use_markup ~lower ~upper box name get set);
-      use_markup
-  | Plugin.String({ Plugin.get = get; set = set; is_set = is_set }, 
+    let use_markup = is_set () in
+    let name = if use_markup then hname else name in
+    let lower, upper = range () in
+    let old = get () in
+    let set r = if r <> old then set r in
+    Parameters_hook.extend
+      (on_int ~tooltip ~use_markup ~lower ~upper box name get set);
+    use_markup
+  | Plugin.String({ Plugin.get = get; set = set; is_set = is_set },
 		  possible_values) ->
-      let use_markup = is_set () in
-      let name = if use_markup then hname else name in
-      (match possible_values () with
-       | [] -> 
-	   Parameters_hook.extend (on_string ~use_markup box name get set)
-       | v ->
-	   Parameters_hook.extend 
-	     (on_string_completion 
-		~use_markup ~validator:(fun s -> List.mem s v) 
-		v box name get set));
-      use_markup
+    let use_markup = is_set () in
+    let name = if use_markup then hname else name in
+    let old = get () in
+    let set r = if r <> old then set r in
+    (match possible_values () with
+    | [] ->
+      Parameters_hook.extend (on_string ~tooltip ~use_markup box name get set)
+    | v ->
+      Parameters_hook.extend
+	(on_string_completion
+	   ~tooltip ~use_markup ~validator:(fun s -> List.mem s v)
+	   v box name get set));
+    use_markup
   | Plugin.StringSet { Plugin.get = get; set = set; is_set = is_set } ->
-      let use_markup = is_set () in
-      let name = if use_markup then hname else name in
-      Parameters_hook.extend (on_string_set ~use_markup box name get set);
-      use_markup
-  
+    let use_markup = is_set () in
+    let name = if use_markup then hname else name in
+    let old = get () in
+    let set r = if r <> old then set r in
+    Parameters_hook.extend
+      (on_string_set ~tooltip ~use_markup box name get set);
+    use_markup
+
 let mk_text ~highlight text =
-  let markup = 
-    if highlight then Format.sprintf "<span foreground=\"red\">%s</span>" text 
+  let markup =
+    if highlight then Format.sprintf "<span foreground=\"red\">%s</span>" text
     else text
-  in 
+  in
   let label = GMisc.label ~markup () in
   label#coerce
 
-let set_expander_text exp s highlight =
+let set_expander_text exp s ~tooltip highlight =
   let text = mk_text ~highlight s in
+  Gtk_helper.do_tooltip ?tooltip text;
   exp#set_label_widget text;
   exp#set_expanded highlight
 
 let add_group (box:GPack.box) label options =
-  let box, set_expander_text = 
-    if label = "" then 
-      box, fun _ -> () 
+  let box, set_expander_text =
+    if label = "" then
+      box, fun _ -> ()
     else
       let expander = GBin.expander ~packing:box#pack () in
       let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
-      GPack.vbox ~packing:frame#add (), set_expander_text expander label
+      GPack.vbox ~packing:frame#add (),
+      set_expander_text expander ~tooltip:None label
   in
-  let highlight = 
+  let highlight =
     List.fold_right
-      (fun p b -> let is_set = add_parameter box p in b || is_set) 
-      options 
-      false 
+      (fun p b -> let is_set = add_parameter box p in b || is_set)
+      options
+      false
   in
   set_expander_text highlight;
   highlight
 
-let add_plugin (box:GPack.box) p = 
+let add_plugin (box:GPack.box) p =
   let expander = GBin.expander ~packing:(box#pack ~padding:2) () in
   let frame = GBin.frame ~border_width:5 ~packing:expander#add () in
   let vbox = GPack.vbox ~packing:frame#add () in
-  let markup = "<b>" ^ p.Plugin.p_descr ^ "</b>" in
+  let markup = "<b>" ^ p.Plugin.p_help ^ "</b>" in
   ignore (GMisc.label ~markup ~packing:(vbox#pack ~padding:4) ());
   let sorted_groups =
     List.sort
@@ -130,15 +147,19 @@ let add_plugin (box:GPack.box) p =
 	 p.Plugin.p_parameters
 	 [])
   in
-  let highlight = 
+  let highlight =
     List.fold_left
-      (fun b (l, g) -> let is_set = add_group vbox l g in b || is_set) 
+      (fun b (l, g) -> let is_set = add_group vbox l g in b || is_set)
       false
       sorted_groups
   in
-  set_expander_text expander p.Plugin.p_name highlight
+  set_expander_text
+    expander
+    p.Plugin.p_name
+    ~tooltip:(Some p.Plugin.p_help)
+    highlight
 
-let show ?height ?width ~(host:basic_main) () = 
+let show ?height ?width ~(host:basic_main) () =
   let dialog =
     GWindow.dialog
       ~title:"Launching analysis"
@@ -151,11 +172,15 @@ let show ?height ?width ~(host:basic_main) () =
       ~allow_grow:true
       ()
   in
+  ignore (dialog#misc#connect#size_allocate
+	    (fun ({Gtk.width=w;Gtk.height=h}) ->
+	      Configuration.set "launcher_width" (Configuration.ConfInt w);
+	      Configuration.set "launcher_height" (Configuration.ConfInt h)));
   let box = GPack.vbox () in
-  let scrolling = 
+  let scrolling =
     GBin.scrolled_window
-      ~packing:(dialog#vbox#pack ~fill:true ~expand:true) 
-      ~vpolicy:`AUTOMATIC ~hpolicy:`AUTOMATIC () 
+      ~packing:(dialog#vbox#pack ~fill:true ~expand:true)
+      ~vpolicy:`AUTOMATIC ~hpolicy:`AUTOMATIC ()
   in
   scrolling#add_with_viewport (box :> GObj.widget);
   ignore
@@ -165,14 +190,14 @@ let show ?height ?width ~(host:basic_main) () =
        ());
   (* Action buttons *)
   let buttons =
-    GPack.button_box 
+    GPack.button_box
       `HORIZONTAL ~layout:`END ~packing:dialog#action_area#pack ()
   in
-  let cancel = 
+  let cancel =
     GButton.button ~label:"Cancel" ~stock:`CANCEL ~packing:buttons#pack ()
   in
   ignore (cancel#connect#released dialog#destroy);
-  let button_run = 
+  let button_run =
     GButton.button
       ~label:"Configure analysis" ~stock:`EXECUTE ~packing:buttons#pack ()
   in
@@ -182,6 +207,6 @@ let show ?height ?width ~(host:basic_main) () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

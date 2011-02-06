@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -101,10 +101,19 @@ let test_file_regexp = ".*\\.\\(c\\|i\\)$"
 let end_comment = Str.regexp ".*\\*/"
 
 let opt_to_byte =
-  let opt = Str.regexp "[.]opt$" in
+  let opt = Str.regexp "[.]opt\\($\\|[ \t]\\)" in
   function toplevel ->
     if toplevel = "frama-c" then "frama-c.byte"
-    else Str.global_replace opt ".byte" toplevel
+    else Str.global_replace opt ".byte\\1" toplevel
+
+let needs_byte options =
+  Ptests_config.no_native_dynlink &&
+    (Str.string_match (Str.regexp ".*-load-script") options 0 ||
+    Str.string_match (Str.regexp ".*-load-module") options 0)
+
+let execnow_needs_byte cmd =
+  Ptests_config.no_native_dynlink &&
+    Str.string_match (Str.regexp ".*make.*[.]cmxs") cmd 0
 
 let execnow_opt_to_byte =
   let test_regexp r = Filename.concat test_path r in
@@ -131,7 +140,8 @@ let use_byte = ref false
 let use_diff_as_cmp = ref (Sys.os_type = "Win32")
 let do_diffs = ref (if Sys.os_type = "Win32" then "diff --strip-trailing-cr -u"
 		    else "diff -u")
-let do_cmp = ref "cmp -s"
+let do_cmp = ref (if Sys.os_type="Win32" then !do_diffs
+                  else "cmp -s")
 let n = ref 4    (* the level of parallelism *)
 let suites = ref []
 (** options given to toplevel for all tests *)
@@ -258,10 +268,10 @@ type config =
       dc_filter     : string option; (** optional filter to apply to
 			      standard output *)
       dc_toplevels    : (string * string) list;
-      (** troplevel full path and options to launch the toplevel on *)
+      (** toplevel full path and options to launch the toplevel on *)
       dc_dont_run   : bool;
       dc_is_explicit_test: bool
-        (** set to true for single test files that are explicitely
+        (** set to true for single test files that are explicitly
             mentioned on the command line. Overrides dc_dont_run. *)
     }
 
@@ -314,6 +324,7 @@ let scan_execnow dir (s:string) =
 
 (* the default toplevel for the current level of options. *)
 let current_default_toplevel = ref !Ptests_config.toplevel_path
+let current_default_cmds = ref [!Ptests_config.toplevel_path,default_options]
 
 let make_custom_opts stdopts s =
   let rec aux opts s =
@@ -336,36 +347,39 @@ let make_custom_opts stdopts s =
   in List.fold_left (fun s x -> s ^ " " ^ x) "" opts
 
 (* how to process options *)
-let config_options stdopts =
-  let last_toplevel = ref !current_default_toplevel in
+let config_options =
   [ "CMD",
-    (fun _ s (current,rev_toplevels) ->
-       if Str.string_match toplevel_regex s 0 then
-         last_toplevel :=
+    (fun _ s current ->
+
+       let toplevel =
+         if Str.string_match toplevel_regex s 0 then
            Str.replace_matched ("\\1" ^ !Ptests_config.toplevel_path ^ "\\2") s
        else
-         last_toplevel := make_toplevel_path s;
-       { current with dc_default_toplevel = !last_toplevel}, rev_toplevels);
+         make_toplevel_path s
+       in
+       { current with dc_default_toplevel = toplevel});
 
     "OPT",
-    (fun _ s (current,rev_toplevels) ->
-       let t = !last_toplevel, s in
-       last_toplevel := !current_default_toplevel;
-       current, (t::rev_toplevels) );
+    (fun _ s current ->
+       let t = current.dc_default_toplevel, s in
+       { current with
+(*           dc_default_toplevel = !current_default_toplevel;*)
+           dc_toplevels = t :: current.dc_toplevels });
 
     "STDOPT",
-    (fun _ s (current, rev_toplevels) ->
-       let t = !last_toplevel, make_custom_opts stdopts s in
-       last_toplevel := !current_default_toplevel;
-       current, (t::rev_toplevels));
+    (fun _ s current ->
+       let new_top =
+         List.map (fun (cmd,opts) -> cmd, make_custom_opts opts s)
+           !current_default_cmds
+       in
+       { current with dc_toplevels =
+           List.rev_append new_top current.dc_toplevels});
 
     "FILEREG",
-    (fun _ s (current,rev_toplevels) ->
-       { current with dc_test_regexp = s }, rev_toplevels );
+    (fun _ s current -> { current with dc_test_regexp = s });
 
     "FILTER",
-    (fun _ s (current,rev_toplevels) ->
-       { current with dc_filter = Some s }, rev_toplevels );
+    (fun _ s current -> { current with dc_filter = Some s });
 
     "GCC",
     (fun _ _ acc -> acc);
@@ -374,29 +388,22 @@ let config_options stdopts =
     (fun _ _ acc -> acc);
 
     "DONTRUN",
-    (fun _ s (current,rev_toplevels) ->
-       if current.dc_is_explicit_test then current, rev_toplevels
-       else
-         { current with dc_dont_run = true }, rev_toplevels );
+    (fun _ s current ->
+       if current.dc_is_explicit_test then current
+       else { current with dc_dont_run = true });
 
     "EXECNOW",
-    (fun dir s (current,rev_toplevels)->
+    (fun dir s current ->
        let execnow = scan_execnow dir s in
-       { current with dc_execnow = execnow::current.dc_execnow  },
-       rev_toplevels);
+       { current with dc_execnow = execnow::current.dc_execnow  });
   ]
 
-let make_std_opts default =
-  let rec find_last = function
-      [] -> ""
-    | [_,opts] -> opts
-    | _::tl -> find_last tl
-  in find_last default.dc_toplevels
-
 let scan_options dir scan_buffer default =
-  let r = ref (default, [])  in
+  let r =
+    ref { default with dc_toplevels = [] }
+  in
   current_default_toplevel := default.dc_default_toplevel;
-  let config_options = config_options (make_std_opts default) in
+  current_default_cmds := List.rev default.dc_toplevels;
   let treat_line s =
     try
       Scanf.sscanf s "%[ *]%[A-Za-z0-9]:%s@\n"
@@ -417,13 +424,9 @@ let scan_options dir scan_buffer default =
     assert false
   with
     End_of_file ->
-      let rev_toplevels = snd !r in
-      let toplevels =
-	if rev_toplevels = []
-	then default.dc_toplevels
-	else List.rev rev_toplevels
-      in
-      { (fst !r) with dc_toplevels = toplevels }
+      (match !r.dc_toplevels with
+           [] -> { !r with dc_toplevels = default.dc_toplevels }
+         | l -> { !r with dc_toplevels = List.rev l })
 
 let scan_test_file default dir f =
   let f = Filename.concat dir f in
@@ -440,12 +443,7 @@ let scan_test_file default dir f =
 	    (fun name ->
 	       if not
 		 (!special_config = "" && name = ""
-		     || name = "_" ^ !special_config
-                     || (name = "_no_native_dynlink" && !special_config=""
-                         && Ptests_config.no_native_dynlink)
-                     || (name = "_no_native_dynlink_" ^ !special_config &&
-                         Ptests_config.no_native_dynlink)
-                 )
+		     || name = "_" ^ !special_config)
 	       then
 		 (ignore (scan_options dir scan_buffer default);
 		  scan_config ()))
@@ -541,8 +539,9 @@ let log_prefix = gen_prefix result_dirname
 let oracle_prefix = gen_prefix oracle_dirname
 
 let basic_command_string command =
-  let is_framac_toplevel = Filename.check_suffix command.toplevel "opt" ||
-    Filename.check_suffix command.toplevel "byte"
+  let is_framac_toplevel =
+    Str.string_match (Str.regexp ".*toplevel.*") command.toplevel 0
+    || Str.string_match (Str.regexp ".*frama-c.*") command.toplevel 0
   in
   command.toplevel ^ " " ^
     command.options ^ " " ^
@@ -656,7 +655,7 @@ let do_command command =
 	      if !verbosity >= 1
 	      then lock_printf "%% launch %s@." command_string ;
 	      ignore (launch command_string)
-	    end;
+	  end;
 	  lock ();
 	  shared.summary_run <- succ shared.summary_run ;
 	  shared.summary_log <- shared.summary_log + 2 ;
@@ -670,32 +669,36 @@ let do_command command =
           if res = 0
 	  then begin
 	      shared.summary_ok <- succ shared.summary_ok;
-              Condition.broadcast shared.work_available;
-	      if !behavior = Examine || !behavior = Run
-	      then begin
-		  List.iter
-		    (fun f -> Queue.push (Cmp_Log(execnow.ex_dir, f)) shared.cmps)
-		    execnow.ex_log
-		end
-            end
+	    Queue.transfer shared.commands cmds;
+	    shared.commands <- cmds;
+            shared.building_target <- false;
+            Condition.broadcast shared.work_available;
+	    if !behavior = Examine || !behavior = Run
+	    then begin
+	      List.iter
+		(fun f -> Queue.push (Cmp_Log(execnow.ex_dir, f)) shared.cmps)
+		execnow.ex_log
+	    end
+          end
 	  else begin
-	      let rec treat_cmd = function
-		  Toplevel cmd ->
-		    shared.summary_run <- shared.summary_run + 1;
-		    let log_prefix = log_prefix cmd in
-		    begin try
-			Unix.unlink (log_prefix ^ ".res.log ")
-		      with Unix.Unix_error _ -> ()
-		    end;
-		| Target (execnow,cmds) ->
-                    shared.summary_run <- succ shared.summary_run;
-                    remove_execnow_results execnow;
-                    Queue.iter treat_cmd cmds
-	      in
-	      Queue.iter treat_cmd cmds;
-              Queue.push (Target_error execnow) shared.diffs;
-              Condition.signal shared.diff_available
-            end;
+	    let rec treat_cmd = function
+		Toplevel cmd ->
+		  shared.summary_run <- shared.summary_run + 1;
+		  let log_prefix = log_prefix cmd in
+		  begin try
+		    Unix.unlink (log_prefix ^ ".res.log ")
+		  with Unix.Unix_error _ -> ()
+		  end;
+	      | Target (execnow,cmds) ->
+                  shared.summary_run <- succ shared.summary_run;
+                  remove_execnow_results execnow;
+                  Queue.iter treat_cmd cmds
+	    in
+	    Queue.iter treat_cmd cmds;
+            Queue.push (Target_error execnow) shared.diffs;
+            shared.building_target <- false;
+            Condition.signal shared.diff_available
+          end;
           unlock()
       in
 
@@ -709,29 +712,18 @@ let do_command command =
         begin
             if !behavior <> Examine
 	    then begin
-		remove_execnow_results execnow;
-		    let cmd =
-                      if !use_byte then
-			execnow_opt_to_byte execnow.ex_cmd
-                      else
-			execnow.ex_cmd
-		    in
-		    let r = launch cmd in
-		    lock ();
-		    if r = 0
-		    then begin
-			Queue.transfer shared.commands cmds;
-			shared.commands <- cmds;
-		      end;
-		    shared.building_target <- false;
-		    Condition.signal shared.work_available;
-		    unlock ();
-
-		    continue r
-		  end
+	      remove_execnow_results execnow;
+	      let cmd =
+                if !use_byte || execnow_needs_byte execnow.ex_cmd then
+		  execnow_opt_to_byte execnow.ex_cmd
+                else
+		  execnow.ex_cmd
+	      in
+	      let r = launch cmd in
+	      continue r
+	    end
 	    else
 	      continue 0
-
         end
 
 let log_ext = function Res -> ".res" | Err -> ".err"
@@ -1010,9 +1002,9 @@ let dispatcher () =
       let i = ref 0 in
       let make_toplevel_cmd (toplevel, options) =
 	let toplevel =
-	  if not !use_byte
-	  then toplevel
-	  else opt_to_byte toplevel
+	  if !use_byte || needs_byte options
+	  then opt_to_byte toplevel
+	  else toplevel
 	in
         {file=file; options = options; toplevel = toplevel;
          n = !i; directory = directory;

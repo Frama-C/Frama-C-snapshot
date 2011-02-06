@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,12 +37,15 @@ val register:
 
 (** {2 Access} *)
 
+exception Incompatible_type of string
+exception Unbound_value of string
+
 val get: plugin:string -> string -> 'a Type.t -> 'a
   (** [apply ~plugin name ty] returns the value registered with the name
       [name], the type [ty] and the plug-in [plugin]. This plug-in will be
       loaded if required.
-      @raise Type.StringTbl.Unbound_value if the name is not registered
-      @raise Type.StringTbl.Incompatible_type if the name is not registered
+      @raise Unbound_value if the name is not registered
+      @raise Incompatible_type if the name is not registered
       with a compatible type
       @plugin development guide *)
 
@@ -58,10 +61,10 @@ val add_path: string -> unit
 
 val load_module: string -> unit
   (** Load the module with the given name. The module is searched in
-      search paths. Do nothing if dynamic loading is not available*)
+      search paths. Do nothing if dynamic loading is not available. *)
 
 val load_script: string -> unit
-  (** Compile then load the ocaml script with the given name. The file is
+  (** Compile then load the OCaml script with the given name. The file is
       searched in search paths. Do nothing if dynamic loading is not
       available.
       @since Beryllium-20090601-beta1 *)
@@ -84,6 +87,6 @@ end
 
 (*
   Local Variables:
-  compile-command: "LC_ALL=C make -C ../.."
+  compile-command: "make -C ../.."
   End:
 *)

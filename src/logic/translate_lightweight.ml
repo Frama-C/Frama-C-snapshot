@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -27,31 +27,27 @@ open Genlex
 open Cil
 open Cilutil
 open Ast_info
-
+open Cil_datatype
 open Extlib
-
 open Db_types
 open Visitor
 
 let mkterm tnode ty loc =
-  {
-    term_node = tnode;
+  { term_node = tnode;
     term_loc = loc;
     term_type = ty;
-    term_name = []
-  }
+    term_name = [] }
 
-
-let term_of_var v= variable_term locUnknown (cvar_to_lvar v)
+let term_of_var v= variable_term v.vdecl (cvar_to_lvar v)
 
 class annotateFunFromDeclspec =
 
   let recover_from_attr_param params attrparam =
     let rec aux = function
       | AInt i ->
-	  constant_term locUnknown (Int64.of_int i)
+	  constant_term Location.unknown (Int64.of_int i)
       | AUnOp(Neg,AInt i) ->
-	  constant_term locUnknown (Int64.of_int (-i))
+	  constant_term Location.unknown (Int64.of_int (-i))
       | AStr s
       | ACons(s,[]) ->
 	  begin try
@@ -59,7 +55,7 @@ class annotateFunFromDeclspec =
             term_of_var v
 	  with Not_found -> failwith "No recovery" end
       | ABinOp(bop,attr1,attr2) ->
-	  mkterm (TBinOp(bop,aux attr1,aux attr2)) Linteger locUnknown
+	  mkterm (TBinOp(bop,aux attr1,aux attr2)) Linteger Location.unknown
       | ACons _
       | ASizeOf _
       | ASizeOfE _
@@ -138,11 +134,12 @@ class annotateFunFromDeclspec =
     let params = Globals.Functions.get_params kf in
     let req = List.fold_left (annotate_var params) [] params in
     if req <> [] then
+      (* add [req] to [b_requires] of default behavior *)
       let funspec = Kernel_function.get_spec kf in
-      let req = req@funspec.spec_requires in
       let return_ty = getReturnType v.vtype in
       let loc = v.vdecl in
-      funspec.spec_requires <- req;
+      let behavior = Cil.mk_behavior ~requires:req () in
+      funspec.spec_behavior <- Logic_utils.merge_behaviors ~silent:false funspec.spec_behavior [behavior] ;
       let insert_spec behavior =
         let ens =
           List.fold_left

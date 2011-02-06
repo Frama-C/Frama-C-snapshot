@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,17 +24,23 @@
 
 open Dgraph
 
-let state_dependency_graph ~packing () =
-  let dot_file =
-    Extlib.temp_file_cleanup_at_exit "framac_state_dependency_graph" "dot"
-  in
-  Project.Computation.dump_dynamic_dependencies dot_file;
-  let model = DGraphModel.read_dot dot_file in
-  let view = DGraphView.view ~aa:true ~packing model in
-  view#connect_highlighting_event ();
-  view
+let graph_view ~packing mk_dot =
+  let f = Extlib.temp_file_cleanup_at_exit "framac_graph_view" "dot" in
+  mk_dot f;
+  snd
+    (DGraphContainer.Dot.from_dot_with_commands
+       ~status:DGraphContainer.Global
+       ~packing
+       f)
 
-let graph_window main_window title =
+let state_dependency_graph ~packing () =
+  graph_view ~packing State_dependency_graph.Dynamic.dump
+
+let status_dependency_graph ~packing () =
+  let g = Properties_status.Consolidation_tree.get_full_graph () in
+  graph_view ~packing (Properties_status.Consolidation_tree.dump g)
+
+let graph_window main_window title mk_view =
   let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
   let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
   let window =
@@ -42,24 +48,23 @@ let graph_window main_window title =
       ~width ~height ~title ~allow_shrink:true ~allow_grow:true
       ~position:`CENTER ()
   in
-  let scroll =
-    GBin.scrolled_window
-      ~packing:window#add ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
-  in
-  let view = state_dependency_graph ~packing:scroll#add () in
-  ignore (view#set_center_scroll_region true);
+  let view = mk_view ~packing:window#add () in
   window#show ();
   view#adapt_zoom ()
 
 let () =
   Design.register_extension
     (fun window ->
-       ignore
-	 (window#menu_manager#add_debug
+      let mk_graph = graph_window window#main_window in
+      ignore
+	((window#menu_manager ())#add_debug
 	    ~show:(fun () -> Kernel.debug_atleast 1)
-	    [ let s = "State Dependency Graph" in
+	    [ (let s = "State Dependency Graph" in
+	       Menu_manager.Menubar(None, s),
+	       fun () -> mk_graph s state_dependency_graph);
+	      let s = "Status Graph" in
 	      Menu_manager.Menubar(None, s),
-	      fun () -> graph_window window#main_window s ]))
+	      fun () -> mk_graph s status_dependency_graph ]))
 
 (*
 Local Variables:

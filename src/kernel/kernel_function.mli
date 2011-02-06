@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,18 +30,14 @@ open Db_types
 (** {2 Kernel functions are comparable and hashable} *)
 (* ************************************************************************* *)
 
-type t = kernel_function
-val compare : t -> t -> int
-val equal : t -> t -> bool
-val hash : t -> int
-
-(** Datatype for a kernel function.
-    @plugin development guide *)
-module Datatype: Project.Datatype.S with type t = kernel_function
+include Datatype.S_with_collections with type t = kernel_function
+val id: t -> int
+val self: State.t
 
 (* ************************************************************************* *)
 (** {2 Searching} *)
 (* ************************************************************************* *)
+
 exception No_Statement
 val find_first_stmt : t -> stmt
   (** Find the first statement in a kernel function.
@@ -55,36 +51,44 @@ val find_label : t -> string -> stmt ref
   (** Find a given label in a kernel function.
       @raise Not_found if the label does not exist in the given function. *)
 
+val clear_sid_info: unit -> unit
 (** removes any information related to statements in kernel functions.
     ({i.e.} the table used by the function below).
     - Must be called when the Ast has silently changed
     (e.g. with an in-place visitor) before calling one of
     the functions below
-    - Use with caution, as it is very expensive to re-populate the table.
- *)
-val clear_sid_info: unit -> unit
+    - Use with caution, as it is very expensive to re-populate the table. *)
 
 val find_from_sid : int -> stmt * t
-  (** Return the stmt and its kernel function from its identifier.
+  (** @return the stmt and its kernel function from its identifier.
       Complexity: the first call to this function is linear in the size of
       the cil file.
       @raise Not_found if there is no statement with such an identifier.
       @plugin development guide *)
 
+val find_englobing_kf : stmt -> t
+  (** @return the function to which the statement belongs. Same
+      complexity as [find_from_sid] *)
+
 val find_enclosing_block: stmt -> block
-  (** returns the innermost block to which the given statement belongs. *)
+  (** @return the innermost block to which the given statement belongs. *)
 
 val find_all_enclosing_blocks: stmt -> block list
   (** same as above, but returns all enclosing blocks, starting with the
-      innermost one.
-   *)
+      innermost one. *)
 
 val blocks_closed_by_edge: stmt -> stmt -> block list
   (** [blocks_closed_by_edge s1 s2] returns the (possibly empty)
       list of blocks that are closed when going from [s1] to [s2].
       @raise Invalid_argument if the statements do not belong to the
-      same function or are not adjacent in the cfg.
-   *)
+      same function or [s2] is not a successor of [s1] in the cfg.
+      @since Carbon-20101201 *)
+
+val find_syntactic_callsites : t -> (t * stmt) list
+  (** [callsites f] collect the statements where [f] is called.  Same
+      complexity as [find_from_sid].
+      @return a list of [f',s] where function [f'] calls [f] at statement [stmt]. 
+      @since Carbon-20101202+dev *)
 
 (* ************************************************************************* *)
 (** {2 Checkers} *)
@@ -117,23 +121,21 @@ val get_definition : t -> fundec
 (* ************************************************************************* *)
 
 val is_formal: varinfo -> t -> bool
-  (** Return [true] if the given varinfo is a formal parameter of the given
+  (** @return [true] if the given varinfo is a formal parameter of the given
       function. If possible, use this function instead of
       {!Ast_info.Function.is_formal}. *)
 
 val get_formal_position: varinfo -> t -> int
-  (** [get_formal_position v kf]
-      returns the position of [v] as parameter of [kf].
-      @raise Not_found if [v] is not a formal of [kf].
-   *)
+(** [get_formal_position v kf] is the position of [v] as parameter of [kf].
+    @raise Not_found if [v] is not a formal of [kf]. *)
 
 val is_local : varinfo -> t -> bool
-  (** Return [true] if the given varinfo is a local variable of the given
-      function. If possible, use this function instead of
-      {!Ast_info.Function.is_local}. *)
+(** @return [true] if the given varinfo is a local variable of the given
+    function. If possible, use this function instead of
+    {!Ast_info.Function.is_local}. *)
 
 val is_formal_or_local: varinfo -> t -> bool
-  (** Return [true] if the given varinfo is a formal parameter or a local
+  (** @return [true] if the given varinfo is a formal parameter or a local
       variable of the given function.
       If possible, use this function instead of
       {!Ast_info.Function.is_formal_or_local}. *)
@@ -145,15 +147,29 @@ val is_formal_or_local: varinfo -> t -> bool
 val get_spec: t -> funspec
 
 val postcondition : t -> Cil_types.termination_kind -> predicate named
-  (** @modify Boron-20100401 added argument to select desired
-      termination kind*)
+(** @modify Boron-20100401 added argument to select desired termination kind *)
 
 val precondition: t -> predicate named
 
 val code_annotations: t -> (stmt*rooted_code_annotation before_after) list
 
+val internal_function_behaviors: t -> string list
+(** @return the list of behavior names that are defined in statement contracts
+    within the function. *)
+
+val spec_function_behaviors: t -> string list
+(** @return the list of behavior names defined in the spec of the function. *)
+
+val all_function_behaviors: t -> string list
+  (** @return the list of all behavior names defined in the function
+      (either in the spec or in statement contracts) *)
+
+val fresh_behavior_name: t -> string -> string
+(** @return a behavior name based on the 2nd argument which is guaranteed not
+    to clash with an existing behavior. *)
+
 val populate_spec: (t -> unit) ref
-  (** Should not be used by casual users. *)
+(** Should not be used by casual users. *)
 
 (* ************************************************************************* *)
 (** {2 Collections} *)
@@ -161,26 +177,11 @@ val populate_spec: (t -> unit) ref
 
 (** Hashtable indexed by kernel functions and dealing with project.
     @plugin development guide *)
-module Make_Table(Data:Project.Datatype.S)(Info:Signature.NAME_SIZE_DPDS):
-  Computation.HASHTBL_OUTPUT with type key = t and type data = Data.t
+module Make_Table(Data: Datatype.S)(Info: State_builder.Info_with_size):
+  State_builder.Hashtbl with type key = t and type data = Data.t
 
 (** Set of kernel functions. *)
-module Set : sig
-
-  include Ptset.S with type elt = t
-
-  module Datatype : Project.Datatype.S with type t = t
-    (** Datatype corresponding to a set of kernel functions. *)
-
-  val pretty : Format.formatter -> t -> unit
-    (** Pretty print a set of kernel functions. *)
-
-end
-
-(** Datatype for a queue of kernel functions. *)
-module Queue: sig
-  module Datatype: Project.Datatype.S with type t = kernel_function Queue.t
-end
+module Hptset : Hptset.S with type elt = t
 
 (* ************************************************************************* *)
 (** {2 Setters}
@@ -201,6 +202,6 @@ val pretty_name : Format.formatter -> t -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

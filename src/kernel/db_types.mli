@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (** Type definitions for [Db] module. Each plugin may add its additional
-    types. 
+    types.
     @plugin development guide *)
 
 open Cil_types
@@ -45,11 +45,11 @@ type rooted_code_annotation =
 
 type 'a before_after = Before of 'a | After of 'a
 
-type stmts_graph = Graph.Imperative.Digraph.Concrete(Cilutil.StmtComparable).t
+type stmts_graph = Graph.Imperative.Digraph.Concrete(Cil_datatype.Stmt).t
 
 (** Except field [fundec], do not used the other fields directly.
-    Prefer to use {!Kernel_function.find_return}, {!Kernel_function.get_spec} 
-    and {!Stmts_graph.stmt_can_reach}. 
+    Prefer to use {!Kernel_function.find_return}, {!Kernel_function.get_spec}
+    and {!Stmts_graph.stmt_can_reach}.
     @plugin development guide *)
 type kernel_function = {
   fundec : cil_function;
@@ -58,7 +58,8 @@ type kernel_function = {
   mutable stmts_graph : stmts_graph option;
 }
 
-type localisation = 
+(* [VP] TODO: VLocal should be attached to a particular block, not a whole function. *)
+type localisation =
     VGlobal | VLocal of kernel_function | VFormal of kernel_function
 
 (*

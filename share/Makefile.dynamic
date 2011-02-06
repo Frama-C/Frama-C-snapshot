@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -38,6 +38,9 @@ ifeq ($(NATIVE_DYNLINK),no)
 USABLE_NATIVE_DYNLINK ?=no
 endif
 
+#Do not generate documentation for this.
+PLUGIN_UNDOC:=$(PLUGIN_UNDOC) ptests_local_config.ml
+
 ifeq ($(FRAMAC_MAKE),yes)
 PLUGIN_RESET	:=yes
 else
@@ -60,7 +63,8 @@ endif #PLUGIN_NO_DEFAULT_TEST
 ifeq ($(PLUGIN_ENABLE),no)
 tests::
 else
-ifdef PLUGIN_NO_DEFAULT_TEST
+
+ifndef PLUGIN_INTERNAL_TEST
 ifndef PLUGIN_NO_TEST
 PTESTS_DEP=$(PLUGIN_DIR)/Makefile
 ifeq ($(FRAMAC_INTERNAL),yes)
@@ -100,22 +104,24 @@ plugin-test/$(PLUGIN_NAME): $(TARGETS) $(TARGETS_GUI) \
                             $(PLUGIN_DIR)/ptests_local_config.cmo
 	$(PRINT) TESTING PLUG-IN $(notdir $@)
 	cd $($(notdir $@)_DIR) && time -p $(PTESTS)
+
 tests:: plugin-test/$(PLUGIN_NAME)
+
 else
 tests::
 endif #PLUGIN_NO_TEST
 else
-#included in default test suite.
 tests::
-endif #PLUGIN_NO_DEFAULT_TEST
+endif #PLUGIN_INTERNAL_TEST
+
 endif #PLUGIN_ENABLE
 endif #FRAMAC_MAKE
 
 PLUGIN_LIB_DIR	?= $(PLUGIN_DIR)
 PLUGIN_GUI_LIB_DIR ?= $(PLUGIN_DIR)/gui
-PLUGIN_INSTALL_DIR ?=$(FRAMAC_PLUGINDIR)
+PLUGIN_INSTALL_DIR ?=$(DESTDIR)$(FRAMAC_PLUGINDIR)
 
-PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES) -I $(FRAMAC_LIBDIR)
+PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES)
 PLUGIN_BFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_BFLAGS)
 PLUGIN_OFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_OFLAGS)
 ifeq ($(FRAMAC_INTERNAL),yes)
@@ -182,6 +188,7 @@ endif
 ifneq ($(PLUGIN_ENABLE),no)
 install::
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)
+	$(MKDIR) $(PLUGIN_INSTALL_DIR)
 	$(CP) $(TARGETS) $(PLUGIN_INSTALL_DIR)
 	$(PRINT_CP) $(BINDIR)
 	if [ -f frama-c-$(PLUGIN_NAME).byte$(EXE) ]; then \
@@ -191,9 +198,6 @@ install::
 	  $(CP) frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE) \
 		$(BINDIR)/frama-c-$(PLUGIN_NAME)$(EXE); \
 	fi
-	$(PRINT_UPDATE) $(FRAMAC_SHARE)/known_plugins.ac
-	echo "ENABLE_`echo $(PLUGIN_NAME) | tr "a-z" "A-Z"`=$(PLUGIN_ENABLE)" \
-	  >> $(FRAMAC_SHARE)/known_plugins.ac
 ifeq ($(HAS_GUI),yes)
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/gui
 	$(CP) $(TARGETS_GUI) $(PLUGIN_INSTALL_DIR)/gui

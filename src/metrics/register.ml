@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,12 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Log
 open Format
-open Lexing
 open Cil
 open Cil_types
-open Cilutil
+open Cil_datatype
 open Db.Metrics
 
 let name = "metrics"
@@ -33,21 +31,37 @@ let name = "metrics"
 type int8 = int*int*int*int*int*int*int*int
 
 module LastResult =
-  Computation.OptionRef
-    (Project.Datatype.Imperative
+  State_builder.Option_ref
+    (Datatype.Make
        (struct
-	  type t = Db.Metrics.t
-	  let copy _ = assert false (* TODO *)
-	  let name = name
+	 include Datatype.Serializable_undefined
+	 type t = Db.Metrics.t
+	 let name = name
+	 let structural_descr = Structural_descr.Abstract
+	 let reprs =
+	   [ { sloc = -1;
+	       call_statements = -1;
+	       goto_statements = -1;
+	       assign_statements = -1;
+	       if_statements = -1;
+	       loop_statements = -1;
+	       mem_access = -1;
+	       functions_without_source = Varinfo.Hashtbl.create 7;
+	       functions_with_source = Varinfo.Hashtbl.create 7;
+	       (* ABP added 2 fields below*)
+	       function_definitions = -1;
+	       cyclos = -1 } ]
+	 let mem_project = Datatype.never_any_project
 	end))
     (struct
        let dependencies = [ Ast.self ]
        let name = name
+       let kind = `Internal
      end)
 
 let pretty_set fmt s =
   Format.fprintf fmt "@[";
-  VarinfoHashtbl.iter
+  Varinfo.Hashtbl.iter
     (fun f n ->
        Format.fprintf fmt "%s %s (%d call%s);@ "
 	 f.vname
@@ -57,14 +71,14 @@ let pretty_set fmt s =
   Format.fprintf fmt "@]"
 
 let number_entry_points fs =
-  VarinfoHashtbl.fold
+  Varinfo.Hashtbl.fold
     (fun f n acc -> if n = 0 && not f.vaddrof then succ acc else acc)
     fs
     0
 
 let pretty_entry_points fmt fs =
   let print =
-    VarinfoHashtbl.iter
+    Varinfo.Hashtbl.iter
       (fun f n ->
 	 if n = 0 && not f.vaddrof then Format.fprintf fmt "%s;@ " f.vname)
   in
@@ -76,9 +90,9 @@ let pretty fmt =
   let m = LastResult.get () in
   Format.fprintf fmt
     "@[Defined function (%d):@\n  @[%a@]@\nUndefined functions (%d):@\n  @[%a@]@\nPotential entry points (%d):@\n  @[%a@]@\nSLOC: %d@\nNumber of if statements: %d@\nNumber of assignments: %d@\nNumber of loops: %d@\nNumber of calls: %d@\nNumber of gotos: %d@\nNumber of pointer access: %d@]"
-    (VarinfoHashtbl.length m.functions_with_source)
+    (Varinfo.Hashtbl.length m.functions_with_source)
     pretty_set m.functions_with_source
-    (VarinfoHashtbl.length m.functions_without_source)
+    (Varinfo.Hashtbl.length m.functions_without_source)
     pretty_set m.functions_without_source
     (number_entry_points m.functions_with_source)
     pretty_entry_points m.functions_with_source
@@ -102,10 +116,9 @@ let dump () =
       filename (Printexc.to_string e)
 
 let null_position : Lexing.position =
-  {pos_fname=""; pos_lnum=0; pos_bol=0; pos_cnum=0}
+  { Lexing.pos_fname = ""; pos_lnum = 0; pos_bol = 0; pos_cnum = 0 }
 
-let null_location : Cil_types.location =
-  (null_position, null_position)
+let null_location : Cil_types.location = (null_position, null_position)
 
 let fun_equal (a:global) (b:global) =
   match a with
@@ -202,14 +215,14 @@ class slocVisitor = object(self)
     let print_item e =
       let _, func, (a,b,c,d,e,f,g,h) = e in
       Metrics_parameters.debug
-	"stats: func: %s
-val: ifs %d
-     assigns %d
-     loops %d
-     calls %d
-     gotos %d
-     mems %d
-     exits %d
+	"stats: func: %s@\n\
+val: ifs %d@\n\
+     assigns %d@\n\
+     loops %d@\n\
+     calls %d@\n\
+     gotos %d@\n\
+     mems %d@\n\
+     exits %d@\n\
      cyclo %d"
 	func a b c d e f g h;
       fprintf fmt "<tr>\n";
@@ -279,15 +292,15 @@ val: ifs %d
   method set_standalone v = begin standalone <- v end
   val mutable mem_access = 0
   method mem_access = mem_access
-  val functions_no_source = VarinfoHashtbl.create 97
-  val functions_with_source = VarinfoHashtbl.create 97
+  val functions_no_source = Varinfo.Hashtbl.create 97
+  val functions_with_source = Varinfo.Hashtbl.create 97
   method functions_no_source = functions_no_source
   method functions_with_source = functions_with_source
   method vvdec vi =
     if isFunctionType vi.vtype then
-      if not (VarinfoHashtbl.mem functions_with_source vi) then
-	VarinfoHashtbl.replace functions_no_source vi
-	  (try VarinfoHashtbl.find functions_no_source vi with Not_found -> 0);
+      if not (Varinfo.Hashtbl.mem functions_with_source vi) then
+	Varinfo.Hashtbl.replace functions_no_source vi
+	  (try Varinfo.Hashtbl.find functions_no_source vi with Not_found -> 0);
     DoChildren
 
   method vfunc fdec =
@@ -297,17 +310,17 @@ val: ifs %d
     funcs <- funcs+1;
     let n =
       try
-	let n = VarinfoHashtbl.find functions_no_source fdec.svar in
-	VarinfoHashtbl.remove functions_no_source fdec.svar;
+	let n = Varinfo.Hashtbl.find functions_no_source fdec.svar in
+	Varinfo.Hashtbl.remove functions_no_source fdec.svar;
 	n
       with Not_found ->
 	0
     in
     let n =
-      try VarinfoHashtbl.find functions_with_source fdec.svar + n
+      try Varinfo.Hashtbl.find functions_with_source fdec.svar + n
       with Not_found -> n
     in
-    VarinfoHashtbl.replace functions_with_source fdec.svar n;
+    Varinfo.Hashtbl.replace functions_with_source fdec.svar n;
     DoChildren
 
   method vlval (host,_) =
@@ -365,12 +378,12 @@ val: ifs %d
     | GAsm (_,_) | GPragma _ | GText _ -> ""
     | GAnnot (an,_) ->
 	match an with
-	  Dfun_or_pred (li) -> li.l_var_info.lv_name
-	| Daxiomatic (s,_) -> s
-	| Dtype (lti) ->  lti.lt_name
-	| Dlemma (ln, _, _, _, _) ->  ln
-	| Dinvariant (toto) -> toto.l_var_info.lv_name
-	| Dtype_annot (ta) -> ta.l_var_info.lv_name
+	  Dfun_or_pred (li,_) -> li.l_var_info.lv_name
+	| Daxiomatic (s,_,_) -> s
+	| Dtype (lti,_) ->  lti.lt_name
+	| Dlemma (ln, _, _, _, _, _) ->  ln
+	| Dinvariant (toto,_) -> toto.l_var_info.lv_name
+	| Dtype_annot (ta,_) -> ta.l_var_info.lv_name
 
   method images (globs:global list) =
     (* extract just the names of the globals, for printing purposes *)
@@ -394,7 +407,7 @@ val: ifs %d
 	(match e.enode with
 	 | Lval(Var v, NoOffset) ->
 	     let next tbl =
-	       VarinfoHashtbl.replace tbl v (succ (VarinfoHashtbl.find tbl v))
+	       Varinfo.Hashtbl.replace tbl v (succ (Varinfo.Hashtbl.find tbl v))
 	     in
 	     begin
 	       try next functions_with_source;
@@ -412,9 +425,9 @@ val: ifs %d
 		     if ya then
 		       begin
 			 if codeless then
-			   VarinfoHashtbl.replace functions_with_source v 0
+			   Varinfo.Hashtbl.replace functions_with_source v 0
 			 else
-			   VarinfoHashtbl.replace functions_no_source v 0
+			   Varinfo.Hashtbl.replace functions_no_source v 0
 		       end
 		     else
 		       Metrics_parameters.fatal "Got no source for %s" v.vname
@@ -515,7 +528,7 @@ class turn_prototype_into_body protos_vi turn_into = object(self)
 
   method vglob glob =
     match glob with
-    | GVarDecl (fspec, vi, loc) when VarinfoSet.mem vi protos_vi ->
+    | GVarDecl (fspec, vi, loc) when Cil_datatype.Varinfo.Set.mem vi protos_vi ->
         assert (isFunctionType vi.vtype);
         ChangeTo [GFun(make_body_from_prototype vi,loc)]
 
@@ -559,11 +572,11 @@ let compute () =
 	fprintf fmt "<br>\n";
 	(* *)	(* global stats *)
 	fprintf fmt "<span style=\"font-weight: bold;\">Defined function</span> (%d):<br>\n"
-	  (VarinfoHashtbl.length v#functions_with_source);
+	  (Varinfo.Hashtbl.length v#functions_with_source);
 	(* *)
 	fprintf fmt "@[&nbsp; %a@]@ <br>\n" pretty_set v#functions_with_source;
 	fprintf fmt "<br>\n";
-	fprintf fmt "<span style=\"font-weight: bold;\">Undefined functions</span> (%d):<br>\n" (VarinfoHashtbl.length v#functions_no_source);
+	fprintf fmt "<span style=\"font-weight: bold;\">Undefined functions</span> (%d):<br>\n" (Varinfo.Hashtbl.length v#functions_no_source);
 	(* *)
 	fprintf fmt "@[&nbsp; %a@]@ <br>\n" pretty_set v#functions_no_source;
 	fprintf fmt "<br>\n";
@@ -601,19 +614,21 @@ let () = Db.Main.extend main
 
 let () =
   Db.register
-    (Db.Journalize ("Metrics.compute", Type.func Type.unit Type.unit))
+    (Db.Journalize
+       ("Metrics.compute", Datatype.func Datatype.unit Datatype.unit))
     Db.Metrics.compute compute;
   Db.register
-    (Db.Journalize ("Metrics.pretty", Type.func Type.formatter Type.unit))
+    (Db.Journalize
+       ("Metrics.pretty", Datatype.func Datatype.formatter Datatype.unit))
     Db.Metrics.pretty pretty;
   Db.register
-    (Db.Journalize ("Metrics.dump", Type.func Type.unit Type.unit))
+    (Db.Journalize ("Metrics.dump", Datatype.func Datatype.unit Datatype.unit))
     Db.Metrics.dump dump;
   Db.register Db.Journalization_not_required
     Db.Metrics.last_result LastResult.get
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -131,13 +131,15 @@ module type ForwardsTransfer = sig
    * continue with the state unchanged.
    * [stmt] is the englobing statement *)
 
- val doGuard: stmt -> exp -> t -> t guardaction
-  (** Generate the successor to an If statement assuming the given expression
-    * is nonzero.  Analyses that don't need guard information can return
-    * GDefault; this is equivalent to returning GUse of the input.
+ val doGuard: stmt -> exp -> t -> t guardaction * t guardaction
+  (** Generate the successors [th, el] to an 
+    *  If statement assuming the given expression
+    * is respectively nonzero and zero. 
+    * Analyses that don't need guard information can return
+    * GDefault, GDefault; this is equivalent to returning GUse of the input.
     * A return value of GUnreachable indicates that this half of the branch
     * will not be taken and should not be explored.  This will be called
-    * twice per If, once for "then" and once for "else".
+    * once per If.
     * [stmt] is the corresponding [If] statement FYI only.
     *)
 
@@ -243,7 +245,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
 
     (** Process a statement *)
     let processStmt (s: stmt) : unit =
-      CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
+      CurrentLoc.set (Cil_datatype.Stmt.loc s);
       if !T.debug then
         Cilmsg.debug "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
 
@@ -265,7 +267,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
           in
           (* Do the instructions in order *)
           let handleInstruction (state: T.t) (i: instr) : T.t =
-            CurrentLoc.set (Cilutil.get_instrLoc i);
+            CurrentLoc.set (Cil_datatype.Instr.loc i);
 
             (* Now handle the instruction itself *)
             let s' =
@@ -288,14 +290,12 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
             | TryExcept _ | TryFinally _
             | Switch _ | Loop _ | Return _ | Block _ -> curr
           in
-          CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
+          CurrentLoc.set (Cil_datatype.Stmt.loc s);
 
           (* Handle If guards *)
           let succsToReach = match s.skind with
               If (e, _, _, _) -> begin
-                let not_e = new_exp (UnOp(LNot, e, intType)) in
-                let thenGuard = T.doGuard s e after in
-                let elseGuard = T.doGuard s not_e after in
+                let thenGuard, elseGuard = T.doGuard s e after in
                 if thenGuard = GDefault && elseGuard = GDefault then
                   (* this is the common case *)
                   s.succs
@@ -318,14 +318,15 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
             | Switch _ ->
 		List.iter
 		  (fun succ ->
-		      match T.doGuard s Cil.one after
-		      with
-			GDefault -> reachedStatement s succ after
-                      | GUse d -> reachedStatement s succ d
-		      | GUnreachable ->
-                          if !T.debug then
-                            Cilmsg.debug "FF(%s): Not exploring branch to %d\n"
-                              T.name succ.sid)
+		    match T.doGuard s (Cil.one ~loc:(Cil_datatype.Stmt.loc s)) 
+                      after
+		    with
+		      GDefault, _ -> reachedStatement s succ after
+                    | GUse d, _ -> reachedStatement s succ d
+		    | GUnreachable, _ ->
+                      if !T.debug then
+                        Cilmsg.debug "FF(%s): Not exploring branch to %d\n"
+                          T.name succ.sid)
 		  s.succs;
 		[]
 	    | _ -> s.succs
@@ -486,7 +487,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
 
 
       (* Find the state before the branch *)
-      CurrentLoc.set (Cilutil.get_stmtLoc s.skind);
+      CurrentLoc.set (Cil_datatype.Stmt.loc s);
       let d: T.t =
         match T.doStmt s with
            Done d -> d
@@ -508,7 +509,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
                    (* Now scan the instructions in reverse order. This may
                     * Stack_overflow on very long blocks ! *)
                    let handleInstruction (i: instr) (state: T.t) : T.t =
-                     CurrentLoc.set (Cilutil.get_instrLoc i);
+                     CurrentLoc.set (Cil_datatype.Instr.loc i);
                      (* First handle the instruction itself *)
                      let action = T.doInstr s i state in
                      match action with
@@ -585,9 +586,7 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
   It also lists the return statments (including statements that
   fall through the end of a void function).  Useful when you need an
   initial set of statements for BackwardsDataFlow.compute. *)
-let sink_stmts = ref []
-let all_stmts = ref []
-let sinkFinder = object
+let sinkFinder sink_stmts all_stmts = object
   inherit nopCilVisitor
 
   method vstmt s =
@@ -601,9 +600,7 @@ end
 
 (* returns (all_stmts, return_stmts).   *)
 let find_stmts (fdec:fundec) : (stmt list * stmt list) =
-  ignore(visitCilFunction (sinkFinder) fdec);
-  let all = !all_stmts in
-  let ret = !sink_stmts in
-  all_stmts := [];
-  sink_stmts := [];
-  all, ret
+  let sink_stmts = ref []
+  and all_stmts = ref [] in
+  ignore(visitCilFunction (sinkFinder sink_stmts all_stmts) fdec);
+  !all_stmts, !sink_stmts

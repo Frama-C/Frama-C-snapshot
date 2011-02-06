@@ -43,6 +43,8 @@
 (* --- Original Conditions                                                --- *)
 (* -------------------------------------------------------------------------- *)
 
+open Cabs
+
 type cond =
   | And  of cond * cond
   | Or   of cond * cond
@@ -72,11 +74,11 @@ type lazy_cond =
   | LzNot  of lazy_cond
   | LzAtom of A.expression
 
-let rec lazy_cond = function
+let rec lazy_cond e = match e.expr_node with
   | A.BINARY(A.AND,e1,e2) -> LzAnd(lazy_cond e1,lazy_cond e2)
   | A.BINARY(A.OR,e1,e2) -> LzOr(lazy_cond e1,lazy_cond e2)
   | A.UNARY(A.NOT,e) -> LzNot(lazy_cond e)
-  | a -> LzAtom a
+  | _ -> LzAtom e
 
 type binding =
   | Lazy of int * lazy_cond
@@ -89,23 +91,23 @@ let c_stack = ref []
 let inconsistent from =
   match !c_stack with
     | (_,_,loc)::_ ->
-	Cilmsg.warning 
-	  "[%s] Inconsistent state when binding condition at %a" 
+	Cilmsg.warning
+	  "[%s] Inconsistent state when binding condition at %a"
 	  from Cabshelper.d_cabsloc loc ;
 	active := false
     | _ ->
-	Cilmsg.warning 
-	  "[%s] Inconsistent condition stack (no condition expression stacked)" 
+	Cilmsg.warning
+	  "[%s] Inconsistent condition stack (no condition expression stacked)"
 	  from ;
 	active := false
-	 
+
 module M = Hashtbl.Make
   (struct
      type t = A.expression
      let equal = (==)
      let hash = Hashtbl.hash
    end)
- 
+
 let atoms : Cil_types.exp M.t = M.create 371
 let conditions : (int,binding ref) Hashtbl.t = Hashtbl.create 371
 
@@ -119,9 +121,9 @@ let push_condition descr loc a =
   if !active then
     let k = let k = !c_info in incr c_info ; k in
     let binder = ref (Lazy(k,lazy_cond a)) in
-    c_stack := (binder,descr,loc) :: !c_stack ; 
+    c_stack := (binder,descr,loc) :: !c_stack ;
     true
-  else 
+  else
     false
 
 let pop_condition () =
@@ -129,8 +131,8 @@ let pop_condition () =
     match !c_stack with
       | ({contents=Lazy(id,lzc)} as binder,descr,loc) :: stk ->
 	  begin
-	    try 
-	      c_stack := stk ; 
+	    try
+	      c_stack := stk ;
 	      binder := Info {
 		id = id ;
 		kind = descr ;
@@ -141,7 +143,7 @@ let pop_condition () =
 	    with Not_found -> inconsistent "pop-condition"
 	  end
       | _ -> inconsistent "pop-condition"
-	
+
 let top_binder () =
   match !c_stack with
     | (binder,_,_) :: _ when !active -> binder
@@ -166,7 +168,7 @@ let lookup e =
   with Not_found -> None
 
 let pp_kind fmt kd =
-  Format.pp_print_string fmt 
+  Format.pp_print_string fmt
     (match kd with
        | IF -> "IF"
        | FOR -> "FOR"
@@ -179,7 +181,7 @@ let pp_where fmt (name,e,cond) =
     | Or(x,y) -> Format.fprintf fmt "(%a || %a)" pp x pp y
     | Not x -> Format.fprintf fmt "!(%a)" pp x
     | Atom a ->
-	if a.Cil_types.eid = e.Cil_types.eid 
+	if a.Cil_types.eid = e.Cil_types.eid
 	then Format.pp_print_string fmt name
 	else Format.pp_print_char fmt '_'
     | Blob -> Format.pp_print_char fmt '_'
@@ -190,11 +192,11 @@ open Cil_types
 let pp_comment fmt s =
   if !active then
     match s.skind with
-      | If(e,_,_,_) -> 
+      | If(e,_,_,_) ->
 	  begin
 	    match lookup e with
-	      | Some info -> 
-		  Format.fprintf fmt "/*[CID:%d EXP:%d] %a @[%a@] */@ " 
+	      | Some info ->
+		  Format.fprintf fmt "/*[CID:%d EXP:%d] %a @[%a@] */@ "
 		    info.id e.Cil_types.eid
 		    pp_kind info.kind pp_where ("here",e,info.cond)
 	      | None -> ()

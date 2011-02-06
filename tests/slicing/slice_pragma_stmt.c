@@ -23,7 +23,7 @@
    OPT: -main test8 -slice-pragma test8 -slice-print  -journal-disable
    OPT: -main test9 -slice-pragma test9 -slice-print  -journal-disable
 */
-//-------------------
+typedef int stmt, expr, slice;
 int x, y ;
 //-------------------
 void nop1(int c1, int c2) {

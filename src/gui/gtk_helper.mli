@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,81 @@ val framac_logo: GdkPixbuf.pixbuf option
 val framac_icon: GdkPixbuf.pixbuf option
   (** @since Boron-20100401 *)
 
+(** Some generic icon management tools.
+    @since Carbon-20101201 *)
+module Icon: sig
+    (** Generic icons available in every proper install of Frama-C. 
+        To be able to use [Custom s] you must have called 
+        [register ~name:s ~file] orelse you will get an generic icon
+        placeholder.
+    *)
+  type kind = Frama_C | Left | Right | Relies_on_valid_hyp | Failed
+              | Maybe | Attach | Check
+              | Custom of string 
+
+
+  (** [register ~name ~file] registers the kind [Custom name] associated 
+      to the filename [file]. 
+      [$FRAMAC_SHARE/f] should point to an existing file containing
+      an image loadable by GdkPixbuf. 
+  *)
+  val register: name:string -> file:string -> unit
+
+
+  (** @return the pixbuf associated to the given kind.
+      If the given kind is [Custom s] and no one ever called
+      [register ~name:s ~file] where [file] is such that
+      [$(FRAMAC_SHARE)/f] is not a real image file loadable by GdkPixbuf, 
+      a generic icon placeholder is returned.
+  *)
+  val get: kind -> GdkPixbuf.pixbuf
+end
+  
+(** Configuration module for the GUI: all magic visual constants should
+    use this mechanism (window width, ratios, ...).
+
+    @since Carbon-20101201 *)
+module Configuration: sig
+  type configData =
+      ConfInt of int
+    | ConfBool of bool
+    | ConfFloat of float
+    | ConfString of string
+    | ConfList of configData list
+
+  val load : unit -> unit
+  val save : unit -> unit
+
+  (** Set a configuration element, with a key. Overwrites the previous values *)
+  val set : string -> configData -> unit
+
+  (** Find a configuration elements, given a key. Raises Not_found if it cannot
+      find it *)
+  val find: string -> configData
+
+  (** Like find but extracts the integer.
+      Raises Not_found if the key is found but is not an integer.
+      Raises Not_found if no default is given and the key is not found.
+      If a default is given and the key is not found then the default value
+      is stored for the given key and returned. *)
+  val find_int: ?default:int -> string -> int
+
+  (** Looks for an integer configuration element, and if it is found, it is
+      given to the given function. Otherwise, does nothing *)
+  val use_int: string -> (int -> unit) -> unit
+
+  val find_bool : ?default:bool -> string -> bool
+  val use_bool: string -> (bool -> unit) -> unit
+
+  val find_float : ?default:float -> string -> float
+  val use_float: string -> (float -> unit) -> unit
+
+  val find_string: string -> string
+  val use_string: string -> (string -> unit) -> unit
+
+  val find_list: string -> configData list
+  val use_list: string -> (configData list -> unit) -> unit
+end
 (** {2 Tags} *)
 
 val make_tag :
@@ -64,6 +139,23 @@ val log_redirector: ?flush:(unit->unit) -> (string -> unit) -> unit
 val redirect : Format.formatter -> #GText.buffer -> unit
   (** Redirect the given formatter to the given buffer *)
 
+(** {2 Asynchronous command execution} *)
+
+val spawn_command:
+  ?timeout:int ->
+  ?stdout:Buffer.t ->
+  ?stderr:Buffer.t ->
+  string -> string array -> 
+  (Unix.process_status -> unit) ->
+  unit
+  (** Launches the given command and calls the given
+      function when the process terminates. 
+      If timeout is > 0 (the default) then the process will be killed if it does 
+      not end before timeout seconds. 
+      In this case the returned process status will be
+      [Unix.WSIGNALED Sys.sigalrm].
+  *)
+
 (** {2 Locks} *)
 
 val gui_unlocked: bool ref
@@ -82,32 +174,48 @@ val register_locking_machinery:
       @modify Boron-20100401 new optional argument [lock_last] and new
       argument [()] *)
 
+(** 2 Tooltips *)
+
+val do_tooltip: ?tooltip:string -> < coerce: GObj.widget; .. > -> unit
+  (** Add the given tooltip to the given widget. 
+      It has no effect if no tooltip is given.
+  *)
+    
 (** {2 Chooser} *)
 
 type 'a chooser =
     GPack.box -> string -> (unit -> 'a) -> ('a -> unit) -> (unit -> unit)
-  (** Pack a check button with the given getter and setter. *)
 
-val on_bool: ?use_markup:bool -> bool chooser
+val on_bool: ?tooltip:string -> ?use_markup:bool -> bool chooser
+  (** Pack a check button *)
 
-val on_bool_radio: ?use_markup:bool -> GPack.box -> string -> string
+val on_bool_radio:
+  ?tooltip:string -> ?use_markup:bool -> GPack.box -> string -> string
   -> (unit -> bool) -> (bool -> unit) -> (unit -> unit)
 
 val on_int:
-  ?use_markup:bool -> ?lower:int -> ?upper:int ->
+  ?tooltip:string -> ?use_markup:bool -> ?lower:int -> ?upper:int ->
   ?sensitive:(unit -> bool) -> ?width:int ->
   int chooser
-    (** Returns a function usable for refreshing purpose.
-        By default, sensitivity is set to true when this function is called. *)
+    (** Pack a spin button.
+	By default, sensitivity is set to true when this function is called. *)
 
 val on_string:
-  ?use_markup:bool -> ?validator:(string -> bool) -> string chooser
-val on_string_set: ?use_markup:bool -> string chooser
-val on_string_completion:
-  ?use_markup:bool -> ?validator:(string -> bool) -> string list ->
-  string chooser
+  ?tooltip:string -> ?use_markup:bool -> ?validator:(string -> bool)
+  -> string chooser
+  (** Pack a string chooser *)
 
-val on_combo: string list -> ?use_markup:bool -> ?width:int -> string chooser
+val on_string_set: ?tooltip:string -> ?use_markup:bool -> string chooser
+  (** Pack a string-set chooser *)
+
+val on_string_completion:
+  ?tooltip:string -> ?use_markup:bool -> ?validator:(string -> bool)
+  -> string list -> string chooser
+
+val on_combo:
+  string list -> ?tooltip:string -> ?use_markup:bool -> ?width:int
+  -> string chooser
+  (** Pack a string-selector *)
 
 (** {2 Error manager} *)
 
@@ -163,12 +271,21 @@ val make_string_list: packing:(GObj.widget -> unit)
 val place_paned: GPack.paned -> float -> unit
   (** Sets the position of the paned widget to the given ratio *)
 
+val save_paned_ratio: string -> GPack.paned -> unit
+  (** Saves the current ratio of the panel associated to the given key. *)
+
 val old_gtk_compat: ('a -> unit) -> 'a -> unit
   (** Catch exception [Not_found] and do nothing *)
 
+val trace_event: GObj.event_ops -> unit
+  (** Trace all events on stderr for the given object.
+      This is a debugging function: it should not be called during normal
+      execution. *)
+
 val make_text_page:
-  GPack.notebook -> string -> (GPack.notebook -> unit) * GText.view
-  (** Insert a GText.view in a new page of the notebook with the given title.
+  ?pos:int -> GPack.notebook -> string -> (GPack.notebook -> unit) * GText.view
+  (** Insert a GText.view in a new page of the notebook with the given title,
+      at position [pos] if specified, or last if not.
       It returns a new GText.view together with a function to reparent the
       inserted page in another notebook.
       The tab label of the created page will be highlighted whenever its
@@ -215,6 +332,6 @@ module MAKE_CUSTOM_LIST(A : sig
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

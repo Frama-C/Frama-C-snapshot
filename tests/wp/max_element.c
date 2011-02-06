@@ -40,10 +40,10 @@ int max_element(const int* a, int n)
   int max = 0;
   /*@
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant 0 <= max < n;
      loop invariant \forall int k; 0 <= k < i   ==> a[k] <= a[max];
      loop invariant \forall int k; 0 <= k < max ==> a[k] < a[max];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[max] < a[i])

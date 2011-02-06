@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -30,7 +30,7 @@ include Plugin.Register
   (struct
      let name = "slicing"
      let shortname = "slicing"
-     let descr = "code slicer"
+     let help = "code slicer"
    end)
 
 module Select = struct
@@ -40,8 +40,9 @@ module Select = struct
       (struct
 	 let option_name = "-slice-calls"
 	 let arg_name = "f1, ..., fn"
-	 let descr =
+	 let help =
 	   "select every calls to functions f1,...,fn, and all their effect"
+         let kind = `Correctness
        end)
 
   module Return =
@@ -49,8 +50,9 @@ module Select = struct
       (struct
 	 let option_name = "-slice-return"
 	 let arg_name = "f1, ..., fn"
-	 let descr =
+	 let help =
 	   "select the result (returned value) of functions f1,...,fn"
+         let kind = `Correctness
        end)
 
   module Threat =
@@ -58,7 +60,8 @@ module Select = struct
       (struct
 	 let option_name = "-slice-threat"
 	 let arg_name = "f1, ..., fn"
-	 let descr = "select the threats of functions f1,...,fn"
+	 let help = "select the threats of functions f1,...,fn"
+         let kind = `Correctness
        end)
 
   module Assert =
@@ -66,7 +69,8 @@ module Select = struct
       (struct
 	 let option_name = "-slice-assert"
 	 let arg_name = "f1, ..., fn"
-	 let descr = "select the assertions of functions f1,...,fn"
+	 let help = "select the assertions of functions f1,...,fn"
+         let kind = `Correctness
        end)
 
   module LoopInv =
@@ -74,7 +78,8 @@ module Select = struct
       (struct
 	 let option_name = "-slice-loop-inv"
 	 let arg_name = "f1, ..., fn"
-	 let descr = "select the loop invariants of functions f1,...,fn"
+	 let help = "select the loop invariants of functions f1,...,fn"
+         let kind = `Correctness
        end)
 
   module LoopVar =
@@ -82,7 +87,8 @@ module Select = struct
       (struct
 	 let option_name = "-slice-loop-var"
 	 let arg_name = "f1, ..., fn"
-	 let descr = "select the loop variants of functions f1,...,fn"
+	 let help = "select the loop variants of functions f1,...,fn"
+         let kind = `Correctness
        end)
 
   module Pragma =
@@ -90,10 +96,11 @@ module Select = struct
       (struct
 	 let option_name = "-slice-pragma"
 	 let arg_name = "f1, ..., fn"
-	 let descr =
+         let kind = `Correctness
+	 let help =
 	   "use the slicing pragmas in the code of functions f1,...,fn as \
 slicing criteria"
-	 let () = Plugin.set_optional_descr
+	 let () = Plugin.set_optional_help
 "@;<0 0>@[<hov>@[<hov 4>//@@slice pragma ctrl; @ to@ reach@ this@ \
 control-flow@ point@]@\n\
 @[<hov 4>//@@slice pragma expr <expr_desc;> @ to@ preserve@ the@ value@ of@ \
@@ -104,32 +111,38 @@ statement@]@]"
     module RdAccess =
       StringSet
 	(struct
+           let kind = `Correctness
 	   let module_name = "Slicing.Select.RdAccess"
 	   let option_name = "-slice-rd"
 	   let arg_name = "v1, ..., vn"
-	   let descr =
-	     "select the read accesses to left-values v1,...,vn
-	 (addresses are evaluated at the beginning of the function given as entry point)"
+	   let help =
+	     "select the read accesses to left-values v1,...,vn \
+	 (addresses are evaluated at the beginning of the function given as \
+entry point)"
 	 end)
     module WrAccess =
       StringSet
 	(struct
+           let kind = `Correctness
 	   let module_name = "Slicing.Select.WrAccess"
 	   let option_name = "-slice-wr"
 	   let arg_name = "v1, ..., vn"
-	   let descr =
-	     "select the write accesses to left-values v1,...,vn
-	 (addresses are evaluated at the beginning of the function given as entry point)"
+	   let help =
+	     "select the write accesses to left-values v1,...,vn \
+	 (addresses are evaluated at the beginning of the function given as\
+ entry point)"
 	 end)
     module Value =
       StringSet
 	(struct
+           let kind = `Correctness
 	   let module_name = "Slicing.Select.Value"
 	   let option_name = "-slice-value"
 	   let arg_name = "v1, ..., vn"
-	   let descr =
-	     "select the result of left-values v1,...,vn at the end of the function given as entry point
-	 (addresses are evaluated at the beginning of the function given as entry point)"
+	   let help =
+	     "select the result of left-values v1,...,vn at the end of the \
+function given as entry point (addresses are evaluated at the beginning of \
+the function given as entry point)"
 	 end)
 end
 
@@ -138,78 +151,108 @@ module Mode = struct
   module Callers =
     True(struct
 	   let option_name = "-slice-callers"
-	   let descr = "propagate the slicing to the function callers"
+	   let help = "propagate the slicing to the function callers"
+           let kind = `Tuning
 	 end)
 
-  module Calls =  
+  module Calls =
     Int
       (struct
 	 let option_name = "-slicing-level"
 	 let default = 2
 	 let arg_name = ""
-	 let descr = "set the default level of slicing used to propagate to the calls
-	0 : don't slice the called functions
-	1 : don't slice the called functions but propagate the marks anyway
-	2 : try to use existing slices, create at most one
-	3 : most precise slices
-  note: this value (defaults to 2) is not used for calls to undefined functions
+	 let help = "set the default level of slicing used to propagate to \
+the calls\n\
+	0 : don't slice the called functions\n\
+	1 : don't slice the called functions but propagate the marks anyway\n\
+	2 : try to use existing slices, create at most one\n\
+	3 : most precise slices\n\
+  note: this value (defaults to 2) is not used for calls to undefined \
+functions\n\
 	except when '-slice-undef-functions' option is set"
+         let kind = `Tuning
 	 end)
   let () = Calls.set_range ~min:0 ~max:3
-      
+
   module SliceUndef =
     False(struct
 	    let option_name = "-slice-undef-functions"
-	    let descr = "allow the use of the -slicing-level option for calls to undefined functions"
+	    let help = "allow the use of the -slicing-level option for calls \
+to undefined functions"
+            let kind = `Tuning
 	  end)
 
   module KeepAnnotations =
     False(struct
 	    let option_name = "-slicing-keep-annotations"
-	    let descr = "keep annotations as long as the used variables are declared and the accessibility of the program point is preserved (even if the value of the data is not preserved)"
+	    let help = "keep annotations as long as the used variables are \
+declared and the accessibility of the program point is preserved (even if the \
+value of the data is not preserved)"
+            let kind = `Correctness
 	  end)
 end
 
+module ProjectName =
+  String(struct
+	   let option_name = "-slicing-project-name"
+	   let arg_name = ""
+	   let help = "name of the slicing project (defaults to \"Slicing\")"
+	   let default = "Slicing"
+           let kind = `Tuning
+	 end)
+
+module ExportedProjectPostfix =
+  String(struct
+	   let option_name = "-slicing-exported-project-postfix"
+	   let arg_name = ""
+	   let help = "postfix added to the slicing project name for building the name of the exported project (defaults to \"export\")"
+	   let default = "export"
+           let kind = `Tuning
+	 end)
+    
 module Print =
   False(struct
 	  let option_name = "-slice-print"
-	  let descr = "pretty print the sliced code"
+	  let help = "pretty print the sliced code"
+          let kind = `Tuning
 	end)
 
 module OptionModified =
-  Computation.Ref
-    (struct include Datatype.Bool
-            let default () = true
-     end)
+  State_builder.Ref
+    (Datatype.Bool)
     (struct
        let name = "Slicing.OptionModified"
        let dependencies = []
+       let kind = `Internal
+       let default () = true
      end)
-    
+
 module Force =
   True(struct
        let option_name = "-slice-force"
-       let descr = "don't slice"
+       let help = "don't slice"
+       let kind = `Tuning
      end)
 
 let () =
-  let add = Project.Computation.add_dependency OptionModified.self in
-    List.iter add [Select.Calls.self ;
-                   Select.Return.self ;
-                   Select.Threat.self ;
-                   Select.Assert.self ;
-                   Select.LoopInv.self ;
-                   Select.LoopVar.self ;
-                   Select.Pragma.self ;
-                   Select.RdAccess.self ;
-                   Select.WrAccess.self ;
-                   Select.Value.self ;
-                   Mode.Callers.self ;
-                   Mode.Calls.self ;
-                   Mode.SliceUndef.self ;
-                   Mode.KeepAnnotations.self ;
-                   Print.self ]
-  
+  State_dependency_graph.Static.add_codependencies
+    ~onto:OptionModified.self
+    [Select.Calls.self ;
+     Select.Return.self ;
+     Select.Threat.self ;
+     Select.Assert.self ;
+     Select.LoopInv.self ;
+     Select.LoopVar.self ;
+     Select.Pragma.self ;
+     Select.RdAccess.self ;
+     Select.WrAccess.self ;
+     Select.Value.self ;
+     Mode.Callers.self ;
+     Mode.Calls.self ;
+     Mode.SliceUndef.self ;
+     Mode.KeepAnnotations.self ;
+     Print.self ]
+
 let is_on () =
   ((Force.get ()) || (OptionModified.get ()))
   &&
@@ -223,14 +266,14 @@ let is_on () =
           && Select.RdAccess.is_empty ()
           && Select.WrAccess.is_empty ()
           && Select.Value.is_empty ()))
-    
+
 
 let set_off () =
   Force.off () ;
   OptionModified.set false ;
-    
 
-  
+
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

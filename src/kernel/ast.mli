@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ module UntypedFiles: sig
   val set: Cabs.file list -> unit
     (** Should not be used by casual users. *)
 
-  val self: Project.Computation.t
+  val self: State.t
 
 end
 
@@ -59,25 +59,23 @@ val compute: unit -> unit
 val is_computed: unit -> bool
   (** @return true if the AST has been computed. *)
 
-val self: Project.Computation.t
+val self: State.t
   (** The state kind associated to the cil AST.
       @plugin development guide *)
 
-val depend: Project.Computation.t -> unit
-  (** Add a dependency toward {!self}. *)
+(*****************************************************************************)
+(** {2 Internals}
+
+    Functions below should not be called by casual users. *)
+(*****************************************************************************)
 
 val set_file: Cil_types.file -> unit
-  (** Should not be used by casual users. *)
-
 val set_default_initialization: (unit -> unit) -> unit
-  (** Should not be used by casual users. *)
-
 val mark_as_computed: unit -> unit
-  (** Should not be used by casual users.
-      @since Beryllium-20090901 *)
+  (** @since Beryllium-20090901 *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

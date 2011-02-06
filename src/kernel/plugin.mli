@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,7 @@ val run_normal_exit_hook: unit -> unit
 
 (** {2 Signatures} *)
 
-type group
+type group = Cmdline.Group.t
   (** Group of parameters.
       @since Beryllium-20090901 *)
 
@@ -67,7 +67,11 @@ module type Parameter = sig
     (** Is the function {!set} has already been called since the last call to
 	function {!clear}? *)
 
-  include Project.Computation.OUTPUT
+  val option_name: string
+    (** Name of the option on the command-line
+        @since Carbon-20101202+dev  *)
+
+  include State_builder.S
 
   val equal: t -> t -> bool
 
@@ -76,9 +80,14 @@ module type Parameter = sig
     (** Set but without clearing the dependencies.*)
     (**/**)
 
+  val add_aliases: string list -> unit
+  (** Add some aliases for this option. That is other option names which have
+      exactly the same semantics that the initial option.
+      @raise Invalid_argument if one of the strings is empty *)
+
   val add_alias: string list -> unit
-    (** Add some aliases for this option. That is other option names which have
-	exactly the same semantics that the initial option. *)
+(** Equivalent to [add_aliases].
+    @deprecated since Carbon-20101202+dev *)
 
 end
 
@@ -153,22 +162,22 @@ module type GEN_STRING_SET = sig
   val iter: (string -> unit) -> unit
     (** Iter on each string in the set. *)
 
+  val exists: (string -> bool) -> bool
+    (** Checks if at least one element of the set satisfies the predicate.
+    @since Carbon-20101201 *)
+
 end
 
-module type STRING_SET = GEN_STRING_SET with type t = Cilutil.StringSet.t
+module type STRING_SET = GEN_STRING_SET with type t = Datatype.String.Set.t
 module type STRING_LIST = GEN_STRING_SET with type t = string list
 
 (** @since Boron-20100401 *)
 module type STRING_HASHTBL = sig
-
-  include GEN_STRING_SET with type t = Cilutil.StringSet.t
-
-  (** @since Boron-20100401 *)
+  include GEN_STRING_SET with type t = Datatype.String.Set.t
   type value
-
+    (** @since Boron-20100401 *)
   val find: string -> value
     (** @since Boron-20100401 *)
-
 end
 
 (** {3 Complex values indexed by strings} *)
@@ -188,8 +197,11 @@ end
 module type Parameter_input = sig
   val option_name: string
     (** The name of the option *)
-  val descr: string
+  val help: string
     (** A description for this option (e.g. used by -help) *)
+  val kind: [> `Correctness | `Tuning | `Irrelevant ]
+(** See {!State.kind} for a description of the possible values.
+    @since Carbon-20101201 *)
 end
 
 (** Minimal signature to implement for each parameter corresponding to an
@@ -211,12 +223,16 @@ module type COMPLEX_VALUE = sig
 end
 
 module type S = sig
+
   include Log.Messages
 
-  val add_group: string -> group
+  val add_group: ?memo:bool -> string -> group
     (** Create a new group inside the plug-in.
 	The given string must be different of all the other group names of this
-	plug-in.
+	plug-in if [memo] is [false].
+        If [memo] is [true] the function will either create a fresh group or
+        return an existing group of the same name in the same plugin.
+        [memo] defaults to [false]
 	@since Beryllium-20090901 *)
 
   module Help: BOOL
@@ -290,7 +306,7 @@ module type General_services = sig
   module StringHashtbl
     (X: Parameter_input_with_arg)
     (V: sig
-       include Project.Datatype.S
+       include Datatype.S
        val parse: string -> string * t
        val no_binding: string -> t
      end) :
@@ -316,6 +332,10 @@ val do_not_projectify: unit -> unit
   (** Do not projectify the parameter.
       @since Beryllium-20090601-beta1 *)
 
+val do_not_save: unit -> unit
+  (** Do not save the parameter.
+      @since Carbon-20101202+dev *)
+
 val register_kernel: unit -> unit
   (** To be called just before {!Register} in order to activate a
       special mode corresponding to registering some parts of the Frama-C
@@ -330,13 +350,13 @@ val set_negative_option_name: string -> unit
       If it is empty, no negative option is created.
       @since Beryllium-20090601-beta1 *)
 
-val set_negative_option_descr: string -> unit
+val set_negative_option_help: string -> unit
   (** For boolean parameters, set the description of the negative
       option generating automatically.
       Assume that the given string is non empty.
       @since Beryllium-20090601-beta1 *)
 
-val set_optional_descr: (unit, Format.formatter, unit) format -> unit
+val set_optional_help: (unit, Format.formatter, unit) format -> unit
   (** Concatenate an additional description just after the default one.
       @since Beryllium-20090601-beta1 *)
 
@@ -357,12 +377,18 @@ val is_visible: unit -> unit
       option registered at the {!Cmdline.Configuring} stage are visible.
       @since Boron-20100401 *)
 
+val is_invisible: unit -> unit
+  (** This function must be called in order to forbid the parameter created by
+      the next function application to be accessible through function
+      {!iter_on_plugins}.
+      @since Carbon-20101201 *)
+
 (** Functors for generating plug-ins parameters. *)
 module Register
   (P: sig
      val name: string (** Name of the module. Arbitrary non-empty string. *)
      val shortname: string (** Prefix for plugin options. No space allowed. *)
-     val descr: string (** description of the module. Free-form text. *)
+     val help: string (** description of the module. Free-form text. *)
    end) :
   General_services
 
@@ -379,12 +405,12 @@ type kind = private
       string option_accessor * (unit -> string list) (** possible values *)
   | StringSet of string option_accessor (** Comma separated string list *)
 
-type parameter = private { o_name: string; o_descr: string; o_kind: kind }
+type parameter = private { o_name: string; o_help: string; o_kind: kind }
     (** @since Beryllium-20090901 *)
 
 type plugin = private
     { p_name: string;
-      p_descr: string;
+      p_help: string;
       p_parameters: (string, parameter list) Hashtbl.t }
     (** Only visible parameters (see {!is_visible}) are registered in the field
 	[p_parameters].
@@ -394,14 +420,14 @@ val iter_on_plugins: (plugin -> unit) -> unit
   (** Iterate on each registered plug-ins.
       @since Beryllium-20090901 *)
 
-val get_selection: unit -> Project.Selection.t
+val get_selection: unit -> State_selection.t
   (** Selection of all the settable parameters.
       @plugin development guide *)
 
 val positive_debug_ref: int ref
   (** Not for casual users.
       @since Boron-20100401 *)
-
+(*
 val dynamic_plugin_name: string -> string
   (** Not for casual users.
       @since Boron-20100401 *)
@@ -409,6 +435,9 @@ val dynamic_plugin_name: string -> string
 val dynamic_function_name: string -> string -> string
   (** Not for casual users.
       @since Boron-20100401 *)
+ *)
+
+val dynamic_name: string -> string -> string -> string
 
 (*
 Local Variables:

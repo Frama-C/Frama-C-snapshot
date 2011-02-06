@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,12 +23,20 @@
 include Plugin.Register
   (struct
      let name = "GUI"
-     let shortname = "GUI"
-     let descr = "Graphical User Interface"
+     let shortname = "gui"
+     let help = "Graphical User Interface"
    end)
+
+module Undo =
+  True
+    (struct
+      let kind = `Irrelevant
+      let option_name = "-undo"
+      let help = "possible to click on the `undo' button (set by default)"
+     end)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

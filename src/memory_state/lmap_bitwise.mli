@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,41 +26,34 @@
 open Abstract_interp
 open Abstract_value
 open Locations
-open BaseUtils
 
 exception Bitwise_cannot_copy
 
 module type Location_map_bitwise = sig
 
   type y
-  type t
 
-  module Datatype: Project.Datatype.S with type t = t
+  include Datatype.S
 
-  module LOffset :
-  sig type t
-      val find_intervs : (Int.t -> Int.t -> y) ->
-        Int_Intervals.t -> t -> y
-      val map: ((bool * y) -> (bool * y)) -> t -> t
-      val fold :
-        (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
-      val join: t -> t -> t
-      val pretty : Format.formatter -> t -> unit
-      val pretty_with_type:
-        Cil_types.typ option-> Format.formatter -> t -> unit
-      val collapse : t -> y
-      val empty : t
-      val is_empty: t->bool
-      val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-      val equal : t -> t -> bool
-      val tag : t -> int
-      module Datatype: Project.Datatype.S with type t = t
+  module LOffset : sig
+    include Datatype.S
+    val find_intervs : (Int.t -> Int.t -> y) ->
+      Int_Intervals.t -> t -> y
+    val map: ((bool * y) -> (bool * y)) -> t -> t
+    val fold :
+      (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
+    val join: t -> t -> t
+    val pretty_with_type:
+      Cil_types.typ option-> Format.formatter -> t -> unit
+    val collapse : t -> y
+    val empty : t
+    val is_empty: t->bool
+    val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
+    val tag : t -> int
   end
-  val pretty : Format.formatter -> t -> unit
+
   val empty : t
   val join : t -> t -> t
-  val equal : t -> t -> bool
-  val hash : t -> int
   val is_included : t -> t -> bool
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
 
@@ -107,8 +100,12 @@ module type With_default = sig
   val defaultall : Base.t -> t
 end
 
-module Make_bitwise (V : With_default) :
-  Location_map_bitwise with type y = V.t
+module Make_bitwise(V : With_default) : Location_map_bitwise with type y = V.t
 
-module From_Model :
-  Location_map_bitwise with type y = Locations.Zone.t
+module From_Model : Location_map_bitwise with type y = Locations.Zone.t
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

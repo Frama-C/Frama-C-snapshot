@@ -190,29 +190,30 @@ let rec stripCastsDeepForPtrArith (e:exp): exp =
             if bitsSizeOf bt1 = bitsSizeOf bt2 then (* Okay to strip *)
               e'
             else
-              new_exp (CastE(t,e'))
+              new_exp ~loc:e.eloc (CastE(t,e'))
           with SizeOfError _ -> (* bt1 or bt2 is abstract; don't strip. *)
-            new_exp (CastE(t,e'))
+            new_exp ~loc:e.eloc (CastE(t,e'))
         end
-      | _, _ -> new_exp (CastE(t,e'))
+      | _, _ -> new_exp ~loc:e.eloc (CastE(t,e'))
     end
-  | UnOp(op,e,t) ->
-      let e = stripCastsDeepForPtrArith e in
-      new_exp (UnOp(op, e, t))
+  | UnOp(op,e',t) ->
+      let e' = stripCastsDeepForPtrArith e' in
+      new_exp ~loc:e.eloc (UnOp(op, e', t))
   | BinOp(MinusPP,e1,e2,t) ->
       let e1 = stripCastsDeepForPtrArith e1 in
       let e2 = stripCastsDeepForPtrArith e2 in
       if not(compareTypesNoAttributes ~ignoreSign:false
 	       (typeOf e1) (typeOf e2))
-      then new_exp (BinOp(MinusPP, mkCast ~e:e1 ~newt:(typeOf e2), e2, t))
-      else new_exp (BinOp(MinusPP, e1, e2, t))
+      then new_exp ~loc:e.eloc 
+        (BinOp(MinusPP, mkCast ~e:e1 ~newt:(typeOf e2), e2, t))
+      else new_exp ~loc:e.eloc (BinOp(MinusPP, e1, e2, t))
   | BinOp(op,e1,e2,t) ->
       let e1 = stripCastsDeepForPtrArith e1 in
       let e2 = stripCastsDeepForPtrArith e2 in
-      new_exp (BinOp(op,e1,e2,t))
-  | Lval lv -> new_exp (Lval(stripCastsForPtrArithLval lv))
-  | AddrOf lv -> new_exp (AddrOf(stripCastsForPtrArithLval lv))
-  | StartOf lv -> new_exp (StartOf(stripCastsForPtrArithLval lv))
+      new_exp ~loc:e.eloc (BinOp(op,e1,e2,t))
+  | Lval lv -> new_exp ~loc:e.eloc (Lval(stripCastsForPtrArithLval lv))
+  | AddrOf lv -> new_exp ~loc:e.eloc (AddrOf(stripCastsForPtrArithLval lv))
+  | StartOf lv -> new_exp ~loc:e.eloc (StartOf(stripCastsForPtrArithLval lv))
   | _ -> e
 
 and stripCastsForPtrArithLval (lv : lval) : lval =

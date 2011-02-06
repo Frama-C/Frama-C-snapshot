@@ -59,6 +59,7 @@
         "assert", ASSERT, false;
         "assigns", ASSIGNS, false;
         "assumes", ASSUMES, false;
+        "at", EXT_AT, false;(* ACSL extension for external spec file *)
         "axiom", AXIOM, false;
         "axiomatic", AXIOMATIC, false;
         "behavior", BEHAVIOR, false;
@@ -67,7 +68,9 @@
 	"case", CASE, true;
         "char", CHAR, true;
         "complete", COMPLETE, false;
+        "const", CONST, true;
         "continues", CONTINUES, false;
+        "contract", CONTRACT, false;(* ACSL extension for external spec file *)
         "decreases", DECREASES, false;
         "disjoint", DISJOINT, false;
         "double", DOUBLE, true;
@@ -75,18 +78,23 @@
         "ensures", ENSURES, false ;
         "enum", ENUM, true;
         "exits", EXITS, false;
+        "function", FUNCTION, false;(* ACSL extension for external spec file *)
         "float", FLOAT, true;
         "for", FOR, true;
+        "global",    GLOBAL, false;
         "if", IF, true;
+	"impact", IMPACT, false;
 	"inductive", INDUCTIVE, false;
+	"include", INCLUDE, false;(* ACSL extension for external spec file *)
         "int", INT, true;
         "invariant", INVARIANT, false;
-        "global",    GLOBAL, false;
         "label", LABEL, false;
         "lemma", LEMMA, false;
+        "let", EXT_LET, false;(* ACSL extension for external spec file *)
         "logic", LOGIC, false;
         "long", LONG, true;
         "loop", LOOP, false;
+        "module", MODULE, false;(* ACSL extension for external spec file *)
         "pragma", PRAGMA, false;
         "predicate", PREDICATE, false;
         "reads", READS, false;
@@ -96,7 +104,6 @@
         "signed", SIGNED, true;
         "sizeof", SIZEOF, true;
         "slice", SLICE, false;
-	"impact", IMPACT, false;
         "struct", STRUCT, true;
         "terminates", TERMINATES, false;
         "type", TYPE, false;
@@ -104,6 +111,8 @@
         "unsigned", UNSIGNED, true;
         "variant", VARIANT, false;
         "void", VOID, true;
+        "volatile", VOLATILE, true;
+        "writes", WRITES, false;
       ];
     List.iter (fun (x, y) -> Hashtbl.add type_kw x y)
       ["integer", INTEGER; "real", REAL; "boolean", BOOLEAN; ];
@@ -147,6 +156,7 @@
         "\\valid", VALID;
         "\\valid_index", VALID_INDEX;
         "\\valid_range", VALID_RANGE;
+        "\\with", WITH;
       ];
     fun lexbuf ->
       let s = lexeme lexbuf in
@@ -194,41 +204,41 @@
 	Lexing.pos_bol = bol;
       }
 
-# 198 "cil/src/logic/logic_lexer.ml"
+# 208 "cil/src/logic/logic_lexer.ml"
 let __ocaml_lex_tables = {
   Lexing.lex_base = 
-   "\000\000\197\255\198\255\000\000\204\255\205\255\206\255\207\255\
-    \208\255\209\255\196\000\217\255\219\255\165\000\224\255\225\255\
-    \202\000\232\255\233\255\199\000\235\255\236\255\201\000\139\000\
-    \227\000\208\000\206\000\242\255\004\001\225\000\006\001\254\000\
+   "\000\000\196\255\197\255\000\000\203\255\204\255\205\255\206\255\
+    \207\255\208\255\196\000\216\255\218\255\165\000\223\255\224\255\
+    \202\000\231\255\232\255\199\000\234\255\235\255\201\000\139\000\
+    \227\000\208\000\206\000\241\255\004\001\225\000\006\001\254\000\
     \036\001\109\001\198\001\000\002\236\000\254\255\030\001\091\001\
     \252\255\253\255\075\002\188\002\127\002\128\002\129\002\161\002\
-    \246\255\189\002\191\002\192\002\243\255\158\002\077\001\208\000\
+    \245\255\189\002\191\002\192\002\242\255\158\002\077\001\208\000\
     \187\002\001\003\024\003\097\003\061\003\167\003\211\000\200\003\
-    \232\003\009\004\041\004\082\003\245\255\051\004\080\004\112\004\
+    \232\003\009\004\041\004\082\003\244\255\051\004\080\004\112\004\
     \122\004\141\004\174\004\206\004\216\004\212\000\235\004\245\004\
-    \244\255\011\005\021\005\050\005\060\005\089\005\099\005\128\005\
-    \239\000\139\005\168\005\178\005\207\005\227\255\224\000\241\255\
-    \201\255\203\255\228\000\228\000\240\255\239\255\238\255\210\255\
-    \234\255\202\255\230\255\222\255\200\255\213\255\200\000\251\255\
+    \243\255\011\005\021\005\050\005\060\005\089\005\099\005\128\005\
+    \239\000\139\005\168\005\178\005\207\005\226\255\224\000\240\255\
+    \200\255\202\255\228\000\228\000\239\255\238\255\237\255\209\255\
+    \233\255\201\255\229\255\221\255\199\255\212\255\200\000\251\255\
     \252\255\239\005\253\255\097\001\056\006\079\006\190\001\254\255\
     \009\006\251\255\186\000\255\005\254\255\255\255\202\000\212\000\
     \252\255\239\002\252\255\224\001\254\255\255\255\253\255\242\002\
     \092\001\253\255\254\255\255\255";
   Lexing.lex_backtrk = 
-   "\255\255\255\255\255\255\056\000\255\255\255\255\255\255\255\255\
-    \255\255\255\255\040\000\255\255\255\255\034\000\255\255\255\255\
-    \024\000\255\255\255\255\029\000\255\255\255\255\018\000\035\000\
-    \032\000\039\000\044\000\255\255\058\000\026\000\058\000\008\000\
-    \008\000\005\000\005\000\058\000\037\000\255\255\000\000\255\255\
-    \255\255\255\255\004\000\255\255\255\255\255\255\255\255\009\000\
-    \255\255\255\255\255\255\012\000\255\255\010\000\255\255\008\000\
+   "\255\255\255\255\255\255\057\000\255\255\255\255\255\255\255\255\
+    \255\255\255\255\041\000\255\255\255\255\035\000\255\255\255\255\
+    \025\000\255\255\255\255\030\000\255\255\255\255\019\000\036\000\
+    \033\000\040\000\045\000\255\255\059\000\027\000\059\000\008\000\
+    \008\000\005\000\005\000\059\000\038\000\255\255\000\000\255\255\
+    \255\255\255\255\004\000\255\255\255\255\255\255\255\255\010\000\
+    \255\255\255\255\255\255\013\000\255\255\011\000\255\255\009\000\
     \007\000\255\255\255\255\006\000\255\255\255\255\006\000\255\255\
-    \255\255\255\255\010\000\255\255\255\255\010\000\255\255\010\000\
-    \255\255\255\255\255\255\010\000\255\255\007\000\010\000\255\255\
-    \255\255\255\255\010\000\255\255\010\000\255\255\010\000\255\255\
-    \027\000\010\000\255\255\010\000\255\255\255\255\043\000\255\255\
-    \255\255\255\255\041\000\255\255\255\255\255\255\255\255\255\255\
+    \255\255\255\255\011\000\255\255\255\255\011\000\255\255\011\000\
+    \255\255\255\255\255\255\011\000\255\255\007\000\011\000\255\255\
+    \255\255\255\255\011\000\255\255\011\000\255\255\011\000\255\255\
+    \028\000\011\000\255\255\011\000\255\255\255\255\044\000\255\255\
+    \255\255\255\255\042\000\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\004\000\255\255\001\000\255\255\000\000\001\000\255\255\
     \255\255\255\255\004\000\002\000\255\255\255\255\255\255\255\255\
@@ -855,351 +865,356 @@ let __ocaml_lex_tables = {
 }
 
 let rec token lexbuf =
-  lexbuf.Lexing.lex_mem <- Array.create 3 (-1) ;   __ocaml_lex_token_rec lexbuf 0
+lexbuf.Lexing.lex_mem <- Array.create 3 (-1) ;   __ocaml_lex_token_rec lexbuf 0
 and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   match Lexing.new_engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 243 "cil/src/logic/logic_lexer.mll"
+# 253 "cil/src/logic/logic_lexer.mll"
            ( token lexbuf )
-# 865 "cil/src/logic/logic_lexer.ml"
-
-  | 1 ->
-# 244 "cil/src/logic/logic_lexer.mll"
-         ( update_newline_loc lexbuf; token lexbuf )
-# 870 "cil/src/logic/logic_lexer.ml"
-
-  | 2 ->
-# 245 "cil/src/logic/logic_lexer.mll"
-                      ( update_newline_loc lexbuf; token lexbuf )
 # 875 "cil/src/logic/logic_lexer.ml"
 
-  | 3 ->
-# 246 "cil/src/logic/logic_lexer.mll"
-                     ( token lexbuf )
+  | 1 ->
+# 254 "cil/src/logic/logic_lexer.mll"
+         ( update_newline_loc lexbuf; token lexbuf )
 # 880 "cil/src/logic/logic_lexer.ml"
 
-  | 4 ->
-# 248 "cil/src/logic/logic_lexer.mll"
-                       ( bs_identifier lexbuf )
+  | 2 ->
+# 255 "cil/src/logic/logic_lexer.mll"
+                      ( update_newline_loc lexbuf; token lexbuf )
 # 885 "cil/src/logic/logic_lexer.ml"
 
-  | 5 ->
-# 249 "cil/src/logic/logic_lexer.mll"
-                        ( let s = lexeme lexbuf in identifier s )
+  | 3 ->
+# 256 "cil/src/logic/logic_lexer.mll"
+                     ( token lexbuf )
 # 890 "cil/src/logic/logic_lexer.ml"
 
-  | 6 ->
-# 251 "cil/src/logic/logic_lexer.mll"
-                            ( CONSTANT (IntConstant (lexeme lexbuf)) )
+  | 4 ->
+# 258 "cil/src/logic/logic_lexer.mll"
+                       ( bs_identifier lexbuf )
 # 895 "cil/src/logic/logic_lexer.ml"
 
-  | 7 ->
-# 252 "cil/src/logic/logic_lexer.mll"
-                            ( CONSTANT (IntConstant (lexeme lexbuf)) )
+  | 5 ->
+# 259 "cil/src/logic/logic_lexer.mll"
+                        ( let s = lexeme lexbuf in identifier s )
 # 900 "cil/src/logic/logic_lexer.ml"
 
-  | 8 ->
-# 253 "cil/src/logic/logic_lexer.mll"
+  | 6 ->
+# 261 "cil/src/logic/logic_lexer.mll"
                             ( CONSTANT (IntConstant (lexeme lexbuf)) )
 # 905 "cil/src/logic/logic_lexer.ml"
 
+  | 7 ->
+# 262 "cil/src/logic/logic_lexer.mll"
+                            ( CONSTANT (IntConstant (lexeme lexbuf)) )
+# 910 "cil/src/logic/logic_lexer.ml"
+
+  | 8 ->
+# 263 "cil/src/logic/logic_lexer.mll"
+                            ( CONSTANT10 (lexeme lexbuf) )
+# 915 "cil/src/logic/logic_lexer.ml"
+
   | 9 ->
+# 264 "cil/src/logic/logic_lexer.mll"
+                            ( CONSTANT (IntConstant (lexeme lexbuf)) )
+# 920 "cil/src/logic/logic_lexer.ml"
+
+  | 10 ->
 let
-# 254 "cil/src/logic/logic_lexer.mll"
+# 265 "cil/src/logic/logic_lexer.mll"
                  prelude
-# 911 "cil/src/logic/logic_lexer.ml"
+# 926 "cil/src/logic/logic_lexer.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_mem.(0)
 and
-# 254 "cil/src/logic/logic_lexer.mll"
+# 265 "cil/src/logic/logic_lexer.mll"
                                                    content
-# 916 "cil/src/logic/logic_lexer.ml"
+# 931 "cil/src/logic/logic_lexer.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) (lexbuf.Lexing.lex_curr_pos + -1) in
-# 255 "cil/src/logic/logic_lexer.mll"
+# 266 "cil/src/logic/logic_lexer.mll"
       (
         let b = Buffer.create 5 in
         Buffer.add_string b prelude;
         let lbf = Lexing.from_string content in
         CONSTANT (IntConstant (chr b lbf ^ "'"))
       )
-# 925 "cil/src/logic/logic_lexer.ml"
-
-  | 10 ->
-# 268 "cil/src/logic/logic_lexer.mll"
-      ( CONSTANT (FloatConstant (lexeme lexbuf)) )
-# 930 "cil/src/logic/logic_lexer.ml"
+# 940 "cil/src/logic/logic_lexer.ml"
 
   | 11 ->
-let
-# 271 "cil/src/logic/logic_lexer.mll"
-            n
-# 936 "cil/src/logic/logic_lexer.ml"
-= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos (lexbuf.Lexing.lex_curr_pos + -2) in
-# 271 "cil/src/logic/logic_lexer.mll"
-                            ( lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos - 2;
-                              CONSTANT (IntConstant n) )
-# 941 "cil/src/logic/logic_lexer.ml"
+# 279 "cil/src/logic/logic_lexer.mll"
+      ( CONSTANT (FloatConstant (lexeme lexbuf)) )
+# 945 "cil/src/logic/logic_lexer.ml"
 
   | 12 ->
 let
-# 274 "cil/src/logic/logic_lexer.mll"
-                prelude
-# 947 "cil/src/logic/logic_lexer.ml"
-= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_mem.(0)
-and
-# 274 "cil/src/logic/logic_lexer.mll"
-                                                 content
-# 952 "cil/src/logic/logic_lexer.ml"
-= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) (lexbuf.Lexing.lex_curr_pos + -1) in
-# 275 "cil/src/logic/logic_lexer.mll"
-      ( STRING_LITERAL (prelude.[0] = 'L',content) )
+# 282 "cil/src/logic/logic_lexer.mll"
+            n
+# 951 "cil/src/logic/logic_lexer.ml"
+= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos (lexbuf.Lexing.lex_curr_pos + -2) in
+# 282 "cil/src/logic/logic_lexer.mll"
+                            ( lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos - 2;
+                              CONSTANT (IntConstant n) )
 # 956 "cil/src/logic/logic_lexer.ml"
 
   | 13 ->
-# 276 "cil/src/logic/logic_lexer.mll"
-                            ( hash lexbuf )
-# 961 "cil/src/logic/logic_lexer.ml"
-
-  | 14 ->
-# 277 "cil/src/logic/logic_lexer.mll"
-                            ( IMPLIES )
-# 966 "cil/src/logic/logic_lexer.ml"
-
-  | 15 ->
-# 278 "cil/src/logic/logic_lexer.mll"
-                            ( IFF )
+let
+# 285 "cil/src/logic/logic_lexer.mll"
+                prelude
+# 962 "cil/src/logic/logic_lexer.ml"
+= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_mem.(0)
+and
+# 285 "cil/src/logic/logic_lexer.mll"
+                                                 content
+# 967 "cil/src/logic/logic_lexer.ml"
+= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) (lexbuf.Lexing.lex_curr_pos + -1) in
+# 286 "cil/src/logic/logic_lexer.mll"
+      ( STRING_LITERAL (prelude.[0] = 'L',content) )
 # 971 "cil/src/logic/logic_lexer.ml"
 
-  | 16 ->
-# 279 "cil/src/logic/logic_lexer.mll"
-                            ( AND )
+  | 14 ->
+# 287 "cil/src/logic/logic_lexer.mll"
+                            ( hash lexbuf )
 # 976 "cil/src/logic/logic_lexer.ml"
 
-  | 17 ->
-# 280 "cil/src/logic/logic_lexer.mll"
-                            ( OR )
+  | 15 ->
+# 288 "cil/src/logic/logic_lexer.mll"
+                            ( IMPLIES )
 # 981 "cil/src/logic/logic_lexer.ml"
 
-  | 18 ->
-# 281 "cil/src/logic/logic_lexer.mll"
-                            ( NOT )
+  | 16 ->
+# 289 "cil/src/logic/logic_lexer.mll"
+                            ( IFF )
 # 986 "cil/src/logic/logic_lexer.ml"
 
-  | 19 ->
-# 282 "cil/src/logic/logic_lexer.mll"
-                            ( DOLLAR )
+  | 17 ->
+# 290 "cil/src/logic/logic_lexer.mll"
+                            ( AND )
 # 991 "cil/src/logic/logic_lexer.ml"
 
-  | 20 ->
-# 283 "cil/src/logic/logic_lexer.mll"
-                            ( COMMA )
+  | 18 ->
+# 291 "cil/src/logic/logic_lexer.mll"
+                            ( OR )
 # 996 "cil/src/logic/logic_lexer.ml"
 
-  | 21 ->
-# 284 "cil/src/logic/logic_lexer.mll"
-                            ( ARROW )
+  | 19 ->
+# 292 "cil/src/logic/logic_lexer.mll"
+                            ( NOT )
 # 1001 "cil/src/logic/logic_lexer.ml"
 
-  | 22 ->
-# 285 "cil/src/logic/logic_lexer.mll"
-                            ( Stack.push Test state_stack; QUESTION )
+  | 20 ->
+# 293 "cil/src/logic/logic_lexer.mll"
+                            ( DOLLAR )
 # 1006 "cil/src/logic/logic_lexer.ml"
 
-  | 23 ->
-# 286 "cil/src/logic/logic_lexer.mll"
-                            ( SEMICOLON )
+  | 21 ->
+# 294 "cil/src/logic/logic_lexer.mll"
+                            ( COMMA )
 # 1011 "cil/src/logic/logic_lexer.ml"
 
+  | 22 ->
+# 295 "cil/src/logic/logic_lexer.mll"
+                            ( ARROW )
+# 1016 "cil/src/logic/logic_lexer.ml"
+
+  | 23 ->
+# 296 "cil/src/logic/logic_lexer.mll"
+                            ( Stack.push Test state_stack; QUESTION )
+# 1021 "cil/src/logic/logic_lexer.ml"
+
   | 24 ->
-# 287 "cil/src/logic/logic_lexer.mll"
+# 297 "cil/src/logic/logic_lexer.mll"
+                            ( SEMICOLON )
+# 1026 "cil/src/logic/logic_lexer.ml"
+
+  | 25 ->
+# 298 "cil/src/logic/logic_lexer.mll"
                             ( match get_state() with
                                   Normal  -> COLON
                                 | Test -> pop_state(); COLON2
                             )
-# 1019 "cil/src/logic/logic_lexer.ml"
-
-  | 25 ->
-# 291 "cil/src/logic/logic_lexer.mll"
-                            ( COLONCOLON )
-# 1024 "cil/src/logic/logic_lexer.ml"
-
-  | 26 ->
-# 292 "cil/src/logic/logic_lexer.mll"
-                            ( DOT )
-# 1029 "cil/src/logic/logic_lexer.ml"
-
-  | 27 ->
-# 293 "cil/src/logic/logic_lexer.mll"
-                            ( DOTDOT )
 # 1034 "cil/src/logic/logic_lexer.ml"
 
-  | 28 ->
-# 294 "cil/src/logic/logic_lexer.mll"
-                            ( DOTDOTDOT )
+  | 26 ->
+# 302 "cil/src/logic/logic_lexer.mll"
+                            ( COLONCOLON )
 # 1039 "cil/src/logic/logic_lexer.ml"
 
-  | 29 ->
-# 295 "cil/src/logic/logic_lexer.mll"
-                            ( MINUS )
+  | 27 ->
+# 303 "cil/src/logic/logic_lexer.mll"
+                            ( DOT )
 # 1044 "cil/src/logic/logic_lexer.ml"
 
-  | 30 ->
-# 296 "cil/src/logic/logic_lexer.mll"
-                            ( PLUS )
+  | 28 ->
+# 304 "cil/src/logic/logic_lexer.mll"
+                            ( DOTDOT )
 # 1049 "cil/src/logic/logic_lexer.ml"
 
-  | 31 ->
-# 297 "cil/src/logic/logic_lexer.mll"
-                            ( STAR )
+  | 29 ->
+# 305 "cil/src/logic/logic_lexer.mll"
+                            ( DOTDOTDOT )
 # 1054 "cil/src/logic/logic_lexer.ml"
 
-  | 32 ->
-# 298 "cil/src/logic/logic_lexer.mll"
-                            ( AMP )
+  | 30 ->
+# 306 "cil/src/logic/logic_lexer.mll"
+                            ( MINUS )
 # 1059 "cil/src/logic/logic_lexer.ml"
 
-  | 33 ->
-# 299 "cil/src/logic/logic_lexer.mll"
-                            ( HATHAT )
+  | 31 ->
+# 307 "cil/src/logic/logic_lexer.mll"
+                            ( PLUS )
 # 1064 "cil/src/logic/logic_lexer.ml"
 
-  | 34 ->
-# 300 "cil/src/logic/logic_lexer.mll"
-                            ( HAT )
+  | 32 ->
+# 308 "cil/src/logic/logic_lexer.mll"
+                            ( STAR )
 # 1069 "cil/src/logic/logic_lexer.ml"
 
-  | 35 ->
-# 301 "cil/src/logic/logic_lexer.mll"
-                            ( PIPE )
+  | 33 ->
+# 309 "cil/src/logic/logic_lexer.mll"
+                            ( AMP )
 # 1074 "cil/src/logic/logic_lexer.ml"
 
-  | 36 ->
-# 302 "cil/src/logic/logic_lexer.mll"
-                            ( TILDE )
+  | 34 ->
+# 310 "cil/src/logic/logic_lexer.mll"
+                            ( HATHAT )
 # 1079 "cil/src/logic/logic_lexer.ml"
 
-  | 37 ->
-# 303 "cil/src/logic/logic_lexer.mll"
-                            ( SLASH )
+  | 35 ->
+# 311 "cil/src/logic/logic_lexer.mll"
+                            ( HAT )
 # 1084 "cil/src/logic/logic_lexer.ml"
 
-  | 38 ->
-# 304 "cil/src/logic/logic_lexer.mll"
-                            ( PERCENT )
+  | 36 ->
+# 312 "cil/src/logic/logic_lexer.mll"
+                            ( PIPE )
 # 1089 "cil/src/logic/logic_lexer.ml"
 
-  | 39 ->
-# 305 "cil/src/logic/logic_lexer.mll"
-                            ( LT )
+  | 37 ->
+# 313 "cil/src/logic/logic_lexer.mll"
+                            ( TILDE )
 # 1094 "cil/src/logic/logic_lexer.ml"
 
-  | 40 ->
-# 306 "cil/src/logic/logic_lexer.mll"
-                            ( GT )
+  | 38 ->
+# 314 "cil/src/logic/logic_lexer.mll"
+                            ( SLASH )
 # 1099 "cil/src/logic/logic_lexer.ml"
 
-  | 41 ->
-# 307 "cil/src/logic/logic_lexer.mll"
-                            ( LE )
+  | 39 ->
+# 315 "cil/src/logic/logic_lexer.mll"
+                            ( PERCENT )
 # 1104 "cil/src/logic/logic_lexer.ml"
 
-  | 42 ->
-# 308 "cil/src/logic/logic_lexer.mll"
-                            ( GE )
+  | 40 ->
+# 316 "cil/src/logic/logic_lexer.mll"
+                            ( LT )
 # 1109 "cil/src/logic/logic_lexer.ml"
 
-  | 43 ->
-# 309 "cil/src/logic/logic_lexer.mll"
-                            ( EQ )
+  | 41 ->
+# 317 "cil/src/logic/logic_lexer.mll"
+                            ( GT )
 # 1114 "cil/src/logic/logic_lexer.ml"
 
-  | 44 ->
-# 310 "cil/src/logic/logic_lexer.mll"
-                            ( EQUAL )
+  | 42 ->
+# 318 "cil/src/logic/logic_lexer.mll"
+                            ( LE )
 # 1119 "cil/src/logic/logic_lexer.ml"
 
-  | 45 ->
-# 311 "cil/src/logic/logic_lexer.mll"
-                            ( NE )
+  | 43 ->
+# 319 "cil/src/logic/logic_lexer.mll"
+                            ( GE )
 # 1124 "cil/src/logic/logic_lexer.ml"
 
-  | 46 ->
-# 312 "cil/src/logic/logic_lexer.mll"
-                            ( Stack.push Normal state_stack; LPAR )
+  | 44 ->
+# 320 "cil/src/logic/logic_lexer.mll"
+                            ( EQ )
 # 1129 "cil/src/logic/logic_lexer.ml"
 
-  | 47 ->
-# 313 "cil/src/logic/logic_lexer.mll"
-                            ( pop_state(); RPAR )
+  | 45 ->
+# 321 "cil/src/logic/logic_lexer.mll"
+                            ( EQUAL )
 # 1134 "cil/src/logic/logic_lexer.ml"
 
-  | 48 ->
-# 314 "cil/src/logic/logic_lexer.mll"
-                            ( Stack.push Normal state_stack; LBRACE )
+  | 46 ->
+# 322 "cil/src/logic/logic_lexer.mll"
+                            ( NE )
 # 1139 "cil/src/logic/logic_lexer.ml"
 
-  | 49 ->
-# 315 "cil/src/logic/logic_lexer.mll"
-                            ( pop_state(); RBRACE )
+  | 47 ->
+# 323 "cil/src/logic/logic_lexer.mll"
+                            ( Stack.push Normal state_stack; LPAR )
 # 1144 "cil/src/logic/logic_lexer.ml"
 
-  | 50 ->
-# 316 "cil/src/logic/logic_lexer.mll"
-                            ( Stack.push Normal state_stack; LSQUARE )
+  | 48 ->
+# 324 "cil/src/logic/logic_lexer.mll"
+                            ( pop_state(); RPAR )
 # 1149 "cil/src/logic/logic_lexer.ml"
 
-  | 51 ->
-# 317 "cil/src/logic/logic_lexer.mll"
-                            ( pop_state(); RSQUARE )
+  | 49 ->
+# 325 "cil/src/logic/logic_lexer.mll"
+                            ( Stack.push Normal state_stack; LBRACE )
 # 1154 "cil/src/logic/logic_lexer.ml"
 
-  | 52 ->
-# 318 "cil/src/logic/logic_lexer.mll"
-                            ( LTCOLON )
+  | 50 ->
+# 326 "cil/src/logic/logic_lexer.mll"
+                            ( pop_state(); RBRACE )
 # 1159 "cil/src/logic/logic_lexer.ml"
 
-  | 53 ->
-# 319 "cil/src/logic/logic_lexer.mll"
-                            ( COLONGT )
+  | 51 ->
+# 327 "cil/src/logic/logic_lexer.mll"
+                            ( Stack.push Normal state_stack; LSQUARE )
 # 1164 "cil/src/logic/logic_lexer.ml"
 
-  | 54 ->
-# 320 "cil/src/logic/logic_lexer.mll"
-                            ( LTLT )
+  | 52 ->
+# 328 "cil/src/logic/logic_lexer.mll"
+                            ( pop_state(); RSQUARE )
 # 1169 "cil/src/logic/logic_lexer.ml"
 
-  | 55 ->
-# 321 "cil/src/logic/logic_lexer.mll"
-                            ( GTGT )
+  | 53 ->
+# 329 "cil/src/logic/logic_lexer.mll"
+                            ( LTCOLON )
 # 1174 "cil/src/logic/logic_lexer.ml"
 
-  | 56 ->
-let
-# 322 "cil/src/logic/logic_lexer.mll"
-                 c
-# 1180 "cil/src/logic/logic_lexer.ml"
-= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
-# 322 "cil/src/logic/logic_lexer.mll"
-                            ( find_utf8 c )
+  | 54 ->
+# 330 "cil/src/logic/logic_lexer.mll"
+                            ( COLONGT )
+# 1179 "cil/src/logic/logic_lexer.ml"
+
+  | 55 ->
+# 331 "cil/src/logic/logic_lexer.mll"
+                            ( LTLT )
 # 1184 "cil/src/logic/logic_lexer.ml"
 
-  | 57 ->
-# 323 "cil/src/logic/logic_lexer.mll"
-                            ( EOF )
+  | 56 ->
+# 332 "cil/src/logic/logic_lexer.mll"
+                            ( GTGT )
 # 1189 "cil/src/logic/logic_lexer.ml"
 
+  | 57 ->
+let
+# 333 "cil/src/logic/logic_lexer.mll"
+                 c
+# 1195 "cil/src/logic/logic_lexer.ml"
+= Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
+# 333 "cil/src/logic/logic_lexer.mll"
+                            ( find_utf8 c )
+# 1199 "cil/src/logic/logic_lexer.ml"
+
   | 58 ->
-# 324 "cil/src/logic/logic_lexer.mll"
+# 334 "cil/src/logic/logic_lexer.mll"
+                            ( EOF )
+# 1204 "cil/src/logic/logic_lexer.ml"
+
+  | 59 ->
+# 335 "cil/src/logic/logic_lexer.mll"
         ( lex_error lexbuf ("illegal character " ^ lexeme lexbuf) )
-# 1194 "cil/src/logic/logic_lexer.ml"
+# 1209 "cil/src/logic/logic_lexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_token_rec lexbuf __ocaml_lex_state
 
 and chr buffer lexbuf =
-    __ocaml_lex_chr_rec buffer lexbuf 110
+  __ocaml_lex_chr_rec buffer lexbuf 110
 and __ocaml_lex_chr_rec buffer lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 328 "cil/src/logic/logic_lexer.mll"
+# 339 "cil/src/logic/logic_lexer.mll"
       ( let s = lexeme lexbuf in
         let real_s = String.sub s 2 (String.length s - 2) in
         let rec add_one_char s =
@@ -1216,10 +1231,10 @@ and __ocaml_lex_chr_rec buffer lexbuf __ocaml_lex_state =
           Buffer.add_char buffer (Char.chr c); add_one_char s
         in add_one_char real_s; chr buffer lexbuf
       )
-# 1220 "cil/src/logic/logic_lexer.ml"
+# 1235 "cil/src/logic/logic_lexer.ml"
 
   | 1 ->
-# 345 "cil/src/logic/logic_lexer.mll"
+# 356 "cil/src/logic/logic_lexer.mll"
       ( let s = lexeme lexbuf in
         let real_s = String.sub s 1 (String.length s - 1) in
         let rec value i s =
@@ -1229,10 +1244,10 @@ and __ocaml_lex_chr_rec buffer lexbuf __ocaml_lex_state =
         in let c = value 0 real_s in
         Buffer.add_char buffer (Char.chr c); chr buffer lexbuf
       )
-# 1233 "cil/src/logic/logic_lexer.ml"
+# 1248 "cil/src/logic/logic_lexer.ml"
 
   | 2 ->
-# 355 "cil/src/logic/logic_lexer.mll"
+# 366 "cil/src/logic/logic_lexer.mll"
       ( Buffer.add_char buffer
           (match (lexeme lexbuf).[1] with
                'a' -> '\007'
@@ -1247,36 +1262,36 @@ and __ocaml_lex_chr_rec buffer lexbuf __ocaml_lex_state =
              | '\\' -> '\\'
              | _ -> assert false
           ); chr buffer lexbuf)
-# 1251 "cil/src/logic/logic_lexer.ml"
+# 1266 "cil/src/logic/logic_lexer.ml"
 
   | 3 ->
-# 369 "cil/src/logic/logic_lexer.mll"
+# 380 "cil/src/logic/logic_lexer.mll"
         ( Buffer.contents buffer )
-# 1256 "cil/src/logic/logic_lexer.ml"
+# 1271 "cil/src/logic/logic_lexer.ml"
 
   | 4 ->
-# 370 "cil/src/logic/logic_lexer.mll"
+# 381 "cil/src/logic/logic_lexer.mll"
        ( Buffer.add_string buffer (lexeme lexbuf); chr buffer lexbuf )
-# 1261 "cil/src/logic/logic_lexer.ml"
+# 1276 "cil/src/logic/logic_lexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_chr_rec buffer lexbuf __ocaml_lex_state
 
 and hash lexbuf =
-    __ocaml_lex_hash_rec lexbuf 120
+  __ocaml_lex_hash_rec lexbuf 120
 and __ocaml_lex_hash_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 373 "cil/src/logic/logic_lexer.mll"
+# 384 "cil/src/logic/logic_lexer.mll"
         ( update_newline_loc lexbuf; token lexbuf)
-# 1272 "cil/src/logic/logic_lexer.ml"
+# 1287 "cil/src/logic/logic_lexer.ml"
 
   | 1 ->
-# 374 "cil/src/logic/logic_lexer.mll"
+# 385 "cil/src/logic/logic_lexer.mll"
              ( hash lexbuf)
-# 1277 "cil/src/logic/logic_lexer.ml"
+# 1292 "cil/src/logic/logic_lexer.ml"
 
   | 2 ->
-# 375 "cil/src/logic/logic_lexer.mll"
+# 386 "cil/src/logic/logic_lexer.mll"
               ( (* We are seeing a line number. This is the number for the
                    * next line *)
                  let s = Lexing.lexeme lexbuf in
@@ -1292,36 +1307,36 @@ and __ocaml_lex_hash_rec lexbuf __ocaml_lex_state =
                  update_line_loc lexbuf (lineno - 1) true 0;
                   (* A file name may follow *)
 		  file lexbuf )
-# 1296 "cil/src/logic/logic_lexer.ml"
+# 1311 "cil/src/logic/logic_lexer.ml"
 
   | 3 ->
-# 390 "cil/src/logic/logic_lexer.mll"
+# 401 "cil/src/logic/logic_lexer.mll"
                 ( hash lexbuf )
-# 1301 "cil/src/logic/logic_lexer.ml"
+# 1316 "cil/src/logic/logic_lexer.ml"
 
   | 4 ->
-# 391 "cil/src/logic/logic_lexer.mll"
+# 402 "cil/src/logic/logic_lexer.mll"
             ( endline lexbuf)
-# 1306 "cil/src/logic/logic_lexer.ml"
+# 1321 "cil/src/logic/logic_lexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_hash_rec lexbuf __ocaml_lex_state
 
 and file lexbuf =
-    __ocaml_lex_file_rec lexbuf 129
+  __ocaml_lex_file_rec lexbuf 129
 and __ocaml_lex_file_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 394 "cil/src/logic/logic_lexer.mll"
+# 405 "cil/src/logic/logic_lexer.mll"
                       ( update_newline_loc lexbuf; token lexbuf)
-# 1317 "cil/src/logic/logic_lexer.ml"
+# 1332 "cil/src/logic/logic_lexer.ml"
 
   | 1 ->
-# 395 "cil/src/logic/logic_lexer.mll"
+# 406 "cil/src/logic/logic_lexer.mll"
                   ( file lexbuf)
-# 1322 "cil/src/logic/logic_lexer.ml"
+# 1337 "cil/src/logic/logic_lexer.ml"
 
   | 2 ->
-# 397 "cil/src/logic/logic_lexer.mll"
+# 408 "cil/src/logic/logic_lexer.mll"
             (
               let n = Lexing.lexeme lexbuf in
               let n1 = String.sub n 1
@@ -1329,39 +1344,39 @@ and __ocaml_lex_file_rec lexbuf __ocaml_lex_state =
               update_file_loc lexbuf n1;
 	      endline lexbuf
             )
-# 1333 "cil/src/logic/logic_lexer.ml"
+# 1348 "cil/src/logic/logic_lexer.ml"
 
   | 3 ->
-# 405 "cil/src/logic/logic_lexer.mll"
+# 416 "cil/src/logic/logic_lexer.mll"
       ( endline lexbuf)
-# 1338 "cil/src/logic/logic_lexer.ml"
+# 1353 "cil/src/logic/logic_lexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_file_rec lexbuf __ocaml_lex_state
 
 and endline lexbuf =
-    __ocaml_lex_endline_rec lexbuf 136
+  __ocaml_lex_endline_rec lexbuf 136
 and __ocaml_lex_endline_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 408 "cil/src/logic/logic_lexer.mll"
+# 419 "cil/src/logic/logic_lexer.mll"
                 ( update_newline_loc lexbuf; token lexbuf)
-# 1349 "cil/src/logic/logic_lexer.ml"
+# 1364 "cil/src/logic/logic_lexer.ml"
 
   | 1 ->
-# 409 "cil/src/logic/logic_lexer.mll"
+# 420 "cil/src/logic/logic_lexer.mll"
                                 ( EOF )
-# 1354 "cil/src/logic/logic_lexer.ml"
+# 1369 "cil/src/logic/logic_lexer.ml"
 
   | 2 ->
-# 410 "cil/src/logic/logic_lexer.mll"
+# 421 "cil/src/logic/logic_lexer.mll"
       ( endline lexbuf)
-# 1359 "cil/src/logic/logic_lexer.ml"
+# 1374 "cil/src/logic/logic_lexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_endline_rec lexbuf __ocaml_lex_state
 
 ;;
 
-# 412 "cil/src/logic/logic_lexer.mll"
+# 423 "cil/src/logic/logic_lexer.mll"
  
 
   open Format
@@ -1390,7 +1405,7 @@ and __ocaml_lex_endline_rec lexbuf __ocaml_lex_state =
           Cil.error_loc (
 	    lb.lex_curr_p.Lexing.pos_fname,
 	    lb.lex_curr_p.Lexing.pos_lnum)
-            "syntax error while parsing annotation@.";
+            "unexpected token '%s'@." (Lexing.lexeme lb);
           Logic_utils.exit_kw_c_mode ();
           raise Parsing.Parse_error
 
@@ -1414,5 +1429,8 @@ and __ocaml_lex_endline_rec lexbuf __ocaml_lex_state =
 
   let spec = parse_from_location Logic_parser.spec
 
+  (* ACSL extension for external spec file *)
+  let ext_spec = parse_from_location Logic_parser.ext_spec
 
-# 1419 "cil/src/logic/logic_lexer.ml"
+
+# 1437 "cil/src/logic/logic_lexer.ml"

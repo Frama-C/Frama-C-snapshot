@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: ast_info.mli,v 1.29 2009-02-23 12:52:19 uid562 Exp $ *)
 
 (** AST manipulation utilities.
     @plugin development guide *)
@@ -47,9 +45,6 @@ val lift_annot_list_func:
   (** lifts a function taking lists of code_annotation up to the annotations
       lists in Db. Ignores WP annotations. *)
 
-module Datatype_Annotation:
-  Project.Datatype.S with type t = rooted_code_annotation before_after
-
 (* ************************************************************************** *)
 (** {2 Expressions} *)
 (* ************************************************************************** *)
@@ -59,7 +54,7 @@ val possible_value_of_integral_const: constant -> int64 option
 val possible_value_of_integral_expr: exp -> int64 option
 val value_of_integral_const: constant -> int64
 val value_of_integral_expr: exp -> int64
-val constant_expr: int64 -> exp
+val constant_expr: loc:location -> int64 -> exp
 val is_null_expr: exp -> bool
 val is_non_null_expr: exp -> bool
 
@@ -77,10 +72,20 @@ val is_trivial_predicate: predicate -> bool
 val is_trivial_rooted_assertion: Db_types.rooted_code_annotation -> bool
 val is_trivial_named_predicate: predicate named -> bool
 
-val behavior_postcondition : funbehavior -> termination_kind -> predicate named
-  (** @modify Boron-20100401 added termination kind as argument *)
+val precondition : funspec -> predicate named
+  (** @since Carbon-20101201
+      Builds the precondition from [b_assumes] and [b_requires] clauses. *)
 
-val merge_assigns: funbehavior list -> identified_term assigns list
+val behavior_precondition : funbehavior -> predicate named
+  (** @since Carbon-20101201
+      Builds the precondition from [b_assumes] and [b_requires] clauses. *)
+
+val behavior_postcondition : funbehavior -> termination_kind -> predicate named
+  (** @modify Boron-20100401 added termination kind as filtering argument.
+      Builds the postcondition from [b_assumes] and [b_post_cond] clauses. *)
+
+val merge_assigns: funbehavior list -> identified_term assigns
+  (** Returns the assigns of an unguarded behavior. *)
 
 val variable_term: location -> logic_var -> term
 val constant_term: location -> int64 -> term
@@ -98,11 +103,6 @@ val predicate: location -> predicate -> predicate named
 
 val is_loop_statement: stmt -> bool
 val get_sid: kinstr -> int
-
-val loc_stmt: stmt -> location
-  (** Returns the location of a {!Cil_types.stmt}.
-      In case of a [Block] returns the location of its first localized
-      statement.*)
 
 val mkassign: lval -> exp -> location -> instr
 val mkassign_statement: lval -> exp -> location -> stmt
@@ -156,7 +156,6 @@ end
 
 val is_cea_function : string -> bool
 val is_cea_dump_function : string -> bool
-val is_cea_alloc : string -> bool
 val is_cea_alloc_with_validity : string -> bool
 val is_frama_c_builtin : string -> bool
 

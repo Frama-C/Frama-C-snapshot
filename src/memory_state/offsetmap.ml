@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,6 @@
 open Abstract_interp
 open Abstract_value
 open CilE
-let debug_now = ref false
 
 exception Found_Top
 exception Result_is_bottom
@@ -33,48 +32,41 @@ exception Result_is_same
 type itv = Int.t * Int.t
 
 module type S = sig
-  type t
   type y
   type widen_hint
-
-  module Datatype : Project.Datatype.S with type t = t
-
+  include Datatype.S
   val tag : t -> int
-
   val empty : t
   val is_empty : t -> bool
-  val equal : t->t->bool
+  val pretty_c_assert_typ : 
+    string -> Cil_types.typ -> (unit->unit) -> Format.formatter -> t -> unit
   val pretty_typ : Cil_types.typ option -> Format.formatter -> t -> unit
-  val pretty : Format.formatter -> t -> unit
   val pretty_debug : Format.formatter -> t -> unit
-
-
   val reduce : Ival.t -> size:Int.t -> y -> t -> t
-
   val is_included : t -> t -> bool
   val is_included_exn : t -> t -> unit
   val is_included_exn_generic : (y -> y -> unit) -> t -> t -> unit
-
   val is_included_actual_generic :
-  BaseUtils.BaseSet.t ->
-  BaseUtils.BaseSet.t ref ->
-    Locations.Location_Bytes.t BaseUtils.BaseMap.t ref -> t -> t -> unit
-
+    Base.Set.t ->
+    Base.Set.t ref ->
+    Locations.Location_Bytes.t Base.Map.t ref ->
+    t ->
+    t ->
+    unit
   val join : t -> t -> (Int.t * Int.t) list * t
-
   val widen : widen_hint -> t -> t -> t
-
-
   val find_ival :
-    validity:Base.validity -> with_alarms:CilE.warn_mode
-    -> Ival.t -> t -> Int.t -> y -> y
+    conflate_bottom: bool -> validity:Base.validity ->
+    with_alarms:CilE.warn_mode -> Ival.t -> t -> Int.t -> y
     (** May raise [Not_found] if V.top is found *)
 
+  val cardinal_zero_or_one: Base.validity -> t -> bool
+
+  val find_imprecise_entire_offsetmap : validity:Base.validity -> t -> y
   val concerned_bindings_ival :
     offsets:Ival.t -> offsetmap:t -> size:Int.t -> y list -> y list
     (** Returns the list of the values associated to at least one bit of the
 	ival. For this function Top is not a binding ! *)
-
   val update_ival :
     with_alarms:CilE.warn_mode ->
     validity:Base.validity ->
@@ -83,77 +75,57 @@ module type S = sig
     size:Int.t ->
     t -> y -> t
     (** May raise [Result_is_bottom] if this is completely out of bound *)
-
   val overwrite : t -> y -> Origin.t -> t
-
   val over_intersection : t -> t -> t
     (** An over-approximation of the intersection.  The arguments can not be
 	arbitrary offsetmaps: the algorithm would be too complicated. The
 	provided algorithm should work fine with offsetmaps that correspond to
 	the relation view and the memory view of the same analysed code. *)
-
   val from_string : string -> t
   val add_internal : itv -> Int.t * Int.t * y -> t -> t
   val add_whole :  itv -> y -> t -> t
   val remove_whole :  itv -> t -> t
-
   val fold_whole :
     size:Int.t -> (Ival.t -> Int.t -> y -> 'a -> 'a) -> t -> 'a -> 'a
     (** May raise [Invalid_argument "Offsetmap.Make.fold"] *)
-
   val fold_single_bindings :
     size:Int.t -> (Ival.t -> Int.t -> y -> 'a -> 'a) -> t -> 'a -> 'a
     (** May raise [Invalid_argument "Offsetmap.Make.fold"] *)
-
   val fold_internal :
     (itv -> (Int.t * Int.t * y) -> 'a -> 'a) -> t -> 'a -> 'a
-
   val shift_ival : Ival.t -> t -> t option -> t option
     (** [shift_ival shift o acc] returns the join of [acc] and
 	of [o] shifted by all values in [shift].
 	Raises [Found_Top] when the result is [Top]. *)
-
   val copy_paste : t -> Int.t -> Int.t -> Int.t -> t -> t
   val copy_merge : t -> Int.t -> Int.t -> Int.t -> t -> t
-  val copy : t -> Int.t -> Int.t -> t
-
+  val copy_offsmap : t -> Int.t -> Int.t -> t
+  val copy_ival :
+    validity:Base.validity ->
+    with_alarms:CilE.warn_mode ->
+    Ival.t -> t -> Int.t -> t
   val merge_by_itv :  t -> t -> Int_Intervals.t -> t
   val shift : Int.t -> t -> t
   val sized_zero : size_in_bits:Int.t -> t
-
   val reciprocal_image : t -> Base.t -> Int_Intervals.t * Ival.t
     (** [reciprocal_image m b] is the set of bits in the offsetmap [m]
 	that may lead to Top([b]) and  the set of offsets in [m]
 	where one can read an address [b]+_ *)
-
   val create_initial: v:y -> modu:Int.t -> t
-
   val reduce_by_int_intervals: t -> Abstract_value.Int_Intervals.t -> t
-
   val top_stuff : (y -> bool) -> (y -> y) -> t -> t
-
   val iter_contents : (y -> unit) -> t -> Int.t -> unit
     (** Iter on the contents of offsetmap of given size *)
-
   val fold : (Int.t * Int.t -> Int.t * Int.t * y -> 'a -> 'a) -> t -> 'a -> 'a
-  end
+end
 
+module Build(V:Lattice_With_Isotropy.S) = struct
 
-module Build(V:Lattice_With_Isotropy.S) =
-struct
   open Abstract_interp
 
   module New = New_offsetmap.Make(V)
 
-  module Int_Int_V = struct
-    type t =  Int.t * Int.t * V.t
-    let hash (r,m,v) =
-      Hashtbl.hash (Int.hash r, Int.hash m, V.hash v)
-    let descr =
-      Unmarshal.t_tuple
-	[| Unmarshal.Abstract; Unmarshal.Abstract; V.Datatype.descr |]
-  end
-
+  module Int_Int_V = Datatype.Triple(Int)(Int)(V)
   module M = Int_Interv_Map.Make(Int_Int_V)
 
   type value = Int_Int_V.t
@@ -166,18 +138,65 @@ struct
       *)
 
   type t = M.t
-  let descr = M.descr
+  let packed_descr = M.packed_descr
   type y = V.t
   type widen_hint = V.widen_hint
-
 
   let hash v = M.hash v
 
   let empty = M.empty
-
   let is_empty v = M.is_empty v
 
   let shift s v = M.shift s v
+
+  let types = Hashtbl.create 7;;
+
+  let () = 
+    Hashtbl.add types 1 "char";
+    Hashtbl.add types 2 "short";
+    Hashtbl.add types 4 "int";
+    Hashtbl.add types 8 "long long";
+    ()
+
+  let pretty_c_assert_typ name _typ print_ampamp fmt offs =
+    let is_first = ref true in
+    let next () =
+      if !is_first then begin
+	  is_first:=false;
+	  print_ampamp ();
+	  Format.fprintf fmt " ( ";
+	end
+      else Format.fprintf fmt " || ";
+    in
+    let pretty_binding (bk,ek) (offst,modu,v) =
+      if Int.is_zero (Int.rem bk Int.eight) 
+	&& (Int.equal (Int.pos_rem bk modu) offst)
+      then
+	let ek = Int.succ ek in
+	if Int.is_zero (Int.rem ek Int.eight) 
+	then
+	  let s = Int.sub ek bk in
+	  if (V.is_isotropic v || Int.equal s modu)
+	  then
+	    let s_bytes = Int.div s Int.eight in
+	    let s_bytes = try Int.to_int s_bytes with _ -> assert false in
+	    try
+	      let typname = Hashtbl.find types s_bytes in
+	      let lv = 
+		Format.sprintf "*(%s *)((unsigned char*)&%s+%d)"
+		  typname
+		  name
+		  s_bytes
+	      in
+	      next();
+	      V.pretty_c_assert lv s fmt v
+	    with Not_found -> ()
+	  else ()
+	else ()
+      else ()
+    in
+    M.iter pretty_binding offs;
+    if not !is_first then Format.fprintf fmt " ) "
 
   let pretty_debug fmt m =
     M.pretty
@@ -201,12 +220,6 @@ struct
       )
       m
 
-
-  let same_values (off,modulo,v) (off',modulo',v') =
-(*    Format.printf "same_values v %a v' %a eq %b@."
-      V.pretty v V.pretty v' (V.equal v v'); *)
-    Int.eq off off' && Int.eq modulo modulo' && (V.equal v v' )
-
 (*
   let check x =
     let last = ref None in
@@ -221,7 +234,7 @@ struct
        | None -> ()
        | Some last ->
            if Int.eq (fst last) (Int.pred b) && Int.eq (Int.pos_rem b m) r then
-             assert (if same_values (snd last) vv then
+             assert (if Int_Int_V.equal (snd last) vv then
                        (Format.printf "%a" pretty_debug x;false)
                      else true));
       last := Some (e,vv)
@@ -233,7 +246,7 @@ struct
     x
 *)
   let check_aligned (bk,ek) offs modu =
-    Int.eq (Int.rem bk modu) offs (* start is aligned *)
+    Int.equal (Int.rem bk modu) offs (* start is aligned *)
     &&
     Int.is_zero (Int.rem (Int.succ (Int.sub ek offs)) modu)
     (* end is aligned *)
@@ -252,8 +265,8 @@ struct
               Format.fprintf fmt "[rbits %a to %a]"
 		Int.pretty bk Int.pretty ek ;
 	      (* misalign condition: *)
-              not ((Int.eq (Int.rem bk modu) offs)
-                   && (Int.eq (Int.sub ek bk) (Int.pred modu)))
+              not ((Int.equal (Int.rem bk modu) offs)
+                   && (Int.equal (Int.sub ek bk) (Int.pred modu)))
               && not (V.is_isotropic v)
 
           | Some typ ->
@@ -263,10 +276,11 @@ struct
 		~align:offs ~rh_size:modu ~start:bk ~stop:ek fmt
       in
       Format.fprintf fmt " %s@ @[<hv 1>%a@]" inset_utf8 V.pretty v ;
-      if force_misalign then
+      if force_misalign 
+      then
 	Format.fprintf fmt " %s %a%%%a "
-	  (if (Int.eq (Int.rem bk modu) offs)
-             && (Int.eq (Int.rem (Int.succ ek) modu) offs)
+	  (if (Int.equal (Int.rem bk modu) offs)
+             && (Int.equal (Int.rem (Int.succ ek) modu) offs)
            then "repeated"
            else "misaligned")
           Int.pretty offs
@@ -283,55 +297,62 @@ struct
 
   let fold_internal f m acc =
     M.fold f m acc
-(*
+
 exception Not_translatable
 ;;
-  let translate_from_old omap =
-    let conv = Int.to_int64 in
+
+let translate_from_old omap =
+  if is_empty omap then raise Not_translatable;
+  let conv = Int.to_int64 in
     fold_internal
       ( fun (a, b) (r, m, v) (c, acc) ->
-        if Int.equal c Int.minus_one && not (Int.equal a Int.zero)
+        if Int.equal c Int.minus_one && not (Int.is_zero a)
         then raise Not_translatable;
-        Format.printf "[%a...%a] %a@."
-          Int.pretty a Int.pretty b V.pretty v;
         let acc =
           if Int.equal (Int.succ c) a then acc
-          else
-            let _, acc1 = New.add_node Int64.zero
+          else raise Not_translatable
+(*            let _, acc1 = New.add_node
             (conv (Int.succ c)) (conv (Int.pred a))
-                Int64.zero Int64.one V.top acc
-            in acc1
+            Int64.zero Int64.one V.top Int64.zero acc
+              in acc1 *)
         in
         let o, t =
-          New.add_node Int64.zero
-            (conv a) (conv b) (conv r) (conv m) v acc in
+          New.add_node
+            (conv a) (conv b) (conv r) (conv m) v Int64.zero acc in
         assert (o = Int64.zero);
-        b, t
+        (Int.of_int64 o), t
        )
-      omap (Int.minus_one, New.empty)
+      omap (Int.minus_one, (New.empty))
 ;;
- *)
-  let reciprocal_image m base =
-    M.fold
-      (fun (bi,ei as itv) (r,modu,v) (acc1,acc2) ->
-         let acc1 = if Locations.Location_Bytes.may_reach base (V.project v)
-         then Int_Intervals.join acc1 (Int_Intervals.inject [itv])
-         else acc1
-         in
-         let acc2 = if (Locations.Location_Bytes.intersects
-                          (Locations.Location_Bytes.inject base Ival.top)
-                          (V.project v))
-           && Int.compare modu (Int.of_int (Bit_utils.sizeofpointer ())) = 0
-         then
-           let first = Int.round_up_to_r ~min:bi ~r ~modu in
-           let last = Int.mul (Int.pred (Int.div (Int.succ (Int.sub ei first)) modu)) modu in
-           if Int.lt last Int.zero then acc2
-           else Ival.join acc2 (Ival.inject_top (Some first) (Some (Int.add first last)) r modu)
-         else acc2
-         in
-         acc1,acc2)
-      m
-      (Int_Intervals.bottom, Ival.bottom)
+
+let reciprocal_image m base =
+  let treat_binding (bi,ei as itv) (r,modu,v) (acc1,acc2) =
+    let acc1 = if Locations.Location_Bytes.may_reach base (V.project v)
+      then Int_Intervals.join acc1 (Int_Intervals.inject [itv])
+      else acc1
+    in
+    let acc2 = 
+      if (Locations.Location_Bytes.intersects
+             (Locations.Location_Bytes.inject base Ival.top)
+             (V.project v))
+        && Int.compare modu (Int.of_int (Bit_utils.sizeofpointer ())) = 0
+      then
+        let first = Int.round_up_to_r ~min:bi ~r ~modu in
+        let last =
+	  Int.mul
+	    (Int.pred (Int.div (Int.succ (Int.sub ei first)) modu))
+	    modu
+	in
+        if Int.lt last Int.zero then acc2
+        else
+	  Ival.join
+	    acc2
+	    (Ival.inject_top (Some first) (Some (Int.add first last)) r modu)
+      else acc2
+    in
+    acc1,acc2
+  in
+  M.fold treat_binding m (Int_Intervals.bottom, Ival.bottom)
 
   let create_vv (bi, ei) v =
     if V.is_isotropic v
@@ -344,7 +365,7 @@ exception Not_translatable
   let remove_whole i m =
     (M.remove_whole Int_Interv.fuzzy_order i m)
 
- let extract_bits ~with_alarms ~start ~stop ~modu v =
+ let extract_bits ~start ~stop ~modu v =
    assert (Int.le start stop && Int.le stop modu);
    let start,stop =
      if Cil.theMachine.Cil.little_endian then
@@ -353,7 +374,7 @@ exception Not_translatable
        let mmodu = Int.pred modu in
          Int.sub mmodu stop,Int.sub mmodu start
    in
-     V.extract_bits ~with_alarms ~start ~stop v
+     V.extract_bits ~start ~stop v
 
  let merge_bits ~offset ~length ~value ~total_length acc =
    assert ( let total_length_i = Int.of_int total_length in
@@ -363,17 +384,19 @@ exception Not_translatable
    else
      V.big_endian_merge_bits ~offset ~value ~total_length ~length acc
 
- let extract_bits_and_stitch ~with_alarms (bi, ei) concerned_intervals =
+ exception Bottom_found
+
+ let extract_bits_and_stitch ~conflate_bottom (bi, ei) concerned_intervals =
    try
      Int_Interv.check_coverage (bi,ei) concerned_intervals;
      let total_length = Int.to_int (Int.length bi ei)
      in
-     List.fold_right
-       (fun ((b1,e1),(offs,modu,v)) acc ->
+     let treat_concerned_interval
+	 ((b1,e1),(offs,modu,v)) (acc_inform, acc_value) =
 	 (*	       Format.printf "find debugging bi:%a ei:%a b1:%a e1:%a@."
 		       Int.pretty bi Int.pretty ei
 		       Int.pretty b1 Int.pretty e1; *)
-         let treat_value offs1 acc =
+         let treat_value offs1 (acc_inform, acc_value) =
 	   (*		 Format.printf "find treat_value debugging offs:%a@."
 			 Int.pretty offs; *)
            let offset = Int.sub offs1 bi in
@@ -395,106 +418,196 @@ exception Not_translatable
 	       stop
            in
 	   assert (not (V.is_isotropic v));
-           let value =
-	     (*                  Format.printf "extract_bits from start:%a to stop:%a (modu:%a) b1,e1:%a,%a in %a@."
-				 Int.pretty start
-				 Int.pretty stop
-				 Int.pretty modu
-				 Int.pretty b1
-				 Int.pretty e1
-				 V.pretty v
-				 ; *)
-             extract_bits ~with_alarms ~start ~stop ~modu v
+           let inform_extract_pointer_bits, value =
+             extract_bits ~start ~stop ~modu v
            in
-           merge_bits ~offset ~length:(Int.length start stop)
-	     ~value ~total_length acc
+	   inform_extract_pointer_bits || acc_inform,
+           merge_bits ~conflate_bottom ~offset ~length:(Int.length start stop)
+	     ~value ~total_length acc_value
          in
          let length =Int.length b1 e1 in
          if V.is_isotropic v then begin
+	     if conflate_bottom && V.equal V.bottom v then raise Bottom_found;
 	     let offs_start = Int.max b1 bi in
 	     let offs_stop = Int.min e1 ei in
 	     let offset = Int.sub offs bi in
 	     let offset =
 	       if Int.lt offset Int.zero then Int.zero else offset
 	     in
+	     acc_inform,
 	     merge_bits ~offset ~length:(Int.length offs_start offs_stop)
-	       ~value:v ~total_length acc
+	       ~conflate_bottom
+	       ~value:v ~total_length acc_value
 	   end
-         else if (Int.eq (Int.rem length modu) Int.zero) &&
-             (Int.eq (Int.rem b1 modu) offs)
+         else if (Int.is_zero (Int.rem length modu)) &&
+             (Int.equal (Int.rem b1 modu) offs)
          then
 	   Int.fold
 	     treat_value
 	     ~inf:(Int.max b1 (Int.round_down_to_r ~max:bi ~r:offs ~modu))
 	     ~sup:(Int.min e1 ei)
 	     ~step:modu
-             acc
+             (acc_inform, acc_value)
          else
+	   acc_inform,
            V.join
 	     (V.topify_misaligned_read_origin v)
-	     acc)
+	     acc_value
+     in
+     List.fold_right
+       treat_concerned_interval
        concerned_intervals
-       V.singleton_zero
+       (false, V.singleton_zero)
    with Is_not_included -> (* from [Int_Interv.check_coverage] *)
-     V.top (* the result depends on several intervals and is not covered
-                    completly. *)
-
+     false, V.top (* the result depends on several intervals and is not covered
+                    completely. *)
+   | Bottom_found -> false, V.bottom
 
  (* Assumes one wants a value from V.t
    This merges consecutive values when singleton integers and
-   coonversely extract bits the best it can when it has to.
+   conversely extract bits the best it can when it has to.
     Could perhaps be improved. *)
- let find ~with_alarms ((bi,ei) as i) m =
+ let find ~conflate_bottom ((bi,ei) as i) m period_read_ahead =
    assert (Int.le bi ei);
    let concerned_intervals =
      M.concerned_intervals Int_Interv.fuzzy_order i m
    in
-   let result =
      match concerned_intervals with
      | [(b,e),(offs,modu,v)] ->
 	 if (Int.le b bi) && (Int.ge e ei) then
-           if V.is_isotropic v
-             || ((Int.eq modu (Int.length bi ei))
-                  && (Int.eq (Int.rem bi modu) offs))
+	   let isotropic = V.is_isotropic v in
+           if isotropic
+             || ((Int.equal modu (Int.length bi ei))
+                  && (Int.equal (Int.rem bi modu) offs))
            then
-             v
-           else if (* [(bi-offs)/modu = (ei-offs)/modu] i.e. [bi] and [ei] are in the same slice. *)
-               Int.eq
-		 (Int.pos_div (Int.sub bi offs) modu)
-		 (Int.pos_div (Int.sub ei offs) modu)
-           then extract_bits
-             ~with_alarms
-             ~start:(Int.pos_rem (Int.sub bi offs) modu)
-             ~stop:(Int.pos_rem (Int.sub ei offs) modu)
-             ~modu
-             v
-	   else
-	     extract_bits_and_stitch ~with_alarms i concerned_intervals
-	       (* the result depends on several instances of
-		  the same repeated value but is completely covered*)
-           else V.top (* the result depends on unbound bits *)
-     | [] -> V.top
-     | _ -> extract_bits_and_stitch ~with_alarms i concerned_intervals
+	     let read_ahead =
+	       if Int.is_zero (Int.rem period_read_ahead modu)
+	       then Some e
+	       else None
+	     in
+	     false, read_ahead, v
+           else
+	     let inform, v =
+	       if (* [(bi-offs)/modu = (ei-offs)/modu]
+		     i.e. [bi] and [ei] are in the same slice. *)
+		 Int.equal
+		   (Int.pos_div (Int.sub bi offs) modu)
+		   (Int.pos_div (Int.sub ei offs) modu)
+               then
+		 extract_bits
+		   ~start:(Int.pos_rem (Int.sub bi offs) modu)
+		   ~stop:(Int.pos_rem (Int.sub ei offs) modu)
+		   ~modu
+		   v
+	       else
+		 extract_bits_and_stitch
+		   ~conflate_bottom
+		   i concerned_intervals
+		   (* the result depends on several instances of
+		      the same repeated value but is completely covered*)
+	     in
+	     inform, None, v
+         else
+	   false, None, V.top (* the result depends on unbound bits *)
+     | [] -> false, None, V.top
+     | _ ->
+	 let inform, v =
+	   extract_bits_and_stitch
+	     ~conflate_bottom i concerned_intervals
+	 in
+	 inform, None, v
+
+ let find_imprecise bi ei m =
+   assert (Int.le bi ei);
+   let i = bi, ei in
+   let concerned_intervals =
+     M.concerned_intervals Int_Interv.fuzzy_order i m
    in
-   result
+   try
+     Int_Interv.check_coverage (bi,ei) concerned_intervals;
+     List.fold_left
+       (fun acc (_, (_,_,v)) ->
+	 V.join
+	   acc
+	   ( if V.is_isotropic v
+	     then v
+	     else V.topify_misaligned_read_origin v ) )
+       V.bottom
+       concerned_intervals
+   with Is_not_included (* from check_coverage *) -> V.top
 
   let add_if_not_default i (_,_,v as vv) (m:t) =
     let result =
-      if V.equal v V.top  then m else
+      if V.equal v V.top then m else
 	M.add i vv m
     in
     result
 
+  exception More_than_one
 
-(* Merge the values before and after with the inserted value if
-   necessary.*)
+  let cardinal_zero_or_one validity offsetmap =
+    let r =
+    match validity with
+    | Base.All | Base.Periodic _ -> false
+    | Base.Known(min, max) | Base.Unknown(min, max) ->
+	begin try
+	    let up_to =
+	      M.fold
+		(fun (bi,ei) (_r,_m,v) min ->
+		  if Int.gt bi min then raise More_than_one;
+		  if not (V.cardinal_zero_or_one v) then raise More_than_one;
+		  (Int.succ ei))
+		offsetmap
+		min
+	    in
+	    Int.gt up_to max
+	  with More_than_one -> false
+	end
+    in
+    r
+
+  let find_imprecise_entire_offsetmap ~validity m =
+    match validity with
+    | Base.All -> V.top
+    | Base.Periodic _ -> assert false (* TODO *)
+    | Base.Known (bound_min,bound_max) | Base.Unknown (bound_min,bound_max)
+	  when Int.lt bound_max bound_min ->
+	V.bottom
+    | Base.Known (bound_min,bound_max) | Base.Unknown (bound_min,bound_max) ->
+	let next = ref bound_min in
+	try
+	  let r =
+	    M.fold
+	      (fun (bi,ei) (_r,_m,v) acc ->
+		if Int.equal bi !next
+		then begin
+		    next := Int.succ ei;
+		    V.join
+		      acc
+		      ( if V.is_isotropic v
+			then v
+			else V.topify_misaligned_read_origin v )
+		  end
+		else begin
+		    assert (Int.gt bi !next);
+		    raise Found_Top
+		  end;)
+	      m
+	      V.bottom
+	  in
+	  if Int.gt !next bound_max
+	  then r
+	  else V.top
+	with Found_Top -> V.top
+
+  (* Merge neighboring values with the inserted value if necessary.*)
   let add_internal ((bi,ei) as i) (_new_offs,_new_modu,v as new_vv) m =
     let (new_offs,new_modu,_) as new_vv =
       if V.is_isotropic v then (Int.zero,Int.one,v) else new_vv
     in
     let v_is_singleton = V.cardinal_zero_or_one v in
     let extend_left =
-      v_is_singleton || Int.eq new_offs (Int.pos_rem bi new_modu)
+      v_is_singleton || Int.equal new_offs (Int.pos_rem bi new_modu)
     in
     let extend_right =
       v_is_singleton || Int.is_zero
@@ -504,7 +617,7 @@ exception Not_translatable
       M.cleanup_overwritten_bindings
         ~extend_left
         ~extend_right
-        same_values
+        Int_Int_V.equal
         i
         new_vv
         m
@@ -517,7 +630,6 @@ exception Not_translatable
         (* Add the new binding *)
 	let result = add_if_not_default (new_bi,new_ei) new_vv cleaned_m in
 	result
-
 
   let top_stuff f topify offsm =
     assert (not (is_empty offsm));
@@ -535,10 +647,9 @@ exception Not_translatable
       offsm
       offsm
 
-
-(* Highest level insertion.
-   [add (be, ei) v m] inserts [v] in [m] at interval [be,ei] assuming the
-   length of [v] is [ei-bi+1]. *)
+  (* Highest level insertion.
+     [add (be, ei) v m] inserts [v] in [m] at interval [be,ei] assuming the
+     length of [v] is [ei-bi+1]. *)
   let add ((bi,ei) as i) v m =
     let result =
       let v = V.anisotropic_cast ~size:(Int.length bi ei) v in
@@ -564,14 +675,13 @@ exception Not_translatable
       if (V.equal v new_v)
       then raise Result_is_same;
 	M.add i (rem, modu, v) (M.remove i m)
-    with
-      Int_Interv.Cannot_compare_intervals -> raise Result_is_same
+    with Int_Interv.Cannot_compare_intervals ->
+      raise Result_is_same
 
   let add_whole i v m =
     let removed =  (M.remove_whole Int_Interv.fuzzy_order i m)
     in
     (add i v removed)
-
 
   let split_interval be en offs modu ~treat_aligned ~treat_misaligned acc =
     (* Format.printf "split_interval:be=%a en=%a modu=%a@\n" Int.pretty be
@@ -582,7 +692,7 @@ exception Not_translatable
       let start_aligned = Int.round_up_to_r be offs modu in
       (* [start_aligned] is equal to [offs] modulo [modu] *)
       let result1 =
-        if Int.neq start_aligned be
+        if not (Int.equal start_aligned be)
 	then begin
 (*	  Format.printf "split_interval:treat_misaligned:be=%Ld en=%Ld@\n"
 	    be (Int.pred start_aligned);*)
@@ -601,7 +711,7 @@ exception Not_translatable
           result1
       in
       let result3 =
-        if Int.neq last_aligned en
+        if not (Int.equal last_aligned en)
 	then begin
 (*	  Format.printf "split_interval:treat_misaligned:be=%Ld en=%Ld@\n"
 	    (Int.succ last_aligned) en;*)
@@ -636,9 +746,6 @@ exception Not_translatable
     let treat_one_itv2 (_itv2,_triple2) = ()
     in
     List.iter treat_one_itv2 itvs2
-
-  let eq_triple (a,b,c) (a',b',c') =
-    Int.eq a a' && Int.eq b b' && (V.equal c c' )
 
   let from_string s =
     let r = ref empty in
@@ -676,14 +783,15 @@ exception Not_translatable
 		    if not (V.is_isotropic v2)
 		    then begin
                       if (not (V.is_isotropic v1))
-			&& (Int.neq offs1 offs2 || Int.neq modu1 modu2)
+			&& not ((Int.equal offs1 offs2 &&
+				    Int.equal modu1 modu2))
                       then raise Is_not_included;
                       (* The alignment is different *)
 
-                      if not (Int.eq bx bi) &&
+                      if not (Int.equal bx bi) &&
 			(not (Int.is_zero (Int.rem (Int.sub bx offs1) modu1)))
                       then raise Is_not_included;
-                      if not (Int.eq ex ei) &&
+                      if not (Int.equal ex ei) &&
 			(not (Int.is_zero
 				(Int.rem (Int.sub (Int.pred offs1) ex) modu1)))
                       then raise Is_not_included;
@@ -734,7 +842,7 @@ exception Not_translatable
    let o1 = Int64.zero
    and o2 = Int64.zero in
 
-   let rnew = New.is_included o1 t1 o2 t2
+   let rnew = is_included o1 t1 o2 t2
    in
      if r <> rnew
    then
@@ -742,20 +850,16 @@ exception Not_translatable
          Format.printf "*** ISINC@ %b %b @.m1: %a@.t1: %a@.m2: %a@.t2: %a@."
            r rnew
           pretty_compare m1
-         (New.pretty_offset o1) t1
+         (pretty_offset o1) t1
           pretty_compare m2
-         (New.pretty_offset o2) t2 ;
+         (pretty_offset o2) t2 ;
          (assert false)
        end
    else r
 ;;
 *)
   let equal m1 m2 =
-    try
-      M.equal
-        same_values
-        m1 m2
-    with Int_Interv.Cannot_compare_intervals -> false
+    try M.equal m1 m2 with Int_Interv.Cannot_compare_intervals -> false
 
   let relations_extract_limit = 10
 
@@ -783,10 +887,9 @@ exception Not_translatable
                         acc
                     in
                     let treat_misaligned _be2 _en2 acc =
-		      if eq_triple triple1 triple2
-		      then
-		        add_internal (inter_b,inter_e) triple1 acc
-		      else if Int.eq offs1 offs2 && Int.eq modu1 modu2
+		      if Int_Int_V.equal triple1 triple2
+		      then add_internal (inter_b,inter_e) triple1 acc
+		      else if Int.equal offs1 offs2 && Int.equal modu1 modu2
 		      then
 			add_internal (inter_b,inter_e)
 			  (offs1,modu1,f ~size:modu1 ~offs:None v1 v2) acc
@@ -811,7 +914,7 @@ exception Not_translatable
                         ~treat_misaligned
                         acc
                     else if (V.is_isotropic v2)
-                      || (Int.eq offs2 offs1 && Int.eq modu1 modu2) then
+                      || (Int.equal offs2 offs1 && Int.equal modu1 modu2) then
                         let treat_aligned ~inf ~sup acc =
                           let new_itv = (inf,sup) in
                           let new_v = f ~size:modu1 ~offs:(Some inf) v1 v2 in
@@ -862,7 +965,6 @@ exception Not_translatable
           r))
 
   exception Not_aligned
-
   exception Continue_here of itv * value * t * t * t
 
   let over_intersection m1 m2 =
@@ -914,7 +1016,7 @@ exception Not_translatable
 		Int.pretty bc Int.pretty ec V.pretty vc
 		Int.pretty next;*)
 	let acc =
-	  if Int.eq bc next
+	  if Int.equal bc next
 	  then acc
 	  else begin
 	      (* add a binding to vv in the result where there is no
@@ -923,9 +1025,9 @@ exception Not_translatable
 	      M.add (next, Int.pred bc) vv acc
 	    end
 	in
-	let same_align = Int.eq moduc modu && Int.eq offsc offs in
-	if Int.neq moduc Int.one &&
-	  Int.neq modu Int.one &&
+	let same_align = Int.equal moduc modu && Int.equal offsc offs in
+	if (not (Int.is_one moduc)) &&
+	  (not (Int.is_one modu)) &&
 	  (not same_align)
 	then begin
 	    Format.printf "An assumption made for the implementation of this tool turns out to be invalid. Please report the appearance of this message. If possible, please provide a reasonably-sized example that provokes it. The correctness of the computations is not affected and the analysis will continue\n";
@@ -986,9 +1088,7 @@ exception Not_translatable
     result
 
   let join m1 m2 =
-    if !Ptmap.debug then Format.printf "Starting Offsetmap.join uncached@.";
     let singletons,r1 = unsafe_join m1 m2 in
-    if !Ptmap.debug then Format.printf "Done Offsetmap.join, safety check@.";
     assert (let _,r2 = unsafe_join m2 m1 in
             equal r1 r2 ||
               (Format.printf
@@ -996,11 +1096,6 @@ exception Not_translatable
                  pretty m1 pretty m2
 		 pretty r1 pretty r2;
                false));
-    if !Ptmap.debug then Format.printf "Done Offsetmap.join@.";
-    (*if !debug_now
-    then
-      Format.printf "Joining(offsetmap) %a@\n with %a@\n leads to %a@\n"
-      pretty m1 pretty m2 pretty r1;*)
     singletons, r1
 ;;
 
@@ -1011,23 +1106,23 @@ exception Not_translatable
     and l1, n1 = (translate_from_old m1)
     and l2, n2 = (translate_from_old m2) in
    (* pretty_compare Format.std_formatter m1; *)
-   (* Format.printf "N1:%a@." New.pretty n1;
-    Format.printf "N2:%a@." New.pretty n2; *)
+   (* Format.printf "N1:%a@." pretty n1;
+    Format.printf "N2:%a@." pretty n2; *)
     if not (Int.equal l1 l2) then s, r  else
-    let _o, t = New.join n1 n2   in
+    let _o, t = join n1 n2   in
     let _, t1 = (translate_from_old r) in
-    if not (New.equal t1  t) then
+    if not (equal t1  t) then
       begin
         Format.printf "@.**** Trees not equal@.";
         pretty_compare Format.std_formatter m1;
          Format.printf "@.";
         pretty_compare Format.std_formatter m2;
-        New.print t1;
-        New.print t;
+        print t1;
+        print t;
         assert false;
       end;
     s, r
- *)
+*)
   let add_approximate_including_spaces mn mx r m size v existing_offsetmap =
     let treat_itv (b,e as itv) (rem,modu,value as vv) acc=
       if (Int.lt e mn)
@@ -1054,27 +1149,18 @@ exception Not_translatable
 	  else acc,e
 	in
         let new_r,new_modu,cond =
-	  if Int.eq m size
+	  if Int.equal m size
 	  then
-            if Int.eq r rem && Int.eq m modu then r,modu,true
-              (* else if V.is_isotropic v then rem,modu,true *)
-            else if V.is_isotropic value then r,m,true
+            if (Int.equal r rem && Int.equal m modu) || V.is_isotropic value
+	    then r,m,true
             else Int.zero,Int.one,false
           else begin
-            if Int.gt size m
-	    then warn_once
-	      "trying to write auto-overlapping(every %a) val(%a) of size %a"
-	      Int.pretty m
-	      V.pretty v
-	      Int.pretty size
-            else if Int.lt size m
-	    then begin
+            assert (Int.lt size m);
 	      let number = Int.succ (Int.div (Int.sub mx mn) m) in
               warn_once
 		"more than %d(%a) locations to update in array. Approximating."
 		(Parameters.Dynamic.Int.get "-plevel")
-		Int.pretty number
-	    end;
+		Int.pretty number;
 	    Int.zero,Int.one,false
           end
         in
@@ -1100,10 +1186,31 @@ exception Not_translatable
       empty
 
   let add_approximate offset size v offsetmap_orig =
+    if V.is_isotropic v
+    then begin
+	let e_max = Int.add offset (Int.pred size) in
+	let concerned_intervals =
+	  M.concerned_intervals
+	    Int_Interv.fuzzy_order
+	    (offset, e_max)
+	    offsetmap_orig
+	in
+	let treat_itv acc ((b,e), (rem,modu,value)) =
+	  let new_b = Int.max b offset in
+	  let new_e = Int.min e e_max in
+	  let new_v = V.join v value in
+	  add_internal (new_b, new_e) (rem, modu, new_v) acc
+	in
+	List.fold_left treat_itv offsetmap_orig concerned_intervals
+      end
+    else
     add_approximate_including_spaces offset offset
       (Int.pos_rem offset size) size size v offsetmap_orig
 
-(* compute the resulting offsetmap if [v] is potentially written anywhere *)
+  let add_imprecise mn mx v offsetmap_orig =
+     add_approximate_including_spaces mn mx Int.zero Int.one Int.one
+      v offsetmap_orig
+
   let overwrite offsetmap_orig v o =
     let v = V.topify_with_origin o v in
     M.fold
@@ -1115,78 +1222,148 @@ exception Not_translatable
 
 (* add a binding in the case where the "offset" part of the location
    is known only as an interval of integers modulo *)
-  let add_top_binding_offsetmap ~with_alarms mn mx r m size v existing_offsetmap =
-    match mn,mx with
-    | None, _ | _, None ->
-	(match with_alarms.imprecision_tracing with
-        | Aignore -> ()
-        | Acall f -> f ()
-        | Alog -> warn_once "Writing at unbounded offset: approximating");
-(*	Format.eprintf "add_top_binding: %a %a %a %a@."
-	  Ival.pretty
-	  (Ival.Top (mn, mx, r, m))
-	  Int.pretty size
-	  V.pretty v
-	  pretty existing_offsetmap; *)
-	overwrite existing_offsetmap v (Origin.Arith (LocationSetLattice.currentloc_singleton()))
+  let add_top_binding_offsetmap mn mx r m size v existing_offsetmap =
+    let number = Int.succ (Int.div (Int.sub mx mn) m) in
+    let plevel = Parameters.Dynamic.Int.get "-plevel" in
+    if Int.le number (Int.of_int plevel) && (Int.gt m size)
+    then
+      Int.fold
+	(fun offs acc -> add_approximate offs size v acc)
+	~inf:mn
+	~sup:mx
+	~step:m
+	existing_offsetmap
+    else
+      add_approximate_including_spaces mn mx r m size v existing_offsetmap
 
-    | Some mn, Some mx ->
-	let number = Int.succ (Int.div (Int.sub mx mn) m) in
-	let plevel = Parameters.Dynamic.Int.get "-plevel" in
-	if Int.le number (Int.of_int plevel) && (Int.gt m size)
-	then
-	  Int.fold
-	    (fun offs acc -> add_approximate offs size v acc)
-	    ~inf:mn
-	    ~sup:mx
-	    ~step:m
-	    existing_offsetmap
-	else
-	  add_approximate_including_spaces mn mx r m size v existing_offsetmap
-
-  exception Had_top of V.t * Int.t
-
-  type interval_or_set = Set of Ival.O.t | Interval of Int.t * Int.t * Int.t
+  type interval_or_set =
+      Set of Ival.O.t
+      | Interval of Int.t * Int.t * Int.t
+      | Imprecise of Int.t * Int.t
 
   let empty_interval_or_set = Set (Ival.O.empty)
 
-  let reduce_ival_by_bound ~read ~with_alarms ival size bound_min bound_max =
-    let max_in_bound = Int.succ (Int.sub bound_max size) in
-    let is_in_bound x = match x with
-    | Ival.Top (mn,mx,r,m) ->
-	let out, new_mn =
-	  match mn with
-	  | Some mn when (Int.ge mn bound_min) -> false, mn
-	  | _ -> true, (Int.round_up_to_r ~r ~modu:m ~min:bound_min)
+  exception Unbounded
+
+  let reduce_ival_by_bound ival size validity =
+    let pred_size = Int.pred size in
+    match validity with
+    | Base.All -> begin (* no clipping can be performed *)
+	  match ival with
+	  | Ival.Top (Some mn,Some mx,_r,m) ->
+	      let result =
+		if Int.lt m size
+		then Imprecise(mn, Int.add mx pred_size)
+		else Interval(mn, mx, m)
+	      in
+	      true, (false, result)
+	  | Ival.Top (None,_,_,_)
+	  | Ival.Top (_,None,_,_)
+	  | Ival.Float _ ->
+	      raise Unbounded
+	  | Ival.Set o -> true, (false, Set o)
+      end
+    | Base.Known (bound_min, bound_max) | Base.Unknown (bound_min, bound_max)
+    | Base.Periodic (bound_min, bound_max, _) ->
+	let max_in_bound = Int.sub bound_max pred_size in
+	let is_in_bound x = match x with
+	| Ival.Top (mn,mx,r,modu) ->
+	    let out, new_mn =
+	      match mn with
+	      | Some mn when (Int.ge mn bound_min) -> false, mn
+	      | _ -> true, Int.round_up_to_r ~r ~modu ~min:bound_min
+	    in
+	    let out, new_mx =
+	      match mx with
+	      | Some mx when (Int.le mx max_in_bound) -> out, mx
+	      | _ -> true, Int.round_down_to_r ~r ~modu ~max:max_in_bound
+	    in
+	    let itv_or_set =
+	      if Int.le new_mn new_mx
+	      then begin
+		  if Int.lt modu size
+		  then Imprecise(new_mn, Int.add new_mx pred_size)
+		  else Interval(new_mn, new_mx, modu)
+		end
+	      else empty_interval_or_set
+	    in
+	    out, itv_or_set
+	| _ -> assert false
 	in
-	let out, new_mx =
-	  match mx with
-	  | Some mx when (Int.le mx max_in_bound) -> out, mx
-	  | _ -> true, (Int.round_down_to_r ~r ~modu:m ~max:max_in_bound)
+	let out, reduced_bounds as result =
+	  begin match ival with
+	  | Ival.Top (_mn,_mx,_r,_m) -> is_in_bound ival
+	  | Ival.Float _ -> is_in_bound Ival.top
+	  | Ival.Set s ->
+	      let out, set =
+		Ival.O.fold
+		  (fun offset (out_acc, reduced_acc) ->
+		    let pseudo_interval =
+		      Ival.Top(Some offset, Some offset,Int.zero, Int.one)
+		    in
+		    let out, _reduced = is_in_bound pseudo_interval in
+		    out || out_acc,
+		    if out
+		    then reduced_acc
+		    else Ival.O.add offset reduced_acc)
+		  s
+		  (false, Ival.O.empty)
+	      in
+	      (out, Set set)
+	  end
 	in
-	if out then
-          (if read then warn_mem_read with_alarms else warn_mem_write with_alarms
-          (*   ;Format.printf "OBA:%a new_mn:%a new_mx:%a@\n"
-               Ival.pretty x Int.pretty new_mn Int.pretty new_mx *) );
-	if Int.le new_mn new_mx
-	then Interval(new_mn, new_mx, m)
-	else empty_interval_or_set
-    | _ -> assert false
+	match validity with
+	| Base.Periodic(_, _, p) ->
+	    assert (Int.is_zero bound_min);
+	    let reduced_bounds =
+	      match reduced_bounds with
+	      | Imprecise (mn, mx) ->
+		  if Int.equal (Int.pos_div mn p) (Int.pos_div mx p)
+		  then Imprecise (Int.pos_rem mn p, Int.pos_rem mx p)
+		  else Imprecise (bound_min, Int.pred p)
+	      | Set s ->
+		  let treat_offset offset acc =
+		    let new_offset = Int.pos_rem offset p in
+		    if Int.gt (Int.add new_offset size) p
+		    then raise Unbounded
+		    else
+(*                    Format.printf "old offset: %a mx: %a period: %a new: %a@."
+			Int.pretty offset
+			Int.pretty bound_max
+			Int.pretty p
+			Int.pretty new_offset;     *)
+		    Ival.O.add new_offset acc
+		  in
+		  begin
+		    try
+		      Set (Ival.O.fold treat_offset s Ival.O.empty)
+		    with Unbounded -> Imprecise (bound_min, Int.pred p)
+		  end
+	      | Interval(lb, _ub, mo) ->
+		  if Int.is_zero (Int.pos_rem mo p)
+		  then Set (Ival.O.singleton (Int.pos_rem lb p))
+		  else begin
+		      Format.printf "Interval %a %a %a@."
+			Int.pretty lb
+			Int.pretty _ub
+			Int.pretty mo;
+		      Imprecise (bound_min, Int.pred p)
+		    end
+	    in
+	    false, (out, reduced_bounds)
+	| _ -> true, result
+
+  let filter_by_bound_for_reading ~with_alarms ival size validity =
+    let _, (out, filtered_by_bound) = reduce_ival_by_bound ival size validity in
+    if out then warn_mem_read with_alarms;
+    filtered_by_bound
+
+  let filter_by_bound_for_writing ~exact ~with_alarms ival size validity =
+    let still_exact, (out, filtered_by_bound) =
+      reduce_ival_by_bound ival size validity
     in
-    match ival with
-    | Ival.Top (_mn,_mx,_r,_m) -> is_in_bound ival
-    | Ival.Float _ -> is_in_bound Ival.top
-    | Ival.Set s ->
-	Set(Ival.O.fold
-	      (fun offset acc ->
-		 let pseudo_interval =
-		   Ival.Top(Some offset, Some offset,Int.zero, Int.one)
-		 in
-		 match is_in_bound pseudo_interval with
-		   Interval _ -> Ival.O.add offset acc
-		 | _ -> acc)
-	      s
-	      Ival.O.empty)
+    if out then warn_mem_write with_alarms;
+    (exact && still_exact), filtered_by_bound
 
   let create_initial ~v ~modu =
     let vv = if V.is_isotropic v then Int.zero,Int.one,v
@@ -1194,170 +1371,178 @@ exception Not_translatable
     in
     add_if_not_default (Int.zero,Bit_utils.max_bit_address ()) vv empty
 
-  (* Raises [Not_found] if V.top is found *)
-  let find_ival ~validity ~with_alarms offsets offsetmap size acc =
+  let find_ival ~conflate_bottom ~validity ~with_alarms offsets offsetmap size =
     (*Format.eprintf "find_ival: %a in %a@." Ival.pretty offsets pretty
       offsetmap;*)
-    let filtered_by_bound =
-      match validity with
-      | Base.Known (bound_min,bound_max) | Base.Unknown (bound_min,bound_max) ->
-	  reduce_ival_by_bound ~read:true ~with_alarms offsets size bound_min bound_max
-      | Base.All -> begin (* no clipping can be performed *)
-	  match offsets with
-	  | Ival.Top (Some mn,Some mx,_r,m) -> Interval(mn, mx, m)
-	  | Ival.Top (None,_,_,_) | Ival.Top (_,None,_,_) |
-		Ival.Float _ ->
-	      raise Not_found (* return top *)
-	  | Ival.Set o -> Set o
-	end
+    try
+      let filtered_by_bound =
+	filter_by_bound_for_reading ~with_alarms offsets size validity
+      in
+      let inform = ref false in
+      let value = ref V.bottom in
+      let pred_size = Int.pred size in
+      let find_and_accumulate offset period_read_ahead =
+        let itv = offset, Int.add offset pred_size in
+	let new_inform, read_ahead, new_value =
+	  find ~conflate_bottom itv offsetmap period_read_ahead
+	in
+	let new_value = V.join new_value !value in
+	value := new_value;
+	inform := !inform || new_inform;
+	if V.equal new_value V.top
+	then Some Int.billion_one
+	else read_ahead
+      in
+      begin match filtered_by_bound with
+      | Imprecise (mn, mx) ->
+	  value := find_imprecise mn mx offsetmap
+      | Interval (mn, mx, m) ->
+	  assert(Int.gt m pred_size);
+	  let current = ref mn in
+	  let r = Int.pos_rem mn m in
+	  while Int.le !current mx do
+	    let read_ahead = find_and_accumulate !current m in
+	    let next = Int.add !current m in
+	    let cursor =
+	      match read_ahead with
+		None -> next
+	      | Some e ->
+		  let max = Int.sub e pred_size in
+		  let aligned_b = Int.round_down_to_r ~max ~r ~modu:m in
+		  if Int.ge aligned_b next
+		  then aligned_b
+		  else next
+	    in
+	    current := cursor
+	  done;
+      | Set s ->
+          (*Format.eprintf "find_ival(Set) %a@." Ival.pretty (Ival.Set s);*)
+	  Ival.O.iter (fun x -> ignore (find_and_accumulate x Int.zero)) s;
+      end;
+      	    if !inform
+	    then begin
+		match with_alarms.imprecision_tracing with
+		| Aignore -> ()
+		| Acall f -> f ()
+		| Alog -> CilE.warn_once "extracting bits of a pointer";
+	      end;
+      !value
+    with Unbounded -> V.top
+(*
+  let find_ival ~conflate_bottom ~validity ~with_alarms offsets offsetmap size =
+    let result_old =
+      find_ival ~conflate_bottom ~validity ~with_alarms offsets offsetmap size
     in
-    let result = match filtered_by_bound with
-    | Interval(mn, mx, m) ->
-        if Int.lt mx mn then V.bottom
-        else
-          ((*Format.eprintf "find_ival itv is mn=%a mx=%a m = %a@."
-             Int.pretty mn Int.pretty mx Int.pretty m;*)
-           let concerned_intervals =
-             M.concerned_intervals
-               Int_Interv.fuzzy_order
-               (mn,Int.pred (Int.add mx size)) offsetmap
-           in
-           let common_r = Int.pos_rem mn m in
-           let magix = Int.pos_rem common_r size in
-           let next_index_to_read = ref mn in
-           let last_partial_value = ref None in
-           let result = List.fold_right
-             (fun ((bi,ei),(remain,modulo,v)) acc ->
-                (*Format.eprintf "find_ival bi=%a ei=%a next_index_to_read=%a@\n"
-                  Int.pretty bi
-                  Int.pretty ei
-                  Int.pretty !next_index_to_read;*)
-                if Int.lt ei !next_index_to_read
-                then begin
-                  (*Format.printf "Skipping useless interval@\n";*)
-                  acc
-                end else
-                  let donotdegenerate =
-                    match !last_partial_value with
-                    | None when Int.le bi !next_index_to_read -> true
-                    | Some next_bit when Int.le bi next_bit ->
-                        assert (Int.eq bi next_bit);
-                        true
-                    | _ -> false
-                  in
-                  if donotdegenerate then
-                    let last_index_covered = (* m*((ei-common_r)/m)+common_r *)
-                      Int.min
-                        (Int.add
-                           common_r
-                           (Int.mul (Int.pos_div (Int.sub ei common_r) m) m))
-                        mx
-                    in
-                    let new_v =
-                      if Int.le (Int.pred (Int.add last_index_covered size)) ei
-                      then (* the last one is covered *)
-                        let value_read =
-                          if ((Int.eq modulo size && Int.eq remain magix)
-                              || V.is_isotropic v)
-                            && !last_partial_value = None
-                          then v
-                          else V.topify_misaligned_read_origin v
-                        in
-                        next_index_to_read := Int.add last_index_covered m;
-                        last_partial_value := None;
-                        value_read
-                      else (* the last one is not covered *)
-                        let top_v = V.topify_misaligned_read_origin v in
-                        next_index_to_read := last_index_covered;
-                        last_partial_value := Some (Int.succ ei);
-                        top_v
-                    in
-                    (*Format.eprintf "find_ival new_v=%a@." V.pretty new_v; *)
-                    V.join acc new_v
-                  else raise Not_found (* return top *))
-             concerned_intervals
-             V.bottom
-           in
-           let dodegenerate =
-             match !last_partial_value with
-             | None when Int.gt !next_index_to_read mx -> false
-             | _ -> true
-           in
-           if dodegenerate then raise Not_found else result)
-    | Set s ->
-        (*Format.eprintf "find_ival(Set) %a@." Ival.pretty (Ival.Set s);*)
-	Ival.O.fold
-	  (fun offset acc ->
-             let itv = offset, Int.pred(Int.add offset size) in
-	     let new_value = find ~with_alarms itv offsetmap in
-             (*Format.eprintf "find_ival(Set) new_v<%a>@." V.pretty new_value ;*)
-             let result = V.join acc new_value in
-             if V.equal result V.top then
-               raise Not_found; (* return top *)
-	     result)
-	  s
-          acc
-    in
-    (*Format.eprintf "find_ival returns: %a@." V.pretty result;*)
-    result
-
+    try
+      let _, new_omap = translate_from_old offsetmap in
+      let new_result = New.find_ival ~validity ~with_alarms offsets new_omap size in
+      if not (V.equal result_old  new_result) then
+        Format.printf "FIND_IVAL: XXXXXXXX@\n ival:%a size:%a@\n Old: %a@\nNew: %a@\n %a@. "
+          Ival.pretty offsets Int.pretty size
+          V.pretty result_old V.pretty new_result
+          New.pretty new_omap;
+      result_old
+    with
+      | Not_translatable ->
+(*	  Format.printf "NOT TRANSLATED %a@."
+	  pretty offsetmap;
+*)	  result_old
+      | Not_found -> result_old
+      | New.End_reached -> result_old
+*)
 
   let update_ival ~with_alarms ~validity ~exact ~offsets ~size
       offsetmap_orig v =
- (*   Format.printf "update_ival got: %a %a %a@\n"
-      Ival.pretty offsets
-      Int.pretty size
-      pretty offsetmap_orig; *)
-    let fold_set s =
-      Ival.O.fold
-	(fun offset acc ->
-	   let itv = offset, Int.pred(Int.add offset size) in
-           let new_offsetmap =
-             (if exact
-	      then add itv v acc
-	      else add_approximate offset size v acc)
-           in
-           new_offsetmap)
-	s
-	offsetmap_orig
-    in
-    let result =
-      match validity with
-      | Base.Known (bound_min, bound_max) | Base.Unknown (bound_min, bound_max) -> begin
-	  (*	Format.eprintf "update_ival size_of_varid %a@\n"
-		Int.pretty bound; *)
-	  let reduced =
-            reduce_ival_by_bound ~read:false ~with_alarms
-              offsets size bound_min bound_max
-	  in
-	  match reduced with
-	    Interval(mn, mx, m) ->
-	      (*	    Format.eprintf "update_ival  -> [%a %a] %% %a@\n"
-			    Int.pretty mn
-			    Int.pretty mx
-			    Int.pretty m; *)
-	      add_top_binding_offsetmap ~with_alarms
-		(Some mn) (Some mx) (Int.pos_rem mn m) m
-		size v offsetmap_orig
-	  | Set o when not (Ival.O.is_empty o) -> fold_set o
-          | Set _  -> raise Result_is_bottom
-	end
-      | Base.All -> begin
-	  match offsets with
-	  | Ival.Top (mn,mx,r,m) ->
-	      assert (if not exact then true else (Format.printf "Internal error 193: %a@." Ival.pretty offsets; false));
-	      add_top_binding_offsetmap ~with_alarms
-		mn mx r m size v offsetmap_orig
-	  | Ival.Set o -> fold_set o
-	  | Ival.Float _ ->
-	      assert (not exact);
-	      add_top_binding_offsetmap ~with_alarms None None Int.zero Int.one
-		size v offsetmap_orig
-	end
-    in
-(*    Format.printf "update_ival result: %a@\n"
-      pretty result; *)
-    result
+    (*   Format.printf "update_ival got: %a %a %a@\n"
+	 Ival.pretty offsets
+	 Int.pretty size
+	 pretty offsetmap_orig; *)
+    try
+      let exact, reduced =
+	filter_by_bound_for_writing ~with_alarms ~exact offsets size validity
+      in
+      let fold_set s =
+	Ival.O.fold
+	  (fun offset acc ->
+	    let itv = offset, Int.pred(Int.add offset size) in
+            let new_offsetmap =
+              (if exact
+	       then add itv v acc
+	       else add_approximate offset size v acc)
+            in
+            new_offsetmap)
+	  s
+	  offsetmap_orig
+      in
+      match reduced with
+        | Imprecise (mn, mx) ->
+	  let v = V.topify_misaligned_read_origin v in
+	  add_imprecise mn mx v offsetmap_orig
+        | Interval(mn, mx, m) ->
+          begin
+            let res =
+	      add_top_binding_offsetmap
+	        mn mx (Int.pos_rem mn m) m
+	        size v offsetmap_orig in
+(*  try
+              let o1, t1 = translate_from_old res in
+              assert (Int.is_zero o1);
+              let new_off, new_omap = translate_from_old offsetmap_orig in
+              if New.is_empty new_omap then raise Not_translatable;
+              let min, max =
+                match validity with
+                  | Base.All -> begin (* no clipping can be performed *)
+                    raise Not_translatable
+                  end
+                  | Base.Known (bound_min, bound_max)
+                  | Base.Unknown (bound_min, bound_max) ->
+                    bound_min, bound_max
+                  | Base.Periodic (_bound_min, _, period) ->
+                    Int.zero, Int.pred period
+              in
+              let min = Int.to_int64 min
+              and max = Int.to_int64 max
+              and mn = Int.to_int64 mn
+              and mx = Int.to_int64 mx
+              and period = Int.to_int64 m
+              and size = Int.to_int64 size
+              and off = Int.to_int64 new_off
+              and o1 = Int.to_int64 o1
+              in
+              let o2, t2 =
+                New.update_ival min max exact mn mx period size off new_omap v
+              in
+              if not (New_offsetmap.Int.equal o2 o1 && New.equal t1 t2) then
+                (
+                  Format.fprintf Format.std_formatter "arg:%a@.ival:%a v:%a@."
+                    pretty offsetmap_orig
+                    Ival.pretty offsets
+                    V.pretty v
+                  ;
+                  Format.fprintf Format.std_formatter "Old:%a@." (New.pretty_offset o1) t1;
+                  Format.fprintf Format.std_formatter "New:%a@." (New.pretty_offset o2) t2;
+                );
+              res
+            with
+   | Not_translatable ->  *)
+                res
+          end
+
+        | Set o when not (Ival.O.is_empty o) -> fold_set o
+        | Set _  ->
+	  if exact
+	  then raise Result_is_bottom
+	  else offsetmap_orig
+    with
+        Unbounded ->
+	  (match with_alarms.imprecision_tracing with
+            | Aignore -> ()
+            | Acall f -> f ()
+            | Alog -> warn_once "Writing at unbounded offset: approximating");
+	  overwrite
+	    offsetmap_orig
+	    v
+	    (Origin.Arith (LocationSetLattice.currentloc_singleton()))
 
   (* returns the list of the values associated to at least one bit of the ival.
   For this function Top is not a binding ! *)
@@ -1425,7 +1610,6 @@ exception Not_translatable
         pretty result;*)
       result
 
-
   let copy_merge from start stop start_to _to =
     let old_value =
       copy_paste _to start_to
@@ -1435,8 +1619,88 @@ exception Not_translatable
     let _,merged_value = join old_value from in
       copy_paste merged_value start stop start_to _to
 
-  let copy from start stop =
-    copy_paste from start stop Int.zero empty
+  let copy_offsmap from start stop period_read_ahead =
+      let ss = start,stop in
+      let concerned_itv =
+        M.concerned_intervals Int_Interv.fuzzy_order ss from
+      in
+      let offset = Int.sub Int.zero start in
+      let treat_interval acc (i,(offs,modu, v)) =
+        let new_vv = (Int.pos_rem (Int.add offs offset) modu),modu,v in
+        let src_b,src_e = Int_Interv.clip_itv ss i in
+        let dest_i = Int.add src_b offset, Int.add src_e offset in
+          (*Format.printf "treat_itv: ib=%a ie=%a v=%a dib=%a die=%a@\n"
+            Int.pretty (fst i) Int.pretty (snd i)
+            V.pretty v
+            Int.pretty (fst dest_i) Int.pretty (snd dest_i);*)
+          add_internal dest_i new_vv acc
+      in
+      let read_ahead =
+	match concerned_itv with
+	  [(bc,ec), (_rc,mc,_vc)] when Int.le bc start && Int.gt ec stop &&
+	      Int.is_zero (Int.pos_rem period_read_ahead mc)
+	      ->
+		Some ec
+	| _ -> None
+      in
+      read_ahead, List.fold_left treat_interval empty concerned_itv
+
+  (* TODO: factor with find_ival *)
+  let copy_ival ~validity ~with_alarms offsets offsetmap size =
+    (*Format.eprintf "copy_ival: %a in %a@." Ival.pretty offsets pretty
+      offsetmap;*)
+    try
+      let filtered_by_bound =
+	filter_by_bound_for_reading ~with_alarms offsets size validity
+      in
+      let pred_size = Int.pred size in
+      let i0 = Int.zero, pred_size in
+      let value = ref (M.add i0 (Int.zero, Int.one, V.bottom) empty) in
+      let find_and_accumulate offset period_read_ahead =
+        let end_ = Int.add offset pred_size in
+	let read_ahead, new_value =
+	   copy_offsmap offsetmap offset end_ period_read_ahead
+	in
+	let _, new_value = join new_value !value in
+	value := new_value;
+	read_ahead
+      in
+      begin match filtered_by_bound with
+      | Imprecise(mn ,mx) ->
+	  let v = find_imprecise mn mx offsetmap in
+	  value :=
+	    add_if_not_default
+	      i0
+	      (Int.zero, Int.one, v)
+	      empty
+      | Interval(mn, mx, m) ->
+	  assert (Int.gt m pred_size);
+	  let current = ref mn in
+	  let r = Int.pos_rem mn m in
+	  while Int.le !current mx do
+	    let read_ahead = find_and_accumulate !current m in
+	    let next = Int.add !current m in
+	    let cursor =
+	      match read_ahead with
+		None -> next
+	      | Some e ->
+		  let max = Int.sub e pred_size in
+		  let aligned_b = Int.round_down_to_r ~max ~r ~modu:m in
+		  if Int.ge aligned_b next
+		  then aligned_b
+		  else next
+	    in
+	    current := cursor
+	  done;
+      | Set s ->
+          (*Format.eprintf "find_ival(Set) %a@." Ival.pretty (Ival.Set s);*)
+	  Ival.O.iter (fun x -> ignore (find_and_accumulate x Int.zero)) s;
+      end;
+      !value
+    with Unbounded -> empty
+
+ let copy_offsmap from start stop =
+   snd (copy_offsmap from start stop Int.zero)
 
   let merge_by_itv (orig:t) (_new:t) (itvs:Int_Intervals.t) =
     try
@@ -1457,9 +1721,9 @@ exception Not_translatable
                 not (Int.is_zero (Int.pos_rem (Int.succ (Int.sub en be)) size)))
              &&
              (not (V.is_isotropic v1) ==>
-                (Int.neq modu1 size
-                 || Int.neq (Int.pos_rem be modu1) offs1
-                 || Int.neq (Int.pos_rem (Int.succ en) modu1) offs1))
+                (not (Int.equal modu1 size
+                 && Int.equal (Int.pos_rem be modu1) offs1
+                 && Int.equal (Int.pos_rem (Int.succ en) modu1) offs1)))
            then begin
              Format.printf "Got size %a modu1:%a@\n" Int.pretty size
                Int.pretty modu1;
@@ -1490,18 +1754,17 @@ exception Not_translatable
     in
     fold_whole ~size f_adj m acc
 
-  let shift_ival ival m acc =
-    match ival with
-      | Ival.Top _ | Ival.Float _ -> raise Found_Top
-          (* Approximating because we do no want to shift
-             with too many values *)
-      | Ival.Set s ->
-          Ival.O.fold
-            (fun v acc ->
-               let shifted = shift v m in
-               match acc with None -> Some shifted
-                 | Some acc -> Some (snd (join acc shifted)))
-            s acc
+  let shift_ival ival m acc = match ival with
+    | Ival.Top _ | Ival.Float _ -> raise Found_Top
+      (* Approximating because we do no want to shift
+         with too many values *)
+    | Ival.Set s ->
+      Ival.O.fold
+        (fun v acc ->
+          let shifted = shift v m in
+          match acc with None -> Some shifted
+          | Some acc -> Some (snd (join acc shifted)))
+        s acc
 
   let sized_zero ~size_in_bits =
     assert (Int.gt size_in_bits Int.zero);
@@ -1530,9 +1793,10 @@ exception Not_translatable
 
   let iter_contents f o size =
     let itv = (Int.zero,Int.pred size) in
-    let concerned_intervals = M.concerned_intervals  Int_Interv.fuzzy_order itv o in
-    (try
-      Int_Interv.check_coverage itv concerned_intervals;
+    let concerned_intervals =
+      M.concerned_intervals Int_Interv.fuzzy_order itv o
+    in
+    (try Int_Interv.check_coverage itv concerned_intervals;
      with Is_not_included -> f V.top);
     List.iter (fun (_,(_,_,b)) -> f b) concerned_intervals
 
@@ -1540,44 +1804,61 @@ exception Not_translatable
 
 end
 
-module Make(V:Lattice_With_Isotropy.S) =
- struct
+module Make(V:Lattice_With_Isotropy.S) = struct
 
-  module M=Build(V)
-  type t =
-      { v: M.t;
-	tag:int }
-  type tt = t = { v: M.t; tag:int }
-      (* The descr without the unmarshaling actions *)
-  let descr = Unmarshal.t_record [| M.descr; Unmarshal.Abstract |]
-
+  module M = Build(V)
+  type tt = { v: M.t; tag:int }
   type y = M.y
 
-  let id = V.id ^ " offsetmap"
+  let name = V.name ^ " offsetmap"
 
   let hash_internal {v=v} = M.M.hash v
-
   let tag {tag=t} = t
 
   let equal_internal {v=v} {v=v'} =
     M.M.hash v = M.M.hash v' && M.equal v v'
 
-  let empty = { v = M.empty;
-                tag = 0 }
+  let empty = { v = M.empty; tag = 0 }
+
+  let pretty_c_assert_typ _ = assert false
+  let pretty_typ t fmt v = M.pretty_typ t fmt v.v
+  let pretty fmt v = M.pretty fmt v.v
+
+  let compare l1 l2 = Datatype.Int.compare l1.tag l2.tag
+
+  let rehash_ref = ref (fun _ -> assert false)
+  module D = Datatype.Make
+    (struct
+      type t = tt
+      let name = name
+      let structural_descr =
+	Structural_descr.t_record [| M.packed_descr; Structural_descr.p_int |]
+      let reprs = List.map (fun m -> { v = m; tag = -1 }) M.M.reprs
+      let equal = ( == )
+      let compare = compare
+      let hash = tag
+      let rehash x = !rehash_ref x
+      let copy = Datatype.undefined
+      let pretty = pretty
+      let internal_pretty_code = Datatype.undefined
+      let varname = Datatype.undefined
+      let mem_project = Datatype.never_any_project
+     end)
+  include D
 
   module OffsetmapHashconsTbl =
-    Computation.HashconsTbl
+    State_builder.Hashconsing_tbl
       (struct
-	type t = tt
-        let name = id ^ " dt"
+	include D
 	let equal_internal = equal_internal
 	let hash_internal = hash_internal
 	let initial_values = [ empty ]
        end)
       (struct
-         let name = id
+         let name = name
          let dependencies = [ Ast.self ]
          let size = 137
+         let kind = `Internal
        end)
 
   let wrap =
@@ -1593,23 +1874,7 @@ module Make(V:Lattice_With_Isotropy.S) =
       end;
       result
 
-  let equal = (==)
-
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = tt =
-	     { v: M.t;
-	       tag:int }
-	 let copy _ = assert false (* TODO *)
-	 let name = id
-	 open Unmarshal
-	 let descr =
-	   Transform (descr,
-	              fun o -> let x : tt = Obj.obj o in Obj.repr (wrap x.v))
-	 let before_load () = ()
-       end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ()
+  let () = rehash_ref := fun x -> wrap x.v
 
   module Symcacheable = struct
     type t = tt
@@ -1626,15 +1891,12 @@ module Make(V:Lattice_With_Isotropy.S) =
  module SymetricCache = Binary_cache.Make_Symetric(Symcacheable)(R)
  let () = Project.register_todo_before_clear (fun _ -> SymetricCache.clear ())
 
- let pretty_typ t fmt v = M.pretty_typ t fmt v.v
- let pretty fmt v = M.pretty fmt v.v
-
  let join m1 m2 =
-   if !Ptmap.debug
+   if !Hptmap.debug
    then Format.printf "Offsetmap join %a@@%d %a@@%d@."
      pretty m1 (Extlib.address_of_value m1)
      pretty m2 (Extlib.address_of_value m2);
-   if !Ptmap.debug
+   if !Hptmap.debug
    then Format.printf "Cached Offsetmap.join %d@@%d %d@@%d@."
      (tag m1) (Extlib.address_of_value m1)
      (tag m2) (Extlib.address_of_value m2)
@@ -1660,7 +1922,7 @@ module Make(V:Lattice_With_Isotropy.S) =
 	    end
 
   module Cache =
-    Binary_cache.Make_Asymetric(Cacheable)(Binary_cache.Bool_Result)
+    Binary_cache.Make_Binary(Cacheable)(Cacheable)
   let () = Project.register_todo_before_clear (fun _ -> Cache.clear ())
 
   let is_included m1 m2 =
@@ -1668,11 +1930,8 @@ module Make(V:Lattice_With_Isotropy.S) =
     else
       let m1v = m1.v in
       let m2v = m2.v in
-      if M.M.height m2v <= 3
-      then M.is_included m1v m2v
-      else
-	let compute () = M.is_included m1v m2v in
-	Cache.merge compute m1 m2
+      let compute () = M.is_included m1v m2v in
+      Cache.merge compute m1 m2
 
   let is_included_exn m1 m2 =
     if not (is_included m1 m2) then raise Is_not_included
@@ -1682,15 +1941,22 @@ module Make(V:Lattice_With_Isotropy.S) =
 
   type widen_hint = M.widen_hint
 
-  let find ~with_alarms i v = M.find ~with_alarms i v.v
+  let find i v = M.find i v.v
+
+  let cardinal_zero_or_one v o = 
+    M.cardinal_zero_or_one v o.v
+
+  (* TODO: cache *)
+  let find_imprecise_entire_offsetmap ~validity offsetmap =
+    M.find_imprecise_entire_offsetmap ~validity offsetmap.v
 
   let is_included_actual_generic a b c v1 v2 =
     M.is_included_actual_generic a b c v1.v v2.v
 
   let widen w v1 v2 = wrap (M.widen w v1.v v2.v)
 
-  let find_ival ~validity ~with_alarms a v
-      = M.find_ival ~validity ~with_alarms a v.v
+  let find_ival ~conflate_bottom ~validity ~with_alarms a v
+      = M.find_ival ~conflate_bottom ~validity ~with_alarms a v.v
 
   let concerned_bindings_ival ~offsets ~offsetmap ~size =
     M.concerned_bindings_ival ~offsets ~offsetmap:offsetmap.v ~size
@@ -1714,8 +1980,7 @@ module Make(V:Lattice_With_Isotropy.S) =
     wrap (M.add_internal itv tr t.v)
 
   let reduce ival ~size y t =
-    wrap (M.reduce ival ~size y t.v
-)
+    wrap (M.reduce ival ~size y t.v)
 
   let remove_whole itv t =
     wrap (M.remove_whole itv t.v)
@@ -1744,8 +2009,11 @@ module Make(V:Lattice_With_Isotropy.S) =
   let copy_merge t a b c t' =
     wrap (M.copy_merge t.v  a b c t'.v)
 
-  let copy v a b =
-    wrap (M.copy v.v a b)
+  let copy_offsmap v a b =
+    wrap (M.copy_offsmap v.v a b)
+
+  let copy_ival ~validity ~with_alarms offsets offsetmap size =
+    wrap (M.copy_ival ~validity ~with_alarms offsets offsetmap.v size)
 
   let merge_by_itv t t' a =
     wrap (M.merge_by_itv t.v t'.v a)

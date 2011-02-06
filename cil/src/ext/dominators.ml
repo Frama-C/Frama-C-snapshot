@@ -88,7 +88,7 @@ module DF = Dataflow
 let debug = false
 
 (* For each statement we maintain a set of statements that dominate it *)
-module BS = Cilutil.StmtSet
+module BS = Cil_datatype.Stmt.Set
 
 (** Customization module for dominators *)
 module DT = struct
@@ -126,7 +126,7 @@ module DT = struct
 
   let doStmt (_s: stmt) (_d: t) = DF.SDefault
 
-  let doGuard _ _condition _ = DF.GDefault
+  let doGuard _ _condition _ = DF.GDefault, DF.GDefault
 
 
   let filterStmt _ = true
@@ -268,7 +268,7 @@ let findNaturalLoops (f: fundec)
   if debug then
     begin
       let pp_back fmt b = Format.pp_print_int fmt b.sid in
-      let pp_loop fmt (s,backs) = 
+      let pp_loop fmt (s,backs) =
 	Format.fprintf fmt "Start:%d, backs:%a"
 	  s.sid (Pretty_utils.pp_list pp_back) backs in
       Cilmsg.debug

@@ -20,14 +20,14 @@ let call_f project kf =
   in
     List.iter process_caller callers
 
-let slice_on_fun_calls project kf = 
-  let table = Cilutil.VarinfoHashtbl.create 17 in
+let slice_on_fun_calls project kf =
+  let table = Cil_datatype.Varinfo.Hashtbl.create 17 in
   let get_slice kf =
     let vf = Kernel_function.get_vi kf in
-    try Cilutil.VarinfoHashtbl.find table vf
+    try Cil_datatype.Varinfo.Hashtbl.find table vf
     with Not_found ->
       let ff = !Db.Slicing.Slice.create project kf in
-        Cilutil.VarinfoHashtbl.add table vf ff;
+        Cil_datatype.Varinfo.Hashtbl.add table vf ff;
         ff
   in
   let rec process_ff_caller ff (kf_caller,_) =
@@ -46,7 +46,7 @@ let slice_on_fun_calls project kf =
 
 let main _ =
   let kf_f = find_kf "f" in
-  
+
   let project = mk_project () in
   call_f project kf_f;
   print_project project;

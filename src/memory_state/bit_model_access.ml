@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,9 +82,10 @@ let access_offsetmap_of_lval_after ki lv =
 	       (!Db.Value.lval_to_loc_state state lv)
 	     in
 	     let offsetmap =
-	       try
-		 Relations_type.Model.copy_offsetmap loc state
-	       with Lmap.Cannot_copy ->
+(*	       try *)
+		 Relations_type.Model.copy_offsetmap 
+		   ~with_alarms:CilE.warn_none_mode loc state
+(*	       with Lmap.Cannot_copy ->
 		 let _,exp = !Value.eval_lval ~with_alarms:CilE.warn_none_mode None state lv in
 		 if Cvalue_type.V.is_bottom exp
 		 then None
@@ -97,7 +98,7 @@ let access_offsetmap_of_lval_after ki lv =
 			    ~size:(Abstract_interp.Int.of_int (Cil.bitsSizeOf (Cil.typeOfLval lv)))
 			    Cvalue_type.V_Offsetmap.empty
 			    (Cvalue_type.V_Or_Uninitialized.initialized exp))
-
+*)
 	     in
 	     match acc, offsetmap with
 	     | None, x | x , None -> x

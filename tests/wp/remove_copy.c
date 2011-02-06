@@ -1,3 +1,7 @@
+/* run.config
+   DONTRUN: invalid ACSL annotations (unbound function counting)
+*/
+
 /*@
    predicate is_valid_int_range(int* p, int n) =
            (0 <= n) && \valid_range(p,0,n-1);
@@ -36,14 +40,14 @@ int remove_copy(const int* a, int n, int* b, int val)
      loop assigns b[0..j-1];
 
      loop invariant 0 <= j <= i <= n;
-     loop   variant n-i;
-
      loop invariant \forall int k; j <= k < n ==>
                       b[k] == \at(b[k],Pre);
      loop invariant \forall int k; 0 <= k < j ==> b[k] != val;
      loop invariant \forall int x; x != val ==>
                       counting(a,i,x) == counting(b,j,x);
      loop invariant j == i - counting(a,i,val);
+
+     loop   variant n-i;
   */
   for (int i = 0; i < n; ++i)
      if (a[i] != val)

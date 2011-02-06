@@ -1,8 +1,15 @@
 type token =
+  | MODULE
+  | FUNCTION
+  | CONTRACT
+  | INCLUDE
+  | EXT_AT
+  | EXT_LET
   | IDENTIFIER of (string)
   | TYPENAME of (string)
   | STRING_LITERAL of (bool*string)
   | CONSTANT of (Logic_ptree.constant)
+  | CONSTANT10 of (string)
   | LPAR
   | RPAR
   | IF
@@ -80,7 +87,9 @@ type token =
   | BREAKS
   | CONTINUES
   | RETURNS
+  | VOLATILE
   | READS
+  | WRITES
   | LOGIC
   | PREDICATE
   | INDUCTIVE
@@ -123,6 +132,8 @@ type token =
   | LET
   | TYPEOF
   | BSTYPE
+  | WITH
+  | CONST
 
 val lexpr_eof :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.lexpr
@@ -130,3 +141,5 @@ val annot :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.annot
 val spec :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.spec * Cabs.cabsloc
+val ext_spec :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.ext_spec

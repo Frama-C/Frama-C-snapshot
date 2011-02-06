@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -41,15 +41,23 @@ module Signature = struct
   type t_out_key = OutRet | OutLoc of Locations.Zone.t
   type t_key = In of t_in_key | Out of t_out_key
 
-  type 'info t = { in_ctrl : 'info option ;
-                   in_params : (int * 'info) list ;
-    (** implicit inputs :
-    * Maybe we should use [Lmap_bitwise.Make_bitwise] ?
-    * but that would make things a lot more complicated... :-? *)
-                   in_implicits : (Locations.Zone.t * 'info) list ;
-                   out_ret : 'info option ;
-                   outputs : (Locations.Zone.t * 'info) list
-                 }
+  type 'info t =
+      { in_ctrl : 'info option ;
+        in_params : (int * 'info) list ;
+	(** implicit inputs :
+	    Maybe we should use [Lmap_bitwise.Make_bitwise] ?
+	    but that would make things a lot more complicated... :-? *)
+        in_implicits : (Locations.Zone.t * 'info) list ;
+        out_ret : 'info option ;
+        outputs : (Locations.Zone.t * 'info) list }
+
+  module Str_descr = struct
+    open Structural_descr
+    let in_key =
+      Structure (Sum [| [| p_int |]; [| Locations.Zone.packed_descr |] |])
+    let out_key = Structure (Sum [| [| Locations.Zone.packed_descr |] |])
+    let key = Structure (Sum [| [| pack in_key |]; [| pack out_key |] |])
+  end
 
   let empty = { in_ctrl = None ;
                 in_params = [] ; in_implicits = [] ;
@@ -295,7 +303,7 @@ module Key = struct
 
   (* type annot_key = Cil_types.code_annotation *)
 
-  type t =
+  type key =
     | SigKey of Signature.t_key
         (** input/output nodes of the function *)
     | VarDecl of Cil_types.varinfo
@@ -348,41 +356,75 @@ module Key = struct
       | _ -> None
 
   (* see PrintPdg.pretty_key : can't be here because it uses Db... *)
-  let pretty fmt k =
+  let pretty_node fmt k =
     let print_stmt fmt s =
       let str =
         match s.skind with
-          | Switch (exp,_,_,_) | If (exp,_,_,_) ->
-              Pretty_utils.sfprintf "%a" ! Ast_printer.d_exp exp
-          | Loop _ -> "while(1)"
-          | Block _ -> "block"
-          | Goto _ | Break _ | Continue _ | Return _ | Instr _ ->
-              Pretty_utils.sfprintf "@[<h 1>%a@]"
-                (Cil.defaultCilPrinter#pStmtKind s) s.skind
-          | UnspecifiedSequence _ -> "unspecified sequence"
-          | TryExcept _ | TryFinally _  -> "ERROR"
-      in Format.fprintf fmt "%s" str
+        | Switch (exp,_,_,_) | If (exp,_,_,_) ->
+          Pretty_utils.sfprintf "%a" ! Ast_printer.d_exp exp
+        | Loop _ -> "while(1)"
+        | Block _ -> "block"
+        | Goto _ | Break _ | Continue _ | Return _ | Instr _ ->
+          Pretty_utils.sfprintf "@[<h 1>%a@]"
+            (Cil.defaultCilPrinter#pStmtKind s) s.skind
+        | UnspecifiedSequence _ -> "unspecified sequence"
+        | TryExcept _ | TryFinally _  -> "ERROR"
+      in
+      Format.fprintf fmt "%s" str
     in
-      match k with
-        | CallStmt call ->
-            let call = call_from_id call in
-              Format.fprintf fmt "Call%d : %a" call.sid print_stmt call
-        | Stmt s ->
-            print_stmt fmt s
-        | Label (_,l) ->
-            Format.fprintf fmt "%a" !Ast_printer.d_label l
-        | VarDecl v ->
-            Format.fprintf fmt "VarDecl : %a" !Ast_printer.d_ident v.vname
-        | SigKey k ->
-            Format.fprintf fmt "%a" Signature.pretty_key k
-        | SigCallKey (call, sgn) ->
-            let call = call_from_id call in
-              Format.fprintf fmt "Call%d-%a : %a"
-                call.sid Signature.pretty_key sgn print_stmt call
-        (* | Annot annot ->
-            Format.fprintf fmt "CodeAnnot-%d : %a@\n"
-              annot.annot_id
-              !Ast_printer.d_code_annotation annot *)
+    match k with
+    | CallStmt call ->
+      let call = call_from_id call in
+      Format.fprintf fmt "Call%d : %a" call.sid print_stmt call
+    | Stmt s ->
+      print_stmt fmt s
+    | Label (_,l) ->
+      Format.fprintf fmt "%a" !Ast_printer.d_label l
+    | VarDecl v ->
+      Format.fprintf fmt "VarDecl : %a" !Ast_printer.d_ident v.vname
+    | SigKey k ->
+      Format.fprintf fmt "%a" Signature.pretty_key k
+    | SigCallKey (call, sgn) ->
+      let call = call_from_id call in
+      Format.fprintf fmt "Call%d-%a : %a"
+        call.sid Signature.pretty_key sgn print_stmt call
+  (* | Annot annot ->
+     Format.fprintf fmt "CodeAnnot-%d : %a@\n"
+     annot.annot_id
+     !Ast_printer.d_code_annotation annot *)
+
+  include Datatype.Make
+	(struct
+	  include Datatype.Serializable_undefined
+	  type t = key
+	  let name = "PdgIndex.Key"
+	  open Cil_datatype
+	  let reprs =
+	    List.fold_left
+	      (fun acc v ->
+		List.fold_left
+		  (fun acc s -> Stmt s :: acc)
+		  (VarDecl v :: acc)
+		  (Type.reprs Stmt.ty))
+	      []
+	      (Type.reprs Varinfo.ty)
+	  open Structural_descr
+	  let structural_descr =
+	    let p_key = pack Signature.Str_descr.key in
+	    Structure
+	      (Sum
+		 [|
+		   [| p_key |];
+		   [| Varinfo.packed_descr |];
+		   [| Stmt.packed_descr |];
+		   [| Stmt.packed_descr |];
+		   [| p_int; Label.packed_descr |];
+		   [| Stmt.packed_descr; p_key |];
+		 |])
+	  let rehash = Datatype.identity
+	  let pretty = pretty_node
+	  let mem_project = Datatype.never_any_project
+	 end)
 
 end
 
@@ -561,12 +603,12 @@ end = struct
     let rec find l = match l with
       | [] ->  raise NotFound
       | (call1, e1) :: tl ->
-          let sid = call.sid in 
+          let sid = call.sid in
           let sid1 = call1.sid in
           if sid = sid1 then e1
           else if sid < sid1 then raise NotFound
           else find tl
-    in 
+    in
     find idx.calls
 
   let find_call_key idx key =
@@ -651,3 +693,9 @@ end = struct
 (*   let fold_implicit_inputs f acc idx =
     Signature.fold_impl_inputs f acc idx.sgn *)
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -1,3 +1,8 @@
+/* run.config_phoare
+  OPT:  -journal-disable -rte -wp -wp-model Hoare -wp-proof alt-ergo -wp-print -wp-verbose 2
+  OPT:  -rte -journal-disable -wp -wp-model Hoare -wp-proof alt-ergo -wp-print -wp-verbose 2
+*/
+
 struct Ts { int a; int b; };
 int G;
 struct Ts S;
@@ -52,14 +57,27 @@ void call_f (void) {
   f (a);
 }
 
-/*@ ensures (T[0] == \old(T[0])); //false
-    ensures (T[1] == \old(T[1])); // false
-    ensures (T[2] == \old(T[2])); //true
+/*@ ensures ko0: (T[0] == \old(T[0])); //false
+    ensures ko1: (T[1] == \old(T[1])); // false
+    ensures ok: (T[2] == \old(T[2])); //true
     */
 void call_f_1 (void) {
   int a = 3;
   X = 0;
   f (a);
+}
+
+//@ assigns T[m..M];
+void array_range (int m, int M);
+
+/*@ ensures ok: (T[1] == \old(T[1]));
+    ensures ko: (T[5] == \old(T[5]));
+    assigns T[2..5];
+*/
+void call_array_range (void) {
+  int i = 2;
+  int j = 5;
+  array_range (i, j);
 }
 
 //------------------------------------------------------------------------------
@@ -106,10 +124,9 @@ void unknown (void) { return; }
 
 // TODO : this test is wrong at the moment !
 /*@
-@ ensures X == \old(X); 
-       // this one is not provable since we don't know whether print modifies X
-@ ensures \result == X;
-       // but this one should be ok...
+@ ensures ko: X == \old(X); 
+   // this one is not provable since we don't know whether [unknown] modifies X
+@ ensures ok: \result == X;
 */
 int call_unknown (void) {
   unknown ();
@@ -130,5 +147,34 @@ int f1 (int x)
 /*@ ensures \result == 1;
  */
 int call_f1 (void)
-  
 { int a = 1 ; return f1(a);}
+
+//------------------------------------------------------------------------------
+// This is to check that the result is processed even if it is not specified.
+
+//@ assigns \nothing;
+int unknown_result (void);
+
+//@ ensures KO : \result == 0;
+int call_unknown_result (void) {
+  int x = 0;
+  x = unknown_result ();
+  return x;
+}
+//------------------------------------------------------------------------------
+// This is to check that the result is correctly processed 
+// even if it is specified in 2 post-conditions.
+
+/*@ assigns \nothing;
+    ensures \result >= 0;
+    ensures \result < 10;
+*/
+int spec2_result (void);
+
+//@ ensures ok : \result < 20;
+int call_spec2_result (void) {
+  int x = 0;
+  x = spec2_result ();
+  return x;
+}
+//------------------------------------------------------------------------------

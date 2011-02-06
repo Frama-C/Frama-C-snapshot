@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -34,7 +34,7 @@ include $(MAKECONFIG_DIR)/Makefile.config
 
 # Frama-C kernel directories
 UNPACKED_DIRS= misc ai memory_state toplevel slicing_types pdg_types \
-	       kernel logic lib project buckx gui
+	       kernel logic lib type project buckx gui
 UNPACKED_DIRS:= $(addprefix src/, $(UNPACKED_DIRS))
 UNPACKED_DIRS+= external
 
@@ -54,14 +54,38 @@ else
 HAS_OCAML311 = no
 endif
 
-FLAGS	= -w Z -warn-error A $(OCAML_ANNOT_OPTION) $(OPTIM)
+ifeq ($(HAS_OCAML311),yes)
+ifeq ($(findstring 3.12,$(OCAMLVERSION)),)
+HAS_OCAML312 = no
+else
+HAS_OCAML312 = yes
+endif
+else
+HAS_OCAML312 = no
+endif
+
+# All warnings are activated by default: this could grow up the chance of
+# compatibility breaks with future versions of the caml compilers.
+# BUT that is only the case of the SVN version
+# since the distrib is not compiled with -warn-error.
+# See BTS #310 and #638.
+ifeq ($(HAS_OCAML312),yes)
+WARNINGS= -w +a-4-6-7-9 # add warning 7 and 9 whenever 3.12 will be mandatory
+else
+WARNINGS= -w Ael
+endif
+
+FLAGS	= $(WARNINGS) $(OCAML_ANNOT_OPTION) $(OPTIM)
 DEBUG	= -g
 
 #############
 # Verbosing #
 #############
 
-ifeq ($(VERBOSEMAKE),yes)
+ifneq ($(VERBOSEMAKE),no) # Do not change to ifeq ($(VERBOSEMAKE),yes), as this
+                          # version makes it easier for the user to set the
+			  # option on the command-line to investigate
+			  # Makefile-related problems
 # ignore the PRINT_* materials but print all the other commands
   PRINT = @true
 # prevent the warning "jobserver unavailable: using -j1".
@@ -74,8 +98,9 @@ else
 # print the PRINT_* materials
   PRINT = @echo
 # but silently execute all the other commands
-  OLDFLAGS:= r $(MAKEFLAGS)
-  MAKEFLAGS := rs $(MAKEFLAGS)
+# fixed bug #637: do not write spaces between flags
+  OLDFLAGS:=r$(MAKEFLAGS)
+  MAKEFLAGS:=rs$(MAKEFLAGS)
 # do not silently execute other makefiles (e.g the one of why):
 # the redefinition of MAKE below is for this purpose
 # but use QUIET_MAKE in order to call silently the initial Makefile
@@ -102,16 +127,18 @@ external_make = \
 
 # prefer to use these commands and not directly "cp" or others
 
+CAT	= cat
+CHMOD	= chmod
+CHMOD_RO= chmod a-w
+CP      = cp -f
 ECHO	= echo
 MKDIR   = mkdir -p
 MV	= mv
-CP      = cp -f
-RM	= rm -f
-CAT	= cat
-SED	= sed
 ISED	= ./bin/sed_inplace
-CHMOD_RO= chmod a-w
+SED	= sed
+RM	= rm -f
 TAR	= tar
+TOUCH	= touch
 
 ###########################
 # Command pretty printing #
@@ -170,8 +197,12 @@ tests/$(1)/%.byte: tests/$(1)/%.cmo $(3:.cmx=.cmo) bin/toplevel.byte$$(EXE)
 	  $$< $$(STARTUP_CMO)
 
 # [JS 2009/05/29] don't use $$(CMX)
-tests/$(1)/%.cmx: tests/$(1)/%.ml $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
-	$$(OCAMLOPT) -c $$(OFLAGS) $$($(1)_TESTS_INCLUDES) $$<
+# [VP 2010/04/22] don't call directly ocamlopt, just refine flags of generic
+# rule, which is chosen by make anyway
+tests/$(1)/%.cmx: OFLAGS+=$$($(1)_TESTS_INCLUDES)
+
+$(patsubst %.ml,%.cmx,$(wildcard tests/$(1)/*.ml tests/$(1)/*/*.ml)): \
+           $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
 
 tests/$(1)/%.cmxs: tests/$(1)/%.ml $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
 	$$(OCAMLOPT) $$(OFLAGS) $$($(1)_TESTS_INCLUDES) -shared -o $$@ $$<
@@ -242,13 +273,14 @@ endif
 	$(PRINT_OCAMLC) $@
 	$(OCAMLC) -c $(BFLAGS) $<
 
-.ml.o:
+%.cmx: %.ml
 	$(PRINT_OCAMLOPT) $@
 	$(OCAMLOPT) -c $(OFLAGS) $<
 
-.ml.cmx:
-	$(PRINT_OCAMLOPT) $@
-	$(OCAMLOPT) -c $(OFLAGS) $<
+# .o are generated together with .cmx, but %.o %.cmx: %.ml only confuses
+# make when computing dependencies...
+%.o: %.cmx
+	:
 
 .ml.cmxs:
 	$(PRINT_PACKING) $@
@@ -258,12 +290,9 @@ endif
 	$(PRINT_OCAMLLEX) $@
 	$(OCAMLLEX) $<
 
-.mly.ml:
+%.mli %.ml: %.mly
 	$(PRINT_OCAMLYACC) $@
 	$(OCAMLYACC) -v $<
-
-%.mli: %.mly %.ml
-	:
 
 .tex.dvi:
 	$(PRINT_LATEX) $@

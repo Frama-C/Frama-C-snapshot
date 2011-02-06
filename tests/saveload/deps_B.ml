@@ -1,27 +1,19 @@
-(*
-  Test on save/load procedure
-  
-  What it does: it add two states with a dependency relations between them.
-  This configuration is saved and restore with a different parent
-  state. This should test the propagation of the reset.
-  A third test verifies a non propagation case.
-
-  Date: 16/07/2008
-  Author: Julien Peeters
-*)
-
-
-module StateABis = 
-  Computation.OptionRef
-    (struct include Datatype.Int let default = 0 end)
-    (struct let name = "Project.Test.StateABis" let dependencies = [] end)
+module StateABis =
+  State_builder.Option_ref
+    (Datatype.Int)
+    (struct
+      let name = "Project.Test.StateABis"
+      let dependencies = []
+      let kind = `Internal
+     end)
 
 module StateB =
-  Computation.OptionRef
-    (struct include Datatype.Bool let default = false end)
-    (struct 
-       let name = "Project.Test.StateB" 
+  State_builder.Option_ref
+    (Datatype.Bool)
+    (struct
+       let name = "Project.Test.StateB"
        let dependencies = [ StateABis.self ]
+       let kind = `Internal
      end)
 
 let () = StateABis.set 10

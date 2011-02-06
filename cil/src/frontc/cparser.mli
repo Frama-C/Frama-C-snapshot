@@ -1,15 +1,16 @@
 type token =
+  | FOR_SPEC of (Cabs.cabsloc * string list * Logic_ptree.spec)
   | SPEC of (Lexing.position * string)
   | DECL of (Logic_ptree.decl list)
   | CODE_ANNOT of (Logic_ptree.code_annot * Cabs.cabsloc)
   | LOOP_ANNOT of (Logic_ptree.code_annot list * Cabs.cabsloc)
   | ATTRIBUTE_ANNOT of (string * Cabs.cabsloc)
-  | IDENT of (string * Cabs.cabsloc)
+  | IDENT of (string)
   | CST_CHAR of (int64 list * Cabs.cabsloc)
   | CST_WCHAR of (int64 list * Cabs.cabsloc)
   | CST_INT of (string * Cabs.cabsloc)
   | CST_FLOAT of (string * Cabs.cabsloc)
-  | NAMED_TYPE of (string * Cabs.cabsloc)
+  | NAMED_TYPE of (string)
   | CST_STRING of (int64 list * Cabs.cabsloc)
   | CST_WSTRING of (int64 list * Cabs.cabsloc)
   | EOF

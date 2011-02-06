@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,76 +24,72 @@ open Cil_types
 open Cil
 open Db_types
 open Db
-open Cilutil
+open Cil_datatype
 
 module Parameters =
   Plugin.Register
     (struct
       let name = "dominators"
       let shortname = "dominators"
-      let descr = "Compute dominators and postdominators of statements"
+      let help = "Compute dominators and postdominators of statements"
     end)
 
 module DomSet = struct
-  type t = Value of Cilutil.StmtSet.t | Top
 
-  let hash _ = assert false
-    (* better no hash function than a hash function as stupid as
-       function Top -> 222222 | Value s -> Cilutil.StmtSet.cardinal s
-       (iterate on all elements AND have so many collisions as to
-       be useless. A WTF-worthy jewel) *)
-
-  let pretty fmt d =
-    match d with
-    | Top ->
-	Format.fprintf fmt "Top"
-    | Value d ->
-	Pretty_utils.pp_list ~pre:"@[{" ~sep:",@," ~suf:"}@]"
-	  (fun fmt s -> Format.fprintf fmt "%d" s.sid)
-	  fmt (StmtSet.elements d)
+  type domset = Value of Stmt.Set.t | Top
 
   let inter a b = match a,b with
     | Top,Top -> Top
     | Value v, Top | Top, Value v -> Value v
-    | Value v, Value v' -> Value (StmtSet.inter v v')
-
-  let equal a b = match a,b with
-    | Top,Top -> true
-    | Value _v, Top | Top, Value _v -> false
-    | Value v, Value v' -> StmtSet.equal v v'
+    | Value v, Value v' -> Value (Stmt.Set.inter v v')
 
   let add v d = match d with
     | Top -> Top
-    | Value d -> Value (StmtSet.add v d)
+    | Value d -> Value (Stmt.Set.add v d)
 
   let mem v = function
     | Top -> true
-    | Value d -> StmtSet.mem v d
+    | Value d -> Stmt.Set.mem v d
 
   let map f = function
     | Top -> Top
     | Value set -> Value (f set)
-end
 
-module Datatype =
-  Project.Datatype.Register
-    (struct
-       type t = DomSet.t
-       let map = DomSet.map
-       let copy = map Cil_datatype.StmtSet.copy
-       let descr = Project.no_descr
-       let name = "postdominator"
-     end)
+  include Datatype.Make
+      (struct
+	include Datatype.Serializable_undefined
+	type t = domset
+	let name = "postdominator"
+	let reprs = Top :: List.map (fun s -> Value s) Stmt.Set.reprs
+	let structural_descr =
+	  Structural_descr.Structure
+	    (Structural_descr.Sum [| [| Stmt.Set.packed_descr |] |])
+	let pretty fmt = function
+	  | Top -> Format.fprintf fmt "Top"
+	  | Value d ->
+	    Pretty_utils.pp_list ~pre:"@[{" ~sep:",@," ~suf:"}@]"
+	      (fun fmt s -> Format.fprintf fmt "%d" s.sid)
+	      fmt (Stmt.Set.elements d)
+	let equal a b = match a,b with
+	  | Top,Top -> true
+	  | Value _v, Top | Top, Value _v -> false
+	  | Value v, Value v' -> Stmt.Set.equal v v'
+	let copy = map Cil_datatype.Stmt.Set.copy
+	let mem_project = Datatype.never_any_project
+       end)
+
+end
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 module Dom =
-  Cil_computation.IntHashtbl
-    (Datatype)
+  Cil_state_builder.Inthash
+    (DomSet)
     (struct
        let name = "dominator"
        let dependencies = [ Ast.self ]
        let size = 503
+       let kind = `Correctness
      end)
 
 module DomComputer = struct
@@ -119,7 +115,7 @@ module DomComputer = struct
 
   let stmt_can_reach _ _ = true
   let filterStmt _stmt = true
-  let doGuard _ _ _ = Dataflow.GDefault
+  let doGuard _ _ _ = Dataflow.GDefault, Dataflow.GDefault
   let doEdge _ _ d = d
 end
 module DomCompute = Dataflow.ForwardsDataFlow(DomComputer)
@@ -139,7 +135,7 @@ let compute_dom kf =
     | Declaration _ -> Parameters.fatal "cannot compute for a leaf function"
     in
     List.iter (fun s -> Dom.add s.sid DomSet.Top) stmts;
-    Dom.replace start.sid (DomSet.Value (StmtSet.singleton start));
+    Dom.replace start.sid (DomSet.Value (Stmt.Set.singleton start));
     DomCompute.compute [start];
     Parameters.feedback "done for function %a"
       Kernel_function.pretty_name kf
@@ -165,12 +161,13 @@ let display_dom () =
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 module PostDom =
-  Cil_computation.IntHashtbl
-    (Datatype)
+  Cil_state_builder.Inthash
+    (DomSet)
     (struct
        let name = "postdominator"
        let dependencies = [ Ast.self ]
        let size = 503
+       let kind = `Internal
      end)
 
 module PostComputer = struct
@@ -185,8 +182,7 @@ module PostComputer = struct
 
   let combineStmtStartData _stmt ~old new_ =
     let result = (* inter old *) new_ in
-    if DomSet.equal result old then None else
-      Some result
+    if DomSet.equal result old then None else Some result
 
   let combineSuccessors = DomSet.inter
 
@@ -194,14 +190,14 @@ module PostComputer = struct
     !Db.progress ();
     Parameters.debug "doStmt : %d" stmt.sid;
     match stmt.skind with
-    | Return _ -> Dataflow.Done (DomSet.Value (StmtSet.singleton stmt))
+    | Return _ -> Dataflow.Done (DomSet.Value (Stmt.Set.singleton stmt))
     | _ -> Dataflow.Post (fun data -> DomSet.add stmt data)
 
   let doInstr _ _ _ = Dataflow.Default
 
   let filterStmt _stmt _next = true
 
-  let funcExitData = DomSet.Value StmtSet.empty
+  let funcExitData = DomSet.Value Stmt.Set.empty
 
 end
 module PostCompute = Dataflow.BackwardsDataFlow(PostComputer)
@@ -271,6 +267,6 @@ let () = Db.Postdominators.print_dot := print_dot_postdom
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

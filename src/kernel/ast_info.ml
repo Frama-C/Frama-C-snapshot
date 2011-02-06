@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,7 +56,7 @@ let value_of_integral_expr e =
     | None -> assert false
     | Some i -> i
 
-let constant_expr i = new_exp (Const(CInt64(i,IInt,None)))
+let constant_expr ~loc i = new_exp ~loc (Const(CInt64(i,IInt,None)))
 
 let rec is_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
@@ -100,7 +100,7 @@ let is_trivial_term v =
 let is_trivial_named_predicate p = is_trivial_predicate p.content
 
 let is_trivial_annotation = function
-  | AAssert (_,a,_) -> is_trivial_named_predicate a
+  | AAssert (_,a) -> is_trivial_named_predicate a
   | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _
   | AAssigns _
 (* | ALoopBehavior _ *)
@@ -121,9 +121,32 @@ let behavior_postcondition b k =
   in
   Logic_const.pimplies (assumes,postcondition)
 
-let merge_assigns l =
-  List.fold_left (fun a b -> Logic_utils.merge_assigns a b.b_assigns) [] l
+let behavior_precondition b =
+  let assumes = Logic_const.pands (List.rev_map Logic_const.pred_of_id_pred b.b_assumes)
+  in
+  let requires =Logic_const.pands (List.rev_map Logic_const.pred_of_id_pred b.b_requires)
+  in
+  Logic_const.pimplies (assumes,requires)
 
+let precondition spec =
+  Logic_const.pands (List.map behavior_precondition spec.spec_behavior)
+
+let merge_assigns (l : funbehavior list) =
+  let unguarded_behaviors =
+    List.filter (fun l -> l.b_assumes = []) l in
+  match unguarded_behaviors with
+    | [] -> (* No unguarded behavior -> assigns evything *) WritesAny
+    | l -> (* Let's check if there is an "assigns everything" *)
+	if List.exists (fun b -> b.b_assigns=WritesAny) l then WritesAny
+	else match l with
+	  | [{b_assigns=r}] -> r
+	  | {b_name=n;b_assigns=r}::_ ->
+	      Cil.warn "keeping only assigns of behavior %s" n;
+	      r
+	  | [] -> assert false
+(*
+    List.fold_left (fun a b -> Logic_utils.merge_assigns a b.b_assigns) [] l
+*)
 let variable_term loc v =
   {
     term_node = TLval(TVar v,TNoOffset);
@@ -173,14 +196,6 @@ let lift_annot_list_func f l =
   let l' = List.fold_left add [] l in
   f (List.rev l')
 
-module Datatype_Annotation =
-  Project.Datatype.Imperative
-    (struct
-       type t = rooted_code_annotation before_after
-       let copy _ = assert false (* TODO *)
-       let name = "rooted_code_annotation before_after"
-     end)
-
 (* ************************************************************************** *)
 (** {2 Statements} *)
 (* ************************************************************************** *)
@@ -190,23 +205,6 @@ let is_loop_statement s = match s.skind with Loop _ -> true | _ -> false
 let get_sid s = match s with
   | Kglobal -> assert false
   | Kstmt s -> s.sid
-
-(** Returns the location of a [Cil_types.stmt].
-    In case of a [Block] returns the location of its first localized
-    statement.*)
-let rec loc_stmt s = match s.skind with
-| Instr i -> get_instrLoc i
-| Block {bstmts=s::_} | UnspecifiedSequence ((s,_,_,_)::_) -> loc_stmt s
-| Return (_,location)
-| Goto (_,location)
-| Break location
-| Continue location
-| If (_,_,_,location)
-| Switch (_,_,_,location)
-| Loop (_,_, location,_,_)
-| TryFinally (_,_,location)
-| TryExcept (_,_,_,location) -> location
-| Block {bstmts=[]} | UnspecifiedSequence [] -> locUnknown
 
 let mkassign lv e loc = Set(lv,e,loc)
 
@@ -306,19 +304,19 @@ let is_cea_function name =
   (String.length name >= 4 &&
     name.[0] = 'C' && name.[1] = 'E' &&
       name.[2] = 'A' && name.[3] = '_') ||
-    ((String.length name >= 18) &&
-	( (String.sub name 0 18) = "Frama_C_show_each_"))
+    ((String.length name >= 17) &&
+	( (String.sub name 0 17) = "Frama_C_show_each"))
 
-let is_cea_alloc name = name = "Frama_C_alloc_infinite"
 let is_cea_alloc_with_validity name = name = "Frama_C_alloc_size"
 let is_cea_dump_function name = name = "CEA_DUMP" || name = "Frama_C_dump_each"
 
 let is_frama_c_builtin n =
   is_cea_dump_function n ||
     is_cea_function n ||
-    is_cea_alloc n ||
-    is_cea_alloc_with_validity n 
-     
+    is_cea_alloc_with_validity n
+
+let () = Cil.add_special_builtin_family is_frama_c_builtin
+
 (*
 Local Variables:
 compile-command: "make -C ../.."

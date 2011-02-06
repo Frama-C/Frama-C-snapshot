@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -46,7 +46,13 @@ module Mode : sig
   module SliceUndef: Plugin.BOOL
   module KeepAnnotations: Plugin.BOOL
 end
-  
+
+(** @since Carbon-20101202+dev *)
+module ProjectName: Plugin.STRING
+ 
+(** @since Carbon-20101202+dev *)
+module ExportedProjectPostfix: Plugin.STRING 
+
 module Print: Plugin.BOOL
   
 val is_on: unit -> bool

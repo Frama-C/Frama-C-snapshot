@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -115,7 +115,7 @@ end = struct
   let is_top m = (m = top)
 
   (** Total order over the marks. Used only for sorting... *)
-  let compare m1 m2 = Pervasives.compare m1 m2
+  let compare : t -> t -> int = T.compare_mark
 
   let is_included m1 m2 =
      match m1,m2 with
@@ -205,7 +205,7 @@ module MarkPair = struct
   let is_spare m = 
     not (is_bottom m) && not (is_ctrl m || is_addr m || is_data m)
 
-  let compare m1 m2 = Pervasives.compare m1 m2
+  let compare = T.compare_pdg_mark
 
   let is_included ma mb = 
     (Mark.is_included ma.T.m1 mb.T.m1) && (Mark.is_included ma.T.m2 mb.T.m2)

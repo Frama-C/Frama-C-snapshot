@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 open Locations
 
-type t =
+type tt =
     { deps_return : Lmap_bitwise.From_Model.LOffset.t;
       deps_table : Lmap_bitwise.From_Model.t }
 
@@ -62,17 +62,36 @@ let equal
   Lmap_bitwise.From_Model.equal dt dt'
   && Lmap_bitwise.From_Model.LOffset.equal dr dr'
 
-module Datatype =
-  Project.Datatype.Register
+include Datatype.Make
     (struct
-       type tt = t
-       type t = tt
-       open Lmap_bitwise
-       let copy _ = assert false (* TODO: deep copy *)
-       let descr =
-	 Unmarshal.t_record
-	   [| Lmap_bitwise.From_Model.LOffset.Datatype.descr;
-	      Lmap_bitwise.From_Model.Datatype.descr |]
-       let name = "function_froms"
+      type t = tt
+      let reprs =
+	List.fold_left
+	  (fun acc o ->
+	    List.fold_left
+	      (fun acc m -> { deps_return = o; deps_table = m } :: acc)
+	      acc
+	      Lmap_bitwise.From_Model.reprs)
+	  []
+	  Lmap_bitwise.From_Model.LOffset.reprs
+      let structural_descr =
+	Structural_descr.t_record
+	  [| Lmap_bitwise.From_Model.LOffset.packed_descr;
+	     Lmap_bitwise.From_Model.packed_descr |]
+       let name = "Function_Froms"
+       let hash = hash
+       let compare = Datatype.undefined
+       let equal = equal
+       let pretty = pretty
+       let internal_pretty_code = Datatype.undefined
+       let rehash = Datatype.identity
+       let copy = Datatype.undefined
+       let varname = Datatype.undefined
+       let mem_project = Datatype.never_any_project
      end)
-let () = Datatype.register_comparable ~equal ~hash ()
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

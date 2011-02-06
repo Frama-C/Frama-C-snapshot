@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,15 +20,21 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Cil_types
+
 (** [Filter] helps to build a new [cilfile] from an old one by removing some of
  * its elements. One can even build several functions from a source function
  * by specifying different names for each of them.
  * *)
 
-
 (** Signature of a module that decides which element of a function
  * have to be visible or not *)
 module type T_RemoveInfo = sig
+
+  (** exception that fun_assign_visible should raise to indicate that 
+      the corresponding assigns clause should be erased entirely
+   *)
+  exception EraseAssigns
 
   (** some type for the whole project information *)
   type t_proj
@@ -45,7 +51,7 @@ module type T_RemoveInfo = sig
   * source function. If if is not the case, you can return [varinfo.vname].
   * It is the responsibility of the user to given different names to different
   * function. *)
-  val fct_name : Cil_types.varinfo -> t_fct -> string
+  val fct_name : varinfo -> t_fct -> string
 
   (** tells if the n-th formal parameter is visible. *)
   val param_visible : t_fct -> int -> bool
@@ -56,23 +62,31 @@ module type T_RemoveInfo = sig
   val body_visible : t_fct -> bool
 
   (** tells if the local variable is visible. *)
-  val loc_var_visible : t_fct -> Cil_types.varinfo -> bool
+  val loc_var_visible : t_fct -> varinfo -> bool
 
   (** tells if the statement is visible. *)
-  val inst_visible : t_fct -> Cil_types.stmt -> bool
+  val inst_visible : t_fct -> stmt -> bool
 
   (** tells if the label is visible. *)
-  val label_visible : t_fct -> Cil_types.stmt -> Cil_types.label -> bool
+  val label_visible : t_fct -> stmt -> label -> bool
 
   (** tells if the annotation, attached to the given statement
       (before when the flag is true, after otherwise) is visible. *)
-  val annotation_visible: t_fct -> Cil_types.stmt -> before:bool ->
-                          Cil_types.code_annotation -> bool
+  val annotation_visible: t_fct -> stmt -> before:bool ->
+                          code_annotation -> bool
 
-  val fun_precond_visible : t_fct -> Cil_types.predicate -> bool
-  val fun_postcond_visible : t_fct -> Cil_types.predicate -> bool
-  val fun_variant_visible : t_fct -> Cil_types.term -> bool
-  val fun_assign_visible : t_fct -> Cil_types.identified_term Cil_types.assigns -> bool
+  val fun_precond_visible : t_fct -> predicate -> bool
+  val fun_postcond_visible : t_fct -> predicate -> bool
+  val fun_variant_visible : t_fct -> term -> bool
+
+  val fun_assign_visible : t_fct -> identified_term from -> bool
+    (** true if the assigned value (first component of the from) is visible 
+        @raise EraseAssigns to indicate that the corresponding assigns clause
+        should be erased entirely (i.e. assigns everything. If it were to
+        just return false to all elements, this would result in assigns \nothing
+     *)
+  val fun_deps_visible : t_fct -> identified_term -> bool
+    (** true if the corresponding functional dependency is visible. *)
 
   (** [called_info] will be called only if the call statement is visible.
   * If it returns [None], the source call will be visible,
@@ -80,11 +94,11 @@ module type T_RemoveInfo = sig
   * arguments are visible.
   * The input [t_fct] parameter is the one of the caller function.
   * *)
-  val called_info : t_proj * t_fct -> Cil_types.stmt ->
+  val called_info : t_proj * t_fct -> stmt ->
                     (Db_types.kernel_function * t_fct) option
 
   (** tells if the lvalue of the call has to be visible *)
-  val res_call_visible : t_fct -> Cil_types.stmt -> bool
+  val res_call_visible : t_fct -> stmt -> bool
 
   (** tells if the function returns something or if the result is [void].
   * Notice that if this function returns [true] the function will have the same
@@ -108,3 +122,9 @@ module F (Info : T_RemoveInfo) : sig
   val build_cil_file : string ->  Info.t_proj -> Project.t
 
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

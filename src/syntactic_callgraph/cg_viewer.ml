@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ let ($) f x = f x
 
 type service_id = int
 
-module Model = DGraphModel.Make(Service.TP)
+module View = DGraphContainer.Make(Service.TP)
 
 class ['v, 'e, 'c] services_view view = object (self)
 
@@ -117,18 +117,14 @@ class ['v, 'e, 'c] services_view view = object (self)
 end
 
 (* Constructor copied from dGraphView *)
-let services_view ~packing model =
-  let scroll =
-    GBin.scrolled_window ~packing ~hpolicy:`AUTOMATIC ~vpolicy:`AUTOMATIC ()
-  in
+let services_view model =
   let delay_node v = not v.Service.is_root in
   let delay_edge e = match Service.CallG.E.label e with
     | Service.Inter_services | Service.Both -> false
     | Service.Inter_functions -> true
   in
-  let view =
-    DGraphView.view ~packing:scroll#add ~aa:true ~delay_node ~delay_edge model
-  in
+  let view = View.GView.view ~aa:true ~delay_node ~delay_edge model in
+  view#set_zoom_padding 0.025;
   (* not very nice *)
   ignore (new services_view view);
   view#connect_highlighting_event ();
@@ -138,7 +134,6 @@ let services_view ~packing model =
 let graph_window (main_window: Design.main_window_extension_points) =
   let graph = Register.get () in
   try
-    let model = Model.from_graph graph in
     let parent = main_window#main_window in
     let height = int_of_float (float parent#default_height *. 3. /. 4.) in
     let width = int_of_float (float parent#default_width *. 3. /. 4.) in
@@ -148,15 +143,21 @@ let graph_window (main_window: Design.main_window_extension_points) =
 	~height ~width ~title:"Syntactic Callgraph"
 	~allow_shrink:true ~allow_grow:true ()
     in
-    let view = services_view ~packing:window#add model in
+    let _, view =
+      View.from_graph_with_commands
+	~packing:window#add
+	~root:(Service.entry_point ())
+	~mk_global_view:services_view
+	graph
+    in
     window#show ();
-    view#adapt_zoom () (* require that the window is displayed for working *)
+    view#adapt_zoom ()
   with DGraphModel.DotError cmd ->
     main_window#error "%s failed\n" cmd
 
 let main (window: Design.main_window_extension_points) =
   ignore
-    (window#menu_manager#add_plugin
+    ((window#menu_manager ())#add_plugin
        [ Menu_manager.Menubar(None, "Show callgraph"),
 	 (fun () -> graph_window window) ])
 

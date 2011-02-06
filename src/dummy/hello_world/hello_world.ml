@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ module Self =
     (struct
        let name = "Hello world"
        let shortname = "hello"
-       let descr = "The famous 'Hello world' plugin"
+       let help = "The famous 'Hello world' plugin"
      end)
 
 (** Register the new Frama-C option "-hello". *)
@@ -41,7 +41,8 @@ module Enabled =
   Self.False
     (struct
        let option_name = "-hello"
-       let descr = "pretty print \"Hello world!\""
+       let help = "pretty print \"Hello world!\""
+       let kind = `Correctness
      end)
 
 let print () = Self.result "Hello world!"
@@ -49,14 +50,14 @@ let print () = Self.result "Hello world!"
 (** The code below is not mandatory: you can ignore it in a first reading. It
     provides an API for the plug-in, so that the function [run] is callable by
     another plug-in and journalized: first, each plug-in can call [Dynamic.get
-    "Hello.run" (Type.func Type.unit Type.unit)] in order to call [run]
+    "Hello.run" (Datatype.func Datatype.unit Datatype.unit)] in order to call [run]
     and second, each call to [run] is written in the Frama-C journal. *)
 let print =
   Dynamic.register
     ~plugin:"Hello"
     "run"
     ~journalize:true
-    (Type.func Type.unit Type.unit)
+    (Datatype.func Datatype.unit Datatype.unit)
     print
 
 (** Print 'Hello World!' whenever the option is set. *)

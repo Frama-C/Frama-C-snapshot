@@ -4,8 +4,8 @@ int find(const int* a, int n, int val)
   /*@
     loop assigns i;
     loop invariant 0 <= i <= n;
-    loop variant n-i;
     loop invariant \forall int k; 0 <= k < i ==> a[k] != val;
+    loop variant n-i;
    */
   for (int i = 0; i < n; i++)
     if (a[i] == val)
@@ -54,8 +54,8 @@ int find_first_of(const int* a, int m, const int* b, int n)
 {
   /*@
      loop invariant 0 <= i <= m;
-     loop variant m-i;
      loop invariant !found_first_of(a, i, b, n);
+     loop variant m-i;
   */
   for(int i = 0; i < m; i++)
      if (find(b, n, a[i]) < n)

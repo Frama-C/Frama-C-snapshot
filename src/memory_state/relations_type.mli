@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,26 +28,29 @@ open Abstract_value
 
 exception Use_Main_Memory
   (** To be raised whenever we need to fall back to value analysis *)
+type tt
 
 module type Model_S = sig
 
   (** {3 Datatypes} *)
 
-  type t
+  include Datatype.S
   type widen_hint = Cvalue_type.Model.widen_hint
   type cluster
-  module Datatype : Project.Datatype.S with type t = t
 
   (** {3 ...} *)
 
   val is_reachable : t -> bool
-  val pretty : Format.formatter -> t -> unit
+  val pretty_c_assert : Format.formatter -> t -> unit
   val pretty_without_null : Format.formatter -> t -> unit
   val pretty_filter :
     Format.formatter -> t -> Zone.t -> (Base.t -> bool) -> unit
   val join : t -> t -> t
 
-  val find : with_alarms:CilE.warn_mode -> t -> location -> Location_Bytes.t
+  val find :
+    conflate_bottom:bool ->
+    with_alarms:CilE.warn_mode -> t -> location -> Location_Bytes.t
+
   val find_unspecified : with_alarms:CilE.warn_mode -> t -> location ->
     Cvalue_type.V_Or_Uninitialized.t
 
@@ -58,18 +61,19 @@ module type Model_S = sig
 
   val reduce_binding : t -> location -> Location_Bytes.t -> t
   val is_included : t -> t -> bool
-  val equal : t -> t -> bool
   val is_included_actual_generic :
-    Zone.t -> t -> t -> Locations.Location_Bytes.t BaseUtils.BaseMap.t
+    Zone.t -> t -> t -> Location_Bytes.t Base.Map.t
   val widen : widen_hint -> t -> t -> (bool * t)
   val bottom : t
   val inject : Cvalue_type.Model.t -> t
-  val empty : t
+  val empty_map : t
+  val top : t
   val is_top: t -> bool
   val value_state : t -> Cvalue_type.Model.t
 
   val drop_relations : t -> t
   val filter_base : (Base.t -> bool) -> t -> t
+  val remove_base : Base.t -> t -> t
   val clear_state_from_locals : Cil_types.fundec -> t -> t
   val uninitialize_locals: Cil_types.block list -> t -> t
 
@@ -123,13 +127,15 @@ module type Model_S = sig
     Int.t -> t -> Cvalue_type.V_Offsetmap.t
     (** @raise Lmap.Cannot_copy when copying is not possible. *)
 
-  val copy_offsetmap :
+  val copy_offsetmap : with_alarms:CilE.warn_mode ->
     Locations.location -> t -> Cvalue_type.V_Offsetmap.t option
-    (** @raise Lmap.Cannot_copy when copying is not possible. *)
+
+  val comp_prefixes: t -> t -> unit
+  val find_prefix : t -> Hptmap.prefix -> Cvalue_type.Model.subtree option
 
 end
 
-module Model : Model_S
+module Model : Model_S with type t = Cvalue_type.Model.t * tt
 
 (*
 Local Variables:

@@ -133,11 +133,11 @@ let rec simpl_cond e =
   | UnOp(LNot,{enode = BinOp(LAnd,e1,e2,t1)},t2) ->
       let e1 = simpl_cond (dummy_exp (UnOp(LNot,e1,t1))) in
       let e2 = simpl_cond (dummy_exp (UnOp(LNot,e2,t1))) in
-      new_exp (BinOp(LOr,e1,e2,t2))
+      new_exp ~loc:e.eloc (BinOp(LOr,e1,e2,t2))
   | UnOp(LNot,{enode = BinOp(LOr,e1,e2,t1)},t2) ->
       let e1 = simpl_cond (dummy_exp (UnOp(LNot,e1,t1))) in
       let e2 = simpl_cond (dummy_exp (UnOp(LNot,e2,t1))) in
-      new_exp (BinOp(LAnd,e1,e2,t2))
+      new_exp ~loc:e.eloc (BinOp(LAnd,e1,e2,t2))
   | UnOp(LNot,{enode = UnOp(LNot,e,_)},_) -> simpl_cond e
   | _ -> e
 
@@ -151,7 +151,7 @@ let get_loop_condition b =
   (* stm list -> stm list *)
   let rec skipEmpty = function
     | [] -> []
-    | {skind = Instr (Skip _); labels = []}::rest ->
+    | { skind = Instr (Skip _); labels = []}::rest ->
 	skipEmpty rest
     | x -> x
   in
@@ -167,44 +167,51 @@ let get_loop_condition b =
 	(match tsl, fsl with
 	  {skind = Break _} :: _, [] -> Some e
 	| [], {skind = Break _} :: _ ->
-	    Some(new_exp (UnOp(LNot, e, intType)))
+	    Some(new_exp ~loc:e.eloc (UnOp(LNot, e, intType)))
 	| ({skind = If(_,_,_,_)} as s) :: _, [] ->
 	    let teo = get_cond_from_if s in
 	    (match teo with
 	      None -> None
 	    | Some te ->
-		Some(new_exp (BinOp(LAnd,e,EC.stripNopCasts te,intType))))
+		Some(new_exp ~loc:e.eloc 
+                       (BinOp(LAnd,e,EC.stripNopCasts te,intType))))
 	| [], ({skind = If(_,_,_,_)} as s) :: _ ->
 	    let feo = get_cond_from_if s in
 	    (match feo with
 	      None -> None
 	    | Some fe ->
-		Some(new_exp(BinOp(LAnd,new_exp (UnOp(LNot,e,intType)),
+		Some(new_exp ~loc:e.eloc (BinOp(LAnd,
+                                   new_exp ~loc:e.eloc (UnOp(LNot,e,intType)),
 			           EC.stripNopCasts fe,intType))))
 	| {skind = Break _} :: _, ({skind = If(_,_,_,_)} as s):: _ ->
 	    let feo = get_cond_from_if s in
 	    (match feo with
 	      None -> None
 	    | Some fe ->
-		Some(new_exp(BinOp(LOr,e,EC.stripNopCasts fe,intType))))
+		Some(new_exp
+                       ~loc:e.eloc 
+                       (BinOp(LOr,e,EC.stripNopCasts fe,intType))))
 	| ({skind = If(_,_,_,_)} as s) :: _, {skind = Break _} :: _ ->
 	    let teo = get_cond_from_if s in
 	    (match teo with
 	      None -> None
 	    | Some te ->
-		Some(new_exp(BinOp(LOr,new_exp (UnOp(LNot,e,intType)),
-			           EC.stripNopCasts te,intType))))
-	| ({skind = If(_,_,_,_)} as ts) :: _ , ({skind = If(_,_,_,_)} as fs) :: _ ->
+		Some(new_exp ~loc:e.eloc 
+                       (BinOp(LOr, new_exp ~loc:e.eloc (UnOp(LNot,e,intType)),
+			      EC.stripNopCasts te,intType))))
+	| ({skind = If(_,_,_,_)} as ts) :: _ , 
+            ({skind = If(_,_,_,_)} as fs) :: _ ->
 	    let teo = get_cond_from_if ts in
 	    let feo = get_cond_from_if fs in
 	    (match teo, feo with
 	      Some te, Some fe ->
-		Some(new_exp
+		Some(new_exp ~loc:e.eloc
                        (BinOp(LOr,
-                              new_exp
+                              new_exp ~loc:e.eloc
                                 (BinOp(LAnd,e,EC.stripNopCasts te,intType)),
-			      new_exp
-                                (BinOp(LAnd,new_exp (UnOp(LNot,e,intType)),
+			      new_exp ~loc:e.eloc
+                                (BinOp(LAnd,new_exp ~loc:e.eloc 
+                                  (UnOp(LNot,e,intType)),
 				       EC.stripNopCasts fe,intType)),
                               intType)))
 	    | _,_ -> None)
@@ -280,16 +287,16 @@ class zraCilPrinterClass : cilPrinter = object (self)
        match rhso with
 	 Some(Call(_,e,el,l)) ->
 	   (* print a call instead of a temp variable *)
-	   let oldpit = super#getPrintInstrTerminator() in
-	   let _ = super#setPrintInstrTerminator "" in
+	   let oldpit = super#getPrintCil_datatype.InstrTerminator() in
+	   let _ = super#setPrintCil_datatype.InstrTerminator "" in
 	   let opc = !printComments in
 	   let _ = printComments := false in
 	   let c = match unrollType (typeOf e) with
 	     TFun(rt,_,_,_) when not (Cilutil.equals (typeSig rt) (typeSig v.vtype)) ->
 	       text "(" ++ self#pType None () v.vtype ++ text ")"
 	   | _ -> nil in
-	   let d = self#pInstr () (Call(None,e,el,l)) in
-	   let _ = super#setPrintInstrTerminator oldpit in
+	   let d = self#pCil_datatype.Instr () (Call(None,e,el,l)) in
+	   let _ = super#setPrintCil_datatype.InstrTerminator oldpit in
 	   let _ = printComments := opc in
 	   c ++ d
        | _ ->

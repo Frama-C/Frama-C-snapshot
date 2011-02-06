@@ -1,22 +1,3 @@
-
-/* run.config
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof none
-   OPT:  -journal-disable -wp -wp-model Hoare -wp-proof none
-*/ 
-
-/* run.config_ergo
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof alt-ergo
-*/
-
-/* run.config_z3
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof z3
-*/
-
-/* run.config_simplify
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof simplify
-*/
-
-
 /* 
    kind : Positive
    model name : Store ; bhv : Provable
@@ -61,11 +42,11 @@ int adjacent_find(int* a, int n)
   if (0 == n) return n;
 
   /*@
-     loop assigns \nothing;
+     loop assigns i;
      loop invariant 0 <= i < n;
-     loop   variant n-i;
      loop invariant !adjacent_found(a, i);
      loop invariant 0 < i ==> a[i-1] != a[i];
+     loop variant n-i;
   */
   for (int i = 0; i < n-1; i++)
      if (a[i] == a[i+1])

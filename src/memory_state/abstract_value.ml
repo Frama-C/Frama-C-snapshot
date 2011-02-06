@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,9 @@ module Unhashconsed_Int_Intervals = struct
       | None ->
           Cil_types.TArray
 	    (Cil_types.TInt(Cil_types.IUChar,[]),
-             Some (Cil.kinteger64 Cil_types.IULongLong 922337203685477580L
+             Some (Cil.kinteger64 
+                     ~loc:(Cil.CurrentLoc.get ()) 
+                     Cil_types.IULongLong 922337203685477580L
                      (* See Cuoq for rational *)),
              Cil.empty_size_cache (),
              [])
@@ -132,11 +134,10 @@ end
 
 module Int_Intervals = struct
 
-  type t =
+  type tt =
     { h:int;
       v: Unhashconsed_Int_Intervals.t;
       tag:int }
-  type tt = t
 
   type widen_hint = Unhashconsed_Int_Intervals.widen_hint
 
@@ -146,7 +147,6 @@ module Int_Intervals = struct
   let tag { tag=tag } = tag
 
   let pretty_debug fmt x = Unhashconsed_Int_Intervals.pretty fmt x.v
-
   let pretty = pretty_debug
 
   let hash_internal {h=h} = h
@@ -166,10 +166,8 @@ module Int_Intervals = struct
 	 let id = name
        end)
 
-  let table = IntIntervalsHashtbl.create 1379
+  let table = IntIntervalsHashtbl.create 139
   let current_tag = ref 0 ;;
-
-  let hash x = x.h
 
   let wrap x =
     let tag = !current_tag in
@@ -182,17 +180,37 @@ module Int_Intervals = struct
     if result == new_i then current_tag := succ tag;
     result
 
-  let rehash x =
-(*    wrap x.v*)
-    let tag = !current_tag in
-    let new_i =
-      { h = Unhashconsed_Int_Intervals.hash x.v;
-        v = x.v;
-        tag = tag}
-    in
-    let result = IntIntervalsHashtbl.merge table new_i in
-    if result == new_i then current_tag := succ tag;
-    result
+(* initial values go here *)
+  let top = wrap Unhashconsed_Int_Intervals.top
+  let bottom = wrap Unhashconsed_Int_Intervals.bottom
+(* end of initial values *)
+
+
+  (* Purely for implementation purposes, nothing to do with the ordering
+     induced by the underlying lattice *)
+  let compare i1 i2 = Datatype.Int.compare i1.tag i2.tag
+
+  include
+    Datatype.Make
+      (struct
+	 type t = tt
+	 let structural_descr =
+	   Structural_descr.t_record
+	     [| Structural_descr.p_int;
+		Unhashconsed_Int_Intervals.packed_descr;
+		Structural_descr.p_int |]
+	 let reprs = [ top; bottom ]
+	 let name = "Abstract_value.Int_Intervals"
+	 let compare = compare
+	 let equal = ( == )
+	 let copy = Datatype.undefined
+	 let hash x = x.h
+	 let rehash x = wrap x.v
+	 let internal_pretty_code = Datatype.undefined
+	 let pretty = pretty
+	 let varname = Datatype.undefined
+	 let mem_project = Datatype.never_any_project
+       end)
 
   let fold_enum ~split_non_enumerable f v acc =
     Unhashconsed_Int_Intervals.fold_enum ~split_non_enumerable f v.v acc
@@ -213,14 +231,6 @@ module Int_Intervals = struct
   let join x y = wrap (Unhashconsed_Int_Intervals.join x.v y.v)
   let narrow x y = wrap (Unhashconsed_Int_Intervals.narrow x.v y.v)
   let widen wh x y = wrap (Unhashconsed_Int_Intervals.widen wh x.v y.v)
-
-  let equal x y = x == y
-
-(* initial values go here *)
-  let top = wrap Unhashconsed_Int_Intervals.top
-  let bottom = wrap Unhashconsed_Int_Intervals.bottom
-
-(* end of initial values *)
 
 (*
  THERE IS ONLY ONE HASHCONSING TABLE FOR Int_intervals.
@@ -266,23 +276,10 @@ module Int_Intervals = struct
   let inject_bounds b e =
     wrap (Unhashconsed_Int_Intervals.inject_bounds b e)
 
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = tt
-	 let descr =
-	   Unmarshal.Transform
-	     (Unmarshal.Abstract,
-	     fun o -> let x : tt = Obj.obj o in Obj.repr (rehash x))
-	 let copy _ = assert false (* TODO *)
-	 let name = "Int_Intervals"
-       end)
-  let () = Datatype.register_comparable ~hash ~equal ()
-
 end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

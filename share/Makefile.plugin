@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2010                                               #
+#  Copyright (C) 2007-2011                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -82,6 +82,10 @@
 # PLUGIN_NO_DEFAULT_TEST Set it to a non-empty value if you don't want the
 # 	tests of your plugin to be executed systematically by make tests
 #
+# PLUGIN_INTERNAL_TEST Set it to a non-empty value if the tests of the plugin
+# are in Frama-C's tests directory and not a tests subdirectory of the plugin
+# (internal use only, obsolete and not recommanded way to handle tests)
+#
 # Distribution
 # ------------
 # PLUGIN_DISTRIBUTED should the plugin be included in the distribution (yes/no)
@@ -134,6 +138,11 @@ $(PLUGIN_NAME)_TYPES_TODOC:=$(PLUGIN_TYPES_TODOC)
 PLUGIN_TYPES_CMO_LIST += $(PLUGIN_TYPES_CMO)
 PLUGIN_TYPES_CMX_LIST += $(PLUGIN_TYPES_CMX)
 
+# [VP] don't exactly know why, but make has a tendency to add a
+# spurious space at the beginning of PLUGIN_BASE. Fortunately, $(strip )
+# is behaving correctly.
+PLUGIN_BASE:=$(strip $(if $(notdir $(PLUGIN_DIR)),$(notdir $(PLUGIN_DIR)),\
+$(notdir $(patsubst %/,%,$(PLUGIN_DIR)))))
 ################
 # distribution #
 ################
@@ -144,14 +153,14 @@ PLUGIN_DISTRIBUTED_LIST += $(wildcard $(patsubst %.cmo,%.ml, $(PLUGIN_TYPES_CMO)
 endif
 PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_DIR)/*.ml*
 ifeq ($(PLUGIN_HAS_EXT_DOC),yes)
-PLUGIN_EXT_DOC_DIR:=doc/$(notdir $(PLUGIN_DIR))
-PLUGIN_DIST_DOC_LIST += doc/plugins/$(notdir $(PLUGIN_DIR)).pdf
-$(PLUGIN_EXT_DOC_DIR)/$(notdir $(PLUGIN_DIR)).pdf:
+PLUGIN_EXT_DOC_DIR:=doc/$(PLUGIN_BASE)
+PLUGIN_DIST_DOC_LIST += doc/plugins/$(PLUGIN_BASE).pdf
+$(PLUGIN_EXT_DOC_DIR)/$(PLUGIN_BASE).pdf:
 	$(PRINT_MAKING) $@
 	$(MAKE) -C $(dir $@)
 
-doc/plugins/$(notdir $(PLUGIN_DIR)).pdf: \
-   $(PLUGIN_EXT_DOC_DIR)/$(notdir $(PLUGIN_DIR)).pdf
+doc/plugins/$(PLUGIN_BASE).pdf: \
+   $(PLUGIN_EXT_DOC_DIR)/$(PLUGIN_BASE).pdf
 	$(PRINT_CP) $<
 	$(MKDIR) doc/plugins
 	$(CP) $< $@
@@ -171,14 +180,14 @@ PLUGIN_OPT:=`echo "$(PLUGIN_NAME)" | tr 'A-Z' 'a-z' `
 ifeq ("$(PLUGIN_DISTRIB_BIN)","yes")
 CONFIG_DISTRIB_BIN += "--enable-$(PLUGIN_OPT)"
 ifeq ("$(PLUGIN_HAS_EXT_DOC)","yes")
-PLUGIN_BIN_DOC_LIST+=doc/plugins/$(notdir $(PLUGIN_DIR)).pdf
+PLUGIN_BIN_DOC_LIST+=doc/plugins/$(PLUGIN_BASE).pdf
 endif
 else
 CONFIG_DISTRIB_BIN += "--disable-$(PLUGIN_OPT)"
 endif
 
 # Export some variables which can be safely used outside/inside Makefile.plugin
-# even if the plug-in is not enable
+# even if the plug-in is not enabled
 $(PLUGIN_NAME)_DIR:=$(PLUGIN_DIR)
 
 ifneq ("$(PLUGIN_ENABLE)","no")
@@ -485,7 +494,7 @@ PLUGIN_DOC_SRC := $(filter-out $(PLUGIN_UNDOC), \
 
 $(PLUGIN_NAME)_DOC_SRC:= $(PLUGIN_DOC_SRC)
 
-PLUGIN_DOC_DIR := $(DOC_DIR)/$(notdir $(PLUGIN_DIR))
+PLUGIN_DOC_DIR := $(DOC_DIR)/$(PLUGIN_BASE)
 $(PLUGIN_NAME)_DOC_DIR:= $(PLUGIN_DOC_DIR)
 
 $(PLUGIN_NAME)_INTRO:=$(PLUGIN_INTRO)
@@ -578,7 +587,7 @@ $(PLUGIN_DOC_DIR)/metrics.html : $(PLUGIN_DOC_SRC)
 ifneq ("$(PLUGIN_ENABLE)","no")
 ifndef PLUGIN_NO_TEST
 ifndef PLUGIN_TESTS_DIRS
-PLUGIN_TESTS_DIRS:=$(notdir $(PLUGIN_DIR))
+PLUGIN_TESTS_DIRS:=$(PLUGIN_BASE)
 endif
 endif
 
@@ -587,7 +596,9 @@ PLUGIN_TESTS_DIRS_DEFAULT:=$(PLUGIN_TESTS_DIRS)
 endif
 
 ifndef PLUGIN_NO_DEFAULT_TEST
+ifdef PLUGIN_INTERNAL_TEST
 PLUGIN_TESTS_LIST += $(PLUGIN_TESTS_DIRS_DEFAULT)
+endif
 endif
 
 $(PLUGIN_NAME)_TESTS_DIRS:=$(PLUGIN_TESTS_DIRS)
@@ -634,7 +645,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI
 	    $($(patsubst %_DEP,%_gui_MLI, $(basename $(notdir $@))))\
 	    $(foreach d, $($(basename $(notdir $@))FLAGS_TEST), -I $d $d/*.ml $d/*.mli) \
               > $(dir $@).depend
-	touch $@
+	$(TOUCH) $@
 	$(CHMOD_RO) $(dir $@).depend
 # touch above = Do not recompute dependances each times
 
@@ -644,7 +655,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI
 
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
-	$(PRINT_RM) $(dir $@)
+	$(PRINT_RM) $(patsubst %_CLEAN, %, $(notdir $@))
 	if test "$(FRAMAC_MAKE)" = "yes"; then \
           $(RM) $(dir $@).depend; \
         fi
@@ -657,9 +668,8 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC $($(PLUGIN_NAME)_DOC_DIR)
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
-	$(PRINT_RM) documentation of $(dir $@)
+	$(PRINT_RM) documentation of  $(patsubst %_CLEAN_DOC, %, $(notdir $@))
 	$(RM) -r $<
-	$(PRINT_RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
 	$(RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
 
 # Global lists seen in Makefile.in
@@ -724,7 +734,7 @@ endif
 PLUGIN_INTERNAL_CMO_LIST += $(PLUGIN_CMO)
 PLUGIN_INTERNAL_CMX_LIST += $(PLUGIN_CMX)
 PLUGIN_DOC_LIST += $(PLUGIN_NAME)_DOC
-PLUGIN_DOC_DIRS += $(notdir $(PLUGIN_DIR))
+PLUGIN_DOC_DIRS += $(PLUGIN_BASE)
 
 ifeq ($(PLUGIN_DISTRIBUTED),yes)
 PLUGIN_DISTRIBUTED_NAME_LIST += $(PLUGIN_NAME)
@@ -777,6 +787,7 @@ PLUGIN_LINK_BFLAGS:=
 PLUGIN_LINK_OFLAGS:=
 PLUGIN_EXTRA_BYTE:=
 PLUGIN_EXTRA_OPT:=
+PLUGIN_INTERNAL_TEST:=
 endif
 
 ###############################################################################

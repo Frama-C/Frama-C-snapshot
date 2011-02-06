@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -63,9 +63,16 @@ let load_ya_file f  =
     let (automata,auto_vars,auto_funs) = Yalexer.parse c  in
     close_in c;
     Data_for_aorai.setAutomata automata auto_vars auto_funs;
-  with Not_found ->
-    Aorai_option.fatal "Problem with file : %s\n" f
-
+  with
+      Not_found ->
+        Aorai_option.fatal "Problem with file : %s\n" f
+    | Yalexer.Error (loc,msg) ->
+        Aorai_option.abort
+          "File %S, line %d, characters %d-%d:@\nError: %s"
+          (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
+          ((fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
+          ((snd loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
+          msg
 
 let load_promela_file f  =
   try
@@ -141,67 +148,55 @@ let init_file_names () =
   (* The output C file has to be a valid file name if it is used. *)
   output_c_file := (Aorai_option.Output_C_File.get ()) ;
   if (!output_c_file="") then output_c_file:=freshname ((Filename.chop_extension !c_file)^"_annot") ".c";
-(*   else if Sys.file_exists !output_c_file then dispErr "already exists" !output_c_file; *)
+  (*   else if Sys.file_exists !output_c_file then dispErr "already exists" !output_c_file; *)
 
   if Aorai_option.Dot.get () then
     dot_file:=freshname (Filename.chop_extension !c_file) ".dot";
 
   if Aorai_option.Ya.get () = "" then
-    if Aorai_option.Buchi.get () = "" then
-      begin
-	(* ltl_file name is given and has to point out a valid file. *)
-	ltl_file := Aorai_option.Ltl_File.get ();
-	if (!ltl_file="") then dispErr ": invalid LTL file name" !ltl_file;
-	if (not (Sys.file_exists !ltl_file)) then dispErr "not found" !ltl_file;
+    if Aorai_option.Buchi.get () = "" then begin
+      (* ltl_file name is given and has to point out a valid file. *)
+      ltl_file := Aorai_option.Ltl_File.get ();
+      if (!ltl_file="") then dispErr ": invalid LTL file name" !ltl_file;
+      if (not (Sys.file_exists !ltl_file)) then dispErr "not found" !ltl_file;
 
-	(* The LTL file is always used. *)
-	(* The promela file can be given or not. *)
-	if Aorai_option.To_Buchi.get () <> "" then
-	  begin
-	    ltl_tmp_file:=
-	      freshname
-		(Filename.chop_extension
-		   (Aorai_option.promela_file ())) ".ltl";
-	    promela_file:= Aorai_option.promela_file ();
-  	    toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
-	  end
-	else
-	  begin
-	    ltl_tmp_file:=
-	      Extlib.temp_file_cleanup_at_exit
-		(Filename.basename !c_file) ".ltl";
-	    promela_file:=
-	      freshname (Filename.chop_extension !ltl_tmp_file) ".promela";
-	    toBeRemoved:=(!promela_file)::!toBeRemoved;
-  	    toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
-	  end
+      (* The LTL file is always used. *)
+      (* The promela file can be given or not. *)
+      if Aorai_option.To_Buchi.get () <> "" then begin
+	ltl_tmp_file:=
+	  freshname
+	  (Filename.chop_extension
+	     (Aorai_option.promela_file ())) ".ltl";
+	promela_file:= Aorai_option.promela_file ();
+  	toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
+      end else begin
+	ltl_tmp_file:=
+	  Extlib.temp_file_cleanup_at_exit
+	  (Filename.basename !c_file) ".ltl";
+	promela_file:=
+	  freshname (Filename.chop_extension !ltl_tmp_file) ".promela";
+	toBeRemoved:=(!promela_file)::!toBeRemoved;
+  	toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
       end
-    else
-      begin
-	if Aorai_option.To_Buchi.get () <> "" &&
-	  Aorai_option.Ltl_File.get () <> ""
-	then begin
-	  Aorai_option.error "Error. '-buchi' option is incompatible with '-to-buchi' and '-ltl' options.";
-	  err:=true
-	end;
-
-	(* The promela file is used only if the process does not terminate after LTL generation. *)
-	promela_file := Aorai_option.promela_file ();
-      end
-  else
-    begin
-      ya_file := Aorai_option.Ya.get ();
-      if (!ya_file="") then dispErr ": invalid Ya file name" !ya_file;
-      if (not (Sys.file_exists !ya_file)) then dispErr "not found" !ya_file
-    end;
-
-  if Globals.has_entry_point () then begin
-    let ep,_ =Globals.entry_point () in
-    root := Kernel_function.get_name ep
-  end else
-    Aorai_option.abort
-      "The file '%s' does not have any entry point. Generation stopped"
-      !c_file;
+    end else begin
+      if Aorai_option.To_Buchi.get () <> "" &&
+	Aorai_option.Ltl_File.get () <> ""
+      then begin
+	Aorai_option.error
+	  "Error. '-buchi' option is incompatible with '-to-buchi' and '-ltl' \
+options.";
+	err:=true
+      end;
+      (* The promela file is used only if the process does not terminate after
+	 LTL generation. *)
+      promela_file := Aorai_option.promela_file ();
+    end
+  else begin
+    ya_file := Aorai_option.Ya.get ();
+    if (!ya_file="") then dispErr ": invalid Ya file name" !ya_file;
+    if (not (Sys.file_exists !ya_file)) then dispErr "not found" !ya_file
+  end;
+  root := Kernel_function.get_name (fst (Globals.entry_point ()));
   display_status ();
   !err
 
@@ -232,7 +227,7 @@ let run () =
       File.create_project_from_visitor "aorai"
 	(fun prj -> new Visitor.frama_c_copy prj)
     in
-    Project.copy ~only:(Plugin.get_selection ()) prj;
+    Project.copy ~selection:(Plugin.get_selection ()) prj;
     Project.set_current prj;
     let file = Ast.get () in
     Aorai_utils.initFile file;
@@ -273,6 +268,8 @@ let run () =
 	(* Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata());  *)
 	(* Data_for_aorai.debug_ltl_expressions (); *)
 
+(*let _ = Path_analysis.test (Data_for_aorai.getAutomata())in*)
+
 
 	if (Aorai_option.Axiomatization.get()) then
 	  begin
@@ -298,7 +295,6 @@ let run () =
 	      printverb "    Forward/backward abstract specification        : skiped\n";
 
 	    (*	(display_operations_spec ());*)
-
 
             Bycase_ai.init_specification();
 	    if (Aorai_option.advance_abstract_interpretation ())
@@ -370,6 +366,11 @@ let run () =
 	  end;
 
 
+	(* Step 8 : Updating succs and preds fields in stmts *)
+	Cfg.clearFileCFG ~clear_id:false file;
+	Cfg.computeFileCFG file;
+
+
 	(* Step 9 : Generating resulting files *)
 	(* Dot file *)
 	if (Aorai_option.Dot.get()) then
@@ -409,7 +410,7 @@ let run =
   Dynamic.register
     ~plugin:"Aorai"
     "run"
-    (Type.func Type.unit Type.unit)
+    (Datatype.func Datatype.unit Datatype.unit)
     ~journalize:true
     run
 

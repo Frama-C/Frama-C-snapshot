@@ -59,7 +59,7 @@ end
 module IS =
   Set.Make(struct
     type t = int
-    let compare = Pervasives.compare
+    let compare = Datatype.Int.compare
   end)
 
 let debug = RD.debug
@@ -439,15 +439,15 @@ let check_form s f =
         let frmlen = String.length sfx in
         let slen = String.length s in
         slen >= frmlen &&
-        compare (String.sub s (slen - frmlen) frmlen) sfx = 0
+        String.compare (String.sub s (slen - frmlen) frmlen) sfx = 0
     | Prefix pfx ->
         let frmlen = String.length pfx in
         String.length s >= frmlen &&
-        compare (String.sub s 0 frmlen) pfx = 0
+        String.compare (String.sub s 0 frmlen) pfx = 0
     | Exact ext ->
         let frmlen = String.length ext in
         String.length s = frmlen &&
-        compare s ext = 0
+        String.compare s ext = 0
 
 (* check a name against a list of forms
    if it matches any then return true *)
@@ -487,7 +487,7 @@ let varXformClass action data sid fd nofrm = object
           { e with enode = Lval(Mem e', off')}
       | _ -> e
       in
-      ChangeDoChildrenPost(new_exp (Lval(Mem e', off)), post)
+      ChangeDoChildrenPost(new_exp ~loc:e.eloc (Lval(Mem e', off)), post)
   | _ -> DoChildren
 
 end
@@ -514,12 +514,12 @@ let lvalXformClass action data sid fd nofrm = object
             let post e =
               match e.enode with
               | Lval(Mem({enode = Const _}),off') ->
-                  new_exp (Lval(Mem e', off'))
+                  new_exp ~loc:e.eloc (Lval(Mem e', off'))
               | _ -> stripCastsDeepForPtrArith e
             in
-            ChangeDoChildrenPost(new_exp (Lval(Mem e', off)), post)
+            ChangeDoChildrenPost(new_exp ~loc:e.eloc (Lval(Mem e', off)), post)
         | Some e ->
-            let newt = typeOf(new_exp(Lval lv)) in
+            let newt = typeOf(new_exp ~loc:e.eloc (Lval lv)) in
             let e'' = mkCast ~e ~newt in
             ChangeDoChildrenPost(e'', castrm)
     end
@@ -678,7 +678,7 @@ let ae_tmp_to_const eh _sid vi _fd nofrm =
     try begin let e = IH.find eh vi.vid in
     match e.enode with Const c -> begin
       ae_tmp_to_const_change := true;
-      Some(new_exp (Const c)) end
+      Some(new_exp ~loc:e.eloc (Const c)) end
     | _ -> None end
     with Not_found -> None
   else None
@@ -698,7 +698,7 @@ let tmp_to_const iosh sid vi fd nofrm =
         match defido with None -> None | Some defid ->
           match time "getDefRhs" getDefRhs defid with
             None -> None
-          | Some(RD.RDExp({enode = Const c}), _, defiosh) ->
+          | Some(RD.RDExp({enode = Const c;eloc=loc}), _, defiosh) ->
               (match RD.getDefIdStmt defid with
                 None -> (Cilmsg.fatal "tmp_to_const: defid has no statement")
               | Some(stm) ->
@@ -720,7 +720,8 @@ let tmp_to_const iosh sid vi fd nofrm =
                       | _ -> false) ios
                   in
                   if same
-                  then (tmp_to_const_change := true; Some(new_exp (Const c)))
+                  then (tmp_to_const_change := true; 
+                        Some(new_exp ~loc (Const c)))
                   else None
               else None)
           | _ -> None
@@ -993,7 +994,7 @@ class unusedRemoverClass : cilVisitor = object(self)
   method vstmt stm =
 
     (* return the list of pairs with fst = f *)
-    let findf_in_pl f pl =
+    let findf_in_pl f (pl : (int * int) list)  =
       List.filter (fun (fst,_snd) ->
         if fst = f then true else false)
         pl
@@ -1089,7 +1090,7 @@ class unusedRemoverClass : cilVisitor = object(self)
         let newil' = List.map call_fixer newil in*)
         stm.skind <-
           Instr (if good_instr il then call_fixer il
-                 else Skip Cilutil.locUnknown);
+                 else Skip Cil_datatype.Location.unknown);
         SkipChildren
     | _ -> DoChildren
 

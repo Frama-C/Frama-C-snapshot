@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -26,24 +26,27 @@ include Plugin.Register
   (struct
      let name = "sparecode"
      let shortname = "sparecode"
-     let descr = "code cleaner"
+     let help = "code cleaner"
    end)
 
 module Analysis =
   False(struct
           let option_name = "-sparecode-analysis"
-          let descr = "perform a spare code analysis"
+          let help = "perform a spare code analysis"
+          let kind = `Tuning
         end)
 
 module Annot =
   True(struct
          let option_name = "-sparecode-annot"
-         let descr = "select more things to keep every reachable annotation"
+         let help = "select more things to keep every reachable annotation"
+          let kind = `Correctness
        end)
 
 module GlobDecl =
   False(struct
           let option_name = "-rm-unused-globals"
-          let descr = ("only remove unused global types and variables "^
+          let help = ("only remove unused global types and variables "^
                        "(automatically done by -sparecode-analysis)")
+          let kind = `Correctness
         end)

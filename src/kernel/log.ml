@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,7 +93,7 @@ let stdout = {
   lock = Ready ;
   delayed = [] ;
   output = Pervasives.output Pervasives.stdout ;
-  flush =  (fun () -> Pervasives.flush Pervasives.stdout); 
+  flush =  (fun () -> Pervasives.flush Pervasives.stdout);
 }
 
 let set_output = set_terminal stdout
@@ -113,7 +113,7 @@ let lock_terminal t =
     t.lock <- Locked ;
     Format.make_formatter t.output t.flush
   end
-  
+
 let unlock_terminal t fmt =
   if is_ready t then
     failwith "Console can not be unlocked" ;
@@ -143,11 +143,11 @@ let delayed_terminal terminal =
   let d = ref (Delayed terminal) in
   let d_output d text k n =
     match !d with
-      | Delayed t -> 
+      | Delayed t ->
 	  t.lock <- Locked ;
 	  d := Formatter( t.output , t.flush ) ;
 	  t.output text k n
-      | Formatter(out,_) -> 
+      | Formatter(out,_) ->
 	  out text k n
   in
   let d_flush d () =
@@ -216,7 +216,7 @@ let append buffer text k n =
   if n > 0 then
     append_text buffer text k n
 
-let new_buffer () = 
+let new_buffer () =
   let buffer = {
     formatter = null ;
     text = String.create min_buffer ;
@@ -231,7 +231,7 @@ let reduce_buffer buffer =
 
 let bprintf buffer fmt = Format.fprintf buffer.formatter fmt
 
-let contents buffer = 
+let contents buffer =
   let p = trim_begin buffer in
   let q = trim_end buffer in
   if p <= q then String.sub buffer.text p (q+1-p) else ""
@@ -275,7 +275,7 @@ let rec echo_lines output text prefix p q =
 	echo_line output prefix text p (t+1-p) ;
 	echo_lines output text (next_line prefix) (t+1) q ;
       end
-      
+
 let echo_source output = function
   | None -> ()
   | Some src ->
@@ -303,8 +303,9 @@ let do_echo terminal source prefix text p q =
 (* --- Channels                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let current_loc = ref (fun () -> raise Exit)
+let current_loc = ref (fun () -> raise Not_found)
 let set_current_source cloc = current_loc := cloc
+let get_current_source () = !current_loc ()
 
 type emitter = {
   mutable listeners : (event -> unit) list ;
@@ -333,8 +334,8 @@ let nth_kind = function
 
 let all_kinds = [| Result ; Feedback ; Debug ; Error ; Warning ; Failure |]
 
-let () = Array.iteri 
-  (fun i k -> assert (i == nth_kind k)) 
+let () = Array.iteri
+  (fun i k -> assert (i == nth_kind k))
   all_kinds
 
 (* -------------------------------------------------------------------------- *)
@@ -355,7 +356,7 @@ let get_emitters plugin =
   with Not_found ->
     let e = new_emitters () in
     Hashtbl.replace all_channels plugin (NotCreatedYet e) ; e
-  
+
 
 let new_channel plugin =
   let create_with_emitters plugin emitters =
@@ -372,7 +373,7 @@ let new_channel plugin =
     match Hashtbl.find all_channels plugin with
       | Created c -> c
       | NotCreatedYet ems -> create_with_emitters plugin ems
-  with Not_found -> 
+  with Not_found ->
     let ems = new_emitters () in
     create_with_emitters plugin ems
 
@@ -400,8 +401,8 @@ let iter_kind ?kind f ems =
 
 let iter_plugin ?plugin ?kind f =
   match plugin with
-    | None -> 
-	Hashtbl.iter 
+    | None ->
+	Hashtbl.iter
 	  (fun _ s ->
 	     match s with
 	       | Created c -> iter_kind ?kind f c.emitters
@@ -429,10 +430,10 @@ let open_buffer c =
   if c.stack > 0 then
     ( c.stack <- succ c.stack ; new_buffer () )
   else
-    ( c.stack <- 1 ; 
-      c.locked_buffer.pos <- 0 ; 
+    ( c.stack <- 1 ;
+      c.locked_buffer.pos <- 0 ;
       c.locked_buffer )
-      
+
 let close_buffer c =
   if c.stack > 1 then
     c.stack <- pred c.stack
@@ -501,7 +502,7 @@ let logwith c ~kind ~prefix ~source ~append ~echo f text =
        with e ->
 	 close_buffer c ;
 	 raise e
-    ) buffer.formatter text  
+    ) buffer.formatter text
 
 let finally_raise e _ = raise e
 let finally_false _ = false
@@ -511,9 +512,9 @@ let finally_do f e = f (Lazy.force e)
 (* --- Messages Interface                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-type 'a pretty_printer = 
-    ?current:bool -> ?source:source -> 
-    ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool -> 
+type 'a pretty_printer =
+    ?current:bool -> ?source:source ->
+    ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
     ?append:(Format.formatter -> unit) ->
     ('a,formatter,unit) format -> 'a
 
@@ -524,8 +525,8 @@ type ('a,'b) pretty_aborter =
 
 let get_prefix kind text = function
   | Some p -> p
-  | None -> Label 
-      begin 
+  | None -> Label
+      begin
 	match kind with
 	  | Result | Debug | Feedback -> Printf.sprintf "[%s] " text
 	  | Warning -> Printf.sprintf "[%s] warning: " text
@@ -536,11 +537,11 @@ let get_prefix kind text = function
 let get_source current = function
   | None -> if current then Some (!current_loc ()) else None
   | Some _ as s -> s
-    
+
 let log_channel channel
     ?(kind=Result) ?prefix
-    ?(current=false) ?source 
-    ?emitwith ?(echo=true) ?(once=false) 
+    ?(current=false) ?source
+    ?emitwith ?(echo=true) ?(once=false)
     ?append
     text =
   logtext channel ~kind
@@ -549,10 +550,10 @@ let log_channel channel
     ~once ?emitwith ~echo ?append
     text
 
-let with_log_channel channel f 
-    ?(kind=Result) ?prefix 
-    ?(current=false) ?source ?(echo=true) 
-    ?append 
+let with_log_channel channel f
+    ?(kind=Result) ?prefix
+    ?(current=false) ?source ?(echo=true)
+    ?append
     text =
   logwith channel ~kind
     ~prefix:(get_prefix kind channel.plugin prefix)
@@ -566,11 +567,11 @@ let echo e =
       | Created c ->
 	  let n = String.length e.evt_message in
 	  let prefix = get_prefix e.evt_kind e.evt_plugin None in
-	  do_echo c.terminal e.evt_source prefix e.evt_message 0 n
+	  do_echo c.terminal e.evt_source prefix e.evt_message 0 (n-1)
   with Not_found ->
-    let msg = 
+    let msg =
       Format.sprintf "[unknown channel %s]:%s"
-	e.evt_plugin e.evt_message 
+	e.evt_plugin e.evt_message
     in failwith msg
 
 (* ------------------------------------------------------------------------- *)
@@ -628,24 +629,24 @@ struct
   let prefix_failure = Label (Printf.sprintf "[%s] failure: " label)
 
   let prefix_for = function
-    | Result | Feedback | Debug -> 
+    | Result | Feedback | Debug ->
 	if debug_atleast 1 then prefix_all else prefix_first
     | Error -> prefix_error
     | Warning -> prefix_warning
     | Failure -> prefix_failure
 
   let internal_register_tag_handlers _c (_ope,_close) = ()
-    (* BM->LOIC: I need to keep this code around to be able to handle 
+    (* BM->LOIC: I need to keep this code around to be able to handle
        marks ands tags correctly.
-       Do you think we can emulate all other features of Log but without 
+       Do you think we can emulate all other features of Log but without
        using c.buffer at all?
        Everything but ensure_unique_newline seems feasible.
        See Design.make_slash to see a usefull example.
 
        let start_of_line= Printf.sprintf "\n[%s] " P.label in
        let length= pred (String.length start_of_line) in
-       Format.pp_set_all_formatter_output_functions c.formatter 
-       ~out:c.term.output 
+       Format.pp_set_all_formatter_output_functions c.formatter
+       ~out:c.term.output
        ~flush:c.term.flush
        ~newline:(fun () -> c.term.output start_of_line 0 length)
        ~spaces:(fun _ ->  ()(*TODO:correct margin*))
@@ -660,7 +661,7 @@ struct
        mark_close_tag = close}
     *)
 
-  let register_tag_handlers h = 
+  let register_tag_handlers h =
     internal_register_tag_handlers channel h
 
   let to_be_log verbose debug =
@@ -669,15 +670,15 @@ struct
       | v , 0 -> verbose_atleast v
       | 0 , d -> debug_atleast d
       | v , d -> verbose_atleast v || debug_atleast d
-	
+
   let log ?(kind=Result)
       ?(verbose=0) ?(debug=0)
-      ?(current=false) ?source 
-      ?emitwith ?(echo=true) ?(once=false) 
+      ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false)
       ?append
       text =
     if to_be_log verbose debug then
-      logtext channel 
+      logtext channel
 	~kind
 	~prefix:(prefix_for kind)
 	~source:(get_source current source)
@@ -686,11 +687,11 @@ struct
     else nullprintf text
 
   let result
-      ?(level=1) ?(current=false) ?source 
+      ?(level=1) ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     if verbose_atleast level then
-      logtext channel 
-	~kind:Result 
+      logtext channel
+	~kind:Result
 	~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
 	~source:(get_source current source)
 	~once ?emitwith ~echo ?append
@@ -698,11 +699,11 @@ struct
     else nullprintf text
 
   let feedback
-      ?(level=1) ?(current=false) ?source 
+      ?(level=1) ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     if verbose_atleast level then
-      logtext channel 
-	~kind:Feedback 
+      logtext channel
+	~kind:Feedback
 	~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
 	~source:(get_source current source)
 	~once ?emitwith ~echo ?append
@@ -710,11 +711,11 @@ struct
     else nullprintf text
 
   let debug
-      ?(level=1) ?(current=false) ?source 
+      ?(level=1) ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     if debug_atleast level then
-      logtext channel 
-	~kind:Feedback 
+      logtext channel
+	~kind:Feedback
 	~prefix:prefix_all
 	~source:(get_source current source)
 	~once ?emitwith ~echo ?append
@@ -722,9 +723,9 @@ struct
     else nullprintf text
 
   let warning
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-    logtext channel 
+    logtext channel
       ~kind:Warning
       ~prefix:(Label (Printf.sprintf "[%s] warning: " label))
       ~source:(get_source current source)
@@ -732,91 +733,91 @@ struct
       text
 
   let error
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-    logtext channel 
+    logtext channel
       ~kind:Error ~prefix:prefix_error
       ~source:(get_source current source)
       ~once ?emitwith ~echo ?append
       text
 
   let abort
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind:Error ~prefix:prefix_error
       ~source:(get_source current source)
-      ~echo ?append 
+      ~echo ?append
       (finally_raise (AbortError P.channel))
       text
 
   let failure
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-    logtext channel 
+    logtext channel
       ~kind:Failure ~prefix:prefix_failure
       ~source:(get_source current source)
       ~once ?emitwith ~echo ?append
       text
 
   let fatal
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind:Failure ~prefix:prefix_failure
       ~source:(get_source current source)
-      ~echo ?append 
+      ~echo ?append
       (finally_raise (AbortFatal P.channel))
       text
 
   let verify assertion
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
     if assertion then
       Format.kfprintf (fun _ -> true) null text
     else
-      logwith channel 
+      logwith channel
 	~kind:Failure ~prefix:prefix_failure
 	~source:(get_source current source)
 	~echo ?append finally_false text
 
   let with_result f
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind:Result
       ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
       ~source:(get_source current source)
       ~echo ?append (finally_do f) text
 
   let with_warning f
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind:Warning ~prefix:prefix_warning
       ~source:(get_source current source)
       ~echo ?append (finally_do f) text
 
   let with_error f
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind:Error ~prefix:prefix_error
       ~source:(get_source current source)
       ~echo ?append (finally_do f) text
 
   let with_failure f
-      ?(current=false) ?source 
+      ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind:Failure ~prefix:prefix_failure
       ~source:(get_source current source)
       ~echo ?append (finally_do f) text
 
-  let with_log f 
-      ?(kind=Result) ?(current=false) ?source 
+  let with_log f
+      ?(kind=Result) ?(current=false) ?source
       ?(echo=true) ?append text =
-    logwith channel 
+    logwith channel
       ~kind
       ~prefix:(prefix_for kind)
       ~source:(get_source current source)
@@ -826,18 +827,18 @@ struct
     let em = channel.emitters.(nth_kind kd) in
     em.listeners <- em.listeners @ [f]
 
-  let not_yet_implemented text = 
+  let not_yet_implemented text =
     let buffer = Buffer.create 80 in
-    let finally fmt = 
-      Format.pp_print_flush fmt (); 
+    let finally fmt =
+      Format.pp_print_flush fmt ();
       let msg = Buffer.contents buffer in
       raise (FeatureRequest(channel.plugin,msg)) in
     let fmt = Format.formatter_of_buffer buffer in
     Format.kfprintf finally fmt text
 
   let deprecated name ~now f x =
-    warning ~once:true 
-      "Call to deprecated function '%s'.\nShould use '%s' instead."
+    warning ~once:true
+      "call to deprecated function '%s'.\nShould use '%s' instead."
       name now ;
     f x
 

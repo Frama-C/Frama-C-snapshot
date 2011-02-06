@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,11 +22,11 @@
 
 let version () =
   if Parameters.PrintVersion.get () then begin
-    Log.print_on_output "Version: %s
-Compilation date: %s
-Share path: %s (may be overridden with FRAMAC_SHARE variable)
-Library path: %s (may be overridden with FRAMAC_LIB variable)
-Plug-in paths: %t(may be overriden with FRAMAC_PLUGIN variable)@."
+    Log.print_on_output "Version: %s@\n\
+Compilation date: %s@\n\
+Share path: %s (may be overridden with FRAMAC_SHARE variable)@\n\
+Library path: %s (may be overridden with FRAMAC_LIB variable)@\n\
+Plug-in paths: %t(may be overridden with FRAMAC_PLUGIN variable)@."
       Config.version Config.date Config.datadir Config.libdir
       (fun fmt -> List.iter (fun s -> Format.fprintf fmt "%s " s)
 	 (Dynamic.default_path ()));
@@ -83,7 +83,7 @@ let save_binary () =
   if filename <> "" then begin
     Parameters.SaveState.clear ();
     try Project.save_all filename
-    with Project.IOError s -> 
+    with Project.IOError s ->
       Kernel.error "problem while saving to file %s (%s)." filename s
  end
 let () = at_exit save_binary
@@ -100,7 +100,7 @@ let load_binary () =
 let () = Cmdline.run_after_loading_stage load_binary
 
 let () =
-  Cmdline.at_normal_exit 
+  Cmdline.at_normal_exit
     (fun _ -> match Parameters.Files.get () with
      | [] -> ()
      | _ :: _ -> Ast.compute ())

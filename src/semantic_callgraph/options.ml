@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ include
     (struct
        let name = name
        let shortname = "scg"
-       let descr = "semantic stratified callgraph"
+       let help = "semantic stratified callgraph"
      end)
 
 module Filename =
@@ -35,8 +35,9 @@ module Filename =
     (struct
        let option_name = "-scg"
        let arg_name = "filename"
-       let descr = "dump the semantic stratified callgraph to the file \
+       let help = "dump the semantic stratified callgraph to the file \
 <filename> in dot format"
+       let kind = `Tuning
      end)
 
 module InitFunc =
@@ -44,11 +45,14 @@ module InitFunc =
     (struct
        let option_name = "-scg-init-func"
        let arg_name = ""
-       let descr = "use the given functions as a root service for the scg (you can add as many comma-separated functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
+       let help = "use the given functions as a root service for the scg \
+(you can add as many comma-separated functions as you want; if no function is \
+declared, then root services are initialized with functions with no callers)"
+       let kind = `Correctness
      end)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

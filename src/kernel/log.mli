@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,13 +46,29 @@ type 'a pretty_printer =
     ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
     ?append:(Format.formatter -> unit) ->
     ('a,formatter,unit) format -> 'a
-  (** @since Beryllium-20090601-beta1 *)
+  (**
+      Generic type for the various logging channels which are not aborting
+      Frama-C.
+      - When [current] is [false] (default for most of the channels),
+     no location is output. When it is [true], the last registred location
+     is used as current (see {!Cil_const.CurrentLoc}).
+     - [source] is the location to be output. If nil, [current] is used to
+     determine if a location should be output
+     - [emitwith] function which is called each time an event is processed
+     - [echo] is [true] if the event should be output somewhere in addition
+     to [stdout]
+     - [append] adds some actions performed on the formatter after the event
+     has been processed.
+     @since Beryllium-20090601-beta1 *)
 
 type ('a,'b) pretty_aborter =
     ?current:bool -> ?source:source -> ?echo:bool ->
     ?append:(Format.formatter -> unit) ->
     ('a,formatter,unit,'b) format4 -> 'a
-  (** @since Beryllium-20090601-beta1 *)
+  (** @since Beryllium-20090601-beta1
+      Same as {!Log.pretty_printer} except that channels having this type
+      denote a fatal error aborting Frama-C.
+   *)
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Exception Registry}
@@ -255,6 +271,8 @@ val kernel_label_name: string
 
 val set_current_source : (unit -> source) -> unit
   (** @since Beryllium-20090601-beta1 *)
+
+val get_current_source : unit -> source
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Terminal interface}

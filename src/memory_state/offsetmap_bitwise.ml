@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,19 +27,19 @@ type itv = Int.t * Int.t
 
 module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) =
 struct
+
   open Abstract_interp
 
   module V_bool = struct
-    type t = bool * V.t
+    include Datatype.Pair(Datatype.Bool)(V)
     let hash (b,v) =
       let h = V.tag v in
       if b then h else 100000 + h
-    let descr = Unmarshal.t_tuple [| Unmarshal.Abstract; V.Datatype.descr |]
   end
 
   module M = Int_Interv_Map.Make(V_bool)
 
-  type t = Map of M.t | Degenerate of V.t
+  type tt = Map of M.t | Degenerate of V.t
 
   let tag x = match x with
     | Degenerate v -> 571 + V.tag v
@@ -49,13 +49,9 @@ struct
 
   let degenerate v = Degenerate v
 
-
   let equal_map mm1 mm2 =
-    ( try
-	M.equal
-          (fun (bx,x) (by,y) -> (bx = by) && V.equal x y )
-          mm1 mm2
-      with Int_Interv.Cannot_compare_intervals -> false )
+    try M.equal mm1 mm2
+    with Int_Interv.Cannot_compare_intervals -> false
 
   let equal m1 m2 =
     match m1, m2 with
@@ -64,6 +60,21 @@ struct
     | Map mm1, Map mm2 ->
 	equal_map mm1 mm2
     | Map _, Degenerate _ | Degenerate _, Map _ -> false
+
+  let compare =
+    if V.compare == Datatype.undefined || M.compare == Datatype.undefined then (
+      Kernel.debug "Missing comparison function for %s offsetmap_bitwise \
+          (%b, %b)"V.name
+        (V.compare == Datatype.undefined) (M.compare == Datatype.undefined);
+      Datatype.undefined)
+    else
+      fun m1 m2 ->
+        if m1 == m2 then 0
+        else match m1, m2 with
+          | Map m1, Map m2 -> M.compare m1 m2
+          | Degenerate v1, Degenerate v2 -> V.compare v1 v2
+          | Map _, Degenerate _ -> -1
+          | Degenerate _, Map _ -> 1
 
   let pretty_with_type typ fmt m =
     match m with
@@ -83,8 +94,10 @@ struct
 			  ~start:bi ~stop:ei fmt)
           in
 	  if !first then first := false else Format.fprintf fmt "@," ;
-          Format.fprintf fmt "@[%a FROM @[%a@](and default:%b)@]"
-	    pp_left typ V.pretty v default
+          Format.fprintf fmt "@[%a FROM @[%a@]%s@]"
+	    pp_left typ V.pretty v
+            (if default then " (and SELF)" else "")
+            
 	in
 	Format.fprintf fmt "@[<v>";
 	M.iter (pretty_binding fmt) m;
@@ -92,20 +105,29 @@ struct
 
   let pretty = pretty_with_type None
 
-  let name = Project.Datatype.extend_name "offsetmap_bitwise" V.Datatype.name
-
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 let name = name
-	 type tt = t = Map of M.t | Degenerate of V.t
-	 type t = tt
-	 let copy x = x (* immutable datatype *)
-	 open Unmarshal
-	 let descr =
-	   Structure (Sum [| [| M.descr |]; [| V.Datatype.descr |] |])
-       end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ()
+  include Datatype.Make
+  (struct
+    type t = tt
+    let name = V.name ^ " offsetmap_bitwise"
+    let structural_descr =
+      Structural_descr.Structure
+	(Structural_descr.Sum [| [| M.packed_descr |]; [| V.packed_descr |] |])
+    let reprs =
+      List.fold_left
+	(fun acc m -> Map m :: acc)
+	(List.map (fun v -> Degenerate v) V.reprs)
+	M.reprs
+    let equal = equal
+    let hash = tag
+    let compare = compare
+    let pretty = pretty
+    let internal_pretty_code = Datatype.undefined
+    let rehash = Datatype.identity
+    let copy = Datatype.undefined
+    let varname = Datatype.undefined
+    let mem_project = Datatype.never_any_project
+   end)
+  let () = Type.set_ml_name ty None
 
   let is_empty m =
     match m with
@@ -447,7 +469,7 @@ struct
 	and in_in_or_out (b1,_e1 as i1) v1 m1  (b2,_e2 as i2) v2 m2 acc =
 	    (*Format.printf "in_in_or_out: b1=%a e1=%a b2=%a e2=%a@\n"
 	     Int.pretty b1 Int.pretty e1 Int.pretty b2 Int.pretty e2;*)
-          (if Int.eq b1 b2 then in_in else (assert (Int.lt b1 b2);in_out))
+          (if Int.equal b1 b2 then in_in else (assert (Int.lt b1 b2);in_out))
             i1 v1 m1 i2 v2 m2 acc
 	and in_or_out_in (b1,_e1 as i1) v1 m1  (b2,_e2 as i2) v2 m2 acc =
 	   (*Format.printf "in_or_out_in: b1=%a e1=%a b2=%a e2=%a@\n"
@@ -455,7 +477,7 @@ struct
 	     Int.pretty e1
 	     Int.pretty b2
 	     Int.pretty e2;*)
-          (if Int.eq b1 b2 then in_in else (assert (Int.gt b1 b2);out_in))
+          (if Int.equal b1 b2 then in_in else (assert (Int.gt b1 b2);out_in))
             i1 v1 m1 i2 v2 m2 acc
 	and in_in_e1_first (_b1, e1 as i1) _v1 m1 (_b2, e2) v2 m2 acc new_v12 =
           (*Format.printf "in_in_e1_first: b1=%a e1=%a b2=%a e2=%a@\n"
@@ -486,7 +508,7 @@ struct
 	and in_in_same_end (_b1, e1 as i1) _v1 m1 (_b2, e2) _v2 m2 acc new_v12=
 	  (*Format.printf "in_in_same_end: b1=%a e1=%a b2=%a e2=%a@\n"
             Int.pretty b1 Int.pretty e1 Int.pretty b2 Int.pretty e2; *)
-	  assert (Int.eq e1 e2);
+	  assert (Int.equal e1 e2);
 
 	  let acc = add_map_internal i1 new_v12 acc in
           try
@@ -503,7 +525,7 @@ struct
 	and in_in (b1, e1 as i1) v1 m1 (b2, e2 as i2) v2 m2 acc =
 	  (*Format.printf "in_in: b1=%a e1=%a b2=%a e2=%a@\n"
             Int.pretty b1 Int.pretty e1 Int.pretty b2 Int.pretty e2; *)
-          assert (Int.eq b1 b2);
+          assert (Int.equal b1 b2);
 
 	  let new_v12 = f (Some v1) (Some v2) in
 	  (if Int.gt e1 e2
@@ -701,3 +723,9 @@ struct
     copy_paste ~f from start stop Int.zero empty
 
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

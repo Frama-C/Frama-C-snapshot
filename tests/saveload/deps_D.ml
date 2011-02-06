@@ -1,43 +1,39 @@
-(*
-  Test on save/load procedure
-  
-  What it does: it adds three states A, B, C with a dependency chain between 
-  them. This configuration is saved and restore with a new configuration
-  composed of one new state which depends on A and is a dependence of C.
-  The aim is to verify that an unserialization does not override a previous
-  setting to default.
-
-  Date: 18/07/2008
-  Author: Julien Peeters
-*)
-
-module StateA = 
-  Computation.Ref
-    (struct include Datatype.Int let default () = 0 end)
-    (struct let name = "Project.Test.StateA" let dependencies = [] end)
-
-module StateB =
-  Computation.OptionRef
-    (struct include Datatype.Bool let default () = false end)
-    (struct 
-       let name = "Project.Test.StateB"
-       let dependencies = [ StateA.self ]
+module StateA =
+  State_builder.Ref
+    (Datatype.Int)
+    (struct
+      let name = "Project.Test.StateA"
+      let dependencies = []
+      let kind = `Internal
+      let default () = 0
      end)
 
-module StateD = 
-  Computation.Ref
-    (struct include Datatype.Int let default () = 0 end)
+module StateB =
+  State_builder.Option_ref
+    (Datatype.Bool)
+    (struct
+       let name = "Project.Test.StateB"
+       let dependencies = [ StateA.self ]
+       let kind = `Internal
+     end)
+
+module StateD =
+  State_builder.Ref
+    (Datatype.Int)
     (struct
        let name = "Project.Test.StateD"
        let dependencies = [ StateA.self ]
+       let kind = `Internal
+       let default () = 0
      end)
 
 module StateC =
-  Computation.OptionRef
-    (struct include Datatype.Int let default () = false end)
+  State_builder.Option_ref
+    (Datatype.Int)
     (struct
        let name = "Project.Test.StateC"
        let dependencies = [ StateB.self; StateD.self ]
+       let kind = `Internal
      end)
 
 let () = StateA.set 10

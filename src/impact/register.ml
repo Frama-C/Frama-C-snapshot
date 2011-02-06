@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,6 +22,7 @@
 
 open Cil
 open Cil_types
+open Cil_datatype
 open Db_types
 open Db
 open Visitor
@@ -35,8 +36,7 @@ let from_stmt s =
   Dynamic.get
     ~plugin:"Security_slicing"
     "impact_analysis"
-    (Type.func2 Kernel_type.kernel_function
-       Kernel_type.stmt (Type.list Kernel_type.stmt))
+    (Datatype.func2 Kernel_function.ty Stmt.ty (Datatype.list Stmt.ty))
     kf s
 
 let compute_one_stmt s =
@@ -116,24 +116,25 @@ let () = Db.Main.extend main
 let () =
   (* compute_pragmas *)
   Db.register
-    (Db.Journalize ("Impact.compute_pragmas", Type.func Type.unit Type.unit))
+    (Db.Journalize
+       ("Impact.compute_pragmas", Datatype.func Datatype.unit Datatype.unit))
     Impact.compute_pragmas
     compute_pragmas;
   (* from_stmt *)
   Db.register
-    (Db.Journalize ("Impact.from_stmt",
-	   Type.func Kernel_type.stmt (Type.list Kernel_type.stmt)))
+    (Db.Journalize
+       ("Impact.from_stmt", Datatype.func Stmt.ty (Datatype.list Stmt.ty)))
     Impact.from_stmt
     from_stmt;
   (* slice *)
   Db.register
     (Db.Journalize
-       ("Impact.slice", Type.func (Type.list Kernel_type.stmt) Type.unit))
+       ("Impact.slice", Datatype.func (Datatype.list Stmt.ty) Datatype.unit))
     Impact.slice
     slice
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "LC_ALL=C make -C ../.."
 End:
 *)

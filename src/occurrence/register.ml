@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register.ml,v 1.21 2009-01-26 10:40:23 uid568 Exp $ *)
-
 open Cil_types
-open Cilutil
+open Cil_datatype
 open Cil
 open Visitor
 open Options
@@ -31,63 +29,65 @@ open Options
 module Occurrences: sig
   val add: varinfo -> kinstr -> lval -> unit
   val get: varinfo -> (kinstr * lval) list
-  val self: Project.Computation.t
+  val self: State.t
   val iter: (varinfo -> (kinstr * lval) list -> unit) -> unit
 end = struct
 
-  module State =
-    Cil_computation.VarinfoHashtbl
-      (Datatype.Couple(Cil_datatype.Kinstr)(Cil_datatype.Lval))
+  module IState =
+    Cil_state_builder.Varinfo_hashtbl
+      (Datatype.Pair(Kinstr)(Lval))
       (struct
 	 let size = 17
 	 let name = "Occurrences.State"
 	 let dependencies = [ Db.Value.self ]
+         let kind = `Internal
        end)
 
   module LastResult =
-    Computation.OptionRef
-      (Cil_datatype.Varinfo)
+    State_builder.Option_ref
+      (Varinfo)
       (struct
 	 let name = "Occurrences.LastResult"
-	 let dependencies = [ Ast.self; State.self ]
+	 let dependencies = [ Ast.self; IState.self ]
+         let kind = `Internal
        end)
 
-  let add vi ki lv = State.add vi (ki, lv)
+  let add vi ki lv = IState.add vi (ki, lv)
 
-  let unsafe_get vi = try State.find_all vi with Not_found -> []
+  let unsafe_get vi = try IState.find_all vi with Not_found -> []
 
-  let get vi = 
-    LastResult.set vi; 
+  let get vi =
+    LastResult.set vi;
     unsafe_get vi
 
   let get_last_result () =
-    try 
+    try
       let vi = LastResult.get () in
-      Some (unsafe_get vi, vi) 
-    with Not_found -> 
+      Some (unsafe_get vi, vi)
+    with Not_found ->
       None
 
-  let () = 
-    Db.register Db.Journalization_not_required 
+  let () =
+    Db.register Db.Journalization_not_required
       Db.Occurrence.get_last_result get_last_result
 
   let iter f =
     let old, l =
-      State.fold
+      IState.fold
 	(fun v elt (old, l) -> match v, old with
-	 | v, None ->
-	     assert (l = []);
-	     Some v, [ elt ]
-	 | v, (Some old as some) when VarinfoComparable.equal v old ->
-	     some, elt :: l
-	 | v, Some old ->
-	     f old l;
-	     Some v, [ elt ])
+	| v, None ->
+	  assert (l = []);
+	  Some v, [ elt ]
+	| v, (Some old as some) when Varinfo.equal v old ->
+	  some, elt :: l
+	| v, Some old ->
+	  f old l;
+	  Some v, [ elt ])
 	(None, [])
     in
     Extlib.may (fun v -> f v l) old
 
-  let self = State.self
+  let self = IState.self
 
 end
 
@@ -146,10 +146,10 @@ let compute, _self =
     ignore (visitFramacFile (new occurrence) (Ast.get ()));
     feedback "analysis done"
   in
-  Computation.apply_once "Occurrence.compute" [ Occurrences.self ] run
+  State_builder.apply_once "Occurrence.compute" [ Occurrences.self ] run
 
 let get vi =
-  compute (); 
+  compute ();
   try Occurrences.get vi with Not_found -> assert false
 
 let d_ki fmt = function
@@ -170,22 +170,23 @@ let main _fmt = if Print.get () then !Db.Occurrence.print_all ()
 let () = Db.Main.extend main
 
 let () =
-  Db.register 
+  Db.register
     (Db.Journalize
        ("Occurrence.get",
-	Type.func Kernel_type.varinfo 
-	  (Type.list (Type.couple Kernel_type.kinstr Kernel_type.lval))))
-    Db.Occurrence.get 
+	Datatype.func
+	  Varinfo.ty (Datatype.list (Datatype.pair Kinstr.ty Lval.ty))))
+    Db.Occurrence.get
     get;
   Db.register
-    (Db.Journalize ("Occurrence.print_all", Type.func Type.unit Type.unit))
+    (Db.Journalize
+       ("Occurrence.print_all", Datatype.func Datatype.unit Datatype.unit))
     (* pb: print_all should take a formatter as argument *)
-    Db.Occurrence.print_all 
+    Db.Occurrence.print_all
     print_all;
   Db.Occurrence.self := Occurrences.self
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

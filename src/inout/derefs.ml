@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,8 +67,9 @@ let statement stmt =
 module Internals = 
   Kf_state.Make
     (struct 
-       let name = "internal derefs" 
+       let name = "Internal derefs" 
        let dependencies = [ Value.self ]
+       let kind = `Correctness
      end)
 
 let get_internal =
@@ -108,8 +109,9 @@ let externalize _return fundec x =
 module Externals = 
   Kf_state.Make
     (struct 
-       let name = "external_derefs" 
+       let name = "External derefs" 
        let dependencies = [ Internals.self ]
+       let kind = `Correctness
      end)
 
 let get_external =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,6 +32,8 @@ ocamlc -g -o test_big_int nums.cma my_big_int.ml
 *)
 
 include Big_int
+
+let compare = compare_big_int
 
 (* Nombre de bits significatifs dans un "word" de "Big_int" *)
 let nb_digits_of_big_int =

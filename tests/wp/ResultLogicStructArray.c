@@ -1,9 +1,3 @@
-/* run.config
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof none
-   OPT:  -journal-disable -wp -wp-model Hoare -wp-proof none
-*/ 
-
-
 /* 
    kind : Positive
    model name : Store ; bhv : Not Yet Translated

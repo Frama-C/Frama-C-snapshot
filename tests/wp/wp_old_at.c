@@ -84,4 +84,16 @@ int i;
   ensures p==\old(p); */
 void no_itself_pointer(){*p=0;}
 
-int main (void) { return 0 ; }
+void labels_in_stmt_annot (void) {
+  X ++;
+  /*@ requires X > \at(X, Pre);
+   behavior B:
+      ensures X == \old(X) + 1;
+      ensures X == \at(X,Pre) + 2;
+      ensures X == \at(X,Post);
+  */
+  X++;
+  X++;
+  //@ assert X == \at(X,Pre) + 3;
+}
+

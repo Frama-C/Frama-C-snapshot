@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,7 @@
 open Abstract_interp
 open Abstract_value
 
-module Make(Value: Rangemap.ValueType) =
-struct
+module Make(Value: Datatype.S) = struct
 
   include Rangemap.Make(Int_Interv)(Value)
 
@@ -50,7 +49,6 @@ struct
       m;
     Format.fprintf fmt "}"
 
-
   let enlarge_to_right ~extend_right same_values ei new_vv acc =
     if extend_right then
       (* look for an interval starting just after i *)
@@ -58,7 +56,7 @@ struct
         match concerned_intervals Int_Interv.fuzzy_order (s_ei,s_ei) acc
         with [] -> acc,ei
           | [(ba,ea) as a,vva] ->
-	      assert (Int.eq ba s_ei);
+	      assert (Int.equal ba s_ei);
               if same_values vva new_vv then
                 (remove a acc),ea
               else acc,ei
@@ -83,7 +81,7 @@ struct
       let p_bi = Int.pred bi in
         match concerned_intervals Int_Interv.fuzzy_order (p_bi,p_bi) acc
         with [] -> acc,bi
-          | [(ba,ea) as a,vva] -> assert (Int.eq ea p_bi);
+          | [(ba,ea) as a,vva] -> assert (Int.equal ea p_bi);
               if same_values vva new_vv then
                 (remove a acc),ba
               else acc,bi
@@ -189,6 +187,10 @@ struct
   let shift offs m =
     mapii (fun k v -> Int_Interv.shift offs k, v) m
 
-
-
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

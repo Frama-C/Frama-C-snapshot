@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -33,9 +33,9 @@
 			              pos_bol  = lcp.pos_cnum; }
     ;;
 
-  exception Error of ((Lexing.position * Lexing.position) option) * string
+  exception Error of (Lexing.position * Lexing.position) * string
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
-  let raise_located loc e = raise (Error (Some (loc), e))
+  let raise_located loc e = raise (Error (loc, e))
 
 }
 
@@ -87,6 +87,7 @@ rule token = parse
   | ';'               { SEMI_COLON }
   | ':'               { COLON }
   | eof               { EOF }
+  | _                 { raise_located (loc lexbuf) "Unknown token" }
 
 
 
@@ -99,7 +100,9 @@ rule token = parse
     with
 	Parsing.Parse_error
       | Invalid_argument _ ->
-	  let (a,b)=(loc lb) in
+          (* [VP]: Does not contain more information than
+             what is in the exn. *)
+	  (*let (a,b)=(loc lb) in
 	    Format.print_string "Syntax error (" ;
 	    Format.print_string "l" ;
 	    Format.print_int a.pos_lnum ;
@@ -110,8 +113,7 @@ rule token = parse
 	    Format.print_string "c" ;
 	    Format.print_int (b.pos_cnum-b.pos_bol) ;
 	    Format.print_string ")\n" ;
+           *)
 	    raise_located (loc lb) "Syntax error"
-
-
 
 }

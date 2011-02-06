@@ -1,5 +1,4 @@
 /* run.config
-   GCC:
    OPT: -val -out -input -deps -pdg -journal-disable
 */
 

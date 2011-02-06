@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -21,9 +21,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: ltl_utils.ml,v 1.11 2009-03-11 12:40:59 uid588 Exp $ *)
-
 open Cil_types
+open Cil_datatype
 open Promelaast
 open Bool3
 open Spec_tools
@@ -54,10 +53,12 @@ let isCrossable tr func st =
       | PBoolVar (_)     -> Undefined*)
 
       | PIndexedExp (_) -> Undefined
-      | PFuncReturn (_, f) -> if func=f && st=Return then Undefined else False
-      | PFuncParam (_, f, _) -> if func=f && st=Call then Undefined else False
+      | PFuncReturn (_, f) ->
+	if Datatype.String.equal func f && st = Return then Undefined else False
+      | PFuncParam (_, f, _) ->
+	if Datatype.String.equal func f && st = Call then Undefined else False
   in
-  let res = (isCross tr.cross)<>False in
+  let res = isCross tr.cross <> False in
   Aorai_option.debug ~level:2 "Function %s %s-state, \
     transition %s -> %s is%s possible" func
     ( if st=Call then "pre" else "post")
@@ -70,16 +71,12 @@ let isCrossable tr func st =
 
 let find_enum, set_enum =
   let module H =
-    Computation.Hashtbl
-      (struct type t = int let equal = (=) let hash = Hashtbl.hash end)
-      (Project.Datatype.Imperative
-         (struct type t = Cil_types.enumitem
-                 let copy _ = assert false (* as all AST-dependent types *)
-                 let name = "Cil_types.enumitem"
-          end))
+    Cil_state_builder.Inthash
+      (Cil_datatype.Enumitem)
       (struct
          let name = "ltl_states_enum"
          let size = 17
+         let kind = `Internal
          let dependencies = (* TODO: projectify the automata
                                and depend on it.
                              *)
@@ -523,7 +520,8 @@ open Data_for_aorai
 
 (** Returns an int constant expression which represents the given int value. *)
 let mk_int_exp value =
-  new_exp (Const(CInt64(Int64.of_int value,IInt,Some(string_of_int value))))
+  new_exp ~loc:Cil_datatype.Location.unknown 
+    (Const(CInt64(Int64.of_int value,IInt,Some(string_of_int value))))
 
 (** Returns an lval expression which represents the access of the host_name variable (a string) with the offset off_exp (an expression). *)
 let mk_offseted_array_lval host_name off_exp =
@@ -539,12 +537,12 @@ let mk_int_offseted_array_lval host_name off_value =
 
 
 let rec get_concrete_param_from_formal formal formall concretel f sid =
-  match formall, concretel with 
-    | [],_ 
+  match formall, concretel with
+    | [],_
     | _, [] -> Aorai_option.fatal "The stmt %d is a call of the function %s, but it is not called with the formal parameter %s." sid f formal
-    | f1::fl,c1::cl -> 
-	if (String.compare formal f1.vname)=0 
-	then c1.enode 
+    | f1::fl,c1::cl ->
+	if (String.compare formal f1.vname)=0
+	then c1.enode
 	else get_concrete_param_from_formal formal fl cl f sid
 
 
@@ -559,10 +557,10 @@ let get_concrete_value_of_call (f:string) sid paramlist =
   let (stmt,_) = Kernel_function.find_from_sid sid in
   let kfunc = Globals.Functions.find_by_name f in
   let formall = Globals.Functions.get_params kfunc in
-  match stmt.skind with 
-    | Instr(Call(_,_,concretel,_)) -> 
+  match stmt.skind with
+    | Instr(Call(_,_,concretel,_)) ->
 	List.fold_left
-	  (fun fl p -> 
+	  (fun fl p ->
 	     (* for an observed formal param p, we are looking for its associated concrete parameter *)
 	     (get_concrete_param_from_formal p formall concretel f sid)::fl
 	  )
@@ -580,20 +578,29 @@ let get_concrete_value_of_return (f:string) =
   let rstmt = Kernel_function.find_return kf in
   match rstmt.skind with
     | Return (Some (e),_) -> e.enode
+    | Block (b) ->
+	begin
+	  let s=(List.hd (List.rev b.bstmts)) in
+	  match s.skind with
+	    | Return (Some (e),_) -> e.enode
+	    | _ -> Aorai_option.fatal "The stmt %d have to be a return of the function %s, but it is not a well formed stmt." rstmt.sid f
+	end
     | _ -> Aorai_option.fatal "The stmt %d have to be a return of the function %s, but it is not a well formed stmt." rstmt.sid f
 
 
 
 
 (** This function rewrite a cross condition into a Cil expression.
-    Moreover, by giving current operation name and its status (call or return) the generation simplifies the generated expression. 
+    Moreover, by giving current operation name and its status (call or return)
+    the generation simplifies the generated expression.
     This function is use only to compute the C code of synchronization.
 *)
 let crosscond_to_exp cross func status sid  =
-  let false_exp = Cil.zero in
-  let true_exp = Cil.one in
-  let rec convert : Promelaast.condition -> Bool3.bool3 * Cil_types.exp = function
-    (* Lazy evaluation of logic operators if the result can be statically computed *)
+  let false_exp = Cil.zero ~loc:(CurrentLoc.get()) in
+  let true_exp = Cil.one ~loc:(CurrentLoc.get()) in
+  let rec convert : Promelaast.condition -> Bool3.t * Cil_types.exp = function
+    (* Lazy evaluation of logic operators if the result can be statically
+       computed *)
     | POr  (c1, c2) -> (*BinOp(LOr,convert c1,convert c2,Cil.intType)*)
 	begin
 	  let (c1_val,c1_exp) = convert c1 in
@@ -606,7 +613,7 @@ let crosscond_to_exp cross func status sid  =
                   | Bool3.True      -> (c2_val,c2_exp)
 		  | Bool3.False     -> (c1_val,c1_exp)
 		  | Undefined -> (Undefined,
-                                  new_exp
+                                  new_exp ~loc:(CurrentLoc.get())
                                     (BinOp(LOr,c1_exp,c2_exp,Cil.intType)))
 	end
 
@@ -622,7 +629,7 @@ let crosscond_to_exp cross func status sid  =
                   | Bool3.True      -> (c1_val,c1_exp)
 		  | Bool3.False     -> (c2_val,c2_exp)
 		  | Undefined -> (Undefined,
-                                  new_exp
+                                  new_exp ~loc:(CurrentLoc.get())
                                     (BinOp(LAnd,c1_exp,c2_exp,Cil.intType)))
 	end
 
@@ -632,7 +639,10 @@ let crosscond_to_exp cross func status sid  =
 	  match c1_val with
             | Bool3.True      -> (Bool3.False,false_exp)
 	    | Bool3.False     -> (Bool3.True,true_exp)
-	    | Undefined -> (c1_val,new_exp (UnOp(LNot,c1_exp,Cil.intType)))
+	    | Undefined -> (c1_val,
+                            new_exp 
+                              ~loc:(CurrentLoc.get())
+                              (UnOp(LNot,c1_exp,Cil.intType)))
 	end
 
     (* Call and return are statically defined *)
@@ -670,27 +680,31 @@ let crosscond_to_exp cross func status sid  =
     | PFalse -> (Bool3.False, false_exp)
 
     | PIndexedExp(s) -> (Undefined,get_exp_from_tmpident s)
-    | PFuncReturn (s, f) -> 
-	(Undefined,
-	 Cil_manipulation.exp_substitution  
-	   (get_exp_from_tmpident s) 
-	   ["\\return"] 
-	   [get_concrete_value_of_return f]
-	)
+    | PFuncReturn (s, f) ->
+	if (String.compare s func)=0 && (status=Promelaast.Return) then
+	  (Undefined,
+	   Cil_manipulation.exp_substitution
+	     (get_exp_from_tmpident s)
+	     ["\\return"]
+	     [get_concrete_value_of_return f]
+	  )
+	else
+	  (Bool3.False,false_exp)
 
-    | PFuncParam (s,f,varlist) -> 
-	(Undefined, 
-	 Cil_manipulation.exp_substitution 
-	   (get_exp_from_tmpident s) 
-	   (varlist) 
-	   (get_concrete_value_of_call f sid varlist) 
-	)
-	
-
+    | PFuncParam (s,f,varlist) ->
+	if (String.compare s func)=0 && (status=Promelaast.Call) then
+	  (Undefined,
+	   Cil_manipulation.exp_substitution
+	     (get_exp_from_tmpident s)
+	     (varlist)
+	     (get_concrete_value_of_call f sid varlist)
+	  )
+	else
+	  (Bool3.False,false_exp)
 
   in
   try
-    convert cross 
+    convert cross
   with
     | _ ->
 	Aorai_option.fatal "Aorai plugin internal error. Status : Not_found exception during exp conversion.\n"
@@ -722,15 +736,20 @@ let crosscond_to_exp cross func status sid  =
 
 
 (** This function rewrite a cross condition into a Cil expression.
-    Moreover, by giving current operation name and its status (call or return) the generation simplifies the generated expression. 
-    This function is used to compute the axiomatized automata
+    Moreover, by giving current operation name and its status (call or return) the generation simplifies the generated expression.
+
+    When called with inv=true, this function is used to compute the axiomatized automata.
+    When called with inv=false, this function is used to compute the parametrized pre/post conditions
+
     @param cross condition to convert from Promelaast.condition to Cil_types.predicate
-    @param op_logic_var operation variable 
+    @param op_logic_var operation variable
     @param status_logic_var status variable (call/return)
 *)
-let crosscond_to_pred cross op_logic_var status_logic_var  =
-  let rec convert : Promelaast.condition -> Bool3.bool3 * Cil_types.predicate = function
-    (* Lazy evaluation of logic operators if the result can be statically computed *)
+let crosscond_to_pred inv cross op_logic_var status_logic_var =
+  let rec convert : Promelaast.condition -> Bool3.t * Cil_types.predicate =
+    function
+    (* Lazy evaluation of logic operators if the result can be statically
+       computed *)
     | POr  (c1, c2) -> (*BinOp(LOr,convert c1,convert c2,Cil.intType)*)
 	begin
 	  let (c1_val,c1_pred) = convert c1 in
@@ -768,54 +787,116 @@ let crosscond_to_pred cross op_logic_var status_logic_var  =
 	    | Undefined -> (c1_val,Pnot(unamed c1_pred))
 	end
 
-    (* Call and return are statically defined *)
+    (* Call and return are statically defined -- Case where inv = true *)
     | PFuncParam (_, s, _) (* This introduce an over-approximation in invariant (we do not consider param value) *)
-    | PCall (s) ->
+    | PCall (s) when inv ->
 	(Undefined,
 	 Pand(
 	   unamed(
 	     Prel(Req,
-		  mk_dummy_term (TLval(TVar(op_logic_var),TNoOffset)) Cil.intType,
-		  mk_dummy_term (TConst(func_to_cenum  s)) Cil.intType
+		  Logic_const.term
+                    (TLval(TVar(op_logic_var),TNoOffset)) (Ctype Cil.intType),
+		  Logic_const.term (TConst(func_to_cenum  s))
+                    (Ctype Cil.intType)
 		 )
 	   ),
 	   unamed (
 	     Prel(Req,
-		  mk_dummy_term (TLval(TVar(status_logic_var),TNoOffset)) Cil.intType,
-		  mk_dummy_term (TConst(op_status_to_cenum Promelaast.Call)) Cil.intType
-		 )
-	   )
-	 )
-	)
-
-    | PFuncReturn (_, s) (* This introduce an over-approximation in invariant (we do not consider returned value) *)
-    | PReturn (s) ->
-	(Undefined,
-	 Pand(
-	   unamed(
-	     Prel(Req,
-		  mk_dummy_term (TLval(TVar(op_logic_var),TNoOffset)) Cil.intType,
-		  mk_dummy_term (TConst(func_to_cenum s)) Cil.intType
-		 )
-	   ),
-	   unamed (
-	     Prel(Req,
-		  mk_dummy_term (TLval(TVar(status_logic_var),TNoOffset)) Cil.intType,
-		  mk_dummy_term (TConst(op_status_to_cenum Promelaast.Return)) Cil.intType
+		  Logic_const.term
+                    (TLval(TVar(status_logic_var),TNoOffset))
+                    (Ctype Cil.intType),
+		  Logic_const.term
+                    (TConst(op_status_to_cenum Promelaast.Call))
+                    (Ctype Cil.intType)
 		 )
 	   )
 	 )
 	)
 
 
+    | PFuncReturn (_, s) when inv ->  (* This introduce an over-approximation in invariant (we do not consider returned value) *)
+	(Undefined,
+	 Pand(
+	   unamed(
+	     Prel(Req,
+		  Logic_const.term
+                    (TLval(TVar(op_logic_var),TNoOffset)) (Ctype Cil.intType),
+		  Logic_const.term (TConst(func_to_cenum s)) (Ctype Cil.intType)
+		 )
+	   ),
+	   unamed (
+	     Prel(Req,
+		  Logic_const.term
+                    (TLval(TVar(status_logic_var),TNoOffset))
+                    (Ctype Cil.intType),
+		  Logic_const.term
+                    (TConst(op_status_to_cenum Promelaast.Return))
+                    (Ctype Cil.intType)
+		 )
+	   )
+	 )
+	)
 
-    | PCallOrReturn (s) ->
+    | PReturn (s) when inv ->
+	(Undefined,
+	 Pand(
+	   unamed(
+	     Prel(Req,
+		  Logic_const.term
+                    (TLval(TVar(op_logic_var),TNoOffset))
+                    (Ctype Cil.intType),
+		  Logic_const.term
+                    (TConst(func_to_cenum s))
+                    (Ctype Cil.intType)
+		 )
+	   ),
+	   unamed (
+	     Prel(Req,
+		  Logic_const.term
+                    (TLval(TVar(status_logic_var),TNoOffset))
+                    (Ctype Cil.intType),
+		  Logic_const.term
+                    (TConst(op_status_to_cenum Promelaast.Return))
+                    (Ctype Cil.intType)
+		 )
+	   )
+	 )
+	)
+
+
+
+    | PCallOrReturn (s) when inv ->
 	(Undefined,
 	 Prel(Req,
-	      mk_dummy_term (TLval(TVar(op_logic_var),TNoOffset)) Cil.intType,
-	      mk_dummy_term (TConst(func_to_cenum s)) Cil.intType
+	      Logic_const.term
+                (TLval(TVar(op_logic_var),TNoOffset)) (Ctype Cil.intType),
+	      Logic_const.term (TConst(func_to_cenum s))
+                (Ctype Cil.intType)
 	     )
 	)
+
+
+
+
+
+
+    (* Call and return are statically defined -- Case where inv = false *)
+    | PFuncParam (hash, _, _) ->
+	(Undefined, get_pred_from_tmpident hash)
+
+    | PFuncReturn (hash, f) ->
+	let vi = (get_returninfo f) in
+	(Undefined,
+	 Cil_manipulation.predicate_substitution
+	   (get_pred_from_tmpident hash)
+	   [vi.vname]
+	   [TResult (vi.vtype)])
+
+
+    | PCall (_)
+    | PReturn (_)
+    | PCallOrReturn (_) ->
+	(Bool3.True, Ptrue)
 
 
 
@@ -825,6 +906,7 @@ let crosscond_to_pred cross op_logic_var status_logic_var  =
     | PFalse -> (Bool3.False, Pfalse)
 
     | PIndexedExp(s) -> (Undefined,get_pred_from_tmpident s)
+
   in
   try
     let (_,res) = convert cross in
@@ -844,13 +926,14 @@ let rec mk_expr_disjunction expr_l =
   match expr_l with
     | [] -> assert false
     | expr::[] -> expr
-    | expr::l -> new_exp (BinOp(LOr, expr,mk_expr_disjunction l,Cil.intType))
+    | expr::l -> new_exp ~loc:expr.eloc 
+      (BinOp(LOr, expr,mk_expr_disjunction l,Cil.intType))
 
 
 let conj_crosscond_old (value,cross) expr =
   if value=Bool3.True
   then expr
-  else new_exp(BinOp (LAnd,cross,expr,Cil.intType))
+  else new_exp ~loc:expr.eloc (BinOp (LAnd,cross,expr,Cil.intType))
 
 
 
@@ -865,7 +948,7 @@ let upd_one_state trans_l statenum (*func status*) loc computedIsCrossTr (*nbTra
 	 (
 	   (*if (nbTransitions>1) then*)
 	     expr_l :=
-               (new_exp (Lval(mk_int_offseted_array_lval curTrans tr.numt))
+               (new_exp ~loc (Lval(mk_int_offseted_array_lval curTrans tr.numt))
                 ::!expr_l)
 	 (*else
 	     expr_l := (mk_int_exp 1)::!expr_l*)
@@ -877,7 +960,7 @@ let upd_one_state trans_l statenum (*func status*) loc computedIsCrossTr (*nbTra
     if !expr_l=[] then mk_int_exp 0
     else mk_expr_disjunction !expr_l
   in
-  let offset = Cil.new_exp (Const (CEnum (find_enum statenum)))
+  let offset = Cil.new_exp ~loc (Const (CEnum (find_enum statenum)))
   in
   Cil_types.Set(
     (mk_offseted_array_lval curState offset),
@@ -890,13 +973,15 @@ let upd_one_state trans_l statenum (*func status*) loc computedIsCrossTr (*nbTra
 (** Computed formula : crosscond(trans) && curStateTMP[transStart(trans)] && curState[transStop(trans)]*)
 (** It remains only to affect this result to curTrans[trans]*)
 let upd_one_trans trans func status loc allowedCrossableTr computedIsActiveSt sid =
+  let getNamedOffset s = Cil.new_exp ~loc (Const (CEnum (find_enum s.nums))) in
   let b = ref true in
   let expr=
     if allowedCrossableTr.(trans.numt) && (computedIsActiveSt.(trans.start.nums)) then
 (* (isCrossable trans func status) && (computedIsActiveSt.(trans.start.nums)) then *)
       conj_crosscond_old
 	(crosscond_to_exp trans.cross func status sid)
-	(new_exp (Lval(mk_int_offseted_array_lval curStateOld trans.start.nums)))
+	(new_exp ~loc 
+           (Lval(mk_offseted_array_lval curStateOld (getNamedOffset trans.start))))
 
 
     else
@@ -922,7 +1007,7 @@ let upd_one_trans trans func status loc allowedCrossableTr computedIsActiveSt si
   @param sid the stmt id of the call (if any)
 *)
 let synch_upd_linear (state_l,trans_l) func status loc caller sid =
-  (* WARNING ! Notice that the order of these operations is very important.
+  (* WARNING ! The order of these operations is very important.
 
      Step 1 has to be done after the Step 0 and before the steps 2 and 3.
      Step 4 has to be done after the Step 3.
@@ -933,14 +1018,14 @@ let synch_upd_linear (state_l,trans_l) func status loc caller sid =
   let inst_curop_upd =
     Set(
       Cil.var (get_varinfo curOp),
-      new_exp (Const(func_to_cenum (func))),
+      new_exp ~loc (Const(func_to_cenum (func))),
       loc
     )
   in
   let inst_curopstatus_upd =
     Set(
       Cil.var (get_varinfo curOpStatus),
-      new_exp (Const(op_status_to_cenum status)),
+      new_exp ~loc (Const(op_status_to_cenum status)),
       loc
     )
   in
@@ -1004,17 +1089,18 @@ let synch_upd_linear (state_l,trans_l) func status loc caller sid =
   let step_one_inst =
     List.fold_left
       (fun inst_l st ->
+	 let getNamedOffset s = Cil.new_exp ~loc (Const (CEnum (find_enum s.nums)))
+	 in
+
 	 let rightPart =
 	   if(computedIsOldActiveSt.(st.nums)) then
-	     new_exp (Lval(mk_int_offseted_array_lval curState st.nums))
+	     new_exp ~loc (Lval(mk_offseted_array_lval curState (getNamedOffset st)))
 	   else
 	     (mk_int_exp 0)
 	 in
 
-	 let offset = Cil.new_exp (Const (CEnum (find_enum st.nums)))
-	 in
 	 ((Cil_types.Set(
-	     (mk_offseted_array_lval curStateOld offset),
+	     (mk_offseted_array_lval curStateOld (getNamedOffset st)),
 	     rightPart,
 	     loc
 	   ))::inst_l)
@@ -1024,7 +1110,7 @@ let synch_upd_linear (state_l,trans_l) func status loc caller sid =
       state_l
   in
 
-  (* Step 2 : Computation of crossable transitions *)
+  (* Step 2 : State_builder.of crossable transitions *)
   (*          Only crossable transitions wrt spec are considered. *)
   let computedIsCrossTr= Array.make(getNumberOfTransitions()) false in
   (*let nbTransitions = ref 0 in *)
@@ -1041,7 +1127,7 @@ let synch_upd_linear (state_l,trans_l) func status loc caller sid =
       trans_l
   in
 
-  (* Step 3 : Computation of reachable states *)
+  (* Step 3 : State_builder.of reachable states *)
   let step_three_inst =
     List.fold_left
       (fun inst_l st ->
@@ -1084,27 +1170,27 @@ let initFile f =
   Data_for_aorai.setCData ();
   (* Adding C variables into our hashtable *)
   Globals.Vars.iter (fun vi _ -> set_varinfo vi.vname vi);
-  Globals.Functions.iter(fun kf -> 
+  Globals.Functions.iter(fun kf ->
 			   let fname = Kernel_function.get_name kf in
-			   List.iter 
-			     (fun vi -> 
+			   List.iter
+			     (fun vi ->
 				set_paraminfo fname vi.vname vi)
 			     (Kernel_function.get_formals kf);
-			   
+
 			   if not (Data_for_aorai.isIgnoredFunction fname) then
 			     begin
 			       let fund = (Kernel_function.get_definition kf) in
 			       let bodys = fund.sbody.bstmts in
 			       let ret  = List.hd (List.rev bodys) in
 			       match ret.skind with
-				 | Return (Some e,_) -> 
+				 | Return (Some e,_) ->
 				     let en = e.enode in
 				     begin
-				       match en with 
+				       match en with
 					 | Lval (Var vi,NoOffset) -> set_returninfo fname vi (* Add the vi of return stmt *)
 					 | _ -> ()(* function without returned value *)
 				     end
-				       
+
 				 | _ -> () (* function without returned value *)
 			     end
 			)
@@ -1154,14 +1240,17 @@ let mk_global_c_initialized_vars name ty ini=
 let mk_global_c_vars name ty =
   let vi = (Cil.makeGlobalVar ~logic:true name ty) in
     vi.vghost<-true;
-    let ini = {init=Some(Cil.makeZeroInit ty)} in
+    let ini =
+      {init=Some(Cil.makeZeroInit     ~loc:(CurrentLoc.get()) ty)} 
+    in
       globals_queue:=GVar(vi,ini,vi.vdecl)::(!globals_queue);
       Globals.Vars.add vi ini;
       set_varinfo name vi
 
 
 let mk_int_const value =
-  new_exp
+  new_exp 
+    ~loc:(CurrentLoc.get())
     (Const(
        CInt64(
          Int64.of_int (value),
@@ -1205,25 +1294,27 @@ let mk_global_c_int name  =
 
 
 let mk_global_c_enum_type_tagged name elements_l =
-   let einfo = {
-    ename=name;
-    eitems=[];
-    eattr=[];
-    ereferenced=true
-   }
-   in
-   let l = List.map
-     (fun (e,i) ->
-        { einame = e;
-          eival = mk_int_const i;
-          eiloc = Cilutil.locUnknown;
-          eihost = einfo})
-     elements_l
+  let einfo =
+    { eorig_name = name;
+      ename = name;
+      eitems = [];
+      eattr = [];
+      ereferenced = true }
   in
-   einfo.eitems <- l;
-   set_usedinfo name einfo;
-   globals_queue:=GEnumTag(einfo,Cilutil.locUnknown)::(!globals_queue);
-   einfo
+  let l =
+    List.map
+      (fun (e,i) ->
+	{ eiorig_name = e;
+          einame = e;
+          eival = mk_int_const i;
+          eiloc = Location.unknown;
+          eihost = einfo})
+      elements_l
+  in
+  einfo.eitems <- l;
+  set_usedinfo name einfo;
+  globals_queue := GEnumTag(einfo, Location.unknown)::(!globals_queue);
+  einfo
 
 let mk_global_c_enum_type name elements =
   let _,elements =
@@ -1247,9 +1338,9 @@ let mk_global_c_initialized_enum name name_enuminfo ini =
 
 (** Return an integer constant term from the given value. *)
 let mk_int_term value =
-  mk_dummy_term
+  Logic_const.term
     (TConst( CInt64(Int64.of_int value,IInt,Some(string_of_int value))))
-    Cil.intType
+    (Ctype Cil.intType)
 
 (** Return an integer constant term with the 0 value. *)
 let zero_term() =
@@ -1257,64 +1348,60 @@ let zero_term() =
 
 (** Returns a term representing the given logic variable (usually a fresh quantified variable). *)
 let mk_term_from_logic_var lvar =
-  mk_dummy_term (TLval(TVar(lvar),TNoOffset)) Cil.intType
-
+  Logic_const.term (TLval(TVar(lvar),TNoOffset)) (Ctype Cil.intType)
 
 (** Returns a term representing the variable associated to the given varinfo *)
 let mk_term_from_vi vi =
-  mk_dummy_term (TLval((Logic_utils.lval_to_term_lval ~cast:true (Cil.var vi)))) Cil.intType
+  Logic_const.term
+    (TLval((Logic_utils.lval_to_term_lval ~cast:true (Cil.var vi))))
+    (Ctype Cil.intType)
 
 
 (** Given an lval term 'host' and an integer value 'off', it returns a lval term host[off]. *)
 let mk_offseted_array host off =
-  mk_dummy_term
+  Logic_const.term
     (TLval(Cil.addTermOffsetLval (TIndex(mk_int_term (off),TNoOffset)) host))
-    Cil.intType
+    (Ctype Cil.intType)
 
-
-let int2enumstate nums = 
-  mk_dummy_term
+let int2enumstate nums =
+  Logic_const.term
     (TConst (CEnum (find_enum nums)))
-    
 
 (** Given an lval term 'host' and an integer value 'off', it returns a lval term host[off]. *)
 let mk_offseted_array_states_as_enum host off =
-  mk_dummy_term
+  Logic_const.term
     (TLval(Cil.addTermOffsetLval (TIndex(mk_dummy_term
 					   (TConst(CEnum (find_enum off)))
 					   Cil.intType,TNoOffset)) host))
-    Cil.intType
+    (Ctype Cil.intType)
 
 
 (** Given an lval term 'host' and a term 'term_off', it returns a lval term host[off]. *)
 let mk_offseted_array_lval_from_term host term_off =
-  mk_dummy_term
+  Logic_const.term
     (TLval(Cil.addTermOffsetLval (TIndex(term_off,TNoOffset)) host))
-    Cil.intType
+    (Ctype Cil.intType)
 
 
 (** Given an lval term 'host' and a logic variable 'lvar_off', it returns a lval term host[off].
     Usually, logic variables stand for fresh quantified variables. *)
 let mk_offseted_array_lval_from_lval host lvar_off =
   mk_offseted_array_lval_from_term host (mk_term_from_logic_var lvar_off)
-(*  mk_dummy_term
-    (TLval(Cil.addTermOffsetLval (TIndex(mk_term_from_logic_var lvar_off,TNoOffset)) host))
-    Cil.intType
-*)
-
 
 (** Given the name of a logic and a list of logic variables it returns a call of the logic with variables as parameters. *)
 (* [VP] Are we sure that the expression type is always int? *)
 let mk_logic_call name logicvar_param_l =
   let li = get_logic name in
   match logicvar_param_l with
-      | [] -> mk_dummy_term (TLval (TVar li.l_var_info,TNoOffset)) Cil.intType
+      | [] ->
+          Logic_const.term
+            (TLval (TVar li.l_var_info,TNoOffset)) (Ctype Cil.intType)
       | _ ->
-          mk_dummy_term
+          Logic_const.term
             (Tapp(li,[],
                   List.map (fun p -> mk_term_from_logic_var p)
                     logicvar_param_l))
-            Cil.intType
+            (Ctype Cil.intType)
 
 (** Returns a lval term associated to the curState generated variable. *)
 let host_state_term () =
@@ -1385,7 +1472,8 @@ let mk_global_invariant pred name =
   let li = Cil_const.make_logic_info name in
   li.l_body <- LBpred(unamed pred);
   globals_queue:=
-    GAnnot (Cil_types.Dinvariant li, Cilutil.locUnknown)::(!globals_queue)
+    GAnnot (Cil_types.Dinvariant (li, Location.unknown), Location.unknown)
+  :: !globals_queue
 
 
 let mk_global_comment txt =
@@ -1410,11 +1498,11 @@ let mk_global_logic name (*generics_l*) types_l type_ret (*reads*) =
   l_tparams = []
 *)
   Data_for_aorai.add_logic name log_info;
-  Dfun_or_pred(log_info)
+  Dfun_or_pred(log_info, Location.unknown)
 
 
 let mk_global_axiom name pred =
-  Dlemma (name, true, [], [], unamed pred)
+  Dlemma (name, true, [], [], unamed pred, Location.unknown)
 
 
 
@@ -1425,7 +1513,7 @@ let mk_global_predicate name moment params_l pred =
   (*	name of the predicate.	*)
   pred_info.l_profile <- params_l; (*log_var_params;*)
   (*	arguments of the predicate.	*)
-  pred_info.l_labels <- List.map (fun x -> LogicLabel(x)) moment;
+  pred_info.l_labels <- List.map (fun x -> LogicLabel(None, x)) moment;
   (*	label arguments.	*)
   pred_info.l_body <- LBpred(unamed pred); (*	definition.	*)
 (*
@@ -1433,20 +1521,17 @@ let mk_global_predicate name moment params_l pred =
   pred_info.l_tparams <- []
 *)
   Data_for_aorai.add_predicate name pred_info;
-  globals_queue:=GAnnot(
-    Dfun_or_pred(pred_info),
-    (*Dpredicate_def (pred_info,
-      [] (*moment*),
-      pred_info.p_profile,
-      unamed pred
-      ),*)
-    Cilutil.locUnknown
-  )::(!globals_queue)
+  globals_queue:=
+    GAnnot(Dfun_or_pred(pred_info, Location.unknown), Location.unknown)
+  :: !globals_queue
 
 
 (** Generates an axiomatisation of transitions from automata into globals.
     These annotations are used to express some pre and post condition properties *)
 let mk_decl_axiomatized_automata () =
+  let getNamedOffset s =
+    Logic_const.term (TConst (CEnum (find_enum s.nums))) (Ctype Cil.intType)
+  in
   let (_,trans_l) = getAutomata() in
   let param=(Cil_const.make_logic_var "tr" Linteger) in
   let logic=mk_global_logic transStart (*[]*) [param] (Some Linteger) (*[]*) (*[TSSingleton(TSLval(TSVar(param),TSNo_offset))]*) in
@@ -1456,17 +1541,19 @@ let mk_decl_axiomatized_automata () =
        (mk_global_axiom
 	  (transStart^(string_of_int tr.numt))
 	  (Prel(Req,
-		mk_dummy_term
+		Logic_const.term
 		  (Tapp(tr_start_log_info,[],[mk_int_term tr.numt]))
-		  Cil.intType,
-		mk_int_term tr.start.nums))
+		  (Ctype Cil.intType),
+		(getNamedOffset tr.start)
+	       ))
        )::res
     )
     [logic]
     trans_l in
-  globals_queue:=(GAnnot(Daxiomatic(transStart,List.rev annotlist),
-		  Cilutil.locUnknown
-		 ))::(!globals_queue);
+  globals_queue:=
+    (GAnnot(Daxiomatic(transStart,List.rev annotlist, Location.unknown),
+	    Location.unknown))
+  :: !globals_queue;
 
 
   let logic=mk_global_logic transStop  (*[]*) [param] (Some Linteger) (*[]*) (*[TSSingleton(TSLval(TSVar(param),TSNo_offset))]*) in
@@ -1476,23 +1563,19 @@ let mk_decl_axiomatized_automata () =
        (mk_global_axiom
 	 (transStop^(string_of_int tr.numt))
 	 (Prel(Req,
-	       mk_dummy_term
+	       Logic_const.term
 		 (Tapp(tr_stop_log_info,[],[mk_int_term tr.numt]))
-		 Cil.intType,
-	       mk_int_term tr.stop.nums))
+		 (Ctype Cil.intType),
+	       (getNamedOffset tr.stop)))
        )::res
     )
     [logic]
     trans_l in
 
-  globals_queue:=(GAnnot(Daxiomatic(transStop,List.rev annotlist),
-			 Cilutil.locUnknown
-			))::(!globals_queue);
-
-
-
-
-
+  globals_queue:=
+    (GAnnot(Daxiomatic(transStop, List.rev annotlist, Location.unknown),
+	    Location.unknown))
+  :: !globals_queue;
 
   let num= Cil_const.make_logic_var "_aorai_numTrans" Linteger in
   let op = Cil_const.make_logic_var "_aorai_op" Linteger in
@@ -1503,7 +1586,7 @@ let mk_decl_axiomatized_automata () =
 	 (fun tr ->
 	    Pimplies(
 	      unamed (Prel(Req, mk_term_from_logic_var num, mk_int_term tr.numt)),
-	      unamed (crosscond_to_pred tr.cross op st)
+	      unamed (crosscond_to_pred true tr.cross op st)
 	    )
 	 )
 	 trans_l
@@ -1514,7 +1597,7 @@ let mk_decl_axiomatized_automata () =
   let pred2 =
     Papp(
       Data_for_aorai.get_predicate transCondP,
-      [(LogicLabel("L"),LogicLabel("L"))],
+      [(LogicLabel(None,"L"),LogicLabel(None,"L"))],
       [mk_term_from_logic_var num;
        mk_term_from_logic_var (Cil.cvar_to_lvar (Data_for_aorai.get_varinfo curOp));
        mk_term_from_logic_var (Cil.cvar_to_lvar (Data_for_aorai.get_varinfo curOpStatus))
@@ -1590,10 +1673,12 @@ let get_states_trans_init root =
 
 
 let func_to_init name =
-  {init=Some(SingleInit(new_exp (Const(func_to_cenum (name)))))}
+  {init=Some(SingleInit(
+    new_exp ~loc:(CurrentLoc.get()) (Const(func_to_cenum (name)))))}
 
 let funcStatus_to_init st =
-  {init=Some(SingleInit(new_exp (Const(op_status_to_cenum (st)))))}
+  {init=Some(SingleInit(new_exp ~loc:(CurrentLoc.get()) 
+                          (Const(op_status_to_cenum (st)))))}
 
 
 
@@ -2242,23 +2327,56 @@ let pre_post_to_term  (st_status, tr_status) =
 
 
 
-(*
+
+let get_preds_wrt_params (transl:bool array) (f:string) (status:Promelaast.funcStatus) =
+  (* These two constants are never used, but are syntactically needed to call the conversion function *)
+  let op = Cil_const.make_logic_var "_aorai_op" Linteger in
+  let st = Cil_const.make_logic_var "_aorai_status" Linteger in
+
+
+  let preds = ref [] in
+  Array.iteri
+    (fun trn b ->
+       if b then
+	 begin
+	   (* Gets the cross condition of the transition *)
+	   let llclause = Data_for_aorai.getParametrizedCondOfTransition trn in
+	   let llclauseUnderContexte = Logic_simplification.simplifyDNFwrtCtx llclause f status in
+	   if llclauseUnderContexte=[] or llclauseUnderContexte=[[PTrue]] then
+	     ()
+	   else
+	     let cond = Logic_simplification.dnfToCond  llclauseUnderContexte in
+	     let pred = crosscond_to_pred false cond op st  in
+
+
+	     (* Generates the condition of the transition *)
+	     (* hyp <-- aoraiStates[trn]!=0  *)
+	     let hyp = Prel(Rneq,mk_offseted_array_lval_from_term (host_trans_term()) (mk_int_term trn), mk_int_term 0) in
+	     (* pred <-- hyp ==> pred *)
+	     let pred = Pimplies (unamed (hyp),unamed pred) in
+
+	     (* Adds the implication in the result list *)
+	     preds:=pred::!preds
+	 end
+    )
+    transl;
+
+  if(!preds=[]) then None
+  else Some(mk_conjunction(!preds))
+
+
 
 let get_preds_pre_wrt_params (f:string) =
   let (_,pre_tr) = Data_for_aorai.get_func_pre  f in
-  let trans = ref [] in
-  let op = Cil_const.make_logic_var "_aorai_op" Linteger in
-  let st = Cil_const.make_logic_var "_aorai_status" Linteger in
-  Array.iteri
-    (fun i b -> 
-       if b then 
-	 begin
-	   (i,crosscond_to_pred cross op st)
-	 end
-    )
-    pre_tr;
-  !trans
-*)    
+  get_preds_wrt_params (pre_tr) f Promelaast.Call
+
+let get_preds_post_bc_wrt_params (f:string) =
+  let post = Data_for_aorai.get_func_post_bycase f in
+  let (_,post_tr) = pre_flattening post in
+  get_preds_wrt_params (post_tr) f Promelaast.Return
+
+
+
 
 
 
@@ -2286,10 +2404,31 @@ let force_condition_to_predicate global_inv restricted_inv =
 
 
 
+let get_global_loop_inv ref_stmt =
+  double_bool_array_or
+    (double_bool_array_or
+       (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_pre_bycase ref_stmt))
+       (Spec_tools.pre_flattening (Data_for_aorai.get_loop_ext_pre_bycase ref_stmt)))
+    (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_post_bycase ref_stmt))
 
 
+let get_restricted_int_pre_bc ref_stmt =
+  let global_loop_inv = get_global_loop_inv ref_stmt in
+  force_condition_to_predicate
+    global_loop_inv
+    (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_pre_bycase ref_stmt))
 
+let get_restricted_ext_pre_bc ref_stmt =
+  let global_loop_inv = get_global_loop_inv ref_stmt in
+  force_condition_to_predicate
+    global_loop_inv
+    (Spec_tools.pre_flattening (Data_for_aorai.get_loop_ext_pre_bycase ref_stmt))
 
+let get_restricted_int_post_bc ref_stmt =
+  let global_loop_inv = get_global_loop_inv ref_stmt in
+  force_condition_to_predicate
+    global_loop_inv
+    (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_post_bycase ref_stmt))
 
 
 
@@ -2378,24 +2517,24 @@ let debug_display_all_specs () =
   List.iter
     (fun stmt_ref ->
        Aorai_option.result "#   stmt.sid=%d" !stmt_ref.sid;
-       Aorai_option.result "#      loop pres  : %s" 
+       Aorai_option.result "#      loop pres  : %s"
 	 (Spec_tools.debug_display_stmt_all_pre (Data_for_aorai.get_loop_ext_pre stmt_ref));
-       Aorai_option.result "#                   %s" 
+       Aorai_option.result "#                   %s"
 	 (Spec_tools.debug_display_stmt_all_pre_bycase (Data_for_aorai.get_loop_ext_pre_bycase stmt_ref));
 
-       Aorai_option.result "#      block pres : %s" 
+       Aorai_option.result "#      block pres : %s"
 	 (Spec_tools.debug_display_stmt_all_pre (Data_for_aorai.get_loop_int_pre stmt_ref));
-       Aorai_option.result "#                   %s" 
+       Aorai_option.result "#                   %s"
 	 (Spec_tools.debug_display_stmt_all_pre_bycase (Data_for_aorai.get_loop_int_pre_bycase stmt_ref));
-       
-       Aorai_option.result "#      block posts: %s" 
+
+       Aorai_option.result "#      block posts: %s"
 	 (Spec_tools.debug_display_stmt_all_pre (Data_for_aorai.get_loop_int_post stmt_ref));
-       Aorai_option.result "#                   %s" 
+       Aorai_option.result "#                   %s"
 	 (Spec_tools.debug_display_stmt_all_pre_bycase (Data_for_aorai.get_loop_int_post_bycase stmt_ref));
 
-       Aorai_option.result "#      loop posts : %s" 
+       Aorai_option.result "#      loop posts : %s"
 	 (Spec_tools.debug_display_stmt_all_pre (Data_for_aorai.get_loop_ext_post stmt_ref));
-       Aorai_option.result "#                   %s" 
+       Aorai_option.result "#                   %s"
 	 (Spec_tools.debug_display_stmt_all_pre_bycase (Data_for_aorai.get_loop_ext_post_bycase stmt_ref));
 
 
@@ -2429,18 +2568,18 @@ let display_all_warnings_about_operations_specs() =
   let listOfNames = List.sort (String.compare) listOfNames in
   List.iter
     (fun name ->
-	 let pre = 
-	   Data_for_aorai.get_func_pre ~securised:true name 
+	 let pre =
+	   Data_for_aorai.get_func_pre ~securised:true name
 	 in
-	 let post = 
-	   Data_for_aorai.get_func_post_bycase ~securised:true name 
+	 let post =
+	   Data_for_aorai.get_func_post_bycase ~securised:true name
 	 in
 	 if is_empty_pre_post pre then pasEtatAvantOp name;
-	 if is_empty_post_bc post then pasEtatApresOp name	 
+	 if is_empty_post_bc post then pasEtatApresOp name
     )
     listOfNames;
 
-  if(List.length (Data_for_aorai.getIgnoredFunctions())) >0 then 
+  if(List.length (Data_for_aorai.getIgnoredFunctions())) >0 then
     let ignFuncs=List.fold_left
       (fun ls s -> (ls^" "^s))
       ""
@@ -2452,44 +2591,35 @@ let display_all_warnings_about_operations_specs() =
 
 let display_all_warnings_about_loops_specs() =
   let sortedLoopsIndex =
-    List.sort (fun r1 r2 ->
-  		      if !r1.sid > !r2.sid then 1
-		 else if !r1.sid < !r2.sid then -1
-		 else 0
-	      ) (Data_for_aorai.get_loops_index ())
+    List.sort
+      (fun r1 r2 ->
+  	if !r1.sid > !r2.sid then 1
+	else if !r1.sid < !r2.sid then -1
+	else 0)
+      (Data_for_aorai.get_loops_index ())
   in
   List.iter
     (fun stmt_ref ->
-       if (is_empty_pre_post (Data_for_aorai.get_loop_ext_pre stmt_ref)) &&
-  	  (is_empty_post_bc  (Data_for_aorai.get_loop_ext_pre_bycase stmt_ref)) then 
-	    (pasEtatAvantLoop !stmt_ref.sid);
-
-       if (is_empty_pre_post (Data_for_aorai.get_loop_ext_post stmt_ref)) &&
-  	  (is_empty_post_bc  (Data_for_aorai.get_loop_ext_post_bycase stmt_ref)) then 
-	    (pasEtatApresLoop !stmt_ref.sid);
-
-
-       if (is_empty_pre_post (Data_for_aorai.get_loop_int_pre stmt_ref)) &&
-  	  (is_empty_post_bc  (Data_for_aorai.get_loop_int_pre_bycase stmt_ref)) then 
-	    (pasEtatAvantLoopBlock !stmt_ref.sid);
-
-       if (is_empty_pre_post (Data_for_aorai.get_loop_int_post stmt_ref)) &&
-  	  (is_empty_post_bc  (Data_for_aorai.get_loop_int_post_bycase stmt_ref)) then 
-	    (pasEtatApresLoopBlock !stmt_ref.sid)
-    )
+      if is_empty_pre_post (Data_for_aorai.get_loop_ext_pre stmt_ref) &&
+  	is_empty_post_bc (Data_for_aorai.get_loop_ext_pre_bycase stmt_ref)
+      then pasEtatAvantLoop !stmt_ref.sid;
+      if is_empty_pre_post (Data_for_aorai.get_loop_ext_post stmt_ref) &&
+  	is_empty_post_bc  (Data_for_aorai.get_loop_ext_post_bycase stmt_ref)
+      then pasEtatApresLoop !stmt_ref.sid;
+      if is_empty_pre_post (Data_for_aorai.get_loop_int_pre stmt_ref) &&
+  	is_empty_post_bc  (Data_for_aorai.get_loop_int_pre_bycase stmt_ref)
+      then pasEtatAvantLoopBlock !stmt_ref.sid;
+      if is_empty_pre_post (Data_for_aorai.get_loop_int_post stmt_ref) &&
+  	is_empty_post_bc  (Data_for_aorai.get_loop_int_post_bycase stmt_ref)
+      then pasEtatApresLoopBlock !stmt_ref.sid)
     sortedLoopsIndex
-
-
 
 let display_all_warnings_about_specs () =
   display_all_warnings_about_operations_specs ();
   display_all_warnings_about_loops_specs ()
 
-
-
-
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

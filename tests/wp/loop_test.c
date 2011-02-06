@@ -3,8 +3,8 @@
 int loop_var (int n) {
   int i, s = 0;
   /*@ 
-    loop variant (n - i);
     loop assigns i, s;
+    loop variant (n - i);
   */
   for (i = 0; i < n; i++) {
     s++;

@@ -45,9 +45,9 @@ int min_element(int* a, int n)
   /*@
      loop invariant 0 <= i   <= n;
      loop invariant 0 <= min <  n;
-     loop   variant n-i;
      loop invariant \forall int k; 0 <= k < i ==> a[min] <= a[k];
      loop invariant \forall int k; 0 <= k < min ==> a[min] < a[k];
+     loop variant n-i;
   */
   for (int i = 0; i < n; i++)
      if (a[i] < a[min])

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,17 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: filter.ml,v 1.78 2009-03-05 15:42:45 uid562 Exp $ *)
-
 open Db_types
 open Cil
-open Cilutil
 open Cil_types
+module FC_file = File (* overwritten by Cil_datatype *)
+open Cil_datatype
 open Extlib
 
 module type T_RemoveInfo = sig
   type t_proj
   type t_fct
+
+  exception EraseAssigns
 
   val fct_info : t_proj -> Db_types.kernel_function -> t_fct list
 
@@ -48,7 +49,8 @@ module type T_RemoveInfo = sig
   val fun_precond_visible : t_fct -> predicate -> bool
   val fun_postcond_visible : t_fct -> predicate -> bool
   val fun_variant_visible : t_fct -> term -> bool
-  val fun_assign_visible : t_fct -> identified_term assigns -> bool
+  val fun_assign_visible : t_fct -> identified_term from -> bool
+  val fun_deps_visible : t_fct -> identified_term -> bool
 
   val called_info : (t_proj * t_fct) -> stmt ->
     (Db_types.kernel_function * t_fct) option
@@ -64,17 +66,15 @@ end = struct
   type t = (string, Cil_types.varinfo) Hashtbl.t
 
   let mk_new_stmt s kind = s.skind <- kind
-
   let mk_skip loc = Instr (Skip loc)
-
-  let mk_stmt_skip st = mk_skip (get_stmtLoc st.skind)
+  let mk_stmt_skip st = mk_skip (Stmt.loc st)
 
   let rec can_skip keep_stmts stmt =
     match stmt.skind with
       | Instr (Skip _) ->
           Kernel.debug ~level:2 "@[Statement %d: can%s skip@]@." stmt.sid
-            (if StmtSet.mem stmt keep_stmts then "'t" else "");
-          not (StmtSet.mem stmt keep_stmts) && stmt.labels = []
+            (if Stmt.Set.mem stmt keep_stmts then "'t" else "");
+          not (Stmt.Set.mem stmt keep_stmts) && stmt.labels = []
       | Block b -> is_empty_block keep_stmts b
       | UnspecifiedSequence seq -> is_empty_unspecified_sequence keep_stmts seq
       | _ -> false
@@ -83,7 +83,7 @@ end = struct
     List.for_all (can_skip keep_stmts) block.bstmts
 
   and is_empty_unspecified_sequence keep_stmts seq =
-    List.for_all ((can_skip keep_stmts) $ (fun (x,_,_,_)->x)) seq
+    List.for_all ((can_skip keep_stmts) $ (fun (x,_,_,_,_)->x)) seq
 
   let rec mk_new_block keep_stmts s b loc =
     (* vblock has already cleaned up the statements (removed skip, etc...),
@@ -108,7 +108,7 @@ end = struct
       | [] -> mk_new_stmt s (mk_skip loc)
       | _ when is_empty_unspecified_sequence keep_stmts seq ->
           mk_new_stmt s (mk_skip loc)
-      | [stmt,_,_,_] -> (* one statement only *)
+      | [stmt,_,_,_,_] -> (* one statement only *)
           begin match stmt.skind with
             | UnspecifiedSequence seq ->
                 mk_new_unspecified_sequence keep_stmts s seq loc
@@ -180,22 +180,24 @@ end = struct
         let skind = If (cond, bthen, belse, loc) in
         (mk_new_stmt s skind)
     | None, false, false ->
-        let skind = If (Cil.zero, bthen, belse, loc) in
+        let skind = If (Cil.zero ~loc, bthen, belse, loc) in
         (mk_new_stmt s skind)
 
   let visible_lval vars_visible lval =
     let visitor = object
       inherit Visitor.generic_frama_c_visitor
-        (Project.current()) (Cil.inplace_visit())
+        (Project.current ()) (Cil.inplace_visit ())
       method vvrbl v =
         if not v.vglob then
-          ignore (Cilutil.VarinfoHashtbl.find vars_visible v);
+          ignore (Varinfo.Hashtbl.find vars_visible v);
         SkipChildren
     end
     in
-      try
-        ignore (Cil.visitCilLval (visitor:>Cil.cilVisitor) lval); true
-      with Not_found -> false
+    try
+      ignore (Cil.visitCilLval (visitor :> Cil.cilVisitor) lval);
+      true
+    with Not_found ->
+      false
 
   let filter_list is_visible visit l =
     let build e acc = if is_visible e then (visit e)::acc else acc
@@ -213,18 +215,18 @@ end = struct
 
     inherit Visitor.generic_frama_c_visitor prj (Cil.copy_visit()) as super
 
-    val mutable keep_stmts = StmtSet.empty
+    val mutable keep_stmts = Stmt.Set.empty
     val mutable fi = None
-    val fi_table = VarinfoHashtbl.create 7
-    val spec_table = VarinfoHashtbl.create 7
+    val fi_table = Varinfo.Hashtbl.create 7
+    val spec_table = Varinfo.Hashtbl.create 7
     val fun_vars = Hashtbl.create 7
-    val local_visible = Cilutil.VarinfoHashtbl.create 7
-    val formals_table = VarinfoHashtbl.create 7
+    val local_visible = Varinfo.Hashtbl.create 7
+    val formals_table = Varinfo.Hashtbl.create 7
 
     method private get_finfo () = Extlib.the fi
 
     method private add_stmt_keep stmt =
-      keep_stmts <- StmtSet.add stmt keep_stmts
+      keep_stmts <- Stmt.Set.add stmt keep_stmts
 
     (** Applied on each variable use :
 	* must replace references to formal/local variables
@@ -241,16 +243,16 @@ end = struct
     (*method vvdec _ = SkipChildren (* everything is done elsewhere *)*)
 
     method private add_formals_bindings v formals =
-      VarinfoHashtbl.add formals_table v formals
+      Varinfo.Hashtbl.add formals_table v formals
 
     method private get_formals_bindings v =
-      VarinfoHashtbl.find formals_table v
+      Varinfo.Hashtbl.find formals_table v
 
     method private filter_formals formals =
       let formals = filter_params (self#get_finfo ()) formals in
       List.map
         (fun v ->
-           Cilutil.VarinfoHashtbl.add local_visible v ();
+           Varinfo.Hashtbl.add local_visible v ();
            let v' = Cil.copyVarinfo v v.vname in
            Cil.set_varinfo self#behavior v v';
            Cil.set_orig_varinfo self#behavior v' v;
@@ -273,7 +275,7 @@ end = struct
               (if visible then "keep" else "remove");
             if visible
             then begin
-              Cilutil.VarinfoHashtbl.add local_visible var ();
+              Varinfo.Hashtbl.add local_visible var ();
               let var' = Cil.copyVarinfo var var.vname in
               Cil.set_varinfo self#behavior var var';
               Cil.set_orig_varinfo self#behavior var' var;
@@ -290,7 +292,7 @@ end = struct
 
     method vcode_annot v =
       let stmt =
-        Cil.get_original_stmt self#behavior (valOf self#current_stmt)
+        Cil.get_original_stmt self#behavior (Cilutil.valOf self#current_stmt)
       in
       let before = self#is_annot_before in
       Kernel.debug "[filter:annotation] %s stmt %d : %a @."
@@ -308,8 +310,7 @@ end = struct
           (Logic_const.new_code_annotation
              (AAssert ([],
 	               { name = []; loc = Lexing.dummy_pos,Lexing.dummy_pos;
-	                 content = Ptrue},
-                       {status=Unknown})))
+	                 content = Ptrue})))
       end
 
     method private process_call call_stmt call =
@@ -321,7 +322,7 @@ end = struct
       | None -> call_stmt.skind
       | Some (called_kf, called_finfo) ->
           let var_slice = ff_var fun_vars called_kf called_finfo in
-          let new_funcexp = new_exp (Lval (Var var_slice, NoOffset)) in
+          let new_funcexp = new_exp ~loc (Lval (Var var_slice, NoOffset)) in
           let new_args = filter_params called_finfo args in
           let need_lval = Info.res_call_visible finfo call_stmt in
           let new_lval = if need_lval then lval else None in
@@ -359,8 +360,8 @@ end = struct
       let orig = Cil.get_original_stmt self#behavior s in
       assert (Cil.get_stmt self#behavior orig == s);
       let old = s.sid in
-      let keep = StmtSet.mem s keep_stmts in
-      keep_stmts <- StmtSet.remove s keep_stmts;
+      let keep = Stmt.Set.mem s keep_stmts in
+      keep_stmts <- Stmt.Set.remove s keep_stmts;
       s.sid <- Cil.Sid.next ();
       Cil.set_stmt self#behavior orig s;
       Cil.set_orig_stmt self#behavior s orig;
@@ -418,7 +419,7 @@ end = struct
              let c' = List.filter (not $ (can_skip keep_stmts)) c in
              s'.skind <- Switch(e,b,c',l)
          | Block b ->
-             let loc = get_stmtLoc s'.skind in
+             let loc = Stmt.loc s' in
              (* must be performed after the optimisation
                 of the block itself (see comment in vblock) *)
              Queue.add
@@ -427,21 +428,28 @@ end = struct
                     s'.skind <- (Instr (Skip loc)))
                self#get_filling_actions
          | UnspecifiedSequence _ ->
-             let loc = get_stmtLoc s'.skind in
+             let loc = Stmt.loc s' in
+             let visible_stmt =
+               let info = self#get_finfo () in
+               (fun s -> Info.inst_visible info !s)
+             in
              Queue.add
                (fun () ->
                   match s'.skind with
                   | UnspecifiedSequence l ->
                       let res =
-                        List.filter (fun (s,_,_,_) -> not (is_skip s.skind)) l
+                        List.filter (fun (s,_,_,_,_) -> not (is_skip s.skind)) l
                       in
                       let res =
                         List.map
-                          (fun (s,m,w,r) ->
+                          (fun (s,m,w,r,c) ->
                              (s,
                               List.filter (visible_lval local_visible) m,
                               List.filter (visible_lval local_visible) w,
-                              List.filter (visible_lval local_visible) r))
+                              List.filter (visible_lval local_visible) r,
+                              List.filter visible_stmt c
+                             )
+                          )
                           res
                       in
                       (match res with
@@ -465,7 +473,7 @@ end = struct
 
     method vfunc f =
       Kernel.debug "@[[filter:vfunc] -> %s@\n@]@." f.svar.vname;
-      fi <- Some (VarinfoHashtbl.find fi_table f.svar);
+      fi <- Some (Varinfo.Hashtbl.find fi_table f.svar);
       (* parameters *)
       let new_formals =
         try self#get_formals_bindings f.svar
@@ -484,46 +492,64 @@ end = struct
       (* clean up the environment if we have more than one copy of the
          function in the sliced code. *)
       Cil.reset_behavior_stmt self#behavior;
-      keep_stmts <- StmtSet.empty;
-      VarinfoHashtbl.clear local_visible;
-      VarinfoHashtbl.add spec_table f.svar
+      keep_stmts <- Stmt.Set.empty;
+      Varinfo.Hashtbl.clear local_visible;
+      Varinfo.Hashtbl.add spec_table f.svar
         (visitCilFunspec (self:>Cil.cilVisitor)
            (Extlib.the self#current_kf).spec);
       SkipChildren
 
     method private visit_pred p =
-      { p with ip_content =
-          visitCilPredicate (self:>Cil.cilVisitor) p.ip_content }
+      Logic_const.new_predicate
+        { name = p.ip_name;
+          loc = p.ip_loc;
+          content = visitCilPredicate (self:>Cil.cilVisitor) p.ip_content }
+
+    method vfrom (b,f) =
+      let finfo = self#get_finfo () in
+      let from_visible t = Info.fun_deps_visible finfo t in
+      let from_visit t =
+        let t' = visitCilTerm (self:>Cil.cilVisitor) t.it_content in
+        Logic_const.new_identified_term t'
+      in
+      let b' = visitCilTerm (self:>Cil.cilVisitor) b.it_content in
+      let b = Logic_const.new_identified_term b' in
+      let res =
+        match f with
+            FromAny -> b,FromAny
+          | From l -> b, From (filter_list from_visible from_visit l)
+      in ChangeTo res
 
     method vbehavior b =
       let finfo = self#get_finfo () in
 
       let pre_visible p =  Info.fun_precond_visible finfo p.ip_content in
       b.b_assumes <- filter_list pre_visible self#visit_pred b.b_assumes;
+      b.b_requires <- filter_list pre_visible self#visit_pred b.b_requires;
 
       let ensure_visible (_,p) = Info.fun_postcond_visible finfo p.ip_content in
       b.b_post_cond <-
 	filter_list ensure_visible (fun (k,p) -> k,self#visit_pred p)
 	b.b_post_cond;
 
-      let assign_visible a = Info.fun_assign_visible finfo a in
-      let assign_visit a = visitCilAssigns (self:>Cil.cilVisitor) a in
-      b.b_assigns <- filter_list assign_visible assign_visit b.b_assigns;
-
+      let from_visible a = Info.fun_assign_visible finfo a in
+      let from_visit a = visitCilFrom (self:>Cil.cilVisitor) a in
+      (match b.b_assigns with
+          WritesAny -> ()
+        | Writes l ->
+          try
+            let assigns = filter_list from_visible from_visit l in
+            b.b_assigns <- Writes assigns
+          with Info.EraseAssigns -> b.b_assigns <- WritesAny
+      );
       SkipChildren (* see the warning on [SkipChildren] in [vspec] ! *)
 
     method vspec spec =
       Kernel.debug "@[[filter:vspec] for %a @\n@]@."
 	Kernel_function.pretty_name (Extlib.the self#current_kf);
       let finfo = self#get_finfo () in
-      let require_visible p =  Info.fun_precond_visible finfo p.ip_content in
-      spec.spec_requires <-
-	filter_list require_visible self#visit_pred spec.spec_requires ;
       let b = Cil.visitCilBehaviors (self:>Cil.cilVisitor) spec.spec_behavior in
-      let empty_behavior b =
-	b.b_assumes = [] && b.b_post_cond = [] && b.b_assigns = []
-      in
-      let b = List.filter (not $ empty_behavior) b in
+      let b = List.filter (not $ Cil.is_empty_behavior) b in
       spec.spec_behavior <- b;
 
       let new_variant = match spec.spec_variant with
@@ -553,7 +579,7 @@ end = struct
       let kf = Extlib.the self#current_kf in
       fi <- Some finfo;
       let new_var = ff_var fun_vars kf finfo in
-      VarinfoHashtbl.add fi_table new_var finfo;
+      Varinfo.Hashtbl.add fi_table new_var finfo;
       Kernel.debug "@[[filter:build_cil_proto] -> %s@\n@]@." new_var.vname;
       let action =
 	let (rt,args,va,attrs) = Cil.splitFunctionType new_var.vtype in
@@ -633,7 +659,7 @@ end = struct
            * coming from the vi associated to the current kf.  *)
           Cil.set_varinfo self#behavior new_fct_var new_fct_var;
           Cil.set_orig_varinfo self#behavior new_fct_var fvar;
-          VarinfoHashtbl.add fi_table new_fct_var finfo;
+          Varinfo.Hashtbl.add fi_table new_fct_var finfo;
           Kernel.debug "@[[filter:build_cil_fct] -> %s@\n@]@."
             (Info.fct_name
 	       (Kernel_function.get_vi (Extlib.the self#current_kf)) finfo);
@@ -641,7 +667,7 @@ end = struct
             Queue.add
               (fun () ->
                  let kf = Globals.Functions.get new_fct_var in
-                 kf.spec <- VarinfoHashtbl.find spec_table new_fct_var)
+                 kf.spec <- Varinfo.Hashtbl.find spec_table new_fct_var)
               self#get_filling_actions
           in let f = {f with svar = new_fct_var} in
 	  (* [JS 2009/03/23] do not call self#vfunc in the assertion;
@@ -669,7 +695,7 @@ end = struct
           Cil.ChangeToPost (new_functions, post actions)
       | GVarDecl (_, v, loc) ->
           begin
-            match v.vtype with
+            match Cil.unrollType v.vtype with
             | TFun _ ->
                 Kernel.debug "[filter:vglob_aux] GVarDecl %s (TFun)@." v.vname;
                 let var_decl = (v, loc) in
@@ -687,13 +713,14 @@ end = struct
   let build_cil_file new_proj_name pinfo =
     Kernel.debug "[filter:build_cil_file] in %s@." new_proj_name;
     let visitor = new filter_visitor pinfo in
-    let prj = File.create_project_from_visitor new_proj_name visitor in
+    let prj = FC_file.create_project_from_visitor new_proj_name visitor in
     Kernel.debug "[filter:build_cil_file] done.@.";
     prj
+
 end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

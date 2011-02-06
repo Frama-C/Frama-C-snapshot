@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -46,6 +46,7 @@ let mk_empty_spec () =
    Array.make (!numberOfStates) false,
    Array.make (!numberOfTransitions) false
   )
+
 
 
 
@@ -374,8 +375,6 @@ let debug_display_stmt_all_pre_bycase (st,tr)=
 (*  debug_display_stmt_pre_bycase tr "tr";*)
 (*  Format.printf " st=";                 *)
 (*  debug_display_stmt_pre_bycase st "st" *)
-
-
 
 
 

@@ -4,6 +4,7 @@ open Logic_ptree
 open Cil_types
 open Cil
 open Cabs
+open Lexing
 
 class visit = object
   inherit nopCabsVisitor
@@ -16,11 +17,89 @@ class visit = object
              AAssert([],
                      { lexpr_node =
                          PLat ({ lexpr_node = PLtrue; lexpr_loc = loc},"Pre");
-                       lexpr_loc = loc},
-                     {status=Unknown}), loc)};
+                       lexpr_loc = loc}), loc)};
        s]
 end
 
 let visitor = new visit;;
 
 Frontc.add_syntactic_transformation (Cabsvisit.visitCabsFile visitor);;
+
+let warn_pure_exp f e =
+  let loc = e.eloc in
+  let source = { Log.src_file = (fst loc).pos_fname;
+                 Log.src_line = (fst loc).pos_lnum }
+  in
+  Kernel.warning ~source "[SH]: function %s, pure expression %a is dropped"
+    f (!Ast_printer.d_exp) e
+;;
+
+Cabs2cil.register_ignore_pure_exp_hook warn_pure_exp;;
+
+let warn_proto vi =
+  let source = { Log.src_file = (fst vi.vdecl).pos_fname;
+                 Log.src_line = (fst vi.vdecl).pos_lnum }
+  in
+  Kernel.warning ~source "[SH]: implicit declaration for prototype %a"
+    (!Ast_printer.d_ident) vi.vname
+;;
+
+Cabs2cil.register_implicit_prototype_hook warn_proto
+;;
+
+let warn_conflict oldvi vi reason =
+  let source = { Log.src_file = (fst vi.vdecl).pos_fname;
+                 Log.src_line = (fst vi.vdecl).pos_lnum; }
+  in
+  Kernel.warning
+    ~source "[SH]: conflict with declaration of %a at line %d: %s"
+    !Ast_printer.d_ident vi.vname
+    (fst oldvi.vdecl).pos_lnum
+    reason
+;;
+
+Cabs2cil.register_incompatible_decl_hook warn_conflict;;
+
+let warn_distinct oldvi vi =
+  let source = { Log.src_file = (fst vi.vdecl).pos_fname;
+                 Log.src_line = (fst vi.vdecl).pos_lnum; }
+  in
+  Kernel.warning
+    ~source
+    "[SH]: definition of %a does not use exactly the same prototype as \
+     declared on line %d"
+    !Ast_printer.d_ident vi.vname
+    (fst oldvi.vdecl).pos_lnum
+;;
+
+Cabs2cil.register_different_decl_hook warn_distinct;;
+
+let warn_local_func vi =
+  let source = { Log.src_file = (fst vi.vdecl).pos_fname;
+                 Log.src_line = (fst vi.vdecl).pos_lnum; }
+  in
+  Kernel.warning ~source
+    "[SH]: definition of local function %a" !Ast_printer.d_ident vi.vname
+;;
+
+Cabs2cil.register_local_func_hook warn_local_func;;
+
+let warn_drop_effect olde e =
+  let source = Cil.source e.eloc in
+  Kernel.warning ~source
+    "[SH]: dropping side effect in sizeof: %a is converted to %a"
+    Cprint.print_expression olde
+    !Ast_printer.d_exp e
+;;
+
+Cabs2cil.register_ignore_side_effect_hook warn_drop_effect
+
+let warn_cond_effect orig e =
+  let source = Cil.source e.expr_loc in
+  Kernel.warning ~source
+    "[SH]: side effect of expression %a occurs in \
+     conditional part of expression %a. It is not always executed"
+    Cprint.print_expression e Cprint.print_expression orig
+;;
+
+Cabs2cil.register_conditional_side_effect_hook warn_cond_effect

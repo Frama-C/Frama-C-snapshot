@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,12 +22,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: build.mli,v 1.16 2008-04-01 09:25:21 uid568 Exp $ *)
-
 val compute_pdg : Db_types.kernel_function -> PdgTypes.Pdg.t
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module MemoryFootprint : Computation.REF_OUTPUT with type data = int
+module MemoryFootprint : State_builder.Ref with type data = int
 
-module type WeakHashable = 
+module type WeakHashable =
 sig
   type t
   val equal : t -> t -> bool
@@ -41,10 +41,16 @@ module type S = sig
   val iter : t -> (data -> unit) -> unit
   val clear : t -> unit
   val release : t -> unit
-  val shallow_copy : t -> t 
-  val addr : t -> int   
+  val shallow_copy : t -> t
+  val addr : t -> int
   val overwrite : old:t -> fresh:t -> unit
   val pretty_debug : Format.formatter -> t -> int -> unit
 end
 
 module MakeBig (H : WeakHashable)  : (S with type data = H.t)
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../.."
+End:
+*)

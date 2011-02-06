@@ -57,7 +57,7 @@ end
 module IS = Set.Make(
   struct
     type t = int
-    let compare = compare
+    let compare = Datatype.Int.compare
   end)
 
 let debug = RD.debug
@@ -182,7 +182,9 @@ class usedDefsCollectorClass = object(self)
 		    with Not_found ->
 		      IH.add sidUseSetHash i (IS.singleton sid)
 		end
-                | None -> ()) ios) u) ([new_exp (Lval(lh));rhs])
+                | None -> ()) ios) u) ([new_exp 
+                                           ~loc:Cil_datatype.Location.unknown 
+                                           (Lval(lh));rhs])
     | _ -> ()
     in
     ignore(super#vinst i);
@@ -395,7 +397,10 @@ class uselessInstrElim : cilVisitor = object
         let ildatlst' = List.filter test ildatlst in
         let (newil,_) = List.split ildatlst' in
         newil
-      with [] -> Skip Cilutil.locUnknown | [x] -> x | _ -> assert false
+      with
+      | [] -> Skip Cil_datatype.Location.unknown
+      | [ x ] -> x
+      | _ :: _ :: _ -> assert false
     in
 
     match RD.getRDs stm.sid with

@@ -1,28 +1,28 @@
-.\"
-.\"
-.\"  This file is part of Frama-C.
-.\"
-.\"  Copyright (C) 2007-2010
-.\"    CEA   (Commissariat à l'énergie atomique et aux énergies
-.\"           alternatives)
-.\"    INRIA (Institut National de Recherche en Informatique et en
-.\"           Automatique)
-.\"
-.\"  you can redistribute it and/or modify it under the terms of the GNU
-.\"  Lesser General Public License as published by the Free Software
-.\"  Foundation, version 2.1.
-.\"
-.\"  It is distributed in the hope that it will be useful,
-.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of
-.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-.\"  GNU Lesser General Public License for more details.
-.\"
-.\"  See the GNU Lesser General Public License version v2.1
-.\"  for more details (enclosed in the file licenses/LGPLv2.1).
-.\"
-.\"
+.\"                                                                        
+.\"                                                                        
+.\"  This file is part of Frama-C.                                         
+.\"                                                                        
+.\"  Copyright (C) 2007-2011                                               
+.\"    CEA   (Commissariat à l'énergie atomique et aux énergies            
+.\"           alternatives)                                                
+.\"    INRIA (Institut National de Recherche en Informatique et en         
+.\"           Automatique)                                                 
+.\"                                                                        
+.\"  you can redistribute it and/or modify it under the terms of the GNU   
+.\"  Lesser General Public License as published by the Free Software       
+.\"  Foundation, version 2.1.                                              
+.\"                                                                        
+.\"  It is distributed in the hope that it will be useful,                 
+.\"  but WITHOUT ANY WARRANTY; without even the implied warranty of        
+.\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
+.\"  GNU Lesser General Public License for more details.                   
+.\"                                                                        
+.\"  See the GNU Lesser General Public License version v2.1                
+.\"  for more details (enclosed in the file licenses/LGPLv2.1).            
+.\"                                                                        
+.\"                                                                        
 
-.TH FRAMA-C 1 2010-04-12
+.TH FRAMA-C 1 2010-12-17
 
 .SH NAME
 frama-c[.byte] \- a static analyzer for C programs
@@ -44,7 +44,7 @@ framework. This framework can be extended by additional plugins placed in the
 .B $FRAMAC_PLUGIN
 directory. The command
 .IP
-frama-c -help
+frama\-c \-help
 .PP
 will provide the full list of the plugins that are currently installed.
 .P
@@ -113,7 +113,7 @@ Sets verbosity and debugging level to 0.
 considers that all numerical addresses in the range
 .I min-max
 are valid. Bounds are parsed as ocaml integer constants. By default,
-all numerical adresses are considered invalid.
+all numerical addresses are considered invalid.
 .TP
 .BI \-add\-path\  p1[,p2[...,pn]]
 adds directories
@@ -121,15 +121,25 @@ adds directories
 .IR <pn>\  to
 the list of directories in which plugins are searched
 .TP
+.B [-no]-allow-duplication
+allows duplication of small blocks during normalization of tests and loops.
+Otherwise, normalization use labels and gotos. Bigger blocks and blocks
+with non-trivial control flow are never duplicated. Defaults to yes.
+.TP
 .B [-no]-annot
 reads ACSL annotation. This is the default. Annotation are not pre-processed
 by default. Use
 .B -pp-annot
 for that.
 .TP
+.B [-no]-collapse-call-cast
+allows implicit cast between the value returned by a function and the lval
+it is assigned to. Otherwise, a temporary variable is used and the cast is
+made explicit. Defaults to yes.
+.TP
 .B [-no]-constfold
-folds all syntactically constant expressions in the code before the
-analyzes. Defaults to no.
+folds all syntactically constant expressions in the code before
+analyses. Defaults to no.
 .TP
 .B [-no]-continue-annot-error
 When analyzing an annotation, the default behavior (the
@@ -146,7 +156,7 @@ as the command to pre-process C files. Defaults to the
 .B CPP
 environment variable or to
 .IP
-gcc -C -E -I.
+gcc \-C \-E \-I.
 .IP
 if it is not set. In order to preserve ACSL annotations, the preprocessor must
 keep comments (the
@@ -188,6 +198,10 @@ display floats as hexadecimal
 .B -float-relative
 display float interval as [
 .IR lower_bound ++ width\  ]
+.TP
+.B [-no]-force-rl-arg-eval
+forces right to left evaluation order for arguments of function calls. Otherwise
+the evaluation order is left unspecified, as in C standard. Defaults to no.
 .TP
 .B -journal-disable
 Do not output a journal of the current session. See
@@ -307,7 +321,7 @@ alias of
 .B -print-share-path
 .TP
 .B -print-plugin-path
-outputs the directory where Frama-C searchs its plugins (can be overidden by the
+outputs the directory where Frama-C searches its plugins (can be overidden by the
 .B FRAMAC_PLUGIN
 variable and the
 .B -add-path
@@ -326,10 +340,10 @@ For structure fields that are arrays, assumes that all accesses must be in bound
 .BI -save\  file
 Saves Frama-C's state into
 .I file
-after the analyzes have taken place.
+after analyses have taken place.
 .TP
 .B [-no]-simplify-cfg
-removes break, continue and switch statement before the analyzes. Defaults to
+removes break, continue and switch statement before analyses. Defaults to
 no.
 .TP
 .BI -time\  file

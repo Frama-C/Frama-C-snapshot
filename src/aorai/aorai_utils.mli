@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -20,8 +20,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-(* $Id: ltl_utils.mli,v 1.4 2008-12-19 15:30:56 uid588 Exp $ *)
 
 open Promelaast
 open Spec_tools
@@ -137,8 +135,8 @@ val mk_asbstract_post : buchautomata -> string -> (bool array * bool array)
 val pre_post_to_term : (bool array * bool array) -> (Cil_types.predicate Cil_types.named) list
 
 
-(*val get_preds_pre_wrt_params : string -> (Cil_types.predicate Cil_types.named) list*)
-
+val get_preds_pre_wrt_params : string -> Cil_types.predicate option
+val get_preds_post_bc_wrt_params : string -> Cil_types.predicate option
 
 
 
@@ -162,12 +160,19 @@ val zero_term : unit -> Cil_types.term
 
 (** Given an lval term 'host' and an integer value 'off', it returns a lval term host[off]. *)
 val mk_offseted_array : Cil_types.term_lval -> int -> Cil_types.term
+val mk_offseted_array_states_as_enum : Cil_types.term_lval -> int -> Cil_types.term
 
 (** Returns a term representing the given logic variable (usually a fresh quantified variable). *)
 val mk_term_from_vi : Cil_types.varinfo -> Cil_types.term
 
 
 val force_condition_to_predicate : (bool array * bool array) -> (bool array * bool array) -> Cil_types.predicate
+val get_global_loop_inv : Cil_types.stmt ref -> (bool array * bool array)
+
+val get_restricted_int_pre_bc : Cil_types.stmt ref -> Cil_types.predicate
+val get_restricted_ext_pre_bc : Cil_types.stmt ref -> Cil_types.predicate
+val get_restricted_int_post_bc : Cil_types.stmt ref -> Cil_types.predicate
+
 
 
 val make_enum_states: unit -> unit
@@ -184,6 +189,6 @@ val display_all_warnings_about_specs : unit -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

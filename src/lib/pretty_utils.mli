@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,12 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: pretty_utils.mli,v 1.3 2008-11-04 10:05:05 uid568 Exp $ *)
-
 (** {2 pretty-printing to a string} *)
 
 (** similar as Format.sprintf, but %a are allowed in the formatting string*)
 val sfprintf: ('a,Format.formatter,unit,string) format4 -> 'a
+
+val to_string: (Format.formatter -> 'a -> unit) -> 'a -> string
 
 (** {2 separators} *)
 
@@ -71,6 +71,19 @@ val pp_list: ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
 val pp_array: ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
   (int,'a) formatter2 -> 'a array formatter
 
+(** pretty prints any structure using an iterator on it. The argument
+    [pre] (resp. [suf]) is output before (resp. after) the iterator
+    is started (resp. has ended). The optional argument [sep] is output bewteen
+    two calls to the ['a formatter]. Default: open a box for [pre], close
+    a box for [suf], nothing for [sep]
+*)
+val pp_iter:
+  ?pre:sformat -> ?sep:sformat -> ?suf:sformat ->
+  (('a -> unit) -> 'b -> unit) ->
+  'a formatter -> 'b formatter
+
+
+
 (** pretty-prints an optional value. Prefix and suffix default to nothing.
     Nothing is printed if the option is None.
 *)
@@ -87,6 +100,9 @@ val pp_blocklist : ?left:string -> ?right:string -> 'a formatter -> 'a list form
 
 val pp_open_block : Format.formatter -> ('a,Format.formatter,unit) format -> 'a
 val pp_close_block : Format.formatter -> ('a,Format.formatter,unit) format -> 'a
+
+(** pretty-prints its contents inside an '(** ... **)' horizontal block trailed with '*' *)
+val pp_trail : 'a formatter -> 'a formatter
 
 (*
 Local Variables:

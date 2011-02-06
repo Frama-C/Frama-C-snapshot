@@ -50,41 +50,22 @@ open Cabs
 open Cabshelper
 let parse_error msg = Errorloc.parse_error msg
 
-(* unit -> string option *)
-(*
-let getComments () =
-  match !comments with
-    [] -> None
-  | _ ->
-      let r = Some(String.concat "\n" (List.rev !comments)) in
-      comments := [];
-      r
-*)
-
-(*CEA: note - There is a [cabslu] value inside the opened [Cabshelper] module.
-   question - Why to define another [cabslu] here?
-  let cabslu = {lineno = -10;
-	      filename = "cabs loc unknown";
-	      byteno = -10;
-              ident = 0;}
-*)
-
-(* cabsloc -> cabsloc *)
-(*
-let handleLoc l =
-  l.clcomment <- getComments();
-  l
-*)
-
 (*
 ** Expression building
 *)
 let smooth_expression lst =
   match lst with
-    [] -> NOTHING
+    [] -> { expr_loc = cabslu; expr_node = NOTHING }
   | [expr] -> expr
-  | _ -> COMMA (lst)
+  | _ ->
+      let beg_loc = fst (List.hd lst).expr_loc in
+      let end_loc = snd (Cilutil.list_last lst).expr_loc in
+      { expr_loc = (beg_loc,end_loc); expr_node = COMMA (lst) }
 
+(* To be called only inside a grammar rule. *)
+let make_expr e =
+  { expr_loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos ();
+    expr_node = e }
 
 let currentFunctionName = ref "<outside any function>"
 
@@ -214,7 +195,8 @@ begin
 end
 
 let int64_to_char value =
-  if (compare value (Int64.of_int 255) > 0) || (compare value Int64.zero < 0) then
+  if (Int64.compare value (Int64.of_int 255) > 0) ||
+    (Int64.compare value Int64.zero < 0) then
     parse_error (Printf.sprintf "integral literal 0x%Lx too big" value)
   else
     Char.chr (Int64.to_int value)
@@ -239,6 +221,7 @@ let fourth4 (_,_,_,result) = result
  *)
 
 let transformOffsetOf (speclist, dtype) member =
+  let mk_expr e = { expr_loc = member.expr_loc; expr_node = e } in
   let rec addPointer = function
     | JUSTBASE ->
 	PTR([], JUSTBASE)
@@ -252,29 +235,32 @@ let transformOffsetOf (speclist, dtype) member =
 	PROTO (addPointer dtype, names, variadic)
   in
   let nullType = (speclist, addPointer dtype) in
-  let nullExpr = CONSTANT (CONST_INT "0") in
-  let castExpr = CAST (nullType, SINGLE_INIT nullExpr) in
+  let nullExpr = mk_expr (CONSTANT (CONST_INT "0")) in
+  let castExpr = mk_expr (CAST (nullType, SINGLE_INIT nullExpr)) in
 
-  let rec replaceBase = function
-    | VARIABLE field ->
-	MEMBEROFPTR (castExpr, field)
-    | MEMBEROF (base, field) ->
-	MEMBEROF (replaceBase base, field)
-    | INDEX (base, index) ->
-	INDEX (replaceBase base, index)
-    | _ ->
-	parse_error "malformed offset expression in __builtin_offsetof"
+  let rec replaceBase e =
+    let node = match e.expr_node with
+      | VARIABLE field ->
+	  MEMBEROFPTR (castExpr, field)
+      | MEMBEROF (base, field) ->
+	  MEMBEROF (replaceBase base, field)
+      | INDEX (base, index) ->
+	  INDEX (replaceBase base, index)
+      | _ ->
+	  parse_error "malformed offset expression in __builtin_offsetof"
+    in { e with expr_node = node }
   in
   let memberExpr = replaceBase member in
-  let addrExpr = UNARY (ADDROF, memberExpr) in
+  let addrExpr = { memberExpr with expr_node = UNARY (ADDROF, memberExpr)} in
   (* slight cheat: hard-coded assumption that size_t == unsigned int *)
   let sizeofType = [SpecType Tunsigned], JUSTBASE in
-  let resultExpr = CAST (sizeofType, SINGLE_INIT addrExpr) in
-  resultExpr
+  { addrExpr with expr_node = CAST (sizeofType, SINGLE_INIT addrExpr)}
 
+let no_ghost_stmt s = {stmt_ghost = false ; stmt_node = s}
 
-let no_ghost s = {stmt_ghost = false ; stmt_node = s}
-let in_ghost s =
+let no_ghost = List.map no_ghost_stmt
+
+let in_ghost =
   let ghost_me = object
     inherit Cabsvisit.nopCabsVisitor
     method vstmt s =
@@ -282,22 +268,33 @@ let in_ghost s =
       Cil.DoChildren
   end
   in
-  ignore (Cabsvisit.visitCabsStatement ghost_me s)
+  List.map
+    (fun s -> ignore (Cabsvisit.visitCabsStatement ghost_me s); s)
+
+let in_block l =
+  match l with
+      [] -> no_ghost_stmt (NOP cabslu)
+    | [s] -> s
+    | _::_ ->
+        no_ghost_stmt (BLOCK ({ blabels = []; battrs = []; bstmts = l},
+                              get_statementloc (List.hd l),
+                              get_statementloc (Cilutil.list_last l)))
 
 %}
 
+%token <Cabs.cabsloc * string list * Logic_ptree.spec> FOR_SPEC
 %token <Lexing.position * string> SPEC
 %token <Logic_ptree.decl list> DECL
 %token <Logic_ptree.code_annot * Cabs.cabsloc> CODE_ANNOT
 %token <Logic_ptree.code_annot list * Cabs.cabsloc> LOOP_ANNOT
 %token <string * Cabs.cabsloc> ATTRIBUTE_ANNOT
 
-%token <string * Cabs.cabsloc> IDENT
+%token <string> IDENT
 %token <int64 list * Cabs.cabsloc> CST_CHAR
 %token <int64 list * Cabs.cabsloc> CST_WCHAR
 %token <string * Cabs.cabsloc> CST_INT
 %token <string * Cabs.cabsloc> CST_FLOAT
-%token <string * Cabs.cabsloc> NAMED_TYPE
+%token <string> NAMED_TYPE
 
 /* Each character is its own list element, and the terminating nul is not
    included in this list. */
@@ -396,17 +393,17 @@ let in_ghost s =
 %type <Cabs.attribute list> attributes attributes_with_asm asmattr
 %type <Cabs.constant * cabsloc> constant
 %type <string * cabsloc> string_constant
-%type <Cabs.expression * cabsloc> expression
+%type <Cabs.expression> expression
 %type <Cabs.expression> opt_expression
 %type <Cabs.init_expression> init_expression
-%type <Cabs.expression list * cabsloc> comma_expression
-%type <Cabs.expression list * cabsloc> paren_comma_expression
+%type <Cabs.expression list> comma_expression
+%type <Cabs.expression list> paren_comma_expression
 %type <Cabs.expression list> arguments
 %type <Cabs.expression list> bracket_comma_expression
 %type <int64 list Queue.t * cabsloc> string_list
 %type <int64 list * cabsloc> wstring_list
 
-%type <Cabs.initwhat * Cabs.init_expression> initializer
+%type <Cabs.initwhat * Cabs.init_expression> initializer_single
 %type <(Cabs.initwhat * Cabs.init_expression) list> initializer_list
 %type <Cabs.initwhat> init_designators init_designators_opt
 
@@ -488,23 +485,24 @@ global:
     * "declaration". For now we keep it at global scope only because in local
     * scope it looks too much like a function call  *) */
 | IDENT LPAREN old_parameter_list_ne RPAREN old_pardef_list SEMICOLON
-                           { (* Convert pardecl to new style *)
-                             let pardecl, isva = doOldParDecl $3 $5 in
-                             (* Make the function declarator *)
-                             doDeclaration None ((*handleLoc*) (snd $1)) []
-                               [((fst $1, PROTO(JUSTBASE, pardecl,isva), [], snd $1),
-                                 NO_INIT)]
-                            }
+    {
+      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      (* Convert pardecl to new style *)
+      let pardecl, isva = doOldParDecl $3 $5 in
+      (* Make the function declarator *)
+      doDeclaration None loc []
+        [(($1, PROTO(JUSTBASE, pardecl,isva), [], loc), NO_INIT)]
+    }
 /* (* Old style function prototype, but without any arguments *) */
 | IDENT LPAREN RPAREN  SEMICOLON
-                           { (* Make the function declarator *)
-                             doDeclaration None ((*handleLoc*)(snd $1)) []
-                               [((fst $1, PROTO(JUSTBASE,[],false), [], (*CEA*) cabslu),
-                                 NO_INIT)]
-                            }
+    { (* Make the function declarator *)
+      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      doDeclaration None loc []
+        [(($1, PROTO(JUSTBASE,[],false), [], loc), NO_INIT)]
+    }
 /* transformer for a toplevel construct */
 | AT_TRANSFORM LBRACE global RBRACE  IDENT/*to*/  LBRACE globals RBRACE {
-    checkConnective(fst $5);
+    checkConnective $5;
     TRANSFORMER($3,
                   List.map
                     (fun (x,y) ->
@@ -515,10 +513,10 @@ global:
   }
 /* transformer for an expression */
 | AT_TRANSFORMEXPR LBRACE expression RBRACE  IDENT/*to*/  LBRACE expression RBRACE {
-    checkConnective(fst $5);
-    EXPRTRANSFORMER(fst $3, fst $7, $1)
+    checkConnective $5;
+    EXPRTRANSFORMER($3, $7, $1)
   }
-| location error SEMICOLON { PRAGMA (VARIABLE "parse_error", $1) }
+| location error SEMICOLON { PRAGMA (make_expr (VARIABLE "parse_error"), $1) }
 ;
 
 id_or_typename_as_id:
@@ -527,8 +525,9 @@ id_or_typename_as_id:
 ;
 
 id_or_typename:
-    id_or_typename_as_id		{fst $1}
-|   AT_NAME LPAREN IDENT RPAREN         { "@name(" ^ fst $3 ^ ")" }     /* pattern variable name */
+    id_or_typename_as_id		{ $1 }
+|   AT_NAME LPAREN IDENT RPAREN         { "@name(" ^ $3 ^ ")" }
+      /* pattern variable name */
 ;
 
 maybecomma:
@@ -539,226 +538,214 @@ maybecomma:
 /* *** Expressions *** */
 
 primary_expression:                     /*(* 6.5.1. *)*/
-|		IDENT
-		        {VARIABLE (fst $1), snd $1}
-|        	constant
-		        {CONSTANT (fst $1), snd $1}
+|		IDENT { make_expr (VARIABLE $1) }
+|        	constant { make_expr (CONSTANT (fst $1)) }
 |		paren_comma_expression
-		        {PAREN (smooth_expression (fst $1)), snd $1}
-|		LPAREN block RPAREN
-		        { GNU_BODY (fst3 $2), $1 }
-
+		        { make_expr (PAREN (smooth_expression $1)) }
+|		LPAREN block RPAREN { make_expr (GNU_BODY (fst3 $2)) }
      /*(* Next is Scott's transformer *)*/
-|               AT_EXPR LPAREN IDENT RPAREN         /* expression pattern variable */
-                         { EXPR_PATTERN(fst $3), $1 }
+|               AT_EXPR LPAREN IDENT RPAREN { make_expr (EXPR_PATTERN $3) }
 ;
 
 postfix_expression:                     /*(* 6.5.2 *)*/
-|               primary_expression
-                        { $1 }
-|		postfix_expression bracket_comma_expression
-			{INDEX (fst $1, smooth_expression $2), snd $1}
-|		postfix_expression LPAREN arguments RPAREN
-			{CALL (fst $1, $3), snd $1}
-|               BUILTIN_VA_ARG LPAREN expression COMMA type_name RPAREN
-                        { let b, d = $5 in
-                          CALL (VARIABLE "__builtin_va_arg",
-                                [fst $3; TYPE_SIZEOF (b, d)]), $1 }
-|               BUILTIN_TYPES_COMPAT LPAREN type_name COMMA type_name RPAREN
-                        { let b1,d1 = $3 in
-                          let b2,d2 = $5 in
-                          CALL (VARIABLE "__builtin_types_compatible_p",
-                                [TYPE_SIZEOF(b1,d1); TYPE_SIZEOF(b2,d2)]), $1 }
-|               BUILTIN_OFFSETOF LPAREN type_name COMMA offsetof_member_designator RPAREN
-                        { transformOffsetOf $3 $5, $1 }
-|		postfix_expression DOT id_or_typename
-		        {MEMBEROF (fst $1, $3), snd $1}
-|		postfix_expression ARROW id_or_typename
-		        {MEMBEROFPTR (fst $1, $3), snd $1}
-|		postfix_expression PLUS_PLUS
-		        {UNARY (POSINCR, fst $1), snd $1}
-|		postfix_expression MINUS_MINUS
-		        {UNARY (POSDECR, fst $1), snd $1}
+| primary_expression { $1 }
+| postfix_expression bracket_comma_expression
+      {make_expr (INDEX ($1, smooth_expression $2))}
+| postfix_expression LPAREN arguments RPAREN {make_expr (CALL ($1, $3))}
+| BUILTIN_VA_ARG LPAREN expression COMMA type_name RPAREN
+      { let b, d = $5 in
+        let loc = Parsing.rhs_start_pos 5, Parsing.rhs_end_pos 5 in
+        let loc_f = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+        make_expr
+          (CALL
+             ({ expr_loc = loc_f;
+                expr_node = VARIABLE "__builtin_va_arg"},
+              [$3; { expr_loc = loc;
+                     expr_node = TYPE_SIZEOF (b, d)}]))
+      }
+| BUILTIN_TYPES_COMPAT LPAREN type_name COMMA type_name RPAREN
+      { let b1,d1 = $3 in
+        let b2,d2 = $5 in
+        let loc_f = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+        let loc1 = Parsing.rhs_start_pos 3, Parsing.rhs_end_pos 3 in
+        let loc2 = Parsing.rhs_start_pos 5, Parsing.rhs_end_pos 5 in
+        make_expr
+          (CALL
+             ({expr_loc = loc_f;
+               expr_node = VARIABLE "__builtin_types_compatible_p"},
+              [ { expr_loc = loc1; expr_node = TYPE_SIZEOF(b1,d1)};
+                { expr_loc = loc2; expr_node = TYPE_SIZEOF(b2,d2)}]))
+      }
+| BUILTIN_OFFSETOF LPAREN type_name COMMA offsetof_member_designator RPAREN
+      { transformOffsetOf $3 $5 }
+| postfix_expression DOT id_or_typename { make_expr (MEMBEROF ($1, $3))}
+| postfix_expression ARROW id_or_typename { make_expr (MEMBEROFPTR ($1, $3)) }
+| postfix_expression PLUS_PLUS { make_expr (UNARY (POSINCR, $1)) }
+| postfix_expression MINUS_MINUS { make_expr (UNARY (POSDECR, $1)) }
 /* (* We handle GCC constructor expressions *) */
-|		LPAREN type_name RPAREN LBRACE initializer_list_opt RBRACE
-		        { CAST($2, COMPOUND_INIT $5), $1 }
+| LPAREN type_name RPAREN LBRACE initializer_list_opt RBRACE
+      { make_expr (CAST($2, COMPOUND_INIT $5)) }
 ;
 
 offsetof_member_designator:	/* GCC extension for __builtin_offsetof */
-|		id_or_typename
-		        { VARIABLE ($1) }
+|		id_or_typename { make_expr (VARIABLE $1) }
 |		offsetof_member_designator DOT IDENT
-			{ MEMBEROF ($1, fst $3) }
+			{ make_expr (MEMBEROF ($1, $3)) }
 |		offsetof_member_designator bracket_comma_expression
-			{ INDEX ($1, smooth_expression $2) }
+			{ make_expr (INDEX ($1, smooth_expression $2)) }
 ;
 
 unary_expression:   /*(* 6.5.3 *)*/
 |               postfix_expression
                         { $1 }
 |		PLUS_PLUS unary_expression
-		        {UNARY (PREINCR, fst $2), $1}
+		        {make_expr (UNARY (PREINCR, $2))}
 |		MINUS_MINUS unary_expression
-		        {UNARY (PREDECR, fst $2), $1}
+		        {make_expr (UNARY (PREDECR, $2))}
 |		SIZEOF unary_expression
-		        {EXPR_SIZEOF (fst $2), $1}
+		        {make_expr (EXPR_SIZEOF $2)}
 |	 	SIZEOF LPAREN type_name RPAREN
-		        {let b, d = $3 in TYPE_SIZEOF (b, d), $1}
+		        {let b, d = $3 in make_expr (TYPE_SIZEOF (b, d)) }
 |		ALIGNOF unary_expression
-		        {EXPR_ALIGNOF (fst $2), $1}
+		        { make_expr (EXPR_ALIGNOF $2) }
 |	 	ALIGNOF LPAREN type_name RPAREN
-		        {let b, d = $3 in TYPE_ALIGNOF (b, d), $1}
+		        {let b, d = $3 in make_expr (TYPE_ALIGNOF (b, d)) }
 |		PLUS cast_expression
-		        {UNARY (PLUS, fst $2), $1}
+		        { make_expr (UNARY (PLUS, $2)) }
 |		MINUS cast_expression
-		        {UNARY (MINUS, fst $2), $1}
+		        { make_expr (UNARY (MINUS, $2)) }
 |		STAR cast_expression
-		        {UNARY (MEMOF, fst $2), $1}
+		        {make_expr (UNARY (MEMOF, $2)) }
 |		AND cast_expression
-		        {UNARY (ADDROF, fst $2), $1}
+		        {make_expr (UNARY (ADDROF, $2))}
 |		EXCLAM cast_expression
-		        {UNARY (NOT, fst $2), $1}
+		        { make_expr (UNARY (NOT, $2)) }
 |		TILDE cast_expression
-		        {UNARY (BNOT, fst $2), $1}
+		        { make_expr (UNARY (BNOT, $2)) }
 /* (* GCC allows to take address of a label (see COMPGOTO statement) *) */
-|               AND_AND id_or_typename_as_id { LABELADDR (fst $2), $1 }
+|               AND_AND id_or_typename_as_id { make_expr (LABELADDR $2) }
 ;
 
 cast_expression:   /*(* 6.5.4 *)*/
-|              unary_expression
-                         { $1 }
-|		LPAREN type_name RPAREN cast_expression
-		         { CAST($2, SINGLE_INIT (fst $4)), $1 }
+| unary_expression { $1 }
+| LPAREN type_name RPAREN cast_expression
+      { make_expr (CAST($2, SINGLE_INIT $4)) }
 ;
 
 multiplicative_expression:  /*(* 6.5.5 *)*/
-|               cast_expression
-                         { $1 }
-|		multiplicative_expression STAR cast_expression
-			{BINARY(MUL, fst $1, fst $3), snd $1}
-|		multiplicative_expression SLASH cast_expression
-			{BINARY(DIV, fst $1, fst $3), snd $1}
-|		multiplicative_expression PERCENT cast_expression
-			{BINARY(MOD, fst $1, fst $3), snd $1}
+| cast_expression { $1 }
+| multiplicative_expression STAR cast_expression
+      { make_expr (BINARY(MUL, $1, $3)) }
+| multiplicative_expression SLASH cast_expression
+      { make_expr (BINARY(DIV, $1, $3)) }
+| multiplicative_expression PERCENT cast_expression
+      { make_expr (BINARY(MOD, $1, $3)) }
 ;
 
 additive_expression:  /*(* 6.5.6 *)*/
-|               multiplicative_expression
-                        { $1 }
+|               multiplicative_expression { $1 }
 |		additive_expression PLUS multiplicative_expression
-			{BINARY(ADD, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(ADD, $1, $3)) }
 |		additive_expression MINUS multiplicative_expression
-			{BINARY(SUB, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(SUB, $1, $3)) }
 ;
 
 shift_expression:      /*(* 6.5.7 *)*/
-|               additive_expression
-                         { $1 }
+|               additive_expression { $1 }
 |		shift_expression  INF_INF additive_expression
-			{BINARY(SHL, fst $1, fst $3), snd $1}
+			{make_expr (BINARY(SHL, $1, $3)) }
 |		shift_expression  SUP_SUP additive_expression
-			{BINARY(SHR, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(SHR, $1, $3)) }
 ;
 
 
 relational_expression:   /*(* 6.5.8 *)*/
-|               shift_expression
-                        { $1 }
+|               shift_expression { $1 }
 |		relational_expression INF shift_expression
-			{BINARY(LT, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(LT, $1, $3)) }
 |		relational_expression SUP shift_expression
-			{BINARY(GT, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(GT, $1, $3)) }
 |		relational_expression INF_EQ shift_expression
-			{BINARY(LE, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(LE, $1, $3)) }
 |		relational_expression SUP_EQ shift_expression
-			{BINARY(GE, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(GE, $1, $3)) }
 ;
 
 equality_expression:   /*(* 6.5.9 *)*/
-|              relational_expression
-                        { $1 }
-|		equality_expression EQ_EQ relational_expression
-			{BINARY(EQ, fst $1, fst $3), snd $1}
-|		equality_expression EXCLAM_EQ relational_expression
-			{BINARY(NE, fst $1, fst $3), snd $1}
+| relational_expression { $1 }
+| equality_expression EQ_EQ relational_expression
+      { make_expr (BINARY(EQ, $1, $3)) }
+| equality_expression EXCLAM_EQ relational_expression
+      { make_expr (BINARY(NE, $1, $3)) }
 ;
 
-
 bitwise_and_expression:   /*(* 6.5.10 *)*/
-|               equality_expression
-                       { $1 }
+|               equality_expression { $1 }
 |		bitwise_and_expression AND equality_expression
-			{BINARY(BAND, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(BAND, $1, $3)) }
 ;
 
 bitwise_xor_expression:   /*(* 6.5.11 *)*/
-|               bitwise_and_expression
-                       { $1 }
+|               bitwise_and_expression { $1 }
 |		bitwise_xor_expression CIRC bitwise_and_expression
-			{BINARY(XOR, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(XOR, $1, $3)) }
 ;
 
 bitwise_or_expression:   /*(* 6.5.12 *)*/
-|               bitwise_xor_expression
-                        { $1 }
+|               bitwise_xor_expression { $1 }
 |		bitwise_or_expression PIPE bitwise_xor_expression
-			{BINARY(BOR, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(BOR, $1, $3)) }
 ;
 
 logical_and_expression:   /*(* 6.5.13 *)*/
-|               bitwise_or_expression
-                        { $1 }
+|               bitwise_or_expression { $1 }
 |		logical_and_expression AND_AND bitwise_or_expression
-			{BINARY(AND, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(AND, $1, $3)) }
 ;
 
 logical_or_expression:   /*(* 6.5.14 *)*/
-|               logical_and_expression
-                        { $1 }
+|               logical_and_expression { $1 }
 |		logical_or_expression PIPE_PIPE logical_and_expression
-			{BINARY(OR, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(OR, $1, $3)) }
 ;
 
 conditional_expression:    /*(* 6.5.15 *)*/
-|               logical_or_expression
-                         { $1 }
-|		logical_or_expression QUEST opt_expression COLON conditional_expression
-			{QUESTION (fst $1, $3, fst $5), snd $1}
+| logical_or_expression { $1 }
+| logical_or_expression QUEST opt_expression COLON conditional_expression
+      { make_expr (QUESTION ($1, $3, $5)) }
 ;
 
 /*(* The C spec says that left-hand sides of assignment expressions are unary
  * expressions. GCC allows cast expressions in there ! *)*/
 
 assignment_expression:     /*(* 6.5.16 *)*/
-|               conditional_expression
-                         { $1 }
+|               conditional_expression { $1 }
 |		cast_expression EQ assignment_expression
-			{BINARY(ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(ASSIGN, $1, $3)) }
 |		cast_expression PLUS_EQ assignment_expression
-			{BINARY(ADD_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(ADD_ASSIGN, $1, $3)) }
 |		cast_expression MINUS_EQ assignment_expression
-			{BINARY(SUB_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(SUB_ASSIGN, $1, $3)) }
 |		cast_expression STAR_EQ assignment_expression
-			{BINARY(MUL_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(MUL_ASSIGN, $1, $3)) }
 |		cast_expression SLASH_EQ assignment_expression
-			{BINARY(DIV_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(DIV_ASSIGN, $1, $3)) }
 |		cast_expression PERCENT_EQ assignment_expression
-			{BINARY(MOD_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(MOD_ASSIGN, $1, $3)) }
 |		cast_expression AND_EQ assignment_expression
-			{BINARY(BAND_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(BAND_ASSIGN, $1, $3)) }
 |		cast_expression PIPE_EQ assignment_expression
-			{BINARY(BOR_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(BOR_ASSIGN, $1, $3)) }
 |		cast_expression CIRC_EQ assignment_expression
-			{BINARY(XOR_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(XOR_ASSIGN, $1, $3)) }
 |		cast_expression INF_INF_EQ assignment_expression
-			{BINARY(SHL_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(SHL_ASSIGN, $1, $3)) }
 |		cast_expression SUP_SUP_EQ assignment_expression
-			{BINARY(SHR_ASSIGN, fst $1, fst $3), snd $1}
+			{ make_expr (BINARY(SHR_ASSIGN, $1, $3))}
 ;
 
 expression:           /*(* 6.5.17 *)*/
-                assignment_expression
-                        { $1 }
+                assignment_expression { $1 }
 ;
 
 
@@ -818,19 +805,19 @@ one_string:
 ;
 
 init_expression:
-     expression         { SINGLE_INIT (fst $1) }
+     expression         { SINGLE_INIT $1 }
 |    LBRACE initializer_list_opt RBRACE
 			{ COMPOUND_INIT $2}
 
 initializer_list:    /* ISO 6.7.8. Allow a trailing COMMA */
-    initializer                             { [$1] }
-|   initializer COMMA initializer_list_opt  { $1 :: $3 }
+    initializer_single                             { [$1] }
+|   initializer_single COMMA initializer_list_opt  { $1 :: $3 }
 ;
 initializer_list_opt:
     /* empty */                             { [] }
 |   initializer_list                        { $1 }
 ;
-initializer:
+initializer_single:
     init_designators eq_opt init_expression { ($1, $3) }
 |   gcc_init_designators init_expression { ($1, $2) }
 |                       init_expression { (NEXT_INIT, $1) }
@@ -842,10 +829,9 @@ eq_opt:
 ;
 init_designators:
     DOT id_or_typename init_designators_opt      { INFIELD_INIT($2, $3) }
-|   LBRACKET  expression RBRACKET init_designators_opt
-                                        { ATINDEX_INIT(fst $2, $4) }
+|   LBRACKET  expression RBRACKET init_designators_opt { ATINDEX_INIT($2, $4) }
 |   LBRACKET  expression ELLIPSIS expression RBRACKET
-                                        { ATINDEXRANGE_INIT(fst $2, fst $4) }
+        { ATINDEXRANGE_INIT($2, $4) }
 ;
 init_designators_opt:
    /* empty */                          { NEXT_INIT }
@@ -858,34 +844,32 @@ gcc_init_designators:  /*(* GCC supports these strange things *)*/
 
 arguments:
                 /* empty */         { [] }
-|               comma_expression    { fst $1 }
+|               comma_expression    { $1 }
 ;
 
 opt_expression:
-	        /* empty */
-	        	{NOTHING}
-|	        comma_expression
-	        	{smooth_expression (fst $1)}
+	        /* empty */ {make_expr NOTHING}
+|	        comma_expression {smooth_expression $1 }
 ;
 
 comma_expression:
-	        expression                        {[fst $1], snd $1}
-|               expression COMMA comma_expression { fst $1 :: fst $3, snd $1 }
+	        expression                        { [$1] }
+|               expression COMMA comma_expression { $1 :: $3 }
 |               error COMMA comma_expression      { $3 }
 ;
 
 comma_expression_opt:
-                /* empty */         { NOTHING }
-|               comma_expression    { smooth_expression (fst $1) }
+                /* empty */         { make_expr NOTHING }
+|               comma_expression    { smooth_expression $1 }
 ;
 
 paren_comma_expression:
   LPAREN comma_expression RPAREN                   { $2 }
-| LPAREN error RPAREN                              { [], $1 }
+| LPAREN error RPAREN                              { [] }
 ;
 
 bracket_comma_expression:
-  LBRACKET comma_expression RBRACKET                   { fst $2 }
+  LBRACKET comma_expression RBRACKET                   { $2 }
 | LBRACKET error RBRACKET                              { [] }
 ;
 
@@ -918,14 +902,15 @@ block_attrs:
 /* statements and declarations in a block, in any order (for C99 support) */
 block_element_list:
 |   annot_list_opt                                      { $1 }
-|   annot_list_opt declaration block_element_list       { $1 @ no_ghost (DEFINITION($2)) :: $3 }
-|   annot_list_opt statement block_element_list         { $1 @ (no_ghost $2) :: $3 }
+|   annot_list_opt declaration block_element_list
+        { $1 @ no_ghost_stmt (DEFINITION($2)) :: $3 }
+|   annot_list_opt statement block_element_list
+            { $1 @ $2 @ $3 }
 |   annot_list_opt pragma block_element_list            { $1 @ $3 }
 /*(* GCC accepts a label at the end of a block *)*/
 |   annot_list_opt id_or_typename_as_id COLON
-                                      { $1 @ [no_ghost
-                                                (LABEL (fst $2,
-                                                        no_ghost (NOP (snd $2)), snd $2))] }
+    { let loc = Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3 in
+      $1 @ no_ghost [LABEL ($2, no_ghost_stmt (NOP loc), loc)] }
 ;
 
 annot_list_opt:
@@ -934,10 +919,9 @@ annot_list_opt:
 ;
 
 annot_list:
-   CODE_ANNOT annot_list_opt { no_ghost (Cabs.CODE_ANNOT $1):: $2}
+   CODE_ANNOT annot_list_opt { no_ghost [Cabs.CODE_ANNOT $1] @ $2}
 |  LGHOST block_element_list RGHOST annot_list_opt
-       { let res = ($2@$4) in
-         List.iter in_ghost res; res }
+       { (in_ghost $2) @ $4 }
 ;
 
 local_labels:
@@ -945,31 +929,21 @@ local_labels:
 |  LABEL__ local_label_names SEMICOLON local_labels  { $2 @ $4 }
 ;
 local_label_names:
-   id_or_typename_as_id                              { [ fst $1 ] }
-|  id_or_typename_as_id COMMA local_label_names      { fst $1 :: $3 }
+   id_or_typename_as_id                              { [ $1 ] }
+|  id_or_typename_as_id COMMA local_label_names      { $1 :: $3 }
 ;
 
 
 annotated_statement:
-|   statement { no_ghost $1 }
-|   annot_list statement {
-      let st = no_ghost $2 in
-      let st =
-        match st.stmt_node with
-        | BLOCK(b,start,stop) ->
-            {st with stmt_node =
-                BLOCK({b with battrs = ("FRAMA_C_KEEP_BLOCK",[])::b.battrs},start,stop)}
-        | _ -> st
-      in
-      no_ghost
-        (BLOCK ({ blabels = [];
-                  battrs  = [];
-                  bstmts  = $1 @ [st] },
-                get_statementloc (List.hd $1), get_statementloc st))}
+|   statement { $1 }
+|   annot_list statement { $1 @ $2 }
 ;
 
 statement:
-    SEMICOLON		{NOP ((*handleLoc*) $1) }
+    SEMICOLON		{ no_ghost [NOP $1] }
+|   FOR_SPEC annotated_statement
+      { (* TODO: Do not forget behavior list. *)
+        let loc,_bhv,spec = $1 in no_ghost [Cabs.CODE_SPEC (spec,loc)] @ $2}
 |   SPEC annotated_statement
       {
         let bs = $2 in
@@ -977,72 +951,102 @@ statement:
 	  (currentLoc())
 	  (fun () ->
              let spec = Logic_lexer.spec $1 in
-             let spec = no_ghost (Cabs.CODE_SPEC spec) in
-             BLOCK ({ blabels = []; battrs = []; bstmts = [spec;bs] },
-                    get_statementloc spec, get_statementloc bs))
-	  (fun () -> bs.stmt_node)
+             let spec = no_ghost [Cabs.CODE_SPEC spec] in
+             spec @ $2)
+	  (fun () -> bs)
 	  "Skipping annotation"
       }
 |   comma_expression SEMICOLON
-	        	{COMPUTATION (smooth_expression (fst $1),  (*handleLoc*)(snd $1))}
-|   block               {BLOCK (fst3 $1, (*handleLoc*)(snd3 $1), trd3 $1)}
+	  { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+            no_ghost [COMPUTATION (smooth_expression $1,loc)]}
+|   block { let (x,y,z) = $1 in no_ghost [BLOCK (x, y, z)]}
 |   IF paren_comma_expression annotated_statement
-                	{IF (smooth_expression (fst $2), $3, no_ghost (NOP $1), $1)}
+        { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+          no_ghost [IF (smooth_expression $2,
+                       in_block $3, no_ghost_stmt (NOP loc), loc)]}
 |   IF paren_comma_expression annotated_statement ELSE annotated_statement
-	                {IF (smooth_expression (fst $2), $3, $5, (*handleLoc*) $1)}
+	{ let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+          no_ghost
+            [IF (smooth_expression $2, in_block $3, in_block $5, loc)]}
 |   SWITCH paren_comma_expression annotated_statement
-                        {SWITCH (smooth_expression (fst $2), $3, (*handleLoc*) $1)}
+        { let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+          no_ghost [SWITCH (smooth_expression $2, in_block $3, loc)]}
 |   opt_loop_annotations
     WHILE paren_comma_expression annotated_statement
-	        	{WHILE ($1, smooth_expression (fst $3), $4, (*handleLoc*) $2)}
+    { let loc = Parsing.rhs_start_pos 2, Parsing.symbol_end_pos () in
+      no_ghost [WHILE ($1, smooth_expression $3, in_block $4, loc)] }
 |   opt_loop_annotations
     DO annotated_statement WHILE paren_comma_expression SEMICOLON
-	        	         {DOWHILE ($1,
-					   smooth_expression (fst $5), $3, (*handleLoc*) $2)}
+    { let loc = Parsing.rhs_start_pos 2, Parsing.symbol_end_pos () in
+      no_ghost [DOWHILE ($1, smooth_expression $5, in_block $3, loc)]}
 |   opt_loop_annotations
     FOR LPAREN for_clause opt_expression
-	        SEMICOLON opt_expression RPAREN annotated_statement get_current_loc
-	                         {FOR ($1, $4, $5, $7, $9, $2, (*handleLoc*) $10)}
+    SEMICOLON opt_expression RPAREN annotated_statement
+    { let loc = Parsing.rhs_start_pos 2, Parsing.symbol_end_pos () in
+      no_ghost [FOR ($1, $4, $5, $7, in_block $9, loc)]}
 |   id_or_typename_as_id COLON  attribute_nocv_list annotated_statement
-		                 {(* The only attribute that should appear here
-                                     is "unused". For now, we drop this on the
-                                     floor, since unused labels are usually
-                                     removed anyways by Rmtmps. *)
-                                  LABEL (fst $1, $4, (snd $1))}
+	{(* The only attribute that should appear here
+            is "unused". For now, we drop this on the
+            floor, since unused labels are usually
+            removed anyways by Rmtmps. *)
+          let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 2 in
+          no_ghost [LABEL ($1, in_block $4, loc)]}
 |   CASE expression COLON annotated_statement
-	                         {CASE (fst $2, $4, (*handleLoc*) $1)}
+	    { let loc = Parsing.symbol_start_pos (), Parsing.rhs_end_pos 3 in
+              no_ghost [CASE ($2, in_block $4, loc)]}
 |   CASE expression ELLIPSIS expression COLON annotated_statement
-	                         {CASERANGE (fst $2, fst $4, $6, (*handleLoc*) $1)}
+	    { let loc = Parsing.symbol_start_pos (), Parsing.rhs_end_pos 5 in
+              no_ghost [CASERANGE ($2, $4, in_block $6, loc)]}
 |   DEFAULT COLON
-	                         {DEFAULT (no_ghost (NOP $1), (*handleLoc*) $1)}
-|   RETURN SEMICOLON		 {RETURN (NOTHING, (*handleLoc*) $1)}
-|   RETURN comma_expression SEMICOLON
-	                         {RETURN (smooth_expression (fst $2), (*handleLoc*) $1)}
-|   BREAK SEMICOLON     {BREAK ((*handleLoc*) $1)}
-|   CONTINUE SEMICOLON	 {CONTINUE ((*handleLoc*) $1)}
-|   GOTO id_or_typename_as_id SEMICOLON
-		                 {GOTO (fst $2, (*handleLoc*) $1)}
-|   GOTO STAR comma_expression SEMICOLON
-                                 { COMPGOTO (smooth_expression (fst $3), (*handleLoc*) $1) }
-|   ASM asmattr LPAREN asmtemplate asmoutputs RPAREN SEMICOLON
-                        { ASM ($2, $4, $5, (*handleLoc*) $1) }
-|   MSASM               { ASM ([], [fst $1], None, (*handleLoc*)(snd $1))}
-|   TRY block EXCEPT paren_comma_expression block
-                        { let b, _, _ = $2 in
-                          let h, _, _ = $5 in
-                          if not !Cprint.msvcMode then
-                            parse_error "try/except in GCC code";
-                          TRY_EXCEPT (b, COMMA (fst $4), h, (*handleLoc*) $1) }
-|   TRY block FINALLY block
-                        { let b, _, _ = $2 in
-                          let h, _, _ = $4 in
-                          if not !Cprint.msvcMode then
-                            parse_error "try/finally in GCC code";
-                          TRY_FINALLY (b, h, (*handleLoc*) $1) }
-
-|   error location   SEMICOLON   { (NOP $2)}
+	    { let loc = Parsing.symbol_start_pos(), Parsing.symbol_end_pos () in
+              no_ghost [DEFAULT (no_ghost_stmt (NOP loc), loc)]}
+|   RETURN SEMICOLON {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [RETURN ({ expr_loc = loc; expr_node = NOTHING}, loc)]
+    }
+|   RETURN comma_expression SEMICOLON {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [RETURN (smooth_expression $2, loc)]
+    }
+|   BREAK SEMICOLON     {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [BREAK loc]
+    }
+|   CONTINUE SEMICOLON	 {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [CONTINUE loc]
+    }
+|   GOTO id_or_typename_as_id SEMICOLON {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [GOTO ($2, loc)]
+    }
+|   GOTO STAR comma_expression SEMICOLON {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [COMPGOTO (smooth_expression $3, loc) ]
+    }
+|   ASM asmattr LPAREN asmtemplate asmoutputs RPAREN SEMICOLON {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [ASM ($2, $4, $5, loc)]
+    }
+|   MSASM   { no_ghost [ASM ([], [fst $1], None, snd $1)]}
+|   TRY block EXCEPT paren_comma_expression block {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let loc_e = Parsing.rhs_start_pos 4, Parsing.rhs_end_pos 4 in
+      let b, _, _ = $2 in
+      let h, _, _ = $5 in
+      if not !Cprint.msvcMode then parse_error "try/except in GCC code";
+      no_ghost
+        [TRY_EXCEPT (b, {expr_loc = loc_e; expr_node = COMMA $4}, h, loc)]
+    }
+|   TRY block FINALLY block {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      let b, _, _ = $2 in
+      let h, _, _ = $4 in
+      if not !Cprint.msvcMode then parse_error "try/finally in GCC code";
+      no_ghost [TRY_FINALLY (b, h, loc)]
+    }
+|   error location   SEMICOLON   { no_ghost [NOP $2]}
 ;
-
 
 opt_loop_annotations:
   /* epsilon */ { [] }
@@ -1105,7 +1109,7 @@ decl_spec_list:                         /* ISO 6.7 */
 |   cvspec decl_spec_list_opt           { (fst $1) :: $2, snd $1 }
 |   attribute_nocv decl_spec_list_opt   { SpecAttr (fst $1) :: $2, snd $1 }
 /* specifier pattern variable (must be last in spec list) */
-|   AT_SPECIFIER LPAREN IDENT RPAREN    { [ SpecPattern(fst $3) ], $1 }
+|   AT_SPECIFIER LPAREN IDENT RPAREN    { [ SpecPattern $3 ], $1 }
 ;
 /* (* In most cases if we see a NAMED_TYPE we must shift it. Thus we declare
     * NAMED_TYPE to have right associativity  *) */
@@ -1165,8 +1169,10 @@ type_spec:   /* ISO 6.7.2 */
                                                    { Tenum   ($3, Some $5, $2), $1 }
 |   ENUM   just_attributes                LBRACE enum_list maybecomma RBRACE
                                                    { Tenum   ("", Some $4, $2), $1 }
-|   NAMED_TYPE      { Tnamed (fst $1), snd $1 }
-|   TYPEOF LPAREN expression RPAREN     { TtypeofE (fst $3), $1 }
+|   NAMED_TYPE      {
+      (Tnamed $1, (Parsing.symbol_start_pos (), Parsing.symbol_end_pos()))
+      }
+|   TYPEOF LPAREN expression RPAREN     { TtypeofE $3, $1 }
 |   TYPEOF LPAREN type_name RPAREN      { let s, d = $3 in
                                           TtypeofT (s, d), $1 }
 ;
@@ -1198,8 +1204,8 @@ field_decl: /* (* ISO 6.7.2. Except that we allow unnamed fields. *) */
 |   declarator COLON expression attributes
                                     { let (n,decl,al,loc) = $1 in
                                       let al' = al @ $4 in
-                                     ((n,decl,al',loc), Some (fst $3)) }
-|              COLON expression     { (missingFieldDecl, Some (fst $2)) }
+                                     ((n,decl,al',loc), Some $3) }
+|              COLON expression     { (missingFieldDecl, Some $2) }
 ;
 
 enum_list: /* (* ISO 6.7.2.2 *) */
@@ -1208,17 +1214,32 @@ enum_list: /* (* ISO 6.7.2.2 *) */
 |   enum_list COMMA error               { $1 }
 ;
 enumerator:
-    IDENT			{(fst $1, NOTHING, snd $1)}
-|   IDENT EQ expression		{(fst $1, fst $3, snd $1)}
+    IDENT			{
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos() in
+      ($1, { expr_node = NOTHING; expr_loc = loc }, loc)
+    }
+|   IDENT EQ expression		{
+      ($1, $3, (Parsing.symbol_start_pos (),Parsing.symbol_end_pos()))
+    }
 ;
 
 
 declarator:  /* (* ISO 6.7.5. Plus Microsoft declarators.*) */
-   pointer_opt direct_decl attributes_with_asm
-                               { let (n, decl) = $2 in
-                                (n, applyPointer (fst $1) decl, $3, (snd $1)) }
+   pointer_opt direct_decl attributes_with_asm {
+     let (n, decl) = $2 in (n, applyPointer (fst $1) decl, $3, (snd $1))
+   }
 ;
 
+
+attributes_or_static: /* 6.7.5.2/3 */
+| attributes comma_expression_opt { $1,$2 }
+| attribute attributes STATIC comma_expression {
+    fst $1::$2  @ ["static",[]], smooth_expression $4
+  }
+| STATIC attributes comma_expression {
+    ("static",[]) :: $2, smooth_expression $3
+  }
+;
 
 direct_decl: /* (* ISO 6.7.5 *) */
                                    /* (* We want to be able to redefine named
@@ -1229,12 +1250,10 @@ direct_decl: /* (* ISO 6.7.5 *) */
                                    { let (n,decl,al,_) = $3 in
                                      (n, PARENTYPE($2,decl,al)) }
 
-|   direct_decl LBRACKET attributes comma_expression_opt RBRACKET
+|   direct_decl LBRACKET attributes_or_static  RBRACKET
                                    { let (n, decl) = $1 in
-                                     (n, ARRAY(decl, $3, $4)) }
-|   direct_decl LBRACKET attributes error RBRACKET
-                                   { let (n, decl) = $1 in
-                                     (n, ARRAY(decl, $3, NOTHING)) }
+                                     let (attrs, size) = $3 in
+                                     (n, ARRAY(decl, attrs, size)) }
 |   direct_decl parameter_list_startscope rest_par_list RPAREN
                                    { let (n, decl) = $1 in
                                      let (params, isva) = $3 in
@@ -1278,30 +1297,27 @@ old_proto_decl:
 ;
 
 direct_old_proto_decl:
-  direct_decl LPAREN old_parameter_list_ne RPAREN old_pardef_list
-                                   { let par_decl, isva = doOldParDecl $3 $5 in
-                                     let n, decl = $1 in
-                                     (n, PROTO(decl, par_decl, isva), [])
-                                   }
-| direct_decl LPAREN                       RPAREN
-                                   { let n, decl = $1 in
-                                     (n, PROTO(decl, [], false), [])
-                                   }
+  direct_decl LPAREN old_parameter_list_ne RPAREN old_pardef_list {
+    let par_decl, isva = doOldParDecl $3 $5 in
+    let n, decl = $1 in
+    (n, PROTO(decl, par_decl, isva), [])
+  }
+| direct_decl LPAREN RPAREN {
+    let n, decl = $1 in (n, PROTO(decl, [], false), [])
+  }
 
 /* (* appears sometimesm but generates a shift-reduce conflict. *)
-| LPAREN STAR direct_decl LPAREN old_parameter_list_ne RPAREN RPAREN LPAREN RPAREN old_pardef_list
-                                   { let par_decl, isva
-                                             = doOldParDecl $5 $10 in
-                                     let n, decl = $3 in
-                                     (n, PROTO(decl, par_decl, isva), [])
-                                   }
+| LPAREN STAR direct_decl LPAREN old_parameter_list_ne RPAREN RPAREN
+    LPAREN RPAREN old_pardef_list {
+      let par_decl, isva = doOldParDecl $5 $10 in
+      let n, decl = $3 in (n, PROTO(decl, par_decl, isva), [])
+    }
 */
 ;
 
 old_parameter_list_ne:
-|  IDENT                                       { [fst $1] }
-|  IDENT COMMA old_parameter_list_ne           { let rest = $3 in
-                                                 (fst $1 :: rest) }
+|  IDENT                                       { [$1] }
+|  IDENT COMMA old_parameter_list_ne           { $1::$3 }
 ;
 
 old_pardef_list:
@@ -1386,6 +1402,7 @@ function_def:  /* (* ISO 6.9.1 *) */
             currentFunctionName := "<__FUNCTION__ used outside any functions>";
             !Lexerhack.pop_context (); (* The context pushed by
                                     * announceFunctionName *)
+            (*OCAMLYACC BUG??? Format.printf "%a@." d_cabsloc (trd3 $2);*)
             doFunctionDef None ((*handleLoc*) loc) (trd3 $2) specs decl (fst3 $2)
           }
 
@@ -1403,39 +1420,35 @@ function_def_start:  /* (* ISO 6.9.1 *) */
                             }
 /* (* New-style function that does not have a return type *) */
 | IDENT parameter_list_startscope rest_par_list RPAREN
-                           { let (params, isva) = $3 in
-                             let fdec =
-                               (fst $1, PROTO(JUSTBASE, params, isva), [], snd $1) in
-                             announceFunctionName fdec;
-                             (* Default is int type *)
-                             let defSpec = [SpecType Tint] in
-                             (snd $1, defSpec, fdec)
-                           }
+    { let (params, isva) = $3 in
+      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let fdec =
+        ($1, PROTO(JUSTBASE, params, isva), [], loc) in
+      announceFunctionName fdec;
+      (* Default is int type *)
+      let defSpec = [SpecType Tint] in (loc, defSpec, fdec)
+    }
 
 /* (* No return type and old-style parameter list *) */
 | IDENT LPAREN old_parameter_list_ne RPAREN old_pardef_list
-                           { (* Convert pardecl to new style *)
-                             let pardecl, isva = doOldParDecl $3 $5 in
-                             (* Make the function declarator *)
-                             let fdec = (fst $1,
-                                         PROTO(JUSTBASE, pardecl,isva),
-                                         [], snd $1) in
-                             announceFunctionName fdec;
-                             (* Default is int type *)
-                             let defSpec = [SpecType Tint] in
-                             (snd $1, defSpec, fdec)
-                            }
+    { (* Convert pardecl to new style *)
+      let pardecl, isva = doOldParDecl $3 $5 in
+      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      (* Make the function declarator *)
+      let fdec = ($1, PROTO(JUSTBASE, pardecl,isva), [], loc) in
+      announceFunctionName fdec;
+      (* Default is int type *)
+      let defSpec = [SpecType Tint] in (loc, defSpec, fdec)
+    }
 /* (* No return type and no parameters *) */
-| IDENT LPAREN                      RPAREN
-                           { (* Make the function declarator *)
-                             let fdec = (fst $1,
-                                         PROTO(JUSTBASE, [], false),
-                                         [], snd $1) in
-                             announceFunctionName fdec;
-                             (* Default is int type *)
-                             let defSpec = [SpecType Tint] in
-                             (snd $1, defSpec, fdec)
-                            }
+| IDENT LPAREN RPAREN
+    { (* Make the function declarator *)
+      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let fdec = ($1, PROTO(JUSTBASE, [], false), [], loc) in
+      announceFunctionName fdec;
+      (* Default is int type *)
+      let defSpec = [SpecType Tint] in (loc, defSpec, fdec)
+    }
 ;
 
 /* const/volatile as type specifier elements */
@@ -1458,9 +1471,12 @@ attributes:
 attributes_with_asm:
     /* empty */                         { [] }
 |   attribute attributes_with_asm       { fst $1 :: $2 }
-|   ASM LPAREN string_constant RPAREN attributes
-                                        { ("__asm__",
-					   [CONSTANT(CONST_STRING (fst $3))]) :: $5 }
+|   ASM LPAREN string_constant RPAREN attributes {
+      let loc = Parsing.rhs_start_pos 3, Parsing.rhs_end_pos 3 in
+      ("__asm__",
+       [{ expr_node = CONSTANT(CONST_STRING (fst $3)); expr_loc = loc}])
+      :: $5
+    }
 ;
 
 /* things like __attribute__, but no const/volatile */
@@ -1510,142 +1526,177 @@ just_attributes:
 
 /** (* PRAGMAS and ATTRIBUTES *) ***/
 pragma:
+| PRAGMA PRAGMA_EOL		        {
+    PRAGMA (make_expr (VARIABLE ("")), $1)
+  }
 | PRAGMA attr PRAGMA_EOL		{ PRAGMA ($2, $1) }
 | PRAGMA attr SEMICOLON PRAGMA_EOL	{ PRAGMA ($2, $1) }
-| PRAGMA_LINE                           { PRAGMA (VARIABLE (fst $1),
-                                                  snd $1) }
+| PRAGMA_LINE                           {
+    PRAGMA (make_expr (VARIABLE (fst $1)), snd $1)
+  }
 ;
 
 /* (* We want to allow certain strange things that occur in pragmas, so we
     * cannot use directly the language of expressions *) */
-primary_attr:
-    IDENT				{ VARIABLE (fst $1) }
-    /*(* The NAMED_TYPE here creates conflicts with IDENT *)*/
-|   NAMED_TYPE				{ VARIABLE (fst $1) }
-|   LPAREN attr RPAREN                  { $2 }
-|   IDENT IDENT                          { CALL(VARIABLE (fst $1), [VARIABLE (fst $2)]) }
-|   CST_INT                              { CONSTANT(CONST_INT (fst $1)) }
-|   string_constant                      { CONSTANT(CONST_STRING (fst $1)) }
-                                           /*(* Const when it appears in
-                                            * attribute lists, is translated
-                                            * to aconst *)*/
-|   CONST                                { VARIABLE "aconst" }
-
-|   IDENT COLON CST_INT                  { VARIABLE (fst $1 ^ ":" ^ fst $3) }
-
+var_attr:
+|   IDENT { make_expr (VARIABLE $1) }
+|   NAMED_TYPE { make_expr (VARIABLE $1) }
+|   DEFAULT COLON CST_INT { make_expr (VARIABLE ("default:" ^ fst $3)) }
+      /* Const when it appears in attribute lists, is translated to aconst */
+|   CONST { make_expr (VARIABLE "aconst") }
+/*(** GCC allows this as an attribute for functions, synonym for noreturn **)*/
+|   VOLATILE { make_expr (VARIABLE ("__noreturn__")) }
+|   IDENT COLON CST_INT { make_expr (VARIABLE ($1 ^ ":" ^ fst $3)) }
+|   NAMED_TYPE COLON CST_INT { make_expr (VARIABLE ($1 ^ ":" ^ fst $3)) }
 /*(* The following rule conflicts with the ? : attributes. We give it a very
    * low priority *)*/
-|   CST_INT COLON CST_INT                { VARIABLE (fst $1 ^ ":" ^ fst $3) }
-
-|   DEFAULT COLON CST_INT                { VARIABLE ("default:" ^ fst $3) }
-
-                                            /*(** GCC allows this as an
-                                             * attribute for functions,
-                                             * synonim for noreturn **)*/
-|   VOLATILE                             { VARIABLE ("__noreturn__") }
+|   CST_INT COLON CST_INT { make_expr (VARIABLE (fst $1 ^ ":" ^ fst $3)) }
 ;
 
-postfix_attr:
-    primary_attr                         { $1 }
-                                         /* (* use a VARIABLE "" so that the
-                                             * parentheses are printed *) */
-|   IDENT LPAREN  RPAREN             { CALL(VARIABLE (fst $1), [VARIABLE ""]) }
-|   IDENT paren_attr_list_ne         { CALL(VARIABLE (fst $1), $2) }
+basic_attr:
+|   CST_INT { make_expr (CONSTANT(CONST_INT (fst $1))) }
+|   var_attr { $1 }
+;
+basic_attr_list_ne:
+    basic_attr				{ [$1] }
+|   basic_attr basic_attr_list_ne	{ $1::$2 }
+;
 
-|   postfix_attr ARROW id_or_typename    {MEMBEROFPTR ($1, $3)}
-|   postfix_attr DOT id_or_typename      {MEMBEROF ($1, $3)}
-|   postfix_attr LBRACKET attr RBRACKET  {INDEX ($1, $3) }
+parameter_attr_list_ne:
+    basic_attr_list_ne			{ $1 }
+|   basic_attr_list_ne string_constant	{
+      $1 @ [make_expr (CONSTANT(CONST_STRING (fst $2)))]
+    }
+|   basic_attr_list_ne string_constant parameter_attr_list_ne {
+      $1 @ ([make_expr (CONSTANT(CONST_STRING (fst $2)))] @ $3)
+    }
+;
+param_attr_list_ne:
+    parameter_attr_list_ne { $1 }
+|   string_constant { [make_expr (CONSTANT(CONST_STRING (fst $1)))] }
+;
+primary_attr:
+    basic_attr { $1 }
+|   LPAREN attr RPAREN { $2 }
+|   string_constant { make_expr (CONSTANT(CONST_STRING (fst $1))) }
+;
+postfix_attr:
+    primary_attr { $1 }
+|   id_or_typename_as_id paren_attr_list_ne {
+        let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+        make_expr (CALL({ expr_loc = loc; expr_node = VARIABLE $1}, $2)) }
+      /* (* use a VARIABLE "" so that the parentheses are printed *) */
+|   id_or_typename_as_id LPAREN  RPAREN {
+      let loc1 = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      let loc2 = Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3 in
+      let f = { expr_node = VARIABLE $1; expr_loc = loc1 } in
+      let arg = { expr_node = VARIABLE ""; expr_loc = loc2 } in
+      make_expr (CALL(f, [arg]))
+    }
+      /* (* use a VARIABLE "" so that the parameters are printed without
+          * parentheses nor comma *) */
+|   basic_attr param_attr_list_ne  {
+      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+      make_expr (CALL({ expr_node = VARIABLE ""; expr_loc = loc}, $1::$2)) }
+
+|   postfix_attr ARROW id_or_typename   { make_expr (MEMBEROFPTR ($1, $3))}
+|   postfix_attr DOT id_or_typename     { make_expr (MEMBEROF ($1, $3)) }
+|   postfix_attr LBRACKET attr RBRACKET { make_expr (INDEX ($1, $3)) }
 ;
 
 /*(* Since in attributes we use both IDENT and NAMED_TYPE as indentifiers,
  * that leads to conflicts for SIZEOF and ALIGNOF. In those cases we require
  * that their arguments be expressions, not attributes *)*/
 unary_attr:
-    postfix_attr                         { $1 }
-|   SIZEOF unary_expression              {EXPR_SIZEOF (fst $2) }
+    postfix_attr                        { $1 }
+|   SIZEOF unary_expression             { make_expr (EXPR_SIZEOF $2) }
 |   SIZEOF LPAREN type_name RPAREN
-		                         {let b, d = $3 in TYPE_SIZEOF (b, d)}
+		                        {let b, d = $3 in
+                                         make_expr (TYPE_SIZEOF (b, d)) }
 
-|   ALIGNOF unary_expression             {EXPR_ALIGNOF (fst $2) }
-|   ALIGNOF LPAREN type_name RPAREN      {let b, d = $3 in TYPE_ALIGNOF (b, d)}
-|   PLUS cast_attr                      {UNARY (PLUS, $2)}
-|   MINUS cast_attr                     {UNARY (MINUS, $2)}
-|   STAR cast_attr		        {UNARY (MEMOF, $2)}
+|   ALIGNOF unary_expression            {make_expr (EXPR_ALIGNOF $2) }
+|   ALIGNOF LPAREN type_name RPAREN     {let b, d = $3 in
+                                         make_expr (TYPE_ALIGNOF (b, d)) }
+|   PLUS cast_attr                      {make_expr (UNARY (PLUS, $2))}
+|   MINUS cast_attr                     {make_expr (UNARY (MINUS, $2)) }
+|   STAR cast_attr		        {make_expr (UNARY (MEMOF, $2)) }
 |   AND cast_attr
-	                                {UNARY (ADDROF, $2)}
-|   EXCLAM cast_attr    	        {UNARY (NOT, $2)}
-|   TILDE cast_attr                     {UNARY (BNOT, $2)}
+	                                { make_expr (UNARY (ADDROF, $2)) }
+|   EXCLAM cast_attr    	        { make_expr (UNARY (NOT, $2)) }
+|   TILDE cast_attr                     { make_expr (UNARY (BNOT, $2)) }
 ;
 
 cast_attr:
-    unary_attr                           { $1 }
+    unary_attr                          { $1 }
 ;
 
 multiplicative_attr:
     cast_attr                           { $1 }
-|   multiplicative_attr STAR cast_attr  {BINARY(MUL ,$1 , $3)}
-|   multiplicative_attr SLASH cast_attr	  {BINARY(DIV ,$1 , $3)}
-|   multiplicative_attr PERCENT cast_attr {BINARY(MOD ,$1 , $3)}
+|   multiplicative_attr STAR cast_attr  {make_expr (BINARY(MUL ,$1 , $3))}
+|   multiplicative_attr SLASH cast_attr	{make_expr (BINARY(DIV ,$1 , $3))}
+|   multiplicative_attr PERCENT cast_attr {make_expr (BINARY(MOD ,$1 , $3))}
 ;
 
 
 additive_attr:
     multiplicative_attr                 { $1 }
-|   additive_attr PLUS multiplicative_attr  {BINARY(ADD ,$1 , $3)}
-|   additive_attr MINUS multiplicative_attr {BINARY(SUB ,$1 , $3)}
+|   additive_attr PLUS multiplicative_attr  {make_expr (BINARY(ADD ,$1 , $3))}
+|   additive_attr MINUS multiplicative_attr {make_expr (BINARY(SUB ,$1 , $3))}
 ;
 
 shift_attr:
     additive_attr                       { $1 }
-|   shift_attr INF_INF additive_attr	{BINARY(SHL ,$1 , $3)}
-|   shift_attr SUP_SUP additive_attr	{BINARY(SHR ,$1 , $3)}
+|   shift_attr INF_INF additive_attr	{make_expr (BINARY(SHL ,$1 , $3))}
+|   shift_attr SUP_SUP additive_attr	{make_expr (BINARY(SHR ,$1 , $3))}
 ;
 
 relational_attr:
     shift_attr                          { $1 }
-|   relational_attr INF shift_attr	{BINARY(LT ,$1 , $3)}
-|   relational_attr SUP shift_attr	{BINARY(GT ,$1 , $3)}
-|   relational_attr INF_EQ shift_attr	{BINARY(LE ,$1 , $3)}
-|   relational_attr SUP_EQ shift_attr	{BINARY(GE ,$1 , $3)}
+|   relational_attr INF shift_attr	{make_expr (BINARY(LT ,$1 , $3))}
+|   relational_attr SUP shift_attr	{make_expr (BINARY(GT ,$1 , $3))}
+|   relational_attr INF_EQ shift_attr	{make_expr (BINARY(LE ,$1 , $3))}
+|   relational_attr SUP_EQ shift_attr	{make_expr (BINARY(GE ,$1 , $3))}
 ;
 
 equality_attr:
     relational_attr                     { $1 }
-|   equality_attr EQ_EQ relational_attr	    {BINARY(EQ ,$1 , $3)}
-|   equality_attr EXCLAM_EQ relational_attr {BINARY(NE ,$1 , $3)}
+|   equality_attr EQ_EQ relational_attr	    {make_expr (BINARY(EQ ,$1 , $3))}
+|   equality_attr EXCLAM_EQ relational_attr {make_expr (BINARY(NE ,$1 , $3))}
 ;
 
 
 bitwise_and_attr:
     equality_attr                       { $1 }
-|   bitwise_and_attr AND equality_attr	{BINARY(BAND ,$1 , $3)}
+|   bitwise_and_attr AND equality_attr	{make_expr (BINARY(BAND ,$1 , $3))}
 ;
 
 bitwise_xor_attr:
     bitwise_and_attr                       { $1 }
-|   bitwise_xor_attr CIRC bitwise_and_attr {BINARY(XOR ,$1 , $3)}
+|   bitwise_xor_attr CIRC bitwise_and_attr {make_expr (BINARY(XOR ,$1 , $3))}
 ;
 
 bitwise_or_attr:
     bitwise_xor_attr                      { $1 }
-|   bitwise_or_attr PIPE bitwise_xor_attr {BINARY(BOR ,$1 , $3)}
+|   bitwise_or_attr PIPE bitwise_xor_attr {make_expr (BINARY(BOR ,$1 , $3))}
 ;
 
 logical_and_attr:
     bitwise_or_attr                             { $1 }
-|   logical_and_attr AND_AND bitwise_or_attr	{BINARY(AND ,$1 , $3)}
+|   logical_and_attr AND_AND bitwise_or_attr
+        {make_expr (BINARY(AND ,$1 , $3))}
 ;
 
 logical_or_attr:
     logical_and_attr                           { $1 }
-|   logical_or_attr PIPE_PIPE logical_and_attr {BINARY(OR ,$1 , $3)}
+|   logical_or_attr PIPE_PIPE logical_and_attr
+        {make_expr (BINARY(OR ,$1 , $3))}
 ;
 
 conditional_attr:
     logical_or_attr                        { $1 }
 /* This is in conflict for now */
 |   logical_or_attr QUEST conditional_attr COLON conditional_attr
-                                          { QUESTION($1, $3, $5) }
+    { make_expr (QUESTION($1, $3, $5)) }
 
 
 attr: conditional_attr                    { $1 }
@@ -1693,8 +1744,11 @@ asmoperandsne:
 |    asmoperandsne COMMA asmoperand     { $3 :: $1 }
 ;
 asmoperand:
-     asmopname string_constant LPAREN expression RPAREN    { ($1, fst $2, fst $4) }
-|    asmopname string_constant LPAREN error RPAREN         { ($1, fst $2, NOTHING ) }
+     asmopname string_constant LPAREN expression RPAREN    { ($1, fst $2, $4) }
+|    asmopname string_constant LPAREN error RPAREN         {
+       let loc = Parsing.rhs_start_pos 4, Parsing.rhs_end_pos 4 in
+       ($1, fst $2, { expr_loc = loc; expr_node = NOTHING} )
+     }
 ;
 asminputs:
   /* empty */                { ([], []) }
@@ -1703,7 +1757,7 @@ asminputs:
 ;
 asmopname:
     /* empty */                         { None }
-|   LBRACKET IDENT RBRACKET             { Some (fst $2) }
+|   LBRACKET IDENT RBRACKET             { Some $2 }
 ;
 
 asmclobber:
@@ -1713,11 +1767,6 @@ asmclobber:
 asmcloberlst_ne:
    one_string_constant                           { [$1] }
 |  one_string_constant COMMA asmcloberlst_ne     { $1 :: $3 }
-;
-
-/* CEA-LRI */
-get_current_loc:
-/* epsilon */ { currentLoc () }
 ;
 
 %%

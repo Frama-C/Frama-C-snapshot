@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 (** Frama-c preprocessing and Cil AST initialization.
     @plugin development guide *)
 
-type t =
+type file =
   | NeedCPP of string * string
       (** The first string is the filename of the [.c] to preprocess.
 	  The second one is the preprocessor command ([filename.c -o
@@ -34,6 +34,8 @@ type t =
       (** file that can be translated into a Cil AST through an external
           function, together with the recognized suffix. *)
 
+include Datatype.S with type t = file
+
 val new_file_type:
   string -> (string -> Cil_types.file * Cabs.file) -> unit
   (** [new_file_type suffix func funcname] registers a new type of files (with
@@ -43,9 +45,7 @@ val get_suffixes: unit -> string list
   (** @return the list of accepted suffixes of input source files
       @since Boron-20100401 *)
 
-val ty: t Type.t
-
-val name: t -> string
+val get_name: t -> string
   (** File name. *)
 
 val get_preprocessor_command: unit -> string
@@ -65,7 +65,7 @@ val from_filename: ?cpp:string -> string -> t
 (** {2 Initializers} *)
 (* ************************************************************************* *)
 
-class check_file: Visitor.frama_c_visitor
+class check_file: string -> Visitor.frama_c_visitor
 
 val prepare_from_c_files: unit -> unit
   (** Initialize the AST of the current project according to the current
@@ -90,7 +90,7 @@ val create_project_from_visitor:
   (** Return a new project with a new cil file representation by visiting the
       file of the current project.
       The visitor is responsible to avoid sharing between old file and new
-      file (i.e. it should use {!Cil.copy_visit} at some point.
+      file (i.e. it should use {!Cil.copy_visit} at some point).
       @raise File_types.Bad_Initialization if called more than once.
       @since Beryllium-20090601-beta1
       @plugin development guide *)
@@ -106,12 +106,11 @@ val init_from_cmdline: unit -> unit
 (** {2 Pretty printing} *)
 (* ************************************************************************* *)
 
-val pretty : ?prj:Project.t -> ?fmt:Format.formatter -> unit -> unit
+val pretty_ast : ?prj:Project.t -> ?fmt:Format.formatter -> unit -> unit
   (** Print the project CIL file on the given Formatter.
       The default project is the current one.
       The default formatter is [Parameters.CodeOutput.get_fmt ()].
       @raise File_types.Bad_Initialization if the file is no initialized. *)
-
 
 (*
 Local Variables:

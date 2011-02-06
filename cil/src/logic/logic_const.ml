@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -65,13 +65,13 @@ let fresh_term_id () =
 (** {2 pre-defined logic labels} *)
 (* empty line for ocamldoc *)
 
-let pre_label = LogicLabel "Pre"
+let pre_label = LogicLabel (None, "Pre")
 
-let post_label = LogicLabel "Post"
+let post_label = LogicLabel (None, "Post")
 
-let here_label = LogicLabel "Here"
+let here_label = LogicLabel (None, "Here")
 
-let old_label = LogicLabel "Old"
+let old_label = LogicLabel (None, "Old")
 
 (** {2 Predicate constructors} *)
 (* empty line for ocamldoc *)
@@ -223,7 +223,7 @@ let taddrof ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) lv typ =
              term_name = [];
              term_loc = loc}
 
-
+(** @plugin development guide *)
 let term ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) term typ =
   { term_node = term;
     term_type = typ;

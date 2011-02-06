@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,6 +21,30 @@
 (**************************************************************************)
 
 (* ************************************************************************* *)
+(** File Utilities *)
+(* ************************************************************************* *)
+
+val filename : string -> string -> string
+
+val pp_to_file : string -> (Format.formatter -> unit) -> unit
+  (** [pp_to_file file pp] runs [pp] on a formatter that writes into [file].
+      The formatter is always properly flushed and closed on return. 
+      Exceptions in [pp] are re-raised after closing. *)
+  
+val pp_from_file : Format.formatter -> string -> unit
+  (** [pp_from_file fmt file] dumps the content of [file] into the [fmt].
+      Exceptions in [pp] are re-raised after closing. *)
+
+val bincopy : string -> in_channel -> out_channel -> unit
+  (** [copy buffer cin cout] reads [cin] until end-of-file 
+      and copy it in [cout]. 
+      [buffer] is a temporary string used during the copy.
+      Recommanded size is [2048]. *)
+
+val copy : string -> string -> unit
+  (** [copy source target] copies source file to target file using [bincopy]. *)
+
+(* ************************************************************************* *)
 (** System commands *)
 (* ************************************************************************* *)
 
@@ -34,8 +58,11 @@ val full_command :
       execution is complete. 
       @raise Sys_error when a system error occurs *)
 
-type process_result = Not_ready | Result of Unix.process_status
-  (** [Not_ready] means that the child process is not yet finished. *)
+type process_result = 
+  | Not_ready of (unit -> unit)
+  | Result of Unix.process_status
+      (** [Not_ready f] means that the child process is not yet finished and
+          may be terminated manually with [f ()]. *)
 
 val full_command_async :
   string -> string array
@@ -62,9 +89,11 @@ val command_async :
       to prevent Zombie processes.
       When this function returns a Result, the stdout and stderr of the child
       process will be filled into the arguments buffer.
-      @raise Sys_error when a system error occurs *)
+      @raise Sys_error when a system error occurs 
+  *)
 
 val command :
+  ?timeout:int ->
   ?stdout:Buffer.t ->
   ?stderr:Buffer.t ->
   string -> string array
@@ -72,7 +101,8 @@ val command :
   (** Same arguments as {Unix.create_process}.
       When this function returns, the stdout and stderr of the child
       process will be filled into the arguments buffer.
-      @raise Sys_error when a system error occurs *)
+      @raise Sys_error when a system error occurs 
+      @raise Db.Cancel when the computation is interrupted or on timeout *)
 
 (*
 Local Variables:

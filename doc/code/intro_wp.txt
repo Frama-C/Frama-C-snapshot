@@ -2,7 +2,7 @@
 @ignore                                                                        
 @ignore  This file is part of Frama-C.                                         
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2010                                               
+@ignore  Copyright (C) 2007-2011                                               
 @ignore    CEA   (Commissariat à l'énergie atomique et aux énergies            
 @ignore           alternatives)                                                
 @ignore    INRIA (Institut National de Recherche en Informatique et en         
@@ -27,51 +27,5 @@
 
 The WP plugin is dedicated to compute Weakest-Preconditions using 
 different memory models.
-It is organised as follow :
 
-{3 Translation}
-
-First of all, the C program elements and the ACSL properties have to be
-translated into a common formalism. Because the final goal is to generate
-files for the WHY tool, the {!module:Fol} module provide a representation for
-First-Order-Logic compatible with WHY. The module {!module:Why_output} provide
-functions to export this representation into WHY files.
-
-The translation modules are :
-
-- {!module:Types} : everything needed to handle C and logic types,
-
-- {!module:Why_ops} :
-
-- {!module:WpFol} :
-
-- {!module:Translate} : translation of Cil expressions knowing basic operations
-  from the memory model,
-
-{3 Memory models}
-
-- Memory models : {ul
-  {- {!module:Mvar} : common part for variable substitution based models :
-    {ul
-    {- {!module:Model0} variable substitution, no indirections,}
-    {- {!module:Model1} variable substitution, guarded alias,}
-    }
-  }
-  {- {!module:Mmem} : common part for load/store based models :
-    {ul
-    {- {!module:Model2} load/store, but typed address expressions (no cast),}
-    {- {!module:Lower_level} load/store, low level addressing.}
-    }
-  }
-}
-
-{3 Computation}
-
-- {!module:Cil2cfg} : build the CFG keeping information about the structure,
-
-- {!module:WpAnnot} : build a table indexed by CFG nodes and store annotations
-either to prove or to use as hypotheses,
-
-- {!module:Calculus} : compute WP 
-
-
+It is experimental and still under development.

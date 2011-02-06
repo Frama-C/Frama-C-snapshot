@@ -39,106 +39,137 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-open Cil_types
-open Cilutil
-open Project.Datatype
-
-(** Datatypes of some useful CIL types.
+(** Datatypes of some useful Cil types.
     @plugin development guide *)
 
-(** @plugin development guide *)
-module Varinfo : S with type t = varinfo
+open Cil_types
+open Datatype
 
-module Location : S with type t = location
+(**************************************************************************)
+(** {3 Cabs types} *)
+(**************************************************************************)
+
+module Cabs_file: S with type t = Cabs.file
+
+(**************************************************************************)
+(** {3 C types}
+    Sorted by alphabetic order. *)
+(**************************************************************************)
 
 module Block: S with type t = block
+module Compinfo: S_with_collections with type t = compinfo
+module Enuminfo: S_with_collections with type t = enuminfo
+module Enumitem: S_with_collections with type t = enumitem
+module Exp: S_with_collections with type t = exp
+module Fieldinfo: S_with_collections with type t = fieldinfo
+module File: S with type t = file
 
-(** @plugin development guide *)
-module Stmt: sig
-  include S with type t = stmt
-  val compare: t -> t -> int
+module Global: sig
+  include S with type t = global
+  val loc: t -> location
 end
 
-(** @plugin development guide *)
-module Kinstr: S with type t = kinstr
-
-(** @plugin development guide *)
-module Lval: S with type t = lval
-
-(** Datatype for a cil file. *)
-module File: S with type t = file
-module UntypedFiles: S with type t = Cabs.file list
-module InitInfo: S with type t = initinfo
-  (** @deprecated since Boron-20100401 *)
+module Global_annotation: sig
+  include S with type t = global_annotation
+  val loc: t -> location
+end
 
 module Initinfo: S with type t = initinfo
 
-module Enuminfo : S with type t = enuminfo
-  (** @since Boron-20100401 *)
+module Instr: sig
+  include S with type t = instr
+  val loc: t -> location
+end
 
-module Typeinfo : S with type t = typeinfo
-  (** @since Boron-20100401 *)
+module Kinstr: sig
+  include S_with_collections with type t = kinstr
+  val loc: t -> location
+end
 
-(** {3 Hashtables for Cil types} *)
+module Label: S with type t = label
 
-module IntHashtbl(Data:S) :
-  S with type t = Data.t Inthash.t
+module Location: sig
+  include S_with_collections with type t = location
+  val unknown: t
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
 
-module InstrHashtbl(Data:S) :
-  S with type t = Data.t InstrHashtbl.t
+module Lval: sig
+  include S_with_collections with type t = lval
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
 
-module StmtHashtbl(Data:S) :
-  S with type t = Data.t StmtHashtbl.t
+module Stmt: sig
+  include S_with_collections with type t = stmt
+  val loc: t -> location
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
 
-(** @plugin development guide *)
-module VarinfoHashtbl(Data:S) :
-  S with type t = Data.t VarinfoHashtbl.t
+module Typ: S_with_collections with type t = typ
+val pTypeSig : (typ -> typsig) ref
 
-(** {3 Sets} *)
+module Typeinfo: S_with_collections with type t = typeinfo
 
-(** Datatype for a set of statements.
-    @plugin development guide *)
-module StmtSet: S with type t = Cilutil.StmtSet.t
+module Varinfo: sig
+  include S_with_collections with type t = varinfo
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+  val internal_pretty_code_ref:
+    (Type.precedence -> Format.formatter -> t -> unit) ref
+end
 
-(** Datatype for a reference to a set of statements. *)
-module StmtSetRef: S with type t = Cilutil.StmtSet.t ref
+(**************************************************************************)
+(** {3 ACSL types}
+    Sorted by alphabetic order. *)
+(**************************************************************************)
 
-(** @since Boron-20100401 *)
-module VarinfoSet: S with type t = Cilutil.VarinfoSet.t
+module Annotation_status: S with type t = annotation_status
+module Builtin_logic_info: S_with_collections with type t = builtin_logic_info
 
-(** @since Boron-20100401 *)
-module EnuminfoSet: S with type t = Cilutil.EnuminfoSet.t
+module Code_annotation: sig
+  include S_with_collections with type t = code_annotation
+  val loc: t -> location option
+end
 
-(** @since Boron-20100401 *)
-module TypeinfoSet: S with type t = Cilutil.TypeinfoSet.t
+module Logic_ctor_info: S_with_collections with type t = logic_ctor_info
+module Logic_info: S_with_collections with type t = logic_info
 
-(** {3 Lists} *)
+module Logic_type: sig
+  include S_with_collections with type t = logic_type
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref    
+end
 
-(** Datatype for a set of datatypes. *)
-module StmtList: S with type t = stmt list
+module Logic_type_info: S_with_collections with type t = logic_type_info
+module Identified_term: S_with_collections with type t = identified_term
 
-(** @since Boron-20100401 *)
-module VarinfoList: S with type t = varinfo list
+module Logic_var: sig
+  include S_with_collections with type t = logic_var
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref    
+end
 
-(** {3 Annotations} *)
+module Term: sig
+  include S_with_collections with type t = term
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref    
+end
 
-module Code_Annotation: S with type t = code_annotation
-module Logic_Info: S with type t = logic_info
-module Builtin_Logic_Info: S with type t = builtin_logic_info
-module Logic_Type_Info: S with type t = logic_type_info
-module Logic_Ctor_Info: S with type t = logic_ctor_info
+(**************************************************************************)
+(** {3 Logic_ptree}
+    Sorted by alphabetic order. *)
+(**************************************************************************)
 
-module Annot_Status: S with type t = annot_status
-  (** @deprecated Boron-20100401 *)
+module Lexpr: S with type t = Logic_ptree.lexpr
 
-module Annot_Status_List: S with type t = annot_status list
-  (** @deprecated Boron-20100401 *)
+(**************************************************************************)
+(** {3 Other types} *)
+(**************************************************************************)
 
-module Annotation_Status: S with type t = annotation_status
-
-(*
-module Predicate_Info: S with type t = predicate_info
-*)
+module Int_hashtbl: Hashtbl with type 'a t = 'a Inthash.t and type key = int
 
 (*
 Local Variables:

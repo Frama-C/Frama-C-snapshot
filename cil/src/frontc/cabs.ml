@@ -210,7 +210,7 @@ and raw_statement =
  | WHILE of loop_invariant * expression * statement * cabsloc
  | DOWHILE of loop_invariant * expression * statement * cabsloc
  | FOR of loop_invariant *
-          for_clause * expression * expression * statement * cabsloc * cabsloc
+          for_clause * expression * expression * statement * cabsloc
  | BREAK of cabsloc
  | CONTINUE of cabsloc
  | RETURN of expression * cabsloc
@@ -259,7 +259,9 @@ and unary_operator =
     MINUS | PLUS | NOT | BNOT | MEMOF | ADDROF
   | PREINCR | PREDECR | POSINCR | POSDECR
 
-and expression =
+and expression = { expr_loc : cabsloc; expr_node: cabsexp }
+
+and cabsexp =
     NOTHING
 
   | UNARY of unary_operator * expression

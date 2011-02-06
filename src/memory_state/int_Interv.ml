@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,43 +23,55 @@
 open Abstract_interp
 open Abstract_value
 
-(* Locates (b2, e2) with respect to (b1, e1).
-   Therefore the meaning of "Above" and "Below" may look as if it
-   is reversed, beware. *)
-let fuzzy_order (b1,e1) (b2, e2) =
-  if Int.lt e1 b2
-  then Rangemap.Above
-  else if Int.lt e2 b1
-  then Rangemap.Below
+let fuzzy_order (b1, e1) (b2, e2) =
+  if Int.lt e1 b2 then Rangemap.Above
+  else if Int.lt e2 b1 then Rangemap.Below
   else Rangemap.Match
-
 
 exception Cannot_compare_intervals
 
-type t = Int.t * Int.t
+include Datatype.Make
+(struct
+  (* better to not use Datatype.Pair since we customize [compare] *)
+  type t = Int.t * Int.t
+  let structural_descr =
+    Structural_descr.t_tuple [| Int.packed_descr; Int.packed_descr |]
+  let name = "Int_Interv"
+  let reprs =
+    List.fold_left
+      (fun acc n1 ->
+	List.fold_left (fun acc n2 -> (n1, n2) :: acc) acc Int.reprs)
+      []
+      Int.reprs
 
-let descr = Unmarshal.t_tuple [| Unmarshal.Abstract; Unmarshal.Abstract |]
-
-let compare x y =
-  match fuzzy_order x y with
-    Rangemap.Above -> -1
-  | Rangemap.Below -> 1
-  | Rangemap.Match ->
-      if Int.eq (fst x) (fst y) &&
-        Int.eq (snd x) (snd y)
+  let compare x y = match fuzzy_order x y with
+    | Rangemap.Above -> -1
+    | Rangemap.Below -> 1
+    | Rangemap.Match ->
+      if Int.equal (fst x) (fst y) &&
+        Int.equal (snd x) (snd y)
       then 0
       else begin
-	  (*Format.printf "Comparaison d'intervalles non comparables [%a..%a] et [%a..%a]@\n@\n"
-	    Int.pretty (fst x) Int.pretty (snd x)
-            Int.pretty (fst y) Int.pretty (snd y);*)
-	  raise Cannot_compare_intervals
-	end
+	(*Format.printf "Comparaison d'intervalles non comparables [%a..%a] et [%a..%a]@\n@\n"
+	  Int.pretty (fst x) Int.pretty (snd x)
+          Int.pretty (fst y) Int.pretty (snd y);*)
+	raise Cannot_compare_intervals
+      end
 
-let hash (x, y) = Int.hash x + 7 * Int.hash y
+  let hash (x, y) = Int.hash x + 7 * Int.hash y
+  let equal (a,b) (c,d) = Int.equal a c && Int.equal b d
 
-let shift s (b,e) =
-  Int.add b s, Int.add e s
+  let rehash = Datatype.identity
+  let copy = Datatype.undefined
+  let internal_pretty_code = Datatype.undefined
+  let pretty = Datatype.undefined
+  let mem_project = Datatype.never_any_project
+  let varname = Datatype.undefined
+ end)
 
+let sentinel = Int.zero, Int.zero
+
+let shift s (b,e) = Int.add b s, Int.add e s
 
 let check_coverage (bi,ei) concerned =
   ( match concerned with
@@ -72,11 +84,10 @@ let check_coverage (bi,ei) concerned =
       | [(bj,_ej),_] ->
 	  if Int.lt bi bj then raise Is_not_included
       | ((bj,_ej),_) :: ((((_bk,ek),_)::_) as tail) ->
-	  if Int.neq bj (Int.succ ek) then raise Is_not_included;
+	  if not (Int.equal bj (Int.succ ek)) then raise Is_not_included;
 	  check_joint tail
   in
   check_joint concerned
-
 
 let clip_itv (refb1,refe1) (b2,e2) =
   assert (Int.le b2 refe1 && Int.ge e2 refb1);
@@ -85,3 +96,8 @@ let clip_itv (refb1,refe1) (b2,e2) =
   let max = Int.min refe1 e2 in
   min,max
 
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

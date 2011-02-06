@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -23,11 +23,9 @@
 
 open Cil_types
 open Cil
-open Cilutil
+open Cil_datatype
 open Ast_info
 open Spec_tools
-
-
 
 (**************************************************************************************)
 
@@ -199,22 +197,27 @@ end
 let post_treatment_loops = Hashtbl.create 97;
 
 (**
-   This visitor add a specification to each fonction and to each loop, 
+   This visitor add a specification to each fonction and to each loop,
    according to specifications stored into Data_for_aorai.
 *)
-class visit_adding_pre_post_from_buch 
+class visit_adding_pre_post_from_buch
   (auto:Promelaast.buchautomata) treatloops =
 
   let predicate_to_invariant ref_stmt pred =
-    Annotations.add 
-      !ref_stmt 
-      [ ] (* [JS 2010/02/03] imprecise.
-	     Should reference the Aorai global state, but it doesn't exist 
-	     yet *)
+    (* 4) Add new annotation *)
+    Annotations.add
+      !ref_stmt
+      [ (*Ast.self; *)
+	(*Aorai_option.Ltl_File.self;
+	Aorai_option.Buchi.self;
+	Aorai_option.Ya.self ;*)
+	(*Aorai_option.AbstractInterpretationOff.self ;*)
+	Aorai_option.AbstractInterpretation.self ]
       (Db_types.Before
-	 (Db_types.User 
-	    (Logic_const.new_code_annotation (AInvariant([],true,pred)))))
+	 (Db_types.User
+	    (Logic_const.new_code_annotation (AInvariant([],true,pred))))) ;
   in
+
   (** Given a couple of bool array (States , Transitions),
       this function computes a predicate and add it as an invariant. *)
   let condition_to_invariant cond stmt_ref =
@@ -255,7 +258,6 @@ object (*(self) *)
 
 (* Rewriting arrays carracterizing status into predicates *)
     let preds_pre  = Aorai_utils.pre_post_to_term (Data_for_aorai.get_func_pre  f.svar.vname) in
-    (*let pre_wrt_params = Aorai_utils.get_preds_pre_wrt_params f.svar.vname in*)
     let preds_post_bc = Data_for_aorai.get_func_post_bycase f.svar.vname in
 
 (* if AddingOperationNameAndStatusInSpecification is set*)
@@ -271,17 +273,26 @@ object (*(self) *)
       else
 	preds_pre
     )in
+    let preds_pre = preds_pre_with_called_stat preds_pre in
 
-    let preds_pre  = preds_pre_with_called_stat preds_pre in
+
+    let pre_wrt_params = Aorai_utils.get_preds_pre_wrt_params f.svar.vname in
+    let preds_pre = match pre_wrt_params with
+      | None -> preds_pre
+      | Some (p) -> (Logic_const.unamed p)::preds_pre
+    in
+
 
 
 
 (* Registration of the new specification *)
 
 (*   + Pre-condition registration *)
-    List.iter
-      (fun p -> spec.spec_requires <- ((Logic_const.new_predicate p) :: (spec.spec_requires)) )
-      preds_pre;
+
+    let new_requires = List.map Logic_const.new_predicate preds_pre in
+    let behavior = (* the default behavior having no assume *)
+      (Cil.mk_behavior ~requires:new_requires ()) in
+      spec.spec_behavior <- Logic_utils.merge_behaviors ~silent:true spec.spec_behavior [behavior] ;
 
 
 (*   + Post-condition registration *)
@@ -299,7 +310,9 @@ object (*(self) *)
     let save_assumes_l = ref [] in
     (* Initialized with an empty behavior *)
     let old_behavior =
-      ref {b_name = ""; b_assumes = []; b_post_cond = []; b_assigns = []; } in
+      ref (Cil.mk_behavior ~name:"" ())
+    in
+
 
     Array.iteri
       (fun case preds_post ->
@@ -307,15 +320,7 @@ object (*(self) *)
 	 if   (not (Spec_tools.is_empty_behavior preds_post) )
 	   && (not (!treated).(case))
 	 then begin
-	   let new_behavior =
-	     {
-   	       b_name = "Buchi_property_behavior_"^(string_of_int case); (*	name of the behavior.	*)
-   	       b_assumes = [] ;                    (*	assume clauses.	*)
-   	       b_post_cond = [] ;                  (*	ensure clauses.	*)
-   	       b_assigns = [] ;                    (*	assignments.	*)
-	     }
-	   in
-
+	   let new_behavior = Cil.mk_behavior ~name:("Buchi_property_behavior_"^(string_of_int case)) () in
 	   let all_eqs_states = get_other_states_with_equivalent_post nb_states preds_post_bc case in
 	   let assumes_l = ref [] in
 
@@ -325,7 +330,7 @@ object (*(self) *)
 		assumes_l:=Logic_const.prel(
 		  Rneq,
 		  Aorai_utils.zero_term(),
-		  Aorai_utils.mk_offseted_array
+		  Aorai_utils.mk_offseted_array_states_as_enum
 		    (Logic_utils.lval_to_term_lval ~cast:true (Cil.var (Data_for_aorai.get_varinfo Data_for_aorai.curState)))
 		    i
 		)::!assumes_l
@@ -376,6 +381,16 @@ object (*(self) *)
                   ((Normal, Logic_const.new_predicate p) ::
                      new_behavior.b_post_cond))
 	     preds_list;
+
+
+	   begin
+	     let post_wrt_params = Aorai_utils.get_preds_post_bc_wrt_params f.svar.vname in
+	     match post_wrt_params with
+	       | None -> ()
+	       | Some (p) -> new_behavior.b_post_cond <- (Normal, Logic_const.new_predicate (Logic_const.unamed p))::new_behavior.b_post_cond
+	   end;
+
+
 	   spec.spec_behavior <- new_behavior::spec.spec_behavior
 
 	 end
@@ -394,8 +409,10 @@ object (*(self) *)
           {
             b_name = "Buchi_property_behavior_function_states";
             b_assumes = [] ;
+            b_requires = [] ;
             b_post_cond = [Normal, called_post; Normal, called_post_2] ;
-            b_assigns = [] ;
+            b_assigns = WritesAny ;
+            b_extended = []
           }
         in
         spec.spec_behavior <- new_behavior::spec.spec_behavior
@@ -425,7 +442,11 @@ object (*(self) *)
 (*    1) The associated init variable is set to 0 in first position
          (or in second position if the first stmt is a if)*)
 
-      let stmt_varset = Cil.mkStmtOneInstr (Set((Var(vi_init),NoOffset), Aorai_utils.mk_int_exp 0, Cilutil.locUnknown)) in
+      let stmt_varset =
+	Cil.mkStmtOneInstr
+	  (Set((Var vi_init,NoOffset),
+	       Aorai_utils.mk_int_exp 0, Location.unknown))
+      in
       stmt_varset.sid<-(Cil.Sid.next ());
       stmt_varset.ghost<-true;
 
@@ -462,50 +483,48 @@ object (*(self) *)
 (*    2) The associated init variable is set to 1 before the loop *)
       let new_loop = mkStmt stmt.skind in
       new_loop.sid<-(Cil.Sid.next ());
-      let stmt_varset = Cil.mkStmtOneInstr (Set((Var(vi_init),NoOffset), Aorai_utils.mk_int_exp 1, Cilutil.locUnknown)) in
-      stmt_varset.sid<-(Cil.Sid.next ());
-      stmt_varset.ghost<-true;
+      let stmt_varset =
+	Cil.mkStmtOneInstr (Set((Var(vi_init),NoOffset),
+				Aorai_utils.mk_int_exp 1, Location.unknown))
+      in
+      stmt_varset.sid <- Cil.Sid.next ();
+      stmt_varset.ghost <- true;
       let block = mkBlock [stmt_varset;new_loop] in
       stmt.skind<-Block(block);
 
 
 
-(*    3) Generation of the loop invariant *)
-(* The loop invariant is :
-     (c  => Pre2)
-   & (!c => Post1) !! -> Since loops are while (1), this case seems to be useless
-   & (Init => Pre1)
-   & (not Init => Post2)
-   (init : fresh variable which indicates if the iteration is the first one).
-   (c :  fresh variable allowing multiple read of the condition even if its expression includes some side effects.)
-*)
 
-      let global_loop_inv =
-	double_bool_array_or
-	  (double_bool_array_or
-	     (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_pre_bycase (ref stmt)))
-	     (Spec_tools.pre_flattening (Data_for_aorai.get_loop_ext_pre_bycase (ref stmt))))
-	  (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_post_bycase (ref stmt)))
+(*    3) Generation of the loop invariant *)
+      let mk_imply operator predicate =
+	(Logic_const.unamed
+	   (Pimplies
+	      (Logic_const.unamed (Prel(operator,
+					Aorai_utils.mk_term_from_vi vi_init,
+					Aorai_utils.zero_term())),
+	       Logic_const.unamed predicate)))
       in
+(* The loop invariant is :
+     (Global invariant)  // all never reached state /crossed transition are set to zero
+   & (Pre2)              // internal pre-condition
+   & (Init => Pre1)      // external pre-condition
+   & (not Init => Post2) // internal post-condition
+   (init : fresh variable which indicates if the iteration is the first one).
+*)
+      let global_loop_inv = Aorai_utils.get_global_loop_inv (ref stmt) in
       condition_to_invariant global_loop_inv (ref new_loop);
 
-      let p1 = Aorai_utils.force_condition_to_predicate global_loop_inv (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_pre_bycase (ref stmt)))  in
-      if p1<>Cil_types.Ptrue then
-	predicate_to_invariant (ref new_loop) (Logic_const.unamed p1);
+      let pre2 = Aorai_utils.get_restricted_int_pre_bc (ref stmt) in
+      if pre2<>Cil_types.Ptrue then
+	predicate_to_invariant (ref new_loop) (Logic_const.unamed pre2);
 
-(*      force_condition_to_predicate global_loop_inv (Data_for_aorai.get_loop_ext_post (ref stmt))*)
+      let pre1 = Aorai_utils.get_restricted_ext_pre_bc (ref stmt) in
+      if pre1<>Cil_types.Ptrue then
+	predicate_to_invariant (ref new_loop) (mk_imply Rneq pre1);
 
-      let p2= Aorai_utils.force_condition_to_predicate global_loop_inv (Spec_tools.pre_flattening (Data_for_aorai.get_loop_ext_pre_bycase (ref stmt))) in
-      if p2<>Cil_types.Ptrue then
-	predicate_to_invariant
-	  (ref new_loop)
-	  (Logic_const.unamed (Pimplies (Logic_const.unamed (Prel(Rneq,Aorai_utils.mk_term_from_vi vi_init,Aorai_utils.zero_term())),Logic_const.unamed p2)));
-
-      let p3= Aorai_utils.force_condition_to_predicate global_loop_inv (Spec_tools.pre_flattening (Data_for_aorai.get_loop_int_post_bycase (ref stmt))) in
-      if p3<>Cil_types.Ptrue then
-	predicate_to_invariant
-	  (ref new_loop)
-	  (Logic_const.unamed (Pimplies (Logic_const.unamed (Prel(Req,Aorai_utils.mk_term_from_vi vi_init,Aorai_utils.zero_term())),Logic_const.unamed p3)));
+      let post2 = Aorai_utils.get_restricted_int_post_bc (ref stmt) in
+      if post2<>Cil_types.Ptrue then
+	predicate_to_invariant (ref new_loop) (mk_imply Req post2);
 
 
 
@@ -532,7 +551,7 @@ end
 
 (**************************************************************************************)
 (**
-  This visitor computes the list of ignored functions. 
+  This visitor computes the list of ignored functions.
   A function is ignored if its call is present in the C program, while its declaration is not available.
 *)
 class visit_computing_ignored_functions () =
@@ -593,32 +612,34 @@ end
 (* Call of the visitors *)
 let compute_abstract file root (considerAcceptance:bool) =
   let visitor = new visit_computing_abstract_pre_post_from_buch
-    (Data_for_aorai.getAutomata()) (root) considerAcceptance 
+    (Data_for_aorai.getAutomata()) (root) considerAcceptance
   in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file
 
 (* This visitor requires the AI to compute loop invariants. *)
 let add_pre_post_from_buch file treatloops  =
-  let visitor = 
+  let visitor =
     new visit_adding_pre_post_from_buch
       (Data_for_aorai.getAutomata())
-      treatloops 
+      treatloops
   in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file;
-  (* Transfert previous annotation on the new loop statement *)
+  (* Transfert previous annotation on the new loop statement.
+     Variant clause has to be preserved at the end of the annotation.*)
   Hashtbl.iter
     (fun old_stmt new_stmt ->
-
-       (* Copying old annotations *)
-       Annotations.single_iter_stmt 
-	 (fun an -> Annotations.add !new_stmt [] an)
+       Annotations.single_iter_stmt
+	 (fun an -> Annotations.add !new_stmt
+	    [(* Ast.self; Aorai_option.Ltl_File.self;
+		Aorai_option.Buchi.self;
+		Aorai_option.Ya.self *) ]  an)
 	 !old_stmt;
 
        (* Erasing annotations from old statement *)
        Annotations.reset_stmt ?reset:true !old_stmt;
 
     )
-    post_treatment_loops 
+    post_treatment_loops
 
 
 
@@ -634,8 +655,8 @@ let add_pre_post_from_buch file treatloops  =
 
 
 let add_sync_with_buch file  =
-  let visitor = 
-    new visit_adding_code_for_synchronisation (Data_for_aorai.getAutomata()) 
+  let visitor =
+    new visit_adding_code_for_synchronisation (Data_for_aorai.getAutomata())
   in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file
 

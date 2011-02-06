@@ -33,10 +33,10 @@ int replace_copy(const int* a, int n, int* b, int old_val, int
   /*@
      loop assigns b[0..i-1];
      loop invariant 0 <= i <= n;
-     loop   variant n-i;
      loop invariant \forall int j; 0 <= j < i ==>
                      a[j] == old_val && b[j] == new_val ||
                      a[j] != old_val && b[j] == a[j];
+     loop   variant n-i;
   */
   for (int i = 0; i < n; ++i)
      b[i] = (a[i] == old_val ? new_val : a[i]);

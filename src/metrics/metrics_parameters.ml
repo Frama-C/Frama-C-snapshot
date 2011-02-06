@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,14 +24,15 @@ include Plugin.Register
     (struct
        let name = "metrics"
        let shortname = "metrics"
-       let descr = "syntactic metrics"
+       let help = "syntactic metrics"
      end)
 
 module Print =
   False
     (struct
        let option_name = "-metrics"
-       let descr = " print some metrics on stdout"
+       let help = " print some metrics on stdout"
+       let kind = `Tuning
      end)
 
 module Dump =
@@ -39,7 +40,8 @@ module Dump =
     (struct
        let option_name = "-metrics-dump"
        let arg_name = ""
-       let descr = "print some metrics into the specified file"
+       let help = "print some metrics into the specified file"
+       let kind = `Tuning
      end)
 
 let is_on () = Print.get () || not (Dump.is_default ())

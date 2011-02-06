@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -43,7 +43,7 @@ module BoolMark = struct
       | Loc, Loc -> Loc
     in (b, p)
 
-  let equal (b1,p1) (b2,p2) = (b1 = b2) && (p1 = p2)
+  let equal (b1,p1:t) (b2,p2) = (b1 = b2) && (p1 = p2)
 
   let combine old_m new_m =
     let new_m = merge old_m new_m in
@@ -182,26 +182,28 @@ let rec process_call_inputs proj =
 
 
 let add_node_to_select glob to_select z_opt node =
-  PdgMarks.add_to_select to_select
-           (PdgMarks.mk_select_node ~z_opt node) (BoolMark.mk glob)
+  PdgMarks.add_node_to_select to_select (node, z_opt) (BoolMark.mk glob)
 
-let add_nodes_and_undef_to_select glob 
-      (ctrl_nodes, decl_nodes, (data_nodes, undef)) to_select =
-  let to_select =
-    List.fold_left
-      (fun s n -> add_node_to_select glob s None n) to_select ctrl_nodes
-  in
-  let to_select =
-    List.fold_left
-      (fun s n -> add_node_to_select glob s None n) to_select decl_nodes
-  in
-  let to_select =
-    List.fold_left
-      (fun s (n,z_opt) -> add_node_to_select glob s z_opt n) to_select data_nodes
-  in
-  let to_select =
-    PdgMarks.add_undef_in_to_select to_select undef (BoolMark.mk glob)
-  in to_select
+let add_nodes_and_undef_to_select 
+      glob (ctrl_nodes, decl_nodes, data_info) to_select =
+  match data_info with
+    | None -> to_select (* don't select anything (computation failed) *)
+    | Some (data_nodes, undef) ->
+        let to_select = 
+          List.fold_left (fun s n -> add_node_to_select glob s None n) 
+            to_select ctrl_nodes
+        in
+        let to_select = 
+          List.fold_left (fun s n -> add_node_to_select glob s None n) 
+            to_select decl_nodes
+        in
+        let to_select = 
+          List.fold_left (fun s (n,z_opt) -> add_node_to_select glob s z_opt n)
+            to_select data_nodes
+        in
+        let m = (BoolMark.mk glob) in
+        let to_select = PdgMarks.add_undef_in_to_select to_select undef m in 
+          to_select
 
 (** used to visit all the annotations of a given function
  * and to find the PDG nodes to select so that the reachable annotations
@@ -222,9 +224,8 @@ class annot_visitor ~filter pdg = object (self)
         let before = self#is_annot_before in
             debug 1 "selecting annotation : %a @."
               !Ast_printer.d_code_annotation annot;
-        let nodes_and_co =
-          !Db.Pdg.find_code_annot_nodes pdg before stmt annot in
-          to_select <- add_nodes_and_undef_to_select true nodes_and_co to_select
+        let info = !Db.Pdg.find_code_annot_nodes pdg before stmt annot in 
+          to_select <- add_nodes_and_undef_to_select true info to_select
       with PdgIndex.NotFound -> () (* unreachable *)
     in Cil.SkipChildren
 end
@@ -240,7 +241,7 @@ let select_all_outputs proj kf =
     try ((!Db.Pdg.find_ret_output_node pdg),None) :: nodes
     with Db.Pdg.NotFound -> nodes
   in
-  let nodes_and_co = ([], [], (nodes, undef)) in
+  let nodes_and_co = ([], [], Some (nodes, undef)) in
   let to_select = add_nodes_and_undef_to_select false nodes_and_co [] in
     select_pdg_elements proj pdg to_select
   with PdgIndex.NotFound -> (* end is unreachable *)

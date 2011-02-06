@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,14 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: register_gui.mli,v 1.1 2008-08-19 09:28:36 uid568 Exp $ *)
-
 (** Extension of the GUI in order to support the value analysis.
     No function is exported. *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)
 

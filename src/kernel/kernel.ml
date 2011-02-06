@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ module P = Plugin.Register
      let name = ""
      let shortname = ""
      let module_name = ""
-     let descr = "General options provided by the Frama-C kernel"
+     let help = "General options provided by the Frama-C kernel"
    end)
 
 include (P: Plugin.S)

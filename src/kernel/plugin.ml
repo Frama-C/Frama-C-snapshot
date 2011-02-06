@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,10 +43,9 @@ let run_normal_exit_hook () =
 
 type group = Cmdline.Group.t
 
-let selection = ref Project.Selection.empty
-let get_selection () = !selection
-let extend_selection select =
-  selection := select Kind.Do_Not_Select_Dependencies !selection
+let selection : State.t list ref = ref []
+let get_selection () = State_selection.of_list !selection
+let extend_selection s = selection := s :: !selection
 
 (* ************************************************************************* *)
 (** {2 Signatures} *)
@@ -60,9 +59,11 @@ module type Parameter = sig
   val clear: unit -> unit
   val is_default: unit -> bool
   val is_set: unit -> bool
-  include Project.Computation.OUTPUT
+  val option_name: string
+  include State_builder.S
   val equal: t -> t -> bool
   val unsafe_set: t -> unit
+  val add_aliases: string list -> unit
   val add_alias: string list -> unit
 end
 
@@ -92,13 +93,14 @@ module type GEN_STRING_SET = sig
   val is_empty: unit -> bool
   val get_set: ?sep:string -> unit -> string
   val iter: (string -> unit) -> unit
+  val exists: (string -> bool) -> bool
 end
 
-module type STRING_SET = GEN_STRING_SET with type t = Cilutil.StringSet.t
+module type STRING_SET = GEN_STRING_SET with type t = Datatype.String.Set.t
 module type STRING_LIST = GEN_STRING_SET with type t = string list
 
 module type STRING_HASHTBL = sig
-  include GEN_STRING_SET with type t = Cilutil.StringSet.t
+  include GEN_STRING_SET with type t = Datatype.String.Set.t
   type value
   val find: string -> value
 end
@@ -114,7 +116,8 @@ end
 
 module type Parameter_input = sig
   val option_name: string
-  val descr: string
+  val help: string
+  val kind: [> `Correctness | `Tuning | `Irrelevant ]
 end
 
 module type Parameter_input_with_arg = sig
@@ -133,7 +136,7 @@ end
 
 module type S = sig
   include Log.Messages
-  val add_group: string -> group
+  val add_group: ?memo:bool -> string -> group
   module Help: BOOL
   module Verbose: INT
   module Debug: INT
@@ -166,19 +169,17 @@ module type General_services = sig
   module EmptyString(X: Parameter_input_with_arg) : STRING
 
   module StringSet(X: Parameter_input_with_arg) : STRING_SET
-
   module StringList(X: Parameter_input_with_arg) : STRING_LIST
-    (** Should not be used by casual users *)
 
   module IndexedVal (V:COMPLEX_VALUE) : INDEXED_VAL with type value = V.t
 
   module StringHashtbl
     (X: Parameter_input_with_arg)
     (V: sig
-       include Project.Datatype.S
-       val parse: string -> string * t
-       val no_binding: string -> t
-     end) :
+      include Datatype.S
+      val parse: string -> string * t
+      val no_binding: string -> t
+    end) :
     STRING_HASHTBL with type value = V.t
 
 end
@@ -216,14 +217,17 @@ let do_not_journalize () = journalize_ref := false
 let negative_option_name_ref = ref None
 let set_negative_option_name s = negative_option_name_ref := Some s
 
-let negative_option_descr_ref = ref ""
-let set_negative_option_descr s = negative_option_descr_ref := s
+let negative_option_help_ref = ref ""
+let set_negative_option_help s = negative_option_help_ref := s
 
 let projectify_ref = ref true
 let do_not_projectify () = projectify_ref := false
 
-let optional_descr_ref = ref ("": (unit, Format.formatter, unit) format)
-let set_optional_descr fmt = optional_descr_ref := fmt
+let must_save_ref = ref true
+let do_not_save () = must_save_ref := false
+
+let optional_help_ref = ref ("": (unit, Format.formatter, unit) format)
+let set_optional_help fmt = optional_help_ref := fmt
 
 let module_name_ref = ref ""
 let set_module_name s = module_name_ref := s
@@ -231,19 +235,21 @@ let set_module_name s = module_name_ref := s
 let group_ref = ref Cmdline.Group.default
 let set_group s = group_ref := s
 
-let is_visible_ref = ref false
-let is_visible () = is_visible_ref := true
+let is_visible_ref = ref None
+let is_visible () = is_visible_ref := Some true
+let is_invisible () = is_visible_ref := Some false
 
 let reset () =
   cmdline_stage_ref := Cmdline.Configuring;
   journalize_ref := true;
   negative_option_name_ref := None;
-  negative_option_descr_ref := "";
-  optional_descr_ref := "";
+  negative_option_help_ref := "";
+  optional_help_ref := "";
   projectify_ref := true;
+  must_save_ref := true;
   module_name_ref := "";
   group_ref := Cmdline.Group.default;
-  is_visible_ref := false
+  is_visible_ref := None
 
 (* ************************************************************************* *)
 (** {2 Generic functors} *)
@@ -260,10 +266,10 @@ type kind =
   | String of string option_accessor * (unit -> string list)
   | StringSet of string option_accessor
 
-type parameter = { o_name: string; o_descr: string; o_kind: kind }
+type parameter = { o_name: string; o_help: string; o_kind: kind }
 type plugin =
     { p_name: string;
-      p_descr: string;
+      p_help: string;
       p_parameters: (string, parameter list) Hashtbl.t }
 
 let plugins: plugin list ref = ref []
@@ -278,26 +284,28 @@ let iter_on_plugins f =
   in
   List.iter f (List.sort cmp !plugins)
 
-let dynamic_plugin_name name = "Dynamic." ^ name
+(*let dynamic_plugin_name name = "Dynamic." ^ name
 let dynamic_function_name funname statename =
-  funname ^ " \"" ^ statename ^ "\""
-let dynamic_name plugin funname statename =
-  "Dynamic." ^ plugin ^ "." ^ funname ^ " \"" ^ statename ^ "\""
+  funname ^ " \"" ^ statename ^ "\""*)
+let dynamic_name functor_name fct_name option_name =
+  Format.sprintf "Parameters.Dynamic.%s.%s %S"
+    functor_name fct_name option_name
 
 module Build
   (X:sig
-     type t
+    include Datatype.S
      val default: unit -> t
      val option_name: string
      val functor_name: string
-     val ty: t Type.t
-     val equal: t -> t -> bool
+     val kind: [> `Correctness | `Tuning | `Irrelevant ]
    end) =
 struct
 
   let is_dynamic = not !kernel_ongoing
   let projectify = !projectify_ref
+  let must_save = !must_save_ref && projectify
   let module_name = !module_name_ref
+  let group = !group_ref
 
   module D = Datatype
 
@@ -308,9 +316,15 @@ struct
     | Cmdline.Configuring ->
 	()
 
-  (* quite an inlining of [Computation.Ref]; but handle [projectify_ref] *)
-  module StateBuilder
-    (X:sig type t val name: string val default: unit -> t end) =
+  (* quite an inlining of [State_builder.Ref]; but handle [projectify_ref] *)
+  module Option_state_builder
+    (X:sig
+      include Datatype.S
+      val unique_name: string
+      val pretty_name: string
+      val default: unit -> t
+      val kind: State.kind
+    end) =
   struct
 
     type data = X.t
@@ -318,8 +332,11 @@ struct
     let create () = ref (X.default ())
     let state = ref (create ())
 
-    include Project.Computation.Register
-    (Datatype.Ref(Project.Datatype.Persistent(X)))
+    include State_builder.Register
+    (struct
+      include Datatype.Ref(X)
+      let descr = if must_save then descr else Descr.unmarshable
+     end)
     (struct
        type t = data ref
        let get () = !state
@@ -330,7 +347,12 @@ struct
        let is_default x = !x = (X.default ())
        let clear_some_projects _ _ = false (* parameters cannot be projects *)
      end)
-    (struct let name = X.name let dependencies = [] end)
+    (struct
+      let name = X.pretty_name
+      let unique_name = X.unique_name
+      let dependencies = []
+      let kind = X.kind
+     end)
 
     let set v = !state := v
     let get () = !(!state)
@@ -338,38 +360,51 @@ struct
 
   end
 
-  module State = StateBuilder(struct include X let name = X.option_name end)
-  include State
+  module Internal_state = struct
 
-  type t = State.data
+    let pretty_value v =
+      if X.option_name = "" then "Input C files"
+      else
+        if Type.equal X.ty Datatype.bool
+          || Type.equal X.ty Datatype.int
+          || Type.equal X.ty Datatype.float
+        then
+        Pretty_utils.sfprintf "%s: %a" X.option_name X.pretty v
+        else X.option_name
 
-  let () = extend_selection State.select
+    include Option_state_builder
+      (struct
+	include X
+	let unique_name = X.option_name
+        let pretty_name = pretty_value (X.default ())
+       end)
 
-  let is_default () = X.equal (X.default ()) (State.get ())
+    let set v =
+      State.set_name self (pretty_value v);
+      set v
+
+  end
+
+  include Internal_state
+
+  let self = Internal_state.self
+  type t = Internal_state.data
+
+  let () = extend_selection self
+
+  let is_default () = X.equal (X.default ()) (Internal_state.get ())
 
   module Is_set =
-    StateBuilder
+    Option_state_builder
       (struct
-	 type t = bool
-	 let name = X.option_name ^ " is set"
+	include D.Bool
+	 let pretty_name = X.option_name ^ " is set"
+	 let unique_name = pretty_name
 	 let default () = false
+         let kind = `Internal
        end)
-  let () = State.depend Is_set.self
-
-  let do_not_save () =
-    do_not_save ();
-    (* We don't want to know which options was set in the saved session while
-       loading. *)
-    Is_set.do_not_save ();
-    (* However we want to copy each state [Is_set] while creating a project by
-       copy. *)
-    Project.create_by_copy_hook
-      (fun src p ->
-	 Project.copy
-	   ~only:(Project.Selection.singleton Is_set.self
-		    Kind.Do_Not_Select_Dependencies)
-	   ~src
-	   p)
+  let () =
+    State_dependency_graph.Static.add_dependencies ~from:Is_set.self [ self ]
 
   module Set_Hook = Hook.Build(struct type t = X.t * X.t end)
   let add_set_hook f = Set_Hook.extend (fun (old, x) -> f old x)
@@ -377,52 +412,50 @@ struct
   let gen_journalized name ty set =
     let name =
       if is_dynamic then dynamic_name X.functor_name name X.option_name
-      else module_name ^ "." ^ name
+      else "Parameters." ^ module_name ^ "." ^ name
     in
     if !journalize_ref then
-      Journal.register
-	~is_dyn:is_dynamic
-	("Parameters." ^ name)
-	(Type.func ty Type.unit)
-	set
+      Journal.register ~is_dyn:is_dynamic name (D.func ty D.unit) set
     else
       set
 
   let unsafe_set =
     let set x =
       Is_set.set true;
-      let old = State.get () in
+      let old = Internal_state.get () in
       if not (X.equal x old) then begin
-	State.set x;
+	Internal_state.set x;
 	Set_Hook.apply (old, x)
       end
     in
     gen_journalized "unsafe_set" X.ty set
 
   let force_set x =
-    let old = State.get () in
-    State.set x;
-    if projectify then
+    let old = Internal_state.get () in
+    Internal_state.set x;
+    if projectify then begin
       (* [JS 2009/05/25] first clear the dependency and next apply the hooks
 	 since these hooks may set some states in the dependencies *)
-      Project.clear
-	~only:(Project.Selection.singleton State.self
-		 Kind.Only_Select_Dependencies)
-        ~except:(Project.Selection.singleton Is_set.self
-		   Kind.Do_Not_Select_Dependencies)
-        ();
+      let selection =
+	State_selection.Dynamic.diff
+	  (State_selection.Dynamic.only_dependencies self)
+	  (State_selection.singleton Is_set.self)
+      in
+      Project.clear ~selection ()
+    end;
     Set_Hook.apply (old, x)
 
   let unjournalized_set x =
     Is_set.set true;
-    if not (X.equal x (State.get ())) then force_set x
+    if not (X.equal x (Internal_state.get ())) then force_set x
 
   let unguarded_set = gen_journalized "set" X.ty unjournalized_set
 
-  let set x = if not (X.equal x (State.get ())) then unguarded_set x
+  (* [TODO] not very efficient since the test of modification is done twice. *)
+  let set x = if not (X.equal x (Internal_state.get ())) then unguarded_set x
 
   let clear =
-    gen_journalized "clear" Type.unit
+    gen_journalized "clear" D.unit
       (fun () ->
 	 force_set (X.default ());
 	 Is_set.set false)
@@ -431,10 +464,10 @@ struct
 
   let register_dynamic name ty1 ty2 f =
     if is_dynamic then
-      let ty = Type.func ty1 ty2 in
+      let ty = D.func ty1 ty2 in
       Dynamic.register
-	~plugin:(dynamic_plugin_name X.functor_name)
-	(dynamic_function_name name X.option_name)
+	~plugin:""
+	(dynamic_name X.functor_name name X.option_name)
 	~journalize:false
 	ty
 	f
@@ -442,12 +475,14 @@ struct
       f
 
   let get, set, clear, is_set =
-    register_dynamic "get" Type.unit X.ty State.get,
-    register_dynamic "set" X.ty Type.unit set,
-    register_dynamic "clear" Type.unit Type.unit clear,
-    register_dynamic "is_set" Type.unit Type.bool Is_set.get
+    register_dynamic "get" D.unit X.ty Internal_state.get,
+    register_dynamic "set" X.ty D.unit set,
+    register_dynamic "clear" D.unit D.unit clear,
+    register_dynamic "is_set" D.unit D.bool Is_set.get
 
   let stage = !cmdline_stage_ref
+
+  let option_name = X.option_name
 
 end
 
@@ -459,7 +494,7 @@ module Register
   (P: sig
      val name: string (* the name is "" for the kernel *)
      val shortname: string
-     val descr: string
+     val help: string
    end) =
 struct
 
@@ -486,17 +521,18 @@ struct
     let name = if is_kernel () then kernel_name else P.name in
     let tbl = Hashtbl.create 17 in
     Hashtbl.add tbl "" [];
-    { p_name = name; p_descr = P.descr; p_parameters = tbl }
+    { p_name = name; p_help = P.help; p_parameters = tbl }
 
-  let add_parameter group stage name descr kind =
+  let add_parameter group stage name help kind =
     match !is_visible_ref, stage with
-    | false,
-	  (Cmdline.Early | Cmdline.Extending | Cmdline.Extended
-	  | Cmdline.Exiting | Cmdline.Loading) ->
+    | Some false, _
+    | None,
+      (Cmdline.Early | Cmdline.Extending | Cmdline.Extended
+      | Cmdline.Exiting | Cmdline.Loading) ->
 	()
-    | true, _ | false, Cmdline.Configuring ->
+    | Some true, _ | None, Cmdline.Configuring ->
 	let parameter_groups = plugin.p_parameters in
-	let parameter = { o_name = name; o_descr = descr; o_kind = kind } in
+	let parameter = { o_name = name; o_help = help; o_kind = kind } in
 	try
 	  let group_name = Cmdline.Group.name group in
 	  let parameters = Hashtbl.find plugin.p_parameters group_name in
@@ -504,15 +540,14 @@ struct
 	with Not_found ->
 	  assert false
 
-  let add_group name =
+  let add_group ?memo name =
     let parameter_groups = plugin.p_parameters in
-    if Hashtbl.mem parameter_groups name then
-      fatal "group %s already exists" name;
-    Hashtbl.add parameter_groups name [];
-    Cmdline.Group.add ~plugin:P.shortname name
+    let g, new_g = Cmdline.Group.add ?memo ~plugin:P.shortname name in
+    if new_g then Hashtbl.add parameter_groups name [];
+    g
 
   let () =
-    Cmdline.add_plugin P.name ~short:P.shortname ~descr:P.descr;
+    Cmdline.add_plugin P.name ~short:P.shortname ~help:P.help;
     kernel_ongoing := is_kernel ();
     plugins := plugin :: !plugins
 
@@ -525,32 +560,30 @@ struct
 
     include Build
       (struct
-	 type t = bool
-	 include X
-	 let default () = default
-	 let functor_name = "Bool"
-	 let equal = (=)
-	 let ty = Type.bool
+	include Datatype.Bool
+	include X
+	let default () = default
+	let functor_name = "Bool"
        end)
 
-    let on = register_dynamic "on" Type.unit Type.unit (fun () -> set true)
-    let off = register_dynamic "off" Type.unit Type.unit (fun () -> set false)
+    let on = register_dynamic "on" D.unit D.unit (fun () -> set true)
+    let off = register_dynamic "off" D.unit D.unit (fun () -> set false)
 
-    let generic_add_option name descr value =
+    let generic_add_option name help value =
       Cmdline.add_option
 	name
 	~plugin:P.shortname
-	~group:!group_ref
-	~descr
-	~ext_descr:!optional_descr_ref
+	~group
+	~help
+	~ext_help:!optional_help_ref
 	stage
 	(Cmdline.Unit (fun () -> unguarded_set value))
 
     let default_message = " (set by default)"
 
     let add_option name =
-      let descr = if X.default then X.descr ^ default_message else X.descr in
-      generic_add_option name (Some descr) true
+      let help = if X.default then X.help ^ default_message else X.help in
+      generic_add_option name (Some help) true
 
     let negative_option_name name =
       let s = !negative_option_name_ref in
@@ -571,17 +604,21 @@ struct
 
     let add_negative_option name =
       let neg_name = negative_option_name name in
-      let mk_descr s = Some (if X.default then s else s ^ default_message) in
-      let neg_descr =
-	match !negative_option_name_ref, !negative_option_descr_ref with
+      let mk_help s = Some (if X.default then s else s ^ default_message) in
+      let neg_help =
+	match !negative_option_name_ref, !negative_option_help_ref with
 	| None, "" -> (* no user-specific config: no help *) None
-	| Some _, "" -> mk_descr ("opposite of option \"" ^ name ^ "\"")
-	| _, s -> assert (s <> ""); mk_descr s
+	| Some _, "" -> mk_help ("opposite of option \"" ^ name ^ "\"")
+	| _, s -> assert (s <> ""); mk_help s
       in
-      generic_add_option neg_name neg_descr false;
+      generic_add_option neg_name neg_help false;
       neg_name
 
-    let add_alias = List.iter add_option
+    let add_aliases =
+      Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
+
+    let add_alias =
+      deprecated "Plugin.add_alias" ~now:"Plugin.add_aliases" add_aliases
 
     let () =
       add_option X.option_name;
@@ -591,7 +628,7 @@ struct
 	| _ -> Some (add_negative_option X.option_name)
       in
       add_parameter
-	!group_ref stage State.name X.descr
+	!group_ref stage Internal_state.name X.help
 	(Bool({ get = get; set = set; is_set = is_set}, negative_option));
       reset ()
 
@@ -604,20 +641,26 @@ struct
     Bool(struct include X let default = true end)
 
   module Action(X: Parameter_input) = struct
-    include False(X)
+
+    (* do not save it but restore the "good" behavior when creating by copy *)
+
     let () = do_not_save ()
+    (* [JS 2011/01/19] Not saving this kind of options is a quite bad hack with
+       several drawbacks (see Frama-C commits 2011/01/19, message of JS around
+       15 PM). I'm quite sure there is a better way to not display
+       results too many times (e.g. by using the "isset" flag). *)
+
+    include False(X)
+
     let () =
       Project.create_by_copy_hook
-	(* LC: to preserve tests oracle_copy. Not sure it is really what we
-	   want. *)
-	(fun source target ->
-	   let only =
-	     Project.Selection.singleton self Kind.Do_Not_Select_Dependencies
-	   in
-	   (* [JS 2010/03/10] shouldbe more efficient to use [Project.copy]
-	      here *)
-	   let opt = Project.on ~only source get () in
-	   if opt then Project.on ~only target set true)
+	(fun src p ->
+	  Project.copy
+	    ~selection:(State_selection.singleton Is_set.self) ~src p;
+	  let selection = State_selection.singleton self in
+	  let opt = Project.on ~selection src get () in
+	  if opt then Project.on ~selection p set true)
+
   end
 
   (** {3 Integer} *)
@@ -627,30 +670,32 @@ struct
 
     include Build
       (struct
-	 type t = int
+	include Datatype.Int
 	 include X
 	 let default () = default
 	 let functor_name = "Int"
-	 let equal = (=)
-	 let ty = Type.int
        end)
 
     let incr =
       let incr () = set (succ (get ())) in
-      register_dynamic "incr" Type.unit Type.unit incr
+      register_dynamic "incr" D.unit D.unit incr
 
     let add_option name =
       Cmdline.add_option
 	name
 	~argname:X.arg_name
-	~descr:(Some X.descr)
-	~ext_descr:!optional_descr_ref
+	~help:(Some X.help)
+	~ext_help:!optional_help_ref
 	~plugin:P.shortname
-	~group:!group_ref
+	~group
 	stage
 	(Cmdline.Int unguarded_set)
 
-    let add_alias = List.iter add_option
+    let add_aliases =
+      Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
+
+    let add_alias =
+      deprecated "Plugin.add_alias" ~now:"Plugin.add_aliases" add_aliases
 
     let range = ref (min_int, max_int)
     let set_range ~min ~max = range := min, max
@@ -660,13 +705,15 @@ struct
       add_set_hook
 	(fun _ n ->
 	   let min, max = !range in
-	   if n < min || n > max then
-	   abort "argument of %s must be between %d and %d."
-	     State.name
-	     min
-	     max);
+	   if n < min then
+	     abort
+	       "argument of %s must be at least %d." Internal_state.name min;
+	   if n > max then
+	     abort
+	       "argument of %s must be no more than %d."
+	       Internal_state.name max);
       add_parameter
-	!group_ref stage State.name X.descr
+	!group_ref stage Internal_state.name X.help
 	(Int({ get = get; set = set; is_set = is_set }, get_range));
       add_option X.option_name;
       reset ()
@@ -686,26 +733,28 @@ struct
 
     include Build
       (struct
-	 type t = string
+	include Datatype.String
 	 include X
 	 let default () = default
 	 let functor_name = "String"
-	 let equal = (=)
-	 let ty = Type.string
        end)
 
     let add_option name =
       Cmdline.add_option
 	name
 	~argname:X.arg_name
-	~descr:(Some X.descr)
-	~ext_descr:!optional_descr_ref
+	~help:(Some X.help)
+	~ext_help:!optional_help_ref
 	~plugin:P.shortname
-	~group:!group_ref
+	~group
 	stage
 	(Cmdline.String unguarded_set)
 
-    let add_alias = List.iter add_option
+    let add_aliases =
+      Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
+
+    let add_alias =
+      deprecated "Plugin.add_alias" ~now:"Plugin.add_aliases" add_aliases
 
     let possible_values = ref []
     let set_possible_values s = possible_values := s
@@ -717,9 +766,9 @@ struct
 	   match !possible_values with
 	   | [] -> ()
 	   | v when List.mem s v -> ()
-	   | _ -> abort "invalid input %s for %s" s State.name);
+	   | _ -> abort "invalid input %s for %s" s Internal_state.name);
       add_parameter
-	!group_ref stage State.name X.descr
+	!group_ref stage Internal_state.name X.help
 	(String({ get = get; set = set; is_set = is_set },
 		get_possible_values));
       add_option X.option_name;
@@ -732,67 +781,85 @@ struct
 
   (** {3 String set and string list} *)
 
-  module StringSet(X: Parameter_input_with_arg) = struct
-
-    open Cilutil
+  module Build_string_set
+    (S: sig
+      include Datatype.S
+       val empty: t
+       val is_empty: t -> bool
+       val add: string -> t -> t
+       val remove: string -> t -> t
+       val mem: string -> t -> bool
+       val for_all: (string -> bool) -> t -> bool
+       val fold: (string -> 'acc -> 'acc) -> t -> 'acc -> 'acc
+       val iter: (string -> unit) -> t -> unit
+       val exists: (string -> bool) -> t -> bool
+     end)
+    (X:Parameter_input_with_arg) =
+  struct
 
     include Build
       (struct
-	 let default () = StringSet.empty
+	 let default () = S.empty
 	 let functor_name = "StringSet"
-	 include StringSet
+	 include S
 	 include X
-	 let ty = Kernel_type.string_set
        end)
 
     let add =
-      let add x = unguarded_set (StringSet.add x (get ())) in
-      register_dynamic "add" Type.string Type.unit add
+      let add x = unguarded_set (S.add x (get ())) in
+      register_dynamic "add" D.string D.unit add
 
     let remove =
-      let remove x = unguarded_set (StringSet.remove x (get ())) in
-      register_dynamic "remove" Type.string Type.unit remove
+      let remove x = unguarded_set (S.remove x (get ())) in
+      register_dynamic "remove" D.string D.unit remove
 
     let split_set = Str.split (Str.regexp "[ \t]*,[ \t]*")
 
     let guarded_set_set x =
       match split_set x with
-      | [] when not (StringSet.is_empty (get ())) ->
-	  unguarded_set StringSet.empty
+      | [] when not (S.is_empty (get ())) ->
+	  unguarded_set S.empty
       | l ->
-	  if not (List.for_all (fun s -> StringSet.mem s (get ())) l) ||
-	    not (StringSet.for_all (fun s -> List.mem s l) (get ()))
+	  if not (List.for_all (fun s -> S.mem s (get ())) l) ||
+	    not (S.for_all (fun s -> List.mem s l) (get ()))
 	  then
-	    unguarded_set (List.fold_right StringSet.add l StringSet.empty)
+	    unguarded_set (List.fold_right S.add l S.empty)
 
     let get_set ?(sep=", ") () =
-      StringSet.fold
-	(fun s acc -> if acc <> "" then s ^ sep ^ acc else s) (get ()) ""
+      S.fold (fun s acc -> if acc <> "" then s ^ sep ^ acc else s) (get ()) ""
 
     let is_empty =
-      let is_empty () = StringSet.is_empty (get ()) in
-      register_dynamic "is_empty" Type.unit Type.bool is_empty
+      let is_empty () = S.is_empty (get ()) in
+      register_dynamic "is_empty" D.unit D.bool is_empty
 
     let iter =
-      let iter f = StringSet.iter f (get ()) in
-      register_dynamic "iter" (Type.func Type.string Type.unit) Type.unit iter
+      let iter f = S.iter f (get ()) in
+      register_dynamic "iter" (D.func D.string D.unit) D.unit iter
+
+    let exists =
+      let exists f = S.exists f (get()) in
+      register_dynamic "exists" (D.func D.string D.bool) D.bool exists
 
     let add_option name =
       Cmdline.add_option
 	name
 	~plugin:P.shortname
-	~group:!group_ref
+	~group
 	~argname:X.arg_name
-	~descr:(Some X.descr)
-	~ext_descr:!optional_descr_ref
+	~help:(Some X.help)
+	~ext_help:!optional_help_ref
 	stage
 	(Cmdline.String_list (List.iter add))
 
-    let add_alias = List.iter add_option
+    let add_aliases =
+      Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
+
+    let add_alias =
+      deprecated "Plugin.add_alias" ~now:"Plugin.add_aliases" add_aliases
 
     let () =
       add_parameter
-	!group_ref stage State.name X.descr
+	!group_ref stage Internal_state.name X.help
 	(StringSet{ get = (fun () -> get_set ());
 		    set = guarded_set_set;
 		    is_set = is_set });
@@ -801,33 +868,22 @@ struct
 
   end
 
-  module StringList(X: Parameter_input_with_arg) = struct
+  module StringSet = Build_string_set(Datatype.String.Set)
 
-    include Build
+  module StringList =
+    Build_string_set
       (struct
-	 let default () = []
-	 include X
-	 let functor_name = "StringList"
-	 let ty = Type.list Type.string
-	 type t = string list
-	 let equal = (=)
+	include Datatype.List(Datatype.String)
+	let empty = []
+	let is_empty = equal []
+	let add s l = s :: l
+	let remove s l = List.filter ((<>) s) l
+	let mem s = List.exists (((=) : string -> _) s)
+	let for_all = List.for_all
+	let fold = List.fold_right
+	let iter = List.iter
+	let exists = List.exists
        end)
-
-    let add = gen_journalized "add" Type.string	(fun x -> set (x :: (get ())))
-
-    let get_set ?(sep=", ") () =
-      List.fold_right
-	(fun s acc -> if acc<>"" then s^sep^acc else s) (get ()) ""
-
-    let iter f = List.iter f (get ())
-
-    let add_alias _ = assert false
-
-    let is_empty () = get () = []
-
-    let remove s = set (List.filter ((<>) s) (get ()))
-
-  end
 
   (** {3 Complex values indexed by strings} *)
 
@@ -842,10 +898,12 @@ struct
 
     let create () = ref V.default_key
 
-    let curr_choice = ref (create())
+    let curr_choice = ref (create ())
 
     module StateAux = struct
       let name = V.option_name
+      let unique_name = V.option_name
+      let kind = V.kind
       let create = create
 
       type t = string ref
@@ -870,17 +928,15 @@ option. Option is unchanged.\n" V.option_name !s
       let clear_some_projects _ _ = false (* a parameter cannot be a project *)
    end
 
-    let equal = (=)
-
     module State =
-      Project.Computation.Register
-	(Datatype.Ref(Datatype.String))(StateAux)(StateAux)
+      State_builder.Register(Datatype.Ref(Datatype.String))(StateAux)(StateAux)
+    include State
+
+    let () = extend_selection self
 
     type t = string
 
-    let () = extend_selection State.select
-
-    include State
+    let equal : t -> t -> _ = (=)
 
     let get () = !(!curr_choice)
     let get_val () = Hashtbl.find options (get())
@@ -910,23 +966,30 @@ Option is unchanged.\n" s V.option_name
     let unsafe_set = set
 
     let stage = !cmdline_stage_ref
+    let group = !group_ref
 
     let add_option name =
       Cmdline.add_option
 	name
 	~plugin:P.shortname
-	~group:!group_ref
+	~group
 	~argname:V.arg_name
-	~descr:(Some V.descr)
-	~ext_descr:!optional_descr_ref
+	~help:(Some V.help)
+	~ext_help:!optional_help_ref
 	stage
 	(Cmdline.String unguarded_set)
 
-    let add_alias = List.iter add_option
+    let add_aliases =
+      Cmdline.add_aliases V.option_name ~plugin:P.shortname ~group stage
+
+    let add_alias =
+      deprecated "Plugin.add_alias" ~now:"Plugin.add_aliases" add_aliases
 
     let possible_values = ref []
     let set_possible_values s = possible_values := s
     let get_possible_values () = !possible_values
+
+    let option_name = V.option_name
 
     let () =
       add_option V.option_name;
@@ -937,7 +1000,7 @@ Option is unchanged.\n" s V.option_name
   module StringHashtbl
     (X: Parameter_input_with_arg)
     (V: sig
-       include Project.Datatype.S
+       include Datatype.S
        val parse: string -> string * t
        val no_binding: string -> t
      end) =
@@ -947,13 +1010,14 @@ Option is unchanged.\n" s V.option_name
     include StringSet(X)
 
     module H =
-      Computation.Hashtbl
-	(Initial_Datatype.String)
+      State_builder.Hashtbl
+	(Initial_Datatype.String.Hashtbl)
 	(V)
 	(struct
-	   let name = X.option_name ^ " (hashtbl)"
-	   let size = 7
-	   let dependencies = [ self ]
+	  let name = X.option_name ^ " (hashtbl)"
+	  let size = 7
+	  let dependencies = [ self ]
+          let kind = `Internal
 	 end)
 
     type value = V.t
@@ -987,15 +1051,16 @@ Option is unchanged.\n" s V.option_name
   module Help =
     False(struct
 	    let option_name = prefix ^ "help"
-	    let descr =
+	    let help =
 	      if is_kernel () then "help of the Frama-C kernel"
 	      else "help of plug-in " ^ P.name
+            let kind = `Irrelevant
 	  end)
   let () =
     Cmdline.run_after_exiting_stage
       (fun () ->
 	 if Help.get () then Cmdline.plugin_help P.shortname else Cmdline.nop);
-    Help.add_alias [ prefix ^ "h" ]
+    Help.add_aliases [ prefix ^ "h" ]
 
   let messages = add_group "Output Messages"
 
@@ -1020,10 +1085,11 @@ Option is unchanged.\n" s V.option_name
 	    let default = !verbose_level ()
 	    let option_name = verbose_optname
 	    let arg_name = "n"
-	    let descr =
+	    let help =
 	      (if is_kernel () then "level of verbosity for the Frama-C kernel"
 	       else "level of verbosity for plug-in " ^ P.name)
-	      ^ " (default to 1)"
+	      ^ " (defaults to " ^ string_of_int default ^ ")"
+            let kind = `Irrelevant
 	  end)
     let get () = if is_set () then get () else !Cmdline.verbose_level_ref
     let () =
@@ -1040,10 +1106,11 @@ Option is unchanged.\n" s V.option_name
 	    let default = !debug_level ()
 	    let option_name = debug_optname
 	    let arg_name = "n"
-	    let descr =
+	    let help =
 	      (if is_kernel () then "level of debug for the Frama-C kernel"
 	       else "level of debug for plug-in " ^ P.name)
-	      ^ " (default to 0)"
+	      ^ " (defaults to " ^ string_of_int default ^ ")"
+            let kind = `Irrelevant
 	  end)
     let get () = if is_set () then get () else !Cmdline.debug_level_ref
     let () =

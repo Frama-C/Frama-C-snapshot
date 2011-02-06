@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,12 +32,12 @@ class item ?menu_item ?tool_button group = object
   method tool_button: GButton.tool_button option = tool_button
   method add_accelerator modifier c =
     Extlib.may
-      (fun i -> 
+      (fun i ->
 	 (* unfortunatly full type annotation required *)
 	 let f: group:Gtk.accel_group ->
            ?modi:Gdk.Tags.modifier list ->
            ?flags:Gtk.Tags.accel_flag list ->
-           Gdk.keysym -> unit = 
+           Gdk.keysym -> unit =
 	   i#add_accelerator
 	 in
 	 f ~group ~flags:[ `VISIBLE ] ~modi:[ modifier ] (int_of_char c))
@@ -47,9 +47,9 @@ end
 
 (* the analyses-menu will be at the last position of the menubar *)
 let add_submenu container ~pos label =
-  let item = 
+  let item =
     let packing item = container#insert item ~pos in
-    GMenu.menu_item ~use_mnemonic:true ~packing ~label () 
+    GMenu.menu_item ~use_mnemonic:true ~packing ~label ()
   in
   let m = GMenu.menu () in
   item#set_submenu m;
@@ -59,7 +59,7 @@ let add_submenu container ~pos label =
 external set_menu :  Obj.t -> unit = "ige_mac_menu_set_menu_bar"
 *)
 
-class menu_manager ?packing () = 
+class menu_manager ?packing ~(host:Gtk_helper.host) =
   let menubar = GMenu.menu_bar ?packing () in
 (*  let () = set_menu (Obj.field (Obj.repr ((menubar)#as_widget)) 1) in *)
   let factory = new GMenu.factory menubar in
@@ -77,7 +77,7 @@ object (self)
 
   method add_plugin ?title = self#add_entries ?title analyses_menu
 
-  method add_debug ?title ?(show=fun () -> true) entries = 
+  method add_debug ?title ?(show=fun () -> true) entries =
     let items = self#add_entries ?title (snd debug_item_and_menu) entries in
     let action item =
       if show () then begin
@@ -90,28 +90,28 @@ object (self)
     in
     let l = List.rev debug_actions in
     Array.iter
-      (fun i -> 
-	 action i; 
-	 debug_actions <- (fun () -> action i) :: l) 
+      (fun i ->
+	 action i;
+	 debug_actions <- (fun () -> action i) :: l)
       items;
     items
 
   (** {2 High-level API} *)
 
-  method add_menu ?(pos=List.length menubar#children - 2) s = 
+  method add_menu ?(pos=List.length menubar#children - 2) s =
     add_submenu ~pos factory#menu s
 
   method add_entries ?title ?pos container entries =
     (* Toolbar *)
-    let toolbar_pos = 
-      (* The first group will be at the end of the toolbar. 
+    let toolbar_pos =
+      (* The first group will be at the end of the toolbar.
 	 By default, add all the others just before this very first group. *)
       ref (match pos, first_tool_separator with
 	   | None, None -> 0
 	   | None, Some sep -> max 0 (toolbar#get_item_index sep)
 	   | Some p, _ -> p)
     in
-    let toolbar_packing w = 
+    let toolbar_packing w =
       toolbar#insert ~pos:!toolbar_pos w;
       incr toolbar_pos
     in
@@ -128,24 +128,30 @@ object (self)
       | _ -> ()
     in
     let add_item_toolbar stock tooltip callback =
-      let b = GButton.tool_button ~stock ~packing:toolbar_packing () in
+      let label =
+        try
+          if (GtkStock.Item.lookup stock).GtkStock.label = "" then Some tooltip
+          else None
+        with Not_found -> Some tooltip
+      in
+      let b = GButton.tool_button ?label ~stock ~packing:toolbar_packing () in
       b#set_tooltip (GData.tooltips ()) tooltip "";
       ignore (b#connect#clicked ~callback);
       b
     in
     (* Menubar *)
     let menu_pos = ref (match pos with None -> -1 | Some p -> p) in
-    let menubar_packing w = 
+    let menubar_packing w =
       let pos = !menu_pos in
       (match title with
        | None -> container#insert ~pos w
        | Some s -> (snd (add_submenu container ~pos s))#append w);
       if pos <> -1 then incr menu_pos
     in
-    let add_menu_separator = 
+    let add_menu_separator =
       let first = ref true in
-      fun () -> 
-	if !menu_pos > 0 || (!menu_pos = -1 && container#children <> []) 
+      fun () ->
+	if !menu_pos > 0 || (!menu_pos = -1 && container#children <> [])
 	then begin
 	  ignore (GMenu.separator_item ~packing:menubar_packing ());
 	  first := false
@@ -154,7 +160,7 @@ object (self)
     let add_item_menu stock_opt label callback =
       let item = match stock_opt with
 	| None -> GMenu.menu_item ~packing:menubar_packing ~label ()
-	| Some stock -> 
+	| Some stock ->
 	    let image = GMisc.image ~stock () in
 	    (GMenu.image_menu_item ~image ~packing:menubar_packing ~label ()
 	     :> GMenu.menu_item)
@@ -167,25 +173,26 @@ object (self)
       | _ -> ()
     in
     (* Entries *)
-    let add_item (kind, callback) = 
+    let add_item (kind, callback) =
+      let callback () =	host#protect callback ~cancelable:false in
       match kind with
-      | Toolbar(stock, tooltip) -> 
+      | Toolbar(stock, tooltip) ->
 	  let tool_button = add_item_toolbar stock tooltip callback in
 	  new item ~tool_button factory#accel_group
-      | Menubar(stock_opt, label) -> 
+      | Menubar(stock_opt, label) ->
 	  let menu_item = add_item_menu stock_opt label callback in
 	  new item ~menu_item factory#accel_group
-      | ToolMenubar(stock, label) -> 
+      | ToolMenubar(stock, label) ->
 	  let tool_button = add_item_toolbar stock label callback in
 	  let menu_item = add_item_menu (Some stock) label callback in
 	  new item ~menu_item ~tool_button factory#accel_group
     in
-    let edit_menubar = 
+    let edit_menubar =
       List.exists
 	(function (Menubar _, _) | (ToolMenubar _, _) -> true | _ -> false)
 	entries
     in
-    let edit_toolbar = 
+    let edit_toolbar =
       List.exists
 	(function (Toolbar _, _) | (ToolMenubar _, _) -> true | _ -> false)
 	entries

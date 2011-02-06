@@ -91,7 +91,8 @@ let clear_lexeme () = lexeme := ""
 let get_extra_lexeme () = !lexeme
 
 let int64_to_char value =
-  if (compare value (Int64.of_int 255) > 0) || (compare value Int64.zero < 0) then
+  if (Int64.compare value (Int64.of_int 255) > 0) ||
+    (Int64.compare value Int64.zero < 0) then
     begin
       let msg = Printf.sprintf "clexer:intlist_to_string: character 0x%Lx too big" value in
       E.parse_error msg;
@@ -112,7 +113,7 @@ let dbgToken (t: token) =
   if false then begin
     let dprintf fmt = Cilmsg.debug fmt in
     (match t with
-         IDENT (n, l) -> dprintf "IDENT(%s,%d)\n" n (fst l).Lexing.pos_lnum
+         IDENT n -> dprintf "IDENT(%s)\n" n
        | LBRACE l -> dprintf "LBRACE(%d)\n" (fst l).Lexing.pos_lnum
        | RBRACE l -> dprintf "RBRACE(%d)\n" (fst l).Lexing.pos_lnum
        | IF l -> dprintf "IF(%d)\n" (fst l).Lexing.pos_lnum
@@ -180,7 +181,7 @@ let init_lexicon _ =
                       if !Cprint.msvcMode then
                         INLINE loc
                       else
-                        IDENT ("_inline", loc));
+                        IDENT ("_inline"));
       ("__attribute__", fun loc -> ATTRIBUTE loc);
       ("__attribute", fun loc -> ATTRIBUTE loc);
 (*
@@ -225,7 +226,7 @@ let init_lexicon _ =
       (* weimer: some files produced by 'GCC -E' expect this type to be
        * defined *)
       ("__builtin_va_list",
-       fun _ -> NAMED_TYPE ("__builtin_va_list", currentLoc ()));
+       fun _ -> NAMED_TYPE "__builtin_va_list");
       ("__builtin_va_arg", fun loc -> BUILTIN_VA_ARG loc);
       ("__builtin_types_compatible_p", fun loc -> BUILTIN_TYPES_COMPAT loc);
       ("__builtin_offsetof", fun loc -> BUILTIN_OFFSETOF loc);
@@ -234,14 +235,14 @@ let init_lexicon _ =
                       if Machdep.state.Machdep.__thread_is_keyword then
                          THREAD loc
                        else
-                         IDENT ("__thread", loc));
+                         IDENT "__thread");
     ]
 
 (* Mark an identifier as a type name. The old mapping is preserved and will
  * be reinstated when we exit this context *)
 let add_type name =
    (* ignore (print_string ("adding type name " ^ name ^ "\n"));  *)
-  H.add lexicon name (fun loc -> NAMED_TYPE (name, loc));
+  H.add lexicon name (fun _ -> NAMED_TYPE name);
   Logic_env.add_typename name
 
 let context : string list list ref = ref [ [] ]
@@ -268,8 +269,7 @@ let add_identifier name =
   | con::sub ->
       (context := (name::con)::sub;
        (*Format.eprintf "adding IDENT for %s@." name;*)
-       H.add lexicon name (fun loc ->
-         dbgToken (IDENT (name, loc)));
+       H.add lexicon name (fun _ -> dbgToken (IDENT name));
        Logic_env.hide_typename name
       )
 
@@ -281,7 +281,7 @@ let scan_ident id =
   let here = currentLoc () in
   try (H.find lexicon id) here
   (* default to variable name, as opposed to type *)
-  with Not_found -> dbgToken (IDENT (id, here))
+  with Not_found -> dbgToken (IDENT id)
 
 
 (*
@@ -376,7 +376,7 @@ let lex_comment remainder buffer lexbuf =
   remainder buffer lexbuf
 
 let do_lex_comment remainder lexbuf =
-  let buffer = 
+  let buffer =
     if !keepComments then Some(Buffer.create 80) else None
   in remainder buffer lexbuf ;
   match buffer with
@@ -387,7 +387,7 @@ let make_char (i:int64):char =
   let min_val = Int64.zero in
   let max_val = Int64.of_int 255 in
   (* if i < 0 || i > 255 then error*)
-  if compare i min_val < 0 || compare i max_val > 0 then begin
+  if Int64.compare i min_val < 0 || Int64.compare i max_val > 0 then begin
     let msg = Printf.sprintf "clexer:make_char: character 0x%Lx too big" i in
     error msg
   end;
@@ -434,6 +434,7 @@ let make_annot s =
   let start = snd !annot_start_pos in
   match Logic_lexer.annot (start, s) with
     | Logic_ptree.Adecl d -> DECL d
+    | Logic_ptree.Afor_spec for_spec-> FOR_SPEC for_spec
     | Logic_ptree.Aspec -> SPEC (start,s)
         (* At this point, we only have identified a function spec. Complete
            parsing of the annotation will only occur in the cparser.mly rule.
@@ -496,8 +497,8 @@ let no_parse_pragma =
 
 
 rule initial =
-  parse "/*"			
-      { 
+  parse "/*"
+      {
 	do_lex_comment comment lexbuf ;
 	addWhite lexbuf ;
         initial lexbuf
@@ -514,12 +515,12 @@ rule initial =
 	  (fun () ->
 	     initial lexbuf)
 	  "Skipping annotation"
-      end else 
+      end else
 	begin
 	  do_lex_comment comment lexbuf ;
           addWhite lexbuf;
           initial lexbuf
-	end 
+	end
     }
 
 | "//"
@@ -544,16 +545,16 @@ rule initial =
 	     annot_one_line lexbuf)
 	  (fun () -> initial lexbuf)
 	  "Skipping annotation"
-      end else 
+      end else
 	begin
 	  do_lex_comment onelinecomment lexbuf ;
 	  E.newline();
-	  if is_oneline_ghost () then 
+	  if is_oneline_ghost () then
 	    begin
               exit_oneline_ghost ();
               RGHOST
-	    end 
-	  else 
+	    end
+	  else
 	    begin
               addWhite lexbuf;
               initial lexbuf
@@ -709,7 +710,7 @@ and matchingpars = parse
                   else
                      matchingpars lexbuf
                 }
-|  "/*"		{ addWhite lexbuf; 
+|  "/*"		{ addWhite lexbuf;
 		  do_lex_comment comment lexbuf ;
                   matchingpars lexbuf }
 |  '"'		{ addWhite lexbuf; (* '"' *)

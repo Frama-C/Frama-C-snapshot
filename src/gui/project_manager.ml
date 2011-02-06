@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 open Cilutil
 
 let compare_prj p1 p2 =
-  let n = String.compare (Project.name p1) (Project.name p2) in
+  let n = String.compare (Project.get_name p1) (Project.get_name p2) in
   if n = 0 then Project.compare p1 p2 else n
 
 let projects_list () =
@@ -31,13 +31,13 @@ let projects_list () =
   List.sort compare_prj projects
 
 (* use the same order than the projects list.
-   is not possible with an hashtbl. 
+   is not possible with an hashtbl.
    So we use a reference over a set of couple *)
-module PrjRadiosSet = 
+module PrjRadiosSet =
   Set.Make
-    (struct 
-       type t = Project.t * GMenu.radio_menu_item 
-       let compare (p1, _) (p2, _) = compare_prj p1 p2 
+    (struct
+       type t = Project.t * GMenu.radio_menu_item
+       let compare (p1, _) (p2, _) = compare_prj p1 p2
      end)
 
 let project_radios : PrjRadiosSet.t ref = ref PrjRadiosSet.empty
@@ -47,7 +47,7 @@ let new_project main_ui =
   Gtk_helper.source_files_chooser
     (main_ui :> Gtk_helper.source_files_chooser_host)
     []
-    (fun filenames -> 
+    (fun filenames ->
        let project = Project.create "interactive" in
        let init () =
 	 Parameters.Files.set filenames;
@@ -57,7 +57,7 @@ let new_project main_ui =
        Project.set_current project)
 
 let delete_project project =
-  let name = Project.unique_name project in
+  let name = Project.get_unique_name project in
   let ok =
     GToolbox.question_box
       ~title:(Format.sprintf "Deleting project %S" name)
@@ -85,11 +85,11 @@ let save_in
     host_window#error ~parent "Cannot save: %s" s
 
 let save_project_as (main_ui: Design.main_window_extension_points) project =
-  let dialog = 
+  let dialog =
     GWindow.file_chooser_dialog
       ~action:`SAVE
-      ~title:("Save project %S" ^ Project.unique_name project)
-      ~parent:main_ui#main_window () 
+      ~title:("Save project %S" ^ Project.get_unique_name project)
+      ~parent:main_ui#main_window ()
   in
   (*dialog#set_do_overwrite_confirmation true ; only in later lablgtk2 *)
   dialog#add_button_stock `CANCEL `CANCEL ;
@@ -103,12 +103,12 @@ let save_project_as (main_ui: Design.main_window_extension_points) project =
 	     dialog#filename
        | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
- 
+
 let save_project (host_window: Design.main_window_extension_points) project =
   try
-    save_in 
-      host_window 
-      (host_window#main_window :> GWindow.window_skel) 
+    save_in
+      host_window
+      (host_window#main_window :> GWindow.window_skel)
       project
       (Filenames.find filenames project)
   with Not_found ->
@@ -118,7 +118,7 @@ let load_project (host_window: Design.main_window_extension_points) =
   let dialog = GWindow.file_chooser_dialog
     ~action:`OPEN
     ~title:"Load a saved project"
-    ~parent:host_window#main_window () 
+    ~parent:host_window#main_window ()
   in
   dialog#add_button_stock `CANCEL `CANCEL ;
   dialog#add_select_button_stock `OPEN `OPEN ;
@@ -137,8 +137,8 @@ let load_project (host_window: Design.main_window_extension_points) =
   dialog#destroy ()
 
 let rename_project (main_ui: Design.main_window_extension_points) project =
-  let old = Project.unique_name project in
-  let s = 
+  let old = Project.get_unique_name project in
+  let s =
     GToolbox.input_string
       ~title:"Renaming project"
       (Format.sprintf "New name for project %S:" old)
@@ -146,35 +146,35 @@ let rename_project (main_ui: Design.main_window_extension_points) project =
   match s with
   | None -> ()
   | Some s ->
-      try 
+      try
 	ignore (Project.from_unique_name s);
 	main_ui#error "Project of name %S already exists" s
       with Not_found ->
 	Project.set_name project s
-  
+
 let reset (menu: GMenu.menu) =
   (* Do not reset all if there is no changes. *)
   let pl = projects_list () in
   let same_projects =
     (* use that project_radios and pl are sorted in the same way *)
-    try 
+    try
       let rest =
 	PrjRadiosSet.fold
 	  (fun (p1, _) acc ->
 	     match acc with
 	     | [] -> raise Exit
-	     | p2 :: acc -> 
+	     | p2 :: acc ->
 		 if Project.compare p1 p2 = 0 then acc else raise Exit)
 	  !project_radios
 	  pl
       in
       rest = []
-    with Exit -> 
+    with Exit ->
       false
   in
   if same_projects then begin
     (* update the item status according to the current project anyway *)
-    PrjRadiosSet.iter 
+    PrjRadiosSet.iter
       (fun (p, r) -> r#set_active (Project.is_current p))
       !project_radios;
     false
@@ -187,37 +187,31 @@ let reset (menu: GMenu.menu) =
   end
 
 let rec duplicate_project window menu project =
-  let new_p = Project.create_by_copy ~src:project (Project.name project) in
-  (* update the GUI *)
-  let group = 
-    let _, i =
-      try PrjRadiosSet.choose !project_radios with Not_found -> assert false
+  let new_p = Project.create_by_copy ~src:project (Project.get_name project) in
+  try
+    (* update the menu *)
+    let group =
+      let _, i = PrjRadiosSet.choose !project_radios in
+      i#group
     in
-    i#group
-  in
-  ignore (mk_project_entry window menu ~group new_p)
-
-(* let is_reset = reset menu in
-  assert is_reset;
-  make_project_entries window menu*)
+    ignore (mk_project_entry window menu ~group new_p)
+  with Not_found ->
+    (* menu not built (action called from the toolbar) *)
+    ()
 
 and mk_project_entry window menu ?group p =
   let p_item = GMenu.radio_menu_item
     ?group
     ~active:(Project.is_current p)
-    ~packing:menu#append 
+    ~packing:menu#append
     ()
   in
-  ignore
-    (p_item#connect#toggled
-       ~callback:(fun () -> 
-		    if p_item#active && not (Project.is_current p) then begin
-		      Project.set_current p
-		    end));
+  let callback () = if p_item#active then Project.set_current p in
+  ignore (p_item#connect#toggled ~callback);
   project_radios := PrjRadiosSet.add (p, p_item) !project_radios;
-  let box = GPack.hbox ~packing:p_item#add () in  
-  ignore (GMisc.label ~text:(Project.unique_name p) ~packing:box#pack ());
-  let buttons_box = GPack.hbox ~packing:(box#pack ~from:`END) () in  
+  let box = GPack.hbox ~packing:p_item#add () in
+  ignore (GMisc.label ~text:(Project.get_unique_name p) ~packing:box#pack ());
+  let buttons_box = GPack.hbox ~packing:(box#pack ~from:`END) () in
   let tooltips = GData.tooltips () in
   let add_action stock text callback =
     let item = GButton.button ~packing:buttons_box#pack () in
@@ -228,7 +222,7 @@ and mk_project_entry window menu ?group p =
     image#set_icon_size `MENU;
     ignore (item#connect#clicked ~callback)
   in
-  add_action `COPY "Duplicate project" 
+  add_action `COPY "Duplicate project"
     (fun () -> duplicate_project window menu p);
   add_action `DELETE "Delete project" (fun () -> delete_project p);
   add_action `SAVE "Save project" (fun () -> save_project window p);
@@ -249,11 +243,12 @@ let make_project_entries window menu =
 let () =
   Design.register_extension
     (fun window ->
-       let item, menu = window#menu_manager#add_menu "_Project" in
+       let menu_manager = window#menu_manager () in
+       let item, menu = menu_manager#add_menu "_Project" in
        let constant_items =
-	 window#menu_manager#add_entries
+	 menu_manager#add_entries
 	   menu
-	   [ 
+	   [
 	     Menu_manager.ToolMenubar(`NEW, "New project"),
 	     (fun () -> new_project window);
 	     Menu_manager.Menubar(Some `REVERT_TO_SAVED, "Load project"),
@@ -268,7 +263,7 @@ let () =
        new_item#add_accelerator `CONTROL 'n';
        constant_items.(3)#add_accelerator `CONTROL 'd';
        ignore (GMenu.separator_item ~packing:menu#append ());
-       let callback () = 
+       let callback () =
 	 let is_reset = reset menu in
 	 if is_reset then make_project_entries window menu
        in
@@ -276,6 +271,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

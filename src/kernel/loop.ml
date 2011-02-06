@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: loop.ml,v 1.12 2008-10-03 13:09:16 uid568 Exp $ *)
-
 open Cil_types
 open Db_types
-open Cilutil
+open Cil_datatype
 open Cil
 
 let name = "natural_loops"
@@ -32,11 +30,12 @@ let name = "natural_loops"
 module Natural_Loops =
   Kernel_function.Make_Table
     (Datatype.List
-       (Datatype.Couple(Cil_datatype.Stmt)(Datatype.List(Cil_datatype.Stmt))))
+       (Datatype.Pair(Stmt)(Datatype.List(Stmt))))
     (struct
        let name = name
        let size = 97
        let dependencies = [ Ast.self ]
+       let kind = `Internal
      end)
 
 let pretty_natural_loops fmt kf loops =
@@ -78,14 +77,15 @@ let get_naturals kf =
 let is_natural kf =
   let natural_loops =
     List.fold_left
-      (fun acc (n,_) -> StmtSet.add n acc)
-      StmtSet.empty
+      (fun acc (n, _) -> Stmt.Set.add n acc)
+      Stmt.Set.empty
       (get_naturals kf)
   in
 (* non natural loop over-approximation try:
   let can_reach = !stmt_can_reach kf in *)
-  fun stmt -> let nat_loop = StmtSet.mem stmt natural_loops in
-  nat_loop
+  fun stmt ->
+    let nat_loop = Stmt.Set.mem stmt natural_loops in
+    nat_loop
 (*  if nat_loop then nat_loop
   else
     if can_reach stmt stmt
@@ -121,25 +121,27 @@ let while_for_natural_loop kf stmt =
 
 let compute_allstmt_block block =
   let visitor = object
-    val mutable allstmts = StmtSet.empty
+    val mutable allstmts = Stmt.Set.empty
     method allstmts = allstmts
     inherit nopCilVisitor as super
     method vstmt s =
-      allstmts <- StmtSet.add s allstmts;
+      allstmts <- Stmt.Set.add s allstmts;
       DoChildren
   end
   in
   ignore (visitCilBlock (visitor:>cilVisitor) block);
   visitor#allstmts
 
+module Result = Kinstr.Hashtbl
+
 let compute_loops_stmts kf =
-  let tbl = InstrHashtbl.create 17 in
+  let tbl = Result.create 17 in
   let visitor = object
     inherit nopCilVisitor as super
     method vstmt s =
       (match s.skind with
        | Loop (_,block,_,_,_) ->
-           InstrHashtbl.add tbl (Kstmt s) (compute_allstmt_block block)
+           Result.add tbl (Kstmt s) (compute_allstmt_block block)
        |  _ -> ());
       DoChildren
   end
@@ -158,11 +160,12 @@ exception No_such_while
 let get_loop_stmts =
   let module S =
     Kernel_function.Make_Table
-      (Cil_datatype.InstrHashtbl(Cil_datatype.StmtSet))
+      (Result.Make(Stmt.Set))
       (struct
 	 let name = "LoopStmts"
 	 let size = 97
 	 let dependencies = [ Ast.self ]
+         let kind = `Internal
        end)
   in
   fun kf loop_stmt ->
@@ -170,10 +173,10 @@ let get_loop_stmts =
      | Loop _ -> ()
      | _ -> raise No_such_while);
     let tbl = S.memo compute_loops_stmts kf in
-    try InstrHashtbl.find tbl (Kstmt loop_stmt) with Not_found -> assert false
+    try Result.find tbl (Kstmt loop_stmt) with Not_found -> assert false
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -1,3 +1,11 @@
+/* run.config_phoare
+  OPT:  -journal-disable -rte -wp -wp-model Hoare -wp-proof alt-ergo -wp-print -wp-verbose 2
+*/
+/* run.config_pruntime
+   OPT: -wp -wp-model Runtime -wp-no-logicvar -journal-disable -wp-proof simplify -wp-print -wp-verbose 2
+*/
+
+
 int C;
 
 /*@ behavior ok :
@@ -11,6 +19,12 @@ void f0 (int x,int c) {
   c = x;
   c++;
   //@ assert x == c-1;
+}
+
+//@ ensures \result == x+3;
+char fchar (char x) {
+  char y = 3;
+  return x+y;
 }
 
 // simplest example of assignment...
@@ -55,16 +69,18 @@ struct Tstr {int a; struct Ts s; int t[10]; struct Tstr * p; } S;
 
 /*@ ensures S.a == x ; 
     ensures S.p == \old(S.p) ;
-    ensures S == { \old(S) for a = x };
+    ensures S == { \old(S) \with .a = x };
     */
 void rw_int_field (int x) {
   S.a = x;
 }
-//@ ensures S.s.x == x && S.s == { \old(S.s) for x = x };
+//@ ensures S.s.x == x && S.s == { \old(S.s) \with .x = x };
 void rw_field_field (int x) {
   S.s.x = x;
 }
-//@ ensures S.a == \old(S.a) && S.t[i] == x;
+/*@ ensures S.a == \old(S.a) && S.t[i] == x;
+    // TODO: ensures S == { \old(S) \with .t[i] = x };
+*/
 void rw_tab_field (int i, int x) {
   S.t[i] = x;
 }
@@ -80,8 +96,8 @@ int T[10];
 
 /*@ ensures T[i] == x;
     ensures \forall int j; i != j ==> T[j] == \old(T[j]);
+    ensures T == { \old(T) \with [i] = x};
 */
-//TODO : T == { \old(T) for [i] = x}
 void rw_array_elem (int i, int x) {
   T[i] = x;
 }
@@ -101,7 +117,12 @@ void rw_shift_pointer (int i, int x) {
   *(P+i) = x;
 }
 
-//@ ensures \forall int k; k == i+j ==> *(P + k) == x;
+/*@ ensures ko: \forall int k; k == i+j ==> *(P + k) == x;
+    ensures ok1: \forall int k; k == i+j ==> *(\old(P) + k) == x;
+    behavior ok:
+      assumes \valid (P+i+j);
+      ensures ok2: \forall int k; k == i+j ==> *(P + k) == x;
+*/
 void rw_shift_shift_pointer (int i, int j, int x) {
   *(P+i+j) = x;
 }

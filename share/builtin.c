@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -51,6 +51,12 @@ int Frama_C_interval(int min, int max)
 }
 
 float Frama_C_float_interval(float min, float max)
+{
+  Frama_C_update_entropy();
+  return Frama_C_entropy_source ? min : max;
+}
+
+double Frama_C_double_interval(double min, double max)
 {
   Frama_C_update_entropy();
   return Frama_C_entropy_source ? min : max;

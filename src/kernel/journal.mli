@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,7 @@ val register:
 	not possible.
 
 	If the [comment] argument is set, the given pretty printer will be
-	applied in an ocaml comment when the function is journalized.
+	applied in an OCaml comment when the function is journalized.
 
 	Set [is_dyn] to [true] to journalize a dynamic function. *)
 
@@ -53,6 +53,17 @@ val never_write: string -> 'a -> 'a
 val prevent: ('a -> 'b) -> 'a -> 'b
   (** [prevent f x] applies [x] to [f] without printing anything in the
       journal, even if [f] is journalized. *)
+
+module Binding: sig
+  val add: 'a Type.t -> 'a -> string -> unit
+    (** [add ty v var] binds the value [v] to the variable name [var].  Thus,
+	[pp ty v] prints [var] and not use the standard pretty printer.  Very
+	useful to pretty print values with no associated pretty printer. *)
+  exception Name_already_exists of string
+  val add_once: 'a Type.t -> 'a -> string -> unit
+    (** Same as function [add] above but raise the exception [Already_exists]
+	if the binding previously exists *)
+end
 
 (* ****************************************************************************)
 (** {2 Journal management} *)
@@ -88,6 +99,6 @@ val keep_file: string -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

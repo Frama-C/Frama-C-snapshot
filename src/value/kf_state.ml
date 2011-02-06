@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kf_state.ml,v 1.19 2008-10-03 13:09:17 uid568 Exp $ *)
-
 open Db
 open Cil_types
-open Cilutil
+open Cil_datatype
 
 (* ************************************************************************* *)
 (** {2 Is called} *)
@@ -37,6 +35,7 @@ module Is_Called =
        let name = "is_called"
        let dependencies = [ Value.self ]
        let size = 17
+       let kind = `Internal
      end)
 
 let is_called =
@@ -45,83 +44,45 @@ let is_called =
        try Value.is_accessible (Kstmt (Kernel_function.find_first_stmt kf))
        with Kernel_function.No_Statement -> false)
 
-let mark_as_called kf = Is_Called.add kf true
+let mark_as_called kf =
+    Is_Called.replace kf true
 
 (* ************************************************************************* *)
 (** {2 Callers} *)
 (* ************************************************************************* *)
 
-module KernelFunctionMap = Unmarshal.MapWithDescr(Kernel_function.Datatype)
-
 module Callers =
   Kernel_function.Make_Table
-    (Datatype.Make_Map(KernelFunctionMap)(Cil_datatype.StmtSet))
+    (Kernel_function.Map.Make(Stmt.Set))
     (struct
        let name = "Callers"
        let dependencies = [ Value.self ]
        let size = 17
+       let kind = `Internal
      end)
 
-let add_caller ~caller:(caller_kf,call_site) kf =
-  let add m =  KernelFunctionMap.add caller_kf (StmtSet.singleton call_site) m
+let add_caller ~caller:(caller_kf, call_site) kf =
+  let add m = Kernel_function.Map.add caller_kf (Stmt.Set.singleton call_site) m
   in
   let change m =
     try
-      let call_sites = KernelFunctionMap.find caller_kf m in
-      KernelFunctionMap.add caller_kf (StmtSet.add call_site call_sites) m
-    with Not_found -> add m
+      let call_sites = Kernel_function.Map.find caller_kf m in
+      Kernel_function.Map.add caller_kf (Stmt.Set.add call_site call_sites) m
+    with Not_found ->
+      add m
   in
-  ignore (Callers.memo ~change
-            (fun _kf ->
-               add KernelFunctionMap.empty)
-            kf)
+  ignore (Callers.memo ~change (fun _kf -> add Kernel_function.Map.empty) kf)
 
 
 let callers kf =
   try
     let m = Callers.find kf in
-    KernelFunctionMap.fold
-      (fun key v acc  ->
-         (key,StmtSet.elements v)::acc) m []
-  with Not_found -> []
-
-(* ************************************************************************* *)
-(** {2 Never terminates} *)
-(* ************************************************************************* *)
-
-module Never_Terminates =
-  Kernel_function.Make_Table
-    (Datatype.Bool)
-    (struct
-       let name = "Never_Terminates"
-       let size = 17
-       let dependencies = [ Value.self ]
-     end)
-
-let never_terminates kf =
-  try
-    Never_Terminates.find kf
+    Kernel_function.Map.fold
+      (fun key v acc -> (key, Stmt.Set.elements v) :: acc)
+      m
+      []
   with Not_found ->
-    assert (not (is_called kf));
-    false
-
-let mark_as_terminates kf = Never_Terminates.add kf false
-
-let mark_as_never_terminates kf =
-  let noreturn =
-    Cil.hasAttribute "noreturn" (Kernel_function.get_vi kf).vattr
-  in
-  try
-    if not (Never_Terminates.find kf || noreturn) then
-      (* Function marked with "terminates" and has no attribute "noreturn" *)
-      CilE.warn_once "one non terminating branch in function %a"
-	Kernel_function.pretty_name kf
-  with Not_found ->
-    (* Function never marked *)
-    if not noreturn then
-      CilE.warn_once "non termination detected in function %a"
-	Kernel_function.pretty_name kf;
-    Never_Terminates.add kf true
+    []
 
 (* ************************************************************************* *)
 (** {2 Registration.} *)
@@ -130,10 +91,10 @@ let mark_as_never_terminates kf =
 let () =
   Value.is_called := is_called;
   Value.callers := callers;
-  Value.never_terminates := never_terminates;
+
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

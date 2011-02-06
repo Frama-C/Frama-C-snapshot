@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -334,7 +334,7 @@ class visit_propagating_pre_post_constraints (auto:Promelaast.buchautomata)  =
 	     Post2 : Post condition of an iteration
 
 
-	     Computation of conditions :
+	     State_builder.of conditions :
 
 	     Initially :
  	       Pre1 is given
@@ -800,7 +800,7 @@ class visit_propagating_pre_post_constraints (auto:Promelaast.buchautomata)  =
 
 
     in
-    (* This computation is done from end to begining *)
+    (* This computation is done from end to beginning *)
     prop (List.rev stmt_l) (post_st,post_tr)
   in
 

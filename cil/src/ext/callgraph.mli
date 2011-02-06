@@ -54,7 +54,7 @@ open Cil_types
 type callnode = {
   (** An id *)
   cnid: int;
-  
+
   (** the function this node describes *)
   cnInfo: nodeinfo;
 
@@ -65,16 +65,16 @@ type callnode = {
   cnCallers: callnode Inthash.t;
 }
 
-and nodeinfo = 
-    NIVar of Cil_types.varinfo * bool ref 
-      (** Node corresponding to a function. If the boolean 
-          * is true, then the function is defined, otherwise 
+and nodeinfo =
+    NIVar of Cil_types.varinfo * bool ref
+      (** Node corresponding to a function. If the boolean
+          * is true, then the function is defined, otherwise
           * it is external *)
 
-  | NIIndirect of string (* Indirect nodes have a string associated to them. 
+  | NIIndirect of string (* Indirect nodes have a string associated to them.
                           * These strings must be invalid function names *)
-               * Cil_types.varinfo list ref 
-                         (* A list of functions that this indirect node might 
+               * Cil_types.varinfo list ref
+                         (* A list of functions that this indirect node might
                           * denote *)
 
 
@@ -86,7 +86,7 @@ type callgraph =
   (string, callnode) Hashtbl.t
 
 
-(* ----------------- functions ------------------- *)  
+(* ----------------- functions ------------------- *)
 (** given a CIL file, compute its static call graph *)
 val computeGraph : file -> callgraph
 
@@ -95,36 +95,3 @@ val printGraph : out_channel -> callgraph -> unit
 
 
 val feature: Cil.featureDescr
-
-(*
- *
- * Copyright (c) 2001-2002 by
- *  George C. Necula	necula@cs.berkeley.edu
- *  Scott McPeak        smcpeak@cs.berkeley.edu
- *  Wes Weimer          weimer@cs.berkeley.edu
- *  Ben Liblit          liblit@cs.berkeley.edu
- *   
- * All rights reserved.  Permission to use, copy, modify and distribute
- * this software for research purposes only is hereby granted, 
- * provided that the following conditions are met: 
- * 1. Redistributions of source code must retain the above copyright notice, 
- * this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright notice, 
- * this list of conditions and the following disclaimer in the documentation 
- * and/or other materials provided with the distribution. 
- * 3. The name of the authors may not be used to endorse or promote products 
- * derived from  this software without specific prior written permission. 
- *
- * DISCLAIMER:
- * THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
- * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS 
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *)

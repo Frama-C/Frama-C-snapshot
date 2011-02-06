@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,19 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: kf_state.mli,v 1.7 2008-04-01 09:25:22 uid568 Exp $ *)
-
 (** Keep information attached to kernel functions. *)
 
 open Db_types
 
 val mark_as_called: kernel_function -> unit
 val add_caller: caller:kernel_function*Cil_types.stmt -> kernel_function -> unit
-val mark_as_terminates: kernel_function -> unit
-val mark_as_never_terminates: kernel_function -> unit
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

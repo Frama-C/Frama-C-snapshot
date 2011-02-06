@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2010                                               */
+/*  Copyright (C) 2007-2011                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,9 +20,14 @@
 /*                                                                        */
 /**************************************************************************/
 
+ #ifdef _WIN32
+/* Must be the first included header */
+#include "windows.h"
+#endif
+
 #include "caml/mlvalues.h"
+#include "caml/alloc.h"
 #include "caml/bigarray.h"
-///#include <stdio.h>
 #include <assert.h>
 
 
@@ -82,15 +87,11 @@ value address_of_value(value v)
   return (Val_long(((unsigned long)v)/sizeof(long)));
 }
 
-#if 0
-value round_down_to_float(value d)
+value round_to_float(value d)
 {
-  if (d == 0.)
-    return (- MIN_FLOAT);
   float f = Double_val(d);
-  float f1;
+  return caml_copy_double(f);
 }
-#endif
 
 value set_round_downward(value dummy)
 {
@@ -110,3 +111,27 @@ value set_round_nearest_even(value dummy)
   return Val_unit;
 }
 
+#include <signal.h>
+value terminate_process(value v) 
+{
+  long pid = Long_val(v);
+#if _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ 
+  kill(pid,9);
+#else
+ #ifdef _WIN32
+  TerminateProcess((HANDLE)pid,9);
+ #else 
+  #warning Does your system have kill()?
+ #endif
+#endif 
+
+  return Val_unit;
+}
+
+#include <unistd.h>
+
+value ml_usleep(value v)
+{
+  usleep( Int_val(v) );
+  return Val_unit ;
+}

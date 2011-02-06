@@ -66,7 +66,7 @@ let continue_annot l job default msg =
   with exn when !continueOnAnnotError ->
     Cilmsg.debug "Continue on annotation error (%s)" (Printexc.to_string exn) ;
     Cilmsg.pop_errors () ;
-    Cilmsg.with_warning (fun _ -> default ()) 
+    Cilmsg.with_warning (fun _ -> default ())
       ~source:{
 	Log.src_file= (fst l).Lexing.pos_fname ;
 	Log.src_line= (fst l).Lexing.pos_lnum ;
@@ -125,7 +125,7 @@ begin
   | IF(_,_,_,loc) -> loc
   | WHILE(_,_,_,loc) -> loc
   | DOWHILE(_,_,_,loc) -> loc
-  | FOR(_,_,_,_,_,_,loc) -> loc
+  | FOR(_,_,_,_,_,loc) -> loc
   | BREAK(loc) -> loc
   | CONTINUE(loc) -> loc
   | RETURN(_,loc) -> loc
@@ -157,12 +157,12 @@ let valueOfDigit chr =
       '0'..'9' -> (Char.code chr) - (Char.code '0')
     | 'a'..'z' -> (Char.code chr) - (Char.code 'a') + 10
     | 'A'..'Z' -> (Char.code chr) - (Char.code 'A') + 10
-    | _ -> Cilmsg.fatal "not a digit" 
+    | _ -> Cilmsg.fatal "not a digit"
   in
   Int64.of_int int_value
 
 
 let d_cabsloc fmt cl =
-  Format.fprintf fmt "%s:%d" 
-    (fst cl).Lexing.pos_fname 
+  Format.fprintf fmt "%s:%d"
+    (fst cl).Lexing.pos_fname
     (fst cl).Lexing.pos_lnum

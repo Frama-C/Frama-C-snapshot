@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,6 +21,7 @@
 (**************************************************************************)
 
 val eval_lval :
+  conflate_bottom:bool ->
   with_alarms:CilE.warn_mode ->
   Locations.Zone.t option ->
   Db.Value.state ->
@@ -47,12 +48,12 @@ val resolv_func_vinfo :
   with_alarms:CilE.warn_mode ->
   Locations.Zone.t option ->
   Db.Value.state ->
-  Cil_types.exp -> Locations.Zone.t option * Kernel_function.Set.t
+  Cil_types.exp -> Locations.Zone.t option * Kernel_function.Hptset.t
 
 exception Leaf
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

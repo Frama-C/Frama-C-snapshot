@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ include
     (struct
        let name = name
        let shortname = "cg"
-       let descr = "syntactic stratified callgraph"
+       let help = "syntactic stratified callgraph"
      end)
 
 module Filename =
@@ -35,8 +35,9 @@ module Filename =
     (struct
        let option_name = "-cg"
        let arg_name = "filename"
-       let descr = "dump the syntactic stratified callgraph to the file \
+       let help = "dump the syntactic stratified callgraph to the file \
 <filename> in dot format"
+       let kind = `Tuning
      end)
 
 module InitFunc =
@@ -44,14 +45,16 @@ module InitFunc =
     (struct
        let option_name = "-cg-init-func"
        let arg_name = ""
-       let descr = "use the given functions as a root service for the callgraph (you can add as many comma-separated functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
+       let help = "use the given functions as a root service for the callgraph (you can add as many comma-separated functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
+       let kind = `Correctness
      end)
 
 module ServicesOnly =
   False
     (struct
        let option_name = "-cg-services-only"
-       let descr = "only computes the graph of services"
+       let help = "only computes the graph of services"
+       let kind = `Tuning
      end)
 
 (*

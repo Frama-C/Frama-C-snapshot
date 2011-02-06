@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,12 +27,14 @@ exception Is_not_included
 
 (** Generic lattice *)
 module type Lattice = sig
+
   exception Error_Top
   exception Error_Bottom
-  type t (** type of element of the lattice *)
+
+  include Datatype.S (** datatype of element of the lattice *)
+
   type widen_hint (** hints for the widening *)
 
-  val equal: t -> t -> bool
   val join: t -> t -> t (** over-approximation of union *)
   val link: t -> t -> t (** under-approximation of union *)
   val meet: t -> t -> t (** under-approximation of intersection *)
@@ -43,7 +45,6 @@ module type Lattice = sig
   val is_included: t -> t -> bool
   val is_included_exn: t -> t -> unit
   val intersects: t -> t -> bool
-  val pretty: Format.formatter -> t -> unit
 
   val widen: widen_hint -> t -> t -> t
     (** [widen h t1 t2] is an over-approximation of [join t1 t2].
@@ -57,27 +58,20 @@ module type Lattice = sig
 
   val tag : t -> int
 
-  module Datatype: Project.Datatype.S with type t = t
-
 end
 
 module type Lattice_With_Diff = sig
   include Lattice
-
   val diff : t -> t -> t
     (** [diff t1 t2] is an over-approximation of [t1-t2]. *)
-
   val diff_if_one : t -> t -> t
     (** [diff t1 t2] is an over-approximation of [t1-t2].
        Returns [t1] if [t2] is not a singleton. *)
-
   val fold_enum :
     split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
   val splitting_cardinal_less_than:
     split_non_enumerable:int -> t -> int -> int
-  val hash : t -> int
   val pretty_debug : Format.formatter -> t -> unit
-  val name : string
 end
 
 module type Lattice_Product = sig
@@ -108,10 +102,9 @@ module type Lattice_Base = sig
 end
 
 module type Lattice_Set = sig
-  module O: Ptset.S
+  module O: Hptset.S
   type tt = private Set of O.t | Top
   include Lattice with type t = tt and type widen_hint = O.t
-  val hash : t -> int
   val inject_singleton: O.elt -> t
   val inject: O.t -> t
   val empty: t
@@ -123,15 +116,7 @@ module type Lattice_Set = sig
   val mem : O.elt -> t -> bool
 end
 
-module type Value = sig
-  type t
-  val name : string
-(*  val id : t -> int *)
-  val pretty : Format.formatter -> t -> unit
-  val compare : t -> t -> int
-  val hash: t -> int
-  module Datatype: Project.Datatype.S with type t = t
-end
+module type Value = Datatype.S_with_collections
 
 module type Arithmetic_Value = sig
   include Value
@@ -139,7 +124,6 @@ module type Arithmetic_Value = sig
   val le : t -> t -> bool
   val ge : t -> t -> bool
   val lt : t -> t -> bool
-  val eq : t -> t -> bool
   val add : t -> t -> t
   val sub : t -> t -> t
   val mul : t -> t -> t
@@ -154,10 +138,10 @@ module type Arithmetic_Value = sig
   val one : t
   val two : t
   val four : t
+  val onethousand : t
   val minus_one : t
   val is_zero : t -> bool
   val is_one : t -> bool
-  val equal : t -> t -> bool
   val pgcd : t -> t -> t
   val ppcm : t -> t -> t
   val min : t -> t -> t
@@ -183,38 +167,40 @@ module type Arithmetic_Value = sig
   val lognot : t -> t
   val power_two : int -> t
   val two_power : t -> t
-  val extract_bits : with_alarms:CilE.warn_mode -> start:t -> stop:t -> t -> t
+  val extract_bits : start:t -> stop:t -> t -> t
 end
 
-module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
+module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
+
   exception Error_Top
   exception Error_Bottom
-  module O =
-    struct
-      include Set.Make(V)
-      let contains_single_elt s =
-	try
-	  let mi = min_elt s in
-	  let ma = max_elt s in
-	  if mi == ma
-	  then (* exactly one elt *)
-	    Some mi
-	  else None
-	with Not_found -> None
-      let descr = Unmarshal.t_set_unchangedcompares V.Datatype.descr
-	(* TODO: really unchangedcompares? *)
-    end
+
+  module O = struct
+    include Datatype.Set
+      (Set.Make(V))
+      (V)
+      (struct let module_name = "Make_lattice_set" end)
+    (* TODO: really unchangedcompares? *)
+    let contains_single_elt s =
+      try
+	let mi = min_elt s in
+	let ma = max_elt s in
+	if mi == ma
+	then (* exactly one elt *) Some mi
+	else None
+      with Not_found ->
+	None
+  end
+
   type tt = Set of O.t | Top
-  type t = tt = Set of O.t | Top
   type y = O.t
   type widen_hint = O.t
 
   let bottom = Set O.empty
   let top = Top
 
-  let hash c =
-    match c with
-      Top -> 12373
+  let hash c = match c with
+    | Top -> 12373
     | Set s ->
 	let f v acc =
 	  67 * acc + (V.hash v)
@@ -223,21 +209,35 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
 
   let tag = hash
 
-  let compare e1 e2 =
-    if e1==e2 then 0 else
-      match e1,e2 with
-        | Top,_ -> 1
-        | _, Top -> -1
-        | Set e1,Set e2 -> O.compare e1 e2
+  let compare =
+    if O.compare == Datatype.undefined then (
+      Kernel.debug "%s lattice_set, missing comparison function"
+        V.name;
+      Datatype.undefined
+    ) else
+      fun e1 e2 ->
+        if e1 == e2 then 0
+        else
+          match e1,e2 with
+            | Top,_ -> 1
+            | _, Top -> -1
+            | Set e1,Set e2 -> O.compare e1 e2
 
-  let equal v1 v2 = compare v1 v2 = 0
+  let rec equal v1 v2 =
+    if v1 == v2 then true
+    else
+      match v1, v2 with
+        | Top, Top -> true
+        | Set e1, Set e2 -> O.equal e1 e2
+        | Top, Set _ | Set _, Top -> false
 
   let widen _wh _t1 t2 = (* [wh] isn't used *)
     t2
 
   (** This is exact *)
   let meet v1 v2 =
-    if v1 == v2 then v1 else
+    if v1 == v2 then v1
+    else
       match v1,v2 with
       | Top, v | v, Top -> v
       | Set s1 , Set s2 -> Set (O.inter s1 s2)
@@ -247,7 +247,8 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
 
   (** This is exact *)
   let join v1 v2 =
-    if v1 == v2 then v1 else
+    if v1 == v2 then v1
+    else
       match v1,v2 with
       | Top, _ | _, Top -> Top
       | Set s1 , Set s2 ->
@@ -259,7 +260,7 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
 
   let cardinal_less_than s n =
     match s with
-      Top -> raise Not_less_than
+    | Top -> raise Not_less_than
     | Set s ->
 	let c = O.cardinal s in
 	if  c > n
@@ -267,8 +268,7 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
 	c
 
   let cardinal_zero_or_one s =
-    try
-      ignore (cardinal_less_than s 1) ; true
+    try ignore (cardinal_less_than s 1) ; true
     with Not_less_than -> false
 
   let inject s = Set s
@@ -277,8 +277,8 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
 
   let transform f = fun t1 t2 ->
     match t1,t2 with
-      | Top, _ | _, Top -> Top
-      | Set v1, Set v2 -> Set (f v1 v2)
+    | Top, _ | _, Top -> Top
+    | Set v1, Set v2 -> Set (f v1 v2)
 
   let map_set f s =
     O.fold
@@ -301,15 +301,14 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
 
   let pretty fmt t =
     match t with
-      | Top -> Format.fprintf fmt "TopSet"
-      | Set s ->
-          if O.is_empty s then Format.fprintf fmt "BottomSet"
-          else begin
-            Format.fprintf fmt "@[{@[%a@]}@]"
-              (fun fmt s ->
-		 O.iter
-                   (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
-          end
+    | Top -> Format.fprintf fmt "TopSet"
+    | Set s ->
+      if O.is_empty s then Format.fprintf fmt "BottomSet"
+      else
+        Format.fprintf fmt "@[{@[%a@]}@]"
+          (fun fmt s ->
+	    O.iter
+              (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
 
   let is_included t1 t2 =
     (t1 == t2) ||
@@ -332,55 +331,63 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt=V.t = struct
        pretty t1 pretty t2 b;*)
     b
 
-  let fold f elt init =
-    match elt with
-      | Top -> raise Error_Top
-      | Set v -> O.fold f v init
+  let fold f elt init = match elt with
+    | Top -> raise Error_Top
+    | Set v -> O.fold f v init
 
 
-  let iter f elt =
-    match elt with
-      | Top -> raise Error_Top
-      | Set v -> O.iter f v
+  let iter f elt = match elt with
+    | Top -> raise Error_Top
+    | Set v -> O.iter f v
 
   let project o = match o with
     | Top -> raise Error_Top
     | Set v -> v
 
   let mem v s = match s with
-  | Top -> true
-  | Set s -> O.mem v s
+    | Top -> true
+    | Set s -> O.mem v s
 
-  module Datatype =
-    Project.Datatype.Register
+  include
+    Datatype.Make
       (struct
 	 type t = tt
-	 let copy _ = assert false
-	 open Unmarshal
-	 let descr = Structure (Sum [| [| O.descr |] |])
-	 let name = Project.Datatype.extend_name "lattice_set" V.Datatype.name
+	 let name = V.name ^ " lattice_set"
+	 let structural_descr =
+	   Structural_descr.Structure
+	     (Structural_descr.Sum [| [| O.packed_descr |] |])
+	 let reprs = Top :: List.map (fun o -> Set o) O.reprs
+	 let equal = equal
+	 let compare = compare
+	 let hash = tag
+	 let rehash = Datatype.identity
+	 let copy = Datatype.undefined
+	 let internal_pretty_code = Datatype.undefined
+	 let pretty = pretty
+	 let varname = Datatype.undefined
+	 let mem_project = Datatype.never_any_project
        end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ~compare ()
 
 end
 
-module Make_Hashconsed_Lattice_Set(V: Ptset.Id_Datatype)
+module Make_Hashconsed_Lattice_Set(V: Hptset.Id_Datatype)
   : Lattice_Set with type O.elt=V.t =
 struct
+
   exception Error_Top
   exception Error_Bottom
-  module O = Ptset.Make(V)
+
+  module O = Hptset.Make(V)
+
   type tt = Set of O.t | Top
-  type t = tt = Set of O.t | Top
   type y = O.t
   type widen_hint = O.t
 
   let bottom = Set O.empty
   let top = Top
 
-  let hash c =
-    match c with
-      Top -> 12373
+  let hash c = match c with
+    | Top -> 12373
     | Set s ->
 	let f v acc =
 	  67 * acc + (V.id v)
@@ -396,6 +403,21 @@ struct
       | Top,_ | _, Top -> false
       | Set e1,Set e2 -> O.equal e1 e2
 
+  let compare =
+    if O.compare == Datatype.undefined then (
+      Kernel.debug "%s hashconsed_lattice_set, missing comparison function"
+        V.name;
+      Datatype.undefined
+    ) else
+      fun e1 e2 ->
+        if e1 == e2 then 0
+        else
+          match e1,e2 with
+            | Top,_ -> 1
+            | _, Top -> -1
+            | Set e1,Set e2 -> O.compare e1 e2
+
+
   let widen _wh _t1 t2 = (* [wh] isn't used *)
     t2
 
@@ -463,17 +485,15 @@ struct
     | Top -> top
     | Set s -> Set(map_set f s)
 
-  let pretty fmt t =
-    match t with
-      | Top -> Format.fprintf fmt "TopSet"
-      | Set s ->
-          if O.is_empty s then Format.fprintf fmt "BottomSet"
-          else begin
-            Format.fprintf fmt "@[{@[%a@]}@]"
-              (fun fmt s ->
-		 O.iter
-                   (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
-          end
+  let pretty fmt t = match t with
+    | Top -> Format.fprintf fmt "TopSet"
+    | Set s ->
+      if O.is_empty s then Format.fprintf fmt "BottomSet"
+      else
+	Format.fprintf fmt "@[{@[%a@]}@]"
+          (fun fmt s ->
+	    O.iter
+              (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
 
   let is_included t1 t2 =
     (t1 == t2) ||
@@ -496,91 +516,57 @@ struct
        pretty t1 pretty t2 b;*)
     b
 
-  let fold f elt init =
-    match elt with
-      | Top -> raise Error_Top
-      | Set v -> O.fold f v init
+  let fold f elt init = match elt with
+    | Top -> raise Error_Top
+    | Set v -> O.fold f v init
 
 
-  let iter f elt =
-    match elt with
-      | Top -> raise Error_Top
-      | Set v -> O.iter f v
+  let iter f elt = match elt with
+    | Top -> raise Error_Top
+    | Set v -> O.iter f v
 
   let project o = match o with
     | Top -> raise Error_Top
     | Set v -> v
 
   let mem v s = match s with
-  | Top -> true
-  | Set s -> O.mem v s
+    | Top -> true
+    | Set s -> O.mem v s
 
-
-  module Datatype =
-    Project.Datatype.Register
+  include Datatype.Make
       (struct
-	 type t = tt = Set of O.t | Top
-	 let copy _ = assert false
-	 open Unmarshal
-	 let descr = Structure(Sum [| [| O.descr |] |])
-	 let name = Project.Datatype.extend_name
-	     "hashconsed_lattice_set" V.Datatype.name
-       end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ()
-
-end
-
-module Make_Pair (V:Value) (W:Value)=
-struct
-
-  type t = V.t*W.t
-
-  let compare (a,b as p) (a',b' as p') =
-    if p==p' then 0 else
-      let c = V.compare a a' in
-      if c=0 then W.compare b b' else c
-
-  let pretty fmt (a,b) =
-    Format.fprintf fmt "(%a,%a)" V.pretty a W.pretty b
-
-  let hash (b,e) = V.hash b + 1351 * (W.hash e)
-  let equal a b  = compare a b = 0
-
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type tt = t
 	type t = tt
-	let copy _ = assert false (* TODO *)
-	open Unmarshal
-	let descr =
-	  Structure (Sum [| [| V.Datatype.descr; W.Datatype.descr |] |])
-	let name =
-	  Project.Datatype.extend_name2
-	    "lattice_pair" V.Datatype.name W.Datatype.name
-      end)
-  let () = Datatype.register_comparable ~hash ~equal ()
+	let name = V.name ^ " hashconsed_lattice_set"
+	let structural_descr =
+	  Structural_descr.Structure
+	    (Structural_descr.Sum [| [| O.packed_descr |] |])
+	let reprs = Top :: List.map (fun o -> Set o) O.reprs
+	let equal = equal
+	let compare = compare
+	let hash = hash
+	let rehash = Datatype.identity
+	let copy = Datatype.undefined
+	let internal_pretty_code = Datatype.undefined
+	let pretty = pretty
+	let varname = Datatype.undefined
+	let mem_project = Datatype.never_any_project
+       end)
+  let () = Type.set_ml_name ty None
 
 end
 
-let rec compare_list compare_elt l1 l2 =
-  if l1==l2 then 0 else
-    match l1,l2 with
-      | [], _ -> 1
-      | _, [] -> -1
-      | v1::r1,v2::r2 ->
-          let c = compare_elt v1 v2 in
-          if c=0 then compare_list compare_elt r1 r2 else c
+module Make_Pair = Datatype.Pair
 
-module Make_Lattice_Interval_Set (V:Arithmetic_Value) =
-struct
+
+module Make_Lattice_Interval_Set (V:Arithmetic_Value) = struct
+
   exception Error_Top
   exception Error_Bottom
-  module Interval = Make_Pair (V) (V)
+
+  module Interval = Make_Pair(V)(V)
   type elt = Interval.t
 
   type tt = Top | Set of elt list
-  type t = tt
 
   type widen_hint = unit
 
@@ -613,7 +599,7 @@ struct
   let cardinal_zero_or_one v =
     match v with
       Top -> false
-    | Set [x,y] -> V.eq x y
+    | Set [x,y] -> V.equal x y
     | Set _ -> false
 
   let cardinal_less_than v n =
@@ -636,12 +622,13 @@ struct
     assert false
 
   let compare e1 e2 =
-    if e1==e2 then 0 else
+    if e1 == e2 then 0
+    else
       match e1,e2 with
-        | Top,_ -> 1
-        | _, Top -> -1
-        | Set e1, Set e2 ->
-            compare_list Interval.compare e1 e2
+      | Top,_ -> 1
+      | _, Top -> -1
+      | Set e1, Set e2 ->
+        Extlib.list_compare Interval.compare e1 e2
 
   let equal e1 e2 = compare e1 e2 = 0
 
@@ -804,17 +791,27 @@ struct
 
   let narrow = meet
 
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = tt
-	 let copy _ = assert false (* TODO *)
-	 let descr = Unmarshal.Abstract (* TODO: use Data.descr *)
-	 let name =
-	   Project.Datatype.extend_name
-	     "lattice_interval_set" Interval.Datatype.name
-       end)
-  let () = Datatype.register_comparable ~hash ~equal ()
+  include Datatype.Make
+  (struct
+    type t = tt
+    let name = Interval.name ^ " lattice_interval_set"
+    let structural_descr =
+      Structural_descr.Structure
+	(Structural_descr.Sum
+	   [| [| Structural_descr.pack
+		  (Structural_descr.t_list (Descr.str Interval.descr)) |] |])
+    let reprs = Top :: List.map (fun o -> Set [ o ]) Interval.reprs
+    let equal = equal
+    let compare = compare
+    let hash = hash
+    let rehash = Datatype.identity
+    let copy = Datatype.undefined
+    let internal_pretty_code = Datatype.undefined
+    let pretty = pretty
+    let varname = Datatype.undefined
+    let mem_project = Datatype.never_any_project
+   end)
+  let () = Type.set_ml_name ty None
 
 end
 
@@ -822,7 +819,6 @@ module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
 
   type l = V.t
   type tt = Top | Bottom | Value of l
-  type t = tt
   type y = l
   type widen_hint = V.t list
 
@@ -846,15 +842,25 @@ module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
     | Value _ -> if n >= 1 then 1 else raise Not_less_than
     | Bottom -> 0
 
-  let compare e1 e2 =
-    if e1==e2 then 0 else
-      match e1,e2 with
-        | Top,_ -> 1
-        | _, Top -> -1
-        | Bottom, _ -> -1
-        | _, Bottom -> 1
-        | Value e1,Value e2 -> V.compare e1 e2
-  let equal v1 v2 = compare v1 v2 = 0
+  let compare =
+    if V.compare == Datatype.undefined then
+      (Kernel.debug "Missing function comparison for %s lattice_base"
+         V.name;
+       Datatype.undefined)
+    else
+      fun e1 e2 ->
+        if e1==e2 then 0 else
+          match e1,e2 with
+            | Top,_ -> 1
+            | _, Top -> -1
+            | Bottom, _ -> -1
+            | _, Bottom -> 1
+            | Value e1,Value e2 -> V.compare e1 e2
+
+  let equal v1 v2 = match v1, v2 with
+    | Top, Top | Bottom, Bottom -> true
+    | Value v1, Value v2 -> V.equal v1 v2
+    | _ -> false
 
   let tag = function
     | Top -> 3
@@ -914,32 +920,45 @@ module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
 
   let intersects t1 t2 = not (equal (meet t1 t2) Bottom)
 
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = tt = Top | Bottom | Value of l
-	 let copy _ = assert false (* TODO *)
-	 open Unmarshal
-	 let descr = Structure (Sum [| [| V.Datatype.descr |] |])
-	 let name = Project.Datatype.extend_name "lattice_base" V.Datatype.name
-       end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ()
+  include Datatype.Make
+  (struct
+    type t = tt (*= Top | Bottom | Value of l*)
+    let name = V.name ^ " lattice_base"
+    let structural_descr =
+      Structural_descr.Structure
+	(Structural_descr.Sum [| [| V.packed_descr |] |])
+    let reprs = Top :: Bottom :: List.map (fun v -> Value v) V.reprs
+    let equal = equal
+    let compare = compare
+    let hash = tag
+    let rehash = Datatype.identity
+    let copy = Datatype.undefined
+    let internal_pretty_code = Datatype.undefined
+    let pretty = pretty
+    let varname = Datatype.undefined
+    let mem_project = Datatype.never_any_project
+   end)
+  let () = Type.set_ml_name ty None
 
 end
 
 module Int = struct
   open My_bigint
-  type t = big_int
-  let descr = Unmarshal.Abstract
 
-  module Datatype = Datatype.BigInt
-  let name = Datatype.name
+  include Datatype.Big_int
+
+  let small_nums = Array.init 33 (fun i -> big_int_of_int i)
 
   let zero = zero_big_int
   let one = unit_big_int
-  let two = succ_big_int one
-  let four = big_int_of_int 4
-  let eight = big_int_of_int 8
+  let minus_one = minus_big_int unit_big_int
+  let two = small_nums.(2)
+  let four = small_nums.(4)
+  let eight = small_nums.(8)
+  let thirtytwo = small_nums.(32)
+  let onethousand = big_int_of_int 1000
+  let billion_one = big_int_of_int 1_000_000_001
+
   let rem = mod_big_int
   let div = div_big_int
   let mul = mult_big_int
@@ -950,7 +969,6 @@ module Int = struct
   let neg = minus_big_int
   let add = add_big_int
 
-  let billion_one = big_int_of_int 1000000001
   let hash c =
     let i =
       try
@@ -960,7 +978,6 @@ module Int = struct
     197 + i
 
   let tag = hash
-  let equal a b = eq_big_int a b
 
   let log_shift_right = log_shift_right_big_int
   let shift_right = shift_right_big_int
@@ -975,15 +992,23 @@ module Int = struct
   let lt = lt_big_int
   let ge = ge_big_int
   let gt = gt_big_int
-  let eq = eq_big_int
-  let neq x y = not (eq_big_int x y)
 
   let to_int v =
     try int_of_big_int v
     with Failure "int_of_big_int" -> assert false
-  let of_int i = big_int_of_int i
+  let of_int i =
+    if 0 <= i && i <= 32
+    then small_nums.(i)
+    else big_int_of_int i
+
+      (* for the two functions below wait until the minimum supported
+	 OCaml version is after:
+	 http://caml.inria.fr/mantis/print_bug_page.php?bug_id=4792
+      *)
   let of_int64 i = big_int_of_string (Int64.to_string i)
   let to_int64 i = Int64.of_string (string_of_big_int i)
+
+
   let of_string = big_int_of_string
   let to_string = string_of_big_int
   let to_float = float_of_big_int
@@ -993,17 +1018,16 @@ module Int = struct
   let pretty fmt i = Format.pp_print_string fmt (string_of_big_int i)
   let pretty_debug = pretty
 
-  let pretty_s () = string_of_big_int
   let is_zero v = (sign_big_int v) = 0
 
-  let compare = compare_big_int
-  let is_one v = eq one v
+  let is_one v = equal one v
   let pos_div  = div
   let pos_rem = rem
   let native_div = div
   let c_div u v =
     let bad_div = div u v in
-    if (lt u zero) && neq zero (rem u v) then
+    if (lt u zero) && not (is_zero (rem u v))
+    then
       if lt v zero
       then pred bad_div
       else succ bad_div
@@ -1026,7 +1050,7 @@ module Int = struct
 
   let power_two = My_bigint.power_two
 
-  let extract_bits ~with_alarms:_ ~start ~stop v =
+  let extract_bits ~start ~stop v =
     assert (ge start zero && ge stop start);
     (*Format.printf "%a[%a..%a]@\n" pretty v pretty start pretty stop;*)
     let r = bitwise_extraction (to_int start) (to_int stop) v in
@@ -1073,46 +1097,11 @@ module Int = struct
 
   (** [pgcd u 0] is allowed and returns [u] *)
   let pgcd u v =
-    let rec spec_pgcd u v = (* initial implementation viewed as the spec *)
-      if is_zero v
-      then u
-      else spec_pgcd v (rem u v) in
-  (*  let abs_max_min u v =
-         if compare (abs u) (abs v) >= 0 then (u, v) else (v, u) in
-    let impl_pgcd u v =
-      let rec ordered_pgcd (u, v) =
-        assert (compare (abs u) (abs v) >= 0); (* [pgcd (u, v)] such as (abs v) <= (abs u) *)
-        if is_zero v
-        then u
-        else (* both differ from zero *)
-          let rec none_zero_pcgd u v =
-            assert (not (is_zero u));
-            assert (not (is_zero v));
-            let (u, v) = abs_max_min u v in
-              ordered_pgcd (v, (rem u v)) in
-            match (is_even u, is_even v) with
-                (true, true) -> (* both are even: pgcd(2*a,2*b)=2*pgcd(a,b) *)
-                  let u_div_2 = shift_right u one
-                  and v_div_2 = shift_right v one
-                  in shift_left (ordered_pgcd (v_div_2, (rem u_div_2 v_div_2))) one
-              | (true, false) -> (* only u is even: pgcd(2*a,2*b+1)=pgcd(a,2*b+1) *)
-                  let u_div_2 = shift_right u one
-                  in none_zero_pcgd v u_div_2
-              | (false, true) -> (* only v is even: pgcd(2*a,2*b+1)=pgcd(a,2*b+1) *)
-                  let v_div_2 = shift_right v one
-                  in none_zero_pcgd v_div_2 u
-              | (false, false) -> (* none are even *)
-                  ordered_pgcd (v, (rem u v)) in
-        ordered_pgcd (abs_max_min u v) in
-  *)
-    (* let r = impl_pgcd u v in *)
     let r =
       if is_zero v
       then u
-      else (* impl_pgcd *) gcd_big_int u v in
-    assert (0 = (compare r (spec_pgcd v u))) ; (* compliance with the spec *)
+      else gcd_big_int u v in
       r
-
 
   let ppcm u v =
     if u = zero || v = zero
@@ -1121,8 +1110,8 @@ module Int = struct
 
   let length u v = succ (sub v u)
 
-  let min u v     = if compare u v  >= 0 then v else u
-  let max u v     = if compare u v  >= 0 then u else v
+  let min = min_big_int
+  let max = max_big_int
 
   let round_down_to_zero v modu =
     mul (pos_div v modu) modu
@@ -1144,7 +1133,7 @@ module Int = struct
     let nb_loop = div (sub sup inf) step in
     let next = add step in
     let rec fold ~counter ~inf acc =
-        if eq counter (of_int 1000) then
+        if equal counter onethousand then
           CilE.warn_once "enumerating %s integers" (to_string nb_loop);
         if le inf sup
 	then begin
@@ -1158,43 +1147,18 @@ module Int = struct
 end
 
 module type Key = sig
-  type t
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-  val pretty : Format.formatter -> t -> unit
+  include Datatype.S
   val is_null : t -> bool
   val null : t
-  val hash : t -> int
   val id : t -> int
-  val name : string
-  module Datatype : Project.Datatype.S with type t = t
 end
 
-module VarinfoSetLattice = Make_Hashconsed_Lattice_Set
-  (struct
-     open Cil_types
-     type t = varinfo
-     module Datatype = Cil_datatype.Varinfo
-     let compare v1 v2 = compare v1.vid v2.vid
-     let equal v1 v2 = v1.vid = v2.vid
-     let pretty fmt v =
-       Format.fprintf fmt "@[%a@]" !Ast_printer.d_ident v.vname
-     let hash v = v.vid
-     let id v = v.vid
-     let name = "varinfo"
-   end)
+module VarinfoSetLattice =
+  Make_Hashconsed_Lattice_Set
+    (struct include Cil_datatype.Varinfo let id v = v.Cil_types.vid end)
 
 module LocationSetLattice = struct
-  include Make_Lattice_Set
-    (struct
-       type t = Cil_types.location
-       let name = "source location"
-       module Datatype = Cil_datatype.Location
-       let compare = Pervasives.compare
-       let pretty fmt (b,_e) =
-         Format.fprintf fmt "@[%s:%d@]" b.Lexing.pos_fname b.Lexing.pos_lnum
-       let hash (b,_e) = Hashtbl.hash (b.Lexing.pos_fname,b.Lexing.pos_lnum)
-     end)
+  include Make_Lattice_Set(Cil_datatype.Location)
   let currentloc_singleton () = inject_singleton (Cil.CurrentLoc.get ())
 end
 
@@ -1209,10 +1173,10 @@ struct
 
   exception Error_Top
   exception Error_Bottom
+
   type t1 = L1.t
   type t2 = L2.t
   type tt = Product of t1*t2 | Bottom
-  type t = tt
   type widen_hint = L1.widen_hint * L2.widen_hint
 
   let tag = function
@@ -1227,16 +1191,23 @@ struct
 	(L1.cardinal_zero_or_one t1) &&
 	  (L2.cardinal_zero_or_one t2)
 
-(*  let compare x x' =
-    if x == x' then 0 else
-      match x,x' with
-      | Bottom, Bottom -> 0
-      | Bottom, Product _ -> 1
-      | Product _,Bottom -> -1
-      | (Product (a,b)), (Product (a',b')) ->
-	  let c = L1.compare a a' in
-	  if c = 0 then L2.compare b b' else c
-*)
+  let compare =
+    if L1.compare == Datatype.undefined || L2.compare == Datatype.undefined then (
+      Kernel.debug "Missing comparison function for (%s, %s) lattice_product: \
+                    %b %b"
+        L1.name L2.name
+        (L1.compare == Datatype.undefined) (L2.compare == Datatype.undefined);
+      Datatype.undefined)
+    else fun x x' ->
+      if x == x' then 0 else
+        match x,x' with
+          | Bottom, Bottom -> 0
+          | Bottom, Product _ -> 1
+          | Product _,Bottom -> -1
+          | (Product (a,b)), (Product (a',b')) ->
+	      let c = L1.compare a a' in
+	      if c = 0 then L2.compare b b' else c
+
   let equal x x' =
     if x == x' then true else
       match x,x' with
@@ -1244,7 +1215,7 @@ struct
       | Bottom, Product _ -> false
       | Product _,Bottom -> false
       | (Product (a,b)), (Product (a',b')) ->
-	  L1.equal a a'  && L2.equal b b'
+	  L1.equal a a' && L2.equal b b'
 
   let top = Product(L1.top,L2.top)
 
@@ -1329,19 +1300,32 @@ struct
   let transform _f (_l1,_ll1) (_l2,_ll2) =
     raise (Invalid_argument "Abstract_interp.Make_Lattice_Product.transform")
 
-  module Datatype =
-    Project.Datatype.Register
+  include Datatype.Make
       (struct
-	 type t = tt = Product of t1*t2 | Bottom
-	 let copy _ = assert false (* TODO *)
-	 open Unmarshal
-	 let descr =
-	   Structure (Sum [| [| L1.Datatype.descr; L2.Datatype.descr |] |])
-	 let name =
-	   Project.Datatype.extend_name2
-	     "lattice_product" L1.Datatype.name L2.Datatype.name
+	type t = tt (*= Product of t1*t2 | Bottom*)
+	let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_product"
+	let structural_descr =
+	  Structural_descr.Structure
+	    (Structural_descr.Sum [| [| L1.packed_descr; L2.packed_descr |] |])
+	let reprs =
+	  Bottom ::
+	    List.fold_left
+	    (fun acc l1 ->
+	      List.fold_left
+		(fun acc l2 -> Product(l1, l2) :: acc) acc L2.reprs)
+	    []
+	    L1.reprs
+	let equal = equal
+	let compare = compare
+	let hash = tag
+	let rehash = Datatype.identity
+	let copy = Datatype.undefined
+	let internal_pretty_code = Datatype.undefined
+	let pretty = pretty
+	let varname = Datatype.undefined
+	let mem_project = Datatype.never_any_project
        end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ()
+  let () = Type.set_ml_name ty None
 
 end
 
@@ -1354,8 +1338,6 @@ struct
   type t1 = L1.t
   type t2 = L2.t
   type sum = Top | Bottom | T1 of t1 | T2 of t2
-  type t = sum
-  type y = t
   type widen_hint = L1.widen_hint * L2.widen_hint
 
   let top = Top
@@ -1384,19 +1366,35 @@ struct
       | Top,Top | Bottom,Bottom -> t1
       | _,_ -> Top
 
-(*  let compare u v =
-    if u == v then 0 else
-      match u,v with
-      | Top,Top | Bottom,Bottom -> 0
-      | Bottom,_ | _,Top -> 1
-      | Top,_ |_,Bottom -> -1
-      | T1 _ , T2 _ -> 1
-      | T2 _ , T1 _ -> -1
-      | T1 t1,T1 t1' -> L1.compare t1 t1'
-      | T2 t1,T2 t1' -> L2.compare t1 t1'
-*)
+  let compare =
+    if L1.compare == Datatype.undefined || L2.compare == Datatype.undefined then (
+      Kernel.debug "Missing comparison function for (%s, %s) lattice_sum: \
+                    %b %b"
+        L1.name L2.name
+        (L1.compare == Datatype.undefined) (L2.compare == Datatype.undefined);
+      Datatype.undefined)
+    else fun u v ->
+      if u == v then 0 else
+        match u,v with
+          | Top,Top | Bottom,Bottom -> 0
+          | Bottom,_ | _,Top -> 1
+          | Top,_ |_,Bottom -> -1
+          | T1 _ , T2 _ -> 1
+          | T2 _ , T1 _ -> -1
+          | T1 t1,T1 t1' -> L1.compare t1 t1'
+          | T2 t1,T2 t1' -> L2.compare t1 t1'
 
-  let equal _x _y = assert false (* todo *)
+  let equal u v =
+    if u == v then false
+    else
+      match u, v with
+        | Top,Top | Bottom,Bottom -> true
+        | Bottom,_ | _,Top | Top,_ |_,Bottom -> false
+        | T1 _ , T2 _ -> false
+        | T2 _ , T1 _ -> false
+        | T1 t1,T1 t1' -> L1.equal t1 t1'
+        | T2 t2,T2 t2' -> L2.equal t2 t2'
+
 
   let inject _ = assert false
 
@@ -1468,16 +1466,31 @@ struct
 
   let transform _f _u _v = assert false
 
-  module Datatype =
-    Project.Datatype.Register
-      (struct
-	 type t = sum
-	 let copy _ = assert false (* TODO *)
-	 let descr = Project.no_descr
-	 let name =
-	   Project.Datatype.extend_name2 "lattice_sum"
-	     L1.Datatype.name L2.Datatype.name
-       end)
-  let () = Datatype.register_comparable ~hash:tag ~equal ()
+  include Datatype.Make
+  (struct
+    type t = sum
+    let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_sum"
+    let structural_descr = Structural_descr.Unknown
+    let reprs =
+      Top :: Bottom
+      :: List.fold_left
+	(fun acc t -> T2 t :: acc) (List.map (fun t -> T1 t) L1.reprs) L2.reprs
+    let equal = equal
+    let compare = compare
+    let hash = tag
+    let rehash = Datatype.undefined
+    let copy = Datatype.undefined
+    let internal_pretty_code = Datatype.undefined
+    let pretty = pretty
+    let varname = Datatype.undefined
+    let mem_project = Datatype.never_any_project
+   end)
+  let () = Type.set_ml_name ty None
 
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

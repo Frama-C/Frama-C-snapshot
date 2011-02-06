@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -23,23 +23,25 @@
 (**************************************************************************)
 
 open Cil_types
+module IH = Inthash
+open Cil_datatype
 
 module S = struct
-  type t = Cilutil.StmtSet.t
-  let empty = Cilutil.StmtSet.empty
-  let singleton = Cilutil.StmtSet.singleton
+  type t = Stmt.Set.t
+  let empty = Stmt.Set.empty
+  let singleton = Stmt.Set.singleton
 
-  let add = Cilutil.StmtSet.add
-  let remove = Cilutil.StmtSet.remove
+  let add = Stmt.Set.add
+  let remove = Stmt.Set.remove
 
-  let equal = Cilutil.StmtSet.equal
+  let equal = Stmt.Set.equal
 
-  let inter = Cilutil.StmtSet.inter
-  let diff = Cilutil.StmtSet.diff
-  let union = Cilutil.StmtSet.union
+  let inter = Stmt.Set.inter
+  let diff = Stmt.Set.diff
+  let union = Stmt.Set.union
 
-  let elements = Cilutil.StmtSet.elements
-  let pretty = Cilutil.StmtSet.pretty
+  let elements = Stmt.Set.elements
+  let pretty = Stmt.Set.pretty
 end
 
 type t_info =
@@ -78,12 +80,12 @@ module State = struct
 end
 
 module States = struct
-  type t = State.t Inthash.t
-  let create = Inthash.create
-  let add = Inthash.add
-  let find = Inthash.find
+  type t = State.t IH.t
+  let create = IH.create
+  let add = IH.add
+  let find = IH.find
   let pretty fmt infos =
-    Inthash.iter
+    IH.iter
       (fun k v -> Format.fprintf fmt "Stmt:%d\n%a\n======" k State.pretty v)
       infos
 end
@@ -103,13 +105,13 @@ module Computer (Param:sig
 
   module StmtStartData = struct
     type data = t
-    let clear () = Inthash.clear Param.states
-    let mem = Inthash.mem Param.states
-    let find = Inthash.find Param.states
-    let replace = Inthash.replace Param.states
-    let add = Inthash.add Param.states
-    let iter f = Inthash.iter f Param.states
-    let length () = Inthash.length Param.states
+    let clear () = IH.clear Param.states
+    let mem = IH.mem Param.states
+    let find = IH.find Param.states
+    let replace = IH.replace Param.states
+    let add = IH.add Param.states
+    let iter f = IH.iter f Param.states
+    let length () = IH.length Param.states
   end
 
 
@@ -276,6 +278,6 @@ let display = States.pretty
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

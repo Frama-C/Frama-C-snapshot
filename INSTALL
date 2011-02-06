@@ -7,19 +7,48 @@
 ===============================================================================
 
 0)  Summary
-1)  Quick Start
-2)  Requirements
-3)  Configuration
-4)  Compilation
-5)  Installation
-6)  Custom Installation
-7)  Testing the Installation
-8)  Installation of additional plug-ins
-9)  API Documentation
-10) Uninstallation
-11) Have Fun with Frama-C!
+1)  Automatic Installation
+2)  Quick Start
+3)  Requirements
+4)  Configuration
+5)  Compilation
+6)  Installation
+7)  Custom Installation
+8)  Testing the Installation
+9)  Installation of additional plug-ins
+10) API Documentation
+11) Uninstallation
+12) Have Fun with Frama-C!
 
 ===============================================================================
+			      AUTOMATIC INSTALLATION
+===============================================================================
+
+-----------------------
+Windows OS and Mac OS X
+-----------------------
+
+Download the auto-installer corresponding to your system from
+	 http://frama-c.com/download
+
+Then just run it!
+
+----------------------------------------------------
+Debian >= Squeeze 6.0 and Ubuntu >= Lucid Lynx 10.04
+----------------------------------------------------
+
+If you are using Debian >= Squeeze 6.0 or Ubuntu >= Lucid Lynx 10.04 then
+a Frama-C package is provided:
+
+  sudo apt-get install frama-c
+
+or, if you don't want the Gtk-based GUI:
+  sudo apt-get install frama-c-base
+
+===============================================================================
+The remainder of these installation instructions is for building Frama-C from
+source.
+
 				  QUICK START
 ===============================================================================
 
@@ -57,7 +86,7 @@ The Frama-C GUI also requires:
 - GnomeCanvas 2.x
 - LablGtk >= 2.14.0
 
-If OcamlGraph >= 1.4 is already installed, then it will be used by Frama-C.
+If OcamlGraph >= 1.6 is already installed, then it will be used by Frama-C.
 Otherwise the distributed local copy (directory ocamlgraph) will be used.
 
 Plug-ins may have their own requirements.
@@ -67,7 +96,7 @@ Consult their specific documentations for details.
 Ubuntu Lucid Lynx 10.04
 -----------------------
 
-If you are using Ubuntu Lucid Lynx 10.04 then an optimal list of packages is
+If you are using Ubuntu >= Lucid Lynx 10.04 then an optimal list of packages is
 installed by:
 
 sudo apt-get install ocaml ocaml-native-compilers graphviz \
@@ -105,9 +134,9 @@ Use "./configure --prefix C:/windows/path/with/direct/slash".
 				  COMPILATION
 ===============================================================================
 
-Just execute "make".
+Type "make".
 
-Makefile targets that can be interesting are:
+Makefile targets of interest are:
 - doc	   generates the API documentation
 - ptests   generates the executable that takes care of running Frama-C's tests
 - oracles  set up the tests oracle of Frama-C test suite for your own
@@ -118,10 +147,10 @@ Makefile targets that can be interesting are:
 				  INSTALLATION
 ===============================================================================
 
-Just execute "make install"
+Type "make install"
 (depending on the installation directory, may require superuser privileges).
 
-It is possible to perform the installation in a given directory by setting
+It is possible to install in a given directory by setting
 the DESTDIR variable: "make install DESTDIR=/tmp" installs Frama-C in
 sub-directories of /tmp.
 
@@ -204,7 +233,7 @@ distributed plug-ins is available in the file frama-c-api.tar.gz.
 				 UNINSTALLATION
 ===============================================================================
 
-Just execute "make uninstall" to remove Frama-C and all the installed plug-ins.
+Type "make uninstall" to remove Frama-C and all the installed plug-ins.
 That works only if you have not manually moved the installed files (see Section
 "Custom Installation").
 

@@ -1,5 +1,6 @@
-/* run.config
-   DONTRUN:
+/* run.config_pruntime
+OPT: -wp -wp-model Runtime -wp-no-logicvar -journal-disable -wp-verbose 2 -wp-proof z3
+
  */
 
 typedef int TAB32[32];

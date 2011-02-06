@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -22,8 +22,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: build.ml,v 1.121 2009-02-23 12:52:19 uid562 Exp $ *)
-
 (** Build graphs (PDG) for the function
     (see module {!module: Build.BuildPdg})
     to represente the dependencies between instructions
@@ -35,9 +33,9 @@
     {!module: Build.Computer} below).
  *)
 
-open Cilutil
 open Cil_types
-open Cilutil
+module IH = Inthash
+open Cil_datatype
 
 module M = Macros
 module P = Pdg_parameters
@@ -53,9 +51,6 @@ exception Err_Bot of string
 module SimpleNodeSet = Set.Make(PdgTypes.Node)
 
 (* for mk_list_zones see Locations.Zone.fold_enum_by_base *)
-
-let var_to_loc var =
-  Locations.valid_enumerate_bits (Locations.loc_of_varinfo var)
 
 let is_variadic kf =
   let varf = Kernel_function.get_vi kf in
@@ -90,7 +85,7 @@ module BuildPdg : sig
 
   type t_arg_nodes
 
-  val get_states : t -> t_state Inthash.t
+  val get_states : t -> t_state IH.t
 
   val print_state : Format.formatter -> t_state -> unit
 
@@ -113,8 +108,8 @@ module BuildPdg : sig
   *)
   val process_asgn : t -> t_state -> Cil_types.stmt ->
               l_loc:t_loc -> exact:bool ->
-              l_dpds:t_loc -> l_decl: VarinfoSet.t ->
-              r_dpds:t_loc -> r_decl: VarinfoSet.t ->
+              l_dpds:t_loc -> l_decl: Varinfo.Set.t ->
+              r_dpds:t_loc -> r_decl: Varinfo.Set.t ->
               t_state
 
   (** for skip statement : we want to add a node in the PDG in ordrer to be able
@@ -140,7 +135,7 @@ module BuildPdg : sig
    *)
   val process_jump_with_exp :
       t -> Cil_types.stmt -> Cil_types.stmt list ->
-                          t_state -> t_loc -> VarinfoSet.t ->
+                          t_state -> t_loc -> Varinfo.Set.t ->
                           unit
 
   (** Kind of 'join' of hte two states
@@ -155,7 +150,7 @@ module BuildPdg : sig
   val process_call_node : t ->  Cil_types.stmt -> unit
 
   val process_call_args : t -> t_state -> Cil_types.stmt ->
-                          (t_loc * VarinfoSet.t) list ->
+                          (t_loc * Varinfo.Set.t) list ->
                           (int * t_arg_nodes)
   val process_call_params : t -> t_state -> Cil_types.stmt ->
                             Db_types.kernel_function -> t_arg_nodes ->
@@ -166,13 +161,13 @@ module BuildPdg : sig
 
   val process_call_return : t -> t_state -> t_state -> Cil_types.stmt ->
                             l_loc:t_loc -> exact:bool ->
-                            l_dpds:t_loc -> l_decl:VarinfoSet.t ->
+                            l_dpds:t_loc -> l_decl:Varinfo.Set.t ->
                             r_dpds:t_loc -> t_loc ->
                             t_state
 
   (** add a node corresponding to the returned value. *)
   val add_retres :  t -> t_state ->  Cil_types.stmt ->
-                       t_loc -> VarinfoSet.t -> t_state
+                       t_loc -> Varinfo.Set.t -> t_state
 
   (** store the state as the final state. Will be used in finalize_pdg to add
     * the output nodes. *)
@@ -189,7 +184,7 @@ module BuildPdg : sig
 
   type t_node = PdgTypes.Node.t
   (** mapping between the statements and the PDG nodes *)
-  type t_state = State.t
+  type t_state = Pdg_state.t
   type t_loc = Locations.Zone.t
   type t_arg_nodes = t_node list
 
@@ -200,13 +195,13 @@ module BuildPdg : sig
              mutable other_inputs :
                (PdgTypes.Node.t * Dpd.td * Locations.Zone.t) list;
              graph : G.t;
-             states : State.t_states;
+             states : Pdg_state.t_states;
              index : PdgTypes.Pdg.t_index;
 
-             ctrl_dpds : (SimpleNodeSet.t) InstrHashtbl.t ;
+             ctrl_dpds : SimpleNodeSet.t Kinstr.Hashtbl.t ;
                        (** The nodes to which each stmt control-depend on.
                          * The links will be added in the graph at the end. *)
-             decl_nodes : t_node VarinfoHashtbl.t ;
+             decl_nodes : t_node Varinfo.Hashtbl.t ;
                        (** map between declaration nodes and the variables
                            to build the dependencies. *)
             }
@@ -220,12 +215,12 @@ module BuildPdg : sig
 	42
     in
     let index = FI.create nb_stmts in
-    let states = Inthash.create nb_stmts in
+    let states = IH.create nb_stmts in
     let graph = G.create () in
     { fct = kf; graph = graph; states = states; index = index;
       topinput = None; other_inputs = [];
-      ctrl_dpds  = InstrHashtbl.create nb_stmts ;
-      decl_nodes = VarinfoHashtbl.create 10 ;
+      ctrl_dpds  = Kinstr.Hashtbl.create nb_stmts ;
+      decl_nodes = Varinfo.Hashtbl.create 10 ;
     }
 
   let get_kf pdg = pdg.fct
@@ -277,7 +272,7 @@ module BuildPdg : sig
   let decl_var pdg var =
     let key = Key.decl_var_key var in
     let new_node = add_elem pdg key in
-      VarinfoHashtbl.add pdg.decl_nodes var new_node;
+      Varinfo.Hashtbl.add pdg.decl_nodes var new_node;
       new_node
 
   let get_var_base zone =
@@ -304,10 +299,12 @@ module BuildPdg : sig
   let add_decl_dpds pdg node dpd_kind varset =
     let add_dpd var =
       try
-        let var_decl_node = VarinfoHashtbl.find pdg.decl_nodes var in
+        let var_decl_node = Varinfo.Hashtbl.find pdg.decl_nodes var in
         add_decl_dpd pdg node dpd_kind var_decl_node
-      with Not_found -> ()
-    in VarinfoSet.iter add_dpd varset
+      with Not_found ->
+	()
+    in
+    Varinfo.Set.iter add_dpd varset
 
   (** [add_dpds pdg v dpd_kind state loc]
   * add 'dpd_kind' dependencies from node n to each element
@@ -323,7 +320,7 @@ module BuildPdg : sig
             z_part
         | _ -> None
       in add_z_dpd pdg n dpd_kind z_part node in
-    let nodes, undef_zone = State.get_loc_nodes state loc in
+    let nodes, undef_zone = Pdg_state.get_loc_nodes state loc in
     List.iter add nodes;
       match undef_zone with None -> ()
         | Some undef_zone -> add_to_inputs pdg n dpd_kind undef_zone
@@ -356,28 +353,34 @@ module BuildPdg : sig
                 List.iter (fun n -> add_node_ctrl_dpds n ctrl_node_set) nodes
           | _ -> assert false
     in
-    InstrHashtbl.iter add_stmt_ctrl_dpd pdg.ctrl_dpds;
-    InstrHashtbl.clear pdg.ctrl_dpds
+    Kinstr.Hashtbl.iter add_stmt_ctrl_dpd pdg.ctrl_dpds;
+    Kinstr.Hashtbl.clear pdg.ctrl_dpds
 
-  let test_and_merge_states = State.test_and_merge
-  let print_state = State.pretty
+  let test_and_merge_states = Pdg_state.test_and_merge
+  let print_state = Pdg_state.pretty
 
   let process_declarations pdg ~formals ~locals =
-    let empty_state = State.empty in
+    let empty_state = Pdg_state.empty in
 
     (** 2 new nodes for each formal parameters :
        one for its declaration, and one for its values.
        This is because it might be the case that we only need the declaration
        whatever the value is.
        Might allow us to do a better slicing of the callers.
+       TODO: normally, the value should depend on the the declaration,
+             but because we don't know how to select a declaration
+             without selecting the value at the moment,
+             we do the dependence the other way round.
      *)
     let do_param (n, state) v =
       let decl_node = decl_var pdg v in
       let key = Key.param_key n v in
       let new_node = add_elem pdg key in
       add_decl_dpd pdg new_node Dpd.Addr decl_node ;
+      add_decl_dpd pdg decl_node Dpd.Addr new_node ;
       let new_state =
-        State.add_loc_node state  ~exact:true (var_to_loc v) new_node in
+        Pdg_state.add_loc_node
+          state  ~exact:true (Locations.zone_of_varinfo v) new_node in
         (n+1, new_state)
     in
     let _next_in_num, new_state =
@@ -417,7 +420,8 @@ module BuildPdg : sig
     let process_param state param arg =
       let new_node = arg in
       let _ = add_ctrl_dpd pdg new_node ctrl_node in
-        State.add_loc_node state (var_to_loc param) new_node ~exact:true
+        Pdg_state.add_loc_node
+          state (Locations.zone_of_varinfo param) new_node ~exact:true
     in
     let rec do_param_arg state param_list arg_nodes =
       match param_list, arg_nodes with
@@ -444,14 +448,14 @@ module BuildPdg : sig
     let new_node = add_elem pdg key in
     let _ = add_dpds pdg new_node Dpd.Addr state l_dpds in
     let _ = add_decl_dpds pdg new_node Dpd.Addr l_decl in
-    let new_state = State.add_loc_node state exact l_loc new_node in
+    let new_state = Pdg_state.add_loc_node state exact l_loc new_node in
      (new_node, new_state)
 
   let add_from pdg state_before state lval (default, deps) =
     let key = Key.out_from_key lval in
     let new_node = add_elem pdg key in
     let exact = (not default) in
-    let state = State.add_loc_node state exact lval new_node in
+    let state = Pdg_state.add_loc_node state exact lval new_node in
     let _ = add_dpds pdg new_node Dpd.Data state_before deps in
       state
 
@@ -469,7 +473,7 @@ module BuildPdg : sig
     let key = Key.call_output_key stmt (* numout *) out in
     let new_node = create_call_output_node pdg state_before_call stmt
                                           key from_out fct_dpds in
-    let state = State.add_loc_node state exact out new_node
+    let state = Pdg_state.add_loc_node state exact out new_node
     in state
 
   (** mix between process_call_ouput and process_asgn *)
@@ -481,7 +485,7 @@ module BuildPdg : sig
     in
     let _ = add_dpds pdg new_node Dpd.Addr state_before_call l_dpds in
     let _ = add_decl_dpds pdg new_node Dpd.Addr l_decl in
-    let new_state = State.add_loc_node state_before_call exact l_loc new_node in
+    let new_state = Pdg_state.add_loc_node state_before_call exact l_loc new_node in
     new_state
 
 
@@ -535,11 +539,11 @@ module BuildPdg : sig
       let kinstr = (Kstmt stmt) in
       let new_dpds =
         try
-          let old_dpds = InstrHashtbl.find pdg.ctrl_dpds kinstr in
+          let old_dpds = Kinstr.Hashtbl.find pdg.ctrl_dpds kinstr in
           SimpleNodeSet.add node old_dpds
         with Not_found -> SimpleNodeSet.singleton node
       in
-      InstrHashtbl.replace pdg.ctrl_dpds kinstr new_dpds
+      Kinstr.Hashtbl.replace pdg.ctrl_dpds kinstr new_dpds
     in List.iter add_ctrl_dpd controled_stmt
 
   let mk_jump_node pdg stmt controled_stmts =
@@ -587,15 +591,15 @@ module BuildPdg : sig
     let retres = Locations.valid_enumerate_bits retres_loc in
     let _ = add_dpds pdg return_node  Dpd.Data state retres_loc_dpds in
     let _ = add_decl_dpds pdg return_node Dpd.Data retres_decls in
-    let new_state = State.add_loc_node state true retres return_node in
+    let new_state = Pdg_state.add_loc_node state true retres return_node in
     let _ = create_fun_output_node pdg (Some new_state) retres in
       new_state
 
   let store_last_state pdg state =
-    State.store_last_state (get_states pdg) state
+    Pdg_state.store_last_state (get_states pdg) state
 
   let store_init_state pdg state =
-    State.store_init_state (get_states pdg) state
+    Pdg_state.store_init_state (get_states pdg) state
 
   (** part of [finalize_pdg] : add missing inputs
   * and build a state with the new nodes to find them back when searching for
@@ -612,7 +616,7 @@ module BuildPdg : sig
             let nz = add_elem pdg key in
               P.debug "add_implicit_input : %a@."
                   Locations.Zone.pretty z_or_top ;
-            let state = State.add_init_state_input state z_or_top nz in
+            let state = Pdg_state.add_init_state_input state z_or_top nz in
             let _ = add_z_dpd pdg n dpd_kind None nz in
               state, [(z_or_top, nz)]
         | (zone, nz)::tl_zones ->
@@ -648,14 +652,14 @@ module BuildPdg : sig
         end
     in
     let (state, _) =
-      List.fold_left add_zone (State.empty, []) pdg.other_inputs
+      List.fold_left add_zone (Pdg_state.empty, []) pdg.other_inputs
     in state
 
   (** @param from_opt for undefined functions  (declarations) *)
   let finalize_pdg pdg from_opt =
     P.debug ~level:2 "try to finalize_pdg";
     let last_state =
-      try Some (State.get_last_state (get_states pdg))
+      try Some (Pdg_state.get_last_state (get_states pdg))
       with Not_found ->
         CilE.warn_once "no final state. Probably unreachable..."; None
     in
@@ -690,7 +694,7 @@ module BuildPdg : sig
     add_ctrl_dpds pdg ;
     P.debug ~level:2 "finalize_pdg ok";
     let states = get_states pdg in
-    let pdg = PdgTypes.Pdg.make pdg.fct pdg.graph states pdg.index 
+    let pdg = PdgTypes.Pdg.make pdg.fct pdg.graph states pdg.index
     in
     pdg
 
@@ -818,7 +822,9 @@ let process_call pdg state stmt lvaloption funcexp argl =
             in state_for_this_call
     in r :: acc
   in
-  let state_for_each_call = Kernel_function.Set.fold process_simple_call called_functions [] in
+  let state_for_each_call =
+    Kernel_function.Hptset.fold process_simple_call called_functions []
+  in
   let new_state =
     match state_for_each_call with
     | [] ->
@@ -937,13 +943,13 @@ module Computer (Param:sig
   module StmtStartData = struct
     type data = BuildPdg.t_state
     let states = BuildPdg.get_states current_pdg
-    let clear () = Inthash.clear states
-    let mem = Inthash.mem states
-    let find = Inthash.find states
-    let replace = Inthash.replace states
-    let add = Inthash.add states
-    let iter f = Inthash.iter f states
-    let length () = Inthash.length states
+    let clear () = IH.clear states
+    let mem = IH.mem states
+    let find = IH.find states
+    let replace = IH.replace states
+    let add = IH.add states
+    let iter f = IH.iter f states
+    let length () = IH.length states
   end
 
 (*
@@ -1041,7 +1047,7 @@ module Computer (Param:sig
   (** Whether to put this statement in the worklist. *)
   let filterStmt stmt = Db.Value.is_accessible (Kstmt stmt)
 
-  let doGuard _ _ _ = Dataflow.GDefault
+  let doGuard _ _ _ = Dataflow.GDefault, Dataflow.GDefault
 
   let doEdge _ _ d = d
 
@@ -1126,7 +1132,7 @@ let compute_pdg kf =
 	P.failure "%s" what ;
 	degenerated true kf
 
-    | State.Cannot_fold ->
+    | Pdg_state.Cannot_fold ->
 	P.failure "too imprecise value analysis : abort" ;
 	degenerated true kf
 
@@ -1136,6 +1142,6 @@ let compute_pdg kf =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

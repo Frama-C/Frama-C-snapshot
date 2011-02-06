@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,30 +24,33 @@ include Plugin.Register
   (struct
      let name = "from analysis"
      let shortname = "from"
-     let descr = "functional dependencies"
+     let help = "functional dependencies"
    end)
 
 module ForceDeps =
   False
     (struct
        let option_name = "-deps"
-       let descr = "force dependencies display"
+       let help = "force dependencies display"
+       let kind = `Tuning
      end)
 
 module ForceCallDeps =
   False
     (struct
        let option_name = "-calldeps"
-       let descr = "force callsite-wise dependencies"
+       let help = "force callsite-wise dependencies"
+       let kind = `Tuning
      end)
 
 module PathDeps =
 False
     (struct
        let option_name = "-experimental-path-deps"
-       let descr = "experimental"
+       let help = "experimental"
+       let kind = `Tuning
      end)
-  
+
 
 
 (*

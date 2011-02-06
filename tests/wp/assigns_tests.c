@@ -1,21 +1,3 @@
-/* run.config
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof none
-   OPT:  -journal-disable -wp -wp-model Hoare -wp-proof none
-*/ 
-
-/* run.config_ergo
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof alt-ergo
-*/
-
-/* run.config_z3
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof z3
-*/
-
-/* run.config_simplify
-   OPT:  -journal-disable -wp -wp-model Store -wp-proof simplify
-*/
-
-
 /* 
    kind : Positive
    model name : Store ; bhv : Provable
@@ -32,22 +14,46 @@ void ptr_deref_assigns (int * x) {
 int * p; 
 int a; 
 
-//@ assigns p,*p; 
-void ptr_deref_ptr_assigns (void)
+//@ assigns p, *p , a ; 
+/* CORRECT */ 
+void ptr_deref_ptr_assigns_1 (void)
 {
   p = &a; 
   *p = 5;
 }
 
-//@ assigns p , *\old(p);
-void deref_ptr_ptr_assigns (void)
+//@ assigns p,*p; 
+/* CORRECT, because ensures p == &a */ 
+void ptr_deref_ptr_assigns_2 (void)
+{
+  p = &a; 
+  *p = 5;
+}
+
+//@ assigns p; 
+/* INCORRECT, because missing a */ 
+void ptr_deref_ptr_assigns_3 (void)
+{
+  p = &a; 
+  *p = 5;
+}
+
+//@ assigns p , *\old(p); 
+/* CORRECT */
+void deref_ptr_ptr_assigns_1 (void)
 {
   *p=5;
   p=&a;
 }
 
-int x,y;
-struct S { int * a; };
+//@ assigns p , *p; 
+/* INCORRECT sauf si \old(p==&a) */
+void deref_ptr_ptr_assigns_2 (void)
+{
+  *p=5;
+  p=&a;
+}
+
 
 int main () { return 0;}
 

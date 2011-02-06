@@ -1,20 +1,23 @@
-enum Colors { Blue, Red, Black = 0 };
+typedef enum _Color { Blue, Red, Black = 0 } Color;
 
-/* TODO */
-unsigned char uchar_range (unsigned char i) {
-  //@ assert i >= 0;
-  //@ assert i <= 255;
-  return i;
-}
-
-int int_of_color (enum Color col) {
+int int_of_color (Color col) {
   int x;
   if (col != Black) {
     x = col; //@ assert x != 0;
   }
   else {
-    x = Black; //@ assert x == 0;
+    x = Black; //@ assert x == Blue; // strange property, isn't it?
   }
   return x;
 }
-int main (void) { return 0 ; }
+
+
+//@ ensures \exists Color c; \result == c; // strange property, isn't it?
+Color unspecified_color (void) {
+  return 10; // Unfortunatly, this is not forbidden!
+}
+
+//@ ensures \result == Blue;
+Color enum_in_annot (void) {
+  return Blue;
+}

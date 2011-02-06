@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -24,463 +24,658 @@
 
 open Cil_types
 open Db_types
+module H = Hashtbl (* [Hashtbl] redefined by [Property] *)
+open Property
 
-module type S = sig 
-  type t 
-  val get_all: 
-    ?who:Project.Computation.t list -> t -> 
-    (annotation_status * Project.Computation.t) list
-  val get_all_status: 
-    ?who:Project.Computation.t list -> t -> annotation_status list
-  val get_all_states: 
-    ?who:Project.Computation.t list -> t -> Project.Computation.t list
-  val strongest: 
-    ?who:Project.Computation.t list -> t -> 
-    annotation_status * Project.Computation.t
-  val pretty_all: Format.formatter -> t -> unit
+let emitters = H.create 7
 
-  val compare: t -> t -> int
-  val equal: t -> t -> bool
-  val hash: t -> int
-  val add_dependency: Project.Computation.t -> Project.Computation.t -> unit
-  val self: Project.Computation.t
-end    
+let max_state s1 s2 =
+  if s2 = State.dummy || H.mem emitters s1 then s1 else s2
 
-let emitters = Hashtbl.create 7
-
-let max_state s1 s2 = 
-  if s2 = Project.Computation.dummy || Hashtbl.mem emitters s1 then s1
-  else s2
-
-let strongest_status l = 
-  List.fold_left 
+let strongest_status fold =
+  fold
     (fun (s, st1 as acc) (x, st2 as v) -> match s, x with
-     | Unknown, _ -> v
-     | Checked _, Unknown -> acc
-     | Checked {valid=False}, Checked {valid=True}
-     | Checked {valid=True}, Checked {valid=False} -> 
-         Kernel.error "Inconsistent status: %a/%a" 
-           Cil.d_annotation_status s
-           Cil.d_annotation_status x;
-         acc
-     | Checked {valid=True}, Checked {valid=True} -> s, max_state st1 st2
-     | Checked {valid=True}, _ -> acc
-     | Checked _ ,Checked {valid=True} -> v 
-     | Checked {valid=Maybe}, Checked {valid=Maybe} -> s, max_state st1 st2
-     | Checked {valid=Maybe}, Checked {valid=False} -> v
-     | Checked {valid=False}, Checked {valid=False} -> s, max_state st1 st2
-     | Checked {valid=False}, Checked {valid=Maybe} -> acc)
-    (Unknown, Project.Computation.dummy)
-    l
+    | Unknown, _ -> v
+    | Checked _, Unknown -> acc
+    | Checked {valid=v1}, Checked {valid=v2} ->
+      match v1, v2 with
+      | False, True ->
+          Kernel.debug "Inconsistent status: %a/%a"
+            Cil.d_annotation_status s
+            Cil.d_annotation_status x;
+          acc
+      | True, False ->
+          Kernel.debug "Inconsistent status: %a/%a"
+            Cil.d_annotation_status s
+            Cil.d_annotation_status x;
+          v
+      | True, Maybe | False, Maybe -> acc
+      | Maybe, True | Maybe, False -> v
+      | True, True | False, False | Maybe, Maybe -> s, max_state st1 st2)
+    (Unknown, State.dummy)
 
-let weakest_status l = 
-  List.fold_left 
+let weakest_status l =
+  List.fold_left
     (fun acc x -> match acc, x with
-     | Unknown, _ | _,Unknown -> Unknown
-     | Checked a, Checked b -> 
-         Checked( 
-           match a,b with 
-           |{valid=True},_ -> b
-           |_,{valid=True} -> a
-           |{valid=Maybe}, _ -> a
-           |_, {valid=Maybe}-> b
-           |({valid=False}, {valid=False}) -> a))
+    | Unknown, _ | _,Unknown -> Unknown
+    | Checked {valid=v1} as c1, (Checked {valid=v2} as c2) ->
+      match v1, v2 with
+      | True, _ -> c2
+      | _, True -> c1
+      | Maybe, _ -> c1
+      | _, Maybe-> c2
+      | False, False -> c1)
     (Checked {valid=True; emitter="nothing to prove"})
     l
 
-(*  Generic local functor to make getters and setters
-    for all kind of uniquely identified objects *)
-module Make(A: sig type t type id val id: t -> id val name: string end) = 
-struct 
+(* this function must be called on an identified_property and code_annotation
+   which are already known to be tied to the same statement.
+   It performs too many tests: all identified_properties belonging to a
+   spec can be directly tied to the stmtspec since there is at most one per
+   statement. *)
+let ip_is_in_code_annot annot ca =
+  match annot, ca.annot_content with
+    | IPBlob _, _ -> false
+    | IPPredicate(PKAssumes _,_,_,_), AStmtSpec _ -> true
+    | IPPredicate(PKAssumes _,_,_,_), _ -> false
+    | IPPredicate(PKEnsures _,_,_,_), AStmtSpec _ -> true
+    | IPPredicate(PKEnsures _,_,_,_), _ -> false
+    | IPPredicate(PKTerminates,_,_,_), AStmtSpec _ -> true
+    | IPPredicate(PKTerminates,_,_,_), _ -> false
+    | IPPredicate(PKRequires _,_,_,_), AStmtSpec _ -> true
+    | IPPredicate(PKRequires _,_,_,_), _ -> false
+    | IPAxiom _,_ -> false
+    | IPComplete(_,_,_), AStmtSpec _ -> true
+    | IPComplete(_,_,_), _ -> false
+    | IPDisjoint(_,_,_), AStmtSpec _ -> true
+    | IPDisjoint _, _ -> false
+    | IPAssigns (_,_,Id_behavior _,_), AStmtSpec _ -> true
+    | IPAssigns (_,_,Id_behavior _,_),_ -> false
+    | IPAssigns (_,_,Id_code_annot ca1,_), _ -> ca1.annot_id = ca.annot_id
+    | IPFrom (_,_,Id_behavior _,_), AStmtSpec _ -> true
+    | IPFrom (_,_,Id_behavior _,_),_ -> false
+    | IPFrom (_,_,Id_code_annot ca1,_), _ -> ca1.annot_id = ca.annot_id
+    | IPDecrease (_,_,None,_), AStmtSpec _ -> true
+    | IPDecrease (_,_,None,_), _ -> false
+    | IPDecrease (_,_,Some ca1,_),_ -> ca1.annot_id = ca.annot_id
+    | IPBehavior (_,_,_), AStmtSpec _ -> true
+    | IPBehavior _,_ -> false
+    | IPCodeAnnot (_,_,ca1),_ -> ca1.annot_id = ca.annot_id
 
-  include
-    Computation.Dashtbl
-    (struct 
-       type t = A.t
-       let id x = A.id x
-       let hash x = Hashtbl.hash (id x)
-       let equal x y = id x = id y
+let get_dependencies annot = match get_kinstr annot with
+  | Kglobal -> []
+  | Kstmt stmt ->
+    List.fold_left
+      (fun acc (a, s) -> match a with
+      | Before (User ca | AI(_, ca))
+      | After (User ca | AI(_, ca)) ->
+	if ip_is_in_code_annot annot ca then s :: acc
+	else acc)
+      []
+      (Annotations.get_all stmt)
+
+(* mutually recursive modules cannot be safely evaluated here *)
+module Ref_graph = struct
+  let create_and_add_state = ref (fun ~clear:_ ~name:_ ~deps:_ -> assert false)
+  let add_state = ref (fun _ -> assert false)
+  let remove_state = ref (fun ~reset:_ _ -> assert false)
+  let self = ref State.dummy
+end
+
+module Dash =
+  Dashtbl.Make
+    (struct
+      open Ref_graph
+      let create_and_add_state ~clear ~name ~deps =
+	!create_and_add_state ~clear ~name ~deps
+      let add_state s = !add_state s
+      let remove_state ~reset s = !remove_state ~reset s
+      let self = self
+      let internal_kind = `Correctness
      end)
-    (Datatype.Ref(Cil_datatype.Annotation_Status))
-    (struct 
-       let name = A.name
+    (Dashtbl.Default_key_marshaler(Datatype.Unit))
+    (Dashtbl.Default_data_marshaler
+       (Datatype.Ref(Cil_datatype.Annotation_status)))
+    (struct let name = "Properties_status.Dash" end)
+
+module Status =
+  State_builder.Dashtbl
+    (struct
+      include Property
+      type marshaled = t
+      let marshal = function
+	| IPBlob s -> ip_axiom ("$" ^ State.get_unique_name s)
+	| x -> x
+      let unmarshal = function
+	| IPAxiom s when try s.[0] = '$' with Invalid_argument _ -> false ->
+	  ip_blob (State.get (String.sub s 1 (String.length s - 1)))
+	| x -> x
+      let marshaler = marshal, unmarshal
+      let equal_marshaled = equal
+      let hash_marshaled = hash
+     end)
+    (Dash)
+    (struct
+       let name = "property status"
        let size = 7
        let dependencies = [ Ast.self ]
+       let kind = `Internal
+       let internal_kind = `Correctness
      end)
-  
-  let add_dependency p1 p2 = 
-    Kernel.debug "Adding dependency from %S to %S" 
-      (Project.Computation.name p1)
-      (Project.Computation.name p2);
-    add_dependency p1 p2
-  
-  let get_all ?who key = List.map (fun (a,b) -> !a,b) (find_all ?who key)
-  let get_all_status ?who key = List.map (!) (find_all_data ?who key)
-  let get_all_states ?who key = find_all_states ?who key
 
-  let strongest ?who:_ annot = 
-    let l = fold_key (fun s a acc -> (!a,s) :: acc) annot [] in
-    strongest_status (*(get_all ?who annot)*)l
+let () =
+  Ref_graph.create_and_add_state := Status.Graph.create_and_add_state;
+  Ref_graph.add_state := Status.Graph.add_state;
+  Ref_graph.remove_state := Status.Graph.remove_state;
+  Ref_graph.self := !Status.Graph.self
 
-  let pretty_all fmt annot =
-    Pretty_utils.pp_list ~sep:";" 
-      Cil.d_annotation_status 
-      fmt
-      (List.filter ((<>) Unknown) (get_all_status annot))
+(* Rebuild dependencies for the internal dashtables *)
+let () =
+  Project.register_after_load_hook
+    (fun () ->
+      Status.iter
+	(fun _ _ (d, _) ->
+	  Dash.iter
+	    (fun _ s (_, s') ->
+	      assert (not (State.is_dummy s'));
+ 	      let from =
+ 		match s with
+		| None -> [ !Status.Graph.self ]
+		| Some s -> [ s; !Status.Graph.self ]
+ 	      in
+ 	      State_dependency_graph.Dynamic.add_codependencies ~onto:s' from)
+	    d))
 
-  include A
+let get_name annot =
+  let old = Parameters.UseUnicode.get () in
+  Parameters.UseUnicode.set false;
+  let s = Pretty_utils.sfprintf "%a" Property.pretty annot in
+  Parameters.UseUnicode.set old;
+  s
 
-  let compare x y = Pervasives.compare (A.id x) (A.id y)
-  let equal x y = A.id x = A.id y
-  let hash x = Hashtbl.hash (A.id x)
-      
-end
+let rec generic_memo f ?who annot =
+  match f ?who annot with
+  | [] ->
+    let h = Dash.create 7 in
+    Status.add (get_name annot) annot (get_dependencies annot) h;
+    generic_memo f ?who annot
+  | [ x ] ->
+    x
+  | _ :: _ :: _ ->
+    assert false
 
-module CodeAnnotation =
-  Make(struct 
-         type t = code_annotation
-         type id = int
-         let id c = c.annot_id
-         let name = "Code annotation" 
-       end)
- 
-module Predicate =
-  Make(struct 
-         type t = identified_predicate
-         type id = int
-         let id p = p.ip_id
-         let name = "Predicate"
-       end)
+let memo_tbl = generic_memo Status.find_all_data
+let memo_state_tbl = generic_memo Status.find_all_states
+let memo_tbl_full = generic_memo Status.find_all
 
-module Assigns =
-  Make(struct 
-         type t = 
-	     kernel_function 
-	     * kinstr
-	     * funbehavior option
-	     * identified_term assigns list
-         type id = int*int option*string
-         let id ((f,ki,b,_):t) : id= 
-           Kernel_function.get_id f,
-           (match ki with Kglobal -> None | _ -> Some (Ast_info.get_sid ki)),
-           (Extlib.may_map ~dft:"" (fun b -> b.b_name) b)
-         let name = "Assigns"
-       end)
+let get_all ?who annot =
+  let h = memo_tbl annot in
+  List.map (!) (Dash.find_all_data ?who h ())
 
-module Behavior = struct
-  include Make(struct 
-         type t = Kernel_function.t * kinstr * funbehavior
-         type id = int * string
-         let id (f, _, b) = Kernel_function.get_id f, b.b_name
-         let name = "Behavior"
-       end)
+(* when getting the strongest status of a behavior, we need to update its
+   dependencies which are automatically computed by getters (see function
+   [get] of [Make_updater]) *)
+let get_all_behavior_ref = ref []
 
-  let get_all_ref = ref []
-  let strongest ?who annot = 
-    assert (who = None); 
-    strongest_status (List.map (fun f -> f annot) !get_all_ref)
-end
+let strongest annot =
+  let status, state = match annot with
+    | IPBehavior _ ->
+      let l = List.map (fun f -> f annot) !get_all_behavior_ref in
+      strongest_status
+	(fun f acc ->
+	  List.fold_left
+	    (fun acc b -> f acc b)
+	    acc
+	    l)
+    | _ ->
+      let h = memo_tbl annot in
+      strongest_status
+	(fun f acc -> Dash.fold (fun _ _ (v, s) acc -> f acc (!v, s)) h acc)
+  in
+  status, if State.is_dummy state then None else Some state
 
-module Complete =
-  Make(struct 
-         type t = kernel_function * kinstr * string list
-         type id = int * int option * string list
-         let id (f, ki, x) = Kernel_function.get_id f, 
-           (match ki with Kglobal -> None 
-            | _ -> Some (Ast_info.get_sid ki)), 
-           x
-         let name = "Complete"
-       end)
+let get_state prop state = Status.find_state prop state
 
-module Disjoint =
-  Make(struct 
-         type t =  kernel_function * kinstr * string list
-         type id = int * int option * string list
-         let id (f,ki, x) = Kernel_function.get_id f, 
-           (match ki with Kglobal -> None | _ -> Some (Ast_info.get_sid ki)), x
-         let name = "Disjoint"
-       end)
-    
-module Make_updater
-  (P: sig 
-     val name: string 
-     val dependencies: Project.Computation.t list
-   end) = 
-struct
+module Consolidation_tree = struct
 
-  let plugin_self = 
-    match P.dependencies with 
-    | [] -> Ast.self
-    | [ s ] -> s
-    | _ :: _ -> assert false
+  type 'a value =
+      { value: 'a;
+	hypothesis: forest;
+	dependencies: State.t value list }
 
-  let () = Hashtbl.add emitters plugin_self ()
+  and t =
+      { property: identified_property;
+	state: State.t;
+	mutable status: (annotation_status * State.t) value list }
 
-  module Make
-    (A: sig 
-       include S 
-       include Computation.DASHTBL_OUTPUT 
-         with type key = t 
-         and type data = annotation_status ref
-       type id
-       val id: t -> id
-       val name: string 
-     end) = 
-  struct
+  and forest = t list
 
-    include A
+  type vertex =
+    | Property of t
+    | State of State.t value
+    | Status of (annotation_status * State.t) value
 
-    let get annot = 
-      try 
-        !(find_data annot plugin_self) 
-      with Not_found -> 
-        add annot [ plugin_self ] (ref Unknown);
-        Unknown
+  let state_of_vertex = function
+    | Property p -> p.state
+    | Status s -> snd s.value
+    | State s -> s.value
 
-    let set annot status =
-      try 
-        let s = find_data annot plugin_self in
-        s := status
-      with Not_found -> 
-        add annot [ plugin_self ] (ref status)
+  module Visited = H.Make(State)
 
-    let update annot f = 
-      try 
-        let s = find_data annot plugin_self in
-        s := f !s;
-        !s
-      with Not_found -> 
-        let new_s = f Unknown in
-        add annot [ plugin_self ] (ref new_s);
-        new_s
-
-  end
-
-  module Make_Dependent
-    (A: sig 
-       include S 
-       include Computation.DASHTBL_OUTPUT with type key = t 
-					  and type data = annotation_status ref
-       val get_all_ref: 
-	 (t -> annotation_status * Project.Computation.t) list ref
-       type id
-       val id: t -> id
-       val name: string
-       val from_compute: t -> Project.Computation.t list
-       val compute: t -> annotation_status
-     end) = 
-  struct
-
-    include A
-
-    let get annot = 
-      let new_s = A.compute annot in
-      (try 
-         let s = find_data annot plugin_self in
-         s := new_s
-       with Not_found ->
-         add annot (plugin_self :: A.from_compute annot) (ref new_s));
-      new_s
-
-    let () = get_all_ref := (fun a -> get a, plugin_self) :: !get_all_ref
-
-  end
-
-  module CodeAnnotation = Make(CodeAnnotation)
-  module Predicate = Make(Predicate)
-  module Assigns = Make(Assigns)
-  module Complete = Make(Complete)
-  module Disjoint = Make(Disjoint)
-
-  module Behavior = 
-    Make_Dependent
-      (struct 
-	 include Behavior
-
-	 let from_compute (kf, st, b) = 
-	   let post_states = 
-	     List.fold_left
-	       (fun acc (_, p) -> 
-		  try Predicate.find_state p plugin_self :: acc
-		  with Not_found -> acc)
-	       []
-	       b.b_post_cond
-	   in
-	   match b.b_assigns with
-	   | [] -> post_states
-	   | _ :: _ -> 
-	       try
-		 Assigns.find_state (kf, st, Some b, b.b_assigns) plugin_self
-		 :: post_states
-		with Not_found ->
-		  post_states
-
-         let compute (kf, st, b) = 
-	   let post_status =
-	     List.map (fun (_, p) -> Predicate.get p) b.b_post_cond
-	   in
-	   let all_status = match b.b_assigns with
-	     | [] -> post_status
-	     | _ :: _ -> 
-		 Assigns.get (kf, st, Some b, b.b_assigns) :: post_status
-	   in
-	   weakest_status all_status
-       end)
-
-  module type S_ReadOnly = sig
-    include S
-    val get: t -> annotation_status
-  end
-
-  module type S = sig
-    include S_ReadOnly
-    val set: t -> annotation_status -> unit
-    val update: 
-      t -> (annotation_status -> annotation_status) -> annotation_status
-  end
-
-end
-
-module type Generated = sig
-  val get: kernel_function -> bool
-  val set: kernel_function -> bool -> unit
-  val get_state : kernel_function -> Project.Computation.t
-  val self: Project.Computation.t
-end
-
-
-(* Proxy for RTE generation status *)
-(* clear the state for a given function => all rte/precond status
-   are cleared *)
-module RTE_Status_Proxy = struct
-
-  include
-    Computation.Dashtbl
-      (Globals.Functions.KF_Datatype)
-      (Datatype.Unit)
-      (struct
-	 let size = 97
-	 let name = "rte_status_proxy"
-	 let dependencies = [ Ast.self ]
-       end)
-
-  let get_state kf = 
-    match find_all_states kf with
-      | [] -> 
-	  add kf [] ();
-	  (match find_all_states kf with [ s ] -> s | _ -> assert false)
-      | [ s ] -> 
-	  s
-      | _ -> 
+  let get_binding visited annot (dash, dash_state) properties =
+    let visit_property p s l b =
+(*      Format.printf "visiting ppt %S: %d@." (State.name s) (List.length l);*)
+      try
+	match Visited.find visited s with
+	| Property v as p, old_b ->
+	  assert (not old_b && b && v.status = []);
+	  v.status <- l;
+	  Visited.replace visited s (p, b);
+	  v
+	| _ ->
 	  assert false
+      with Not_found ->
+	let v = { property = p; state = s; status = l } in
+	Visited.replace visited s (Property v, b);
+	v
+    in
+    let rec get_hyps_deps s =
+      State_dependency_graph.Dynamic.G.fold_pred
+	(fun s (hyps, deps) ->
+	  try
+	    match Visited.find visited s with
+	    | Property p, _ ->
+	      (if State.equal p.state dash_state then hyps else p :: hyps),
+	      deps
+	    | State s, _ -> hyps, s :: deps
+	    | Status _, _ -> assert false
+	  with Not_found ->
+	    (* break mutually recursive states *)
+	    Visited.add
+	      visited
+	      s
+	      (State { value = s; hypothesis = []; dependencies = [] }, true);
+	    let v = visit_state s in
+	    hyps, v :: deps)
+	State_dependency_graph.Dynamic.graph
+	s
+	([], [])
+    and visit_state s =
+      let h, d = get_hyps_deps s in
+      let v = { value = s; hypothesis = h; dependencies = d } in
+      Visited.replace visited s (State v, true);
+      v
+    in
+    let visit_status s v =
+      let h, d = get_hyps_deps s in
+      let v = { value = v, s; hypothesis = h; dependencies = d } in
+      Visited.add visited s (Status v, true);
+      v
+    in
+    let annot_codependencies =
+      State_selection.Dynamic.only_codependencies dash_state
+    in
+    let get_status dash =
+      Dash.fold
+	(fun () _ (status, status_state) acc ->
+	  if Visited.mem visited status_state then
+	    acc
+	  else begin
+	    match !status with
+	    | Unknown ->
+	      Visited.add
+		visited
+		status_state
+		(Status
+		   { value = Unknown,
+		     status_state; hypothesis = [];
+		     dependencies = [] },
+		 true);
+	      acc (* do not add [v] *)
+	    | Checked _ as status ->
+	      State_selection.Dynamic.iter_in_order
+		(fun s ->
+		  if not (Visited.mem visited s) then
+		    try
+		      match Status.find_key s with
+		      (* [s] corresponds to a property never seen yet *)
+		      | [] -> assert false
+		      | (p, _) :: tl ->
+			(* each property of the list should be the same *)
+			assert
+			  (List.for_all
+			     (fun (p', _) -> Property.equal p p') tl);
+			ignore (visit_property p s [] false)
+		    with Not_found ->
+		      (* [s] does not correspond to any property *)
+		      ignore (visit_state s))
+		(State_selection.Dynamic.union
+		   (State_selection.Dynamic.only_codependencies status_state)
+		   annot_codependencies);
+	      visit_status status_state status :: acc
+	  end)
+	dash
+	[]
+    in
+    try
+      match Visited.find visited dash_state with
+      (* [annot] already visited as an hypothesis of another property:
+	 only update its status. *)
+      | Property p, false ->
+	visit_property p.property p.state (get_status dash) true :: properties
+      | Property p, true -> p :: properties
+      | (State _ | Status _), _ ->
+	assert false
+    with Not_found ->
+      (* [annot] never visited *)
+      let s = get_status dash in
+      visit_property annot dash_state s true :: properties
+
+  let rec get_property visited annot =
+    let dash_and_state = memo_tbl_full annot in
+    let properties = get_binding visited annot dash_and_state [] in
+    Visited.iter
+      (fun _ v -> match v with
+      | _, true -> () (* already done *)
+      | Property p, false ->
+	(* update it *)
+	ignore (get_property visited p.property)
+      | (State _ | Status _), false -> assert false)
+      visited;
+    match properties with
+    | [] | _ :: _ :: _ -> assert false
+    | [ p ] -> p
+
+  let get annot = get_property (Visited.create 17) annot
+
+  let get_all () =
+    let visited = Visited.create 17 in
+    Status.fold
+      (fun a _ dash_and_state acc -> get_binding visited a dash_and_state acc)
+      []
+
+  type edge = And | Or
+
+  module G =
+    Graph.Persistent.Digraph.ConcreteLabeled
+      (struct
+	type t = vertex
+	let compare x y = match x, y with
+	  | Property p1, Property p2 -> State.compare p1.state p2.state
+	  | Status s1, Status s2 ->
+	    State.compare (snd s1.value) (snd s2.value)
+	  | State s1, State s2 -> State.compare s1.value s2.value
+	  | Property _, (State _ | Status _) -> -1
+	  | (State _ | Status _), Property _ -> 1
+	  | State _, Status _ -> -1
+	  | Status _, State _ -> 1
+	let equal x y = compare x y = 0
+	let hash = function
+	  | Property p -> H.hash (0, State.hash p.state)
+	  | State s -> H.hash (1, State.hash s.value)
+	  | Status s -> H.hash (2, State.hash (snd s.value))
+       end)
+      (struct
+	type t = edge
+	let default = And
+	let compare : edge -> edge -> int = Extlib.compare_basic
+       end)
+
+  let rec add_property visited g p =
+    let state = p.state in
+    if Visited.mem visited state then
+      g
+    else begin
+      Visited.add visited state ();
+      let pp = Property p in
+      let status = p.status in
+      match status with
+      | [] ->
+	G.add_vertex g pp
+      | _ :: _ ->
+	List.fold_left
+	  (fun g s ->
+	    let g = G.add_edge_e g (pp, Or, Status s) in
+	    add_status visited g s)
+	  g
+	  status
+    end
+
+  and add_status visited g s =
+    let state = snd s.value in
+    assert (not (Visited.mem visited state));
+    Visited.add visited state ();
+    let ss = Status s in
+    let g =
+      List.fold_left
+	(fun g h ->
+	  let g = G.add_edge_e g (ss, And, Property h) in
+	  add_property visited g h)
+	g
+	s.hypothesis
+    in
+    List.fold_left
+      (fun g d ->
+	let g = G.add_edge_e g (ss, And, State d) in
+	add_state visited g d)
+      g
+      s.dependencies
+
+  (* could be merged with [add_status] in OCaml 3.12:
+     requires polymorphic recursion *)
+  and add_state visited g s =
+    let state = s.value in
+    if Visited.mem visited state then
+      g
+    else begin
+      Visited.add visited state ();
+      let ss = State s in
+      let g =
+	List.fold_left
+	  (fun g h ->
+	    let g = G.add_edge_e g (ss, And, Property h) in
+	    add_property visited g h)
+	  g
+	  s.hypothesis
+      in
+      List.fold_left
+	(fun g d ->
+	  let g = G.add_edge_e g (ss, And, State d) in
+	  add_state visited g s)
+	g
+	s.dependencies
+    end
+
+  let generic_get_graph f =
+    let t = f () in
+    let g = List.fold_left (add_property (Visited.create 17)) G.empty t in
+    let module R =
+	  State_dependency_graph.Remove_useless_states
+	    (G)(struct let kind v = State.kind (state_of_vertex v) end)
+    in
+    R.get g
+
+  let get_full_graph () = generic_get_graph get_all
+  let get_graph p = generic_get_graph (fun () -> [ get p ])
+
+  let dump graph dot_file =
+    let module Dot =
+	  Graph.Graphviz.Dot
+	    (struct
+	      include G
+	      let status_color = function
+		| Checked { valid = False } -> 0xff0000
+		| Checked { valid = True } -> 0x00ff00
+		| Unknown | Checked { valid = Maybe } -> 0xffa500 (* orange *)
+	      let graph_attributes _ = [(* `Ratio (`Float 0.25)*) ]
+	      let vertex_name s =
+		"\"" ^ State.get_unique_name (state_of_vertex s) ^ "\""
+	      let vertex_attributes s =
+		let label s = `Label (String.escaped (State.get_name s)) in
+		match s with
+		| Property p ->
+		  let s = p.state in
+		  assert (State.kind s = `Correctness);
+		  let fontcolor = status_color (fst (strongest p.property)) in
+		  [ label s; `Color 0x4682b4; `Fontcolor fontcolor;
+		    `Shape `Diamond; `Style `Filled ]
+		| Status status ->
+		  let v, s = status.value in
+		  assert (State.kind s = `Correctness);
+		  let color = status_color v in
+		  [ label s; `Color color; `Style `Filled; `Shape `Box ]
+		| State s ->
+		  let s = s.value in
+		  match State.kind s with
+		  | `Irrelevant ->
+		    Kernel.abort
+		      "State %s is not relevant here"
+		      (State.get_name s)
+		  | `Internal | `Proxy `Internal ->
+		    [ `Label ""; `Height 0.; `Width 0.; `Style `Filled ]
+		  | `Tuning -> [ label s; `Style `Dotted ]
+		  | `Correctness | `Proxy `Correctness ->
+		    [ label s; `Color 0xb0c4de; `Style `Filled ]
+	      let edge_attributes (_src, lab, dst) =
+		let s = state_of_vertex dst in
+		match State.kind s with
+		| `Internal | `Proxy `Internal ->
+		  [ `Constraint false; `Arrowhead `None ]
+		| `Tuning
+		| `Correctness | `Proxy `Correctness ->
+		  (match lab with
+		  | And ->
+		    let c = 0x8b4513 in
+		    [ `Label "AND"; `Color c; `Fontcolor c; `Style `Bold ]
+		  | Or ->
+		    let c = 0x228b22 in
+		    [ `Label "OR"; `Color c; `Fontcolor c; `Style `Bold ])
+		| `Irrelevant ->
+		  Kernel.abort
+		    "State %s is not relevant here"
+		    (State.get_name s)
+	      let default_vertex_attributes _ = []
+	      let default_edge_attributes _ = []
+	      let get_subgraph _ = None
+       end)
+    in
+    let cout = open_out dot_file in
+    Dot.output_graph cout graph;
+    close_out cout
 
 end
 
-(* [JS 2010/02/24] should handle dependencies in order to be able to 
-   have two different plug-ins which generate RTE *)
-(* Table for generation status *)
-module GENERATED
-  (M:sig 
-     val name:string 
-     val default: kernel_function -> bool 
-   end) = 
+let pretty_all fmt annot =
+  let all_status =
+    let h = memo_tbl annot in
+    List.fold_left
+      (fun acc s -> match !s with Unknown -> acc | Checked _ as s -> s :: acc)
+      []
+      (Dash.find_all_data h ())
+  in
+  Pretty_utils.pp_list ~sep:";" Cil.d_annotation_status fmt all_status
+
+module Make_updater
+  (P: sig
+     val name: string
+     val emitter: State.t
+   end) =
 struct
 
-  include Computation.Dashtbl
-    (Globals.Functions.KF_Datatype)
-    (Datatype.Ref(Datatype.Bool))
-    (struct 
-       let size = 17
-       let name = M.name
-       let dependencies = [ RTE_Status_Proxy.self ]
-     end)
+  let () = H.add emitters P.emitter ()
 
-  let get kf =
-    let state = RTE_Status_Proxy.get_state kf in
-    try !(find_data kf state) 
-    with Not_found -> 
-      let def = M.default kf in
-      add kf [ state ] (ref def);
-      def
+  let get_name annot s =
+    let old = Parameters.UseUnicode.get () in
+    Parameters.UseUnicode.set false;
+    let status_name = function
+      | False -> "Invalid"
+      | True -> "Valid"
+      | Maybe -> "Maybe"
+    in
+    let s = match s with
+      | Unknown ->
+	Pretty_utils.sfprintf "Unknown: %a" Property.pretty annot
+      | Checked c  ->
+(*	assert (c.emitter = State.name P.emitter);*)
+	Pretty_utils.sfprintf  "%s for %s: %a"
+	  (status_name c.valid)
+	  c.emitter
+	  Property.pretty annot
+    in
+    Parameters.UseUnicode.set old;
+    s
 
-  let get_state kf = 
-    let state = RTE_Status_Proxy.get_state kf in
-    try
-      find_state kf state 
-    with Not_found -> 
-      add kf [ state ] (ref (M.default kf));
-      try find_state kf state with Not_found -> assert false
+  let get_state_hypothesis hyps =
+    List.fold_left
+      (fun acc h -> memo_state_tbl h :: acc)
+      [ P.emitter ]
+      hyps
 
-  let set kf b = 
-    let state = RTE_Status_Proxy.get_state kf in
-    try
-      let v = find_data kf state in
-      v := b
-    with Not_found ->
-      add kf [ state ] (ref b)
+  let full_update must_add annot hyps f =
+    let h, hs = memo_tbl_full annot in
+    match Dash.find_all_local h () P.emitter with
+    | [] ->
+      let new_s = f Unknown in
+      if must_add || new_s <> Unknown then begin
+	let state_hyps = get_state_hypothesis hyps in
+	(* TODO: should detect more general cycles in the dependency graph *)
+	if List.exists (State.equal hs) state_hyps then
+	  Kernel.fatal
+	    "inconsistency detected: property %a depends of itself."
+	    Property.pretty annot;
+	Dash.add
+	  h
+	  (get_name annot new_s)
+	  ()
+	  (hs :: state_hyps)
+	  (ref new_s)
+      end;
+      new_s
+    | [ d, s ] ->
+      (* TODO: does not try yet to update the hypothesis:
+	 Should we do? *)
+      d := f !d;
+      let new_d = !d in
+      State.set_name s (get_name annot new_d);
+      new_d
+    | _ :: _ :: _ ->
+      assert false
+
+  let rec compute_behavior kf st b =
+    let all_ip = Property.ip_post_cond_of_behavior kf st b in
+    let all_status = List.map get all_ip in
+    weakest_status all_status
+
+  and get annot = match annot with
+    | IPBehavior(kf, st, b) ->
+      let post_conds = Property.ip_post_cond_of_behavior kf st b in
+      full_update false annot post_conds (fun _ -> compute_behavior kf st b)
+    | _ ->
+      full_update false annot [] (fun x -> x)
+
+  let () =
+    get_all_behavior_ref :=
+      (fun annot ->
+	let status = get annot in
+	let h = memo_tbl annot in
+	let state =
+	  try Dash.find_state h () P.emitter
+	  with Not_found ->
+	    assert (status = Unknown);
+	    State.dummy
+	in
+	status, state)
+    :: !get_all_behavior_ref
+
+  let update annot hyps f =
+    match annot with
+    | IPBehavior _ -> Kernel.fatal "cannot modify a behavior status"
+    | _ -> full_update true annot hyps f
+
+  let set annot hyps status =
+    ignore (full_update true annot hyps (fun _ -> status))
 
 end
-
-(* Tables of RTE generation status. *)
-module RTE_Signed_Generated =
-  GENERATED
-    (struct
-       let name = "Signed overflow" 
-       let default kf = not (Kernel_function.is_definition kf)
-     end)
-
-module RTE_MemAccess_Generated =
-  GENERATED
-    (struct
-       let name = "Mem access" 
-       let default kf = not (Kernel_function.is_definition kf)
-     end)
-
-module RTE_DivMod_Generated =
-  GENERATED
-    (struct
-       let name = "Div/mod" 
-       let default kf = not (Kernel_function.is_definition kf)
-     end)
-
-module RTE_DownCast_Generated =
-  GENERATED
-    (struct
-       let name = "Downcast" 
-       let default kf = not (Kernel_function.is_definition kf)
-     end)
-
-module Called_Precond_Generated =
-  GENERATED
-    (struct
-       let name = "Precondition" 
-       let default kf = not (Kernel_function.is_definition kf)
-     end)
-
-module M1 = RTE_Signed_Generated 
-module M2 = RTE_MemAccess_Generated 
-module M3 = RTE_DivMod_Generated 
-module M4 = RTE_DownCast_Generated 
-module M5 = Called_Precond_Generated
-  
-let get_all_status () = 
-  [ (M1.self, M1.get_state, M1.get);
-    (M2.self, M2.get_state, M2.get);
-    (M3.self, M3.get_state, M3.get);
-    (M4.self, M4.get_state, M4.get);
-    (M5.self, M5.get_state, M5.get) ]
-
-type 'a context = { property: 'a;
-		    hypothesis: identified_property list}
-and identified_property = 
-  | IPBlob of Project.Computation.t
-  | IPPredicate of Predicate.t context
-  | IPAxiom of string
-  | IPCodeAnnot of string * Cil_types.code_annotation
-  | IPComplete of Complete.t context
-  | IPDisjoint of Disjoint.t context
-  | IPAssigns of Assigns.t context
-  | IPDecrease of (Db_types.kernel_function*kinstr*term variant) context
 
 (*
 Local Variables:

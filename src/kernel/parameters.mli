@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2010                                               *)
+(*  Copyright (C) 2007-2011                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,8 @@ open Plugin
 (** {2 Generic access to plug-in parameters} *)
 (* ************************************************************************* *)
 
-(** Module to use for accessing parameters of plug-ins. *)
+(** Module to use for accessing parameters of plug-ins.
+    Assume that the plug-in is already loaded. *)
 module Dynamic : sig
 
   (** Set of common operations on parameters. *)
@@ -62,7 +63,7 @@ module Dynamic : sig
 
   (** Set of string parameters. *)
   module StringSet : sig
-    include Common with type t = Cilutil.StringSet.t
+    include Common with type t = Datatype.String.Set.t
     val add: string -> string  -> unit
     val remove: string -> string -> unit
     val is_empty: string -> bool
@@ -87,7 +88,7 @@ val check_range: string -> min:int -> max:int -> int -> unit
   (** @since Beryllium-20090601-beta1
       @deprecated Beryllium-20090901 *)
 
-val get_selection_context: unit -> Project.Selection.t
+val get_selection_context: unit -> State_selection.t
   (** Selection of all the parameters which define the context of analyses. *)
 
 (* ************************************************************************* *)
@@ -126,6 +127,9 @@ module UseUnicode: BOOL
 module Time: STRING
   (** Behavior of option "-time" *)
 
+module Collect_messages: BOOL
+(** Behavior of option "-collect-messages" *)
+
 (* ************************************************************************* *)
 (** {2 Input / Output Source Code} *)
 (* ************************************************************************* *)
@@ -142,11 +146,8 @@ module CodeOutput : sig
   val output: ('a,Format.formatter,unit) format -> 'a
 end
 
-module Obfuscate: BOOL
-  (** Behavior of option "-obfuscate" *)
-
-module FloatDigits: INT
-  (** Behavior of option "-float-digits" *)
+module FloatNormal: BOOL
+  (** Behavior of option "-float-normal" *)
 
 module FloatRelative: BOOL
   (** Behavior of option "-float-relative" *)
@@ -244,16 +245,44 @@ module Files: sig
 end
 
 (* ************************************************************************* *)
+(** {3 Customizing cabs2cil options} *)
+(* ************************************************************************* *)
+
+module AllowDuplication: BOOL
+  (** Behavior of option "-allow-duplication". *)
+
+module DoCollapseCallCast: BOOL
+  (** Behavior of option "-collapse-call-cast". *)
+
+module ForceRLArgEval: BOOL
+  (** Behavior of option "-force-rl-arg-eval". *)
+
+(* ************************************************************************* *)
 (** {2 Analysis Behavior of options} *)
 (* ************************************************************************* *)
 
-(** Behavior of option "-main" *)
+(** Behavior of option "-main".
+
+    You should usually use {!Globals.entry_point} instead of
+    {!MainFunction.get} since the first one handles the case where the entry
+    point is invalid in the right way. *)
 module MainFunction: sig
+
   include STRING
-  val unsafe_set: t -> unit (** Not for casual users. *)
+
+  (** {2 Internal functions}
+
+      Not for casual users. *)
+
+  val unsafe_set: t -> unit
+
 end
 
-(** Behavior of option "-lib-entry" *)
+(** Behavior of option "-lib-entry".
+
+    You should usually use {!Globals.entry_point} instead of
+    {!LibEntry.get} since the first one handles the case where the entry point
+    is invalid in the right way. *)
 module LibEntry: sig
   include BOOL
   val unsafe_set: t -> unit (** Not for casual users. *)
