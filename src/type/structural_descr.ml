@@ -35,14 +35,6 @@ and recursive = t ref
 (** {2 Injection into Unmarshal} *)
 (* ********************************************************************** *)
 
-module Unmarshal_tbl =
-  Hashtbl.Make
-    (struct
-      type t = Unmarshal.t
-      let equal = (==)
-      let hash = Hashtbl.hash
-     end)
-
 module Recursive = struct
 
   let create () = ref Unknown
@@ -53,9 +45,9 @@ module Recursive = struct
   module Tbl =
     Hashtbl.Make
       (struct
-	type t = recursive
-	let equal = (==)
-	let hash = Hashtbl.hash
+        type t = recursive
+        let equal = (==)
+        let hash = Hashtbl.hash
        end)
 
   let positions = Tbl.create 7
@@ -115,6 +107,8 @@ let from_unmarshal = function
   | Unmarshal.Transform _ | Unmarshal.Return _ | Unmarshal.Dynamic _ ->
     assert false (* not structural *)
 
+let recursive_pack r = Recursive r
+
 (* ********************************************************************** *)
 (** {2 Predefined values} *)
 (* ********************************************************************** *)
@@ -172,6 +166,14 @@ let t_hashtbl_unchanged_hashs = poly2 Unmarshal.t_hashtbl_unchangedhashs
 (* ********************************************************************** *)
 (* {3 cleanup} *)
 (* ********************************************************************** *)
+
+module Unmarshal_tbl =
+  Hashtbl.Make
+    (struct
+      type t = Unmarshal.t
+      let equal = (==)
+      let hash = Hashtbl.hash
+     end)
 
 let unmarshal_visited = Unmarshal_tbl.create 7
 
@@ -246,11 +248,11 @@ let rec are_consistent_unmarshal_structures s1 s2 = match s1, s2 with
   | Unmarshal.Sum arr1, Unmarshal.Sum arr2 ->
     (try
        for i = 0 to Array.length arr1 - 1 do
-	 let arr1_i = arr1.(i) in
-	 for j = 0 to Array.length arr1_i - 1 do
-	   if not (are_consistent_unmarshal arr1_i.(j) arr2.(i).(j)) then
-	     raise Exit
-	 done
+         let arr1_i = arr1.(i) in
+         for j = 0 to Array.length arr1_i - 1 do
+           if not (are_consistent_unmarshal arr1_i.(j) arr2.(i).(j)) then
+             raise Exit
+         done
        done;
        true
      with Invalid_argument _ | Exit ->
@@ -294,10 +296,10 @@ let rec are_consistent_structures s1 s2 = match s1, s2 with
   | Sum arr1, Sum arr2 ->
     (try
        for i = 0 to Array.length arr1 - 1 do
-	 let arr1_i = arr1.(i) in
-	 for j = 0 to Array.length arr1_i - 1 do
-	   if not (are_consistent_pack arr1_i.(j) arr2.(i).(j)) then raise Exit
-	 done
+         let arr1_i = arr1.(i) in
+         for j = 0 to Array.length arr1_i - 1 do
+           if not (are_consistent_pack arr1_i.(j) arr2.(i).(j)) then raise Exit
+         done
        done;
        true
      with Invalid_argument _ | Exit ->
@@ -319,7 +321,7 @@ and are_consistent_aux d1 d2 = match d1, d2 with
 
 let are_consistent d1 d2 =
   assert (Unmarshal_tbl.length unmarshal_consistent_visited = 0
-	 && Tbl.length consistent_visited = 0);
+         && Tbl.length consistent_visited = 0);
   let b = are_consistent_aux d1 d2 in
   Unmarshal_tbl.clear unmarshal_consistent_visited;
   Tbl.clear consistent_visited;

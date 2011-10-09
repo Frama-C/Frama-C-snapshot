@@ -151,7 +151,9 @@ m4_if("PLUGIN_DYNAMIC","yes",
 AC_SUBST([ENABLE_]UP)
 AC_SUBST([DYNAMIC_]UP)
 echo "PLUGIN_NAME... $ENABLE"
-m4_undefine([PLUGIN_NAME])
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
 m4_undefine([PLUGIN_FILE])
 m4_undefine([PLUGIN_MSG])
 m4_undefine([PLUGIN_DEFAULT])
@@ -608,11 +610,14 @@ define([write_plugin_config],
                   AC_FOREACH([plugin_file],$1,[plugin_prefix/plugin_file ]))
         m4_define([files_chmod],
                   AC_FOREACH([plugin_file],plugin_files,[chmod -w plugin_file]))
-       AC_CONFIG_FILES(plugin_files,files_chmod)
-       m4_ifdef([FRAMAC_MAIN_AUTOCONF],
-                [EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} plugin_prefix"],
-                [
-                 write_plugin_summary
-                 AC_OUTPUT()
-                ])
+        AC_CONFIG_FILES(plugin_files,files_chmod)
+        m4_ifdef(
+         [FRAMAC_MAIN_AUTOCONF],
+         if test "$[ENABLE_]tovarname(PLUGIN_NAME)" != "no"; then
+            [EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} plugin_prefix"];
+         fi,
+         [
+           write_plugin_summary
+           AC_OUTPUT()
+         ])
        ])

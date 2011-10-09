@@ -37,4 +37,4 @@ type token =
   | EOF
 
 val ltl :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> (Ltlast.formula * (string, (Cil_types.exp* string*Cil_types.predicate)) Hashtbl.t)
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> (Ltlast.formula * (string, (Logic_ptree.relation *  Promelaast.expression * Promelaast.expression)) Hashtbl.t)

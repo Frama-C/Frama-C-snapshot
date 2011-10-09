@@ -20,6 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Nothing is exported here 
+(** Nothing is exported here
     Functions are registered in {!Db}.
 *)

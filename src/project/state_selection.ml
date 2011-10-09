@@ -33,6 +33,9 @@ let of_list l = Subset (List.fold_left Selection.add_vertex Selection.empty l)
 
 let is_empty s = s = Subset Selection.empty
 let is_full s = s = Full
+let mem sel s = match sel with
+  | Full -> true
+  | Subset sel -> Selection.mem_vertex sel s
 
 include Datatype.Make
 (struct
@@ -46,20 +49,20 @@ include Datatype.Make
       match Selection.fold_vertex (fun s acc -> s :: acc) sel [] with
       | [] -> Format.fprintf fmt "@[State_selection.empty@]"
       | [ s ] ->
-	let pp fmt =
-	  Format.fprintf fmt "@[<hv 2>State_selection.singleton@;%a@]"
-	    (State.internal_pretty_code Type.Call)
-	    s
-	in
-	Type.par p_caller Type.Call fmt pp
+        let pp fmt =
+          Format.fprintf fmt "@[<hv 2>State_selection.singleton@;%a@]"
+            (State.internal_pretty_code Type.Call)
+            s
+        in
+        Type.par p_caller Type.Call fmt pp
       | l ->
-	let module D = Datatype.List(State) in
-	let pp fmt =
-	  Format.fprintf fmt "@[<hv 2>State_selection.of_list@;%a@]"
-	    (D.internal_pretty_code Type.Call)
-	    l
-	in
-	Type.par p_caller Type.Call fmt pp
+        let module D = Datatype.List(State) in
+        let pp fmt =
+          Format.fprintf fmt "@[<hv 2>State_selection.of_list@;%a@]"
+            (D.internal_pretty_code Type.Call)
+            l
+        in
+        Type.par p_caller Type.Call fmt pp
  end)
 
 module type S = sig
@@ -85,11 +88,11 @@ module Make(G: State_dependency_graph.S) = struct
   let transitive_closure next_vertices s =
     let rec visit acc v =
       next_vertices
-	(fun v' acc ->
-	  let e = v, v' in
-	  if Selection.mem_edge_e acc e then acc
-	  else visit (Selection.add_edge_e acc e) v')
-	G.graph v acc
+        (fun v' acc ->
+          let e = v, v' in
+          if Selection.mem_edge_e acc e then acc
+          else visit (Selection.add_edge_e acc e) v')
+        G.graph v acc
     in
     (* add [s] in the selection even if it has no ingoing/outgoing edges *)
     visit (Selection.add_vertex Selection.empty s) s
@@ -115,19 +118,19 @@ module Make(G: State_dependency_graph.S) = struct
             (fun v acc ->
               if Selection.mem_vertex sel2 v then acc
               else Selection.add_vertex acc v)
-	    G.graph
+            G.graph
             Selection.empty
         in
-	G.G.fold_edges
-	  (fun v1 v2 acc ->
-	    if Selection.mem_vertex sel2 v1 || Selection.mem_vertex sel2 v2
-	    then acc
-	    else Selection.add_edge acc v1 v2)
-	  G.graph
-	  selection
+        G.G.fold_edges
+          (fun v1 v2 acc ->
+            if Selection.mem_vertex sel2 v1 || Selection.mem_vertex sel2 v2
+            then acc
+            else Selection.add_edge acc v1 v2)
+          G.graph
+          selection
       | Subset sel1, Subset sel2 ->
-	Selection.fold_vertex
-	  (fun v acc -> Selection.remove_vertex acc v) sel2 sel1)
+        Selection.fold_vertex
+          (fun v acc -> Selection.remove_vertex acc v) sel2 sel1)
 
   let union =
     let module O = Graph.Oper.P(Selection) in
@@ -170,14 +173,14 @@ module Make(G: State_dependency_graph.S) = struct
     Format.fprintf fmt "contents of the selection:@\n";
     let mem s =
       State_dependency_graph.Static.G.mem_vertex
-	State_dependency_graph.Static.graph
-	s
+        State_dependency_graph.Static.graph
+        s
     in
     iter_in_order
       (fun s ->
-	Format.fprintf fmt "\t state %S%s@\n"
-	  (State.get_unique_name s)
- 	  (if mem s then "" else "(\"" ^ State.get_name s ^ "\")"))
+        Format.fprintf fmt "\t state %S%s@\n"
+          (State.get_unique_name s)
+          (if mem s then "" else "(\"" ^ State.get_name s ^ "\")"))
       sel;
     Format.pp_print_flush fmt ()
 
@@ -185,7 +188,7 @@ module Make(G: State_dependency_graph.S) = struct
     | Full -> assert false
     | Subset sel ->
       let module R =
-	    State_dependency_graph.Remove_useless_states(Selection)(State)
+            State_dependency_graph.Remove_useless_states(Selection)(State)
       in
       Subset (R.get sel)
 
@@ -204,9 +207,9 @@ module Dynamic = struct
       match s with
       | Full -> DG.dump filename
       | Subset s ->
-	let cout = open_out filename in
-	DS.output_graph cout s;
-	close_out cout
+        let cout = open_out filename in
+        DS.output_graph cout s;
+        close_out cout
   end
 
   include Dot(State_dependency_graph.Dynamic.Attributes)

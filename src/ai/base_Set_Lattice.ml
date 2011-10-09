@@ -21,3 +21,9 @@
 (**************************************************************************)
 
 include Abstract_interp.Make_Lattice_Set(Base)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -137,7 +137,7 @@
 	(2 font-lock-keyword-face t))
        ("\\(axiom\\|behavior\\|case\\|inductive\\|predicate\\|l\\(ogic\\|emma\\)\\)\\>[ \t\n@]*\\([a-zA-Z_][a-zA-Z_0-9]*\\)" (,pre-match-form) nil
 	(3 font-lock-function-name-face t))
-       ("\\\\\\(at\\|e\\(mpty\\|xists\\)\\|f\\(alse\\|orall\\)\\|old\\|result\\|true\\|valid\\(_range\\)?\\)" (,pre-match-form) nil
+       ("\\\\\\(at\\|e\\(mpty\\|xists\\)\\|f\\(alse\\|orall\\)\\|old\\|result\\|true\\|valid\\(_range\\|_index\\)?\\)" (,pre-match-form) nil
 	(0 font-lock-constant-face t)))))
   "Default highlighting for ACSL mode")
 

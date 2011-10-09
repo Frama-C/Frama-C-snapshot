@@ -230,7 +230,10 @@ and print_type_spec fmt = function
 (* print "struct foo", but with specified keyword and a list of
  * attributes to put between keyword and name *)
 and print_struct_name_attr keyword fmt (name, extraAttrs) =
-    fprintf fmt "%s%a%s" keyword print_attributes extraAttrs name
+    fprintf fmt "%s%a%a@ %s"
+      keyword
+      (pp_cond (extraAttrs <> [])) space_sep
+      print_attributes extraAttrs name
 
 (* This is the main printer for declarations. It is easy bacause the
  * declarations are laid out as they need to be printed. *)
@@ -247,7 +250,7 @@ and print_decl (n: string) fmt = function
       fprintf fmt "%a[@[%a%a@]]"
         (print_decl n) d print_attributes al print_expression e
   | PROTO(d, args, isva) ->
-      fprintf fmt "@[(@[%a@])@;(%a)@]"
+      fprintf fmt "@[%a@;(%a)@]"
         (print_decl n) d print_params (args,isva)
 
 and print_fields fmt (flds : field_group list) =
@@ -277,7 +280,7 @@ and print_name_group fmt (specs, names) =
 
 and print_field_group fmt fld = match fld with
   | FIELD (specs, fields) ->
-      fprintf fmt "%a%a;"
+      fprintf fmt "%a@ %a;"
         print_specifiers specs
         (pp_list ~sep:(","^^space_sep) print_field) fields
   | TYPE_ANNOT annot ->
@@ -331,7 +334,7 @@ and print_init_expression fmt (iexp: init_expression) =
         (pp_list ~sep:(","^^space_sep) doinitexp) initexps
 
 and print_cast_expression fmt = function
-    NO_INIT -> Cilmsg.fatal "no init in cast"
+    NO_INIT -> Kernel.fatal "no init in cast"
   | COMPOUND_INIT _ as ie ->
       fprintf fmt "(@[%a@])" print_init_expression ie
   | SINGLE_INIT e -> print_expression_level cast_level fmt e
@@ -409,7 +412,7 @@ and print_for_init fmt fc =
 and print_statement fmt stat =
   let loc = Cabshelper.get_statementloc stat in
   Cil_const.CurrentLoc.set loc;
-  if Cilmsg.debug_atleast 2 then fprintf fmt "@\n/* %a */@\n" Cil.d_loc loc;
+  if Kernel.debug_atleast 2 then fprintf fmt "@\n/* %a */@\n" Cil.d_loc loc;
   match stat.stmt_node with
       NOP _ -> pp_print_string fmt ";"
     | COMPUTATION (exp,_) -> fprintf fmt "%a;" print_expression exp
@@ -443,9 +446,13 @@ and print_statement fmt stat =
     | BREAK _ -> pp_print_string fmt "break;"
     | CONTINUE _ -> pp_print_string fmt "continue;"
     | RETURN (exp, _) ->
-        fprintf fmt "return%a%a;"
-          (pp_cond (exp.expr_node = NOTHING)) space_sep
-	  print_expression exp
+      let has_paren exp =
+        match exp.expr_node with
+          | PAREN _ -> true
+          | _  -> false in
+      fprintf fmt "return%a%a;"
+        (pp_cond (not (exp.expr_node = NOTHING || has_paren exp))) space_sep
+	            print_expression exp
     | SWITCH (exp, stat,_) ->
         fprintf fmt "@[<hov 2>switch@ (@[%a@])@ %a@]"
           print_expression exp print_substatement stat

@@ -22,7 +22,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** 
+(**
 * This file should be empty because every API functions of the slicing module
 * should be registered in {!Db.Slicing}.
 
@@ -31,6 +31,5 @@ please look {{:../code_slicing/index.html}here}.
 *)
 
 
-val print_fct_stmts : 
-  Format.formatter -> (SlicingTypes.sl_project * Db_types.kernel_function) -> unit
-
+val print_fct_stmts :
+  Format.formatter -> (SlicingTypes.sl_project * Cil_types.kernel_function) -> unit

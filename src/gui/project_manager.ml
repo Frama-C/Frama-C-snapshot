@@ -22,12 +22,15 @@
 
 open Cilutil
 
-let compare_prj p1 p2 =
-  let n = String.compare (Project.get_name p1) (Project.get_name p2) in
-  if n = 0 then Project.compare p1 p2 else n
+let compare_prj (_p1, n1) (_p2, n2) =
+  String.compare n1 n2
 
 let projects_list () =
-  let projects = Project.fold_on_projects (fun acc p -> p :: acc) [] in
+  let projects =
+    Project.fold_on_projects
+      (fun acc p -> (p, Project.get_unique_name p) :: acc)
+      []
+  in
   List.sort compare_prj projects
 
 (* use the same order than the projects list.
@@ -36,7 +39,7 @@ let projects_list () =
 module PrjRadiosSet =
   Set.Make
     (struct
-       type t = Project.t * GMenu.radio_menu_item
+       type t = (Project.t * string) * GMenu.radio_menu_item
        let compare (p1, _) (p2, _) = compare_prj p1 p2
      end)
 
@@ -50,8 +53,8 @@ let new_project main_ui =
     (fun filenames ->
        let project = Project.create "interactive" in
        let init () =
-	 Parameters.Files.set filenames;
-	 File.init_from_cmdline ()
+         Kernel.Files.set filenames;
+         File.init_from_cmdline ()
        in
        Project.on project init ();
        Project.set_current project)
@@ -88,7 +91,7 @@ let save_project_as (main_ui: Design.main_window_extension_points) project =
   let dialog =
     GWindow.file_chooser_dialog
       ~action:`SAVE
-      ~title:("Save project %S" ^ Project.get_unique_name project)
+      ~title:("Save project " ^ Project.get_unique_name project)
       ~parent:main_ui#main_window ()
   in
   (*dialog#set_do_overwrite_confirmation true ; only in later lablgtk2 *)
@@ -98,9 +101,9 @@ let save_project_as (main_ui: Design.main_window_extension_points) project =
     (fun () ->
        match dialog#run () with
        | `SAVE ->
-	   Extlib.may
-	     (save_in main_ui (dialog :> GWindow.window_skel) project)
-	     dialog#filename
+           Extlib.may
+             (save_in main_ui (dialog :> GWindow.window_skel) project)
+             dialog#filename
        | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
@@ -125,14 +128,14 @@ let load_project (host_window: Design.main_window_extension_points) =
   host_window#protect ~cancelable:true ~parent:(dialog:>GWindow.window_skel)
     (fun () -> match dialog#run () with
      | `OPEN ->
-	 begin match dialog#filename with
-	 | None -> ()
-	 | Some f ->
-	     (try ignore (Project.load f)
-	      with Project.IOError s | Failure s ->
-		host_window#error ~parent:(dialog:>GWindow.window_skel)
-		  "Cannot load: %s" s)
-	 end
+         begin match dialog#filename with
+         | None -> ()
+         | Some f ->
+             (try ignore (Project.load f)
+              with Project.IOError s | Failure s ->
+                host_window#error ~parent:(dialog:>GWindow.window_skel)
+                  "Cannot load: %s" s)
+         end
      | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
@@ -147,26 +150,26 @@ let rename_project (main_ui: Design.main_window_extension_points) project =
   | None -> ()
   | Some s ->
       try
-	ignore (Project.from_unique_name s);
-	main_ui#error "Project of name %S already exists" s
+        ignore (Project.from_unique_name s);
+        main_ui#error "Project of name %S already exists" s
       with Not_found ->
-	Project.set_name project s
+        Project.set_name project s
 
 let reset (menu: GMenu.menu) =
-  (* Do not reset all if there is no changes. *)
+  (* Do not reset all if there is no change. *)
   let pl = projects_list () in
   let same_projects =
     (* use that project_radios and pl are sorted in the same way *)
     try
       let rest =
-	PrjRadiosSet.fold
-	  (fun (p1, _) acc ->
-	     match acc with
-	     | [] -> raise Exit
-	     | p2 :: acc ->
-		 if Project.compare p1 p2 = 0 then acc else raise Exit)
-	  !project_radios
-	  pl
+        PrjRadiosSet.fold
+          (fun (p1, _) acc ->
+             match acc with
+             | [] -> raise Exit
+             | p2 :: acc ->
+                 if compare_prj p1 p2 = 0 then acc else raise Exit)
+          !project_radios
+          pl
       in
       rest = []
     with Exit ->
@@ -175,7 +178,7 @@ let reset (menu: GMenu.menu) =
   if same_projects then begin
     (* update the item status according to the current project anyway *)
     PrjRadiosSet.iter
-      (fun (p, r) -> r#set_active (Project.is_current p))
+      (fun ((p, _), r) -> r#set_active (Project.is_current p))
       !project_radios;
     false
   end else begin
@@ -207,10 +210,11 @@ and mk_project_entry window menu ?group p =
     ()
   in
   let callback () = if p_item#active then Project.set_current p in
+  let pname = Project.get_unique_name p in
   ignore (p_item#connect#toggled ~callback);
-  project_radios := PrjRadiosSet.add (p, p_item) !project_radios;
+  project_radios := PrjRadiosSet.add ((p, pname), p_item) !project_radios;
   let box = GPack.hbox ~packing:p_item#add () in
-  ignore (GMisc.label ~text:(Project.get_unique_name p) ~packing:box#pack ());
+  ignore (GMisc.label ~text:pname ~packing:box#pack ());
   let buttons_box = GPack.hbox ~packing:(box#pack ~from:`END) () in
   let tooltips = GData.tooltips () in
   let add_action stock text callback =
@@ -227,17 +231,19 @@ and mk_project_entry window menu ?group p =
   add_action `DELETE "Delete project" (fun () -> delete_project p);
   add_action `SAVE "Save project" (fun () -> save_project window p);
   add_action `SAVE_AS "Save project as" (fun () -> save_project_as window p);
-  add_action `SPELL_CHECK "Rename project" (fun () -> rename_project window p);
+  add_action `SELECT_FONT "Rename project" (fun () -> rename_project window p);
   p_item
 
 let make_project_entries window menu =
   match projects_list () with
   | [] -> assert false
-  | pa :: tl ->
+  | (pa, _name) :: tl ->
       let mk = mk_project_entry window menu in
       let pa_item = mk pa in
       let group = pa_item#group in
-      List.iter (fun pa -> ignore (mk ~group pa)) tl
+      List.iter (fun (pa, _) -> ignore (mk ~group pa)) tl
+
+open Menu_manager
 
 (** Register this dialog in main window menu bar *)
 let () =
@@ -246,26 +252,30 @@ let () =
        let menu_manager = window#menu_manager () in
        let item, menu = menu_manager#add_menu "_Project" in
        let constant_items =
-	 menu_manager#add_entries
-	   menu
-	   [
-	     Menu_manager.ToolMenubar(`NEW, "New project"),
-	     (fun () -> new_project window);
-	     Menu_manager.Menubar(Some `REVERT_TO_SAVED, "Load project"),
-	     (fun () -> load_project window);
-	     Menu_manager.ToolMenubar(`COPY, "Duplicate current project"),
-	     (fun () -> duplicate_project window menu (Project.current ()));
-	     Menu_manager.ToolMenubar(`DELETE, "Delete current project"),
-	     (fun () -> delete_project (Project.current ()));
-	   ]
+         menu_manager#add_entries
+           menu
+           [
+             menubar ~icon:`NEW "New project"
+               (Unit_callback (fun () -> new_project window));
+             menubar ~icon:`REVERT_TO_SAVED "Load project"
+               (Unit_callback (fun () -> load_project window));
+             menubar ~icon:`COPY "Duplicate current project"
+               (Unit_callback
+                  (fun () -> duplicate_project window menu(Project.current())));
+             menubar ~icon:`DELETE "Delete current project"
+               (Unit_callback (fun () -> delete_project (Project.current ())));
+             menubar ~icon:`SELECT_FONT "Rename current project"
+               (Unit_callback
+                  (fun () -> rename_project window (Project.current ())));
+           ]
        in
        let new_item = constant_items.(0) in
        new_item#add_accelerator `CONTROL 'n';
        constant_items.(3)#add_accelerator `CONTROL 'd';
        ignore (GMenu.separator_item ~packing:menu#append ());
        let callback () =
-	 let is_reset = reset menu in
-	 if is_reset then make_project_entries window menu
+         let is_reset = reset menu in
+         if is_reset then make_project_entries window menu
        in
        ignore (item#connect#activate ~callback))
 

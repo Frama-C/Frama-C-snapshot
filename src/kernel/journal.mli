@@ -34,15 +34,15 @@ val register:
   'a ->
   'a
     (** [register name ty ~comment ~is_dyn v] journalizes the value [v]
-	of type [ty] with the name [name]. [name] must exactly match the caml
-	long name of the value (i.e. "List.iter" and not "iter" even though the
-	module List is already opened). Journalisation of anonymous value is
-	not possible.
+        of type [ty] with the name [name]. [name] must exactly match the caml
+        long name of the value (i.e. "List.iter" and not "iter" even though the
+        module List is already opened). Journalisation of anonymous value is
+        not possible.
 
-	If the [comment] argument is set, the given pretty printer will be
-	applied in an OCaml comment when the function is journalized.
+        If the [comment] argument is set, the given pretty printer will be
+        applied in an OCaml comment when the function is journalized.
 
-	Set [is_dyn] to [true] to journalize a dynamic function. *)
+        Set [is_dyn] to [true] to journalize a dynamic function. *)
 
 val never_write: string -> 'a -> 'a
   (** [never_write name f] returns a closure [g] observationaly equal to [f]
@@ -57,12 +57,12 @@ val prevent: ('a -> 'b) -> 'a -> 'b
 module Binding: sig
   val add: 'a Type.t -> 'a -> string -> unit
     (** [add ty v var] binds the value [v] to the variable name [var].  Thus,
-	[pp ty v] prints [var] and not use the standard pretty printer.  Very
-	useful to pretty print values with no associated pretty printer. *)
+        [pp ty v] prints [var] and not use the standard pretty printer.  Very
+        useful to pretty print values with no associated pretty printer. *)
   exception Name_already_exists of string
   val add_once: 'a Type.t -> 'a -> string -> unit
     (** Same as function [add] above but raise the exception [Already_exists]
-	if the binding previously exists *)
+        if the binding previously exists *)
 end
 
 (* ****************************************************************************)

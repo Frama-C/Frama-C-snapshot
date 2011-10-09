@@ -58,7 +58,7 @@ module Sentences = struct
 
   type t =
       { sentence: Format.formatter -> unit;
-	raise_exn: bool }
+        raise_exn: bool }
 
   let sentences : t Queue.t = Queue.create ()
 
@@ -156,15 +156,15 @@ let rec get_filename =
       incr cpt;
       let suf = "_" ^ string_of_int !cpt in
       (try
-	 let n =
-	   Str.search_backward
-	     (Str.regexp "_[0-9]+")
-	     !filename
-	     (String.length !filename - 1)
-	 in
-	 filename := Str.string_before !filename n ^ suf
+         let n =
+           Str.search_backward
+             (Str.regexp "_[0-9]+")
+             !filename
+             (String.length !filename - 1)
+         in
+         filename := Str.string_before !filename n ^ suf
        with Not_found ->
-	 filename := !filename ^ suf);
+         filename := !filename ^ suf);
       get_filename false
     end else
       name
@@ -207,12 +207,12 @@ let () =
 module Binding: sig
   val add: 'a Type.t -> 'a -> string -> unit
     (** [add ty v var] binds the value [v] to the variable name [var].  Thus,
-	[pp ty v] prints [var] and not use the standard pretty printer.  Very
-	useful to pretty print values with no associated pretty printer. *)
+        [pp ty v] prints [var] and not use the standard pretty printer.  Very
+        useful to pretty print values with no associated pretty printer. *)
   exception Name_already_exists of string
   val add_once: 'a Type.t -> 'a -> string -> unit
     (** Same as function [add] above but raise the exception [Already_exists]
-	if the binding previously exists *)
+        if the binding previously exists *)
   val find: 'a Type.t -> 'a -> string
 end = struct
 
@@ -247,7 +247,7 @@ let never_write name f =
   if Cmdline.journal_enable && Cmdline.use_type then
     if Obj.tag (Obj.repr f) = Obj.closure_tag then
       Obj.magic
-	(fun y -> if !started then Obj.magic f y else raise (Not_writable name))
+        (fun y -> if !started then Obj.magic f y else raise (Not_writable name))
     else
       invalid_arg ("[Journal.never_write] " ^ name ^ " is not a closure")
   else
@@ -261,9 +261,9 @@ let pp ty fmt (o:Obj.t) =
     let pp = Datatype.internal_pretty_code ty in
     if pp == Datatype.undefined then
       fatal
-	"no printer registered for value of type %s.@\n\
+        "no printer registered for value of type %s.@\n\
 Journalisation is not possible. Aborting"
-	(Type.name ty);
+        (Type.name ty);
     if pp == Datatype.pp_fail then
       Format.fprintf
         fmt
@@ -310,22 +310,22 @@ let print_sentence f_acc is_dyn comment ?value ty fmt =
   if not (Type.equal ty Datatype.unit) then
     Format.fprintf fmt "let %t=@;"
       (fun fmt ->
-	 let binding =
-	   let varname = Datatype.varname ty in
-	   match varname == Datatype.undefined, value with
-	   | true, _ | _, None ->
-	       "__" (* no binding nor value: ignore the result *)
-	   | false, Some value ->
-	       (* bind to a fresh variable name *)
-	       let v = Obj.obj value in
-	       let b = gen_binding (varname v) in
-	       Binding.add ty v b;
-	       b
-	 in
-	 Format.fprintf fmt "%s" binding;
-	 (* add the return type for dynamic application *)
-	 if is_dyn then Format.fprintf fmt "@;: %s" (Type.name ty)
-	 else Format.fprintf fmt " ");
+         let binding =
+           let varname = Datatype.varname ty in
+           match varname == Datatype.undefined, value with
+           | true, _ | _, None ->
+               "__" (* no binding nor value: ignore the result *)
+           | false, Some value ->
+               (* bind to a fresh variable name *)
+               let v = Obj.obj value in
+               let b = gen_binding (varname v) in
+               Binding.add ty v b;
+               b
+         in
+         Format.fprintf fmt "%s" binding;
+         (* add the return type for dynamic application *)
+         if is_dyn then Format.fprintf fmt "@;: %s" (Type.name ty)
+         else Format.fprintf fmt " ");
   (* pretty print the sentence itself in a box *)
   Format.fprintf fmt "@[<hv 2>%t@]" f_acc;
   (* close the sentence *)
@@ -368,33 +368,33 @@ let rec journalize_function f_acc ty is_dyn comment (x:Obj.t) =
     let opt_arg = Type.Function.get_optional_argument ty in
     Obj.repr
       (fun (y:'a) ->
-	if !started then
-	  (* prevent journalisation if you're journalizing another function *)
-	  Obj.repr (Obj.obj x y)
-	else begin
-	  let old_started = !started in
-	  try
-	    (* [started] prevents journalization of function call
-	       inside another one *)
-	    started := true;
-	    (* apply the closure [x] to its argument [y] *)
-	    let xy = Obj.obj x y in
-	    started := old_started;
-	    (* extend the continuation and continue *)
-	    let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
-	    journalize_function f_acc b is_dyn comment xy
-	  with
-	  | Not_writable name ->
-	    started := old_started;
-	    fatal
-	      "a call to the function %S cannot be written in the journal"
-	      name
-	  | exn as e ->
-	    let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
-	    catch_exn f_acc is_dyn comment b exn;
-	    started := old_started;
-	    raise e
-	end)
+        if !started then
+          (* prevent journalisation if you're journalizing another function *)
+          Obj.repr (Obj.obj x y)
+        else begin
+          let old_started = !started in
+          try
+            (* [started] prevents journalization of function call
+               inside another one *)
+            started := true;
+            (* apply the closure [x] to its argument [y] *)
+            let xy = Obj.obj x y in
+            started := old_started;
+            (* extend the continuation and continue *)
+            let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
+            journalize_function f_acc b is_dyn comment xy
+          with
+          | Not_writable name ->
+            started := old_started;
+            fatal
+              "a call to the function %S cannot be written in the journal"
+              name
+          | exn as e ->
+            let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
+            catch_exn f_acc is_dyn comment b exn;
+            started := old_started;
+            raise e
+        end)
   end else begin
     if not !started then add_sentence f_acc is_dyn comment ~value:x ty;
     x

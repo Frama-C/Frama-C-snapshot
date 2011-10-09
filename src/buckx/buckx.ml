@@ -57,29 +57,17 @@ end;;
 module MakeBig(H:WeakHashable) =
 struct
   module W = Weak.Make(H)
-  let n = ref 0
-  let get () = incr n; !n
-  type t = (W.t * int )ref
-  let addr t = snd !t
+  type t = W.t ref
+  let addr _t = 0
   type data = H.t
-  let create c =
-    let t = ref (W.create c, (get())) in
-(*    Format.printf "CREATE %s: %d@." H.id (snd !t);*)
-    t
-  let merge t d =
-(*    let r = *)W.merge (fst !t) d (*in*)
-(*    if H.id = "(base, Int_Intervals) ptmap" && (addr new_tr = 1297910 || H.id
-	  new_tr = 538304833 || H.id = 27776) then
-      Format.printf "MERGE %S: t=%d; d=%a " H.id (snd !t) H.pretty d;*)
-(*    r*)
-  let iter t f = W.iter f (fst !t)
-  let clear t = W.clear (fst !t)
+  let create c = ref (W.create c)
+  let merge t d = W.merge !t d
+  let iter t f = W.iter f (!t)
+  let clear t = W.clear (!t)
   let release _t = ()
   let pretty_debug _ = assert false
   let shallow_copy t = ref !t
   let overwrite ~old ~fresh =
-(*    if H.id = "(base, Int_Intervals) ptmap" then
-      Format.printf "OVERWRITE old=%d; fresh=%d@." (snd !old) (snd !fresh);*)
     old := !fresh
 end
 
@@ -89,8 +77,8 @@ let () =
   let gc_params = Gc.get () in
   Gc.set
     { gc_params with
-      Gc.minor_heap_size = 1 lsl 19 ;
-      major_heap_increment = 1 lsl 21;
+      Gc.minor_heap_size = 1 lsl 18 ;
+      major_heap_increment = 1 lsl 22;
       (* space_overhead = 40 ; max_overhead = 100 *)
     };
 

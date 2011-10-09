@@ -1,5 +1,4 @@
 type token =
-  | FOR_SPEC of (Cabs.cabsloc * string list * Logic_ptree.spec)
   | SPEC of (Lexing.position * string)
   | DECL of (Logic_ptree.decl list)
   | CODE_ANNOT of (Logic_ptree.code_annot * Cabs.cabsloc)

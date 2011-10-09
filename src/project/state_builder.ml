@@ -44,6 +44,7 @@ module type S = sig
   val mark_as_computed: ?project:Project.t -> unit -> unit
   val is_computed: ?project:Project.t -> unit -> bool
   module Datatype: Datatype.S
+  val add_hook_on_update: (Datatype.t -> unit) -> unit
   val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
 end
 
@@ -80,25 +81,26 @@ module Proxy = struct
   let create name kind correctness states =
     let s =
       State.create
-	~descr:Structural_descr.p_abstract
-	~create:do_nothing
-	~remove:do_nothing
-	~clear:do_nothing
-	~clean:do_nothing
-	~clear_some_projects:(fun _ _ -> false)
-	~copy:do_nothing_2
-	~commit:do_nothing
-	~update:do_nothing
-	~serialize:
-	(fun _ ->
-	  { on_disk_value = Obj.repr ();
-	    on_disk_computed = false;
-	    on_disk_saved = false;
-	    on_disk_digest = Type.digest Datatype.unit })
-	~unserialize:do_nothing_2
-	~unique_name:name
-	~name
-	(`Proxy correctness)
+        ~descr:Structural_descr.p_abstract
+        ~create:do_nothing
+        ~remove:do_nothing
+        ~clear:do_nothing
+        ~clean:do_nothing
+        ~clear_some_projects:(fun _ _ -> false)
+        ~copy:do_nothing_2
+        ~commit:do_nothing
+        ~update:do_nothing
+	~on_update:do_nothing
+        ~serialize:
+        (fun _ ->
+          { on_disk_value = Obj.repr ();
+            on_disk_computed = false;
+            on_disk_saved = false;
+            on_disk_digest = Type.digest Datatype.unit })
+        ~unserialize:do_nothing_2
+        ~unique_name:(State.unique_name_from_name name)
+        ~name
+        (`Proxy correctness)
     in
     State_dependency_graph.add_state_like_the_others states s;
     extend_state states kind s;
@@ -141,18 +143,22 @@ struct
   let commit p =
     if Project.is_current p then
       try
-	let v = find p in
-	v.state <- Local_state.get ()
+        let v = find p in
+        v.state <- Local_state.get ()
       with Not_found ->
-	fatal
-	  "state %S not associated with project %S; program will fail"
-	  name
-	  (Project.get_unique_name p)
+        fatal
+          "state %S not associated with project %S; program will fail"
+          name
+          (Project.get_unique_name p)
+
+  module Update_hook = Hook.Build(Datatype)
+  let add_hook_on_update = Update_hook.extend
 
   let update_with ~force p s =
     if Project.is_current p || force then begin
       debug ~level:4 "update state %S of project %S"
-	!internal_name (Project.get_unique_name p);
+        !internal_name (Project.get_unique_name p);
+      Update_hook.apply s;
       Local_state.set s
     end
 
@@ -174,17 +180,17 @@ struct
     fun p ->
       assert (not (mem p));
       (* For efficiency purpose, do not create the initial project twice:
-	 directly get it *)
+         directly get it *)
       let mk () =
-	if !first then begin
-	  first := false;
-	  Local_state.get ()
-	end else begin
+        if !first then begin
+          first := false;
+          Local_state.get ()
+        end else begin
           debug ~level:4 "creating state %S for project %S"
-	    !internal_name (Project.get_unique_name p);
-	  let s = Local_state.create () in
-	  update_with ~force:false p s;
-	  s
+            !internal_name (Project.get_unique_name p);
+          let s = Local_state.create () in
+          update_with ~force:false p s;
+          s
         end
       in
       let s = mk () in
@@ -239,23 +245,23 @@ struct
     assert Cmdline.use_obj;
     if Type.digest Datatype.ty = new_s.State.on_disk_digest then begin
       debug ~level:4 "unserializing state %S for project %S"
-	!internal_name (Project.get_unique_name p);
+        !internal_name (Project.get_unique_name p);
 (*      Format.printf "UNSERIALIZING %s / %s: %b@." !internal_name Datatype.name !must_save;*)
       let s, computed =
-	if !must_save && new_s.State.on_disk_saved then
-	  !unmarshal new_s.State.on_disk_value, new_s.State.on_disk_computed
-	else
-	  (* invariant: the found state is equal to the default one since it
-	     has been just created.
-	     Do not call Local_state.create to don't break sharing *)
-	  (find p).state, false
+        if !must_save && new_s.State.on_disk_saved then
+          !unmarshal new_s.State.on_disk_value, new_s.State.on_disk_computed
+        else
+          (* invariant: the found state is equal to the default one since it
+             has been just created.
+             Do not call Local_state.create to don't break sharing *)
+          (find p).state, false
       in
       change ~force:true p { state = s; computed = computed };
     end else
       raise
-	(Project.IOError
-	   ("project saved with incompatibles datatypes for state "
-	    ^ !internal_name))
+        (Project.IOError
+           ("project saved with incompatibles datatypes for state "
+            ^ !internal_name))
   (* ********************************************************************* *)
 
   let mark_as_computed ?(project=(Project.current ())) () =
@@ -271,7 +277,8 @@ struct
     State.create
       (* we will marshal the value [()] if the state is unmarshable *)
       ~descr ~create ~remove ~clear ~clear_some_projects ~copy
-      ~commit ~update ~serialize ~unserialize ~clean
+      ~commit ~update ~on_update:(fun f -> Update_hook.extend (fun _ -> f ()))
+      ~serialize ~unserialize ~clean
       ~unique_name ~name:Info.name Info.kind
 
   let name = State.get_name self
@@ -345,7 +352,7 @@ struct
   let new_kind ~name unique_name clear =
     let clear p =
       debug ~level:4 "clearing dynamic state %S for project %S"
-	name (Project.get_unique_name p);
+        name (Project.get_unique_name p);
       clear p
     in
     let s = State.unusable ~name unique_name in
@@ -359,9 +366,9 @@ struct
       (G.Datatype)
       (G)
       (struct
-	include Info
-	let unique_name = name
-	let descr _ = Descr.unmarshable
+        include Info
+        let unique_name = name
+        let descr _ = Descr.unmarshable
        end)
 
   let () = Proxy.extend [ Graph_state.self ] states_graph_proxy
@@ -388,8 +395,8 @@ struct
     let kind = State.kind self
     let () =
       let deps =
-	!self_ref
-	:: List.filter (fun s -> not (State.is_dummy s)) Info.dependencies
+        !self_ref
+        :: List.filter (fun s -> not (State.is_dummy s)) Info.dependencies
       in
       G.add_state self deps
   end
@@ -478,7 +485,7 @@ module Option_ref(Data:Datatype.S)(Info: Info) = struct
     try
       let old = get () in
       Extlib.may_map
-	~dft:old (fun f -> let v = f old in set v; v) change
+        ~dft:old (fun f -> let v = f old in set v; v) change
     with Not_found ->
       let data = f () in
       set data;
@@ -492,6 +499,7 @@ end
 module type List_ref = sig
   type data_in_list
   include Ref
+  val add: data_in_list -> unit
   val iter: (data_in_list -> unit) -> unit
   val fold_left: ('a -> data_in_list -> 'a) -> 'a -> 'a
 end
@@ -499,6 +507,7 @@ end
 module List_ref(Data:Datatype.S)(Info:Info) = struct
   type data_in_list = Data.t
   include Ref(Datatype.List(Data))(struct include Info let default () = [] end)
+  let add d = set (d::get())
   let iter f = List.iter f (get ())
   let fold_left f acc = List.fold_left f acc (get ())
 end
@@ -523,7 +532,7 @@ module True_ref(Info:Info) =
 (* ************************************************************************* *)
 
 module type Set_ref = sig
-  include S
+  include Ref
   type elt
   val add: elt -> unit
   val is_empty: unit -> bool
@@ -593,21 +602,21 @@ struct
 (*       Format.printf "%S: %S %S@." Info.name H.Key.name Data.name;*)
        let x =
        if D.mem_project == Datatype.never_any_project then
-	 false
+         false
        else
-	 (* [TODO] BUG: if [Data.mem_project f v] returns [true] and there are
-	    several bindings for the key [k] of [v] (and [v] is not the last
-	    added binding) *)
-	 let found =
-	   H.fold
-	     (fun k v l ->
-	       if H.Key.mem_project f k || Data.mem_project f v then k :: l
-	       else l)
-	     h
-	     []
-	 in
-	 List.iter (H.remove h) found;
-	 found <> []
+         (* [TODO] BUG: if [Data.mem_project f v] returns [true] and there are
+            several bindings for the key [k] of [v] (and [v] is not the last
+            added binding) *)
+         let found =
+           H.fold
+             (fun k v l ->
+               if H.Key.mem_project f k || Data.mem_project f v then k :: l
+               else l)
+             h
+             []
+         in
+         List.iter (H.remove h) found;
+         found <> []
        in
 (*       Format.printf "DONE@.";*)
        x
@@ -629,7 +638,7 @@ struct
     try
       let old = find key in
       Extlib.may_map
-	~dft:old (fun f -> let v = f old in replace key v; v) change
+        ~dft:old (fun f -> let v = f old in replace key v; v) change
     with Not_found ->
       let data = f key in
       replace key data;
@@ -678,14 +687,14 @@ struct
      let set x = state := x
      let clear_some_projects f h =
        if Data.mem_project == Datatype.never_any_project then
-	 false
+         false
        else
-	 let found =
-	   W.fold
-	     (fun k l -> if Data.mem_project f k then k :: l else l) h []
-	 in
-	 List.iter (W.remove h) found;
-	 found <> []
+         let found =
+           W.fold
+             (fun k l -> if Data.mem_project f k then k :: l else l) h []
+         in
+         List.iter (W.remove h) found;
+         found <> []
    end)
   (struct include Info let unique_name = name end)
 
@@ -721,20 +730,20 @@ struct
 
     include Weak.Make
       (struct
-	include Data
-	let equal = Data.equal_internal
-	let hash = Data.hash_internal
+        include Data
+        let equal = Data.equal_internal
+        let hash = Data.hash_internal
        end)
 
     let add_initial_values h =
 (*      Format.printf "adding initial values for %s@." Info.name;*)
       List.iter
-	(fun vi ->
-	   let _r = merge h vi in
-	   (*  (* Check that we do not add the value twice, which is probably a
-	       bug in the calling interface *)
-	   assert (r == vi) *) ())
-	Data.initial_values
+        (fun vi ->
+           let _r = merge h vi in
+           (*  (* Check that we do not add the value twice, which is probably a
+               bug in the calling interface *)
+           assert (r == vi) *) ())
+        Data.initial_values
 
     let create size =
       let h = create size in
@@ -749,16 +758,16 @@ struct
     let merge =
       let c = ref 0 in
       fun h x ->
-	incr c;
-	if (!c land 4095 = 0)
-	then begin
-	    Gc.full_major ();
-	  let length, n, sum, small, med, large = stats h in
-	  Format.printf "%s length %d, n %d, sum %d, small %d, med %d, large %d@."
-	    Info.name
-	    length n sum small med large
-	  end;
-	merge h x
+        incr c;
+        if (!c land 4095 = 0)
+        then begin
+            Gc.full_major ();
+          let length, n, sum, small, med, large = stats h in
+          Format.printf "%s length %d, n %d, sum %d, small %d, med %d, large %d@."
+            Info.name
+            length n sum small med large
+          end;
+        merge h x
 *)
   end
 
@@ -806,43 +815,85 @@ module type Dashtbl = sig
   module Graph: Dashtbl.Graph
 end
 
+
 (* Create a fresh, shared reference among projects.
    The projectification is only required for correct marshalling. *)
-module Counter(Info : sig val name : string end) =
-struct
+module SharedCounter(Info : sig val name : string end) = struct
+
   let cpt = ref 0
   module Cpt =
     Register
       (struct
-	 include Datatype.Int
-	 let default () = 0
-	 let descr =
-	   Descr.transform
-	     Descr.t_int
-	     (fun n ->
-		cpt := Extlib.max_cpt n !cpt;
-		!cpt)
+         include Datatype.Int
+         let default () = 0
+         let descr =
+           Descr.transform
+             Descr.t_int
+             (fun n ->
+                cpt := Extlib.max_cpt n !cpt;
+                !cpt)
        end)
       (struct
-	 type t = int
-	 let create () = !cpt
-	 let clear _ = ()
-	 let get () = !cpt
-	 let set _ = ()
-	 let clear_some_projects _ _ = false
+         type t = int
+         let create () = !cpt
+         let clear _ = ()
+         let get () = !cpt
+         let set _ = ()
+         let clear_some_projects _ _ = false
        end)
       (struct
-	 let name = Info.name
-	 let unique_name = Info.name
-	 let dependencies = []
-	 let kind = `Internal
+         let name = Info.name
+         let unique_name = Info.name
+         let dependencies = []
+         let kind = `Internal
        end)
 
   let next () = incr cpt ; !cpt
+  let self = Cpt.self
 
 end
 
-module Cpt = Counter(struct let name = "State_builder.Cpt" end)
+module Cpt = SharedCounter(struct let name = "State_builder.Cpt" end)
+
+
+module Counter(Info : sig val name : string end) = struct
+
+  let create () = ref 0
+  let cpt = ref (create ())
+
+  module Cpt =
+    Register
+      (struct
+         include Datatype.Ref(Datatype.Int)
+         let default () = 0
+         let descr =
+           Descr.transform
+             (Descr.t_ref Descr.t_int)
+             (fun n ->
+                let r = !cpt in
+                r := Extlib.max_cpt !n !r;
+                r)
+       end)
+      (struct
+         type t = int ref
+         let create = create
+         let clear x = x := 0
+         let get () = !cpt
+         let set x = cpt := x
+         let clear_some_projects _ _ = false
+       end)
+      (struct
+         let name = Info.name
+         let unique_name = Info.name
+         let dependencies = []
+         let kind = `Internal
+       end)
+
+  let next () = incr !cpt ; !(!cpt)
+  let self = Cpt.self
+
+end
+
 
 module Dashtbl
   (Key: Dashtbl.Key)
@@ -855,24 +906,24 @@ struct
 
     module D =
       Dynamic
-	(struct
-	  let name = Info.name ^ " Dependency Graph"
-	  let dependencies = []
-	  let kind = `Internal
-	  let internal_kind = Info.internal_kind
-	 end)
+        (struct
+          let name = Info.name ^ " Dependency Graph"
+          let dependencies = []
+          let kind = `Internal
+          let internal_kind = Info.internal_kind
+         end)
 
     let create_and_add_state ~clear ~name ~deps =
       let module S =
-	    D.Register
-	      (struct let clear = clear end)
-	      (struct
-		let name = name
-		let unique_name =
-		  let n = Cpt.next () in
-		  Info.name ^ "; binding " ^ string_of_int n
-		let dependencies = deps
-	       end)
+            D.Register
+              (struct let clear = clear end)
+              (struct
+                let name = name
+                let unique_name =
+                  let n = Cpt.next () in
+                  Info.name ^ "; binding " ^ string_of_int n
+                let dependencies = deps
+               end)
       in
       S.self
 
@@ -902,7 +953,7 @@ struct
     let clear_some_projects _ _ =
       (* TODO: not able to handle project in dashtbl yet *)
       assert (Data.mem_project == Datatype.never_any_project
-	      || Data.mem_project == Datatype.undefined);
+              || Data.mem_project == Datatype.undefined);
       false
    end)
   (struct include Info let unique_name = name end)
@@ -919,16 +970,16 @@ struct
   let () =
     Project.register_after_load_hook
       (fun () ->
-	Dash.iter
-	  (fun _ s (_, s') ->
-	    assert (not (State.is_dummy s'));
- 	    let from =
- 	      match s with
-	      | None -> [ self ]
-	      | Some s -> [ s; self ]
- 	    in
- 	    State_dependency_graph.Dynamic.add_codependencies ~onto:s' from)
-	  !state)
+        Dash.iter
+          (fun _ s (_, s') ->
+            assert (not (State.is_dummy s'));
+            let from =
+              match s with
+              | None -> [ self ]
+              | Some s -> [ s; self ]
+            in
+            State_dependency_graph.Dynamic.add_codependencies ~onto:s' from)
+          !state)
 
   type key = Dash.key
   type data = Dash.data
@@ -987,15 +1038,15 @@ module Queue(Data: Datatype.S)(Info: Info) = struct
      let set x = state := x
      let clear_some_projects f q =
        if Data.mem_project == Datatype.never_any_project then
-	 false
+         false
        else
-	 (* cannot remove a single element from a queue *)
-	 try
-	   Queue.iter (fun x -> if Data.mem_project f x then raise Exit) q;
-	   false
-	 with Exit ->
-	   clear q;
-	   true
+         (* cannot remove a single element from a queue *)
+         try
+           Queue.iter (fun x -> if Data.mem_project f x then raise Exit) q;
+           false
+         with Exit ->
+           clear q;
+           true
    end)
   (struct include Info let unique_name = name end)
 
@@ -1013,8 +1064,8 @@ let apply_once name dep f =
   let module First =
     True_ref
       (struct
-	let dependencies = dep
-	let name = name
+        let dependencies = dep
+        let name = name
         let kind = `Internal
        end)
   in
@@ -1022,11 +1073,11 @@ let apply_once name dep f =
      if First.get () then begin
        First.set false;
        try
-	 f ();
-	 assert (First.get () = false)
+         f ();
+         assert (First.get () = false)
        with exn ->
-	 First.set true;
-	 raise exn
+         First.set true;
+         raise exn
      end),
   First.self
 

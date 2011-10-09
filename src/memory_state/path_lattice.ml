@@ -63,8 +63,8 @@ let rec pretty_precise fmt p =
       fprintf fmt "*%a" pretty_precise p
   | Union (sl,p) ->
       fprintf fmt "%a | *(%a)"
-	Shifted_Location.pretty sl
-	pretty_precise p
+        Shifted_Location.pretty sl
+        pretty_precise p
 
 let pretty fmt p =
   match p with
@@ -78,11 +78,12 @@ exception Error_Top
 
 let rec topify v =
   match v with
-  | Location (ls) -> (valid_enumerate_bits ls.Shifted_Location.l)
+  | Location (ls) ->
+      valid_enumerate_bits ~for_writing:false ls.Shifted_Location.l
   | Union(ls,p) ->
       Zone.join
-	(valid_enumerate_bits ls.Shifted_Location.l)
-	(topify p)
+        (valid_enumerate_bits ~for_writing:false ls.Shifted_Location.l)
+        (topify p)
 
 exception Shifted_locations_unjoinable
 
@@ -104,40 +105,42 @@ let rec join_precise t1 t2 =
   match t1,t2 with
   | Location (sl1), Location (sl2) ->
       begin try
-	  Precise (Location (try_join_shifted_loc sl1 sl2))
-	with Shifted_locations_unjoinable ->
-	  Top (Zone.join
-		  (valid_enumerate_bits sl1.Shifted_Location.l)
-		  (valid_enumerate_bits sl2.Shifted_Location.l))
+          Precise (Location (try_join_shifted_loc sl1 sl2))
+        with Shifted_locations_unjoinable ->
+          Top
+            (Zone.join
+                (valid_enumerate_bits ~for_writing:false sl1.Shifted_Location.l)
+                (valid_enumerate_bits ~for_writing:false sl2.Shifted_Location.l))
       end
   | Location sl, (Union (sl1,t2) as u)
   | (Union (sl1,t2) as u), Location sl ->
       begin try
-	  Precise (Union (try_join_shifted_loc sl sl1, t2))
-	with Shifted_locations_unjoinable ->
-	  Top (Zone.join
-		  (valid_enumerate_bits (sl.Shifted_Location.l))
-		  (topify u))
+          Precise (Union (try_join_shifted_loc sl sl1, t2))
+        with Shifted_locations_unjoinable ->
+          Top
+            (Zone.join
+                (valid_enumerate_bits ~for_writing:false (sl.Shifted_Location.l))
+                (topify u))
       end
   |  Union ({Shifted_Location.l = l1} as u1, p1),
       Union ({Shifted_Location.l = l2} as u2, p2) ->
        begin match join_precise p1 p2 with
        | Top t ->
-	   Top
-	     (Zone.join t
-		 (Zone.join
-		     (valid_enumerate_bits l1)
-		     (valid_enumerate_bits l2)))
+           Top
+             (Zone.join t
+                 (Zone.join
+                     (valid_enumerate_bits ~for_writing:false l1)
+                     (valid_enumerate_bits ~for_writing:false l2)))
        | Precise p ->
-	   begin try
-	       Precise (Union (try_join_shifted_loc u1 u2, p))
-	     with Shifted_locations_unjoinable ->
-	       Top
-		 (Zone.join (topify p)
-		     (Zone.join
-			 (valid_enumerate_bits l1)
-			 (valid_enumerate_bits l2)))
-	   end
+           begin try
+               Precise (Union (try_join_shifted_loc u1 u2, p))
+             with Shifted_locations_unjoinable ->
+               Top
+                 (Zone.join (topify p)
+                     (Zone.join
+                         (valid_enumerate_bits ~for_writing:false l1)
+                         (valid_enumerate_bits ~for_writing:false l2)))
+           end
        end
 
 let join t1 t2 =
@@ -152,7 +155,7 @@ let rec is_included_precise p1 p2 =
       Shifted_Location.is_included s1 s2
   | Union (s1, t1), Union (s2, t2) ->
       Shifted_Location.is_included s1 s2 &&
-	is_included_precise t1 t2
+        is_included_precise t1 t2
   | Union (_, t), Location _ ->
       assert (not (is_bottom_precise t));
       false
@@ -168,6 +171,6 @@ let is_included t1 t2 =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

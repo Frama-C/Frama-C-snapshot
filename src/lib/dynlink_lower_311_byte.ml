@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Implementation of [Dynlink_common_interface] compatible with 
+(* Implementation of [Dynlink_common_interface] compatible with
    ocamlc < 3.11 *)
 
 module type OldDynlink = sig
@@ -37,7 +37,7 @@ exception Unsupported_Feature of string
 let is_native = false
 let adapt_filename x = x
 
-type linking_error = 
+type linking_error =
   | Undefined_global of string
   | Unavailable_primitive of string
   | Uninitialized_global of string
@@ -69,7 +69,7 @@ let to_dynlink_error = function
   | Corrupted_interface s -> Dynlink.Corrupted_interface s
   | File_not_found s -> Dynlink.File_not_found s
   | Cannot_open_dll s -> Dynlink.Cannot_open_dll s
-  | Inconsistent_implementation _ -> assert false 
+  | Inconsistent_implementation _ -> assert false
 
 let from_dynlink_linking_error = function
   | Dynlink.Undefined_global s -> Undefined_global s
@@ -81,13 +81,13 @@ let from_dynlink_error = function
   | Dynlink.Inconsistent_import s -> Inconsistent_import s
   | Dynlink.Unavailable_unit s -> Unavailable_unit s
   | Dynlink.Unsafe_file -> Unsafe_file
-  | Dynlink.Linking_error(s, l) -> 
+  | Dynlink.Linking_error(s, l) ->
       Linking_error(s, from_dynlink_linking_error l)
   | Dynlink.Corrupted_interface s -> Corrupted_interface s
   | Dynlink.File_not_found s -> File_not_found s
   | Dynlink.Cannot_open_dll s -> Cannot_open_dll s
 
-let stub_error f x = 
+let stub_error f x =
   try f x with Dynlink.Error e -> raise (Error (from_dynlink_error e))
 
 let init = stub_error init

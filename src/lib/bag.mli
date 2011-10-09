@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (** List with constant-time concat operation.
-    @since Carbon-20101201 
+    @since Carbon-20101201
 *)
 
 type 'a t
@@ -29,7 +29,7 @@ type 'a t
 val empty : 'a t
 val elt : 'a -> 'a t
 val add : 'a -> 'a t -> 'a t
-val list : 'a list -> 'a t 
+val list : 'a list -> 'a t
 val ulist : 'a t list -> 'a t
 val concat : 'a t -> 'a t -> 'a t
 
@@ -47,4 +47,3 @@ val length : 'a t -> int
 
 val is_empty : 'a t -> bool
 val singleton : 'a t -> 'a option
-

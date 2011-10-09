@@ -24,12 +24,17 @@
 
 include Plugin.S
 
-module Analysis: Plugin.BOOL
+module Analysis: Plugin.Bool
 (** Whether to perform spare code detection or not. *)
 
-module Annot : Plugin.BOOL
+module Annot : Plugin.Bool
 (** keep more things to keep all reachable annotations. *)
 
-module GlobDecl : Plugin.BOOL
+module GlobDecl : Plugin.Bool
     (** remove unused global types and variables *)
 
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -50,7 +50,7 @@ let rec unroll_type ?(unroll_typedef=true) = function
                try
                  List.combine tdef.lt_params prms
                with Invalid_argument _ ->
-                 Cilmsg.fatal "Logic type used with wrong number of parameters"
+                 Kernel.fatal "Logic type used with wrong number of parameters"
              in
              unroll_type ~unroll_typedef (instantiate subst ty)
       )
@@ -58,10 +58,14 @@ let rec unroll_type ?(unroll_typedef=true) = function
   | Linteger | Lreal | Lvar _ | Larrow _ | Ctype _ as ty  -> ty
 
 (* compute type signature and removes unnecessary attributes *)
-  let type_sig_logic ty =
-    let doattr =
-      Cil.dropAttributes ["const"; "restrict"; "declspec"; "arraylen"]
-    in
+let type_sig_logic ?(drop_attributes=true) ty =
+  let attr = 
+    if drop_attributes then
+      ["const"; "restrict"; "declspec";"arraylen"; "volatile"]
+    else []
+  in
+  let doattr = Cil.dropAttributes attr
+  in
     typeSigWithAttrs doattr ty
 
 (* ************************************************************************* *)
@@ -100,25 +104,27 @@ let plain_array_to_ptr ty =
         in
         let length_attr =
           match lo with
-              None -> []
-            | Some _ -> begin
-                try
-                  let len = Cil.bitsSizeOf tarr in
-                  let len = try len / (Cil.bitsSizeOf ty)
-                  with Cil.SizeOfError _ ->
-                    Cilmsg.fatal
-                      "Inconsistent information: I know the length of \
-                       array type %a, but not of its elements."
-                      Cil.d_type tarr
-                  in
-                  (* Normally, overflow is checked in bitsSizeOf itself *)
-                  let la = AInt len in
-                  [ Attr("arraylen",[la])]
+          | None -> []
+          | Some _ ->
+	    (* [JS 2011/03/11] inconsistency between uses of [Kernel.fatal] and
+	       [Kernel.warning]. The first one does not use ~current:true, but
+	       the last one does *)
+            try
+              let len = Cil.bitsSizeOf tarr in
+              let len = try len / (Cil.bitsSizeOf ty)
                 with Cil.SizeOfError _ ->
-                  Cil.warning
-                    "Cannot represent length of array as an attribute";
-                  []
-              end
+                  Kernel.fatal
+                    "Inconsistent information: I know the length of \
+                       array type %a, but not of its elements."
+                    Cil.d_type tarr
+              in
+              (* Normally, overflow is checked in bitsSizeOf itself *)
+              let la = AInt len in
+              [ Attr("arraylen",[la])]
+            with Cil.SizeOfError _ ->
+              Kernel.warning ~current:true
+                "Cannot represent length of array as an attribute";
+              []
         in
         Ctype(TPtr(aux (Cil.filter_qualifier_attributes attr) ty,
                    Cil.addAttributes length_attr attr))
@@ -140,9 +146,9 @@ let named_of_identified_predicate ip =
 let translate_old_label s p =
   let get_label () =
     match s.labels with
-      | [] -> 
-          s.labels <- 
-            [Label (Printf.sprintf "__sid_%d_label" s.sid, 
+      | [] ->
+          s.labels <-
+            [Label (Printf.sprintf "__sid_%d_label" s.sid,
                     Cil_datatype.Stmt.loc s,false)]
       | _ -> ()
   in
@@ -159,14 +165,10 @@ let translate_old_label s p =
   let vis = object
       inherit Cil.nopCilVisitor
       method vpredicate = function
-        | Pold p -> 
-          ChangeDoChildrenPost(make_new_at_predicate p,fun x -> x)
         | Pat(p,lab) when lab = Logic_const.old_label ->
           ChangeDoChildrenPost(make_new_at_predicate p, fun x -> x)
         | _ -> DoChildren
       method vterm_node = function
-        | Told t ->
-          ChangeDoChildrenPost(make_new_at_term t,fun x -> x)
         | Tat(t,lab) when lab = Logic_const.old_label ->
           ChangeDoChildrenPost(make_new_at_term t, fun x->x)
         | _ -> DoChildren
@@ -190,7 +192,6 @@ let rec is_C_array t =
   (match t.term_node with
      | TStartOf (lh,_) -> is_C_array_lhost lh
      | TLval(lh,_) -> is_C_array_lhost lh
-     | Told t | Tat(t,_) -> is_C_array t
      | Tif(_,t1,t2) -> is_C_array t1 && is_C_array t2
      | Tlet (_,t) -> is_C_array t
      | _ -> false)
@@ -202,10 +203,6 @@ let rec mk_logic_StartOf t =
   let my_type = array_to_ptr t.term_type in
   match t.term_node with
       TLval s -> { t with term_node = TStartOf s; term_type = my_type }
-    | Told t ->
-        { t with term_node = Told (mk_logic_StartOf t); term_type = my_type }
-    | Tat (t,l) ->
-        { t with term_node = Tat(mk_logic_StartOf t,l); term_type = my_type }
     | Tif(c,t1,t2) ->
         { t with
             term_node = Tif(c,mk_logic_StartOf t1, mk_logic_StartOf t2);
@@ -214,7 +211,7 @@ let rec mk_logic_StartOf t =
     | Tlet (body,t) ->
         { t with term_node = Tlet(body, mk_logic_StartOf t);
             term_type = my_type }
-    | _ -> Cilmsg.fatal "mk_logic_StartOf given a non-C-array term"
+    | _ -> Kernel.fatal "mk_logic_StartOf given a non-C-array term"
 
 let isLogicPointer t =
   isLogicPointerType t.term_type || (is_C_array t)
@@ -222,7 +219,8 @@ let isLogicPointer t =
 let mk_logic_pointer_or_StartOf t =
   if isLogicPointer t then
     if is_C_array t then mk_logic_StartOf t else t
-  else Cilmsg.fatal "%a is neither a pointer nor a C array" d_term t
+  else Kernel.fatal ~source:(fst t.term_loc)
+    "%a is neither a pointer nor a C array" d_term t
 
 let rec expr_to_term ~cast:cast e =
   let e_typ = Cil.typeOf e in
@@ -278,16 +276,25 @@ and offset_to_term_offset ~cast:cast = function
 
 
 let array_with_range arr size =
-  let arr = Cil.mkCast arr Cil.charPtrType in
-  let arr' = expr_to_term ~cast:false arr
+  let loc = arr.eloc in
+  let insert_cast = match unrollType (typeOf arr) with
+    | TPtr (typ, _) -> not (sizeOf_int typ = sizeOf_int charType)
+    | _ -> true
+  in
+  let char_ptr = typ_to_logic_type Cil.charPtrType in
+  let arr = expr_to_term ~cast:true arr in
+  let arr =
+    if insert_cast
+    then Logic_const.term ~loc (TCastE(Cil.charPtrType, arr)) char_ptr
+    else arr
   and range_end =
     Logic_const.term ~loc:size.term_loc
-      (TBinOp (MinusA, size, Cil.lconstant 1L))
+      (TBinOp (MinusA, size, Cil.lconstant My_bigint.one))
       size.term_type
   in
-  let range = Logic_const.trange (Some (Cil.lconstant 0L), Some (range_end)) in
-  Logic_const.term ~loc:arr.eloc (TBinOp (PlusPI, arr', range))
-    (typ_to_logic_type Cil.charPtrType)
+  let range = Logic_const.trange (Some (Cil.lconstant My_bigint.zero),
+                                  Some (range_end)) in
+  Logic_const.term ~loc(TBinOp (PlusPI, arr, range)) char_ptr
 
 
 (* ************************************************************************* *)
@@ -320,7 +327,6 @@ and contains_result t =
   match t.term_node with
       TLval(v,offs) -> lval_contains_result v || loffset_contains_result offs
     | Tat(t,_) -> contains_result t
-    | Told t -> contains_result t
     | _ -> false
 
 (** @return the definition of a predicate.
@@ -330,18 +336,31 @@ let get_pred_body pi =
 
 let is_result = Logic_const.is_result
 
+
+let is_trivially_false p =
+  match p.content with
+      Pfalse -> true
+    | _ -> false
+
+let is_trivially_true p =
+  match p.content with
+      Ptrue -> true
+    | _ -> false
+
 let is_same_list f l1 l2 =
   try List.for_all2 f l1 l2 with Invalid_argument _ -> false
 
+(* [VP 2011-04-19] StmtLabel case is a bit restricted, but it's not really 
+   possible to do any better, and this function should not be called in 
+   contexts where it matters. *)
 let is_same_logic_label l1 l2 =
   match l1, l2 with
     StmtLabel s1, StmtLabel s2 -> !s1 == !s2
   | StmtLabel _, LogicLabel _
-  | LogicLabel _, StmtLabel _
-  | LogicLabel (Some _,_), LogicLabel (None, _)
-  | LogicLabel (None,_), LogicLabel (Some _, _) -> false
-  | LogicLabel (Some s1, l1), LogicLabel (Some s2, l2)  -> (s1 == s2) && (l1 = l2)
-  | LogicLabel (None, l1), LogicLabel (None, l2)  -> l1 = l2
+  | LogicLabel _, StmtLabel _ -> false
+    (* What is important here is the name of the logic label, not 
+       the hypothetical statement it is referring to. *)
+  | LogicLabel (_, l1), LogicLabel (_, l2)  -> l1 = l2
 
 let is_same_opt f x1 x2 =
   match x1,x2 with
@@ -349,20 +368,23 @@ let is_same_opt f x1 x2 =
     | Some x1, Some x2 -> f x1 x2
     | None, _ | _, None -> false
 
-let rec is_same_type t1 t2 =
-  match t1,t2 with
-      Ctype t1, Ctype t2 ->
-        Cilutil.equals (type_sig_logic t1) (type_sig_logic t2)
-    | Ltype(t1,l1), Ltype(t2,l2) ->
-        t1.lt_name = t2.lt_name && List.for_all2 is_same_type l1 l2
-    | Linteger, Linteger -> true
-    | Lreal, Lreal -> true
-    | Lvar v1, Lvar v2 -> v1 = v2
-    | Larrow(args1,rt1), Larrow(args2,rt2) ->
-        is_same_list is_same_type args1 args2 && is_same_type rt1 rt2
-    | (Ctype _| Ltype _ | Linteger | Lreal | Lvar _ | Larrow _),
-        (Ctype _| Ltype _ | Linteger | Lreal | Lvar _ | Larrow _) ->
-        false
+let is_same_type ?(drop_attributes=true) t1 t2 =
+  let rec is_same_type t1 t2 =
+    match t1,t2 with
+	Ctype t1, Ctype t2 ->
+	  let type_sig_logic = type_sig_logic ~drop_attributes in
+            Cilutil.equals (type_sig_logic t1) (type_sig_logic t2)
+      | Ltype(t1,l1), Ltype(t2,l2) ->
+          t1.lt_name = t2.lt_name && List.for_all2 is_same_type l1 l2
+      | Linteger, Linteger -> true
+      | Lreal, Lreal -> true
+      | Lvar v1, Lvar v2 -> v1 = v2
+      | Larrow(args1,rt1), Larrow(args2,rt2) ->
+          is_same_list is_same_type args1 args2 && is_same_type rt1 rt2
+      | (Ctype _| Ltype _ | Linteger | Lreal | Lvar _ | Larrow _),
+          (Ctype _| Ltype _ | Linteger | Lreal | Lvar _ | Larrow _) ->
+          false
+  in is_same_type t1 t2
 
 let is_same_var v1 v2 =
   v1.lv_name = v2.lv_name &&
@@ -398,13 +420,17 @@ let is_same_logic_ctor_info ci1 ci2 =
   ci1.ctor_type.lt_name =  ci2.ctor_type.lt_name &&
   is_same_list is_same_type ci1.ctor_params ci2.ctor_params
 
-let is_same_constant c1 c2 =
+let is_same_constant = Cil.compareConstant
+
+let rec is_same_pconstant c1 c2 =
   match c1, c2 with
-    CEnum e1, CEnum e2 ->
-      e1.einame = e2.einame &&
-  e1.eival = e2.eival &&
-  e1.eihost.ename = e2.eihost.ename
-  | _ -> c1 = c2
+    | IntConstant c1, IntConstant c2 -> c1 = c2
+    | IntConstant _, _ | _, IntConstant _ -> false
+    | FloatConstant c1, FloatConstant c2 -> c1 = c2
+    | FloatConstant _,_ | _,FloatConstant _ -> false
+    | StringConstant c1, StringConstant c2 -> c1 = c2
+    | StringConstant _,_ | _,StringConstant _ -> false
+    | WStringConstant c1, WStringConstant c2 -> c1 = c2
 
 let rec is_same_term t1 t2 =
   match t1.term_node, t2.term_node with
@@ -426,12 +452,13 @@ let rec is_same_term t1 t2 =
     | TAddrOf l1, TAddrOf l2 -> is_same_tlval l1 l2
     | TStartOf l1, TStartOf l2 -> is_same_tlval l1 l2
     | Tapp(f1,labels1, args1), Tapp(f2, labels2, args2) ->
-        is_same_logic_signature f1 f2 &&
-        List.for_all2 (fun l1 l2 -> l1 = l2) labels1 labels2 &&
-        List.for_all2 is_same_term args1 args2
+      is_same_logic_signature f1 f2
+      && List.for_all2
+        (fun (x,y) (t,z) -> is_same_logic_label x t && is_same_logic_label y z) 
+        labels1 labels2
+      && List.for_all2 is_same_term args1 args2
     | Tif(c1,t1,e1), Tif(c2,t2,e2) ->
         is_same_term c1 c2 && is_same_term t1 t2 && is_same_term e1 e2
-    | Told t1, Told t2 -> is_same_term t1 t2
     | Tat(t1,l1), Tat(t2,l2) -> is_same_term t1 t2 && is_same_logic_label l1 l2
     | Tbase_addr t1, Tbase_addr t2 -> is_same_term t1 t2
     | Tblock_length t1, Tblock_length t2 -> is_same_term t1 t2
@@ -444,7 +471,7 @@ let rec is_same_term t1 t2 =
     | Tlambda (v1,t1), Tlambda(v2,t2) ->
         is_same_list is_same_var v1 v2 && is_same_term t1 t2
     | TUpdate(t1,i1,nt1), TUpdate(t2,i2,nt2) ->
-        is_same_term t1 t2 && i1 == i2 && is_same_term nt1 nt2
+        is_same_term t1 t2 && is_same_offset i1 i2 && is_same_term nt1 nt2
     | Ttypeof t1, Ttypeof t2 ->
 	is_same_term t1 t2
     | Ttype ty1, Ttype ty2 ->
@@ -467,7 +494,7 @@ let rec is_same_term t1 t2 =
     | (TConst _ | TLval _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
       | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _
       | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
-      | Tif _ | Told _ | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
+      | Tif _ | Tat _ | Tbase_addr _ | Tblock_length _ | Tnull
       | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
       | Tcomprehension _ | Tempty_set | Tunion _ | Tinter _ | Trange _
       | Tlet _
@@ -544,11 +571,10 @@ and is_same_predicate p1 p2 =
         is_same_list is_same_var q1 q2 && is_same_named_predicate p1 p2
     | Pexists(q1,p1), Pexists(q2,p2) ->
         is_same_list is_same_var q1 q2 && is_same_named_predicate p1 p2
-    | Pold(p1), Pold(p2) ->
-        is_same_named_predicate p1 p2
     | Pat(p1,l1), Pat(p2,l2) ->
         is_same_named_predicate p1 p2 && is_same_logic_label l1 l2
-    | Pvalid t1, Pvalid t2 -> is_same_term t1 t2
+    | Pvalid t1, Pvalid t2
+    | Pinitialized t1, Pinitialized t2 -> is_same_term t1 t2
     | Pvalid_index(l1,h1), Pvalid_index(l2,h2) ->
         is_same_term l1 l2 && is_same_term h1 h2
     | Pvalid_range(b1,l1,h1), Pvalid_range(b2,l2,h2) ->
@@ -561,7 +587,7 @@ and is_same_predicate p1 p2 =
          with Invalid_argument _ -> false)
     | (Pfalse | Ptrue | Papp _ | Prel _ | Pand _ | Por _ | Pimplies _
       | Piff _ | Pnot _ | Pif _ | Plet _ | Pforall _ | Pexists _
-      | Pold _ | Pat _ | Pvalid _ | Pvalid_index _ | Pvalid_range _
+      | Pat _ | Pvalid _ | Pvalid_index _ | Pvalid_range _ | Pinitialized _
       | Pfresh _ | Psubtype _ | Pxor _ | Pseparated _
       ), _ -> false
 
@@ -656,7 +682,8 @@ let is_same_code_annotation ca1 ca2 =
   match ca1.annot_content, ca2.annot_content with
     | AAssert(l1,p1), AAssert(l2,p2) ->
         is_same_list (=) l1 l2 && is_same_named_predicate p1 p2
-    | AStmtSpec s1, AStmtSpec s2 -> is_same_spec s1 s2
+    | AStmtSpec (l1,s1), AStmtSpec (l2,s2) -> 
+	is_same_list (=) l1 l2 && is_same_spec s1 s2
     | AInvariant(l1,b1,p1), AInvariant(l2,b2,p2) ->
         is_same_list (=) l1 l2 && b1 = b2 && is_same_named_predicate p1 p2
     | AVariant v1, AVariant v2 -> is_same_variant v1 v2
@@ -678,10 +705,15 @@ let rec is_same_global_annotation ga1 ga2 =
         is_same_list (=) typs1 typs2 && is_same_named_predicate st1 st2
     | Dinvariant (li1,_), Dinvariant (li2,_) -> is_same_logic_info li1 li2
     | Dtype_annot (li1,_), Dtype_annot (li2,_) -> is_same_logic_info li1 li2
+    | Dmodel_annot (li1,_), Dmodel_annot (li2,_) -> is_same_logic_info li1 li2
+    | Dvolatile(t1,r1,w1,_), Dvolatile(t2,r2,w2,_) ->
+      is_same_list is_same_identified_term t1 t2 &&
+        is_same_opt (fun x y -> x.vname = y.vname) r1 r2 &&
+        is_same_opt (fun x y -> x.vname = y.vname) w1 w2
     | (Dfun_or_pred _ | Daxiomatic _ | Dtype _ | Dlemma _
-      | Dinvariant _ | Dtype_annot _),
+      | Dinvariant _ | Dtype_annot _ | Dmodel_annot _ | Dvolatile _),
         (Dfun_or_pred _ | Daxiomatic _ | Dtype _ | Dlemma _
-        | Dinvariant _ | Dtype_annot _) -> false
+        | Dinvariant _ | Dtype_annot _ | Dmodel_annot _ | Dvolatile _) -> false
 
 let is_same_axiomatic ax1 ax2 =
   is_same_list is_same_global_annotation ax1 ax2
@@ -692,7 +724,7 @@ let is_same_pl_constant c1 c2 =
       | FloatConstant s1, FloatConstant s2
       | StringConstant s1, StringConstant s2
       | WStringConstant s1, WStringConstant s2 -> s1 = s2
-      | (IntConstant _| FloatConstant _ 
+      | (IntConstant _| FloatConstant _
         | StringConstant _ | WStringConstant _), _ -> false
 
 let rec is_same_pl_type t1 t2 =
@@ -702,7 +734,7 @@ let rec is_same_pl_type t1 t2 =
       | LTreal, LTreal -> true
       | LTint k1, LTint k2 ->
         (match k1, k2 with
-          | IBool, IBool 
+          | IBool, IBool
           | IChar, IChar
           | ISChar, ISChar
           | IUChar, IUChar
@@ -711,11 +743,11 @@ let rec is_same_pl_type t1 t2 =
           | IShort, IShort
           | IUShort, IUShort
           | ILong, ILong
-          | IULong, IULong 
+          | IULong, IULong
           | ILongLong, ILongLong
           | IULongLong, IULongLong -> true
           | (IBool | IChar | ISChar | IUChar | IInt | IUInt
-            | IShort | IUShort | ILong 
+            | IShort | IUShort | ILong
             | IULong | ILongLong | IULongLong), _ -> false
         )
       | LTfloat k1, LTfloat k2 ->
@@ -725,14 +757,14 @@ let rec is_same_pl_type t1 t2 =
       | LTarray (t1,c1), LTarray(t2,c2) ->
         is_same_pl_type t1 t2 && is_same_opt is_same_pl_constant c1 c2
       | LTpointer t1, LTpointer t2 -> is_same_pl_type t1 t2
-      | LTenum s1, LTenum s2 | LTstruct s1, LTstruct s2 
+      | LTenum s1, LTenum s2 | LTstruct s1, LTstruct s2
       | LTunion s1, LTunion s2 -> s1 = s2
       | LTnamed (s1,prms1), LTnamed(s2,prms2) ->
         s1 = s2 && is_same_list is_same_pl_type prms1 prms2
       | LTarrow(prms1,t1), LTarrow(prms2,t2) ->
         is_same_list is_same_pl_type prms1 prms2 && is_same_pl_type t1 t2
       | (LTvoid | LTinteger | LTreal | LTint _ | LTfloat _ | LTarrow _
-        | LTarray _ | LTpointer _ | LTenum _ 
+        | LTarray _ | LTpointer _ | LTenum _
         | LTunion _ | LTnamed _ | LTstruct _),_ ->
         false
 
@@ -753,7 +785,7 @@ let is_same_binop op1 op2 =
     | Bbw_and, Bbw_and | Bbw_or, Bbw_or | Bbw_xor, Bbw_xor
     | Blshift, Blshift | Brshift, Brshift -> true
     | (Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or
-      | Bbw_xor | Blshift | Brshift),_ -> false 
+      | Bbw_xor | Blshift | Brshift),_ -> false
 
 let is_same_relation r1 r2 =
   match r1, r2 with
@@ -770,7 +802,7 @@ and is_same_update_term t1 t2 =
   match t1, t2 with
     | PLupdateTerm e1, PLupdateTerm e2 -> is_same_lexpr e1 e2
     | PLupdateCont l1, PLupdateCont l2 ->
-      let is_same_elt (p1,e1) (p2,e2) = 
+      let is_same_elt (p1,e1) (p2,e2) =
         is_same_list is_same_path_elt p1 p2 && is_same_update_term e1 e2
       in is_same_list is_same_elt l1 l2
     | (PLupdateTerm _ | PLupdateCont _), _ -> false
@@ -780,8 +812,8 @@ and is_same_lexpr l1 l2 =
     | PLvar s1, PLvar s2 -> s1 = s2
     | PLapp (s1,l1,arg1), PLapp (s2,l2,arg2) ->
       s1 = s2 && is_same_list (=) l1 l2 && is_same_list is_same_lexpr arg1 arg2
-    | PLlambda(q1,e1), PLlambda(q2,e2) 
-    | PLforall (q1,e1), PLforall(q2,e2) 
+    | PLlambda(q1,e1), PLlambda(q2,e2)
+    | PLforall (q1,e1), PLforall(q2,e2)
     | PLexists(q1,e1), PLexists(q2,e2) ->
       is_same_quantifiers q1 q2 && is_same_lexpr e1 e2
     | PLlet(x1,d1,e1), PLlet(x2,d2,e2) ->
@@ -791,31 +823,31 @@ and is_same_lexpr l1 l2 =
       is_same_unop op1 op2 && is_same_lexpr e1 e2
     | PLbinop(le1,op1,re1), PLbinop(le2,op2,re2) ->
       is_same_binop op1 op2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
-    | PLdot(e1,f1), PLdot(e2,f2) | PLarrow(e1,f1), PLarrow(e2,f2) -> 
+    | PLdot(e1,f1), PLdot(e2,f2) | PLarrow(e1,f1), PLarrow(e2,f2) ->
       f1 = f2 && is_same_lexpr e1 e2
-    | PLarrget(b1,o1), PLarrget(b2,o2) -> 
+    | PLarrget(b1,o1), PLarrget(b2,o2) ->
       is_same_lexpr b1 b2 && is_same_lexpr o1 o2
     | PLold e1, PLold e2 -> is_same_lexpr e1 e2
     | PLat (e1,s1), PLat(e2,s2) -> s1 = s2 && is_same_lexpr e1 e2
     | PLbase_addr e1, PLbase_addr e2 | PLblock_length e1, PLblock_length e2 ->
       is_same_lexpr e1 e2
-    | PLresult, PLresult | PLnull, PLnull 
-    | PLfalse, PLfalse | PLtrue, PLtrue | PLempty, PLempty -> 
+    | PLresult, PLresult | PLnull, PLnull
+    | PLfalse, PLfalse | PLtrue, PLtrue | PLempty, PLempty ->
       true
-    | PLcast(t1,e1), PLcast(t2,e2) | PLcoercion(e1,t1), PLcoercion (e2,t2)-> 
+    | PLcast(t1,e1), PLcast(t2,e2) | PLcoercion(e1,t1), PLcoercion (e2,t2)->
       is_same_pl_type t1 t2 && is_same_lexpr e1 e2
     | PLrange(l1,h1), PLrange(l2,h2) ->
       is_same_opt is_same_lexpr l1 l2 && is_same_opt is_same_lexpr h1 h2
     | PLsizeof t1, PLsizeof t2 -> is_same_pl_type t1 t2
     | PLsizeofE e1,PLsizeofE e2 | PLtypeof e1,PLtypeof e2-> is_same_lexpr e1 e2
-    | PLcoercionE (b1,t1), PLcoercionE(b2,t2) 
+    | PLcoercionE (b1,t1), PLcoercionE(b2,t2)
     | PLsubtype(b1,t1), PLsubtype(b2,t2) ->
       is_same_lexpr b1 b2 && is_same_lexpr t1 t2
     | PLupdate(b1,p1,r1), PLupdate(b2,p2,r2) ->
       is_same_lexpr b1 b2
       && is_same_list is_same_path_elt p1 p2 && is_same_update_term r1 r2
     | PLinitIndex l1, PLinitIndex l2 ->
-      let is_same_elt (i1,v1) (i2,v2) = 
+      let is_same_elt (i1,v1) (i2,v2) =
         is_same_lexpr i1 i2 && is_same_lexpr v1 v2
       in is_same_list is_same_elt l1 l2
     | PLinitField l1, PLinitField l2 ->
@@ -826,11 +858,12 @@ and is_same_lexpr l1 l2 =
       is_same_relation r1 r2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
     | PLand(l1,r1), PLand(l2,r2) | PLor(l1,r1), PLor(l2,r2)
     | PLimplies(l1,r1), PLimplies(l2,r2) | PLxor(l1,r1), PLxor(l2,r2)
-    | PLiff(l1,r1), PLiff(l2,r2) -> 
+    | PLiff(l1,r1), PLiff(l2,r2) ->
       is_same_lexpr l1 l2 && is_same_lexpr r1 r2
-    | PLnot e1, PLnot e2 
-    | PLvalid e1, PLvalid e2 
-    | PLfresh e1, PLfresh e2 -> 
+    | PLnot e1, PLnot e2
+    | PLvalid e1, PLvalid e2
+    | PLfresh e1, PLfresh e2
+    | PLinitialized e1, PLinitialized e2 ->
       is_same_lexpr e1 e2
     | PLvalid_index (b1,o1), PLvalid_index(b2,o2) ->
       is_same_lexpr b1 b2 && is_same_lexpr o1 o2
@@ -842,10 +875,10 @@ and is_same_lexpr l1 l2 =
       is_same_lexpr c1 c2 && is_same_lexpr t1 t2 && is_same_lexpr e1 e2
     | PLnamed(s1,e1), PLnamed(s2,e2) -> s1 = s2 && is_same_lexpr e1 e2
     | PLcomprehension(e1,q1,p1), PLcomprehension(e2,q2,p2) ->
-      is_same_lexpr e1 e2 && is_same_quantifiers q1 q2 
+      is_same_lexpr e1 e2 && is_same_quantifiers q1 q2
       && is_same_opt is_same_lexpr p1 p2
-    | PLsingleton e1, PLsingleton e2 -> is_same_lexpr e1 e2 
-    | PLunion l1, PLunion l2 | PLinter l1, PLinter l2 -> 
+    | PLsingleton e1, PLsingleton e2 -> is_same_lexpr e1 e2
+    | PLunion l1, PLunion l2 | PLinter l1, PLinter l2 ->
       is_same_list is_same_lexpr l1 l2
     | (PLvar _ | PLapp _ | PLlambda _ | PLlet _ | PLconstant _ | PLunop _
       | PLbinop _ | PLdot _ | PLarrow _ | PLarrget _ | PLold _ | PLat _
@@ -853,88 +886,244 @@ and is_same_lexpr l1 l2 =
       | PLrange _ | PLsizeof _ | PLsizeofE _ | PLtypeof _ | PLcoercion _
       | PLcoercionE _ | PLupdate _ | PLinitIndex _ | PLtype _ | PLfalse
       | PLtrue | PLinitField _ | PLrel _ | PLand _ | PLor _ | PLxor _
-      | PLimplies _ | PLiff _ | PLnot _ | PLif _ | PLforall _ 
-      | PLexists _ | PLvalid _ | PLvalid_index _ | PLvalid_range _ 
-      | PLseparated _ | PLfresh _ | PLnamed _ | PLsubtype _ 
+      | PLimplies _ | PLiff _ | PLnot _ | PLif _ | PLforall _
+      | PLexists _ | PLvalid _ | PLvalid_index _ | PLvalid_range _
+      | PLinitialized _ | PLseparated _ | PLfresh _ | PLnamed _ | PLsubtype _
       | PLcomprehension _ | PLunion _ | PLinter _ | PLsingleton _ | PLempty
     ),_ -> false
+
+let hash_const c =
+  match c with
+      CInt64 _ | CStr _ | CWStr _ | CChr _ | CReal _  -> Hashtbl.hash c
+    | CEnum ei -> 95 + Hashtbl.hash ei.einame
+
+let hash_label l = 
+  match l with
+      StmtLabel st -> 
+        Hashtbl.hash !st.sid (* Might not be computed yet, leading to false
+                                positive in case a term with a stmt label 
+                                ever occurs here.
+                              *)
+    | LogicLabel (_,l) -> 19 + Hashtbl.hash l
+
+exception StopRecursion of int
+
+let rec hash_term (acc,depth,tot) t =
+  if tot <= 0 || depth <= 0 then raise (StopRecursion acc)
+  else begin
+    match t.term_node with
+      | TConst c -> (acc + hash_const c, tot - 1)
+      | TLval lv -> hash_term_lval (acc+19,depth - 1,tot -1) lv
+      | TSizeOf t -> (acc + 38 + Hashtbl.hash (Cil.typeSig t), tot - 1)
+      | TSizeOfE t -> hash_term (acc+57,depth -1, tot-1) t
+      | TSizeOfStr s -> (acc + 76 + Hashtbl.hash s, tot - 1)
+      | TAlignOf t -> (acc + 95 + Hashtbl.hash (Cil.typeSig t), tot - 1)
+      | TAlignOfE t -> hash_term (acc+114,depth-1,tot-1) t
+      | TUnOp(op,t) -> hash_term (acc+133+Hashtbl.hash op,depth-1,tot-2) t
+      | TBinOp(bop,t1,t2) ->
+        let hash1,tot1 = 
+          hash_term (acc+152+Hashtbl.hash bop,depth-1,tot-2) t1 
+        in
+        hash_term (hash1,depth-1,tot1) t2
+      | TCastE(ty,t) ->
+        let hash1 = Hashtbl.hash (Cil.typeSig ty) in
+        hash_term (acc+171+hash1,depth-1,tot-2) t
+      | TAddrOf lv -> hash_term_lval (acc+190,depth-1,tot-1) lv
+      | TStartOf lv -> hash_term_lval (acc+209,depth-1,tot-1) lv
+      | Tapp (li,labs,apps) ->
+        let hash1 = acc + 228 + Hashtbl.hash li.l_var_info.lv_name in
+        let hash_lb (acc,tot) (_,lb) =
+          if tot = 0 then raise (StopRecursion acc)
+          else (acc + hash_label lb,tot - 1)
+        in
+        let hash_one_term (acc,tot) t = hash_term (acc,depth-1,tot) t in
+        let res = List.fold_left hash_lb (hash1,tot-1) labs in
+        List.fold_left hash_one_term res apps
+      | Tlambda(quants,t) ->
+        let hash_var (acc,tot) lv =
+          if tot = 0 then raise (StopRecursion acc)
+          else (acc + Hashtbl.hash lv.lv_name,tot-1)
+        in
+        let (acc,tot) = List.fold_left hash_var (acc+247,tot-1) quants in
+        hash_term (acc,depth-1,tot-1) t
+      | TDataCons(ctor,args) ->
+        let hash = acc + 266 + Hashtbl.hash ctor.ctor_name in
+        let hash_one_term (acc,tot) t = hash_term (acc,depth-1,tot) t in
+        List.fold_left hash_one_term (hash,tot-1) args
+      | Tif(t1,t2,t3) ->
+        let hash1,tot1 = hash_term (acc+285,depth-1,tot) t1 in
+        let hash2,tot2 = hash_term (hash1,depth-1,tot1) t2 in
+        hash_term (hash2,depth-1,tot2) t3
+      | Tat(t,l) ->
+        let hash = acc + 304 + hash_label l in
+        hash_term (hash,depth-1,tot-2) t
+      | Tbase_addr t -> hash_term (acc+323,depth-1,tot-1) t
+      | Tblock_length t -> hash_term (acc+342,depth-1,tot-1) t
+      | Tnull -> acc+361, tot - 1
+      | TCoerce(t,ty) ->
+        let hash = Hashtbl.hash (Cil.typeSig ty) in
+        hash_term (acc+380+hash,depth-1,tot-2) t
+      | TCoerceE(t1,t2) ->
+        let hash1,tot1 = hash_term (acc+399,depth-1,tot-1) t1 in
+        hash_term (hash1,depth-1,tot1) t2
+      | TUpdate(t1,off,t2) ->
+        let hash1,tot1 = hash_term (acc+418,depth-1,tot-1) t1 in
+        let hash2,tot2 = hash_term_offset (hash1,depth-1,tot1) off in
+        hash_term (hash2,depth-1,tot2) t2
+      | Ttypeof t -> hash_term (acc+437,depth-1,tot-1) t
+      | Ttype t -> acc + 456 + Hashtbl.hash (Cil.typeSig t), tot - 1
+      | Tempty_set -> acc + 475, tot - 1
+      | Tunion tl ->
+        let hash_one_term (acc,tot) t = hash_term (acc,depth-1,tot) t in
+        List.fold_left hash_one_term (acc+494,tot-1) tl
+      | Tinter tl ->
+        let hash_one_term (acc,tot) t = hash_term (acc,depth-1,tot) t in
+        List.fold_left hash_one_term (acc+513,tot-1) tl
+      | Tcomprehension (t,quants,_) -> (* TODO: hash predicates *)
+        let hash_var (acc,tot) lv =
+          if tot = 0 then raise (StopRecursion acc)
+          else (acc + Hashtbl.hash lv.lv_name,tot-1)
+        in
+        let (acc,tot) = List.fold_left hash_var (acc+532,tot-1) quants in
+        hash_term (acc,depth-1,tot-1) t
+      | Trange(t1,t2) ->
+        let acc = acc + 551 in
+        let acc,tot = 
+          match t1 with
+              None -> acc,tot - 1
+            | Some t -> hash_term (acc,depth-1,tot-2) t
+        in
+        if tot <= 0 then raise (StopRecursion acc)
+        else
+          (match t2 with
+              None -> acc, tot - 1
+            | Some t -> hash_term (acc,depth-1,tot-1) t)
+      | Tlet(li,t) ->
+        hash_term 
+          (acc + 570 + Hashtbl.hash li.l_var_info.lv_name, depth-1, tot-1)
+          t
+  end
+and hash_term_lval (acc,depth,tot) (h,o) =
+  if depth <= 0 || tot <= 0 then raise (StopRecursion acc)
+  else begin
+    let hash, tot = hash_term_lhost (acc, depth-1, tot - 1) h in
+    hash_term_offset (hash, depth-1, tot) o
+  end
+and hash_term_lhost (acc,depth,tot) h =
+  if depth<=0 || tot <= 0 then raise (StopRecursion acc)
+  else begin
+    match h with
+      | TVar lv -> acc + Hashtbl.hash lv.lv_name, tot - 1
+      | TResult t -> acc + 19 + Hashtbl.hash (Cil.typeSig t), tot - 2
+      | TMem t -> hash_term (acc+38,depth-1,tot-1) t
+  end
+and hash_term_offset (acc,depth,tot) o =
+  if depth<=0 || tot <= 0 then raise (StopRecursion acc)
+  else begin
+    match o with
+      | TNoOffset -> acc, tot - 1
+      | TField(fi,o) ->
+        hash_term_offset (acc+19+Hashtbl.hash fi.fname,depth-1,tot-1) o
+      | TIndex (t,o) ->
+        let hash, tot = hash_term (acc+38,depth-1,tot-1) t in
+        hash_term_offset (hash,depth-1,tot) o
+end
+
+let hash_term t = 
+  try fst (hash_term (0,10,100) t)
+  with StopRecursion h -> h
 
 let get_behavior_names spec =
   List.fold_left (fun acc b ->  b.b_name::acc) [] spec.spec_behavior
 
 let merge_assigns a1 a2 =
   if is_same_assigns a1 a2 then a1
-  else 
+  else
     match (a1,a2) with
-        WritesAny,_ -> a2
-      | _,WritesAny -> a1
-      | _ -> Cil.warning "incompatible assigns clauses. Keeping only one."; a1
+    | WritesAny, _ -> a2
+    | _, WritesAny -> a1
+    | _ ->
+      Kernel.warning ~current:true
+	"incompatible assigns clauses. Keeping only one.";
+      a1
+
+let concat_assigns a1 a2 =
+  match a1,a2 with
+      | WritesAny, _ | _, WritesAny -> WritesAny
+      | Writes l1, Writes l2 -> Writes (l1 @ l2)
 
 let merge_behaviors ~silent old_behaviors fresh_behaviors =
   old_behaviors @
     (List.filter
        (fun b ->
-          try
-            let old_b = List.find (fun x -> x.b_name = b.b_name)
-              old_behaviors in
-	      if not (is_same_behavior b old_b) then begin
-		if not(silent) then
-		  Cil.warning "found different behaviors with the same name. Merging them" ;
-		old_b.b_assumes <- old_b.b_assumes @ b.b_assumes;
-		old_b.b_requires <- old_b.b_requires @ b.b_requires;
-		old_b.b_post_cond <- old_b.b_post_cond @ b.b_post_cond;
-		old_b.b_assigns <- merge_assigns old_b.b_assigns b.b_assigns;
-	      end ;
-              false
-          with Not_found -> true)
+         try
+           let old_b = List.find (fun x -> x.b_name = b.b_name) old_behaviors in
+	   if not (is_same_behavior b old_b) then begin
+	     if not silent then
+	       Kernel.warning ~current:true
+		 "found two %s. Merging them" 
+                 (if Cil.is_default_behavior b then "default behaviors"
+                  else "behaviors named " ^ b.b_name)
+             ;
+	     old_b.b_assumes <- old_b.b_assumes @ b.b_assumes;
+	     old_b.b_requires <- old_b.b_requires @ b.b_requires;
+	     old_b.b_post_cond <- old_b.b_post_cond @ b.b_post_cond;
+	     old_b.b_assigns <- merge_assigns old_b.b_assigns b.b_assigns;
+	   end ;
+           false
+         with Not_found -> true)
        fresh_behaviors)
 
 let merge_funspec ?(silent_about_merging_behav=false) old_spec fresh_spec =
-  if is_same_spec old_spec fresh_spec ||
-     Cil.is_empty_funspec fresh_spec
-  then ()
-  else if Cil.is_empty_funspec old_spec then
-    begin
+  if not (is_same_spec old_spec fresh_spec || Cil.is_empty_funspec fresh_spec)
+  then 
+    if Cil.is_empty_funspec old_spec then begin
       old_spec.spec_terminates <- fresh_spec.spec_terminates;
       old_spec.spec_behavior <- fresh_spec.spec_behavior;
       old_spec.spec_complete_behaviors <- fresh_spec.spec_complete_behaviors;
       old_spec.spec_disjoint_behaviors <- fresh_spec.spec_disjoint_behaviors;
       old_spec.spec_variant <- fresh_spec.spec_variant;
-    end
-  else begin
-    old_spec.spec_behavior <-  merge_behaviors ~silent:silent_about_merging_behav
-      old_spec.spec_behavior fresh_spec.spec_behavior ;
-    begin match old_spec.spec_variant,fresh_spec.spec_variant with
+    end else begin
+      old_spec.spec_behavior <- 
+	merge_behaviors ~silent:silent_about_merging_behav
+	old_spec.spec_behavior fresh_spec.spec_behavior ;
+      (match old_spec.spec_variant,fresh_spec.spec_variant with
       | None,None -> ()
       | Some _, None -> ()
       | None, Some _ -> old_spec.spec_variant <- fresh_spec.spec_variant
       | Some _old, Some _fresh ->
-          Cil.warning
-            "found two variants for function specification. Keeping only one."
-    end;
-    begin match old_spec.spec_terminates, fresh_spec.spec_terminates with
-        None, None -> ()
+        Kernel.warning ~current:true
+          "found two variants for function specification. Keeping only one.");
+      (match old_spec.spec_terminates, fresh_spec.spec_terminates with
+      | None, None -> ()
       | Some p1, Some p2 when is_same_identified_predicate p1 p2 -> ()
       | _ ->
-          Cil.warning
-            "found two different terminates clause for function specification. \
-           keeping only one"
-    end;
-    old_spec.spec_complete_behaviors <-
-      old_spec.spec_complete_behaviors @ fresh_spec.spec_complete_behaviors;
-    old_spec.spec_disjoint_behaviors <-
-      old_spec.spec_disjoint_behaviors @ fresh_spec.spec_disjoint_behaviors
-  end
+        Kernel.warning ~current:true
+          "found two different terminates clause for function specification. \
+           keeping only one");
+      old_spec.spec_complete_behaviors <-
+	old_spec.spec_complete_behaviors @ fresh_spec.spec_complete_behaviors;
+      old_spec.spec_disjoint_behaviors <-
+	old_spec.spec_disjoint_behaviors @ fresh_spec.spec_disjoint_behaviors
+    end
+
+let clear_funspec spec =
+  let tmp = Cil.empty_funspec () in
+  spec.spec_terminates <- tmp.spec_terminates;
+  spec.spec_behavior <- tmp.spec_behavior;
+  spec.spec_complete_behaviors <- tmp.spec_complete_behaviors;
+  spec.spec_disjoint_behaviors <- tmp.spec_disjoint_behaviors;
+  spec.spec_variant <- tmp.spec_variant
 
 let lhost_c_type = function
-    TVar v ->
-      (match v.lv_type with
-           Ctype ty -> ty
-         | _ -> assert false)
+  | TVar v ->
+    (match v.lv_type with
+    | Ctype ty -> ty
+    | _ -> assert false)
   | TMem t ->
-      (match t.term_type with
-           Ctype (TPtr(ty,_)) -> ty
-         | _ -> assert false)
+    (match t.term_type with
+    | Ctype (TPtr(ty,_)) -> ty
+    | _ -> assert false)
   | TResult ty -> ty
 
 let is_assert ca = match ca.annot_content with AAssert _ -> true | _ -> false
@@ -957,11 +1146,6 @@ let is_variant ca =
 let is_assigns ca =
   match ca.annot_content with AAssigns _ -> true | _ -> false
 
-(*
-let is_loop_behavior ca =
-  match ca.annot_content with ALoopBehavior _ -> true | _ -> false
-*)
-
 let is_pragma ca =
   match ca.annot_content with APragma _ -> true | _ -> false
 
@@ -977,10 +1161,13 @@ let is_impact_pragma ca =
 let is_loop_annot s =
   is_loop_invariant s || is_assigns s || is_variant s || is_loop_pragma s
 
-(*
-let is_loop_annot s =
-  is_loop_invariant s || is_loop_behavior s || is_variant s || is_loop_pragma s
-*)
+let is_property_pragma = function
+  | Loop_pragma (Unroll_level _ | Widen_hints _ | Widen_variables _)
+  | Slice_pragma (SPexpr _ | SPctrl | SPstmt)
+  | Impact_pragma (IPexpr _ | IPstmt) -> false
+(* If at some time a pragma becomes something which should be proven,
+   update the pragma-related code in gui/property_navigator.ml *)
+
 
 let extract_loop_pragma l =
   List.fold_right
@@ -990,7 +1177,7 @@ let extract_loop_pragma l =
 let extract_contract l =
   List.fold_right
     (fun ca l -> match ca.annot_content with
-         AStmtSpec spec -> spec :: l | _ -> l) l []
+         AStmtSpec (l1,spec) -> (l1,spec) :: l | _ -> l) l []
 
 (* ************************************************************************* *)
 (** {2 Parsing utilities} *)

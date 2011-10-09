@@ -20,16 +20,63 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: stmts_graph.mli,v 1.11 2008-11-18 12:13:41 uid568 Exp $ *)
-
-(** Statements graph. 
+(** Statements graph.
     @plugin development guide *)
 
-open Db_types
 open Cil_types
+open Cil_datatype
 
 val stmt_can_reach: kernel_function -> stmt -> stmt -> bool
   (** [stmt_can_reach kf s1 s2] is [true] iff the control flow can reach
       [s2] starting at [s1] in function [kf]. *)
 
 val reachable_stmts: kernel_function -> stmt -> stmt list
+
+(** Get the statements that compose [s]. For a simple statement (not containing
+    blocks), it is only the statement itself. *)
+val get_stmt_stmts : stmt -> Stmt.Set.t
+val get_block_stmts : block -> Stmt.Set.t
+
+(** Find the last statements in [s], meaning that if [s'] is in the returned
+    statements, [s'] is in [s] statements, but a least one of its successor is
+    not. *)
+val get_all_stmt_last_stmts : stmt -> stmt list
+val get_all_block_last_stmts : block -> stmt list
+
+(** Subset of [get_all_stmt_last_stmts] according to [termination_kind].
+    [termination_kind = None] means [Goto].
+    @raise Invalid_argument for [termination_kind = Some Exits] since
+    every call possibly have an [Exits] termination: it should be handled
+    differently. *)
+val get_stmt_last_stmts : termination_kind option -> stmt -> stmt list
+val get_block_last_stmts : termination_kind option -> block -> stmt list
+
+(** Find the entry edges that go inside [s] statements,
+* meaning that if the pair [(s1,s2)] is in the returned information,
+* [s2] is a successor of [s1] and [s2] is in [s] statements, but [s1] is not.
+* @since Nitrogen-20111001
+**)
+val get_stmt_in_edges : stmt -> (stmt * stmt) list
+val get_block_in_edges : block -> (stmt * stmt) list
+
+(** Like [get_stmt_in_edges] but for edges going out of [s] statements.
+* Similar to [get_all_stmt_last_stmts] but gives the edge information
+* instead of just the first statement.
+* @since Nitrogen-20111001
+*)
+val get_all_stmt_out_edges : stmt -> (stmt * stmt) list
+val get_all_block_out_edges : block -> (stmt * stmt) list
+
+(** Split the loop predecessors into:
+    - the entry point : coming for outside the loop
+    - the back edges.
+    Notice that there might be nothing in the entry point when the loop if the
+    first statement.
+    @raise Invalid_argument if the statement is not a loop. *)
+val loop_preds : stmt -> stmt list * stmt list
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

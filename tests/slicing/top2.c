@@ -1,6 +1,6 @@
 /* run.config
-* OPT: -slicing-level 2 -slice-pragma main -slice-print -journal-disable
-* OPT: -slicing-level 2 -slice-return main -slice-print -journal-disable
+* OPT: -check -slicing-level 2 -slice-pragma main -journal-disable -then-on 'Slicing export' -print
+* OPT: -check -slicing-level 2 -slice-return main -journal-disable -then-on 'Slicing export' -print
 */
 
 

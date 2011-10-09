@@ -38,12 +38,14 @@ type single_pack = (*private*) Unmarshal.t
 
     It MUST NOT be used directly in any case. *)
 
-(** Structural descriptor used inside structural descriptor. *)
-type pack =
-  | Nopack (** Internal use only *)
-  | Pack of single_pack (** Internal use only *)
-  | Recursive of recursive (** Use for handling recursive structural
-			       descriptor. See module {!Recursive}. *)
+(** Structural descriptor used inside structures.
+    @modify Nitrogen-20111001 this type is now private. Use smart
+    constructors instead. *)
+type pack = private
+  | Nopack                 (** Was impossible to build a pack. *)
+  | Pack of single_pack    (** A standard pack. *)
+  | Recursive of recursive (** Pack for a recursive descriptor.
+                               See module {!Recursive}. *)
 
 (** Type of internal representations of OCaml type.
 
@@ -51,7 +53,7 @@ type pack =
     is [Structure (Sum [| [| p_int; p_bool |]; [| p_string |] |])]. Ok, in
     this case, just [Abstract] is valid too. *)
 type t =
-  |  Unknown
+  | Unknown
   (** Use it either for unmarshable types or if you don't know its internal
       representation. In any case, values of types with such a descriptor
       will be never write on disk. *)
@@ -63,7 +65,8 @@ type t =
   | Structure of structure
   (** Provide a description of the representation of data. *)
 
-  | T_pack of single_pack (** Internal use only *)
+  | T_pack of single_pack (** Internal use only.
+                              Do not use it outside the library *)
 
 (** Description with details. *)
 and structure =
@@ -75,14 +78,18 @@ and structure =
       corresponding constructor. *)
 
   | Array of pack (** The data is an array of values of the same type, each
-		      value being described by the pack. *)
+                      value being described by the pack. *)
 
 (* ********************************************************************** *)
-(** {2 Useful functions} *)
+(** {2 Pack builders} *)
 (* ********************************************************************** *)
 
 val pack: t -> pack
-(** Pack a structural descriptor for embedding inside another one. *)
+(** Pack a structural descriptor in order to embed it inside another one. *)
+
+val recursive_pack: recursive -> pack
+(** Pack a recursive descriptor.
+    @since Nitrogen-20111001 *)
 
 (** Use this module for handling a (possibly recursive) structural descriptor
     [d]. Call [Recursive.create ()] (returning [r]) before building [d]. Build

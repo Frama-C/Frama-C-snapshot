@@ -86,8 +86,11 @@ let get_kf_fi proj kf =
   try Cil_datatype.Varinfo.Hashtbl.find proj.T.functions fct_var
   with Not_found ->
     let fi_def, is_def =
-      try let def = Kernel_function.get_definition kf in Some def, true
-      with Kernel_function.No_Definition -> None, false
+      match kf.fundec with
+        | Declaration _ -> None, false
+        | Definition _ when !Db.Value.use_spec_instead_of_definition kf ->
+            None, false
+        | Definition (def, _) -> Some def, true
     in
     let new_fi = {
       T.fi_kf = kf;
@@ -178,7 +181,7 @@ let fi_slices fi = fi.T.fi_slices
 let equal_fi fi1 fi2 =
   let v1 = fi_svar fi1 in
   let v2 = fi_svar fi2 in
-    v1.vid = v2.vid
+    Cil_datatype.Varinfo.equal v1 v2
 
 let equal_ff ff1 ff2 = (equal_fi ff1.T.ff_fct ff2.T.ff_fct) &&
                        ((get_ff_id ff1) = (get_ff_id ff2))
@@ -205,9 +208,9 @@ let get_called_kf call_stmt = match call_stmt.skind with
     let _funcexp_dpds, called_functions =
       !Db.Value.expr_to_kernel_function
         ~with_alarms:CilE.warn_none_mode
-	~deps:(Some Locations.Zone.bottom)
+        ~deps:(Some Locations.Zone.bottom)
         (Kstmt call_stmt)
-	funcexp
+        funcexp
     in
     (match Kernel_function.Hptset.contains_single_elt called_functions with
      | Some kf -> kf

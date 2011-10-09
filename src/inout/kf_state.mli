@@ -23,7 +23,7 @@
 module type S = sig
   type data
   val memo:
-    (Db_types.kernel_function -> data) -> Db_types.kernel_function -> data
+    (Cil_types.kernel_function -> data) -> Cil_types.kernel_function -> data
   val self: State.t
 end
 

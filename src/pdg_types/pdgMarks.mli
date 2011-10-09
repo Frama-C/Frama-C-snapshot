@@ -107,12 +107,11 @@ module type T_Fct = sig
 
   type t_mark
   type t_call_info
-  type t_idx = (t_mark, t_call_info) PdgIndex.FctIndex.t
-
-  type t = PdgTypes.Pdg.t * t_idx
+  type t_fi = (t_mark, t_call_info) PdgIndex.FctIndex.t
+  type t = PdgTypes.Pdg.t * t_fi
 
   val create : PdgTypes.Pdg.t -> t
-  val get_idx : t -> t_idx
+  val get_idx : t -> t_fi
 
   type t_mark_info_inter = t_mark t_info_inter
 
@@ -135,8 +134,10 @@ type 't_mark t_call_m2m =
     It is defined in PDG pluggin *)
 module type T_Proj = sig
   type t
-  type t_fct
+
   type t_mark
+  type t_call_info
+  type t_fct = (t_mark, t_call_info) PdgIndex.FctIndex.t
 
   val empty: t
   val find_marks: t -> Cil_types.varinfo -> t_fct option

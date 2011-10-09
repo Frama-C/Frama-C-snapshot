@@ -24,7 +24,6 @@
     @plugin development guide *)
 
 open Cil_types
-open Db_types
 
 (* ************************************************************************* *)
 (** {2 Kernel functions are comparable and hashable} *)
@@ -45,7 +44,10 @@ val find_first_stmt : t -> stmt
       function. *)
 
 val find_return : t -> stmt
-  (** Find the return statement of a kernel function. *)
+  (** Find the return statement of a kernel function.
+      @raise No_Statement is there is no return statement for the given
+      function.
+      @modify Nitrogen-20111001 may raise No_Statement*)
 
 val find_label : t -> string -> stmt ref
   (** Find a given label in a kernel function.
@@ -87,8 +89,8 @@ val blocks_closed_by_edge: stmt -> stmt -> block list
 val find_syntactic_callsites : t -> (t * stmt) list
   (** [callsites f] collect the statements where [f] is called.  Same
       complexity as [find_from_sid].
-      @return a list of [f',s] where function [f'] calls [f] at statement [stmt]. 
-      @since Carbon-20101202+dev *)
+      @return a list of [f',s] where function [f'] calls [f] at statement [stmt].
+      @since Carbon-20110201 *)
 
 (* ************************************************************************* *)
 (** {2 Checkers} *)
@@ -144,14 +146,25 @@ val is_formal_or_local: varinfo -> t -> bool
 (** {2 Specifications} *)
 (* ************************************************************************* *)
 
-val get_spec: t -> funspec
+val get_spec: ?populate:bool -> t -> funspec
+(** [get_spec f] returns the spec of the function. You should use it instead of
+    [f.spec]. If [populate] is set to [false] (default is [true]), then you get
+    the spec without the default behavior generated when expected by the Frama-C
+    kernel (assuming that this behavior was not already generated). *)
+
+val set_spec: t -> (funspec -> funspec) -> unit
+(** [set_spec kf how_to_modify] replaces the old spec [s] of [kf] by [f s].
+    The function [s] is allowed to modify [s] in place and to return [s] at the
+    end. You must call this function to modify a spec and you must not modify
+    directly the 'spec' field of the record yourself.
+    @since Nitrogen-20111001 *)
 
 val postcondition : t -> Cil_types.termination_kind -> predicate named
 (** @modify Boron-20100401 added argument to select desired termination kind *)
 
 val precondition: t -> predicate named
 
-val code_annotations: t -> (stmt*rooted_code_annotation before_after) list
+val code_annotations: t -> (stmt * rooted_code_annotation) list
 
 val internal_function_behaviors: t -> string list
 (** @return the list of behavior names that are defined in statement contracts
@@ -198,7 +211,8 @@ val register_stmt: t -> stmt -> block list -> unit
 (* ************************************************************************* *)
 
 val pretty_name : Format.formatter -> t -> unit
-  (** Print the name of a kernel function. *)
+  (** Print the name of a kernel function.
+      @deprecated since Nitrogen-20111001 Use {!pretty} instead. *)
 
 (*
 Local Variables:

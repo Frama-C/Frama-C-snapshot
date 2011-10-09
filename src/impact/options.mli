@@ -22,13 +22,13 @@
 
 include Plugin.S
 
-module Pragma: Plugin.STRING_SET
+module Pragma: Plugin.String_set
   (** Use pragmas of given function. *)
 
-module Print: Plugin.BOOL
+module Print: Plugin.Bool
   (** Print the impacted stmt on stdout. *)
 
-module Slicing: Plugin.BOOL
+module Slicing: Plugin.Bool
   (** Slicing from the impacted stmt. *)
 
 val is_on: unit -> bool

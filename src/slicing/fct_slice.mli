@@ -32,10 +32,10 @@ type t_crit = SlicingInternals.t_criterion
 *        because there cannot be any slice for it.
    * @raise SlicingTypes.NoPdg when there is no PDG for the function.
 *)
-val make_new_ff : SlicingInternals.t_fct_info -> bool -> 
+val make_new_ff : SlicingInternals.t_fct_info -> bool ->
                   t_fct_slice * t_crit list
 
-val merge_slices : t_fct_slice -> t_fct_slice -> 
+val merge_slices : t_fct_slice -> t_fct_slice ->
                    t_fct_slice * t_crit list
 
 val copy_slice : t_fct_slice -> t_fct_slice
@@ -44,19 +44,19 @@ val filter_already_in : t_fct_slice ->
                       SlicingInternals.t_fct_base_criterion ->
                       SlicingInternals.t_fct_base_criterion
 
-val apply_add_marks : 
+val apply_add_marks :
   t_fct_slice -> SlicingInternals.t_fct_base_criterion ->
     t_crit list
 
-val add_marks_to_fi : 
-                     SlicingInternals.t_project  -> 
-                     SlicingInternals.t_fct_info  -> 
+val add_marks_to_fi :
+                     SlicingInternals.t_project  ->
+                     SlicingInternals.t_fct_info  ->
                      SlicingInternals.t_fct_base_criterion ->
                      bool -> t_crit list ->
                      bool * t_crit list
 
-val add_top_mark_to_fi : 
-                     SlicingInternals.t_fct_info  -> 
+val add_top_mark_to_fi :
+                     SlicingInternals.t_fct_info  ->
                      SlicingInternals.t_pdg_mark ->
                      bool -> t_crit list ->
                      t_crit list
@@ -67,10 +67,10 @@ val check_outputs_before_change_call :  SlicingInternals.t_project ->
 
 val apply_change_call : SlicingInternals.t_project ->
                   t_fct_slice -> SlicingInternals.t_call_id ->
-                  SlicingInternals.t_called_fct -> 
+                  SlicingInternals.t_called_fct ->
                   t_crit list
 
-val apply_choose_call : SlicingInternals.t_project -> 
+val apply_choose_call : SlicingInternals.t_project ->
                   t_fct_slice -> SlicingInternals.t_call_id ->
                   t_crit list
 
@@ -78,7 +78,7 @@ val apply_missing_inputs : SlicingInternals.t_project ->
                   t_fct_slice -> SlicingInternals.t_call_id ->
                   (SlicingInternals.t_fct_base_criterion * bool) ->
                   t_crit list
-                          
+
 val apply_missing_outputs : SlicingInternals.t_project ->
                   t_fct_slice -> SlicingInternals.t_call_id ->
                   SlicingInternals.t_fct_base_criterion -> bool ->
@@ -88,7 +88,7 @@ val apply_examine_calls : t_fct_slice ->
                           t_mark PdgMarks.t_info_called_outputs ->
                   t_crit list
 
-val get_called_slice : 
+val get_called_slice :
   t_fct_slice -> SlicingInternals.t_call_id -> (t_fct_slice option * bool)
 
 val get_node_mark : t_fct_slice -> PdgTypes.Node.t -> t_mark
@@ -100,7 +100,7 @@ val get_label_mark : t_fct_slice -> Cil_types.stmt -> Cil_types.label -> t_mark
 val get_param_mark : t_fct_slice -> int -> t_mark
 val get_local_var_mark : t_fct_slice -> Cil_types.varinfo -> t_mark
 val get_input_loc_under_mark : t_fct_slice -> Locations.Zone.t -> t_mark
-  
+
 val get_mark_from_src_fun : SlicingInternals.t_project -> Kernel_function.t -> t_mark
 
 val merge_inputs_m1_mark : t_fct_slice -> t_mark

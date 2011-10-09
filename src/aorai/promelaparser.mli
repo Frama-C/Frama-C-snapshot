@@ -24,4 +24,4 @@ type token =
   | EOF
 
 val promela :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> (Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t)
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Promelaast.parsed_automaton

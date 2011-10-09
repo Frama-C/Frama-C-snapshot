@@ -30,9 +30,11 @@
 #define WCONTINUED 4
 #define WNOWAIT 5
 
+#include "../__fc_define_pid_t.h"
 enum idtype_t { P_ALL, P_PID, P_PGID };
-#if 0
 pid_t  wait(int *);
+
+#if 0
 pid_t  wait3(int *, int, struct rusage *);
 int    waitid(idtype_t, id_t, siginfo_t *, int);
 pid_t  waitpid(pid_t, int *, int);

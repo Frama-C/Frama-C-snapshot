@@ -22,7 +22,7 @@
 
 open Extlib
 open Cil_types
-open Db_types
+open Cil_datatype
 
 (* ************************************************************************* *)
 (** {2 Getters} *)
@@ -30,10 +30,9 @@ open Db_types
 
 let dummy () =
   { fundec =
-      Definition (Cil.emptyFunction "@dummy@", Cil_datatype.Location.unknown);
+      Definition (Cil.emptyFunction "@dummy@", Location.unknown);
     return_stmt = None;
-    spec = Cil.empty_funspec ();
-    stmts_graph = None }
+    spec = Cil.empty_funspec ()}
 
 let get_vi kf = Ast_info.Function.get_vi kf.fundec
 let get_id kf = (get_vi kf).vid
@@ -69,7 +68,7 @@ let get_definition kf = match kf.fundec with
 (** {2 Kernel functions are comparable} *)
 (* ************************************************************************* *)
 
-include Kernel_datatype.Kernel_function
+include Cil_datatype.Kf
 
 (* ************************************************************************* *)
 (** {2 Searching} *)
@@ -77,11 +76,7 @@ include Kernel_datatype.Kernel_function
 
 module Kf =
   State_builder.Option_ref
-    (Cil_datatype.Int_hashtbl.Make
-       (Datatype.Triple
-	  (Kernel_datatype.Kernel_function)
-	  (Cil_datatype.Stmt)
-          (Datatype.List(Cil_datatype.Block))))
+    (Int_hashtbl.Make(Datatype.Triple(Kf)(Stmt)(Datatype.List(Block))))
     (struct
        let name = "KF"
        let dependencies = [ Ast.self ]
@@ -89,6 +84,11 @@ module Kf =
      end)
 
 let self = Kf.self
+
+let () = 
+  State_dependency_graph.Static.add_dependencies
+    ~from:Kf.self 
+    [ Property_status.self ]
 
 let clear_sid_info () = Kf.clear ()
 
@@ -98,10 +98,10 @@ let compute () =
        let p = Ast.get () in
        let h = Inthash.create 97 in
        let visitor = object(self)
-	 inherit Cil.nopCilVisitor
-	 val mutable current_kf = None
+         inherit Cil.nopCilVisitor
+         val mutable current_kf = None
          val mutable opened_blocks = []
-	 method kf = match current_kf with None -> assert false | Some kf -> kf
+         method kf = match current_kf with None -> assert false | Some kf -> kf
          method vblock b =
            opened_blocks <- b :: opened_blocks;
            Cil.ChangeDoChildrenPost
@@ -125,14 +125,16 @@ let compute () =
 
 let find_from_sid sid =
   let table = compute () in
-  let kf,s,_ = Inthash.find table sid in
+  let kf, s, _ = Inthash.find table sid in
   s, kf
+
+let () = Dataflow.stmt_of_sid := (fun sid -> fst (find_from_sid sid))
 
 let find_englobing_kf stmt =
   snd (find_from_sid stmt.sid)
 
 let blocks_closed_by_edge s1 s2 =
-  if not (List.exists (Cil_datatype.Stmt.equal s2) s1.succs) then
+  if not (List.exists (Stmt.equal s2) s1.succs) then
     raise (Invalid_argument "Kernel_function.edge_exits_block");
   let table = compute () in
   try
@@ -140,7 +142,10 @@ let blocks_closed_by_edge s1 s2 =
   let _,_,b2 = Inthash.find table s2.sid in
   Kernel.debug ~level:2
     "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
-    !Ast_printer.d_stmt s1 (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b1 !Ast_printer.d_stmt s2 (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b2;
+    !Ast_printer.d_stmt s1 
+    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b1 
+    !Ast_printer.d_stmt s2 
+    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b2;
   let rec aux acc = function
       [] -> acc
     | inner_block::others ->
@@ -157,11 +162,15 @@ let find_enclosing_block s =
   let (_,_,b) = Inthash.find table s.sid in
   List.hd b
 
+let () = Globals.find_enclosing_block:= find_enclosing_block
+
 let find_all_enclosing_blocks s =
    let table = compute () in
   let (_,_,b) = Inthash.find table s.sid in b
 
 exception Got_return of stmt
+exception No_Statement
+
 let find_return kf =
   match kf.return_stmt with
   | None ->
@@ -179,18 +188,23 @@ let find_return kf =
           assert false
         with Got_return s -> s
       in
-      let ki = find_return (get_definition kf) in
-      kf.return_stmt <- Some ki;
-      ki
+      (try
+         let ki = find_return (get_definition kf) in
+         kf.return_stmt <- Some ki;
+         ki
+       with No_Definition ->
+         raise No_Statement)
   | Some ki ->
       ki
 
-exception No_Statement
-let find_first_stmt kf =
-  try
-    List.hd ((get_definition kf).sbody.bstmts)
-  with No_Definition | Not_found ->
-    raise No_Statement
+let get_stmts kf =
+  try (get_definition kf).sbody.bstmts with No_Definition | Not_found -> []
+
+let find_first_stmt kf = match get_stmts kf with
+  | [] -> raise No_Statement
+  | s :: _ -> s
+
+let () = Globals.find_first_stmt := find_first_stmt
 
 exception Found_label of stmt ref
 let find_label kf label =
@@ -206,7 +220,7 @@ let find_label kf label =
              | Case _ -> false
              | Default _ -> label="default")
             s.labels then raise (Found_label (ref s));
-	  Cil.DoChildren
+          Cil.DoChildren
         end
         method vexpr _ = Cil.SkipChildren
         method vtype _ = Cil.SkipChildren
@@ -223,46 +237,46 @@ let find_label kf label =
 (** {2 CallSites} *)
 (* ************************************************************************* *)
 
-module CallSite = Datatype.Pair(Kernel_datatype.Kernel_function)(Cil_datatype.Stmt)
-module CallSites = Kernel_datatype.Kernel_function.Hashtbl
-module KfCallers = State_builder.Option_ref(CallSites.Make(Datatype.List(CallSite)))
-  (struct
-     let name = "Kf.CallSites"
-     let dependencies = [ Ast.self ]
-     let kind = `Internal
-   end)
+module CallSite = Datatype.Pair(Cil_datatype.Kf)(Stmt)
+module CallSites = Cil_datatype.Kf.Hashtbl
+module KfCallers =
+  State_builder.Option_ref(CallSites.Make(Datatype.List(CallSite)))
+    (struct
+      let name = "Kf.CallSites"
+      let dependencies = [ Ast.self ]
+      let kind = `Internal
+     end)
 
 let called_kernel_function fct =
   match fct.enode with
-    | Lval (Var vinfo,NoOffset) -> 
-	(try Some(Globals.Functions.get vinfo) with Not_found -> None)
+    | Lval (Var vinfo,NoOffset) ->
+        (try Some(Globals.Functions.get vinfo) with Not_found -> None)
     | _ -> None
-	
-class callsite_visitor hmap =
-object(self)
+
+class callsite_visitor hmap = object (self)
   inherit Cil.nopCilVisitor
   val mutable current_kf = None
   method private kf = match current_kf with None -> assert false | Some kf -> kf
 
   (* Go into functions *)
   method vglob = function
-    | GFun(fd,_) -> 
-	current_kf <- Some(Globals.Functions.get fd.svar) ; 
-	Cil.DoChildren
+    | GFun(fd,_) ->
+        current_kf <- Some(Globals.Functions.get fd.svar) ;
+        Cil.DoChildren
     | _ -> Cil.SkipChildren
 
   (* Inspect stmt calls *)
   method vstmt stmt =
     match stmt.skind with
       | Instr(Call(_,fct,_,_)) ->
-	  begin
-	    match called_kernel_function fct with
-	      | None -> Cil.SkipChildren
-	      | Some ckf ->
-		  let sites = try CallSites.find hmap ckf with Not_found -> [] in
-		  CallSites.replace hmap ckf ((self#kf,stmt)::sites) ;
-		  Cil.SkipChildren
-	  end
+          begin
+            match called_kernel_function fct with
+              | None -> Cil.SkipChildren
+              | Some ckf ->
+                  let sites = try CallSites.find hmap ckf with Not_found -> [] in
+                  CallSites.replace hmap ckf ((self#kf,stmt)::sites) ;
+                  Cil.SkipChildren
+          end
       | Instr _ -> Cil.SkipChildren
       | _ -> Cil.DoChildren
 
@@ -274,9 +288,9 @@ end
 
 let compute_callsites () =
   let ast = Ast.get () in
-  let hmap = CallSites.create 97 in 
+  let hmap = CallSites.create 97 in
   let visitor = new callsite_visitor hmap in
-  Cil.visitCilFile (visitor :> Cil.cilVisitor) ast ; 
+  Cil.visitCilFile (visitor :> Cil.cilVisitor) ast ;
   hmap
 
 let find_syntactic_callsites kf =
@@ -321,13 +335,24 @@ let is_formal_or_local v kf =
 
 let populate_spec = Extlib.mk_fun "Kernel_function.populate_spec"
 
-let get_spec f =
-  if is_definition f then
+let get_spec ?(populate=true) f =
+  if is_definition f || not populate then
     f.spec
-  else
-    ((* Do not overwrite an existing assign clause*)
-      !populate_spec f;
-      f.spec)
+  else begin
+    (* Do not overwrite an existing assigns clause*)
+    !populate_spec f;
+    (* Kernel.feedback 
+       "Getting spec of %a: %a" pretty f !Ast_printer.d_funspec f.spec; *)
+    f.spec
+  end
+
+let set_spec kf f =
+  let get_ppts kf = Property.ip_of_spec kf Kglobal kf.spec in
+  let old = get_ppts kf in
+  kf.spec <- f kf.spec;
+  Property_status.merge ~old (get_ppts kf)
+
+let () = Globals.Functions.set_spec := set_spec
 
 let postcondition kf k =
   Logic_const.pands
@@ -346,10 +371,10 @@ let code_annotations kf =
     let def = get_definition kf in
     List.fold_left
       (fun acc stmt ->
-	 Annotations.single_fold_stmt
-	   (fun a acc -> (stmt, a) :: acc)
-	   stmt
-	   acc)
+         Annotations.single_fold_stmt
+           (fun a acc -> (stmt, a) :: acc)
+           stmt
+           acc)
       []
       def.sallstmts
   with No_Definition ->
@@ -361,7 +386,7 @@ let internal_function_behaviors kf =
     List.fold_left
       (fun known_names stmt ->
          List.fold_left
-           (fun known_names spec ->
+           (fun known_names (_bhv,spec) ->
               (List.map (fun x -> x.b_name) spec.spec_behavior) @ known_names)
            known_names
            (Logic_utils.extract_contract
@@ -370,7 +395,8 @@ let internal_function_behaviors kf =
                  (Annotations.get_all_annotations stmt))))
       []
       def.sallstmts
-  with No_Definition -> []
+  with No_Definition -> 
+    []
 
 let spec_function_behaviors kf =
   List.map (fun x -> x.b_name) (get_spec kf).spec_behavior
@@ -384,27 +410,34 @@ let fresh_behavior_name kf name =
     let name = name ^ "_" ^ (string_of_int i) in
     if List.mem name existing_behaviors then aux (i+1)
     else name
-  in if List.mem name existing_behaviors then aux 0 else name
+  in
+  if List.mem name existing_behaviors then aux 0 else name
 
 (* ************************************************************************* *)
 (** {2 Pretty printer} *)
 (* ************************************************************************* *)
 
-let pretty_name fmt kf = Ast_info.pretty_vname fmt (get_vi kf)
+let pretty_name =
+  Kernel.deprecated
+    "Kernel_function.pretty"
+    ~now:"Kernel_function.pretty"
+    pretty
 
 (* ************************************************************************* *)
 (** {2 Collections} *)
 (* ************************************************************************* *)
 
-module Make_Table =
-  State_builder.Hashtbl(Kernel_datatype.Kernel_function.Hashtbl)
+module Make_Table = State_builder.Hashtbl(Cil_datatype.Kf.Hashtbl)
 
 module Hptset = struct
-  include Hptset.Make(Kernel_datatype.Kernel_function)
-  (* [JS 2010/09/27] preserve the old behavior (before introducing generic
-     pretty printers *)
-  let pretty fmt =
-    iter (fun kf -> Format.fprintf fmt "@[%a@ @]" pretty_name kf)
+  let pretty_kf = pretty
+
+  include Hptset.Make
+  (Cil_datatype.Kf)
+  (struct let v = [ [ ] ] end)
+  (struct let l = [ Ast.self ] end)
+
+  let pretty fmt = Pretty_utils.pp_iter iter pretty_kf fmt
 end
 
 (* ************************************************************************* *)

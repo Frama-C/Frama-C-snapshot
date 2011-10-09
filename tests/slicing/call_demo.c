@@ -1,7 +1,6 @@
 /* run.config
-   GCC:
-   OPT: -slice-print -slice-calls call1 -journal-disable
-   OPT: -slice-print -slice-calls call2 -journal-disable
+   OPT: -check -slice-calls call1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-calls call2 -journal-disable -then-on 'Slicing export' -print
 */
 
 //@ assigns \result \from v;

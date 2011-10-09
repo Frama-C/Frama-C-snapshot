@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -43,7 +45,7 @@ module To_Buchi =
        let option_name = "-aorai-to-buchi"
        let arg_name = "f"
        let help =
-	 "only generates the buchi automata (in Promela language) in file <s>"
+         "only generates the buchi automata (in Promela language) in file <s>"
        let kind = `Tuning
      end)
 
@@ -52,8 +54,8 @@ module Buchi =
     (struct
        let option_name = "-aorai-buchi"
        let arg_name = "f"
-       let help = "considers the property helpibed by the buchi automata (in \
-Promela language) from file <f>."
+       let help = "considers the property described by the buchi automata \
+                   (in Promela language) from file <f>."
        let kind = `Correctness
      end)
 
@@ -62,19 +64,19 @@ module Ya =
     (struct
        let option_name = "-aorai-automata"
        let arg_name = "f"
-       let help = "considers the property helpibed by the ya automata (in \
-Ya language) from file <f>."
+       let help = "considers the property described by the ya automata \
+                   (in Ya language) from file <f>."
        let kind = `Correctness
      end)
 
 
 module Output_Spec =
   False(struct
-	  let option_name = "-aorai-show-op-spec"
-	  let help =
-	    "displays computed pre and post-condition of each operation"
+          let option_name = "-aorai-show-op-spec"
+          let help =
+            "displays computed pre and post-condition of each operation"
        let kind = `Tuning
-	end)
+        end)
 
 module Output_C_File =
   EmptyString
@@ -87,10 +89,10 @@ module Output_C_File =
 
 module Dot =
   False(struct
-	  let option_name = "-aorai-dot"
-	  let help = "generates a dot file of the Buchi automata"
+          let option_name = "-aorai-dot"
+          let help = "generates a dot file of the Buchi automata"
           let kind = `Tuning
-	end)
+        end)
 
 module DotSeparatedLabels =
   False(struct
@@ -101,46 +103,47 @@ module DotSeparatedLabels =
 
 module AbstractInterpretation =
   False(struct
-	  let option_name = "-aorai-simple-AI"
-	  let help = "use simple abstract interpretation"
+          let option_name = "-aorai-simple-AI"
+          let help = "use simple abstract interpretation"
           let kind = `Tuning
-	end)
+        end)
 
 module AbstractInterpretationOff  =
   False(struct
-	  let option_name = "-aorai-AI-off"
-	  let help = "does not use abstract interpretation"
+          let option_name = "-aorai-AI-off"
+          let help = "does not use abstract interpretation"
           let kind = `Tuning
-	end)
+        end)
 
 let () = Plugin.set_negative_option_name "-aorai-spec-off"
 module Axiomatization =
   True(struct
-	 let option_name = "-aorai-spec-on"
-	 let help = "if set, does not axiomatize automata"
+         let option_name = "-aorai-spec-on"
+         let help = "if set, does not axiomatize automata"
        let kind = `Correctness
        end)
 
 module ConsiderAcceptance =
   False(struct
-	 let option_name = "-aorai-acceptance"
-	 let help = "if set, considers acceptation states"
+         let option_name = "-aorai-acceptance"
+         let help = "if set, considers acceptation states"
          let kind = `Correctness
        end)
 
+let () = Plugin.set_negative_option_name "-aorai-raw-auto"
 module AutomataSimplification=
   True
     (struct
-       let option_name = "-aorai-raw-auto"
+       let option_name = "-aorai-simplified-auto"
        let help = "If set, does not simplify automata"
        let kind = `Tuning
      end)
 
 module Test =
   Zero(struct
-	 let option_name = "-aorai-test"
-	 let arg_name = ""
-	 let help = "Testing mode (0 = no test)"
+         let option_name = "-aorai-test"
+         let arg_name = ""
+         let help = "Testing mode (0 = no test)"
        let kind = `Tuning
        end)
 
@@ -153,6 +156,27 @@ conditions"
       let kind = `Correctness
      end)
 
+module Deterministic=
+  State_builder.Ref
+    (Datatype.Bool)
+    (struct
+        let name = "Aorai_option.Deterministic"
+        let dependencies = []
+        let kind = `Correctness
+        let default () = false
+     end)
+
+let reset () =
+  let my_opts = parameters () in
+  let select acc p =
+    let state = State.get p.Parameter.name in
+    State_selection.Dynamic.union
+      (State_selection.Dynamic.with_dependencies state)
+      acc
+  in
+  let selection = List.fold_left select State_selection.empty my_opts in
+  Project.clear ~selection ()
+
 let is_on () =
   not (Ltl_File.is_default () && To_Buchi.is_default () &&
        Buchi.is_default ()    && Ya.is_default () )
@@ -162,18 +186,11 @@ let is_on () =
    However it works only if aorai is run from the command line. *)
 let init () =
   if is_on () then begin
-    Parameters.SimplifyCfg.on ();
-    Parameters.KeepSwitch.on ()
+    Kernel.SimplifyCfg.on ();
+    Kernel.KeepSwitch.on ()
   end
 
-let () =
-  Cmdline.run_after_configuring_stage init;
-  let add_codeps onto =
-    State_dependency_graph.Static.add_codependencies
-      ~onto [ Ltl_File.self; To_Buchi.self; Buchi.self; Ya.self ]
-  in
-  add_codeps Parameters.SimplifyCfg.self;
-  add_codeps Parameters.KeepSwitch.self
+let () = Cmdline.run_after_configuring_stage init
 
 let promela_file () =
   if Buchi.get () = "" then To_Buchi.get () else Buchi.get ()

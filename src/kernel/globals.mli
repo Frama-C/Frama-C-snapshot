@@ -24,7 +24,12 @@
     @plugin development guide *)
 
 open Cil_types
-open Db_types
+
+(* Forward reference to functions defined in Kernel_function. Do not
+   use outside of this module.
+ *)
+val find_first_stmt: (kernel_function -> stmt) ref
+val find_enclosing_block: (stmt -> block) ref
 
 (** Globals variables.
     The AST should be computed before using this module
@@ -43,6 +48,8 @@ module Vars: sig
 
   val iter: (varinfo -> initinfo -> unit) -> unit
   val fold: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
+
+  val iter_in_file_order: (varinfo -> initinfo -> unit) -> unit
 
   (** {2 Setters}
 
@@ -74,13 +81,6 @@ module Functions: sig
   val get_params: kernel_function -> varinfo list
   val get_vi: kernel_function -> varinfo
 
-  val get_glob_init: ?main_name:string -> file -> kernel_function
-    (** Similar to [Cil.getGlobInit], except it registers the newly created
-	function.
-	@deprecated using this function is incorrect since it modifies the
-	current AST (see Plug-in Development Guide, Section "Using Projects").
-	@return the internal function for global initializations. *)
-
   (** {2 Searching} *)
 
   val find_by_name : string -> kernel_function
@@ -92,7 +92,6 @@ module Functions: sig
   val find_englobing_kf: kinstr -> kernel_function option
     (** @deprecated since Carbon-20101201
         Use [Kernel_function.find_englobing_kf] instead *)
-
 
   (** {2 Iterators} *)
 
@@ -112,6 +111,9 @@ module Functions: sig
   val replace_by_definition: funspec -> fundec -> location -> unit
     (**TODO: do not take a funspec as argument *)
 
+  val set_spec: (kernel_function -> (funspec -> funspec) -> unit) ref
+
+  val register: kernel_function -> unit
 end
 
 (* ************************************************************************* *)
@@ -131,14 +133,12 @@ module Annotations: sig
 
   val iter: (global_annotation -> bool -> unit) -> unit
     (** The boolean parameter of the given function is [true] iff the
-	annotation was generated. *)
+        annotation was generated. *)
 
   (** {2 Setters} *)
 
   val add_user: global_annotation -> unit
   val add_generated: global_annotation -> unit
-  val replace_all:
-    (global_annotation -> bool -> global_annotation * bool) -> unit
 
 end
 
@@ -148,17 +148,17 @@ module FileIndex : sig
 
   val self: State.t
     (** The state kind corresponding to the table of global C symbols.
-	@since Boron-20100401 *)
+        @since Boron-20100401 *)
 
   (** {2 Getters} *)
 
   val get_symbols : filename:string -> global list
     (** All global C symbols of the given module.
-	@since Boron-20100401 *)
+        @since Boron-20100401 *)
 
   val find : filename:string -> string * (global list)
     (** All global C symbols for valviewer.
-	The file name to display is returned, and the [global] list reversed. *)
+        The file name to display is returned, and the [global] list reversed. *)
 
   val get_files: unit -> string list
     (** Get the files list containing all [global] C symbols. *)
@@ -168,14 +168,22 @@ module FileIndex : sig
   val get_globals : filename:string -> (varinfo * initinfo) list
   (** Global variables of the given module for the kernel user interface *)
 
-  val get_functions : filename:string -> kernel_function list
-    (** Global functions of the given module for the kernel user interface *)
+  val get_global_annotations: filename:string -> global_annotation list
+  (** Global annotations of the given module for the kernel user interface
+      @since Nitrogen-20111001 *)
+
+  val get_functions :
+    ?declarations:bool -> filename:string -> kernel_function list
+    (** Global functions of the given module for the kernel user interface.
+        If [declarations] is true, functions declared in a module but defined
+        in another module are only reported in the latter (default is false).
+    *)
 
   val kernel_function_of_local_var_or_param_varinfo :
     varinfo -> (kernel_function * bool)
     (** kernel_function where the local variable or formal parameter is
-	declared. The boolean result is true for a formal parameter.
-	@raise Not_found if the varinfo is a global one. *)
+        declared. The boolean result is true for a formal parameter.
+        @raise Not_found if the varinfo is a global one. *)
 
 end
 
@@ -194,11 +202,45 @@ val entry_point : unit -> kernel_function * bool
       you don't have to catch it yourself, except if you do a specific work. *)
 
 val set_entry_point : string -> bool -> unit
-(** [set_entry_point name lib] sets [Parameters.MainFunction] to [name] if
-    [lib] is [false] and [Parameters.LibEntry] to [name] if [lib] is [true].
+(** [set_entry_point name lib] sets [Kernel.MainFunction] to [name] if
+    [lib] is [false] and [Kernel.LibEntry] to [name] if [lib] is [true].
     Moreover, clear the results of all the analysis which depend on
-    [Parameters.MainFunction] or [Parameters.LibEntry].
+    [Kernel.MainFunction] or [Kernel.LibEntry].
     @plugin development guide *)
+
+(* ************************************************************************* *)
+(** {2 Comments} *)
+(* ************************************************************************* *)
+
+val get_comments_global: global -> string list
+(** Gets a list of comments associated to the given global. This function
+    is useful only when -keep-comments is on.
+
+    A comment is associated to a global if it occurs after 
+    the declaration/definition of the preceding one in the file, before the end
+    of the current declaration/definition and does not occur in the 
+    definition of a function. Note that this function is experimental and
+    may fail to associate comments properly. Use directly 
+    {! Cabshelper.Comments.get} to retrieve comments in a given region.
+    (see {!Globals.get_comments_stmt} for retrieving comments associated to
+    a statement).
+
+    @since Nitrogen-20111001
+*)
+
+val get_comments_stmt: stmt -> string list
+(** Gets a list of comments associated to the given global. This function
+    is useful only when -keep-comments is on.
+
+    A comment is associated to a global if it occurs after 
+    the preceding statement and before the current statement ends (except for
+    the last statement in a block, to which statements occuring before the end
+    of the block are associated). Note that this function is experimental and
+    may fail to associate comments properly. Use directly 
+    {! Cabshelper.Comments.get} to retrieve comments in a given region.
+
+    @since Nitrogen-20111001
+*)
 
 (*
 Local Variables:

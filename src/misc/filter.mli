@@ -31,7 +31,7 @@ open Cil_types
  * have to be visible or not *)
 module type T_RemoveInfo = sig
 
-  (** exception that fun_assign_visible should raise to indicate that 
+  (** exception that fun_assign_visible should raise to indicate that
       the corresponding assigns clause should be erased entirely
    *)
   exception EraseAssigns
@@ -45,7 +45,7 @@ module type T_RemoveInfo = sig
   (** This function will be called for each function of the source program.
   * A new function will be created for each element of the returned list.
   *)
-  val fct_info : t_proj -> Db_types.kernel_function -> t_fct list
+  val fct_info : t_proj -> kernel_function -> t_fct list
 
   (** useful when we want to have several functions in the result for one
   * source function. If if is not the case, you can return [varinfo.vname].
@@ -70,17 +70,15 @@ module type T_RemoveInfo = sig
   (** tells if the label is visible. *)
   val label_visible : t_fct -> stmt -> label -> bool
 
-  (** tells if the annotation, attached to the given statement
-      (before when the flag is true, after otherwise) is visible. *)
-  val annotation_visible: t_fct -> stmt -> before:bool ->
-                          code_annotation -> bool
+  (** tells if the annotation, attached to the given statement is visible. *)
+  val annotation_visible: t_fct -> stmt -> code_annotation -> bool
 
   val fun_precond_visible : t_fct -> predicate -> bool
   val fun_postcond_visible : t_fct -> predicate -> bool
   val fun_variant_visible : t_fct -> term -> bool
 
   val fun_assign_visible : t_fct -> identified_term from -> bool
-    (** true if the assigned value (first component of the from) is visible 
+    (** true if the assigned value (first component of the from) is visible
         @raise EraseAssigns to indicate that the corresponding assigns clause
         should be erased entirely (i.e. assigns everything. If it were to
         just return false to all elements, this would result in assigns \nothing
@@ -95,7 +93,7 @@ module type T_RemoveInfo = sig
   * The input [t_fct] parameter is the one of the caller function.
   * *)
   val called_info : t_proj * t_fct -> stmt ->
-                    (Db_types.kernel_function * t_fct) option
+                    (kernel_function * t_fct) option
 
   (** tells if the lvalue of the call has to be visible *)
   val res_call_visible : t_fct -> stmt -> bool
@@ -110,7 +108,7 @@ module type T_RemoveInfo = sig
   * - [res_call_visible] must return [false]
   *   if [result_visible] returns false on the called function.
   *)
-  val result_visible : Db_types.kernel_function -> t_fct -> bool
+  val result_visible : kernel_function -> t_fct -> bool
 
 end
 

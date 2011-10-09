@@ -28,7 +28,7 @@
 #ifdef __FRAMA_C_MACHDEP_x86_32
 
 /* Required */
-#define __CHAR_UNSIGNED__
+#undef  __CHAR_UNSIGNED__
 #define __WORDSIZE 32
 #define __SIZEOF_SHORT 2
 #define __SIZEOF_INT 4
@@ -86,6 +86,6 @@
 
 #endif
 
-#define __umax(oct,TYP) ((((1##TYP << (oct*__CHAR_BIT - 1))*2)-1))
-#define __smin(oct,TYP) (-(1##TYP << (oct*__CHAR_BIT - 1)))
-#define __smax(oct,TYP) ((1##TYP << (oct*__CHAR_BIT - 1))-1)
+#define __umax(typ) ((typ)(-1))
+#define __smin(oct,TYP) (2*(-(1##TYP << (oct*__CHAR_BIT - 2))))
+#define __smax(oct,TYP) ((1##TYP << (oct*__CHAR_BIT - 2))-1+(1##TYP << (oct*__CHAR_BIT - 2)))

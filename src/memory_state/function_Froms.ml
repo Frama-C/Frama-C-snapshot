@@ -20,6 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please write a .mli and
+   document it. *)
+
 open Locations
 
 type tt =
@@ -43,13 +49,13 @@ let pretty fmt { deps_return = r ; deps_table = t } =
 let pretty_with_type typ fmt { deps_return = r; deps_table = t } =
   let (rt_typ,_,_,_) = Cil.splitFunctionType typ in
   if Cil.isVoidType rt_typ then
-    Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]@]@]@\n"
+    Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]@]@]"
       Lmap_bitwise.From_Model.pretty t
   else if Lmap_bitwise.From_Model.LOffset.is_empty r then
-    Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]\\result FROM \\nothing@]@]@\n"
+    Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]\\result FROM \\nothing@]@]"
       Lmap_bitwise.From_Model.pretty t
   else
-    Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]\\result%a@]@]@\n"
+    Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]\\result%a@]@]"
       Lmap_bitwise.From_Model.pretty t
       (Lmap_bitwise.From_Model.LOffset.pretty_with_type (Some rt_typ)) r
 
@@ -66,18 +72,18 @@ include Datatype.Make
     (struct
       type t = tt
       let reprs =
-	List.fold_left
-	  (fun acc o ->
-	    List.fold_left
-	      (fun acc m -> { deps_return = o; deps_table = m } :: acc)
-	      acc
-	      Lmap_bitwise.From_Model.reprs)
-	  []
-	  Lmap_bitwise.From_Model.LOffset.reprs
+        List.fold_left
+          (fun acc o ->
+            List.fold_left
+              (fun acc m -> { deps_return = o; deps_table = m } :: acc)
+              acc
+              Lmap_bitwise.From_Model.reprs)
+          []
+          Lmap_bitwise.From_Model.LOffset.reprs
       let structural_descr =
-	Structural_descr.t_record
-	  [| Lmap_bitwise.From_Model.LOffset.packed_descr;
-	     Lmap_bitwise.From_Model.packed_descr |]
+        Structural_descr.t_record
+          [| Lmap_bitwise.From_Model.LOffset.packed_descr;
+             Lmap_bitwise.From_Model.packed_descr |]
        let name = "Function_Froms"
        let hash = hash
        let compare = Datatype.undefined

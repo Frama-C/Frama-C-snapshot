@@ -1,14 +1,14 @@
 /* run.config
    GCC:
-   OPT: -lib-entry -main simple -fct-pdg simple -journal-disable
-   OPT: -lib-entry -main simple_with_break -fct-pdg simple_with_break -journal-disable
-   OPT: -lib-entry -main infinite -fct-pdg infinite -journal-disable
-   OPT: -lib-entry -main infinite2 -fct-pdg infinite2 -journal-disable
-   OPT: -lib-entry -main maybe_infinite -fct-pdg maybe_infinite -journal-disable
-   OPT: -lib-entry -main two_infinite_loops -fct-pdg two_infinite_loops -journal-disable
-   OPT: -lib-entry -main loop_with_goto -fct-pdg loop_with_goto -journal-disable
-   OPT: -lib-entry -main non_natural_loop -fct-pdg non_natural_loop -journal-disable
-   OPT: -lib-entry -main dead_code -fct-pdg dead_code -journal-disable
+   OPT: -lib-entry -main simple -fct-pdg simple -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main simple_with_break -fct-pdg simple_with_break -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main infinite -fct-pdg infinite -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main infinite2 -fct-pdg infinite2 -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main maybe_infinite -fct-pdg maybe_infinite -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main two_infinite_loops -fct-pdg two_infinite_loops -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main loop_with_goto -fct-pdg loop_with_goto -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main non_natural_loop -fct-pdg non_natural_loop -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -lib-entry -main dead_code -fct-pdg dead_code -journal-disable  -pdg-print -pdg-verbose 2
 
 
 

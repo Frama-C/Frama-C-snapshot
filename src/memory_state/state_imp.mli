@@ -20,36 +20,39 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: state_set.mli,v 1.6 2009-02-24 17:53:39 uid527 Exp $ *)
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
 
 type t
 exception Unchanged
 val pretty : Format.formatter -> t -> unit
-val add : Relations_type.Model.t -> t -> unit
-val fold : ( Relations_type.Model.t -> 'a -> 'a) -> t -> 'a  -> 'a
-val iter : (Relations_type.Model.t -> unit) -> t -> unit
+val add : Cvalue.Model.t -> t -> unit
+val fold : ( Cvalue.Model.t -> 'a -> 'a) -> t -> 'a  -> 'a
+val iter : (Cvalue.Model.t -> unit) -> t -> unit
 val merge_into : t -> t -> unit
 val merge_set_into : State_set.t -> t -> unit
 val merge_set_return_new : State_set.t -> t -> State_set.t
-val join : t -> Relations_type.Model.t
-val join_dropping_relations : t -> Relations_type.Model.t
-val exists : (Relations_type.Model.t -> bool) -> t -> bool
+val join : t -> Cvalue.Model.t
+val join_dropping_relations : t -> Cvalue.Model.t
+val exists : (Cvalue.Model.t -> bool) -> t -> bool
 val is_empty : t -> bool
 val length : t -> int
 val empty : unit -> t
-val singleton : Relations_type.Model.t -> t
+val singleton : Cvalue.Model.t -> t
 val to_set : t -> State_set.t
 (*
-val filter : (Relations_type.Model.t -> bool) -> t -> t
+val filter : (Cvalue.Model.t -> bool) -> t -> t
 
 
 
 
 val length : t -> int
-val nth : t -> int -> Relations_type.Model.t
+val nth : t -> int -> Cvalue.Model.t
 *)
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

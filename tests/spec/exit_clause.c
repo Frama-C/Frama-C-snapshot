@@ -17,3 +17,14 @@ extern void exit(int status);
       exits \exit_status==x;
 */
 int may_exit(int x) { if (x) exit(0); return 0; }
+
+// Following spec must be rejected
+
+//@ exits \result == 0;
+int f () { return 0; }
+
+//@ requires \exit_status == 0; ensures \exit_status == 0;
+void g () { 
+  //@ assert \exit_status == 0; 
+  exit(0); 
+}

@@ -22,6 +22,7 @@
 
 let d_ident = ref Format.pp_print_string
 let d_binop = ref Cil.d_binop
+let d_relation = ref Cil.d_relation
 let d_exp = ref Cil.d_exp
 let d_var = ref Cil.d_var
 let d_lval = ref Cil.d_lval
@@ -46,13 +47,11 @@ let d_term_offset = ref Cil.d_term_offset
 let d_predicate_named = ref Cil.d_predicate_named
 let d_code_annotation = ref Cil.d_code_annotation
 
-let d_rooted_code_annotation_before_after = 
-  ref (fun fmt a -> 
-	 match a with
-	 | Db_types.Before p | Db_types.After p ->
-	     match p with 
-	     | Db_types.User p 
-	     | Db_types.AI (_,p) -> Cil.d_code_annotation fmt p)
+let d_rooted_code_annotation =
+  ref
+    (fun fmt p -> match p with
+    | Cil_types.User p
+    | Cil_types.AI (_,p) -> Cil.d_code_annotation fmt p)
 
 let d_funspec = ref Cil.d_funspec
 let d_annotation = ref Cil.d_annotation

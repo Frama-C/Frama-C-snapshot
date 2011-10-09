@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -29,7 +31,7 @@ type t =
 val bool3and: t -> t -> t
 val bool3or: t -> t -> t
 val bool3not: t -> t
-
+val bool3_of_bool: bool -> t
 (*
 Local Variables:
 compile-command: "make -C ../.."

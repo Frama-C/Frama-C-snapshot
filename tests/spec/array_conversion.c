@@ -24,3 +24,15 @@ foo X = {0,1,2,3};
 int f1(foo x) { return x[3]; }
 
 int g1() { return f1(X); }
+
+//@ axiomatic ax { logic boolean p{L}(int *b); }
+
+int a[10];
+
+void ftest(void) {
+    //@ assert p(&a[0]);
+    //@ assert p( a   );
+}
+
+
+//@ lemma array_not_null: a != \null; 

@@ -68,6 +68,8 @@ val is_full: t -> bool
 (** @return [true] iff the selection contains all the states.
     @since Carbon-20101201 *)
 
+val mem: t -> State.t -> bool
+
 (* ************************************************************************** *)
 (** {2 Specific selections} *)
 (* ************************************************************************** *)

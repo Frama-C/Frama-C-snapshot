@@ -41,12 +41,12 @@
 
 (*
  *
- * Copyright (c) 2001-2002, 
+ * Copyright (c) 2001-2002,
  *  George C. Necula    <necula@cs.berkeley.edu>
  *  Scott McPeak        <smcpeak@cs.berkeley.edu>
  *  Wes Weimer          <weimer@cs.berkeley.edu>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -79,7 +79,7 @@
 (* Copied and modified from [cil/src/errormsg.mli] *)
 
 val newline: unit -> unit  (* Call this function to announce a new line *)
-val newHline: unit -> unit 
+val newHline: unit -> unit
 
 val getPosition: unit -> Lexing.position * Lexing.position
 val getHPosition: unit -> int * string (** high-level position *)
@@ -91,16 +91,16 @@ val setCurrentLine: int -> unit
 val setCurrentFile: string -> unit
 
 (** Type for source-file locations *)
-type location = 
+type location =
     { file: string; (** The file name *)
       line: int;    (** The line number *)
       hfile: string; (** The high-level file name, or "" if not present *)
       hline: int;    (** The high-level line number, or 0 if not present *)
-    } 
+    }
 
 val d_loc:  location Pretty_utils.formatter
 val d_hloc: location Pretty_utils.formatter
-    
+
 val getLocation: unit -> location
 
 val parse_error: string (* A message *) -> 'a
@@ -109,20 +109,13 @@ val parse_error: string (* A message *) -> 'a
 val locUnknown: location
 
 
-(** Records whether the stdin is open for reading the goal **)
-val readingFromStdin: bool ref
-
-
-(* Call this function to start parsing. useBasename is by default "true", 
- * meaning that the error information maintains only the basename. If the 
+(* Call this function to start parsing. useBasename is by default "true",
+ * meaning that the error information maintains only the basename. If the
  * file name is - then it reads from stdin. *)
-val startParsing:  ?useBasename:bool -> string -> 
-  Lexing.lexbuf 
+val startParsing:  ?useBasename:bool -> string ->
+  Lexing.lexbuf
 
-val startParsingFromString: ?file:string -> ?line:int -> string
-                            -> Lexing.lexbuf
-
-val finishParsing: unit -> unit (* Call this function to finish parsing and 
+val finishParsing: unit -> unit (* Call this function to finish parsing and
                                  * close the input channel *)
 
 

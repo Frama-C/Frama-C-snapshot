@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -31,19 +33,17 @@
   open Promelaast
   open Lexing
 
-  exception Error of ((Lexing.position * Lexing.position) option) * string
- 
+  exception Error of (Lexing.position * Lexing.position) * string
+
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
 
-  let raise_located loc e = raise (Error (Some (loc), e))
-
-
+  let raise_located loc e = raise (Error (loc, e))
 
   let buf = Buffer.create 1024
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
-    lexbuf.lex_curr_p <- 
+    lexbuf.lex_curr_p <-
       { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 
 }
@@ -51,26 +51,26 @@
 
 
 
-let rD =	['0'-'9']
+let rD =        ['0'-'9']
 let rL = ['a'-'z' 'A'-'Z' '_']
 
 
 rule token = parse
   | "true"                  { PROMELA_TRUE }
-  | "never"		    { PROMELA_NEVER }
-  | "if"		    { PROMELA_IF }
-  | "fi"		    { PROMELA_FI }
-  | "goto"		    { PROMELA_GOTO }
-  | "skip"		    { PROMELA_SKIP }
-  | "::"		    { PROMELA_DOUBLE_COLON }
-  | ':'		            { PROMELA_COLON }
-  | ';'			    { PROMELA_SEMICOLON }
+  | "never"                 { PROMELA_NEVER }
+  | "if"                    { PROMELA_IF }
+  | "fi"                    { PROMELA_FI }
+  | "goto"                  { PROMELA_GOTO }
+  | "skip"                  { PROMELA_SKIP }
+  | "::"                    { PROMELA_DOUBLE_COLON }
+  | ':'                     { PROMELA_COLON }
+  | ';'                     { PROMELA_SEMICOLON }
   | "()"                    { PROMELA_FUNC }
-  | '('			    { PROMELA_LPAREN }
-  | ')'			    { PROMELA_RPAREN }
-  | '{'			    { PROMELA_LBRACE }
-  | '}'			    { PROMELA_RBRACE }
-  | "->"		    { PROMELA_RIGHT_ARROW }
+  | '('                     { PROMELA_LPAREN }
+  | ')'                     { PROMELA_RPAREN }
+  | '{'                     { PROMELA_LBRACE }
+  | '}'                     { PROMELA_RBRACE }
+  | "->"                    { PROMELA_RIGHT_ARROW }
   | "false"                 { PROMELA_FALSE }
   | "||"                    { PROMELA_OR }
   | "&&"                    { PROMELA_AND }
@@ -80,17 +80,17 @@ rule token = parse
   | "/*"                    { comment lexbuf; token lexbuf }
   | "//" [^ '\n']* '\n'     { newline lexbuf; token lexbuf }
 
-  | "callof_" rL* (rL | rD)*   
-                            { let s=(lexeme lexbuf) in 
-			      let s=String.sub s 7 ((String.length s)-7) in 
+  | "callof_" rL* (rL | rD)*
+                            { let s=(lexeme lexbuf) in
+                              let s=String.sub s 7 ((String.length s)-7) in
                               PROMELA_CALLOF s }
-  | "returnof_" rL* (rL | rD)* 
-                            { let s=(lexeme lexbuf) in 
-			      let s=String.sub s 9 ((String.length s)-9) in 
+  | "returnof_" rL* (rL | rD)*
+                            { let s=(lexeme lexbuf) in
+                              let s=String.sub s 9 ((String.length s)-9) in
                               PROMELA_RETURNOF s }
-  | "callorreturnof_" rL* (rL | rD)* 
-                            { let s=(lexeme lexbuf) in 
-			      let s=String.sub s 15 ((String.length s)-15) in 
+  | "callorreturnof_" rL* (rL | rD)*
+                            { let s=(lexeme lexbuf) in
+                              let s=String.sub s 15 ((String.length s)-15) in
                               PROMELA_CALLORRETURNOF s }
 
 
@@ -100,7 +100,7 @@ rule token = parse
 
 
   | rD+ | '-' rD+           { PROMELA_INT (lexeme lexbuf) }
- 
+
 
 (* Logic relations *)
   | "=="                    { PROMELA_EQ }
@@ -118,8 +118,8 @@ rule token = parse
   | '%'                     { PROMELA_MODULO}
 
 (* Access *)
-(*  | "->"		    { LTL_RIGHT_ARROW }*)
-  | '.'                     { PROMELA_DOT } 
+(*  | "->"                  { LTL_RIGHT_ARROW }*)
+  | '.'                     { PROMELA_DOT }
   | '['                     { PROMELA_LEFT_SQUARE}
   | ']'                     { PROMELA_RIGHT_SQUARE}
 (*  | '&'                     { PROMELA_ADRESSE }*)
@@ -128,12 +128,12 @@ rule token = parse
 
 
   | rL (rL | rD)*           { let s = lexeme lexbuf in
-				PROMELA_LABEL s } 
+                                PROMELA_LABEL s }
   | eof                     { EOF }
 
   | "1"                     { PROMELA_TRUE }
   | _                       { Aorai_option.error "Illegal_character : '%s'\n" (lexeme lexbuf);
-			      raise Parsing.Parse_error}
+                              raise Parsing.Parse_error}
 
 
 
@@ -150,29 +150,23 @@ and comment = parse
     let lb = from_channel c in
     try
       Promelaparser_withexps.promela token lb
-    with 
-	Parsing.Parse_error 
-      | Invalid_argument _ -> 
-	  let (a,b)=(loc lb) in 
-		  Aorai_option.error "Syntax error (l%d c%d -> l%dc%d)" a.pos_lnum (a.pos_cnum-a.pos_bol) b.pos_lnum (b.pos_cnum-b.pos_bol);
-(*	    Format.print_string "Syntax error (" ;   *)
-(*	    Format.print_string "l" ;                *)
-(*	    Format.print_int a.pos_lnum ;            *)
-(*	    Format.print_string "c" ;                *)
-(*	    Format.print_int (a.pos_cnum-a.pos_bol) ;*)
-(*	    Format.print_string " -> l" ;            *)
-(*	    Format.print_int b.pos_lnum ;            *)
-(*	    Format.print_string "c" ;                *)
-(*	    Format.print_int (b.pos_cnum-b.pos_bol) ;*)
-(*	    Format.print_string ")\n" ;              *)
-	    raise_located (loc lb) "Syntax error"
-	      
-     
+    with
+        Parsing.Parse_error
+      | Invalid_argument _ ->
+          let (a,b)=(loc lb) in
+                  Aorai_option.error "Syntax error (l%d c%d -> l%dc%d)" a.pos_lnum (a.pos_cnum-a.pos_bol) b.pos_lnum (b.pos_cnum-b.pos_bol);
+(*          Format.print_string "Syntax error (" ;   *)
+(*          Format.print_string "l" ;                *)
+(*          Format.print_int a.pos_lnum ;            *)
+(*          Format.print_string "c" ;                *)
+(*          Format.print_int (a.pos_cnum-a.pos_bol) ;*)
+(*          Format.print_string " -> l" ;            *)
+(*          Format.print_int b.pos_lnum ;            *)
+(*          Format.print_string "c" ;                *)
+(*          Format.print_int (b.pos_cnum-b.pos_bol) ;*)
+(*          Format.print_string ")\n" ;              *)
+            raise_located (loc lb) "Syntax error"
+
+
 
 }
-
-
-
-
-
-

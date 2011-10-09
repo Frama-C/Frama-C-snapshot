@@ -55,15 +55,18 @@ type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
 let pp_list
     ?(pre=format_of_string "@[")
     ?(sep=format_of_string "")
+    ?(last=sep)
     ?(suf=format_of_string "@]")
     pp_elt f l =
-  let rec aux f l =
-    match l with
-        [] -> ()
-      | e::l -> Format.fprintf f "%(%)%a%a" sep pp_elt e aux l
-  in match l with
-      [] -> ()
-    | e::l -> Format.fprintf f "%(%)%a%a%(%)" pre pp_elt e aux l suf
+  let rec aux f = function
+    | [] -> assert false
+    | [ e ] -> Format.fprintf f "%a" pp_elt e
+    | [ e1; e2 ] -> Format.fprintf f "%a%(%)%a" pp_elt e1 last pp_elt e2
+    | e :: l -> Format.fprintf f "%a%(%)%a" pp_elt e sep aux l
+  in
+  match l with
+  | [] -> ()
+  | _ :: _ as l -> Format.fprintf f "%(%)%a%(%)" pre aux l suf
 
 let pp_array
     ?(pre=format_of_string "@[")
@@ -73,17 +76,17 @@ let pp_array
   match xs with
     | [| |] -> ()
     | xs ->
-	begin
-	  Format.fprintf f pre ;
-	  pp_elt f 0 xs.(0) ;
-	  for i = 1 to Array.length xs - 1 do
-	    Format.fprintf f sep ;
-	    pp_elt f i xs.(i) ;
-	  done ;
-	  Format.fprintf f suf ;
-	end
+        begin
+          Format.fprintf f pre ;
+          pp_elt f 0 xs.(0) ;
+          for i = 1 to Array.length xs - 1 do
+            Format.fprintf f sep ;
+            pp_elt f i xs.(i) ;
+          done ;
+          Format.fprintf f suf ;
+        end
 
-let pp_iter 
+let pp_iter
     ?(pre=format_of_string "@[")
     ?(sep=format_of_string "")
     ?(suf=format_of_string "@]")
@@ -108,23 +111,23 @@ let pp_cond ?(pr_false=format_of_string "") cond f pr_true =
 
 let escape_underscores = Str.global_replace (Str.regexp_string "_") "__"
 
-let pp_flowlist ?(left="(") ?(sep=",") ?(right=")") f out =
+let pp_flowlist ?(left=format_of_string "(") ?(sep=format_of_string ",") ?(right=format_of_string ")") f out =
   function
-    | [] -> Format.fprintf out "%s%s" left right
+    | [] -> Format.fprintf out "%(%)%(%)" left right
     | x::xs ->
-	begin
-	  Format.fprintf out "@[<hov 1>%s%a" left f x ;
-	  List.iter (fun x -> Format.fprintf out "%s@,%a" sep f x) xs ;
-	  Format.fprintf out "%s@]" right ;
-	end
+        begin
+          Format.fprintf out "@[<hov 1>%(%)%a" left f x ;
+          List.iter (fun x -> Format.fprintf out "%(%)@,%a" sep f x) xs ;
+          Format.fprintf out "%(%)@]" right ;
+        end
 
-let pp_blocklist ?(left="{") ?(right="}") f out =
+let pp_blocklist ?(left=format_of_string "{") ?(right=format_of_string "}") f out =
   function
-    | [] -> Format.fprintf out "%s%s" left right
+    | [] -> Format.fprintf out "%(%)%(%)" left right
     | xs ->
-	Format.fprintf out "@[<hv 0>%s@[<hv 2>" left ;
-	List.iter (fun x -> Format.fprintf out "@ %a" f x) xs ;
-	Format.fprintf out "@]@ %s@]" right
+        Format.fprintf out "@[<hv 0>%(%)@[<hv 2>" left ;
+        List.iter (fun x -> Format.fprintf out "@ %a" f x) xs ;
+        Format.fprintf out "@]@ %(%)@]" right
 
 let pp_open_block out msg =
   Format.fprintf out ("@[<hv 0>@[<hv 2>" ^^ msg)
@@ -135,11 +138,11 @@ let pp_trail pp fmt x =
     Format.fprintf fmt "@[<h 0>(**" ;
     let out newlined fmt s k n =
       for i=k to k+n-1 do
-	if !newlined then 
-	  ( Format.fprintf fmt "@\n * " ; newlined := false ) ;
-	if s.[i] = '\n' 
-	  then newlined := true
-	else Format.pp_print_char fmt s.[i]
+        if !newlined then
+          ( Format.fprintf fmt "@\n * " ; newlined := false ) ;
+        if s.[i] = '\n'
+          then newlined := true
+        else Format.pp_print_char fmt s.[i]
       done
     in
     let nwl = ref true in
@@ -151,6 +154,6 @@ let pp_trail pp fmt x =
 
 (*
 Local Variables:
-compile-command: "make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

@@ -1,11 +1,13 @@
 /**************************************************************************/
 /*                                                                        */
-/*  This file is part of Frama-C.                                         */
+/*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
 /*  Copyright (C) 2007-2011                                               */
-/*    INSA  (Institut National des Sciences Appliquees)                   */
+/*    CEA (Commissariat a l'énergie atomique et aux énergies              */
+/*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
+/*    INSA  (Institut National des Sciences Appliquees)                   */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
 /*  Lesser General Public License as published by the Free Software       */
@@ -25,26 +27,25 @@
 
 /* Originated from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip  */
 %{
+open Logic_ptree
 open Parsing
 open Promelaast
 open Bool3
 open Format
 
-type trans = Pred of Promelaast.condition | Otherwise
+let to_seq c =
+  [{ condition = Some c;
+     nested = [];
+     min_rep = Some Data_for_aorai.cst_one;
+     max_rep = Some Data_for_aorai.cst_one;
+   }]
+
+let is_no_repet (min,max) =
+  let is_one c = Extlib.may_map Data_for_aorai.is_cst_one ~dft:false c in
+  is_one min && is_one max
 
 let observed_states      = Hashtbl.create 1
 let prefetched_states    = Hashtbl.create 1
-let observed_vars        = Hashtbl.create 1
-let observed_funcs       = Hashtbl.create 1
-let observed_expressions = Hashtbl.create 97
-
-(* Current observed expr contains : *)
-type observed_expr = Func_ret of string                      (* func name : a return of the given func *)
-		     | Func_param of string * (string list)  (* Func name * param : a call with given param *)
-		     | Only_vars                             (* Only constants and variables *)
-
-let observed_expr_is_param = ref Only_vars
-
 
 let ident_count=ref 0
 let get_fresh_ident () =
@@ -52,23 +53,20 @@ let get_fresh_ident () =
   ("buchfreshident"^(string_of_int !ident_count))
 ;;
 
-
-
 let fetch_and_create_state name =
   Hashtbl.remove prefetched_states name ;
   try
     Hashtbl.find observed_states name
   with
-    Not_found ->
-      let s={ name=name;
-	      acceptation=False; init=False;
-	      nums=(Hashtbl.length observed_states) } in
-      Hashtbl.add observed_states name s;
-      s
+    Not_found -> 
+      let s = Data_for_aorai.new_state name in
+      Hashtbl.add observed_states name s; s
 ;;
 
 let prefetch_and_create_state name =
-    if (Hashtbl.mem prefetched_states name) or not (Hashtbl.mem observed_states name) then
+    if (Hashtbl.mem prefetched_states name) or 
+      not (Hashtbl.mem observed_states name) 
+    then
       begin
 	let s= fetch_and_create_state name in 
 	Hashtbl.add prefetched_states name name;
@@ -78,39 +76,37 @@ let prefetch_and_create_state name =
       (fetch_and_create_state name)
 ;;
 
-(*TODO: give a proper loc*)
-let new_exp =  Cil.new_exp ~loc:(Cil.CurrentLoc.get())
+type pre_cond = Behavior of string | Pre of Promelaast.condition
 
 %}
-
-
 
 %token CALL_OF  RETURN_OF  CALLORRETURN_OF
 %token <string> IDENTIFIER
 %token <string> INT
-%token LCURLY RCURLY LPAREN RPAREN LSQUARE RSQUARE
+%token LCURLY RCURLY LPAREN RPAREN LSQUARE RSQUARE LBRACELBRACE RBRACERBRACE
 %token RARROW
 %token TRUE FALSE
-%token FUNC
 %token NOT DOT AMP
-%token COLON SEMI_COLON COMMA PIPE
+%token COLON SEMI_COLON COMMA PIPE CARET QUESTION COMMA COLUMNCOLUMN
 %token EQ LT GT LE GE NEQ PLUS MINUS SLASH STAR PERCENT OR AND
 %token OTHERWISE
 %token EOF
 
-
+%nonassoc highest
 %left LPAREN RPAREN
+%left LCURLY
 %right EQ LT GT LE GE NEQ PLUS MINUS SLASH STAR PERCENT OR AND
 /* [VP] priorities taken from cparser.mly */
 %left LSQUARE RSQUARE
 %left DOT
 %nonassoc NOT TRUE FALSE
+%nonassoc QUESTION
+%right SEMICOLON
+%nonassoc lowest
 
-
-%type <(Promelaast.buchautomata * (string, string) Hashtbl.t * (string, string) Hashtbl.t)> main
+%type <Promelaast.parsed_automaton> main
 %start main
 %%
-
 
 main
   : options states {
@@ -119,11 +115,12 @@ main
        match key with
            "init"   ->
              List.iter
-               (fun id -> try
-	          (Hashtbl.find observed_states id).init <- True
-                with
-	            Not_found ->
-                      Aorai_option.abort "Error: no state '%s'\n" id)
+               (fun id -> 
+                 try
+	           (Hashtbl.find observed_states id).init <- True
+                 with
+	             Not_found ->
+                       Aorai_option.abort "Error: no state '%s'\n" id)
                ids
          | "accept" ->
              List.iter
@@ -131,10 +128,9 @@ main
 	          (Hashtbl.find observed_states id).acceptation <- True
                 with Not_found ->
                   Aorai_option.abort "no state '%s'\n" id) ids
-         | oth      ->
-             Aorai_option.abort "unknown option '%s'\n" oth
-    ) $1
-    ;
+         | "deterministic" -> Aorai_option.Deterministic.set true;
+         | oth      -> Aorai_option.abort "unknown option '%s'\n" oth
+    ) $1;
     let states=
       Hashtbl.fold
         (fun _ st l ->
@@ -146,26 +142,22 @@ main
 	   st::l)
         observed_states []
     in
+    (try
+       Hashtbl.iter 
+         (fun _ st -> if st.init=True then raise Exit) observed_states;
+       Aorai_option.abort "Automaton does not declare an initial state"
+     with Exit -> ());
     if Hashtbl.length prefetched_states >0 then 
       begin
 	let r = Hashtbl.fold
-	  (fun s n _ -> s^"Error: the state '"^n^"' is used but never defined.\n")
+	  (fun s n _ -> 
+            s^"Error: the state '"^n^"' is used but never defined.\n")
 	  prefetched_states 
 	  ""
 	in
 	Aorai_option.abort "%s" r
       end;
-  
-    Data_for_aorai.setLtl_expressions observed_expressions;
-    Logic_simplification.setLtl_expressions observed_expressions;
-    let n=ref 0 in
-    let (transitions,pcondsl) = Logic_simplification.simplifyTrans $2 in
-    let conds = Array.make (List.length transitions) [] in
-    List.iter2 (fun t pc -> t.numt<-(!n); conds.(!n)<-pc; n:=!n+1) transitions pcondsl;
-    Data_for_aorai.setCondOfParametrizedTransition conds;
-
-
-    ((states , transitions),observed_vars,observed_funcs)
+    (states, $2)
   }
   ;
 
@@ -176,55 +168,49 @@ options
   ;
 
 option
-  : PERCENT IDENTIFIER COLON opt_identifiers SEMI_COLON { ($2, $4) }
+  : PERCENT IDENTIFIER opt_identifiers SEMI_COLON { ($2, $3) }
   ;
 
 opt_identifiers
-  : opt_identifiers COMMA IDENTIFIER { $1@[$3] }
-  | IDENTIFIER                       { [$1] }
+  : /* empty */ { [] }
+  | COLON id_list { $2 }
   ;
 
-
-
-
+id_list
+  : id_list COMMA IDENTIFIER { $1@[$3] }
+  | IDENTIFIER               { [$1] }
+  ;
 
 states
   : states state { $1@$2 }
   | state { $1 }
   ;
 
-
 state
   : IDENTIFIER COLON transitions SEMI_COLON {
       let start_state = fetch_and_create_state $1 in
-      let (all_conds, otherwise, transitions) =
+      let (_, transitions) =
         List.fold_left
-          (fun (all_conds, otherwise, transitions) (cross,stop_state) ->
-             match otherwise, cross with
-                 None, Pred cross ->
-                   (POr (cross, all_conds), otherwise,
-                    { start=start_state; stop=stop_state;
-	              cross=cross;       numt=(-1) }::transitions)
-               | None, Otherwise ->
-                   let trans = { start=start_state; stop=stop_state;
-                                 cross = PFalse; numt= (-1) }
-                   in
-                   (all_conds, Some trans, trans::transitions)
-               | Some _, _ ->
-                   Aorai_option.abort
-                     "'other' directive in definition of %s \
-                      transitions is not the last one" start_state.name)
-          (PFalse,None,[]) $3
+          (fun (otherwise, transitions) (cross,stop_state) ->
+            if otherwise then
+              Aorai_option.abort
+                "'other' directive in definition of %s \
+                transitions is not the last one" start_state.name
+            else begin
+              let trans =
+                { start=start_state; stop=stop_state;
+	          cross=cross;       numt=(-1) }::transitions
+              in
+              let otherwise = 
+                match cross with 
+                  | Otherwise -> true 
+                  | Seq _ -> false
+              in otherwise, trans
+            end)
+          (false,[]) $3
       in
-      match otherwise with
-          None -> List.rev transitions
-        | Some trans ->
-            List.rev
-            ({trans with cross = PNot all_conds} ::
-              (List.filter (fun x -> x != trans) transitions))
+      List.rev transitions
   }
-  ;
-
 
 transitions  /*=>  [transition; ...] */
   : transitions PIPE transition { $1@[$3] }
@@ -232,177 +218,146 @@ transitions  /*=>  [transition; ...] */
   ;
 
 
-transition  /*=>  (guard, state) */
-  : LCURLY guard RCURLY RARROW IDENTIFIER { (Pred $2, prefetch_and_create_state $5) }
+transition:  /*=>  (guard, state) */
+  | LCURLY seq_elt RCURLY RARROW IDENTIFIER 
+      { (Seq $2, prefetch_and_create_state $5) }
   | OTHERWISE RARROW IDENTIFIER {(Otherwise, prefetch_and_create_state $3) }
-  | RARROW IDENTIFIER { (Pred PTrue, prefetch_and_create_state $2) }
+  | RARROW IDENTIFIER { (Seq (to_seq PTrue), prefetch_and_create_state $2) }
   ;
 
+non_empty_seq:
+  | seq_elt { $1 }
+  | seq_elt SEMI_COLON seq { $1 @ $3 }
+;
 
+seq:
+  | /* epsilon */ { [] }
+  | non_empty_seq { $1 }
+;
 
-guard
-	: CALLORRETURN_OF  LPAREN IDENTIFIER RPAREN
-	    { if not (Hashtbl.mem observed_funcs $3) then Hashtbl.add observed_funcs $3 $3 ; PCallOrReturn $3 }
-        | CALL_OF  LPAREN IDENTIFIER RPAREN
-	    { if not (Hashtbl.mem observed_funcs $3) then Hashtbl.add observed_funcs $3 $3 ; PCall $3 }
-        | RETURN_OF  LPAREN IDENTIFIER RPAREN
-	    { if not (Hashtbl.mem observed_funcs $3) then Hashtbl.add observed_funcs $3 $3 ; PReturn $3 }
-	| TRUE
-            { PTrue }
-	| FALSE
-            { PFalse }
-	| NOT guard
-	    { PNot $2 }
-	| guard AND guard
-	    { PAnd ($1,$3) }
-	| guard OR guard
-            { POr ($1,$3) }
-	| LPAREN guard RPAREN
-	    { $2 }
-        | logic_relation
-	    {
+guard:
+  | single_cond { to_seq $1 }
+  | LSQUARE non_empty_seq RSQUARE { $2 }
+  | IDENTIFIER pre_cond LPAREN seq RPAREN post_cond
+      { let pre_cond = 
+          match $2 with
+            | Behavior b -> PCall($1,Some b)
+            | Pre c -> PAnd (PCall($1,None), c)
+        in
+        let post_cond = 
+          match $6 with
+            | None -> PReturn $1
+            | Some c -> PAnd (PReturn $1,c)
+        in
+        (to_seq pre_cond) @ $4 @ to_seq post_cond 
+      }
+  | IDENTIFIER LPAREN non_empty_seq RPAREN post_cond
+      { let post_cond = 
+          match $5 with
+            | None -> PReturn $1
+            | Some c -> PAnd (PReturn $1,c)
+        in
+        (to_seq (PCall ($1, None))) @ $3 @ to_seq post_cond 
+      }
+  | IDENTIFIER LPAREN RPAREN post_cond
+      { let post_cond = 
+          match $4 with
+            | None -> PReturn $1
+            | Some c -> PAnd (PReturn $1,c)
+        in
+        (to_seq (PCall ($1, None))) @ to_seq post_cond
+      }
+;
 
-	      let id = get_fresh_ident () in
-	      let (pred,exp) = $1 in
-	      Hashtbl.add observed_expressions id
-		(exp, (Pretty_utils.sfprintf "%a" Cil.d_exp exp), pred);
-	      (*Ltlast.LIdent(id)*)
+pre_cond:
+  | COLUMNCOLUMN IDENTIFIER { Behavior $2 }
+  | LBRACELBRACE single_cond RBRACERBRACE { Pre $2 }
+;
 
-	      Hashtbl.add observed_vars id id ;
+post_cond:
+  | /* epsilon */ { None }
+  | LBRACELBRACE single_cond RBRACERBRACE { Some $2 }
+;
 
-	      let res =
-		match !observed_expr_is_param with
-		  | Only_vars -> PIndexedExp id
-		  | Func_param (f,l) -> PFuncParam (id,f,l)
-		  | Func_ret f -> PFuncReturn (id,f)
-	      in
+seq_elt:
+  | guard repetition {
+    let min, max = $2 in
+    match $1 with
+      | [ s ] when Data_for_aorai.is_single s ->
+        [ { s with min_rep = min; max_rep = max } ]
+      | l ->
+        if is_no_repet (min,max) then
+          l (* [ a; [b;c]; d] is equivalent to [a;b;c;d] *)
+        else [ { condition = None; nested = l; min_rep = min; max_rep = max } ] 
+  }
+;
 
-	      (* On repositionne la variable a son status par defaut pour la prochaine logic_relation *)
-	      observed_expr_is_param := Only_vars; (* DEVRAIT ETRE FAIT AVANT LOGIC_RELATION!!!! *)
+repetition:
+  | /* empty */ %prec lowest
+      { Some Data_for_aorai.cst_one, Some Data_for_aorai.cst_one }
+  | PLUS { Some Data_for_aorai.cst_one, None}
+  | STAR { None, None }
+  | QUESTION { None, Some Data_for_aorai.cst_one }
+  | LCURLY arith_relation COMMA arith_relation RCURLY { Some $2, Some $4 }
+  | LCURLY arith_relation RCURLY { Some $2, Some $2 }
+  | LCURLY arith_relation COMMA RCURLY { Some $2, None }
+  | LCURLY COMMA arith_relation RCURLY { None, Some $3 }
 
-	      res
-	    }
-   ;
+single_cond:
+  | CALLORRETURN_OF  LPAREN IDENTIFIER RPAREN
+      { POr (PCall ($3,None), PReturn $3) }
+  | CALL_OF  LPAREN IDENTIFIER RPAREN { PCall ($3,None) }
+  | RETURN_OF  LPAREN IDENTIFIER RPAREN { PReturn $3 }
+  | TRUE { PTrue }
+  | FALSE { PFalse }
+  | NOT single_cond { PNot $2 }
+  | single_cond AND single_cond { PAnd ($1,$3) }
+  | single_cond OR single_cond { POr ($1,$3) }
+  | LPAREN single_cond RPAREN { $2 }
+  | logic_relation { $1 }
+;
 
-
-
-
-/* returns a (Cil_types.predicate,Cil_types.exp) couple of expressions */
 logic_relation
-  : arith_relation EQ arith_relation {
-    ( Cil_types.Prel(Cil_types.Req, Logic_utils.expr_to_term ~cast:true $1,
-	  	                    Logic_utils.expr_to_term ~cast:true $3),
-      new_exp(Cil_types.BinOp(Cil_types.Eq, $1 , $3 , Cil.intType)) ) }
-  | arith_relation LT arith_relation {
-    ( Cil_types.Prel(Cil_types.Rlt, Logic_utils.expr_to_term ~cast:true $1,
-		                    Logic_utils.expr_to_term ~cast:true $3),
-      new_exp(Cil_types.BinOp(Cil_types.Lt, $1 , $3 , Cil.intType)) ) }
-  | arith_relation GT arith_relation {
-    ( Cil_types.Prel(Cil_types.Rgt, Logic_utils.expr_to_term ~cast:true $1,
-		                    Logic_utils.expr_to_term ~cast:true $3),
-      new_exp(Cil_types.BinOp(Cil_types.Gt, $1 , $3 , Cil.intType)) ) }
-  | arith_relation LE  arith_relation {
-    ( Cil_types.Prel(Cil_types.Rle, Logic_utils.expr_to_term ~cast:true $1,
-		                    Logic_utils.expr_to_term ~cast:true $3),
-      new_exp(Cil_types.BinOp(Cil_types.Le, $1 , $3 , Cil.intType)) ) }
-  | arith_relation GE arith_relation {
-    ( Cil_types.Prel(Cil_types.Rge, Logic_utils.expr_to_term ~cast:true $1,
-		                    Logic_utils.expr_to_term ~cast:true $3),
-      new_exp(Cil_types.BinOp(Cil_types.Ge, $1 , $3 , Cil.intType) )) }
-  | arith_relation NEQ arith_relation {
-    ( Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1,
-		                    Logic_utils.expr_to_term ~cast:true $3),
-      new_exp(Cil_types.BinOp(Cil_types.Ne, $1 , $3 , Cil.intType) )) }
-  | arith_relation %prec TRUE {
-    ( Cil_types.Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1,
-		     Logic_const.term(Cil_types.TConst(Cil_types.CInt64(Int64.of_int 0,Cil_types.IInt,Some("0"))))
-		       (Cil_types.Ctype Cil.intType)), $1) }
+  : arith_relation EQ arith_relation { PRel(Eq, $1, $3) }
+  | arith_relation LT arith_relation { PRel(Lt, $1, $3) }
+  | arith_relation GT arith_relation { PRel(Gt, $1, $3) }
+  | arith_relation LE arith_relation { PRel(Le, $1, $3) }
+  | arith_relation GE arith_relation { PRel(Ge, $1, $3) }
+  | arith_relation NEQ arith_relation { PRel(Neq, $1, $3) }
+  | arith_relation %prec TRUE { PRel (Neq, $1, PCst(IntConstant "0")) }
   ;
 
-/* returns a Cil_types.exp expression */
 arith_relation
-  : arith_relation_mul PLUS arith_relation {
-    new_exp (Cil_types.BinOp(Cil_types.PlusA, $1 , $3 , Cil.intType)) }
-  | arith_relation_mul MINUS arith_relation {
-    new_exp (Cil_types.BinOp(Cil_types.MinusA, $1 , $3 , Cil.intType)) }
-  | arith_relation_mul { $1 }
+  : arith_relation_mul PLUS arith_relation { PBinop(Badd,$1,$3) }
+  | arith_relation_mul MINUS arith_relation { PBinop(Bsub,$1,$3) }
+  | arith_relation_mul %prec lowest { $1 }
   ;
-
 
 arith_relation_mul
-  : arith_relation_mul SLASH access_or_const {
-    new_exp (Cil_types.BinOp(Cil_types.Div, $1 , $3 , Cil.intType)) }
-  | arith_relation_mul STAR access_or_const {
-    new_exp (Cil_types.BinOp(Cil_types.Mult, $1 , $3 , Cil.intType)) }
-  | arith_relation_mul PERCENT access_or_const {
-    new_exp (Cil_types.BinOp(Cil_types.Mod, $1 , $3 , Cil.intType)) }
+  : arith_relation_mul SLASH access_or_const { PBinop(Bdiv,$1,$3) }
+  | arith_relation_mul STAR access_or_const { PBinop(Bmul, $1, $3) }
+  | arith_relation_mul PERCENT access_or_const { PBinop(Bmod, $1, $3) }
   | access_or_const { $1 }
   ;
 
 /* returns a Lval exp or a Const exp*/
 access_or_const
-  : INT
-      { new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string $1,Cil_types.IInt, Some($1))))}
-  | MINUS INT 
-      { new_exp (Cil_types.Const(Cil_types.CInt64(Int64.of_string ("-"^$2),Cil_types.IInt, Some("-"^$2))))}
-  | access %prec TRUE
-      { new_exp (Cil_types.Lval($1)) }
-  | LPAREN arith_relation RPAREN
-      { $2 }
+  : INT { PCst (IntConstant $1) }
+  | MINUS INT { PUnop (Uminus, PCst (IntConstant $2)) }
+  | access %prec TRUE { $1 }
+  | LPAREN arith_relation RPAREN { $2 }
   ;
-
-
 
 /* returns a lval */
 access
-  : access DOT IDENTIFIER
-            {
-
-              let (my_host,my_offset) = ($1) in
-
-              let new_offset = Utils_parser.add_offset my_offset (Utils_parser.get_new_offset my_host my_offset $3) in
-              (my_host,new_offset)
-            }
-
-  | access LSQUARE access_or_const RSQUARE
-	    { Cil.addOffsetLval (Cil_types.Index ($3,Cil_types.NoOffset)) $1}
+  : access DOT IDENTIFIER { PField($1,$3) }
+  | access LSQUARE access_or_const RSQUARE { PArrget($1,$3) }
   | access_leaf	    {$1}
   ;
 
 access_leaf
-  : STAR access
-            { Aorai_option.fatal "NOT YET IMPLEMENTED : *A dereferencement access." }
-  | IDENTIFIER FUNC DOT IDENTIFIER
-            {
-	      if(String.compare $4 "return")=0 then
-		begin
-		  if not (!observed_expr_is_param=Only_vars) then
-		    Aorai_option.abort "An expression can not contain at same time a reference of a returned value and itself or a reference to a param";
-
-		  observed_expr_is_param := Func_ret $1;
-		  Cil.var ( Data_for_aorai.get_returninfo $1)
-		end
-	      else
-		begin
-		  match !observed_expr_is_param with
-		    | Func_ret _ ->
-			Aorai_option.abort "An expression can not contain both a reference of a returned value and another reference to itself or a reference to a param";
-
-		    | Func_param (f,_) when not (f=$1) ->
-			Aorai_option.abort "An expression can not contain both references two different called functions.";
-
-		    | Only_vars ->
-			observed_expr_is_param:=Func_param ($1,[$4]);
-			Cil.var ( Data_for_aorai.get_paraminfo $1 $4)
-
-		    | Func_param (_,l) ->
-			observed_expr_is_param:=Func_param ($1,$4::l);
-			Cil.var ( Data_for_aorai.get_paraminfo $1 $4)
-		end
-	    }
-  | IDENTIFIER
-            { Cil.var ( Data_for_aorai.get_varinfo $1) }
-  | LPAREN access RPAREN
-	    { $2 }
-
+  : STAR access { PUnop (Ustar,$2) }
+  | IDENTIFIER LPAREN RPAREN DOT IDENTIFIER { PPrm($1,$5) }
+  | IDENTIFIER { PVar $1 }
+  | LPAREN access RPAREN { $2 }
   ;

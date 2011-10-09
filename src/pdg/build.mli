@@ -22,7 +22,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val compute_pdg : Db_types.kernel_function -> PdgTypes.Pdg.t
+val compute_pdg : Cil_types.kernel_function -> PdgTypes.Pdg.t
 
 (*
 Local Variables:

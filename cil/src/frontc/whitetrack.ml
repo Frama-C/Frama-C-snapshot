@@ -45,7 +45,7 @@ open Cabshelper
 (* This isn't the most efficient way to do things.
  * It would probably be better to not reparse rather
  * than keep the tokens in memory *)
- 
+
 (* In particular, most of the tokens we hold will be
    header files that we don't need *)
 
@@ -54,7 +54,7 @@ open Cabshelper
 (* TODO: gather until end of line, then decide where to split *)
 
 (* NOTE: If you find yourself getting lots of nomatch errors with
- * parens in them, then that may mean you are printing 
+ * parens in them, then that may mean you are printing
  * a cabs file that has had it's parens removed *)
 
 let tokenmap : ((string * int),int) Hashtbl.t = Hashtbl.create 1000
@@ -66,107 +66,110 @@ let gonebad = ref false
 let tokens = GrowArray.make 0 (GrowArray.Elem  ("",""))
 
 let cabsloc_to_str cabsloc =
-  (fst cabsloc).Lexing.pos_fname ^ ":" ^ 
-    string_of_int (fst cabsloc).Lexing.pos_lnum ^ ":" ^ 
+  (fst cabsloc).Lexing.pos_fname ^ ":" ^
+    string_of_int (fst cabsloc).Lexing.pos_lnum ^ ":" ^
     string_of_int (fst cabsloc).Lexing.pos_cnum
 
 let lastline = ref 0
 
-let wraplexer_enabled lexer lexbuf = 
+let wraplexer_enabled lexer lexbuf =
     let white,lexeme,token,cabsloc = lexer lexbuf in
     GrowArray.setg tokens !nextidx (white,lexeme);
     Hashtbl.add tokenmap ((fst cabsloc).Lexing.pos_fname,(fst cabsloc).Lexing.pos_cnum) !nextidx;
     nextidx := !nextidx + 1;
     token
 
-let wraplexer_disabled lexer lexbuf = 
+let wraplexer_disabled lexer lexbuf =
     let _white,_lexeme,token,_cabsloc = lexer lexbuf in
     token
 
 let enabled = ref false
 
 let wraplexer lexer =
-    if !enabled then wraplexer_enabled lexer 
+    if !enabled then wraplexer_enabled lexer
     else wraplexer_disabled lexer
-    
-let finalwhite = ref "\n"    
-    
-let setFinalWhite w = finalwhite := w 
-    
-let curidx = ref 0  
-let noidx = -1  
+
+let finalwhite = ref "\n"
+
+let setFinalWhite w = finalwhite := w
+
+let curidx = ref 0
+let noidx = -1
 let out = ref stdout
-    
+
 let setLoc cabsloc =
     if cabsloc != cabslu && !enabled then begin
-        try 
+        try
             curidx := Hashtbl.find tokenmap ((fst cabsloc).Lexing.pos_fname,(fst cabsloc).Lexing.pos_cnum)
         with
-            Not_found -> 
-	      Cilmsg.fatal "setLoc with location for non-lexed token: %s" (cabsloc_to_str cabsloc)
+            Not_found ->
+	      Kernel.fatal "setLoc with location for non-lexed token: %s" (cabsloc_to_str cabsloc)
     end else begin curidx := noidx; () end
-    
-let setOutput out_chan = 
+
+let setOutput out_chan =
     out := out_chan
 
 (* TODO: do this properly *)
 let invent_white () = " "
 
 let rec chopwhite str =
-    if String.length str = 0 then str 
+    if String.length str = 0 then str
     else if String.get str (String.length str - 1) = ' ' then
         chopwhite (String.sub str 0 (String.length str - 1))
     else if String.get str 0 = ' ' then
-        chopwhite (String.sub str 1 (String.length str - 1)) 
+        chopwhite (String.sub str 1 (String.length str - 1))
     else str
-    
-let last_was_maybe = ref false    
-let last_str = ref ""
-    
-let print str =
-    let str = chopwhite str in
-    if str = "" then ()
-    else if !curidx == noidx || not !enabled then 
-        output_string !out (invent_white() ^ str) 
-    else begin
-        let srcwhite,srctok = GrowArray.getg tokens !curidx in
-        let white = if str = srctok 
-            then srcwhite
-            else if !gonebad then invent_white ()
-            else begin 
-              Cilmsg.warnOpt "nomatch:[%s] expected:[%s] - NOTE: cpp not supported"
-		(String.escaped str) (String.escaped srctok) ;
-              gonebad := true;
-              invent_white ()
-            end in
-        if !last_was_maybe && str = !last_str then () else begin
-            output_string !out (white ^ str);
-            curidx := !curidx + 1
-        end
-    end;
-    last_was_maybe := false
 
-let printl strs = 
-    List.iter print strs   
-    
+let last_was_maybe = ref false
+let last_str = ref ""
+
+let print str =
+  let str = chopwhite str in
+  if str <> "" then
+    if !curidx == noidx || not !enabled then
+      output_string !out (invent_white() ^ str)
+    else begin
+      let srcwhite,srctok = GrowArray.getg tokens !curidx in
+      let white =
+	if str = srctok then srcwhite
+	else if !gonebad then invent_white ()
+	else begin
+          Kernel.debug ~level:3
+	    "nomatch:[%s] expected:[%s] - NOTE: cpp not supported"
+	    (String.escaped str)
+	    (String.escaped srctok) ;
+          gonebad := true;
+          invent_white ()
+	end
+      in
+      if !last_was_maybe && str = !last_str then () else begin
+	output_string !out (white ^ str);
+	curidx := !curidx + 1
+      end
+    end;
+  last_was_maybe := false
+
+let printl strs =
+    List.iter print strs
+
 let printu str =
     if not !enabled then print str
     else
         let _srcwhite,srctok = GrowArray.getg tokens !curidx in
-        if chopwhite str = "" then () 
-        else if srctok = str 
-          || srctok = str ^ "__" 
+        if chopwhite str = "" then ()
+        else if srctok = str
+          || srctok = str ^ "__"
           || srctok = "__" ^ str
           || srctok = "__" ^ str ^ "__"
           then
           print srctok
         else (print_endline ("u-nomatch:["^str^"]"); print str)
-                
+
 let print_maybe str =
     if not !enabled then print str
     else
         let _srcwhite,srctok = GrowArray.getg tokens !curidx in
-        if str = srctok then begin 
+        if str = srctok then begin
             print str;
             last_was_maybe := true;
             last_str := str

@@ -3,8 +3,9 @@ open Cil_types
 let dump f =
   let kf = Globals.Functions.find_by_name f in
   let csites = Kernel_function.find_syntactic_callsites kf in
-  Log.print_on_output "Call Sites for %s:@\n%t" f
+  Log.print_on_output
     (fun fmt ->
+       Format.fprintf fmt "Call Sites for %s:@\n" f ;
        List.iter
 	 (fun (ckf,stmt) ->
 	    Format.fprintf fmt "  - From %s at #%03d@\n"

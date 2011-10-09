@@ -1,26 +1,26 @@
 /* run.config
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 0 -no-slice-callers -journal-disable
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 1 -no-slice-callers -journal-disable
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 2 -no-slice-callers -journal-disable
-  OPT: -slice-calls send -lib-entry -main g -slice-print -slicing-level 3 -no-slice-callers -journal-disable
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 0 -no-slice-callers -journal-disable
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 1 -no-slice-callers -journal-disable
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 2 -no-slice-callers -journal-disable
-  OPT: -slice-calls send,send_bis -lib-entry -main g -slice-print -slicing-level 3 -no-slice-callers -journal-disable
-  OPT: -slice-calls "send , send_bis" -lib-entry -main g -slice-print -slicing-level 1 -journal-disable
-  OPT: -slice-calls "send, send_bis" -lib-entry -main g -slice-print -slicing-level 2 -journal-disable
-  OPT: -slice-calls "send ,send_bis" -lib-entry -main g -slice-print -slicing-level 3 -journal-disable
-  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 0 -no-slice-callers -journal-disable
-  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 1 -no-slice-callers -journal-disable
-  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 2 -no-slice-callers -journal-disable
-  OPT: -slice-return f   -lib-entry -main g -slice-print -slicing-level 3 -no-slice-callers -journal-disable
-  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 0 -no-slice-callers -journal-disable
-  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 1 -no-slice-callers -journal-disable
-  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 2 -no-slice-callers -journal-disable
-  OPT: -slice-pragma f   -lib-entry -main g -slice-print -slicing-level 3 -no-slice-callers -journal-disable
-  OPT: -slice-value  H   -lib-entry -main g -slice-print -slicing-level 1 -no-slice-callers -journal-disable
-  OPT: -slice-value  H   -lib-entry -main g -slice-print -slicing-level 2 -no-slice-callers -journal-disable
-  OPT: -slice-value  H   -lib-entry -main g -slice-print -slicing-level 3 -no-slice-callers -journal-disable
+  OPT: -check -slice-calls send -lib-entry -main g -slicing-level 0 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send -lib-entry -main g -slicing-level 3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 0 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls "send , send_bis" -lib-entry -main g -slicing-level 1 -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls "send, send_bis" -lib-entry -main g -slicing-level 2 -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls "send ,send_bis" -lib-entry -main g -slicing-level 3 -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-return f   -lib-entry -main g -slicing-level 0 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-return f   -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-return f   -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-return f   -lib-entry -main g -slicing-level 3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-pragma f   -lib-entry -main g -slicing-level 0 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-pragma f   -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-pragma f   -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-pragma f   -lib-entry -main g -slicing-level 3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-value  H   -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-value  H   -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-value  H   -lib-entry -main g -slicing-level 3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
 */
 
 int G,H,I;

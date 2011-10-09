@@ -29,18 +29,18 @@ open Cil
 open Gtk_helper
 
 let main (main_ui:Design.main_window_extension_points) =
-  let filetree_selector 
-      ~was_activated ~activating globals = 
-    if Value.is_computed () then begin 
+  let filetree_selector
+      ~was_activated ~activating globals =
+    if Value.is_computed () then begin
       if not was_activated && activating then begin match globals with
 (* [JS 2009/30/03] GUI may become too slow if froms are displayed *)
-(*      | [GFun ({svar=v},_)] -> 
-          begin try 
+(*      | [GFun ({svar=v},_)] ->
+          begin try
             let kf = Globals.Functions.get v in
-            if !From.is_computed kf then 
+            if !From.is_computed kf then
               let s = fprintf_to_string "@[Functional dependencies:@\n%a@]@." !From.pretty kf in
               main_ui#annot_window#buffer#insert s
-          with Not_found -> () 
+          with Not_found -> ()
           end*)
       | _ -> ();
       end;
@@ -56,4 +56,3 @@ Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"
 End:
 *)
-

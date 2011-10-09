@@ -20,6 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 open Abstract_interp
 open Abstract_value
 
@@ -41,7 +46,7 @@ module type S = sig
 
   val empty : t
   val is_empty : t -> bool
-  val pretty_c_assert_typ : 
+  val pretty_c_assert_typ :
     string -> Cil_types.typ -> (unit->unit) -> Format.formatter -> t -> unit
   val pretty_typ : Cil_types.typ option -> Format.formatter -> t -> unit
   val pretty_debug : Format.formatter -> t -> unit
@@ -54,14 +59,6 @@ module type S = sig
   val is_included : t -> t -> bool
   val is_included_exn : t -> t -> unit
   val is_included_exn_generic : (y -> y -> unit) -> t -> t -> unit
-
-  val is_included_actual_generic :
-    Base.Set.t ->
-    Base.Set.t ref ->
-    Locations.Location_Bytes.t Base.Map.t ref ->
-    t ->
-    t ->
-    unit
 
   val join : t -> t -> (Int.t * Int.t) list * t
   val widen : widen_hint -> t -> t -> t
@@ -78,7 +75,7 @@ module type S = sig
   val concerned_bindings_ival :
     offsets:Ival.t -> offsetmap:t -> size:Int.t -> y list -> y list
     (** accumulates the list of the values associated to at
-	least one bit of the ival. For this function Top is not a binding! *)
+        least one bit of the ival. For this function Top is not a binding! *)
 
   val update_ival :
     with_alarms:CilE.warn_mode ->
@@ -91,15 +88,15 @@ module type S = sig
 
   val overwrite : t -> y -> Origin.t -> t
     (** [overwrite m v o] computes the offsetmap resulting from writing
-	[v] potentially anywhere in [m] *)
+        [v] potentially anywhere in [m] *)
 
   val over_intersection : t -> t -> t
     (** An over-approximation of the intersection.  The arguments can not be
-	arbitrary offsetmaps: the algorithm would be too complicated. The
-	provided algorithm should work fine with offsetmaps that correspond to
-	the relation view and the memory view of the same analysed code. *)
+        arbitrary offsetmaps: the algorithm would be too complicated. The
+        provided algorithm should work fine with offsetmaps that correspond to
+        the relation view and the memory view of the same analysed code. *)
 
-  val from_string : string -> t
+  val from_cstring : Base.cstring -> t
   val add_internal : itv -> Int.t * Int.t * y -> t -> t
   val add_whole :  itv -> y -> t -> t
   val remove_whole :  itv -> t -> t
@@ -117,8 +114,8 @@ module type S = sig
 
   val shift_ival : Ival.t -> t -> t option -> t option
     (** [shift_ival shift o acc] returns the join of [acc] and
-	of [o] shifted by all values in [shift].
-	Raises [Found_Top] when the result is [Top]. *)
+        of [o] shifted by all values in [shift].
+        Raises [Found_Top] when the result is [Top]. *)
 
   val copy_paste : t -> Int.t -> Int.t -> Int.t -> t -> t
   val copy_merge : t -> Int.t -> Int.t -> Int.t -> t -> t
@@ -134,20 +131,22 @@ module type S = sig
 
   val reciprocal_image : t -> Base.t -> Int_Intervals.t * Ival.t
     (** [reciprocal_image m b] is the set of bits in the offsetmap [m]
-	that may lead to Top([b]) and  the set of offsets in [m]
-	where one can read an address [b]+_ *)
+        that may lead to Top([b]) and  the set of offsets in [m]
+        where one can read an address [b]+_ *)
 
   val create_initial: v:y -> modu:Int.t -> t
 
   val reduce_by_int_intervals: t -> Abstract_value.Int_Intervals.t -> t
 
-  val top_stuff : (y -> bool) -> (y -> y) -> t -> t
+  val top_stuff :
+    (y -> bool) -> (y -> 'a * y) -> ('a -> 'a -> 'a) -> 'a -> t -> 'a * t
 
   val iter_contents : (y -> unit) -> t -> Int.t -> unit
     (** Iter on the contents of offsetmap of given size *)
 
   val fold : (Int.t * Int.t -> Int.t * Int.t * y -> 'a -> 'a) -> t -> 'a -> 'a
 
+  val is : t -> y -> bool
 end
 
 module Make(V : Lattice_With_Isotropy.S):

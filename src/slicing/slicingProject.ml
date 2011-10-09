@@ -358,8 +358,8 @@ let apply_fct_action proj fct_crit =
              add_persistante_marks proj fi node_marks false propagate []
          | T.CcExamineCalls _
          | _ ->
-	     Extlib.not_yet_implemented
-	       "This slicing criterion on source function"
+             Extlib.not_yet_implemented
+               "This slicing criterion on source function"
 
 (** apply [filter] and return a list of generated filters *)
 let apply_action proj filter =
@@ -403,17 +403,24 @@ let apply_all_actions proj =
           apply new_filters;
           apply actions
   in
-    SlicingParameters.feedback ~level:1 "applying %d actions..." nb_actions;
-    let rec apply_user n =
-      try let a = get_next_filter proj in
-        SlicingParameters.feedback ~level:1 "applying actions: %d/%d..." n nb_actions;
-        let new_filters = apply_action proj a in
-          apply new_filters;
-          apply_user (n+1)
-      with Not_found ->
-        if nb_actions > 0 then
-          SlicingParameters.feedback ~level:2 "done (applying %d actions." nb_actions
-    in
-      apply_user 1
+  SlicingParameters.feedback ~level:1 "applying %d actions..." nb_actions;
+  let rec apply_user n =
+    try
+      let a = get_next_filter proj in
+      SlicingParameters.feedback ~level:1 "applying actions: %d/%d..."
+        n nb_actions;
+      let new_filters = apply_action proj a in
+      apply new_filters;
+      apply_user (n+1)
+    with Not_found ->
+      if nb_actions > 0 then
+        SlicingParameters.feedback
+          ~level:2 "done (applying %d actions." nb_actions
+  in
+  apply_user 1
 
-
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

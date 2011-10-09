@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Topological order.
+(** Topological ordering over states.
 
     This functor provides functions which allow iterating over a <b>state</b>
     graph in topological order.

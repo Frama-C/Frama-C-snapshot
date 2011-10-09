@@ -28,7 +28,7 @@ let pretty_stmt fmt s =
 
 module Printer = struct
 
-  type t = string * (Stmt.Set.t option Kinstr.Hashtbl.t)
+  type t = string * (Stmt.Hptset.t option Kinstr.Hashtbl.t)
   module V = struct
     type t = Cil_types.stmt * bool
     let pretty fmt v = pretty_stmt fmt v
@@ -54,7 +54,7 @@ module Printer = struct
       match postdom with None -> ()
       | Some postdom ->
         let do_edge p = f ((s, true), (p, true)) in
-        Stmt.Set.iter do_edge postdom
+        Stmt.Hptset.iter do_edge postdom
     in
     Kinstr.Hashtbl.iter do_s graph
 
@@ -85,18 +85,18 @@ module PostdomGraph = Graph.Graphviz.Dot(Printer)
 let get_postdom kf graph s =
   try
     match Kinstr.Hashtbl.find graph (Kstmt s) with
-    | None -> Stmt.Set.empty
+    | None -> Stmt.Hptset.empty
     | Some l -> l
   with Not_found ->
     try
       let postdom = !Db.Postdominators.stmt_postdominators kf s in
-      let postdom = Stmt.Set.remove s postdom in
+      let postdom = Stmt.Hptset.remove s postdom in
       Postdominators_parameters.debug "postdom for %d:%a = %a\n"
-        s.sid pretty_stmt s Stmt.Set.pretty postdom;
+        s.sid pretty_stmt s Stmt.Hptset.pretty postdom;
       Kinstr.Hashtbl.add graph (Kstmt s) (Some postdom); postdom
-    with Db.Postdominators.Top ->
+    with Db.PostdominatorsTypes.Top ->
       Kinstr.Hashtbl.add graph (Kstmt s) None;
-      raise Db.Postdominators.Top
+      raise Db.PostdominatorsTypes.Top
 
 (** [s_postdom] are [s] postdominators, including [s].
 * We don't have to represent the relation between s and s.
@@ -105,33 +105,34 @@ let get_postdom kf graph s =
 *)
 let reduce kf graph s =
   let remove p s_postdom =
-    if Stmt.Set.mem p s_postdom
+    if Stmt.Hptset.mem p s_postdom
     then
       try
         let p_postdom = get_postdom kf graph p in
-        let s_postdom = Stmt.Set.diff s_postdom p_postdom
+        let s_postdom = Stmt.Hptset.diff s_postdom p_postdom
         in s_postdom
-      with Db.Postdominators.Top -> assert false
+      with Db.PostdominatorsTypes.Top -> assert false
                                    (* p postdom s -> cannot be top *)
     else s_postdom (* p has already been removed from s_postdom *)
   in
   try
     let postdom = get_postdom kf graph s in
-    let postdom = Stmt.Set.fold remove postdom postdom in
+    let postdom = Stmt.Hptset.fold remove postdom postdom in
     Postdominators_parameters.debug "new postdom for %d:%a = %a\n"
-      s.sid pretty_stmt s Stmt.Set.pretty postdom;
+      s.sid pretty_stmt s Stmt.Hptset.pretty postdom;
     Kinstr.Hashtbl.replace graph (Kstmt s) (Some postdom)
-  with Db.Postdominators.Top ->
+  with Db.PostdominatorsTypes.Top ->
     ()
 
 let rec build_reduced_graph kf graph stmts =
   List.iter (reduce kf graph) stmts
 
 let build_dot filename kf =
-  let stmts = match kf.Db_types.fundec with
-    | Db_types.Definition (fct, _) -> fct.sallstmts
-    | Db_types.Declaration _ ->
-	Kernel.abort "cannot compute for a function without body"
+  let stmts = match kf.fundec with
+    | Definition (fct, _) -> fct.sallstmts
+    | Declaration _ ->
+        Kernel.abort "cannot compute for a function without body %a"
+          Kernel_function.pretty kf
   in
   let graph = Kinstr.Hashtbl.create (List.length stmts) in
   let _ = build_reduced_graph kf graph stmts in

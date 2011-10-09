@@ -20,9 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Kernel of the GUI. *)
+
 include Plugin.S
 
-module Undo: Plugin.BOOL
+module Undo: Plugin.Bool
+(** Option -undo. *)
 
 (*
 Local Variables:

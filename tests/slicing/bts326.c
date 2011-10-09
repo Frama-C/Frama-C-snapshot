@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -calldeps -slice-print -slice-return main  -journal-disable
+   OPT: -check -calldeps -slice-return main -journal-disable -then-on 'Slicing export' -print
 */
 /* Problem : f(1) should be sliced out. See BTS#326 */
 int t[2] ;

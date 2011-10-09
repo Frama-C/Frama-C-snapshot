@@ -30,6 +30,11 @@ val no_obj: unit -> unit
   (** Deactivate all the black magic.
       Roughly, in this mode, nothing is done by this module. *)
 
+(**/**)
+val may_use_obj: unit -> bool
+(** Internal use only. Please, do not use it yourself. *)
+(**/**)
+
 (* ****************************************************************************)
 (** {2 Type declaration} *)
 (* ****************************************************************************)
@@ -83,13 +88,12 @@ exception AlreadyExists of string
 
 val register:
   ?closure:bool ->
-  ?dynamic_abstract:bool ->
   name:string ->
   ml_name:string option ->
   Structural_descr.t ->
   'a list ->
   'a t
-(** [register ?closure ?dynamic_abstract ~name ~ml_name descr reprs] registers
+(** [register ?closure ~name ~ml_name descr reprs] registers
     a new type value. Should not be used directly. Use one of functors of
     module {!Datatype} instead.
     @raise AlreadyExists if the given name is already used by another type.
@@ -99,22 +103,23 @@ val register:
     @modify Carbon-20101201 [value_name] is now [ml_name]. Must provide a
     structural descriptor. Argument [pp] does not exist anymore. *)
 
-type abstract
-val get: string -> abstract t
-(** @return the type value from its name. *)
+(** Apply this functor to access to the abstract type of the given name.
+    @since Nitrogen-20111001 *)
+module Abstract(T: sig val name: string end): sig
+  type t
+  val ty: t ty
+end
 
 val name: 'a t -> string
 val structural_descr: 'a t -> Structural_descr.t
 val reprs: 'a t -> 'a list
+(** Not usable in the "no-obj" mode *)
+
 val digest: 'a t -> Digest.t
 
 val ml_name: 'a t -> string
 val pp_ml_name: 'a t -> precedence -> Format.formatter -> unit
 val set_ml_name: 'a t -> string option -> unit
-
-val is_dynamic_abstract: 'a t -> unit
-(** Call this function to indicate that this type is an abstract type
-    dynamically registered. *)
 
 (* ****************************************************************************)
 (** {2 Type values are comparable} *)
@@ -146,7 +151,7 @@ module type Polymorphic_input = sig
 
   type 'a t
      (** Static polymorphic type corresponding to its dynamic counterpart to
-	 register. *)
+         register. *)
 
   val reprs: 'a -> 'a t list
 (** How to make the representant of each monomorphic instance of the
@@ -164,18 +169,18 @@ module type Polymorphic = sig
 
   val instantiate: 'a t -> 'a poly t * bool
     (** @return the monomorphic instantiation of the polymorph type with the
-	given type value. For instance, if ['a poly = 'a list], then
-	[instantiate int] returns the type value [int list]. *)
+        given type value. For instance, if ['a poly = 'a list], then
+        [instantiate int] returns the type value [int list]. *)
 
   val is_instance_of: 'a t -> bool
     (** @return [true] iff the given type value has been created from
-	function [instantiate] above.
-	For instance, [is_instance_of (instantiate int)] always returns [true]
-	but [is_instance_of int] always returns [false]. *)
+        function [instantiate] above.
+        For instance, [is_instance_of (instantiate int)] always returns [true]
+        but [is_instance_of int] always returns [false]. *)
 
   val get_instance: 'a poly t -> 'a t
     (** [get_instance ty] returns the type value used to create the given
-	monomorphic instantiation. *)
+        monomorphic instantiation. *)
 
 end
 
@@ -214,7 +219,7 @@ module Function : sig
   val instantiate:
     ?label:string * (unit -> 'a) option -> 'a t -> 'b t -> ('a -> 'b) t * bool
     (** Possibility to add a label for the parameter.
-	 - [~label:(p,None)] for a mandatory labelized parameter [p];
+         - [~label:(p,None)] for a mandatory labelized parameter [p];
          - [~label:(p,Some f)] for an optional labelized parameter [p],
            with default value [f ()]. *)
   val is_instance_of: 'a t -> bool
@@ -237,19 +242,18 @@ module type Heterogeneous_table = sig
   type 'a info
   type t
     (** Type of heterogeneous (hash)tables indexed by values of type Key.t.
-	Type values ensure type safety. *)
+        Type values ensure type safety. *)
 
   val create: int -> t
     (** [create n] creates a new table of initial size [n]. *)
 
-  val add: t -> key -> 'a ty -> 'a info -> 'a info
+  val add: t -> key -> 'a ty -> 'a info -> unit
     (** [add tbl s ty v] binds [s] to the value [v] in the table [tbl].
-	If the returned value is a closure whose the type of one of its
-	argument was dynamically registered, then it may raise
-	[Incompatible_Type].
-	@return the exact value stored in the table which is observationally
-	equal to [v] but it deals better with dynamic types.
-	@raise AlreadyExists if [s] is already bound in [tbl]. *)
+        If the returned value is a closure whose the type of one of its
+        argument was dynamically registered, then it may raise
+        [Incompatible_Type].
+        @raise AlreadyExists if [s] is already bound in [tbl].
+        @modify Nitrogen-20111001 returns [unit] now. *)
 
   exception Unbound_value of string
   exception Incompatible_type of string
@@ -257,9 +261,9 @@ module type Heterogeneous_table = sig
 
   val find: t -> key -> 'a ty -> 'a info
     (** [find tbl s ty] returns the binding of [s] in the table [tbl].
-	@raise Unbound_value if [s] is not bound in [tbl].
-	@raise Incompatible_Type if [ty] was not the type value used to add
-	the binding of [s] in [tbl]. *)
+        @raise Unbound_value if [s] is not bound in [tbl].
+        @raise Incompatible_Type if [ty] was not the type value used to add
+        the binding of [s] in [tbl]. *)
 
 end
 

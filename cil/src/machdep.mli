@@ -39,6 +39,8 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
+(** Machine dependent values. *)
+
 open Cil_types
 
 type t = private 

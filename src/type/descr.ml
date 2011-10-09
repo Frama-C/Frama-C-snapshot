@@ -30,6 +30,8 @@ type 'a t = pack
 
 let coerce d = (d : single_pack :> Unmarshal.t)
 
+let uncheck_pack d = try unsafe_pack d with Cannot_pack -> assert false
+
 (* ********************************************************************** *)
 (** {2 Predefined type descriptors} *)
 (* ********************************************************************** *)
@@ -37,14 +39,14 @@ let coerce d = (d : single_pack :> Unmarshal.t)
 let unmarshable = pack Unknown
 let is_unmarshable x = x = unmarshable
 
-let t_unit = unsafe_pack Unmarshal.t_unit
-let t_int = unsafe_pack Unmarshal.t_int
-let t_string = unsafe_pack Unmarshal.t_string
-let t_float = unsafe_pack Unmarshal.t_float
-let t_bool = unsafe_pack Unmarshal.t_bool
-let t_int32 = unsafe_pack Unmarshal.t_int32
-let t_int64 = unsafe_pack Unmarshal.t_int64
-let t_nativeint = unsafe_pack Unmarshal.t_nativeint
+let t_unit = uncheck_pack Unmarshal.t_unit
+let t_int = uncheck_pack Unmarshal.t_int
+let t_string = uncheck_pack Unmarshal.t_string
+let t_float = uncheck_pack Unmarshal.t_float
+let t_bool = uncheck_pack Unmarshal.t_bool
+let t_int32 = uncheck_pack Unmarshal.t_int32
+let t_int64 = uncheck_pack Unmarshal.t_int64
+let t_nativeint = uncheck_pack Unmarshal.t_nativeint
 
 (* ********************************************************************** *)
 (** {2 Type descriptor builders} *)
@@ -58,10 +60,10 @@ let t_record x _ =
   try
     let x =
       Array.map
-	(fun x -> match x with
-	| Nopack | Recursive _ -> raise Invalid_descriptor
-	| Pack x -> coerce x)
-	x
+        (fun x -> match x with
+        | Nopack | Recursive _ -> raise Invalid_descriptor
+        | Pack x -> coerce x)
+        x
     in
     unsafe_pack (Unmarshal.t_record x)
   with Cannot_pack ->
@@ -70,12 +72,12 @@ let t_record x _ =
 let t_tuple = t_record
 let t_pair x y = match x, y with
   | (Nopack | Recursive _), _ | _, (Nopack | Recursive _) -> unmarshable
-  | Pack x, Pack y -> unsafe_pack (Unmarshal.t_tuple [| coerce x; coerce y |])
+  | Pack x, Pack y -> uncheck_pack (Unmarshal.t_tuple [| coerce x; coerce y |])
 
 let t_poly f = function
   | Nopack -> unmarshable
   | Recursive _ -> raise Invalid_descriptor
-  | Pack x -> unsafe_pack (f (coerce x))
+  | Pack x -> uncheck_pack (f (coerce x))
 
 let t_list = t_poly Unmarshal.t_list
 let t_ref = t_poly Unmarshal.t_ref
@@ -86,7 +88,9 @@ let t_queue = t_poly Unmarshal.t_queue
 
 let of_type ty = pack (Type.structural_descr ty)
 let of_structural ty d =
-  if Structural_descr.are_consistent (Type.structural_descr ty) d then
+  if not (Type.may_use_obj ()) || 
+    Structural_descr.are_consistent (Type.structural_descr ty) d 
+  then
     pack d
   else
     invalid_arg "Descr.of_structural: inconsistent descriptor"
@@ -101,20 +105,20 @@ let rec dependent_pair a fb = match a with
       | Nopack | Recursive _ -> raise Invalid_descriptor
       | Pack b -> coerce b
     in
-    unsafe_pack (Unmarshal.Structure (Unmarshal.Dependent_pair (coerce a, f)))
+    uncheck_pack (Unmarshal.Structure (Unmarshal.Dependent_pair (coerce a, f)))
 
 let return d f = match d with
   | Nopack -> unmarshable
   | Recursive _ -> raise Invalid_descriptor
   | Pack d ->
-    unsafe_pack (Unmarshal.Return(coerce d, (fun x -> Obj.repr (f x))))
+    uncheck_pack (Unmarshal.Return(coerce d, (fun x -> Obj.repr (f x))))
 
 let dynamic f =
   let f () = match f () with
     | Nopack | Recursive _ -> raise Invalid_descriptor
     | Pack y -> coerce y
   in
-  unsafe_pack (Unmarshal.Dynamic f)
+  uncheck_pack (Unmarshal.Dynamic f)
 
 module Unmarshal_tbl =
   Hashtbl.Make
@@ -131,10 +135,10 @@ let rec transform_unmarshal_structure term x = function
     let l = ref [] in
     Array.iter
       (fun a ->
-	Array.iteri
-	  (fun i y ->
-	    if x == y then l := (a, i) :: !l else transform_unmarshal term x y)
-	  a)
+        Array.iteri
+          (fun i y ->
+            if x == y then l := (a, i) :: !l else transform_unmarshal term x y)
+          a)
       arr;
     List.iter (fun (a, i) -> a.(i) <- term) !l
   | Unmarshal.Dependent_pair(d, _) | Unmarshal.Array d ->
@@ -162,7 +166,7 @@ let rec transform descr f = match descr with
     let term = Unmarshal.Transform(d, fun x -> Obj.repr (f (Obj.obj x))) in
     transform_unmarshal term d d;
     Unmarshal_tbl.clear visited;
-    unsafe_pack term
+    uncheck_pack term
 
 (* ********************************************************************** *)
 (** {2 Coercions} *)

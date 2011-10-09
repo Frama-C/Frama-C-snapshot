@@ -1,0 +1,314 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2011                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+type t = Big_int_Z.big_int  
+module M = struct
+
+include Big_int_Z
+
+let equal = Z.equal
+
+let compare = Z.compare
+
+let shift_left_big_int x y = 
+    Z.shift_left x (Z.to_int y)
+
+let shift_right_big_int x y = 
+    Z.shift_right x (Z.to_int y)
+
+let power_two k =
+  Z.shift_left Z.one k
+(*
+  let h = Hashtbl.create 7 in
+  fun k ->
+      try
+        Hashtbl.find h k
+      with Not_found ->
+        let p = power_int_positive_int 2 k in
+        Hashtbl.add h k p;
+        p
+*)
+
+let two_power y =
+    try
+      let k = int_of_big_int y in
+      power_two k
+    with Failure _ -> assert false
+
+let log_shift_right_big_int x y = (* no meaning for negative value of x *)
+  if (lt_big_int x zero_big_int)
+  then raise (Invalid_argument "log_shift_right_big_int")
+  else shift_right_big_int x y
+
+let popcount = Z.popcount
+
+(* To export *)
+
+  let small_nums = Array.init 33 (fun i -> big_int_of_int i)
+
+  let zero = zero_big_int
+  let one = unit_big_int
+  let minus_one = minus_big_int unit_big_int
+  let two = Z.of_int 2
+  let four = Z.of_int 4
+  let eight = Z.of_int 8
+  let thirtytwo = Z.of_int 32
+  let onethousand = Z.of_int 1000
+  let billion_one = Z.of_int 1_000_000_001
+  let two_power_60 = power_two 60
+  let two_power_64 = power_two 64
+
+  let is_zero v = (sign_big_int v) = 0
+
+  let rem = mod_big_int
+  let div = div_big_int
+  let mul = mult_big_int
+
+  let sub = sub_big_int
+
+  let abs = abs_big_int
+  let succ = succ_big_int
+  let pred = pred_big_int
+  let neg = minus_big_int
+
+  let add = add_big_int
+
+
+  let max_int_z = Z.of_int max_int
+
+  let hash c =
+    try
+      int_of_big_int c
+    with Failure _ -> Z.to_int (Z.logand max_int_z c)
+
+  let shift_right_logical = log_shift_right_big_int
+  let shift_right = shift_right_big_int
+  let shift_left = shift_left_big_int
+
+  let logand = Z.logand
+  let lognot = Z.lognot
+  let logor = Z.logor
+  let logxor = Z.logxor
+
+  let le = le_big_int
+  let lt = lt_big_int
+  let ge = ge_big_int
+  let gt = gt_big_int
+
+  let to_int v =
+    try Z.to_int v
+    with Z.Overflow -> assert false
+
+  let of_int = Z.of_int
+
+  let of_int64 = Z.of_int64
+  let to_int64 = Z.to_int64
+
+  let max_int64 = of_int64 Int64.max_int
+  let min_int64 = of_int64 Int64.min_int
+  let bits_of_max_float = of_int64 (Int64.bits_of_float max_float)
+  let bits_of_most_negative_float =
+    of_int64 (Int64.bits_of_float (-. max_float))
+
+  let of_string = big_int_of_string
+  let to_string = string_of_big_int
+  let to_float = float_of_big_int
+  let of_float _ = assert false
+
+  let add_2_64 x = add two_power_64 x
+
+  let pretty ?(hexa=false) fmt v =
+    let rec aux v =
+      if gt v two_power_60 then
+        let quo, rem = quomod_big_int v two_power_60 in
+        aux quo;
+        Format.fprintf fmt "%015LX" (to_int64 rem)
+      else
+        Format.fprintf fmt "%LX" (to_int64 v)
+    in
+    if hexa then
+      if equal v zero then Format.pp_print_string fmt "0"
+      else if gt v zero then (Format.pp_print_string fmt "0x"; aux v)
+      else (Format.pp_print_string fmt "-0x"; aux (minus_big_int v))
+      else
+        Format.pp_print_string fmt (to_string v)
+
+  let is_one v = equal one v
+  let pos_div  = div
+
+  let pos_rem = rem
+  let native_div = div
+
+  let c_div u v =
+    let bad_div = div u v in
+    if (lt u zero) && not (is_zero (rem u v))
+    then
+      if lt v zero
+      then pred bad_div
+      else succ bad_div
+    else bad_div
+
+
+
+  let c_rem u v =
+    sub u (mul v (c_div u v))
+
+
+  let cast ~size ~signed ~value =
+    if (not signed) 
+    then 
+      let factor = two_power size in logand value (pred factor)
+    else
+      let mask = two_power (sub size one) in
+      let p_mask = pred mask in
+      if equal (logand mask value) zero
+      then logand value p_mask
+      else
+	logor (lognot p_mask) value
+
+  let length u v = succ (sub v u)
+
+  let extract_bits ~start ~stop v =
+    assert (ge start zero && ge stop start);
+    (*Format.printf "%a[%a..%a]@\n" pretty v pretty start pretty stop;*)
+    let r = Z.extract v (to_int start) (to_int (length start stop)) in
+      (*Format.printf "%a[%a..%a]=%a@\n" pretty v pretty start pretty stop pretty r;*)
+      r
+
+  let is_even v = is_zero (logand one v)
+
+  (** [pgcd u 0] is allowed and returns [u] *)
+  let pgcd u v =
+    let r =
+      if is_zero v
+      then u
+      else gcd_big_int u v in
+      r
+
+  let ppcm u v =
+    if u = zero || v = zero
+    then zero
+    else native_div (mul u v) (pgcd u v)
+
+  let min = min_big_int
+  let max = max_big_int
+
+  let round_down_to_zero v modu =
+    mul (pos_div v modu) modu
+
+  (** [round_up_to_r m r modu] is the smallest number [n] such that
+         [n]>=[m] and [n] = [r] modulo [modu] *)
+  let round_up_to_r ~min:m ~r ~modu =
+    add (add (round_down_to_zero (pred (sub m r)) modu) r) modu
+
+  (** [round_down_to_r m r modu] is the largest number [n] such that
+     [n]<=[m] and [n] = [r] modulo [modu] *)
+  let round_down_to_r ~max:m ~r ~modu =
+    add (round_down_to_zero (sub m r) modu) r
+
+  let to_num b = 
+    Num.num_of_big_int
+      (Big_int.big_int_of_string (Big_int_Z.string_of_big_int b))
+end
+module type S = sig
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val le : t -> t -> bool
+  val ge : t -> t -> bool
+  val lt : t -> t -> bool
+  val gt : t -> t -> bool
+  val add : t -> t -> t
+
+  val sub : t -> t -> t
+
+  val mul : t -> t -> t
+
+  val native_div : t -> t -> t
+  val rem : t -> t -> t
+  val pos_div : t -> t -> t
+  val c_div : t -> t -> t
+
+  val c_rem : t -> t -> t
+
+  val cast: size:t -> signed:bool -> value:t -> t
+  val abs : t -> t
+  val one : t
+  val two : t
+  val four : t
+  val onethousand : t
+  val minus_one : t
+  val is_zero : t -> bool
+  val is_one : t -> bool
+  val pgcd : t -> t -> t
+  val ppcm : t -> t -> t
+  val min : t -> t -> t
+  val max : t -> t -> t
+  val length : t -> t -> t (** b - a + 1 *)
+  val of_int : int -> t
+  val of_float : float -> t
+  val of_int64 : Int64.t -> t
+  val to_int64 : t -> int64
+  val to_int : t -> int
+  val to_float : t -> float
+  val neg : t -> t
+
+  val succ : t -> t
+  val pred : t -> t
+  val round_up_to_r : min:t -> r:t -> modu:t -> t
+  val round_down_to_r : max:t -> r:t -> modu:t -> t
+  val pos_rem : t -> t -> t
+  val shift_left : t -> t -> t
+  val shift_right : t -> t -> t
+  val logand : t -> t -> t
+  val logor : t -> t -> t
+  val logxor : t -> t -> t
+  val lognot : t -> t
+  val power_two : int -> t
+  val two_power : t -> t
+  val extract_bits : start:t -> stop:t -> t -> t
+
+  val small_nums : t array
+  val zero : t
+  val eight : t
+  val thirtytwo : t
+  val div : t -> t -> t
+
+  val billion_one : t
+  val hash : t -> int
+  val shift_right_logical : t -> t -> t
+
+  val max_int64 : t
+  val min_int64 : t
+  val bits_of_max_float : t
+  val bits_of_most_negative_float : t
+  val of_string : string -> t
+  val to_string : t -> string
+
+  val add_2_64 : t -> t
+  val is_even : t -> bool
+  val round_down_to_zero : t -> t -> t
+  val power_int_positive_int: int -> int -> t
+  val to_num : t -> Num.num
+  val popcount: t -> int
+end
+include M
+

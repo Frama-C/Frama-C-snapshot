@@ -23,7 +23,7 @@
 module type G = sig
   module V: Graph.Sig.VERTEX with type t = State.t and type label = State.t
   module E: Graph.Sig.EDGE with type vertex = State.t
-			   and type t = State.t * State.t
+                           and type t = State.t * State.t
   type t
   val iter_vertex: (V.t -> unit) -> t -> unit
   val fold_vertex: (V.t -> 'a -> 'a) -> t -> 'a -> 'a
@@ -67,7 +67,7 @@ module Single_graph = struct
 
   type graphs =
       { internal_graph: Dependency_graph.t;
-	mutable external_graph: Dependency_graph.t }
+        mutable external_graph: Dependency_graph.t }
 
   (* invariant:
      for each edge in external_graph,
@@ -230,21 +230,21 @@ module G = struct
   let iter_succ f _g v =
     on_vertex
       (fun g v ->
-	Single_graph.iter_succ f g v;
-	try Single_graph.external_iter_succ f g v
-	with Invalid_argument _ -> ())
+        Single_graph.iter_succ f g v;
+        try Single_graph.external_iter_succ f g v
+        with Invalid_argument _ -> ())
       v
 
   let fold_succ f _g v acc =
     on_vertex
       (fun g v acc ->
-	let acc = Single_graph.fold_succ f g v acc in
-	try
-	  Single_graph.external_fold_succ
-	    (fun v acc -> try f v acc with Invalid_argument _ -> assert false)
-	    g v acc
-	with Invalid_argument _ ->
-	  acc)
+        let acc = Single_graph.fold_succ f g v acc in
+        try
+          Single_graph.external_fold_succ
+            (fun v acc -> try f v acc with Invalid_argument _ -> assert false)
+            g v acc
+        with Invalid_argument _ ->
+          acc)
       v
       acc
 
@@ -252,8 +252,8 @@ module G = struct
     let g = !g in
     List.fold_left
       (fun acc g ->
-	try Single_graph.external_fold_pred f g v acc
-	with Invalid_argument _ -> acc)
+        try Single_graph.external_fold_pred f g v acc
+        with Invalid_argument _ -> acc)
       (on_vertex (Single_graph.fold_pred f) v acc)
       g
 
@@ -261,17 +261,17 @@ module G = struct
     let g = !g in
     List.fold_left
       (fun n g ->
-	try Single_graph.external_in_degree g v + n
-	with Invalid_argument _ -> n)
+        try Single_graph.external_in_degree g v + n
+        with Invalid_argument _ -> n)
       (on_vertex Single_graph.in_degree v)
       g
 
   let out_degree _g v =
     on_vertex
       (fun g v ->
-	let n =	Single_graph.out_degree g v in
-	try Single_graph.external_out_degree g v + n
-	with Invalid_argument _ -> n)
+        let n = Single_graph.out_degree g v in
+        try Single_graph.external_out_degree g v + n
+        with Invalid_argument _ -> n)
       v
 
   let nb_vertex g = fold_vertex (fun _ -> succ) g 0
@@ -312,9 +312,9 @@ module Dynamic = struct
     let get_graph s =
       try (Vertices.find s).Single_graph.id
       with Not_found ->
-(*	Format.printf "state %S (%S) not found@."
-	  (State.get_unique_name s) (State.get_name s);*)
-	assert false
+(*      Format.printf "state %S (%S) not found@."
+          (State.get_unique_name s) (State.get_name s);*)
+        assert false
 
     let color n = `Color (Extlib.number_to_color n)
     let vertex_name s = "\"" ^ State.get_unique_name s ^ "\""
@@ -332,8 +332,8 @@ module Dynamic = struct
     let get_subgraph s =
       let n = get_graph s in
       Some
-	{ DotAttributes.sg_name = string_of_int n;
-	  sg_attributes = [ color n ] }
+        { DotAttributes.sg_name = string_of_int n;
+          sg_attributes = [ color n ] }
 
   end
 
@@ -386,25 +386,20 @@ module Static_datatype =
 type local_search = Begin | Static | Dynamic of Single_graph.t
 
 let add_state_like_the_others states s =
-  if states = [] then
-    Project_skeleton.Output.fatal
-      "State_dependency_graph.add_state_like_others: \
-non empty list of states required";
   let rec search go = function
     | [] ->
       go
     | s' :: l ->
       let g' = Vertices.find s' in
       let go = match go with
-	| Begin | Static ->
-	  if Single_graph.equal g' Static.graph then Static else Dynamic g'
-	| Dynamic _ -> go
+        | Begin | Static ->
+          if Single_graph.equal g' Static.graph then Static else Dynamic g'
+        | Dynamic _ -> go
       in
       search go l
   in
   match search Begin states with
-  | Begin -> assert false
-  | Static -> Static.add_state s []
+  | Begin | Static -> Static.add_state s []
   | Dynamic g ->
     Single_graph.add_vertex g s;
     Vertices.add s g false
@@ -448,10 +443,10 @@ module Make_dynamic(T: sig val name: string end) = struct
   module Datatype =
     Datatype.Make
       (struct
-	include Datatype.Undefined
-	type t = Local.t
-	let name = "State_dependency_graph.Make_dynamic(" ^ T.name ^ ").t"
-	let reprs = [ graph.graphs ]
+        include Datatype.Undefined
+        type t = Local.t
+        let name = "State_dependency_graph.Make_dynamic(" ^ T.name ^ ").t"
+        let reprs = [ graph.graphs ]
      end)
   let () = Type.set_ml_name Datatype.ty None
 
@@ -483,7 +478,7 @@ struct
       | `Tuning
       | `Correctness
       | `Proxy (`Internal | `Correctness) ->
-	G.iter_pred (fun s' -> H.replace h s' ()) g s
+        G.iter_pred (fun s' -> H.replace h s' ()) g s
     in
     D.iter ~post g;
     H.fold (fun v () g -> G.remove_vertex g v) to_be_removed g

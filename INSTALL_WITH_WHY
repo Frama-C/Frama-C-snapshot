@@ -2,6 +2,12 @@
 		  INSTALLATION INSTRUCTIONS for FRAMA_C + WHY
 		  -------------------------------------------
 
+This file is useful only for source distributions including both Frama-C and 
+Why (like http://frama-c.com/download/frama-c-Boron-20100401-why-2.24.tar.gz 
+for instance). 
+
+Thus it is useless in any other context.
+
 ===============================================================================
 				    SUMMARY
 ===============================================================================

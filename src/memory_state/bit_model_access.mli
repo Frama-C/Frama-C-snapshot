@@ -20,5 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Nothing is exported directly. 
+(** Empty on purpose.
    Functions are registered in the kernel. *)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

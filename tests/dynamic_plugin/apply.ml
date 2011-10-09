@@ -21,7 +21,7 @@ module Test =
 
 
 let main () =
-  if Parameters.Dynamic.Bool.get "-dynamic-test" then begin
+  if Dynamic.Parameter.Bool.get "-dynamic-test" () then begin
     ignore (Dynamic.get ~plugin:"Register_mod2" "g_test" (func int int) 41);
     try
       Dynamic.get ~plugin:"Register_mod2" "g_test"

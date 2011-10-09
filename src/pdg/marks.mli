@@ -70,7 +70,7 @@ val translate_marks_to_prop :
 
 module F_Proj (C : PdgMarks.T_Config) :
   PdgMarks.T_Proj with type t_mark = C.M.t
-	 and type t_fct = (C.M.t, C.M.t_call_info) PdgIndex.FctIndex.t
+         and type t_call_info = C.M.t_call_info
 
 (*
 Local Variables:

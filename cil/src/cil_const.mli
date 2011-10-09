@@ -39,7 +39,7 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(** smart constructors for some data types *)
+(** Smart constructors for some CIL data types *)
 open Cil_types
 
 val voidType: typ
@@ -47,32 +47,14 @@ val voidType: typ
 (** forward reference to current location (see {!Cil.CurrentLoc})*)
 module CurrentLoc: State_builder.Ref with type data = location
 
-(** Pretty-print a location *)
-val d_loc: Format.formatter -> location -> unit
-
-(** Pretty-print the [(CurrentLoc.get ())] *)
-val d_thisloc: Format.formatter -> unit
-
 (** Localized user-error with exception raised. *)
 val error: ('a, Format.formatter, unit, 'b) format4 -> 'a
 (** Localized internal-error with exception raised. *)
 val fatal: ('a, Format.formatter, unit, 'b) format4 -> 'a
 
-(** creates a new counter that is project-aware.
-    TODO: internalize this module and put all its instances from Cil to here.
-*)
-module Build_Counter(Name:sig val name:string end) : sig
-  val next: unit -> int
-  val reset: unit -> unit
-  val get: unit -> int
-  val self: State.t
-end
 
 module Vid: sig
   val next: unit -> int
-  val reset: unit -> unit
-  val get: unit -> int
-  val self: State.t
 end
 
 

@@ -20,6 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please write a .mli and
+   document it. *)
+
 open Abstract_interp
 open Abstract_value
 
@@ -40,14 +46,17 @@ module Make(Value: Datatype.S) = struct
     lowest_binding_above o m
 
   let pretty pretty_v fmt m =
-    Format.fprintf fmt "{";
-    iter
-      (fun (bi,ei) v ->
-	 Format.fprintf fmt "[%a..%a] -> %a ;@ "
-	   Int.pretty bi Int.pretty ei
-	   pretty_v v)
-      m;
-    Format.fprintf fmt "}"
+    Pretty_utils.pp_iter
+      ~pre:"@[<hv 1>{"
+      ~suf:"}@]"
+      ~sep:" ;@ "
+      (fun pp map -> iter (fun bi_ei v -> pp (bi_ei, v)) map)
+      (fun fmt ((bi, ei), v) ->
+         Format.fprintf fmt "[%a..%a] -> %a"
+           Int.pretty bi Int.pretty ei
+           pretty_v v)
+      fmt
+      m
 
   let enlarge_to_right ~extend_right same_values ei new_vv acc =
     if extend_right then
@@ -56,7 +65,7 @@ module Make(Value: Datatype.S) = struct
         match concerned_intervals Int_Interv.fuzzy_order (s_ei,s_ei) acc
         with [] -> acc,ei
           | [(ba,ea) as a,vva] ->
-	      assert (Int.equal ba s_ei);
+              assert (Int.equal ba s_ei);
               if same_values vva new_vv then
                 (remove a acc),ea
               else acc,ei
@@ -68,7 +77,7 @@ module Make(Value: Datatype.S) = struct
       same_values ei new_vv ((_,ei1),vv1) acc =
     if Int.gt ei1 ei
     then (* Part of the previous binding remains
-	    on the right-hand-side *)
+            on the right-hand-side *)
       if extend_right && same_values vv1 new_vv
       then (* same value -> merge keys *)
         acc,ei1
@@ -92,7 +101,7 @@ module Make(Value: Datatype.S) = struct
       ((bi1,_),vv1) acc =
     if Int.lt bi1 bi
     then   (* Part of the previous binding remains
-	      on the left-hand-side *)
+              on the left-hand-side *)
       if extend_left && same_values vv1 new_vv
       then (* same value -> merge keys *)
         acc,bi1
@@ -111,58 +120,58 @@ module Make(Value: Datatype.S) = struct
     let result = match concerned_intervals with
     | [] ->
         let acc,new_bi =
-	  enlarge_to_left ~extend_left same_values bi new_vv m in
+          enlarge_to_left ~extend_left same_values bi new_vv m in
         let acc,new_ei =
-	  enlarge_to_right ~extend_right same_values ei new_vv acc in
+          enlarge_to_right ~extend_right same_values ei new_vv acc in
         Some(new_bi, new_ei, acc)
     | [((bi1, ei1) as i1, vv1) as binding1] ->
-	let cond_start = Int.le bi1 bi in
-	let cond_end = Int.ge ei1 ei in
-	let cond_same = same_values vv1 new_vv in
-	if (cond_start && cond_end && cond_same && extend_right && extend_left)
-	then None   (* nothing to do, the new interval is included in the
-		    previous one and the old and new values are the same*)
-	else begin
-	  let result1 = remove i1 m in
-	  let result2,new_bi =
-	    handle_leftmost_itv
-	      same_values ~extend_left bi new_vv binding1 result1
-	  in
-	  let result3,new_ei =
-	    handle_rightmost_itv
+        let cond_start = Int.le bi1 bi in
+        let cond_end = Int.ge ei1 ei in
+        let cond_same = same_values vv1 new_vv in
+        if (cond_start && cond_end && cond_same && extend_right && extend_left)
+        then None   (* nothing to do, the new interval is included in the
+                    previous one and the old and new values are the same*)
+        else begin
+          let result1 = remove i1 m in
+          let result2,new_bi =
+            handle_leftmost_itv
+              same_values ~extend_left bi new_vv binding1 result1
+          in
+          let result3,new_ei =
+            handle_rightmost_itv
               ~extend_right
-	      same_values ei new_vv binding1 result2
-	  in
-	  Some(new_bi, new_ei, result3)
-	end
+              same_values ei new_vv binding1 result2
+          in
+          Some(new_bi, new_ei, result3)
+        end
     | ((_bi1, _ei1), _vv1 as binding1)::tail ->
-	let result1 =
-	  List.fold_right
-	    (fun (i1,_) acc -> remove i1 acc)
-	    concerned_intervals
-	    m
-	in
+        let result1 =
+          List.fold_right
+            (fun (i1,_) acc -> remove i1 acc)
+            concerned_intervals
+            m
+        in
         (* part of the last interval might remain on the right *)
-	let result2,new_ei =
-	  handle_rightmost_itv
+        let result2,new_ei =
+          handle_rightmost_itv
             ~extend_right
-	    same_values ei new_vv binding1 result1
-	in
-	let rec f l acc =
-	  match l with
-	  | [] -> assert false
-	      (* at least 2 elements in [concerned_intervals] *)
-	  | [(_bi1, _ei1), _vv1 as binding1] ->
-	      (* part of the first interval might remain on the left *)
-	      handle_leftmost_itv ~extend_left
-		same_values bi new_vv binding1 acc
-	  | ((_bi1, _ei1), _vv1)::tail ->
-	      (* the middle intervals are completely covered : ignore
+            same_values ei new_vv binding1 result1
+        in
+        let rec f l acc =
+          match l with
+          | [] -> assert false
+              (* at least 2 elements in [concerned_intervals] *)
+          | [(_bi1, _ei1), _vv1 as binding1] ->
+              (* part of the first interval might remain on the left *)
+              handle_leftmost_itv ~extend_left
+                same_values bi new_vv binding1 acc
+          | ((_bi1, _ei1), _vv1)::tail ->
+              (* the middle intervals are completely covered : ignore
                  former values *)
-	      f tail acc
-	in
-	let result3,new_bi = f tail result2 in
-	Some(new_bi, new_ei, result3)
+              f tail acc
+        in
+        let result3,new_bi = f tail result2 in
+        Some(new_bi, new_ei, result3)
   in
   (* if not (extend_right && extend_left) then
     (match result with None -> Format.printf "Cleanup...NONE@\n"

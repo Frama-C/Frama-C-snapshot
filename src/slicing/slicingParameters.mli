@@ -28,32 +28,33 @@ include Plugin.S
 
 (* modules related to the command line options *)
 module Select : sig
-  module Calls: Plugin.STRING_SET
-  module Return: Plugin.STRING_SET
-  module Threat: Plugin.STRING_SET
-  module Assert: Plugin.STRING_SET
-  module Pragma: Plugin.STRING_SET
-  module LoopInv: Plugin.STRING_SET
-  module LoopVar: Plugin.STRING_SET
-  module RdAccess: Plugin.STRING_SET
-  module WrAccess: Plugin.STRING_SET
-  module Value: Plugin.STRING_SET
+  module Calls: Plugin.String_set
+  module Return: Plugin.String_set
+  module Threat: Plugin.String_set
+  module Assert: Plugin.String_set
+  module Pragma: Plugin.String_set
+  module LoopInv: Plugin.String_set
+  module LoopVar: Plugin.String_set
+  module RdAccess: Plugin.String_set
+  module WrAccess: Plugin.String_set
+  module Value: Plugin.String_set
 end
-  
+
 module Mode : sig
-  module Callers: Plugin.BOOL
-  module Calls: Plugin.INT
-  module SliceUndef: Plugin.BOOL
-  module KeepAnnotations: Plugin.BOOL
+  module Callers: Plugin.Bool
+  module Calls: Plugin.Int
+  module SliceUndef: Plugin.Bool
+  module KeepAnnotations: Plugin.Bool
 end
 
-(** @since Carbon-20101202+dev *)
-module ProjectName: Plugin.STRING
- 
-(** @since Carbon-20101202+dev *)
-module ExportedProjectPostfix: Plugin.STRING 
+(** @since Carbon-20110201 *)
+module ProjectName: Plugin.String
 
-module Print: Plugin.BOOL
-  
+(** @since Carbon-20110201 *)
+module ExportedProjectPostfix: Plugin.String
+
+module Print: Plugin.Bool
+
 val is_on: unit -> bool
 val set_off: unit -> unit
+val clear: unit -> unit

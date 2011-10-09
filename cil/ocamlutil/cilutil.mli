@@ -48,13 +48,6 @@
 open Cil_types
 open Pretty_utils
 
-val docHash :
-  ?sep:sformat -> ('a,'b) formatter2 -> (('a, 'b) Hashtbl.t) formatter
-
-val hash_to_list: ('a, 'b) Hashtbl.t -> ('a * 'b) list
-
-val keys: ('a, 'b) Hashtbl.t -> 'a list
-
 (** composition of functions *)
 val ($) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
 
@@ -251,31 +244,6 @@ val dumpSymbols: unit -> unit
 
 (************************************************************************)
 
-(** {1 Int32 Operators} *)
-
-module Int32Op : sig
-   val (<%) : int32 -> int32 -> bool
-   val (<=%) : int32 -> int32 -> bool
-   val (>%) : int32 -> int32 -> bool
-   val (>=%) : int32 -> int32 -> bool
-   val (<>%) : int32 -> int32 -> bool
-
-   val (+%) : int32 -> int32 -> int32
-   val (-%) : int32 -> int32 -> int32
-   val ( *% ) : int32 -> int32 -> int32
-   val (/%) : int32 -> int32 -> int32
-   val (~-%) : int32 -> int32
-
-   val sll : int32 -> int32 -> int32
-   val (>>%) : int32 -> int32 -> int32
-   val (>>>%) : int32 -> int32 -> int32
-
-   exception IntegerTooLarge
-   val to_int : int32 -> int
-end
-
-(************************************************************************)
-
 (** This has the semantics of (=) on OCaml 3.07 and earlier.  It can
    handle cyclic values as long as a structure in the cycle has a unique
    name or id in some field that occurs before any fields that have cyclic
@@ -367,20 +335,6 @@ val printStages : bool ref
 (* pretty-printing *)
 
 open Format
-
-(** @deprecated Boron-20100401 see pretty_list instead *)
-val print_list :
-  (formatter -> unit -> unit) ->
-  (formatter -> 'a -> unit) -> formatter -> 'a list -> unit
-val print_if: bool -> formatter -> (formatter->unit->unit) -> unit
-val comma : formatter -> unit -> unit
-val underscore : formatter -> unit -> unit
-val semi : formatter -> unit -> unit
-val space : formatter -> unit -> unit
-val alt : formatter -> unit -> unit
-val newline : formatter -> unit -> unit
-val arrow : formatter -> unit -> unit
-val nothing : formatter -> unit -> unit
 
 (** [pretty sep print fmt l] pretty-prints the elements of [l] according
     to the formatting function [print] separated by [sep] on [fmt]

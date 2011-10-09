@@ -96,24 +96,15 @@ val register_conditional_side_effect_hook:
 
 val convFile: Cabs.file -> Cil_types.file
 
+
+(** Name of the attribute inserted by the elaboration to prevent user blocks
+    from disappearing. It can be removed whenever block contracts have been
+    processed. *)
+val frama_c_keep_block: string
+
 (** Set this integer to the index of the global to be left in CABS form. Use
     -1 to disable *)
 val nocil: int ref
-
-(* NB: The three flags below are controlled by Frama-C parameters. Do not
-   change their default value here, but in parameters.ml. *)
-
-(** Turn on tranformation that forces right to left
-    parameter evaluation order *)
-val forceRLArgEval: bool ref
-
-(** Indicates whether we're allowed to duplicate small chunks of code. *)
-val allowDuplication: bool ref
-
-(** Allows to have implicit cast between value returned by a function and
-    the lval it is assigned to.
- *)
-val doCollapseCallCast: bool ref
 
 (** A hook into the code that creates temporary local vars.  By default this
   is the identity function, but you can overwrite it if you need to change the
@@ -136,12 +127,10 @@ val typeForInsertedCast:
     globals and starting with [prefix] *)
 val fresh_global : string -> string
 
-(** CEA-LRI: exports for logic typing *)
-
 (** Check that [s] starts with the prefix [p]. *)
 val prefix : string -> string -> bool
 
-val annonCompFieldName : string
+val anonCompFieldName : string
 
 val find_field_offset:
   (Cil_types.fieldinfo -> bool) -> Cil_types.fieldinfo list -> Cil_types.offset
@@ -150,8 +139,20 @@ val find_field_offset:
     @raise Not_found if no such field exists.
  *)
 
+(** returns the type of the result of a logic operator applied to values of
+    the corresponding input types.
+ *)
 val logicConditionalConversion: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
+
+(** returns the type of the result of an arithmetic operator applied to
+    values of the corresponding input types.
+    @deprecated Nitrogen-20111001 moved to Cil module
+*)
 val arithmeticConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
+
+(** performs the usual integral promotions mentioned in C reference manual.
+    @deprecated Nitrogen-20111001 moved to Cil module.
+*)
 val integralPromotion : Cil_types.typ -> Cil_types.typ
 
 (** local information needed to typecheck expressions and statements *)
@@ -197,6 +198,9 @@ val setDoTransformWhile : unit -> unit
 (** If called, sets a flag so that translation of conditionals does not result
     in forward ingoing gotos (from the if-branch to the else-branch). *)
 val setDoAlternateConditional : unit -> unit
+
+(** Raise Failure *)
+val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
 
 (*
 Local Variables:

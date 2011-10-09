@@ -69,17 +69,19 @@ type 't guardaction =
 
 module type StmtStartData = sig
   type data
+  type key
   val clear: unit -> unit
-  val mem: int -> bool
-  val find: int -> data
-  val replace: int -> data -> unit
-  val add: int -> data -> unit
-  val iter: (int -> data -> unit) -> unit
+  val mem: key -> bool
+  val find: key -> data
+  val replace: key -> data -> unit
+  val add: key -> data -> unit
+  val iter: (key -> data -> unit) -> unit
   val length: unit -> int
 end
 
 module StmtStartData(X: sig type t val size: int end) = struct
   type data = X.t
+  type key = int
   open Inthash
   let stmtStartData = create X.size
   let clear () = clear stmtStartData
@@ -91,6 +93,40 @@ module StmtStartData(X: sig type t val size: int end) = struct
   let length () = length stmtStartData
 end
 
+module StartData(X: sig type t val size: int end) = struct
+  type data = X.t
+  type key = stmt
+  open Cil_datatype.Stmt.Hashtbl
+  let stmtStartData = create X.size
+  let clear () = clear stmtStartData
+  let mem = mem stmtStartData
+  let find = find stmtStartData
+  let replace = replace stmtStartData
+  let add = add stmtStartData
+  let iter f = iter f stmtStartData
+  let length () = length stmtStartData
+end
+
+let stmt_of_sid = Extlib.mk_fun "Dataflow.stmt_of_sid"
+
+(* Conversion from an initial state indexed by statements sids to
+   an initial state indexed by statements. Not used in code called
+   with the current dataflows *)
+module ConvertStartData(SSD: StmtStartData with type key = int) :
+  StmtStartData with type data = SSD.data and type key = stmt =
+struct
+  type data = SSD.data
+  type key = stmt
+  let stmt_of_sid sid = !stmt_of_sid sid
+  let clear () = SSD.clear ()
+  let mem stmt = SSD.mem stmt.sid
+  let find stmt = SSD.find stmt.sid
+  let replace stmt data = SSD.replace stmt.sid data
+  let add stmt data = SSD.add stmt.sid data
+  let iter f = SSD.iter (fun sid -> f (stmt_of_sid sid))
+  let length () = SSD.length ()
+end
+
 
 (******************************************************************
  **********
@@ -98,17 +134,12 @@ end
  **********
  ********************************************************************)
 
-module type ForwardsTransfer = sig
+module type ForwardsTransferAux = sig
   val name: string (** For debugging purposes, the name of the analysis *)
   val debug: bool ref (** Whether to turn on debugging *)
 
   type t  (** The type of the data we compute for each block start. May be
            * imperative.  *)
-
-  module StmtStartData: StmtStartData with type data = t
-  (** For each statement id, the data at the start. Not found in the hash
-   * table means nothing is known about the state at this point. At the end
-   * of the analysis this means that the block is not reachable. *)
 
   val copy: t -> t
   (** Make a deep copy of the data *)
@@ -132,9 +163,9 @@ module type ForwardsTransfer = sig
    * [stmt] is the englobing statement *)
 
  val doGuard: stmt -> exp -> t -> t guardaction * t guardaction
-  (** Generate the successors [th, el] to an 
+  (** Generate the successors [th, el] to an
     *  If statement assuming the given expression
-    * is respectively nonzero and zero. 
+    * is respectively nonzero and zero.
     * Analyses that don't need guard information can return
     * GDefault, GDefault; this is equivalent to returning GUse of the input.
     * A return value of GUnreachable indicates that this half of the branch
@@ -161,7 +192,17 @@ module type ForwardsTransfer = sig
      *)
 end
 
-module ForwardsDataFlow(T : ForwardsTransfer) = struct
+module type ForwardsTransfer = sig
+  include ForwardsTransferAux
+
+  module StmtStartData: StmtStartData with type data = t
+  (** For each statement id, the data at the start. Not found in the hash
+   * table means nothing is known about the state at this point. At the end
+   * of the analysis this means that the block is not reachable. *)
+
+end
+
+module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struct
 
     (** Keep a worklist of statements to process. It is best to keep a queue,
      * because this way it is more likely that we are going to process all
@@ -177,31 +218,31 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
       let d = T.doEdge pred s d in
       let newdata: T.t option =
         try
-          let old = T.StmtStartData.find s.sid in
+          let old = T.StmtStartData.find s in
           match T.combinePredecessors s ~old:old d with
             None -> (* We are done here *)
               if !T.debug then
-                Cilmsg.debug "FF(%s): reached stmt %d with %a\n  implies the old state %a\n"
+                Kernel.debug "FF(%s): reached stmt %d with %a\n  implies the old state %a\n"
                   T.name s.sid T.pretty d T.pretty old;
               None
           | Some d' -> begin
               (* We have changed the data *)
               if !T.debug then
-                Cilmsg.debug "FF(%s): weaken data for block %d: %a\n"
+                Kernel.debug "FF(%s): weaken data for block %d: %a\n"
                   T.name s.sid T.pretty d';
               Some d'
           end
         with Not_found -> (* was bottom before *)
           let d' = T.computeFirstPredecessor s d in
           if !T.debug then
-            Cilmsg.debug "FF(%s): set data for block %d: %a\n"
+            Kernel.debug "FF(%s): set data for block %d: %a\n"
               T.name s.sid T.pretty d';
           Some d'
       in
       match newdata with
         None -> ()
       | Some d' ->
-          T.StmtStartData.replace s.sid d';
+          T.StmtStartData.replace s d';
           if T.filterStmt s &&
             not (Queue.fold (fun exists s' -> exists || s'.sid = s.sid)
                             false
@@ -226,9 +267,12 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
                 s.succs
             in
             match fallthrough with
-              [] -> Cil.fatal "Bad CFG: missing fallthrough for If."
+              [] ->
+		Kernel.fatal ~current:true
+		  "Bad CFG: missing fallthrough for If."
             | [s'] -> s'
-            | _ ->  Cil.fatal "Bad CFG: multiple fallthrough for If."
+            | _ ->
+	      Kernel.fatal ~current:true "Bad CFG: multiple fallthrough for If."
           in
           (* If thenSucc or elseSucc is Cil.dummyStmt, it's an empty block.
              So the successor is the statement after the if *)
@@ -241,99 +285,148 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
           (stmtOrFallthrough thenSucc,
            stmtOrFallthrough elseSucc)
 
-      | _-> Cil.fatal "ifSuccs on a non-If Statement."
+      | _-> Kernel.fatal ~current:true "ifSuccs on a non-If Statement."
 
     (** Process a statement *)
     let processStmt (s: stmt) : unit =
       CurrentLoc.set (Cil_datatype.Stmt.loc s);
       if !T.debug then
-        Cilmsg.debug "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
+        Kernel.debug "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
 
       (* It must be the case that the block has some data *)
       let init: T.t =
-         try T.copy (T.StmtStartData.find s.sid)
-         with Not_found ->
-            (Cil.fatal "FF(%s): processing block without data" T.name)
+        try T.copy (T.StmtStartData.find s)
+        with Not_found ->
+          Kernel.fatal ~current:true
+	    "FF(%s): processing block without data" T.name
       in
 
       (** See what the custom says *)
       match T.doStmt s init with
-        SDone  -> ()
+      | SDone  -> ()
       | (SDefault | SUse _) as act -> begin
           let curr = match act with
-              SDefault -> init
+            | SDefault -> init
             | SUse d -> d
-            | SDone -> (Cil.fatal "SDone")
-          in
-          (* Do the instructions in order *)
-          let handleInstruction (state: T.t) (i: instr) : T.t =
-            CurrentLoc.set (Cil_datatype.Instr.loc i);
-
-            (* Now handle the instruction itself *)
-            let s' =
-              let action = T.doInstr s i state in
-              match action with
-               | Done s' -> s'
-               | Default -> state (* do nothing *)
-               | Post f -> f state
-            in
-            s'
+            | SDone -> assert false
+          and do_succs state =
+            List.iter (fun s' -> reachedStatement s s' state) s.succs
           in
 
-          let after: T.t =
-            match s.skind with
-              Instr i ->
-                (* Handle instructions starting with the first one *)
-                handleInstruction curr i
-            | UnspecifiedSequence _
-            | Goto _ | Break _ | Continue _ | If _
-            | TryExcept _ | TryFinally _
-            | Switch _ | Loop _ | Return _ | Block _ -> curr
-          in
           CurrentLoc.set (Cil_datatype.Stmt.loc s);
+          match s.skind with
+            | Instr i ->
+                CurrentLoc.set (Cil_datatype.Instr.loc i);
+                let action = T.doInstr s i curr in
+                let after = match action with
+                  | Done s' -> s'
+                  | Default -> curr (* do nothing *)
+                  | Post f -> f curr
+                in
+                do_succs after
 
-          (* Handle If guards *)
-          let succsToReach = match s.skind with
-              If (e, _, _, _) -> begin
-                let thenGuard, elseGuard = T.doGuard s e after in
+            | UnspecifiedSequence _
+            | Goto _ | Break _ | Continue _
+            | TryExcept _ | TryFinally _
+            | Loop _ | Return _ | Block _ ->
+                do_succs curr
+
+            | If (e, _, _, _) ->
+                let thenGuard, elseGuard = T.doGuard s e curr in
                 if thenGuard = GDefault && elseGuard = GDefault then
                   (* this is the common case *)
-                  s.succs
+                  do_succs curr
                 else begin
                   let doBranch succ guard =
                     match guard with
-                      GDefault -> reachedStatement s succ after
+                      GDefault -> reachedStatement s succ curr
                     | GUse d ->  reachedStatement s succ d
                     | GUnreachable ->
                         if !T.debug then
-                          (Cilmsg.debug "FF(%s): Not exploring branch to %d\n"
+                          (Kernel.debug "FF(%s): Not exploring branch to %d\n"
                              T.name succ.sid)
                   in
                   let thenSucc, elseSucc = ifSuccs s  in
                   doBranch thenSucc thenGuard;
                   doBranch elseSucc elseGuard;
-                  []
                 end
-              end
-            | Switch _ ->
-		List.iter
-		  (fun succ ->
-		    match T.doGuard s (Cil.one ~loc:(Cil_datatype.Stmt.loc s)) 
-                      after
-		    with
-		      GDefault, _ -> reachedStatement s succ after
-                    | GUse d, _ -> reachedStatement s succ d
-		    | GUnreachable, _ ->
-                      if !T.debug then
-                        Cilmsg.debug "FF(%s): Not exploring branch to %d\n"
-                          T.name succ.sid)
-		  s.succs;
-		[]
-	    | _ -> s.succs
 
-          in
-          (* Reach the successors *)
-          List.iter (fun s' -> reachedStatement s s' after) succsToReach;
+            | Switch (exp_sw, _, _, _) ->
+                let cases, next_sw = Cil.separate_switch_succs s in
+                (* Auxiliary function that iters on all the labels of
+                   the switch. The accumulator is the state after the
+                   evaluation of the label, and the default case *)
+                let iter_all_labels f =
+                  List.fold_left
+                    (fun (rem_state, _default as acc) succ ->
+                      if rem_state = None then acc
+                      else
+                        List.fold_left
+                          (fun (rem_state, default as acc) label ->
+                            match rem_state with
+                              | None -> acc
+                              | Some state -> f succ label state default
+                          ) acc succ.labels
+                    ) (Some curr, next_sw) cases
+                in
+                (* Compute a successor of the switch, starting with the state
+                   [before], supposing we are considering the label [exp] *)
+                let explore_succ before succ exp_case =
+                  let exp = match exp_case.enode with
+		    | Const (CInt64 (z,_,_)) 
+                      when My_bigint.equal z My_bigint.zero ->
+		        new_exp ~loc:exp_sw.eloc (UnOp(LNot,exp_sw,intType))
+                    | _ ->
+                        Cil.new_exp exp_case.eloc
+                          (BinOp (Eq, exp_sw, exp_case, Cil.intType))
+                  in
+                  let branch_case, branch_not_case = T.doGuard s exp before in
+                  (match branch_case with
+		    | GDefault -> reachedStatement s succ before;
+                    | GUse d ->   reachedStatement s succ d;
+		    | GUnreachable ->
+                        if !T.debug then
+                          Kernel.debug "FF(%s): Not exploring branch to %d\n"
+                            T.name succ.sid;
+                  );
+                  (* State corresponding to the negation of [exp], to
+                     be used for the remaining labels *)
+                  match branch_not_case with
+                    | GDefault -> Some before
+                    | GUse d -> Some d
+                    | GUnreachable -> None
+                in
+                (* Evaluate all of the labels one after the other, refining
+                   the state after each case *)
+                let after, default = iter_all_labels
+                  (fun succ label before default ->
+                    match label with
+                      | Label _ -> (* Label not related to the switch *)
+                        (Some before, default)
+
+                      | Cil_types.Default _loc ->
+                        if default <> None then
+                          Kernel.fatal ~current:true
+			    "Bad CFG: switch with multiple \
+                                successors or default cases.";
+                        (Some before, Some succ)
+
+                      | Case (exp_case, _) ->
+                        let after = explore_succ before succ exp_case in
+                        (after, default)
+                  ) in
+                (* If [after] is different from [None], we must evaluate
+                   the default case, be it a default label, or the
+                   successor of the switch *)
+                (match after with
+                  | None -> ()
+                  | Some state ->
+                    match default with
+                    | None ->
+		      Kernel.fatal ~current:true
+			"Bad CFG: switch without \
+                                        successor or default case."
+                    | Some succ -> reachedStatement s succ state)
 
       end
 
@@ -384,16 +477,18 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
       List.iter (fun s -> Queue.add s worklist) sources;
 
       (** All initial stmts must have non-bottom data *)
-      List.iter (fun s ->
-         if not (T.StmtStartData.mem s.sid) then
-           (Cil.fatal "FF(%s): initial stmt %d does not have data"
-              T.name s.sid))
-         sources;
+      List.iter
+	(fun s ->
+          if not (T.StmtStartData.mem s) then
+            Kernel.fatal ~current:true
+	      "FF(%s): initial stmt %d does not have data"
+              T.name s.sid)
+        sources;
       if !T.debug then
-        (Cilmsg.debug "FF(%s): processing" T.name);
+        (Kernel.debug "FF(%s): processing" T.name);
       let rec fixedpoint () =
         if !T.debug && not (Queue.is_empty worklist) then
-          (Cilmsg.debug "FF(%s): worklist= %a"
+          (Kernel.debug "FF(%s): worklist= %a"
              T.name
              (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "%d" s.sid))
              (List.rev
@@ -406,10 +501,20 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
          fixedpoint ()
        with Queue.Empty ->
          if !T.debug then
-           (Cilmsg.debug "FF(%s): done" T.name))
+           (Kernel.debug "FF(%s): done" T.name))
 
   end
 
+(* Old interface, deprecated *)
+module ForwardsDataFlow
+  (T : ForwardsTransfer with type StmtStartData.key = int) =
+struct
+  include Forwards(
+    struct
+      include (T : ForwardsTransferAux with type t = T.t)
+      module StmtStartData = ConvertStartData(T.StmtStartData)
+    end)
+end
 
 
 (******************************************************************
@@ -417,7 +522,7 @@ module ForwardsDataFlow(T : ForwardsTransfer) = struct
  **********         BACKWARDS
  **********
  ********************************************************************)
-module type BackwardsTransfer = sig
+module type BackwardsTransferAux = sig
   val name: string (* For debugging purposes, the name of the analysis *)
 
   val debug: bool ref (** Whether to turn on debugging *)
@@ -427,10 +532,6 @@ module type BackwardsTransfer = sig
            * data at the block end. This is not easy to do with JVML because
            * a block has many exceptional ends. So we maintain the data for
            * the statement start. *)
-
-  module StmtStartData: StmtStartData with type data = t
-  (** For each block id, the data at the start. This data structure must be
-   * initialized with the initial data for each block *)
 
   val pretty: Format.formatter -> t -> unit (** Pretty-print the state *)
 
@@ -471,19 +572,29 @@ module type BackwardsTransfer = sig
 
 end
 
-module BackwardsDataFlow(T : BackwardsTransfer) = struct
+module type BackwardsTransfer = sig
+  include BackwardsTransferAux
+
+  module StmtStartData: StmtStartData with type data = t
+  (** For each block id, the data at the start. This data structure must be
+   * initialized with the initial data for each block *)
+end
+
+module Backwards(T : BackwardsTransfer with type StmtStartData.key = stmt) =
+struct
 
     let getStmtStartData (s: stmt) : T.t =
-      try T.StmtStartData.find s.sid
+      try T.StmtStartData.find s
       with Not_found ->
-        (Cil.fatal "BF(%s): stmtStartData is not initialized for %d"
-               T.name s.sid)
+        Kernel.fatal ~current:true
+	  "BF(%s): stmtStartData is not initialized for %d"
+          T.name s.sid
 
     (** Process a statement and return true if the set of live return
      * addresses on its entry has changed. *)
     let processStmt (s: stmt) : bool =
       if !T.debug then
-        (Cilmsg.debug "FF(%s).stmt %d\n" T.name s.sid);
+        (Kernel.debug "FF(%s).stmt %d\n" T.name s.sid);
 
 
       (* Find the state before the branch *)
@@ -492,10 +603,14 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
         match T.doStmt s with
            Done d -> d
          | (Default | Post _) as action -> begin
-             (* Do the default one. Combine the successors *)
+             (* Compute the default state, by combining the successors *)
              let res =
-               match s.succs with
-                 [] -> T.funcExitData
+               (* We restrict ourselves to the successors we are interested in.
+                  If T.filterStmt is deterministic, this should not make the
+                  list empty if s.succs is not empty, as we would not have
+                  reached s otherwise *)
+               match List.filter (T.filterStmt s) s.succs with
+               | [] -> T.funcExitData
                | fst :: rest ->
                    List.fold_left (fun acc succ ->
                      T.combineSuccessors acc (getStmtStartData succ))
@@ -536,9 +651,9 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
       | Some d' ->
           (* We have changed the data *)
           if !T.debug then
-            Cilmsg.debug "BF(%s): set data for block %d: %a\n"
+            Kernel.debug "BF(%s): set data for block %d: %a\n"
               T.name s.sid T.pretty d';
-          T.StmtStartData.replace s.sid d';
+          T.StmtStartData.replace s d';
           true
 
 
@@ -547,11 +662,11 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
       let worklist: stmt Queue.t = Queue.create () in
       List.iter (fun s -> Queue.add s worklist) sinks;
       if !T.debug && not (Queue.is_empty worklist) then
-        (Cilmsg.debug "\nBF(%s): processing\n"
+        (Kernel.debug "\nBF(%s): processing\n"
                   T.name);
       let rec fixedpoint () =
         if !T.debug &&  not (Queue.is_empty worklist) then
-          (Cilmsg.debug "BF(%s): worklist= %a\n"
+          (Kernel.debug "BF(%s): worklist= %a\n"
                     T.name
                     (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "%d" s.sid))
                     (List.rev
@@ -578,8 +693,20 @@ module BackwardsDataFlow(T : BackwardsTransfer) = struct
         fixedpoint ()
       with Queue.Empty ->
         if !T.debug then
-          (Cilmsg.debug "BF(%s): done\n\n" T.name)
+          (Kernel.debug "BF(%s): done\n\n" T.name)
   end
+
+(* Old interface, deprecated *)
+module BackwardsDataFlow
+  (T : BackwardsTransfer with type StmtStartData.key = int) =
+struct
+  include Backwards(
+    struct
+      include (T: BackwardsTransferAux with type t = T.t)
+      module StmtStartData = ConvertStartData(T.StmtStartData)
+    end)
+end
+
 
 
 (** Helper utility that finds all of the statements of a function.
@@ -604,3 +731,10 @@ let find_stmts (fdec:fundec) : (stmt list * stmt list) =
   and all_stmts = ref [] in
   ignore(visitCilFunction (sinkFinder sink_stmts all_stmts) fdec);
   !all_stmts, !sink_stmts
+
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

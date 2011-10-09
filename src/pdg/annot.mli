@@ -45,8 +45,7 @@ type decl_info =  PdgTypes.Node.t list
 
 (** @raise Not_found when the statement is unreachable. *)
 val find_code_annot_nodes :
-  PdgTypes.Pdg.t ->
-  before:bool -> Cil_types.stmt -> Cil_types.code_annotation ->
+  PdgTypes.Pdg.t -> Cil_types.stmt -> Cil_types.code_annotation ->
   ctrl_info * decl_info * data_info
 
 val find_fun_precond_nodes : PdgTypes.Pdg.t -> Cil_types.predicate ->

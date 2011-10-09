@@ -160,7 +160,7 @@ and childrenSpecElem (vis: cabsVisitor) (se: spec_elem) : spec_elem =
       match al' with
         [a''] when a'' == a -> se
       | [a''] -> SpecAttr a''
-      | _ -> Cilmsg.fatal "childrenSpecElem: visitCabsAttribute returned a list"
+      | _ -> Kernel.fatal "childrenSpecElem: visitCabsAttribute returned a list"
   end
   | SpecType ts ->
       let ts' = visitCabsTypeSpecifier vis ts in
@@ -321,7 +321,7 @@ and childrenStatement vis s =
             let d1' =
               match visitCabsDefinition vis d1 with
                 [d1'] -> d1'
-              | _ -> Cilmsg.fatal "visitCabs: for can have only one definition"
+              | _ -> Kernel.fatal "visitCabs: for can have only one definition"
             in
             if d1' != d1 then FC_DECL d1' else fc1
       in

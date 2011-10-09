@@ -55,7 +55,7 @@ let str_call_sig ff call fmt =
       in
         Format.fprintf fmt "/* sig call : %a */@\n%t"
                            SlicingMarks.pretty_sig sgn print_called
-    with Db.Pdg.NotFound -> Format.fprintf fmt "/* invisible call */@."
+    with Not_found -> Format.fprintf fmt "/* invisible call */@."
 
 class printerClass optional_ff = object(self)
   inherit Printer.print () as super
@@ -72,7 +72,7 @@ class printerClass optional_ff = object(self)
             try
               let m = Fct_slice.get_local_var_mark ff var in
                 SlicingMarks.mark_to_string m
-            with Db.Pdg.NotFound -> "[---]"
+            with Not_found -> "[---]"
           in
           Format.fprintf fmt "/* %s */ %a"
             str_m
@@ -85,7 +85,7 @@ class printerClass optional_ff = object(self)
           let str_m = try
             let m = Fct_slice.get_stmt_mark ff stmt in
             SlicingMarks.mark_to_string m
-          with Db.Pdg.NotFound -> "[---]"
+          with Not_found -> "[---]"
           in
           if (M.is_call_stmt stmt)
           then Format.fprintf fmt "%t/* %s */" (str_call_sig ff stmt) str_m

@@ -21,13 +21,13 @@
 (**************************************************************************)
 
 (** Stored messages. Storing of messages can be changed using
-    {Parameters.Collect_messages.set} (at initialization time only);
+    {Kernel.Collect_messages.set} (at initialization time only);
     currently, only warning and error messages are stored if thus
     requested. *)
 
-val iter: (int -> Log.event -> unit) -> unit
-  (** Iter over all stored messages. The messages are not passed in emission
-      order, but the [int] argument can be used to sort them if needed *)
+val iter: (Log.event -> unit) -> unit
+  (** Iter over all stored messages. The messages are passed in emission order.
+      @modify Nitrogen-20111001  Messages are now passed in emission order. *)
 
 val dump_messages: unit -> unit
   (** Dump stored messages to standard channels *)

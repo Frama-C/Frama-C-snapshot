@@ -1,5 +1,5 @@
 /* run.config 
-   OPT: -rte -rte-print -journal-disable
+   OPT: -rte -rte-print -rte-precond -journal-disable
 */
 
 typedef double typetab[2];

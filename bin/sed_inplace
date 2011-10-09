@@ -1,8 +1,0 @@
-#!/bin/sh
-
-#Compatibilty script for non-GNU seds to emulate the -i option
-
-new_temp=`mktemp /tmp/frama-c.XXXXXXX` || exit 1
-sed "$@" > $new_temp
-eval last=\${$#}
-mv $new_temp $last

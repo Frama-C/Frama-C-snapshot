@@ -2,8 +2,8 @@ open Db;;
 open Cil_types;;
 
 let pp_nodes msg nodes =
-  Cil.log "%s" msg ;
-  List.iter (fun n -> Cil.log "%a" (!Pdg.pretty_node false) n) nodes;;
+  Kernel.result "%s" msg ;
+  List.iter (fun n -> Kernel.result "%a" (!Pdg.pretty_node false) n) nodes;;
 
 exception Find of varinfo;;
 
@@ -30,8 +30,11 @@ let main _ =
       v
   in
 
-  let y_zone = Locations.valid_enumerate_bits (Locations.loc_of_varinfo y) in
-
+  let y_zone = 
+    Locations.valid_enumerate_bits
+      ~for_writing:false 
+      (Locations.loc_of_varinfo y) 
+  in
   let y_at_11_nodes, undef = (* y=5 *)
     !Pdg.find_location_nodes_at_stmt
       pdg (fst (Kernel_function.find_from_sid 11)) ~before:false y_zone

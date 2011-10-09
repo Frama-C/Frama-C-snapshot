@@ -50,7 +50,7 @@ module type S = sig
 
   val self: State.t
     (** The kind of the registered state.
-	@plugin development guide *)
+        @plugin development guide *)
 
   val name: string
   val kind: State.kind
@@ -67,13 +67,18 @@ module type S = sig
 
   module Datatype: Datatype.S
 
+  val add_hook_on_update: (Datatype.t -> unit) -> unit
+  (** Add an hook which is applied each time (just before) the project library
+      changes the local value of the state.  
+      @since Nitrogen-20111001 *)
+
   val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
-  (** [howto_marshal marshal unmarshal] registers a custom couple of
-      countions [(marshal, unmarshal)] to be used for serialization.
-      Default functions are identities. In particular, calling this
-      function must be used if [Datatype.t] is not marshallable and
-      [do_not_save] is not called.
-      @since Boron-20100401 *)
+(** [howto_marshal marshal unmarshal] registers a custom couple of
+    countions [(marshal, unmarshal)] to be used for serialization.
+    Default functions are identities. In particular, calling this
+    function must be used if [Datatype.t] is not marshallable and
+    [do_not_save] is not called.
+    @since Boron-20100401 *)
 
 end
 
@@ -125,8 +130,8 @@ module type Option_ref = sig
   include Ref
   val memo: ?change:(data -> data) -> (unit -> data) -> data
     (** Memoization. Compute on need the stored value.
-	If the data is already computed (i.e. is not [None]),
-	it is possible to change with [change]. *)
+        If the data is already computed (i.e. is not [None]),
+        it is possible to change with [change]. *)
   val map: (data -> data) -> data option
   val may: (data -> unit) -> unit
   val get_option : unit -> data option
@@ -142,6 +147,7 @@ module Option_ref(Data:Datatype.S)(Info: Info) :
 module type List_ref = sig
   type data_in_list
   include Ref
+  val add: data_in_list -> unit (** @since Nitrogen-20111001 *)
   val iter: (data_in_list -> unit) -> unit
   val fold_left: ('a -> data_in_list -> 'a) -> 'a -> 'a
 end
@@ -184,12 +190,12 @@ module True_ref(Info:Info): Ref with type data = bool
 module type Dashtbl = sig
   include S
     (** A dashtable is a standard computation.
-	BUT:
-	- that is INCORRECT to add the [self] value of a dashtbl into a
-	selection without also adding all the {!selection}.
-	- that is INCORRECT to use dashtable if keys or values have a custom
-	[rehash] function (see {!Project.DATATYPE_OUTPUT.rehash})
-	@since Boron-20100401 *)
+        BUT:
+        - that is INCORRECT to add the [self] value of a dashtbl into a
+        selection without also adding all the {!selection}.
+        - that is INCORRECT to use dashtable if keys or values have a custom
+        [rehash] function (see {!Project.DATATYPE_OUTPUT.rehash})
+        @since Boron-20100401 *)
 
   type key
   type data
@@ -244,30 +250,30 @@ module type Weak_hashtbl = sig
 
   include S
     (** Hashtbl are a standard computation.
-	BUT it is INCORRECT to use projectified hashtables if keys have a
-	custom [rehash] function (see {!Project.DATATYPE_OUTPUT.rehash}) *)
+        BUT it is INCORRECT to use projectified hashtables if keys have a
+        custom [rehash] function (see {!Project.DATATYPE_OUTPUT.rehash}) *)
 
   type data
     (** @since Boron-20100401 *)
 
   val merge: data -> data
     (** [merge x] returns an instance of [x] found in the table if any, or else
-	adds [x] and return [x].
-	@since Boron-20100401 *)
+        adds [x] and return [x].
+        @since Boron-20100401 *)
 
   val add: data -> unit
     (** [add x] adds [x] to the table. If there is already an instance of [x],
-	it is unspecified which one will be returned by subsequent calls to
-	[find] and [merge].
-	@since Boron-20100401 *)
+        it is unspecified which one will be returned by subsequent calls to
+        [find] and [merge].
+        @since Boron-20100401 *)
 
   val clear: unit -> unit
     (** Clear the table.
-	@since Boron-20100401 *)
+        @since Boron-20100401 *)
 
   val count: unit -> int
     (** Length of the table.
-	@since Boron-20100401 *)
+        @since Boron-20100401 *)
 
   val iter: (data -> unit) -> unit
     (** @since Boron-20100401 *)
@@ -277,22 +283,22 @@ module type Weak_hashtbl = sig
 
   val find: data -> data
     (** [find x] returns an instance of [x] found in table.
-	@Raise Not_found if there is no such element.
-	@since Boron-20100401 *)
+        @Raise Not_found if there is no such element.
+        @since Boron-20100401 *)
 
   val find_all: data -> data list
     (** [find_all x] returns a list of all the instances of [x] found in t.
-	@since Boron-20100401 *)
+        @since Boron-20100401 *)
 
   val mem: data -> bool
     (** [mem x] returns [true] if there is at least one instance of [x] in the
-	table, [false] otherwise.
-	@since Boron-20100401 *)
+        table, [false] otherwise.
+        @since Boron-20100401 *)
 
   val remove: data -> unit
     (** [remove x] removes from the table one instance of [x]. Does nothing if
-	there is no instance of [x].
-	@since Boron-20100401 *)
+        there is no instance of [x].
+        @since Boron-20100401 *)
 
 end
 
@@ -322,7 +328,7 @@ module Hashconsing_tbl
        (** Hash function for datatype internally used by the built table. *)
      val initial_values: t list
        (** Pre-existing values stored in the built table and shared by all
-	   existing projects. *)
+           existing projects. *)
    end)
   (Info: Info_with_size) :
   Weak_hashtbl with type data = Data.t
@@ -338,8 +344,8 @@ module Hashconsing_tbl
 module type Hashtbl = sig
   include S
     (** Hashtbl are a standard computation.
-	BUT that is INCORRECT to use projectified hashtables if keys have a
-	custom [rehash] function (see {!Project.DATATYPE_OUTPUT.rehash}) *)
+        BUT that is INCORRECT to use projectified hashtables if keys have a
+        custom [rehash] function (see {!Project.DATATYPE_OUTPUT.rehash}) *)
 
   type key
   type data
@@ -355,12 +361,12 @@ module type Hashtbl = sig
   val fold: (key -> data -> 'a -> 'a) -> 'a -> 'a
   val memo: ?change:(data -> data) -> (key -> data) -> key -> data
     (** Memoization. Compute on need the data associated to a given key using
-	the given function.
-	If the data is already computed, it is possible to change with
-	[change]. *)
+        the given function.
+        If the data is already computed, it is possible to change with
+        [change]. *)
   val find: key -> data
     (** Return the current binding of the given key.
-	@raise Not_found if the key is not in the table. *)
+        @raise Not_found if the key is not in the table. *)
   val find_all: key -> data list
     (** Return the list of all data associated with the given key. *)
   val mem: key -> bool
@@ -368,10 +374,11 @@ module type Hashtbl = sig
 end
 
 module Hashtbl
-  (H: Datatype.Hashtbl)
-  (Data: Datatype.S)
+  (H: Datatype.Hashtbl (** hashtable implementation *))
+  (Data: Datatype.S (** datatype for values stored in the table *))
   (Info: Info_with_size) :
   Hashtbl with type key = H.key and type data = Data.t
+          and module Datatype = H.Make(Data)
 
 (* ************************************************************************* *)
 (** {3 References on a set} *)
@@ -379,7 +386,7 @@ module Hashtbl
 
 (** Output signature of builders of references on a set. *)
 module type Set_ref = sig
-  include S
+  include Ref
   type elt
   val add: elt -> unit
   val is_empty: unit -> bool
@@ -420,7 +427,7 @@ module Proxy : sig
     | Backward (** All states in the proxy depend on it. *)
     | Forward  (** The proxy depends on all states inside. *)
     | Both     (** States in the proxy and the proxy itself are mutually
-		   dependent. *)
+                   dependent. *)
 
   val create: string -> kind -> State.standard_kind -> State.t list -> t
   (** [create s k sk l] creates a new proxy with the given name, kinds and
@@ -441,17 +448,25 @@ end
 val apply_once:
   string -> State.t list -> (unit -> unit) -> (unit -> unit) * State.t
     (** [apply_once name dep f] returns a closure applying [f] only once and the
-	state internally used. [name] and [dep] are respectively the name and
-	the dependencies of the local state created by this function.  Should
-	be used partially applied. If [f] raises an exception, then it is
-	considered as not applied. *)
+        state internally used. [name] and [dep] are respectively the name and
+        the dependencies of the local state created by this function.  Should
+        be used partially applied. If [f] raises an exception, then it is
+        considered as not applied. *)
 
-(** Creates a projectified counter which is marshalling compliant. 
+(** Creates a shared counter which is marshalling compliant.
     @since Carbon-20101201 *)
-module Counter(Info : sig val name : string end) : 
-sig
-  val next : unit -> int 
+module SharedCounter(Info : sig val name : string end) : sig
+  val next : unit -> int
     (** Increments the counter and returns a fresh value *)
+end
+
+(** Creates a shared counter which is marshalling compliant.
+    @since Nitrogen-20111001 *)
+module Counter(Info : sig val name : string end) : sig
+  val next : unit -> int
+    (** Increments the counter and returns a fresh value *)
+
+  val self: State.t
 end
 
 (*

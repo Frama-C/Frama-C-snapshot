@@ -73,6 +73,9 @@ let compare_mark m1 m2 =
 (** Each PDG element has 2 marks to deal with interprocedural propagation *)
 type t_pdg_mark = {m1 : t_mark ; m2 : t_mark }
 
+let t_pdg_mark_packed_descr = Structural_descr.p_abstract
+  (* Ok: Dpd.t is in fact int *)
+
 let compare_pdg_mark p1 p2 =
   if p1 == p2 then 0
   else
@@ -85,7 +88,7 @@ type t_call_id =  Cil_types.stmt
 (** Type for all the informations related to any function,
 * even if we don't have its definition.  *)
 and t_fct_info = {
-  fi_kf : Db_types.kernel_function;
+  fi_kf : Cil_types.kernel_function;
   fi_def : Cil_types.fundec option;
   fi_project : t_project;
   mutable fi_top : t_pdg_mark option;

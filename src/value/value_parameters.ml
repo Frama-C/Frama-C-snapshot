@@ -20,6 +20,38 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* Dependencies to kernel options *)
+let kernel_parameters_correctness = [
+  Kernel.MainFunction.parameter;
+  Kernel.LibEntry.parameter;
+  Kernel.AbsoluteValidRange.parameter;
+  Kernel.Overflow.parameter;
+  Kernel.SafeArrays.parameter;
+  Kernel.UnspecifiedAccess.parameter;
+]
+
+let kernel_parameters_precision = [
+  Kernel.PreciseUnions.parameter;
+  Kernel.ArrayPrecisionLevel.parameter;
+]
+
+let parameters_correctness = ref []
+let parameters_tuning = ref []
+let add_dep p =
+  State_dependency_graph.Static.add_codependencies
+    ~onto:Db.Value.self [State.get p.Parameter.name]
+let add_correctness_dep p =
+  add_dep p;
+  parameters_correctness := p :: !parameters_correctness
+let add_precision_dep p =
+  add_dep p;
+  parameters_tuning := p :: !parameters_tuning
+let () =
+  List.iter add_correctness_dep kernel_parameters_correctness;
+  List.iter add_precision_dep kernel_parameters_precision;
+;;
+
+
 include Plugin.Register
     (struct
        let name = "value analysis"
@@ -30,88 +62,71 @@ include Plugin.Register
     end)
 
 module ForceValues =
-  Action
+  WithOutput
     (struct
        let option_name = "-val"
        let help = "compute values"
-       let kind = `Tuning
+       let output_by_default = true
      end)
 
-module MemFunctions =
-  StringSet
-    (struct
-       let option_name = "-mem-exec"
-       let arg_name = "f"
-       let help = "do not unroll calls to function f (experimental)"
-       let kind = `Tuning
-     end)
+let precision_tuning = add_group "Precision vs. time"
+let initial_context = add_group "Initial Context"
+let performance = add_group "Results memoization vs. time"
 
-module MemExecAll =
-  False
-    (struct
-       let option_name = "-mem-exec-all"
-       let help = "(experimental)"
-       let kind = `Tuning
-     end)
 
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [ MemFunctions.self;
-      MemExecAll.self;
-    ]
+(* -------------------------------------------------------------------------- *)
+(* --- Performance options                                                --- *)
+(* -------------------------------------------------------------------------- *)
 
+let () = Plugin.set_group performance
 module NoResultsFunctions =
   StringSet
     (struct
        let option_name = "-no-results-function"
        let arg_name = "f"
        let help = "do not record the values obtained for the statements of function f"
-       let kind = `Tuning
      end)
+let () = add_dep NoResultsFunctions.parameter
 
+let () = Plugin.set_group performance
 module NoResultsAll =
   False
     (struct
        let option_name = "-no-results"
        let help = "do not record values for any of the statements of the program"
-       let kind = `Tuning
      end)
+let () = add_dep NoResultsAll.parameter
 
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [
-     NoResultsFunctions.self;
-      NoResultsAll.self;
-    ]
+let () = Plugin.set_group performance
+module ObviouslyTerminatesFunctions =
+  StringSet
+    (struct
+       let option_name = "-obviously-terminates-function"
+       let arg_name = "f"
+       let help = "do not record the values obtained for the statements of function f"
+     end)
+let () = add_dep ObviouslyTerminatesFunctions.parameter
 
-
-module SignedOverflow =
+let () = Plugin.set_group performance
+module ObviouslyTerminatesAll =
   False
     (struct
-       let option_name = "-val-signed-overflow-alarms"
-       let help =
-	 "Emit alarms for overflows in signed arithmetic. Experimental"
-       let kind = `Correctness
+       let option_name = "-obviously-terminates"
+       let help = "undocumented. Among effects of this options are the same effects as -no-results"
      end)
+let () = add_dep ObviouslyTerminatesAll.parameter
 
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [
-      SignedOverflow.self;
-    ]
-
-module IgnoreRecursiveCalls =
-  False
+let () = Plugin.set_group performance
+module ResultsAfter =
+  Bool
     (struct
-       let option_name = "-val-ignore-recursive-calls"
-       let help =
-	 "Pretend function calls that would be recursive do not happen. Causes unsoundness"
-       let kind = `Correctness
+       let option_name = "-val-after-results"
+       let help = "record precisely the values obtained after the evaluation of each statement"
+       let default = !Config.is_gui 
      end)
+let () = add_dep ResultsAfter.parameter
 
+let () = Plugin.set_group performance
 module MemoryFootprint =
   Int
     (struct
@@ -119,10 +134,7 @@ module MemoryFootprint =
        let default = 2
        let arg_name = ""
        let help = "tell the analyser to compromise towards speed or towards low memory use. 1 : small memory; 2 : medium (suitable for recent notebooks); 3 : big (suitable for workstations with 3Gb physical memory or more). Defaults to 2"
-       let kind = `Tuning
      end)
-
-
 let () =
   MemoryFootprint.add_set_hook
     (fun _ x ->
@@ -132,7 +144,58 @@ let () =
     ~from:MemoryFootprint.self
     [ Binary_cache.MemoryFootprint.self; Buckx.MemoryFootprint.self ]
 
-let initial_context = add_group "Initial Context"
+
+(* ------------------------------------------------------------------------- *)
+(* --- Misc                                                              --- *)
+(* ------------------------------------------------------------------------- *)
+
+module PropagateTop =
+  False
+    (struct
+       let option_name = "-propagate-top"
+       let help = "do not stop value analysis even if it is degenerating"
+     end)
+let () = add_correctness_dep PropagateTop.parameter
+
+module AllRoundingModes =
+  False
+    (struct
+       let option_name = "-all-rounding-modes"
+       let help = "Take more target FPU and compiler behaviors into account"
+       let kind = `Correctness
+     end)
+let () = add_correctness_dep AllRoundingModes.parameter
+
+module UndefinedPointerComparisonPropagateAll =
+  False
+    (struct
+       let option_name = "-undefined-pointer-comparison-propagate-all"
+       let help = "if the target program appears to contain undefined pointer comparisons, propagate both outcomes {0; 1} in addition to the emission of an alarm"
+     end)
+let () = add_correctness_dep UndefinedPointerComparisonPropagateAll.parameter
+
+module SignedOverflow =
+  False
+    (struct
+       let option_name = "-val-signed-overflow-alarms"
+       let help =
+         "Emit alarms for overflows in signed arithmetic. Experimental"
+     end)
+let () = add_correctness_dep SignedOverflow.parameter
+
+module IgnoreRecursiveCalls =
+  False
+    (struct
+       let option_name = "-val-ignore-recursive-calls"
+       let help =
+         "Pretend function calls that would be recursive do not happen. Causes unsoundness"
+     end)
+let () = add_correctness_dep IgnoreRecursiveCalls.parameter
+
+
+(* ------------------------------------------------------------------------- *)
+(* --- Initial context                                                   --- *)
+(* ------------------------------------------------------------------------- *)
 
 let () = Plugin.set_group initial_context
 module AutomaticContextMaxDepth =
@@ -142,8 +205,8 @@ module AutomaticContextMaxDepth =
        let default = 2
        let arg_name = "n"
        let help = "use <n> as the depth of the default context for value analysis. (defaults to 2)"
-       let kind = `Correctness
      end)
+let () = add_correctness_dep AutomaticContextMaxDepth.parameter
 
 let () = Plugin.set_group initial_context
 module AutomaticContextMaxWidth =
@@ -153,17 +216,9 @@ module AutomaticContextMaxWidth =
        let default = 2
        let arg_name = "n"
        let help = "use <n> as the width of the default context for value analysis. (defaults to 2)"
-       let kind = `Correctness
      end)
 let () = AutomaticContextMaxWidth.set_range ~min:1 ~max:max_int
-
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [
-      AutomaticContextMaxWidth.self;
-      AutomaticContextMaxDepth.self;
-    ]
+let () = add_correctness_dep AutomaticContextMaxWidth.parameter
 
 let () = Plugin.set_group initial_context
 module SeparateStmtStart =
@@ -172,8 +227,8 @@ module SeparateStmtStart =
        let option_name = "-separate-stmts"
        let arg_name = "n1,..,nk"
        let help = "Undocumented"
-       let kind = `Correctness
      end)
+let () = add_correctness_dep SeparateStmtStart.parameter
 
 let () = Plugin.set_group initial_context
 module SeparateStmtWord =
@@ -183,9 +238,9 @@ module SeparateStmtWord =
        let default = 0
        let arg_name = "n"
        let help = "Undocumented"
-       let kind = `Correctness
      end)
 let () = SeparateStmtWord.set_range ~min:0 ~max:1073741823
+let () = add_correctness_dep SeparateStmtWord.parameter
 
 let () = Plugin.set_group initial_context
 module SeparateStmtOf =
@@ -195,36 +250,9 @@ module SeparateStmtOf =
        let default = 0
        let arg_name = "n"
        let help = "Undocumented"
-       let kind = `Correctness
      end)
 let () = SeparateStmtOf.set_range ~min:0 ~max:1073741823
-
-
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [ 
-      SeparateStmtStart.self;
-      SeparateStmtWord.self;
-      SeparateStmtOf.self;
-    ]
-
-
-let () = Plugin.set_group initial_context
-module AllRoundingModes =
-  False
-    (struct
-       let option_name = "-all-rounding-modes"
-       let help = "Take more target FPU and compiler behaviors into account"
-       let kind = `Correctness
-     end)
-
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [ 
-      AllRoundingModes.self;
-    ]
+let () = add_correctness_dep SeparateStmtOf.parameter
 
 let () = Plugin.set_group initial_context
 module AllocatedContextValid =
@@ -232,40 +260,13 @@ module AllocatedContextValid =
     (struct
        let option_name = "-context-valid-pointers"
        let help = "only allocate valid pointers until context-depth, and then use NULL (defaults to false)"
-       let kind = `Correctness
      end)
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [ 
-      AllocatedContextValid.self;
-    ]
+let () = add_correctness_dep AllocatedContextValid.parameter
 
-let () = Plugin.set_group initial_context
-module UndefinedPointerComparisonPropagateAll =
-  False
-    (struct
-       let option_name = "-undefined-pointer-comparison-propagate-all"
-       let help = "if the target program appears to contain undefined pointer comparisons, propagate both outcomes {0; 1;} in addition to the emission of an alarm"
-       let kind = `Correctness
-     end)
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [ 
-      UndefinedPointerComparisonPropagateAll.self;
-    ]
 
-let precision_tuning = add_group "Precision tuning"
-
-let () = Plugin.set_group precision_tuning
-module PropagateTop =
-  False
-    (struct
-       let option_name = "-propagate-top"
-       let help = "do not stop value analysis even if it is degenerating"
-       let kind = `Tuning
-     end)
+(* ------------------------------------------------------------------------- *)
+(* --- Tuning                                                            --- *)
+(* ------------------------------------------------------------------------- *)
 
 let () = Plugin.set_group precision_tuning
 module WideningLevel =
@@ -275,20 +276,9 @@ module WideningLevel =
        let option_name = "-wlevel"
        let arg_name = "n"
        let help =
-	 "do <n> loop iterations before widening (defaults to 3)"
-       let kind = `Tuning
+         "do <n> loop iterations before widening (defaults to 3)"
      end)
-
-let () = Plugin.set_group precision_tuning
-module ArrayPrecisionLevel =
-  Int
-    (struct
-       let default = 200
-       let option_name = "-plevel"
-       let arg_name = "n"
-       let help = "use <n> as the precision level for arrays accesses. Array accesses are precise as long as the interval for the index contains less than n values. (defaults to 200)"
-       let kind = `Tuning
-     end)
+let () = add_precision_dep WideningLevel.parameter
 
 let () = Plugin.set_group precision_tuning
 module SemanticUnrollingLevel =
@@ -297,9 +287,18 @@ module SemanticUnrollingLevel =
        let option_name = "-slevel"
        let arg_name = "n"
        let help =
-	 "use <n> as number of path to explore in parallel (defaults to 0)"
-       let kind = `Tuning
+         "use <n> as number of path to explore in parallel (defaults to 0)"
      end)
+let () = add_precision_dep SemanticUnrollingLevel.parameter
+
+let split_option =
+  let rx = Str.regexp_string ":" in
+  fun s ->
+    try
+      match Str.split rx s with
+        | [ f ; n ] -> (f, n)
+        | _ -> failwith ""
+    with _ -> failwith "split_option"
 
 let () = Plugin.set_group precision_tuning
 module SlevelFunction =
@@ -308,22 +307,37 @@ module SlevelFunction =
        let option_name = "-slevel-function"
        let arg_name = "f:n"
        let help = "override slevel with <n> when analyzing <f>"
-       let kind = `Tuning
      end)
     (struct
       include Datatype.Int
-      let rx = Str.regexp_string ":"
+
       let parse s =
-	try
-	  match Str.split rx s with
-	    [ f ; n ]  ->
-	      let n = int_of_string n in
-              f, n
-	  | _ -> failwith ""
-	with
+        try
+          let f, n =  split_option s in
+          let n = int_of_string n in
+          f, n
+        with
        | Failure _ -> abort "Could not parse option \"-slevel-function %s\"" s
       let no_binding _ = SemanticUnrollingLevel.get ()
     end)
+let () = add_precision_dep SlevelFunction.parameter
+
+let () = Plugin.set_group precision_tuning
+module BuiltinsOverrides =
+  StringHashtbl
+    (struct
+       let option_name = "-val-builtin"
+       let arg_name = "f:ffc"
+       let help = "when analyzing function <f>, try to use Frama-C builtin <ffc> instead. Fall back to <f> if <ffc> cannot handle its arguments (experimental)."
+     end)
+    (struct
+        include Datatype.String
+        let parse s =
+          try split_option s
+          with Failure _ -> abort "Could not parse option \"-val-builtin %s\"" s
+        let no_binding _ = raise Not_found
+     end)
+let () = add_precision_dep BuiltinsOverrides.parameter
 
 let () = Plugin.set_group precision_tuning
 module Subdivide_float_in_expr =
@@ -332,21 +346,54 @@ module Subdivide_float_in_expr =
       let option_name = "-subdivide-float-var"
       let arg_name = "n"
       let help =
-	"use <n> as number of subdivisions allowed for float variables in expressions (experimental, defaults to 0)"
-      let kind = `Tuning
+        "use <n> as number of subdivisions allowed for float variables in expressions (experimental, defaults to 0)"
     end)
+let () = add_precision_dep Subdivide_float_in_expr.parameter
 
-let () =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self
-    [ 
-      PropagateTop.self;
-      WideningLevel.self;
-      ArrayPrecisionLevel.self;
-      SemanticUnrollingLevel.self;
-      SlevelFunction.self;
-      Subdivide_float_in_expr.self;
-    ]
+let () = Plugin.set_group precision_tuning
+module UsePrototype =
+  StringSet
+    (struct
+      let option_name = "-val-use-spec"
+      let arg_name = "f1,..,fn"
+      let help = "undocumented"
+    end)
+let () = add_precision_dep UsePrototype.parameter
+
+let () = Plugin.set_group precision_tuning
+module RmAssert =
+  False
+    (struct
+      let option_name = "-remove-redundant-alarms"
+      let help = "after the analysis, try to remove redundant alarms, so that the user needs inspect fewer of them"
+    end)
+let () = add_precision_dep RmAssert.parameter
+
+
+(* ------------------------------------------------------------------------- *)
+(* --- Messages                                                          --- *)
+(* ------------------------------------------------------------------------- *)
+
+let () = Plugin.set_group messages
+module ValShowProgress =
+  True
+    (struct
+       let option_name = "-val-show-progress"
+       let help = "Show progression messages during value analysis"
+     end)
+
+let () = Plugin.set_group messages
+module PrintCallstacks =
+  False
+    (struct
+       let option_name = "-val-print-callstacks"
+       let help = "When printing a message, also show the current analysis context."
+     end)
+
+
+let parameters_correctness = !parameters_correctness
+let parameters_tuning = !parameters_tuning
+
 
 (*
 Local Variables:

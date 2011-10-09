@@ -20,19 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: bit_utils.mli,v 1.11 2008-07-02 15:28:19 uid568 Exp $ *)
-
 (** Some bit manipulations. *)
 
 open Cil_types
 
-val sizeofchar: unit -> My_bigint.big_int
+val sizeofchar: unit -> My_bigint.t
   (** [sizeof(char)] in bits *)
 
 val sizeofpointer: unit -> int
   (** [sizeof(char* )] in bits *)
 
-val memory_size: unit -> My_bigint.big_int
+val memory_size: unit -> My_bigint.t
+  (** Size of the addressable memory with pointers of size [sizeofpointer()] *)
 
 val sizeof: typ -> Int_Base.t
   (** [sizeof ty] is the size of [ty] in bits. This function may return
@@ -41,11 +40,11 @@ val sizeof: typ -> Int_Base.t
 val osizeof: typ -> Int_Base.t
   (** [osizeof ty] is the size of [ty] in bytes. This function may return
       [Int_Base.top]. *)
-  
+
 exception Neither_Int_Nor_Enum_Nor_Pointer
 
 val is_signed_int_enum_pointer: typ -> bool
-  (** [true] means that the type is signed.  
+  (** [true] means that the type is signed.
       @raise Neither_Int_Nor_Enum_Nor_Pointer if the sign of the type is not
       meaningful. *)
 
@@ -79,13 +78,13 @@ val max_bit_size : unit -> Abstract_interp.Int.t
 
 (** {2 Pretty printing} *)
 
-val pretty_bits: 
-  typ -> 
+val pretty_bits:
+  typ ->
   use_align:bool ->
-  align:My_bigint.big_int ->
-  rh_size:My_bigint.big_int ->
-  start:My_bigint.big_int ->
-  stop:My_bigint.big_int -> Format.formatter -> bool
+  align:My_bigint.t ->
+  rh_size:My_bigint.t ->
+  start:My_bigint.t ->
+  stop:My_bigint.t -> Format.formatter -> bool
   (** Pretty prints a range of bits in a type for the user.
       Tries to find field names and array indexes, whenever possible. *)
 

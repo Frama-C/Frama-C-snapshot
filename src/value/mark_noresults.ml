@@ -26,26 +26,29 @@ class mark_visitor = object(_self)
   inherit Cil.nopCilVisitor as super
 
   method vstmt s =
-    Db.Value.update_table (Kstmt s) Relations_type.Model.top;
+    Db.Value.update_table s Cvalue.Model.top;
     Cil.DoChildren
 
 end
 
 let should_memorize_function name =
-  not (Value_parameters.NoResultsAll.get()
-     || (Datatype.String.Set.mem
-          name.svar.vname (Value_parameters.NoResultsFunctions.get ())))
-
+  not (Value_parameters.NoResultsAll.get() ||
+	  (Value_parameters.ObviouslyTerminatesAll.get()) || 
+	  let name = name.svar.vname in
+	  let mem = Datatype.String.Set.mem in
+	  mem name (Value_parameters.NoResultsFunctions.get ())
+	  || mem name (Value_parameters.ObviouslyTerminatesFunctions.get ()))
 
 let run () =
-  let names = Value_parameters.NoResultsFunctions.get () in
-  if Value_parameters.NoResultsAll.get() ||
-    not (Datatype.String.Set.is_empty names)
-  then
-    let visitor = new mark_visitor in
-    Globals.Functions.iter_on_fundecs
+  let visitor = new mark_visitor in
+  Globals.Functions.iter_on_fundecs
       (fun afundec ->
          if not (should_memorize_function afundec)
-	 then
-	  ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) afundec);)
+         then
+           ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) afundec))
 
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/pdg/dyn_dpds.opt
    CMD: tests/pdg/dyn_dpds.opt
-   OPT: -deps -journal-disable
+   OPT: -deps -journal-disable -pdg-print -pdg-verbose 2
 */
 
 /*

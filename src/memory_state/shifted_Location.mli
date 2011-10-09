@@ -20,6 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 type t = private { l : Locations.location; offset : Ival.t; }
 
 val bottom : t
@@ -28,3 +33,9 @@ val equal : t -> t -> bool
 val is_bottom : t -> bool
 val pretty : Format.formatter -> t -> unit
 val is_included : t -> t -> bool
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

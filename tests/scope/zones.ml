@@ -22,7 +22,7 @@ let find_ret kf_name =
 let find_sid sid =
   let stmt, kf = Kernel_function.find_from_sid sid in
     Format.printf "Current program point = before stmt %d in function %a@\n"
-      sid Kernel_function.pretty_name kf;
+      sid Kernel_function.pretty kf;
     stmt, kf
 ;;
 

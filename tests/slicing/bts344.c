@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -slice-print -slice-return main -journal-disable
-   OPT: -slice-print -slice-return main_bis -main main_bis -journal-disable
+   OPT: -check -slice-return main -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-return main_bis -main main_bis -journal-disable -then-on 'Slicing export' -print
 */
 
 int X, Y ;

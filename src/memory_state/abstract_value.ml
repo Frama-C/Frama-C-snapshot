@@ -20,11 +20,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please write a .mli and
+   document it. *)
+
 open Abstract_interp
 
 module Unhashconsed_Int_Intervals = struct
 
-  include Make_Lattice_Interval_Set (Int)
+  include Lattice_Interval_Set
 
   let fold_enum ~split_non_enumerable f v acc =
     ignore (split_non_enumerable);
@@ -36,13 +42,14 @@ module Unhashconsed_Int_Intervals = struct
   let pretty_typ typ fmt i =
     let typ =
       match typ with
-	Some t -> t
+        Some t -> t
       | None ->
           Cil_types.TArray
-	    (Cil_types.TInt(Cil_types.IUChar,[]),
-             Some (Cil.kinteger64 
-                     ~loc:(Cil.CurrentLoc.get ()) 
-                     Cil_types.IULongLong 922337203685477580L
+            (Cil_types.TInt(Cil_types.IUChar,[]),
+             Some (Cil.kinteger64
+                     ~loc:(Cil.CurrentLoc.get ())
+                     Cil_types.IULongLong
+                     (My_bigint.of_int64 922337203685477580L)
                      (* See Cuoq for rational *)),
              Cil.empty_size_cache (),
              [])
@@ -52,29 +59,27 @@ module Unhashconsed_Int_Intervals = struct
     | Set s ->
         if s=[] then Format.fprintf fmt "BottomISet"
         else begin
-	  let pp_one fmt (b,e)=
-	    assert (Int.le b e) ;
-	    ignore (Bit_utils.pretty_bits typ
-		      ~use_align:false
-		      ~align:Int.zero
-		      ~rh_size:Int.one
-		      ~start:b ~stop:e fmt) in
-	  let pp_stmt fmt r = Format.fprintf fmt "%a;@ " pp_one r in
-	  match s with
-	    | [] -> Format.pp_print_string fmt "{}"
-	    | [r] -> pp_one fmt r
-	    | s ->
-		Format.fprintf fmt "@[<hov 1>{" ;
-		List.iter (pp_stmt fmt) s ;
-		Format.fprintf fmt "}@]" ;
+          let pp_one fmt (b,e)=
+            assert (Int.le b e) ;
+            ignore (Bit_utils.pretty_bits typ
+                      ~use_align:false
+                      ~align:Int.zero
+                      ~rh_size:Int.one
+                      ~start:b ~stop:e fmt) in
+          let pp_stmt fmt r = Format.fprintf fmt "%a;@ " pp_one r in
+          match s with
+            | [] -> Format.pp_print_string fmt "{}"
+            | [r] -> pp_one fmt r
+            | s ->
+                Format.fprintf fmt "@[<hov 1>{" ;
+                List.iter (pp_stmt fmt) s ;
+                Format.fprintf fmt "}@]" ;
         end
 
   let from_ival_int ival int =
-    let max_elt_int = Parameters.Dynamic.Int.get "-plevel" in
+    let max_elt_int = Kernel.ArrayPrecisionLevel.get() in
     let max_elt = Int.of_int max_elt_int in
-    let add_offset x acc =
-       join (inject_one ~value:x  ~size:int) acc
-    in
+    let add_offset x acc = join (inject_one ~value:x  ~size:int) acc in
     match ival with
     | Ival.Top(None, _, _, _)
     | Ival.Top(_, None, _, _) | Ival.Float _ -> top
@@ -83,32 +88,33 @@ module Unhashconsed_Int_Intervals = struct
         then inject_one ~value:mn ~size:(Int.add (Int.sub mx mn) int)
         else
           let elts = Int.native_div (Int.sub mx mn) m in
-          if Int.gt elts max_elt then
+          if Int.gt elts max_elt then begin
             (* too many elements to enumerate *)
-            (ignore (CilE.warn_once "more than %d(%a) elements to enumerate. Approximating."
-                       max_elt_int
-                       Int.pretty elts);
-           top)
-        else Int.fold add_offset ~inf:mn ~sup:mx ~step:m bottom
+            Kernel.result ~once:true ~current:true
+              "more than %d(%a) elements to enumerate. Approximating."
+              max_elt_int
+              Int.pretty elts;
+           top
+          end else Int.fold add_offset ~inf:mn ~sup:mx ~step:m bottom
     | Ival.Set(s) ->
-	Ival.O.fold
-	  add_offset
-	  s
-	  bottom
+        Array.fold_right
+          add_offset
+          s
+          bottom
 
   let from_ival_size ival size =
     match size with
     | Int_Base.Top -> top
     | Int_Base.Bottom -> assert false
     | Int_Base.Value int ->
-	from_ival_int ival int
+        from_ival_int ival int
 
   let inject_zero_max size =
      match size with
     | Int_Base.Top -> top
     | Int_Base.Bottom -> assert false
     | Int_Base.Value int ->
-	inject_one ~value:Int.zero  ~size:int
+        inject_one ~value:Int.zero  ~size:int
 
   let diff x y =
     if is_included x y then bottom else x
@@ -119,17 +125,17 @@ module Unhashconsed_Int_Intervals = struct
     match intervs with
       Top -> top
     | Set l ->
-	inject (List.map (fun (bi,ei) ->  (Int.add bi x,Int.add ei x)) l)
+        inject (List.map (fun (bi,ei) ->  (Int.add bi x,Int.add ei x)) l)
 
   let shift_ival intervs ival =
     match ival with
       Ival.Top _ | Ival.Float _ -> top
     | Ival.Set s ->
-	Ival.O.fold
-	  (fun x acc ->
-	     join acc (shift_int64 x intervs))
-	  s
-	  bottom
+        Array.fold_right
+          (fun x acc ->
+             join acc (shift_int64 x intervs))
+          s
+          bottom
 end
 
 module Int_Intervals = struct
@@ -162,8 +168,8 @@ module Int_Intervals = struct
          type t = tt
          let equal = equal_internal
          let hash = hash_internal
-	 let pretty = pretty
-	 let id = name
+         let pretty = pretty
+         let id = name
        end)
 
   let table = IntIntervalsHashtbl.create 139
@@ -193,23 +199,23 @@ module Int_Intervals = struct
   include
     Datatype.Make
       (struct
-	 type t = tt
-	 let structural_descr =
-	   Structural_descr.t_record
-	     [| Structural_descr.p_int;
-		Unhashconsed_Int_Intervals.packed_descr;
-		Structural_descr.p_int |]
-	 let reprs = [ top; bottom ]
-	 let name = "Abstract_value.Int_Intervals"
-	 let compare = compare
-	 let equal = ( == )
-	 let copy = Datatype.undefined
-	 let hash x = x.h
-	 let rehash x = wrap x.v
-	 let internal_pretty_code = Datatype.undefined
-	 let pretty = pretty
-	 let varname = Datatype.undefined
-	 let mem_project = Datatype.never_any_project
+         type t = tt
+         let structural_descr =
+           Structural_descr.t_record
+             [| Structural_descr.p_int;
+                Unhashconsed_Int_Intervals.packed_descr;
+                Structural_descr.p_int |]
+         let reprs = [ top; bottom ]
+         let name = "Abstract_value.Int_Intervals"
+         let compare = compare
+         let equal = ( == )
+         let copy = Datatype.undefined
+         let hash x = x.h
+         let rehash x = wrap x.v
+         let internal_pretty_code = Datatype.undefined
+         let pretty = pretty
+         let varname = Datatype.undefined
+         let mem_project = Datatype.never_any_project
        end)
 
   let fold_enum ~split_non_enumerable f v acc =

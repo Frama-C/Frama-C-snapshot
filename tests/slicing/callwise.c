@@ -1,6 +1,5 @@
 /* run.config
-   GCC:
-   OPT: -calldeps -slice-return main -slicing-level 2 -slice-print -journal-disable
+   OPT: -check -calldeps -slice-return main -slicing-level 2 -journal-disable -then-on 'Slicing export' -print
 */
 
 int a = 1, b = 1, c = 1, d = 1, *p;

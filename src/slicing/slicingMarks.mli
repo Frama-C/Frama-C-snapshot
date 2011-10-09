@@ -42,7 +42,7 @@ val merge_marks : t_mark list -> t_mark
 val inter_marks : t_mark list -> t_mark
 
 (** [combine_marks] add a new information to the old value.
-* @return (new_mark, is_new) 
+* @return (new_mark, is_new)
            where [is_new=true] if the new mark is not included in the old one.
 *)
 val combine_marks : t_mark -> t_mark -> (t_mark * t_mark)
@@ -59,7 +59,7 @@ type t_sig_marks  = t_mark PdgIndex.Signature.t
 
 val empty_sig : t_sig_marks
 val get_input_mark : t_sig_marks -> int -> t_mark
-val get_all_input_marks : t_sig_marks -> 
+val get_all_input_marks : t_sig_marks ->
                           (PdgIndex.Signature.t_in_key * t_mark) list
 val merge_inputs_m1_mark : t_sig_marks -> t_mark
 val get_input_loc_under_mark : t_sig_marks -> Locations.Zone.t -> t_mark
@@ -69,16 +69,15 @@ val something_visible : t_sig_marks -> bool
 val some_visible_out : t_sig_marks -> bool
 val is_topin_visible : t_sig_marks -> bool
                                         (*
-val check_output_marks : (int * t_mark) list -> t_sig_marks option ->  
+val check_output_marks : (int * t_mark) list -> t_sig_marks option ->
                                 (int * t_mark) list * bool
 val check_called_output_marks : t_sig_marks -> t_sig_marks option ->
                                 (int * t_mark) list * bool
-val check_input_marks : t_sig_marks -> 
-                        (PdgIndex.Signature.t_in_key * t_mark) list -> 
+val check_input_marks : t_sig_marks ->
+                        (PdgIndex.Signature.t_in_key * t_mark) list ->
                         (PdgIndex.Signature.t_in_key * t_mark) list * bool
-val check_called_input_marks : t_sig_marks -> t_sig_marks option -> 
+val check_called_input_marks : t_sig_marks -> t_sig_marks option ->
                                 (PdgIndex.Signature.t_in_key * t_mark) list * bool
                                 *)
 val get_marked_out_zone : t_sig_marks -> bool * Locations.Zone.t
 val pretty_sig : Format.formatter -> t_sig_marks -> unit
-

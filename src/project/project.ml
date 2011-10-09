@@ -41,10 +41,10 @@ module D =
       type t = project
       let name = "Project"
       let structural_descr =
-	Structural_descr.t_record
-	  [| Structural_descr.p_int;
-	     Structural_descr.p_string;
-	     Structural_descr.p_string |]
+        Structural_descr.t_record
+          [| Structural_descr.p_int;
+             Structural_descr.p_string;
+             Structural_descr.p_string |]
       let reprs = [ dummy ]
       let equal = (==)
       let compare p1 p2 = Datatype.Int.compare p1.pid p2.pid
@@ -52,11 +52,11 @@ module D =
       let rehash x = !rehash_ref x
       let copy = Datatype.undefined
       let internal_pretty_code p_caller fmt p =
-	let pp f =
-	  Format.fprintf
-	    f "@[<hv 2>Project.from_unique_name@;%S@]" p.unique_name
-	in
-	Type.par p_caller Type.Call fmt pp
+        let pp f =
+          Format.fprintf
+            f "@[<hv 2>Project.from_unique_name@;%S@]" p.unique_name
+        in
+        Type.par p_caller Type.Call fmt pp
       let pretty fmt p = Format.fprintf fmt "project %S" p.unique_name
       let varname p = "p_" ^ p.name
       let mem_project f x = f x
@@ -69,6 +69,9 @@ module Project_tbl = Hashtbl.Make(D)
 (** {2 States operations} *)
 (* ************************************************************************** *)
 
+let current_selection = ref State_selection.empty
+let get_current_selection () = !current_selection
+
 module States_operations = struct
 
   module H = Hashtbl
@@ -76,19 +79,17 @@ module States_operations = struct
   module Hashtbl = H
 
   let iter f x =
+    current_selection := State_selection.full;
     State_dependency_graph.Static.G.iter_vertex
       (fun s -> f s x)
       State_dependency_graph.Static.graph
 
-  let fold f x =
-    State_dependency_graph.Static.G.fold_vertex
-      (fun s -> f s x)
-      State_dependency_graph.Static.graph
-
   let iter_on_selection ?(selection=State_selection.full) f x =
+    current_selection := selection;
     State_selection.Static.iter (fun s -> f s x) selection
 
   let fold_on_selection ?(selection=State_selection.full) f x =
+    current_selection := selection;
     State_selection.Static.fold (fun s -> f s x) selection
 
   let create = iter (fun s -> (private_ops s).create)
@@ -105,33 +106,35 @@ module States_operations = struct
     let clear s = (private_ops s).clear in
     if State_selection.is_full selection then
       iter clear p (* clearing the static states also clears the dynamic ones *)
-    else
+    else begin
+      current_selection := selection;
       State_selection.Dynamic.iter (fun s -> clear s p) selection
+    end
 
   let clear_some_projects ?selection f p =
     let states_to_clear =
       fold_on_selection
-	?selection
-	(fun s p acc ->
-	   let is_cleared = (private_ops s).clear_some_projects f p in
-	   if is_cleared then
-	     State_selection.Dynamic.union
-	       (State_selection.Dynamic.with_dependencies s)
-	       acc
-	   else
-	     acc)
-	p
-	State_selection.empty
+        ?selection
+        (fun s p acc ->
+           let is_cleared = (private_ops s).clear_some_projects f p in
+           if is_cleared then
+             State_selection.Dynamic.union
+               (State_selection.Dynamic.with_dependencies s)
+               acc
+           else
+             acc)
+        p
+        State_selection.empty
     in
     if not (State_selection.is_empty states_to_clear) then begin
       warning "clearing dangling project pointers in project %S" p.unique_name;
       debug ~once:true ~append:(fun fmt -> Format.fprintf fmt "@]")
-	"@[the involved states are:%t"
-	(fun fmt ->
-	   iter_on_selection
-	     ~selection:states_to_clear
-	     (fun s () -> Format.fprintf fmt "@ %S" (get_name s))
-	     ())
+        "@[the involved states are:%t"
+        (fun fmt ->
+           iter_on_selection
+             ~selection:states_to_clear
+             (fun s () -> Format.fprintf fmt "@ %S" (get_name s))
+             ())
     end
 
   let copy ?selection src =
@@ -147,11 +150,11 @@ module States_operations = struct
   let unserialize ?selection dst loaded_states =
     let pp_err fmt n =
       if n > 0 then begin
-	warning ~once:true
-	  fmt
-	  n
-	  (if n = 1 then "" else "s") (if n = 1 then "is" else "are")
-	  (if n = 1 then "It does not exist in" else "They do not exist in")
+        warning ~once:true
+          fmt
+          n
+          (if n = 1 then "" else "s") (if n = 1 then "is" else "are")
+          (if n = 1 then "It does not exist in" else "They do not exist in")
       end
     in
     let tbl = Hashtbl.create 97 in
@@ -159,20 +162,20 @@ module States_operations = struct
     iter_on_selection
       ?selection
       (fun s () ->
-	 try
-	   let n = get_unique_name s in
-	   let d = Hashtbl.find tbl n in
-	   (try (private_ops s).unserialize dst d
-	    with Not_found -> assert false);
-	   Hashtbl.remove tbl n;
-	 with Not_found ->
-	   (* [s] is in RAM but not on disk: silently ignore it!
-	      As [dst] is a new project, [s] is already equal to its default
-	      value. Furthermore, all the dependencies of [s] are consistent
-	      with this default value. So no need to clear them. Whenever
-	      the value of [s] in [dst] changes, the dependencies will be
-	      cleared (if required by the user of Project.clear). *)
-	   ())
+         try
+           let n = get_unique_name s in
+           let d = Hashtbl.find tbl n in
+           (try (private_ops s).unserialize dst d
+            with Not_found -> assert false);
+           Hashtbl.remove tbl n;
+         with Not_found ->
+           (* [s] is in RAM but not on disk: silently ignore it!
+              As [dst] is a new project, [s] is already equal to its default
+              value. Furthermore, all the dependencies of [s] are consistent
+              with this default value. So no need to clear them. Whenever
+              the value of [s] in [dst] changes, the dependencies will be
+              cleared (if required by the user of Project.clear). *)
+           ())
       ();
     (* warns for the saved states that cannot be loaded. *)
     let nb_ignored =
@@ -195,17 +198,17 @@ let generic_guarded_feedback pp_selection get_size selection level fmt_msg =
     else
       let n = get_size selection in
       if n = 0 then
-	Log.nullprintf fmt_msg
+        Log.nullprintf fmt_msg
       else
-	let states fmt =
-	  if n > 1 then Format.fprintf fmt " (for %d states)" n
-	  else Format.fprintf fmt " (for 1 state)";
-	  if debug_atleast 1 then begin
-	    Format.pp_print_newline fmt ();
-	    pp_selection fmt selection
-	  end
-	in
-	feedback ~level ~append:states fmt_msg
+        let states fmt =
+          if n > 1 then Format.fprintf fmt " (for %d states)" n
+          else Format.fprintf fmt " (for 1 state)";
+          if debug_atleast 1 then begin
+            Format.pp_print_newline fmt ();
+            pp_selection fmt selection
+          end
+        in
+        feedback ~level ~append:states fmt_msg
   else
     Log.nullprintf fmt_msg
 
@@ -319,7 +322,7 @@ let journalized_set_current =
   Journal.register "Project.set_current"
     (lbl "on" (fun () -> false) Datatype.bool
        (lbl "selection" dft_sel State_selection.ty
-	  (Datatype.func ty Datatype.unit)))
+          (Datatype.func ty Datatype.unit)))
     unjournalized_set_current
 
 let set_current ?(on=false) ?(selection=State_selection.full) p =
@@ -389,7 +392,7 @@ let journalized_copy =
        (lbl "src" current ty (Datatype.func ty Datatype.unit)))
     (fun selection src dst ->
        guarded_feedback selection 2 "copying project from %S to %S"
-	 src.unique_name dst.unique_name;
+         src.unique_name dst.unique_name;
        States_operations.commit ~selection src;
        States_operations.copy ~selection src dst)
 
@@ -413,7 +416,7 @@ let journalized_clear =
        (lbl "project" current ty (Datatype.func Datatype.unit Datatype.unit)))
     (fun selection project () ->
        full_guarded_feedback selection 2 "clearing project %S"
-	 project.unique_name;
+         project.unique_name;
        Before_Clear_Hook.apply project;
        States_operations.clear ~selection project;
        After_Clear_Hook.apply project;
@@ -458,11 +461,11 @@ let save_projects selection projects filename =
     output_value cout !Graph.Blocks.cpt_vertex;
     let states : (t * (string * State.state_on_disk) list) list =
       Q.fold
-	(fun acc p ->
-	   (* project + serialized version of all its states *)
-	   (p, States_operations.serialize ~selection p) :: acc)
-	[]
-	projects
+        (fun acc p ->
+           (* project + serialized version of all its states *)
+           (p, States_operations.serialize ~selection p) :: acc)
+        []
+        projects
     in
     (* projects are stored on disk from the current one to the last project *)
     output_value cout (List.rev states);
@@ -512,19 +515,19 @@ module Descr = struct
   module Rehash =
     Hashtbl.Make
       (struct
-	 type t = project
-	 let hash p = Hashtbl.hash p.pid
-	 let equal x y =
-	   match !project_under_copy_ref with
-	   | Some p when p.pid <> x.pid && p.pid <> y.pid ->
-	       (* Merge projects on disk with pre-existing projects, except the
-		  project under copy; so don't use (==) in this context. *)
-	       x.pid = y.pid
-	   | None | Some _ ->
-	       (* In all other cases, don't merge.
-		  (==) ensures that there is no sharing between a pre-existing
-		  project and a project on disk. Great! *)
-	       x == y
+         type t = project
+         let hash p = Hashtbl.hash p.pid
+         let equal x y =
+           match !project_under_copy_ref with
+           | Some p when p.pid <> x.pid && p.pid <> y.pid ->
+               (* Merge projects on disk with pre-existing projects, except the
+                  project under copy; so don't use (==) in this context. *)
+               x.pid = y.pid
+           | None | Some _ ->
+               (* In all other cases, don't merge.
+                  (==) ensures that there is no sharing between a pre-existing
+                  project and a project on disk. Great! *)
+               x == y
        end)
 
   let rehash_cache : project Rehash.t = Rehash.create 7
@@ -542,7 +545,7 @@ module Descr = struct
 
   let init project_under_copy =
     assert (Rehash.length rehash_cache = 0
-	   && Project_tbl.length existing_projects = 0);
+           && Project_tbl.length existing_projects = 0);
     project_under_copy_ref := project_under_copy;
     Q.fold
       (fun acc p -> Project_tbl.add existing_projects p (); p :: acc)
@@ -553,12 +556,12 @@ module Descr = struct
     (match !project_under_copy_ref with
     | None ->
       List.iter
-	(fun ( (p, _)) ->
-	  States_operations.clear_some_projects
-	    ~selection
-	    (fun p -> not (Project_tbl.mem existing_projects p))
-	    p)
-	loaded_states
+        (fun ( (p, _)) ->
+          States_operations.clear_some_projects
+            ~selection
+            (fun p -> not (Project_tbl.mem existing_projects p))
+            p)
+        loaded_states
     | Some _ ->
       ());
     Rehash.clear rehash_cache;
@@ -568,41 +571,41 @@ module Descr = struct
     let state_on_disk s =
 (*      Format.printf "State %S@." s;*)
       let descr =
-	try State.get_descr (State.get s)
-	with State.Unknown -> Structural_descr.p_unit (* dummy value *)
+        try State.get_descr (State.get s)
+        with State.Unknown -> Structural_descr.p_unit (* dummy value *)
       in
       Descr.t_record
-	[| descr;
-	   Structural_descr.p_bool;
-	   Structural_descr.p_bool;
-	   Structural_descr.p_string |]
-	State.dummy_state_on_disk
+        [| descr;
+           Structural_descr.p_bool;
+           Structural_descr.p_bool;
+           Structural_descr.p_string |]
+        State.dummy_state_on_disk
     in
     let tbl_on_disk = Descr.dependent_pair Descr.t_string state_on_disk in
     let one_state =
       let unmarshal_states p =
-	Descr.dynamic
-	  (fun () ->
-	    (* Local states must be up-to-date according [p] when unmarshalling
- 	       states of [p] *)
- 	    unjournalized_set_current true selection p;
-	    Before_load.apply ();
-	    Descr.t_list tbl_on_disk)
+        Descr.dynamic
+          (fun () ->
+            (* Local states must be up-to-date according [p] when unmarshalling
+               states of [p] *)
+            unjournalized_set_current true selection p;
+            Before_load.apply ();
+            Descr.t_list tbl_on_disk)
       in
       Descr.dependent_pair descr unmarshal_states
     in
     let final_one_state =
       Descr.transform
-	one_state
-	(fun (p, s as c) ->
-	   (match name with None -> () | Some s -> set_name p s);
-	   Project_tbl.add existing_projects p ();
-	   (* At this point, the local states are always up-to-date according
-	      to the current project, since we load first the old current
-	      project *)
-	   States_operations.unserialize ~selection p s;
-	   After_load.apply ();
-	   c)
+        one_state
+        (fun (p, s as c) ->
+           (match name with None -> () | Some s -> set_name p s);
+           Project_tbl.add existing_projects p ();
+           (* At this point, the local states are always up-to-date according
+              to the current project, since we load first the old current
+              project *)
+           States_operations.unserialize ~selection p s;
+           After_load.apply ();
+           c)
     in
     Descr.t_list final_one_state
 
@@ -620,14 +623,14 @@ let load_projects ~project_under_copy selection ?name filename =
     let check_magic cin to_string current =
       let old = read cin in
       if old <> current then begin
-	close_in cin;
-	let s =
-	  Format.sprintf
-	    "project saved with an incompatible version (old: %S,current: %S)"
-	    (to_string old)
-	    (to_string current)
-	in
-	raise (IOError s)
+        close_in cin;
+        let s =
+          Format.sprintf
+            "project saved with an incompatible version (old: %S,current: %S)"
+            (to_string old)
+            (to_string current)
+        in
+        raise (IOError s)
       end
     in
     check_magic cin (fun x -> x) Config.version;
@@ -636,31 +639,31 @@ let load_projects ~project_under_copy selection ?name filename =
     let pre_existing_projects = Descr.init project_under_copy in
     let loaded_states =
       gen_read
-	(fun c -> Descr.input_val c (Descr.global_state name selection))
-	cin
+        (fun c -> Descr.input_val c (Descr.global_state name selection))
+        cin
     in
     close_in cin;
     Descr.finalize loaded_states selection;
     Graph.Blocks.after_unserialization ocamlgraph_counter;
-    After_global_load.apply ();
     (* [set_current] done when unmarshalling and hooks may reorder
        projects: rebuild it in the good order *)
     let last = current () in
     Q.clear projects;
     let loaded_projects =
       List.fold_right
-	(fun (p, _) acc -> Q.add p projects; p :: acc) loaded_states []
+        (fun (p, _) acc -> Q.add p projects; p :: acc) loaded_states []
     in
     List.iter (fun p -> Q.add p projects) pre_existing_projects;
     (* We have to restore all the local states if the last loaded project is
        not the good current one. The trick is to call [set_current] on [current
-       ()], but we ensure that this operations **do** something (that is not
+       ()], but we ensure that this operation **does** something (that is not
        the case by default) by putting [last] as current project
        temporarily. *)
     let true_current = current () in
     Q.add last projects;
     unjournalized_set_current true selection true_current;
     Q.remove last projects;
+    After_global_load.apply ();
     loaded_projects
   end else
     abort "loading a file is not supported in the 'no obj' mode"
@@ -677,7 +680,7 @@ let journalized_load =
   Journal.register "Project.load"
     (lbl "selection" dft_sel State_selection.ty
        (lbl "name" (fun () -> None)
-	  (Datatype.option Datatype.string) (Datatype.func Datatype.string ty)))
+          (Datatype.option Datatype.string) (Datatype.func Datatype.string ty)))
     (unjournalized_load ~project_under_copy:None)
 
 let load ?(selection=State_selection.full) ?name filename =
@@ -709,12 +712,15 @@ let create_by_copy_hook f =
 let unjournalized_create_by_copy selection src name =
   guarded_feedback selection 2 "creating project %S by copying project %S"
     name (src.unique_name);
-  let filename = Filename.temp_file "frama_c_create_by_copy" ".sav" in
+  let filename =
+    try Filename.temp_file "frama_c_create_by_copy" ".sav"
+    with Sys_error s -> abort "cannot create temporary file: %s" s
+  in
   save ~selection ~project:src filename;
   try
     let prj =
       unjournalized_load
-	~project_under_copy:(Some src) selection (Some name) filename
+        ~project_under_copy:(Some src) selection (Some name) filename
     in
     Extlib.safe_remove filename;
     Create_by_copy_hook.apply (src, prj);
@@ -747,18 +753,20 @@ module Undo = struct
   let restore () =
     if Cmdline.use_obj then begin
       try
-	Journal.prevent load_all !filename;
-	Journal.restore ();
-	clear_breakpoint ()
+        Journal.prevent load_all !filename;
+        Journal.restore ();
+        clear_breakpoint ()
       with IOError s ->
-	feedback "cannot restore the last breakpoint: %S" s;
-	clear_breakpoint ()
+        feedback "cannot restore the last breakpoint: %S" s;
+        clear_breakpoint ()
     end
 
   let breakpoint () =
     if Cmdline.use_obj then begin
       clear_breakpoint ();
-      filename := Filename.temp_file short_filename ".sav";
+      filename :=
+        (try Filename.temp_file short_filename ".sav"
+         with Sys_error s -> abort "cannot create temporary file: %s" s);
       Journal.prevent save_all !filename;
       Journal.save ()
     end

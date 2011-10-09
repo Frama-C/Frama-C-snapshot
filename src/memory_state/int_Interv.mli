@@ -20,6 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 exception Cannot_compare_intervals
 
 include Datatype.S with type t = Abstract_interp.Int.t * Abstract_interp.Int.t

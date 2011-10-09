@@ -35,7 +35,7 @@
 #  define SCHAR_MAX	__smax(1,)
 
 /* Maximum value an `unsigned char' can hold.  (Minimum is 0.)  */
-#  define UCHAR_MAX	__umax(1,)
+#  define UCHAR_MAX	__umax(unsigned char)
 
 /* Minimum and maximum values a `char' can hold.  */
 #  ifdef __CHAR_UNSIGNED__
@@ -53,28 +53,28 @@
 #  define SHRT_MAX	__smax(__SIZEOF_SHORT,)
 
 /* Maximum value an `unsigned short int' can hold.  (Minimum is 0.)  */
-#  define USHRT_MAX	__umax(__SIZEOF_SHORT,)
+#  define USHRT_MAX	__umax(unsigned short)
 
 /* Minimum and maximum values a `signed int' can hold.  */
 #  define INT_MIN	__smin(__SIZEOF_INT,)
 #  define INT_MAX	__smax(__SIZEOF_INT,)
 
 /* Maximum value an `unsigned int' can hold.  (Minimum is 0.)  */
-#  define UINT_MAX	__umax(__SIZEOF_INT,U)
+#  define UINT_MAX	__umax(unsigned int)
 
 /* Minimum and maximum values a `signed long int' can hold.  */
 #  define LONG_MAX	__smax(__SIZEOF_LONG,L)
 #  define LONG_MIN	__smin(__SIZEOF_LONG,L)
 
 /* Maximum value an `unsigned long int' can hold.  (Minimum is 0.)  */
-#define ULONG_MAX	__umax(__SIZEOF_LONG,UL)
+#define ULONG_MAX	__umax(unsigned long)
 
 /* Minimum and maximum values a `signed long long int' can hold.  */
 #   define LLONG_MAX	__smax(__SIZEOF_LONGLONG,LL)
 #   define LLONG_MIN	__smin(__SIZEOF_LONGLONG,LL)
 
 /* Maximum value an `unsigned long long int' can hold.  (Minimum is 0.)  */
-#   define ULLONG_MAX	__umax(__SIZEOF_LONGLONG,ULL)
+#   define ULLONG_MAX	__umax(unsigned long long)
 
 #endif
 

@@ -94,20 +94,19 @@ let announceFunctionName ((n, decl, _, _):name) =
      parse_error "Cannot find the prototype in a function definition");
   currentFunctionName := n
 
-
 let check_funspec_abrupt_clauses fname (spec,_) =
   List.iter
-    (fun bhv -> List.iter
-       (function
-            (Cil_types.Normal | Cil_types.Exits),_ -> ()
-          | (Cil_types.Breaks | Cil_types.Continues |
-                 Cil_types.Returns), {Logic_ptree.lexpr_loc = (loc,_)} ->
-              Cil.error_loc (loc.Lexing.pos_fname, loc.Lexing.pos_lnum)
-                "Specification of function %s can only contain ensures or \
+    (fun bhv ->
+      List.iter
+	(function
+	| (Cil_types.Normal | Cil_types.Exits),_ -> ()
+	| (Cil_types.Breaks | Cil_types.Continues |
+            Cil_types.Returns), {Logic_ptree.lexpr_loc = (loc,_)} ->
+          Kernel.error ~source:loc
+            "Specification of function %s can only contain ensures or \
                  exits post-conditions" fname;
-              raise Parsing.Parse_error
-       )
-       bhv.Cil_types.b_post_cond)
+          raise Parsing.Parse_error)
+	bhv.Cil_types.b_post_cond)
     spec.Cil_types.spec_behavior
 
 let applyPointer (ptspecs: attribute list list) (dt: decl_type)
@@ -282,7 +281,6 @@ let in_block l =
 
 %}
 
-%token <Cabs.cabsloc * string list * Logic_ptree.spec> FOR_SPEC
 %token <Lexing.position * string> SPEC
 %token <Logic_ptree.decl list> DECL
 %token <Logic_ptree.code_annot * Cabs.cabsloc> CODE_ANNOT
@@ -941,9 +939,6 @@ annotated_statement:
 
 statement:
     SEMICOLON		{ no_ghost [NOP $1] }
-|   FOR_SPEC annotated_statement
-      { (* TODO: Do not forget behavior list. *)
-        let loc,_bhv,spec = $1 in no_ghost [Cabs.CODE_SPEC (spec,loc)] @ $2}
 |   SPEC annotated_statement
       {
         let bs = $2 in

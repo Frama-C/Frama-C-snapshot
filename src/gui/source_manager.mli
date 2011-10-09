@@ -20,54 +20,21 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** This file contains the source viewer multi-tabs widget window *)
+(** The source viewer multi-tabs widget window. *)
 
 type t
 
-val make : packing:(GObj.widget -> unit) -> t
+val make: 
+  ?tab_pos:Gtk.Tags.position -> ?packing:(GObj.widget -> unit) -> unit -> t
 
-val make_unpacked : unit -> t
-
-val load_file : ?title:string -> t -> filename:string -> line:int -> unit
+val load_file: 
+  t -> ?title:string -> filename:string -> ?line:int -> unit -> unit
   (** If [line] is 0 then the last line of the text is shown.
-      If [line] is less that 0 then no scrolling occurs.
-      If [title] is not provided the page title is the filename.
-  *)
+      If [line] is less that 0 then no scrolling occurs (default).
+      If [title] is not provided the page title is the filename. *)
 
-(** Lowlevel interface *)
+val select_file: t -> string -> unit (** Selection by page filename *)
+val select_name: t -> string -> unit (** Selection by page title *)
 
-val get_notebook: t -> GPack.notebook
-
-val append_source_tab : t -> string -> GSourceView2.source_view
-
-val prepend_source_tab : t -> string -> GSourceView2.source_view
-
-val get_nth_page: t -> int -> GObj.widget
-
-val current_page: t -> int
-
-val last_page: t -> int
-
-val set_current_view: t -> int -> unit
-
-val get_current_view: t -> GSourceView2.source_view
-
-val get_current_index: t -> int
-
-val delete_current_view: t -> unit
-
-val delete_view: t -> int -> unit
-
-val delete_all_views: t -> unit
-  (** Delete all pages in the object *)
-
-val append_view: t -> GSourceView2.source_view -> unit
-
-val get_nth_view:  t -> int -> GSourceView2.source_view
-
-val enable_popup : t -> bool -> unit
-
-val set_scrollable : t -> bool -> unit
-
-val length: t -> int
-
+val clear : t -> unit
+  (** Remove all pages added by [load_file] *)

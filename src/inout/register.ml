@@ -20,13 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let main _fmt = 
+let main _fmt =
   let forceout = Inout_parameters.ForceOut.get () in
   let forceexternalout = Inout_parameters.ForceExternalOut.get () in
   let forceinput = Inout_parameters.ForceInput.get () in
   let forceinout = Inout_parameters.ForceInout.get () in
-  let forceinoutwithformals = 
-    Inout_parameters.ForceInoutExternalWithFormals.get () 
+  let forceinoutwithformals =
+    Inout_parameters.ForceInoutExternalWithFormals.get ()
   in
   let forcederef = Inout_parameters.ForceDeref.get () in
   let forceinputwithformals = Inout_parameters.ForceInputWithFormals.get () in
@@ -35,28 +35,29 @@ let main _fmt =
   then begin
     !Db.Semantic_Callgraph.topologically_iter_on_functions
       (fun kf ->
-	 if Kernel_function.is_definition kf 
-	 then begin
-	   if forceout
-	   then Inout_parameters.result "%a" Outputs.pretty_internal kf ;
-	   if forceexternalout
-	   then Inout_parameters.result "%a" Outputs.pretty_external kf ;
-	   if forceinput
-	   then Inout_parameters.result "%a" Inputs.pretty_external kf;
-	   if forcederef then begin
-	     Derefs.compute_external kf;
-	     Inout_parameters.result "%a" Derefs.pretty_external kf;
-	   end;
-	   if forceinout then 
-	     Inout_parameters.result "%a" Context.pretty_internal kf;
-	   if forceinoutwithformals then
-	     Inout_parameters.result "%a"
-	       Context.pretty_external_with_formals kf;
-	   if forceinputwithformals
-	   then 
-	     Inout_parameters.result "%a" 
-	       Inputs.pretty_with_formals kf ;
-	 end)
+         if Kernel_function.is_definition kf
+         then begin
+           if forceout
+           then Inout_parameters.result "%a" Outputs.pretty_internal kf ;
+           if forceexternalout
+           then Inout_parameters.result "%a" Outputs.pretty_external kf ;
+           if forceinput
+           then Inout_parameters.result "%a" Inputs.pretty_external kf;
+           if forcederef then begin
+             Derefs.compute_external kf;
+             Inout_parameters.result "%a" Derefs.pretty_external kf;
+           end;
+           if forceinout then
+             Inout_parameters.result "%a"
+               Operational_inputs.pretty_internal kf;
+           if forceinoutwithformals then
+             Inout_parameters.result "%a"
+               Operational_inputs.pretty_external_with_formals kf;
+           if forceinputwithformals
+           then
+             Inout_parameters.result "%a"
+               Inputs.pretty_with_formals kf ;
+         end)
   end
 
 let () = Db.Main.extend main
@@ -67,4 +68,3 @@ Local Variables:
 compile-command: "make -C ../.. -j"
 End:
 *)
-

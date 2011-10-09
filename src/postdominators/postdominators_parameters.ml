@@ -27,6 +27,14 @@ include Plugin.Register
      let help = "computing postdominators of statements"
    end)
 
+module DotPostdomBasename =
+  EmptyString
+    (struct
+       let option_name = "-dot-postdom"
+       let arg_name = "f"
+       let help = "put the postdominators of function <f> in basename.f.dot"
+     end)
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

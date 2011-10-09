@@ -106,22 +106,22 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
       let x_in_table = Weak.get x_table x_ind in
       let d_in_table = Weak.get d_table d_ind in
       let x = match x_in_table with
-	| Some x_in_table when Ord.equal x x_in_table ->
-	    (*    Format.eprintf "cache found@." ; *)
-	  x_in_table
-	| _ ->
-	  (*	Format.eprintf "cache failed@." ; *)
-	  Weak.set x_table x_ind (Some x);
-	  x
+        | Some x_in_table when Ord.equal x x_in_table ->
+            (*    Format.eprintf "cache found@." ; *)
+          x_in_table
+        | _ ->
+          (*    Format.eprintf "cache failed@." ; *)
+          Weak.set x_table x_ind (Some x);
+          x
       in
       let d = match d_in_table with
-	| Some d_in_table when Value.equal d d_in_table ->
-	  (*    Format.eprintf "cache found@." ; *)
-	  d_in_table
-	| _ ->
-	(*	Format.eprintf "cache failed@." ; *)
-	  Weak.set d_table d_ind (Some d);
-	  d
+        | Some d_in_table when Value.equal d d_in_table ->
+          (*    Format.eprintf "cache found@." ; *)
+          d_in_table
+        | _ ->
+        (*      Format.eprintf "cache failed@." ; *)
+          Weak.set d_table d_ind (Some d);
+          d
       in
       let hl = height l and hr = height r in
       let hashl = hash l and hashr = hash r in
@@ -171,7 +171,7 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
       | Node(l, v, d, r, _, _) ->
           let c = Ord.compare x v in
           if c = 0 then
-	    create l x data r
+            create l x data r
           else if c < 0 then
             bal (add x data l) v d r
           else
@@ -461,12 +461,12 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
     | Node(l, v, d, r, _, _) ->
       let compar = o v in
       let accu1 = match compar with
-	| Match | Above -> fold_range o f l accu
-	| Below -> accu
+        | Match | Above -> fold_range o f l accu
+        | Below -> accu
       in
       let accu2 = match compar with
-	| Match -> f v d accu1
-	| Above | Below -> accu1
+        | Match -> f v d accu1
+        | Above | Below -> accu1
       in
       match compar with
       | Match | Below -> fold_range o f r accu2
@@ -500,9 +500,9 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
     | Node(l,k,v,r,_, _) ->
       if o k
       then begin
-	try
-	  lowest_binding_above o l
-	with No_such_binding -> k,v
+        try
+          lowest_binding_above o l
+        with No_such_binding -> k,v
       end
       else lowest_binding_above o r
     | Empty -> raise No_such_binding
@@ -519,28 +519,42 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
     let r = Recursive.create ()
     let structural_descr =
       Structure
-	(Sum
-	   [| [| Recursive r;
-		 Ord.packed_descr;
-		 Value.packed_descr;
-		 Recursive r;
-		 p_int;
-		 p_int |] |] )
+        (Sum
+           [| [| recursive_pack r;
+                 Ord.packed_descr;
+                 Value.packed_descr;
+                 recursive_pack r;
+                 p_int;
+                 p_int |] |] )
     let () = Recursive.update r structural_descr
     let reprs =
       List.fold_left
-	(fun acc k ->
-	  List.fold_left
-	    (fun acc v -> (Node(Empty, k, v, Empty, 0, 0)) :: acc)
-	    acc
-	    Value.reprs)
-	[ Empty ]
-	Ord.reprs
+        (fun acc k ->
+          List.fold_left
+            (fun acc v -> (Node(Empty, k, v, Empty, 0, 0)) :: acc)
+            acc
+            Value.reprs)
+        [ Empty ]
+        Ord.reprs
     let equal = equal
     let compare = compare
     let hash = hash
     let rehash = Datatype.identity
-    let copy = Datatype.undefined
+    let copy =
+      if Ord.copy == Datatype.undefined || Value.copy == Datatype.undefined
+      then Datatype.undefined
+      else
+        let rec aux = 
+          function
+            | Empty -> Empty
+            | Node (l,x,d,r,_,_) ->
+              let l = aux l in
+              let x = Ord.copy x in
+              let d = Value.copy d in
+              let r = aux r in
+              create l x d r
+        in aux
+
     let internal_pretty_code = Datatype.undefined
     let pretty = Datatype.undefined
     let varname = Datatype.undefined
@@ -560,4 +574,3 @@ Local Variables:
 compile-command: "make -C ../.."
 End:
 *)
-

@@ -22,7 +22,8 @@
 
 open Plugin
 
-module SemanticConstFolding: BOOL
-module SemanticConstFold: STRING_SET
-module CastIntro: BOOL
+module SemanticConstFolding: Bool
+module SemanticConstFold: String_set
+module CastIntro: Bool
+module ExpandLogicContext: Bool
 include Log.Messages

@@ -1,5 +1,5 @@
 /* run.config
-  OPT: -main h -slice-return h -slice-print -slicing-level 1 -journal-disable
+  OPT: -check -main h -slice-return h -slicing-level 1 -journal-disable -then-on 'Slicing export' -print
  */
 
 int X ;

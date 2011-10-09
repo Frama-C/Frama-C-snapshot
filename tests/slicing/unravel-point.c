@@ -1,10 +1,9 @@
 /* run.config
-   GCC:
-   OPT: -slice-print -calldeps -slice-return send1 -journal-disable
-   OPT: -slice-print -calldeps -slice-return send2 -journal-disable
-   OPT: -slice-print -calldeps -slice-return send3 -journal-disable
-   OPT: -slice-print -calldeps -slice-return send4 -journal-disable
-
+   OPT: -check -calldeps -slice-return send1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -calldeps -slice-return send2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -calldeps -slice-return send3 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -calldeps -slice-return send4 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -calldeps -slice-return send1 -slice-return send4 -journal-disable -then-on 'Slicing export' -check -calldeps -slice-return send1_slice_1 -print  -then-on 'Slicing export 2' -print
 
 
 

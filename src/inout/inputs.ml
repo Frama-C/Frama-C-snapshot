@@ -22,16 +22,14 @@
 
 open Cil_types
 open Db
-open Db_types
 open Locations
 open Visitor
 
-let call_stack = Stack.create ()
-exception Ignore
-
-class do_it = object(self)
-  inherit frama_c_inplace as super
+class virtual do_it_ = object(self)
+  inherit [Zone.t] Cumulative_analysis.cumulative_visitor as super
   val mutable inputs = Zone.bottom
+
+  method bottom = Zone.bottom
 
   method result = inputs
 
@@ -52,25 +50,25 @@ class do_it = object(self)
     let deps,loc =
       !Value.lval_to_loc_with_deps
         ~with_alarms:CilE.warn_none_mode
-	~deps:Zone.bottom
-	self#current_kinstr
-	lv
+        ~deps:Zone.bottom
+        self#current_kinstr
+        lv
     in
-    let bits_loc = valid_enumerate_bits loc in
+    let bits_loc = valid_enumerate_bits ~for_writing:false loc in
     self#join deps;
     self#join bits_loc;
     Cil.SkipChildren
 
-  method do_assign lv =
+  method private do_assign lv =
     let deps,_loc =
       !Value.lval_to_loc_with_deps
         ~with_alarms:CilE.warn_none_mode
-	~deps:Zone.bottom
-	self#current_kinstr
-	lv
+        ~deps:Zone.bottom
+        self#current_kinstr
+        lv
     in
     (*      Format.printf "do_assign deps:%a@."
-	    Zone.pretty deps; *)
+            Zone.pretty deps; *)
     self#join deps;
 
   method vinst i =
@@ -87,16 +85,15 @@ class do_it = object(self)
           let deps_callees, callees =
             !Value.expr_to_kernel_function
               ~with_alarms:CilE.warn_none_mode
-	      ~deps:(Some Zone.bottom)
-	      self#current_kinstr exp
+              ~deps:(Some Zone.bottom)
+              self#current_kinstr exp
           in
           self#join deps_callees;
           Kernel_function.Hptset.iter
-	    (fun kf -> self#join (!Db.Inputs.get_external kf))
-	    callees;
+            (fun kf -> self#join (self#compute_kf kf)) callees;
           List.iter
-	    (fun exp -> ignore (visitFramacExpr (self:>frama_c_visitor) exp))
-	    args;
+            (fun exp -> ignore (visitFramacExpr (self:>frama_c_visitor) exp))
+            args;
           Cil.SkipChildren
       | _ -> Cil.DoChildren
     end
@@ -105,75 +102,44 @@ class do_it = object(self)
   method vexpr exp =
     match exp.enode with
     | AddrOf lv | StartOf lv ->
-	let deps,_loc =
-	  !Value.lval_to_loc_with_deps
+        let deps,_loc =
+          !Value.lval_to_loc_with_deps
             ~with_alarms:CilE.warn_none_mode
-	    ~deps:Zone.bottom
-	    self#current_kinstr lv
-	in
-	self#join deps;
-	Cil.SkipChildren
+            ~deps:Zone.bottom
+            self#current_kinstr lv
+        in
+        self#join deps;
+        Cil.SkipChildren
     | _ -> Cil.DoChildren
 
+  method compute_funspec kf =
+    let state = self#specialize_state_on_call kf in
+    let behaviors = !Value.valid_behaviors kf state in
+    let assigns = Ast_info.merge_assigns behaviors in
+    !Value.assigns_to_zone_inputs_state state assigns
+
+  method clean_kf_result (_ : kernel_function) (r: Locations.Zone.t) = r
 end
 
-let statement stmt =
-  let computer = new do_it in
-  ignore (visitFramacStmt (computer:>frama_c_visitor) stmt);
-  computer#result
 
-let expr stmt e =
-  let computer = new do_it in
-  computer#push_stmt stmt;
-  ignore (visitFramacExpr (computer:>frama_c_visitor) e);
-  computer#result
+module Analysis = Cumulative_analysis.Make(
+  struct
+    let analysis_name ="inputs"
 
-module Internals =
-  Kf_state.Make
-    (struct
-       let name = "Internal inputs"
-       let dependencies = [ Value.self ]
-       let kind = `Correctness
-     end)
+    type t = Locations.Zone.t
+    module T = Locations.Zone
+    let bottom = Locations.Zone.bottom
 
-let get_internal =
-  Internals.memo
-    (fun kf ->
-       !Value.compute ();
-       match kf.fundec with
-       | Definition (f,_) ->
-           (try
-	      Stack.iter
-		(fun g -> if kf == g then begin
-                   Cil.warn
-		     "recursive call detected during input analysis of %a. Ignoring it is safe if the value analysis suceeded without problem."
-		     Kernel_function.pretty_name kf;
-                   raise Ignore
-                 end
-		)
-		call_stack;
+    class virtual do_it = do_it_
+end)
 
-	      (* No input to compute if the values were not computed for [kf] *)
-	      (* if not (Value.is_accessible kf) then raise Ignore; *)
-
-	      Stack.push kf call_stack;
-	      let computer = new do_it in
-	      ignore (visitFramacFunction (computer:>frama_c_visitor) f);
-	      let _ = Stack.pop call_stack in
-	      computer#result
-	    with Ignore ->
-	      Zone.bottom)
-       | Declaration (_,_,_,_) ->
-           let state = Value.get_initial_state kf in
-           let behaviors = !Value.valid_behaviors kf state in
-           let assigns = Ast_info.merge_assigns behaviors in
-             !Value.assigns_to_zone_inputs_state state assigns)
+let get_internal = Analysis.kernel_function
 
 module Externals =
   Kf_state.Make
     (struct
        let name = "External inputs"
-       let dependencies = [ Internals.self ]
+       let dependencies = [ Analysis.Memo.self ]
        let kind = `Correctness
      end)
 
@@ -181,21 +147,21 @@ let get_external =
   Externals.memo
     (fun kf ->
       Zone.filter_base
-	(Db.accept_base ~with_formals:false kf)
-	(get_internal kf))
+        (Db.accept_base ~with_formals:false ~with_locals:false kf)
+        (get_internal kf))
 
 let remove_locals_keep_formals fundec =
   match fundec with
   | Definition (fundec,_) ->
       Zone.filter_base
-	 (fun v -> not (Base.is_local v fundec))
+         (fun v -> not (Base.is_local v fundec))
   | Declaration _ -> (fun v -> v)
 
 module With_formals =
   Kf_state.Make
     (struct
        let name = "Inputs with formals"
-       let dependencies = [ Internals.self ]
+       let dependencies = [ Analysis.Memo.self ]
        let kind = `Correctness
      end)
 
@@ -203,23 +169,23 @@ let get_with_formals =
   Externals.memo
     (fun kf ->
       Zone.filter_base
-	(Db.accept_base ~with_formals:true kf)
-	(get_internal kf))
+        (fun z -> Db.accept_base ~with_formals:true ~with_locals:false kf z)
+        (get_internal kf))
 
 let compute_external kf = ignore (get_external kf)
 
 let pretty_external fmt kf =
   Format.fprintf fmt "@[Inputs for function %a:@\n@[<hov 2>  %a@]@]@\n"
-    Kernel_function.pretty_name kf
+    Kernel_function.pretty kf
     Zone.pretty (get_external kf)
 
 let pretty_with_formals fmt kf =
   Format.fprintf fmt "@[Inputs (with formals) for function %a:@\n@[<hov 2>  %a@]@]@\n"
-    Kernel_function.pretty_name kf
+    Kernel_function.pretty kf
     Zone.pretty (get_with_formals kf)
 
 let () =
-  Db.Inputs.self_internal := Internals.self;
+  Db.Inputs.self_internal := Analysis.Memo.self;
   Db.Inputs.self_external := Externals.self;
   Db.Inputs.self_with_formals := With_formals.self;
   Db.Inputs.get_internal := get_internal;
@@ -228,8 +194,8 @@ let () =
   Db.Inputs.compute := compute_external;
   Db.Inputs.display := pretty_external;
   Db.Inputs.display_with_formals := pretty_with_formals;
-  Db.Inputs.statement := statement;
-  Db.Inputs.expr := expr
+  Db.Inputs.statement := Analysis.statement;
+  Db.Inputs.expr := Analysis.expr
 
 (*
 Local Variables:

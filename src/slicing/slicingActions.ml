@@ -22,7 +22,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** This module deals with the action management. 
+(** This module deals with the action management.
   * It consiste of the definitions of the different kind of actions,
   * and the management of the action list.
   *)
@@ -52,51 +52,51 @@ type t_criterion = T.t_criterion
 (** {3 How the elements will be selected} *)
 
 (** Build a description to tell that the associated nodes have to be marked
-* with the given mark, and than the same one will be propagated through 
+* with the given mark, and than the same one will be propagated through
 * their dependencies. (see also {!build_node_and_dpds_selection}) *)
-let build_simple_node_selection ?(nd_marks=[]) mark = 
+let build_simple_node_selection ?(nd_marks=[]) mark =
   (T.CwNode, mark)::nd_marks
 
 (** Only the control dependencies of the nodes will be marked *)
-let build_addr_dpds_selection ?(nd_marks=[]) mark = 
+let build_addr_dpds_selection ?(nd_marks=[]) mark =
   (T.CwAddrDpds, mark)::nd_marks
 
 (** Only the control dependencies of the nodes will be marked *)
-let build_data_dpds_selection ?(nd_marks=[]) mark = 
+let build_data_dpds_selection ?(nd_marks=[]) mark =
   (T.CwDataDpds, mark)::nd_marks
 
 (** Only the control dependencies of the nodes will be marked *)
-let build_ctrl_dpds_selection ?(nd_marks=[]) mark = 
+let build_ctrl_dpds_selection ?(nd_marks=[]) mark =
   (T.CwCtrlDpds, mark)::nd_marks
 
 (** Build a description to tell how the selected PDG nodes and their
-* dependencies will have to be marked 
-* (see {!type:SlicingTypes.Internals.t_node_or_dpds}). 
+* dependencies will have to be marked
+* (see {!type:SlicingTypes.Internals.t_node_or_dpds}).
 * This description depend on the mark that has been asked for.
 * First of all, whatever the mark is, the node is selected as [spare],
-* so that it will be visible, and so will its dependencies. Then, 
+* so that it will be visible, and so will its dependencies. Then,
 * if [is_ctrl mark] propagate a m1 control mark through the control dependencies
 * and do a similar thing for [addr] and [data] *)
 let build_node_and_dpds_selection ?(nd_marks=[]) mark =
   let m_spare = Marks.mk_user_spare in
   let nd_marks = build_simple_node_selection ~nd_marks:nd_marks m_spare in
-  let nd_marks = 
+  let nd_marks =
     if Marks.is_ctrl_mark mark
-    then 
+    then
       let m_ctrl = Marks.mk_user_mark ~ctrl:true ~data:false ~addr:false in
         build_ctrl_dpds_selection ~nd_marks:nd_marks m_ctrl
     else nd_marks
   in
-  let nd_marks = 
+  let nd_marks =
     if Marks.is_addr_mark mark
-    then 
+    then
       let m_addr = Marks.mk_user_mark ~ctrl:false ~data:false ~addr:true  in
         build_addr_dpds_selection ~nd_marks:nd_marks m_addr
     else nd_marks
   in
-  let nd_marks = 
+  let nd_marks =
     if Marks.is_data_mark mark
-    then 
+    then
       let m_data = Marks.mk_user_mark ~ctrl:false ~data:true ~addr:false  in
         build_data_dpds_selection ~nd_marks:nd_marks m_data
     else nd_marks
@@ -108,9 +108,9 @@ let build_node_and_dpds_selection ?(nd_marks=[]) mark =
 let translate_crit_to_select pdg ?(to_select=[]) list_crit =
   let translate acc (nodes, nd_mark) =
     let add_pdg_mark acc (nd, mark) =
-      let add_nodes m acc nodes = 
-        let add m acc nodepart = 
-          PdgMarks.add_node_to_select acc nodepart m 
+      let add_nodes m acc nodes =
+        let add m acc nodepart =
+          PdgMarks.add_node_to_select acc nodepart m
         in
           List.fold_left (add m) acc nodes
       in
@@ -136,7 +136,7 @@ let translate_crit_to_select pdg ?(to_select=[]) list_crit =
 
 (** build an action to apply the criteria to the persistent selection of the
 * function. It means that it will be applied to all slices. *)
-let mk_fct_crit fi crit = 
+let mk_fct_crit fi crit =
   T.CrFct { T.cf_fct = T.FctSrc fi ; T.cf_info = crit }
 
 let mk_fct_user_crit fi crit = mk_fct_crit fi (T.CcUserMark crit)
@@ -144,11 +144,11 @@ let mk_fct_user_crit fi crit = mk_fct_crit fi (T.CcUserMark crit)
 let mk_crit_fct_top fi m = mk_fct_user_crit fi (T.CuTop m)
 let mk_crit_fct_user_select fi select = mk_fct_user_crit fi (T.CuSelect select)
 
-let mk_crit_prop_persit_marks fi node_marks = 
+let mk_crit_prop_persit_marks fi node_marks =
   mk_fct_crit fi (T.CcPropagate node_marks)
 
 (** build an action to apply the criteria to the given slice. *)
-let mk_ff_crit ff crit = 
+let mk_ff_crit ff crit =
   T.CrFct { T.cf_fct = T.FctSliced ff ; T.cf_info = crit }
 
 let mk_ff_user_select ff crit = mk_ff_crit ff (T.CcUserMark (T.CuSelect crit))
@@ -172,23 +172,23 @@ let mk_crit_mark_calls fi_caller to_call mark =
     let caller = M.get_fi_kf fi_caller in
     let pdg_caller =  !Db.Pdg.get caller in
     let call_stmts = !Db.Pdg.find_call_stmts ~caller to_call in
-    let stmt_mark stmt = 
+    let stmt_mark stmt =
       let stmt_ctrl_node = !Db.Pdg.find_call_ctrl_node pdg_caller stmt in
         (PdgMarks.mk_select_node stmt_ctrl_node, mark)
     in
     let select = List.map stmt_mark call_stmts in
       T.CuSelect select
   with PdgTypes.Pdg.Top -> T.CuTop mark
-  in 
+  in
     mk_fct_user_crit fi_caller select
 
 let mk_crit_add_output_marks ff select =
   (*
   let pdg = M.get_ff_pdg ff in
-  let add acc (out, m) = 
+  let add acc (out, m) =
     let nd_m = build_simple_node_selection m in
     let node = out in
-      mk_mark_nodes pdg ~marks:acc [node] nd_m 
+      mk_mark_nodes pdg ~marks:acc [node] nd_m
   in let select = List.fold_left add [] output_marks in
     *)
   mk_ff_user_select ff select
@@ -216,49 +216,49 @@ let print_nd_and_mark f (nd, m) =
 let rec print_nd_and_mark_list fmt ndm_list =
   match ndm_list with
   | [] -> ()
-  | x :: ndm_list -> 
+  | x :: ndm_list ->
       print_nd_and_mark fmt x; print_nd_and_mark_list fmt ndm_list
 
 let print_nodes fmt nodes =
-  let print n = Format.fprintf fmt "n%a " (!Db.Pdg.pretty_node true) n in
+  let print n = Format.fprintf fmt "%a " (!Db.Pdg.pretty_node true) n in
     List.iter print nodes
 
 let print_node_mark fmt n z m =
-  Format.fprintf fmt "(%a ,%a)" 
+  Format.fprintf fmt "(%a ,%a)"
     (PdgTypes.Node.pretty_with_part) (n, z) Marks.pretty_mark m
 
 let print_sel_marks_list fmt to_select =
-  let print_sel (s, m) = match s with 
+  let print_sel (s, m) = match s with
     | PdgMarks.SelNode (n, z) -> print_node_mark fmt n z m
-    | PdgMarks.SelIn l -> 
-        Format.fprintf fmt "(UndefIn %a:%a)" 
+    | PdgMarks.SelIn l ->
+        Format.fprintf fmt "(UndefIn %a:%a)"
           Locations.Zone.pretty l Marks.pretty_mark m
   in match to_select with [] -> Format.fprintf fmt "<empty>"
     | _ -> List.iter print_sel to_select
 
 let print_ndm fmt (nodes, ndm_list) =
-  Format.fprintf fmt "(%a,%a)" print_nodes nodes 
+  Format.fprintf fmt "(%a,%a)" print_nodes nodes
     print_nd_and_mark_list ndm_list
 
 let print_f_crit fmt f_crit =
-  match f_crit with 
+  match f_crit with
     | T.CuTop m -> Format.fprintf fmt "top(%a)" Marks.pretty_mark m
     | T.CuSelect to_select -> print_sel_marks_list fmt to_select
 
 let print_crit fmt crit =
-  match crit with 
-  | T.CrFct fct_crit -> 
+  match crit with
+  | T.CrFct fct_crit ->
       let fct = fct_crit.T.cf_fct in
       let name = SlicingMacros.f_name fct in
       Format.fprintf fmt "[%s = " name;
     let _ = match fct_crit.T.cf_info with
-      | T.CcUserMark info -> print_f_crit fmt info 
+      | T.CcUserMark info -> print_f_crit fmt info
       | T.CcMissingInputs (call, _input_marks, more_inputs)
-        -> Format.fprintf fmt "missing_inputs for call %d (%s)" 
-             call.Cil_types.sid 
+        -> Format.fprintf fmt "missing_inputs for call %d (%s)"
+             call.Cil_types.sid
              (if more_inputs then "more_inputs" else "marks only")
       | T.CcMissingOutputs (call, _output_marks, more_outputs)
-        -> Format.fprintf fmt "missing_outputs for call %d (%s)" 
+        -> Format.fprintf fmt "missing_outputs for call %d (%s)"
              call.Cil_types.sid
              (if more_outputs then "more_outputs" else "marks only")
       | T.CcChooseCall call
@@ -268,14 +268,14 @@ let print_crit fmt crit =
           | T.CallSlice ff -> SlicingMacros.ff_name ff
           | T.CallSrc (Some fi) -> ("(src:"^( SlicingMacros.fi_name fi)^")")
           | T.CallSrc None -> "(src)"
-        in Format.fprintf fmt "change_call for call %d -> %s" 
+        in Format.fprintf fmt "change_call for call %d -> %s"
              call.Cil_types.sid fname
-      | T.CcPropagate nl -> 
-          Format.fprintf fmt "propagate %a" 
+      | T.CcPropagate nl ->
+          Format.fprintf fmt "propagate %a"
             print_sel_marks_list nl
       | T.CcExamineCalls _ -> Format.fprintf fmt "examine_calls"
     in Format.fprintf fmt "]"
-  | T.CrAppli (T.CaCall fi) -> 
+  | T.CrAppli (T.CaCall fi) ->
       let name = SlicingMacros.fi_name fi in
       Format.fprintf fmt "[Appli : calls to %s]" name
   | _ ->

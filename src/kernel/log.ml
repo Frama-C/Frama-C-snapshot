@@ -20,14 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type source = { src_file : string ; src_line : int }
-
 type kind = Result | Feedback | Debug | Warning | Error | Failure
 
 type event = {
   evt_kind : kind ;
   evt_plugin : string ;
-  evt_source : source option ;
+  evt_source : Lexing.position option ;
   evt_message : string ;
 }
 
@@ -111,7 +109,7 @@ let lock_terminal t =
     if is_locked t then
       failwith "Console is already locked" ;
     t.lock <- Locked ;
-    Format.make_formatter t.output t.flush
+    Format.make_formatter t.output t.flush ;
   end
 
 let unlock_terminal t fmt =
@@ -126,12 +124,11 @@ let unlock_terminal t fmt =
     t.delayed <- [] ;
   end
 
-let print_on_output text =
-  Format.kfprintf
-    (unlock_terminal stdout)
-    (lock_terminal stdout)
-    text
-
+let print_on_output job =
+  let fmt = lock_terminal stdout in
+  try job fmt ; unlock_terminal stdout fmt
+  with error -> unlock_terminal stdout fmt ; raise error
+    
 (* -------------------------------------------------------------------------- *)
 (* --- Delayed Lock until first write                                     --- *)
 (* -------------------------------------------------------------------------- *)
@@ -144,11 +141,11 @@ let delayed_terminal terminal =
   let d_output d text k n =
     match !d with
       | Delayed t ->
-	  t.lock <- Locked ;
-	  d := Formatter( t.output , t.flush ) ;
-	  t.output text k n
+          t.lock <- Locked ;
+          d := Formatter( t.output , t.flush ) ;
+          t.output text k n
       | Formatter(out,_) ->
-	  out text k n
+          out text k n
   in
   let d_flush d () =
     match !d with
@@ -157,11 +154,10 @@ let delayed_terminal terminal =
   in
   Format.make_formatter (d_output d) (d_flush d)
 
-let print_delayed text =
-  Format.kfprintf
-    (unlock_terminal stdout)
-    (delayed_terminal stdout)
-    text
+let print_delayed job =
+  let fmt = delayed_terminal stdout in
+  try job fmt ; unlock_terminal stdout fmt
+  with error -> unlock_terminal stdout fmt ; raise error
 
 (* -------------------------------------------------------------------------- *)
 (* --- Buffering Output                                                   --- *)
@@ -197,10 +193,10 @@ let append_text buffer text k n =
     let avail = String.length buffer.text in
     if req > avail then
       begin
-	let s = size_up req avail in
-	let t = String.create s in
-	String.blit buffer.text 0 t 0 buffer.pos ;
-	buffer.text <- t ;
+        let s = size_up req avail in
+        let t = String.create s in
+        String.blit buffer.text 0 t 0 buffer.pos ;
+        buffer.text <- t ;
       end ;
     String.blit text k buffer.text buffer.pos n ;
     buffer.pos <- buffer.pos + n ;
@@ -265,38 +261,42 @@ let rec echo_lines output text prefix p q =
     let t = try String.index_from text p '\n' with Not_found -> (-1) in
     if t < 0 || t > q then
       begin
-	(* incomplete, last line *)
-	echo_line output prefix text p (q+1-p) ;
-	output "\n" 0 1 ;
+        (* incomplete, last line *)
+        echo_line output prefix text p (q+1-p) ;
+        output "\n" 0 1 ;
       end
     else
       begin
-	(* complete line *)
-	echo_line output prefix text p (t+1-p) ;
-	echo_lines output text (next_line prefix) (t+1) q ;
+        (* complete line *)
+        echo_line output prefix text p (t+1-p) ;
+        echo_lines output text (next_line prefix) (t+1) q ;
       end
 
 let echo_source output = function
   | None -> ()
   | Some src ->
-      let s = Printf.sprintf "%s:%d:" src.src_file src.src_line in
-      output s 0 (String.length s)
+    let s =
+      Printf.sprintf "%s:%d:" src.Lexing.pos_fname src.Lexing.pos_lnum
+    in
+    output s 0 (String.length s)
 
 let do_echo terminal source prefix text p q =
   if p <= q then
     if delayed_echo terminal then
-      let s = String.sub text p (q+1-p) in
-      let job t =
-	echo_source t.output source ;
-	echo_lines t.output s prefix 0 (String.length s - 1) ;
-	t.flush ()
-      in
-      terminal.delayed <- job :: terminal.delayed
+      begin
+	let s = String.sub text p (q+1-p) in
+	let job t =
+          echo_source t.output source ;
+          echo_lines t.output s prefix 0 (String.length s - 1) ;
+          t.flush ()
+	in
+	terminal.delayed <- job :: terminal.delayed
+      end
     else
       begin
-	echo_source terminal.output source ;
-	echo_lines terminal.output text prefix p q ;
-	terminal.flush ()
+        echo_source terminal.output source ;
+        echo_lines terminal.output text prefix p q ;
+        terminal.flush ()
       end
 
 (* -------------------------------------------------------------------------- *)
@@ -304,7 +304,9 @@ let do_echo terminal source prefix text p q =
 (* -------------------------------------------------------------------------- *)
 
 let current_loc = ref (fun () -> raise Not_found)
-let set_current_source cloc = current_loc := cloc
+
+let set_current_source fpos = current_loc := fpos
+
 let get_current_source () = !current_loc ()
 
 type emitter = {
@@ -392,7 +394,7 @@ let reset_once_flag () = Hashtbl.clear oncetable
 (* --- Listeners                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let do_fire e f = try f e with _ -> ()
+let do_fire e f = f e
 
 let iter_kind ?kind f ems =
   match kind with
@@ -402,15 +404,15 @@ let iter_kind ?kind f ems =
 let iter_plugin ?plugin ?kind f =
   match plugin with
     | None ->
-	Hashtbl.iter
-	  (fun _ s ->
-	     match s with
-	       | Created c -> iter_kind ?kind f c.emitters
-	       | NotCreatedYet ems -> iter_kind ?kind f ems)
-	  all_channels ;
-	iter_kind ?kind f default_emitters
+        Hashtbl.iter
+          (fun _ s ->
+             match s with
+               | Created c -> iter_kind ?kind f c.emitters
+               | NotCreatedYet ems -> iter_kind ?kind f ems)
+          all_channels ;
+        iter_kind ?kind f default_emitters
     | Some p ->
-	iter_kind ?kind f (get_emitters p)
+        iter_kind ?kind f (get_emitters p)
 
 let add_listener ?plugin ?kind demon =
   iter_plugin ?plugin ?kind (fun em -> em.listeners <- em.listeners @ [demon])
@@ -451,31 +453,31 @@ let logtext c ~kind ~once ~prefix ~source ~append ~emitwith ~echo text =
   Format.kfprintf
     (fun fmt ->
        try
-	 (match append with None -> () | Some k -> k fmt) ;
-	 Format.pp_print_newline fmt () ;
-	 Format.pp_print_flush fmt () ;
-	 let p = trim_begin buffer in
-	 let q = trim_end buffer in
-	 if p <= q then
-	   begin
-	     let event = lazy {
-	       evt_kind = kind ;
-	       evt_plugin = c.plugin ;
-	       evt_message = String.sub buffer.text p (q+1-p) ;
-	       evt_source = source ;
-	     } in
-	     if not once || check_not_yet (Lazy.force event) then
-	       begin
-		 let e = c.emitters.(nth_kind kind) in
-		 if echo && e.echo then
-		   do_echo c.terminal source prefix buffer.text p q ;
-		 fire_listeners emitwith e.listeners event
-	       end
-	   end ;
-	 close_buffer c
+         (match append with None -> () | Some k -> k fmt) ;
+         Format.pp_print_newline fmt () ;
+         Format.pp_print_flush fmt () ;
+         let p = trim_begin buffer in
+         let q = trim_end buffer in
+         if p <= q then
+           begin
+             let event = lazy {
+               evt_kind = kind ;
+               evt_plugin = c.plugin ;
+               evt_message = String.sub buffer.text p (q+1-p) ;
+               evt_source = source ;
+             } in
+             if not once || check_not_yet (Lazy.force event) then
+               begin
+                 let e = c.emitters.(nth_kind kind) in
+                 if echo && e.echo then
+                   do_echo c.terminal source prefix buffer.text p q ;
+                 fire_listeners emitwith e.listeners event
+               end
+           end ;
+         close_buffer c
        with e ->
-	 close_buffer c ;
-	 raise e
+         close_buffer c ;
+         raise e
     ) buffer.formatter text
 
 let logwith c ~kind ~prefix ~source ~append ~echo f text =
@@ -483,25 +485,25 @@ let logwith c ~kind ~prefix ~source ~append ~echo f text =
   Format.kfprintf
     (fun fmt ->
        try
-	 (match append with None -> () | Some k -> k fmt) ;
-	 Format.pp_print_flush fmt () ;
-	 let p = trim_begin buffer in
-	 let q = trim_end buffer in
-	 let event = lazy {
-	   evt_kind = kind ;
-	   evt_plugin = c.plugin ;
-	   evt_message = if p<=q then String.sub buffer.text p (q+1-p) else "" ;
-	   evt_source = source ;
-	 } in
-	 let e = c.emitters.(nth_kind kind) in
-	 if echo && e.echo && p <= q then
-	   do_echo c.terminal source prefix buffer.text p q ;
-	 List.iter (do_fire (Lazy.force event)) e.listeners ;
-	 close_buffer c ;
-	 f event
+         (match append with None -> () | Some k -> k fmt) ;
+         Format.pp_print_flush fmt () ;
+         let p = trim_begin buffer in
+         let q = trim_end buffer in
+         let event = lazy {
+           evt_kind = kind ;
+           evt_plugin = c.plugin ;
+           evt_message = if p<=q then String.sub buffer.text p (q+1-p) else "" ;
+           evt_source = source ;
+         } in
+         let e = c.emitters.(nth_kind kind) in
+         if echo && e.echo && p <= q then
+           do_echo c.terminal source prefix buffer.text p q ;
+         List.iter (do_fire (Lazy.force event)) e.listeners ;
+         close_buffer c ;
+         f event
        with e ->
-	 close_buffer c ;
-	 raise e
+         close_buffer c ;
+         raise e
     ) buffer.formatter text
 
 let finally_raise e _ = raise e
@@ -513,13 +515,13 @@ let finally_do f e = f (Lazy.force e)
 (* -------------------------------------------------------------------------- *)
 
 type 'a pretty_printer =
-    ?current:bool -> ?source:source ->
+    ?current:bool -> ?source:Lexing.position ->
     ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
     ?append:(Format.formatter -> unit) ->
     ('a,formatter,unit) format -> 'a
 
 type ('a,'b) pretty_aborter =
-    ?current:bool -> ?source:source -> ?echo:bool ->
+    ?current:bool -> ?source:Lexing.position -> ?echo:bool ->
     ?append:(Format.formatter -> unit) ->
     ('a,formatter,unit,'b) format4 -> 'a
 
@@ -527,11 +529,11 @@ let get_prefix kind text = function
   | Some p -> p
   | None -> Label
       begin
-	match kind with
-	  | Result | Debug | Feedback -> Printf.sprintf "[%s] " text
-	  | Warning -> Printf.sprintf "[%s] warning: " text
-	  | Error   -> Printf.sprintf "[%s] user error: " text
-	  | Failure -> Printf.sprintf "[%s] failure: " text
+        match kind with
+          | Result | Debug | Feedback -> Printf.sprintf "[%s] " text
+          | Warning -> Printf.sprintf "[%s] warning: " text
+          | Error   -> Printf.sprintf "[%s] user error: " text
+          | Failure -> Printf.sprintf "[%s] failure: " text
       end
 
 let get_source current = function
@@ -565,13 +567,13 @@ let echo e =
     match Hashtbl.find all_channels e.evt_plugin with
       | NotCreatedYet _ -> raise Not_found
       | Created c ->
-	  let n = String.length e.evt_message in
-	  let prefix = get_prefix e.evt_kind e.evt_plugin None in
-	  do_echo c.terminal e.evt_source prefix e.evt_message 0 (n-1)
+          let n = String.length e.evt_message in
+          let prefix = get_prefix e.evt_kind e.evt_plugin None in
+          do_echo c.terminal e.evt_source prefix e.evt_message 0 (n-1)
   with Not_found ->
     let msg =
       Format.sprintf "[unknown channel %s]:%s"
-	e.evt_plugin e.evt_message
+        e.evt_plugin e.evt_message
     in failwith msg
 
 (* ------------------------------------------------------------------------- *)
@@ -583,10 +585,12 @@ sig
 
   val verbose_atleast : int -> bool
   val debug_atleast : int -> bool
+  val set_debug_keys : string list -> unit
+  val get_debug_keyset : unit -> string list
 
   val result  : ?level:int -> 'a pretty_printer
   val feedback: ?level:int -> 'a pretty_printer
-  val debug   : ?level:int -> 'a pretty_printer
+  val debug   : ?level:int -> ?dkey:string -> 'a pretty_printer
   val warning : 'a pretty_printer
   val error   : 'a pretty_printer
   val abort   : ('a,'b) pretty_aborter
@@ -627,10 +631,13 @@ struct
   let prefix_error = Label (Printf.sprintf "[%s] user error: " label)
   let prefix_warning = Label (Printf.sprintf "[%s] warning: " label)
   let prefix_failure = Label (Printf.sprintf "[%s] failure: " label)
+  let prefix_dkey = function
+    | None -> prefix_all
+    | Some key -> Prefix (Printf.sprintf "[%s:%s] " label key)
 
   let prefix_for = function
     | Result | Feedback | Debug ->
-	if debug_atleast 1 then prefix_all else prefix_first
+        if debug_atleast 1 then prefix_all else prefix_first
     | Error -> prefix_error
     | Warning -> prefix_warning
     | Failure -> prefix_failure
@@ -679,11 +686,11 @@ struct
       text =
     if to_be_log verbose debug then
       logtext channel
-	~kind
-	~prefix:(prefix_for kind)
-	~source:(get_source current source)
-	~once ?emitwith ~echo ?append
-	text
+        ~kind
+        ~prefix:(prefix_for kind)
+        ~source:(get_source current source)
+        ~once ?emitwith ~echo ?append
+        text
     else nullprintf text
 
   let result
@@ -691,11 +698,11 @@ struct
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     if verbose_atleast level then
       logtext channel
-	~kind:Result
-	~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
-	~source:(get_source current source)
-	~once ?emitwith ~echo ?append
-	text
+        ~kind:Result
+        ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
+        ~source:(get_source current source)
+        ~once ?emitwith ~echo ?append
+        text
     else nullprintf text
 
   let feedback
@@ -703,23 +710,36 @@ struct
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     if verbose_atleast level then
       logtext channel
-	~kind:Feedback
-	~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
-	~source:(get_source current source)
-	~once ?emitwith ~echo ?append
-	text
+        ~kind:Feedback
+        ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
+        ~source:(get_source current source)
+        ~once ?emitwith ~echo ?append
+        text
     else nullprintf text
 
+  module Skey = Set.Make(String)
+
+  let debug_keys = ref []
+  let debug_keyset = ref Skey.empty
+  let debug_collect = ref false
+  let set_debug_keys ks = debug_keys := ks ; debug_collect := List.mem "?" ks
+  let get_debug_keyset () = Skey.elements !debug_keyset
+  let has_debug_key = function None -> false | Some k -> 
+    if !debug_collect && not (Skey.mem k !debug_keyset) 
+    then debug_keyset := Skey.add k !debug_keyset ;
+    List.mem k !debug_keys
+
   let debug
-      ?(level=1) ?(current=false) ?source
+      ?(level=1) ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-    if debug_atleast level then
+
+    if debug_atleast level || has_debug_key dkey then
       logtext channel
-	~kind:Feedback
-	~prefix:prefix_all
-	~source:(get_source current source)
-	~once ?emitwith ~echo ?append
-	text
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ?emitwith ~echo ?append
+        text
     else nullprintf text
 
   let warning
@@ -777,9 +797,9 @@ struct
       Format.kfprintf (fun _ -> true) null text
     else
       logwith channel
-	~kind:Failure ~prefix:prefix_failure
-	~source:(get_source current source)
-	~echo ?append finally_false text
+        ~kind:Failure ~prefix:prefix_failure
+        ~source:(get_source current source)
+        ~echo ?append finally_false text
 
   let with_result f
       ?(current=false) ?source
@@ -844,7 +864,6 @@ struct
 
 end
 
-(* -------------------------------------------------------------------------- *)
 (*
 Local Variables:
 compile-command: "make -C ../.."

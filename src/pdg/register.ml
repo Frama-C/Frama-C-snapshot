@@ -31,7 +31,7 @@ let pretty ?(bw=false) fmt pdg =
 
 let pretty_node short =
   if short then PdgTypes.Node.pretty
-  else PdgTypes.Pdg.pretty_node
+  else PdgTypes.Node.pretty_node
 
 let print_dot pdg filename =
   PdgTypes.Pdg.build_dot filename pdg;
@@ -51,8 +51,8 @@ let () =
   Cmdline.run_after_extended_stage
     (fun () ->
        State_dependency_graph.Static.add_codependencies
-	 ~onto:Tbl.self
-	 [ !Db.From.self ])
+         ~onto:Tbl.self
+         [ !Db.From.self ])
 
 (** Register external functions into Db. *)
 let () =
@@ -128,31 +128,39 @@ let _ =
   Ocamlviz.init ()
 *)
 
+let output () =
+    Pdg_parameters.set_debug_keys ["?"];
+    let do_kf_pdg kf =
+      let fname = Kernel_function.get_name kf in
+      if Pdg_parameters.BuildAll.get () ||
+        Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
+      then
+        let pdg = !Db.Pdg.get kf in
+        let bw  = Pdg_parameters.PrintBw.get () in
+        Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
+        let dot_basename = Pdg_parameters.DotBasename.get () in
+        if dot_basename <> "" then
+          !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
+    in
+    !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
+    let ks = Pdg_parameters.get_debug_keyset () in
+    let pp_keys =
+      Pretty_utils.pp_flowlist ~left:"" ~sep:", " ~right:"." 
+        Format.pp_print_string
+    in Pdg_parameters.debug ~level:1 "Logging keys : %a" pp_keys ks ;
+    if Pdg_parameters.BuildAll.get () then
+      Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======"
+
+let () = Pdg_parameters.BuildAll.set_output_dependencies
+  [!Db.Pdg.self; Pdg_parameters.BuildAll.self; Pdg_parameters.BuildFct.self]
+
 let main () =
   let force_pdg =
     Pdg_parameters.BuildAll.get ()
     || not (Datatype.String.Set.is_empty (Pdg_parameters.BuildFct.get ()))
   in
-  if force_pdg then begin
-    Pdg_parameters.feedback "in progress...";
-    let do_kf_pdg kf =
-      let fname = Kernel_function.get_name kf in
-      if Pdg_parameters.BuildAll.get () ||
-	Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
-      then
-	let pdg = !Db.Pdg.get kf in
-        let dot_postdom = Pdg_parameters.DotPostdomBasename.get () in
-        if dot_postdom <> "" then !Db.Postdominators.print_dot dot_postdom kf;
-        let bw  = Pdg_parameters.PrintBw.get () in
-	Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
-	let dot_basename = Pdg_parameters.DotBasename.get () in
-	if dot_basename <> "" then
-          !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
-    in
-    !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
-    if Pdg_parameters.BuildAll.get () then
-      Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======";
-  end
+  if force_pdg then Pdg_parameters.BuildAll.output output
+
 
 let () = Db.Main.extend main
 

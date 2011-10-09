@@ -55,16 +55,16 @@ class ['v, 'e, 'c] services_view view = object (self)
     (* itering on nodes of the current service *)
     List.iter
       (fun n ->
-	 n#compute ();
-	 if not (self#is_root n) then n#show ();
-	 view#iter_succ_e
-	   (fun e -> match self#edge_kind e with
-	    | Service.Inter_functions | Service.Both ->
-		e#compute ();
-		e#show ()
-	    | Service.Inter_services ->
-		e#hide ())
-	   n)
+         n#compute ();
+         if not (self#is_root n) then n#show ();
+         view#iter_succ_e
+           (fun e -> match self#edge_kind e with
+            | Service.Inter_functions | Service.Both ->
+                e#compute ();
+                e#show ()
+            | Service.Inter_services ->
+                e#hide ())
+           n)
       !nodes
 
   method undeploy node =
@@ -76,12 +76,12 @@ class ['v, 'e, 'c] services_view view = object (self)
     (* itering on nodes of the current service *)
     List.iter
       (fun n ->
-	 if not (self#is_root n) then n#hide ();
-	 view#iter_succ_e
-	   (fun e -> match self#edge_kind e with
-	    | Service.Inter_services | Service.Both -> e#show ()
-	    | Service.Inter_functions -> e#hide ())
-	   n)
+         if not (self#is_root n) then n#hide ();
+         view#iter_succ_e
+           (fun e -> match self#edge_kind e with
+            | Service.Inter_services | Service.Both -> e#show ()
+            | Service.Inter_functions -> e#hide ())
+           n)
       !nodes
 
   method service n = n#item.Service.root.Service.node.Callgraph.cnid
@@ -97,11 +97,11 @@ class ['v, 'e, 'c] services_view view = object (self)
   let connect_trigger_to_node n =
     let callback = function
       | `BUTTON_PRESS _ ->
-	  if self#is_deployed (self#service n) then self#undeploy n
-	  else self#deploy n;
-	  false
+          if self#is_deployed (self#service n) then self#undeploy n
+          else self#deploy n;
+          false
       | _ ->
-	  false
+          false
     in
     n#connect_event ~callback
   in
@@ -139,27 +139,27 @@ let graph_window (main_window: Design.main_window_extension_points) =
     let width = int_of_float (float parent#default_width *. 3. /. 4.) in
     let window =
       GWindow.window
-	~position:`CENTER
-	~height ~width ~title:"Syntactic Callgraph"
-	~allow_shrink:true ~allow_grow:true ()
+        ~position:`CENTER
+        ~height ~width ~title:"Syntactic Callgraph"
+        ~allow_shrink:true ~allow_grow:true ()
     in
     let _, view =
       View.from_graph_with_commands
-	~packing:window#add
-	~root:(Service.entry_point ())
-	~mk_global_view:services_view
-	graph
+        ~packing:window#add
+        ?root:(Service.entry_point ())
+        ~mk_global_view:services_view
+        graph
     in
     window#show ();
     view#adapt_zoom ()
-  with DGraphModel.DotError cmd ->
-    main_window#error "%s failed\n" cmd
+  with DGraphModel.DotError cmd -> main_window#error "%s\n" cmd
 
 let main (window: Design.main_window_extension_points) =
   ignore
     ((window#menu_manager ())#add_plugin
-       [ Menu_manager.Menubar(None, "Show callgraph"),
-	 (fun () -> graph_window window) ])
+       [ Menu_manager.menubar "Show callgraph"
+           (Menu_manager.Unit_callback (fun () -> graph_window window));
+       ])
 
 let () = Design.register_extension main
 

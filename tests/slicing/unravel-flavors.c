@@ -1,9 +1,8 @@
 /* run.config
-   GCC:
-   OPT: -slice-print -slice-undef-functions -slice-return send1 -journal-disable
-   OPT: -slice-print -slice-undef-functions -slice-return send2 -journal-disable
-   OPT: -slice-print -slice-undef-functions -slice-return send3 -journal-disable
-   OPT: -slice-print -slice-undef-functions -slice-return send4 -journal-disable
+   OPT: -check -slice-undef-functions -slice-return send1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-undef-functions -slice-return send2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-undef-functions -slice-return send3 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-undef-functions -slice-return send4 -journal-disable -then-on 'Slicing export' -print
    */
 
 /* Small example derived from examples given for UNRAVEL tool : */

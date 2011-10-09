@@ -20,19 +20,29 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Access to the Cil AST which must be used from Frama-C.
+(** Access to the CIL AST which must be used from Frama-C.
     @plugin development guide *)
 
-exception Bad_Initialisation of string
+exception Bad_Initialization of string
   (** May be raised by function {!get} below. *)
+
+exception NoUntypedAst
+  (** Might be raised by {!UntypedFiles.get} below 
+      @since Nitrogen-20111001
+   *)
 
 module UntypedFiles: sig
 
   val get: unit -> Cabs.file list
     (** The list of untyped AST that have been parsed.
-	@raise Bad_Initialization if neither {!File.init_from_c_files}
-	nor {!File.init_project_from_cil_file} nor {!File.init_from_cmdline}
-	was called before. *)
+        @raise Bad_Initialization if neither {!File.init_from_c_files}
+        nor {!File.init_project_from_cil_file} nor {!File.init_from_cmdline}
+        was called before. 
+        @raise NoUntypedAst if no untyped AST is available. This is in 
+        particular the case for projects obtained by code transformation from
+        original C files.
+        @modify Nitrogen-20111001 raise NoUntypedAst
+     *)
 
   val set: Cabs.file list -> unit
     (** Should not be used by casual users. *)

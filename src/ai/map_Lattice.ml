@@ -20,6 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please write a .mli and
+   document it. *)
+
 (* In this kind of Map, absent keys are implicitly bound to V.bottom *)
 
 open Abstract_interp
@@ -38,7 +44,13 @@ struct
 (*  module Top_Param = Make_Hashconsed_Lattice_Set(K) *)
 
   module M =
-    Hptmap.Make(K)(V)(Hptmap.Comp_unused)(struct let v = [] :: [K.null,V.top]::L.v end)
+    Hptmap.Make
+      (K)
+      (V)
+      (Hptmap.Comp_unused)
+      (struct let v = [] :: [K.null,V.top]::L.v end)
+      (struct let l = [ Ast.self ] end)
+
 
   module Top_Param = Top_Param
 
@@ -55,12 +67,12 @@ struct
   let hash v =
     match v with
       Map m ->
-	(* let f k v acc =
-	   (V.hash v) +  11 * acc + 54971 * K.hash k in
-	   M.fold f m 3647 *)
-	M.tag m
+        (* let f k v acc =
+           (V.hash v) +  11 * acc + 54971 * K.hash k in
+           M.fold f m 3647 *)
+        M.tag m
     | Top (bases, orig) ->
-	Origin.hash orig + (299 * (Top_Param.hash bases))
+        Origin.hash orig + (299 * (Top_Param.hash bases))
 
   let tag = hash
 
@@ -92,16 +104,18 @@ struct
   let pretty fmt m =
     match m with
     | Top (t, a) ->
-        Format.fprintf fmt "{{ mix of %a. Origin: %a}}"
-	  Top_Param.pretty t
-	  Origin.pretty a
+        Format.fprintf fmt "@[<hov 2>{{ mix of %a.@ Origin: %a}}@]"
+          Top_Param.pretty t
+          Origin.pretty a
     | Map m ->
-	let print_binding k v =
-	  Format.fprintf fmt "@ %a -> %a ;" K.pretty k V.pretty v
-	in
-	Format.fprintf fmt "{{" ;
-	(M.iter print_binding) m;
-	Format.fprintf fmt "}}"
+        Pretty_utils.pp_iter
+          ~pre:"@[<hv 3>{{ "
+          ~suf:" }}@]"
+          ~sep:";@ "
+          (fun pp map -> M.iter (fun k v -> pp (k, v)) map)
+          (fun fmt (k, v) -> Format.fprintf fmt "%a -> %a" K.pretty k V.pretty v)
+          fmt m
+
 
   let find_or_bottom k m =
     try
@@ -112,12 +126,12 @@ struct
   let split k m =
     match m with
     | Top (t,_) ->
-	if Top_Param.is_included (Top_Param.inject_singleton k) t
-	then V.top, m
-	else V.bottom, m
+        if Top_Param.is_included (Top_Param.inject_singleton k) t
+        then V.top, m
+        else V.bottom, m
     | Map m ->
-	find_or_bottom k m,
-	Map (M.remove k m)
+        find_or_bottom k m,
+        Map (M.remove k m)
 
   let inject_map m = Map m
 
@@ -134,9 +148,9 @@ struct
     m1 == m2 ||
       match m1, m2 with
       | Top (s, a), Top (s', a') ->
-	  Top_Param.equal s s' && Origin.equal a a'
+          Top_Param.equal s s' && Origin.equal a a'
       | Map m1, Map m2 ->
-	  M.equal m1 m2
+          M.equal m1 m2
       | _ -> false
 
   let compare =
@@ -173,60 +187,60 @@ struct
     in
     fun m1 m2 ->
       if m1 == m2 then m1 else
-	let result =
-	  match m1, m2 with
-	  | Top(x1,a1), Top(x2,a2) ->
-	      Top(Top_Param.join x1 x2, Origin.join a1 a2)
-	  | Top (Top_Param.Top,_) as x, Map _
-	  | Map _, (Top (Top_Param.Top,_) as x) ->
-	      x
-	  | Top (Top_Param.Set t,a), Map m | Map m, Top (Top_Param.Set t,a) ->
-	      inject_top_origin a
-		(M.fold
+        let result =
+          match m1, m2 with
+          | Top(x1,a1), Top(x2,a2) ->
+              Top(Top_Param.join x1 x2, Origin.join a1 a2)
+          | Top (Top_Param.Top,_) as x, Map _
+          | Map _, (Top (Top_Param.Top,_) as x) ->
+              x
+          | Top (Top_Param.Set t,a), Map m | Map m, Top (Top_Param.Set t,a) ->
+              inject_top_origin a
+                (M.fold
                    (fun k _ acc -> Top_Param.O.add k acc)
                    m
                    t)
           | Map mm1, Map mm2 ->
-	      let result = Map (symetric_merge mm1 mm2) in
-	      assert (
+              let result = Map (symetric_merge mm1 mm2) in
+              assert (
 
-		  let n = succ !check_join_assert in
-		  check_join_assert := n;
-		  n land 63 <> 0  ||
-		(let merge_key k v acc =
-		  M.add k (V.join v (find_or_bottom k mm2)) acc
-		in
-		let r2 = Map (M.fold merge_key mm1 mm2) in
-		if equal result r2 then
-		  true
-		else begin
-		  Format.printf "Map_Lattice.join incorrect %a (%d;%x) %a (%d;%x) -> %a (%d;%x) %a (%d;%x)@."
-		    pretty m1 (hash m1) (Extlib.address_of_value m1)
-		    pretty m2 (hash m2) (Extlib.address_of_value m2)
-		    pretty result (hash result) (Extlib.address_of_value result)
-		    pretty r2 (hash r2) (Extlib.address_of_value r2);
-		  false;
-		  end));
+                  let n = succ !check_join_assert in
+                  check_join_assert := n;
+                  n land 63 <> 0  ||
+                (let merge_key k v acc =
+                  M.add k (V.join v (find_or_bottom k mm2)) acc
+                in
+                let r2 = Map (M.fold merge_key mm1 mm2) in
+                if equal result r2 then
+                  true
+                else begin
+                  Format.printf "Map_Lattice.join incorrect %a (%d;%x) %a (%d;%x) -> %a (%d;%x) %a (%d;%x)@."
+                    pretty m1 (hash m1) (Extlib.address_of_value m1)
+                    pretty m2 (hash m2) (Extlib.address_of_value m2)
+                    pretty result (hash result) (Extlib.address_of_value result)
+                    pretty r2 (hash r2) (Extlib.address_of_value r2);
+                  false;
+                  end));
 
-	      result
-	in
-	(*Format.printf "Map_Lattice_join@\nm1=%a@\nm2=%a@\nm1Um2=%a@\n"
-	  pretty m1 pretty m2 pretty result;*)
-	result
+              result
+        in
+        (*Format.printf "Map_Lattice_join@\nm1=%a@\nm2=%a@\nm1Um2=%a@\n"
+          pretty m1 pretty m2 pretty result;*)
+        result
 
   let cached_fold ~cache ~temporary ~f ~projection ~joiner ~empty =
     let folded_f = M.cached_fold ~cache ~temporary ~f ~joiner ~empty in
     function m ->
       match m with
-	Top (Top_Param.Top, _) -> raise Error_Top
+        Top (Top_Param.Top, _) -> raise Error_Top
       | Top (Top_Param.Set s, _) ->
-	  let f_base base acc =
-	    let total_itvs = projection base in
-	    joiner (f base total_itvs) acc
-	  in
-	  Top_Param.O.fold f_base s empty
+          let f_base base acc =
+            let total_itvs = projection base in
+            joiner (f base total_itvs) acc
+          in
+          Top_Param.O.fold f_base s empty
       | Map mm ->
-	  folded_f mm
+          folded_f mm
 
   let map_offsets f m =
     match m with
@@ -242,11 +256,11 @@ struct
     match m with
     | Top _ -> raise Not_exclusive
     | Map m ->
-	let v = find_or_bottom k m in
-	let map_without = M.remove k m in
-	if M.is_empty map_without
-	then v
-	else raise Not_exclusive
+        let v = find_or_bottom k m in
+        let map_without = M.remove k m in
+        if M.is_empty map_without
+        then v
+        else raise Not_exclusive
 
   exception Not_all_keys
 
@@ -257,13 +271,13 @@ struct
     match m with
     | Top _ -> raise Not_all_keys
     | Map m ->
-	M.fold
-	  (fun k v acc ->
-	     if not (V.equal v v0)
-	     then raise Not_all_keys
-	     else k::acc)
-	  m
-	  []
+        M.fold
+          (fun k v acc ->
+             if not (V.equal v v0)
+             then raise Not_all_keys
+             else k::acc)
+          m
+          []
 
   (** Over-approximation of the filter (in the case [Top Top])*)
   let filter_base f m =
@@ -283,35 +297,35 @@ struct
     if m1 == m2 then m1 else
       match m1, m2 with
       | Top (x1, a1), Top (x2, a2) ->
-	  let meet_topparam = Top_Param.meet x1 x2 in
-	  Top (meet_topparam, Origin.meet a1 a2)
+          let meet_topparam = Top_Param.meet x1 x2 in
+          Top (meet_topparam, Origin.meet a1 a2)
       | Top (Top_Param.Top, _), (Map _ as x)
       | (Map _ as x),Top (Top_Param.Top, _) -> x
       | Top (Top_Param.Set set, _), (Map _ as x)
       | (Map _ as x), Top (Top_Param.Set set, _) ->
           filter_base (fun v -> is_in_set ~set v) x
       | Map m1, Map m2 ->
-	  let merge_key k v acc =
-	    add_or_bottom k (V.meet v (find_or_bottom k m2)) acc 
-	  in
-	  Map (M.fold merge_key m1 M.empty)
+          let merge_key k v acc =
+            add_or_bottom k (V.meet v (find_or_bottom k m2)) acc
+          in
+          Map (M.fold merge_key m1 M.empty)
 
 (*
   let narrow m1 m2 =
     if m1 == m2 then m1 else
       match m1, m2 with
       | Top (x1, a1), Top (x2, a2) ->
-	  Top (Top_Param.narrow x1 x2, Origin.narrow a1 a2)
+          Top (Top_Param.narrow x1 x2, Origin.narrow a1 a2)
       | Top (Top_Param.Top, _), (Map _ as x)
       | (Map _ as x),Top (Top_Param.Top, _) -> x
       | Top (Top_Param.Set set, _), (Map _ as x)
       | (Map _ as x), Top (Top_Param.Set set, _) ->
           filter_base (fun v -> is_in_set ~set v) x
       | Map m1, Map m2 ->
-	  let merge_key k v acc =
-	    add_or_bottom k (V.narrow v (find_or_bottom k m2)) acc 
-	  in
-	  Map (M.fold merge_key m1 M.empty)
+          let merge_key k v acc =
+            add_or_bottom k (V.narrow v (find_or_bottom k m2)) acc
+          in
+          Map (M.fold merge_key m1 M.empty)
 *)
 
 
@@ -320,21 +334,21 @@ let narrow =
       if m1 == m2 then m1 else
         match m1, m2 with
         | Top (x1, a1), Top (x2, a2) ->
-	    let meet_topparam = Top_Param.meet x1 x2 in
-	    Top (meet_topparam, origin x1 a1 x2 a2)
+            let meet_topparam = Top_Param.meet x1 x2 in
+            Top (meet_topparam, origin x1 a1 x2 a2)
         | Top (Top_Param.Top, _), (Map _ as x)
-	| (Map _ as x),Top (Top_Param.Top, _) -> x
+        | (Map _ as x),Top (Top_Param.Top, _) -> x
         | Top (Top_Param.Set set, _), (Map _ as x)
-	| (Map _ as x), Top (Top_Param.Set set, _) ->
+        | (Map _ as x), Top (Top_Param.Set set, _) ->
             filter_base (fun v -> is_in_set ~set v) x
         | Map m1, Map m2 ->
-	    let merge_key k v acc =
-	      add_or_bottom k (f v (find_or_bottom k m2)) acc in
-	    Map (M.fold merge_key m1 M.empty)
-    in 
+            let merge_key k v acc =
+              add_or_bottom k (f v (find_or_bottom k m2)) acc in
+            Map (M.fold merge_key m1 M.empty)
+    in
     let compute_origin_narrow x1 a1 x2 a2 =
       if Top_Param.equal x1 x2 then
-	Origin.narrow a1 a2
+        Origin.narrow a1 a2
       else if Top_Param.is_included x1 x2
       then a1
       else if Top_Param.is_included x2 x1
@@ -354,11 +368,11 @@ let narrow =
     let widen_map =
     let decide k v1 v2 =
       let v1 = match v1 with
-	None -> V.bottom
+        None -> V.bottom
       | Some v1 -> v1
       in
       let v2 = match v2 with
-	None -> V.bottom
+        None -> V.bottom
       | Some v2 -> v2
       in
       V.widen (wh_k_v k) v1 v2
@@ -370,17 +384,17 @@ let narrow =
     fun m1 m2 ->
       match m1, m2 with
       | _ , Top _ -> m2
-      | Top _, _ -> assert false (* m2 should be bigger than m1 *)
+      | Top _, _ -> assert false (* m2 should be larger than m1 *)
       | Map m1, Map m2 ->
-	  Map (widen_map m1 m2)
+          Map (widen_map m1 m2)
 
   let equal m1 m2 =
     m1 == m2 ||
       match m1, m2 with
       | Top (s, a), Top (s', a') ->
-	  Top_Param.equal s s' && Origin.equal a a'
+          Top_Param.equal s s' && Origin.equal a a'
       | Map m1, Map m2 ->
-	  M.equal m1 m2
+          M.equal m1 m2
       | _ -> false
 
   let decide_fst _k _v = raise Is_not_included
@@ -388,27 +402,27 @@ let narrow =
   let decide_both = V.is_included_exn
 
   let is_included_exn =
-    let generic_is_included =
+    let map_is_included =
       M.generic_is_included Abstract_interp.Is_not_included
-	~cache:("map_Lattice",2048) ~decide_fst ~decide_snd ~decide_both
+        ~cache:("map_Lattice",2048) ~decide_fst ~decide_snd ~decide_both
     in
     fun m1 m2 ->
       if (m1 != m2)
       then
-	(*      Format.printf "begin is_included_exn map_lattice@."; *)
-	(match m1,m2 with
+        (*      Format.printf "begin is_included_exn map_lattice@."; *)
+        (match m1,m2 with
          | Top (s,a), Top (s',a') ->
-	     Top_Param.is_included_exn s s' ;
-	     Origin.is_included_exn a a'
+             Top_Param.is_included_exn s s' ;
+             Origin.is_included_exn a a'
          | Map _, Top (Top_Param.Top, _) -> ()
          | Map m, Top (Top_Param.Set set, _) ->
              M.iter
                (fun k _ ->
-		  if not (is_in_set ~set k)
-		  then raise Is_not_included)
+                  if not (is_in_set ~set k)
+                  then raise Is_not_included)
                m
          | Top _, Map _ -> raise Is_not_included
-	 | Map m1, Map m2 -> generic_is_included m1 m2)
+         | Map m1, Map m2 -> map_is_included m1 m2)
 
   let check_is_included_assert = ref 0
   let is_included m1 m2 =
@@ -419,20 +433,20 @@ let narrow =
     assert
       (let n = succ !check_is_included_assert in
        check_is_included_assert := n;
-      n land 63 <> 0 || 
+      n land 63 <> 0 ||
       (let mee = meet m1 m2 in
        let eq = equal mee m1  in
        if (eq <> new_)
        then begin
-	 Format.printf "Map_Lattice.is_included is wrong. Args: %a(h=%d) %a(h=%d) resultnew = %b meet = %a(h=%d)@."
-	   pretty m1
-	   (match m1 with Map m -> M.hash_debug m | _ -> 0)
-	   pretty m2
-	   (match m2 with Map m -> M.hash_debug m | _ -> 0)
-	   new_
-	   pretty mee
-	   (match mee with Map m -> M.hash_debug m | _ -> 0);
-	 false
+         Format.printf "Map_Lattice.is_included is wrong. Args: %a(h=%d) %a(h=%d) resultnew = %b meet = %a(h=%d)@."
+           pretty m1
+           (match m1 with Map m -> M.hash_debug m | _ -> 0)
+           pretty m2
+           (match m2 with Map m -> M.hash_debug m | _ -> 0)
+           new_
+           pretty mee
+           (match mee with Map m -> M.hash_debug m | _ -> 0);
+         false
        end
        else true));
     new_
@@ -452,8 +466,8 @@ let narrow =
         let map =
           M.fold
             (fun k v1 acc ->
-	       let v2 = find_or_bottom k mm2 in
-	       let link_v = V.link v1 v2 in
+               let v2 = find_or_bottom k mm2 in
+               let link_v = V.link v1 v2 in
                M.add k link_v acc)
             mm1
             mm2
@@ -462,28 +476,23 @@ let narrow =
 
   exception Found_inter
 
-  let intersects m1 m2 =
-    let result =
-      match m1,m2 with
+  let intersects = 
+    let map_intersects =
+      M.generic_symetric_existential_predicate 
+	Found_inter 
+	~decide_one:(fun _ _ -> ())
+	~decide_both:(fun x y -> if V.intersects x y then raise Found_inter)
+    in    
+    fun mm1 mm2 ->
+      match mm1, mm2 with
       | Top (_,_), Top (_,_) -> true
       | Top _, (Map _ as m) | (Map _ as m), Top _ -> not (equal m bottom)
       | Map m1, Map m2 ->
-	  let intersects_in_m1 k v2 =
-	    let v1 = find_or_bottom k m1 in
-	    if V.intersects v1 v2
-	    then raise Found_inter
-	  in
 	  try
-	    M.iter intersects_in_m1 m2;
+	    map_intersects m1 m2;
 	    false
-	  with
-	    Found_inter -> true
-    in
-    (* Format.printf "Map_Lattice.intersects: m1=%a m2=%a result=%b@\n"
-       pretty m1
-       pretty m2
-       result;*)
-    result
+          with
+            Found_inter -> true
 
   (** if there is only one key [k] in map [m], then returns the pair [k,v]
       where [v] is the value associated to [k].
@@ -492,18 +501,18 @@ let narrow =
     match m with
     | Top _ -> raise Not_found
     | Map m ->
-	let elt = ref None in
-	let rec check_one k v already_seen =
-	  if already_seen
-	  then raise Not_found
-	  else begin
-	    elt := Some (k,v); true
-	  end
-	in
-	ignore (M.fold check_one m false);
-	match !elt with
-	| None -> raise Not_found
-	| Some v -> v
+        let elt = ref None in
+        let rec check_one k v already_seen =
+          if already_seen
+          then raise Not_found
+          else begin
+            elt := Some (k,v); true
+          end
+        in
+        ignore (M.fold check_one m false);
+        match !elt with
+        | None -> raise Not_found
+        | Some v -> v
 
   (** if there is only one binding [k -> v] in map [m] (that is, only one key
       [k] and [cardinal_zero_or_one v]), returns the pair [k,v].
@@ -517,8 +526,8 @@ let narrow =
   let cardinal_zero_or_one m =
     equal m bottom ||
       try
-	let _,_ = find_lonely_binding m
-	in true
+        let _,_ = find_lonely_binding m
+        in true
       with Not_found -> false
 
   (** the cardinal of a map [m] is the sum of the cardinals of the
@@ -527,112 +536,112 @@ let narrow =
     match m with
     | Top _ -> raise Not_less_than
     | Map m ->
-	M.fold
-	  (fun _base v card -> card + V.cardinal_less_than v (n-card))
-	  m
-	  0
+        M.fold
+          (fun _base v card -> card + V.cardinal_less_than v (n-card))
+          m
+          0
 
   let splitting_cardinal_less_than ~split_non_enumerable m n =
     match m with
     | Top _ -> raise Not_less_than
     | Map m ->
-	M.fold
-	  (fun _base v card ->
-	    card +
-	      (V.splitting_cardinal_less_than ~split_non_enumerable
-	      v  (n-card) ))
-	  m
-	  0
+        M.fold
+          (fun _base v card ->
+            card +
+              (V.splitting_cardinal_less_than ~split_non_enumerable
+              v  (n-card) ))
+          m
+          0
 
   let diff_if_one m1 m2 =
     match m1 with
     | Top _ -> m1
     | Map mm1 ->
-	try
-	  let k2,v2 = find_lonely_binding m2 in
-	  let v1 = find_or_bottom k2 mm1 in
-	  let v = V.diff_if_one v1 v2 in
-	  Map (add_or_bottom k2 v mm1)
-	with Not_found -> m1
+        try
+          let k2,v2 = find_lonely_binding m2 in
+          let v1 = find_or_bottom k2 mm1 in
+          let v = V.diff_if_one v1 v2 in
+          Map (add_or_bottom k2 v mm1)
+        with Not_found -> m1
 
   let diff m1 m2 =
     match m1, m2 with
     | Top _, _ | _, Top _ -> m1
     | Map mm1, Map mm2 ->
-	let result =
-	  M.fold
-	    (fun k v1 acc ->
-	       let dif =
-		 try
-		   let v2 = M.find k mm2 in
-		   (V.diff v1 v2)
-		 with Not_found -> v1
-	       in
-	       add_or_bottom k dif acc)
-	    mm1
-	    M.empty
-	in
-	Map result
+        let result =
+          M.fold
+            (fun k v1 acc ->
+               let dif =
+                 try
+                   let v2 = M.find k mm2 in
+                   (V.diff v1 v2)
+                 with Not_found -> v1
+               in
+               add_or_bottom k dif acc)
+            mm1
+            M.empty
+        in
+        Map result
 
   let map_i f m =
     match m with
     | Top _ -> top
     | Map m ->
-	M.fold
-	  (fun k vl acc ->
-	     join acc (f k vl))
-	  m
-	  bottom
+        M.fold
+          (fun k vl acc ->
+             join acc (f k vl))
+          m
+          bottom
 
   let fold_bases f m acc =
     match m with
       Top(Top_Param.Set t, _) ->
-	let acc = if Null_Behavior.zone then acc else f K.null acc in
-	(Top_Param.O.fold f t acc)
+        let acc = if Null_Behavior.zone then acc else f K.null acc in
+        (Top_Param.O.fold f t acc)
     | Top(Top_Param.Top, _) ->
-	raise Error_Top
+        raise Error_Top
     | Map m ->
-	M.fold (fun k _ acc -> f k acc) m acc
+        M.fold (fun k _ acc -> f k acc) m acc
 
   (** [fold_i f m acc] folds [f] on the bindings in [m].
       @raise Error_Top if [m] is too imprecise for folding. *)
   let fold_i f m acc =
     match m with
       Top(Top_Param.Set _, _) ->
-	(* In this function,
-	   we refuse to iterate on the bases of a value Top(Top_Param.Set _,_)
-	*)
-	raise Error_Top
+        (* In this function,
+           we refuse to iterate on the bases of a value Top(Top_Param.Set _,_)
+        *)
+        raise Error_Top
     | Top(Top_Param.Top, _) ->
-	raise Error_Top
+        raise Error_Top
     | Map m ->
-	M.fold f m acc
+        M.fold f m acc
 
   let fold_topset_ok f m acc =
     match m with
       Top(Top_Param.Set t, _) ->
-	let acc = if Null_Behavior.zone then acc else f K.null V.top acc in
-	Top_Param.O.fold
-	  (fun x acc -> f x V.top acc)
-	  t
-	  acc
+        let acc = if Null_Behavior.zone then acc else f K.null V.top acc in
+        Top_Param.O.fold
+          (fun x acc -> f x V.top acc)
+          t
+          acc
     | Top(Top_Param.Top, _) ->
-	raise Error_Top
+        raise Error_Top
     | Map m ->
-	M.fold f m acc
+        M.fold f m acc
 
   let fold_enum ~split_non_enumerable f m acc =
     match m with
     | Top _ -> raise Error_Top
     | Map m ->
         try
-	  M.fold
-	    (fun k vl acc ->
-	       let g one_ival acc =
+          M.fold
+            (fun k vl acc ->
+               let g one_ival acc =
                  let one_loc = inject k one_ival in
                  f one_loc acc
-	       in
-	       V.fold_enum ~split_non_enumerable g vl acc)
+               in
+               V.fold_enum ~split_non_enumerable g vl acc)
             m
             acc
         with V.Error_Top -> raise Error_Top
@@ -642,53 +651,26 @@ let narrow =
 
   include Datatype.Make_with_collections
       (struct
-	type t = tt
-	let name = M.name ^ " map_lattice"
-	let structural_descr =
-	   Structural_descr.Structure
-	     (Structural_descr.Sum
-		[| [| Top_Param.packed_descr; Structural_descr.p_abstract |];
-		   [| M.packed_descr |] |])
-	let reprs = List.map (fun m -> Map m) M.reprs
-	let equal = equal
-	let compare = compare
-	let hash = hash
-	let rehash = Datatype.identity
-	let copy = Datatype.undefined
-	let internal_pretty_code = Datatype.pp_fail
-	let pretty = pretty
-	let mem_project = Datatype.never_any_project
-	let varname = Datatype.undefined
+        type t = tt
+        let name = M.name ^ " map_lattice"
+        let structural_descr =
+           Structural_descr.Structure
+             (Structural_descr.Sum
+                [| [| Top_Param.packed_descr; Structural_descr.p_abstract |];
+                   [| M.packed_descr |] |])
+        let reprs = List.map (fun m -> Map m) M.reprs
+        let equal = equal
+        let compare = compare
+        let hash = hash
+        let rehash = Datatype.identity
+        let copy = Datatype.undefined
+        let internal_pretty_code = Datatype.pp_fail
+        let pretty = pretty
+        let mem_project = Datatype.never_any_project
+        let varname = Datatype.undefined
        end)
 
 end
-
-(*
-  module Trivial_Lattice = struct
-  type t = bool
-  let pretty fmt v =
-  match v with
-  | false -> Format.fprintf fmt "TTOP"
-  | true -> Format.fprintf fmt "TBOTTOM"
-
-  let top = false
-  let bottom = true
-
-  let meet = (||)
-
-  let join = (&&)
-
-  let intersects t1 t2 = not (meet t1 t2)
-
-  let is_included t1 t2 = (join t1 t2) = t2
-
-  let widen wh t1 t2 = if t1 = t2 then t1 else false
-
-  exception Error_Bottom
-  exception Error_Top
-
-  end
- *)
 
 (*
 Local Variables:

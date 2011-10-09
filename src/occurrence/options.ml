@@ -32,7 +32,7 @@ module Print =
     (struct
        let option_name = "-occurrence"
        let help = "print results of occurrence analysis"
-       let kind = `Tuning
+       let kind = Parameter.Other
      end)
 
 (*

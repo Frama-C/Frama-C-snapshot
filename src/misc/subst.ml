@@ -40,15 +40,15 @@ let expr ?(trans=true) e subst =
       inherit nopCilVisitor
       method vexpr e = match e.enode with
       | Lval((Var x, NoOffset)) ->
-	  (try
-	     let e = M.find x subst in
-	     modified := true;
-	     let e = if trans then expr e else e in
-	     ChangeTo e
-	   with Not_found ->
-	     SkipChildren)
+          (try
+             let e = M.find x subst in
+             modified := true;
+             let e = if trans then expr e else e in
+             ChangeTo e
+           with Not_found ->
+             SkipChildren)
       | _ ->
-	  DoChildren
+          DoChildren
     end
     in
     visitCilExpr visitor e

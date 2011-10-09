@@ -75,10 +75,18 @@ val as_singleton: 'a list -> 'a
   (** returns the unique element of a singleton list.
       @raise Invalid_argument on a non singleton list. *)
 
+val last: 'a list -> 'a
+  (** returns the last element of a list.
+      @raise Invalid_argument on an empty list
+      @since Nitrogen-20111001
+   *)
+
+
 val filter_out: ('a -> bool) -> 'a list -> 'a list
   (** Filter out elements that pass the test *)
 
 val filter_map: ('a -> bool) -> ('a -> 'b) -> 'a list -> 'b list
+val filter_map': ('a -> 'b) -> ('b -> bool) -> 'a list -> 'b list
   (** Combines [filter] and [map]. *)
 
 val product_fold: ('a -> 'b -> 'c -> 'a) -> 'a -> 'b list -> 'c list -> 'a
@@ -107,9 +115,29 @@ val list_of_opt: 'a option -> 'a list
       @since Carbon-20111201-beta2+dev
    *)
 
+val find_opt : ('a -> 'b option) -> 'a list -> 'b
+  (** [find_option p l] returns the value [p e], [e] being the first
+      element of [l] such that [p e] is not [None]. Raise [Not_found] if there
+      is no such value the list l.
+
+      @since Nitrogen-20111001
+  *)
+
+val iteri: (int -> 'a -> unit) -> 'a list -> unit
+  (** Same as iter, but the function to be applied take also as argument the
+      index of the element (starting from 0)
+      @since Nitrogen-20111001
+   *)
+
+
 (* ************************************************************************* *)
 (** {2 Options} *)
 (* ************************************************************************* *)
+
+(** [true] iff its argument is [Some x] 
+    @since Nitrogen-20111001
+*)
+val has_some: 'a option -> bool
 
 val may: ('a -> unit) -> 'a option -> unit
 
@@ -119,6 +147,12 @@ val may_map: ('a -> 'b) -> ?dft:'b -> 'a option -> 'b
       Assume that either [x] or [dft] is defined. *)
 
 val opt_map: ('a -> 'b) -> 'a option -> 'b option
+
+(** [opt_bind f x] returns [None] if [x] is [None] and [f y] if is [Some y]
+    (monadic bind)
+    @since Nitrogen-20111001
+*)
+val opt_bind: ('a -> 'b option) -> 'a option -> 'b option
 
 val opt_filter: ('a -> bool) -> 'a option -> 'a option
 
@@ -172,11 +206,17 @@ val cleanup_at_exit: string -> unit
       program exits (except if exit is caused by a signal).
       If [file] does not exist, nothing happens. *)
 
+exception Temp_file_error of string
+
 val temp_file_cleanup_at_exit: string -> string -> string
   (** Similar to [Filename.temp_file] except that the temporary file will be
-      deleted at the end of the execution (see above). *)
+      deleted at the end of the execution (see above).
+      @raise Temp_file_error if the temp file cannot be created.
+      @modify Nitrogen-20111001 may now raise Temp_file_error *)
 
 val temp_dir_cleanup_at_exit: string -> string
+(** @raise Temp_file_error if the temp dir cannot be created.
+    @modify Nitrogen-20111001 may now raise Temp_file_error *)
 
 val safe_remove: string -> unit
   (** Tries to delete a file and never fails. *)
@@ -198,6 +238,12 @@ val usleep: int -> unit
 (** Use this function instead of [Pervasives.compare], as this makes
     it easier to find incorrect uses of the latter *)
 external compare_basic: 'a -> 'a -> int = "%compare"
+
+(* ************************************************************************* *)
+(** Printing Lexing.position *)
+(* ************************************************************************* *)
+
+val pretty_position: Format.formatter -> Lexing.position -> unit
 
 (*
 Local Variables:

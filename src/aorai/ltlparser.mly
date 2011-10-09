@@ -1,11 +1,13 @@
 /**************************************************************************/
 /*                                                                        */
-/*  This file is part of Frama-C.                                         */
+/*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
 /*  Copyright (C) 2007-2011                                               */
-/*    INSA  (Institut National des Sciences Appliquees)                   */
+/*    CEA (Commissariat a l'énergie atomique et aux énergies              */
+/*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
+/*    INSA  (Institut National des Sciences Appliquees)                   */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
 /*  Lesser General Public License as published by the Free Software       */
@@ -25,9 +27,11 @@
 
 /* Originated from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip  */
 %{
+open Promelaast
 open Parsing
 open Cil_types
 open Cil
+open Logic_ptree
 
 let observed_expressions=Hashtbl.create 97
 
@@ -77,7 +81,7 @@ let new_exp =  new_exp ~loc:(CurrentLoc.get())(*TODO: give a proper loc*)
 %token EOF
 
 
-%type <(Ltlast.formula * (string, (Cil_types.exp* string*Cil_types.predicate)) Hashtbl.t)> ltl
+%type <(Ltlast.formula * (string, (Logic_ptree.relation *  Promelaast.expression * Promelaast.expression)) Hashtbl.t)> ltl
 %start ltl
 %%
 
@@ -127,112 +131,60 @@ formula
 	| logic_relation
 	    {
 	      let id = get_fresh_ident () in
-	      let (pred,exp) = $1 in
-	        Hashtbl.add observed_expressions id 
-		  (exp, (Pretty_utils.sfprintf "%a" Cil.d_exp exp), pred);
+	        Hashtbl.add observed_expressions id $1;
 	        Ltlast.LIdent(id)
 	    }
   ;
 
-
-/* returns a (Cil_types.predicate,Cil_types.exp) couple of expressions */
 logic_relation
-	: arith_relation LTL_EQ  arith_relation
-            { (	Prel(Cil_types.Req, Logic_utils.expr_to_term ~cast:true $1 ,Logic_utils.expr_to_term ~cast:true  $3),
-		new_exp (BinOp(Cil_types.Eq, $1 , $3 , Cil.intType)) )
-	    }
-	| arith_relation LTL_LT  arith_relation
-            { (	Prel(Cil_types.Rlt, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		new_exp (BinOp(Cil_types.Lt, $1 , $3 , Cil.intType)) )
-	    }
-	| arith_relation LTL_GT  arith_relation
-            { (	Prel(Cil_types.Rgt, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		new_exp(BinOp(Cil_types.Gt, $1 , $3 , Cil.intType)) )
-	    }
-	| arith_relation LTL_LE  arith_relation
-            { (	Prel(Cil_types.Rle, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		new_exp (BinOp(Cil_types.Le, $1 , $3 , Cil.intType) ))
-	    }
-	| arith_relation LTL_GE  arith_relation
-            { (	Prel(Cil_types.Rge, Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		new_exp (BinOp(Cil_types.Ge, $1 , $3 , Cil.intType) ))
-	    }
-	| arith_relation LTL_NEQ arith_relation
-            { (	Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1 , Logic_utils.expr_to_term ~cast:true $3),
-		new_exp (BinOp(Cil_types.Ne , $1 , $3 , Cil.intType) ))
-	    }
-	| arith_relation
-	    { (	Prel(Cil_types.Rneq,Logic_utils.expr_to_term ~cast:true $1 ,
-		     Logic_const.term
-		       (TConst( CInt64(Int64.of_int 0,IInt,Some("0"))))
-		       (Ctype Cil.intType)),
-		$1)
-	    }
-
+	: arith_relation LTL_EQ  arith_relation { Eq, $1 , $3}
+	| arith_relation LTL_LT  arith_relation { Lt, $1, $3 }
+	| arith_relation LTL_GT  arith_relation { Gt, $1, $3 }
+	| arith_relation LTL_LE  arith_relation { Le, $1, $3 }
+	| arith_relation LTL_GE  arith_relation { Ge, $1, $3 }
+	| arith_relation LTL_NEQ arith_relation { Neq, $1, $3 }
+	| arith_relation { Neq, $1, PCst (IntConstant "0") }
   ;
 
-/* returns a Cil_types.exp expression */
 arith_relation
-        : arith_relation_mul LTL_PLUS arith_relation
-            { new_exp (BinOp(Cil_types.PlusA, $1 , $3 , Cil.intType)) }
-	| arith_relation_mul LTL_MINUS arith_relation
-            { new_exp (BinOp(Cil_types.MinusA, $1 , $3 , Cil.intType)) }
-	| arith_relation_mul
-	    { $1 }
+        : arith_relation_mul LTL_PLUS arith_relation { PBinop(Badd,$1,$3) }
+	| arith_relation_mul LTL_MINUS arith_relation { PBinop(Bsub,$1,$3) }
+	| arith_relation_mul { $1 }
   ;
 
 
 arith_relation_mul
-	: arith_relation_mul LTL_DIV access_or_const
-            { new_exp (BinOp(Cil_types.Div, $1 , $3 , Cil.intType)) }
-	| arith_relation_mul LTL_STAR access_or_const
-            { new_exp (BinOp(Cil_types.Mult, $1 , $3 , Cil.intType)) }
-	| arith_relation_mul LTL_MODULO access_or_const
-            { new_exp (BinOp(Cil_types.Mod, $1 , $3 , Cil.intType)) }
-	| access_or_const
-	    { $1 }
+	: arith_relation_mul LTL_DIV access_or_const { PBinop(Bdiv,$1,$3) }
+	| arith_relation_mul LTL_STAR access_or_const { PBinop(Bmul,$1,$3) }
+	| arith_relation_mul LTL_MODULO access_or_const { PBinop(Bmod,$1,$3)}
+	| access_or_const { $1 }
   ;
 
 /* returns a Lval exp or a Const exp*/
 access_or_const
-        : LTL_INT
-            { new_exp (Const(CInt64(Int64.of_string $1,IInt, Some($1))))}
-        | LTL_MINUS LTL_INT
-            { new_exp (Const(CInt64(Int64.of_string ("-"^$2),IInt, Some("-"^$2))))}
-	| access
-            { new_exp (Lval($1)) }
-	| LTL_LPAREN arith_relation LTL_RPAREN
-	    { $2 }
+        : LTL_INT { PCst (IntConstant $1) }
+        | LTL_MINUS LTL_INT { PUnop (Uminus,PCst (IntConstant $2)) }
+	| access { $1 }
+	| LTL_LPAREN arith_relation LTL_RPAREN { $2 }
   ;
 
 
 /* returns a lval */
 access
-	: access_array LTL_RIGHT_ARROW  access
-            { Aorai_option.fatal "NOT YET IMPLEMENTED : A->B pointed structure filed access." }
-	| access LTL_DOT LTL_LABEL
-            { let (my_host,my_offset) = ($1) in
-              
-              let new_offset = Utils_parser.add_offset my_offset (Utils_parser.get_new_offset my_host my_offset $3) in
-              (my_host,new_offset)}
-	| access_array
-	    {$1}
+	: access LTL_RIGHT_ARROW LTL_LABEL { PField (PUnop(Ustar,$1),$3) }
+	| access LTL_DOT LTL_LABEL { PField($1,$3) }
+	| access_array {$1}
 
 access_array
 	: access_array LTL_LEFT_SQUARE access_or_const LTL_RIGHT_SQUARE
-	    { Cil.addOffsetLval (Index ($3,NoOffset)) $1}
-    	| access_leaf
-	    {$1}
+	    { PArrget($1,$3) }
+    	| access_leaf {$1}
 
 
 access_leaf
-        : LTL_ADRESSE access
-            { Aorai_option.fatal "NOT YET IMPLEMENTED : &A 'address of' access." }
-	| LTL_STAR access
-            { Aorai_option.fatal "NOT YET IMPLEMENTED : *A dereferencement access."}
-	| LTL_LABEL
-	    { Cil.var ( Data_for_aorai.get_varinfo $1) }
-	| LTL_LPAREN access LTL_RPAREN
-	    { $2 }
+        : LTL_ADRESSE access { PUnop (Uamp,$2) }
+	| LTL_STAR access { PUnop (Ustar, $2 ) }
+	| LTL_LABEL { PVar $1 }
+	| LTL_LPAREN access LTL_RPAREN { $2 }
 
   ;

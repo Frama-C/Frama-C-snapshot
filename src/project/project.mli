@@ -40,10 +40,10 @@ module Datatype: Datatype.S with type t = Project_skeleton.t
 type project = Project_skeleton.t =
     private
       { pid : int;
-	mutable name : string;
-	mutable unique_name : string }
+        mutable name : string;
+        mutable unique_name : string }
       (** Type of a project.
-	  @plugin development guide *)
+          @plugin development guide *)
 
 (* ************************************************************************* *)
 (** {2 Operations on all projects} *)
@@ -258,8 +258,18 @@ val register_after_load_hook: (unit -> unit) -> unit
 
 val register_after_global_load_hook: (unit -> unit) -> unit
   (** [register_after_load_hook f] adds a hook called just after loading
-      **all projects**.
+      **all projects**. [f] must not set the current project.
       @since Boron-20100401 *)
+
+(* ************************************************************************* *)
+(** {3 Handling the selection} *)
+(* ************************************************************************* *)
+
+val get_current_selection: unit -> State_selection.t
+(** If an operation on a project is ongoing, then [get_current_selection ()]
+    returns the selection which is applied on.
+    The behaviour is unspecified if this function is called when no operation
+    depending on a selection is ongoing. *)
 
 (* ************************************************************************* *)
 (** {2 Projects are comparable values} *)

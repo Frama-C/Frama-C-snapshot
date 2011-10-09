@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -slice-return main -calldeps -slicing-level 3 -slice-print -slicing-verbose 2 -slicing-debug 1 -journal-disable
+   OPT: -check -slice-return main -calldeps -slicing-level 3 -slicing-verbose 2 -journal-disable -then-on 'Slicing export' -print
 */
 
 int X, Y;

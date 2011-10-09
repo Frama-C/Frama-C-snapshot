@@ -1,6 +1,6 @@
 /* run.config
  OPT: -lib-entry -journal-disable -sparecode-debug 1 -sparecode-analysis
- OPT: -lib-entry -slice-pragma main -slice-return main -slice-print -journal-disable
+ OPT: -lib-entry -slice-pragma main -slice-return main -journal-disable -then-on 'Slicing export' -print
  OPT: -journal-disable -sparecode-debug 1 -rm-unused-globals
 */
 
@@ -36,11 +36,17 @@ char Size;
 Tx X = sizeof (Size);
 int Y;
 
+int use_in_PX_init;
+int * PX;
+
 /*@ requires S2.a > S2.b ; */
 int main (int x, Ts s) {
   //@ slice pragma expr S2 ;
   int y = 3;
   y += Y;
+  y += *PX;
   //@ assert X > 0;
   return X + x;
 }
+
+int * PX = &use_in_PX_init;

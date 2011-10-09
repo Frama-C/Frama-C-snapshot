@@ -48,12 +48,9 @@ int Frama_C_interval(int min, int max);
  */
 float Frama_C_float_interval(float min, float max);
 
-/*@
-  assigns ((char *)dest)[0] \from ((char *)src)[0];
-// supported, but not really treated...
-//  assigns ((char *)dest)[0..n-1] \from ((char *)src)[0..n-1];
-*/
-void Frama_C_memcpy(void *dest, const void *src, unsigned long n);
+/*@ assigns ((char *)dest)[0..n-1] \from ((char *)src)[0..n-1];
+    assigns \result \from dest; */
+void* Frama_C_memcpy(char *dest, const char *src, unsigned long n);
 
 /*@
   assigns \empty;
@@ -63,5 +60,7 @@ void Frama_C_abort(void) __attribute__ ((noreturn));
 void Frama_C_show_each_warning(const char*);
 
 size_t Frama_C_offset(const void*);
+
+void *Frama_C_undegenerate(const void*);
 
 #endif

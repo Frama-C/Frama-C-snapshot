@@ -23,8 +23,13 @@
 (**************************************************************************)
 
 let debug n format = Sparecode_params.debug ~level:n format
+let fatal fmt = Sparecode_params.fatal fmt
 
-let fatal text = Sparecode_params.fatal text
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(** The project is composed of [FctIndex] marked with [BoolMark]
+* to be used by [Pdg.Register.F_Proj], and another table to store if a function
+* is visible (usefull for Top PDG). *)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 module BoolMark = struct
   type prop_mode = Glob | Loc
@@ -33,6 +38,8 @@ module BoolMark = struct
 
   let bottom = false,Loc
   let top = true,Glob
+
+  let visible (b,_) = b
 
   let mk glob = if glob then (true,Glob) else (true, Loc)
 
@@ -58,6 +65,26 @@ module BoolMark = struct
          (match p with Glob -> "Glob" | Loc -> "Loc")
 end
 
+module KfTopVisi = struct
+  include Cil_datatype.Kf.Hashtbl
+
+  let add proj kf b = add (snd proj) kf b
+
+  let find proj kf = find (snd proj) kf
+
+  (** as soon as a TOP function is called, all its callees are called. *)
+  let rec set proj kf = 
+    try find proj kf
+    with Not_found ->
+      add proj kf ();
+      debug 1 "select '%a' as fully visible (top or called by top)"
+        Kernel_function.pretty kf;
+      let callees = !Db.Users.get kf in
+        Kernel_function.Hptset.iter (set proj) callees
+
+  let get proj kf = try find proj kf; true with Not_found -> false
+end
+
 (** when we first compute marks to select outputs,
 * we don't immediately propagate input marks to the calls,
 * because some calls may be useless and we don't want to compute
@@ -66,23 +93,30 @@ end
 * lead to them : so, we propagate...
 * *)
 let call_in_to_check = ref []
+let called_top = ref []
 
 module Config = struct
-  module M = struct
-    include BoolMark
-  end
+  module M = BoolMark
 
     let mark_to_prop_to_caller_input call_opt pdg_caller sel_elem m =
       match m with
         | true, M.Glob -> Some m
         | true, M.Loc ->
-            call_in_to_check := 
+            call_in_to_check :=
             (pdg_caller, call_opt, sel_elem, m) :: !call_in_to_check;
             None
         | _ -> fatal "cannot propagate invisible mark@."
 
-    let mark_to_prop_to_called_output _call _pdg _node m =
-      match m with
+    let mark_to_prop_to_called_output _call called_pdg =
+      if PdgTypes.Pdg.is_top called_pdg then
+        begin
+          let kf = PdgTypes.Pdg.get_kf called_pdg in
+          called_top := kf :: !called_top; 
+          debug 1 "memo call to TOP '%a'" Kernel_function.pretty kf;
+          (fun _ _ -> None)
+        end
+      else 
+        fun _n m -> match m with
         | true, M.Glob -> Some (true, M.Loc)
         | true, M.Loc -> Some m
         | _ -> fatal "cannot propagate invisible mark@."
@@ -91,13 +125,28 @@ end
 
 module ProjBoolMarks = Pdg.Register.F_Proj (Config)
 
-type t_proj = ProjBoolMarks.t
+type t_proj = ProjBoolMarks.t * unit KfTopVisi.t
 type t_fct = ProjBoolMarks.t_fct
 
-let get_marks proj kf =
-  ProjBoolMarks.find_marks proj (Kernel_function.get_vi kf)
+let new_project () = (ProjBoolMarks.empty, KfTopVisi.create 10)
 
-let mark_visible _fm (b,_) = b
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(** Get stored information *)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+
+let proj_marks proj = fst proj
+
+(** @raise Not_found when the function is not marked. It might be the case
+* that it is nonetheless visible, but has no marks because of a Top PDG. *)
+let get_marks proj kf =
+  try KfTopVisi.find proj kf ; None
+  with Not_found ->
+    ProjBoolMarks.find_marks (proj_marks proj) (Kernel_function.get_vi kf)
+
+(** Useful only if there has been some Pdg.Top *)
+let kf_visible proj kf = 
+  try KfTopVisi.find proj kf ; true
+  with Not_found -> get_marks proj kf <> None
 
 let rec key_visible fm key =
   try
@@ -106,36 +155,74 @@ let rec key_visible fm key =
           let call = PdgIndex.Key.call_from_id call_id in
             call_visible fm call
       | _ -> let m = PdgIndex.FctIndex.find_info fm key in
-          mark_visible fm m
-  with PdgIndex.NotFound -> false
+          BoolMark.visible m
+  with Not_found -> false
 and
-(** the call is visible if its control node is visible *)
-    call_visible fm call =
-    let key = PdgIndex.Key.call_ctrl_key call in
-      key_visible fm key
-    (*
-  try
-    let _, call_sgn = PdgIndex.FctIndex.find_call fm call in
-    let test old_v (_, m) = old_v || (mark_visible fm m) in
-    let visible =
-    let visible = PdgIndex.Signature.fold_all_outputs test false call_sgn in
-      visible
-  with PdgIndex.NotFound -> false
-      *)
+  (** the call is visible if its control node is visible *)
+  call_visible fm call =
+  let key = PdgIndex.Key.call_ctrl_key call in
+    key_visible fm key
 
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(** Build selections and propagate. *)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
-let rec all_keys_visible fm keys = match keys with
-  | [] -> true
-  | k :: keys -> (key_visible fm k) && (all_keys_visible fm keys)
-
-let select_pdg_elements proj pdg to_select =
-  ProjBoolMarks.mark_and_propagate proj pdg to_select
-
+(** Doesn't mark yet, but add what has to be marked in the selection,
+* and keep things sorted. *)
 let rec add_pdg_selection to_select pdg sel_mark = match to_select with
-  | [] -> [(pdg, [sel_mark])]
+  | [] -> 
+      let l = match sel_mark with None -> [] | Some m -> [m] in [(pdg, l)]
   | (p, ln) :: tl ->
-      if Db.Pdg.from_same_fun p pdg then (p, sel_mark::ln):: tl
+      if Db.Pdg.from_same_fun p pdg 
+      then 
+        let ln = match sel_mark with None -> ln 
+          | Some sel_mark -> sel_mark::ln 
+        in (p, ln)::tl
       else (p, ln)::(add_pdg_selection tl pdg sel_mark)
+
+let add_node_to_select glob to_select z_opt node =
+  PdgMarks.add_node_to_select to_select (node, z_opt) (BoolMark.mk glob)
+
+let add_nodes_and_undef_to_select
+      glob (ctrl_nodes, decl_nodes, data_info) to_select =
+  match data_info with
+    | None -> to_select (* don't select anything (computation failed) *)
+    | Some (data_nodes, undef) ->
+        let to_select =
+          List.fold_left (fun s n -> add_node_to_select glob s None n)
+            to_select ctrl_nodes
+        in
+        let to_select =
+          List.fold_left (fun s n -> add_node_to_select glob s None n)
+            to_select decl_nodes
+        in
+        let to_select =
+          List.fold_left (fun s (n,z_opt) -> add_node_to_select glob s z_opt n)
+            to_select data_nodes
+        in
+        let m = (BoolMark.mk glob) in
+        let to_select = PdgMarks.add_undef_in_to_select to_select undef m in
+          to_select
+
+(** Mark the function as visible 
+* and add the marks according to the selection. 
+  Notice that if the function has been marked as called by a visible top,
+  we can skip the selection since the function has to be fully visible anyway.
+**)
+let select_pdg_elements proj pdg to_select =
+  let kf = PdgTypes.Pdg.get_kf pdg in
+    try KfTopVisi.find proj kf;
+        debug 1 "function '%a' selected for top: skip selection"
+          Kernel_function.pretty kf
+    with Not_found ->
+      debug 1 "add selection in function '%a'@." Kernel_function.pretty kf;
+      ProjBoolMarks.mark_and_propagate (proj_marks proj) pdg to_select;
+      List.iter (KfTopVisi.set proj) !called_top;
+      called_top := []
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(** First step is finished: propagate in the calls. *)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 (** [proj] contains some function marks and [!call_in_to_check]
 * is a list of call input marks to propagate when the call is visible.
@@ -152,20 +239,20 @@ let rec process_call_inputs proj =
     | [] -> (to_select, unused)
     | (pdg_caller, call, sel, m) as e :: calls ->
         let kf_caller = PdgTypes.Pdg.get_kf pdg_caller in
-        let fm_caller = get_marks proj kf_caller in
-        let visible = match call with
+        let visible, select = match call with
           | Some call ->
-              let fm = match fm_caller with 
+              let fm = match get_marks proj kf_caller with
                 | None -> fatal "the caller should have marks@."
-                | Some fm -> fm 
+                | Some fm -> fm
               in
-                call_visible fm call
+              let visible = call_visible fm call in
+                visible, Some (sel, m)
           | None -> (* let see if the function is visible or not *)
               assert (PdgTypes.Pdg.is_top pdg_caller);
-              match  fm_caller with None -> false | Some _fm -> true 
+              KfTopVisi.get proj kf_caller, None
         in
         let res = if visible then
-            let to_select = add_pdg_selection to_select pdg_caller (sel, m) 
+            let to_select = add_pdg_selection to_select pdg_caller select
             in (to_select, unused)
           else (to_select, e::unused)
         in process res calls
@@ -180,30 +267,28 @@ let rec process_call_inputs proj =
                     to_select;
           process_call_inputs proj
 
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(** Main selection: select starting points and propagate. *)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
-let add_node_to_select glob to_select z_opt node =
-  PdgMarks.add_node_to_select to_select (node, z_opt) (BoolMark.mk glob)
+let select_entry_point proj _kf pdg =
+  let ctrl = !Db.Pdg.find_entry_point_node pdg in
+  let to_select = add_node_to_select true [] None ctrl in
+    select_pdg_elements proj pdg to_select
 
-let add_nodes_and_undef_to_select 
-      glob (ctrl_nodes, decl_nodes, data_info) to_select =
-  match data_info with
-    | None -> to_select (* don't select anything (computation failed) *)
-    | Some (data_nodes, undef) ->
-        let to_select = 
-          List.fold_left (fun s n -> add_node_to_select glob s None n) 
-            to_select ctrl_nodes
-        in
-        let to_select = 
-          List.fold_left (fun s n -> add_node_to_select glob s None n) 
-            to_select decl_nodes
-        in
-        let to_select = 
-          List.fold_left (fun s (n,z_opt) -> add_node_to_select glob s z_opt n)
-            to_select data_nodes
-        in
-        let m = (BoolMark.mk glob) in
-        let to_select = PdgMarks.add_undef_in_to_select to_select undef m in 
-          to_select
+let select_all_outputs proj kf pdg =
+  let outputs = !Db.Outputs.get_external kf in
+    debug 1 "selecting output zones %a@." Locations.Zone.pretty outputs;
+  try
+    let nodes, undef = !Db.Pdg.find_location_nodes_at_end pdg outputs in
+    let nodes =
+      try ((!Db.Pdg.find_ret_output_node pdg),None) :: nodes
+      with Not_found -> nodes
+    in
+    let nodes_and_co = ([], [], Some (nodes, undef)) in
+    let to_select = add_nodes_and_undef_to_select false nodes_and_co [] in
+      select_pdg_elements proj pdg to_select
+  with Not_found -> (* end is unreachable *) ()
 
 (** used to visit all the annotations of a given function
  * and to find the PDG nodes to select so that the reachable annotations
@@ -221,71 +306,65 @@ class annot_visitor ~filter pdg = object (self)
       if filter annot then
       try
         let stmt = Cilutil.valOf self#current_stmt in
-        let before = self#is_annot_before in
-            debug 1 "selecting annotation : %a @."
-              !Ast_printer.d_code_annotation annot;
-        let info = !Db.Pdg.find_code_annot_nodes pdg before stmt annot in 
+        debug 1 "selecting annotation : %a @."
+          !Ast_printer.d_code_annotation annot;
+        let info = !Db.Pdg.find_code_annot_nodes pdg stmt annot in
           to_select <- add_nodes_and_undef_to_select true info to_select
-      with PdgIndex.NotFound -> () (* unreachable *)
+      with Not_found -> () (* unreachable *)
     in Cil.SkipChildren
 end
 
-let select_all_outputs proj kf =
-  let pdg = !Db.Pdg.get kf in
-  let outputs = !Db.Outputs.get_external kf in
-    debug 1 "selecting output zones %a@."
-      Locations.Zone.pretty outputs;
-  try
-  let nodes, undef = !Db.Pdg.find_location_nodes_at_end pdg outputs in
-  let nodes =
-    try ((!Db.Pdg.find_ret_output_node pdg),None) :: nodes
-    with Db.Pdg.NotFound -> nodes
-  in
-  let nodes_and_co = ([], [], Some (nodes, undef)) in
-  let to_select = add_nodes_and_undef_to_select false nodes_and_co [] in
-    select_pdg_elements proj pdg to_select
-  with PdgIndex.NotFound -> (* end is unreachable *)
-    ()
-
 let select_annotations ~select_annot ~select_slice_pragma proj =
   let visit_fun kf =
-    try
-        debug 1 "look for annotations in function %s@."
-          (Kernel_function.get_name kf);
-      let filter annot = match annot.Cil_types.annot_content with
-        | Cil_types.APragma (Cil_types.Slice_pragma _) -> select_slice_pragma
-        | _ -> select_annot in
-      let f = Kernel_function.get_definition kf in
-      let pdg = !Db.Pdg.get kf in
-      let visit = new annot_visitor ~filter pdg in
-        ignore (Visitor.visitFramacFunction (visit:>Visitor.frama_c_visitor) f);
-      let to_select = visit#get_select in
-        select_pdg_elements proj pdg to_select
-    with Kernel_function.No_Definition ->
-      () (* nothing to do *)
+    debug 1 "look for annotations in function %a@." Kernel_function.pretty kf;
+    let pdg = !Db.Pdg.get kf in
+      if PdgTypes.Pdg.is_top pdg then debug 1 "pdg top: skip annotations"
+      else if PdgTypes.Pdg.is_bottom pdg 
+      then debug 1 "pdg bottom: skip annotations"
+      else begin
+        let filter annot = match annot.Cil_types.annot_content with
+          | Cil_types.APragma (Cil_types.Slice_pragma _) -> select_slice_pragma
+          | _ -> select_annot 
+        in
+          try
+            let f = Kernel_function.get_definition kf in
+            let visit = new annot_visitor ~filter pdg in
+            let fc_visit = (visit:>Visitor.frama_c_visitor) in
+            let _ = Visitor.visitFramacFunction fc_visit f in
+            let to_select = visit#get_select in
+              if to_select <> [] then select_pdg_elements proj pdg to_select
+          with Kernel_function.No_Definition -> () (* nothing to do *)
+      end
   in
     Globals.Functions.iter visit_fun
 
-let select_entry_point proj kf =
-  let pdg = !Db.Pdg.get kf in
-  let ctrl = !Db.Pdg.find_entry_point_node pdg in
-  let to_select = add_node_to_select true [] None ctrl in
-    select_pdg_elements proj pdg to_select
-
 let finalize proj =
-    debug 1 "finalize (process call inputs) @.";
+  debug 1 "finalize call input propagation@.";
   process_call_inputs proj;
   assert (!call_in_to_check = [])
 
-
-let select_usefull_things ~select_annot ~select_slice_pragma kf_entry =
-  let proj = ProjBoolMarks.empty in
+let select_useful_things ~select_annot ~select_slice_pragma kf_entry =
+  let proj = new_project () in
   assert (!call_in_to_check = []);
-    debug 1 "selecting function %s outputs and entry point@."
-      (Kernel_function.get_name kf_entry);
-  select_entry_point proj kf_entry;
-  select_all_outputs proj kf_entry;
-  if (select_annot  or select_slice_pragma) then
-    select_annotations ~select_annot ~select_slice_pragma proj;
-  finalize proj;
+    debug 1 "selecting function %a outputs and entry point@."
+      Kernel_function.pretty kf_entry;
+  let pdg = !Db.Pdg.get kf_entry in
+    if PdgTypes.Pdg.is_top pdg 
+    then KfTopVisi.set proj kf_entry 
+    else if PdgTypes.Pdg.is_bottom pdg
+    then debug 1 "unreachable entry point ?"
+    else begin
+      select_entry_point proj kf_entry pdg;
+      select_all_outputs proj kf_entry pdg;
+      if (select_annot || select_slice_pragma) then
+        select_annotations ~select_annot ~select_slice_pragma proj;
+      finalize proj
+    end;
   proj
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

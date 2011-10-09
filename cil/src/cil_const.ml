@@ -55,11 +55,6 @@ module CurrentLoc =
 
 let voidType = TVoid([])
 
-let d_loc fmt loc =
-  fprintf fmt "%s:%d" (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
-
-let d_thisloc (fmt: formatter) : unit = d_loc fmt (CurrentLoc.get ())
-
 (*
 let generic_bug s fstring =
   let f fmt =
@@ -69,31 +64,11 @@ let generic_bug s fstring =
   kfprintf f err_formatter "@[%t: %s: " d_thisloc s
 *)
 
-let error fstring = Cilmsg.abort ~current:true fstring
-let fatal fstring = Cilmsg.fatal ~current:true fstring
-
-module Build_Counter(Name:sig val name:string end) : sig
-  val next: unit -> int
-  val reset: unit -> unit
-  val get: unit -> int
-  val self: State.t
-end = struct
-  include State_builder.Zero_ref
-    (struct
-       let dependencies = []
-       let name = Name.name
-       let kind = `Internal
-     end)
-  let next () =
-    let n = get () in
-    if n = -1 then fatal "Too many values for counter %s." Name.name;
-    set (succ n);
-    get ()
-  let reset = clear
-end
+let error fstring = Kernel.abort ~current:true fstring
+let fatal fstring = Kernel.fatal ~current:true fstring
 
 
-module Vid = Build_Counter(struct let name = "vid" end)
+module Vid = State_builder.SharedCounter(struct let name = "vid_counter" end)
 
 let set_vid v =
   let n = Vid.next () in

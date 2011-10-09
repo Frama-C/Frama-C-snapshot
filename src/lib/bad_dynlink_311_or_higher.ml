@@ -35,32 +35,32 @@ let fail s = fun _ -> raise (Unsupported_Feature s)
 
 let is_native = Dynlink.is_native
 
-let adapt_filename = 
+let adapt_filename =
   if is_native then fail "adapt_filename" else Dynlink.adapt_filename
 
 let loadfile = if is_native then fail "loadfile" else Dynlink.loadfile
 
-let loadfile_private = 
+let loadfile_private =
   if is_native then fail "loadfile_private" else Dynlink.loadfile_private
 
-let allow_unsafe_modules = 
-  if is_native then fail "allow_unsafe_modules" 
+let allow_unsafe_modules =
+  if is_native then fail "allow_unsafe_modules"
   else Dynlink.allow_unsafe_modules
 
 let init = if is_native then fail "init" else Dynlink.init
 
-let clear_available_units = 
-  if is_native then fail "clear_available_units" 
+let clear_available_units =
+  if is_native then fail "clear_available_units"
   else Dynlink.clear_available_units
 
-let add_available_units = 
+let add_available_units =
   if is_native then fail "add_available_units" else Dynlink.add_available_units
 
-let add_interfaces = 
+let add_interfaces =
   if is_native then fail "add_interfaces" else Dynlink.add_interfaces
 
-let default_available_units = 
-  if is_native then fail "default_available_units" 
+let default_available_units =
+  if is_native then fail "default_available_units"
   else Dynlink.default_available_units
 
 let prohibit = if is_native then fail "prohibit" else Dynlink.prohibit
@@ -84,10 +84,10 @@ type error = Dynlink.error =
 
 exception Error = Dynlink.Error
 
-let error_message = 
+let error_message =
   if is_native then fail "error_message" else Dynlink.error_message
 
-let digest_interface = 
+let digest_interface =
   if is_native then fail "digest_interface" else Dynlink.digest_interface
 
 (*

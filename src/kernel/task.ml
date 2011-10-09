@@ -44,10 +44,10 @@ sig
 end =
 struct
 
-  type 'a process = 
+  type 'a process =
     | Ping of (unit -> 'a running)
-    | Done of 'a status * 'a running 
-	(* Invariant : Done(x,y) => y==Finished x *)
+    | Done of 'a status * 'a running
+        (* Invariant : Done(x,y) => y==Finished x *)
 
   type 'a t = 'a process ref
 
@@ -58,19 +58,19 @@ struct
   let ping task =
     match !task with
       | Done(_,run) -> run
-      | Ping p -> 
-	  let run = try p () with e -> Finished(Failed e) in
-	  match run with
-	    | Finished r -> task := Done(r,run) ; run
-	    | Running _ -> run
+      | Ping p ->
+          let run = try p () with e -> Finished(Failed e) in
+          match run with
+            | Finished r -> task := Done(r,run) ; run
+            | Running _ -> run
 
   let cancel t =
     match ping t with
-      | Running kill -> 
-	  begin
-	    try kill () ; t := finished Canceled 
-	    with e -> t := finished (Failed e)
-	  end
+      | Running kill ->
+          begin
+            try kill () ; t := finished Canceled
+            with e -> t := finished (Failed e)
+          end
       | Finished _ -> ()
 
   type ('a,'b) seq =
@@ -80,15 +80,15 @@ struct
   let bind t k =
     let pinger step () =
       match !step with
-	| Last t -> ping t
-	| Seq(t,k) ->
-	    match ping t with
-	      | Running kill -> Running kill (* 'a conversion *)
-	      | Finished r -> 
-		  let t' = try k r with e -> result (Failed e) in
-		  if r <> Canceled
-		  then ( step := Last t' ; ping t' )
-		  else ( cancel t' ; Finished Canceled )
+        | Last t -> ping t
+        | Seq(t,k) ->
+            match ping t with
+              | Running kill -> Running kill (* 'a conversion *)
+              | Finished r ->
+                  let t' = try k r with e -> result (Failed e) in
+                  if r <> Canceled
+                  then ( step := Last t' ; ping t' )
+                  else ( cancel t' ; Finished Canceled )
     in async (pinger (ref (Seq(t,k))))
 
 end
@@ -112,11 +112,11 @@ let failed text =
     (Format.formatter_of_buffer buffer) text
 
 let bind = Monad.bind
-let sequence t f = 
+let sequence t f =
   bind t (function
-	    | Result r -> f r
-	    | Failed e -> raised e
-	    | Canceled -> canceled ())
+            | Result r -> f r
+            | Failed e -> raised e
+            | Canceled -> canceled ())
 
 let wait = Running (fun () -> ())
 let stop = Finished(Result())
@@ -124,7 +124,7 @@ let nop = return ()
 let todo job = sequence nop job
 let call f x = Monad.async (fun () -> Finished(Result(f x)))
 
-let finally t cb = 
+let finally t cb =
   let kill k cb () =
     try k () ; cb Canceled
     with e -> cb (Failed e)
@@ -135,7 +135,7 @@ let finally t cb =
       | Running k -> Running (kill k cb)
   in Monad.async (pinger t)
 
-let callback t cb = 
+let callback t cb =
   let kill k cb () =
     try k () ; cb Canceled
     with e -> cb (Failed e)
@@ -172,8 +172,8 @@ let ping = Monad.ping
 let cancel = Monad.cancel
 
 let rec wait task =
-  let run = 
-    try !Db.progress () ; Monad.ping task 
+  let run =
+    try !Db.progress () ; Monad.ping task
     with Db.Cancel -> Finished Canceled
   in
   match run with
@@ -187,33 +187,33 @@ let rec wait task =
 let debug = true
 
 let command ?(timeout=0) ?stdout ?stderr cmd args =
-  let hang_on = 
-    if timeout > 0 
-    then Unix.time () +. float_of_int timeout 
+  let hang_on =
+    if timeout > 0
+    then Unix.time () +. float_of_int timeout
     else 0.0 in
   Kernel.debug "exec '@[<hov 4>%t'@]"
     (fun fmt ->
        Format.pp_print_string fmt cmd ;
        Array.iter
-	 (fun c -> Format.fprintf fmt "@ %s" c) args) ;
+         (fun c -> Format.fprintf fmt "@ %s" c) args) ;
   let async = Command.command_async ?stdout ?stderr cmd args in
   let pinger () =
     try
       match async () with
-	| Command.Not_ready kill -> 
-	    if timeout > 0 && Unix.time () > hang_on then
-	      begin
-	    	Kernel.debug "timeout '%s'" cmd ;
-		kill () ; Finished Canceled
-	      end
-	    else Running kill
-	| Command.Result (Unix.WEXITED s) -> 
-	    Kernel.debug "exit '%s' [%d]" cmd s ;
-	    Finished (Result s)
-	| Command.Result (Unix.WSIGNALED s|Unix.WSTOPPED s) -> 
-	    Kernel.debug "signal '%s' [%d]" cmd s ;
-	    Finished Canceled
-    with e -> 
+        | Command.Not_ready kill ->
+            if timeout > 0 && Unix.time () > hang_on then
+              begin
+                Kernel.debug "timeout '%s'" cmd ;
+                kill () ; Finished Canceled
+              end
+            else Running kill
+        | Command.Result (Unix.WEXITED s) ->
+            Kernel.debug "exit '%s' [%d]" cmd s ;
+            Finished (Result s)
+        | Command.Result (Unix.WSIGNALED s|Unix.WSTOPPED s) ->
+            Kernel.debug "signal '%s' [%d]" cmd s ;
+            Finished Canceled
+    with e ->
       Kernel.debug "failure '%s' [%s]" cmd (Printexc.to_string e) ;
       Finished (Failed e)
   in Monad.async pinger
@@ -224,8 +224,16 @@ let command ?(timeout=0) ?stdout ?stderr cmd args =
 
 type callbacks = (unit -> unit) list
 
+(* Invariant:
+
+   terminated + (length running) + Sum ( length queue.(i) ) == scheduled
+
+*)
+
 type server = {
   queue : unit task Queue.t array ;
+  mutable scheduled : int ;
+  mutable terminated : int ;
   mutable running : unit task list ;
   mutable procs : int ;
   mutable activity : callbacks ;
@@ -233,18 +241,19 @@ type server = {
   mutable stop : callbacks ;
 }
 
-let fire callbacks = 
+let fire callbacks =
   List.iter (fun f -> try f () with _ -> ()) callbacks
 
 let server ?(stages=1) ?(procs=4) () = {
   queue = Array.init stages (fun _ -> Queue.create ()) ;
   running = [] ;
   procs = procs ;
+  scheduled = 0 ; terminated = 0 ;
   activity = [] ; start = [] ; stop = [] ;
 }
 
-let on_idle = ref 
-  (fun f -> try 
+let on_idle = ref
+  (fun f -> try
      while f () do Extlib.usleep 50000 (* wait for 50ms *) done
    with Db.Cancel -> ())
 
@@ -253,11 +262,6 @@ let on_server_activity s cb  = s.activity <- s.activity @ [cb]
 let on_server_start s cb = s.start <- s.start @ [cb]
 let on_server_stop s cb  = s.stop <- s.stop @ [cb]
 
-let load s =
-  Array.fold_left
-    (fun w q -> w + Queue.length q)
-    (List.length s.running) s.queue
-
 let cancel_all server =
   begin
     Array.iter (Queue.iter cancel) server.queue ;
@@ -265,8 +269,14 @@ let cancel_all server =
   end
 
 let spawn server ?(stage=0) task =
-  Queue.push task server.queue.(stage)
-  
+  begin
+    Queue.push task server.queue.(stage) ;      (* queue(i) ++ *)
+    server.scheduled <- succ server.scheduled ; (* scheduled ++ *)
+  end (* invariant holds *)
+
+let scheduled s = s.scheduled
+let terminated s = s.terminated
+
 let alive task =
   match Monad.ping task with
     | Running _ -> true
@@ -275,27 +285,40 @@ let alive task =
 let schedule server q =
   try
     while List.length server.running < server.procs do
-      let task = Queue.take q in
-      if alive task then server.running <- task :: server.running
+      let task = Queue.take q in (* queue ++ *)
+      if alive task
+      then server.running <- task :: server.running
+        (* running++ => invariant holds *)
+      else server.terminated <- succ server.terminated
+        (* terminated++ => invariant holds *)
     done
   with Queue.Empty -> ()
 
 let rec run server () =
   begin
-    server.running <- List.filter alive server.running ;
+    server.running <- List.filter
+      (fun task ->
+         if alive task then true
+         else
+           ( (* running -- ; terminated ++ => invariant preserved *)
+             server.terminated <- succ server.terminated ; false )
+      ) server.running ;
     Array.iter (schedule server) server.queue ;
-    try 
-      !Db.progress () ; 
+    try
+      !Db.progress () ;
       fire server.activity ;
-      let continue = server.running <> [] in
-      if not continue then fire server.stop ;
-      continue
+      if server.running <> [] then true else
+        begin
+          fire server.stop ;
+          server.scheduled <- 0 ;
+          server.terminated <- 0 ;
+          false
+        end
     with _ -> (* Db.Cancel ... *)
       cancel_all server ;
       run server ()
   end
 
 let launch server =
-  if server.running = [] && load server > 0 
+  if server.scheduled > server.terminated
   then ( fire server.start ; !on_idle (run server) )
-

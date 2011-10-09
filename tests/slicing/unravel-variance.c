@@ -1,10 +1,9 @@
 /* run.config
-   GCC:
-   OPT: -slice-print -slice-calls printf1 -journal-disable -float-normal
-   OPT: -slice-print -slice-calls printf2 -journal-disable -float-normal
-   OPT: -slice-print -slice-calls printf3 -journal-disable -float-normal
-   OPT: -slice-print -slice-calls printf4 -journal-disable -float-normal
-   OPT: -slice-print -slice-calls printf5 -journal-disable -float-normal
+   OPT: -check -slice-calls printf1 -journal-disable -float-normal -then-on 'Slicing export' -print
+   OPT: -check -slice-calls printf2 -journal-disable -float-normal -then-on 'Slicing export' -print
+   OPT: -check -slice-calls printf3 -journal-disable -float-normal -then-on 'Slicing export' -print
+   OPT: -check -slice-calls printf4 -journal-disable -float-normal -then-on 'Slicing export' -print
+   OPT: -check -slice-calls printf5 -journal-disable -float-normal -then-on 'Slicing export' -print
    */
 /* Small example devired from examples given for UNRAVEL tool : */
 

@@ -121,22 +121,22 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
 
     type t = (D.t * State.t) list State_tbl.t
 
-    let create = State_tbl.create
+    let create x = State_tbl.create x
     let clear = State_tbl.clear
 
     let add tbl s v =
       try
-	let l = State_tbl.find tbl s in
-	State_tbl.replace tbl s (v :: l)
+        let l = State_tbl.find tbl s in
+        State_tbl.replace tbl s (v :: l)
       with Not_found ->
-	State_tbl.add tbl s [ v ]
+        State_tbl.add tbl s [ v ]
 
     let replace ~on_clear tbl s v =
       begin try
-	let old = State_tbl.find tbl s in
-	List.iter (fun (_, s') -> on_clear s') old
+        let old = State_tbl.find tbl s in
+        List.iter (fun (_, s') -> on_clear s') old
       with Not_found ->
-	()
+        ()
       end;
       State_tbl.replace tbl s [ v ]
 
@@ -144,15 +144,15 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
 
     let remove_single tbl key s =
       try
-	match State_tbl.find tbl key with
-	| [] ->
-	  assert false
-	| _ :: _ as l ->
-	  match List.filter (fun (_, s') -> not (State.equal s s')) l with
-	  | [] -> State_tbl.remove tbl key;
-	  | _ :: _ as l -> State_tbl.replace tbl key l
+        match State_tbl.find tbl key with
+        | [] ->
+          assert false
+        | _ :: _ as l ->
+          match List.filter (fun (_, s') -> not (State.equal s s')) l with
+          | [] -> State_tbl.remove tbl key;
+          | _ :: _ as l -> State_tbl.replace tbl key l
       with Not_found ->
-	()
+        ()
 
     let find tbl s =
       match State_tbl.find tbl s with
@@ -165,23 +165,23 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
 
     let fold f tbl acc =
       State_tbl.fold
-	(fun s l acc -> List.fold_left (fun acc v -> f s v acc) acc l)
-	tbl
-	acc
+        (fun s l acc -> List.fold_left (fun acc v -> f s v acc) acc l)
+        tbl
+        acc
 
     let is_empty tbl =
       try
-	State_tbl.iter (fun _ _ -> raise Exit) tbl;
-	true;
+        State_tbl.iter (fun _ _ -> raise Exit) tbl;
+        true;
       with Exit ->
-	false
+        false
 
     let is_singleton tbl =
       try
-	State_tbl.fold
-	  (fun _ _ second -> if second then raise Exit else true) tbl false;
+        State_tbl.fold
+          (fun _ _ second -> if second then raise Exit else true) tbl false;
       with Exit ->
-	false
+        false
 
   end
 
@@ -189,16 +189,16 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
   type data = D.t
   type tbl =
       { h: Internal_tbl.t K.Hashtbl.t;
-	inverse: (key * State.t) list State_tbl.t }
+        inverse: (key * State.t) list State_tbl.t }
 
   include Datatype.Make
-	(struct
-	  include Datatype.Undefined
-	  type t = tbl
-	  let name = Info.name
-	  let reprs =
-	    [ { h = K.Hashtbl.create 0; inverse = State_tbl.create 0 } ]
-	 end)
+        (struct
+          include Datatype.Undefined
+          type t = tbl
+          let name = Info.name
+          let reprs =
+            [ { h = K.Hashtbl.create 0; inverse = State_tbl.create 0 } ]
+         end)
 
   (* Global invariant: only one binding by key.
      So never required to call [K.Hashtbl.find_all] *)
@@ -223,9 +223,9 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     let () = Project.register_todo_before_clear (fun _ -> todo_list := [])
     let () =
       Project.register_todo_after_clear
-	(fun p ->
-	  let del () = List.iter (fun f -> f ()) !todo_list in
-	  Project.on p del ())
+        (fun p ->
+          let del () = List.iter (fun f -> f ()) !todo_list in
+          Project.on p del ())
 
     let add f = todo_list := f :: !todo_list
 
@@ -239,12 +239,12 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
       let keys = State_tbl.find inverse s in
       State_tbl.remove inverse s;
       let clear key s' =
-	try
-	  let internal = K.Hashtbl.find h key in
-	  Internal_tbl.remove_single internal s' s;
-	  if Internal_tbl.is_empty internal then K.Hashtbl.remove h key
-	with Not_found ->
-	  assert false
+        try
+          let internal = K.Hashtbl.find h key in
+          Internal_tbl.remove_single internal s' s;
+          if Internal_tbl.is_empty internal then K.Hashtbl.remove h key
+        with Not_found ->
+          assert false
       in
       List.iter (fun (key, s') -> clear key s') keys
     with Not_found ->
@@ -263,11 +263,11 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
       let h = t.h in
       let tbl = K.Hashtbl.find h key in
       (try
-	 let bindings = Internal_tbl.find_all tbl s in
-	 let del = single_remove ~reset t in
-	 List.iter (fun (_, c) -> del c) bindings
+         let bindings = Internal_tbl.find_all tbl s in
+         let del = single_remove ~reset t in
+         List.iter (fun (_, c) -> del c) bindings
        with Not_found ->
-	 ());
+         ());
       if Internal_tbl.is_singleton tbl then K.Hashtbl.remove h key
       else Internal_tbl.remove tbl s
     with Not_found ->
@@ -286,7 +286,7 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
   let clear ~reset t =
     if reset then
       Project.clear
-	~selection:(State_selection.Dynamic.with_dependencies !G.self) ();
+        ~selection:(State_selection.Dynamic.with_dependencies !G.self) ();
     K.Hashtbl.clear t.h;
     State_tbl.clear t.inverse
 
@@ -306,7 +306,7 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
       (State.get_unique_name local)
       (State.get_name !G.self)
       (fun fmt ->
-	List.iter (fun s -> Format.fprintf fmt "%S, " (State.get_name s)) deps);*)
+        List.iter (fun s -> Format.fprintf fmt "%S, " (State.get_name s)) deps);*)
     let value = v, local in
     let full_deps = match deps with [] -> [ State.dummy ] | _ :: _ -> deps in
     let inverse_binders =
@@ -336,9 +336,9 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     try
       let l = Internal_tbl.find_all (K.Hashtbl.find t.h key) s in
       List.iter
-	(fun (_, local) ->
-	   State_dependency_graph.Dynamic.add_codependencies ~onto:local who)
-	l;
+        (fun (_, local) ->
+           State_dependency_graph.Dynamic.add_codependencies ~onto:local who)
+        l;
       l
     with Not_found ->
       []
@@ -359,44 +359,44 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     (* do not get the same value twice *)
     let module S =
       Set.Make
-	(struct
-	   type t = D.t * State.t
-	   let equal = (==)
-	     (* cannot compare the first component but the second one is a
-		valid key *)
-	   let compare (_, x) (_, y) = State.compare x y
-	 end)
+        (struct
+           type t = D.t * State.t
+           let equal = (==)
+             (* cannot compare the first component but the second one is a
+                valid key *)
+           let compare (_, x) (_, y) = State.compare x y
+         end)
     in
     fun ?(who=[]) t key ->
       let values = tbl_fold (fun _ -> S.add) t key S.empty in
       S.fold
-	(fun (_, local as res) acc ->
-	   State_dependency_graph.Dynamic.add_codependencies ~onto:local who;
-	   res :: acc)
-	values
-	[]
+        (fun (_, local as res) acc ->
+           State_dependency_graph.Dynamic.add_codependencies ~onto:local who;
+           res :: acc)
+        values
+        []
 
   (* optimized *)
   let find_all_data =
     (* do not get the same value twice *)
     let module S =
       Set.Make
-	(struct
-	   type t = D.t * State.t
-	   let equal = (==)
-	     (* cannot compare the first component but the second one is a
-		valid key *)
-	   let compare (_, x) (_, y) = State.compare x y
-	 end)
+        (struct
+           type t = D.t * State.t
+           let equal = (==)
+             (* cannot compare the first component but the second one is a
+                valid key *)
+           let compare (_, x) (_, y) = State.compare x y
+         end)
     in
     fun ?(who=[]) t key ->
       let values = tbl_fold (fun _ -> S.add) t key S.empty in
       S.fold
-	(fun (v, local) acc ->
-	   State_dependency_graph.Dynamic.add_codependencies ~onto:local who;
-	   v :: acc)
-	values
-	[]
+        (fun (v, local) acc ->
+           State_dependency_graph.Dynamic.add_codependencies ~onto:local who;
+           v :: acc)
+        values
+        []
 
   (* optimized *)
   let find_all_states =
@@ -405,11 +405,11 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     fun ?(who=[]) t key ->
       let selfs = tbl_fold (fun _ (_, s) -> S.add s) t key S.empty in
       S.fold
-	(fun local acc ->
-	   State_dependency_graph.Dynamic.add_codependencies ~onto:local who;
-	   local :: acc)
-	selfs
-	[]
+        (fun local acc ->
+           State_dependency_graph.Dynamic.add_codependencies ~onto:local who;
+           local :: acc)
+        selfs
+        []
 
   let mem t key = K.Hashtbl.mem t.h key
   let is_local t s = State_tbl.mem t.inverse s
@@ -425,27 +425,27 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
   let iter f t =
     K.Hashtbl.iter
       (fun k ->
-	Internal_tbl.iter
-	  (fun s v ->
-	    let s = if State.is_dummy s then None else Some s in
-	    f k s v))
+        Internal_tbl.iter
+          (fun s v ->
+            let s = if State.is_dummy s then None else Some s in
+            f k s v))
       t.h
 
   let fold f t acc =
     K.Hashtbl.fold
       (fun k ->
-	Internal_tbl.fold
-	  (fun s v ->
-	    let s = if State.is_dummy s then None else Some s in
-	    f k s v))
+        Internal_tbl.fold
+          (fun s v ->
+            let s = if State.is_dummy s then None else Some s in
+            f k s v))
       t.h acc
 
   let memo ~reset f t name key deps =
     let olds =
       List.fold_left
-	(fun acc s -> try find_data t key s :: acc with Not_found -> acc)
-	[]
-	deps
+        (fun acc s -> try find_data t key s :: acc with Not_found -> acc)
+        []
+        deps
     in
     let data = f olds in
     replace ~reset t name key deps data;
@@ -455,50 +455,50 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     let module S = Set.Make(State) in
     fun ~reset f t key ->
       try
-	let h = t.h in
-	let tbl = K.Hashtbl.find h key in
-	let keep, to_be_delete =
-	  Internal_tbl.fold
-	    (fun s (v, state as x) (keep, delete) ->
-	      let s = if State.is_dummy s then None else Some s in
-	      if f key s v then (s, x) :: keep, delete
-	      else begin
-(*		Format.printf "FILTERING %S (key is %S)@."
-		  (State.get_name state)
-		  (State.get_name s);*)
-		keep, S.add state delete
-	      end)
-	    tbl
-	    ([], S.empty)
-	in
-	S.iter (single_remove ~reset t) to_be_delete;
-	match keep with
-	| [] -> K.Hashtbl.remove h key
-	| _ :: _ ->
-	  Internal_tbl.clear tbl;
-	  List.iter
-	    (fun (s, v) ->
-	      let s = match s with None -> State.dummy | Some s -> s in
-	      Internal_tbl.add tbl s v)
-	    keep;
+        let h = t.h in
+        let tbl = K.Hashtbl.find h key in
+        let keep, to_be_delete =
+          Internal_tbl.fold
+            (fun s (v, state as x) (keep, delete) ->
+              let s = if State.is_dummy s then None else Some s in
+              if f key s v then (s, x) :: keep, delete
+              else begin
+(*              Format.printf "FILTERING %S (key is %S)@."
+                  (State.get_name state)
+                  (State.get_name s);*)
+                keep, S.add state delete
+              end)
+            tbl
+            ([], S.empty)
+        in
+        S.iter (single_remove ~reset t) to_be_delete;
+        match keep with
+        | [] -> K.Hashtbl.remove h key
+        | _ :: _ ->
+          Internal_tbl.clear tbl;
+          List.iter
+            (fun (s, v) ->
+              let s = match s with None -> State.dummy | Some s -> s in
+              Internal_tbl.add tbl s v)
+            keep;
       with Not_found ->
-	()
+        ()
 
   module H =
     Hashtbl.Make
       (struct
-	type t = K.marshaled
-	let equal = K.equal_marshaled
-	let hash = K.hash_marshaled
+        type t = K.marshaled
+        let equal = K.equal_marshaled
+        let hash = K.hash_marshaled
        end)
 
   type marshaled_value =
       { data: D.marshaled;
-	key_name: string;
-	key_cluster: string option;
-	data_uname: string;
-	data_name: string;
-	data_cluster: string option }
+        key_name: string;
+        key_cluster: string option;
+        data_uname: string;
+        data_name: string;
+        data_cluster: string option }
 
   type marshaled =
       (string, marshaled_value) Hashtbl.t H.t
@@ -510,20 +510,20 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     let h : marshaled = H.create 97 in
     K.Hashtbl.iter
       (fun key tbl ->
-	let tbl' = Hashtbl.create 7 in
-	Internal_tbl.iter
-	  (fun s (d, s') ->
-	    Hashtbl.add
-	      tbl'
-	      (State.get_unique_name s)
-	      { data = data_marshal d;
-		key_name = State.get_name s;
-		key_cluster = State.Cluster.name s;
-		data_uname = State.get_unique_name s';
-		data_name = State.get_name s';
-		data_cluster = State.Cluster.name s' })
-	  tbl;
-	H.add h (key_marshal key) tbl')
+        let tbl' = Hashtbl.create 7 in
+        Internal_tbl.iter
+          (fun s (d, s') ->
+            Hashtbl.add
+              tbl'
+              (State.get_unique_name s)
+              { data = data_marshal d;
+                key_name = State.get_name s;
+                key_cluster = State.Cluster.name s;
+                data_uname = State.get_unique_name s';
+                data_name = State.get_name s';
+                data_cluster = State.Cluster.name s' })
+          tbl;
+        H.add h (key_marshal key) tbl')
       dash.h;
     h
 
@@ -533,51 +533,51 @@ module Make(G:Graph)(K:Key)(D:Data)(Info: sig val name: string end) = struct
     let inverse = dash.inverse in
     H.iter
       (fun key tbl ->
-	let tbl' = Internal_tbl.create 7 in
-	let k = key_unmarshal key in
-	let update s k =
-	  (*	  Format.printf "updating %S@." (State.get_unique_name s);*)
-	  State.update_unusable s k (clear_state_on dash s);
-	  G.add_state s;
-	in
-	Hashtbl.iter
-	  (fun
-	    unique_name
-	    { data = d;
-	      key_name = name;
-	      key_cluster = c;
-	      data_uname = unique_name';
-	      data_name = name';
-	      data_cluster = c' }
-	  ->
-	    let s =
-	      if unique_name = State.dummy_unique_name then State.dummy
-	      else
-		try State.get unique_name
-		with State.Unknown -> State.unusable ~name unique_name
-	    in
-	    State.Cluster.unmarshal c s;
-	    let s' =
-	      assert (unique_name' <> State.dummy_unique_name);
-	      try
-		let s' = State.get unique_name' in
-		if not (State.is_usable s') then update s' G.internal_kind;
-		s'
-	      with State.Unknown ->
-		let s' = State.unusable ~name:name' unique_name' in
-		update s' G.internal_kind;
-		s'
-	    in
-	    State.Cluster.unmarshal c' s';
-	    let d = data_unmarshal d in
-	    Internal_tbl.add tbl' s (d, s');
-	    try
-	      let l = State_tbl.find inverse s' in
-	      State_tbl.replace inverse s' ((k, s) :: l)
-	    with Not_found ->
-	      State_tbl.add inverse s' [ k, s ])
-	  tbl;
-	K.Hashtbl.add dash_h k tbl')
+        let tbl' = Internal_tbl.create 7 in
+        let k = key_unmarshal key in
+        let update s k =
+          (*      Format.printf "updating %S@." (State.get_unique_name s);*)
+          State.update_unusable s k (clear_state_on dash s);
+          G.add_state s;
+        in
+        Hashtbl.iter
+          (fun
+            unique_name
+            { data = d;
+              key_name = name;
+              key_cluster = c;
+              data_uname = unique_name';
+              data_name = name';
+              data_cluster = c' }
+          ->
+            let s =
+              if unique_name = State.dummy_unique_name then State.dummy
+              else
+                try State.get unique_name
+                with State.Unknown -> State.unusable ~name unique_name
+            in
+            State.Cluster.unmarshal c s;
+            let s' =
+              assert (unique_name' <> State.dummy_unique_name);
+              try
+                let s' = State.get unique_name' in
+                if not (State.is_usable s') then update s' G.internal_kind;
+                s'
+              with State.Unknown ->
+                let s' = State.unusable ~name:name' unique_name' in
+                update s' G.internal_kind;
+                s'
+            in
+            State.Cluster.unmarshal c' s';
+            let d = data_unmarshal d in
+            Internal_tbl.add tbl' s (d, s');
+            try
+              let l = State_tbl.find inverse s' in
+              State_tbl.replace inverse s' ((k, s) :: l)
+            with Not_found ->
+              State_tbl.add inverse s' [ k, s ])
+          tbl;
+        K.Hashtbl.add dash_h k tbl')
       h;
     dash
 

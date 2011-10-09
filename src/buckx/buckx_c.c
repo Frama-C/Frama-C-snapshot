@@ -135,3 +135,26 @@ value ml_usleep(value v)
   usleep( Int_val(v) );
   return Val_unit ;
 }
+
+#if 0
+extern double cos_rd(double); /* toward -inf */ 
+extern double cos_ru(double); /* toward +inf */ 
+extern unsigned long long crlibm_init(void);
+
+value caml_cos_rd(value arg)
+{
+  return caml_copy_double(cos_rd(Double_val(arg)));
+}
+
+
+value caml_cos_ru(value arg)
+{
+  return caml_copy_double(cos_ru(Double_val(arg)));
+}
+
+value caml_crlibm_init(value dummy)
+{
+  crlibm_init();
+  return Val_unit;
+}
+#endif

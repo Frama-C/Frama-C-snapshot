@@ -40,5 +40,5 @@ val pretty : Format.formatter -> t -> unit
   (** Bit vector, as blocs of 8-bits separated by space,
       first bits to last bits from left to right. *)
 
-val pp_bits : Format.formatter -> int -> unit 
+val pp_bits : Format.formatter -> int -> unit
   (** 0b... format, for bytes only, most significant bits on left. *)

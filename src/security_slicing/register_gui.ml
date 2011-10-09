@@ -70,12 +70,12 @@ let security_selector
              ~callback:
              (fun () ->
                 ForwardHighlighterState.set
-		  (Components.get_forward_component ki);
+                  (Components.get_forward_component ki);
                 IndirectBackwardHighlighterState.set
-		  (Components.get_indirect_backward_component ki);
-		DirectHighlighterState.set
-		  (Components.get_direct_component ki);
-		main_ui#rehighlight ()))
+                  (Components.get_indirect_backward_component ki);
+                DirectHighlighterState.set
+                  (Components.get_direct_component ki);
+                main_ui#rehighlight ()))
     | _ -> ()
 
 let main main_ui =

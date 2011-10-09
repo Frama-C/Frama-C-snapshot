@@ -69,7 +69,7 @@
     fun s -> try Hashtbl.find h s
     with Not_found -> IDENTIFIER s
 
-  let identifier =
+  let identifier, is_acsl_keyword =
     let all_kw = Hashtbl.create 37 in
     let c_kw = Hashtbl.create 37 in
     let type_kw = Hashtbl.create 3 in
@@ -117,6 +117,7 @@
         "logic", LOGIC, false;
         "long", LONG, true;
         "loop", LOOP, false;
+        "modelfield", MODEL, false;(* ACSL extension for model fields *)
         "module", MODULE, false;(* ACSL extension for external spec file *)
         "pragma", PRAGMA, false;
         "predicate", PREDICATE, false;
@@ -139,7 +140,7 @@
       ];
     List.iter (fun (x, y) -> Hashtbl.add type_kw x y)
       ["integer", INTEGER; "real", REAL; "boolean", BOOLEAN; ];
-    fun s ->
+    (fun s ->
       try
         Hashtbl.find (if Logic_utils.is_kw_c_mode () then c_kw else all_kw) s
       with Not_found ->
@@ -149,7 +150,8 @@
              Hashtbl.find type_kw s
            with Not_found ->
              if Logic_utils.is_rt_type_mode () then TYPENAME s
-             else IDENTIFIER s)
+             else IDENTIFIER s)),
+    (fun s -> Hashtbl.mem all_kw s || Hashtbl.mem type_kw s)
 
   let bs_identifier =
     let h = Hashtbl.create 97 in
@@ -164,6 +166,7 @@
         "\\forall", FORALL;
         "\\fresh", FRESH;
         "\\from", FROM;
+        "\\initialized", INITIALIZED;
         "\\inter", INTER;
         "\\lambda", LAMBDA;
         "\\let", LET;
@@ -262,7 +265,7 @@ rule token = parse
   | '0' rD+ rIS?            { CONSTANT (IntConstant (lexeme lexbuf)) }
   | rD+                     { CONSTANT10 (lexeme lexbuf) }
   | rD+ rIS                 { CONSTANT (IntConstant (lexeme lexbuf)) }
-  | ('L'? "'" as prelude) (([^'\'''\n']|"\\'")+ as content) "'"
+  | ('L'? "'" as prelude) (([^ '\\' '\'' '\n']|("\\"[^ '\n']))+ as content) "'"
       {
         let b = Buffer.create 5 in
         Buffer.add_string b prelude;
@@ -282,11 +285,13 @@ rule token = parse
   | (rD+ as n) ".."         { lexbuf.lex_curr_pos <- lexbuf.lex_curr_pos - 2;
                               CONSTANT (IntConstant n) }
 
-  | 'L'? '"' as prelude (([^'"''\n']|"\\\"")+ as content) '"'
+  | 'L'? '"' as prelude (([^ '\\' '"' '\n']|("\\"[^ '\n']))* as content) '"'
       { STRING_LITERAL (prelude.[0] = 'L',content) }
   | '#'                     { hash lexbuf }
   | "==>"                   { IMPLIES }
   | "<==>"                  { IFF }
+  | "-->"                   { BIMPLIES }
+  | "<-->"                  { BIFF }
   | "&&"                    { AND }
   | "||"                    { OR }
   | "!"                     { NOT }
@@ -390,8 +395,7 @@ and hash = parse
                    int_of_string s
                  with Failure ("int_of_string") ->
                    (* the int is too big. *)
-		   let src = Cil.source (lexbuf.lex_start_p, lexbuf.lex_curr_p) in
-                   Cilmsg.warning ~source:src
+                   Kernel.warning ~source:lexbuf.lex_start_p
                      "Bad line number in preprocessed file: %s"  s;
                    (-1)
                  in
@@ -445,26 +449,19 @@ and endline = parse
       f token lb
     with
       | Parsing.Parse_error as _e ->
-          Cil.error_loc (
-	    lb.lex_curr_p.Lexing.pos_fname,
-	    lb.lex_curr_p.Lexing.pos_lnum)
-            "unexpected token '%s'@." (Lexing.lexeme lb);
-          Logic_utils.exit_kw_c_mode ();
-          raise Parsing.Parse_error
-
+        Kernel.error
+	  ~source:lb.lex_curr_p
+          "unexpected token '%s'" (Lexing.lexeme lb);
+        Logic_utils.exit_kw_c_mode ();
+        raise Parsing.Parse_error
       | Error (_, m) ->
-          Cil.error_loc (
-	    lb.lex_curr_p.Lexing.pos_fname,
-	    lb.lex_curr_p.Lexing.pos_lnum)
-            "%s@." m;
-          Logic_utils.exit_kw_c_mode ();
-          raise Parsing.Parse_error
+        Kernel.error ~source:lb.lex_curr_p "%s" m;
+        Logic_utils.exit_kw_c_mode ();
+        raise Parsing.Parse_error
       | Logic_utils.Not_well_formed (loc, m) ->
-          Cil.error_loc
-            ((fst loc).Lexing.pos_fname,(fst loc).Lexing.pos_lnum)
-            "%s@." m;
-          Logic_utils.exit_kw_c_mode ();
-          raise Parsing.Parse_error
+        Kernel.error ~source:(fst loc) "%s" m;
+        Logic_utils.exit_kw_c_mode ();
+        raise Parsing.Parse_error
 
   let lexpr = parse_from_location Logic_parser.lexpr_eof
 

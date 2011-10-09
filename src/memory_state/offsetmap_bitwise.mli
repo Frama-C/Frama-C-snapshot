@@ -20,6 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 open Abstract_interp
 open Abstract_value
 
@@ -70,3 +75,9 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
   val tag: t -> int
 
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

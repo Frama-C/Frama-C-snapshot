@@ -39,7 +39,7 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(** Datatypes of some useful Cil types.
+(** Datatypes of some useful CIL types.
     @plugin development guide *)
 
 open Cil_types
@@ -60,17 +60,19 @@ module Block: S with type t = block
 module Compinfo: S_with_collections with type t = compinfo
 module Enuminfo: S_with_collections with type t = enuminfo
 module Enumitem: S_with_collections with type t = enumitem
-module Exp: S_with_collections with type t = exp
+
+(** Note that the equality is based on eid. For structural equality, use
+    {!Cil.compareExp} *)
+module Exp: sig
+  include S_with_collections with type t = exp
+  val dummy: exp (** @since Nitrogen-20111001 *)
+end
+
 module Fieldinfo: S_with_collections with type t = fieldinfo
 module File: S with type t = file
 
 module Global: sig
-  include S with type t = global
-  val loc: t -> location
-end
-
-module Global_annotation: sig
-  include S with type t = global_annotation
+  include S_with_collections with type t = global
   val loc: t -> location
 end
 
@@ -83,11 +85,20 @@ end
 
 module Kinstr: sig
   include S_with_collections with type t = kinstr
+  val kinstr_of_opt_stmt: stmt option -> kinstr
+    (** @since Nitrogen-20111001. *)
+
   val loc: t -> location
 end
 
 module Label: S with type t = label
 
+(** Single position in a file
+    @since Nitrogen-20111001
+*)
+module Position: S_with_collections with type t = Lexing.position
+
+(** Cil locations *)
 module Location: sig
   include S_with_collections with type t = location
   val unknown: t
@@ -95,30 +106,68 @@ module Location: sig
   val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
+(** Note that the equality is based on eid (for sub-expressions). 
+    For structural equality, use {!Cil.compareLval} *)
 module Lval: sig
   include S_with_collections with type t = lval
   (**/**)
   val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
-module Stmt: sig
-  include S_with_collections with type t = stmt
-  val loc: t -> location
+(** Same remark as for Lval. For structural equality, use {!Cil.compareOffset} *)
+module Offset: sig
+  include S_with_collections with type t = offset
   (**/**)
   val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
-module Typ: S_with_collections with type t = typ
-val pTypeSig : (typ -> typsig) ref
+module Stmt: sig
+  include S_with_collections with type t = stmt
+  module Hptset: sig include Hptset.S with type elt = stmt
+                     val self: State.t end
+  val loc: t -> location
+  val pretty_sid: Format.formatter -> t -> unit
+    (** Pretty print the sid of the statement
+        @since Nitrogen-20111001 *)
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+
+module Typ: sig
+  include S_with_collections with type t = typ
+(**/**)
+val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+(**/**) (* Forward declarations from Cil *)
+val pbitsSizeOf : (typ -> int) ref
+val ptypeAddAttributes: (attributes -> typ -> typ) ref
+(**/**)
+
 
 module Typeinfo: S_with_collections with type t = typeinfo
 
 module Varinfo: sig
   include S_with_collections with type t = varinfo
+  module Hptset: sig include Hptset.S with type elt = t
+                     val self: State.t end
+  val dummy: t
+  val pretty_vname: Format.formatter -> t -> unit
+  (** Pretty print the name of the varinfo.
+      @since Nitrogen-20111001 *)
   (**/**)
   val pretty_ref: (Format.formatter -> t -> unit) ref
   val internal_pretty_code_ref:
     (Type.precedence -> Format.formatter -> t -> unit) ref
+end
+
+module Kf: sig
+  include Datatype.S_with_collections with type t = kernel_function
+  val vi: t -> varinfo
+  val id: t -> int
+
+  (**/**)
+  val set_formal_decls: (varinfo -> varinfo list -> unit) ref
+(**/**)
 end
 
 (**************************************************************************)
@@ -126,12 +175,18 @@ end
     Sorted by alphabetic order. *)
 (**************************************************************************)
 
-module Annotation_status: S with type t = annotation_status
 module Builtin_logic_info: S_with_collections with type t = builtin_logic_info
 
 module Code_annotation: sig
   include S_with_collections with type t = code_annotation
   val loc: t -> location option
+end
+
+module Rooted_code_annotation: Datatype.S with type t = rooted_code_annotation
+
+module Global_annotation: sig
+  include S_with_collections with type t = global_annotation
+  val loc: t -> location
 end
 
 module Logic_ctor_info: S_with_collections with type t = logic_ctor_info
@@ -140,7 +195,7 @@ module Logic_info: S_with_collections with type t = logic_info
 module Logic_type: sig
   include S_with_collections with type t = logic_type
   (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref    
+  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Logic_type_info: S_with_collections with type t = logic_type_info
@@ -149,14 +204,20 @@ module Identified_term: S_with_collections with type t = identified_term
 module Logic_var: sig
   include S_with_collections with type t = logic_var
   (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref    
+  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Term: sig
   include S_with_collections with type t = term
   (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref    
+  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
+
+module Term_lhost: S_with_collections with type t = term_lhost
+module Term_offset: S_with_collections with type t = term_offset
+module Term_lval: S_with_collections with type t = term_lval
+
+module Logic_label: S_with_collections with type t = logic_label
 
 (**************************************************************************)
 (** {3 Logic_ptree}
@@ -170,6 +231,10 @@ module Lexpr: S with type t = Logic_ptree.lexpr
 (**************************************************************************)
 
 module Int_hashtbl: Hashtbl with type 'a t = 'a Inthash.t and type key = int
+
+module Localisation: Datatype.S with type t = localisation
+
+module Alarm: Datatype.S_with_collections with type t = alarm
 
 (*
 Local Variables:

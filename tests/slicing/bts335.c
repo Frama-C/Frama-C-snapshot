@@ -1,9 +1,9 @@
 /* run.config
-   OPT: -slice-pragma g -calldeps -slicing-level 3
+   OPT: -check -slice-pragma g -calldeps -slicing-level 3
 */
 
 /*
-bin/toplevel.opt -slice-pragma g -calldeps -slicing-level 3 tests/slicing/bts335.c -debug 2
+bin/toplevel.opt -check -slice-pragma g -calldeps -slicing-level 3 tests/slicing/bts335.c -debug 2
 bin/toplevel.opt -pdg-debug -pdg -pdg-debug "-dot-pdg bts335" tests/slicing/bts335.c 
  */
 int T[2]  = {0, 0};

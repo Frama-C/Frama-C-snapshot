@@ -29,6 +29,9 @@ open Cil_types
 (** Pretty prints a binary operator *)
 val d_binop: (Format.formatter -> binop -> unit) ref
 
+(** Pretty prints a binary relation *)
+val d_relation: (Format.formatter -> relation -> unit) ref
+
 (** Pretty prints an identifier *)
 val d_ident: (Format.formatter -> string -> unit) ref
 
@@ -86,9 +89,8 @@ val d_term_offset: (Format.formatter -> term_offset -> unit) ref
 
 val d_predicate_named: (Format.formatter -> predicate named -> unit) ref
 val d_code_annotation: (Format.formatter -> code_annotation -> unit) ref
-val d_rooted_code_annotation_before_after: 
-  (Format.formatter -> Db_types.rooted_code_annotation Db_types.before_after -> 
-     unit) ref
+val d_rooted_code_annotation:
+  (Format.formatter -> rooted_code_annotation -> unit) ref
 val d_funspec: (Format.formatter -> funspec -> unit) ref
 val d_annotation: (Format.formatter -> global_annotation -> unit) ref
 

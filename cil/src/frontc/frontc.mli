@@ -39,16 +39,16 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(* Signal that we are in MS VC mode *)
+(** Signals that we are in MS VC mode *)
 val setMSVCMode: unit -> unit
 
-(* Raised when the front-end is requested to print the CABS and return *)
+(** Raised when the front-end is requested to print the CABS and return *)
 exception CabsOnly
 
 (** add a syntactic transformation that will be applied to all freshly parsed
     C files. *)
 val add_syntactic_transformation: (Cabs.file -> Cabs.file) -> unit
 
-(* the main command to parse a file. Return a thunk that can be used to
- * convert the AST to CIL. *)
+(** the main command to parse a file. Return a thunk that can be used to
+   convert the AST to CIL. *)
 val parse: string -> (unit -> Cil_types.file*Cabs.file)

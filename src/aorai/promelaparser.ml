@@ -24,18 +24,20 @@ type token =
   | EOF
 
 open Parsing;;
-# 28 "src/aorai/promelaparser.mly"
+# 30 "src/aorai/promelaparser.mly"
 open Parsing
 open Promelaast
 open Bool3
 
-
 let observed_states=Hashtbl.create 1
-let observed_vars=Hashtbl.create 1
-let observed_funcs=Hashtbl.create 1
 
+let to_seq c = 
+  [{ condition = Some c; nested = [];
+    min_rep = Some (PCst (Logic_ptree.IntConstant "1"));
+    max_rep = Some (PCst (Logic_ptree.IntConstant "1"));
+   }]
 
-# 39 "src/aorai/promelaparser.ml"
+# 41 "src/aorai/promelaparser.ml"
 let yytransl_const = [|
   257 (* PROMELA_OR *);
   258 (* PROMELA_AND *);
@@ -167,74 +169,62 @@ let yyact = [|
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
     Obj.repr(
-# 66 "src/aorai/promelaparser.mly"
+# 70 "src/aorai/promelaparser.mly"
                                                                  ( 
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
 		if st.acceptation=Undefined or st.init=Undefined then
 		  begin
-		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
-		    exit 1
+                    Aorai_option.abort 
+                      "Error: the state %s is used but never defined" st.name;
 		  end;
 		st::l
 	      ) observed_states []
-	    in 
-	    let n=ref 0 in
-	    let (transitions,_) = Logic_simplification.simplifyTrans _3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
-
-	    ((states , transitions),observed_vars,observed_funcs)
+            in
+            (states , _3)
 	)
-# 189 "src/aorai/promelaparser.ml"
-               : (Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t)))
+# 187 "src/aorai/promelaparser.ml"
+               : Promelaast.parsed_automaton))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 3 : 'states) in
     Obj.repr(
-# 83 "src/aorai/promelaparser.mly"
-                                                                                   (
-	    let states=
-	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
-		  begin
-		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
-		    exit 1
-		  end;
-		st::l
-	      ) observed_states []
-	    in
-	    let n=ref 0 in
-	    let (transitions,_) = Logic_simplification.simplifyTrans _3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
-
-
-	    ((states , transitions),observed_vars,observed_funcs) )
-# 212 "src/aorai/promelaparser.ml"
-               : (Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t)))
+# 84 "src/aorai/promelaparser.mly"
+                               (
+	      let states=
+	        Hashtbl.fold (fun _ st l -> 
+		  if st.acceptation=Undefined or st.init=Undefined then
+		    begin
+                      Aorai_option.abort 
+                        "Error: the state %s is used but never defined" st.name;
+		    end;
+		  st::l
+	        ) observed_states []
+	      in
+	      (states , _3) )
+# 205 "src/aorai/promelaparser.ml"
+               : Promelaast.parsed_automaton))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
-# 105 "src/aorai/promelaparser.mly"
+# 99 "src/aorai/promelaparser.mly"
                                          ( 
 	    _1@_3
-	    (*let (s1,t1)=$1 in
-	    let (s2,t2)=$3 in
-	      (s1@s2,t1@t2)*)
 	  )
-# 225 "src/aorai/promelaparser.ml"
+# 215 "src/aorai/promelaparser.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
-# 111 "src/aorai/promelaparser.mly"
+# 102 "src/aorai/promelaparser.mly"
          ( _1 )
-# 232 "src/aorai/promelaparser.ml"
+# 222 "src/aorai/promelaparser.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'state_labels) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'state_body) in
     Obj.repr(
-# 115 "src/aorai/promelaparser.mly"
+# 106 "src/aorai/promelaparser.mly"
                                   (
 	  let (stl,trans)=_1 in
 	  let (trl,force_final)=_2 in
@@ -244,7 +234,8 @@ let yyact = [|
 		  try 
 		    (Hashtbl.find observed_states s.name).acceptation <- True
 		  with
-		    | Not_found -> assert false (* This state has to be in the hashtable -- by construction *)
+		    | Not_found -> assert false 
+                (* This state has to be in the hashtable -- by construction *)
 		) stl
 	      end;
 	    if trl=[] then
@@ -253,41 +244,37 @@ let yyact = [|
 	      let tr_list=
 		List.fold_left (fun l1 (cr,stop_st)  -> 
 		  List.fold_left (fun l2 st -> 
-		    {start=st;stop=stop_st;cross=cr;numt=(-1)}::l2
+		    {start=st;stop=stop_st;cross=Seq (to_seq cr);numt=(-1)}::l2
 		  ) l1 stl
 		) [] trl 
 	      in
 	        (List.rev tr_list)@trans
-	      
-
-
-
 	)
-# 267 "src/aorai/promelaparser.ml"
+# 254 "src/aorai/promelaparser.ml"
                : 'state))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'label) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'state_labels) in
     Obj.repr(
-# 146 "src/aorai/promelaparser.mly"
+# 134 "src/aorai/promelaparser.mly"
                              ( 
 	    let (stl1,trl1)=_1 in
 	    let (stl2,trl2)=_2 in
 	      (stl1@stl2,trl1@trl2) 
 	)
-# 279 "src/aorai/promelaparser.ml"
+# 266 "src/aorai/promelaparser.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'label) in
     Obj.repr(
-# 151 "src/aorai/promelaparser.mly"
+# 139 "src/aorai/promelaparser.mly"
          ( _1 )
-# 286 "src/aorai/promelaparser.ml"
+# 273 "src/aorai/promelaparser.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
-# 155 "src/aorai/promelaparser.mly"
+# 143 "src/aorai/promelaparser.mly"
                                       (
 	  begin
     (* Step 0 : trans is the set of new transitions and old is the description of the current state *)
@@ -299,164 +286,174 @@ let yyact = [|
 		Hashtbl.find observed_states _1
 	      with
 		| Not_found -> 
-		    let s={name=_1;acceptation=Undefined;init=Undefined;nums=(Hashtbl.length observed_states)} in
+		    let s = Data_for_aorai.new_state _1 in
 		    Hashtbl.add observed_states _1 s;
 		    s
 	    in
-    (* Step 1 : setting up the acceptance status *)
+            (* Step 1 : setting up the acceptance status *)
 	    (* Default status : Non acceptation state *)
  	    old.acceptation <- False;
 	    
-	    (* Accept_all state means acceptance state with a reflexive transition without cross condition *)
-	    (* This case is not exlusive with the following. Acceptation status is set in this last. *)
-	    if (String.length _1>=10) && (String.compare (String.sub _1 0 10) "accept_all")=0 then 
-	      trans:={start=old;stop=old;cross=PTrue;numt=(-1)}::!trans;
-	    
-	    (* If the name includes accept then this state is an acceptation one. *)
-	    if (String.length _1>=7) && (String.compare (String.sub _1 0 7) "accept_")=0 then
+	    (* Accept_all state means acceptance state with a 
+               reflexive transition without cross condition *)
+	    (* This case is not exclusive with the following. 
+               Acceptation status is set in this last. *)
+	    if (String.length _1>=10) && 
+              (String.compare (String.sub _1 0 10) "accept_all")=0 
+            then 
+	      trans:=
+                {start=old;stop=old;cross=Seq (to_seq PTrue);numt=(-1)} ::
+                !trans;
+	    (* If the name includes accept then 
+               this state is an acceptation one. *)
+	    if (String.length _1>=7) && 
+              (String.compare (String.sub _1 0 7) "accept_")=0 
+            then
 	      old.acceptation <- True;
 
-    (* Step 2 : setting up the init status *)
-	    (* If the state name ended with "_init" then it is an initial state. Else, it is not. *)
-	    if (String.length _1>=5) && (String.compare (String.sub _1 ((String.length _1)-5) 5) "_init" ) = 0
-	    then  
+            (* Step 2 : setting up the init status *)
+	    (* If the state name ended with "_init" then 
+               it is an initial state. Else, it is not. *)
+	    if (String.length _1>=5) && 
+              (String.compare (String.sub _1 ((String.length _1)-5) 5) 
+                 "_init" ) = 0
+	    then
 	      old.init <- True
 	    else
 	      old.init <- False;
-	    
 	    ([old],!trans)
 	  end
 	)
-# 331 "src/aorai/promelaparser.ml"
+# 328 "src/aorai/promelaparser.ml"
                : 'label))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     Obj.repr(
-# 198 "src/aorai/promelaparser.mly"
+# 196 "src/aorai/promelaparser.mly"
                                             ( (_2,false) )
-# 338 "src/aorai/promelaparser.ml"
+# 335 "src/aorai/promelaparser.ml"
+               : 'state_body))
+; (fun __caml_parser_env ->
+    Obj.repr(
+# 197 "src/aorai/promelaparser.mly"
+                ( ([],false) )
+# 341 "src/aorai/promelaparser.ml"
+               : 'state_body))
+; (fun __caml_parser_env ->
+    Obj.repr(
+# 198 "src/aorai/promelaparser.mly"
+                 ( ([],true) )
+# 347 "src/aorai/promelaparser.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 199 "src/aorai/promelaparser.mly"
-                ( ([],false) )
-# 344 "src/aorai/promelaparser.ml"
-               : 'state_body))
-; (fun __caml_parser_env ->
-    Obj.repr(
-# 200 "src/aorai/promelaparser.mly"
-                 ( ([],true) )
-# 350 "src/aorai/promelaparser.ml"
-               : 'state_body))
-; (fun __caml_parser_env ->
-    Obj.repr(
-# 201 "src/aorai/promelaparser.mly"
                                                             ( ([],true) )
-# 356 "src/aorai/promelaparser.ml"
+# 353 "src/aorai/promelaparser.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
-# 206 "src/aorai/promelaparser.mly"
+# 204 "src/aorai/promelaparser.mly"
                                  ( _1@[_2] )
-# 364 "src/aorai/promelaparser.ml"
+# 361 "src/aorai/promelaparser.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
-# 207 "src/aorai/promelaparser.mly"
+# 205 "src/aorai/promelaparser.mly"
               ( [_1] )
-# 371 "src/aorai/promelaparser.ml"
+# 368 "src/aorai/promelaparser.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'guard) in
     let _5 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 211 "src/aorai/promelaparser.mly"
+# 209 "src/aorai/promelaparser.mly"
                                                                                     (
 	  let s=
 	    try
 	      Hashtbl.find observed_states _5
 	    with
 		Not_found -> 
-		  let r={name=_5;init=Undefined;acceptation=Undefined;nums=(Hashtbl.length observed_states)}  in
-		    Hashtbl.add observed_states _5 r;
-		    r
+		  let r = Data_for_aorai.new_state _5 in
+		  Hashtbl.add observed_states _5 r;
+		  r
 	  in
-	    (_2,s)
+	  (_2,s)
 	)
-# 390 "src/aorai/promelaparser.ml"
+# 387 "src/aorai/promelaparser.ml"
                : 'transition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
+# 224 "src/aorai/promelaparser.mly"
+                          ( POr(PCall (_1,None), PReturn _1) )
+# 394 "src/aorai/promelaparser.ml"
+               : 'guard))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
+    Obj.repr(
+# 225 "src/aorai/promelaparser.mly"
+                         ( PCall (_1,None) )
+# 401 "src/aorai/promelaparser.ml"
+               : 'guard))
+; (fun __caml_parser_env ->
+    let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
+    Obj.repr(
+# 226 "src/aorai/promelaparser.mly"
+                           ( PReturn _1 )
+# 408 "src/aorai/promelaparser.ml"
+               : 'guard))
+; (fun __caml_parser_env ->
+    Obj.repr(
 # 227 "src/aorai/promelaparser.mly"
-     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCallOrReturn _1 )
-# 397 "src/aorai/promelaparser.ml"
-               : 'guard))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
-    Obj.repr(
-# 229 "src/aorai/promelaparser.mly"
-     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PCall _1 )
-# 404 "src/aorai/promelaparser.ml"
-               : 'guard))
-; (fun __caml_parser_env ->
-    let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
-    Obj.repr(
-# 231 "src/aorai/promelaparser.mly"
-     ( if not (Hashtbl.mem observed_funcs _1) then Hashtbl.add observed_funcs _1 _1 ; PReturn _1 )
-# 411 "src/aorai/promelaparser.ml"
+                ( PTrue )
+# 414 "src/aorai/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     Obj.repr(
-# 233 "src/aorai/promelaparser.mly"
-            ( PTrue )
-# 417 "src/aorai/promelaparser.ml"
-               : 'guard))
-; (fun __caml_parser_env ->
-    Obj.repr(
-# 235 "src/aorai/promelaparser.mly"
-            ( PFalse )
-# 423 "src/aorai/promelaparser.ml"
+# 228 "src/aorai/promelaparser.mly"
+                 ( PFalse )
+# 420 "src/aorai/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 237 "src/aorai/promelaparser.mly"
-     ( PNot _2 )
-# 430 "src/aorai/promelaparser.ml"
+# 229 "src/aorai/promelaparser.mly"
+                     ( PNot _2 )
+# 427 "src/aorai/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 239 "src/aorai/promelaparser.mly"
-     ( PAnd (_1,_3) )
-# 438 "src/aorai/promelaparser.ml"
+# 230 "src/aorai/promelaparser.mly"
+                           ( PAnd (_1,_3) )
+# 435 "src/aorai/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
-# 241 "src/aorai/promelaparser.mly"
-            ( POr (_1,_3) )
-# 446 "src/aorai/promelaparser.ml"
+# 231 "src/aorai/promelaparser.mly"
+                          ( POr (_1,_3) )
+# 443 "src/aorai/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'guard) in
     Obj.repr(
-# 243 "src/aorai/promelaparser.mly"
-     ( _2 )
-# 453 "src/aorai/promelaparser.ml"
+# 232 "src/aorai/promelaparser.mly"
+                                       ( _2 )
+# 450 "src/aorai/promelaparser.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
-# 245 "src/aorai/promelaparser.mly"
-     ( if not (Hashtbl.mem observed_vars _1) then Hashtbl.add observed_vars _1 _1 ; PIndexedExp _1 )
-# 460 "src/aorai/promelaparser.ml"
+# 234 "src/aorai/promelaparser.mly"
+            ( PRel (Logic_ptree.Neq,PVar _1,PCst(Logic_ptree.IntConstant "0")) )
+# 457 "src/aorai/promelaparser.ml"
                : 'guard))
 (* Entry promela *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))
@@ -479,4 +476,4 @@ let yytables =
     Parsing.names_const=yynames_const;
     Parsing.names_block=yynames_block }
 let promela (lexfun : Lexing.lexbuf -> token) (lexbuf : Lexing.lexbuf) =
-   (Parsing.yyparse yytables 1 lexfun lexbuf : (Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t))
+   (Parsing.yyparse yytables 1 lexfun lexbuf : Promelaast.parsed_automaton)

@@ -22,7 +22,7 @@
 .\"                                                                        
 .\"                                                                        
 
-.TH FRAMA-C 1 2010-12-17
+.TH FRAMA-C 1 2011-02-22
 
 .SH NAME
 frama-c[.byte] \- a static analyzer for C programs
@@ -132,6 +132,11 @@ by default. Use
 .B -pp-annot
 for that.
 .TP
+.BI \-big\-ints\-hex\  max
+integers larger than
+.I max
+are displayed in hexadecimal (by default, all integers are displayed in decimal)
+.TP
 .B [-no]-collapse-call-cast
 allows implicit cast between the value returned by a function and the lval
 it is assigned to. Otherwise, a temporary variable is used and the cast is
@@ -194,6 +199,9 @@ Floating point operations flush to zero
 .TP
 .B -float-hex
 display floats as hexadecimal
+.TP
+.B -float-normal
+display floats with standard Ocaml routine
 .TP
 .B -float-relative
 display float interval as [
@@ -272,7 +280,8 @@ as the current machine-dependent configuration (size of the various
 integer types, endiandness, ...). The list of currently supported machines is
 available through
 .B -machdep help
-option.
+option. Default is
+.B x86_32
 .TP
 .BI -main\  f
 Sets
@@ -346,6 +355,21 @@ after analyses have taken place.
 removes break, continue and switch statement before analyses. Defaults to
 no.
 .TP
+.B -then
+allows to compose analyzes: a first run of Frama-C will occur with the 
+options before
+.B -then
+and a second run will be done with the options after 
+.B -then
+on the current project from the first run.
+.TP
+.BI \-then\-on\  prj
+Similar to
+.B -then
+except that the second run is performed in project
+.I prj
+If no such project exists, Frama-C exits with an error.
+.TP
 .BI -time\  file
 outputs user time and date in the given
 .I file
@@ -393,6 +417,35 @@ the command
 .PP
 will give the list of options that are specific to the plugin.
 
+.SH EXIT STATUS
+.TP
+.B 0
+Successful execution
+.TP
+.B 1
+Invalid user input
+.TP
+.B 2
+User interruption (kill or equivalent)
+.TP
+.B 3
+Unimplemented feature
+.TP
+.B 4
+Internal error
+.TP
+.B 5
+Error while exiting normally
+.TP
+.B 6
+Error while exiting abnormally
+.TP
+.B 125
+Unknown error
+.P
+Exit status greater than 2 can be considered as a bug (or a feature request 
+for the case of exit status 3) and may be reported on Frama-C's BTS (see below).
+
 .SH ENVIRONMENT VARIABLES
 It is possible to control the places where Frama-C looks for its files
 through the following variables.
@@ -408,5 +461,10 @@ plugins in several places, use \fB-add-path\fP instead.
 The directory where Frama-C datas are installed.
 
 .SH SEE ALSO
-.IR Frama-C\ homepage ,
+.BR Frama-C\ user\ manual :\  $FRAMAC_SHARE /manuals/user-manual.pdf
+.P
+.BR Frama-C\ homepage :
 http://frama-c.com
+.P
+.BR Frama-C\ BTS :
+http://bts.frama-c.com

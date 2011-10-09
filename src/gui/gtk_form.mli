@@ -20,6 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 (* ------------------------------------------------------------------------ *)
 (* ---  Forms Factory                                                   --- *)
 (* ------------------------------------------------------------------------ *)
@@ -28,21 +33,20 @@ type demon
 val demon : unit -> demon
 val refresh : demon -> (unit -> unit)
 
-type 'a field = 
+type 'a field =
     ?tooltip:string -> packing:(GObj.widget -> unit) ->
-  (unit -> 'a) -> ('a -> unit) -> demon -> unit
-  
+    (unit -> 'a) -> ('a -> unit) -> demon -> unit
+
 val check : ?label:string -> bool field
 val menu : (string * 'a) list -> ?width:int -> 'a field
 val spinner : ?lower:int -> ?upper:int -> ?width:int -> int field
 val label : text:string -> packing:(GObj.widget -> unit) -> unit -> unit
-val button : label:string -> ?tooltip:string -> callback:(unit -> unit) -> packing:(GObj.widget -> unit) -> unit -> unit
+val button : 
+  label:string -> ?tooltip:string -> callback:(unit -> unit) -> 
+  packing:(GObj.widget -> unit) -> unit -> unit
 
-class form : packing:(GObj.widget -> unit) -> 
-object
-  
+class form : packing:(GObj.widget -> unit) -> object
   method label : string -> unit
   method item : GObj.widget -> unit
   method row : GObj.widget -> unit
-    
 end

@@ -1,7 +1,7 @@
 /* run.config
- OPT: -slice-return main -slice-print -journal-disable
- OPT: -slice-pragma main -slice-print -journal-disable
- OPT: -sparecode-analysis -journal-disable
+ OPT: -check -slice-return main -journal-disable -then-on 'Slicing export' -print
+ OPT: -check -slice-pragma main -journal-disable -then-on 'Slicing export' -print
+ OPT: -check -sparecode-analysis -journal-disable
 */
 
 struct {int a; int ab; int b; int c ; int d;} S;

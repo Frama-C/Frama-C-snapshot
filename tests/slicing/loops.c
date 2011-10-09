@@ -1,28 +1,28 @@
 /* run.config
-   OPT: -slice-print -deps -lib-entry -main f1 -slice-pragma f1 -journal-disable
-   OPT: -slice-print -deps -lib-entry -main f1 -slice-assert f1 -journal-disable
-   OPT: -slice-print -deps -lib-entry -main f2 -slice-pragma f2 -journal-disable
-   OPT: -slice-print -deps -lib-entry -main f2 -slice-assert f2 -journal-disable
-   OPT: -slice-print -deps -main test_infinite_loop_3 -slice-value G -journal-disable
-   OPT: -slice-print -deps -main test_infinite_loop_4 -slice-value G -journal-disable
-   OPT: -slice-print -deps -main test_infinite_loop_5 -slice-value G -journal-disable
-   OPT: -slice-print -deps -main loop -slice-value Z  -journal-disable
-   OPT: -slice-print -deps -slice-calls loop -journal-disable
-   OPT: -slice-print -deps -slice-pragma loop -journal-disable
-   OPT: -slice-print -deps -slice-assert loop -journal-disable
-   OPT: -slice-print -deps -main loop -slice-rd Y -journal-disable
-   OPT: -slice-print -deps -main loop -slice-rd Z -journal-disable
-   OPT: -slice-print -deps -main loop -slice-wr Y -journal-disable
-   OPT: -slice-print -deps -main loop -slice-wr Z  -journal-disable
-   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-pragma stop_f1 -journal-disable
-   OPT: -slice-print -deps -lib-entry -main stop_f1 -slice-assert stop_f1 -journal-disable
-   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-pragma stop_f2 -journal-disable
-   OPT: -slice-print -deps -lib-entry -main stop_f2 -slice-assert stop_f2  -journal-disable
-   OPT: -slice-print -deps -slice-value Z  -journal-disable
-   OPT: -slice-print -deps -slice-rd Y -journal-disable
-   OPT: -slice-print -deps -slice-rd Z -journal-disable
-   OPT: -slice-print -deps -slice-wr Y -journal-disable
-   OPT: -slice-print -deps -slice-wr Z -journal-disable
+   OPT: -check -deps -lib-entry -main f1 -slice-pragma f1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main f1 -slice-assert f1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main f2 -slice-pragma f2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main f2 -slice-assert f2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main test_infinite_loop_3 -slice-value G -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main test_infinite_loop_4 -slice-value G -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main test_infinite_loop_5 -slice-value G -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main loop -slice-value Z  -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-calls loop -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-pragma loop -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-assert loop -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main loop -slice-rd Y -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main loop -slice-rd Z -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main loop -slice-wr Y -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -main loop -slice-wr Z  -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main stop_f1 -slice-pragma stop_f1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main stop_f1 -slice-assert stop_f1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main stop_f2 -slice-pragma stop_f2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main stop_f2 -slice-assert stop_f2  -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-value Z  -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-rd Y -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-rd Z -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-wr Y -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -slice-wr Z -journal-disable -then-on 'Slicing export' -print
 
 
 

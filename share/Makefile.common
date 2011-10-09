@@ -116,10 +116,14 @@ endif
 # a given rule (second argument)
 external_make = \
   $(MAKE) FRAMAC_INTERNAL=yes \
-          PLUGIN_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/$(PLUGIN_LIB_DIR) \
-          PLUGIN_GUI_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/$(PLUGIN_GUI_LIB_DIR) \
-          FRAMAC_LIBDIR=$(FRAMAC_TOP_SRCDIR)/lib/fc \
-          FRAMAC_SHARE=$(FRAMAC_TOP_SRCDIR)/share -C $(1) $(2)
+          PLUGIN_LIB_DIR="\
+             $(if $(filter /%,$(PLUGIN_LIB_DIR)),$(PLUGIN_LIB_DIR),\
+                    $(FRAMAC_TOP_SRCDIR)/$(PLUGIN_LIB_DIR))" \
+          PLUGIN_GUI_LIB_DIR="\
+            $(if $(filter /%,$(PLUGIN_GUI_LIB_DIR)),$(PLUGIN_GUI_LIB_DIR),\
+                   $(FRAMAC_TOP_SRCDIR)/$(PLUGIN_GUI_LIB_DIR))" \
+          FRAMAC_LIBDIR="$(FRAMAC_TOP_SRCDIR)/lib/fc" \
+          FRAMAC_SHARE="$(FRAMAC_TOP_SRCDIR)/share" -C $(1) $(2)
 
 ##################
 # Shell commands #
@@ -130,11 +134,19 @@ external_make = \
 CAT	= cat
 CHMOD	= chmod
 CHMOD_RO= chmod a-w
-CP      = cp -f
+CHMOD_RW= sh -c \
+'for f in "$$@"; do \
+  if test -e $$f; then chmod u+w $$f; fi \
+done' chmod_rw
+CP      = /usr/bin/install
 ECHO	= echo
 MKDIR   = mkdir -p
 MV	= mv
-ISED	= ./bin/sed_inplace
+ISED	= sh -c \
+'new_temp=`mktemp /tmp/frama-c.XXXXXXX` || exit 1; \
+sed "$$@" > $$new_temp; \
+eval last=\$${$$\#}; \
+mv $$new_temp $$last' sed_inplace
 SED	= sed
 RM	= rm -f
 TAR	= tar
@@ -181,7 +193,12 @@ define COMPILE_TESTS_ML_FILES
 # Function with two arguments:
 #  - $(1) is the test directory under consideration.
 #  - $(2) is the name of Frama-C component under test (plugin or some core part)
-.PRECIOUS: $(patsubst %.ml, %.cmo %.cmx %.cmxs %.opt %.byte, $(wildcard tests/$(1)/*.ml))
+ML_TESTS:=$(wildcard tests/$(1)/*.ml)
+.PRECIOUS: $(patsubst %.ml, %.cmo, $(ML_TESTS)) \
+	$(patsubst %.ml, %.cmx, $(ML_TESTS)) \
+	$(patsubst %.ml, %.cmxs, $(ML_TESTS)) \
+	$(patsubst %.ml, %.opt, $(ML_TESTS)) \
+	$(patsubst %.ml, %.byte, $(ML_TESTS))
 
 # [JS 2009/03/18] in the 5 rules below, don't print anything while VERBOSEMAKE
 # is not set (otherwise "make tests" is too much verbose)
@@ -217,6 +234,16 @@ $(filter-out $(3:.cmx=.cmo), \
      $(3:.cmx=.cmo)
 
 endef #COMPILE_TESTS_ML_FILES
+
+#################
+# Documentation #
+#################
+
+ifeq ("$(OCAMLDOC)","ocamldoc.opt")
+DOC_PLUGIN=$(DOC_DIR)/docgen.cmxs
+else
+DOC_PLUGIN=$(DOC_DIR)/docgen.cmo
+endif
 
 #################
 # Generic rules #
@@ -288,11 +315,15 @@ endif
 
 .mll.ml:
 	$(PRINT_OCAMLLEX) $@
+	$(CHMOD_RW) $@
 	$(OCAMLLEX) $<
+	$(CHMOD_RO) $@
 
 %.mli %.ml: %.mly
 	$(PRINT_OCAMLYACC) $@
+	$(CHMOD_RW) $(<:.mly=.ml) $(<:.mly=.mli)
 	$(OCAMLYACC) -v $<
+	$(CHMOD_RO) $(<:.mly=.ml) $(<:.mly=.mli)
 
 .tex.dvi:
 	$(PRINT_LATEX) $@

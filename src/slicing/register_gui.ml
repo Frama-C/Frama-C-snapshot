@@ -25,16 +25,20 @@
 open Cil_types
 open Cil_datatype
 
-module Enable =
-  State_builder.Ref
+(* Show or hide the 'Slicing' column of the gui filetree. *)
+let show_column = ref (fun () -> ())
+
+(* Are results shown? *)
+module Enabled = struct
+  include State_builder.Ref
     (Datatype.Bool)
     (struct
        let name = "Slicing_gui.State"
-       let dependencies = []
+       let dependencies = [!Db.Slicing.self]
        let kind = `Internal
        let default () = false
      end)
-
+end
 
 (* for slicing callback *)
 let mk_selection fselect = fselect Db.Slicing.Select.empty_selects
@@ -56,10 +60,10 @@ let mk_slice selection =
   !Db.Slicing.Request.apply_all_internal project;
   if SlicingParameters.Mode.Callers.get () then
     !Db.Slicing.Slice.remove_uncalled project;
-  let sliced_project_name = 
+  let sliced_project_name =
     let postfix = SlicingParameters.ExportedProjectPostfix.get ()
     in if postfix = "" then project_name else (project_name ^ " " ^ postfix)
-  in 
+  in
   let new_project =
     !Db.Slicing.Project.extract sliced_project_name project
   in
@@ -117,7 +121,7 @@ let gui_compute_values (main_ui:Design.main_window_extension_points) =
   if not (Db.Value.is_computed ()) then begin
     let tag_style_oblique =
       Gtk_helper.make_tag main_ui#annot_window#buffer
-	~name:"slicing:style oblique" [`STYLE `OBLIQUE  ; ]
+        ~name:"slicing:style oblique" [`STYLE `OBLIQUE  ; ]
     in
     main_ui#annot_window#buffer#insert
       "[Slicing] activation requires an execution of a ";
@@ -160,16 +164,18 @@ let gui_set_project (main_ui:Design.main_window_extension_points) proj_opt =
 
 let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
     (main_ui:Design.main_window_extension_points) ~button localizable =
-  if (not (Db.Value.is_computed ())) || not (Enable.get ())
+  if (not (Db.Value.is_computed ())) || not (Enabled.get ())
   then
     ignore
-      (popup_factory#add_item "_Slicing ..."
-	 ~callback:
-	 (fun () ->
-	    if (not (Db.Value.is_computed ()))
-	    then gui_compute_values main_ui ;
-	    if Db.Value.is_computed ()
-	    then Enable.set true))
+      (popup_factory#add_item "Enable _slicing"
+         ~callback:
+         (fun () ->
+            if (not (Db.Value.is_computed ()))
+            then gui_compute_values main_ui ;
+            if Db.Value.is_computed ()
+            then (Enabled.set true;
+                  !show_column ())
+         ))
   else
     let slicing_project = !Db.Slicing.Project.get_project () in
     if button = 1 then
@@ -222,71 +228,71 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
       let add_slicing_item name = add_item slicing_factory name in
       let mk_slice = gui_mk_slice main_ui in
       let add_slice_menu kf_opt kf_ki_opt =
-	(let callback kf =
-	   mk_slice
-             ~info:(fun () ->
-	       Pretty_utils.sfprintf
-		 "Request for slicing effects of function %a"
-                 Kernel_function.pretty_name kf)
-             (mk_selection_all !Db.Slicing.Select.select_func_calls_to kf)
-	 in
-         add_slicing_item "Slice calls to" kf_opt ~callback);
-
-	(let callback kf =
+        (let callback kf =
            mk_slice
              ~info:(fun () ->
-	       Pretty_utils.sfprintf
-		 "Request for slicing entrance into function %a"
-                 Kernel_function.pretty_name kf)
+               Pretty_utils.sfprintf
+                 "Request for slicing effects of function %a"
+                 Kernel_function.pretty kf)
+             (mk_selection_all !Db.Slicing.Select.select_func_calls_to kf)
+         in
+         add_slicing_item "Slice calls to" kf_opt ~callback);
+
+        (let callback kf =
+           mk_slice
+             ~info:(fun () ->
+               Pretty_utils.sfprintf
+                 "Request for slicing entrance into function %a"
+                 Kernel_function.pretty kf)
              (mk_selection_all !Db.Slicing.Select.select_func_calls_into kf)
-	 in
+         in
         add_slicing_item "Slice calls into" kf_opt ~callback);
 
         (let callback kf =
            mk_slice
              ~info:(fun () ->
-	       Pretty_utils.sfprintf
-		 "Request for returned value of function %a"
-                 Kernel_function.pretty_name kf)
+               Pretty_utils.sfprintf
+                 "Request for returned value of function %a"
+                 Kernel_function.pretty kf)
              (mk_selection_all !Db.Slicing.Select.select_func_return kf)
-	 in
-	 add_slicing_item "Slice result"
+         in
+         add_slicing_item "Slice result"
            (Extlib.opt_filter
-	      (fun kf ->
-		let is_not_void_kf x =
+              (fun kf ->
+                let is_not_void_kf x =
                   match x.Cil_types.vtype with
                   | Cil_types.TFun (Cil_types.TVoid (_),_,_,_) -> false
                   | _ -> true
-		in is_not_void_kf (Kernel_function.get_vi kf))
+                in is_not_void_kf (Kernel_function.get_vi kf))
               kf_opt)
            ~callback);
 
-	(let callback (kf, ki) =
+        (let callback (kf, ki) =
            mk_slice
              ~info:(fun () ->
-	       Pretty_utils.sfprintf
-		 "Request for slicing effects of statement %d"
+               Pretty_utils.sfprintf
+                 "Request for slicing effects of statement %d"
                  ki.sid)
              (mk_selection_all !Db.Slicing.Select.select_stmt ki kf)
-	 in
+         in
          add_slicing_item "Slice stmt" kf_ki_opt ~callback);
 
-	(let callback (kf, ki) =
+        (let callback (kf, ki) =
           let do_with_txt txt =
             try
               let lval_str =
-		Datatype.String.Set.add txt Datatype.String.Set.empty
-	      in
+                Datatype.String.Set.add txt Datatype.String.Set.empty
+              in
               mk_slice
                 ~info:(fun () ->
-		  Pretty_utils.sfprintf
-		    "Request for slicing Lvalue %s before statement %d"
+                  Pretty_utils.sfprintf
+                    "Request for slicing Lvalue %s before statement %d"
                     txt
                     ki.sid)
                 (mk_selection_cad !Db.Slicing.Select.select_stmt_lval
                    lval_str ~before:true ki ~scope:ki ~eval:ki kf)
             with e ->
-	      main_ui#error "Invalid expression: %s" (Printexc.to_string e)
+              main_ui#error "Invalid expression: %s" (Printexc.to_string e)
           in
           let txt =
             GToolbox.input_string
@@ -294,91 +300,91 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
 statement"
               ""
           in
-	  Extlib.may do_with_txt txt
-	in
+          Extlib.may do_with_txt txt
+        in
         add_slicing_item "Slice lval" kf_ki_opt ~callback);
 
-	(let callback (kf, ki) =
+        (let callback (kf, ki) =
            let do_with_txt txt =
              try
                let lval_str =
-		 Datatype.String.Set.add txt Datatype.String.Set.empty
-	       in
+                 Datatype.String.Set.add txt Datatype.String.Set.empty
+               in
                mk_slice
                  ~info:(fun () ->
-		   Pretty_utils.sfprintf
-		     "Request for slicing read accesses to Lvalue %s"
+                   Pretty_utils.sfprintf
+                     "Request for slicing read accesses to Lvalue %s"
                      txt)
                  (mk_selection_cad
-		    !Db.Slicing.Select.select_func_lval_rw
+                    !Db.Slicing.Select.select_func_lval_rw
                     ~rd:lval_str
-		    ~wr:Datatype.String.Set.empty
-		    ~scope:ki
-		    ~eval:ki kf)
+                    ~wr:Datatype.String.Set.empty
+                    ~scope:ki
+                    ~eval:ki kf)
              with e ->
-	       main_ui#error "Invalid expression: %s" (Printexc.to_string e)
+               main_ui#error "Invalid expression: %s" (Printexc.to_string e)
            in
            let txt =
              GToolbox.input_string
                ~title:"Input a pure Lvalue expression to slice read accesses"
                ""
            in
-	   Extlib.may do_with_txt txt
-	 in
+           Extlib.may do_with_txt txt
+         in
          add_slicing_item "Slice rd" kf_ki_opt ~callback);
 
-	(let callback (kf, ki) =
+        (let callback (kf, ki) =
            let do_with_txt txt =
              try
                let lval_str =
-		 Datatype.String.Set.add txt Datatype.String.Set.empty
-	       in
+                 Datatype.String.Set.add txt Datatype.String.Set.empty
+               in
                mk_slice
                  ~info:(fun () ->
-		   Pretty_utils.sfprintf
-		     "Request for slicing writen accesses to Lvalue %s"
+                   Pretty_utils.sfprintf
+                     "Request for slicing writen accesses to Lvalue %s"
                      txt)
                  (mk_selection_cad
-		    !Db.Slicing.Select.select_func_lval_rw
+                    !Db.Slicing.Select.select_func_lval_rw
                     ~rd:Datatype.String.Set.empty
-		    ~wr:lval_str
-		    ~scope:ki
-		    ~eval:ki kf)
+                    ~wr:lval_str
+                    ~scope:ki
+                    ~eval:ki kf)
              with e ->
-	       main_ui#error "Invalid expression: %s" (Printexc.to_string e)
+               main_ui#error "Invalid expression: %s" (Printexc.to_string e)
            in
            let txt =
              GToolbox.input_string
                ~title:"Input a pure Lvalue expression to slice read accesses"
                ""
            in
-	   Extlib.may do_with_txt txt
-	 in
+           Extlib.may do_with_txt txt
+         in
         add_slicing_item "Slice wr" kf_ki_opt ~callback);
 
-	let callback (kf, ki) =
+        let callback (kf, ki) =
           mk_slice
             ~info:(fun () ->
-	      Pretty_utils.sfprintf
-		"Request for slicing accessibility to statement %d"
+              Pretty_utils.sfprintf
+                "Request for slicing accessibility to statement %d"
                 ki.sid)
             (mk_selection_all !Db.Slicing.Select.select_stmt_ctrl ki kf)
-	in
+        in
         add_slicing_item "Slice ctrl" kf_ki_opt ~callback
       in
       let some_kf_from_vi vi =
-	try let kf = Globals.Functions.get vi in
-        if Enable.get () && !Db.Value.is_called kf then Some kf else None
+        try let kf = Globals.Functions.get vi in
+        if Enabled.get () && !Db.Value.is_called kf then Some kf else None
         with Not_found -> None in
       let some_kf_from_lv  lv =
         match lv with
         | Var vi,_ -> some_kf_from_vi vi
         | _ -> None in
-      let some_kf_ki kf ki =
-	if Enable.get ()
+      let some_kf_ki kf stmt =
+        if Enabled.get ()
           && !Db.Value.is_called kf
-          && Db.Value.is_accessible (Cil_types.Kstmt ki)
-        then Some (kf, ki) else None in
+          && Db.Value.is_reachable_stmt stmt
+        then Some (kf, stmt) else None in
       begin  (* add menu for slicing and scope plug-in *)
         match localizable with
         | Pretty_source.PLval (Some kf,(Kstmt stmt),lv) ->
@@ -395,7 +401,7 @@ statement"
       ignore (slicing_factory#add_separator ());
       add_slicing_item "_Disable"
         (Some ())
-        ~callback:(fun () -> Enable.set false);
+        ~callback:(fun () -> Enabled.set false);
       add_slicing_item "_Clear"
         (if slicing_project = None then None else Some ())
         ~callback:(fun () -> gui_set_project main_ui None) ;
@@ -414,33 +420,33 @@ statement"
 
 let slicing_highlighter
     (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
-  if Enable.get () then begin
+  if Enabled.get () then begin
     (* Definition for highlight 'Slicing' *)
     let highlight project =
       let ki = Pretty_source.ki_of_localizable localizable in
       if Db.Value.is_accessible ki then
         let unused_code_area =
-	  Gtk_helper.make_tag buffer
+          Gtk_helper.make_tag buffer
             ~name:"slicing_unused" [`STRIKETHROUGH true ]
         in
         let spare_code_area =
-	  Gtk_helper.make_tag buffer ~name:"slicing_spare" [`UNDERLINE `LOW] in
+          Gtk_helper.make_tag buffer ~name:"slicing_spare" [`UNDERLINE `LOW] in
         let necessary_code_area =
-	  Gtk_helper.make_tag buffer
+          Gtk_helper.make_tag buffer
             ~name:"slicing_necessary" [`BACKGROUND "green"]
         in
         let apply_on_one_project_and_merge_slices kf pb pe mark_of_slice =
           let apply_mark mark =
-	    if SlicingParameters.debug_atleast 1 then
-	      SlicingParameters.debug "Got mark: %a"
+            if SlicingParameters.debug_atleast 1 then
+              SlicingParameters.debug "Got mark: %a"
                 !Db.Slicing.Mark.pretty mark;
             if !Db.Slicing.Mark.is_bottom mark then
               Gtk_helper.apply_tag buffer unused_code_area pb pe;
             if !Db.Slicing.Mark.is_spare mark then
               Gtk_helper.apply_tag buffer spare_code_area pb pe;
             if (!Db.Slicing.Mark.is_ctrl mark
-	        || !Db.Slicing.Mark.is_data mark
-	        || !Db.Slicing.Mark.is_addr mark)
+                || !Db.Slicing.Mark.is_data mark
+                || !Db.Slicing.Mark.is_addr mark)
             then
               Gtk_helper.apply_tag buffer necessary_code_area pb pe
           in
@@ -475,20 +481,20 @@ let slicing_highlighter
           end
         in
         let tag_stmt kf stmt pb pe =
-          assert (Db.Value.is_accessible (Kstmt stmt)) ;
+          assert (Db.Value.is_reachable_stmt stmt) ;
           apply_on_one_project_and_merge_slices
-	    kf
-	    pb
-	    pe
-	    (fun _ slice -> !Db.Slicing.Slice.get_mark_from_stmt slice stmt)
+            kf
+            pb
+            pe
+            (fun _ slice -> !Db.Slicing.Slice.get_mark_from_stmt slice stmt)
         in
         let tag_vdecl kf vi pb pe =
           if not vi.vglob then
- 	    apply_on_one_project_and_merge_slices
-	      kf
-	      pb
-	      pe
-	      (fun _ slice -> !Db.Slicing.Slice.get_mark_from_local_var slice vi)
+            apply_on_one_project_and_merge_slices
+              kf
+              pb
+              pe
+              (fun _ slice -> !Db.Slicing.Slice.get_mark_from_local_var slice vi)
         in
         match localizable with
         | Pretty_source.PStmt (kf,stmt) -> tag_stmt kf stmt start stop
@@ -496,7 +502,7 @@ let slicing_highlighter
         | Pretty_source.PVDecl (None,_)
         | Pretty_source.PLval _
         | Pretty_source.PTermLval _
-	| Pretty_source.PGlobal _
+        | Pretty_source.PGlobal _
         | Pretty_source.PIP _ -> ()
     in
     let slicing_project = !Db.Slicing.Project.get_project () in
@@ -590,26 +596,27 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
   let hbox2 = GPack.hbox ~packing:(table#attach ~left:1 ~top:0) () in
 
   (* [enabled_button] to give slicing menu available *)
-  let enable_refresh () =
-    gui_compute_values main_ui ;
-    main_ui#rehighlight ()
+  let do_refresh to_enable =
+    if to_enable then gui_compute_values main_ui;
+    !show_column ();
+    main_ui#rehighlight ();
   in
   let enabled_button =
     let b = GButton.check_button
       ~label:"Enable"
-      ~active:(Enable.get ())
+      ~active:(Enabled.get ())
       ~packing:(table#attach ~left:0 ~top:0) () in
       main_ui#help_message b "%s" msg_help_enable_gui ;
       ignore (b#connect#toggled
                 ~callback:(fun () ->
-                             Enable.set b#active;
-                             enable_refresh ()));
+                             Enabled.set b#active;
+                             do_refresh b#active));
       b
   in
   let verbose_refresh = Gtk_helper.on_int ~lower:0 ~upper:3
     hbox2
     "Verbosity"
-     ~sensitive:Enable.get
+     ~sensitive:Enabled.get
     SlicingParameters.Verbose.get
     (gui_set_slicing_debug main_ui)
   in
@@ -618,7 +625,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
   let slice_undef_button =
     let b = GButton.check_button
       ~label:"Libraries"
-      ~active:(Enable.get ())
+      ~active:(Enabled.get ())
       ~packing:(table#attach ~left:0 ~top:1) () in
       main_ui#help_message b "%s" msg_help_libraries ;
       ignore (b#connect#toggled
@@ -629,7 +636,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
   let level_refresh = Gtk_helper.on_int ~lower:0 ~upper:3
     hbox3
     "Level"
-    ~sensitive:Enable.get
+    ~sensitive:Enabled.get
     SlicingParameters.Mode.Calls.get
     (gui_set_slicing_level main_ui)
   in
@@ -640,50 +647,49 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
     let refresh () =
       let value_is_computed = Db.Value.is_computed () in
       let slicing_project = !Db.Slicing.Project.get_project () in
-      let enabled = Enable.get () in
+      let enabled = Enabled.get () in
       activate_button#misc#set_sensitive (not value_is_computed) ;
       enabled_button#misc#set_sensitive value_is_computed ;
       slice_undef_button#misc#set_sensitive enabled ;
-
       verbose_refresh ();
       level_refresh ();
-
-      if enabled_button#active <> enabled then
-	begin
-          enabled_button#set_active enabled ;
-          enable_refresh ();
-	end;
-
+      if Enabled.get () <> enabled_button#active then (
+        enabled_button#set_active (Enabled.get ());
+        !show_column ();
+      );
       slice_undef_button#set_active (SlicingParameters.Mode.SliceUndef.get());
-
-      ignore (refresh_combo_box combo_box_text slicing_project (enabled && value_is_computed))
+      refresh_combo_box combo_box_text slicing_project
+        (enabled && value_is_computed)
     in
     refresh () ;
     "Slicing",w#coerce,Some refresh
 
 let file_tree_decorate (file_tree:Filetree.t) =
-  file_tree#append_pixbuf_column
-    "Slicing"
-    (fun globs ->
-       Extlib.may_map
-         (fun project ->
+  show_column :=
+    file_tree#append_pixbuf_column
+      ~title:"Slicing"
+      (fun globs ->
+        Extlib.may_map
+          (fun project ->
             if (List.exists
                   (fun glob -> match glob with
-                     | GFun ({svar = vi},_ ) ->
-                         begin
-                           try
-                             let kf = Globals.Functions.get vi
-                             in (!Db.Slicing.Project.is_called project kf)
-                                || ( [] != (!Db.Slicing.Slice.get_all project kf))
-                           with Not_found -> false
-                         end
-                     |  _ -> false)
+                    | GFun ({svar = vi},_ ) ->
+                      begin
+                        try
+                          let kf = Globals.Functions.get vi
+                          in (!Db.Slicing.Project.is_called project kf)
+                          || ( [] != (!Db.Slicing.Slice.get_all project kf))
+                        with Not_found -> false
+                      end
+                    |  _ -> false)
                   globs) then
               [`STOCK_ID "gtk-apply"]
             else
               [`STOCK_ID ""])
-         ~dft:[`STOCK_ID ""]
-         (!Db.Slicing.Project.get_project ()))
+          ~dft:[`STOCK_ID ""]
+          (!Db.Slicing.Project.get_project ()))
+      (fun () -> Enabled.get ());
+  !show_column ()
 
 let main (main_ui:Design.main_window_extension_points) =
   main_ui#register_source_selector slicing_selector;

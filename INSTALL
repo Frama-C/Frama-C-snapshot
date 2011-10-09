@@ -29,7 +29,7 @@ Windows OS and Mac OS X
 -----------------------
 
 Download the auto-installer corresponding to your system from
-	 http://frama-c.com/download
+	 http://frama-c.com/download.html
 
 Then just run it!
 
@@ -44,6 +44,14 @@ a Frama-C package is provided:
 
 or, if you don't want the Gtk-based GUI:
   sudo apt-get install frama-c-base
+
+------------
+Fedora >= 13
+------------
+
+If you are using Fedora >= 13 then a Frama-C package is provided:
+
+  yum install frama-c
 
 ===============================================================================
 The remainder of these installation instructions is for building Frama-C from
@@ -60,7 +68,7 @@ source.
 2a) On Linux-like distribution:
   ./configure && make && sudo make install
 
-2b) On Windows+Cygwin:
+2b) On Windows+Cygwin or Windows+MinGW+msys:
   ./configure --prefix C:/windows/path/with/direct/slash && make && make install
 
 3) The binary frama-c (and frama-c-gui if you have lablgtk2) is now installed.
@@ -86,15 +94,15 @@ The Frama-C GUI also requires:
 - GnomeCanvas 2.x
 - LablGtk >= 2.14.0
 
-If OcamlGraph >= 1.6 is already installed, then it will be used by Frama-C.
+If OcamlGraph 1.8 is already installed, then it will be used by Frama-C.
 Otherwise the distributed local copy (directory ocamlgraph) will be used.
 
 Plug-ins may have their own requirements.
 Consult their specific documentations for details.
 
------------------------
-Ubuntu Lucid Lynx 10.04
------------------------
+--------------------------
+Ubuntu >= Lucid Lynx 10.04
+--------------------------
 
 If you are using Ubuntu >= Lucid Lynx 10.04 then an optimal list of packages is
 installed by:
@@ -106,7 +114,7 @@ sudo apt-get install ocaml ocaml-native-compilers graphviz \
 Other Linux systems
 -------------------
 
-On other Linux systems, you may also use Godi
+On any Linux systems, you may use Godi
 (http://godi.camlcity.org/godi/index.html) for installing Frama-C with all the
 OCaml requirements (but you must install C libraries and tools before).
 
@@ -126,8 +134,8 @@ experimental to be released as is).
 
 See ./configure --help for the current list of plug-ins.
 
-Under Cygwin:
--------------
+Under Cygwin or MinGW:
+----------------------
 Use "./configure --prefix C:/windows/path/with/direct/slash".
 
 ===============================================================================
@@ -164,15 +172,20 @@ Executables: (usually in /usr/local/bin)
 - frama-c-gui.byte  bytecode version of frama-c-gui, if available
 - ptests.byte       testing tools for Frama-c
 
-Shared files: (usually in /usr/local/share/frama-c)
+Shared files: (usually in /usr/local/share/frama-c and subdirectories)
 -------------
 - some .h and .c files used as preludes by Frama-C;
 - some Makefiles used to compile dynamic plug-ins
 - some .rc files used to configure Frama-C
+- some image files used by the Frama-C GUI
 
 Manuals: (usually in /usr/local/share/frama-c/manuals)
 --------
 - the Frama-C manuals as .pdf files
+
+Documentation files: (usually in /usr/local/share/frama-c/doc)
+--------------------
+- files used to generate dynamic plug-in documentation
 
 Object files: (usually in /usr/local/lib/frama-c)
 -------------

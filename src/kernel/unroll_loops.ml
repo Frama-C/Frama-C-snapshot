@@ -20,21 +20,25 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Syntactic loop unrolling *)
+(** Syntactic loop unrolling. *)
 
 open Cil_types
 open Cil
 open Cil_datatype
-open Db_types
 open Visitor
 
 let fresh =
   let counter = ref (-1) in
-  fun () ->
+  fun ?loc ?prefix () ->
     decr counter;
-    Label (Format.sprintf "unrolling_%d_loop" (- !counter),
-           (CurrentLoc.get ()),
-           false)
+    let prefix = match prefix with None -> "" | Some s -> s ^ "_"
+    and loc, orig = match loc with
+      | None -> CurrentLoc.get (), false
+      | Some loc -> loc, true
+    in
+    Label (Format.sprintf "%sunrolling_%d_loop" prefix (- !counter),
+           loc,
+           orig)
 
 let copy_var =
   let counter = ref (-1) in
@@ -76,22 +80,35 @@ let refresh_vars new_var old_var =
   in Visitor.visitFramacStmt visit
 
 (* Deep copy of a statement taking care of local gotos and labels. *)
-let rec copy_stmt
-    fundec break_continue_must_change label_table calls_tbl stmt
- =
+let rec copy_stmt kf break_continue_must_change label_tbl calls_tbl stmt =
   let result =
-    { labels=[]; sid=0; succs=[]; preds=[]; skind=stmt.skind; ghost=stmt.ghost}
+    { labels = []; 
+      sid = Sid.next (); 
+      succs = []; 
+      preds = []; 
+      skind = stmt.skind; 
+      ghost = stmt.ghost}
   in
-  let new_labels,label_tbl,sid =
-    let new_label = fresh () in
-    let sid = Sid.next () in
-    let new_acc =
-      List.fold_left
-        (fun acc _ -> Stmt.Map.add stmt result acc)
-        label_table
+  let new_labels,label_tbl =
+    if stmt.labels = [] then
+      [], label_tbl
+    else
+      let new_tbl = Stmt.Map.add stmt result label_tbl
+      and new_labels =
+        List.fold_left
+          (fun lbls -> function
+           | Label (s, loc, gen) ->
+               (if gen
+                then fresh ~prefix:s ()
+                else fresh ~prefix:s ~loc ()
+               ) :: lbls
+
+           | Case _ | Default _ as lbl -> lbl :: lbls
+          )
+        []
         stmt.labels
     in
-    [ new_label ], new_acc, sid
+    new_labels, new_tbl
   in
   let new_calls_tbl = match stmt.skind with
     | Instr(Call _) -> Stmt.Map.add stmt result calls_tbl
@@ -99,49 +116,43 @@ let rec copy_stmt
   in
   let new_stmkind,new_label_tbl, new_calls_tbl =
     copy_stmtkind
-      fundec break_continue_must_change label_tbl new_calls_tbl stmt.skind
+      kf break_continue_must_change label_tbl new_calls_tbl stmt.skind
   in
   if stmt.labels <> [] then result.labels <- new_labels;
-  result.sid <-sid;
   result.skind <- new_stmkind;
   let new_annots =
     Annotations.fold_stmt
       (fun s (annot,_) acc ->
-	(*Format.printf "Adding annots to %d@." result.sid;*)
-	let new_annot =
-	  let content = match Ast_info.before_after_content annot with
-	    | User a -> User(Logic_const.refresh_code_annotation a)
-	    | AI(c, a) -> AI(c, Logic_const.refresh_code_annotation a)
-          in
-	  match annot with
-          | Before _ -> Before content
-          | After _ -> After content
-	in
-	(new_annot, match s with None -> [] | Some s -> [ s ]) :: acc)
+        (*Format.printf "Adding annots to %d@." result.sid;*)
+        let new_annot =
+          match annot with
+          | User a -> User(Logic_const.refresh_code_annotation a)
+          | AI(c, a) -> AI(c, Logic_const.refresh_code_annotation a)
+        in
+        (new_annot, match s with None -> [] | Some s -> [ s ]) :: acc)
       stmt
       []
   in
-  List.iter (fun (a, dep) -> Annotations.add result dep a) new_annots;
+  List.iter (fun (a, dep) -> Annotations.add kf result dep a) new_annots;
   result, new_label_tbl, new_calls_tbl
 
-  and copy_stmtkind
-    fundec break_continue_must_change label_tbl calls_tbl stkind =
+  and copy_stmtkind kf break_continue_must_change label_tbl calls_tbl stkind =
     match stkind with
     |(Instr _ | Return _ | Goto _) as keep -> keep,label_tbl,calls_tbl
     | If (exp,bl1,bl2,loc) ->
       CurrentLoc.set loc;
       let new_block1,label_tbl,calls_tbl =
-        copy_block fundec break_continue_must_change label_tbl calls_tbl bl1
+        copy_block kf break_continue_must_change label_tbl calls_tbl bl1
       in
       let new_block2,label_tbl,calls_tbl =
-        copy_block fundec break_continue_must_change label_tbl calls_tbl bl2
+        copy_block kf break_continue_must_change label_tbl calls_tbl bl2
       in
       If(exp,new_block1,new_block2,loc),label_tbl,calls_tbl
     | Loop (a,bl,loc,_,_) ->
       CurrentLoc.set loc;
       let new_block,label_tbl,calls_tbl =
         copy_block
-          fundec
+          kf
           None (* from now on break and continue can be kept *)
           label_tbl
           calls_tbl
@@ -150,20 +161,20 @@ let rec copy_stmt
       Loop (a,new_block,loc,None,None),label_tbl,calls_tbl
     | Block bl ->
       let new_block,label_tbl,calls_tbl =
-        copy_block fundec break_continue_must_change label_tbl calls_tbl bl
+        copy_block kf break_continue_must_change label_tbl calls_tbl bl
       in
       Block (new_block),label_tbl,calls_tbl
     | UnspecifiedSequence seq ->
         let change_calls lst calls_tbl =
           List.map
-	    (fun x -> ref (Stmt.Map.find !x calls_tbl)) lst
+            (fun x -> ref (Stmt.Map.find !x calls_tbl)) lst
         in
         let new_seq,label_tbl,calls_tbl =
           List.fold_left
             (fun (seq,label_tbl,calls_tbl) (stmt,modified,writes,reads,calls) ->
                let stmt,label_tbl,calls_tbl =
                  copy_stmt
-                   fundec break_continue_must_change label_tbl calls_tbl stmt
+                   kf break_continue_must_change label_tbl calls_tbl stmt
                in
                (stmt,modified,writes,reads,change_calls calls calls_tbl)::seq,
                label_tbl,calls_tbl)
@@ -187,34 +198,52 @@ let rec copy_stmt
     | Switch (e,block,stmts,loc) ->
         (* from now on break and continue can be kept *)
       let new_block,new_label_tbl,calls_tbl =
-        copy_block fundec None label_tbl calls_tbl block
+        copy_block kf None label_tbl calls_tbl block
       in
-      Switch(e,new_block,stmts,loc),new_label_tbl,calls_tbl
+      let stmts' = List.map (fun s -> Stmt.Map.find s new_label_tbl) stmts in
+      Switch(e,new_block,stmts',loc),new_label_tbl,calls_tbl
     | TryFinally _ | TryExcept _ -> assert false
 
-
-
-  and copy_block fundec break_continue_must_change label_tbl calls_tbl bl =
+  and copy_block kf break_continue_must_change label_tbl calls_tbl bl =
     let new_stmts,label_tbl,calls_tbl =
       List.fold_left
-	(fun (block_l,label_tbl,calls_tbl) v ->
+        (fun (block_l,label_tbl,calls_tbl) v ->
           let new_block,label_tbl,calls_tbl =
-            copy_stmt fundec break_continue_must_change label_tbl calls_tbl v
+            copy_stmt kf break_continue_must_change label_tbl calls_tbl v
           in
           new_block::block_l, label_tbl,calls_tbl)
-	([],label_tbl,calls_tbl) bl.bstmts
+	([],label_tbl,calls_tbl) 
+	bl.bstmts
     in
     let new_locals =
       List.map (copy_var ()) bl.blocals
     in
+    let fundec = 
+      try Kernel_function.get_definition kf
+      with Kernel_function.No_Definition -> assert false
+    in
     fundec.slocals <- fundec.slocals @ new_locals;
-    let new_block = mkBlock
-      (List.rev_map
-	 (refresh_vars new_locals bl.blocals)
-	 new_stmts)
+    let new_block = 
+      mkBlock (List.rev_map (refresh_vars new_locals bl.blocals) new_stmts)
     in
     new_block.blocals <- new_locals;
     new_block,label_tbl,calls_tbl
+
+
+let update_gotos sid_tbl block =
+  let goto_changer =
+  object
+    inherit nopCilVisitor
+    method vstmt s = match s.skind with
+      | Goto(sref,loc) ->
+          (try
+             let new_stmt = Cil_datatype.Stmt.Map.find !sref sid_tbl in
+             ChangeTo (mkStmt (Goto (ref new_stmt,loc)))
+           with Not_found -> DoChildren)
+      | _ -> DoChildren
+  end
+  in
+  visitCilBlock goto_changer block
 
 (* Update to take into account annotations*)
 class do_it (times:int) = object(self)
@@ -235,9 +264,10 @@ class do_it (times:int) = object(self)
     let filter (b,_ as elt) p =
       match (b,p) with
       | false, Unroll_level {term_node=TConst (CInt64(v,_,_))} ->
-        true, Int64.to_int v
+        true, My_bigint.to_int v
       | true, Unroll_level _ ->
-        ignore (CilE.warn_once "ignoring unrolling directive (directive already defined)");
+        Kernel.warning ~once:true ~current:true
+          "ignoring unrolling directive (directive already defined)";
         elt
       | _, _ ->
         elt
@@ -259,7 +289,7 @@ class do_it (times:int) = object(self)
       in
       let current_continue = ref (mk_continue ()) in
       (*Assuming unrolling was enough a test generator could do:
-        Annotations.add_assert s [] ~before:true  
+        Annotations.add_assert s [] ~before:true
         {name=["KILLBRACNH"];
          loc=Cil_datatype.Location.unknown;
          content= Pfalse
@@ -272,13 +302,13 @@ class do_it (times:int) = object(self)
                   (* calls tbl is internal. No need to fix references
                      afterwards here. *)
           copy_block
-	    (Extlib.the self#current_func)
+	    (Extlib.the self#current_kf)
             (Some (break_lbl_stmt,!current_continue))
             Stmt.Map.empty
             Stmt.Map.empty
             block
         in
-        let updated_block = CilE.update_gotos label_tbl new_block in
+        let updated_block = update_gotos label_tbl new_block in
         current_continue := mk_continue ();
         (match updated_block.blocals with
           [] -> new_stmts:= updated_block.bstmts @ !new_stmts;

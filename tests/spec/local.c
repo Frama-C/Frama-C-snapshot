@@ -14,3 +14,7 @@ ensures
         P(f(x,y),\result);
 */
 int g(int x, int y) { return (x+y+1); }
+
+//@ axiomatic a { predicate P(integer v); }
+//@ lemma l1: \let p=\lambda integer x; P(x); p(1);
+//@ lemma l2: \let p=P(1); p ;

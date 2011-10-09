@@ -31,7 +31,6 @@ let debug = false
 exception AddError
 exception CallStatement
 exception Not_equal
-exception NotFound
 
 let is_call_stmt stmt =
   match stmt.skind with Instr (Call _) -> true | _ -> false
@@ -44,9 +43,9 @@ module Signature = struct
   type 'info t =
       { in_ctrl : 'info option ;
         in_params : (int * 'info) list ;
-	(** implicit inputs :
-	    Maybe we should use [Lmap_bitwise.Make_bitwise] ?
-	    but that would make things a lot more complicated... :-? *)
+        (** implicit inputs :
+            Maybe we should use [Lmap_bitwise.Make_bitwise] ?
+            but that would make things a lot more complicated... :-? *)
         in_implicits : (Locations.Zone.t * 'info) list ;
         out_ret : 'info option ;
         outputs : (Locations.Zone.t * 'info) list }
@@ -57,6 +56,16 @@ module Signature = struct
       Structure (Sum [| [| p_int |]; [| Locations.Zone.packed_descr |] |])
     let out_key = Structure (Sum [| [| Locations.Zone.packed_descr |] |])
     let key = Structure (Sum [| [| pack in_key |]; [| pack out_key |] |])
+
+    let t d_info = t_record
+          [| pack (t_option d_info);
+             pack (t_list (t_tuple [| p_int; pack d_info |]));
+             pack (t_list (t_tuple [| Locations.Zone.packed_descr;
+                                      pack d_info |]));
+             pack (t_option d_info);
+             pack (t_list (t_tuple [| Locations.Zone.packed_descr;
+                                      pack d_info |]));
+          |]
   end
 
   let empty = { in_ctrl = None ;
@@ -176,11 +185,11 @@ module Signature = struct
       assert (n <> 0); (* no input 0 : use find_in_ctrl *)
       List.assoc n sgn.in_params
     with Not_found ->
-      raise NotFound
+      raise Not_found
 
   let find_output sgn out_key =
     let rec find l = match l with
-      | [] -> raise NotFound
+      | [] -> raise Not_found
       | (loc, e)::tl ->
           if Locations.Zone.equal out_key loc then e
           else find tl
@@ -189,17 +198,17 @@ module Signature = struct
 
   let find_out_ret sgn = match sgn.out_ret with
     | Some i -> i
-    | None -> raise NotFound
+    | None -> raise Not_found
 
   let find_in_ctrl sgn = match sgn.in_ctrl with
     | Some i -> i
-    | None -> raise NotFound
+    | None -> raise Not_found
 
   (** try to find an exact match with loc.
   * we shouldn't try to find a zone that we don't have... *)
   let find_implicit_input sgn loc =
     let rec find l = match l with
-      | [] -> raise NotFound
+      | [] -> raise Not_found
       | (in_loc, e)::tl ->
           if Locations.Zone.equal in_loc loc then e
           else find tl
@@ -282,7 +291,7 @@ module Signature = struct
     | (InNum n)  -> Format.fprintf fmt "In%d" n
     | InCtrl -> Format.fprintf fmt "InCtrl"
     | InImpl loc ->
-	Format.fprintf fmt "@[<h 1>In(%a)@]" Locations.Zone.pretty loc
+        Format.fprintf fmt "@[<h 1>In(%a)@]" Locations.Zone.pretty loc
 
   let pretty_out_key fmt key = match key with
     | OutRet -> Format.fprintf fmt "OutRet"
@@ -300,8 +309,7 @@ end
 
 module Key = struct
   type t_call_id = Cil_types.stmt
-
-  (* type annot_key = Cil_types.code_annotation *)
+  let t_call_id_packed_descr = Cil_datatype.Stmt.packed_descr
 
   type key =
     | SigKey of Signature.t_key
@@ -317,12 +325,10 @@ module Key = struct
     | SigCallKey of t_call_id * Signature.t_key
         (** Key for an element of a call (input or output).
          * The call is identified by the statement. *)
-    (* | Annot of annot_key
-        * annotation identified by its kind and id *)
 
   let entry_point = SigKey (Signature.in_ctrl_key)
   let top_input = SigKey (Signature.in_top_key)
-  let param_key num_in _param = SigKey (Signature.in_key num_in)
+  let param_key num_in = SigKey (Signature.in_key num_in)
   let implicit_in_key loc = SigKey (Signature.in_impl_key loc)
   let output_key = SigKey (Signature.out_ret_key)
 
@@ -342,11 +348,6 @@ module Key = struct
   let call_topin_key call = SigCallKey (call, (Signature.in_top_key))
 
   let call_from_id call_id = call_id
-
-  (* let code_annot_key annot = Annot (annot) *)
-
-  (* let cmp_annots (a1: annot_key) (a2: annot_key) =
-    compare a1.annot_id a2.annot_id *)
 
   let stmt key =
     match key with
@@ -376,124 +377,111 @@ module Key = struct
     | CallStmt call ->
       let call = call_from_id call in
       Format.fprintf fmt "Call%d : %a" call.sid print_stmt call
-    | Stmt s ->
-      print_stmt fmt s
-    | Label (_,l) ->
-      Format.fprintf fmt "%a" !Ast_printer.d_label l
-    | VarDecl v ->
-      Format.fprintf fmt "VarDecl : %a" !Ast_printer.d_ident v.vname
-    | SigKey k ->
-      Format.fprintf fmt "%a" Signature.pretty_key k
+    | Stmt s -> print_stmt fmt s
+    | Label (_,l) -> Format.fprintf fmt "%a" !Ast_printer.d_label l
+    | VarDecl v -> Format.fprintf fmt "VarDecl : %a" !Ast_printer.d_var v
+    | SigKey k -> Format.fprintf fmt "%a" Signature.pretty_key k
     | SigCallKey (call, sgn) ->
       let call = call_from_id call in
       Format.fprintf fmt "Call%d-%a : %a"
         call.sid Signature.pretty_key sgn print_stmt call
-  (* | Annot annot ->
-     Format.fprintf fmt "CodeAnnot-%d : %a@\n"
-     annot.annot_id
-     !Ast_printer.d_code_annotation annot *)
 
   include Datatype.Make
-	(struct
-	  include Datatype.Serializable_undefined
-	  type t = key
-	  let name = "PdgIndex.Key"
-	  open Cil_datatype
-	  let reprs =
-	    List.fold_left
-	      (fun acc v ->
-		List.fold_left
-		  (fun acc s -> Stmt s :: acc)
-		  (VarDecl v :: acc)
-		  (Type.reprs Stmt.ty))
-	      []
-	      (Type.reprs Varinfo.ty)
-	  open Structural_descr
-	  let structural_descr =
-	    let p_key = pack Signature.Str_descr.key in
-	    Structure
-	      (Sum
-		 [|
-		   [| p_key |];
-		   [| Varinfo.packed_descr |];
-		   [| Stmt.packed_descr |];
-		   [| Stmt.packed_descr |];
-		   [| p_int; Label.packed_descr |];
-		   [| Stmt.packed_descr; p_key |];
-		 |])
-	  let rehash = Datatype.identity
-	  let pretty = pretty_node
-	  let mem_project = Datatype.never_any_project
-	 end)
+        (struct
+          include Datatype.Serializable_undefined
+          type t = key
+          let name = "PdgIndex.Key"
+          open Cil_datatype
+          let reprs =
+            List.fold_left
+              (fun acc v ->
+                List.fold_left
+                  (fun acc s -> Stmt s :: acc)
+                  (VarDecl v :: acc)
+                  Stmt.reprs)
+              []
+              Varinfo.reprs
+          open Structural_descr
+          let structural_descr =
+            let p_key = pack Signature.Str_descr.key in
+            Structure
+              (Sum
+                 [|
+                   [| p_key |];
+                   [| Varinfo.packed_descr |];
+                   [| Stmt.packed_descr |];
+                   [| t_call_id_packed_descr |];
+                   [| p_int; Label.packed_descr |];
+                   [| t_call_id_packed_descr; p_key |];
+                 |])
+          let rehash = Datatype.identity
+          let pretty = pretty_node
+          let mem_project = Datatype.never_any_project
+         end)
 
 end
 
+module Hkey = struct
+  type tt = Hdecl of Cil_types.varinfo
+    | Hstmt of int | Hlabel of int * Cil_types.label
 
+  let hkey k =
+    match k with
+      | Key.Stmt stmt -> Hstmt stmt.sid
+      | Key.VarDecl var -> Hdecl var
+      | Key.Label (sid,l) -> Hlabel (sid,l)
+      | _ -> assert false
 
-module FctIndex : sig
-  type ('a, 'b) t
+  let key hk = match hk with
+    | Hdecl v -> Key.VarDecl v
+    | Hstmt sid -> Key.Stmt (fst (Kernel_function.find_from_sid sid))
+    | Hlabel (sid,l) -> Key.Label (sid,l)
 
-  val create : int -> ('a, 'b) t
-  val length : ('a, 'b) t -> int
-
-  val copy : ('a, 'b) t -> ('a, 'b) t
-  val merge : ('a, 'b) t -> ('a, 'b) t ->
-              ('a -> 'a -> 'a) -> ('b -> 'b -> 'b) ->
-              ('a, 'b) t
-
-  val sgn : ('a, 'b) t -> 'a Signature.t
-  val find_info : ('a, 'b) t -> Key.t-> 'a
-  val find_all : ('a, 'b) t -> Key.t-> 'a list
-
-  val find_call : ('a, 'b) t -> Cil_types.stmt -> 'b option * 'a Signature.t
-  val find_call_key : ('a, 'b) t -> Key.t -> 'b option * 'a Signature.t
-
-  val find_info_call : ('a, 'b) t -> Cil_types.stmt -> 'b
-  val find_info_call_key : ('a, 'b) t -> Key.t -> 'b
-
-  val fold_calls : (Key.t_call_id-> 'b option * 'a Signature.t -> 'c -> 'c) ->
-                   ('a, 'b) t -> 'c -> 'c
-
-  val add : ('a, 'b) t -> Key.t-> 'a -> unit
-  val add_or_replace : ('a, 'b) t -> Key.t-> 'a -> unit
-  val add_info_call : ('a, 'b) t -> Key.t_call_id -> 'b -> replace:bool -> unit
-  val add_info_call_key : ('a, 'b) t -> Key.t -> 'b -> replace:bool -> unit
-
-end = struct
-
-  module Hkey = struct
-    type t = Hdecl of Cil_types.varinfo
-      | Hstmt of int | Hlabel of int * Cil_types.label
+  include Datatype.Make(struct
+    include Datatype.Serializable_undefined
 
     let hash k =
       let code n c = assert (c < 4) ; n*4 + c in
       match k with
-      | Hdecl v -> code v.vid 1
-      | Hstmt n -> code n 2
-      | Hlabel (n,_) -> code n 3
+        | Hdecl v -> code v.vid 1
+        | Hstmt n -> code n 2
+        | Hlabel (n,_) -> code n 3
 
     let equal k1 k2 = (hash k1) = (hash k2)
+      (* TODO: write better function, or check that the computation of the hash
+         does not overflow *)
+    type t = tt
+    let reprs = [Hstmt (-1)]
+    let name = "PdgIndex.Hkey.t"
+  end)
+end
 
-    let hkey k =
-      match k with
-        | Key.Stmt stmt -> Hstmt stmt.sid
-        | Key.VarDecl var -> Hdecl var
-        | Key.Label (sid,l) -> Hlabel (sid,l)
-        | _ -> assert false
-  end
+module H = Hashtbl.Make(Hkey)
 
-  module H = Hashtbl.Make(Hkey)
-
-  type ('a,'b) t = {
+module FctIndex = struct
+ 
+  type ('node_info, 'call_info) t = {
     (** inputs and ouputs of the function *)
-    mutable sgn : 'a Signature.t ;
+    mutable sgn : 'node_info Signature.t ;
     (** calls signatures *)
-    mutable calls : (Key.t_call_id * ('b option * 'a Signature.t)) list ;
+    mutable calls : 
+      (Key.t_call_id * ('call_info option * 'node_info Signature.t)) list ;
     (** everything else *)
-    other : 'a H.t
+    other : 'node_info H.t
   }
 
-  let hkey = Hkey.hkey
+  open Structural_descr
+  let t_descr ~ni:d_ninfo ~ci:d_cinfo =
+    t_record
+      [| pack (Signature.Str_descr.t d_ninfo);
+         pack (t_list (t_tuple [| Key.t_call_id_packed_descr;
+                                  pack (t_tuple [|
+                                          pack (t_option d_cinfo);
+                                          pack (Signature.Str_descr.t d_ninfo);
+                                        |])
+                               |]));
+         pack (t_hashtbl_unchanged_hashs (Descr.str Hkey.descr) d_ninfo);
+      |]
 
   let sgn idx = idx.sgn
 
@@ -524,19 +512,6 @@ end = struct
             else c2 :: (merge l1 tl2)
     in merge calls1 calls2
 
-  (* let merge_annots l1 l2 merge_info =
-    let rec merge l1 l2 = match l1, l2 with
-      | [], _ -> l2
-      | _, [] -> l1
-      | (k1, i1)::tl1, (k2, i2)::tl2 ->
-          let cmp = Key.cmp_annots k1 k2 in
-            if cmp = 0 then
-              let info = merge_info i1 i2 in
-                (k1, info) :: (merge tl1 tl2)
-            else if cmp < 0 then (k1, i1) :: (merge tl1 l2)
-            else (k2,i2) :: (merge l1 tl2)
-    in merge l1 l2 *)
-
   let merge idx1 idx2 merge_a merge_b =
     let sgn = Signature.merge idx1.sgn idx2.sgn merge_a in
     let table = H.copy idx1.other in
@@ -547,7 +522,6 @@ end = struct
       in H.replace table k a
     in H.iter add idx2.other;
     let calls = merge_info_calls idx1.calls idx2.calls merge_a merge_b in
-    (* let annots = merge_annots idx1.annots idx2.annots merge_a in *)
       {sgn = sgn; calls = calls; other = table}
 
   let add_info_call idx call e ~replace =
@@ -582,31 +556,14 @@ end = struct
           else (c1 :: (add tl))
     in add calls
 
-  (* let rec add_info_annot annots k e replace = match annots with
-    | [] -> (k, e)::[]
-    | (ka, ea)::tl ->
-        let cmp = Key.cmp_annots k ka in
-          if cmp = 0 then
-            (if replace then (k, e)::tl else raise AddError)
-          else if cmp < 0 then
-            (k,e)::annots
-          else (ka, ea)::(add_info_annot tl k e replace)
-
-  let rec find_info_annot annots k =  match annots with
-    | [] -> raise NotFound
-    | (ka, ea)::tl ->
-        if (Key.cmp_annots k ka) = 0 then ea
-        else find_info_annot tl k
-        *)
-
   let find_call idx call =
     let rec find l = match l with
-      | [] ->  raise NotFound
+      | [] ->  raise Not_found
       | (call1, e1) :: tl ->
           let sid = call.sid in
           let sid1 = call1.sid in
           if sid = sid1 then e1
-          else if sid < sid1 then raise NotFound
+          else if sid < sid1 then raise Not_found
           else find tl
     in
     find idx.calls
@@ -621,7 +578,7 @@ end = struct
 
   let find_info_call idx call =
     let (e1, _sgn1) = find_call idx call in
-      match e1 with Some e -> e | None -> raise NotFound
+      match e1 with Some e -> e | None -> raise Not_found
 
   let find_info_call_key idx key =
     match key with
@@ -645,22 +602,13 @@ end = struct
       | Key.SigCallKey (call, k) ->
           idx.calls <- add_info_sig_call idx.calls call k e replace
       | Key.VarDecl _ | Key.Stmt _ | Key.Label _ ->
-          hfct idx.other (hkey key) e
-      (* | Key.Annot k ->
-          idx.annots <- add_info_annot idx.annots k e replace *)
+          hfct idx.other (Hkey.hkey key) e
 
   let add idx key e = add_replace idx key e false
 
   let add_or_replace idx key e = add_replace idx key e true
 
-  (* let remove idx key = match key with
-    | Key.Annot ak ->
-        idx.annots <-
-            List.filter (fun (k,_) -> Key.cmp_annots k ak <> 0) idx.annots
-    | _ -> (* TODO is needed... *) assert false *)
-
   let length idx = H.length idx.other
-
 
   let find_info idx key =
     match key with
@@ -668,8 +616,8 @@ end = struct
       | Key.CallStmt _ -> raise CallStatement (* see find_info_call *)
       | Key.SigCallKey (call, k) -> find_info_sig_call idx call k
       | Key.VarDecl _ | Key.Stmt _ | Key.Label _ ->
-          (try H.find idx.other (hkey key) with Not_found -> raise NotFound)
-      (* | Key.Annot k -> find_info_annot idx.annots k *)
+          (try H.find idx.other (Hkey.hkey key) 
+           with Not_found -> raise Not_found)
 
   let find_all idx key =
     match key with
@@ -679,19 +627,32 @@ end = struct
   (** Similar to [find_info] for a label *)
   let find_label idx lab =
     let collect k info res = match k with
-      | Hkey.Hlabel (_,k_lab) -> if k_lab = lab then  info :: res else res
+      | Hkey.Hlabel (_,k_lab) -> 
+          if Cil_datatype.Label.equal k_lab lab then  info :: res else res
       | _ -> res
     in
     let infos = H.fold collect idx.other [] in
       match infos with
-          info :: [] -> info | [] -> raise NotFound | _ -> assert false
+          info :: [] -> info | [] -> raise Not_found | _ -> assert false
 
   let fold_calls f idx acc =
-    let process acc (call, (i, sgn)) = f call (i, sgn) acc in
+    let process acc (call, (_i, _sgn as i_sgn)) = f call i_sgn acc in
     List.fold_left process acc idx.calls
 
-(*   let fold_implicit_inputs f acc idx =
-    Signature.fold_impl_inputs f acc idx.sgn *)
+  let fold f idx acc =
+    let acc = Signature.fold 
+                (fun acc (k, info) -> f (Key.SigKey k) info acc) 
+                acc idx.sgn in
+    let acc = H.fold 
+                (fun k info acc -> f (Hkey.key k) info acc) idx.other acc in
+    List.fold_left 
+      (fun acc (call, (_, sgn)) -> 
+        Signature.fold (fun acc (k, info) -> 
+          f (Key.SigCallKey (call, k)) info acc) 
+          acc sgn) 
+      acc idx.calls
+
+
 end
 
 (*

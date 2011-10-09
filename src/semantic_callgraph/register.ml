@@ -20,9 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module H = Hashtbl
-
-open Db_types
 open Db
 open Options
 open Cil_types
@@ -37,7 +34,7 @@ module SGraph =
             how the numbering of varinfo is done internally
           *)
        let equal = Kernel_function.equal
-       let hash kf = H.hash (Kernel_function.get_name kf)
+       let hash kf = Hashtbl.hash (Kernel_function.get_name kf)
        let compare kf1 kf2 =
          if kf1 == kf2 then 0
          else
@@ -58,13 +55,13 @@ module SGState =
   State_builder.Option_ref
     (Datatype.Make
        (struct
-	 (* [JS 2010/09/27] do better? *)
-	 include Datatype.Serializable_undefined
-	 type t = SGraph.t
-	 let name = "SGraph"
-	 let reprs = [ SGraph.create () ]
-	 let mem_project = Datatype.never_any_project
-	end))
+         (* [JS 2010/09/27] do better? *)
+         include Datatype.Serializable_undefined
+         type t = SGraph.t
+         let name = "SGraph"
+         let reprs = [ SGraph.create () ]
+         let mem_project = Datatype.never_any_project
+        end))
     (struct
       let name = "SGState"
       let dependencies = [ Value.self ]
@@ -89,11 +86,11 @@ let callgraph () =
          (fun kf ->
             if !Value.is_called kf then SGraph.add_vertex g kf;
             List.iter
-	      (fun (caller,call_sites) ->
-	         List.iter
-	           (fun call_site -> SGraph.add_edge_e g (kf,call_site,caller))
-	           call_sites)
-	      (!Value.callers kf));
+              (fun (caller,call_sites) ->
+                 List.iter
+                   (fun call_site -> SGraph.add_edge_e g (kf,call_site,caller))
+                   call_sites)
+              (!Value.callers kf));
        g)
 
 module Service =
@@ -109,12 +106,11 @@ module Service =
            [ `Style
                (if Kernel_function.is_definition v then `Bold
                 else `Dotted) ]
-	 let equal = Kernel_function.equal
-	 let hash = Kernel_function.hash
-	 let entry_point () =
-	   fst
-	     (try Globals.entry_point ()
-	      with Globals.No_such_entry_point _ -> assert false)
+         let equal = Kernel_function.equal
+         let hash = Kernel_function.hash
+         let entry_point () =
+           try Some (fst (Globals.entry_point ()))
+           with Globals.No_such_entry_point _ -> None
        end
        let iter_vertex = SGraph.iter_vertex
        let iter_succ = SGraph.iter_succ
@@ -129,25 +125,30 @@ module ServiceState =
     (struct
        let name = "SemanticsServicestate"
        let dependencies =
-         [ SGState.self; Parameters.MainFunction.self; InitFunc.self ]
+         [ SGState.self; Kernel.MainFunction.self; InitFunc.self ]
        let kind = `Internal
      end)
 
 let get_init_funcs () =
-  let entry_point_name = Parameters.MainFunction.get () in
-  let init_funcs =
-    (* entry point is always a root *)
-    Datatype.String.Set.add entry_point_name (InitFunc.get ())
-  in
-  (* Add the callees of entry point as roots *)
-  let callees =
-    let kf = fst (Globals.entry_point ()) in
-    !Db.Users.get kf
-  in
-  Kernel_function.Hptset.fold
-    (fun kf acc -> Datatype.String.Set.add (Kernel_function.get_name kf) acc)
-    callees
-    init_funcs
+  let init_funcs = InitFunc.get () in
+  try
+    let callees =
+      let kf, _ = Globals.entry_point () in
+      !Db.Users.get kf
+    in
+    (** add the entry point as root *)
+    let init_funcs =
+      Datatype.String.Set.add (Kernel.MainFunction.get ()) init_funcs
+    in
+    (* add the callees of entry point as roots *)
+    Kernel_function.Hptset.fold
+      (fun kf acc -> Datatype.String.Set.add (Kernel_function.get_name kf) acc)
+      callees
+      init_funcs
+  with Globals.No_such_entry_point _ ->
+    (* always an entry point for the semantic callgraph since value analysis has
+       been computed. *)
+    assert false
 
 let compute () =
   feedback "beginning analysis";
@@ -201,18 +202,18 @@ let iter_on_callers f kf =
   let rec aux kf =
     if SGraph.mem_vertex cg kf then
       SGraph.iter_succ
-	(fun caller ->
-	  if not (V.mem visited caller) then begin
-	    f caller;
-	    V.add visited caller ();
-	    aux caller
-	  end)
-	cg
-	kf
+        (fun caller ->
+          if not (V.mem visited caller) then begin
+            f caller;
+            V.add visited caller ();
+            aux caller
+          end)
+        cg
+        kf
     else
       Options.warning ~once:true
-	"Function %s not registered in semantic callgraph. Skipped."
-	(Kernel_function.get_name kf)
+        "Function %s not registered in semantic callgraph. Skipped."
+        (Kernel_function.get_name kf)
   in
   aux kf
 

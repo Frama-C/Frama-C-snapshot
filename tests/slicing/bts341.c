@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -slice-print -slice-assert main -journal-disable
+   OPT: -check -slice-assert main -journal-disable -then-on 'Slicing export' -print
 */
 int main (int c) {
   if (c)

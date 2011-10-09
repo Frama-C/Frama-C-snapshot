@@ -1,7 +1,6 @@
 /* run.config
-   GCC:
-   OPT: -lib-entry -main f -slice-calls send -slice-print -journal-disable
-   OPT: -lib-entry -main g -slice-calls nothing -slice-print -journal-disable
+   OPT: -check -lib-entry -main f -slice-calls send -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -lib-entry -main g -slice-calls nothing -journal-disable -then-on 'Slicing export' -print
    */
 
 void nothing (void);

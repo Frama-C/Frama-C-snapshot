@@ -5,12 +5,10 @@ module A : sig end = struct
   type u = float
   let mk () = 1.05
   let f = function A n -> n | B false -> min_int | B true -> max_int
-  let t : t Type.t =
+  let t =
     Type.register ~name:"A.t" ~ml_name:None Structural_descr.Unknown [ A 1 ]
-  let () = Type.is_dynamic_abstract t
-  let u : u Type.t =
+  let u =
     Type.register ~ml_name:None ~name:"A.u" Structural_descr.Unknown [ 1.0 ]
-  let () = Type.is_dynamic_abstract u
   let mk =
     Dynamic.register ~plugin:"A" ~journalize:false "mk"
       (Datatype.func Datatype.unit u)
@@ -46,11 +44,12 @@ module A : sig end = struct
       (Datatype.func (Datatype.func t Datatype.int) (Datatype.func t u))
       (fun f x -> float (f x))
 
-  let _ = ignore (Dynamic.get ~plugin:"A" "mk" (Datatype.func Datatype.unit u) ())
+  let _ = 
+    ignore (Dynamic.get ~plugin:"A" "mk" (Datatype.func Datatype.unit u) ())
 
-  let _ =
-    (Dynamic.get ~plugin:"A" "mk"
-       (Datatype.func Datatype.unit (Type.get "A.u")) ())
+  module U = Type.Abstract(struct let name = "A.u" end)
+  let __ : U.t =
+    Dynamic.get ~plugin:"A" "mk" (Datatype.func Datatype.unit U.ty) ()
 
   let _ =
     Dynamic.register ~journalize:false ~plugin:"A" "poly"
@@ -64,10 +63,12 @@ end
 
 (* use of the abstract functions *)
 module B = struct
-  let ty = Type.get "A.t"
+  module T = Type.Abstract(struct let name = "A.t" end)
+  let ty = T.ty
   let _ =
     Type.register ~ml_name:None ~name:"B.t" Structural_descr.Unknown [ 0.0 ]
-  let ty' = Type.get "A.u"
+  module U = Type.Abstract(struct let name = "A.u" end)
+  let ty' = U.ty
   let fut = Datatype.func Datatype.unit ty'
   let mk = Dynamic.get ~plugin:"A" "mk" fut
   let g = Dynamic.get ~plugin:"A" "g" (Datatype.func ty' Datatype.int)
@@ -102,14 +103,14 @@ module B = struct
       assert false
     with Dynamic.Incompatible_type s ->
       print_endline s
-  let () =
+  (*  let () = (* is now statically checked and no more dynamically *)
     try
       List.iter
 	(Dynamic.get ~plugin:"A" "ppu" (Datatype.func ty' Datatype.unit))
 	(Dynamic.get ~plugin:"A" "poly" (Datatype.list ty'));
       assert false
     with Dynamic.Incompatible_type s ->
-      print_endline s
+      print_endline s*)
   let () =
     List.iter
       (Dynamic.get ~plugin:"A" "ppu" (Datatype.func ty' Datatype.unit))

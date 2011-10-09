@@ -1,11 +1,13 @@
 ##########################################################################
 #                                                                        #
-#  This file is part of Frama-C.                                         #
+#  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
 #  Copyright (C) 2007-2011                                               #
-#    INSA  (Institut National des Sciences Appliquees)                   #
+#    CEA (Commissariat a l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
 #           Automatique)                                                 #
+#    INSA  (Institut National des Sciences Appliquees)                   #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
 #  Lesser General Public License as published by the Free Software       #
@@ -50,9 +52,9 @@ PLUGIN_CMO:= bool3 \
 	aorai_option \
 	cil_manipulation \
 	path_analysis \
-	data_for_aorai \
 	promelaoutput \
 	logic_simplification \
+	data_for_aorai \
 	aorai_utils \
 	ltl_output \
 	utils_parser \
@@ -68,8 +70,7 @@ PLUGIN_CMO:= bool3 \
 	bycase_ai \
 	aorai_visitors \
 	aorai_register
-PLUGIN_CMI:= ltlast \
-	promelaast
+PLUGIN_CMI:= ltlast promelaast
 
 
 PLUGIN_HAS_MLI:=yes
@@ -83,8 +84,6 @@ ifneq (@HAS_LTLTOBA@,yes)
 PLUGIN_NO_TEST:=yes
 PLUGIN_NO_DEFAULT_TEST:=yes
 endif
-
-PLUGIN_INTERNAL_TEST:=yes
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 

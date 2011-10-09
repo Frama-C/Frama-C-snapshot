@@ -40,7 +40,7 @@ val remove: varinfo -> t -> t
 val expr: ?trans:bool -> exp -> t -> exp * bool
   (** Apply the substitution to an expression.
       If [trans], the substitution is transitively applied. Default is [true].
-      For example, with subst = \{ x -> &y; y -> b \} and exp = x, the result 
+      For example, with subst = \{ x -> &y; y -> b \} and exp = x, the result
       is &b by default and &y if trans is false.
       The returned boolean flag is true is a substitution occured. *)
 

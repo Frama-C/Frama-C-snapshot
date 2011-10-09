@@ -20,36 +20,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Sindexed = 
+module Sindexed =
   Hashtbl.Make
     (struct
-      type t = Cvalue_type.Model.subtree
-      let hash = Cvalue_type.Model.hash_subtree
-      let equal = Cvalue_type.Model.equal_subtree
+      type t = Cvalue.Model.subtree
+      let hash = Cvalue.Model.hash_subtree
+      let equal = Cvalue.Model.equal_subtree
     end)
 
 let sentinel = Sindexed.create 1
 
-type t = 
-    { mutable t : Relations_type.Model.t Sindexed.t ;
+type t =
+    { mutable t : Cvalue.Model.t Sindexed.t ;
       mutable p : Hptmap.prefix ;
-      mutable o : Relations_type.Model.t list ;
+      mutable o : Cvalue.Model.t list ;
     }
 
-let fold f acc { t = t ; o = o } = 
+let fold f acc { t = t ; o = o } =
   List.fold_left f (Sindexed.fold (fun _k v a -> f a v) t acc) o
 
-let iter f { t = t ; o = o } = 
+let iter f { t = t ; o = o } =
   Sindexed.iter (fun _k v -> f v) t;
   List.iter f o
-  
+
 exception Found
 
 let empty () = { t = sentinel ; p = Hptmap.sentinel_prefix ; o = [] }
 
 let is_empty t = t.t == sentinel && t.o = []
 
-let exists f s = 
+let exists f s =
   try
     iter (fun v -> if f v then raise Found) s;
     false
@@ -62,72 +62,70 @@ let pretty fmt s =
   iter
     (fun state ->
       Format.fprintf fmt "set contains %a@\n"
-	Relations_type.Model.pretty state)
+        Cvalue.Model.pretty state)
     s
 
 let add_to_list v s =
-  if 
+  if
     List.exists
-      (fun e -> Relations_type.Model.is_included v e)
+      (fun e -> Cvalue.Model.is_included v e)
       s
   then raise Unchanged;
 (*  let nl, ns =
     filter
-      (fun e -> not (Relations_type.Model.is_included e v))
+      (fun e -> not (Cvalue.Model.is_included e v))
       w
   in *)
   v :: s
 
-let rec add_exn v s = 
-  if not (Relations_type.Model.is_reachable v)
+let rec add_exn v s =
+  if not (Cvalue.Model.is_reachable v)
   then raise Unchanged;
-  if s.t == sentinel 
+  if s.t == sentinel
   then begin
-      match s.o with 
-	[ v1 ; v2 ] when 
-	    not (Cvalue_type.Model.equal 
-		    (Relations_type.Model.value_state v1)  
-		    (Relations_type.Model.value_state v2)) ->  
-	      begin 
-		try
-		  Relations_type.Model.comp_prefixes v1 v2;
-		  s.o <- add_to_list v s.o 
-		with
-		  Cvalue_type.Model.Found_prefix (p, subtree1, subtree2) ->
+      match s.o with
+        [ v1 ; v2 ] when
+            not (Cvalue.Model.equal v1 v2) ->            
+              begin
+                try
+                  Cvalue.Model.comp_prefixes v1 v2;
+                  s.o <- add_to_list v s.o
+                with
+                  Cvalue.Model.Found_prefix (p, subtree1, subtree2) ->
 (*
-		    Format.printf "COMP h1 %d@."
-		      (Cvalue_type.Model.hash_subtree subtree1);
-		    Format.printf "COMP h2 %d@."
-		      (Cvalue_type.Model.hash_subtree subtree2);
+                    Format.printf "COMP h1 %d@."
+                      (Cvalue.Model.hash_subtree subtree1);
+                    Format.printf "COMP h2 %d@."
+                      (Cvalue.Model.hash_subtree subtree2);
 *)
-		    let t = Sindexed.create 13 in
-		    Sindexed.add t subtree1 v1;
-		    Sindexed.add t subtree2 v2;
-		    s.t <- t;
-		    s.p <- p; 
-		    s.o <- []; 
-		    add_exn v s
-	  end
-      | _ -> 		  s.o <- add_to_list v s.o 
+                    let t = Sindexed.create 13 in
+                    Sindexed.add t subtree1 v1;
+                    Sindexed.add t subtree2 v2;
+                    s.t <- t;
+                    s.p <- p;
+                    s.o <- [];
+                    add_exn v s
+          end
+      | _ ->              s.o <- add_to_list v s.o
     end
   else begin
-      let subtree = Relations_type.Model.find_prefix v s.p in
+      let subtree = Cvalue.Model.find_prefix v s.p in
       begin match subtree with
-	None ->       s.o <- add_to_list v s.o 
+        None ->       s.o <- add_to_list v s.o
       | Some subtree ->
-	  let candidates = Sindexed.find_all s.t subtree in
-(*	  Format.printf "COMP indexed %d %d@."
-	    (List.length candidates)
-	    (List.length s.o); *)
-	  let v_incl = Relations_type.Model.is_included v in
-	  if List.exists v_incl candidates 
-	    || List.exists v_incl s.o
-	  then raise Unchanged
-	  else Sindexed.add s.t subtree v
+          let candidates = Sindexed.find_all s.t subtree in
+(*        Format.printf "COMP indexed %d %d@."
+            (List.length candidates)
+            (List.length s.o); *)
+          let v_incl = Cvalue.Model.is_included v in
+          if List.exists v_incl candidates
+            || List.exists v_incl s.o
+          then raise Unchanged
+          else Sindexed.add s.t subtree v
       end
     end
 
-let merge_into sa sb = 
+let merge_into sa sb =
   let unchanged = ref true in
   let f e =
     try
@@ -140,7 +138,7 @@ let merge_into sa sb =
   if !unchanged then raise Unchanged;
   result
 
-let merge_set_into set sb = 
+let merge_set_into set sb =
   let unchanged = ref true in
   let f e =
     try
@@ -154,55 +152,45 @@ let merge_set_into set sb =
   result
 
 let merge_set_return_new set sb =
-  let f e acc =
+  let f acc e =
     try
       add_exn e sb ;
       e :: acc
     with Unchanged ->
       acc
   in
-  let result = State_set.fold f set [] in
+  let result = State_set.fold f [] set in
   State_set.of_list result
-  
+
 
 let add v s =
   try
     add_exn v s
   with Unchanged -> ()
 
-let singleton v = 
-  let r = empty () in 
-  add v r; 
+let singleton v =
+  let r = empty () in
+  add v r;
   r
 
 let join s =
   fold
-    Relations_type.Model.join 
-    Relations_type.Model.bottom 
+    Cvalue.Model.join
+    Cvalue.Model.bottom
     s
 
-let join_dropping_relations s =
-  Relations_type.Model.inject
-    (fold
-	(fun x y -> 
-          snd (Cvalue_type.Model.join (Relations_type.Model.value_state y) x))
-	Cvalue_type.Model.bottom
-	s)
+let join_dropping_relations = join
 
 let fold f acc s = fold (fun acc v -> f v acc) s acc
 
 let to_set i =
-  Sindexed.fold 
+  Sindexed.fold
     (fun _k v a -> State_set.unsafe_add v a)
     i.t
     (State_set.of_list i.o)
-    
-
-
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j 4"
+compile-command: "make -C ../.."
 End:
 *)
-

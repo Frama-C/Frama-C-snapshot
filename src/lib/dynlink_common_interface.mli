@@ -28,9 +28,9 @@ module type OldDynlink = sig
 
 val loadfile : string -> unit
 (** In bytecode: load the given bytecode object file ([.cmo] file) or
-    bytecode library file ([.cma] file), and link it with the running 
+    bytecode library file ([.cma] file), and link it with the running
     program. In native code: load the given OCaml plugin file (usually
-    [.cmxs]), and link it with the running 
+    [.cmxs]), and link it with the running
     program.
     All toplevel expressions in the loaded compilation units
     are evaluated. No facilities are provided to
@@ -99,6 +99,6 @@ val error_message : error -> string
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

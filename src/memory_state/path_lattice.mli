@@ -20,22 +20,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 
 type precise_path = private
   | Location of Shifted_Location.t
   | Union of Shifted_Location.t * precise_path
- 
+
 type path = private
     Top of Locations.Zone.t
   | Precise of precise_path
 
-
 (* include Abstract_interp.Lattice with type t = path *)
-
-  
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

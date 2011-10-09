@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Db_types
 open Cil_datatype
 open Cil
 
@@ -38,8 +37,7 @@ module Natural_Loops =
        let kind = `Internal
      end)
 
-let pretty_natural_loops fmt kf loops =
-  Format.fprintf fmt "Natural_loops for %s:@." (Kernel_function.get_name kf);
+let pretty_natural_loops fmt loops =
   List.iter
     (fun (start,members) ->
        Format.fprintf fmt "Loop start: %d ( " start.sid;
@@ -51,25 +49,23 @@ let get_naturals kf =
   let loops =
     Natural_Loops.memo
       (fun kf ->
-	 match kf.fundec with
-	 | Declaration _ ->
-	     []
-	 | Definition (cilfundec,_) ->
-	     let dbg = Kernel.debug_atleast 1 in
-             if dbg then
-               Format.printf "COMPUTE NATURAL LOOPS FOR %S@."
-		 (Kernel_function.get_name kf);
-	     let dominators = Dominators.computeIDom cilfundec in
+         match kf.fundec with
+         | Declaration _ ->
+             []
+         | Definition (cilfundec,_) ->
+             Kernel.debug "Compute natural loops for '%a'"
+               Kernel_function.pretty kf;
+             let dominators = Dominators.computeIDom cilfundec in
              (*if dbg then
                Format.printf "DONE COMPUTE NATURAL LOOPS IDOM FOR %S@."
                  (Kernel_function.get_name kf);*)
-	     let naturals = Dominators.findNaturalLoops cilfundec dominators in
-	     if dbg then begin
-               Format.printf "DONE COMPUTE NATURAL LOOPS FOR %S@."
-                 (Kernel_function.get_name kf);
-               pretty_natural_loops Format.std_formatter kf naturals;
-             end;
-	     naturals)
+             let naturals = Dominators.findNaturalLoops cilfundec dominators in
+             Kernel.debug
+               "Done computing natural loops for '%a':@.%a"
+               Kernel_function.pretty kf
+               pretty_natural_loops naturals;
+             naturals
+      )
       kf
   in
   loops
@@ -149,7 +145,7 @@ let compute_loops_stmts kf =
   (try
      ignore
        (visitCilFunction
-	  (visitor :> cilVisitor) (Kernel_function.get_definition kf));
+          (visitor :> cilVisitor) (Kernel_function.get_definition kf));
    with Kernel_function.No_Definition ->
      ());
   tbl
@@ -162,9 +158,9 @@ let get_loop_stmts =
     Kernel_function.Make_Table
       (Result.Make(Stmt.Set))
       (struct
-	 let name = "LoopStmts"
-	 let size = 97
-	 let dependencies = [ Ast.self ]
+         let name = "LoopStmts"
+         let size = 97
+         let dependencies = [ Ast.self ]
          let kind = `Internal
        end)
   in

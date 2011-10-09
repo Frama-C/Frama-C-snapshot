@@ -56,10 +56,10 @@ module Make(D: DATA) = struct
     match t.first, t.last with
     | [], [] -> raise Empty
     | [], _ :: _ ->
-	transfer t;
-	(match t.first with
-	 | [] -> assert false
-	 | x :: _ -> x)
+        transfer t;
+        (match t.first with
+         | [] -> assert false
+         | x :: _ -> x)
     | x :: _, _ -> x
 
   let mem x t =

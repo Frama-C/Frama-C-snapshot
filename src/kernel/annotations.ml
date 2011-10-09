@@ -22,18 +22,18 @@
 
 open Extlib
 open Cil_types
-open Db_types
 open Cil
 
-let get_code_annotation = function
-  | Before (User ca) | After (User ca)
-  | Before (AI (_,ca)) | After(AI(_,ca)) -> ca
+let get_code_annotation = function | User ca | AI (_,ca) -> ca
+
+let get_annot_properties kf stmt a =
+  Property.ip_of_code_annot kf stmt (get_code_annotation a)
 
 module AnnotState =
   State_builder.Dashtbl
     (Dashtbl.Default_key_marshaler(Cil_datatype.Stmt))
     (Dashtbl.Default_data_marshaler
-       (Kernel_datatype.Rooted_code_annotation_before_after))
+       (Cil_datatype.Rooted_code_annotation))
     (struct
        let name = "Annotations"
        let size = 17
@@ -42,29 +42,25 @@ module AnnotState =
        let internal_kind = `Correctness
      end)
 
+let () = 
+  State_dependency_graph.Static.add_dependencies
+    ~from:AnnotState.self 
+    [ Property_status.self ]
+
 let get_name a =
-  let old = Parameters.UseUnicode.get () in
-  Parameters.UseUnicode.set false;
-  let s =
-    Pretty_utils.sfprintf
-      "%a" !Ast_printer.d_rooted_code_annotation_before_after a
-  in
-  Parameters.UseUnicode.set old;
-  s
+  Kernel.Unicode.without_unicode
+    (Pretty_utils.sfprintf "%a" !Ast_printer.d_rooted_code_annotation) a
 
-let add stmt states a = AnnotState.add (get_name a) stmt states a
+let add kf stmt states a = 
+(*  Kernel.feedback "registering code annotation %a" 
+    !Ast_printer.d_rooted_code_annotation a;*)
+  let p = get_annot_properties kf stmt a in
+  List.iter Property_status.register p;
+  AnnotState.add (get_name a) stmt states a
 
-let add_assert stmt states ~before a =
+let add_assert kf stmt states a =
   let a = User (Logic_const.new_code_annotation (AAssert ([],a))) in
-  add stmt states (if before then Before a else After a)
-
-let add_alarm stmt states ~before alarm a =
-  let a = AI (alarm, Logic_const.new_code_annotation (AAssert ([], a))) in
-  add stmt states (if before then Before a else After a)
-
-let reset_stmt = AnnotState.remove_all
-let replace ~reset stmt states a =
-  AnnotState.replace (get_name a) ~reset stmt states a
+  add kf stmt states a
 
 let get = AnnotState.find_all_local
 let get_annotations = AnnotState.find_all_local_data
@@ -80,6 +76,15 @@ let get_by_state stmt =
 let get_filter f stmt =
   List.filter (f $ get_code_annotation) (get_all_annotations stmt)
 
+let reset_stmt ~reset kf stmt =
+  (* Kernel.feedback "reset stmt"; *)
+  List.iter
+    (fun a -> 
+      let l = get_annot_properties kf stmt a in
+      List.iter Property_status.remove l)
+    (get_all_annotations stmt);
+  AnnotState.remove_all ~reset stmt
+  
 let iter = AnnotState.iter
 let iter_stmt = AnnotState.iter_key
 let single_iter_stmt f s = List.iter f (get_all_annotations s)
@@ -88,7 +93,31 @@ let fold_stmt = AnnotState.fold_key
 let single_fold_stmt f s acc =
   List.fold_left (fun acc a -> f a acc) acc (get_all_annotations s)
 
-let filter = AnnotState.filter
+let filter ~reset f kf stmt = 
+  let f stmt s a =
+    let keep = f stmt s a in
+    if not keep then begin
+      let l = get_annot_properties kf stmt a in
+      List.iter Property_status.remove l
+    end;
+    keep 
+  in
+  AnnotState.filter ~reset f stmt
+
+let set_annot ?(reset=true) kf stmt states f =
+  let l = 
+    single_fold_stmt 
+      (fun a l -> 
+	let old = get_annot_properties kf stmt a in
+	let a = f a in
+	let ppts = get_annot_properties kf stmt a in
+	Property_status.merge ~old ppts;
+	a :: l)
+      stmt
+      []
+  in
+  AnnotState.remove_all ~reset stmt;
+  List.iter (fun a -> AnnotState.add (get_name a) stmt states a) l
 
 let self = AnnotState.self
 

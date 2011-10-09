@@ -23,13 +23,9 @@
 #ifndef FC_UIO
 #define FC_UIO
 
-
-typedef __SIZE_T size_t;
-typedef __SIZE_T size_t;
-
-#include "__fc_define_ssize_t.h"
-#include "__fc_define_size_t.h"
-#include "__fc_define_iovec.h"
+#include "../__fc_define_ssize_t.h"
+#include "../__fc_define_size_t.h"
+#include "../__fc_define_iovec.h"
 
 ssize_t readv(int, const struct iovec *, int);
 ssize_t writev(int, const struct iovec *, int);

@@ -240,7 +240,7 @@ if test "$OCAMLGRAPH_EXISTS" = "yes"; then
   then
     OCAMLGRAPH_VERSION=`./test_ocamlgraph`
     case $OCAMLGRAPH_VERSION in
-    1.7) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
+    1.8) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
     *)   AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C.])
          OCAMLGRAPH_EXISTS=no
   	 OCAMLGRAPH_INCLUDE=;;
@@ -295,10 +295,10 @@ if test "$OCAMLGRAPH_EXISTS" = "no"; then
 fi
 
 #################################################
-# Check for other non-mandatory tools/libraries #
+# Check for other (optional) tools/libraries    #
 #################################################
 
-new_section "configure non-mandatory tools and libraries"
+new_section "configure optional tools and libraries"
 
 AC_CHECK_PROG(OCAMLDOC,ocamldoc,ocamldoc,no)
 if test "$OCAMLDOC" = no ; then
@@ -563,6 +563,8 @@ plugin_require(inout,value_analysis)
 #########
 
 check_plugin(metrics,src/metrics,[support for metrics analysis],yes,no)
+plugin_use(metrics,value_analysis)
+plugin_use(metrics,gui)
 
 # occurrence
 ############
@@ -587,12 +589,8 @@ check_plugin(postdominators,src/postdominators,
 # rte
 #####
 
-check_plugin(rte_annotation,src/rte,[support for runtime error annotation],yes,no)
-
-# report
-########
-
-check_plugin(report,src/report,[ACSL properties status report],yes,no)
+check_plugin(rte_annotation,src/rte,
+             [support for runtime error annotation],yes,no)
 
 # scope
 ############
@@ -600,6 +598,8 @@ check_plugin(report,src/report,[ACSL properties status report],yes,no)
 check_plugin(scope,src/scope,[support for scope plugin],yes,no)
 plugin_require(scope,postdominators)
 plugin_require(scope,value_analysis)
+plugin_require(scope,from_analysis)
+plugin_use(scope,gui)
 
 # semantic callgraph
 ####################
@@ -646,9 +646,8 @@ plugin_require(users,value_analysis)
 
 check_plugin(value_analysis,src/value,[support for value analysis],yes,no,
              [src/ai src/buckx])
-plugin_require(value_analysis,from_analysis)
-plugin_require(value_analysis,scope)
 plugin_use(value_analysis,gui)
+plugin_use(value_analysis,scope)
 
 ####################
 # External plugins #
@@ -677,11 +676,11 @@ some external plug-ins.]],
 
 define([KNOWN_SRC_DIRS],
        KNOWN_SRC_DIRS src/kernel src/project src/logic src/dummy src/toplevel \
-       src/lib src/misc src/qed)
+       src/lib src/misc src/qed src/type)
 
 AC_FOREACH([p],m4_esyscmd([ls src]),
   [ m4_if(m4_index(KNOWN_SRC_DIRS,p),[-1],
-      [ m4_syscmd(test -r src/p/configure.in)
+      [	m4_syscmd(test -r src/p/configure.in)
         m4_define([is_configure_in],m4_sysval)
         m4_syscmd(test -r src/p/configure.ac)
         m4_define([is_configure_ac],m4_sysval)
@@ -692,7 +691,9 @@ AC_FOREACH([p],m4_esyscmd([ls src]),
           [ m4_syscmd(test -r src/p/Makefile)
             m4_if(m4_sysval,[0],
               [ check_plugin(p,src/p,[support for p plug-in],yes,yes)
-                EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/p" ])],
+                if test "$[ENABLE_]tovarname(p)" != "no"; then
+                  EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/p";
+                fi])],
           [ m4_define([plugin_prefix],src/p)
             m4_include(config_file)
             m4_syscmd(cd src/p && [FRAMAC_SHARE]=../../share autoconf)
@@ -818,29 +819,6 @@ if test "$HAS_NATIVE_DYNLINK" != "no" ; then
   rm -f test_dynlink.*
 fi
 
-# Lablgtk2's custom tree model
-
-if test "$HAS_LABLGTK" = "yes"; then
-  if echo "type ('a,'b,'c,'d) t = ('a,'b,'c,'d) GTree.custom_tree_model" > test_custommodel.ml && ocamlc -c -I +lablgtk2 test_custommodel.ml 2> /dev/null; \
-  then
-    AC_MSG_CHECKING([for lablgtk2's custom tree model])
-    AC_MSG_RESULT([yes])
-  else
-#   we don't have a good version of lablgtk2:
-#   configure a dummy library "customtree" in order to
-#   configure plug-ins depending on lablgtk2 in a proper way
-    REQUIRE_CUSTOMTREE="$REQUIRE_LABLGTK"
-    USE_CUSTOMTREE="$USE_LABLGTK"
-    configure_library(
-      [CUSTOMTREE],
-      [custom-tree-model],
-      [lablgtk2's custom tree model unavailable. You need at least LablGtk 2.14.],
-      yes
-    )
-  fi
-  rm -f test_custommodel.*
-fi
-
 ########################
 # Plug-in dependencies #
 ########################
@@ -897,9 +875,11 @@ AC_FOREACH([p],PLUGINS_LIST,
 
 new_section "creating makefile"
 
-AC_CONFIG_FILES(cil/ocamlutil/perfcount.c share/Makefile.config)
+AC_CONFIG_FILES([cil/ocamlutil/perfcount.c],
+                [chmod a-w cil/ocamlutil/perfcount.c])
+AC_CONFIG_FILES([share/Makefile.config], [chmod a-w share/Makefile.config])
+
 AC_OUTPUT()
-chmod a-w cil/ocamlutil/perfcount.c share/Makefile.config
 
 ###########
 # Summary #

@@ -355,7 +355,7 @@ class gen = object (self)
       incr Odoc_info.errors
 
   method html_of_plugin_developer_guide _t =
-    "<b>Consult the <a href=\"http://www.frama-c.cea.fr/download/plug-in_development_guide.pdf\">Plugin Development Guide</a></b> for additional details.<br>\n"
+    "<b>Consult the <a href=\"http://www.frama-c.com/download/frama-c-plugin-development-guide.pdf\">Plugin Development Guide</a></b> for additional details.<br>\n"
 
   method html_of_ignore _t = ""
 
@@ -363,16 +363,16 @@ class gen = object (self)
     match t with
     | [] -> Odoc_info.warning "Found an empty @modify tag"; ""
     | Raw s :: l ->
-	let time, explanation = 
-	  try 
+	let time, explanation =
+	  try
 	    let idx = String.index s ' ' in
-	    String.sub s 0 idx, 
-	    ":" ^ String.sub s idx (String.length s - idx) 
-	  with Not_found -> 
+	    String.sub s 0 idx,
+	    ":" ^ String.sub s idx (String.length s - idx)
+	  with Not_found ->
 	    s, ""
 	in
-        let text = 
-	  Bold [ Raw "Change in "; Raw time ] :: Raw explanation :: l 
+        let text =
+	  Bold [ Raw "Change in "; Raw time ] :: Raw explanation :: l
 	in
         let buf = Buffer.create 7 in
         self#html_of_text buf text;

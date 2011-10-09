@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -27,7 +29,6 @@ let numberOfStates = ref 0
 let numberOfTransitions = ref 0
 let setNumberOfStates nbSt = numberOfStates:= nbSt
 let setNumberOfTransitions nbTr = numberOfTransitions := nbTr
-  
 
 let mk_empty_pre_st () =
   Array.make (!numberOfStates) false
@@ -47,10 +48,9 @@ let mk_empty_spec () =
    Array.make (!numberOfTransitions) false
   )
 
-
-
-
-(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical OR between cells with same index from the two arrays.  *)
+(** Given two bool arrays with the same length, it returns a fresh
+    bool array corresponding to a logical AND between cells with same index
+    from the two arrays.  *)
 let bool_array_and arr1 arr2 =
   if Array.length arr1 <> Array.length arr2 then
     assert false;
@@ -61,7 +61,7 @@ let bool_array_and arr1 arr2 =
   res
 
 
-(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical AND between cells with same index from the two arrays.  *)
+(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical OR between cells with same index from the two arrays.  *)
 let bool_array_or arr1 arr2 =
   if Array.length arr1 <> Array.length arr2 then
     assert false;
@@ -82,9 +82,6 @@ let bool_array_eq arr1 arr2 =
     arr1;
   !res
 
-
-
-
 let double_bool_array_and (a1,a2) (b1,b2) =
   (bool_array_and a1 b1,
    bool_array_and a2 b2)
@@ -98,12 +95,12 @@ let quad_bool_array_and (a1,a2,a3,a4) (b1,b2,b3,b4) =
 let double_bool_array_or (a1,a2) (b1,b2) =
   (bool_array_or a1 b1,
    bool_array_or a2 b2)
+
 let quad_bool_array_or (a1,a2,a3,a4) (b1,b2,b3,b4) =
   (bool_array_or a1 b1,
    bool_array_or a2 b2,
    bool_array_or a3 b3,
    bool_array_or a4 b4)
-
 
 let double_bool_array_eq (a1,a2) (b1,b2) =
   (bool_array_eq a1 b1) &&
@@ -115,15 +112,12 @@ let quad_bool_array_eq (a1,a2,a3,a4) (b1,b2,b3,b4) =
   (bool_array_eq a3 b3) &&
   (bool_array_eq a4 b4)
 
-
-
 type pre_post_bycase_t = bool array array
 type double_pre_post_bycase_t = (pre_post_bycase_t*pre_post_bycase_t)
-type quad_pre_post_bycase_t = (pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t)
-
+type quad_pre_post_bycase_t =
+    (pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t*pre_post_bycase_t)
 
 (* ************************************************************************* *)
-
 
 let mk_empty_pre_st_bycase () =
   Array.make_matrix (!numberOfStates) (!numberOfStates) false
@@ -143,8 +137,6 @@ let mk_empty_spec_bycase () =
    Array.make_matrix (!numberOfStates) (!numberOfTransitions) false
   )
 
-
-
 let pre_flattening (pre_st,pre_tr) =
   let new_st,new_tr = mk_empty_pre_or_post () in
   let new_st,new_tr = ref new_st, ref new_tr in
@@ -155,7 +147,6 @@ let pre_flattening (pre_st,pre_tr) =
     )
     pre_st;
   (!new_st,!new_tr)
-
 
 let post_pseudo_flattening post =
   let new_st,new_tr = mk_empty_pre_or_post_bycase () in
@@ -171,46 +162,45 @@ let post_pseudo_flattening post =
 
 
 
-(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical OR between cells with same index from the two arrays.  *)
+(** Given two bool arrays with the same length, it returns a fresh bool array 
+    corresponding to a logical AND between cells with same index from the 
+    two arrays.  *)
 let bool_array_and_bycase bc_arr1 bc_arr2 =
   if Array.length bc_arr1 <> Array.length bc_arr2 then
     assert false;
-
-  let res=Array.make (Array.length bc_arr1) (Array.make (Array.length bc_arr1.(0)) false) in
+  let res=Array.make 
+    (Array.length bc_arr1) (Array.make (Array.length bc_arr1.(0)) false) 
+  in
   Array.iteri
     (fun case b1 -> res.(case)<-bool_array_and b1 (bc_arr2.(case)))
     bc_arr1;
   res
 
 
-(** Given two bool arrays with the same length, it returns a fresh bool array corresponding to a logical AND between cells with same index from the two arrays.  *)
+(** Given two bool arrays with the same length, it returns a fresh bool array 
+    corresponding to a logical OR between cells with same index from 
+    the two arrays.  *)
 let bool_array_or_bycase bc_arr1 bc_arr2 =
   if Array.length bc_arr1 <> Array.length bc_arr2 then
     assert false;
-
-  let res=Array.make (Array.length bc_arr1) (Array.make (Array.length bc_arr1.(0)) false) in
+  let res=Array.make 
+    (Array.length bc_arr1) (Array.make (Array.length bc_arr1.(0)) false) 
+  in
   Array.iteri
     (fun case b1 -> res.(case)<-bool_array_or b1 (bc_arr2.(case)))
     bc_arr1;
   res
 
-
-(** Given two bool arrays with the same length, it returns true if and only if their cells are equal for each index. *)
+(** Given two bool arrays with the same length, it returns true if and only 
+    if their cells are equal for each index. *)
 let bool_array_eq_bycase bc_arr1 bc_arr2 =
   if Array.length bc_arr1 <> Array.length bc_arr2 then
     assert false;
-
   let res=ref true in
   Array.iteri
     (fun case b1 -> if not (bool_array_eq b1 (bc_arr2.(case))) then res :=false)
     bc_arr1;
   !res
-
-
-
-
-
-
 
 let double_bool_array_and_bycase (a1,a2) (b1,b2) =
   (bool_array_and_bycase a1 b1,
@@ -231,7 +221,6 @@ let quad_bool_array_or_bycase (a1,a2,a3,a4) (b1,b2,b3,b4) =
    bool_array_or_bycase a3 b3,
    bool_array_or_bycase a4 b4)
 
-
 let double_bool_array_eq_bycase (a1,a2) (b1,b2) =
   (bool_array_eq_bycase a1 b1) &&
   (bool_array_eq_bycase a2 b2)
@@ -242,16 +231,11 @@ let quad_bool_array_eq_bycase (a1,a2,a3,a4) (b1,b2,b3,b4) =
   (bool_array_eq_bycase a3 b3) &&
   (bool_array_eq_bycase a4 b4)
 
-
-
-
-
 let is_empty_pre_post__ pp  =
   Array.fold_left
     (fun isempty value -> isempty && not value)
     true
     pp
-
 
 (** Return false if and only if all states are associated to false *)
 let is_empty_pre_post (pre_st,_) =
@@ -265,15 +249,9 @@ let is_empty_post_bc (post_st,_) =
     true
     post_st
 
-
-
-
-
-
 let separator = ""
 
-let concat =
-    String.concat ""
+let concat = String.concat ""
 
 let debug_display_stmt_pre pre prefixe =
   let r=ref "{" in
@@ -305,9 +283,6 @@ let debug_display_spec (pre_st,_,post_st,_) name=
 (*  debug_display_stmt_pre post_st "st";*)
 (*  Format.printf "\n"                  *)
 
-
-
-
 let debug_display_stmt_all_pre (st,tr)=
   let tr_str = debug_display_stmt_pre tr "tr" in
   let st_str = debug_display_stmt_pre st "st" in
@@ -316,8 +291,6 @@ let debug_display_stmt_all_pre (st,tr)=
 (*  debug_display_stmt_pre tr "tr";*)
 (*  Format.printf " st=";          *)
 (*  debug_display_stmt_pre st "st" *)
-
-
 
 let is_empty_behavior assocs =
   Array.fold_left (fun b c -> if c then false else b) true assocs
@@ -336,8 +309,6 @@ let assocs_to_string assocs prefixe =
     assocs;
   !s^")"
 
-
-
 let debug_display_stmt_pre_bycase pre prefixe =
   let r=ref "{" in
     let result = ref "" in
@@ -355,8 +326,6 @@ let debug_display_stmt_pre_bycase pre prefixe =
   else
     concat [!result ;"}"]
 
-
-
 let debug_display_spec_bycase (pre_st,_,post_st,_) name=
   let pre_str = debug_display_stmt_pre_bycase pre_st "st" in
     let post_str = debug_display_stmt_pre_bycase post_st "st" in
@@ -364,8 +333,6 @@ let debug_display_spec_bycase (pre_st,_,post_st,_) name=
 (*  Format.printf "%s %s %s" pre_str name post_str;;*)
 (*  debug_display_stmt_pre_bycase post_st "st";*)
 (*  Format.printf "\n"                         *)
-
-
 
 let debug_display_stmt_all_pre_bycase (st,tr)=
   let tr_str = debug_display_stmt_pre_bycase tr "tr" in
@@ -375,10 +342,6 @@ let debug_display_stmt_all_pre_bycase (st,tr)=
 (*  debug_display_stmt_pre_bycase tr "tr";*)
 (*  Format.printf " st=";                 *)
 (*  debug_display_stmt_pre_bycase st "st" *)
-
-
-
-
 
 (*
 Local Variables:

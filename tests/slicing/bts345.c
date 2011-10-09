@@ -1,9 +1,9 @@
 /* run.config
-   OPT: -slice-print -slice-return call_top -main call_top -journal-disable
-   OPT: -slice-print -slice-return top      -main top -journal-disable
-   OPT: -slice-print -slice-return top      -main call_top -journal-disable
-   OPT: -slice-return called_by_top -main top -journal-disable
-   OPT: -slice-return called_by_top -main call_top -journal-disable
+   OPT: -check -slice-return call_top -main call_top -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-return top      -main top -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-return top      -main call_top -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -slice-return called_by_top -main top -journal-disable
+   OPT: -check -slice-return called_by_top -main call_top -journal-disable
 */
 
 int called_indirectly_by_top (int x) {

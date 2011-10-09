@@ -43,9 +43,6 @@ exception AddError
  * information has a different type. *)
 exception CallStatement
 
-(** When we try to find an element that is not in the index *)
-exception NotFound
-
 (** When we compare two things with different locations (no order) *)
 exception Not_equal
 
@@ -114,7 +111,7 @@ end
 module Key : sig
 
   (** type to identify a call statement *)
-  type t_call_id
+  type t_call_id = Cil_types.stmt
 
   type key =
       private
@@ -129,9 +126,7 @@ module Key : sig
 
   include Datatype.S with type t = key
 
-  (* [VP 2011-02-02] What is exactly the purpose of this unused parameter 'a?
-   *)
-  val param_key : int -> 'a -> t
+  val param_key : int -> t
   val implicit_in_key : Locations.Zone.t -> t
   val entry_point : t
   val top_input : t
@@ -155,6 +150,7 @@ module Key : sig
 
 end
 
+
 (** Mapping between the function elements we are interested in and some
   * information. Used for instance to associate the nodes with the statements,
   * or the marks in a slice.
@@ -163,58 +159,66 @@ module FctIndex : sig
 
   (** this type is used to build indexes between program objects and some
       information such as the PDG nodes or the slicing marks.
-      - ['a] if the type of the information to store for each element,
-      - ['b] if the type of the information that can be attached to call
-      statements (calls are themselves composed of several elements, so ['a]
-      information stored for each of them (['a Signature.t])) *)
-  type ('a, 'b) t
+      - ['ni] if the type of the information to store for each element,
+      - ['ci] if the type of the information that can be attached to call
+      statements (calls are themselves composed of several elements, so ['ni]
+      information stored for each of them (['ni Signature.t])) *)
+  type ('ni, 'ci) t
 
-  val create: int -> ('a, 'b) t
-  val length: ('a, 'b) t -> int
+  val create : int -> ('ni, 'ci) t
+  val length : ('ni, 'ci) t -> int
 
   (** just copy the mapping *)
-  val copy: ('a, 'b) t -> ('a, 'b) t
+  val copy :  ('ni, 'ci) t ->  ('ni, 'ci) t
 
   (** merge the two indexes using given functions [merge_a] and [merge_b].
       These function are _not_ called when an element is in one index,
       but not the other. It is assumed that [merge_x x bot = x]. *)
-  val merge: ('a, 'b) t -> ('a, 'b) t ->
-    ('a -> 'a -> 'a) -> ('b -> 'b -> 'b) ->
-    ('a, 'b) t
+  val merge : ('ni, 'ci) t ->  ('ni, 'ci) t ->
+              ('ni -> 'ni -> 'ni) -> 
+              ('ci -> 'ci -> 'ci) ->
+              ('ni, 'ci) t
 
   (** get the information stored for the function signature *)
-  val sgn: ('a, 'b) t -> 'a Signature.t
+  val sgn :  ('ni, 'ci) t -> 'ni Signature.t
 
   (** find the information stored for the key. Cannot be used for
       [Key.CallStmt] keys because the type of the stored information is not the
       same. See [find_call] instead. *)
-  val find_info: ('a, 'b) t -> Key.t -> 'a
+  val find_info :  ('ni, 'ci) t -> Key.t-> 'ni
 
   (** same than [find_info] except for call statements for which it gives the
       list of all the information in the signature of the call. *)
-  val find_all: ('a, 'b) t -> Key.t -> 'a list
+  val find_all :  ('ni, 'ci) t -> Key.t-> 'ni list
 
   (** find the information stored for the call and its signature *)
-  val find_call: ('a, 'b) t -> Cil_types.stmt -> 'b option * 'a Signature.t
-  val find_call_key: ('a, 'b) t -> Key.t -> 'b option * 'a Signature.t
+  val find_call :
+    ('ni, 'ci) t -> Cil_types.stmt -> 'ci option * 'ni Signature.t
+  val find_call_key :  ('ni, 'ci) t -> Key.t -> 'ci option * 'ni Signature.t
 
   (** find the information stored for the call *)
-  val find_info_call: ('a, 'b) t -> Cil_types.stmt -> 'b
-  val find_info_call_key: ('a, 'b) t -> Key.t -> 'b
+  val find_info_call :  ('ni, 'ci) t -> Cil_types.stmt -> 'ci
+  val find_info_call_key : ('ni, 'ci) t -> Key.t -> 'ci
 
-  val fold_calls:
-    (Cil_types.stmt -> 'b option * 'a Signature.t -> 'c -> 'c) ->
-    ('a, 'b) t -> 'c -> 'c
+  val fold_calls :
+    (Key.t_call_id-> 'ci option * 'ni Signature.t -> 'c -> 'c) ->
+    ('ni, 'ci) t -> 'c -> 'c
+
+  val fold : (Key.key -> 'ni -> 'a -> 'a) -> ('ni, 'ci) t -> 'a -> 'a
 
   (** store the information for the key.
       @raise AddError if there is already something stored. *)
-  val add: ('a, 'b) t -> Key.t -> 'a -> unit
-
+  val add :  ('ni, 'ci) t -> Key.t-> 'ni -> unit
   (** store the information for the key. Replace the previously stored
       information if any. *)
-  val add_or_replace: ('a, 'b) t -> Key.t -> 'a -> unit
+  val add_or_replace :  ('ni, 'ci) t -> Key.t-> 'ni -> unit
+  val add_info_call :
+    ('ni, 'ci) t -> Key.t_call_id -> 'ci -> replace:bool -> unit
+  val add_info_call_key :  ('ni, 'ci) t -> Key.t -> 'ci -> replace:bool -> unit
 
-  val add_info_call: ('a, 'b) t -> Cil_types.stmt -> 'b -> replace:bool -> unit
-  val add_info_call_key: ('a, 'b) t -> Key.t -> 'b -> replace:bool -> unit
+
+  (** Structural destructor for unmarshaling *)
+  val t_descr:
+    ni:Structural_descr.t -> ci:Structural_descr.t -> Structural_descr.t
 
 end

@@ -72,20 +72,20 @@ let compare o1 o2 = match o1, o2 with
 
 let pretty fmt o = match o with
   | Unknown ->
-      Format.fprintf fmt "@[Unknown@]"
+      Format.fprintf fmt "Unknown"
   | Misalign_read o ->
-      Format.fprintf fmt "@[Misaligned@ %a@]"
-	LocationSetLattice.pretty o
+      Format.fprintf fmt "Misaligned@ %a"
+        LocationSetLattice.pretty o
   | Leaf o ->
-      Format.fprintf fmt "@[Library function@ %a@]"
-	LocationSetLattice.pretty o
+      Format.fprintf fmt "Library function@ %a"
+        LocationSetLattice.pretty o
   | Merge o ->
-      Format.fprintf fmt "@[Merge@ %a@]"
-	LocationSetLattice.pretty o
+      Format.fprintf fmt "Merge@ %a"
+        LocationSetLattice.pretty o
   | Arith o ->
-      Format.fprintf fmt "@[Arithmetic@ %a@]"
-	LocationSetLattice.pretty o
-  | Well ->       Format.fprintf fmt "@[Well@]"
+      Format.fprintf fmt "Arithmetic@ %a"
+        LocationSetLattice.pretty o
+  | Well ->       Format.fprintf fmt "Well"
 
 let hash o = match o with
   | Misalign_read o ->
@@ -131,16 +131,16 @@ let join o1 o2 =
       | Unknown,_ | _, Unknown -> Unknown
       | Well,_ | _ , Well   -> Well
       | Misalign_read o1, Misalign_read o2 ->
-	  Misalign_read(LocationSetLattice.join o1 o2)
+          Misalign_read(LocationSetLattice.join o1 o2)
       | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m
       | Leaf o1, Leaf o2 ->
-	  Leaf(LocationSetLattice.join o1 o2)
+          Leaf(LocationSetLattice.join o1 o2)
       | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
       | Merge o1, Merge o2 ->
-	  Merge(LocationSetLattice.join o1 o2)
+          Merge(LocationSetLattice.join o1 o2)
       | (Merge _ as m), _ | _, (Merge _ as m) -> m
       | Arith o1, Arith o2 ->
-	  Arith(LocationSetLattice.join o1 o2)
+          Arith(LocationSetLattice.join o1 o2)
             (* | (Arith _ as m), _ | _, (Arith _ as m) -> m *)
   in
   (*  Format.printf "Origin.join %a %a -> %a@." pretty o1 pretty o2 pretty result;
@@ -153,16 +153,16 @@ let meet o1 o2 =
   else
     match o1, o2 with
       | Arith o1, Arith o2 ->
-	  Arith(LocationSetLattice.meet o1 o2)
+          Arith(LocationSetLattice.meet o1 o2)
       | (Arith _ as m), _ | _, (Arith _ as m) -> m
       | Merge o1, Merge o2 ->
-	  Merge(LocationSetLattice.meet o1 o2)
+          Merge(LocationSetLattice.meet o1 o2)
       | (Merge _ as m), _ | _, (Merge _ as m) -> m
       | Leaf o1, Leaf o2 ->
-	  Leaf(LocationSetLattice.meet o1 o2)
+          Leaf(LocationSetLattice.meet o1 o2)
       | (Leaf _ as m), _ | _, (Leaf _ as m) -> m
       | Misalign_read o1, Misalign_read o2 ->
-	  Misalign_read(LocationSetLattice.meet o1 o2)
+          Misalign_read(LocationSetLattice.meet o1 o2)
       | _, (Misalign_read _ as m) | (Misalign_read _ as m), _ -> m
       | Well, Well -> Well
       | Well,m | m, Well -> m

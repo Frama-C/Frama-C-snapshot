@@ -22,43 +22,54 @@
 
 include Plugin.S
 
-module ForceValues: Plugin.BOOL
+module ForceValues: Plugin.WithOutput
 
-module PropagateTop: Plugin.BOOL
+module PropagateTop: Plugin.Bool
 
-module AutomaticContextMaxDepth: Plugin.INT
-module AutomaticContextMaxWidth: Plugin.INT
+module AutomaticContextMaxDepth: Plugin.Int
+module AutomaticContextMaxWidth: Plugin.Int
 
-module SeparateStmtStart:  Plugin.STRING_SET
-module SeparateStmtWord:  Plugin.INT
-module SeparateStmtOf:  Plugin.INT
+module SeparateStmtStart:  Plugin.String_set
+module SeparateStmtWord:  Plugin.Int
+module SeparateStmtOf:  Plugin.Int
 
-module AllRoundingModes: Plugin.BOOL
+module AllRoundingModes: Plugin.Bool
 
-module MemFunctions: Plugin.STRING_SET
-module MemExecAll: Plugin.BOOL
+module NoResultsFunctions: Plugin.String_set
+module NoResultsAll: Plugin.Bool
 
-module NoResultsFunctions: Plugin.STRING_SET
-module NoResultsAll: Plugin.BOOL
+module ObviouslyTerminatesAll: Plugin.Bool
+module ObviouslyTerminatesFunctions: Plugin.String_set
 
-module SignedOverflow: Plugin.BOOL
+module ResultsAfter: Plugin.Bool
 
-module IgnoreRecursiveCalls: Plugin.BOOL
+module SignedOverflow: Plugin.Bool
 
-module MemoryFootprint: Plugin.INT
+module IgnoreRecursiveCalls: Plugin.Bool
+module ValShowProgress: Plugin.Bool
 
-module SemanticUnrollingLevel: Plugin.INT
+module MemoryFootprint: Plugin.Int
 
-module AllocatedContextValid: Plugin.BOOL
+module SemanticUnrollingLevel: Plugin.Int
 
-module UndefinedPointerComparisonPropagateAll: Plugin.BOOL
+module AllocatedContextValid: Plugin.Bool
 
-module ArrayPrecisionLevel: Plugin.INT
+module UndefinedPointerComparisonPropagateAll: Plugin.Bool
 
-module WideningLevel: Plugin.INT
-module SlevelFunction: Plugin.STRING_HASHTBL with type value = int
+module WideningLevel: Plugin.Int
+module SlevelFunction: Plugin.String_hashtbl with type value = int
 
-module Subdivide_float_in_expr: Plugin.INT
+module UsePrototype: Plugin.String_set
+
+module RmAssert: Plugin.Bool
+
+module Subdivide_float_in_expr: Plugin.Int
+module BuiltinsOverrides: Plugin.String_hashtbl with type value = string
+
+module PrintCallstacks: Plugin.Bool
+
+val parameters_correctness: Parameter.t list
+val parameters_tuning: Parameter.t list
 
 (*
 Local Variables:

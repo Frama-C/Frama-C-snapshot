@@ -22,16 +22,23 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 (* TODO: remove the module Properties from Db and export directly the
    functions from here. *)
 
 open Cil_types
-open Db_types
 
 module To_zone : sig
   val  not_yet_implemented : string ref
 end
 
+(* [JS 2011/06/09] seem to be unused.
+   Be careful: require to call Kernel_function.set_spec if the new funspec is
+   put into a kernel function. *)
 (** returns a copy of the spec in which all formals in an ensures clause
     are guarded by an \at(x,Old). *)
 val formals_in_ensures: kernel_function -> funspec

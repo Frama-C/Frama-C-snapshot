@@ -189,8 +189,8 @@ module type Make_input = sig
 
   val rehash: t -> t
   (** How to rehashconsed values. Must be {!identity} if you does not use
-      hashconsing. Only useful for unmarshaling (use {!undefined for
-      unmarshable type}). *)
+      hashconsing. Only useful for unmarshaling (use {!undefined} for
+      unmarshable type). *)
 
   (** All the above operations have the same semantics than the corresponding
       value specified in module type {!S}. *)
@@ -238,7 +238,7 @@ end
 (** A standard OCaml map signature extended with datatype operations. *)
 module type Map = sig
 
-  include Map.S
+  include Map_common_interface.S
 
   module Key: S with type t = key
   (** Datatype for the keys of the map. *)
@@ -253,6 +253,12 @@ end
 module type Hashtbl = sig
 
   include Hashtbl.S
+
+  val memo: 'a t -> key -> (key -> 'a) -> 'a
+  (** [memo tbl k f] returns the binding of [k] in [tbl]. If there is
+      no binding, add the binding [f k] associated to [k] in [tbl] and return
+      it.
+      @since Nitrogen-20111001 *)
 
   module Key: S with type t = key
   (** Datatype for the keys of the hashtbl. *)
@@ -311,7 +317,7 @@ val string: string Type.t
 module Formatter: S with type t = Format.formatter
 val formatter: Format.formatter Type.t
 
-module Big_int: S_with_collections with type t = Big_int.big_int
+module Big_int: S_with_collections with type t = My_bigint.t
 val big_int: Big_int.t Type.t
 
 (* ****************************************************************************)
@@ -393,6 +399,11 @@ val t_ref: 'a Type.t -> 'a ref Type.t
 
 module Poly_option: Polymorphic with type 'a poly = 'a option
 module Option(T: S) : S with type t = T.t option
+
+(** @since Nitrogen-20111001 *)
+module Option_with_collections(T:S)(Info: Functor_info):
+  S_with_collections with type t = T.t option
+
 val option: 'a Type.t -> 'a option Type.t
 
 module Poly_list: Polymorphic with type 'a poly = 'a list
@@ -406,6 +417,14 @@ module Queue(T: S) : S with type t = T.t Queue.t
 module Triple(T1: S)(T2: S)(T3: S): S with type t = T1.t * T2.t * T3.t
 module Triple_with_collections(T1: S)(T2: S)(T3: S)(Info: Functor_info):
   S_with_collections with type t = T1.t * T2.t * T3.t
+
+(** @since Nitrogen-20111001 *)
+module Quadruple(T1: S)(T2: S)(T3: S)(T4:S): 
+  S with type t = T1.t * T2.t * T3.t * T4.t
+(** @since Nitrogen-20111001 *)
+module Quadruple_with_collections
+  (T1: S)(T2: S)(T3: S)(T4:S)(Info: Functor_info):
+  S_with_collections with type t = T1.t * T2.t * T3.t * T4.t
 
 module Function
   (T1: sig include S val label: (string * (unit -> t) option) option end)
@@ -446,7 +465,7 @@ val func4:
 module Set(S: Set.S)(E: S with type t = S.elt)(Info : Functor_info):
   Set with type t = S.t and type elt = E.t
 
-module Map(M: Map.S)(Key: S with type t = M.key)(Info: Functor_info) :
+module Map(M: Map_common_interface.S)(Key: S with type t = M.key)(Info: Functor_info) :
   Map with type 'a t = 'a M.t and type key = M.key and module Key = Key
 
 module Hashtbl(H: Hashtbl.S)(Key: S with type t = H.key)(Info : Functor_info):

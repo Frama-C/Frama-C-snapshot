@@ -20,6 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
- 
-val pretty_external: Format.formatter -> Db_types.kernel_function -> unit
-val compute_external: Db_types.kernel_function -> unit
+
+val pretty_external: Format.formatter -> Cil_types.kernel_function -> unit
+val compute_external: Cil_types.kernel_function -> unit

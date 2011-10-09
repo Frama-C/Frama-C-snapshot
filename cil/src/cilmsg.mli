@@ -39,34 +39,14 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Cil Messages                                                       --- *)
-(* -------------------------------------------------------------------------- *)
-(* Candidate replacement for both ocamlutil/Pretty and ocamlutil/Errormsg     *)
-(* module E = Errormsg                                                        *)
-(* module M = Cilmsg                                                          *)
-(* !E.hadErrors   => M.had_errors ()                                          *)
-(* E.s(E.bug s)   => M.fatal s                                                *)
-(* E.s(E.error s) => M.error s                                                *)
-(* E.warn s       => M.warning s                                              *)
-(* -------------------------------------------------------------------------- *)
-
-include Log.Messages
-
-val warnFlag : bool
-val warnOpt : ('a, Format.formatter, unit, unit) format4 -> 'a
+(** CIL's internal stack of errors. The module name [Cilmsg] is misleading,
+    but historical. *)
 
 val had_errors : unit -> bool
-val clear_errors : unit -> unit
 
+val clear_errors : unit -> unit
 val push_errors : unit -> unit
 val pop_errors : unit -> unit
-
-val on_errors_abort : ('a,Format.formatter,unit) format -> 'a
-  (** Same as: [if had_errors () then abort ... ;] *)
-
-val set_error : Log.event -> unit 
-  (** Should not be used directly. Use error, abort or fatal instead. *)
 
 (*
 Local Variables:

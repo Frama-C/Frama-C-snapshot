@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -54,9 +56,9 @@
     in
     lexbuf.lex_curr_p <-
       { pos with
-	  pos_fname = new_file;
-	  pos_lnum = if absolute then line else pos.pos_lnum + line;
-	  pos_bol = pos.pos_cnum - chars;
+          pos_fname = new_file;
+          pos_lnum = if absolute then line else pos.pos_lnum + line;
+          pos_bol = pos.pos_cnum - chars;
       }
 *)
   exception Error of (Lexing.position * Lexing.position) * string
@@ -68,19 +70,19 @@
 
 
 
-let rD =	['0'-'9']
+let rD =        ['0'-'9']
 let rL = ['a'-'z' 'A'-'Z' '_']
 
 
 rule token = parse
   | "true"                  { LTL_TRUE }
   | "false"                 { LTL_FALSE }
-  | '('			    { LTL_LPAREN }
-  | ')'			    { LTL_RPAREN }
+  | '('                     { LTL_LPAREN }
+  | ')'                     { LTL_RPAREN }
 
 (* Logic operators *)
-  | "=>"		    { LTL_IMPLIES }
-  | "<=>"		    { LTL_LEFT_RIGHT_ARROW }
+  | "=>"                    { LTL_IMPLIES }
+  | "<=>"                   { LTL_LEFT_RIGHT_ARROW }
   | "||"                    { LTL_OR }
   | "&&"                    { LTL_AND }
   | '!'                     { LTL_NOT }
@@ -107,7 +109,7 @@ rule token = parse
   | '%'                     { LTL_MODULO}
 
 (* Access *)
-  | "->"		    { LTL_RIGHT_ARROW }
+  | "->"                    { LTL_RIGHT_ARROW }
   | '.'                     { LTL_DOT }
   | '['                     { LTL_LEFT_SQUARE}
   | ']'                     { LTL_RIGHT_SQUARE}
@@ -148,6 +150,6 @@ and comment = parse
     try
       Ltlparser.ltl token lb
     with
-	Parsing.Parse_error
+        Parsing.Parse_error
       | Invalid_argument _  -> raise_located (loc lb) "Syntax error"
 }

@@ -27,11 +27,8 @@ open Cil_types
 module CurrentLoc = Cil_const.CurrentLoc
 
 let error (b,_e) fstring =
-  Cilmsg.abort
-    ~source:{
-      Log.src_file = b.Lexing.pos_fname ;
-      Log.src_line = b.Lexing.pos_lnum ;
-    }
+  Kernel.abort
+    ~source:b
     ("In annotation: " ^^ fstring)
 
 module Logic_builtin =
@@ -218,9 +215,9 @@ module Builtins= struct
        end)
 
   let apply () =
-    Cilmsg.feedback ~level:5 "Applying logic built-ins hooks for project %s"
+    Kernel.feedback ~level:5 "Applying logic built-ins hooks for project %s"
       (Project.get_name (Project.current()));
-    if Applied.get () then Cilmsg.feedback ~level:5 "Already applied"
+    if Applied.get () then Kernel.feedback ~level:5 "Already applied"
     else begin Applied.set true; apply () end
 end
 

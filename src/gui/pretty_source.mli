@@ -25,7 +25,6 @@
     @plugin development guide *)
 
 open Cil_types
-open Db_types
 
 (** The kind of object that can be selected in the source viewer.
     @plugin development guide *)
@@ -36,12 +35,16 @@ type localizable =
   | PVDecl of (kernel_function option * varinfo)
 
   | PGlobal of global (* all globals but variable declarations and function
-			 definitions. *)
+                         definitions. *)
   | PIP of Property.t
 
 module Localizable: Datatype.S with type t = localizable
 
-module Locs: sig type state end
+module Locs: sig
+  type state
+  (** To call when the source buffer is about to be discarded *)
+  val finalize: state -> unit
+end
 
 val display_source :
   global list ->
@@ -70,6 +73,13 @@ val localizable_from_locs :
       visible in the current [Locs.state].
       This function is inefficient as it iterates on all the current
       [Locs.state]. *)
+
+val loc_to_localizable: Lexing.position -> localizable option
+  (** return the (hopefully) most precise localizable that contains the given
+      Lexing.position.
+    @since Nitrogen-20111001 *)
+
+
 (*
 Local Variables:
 compile-command: "make -C ../.."

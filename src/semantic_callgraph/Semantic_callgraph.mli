@@ -24,5 +24,5 @@
 
 (** Semantic callgraph. *)
 
-(** No function is directly exported: they are registered in 
+(** No function is directly exported: they are registered in
     {!Db.Semantic_Callgraph}. *)

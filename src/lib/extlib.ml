@@ -77,12 +77,22 @@ let as_singleton = function
   | [a] -> a
   | _ -> invalid_arg "Extlib.as_singleton"
 
+let rec last = function
+  | [] -> invalid_arg "Extlib.last"
+  | [a] -> a
+  | _ :: l -> last l
+
 let filter_out f ls = List.filter (fun x -> not (f x)) ls
 
 let filter_map filter f l =
   let rec aux = function
       [] -> []
     | x::tl -> if filter x then f x :: aux tl else aux tl
+  in aux l
+let filter_map' f filter l=
+  let rec aux = function
+    | [] -> []
+    | x::tl -> let x' = f x in if filter x' then x' :: aux tl else aux tl
   in aux l
 
 let product_fold f acc e1 e2 =
@@ -109,14 +119,25 @@ let rec list_compare cmp_elt l1 l2 =
           let c = cmp_elt v1 v2 in
           if c = 0 then list_compare cmp_elt r1 r2 else c
 
-let list_of_opt = 
+let list_of_opt =
   function
     | None -> []
     | Some x -> [x]
 
+let rec find_opt f = function
+  | [] -> raise Not_found
+  | e :: q ->
+      match f e with
+        | None -> find_opt f q
+        | Some v -> v
+
+let iteri f l = let i = ref 0 in List.iter (fun x -> f !i x; incr i) l
+
 (* ************************************************************************* *)
 (** {2 Options} *)
 (* ************************************************************************* *)
+
+let has_some = function None -> false | Some _ -> true
 
 let may f = function
   | None -> ()
@@ -134,6 +155,10 @@ let may_map f ?dft x =
 let opt_map f = function
   | None -> None
   | Some x -> Some (f x)
+
+let opt_bind f = function
+  | None -> None
+  | Some x -> f x
 
 let opt_filter f = function
   | None -> None
@@ -165,7 +190,7 @@ let gentime counter ?msg f x =
   let c1 = counter () in
   let res = f x in
   let c2 = counter () in
-  Format.printf "Time%s: %d@." 
+  Format.printf "Time%s: %d@."
     (match msg with None -> "" | Some s -> " of " ^ s)
     (c2 - c1);
   res
@@ -173,13 +198,30 @@ let gentime counter ?msg f x =
 let time ?msg f x = gentime getperfcount ?msg f x
 let time1024 ?msg f x = gentime getperfcount1024 ?msg f x
 
+(* The two functions below are not exported right now *)
+let time' name f =
+  let cpt = ref 0 in
+  fun x ->
+    let b = getperfcount () in
+    let res = f x in
+    let e = getperfcount () in
+    let diff = e - b in
+    cpt := !cpt + diff;
+    Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
+    res
+
+let time2 name f =
+  let cpt = ref 0 in
+  fun x y ->
+    let b = getperfcount () in
+    let res = f x y in
+    let e = getperfcount () in
+    let diff = e - b in
+    cpt := !cpt + diff;
+    Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
+    res
+
 external address_of_value: 'a -> int = "address_of_value"
-
-external terminate_process: int -> unit = "terminate_process" 
-  (* In src/buckx/buckx_c.c *)
-
-external usleep: int -> unit = "ml_usleep" 
-  (* In src/buckx/buckx_c.c ; man usleep for details. *)
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
@@ -204,17 +246,22 @@ let rec safe_remove_dir d =
   try
     Array.iter
       (fun a ->
-	 let f = Printf.sprintf "%s/%s" d a in 
-	 if Sys.is_directory f then safe_remove_dir f else safe_remove f
+         let f = Printf.sprintf "%s/%s" d a in
+         if Sys.is_directory f then safe_remove_dir f else safe_remove f
       ) (Sys.readdir d) ;
     Unix.rmdir d
   with Unix.Unix_error _ | Sys_error _ -> ()
 
 let cleanup_at_exit f = at_exit (fun () -> safe_remove f)
 
+exception Temp_file_error of string
+
 let temp_file_cleanup_at_exit s1 s2 =
-  let (file,out) = Filename.open_temp_file s1 s2 in
-  (try close_out out with Unix.Unix_error _ -> ()) ;
+  let file, out =
+    try Filename.open_temp_file s1 s2
+    with Sys_error s -> raise (Temp_file_error s)
+  in
+  (try close_out out with Unix.Unix_error _ -> ());
   at_exit (fun () -> safe_remove file) ;
   file
 
@@ -228,12 +275,20 @@ let temp_dir_cleanup_at_exit base =
       dir
     with Unix.Unix_error _ ->
       if limit < 0 then
-	let msg =
-	  Printf.sprintf "Impossible to create temporary directory ('%s')" dir
-	in failwith msg
+        let msg =
+          Printf.sprintf "Impossible to create temporary directory ('%s')" dir
+        in
+        raise (Temp_file_error msg)
       else
-	try_dir_cleanup_at_exit (pred limit) base
-  in try_dir_cleanup_at_exit 10 base
+        try_dir_cleanup_at_exit (pred limit) base
+  in
+  try_dir_cleanup_at_exit 10 base
+
+external terminate_process: int -> unit = "terminate_process"
+  (* In src/buckx/buckx_c.c *)
+
+external usleep: int -> unit = "ml_usleep"
+  (* In src/buckx/buckx_c.c ; man usleep for details. *)
 
 (* ************************************************************************* *)
 (** Strings *)
@@ -250,6 +305,12 @@ let string_prefix ?(strict=false) prefix s =
 (* ************************************************************************* *)
 
 external compare_basic: 'a -> 'a -> int = "%compare"
+
+
+let pretty_position fmt p =
+  Format.fprintf fmt "<f:%s l:%d bol:%d c:%d>"
+    p.Lexing.pos_fname p.Lexing.pos_lnum p.Lexing.pos_bol p.Lexing.pos_cnum
+
 (*
 Local Variables:
 compile-command: "make -C ../.."

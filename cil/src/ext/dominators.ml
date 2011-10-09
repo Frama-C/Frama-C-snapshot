@@ -39,43 +39,6 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(*
- *
- * Copyright (c) 2001-2002,
- *  George C. Necula    <necula@cs.berkeley.edu>
- *  Scott McPeak        <smcpeak@cs.berkeley.edu>
- *  Wes Weimer          <weimer@cs.berkeley.edu>
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- *
- * 3. The names of the contributors may not be used to endorse or promote
- * products derived from this software without specific prior written
- * permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
- * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *)
-
 (** Compute dominator information for the statements in a function *)
 open Cil_types
 open Cil
@@ -88,7 +51,7 @@ module DF = Dataflow
 let debug = false
 
 (* For each statement we maintain a set of statements that dominate it *)
-module BS = Cil_datatype.Stmt.Set
+module BS = Cil_datatype.Stmt.Hptset
 
 (** Customization module for dominators *)
 module DT = struct
@@ -99,7 +62,7 @@ module DT = struct
   type t = BS.t
 
   module StmtStartData =
-    DF.StmtStartData(struct type t = BS.t let size = 17 end)
+    Dataflow.StartData(struct type t = BS.t let size = 17 end)
    (** For each statement in a function we keep the set of dominator blocks.
     * Indexed by statement id *)
 
@@ -139,19 +102,19 @@ end
 
 
 
-module Dom = DF.ForwardsDataFlow(DT)
+module Dom = Dataflow.Forwards(DT)
 
 
 let clear () = DT.StmtStartData.clear()
 
 let getStmtDominators (s: stmt) : BS.t =
-  try DT.StmtStartData.find s.sid
+  try DT.StmtStartData.find s
   with Not_found -> BS.empty (* Not reachable *)
 
 let getIdom (idomInfo: stmt option IH.t) (s: stmt) =
   try IH.find idomInfo s.sid
   with Not_found ->
-    Cilmsg.fatal "Immediate dominator information not set for statement %d" s.sid
+    Kernel.fatal "Immediate dominator information not set for statement %d" s.sid
 
 (** Check whether one block dominates another. This assumes that the "idom"
  * field has been computed. *)
@@ -210,7 +173,7 @@ let computeIDom (f: fundec) : stmt option IH.t =
       [] -> () (* function has no body *)
     | start :: _ -> begin
         (* We start with only the start block *)
-        DT.StmtStartData.add start.sid (BS.singleton start);
+        DT.StmtStartData.add start (BS.singleton start);
 
         Dom.compute [start];
         (* Dump the dominators information *)
@@ -221,10 +184,10 @@ let computeIDom (f: fundec) : stmt option IH.t =
                if not (BS.mem s sdoms) then begin
                  (* It can be that the block is not reachable *)
                  if s.preds <> [] then
-                   (Cilmsg.error "Statement %d is not in its list of dominators"
+                   (Kernel.error "Statement %d is not in its list of dominators"
                       s.sid);
                end;
-               Cilmsg.debug "Dominators for %d: %a\n" s.sid
+               Kernel.debug "Dominators for %d: %a\n" s.sid
                  DT.pretty (BS.remove s sdoms))
             f.sallstmts;
         (* Scan all blocks and compute the idom *)
@@ -271,7 +234,7 @@ let findNaturalLoops (f: fundec)
       let pp_loop fmt (s,backs) =
 	Format.fprintf fmt "Start:%d, backs:%a"
 	  s.sid (Pretty_utils.pp_list pp_back) backs in
-      Cilmsg.debug
+      Kernel.debug
 	"Natural loops:\n%a"
 	(Pretty_utils.pp_list ~sep:"@\n" pp_loop)
 	loops

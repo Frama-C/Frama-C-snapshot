@@ -24,13 +24,10 @@
 
 include Plugin.S
 
-module BuildAll: Plugin.BOOL
+module BuildAll: Plugin.WithOutput
 
-module BuildFct: Plugin.STRING_SET
+module BuildFct: Plugin.String_set
 
-module PrintBw: Plugin.BOOL
+module PrintBw: Plugin.Bool
 
-module DotBasename: Plugin.STRING
-
-module DotPostdomBasename: Plugin.STRING
-
+module DotBasename: Plugin.String

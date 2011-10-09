@@ -30,4 +30,3 @@ Local Variables:
 compile-command: "LC_ALL=C make -C ../.. -j"
 End:
 *)
-

@@ -91,12 +91,12 @@ let c_stack = ref []
 let inconsistent from =
   match !c_stack with
     | (_,_,loc)::_ ->
-	Cilmsg.warning
+	Kernel.warning
 	  "[%s] Inconsistent state when binding condition at %a"
 	  from Cabshelper.d_cabsloc loc ;
 	active := false
     | _ ->
-	Cilmsg.warning
+	Kernel.warning
 	  "[%s] Inconsistent condition stack (no condition expression stacked)"
 	  from ;
 	active := false

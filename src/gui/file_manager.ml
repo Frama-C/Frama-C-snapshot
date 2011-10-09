@@ -20,22 +20,34 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let add_files host_window =
+let add_files (host_window: Design.main_window_extension_points) =
   Gtk_helper.source_files_chooser
     (host_window :> Gtk_helper.source_files_chooser_host)
-    (Parameters.Files.get ())
+    (Kernel.Files.get ())
     (fun filenames ->
-       Parameters.Files.set filenames;
+       Kernel.Files.set filenames;
        if Ast.is_computed () then
-	 Gui_parameters.warning "Input files unchanged. Ignored."
+         Gui_parameters.warning "Input files unchanged. Ignored."
        else begin
-	 File.init_from_cmdline ();
-	 host_window#reset ()
+         File.init_from_cmdline ();
+         host_window#reset ()
        end)
 
 let filename: string option ref = ref None
   (* [None] for opening the 'save as' dialog box;
      [Some f] for saving in file [f] *)
+
+let reparse (host_window: Design.main_window_extension_points) =
+  ignore (host_window#full_protect ~cancelable:true
+            (fun () ->
+              let files = Kernel.Files.get () in
+              Kernel.Files.set [];
+              Kernel.Files.set files;
+              Ast.compute ();
+              !Db.Main.play ();
+              Source_manager.clear host_window#original_source_viewer;
+            ));
+  host_window#reset ()
 
 let save_in (host_window: Design.main_window_extension_points) parent name =
   try
@@ -59,9 +71,9 @@ let save_file_as (host_window: Design.main_window_extension_points) =
     (fun () ->
        match dialog#run () with
        | `SAVE ->
-	   Extlib.may
-	     (save_in host_window (dialog :> GWindow.window_skel))
-	     dialog#filename
+           Extlib.may
+             (save_in host_window (dialog :> GWindow.window_skel))
+             dialog#filename
        | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
@@ -82,11 +94,11 @@ let load_file (host_window: Design.main_window_extension_points) =
   host_window#protect ~cancelable:true ~parent:(dialog:>GWindow.window_skel)
     (fun () -> match dialog#run () with
      | `OPEN ->
-	 begin match dialog#filename with
-	 | None -> ()
-	 | Some f ->
+         begin match dialog#filename with
+         | None -> ()
+         | Some f ->
              Project.load_all f
-	 end
+         end
      | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
@@ -97,30 +109,38 @@ let insert (host_window: Design.main_window_extension_points) =
     menu_manager#add_entries
       filemenu
       [
-	Menu_manager.ToolMenubar(`FILE, "Set C source files"),
-	(fun () -> add_files host_window);
-	Menu_manager.ToolMenubar(`SAVE, "Save session"),
-	(fun () -> save_file host_window);
-	Menu_manager.ToolMenubar(`SAVE_AS, "Save session as"),
-	(fun () -> save_file_as host_window);
-	Menu_manager.ToolMenubar(`REVERT_TO_SAVED, "Load session"),
-	(fun () -> load_file host_window)
+        Menu_manager.toolmenubar
+          ~icon:`FILE ~label:"Source files"
+          ~tooltip:"Create a new session from existing C files"
+          (Menu_manager.Unit_callback (fun () -> add_files host_window));
+        Menu_manager.toolmenubar
+          ~icon:`REFRESH ~label:"Reparse"
+          ~tooltip:"Reparse source files, and replay analyses"
+          (Menu_manager.Unit_callback (fun () -> reparse host_window));
+        Menu_manager.toolmenubar `REVERT_TO_SAVED "Load session"
+          (Menu_manager.Unit_callback (fun () -> load_file host_window));
+        Menu_manager.toolmenubar `SAVE "Save session"
+          (Menu_manager.Unit_callback (fun () -> save_file host_window));
+        Menu_manager.menubar ~icon:`SAVE_AS "Save session as"
+          (Menu_manager.Unit_callback (fun () -> save_file_as host_window));
       ]
   in
-  file_items.(1)#add_accelerator `CONTROL 's';
-  file_items.(3)#add_accelerator `CONTROL 'l';
+  file_items.(3)#add_accelerator `CONTROL 's';
+  file_items.(2)#add_accelerator `CONTROL 'l';
   let stock = `QUIT in
   let quit_item =
     menu_manager#add_entries
       filemenu
-      [ Menu_manager.Menubar(Some stock, "Exit Frama-C"), Cmdline.bail_out ]
+      [ Menu_manager.menubar ~icon:stock "Exit Frama-C"
+          (Menu_manager.Unit_callback Cmdline.bail_out) ]
   in
   quit_item.(0)#add_accelerator `CONTROL 'q';
   ignore
     (menu_manager#add_entries
        filemenu
        ~pos:0
-       [ Menu_manager.Toolbar(stock, "Exit Frama-C"), Cmdline.bail_out ])
+       [ Menu_manager.toolbar ~icon:stock ~label:"Exit" ~tooltip:"Exit Frama-C"
+           (Menu_manager.Unit_callback Cmdline.bail_out)])
 
 (** Register this dialog in main window menu bar *)
 let () = Design.register_extension insert

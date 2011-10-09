@@ -23,15 +23,15 @@
 #ifndef __FC_SYS_STAT_H
 #define __FC_SYS_STAT_H
 
-#include "__fc_define_ino_t.h"
-#include "__fc_define_uid_and_gid.h"
-#include "__fc_define_time_t.h"
-#include "__fc_define_blkcnt_t.h"
-#include "__fc_define_blksize_t.h"
-#include "__fc_define_dev_t.h"
-#include "__fc_define_mode_t.h"
-#include "__fc_define_nlink_t.h"
-#include "__fc_define_off_t.h"
+#include "../__fc_define_ino_t.h"
+#include "../__fc_define_uid_and_gid.h"
+#include "../__fc_define_time_t.h"
+#include "../__fc_define_blkcnt_t.h"
+#include "../__fc_define_blksize_t.h"
+#include "../__fc_define_dev_t.h"
+#include "../__fc_define_mode_t.h"
+#include "../__fc_define_nlink_t.h"
+#include "../__fc_define_off_t.h"
 
 struct stat {
   dev_t     st_dev;

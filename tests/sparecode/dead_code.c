@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable
-   OPT: -slicing-level 2 -slice-return main -slice-print -journal-disable
+   OPT: -sparecode-debug 1 -sparecode -journal-disable
+   OPT: -slicing-level 2 -slice-return main -journal-disable -then-on 'Slicing export' -print
 */
 
 int main (void) {

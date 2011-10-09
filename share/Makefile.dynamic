@@ -20,15 +20,15 @@
 #                                                                        #
 ##########################################################################
 
-FRAMAC_SRC 	?= ../..
+PLUGIN_ENABLE	?=yes
+PLUGIN_DIR	?=.
+
+FRAMAC_SRC 	?=$(PLUGIN_DIR)/../..
 FRAMAC_MAKE	?=no
 
 ifndef MAKECONFIG_DIR
 MAKECONFIG_DIR	:=$(FRAMAC_SHARE)
 endif
-
-PLUGIN_ENABLE	?=yes
-PLUGIN_DIR	?=.
 
 ifndef PLUGIN_DYNAMIC
 PLUGIN_DYNAMIC	:=yes
@@ -43,6 +43,14 @@ PLUGIN_UNDOC:=$(PLUGIN_UNDOC) ptests_local_config.ml
 
 ifeq ($(FRAMAC_MAKE),yes)
 PLUGIN_RESET	:=yes
+
+.PHONY: $(PLUGIN_DIR)/TESTS $(PLUGIN_NAME)_TESTS
+
+$(PLUGIN_NAME)_TESTS: $(PLUGIN_DIR)/TESTS
+
+$(PLUGIN_DIR)/TESTS:
+	$(call external_make, $(dir $@), tests)
+
 else
 PLUGIN_RESET	:=no
 include $(MAKECONFIG_DIR)/Makefile.common
@@ -50,7 +58,7 @@ include $(MAKECONFIG_DIR)/Makefile.dynamic_config
 
 #special goal for use by frama-c's main Makefile.
 run_tests:
-ifdef PLUGIN_NO_DEFAULT_TEST
+ifndef PLUGIN_NO_DEFAULT_TEST
 ifndef PLUGIN_NO_TEST
 	true
 else
@@ -62,7 +70,46 @@ endif #PLUGIN_NO_DEFAULT_TEST
 
 ifeq ($(PLUGIN_ENABLE),no)
 tests::
+doc::
 else
+
+.PHONY: plugin-doc/$(PLUGIN_NAME)
+ifneq ($(FRAMAC_INTERNAL),yes)
+plugin-doc/$(PLUGIN_NAME):
+	if test ! -e $(DOC_DIR)/kernel-doc.ocamldoc; then \
+           echo "Frama-C kernel was not installed with code documentation \
+support. Cannot compile API documentation. To install it, run 'make doc \
+install-doc-code' in Frama-C's main directory"; \
+           exit 1; \
+        fi
+	$(MKDIR) $($(@:plugin-doc/%=%_DOC_DIR))
+else
+ifeq ($(FRAMAC_MAKE),yes)
+plugin-doc/$(PLUGIN_NAME):
+	:
+else
+plugin-doc/$(PLUGIN_NAME):
+	$(MKDIR) $($(@:plugin-doc/%=%_DOC_DIR))
+endif
+endif
+
+doc:: plugin-doc/$(PLUGIN_NAME) $(PLUGIN_NAME)_DOC
+
+clean-doc:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC
+
+ifneq ($(FRAMAC_MAKE),yes)
+install-doc-code:: $(PLUGIN_NAME)_INSTALL_DOC
+endif
+
+$(PLUGIN_NAME)_INSTALL_DOC: plugin-doc/$(PLUGIN_NAME)
+	$(PRINT_CP) $(patsubst %_INSTALL_DOC,%,$@) Documentation
+	$(MKDIR) $(FRAMAC_SHARE)/doc/$(@:%_INSTALL_DOC=%)
+	$(CP) $(patsubst %,"%", \
+	         $(wildcard $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.css \
+	                    $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.html \
+                            $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.png)) \
+              $(FRAMAC_SHARE)/doc/$(@:%_INSTALL_DOC=%)
+
 
 ifndef PLUGIN_INTERNAL_TEST
 ifndef PLUGIN_NO_TEST
@@ -77,7 +124,7 @@ endif #FRAMAC_INTERNAL
 
 $(PLUGIN_DIR)/ptests_local_config.ml: $(PTESTS_DEP)
 	$(PRINT_MAKING) $@
-	$(RM) $@
+	$(CHMOD_RW) $@
 	$(ECHO) \
          "Ptests_config.default_suites:= [" $(PLUGIN_TESTS_DIRS:%='"%";') "];;" > $@
 	if test "$(USABLE_NATIVE_DYNLINK)" = "yes" \
@@ -121,13 +168,17 @@ PLUGIN_LIB_DIR	?= $(PLUGIN_DIR)
 PLUGIN_GUI_LIB_DIR ?= $(PLUGIN_DIR)/gui
 PLUGIN_INSTALL_DIR ?=$(DESTDIR)$(FRAMAC_PLUGINDIR)
 
-PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES)
+PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES) $(OCAMLGRAPH_INCLUDE)
 PLUGIN_BFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_BFLAGS)
 PLUGIN_OFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_OFLAGS)
 ifeq ($(FRAMAC_INTERNAL),yes)
 PLUGIN_DEPFLAGS:=$(PLUGIN_DEPFLAGS)
+ifneq ($(FRAMAC_MAKE),yes)
+PLUGIN_DOC_DIR:=$(PLUGIN_DIR)/doc/code
+endif
 else
 PLUGIN_DEPFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DEPFLAGS)
+PLUGIN_DOC_DIR:=$(PLUGIN_DIR)/doc/code
 endif
 PLUGIN_DOCFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DOCFLAGS)
 
@@ -147,25 +198,24 @@ gui:: $(TARGETS_GUI)
 # do not define additional targets if you come from the Frama-C Makefile
 ifneq ($(FRAMAC_MAKE),yes)
 
-frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_CMO)
+$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_CMO)
 	$(PRINT_LINKING) $@
 	$(OCAMLC) $(DYN_BLINKFLAGS) -o $@ \
 	  $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
 	  $(patsubst %boot.cmo, $(PLUGIN_EXTRA_BYTE) $(TARGET_CMO) %boot.cmo, \
 	    $(DYN_ALL_BATCH_CMO))
 
-frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_CMX)
+$(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_CMX)
 	$(PRINT_LINKING) $@
 	$(OCAMLOPT) $(DYN_OLINKFLAGS) -o $@ \
 	  $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
 	  $(patsubst %boot.cmx, $(PLUGIN_EXTRA_OPT) $(TARGET_CMX) %boot.cmx, \
             $(DYN_ALL_BATCH_CMX))
 
-static.byte:: frama-c-$(PLUGIN_NAME).byte$(EXE)
-static.opt:: frama-c-$(PLUGIN_NAME).opt$(EXE)
-static:: frama-c-$(PLUGIN_NAME).byte$(EXE) \
-	frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)
-
+static.byte:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)
+static.opt:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE)
+static:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE) \
+	 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)
 
 .PHONY: tests all install uninstall clean depend
 
@@ -173,17 +223,12 @@ clean::
 	$(RM) ptests_local_config.ml
 	$(RM) frama-c-$(PLUGIN_NAME) frama-c-$(PLUGIN_NAME).byte
 
-ifeq ($(FRAMAC_MAKE),yes)
-all:: byte $(OCAMLBEST) gui
-
-else
 ifeq ($(USABLE_NATIVE_DYNLINK),no)
 STATIC=static
 else
 STATIC=
 endif
 all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui $(STATIC)
-endif
 
 ifneq ($(PLUGIN_ENABLE),no)
 install::
@@ -200,6 +245,7 @@ install::
 	fi
 ifeq ($(HAS_GUI),yes)
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/gui
+	$(MKDIR) $(PLUGIN_INSTALL_DIR)/gui
 	$(CP) $(TARGETS_GUI) $(PLUGIN_INSTALL_DIR)/gui
 endif
 

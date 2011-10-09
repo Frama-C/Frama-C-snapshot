@@ -53,6 +53,7 @@ module DoUnsignedOverflow =
      end)
 
 (* if DoAll is true: all other options become true, except for DoUnsignedOverflow
+   and "PreConds"
     <=> all "true" runtime error assertions are generated *)
 module DoAll =
   True
@@ -107,9 +108,9 @@ module ConstFold =
     (struct
        let option_name = "-rte-const"
        let help = "when on (by default), simplify assertions involving constants"
-	 (* if on, evaluates constants in order to check if assertions
-	    are trivially true / false *)
-       let kind = `Correctness
+         (* if on, evaluates constants in order to check if assertions
+            are trivially true / false *)
+       let kind = `Tuning
      end)
 
 module DoCalledPrecond =
@@ -136,3 +137,9 @@ module FunctionSelection =
        let help = "select <fun> for analysis (default all functions)"
        let kind = `Correctness
      end)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

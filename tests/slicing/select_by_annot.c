@@ -3,20 +3,20 @@
    CMD: tests/slicing/select_by_annot.opt
    OPT: -deps -lib-entry -main main -journal-disable
    CMD: bin/toplevel.opt
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma main -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-assert main -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma modifS -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f1 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f2 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f3 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f4 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f5 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f6 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f7 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-loop-inv f8 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f8 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-assert f8 -no-slice-callers -journal-disable
-   OPT: -deps -lib-entry -main main -slice-print -slice-pragma f9 -no-slice-callers -journal-disable
+   OPT: -check -deps -lib-entry -main main -slice-pragma main -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-assert main -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma modifS -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f4 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f5 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f6 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f7 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-loop-inv f8 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f8 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-assert f8 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -deps -lib-entry -main main -slice-pragma f9 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
 
 
 */

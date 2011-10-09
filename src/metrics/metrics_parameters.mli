@@ -20,21 +20,34 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Plugin
+module Metrics: Plugin.S
 
-(** Pretty print metrics on stdout *)
-module Print: BOOL
+module Enabled: Plugin.WithOutput
+(** Activate metrics *)
 
-(** Pretty print metrics on the given file *)
-module Dump: STRING
+module ByFunction: Plugin.Bool
+(** Activate metrics by function *)
 
-(** Have metrics to be computed? *)
-val is_on: unit -> bool
+module ValueCoverage: Plugin.WithOutput
+(** Give an estimation about value analysis code penetration.
+    Only works on CIL AST. *)
 
-include Log.Messages
+module AST_type: Plugin.String
+(** Set the ASTs on which the metrics should be computetd *)
+
+module OutputFile: Plugin.String
+(** Pretty print metrics to the given file.
+    The output format will be recognized through the extension.
+    Supported extensions are:
+    "html" or "htm" for HTML
+    "txt" or "text" for text
+*)
+
+module SyntacticallyReachable: Plugin.String_set
+(** List of functions for which we compute the functions they may call *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -1,4 +1,5 @@
 /* run.config
+   EXECNOW: make tests/aorai/aorai_test.cmxs
    DONTRUN: small example related to U3CAT's WP2
 */
 int x;

@@ -36,7 +36,7 @@ let refresh demon () =
 (* --- Utilities                                                        --- *)
 (* ------------------------------------------------------------------------ *)
 
-type 'a field = 
+type 'a field =
     ?tooltip:string -> packing:(GObj.widget -> unit) ->
   (unit -> 'a) -> ('a -> unit) -> demon -> unit
 
@@ -49,7 +49,7 @@ let mk_tooltip ?tooltip obj = match tooltip with
 (* ------------------------------------------------------------------------ *)
 (* --- Check Button                                                     --- *)
 (* ------------------------------------------------------------------------ *)
-  
+
 let check ?label ?tooltip ~packing get set demon =
   let button =
     GButton.check_button ?label ~packing ~active:(get ()) ()
@@ -71,17 +71,17 @@ let menu entries ?width ?tooltip ~packing get set demon =
   let callback () =
     try
       match combo_box#active_iter with
-	| None -> ()
-	| Some row ->
-	    let title = (combo_box#model#get ~row ~column) in
-	    let (_,item) = List.find (fun (t,_) -> t=title) entries in
-	    set item
+        | None -> ()
+        | Some row ->
+            let title = (combo_box#model#get ~row ~column) in
+            let (_,item) = List.find (fun (t,_) -> t=title) entries in
+            set item
     with Not_found -> ()
   in
   let rec lookup k item = function
     | [] -> raise Not_found
     | (_,value) :: entries ->
-	if value = item then k else lookup (succ k) item entries
+        if value = item then k else lookup (succ k) item entries
   in
   let update () =
     try combo_box#set_active (lookup 0 (get ()) entries)
@@ -111,13 +111,13 @@ let spinner ?(lower=0) ?(upper=max_int) ?width ?tooltip ~packing get set demon =
 
 class form ~packing =
 object
-  
+
   val table = GPack.table ~rows:2 ~col_spacings:8 ~packing ()
   val mutable top = 0
 
   method label text =
-    ignore (GMisc.label ~text 
-	      ~packing:(table#attach ~top ~left:0 ~expand:`NONE) ())
+    ignore (GMisc.label ~text
+              ~packing:(table#attach ~top ~left:0 ~expand:`NONE) ())
 
   method item obj =
     table#attach ~top ~left:1 ~expand:`X ~fill:`X obj ;

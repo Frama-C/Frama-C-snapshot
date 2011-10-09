@@ -38,18 +38,17 @@ sig
   module Make
     (Default_offsetmap: sig val default_offsetmap : Base.t -> loffset end):
   sig
-    module LBase : 
-    sig 
+    module LBase :
+    sig
       type t
       val iter : (Base.base -> loffset -> unit) -> t -> unit
     end
 
     type tt = private Bottom | Top | Map of LBase.t
 
-    include Datatype.S with type t = tt 
+    include Datatype.S with type t = tt
 
     type widen_hint = bool * Base.Set.t * (Base.t -> widen_hint_offsetmap)
-    type instanciation = Location_Bytes.t Base.Map.t
 
     val inject : Base.t -> loffset -> t
 
@@ -66,9 +65,9 @@ sig
 
     val join : t -> t -> location list * t
     val is_included : t -> t -> bool
-    val is_included_actual_generic : Zone.t -> t -> t -> instanciation
 
     val top: t
+    val is_top: t -> bool
 
     (** Empty map. Casual users do not need this.*)
     val empty_map : t
@@ -96,19 +95,28 @@ sig
         which everything present in [src] has been copied onto [dst]. [src] and
         [dst] must have the same size. The write operation is exact iff [dst]
         is exact.
-	@raise Cannot_copy if copy is not possible. *)
-    val copy_paste : location -> location -> t -> t
+        @raise Cannot_copy if copy is not possible. *)
+    val copy_paste :
+      with_alarms:CilE.warn_mode -> location -> location -> t -> t
 
-    (** @raise Cannot_copy if copy is not possible. *)
+    (** [paste_offsetmap ~from:offmap ~dst_loc ~start ~size ~exact m]
+        copies [size] bits starting at [start] in [offmap], and pastes
+        them at [dst_loc] in [m]. The copy is exact if and only if
+        [dst_loc] is exact, and [exact is true]
+
+        @raise Cannot_copy if copy is not possible. *)
     val paste_offsetmap :
-      loffset -> Location_Bits.t -> Int.t -> Int.t -> t -> t
+      with_alarms:CilE.warn_mode ->
+      from:loffset ->
+      dst_loc:Location_Bits.t ->
+      start:Int.t ->
+      size:Int.t ->
+      exact:bool ->
+      t -> t
 
     (** May return [None] as a bottom loffset. *)
     val copy_offsetmap :
       with_alarms:CilE.warn_mode -> Locations.location -> t -> loffset option
-
-    val compute_actual_final_from_generic :
-      t -> t -> Locations.Zone.t -> instanciation -> t*Location_Bits.Top_Param.t
 
     val is_included_by_location_enum :  t -> t -> Locations.Zone.t -> bool
 
@@ -118,13 +126,13 @@ sig
     val fold : size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
 
     (** @raise Invalid_argument "Lmap.fold" if one location is not aligned
-	or of size different of [size].
-	@raise Error_Bottom if [m] is bottom.  *)
+        or of size different of [size].
+        @raise Error_Bottom if [m] is bottom.  *)
     val fold_single_bindings :
       size:Int.t -> (location -> y -> 'a -> 'a) -> t -> 'a -> 'a
 
     (** [fold_base f m] calls [f] on all bases bound to non top
-	offsetmaps in the non bottom map [m].
+        offsetmaps in the non bottom map [m].
         @raise Error_Bottom if [m] is bottom. *)
     val fold_base : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
 
@@ -147,6 +155,7 @@ sig
         to Top([b]) and  the location in [m] where one may read an address
         [b]+_ *)
     val reciprocal_image : Base.t -> t -> Zone.t*Location_Bits.t
+
       (*
         val create_initialized_var :
         Cil_types.varinfo -> Base.validity -> loffset -> Base.t
@@ -176,10 +185,10 @@ end
 module Make_LOffset
   (VALUE:Lattice_With_Isotropy.S)
   (LOffset:Offsetmap.S with type y = VALUE.t
-		       and type widen_hint = VALUE.widen_hint) :
+                       and type widen_hint = VALUE.widen_hint) :
   Location_map with type y = VALUE.t
-	       and type widen_hint_offsetmap = VALUE.widen_hint
-	       and type loffset = LOffset.t
+               and type widen_hint_offsetmap = VALUE.widen_hint
+               and type loffset = LOffset.t
 
 (*
 Local Variables:

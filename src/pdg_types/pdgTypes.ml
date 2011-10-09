@@ -26,50 +26,95 @@
 
 open Cil_types
 
-(** this one shouldn't occur, but... *)
-exception Pdg_Internal_Error of string
 
-module Elem = struct
+(** Node.t is the type of the PDG vertex.
+    [compare] and [pretty] are needed by [Abstract_interp.Make_Lattice_Set]. *)
+module Node = struct
 
   type key = PdgIndex.Key.t
 
   type tt = { id : int; key : key }
 
-  let make counter key =
-    {id = (incr counter;
-           if !counter = -1 then
-             failwith "Internal limit reached in PDG counter";
-           !counter);
+  module Counter =
+    State_builder.Counter(struct let name = "PdgTypes.Node.Counter" end)
+
+  let make key =
+    {id = Counter.next ();
      key = key}
 
   let key e = e.key
   let print_id fmt e = Format.fprintf fmt "%d" e.id
 
-  include Datatype.Make
-      (struct
-	type t = tt
-	let name = "PdgTypes.Elem"
-	let structural_descr =
-	  Structural_descr.t_record
-	    [| Structural_descr.p_int; PdgIndex.Key.packed_descr |]
-	let reprs = [ { id = -1; key = PdgIndex.Key.top_input } ]
-	let compare e1 e2 = Datatype.Int.compare e1.id e2.id
-	let hash e = e.id
-	let equal e1 e2 = e1.id = e2.id
-	let pretty = print_id
-	let rehash = Datatype.identity
-	let copy = Datatype.undefined
-	let internal_pretty_code = Datatype.undefined
-	let varname = Datatype.undefined
-	let mem_project = Datatype.never_any_project
-       end)
+  let elem_id n = n.id
+  let elem_key n = key n
+  let stmt n = PdgIndex.Key.stmt n.key
+
+  (* BY: not sure it is a good idea to use (=) on keys, which contain
+     Cil structures. Disabled for now
+  (** tells if the node represent the same thing that the given key. *)
+  let equivalent n key = (elem_key n) = key
+  *)
+
+  let print_id fmt n = 
+    Format.fprintf fmt "n:%a" print_id n
+
+  include Datatype.Make_with_collections
+    (struct
+        type t = tt
+        let name = "PdgTypes.Elem"
+        let reprs = [ { id = -1; key = PdgIndex.Key.top_input } ]
+        let structural_descr = Structural_descr.t_record
+          [| Structural_descr.p_int; PdgIndex.Key.packed_descr |]
+        let compare e1 e2 = Datatype.Int.compare e1.id e2.id
+        let hash e = e.id
+        let equal e1 e2 = e1.id = e2.id
+        let pretty = print_id
+        let rehash = Datatype.identity
+        let copy = Datatype.undefined
+        let internal_pretty_code = Datatype.undefined
+        let varname = Datatype.undefined
+        let mem_project = Datatype.never_any_project
+     end)
+
+  let pretty_list fmt l =
+    List.iter (fun n -> Format.fprintf fmt " %a" pretty n) l
+
+  let pretty_with_part fmt (n, z_part) =
+    Format.fprintf fmt "%a" pretty n;
+    match z_part with None -> ()
+      | Some z -> Format.fprintf fmt "(restrict to @[<h 1>%a@])"
+                    Locations.Zone.pretty z
+
+  let pretty_node fmt n =
+    Format.fprintf fmt "[Elem] %d : %a" (elem_id n)
+      PdgIndex.Key.pretty (elem_key n)
+
+  let pretty_nodes fmt nodes =
+    let pretty_node n = Format.fprintf fmt "%a@." pretty_node n in
+    List.iter pretty_node nodes
 
 end
+
+module NodeSet = Hptset.Make(struct include Node let id = elem_id end)
+                   (struct let v = [ [ ] ] end)
+                   (struct let l = [ Ast.self ] end)
+
+(** set of nodes of the graph *)
+module NodeSetLattice = struct
+  include Abstract_interp.Make_Lattice_Set(Node)
+  type t_elt = O.elt
+  let tag = hash
+  let default _v _a _b : t = empty
+  let defaultall _v : t = empty
+end
+
+module LocInfo = Lmap_bitwise.Make_bitwise (NodeSetLattice)
+
 
 (** Edges label for the Program Dependence Graph.
   *)
 module Dpd : sig
-  type t
+  include Datatype.S
 
   (** used to speak about the different kinds of dependencies *)
   type td =  Ctrl | Addr | Data
@@ -89,9 +134,6 @@ module Dpd : sig
   val is_dpd : td -> t -> bool
   val is_bottom : t -> bool
 
-  (** total order. Used only to sort...*)
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
 
   val is_included : t -> t -> bool
   val combine : t -> t -> t
@@ -102,91 +144,63 @@ module Dpd : sig
   (** remove the flags that are in m2 for m1 *)
   val minus : t -> t -> t
 
+  val pretty_td : Format.formatter -> td -> unit
   val pretty : Format.formatter -> t -> unit
   end
   =
 struct
 
-  type t = {addr : bool; data: bool; ctrl:bool }
   type td = Ctrl | Addr | Data
 
+  let pretty_td fmt td = 
+    Format.fprintf fmt "%s"
+      (match td with Ctrl -> "c" | Addr -> "a" | Data -> "d")
 
-  (* internal constructor *)
-  let create ?(a=false) ?(d=false) ?(c=false) _ =
-    { addr = a; data = d; ctrl = c }
+  include Datatype.Int (* Encoding:  %b addr; %b data; %b control *)
+  let maddr = 0x100
+  let mdata = 0x010
+  let mctrl = 0x001
 
-  (* all possible value for [t] *)
-  let bottom = create ()
-  let top    = create ~a:true ~d:true ~c:true ()
-  let a_dpd  = create ~a:true ()
-  let d_dpd  = create ~d:true ()
-  let c_dpd  = create ~c:true ()
-  let ad_dpd = create ~a:true ~d:true ()
-  let ac_dpd = create ~a:true ~c:true ()
-  let dc_dpd = create ~d:true ~c:true ()
-
-  (* external constructor sharing identical [t] values *)
   let make ?(a=false) ?(d=false) ?(c=false) _ =
     match a,d,c with
-      | false, false, false -> bottom
-      | true,  false, false -> a_dpd
-      | false, true,  false -> d_dpd
-      | false, false, true  -> c_dpd
-      | true,  true,  false -> ad_dpd
-      | true,  false, true  -> ac_dpd
-      | false, true,  true  -> dc_dpd
-      | true,  true,  true  -> top
+      | false, false, false -> 0x000
+      | true,  false, false -> 0x100
+      | false, true,  false -> 0x010
+      | false, false, true  -> 0x001
+      | true,  true,  false -> 0x110
+      | true,  false, true  -> 0x101
+      | false, true,  true  -> 0x011
+      | true,  true,  true  -> 0x111
 
-  (* the use the external constructor ensures [==] can be used instead of [=] *)
-  let equal d1 d2 = d1 == d2
-
-  let make_simple kind = match kind with
-    | Ctrl -> c_dpd
-    | Addr -> a_dpd
-    | Data -> d_dpd
-
+  let bottom = 0x000
+  let top = 0x111
   let default = bottom
 
-  let is_addr d = d.addr
-  let is_ctrl d = d.ctrl
-  let is_data d = d.data
+  let is_addr d = (d land maddr) != 0
+  let is_ctrl d = (d land mctrl) != 0
+  let is_data d = (d land mdata) != 0
   let is_dpd tdpd d = match tdpd with
-    | Addr -> d.addr
-    | Ctrl -> d.ctrl
-    | Data -> d.data
+    | Addr -> is_addr d
+    | Ctrl -> is_ctrl d
+    | Data -> is_data d
 
-  let is_bottom d = equal d bottom
+  let is_bottom = (=) bottom
 
   let adc_value d = (is_addr d, is_data d, is_ctrl d)
 
-  let compare : t -> t -> int = Extlib.compare_basic
+  let combine d1 d2 = d1 lor d2
+  let inter d1 d2 = d1 land d2
+  let intersect d1 d2 = inter d1 d2 != 0
+  let is_included d1 d2 = combine d1 d2 = d2
 
-  let combine d1 d2 =
-    if (d1 == d2) then d1
-    else make
-      ~a:(d1.addr || d2.addr)
-      ~c:(d1.ctrl || d2.ctrl)
-      ~d:(d1.data || d2.data) ()
-
-  let inter d1 d2 =
-    if (d1 == d2) then d1
-    else make
-      ~a:(d1.addr && d2.addr)
-      ~c:(d1.ctrl && d2.ctrl)
-      ~d:(d1.data && d2.data) ()
-
-  let is_included d1 d2 = let d = combine d1 d2 in equal d d2
-  let intersect d1 d2 = let d = inter d1 d2 in not (is_bottom d)
+  let make_simple kind = match kind with
+    | Ctrl -> mctrl
+    | Addr -> maddr
+    | Data -> mdata
 
   let add d kind = combine d (make_simple kind)
 
-  let minus adc1 adc2 =
-    let a1, d1, c1 = adc_value adc1 in
-    let a2, d2, c2 = adc_value adc2 in
-    let a = if a2 then false else a1 in
-    let d = if d2 then false else d1 in
-    let c = if c2 then false else c1 in
-      make ~a ~d ~c ()
+  let minus adc1 adc2 = adc1 land (lnot adc2)
 
   let pretty fmt d =  Format.fprintf fmt "[%c%c%c]"
                         (if is_addr d then 'a' else '-')
@@ -196,23 +210,22 @@ struct
 end
 
 module DpdZone : sig
-  type t
+  include Datatype.S
+
   val is_dpd : Dpd.td -> t -> bool
   val make : Dpd.td -> Locations.Zone.t option -> t
   val add : t -> Dpd.td -> Locations.Zone.t option -> t
   val kind_and_zone : t -> Dpd.t * Locations.Zone.t option
   val dpd_zone : t -> Locations.Zone.t option
 
-  (** total order. Used only to sort...*)
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-
   val default : t
   val pretty : Format.formatter -> t -> unit
 
+  val tag: t -> int
 end = struct
 
-  type t = Dpd.t * Locations.Zone.t option (* None == Locations.Zone.Top *)
+  include Datatype.Pair(Dpd)(Datatype.Option(Locations.Zone))
+    (* None == Locations.Zone.Top *)
 
   let dpd_kind dpd = fst dpd
   let dpd_zone dpd = snd dpd
@@ -223,39 +236,13 @@ end = struct
 
   let is_dpd k dpd = Dpd.is_dpd k (dpd_kind dpd)
 
-  let equal dpd1 dpd2 =
-    let cmp = Dpd.equal (dpd_kind dpd1) (dpd_kind dpd2) in
-      if cmp then
-        match (dpd_zone dpd1), (dpd_zone dpd2) with
-          | None, None -> true
-          | Some z1, Some z2 -> Locations.Zone.equal z1 z2
-          | _, _ -> false
-      else false
-
-
-  let compare dpd1 dpd2 =
-    if equal dpd1 dpd2 then 0
-    else assert false (* is this useful ? TODO ? *)
-                            (*
-    let cmp = Dpd.compare (dpd_kind dpd1) (dpd_kind dpd2) in
-      if cmp = 0 then
-        match (dpd_zone dpd1), (dpd_zone dpd2) with
-          | None, None -> 0
-          | _, None -> -1
-          | None, _ -> 1
-          | Some z1, Some z2 ->
-              if Locations.Zone.equal z1 z2 then 0
-              else assert false (* is this useful ? TODO ? *)
-      else cmp
-      *)
-
   let add ((d1,z1) as dpd) k z =
     let d = Dpd.add d1 k in
     let z = match z1, z with
       | None, _ -> z1
       | _, None -> z
       | Some zz1, Some zz2  ->
-          (* we are loosing some precision here because for instance :
+          (* we are losing some precision here because for instance :
            * (zz1, addr) + (zz2, data) = (zz1 U zz2, data+addr) *)
           let zz = Locations.Zone.join zz1 zz2 in
             match zz with
@@ -271,46 +258,134 @@ end = struct
     match (dpd_zone dpd) with None -> ()
       | Some z ->
           Format.fprintf fmt "@[<h 1>(%a)@]" Locations.Zone.pretty z
+
+  let tag = hash
 end
 
-(** The graph itself.
-* It uses ocamlgraph
-* {{:http://ocamlgraph.lri.fr/doc/Imperative.S.concreteLabeled.html}Graph.Imperative.Digraph}.
-* @see <http://ocamlgraph.lri.fr/> ocamlgraph web site
-*)
+(** The graph itself. *)
 module G = struct
 
-  module IGraph = Graph.Imperative.Digraph.AbstractLabeled(Elem)(DpdZone)
-  module E = IGraph.E
-  module V = IGraph.V
+  (* Hashtbl to maps of nodes to dpdzone. Used to encode one-directional graphs
+     whoses nodes are Node.t, and labels on edges are DpdZone. *)
+  module V = struct include Node let id = elem_id end
+  module E = struct
+    type t = Node.t * DpdZone.t * Node.t
+    type label = DpdZone.t
+    let src (n, _, _) = n
+    let dst (_, _, n) = n
+    let label (_, l, _) = l
+  end
 
-  (* Could be declared private out of G if the sig was explicit. *)
-  type t = { counter : int ref; graph : IGraph.t }
+  module To = Hptmap.Make(V)(DpdZone)(Hptmap.Comp_unused)
+    (struct let v = [[]] end)(struct let l = [Ast.self] end)
 
-  let create =
-    fun () ->
-    let counter = ref (-1) in (*BUG: Should be ok but slicing fails if
-                                it is not shared among all graphs?????? *)
-    { counter = counter;
-      graph = IGraph.create ()}
+  module OneDir = Node.Hashtbl.Make(To)
+
+  let add_node_one_dir g v =
+    if not (Node.Hashtbl.mem g v) then
+      Node.Hashtbl.add g v To.empty
+
+  let add_edge_one_dir g vsrc vdst lbl =
+    let cur = try Node.Hashtbl.find g vsrc with Not_found -> To.empty in
+    let cur = To.add vdst lbl cur in
+    Node.Hashtbl.replace g vsrc cur
+
+  let remove_edge_one_dir g vsrc vdst =
+    try
+      let cur = Node.Hashtbl.find g vsrc in
+      let cur = To.remove vdst cur in
+      Node.Hashtbl.replace g vsrc cur
+    with Not_found -> ()
+
+  let aux_iter_one_dir ?(rev=false) f v =
+    To.iter (fun v' lbl -> f (if rev then (v', lbl, v) else (v, lbl, v' : E.t)))
+  let iter_e_one_dir ?(rev=false) f g v =
+    let to_ = Node.Hashtbl.find g v in
+    aux_iter_one_dir ~rev f v to_
+
+  let fold_e_one_dir ?(rev=false) f g v =
+    let to_ = Node.Hashtbl.find g v in
+    To.fold (fun v' lbl acc ->
+      f (if rev then (v', lbl, v) else (v, lbl, v' : E.t)) acc) to_
+
+  let fold_one_dir f g v =
+    let to_ = Node.Hashtbl.find g v in
+    To.fold (fun v' _ acc -> f v' acc) to_
+
+  (* Bi-directional graphs *)
+
+  type g = {
+    d_graph: OneDir.t;
+    co_graph: OneDir.t;
+  }
+
+  include Datatype.Make
+  (struct
+    include Datatype.Undefined
+    type t = g
+    let name = "PdgTypes.G"
+    let reprs = [ let h = Node.Hashtbl.create 0 in
+                  { d_graph = h; co_graph = h} ]
+    let mem_project = Datatype.never_any_project
+    let rehash = Datatype.identity
+    open Structural_descr
+    let structural_descr =
+      t_record [| OneDir.packed_descr; OneDir.packed_descr;|]
+   end)
+
+  let add_node g v =
+    add_node_one_dir g.d_graph v;
+    add_node_one_dir g.co_graph v;
+  ;;
+  let add_vertex = add_node
+
+  let add_edge g vsrc lbl vdst =
+    add_edge_one_dir  g.d_graph vsrc vdst lbl;
+    add_edge_one_dir g.co_graph vdst vsrc lbl;
+  ;;
+
+  let remove_edge g vsrc vdst =
+    remove_edge_one_dir  g.d_graph vsrc vdst;
+    remove_edge_one_dir g.co_graph vdst vsrc;
+  ;;
+
+  let find_edge g v1 v2 =
+    let dsts = Node.Hashtbl.find g.d_graph v1 in
+    To.find v2 dsts
+  ;;
+
+  let iter_vertex f g = Node.Hashtbl.iter (fun v _ -> f v) g.d_graph
+  let iter_edges_e f g =
+    Node.Hashtbl.iter (fun v _to -> aux_iter_one_dir f v _to) g.d_graph
+
+  let iter_succ_e f g = iter_e_one_dir           f  g.d_graph
+  let fold_succ   f g = fold_one_dir             f  g.d_graph
+  let fold_pred   f g = fold_one_dir             f g.co_graph
+  let fold_succ_e f g = fold_e_one_dir           f  g.d_graph
+  let fold_pred_e f g = fold_e_one_dir ~rev:true f g.co_graph
+  let iter_pred_e f g = iter_e_one_dir ~rev:true f g.co_graph
+
+  let succ g v = fold_succ (fun n l -> n :: l) g v []
+  let pred g v = fold_pred (fun n l -> n :: l) g v []
+
+  let create () =
+    { d_graph = Node.Hashtbl.create 17;
+      co_graph = Node.Hashtbl.create 17; }
 
   let find_dpd g v1 v2 =
-    let edge = IGraph.find_edge g.graph v1 v2 in
-    (edge, IGraph.E.label edge)
+    let lbl = find_edge g v1 v2 in
+    ((v1, lbl, v2), lbl)
 
   let add_elem g key =
-    let elem = Elem.make g.counter key in
-    let new_vertex = V.create elem in
-    IGraph.add_vertex g.graph new_vertex;
-    new_vertex
+    let elem = Node.make key in
+    add_vertex g elem;
+    elem
 
   let simple_add_dpd g v1 dpd v2 =
-    IGraph.add_edge_e g.graph (IGraph.E.create v1 dpd v2)
+    add_edge g v1 dpd v2
 
-  let replace_dpd g edge new_dpd =
-    let v1 = IGraph.E.src edge in
-    let v2 = IGraph.E.dst edge in
-    IGraph.remove_edge_e g.graph edge;
+  let replace_dpd g (v1, _, v2) new_dpd =
+    remove_edge g v1 v2;
     simple_add_dpd g v1 new_dpd v2
 
   let add_dpd graph v1 dpd_kind opt_zone v2 =
@@ -323,92 +398,10 @@ module G = struct
       let new_dpd = DpdZone.make dpd_kind opt_zone in
       simple_add_dpd graph v1 new_dpd v2
 
-  let iter_vertex x g = IGraph.iter_vertex x g.graph
-  let iter_edges_e x g = IGraph.iter_edges_e x g.graph
-  let iter_succ_e x g y = IGraph.iter_succ_e x g.graph y
-  let fold_succ_e x g y z = IGraph.fold_succ_e x g.graph y z
-  let fold_succ x g y z = IGraph.fold_succ x g.graph y z
-  let iter_pred_e x g y = IGraph.iter_pred_e x g.graph y
-  let fold_pred x g y z = IGraph.fold_pred x g.graph y z
-  let fold_pred_e x g y z = IGraph.fold_pred_e x g.graph y z
-  let pred g x = IGraph.pred g.graph x
-  let succ g x = IGraph.succ g.graph x
-
-  let edge_dpd e = DpdZone.kind_and_zone (IGraph.E.label e)
+  let edge_dpd (_, lbl, _) = DpdZone.kind_and_zone lbl
   let pretty_edge_label = DpdZone.pretty
 
 end
-
-(** Node.t is the type of the PDG vertex.
-   [compare] and [pretty] are needed by [Abstract_interp.Make_Lattice_Set]. *)
-module Node = struct
-
-  let elem n = G.V.label n
-  let elem_id n = (elem n).Elem.id
-  let elem_key n = Elem.key (elem n)
-  let stmt n = PdgIndex.Key.stmt (elem_key n)
-
-  (** tells if the node represent the same thing that the given key. *)
-  let equivalent n key = (elem_key n) = key
-
-  let print_id fmt n = Elem.print_id fmt (elem n)
-
-  include Datatype.Make_with_collections
-    (struct
-      include G.V
-      let name = "PdgTypes.Node"
-      let structural_descr =
-	(* ocamlgraph abstract vertex descriptor;
-	   see ocamlgraph/src/imperative.ml *)
-	Structural_descr.t_record
-	  [| Structural_descr.p_int;
-	     Elem.packed_descr;
-	     Structural_descr.p_int |]
-      let reprs = List.map G.V.create Elem.reprs
-      let rehash = Datatype.identity
-      let copy = Datatype.undefined
-      let varname = Datatype.undefined
-      let mem_project = Datatype.never_any_project
-      let pretty = print_id
-      let internal_pretty_code = Datatype.undefined
-     end)
-
-(*
-  let add_simple_node g key =
-    let elem = Elem.make g key in
-    let new_vertex = G.V.create elem in
-    new_vertex
-*)
-
-  let pretty_list fmt l =
-    List.iter (fun n -> Format.fprintf fmt " %a" pretty n) l
-
-  let pretty_with_part fmt (n, z_part) =
-    Format.fprintf fmt "n%a" pretty n;
-    match z_part with None -> ()
-      | Some z -> Format.fprintf fmt "(restrict to @[<h 1>%a@])"
-                    Locations.Zone.pretty z
-
-end
-
-module NodeSet = struct
-  include Set.Make(Node)
-  let add_list ?(set=empty) l =
-    List.fold_left (fun acc n -> add n acc) set l
-end
-
-(** set of nodes of the graph *)
-module NodeSetLattice = struct
-  include Abstract_interp.Make_Lattice_Set(Node)
-  type t_elt = O.elt
-  let tag = hash
-  let default _v _a _b : t = empty
-    (* raise (NoNodeForZone (Locations.Zone.default v a b)) *)
-  let defaultall _v : t = empty
-    (* raise (NoNodeForZone (Locations.Zone.defaultall v)) *)
-end
-
-module LocInfo = Lmap_bitwise.Make_bitwise (NodeSetLattice)
 
 (** DataState is associated with a program point
     and provide the dependancies for the data,
@@ -426,133 +419,39 @@ module Data_state =
       type t = t_data_state
       let name = "PdgTypes.Data_state"
       let reprs =
-	List.fold_left
-	  (fun acc l ->
-	    List.fold_left
-	      (fun acc z -> { loc_info = l; under_outputs = z } :: acc)
-	      acc
-	      Locations.Zone.reprs)
-	  []
-	  LocInfo.reprs
+        List.fold_left
+          (fun acc l ->
+            List.fold_left
+              (fun acc z -> { loc_info = l; under_outputs = z } :: acc)
+              acc
+              Locations.Zone.reprs)
+          []
+          LocInfo.reprs
+      let rehash = Datatype.identity
       let structural_descr =
-	Structural_descr.t_record
-	  [| LocInfo.packed_descr; Locations.Zone.packed_descr |]
+        Structural_descr.t_record
+          [| LocInfo.packed_descr; Locations.Zone.packed_descr |]
       let mem_project = Datatype.never_any_project
      end)
 
-
-(** Dynamic dependencies *)
-module DynDpds : sig
-  type t
-  type t_node = Node.t
-  type t_dpds_list = t_node list
-  type t_dpds_lists
-
-  val empty : t
-  val add_x_dpds : t -> t_node ->
-                   data:t_dpds_list -> addr:t_dpds_list -> ctrl:t_dpds_list ->
-                   unit
-  val clear : t -> unit
-
-  val find_dpds : t -> t_node -> t_dpds_lists
-  val find_co_dpds : t -> t_node -> t_dpds_lists
-  val get_x_dpds : t_dpds_lists -> Dpd.td option -> t_dpds_list
-
-  val iter_dpds : (G.E.t -> unit) -> t -> unit
-
-end = struct
-  type t_node = Node.t
-  type t_dpds_list = t_node list
-
-  (** [DAC] order ie. data + addr + ctrl *)
-  type t_dpds_lists = t_dpds_list * t_dpds_list * t_dpds_list
-  (** the node and its dependencies and codependencies lists *)
-  type t = (t_node * t_dpds_lists * t_dpds_lists) Inthash.t
-
-  let empty = Inthash.create 100
-
-  let is_empty dd = (Inthash.length dd) = 0
-
-  let clear dd = Inthash.clear dd
-
-  let find_lists dd node =
-    let _n, dpds, codpds = Inthash.find dd (Node.elem_id node) in dpds, codpds
-
-  let find_dpds dd node = let (dpds, _) = find_lists dd node in dpds
-
-  let find_co_dpds dd node = let (_, codpds) = find_lists dd node in codpds
-
-  let iter_dpds f dd =
-    let rec iter n tdpd ldpds = match ldpds with [] -> ()
-      | d :: ldpds -> f (G.E.create n tdpd d); iter n tdpd ldpds
-    in
-    let do_f _n_id (n, (ldata, laddr, lctrl), _codpds) =
-      iter n (DpdZone.make Dpd.Data None) ldata;
-      iter n (DpdZone.make Dpd.Addr None) laddr;
-      iter n (DpdZone.make Dpd.Ctrl None) lctrl
-    in Inthash.iter do_f dd
-
-  let get_x_dpds (ldata, laddr, lctrl) td =
-    match td with
-      | None ->  ldata @ laddr @ lctrl
-      | Some Dpd.Data -> ldata | Some Dpd.Addr -> laddr | Some Dpd.Ctrl -> lctrl
-
-  (** keeps the list ordered from the smallest to the largest elem_id *)
-      (* TODO : add_node_to_list for several nodes at a time *)
-  let add_node_to_list node_list node =
-    let n_id = Node.elem_id node in
-    let rec add node_list =
-      match node_list with
-        | [] -> [node]
-        | n :: tail ->
-            if (Node.elem_id n) < n_id then n :: (add tail)
-            else if n_id < (Node.elem_id n) then node :: node_list
-            else (* already in *) node_list
-    in add node_list
-
-  let add_node_to_lists td lists node =
-    let (ldata, laddr, lctrl) = lists in
-    let lists = match td with
-      | Dpd.Data -> add_node_to_list ldata node, laddr, lctrl
-      | Dpd.Addr -> ldata, add_node_to_list laddr node, lctrl
-      | Dpd.Ctrl -> ldata, laddr, add_node_to_list lctrl node
-    in lists
-
-  (** add the nodes in [data] [addr] [ctrl] to the [node] dependancies.
-  * If [x] is a new dependency of [node], we also have to add [node] in [x]
-  * codependencies *)
-  let add_x_dpds dd node ~data ~addr ~ctrl =
-    let add_codpd t x = (* add [node] in [x] codpds *)
-      let x_dpds, x_codpds =
-        try find_lists dd x with Not_found -> ([], [], []), ([], [], []) in
-      let x_codpds = add_node_to_lists t x_codpds node in
-        Inthash.replace dd (Node.elem_id x) (x, x_dpds, x_codpds)
-    in
-    let add t old_node_dpds new_dpd =
-      add_codpd t new_dpd;
-      add_node_to_lists t old_node_dpds new_dpd
-    in
-    let node_dpds, node_codpds =
-      try find_lists dd node with Not_found -> ([], [], []), ([], [], []) in
-    let node_dpds = List.fold_left (add Dpd.Data) node_dpds data in
-    let node_dpds = List.fold_left (add Dpd.Addr) node_dpds addr in
-    let node_dpds = List.fold_left (add Dpd.Ctrl) node_dpds ctrl in
-      Inthash.replace dd (Node.elem_id node) (node, node_dpds, node_codpds)
-end
 
 (** PDG for a function *)
 module Pdg = struct
   exception Top
   exception Bottom
 
-  type t_index = (Node.t, unit) PdgIndex.FctIndex.t
-                   (** The nodes which are associated the each element.
-                     * There is only one node for simple statements,
-                     * but there are several for a call for instance. *)
+  type t_fi = (Node.t, unit) PdgIndex.FctIndex.t
+  (** The nodes which are associated the each element.
+      There is only one node for simple statements,
+      but there are several for a call for instance. *)
+  let t_fi_descr =
+    PdgIndex.FctIndex.t_descr ~ni:(Descr.str Node.descr) ~ci:Structural_descr.t_unit
+
+
   type t_def = {
     graph : G.t ;
     states : t_data_state Inthash.t ;
-    index : t_index ;
+    index : t_fi ;
   }
 
   type t_body = PdgDef of t_def | PdgTop | PdgBottom
@@ -560,27 +459,25 @@ module Pdg = struct
   module Body_datatype =
     Datatype.Make
       (struct
-	include Datatype.Undefined(*Serializable_undefined*)
-	type t = t_body
-	let reprs = [ PdgTop; PdgBottom ]
-(*
-	(* [JS 2010/09/27] this descr is incorrect since its internal zones are
-	   not rehashconsed (do not use Structural_descr.Abstract in all
-	   positions containing hashconsed values) *)
-	let structural_descr =
-	  Structural_descr.Structure
-	    (Structural_descr.Sum [| [|
-	      Structural_descr.pack
-		(Structural_descr.t_record [|
-		  Structural_descr.pack Structural_descr.Abstract (* TODO *);
-		  (let module H = Cil_datatype.Int_hashtbl.Make(Data_state) in
-		   H.packed_descr);
-		  Structural_descr.pack Structural_descr.Abstract (* TODO *);
-					   |])
-				     |] |])
- *)
-	let name = "t_body"
-	let mem_project = Datatype.never_any_project
+        include Datatype.Undefined(*Serializable_undefined*)
+        type t = t_body
+        let reprs = [ PdgTop; PdgBottom ]
+        let rehash = Datatype.identity
+        open Structural_descr
+        let structural_descr =
+          Structure
+            (Sum [| [|
+              pack
+                (t_record [|
+                   G.packed_descr;
+                   (let module H = Cil_datatype.Int_hashtbl.Make(Data_state) in
+                    H.packed_descr);
+                   pack t_fi_descr;
+                 |])
+            |] |])
+
+        let name = "t_body"
+        let mem_project = Datatype.never_any_project
        end)
   let () = Type.set_ml_name Body_datatype.ty None
 
@@ -613,12 +510,7 @@ module Pdg = struct
     let do_it acc (_k, n) = f acc n in
       PdgIndex.Signature.fold do_it acc call_pdg
 
-
-  (* let remove_node pdg node =
-    G.remove_elem (get_graph pdg) node;
-    PdgIndex.FctIndex.remove (get_index pdg) (Node.elem_key node) *)
-
-    type dpd_info = (Node.t * Locations.Zone.t option)
+  type dpd_info = (Node.t * Locations.Zone.t option)
 
   (** gives the list of nodes that depend to the given node
       with a given kind of dependency.
@@ -665,19 +557,14 @@ module Pdg = struct
     in
       List.map get_info edges
 
-  let pretty_node fmt n =
-    let id = Node.elem_id n in
-    Format.fprintf fmt "[Elem] %d : " id;
-    let key = Node.elem_key n in
-    PdgIndex.Key.pretty fmt key
-
-  let pretty_nodes fmt nodes =
-    let pretty_node n = Format.fprintf fmt "%a@." pretty_node n in
-    List.iter pretty_node nodes
-
   let pretty_graph ?(bw=false) fmt graph =
+    let all = (* Sorted print is nicer for the user *)
+      let r = ref [] in
+      G.iter_vertex (fun n -> r := n :: !r) graph;
+      List.sort Node.compare !r
+    in
     let iter = if bw then G.iter_pred_e else G.iter_succ_e in
-    let print_node n =  Format.fprintf fmt "%a@." pretty_node n in
+    let print_node n =  Format.fprintf fmt "%a@." Node.pretty_node n in
     let print_dpd d =
       let dpd_kind = G.E.label d in
       if bw then Format.fprintf fmt "  <-%a- %d@." G.pretty_edge_label dpd_kind
@@ -689,7 +576,7 @@ module Pdg = struct
       print_node n;
       iter print_dpd graph n
     in
-    G.iter_vertex print_node_and_dpds graph
+    List.iter print_node_and_dpds all
 
   let pretty_bw ?(bw=false) fmt pdg =
     try
@@ -715,14 +602,14 @@ module Pdg = struct
 
     let iter_vertex f pdg =
       try
-	let graph = get_graph pdg in
+        let graph = get_graph pdg in
         G.iter_vertex f graph
       with Top | Bottom -> ()
 
     let iter_edges_e f pdg =
       try
-	let graph = get_graph pdg in
-	let f_static e = f (e, false) in
+        let graph = get_graph pdg in
+        let f_static e = f (e, false) in
         G.iter_edges_e f_static graph;
       with Top | Bottom -> ()
 
@@ -772,9 +659,6 @@ module Pdg = struct
               sh_box, txt
             | _ -> sh_box, "???"
           in sh, color_stmt, txt
-        (* | PdgIndex.Key.Annot _ ->
-           let txt = Pretty_utils.sfprintf "%a" PdgIndex.Key.pretty key in
-           (`Shape `Doublecircle), color_annot, txt *)
         | PdgIndex.Key.CallStmt call ->
           let call_stmt = PdgIndex.Key.call_from_id call in
           let txt = Pretty_utils.sfprintf "%a"
@@ -783,8 +667,8 @@ module Pdg = struct
           in sh_box, color_call, txt
         | PdgIndex.Key.SigCallKey (_call, sgn) ->
           let txt =
-	    Pretty_utils.sfprintf "%a" PdgIndex.Signature.pretty_key sgn
-	  in
+            Pretty_utils.sfprintf "%a" PdgIndex.Signature.pretty_key sgn
+          in
           sh_box, color_elem_call, txt
         | PdgIndex.Key.Label _ ->
           let txt = Pretty_utils.sfprintf "%a" PdgIndex.Key.pretty key in
@@ -797,28 +681,28 @@ module Pdg = struct
       let d, z = G.edge_dpd e in
       let attrib = [] in
       let attrib = match z with
-	| None -> attrib
-	| Some z ->
+        | None -> attrib
+        | Some z ->
           let txt =
             Pretty_utils.sfprintf "@[<h 1>%a@]" Locations.Zone.pretty z in
           (`Label txt) :: attrib
       in
       let attrib =
-	let color =
+        let color =
           if Dpd.is_data d then (if dynamic then 0xFF00FF else 0x0000FF)
           else  (if dynamic then 0xFF0000 else 0x000000)
-	in (`Color color) :: attrib
+        in (`Color color) :: attrib
       in
       let attrib =
-	if Dpd.is_ctrl d then (`Arrowhead `Odot)::attrib else attrib
+        if Dpd.is_ctrl d then (`Arrowhead `Odot)::attrib else attrib
       in
       let attrib =
-	if Dpd.is_addr d then (`Style `Dotted)::attrib else attrib
+        if Dpd.is_addr d then (`Style `Dotted)::attrib else attrib
       in attrib
 
     let get_subgraph v =
       let mk_subgraph name attrib =
-	let attrib = (`Style `Filled) :: attrib in
+        let attrib = (`Style `Filled) :: attrib in
         Some { Graph.Graphviz.DotAttributes.sg_name= name;
                Graph.Graphviz.DotAttributes.sg_attributes = attrib }
       in

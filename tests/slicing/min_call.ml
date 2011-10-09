@@ -6,7 +6,7 @@
 include LibSelect;;
 
 let main _ =
-  (* SlicingParameters.Mode.Calls.set 3; *)
+  (* SlicingKernel.Mode.Calls.set 3; *)
   let _kf_get = Globals.Functions.find_by_name "get" in
   let _kf_send = Globals.Functions.find_by_name "send" in
   let kf_send_bis = Globals.Functions.find_by_name "send_bis" in
@@ -38,11 +38,11 @@ let main _ =
   let select = !S.Select.select_stmt_internal kf_k sb_call mark in
   !S.Request.add_selection_internal project select ;
   !S.Request.apply_all_internal project;
-  Log.print_on_output "@[Project1 - result1 :@\n@]";
+  Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project1 - result1 :@\n@]") ;
   extract_and_print project;
 
   let _ff2_k = !S.Slice.create project kf_k in
-  Log.print_on_output "@[Project1 - result2 :@\n@]";
+  Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project1 - result2 :@\n@]") ;
   !S.Project.pretty fmt project;
   extract_and_print project;
 
@@ -60,7 +60,7 @@ let main _ =
   !S.Request.add_selection_internal project select ;
   print_requests project;
   !S.Request.apply_all_internal project;
-  Log.print_on_output "@[Project3 - result :@\n@]";
+  Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project3 - result :@\n@]") ;
   !S.Project.pretty fmt project;
   extract_and_print project;
 
@@ -77,7 +77,7 @@ let main _ =
   !S.Request.apply_next_internal project;
   print_requests project;
   !S.Request.apply_all_internal project;
-  Log.print_on_output "@[Project3 - result :@\n@]";
+  Log.print_on_output (fun fmt -> Format.fprintf fmt "@[Project3 - result :@\n@]") ;
   !S.Project.pretty fmt project;
   extract_and_print project
 

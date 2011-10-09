@@ -20,49 +20,38 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* ABP added *)
 open Cil_types
 open Visitor
 open Pretty_source
 open Kernel_function
+open Metrics_base
+;;
 
-class cyclo_class (main_ui:Design.main_window_extension_points) =
-object(self)
+class cyclo_class (main_ui:Design.main_window_extension_points) = object(self)
 
   val mutable fct_to_check = (GText "")
 
   method get_data =
-    let checker = (new Register.slocVisitor) in
-    checker#set_standalone false;
-    Metrics_parameters.debug "beginning of cyclo check";
-    ignore (visitFramacGlobal
-	      (checker :> frama_c_visitor)
-	      fct_to_check);
-    checker#sloc,
-  checker#ifs,
-  checker#assigns,
-  checker#loops,
-  checker#calls,
-  checker#gotos,
-  checker#mem_access,
-  (checker#ifs + checker#loops) - checker#exits + 2
+    let checker = (new Metrics_cilast.slocVisitor) in
+    Metrics_parameters.Metrics.debug ~level:2 "Beginning of cyclo check@.";
+    ignore (visitFramacGlobal (checker :> frama_c_visitor) fct_to_check);
+    checker#get_metrics
     (* 2 becomes "2*checker#funcs" in the general case *)
 
   method insert_text (buffer: GText.buffer) =
     let iter = buffer#get_iter `START in
-    let data  = self#get_data in
-    let (slocs,ifs,assigns,loops,calls, gotos, mems,cyclos) = data in
-    buffer#insert ~iter (string_of_int slocs);
-    buffer#insert ~iter (string_of_int ifs);
-    buffer#insert ~iter (string_of_int assigns);
-    buffer#insert ~iter (string_of_int loops);
-    buffer#insert ~iter (string_of_int calls);
-    buffer#insert ~iter (string_of_int gotos);
-    buffer#insert ~iter (string_of_int mems);
-    buffer#insert ~iter (string_of_int cyclos)
+    let metrics_data  = self#get_data in
+    buffer#insert ~iter (string_of_int metrics_data.cslocs);
+    buffer#insert ~iter (string_of_int metrics_data.cifs);
+    buffer#insert ~iter (string_of_int metrics_data.cassigns);
+    buffer#insert ~iter (string_of_int metrics_data.cloops);
+    buffer#insert ~iter (string_of_int metrics_data.ccalls);
+    buffer#insert ~iter (string_of_int metrics_data.cgotos);
+    buffer#insert ~iter (string_of_int metrics_data.cptrs);
+    buffer#insert ~iter (string_of_int (cyclo metrics_data))
 
   method do_cyclo (main_ui:Design.main_window_extension_points) =
-    Metrics_parameters.debug "Cyclo";
+    Metrics_parameters.Metrics.debug "Cyclo";
     (* create a small results window *)
     let dialog = GWindow.window
       ~title:"Measure"
@@ -75,22 +64,21 @@ object(self)
     dialog#set_transient_for main_ui#main_window#as_window;
     let a_vbox = GPack.vbox ~packing:dialog#add () in
     ignore (dialog#event#connect#delete
-	      ~callback:(fun _ -> dialog#misc#hide ();
-			   true));
-    let data  = self#get_data in
-    let (slocs, ifs, assigns, loops, calls, gotos, mems, cyclos) = data in
+              ~callback:(fun _ -> dialog#misc#hide ();
+                           true));
+    let metrics_data  = self#get_data in
     let add_label msg n =
       let text = msg ^ string_of_int n in
       ignore (GMisc.label ~text ~packing:a_vbox#add ())
     in
-    add_label "Lines of source code: " slocs;
-    add_label "# of if statements: " ifs;
-    add_label "# of assignments: " assigns;
-    add_label "# of loops: " loops;
-    add_label "# of function calls: " calls;
-    add_label "# of gotos: " gotos;
-    add_label "# of indirect memory accesses: " mems;
-    add_label "Cyclomatic complexity: " cyclos;
+    add_label "Lines of source code: " metrics_data.cslocs;
+    add_label "# of if statements: " metrics_data.cifs;
+    add_label "# of assignments: " metrics_data.cassigns;
+    add_label "# of loops: " metrics_data.cloops;
+    add_label "# of function calls: " metrics_data.ccalls;
+    add_label "# of gotos: " metrics_data.cgotos;
+    add_label "# of indirect memory accesses: " metrics_data.cptrs;
+    add_label "Cyclomatic complexity: " (cyclo metrics_data);
     let close_button = GButton.button ~stock:`OK ~packing:a_vbox#add () in
     close_button#set_border_width 10;
     ignore (close_button#connect#clicked ~callback:dialog#misc#hide);
@@ -100,53 +88,60 @@ object(self)
   method display_localizable localizable () =
     begin
       match localizable with
-	| PVDecl (Some kf,_) -> (* Process only the function selected *)
-	    begin
-	      (* Get the global of this function *)
-	      fct_to_check <- (get_global kf);
-	      self#do_cyclo main_ui;
-	    end
-	| _  -> ()
+        | PVDecl (Some kf,_) -> (* Process only the function selected *)
+            begin
+              (* Get the global of this function *)
+              fct_to_check <- (get_global kf);
+              self#do_cyclo main_ui;
+            end
+        | _  -> ()
     end
 
   method cyclo_selector
     (popup_factory:GMenu.menu GMenu.factory) _main_ui ~button localizable =
-    Metrics_parameters.debug "cyclo_selector";
+    Metrics_parameters.Metrics.debug "cyclo_selector";
     if button = 3 then
       match localizable with
-	| PVDecl (Some _, _) ->
-	    let callback () =
-              Metrics_parameters.debug "cyclo_selector - callback";
+        | PVDecl (Some _, _) ->
+            let callback () =
+              Metrics_parameters.Metrics.debug "cyclo_selector - callback";
               self#display_localizable localizable  ()
-	    in
-	    ignore (popup_factory#add_item "Metrics" ~callback:callback)
-	| _ -> ()
+            in
+            ignore (popup_factory#add_item "Metrics" ~callback:callback)
+        | _ -> ()
   initializer
     main_ui#register_source_selector self#cyclo_selector
-
 end
 
 (* ABP end *)
 
 let make_bi_label (parent:GPack.box) l1 =
- let container = GPack.hbox ~packing:parent#pack () in
- let t = GMisc.label ~text:l1 ~xalign:0.0
-                     ~packing:(container#pack ~expand:false ~fill:false)
-         ()
- in
- Gtk_helper.old_gtk_compat t#set_width_chars 7;
- let l = GMisc.label ~selectable:true ~xalign:0.0 ~text:""
-             ~packing:(container#pack ~expand:true)
-             ()
- in
- l
+  let container = GPack.hbox ~packing:parent#pack () in
+  let t = GMisc.label ~text:l1 ~xalign:0.0
+    ~packing:(container#pack ~expand:false ~fill:false)
+    ()
+  in
+  Gtk_helper.old_gtk_compat t#set_width_chars 7;
+  let label = GMisc.label ~selectable:true ~xalign:0.0 ~text:""
+    ~packing:(container#pack ~expand:true)
+    ()
+  in label
 
 let make_hbox (parent:GPack.box) =
- GPack.hbox ~homogeneous:true ~packing:parent#pack ()
+  GPack.hbox ~homogeneous:true ~packing:parent#pack ()
+
+module LastResult =
+  State_builder.Option_ref
+    (DatatypeMetrics)
+    (struct
+      let dependencies = [ Ast.self ]
+      let name = name
+      let kind = `Internal
+     end)
+;;
 
 let make_panel _main_ui =
   let w = GPack.vbox ~width:120 () in
-
   let update_button =
     let w = make_hbox w in
       GButton.button (* ~stock:`REFRESH *) ~label:"Measure"
@@ -156,22 +151,22 @@ let make_panel _main_ui =
 
   let box = make_hbox w in
   (* Sloc *)
-  let sloc_label = make_bi_label box "sloc:" in
+  let sloc_label = make_bi_label box "Slocs:" in
   (* Calls *)
-  let calls_label =  make_bi_label box "calls:" in
+  let calls_label =  make_bi_label box "Calls:" in
 
 
   let box = make_hbox w in
   (* If *)
-  let if_label = make_bi_label box "if:" in
+  let if_label = make_bi_label box "If:" in
   (* while *)
-  let loops_label = make_bi_label box "loops:" in
+  let loops_label = make_bi_label box "Loops:" in
 
   let box = make_hbox w in
   (* Goto *)
-  let goto_label = make_bi_label box "goto:" in
+  let goto_label = make_bi_label box "Goto:" in
   (* assign *)
-  let assign_label =  make_bi_label box "assigns:" in
+  let assign_label =  make_bi_label box "Assigns:" in
 
   let box = make_hbox w in
   (* Mem *)
@@ -185,7 +180,7 @@ let make_panel _main_ui =
   let proto_label = make_bi_label box "Proto:" in
 
   let box = make_hbox w in
-    (* cyclomatric complexity *)
+    (* cyclomatic complexity *)
   let cyclo_label = make_bi_label box "Cyclo:" in
   let _placeholder2 = make_bi_label box "" in
 
@@ -213,8 +208,8 @@ let make_panel _main_ui =
             sloc =  sloc;
             functions_without_source =  fws;
             functions_with_source = fs;
-	    cyclos = cycl; }
-          = !Db.Metrics.last_result ()
+            cyclos = cycl; }
+          = LastResult.get ()
       in
       update_button#misc#set_sensitive false;
       sloc_label#set_text (string_of_int sloc);
@@ -225,9 +220,8 @@ let make_panel _main_ui =
       assign_label#set_text (string_of_int assigns);
       mem_label#set_text (string_of_int mem_access);
       func_label#set_text
-	(string_of_int (Cil_datatype.Varinfo.Hashtbl.length fs));
-      proto_label#set_text
-	(string_of_int(Cil_datatype.Varinfo.Hashtbl.length fws));
+        (string_of_int (Metrics_base.map_cardinal_varinfomap fs));
+      proto_label#set_text (string_of_int(map_cardinal_varinfomap fws));
       cyclo_label#set_text (string_of_int cycl)
     with Not_found ->
       update_button#misc#set_sensitive true ;
@@ -235,7 +229,7 @@ let make_panel _main_ui =
   in
   ignore
     (update_button#connect#clicked
-       (fun () -> !Db.Metrics.compute (); fill ()));
+       (fun () -> LastResult.set (!Db.Metrics.compute ()); fill ()));
   "Metrics", w#coerce, Some fill
 
 let gui (main_ui:Design.main_window_extension_points) =

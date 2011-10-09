@@ -41,8 +41,8 @@ module type S = sig
 
   val apply: param -> result
     (** Apply all the functions of the hook on the given parameter.
-	These functions are applied from the least recently entered to the most
-	recently entered.*)
+        These functions are applied from the least recently entered to the most
+        recently entered.*)
 
   val is_empty: unit -> bool
     (** Is no function already registered in the hook? *)

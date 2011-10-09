@@ -57,11 +57,11 @@ let call_for_users (_state, call_stack) =
   | [] -> assert false
   | (current_function, _call_site) :: tail ->
       let treat_element (user, _call_site) =
-	ignore
-	  (Users.memo
-	     ~change:(Kernel_function.Hptset.add current_function)
-	     (fun _ -> Kernel_function.Hptset.singleton current_function)
-	     user)
+        ignore
+          (Users.memo
+             ~change:(Kernel_function.Hptset.add current_function)
+             (fun _ -> Kernel_function.Hptset.singleton current_function)
+             user)
       in
       List.iter treat_element tail
 
@@ -71,41 +71,52 @@ let init () = if ForceUsers.get () then add_value_hook ()
 let () = Cmdline.run_after_configuring_stage init
 
 let get kf =
+  let find kf =
+    try Users.find kf
+    with Not_found -> Kernel_function.Hptset.empty
+  in
   if Users.is_computed () then
-    Users.find kf
+    find kf
   else begin
     if Db.Value.is_computed () then begin
       feedback "requiring again the computation of the value analysis";
       Project.clear
-	~selection:(State_selection.Dynamic.with_dependencies Db.Value.self)
-	()
+        ~selection:(State_selection.Dynamic.with_dependencies Db.Value.self)
+        ()
     end else
       feedback ~level:2 "requiring the computation of the value analysis";
     add_value_hook ();
     !Db.Value.compute ();
-    Users.find kf
+    find kf
   end
 
-let () = Db.Users.get := get
+let () =
+  Db.register
+    (Db.Journalize("Users.get",
+                   Datatype.func Kernel_function.ty Kernel_function.Hptset.ty))
+    Db.Users.get
+    get
 
-let main () =
+let print () =
   if ForceUsers.get () then
-    begin
-      result "====== DISPLAYING USERS ======@\n%t\
-              ====== END OF USERS =========="
-	(fun fmt ->
-	   !Db.Semantic_Callgraph.topologically_iter_on_functions
-	     (fun kf ->
-		try
-		  Format.fprintf fmt "@[%a: @[%a@]@]@\n"
-		    Kernel_function.pretty_name kf
-		    Kernel_function.Hptset.pretty (!Db.Users.get kf)
-		with Not_found ->
-		  () (* [kf] is not called during analysis *))
-	) ;
-    end
+      result "@[<v>====== DISPLAYING USERS ======@ %t\
+                   ====== END OF USERS =========="
+        (fun fmt ->
+           !Db.Semantic_Callgraph.topologically_iter_on_functions
+             (fun kf ->
+               let callees = !Db.Users.get kf in
+               if not (Kernel_function.Hptset.is_empty callees) then
+                 Format.fprintf fmt "@[<hov 4>%a: %a@]@ "
+                   Kernel_function.pretty kf
+                   (Pretty_utils.pp_iter
+                      ~pre:"" ~sep:"@ " ~suf:"" Kernel_function.Hptset.iter
+                      Kernel_function.pretty)
+                   callees))
 
-let () = Db.Main.extend main
+let print_once, _self_print =
+  State_builder.apply_once "Users_register.print" [ Users.self ] print
+
+let () = Db.Main.extend print_once
 
 (*
 Local Variables:

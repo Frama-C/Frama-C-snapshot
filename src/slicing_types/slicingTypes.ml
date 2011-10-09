@@ -67,10 +67,8 @@ module Fct_user_crit =
       let reprs = [ SlicingInternals.dummy_t_fct_user_crit ]
       let name = "SlicingTypes.Fct_user_crit"
       let mem_project = Datatype.never_any_project
+      let varname _ = "user_criteria"
      end)
-
-(** A set of selections, grouped by function *)
-module Sl_selects = Cil_datatype.Varinfo.Map
 
 (** Function slice *)
 type sl_fct_slice = SlicingInternals.t_fct_slice
@@ -105,10 +103,11 @@ module Sl_select =
       include Datatype.Undefined (* TODO: unmarshal *)
       type t = sl_select
       let reprs =
-	List.map
-	  (fun v -> v, SlicingInternals.dummy_t_fct_user_crit)
-	  Cil_datatype.Varinfo.reprs
+        List.map
+          (fun v -> v, SlicingInternals.dummy_t_fct_user_crit)
+          Cil_datatype.Varinfo.reprs
       let name = "SlicingTypes.Sl_select"
+      let varname _s = "sl_select"
       let mem_project = Datatype.never_any_project
      end)
 
@@ -144,27 +143,27 @@ let pp_sl_mark p fmt m =
     | _, SlicingInternals.Spare -> None
     | SlicingInternals.Cav mark1, SlicingInternals.Cav mark2 ->
         if (PdgTypes.Dpd.is_bottom mark2) then
-	  (* use [!Db.Slicing.Mark.make] contructor *)
+          (* use [!Db.Slicing.Mark.make] contructor *)
           Some (fun fmt ->
                   Format.fprintf fmt "@[<hv 2>!Db.Slicing.Mark.make@;~addr:%b@;~data:%b@;~ctrl:%b@]"
                     (PdgTypes.Dpd.is_addr mark1)
-		    (PdgTypes.Dpd.is_data mark1)
-		    (PdgTypes.Dpd.is_ctrl mark1))
+                    (PdgTypes.Dpd.is_data mark1)
+                    (PdgTypes.Dpd.is_ctrl mark1))
         else
-	  None
+          None
   in
   let pp = match pp with
     | Some pp -> pp
     | None ->
-	let pp fmt sub_m = match sub_m with
-	    (* use internals constructors *)
+        let pp fmt sub_m = match sub_m with
+            (* use internals constructors *)
           | SlicingInternals.Spare -> Format.fprintf fmt "SlicingInternals.Spare"
           | SlicingInternals.Cav pdg_m -> Format.fprintf fmt
               "@[<hv 2>(SlicingInternals.Cav@;@[<hv 2>(PdgTypes.Dpd.make@;~a:%b@;~d:%b@;~c:%b@;())@])@]"
-		(PdgTypes.Dpd.is_addr pdg_m)
-		(PdgTypes.Dpd.is_data pdg_m)
-		(PdgTypes.Dpd.is_ctrl pdg_m)
-	in
+                (PdgTypes.Dpd.is_addr pdg_m)
+                (PdgTypes.Dpd.is_data pdg_m)
+                (PdgTypes.Dpd.is_ctrl pdg_m)
+        in
         fun fmt ->
           Format.fprintf fmt "@[<hv 2>SlicingInternals.create_sl_mark@;~m1:%a@;~m2:%a@]"
             pp m.SlicingInternals.m1 pp m.SlicingInternals.m2

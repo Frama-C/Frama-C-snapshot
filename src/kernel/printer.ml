@@ -22,7 +22,6 @@
 
 open Cil_types
 open Cil
-open Db_types
 open Extlib
 open Pretty_utils
 
@@ -142,40 +141,55 @@ class print () = object(self)
     super#pVDecl fmt vi
 
   method pGlobal fmt glob =
+    if Kernel.PrintComments.get () then begin
+      let comments = Globals.get_comments_global glob in
+      Pretty_utils.pp_list 
+        ~sep:"@\n" ~suf:"@\n" 
+        (fun fmt s -> Format.fprintf fmt "/* %s */" s) fmt comments
+    end;
+    (* Out of tree global annotations are pretty printed before the first
+       variable declaration of the first function definition. *)
     (match glob with
      | GVarDecl _ when first_function_definition ->
          first_function_definition <- false;
          self#pretty_global_annot fmt
-     | GFun _ -> is_fun_def <- true
+     | GFun _ ->
+       if first_function_definition then
+         begin
+           first_function_definition <- false;
+           self#pretty_global_annot fmt
+         end;
+       is_fun_def <- true
      | _ -> ());
     super#pGlobal fmt glob
 
   (* TODO: make it a public method, with a new class type specific to Frama-C*)
 
   method private pInsertedAnnotation fmt ca =
-    match Ast_info.before_after_content ca with
+    match ca with
     | User ca ->
-	Format.fprintf fmt "%a" self#pCode_annot ca
+        Format.fprintf fmt "%a" self#pCode_annot ca
     | AI(_,ca) ->
-	Format.fprintf fmt "%a@\n    // synthesized@\n" self#pCode_annot ca
+        Format.fprintf fmt "%a@\n    // synthesized@\n" self#pCode_annot ca
 
   method private pLoopAnnotations fmt annots =
     if annots <> [] then
       begin
         let annots = List.sort compare_annotations annots in
-	Pretty_utils.pp_open_block fmt "/*@@ " ;
+        Pretty_utils.pp_open_block fmt "/*@@ " ;
         Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep
-	  self#pInsertedAnnotation
+          self#pInsertedAnnotation
           fmt
           annots ;
-	Pretty_utils.pp_close_block fmt "*/@\n" ;
+        Pretty_utils.pp_close_block fmt "*/@\n" ;
       end
 
   method private pAnnotations fmt annots =
+    let annots = List.sort compare_annotations annots in
     Pretty_utils.pp_list
       ~pre:Pretty_utils.no_sep ~sep:Pretty_utils.no_sep ~suf:Pretty_utils.no_sep
       (fun fmt annot ->
-	 Pretty_utils.pp_open_block fmt "/*@@ " ;
+         Pretty_utils.pp_open_block fmt "/*@@ " ;
          self#pInsertedAnnotation fmt annot;
          Pretty_utils.pp_close_block fmt "*/@\n")
       fmt
@@ -191,48 +205,38 @@ class print () = object(self)
 
     (* print the Cabscond, if any *)
     Cabscond.pp_comment fmt s ;
-
+    if Kernel.PrintComments.get () then begin
+      let comments = Globals.get_comments_stmt s in
+      Pretty_utils.pp_list 
+        ~sep:"@\n" ~suf:"@\n" (fun fmt s -> Format.fprintf fmt "/* %s */" s)
+        fmt comments
+    end;
     if verbose then Format.fprintf fmt "/*sid:%d*/@ " s.sid ;
     (* print the annotations *)
     let all_annot =
       List.sort
-	Kernel_datatype.Rooted_code_annotation_before_after.compare
-	(Annotations.get_all_annotations s)
+        Cil_datatype.Rooted_code_annotation.compare
+        (Annotations.get_all_annotations s)
     in
     match all_annot with
     | [] -> self#pStmtKind next fmt s.skind
     | [ a ] when is_skip s.skind ->
-	Format.fprintf fmt "@[/*@@@ %a */@] %a"
-	  (self#pInsertedAnnotation) a
-	  (self#pStmtKind next) s.skind ;
+        Format.fprintf fmt "@[/*@@@ %a */@] %a"
+          (self#pInsertedAnnotation) a
+          (self#pStmtKind next) s.skind ;
     | _ ->
-	let loop_annot, stmt_annot =
-	  List.partition
-	    (Ast_info.lift_annot_func Logic_utils.is_loop_annot)
-	    all_annot
-	in
-	let annot_before,annot_after =
-	  List.partition
-	    (function Before _ -> true | After _ -> false)
-	    stmt_annot
-	in
-	let loop_annot_before, loop_annot_after =
-	  List.partition
-	    (function Before _ -> true | After _ -> false)
-	    loop_annot
-	in
-	begin
-	  let s_block = annot_after <> [] || loop_annot_after <> [] in
-	  if s_block then Pretty_utils.pp_open_block fmt "{" ;
-	  self#pAnnotations fmt annot_before ;
-	  self#pLoopAnnotations fmt loop_annot_before ;
-	  if s.ghost then Pretty_utils.pp_open_block fmt "/*@@ ghost " ;
-	  self#pStmtKind next fmt s.skind;
-	  if s.ghost then Pretty_utils.pp_close_block fmt "@ */@\n" ;
-	  self#pLoopAnnotations fmt loop_annot_after ;
-	  self#pAnnotations fmt annot_after ;
-	  if s_block then Pretty_utils.pp_close_block fmt "}" ;
-	end
+        let loop_annot, stmt_annot =
+          List.partition
+            (Ast_info.lift_annot_func Logic_utils.is_loop_annot)
+            all_annot
+        in
+        begin
+          self#pAnnotations fmt stmt_annot ;
+          self#pLoopAnnotations fmt loop_annot ;
+          if s.ghost then Pretty_utils.pp_open_block fmt "/*@@ ghost " ;
+          self#pStmtKind next fmt s.skind;
+          if s.ghost then Pretty_utils.pp_close_block fmt "@ */@\n" ;
+        end
 
   method requireBraces blk =
     match blk.blocals with
@@ -241,20 +245,11 @@ class print () = object(self)
             match blk.bstmts with
               | [ _ ] | [] when blk.battrs = [] && blk.blocals = [] -> false
               | _ ->
-	          match self#current_stmt with
-	            | None -> false
-	            | Some stmt -> Annotations.get_all stmt <> []
+                  match self#current_stmt with
+                    | None -> false
+                    | Some stmt -> Annotations.get_all stmt <> []
           end
       | _ -> true
-
-
-  (** Get the comment out of a location if there is one *)
-  method pLineDirective ?(forcefile=false) fmt l =
-    super#pLineDirective ~forcefile fmt l;
-    if Parameters.PrintComments.get () then
-      List.iter
-        (fun c -> Format.fprintf fmt "/* %s@ */@\n" c)
-        (Zrapp.get_comments l)
 
   initializer
     logic_printer_enabled <- false;

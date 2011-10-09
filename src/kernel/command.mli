@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Useful high-level system operations. *)
+
 (* ************************************************************************* *)
 (** File Utilities *)
 (* ************************************************************************* *)
@@ -28,16 +30,16 @@ val filename : string -> string -> string
 
 val pp_to_file : string -> (Format.formatter -> unit) -> unit
   (** [pp_to_file file pp] runs [pp] on a formatter that writes into [file].
-      The formatter is always properly flushed and closed on return. 
+      The formatter is always properly flushed and closed on return.
       Exceptions in [pp] are re-raised after closing. *)
-  
+
 val pp_from_file : Format.formatter -> string -> unit
   (** [pp_from_file fmt file] dumps the content of [file] into the [fmt].
       Exceptions in [pp] are re-raised after closing. *)
 
 val bincopy : string -> in_channel -> out_channel -> unit
-  (** [copy buffer cin cout] reads [cin] until end-of-file 
-      and copy it in [cout]. 
+  (** [copy buffer cin cout] reads [cin] until end-of-file
+      and copy it in [cout].
       [buffer] is a temporary string used during the copy.
       Recommanded size is [2048]. *)
 
@@ -55,10 +57,10 @@ val full_command :
   -> stderr:Unix.file_descr
   -> Unix.process_status
   (** Same arguments as {Unix.create_process} but returns only when
-      execution is complete. 
+      execution is complete.
       @raise Sys_error when a system error occurs *)
 
-type process_result = 
+type process_result =
   | Not_ready of (unit -> unit)
   | Result of Unix.process_status
       (** [Not_ready f] means that the child process is not yet finished and
@@ -74,7 +76,7 @@ val full_command_async :
       @return a function to call to check if the process execution
       is complete.
       You must call this function until it returns a Result
-      to prevent Zombie processes. 
+      to prevent Zombie processes.
       @raise Sys_error when a system error occurs *)
 
 val command_async :
@@ -89,7 +91,7 @@ val command_async :
       to prevent Zombie processes.
       When this function returns a Result, the stdout and stderr of the child
       process will be filled into the arguments buffer.
-      @raise Sys_error when a system error occurs 
+      @raise Sys_error when a system error occurs
   *)
 
 val command :
@@ -101,7 +103,7 @@ val command :
   (** Same arguments as {Unix.create_process}.
       When this function returns, the stdout and stderr of the child
       process will be filled into the arguments buffer.
-      @raise Sys_error when a system error occurs 
+      @raise Sys_error when a system error occurs
       @raise Db.Cancel when the computation is interrupted or on timeout *)
 
 (*

@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -pdg -journal-disable
+   OPT: -pdg -journal-disable  -pdg-print -pdg-verbose 2
 */
 /* test conçu initialement comme test pour le slicing */
 int Unknown;

@@ -22,10 +22,10 @@
 
 (** Keep information attached to kernel functions. *)
 
-open Db_types
+open Cil_types
 
 val mark_as_called: kernel_function -> unit
-val add_caller: caller:kernel_function*Cil_types.stmt -> kernel_function -> unit
+val add_caller: caller:kernel_function*stmt -> kernel_function -> unit
 
 (*
 Local Variables:

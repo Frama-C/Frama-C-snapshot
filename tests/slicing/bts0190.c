@@ -1,5 +1,5 @@
 /*  run.config
-OPT: -slice-rd y
+OPT: -check -slice-rd y
 */
 
 int x(int y, int z)

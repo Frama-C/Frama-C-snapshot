@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -30,7 +32,7 @@
     let new_line lexbuf =
       let lcp = lexbuf.lex_curr_p in
       lexbuf.lex_curr_p <- { lcp with pos_lnum = lcp.pos_lnum + 1;
-			              pos_bol  = lcp.pos_cnum; }
+                                      pos_bol  = lcp.pos_cnum; }
     ;;
 
   exception Error of (Lexing.position * Lexing.position) * string
@@ -55,7 +57,7 @@ rule token = parse
   | "other"           { OTHERWISE }
   | "true"            { TRUE }
   | "false"           { FALSE }
-  | "()"              { FUNC }
+  | "\\result" as lxm { IDENTIFIER(lxm) }
   | ident as lxm      { IDENTIFIER(lxm) }
   | ','               { COMMA }
   | '+'               { PLUS }
@@ -69,6 +71,8 @@ rule token = parse
   | ']'               { RSQUARE }
   | '{'               { LCURLY }
   | '}'               { RCURLY }
+  | "{{"              { LBRACELBRACE }
+  | "}}"              { RBRACERBRACE }
   | '.'               { DOT }
   | "->"              { RARROW }
   | '&'               { AMP }
@@ -82,15 +86,13 @@ rule token = parse
   | ">="              { GE }
   | "=="              { EQ }
   | "!="              { NEQ }
-  | "true"            { TRUE }
-  | "false"           { FALSE }
   | ';'               { SEMI_COLON }
   | ':'               { COLON }
+  | "::"              { COLUMNCOLUMN }
+  | '^'               { CARET }
+  | '?'               { QUESTION }
   | eof               { EOF }
   | _                 { raise_located (loc lexbuf) "Unknown token" }
-
-
-
 
 {
   let parse c =
@@ -98,22 +100,22 @@ rule token = parse
     try
       Yaparser.main token lb
     with
-	Parsing.Parse_error
+        Parsing.Parse_error
       | Invalid_argument _ ->
           (* [VP]: Does not contain more information than
              what is in the exn. *)
-	  (*let (a,b)=(loc lb) in
-	    Format.print_string "Syntax error (" ;
-	    Format.print_string "l" ;
-	    Format.print_int a.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (a.pos_cnum-a.pos_bol) ;
-	    Format.print_string " -> l" ;
-	    Format.print_int b.pos_lnum ;
-	    Format.print_string "c" ;
-	    Format.print_int (b.pos_cnum-b.pos_bol) ;
-	    Format.print_string ")\n" ;
+          (*let (a,b)=(loc lb) in
+            Format.print_string "Syntax error (" ;
+            Format.print_string "l" ;
+            Format.print_int a.pos_lnum ;
+            Format.print_string "c" ;
+            Format.print_int (a.pos_cnum-a.pos_bol) ;
+            Format.print_string " -> l" ;
+            Format.print_int b.pos_lnum ;
+            Format.print_string "c" ;
+            Format.print_int (b.pos_cnum-b.pos_bol) ;
+            Format.print_string ")\n" ;
            *)
-	    raise_located (loc lb) "Syntax error"
+            raise_located (loc lb) "Syntax error"
 
 }

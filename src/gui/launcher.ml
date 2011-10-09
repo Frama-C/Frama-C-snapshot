@@ -22,7 +22,7 @@
 
 open Gtk_helper
 
-module Parameters_hook = Hook.Make(struct end)
+module Kernel_hook = Hook.Make(struct end)
 
 class type basic_main = object
   inherit host
@@ -34,18 +34,22 @@ let run (host:basic_main) dialog () =
   ignore (host#protect ~cancelable:true ~parent:(dialog :> GWindow.window_skel)
     (fun () ->
        dialog#destroy ();
-       Parameters_hook.apply ();
-       !Db.Main.play ();
-       host#reset ()));
-  Parameters_hook.clear ()
+       Kernel_hook.apply ();
+       !Db.Main.play ()));
+  (* Even if the above operation failed, we try to reset the gui, as the
+     plugins might have done something before crashing *)
+  ignore (host#protect ~cancelable:false ~parent:(dialog :> GWindow.window_skel)
+            host#reset);
+  Kernel_hook.clear ()
 
 let add_parameter (box:GPack.box) p =
-  let name = p.Plugin.o_name in
-  let tooltip = p.Plugin.o_help in
+  let name = p.Parameter.name in
+  let tooltip = p.Parameter.help in
+  let is_set = p.Parameter.is_set in
   let highlight s = "<span foreground=\"red\">" ^ s ^ "</span>" in
   let hname = highlight name in
-  match p.Plugin.o_kind with
-  | Plugin.Bool ({ Plugin.get = get; set = set; is_set = is_set }, None) ->
+  match p.Parameter.accessor with
+  | Parameter.Bool ({ Parameter.get = get; set = set }, None) ->
     let use_markup = is_set () in
     let name = if use_markup then hname else name in
     (* fix bts#510: a parameter [p] must be set if and only if it is set by the
@@ -53,10 +57,9 @@ let add_parameter (box:GPack.box) p =
        value if setting another parameter [p'] modifies [p] via hooking. *)
     let old = get () in
     let set r = if r <> old then set r in
-    Parameters_hook.extend (on_bool ~tooltip ~use_markup box name get set);
+    Kernel_hook.extend (on_bool ~tooltip ~use_markup box name get set);
     use_markup
-  | Plugin.Bool ({ Plugin.get = get; set = set; is_set = is_set },
-		 Some negative_name) ->
+  | Parameter.Bool ({ Parameter.get = get; set = set }, Some negative_name) ->
     let use_markup = is_set () in
     let name, negative_name =
       if use_markup then hname, highlight negative_name
@@ -64,40 +67,39 @@ let add_parameter (box:GPack.box) p =
     in
     let old = get () in
     let set r = if r <> old then set r in
-    Parameters_hook.extend
+    Kernel_hook.extend
       (on_bool_radio ~tooltip ~use_markup box name negative_name get set);
     use_markup
-  | Plugin.Int ({ Plugin.get = get; set = set; is_set = is_set }, range) ->
+  | Parameter.Int ({ Parameter.get = get; set = set }, range) ->
     let use_markup = is_set () in
     let name = if use_markup then hname else name in
     let lower, upper = range () in
     let old = get () in
     let set r = if r <> old then set r in
-    Parameters_hook.extend
+    Kernel_hook.extend
       (on_int ~tooltip ~use_markup ~lower ~upper box name get set);
     use_markup
-  | Plugin.String({ Plugin.get = get; set = set; is_set = is_set },
-		  possible_values) ->
+  | Parameter.String({ Parameter.get = get; set = set }, possible_values) ->
     let use_markup = is_set () in
     let name = if use_markup then hname else name in
     let old = get () in
     let set r = if r <> old then set r in
     (match possible_values () with
     | [] ->
-      Parameters_hook.extend (on_string ~tooltip ~use_markup box name get set)
+      Kernel_hook.extend (on_string ~tooltip ~use_markup box name get set)
     | v ->
-      Parameters_hook.extend
-	(on_string_completion
-	   ~tooltip ~use_markup ~validator:(fun s -> List.mem s v)
-	   v box name get set));
+      Kernel_hook.extend
+        (on_string_completion
+           ~tooltip ~use_markup ~validator:(fun s -> List.mem s v)
+           v box name get set));
     use_markup
-  | Plugin.StringSet { Plugin.get = get; set = set; is_set = is_set } ->
+  | Parameter.String_set { Parameter.get = get; set = set }
+  | Parameter.String_list { Parameter.get = get; set = set } ->
     let use_markup = is_set () in
     let name = if use_markup then hname else name in
     let old = get () in
     let set r = if r <> old then set r in
-    Parameters_hook.extend
-      (on_string_set ~tooltip ~use_markup box name get set);
+    Kernel_hook.extend (on_string_set ~tooltip ~use_markup box name get set);
     use_markup
 
 let mk_text ~highlight text =
@@ -143,9 +145,9 @@ let add_plugin (box:GPack.box) p =
     List.sort
       (fun (s1, _) (s2, _) -> String.compare s1 s2)
       (Hashtbl.fold
-	 (fun l g acc -> if g = [] then acc else (l, g) :: acc)
-	 p.Plugin.p_parameters
-	 [])
+         (fun l g acc -> if g = [] then acc else (l, g) :: acc)
+         p.Plugin.p_parameters
+         [])
   in
   let highlight =
     List.fold_left
@@ -173,9 +175,9 @@ let show ?height ?width ~(host:basic_main) () =
       ()
   in
   ignore (dialog#misc#connect#size_allocate
-	    (fun ({Gtk.width=w;Gtk.height=h}) ->
-	      Configuration.set "launcher_width" (Configuration.ConfInt w);
-	      Configuration.set "launcher_height" (Configuration.ConfInt h)));
+            (fun ({Gtk.width=w;Gtk.height=h}) ->
+              Configuration.set "launcher_width" (Configuration.ConfInt w);
+              Configuration.set "launcher_height" (Configuration.ConfInt h)));
   let box = GPack.vbox () in
   let scrolling =
     GBin.scrolled_window

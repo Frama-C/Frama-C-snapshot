@@ -1,41 +1,23 @@
 open Cil_types
 
-module Self =
-  State_builder.False_ref
-    (struct
-      let name = "Test"
-      let dependencies = []
-      let kind = `Correctness
-     end)
-
-module Up =
-  Properties_status.Make_updater
-    (struct let name = "Test" let emitter = Self.self end)
-
-module Blob =
-  State_builder.False_ref
-    (struct
-      let name = "Blob"
-      let dependencies = []
-      let kind = `Correctness
-     end)
+let emitter = Emitter.create "Test" ~correctness:[] ~tuning:[]
 
 let main () =
   Ast.compute ();
   Annotations.iter
     (fun s _ (ca, _) ->
-      let s', kf = Kernel_function.find_from_sid s.Cil_types.sid in
-      assert (Cil_datatype.Stmt.equal s s');
+      let kf = Kernel_function.find_englobing_kf s in
       let ps =
 	Property.ip_of_code_annot kf s (Annotations.get_code_annotation ca)
       in
       List.iter
         (fun p ->
-          Up.set
+          Property_status.emit
+	    emitter
 	    p
-	    [ Property.ip_blob Blob.self ]
-	    (Checked { emitter = "Test emitter"; valid = Maybe });
-          Format.printf "%a@." Properties_status.pretty_all p)
+	    ~hyps:[ Property.ip_other "Blob" None Kglobal ]
+	    Property_status.Dont_know;
+          Format.printf "%a@." Property_status.pretty (Property_status.get p))
         ps)
 
 let () = Db.Main.extend main

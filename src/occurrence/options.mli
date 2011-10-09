@@ -22,7 +22,7 @@
 
 include Plugin.S
 
-module Print: Plugin.BOOL
+module Print: Plugin.Bool
   (** @plugin development guide *)
 
 (*

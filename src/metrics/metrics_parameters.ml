@@ -20,34 +20,73 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Plugin.Register
+module Metrics = Plugin.Register
     (struct
        let name = "metrics"
        let shortname = "metrics"
        let help = "syntactic metrics"
      end)
 
-module Print =
-  False
+let plugin_name = "Metrics";;
+
+module Enabled =
+  Metrics.WithOutput
     (struct
-       let option_name = "-metrics"
-       let help = " print some metrics on stdout"
-       let kind = `Tuning
+      let option_name = "-metrics"
+      let help = "activate metrics computation"
+      let output_by_default = true
      end)
 
-module Dump =
-  EmptyString
+module ByFunction =
+  Metrics.False
     (struct
-       let option_name = "-metrics-dump"
-       let arg_name = ""
-       let help = "print some metrics into the specified file"
-       let kind = `Tuning
+      let option_name = "-metrics-by-function"
+      let help = "also compute metrics on a per-function basis"
+      let output_by_default = true
      end)
 
-let is_on () = Print.get () || not (Dump.is_default ())
+module OutputFile =
+  Metrics.EmptyString
+    (struct
+      let option_name = "-metrics-output"
+      let arg_name = "filename"
+      let help = "print some metrics into the specified file; \
+                  the output format is recognized through the extension."
+     end)
+
+module ValueCoverage =
+  Metrics.WithOutput (
+    struct
+      let option_name = "-metrics-value-cover"
+      let help = "estimate value analysis coverage w.r.t. \
+                  to reachable syntactic definitions"
+      let output_by_default = true
+    end)
+
+module AST_type =
+  Metrics.String
+    (struct
+      let option_name = "-metrics-ast"
+      let arg_name = "[cabs | cil]"
+      let help = "apply metrics to Cabs or CIL AST."
+      let default = "cil"
+     end
+    )
+
+let () = AST_type.set_possible_values ["cil"; "cabs"]
+
+module SyntacticallyReachable =
+  Metrics.StringSet
+    (struct
+      let option_name = "-metrics-cover"
+      let arg_name = "f1,..,fn"
+      let help = "compute an overapproximation of the functions reachable from \
+                  f1,..,fn."
+     end
+    )
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

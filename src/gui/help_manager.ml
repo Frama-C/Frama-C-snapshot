@@ -23,15 +23,19 @@
 let show main_ui =
   let authors =
     [ "Patrick Baudin" ;
+      "Richard Bonichon";
       "Loïc Correnson";
       "Pascal Cuoq";
+      "Zaynah Dargaye";
       "Jean-Christophe Filliâtre";
+      "Philippe Herrmann";
       "Claude Marché";
       "Benjamin Monate";
       "Yannick Moy";
       "Anne Pacalet";
       "Virgile Prévosto";
-      "Julien Signoles" ]
+      "Julien Signoles";
+      "Boris Yakobowski" ]
   in
   let copyright (* should be automatically generated *) =
     "\t © CEA and INRIA for the Frama-C kernel and plug-ins pdg, scope, \
@@ -81,18 +85,20 @@ let () =
     (fun window ->
        let menu_manager = window#menu_manager () in
        let _helpitem, helpmenu =
-	 menu_manager#add_menu "_Help"
-	   ~pos:(List.length menu_manager#factory#menu#children)
+         menu_manager#add_menu "_Help"
+           ~pos:(List.length menu_manager#factory#menu#children)
        in
 (*       helpitem#set_right_justified true;*)
        ignore
-	 (menu_manager#add_entries
-	    helpmenu
-	    [ Menu_manager.Menubar(Some `ABOUT, "About"),
-	      fun () -> show window ]))
+         (menu_manager#add_entries
+            helpmenu
+            [ Menu_manager.menubar ~icon:`ABOUT "About"
+                (Menu_manager.Unit_callback (fun () -> show window));
+            ]);
+    )
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

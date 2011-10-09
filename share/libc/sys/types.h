@@ -23,18 +23,19 @@
 #ifndef __FC_SYS_TYPES_H__
 #define __FC_SYS_TYPES_H__
 
-#include "__fc_machdep.h"
+#include "../__fc_machdep.h"
 
-typedef __SSIZE_T ssize_t;
-#include "__fc_define_uid_and_gid.h"
-#include "__fc_define_time_t.h"
-#include "__fc_define_suseconds_t.h"
-#include "__fc_define_ino_t.h"
-#include "__fc_define_blkcnt_t.h"
-#include "__fc_define_blksize_t.h"
-#include "__fc_define_dev_t.h"
-#include "__fc_define_mode_t.h"
-#include "__fc_define_nlink_t.h"
-#include "__fc_define_off_t.h"
+#include "../__fc_define_pid_t.h"
+#include "../__fc_define_ssize_t.h"
+#include "../__fc_define_uid_and_gid.h"
+#include "../__fc_define_time_t.h"
+#include "../__fc_define_suseconds_t.h"
+#include "../__fc_define_ino_t.h"
+#include "../__fc_define_blkcnt_t.h"
+#include "../__fc_define_blksize_t.h"
+#include "../__fc_define_dev_t.h"
+#include "../__fc_define_mode_t.h"
+#include "../__fc_define_nlink_t.h"
+#include "../__fc_define_off_t.h"
 
 #endif

@@ -20,5 +20,5 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let inset_string () = 
-  if Parameters.UseUnicode.get () then Utf8_logic.inset else "IN"
+let inset_string () =
+  if Kernel.Unicode.get () then Utf8_logic.inset else "IN"

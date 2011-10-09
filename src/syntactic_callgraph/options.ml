@@ -37,7 +37,7 @@ module Filename =
        let arg_name = "filename"
        let help = "dump the syntactic stratified callgraph to the file \
 <filename> in dot format"
-       let kind = `Tuning
+       let kind = Parameter.Other
      end)
 
 module InitFunc =
@@ -46,7 +46,7 @@ module InitFunc =
        let option_name = "-cg-init-func"
        let arg_name = ""
        let help = "use the given functions as a root service for the callgraph (you can add as many comma-separated functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
-       let kind = `Correctness
+       let kind = Parameter.Correctness
      end)
 
 module ServicesOnly =
@@ -54,7 +54,7 @@ module ServicesOnly =
     (struct
        let option_name = "-cg-services-only"
        let help = "only computes the graph of services"
-       let kind = `Tuning
+       let kind = Parameter.Other
      end)
 
 (*

@@ -23,12 +23,12 @@
 include Plugin.S
 
 
-module ForceDeps: Plugin.BOOL
-module ForceCallDeps: Plugin.BOOL
+module ForceDeps: Plugin.Bool
+module ForceCallDeps: Plugin.Bool
   (** @plugin development guide *)
 
 
-module PathDeps: Plugin.BOOL
+module PathDeps: Plugin.Bool
 
 (*
 Local Variables:

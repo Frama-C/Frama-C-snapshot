@@ -84,7 +84,7 @@ module LiveFlow = struct
   let debug = debug
   type t = VS.t
   module StmtStartData =
-    DF.StmtStartData(struct type t = VS.t let size = 32 end)
+    Dataflow.StartData(struct type t = VS.t let size = 32 end)
 
   let pretty fmt vs =
     let fn = !printer in
@@ -100,10 +100,10 @@ module LiveFlow = struct
   let combineSuccessors = VS.union
 
   let doStmt stmt =
-    if !debug then Cilmsg.debug "looking at: %a\n" d_stmt stmt;
+    if !debug then Kernel.debug "looking at: %a\n" d_stmt stmt;
     match stmt.succs with
       [] -> let u,_d = UD.computeUseDefStmtKind stmt.skind in
-      if !debug then (Cilmsg.debug "doStmt: no succs %d\n" stmt.sid);
+      if !debug then (Kernel.debug "doStmt: no succs %d\n" stmt.sid);
       DF.Done u
     | _ ->
 	let handle_stm vs = match stmt.skind with
@@ -124,7 +124,7 @@ module LiveFlow = struct
 
 end
 
-module L = DF.BackwardsDataFlow(LiveFlow)
+module L = Dataflow.Backwards(LiveFlow)
 
 (* XXX: This does not compute the best ordering to
  * give to the work-list algorithm.
@@ -135,7 +135,7 @@ class nullAdderClass = object
 
   method vstmt s =
     all_stmts := s :: (!all_stmts);
-    LiveFlow.StmtStartData.add s.sid VS.empty;
+    LiveFlow.StmtStartData.add s VS.empty;
     DoChildren
 
 end
@@ -156,12 +156,12 @@ let getLiveSet sid =
   with Not_found -> None
 
 let print_everything () =
-  LiveFlow.StmtStartData.iter (fun i vs ->
-             Format.printf "%d: %a" i LiveFlow.pretty vs)
+  LiveFlow.StmtStartData.iter (fun s vs ->
+             Format.printf "%d: %a" s.sid LiveFlow.pretty vs)
 
 let match_label lbl = match lbl with
   Label(str,_,_b) ->
-    if !debug then (Cilmsg.debug "Liveness: label seen: %s\n" str);
+    if !debug then (Kernel.debug "Liveness: label seen: %s\n" str);
     (*b && *)(String.compare str (!live_label) = 0)
 | _ -> false
 
@@ -182,16 +182,16 @@ class doFeatureClass = object
 
   method vstmt s =
     if List.exists match_label s.labels then try
-      let vs = LiveFlow.StmtStartData.find s.sid in
+      let vs = LiveFlow.StmtStartData.find s in
       (printer := min_print;
        Format.printf "%a" LiveFlow.pretty vs;
        SkipChildren)
     with Not_found ->
-      if !debug then (Cilmsg.debug "Liveness: stmt: %d not found\n" s.sid);
+      if !debug then (Kernel.debug "Liveness: stmt: %d not found\n" s.sid);
       DoChildren
     else
       (if List.length s.labels = 0 then
-	if !debug then (Cilmsg.debug "Liveness: no label at sid=%d\n" s.sid);
+	if !debug then (Kernel.debug "Liveness: no label at sid=%d\n" s.sid);
       DoChildren)
 
 end

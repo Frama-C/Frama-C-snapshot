@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Db_types
 
 (** Frama-C visitors dealing with projects.
     @plugin development guide *)
@@ -61,11 +60,11 @@ class type frama_c_visitor = object
 
   method vstmt_aux: stmt -> stmt Cil.visitAction
     (** Replacement of vstmt.
-	@plugin development guide*)
+        @plugin development guide*)
 
   method vglob_aux: global -> global list Cil.visitAction
     (** Replacement of vglob.
-	@plugin development guide*)
+        @plugin development guide*)
 
   method vrooted_code_annotation:
     rooted_code_annotation ->
@@ -74,14 +73,13 @@ class type frama_c_visitor = object
 
   method is_annot_before: bool
     (** Used to tell if we're visiting an annotation placed
-	before current statement.
-	@raise Error if not called while visiting a statement. *)
+        before current statement.
+        @raise Error if not called while visiting a statement. *)
 
   method current_kf: kernel_function option
     (** link to the kernel function currently being visited.
         {b NB:} for copy visitors, the link is to the original kf (anyway,
         the new kf is created only after the visit is over) *)
-
 
   method set_current_kf: kernel_function -> unit
     (** Internal use only. *)
@@ -184,10 +182,15 @@ val visitFramacPredicate: frama_c_visitor -> predicate -> predicate
 val visitFramacPredicateNamed:
   frama_c_visitor -> predicate named -> predicate named
 
+val visitFramacIdPredicate:
+  frama_c_visitor -> identified_predicate -> identified_predicate
+
 val visitFramacPredicates: frama_c_visitor -> identified_predicate list
   -> identified_predicate list
 
 val visitFramacTerm: frama_c_visitor -> term -> term
+
+val visitFramacTermLval: frama_c_visitor -> term_lval -> term_lval
 
 val visitFramacTermLhost: frama_c_visitor -> term_lhost -> term_lhost
 

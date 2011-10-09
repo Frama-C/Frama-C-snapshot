@@ -26,10 +26,19 @@ type t_proj
 
 type t_fct
 
-val select_usefull_things : 
-  select_annot:bool -> select_slice_pragma:bool -> Db_types.kernel_function -> t_proj
+val select_useful_things :
+  select_annot:bool -> select_slice_pragma:bool -> Cil_types.kernel_function
+  -> t_proj
 
-val get_marks : t_proj -> Db_types.kernel_function -> t_fct option
+val get_marks : t_proj -> Cil_types.kernel_function -> t_fct option
 
 val key_visible : t_fct -> PdgIndex.Key.t -> bool
 
+(** Useful mainly if there has been some Pdg.Top *)
+val kf_visible : t_proj -> Cil_types.kernel_function -> bool
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

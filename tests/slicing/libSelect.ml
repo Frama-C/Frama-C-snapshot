@@ -63,7 +63,7 @@ let apply project = !S.Request.apply_next_internal project; print_project projec
                                                               (*
 let load_source_file ?entry_point filename  =
   Db.Files.clear ();
-  Db.Files.add [ Db_types.NeedCPP (filename, Db.get_preprocessor_command()) ];
+  Db.Files.add [ Cil_types.NeedCPP (filename, Db.get_preprocessor_command()) ];
   let entry_point, library = match entry_point with
     | None | Some "main" -> "main", false
     | Some f -> f, true
@@ -83,7 +83,7 @@ let get_zones str_data (kinst, kf) =
   let lval_term = !Db.Properties.Interp.lval kf kinst str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Cil_types.Kstmt kinst) lval in
-    Locations.valid_enumerate_bits loc
+    Locations.valid_enumerate_bits ~for_writing:false loc
 ;;
 
 let select_data_before_stmt str_data kinst _project kf =
@@ -97,7 +97,11 @@ let select_retres _project kf =
   let ki = Kernel_function.find_return kf in
     try
       let loc = Db.Value.find_return_loc kf in
-      let zone = Locations.valid_enumerate_bits loc in
+      let zone = 
+	Locations.valid_enumerate_bits 
+	  ~for_writing:false 
+	  loc 
+      in
       let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
       let before = false in
         !S.Select.select_stmt_zone_internal kf ki before zone mark
@@ -119,12 +123,12 @@ let select_data data _project kf =
 * [numstmt]*)
 let select_ctrl numstmt _project kf =
   try
-    let ki,_ = Kernel_function.find_from_sid numstmt in
+    let s = get_stmt numstmt in
     (*
     let mark = !S.Mark.make ~data:false ~addr:false ~ctrl:true in
     !S.Select.select_stmt_internal kf ki mark
     *)
-    !S.Select.select_stmt_ctrl_internal kf ki
+    !S.Select.select_stmt_ctrl_internal kf s
   with _ -> raise (Unknown_stmt numstmt)
 ;;
 

@@ -21,47 +21,44 @@
 (**************************************************************************)
 
 let version () =
-  if Parameters.PrintVersion.get () then begin
-    Log.print_on_output "Version: %s@\n\
+  if Kernel.PrintVersion.get () then begin
+    Log.print_on_output 
+      (fun fmt -> Format.fprintf fmt "Version: %s@\n\
 Compilation date: %s@\n\
 Share path: %s (may be overridden with FRAMAC_SHARE variable)@\n\
 Library path: %s (may be overridden with FRAMAC_LIB variable)@\n\
 Plug-in paths: %t(may be overridden with FRAMAC_PLUGIN variable)@."
-      Config.version Config.date Config.datadir Config.libdir
-      (fun fmt -> List.iter (fun s -> Format.fprintf fmt "%s " s)
-	 (Dynamic.default_path ()));
+	 Config.version Config.date Config.datadir Config.libdir
+	 (fun fmt -> List.iter 
+	    (fun s -> Format.fprintf fmt "%s " s)
+	    (Dynamic.default_path ()))
+      );
     raise Cmdline.Exit
   end
 let () = Cmdline.run_after_early_stage version
 
-let print_sharepath () =
-  if Parameters.PrintShare.get () then begin
-    Log.print_on_output "%s%!" Config.datadir;
+let print_path get dir () =
+  if get () then begin
+    Log.print_on_output (fun fmt -> Format.fprintf fmt "%s%!" dir) ;
     raise Cmdline.Exit
   end
+
+let print_sharepath = print_path Kernel.PrintShare.get Config.datadir
 let () = Cmdline.run_after_early_stage print_sharepath
 
-let print_libpath () =
-  if Parameters.PrintLib.get () then  begin
-    Log.print_on_output "%s%!" Config.libdir;
-    raise Cmdline.Exit
-  end
+let print_libpath = print_path Kernel.PrintLib.get Config.libdir
 let () = Cmdline.run_after_early_stage print_libpath
 
-let print_pluginpath () =
-  if Parameters.PrintPluginPath.get () then  begin
-    Log.print_on_output "%s%!" Config.plugin_dir;
-    raise Cmdline.Exit
-  end
+let print_pluginpath = print_path Kernel.PrintPluginPath.get Config.plugin_dir
 let () = Cmdline.run_after_early_stage print_pluginpath
 
 (* Time *)
 let time () =
-  let filename = Parameters.Time.get () in
+  let filename = Kernel.Time.get () in
   if filename <> "" then
     let oc =
       open_out_gen
-	[ Open_append; Open_creat; Open_binary] 0b111100100 filename
+        [ Open_append; Open_creat; Open_binary] 0b111100100 filename
     in
     let {Unix.tms_utime = time } = Unix.times () in
     let now = Unix.localtime (Unix.time ()) in
@@ -79,9 +76,9 @@ let () = at_exit time
 
 (* Save Frama-c on disk if required *)
 let save_binary () =
-  let filename = Parameters.SaveState.get () in
+  let filename = Kernel.SaveState.get () in
   if filename <> "" then begin
-    Parameters.SaveState.clear ();
+    Kernel.SaveState.clear ();
     try Project.save_all filename
     with Project.IOError s ->
       Kernel.error "problem while saving to file %s (%s)." filename s
@@ -90,7 +87,7 @@ let () = at_exit save_binary
 
 (* Load Frama-c from disk if required *)
 let load_binary () =
-  let filename = Parameters.LoadState.get () in
+  let filename = Kernel.LoadState.get () in
   if filename <> "" then begin
     try
       Project.load_all filename
@@ -101,7 +98,7 @@ let () = Cmdline.run_after_loading_stage load_binary
 
 let () =
   Cmdline.at_normal_exit
-    (fun _ -> match Parameters.Files.get () with
+    (fun _ -> match Kernel.Files.get () with
      | [] -> ()
      | _ :: _ -> Ast.compute ())
 

@@ -22,6 +22,9 @@
 
 include Plugin.General_services
 
+module DotPostdomBasename: Plugin.String
+
+
 (*
 Local Variables:
 compile-command: "LC_ALL=C make -C ../.."

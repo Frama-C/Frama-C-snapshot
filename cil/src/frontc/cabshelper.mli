@@ -39,27 +39,35 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
+(** Helper functions for Cabs *)
+
 val nextident : int ref
 
-(* the three functions below should be replaced by direct calls to
-   Parameters.ContinueOnAnnotError but there are still dependencies issues. *)
+(** Try do do the job. If exception and continue on error is set, catch it and
+    to the fallback with proper warning.
 
-val continue_annot_error_set: unit -> unit
-val continue_annot_error_unset: unit -> unit
-
-(** Try do do the job. If exception and continue on error is set, catch it and to
-    the fallback with proper warning. 
-    
-    Usage: [continue_annot job backtrack "Ignoring foo"]
-*)
-val continue_annot : Cabs.cabsloc -> 
-  (unit -> 'a) -> (unit -> 'a) -> 
+    Usage: [continue_annot job backtrack "Ignoring foo"] *)
+val continue_annot : Cabs.cabsloc ->
+  (unit -> 'a) -> (unit -> 'a) ->
   ('b,Format.formatter,unit,'a) format4 -> 'b
 
 val getident : unit -> int
 val currentLoc : unit -> Cabs.cabsloc
 val cabslu : Cabs.cabsloc
-val commentsGA : (Cabs.cabsloc * string * bool) GrowArray.t
+
+(* List of comments together with the location where they are found. *)
+module Comments: sig
+  val self: State.t
+  (* adds a comment at a given location. *)
+  val add: Cabs.cabsloc -> string -> unit
+  (*  gets all the comment located between the two positions. *) 
+  val get: Cabs.cabsloc -> string list
+  (* iter over all registered comments. *)
+  val iter: (Cabs.cabsloc -> string -> unit) -> unit
+  (* fold over all registered comments. *)
+  val fold: (Cabs.cabsloc -> string -> 'a -> 'a) -> 'a -> 'a
+end
+
 val missingFieldDecl : string * Cabs.decl_type * 'a list * Cabs.cabsloc
 val isStatic : Cabs.spec_elem list -> bool
 val isExtern : Cabs.spec_elem list -> bool

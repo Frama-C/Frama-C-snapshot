@@ -23,8 +23,8 @@
 include Plugin.S
 
 val name: string
-module Filename: Plugin.STRING
-module InitFunc: Plugin.STRING_SET
+module Filename: Plugin.String
+module InitFunc: Plugin.String_set
 
 (*
 Local Variables:

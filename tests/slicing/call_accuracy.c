@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -calldeps -slice-return main -slicing-level 3 -slice-print -journal-disable
+   OPT: -check -calldeps -slice-return main -slicing-level 3 -journal-disable -then-on 'Slicing export' -print
  */
 int f_cond (int c, int a, int b) {
   ++a;

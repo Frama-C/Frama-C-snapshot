@@ -14,8 +14,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val debug: bool ref
-
 module type Tagged_type = sig
   include Datatype.S
   val tag : t -> int
@@ -24,6 +22,9 @@ end
 module Tag_comp : 
 sig
   type t
+  val get_tag : t -> int
+  val get_comp : t -> bool
+  val encode : int -> bool -> t
 end
 
 module Comp_unused :
@@ -44,7 +45,9 @@ module Make
   end)
   (V : Tagged_type)
   (Comp : sig val e: bool val f : Key.t -> V.t -> bool val compose : bool -> bool -> bool val default:bool end)
-  (Initial_Values : sig val v : (Key.t*V.t) list list end) :
+  (Initial_Values : sig val v : (Key.t*V.t) list list end) 
+  (Datatype_deps: sig val l : State.t list end)
+  :
 sig
 
   type key = Key.t
@@ -58,6 +61,7 @@ sig
 
   include Datatype.S with type t = tt
 
+  val self : State.t 
 
   val empty : t
 
@@ -101,6 +105,10 @@ this function will be renamed "hash" in the future *)
     decide_snd:(Key.t -> V.t  -> unit) ->
     decide_both:(V.t -> V.t -> unit) -> t -> t -> unit
 
+  val generic_symetric_existential_predicate : exn -> 
+    decide_one:(Key.t -> V.t  -> unit) ->
+    decide_both:(V.t -> V.t -> unit) -> t -> t -> unit
+
   val cached_fold :
     cache:string * int ->
     temporary:bool ->
@@ -114,7 +122,9 @@ this function will be renamed "hash" in the future *)
   val is_singleton: t -> (key * V.t) option
 
   val min_binding: t -> key * V.t
+  val max_binding: t -> key * V.t
 
+  val split: key -> t -> t * V.t option * t
 end
 
 (*

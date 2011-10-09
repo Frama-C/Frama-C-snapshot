@@ -116,61 +116,9 @@ module type Lattice_Set = sig
   val mem : O.elt -> t -> bool
 end
 
-module type Value = Datatype.S_with_collections
+module type LatValue = Datatype.S_with_collections
 
-module type Arithmetic_Value = sig
-  include Value
-  val gt : t -> t -> bool
-  val le : t -> t -> bool
-  val ge : t -> t -> bool
-  val lt : t -> t -> bool
-  val add : t -> t -> t
-  val sub : t -> t -> t
-  val mul : t -> t -> t
-  val native_div : t -> t -> t
-  val rem : t -> t -> t
-  val pos_div : t -> t -> t
-  val c_div : t -> t -> t
-  val c_rem : t -> t -> t
-  val cast: size:t -> signed:bool -> value:t -> t
-  val abs : t -> t
-  val zero : t
-  val one : t
-  val two : t
-  val four : t
-  val onethousand : t
-  val minus_one : t
-  val is_zero : t -> bool
-  val is_one : t -> bool
-  val pgcd : t -> t -> t
-  val ppcm : t -> t -> t
-  val min : t -> t -> t
-  val max : t -> t -> t
-  val length : t -> t -> t (** b - a + 1 *)
-  val of_int : int -> t
-  val of_float : float -> t
-  val of_int64 : Int64.t -> t
-  val to_int : t -> int
-  val to_float : t -> float
-  val neg : t -> t
-  val succ : t -> t
-  val pred : t -> t
-  val round_up_to_r : min:t -> r:t -> modu:t -> t
-  val round_down_to_r : max:t -> r:t -> modu:t -> t
-  val pos_rem : t -> t -> t
-  val shift_left : t -> t -> t
-  val shift_right : t -> t -> t
-  val fold : (t -> 'a -> 'a) -> inf:t -> sup:t -> step:t -> 'a -> 'a
-  val logand : t -> t -> t
-  val logor : t -> t -> t
-  val logxor : t -> t -> t
-  val lognot : t -> t
-  val power_two : int -> t
-  val two_power : t -> t
-  val extract_bits : start:t -> stop:t -> t -> t
-end
-
-module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
+module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
 
   exception Error_Top
   exception Error_Bottom
@@ -183,13 +131,13 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
     (* TODO: really unchangedcompares? *)
     let contains_single_elt s =
       try
-	let mi = min_elt s in
-	let ma = max_elt s in
-	if mi == ma
-	then (* exactly one elt *) Some mi
-	else None
+        let mi = min_elt s in
+        let ma = max_elt s in
+        if mi == ma
+        then (* exactly one elt *) Some mi
+        else None
       with Not_found ->
-	None
+        None
   end
 
   type tt = Set of O.t | Top
@@ -202,10 +150,10 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
   let hash c = match c with
     | Top -> 12373
     | Set s ->
-	let f v acc =
-	  67 * acc + (V.hash v)
-	in
-	O.fold f s 17
+        let f v acc =
+          67 * acc + (V.hash v)
+        in
+        O.fold f s 17
 
   let tag = hash
 
@@ -262,10 +210,10 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
     match s with
     | Top -> raise Not_less_than
     | Set s ->
-	let c = O.cardinal s in
-	if  c > n
-	then raise Not_less_than;
-	c
+        let c = O.cardinal s in
+        if  c > n
+        then raise Not_less_than;
+        c
 
   let cardinal_zero_or_one s =
     try ignore (cardinal_less_than s 1) ; true
@@ -305,10 +253,13 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
     | Set s ->
       if O.is_empty s then Format.fprintf fmt "BottomSet"
       else
-        Format.fprintf fmt "@[{@[%a@]}@]"
-          (fun fmt s ->
-	    O.iter
-              (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
+        Pretty_utils.pp_iter
+          ~pre:"{"
+          ~suf:"}"
+          ~sep:";@ "
+          O.iter
+          (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
+           fmt s
 
   let is_included t1 t2 =
     (t1 == t2) ||
@@ -351,33 +302,33 @@ module Make_Lattice_Set(V:Value): Lattice_Set with type O.elt = V.t = struct
   include
     Datatype.Make
       (struct
-	 type t = tt
-	 let name = V.name ^ " lattice_set"
-	 let structural_descr =
-	   Structural_descr.Structure
-	     (Structural_descr.Sum [| [| O.packed_descr |] |])
-	 let reprs = Top :: List.map (fun o -> Set o) O.reprs
-	 let equal = equal
-	 let compare = compare
-	 let hash = tag
-	 let rehash = Datatype.identity
-	 let copy = Datatype.undefined
-	 let internal_pretty_code = Datatype.undefined
-	 let pretty = pretty
-	 let varname = Datatype.undefined
-	 let mem_project = Datatype.never_any_project
+         type t = tt
+         let name = V.name ^ " lattice_set"
+         let structural_descr =
+           Structural_descr.Structure
+             (Structural_descr.Sum [| [| O.packed_descr |] |])
+         let reprs = Top :: List.map (fun o -> Set o) O.reprs
+         let equal = equal
+         let compare = compare
+         let hash = tag
+         let rehash = Datatype.identity
+         let copy = Datatype.undefined
+         let internal_pretty_code = Datatype.undefined
+         let pretty = pretty
+         let varname = Datatype.undefined
+         let mem_project = Datatype.never_any_project
        end)
 
 end
 
-module Make_Hashconsed_Lattice_Set(V: Hptset.Id_Datatype)
+module Make_Hashconsed_Lattice_Set(V: Hptset.Id_Datatype)(O: Hptset.S with type elt = V.t)
   : Lattice_Set with type O.elt=V.t =
 struct
 
   exception Error_Top
   exception Error_Bottom
 
-  module O = Hptset.Make(V)
+  module O = O
 
   type tt = Set of O.t | Top
   type y = O.t
@@ -389,10 +340,10 @@ struct
   let hash c = match c with
     | Top -> 12373
     | Set s ->
-	let f v acc =
-	  67 * acc + (V.id v)
-	in
-	O.fold f s 17
+        let f v acc =
+          67 * acc + (V.id v)
+        in
+        O.fold f s 17
 
   let tag = hash
 
@@ -447,10 +398,10 @@ struct
     match s with
       Top -> raise Not_less_than
     | Set s ->
-	let c = O.cardinal s in
-	if  c > n
-	then raise Not_less_than;
-	c
+        let c = O.cardinal s in
+        if  c > n
+        then raise Not_less_than;
+        c
 
   let cardinal_zero_or_one s =
     try
@@ -490,10 +441,13 @@ struct
     | Set s ->
       if O.is_empty s then Format.fprintf fmt "BottomSet"
       else
-	Format.fprintf fmt "@[{@[%a@]}@]"
-          (fun fmt s ->
-	    O.iter
-              (Format.fprintf fmt "@[%a;@]@ " V.pretty) s) s
+        Pretty_utils.pp_iter
+          ~pre:"@[<hov 1>{"
+          ~suf:"}@]"
+          ~sep:";@ "
+          O.iter
+          (fun fmt v -> Format.fprintf fmt "@[%a@]" V.pretty v)
+           fmt s
 
   let is_included t1 t2 =
     (t1 == t2) ||
@@ -535,21 +489,21 @@ struct
 
   include Datatype.Make
       (struct
-	type t = tt
-	let name = V.name ^ " hashconsed_lattice_set"
-	let structural_descr =
-	  Structural_descr.Structure
-	    (Structural_descr.Sum [| [| O.packed_descr |] |])
-	let reprs = Top :: List.map (fun o -> Set o) O.reprs
-	let equal = equal
-	let compare = compare
-	let hash = hash
-	let rehash = Datatype.identity
-	let copy = Datatype.undefined
-	let internal_pretty_code = Datatype.undefined
-	let pretty = pretty
-	let varname = Datatype.undefined
-	let mem_project = Datatype.never_any_project
+        type t = tt
+        let name = V.name ^ " hashconsed_lattice_set"
+        let structural_descr =
+          Structural_descr.Structure
+            (Structural_descr.Sum [| [| O.packed_descr |] |])
+        let reprs = Top :: List.map (fun o -> Set o) O.reprs
+        let equal = equal
+        let compare = compare
+        let hash = hash
+        let rehash = Datatype.identity
+        let copy = Datatype.undefined
+        let internal_pretty_code = Datatype.undefined
+        let pretty = pretty
+        let varname = Datatype.undefined
+        let mem_project = Datatype.never_any_project
        end)
   let () = Type.set_ml_name ty None
 
@@ -557,265 +511,7 @@ end
 
 module Make_Pair = Datatype.Pair
 
-
-module Make_Lattice_Interval_Set (V:Arithmetic_Value) = struct
-
-  exception Error_Top
-  exception Error_Bottom
-
-  module Interval = Make_Pair(V)(V)
-  type elt = Interval.t
-
-  type tt = Top | Set of elt list
-
-  type widen_hint = unit
-
-  let bottom = Set []
-  let top = Top
-
-  let check t =
-    assert (match t with
-            | Top -> true
-            | Set s ->
-                let last_stop = ref None in
-                List.for_all
-                  (fun (a,b) -> V.compare a b <= 0 &&
-                     match !last_stop with
-                       None -> last_stop := Some b; true
-                     | Some l -> last_stop := Some b; V.gt a l)
-                  s) ;
-    t
-
-  let hash l = match l with
-    Top -> 667
-  | Set l ->
-      List.fold_left
-	(fun acc p -> 371 * acc + Interval.hash p)
-	443
-	l
-
-  let tag = hash
-
-  let cardinal_zero_or_one v =
-    match v with
-      Top -> false
-    | Set [x,y] -> V.equal x y
-    | Set _ -> false
-
-  let cardinal_less_than v n =
-    match v with
-      Top -> raise Not_less_than
-    | Set l ->
-	let rec aux l card = match l with
-	  [] -> card
-	| (x,y)::t ->
-	    let nn = V.of_int n in
-	    let card = V.add card ((V.succ (V.sub y x))) in
-	    if V.gt card nn
-	    then raise Not_less_than
-	    else aux t card
-	in
-	V.to_int (aux l V.zero)
-
-  let splitting_cardinal_less_than ~split_non_enumerable _v _n =
-    ignore (split_non_enumerable);
-    assert false
-
-  let compare e1 e2 =
-    if e1 == e2 then 0
-    else
-      match e1,e2 with
-      | Top,_ -> 1
-      | _, Top -> -1
-      | Set e1, Set e2 ->
-        Extlib.list_compare Interval.compare e1 e2
-
-  let equal e1 e2 = compare e1 e2 = 0
-
-  let pretty fmt t =
-    match t with
-      | Top -> Format.fprintf fmt "TopISet"
-      | Set s ->
-          if s=[] then Format.fprintf fmt "BottomISet"
-          else begin
-            Format.fprintf fmt "{%a}"
-              (fun fmt s ->
-		 List.iter
-                   (fun (b,e) ->
-                      Format.fprintf
-			fmt
-			"[%a..%a]; "
-			V.pretty b
-			V.pretty e
-                   )
-                   s)
-              s
-          end
-
-  let widen _wh t1 t2  =  (if equal t1 t2 then t1 else top)
-
-  let meet v1 v2 =
-    if v1 == v2 then v1 else
-
-	(match v1,v2 with
-	 | Top, v | v, Top -> v
-	 | Set s1 , Set s2 -> Set (
-	     let rec aux acc (l1:elt list) (l2:elt list) = match l1,l2 with
-	     | [],_|_,[] -> List.rev acc
-             | (((b1,e1)) as i1)::r1,
-		 (((b2,e2)) as i2)::r2 ->
-		 let c = V.compare b1 b2 in
-		 if c = 0 then (* intervals start at the same value *)
-                   let ce = V.compare e1 e2 in
-                   if ce=0 then
-                     aux ((b1,e1)::acc) r1 r2 (* same intervals *)
-                   else
-                     (* one interval is included in the other *)
-                     let min,not_min,min_tail,not_min_tail =
-                       if ce > 0 then i2,i1,r2,r1 else
-			 i1,i2,r1,r2
-                     in
-                     aux ((min)::acc) min_tail
-                       (((
-                           (snd (min),
-                            snd (not_min))))::
-                          not_min_tail)
-		 else (* intervals start at different values *)
-                   let _min,min_end,not_min_begin,min_tail,not_min_from =
-                     if c > 0
-                     then b2,e2,b1,r2,l1
-                     else b1,e1,b2,r1,l2
-                   in
-                   let c_min = V.compare min_end not_min_begin in
-                   if c_min >= 0 then
-                     (* intersecting intervals *)
-                     aux acc
-		       ((
-			  (not_min_begin,min_end))
-			::min_tail)
-                       not_min_from
-                   else
-                     (* disjoint intervals *)
-                     aux acc min_tail not_min_from
-             in aux [] s1 s2))
-
-  let join v1 v2 =
-    if v1 == v2 then v1 else
-      (match v1,v2 with
-       | Top, _ | _, Top -> Top
-       | Set (s1:elt list) , Set (s2:elt list) ->
-	   let rec aux (l1:elt list) (l2:elt list) = match l1,l2 with
-           | [],l|l,[] -> l
-           | (b1,e1)::r1,(b2,e2)::r2 ->
-               let c = V.compare b1 b2 in
-               let min_begin,min_end,min_tail,not_min_from =
-                 if c >= 0 then b2,e2,r2,l1
-                 else b1,e1,r1,l2
-               in
-               let rec enlarge_interval stop l1 look_in_me =
-                 match look_in_me with
-                 | [] -> stop,l1,[]
-                 | ((b,e))::r ->
-                     if V.compare stop (V.pred b) >= 0
-                     then
-                       if V.compare stop e >= 0
-                       then enlarge_interval  stop l1 r
-                       else enlarge_interval  e r l1
-                     else stop,l1,look_in_me
-               in
-               let stop,new_l1,new_l2 =
-                 enlarge_interval
-                   min_end
-                   min_tail
-                   not_min_from
-               in ((min_begin,stop))::
-                    (aux new_l1 new_l2)
-	   in Set (aux s1 s2))
-
-  let inject l =  (Set l)
-
-  let inject_one ~size ~value =
-    (inject [value,V.add value (V.pred size)])
-
-  let inject_bounds min max =
-    if V.le min max
-    then inject [min,max]
-    else bottom
-
-  let transform _f = (* f must be non-decreasing *)
-    assert false
-
-  let apply2 _f _s1 _s2 = assert false
-
-  let apply1 _f _s = assert false
-
-  let is_included t1 t2 =
-    (t1 == t2) ||
-      match t1,t2 with
-      | _,Top -> true
-      | Top,_ -> false
-      | Set s1,Set s2 ->
-          let rec aux l1 l2 = match l1 with
-          | [] -> true
-          | i::r ->
-              let rec find (b,e as arg) l =
-		match l with
-		| [] -> raise Not_found
-		| (b',e')::r ->
-                    if V.compare b b' >= 0
-                      && V.compare e' e >= 0
-                    then  l
-                    else if V.compare e' b >= 0 then
-                      raise Not_found
-                    else find arg r
-              in
-              try aux r (find i l2)
-              with Not_found -> false
-          in
-          aux s1 s2
-
-  let link t1 t2 = join t1 t2 (* join is in fact an exact union *)
-
-  let is_included_exn v1 v2 =
-    if not (is_included v1 v2) then raise Is_not_included
-
-  let intersects t1 t2 =
-    let m = meet t1 t2 in
-    not (equal m bottom)
-
-  let fold f v acc =
-    match v with
-      | Top -> raise Error_Top
-      | Set s ->
-          List.fold_right f s acc
-
-  let narrow = meet
-
-  include Datatype.Make
-  (struct
-    type t = tt
-    let name = Interval.name ^ " lattice_interval_set"
-    let structural_descr =
-      Structural_descr.Structure
-	(Structural_descr.Sum
-	   [| [| Structural_descr.pack
-		  (Structural_descr.t_list (Descr.str Interval.descr)) |] |])
-    let reprs = Top :: List.map (fun o -> Set [ o ]) Interval.reprs
-    let equal = equal
-    let compare = compare
-    let hash = hash
-    let rehash = Datatype.identity
-    let copy = Datatype.undefined
-    let internal_pretty_code = Datatype.undefined
-    let pretty = pretty
-    let varname = Datatype.undefined
-    let mem_project = Datatype.never_any_project
-   end)
-  let () = Type.set_ml_name ty None
-
-end
-
-module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
+module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
 
   type l = V.t
   type tt = Top | Bottom | Value of l
@@ -926,7 +622,7 @@ module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
     let name = V.name ^ " lattice_base"
     let structural_descr =
       Structural_descr.Structure
-	(Structural_descr.Sum [| [| V.packed_descr |] |])
+        (Structural_descr.Sum [| [| V.packed_descr |] |])
     let reprs = Top :: Bottom :: List.map (fun v -> Value v) V.reprs
     let equal = equal
     let compare = compare
@@ -943,188 +639,16 @@ module Make_Lattice_Base (V:Value):(Lattice_Base with type l = V.t) = struct
 end
 
 module Int = struct
-  open My_bigint
-
+  include My_bigint.M
   include Datatype.Big_int
 
-  let small_nums = Array.init 33 (fun i -> big_int_of_int i)
-
-  let zero = zero_big_int
-  let one = unit_big_int
-  let minus_one = minus_big_int unit_big_int
-  let two = small_nums.(2)
-  let four = small_nums.(4)
-  let eight = small_nums.(8)
-  let thirtytwo = small_nums.(32)
-  let onethousand = big_int_of_int 1000
-  let billion_one = big_int_of_int 1_000_000_001
-
-  let rem = mod_big_int
-  let div = div_big_int
-  let mul = mult_big_int
-  let sub = sub_big_int
-  let abs = abs_big_int
-  let succ = succ_big_int
-  let pred = pred_big_int
-  let neg = minus_big_int
-  let add = add_big_int
-
-  let hash c =
-    let i =
-      try
-	int_of_big_int c
-      with Failure _ -> int_of_big_int (rem c billion_one)
-    in
-    197 + i
-
-  let tag = hash
-
-  let log_shift_right = log_shift_right_big_int
-  let shift_right = shift_right_big_int
-  let shift_left = shift_left_big_int
-
-  let logand = land_big_int
-  let lognot = lnot_big_int
-  let logor = lor_big_int
-  let logxor = lxor_big_int
-
-  let le = le_big_int
-  let lt = lt_big_int
-  let ge = ge_big_int
-  let gt = gt_big_int
-
-  let to_int v =
-    try int_of_big_int v
-    with Failure "int_of_big_int" -> assert false
-  let of_int i =
-    if 0 <= i && i <= 32
-    then small_nums.(i)
-    else big_int_of_int i
-
-      (* for the two functions below wait until the minimum supported
-	 OCaml version is after:
-	 http://caml.inria.fr/mantis/print_bug_page.php?bug_id=4792
-      *)
-  let of_int64 i = big_int_of_string (Int64.to_string i)
-  let to_int64 i = Int64.of_string (string_of_big_int i)
-
-
-  let of_string = big_int_of_string
-  let to_string = string_of_big_int
-  let to_float = float_of_big_int
-  let of_float _ = assert false
-
-  let minus_one = pred zero
-  let pretty fmt i = Format.pp_print_string fmt (string_of_big_int i)
-  let pretty_debug = pretty
-
-  let is_zero v = (sign_big_int v) = 0
-
-  let is_one v = equal one v
-  let pos_div  = div
-  let pos_rem = rem
-  let native_div = div
-  let c_div u v =
-    let bad_div = div u v in
-    if (lt u zero) && not (is_zero (rem u v))
-    then
-      if lt v zero
-      then pred bad_div
-      else succ bad_div
-    else bad_div
-  let c_rem u v =
-    sub u (mul v (c_div u v))
-
-  let cast ~size ~signed ~value =
-    let factor = two_power size in
-    let mask = two_power (sub size one) in
-
-    if (not signed) then pos_rem value factor
+  let pretty fmt v =
+    if not (Kernel.BigIntsHex.is_default ()) then
+      let max = of_int (Kernel.BigIntsHex.get ()) in
+      if gt (abs v) max then My_bigint.pretty ~hexa:true fmt v
+      else My_bigint.pretty ~hexa:false fmt v
     else
-      if equal (logand mask value) zero
-    then logand value (pred mask)
-    else
-      logor (lognot (pred mask)) value
-
-  let two_power = My_bigint.two_power
-
-  let power_two = My_bigint.power_two
-
-  let extract_bits ~start ~stop v =
-    assert (ge start zero && ge stop start);
-    (*Format.printf "%a[%a..%a]@\n" pretty v pretty start pretty stop;*)
-    let r = bitwise_extraction (to_int start) (to_int stop) v in
-      (*Format.printf "%a[%a..%a]=%a@\n" pretty v pretty start pretty stop pretty r;*)
-      r
-
-      (*
-
-        include Int64
-        let pretty fmt i = Format.fprintf fmt "%Ld" i
-        let pretty_s () i = Format.sprintf  "%Ld" i
-        let is_zero v = 0 = (compare zero v)
-        let lt = (<)
-        let le = (<=)
-        let neq = (<>)
-        let eq = (=)
-        let gt = (>)
-        let ge = (>=)
-
-        let shift_left x y = shift_left x (to_int y)
-        let shift_right x y = shift_right x (to_int y)
-        let log_shift_right x y =  shift_right_logical x (to_int y)
-        let of_int64 x = x
-        let to_int64 x = x
-
-        let pos_div u v =
-        let bad_div = div u v in
-        let bad_rem = rem u v in
-        if compare bad_rem zero >= 0
-        then bad_div
-        else (sub bad_div one)
-
-        let pos_rem x m =
-        let r = rem x m in
-        if lt r zero then add r m (* cannot overflow because r and m
-        have different signs *)
-        else r
-
-        let c_div = div
-
-      *)
-
-  let is_even v = is_zero (logand one v)
-
-  (** [pgcd u 0] is allowed and returns [u] *)
-  let pgcd u v =
-    let r =
-      if is_zero v
-      then u
-      else gcd_big_int u v in
-      r
-
-  let ppcm u v =
-    if u = zero || v = zero
-    then zero
-    else native_div (mul u v) (pgcd u v)
-
-  let length u v = succ (sub v u)
-
-  let min = min_big_int
-  let max = max_big_int
-
-  let round_down_to_zero v modu =
-    mul (pos_div v modu) modu
-
-  (** [round_up_to_r m r modu] is the smallest number [n] such that
-	 [n]>=[m] and [n] = [r] modulo [modu] *)
-  let round_up_to_r ~min:m ~r ~modu =
-    add (add (round_down_to_zero (pred (sub m r)) modu) r) modu
-
-  (** [round_down_to_r m r modu] is the largest number [n] such that
-     [n]<=[m] and [n] = [r] modulo [modu] *)
-  let round_down_to_r ~max:m ~r ~modu =
-    add (round_down_to_zero (sub m r) modu) r
+      My_bigint.pretty ~hexa:false fmt v
 
   (** execute [f] on [inf], [inf + step], ... *)
   let fold f ~inf ~sup ~step acc =
@@ -1133,15 +657,14 @@ module Int = struct
     let nb_loop = div (sub sup inf) step in
     let next = add step in
     let rec fold ~counter ~inf acc =
-        if equal counter onethousand then
-          CilE.warn_once "enumerating %s integers" (to_string nb_loop);
-        if le inf sup
-	then begin
-(*          Format.printf "Int.fold: %a@\n" pretty inf; *)
-          fold ~counter:(succ counter) ~inf:(next inf) (f inf acc)
-	  end
-        else acc
-      in
+      if equal counter onethousand then
+        Kernel.warning ~once:true ~current:true
+          "enumerating %s integers" (to_string nb_loop);
+      if le inf sup then begin
+          (*          Format.printf "Int.fold: %a@\n" pretty inf; *)
+        fold ~counter:(succ counter) ~inf:(next inf) (f inf acc)
+      end else acc
+    in
     fold ~counter:zero ~inf acc
 
 end
@@ -1156,6 +679,7 @@ end
 module VarinfoSetLattice =
   Make_Hashconsed_Lattice_Set
     (struct include Cil_datatype.Varinfo let id v = v.Cil_types.vid end)
+    (Cil_datatype.Varinfo.Hptset)
 
 module LocationSetLattice = struct
   include Make_Lattice_Set(Cil_datatype.Location)
@@ -1188,8 +712,8 @@ struct
   let cardinal_zero_or_one v = match v with
     | Bottom -> true
     | Product (t1, t2) ->
-	(L1.cardinal_zero_or_one t1) &&
-	  (L2.cardinal_zero_or_one t2)
+        (L1.cardinal_zero_or_one t1) &&
+          (L2.cardinal_zero_or_one t2)
 
   let compare =
     if L1.compare == Datatype.undefined || L2.compare == Datatype.undefined then (
@@ -1205,8 +729,8 @@ struct
           | Bottom, Product _ -> 1
           | Product _,Bottom -> -1
           | (Product (a,b)), (Product (a',b')) ->
-	      let c = L1.compare a a' in
-	      if c = 0 then L2.compare b b' else c
+              let c = L1.compare a a' in
+              if c = 0 then L2.compare b b' else c
 
   let equal x x' =
     if x == x' then true else
@@ -1215,7 +739,7 @@ struct
       | Bottom, Product _ -> false
       | Product _,Bottom -> false
       | (Product (a,b)), (Product (a',b')) ->
-	  L1.equal a a' && L2.equal b b'
+          L1.equal a a' && L2.equal b b'
 
   let top = Product(L1.top,L2.top)
 
@@ -1251,7 +775,7 @@ struct
       match x1,x2 with
       | Bottom, v | v, Bottom -> v
       | Product (l1,ll1), Product (l2,ll2) ->
-	  Product(L1.join l1 l2, L2.join ll1 ll2)
+          Product(L1.join l1 l2, L2.join ll1 ll2)
 
   let link _ = assert false (** Not implemented yet. *)
 
@@ -1262,22 +786,22 @@ struct
     match x1,x2 with
     | Bottom, _ | _, Bottom -> Bottom
     | Product (l1,ll1), Product (l2,ll2) ->
-	let l1 = L1.meet l1 l2 in
-	let l2 = L2.meet ll1 ll2 in
+        let l1 = L1.meet l1 l2 in
+        let l2 = L2.meet ll1 ll2 in
         inject l1 l2
 
   let pretty fmt x =
     match x with
       Bottom ->
-	Format.fprintf fmt "BotProd"
+        Format.fprintf fmt "BotProd"
     | Product(l1,l2) ->
-	Format.fprintf fmt "(%a,%a)" L1.pretty l1 L2.pretty l2
+        Format.fprintf fmt "(%a,%a)" L1.pretty l1 L2.pretty l2
 
   let intersects  x1 x2 =
     match x1,x2 with
     | Bottom, _ | _, Bottom -> false
     | Product (l1,ll1), Product (l2,ll2) ->
-	(L1.intersects l1 l2) && (L2.intersects ll1 ll2)
+        (L1.intersects l1 l2) && (L2.intersects ll1 ll2)
 
   let is_included x1 x2 =
     (x1 == x2) ||
@@ -1285,7 +809,7 @@ struct
     | Bottom, _ -> true
     | _, Bottom -> false
     | Product (l1,ll1), Product (l2,ll2) ->
-	(L1.is_included l1 l2) && (L2.is_included ll1 ll2)
+        (L1.is_included l1 l2) && (L2.is_included ll1 ll2)
 
   let is_included_exn x1 x2 =
     if x1 != x2
@@ -1294,36 +818,36 @@ struct
       | Bottom, _ -> ()
       | _, Bottom -> raise Is_not_included
       | Product (l1,ll1), Product (l2,ll2) ->
-	  L1.is_included_exn l1 l2;
-	  L2.is_included_exn ll1 ll2
+          L1.is_included_exn l1 l2;
+          L2.is_included_exn ll1 ll2
 
   let transform _f (_l1,_ll1) (_l2,_ll2) =
     raise (Invalid_argument "Abstract_interp.Make_Lattice_Product.transform")
 
   include Datatype.Make
       (struct
-	type t = tt (*= Product of t1*t2 | Bottom*)
-	let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_product"
-	let structural_descr =
-	  Structural_descr.Structure
-	    (Structural_descr.Sum [| [| L1.packed_descr; L2.packed_descr |] |])
-	let reprs =
-	  Bottom ::
-	    List.fold_left
-	    (fun acc l1 ->
-	      List.fold_left
-		(fun acc l2 -> Product(l1, l2) :: acc) acc L2.reprs)
-	    []
-	    L1.reprs
-	let equal = equal
-	let compare = compare
-	let hash = tag
-	let rehash = Datatype.identity
-	let copy = Datatype.undefined
-	let internal_pretty_code = Datatype.undefined
-	let pretty = pretty
-	let varname = Datatype.undefined
-	let mem_project = Datatype.never_any_project
+        type t = tt (*= Product of t1*t2 | Bottom*)
+        let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_product"
+        let structural_descr =
+          Structural_descr.Structure
+            (Structural_descr.Sum [| [| L1.packed_descr; L2.packed_descr |] |])
+        let reprs =
+          Bottom ::
+            List.fold_left
+            (fun acc l1 ->
+              List.fold_left
+                (fun acc l2 -> Product(l1, l2) :: acc) acc L2.reprs)
+            []
+            L1.reprs
+        let equal = equal
+        let compare = compare
+        let hash = tag
+        let rehash = Datatype.identity
+        let copy = Datatype.undefined
+        let internal_pretty_code = Datatype.undefined
+        let pretty = pretty
+        let varname = Datatype.undefined
+        let mem_project = Datatype.never_any_project
        end)
   let () = Type.set_ml_name ty None
 
@@ -1474,7 +998,7 @@ struct
     let reprs =
       Top :: Bottom
       :: List.fold_left
-	(fun acc t -> T2 t :: acc) (List.map (fun t -> T1 t) L1.reprs) L2.reprs
+        (fun acc t -> T2 t :: acc) (List.map (fun t -> T1 t) L1.reprs) L2.reprs
     let equal = equal
     let compare = compare
     let hash = tag

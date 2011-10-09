@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -73,28 +75,11 @@ let test (stl,trl) =
 ;;
 *)
 
-
-
-
-
-
-
-
-
-
-let trans_l = ref [] ;;
-let states_l = ref [] ;;
-
-
-
-let voisins st =
+let voisins (_,trans_l) st =
   List.fold_left
-    (fun vl tr ->
-       if tr.start.nums=st.nums then (tr.stop,1)::vl else vl
-    )
+    (fun vl tr -> if tr.start.nums=st.nums then (tr.stop,1)::vl else vl)
     []
-    !trans_l
-
+    trans_l
 
 let empty () = [] ;;
 let is_empty heap = (List.length heap)=0 ;;
@@ -141,9 +126,7 @@ let dijkstra (adj: 'a -> ('a * int) list) (v1:'a) (v2:'a) =
 
 
 
-let existing_path (stl,trl)  stn1 stn2 =
-  states_l:=stl;
-  trans_l:=trl;
+let existing_path (stl,_ as auto)  stn1 stn2 =
   let st1 = ref (List.hd stl) in
   let st2 = ref (List.hd stl) in
   List.iter 
@@ -154,33 +137,54 @@ let existing_path (stl,trl)  stn1 stn2 =
     stl;
   
   try
-    let _ = dijkstra voisins !st1 !st2 in
+    let _ = dijkstra (voisins auto) !st1 !st2 in
     true
   with 
     | Not_found -> false
 ;;
 
 
+(** since Nitrogen-20111001 *)
+let get_transitions_of_state st (_,tr) =
+  List.fold_left
+    (fun acc tr ->
+      if tr.start.nums = st.nums then tr::acc else acc)
+    [] tr
 
+let get_transitions_to_state st (_,tr) =
+  List.fold_left
+    (fun acc tr ->
+      if tr.stop.nums = st.nums then tr::acc else acc)
+    [] tr
 
+let get_init_states (st,_) = List.filter (fun x -> x.init = Bool3.True) st
 
+let at_most_one_path (states,transitions as auto) st1 st2 =
+  try
+    let path,_ = dijkstra (voisins auto) st1 st2 in
+    match path with
+      | [] | [ _ ] -> true
+      | x::y::_ ->
+        let (trans1,trans2) = 
+          List.partition 
+            (fun t -> t.start.nums = x.nums && t.stop.nums = y.nums) 
+            transitions
+        in
+        let transitions = (List.tl trans1) @ trans2 in
+        let auto = states, transitions in 
+        ignore (dijkstra (voisins auto) st1 st2);
+        false
+  with Not_found -> true
 
-let test (stl,trl) =
-  states_l:=stl;
-  trans_l:=trl;
-
+let test (stl,_ as auto) =
   let st2 = List.hd stl in
   let st1 = List.hd (List.tl stl) in
-  Aorai_option.feedback "%s" ("test : Etats choisis ("^(string_of_int st1.nums)^","^(string_of_int st2.nums)^")\n") ;
-  
-  let (res,_) = dijkstra voisins st1 st2 in
-  Aorai_option.feedback "Fini.\n["  ;
-  List.iter
-    (fun st ->  Aorai_option.feedback "%d," st.nums)
-    res;
-  Aorai_option.feedback "]\n"  ;
-  ()
-
+  Aorai_option.feedback "test : Etats choisis (%d,%d)" st1.nums st2.nums;
+  let (res,_) = dijkstra (voisins auto) st1 st2 in
+  Aorai_option.feedback "Fini.@\n%a"
+    (Pretty_utils.pp_list ~pre:"@[[" ~sep:",@ " ~suf:"@]]"
+       (fun fmt st -> Format.fprintf fmt "%d" st.nums))
+    res
 
 (*
 Local Variables:

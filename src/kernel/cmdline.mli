@@ -29,8 +29,8 @@
 
 type stage = Early | Extending | Extended | Exiting | Loading | Configuring
     (** The different stages, from the first to be executed to the last one.
-	@plugin development guide
-	@since Beryllium-20090601-beta1 *)
+        @plugin development guide
+        @since Beryllium-20090601-beta1 *)
 
 val run_after_early_stage: (unit -> unit) -> unit
   (** Register an action to be executed at the end of the early stage.
@@ -43,7 +43,7 @@ val run_during_extending_stage: (unit -> unit) -> unit
       @since Beryllium-20090901 *)
 
 val run_after_extended_stage: (unit -> unit) -> unit
-  (** Register an action to be executed at the end of the extending stage.
+  (** Register an action to be executed at the end of the extended stage.
       @plugin development guide
       @since Beryllium-20090901 *)
 
@@ -101,10 +101,10 @@ val catch_toplevel_run:
   on_error:(unit -> unit) ->
   unit
     (** Run [f]. When done, either call [at_normal_exit] if running [f] was ok;
-	or call [on_error] in other cases.
-	Set [quit] to [true] iff Frama-C must stop after running [f].
-	@modify Boron-20100401  additional arguments. They are now
-	labelled *)
+        or call [on_error] in other cases.
+        Set [quit] to [true] iff Frama-C must stop after running [f].
+        @modify Boron-20100401  additional arguments. They are now
+        labelled *)
 
 val at_normal_exit: (unit -> unit) -> unit
   (** Register a hook executed whenever Frama-C exits without error (the exit
@@ -173,6 +173,7 @@ val add_plugin: ?short:string -> string -> help:string -> unit
       is used as the shortname. By convention, if the name and the shortname
       are equal to "", then the register "plug-in" is the Frama-C kernel
       itself.
+      @raise Invalid_argument if the same shortname is registered twice
       @since Beryllium-20090601-beta1 *)
 
 (** @since Beryllium-20090901 *)
@@ -185,7 +186,7 @@ module Group : sig
         If [memo] is [false], cannot add twice a group with the same name.
         @return the group corresponding to the given name. Also return [true]
         iff the group has just been created.
-	@since Beryllium-20090901 *)
+        @since Beryllium-20090901 *)
   val name: t -> string
     (** @since Beryllium-20090901 *)
 end
@@ -208,15 +209,15 @@ val add_option:
   option_setting ->
   unit
     (** [add_option name ~plugin stage ~argname ~help setting]
-	adds a new option of the given [name] recognized by the command line of
-	Frama-C. If the [name] is the empty string, nothing is done.
-	[plugin] is the shortname of the plug-in.
-	[argname] is the name of the argument which can be used of the
-	helpiption [help]. Both of them are used by the help of the
-	registered option. If [help] is [None], then the option is not shown
-	in the help.
-	@since Beryllium-20090601-beta1
-	@modify Carbon-20101201 *)
+        adds a new option of the given [name] recognized by the command line of
+        Frama-C. If the [name] is the empty string, nothing is done.
+        [plugin] is the shortname of the plug-in.
+        [argname] is the name of the argument which can be used of the
+        description [help]. Both of them are used by the help of the
+        registered option. If [help] is [None], then the option is not shown
+        in the help.
+        @since Beryllium-20090601-beta1
+        @modify Carbon-20101201 *)
 
 val add_option_without_action:
   string ->
@@ -242,7 +243,7 @@ val add_aliases:
 (** [add_aliases orig plugin group aliases] adds a list of aliases to the given
     option name [orig].
     @Invalid_argument if an alias name is the empty string
-    @since Carbon-20101202+dev *)
+    @since Carbon-20110201 *)
 
 (** {2 Special parameters}
 

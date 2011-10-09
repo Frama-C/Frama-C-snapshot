@@ -102,7 +102,7 @@ end = struct
         | None, sgn -> None, sgn
         | Some (None), sgn -> None, sgn
         | Some (Some f), sgn -> Some f, sgn
-      with PdgIndex.NotFound -> empty
+      with Not_found -> empty
     in (call_id, f, sgn)
 
   let get_call_f_called call_id = get_f_called (get_info_call call_id)
@@ -308,7 +308,6 @@ module FctMarks : sig
   val debug_marked_ff : Format.formatter -> T.t_fct_slice -> unit
 
 end = struct
-  module FI = PdgIndex.FctIndex
 
   module Marks4Pdg = struct
     type t = Marks.t_mark
@@ -339,7 +338,7 @@ end = struct
     let pdg =  M.get_fi_pdg fi in
       if (PdgTypes.Pdg.is_top pdg) then raise SlicingTypes.NoPdg;
       let marks = match marks with None -> empty pdg
-        | Some (pdg, marks) -> (pdg, FI.copy marks)
+        | Some (pdg, marks) -> (pdg, PdgIndex.FctIndex.copy marks)
       in
       let ff = {  T.ff_fct = fi ; T.ff_id = ff_num ;
                   T.ff_marks = marks ; T.ff_called_by = [] } in
@@ -375,12 +374,12 @@ end = struct
       assert (Db.Pdg.from_same_fun pdg1 pdg2) ;
     let merge_marks m1 m2 = Marks.merge_marks [m1; m2] in
     let merge_call_info _c1 _c2 = None in
-    let fm = FI.merge fm1 fm2 merge_marks merge_call_info in
+    let fm = PdgIndex.FctIndex.merge fm1 fm2 merge_marks merge_call_info in
       (pdg1, fm)
 
   let get_mark fm node_key =
-    try FI.find_info (get_marks fm) node_key
-    with PdgIndex.NotFound -> Marks.bottom_mark
+    try PdgIndex.FctIndex.find_info (get_marks fm) node_key
+    with Not_found -> Marks.bottom_mark
 
   let get_node_mark ff node_key =
     let fm = ff.T.ff_marks in get_mark fm node_key
@@ -391,13 +390,13 @@ end = struct
 
   let get_node_marks ff node_key =
     let fm = ff.T.ff_marks in
-    FI.find_all (get_marks fm) node_key
+    PdgIndex.FctIndex.find_all (get_marks fm) node_key
 
-  let get_sgn ff = let fm = ff.T.ff_marks in Some (FI.sgn (get_marks fm))
+  let get_sgn ff = let fm = ff.T.ff_marks in Some (PdgIndex.FctIndex.sgn (get_marks fm))
 
   let get_all_input_marks fm =
     let fm = get_marks fm in
-    let in_marks = Marks.get_all_input_marks (FI.sgn fm) in
+    let in_marks = Marks.get_all_input_marks (PdgIndex.FctIndex.sgn fm) in
     let out_marks = [] in
     (in_marks, out_marks)
 
@@ -589,12 +588,12 @@ end = struct
           let m = Marks.inter_marks dpds_marks in
           let marks = check_in_params (n+1) params in
           if not (Marks.is_bottom_mark m) then begin
-            SlicingParameters.debug ~level:2
-	      "[Fct_Slice.FctMarks.mark_visible_inputs] %a -> %a"
+            SlicingKernel.debug ~level:2
+              "[Fct_Slice.FctMarks.mark_visible_inputs] %a -> %a"
               (!Db.Pdg.pretty_node true) node Marks.pretty_mark m;
             PdgMarks.add_node_to_select marks (node, None) m
           end else
-	    marks
+            marks
     in
     let new_marks = check_in_params 1 param_list in
     mark_and_propagate ff_marks ~to_prop new_marks
@@ -611,13 +610,13 @@ end = struct
       let m = Marks.inter_marks dpds_marks in
       if not (Marks.is_bottom_mark m) then begin
         SlicingParameters.debug ~level:2
-	  "[Fct_Slice.FctMarks.mark_visible_outputs] %a -> %a"
+          "[Fct_Slice.FctMarks.mark_visible_outputs] %a -> %a"
           (!Db.Pdg.pretty_node true) out_node Marks.pretty_mark m;
         let select = PdgMarks.add_node_to_select [] (out_node, None) m in
         let to_prop = mark_and_propagate ff_marks select in
         assert (to_prop = PropMark.empty_to_prop); ()
       end
-    with PdgIndex.NotFound -> ()
+    with Not_found -> ()
 
   let debug_ff_marks fmt fm =
     let pdg, fm = fm in
@@ -625,9 +624,9 @@ end = struct
       let node_key = PdgTypes.Node.elem_key node in
       let m =
         try
-          try FI.find_info fm node_key
+          try PdgIndex.FctIndex.find_info fm node_key
           with PdgIndex.CallStatement -> assert false
-        with PdgIndex.NotFound -> Marks.bottom_mark
+        with Not_found -> Marks.bottom_mark
       in
       Format.fprintf fmt "%a : %a@." (!Db.Pdg.pretty_node true) node
         Marks.pretty_mark m
@@ -996,11 +995,11 @@ let get_call_in_nodes called_kf call_info called_in_zone =
 * have to add some marks, but no new inputs. *)
 let add_spare_call_inputs called_kf call_info =
   let (ff_caller, _call) = CallInfo.get_call_id call_info in
-  SlicingParameters.debug ~level:2 "[slicing] add_spare_call_inputs in %s@." (M.ff_name ff_caller);
+  SlicingKernel.debug ~level:2 "[slicing] add_spare_call_inputs in %s@." (M.ff_name ff_caller);
   let sig_call = CallInfo.get_call_sig call_info in
   let out0, marked_out_zone = Marks.get_marked_out_zone sig_call in
   let called_in_zone = get_called_needed_input called_kf out0 marked_out_zone in
-    SlicingParameters.debug ~level:2 "\tneed %a inputs : %a@." Kernel_function.pretty_name called_kf
+    SlicingKernel.debug ~level:2 "\tneed %a inputs : %a@." Kernel_function.pretty called_kf
       Locations.Zone.pretty called_in_zone;
   let needed_nodes, undef =
     get_call_in_nodes called_kf call_info called_in_zone in
@@ -1054,7 +1053,7 @@ let choose_precise_slice fi_to_call call_info =
                 if more_inputs
                 then (* [ff] needs too many inputs *)
                   begin
-                    SlicingParameters.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? too many inputs"
+                    SlicingKernel.debug ~level:2 "[Fct_Slice.choose_precise_slice] %s ? too many inputs"
                         (M.ff_name ff);
                     find slices
                   end
@@ -1080,7 +1079,7 @@ let choose_f_to_call fbase_to_call call_info =
         | [] -> make_new_ff fi_to_call true
         | ff :: [] -> ff, []
         | _ -> (* TODO : choose a slice *)
-	    Extlib.not_yet_implemented "choose_min_slice with several slices"
+            Extlib.not_yet_implemented "choose_min_slice with several slices"
   in
   let choose_full_slice fi_to_call =
     SlicingParameters.debug ~level:2 "PropagateMarksOnly -> choose_full_slice";
@@ -1120,7 +1119,8 @@ let choose_f_to_call fbase_to_call call_info =
                   choose_precise_slice fi_to_call call_info in
                   (T.CallSlice ff_to_call), new_filters
         with SlicingTypes.NoPdg ->
-          Cil.log "[slicing]unable to compute %s PDG : call source function"
+          SlicingParameters.feedback
+            "unable to compute %s PDG : call source function"
             (M.fi_name fi_to_call);
           T.CallSrc None, []
   in to_call, new_filters
@@ -1346,7 +1346,7 @@ let clear_ff proj ff =
 
 let get_node_key_mark ff k =
   try FctMarks.get_node_mark ff k
-  with PdgIndex.NotFound ->  Marks.bottom_mark
+  with Not_found ->  Marks.bottom_mark
 
 let get_node_mark ff node =
   get_node_key_mark ff (PdgTypes.Node.elem_key node)
@@ -1358,7 +1358,7 @@ let get_param_mark ff n =
     try
       match FctMarks.get_sgn ff with None -> Marks.bottom_mark
         | Some sgn ->  Marks.get_input_mark sgn n
-    with PdgIndex.NotFound ->  Marks.bottom_mark
+    with Not_found ->  Marks.bottom_mark
 
 let get_label_mark ff label_stmt label =
   let key = PdgIndex.Key.label_key label_stmt label in
@@ -1374,7 +1374,7 @@ let get_stmt_mark ff stmt =
       | _ -> assert false
     in
     Marks.merge_marks marks
-  with PdgIndex.NotFound ->
+  with Not_found ->
     match stmt.Cil_types.skind with
     | Cil_types.Block _ | Cil_types.UnspecifiedSequence _ ->
         (* block are always visible for syntactic reasons *)
@@ -1385,7 +1385,7 @@ let get_top_input_mark fi =
   try
     let key = PdgIndex.Key.top_input in
     FctMarks.get_fi_node_mark fi key
-  with PdgIndex.NotFound ->  Marks.bottom_mark
+  with Not_found ->  Marks.bottom_mark
 
 let merge_inputs_m1_mark ff =
   let ff_sig =
@@ -1413,7 +1413,7 @@ let merge_fun_callers get_list get_value merge is_top acc proj kf =
         let merge m =
           acc := merge m !acc ;
           if is_top !acc then
-	    raise StopMerging (* acceleration when top is reached *)
+            raise StopMerging (* acceleration when top is reached *)
         in
         let rec merge_fun_callers kf =
           let merge_fun_caller (kf,_) = merge_fun_callers kf in
@@ -1423,13 +1423,13 @@ let merge_fun_callers get_list get_value merge is_top acc proj kf =
             List.iter (fun x -> merge (get_value x)) (get_list proj kf) ;
             List.iter merge_fun_caller (!Db.Value.callers kf)
           end
-	(*  else no way to add something, the [kf] contribution is already
-	    accumulated. *)
+        (*  else no way to add something, the [kf] contribution is already
+            accumulated. *)
         in
-	merge_fun_callers kf;
+        merge_fun_callers kf;
         !acc
       with StopMerging ->
-	!acc
+        !acc
   end
 
 (** The mark [m] related to all statements of a source function [kf].
@@ -1455,3 +1455,9 @@ let print_ff_sig fmt ff =
     | None -> Format.fprintf fmt "<not computed>@."
     | Some s -> Format.fprintf fmt "%a@." Marks.pretty_sig s
 (*-----------------------------------------------------------------------*)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

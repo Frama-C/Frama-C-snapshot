@@ -1,4 +1,4 @@
-# 28 "src/aorai/ltllexer.mll"
+# 30 "src/aorai/ltllexer.mll"
  
 
   open Ltlparser
@@ -28,9 +28,9 @@
     in
     lexbuf.lex_curr_p <-
       { pos with
-	  pos_fname = new_file;
-	  pos_lnum = if absolute then line else pos.pos_lnum + line;
-	  pos_bol = pos.pos_cnum - chars;
+          pos_fname = new_file;
+          pos_lnum = if absolute then line else pos.pos_lnum + line;
+          pos_bol = pos.pos_cnum - chars;
       }
 *)
   exception Error of (Lexing.position * Lexing.position) * string
@@ -937,211 +937,211 @@ let __ocaml_lex_tables = {
 }
 
 let rec token lexbuf =
-  __ocaml_lex_token_rec lexbuf 0
+    __ocaml_lex_token_rec lexbuf 0
 and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 76 "src/aorai/ltllexer.mll"
+# 78 "src/aorai/ltllexer.mll"
                             ( LTL_TRUE )
 # 947 "src/aorai/ltllexer.ml"
 
   | 1 ->
-# 77 "src/aorai/ltllexer.mll"
+# 79 "src/aorai/ltllexer.mll"
                             ( LTL_FALSE )
 # 952 "src/aorai/ltllexer.ml"
 
   | 2 ->
-# 78 "src/aorai/ltllexer.mll"
-              ( LTL_LPAREN )
+# 80 "src/aorai/ltllexer.mll"
+                            ( LTL_LPAREN )
 # 957 "src/aorai/ltllexer.ml"
 
   | 3 ->
-# 79 "src/aorai/ltllexer.mll"
-              ( LTL_RPAREN )
+# 81 "src/aorai/ltllexer.mll"
+                            ( LTL_RPAREN )
 # 962 "src/aorai/ltllexer.ml"
 
   | 4 ->
-# 82 "src/aorai/ltllexer.mll"
-              ( LTL_IMPLIES )
+# 84 "src/aorai/ltllexer.mll"
+                            ( LTL_IMPLIES )
 # 967 "src/aorai/ltllexer.ml"
 
   | 5 ->
-# 83 "src/aorai/ltllexer.mll"
-               ( LTL_LEFT_RIGHT_ARROW )
+# 85 "src/aorai/ltllexer.mll"
+                            ( LTL_LEFT_RIGHT_ARROW )
 # 972 "src/aorai/ltllexer.ml"
 
   | 6 ->
-# 84 "src/aorai/ltllexer.mll"
+# 86 "src/aorai/ltllexer.mll"
                             ( LTL_OR )
 # 977 "src/aorai/ltllexer.ml"
 
   | 7 ->
-# 85 "src/aorai/ltllexer.mll"
+# 87 "src/aorai/ltllexer.mll"
                             ( LTL_AND )
 # 982 "src/aorai/ltllexer.ml"
 
   | 8 ->
-# 86 "src/aorai/ltllexer.mll"
+# 88 "src/aorai/ltllexer.mll"
                             ( LTL_NOT )
 # 987 "src/aorai/ltllexer.ml"
 
   | 9 ->
-# 87 "src/aorai/ltllexer.mll"
+# 89 "src/aorai/ltllexer.mll"
                             ( LTL_GLOBALLY )
 # 992 "src/aorai/ltllexer.ml"
 
   | 10 ->
-# 88 "src/aorai/ltllexer.mll"
+# 90 "src/aorai/ltllexer.mll"
                             ( LTL_FATALLY )
 # 997 "src/aorai/ltllexer.ml"
 
   | 11 ->
-# 89 "src/aorai/ltllexer.mll"
+# 91 "src/aorai/ltllexer.mll"
                             ( LTL_UNTIL )
 # 1002 "src/aorai/ltllexer.ml"
 
   | 12 ->
-# 90 "src/aorai/ltllexer.mll"
+# 92 "src/aorai/ltllexer.mll"
                             ( LTL_RELEASE )
 # 1007 "src/aorai/ltllexer.ml"
 
   | 13 ->
-# 91 "src/aorai/ltllexer.mll"
+# 93 "src/aorai/ltllexer.mll"
                             ( LTL_NEXT )
 # 1012 "src/aorai/ltllexer.ml"
 
   | 14 ->
-# 95 "src/aorai/ltllexer.mll"
+# 97 "src/aorai/ltllexer.mll"
                             ( LTL_EQ )
 # 1017 "src/aorai/ltllexer.ml"
 
   | 15 ->
-# 96 "src/aorai/ltllexer.mll"
+# 98 "src/aorai/ltllexer.mll"
                             ( LTL_LT )
 # 1022 "src/aorai/ltllexer.ml"
 
   | 16 ->
-# 97 "src/aorai/ltllexer.mll"
+# 99 "src/aorai/ltllexer.mll"
                             ( LTL_GT )
 # 1027 "src/aorai/ltllexer.ml"
 
   | 17 ->
-# 98 "src/aorai/ltllexer.mll"
+# 100 "src/aorai/ltllexer.mll"
                             ( LTL_LE )
 # 1032 "src/aorai/ltllexer.ml"
 
   | 18 ->
-# 99 "src/aorai/ltllexer.mll"
+# 101 "src/aorai/ltllexer.mll"
                             ( LTL_GE )
 # 1037 "src/aorai/ltllexer.ml"
 
   | 19 ->
-# 100 "src/aorai/ltllexer.mll"
+# 102 "src/aorai/ltllexer.mll"
                             ( LTL_NEQ )
 # 1042 "src/aorai/ltllexer.ml"
 
   | 20 ->
-# 103 "src/aorai/ltllexer.mll"
+# 105 "src/aorai/ltllexer.mll"
                             ( LTL_PLUS )
 # 1047 "src/aorai/ltllexer.ml"
 
   | 21 ->
-# 104 "src/aorai/ltllexer.mll"
+# 106 "src/aorai/ltllexer.mll"
                             ( LTL_MINUS )
 # 1052 "src/aorai/ltllexer.ml"
 
   | 22 ->
-# 105 "src/aorai/ltllexer.mll"
+# 107 "src/aorai/ltllexer.mll"
                             ( LTL_DIV )
 # 1057 "src/aorai/ltllexer.ml"
 
   | 23 ->
-# 106 "src/aorai/ltllexer.mll"
+# 108 "src/aorai/ltllexer.mll"
                             ( LTL_STAR )
 # 1062 "src/aorai/ltllexer.ml"
 
   | 24 ->
-# 107 "src/aorai/ltllexer.mll"
+# 109 "src/aorai/ltllexer.mll"
                             ( LTL_MODULO)
 # 1067 "src/aorai/ltllexer.ml"
 
   | 25 ->
-# 110 "src/aorai/ltllexer.mll"
-              ( LTL_RIGHT_ARROW )
+# 112 "src/aorai/ltllexer.mll"
+                            ( LTL_RIGHT_ARROW )
 # 1072 "src/aorai/ltllexer.ml"
 
   | 26 ->
-# 111 "src/aorai/ltllexer.mll"
+# 113 "src/aorai/ltllexer.mll"
                             ( LTL_DOT )
 # 1077 "src/aorai/ltllexer.ml"
 
   | 27 ->
-# 112 "src/aorai/ltllexer.mll"
+# 114 "src/aorai/ltllexer.mll"
                             ( LTL_LEFT_SQUARE)
 # 1082 "src/aorai/ltllexer.ml"
 
   | 28 ->
-# 113 "src/aorai/ltllexer.mll"
+# 115 "src/aorai/ltllexer.mll"
                             ( LTL_RIGHT_SQUARE)
 # 1087 "src/aorai/ltllexer.ml"
 
   | 29 ->
-# 114 "src/aorai/ltllexer.mll"
+# 116 "src/aorai/ltllexer.mll"
                             ( LTL_ADRESSE )
 # 1092 "src/aorai/ltllexer.ml"
 
   | 30 ->
-# 115 "src/aorai/ltllexer.mll"
+# 117 "src/aorai/ltllexer.mll"
                             ( LTL_CALL )
 # 1097 "src/aorai/ltllexer.ml"
 
   | 31 ->
-# 116 "src/aorai/ltllexer.mll"
+# 118 "src/aorai/ltllexer.mll"
                             ( LTL_RETURN )
 # 1102 "src/aorai/ltllexer.ml"
 
   | 32 ->
-# 117 "src/aorai/ltllexer.mll"
+# 119 "src/aorai/ltllexer.mll"
                             ( LTL_CALL_OR_RETURN )
 # 1107 "src/aorai/ltllexer.ml"
 
   | 33 ->
-# 120 "src/aorai/ltllexer.mll"
+# 122 "src/aorai/ltllexer.mll"
                             ( comment lexbuf; token lexbuf )
 # 1112 "src/aorai/ltllexer.ml"
 
   | 34 ->
-# 121 "src/aorai/ltllexer.mll"
+# 123 "src/aorai/ltllexer.mll"
                             ( newline lexbuf; token lexbuf )
 # 1117 "src/aorai/ltllexer.ml"
 
   | 35 ->
-# 124 "src/aorai/ltllexer.mll"
+# 126 "src/aorai/ltllexer.mll"
                             ( token lexbuf )
 # 1122 "src/aorai/ltllexer.ml"
 
   | 36 ->
-# 125 "src/aorai/ltllexer.mll"
+# 127 "src/aorai/ltllexer.mll"
                             ( newline lexbuf; token lexbuf )
 # 1127 "src/aorai/ltllexer.ml"
 
   | 37 ->
-# 128 "src/aorai/ltllexer.mll"
+# 130 "src/aorai/ltllexer.mll"
                             ( LTL_INT (lexeme lexbuf) )
 # 1132 "src/aorai/ltllexer.ml"
 
   | 38 ->
-# 129 "src/aorai/ltllexer.mll"
+# 131 "src/aorai/ltllexer.mll"
                             ( LTL_LABEL (lexeme lexbuf) )
 # 1137 "src/aorai/ltllexer.ml"
 
   | 39 ->
-# 132 "src/aorai/ltllexer.mll"
+# 134 "src/aorai/ltllexer.mll"
                             ( EOF )
 # 1142 "src/aorai/ltllexer.ml"
 
   | 40 ->
-# 133 "src/aorai/ltllexer.mll"
+# 135 "src/aorai/ltllexer.mll"
                             (
       raise_located (loc lexbuf)
         (Format.sprintf "Illegal_character %s\n" (lexeme lexbuf))
@@ -1151,26 +1151,26 @@ and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_token_rec lexbuf __ocaml_lex_state
 
 and comment lexbuf =
-  __ocaml_lex_comment_rec lexbuf 76
+    __ocaml_lex_comment_rec lexbuf 76
 and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 139 "src/aorai/ltllexer.mll"
+# 141 "src/aorai/ltllexer.mll"
          ( () )
 # 1161 "src/aorai/ltllexer.ml"
 
   | 1 ->
-# 140 "src/aorai/ltllexer.mll"
+# 142 "src/aorai/ltllexer.mll"
          (  raise_located (loc lexbuf) "Unterminated_comment\n" )
 # 1166 "src/aorai/ltllexer.ml"
 
   | 2 ->
-# 141 "src/aorai/ltllexer.mll"
+# 143 "src/aorai/ltllexer.mll"
          ( newline lexbuf; comment lexbuf )
 # 1171 "src/aorai/ltllexer.ml"
 
   | 3 ->
-# 142 "src/aorai/ltllexer.mll"
+# 144 "src/aorai/ltllexer.mll"
          ( comment lexbuf )
 # 1176 "src/aorai/ltllexer.ml"
 
@@ -1178,14 +1178,14 @@ and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
 
 ;;
 
-# 145 "src/aorai/ltllexer.mll"
+# 147 "src/aorai/ltllexer.mll"
  
   let parse c =
     let lb = from_channel c in
     try
       Ltlparser.ltl token lb
     with
-	Parsing.Parse_error
+        Parsing.Parse_error
       | Invalid_argument _  -> raise_located (loc lb) "Syntax error"
 
 # 1192 "src/aorai/ltllexer.ml"

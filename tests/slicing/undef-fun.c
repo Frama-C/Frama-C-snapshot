@@ -1,5 +1,5 @@
 /* run.config
- OPT: -slice-print -slice-undef-functions -slice-return f -journal-disable
+ OPT: -check -slice-undef-functions -slice-return f -journal-disable -then-on 'Slicing export' -print
 
 
 

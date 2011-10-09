@@ -1,11 +1,13 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  This file is part of Frama-C.                                         *)
+(*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
 (*  Copyright (C) 2007-2011                                               *)
-(*    INSA  (Institut National des Sciences Appliquees)                   *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
+(*    INSA  (Institut National des Sciences Appliquees)                   *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -21,9 +23,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Logic_ptree
 open Promelaast
 open Aorai_utils
 
+(* [VP] Need to get rid of those global references at some point. *)
 let promela_file = ref ""
 let ya_file = ref ""
 let c_file = ref ""
@@ -31,77 +35,100 @@ let output_c_file = ref ""
 let ltl_tmp_file = ref ""
 let ltl_file = ref ""
 let dot_file = ref ""
-let root = ref ""
 let generatesCFile = ref true
 let ltl2ba_params = " -l -p -o "
 let toBeRemoved = ref []
 
+let ltl_to_promela = Hashtbl.create 7
+
+let set_ltl_correspondance h =
+  Hashtbl.clear ltl_to_promela;
+  Hashtbl.iter (fun x y -> Hashtbl.add ltl_to_promela x y) h
+
+let convert_ltl_exprs t =
+  let rec convert_cond cond =
+    match cond with
+        POr(c1,c2) -> POr (convert_cond c1, convert_cond c2)
+      | PAnd(c1,c2) -> PAnd(convert_cond c1, convert_cond c2)
+      | PNot c -> PNot (convert_cond c)
+      | PCall _ | PReturn _ | PTrue | PFalse -> cond
+      | PRel(Neq,PVar x,PCst _) ->
+        (try 
+           let (rel,t1,t2) = Hashtbl.find ltl_to_promela x in PRel(rel,t1,t2)
+         with Not_found -> cond)
+      | PRel _ -> cond
+  in
+  let rec convert_seq_elt e =
+    { e with 
+      condition = Extlib.opt_map convert_cond e.condition;
+      nested = convert_seq e.nested; }
+  and convert_seq s = List.map convert_seq_elt s in
+  let convert_parsed c =
+    match c with
+        Seq l -> Seq (convert_seq l)
+      | Otherwise -> Otherwise
+  in
+  let convert_trans t = { t with cross = convert_parsed t.cross } in
+  List.map convert_trans t
+
 (* Promela file *)
+
+let syntax_error loc msg =
+  Aorai_option.abort
+    "File %S, line %d, characters %d-%d:@\nSyntax error: %s"
+    (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
+    ((fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
+    ((snd loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
+    msg
 
 let ltl_to_ltlLight f_ltl f_out =
   try
     let c = open_in f_ltl in
-    let (ltl_form,ltl_exps) = Ltllexer.parse c in
+    let (ltl_form,exprs) = Ltllexer.parse c in
     close_in c;
-    Data_for_aorai.setLtl_expressions ltl_exps;
-    Logic_simplification.setLtl_expressions ltl_exps;
-    Ltl_output.output ltl_form f_out
-  with Not_found ->
-    Aorai_option.abort "Problem with file : %s" f_ltl
-    | Ltllexer.Error (loc,msg) ->
-        Aorai_option.error
-          "File %S, line %d, characters %d-%d"
-          (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
-          ((fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
-          ((snd loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol);
-        Aorai_option.error "Error when parsing LTL formula";
-        Aorai_option.abort "%s" msg
+    Ltl_output.output ltl_form f_out;
+    set_ltl_correspondance exprs
+  with 
+    | Not_found -> Aorai_option.abort "Unknown LTL file %s" f_ltl
+    | Ltllexer.Error (loc,msg) -> syntax_error loc msg
 
 let load_ya_file f  =
   try
     let c = open_in f in
-    let (automata,auto_vars,auto_funs) = Yalexer.parse c  in
+    let automata = Yalexer.parse c  in
     close_in c;
-    Data_for_aorai.setAutomata automata auto_vars auto_funs;
+    Data_for_aorai.setAutomata automata;
   with
-      Not_found ->
-        Aorai_option.fatal "Problem with file : %s\n" f
-    | Yalexer.Error (loc,msg) ->
-        Aorai_option.abort
-          "File %S, line %d, characters %d-%d:@\nError: %s"
-          (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
-          ((fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
-          ((snd loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
-          msg
+    | Not_found -> Aorai_option.abort "Unknown Ya file %s" f
+    | Yalexer.Error (loc,msg) -> syntax_error loc msg
 
 let load_promela_file f  =
   try
     let c = open_in f in
-    let (automata,auto_vars,auto_funs) = Promelalexer.parse c  in
+    let (s,t) = Promelalexer.parse c  in
+    let t = convert_ltl_exprs t in
     close_in c;
-    Data_for_aorai.setAutomata automata auto_vars auto_funs;
-  with Not_found ->
-		Aorai_option.fatal "Problem with file : %s\n" f
-(*    Format.printf "Problem with file : %s\n" f;*)
-(*    raise ex                                   *)
-
+    Data_for_aorai.setAutomata (s,t);
+  with 
+    | Not_found -> Aorai_option.abort "Unknown Promela file %s" f
+    | Promelalexer.Error(loc,msg) -> syntax_error loc msg
 
 let load_promela_file_withexps f  =
   try
     let c = open_in f in
-    let (automata,auto_vars,auto_funs) = Promelalexer_withexps.parse c  in
+    let automata = Promelalexer_withexps.parse c  in
     close_in c;
-    Data_for_aorai.setAutomata automata auto_vars auto_funs;
-  with Not_found ->
-        Aorai_option.fatal "Problem with file : %s\n" f
-(*    Format.printf "Problem with file : %s\n" f;*)
-(*    raise ex                                   *)
+    Data_for_aorai.setAutomata automata;
+  with 
+    | Not_found -> Aorai_option.abort "Unknown Promela file %s" f
+    | Promelalexer_withexps.Error(loc,msg) -> syntax_error loc msg
 
 let display_status () =
   if Aorai_option.verbose_atleast 2 then begin
     Aorai_option.feedback "\n"  ;
     Aorai_option.feedback "C file:            '%s'\n" !c_file ;
-    Aorai_option.feedback "Entry point:       '%s'\n" !root ;
+    Aorai_option.feedback "Entry point:       '%a'\n" 
+      Kernel_function.pretty (fst (Globals.entry_point())) ;
     Aorai_option.feedback "LTL property:      '%s'\n" !ltl_file ;
     Aorai_option.feedback "Files to generate: '%s' (Annotated code)\n"
       (if !generatesCFile then !output_c_file else "(none)");
@@ -141,7 +168,10 @@ let init_file_names () =
   in
 
   (* c_file name is given and has to point out a valid file. *)
-  c_file := List.hd (Parameters.Files.get ());
+  c_file :=
+    (match Kernel.Files.get () with
+      | [] -> "dummy.i"
+      | f :: _ -> f);
   if (!c_file="") then dispErr ": invalid C file name" !c_file;
   if (not (Sys.file_exists !c_file)) then dispErr "not found" !c_file;
 
@@ -171,12 +201,14 @@ let init_file_names () =
   	toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
       end else begin
 	ltl_tmp_file:=
-	  Extlib.temp_file_cleanup_at_exit
-	  (Filename.basename !c_file) ".ltl";
+	  (try
+	     Extlib.temp_file_cleanup_at_exit
+	       (Filename.basename !c_file) ".ltl"
+	   with Extlib.Temp_file_error s ->
+	     Aorai_option.abort "cannot create temporary file: %s" s);
 	promela_file:=
 	  freshname (Filename.chop_extension !ltl_tmp_file) ".promela";
-	toBeRemoved:=(!promela_file)::!toBeRemoved;
-  	toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
+	toBeRemoved := !ltl_tmp_file :: !promela_file :: !toBeRemoved
       end
     end else begin
       if Aorai_option.To_Buchi.get () <> "" &&
@@ -196,7 +228,6 @@ options.";
     if (!ya_file="") then dispErr ": invalid Ya file name" !ya_file;
     if (not (Sys.file_exists !ya_file)) then dispErr "not found" !ya_file
   end;
-  root := Kernel_function.get_name (fst (Globals.entry_point ()));
   display_status ();
   !err
 
@@ -212,7 +243,7 @@ let run () =
     (Aorai_option.Verbose.get () > 2)
     || (Aorai_option.Output_Spec.get ()) in
 
-  Aorai_option.result ~level:0 "Welcome in the Aorai plugin@.";
+  Aorai_option.result ~level:0 "Welcome to the Aorai plugin@.";
   init_test ();
 
   (* Step 1 : Capture files names *)
@@ -223,12 +254,12 @@ let run () =
   else
 
     (* Step 2 : Work in our own project, initialized by a copy of the main one. *)
-    let prj =
-      File.create_project_from_visitor "aorai"
+    let work_prj =
+      File.create_project_from_visitor "aorai_tmp"
 	(fun prj -> new Visitor.frama_c_copy prj)
     in
-    Project.copy ~selection:(Plugin.get_selection ()) prj;
-    Project.set_current prj;
+    Project.copy ~selection:(Plugin.get_selection ()) work_prj;
+    Project.set_current work_prj;
     let file = Ast.get () in
     Aorai_utils.initFile file;
     printverb "C file loading         : done\n";
@@ -256,11 +287,6 @@ let run () =
 	else
 	  load_promela_file !promela_file;
 	printverb "Loading promela        : done\n";
-
-        (* creates the enumeration corresponding to states and
-           fill the table mapping nums to enumitem.
-        *)
-        Aorai_utils.make_enum_states ();
 	(* Computing the list of ignored functions *)
 	(* 	Aorai_visitors.compute_ignored_functions file; *)
 
@@ -269,13 +295,14 @@ let run () =
 	(* Data_for_aorai.debug_ltl_expressions (); *)
 
 (*let _ = Path_analysis.test (Data_for_aorai.getAutomata())in*)
-
-
+        let root = fst (Globals.entry_point ()) in
+        let root_name = Kernel_function.get_name root in
 	if (Aorai_option.Axiomatization.get()) then
 	  begin
 	    (* Step 4 : Computing the set of possible pre-states and post-states of each function *)
 	    (*          And so for pre/post transitions *)
-            Aorai_visitors.compute_abstract file !root (Aorai_option.ConsiderAcceptance.get());
+            Aorai_visitors.compute_abstract file 
+              root_name (Aorai_option.ConsiderAcceptance.get());
 	    printverb "Abstracting pre/post   : done\n";
 
 	    (* 	(display_operations_spec ()); *)
@@ -287,12 +314,12 @@ let run () =
 	      begin
 		(* Repeat until reach a fix-point *)
 		while
-		  Abstract_ai.propagates_pre_post_constraints file !root
+		  Abstract_ai.propagates_pre_post_constraints file root_name
 		do () done;
 		printverb "    Forward/backward abstract specification        : done\n";
 	      end
 	    else
-	      printverb "    Forward/backward abstract specification        : skiped\n";
+	      printverb "    Forward/backward abstract specification        : skipped\n";
 
 	    (*	(display_operations_spec ());*)
 
@@ -302,22 +329,17 @@ let run () =
 	      begin
 		(* Repeat until reach a fix-point *)
 		while
-		  Bycase_ai.propagates_pre_post_constraints_bycase file !root;
+		  Bycase_ai.propagates_pre_post_constraints_bycase 
+                    file root_name;
      		do () done;
-		printverb "    Consider links between input and output states : done\n";
-
-
-	      (*		(* Repeat until reach a fix-point *)
-				while
-				ControlFlow_ai.propagates_pre_post_constraints file !root;
-     				do () done;
-				Callgraph.printGraph stdout (Callgraph.computeGraph file);
-				printverb "    Forward/backward AI according to control flow  : skiped\n"*)
+		printverb 
+                  "    Consider links between input and output states : done\n";
 	      end
+                
 	    else
 	      begin
-		printverb "    Consider links between input and output states : skiped\n";
-		(*printverb "    Forward/backward AI according to control flow  : skiped\n";*)
+		printverb "    Consider links between input and output states : skipped\n";
+		(*printverb "    Forward/backward AI according to control flow  : skipped\n";*)
 	      end;
 
 	    (*	(display_operations_spec_bycase ());*)
@@ -327,17 +349,22 @@ let run () =
 	    (*Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata()); *)
 	    if (Aorai_option.AutomataSimplification.get()) then
 	      begin
-		Data_for_aorai.removeUnusedTransitionsAndStates ();
-		(* Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata()); *)
 		printverb "Removing unused trans  : done\n";
+                let l = Data_for_aorai.all_action_bindings () in
+		Data_for_aorai.removeUnusedTransitionsAndStates ();
+                Data_for_aorai.clear_actions ();
+                List.iter 
+                  (fun ((kf,ki,pre,post),v) -> 
+                    Data_for_aorai.set_action_bindings kf ki pre post v) l;
+		(* Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata()); *)
 	      end
 	    else
-	      printverb "Removing unused trans  : skiped\n";
+	      printverb "Removing unused trans  : skipped\n";
 
 
 	    (* Step 7 : Labeling abstract file *)
 	    (* Finally the information is added into the Cil automata. *)
-	    Aorai_utils.initGlobals !root (Aorai_option.Axiomatization.get());
+	    Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
  	    Aorai_visitors.add_sync_with_buch file;
 	    Aorai_visitors.add_pre_post_from_buch file
 	      (Aorai_option.advance_abstract_interpretation ());
@@ -349,27 +376,34 @@ let run () =
 	  begin
 	    (* Step 4': Computing the set of possible pre-states and post-states of each function *)
 	    (*          And so for pre/post transitions *)
-	    printverb "Abstracting pre/post   : skiped\n";
+	    printverb "Abstracting pre/post   : skipped\n";
 
 	    (* Step 5': incrementing pre/post conditions with states and transitions information *)
-	    printverb "Refining pre/post      : skiped\n";
+	    printverb "Refining pre/post      : skipped\n";
 
 
 	    (* Step 6 : Removing transitions never crossed *)
-            printverb "Removing unused trans  : skiped\n";
+            printverb "Removing unused trans  : skipped\n";
 
 	    (* Step 7 : Labeling abstract file *)
 	    (* Finally the information is added into the Cil automata. *)
-	    Aorai_utils.initGlobals !root (Aorai_option.Axiomatization.get());
+	    Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
  	    Aorai_visitors.add_sync_with_buch file;
 	    printverb "Annotation of Cil      : partial\n"
 	  end;
 
-
-	(* Step 8 : Updating succs and preds fields in stmts *)
+	(* Step 8 : clearing tables whose information has been
+           invalidated by our transformations.
+         *)
 	Cfg.clearFileCFG ~clear_id:false file;
 	Cfg.computeFileCFG file;
-
+        let prj =
+          File.create_project_from_visitor "aorai"
+	    (fun prj -> new Visitor.frama_c_copy prj)
+        in
+        Project.copy ~selection:(Plugin.get_selection ()) prj;
+        Project.set_current prj;
+        Project.remove ~project:work_prj ();
 
 	(* Step 9 : Generating resulting files *)
 	(* Dot file *)
@@ -386,22 +420,27 @@ let run () =
 	else
 	  begin
             let cout = open_out !output_c_file in
-	    Cil.print_utf8:=false;
-	    Cil.dumpFile (new Printer.print ())  cout "test_string" file;
-	    close_out cout;
-	    printverb "C file generation      : done\n";
+	    Kernel.Unicode.without_unicode
+              (fun () ->
+	        (* [JS 2011/03/11] should use File.pretty_ast instead *)
+	        Cil.dumpFile (new Printer.print ())  cout "test_string" file;
+	        close_out cout;
+	        printverb "C file generation      : done\n";
+              ) ()
 	  end;
-
 
 	printverb "Finished.\n";
 
-        if display_op_specs then (Aorai_utils.display_operations_spec_sorted_bycase ());
+        if display_op_specs then
+	  Aorai_utils.display_operations_spec_sorted_bycase ();
 
 	(* Some test traces. *)
 	match Aorai_option.Test.get () with
 	| 1 -> Aorai_utils.debug_display_all_specs ()
 	| _ -> () (* 0 is no test *)
       end ;
+    if !generatesCFile then Kernel.Files.set [!output_c_file];
+    Aorai_option.reset ();
     cleanup_files ()
 
 (* Plugin registration *)
@@ -420,6 +459,6 @@ let () = Db.Main.extend main
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

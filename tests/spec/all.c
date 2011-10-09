@@ -1,9 +1,10 @@
 /* Terms */
 
-/*@ lemma a: \forall int x ; x --> x == -1 ; */          // KO
-/*@ lemma b: \forall int x ; x <--> x == -1 ; */         // KO
-/*@ lemma c: (\let x = 0 ; x+1) == 1 ; */                // OK
-/*@ lemma d: (name:77) == 76+1 ; */                      // OK
+/*@ lemma e: \forall int x ; (x & x) == x ; */          // KO pretty printing priority
+/*@ lemma a: \forall int x ; (x --> x) == -1 ; */       // KO pretty printing priority
+/*@ lemma b: \forall int x ; (x <--> x) == -1 ; */      // KO pretty printing priority
+/*@ lemma c: (\let x = 0 ; x+1) == 1 ; */               // OK
+/*@ lemma d: (name:77) == 76+1 ; */                     // OK
 
 /* Predicates */
 /*@

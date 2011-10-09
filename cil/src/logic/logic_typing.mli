@@ -27,6 +27,33 @@
 
 open Cil_types
 
+(** Relation operators conversion 
+    @since Nitrogen-20111001
+*)
+val type_rel: Logic_ptree.relation -> Cil_types.relation
+
+(** Arithmetic binop conversion. Addition and Substraction are always 
+    considered as being used on integers. It is the responsibility of the
+    user to introduce PlusPI/IndexPI, MinusPI and MinusPP where needed. 
+    @since Nitrogen-20111001
+*)
+val type_binop: Logic_ptree.binop -> Cil_types.binop
+
+val unescape: string -> string
+val wcharlist_of_string: string -> int64 list
+
+val is_arithmetic_type: Cil_types.logic_type -> bool
+val is_integral_type: Cil_types.logic_type -> bool
+
+val type_of_pointed: logic_type -> logic_type
+
+val type_of_array_elem: logic_type -> logic_type
+
+val add_offset_lval: term_offset -> term_lval -> term_lval
+
+val arithmetic_conversion:
+  Cil_types.logic_type -> Cil_types.logic_type -> Cil_types.logic_type
+
 (** Local logic environment *)
 module Lenv : sig
   type t
@@ -35,7 +62,7 @@ end
 
 (** Functions that can be called when type-checking an extension of ACSL. *)
 type typing_context = {
-  annonCompFieldName : string;
+  anonCompFieldName : string;
   conditionalConversion : typ -> typ -> typ;
   find_macro : string -> Logic_ptree.lexpr;
   find_var : string -> logic_var;
@@ -91,7 +118,7 @@ val register_behavior_extension:
 module Make
   (C :
     sig
-      val annonCompFieldName : string
+      val anonCompFieldName : string
       val conditionalConversion : typ -> typ -> typ
       val find_macro : string -> Logic_ptree.lexpr
       val find_var : string -> logic_var
@@ -113,8 +140,22 @@ module Make
       val find_logic_type: string -> logic_type_info
       val find_logic_ctor: string -> logic_ctor_info
 
+      (** What to do when we have a term of type Integer in a context
+          expecting a C integral type. 
+          @raise Failure to reject such conversion
+          @since Nitrogen-20111001
+       *)
+      val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
+
     end) :
 sig
+
+  (** @since Nitrogen-20111001 *)
+  val type_of_field: 
+    location -> string -> logic_type -> (term_offset * logic_type)
+
+  (** @since Nitrogen-20111001 *)
+  val mk_cast: Cil_types.term -> Cil_types.logic_type -> Cil_types.term
 
   (** type-checks a term. *)
   val term : Lenv.t -> Logic_ptree.lexpr -> term
@@ -133,6 +174,9 @@ sig
 
   val type_annot :
     location -> Logic_ptree.type_annot -> logic_info
+
+  val model_annot :
+    location -> Logic_ptree.model_annot -> logic_info
 
   val annot : Logic_ptree.decl -> global_annotation
 
@@ -161,7 +205,7 @@ val append_here_label: Lenv.t -> Lenv.t
     when [pre_is_old] is true, it adds it has a synonym for "Old".
     (the latter should be set when typing function contracts)
 *)
-val append_pre_label: pre_is_old:bool -> Lenv.t -> Lenv.t
+val append_pre_label: Lenv.t -> Lenv.t
 
 
 (** adds a given variable in local environment. *)

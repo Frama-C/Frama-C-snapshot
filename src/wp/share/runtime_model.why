@@ -1,0 +1,1514 @@
+(* --- Headers for WHY --- *)
+
+include "bool.why"
+include "integer.why"
+include "real.why"
+include "arrays.why"
+include "divisions.why"
+(* -------------------------------------------------------------------------- *)
+(* --- ACSL Definitions                                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+logic dummy : int -> prop 
+logic assigns : int -> prop
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Divisions enhanced specification                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+axiom positive_computer_div_div: 
+  forall x,y:int. 
+  x >0 -> y >0 -> computer_div(x,y) = math_div(x,y)
+
+
+(**************************************************************************)
+(*** Specification of Set as First Class Value                          ***)
+(**************************************************************************)
+(* From Figure 2.6 in ACSL:ANSI/ISO C Specification Language *)
+
+type 'a set
+
+logic empty : 'a set
+logic singleton : 'a -> 'a set
+logic range : int,int -> int set
+logic union : 'a set , 'a set -> 'a set
+logic inter : 'a set , 'a set -> 'a set
+logic plus_int : int set, int set -> int set
+logic subset : 'a set,'a set -> prop
+logic range_inf: int -> int set
+logic range_sup:int->int set
+logic integers_set : int set
+logic equiv : 'a set ,'a set -> prop
+logic member : 'a,'a set -> prop
+
+axiom singleton_def :
+ forall x:'a. member (x, singleton(x))
+
+axiom singleton_eq:
+      forall x,y:'a. member(x,singleton(y)) <-> x=y
+
+axiom union_member :
+ forall x:'a. forall s1,s2:'a set [member(x, union(s1,s2))].
+  member(x, union(s1,s2)) <-> member(x,s1) or member(x,s2)
+
+axiom union_of_empty :
+ forall x:'a set [union(x,empty)]. union(x,empty) = x
+
+axiom inter_of_empty :
+ forall x:'a set [inter(x,empty)]. inter(x,empty) = empty
+
+axiom union_comm :
+ forall x,y:'a set. union(x,y) = union(y,x)
+
+axiom inter_comm :
+ forall x,y:'a set. inter(x,y) = inter(y,x)
+
+axiom inter_member :
+ forall x:'a. forall s1,s2:'a set [member(x,inter(s1,s2))].
+  member(x,inter(s1,s2)) <-> member(x,s1) and member(x,s2)
+
+axiom plus_int_member_1:
+  forall sa,sb:int set.
+  forall a,b:int [member((a+b), plus_int(sa,sb))].
+        member(a,sa) -> member(b,sb) ->
+	member((a+b), plus_int(sa,sb))
+
+axiom plus_int_member_2:
+  forall sa,sb:int set.
+  forall c:int.
+      member(c,plus_int(sa,sb)) ->
+       exists a:int. exists b:int.
+        member(a,sa) and member(b,sb) and c=a+b
+
+axiom subset_empty :
+ forall sa:'a set. subset(empty,sa)
+
+axiom subset_sym:
+ forall sa:'a set. subset(sa,sa)
+
+axiom subset_trans :
+ forall sa,sb,sc: 'a set.
+    subset(sa,sb) ->
+    subset(sb,sc) ->
+    subset(sa,sc)
+
+axiom subset_def:
+ forall sa,sb:'a set [subset(sa,sb)].
+  (forall a:'a. member(a,sa) -> member(a,sb)) <-> subset(sa,sb)
+
+
+axiom range_def:
+ forall i,j,k:int. i <= k<= j <-> member (k,range(i,j))
+
+axiom range_def1:
+ forall i,j,k:int.  i <= k<= j -> member (k,range(i,j))
+
+axiom range_def2:
+ forall i,j,k:int.member (k,range(i,j)) -> i <= k<= j
+
+axiom range_inf_def: (* range_inf(i) is [ i .. ] *)
+ forall i,k: int. i <= k <-> member (k,range_inf(i))
+
+axiom range_sup_def: (* range_sup(j) is [ .. j ] *)
+ forall j,k: int. k <= j <-> member (k,range_sup(j))
+
+axiom integers_set_def:
+ forall k:int. k >= 0 <-> member(k,integers_set)
+
+axiom equiv_def:
+ forall s1,s2:'a set [equiv(s1,s2)]. (
+ (forall a:'a. member(a,s1) -> member(a,s2)) and
+   (forall b:'a. member(b,s2) -> member(b,s1))) <->
+ equiv(s1,s2)
+
+axiom equiv_refl:
+ forall s:'a set. equiv(s,s)
+
+axiom equiv_sym:
+ forall s1,s2:'a set. equiv(s1,s2) -> equiv(s2,s1)
+
+axiom equiv_trans:
+ forall s1,s2,s3:'a set.
+  equiv(s1,s2) -> equiv(s2,s3) -> equiv(s1,s3)
+
+
+
+(**************************************************************************)
+(*** Integers and Reals                                                 ***)
+(**************************************************************************)
+
+
+logic as_uint8 :int -> int 
+predicate is_uint8(x:int) = 0 <= x < 256 
+axiom as_uint8_def : forall x:int. is_uint8(as_uint8(x))
+axiom as_uint8_involve :
+  forall x:int [as_uint8(as_uint8(x))]. as_uint8(as_uint8(x)) = as_uint8(x)
+axiom is_as_uint8: forall x:int [as_uint8(x)]. is_uint8(x) -> as_uint8(x) = x
+
+logic as_sint8 :int -> int 
+predicate is_sint8(x:int) = -128 <= x < 128
+axiom as_sint8_def : forall x:int. is_sint8(as_sint8(x))
+axiom as_sint8_involve :
+  forall x:int [as_sint8(as_sint8(x))]. as_sint8(as_sint8(x)) = as_sint8(x)
+axiom is_as_sint8: forall x:int[as_sint8(x)]. is_sint8(x) -> as_sint8(x) = x
+
+
+logic as_uint16 :int -> int 
+predicate is_uint16(x:int) = 0 <= x < 65536
+axiom as_uint16_def : forall x:int. is_uint16(as_uint16(x))
+axiom as_uint16_involve :
+  forall x:int [as_uint16(as_uint16(x))]. 
+    as_uint16(as_uint16(x)) = as_uint16(x)
+axiom is_as_uint16: forall x:int [as_uint16(x)]. is_uint16(x) -> as_uint16(x) = x
+
+logic as_sint16 :int -> int 
+predicate is_sint16(x:int) = -32768 <= x < 32768
+axiom as_sint16_def : forall x:int. is_sint16(as_sint16(x))
+axiom as_sint16_involve :
+  forall x:int [as_sint16(as_sint16(x))]. 
+    as_sint16(as_sint16(x)) = as_sint16(x)
+axiom is_as_sint16: forall x:int [as_sint16(x)]. is_sint16(x) -> as_sint16(x) = x
+
+
+logic as_uint32 :int -> int 
+predicate is_uint32(x:int) = 0 <= x < 4294967296
+axiom as_uint32_def : forall x:int. is_uint32(as_uint32(x))
+axiom as_uint32_involve :
+  forall x:int [as_uint32(as_uint32(x))]. 
+    as_uint32(as_uint32(x)) = as_uint32(x)
+axiom is_as_uint32: forall x:int [as_uint32(x)]. is_uint32(x) -> as_uint32(x) = x
+
+logic as_sint32 :int -> int 
+predicate is_sint32(x:int) = -2147483648 <= x < 2147483648
+axiom as_sint32_def : forall x:int. is_sint32(as_sint32(x))
+axiom as_sint32_involve :
+  forall x:int [as_sint32(as_sint32(x))]. 
+    as_sint32(as_sint32(x)) = as_sint32(x)
+axiom is_as_sint32: forall x:int [as_sint32(x)]. is_sint32(x) -> as_sint32(x) = x
+
+
+logic as_uint64 :int -> int 
+predicate is_uint64(x:int) = 0 <= x < 18446744073709551616
+axiom as_uint64_def : forall x:int. is_uint64(as_uint64(x))
+axiom as_uint64_involve :
+  forall x:int [as_uint64(as_uint64(x))]. 
+    as_uint64(as_uint64(x)) = as_uint64(x)
+axiom is_as_uint64: forall x:int [as_uint64(x)]. is_uint64(x) -> as_uint64(x) = x
+
+logic as_sint64 :int -> int 
+predicate is_sint64(x:int) = -9223372036854775808 <= x < 9223372036854775808
+axiom as_sint64_def : forall x:int. is_sint64(as_sint64(x))
+axiom as_sint64_involve :
+  forall x:int [as_sint64(as_sint64(x))]. 
+    as_sint64(as_sint64(x)) = as_sint64(x)
+axiom is_as_sint64: forall x:int [as_sint64(x)]. is_sint64(x) -> as_sint64(x) = x
+
+
+logic as_float16 :real -> real 
+logic is_float16 :real -> prop
+axiom as_float16_def : forall x:real. is_float16(as_float16(x))
+axiom as_float16_involve :
+  forall x:real [as_float16(as_float16(x))]. 
+    as_float16(as_float16(x)) = as_float16(x)
+axiom is_as_float16: forall x:real [as_float16(x)]. is_float16(x) -> as_float16(x) = x
+
+
+logic as_float32 :real -> real 
+logic is_float32 :real -> prop
+axiom as_float32_def : forall x:real. is_float32(as_float32(x))
+axiom as_float32_involve :
+  forall x:real [as_float32(as_float32(x))]. 
+    as_float32(as_float32(x)) = as_float32(x)
+axiom is_as_float32: 
+ forall x:real [as_float32(x)]. is_float32(x) -> as_float32(x) = x
+
+
+logic as_float64 :real -> real 
+logic is_float64 :real -> prop
+axiom as_float64_def : 
+ forall x:real. is_float64(as_float64(x))
+axiom as_float64_involve :
+  forall x:real [as_float64(as_float64(x))]. 
+    as_float64(as_float64(x)) = as_float64(x)
+axiom is_as_float64: 
+  forall x:real [as_float64(x)]. is_float64(x) -> as_float64(x) = x
+
+
+logic as_float128 :real -> real 
+logic is_float128 :real -> prop
+axiom as_float128_def : 
+ forall x:real. is_float128(as_float128(x))
+axiom as_float128_involve :
+  forall x:real [as_float128(as_float128(x))]. 
+    as_float128(as_float128(x)) = as_float128(x)
+axiom is_as_float128: 
+ forall x:real [as_float128(x)]. is_float128(x) -> as_float128(x) = x
+
+(**************************************************************************)
+(*** Memory Data Type                                                   ***)
+(**************************************************************************)
+
+type data
+
+logic data_of_uint8: int -> data
+logic uint8_of_data: data -> int
+
+axiom is_uint8_of_data: 
+  forall d:data [is_uint8(uint8_of_data(d))].is_uint8(uint8_of_data(d))
+
+axiom uint8ofdata_dataofuint8: 
+  forall x:int [data_of_uint8(x)].
+    is_uint8(x) -> uint8_of_data(data_of_uint8(x)) = x
+
+logic data_of_sint8: int -> data
+logic sint8_of_data: data -> int
+
+axiom is_sint8_of_data: 
+  forall d:data [is_sint8(sint8_of_data(d))]. is_sint8(sint8_of_data(d))
+
+axiom sint8ofdata_dataofsint8: 
+  forall x:int [data_of_sint8(x)]. 
+   is_sint8(x) -> sint8_of_data(data_of_sint8(x)) = x
+
+logic data_of_uint16: int -> data
+logic uint16_of_data: data -> int
+
+axiom is_uint16_of_data: 
+ forall d:data [is_uint16(uint16_of_data(d))]. is_uint16(uint16_of_data(d))
+
+axiom uint16ofdata_dataofuint16: 
+  forall x:int [uint16_of_data(data_of_uint16(x))]. 
+   is_uint16(x) -> uint16_of_data(data_of_uint16(x)) = x
+
+logic data_of_sint16: int -> data
+logic sint16_of_data: data -> int
+
+axiom is_sint16_of_data: 
+ forall d:data [is_sint16(sint16_of_data(d))]. is_sint16(sint16_of_data(d))
+
+axiom sint16ofdata_dataofsint16: 
+  forall x:int [data_of_sint16(x)]. 
+    is_sint16(x) -> sint16_of_data(data_of_sint16(x)) = x
+
+logic data_of_uint32: int -> data
+logic uint32_of_data: data -> int
+
+axiom is_uint32_of_data: 
+  forall d:data [is_uint32(uint32_of_data(d))]. is_uint32(uint32_of_data(d))
+
+axiom uint32ofdata_dataofuint32: 
+  forall x:int [data_of_uint32(x)]. 
+    is_uint32(x) -> uint32_of_data(data_of_uint32(x)) = x
+
+logic data_of_sint32: int -> data
+logic sint32_of_data: data -> int
+
+axiom is_sint32_of_data: 
+  forall d:data [is_sint32(sint32_of_data(d))]. is_sint32(sint32_of_data(d))
+
+axiom sint32ofdata_dataofsint32: 
+  forall x:int [data_of_sint32(x)].
+   is_sint32(x) -> sint32_of_data(data_of_sint32(x)) = x
+
+logic data_of_uint64: int -> data
+logic uint64_of_data: data -> int
+
+axiom is_uint64_of_data: 
+ forall d:data [is_uint64(uint64_of_data(d))]. is_uint64(uint64_of_data(d))
+
+axiom uint64ofdata_dataofuint64: 
+  forall x:int [data_of_uint64(x)].
+    is_uint64(x) -> uint64_of_data(data_of_uint64(x)) = x
+
+logic data_of_sint64: int -> data
+logic sint64_of_data: data -> int
+
+axiom is_sint64_of_data: 
+  forall d:data [is_sint64(sint64_of_data(d))]. is_sint64(sint64_of_data(d))
+
+axiom sint64ofdata_dataofsint64: 
+  forall x:int [data_of_sint64(x)].
+   is_sint64(x) -> sint64_of_data(data_of_sint64(x)) = x
+
+logic data_of_float16: real -> data
+logic float16_of_data: data -> real
+
+axiom is_float16_of_data: 
+  forall d:data [is_float16(float16_of_data(d))]. is_float16(float16_of_data(d))
+axiom float16ofdata_dataoffloat16: 
+  forall x:real [data_of_float16(x)]. 
+   is_float16(x) -> float16_of_data(data_of_float16(x)) = x
+
+logic data_of_float32: real -> data
+logic float32_of_data: data -> real
+
+axiom is_float32_of_data: 
+  forall d:data [is_float32(float32_of_data(d))]. is_float32(float32_of_data(d))
+axiom float32ofdata_dataoffloat32: 
+  forall x:real [data_of_float32(x)].
+    is_float32(x) -> float32_of_data(data_of_float32(x)) = x
+
+logic data_of_float64: real -> data
+logic float64_of_data: data -> real
+
+axiom is_float64_of_data: 
+  forall d:data [is_float64(float64_of_data(d))]. is_float64(float64_of_data(d))
+axiom float64ofdata_dataoffloat64: 
+  forall x:real [data_of_float64(x)].
+    is_float64(x) -> float64_of_data(data_of_float64(x)) = x
+
+logic data_of_float128: real -> data
+logic float128_of_data: data -> real
+
+axiom is_float128_of_data: 
+  forall d:data [is_float128(float128_of_data(d))]. is_float128(float128_of_data(d))
+axiom float128ofdata_dataoffloat128: 
+  forall x:real [data_of_float128(x)]. 
+    is_float128(x) -> float128_of_data(data_of_float128(x)) = x
+
+
+(**************************************************************************)
+(*** Update of Arrays over a set of Index                               ***)
+(**************************************************************************)
+
+
+logic set_range_index: 
+ 'a farray (* array*), int set (* set of index*), int (*uniq key*)  -> 'a farray
+
+axiom set_range_def :
+ forall t: 'a farray.
+  forall rg: int set.
+    forall k:int.
+     forall i:int [access(set_range_index(t,rg,k),i)]. 
+     not (member(i,rg)) ->
+      access(set_range_index(t,rg,k),i) = access(t,i)
+
+(**************************************************************************)
+(*** Bitwise Operations                                                 ***)
+(**************************************************************************)
+
+logic bnot: int -> int
+logic band: int,int -> int
+logic bor:  int,int -> int
+logic bxor: int,int -> int
+logic lshift: int,int -> int
+logic rshift: int,int -> int
+
+logic int_not: int -> int
+logic int_and: int,int -> int
+logic int_or:  int,int -> int
+logic int_xor: int,int -> int
+logic int_lsh: int,int -> int
+logic int_rshs: int,int -> int
+logic int_rshu: int,int -> int
+
+(* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
+(* WARNING: Generated file: any modifications will be lost !           *)
+(* See in the main file [data_lib.why] for more information.           *)
+(* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
+
+type 'a format
+
+(* [format_size f] number of bits of the format [f] *)
+logic format_size : 'a format -> (* size *) int
+
+(* [is_in_format f x] is true if [x] fits in the format [f] *)
+(* Ex: [is_in_format (uint8, 100)], but not is_in_format (uint8, (-1)) *)
+logic is_in_format : 'a format, 'a -> prop
+
+(***********************************************************************)
+(*** Integer Cast into Machine                                       ***)
+(***********************************************************************)
+
+(* [signed_format f] is the format [f] a signed one *)
+logic signed_format : int format -> bool
+
+
+(*** Definitions and sizes *)
+
+logic uint8_format : int format
+axiom uint8_format_size : format_size (uint8_format) = 8
+axiom uint8_format_sign : signed_format (uint8_format) = false
+
+logic sint8_format : int format
+axiom sint8_format_size : format_size (sint8_format) = 8
+axiom sint8_format_sign : signed_format (sint8_format) = true
+
+logic uint16_format : int format
+axiom uint16_format_size : format_size (uint16_format) = 16
+axiom uint16_format_sign : signed_format (uint16_format) = false
+
+logic sint16_format : int format
+axiom sint16_format_size : format_size (sint16_format) = 16
+axiom sint16_format_sign : signed_format (sint16_format) = true
+
+logic uint32_format : int format
+axiom uint32_format_size : format_size (uint32_format) = 32
+axiom uint32_format_sign : signed_format (uint32_format) = false
+
+logic sint32_format : int format
+axiom sint32_format_size : format_size (sint32_format) = 32
+axiom sint32_format_sign : signed_format (sint32_format) = true
+
+logic uint64_format : int format
+axiom uint64_format_size : format_size (uint64_format) = 64
+axiom uint64_format_sign : signed_format (uint64_format) = false
+
+logic sint64_format : int format
+axiom sint64_format_size : format_size (sint64_format) = 64
+axiom sint64_format_sign : signed_format (sint64_format) = true
+
+(*** Specifications *)
+
+axiom is_in_format_sint8 : forall x:int 
+                           [ is_in_format (sint8_format, x)]. 
+      is_in_format (sint8_format, x) <-> -128 <= x < 128
+
+axiom is_in_format_uint8 : forall x:int 
+                           [ is_in_format (uint8_format, x)]. 
+      is_in_format (uint8_format, x) <-> 0 <= x < 256
+
+axiom is_in_format_sint16 : forall x:int 
+                           [ is_in_format (sint16_format, x)]. 
+      is_in_format (sint16_format, x) <-> -32768 <= x < 32768
+
+axiom is_in_format_uint16 : forall x:int 
+                           [ is_in_format (uint16_format, x)]. 
+      is_in_format (uint16_format, x) <-> 0 <= x < 65536
+
+axiom is_in_format_sint32 : forall x:int 
+                           [ is_in_format (sint32_format, x)]. 
+      is_in_format (sint32_format, x) <-> -2147483648 <= x < 2147483648
+
+axiom is_in_format_uint32 : forall x:int 
+                           [ is_in_format (uint32_format, x)]. 
+      is_in_format (uint32_format, x) <-> 0 <= x < 4294967296
+
+axiom is_in_format_sint64 : forall x:int 
+                           [ is_in_format (sint64_format, x)]. 
+      is_in_format (sint64_format, x) <-> -9223372036854775808 <= x < 9223372036854775808
+
+axiom is_in_format_uint64 : forall x:int 
+                           [ is_in_format (uint64_format, x)]. 
+      is_in_format (uint64_format, x) <-> 0 <= x < 18446744073709551616
+
+
+(* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
+(*** Floating point vs real *)
+
+(* Be careful that [is_in_format] problably means that the real value
+   can be represented EXACTLY in the format... *)
+
+(*** Definitions and sizes *)
+
+logic float16_format : real format
+axiom float16_format_size : format_size (float16_format) = 16
+
+logic float32_format : real format
+axiom float32_format_size : format_size (float32_format) = 32
+
+logic float64_format : real format
+axiom float64_format_size : format_size (float64_format) = 64
+
+logic float96_format : real format
+axiom float96_format_size : format_size (float96_format) = 96
+
+logic float128_format : real format
+axiom float128_format_size : format_size (float128_format) = 128
+
+(* ~~~ End of generated file data_int.why                              *)
+(* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Runtime Memory Model                                               --- *)
+(* -------------------------------------------------------------------------- *)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* This file provides the definitions and axioms for the Runtime memory model.
+Some lemmas, proved in coq from these definitions, are given in the file 
+[runtime_lemmas.why].
+
+The Runtime memory model is a low level model where the memory can be seen 
+as an array of bits. 
+
+Many types in his model are coded by [int] (address, size, etc.).
+Because WHY doesn't allow type renaming, we'll try to specify them in comments. 
+*)
+
+
+(**************************************************************************)
+(*** Encode/Decode                                                      ***)
+(**************************************************************************)
+
+logic encode : 'a format,'a -> data
+logic decode : 'a format,data -> 'a
+
+axiom encode_decode: 
+  forall f:'a format. forall d:data.
+  encode(f,decode(f,d)) = d
+
+axiom decode_encode:
+  forall f:'a format. forall x:'a.
+  decode(f,encode(f,x)) = x
+
+axiom decode_inj:
+  forall d,d':data. forall f:'a format.
+  decode(f,d) <> decode(f,d') <-> d<>d'
+
+axiom decode_eq: 
+ forall d,d':data. forall f:'a format. 
+  decode(f,d) = decode(f,d') <-> d=d'
+
+
+logic int_format : int format
+logic real_format : real format
+
+
+
+(*========================================================================*)
+(*** Casts                                                              ***)
+(*========================================================================*)
+
+(*------------------------------------------------------------------------*)
+(*** Cast between [int format]                                          ***)
+
+logic as_int : int format, int -> int
+
+axiom simpl_as_int : forall f: int format. forall x:int.
+                     is_in_format (f, x) -> as_int (f, x) = x
+axiom as_int_def : forall f: int format. forall x:int.
+                   is_in_format (f, (as_int (f, x)))
+axiom involve_as_int : forall f: int format. forall x:int.
+                       as_int (f, as_int (f, x)) = as_int (f, x)
+
+(*------------------------------------------------------------------------*)
+(*** Cast between [real format]                                         ***)
+
+logic as_float : real format, real -> real
+
+axiom simpl_as_float : forall f: real format. forall x:real.
+                     is_in_format (f, x) -> as_float (f, x) = x
+axiom as_float_def : forall f: real format. forall x:real.
+                   is_in_format (f, (as_float (f, x)))
+axiom involve_as_float : forall f: real format. forall x:real.
+                       as_float (f, as_float (f, x)) = as_float (f, x)
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* === Addresses and zones === *)
+
+(* New version of WHY support these new definitions, but unfortunatly,
+   it doesn't export them correctly to coq yet...
+
+type address = A (int)    
+type zone = rt_zone (int, int) (* = (address * size) *) 
+function z_addr (z:zone) : int = match z with rt_zone (a, sz) -> a end
+function z_size (z:zone) : int = match z with rt_zone (a, sz) -> sz end  
+
+*)
+
+(* --- addresses --- *)
+(* An [address] is a kind of index in the memory. *)
+
+(* type address = (* address *) int *)
+
+(* --- zones --- *)
+(* A [zone] is composed of an address and a size. *)
+
+(* type size = (* size *) int *)
+
+type zone (* = rt_zone (int, int) = (address * size) *)
+
+logic rt_zone : (* address *) int, (* size *) int -> zone
+
+logic z_addr : zone -> (* address *) int
+logic z_size : zone -> (* size *) int
+axiom addr_zone : forall a, sz: int. z_addr (rt_zone (a, sz)) = a
+axiom size_zone : forall a, sz: int. 0 <= sz -> z_size (rt_zone (a, sz)) = sz
+
+axiom rt_zone_inj : forall a1, a2, sz1, sz2 : int.
+  rt_zone (a1, sz1) = rt_zone (a2, sz2) <-> a1 = a2 and sz1 = sz2
+
+predicate rt_disj (z1:zone, z2:zone) 
+  = (z_addr (z1) + z_size (z1) <= z_addr (z2)) 
+ or (z_addr (z2) + z_size (z2) <= z_addr (z1))
+
+predicate rt_incl (z1:zone, z2:zone) 
+  = z_addr (z2) <= z_addr (z1) 
+and z_addr (z1) + z_size (z1) <= z_addr (z2) + z_size (z2)
+
+predicate addr_in_zone (a:int, z:zone) =
+  z_addr (z) <= a and a < z_addr (z) + z_size (z)
+
+(* --- offset --- *)
+(* Offset can be added to address to compute another address *)
+
+(* type offset = (* offset *) int *)
+
+function rt_shift (addr:int, offset:int) : (* address *) int = addr + offset
+
+(* We  can get field information from its identifier :
+type field : (* field *) int
+*)
+
+logic rt_foffset : (* field *) int -> (* offset *) int
+logic rt_fsize : (* field *) int -> (* size *) int
+
+(* TODO: we would prefer to have any format as result but why fail to
+generate correct COQ files is the result is polymorphic *)
+logic rt_fformat : (* name *) int  -> int format
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* === Zones === *)
+
+(* Because we need to provide function such as [dzone_union] in the model, 
+ we need more than simple [zone]. 
+TODO: [zones] might be defined as set of integers ? 
+*)
+
+type zones
+
+logic zs_empty : zones
+logic zs_singleton : zone -> zones
+logic zs_union : zones, zones -> zones
+logic zs_incl : zones, zones -> prop
+logic zs_disj : zones, zones -> prop
+
+predicate zs_z_incl (z:zone, zs:zones) = zs_incl (zs_singleton (z), zs)
+predicate zs_z_disj (z:zone, zs:zones) = zs_disj (zs_singleton (z), zs)
+
+(* Some axioms but we need to add more (TODO if we don't use [set]) *)
+
+axiom zs_empty_incl : forall zs:zones. zs_incl (zs_empty, zs)
+axiom zs_z_not_incl_empty : forall z:zone. 
+  not zs_incl (zs_singleton (z), zs_empty)
+axiom zs_incl_singleton : forall z1, z2:zone.
+  rt_incl (z1, z2) <-> zs_incl (zs_singleton(z1), zs_singleton(z2))
+axiom zs_incl_union_1 : forall z, z1, z2:zones.
+  zs_incl (z, z1) -> zs_incl (z, zs_union (z1, z2))
+axiom zs_incl_union_2 : forall z, z1, z2:zones.
+  zs_incl (z, z2) -> zs_incl (z, zs_union (z1, z2))
+axiom zs_incl_union_3: forall z, z1, z2 : zones. 
+  zs_incl (z1, z) -> zs_incl (z2, z) -> zs_incl (zs_union (z1, z2), z)
+
+
+axiom zs_disj_singleton : forall z1, z2:zone.
+  rt_disj (z1, z2) <-> zs_disj (zs_singleton(z1), zs_singleton(z2))
+axiom zs_incl_disj : forall z, zi, zd : zones.
+  zs_incl (zi, z) -> zs_disj (zd, z) -> zs_disj (zi, zd)
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* === Values === *)
+
+(* We define a value as a word of bits with a given size. 
+To know more about these [bits] interpretation, see the next section. *)
+
+type bits
+logic bits_size : bits -> (* size *) int
+
+axiom bits_size_pos : forall b:bits. bits_size (b) >= 0
+
+(* [bits] elements are numbered from 0.
+Precondition: [0 <= i < bits_size (b)] *)
+logic nth_bit : bits, int -> bool
+
+axiom eq_bits : forall b1, b2:bits. forall sz: int.
+  bits_size (b1) = sz -> bits_size (b2) = sz ->
+  (forall i:int. 0 <= i < sz -> nth_bit (b1, i) = nth_bit (b2, i))
+  <-> b1 = b2
+
+(* Test is zero. *)
+predicate zero_bits (b:bits) = 
+  forall i:int. 0 <= i < bits_size (b) -> nth_bit (b, i) = false
+
+(* --- Extract parts of [bits] --- *)
+
+(* Notice that [bits_part] is only defined when the zone defined by offset
+and size is compatible with the initial bits size. 
+Precondition: [ offset+size <= bits_size (b) ] 
+*)
+logic bits_part : bits, (* offset *) int, (* size *) int -> bits
+
+axiom bits_part_size : forall b:bits. forall off, sz:int.
+  0 <= off -> off + sz <= bits_size (b) ->
+  bits_size (bits_part (b, off, sz)) = sz
+
+axiom nth_bits_part : forall b:bits. forall off, i, sz:int.
+  0 <= i < sz -> 0 <= off -> off + sz <= bits_size (b) ->
+  nth_bit (bits_part (b, off, sz), i) = nth_bit (b, off+i)
+
+(* --- Concatenation of [bits] --- *)
+
+logic bits_concat : bits, bits -> bits
+
+axiom bits_concat_size : forall b1, b2:bits.
+  bits_size (bits_concat (b1, b2)) = bits_size (b1) + bits_size (b2)
+
+axiom nth_bits_concat_l : forall b1, b2: bits. forall i:int.
+  0 <= i < bits_size (b1) -> 
+  nth_bit (bits_concat (b1, b2), i) = nth_bit (b1, i)
+
+axiom nth_bits_concat_r : forall b1, b2: bits. forall i:int.
+  forall sz1, sz2:int. sz1 = bits_size (b1) -> sz2 = bits_size (b2) -> 
+  sz1 <= i < sz1 + sz2 -> 
+  nth_bit (bits_concat (b1, b2), i) = nth_bit (b2, i - sz1)
+
+(* --- Write parts of [bits] --- *)
+
+(* Notice that [wr_bits_part] is only defined when the zone defined by offset
+and size of the second bits size is compatible with the initial bits size.
+Precondition: [offset + size2 <= size1]. *)
+logic wr_bits_part : bits, (* offset *) int, bits -> bits
+
+axiom wr_bits_part_size : forall b, bw:bits. forall o:int.
+  bits_size (wr_bits_part (b, o, bw)) = bits_size (b)
+
+axiom nth_wr_bits_part_1 : forall b, b': bits. forall off, i:int.
+  0 <= i < off ->
+  nth_bit (wr_bits_part (b, off, b'), i) = nth_bit (b, i)
+
+axiom nth_wr_bits_part_2 : forall b, b': bits. forall off, i:int.
+  0 <= off <= i < off+bits_size (b') ->
+  nth_bit (wr_bits_part (b, off, b'), i) = nth_bit (b', i - off)
+
+axiom nth_wr_bits_part_3 : forall b, b': bits. forall off, i:int.
+  0 <= off + bits_size (b') <= i < bits_size (b) ->
+  nth_bit (wr_bits_part (b, off, b'), i) = nth_bit (b, i)
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* === Interpretation to and from bits === *)
+
+(* The [bits] defined above are used to represent the array of bits 
+as stored in the memory, so it depend on the memory architecture (endianness). 
+Moreover, the bits order is from the smaller bit address.
+Example: if [b8] is [rt_to_bits uint8 1] we have:
+         [nth (b8, 7) = true] and [forall i. 0 <= i < 7 -> nth (b8, i) = false].
+         but [b16 = rt_to_bits uint16 1] depend on the value of the 
+         [little_endian] parameter.
+Then finally, beware that [bits] is quite different from the usual bit 
+representation of a number. *)
+
+
+(* [rt_from_bits b f] is to interpret bits [b] to a typed value [f].
+The interpretation is valid only if the [bits] size match the size of the asked
+format.
+Precondition: [bits_size b = format_size f] *)
+logic rt_from_bits : bits, 'a format -> 'a
+
+axiom rt_from_bits_format :  forall b:bits. forall fmt: 'a format.
+  bits_size (b) = format_size (fmt) ->
+  is_in_format (fmt, rt_from_bits (b, fmt))
+
+(* [rt_to_bits] build the [bits] representation of a typed value. 
+This function is supposed to take care of the endianness because it should
+return the bit vector stored in the memory from the smaller address to the
+bigger one.
+Precondition: [is_in_format f v].
+*)
+logic rt_to_bits : 'a format, 'a -> bits
+
+axiom rt_to_bits_size : forall fmt: 'a format. forall x: 'a
+  [bits_size (rt_to_bits (fmt, x))].
+  bits_size (rt_to_bits (fmt, x)) = format_size (fmt)
+
+axiom rt_to_bits_from_bits : forall fmt:'a format. forall b:bits
+  [rt_to_bits (fmt, rt_from_bits (b, fmt))].
+  bits_size (b) = format_size (fmt) ->
+  rt_to_bits (fmt, rt_from_bits (b, fmt)) = b
+
+axiom rt_from_bits_to_bits :forall fmt: 'a format. forall v:'a
+  [rt_from_bits (rt_to_bits (fmt, v), fmt)].
+  is_in_format (fmt, v) ->
+  rt_from_bits (rt_to_bits (fmt, v), fmt) = v
+
+(*---------------------------------------------------------------------------*)
+(* --- Interpretation of integer --- *)
+
+(* Be careful that this is not true for any format ! 
+For structures, for instance, the bits of padding can be anything
+and still have the same interpretation...
+But we know that the representation is unique for [int format] *)
+axiom same_int_val_same_bits : forall b1, b2:bits. forall fmt: int format.
+  bits_size (b1) = format_size (fmt) ->
+  bits_size (b2) = format_size (fmt) ->
+  rt_from_bits (b1, fmt) = rt_from_bits (b2, fmt) -> b1 = b2
+
+axiom rt_to_bits_zero : forall fmt: int format.
+  forall b:bits. b = rt_to_bits (fmt, 0) -> zero_bits (b)
+
+axiom rt_from_bits_zero : forall b:bits. forall fmt: int format.
+  zero_bits (b) -> rt_from_bits (b, fmt) = 0
+
+(* --- [bits] to and from [bool farray] in order to use [bits.why] --- *)
+
+(** [mbyte_to_bbits] only takes 8 bits from the memory representation,
+    and revert them to get a traditional binary representation. *)
+logic mbyte_to_bbits : bits -> bool farray
+
+axiom mbyte_to_bbits_def : forall b:bits. bits_size (b) = 8 ->
+  forall i:int. 0 <= i < 8 -> 
+  access (mbyte_to_bbits (b), i) = nth_bit (b, 7 - i)
+
+(** [nth_mbyte k b] returns the k-th byte of [b] *)
+logic nth_mbyte : int, bits -> bits
+
+axiom nth_mbyte_size : forall b:bits. forall k:int.
+  bits_size (nth_mbyte (k, b)) = 8
+
+axiom nth_byte_def : forall b:bits. 
+  forall k:int. 0 <= 8 * (k+1) <= bits_size (b) ->
+  forall i:int. 0 <= i < 8 -> 
+  nth_bit (nth_mbyte (k, b), i) =  nth_bit (b, 8 * k + i)
+
+function nth_byte (k:int, b:bits) : bool farray =
+  mbyte_to_bbits (nth_mbyte (k, b))
+
+(*----------------------------------------------------------------------------*)
+(** Interpretation of memory bits from and to binary representation *)
+
+logic little_endian : -> prop
+
+(** [concat_bytes w b] : [b] is a byte (8 bits) 
+    to be added at the right of [w] word. *)
+
+logic concat_bytes : bool farray, bool farray -> bool farray
+
+axiom concat_bytes_left : forall w, b: bool farray. forall i:int.
+  8 <= i -> access (concat_bytes (w, b), i) = access (w, i-8)
+
+axiom concat_bytes_right : forall w, b: bool farray. forall i:int.
+  0 <= i < 8 -> access (concat_bytes (w, b), i) = access (b, i)
+
+(*----------------------------------------------------------------------------*)
+(** Some definitions related to binary representation (should be in data.why) *)
+
+logic uint_of_bits : int, bool farray -> int
+logic sint_of_bits: int, bool farray -> int
+function cint_of_bits (fmt:int format, b:bool farray) : int =
+  ite (signed_format (fmt),
+       sint_of_bits (format_size (fmt) - 1, b),
+       uint_of_bits (format_size (fmt) - 1, b))
+
+logic bits_of_sint: int, int -> bool farray
+logic bits_of_uint: int, int -> bool farray
+function bits_of_cint (fmt: int format, x: int) : bool farray =
+  ite (signed_format (fmt),
+       bits_of_sint (format_size (fmt) - 1, x),
+       bits_of_uint (format_size (fmt) - 1, x))
+
+(*----------------------------------------------------------------------------*)
+(** From memory to binary *)
+
+logic mbits_to_bbits : bits -> bool farray
+
+axiom mb8_to_bbits : forall b:bits. bits_size (b) = 8 ->
+  mbits_to_bbits (b) = nth_byte (0, b)
+
+axiom little_mb16_to_bbits : forall b:bits. bits_size (b) = 16 ->
+  little_endian -> 
+  mbits_to_bbits (b) = concat_bytes (nth_byte (1, b), nth_byte (0, b))
+  
+axiom big_mb16_to_bbits : forall b:bits. bits_size (b) = 16 ->
+  not little_endian -> 
+  mbits_to_bbits (b) = concat_bytes (nth_byte (0, b), nth_byte (1, b))
+  
+axiom little_mb32_to_bbits : forall b:bits. bits_size (b) = 32 ->
+  little_endian ->
+  mbits_to_bbits (b) = concat_bytes (concat_bytes (
+                                        concat_bytes (nth_byte (3, b), 
+                                                      nth_byte (2, b)), 
+                                         nth_byte (1, b)), 
+                                      nth_byte (0, b))
+
+axiom big_mb32_to_bbits : forall b:bits. bits_size (b) = 32 ->
+  not little_endian ->
+  mbits_to_bbits (b) = concat_bytes (concat_bytes (
+                                        concat_bytes (nth_byte (0, b), 
+                                                      nth_byte (1, b)), 
+                                         nth_byte (2, b)), 
+                                      nth_byte (3, b))
+
+axiom rt_int_from_bits : forall b:bits. forall fmt: int format.
+  rt_from_bits (b, fmt) = cint_of_bits (fmt, mbits_to_bbits (b)) 
+
+(*----------------------------------------------------------------------------*)
+(** From binary to memory *)
+
+(** Build the 8 bits to store in the memory from the nth byte of binary 
+representation. *)
+logic bbits_to_mbyte : int, bool farray -> bits
+
+axiom bbits_to_mbyte_size : forall b:bool farray. forall k:int.
+  bits_size (bbits_to_mbyte (k, b)) = 8
+
+axiom bbits_to_mbyte_def : forall b:bool farray. forall k, i:int. 
+  0 <= i < 8 ->
+  nth_bit (bbits_to_mbyte (k, b), i) = access (b, 8*k + 7-i)
+
+(** [bbits_to_mbits n b] use b[(n-1)..0] so gives n bits. *)
+logic bbits_to_mbits : int, bool farray -> bits
+
+axiom bbits_to_mb8 : forall b:bool farray.
+  bbits_to_mbits (8, b) = bbits_to_mbyte (0, b)
+
+axiom bbits_to_little_mb16 : forall b:bool farray.
+  little_endian ->
+  bbits_to_mbits (16, b) = bits_concat (bbits_to_mbyte (0, b),
+                                        bbits_to_mbyte (1, b))
+
+axiom bbits_to_big_mb16 : forall b:bool farray.
+  not little_endian ->
+  bbits_to_mbits (16, b) = bits_concat (bbits_to_mbyte (1, b),
+                                        bbits_to_mbyte (0, b))
+
+axiom bbits_to_little_mb32 : forall b:bool farray.
+  little_endian ->
+  bbits_to_mbits (32, b) = bits_concat (bbits_to_mbyte (0, b),
+                             bits_concat (bbits_to_mbyte (1, b),
+                               bits_concat (bbits_to_mbyte (2, b),
+                                              bbits_to_mbyte (3, b))))
+
+axiom bbits_to_not_mb32 : forall b:bool farray.
+  not little_endian ->
+  bbits_to_mbits (32, b) = bits_concat (bbits_to_mbyte (3, b),
+                             bits_concat (bbits_to_mbyte (2, b),
+                               bits_concat (bbits_to_mbyte (1, b),
+                                              bbits_to_mbyte (0, b))))
+
+axiom rt_int_to_bits : forall x:int. forall fmt: int format.
+  rt_to_bits (fmt, x) = 
+  bbits_to_mbits (format_size (fmt), bits_of_cint (fmt, x))
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* --- Memory --- *)
+
+(* The memory is an abstract object that can be seen as a list of bits,
+but we also assume that it stores information about the allocation table,
+ie. it can provide the allocated zone which contains a given address. 
+*)
+
+(* from addresses to values. *)
+type memory
+
+(* allocation information. *)
+type memalloc
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* --- Allocation management --- *)
+
+(* --- valid zone --- *)
+
+(* a zone is valid when it is allocated in the memory, 
+ie. we can read/write in it. *)
+
+logic rt_valid : memalloc, zone -> prop
+
+axiom incl_valid : forall m:memalloc. forall z, z':zone.
+  rt_incl (z', z) -> rt_valid (m, z) -> rt_valid (m, z')
+
+axiom disj_valid : forall m:memalloc.  forall z,z':zone [rt_disj (z, z')].
+  rt_valid (m, z) -> not rt_valid (m, z') -> rt_disj (z, z')
+
+(* --- base --- *)
+
+(* [rt_zbase] returns the allocated zone in which the address is.
+Notice that it returns a valid zone only is the address is allocated. *)
+logic rt_zbase : memalloc, (* address *) int -> zone
+
+function rt_abase (m:memalloc, addr:int) : (* address *) int =
+  z_addr (rt_zbase (m, addr))
+
+(* TODO: check the meaning of that in ACSL and then add axioms *)
+logic rt_block_length : memalloc, (* address *) int -> (* size *) int
+
+
+(* --- allocation --- *)
+
+(* the [rt_alloc] function takes the size of the zone that we want to allocate,
+and it returns a base address, and a new memory in which the zone is allocated. 
+Notice that at the moment, we assume that there is enough memory,
+so that the allocation never fails.
+*)
+
+(* Because we cannot use pairs in WHY, we have to define : *)
+type mz (* = (memalloc * address) *)
+logic mem_of_mz : mz -> memalloc
+logic addr_of_mz : mz -> (* address *) int
+
+(* Pre : size > 0 *)
+logic rt_alloc : memalloc, (* size *) int -> mz
+
+function alloc_zone (m:memalloc, sz:int) : zone = 
+  rt_zone (addr_of_mz (rt_alloc (m, sz)), sz)
+
+axiom alloc_is_base : forall m:memalloc. forall sz:int.
+  let mz = rt_alloc (m, sz) in
+  rt_zbase (mem_of_mz (mz), addr_of_mz (mz)) = alloc_zone (m, sz)
+
+(* Of course, a new allocated zone is valid *)
+axiom valid_alloc : forall m:memalloc. forall sz:int.
+  let mz = rt_alloc (m, sz) in 
+  rt_valid (mem_of_mz (mz), alloc_zone (m, sz))
+
+(* The zone is not valid before having been allocated. *)
+axiom not_valid_before_alloc: forall m:memalloc. forall sz:int.
+  not rt_valid (m, alloc_zone (m, sz))
+
+(* A previously allocated zone is still the same after a new allocation. *)
+axiom alloc_keep_valid: forall m:memalloc. forall sz:int. forall z:zone.
+  rt_valid (m, z) ->
+  let mz = rt_alloc (m, sz) in  rt_valid (mem_of_mz (mz), z)
+
+(* All the zones that were invalid before the allocation and that are disjoint
+from the newly allocation zone stays invalid. *)
+axiom alloc_keep_invalid: forall m:memalloc. forall sz:int. forall z:zone.
+  let mz = rt_alloc (m, sz) in  
+  rt_valid (mem_of_mz (mz), z) ->
+  rt_disj (alloc_zone (m, sz), z) ->
+  rt_valid (m, z) 
+
+(* --- free --- *)
+
+logic rt_free : memalloc, (* address *) int -> memalloc
+
+axiom not_valid_after_free : forall m:memalloc. forall addr:int. 
+  forall z:zone. z = rt_zbase (m, addr) ->
+  addr = z_addr (z) -> not rt_valid (rt_free (m, addr), z)
+
+(* This might be a lemma : *)
+axiom valid_free_disj : forall m:memalloc. forall z, z':zone.
+  rt_valid (rt_free (m, z_addr (z)), z') <->  rt_disj (z, z')
+
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* --- Program objects --- *)
+
+(* Program variables are also indexed by [int]s :
+
+type name = (* name *) int 
+*)
+
+
+(* We can find the address of a variable from its name in a given memory. 
+We could have returned a [option address] but it is much more complicated
+to write functions. Instead of that, we assume that this function can return
+an invalid address when the variable is not allocated 
+(for instance, a negative one).
+*)
+logic rt_vaddr : memalloc, (* name *) int  -> (* address *) int
+
+(* TODO: we would prefer to have any format as result but WHY fails to
+generate correct COQ files if the result is polymorphic *)
+(* logic rt_vformat : (* name *) int  -> int format *)
+
+(* We would like to have :
+  function rt_vsize (v:int) : (* size *) int = format_size (rt_vformat (v))
+but it is not possible at the moment because of the limitation of [rt_vformat]
+*)
+logic rt_vsize : (* name *) int  -> (* size *) int
+(* axiom rt_vformat_vsize : forall v:int.
+  format_size (rt_vformat (v)) = rt_vsize (v) *)
+
+function rt_vzone (ma:memalloc, var:int) : zone =
+  rt_zone (rt_vaddr (ma, var), rt_vsize (var))
+
+(* Global variables always have the same zone, and are always valid *)
+logic rt_global : (* name *) int -> prop
+
+axiom rt_global_vaddr : forall v:int. rt_global (v) -> 
+  forall ma, ma':memalloc. rt_vaddr (ma, v) = rt_vaddr (ma', v)
+
+axiom rt_global_valid : forall ma:memalloc. forall v:int.
+  rt_global (v) ->  
+  forall ma, ma':memalloc [rt_valid (ma, rt_vzone (ma', v))]. 
+  rt_valid (ma, rt_vzone (ma', v))
+
+(* In a given memory, different variables have disjoint zones. *)
+axiom vzone_disj : forall ma:memalloc. forall v1, v2:int.
+  v1 <> v2 -> 
+  let z1 = rt_vzone (ma, v1) in
+  let z2 = rt_vzone (ma, v2) in
+  rt_valid (ma, z1) -> rt_valid (ma, z2) -> rt_disj (z1, z2)
+
+logic rt_valloc : memalloc, (* name *) int -> memalloc
+
+(* TODO: put this as a definition ? *)
+axiom rt_valloc_mem : forall ma:memalloc. forall var:int. 
+  rt_valloc (ma, var) = mem_of_mz (rt_alloc (ma, rt_vsize (var)))
+  
+axiom rt_valloc_addr : forall ma:memalloc. forall var:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, var) ->
+  forall mz:mz. mz = rt_alloc (ma, rt_vsize (var)) ->
+  rt_vaddr (ma', var) = addr_of_mz (mz)
+
+axiom vzone_valloc_neq : forall ma:memalloc. forall v1, v2:int. 
+  forall ma':memalloc. ma' = rt_valloc (ma, v1) ->
+  v1 <> v2 -> rt_vzone (ma', v2) = rt_vzone (ma, v2)
+
+(*---------------------------*)
+
+function rt_vfree (ma:memalloc, var:int) : memalloc =
+  rt_free (ma, rt_vaddr (ma, var))
+
+(*
+axiom vfree_not_valid : forall ma:memalloc. forall v:int.
+  not (rt_valid (rt_vfree (ma, v), rt_vzone (ma, v)))
+
+axiom vfree_valid_neq : forall ma:memalloc. forall v1, v2:int.
+  v1 <> v2 -> rt_valid (ma, rt_vzone (ma, v1)) -> 
+  rt_valid (rt_vfree (ma, v2), rt_vzone (ma, v1))
+*)
+
+(* lemma *)
+axiom rt_vaddr_vfree :  forall ma:memalloc. forall v1, v2:int.
+  v1 <> v2 -> rt_vaddr (rt_vfree (ma, v1), v2) = rt_vaddr (ma, v2)
+
+(* lemma *)
+(*
+axiom rt_vsize_vfree :  forall ma:memalloc. forall v1, v2:int.
+  v1 <> v2 -> rt_vsize (rt_vfree (ma, v1), v2) = rt_vsize (ma, v2)
+*)
+
+axiom addr_base : forall m:memalloc. forall v:int. 
+  rt_abase (m, rt_vaddr (m, v)) = rt_vaddr (m, v)
+
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* === R/W in the memory === *)
+
+logic rt_load : memory, zone -> bits
+
+(* Precondition: [z_size (zone) = bits_size (bits)] *)
+logic rt_store : memory, (* address *) int, bits -> memory
+
+axiom load_store_same : forall m:memory. forall a:int. 
+                        forall z:zone. forall v:bits
+			[ rt_load(rt_store(m,a,v),z) ].
+  z = rt_zone (a, bits_size (v)) -> 
+  rt_load (rt_store (m, a, v), z) = v
+
+axiom load_store_disj : forall m: memory. forall a: int. 
+                        forall z:zone. forall v:bits
+                        [ rt_load(rt_store(m,a,v),z) ].
+  rt_disj ( rt_zone (a, bits_size(v)) , z ) -> 
+  rt_load ( rt_store (m, a, v), z ) = rt_load(m, z)
+
+axiom load_store_incl_part : forall m: memory.
+  forall a:int. forall z1, z2 : zone. forall v:bits.
+  z2 = rt_zone (a, bits_size (v)) -> rt_incl (z1, z2) ->
+  rt_load (rt_store (m, a, v), z1) 
+  = bits_part (v, z_addr (z1) - a, z_size (z1))
+
+(** Write [v] at address [a], and load [z2] zone, 
+    when writed zone [z1] included in [z2]. *)
+axiom load_incl_part_store : forall m: memory.
+  forall z1, z2 : zone. forall v:bits.
+  forall a:int. z1 = rt_zone (a, bits_size (v)) ->
+  forall off : int. off = a - z_addr (z2) ->
+  rt_incl (z1, z2) ->
+  rt_load (rt_store (m, a, v), z2) 
+  = wr_bits_part (rt_load (m, z2), off, v)
+
+axiom rt_load_size : forall m:memory. forall z:zone.
+  bits_size (rt_load (m, z)) = z_size (z)
+
+(*
+axiom rt_load_var_in_format : forall ma:memalloc. forall mb:memory.
+  forall v : int.
+  let fmt = rt_vformat (v) in
+  let bits = rt_load (mb, rt_vzone (ma, v)) in
+  let x = rt_from_bits (bits, fmt) in
+      is_in_format (fmt, x)
+*)
+
+axiom bits_part_rt_load : forall z, z':zone. forall a', off, sz:int.
+  a' = z_addr (z) + off -> 
+  z' = rt_zone (a', sz) ->
+  rt_incl (z', z) -> 
+  forall m:memory. rt_load (m, z') = bits_part (rt_load (m, z), off, sz)
+
+(* --- eq mem --- *)
+
+axiom rt_same_mem : forall m1, m2:memory. 
+  (forall z:zone. rt_load (m1, z) = rt_load (m2, z)) -> m1 = m2
+
+(* --- is_havoc --- *)
+
+logic rt_havoc : memory, zone -> memory
+
+(* [rt_is_havoc] is used to compare 2 memory states.
+It is valid when for each zone that is valid in [memalloc],
+either it is included in the excluded [zones],
+or the value of the zone is the same in both memory. *)
+
+predicate rt_is_havoc (ma:memalloc, m1:memory, zs:zones, m2:memory) =
+  forall z:zone. rt_valid (ma, z) -> zs_z_disj (z, zs) ->
+    rt_load (m1, z) = rt_load (m2, z)
+
+axiom rt_havoc_is_havoc : forall ma:memalloc. forall m:memory.
+  forall zs:zones.  forall z:zone. zs_z_incl (z, zs) ->
+  rt_is_havoc (ma, m, zs, rt_havoc (m, z))
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* === Relation with DataLib === *)
+
+(* --- pointer vs address --- *)
+
+
+logic rt_addr_format : int format
+
+(* IMPORTANT TODO: this should be generated according to the configuration !!!*)
+(* axiom rt_addr_format_size : format_size (rt_addr_format) = 32 *)
+
+axiom rt_vaddr_format : forall ma: memalloc. forall v:int.
+  is_in_format (rt_addr_format, rt_vaddr (ma, v))
+
+(* ----------------------------------- *)
+(* --- logic value vs memory value --- *)
+
+(* For each [struct] type, a format is defined automatically in the why file.
+logic Cfmt_str: data farray format
+It means that the result of [rt_from_bits (x, Cfmt_str)] is a [data farray]
+which is the coded type for structures in logic. We still have to use
+[encode/decode] functions to transform the [data] into real typed values. *)
+
+(* --- bits_part vs access --- *)
+
+axiom bits_part_vs_access : forall bs: bits.
+  forall fs : data farray format. 
+  forall f : int.  forall off, sz:int.
+  off = rt_foffset (f) -> sz = rt_fsize (f) ->
+  rt_from_bits (bits_part (bs, off, sz), rt_fformat (f)) 
+  = decode (int_format, access (rt_from_bits (bs, fs), f))
+
+(* --- wr_bits_part vs update --- *)
+
+(* because the function [rt_fformat : ( field ) int -> 'a format ] 
+is not usable in COQ files, we have to generate this axiom in caml
+for each field :
+
+axiom wr_bits_part_vs_update : forall bs, bx: bits.  
+  forall fs : data farray format.  forall fx : 'x format.
+  forall f : int.  bits_size (bx) = rt_fsize (f) -> rt_fformat (f) = fx ->
+  rt_from_bits (wr_bits_part (bs, rt_foffset (f), bx), fs)
+  = update (rt_from_bits (bs, fs), f, encode (fx, rt_from_bits (bx, fx)))
+*)
+
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* ==== Pointer Arithmetic ==== *)
+logic rt_addr_lt: int (*address*), int (*address*) -> prop
+logic rt_addr_le: int (*address*), int (*address*) -> prop 
+logic rt_addr_lt_bool: int (*address*), int (*address*) -> bool
+logic rt_addr_le_bool: int (*address*), int (*address*) -> bool
+logic rt_addr_minus : int (*address*), int (*address*) -> int
+logic rt_addr_eq: int (*address*), int (*address*) -> prop
+logic rt_addr_eq_bool: int (*address*), int (*address*) -> bool
+
+
+
+
+
+(* ~~~ End of runtime.why ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(*========================================================================*)
+(* Helper Lemmas for Runtime Model                                        *)
+(*------------------------------------------------------------------------*)
+
+(* This file contains some lemmas that can be proved using the definitions
+given in [runtime.why]. It is used to build a COQ file in order to check the
+proofs, and then it can be used to help the ATP.
+*)
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* About zones : *)
+
+axiom rt_disj_sym : forall z1, z2:zone.
+  rt_disj (z1, z2) <-> rt_disj (z2, z1)
+
+axiom rt_disj_shift : forall addr:int. forall i, j, sz:int.
+  sz > 0 -> i <> j ->
+  rt_disj (rt_zone (rt_shift (addr, i*sz), sz),
+           rt_zone (rt_shift (addr, j*sz), sz))
+
+axiom vzone_of_zone : forall ma:memalloc. forall v, a, sz:int. 
+  a = rt_vaddr (ma, v) -> sz = rt_vsize (v) ->
+  rt_zone (a, sz) = rt_vzone (ma, v)
+
+(*
+axiom rt_vsize_of_format : forall ma:memalloc. forall v:int [rt_vsize (ma, v)].
+  rt_valid (ma, rt_vzone (ma, v)) ->
+  rt_vsize (ma, v) = format_size (rt_vformat (v))
+*)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* About bits : *)
+
+axiom bits_part_full : forall v:bits. forall sz:int.
+  sz = bits_size (v) -> bits_part (v, 0, sz) = v
+
+axiom bits_part_of_bits_part : forall b:bits. forall o1, o2, sz1, sz2 : int.
+  0 <= o1 -> o1 + sz1 <= bits_size (b) ->
+  0 <= o2 -> o2 + sz2 <= sz1 ->
+  bits_part (bits_part (b, o1, sz1), o2, sz2) = bits_part (b, o1+o2, sz2)
+
+axiom eq_bits_split : forall b1, b2:bits. forall sz:int.
+      bits_size (b1) = sz -> bits_size (b2) = sz ->
+      forall sz1, sz2:int. sz1 >= 0 -> sz2 >= 0 -> sz1 + sz2 = sz ->
+      bits_part (b1, 0, sz1) = bits_part (b2, 0, sz1) ->
+      bits_part (b1, sz1, sz2) = bits_part (b2, sz1, sz2) ->
+      b1 = b2
+
+axiom wr_bits_part_all : forall v, v':bits.
+  bits_size(v) = bits_size(v') -> wr_bits_part (v, 0, v') = v'
+
+axiom wr_bits_part_concat :
+  forall b, b':bits.
+  forall sz1, sz2, sz3:int. 0 <= sz1 -> sz2 = bits_size (b') -> 0 <= sz3 ->
+  sz1 + sz2 + sz3 = bits_size (b) ->
+  wr_bits_part (b, sz1, b') =
+    bits_concat (bits_part (b, 0, sz1),
+      bits_concat (b', bits_part (b, sz1+sz2, sz3)))
+
+(* R/W in the same bit part and included in the valid zone *)
+axiom wr_bits_part_same : forall b1, b2: bits. forall off: int.
+  0 <= off -> off + bits_size (b2) <= bits_size (b1) ->
+  bits_part (wr_bits_part (b1, off, b2), off, bits_size (b2)) = b2
+
+axiom wr_bits_part_disj :
+  forall b, b1: bits. forall off2, off1: int. forall sz, sz1, sz2:int.
+  sz = bits_size (b) -> sz1 = bits_size (b1) -> 
+  0 <= off1 -> off1 + sz1 <= sz ->
+  0 <= off2 -> off2 + sz2 <= sz ->
+  off2 + sz2 <= off1 or off1 + sz1 <= off2 ->
+  bits_part (wr_bits_part (b, off1, b1), off2, sz2) = bits_part (b, off2, sz2)
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* About rt_from_bits/rt_to_bits : *)
+
+(* 0 is 0 in any integer format. *)
+axiom rt_z_from_bits_to_bits_zero: forall fmt, fmt': int format.
+  rt_from_bits (rt_to_bits (fmt, 0), fmt') = 0
+
+axiom bits_part_zero : forall b, b':bits. forall off, sz: int.
+  0 <= off -> off + sz <= bits_size (b) -> b' = bits_part (b, off, sz) -> 
+  zero_bits (b) -> zero_bits (b')
+
+axiom rw_same_var : forall m:memory. forall ma:memalloc.
+  forall v:int. forall val: bits 
+              [rt_load (rt_store (m, rt_vaddr (ma, v), val), rt_vzone (ma, v))].
+  bits_size (val) = rt_vsize (v) ->
+  rt_load (rt_store (m, rt_vaddr (ma, v), val), rt_vzone (ma, v)) = val
+
+axiom rw_disj_var : forall ma:memalloc. forall m:memory. forall v1, v2: int.
+  forall z1, z2: zone. forall b:bits
+  [rt_load (rt_store (m, rt_vaddr (ma, v2), b), rt_vzone (ma, v1))] . 
+  v1 <> v2 -> z1 = rt_vzone (ma, v1) -> z2 = rt_vzone (ma, v2) ->
+  rt_valid (ma, z1) -> rt_valid (ma, z2) -> rt_vsize (v2) = bits_size (b) ->
+  rt_load (rt_store (m, rt_vaddr (ma, v2), b), z1) = rt_load(m, z1)
+
+axiom store_concat :
+  forall m, m1: memory. forall a: int. forall b1, b2: bits.
+  forall sz1:int. sz1 = bits_size (b1) -> m1 = rt_store (m, a, b1) ->
+  rt_store (m1, a + sz1, b2) = rt_store (m, a, bits_concat (b1, b2))
+
+axiom store_disj_commut : forall m:memory. 
+  forall a1, a2: int.  forall b1, b2: bits.
+  rt_disj (rt_zone (a1, bits_size (b1)), rt_zone (a2, bits_size (b2))) ->
+  rt_store (rt_store (m, a1, b1), a2, b2) 
+= rt_store (rt_store (m, a2, b2), a1, b1)
+
+(*
+axiom mbyte_to_bbits_to_mbyte : forall b:bool farray.
+  n_bits_eq (7, mbyte_to_bbits (bbits_to_mbyte (0, b)), b)
+
+axiom bbits_to_mbyte_to_bbits : forall b:bits. bits_size (b) = 8 ->
+  bbits_to_mbyte (0, mbyte_to_bbits (b)) = b
+
+axiom nth_byte_0 :  forall b:bits. bits_size (b) = 8 ->
+  nth_byte (0, b) = mbyte_to_bbits (b)
+
+axiom bits_concat_nth_byte_left : forall b1, b2: bits. forall k:int.
+  8*(k+1) <= bits_size (b1) ->
+  nth_byte (k, bits_concat (b1, b2)) = nth_byte (k, b1)
+
+axiom bits_concat_nth_byte_right : forall b1, b2: bits. forall k1, k:int.
+  bits_size (b1) = 8 * k1 -> k1 <= k -> 8*((k-k1)+1) <= bits_size (b2) ->
+  nth_byte (k, bits_concat (b1, b2)) = nth_byte (k-k1, b2)
+*)
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+(* About allocation : *)
+
+axiom not_valid_before_valloc : forall ma:memalloc. forall v:int
+  (* [ not rt_valid (ma, rt_vzone (ma', v)) ] *) .
+  forall ma':memalloc. ma' = rt_valloc (ma, v) ->
+  not rt_valid (ma, rt_vzone (ma', v))
+
+axiom valid_valloc : forall ma:memalloc. forall v:int. forall ma':memalloc 
+  [ rt_valid (ma', rt_vzone (ma', v)) ].
+  ma' = rt_valloc (ma, v) -> rt_valid (ma', rt_vzone (ma', v))
+
+axiom valloc_keep_valid_zone : forall ma:memalloc. forall v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> 
+  forall z:zone. rt_valid (ma, z) -> rt_valid (ma', z)
+
+axiom valloc_keep_valid_disj_zone : forall ma:memalloc. forall v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> 
+  forall z:zone. rt_disj (rt_vzone (ma', v), z) ->
+  rt_valid (ma', z) -> rt_valid (ma, z)
+
+axiom valloc_keep_invalid_zone : forall ma:memalloc. forall v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> 
+  forall z:zone. rt_disj (rt_vzone (ma', v), z) ->
+  not rt_valid (ma, z) -> not rt_valid (ma', z)
+
+axiom valloc_keep_invalid_zone_rev : forall ma:memalloc. forall v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> 
+  forall z:zone. rt_disj (rt_vzone (ma', v), z) ->
+  not rt_valid (ma', z) -> not rt_valid (ma, z)
+
+(* TODO hyp v<>v1 shouldn't be needed since v1 is valid before alloc v *)
+axiom valloc_keep_valid_var : forall ma:memalloc. forall v1, v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> v <> v1 ->
+  rt_valid (ma, rt_vzone (ma, v1)) -> rt_valid (ma', rt_vzone (ma', v1))
+
+axiom valloc_keep_vaddr : forall ma:memalloc. forall v1, v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> v <> v1 ->
+  rt_vaddr (ma', v1) = rt_vaddr (ma, v1)
+
+(*
+axiom valloc_keep_vsize : forall ma:memalloc. forall v1, v, sz:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v, sz) -> v <> v1 ->
+  rt_vsize (ma', v1) = rt_vsize (ma, v1)
+*)
+
+axiom valloc_keep_vzone : forall ma:memalloc. forall v1, v:int.
+  forall ma':memalloc. ma' = rt_valloc (ma, v) -> v <> v1 ->
+  rt_vzone (ma', v1) = rt_vzone (ma, v1)
+
+axiom vzone_vfree : forall ma:memalloc. forall v1, v2: int.
+  forall ma':memalloc. ma' = rt_vfree (ma, v1) -> v1 <> v2 ->
+  rt_vzone (ma', v2) = rt_vzone (ma, v2)
+
+axiom not_valid_after_vfree : forall ma:memalloc. forall v:int.
+  forall ma':memalloc. ma' = rt_vfree (ma, v) ->
+  forall z:zone. z = rt_vzone (ma, v) ->
+  not (rt_valid (ma', z))
+
+
+axiom havoc_store: forall ma:memalloc. forall m1,m2:memory. forall zs:zones.
+  forall z:zone. forall x:bits. forall a:int. z = rt_zone (a, bits_size (x)) ->
+  rt_is_havoc (ma, m1, zs, m2) -> zs_z_incl (z, zs) ->
+  rt_is_havoc (ma, m1, zs, rt_store (m2, a, x))
+
+axiom havoc_invalid :  forall ma:memalloc. forall m1,m2:memory. forall zs:zones.
+  forall z:zone. forall x:bits. forall a:int. z = rt_zone (a, bits_size (x)) ->
+  rt_is_havoc (ma, m1, zs, m2) -> not rt_valid (ma, z) ->
+  rt_is_havoc (ma, m1, zs, rt_store (m2, a, x))
+  
+axiom same_bits_same_val : forall b1, b2:bits. forall fmt: 'a format.
+  b1 = b2 -> rt_from_bits (b1, fmt) = rt_from_bits (b2, fmt)
+
+axiom valid_vglob : forall v:int. rt_global (v) ->
+  forall ma, ma':memalloc. rt_valid (ma, rt_vzone (ma', v))
+
+(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
+

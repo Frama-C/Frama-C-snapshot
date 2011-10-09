@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -deps -slice-print -slice-return main -journal-disable
+   OPT: -check -deps -slice-return main -journal-disable -then-on 'Slicing export' -print
 */
 int main() {
   int a,c; volatile int b = 0;

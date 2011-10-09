@@ -1,0 +1,5 @@
+int x[10] ;
+//@lemma prio_unary_plus:  3 - +2       +2     == 3;
+//@lemma prio_unary_minus: 3 - -2       -2     == 3;
+//@lemma prio_unary_amp:  (&x[1] - &x[0] & &x[2]  - &x[2]) == 0;
+//@lemma prio_unary_star:  0 * *&x[2] * *&x[2] == 0;

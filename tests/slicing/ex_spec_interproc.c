@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/ex_spec_interproc.opt
    CMD: tests/slicing/ex_spec_interproc.opt
-   OPT: -deps -journal-disable
+   OPT: -check -deps -journal-disable
 */
 
 int X, Y;

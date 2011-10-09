@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Implementation of [Dynlink_common_interface] compatible with 
+(* Implementation of [Dynlink_common_interface] compatible with
    ocamlopt < 3.11 *)
 
 module type OldDynlink = sig

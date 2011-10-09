@@ -24,7 +24,6 @@
     @plugin development guide *)
 
 open Cil_types
-open Db_types
 
 exception No_such_while
 val get_loop_stmts : kernel_function -> stmt -> Cil_datatype.Stmt.Set.t

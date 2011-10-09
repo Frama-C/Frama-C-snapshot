@@ -35,11 +35,12 @@ let framac_logo, framac_icon =
 
 module Icon = struct
 
-  type kind = Frama_C | Left | Right | Relies_on_valid_hyp | Failed
-              | Maybe | Attach | Check
-              | Custom of string 
+  type kind = Frama_C | Left | Right
+	      | Failed | Maybe | Check | Unmark
+              | Custom of string
+	      | Feedback of Property_status.Feedback.t
 
-  let default_icon = 
+  let default_icon =
     [| "12 12 2 1";
        ". c #ffffff";
        "# c #000000";
@@ -56,51 +57,64 @@ module Icon = struct
        "#..........#";
        "############"|]
 
+  module F = Property_status.Feedback
+
   let builtins =
     [(Frama_C,"frama-c.ico");
      (Left,"left.png");
      (Right,"right.png");
-     (Relies_on_valid_hyp,"relies_on_hyp.png");
      (Failed, "failed.png");
      (Maybe, "maybe.png");
-     (Attach, "attach.png");
-     (Check,"check.png"); 
+     (Check,"check.png");
+     (Unmark,"unmark.png");
+     (Feedback F.Never_tried,"feedback/never_tried.png");
+     (Feedback F.Unknown,"feedback/unknown.png");
+     (Feedback F.Valid,"feedback/surely_valid.png");
+     (Feedback F.Invalid,"feedback/surely_invalid.png");
+     (Feedback F.Considered_valid,"feedback/considered_valid.png");
+     (Feedback F.Valid_under_hyp,"feedback/valid_under_hyp.png");
+     (Feedback F.Invalid_under_hyp,"feedback/invalid_under_hyp.png");
+     (Feedback F.Invalid_but_dead,"feedback/invalid_but_dead.png");
+     (Feedback F.Unknown_but_dead,"feedback/unknown_but_dead.png");
+     (Feedback F.Valid_but_dead,"feedback/valid_but_dead.png");
+     (Feedback F.Inconsistent,"feedback/inconsistent.png");
     ]
 
   type icon = Filename of string | Pixbuf of GdkPixbuf.pixbuf
 
   let h = Hashtbl.create 7
 
-  let () = 
-    List.iter 
-      (fun (k,f) -> Hashtbl.add h k (Filename f)) 
+  let () =
+    List.iter
+      (fun (k,f) -> Hashtbl.add h k (Filename f))
       builtins
 
-  let get k =
-  try match Hashtbl.find h k with
-  | Filename f -> 
-    let p = 
-      try GdkPixbuf.from_file (Config.datadir ^ "/" ^ f)
-      with Glib.GError _ ->
-        Gui_parameters.warning ~once:true
-          "Frama-C images not found. Is FRAMAC_SHARE correctly set?";
-        GdkPixbuf.from_xpm_data default_icon
-    in
-    Hashtbl.replace h k (Pixbuf p);
-    p
-  | Pixbuf p -> p
-  with Not_found -> assert false
+  let default () = GdkPixbuf.from_xpm_data default_icon
 
+  let get k =
+    try match Hashtbl.find h k with
+      | Filename f ->
+	  let p =
+	    try GdkPixbuf.from_file (Config.datadir ^ "/" ^ f)
+	    with Glib.GError _ ->
+              Gui_parameters.warning ~once:true
+		"Frama-C images not found. Is FRAMAC_SHARE correctly set?";
+	      default ()
+	  in
+	  Hashtbl.replace h k (Pixbuf p); p
+      | Pixbuf p -> p
+    with Not_found -> assert false
+      
   let register ~name ~file = Hashtbl.replace h (Custom name) (Filename file)
-    
+
 end
 
 module Configuration = struct
   include Cilutil
   let configuration_file =(* This is the user home directory *)
     Filename.concat (try Sys.getenv "USERPROFILE" (*Win32*) with Not_found ->
-		       try Sys.getenv "HOME" (*Unix like*) with Not_found ->
-			 ".")
+                       try Sys.getenv "HOME" (*Unix like*) with Not_found ->
+                         ".")
       "frama-c-gui.config"
   let load () =
     Cilutil.loadConfiguration configuration_file
@@ -114,8 +128,8 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v ->
-	  set key (ConfInt v);
-	  v
+          set key (ConfInt v);
+          v
 
   let use_int = useConfigurationInt
   let find_float ?default key =
@@ -123,8 +137,8 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v ->
-	  set key (ConfFloat v);
-	  v
+          set key (ConfFloat v);
+          v
   let use_float = useConfigurationFloat
 
   let find_bool ?default key =
@@ -132,8 +146,8 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v ->
-	  set key (ConfBool v);
-	  v
+          set key (ConfBool v);
+          v
 
   let use_bool = useConfigurationBool
   let find_string = findConfigurationString
@@ -251,11 +265,11 @@ let splitting_for_utf8 s =
   try
     try
       for i = 1 to 6 do
-	idx := i;
-	if len = i then raise Exit;
-	let pre = String.sub s 0 (len - i) in
-	let suf = String.sub s (len - i) i in
-	if Glib.Utf8.validate pre then raise (Found (pre, suf))
+        idx := i;
+        if len = i then raise Exit;
+        let pre = String.sub s 0 (len - i) in
+        let suf = String.sub s (len - i) i in
+        if Glib.Utf8.validate pre then raise (Found (pre, suf))
       done;
       buggy_string, ""
     with Exit ->
@@ -273,20 +287,20 @@ let channel_redirector channel callback =
   ignore (Glib.Io.add_watch channel ~prio:0 ~cond:[`IN; `HUP; `ERR] ~callback:
     begin fun cond ->
       try if List.mem `IN cond then begin
-	(* On Windows, you must use Io.read *)
-	let len = Glib.Io.read channel ~buf ~pos:0 ~len in
-	len >= 1 &&
-	  (let full_string = !current_partial ^ String.sub buf 0 len in
-	   let to_emit, c = splitting_for_utf8 full_string in
-	   current_partial := c;
-	   callback to_emit)
+        (* On Windows, you must use Io.read *)
+        let len = Glib.Io.read channel ~buf ~pos:0 ~len in
+        len >= 1 &&
+          (let full_string = !current_partial ^ String.sub buf 0 len in
+           let to_emit, c = splitting_for_utf8 full_string in
+           current_partial := c;
+           callback to_emit)
       end
       else false
       with e ->
         ignore
-	  (callback
+          (callback
              ("Channel redirector got an exception: "
-	      ^ (Printexc.to_string e)));
+              ^ (Printexc.to_string e)));
        false
     end)
 
@@ -304,12 +318,12 @@ let make_string_list ~packing =
   let get_all () =
     let l = ref [] in
     model#foreach (fun _ row ->
-		     l := model#get ~row ~column ::!l ;
-		     false);
+                     l := model#get ~row ~column ::!l ;
+                     false);
       !l
   in
   let view = GTree.view ~model ~reorderable:true ~packing () in
-  let view_column = GTree.view_column ~title:"Source file" () in
+  let view_column = GTree.view_column ~title:"Source file(s)" () in
   let str_renderer = GTree.cell_renderer_text [] in
     view_column#pack str_renderer;
     view_column#add_attribute str_renderer "text" column;
@@ -572,15 +586,10 @@ let trace_event (w:GObj.event_ops) =
   in
   ignore (w#connect#any
     ~callback:(fun e ->
-		 Format.eprintf "TRACING event: %s@." (string_of_event e);
-		 false))
+                 Format.eprintf "TRACING event: %s@." (string_of_event e);
+                 false))
 
-module MAKE_CUSTOM_LIST
-  (A:sig
-     type t
-     val custom_value: Gobject.g_type -> t -> column:int -> Gobject.basic
-     val column_list:GTree.column_list
-   end) =
+module MAKE_CUSTOM_LIST(A:sig type t end) =
 struct
   type custom_list =
       {finfo: A.t;
@@ -615,12 +624,12 @@ struct
     method custom_get_path (row:custom_list) : Gtk.tree_path =
       GTree.Path.create [row.fidx]
 
-    method custom_value (t:Gobject.g_type) (row:custom_list) ~column =
-      A.custom_value t row.finfo ~column
+    method custom_value (_t:Gobject.g_type) (_row:custom_list) ~column:_ =
+      assert false
 
     method custom_iter_next (row:custom_list) : custom_list option =
       let nidx = succ row.fidx in
-	self#find_opt nidx
+        self#find_opt nidx
 
     method custom_iter_children (rowopt:custom_list option):custom_list option =
       match rowopt with
@@ -654,12 +663,23 @@ struct
       done;
       last_idx <- 0;
       H.clear roots;
-
-
   end
 
   let custom_list () =
-    new custom_list_class A.column_list
+    new custom_list_class (new GTree.column_list)
+
+  let make_view_column model renderer properties ~title =
+    let m_renderer renderer (lmodel:GTree.model) iter =
+      let (path:Gtk.tree_path) = lmodel#get_path iter  in
+      let props = match model#custom_get_iter path with
+      | Some {finfo=v} -> properties v
+      | None -> []
+      in
+      renderer#set_properties props
+    in
+    let cview = GTree.view_column ~title ~renderer:(renderer,[]) () in
+    cview#set_cell_data_func renderer (m_renderer renderer);
+    cview
 end
 
 
@@ -683,9 +703,12 @@ object(self:#host)
       ?parent
       ~buttons:GWindow.Buttons.ok
       ~title:"Error"
-      ~modal:false
+      ~position:`CENTER_ALWAYS
+      ~modal:true
       ()
     in
+    w#show ();
+    w#present ();
     ignore (w#run ());
     w#destroy ()
 
@@ -694,8 +717,8 @@ object(self:#host)
     let bfmt = Format.formatter_of_buffer b in
     Format.kfprintf
       (function fmt ->
-	Format.pp_print_flush fmt ();
-	let content = Buffer.contents b in
+        Format.pp_print_flush fmt ();
+        let content = Buffer.contents b in
         self#error_string ?parent content)
       bfmt
       fmt
@@ -739,11 +762,11 @@ object(self:#host)
       None
     | Globals.No_such_entry_point msg ->
       (try
-	 Gui_parameters.abort "%s" msg
+         Gui_parameters.abort "%s" msg
        with
        | Log.AbortError _ as e ->
-	 self#display_toplevel_error ?parent ~cancelable e;
-	 None
+         self#display_toplevel_error ?parent ~cancelable e;
+         None
        | _ -> assert false)
     | e when Cmdline.catch_at_toplevel e ->
       self#display_toplevel_error ?parent ~cancelable e;
@@ -818,8 +841,8 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
     ~destroy_with_parent:true
     ()
   in
-  dialog#add_button_stock `CLOSE `CANCEL ;
-  dialog#add_button_stock `NEW `OPEN;
+  dialog#add_button_stock `CANCEL `CANCEL ;
+  dialog#add_button_stock `OK `OPEN;
   let hbox = GPack.box `HORIZONTAL ~packing:dialog#vbox#add () in
   let filechooser = GFile.chooser_widget
     ~action:`OPEN
@@ -854,9 +877,9 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
   (match dialog#run () with
    | `OPEN ->
        main_ui#protect
-	 ~cancelable:true
-	 ~parent:(dialog :> GWindow.window_skel)
-	 (fun () -> f (get_all ()))
+         ~cancelable:true
+         ~parent:(dialog :> GWindow.window_skel)
+         (fun () -> f (get_all ()))
    | `DELETE_EVENT | `CANCEL ->
        ());
   dialog#destroy ()
@@ -868,22 +891,19 @@ let spawn_command ?(timeout=0) ?stdout ?stderr s args f =
   let starting_time = if has_timeout then Unix.time () else 0. in
   let for_idle () =
     match check_result () with
-    | Command.Not_ready kill -> 
+    | Command.Not_ready kill ->
         if has_timeout && Unix.time () -. starting_time >= hang_on then
           begin
             kill ();
             f (Unix.WSIGNALED Sys.sigalrm);
             false
-          end 
+          end
         else true
     | Command.Result p -> f p; false
   in
   let prio = Glib.int_of_priority `LOW in
   ignore (Glib.Idle.add ~prio for_idle)
 
-let () =
-  Task.on_idle := 
-    (fun f -> ignore (Glib.Timeout.add ~ms:50 ~callback:f))
 
 (*
 Local Variables:

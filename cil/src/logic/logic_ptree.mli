@@ -135,6 +135,8 @@ and lexpr_node =
       (** same as [PLvalid_index], but for a range of indices. *)
   | PLseparated of lexpr list
       (** separation predicate. *)
+  | PLinitialized of lexpr
+      (** l-value is guaranteed to be initalized *)
   | PLfresh of lexpr (** expression points to a newly allocated block. *)
   | PLnamed of string * lexpr (** named expression. *)
   | PLsubtype of lexpr * lexpr
@@ -157,6 +159,12 @@ type type_annot =  {inv_name: string;
                     this_type : logic_type;
                     this_name: string; (** name of its argument. *)
                     inv: lexpr
+                   }
+
+(** model field. *)
+type model_annot =  {model_for_type: logic_type;
+                     model_type : logic_type;
+                     model_name: string; (** name of the model field. *)
                    }
 
 (** Concrete type definition. *)
@@ -226,7 +234,8 @@ and decl_node =
             represents a block of axiomatic definitions.*)
   | LDinvariant of string * lexpr (** global invariant. *)
   | LDtype_annot of type_annot    (** type invariant. *)
-  | LDvolatile of lexpr * (string option * string option)
+  | LDmodel_annot of model_annot    (** model field. *)
+  | LDvolatile of lexpr list * (string option * string option)
       (** volatile clause read/write. *)
 
 and deps = lexpr Cil_types.deps (** C locations. *)
@@ -244,7 +253,6 @@ type variant = lexpr Cil_types.variant
 (** all kind of annotations*)
 type annot =
   | Adecl of decl list (** global annotation. *)
-  | Afor_spec of (location * string list * spec)
   | Aspec  (* the real spec is parsed afterwards.
               See cparser.mly (grammar rules involving SPEC) for
               more details.
@@ -256,18 +264,18 @@ type annot =
 
 (** ACSL extension for external spec file **)
 type ext_decl =
-  | Ext_decl of decl 
-  | Ext_macro of string * lexpr
-  | Ext_include of bool * string
+  | Ext_decl of decl            (* decl contains a location *)
+  | Ext_macro of string * lexpr (* lexpr contains a location *)
+  | Ext_include of bool * string * location
 
 type ext_function = 
-  | Ext_spec of spec (* function spec *)
-  | Ext_loop_spec of string * annot (* loop annotation or
+  | Ext_spec of spec * location (* function spec *)
+  | Ext_loop_spec of string * annot * location (* loop annotation or
 			   code annotation relative to the loop body. *)
-  | Ext_stmt_spec of string * annot (* code annotation. *)
+  | Ext_stmt_spec of string * annot * location (* code annotation. *)
   | Ext_glob of ext_decl
 
-type ext_module = string * ext_decl list * (string * ext_function list) list
+type ext_module = string * ext_decl list * ((string * location) * ext_function list) list
 
 type ext_spec = ext_module list
 (*

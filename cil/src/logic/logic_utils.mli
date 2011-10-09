@@ -55,7 +55,7 @@ val unroll_type : ?unroll_typedef:bool -> logic_type -> logic_type
 (** computes a type signature for a C type and removes attributes that
     are not meaningful for the logic. See {!Cil.typeSig} for more information.
  *)
-val type_sig_logic : typ -> typsig
+val type_sig_logic : ?drop_attributes:bool -> typ -> typsig
 
 (** [isLogicType test typ] is [false] for pure logic types and the result
     of test for C types.
@@ -140,23 +140,39 @@ val loffset_contains_result : term_offset -> bool
 val contains_result : term -> bool
 
 (** returns the body of the given predicate.
-    @raise Not_found if the logic_info is not the definition of a predicate.
-*)
+    @raise Not_found if the logic_info is not the definition of a predicate. *)
 val get_pred_body :
   logic_info -> predicate named
 
 (** true if the term is \result or an offset of \result.
-    @deprecated since Carbon-20101201 use Logic_const.is_result instead
-*)
+    @deprecated since Carbon-20101201 use Logic_const.is_result instead *)
 val is_result : term -> bool
 
 val lhost_c_type : term_lhost -> typ
 
+(** {2 Predicates} *)
+
+(** [true] if the predicate is Ptrue.
+    @since Nitrogen-20111001 *)
+val is_trivially_true: predicate named -> bool
+
+(** [true] if the predicate is Pfalse
+    @since Nitrogen-20111001 *)
+val is_trivially_false: predicate named -> bool
+
 (** {2 Structural equality between annotations} *)
+
+val is_same_list: ('a -> 'a -> bool) -> 'a list -> 'a list -> bool
 
 val is_same_logic_label :
   logic_label -> logic_label -> bool
-val is_same_type : logic_type -> logic_type -> bool
+
+(**
+   @since Nitrogen-20111001
+*)
+val is_same_pconstant: Logic_ptree.constant -> Logic_ptree.constant -> bool
+
+val is_same_type : ?drop_attributes:bool -> logic_type -> logic_type -> bool
 val is_same_var : logic_var -> logic_var -> bool
 val is_same_logic_signature :
   logic_info -> logic_info -> bool
@@ -166,6 +182,8 @@ val is_same_builtin_profile :
   builtin_logic_info -> builtin_logic_info -> bool
 val is_same_logic_ctor_info :
   logic_ctor_info -> logic_ctor_info -> bool
+
+(** @deprecated Nitrogen-20111001 use {!Cil.compareConstant} instead. *)
 val is_same_constant : constant -> constant -> bool
 val is_same_term : term -> term -> bool
 val is_same_logic_info : logic_info -> logic_info -> bool
@@ -219,10 +237,23 @@ val is_same_axiomatic :
 
 val is_same_lexpr: Logic_ptree.lexpr -> Logic_ptree.lexpr -> bool
 
+(** hash function compatible with is_same_term *)
+val hash_term: term -> int
+
 (** {2 Merging contracts} *)
 
 val get_behavior_names : ('a, 'b, 'c) spec -> string list
 
+
+(** Concatenates two assigns if both are defined, 
+    returns WritesAny if one (or both) of them is WritesAny. 
+    @since Nitrogen-20111001 *)
+val concat_assigns:
+  identified_term assigns ->
+  identified_term assigns -> identified_term assigns
+
+(** merge assigns: take the one that is defined and select an arbitrary one
+    if both are, emitting a warning unless both are syntactically the same. *)
 val merge_assigns :
   identified_term assigns ->
   identified_term assigns -> identified_term assigns
@@ -230,14 +261,22 @@ val merge_assigns :
 val merge_behaviors :
   silent:bool -> funbehavior list -> funbehavior list -> funbehavior list
 
+(** [merge_funspec oldspec newspec] merges [newspec] into [oldspec]. 
+    If the funspec belongs to a kernel function, do not forget to call
+    {!Kernel_function.set_spec} after merging. *)
 val merge_funspec :
   ?silent_about_merging_behav:bool -> funspec -> funspec -> unit
+
+(** Reset the given funspec to empty. 
+    If the funspec belongs to a kernel function, do not forget to call
+    {!Kernel_function.set_spec} after clearing.
+    @since Nitrogen-20111001 *)
+val clear_funspec: funspec -> unit
 
 (** {2 Discriminating code_annotations} *)
 (** Functions below allows to test a special kind of code_annotation.
     Use them in conjunction with {!Annotations.get_filter} to retrieve
-    a particular kind of annotations associated to a statement.
- *)
+    a particular kind of annotations associated to a statement. *)
 
 val is_assert : code_annotation -> bool
 val is_contract : code_annotation -> bool
@@ -251,10 +290,14 @@ val is_loop_pragma : code_annotation -> bool
 val is_slice_pragma : code_annotation -> bool
 val is_impact_pragma : code_annotation -> bool
 val is_loop_annot : code_annotation -> bool
+
+val is_property_pragma : term pragma -> bool
+(** Should this pragma be proved by plugins *)
+
 val extract_loop_pragma :
   code_annotation list -> term loop_pragma list
 val extract_contract :
-  code_annotation list -> funspec list
+  code_annotation list -> (string list * funspec) list
 
 (** {2 Parsing hackery} *)
 (** Values that control the various modes of the parser and lexer for logic.

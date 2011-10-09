@@ -20,12 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Db_types
 open Cil_types
 open Cilutil
 open Cil
-
-let pretty_vname fmt vi = !Ast_printer.d_ident fmt vi.vname
 
 (* ************************************************************************** *)
 (** {2 Expressions} *)
@@ -38,7 +35,7 @@ let is_integral_const = function
 let rec possible_value_of_integral_const = function
   | CInt64 (i,_,_) -> Some i
   | CEnum {eival = e} -> possible_value_of_integral_expr e
-  | CChr c -> Some (Int64.of_int (Char.code c))
+  | CChr c -> Some (My_bigint.of_int (Char.code c))
   | _ -> None
 
 and possible_value_of_integral_expr e =
@@ -60,13 +57,13 @@ let constant_expr ~loc i = new_exp ~loc (Const(CInt64(i,IInt,None)))
 
 let rec is_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
-      value_of_integral_const c = Int64.zero
+      My_bigint.equal (value_of_integral_const c) My_bigint.zero
   | CastE(_,e) -> is_null_expr e
   | _ -> false
 
 let rec is_non_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
-      value_of_integral_const c <> Int64.zero
+      not (My_bigint.equal (value_of_integral_const c) My_bigint.zero)
   | CastE(_,e) -> is_non_null_expr e
   | _ -> false
 
@@ -84,11 +81,11 @@ let term_lvals_of_term t =
   ignore
     (Cil.visitCilTerm
        (object
-	  inherit nopCilVisitor
-	  method vterm_lval lv =
-	    l := lv :: !l;
-	    DoChildren
-	end)
+          inherit nopCilVisitor
+          method vterm_lval lv =
+            l := lv :: !l;
+            DoChildren
+        end)
        t);
   !l
 
@@ -109,11 +106,11 @@ let is_trivial_annotation = function
 let is_trivial_rooted_assertion = function
   | User ca | AI(_, ca) -> is_trivial_annotation ca.annot_content
 
+let behavior_assumes b =
+  Logic_const.pands (List.map Logic_const.pred_of_id_pred b.b_assumes)
+
 let behavior_postcondition b k =
-  let assumes =
-    Logic_const.pold
-      (Logic_const.pands (List.map Logic_const.pred_of_id_pred b.b_assumes))
-  in
+  let assumes = Logic_const.pold (behavior_assumes b) in
   let postcondition =
     Logic_const.pands
       (Extlib.filter_map (fun (x,_) -> x = k)
@@ -122,14 +119,65 @@ let behavior_postcondition b k =
   Logic_const.pimplies (assumes,postcondition)
 
 let behavior_precondition b =
-  let assumes = Logic_const.pands (List.rev_map Logic_const.pred_of_id_pred b.b_assumes)
-  in
-  let requires =Logic_const.pands (List.rev_map Logic_const.pred_of_id_pred b.b_requires)
+  let assumes = behavior_assumes b in
+  let requires = Logic_const.pands 
+                   (List.rev_map Logic_const.pred_of_id_pred b.b_requires)
   in
   Logic_const.pimplies (assumes,requires)
 
 let precondition spec =
   Logic_const.pands (List.map behavior_precondition spec.spec_behavior)
+
+(** find the behavior named [name] in the list *)
+let get_named_bhv bhv_list name =
+  try Some (List.find (fun b -> b.b_name = name) bhv_list)
+  with Not_found -> None
+
+let get_behavior_names ~with_default spec =
+  let rec get_bhv_names lb = match lb with [] -> []
+  | b::tlb ->
+    if Cil.is_default_behavior b
+    then (* do it later*) get_bhv_names tlb
+    else (b.b_name)::(get_bhv_names tlb)
+  in 
+  let named_bhv = get_bhv_names spec.spec_behavior in
+  if with_default then Cil.default_behavior_name::named_bhv else named_bhv
+
+let get_named_bhv_assumes spec bhv_names =
+  let bhvs = match bhv_names with
+  | [] -> (* no names ==> all named behaviors *) 
+    List.filter (fun b -> not (is_default_behavior b)) spec.spec_behavior
+  | _ -> 
+    let rec get l = match l with [] -> []
+    | name::tl ->
+      match get_named_bhv spec.spec_behavior name with
+      | None -> (* TODO: warn ? *) get tl
+      | Some b -> b::(get tl)
+    in 
+    get bhv_names
+  in
+  List.map behavior_assumes bhvs
+
+let complete_behaviors spec bhv_names =
+  let bhv_assumes = get_named_bhv_assumes spec bhv_names in
+  Logic_const.pors bhv_assumes
+
+let disjoint_behaviors spec bhv_names = 
+  let bhv_assumes = get_named_bhv_assumes spec bhv_names in
+  let mk_disj_bhv b1 b2 = (* ~ (b1 /\ b2) *)
+    let p = Logic_const.pands [b1; b2] in
+    Logic_const.pnot p
+  in
+  let do_one_with_list prop b lb =
+    let lp = List.map (mk_disj_bhv b) lb in
+    Logic_const.pands (prop::lp)
+  in
+  let rec do_list prop l = match l with [] -> prop
+  | b::tl ->
+    let prop = do_one_with_list prop b tl in
+    do_list prop tl
+  in 
+  do_list Logic_const.ptrue bhv_assumes 
 
 let merge_assigns (l : funbehavior list) =
   let unguarded_behaviors =
@@ -137,13 +185,17 @@ let merge_assigns (l : funbehavior list) =
   match unguarded_behaviors with
     | [] -> (* No unguarded behavior -> assigns evything *) WritesAny
     | l -> (* Let's check if there is an "assigns everything" *)
-	if List.exists (fun b -> b.b_assigns=WritesAny) l then WritesAny
-	else match l with
-	  | [{b_assigns=r}] -> r
-	  | {b_name=n;b_assigns=r}::_ ->
-	      Cil.warn "keeping only assigns of behavior %s" n;
-	      r
-	  | [] -> assert false
+      if List.exists (fun b -> b.b_assigns=WritesAny) l then WritesAny
+      else match l with
+      | [] -> assert false
+      | [{b_assigns=r}] -> r
+      | {b_name=n;b_assigns=r}::q ->
+        (* Let's check if by chance all behaviors are in fact the same,
+           which occurs often with the current modus operandi of the kernel *)
+        if List.exists (fun b' -> b'.b_assigns != r) q then
+          Kernel.warning ~once:true ~current:true
+            "keeping only assigns of behavior %s" n;
+        r
 (*
     List.fold_left (fun a b -> Logic_utils.merge_assigns a b.b_assigns) [] l
 *)
@@ -165,7 +217,7 @@ let constant_term loc i =
 
 let rec is_null_term t = match t.term_node with
   | TConst c when is_integral_const c ->
-      value_of_integral_const c = Int64.zero
+      My_bigint.equal (value_of_integral_const c) My_bigint.zero
   | TCastE(_,t) -> is_null_term t
   | _ -> false
 
@@ -184,13 +236,11 @@ let predicate loc p =
 (** {2 Annotations} *)
 (* ************************************************************************** *)
 
-let before_after_content = function Before x | After x -> x
-
-let lift_annot_func f a = match before_after_content a with
+let lift_annot_func f a = match a with
   | User p | AI (_,p) -> f p
 
 let lift_annot_list_func f l =
-  let add l x = match before_after_content x with
+  let add l x = match x with
     | User p | AI(_,p) -> p :: l
   in
   let l' = List.fold_left add [] l in
@@ -222,9 +272,9 @@ module Function = struct
 
   let formal_args called_vinfo = match called_vinfo.vtype with
     | TFun (_,Some argl,_,_) ->
-	argl
+        argl
     | TFun _ ->
-	[]
+        []
     | _ -> assert false
 
   let is_formal v fundec =
@@ -261,16 +311,16 @@ let array_type ?length ?(attr=[]) ty = TArray(ty,length,empty_size_cache (),attr
 let direct_array_size ty =
   match unrollType ty with
     | TArray(_ty,Some size,_,_) -> value_of_integral_expr size
-    | TArray(_ty,None,_,_) -> 0L
+    | TArray(_ty,None,_,_) -> My_bigint.zero
     | _ -> assert false
 
 let rec array_size ty =
   match unrollType ty with
     | TArray(elemty,Some _,_,_) ->
-	if isArrayType elemty then
-	  Int64.mul (direct_array_size ty) (array_size elemty)
-	else direct_array_size ty
-    | TArray(_,None,_,_) -> 0L
+        if isArrayType elemty then
+          My_bigint.mul (direct_array_size ty) (array_size elemty)
+        else direct_array_size ty
+    | TArray(_,None,_,_) -> My_bigint.zero
     | _ -> assert false
 
 let direct_element_type ty = match unrollType ty with
@@ -300,20 +350,31 @@ let pointed_type ty =
 (** {2 Predefined} *)
 (* ************************************************************************** *)
 
-let is_cea_function name =
+let can_be_cea_function name =
   (String.length name >= 4 &&
-    name.[0] = 'C' && name.[1] = 'E' &&
-      name.[2] = 'A' && name.[3] = '_') ||
-    ((String.length name >= 17) &&
-	( (String.sub name 0 17) = "Frama_C_show_each"))
+     name.[0] = 'C' && name.[1] = 'E' && name.[2] = 'A' && name.[3] = '_')
+  ||
+  (String.length name >= 6 &&
+    name.[0] = 'F' && name.[1] = 'r' && name.[2] = 'a' &&
+       name.[3] = 'm' && name.[4] = 'a' && name.[5] = '_')
+
+let is_cea_function name =
+  (String.length name >= 4  && (String.sub name 0 4  = "CEA_" )) ||
+  (String.length name >= 17 && (String.sub name 0 17 = "Frama_C_show_each" ))
 
 let is_cea_alloc_with_validity name = name = "Frama_C_alloc_size"
 let is_cea_dump_function name = name = "CEA_DUMP" || name = "Frama_C_dump_each"
 
+let is_cea_dump_file_function name =
+  (String.length name >= 22 &&
+  (String.sub name 0 22 = "Frama_C_dump_each_file" ))
+
 let is_frama_c_builtin n =
-  is_cea_dump_function n ||
-    is_cea_function n ||
-    is_cea_alloc_with_validity n
+  can_be_cea_function n &&
+  (is_cea_dump_function n ||
+   is_cea_function n ||
+   is_cea_alloc_with_validity n ||
+   is_cea_dump_file_function n)
 
 let () = Cil.add_special_builtin_family is_frama_c_builtin
 

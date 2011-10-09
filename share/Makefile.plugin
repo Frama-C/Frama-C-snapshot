@@ -143,15 +143,34 @@ PLUGIN_TYPES_CMX_LIST += $(PLUGIN_TYPES_CMX)
 # is behaving correctly.
 PLUGIN_BASE:=$(strip $(if $(notdir $(PLUGIN_DIR)),$(notdir $(PLUGIN_DIR)),\
 $(notdir $(patsubst %/,%,$(PLUGIN_DIR)))))
+
+################
+# ml sources   #
+################
+
+PLUGIN_SRC:= $(patsubst %,$(PLUGIN_DIR)/%.ml*, $(PLUGIN_CMO)) \
+             $(patsubst %,$(PLUGIN_DIR)/%.mli, $(PLUGIN_CMI)) \
+	     $(patsubst %,$(PLUGIN_DIR)/%.ml*, $(PLUGIN_GUI_CMO)) \
+             $(patsubst %.cmo,%.ml*, $(PLUGIN_TYPES_CMO))
+
+$(PLUGIN_NAME)_SRC:=$(PLUGIN_SRC)
+
+PLUGIN_ML_SRC:=$(patsubst %.ml*,%.ml,$(PLUGIN_SRC)) \
+               $(patsubst %.ml*,%.mli,$(filter %.ml*,$(PLUGIN_SRC)))
+$(PLUGIN_NAME)_ML_SRC:=$(PLUGIN_ML_SRC)
+
 ################
 # distribution #
 ################
 
 ifeq ($(PLUGIN_DISTRIBUTED),yes)
-ifdef PLUGIN_TYPES_CMO
-PLUGIN_DISTRIBUTED_LIST += $(wildcard $(patsubst %.cmo,%.ml, $(PLUGIN_TYPES_CMO))) $(wildcard $(patsubst %.cmo,%.mli, $(PLUGIN_TYPES_CMO)))
+PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_SRC)
+
+ifeq ($(PLUGIN_HAS_MLI),yes)
+PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_DIR)/$(PLUGIN_NAME).mli
 endif
-PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_DIR)/*.ml*
+
+# VP: this needs to be adapted for external plugins.
 ifeq ($(PLUGIN_HAS_EXT_DOC),yes)
 PLUGIN_EXT_DOC_DIR:=doc/$(PLUGIN_BASE)
 PLUGIN_DIST_DOC_LIST += doc/plugins/$(PLUGIN_BASE).pdf
@@ -198,6 +217,10 @@ PLUGIN_CMX:= $(PLUGIN_CMO:.cmo=.cmx)
 PLUGIN_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_CMI)) \
 	$(PLUGIN_CMO:.cmo=.cmi)
 
+$(PLUGIN_NAME)_CMO:=$(PLUGIN_CMO)
+$(PLUGIN_NAME)_CMX:=$(PLUGIN_CMX)
+$(PLUGIN_NAME)_CMI:=$(PLUGIN_CMI)
+
 HAS_GUI:=no
 ifneq  ($(ENABLE_GUI),no)
 ifneq ("$(PLUGIN_GUI_CMO)","")
@@ -210,6 +233,10 @@ PLUGIN_GUI_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_GUI_CMI)) \
 HAS_GUI:=yes
 endif
 endif
+
+$(PLUGIN_NAME)_GUI_CMO:=$(PLUGIN_GUI_CMO)
+$(PLUGIN_NAME)_GUI_CMX:=$(PLUGIN_GUI_CMX)
+$(PLUGIN_NAME)_GUI_CMI:=$(PLUGIN_GUI_CMI)
 
 # The packing files
 TARGET_CMO:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME).cmo
@@ -237,6 +264,9 @@ TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
 else
 TARGET_GUI_CMXS:=
 endif
+else
+TARGET_GUI_CMO:=
+TARGET_GUI_CMX:=
 endif
 
 # Some meta-variables for compilation flags
@@ -275,14 +305,17 @@ endif
 # Set the compilation flags for the plugin
 $(NAME_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS)
 $(NAME_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS)
+$(NAME_DOCFLAGS):= $(DOC_FLAGS) $(PLUGIN_DOCFLAGS) \
+                   -I $($(PLUGIN_NAME)_DIR) -I . $(OCAMLGRAPH_INCLUDE)
 ifeq ($(HAS_GUI),yes)
 $(NAME_GUI_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS) -I +lablgtk2
 $(NAME_GUI_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS) -I +lablgtk2
 $(TARGET_GUI_BFLAGS):= $(PLUGIN_LINK_GUI_BFLAGS)
 $(TARGET_GUI_OFLAGS):=-pack $(PLUGIN_LINK_GUI_OFLAGS)
+$(NAME_DOCFLAGS) := $($(NAME_DOCFLAGS)) -I +lablgtk2
 endif
 $(NAME_DEPFLAGS):= -I $(PLUGIN_DIR) $(PLUGIN_DEPFLAGS)
-$(NAME_DOCFLAGS):= $(PLUGIN_DOCFLAGS)
+
 
 $(TARGET_BFLAGS):= $(PLUGIN_LINK_BFLAGS)
 $(TARGET_OFLAGS):=-pack $(PLUGIN_LINK_OFLAGS)
@@ -331,7 +364,7 @@ $(TARGET_CMO): $(PLUGIN_CMO) $(TARGET_CMI) \
 	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
 	  $($(basename $(notdir $@))_CMO)
 
-$(TARGET_CMX): $(PLUGIN_CMX) $(TARGET_CMI) $(PACKED_CMX) \
+$(TARGET_CMX): $(PLUGIN_CMX) $(TARGET_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
@@ -353,6 +386,7 @@ else
 
 PLUGIN_MLI:=
 $(PLUGIN_NAME)_MLI:=
+TARGET_CMI:=
 
 $(TARGET_CMO): $(PLUGIN_CMO) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
@@ -441,7 +475,8 @@ else
 # packing gui files without signature
 #####################################
 
-PLUGIN_GUI_MLI:=
+TARGET_GUI_MLI:=
+TARGET_GUI_CMI:=
 $(PLUGIN_NAME)_gui_MLI:=
 
 $(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) \
@@ -466,8 +501,11 @@ $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
 	$(OCAMLOPT) -o $@ -shared $^
 endif
-endif
-endif
+endif # PLUGIN_HAS_MLI
+else
+TARGET_GUI_MLI:=
+TARGET_GUI_CMI:=
+endif # HAS_GUI
 
 #########
 
@@ -483,18 +521,14 @@ endif
 MODULES_TODOC+= $(PLUGIN_TYPES_TODOC)
 
 PLUGIN_UNDOC := $(addprefix $(PLUGIN_DIR)/, $(PLUGIN_UNDOC))
-ifeq ($(ENABLE_GUI),no)
-PLUGIN_UNDOC += $(patsubst %, $(PLUGIN_DIR)/%.ml, $(PLUGIN_GUI_CMO)) \
-		$(patsubst %, $(PLUGIN_DIR)/%.mli, $(PLUGIN_GUI_CMO))
+
+PLUGIN_DOC_SRC:=$(filter-out $(PLUGIN_UNDOC), $(PLUGIN_ML_SRC))
+$(PLUGIN_NAME)_DOC_SRC:=$(PLUGIN_DOC_SRC)
+
+ifndef PLUGIN_DOC_DIR
+PLUGIN_DOC_DIR := $(DOC_DIR)/$(PLUGIN_BASE)
 endif
 
-PLUGIN_DOC_SRC := $(filter-out $(PLUGIN_UNDOC), \
-	$(wildcard $(PLUGIN_DIR)/*.ml) \
-	$(filter-out $(PLUGIN_MLI), $(wildcard $(PLUGIN_DIR)/*.mli)))
-
-$(PLUGIN_NAME)_DOC_SRC:= $(PLUGIN_DOC_SRC)
-
-PLUGIN_DOC_DIR := $(DOC_DIR)/$(PLUGIN_BASE)
 $(PLUGIN_NAME)_DOC_DIR:= $(PLUGIN_DOC_DIR)
 
 $(PLUGIN_NAME)_INTRO:=$(PLUGIN_INTRO)
@@ -504,7 +538,14 @@ else
 $(PLUGIN_NAME)_CAT_INTRO:=
 endif
 
-$(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt: $(DOC_DIR)/intro_kernel_plugin.txt $(DOC_DIR)/intro_plugin.txt $(PLUGIN_INTRO)
+ifeq ($(FRAMAC_MAKE),yes)
+DOC_INTRO:= $(DOC_DIR)/intro_kernel_plugin.txt \
+            $(DOC_DIR)/intro_plugin.txt
+else
+DOC_INTRO:=
+endif
+
+$(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt: $(DOC_INTRO) $(PLUGIN_INTRO)
 	$(PRINT_MAKING) "$@"
 	$(MKDIR) $(dir $@)
 	if test -f "$(DOC_DIR)/html/Db.$(basename $(notdir $@)).html" ; then \
@@ -516,24 +557,39 @@ $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt: $(DOC_DIR)/intro_kernel_plugin.txt $(DOC_D
                 -e "/^@ignore/d" $@
 	$($(basename $(notdir $@))_CAT_INTRO)
 
-$(PLUGIN_DOC_DIR)/FLAGS:= -I $($(PLUGIN_NAME)_DIR) $(PLUGIN_DOCFLAGS)
+ifeq ($(FRAMAC_INTERNAL),yes)
+OCAMLDOC_GEN:=$(DOC_PLUGIN)
+ifneq ($(FRAMAC_MAKE),yes)
+$(DOC_PLUGIN): $(DOC_DIR)/docgen.ml
+	$(OCAMLC) -c -I +ocamldoc $(DOC_DIR)/docgen.ml
+# not doing kernel documentation if just compiling plugin's one
+else
+OCAMLDOC_GEN+=$(DOC_DIR)/kernel-doc.ocamldoc
+endif
+else
+OCAMLDOC_GEN:=
+endif
 
 .PHONY: $(PLUGIN_NAME)_DOC
-$(PLUGIN_NAME)_DOC: $(PLUGIN_CMO) $(PLUGIN_DOC_SRC) \
-		    $(DOC_DIR)/kernel-doc.ocamldoc \
-	            $(DOC_PLUGIN) \
+$(PLUGIN_NAME)_DOC: $(PLUGIN_CMO) \
+		    $(OCAMLDOC_GEN) \
 		    $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt \
 		    $(PLUGIN_DOC_DIR)/modules.svg
 	$(PRINT_DOC) $(patsubst %_DOC,%,$@)
 	$(MKDIR) $($@_DIR)
 	$(RM) $($@_DIR)/*.html
+# Only generate toc for kernel's documentation if we are in Frama-C's main
+# Makefile
+ifeq ($(FRAMAC_MAKE), yes)
 	$(ECHO) '<li><a href="$(subst $(DOC_DIR)/,,$($@_DIR))/index.html">$(subst _, ,$(patsubst %_DOC,%,$@))</a></li>' > $(DOC_DIR)/$(patsubst %_DOC,%,$@).toc
-	$(OCAMLDOC) $(DOC_FLAGS) $($($@_DIR)/FLAGS) \
-		-t "$(patsubst %_DOC,%,$@) plugin" \
-		-intro $($@_DIR)/$(patsubst %_DOC,%,$@).txt \
-	  	-css-style ../style.css \
-	  	-d $($@_DIR) -g $(DOC_PLUGIN) -docpath ../html \
-	  	-load $(DOC_DIR)/kernel-doc.ocamldoc $($@_SRC)
+endif
+	$(OCAMLDOC) $($@FLAGS) \
+	  -t "$(patsubst %_DOC,%,$@) plugin" \
+	  -intro $($@_DIR)/$(patsubst %_DOC,%,$@).txt \
+	  -css-style $(DOC_DIR)/style.css \
+	  -d $($@_DIR) -g $(DOC_PLUGIN) -docpath $(DOC_DIR)/html \
+	  $(addprefix -load , $(wildcard $(DOC_DIR)/kernel-doc.ocamldoc)) \
+	  $(wildcard $($@_SRC))
 # [rb+js] 20090619
 # pwd is required to avoid "bad directory" message on OpenBSD
 # don't know why
@@ -552,23 +608,27 @@ $(PLUGIN_NAME)_DOC: $(PLUGIN_CMO) $(PLUGIN_DOC_SRC) \
 #		    $(PLUGIN_DOC_DIR)/modules.ps \
 #		    $(PLUGIN_DOC_DIR)/modules-all.ps \
 #		    $(PLUGIN_DOC_DIR)/types.ps
-
-$(PLUGIN_DOC_DIR)/modules.dot: $(PLUGIN_DOC_SRC)
+$(PLUGIN_DOC_DIR)/modules.dot: DOC_FLAGS:=$($(NAME_DOCFLAGS))
+$(PLUGIN_DOC_DIR)/modules.dot: $(wildcard $(PLUGIN_DOC_SRC))
 	$(PRINT_DOC) $@
 	$(MKDIR) $(dir $@)
-	$(OCAMLDOC) $(DOC_FLAGS) $($(dir $@)FLAGS) -o $@ -dot $^
+	$(OCAMLDOC) $(DOC_FLAGS) -o $@ -dot $^ \
+        || { $(RM) $@; exit 2; } # in case of error, ocamldoc still generates
+	                         # something
 	$(ISED) -e "s/rotate=90;//" \
 		-e 's/digraph G/digraph "Plugin architecture ($(subst /,,$(subst doc/code,,$(dir $@))))"/' \
 		$@
 
-$(PLUGIN_DOC_DIR)/modules-all.dot: $(PLUGIN_DOC_SRC)
+$(PLUGIN_DOC_DIR)/modules-all.dot: DOC_FLAGS:=$($(NAME_DOCFLAGS))
+$(PLUGIN_DOC_DIR)/modules-all.dot: $(wildcard $(PLUGIN_DOC_SRC))
 	$(PRINT_DOC) $@
 	$(MKDIR) $(dir $@)
 	$(OCAMLDOC) $(DOC_FLAGS) $($(dir $@)FLAGS) -o $@ -dot \
 	  -dot-include-all $^
 	$(ISED) -e "s/rotate=90;//" $@
 
-$(PLUGIN_DOC_DIR)/types.dot: $(PLUGIN_DOC_SRC)
+$(PLUGIN_DOC_DIR)/types.dot: DOC_FLAGS:=$($(NAME_DOCFLAGS))
+$(PLUGIN_DOC_DIR)/types.dot: $(wildcard $(PLUGIN_DOC_SRC))
 	$(PRINT_DOC) $@
 	$(MKDIR) $(dir $@)
 	$(OCAMLDOC) $(DOC_FLAGS) $($(dir $@)FLAGS) -o $@ -dot -dot-types $^
@@ -576,7 +636,7 @@ $(PLUGIN_DOC_DIR)/types.dot: $(PLUGIN_DOC_SRC)
 
 .PHONY: $(PLUGIN_NAME)_metrics
 $(PLUGIN_NAME)_metrics : $(PLUGIN_DOC_DIR)/metrics.html
-$(PLUGIN_DOC_DIR)/metrics.html : $(PLUGIN_DOC_SRC)
+$(PLUGIN_DOC_DIR)/metrics.html : $(wildcard $(PLUGIN_DOC_SRC))
 	$(PRINT_DOC) $@
 	ocamlmetrics $^ > $@
 
@@ -620,33 +680,41 @@ endif # PLUGIN_ENABLE
 # Depend #
 ##########
 
+# for reasons known to themselves, ocamldep and make are confused by ./file.ml
+# hence (one of) the patsubst below in case PLUGIN_DIR is .
+
 # If you explicitly do "make depend", force the computation of dependencies
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI_MLI)
 	$(PRINT_DEP) $(dir $@).depend
-	$(RM) $(dir $@).depend
+	$(CHMOD_RW) $(dir $@).depend
 	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
 	    $($(patsubst %_DEP_REDO,%_DEPFLAGS,$(basename $(notdir $@)))) \
-	    $(dir $@)*.mli $(dir $@)*.ml \
-	    $($(patsubst %_DEP_REDO,%_MLI, $(basename $(notdir $@))))\
-	    $($(patsubst %_DEP_REDO,%_gui_MLI, $(basename $(notdir $@))))\
-	    $(foreach d, $($(patsubst %_DEP_REDO,%_DEPFLAGS_TEST,$(basename $(notdir $@)))), -I $d $d/*.ml $d/*.mli) \
+	      $(patsubst ./%,%, \
+                $($(patsubst %_DEP_REDO,%_ML_SRC,$(basename $(notdir $@)))) \
+	        $($(patsubst %_DEP_REDO,%_MLI, $(basename $(notdir $@))))\
+	        $($(patsubst %_DEP_REDO,%_gui_MLI, $(basename $(notdir $@))))) \
+	    $(foreach d, \
+                  $($(patsubst %_DEP_REDO,%_DEPFLAGS_TEST, \
+                       $(basename $(notdir $@)))), \
+                  -I $d $d/*.ml $d/*.mli) \
               > $(dir $@).depend
 	$(CHMOD_RO) $(dir $@).depend
 
 # Otherwise do it only if necessary
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI_MLI)
 	$(PRINT_DEP) $(dir $@).depend
-	$(RM) $(dir $@).depend
+	$(CHMOD_RW) $(dir $@).depend
 	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
 	    $($(basename $(notdir $@))FLAGS) \
-	    $(dir $@)*.mli $(dir $@)*.ml \
-	    $($(patsubst %_DEP,%_MLI, $(basename $(notdir $@))))\
-	    $($(patsubst %_DEP,%_gui_MLI, $(basename $(notdir $@))))\
+	    $(patsubst ./%,%, \
+	       $($(patsubst %_DEP,%_ML_SRC,$(basename $(notdir $@)))) \
+	       $($(patsubst %_DEP,%_MLI, $(basename $(notdir $@)))) \
+	       $($(patsubst %_DEP,%_gui_MLI, $(basename $(notdir $@))))) \
 	    $(foreach d, $($(basename $(notdir $@))FLAGS_TEST), -I $d $d/*.ml $d/*.mli) \
               > $(dir $@).depend
 	$(TOUCH) $@
-	$(CHMOD_RO) $(dir $@).depend
+	$(CHMOD_RW) $(dir $@).depend
 # touch above = Do not recompute dependances each times
 
 ############
@@ -661,7 +729,21 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
         fi
 	$(RM) $(PLUGIN_GENERATED)
 	$(RM) $(@:%CLEAN=%DEP) $(@:%CLEAN=%DEP_REDO)
-	$(RM) $(dir $@)*.cm* $(dir $@)*.o $(dir $@)*.annot $(dir $@)*~
+	$(RM) $(patsubst %.cmo,%.cm*,$($(patsubst %_CLEAN,%_CMO,$(notdir $@))))
+	$(RM) $(patsubst %.cmi,%.cm*,$($(patsubst %_CLEAN,%_CMI,$(notdir $@))))
+	$(RM) $(patsubst %.cmo,%.annot,\
+                         $($(patsubst %_CLEAN,%_CMO,$(notdir $@))))
+	$(RM) $(patsubst %.cmo,%.o,$($(patsubst %_CLEAN,%_CMO,$(notdir $@))))
+	$(RM) $(patsubst %.cmo,%.cm*,\
+                 $($(patsubst %_CLEAN,%_GUI_CMO,$(notdir $@))))
+	$(RM) $(patsubst %.cmi,%.cm*, \
+                 $($(patsubst %_CLEAN,%_GUI_CMI,$(notdir $@))))
+	$(RM) $(patsubst %.cmo,%.annot, \
+                 $($(patsubst %_CLEAN,%_GUI_CMO,$(notdir $@))))
+	$(RM) $(patsubst %.cmo,%.o, \
+                 $($(patsubst %_CLEAN,%_GUI_CMO,$(notdir $@))))
+	$(RM) $(dir $@)*~ $(dir $@)*.cm* $(dir $@)*.o $(dir $@)*.annot
+	$(RM) -r $(dir $@)gui
 	$(RM) $(foreach d, $(@:%CLEAN=%TESTS_LIB), \
 		$(foreach f, $($(notdir $d)), \
 		$f $(f:.cmx=.cmo) $(f:.cmx=.opt) $(f:.cmx=.byte) $(f:.cmx=.o)))
@@ -765,6 +847,8 @@ PLUGIN_DYNAMIC:=
 PLUGIN_TYPES_CMO:=
 PLUGIN_GUI_CMO:=
 PLUGIN_GUI_CMX:=
+PLUGIN_GUI_CMI:=
+PLUGIN_GUI_MLI:=
 TARGET_GUI_CMO:=
 TARGET_GUI_CMX:=
 PLUGIN_UNDOC:=
@@ -788,6 +872,7 @@ PLUGIN_LINK_OFLAGS:=
 PLUGIN_EXTRA_BYTE:=
 PLUGIN_EXTRA_OPT:=
 PLUGIN_INTERNAL_TEST:=
+PLUGIN_DOC_DIR:=
 endif
 
 ###############################################################################

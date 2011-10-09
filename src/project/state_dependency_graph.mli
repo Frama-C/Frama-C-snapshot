@@ -33,7 +33,7 @@ module type G = sig
 
   (** @since Carbon-20101201 *)
   module E: Graph.Sig.EDGE with type vertex = State.t
-			   and type t = State.t * State.t
+                           and type t = State.t * State.t
   type t
   (** @since Carbon-20101201 *)
 
@@ -154,8 +154,8 @@ end
 
 val add_state_like_the_others: State.t list -> State.t -> unit
 (** [add_state_like_others l s] adds [s] to the same graph that each state of
-    [l]. If states of [l] belong to different graphs, then adds [s] to the best
-    graph as possible.
+    [l]. If states of [l] belong to different graphs or if [l] is empty, then
+    adds [s] to the best graph as possible.
     @since Carbon-20101201 *)
 
 module Vertices: State.Local

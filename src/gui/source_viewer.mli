@@ -28,5 +28,3 @@ val make : packing:(GObj.widget -> unit) -> GSourceView2.source_view
 
 val buffer : unit -> GSourceView2.source_buffer
   (** @return the buffer displaying the pretty-printed AST. *)
-
-

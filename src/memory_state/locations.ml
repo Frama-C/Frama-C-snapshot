@@ -27,18 +27,21 @@ open Abstract_value
 
 module Initial_Values = struct
   let v = [ [Base.null,Ival.singleton_zero];
-	    [Base.null,Ival.singleton_one];
-	    [Base.null,Ival.zero_or_one];
-	    [Base.null,Ival.top];
-	    [Base.null,Ival.top_float];
-	    [] ]
+            [Base.null,Ival.singleton_one];
+            [Base.null,Ival.zero_or_one];
+            [Base.null,Ival.top];
+            [Base.null,Ival.top_float];
+            [Base.null,Ival.top_single_precision_float];
+            [] ]
 end
 
-module BaseSetLattice = Make_Hashconsed_Lattice_Set(Base)
+module BaseSetLattice = Make_Hashconsed_Lattice_Set(Base)(Base.Hptset)
 
 module MapLattice =
   Map_Lattice.Make
     (Base)(BaseSetLattice)(Ival)(Initial_Values)(struct let zone = false end)
+
+module HT = Hashtbl
 
 module Location_Bytes = struct
 
@@ -69,10 +72,9 @@ module Location_Bytes = struct
 
   let top_leaf_origin () =
     Top(Top_Param.top,
-	(Origin.Leaf (LocationSetLattice.currentloc_singleton())))
+        (Origin.Leaf (LocationSetLattice.currentloc_singleton())))
 
  let topify_with_origin o v =
-   let result =
    match v with
    | Top (s,a) ->
        Top (s, Origin.join a o)
@@ -80,12 +82,6 @@ module Location_Bytes = struct
    | Map m ->
        if is_bottom v then v
        else inject_top_origin o (get_bases m)
-   in
-(*   Format.printf "topify_with_origin : %a %a -> %a@."
-     Origin.pretty o
-     pretty v
-     pretty result;*)
-   result
 
  let get_bases m =
    match m with
@@ -99,6 +95,41 @@ module Location_Bytes = struct
        Base.Periodic _ -> false
      | Base.Known _ | Base.Unknown _ | Base.All -> true
    with Not_found -> false
+
+ let iter_on_strings =
+   let z = "\000" in
+   fun ~skip f l ->
+     match l with
+     | Top _ ->
+         assert false
+     | Map m ->
+         M.iter
+           (fun base offs ->
+             match skip with
+               Some base_to_skip when Base.equal base base_to_skip -> ()
+             | _ ->
+                 match base with
+                   Base.String (_, strid) ->
+                     let str = 
+		       match Base.get_string strid with
+		       | Base.CSString s -> s
+		       | Base.CSWstring _ -> 
+			   failwith "Unimplemented: wide strings"
+		     in
+                     let strz = str ^ z in
+                     let len = String.length str in
+                     let range =
+                       Ival.inject_range
+                         (Some Int.zero)
+                         (Some (Int.of_int len))
+                     in
+                     let roffs = Ival.narrow range offs in
+                     Ival.fold
+                       (fun i () -> f base strz (Int.to_int i) len)
+                       roffs
+                       ()
+                 | _ -> ())
+           m
 
  let under_topify v =
      match v with
@@ -120,65 +151,11 @@ module Location_Bytes = struct
    topify_with_origin
      (Origin.Arith (LocationSetLattice.currentloc_singleton())) v
 
- let is_included_actual_generic bases q instanciation v1 v2 =
-   let null_1, v1 = split Base.null v1 in
-   let null_2, v2 = split Base.null v2 in
-   Ival.is_included_exn null_1 null_2;
-   try
-     (*Format.printf "LB.is_included_actual_generic: v1: %a v2: %a@\n"
-       pretty v1
-       pretty v2; *)
-     let base, offs = find_lonely_key v2 in
-     if Base.is_hidden_variable base
-     then begin
-       (*    Format.printf "LB.is_included_actual_generic: hidden var %a@\n"
-	     Base.pretty base; *)
-       try
-	 let base_val = Base.Map.find base !instanciation in
-	 if not (cardinal_zero_or_one base_val)
-	 then raise Is_not_included;
-	 if not (equal v1 (location_shift offs base_val))
-	 then raise Is_not_included;
-       with Not_found ->
-	 (* check non-aliasing condition between, on the one hand,
-	    the new value for the hidden variable [base]
-	    and on the other hand, the generic in/outs of the function
-	    plus already instanciated hidden variables*)
-	 fold_bases
-	   (fun b () ->
-	     if Base.Set.mem b bases then raise Is_not_included;
-	     Base.Map.fold
-	       (fun _bi vi () ->
-		 fold_bases
-		   (fun vib () ->
-		     (*		      Format.printf "comparing bases %a %a@."
-				      Base.pretty b
-				      Base.pretty vib;*)
-		     if Base.compare b vib = 0
-		     then raise Is_not_included)
-		   vi
-		   ())
-	       !instanciation
-	       ())
-	   v1
-	   ();
-	 let new_val = location_shift (Ival.neg offs) v1 in
-	 instanciation :=
-	   Base.Map.add base new_val !instanciation;
-	 (*	 Format.printf "LB.is_included_actual_generic: %a in? %a@\n"
-		 Base.pretty base
-		 BaseSet.pretty bases; *)
-	 if Base.Set.mem base bases then q := Base.Set.add base !q
-     end
-     else is_included_exn v1 v2
-   with Not_found (* from find_lonely_key *) ->
-     is_included_exn v1 v2
-
  let may_reach base loc =
    if Base.is_null base then true else
      match loc with
      | Top (toparam,_) ->
-	 Top_Param.is_included (Top_Param.inject_singleton base) toparam
+         Top_Param.is_included (Top_Param.inject_singleton base) toparam
      | Map m -> try
          ignore (M.find base m);
          true
@@ -206,27 +183,33 @@ module Location_Bytes = struct
        assert (match loc with
        | Top (Top_Param.Top,_) -> true
        | Top (Top_Param.Set _top_param,_orig) ->
-	   false
+           false
        | Map _ -> false);
        true
 
  (**  TODO: merge with above function *)
    let remove_escaping_locals is_local v =
     match v with
-    | Top (Top_Param.Top,_) -> v
+    | Top (Top_Param.Top as t,_) -> t, v
     | Top (Top_Param.Set topparam,orig) ->
-        inject_top_origin
-          orig
-          (Top_Param.O.filter
-             (fun base -> not (is_local base))
-             topparam)
+        let locals, nonlocals =
+          Top_Param.O.partition
+            is_local
+            topparam
+        in
+        (Top_Param.inject locals), inject_top_origin orig nonlocals
     | Map m ->
-        Map (M.fold (fun base _ acc ->
-                  if is_local base then
-                    M.remove base acc
-                  else acc)
-          m
-          m)
+        let locals, clean_map =
+          M.fold
+            (fun base _ (locals, m as acc) ->
+              if is_local base
+              then
+                (Top_Param.O.add base locals), M.remove base m
+              else acc)
+            m
+            (Top_Param.O.empty, m)
+        in
+        (Top_Param.inject locals), Map clean_map
 
  let contains_addresses_of_any_locals =
    let f base _offsets = Base.is_any_formal_or_local base in
@@ -247,9 +230,44 @@ module Location_Bytes = struct
        assert (match loc with
        | Top (Top_Param.Top,_) -> true
        | Top (Top_Param.Set _top_param,_orig) ->
-	   false
+           false
        | Map _ -> false);
        true
+
+ exception Found_overlap
+
+ let partially_overlaps_table = HT.create 7
+ let () = 
+   Project.register_todo_before_clear 
+     (fun _ -> HT.clear partially_overlaps_table)
+
+ let partially_overlaps size mm1 mm2 =
+      match mm1, mm2 with
+      | Top (_,_), Top (_,_) -> true
+      | Top _, (Map _ as m) | (Map _ as m), Top _ -> not (equal m bottom)
+      | Map m1, Map m2 ->
+	  let size_int = Int.to_int size in
+	  try
+	    let map_partially_overlaps =
+	      try
+		HT.find partially_overlaps_table size_int
+	      with Not_found ->
+		let f = 
+		  M.generic_symetric_existential_predicate 
+		    Found_overlap
+		    ~decide_one:(fun _ _ -> ())
+		    ~decide_both:
+		    (fun x y -> 
+		      if Ival.partially_overlaps size x y
+		      then raise Found_overlap)
+		in
+		HT.add partially_overlaps_table size_int f;
+		f
+	    in    
+	    map_partially_overlaps m1 m2;
+	    false
+          with
+            Found_overlap -> true
 
 end
 
@@ -272,14 +290,14 @@ module Zone = struct
   let pretty fmt m =
     match m with
     | Top (Top_Param.Top,a) ->
-	Format.fprintf fmt "ANYTHING(origin:%a)"
-	  Origin.pretty a
+        Format.fprintf fmt "ANYTHING(origin:%a)"
+          Origin.pretty a
     | Top (s,a) ->
-	Format.fprintf fmt "Unknown(%a, origin:%a)"
-	  Top_Param.pretty s
-	  Origin.pretty a
+        Format.fprintf fmt "Unknown(%a, origin:%a)"
+          Top_Param.pretty s
+          Origin.pretty a
     | Map _ when equal m bottom ->
-	Format.fprintf fmt "\\nothing"
+        Format.fprintf fmt "\\nothing"
     | Map off ->
         let print_binding fmt (k, v) =
           Format.fprintf fmt "@[<h>%a%a@]"
@@ -292,19 +310,19 @@ module Zone = struct
   let pretty_caml fmt m =
     match m with
     | Top (Top_Param.Top,a) ->
-	assert false (* TODO *)
+        assert false (* TODO *)
     | Top (s,a) ->
-	assert false (* TODO *)
+        assert false (* TODO *)
     | Map _ when equal m bottom ->
-	Format.fprintf "Locations.Zone.bottom"
+        Format.fprintf "Locations.Zone.bottom"
     | Map off ->
-	Format.fprintf "Locations.Zone.inject_list [";
-	let print_binding k v =
-	  Format.fprintf fmt "@[%a,@ %a;@,]@ "
-	    Base.pretty_caml k
+        Format.fprintf "Locations.Zone.inject_list [";
+        let print_binding k v =
+          Format.fprintf fmt "@[%a,@ %a;@,]@ "
+            Base.pretty_caml k
             Int_Intervals.pretty_caml v
-	in
-	(M.iter print_binding) off
+        in
+        (M.iter print_binding) off
 *)
   let out_some_or_bottom zone =
     match zone with
@@ -322,17 +340,17 @@ module Zone = struct
     let result =
       match m1,m2 with
       | Map _, Map _ ->
-	  intersects m1 m2
+          intersects m1 m2
       | Top (toparam, _), m | m, Top (toparam, _) ->
-	  (equal m bottom) ||
-	    let f base () =
-	      if Top_Param.is_included (Top_Param.inject_singleton base) toparam
-	      then raise Found_inter
-	    in
-	    try
-	      fold_bases f m ();
-	      false
-	    with Found_inter | Error_Top -> true
+          (equal m bottom) ||
+            let f base () =
+              if Top_Param.is_included (Top_Param.inject_singleton base) toparam
+              then raise Found_inter
+            in
+            try
+              fold_bases f m ();
+              false
+            with Found_inter | Error_Top -> true
     in
     result
 
@@ -355,27 +373,6 @@ type location =
     { loc : Location_Bits.t;
       size : Int_Base.t }
 
-module Location =
-  Datatype.Make
-      (struct
-	include Datatype.Serializable_undefined
-	type t = location
-	let structural_descr =
-	  Structural_descr.t_record
-	    [| Location_Bits.packed_descr; Int_Base.packed_descr |]
-	let reprs =
-	  List.fold_left
-	    (fun acc l ->
-	      List.fold_left
-		(fun acc n -> { loc = l; size = n } :: acc)
-		acc
-		Int_Base.reprs)
-	    []
-	    Location_Bits.reprs
-	let name = "Locations.Location"
-	let mem_project = Datatype.never_any_project
-      end)
-
 let can_be_accessed {loc=loc;size=size} =
   try
     let size = Int_Base.project size in
@@ -386,9 +383,9 @@ let can_be_accessed {loc=loc;size=size} =
             (fun varid offset ->
                match Base.validity varid with
                | Base.Known (min_valid,max_valid)
-	       | Base.Unknown (min_valid,max_valid)
-	       | Base.Periodic (min_valid, max_valid, _)
-		 ->
+               | Base.Unknown (min_valid,max_valid)
+               | Base.Periodic (min_valid, max_valid, _)
+                 ->
                    let min = Ival.min_int offset in
                    begin match min with
                    | None -> raise Not_valid
@@ -421,24 +418,24 @@ let is_valid_param is_valid_offset {loc=loc;size=size} =
   | Base.Not_valid_offset -> false
 
 
-let is_valid = is_valid_param Base.is_valid_offset
+let is_valid ~for_writing = is_valid_param (Base.is_valid_offset ~for_writing)
 
 let is_valid_or_function =
   is_valid_param
     (fun size base offs ->
       if Base.is_function base
       then (if Ival.is_zero offs then () else raise Base.Not_valid_offset)
-      else Base.is_valid_offset size base offs)
+      else Base.is_valid_offset ~for_writing:false size base offs)
 
 exception Found_two
 
-let valid_cardinal_zero_or_one {loc=loc;size=size} =
+let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
   Location_Bits.equal Location_Bits.bottom loc ||
     let found_one =
       let already = ref false in
       function () ->
-	if !already then raise Found_two;
-	already := true
+        if !already then raise Found_two;
+        already := true
     in
     try
     let size = Int_Base.project size in
@@ -447,26 +444,28 @@ let valid_cardinal_zero_or_one {loc=loc;size=size} =
       | Location_Bits.Map m ->
           Location_Bits.M.iter
             (fun base offset ->
-	       let inter =
-		 match Base.validity base with
-		 | Base.Known (min_valid,max_valid)
-		 | Base.Unknown (min_valid,max_valid)
-		 | Base.Periodic (min_valid,max_valid, _)
-		   ->
-		     let itv =
-		       Ival.inject_range
-			 (Some min_valid)
-			 (Some (Int.succ (Int.sub max_valid size)))
-		     in
-		     Ival.narrow itv offset
-		 | Base.All -> offset
-	       in
-	       if Ival.cardinal_zero_or_one inter
-	       then begin
-		 if not (Ival.equal inter Ival.bottom)
-		 then found_one ()
-	       end
-	       else raise Found_two)
+              if not (Base.is_read_only base && for_writing)
+              then
+               ( let inter =
+                 match Base.validity base with
+                 | Base.Known (min_valid,max_valid)
+                 | Base.Unknown (min_valid,max_valid)
+                 | Base.Periodic (min_valid,max_valid, _)
+                   ->
+                     let itv =
+                       Ival.inject_range
+                         (Some min_valid)
+                         (Some (Int.succ (Int.sub max_valid size)))
+                     in
+                     Ival.narrow itv offset
+                 | Base.All -> offset
+               in
+               if Ival.cardinal_zero_or_one inter
+               then begin
+                 if not (Ival.is_bottom inter)
+                 then found_one ()
+               end
+               else raise Found_two))
             m;
           true
   with
@@ -482,8 +481,9 @@ let loc_bytes_to_loc_bits x =
   match x with
     | Location_Bytes.Map _ ->
         begin try
-          Location_Bytes.map_offsets
-            (Ival.scale (Bit_utils.sizeofchar())) x
+            Location_Bytes.map_offsets
+              (Ival.scale (Bit_utils.sizeofchar()))
+              x
         with Location_Bytes.Error_Top -> assert false
         end
     | Location_Bytes.Top _ -> x
@@ -518,7 +518,7 @@ let loc_bits_to_loc lv (loc_bits:Location_Bits.t) =
 let size_of_varinfo v =
   try
     let s = bitsSizeOf v.vtype in
-    let s = Big_int.big_int_of_int s in
+    let s = Int.of_int s in
     s
   with Cil.SizeOfError _ as e ->
     Kernel.debug ~once:true "Variable %a has no size" !Ast_printer.d_var v;
@@ -569,111 +569,122 @@ let pretty fmt { loc = loc ; size = size } =
   Format.fprintf fmt "%a (size:%a)"
     Location_Bits.pretty loc
     Int_Base.pretty size
+let pretty_loc = pretty
 
-let valid_enumerate_bits ({loc = loc_bits; size = size} as _arg)=
-(*  Format.printf "valid_enumerate_bits:%a@\n" pretty _arg; *)
+let valid_enumerate_bits ~for_writing ({loc = loc_bits; size = size} as _arg)=
+  (*  Format.printf "valid_enumerate_bits:%a@\n" pretty _arg; *)
   let result = match loc_bits with
-    | Location_Bits.Top (Location_Bits.Top_Param.Top, _) -> Zone.top
-    | Location_Bits.Top (Location_Bits.Top_Param.Set s, _) ->
-        let compute_offset base acc =
+  | Location_Bits.Top (Location_Bits.Top_Param.Top, _) -> Zone.top
+  | Location_Bits.Top (Location_Bits.Top_Param.Set s, _) ->
+      let compute_offset base acc =
+        if for_writing && Base.is_read_only base
+        then acc
+        else
           let valid_offset =
             match Base.validity base, size with
             | (Base.Known (min_valid,max_valid)
-	      | Base.Unknown (min_valid,max_valid)
-	      | Base.Periodic (min_valid, max_valid, _)),
-	      Int_Base.Value size ->
-(*		Format.printf "min_valid:%a@\nmax_valid:%a@."
-		  Int.pretty min_valid
-		  Int.pretty max_valid; *)
-		let max_valid = Int.succ (Int.sub max_valid size) in
-		Ival.inject_range (Some min_valid) (Some max_valid)
+              | Base.Unknown (min_valid,max_valid)
+              | Base.Periodic (min_valid, max_valid, _)),
+              Int_Base.Value size ->
+                (*              Format.printf "min_valid:%a@\nmax_valid:%a@."
+                                Int.pretty min_valid
+                                Int.pretty max_valid; *)
+                let max_valid = Int.succ (Int.sub max_valid size) in
+                Ival.inject_range (Some min_valid) (Some max_valid)
             | _,Int_Base.Bottom -> assert false
-	    | Base.All,_ | _,Int_Base.Top -> Ival.top
-	  in
-	  if Ival.equal Ival.bottom valid_offset
-	  then acc
-	  else
+            | Base.All,_ | _,Int_Base.Top -> Ival.top
+          in
+          if Ival.is_bottom valid_offset
+          then acc
+          else
             let valid_offset =
-	      Int_Intervals.from_ival_size valid_offset size
-	    in
+              Int_Intervals.from_ival_size valid_offset size
+            in
             Zone.M.add base valid_offset acc
-        in
-        Zone.inject_map
-          (Location_Bits.Top_Param.O.fold compute_offset s Zone.M.empty)
-    | Location_Bits.Map m ->
-        let compute_offset base offs acc =
+      in
+      Zone.inject_map
+        (Location_Bits.Top_Param.O.fold compute_offset s Zone.M.empty)
+  | Location_Bits.Map m ->
+      let compute_offset base offs acc =
+        if for_writing && Base.is_read_only base
+        then acc
+        else
           let valid_offset =
             match Base.validity base, size with
             | (Base.Known (min_valid,max_valid)
-	      |Base.Unknown (min_valid,max_valid)
-	      |Base.Periodic (min_valid, max_valid, _)),
-	        Int_Base.Value size ->
-		let max_valid = Int.succ (Int.sub max_valid size) in
-(*		Format.printf "min_valid:%a@\nmax_valid:%a@."
-		  Int.pretty min_valid
-		  Int.pretty max_valid; *)
-		Ival.meet
-		  (Ival.inject_range (Some min_valid) (Some max_valid))
-		  offs
-	    | (Base.All|Base.Unknown _|Base.Known _|Base.Periodic _),_  -> offs
-	  in
-	  if Ival.equal Ival.bottom valid_offset
-	  then acc
-	  else
+              |Base.Unknown (min_valid,max_valid)
+              |Base.Periodic (min_valid, max_valid, _)),
+              Int_Base.Value size ->
+                let max_valid = Int.succ (Int.sub max_valid size) in
+                (*              Format.printf "min_valid:%a@\nmax_valid:%a@."
+                                Int.pretty min_valid
+                                Int.pretty max_valid; *)
+                Ival.meet
+                  (Ival.inject_range (Some min_valid) (Some max_valid))
+                  offs
+            | (Base.All|Base.Unknown _|Base.Known _|Base.Periodic _),_  -> offs
+          in
+          if Ival.is_bottom valid_offset
+          then acc
+          else
             let valid_offset = Int_Intervals.from_ival_size valid_offset size
             in
             Zone.M.add base valid_offset acc
-        in
-        Zone.inject_map
-          (Location_Bits.M.fold compute_offset m Zone.M.empty)
+      in
+      Zone.inject_map
+        (Location_Bits.M.fold compute_offset m Zone.M.empty)
   in
-(*      Format.printf "valid_enumerate_bits leads to %a@\n" Zone.pretty result; *)
-    result
+  (*      Format.printf "valid_enumerate_bits leads to %a@\n" Zone.pretty result; *)
+  result
 
 let zone_of_varinfo var =
-  valid_enumerate_bits (loc_of_varinfo var)
+  valid_enumerate_bits ~for_writing:false (loc_of_varinfo var)
 
 (** [valid_part l] is an over-approximation of the valid part
    of the location [l] *)
-let valid_part ({loc = loc; size = size } as l) =
+let valid_part ~for_writing ({loc = loc; size = size } as l) =
 (*  Format.printf "valid_part: loc=%a@." pretty l;*)
   match loc with
     | Location_Bits.Top _ -> l
     | Location_Bits.Map m ->
         let compute_offset base offs acc =
           let valid_offset =
-            match Base.validity base, size with
-            | (Base.Known (min_valid,max_valid)
-	      |Base.Unknown (min_valid,max_valid)
-	      |Base.Periodic (min_valid, max_valid, _)),
-	        Int_Base.Value size ->
-		let max_valid = Int.succ (Int.sub max_valid size) in
-(*		Format.printf "min_valid:%a@\nmax_valid:%a@."
-		  Int.pretty min_valid
-		  Int.pretty max_valid; *)
-		let valid_ival =
-		  Ival.inject_range (Some min_valid) (Some max_valid)
-		in
-		let result = Ival.narrow offs valid_ival in
-(*		Format.printf "base:%a offs:%a valid:%a result:%a@."
-		  Base.pretty base
-		  Ival.pretty offs
-		  Ival.pretty valid_ival
-		  Ival.pretty result; *)
-		result
+            if for_writing && (Base.is_read_only base)
+            then Ival.bottom
+            else
+              (  match Base.validity base, size with
+              | (Base.Known (min_valid,max_valid)
+                |Base.Unknown (min_valid,max_valid)
+                |Base.Periodic (min_valid, max_valid, _)),
+                Int_Base.Value size ->
+                  let max_valid = Int.succ (Int.sub max_valid size) in
+                  (*            Format.printf "min_valid:%a@\nmax_valid:%a@."
+                                Int.pretty min_valid
+                                Int.pretty max_valid; *)
+                  let valid_ival =
+                    Ival.inject_range (Some min_valid) (Some max_valid)
+                  in
+                  let result = Ival.narrow offs valid_ival in
+                  (* Format.printf "base:%a offs:%a valid:%a result:%a@."
+                                Base.pretty base
+                                Ival.pretty offs
+                                Ival.pretty valid_ival
+                                Ival.pretty result; *)
+                  result
 
-	    | (Base.All|Base.Unknown _|Base.Known _|Base.Periodic _),_  -> offs
-	  in
-	  if Ival.equal Ival.bottom valid_offset
-	  then acc
-	  else
+              | (Base.All|Base.Unknown _|Base.Known _|Base.Periodic _),_  ->
+                  offs)
+          in
+          if Ival.is_bottom valid_offset
+          then acc
+          else
             Location_Bits.M.add base valid_offset acc
         in
         let loc =
-	  Location_Bits.inject_map
+          Location_Bits.inject_map
             (Location_Bits.M.fold compute_offset m Location_Bits.M.empty)
-	in
-	make_loc loc size
+        in
+        make_loc loc size
 
 (** [invalid_part l] is an over-approximation of the invalid part
    of the location [l] *)
@@ -684,13 +695,13 @@ let invalid_part l = l
 let invalid_part ({loc = loc; size = size } as l) =
     try
       let result =
-	Location_Bits.fold_enum
-	  (fun loc_bits acc ->
-	    if not (can_be_accessed (make_loc loc_bits size))
-	    then Location_Bits.join loc_bits acc
-	    else acc)
-	  loc
-	  Location_Bits.bottom
+        Location_Bits.fold_enum
+          (fun loc_bits acc ->
+            if not (can_be_accessed (make_loc loc_bits size))
+            then Location_Bits.join loc_bits acc
+            else acc)
+          loc
+          Location_Bits.bottom
       in
       make_loc result size
     with Location_Bits.Error_Top -> l *)
@@ -707,9 +718,9 @@ let filter_loc ({loc = loc; size = size } as initial) zone =
                  (fun (bi,ei) acc ->
                     let width = Int.length bi ei in
                     if Int.lt width size
-		    then acc
+                    then acc
                     else
-		      Ival.inject_range (Some bi) (Some (Int.length size ei)))
+                      Ival.inject_range (Some bi) (Some (Int.length size ei)))
                  (Zone.find_or_bottom base zone_m)
                  Ival.bottom
          in
@@ -719,6 +730,29 @@ let filter_loc ({loc = loc; size = size } as initial) zone =
     in
     make_loc result size
   with Location_Bits.Error_Top -> initial
+
+module Location =
+  Datatype.Make
+      (struct
+        include Datatype.Serializable_undefined
+        type t = location
+        let structural_descr =
+          Structural_descr.t_record
+            [| Location_Bits.packed_descr; Int_Base.packed_descr |]
+        let reprs =
+          List.fold_left
+            (fun acc l ->
+              List.fold_left
+                (fun acc n -> { loc = l; size = n } :: acc)
+                acc
+                Int_Base.reprs)
+            []
+            Location_Bits.reprs
+        let name = "Locations.Location"
+        let mem_project = Datatype.never_any_project
+        let equal = loc_equal
+        let pretty = pretty_loc
+      end)
 
 (*
 Local Variables:

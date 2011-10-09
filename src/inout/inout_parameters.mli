@@ -22,16 +22,16 @@
 
 include Plugin.S
 
-module ForceAccessPath: Plugin.BOOL
+module ForceAccessPath: Plugin.Bool
 (** undocumented *)
 
-module ForceOut: Plugin.BOOL
-module ForceExternalOut: Plugin.BOOL
-module ForceInput: Plugin.BOOL
-module ForceInputWithFormals: Plugin.BOOL
-module ForceInout: Plugin.BOOL
-module ForceInoutExternalWithFormals: Plugin.BOOL
-module ForceDeref: Plugin.BOOL
+module ForceOut: Plugin.Bool
+module ForceExternalOut: Plugin.Bool
+module ForceInput: Plugin.Bool
+module ForceInputWithFormals: Plugin.Bool
+module ForceInout: Plugin.Bool
+module ForceInoutExternalWithFormals: Plugin.Bool
+module ForceDeref: Plugin.Bool
 
 (*
 Local Variables:

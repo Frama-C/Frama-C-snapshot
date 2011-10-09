@@ -1,0 +1,904 @@
+logic eq_unit : unit,unit -> prop
+
+logic neq_unit : unit,unit -> prop
+
+logic eq_bool : bool,bool -> prop
+
+logic neq_bool : bool,bool -> prop
+
+logic lt_int : int,int -> prop
+
+logic le_int : int,int -> prop
+
+logic gt_int : int,int -> prop
+
+logic ge_int : int,int -> prop
+
+logic eq_int : int,int -> prop
+
+logic neq_int : int,int -> prop
+
+logic add_int : int,int -> int
+
+logic sub_int : int,int -> int
+
+logic mul_int : int,int -> int
+
+logic neg_int : int -> int
+
+predicate zwf_zero(a:int,b:int) = ((0<=b) and (a<b))
+
+logic bool_and : bool,bool -> bool
+
+logic bool_or : bool,bool -> bool
+
+logic bool_xor : bool,bool -> bool
+
+logic bool_not : bool -> bool
+
+axiom bool_and_def : (forall a:bool.(forall b:bool.
+((bool_and(a,b)=true) <-> ((a=true) and (b=true)))))
+
+axiom bool_or_def : (forall a:bool.(forall b:bool.
+((bool_or(a,b)=true) <-> ((a=true) or (b=true)))))
+
+axiom bool_xor_def : (forall a:bool.(forall b:bool.
+((bool_xor(a,b)=true) <-> (a<>b))))
+
+axiom bool_not_def : (forall a:bool.
+((bool_not(a)=true) <-> (a=false)))
+
+logic ite : bool,'a1,'a1 -> 'a1
+
+axiom ite_true : (forall x:'a1.(forall y:'a1.
+(ite(true,x,y)=x)))
+
+axiom ite_false : (forall x:'a1.(forall y:'a1.
+(ite(false,x,y)=y)))
+
+logic lt_int_bool : int,int -> bool
+
+logic le_int_bool : int,int -> bool
+
+logic gt_int_bool : int,int -> bool
+
+logic ge_int_bool : int,int -> bool
+
+logic eq_int_bool : int,int -> bool
+
+logic neq_int_bool : int,int -> bool
+
+axiom lt_int_bool_axiom : (forall x:int.(forall y:int.
+((lt_int_bool(x,y)=true) <-> (x<y))))
+
+axiom le_int_bool_axiom : (forall x:int.(forall y:int.
+((le_int_bool(x,y)=true) <-> (x<=y))))
+
+axiom gt_int_bool_axiom : (forall x:int.(forall y:int.
+((gt_int_bool(x,y)=true) <-> (x>y))))
+
+axiom ge_int_bool_axiom : (forall x:int.(forall y:int.
+((ge_int_bool(x,y)=true) <-> (x>=y))))
+
+axiom eq_int_bool_axiom : (forall x:int.(forall y:int.
+((eq_int_bool(x,y)=true) <-> (x=y))))
+
+axiom neq_int_bool_axiom : (forall x:int.(forall y:int.
+((neq_int_bool(x,y)=true) <-> (x<>y))))
+
+logic abs_int : int -> int
+
+axiom abs_int_pos : (forall x:int.
+((x>=0) -> (abs_int(x)=x)))
+
+axiom abs_int_neg : (forall x:int.
+((x<=0) -> (abs_int(x)=(-x))))
+
+logic int_max : int,int -> int
+
+logic int_min : int,int -> int
+
+axiom int_max_is_ge : (forall x:int.(forall y:int.
+((int_max(x,y)>=x) and (int_max(x,y)>=y))))
+
+axiom int_max_is_some : (forall x:int.(forall y:int.
+((int_max(x,y)=x) or (int_max(x,y)=y))))
+
+axiom int_min_is_le : (forall x:int.(forall y:int.
+((int_min(x,y)<=x) and (int_min(x,y)<=y))))
+
+axiom int_min_is_some : (forall x:int.(forall y:int.
+((int_min(x,y)=x) or (int_min(x,y)=y))))
+
+logic lt_real : real,real -> prop
+
+logic le_real : real,real -> prop
+
+logic gt_real : real,real -> prop
+
+logic ge_real : real,real -> prop
+
+logic eq_real : real,real -> prop
+
+logic neq_real : real,real -> prop
+
+logic add_real : real,real -> real
+
+logic sub_real : real,real -> real
+
+logic mul_real : real,real -> real
+
+logic div_real : real,real -> real
+
+logic neg_real : real -> real
+
+logic real_of_int : int -> real
+
+axiom real_of_int_zero : (real_of_int(0)=0.0)
+
+axiom real_of_int_one : (real_of_int(1)=1.0)
+
+axiom real_of_int_add : (forall x:int.(forall y:int.
+(real_of_int((x+y))=(real_of_int(x)+real_of_int(y)))))
+
+axiom real_of_int_sub : (forall x:int.(forall y:int.
+(real_of_int((x-y))=(real_of_int(x)-real_of_int(y)))))
+
+logic truncate_real_to_int : real -> int
+
+axiom truncate_down_pos : (forall x:real.
+((x>=0.0) -> ((real_of_int(truncate_real_to_int(x))<=x) and (x<real_of_int((truncate_real_to_int(x)+1))))))
+
+axiom truncate_up_neg : (forall x:real.
+((x<=0.0) -> ((real_of_int((truncate_real_to_int(x)-1))<x) and (x<=real_of_int(truncate_real_to_int(x))))))
+
+logic floor_real_to_int : real -> int
+
+logic ceil_real_to_int : real -> int
+
+logic lt_real_bool : real,real -> bool
+
+logic le_real_bool : real,real -> bool
+
+logic gt_real_bool : real,real -> bool
+
+logic ge_real_bool : real,real -> bool
+
+logic eq_real_bool : real,real -> bool
+
+logic neq_real_bool : real,real -> bool
+
+axiom lt_real_bool_axiom : (forall x:real.(forall y:real.
+((lt_real_bool(x,y)=true) <-> (x<y))))
+
+axiom le_real_bool_axiom : (forall x:real.(forall y:real.
+((le_real_bool(x,y)=true) <-> (x<=y))))
+
+axiom gt_real_bool_axiom : (forall x:real.(forall y:real.
+((gt_real_bool(x,y)=true) <-> (x>y))))
+
+axiom ge_real_bool_axiom : (forall x:real.(forall y:real.
+((ge_real_bool(x,y)=true) <-> (x>=y))))
+
+axiom eq_real_bool_axiom : (forall x:real.(forall y:real.
+((eq_real_bool(x,y)=true) <-> (x=y))))
+
+axiom neq_real_bool_axiom : (forall x:real.(forall y:real.
+((neq_real_bool(x,y)=true) <-> (x<>y))))
+
+logic real_max : real,real -> real
+
+logic real_min : real,real -> real
+
+axiom real_max_is_ge : (forall x:real.(forall y:real.
+((real_max(x,y)>=x) and (real_max(x,y)>=y))))
+
+axiom real_max_is_some : (forall x:real.(forall y:real.
+((real_max(x,y)=x) or (real_max(x,y)=y))))
+
+axiom real_min_is_le : (forall x:real.(forall y:real.
+((real_min(x,y)<=x) and (real_min(x,y)<=y))))
+
+axiom real_min_is_some : (forall x:real.(forall y:real.
+((real_min(x,y)=x) or (real_min(x,y)=y))))
+
+function sqr_real(x:real) : real = (x*x)
+
+logic sqrt_real : real -> real
+
+axiom sqrt_pos : (forall x:real.
+((x>=0.0) -> (sqrt_real(x)>=0.0)))
+
+axiom sqrt_sqr : (forall x:real.
+((x>=0.0) -> (sqr_real(sqrt_real(x))=x)))
+
+axiom sqr_sqrt : (forall x:real.
+((x>=0.0) -> (sqrt_real((x*x))=x)))
+
+logic pow_real : real,real -> real
+
+logic abs_real : real -> real
+
+axiom abs_real_pos : (forall x:real[abs_real(x)].
+((x>=0.0) -> (abs_real(x)=x)))
+
+axiom abs_real_neg : (forall x:real[abs_real(x)].
+((x<=0.0) -> (abs_real(x)=(-x))))
+
+logic exp : real -> real
+
+logic log : real -> real
+
+logic log10 : real -> real
+
+axiom log_exp : (forall x:real.
+(log(exp(x))=x))
+
+axiom exp_log : (forall x:real.
+((x>0.0) -> (exp(log(x))=x)))
+
+logic cos : real -> real
+
+logic sin : real -> real
+
+logic tan : real -> real
+
+logic pi : real
+
+logic cosh : real -> real
+
+logic sinh : real -> real
+
+logic tanh : real -> real
+
+logic acos : real -> real
+
+logic asin : real -> real
+
+logic atan : real -> real
+
+logic atan2 : real,real -> real
+
+logic hypot : real,real -> real
+
+axiom prod_pos : (forall x:real.(forall y:real.
+((((x>0.0) and (y>0.0)) -> ((x*y)>0.0)) and (((x<0.0) and (y<0.0)) -> ((x*y)>0.0)))))
+
+axiom abs_minus : (forall x:real.
+(abs_real((-x))=abs_real(x)))
+
+
+logic access : 'a1 farray,int -> 'a1
+
+logic update : 'a1 farray,int,'a1 -> 'a1 farray
+
+axiom access_update : (forall a:'a1 farray.(forall i:int.(forall v:'a1.
+(a[i<-v][i]=v))))
+
+axiom access_update_neq : (forall a:'a1 farray.(forall i:int.(forall j:int.
+(forall v:'a1.
+((i<>j) -> (a[i<-v][j]=a[j]))))))
+
+logic array_length : 'a1 farray -> int
+
+predicate sorted_array(t:int farray,i:int,j:int) = (forall k1:int.
+(forall k2:int.
+((((i<=k1) and (k1<=k2)) and (k2<=j)) -> (t[k1]<=t[k2]))))
+
+predicate exchange(a1:'a1 farray,a2:'a1 farray,i:int,j:int) = ((array_length(a1)=array_length(a2)) and ((a1[i]=a2[j]) and ((a2[i]=a1[j]) and (
+forall k:int.
+(((k<>i) and (k<>j)) -> (a1[k]=a2[k]))))))
+
+logic permut : 'a1 farray,'a1 farray,int,int -> prop
+
+axiom permut_refl : (forall t:'a1 farray.(forall l:int.(forall u:int.
+permut(t,t,l,
+u))))
+
+axiom permut_sym : (forall t1:'a1 farray.(forall t2:'a1 farray.(forall l:int.
+(forall u:int.(permut(t1,t2,l,u) -> permut(t2,t1,l,
+u))))))
+
+axiom permut_trans : (forall t1:'a1 farray.(forall t2:'a1 farray.
+(forall t3:'a1 farray.(forall l:int.(forall u:int.(permut(t1,t2,l,
+u) -> (permut(t2,t3,l,u) -> permut(t1,t3,l,
+u))))))))
+
+axiom permut_exchange : (forall a1:'a1 farray.(forall a2:'a1 farray.
+(forall l:int.(forall u:int.(forall i:int.(forall j:int.
+(((l<=i) and (i<=u)) -> (((l<=j) and (j<=u)) -> (exchange(a1,a2,i,
+j) -> permut(a1,a2,l,
+u))))))))))
+
+axiom exchange_upd : (forall a:'a1 farray.(forall i:int.(forall j:int.
+exchange(a,a[i<-a[j]][j<-a[i]],i,
+j))))
+
+axiom permut_weakening : (forall a1:'a1 farray.(forall a2:'a1 farray.
+(forall l1:int.(forall r1:int.(forall l2:int.(forall r2:int.
+((((l1<=l2) and (l2<=r2)) and (r2<=r1)) -> (permut(a1,a2,l2,r2) -> permut(a1,
+a2,l1,
+r1)))))))))
+
+axiom permut_eq : (forall a1:'a1 farray.(forall a2:'a1 farray.(forall l:int.
+(forall u:int.((l<=u) -> (permut(a1,a2,l,u) -> (forall i:int.
+(((i<l) or (u<i)) -> (a2[i]=a1[i])))))))))
+
+predicate permutation(a1:'a1 farray,a2:'a1 farray) = permut(a1,a2,0,
+(array_length(a1)-1))
+
+axiom array_length_update : (forall a:'a1 farray.(forall i:int.(forall v:'a1.
+(array_length(a[i<-v])=array_length(a)))))
+
+axiom permut_array_length : (forall a1:'a1 farray.(forall a2:'a1 farray.
+(forall l:int.(forall u:int.(permut(a1,a2,l,
+u) -> (array_length(a1)=array_length(a2)))))))
+
+logic computer_div : int,int -> int
+
+logic computer_mod : int,int -> int
+
+logic math_div : int,int -> int
+
+logic math_mod : int,int -> int
+
+axiom math_div_mod : (forall x:int.(forall y:int.
+((y<>0) -> (x=((y*math_div(x,y))+math_mod(x,y))))))
+
+axiom math_mod_bound : (forall x:int.(forall y:int.
+((y<>0) -> ((0<=math_mod(x,y)) and (math_mod(x,y)<abs_int(y))))))
+
+axiom computer_div_mod : (forall x:int.
+(forall y:int[computer_div(x,y),computer_mod(x,y)].
+((y<>0) -> (x=((y*computer_div(x,y))+computer_mod(x,y))))))
+
+axiom computer_div_bound : (forall x:int.(forall y:int.
+(((x>=0) and (y>0)) -> ((0<=computer_div(x,y)) and (computer_div(x,y)<=x)))))
+
+axiom computer_mod_bound : (forall x:int.(forall y:int.
+((y<>0) -> (abs_int(computer_mod(x,y))<abs_int(y)))))
+
+axiom computer_mod_sign_pos : (forall x:int.(forall y:int.
+(((x>=0) and (y<>0)) -> (computer_mod(x,y)>=0))))
+
+axiom computer_mod_sign_neg : (forall x:int.(forall y:int.
+(((x<=0) and (y<>0)) -> (computer_mod(x,y)<=0))))
+
+axiom computer_rounds_toward_zero : (forall x:int.(forall y:int.
+((y<>0) -> (abs_int((computer_div(x,y)*y))<=abs_int(x)))))
+
+logic dummy : int -> prop
+
+logic assigns : int -> prop
+
+axiom positive_computer_div_div : (forall x:int.(forall y:int.
+((x>0) -> ((y>0) -> (computer_div(x,y)=math_div(x,y))))))
+
+type 'a set
+
+logic empty : 'a1 set
+
+logic singleton : 'a1 -> 'a1 set
+
+logic range : int,int -> int set
+
+logic union : 'a1 set,'a1 set -> 'a1 set
+
+logic inter : 'a1 set,'a1 set -> 'a1 set
+
+logic plus_int : int set,int set -> int set
+
+logic subset : 'a1 set,'a1 set -> prop
+
+logic range_inf : int -> int set
+
+logic range_sup : int -> int set
+
+logic integers_set : int set
+
+logic equiv : 'a1 set,'a1 set -> prop
+
+logic member : 'a1,'a1 set -> prop
+
+axiom singleton_def : (forall x:'a1.member(x,
+singleton(x)))
+
+axiom singleton_eq : (forall x:'a1.(forall y:'a1.(member(x,
+singleton(y)) <-> (x=y))))
+
+axiom union_member : (forall x:'a1.(forall s1:'a1 set.
+(forall s2:'a1 set[member(x,union(s1,s2))].(member(x,
+union(s1,s2)) <-> (member(x,s1) or member(x,
+s2))))))
+
+axiom union_of_empty : (forall x:'a1 set[union(x,empty)].
+(union(x,empty)=x))
+
+axiom inter_of_empty : (forall x:'a1 set[inter(x,empty)].
+(inter(x,empty)=empty))
+
+axiom union_comm : (forall x:'a1 set.(forall y:'a1 set.
+(union(x,y)=union(y,x))))
+
+axiom inter_comm : (forall x:'a1 set.(forall y:'a1 set.
+(inter(x,y)=inter(y,x))))
+
+axiom inter_member : (forall x:'a1.(forall s1:'a1 set.
+(forall s2:'a1 set[member(x,inter(s1,s2))].(member(x,
+inter(s1,s2)) <-> (member(x,s1) and member(x,
+s2))))))
+
+axiom plus_int_member_1 : (forall sa:int set.(forall sb:int set.
+(forall a:int.(forall b:int[member((a+b),plus_int(sa,sb))].(member(a,
+sa) -> (member(b,sb) -> member((a+b),
+plus_int(sa,sb))))))))
+
+axiom plus_int_member_2 : (forall sa:int set.(forall sb:int set.
+(forall c:int.(member(c,plus_int(sa,sb)) -> (exists a:int.(exists b:int.
+(member(a,sa) and (member(b,
+sb) and (c=(a+b))))))))))
+
+axiom subset_empty : (forall sa:'a1 set.subset(empty,
+sa))
+
+axiom subset_sym : (forall sa:'a1 set.subset(sa,
+sa))
+
+axiom subset_trans : (forall sa:'a1 set.(forall sb:'a1 set.
+(forall sc:'a1 set.(subset(sa,sb) -> (subset(sb,sc) -> subset(sa,
+sc))))))
+
+axiom subset_def : (forall sa:'a1 set.(forall sb:'a1 set[subset(sa,sb)].
+((forall a:'a1.(member(a,sa) -> member(a,sb))) <-> subset(sa,
+sb))))
+
+axiom range_def : (forall i:int.(forall j:int.(forall k:int.
+(((i<=k) and (k<=j)) <-> member(k,
+range(i,j))))))
+
+axiom range_def1 : (forall i:int.(forall j:int.(forall k:int.
+(((i<=k) and (k<=j)) -> member(k,
+range(i,j))))))
+
+axiom range_def2 : (forall i:int.(forall j:int.(forall k:int.(member(k,
+range(i,j)) -> ((i<=k) and (k<=j))))))
+
+axiom range_inf_def : (forall i:int.(forall k:int.((i<=k) <-> member(k,
+range_inf(i)))))
+
+axiom range_sup_def : (forall j:int.(forall k:int.((k<=j) <-> member(k,
+range_sup(j)))))
+
+axiom integers_set_def : (forall k:int.((k>=0) <-> member(k,
+integers_set)))
+
+axiom equiv_def : (forall s1:'a1 set.(forall s2:'a1 set[equiv(s1,s2)].
+(((forall a:'a1.(member(a,s1) -> member(a,s2))) and (forall b:'a1.(member(b,
+s2) -> member(b,s1)))) <-> equiv(s1,
+s2))))
+
+axiom equiv_refl : (forall s:'a1 set.equiv(s,
+s))
+
+axiom equiv_sym : (forall s1:'a1 set.(forall s2:'a1 set.(equiv(s1,
+s2) -> equiv(s2,
+s1))))
+
+axiom equiv_trans : (forall s1:'a1 set.(forall s2:'a1 set.(forall s3:'a1 set.
+(equiv(s1,s2) -> (equiv(s2,s3) -> equiv(s1,
+s3))))))
+
+logic as_uint8 : int -> int
+
+predicate is_uint8(x:int) = ((0<=x) and (x<256))
+
+axiom as_uint8_def : (forall x:int.
+is_uint8(as_uint8(x)))
+
+axiom as_uint8_involve : (forall x:int[as_uint8(as_uint8(x))].
+(as_uint8(as_uint8(x))=as_uint8(x)))
+
+axiom is_as_uint8 : (forall x:int[as_uint8(x)].
+(is_uint8(x) -> (as_uint8(x)=x)))
+
+logic as_sint8 : int -> int
+
+predicate is_sint8(x:int) = (((-128)<=x) and (x<128))
+
+axiom as_sint8_def : (forall x:int.
+is_sint8(as_sint8(x)))
+
+axiom as_sint8_involve : (forall x:int[as_sint8(as_sint8(x))].
+(as_sint8(as_sint8(x))=as_sint8(x)))
+
+axiom is_as_sint8 : (forall x:int[as_sint8(x)].
+(is_sint8(x) -> (as_sint8(x)=x)))
+
+logic as_uint16 : int -> int
+
+predicate is_uint16(x:int) = ((0<=x) and (x<65536))
+
+axiom as_uint16_def : (forall x:int.
+is_uint16(as_uint16(x)))
+
+axiom as_uint16_involve : (forall x:int[as_uint16(as_uint16(x))].
+(as_uint16(as_uint16(x))=as_uint16(x)))
+
+axiom is_as_uint16 : (forall x:int[as_uint16(x)].
+(is_uint16(x) -> (as_uint16(x)=x)))
+
+logic as_sint16 : int -> int
+
+predicate is_sint16(x:int) = (((-32768)<=x) and (x<32768))
+
+axiom as_sint16_def : (forall x:int.
+is_sint16(as_sint16(x)))
+
+axiom as_sint16_involve : (forall x:int[as_sint16(as_sint16(x))].
+(as_sint16(as_sint16(x))=as_sint16(x)))
+
+axiom is_as_sint16 : (forall x:int[as_sint16(x)].
+(is_sint16(x) -> (as_sint16(x)=x)))
+
+logic as_uint32 : int -> int
+
+predicate is_uint32(x:int) = ((0<=x) and (x<4294967296))
+
+axiom as_uint32_def : (forall x:int.
+is_uint32(as_uint32(x)))
+
+axiom as_uint32_involve : (forall x:int[as_uint32(as_uint32(x))].
+(as_uint32(as_uint32(x))=as_uint32(x)))
+
+axiom is_as_uint32 : (forall x:int[as_uint32(x)].
+(is_uint32(x) -> (as_uint32(x)=x)))
+
+logic as_sint32 : int -> int
+
+predicate is_sint32(x:int) = (((-2147483648)<=x) and (x<2147483648))
+
+axiom as_sint32_def : (forall x:int.
+is_sint32(as_sint32(x)))
+
+axiom as_sint32_involve : (forall x:int[as_sint32(as_sint32(x))].
+(as_sint32(as_sint32(x))=as_sint32(x)))
+
+axiom is_as_sint32 : (forall x:int[as_sint32(x)].
+(is_sint32(x) -> (as_sint32(x)=x)))
+
+logic as_uint64 : int -> int
+
+predicate is_uint64(x:int) = ((0<=x) and (x<18446744073709551616))
+
+axiom as_uint64_def : (forall x:int.
+is_uint64(as_uint64(x)))
+
+axiom as_uint64_involve : (forall x:int[as_uint64(as_uint64(x))].
+(as_uint64(as_uint64(x))=as_uint64(x)))
+
+axiom is_as_uint64 : (forall x:int[as_uint64(x)].
+(is_uint64(x) -> (as_uint64(x)=x)))
+
+logic as_sint64 : int -> int
+
+predicate is_sint64(x:int) = (((-9223372036854775808)<=x) and (x<9223372036854775808))
+
+axiom as_sint64_def : (forall x:int.
+is_sint64(as_sint64(x)))
+
+axiom as_sint64_involve : (forall x:int[as_sint64(as_sint64(x))].
+(as_sint64(as_sint64(x))=as_sint64(x)))
+
+axiom is_as_sint64 : (forall x:int[as_sint64(x)].
+(is_sint64(x) -> (as_sint64(x)=x)))
+
+logic as_float16 : real -> real
+
+logic is_float16 : real -> prop
+
+axiom as_float16_def : (forall x:real.
+is_float16(as_float16(x)))
+
+axiom as_float16_involve : (forall x:real[as_float16(as_float16(x))].
+(as_float16(as_float16(x))=as_float16(x)))
+
+axiom is_as_float16 : (forall x:real[as_float16(x)].
+(is_float16(x) -> (as_float16(x)=x)))
+
+logic as_float32 : real -> real
+
+logic is_float32 : real -> prop
+
+axiom as_float32_def : (forall x:real.
+is_float32(as_float32(x)))
+
+axiom as_float32_involve : (forall x:real[as_float32(as_float32(x))].
+(as_float32(as_float32(x))=as_float32(x)))
+
+axiom is_as_float32 : (forall x:real[as_float32(x)].
+(is_float32(x) -> (as_float32(x)=x)))
+
+logic as_float64 : real -> real
+
+logic is_float64 : real -> prop
+
+axiom as_float64_def : (forall x:real.
+is_float64(as_float64(x)))
+
+axiom as_float64_involve : (forall x:real[as_float64(as_float64(x))].
+(as_float64(as_float64(x))=as_float64(x)))
+
+axiom is_as_float64 : (forall x:real[as_float64(x)].
+(is_float64(x) -> (as_float64(x)=x)))
+
+logic as_float128 : real -> real
+
+logic is_float128 : real -> prop
+
+axiom as_float128_def : (forall x:real.
+is_float128(as_float128(x)))
+
+axiom as_float128_involve : (forall x:real[as_float128(as_float128(x))].
+(as_float128(as_float128(x))=as_float128(x)))
+
+axiom is_as_float128 : (forall x:real[as_float128(x)].
+(is_float128(x) -> (as_float128(x)=x)))
+
+type data
+
+logic data_of_uint8 : int -> data
+
+logic uint8_of_data : data -> int
+
+axiom is_uint8_of_data : (forall d:data[is_uint8(uint8_of_data(d))].
+is_uint8(uint8_of_data(d)))
+
+axiom uint8ofdata_dataofuint8 : (forall x:int[data_of_uint8(x)].
+(is_uint8(x) -> (uint8_of_data(data_of_uint8(x))=x)))
+
+logic data_of_sint8 : int -> data
+
+logic sint8_of_data : data -> int
+
+axiom is_sint8_of_data : (forall d:data[is_sint8(sint8_of_data(d))].
+is_sint8(sint8_of_data(d)))
+
+axiom sint8ofdata_dataofsint8 : (forall x:int[data_of_sint8(x)].
+(is_sint8(x) -> (sint8_of_data(data_of_sint8(x))=x)))
+
+logic data_of_uint16 : int -> data
+
+logic uint16_of_data : data -> int
+
+axiom is_uint16_of_data : (forall d:data[is_uint16(uint16_of_data(d))].
+is_uint16(uint16_of_data(d)))
+
+axiom uint16ofdata_dataofuint16 : (forall x:int[uint16_of_data(data_of_uint16(x))].
+(is_uint16(x) -> (uint16_of_data(data_of_uint16(x))=x)))
+
+logic data_of_sint16 : int -> data
+
+logic sint16_of_data : data -> int
+
+axiom is_sint16_of_data : (forall d:data[is_sint16(sint16_of_data(d))].
+is_sint16(sint16_of_data(d)))
+
+axiom sint16ofdata_dataofsint16 : (forall x:int[data_of_sint16(x)].
+(is_sint16(x) -> (sint16_of_data(data_of_sint16(x))=x)))
+
+logic data_of_uint32 : int -> data
+
+logic uint32_of_data : data -> int
+
+axiom is_uint32_of_data : (forall d:data[is_uint32(uint32_of_data(d))].
+is_uint32(uint32_of_data(d)))
+
+axiom uint32ofdata_dataofuint32 : (forall x:int[data_of_uint32(x)].
+(is_uint32(x) -> (uint32_of_data(data_of_uint32(x))=x)))
+
+logic data_of_sint32 : int -> data
+
+logic sint32_of_data : data -> int
+
+axiom is_sint32_of_data : (forall d:data[is_sint32(sint32_of_data(d))].
+is_sint32(sint32_of_data(d)))
+
+axiom sint32ofdata_dataofsint32 : (forall x:int[data_of_sint32(x)].
+(is_sint32(x) -> (sint32_of_data(data_of_sint32(x))=x)))
+
+logic data_of_uint64 : int -> data
+
+logic uint64_of_data : data -> int
+
+axiom is_uint64_of_data : (forall d:data[is_uint64(uint64_of_data(d))].
+is_uint64(uint64_of_data(d)))
+
+axiom uint64ofdata_dataofuint64 : (forall x:int[data_of_uint64(x)].
+(is_uint64(x) -> (uint64_of_data(data_of_uint64(x))=x)))
+
+logic data_of_sint64 : int -> data
+
+logic sint64_of_data : data -> int
+
+axiom is_sint64_of_data : (forall d:data[is_sint64(sint64_of_data(d))].
+is_sint64(sint64_of_data(d)))
+
+axiom sint64ofdata_dataofsint64 : (forall x:int[data_of_sint64(x)].
+(is_sint64(x) -> (sint64_of_data(data_of_sint64(x))=x)))
+
+logic data_of_float16 : real -> data
+
+logic float16_of_data : data -> real
+
+axiom is_float16_of_data : (forall d:data[is_float16(float16_of_data(d))].
+is_float16(float16_of_data(d)))
+
+axiom float16ofdata_dataoffloat16 : (forall x:real[data_of_float16(x)].
+(is_float16(x) -> (float16_of_data(data_of_float16(x))=x)))
+
+logic data_of_float32 : real -> data
+
+logic float32_of_data : data -> real
+
+axiom is_float32_of_data : (forall d:data[is_float32(float32_of_data(d))].
+is_float32(float32_of_data(d)))
+
+axiom float32ofdata_dataoffloat32 : (forall x:real[data_of_float32(x)].
+(is_float32(x) -> (float32_of_data(data_of_float32(x))=x)))
+
+logic data_of_float64 : real -> data
+
+logic float64_of_data : data -> real
+
+axiom is_float64_of_data : (forall d:data[is_float64(float64_of_data(d))].
+is_float64(float64_of_data(d)))
+
+axiom float64ofdata_dataoffloat64 : (forall x:real[data_of_float64(x)].
+(is_float64(x) -> (float64_of_data(data_of_float64(x))=x)))
+
+logic data_of_float128 : real -> data
+
+logic float128_of_data : data -> real
+
+axiom is_float128_of_data : (forall d:data[is_float128(float128_of_data(d))].
+is_float128(float128_of_data(d)))
+
+axiom float128ofdata_dataoffloat128 : (forall x:real[data_of_float128(x)].
+(is_float128(x) -> (float128_of_data(data_of_float128(x))=x)))
+
+logic set_range_index : 'a1 farray,int set,int -> 'a1 farray
+
+axiom set_range_def : (forall t:'a1 farray.(forall rg:int set.(forall k:int.
+(forall i:int[set_range_index(t,rg,k)[i]].((not member(i,
+rg)) -> (set_range_index(t,rg,k)[i]=t[i]))))))
+
+logic bnot : int -> int
+
+logic band : int,int -> int
+
+logic bor : int,int -> int
+
+logic bxor : int,int -> int
+
+logic lshift : int,int -> int
+
+logic rshift : int,int -> int
+
+logic int_not : int -> int
+
+logic int_and : int,int -> int
+
+logic int_or : int,int -> int
+
+logic int_xor : int,int -> int
+
+logic int_lsh : int,int -> int
+
+logic int_rshs : int,int -> int
+
+logic int_rshu : int,int -> int
+
+type pointer
+
+logic ptr : int,int -> pointer
+
+logic base : pointer -> int
+
+logic offset : pointer -> int
+
+axiom base_def : (forall b:int.(forall d:int[base(ptr(b,d))].
+(base(ptr(b,d))=b)))
+
+axiom offset_def : (forall b:int.(forall d:int[offset(ptr(b,d))].
+(offset(ptr(b,d))=d)))
+
+logic minus_ptr : pointer,pointer -> int
+
+axiom minus_ptr_def : (forall p1:pointer.
+(forall p2:pointer[minus_ptr(p1,p2)].
+((base(p1)=base(p2)) -> (minus_ptr(p1,p2)=(offset(p1)-offset(p2))))))
+
+predicate eq_ptr(a:pointer,b:pointer) = ((base(a)=base(b)) and (offset(a)=offset(b)))
+
+function eq_ptr_bool(a:pointer,b:pointer) : bool = bool_and(eq_int_bool(base(a),base(b)),eq_int_bool(offset(a),offset(b)))
+
+predicate lt_ptr(a:pointer,b:pointer) = ((base(a)=base(b)) and (offset(a)<offset(b)))
+
+function lt_ptr_bool(a:pointer,b:pointer) : bool = bool_and(eq_int_bool(base(a),base(b)),lt_int_bool(offset(a),offset(b)))
+
+predicate le_ptr(a:pointer,b:pointer) = ((base(a)=base(b)) and (offset(a)<=offset(b)))
+
+function le_ptr_bool(a:pointer,b:pointer) : bool = bool_and(eq_int_bool(base(a),base(b)),le_int_bool(offset(a),offset(b)))
+
+function shift(p:pointer,i:int) : pointer = ptr(base(p),(offset(p)+i))
+
+axiom shift_0 : (forall p:pointer[shift(p,0)].
+(shift(p,0)=p))
+
+axiom shift_shift : (forall p:pointer.(forall i:int.
+(forall j:int[shift(shift(p,i),j)].
+(shift(shift(p,i),j)=shift(p,(i+j))))))
+
+type trange
+
+logic range_ptr : int,int,int -> trange
+
+logic rbase : trange -> int
+
+logic roffset : trange -> int
+
+logic rsize : trange -> int
+
+axiom rbase_def : (forall b:int.(forall d:int.
+(forall sz:int[rbase(range_ptr(b,d,sz))].
+(rbase(range_ptr(b,d,sz))=b))))
+
+axiom roffset_def : (forall b:int.(forall d:int.
+(forall sz:int[roffset(range_ptr(b,d,sz))].
+(roffset(range_ptr(b,d,sz))=d))))
+
+axiom rsize_def : (forall b:int.(forall d:int.
+(forall sz:int[rsize(range_ptr(b,d,sz))].
+(rsize(range_ptr(b,d,sz))=sz))))
+
+function range_of_ptr(p:pointer,sz:int) : trange = range_ptr(base(p),offset(p),sz)
+
+axiom rbase_of_ptr : (forall p:pointer.
+(forall sz:int[rbase(range_of_ptr(p,sz))].
+(rbase(range_of_ptr(p,sz))=base(p))))
+
+axiom roffset_of_ptr : (forall p:pointer.
+(forall sz:int[roffset(range_of_ptr(p,sz))].
+(roffset(range_of_ptr(p,sz))=offset(p))))
+
+axiom rsize_of_ptr : (forall p:pointer.
+(forall sz:int[rsize(range_of_ptr(p,sz))].
+(rsize(range_of_ptr(p,sz))=sz)))
+
+function range_of_ptr_range(p:pointer,d:int,sz:int) : trange = range_ptr(base(p),(offset(p)+d),sz)
+
+axiom rbase_of_ptr_range : (forall p:pointer.(forall d:int.
+(forall sz:int[rbase(range_of_ptr_range(p,d,sz))].
+(rbase(range_of_ptr_range(p,d,sz))=base(p)))))
+
+axiom roffset_of_ptr_range : (forall p:pointer.(forall d:int.
+(forall sz:int[roffset(range_of_ptr_range(p,d,sz))].
+(roffset(range_of_ptr_range(p,d,sz))=(offset(p)+d)))))
+
+axiom rsize_of_ptr_range : (forall p:pointer.(forall d:int.
+(forall sz:int[rsize(range_of_ptr_range(p,d,sz))].
+(rsize(range_of_ptr_range(p,d,sz))=sz))))
+
+predicate separated(r0:trange,r1:trange) = ((rbase(r0)=rbase(r1)) -> (((roffset(r0)+rsize(r0))<=roffset(r1)) or (roffset(r0)>=(roffset(r1)+rsize(r1)))))
+
+predicate valid(ta:int farray,r:trange) = ((rsize(r)>0) -> ((0<=roffset(r)) and ((roffset(r)+rsize(r))<=ta[rbase(r)])))
+
+predicate included(r0:trange,r1:trange) = ((rbase(r0)=rbase(r1)) and ((roffset(r0)>=roffset(r1)) and ((roffset(r0)+rsize(r0))<=(roffset(r1)+rsize(r1)))))
+
+axiom valid_included : (forall r0:trange.(forall r1:trange.
+(forall ta:int farray.(included(r0,r1) -> (valid(ta,r1) -> valid(ta,
+r0))))))
+
+logic global : int farray -> prop
+
+

@@ -37,9 +37,9 @@ end = struct
     Cil_state_builder.Varinfo_hashtbl
       (Datatype.Pair(Kinstr)(Lval))
       (struct
-	 let size = 17
-	 let name = "Occurrences.State"
-	 let dependencies = [ Db.Value.self ]
+         let size = 17
+         let name = "Occurrences.State"
+         let dependencies = [ Db.Value.self ]
          let kind = `Internal
        end)
 
@@ -47,8 +47,8 @@ end = struct
     State_builder.Option_ref
       (Varinfo)
       (struct
-	 let name = "Occurrences.LastResult"
-	 let dependencies = [ Ast.self; IState.self ]
+         let name = "Occurrences.LastResult"
+         let dependencies = [ Ast.self; IState.self ]
          let kind = `Internal
        end)
 
@@ -74,16 +74,16 @@ end = struct
   let iter f =
     let old, l =
       IState.fold
-	(fun v elt (old, l) -> match v, old with
-	| v, None ->
-	  assert (l = []);
-	  Some v, [ elt ]
-	| v, (Some old as some) when Varinfo.equal v old ->
-	  some, elt :: l
-	| v, Some old ->
-	  f old l;
-	  Some v, [ elt ])
-	(None, [])
+        (fun v elt (old, l) -> match v, old with
+        | v, None ->
+          assert (l = []);
+          Some v, [ elt ]
+        | v, (Some old as some) when Varinfo.equal v old ->
+          some, elt :: l
+        | v, Some old ->
+          f old l;
+          Some v, [ elt ])
+        (None, [])
     in
     Extlib.may (fun v -> f v l) old
 
@@ -105,8 +105,8 @@ class occurrence = object (self)
     let ki = self#current_ki in
     if Db.Value.is_accessible ki then begin
       let z =
-	!Db.Value.lval_to_zone
-	  ki ~with_alarms:CilE.warn_none_mode (Var vi, NoOffset)
+        !Db.Value.lval_to_zone
+          ki ~with_alarms:CilE.warn_none_mode (Var vi, NoOffset)
       in
       decls <-  (vi, z) :: decls
     end;
@@ -119,7 +119,7 @@ class occurrence = object (self)
       if not (Locations.Zone.equal Locations.Zone.bottom z) then
         List.iter
           (fun (vi, zvi) ->
-	     if Locations.Zone.intersects z zvi then Occurrences.add vi ki lv)
+             if Locations.Zone.intersects z zvi then Occurrences.add vi ki lv)
           decls
     end;
     DoChildren
@@ -129,7 +129,7 @@ class occurrence = object (self)
        let lv = !Db.Properties.Interp.term_lval_to_lval ~result:None tlv in
        ignore (self#vlval lv)
      with Invalid_argument msg ->
-       error "%s@." msg);
+       error ~current:true "%s@." msg);
     DoChildren
 
   method vstmt_aux s =
@@ -157,7 +157,17 @@ let d_ki fmt = function
   | Kstmt s -> Format.fprintf fmt "%d" s.sid
 
 let print_one fmt v l =
-  Format.fprintf fmt "variable %s (%d):@\n" v.vname v.vid;
+  Format.fprintf fmt "variable %s (%s):@\n" 
+    v.vname 
+    (if v.vglob then "global"
+     else 
+	let kf_name = match l with
+	  | [] | (Kglobal, _) :: _ -> assert false
+	  | (Kstmt s, _) :: _ ->
+	    Kernel_function.get_name (Kernel_function.find_englobing_kf s)
+	in
+	if v.vformal then "parameter of " ^ kf_name
+	else "local of " ^ kf_name);
   List.iter
     (fun (ki, lv) ->
        Format.fprintf fmt "  sid %a: %a@\n" d_ki ki d_lval lv) l
@@ -173,8 +183,13 @@ let () =
   Db.register
     (Db.Journalize
        ("Occurrence.get",
-	Datatype.func
-	  Varinfo.ty (Datatype.list (Datatype.pair Kinstr.ty Lval.ty))))
+        Datatype.func
+          Varinfo.ty
+        (* [JS 2011/04/01] Datatype.list buggy in presence of journalisation.
+           See comment in datatype.ml *)
+        (*(Datatype.list (Datatype.pair Kinstr.ty Lval.ty))*)
+          (let module L = Datatype.List(Datatype.Pair(Kinstr)(Lval)) in
+           L.ty)))
     Db.Occurrence.get
     get;
   Db.register

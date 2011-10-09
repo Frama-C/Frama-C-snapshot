@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -aorai-automata tests/aorai/test_acces_params.ya -aorai-test 1 
+   EXECNOW: make -s tests/aorai/aorai_test.cmxs
+   OPT: -aorai-automata tests/aorai/test_acces_params.ya -aorai-test 1 -load-module tests/aorai/aorai_test.cmxs
 */
 
 int status=0;

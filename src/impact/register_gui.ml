@@ -29,16 +29,24 @@ module SelectedStmt = struct
   include State_builder.Option_ref
     (Cil_datatype.Stmt)
     (struct
-       let name = "Impact_gui.SelectedStmt"
-       let dependencies = [ Ast.self ]
-       let kind = `Internal
+      let name = "Impact_gui.SelectedStmt"
+      let dependencies = [ Ast.self ]
+      let kind = `Internal
      end)
-(* [JS 2010/01/31] clearing dependencies prevent journalisation to highlight
-   code when replaying *)
-(*  let set s =
+
+  let set s =
     set s;
-    Project.clear ~selection:(State_selection.Dynamic.only_dependencies self) ()*)
+    Project.clear
+      ~selection:(State_selection.Dynamic.only_dependencies self)
+      ();
 end
+
+let () =
+  Cmdline.run_after_extended_stage
+    (fun () ->
+      State_dependency_graph.Static.add_codependencies
+        ~onto:SelectedStmt.self
+        [ !Db.Pdg.self ])
 
 module Highlighted_stmt : sig
   val add: Kernel_function.t -> stmt -> unit
@@ -52,18 +60,18 @@ end = struct
     Kernel_function.Make_Table
       (Stmt.Set)
       (struct
-	 let name = "Impact_gui.Highlighted_stmt"
-	 let size = 7
-	 let dependencies = [ SelectedStmt.self ]
+         let name = "Impact_gui.Highlighted_stmt"
+         let size = 7
+         let dependencies = [ SelectedStmt.self ]
          let kind = `Internal
        end)
 
   let add kf s =
     ignore
       (Tbl.memo
-	 ~change:(fun set -> Stmt.Set.add s set)
-	 (fun _ -> Stmt.Set.singleton s)
-	 kf)
+         ~change:(fun set -> Stmt.Set.add s set)
+         (fun _ -> Stmt.Set.singleton s)
+         kf)
 
   let mem kf s =
     try
@@ -76,16 +84,20 @@ end = struct
 
 end
 
+(* Show or hide the 'Impact' column of the gui filetree. *)
+let show_column = ref (fun () -> ())
+
 (* Are results shown? *)
-module Enabled =
-  State_builder.Ref
+module Enabled = struct
+  include State_builder.Ref
     (Datatype.Bool)
     (struct
-      let name = "Impact_gui.Enabled"
-      let dependencies = []
-      let kind = `Internal
-      let default () = true
+       let name = "Impact_gui.State"
+       let dependencies = []
+       let kind = `Internal
+       let default () = false
      end)
+end
 
 (* Should perform slicing after impact? *)
 module Slicing =
@@ -121,23 +133,29 @@ let impact_highlighter buffer loc ~start ~stop =
     in
     let hilight kf s =
       if Highlighted_stmt.mem kf s then
-	tag "hilighed_impact" "green"
+        tag "hilighed_impact" "green"
       else
-	SelectedStmt.may
-	  (fun sel -> if Cil_datatype.Stmt.equal sel s then
-	     tag "selected_impact" "cyan")
+        SelectedStmt.may
+          (fun sel -> if Cil_datatype.Stmt.equal sel s then
+             tag "selected_impact" "cyan")
     in
     apply_on_stmt hilight loc
 
-let compute_impact (main_ui:Design.main_window_extension_points) s =
-  let impact = !Db.Impact.from_stmt s in
+
+let impact_statement s =
+  let impact = Register.from_stmt s in
   SelectedStmt.set s;
   let add s =
-    Highlighted_stmt.add (snd (Kernel_function.find_from_sid s.sid)) s
+    Highlighted_stmt.add (Kernel_function.find_englobing_kf s) s
   in
   List.iter add impact;
   if Slicing.get () then !Db.Impact.slice impact;
   Enabled.set true;
+  impact
+
+let impact_statement_ui (main_ui:Design.main_window_extension_points) s =
+  ignore (!Db.Impact.from_stmt s);
+  !show_column ();
   main_ui#rehighlight ()
 
 let impact_selector
@@ -145,10 +163,10 @@ let impact_selector
   apply_on_stmt
     (fun _ s ->
        if button = 3 || FollowFocus.get () then
-	 let callback () = compute_impact main_ui s in
-	 ignore (popup_factory#add_item "_Impact analysis" ~callback);
-	 if FollowFocus.get () then
-	   ignore (Glib.Idle.add (fun () -> callback (); false)))
+         let callback () = ignore (impact_statement_ui main_ui s) in
+         ignore (popup_factory#add_item "_Impact analysis" ~callback);
+         if FollowFocus.get () then
+           ignore (Glib.Idle.add (fun () -> callback (); false)))
     localizable
 
 let impact_panel main_ui =
@@ -159,9 +177,9 @@ let impact_panel main_ui =
     GButton.button ~label:"Set selected"
       ~packing:(bbox#pack ~fill:false ~expand:true) ()
   in
-  let do_select = apply_on_stmt (fun _ -> compute_impact main_ui) in
+  let do_select = apply_on_stmt (fun _ -> impact_statement_ui main_ui) in
   ignore (set_selected#connect#pressed
-	    (fun () -> Design.apply_on_selected do_select));
+            (fun () -> History.apply_on_selected do_select));
   (* check buttons *)
   let add_check_button label active f =
     let b = GButton.check_button ~label ~active ~packing:w#pack () in
@@ -170,7 +188,7 @@ let impact_panel main_ui =
   in
   let enabled_button =
     add_check_button "Enable" (Enabled.get ())
-      (fun b -> Enabled.set b#active; main_ui#rehighlight ())
+      (fun b -> Enabled.set b#active; !show_column (); main_ui#rehighlight ())
   in
   let slicing_button =
     add_check_button "Slicing after impact" (Slicing.get ())
@@ -183,11 +201,12 @@ let impact_panel main_ui =
   (* panel refresh *)
   let refresh () =
     let sensitive_set_selected_button = ref false in
-    Design.apply_on_selected
+    History.apply_on_selected
       (apply_on_stmt (fun _ _ -> sensitive_set_selected_button := true));
     set_selected#misc#set_sensitive !sensitive_set_selected_button;
     if Enabled.get () <> enabled_button#active then begin
       enabled_button#set_active (Enabled.get ());
+      !show_column ();
       main_ui#rehighlight ()
     end;
     slicing_button#set_active (Slicing.get ());
@@ -196,20 +215,23 @@ let impact_panel main_ui =
   "Impact", w#coerce, Some refresh
 
 let file_tree_decorate (file_tree:Filetree.t) =
-  file_tree#append_pixbuf_column
-    "Impact"
-    (fun globs ->
-       let is_hilighted = function
-         | GFun ({svar = v }, _) ->
-             Highlighted_stmt.mem_kf (Globals.Functions.get v)
-         |  _ -> false
-       in
-       let id =
-	 (* lazyness of && is used for efficiency *)
-	 if Enabled.get () && List.exists is_hilighted globs then "gtk-apply"
-	 else ""
-       in
-       [ `STOCK_ID id ])
+  show_column :=
+    file_tree#append_pixbuf_column
+      ~title:"Impact"
+      (fun globs ->
+        let is_hilighted = function
+          | GFun ({svar = v }, _) ->
+            Highlighted_stmt.mem_kf (Globals.Functions.get v)
+          |  _ -> false
+        in
+        let id =
+          (* lazyness of && is used for efficiency *)
+          if Enabled.get () && List.exists is_hilighted globs then "gtk-apply"
+          else ""
+        in
+        [ `STOCK_ID id ])
+    (fun () -> Enabled.get ());
+  !show_column ()
 
 let main main_ui =
   main_ui#register_source_selector impact_selector;
@@ -218,6 +240,16 @@ let main main_ui =
   file_tree_decorate main_ui#file_tree
 
 let () = Design.register_extension main
+
+let () =
+  Db.register
+    (Db.Journalize
+       ("Impact.from_stmt",
+        Datatype.func Cil_datatype.Stmt.ty
+        (Datatype.list Cil_datatype.Stmt.ty)))
+    Impact.from_stmt
+    impact_statement
+
 
 (*
 Local Variables:

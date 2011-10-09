@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** A state is a meta-representation of a project-compliant mutable value.
+(** A state is a project-compliant mutable value.
     @since Carbon-20101201 *)
 
 open Project_skeleton
@@ -33,7 +33,7 @@ type standard_kind =
   [
   | `Correctness (** The state has an impact on the correctness of a result. *)
   | `Internal    (** The state is for internal purpose only:
-		     it is hidden to the external user. *)
+                     it is hidden to the external user. *)
   ]
 
 (** Type of state kinds.
@@ -42,11 +42,11 @@ type user_kind =
   [
   | standard_kind
   | `Tuning      (** The state has an impact on a result,
-		     but it does not change its correctness.
-		     For instance, it just improves the preciseness. *)
+                     but it does not change its correctness.
+                     For instance, it just improves the preciseness. *)
   | `Irrelevant  (** The state has no impact on any result.
-		     If any analyser is run, then its result is not modified by
-		     setting this state. *)
+                     If any analyser is run, then its result is not modified by
+                     setting this state. *)
   ]
 
 type kind =
@@ -68,22 +68,22 @@ module type Local = sig
 
   val create: unit -> t
     (** How to create a new fresh state which must be equal to the initial
-	state: that is, if you never change the state, [create ()] and [get
-	()] must be equal (see invariant 1 below). *)
+        state: that is, if you never change the state, [create ()] and [get
+        ()] must be equal (see invariant 1 below). *)
 
   val clear: t -> unit
     (** How to clear a state. After clearing, the state should be
-	observationaly the same that after its creation (see invariant 2
-	below).
-	@plugin development guide *)
+        observationaly the same that after its creation (see invariant 2
+        below).
+        @plugin development guide *)
 
   val get: unit -> t
     (** How to access to the current state. Be aware of invariants 3 and 4
-	below. *)
+        below. *)
 
   val set: t -> unit
     (** How to change the current state. Be aware of invariants 3 and 4
-	below. *)
+        below. *)
 
   (** The four following invariants must hold.
       {ol
@@ -119,6 +119,10 @@ val get_unique_name: t -> string
 (** Unique name of a state.
     @since Carbon-20101201 *)
 
+val unique_name_from_name: string -> string
+(** @return a fresh unique state name from the given name.
+    @since Nitrogen-20111001 *)
+
 val kind: t -> kind
 (** Kind of a state.
     @since Carbon-20101201 *)
@@ -141,6 +145,11 @@ val get: string -> t
 
 val get_descr: t -> Structural_descr.pack
 (** @since Carbon-20101201 *)
+
+val add_hook_on_update: t -> (unit -> unit) -> unit
+(** Add an hook which is applied each time the project library changes the local
+    value of the state.
+    @since Nitrogen-20111001 *)
 
 (* ************************************************************************** *)
 (** {2 Clusters} *)
@@ -168,19 +177,19 @@ module Cluster: sig
 
   val name: t -> string option
     (** [cluster_name s] returns the name of cluster of [s], if any.
-	@since Carbon-20101201 *)
-    
+        @since Carbon-20101201 *)
+
   (** {2 Internal Stuff} *)
 
   val unmarshal: string option -> t -> unit
     (** How to unmarshal a cluster stored in a state, previously marshaled with
-	its name.
-	@since Carbon-20101201 *)
+        its name.
+        @since Carbon-20101201 *)
 
   val after_load: unit -> unit
     (** Must be called after each project loading.
-	Exported for breaking mutual dependencies with [Project].
-	@since Carbon-20101201 *)
+        Exported for breaking mutual dependencies with [Project].
+        @since Carbon-20101201 *)
 
 end
 
@@ -207,6 +216,7 @@ type private_ops = private
       copy: project -> project -> unit;
       commit: project -> unit;
       update: project -> unit;
+      on_update: (unit -> unit) -> unit;
       clean: unit -> unit;
       serialize: project -> state_on_disk;
       unserialize: project -> state_on_disk -> unit }
@@ -251,6 +261,7 @@ val create:
   copy:(project -> project -> unit) ->
   commit:(project -> unit) ->
   update:(project -> unit) ->
+  on_update:((unit -> unit) -> unit) ->
   clean:(unit -> unit) ->
   serialize:(project -> state_on_disk) ->
   unserialize:(project -> state_on_disk -> unit) ->
@@ -258,7 +269,8 @@ val create:
   name:string ->
   kind ->
   t
-(** @since Carbon-20101201 *)
+(** @since Carbon-20101201
+    @modify Nitrogen-20111001 add the [on_update] argument *)
 
 (*
 Local Variables:

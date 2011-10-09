@@ -10,10 +10,11 @@ type token =
   | RPAREN
   | LSQUARE
   | RSQUARE
+  | LBRACELBRACE
+  | RBRACERBRACE
   | RARROW
   | TRUE
   | FALSE
-  | FUNC
   | NOT
   | DOT
   | AMP
@@ -21,6 +22,9 @@ type token =
   | SEMI_COLON
   | COMMA
   | PIPE
+  | CARET
+  | QUESTION
+  | COLUMNCOLUMN
   | EQ
   | LT
   | GT
@@ -38,4 +42,4 @@ type token =
   | EOF
 
 val main :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> (Promelaast.buchautomata * (string, string) Hashtbl.t * (string, string) Hashtbl.t)
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Promelaast.parsed_automaton

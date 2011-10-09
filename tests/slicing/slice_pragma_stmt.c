@@ -1,27 +1,27 @@
 /* run.config
-   OPT: -print  -journal-disable
-   OPT: -main nop1 -slice-pragma nop1 -slice-print  -journal-disable
-   OPT: -main nop2 -slice-pragma nop2 -slice-print  -journal-disable
-   OPT: -main nop3 -slice-pragma nop3 -slice-print  -journal-disable
-   OPT: -main nop4 -slice-pragma nop4 -slice-print  -journal-disable
-   OPT: -main nop5 -slice-pragma nop5 -slice-print  -journal-disable
-   OPT: -main nop6 -slice-pragma nop6 -slice-print  -journal-disable
-   OPT: -main nop7 -slice-pragma nop7 -slice-print  -journal-disable
-   OPT: -main nop8 -slice-pragma nop8 -slice-print  -journal-disable
-   OPT: -main double_effect1 -slice-pragma double_effect1 -slice-print  -journal-disable
-   OPT: -main double_effect2 -slice-pragma double_effect2 -slice-print  -journal-disable
-   OPT: -main double_effect3 -slice-pragma double_effect3 -slice-print  -journal-disable
-   OPT: -main double_effect4 -slice-pragma double_effect4 -slice-print  -journal-disable
-   OPT: -main double_effect5 -slice-pragma double_effect5 -slice-print  -journal-disable
-   OPT: -main test1 -slice-pragma test1 -slice-print  -journal-disable
-   OPT: -main test2 -slice-pragma test2 -slice-print  -journal-disable
-   OPT: -main test3 -slice-pragma test3 -slice-print  -journal-disable
-   OPT: -main test4 -slice-pragma test4 -slice-print  -journal-disable
-   OPT: -main test5 -slice-pragma test5 -slice-print  -journal-disable
-   OPT: -main test6 -slice-pragma test6 -slice-print  -journal-disable
-   OPT: -main test7 -slice-pragma test7 -slice-print  -journal-disable
-   OPT: -main test8 -slice-pragma test8 -slice-print  -journal-disable
-   OPT: -main test9 -slice-pragma test9 -slice-print  -journal-disable
+   OPT: -check -print  -journal-disable
+   OPT: -check -main nop1 -slice-pragma nop1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop2 -slice-pragma nop2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop3 -slice-pragma nop3 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop4 -slice-pragma nop4 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop5 -slice-pragma nop5 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop6 -slice-pragma nop6 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop7 -slice-pragma nop7 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main nop8 -slice-pragma nop8 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main double_effect1 -slice-pragma double_effect1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main double_effect2 -slice-pragma double_effect2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main double_effect3 -slice-pragma double_effect3 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main double_effect4 -slice-pragma double_effect4 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main double_effect5 -slice-pragma double_effect5 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test1 -slice-pragma test1 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test2 -slice-pragma test2 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test3 -slice-pragma test3 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test4 -slice-pragma test4 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test5 -slice-pragma test5 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test6 -slice-pragma test6 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test7 -slice-pragma test7 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test8 -slice-pragma test8 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main test9 -slice-pragma test9 -journal-disable -then-on 'Slicing export' -print
 */
 typedef int stmt, expr, slice;
 int x, y ;

@@ -20,20 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Cil Extension for Frama-C.
+(** CIL Extension for Frama-C.
     @plugin development guide *)
 
-(** Display a localized warning only once per location and per message. *)
-val warn_once : ('a, Format.formatter, unit, unit) format4 -> 'a
-(** Display a warning only once per message. *)
-val log_once : ('a, Format.formatter, unit, unit) format4 -> 'a
-
-(*val compact_body : Cil_types.fundec -> unit*)
-
-(** Restore correct gotos after a statement substitution *)
-val update_gotos :
-  Cil_types.stmt Cil_datatype.Stmt.Map.t -> Cil_types.block ->
-  Cil_types.block
+(* ************************************************************************* *)
+(* [JS 2011/03/11] All the below stuff manage warnings of the value analysis
+   plug-in. Refactoring required. *)
+(* ************************************************************************* *)
 
 type syntactic_context =
   | SyNone
@@ -51,33 +44,40 @@ val current_stmt : unit -> Cil_types.kinstr
 val set_syntactic_context : syntactic_context -> unit
 val get_syntactic_context : unit -> Cil_types.kinstr*syntactic_context
 
+type warn_origin = {
+  warn_emitter: Emitter.t;
+  warn_deps: State.t list;
+}
+
 type alarm_behavior =
   | Aignore
       (** pretend that the problematic values do not happen *)
-  | Alog
+  | Alog of warn_origin
       (** log the alarm using the global variable that has been set
-	  with set_syntactic_context, and continue,
-	  pretending that the problematic values do not happen *)
+          with set_syntactic_context, and continue,
+          pretending that the problematic values do not happen *)
   | Acall of (unit -> unit)
       (** call function -- in a future version, more information will be
-	  passed to the function *)
+          passed to the function *)
+
+val stop_if_stop_at_first_alarm_mode : unit -> unit
 
 type warn_mode =
     { unspecified: alarm_behavior;
       others: alarm_behavior;
       imprecision_tracing: alarm_behavior }
       (** An argument of type [warn_mode] is required by some of the access
-	  functions in {!Db.Value  (the interface to the value analysis). This
-	  argument tells what should be done with the various messages
-	  that the value analysis emits during the call.
+          functions in {!Db.Value}  (the interface to the value analysis). This
+          argument tells what should be done with the various messages
+          that the value analysis emits during the call.
 
-	  Each [warn_mode] field indicates the expected treatment for one
-	  category of message. These fields are not completely fixed
-	  yet. However, you can still used functions {!warn_all_mode} and
-	  {!warn_none_mode} below when you have to provide an argument of type
-	  [warn_mode]. *)
+          Each [warn_mode] field indicates the expected treatment for one
+          category of message. These fields are not completely fixed
+          yet. However, you can still used functions {!warn_all_mode} and
+          {!warn_none_mode} below when you have to provide an argument of type
+          [warn_mode]. *)
 
-val warn_all_mode : warn_mode
+val warn_all_mode : warn_origin -> warn_mode
   (** Emit all messages, including alarms and informative messages
       regarding the loss of precision. *)
 
@@ -86,12 +86,15 @@ val warn_none_mode : warn_mode
 
 val warn_div : warn_mode -> unit
 val warn_shift : warn_mode -> int -> unit
+val warn_shift_left_positive : warn_mode -> unit
 val warn_mem_read : warn_mode -> unit
 val warn_mem_write : warn_mode -> unit
-val warn_signed_overflow :    warn_mode ->
-           Cil_types.exp ->
-           Int64.t option -> Int64.t option -> unit
-val warn_index : warn_mode -> string -> unit
+val warn_signed_overflow : warn_mode -> Int64.t option -> Int64.t option -> unit
+
+val warn_index : warn_mode -> string -> string -> unit
+(** [warn_index w kind index] emite a warning signaling an out of bound
+    access of kind [kind] at the index [index].
+*)
 val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit
 val warn_uninitialized : warn_mode -> unit

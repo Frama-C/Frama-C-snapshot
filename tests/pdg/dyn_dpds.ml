@@ -5,12 +5,12 @@ zgrviewer tests/pdg/dyn_dpds_1.dot ; \
 zgrviewer tests/pdg/dyn_dpds_2.dot ;
 *)
 
-let get_zones str_data (kinst, kf) =
-  let lval_term = !Db.Properties.Interp.lval kf kinst str_data in
+let get_zones str_data (stmt, kf) =
+  let lval_term = !Db.Properties.Interp.lval kf stmt str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let loc =
     !Db.From.find_deps_no_transitivity
-      (Cil_types.Kstmt kinst)
+      stmt
       (Cil.new_exp ~loc:Cil_datatype.Location.unknown (Cil_types.Lval lval))
   in
   loc

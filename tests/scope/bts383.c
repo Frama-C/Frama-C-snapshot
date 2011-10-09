@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -print -journal-disable -scope-verbose 1 -scope-debug 1
+   OPT: -val -print -journal-disable -scope-verbose 1 -scope-debug 1 -remove-redundant-alarms
 */
 /* 
    echo '!Db.Scope.check_asserts();;' \

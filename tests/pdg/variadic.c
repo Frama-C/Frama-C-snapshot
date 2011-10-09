@@ -1,6 +1,6 @@
 /* run.config
 *    GCC:
-*    OPT: -pdg  -journal-disable
+*    OPT: -pdg  -journal-disable  -pdg-print -pdg-verbose 2
 */
 
 #include <stdarg.h>
@@ -17,16 +17,18 @@ int f (int n, ...) {
   return s;
 }
 
+int lib_f (int n, ...);
+
 int f1 (int a) {
-  return f (1, a);
+  return lib_f (1, a);
 }
 
 int f2 (int a, int b) {
-  return f (2, a, b);
+  return lib_f (2, a, b);
 }
 
 int f3 (int a, int b, int c) {
-  return f (3, a, b, c);
+  return lib_f (3, a, b, c);
 }
 
 int main (void) {

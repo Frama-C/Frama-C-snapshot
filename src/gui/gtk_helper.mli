@@ -32,20 +32,21 @@ val framac_icon: GdkPixbuf.pixbuf option
 (** Some generic icon management tools.
     @since Carbon-20101201 *)
 module Icon: sig
-    (** Generic icons available in every proper install of Frama-C. 
-        To be able to use [Custom s] you must have called 
+    (** Generic icons available in every proper install of Frama-C.
+        To be able to use [Custom s] you must have called
         [register ~name:s ~file] orelse you will get an generic icon
         placeholder.
     *)
-  type kind = Frama_C | Left | Right | Relies_on_valid_hyp | Failed
-              | Maybe | Attach | Check
-              | Custom of string 
+  type kind = Frama_C | Left | Right
+	      | Failed | Maybe | Check | Unmark
+              | Custom of string
+	      | Feedback of Property_status.Feedback.t
 
 
-  (** [register ~name ~file] registers the kind [Custom name] associated 
-      to the filename [file]. 
+  (** [register ~name ~file] registers the kind [Custom name] associated
+      to the filename [file].
       [$FRAMAC_SHARE/f] should point to an existing file containing
-      an image loadable by GdkPixbuf. 
+      an image loadable by GdkPixbuf.
   *)
   val register: name:string -> file:string -> unit
 
@@ -53,12 +54,15 @@ module Icon: sig
   (** @return the pixbuf associated to the given kind.
       If the given kind is [Custom s] and no one ever called
       [register ~name:s ~file] where [file] is such that
-      [$(FRAMAC_SHARE)/f] is not a real image file loadable by GdkPixbuf, 
+      [$(FRAMAC_SHARE)/f] is not a real image file loadable by GdkPixbuf,
       a generic icon placeholder is returned.
   *)
   val get: kind -> GdkPixbuf.pixbuf
+
+  val default: unit -> GdkPixbuf.pixbuf
+
 end
-  
+
 (** Configuration module for the GUI: all magic visual constants should
     use this mechanism (window width, ratios, ...).
 
@@ -145,13 +149,13 @@ val spawn_command:
   ?timeout:int ->
   ?stdout:Buffer.t ->
   ?stderr:Buffer.t ->
-  string -> string array -> 
+  string -> string array ->
   (Unix.process_status -> unit) ->
   unit
   (** Launches the given command and calls the given
-      function when the process terminates. 
-      If timeout is > 0 (the default) then the process will be killed if it does 
-      not end before timeout seconds. 
+      function when the process terminates.
+      If timeout is > 0 (the default) then the process will be killed if it does
+      not end before timeout seconds.
       In this case the returned process status will be
       [Unix.WSIGNALED Sys.sigalrm].
   *)
@@ -177,10 +181,10 @@ val register_locking_machinery:
 (** 2 Tooltips *)
 
 val do_tooltip: ?tooltip:string -> < coerce: GObj.widget; .. > -> unit
-  (** Add the given tooltip to the given widget. 
+  (** Add the given tooltip to the given widget.
       It has no effect if no tooltip is given.
   *)
-    
+
 (** {2 Chooser} *)
 
 type 'a chooser =
@@ -198,7 +202,7 @@ val on_int:
   ?sensitive:(unit -> bool) -> ?width:int ->
   int chooser
     (** Pack a spin button.
-	By default, sensitivity is set to true when this function is called. *)
+        By default, sensitivity is set to true when this function is called. *)
 
 val on_string:
   ?tooltip:string -> ?use_markup:bool -> ?validator:(string -> bool)
@@ -295,12 +299,7 @@ val make_text_page:
 (** A functor to build custom Gtk lists.
     It may be part of a future lablgtk release.
     Do not change anything without changing lablgtk svn.*)
-module MAKE_CUSTOM_LIST(A : sig
-           type t
-           val custom_value :
-             Gobject.g_type -> t -> column:int -> Gobject.basic
-           val column_list : GTree.column_list
-         end)
+module MAKE_CUSTOM_LIST(A : sig type t end)
   : sig
     type custom_list = { finfo : A.t; fidx : int; }
     val inbound : int -> 'a array -> bool
@@ -328,6 +327,11 @@ module MAKE_CUSTOM_LIST(A : sig
       method clear : unit -> unit
     end
       val custom_list : unit -> custom_list_class
+      val make_view_column :
+        custom_list_class -> ('b,'a) #GTree.cell_renderer_skel ->
+        (A.t -> 'a list) ->
+        title:string ->
+        GTree.view_column
     end
 
 (*

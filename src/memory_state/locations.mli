@@ -34,12 +34,12 @@ module Location_Bytes : sig
 
   module M : sig
     type key = Base.t
-    type leaf_annot 
-    type branch_annot 
+    type leaf_annot
+    type branch_annot
     type tt = private
-	      | Empty
-	      | Leaf of key * Ival.t * leaf_annot
-	      | Branch of int * int * tt * tt * branch_annot
+              | Empty
+              | Leaf of key * Ival.t * leaf_annot
+              | Branch of int * int * tt * tt * branch_annot
     type t = tt
     val iter : (Base.t -> Ival.t -> unit) -> t -> unit
     val find :  key -> t -> Ival.t
@@ -54,16 +54,18 @@ module Location_Bytes : sig
 
   include Lattice with type t = z
                   and type widen_hint =
-			  Top_Param.widen_hint * (Base.t -> Ival.widen_hint)
+                          Top_Param.widen_hint * (Base.t -> Ival.widen_hint)
 
   val top_float : t
+  val top_single_precision_float : t
   val is_zero : t -> bool
+  val is_bottom : t -> bool
   val hash : t -> int
   val zero_or_one : t
 
   val singleton_zero : t
     (** the set containing only the value corresponding to the
-	C expression [0] *)
+        C expression [0] *)
 
   val singleton_one : t
     (** the set containing only the value [1] *)
@@ -82,16 +84,18 @@ module Location_Bytes : sig
 
   val inject_top_origin : Origin.t -> Top_Param.O.t -> t
     (** [inject_top_origin origin p] creates a top with origin [origin]
-	and additional information [param] *)
+        and additional information [param] *)
 
   val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
   val splitting_cardinal_less_than :
     split_non_enumerable:int -> t -> int -> int
+  val cardinal_zero_or_one : t -> bool
+  val cardinal_less_than : t -> int -> int
 
   val find_exclusive : Base.t -> t -> Ival.t
     (** [find_exclusive k m] returns [v] if [m] contains only the binding [k]
-	-> [v].
-	@raise Not_exclusive otherwise. *)
+        -> [v].
+        @raise Not_exclusive otherwise. *)
 
   val split : Base.t -> t -> Ival.t * t
   exception Not_all_keys
@@ -107,9 +111,6 @@ module Location_Bytes : sig
 
   val topify_with_origin : Origin.t -> t -> t
 
-  val is_included_actual_generic :
-    Base.Set.t -> Base.Set.t ref -> t Base.Map.t ref -> t -> t -> unit
-
   val may_reach : Base.t -> t -> bool
     (** [may_reach base loc] is true if [base] might be accessed from [loc]. *)
 
@@ -124,7 +125,7 @@ module Location_Bytes : sig
         [is_local] returns [true]
      *)
 
-  val remove_escaping_locals : (M.key -> bool) -> t -> t
+  val remove_escaping_locals : (M.key -> bool) -> t -> Top_Param.t * t
     (**  TODO: merge with above function
          [remove_escaping_locals is_local v] removes from [v] information
          associated with bases for which [is_local] returns [true].
@@ -132,7 +133,10 @@ module Location_Bytes : sig
 
   val contains_addresses_of_any_locals : t -> bool
     (** [contains_addresses_of_any_locals loc] returns [true] iff [loc] contains
-	the adress of a local variable or of a formal variable. *)
+        the adress of a local variable or of a formal variable. *)
+
+  val iter_on_strings :
+    skip:Base.t option -> (Base.t -> string -> int -> int -> unit) -> t -> unit
 
 end
 
@@ -173,18 +177,18 @@ module Location_Bits : sig
 
   val diff : t -> t -> t
     (** Over-approximation of difference. [arg2] needs to be exact or an
-	under_approximation. *)
+        under_approximation. *)
 
   val diff_if_one : t -> t -> t
       (** Over-approximation of difference. [arg2] can be an
-	  over-approximation. *)
+          over-approximation. *)
 
   exception Error_Bottom
   exception Error_Top
 
   val find_exclusive : Base.t -> t -> Ival.t
     (** [find_exclusive k m] returns [v] if [m] contains only the binding [k]
-	-> [v].  @raise Not_exclusive otherwise. *)
+        -> [v].  @raise Not_exclusive otherwise. *)
 
   val is_relationable: t -> bool
 
@@ -193,11 +197,13 @@ module Location_Bits : sig
 
   val intersects : t -> t -> bool
     (** [intersects t1 t2] is true iff [t1] and [t2] have a nonempty
-	intersection *)
+        intersection *)
+
+  val partially_overlaps : Abstract_interp.Int.t -> t -> t -> bool
 
   val inject_top_origin : Origin.t -> Top_Param.O.t -> t
     (** [inject_top_origin origin p] creates a top with origin [origin]
-	and additional information [param] *)
+        and additional information [param] *)
   val topify_arith_origin : t -> t
 
   type widen_hint
@@ -251,7 +257,7 @@ module Zone : sig
 
   val diff_if_one : t -> t -> t
       (** Over-approximation of difference. [arg2] can be an
-	  over-approximation. *)
+          over-approximation. *)
 
   exception Error_Bottom
   exception Error_Top
@@ -260,7 +266,7 @@ module Zone : sig
 
   val find_exclusive : Base.t -> t -> Int_Intervals.t
     (** [find_exclusive k m] returns [v] if [m] contains only the binding [k]
-	-> [v].
+        -> [v].
         @raise Not_exclusive otherwise. *)
 
   val find_lonely_key : t -> Base.t * Int_Intervals.t
@@ -295,27 +301,27 @@ module Zone : sig
 
   val filter_base : (Base.t -> bool) -> t -> t
     (** [filter_base] can't raise Error_Top since it filters bases of [Top
-	bases]. Note: the filter may give an over-approximation (in the case
-	[Top Top]). *)
+        bases]. Note: the filter may give an over-approximation (in the case
+        [Top Top]). *)
 
   val fold_bases : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold_bases] folds also bases of [Top bases].
-	@raise Error_Top in the case [Top Top]. *)
+        @raise Error_Top in the case [Top Top]. *)
 
   val get_bases : t -> Top_Param.t
 
   val fold_i : (Base.t -> Int_Intervals.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold_i f l acc] folds [l] by base.
-	@raise Error_Top in the cases [Top Top], [Top bases]. *)
+        @raise Error_Top in the cases [Top Top], [Top bases]. *)
 
   val fold_topset_ok : (Base.t -> Int_Intervals.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold_i f l acc] folds [l] by base.
-	@raise Error_Top in the case [Top Top]. *)
+        @raise Error_Top in the case [Top Top]. *)
 
   val fold_enum_by_base : (t -> 'a -> 'a) -> t -> 'a -> 'a
     (** [fold_enum_by_base f l acc] folds [l] by base. It applies [f] to a
-	partition of [l] by bases.
-	@raise Error_Top in the case [Top Top], [Top bases]. *)
+        partition of [l] by bases.
+        @raise Error_Top in the case [Top Top], [Top bases]. *)
 
   val out_some_or_bottom : t option -> t
 
@@ -354,12 +360,12 @@ val loc_equal : location -> location -> bool
 val loc_size : location -> Int_Base.t
 
 val can_be_accessed : location -> bool
-val is_valid : location -> bool
+val is_valid : for_writing:bool -> location -> bool
 val is_valid_or_function : location -> bool
 val cardinal_zero_or_one : location -> bool
-val valid_cardinal_zero_or_one : location -> bool
+val valid_cardinal_zero_or_one : for_writing:bool -> location -> bool
 
-val valid_part : location -> location
+val valid_part : for_writing:bool -> location -> location
 val invalid_part : location -> location
 
 val pretty : Format.formatter -> location -> unit
@@ -374,7 +380,7 @@ val loc_without_size_to_loc :
   Cil_types.lval -> Location_Bytes.t -> location
 val loc_bits_to_loc : Cil_types.lval -> Location_Bits.t -> location
 
-val valid_enumerate_bits : location -> Zone.t
+val valid_enumerate_bits : for_writing:bool -> location -> Zone.t
   (** @plugin development guide *)
 val zone_of_varinfo : varinfo -> Zone.t
   (** @since Carbon-20101201 *)

@@ -54,4 +54,3 @@ val store_last_state : t_states -> t -> unit
 val get_init_state : t_states -> t
 val get_stmt_state : t_states -> Cil_types.stmt -> t
 val get_last_state : t_states -> t
-

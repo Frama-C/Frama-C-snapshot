@@ -25,8 +25,8 @@
 type t
   (** Type of the widget containing the warnings. *)
 
-val make : 
-  packing:(GObj.widget -> unit) -> callback:(string -> int -> unit) -> t
+val make :
+  packing:(GObj.widget -> unit) -> callback:(Lexing.position -> unit) -> t
   (** Build a new widget for storing the warnings. *)
 
 (*val set_font : t -> Pango.font_description -> unit*)

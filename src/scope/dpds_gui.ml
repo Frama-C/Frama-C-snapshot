@@ -22,16 +22,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Properties_status
 open Pretty_source
 open Cil_types
 open Cil_datatype
-open Db_types
+
+let update_visibility = ref (fun () -> ())
 
 let add_tag buffer (name, tag_prop) start stop =
-  (* TODO : maybe we should use lazy to build the each tag only once ?... *)
   let tag = Gtk_helper.make_tag buffer ~name tag_prop in
-    Gtk_helper.apply_tag buffer tag start stop
+  Gtk_helper.apply_tag buffer tag start stop
 
 let scope_start_tag = ("startscope", [`UNDERLINE `DOUBLE])
 let zones_used_tag = ("zones",  [`BACKGROUND "#FFeeCC"])
@@ -56,8 +55,8 @@ let ask_for_lval (main_ui:Design.main_window_extension_points) kf stmt =
           try
             let term_lval = !Db.Properties.Interp.lval kf stmt txt in
             let lval =
-	      !Db.Properties.Interp.term_lval_to_lval ~result:None term_lval
-	    in
+              !Db.Properties.Interp.term_lval_to_lval ~result:None term_lval
+            in
               Some (txt, lval)
           with e ->
             main_ui#error "[ask for lval] '%s' invalid expression: %s@."
@@ -84,14 +83,26 @@ let get_lval_opt main_ui kf_stmt_opt localizable =
         Some (lv_txt, lv)
     | _ ->
        ( match kf_stmt_opt with
-	 None -> None
+         None -> None
        | Some (kf, stmt) ->
               match (ask_for_lval main_ui kf stmt) with
-		None -> None
+                None -> None
               | Some (lv_txt, lv) -> Some (lv_txt, lv))
 
+module Kf_containing_highlighted_stmt =
+  Kernel_function.Make_Table
+      (Datatype.Unit)
+      (struct
+        let name = "Dpds_gui.Kf_containing_highlighted_stmt"
+        let size = 7
+        let dependencies = 
+	  [ (*Dependencies are managed manually by Make_StmtSetState*) ]
+        let kind = `Internal
+       end)
+
+
 module Make_StmtSetState (Info:sig val name: string end) =
-  State_builder.Ref
+  struct include State_builder.Ref
     (Stmt.Set)
     (struct
        let name = Info.name
@@ -99,7 +110,18 @@ module Make_StmtSetState (Info:sig val name: string end) =
        let kind = `Internal
        let default () = Stmt.Set.empty
      end)
+	
+   let set s = 
+     set s;
+     Kf_containing_highlighted_stmt.clear ();
+     Stmt.Set.iter 
+       (fun stmt -> 
+	 Kf_containing_highlighted_stmt.replace 
+	   (Kernel_function.find_englobing_kf stmt) ())
+       s;
+     !update_visibility ()
 
+  end
 module type DpdCmdSig = sig
   type t_in
   val help : string
@@ -164,9 +186,9 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
     State_builder.List_ref
       (Code_annotation)
       (struct
-	let name = "Dpds_gui.Highlighter.Pscope_warn"
-	let dependencies = [ Db.Value.self ]
-	let kind = `Internal
+        let name = "Dpds_gui.Highlighter.Pscope_warn"
+        let dependencies = [ Db.Value.self ]
+        let kind = `Internal
        end)
 
   let clear () = Pscope.clear(); Pscope_warn.clear()
@@ -216,7 +238,7 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
   let get_info _kf_stmt_opt =
     if Stmt.Set.is_empty (ShowDefState.get()) then  ""
     else "[show_def] selected"
-
+      
   let compute kf stmt lv =
     match !Db.Scope.get_defs kf stmt lv with
       | None -> clear (); "[show_def] nothing found..."
@@ -241,16 +263,25 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
   type t_in = lval
 
   module ZonesState =
-    State_builder.Option_ref
+    struct include State_builder.Option_ref
       (Datatype.Pair
-	 (Int_hashtbl.Make(Locations.Zone))
+         (Stmt.Hashtbl.Make(Locations.Zone))
          (Stmt.Set))
       (struct
          let name = "Dpds_gui.Highlighter.ZonesState"
          let dependencies = [ Db.Value.self ]
          let kind = `Internal
        end)
-
+    let set s = 
+      set s;
+      Kf_containing_highlighted_stmt.clear ();
+      Stmt.Set.iter 
+	(fun stmt -> 
+	  Kf_containing_highlighted_stmt.replace 
+	    (Kernel_function.find_englobing_kf stmt) ())
+	(snd s);
+     !update_visibility ()
+    end
   let clear () = ZonesState.clear ()
 
   let help =
@@ -318,7 +349,10 @@ let reset () =
   ShowDef.clear ();
   Zones.clear ();
   DataScope.clear ();
-  Pscope.clear ()
+  Pscope.clear ();
+  Kf_containing_highlighted_stmt.clear ();
+  !update_visibility ()
+
 
 let print_info main_ui kf_stmt_opt =
   try
@@ -353,7 +387,7 @@ let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
   let set_txt x =
     let txt = Pretty_utils.sfprintf
       "[dependencies] for %s before stmt %d in %a"
-      x stmt.sid Kernel_function.pretty_name kf
+      x stmt.sid Kernel_function.pretty kf
     in
     DpdsState.set (kf, stmt, txt);
     add_msg main_ui txt
@@ -401,6 +435,22 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
     | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
   with Not_found -> ()
 
+let check_value (main_ui:Design.main_window_extension_points) =
+  if Db.Value.is_computed () then true
+  else
+    let answer = GToolbox.question_box
+      ~title:("Need Value Analysis")
+      ~buttons:[ "Run"; "Cancel" ]
+      ("Value analysis has to be run first.\nThis can take some time.\n"
+       ^"Do you want to run the value analysis now ?")
+    in
+      if answer = 1 then
+        match main_ui#full_protect ~cancelable:true !Db.Value.compute with
+          | Some _ -> true
+          | None -> false
+      else false
+
+
 (** To add a sensitive/unsensitive menu item to a [factory].
 * The menu item is insensitive when [arg_opt = None],
 * else, when the item is selected, the callback is called with the argument.
@@ -408,19 +458,17 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
  *)
 let add_item (main_ui:Design.main_window_extension_points)
       ~use_values (factory:GMenu.menu GMenu.factory) name arg_opt callback =
-  if use_values && not (Db.Value.is_computed ()) then
-      (* add the menu item asking for running value analysis *)
-    let callback () =
-      let msg = "You need to Execute Values analysis first." in
-        add_msg main_ui ("[" ^ name ^ "] " ^ msg)
-    in ignore (factory#add_item name ~callback)
-  else
     match arg_opt with
       | None -> (* add the menu item, but it isn't sensitive *)
           let item = factory#add_item name ~callback: (fun () -> ())
           in item#misc#set_sensitive false
       | Some arg -> (* add the menu item with its callback *)
-          ignore (factory#add_item name ~callback: (fun () -> callback arg))
+          let cb arg =
+            if use_values then
+              if check_value main_ui then callback arg else ()
+            else callback arg
+          in
+          ignore (factory#add_item name ~callback: (fun () -> cb arg))
 
 let selector (popup_factory:GMenu.menu GMenu.factory)
              (main_ui:Design.main_window_extension_points)
@@ -458,8 +506,28 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
   else if button = 1 then
       print_info main_ui (get_kf_stmt_opt localizable)
 
+let filetree_decorate main_ui = 
+  main_ui#file_tree#append_pixbuf_column
+    ~title:"Scope"
+    (fun globs -> 
+      let is_hilighted = function
+        | GFun ({svar = v }, _) ->
+          Kf_containing_highlighted_stmt.mem (Globals.Functions.get v)
+        |  _ -> false
+      in
+      let id =
+          (* lazyness of && is used for efficiency *)
+        if (Kf_containing_highlighted_stmt.length () <> 0)
+	  && List.exists is_hilighted globs 
+	then "gtk-apply"
+        else ""
+      in
+      [ `STOCK_ID id ])
+    (fun _ -> Kf_containing_highlighted_stmt.length () <>0)
+    
 let main main_ui =
   main_ui#register_source_selector selector;
-  main_ui#register_source_highlighter highlighter
-
+  main_ui#register_source_highlighter highlighter;
+  update_visibility := (filetree_decorate main_ui)
+    
 let () = Design.register_extension main

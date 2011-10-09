@@ -98,17 +98,17 @@ class memReadOrAddrOfFinderClass = object
 
   method vvrbl vi =
     if vi.vglob then
-      (if !debug then (Cilmsg.debug "memReadOrAddrOfFinder: %s is a global\n"
+      (if !debug then (Kernel.debug "memReadOrAddrOfFinder: %s is a global\n"
                                vi.vname);
        exp_ok := false;
        SkipChildren)
     else if vi.vaddrof then
       (if !debug then
-         (Cilmsg.debug "memReadOrAddrOfFinder: %s has its address taken\n"
+         (Kernel.debug "memReadOrAddrOfFinder: %s has its address taken\n"
                   vi.vname);
        exp_ok := false;
        SkipChildren)
-    else (if !debug then (Cilmsg.debug "memReadOrAddrOfFinder: %s does not have its address taken\n"
+    else (if !debug then (Kernel.debug "memReadOrAddrOfFinder: %s does not have its address taken\n"
                                   vi.vname);
           DoChildren)
 
@@ -118,7 +118,7 @@ let memReadOrAddrOfFinder = new memReadOrAddrOfFinderClass
 
 (* exp -> bool *)
 let exp_is_ok_replacement e =
-  if !debug then Cilmsg.debug "exp_is_ok_replacement: in exp_is_ok_replacement with %a\n"
+  if !debug then Kernel.debug "exp_is_ok_replacement: in exp_is_ok_replacement with %a\n"
     d_exp e;
   exp_ok := true;
   ignore(visitCilExpr memReadOrAddrOfFinder e);
@@ -159,19 +159,19 @@ let writes_between f dsid sid =
      instruction that writes to memory? Do a dfs *)
   let visited_sid_isr = ref IS.empty in
   let rec dfs goal b start =
-    if !debug then Cilmsg.debug "writes_between: dfs visiting %a\n" d_stmt start;
+    if !debug then Kernel.debug "writes_between: dfs visiting %a\n" d_stmt start;
     if start.sid = goal.sid then
       let wh = find_write start in
-      (if !debug && b then (Cilmsg.debug "writes_between: start=goal and found a write\n");
-       if !debug && (not b) then (Cilmsg.debug "writes_between: start=goal and no write\n");
-       if !debug && wh then (Cilmsg.debug "writes_between: start=goal and write here\n");
-       if !debug && (not wh) then (Cilmsg.debug "writes_between: start=goal and no write here\n");
+      (if !debug && b then (Kernel.debug "writes_between: start=goal and found a write\n");
+       if !debug && (not b) then (Kernel.debug "writes_between: start=goal and no write\n");
+       if !debug && wh then (Kernel.debug "writes_between: start=goal and write here\n");
+       if !debug && (not wh) then (Kernel.debug "writes_between: start=goal and no write here\n");
        b || (find_write start))
     else
     (* if time "List.mem1" (List.mem start.sid) (!visited_sid_lr) then false else *)
     if IS.mem start.sid (!visited_sid_isr) then false else
     let w = find_write start in
-    if !debug && w then Cilmsg.debug "writes_between: found write %a" d_stmt start;
+    if !debug && w then Kernel.debug "writes_between: found write %a" d_stmt start;
     visited_sid_isr := IS.add start.sid (!visited_sid_isr);
     let rec proc_succs sl = match sl with [] -> false
     | s::rest -> if dfs goal (w || b) s then true else proc_succs rest
@@ -179,7 +179,7 @@ let writes_between f dsid sid =
     proc_succs start.succs
   in
   match stmo, dstmo with
-    None, _ | _, None -> Cilmsg.fatal "writes_between: defining stmt not an instr"
+    None, _ | _, None -> Kernel.fatal "writes_between: defining stmt not an instr"
   | Some stm, Some dstm ->
       let _ = visited_sid_isr := IS.singleton stm.sid in
       let from_stm = List.fold_left (dfs stm) false stm.succs in
@@ -198,11 +198,11 @@ let verify_unmodified uses fdefs curiosh defiosh =
     let defido = RD.iosh_singleton_lookup defiosh vi in
     match curido, defido with
       Some(curid), Some(defid) ->
-        (if !debug then (Cilmsg.debug "verify_unmodified: curido: %d defido: %d" curid defid);
+        (if !debug then (Kernel.debug "verify_unmodified: curido: %d defido: %d" curid defid);
          curid = defid && b)
     | None, None ->
         if not(UD.VS.mem vi fdefs) then
-          (if !debug then (Cilmsg.debug "verify_unmodified: %s not defined in function" vi.vname);
+          (if !debug then (Kernel.debug "verify_unmodified: %s not defined in function" vi.vname);
            b)
         else (* if the same set of definitions reaches, we can replace, also *)
           let curios = try IH.find curiosh vi.vid
@@ -211,7 +211,7 @@ let verify_unmodified uses fdefs curiosh defiosh =
           with Not_found -> RD.IOS.empty in
           RD.IOS.compare curios defios == 0 && b
     | _, _ ->
-        (if !debug then Cilmsg.debug "verify_unmodified: %s has conflicting definitions. cur: %a\n def: %a"
+        (if !debug then Kernel.debug "verify_unmodified: %s has conflicting definitions. cur: %a\n def: %a"
            vi.vname RD.ReachingDef.pretty ((),0,curiosh)
            RD.ReachingDef.pretty ((),0,defiosh);
          false))
@@ -267,21 +267,21 @@ let ok_to_replace vi curiosh sid defiosh dsid f r =
         (exp_is_ok_replacement e) && b) true el in
       let u,_d = UD.computeUseDefInstr i in
       u, safe
-  | _ -> Cilmsg.fatal "ok_to_replace: got non Call in RDCall."
+  | _ -> Kernel.fatal "ok_to_replace: got non Call in RDCall."
   in
   let target_addrof = if vi.vaddrof || vi.vglob then
-    (if !debug then (Cilmsg.debug "ok_to_replace: target %s had its address taken or is a global" vi.vname);
+    (if !debug then (Kernel.debug "ok_to_replace: target %s had its address taken or is a global" vi.vname);
     true)
-  else (if !debug then (Cilmsg.debug "ok_to_replace: target %s does not have its address taken" vi.vname);
+  else (if !debug then (Kernel.debug "ok_to_replace: target %s does not have its address taken" vi.vname);
         false) in
   let writes = if safe && not(target_addrof) then false else (time "writes_between" (writes_between f dsid) sid) in
   if (not safe || target_addrof) && writes
   then
-    (if !debug then (Cilmsg.debug "ok_to_replace: replacement not safe because of pointers or addrOf");
+    (if !debug then (Kernel.debug "ok_to_replace: replacement not safe because of pointers or addrOf");
      false)
   else let fdefs = collect_fun_defs f in
-  let _ = if !debug then (Cilmsg.debug "ok_to_replace: card fdefs = %d" (UD.VS.cardinal fdefs)) in
-  let _ = if !debug then (Cilmsg.debug "ok_to_replace: card uses = %d" (UD.VS.cardinal uses)) in
+  let _ = if !debug then (Kernel.debug "ok_to_replace: card fdefs = %d" (UD.VS.cardinal fdefs)) in
+  let _ = if !debug then (Kernel.debug "ok_to_replace: card uses = %d" (UD.VS.cardinal uses)) in
   verify_unmodified uses fdefs curiosh defiosh
 
 let useList = ref []
@@ -297,9 +297,10 @@ class useListerClass (defid:int) (vi:varinfo) = object(self)
             let vido = RD.iosh_defId_find iosh defid in
             let exists = match vido with Some _ -> true | None -> false in
             if vi.vid = vi'.vid && exists
-            then (useList := sid::(!useList); DoChildren)
+            then (useList :=
+                    (Extlib.the self#current_stmt)::(!useList); DoChildren)
             else DoChildren
-        | _ -> Cilmsg.fatal "useLister: no data for statement")
+        | _ -> Kernel.fatal "useLister: no data for statement")
     | _ -> DoChildren
 
 end
@@ -330,15 +331,16 @@ let ok_to_replace_with_incdec curiosh defiosh f id vi r =
       BinOp((PlusA|PlusPI|IndexPI),
             {enode = Lval(Var vi', NoOffset)},
             {enode = Const(CInt64(one,_,_))},_) ->
-              if vi.vid = vi'.vid && one = Int64.one
+              if vi.vid = vi'.vid && My_bigint.equal one My_bigint.one
               then Some(PlusA)
-              else if vi.vid = vi'.vid && one = Int64.minus_one
+              else if vi.vid = vi'.vid && 
+                     My_bigint.equal one My_bigint.minus_one
               then Some(MinusA)
               else None
     | BinOp((MinusA|MinusPI),
             {enode = Lval(Var vi', NoOffset)},
             {enode = Const(CInt64(one,_,_))},_) ->
-              if vi.vid = vi'.vid && one = Int64.one
+              if vi.vid = vi'.vid && My_bigint.equal one My_bigint.one
               then Some(MinusA)
               else None
     | _ -> None
@@ -354,26 +356,26 @@ let ok_to_replace_with_incdec curiosh defiosh f id vi r =
           with Not_found -> RD.IOS.empty in
           let redefrhso = getDefRhs curid in
           (match redefrhso with
-            None -> (if !debug then (Cilmsg.debug "ok_to_replace: couldn't get rhs for redef: %d" curid);
+            None -> (if !debug then (Kernel.debug "ok_to_replace: couldn't get rhs for redef: %d" curid);
                      None)
           | Some(redefrhs, _, redefiosh) ->
               let tmprdido = RD.iosh_singleton_lookup redefiosh vi in
               match tmprdido with
-                None -> (if !debug then (Cilmsg.debug "ok_to_replace: conflicting defs of %s reach redef of %s" vi.vname rhsvi.vname);
+                None -> (if !debug then (Kernel.debug "ok_to_replace: conflicting defs of %s reach redef of %s" vi.vname rhsvi.vname);
                          None)
               | Some tmprdid ->
                   if not (tmprdid = id) then
-                    (if !debug then (Cilmsg.debug "ok_to_replace: initial def of %s doesn't reach redef of %s" vi.vname rhsvi.vname);
+                    (if !debug then (Kernel.debug "ok_to_replace: initial def of %s doesn't reach redef of %s" vi.vname rhsvi.vname);
                      None)
                   else let redefios = try IH.find redefiosh rhsvi.vid
                   with Not_found -> RD.IOS.empty in
                   let curdef_stmt =
 		    try IH.find RD.ReachingDef.defIdStmtHash curid
                     with Not_found ->
-		      Cilmsg.fatal "ok_to_replace: couldn't find statement defining %d" curid in
+		      Kernel.fatal "ok_to_replace: couldn't find statement defining %d" curid in
                   if not (RD.IOS.compare defios redefios = 0) then
                     (if !debug then
-		       (Cilmsg.debug
+		       (Kernel.debug
 			  "ok_to_replace: different sets of definitions of %s reach the def of %s and the redef of %s"
                           rhsvi.vname
                           vi.vname
@@ -385,22 +387,22 @@ let ok_to_replace_with_incdec curiosh defiosh f id vi r =
                         Some(PlusA) ->
                           if num_uses () = 1 then
                             Some(curdef_stmt.sid, curid, rhsvi, PlusA)
-                          else (if !debug then (Cilmsg.debug "ok_to_replace: tmp used more than once");
+                          else (if !debug then (Kernel.debug "ok_to_replace: tmp used more than once");
                                 None)
                       | Some(MinusA) ->
                           if num_uses () = 1 then
                             Some(curdef_stmt.sid, curid, rhsvi, MinusA)
-                          else (if !debug then (Cilmsg.debug "ok_to_replace: tmp used more than once");
+                          else (if !debug then (Kernel.debug "ok_to_replace: tmp used more than once");
                                 None)
                       | None ->
-                          (if !debug then (Cilmsg.debug "ok_to_replace: redef isn't adding or subtracting one from itself");
+                          (if !debug then (Kernel.debug "ok_to_replace: redef isn't adding or subtracting one from itself");
                            None)
-                      | _ -> (Cilmsg.fatal "ok_to_replace: unexpected op in inc/dec info."))
-                    | _ -> (if !debug then (Cilmsg.debug "ok_to_replace: redef a call");
+                      | _ -> (Kernel.fatal "ok_to_replace: unexpected op in inc/dec info."))
+                    | _ -> (if !debug then (Kernel.debug "ok_to_replace: redef a call");
                             None)))
-      | _ -> (if !debug then (Cilmsg.debug "ok_to_replace: %s has conflicting definitions" rhsvi.vname);
+      | _ -> (if !debug then (Kernel.debug "ok_to_replace: %s has conflicting definitions" rhsvi.vname);
               None))
-  | _ -> (if !debug then (Cilmsg.debug "ok_to_replace: rhs not of correct form");
+  | _ -> (if !debug then (Kernel.debug "ok_to_replace: rhs not of correct form");
           None)
 
 (* A hash from variable ids to Call instruction
@@ -552,11 +554,11 @@ let iosh_get_useful_def iosh vi =
         | _ -> true) ios
     in
     if not(RD.IOS.cardinal ios' = 1)
-    then (if !debug then (Cilmsg.debug "iosh_get_useful_def: multiple different defs of %d:%s(%d)"
+    then (if !debug then (Kernel.debug "iosh_get_useful_def: multiple different defs of %d:%s(%d)"
                                   vi.vid vi.vname (RD.IOS.cardinal ios'));
           None)
     else RD.IOS.choose ios'
-  else (if !debug then (Cilmsg.debug "iosh_get_useful_def: no def of %s reaches here" vi.vname);
+  else (if !debug then (Kernel.debug "iosh_get_useful_def: no def of %s reaches here" vi.vname);
         None)
 
 let ae_tmp_to_exp_change = ref false
@@ -564,7 +566,7 @@ let ae_tmp_to_exp eh _sid vi _fd nofrm =
   if nofrm || (check_forms vi.vname forms)
   then try begin
     let e = IH.find eh vi.vid in
-    if !debug then Cilmsg.debug "tmp_to_exp: changing %s to %a"
+    if !debug then Kernel.debug "tmp_to_exp: changing %s to %a"
       vi.vname d_plainexp e;
     match e.enode with
     | Const(CStr _)
@@ -590,7 +592,7 @@ let ae_lval_to_exp lvh _sid lv _fd nofrm =
           | Const(CWStr _) -> None
           | _ -> begin
               ae_lval_to_exp_change := true;
-              if !debug then Cilmsg.debug "ae: replacing %a with %a"
+              if !debug then Kernel.debug "ae: replacing %a with %a"
                 d_lval lv d_exp e;
               Some e
           end
@@ -605,7 +607,7 @@ let ae_lval_to_exp lvh _sid lv _fd nofrm =
         | Const(CWStr _) -> None
         | _ -> begin
             ae_lval_to_exp_change := true;
-            Cilmsg.debug "ae: replacing %a with %a"
+            Kernel.debug "ae: replacing %a with %a"
               d_lval lv d_exp e;
             Some e
         end
@@ -624,18 +626,18 @@ let rd_tmp_to_exp iosh sid vi fd nofrm =
   if nofrm || (check_forms vi.vname forms)
   then let ido = iosh_get_useful_def iosh vi in
   match ido with None ->
-    if !debug then (Cilmsg.debug "tmp_to_exp: non-single def: %s"
+    if !debug then (Kernel.debug "tmp_to_exp: non-single def: %s"
                             vi.vname);
     None
   | Some(id) -> let defrhs = time "getDefRhs" getDefRhs id in
     match defrhs with None ->
       if !debug then
-        (Cilmsg.debug "tmp_to_exp: no def of %s" vi.vname);
+        (Kernel.debug "tmp_to_exp: no def of %s" vi.vname);
       None
     | Some(RD.RDExp(e) as r, dsid , defiosh) ->
         if time "ok_to_replace" (ok_to_replace vi iosh sid defiosh dsid fd) r
         then
-          (if !debug then Cilmsg.debug "tmp_to_exp: changing %s to %a"
+          (if !debug then Kernel.debug "tmp_to_exp: changing %s to %a"
              vi.vname d_plainexp e;
            match e.enode with
            | Const(CStr _)
@@ -645,13 +647,13 @@ let rd_tmp_to_exp iosh sid vi fd nofrm =
                Some e
            end)
         else
-          (if !debug then (Cilmsg.debug "tmp_to_exp: not ok to replace %s" vi.vname);
+          (if !debug then (Kernel.debug "tmp_to_exp: not ok to replace %s" vi.vname);
            None)
     | _ ->
-        if !debug then (Cilmsg.debug "tmp_to_exp: rhs is call %s" vi.vname);
+        if !debug then (Kernel.debug "tmp_to_exp: rhs is call %s" vi.vname);
         None
   else
-    (if !debug then (Cilmsg.debug "tmp_to_exp: %s didn't match form or nofrm" vi.vname);
+    (if !debug then (Kernel.debug "tmp_to_exp: %s didn't match form or nofrm" vi.vname);
      None)
 
 let rd_fwd_subst data sid e fd nofrm =
@@ -700,7 +702,7 @@ let tmp_to_const iosh sid vi fd nofrm =
             None -> None
           | Some(RD.RDExp({enode = Const c;eloc=loc}), _, defiosh) ->
               (match RD.getDefIdStmt defid with
-                None -> (Cilmsg.fatal "tmp_to_const: defid has no statement")
+                None -> (Kernel.fatal "tmp_to_const: defid has no statement")
               | Some(stm) ->
                   if ok_to_replace vi iosh sid defiosh stm.sid fd
                     (RD.RDExp(dummy_exp (Const c)))
@@ -712,7 +714,7 @@ let tmp_to_const iosh sid vi fd nofrm =
                       | Some(RD.RDExp({enode = Const c'}),_,defiosh) ->
                           if Cilutil.equals c c' then
                             match RD.getDefIdStmt defid with
-                              None -> (Cilmsg.fatal "tmp_to_const: defid has no statement")
+                              None -> (Kernel.fatal "tmp_to_const: defid has no statement")
                             | Some(stm) ->
                                 ok_to_replace vi iosh sid defiosh stm.sid fd
                                   (RD.RDExp(dummy_exp (Const c')))
@@ -737,7 +739,7 @@ let ae_const_prop eh sid e fd nofrm =
   let e' = visitCilExpr (varXformClass ae_tmp_to_const eh sid fd nofrm) e in
   (e', !ae_tmp_to_const_change)
 
-class expTempElimClass (fd:fundec) = object
+class expTempElimClass (fd:fundec) = object (self)
   inherit RD.rdVisitorClass
 
   method vexpr e =
@@ -749,13 +751,14 @@ class expTempElimClass (fd:fundec) = object
           let riviho = getDefRhs id in
           (match riviho with
             Some(RD.RDExp(e) as r, dsid, defiosh) ->
-              if !debug then Cilmsg.debug "Can I replace %s with %a?"
+              if !debug then Kernel.debug "Can I replace %s with %a?"
                 vi.vname d_exp e;
-              if ok_to_replace vi iosh sid defiosh dsid fd r
+              if ok_to_replace
+                vi iosh (Extlib.the self#current_stmt).sid defiosh dsid fd r
               then
-                (if !debug then (Cilmsg.debug "Yes.");
+                (if !debug then (Kernel.debug "Yes.");
                  ChangeTo(e))
-              else (if !debug then (Cilmsg.debug "No.");
+              else (if !debug then (Kernel.debug "No.");
                     DoChildren)
           | _ -> DoChildren)
       | _ -> DoChildren)
@@ -767,15 +770,15 @@ class expTempElimClass (fd:fundec) = object
          (* only allowed to replace a tmp with a function call once *)
           (match cur_rd_dat with
             Some(_,_s,iosh) -> do_change iosh vi
-          | None -> let iviho = RD.getRDs sid in
+          | None -> let iviho = RD.getRDs (Extlib.the self#current_stmt) in
             match iviho with
               Some(_,_s,iosh) ->
                 (if !debug then
-                   (Cilmsg.debug "Try to change %s outside of instruction." vi.vname);
+                   (Kernel.debug "Try to change %s outside of instruction." vi.vname);
                  do_change iosh vi)
             | None ->
                 (if !debug then
-                   (Cilmsg.debug "%s in statement w/o RD info" vi.vname);
+                   (Kernel.debug "%s in statement w/o RD info" vi.vname);
                  DoChildren))
         else DoChildren)
     | _ -> DoChildren
@@ -789,13 +792,14 @@ class expLvTmpElimClass (fd : fundec) = object(self)
     match self#get_cur_eh () with
     | None -> DoChildren
     | Some eh -> begin
-       let e', _ = ae_lv_fwd_subst eh sid e fd false in
+       let e', _ =
+         ae_lv_fwd_subst eh (Extlib.the self#current_stmt).sid e fd false in
        ChangeTo e'
     end
 
 end
 
-class incdecTempElimClass (fd:fundec) = object
+class incdecTempElimClass (fd:fundec) = object (self)
   inherit RD.rdVisitorClass
 
   method vexpr e =
@@ -809,15 +813,15 @@ class incdecTempElimClass (fd:fundec) = object
             Some(RD.RDExp _e as r, _, defiosh) ->
               (match ok_to_replace_with_incdec iosh defiosh fd id vi r with
                 Some(curdef_stmt_id,redefid, rhsvi, b) ->
-                  (if !debug then (Cilmsg.debug "No, but I can replace it with a post-inc/dec");
-                   if !debug then (Cilmsg.debug "cdsi: %d redefid: %d name: %s"
+                  (if !debug then (Kernel.debug "No, but I can replace it with a post-inc/dec");
+                   if !debug then (Kernel.debug "cdsi: %d redefid: %d name: %s"
                                            curdef_stmt_id redefid
                                            rhsvi.vname);
                    IH.add incdecHash vi.vid (redefid, rhsvi, b);
                    id_dh_add rhsvi.vid (curdef_stmt_id, redefid);
                    DoChildren)
               | None ->
-                  (if !debug then (Cilmsg.debug "No.");
+                  (if !debug then (Kernel.debug "No.");
                    DoChildren))
           | _ -> DoChildren)
       | _ -> DoChildren)
@@ -829,20 +833,20 @@ class incdecTempElimClass (fd:fundec) = object
          (* only allowed to replace a tmp with an inc/dec if there is only one use *)
           (match cur_rd_dat with
             Some(_,_s,iosh) -> do_change iosh vi
-          | None -> let iviho = RD.getRDs sid in
+          | None -> let iviho = RD.getRDs (Extlib.the self#current_stmt) in
             match iviho with
               Some(_,_s,iosh) ->
-                (if !debug then (Cilmsg.debug "Try to change %s outside of instruction." vi.vname);
+                (if !debug then (Kernel.debug "Try to change %s outside of instruction." vi.vname);
                  do_change iosh vi)
             | None ->
-                (if !debug then (Cilmsg.debug "%s in statement w/o RD info" vi.vname);
+                (if !debug then (Kernel.debug "%s in statement w/o RD info" vi.vname);
                  DoChildren))
         else DoChildren)
     | _ -> DoChildren
 
 end
 
-class callTempElimClass (fd:fundec) = object
+class callTempElimClass (fd:fundec) = object (self)
   inherit RD.rdVisitorClass
 
   method vexpr e =
@@ -854,12 +858,13 @@ class callTempElimClass (fd:fundec) = object
           let riviho = getDefRhs id in
           (match riviho with
                Some(RD.RDCall(i) as r, dsid, defiosh) ->
-		 if !debug then Cilmsg.debug "Can I replace %s with %a?" vi.vname d_instr i;
-		 if ok_to_replace vi iosh sid defiosh dsid fd r
-		 then (if !debug then (Cilmsg.debug "Yes.");
+		 if !debug then Kernel.debug "Can I replace %s with %a?" vi.vname d_instr i;
+		 if ok_to_replace
+                   vi iosh (Extlib.the self#current_stmt).sid defiosh dsid fd r
+		 then (if !debug then (Kernel.debug "Yes.");
                        IH.add iioh vi.vid (Some(i));
                        DoChildren)
-		 else (if !debug then (Cilmsg.debug "No.");
+		 else (if !debug then (Kernel.debug "No.");
                        DoChildren)
              | _ -> DoChildren)
 	 | _ -> DoChildren)
@@ -874,13 +879,13 @@ class callTempElimClass (fd:fundec) = object
           else
             (match cur_rd_dat with
               Some(_,_s,iosh) -> do_change iosh vi
-            | None -> let iviho = RD.getRDs sid in
+            | None -> let iviho = RD.getRDs (Extlib.the self#current_stmt) in
               match iviho with
                 Some(_,_s,iosh) ->
-                  (if !debug then (Cilmsg.debug "Try to change %s:%d outside of instruction." vi.vname vi.vid);
+                  (if !debug then (Kernel.debug "Try to change %s:%d outside of instruction." vi.vname vi.vid);
                    do_change iosh vi)
               | None ->
-                  (if !debug then (Cilmsg.debug "%s in statement w/o RD info" vi.vname);
+                  (if !debug then (Kernel.debug "%s in statement w/o RD info" vi.vname);
                    DoChildren))
           else DoChildren)
     | _ -> DoChildren
@@ -891,13 +896,13 @@ class callTempElimClass (fd:fundec) = object
        code elimination is performed before printing. *)
   method vinst i =
     (* Need to copy this from rdVisitorClass because we are overriding *)
-    if !debug then Cilmsg.debug "rdVis: before %a, rd_dat_lst is %d long"
+    if !debug then Kernel.debug "rdVis: before %a, rd_dat_lst is %d long"
       d_instr i (List.length rd_dat_lst);
     (try
       cur_rd_dat <- Some(List.hd rd_dat_lst);
       rd_dat_lst <- List.tl rd_dat_lst
     with Failure "hd" ->
-      if !debug then (Cilmsg.debug "rdVis: il rd_dat_lst mismatch"));
+      if !debug then (Kernel.debug "rdVis: il rd_dat_lst mismatch"));
     match i with
       Set((Var vi,_off),_,_) ->
         if IH.mem iioh vi.vid
@@ -942,9 +947,9 @@ let is_volatile vi =
     List.exists (function (Attr("volatile",_)) -> true
       | _ -> false) (typeAttrs vi.vtype) in
   if !debug && (vi_vol || typ_vol) then
-    (Cilmsg.debug "unusedRemover: %s is volatile" vi.vname);
+    (Kernel.debug "unusedRemover: %s is volatile" vi.vname);
   if !debug && not(vi_vol || typ_vol) then
-    (Cilmsg.debug "unusedRemover: %s is not volatile" vi.vname);
+    (Kernel.debug "unusedRemover: %s is not volatile" vi.vname);
   vi_vol || typ_vol
 
 
@@ -981,7 +986,7 @@ class unusedRemoverClass : cilVisitor = object(self)
     let unused = List.fold_left (fun un vi ->
       if UD.VS.mem vi used
       then un
-      else (if !debug then (Cilmsg.debug "unusedRemoverClass: %s is unused" vi.vname);
+      else (if !debug then (Kernel.debug "unusedRemoverClass: %s is unused" vi.vname);
             UD.VS.add vi un)) UD.VS.empty f.slocals in
     unused_set <- unused;
     let good_locals = List.filter self#good_var f.slocals in
@@ -1009,23 +1014,23 @@ class unusedRemoverClass : cilVisitor = object(self)
         match findf_in_pl stm.sid pl with (_sid,redefid)::_l ->
           let rhso = getDefRhs redefid in
           (match rhso with
-            None -> (if !debug then (Cilmsg.debug "check_incdec: couldn't find rhs for def %d" redefid);
+            None -> (if !debug then (Kernel.debug "check_incdec: couldn't find rhs for def %d" redefid);
                      false)
           | Some(rhs, _, _indiosh) ->
               (match rhs with
-                 RD.RDCall _ -> (if !debug then Cilmsg.debug "check_incdec: rhs not an expression";
+                 RD.RDCall _ -> (if !debug then Kernel.debug "check_incdec: rhs not an expression";
                                 false)
               | RD.RDExp e' ->
                   if compareExp e e' then true
-                  else (if !debug then Cilmsg.debug "check_incdec: rhs of %d: %a, and needed redef %a not equal"
+                  else (if !debug then Kernel.debug "check_incdec: rhs of %d: %a, and needed redef %a not equal"
                           redefid d_plainexp e' d_plainexp e;
                         false)))
-        | [] -> (if !debug then Cilmsg.debug "check_incdec: current statement not in list: %d. %s = %a"
+        | [] -> (if !debug then Kernel.debug "check_incdec: current statement not in list: %d. %s = %a"
                                             stm.sid
                                             vi.vname
                                             d_exp e;
                    false)
-      else (if !debug then Cilmsg.debug "check_incdec: %s not in idDefHash"
+      else (if !debug then Kernel.debug "check_incdec: %s not in idDefHash"
               vi.vname;
             false)
     in

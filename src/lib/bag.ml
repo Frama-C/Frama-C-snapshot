@@ -115,14 +115,14 @@ let rec partition f = function
   | Add(x,ts) ->
       let pos,neg = partition f ts in
       if f x then add x pos , neg else pos , add x neg
-  | List xs -> 
+  | List xs ->
       let pos,neg = List.partition f xs in
       list pos , list neg
   | Concat(a,b) ->
       let apos,aneg = partition f a in
       let bpos,bneg = partition f b in
       concat apos bpos , concat aneg bneg
-	
+
 let rec is_empty = function
   | Empty | List [] -> true
   | Add(_,_) | Elt _ | List _ -> false
@@ -134,5 +134,5 @@ let rec singleton = function
   | Add(x,t) -> if is_empty t then Some x else None
   | Concat(a,b) ->
       match singleton a with
-	| Some x -> if is_empty b then Some x else None
-	| None -> if is_empty a then singleton b else None
+        | Some x -> if is_empty b then Some x else None
+        | None -> if is_empty a then singleton b else None

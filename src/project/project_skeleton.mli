@@ -51,6 +51,10 @@ val dummy: t
 (** @since Carbon-20101201 *)
 module Make_setter(X: sig val mem: string -> bool end) : sig
 
+  val make_unique_name: string -> string
+  (** @return a fresh name from the given string according to [X.mem].
+      @since Nitrogen-20111001 *)
+
   val make: string -> t
   (** @since Carbon-20101201 *)
 

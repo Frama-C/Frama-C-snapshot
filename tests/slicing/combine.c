@@ -1,7 +1,7 @@
 /* run.config
    EXECNOW: make -s tests/slicing/combine.opt
    CMD: tests/slicing/combine.opt
-   OPT: -deps -journal-disable
+   OPT: -check -deps -journal-disable
 */
 
 //@ assigns \result \from x;

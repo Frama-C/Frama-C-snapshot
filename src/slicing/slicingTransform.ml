@@ -50,8 +50,8 @@ let exists_fun_callers fpred kf =
       else begin
         table := Cil_datatype.Varinfo.Set.add vf !table ;
         List.exists
-	  (fun (kf,_) -> exists_fun_callers kf)
-	  (!Db.Value.callers kf)
+          (fun (kf,_) -> exists_fun_callers kf)
+          (!Db.Value.callers kf)
       end
   in
   exists_fun_callers kf
@@ -67,7 +67,7 @@ let is_src_fun_called prj kf =
   in exists_fun_callers fpred kf
 
 module Visibility (SliceName : sig
-                     val get : Db_types.kernel_function -> bool -> int -> string
+                     val get : kernel_function -> bool -> int -> string
                    end) = struct
 
   exception EraseAssigns
@@ -85,7 +85,7 @@ module Visibility (SliceName : sig
     let slices = M.fi_slices fi in
     let src_visible = is_src_fun_visible project kf in
       SlicingParameters.debug ~level:1 "[SlicingTransform.Visibility.fct_info] processing %a (%d slices/src %svisible)"
-          Kernel_function.pretty_name kf (List.length slices)
+          Kernel_function.pretty kf (List.length slices)
           (if src_visible then "" else "not ");
     let need_addr = (Kernel_function.get_vi kf).vaddrof in
     let src_name_used = src_visible || need_addr in
@@ -128,7 +128,11 @@ module Visibility (SliceName : sig
     | Iproto -> false
     | Iff (ff,_) ->
         let m = !Db.Slicing.Slice.get_mark_from_label ff inst label in
-          visible_mark m
+        let v = visible_mark m in
+          SlicingParameters.debug ~level:2
+            "[SlicingTransform.Visibility.label_visible] label %a is %svisible"
+            !Ast_printer.d_label label (if v then "" else "in");
+          v
 
   let data_in_visible ff data_in = match data_in with
     | None -> true
@@ -137,14 +141,11 @@ module Visibility (SliceName : sig
         * compute [data_in] or not, but let's see if, by chance,
         * some data have been selected manually... *)
         let m = Fct_slice.get_input_loc_under_mark ff data_in in
-          if !Db.Slicing.Mark.is_bottom m then
-            begin
-              SlicingParameters.debug ~level:2
-                "[SlicingTransform.Visibility.data_in_visible] data %a invisible"
-                Locations.Zone.pretty data_in;
-              false
-            end
-          else true
+        let v = visible_mark m in
+          SlicingParameters.debug ~level:2
+            "[SlicingTransform.Visibility.data_in_visible] data %a is %svisible"
+            Locations.Zone.pretty data_in (if v then "" else "in");
+          v
 
  let all_nodes_visible ff nodes =
    let is_visible visi n =
@@ -201,7 +202,7 @@ module Visibility (SliceName : sig
    in case we end up with NotImplemented somewhere, we keep the annotation
    iff all C variables occuring in there are visible.
  *)
-  let all_logic_var_visible, all_logic_var_visible_term, 
+  let all_logic_var_visible, all_logic_var_visible_term,
       all_logic_var_visible_assigns, all_logic_var_visible_deps =
     let module Exn = struct exception Invisible end in
     let vis ff = object
@@ -242,7 +243,7 @@ module Visibility (SliceName : sig
          ignore (Visitor.visitFramacTerm (vis ff) d.it_content); true
        with Exn.Invisible -> false)
 
-  let annotation_visible ff_opt stmt ~before annot =
+  let annotation_visible ff_opt stmt annot =
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.annotation_visible] ?";
     match ff_opt with
@@ -253,7 +254,7 @@ module Visibility (SliceName : sig
         let pdg = !Db.Pdg.get kf in
         try
         let ctrl_nodes, decl_nodes, data_info =
-          !Db.Pdg.find_code_annot_nodes pdg before stmt annot
+          !Db.Pdg.find_code_annot_nodes pdg stmt annot
         in
         let data_visible = data_nodes_visible ff (decl_nodes, data_info) in
         let visible = ((all_nodes_visible ff ctrl_nodes) && data_visible) in
@@ -327,7 +328,7 @@ module Visibility (SliceName : sig
 
   let fun_assign_visible ff_opt v =
     let keep_annots = SlicingParameters.Mode.KeepAnnotations.get () in
-    SlicingParameters.debug ~level:2 
+    SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_assign_visible \
        (with keep_annots = %B)] ?"
       keep_annots;
@@ -343,7 +344,7 @@ module Visibility (SliceName : sig
 
   let fun_deps_visible ff_opt v =
     let keep_annots = SlicingParameters.Mode.KeepAnnotations.get () in
-    SlicingParameters.debug ~level:2 
+    SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_deps_visible \
        (with keep_annots = %B)] ?"
       keep_annots;
@@ -352,8 +353,8 @@ module Visibility (SliceName : sig
         | Isrc -> true
         | Iproto -> true
         | Iff (ff,_) -> all_logic_var_visible_deps ff v
-    in 
-    SlicingParameters.debug ~level:2 
+    in
+    SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_deps_visible] -> %s"
       (if visible then "yes" else "no");
     visible
@@ -374,7 +375,7 @@ module Visibility (SliceName : sig
           try
             let m = PdgIndex.FctIndex.find_info ff_marks key in
             visible_mark m
-          with PdgIndex.NotFound -> false
+          with Not_found -> false
 
   let result_visible _kf ff = match ff with
     | Isrc | Iproto -> true
@@ -384,7 +385,7 @@ module Visibility (SliceName : sig
           try
             let m = PdgIndex.FctIndex.find_info ff_marks key in
             visible_mark m
-          with PdgIndex.NotFound -> false
+          with Not_found -> false
 
   let called_info (project, ff) call_stmt =
     let info = match ff with
@@ -404,7 +405,7 @@ module Visibility (SliceName : sig
                   let kf_ff = M.get_ff_kf ff in
                   let src_visible = is_src_fun_visible project kf_ff in
                     (Some (kf_ff, Iff (ff, src_visible)))
-          with PdgIndex.NotFound ->
+          with Not_found ->
             (* the functor should call [called_info] only for visible calls *)
             assert false
     in
@@ -426,10 +427,14 @@ let extract ~f_slice_names new_proj_name slicing_project =
   let module S = struct let get = f_slice_names end in
   let module Visi = Visibility (S) in
   let module Transform = Filter.F (Visi) in
-  let tmp_prj = Transform.build_cil_file (new_proj_name ^ " tmp") slicing_project in
-  let new_prj = !Db.Sparecode.rm_unused_globals ~new_proj_name:new_proj_name ~project:tmp_prj () in
+  let tmp_prj =
+    Transform.build_cil_file (new_proj_name ^ " tmp") slicing_project
+  in
+  let new_prj =
+    !Db.Sparecode.rm_unused_globals ~new_proj_name ~project:tmp_prj ()
+  in
   Project.remove ~project:tmp_prj ();
-  let ctx = Parameters.get_selection_context () in
+  let ctx = Plugin.get_selection_context () in
   Project.copy ~selection:ctx new_prj;
   SlicingParameters.feedback
     ~level:2 "done (exporting project to '%s')." new_proj_name;

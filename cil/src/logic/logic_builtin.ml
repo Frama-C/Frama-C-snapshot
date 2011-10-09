@@ -30,6 +30,8 @@ let add = Logic_env.add_builtin_logic_function_gen
 let float_type = Ctype Cil.floatType
 let double_type = Ctype Cil.doubleType
 let long_double_type = Ctype Cil.longDoubleType
+let object_ptr = Ctype Cil.voidPtrType
+let fun_ptr = Ctype (TPtr(TFun(Cil.voidType,None,false,[]),[]))
 
 let init =
   let called = ref false in
@@ -38,7 +40,7 @@ let init =
      the same name.
    *)
   fun () ->
-    if ! called then (fun () -> ())
+    if !called then (fun () -> ())
     else begin
       called:=true;
       fun () ->
@@ -119,13 +121,21 @@ let init =
             "\\no_overflow_double", [], ["m", rounding_mode; "x", Lreal] ;
             "\\subset", ["a"], ["s1", Ltype (set, [Lvar "a"]);
                                 "s2", Ltype (set, [Lvar "a"])];
+            "\\pointer_comparable", [], [("p1", object_ptr);
+                                         ("p2", object_ptr)];
+            "\\pointer_comparable", [], [("p1", fun_ptr);
+                                         ("p2", fun_ptr)];
+            "\\pointer_comparable", [], [("p1", fun_ptr);
+                                         ("p2", object_ptr)];
+            "\\pointer_comparable", [], [("p1", object_ptr);
+                                         ("p2", fun_ptr)];
           ];
         (* functions *)
         List.iter
           (fun (f,params,ret_type)  ->
              add { bl_name = f; bl_params = []; bl_profile = params;
                    bl_type = Some ret_type; bl_labels = []})
-          [ "\\exit_status", [], Linteger;
+          [ 
             "\\min", ["x",Linteger;"y",Linteger], Linteger ;
             "\\max", ["x",Linteger;"y",Linteger], Linteger ;
             "\\min", ["x",Lreal;"y",Lreal], Lreal ;
@@ -231,7 +241,6 @@ let init =
             (*"\\round_quad", ["m",  rounding_mode; "x", Lreal], long_double_type;*)
           ]
     end
-
 
 (*
 Local Variables:

@@ -173,15 +173,16 @@
 %token EXITS BREAKS CONTINUES RETURNS
 %token VOLATILE READS WRITES
 %token LOGIC PREDICATE INDUCTIVE AXIOMATIC AXIOM LEMMA LBRACE RBRACE
-%token GHOST CASE
+%token GHOST MODEL CASE
 %token VOID CHAR SIGNED UNSIGNED SHORT LONG DOUBLE STRUCT ENUM UNION
 %token BSUNION INTER
 %token LTCOLON COLONGT TYPE BEHAVIOR BEHAVIORS ASSUMES COMPLETE DISJOINT
 %token TERMINATES
-%token HAT HATHAT PIPE TILDE GTGT LTLT
+%token BIFF BIMPLIES HAT HATHAT PIPE TILDE GTGT LTLT
 %token SIZEOF LAMBDA LET
 %token TYPEOF BSTYPE
 %token WITH CONST
+%token INITIALIZED
 
 %right prec_named
 %nonassoc IDENTIFIER TYPENAME SEPARATED
@@ -193,6 +194,8 @@
 %left HATHAT
 %left AND
 %left PIPE
+%left BIFF
+%right BIMPLIES
 %left HAT
 %left AMP
 %nonassoc prec_no_rel
@@ -271,6 +274,8 @@ lexpr:
 | lexpr AMP lexpr { info (PLbinop ($1, Bbw_and, $3)) }
 | lexpr PIPE lexpr { info (PLbinop ($1, Bbw_or, $3)) }
 | lexpr HAT lexpr { info (PLbinop ($1, Bbw_xor, $3)) }
+| lexpr BIMPLIES lexpr { info (PLbinop (info (PLunop (Ubw_not, $1)), Bbw_or, $3)) }
+| lexpr BIFF lexpr { info (PLbinop (info (PLunop (Ubw_not, $1)), Bbw_xor, $3)) }
 | lexpr QUESTION lexpr COLON2 lexpr %prec prec_question
     { info (PLif ($1, $3, $5)) }
 /* both terms and predicates */
@@ -364,6 +369,7 @@ lexpr_inner:
 | VALID_INDEX LPAR lexpr COMMA lexpr RPAR { info (PLvalid_index ($3,$5)) }
 | VALID_RANGE LPAR lexpr COMMA lexpr COMMA lexpr RPAR
       { info (PLvalid_range ($3,$5,$7)) }
+| INITIALIZED LPAR lexpr RPAR { info (PLinitialized ($3)) }
 | FRESH LPAR lexpr RPAR { info (PLfresh ($3)) }
 | NULL { info PLnull }
 | constant { info (PLconstant $1) }
@@ -759,7 +765,7 @@ ext_global_clauses:
 ext_global_clause:
 | decl  { Ext_decl (loc_decl $1) }
 | EXT_LET any_identifier EQUAL full_lexpr SEMICOLON { Ext_macro ($2, $4) }
-| INCLUDE string SEMICOLON { let b,s = $2 in Ext_include(b,s) }
+| INCLUDE string SEMICOLON { let b,s = $2 in Ext_include(b,s, loc()) }
 ;
 
 ext_global_specs_opt: 
@@ -809,23 +815,16 @@ ext_function_spec:
 | ext_global_clause 
     { Ext_glob $1 }
 | ext_at_loop_markup ext_stmt_loop_spec 
-    { Ext_loop_spec($1,$2) }
-| ext_at_stmt_markup ext_stmt_specs
-    { Ext_stmt_spec($1,$2) }
-| ext_contract_markup ext_contract
-    { Ext_spec $2 }
-;
-
-ext_contract:
-| contract { let s,_pos = $1 in s }
+    { Ext_loop_spec($1,$2,loc()) }
+| ext_at_stmt_markup ext_stmt_loop_spec 
+    { Ext_stmt_spec($1,$2,loc()) }
+| ext_contract_markup contract
+    { let s,pos = $2 in Ext_spec (s,pos) }
 ;
 
 ext_stmt_loop_spec:
 | annotation { $1 }
-;
-
-ext_stmt_specs:
-| annotation { $1 }
+| ext_contract_markup contract { let s, pos = $2 in Acode_annot (pos, AStmtSpec ([],s)) }
 ;
 
 ext_identifier_opt:
@@ -842,7 +841,7 @@ ext_module_markup:
 ;
 
 ext_function_markup:
-| FUNCTION ext_identifier COLON { $2 }
+| FUNCTION ext_identifier COLON { $2, loc() }
 ;
 
 ext_contract_markup:
@@ -1054,17 +1053,13 @@ annot:
 ;
 
 annotation:
-| FOR ne_behavior_name_list COLON contract
-      { 
-        Format.eprintf 
-        "Behavior list is forgotten by the current implementation@.";
-	Afor_spec (loc(), $2, fst ($4)) 
-      }
 | loop_annotations
       { let (b,v,p) = $1 in
 	(* TODO: do better, do not lose the structure ! *)
 	let l = b@v@p in
         Aloop_annot (loc (), l) }
+| FOR ne_behavior_name_list COLON contract
+      { let s, pos = $4 in Acode_annot (pos, AStmtSpec ($2,s)) }
 | code_annotation { Acode_annot (loc(),$1) }
 | code_annotation beg_code_annotation 
       { raise
@@ -1222,8 +1217,9 @@ decl_list:
 decl:
 | GLOBAL INVARIANT any_identifier COLON full_lexpr SEMICOLON
     { LDinvariant ($3, $5) }
-| VOLATILE lexpr volatile_opt SEMICOLON { LDvolatile ($2, $3) }
+| VOLATILE ne_zones volatile_opt SEMICOLON { LDvolatile ($2, $3) }
 | type_annot {LDtype_annot $1}
+| model_annot {LDmodel_annot $1}
 | logic_def  { $1 }
 | deprecated_logic_decl { $1 }
 ;
@@ -1250,6 +1246,17 @@ type_annot:
 | TYPE INVARIANT any_identifier LPAR full_parameter RPAR EQUAL
     full_lexpr SEMICOLON
   { let typ,name = $5 in{ inv_name = $3; this_name = name; this_type = typ; inv = $8; } }
+;
+
+model_annot:
+| MODEL type_spec LBRACE full_parameter RBRACE
+  { let typ,name = $4 in 
+    { model_for_type = $2; model_name = name; model_type = typ; } 
+  }
+| MODEL id_as_typename LBRACE full_parameter RBRACE
+  { let typ,name = $4 in 
+    { model_for_type = $2; model_name = name; model_type = typ; } 
+  }
 ;
 
 poly_id_type:
@@ -1522,6 +1529,7 @@ is_acsl_decl_or_code_annot:
 | PREDICATE { "predicate" } 
 | SLICE     { "slice" }
 | TYPE      { "type" }
+| MODEL     { "model" }
 ;
 
 is_acsl_other:
@@ -1591,6 +1599,7 @@ bs_keyword:
 | VALID { () }
 | VALID_INDEX { () }
 | VALID_RANGE { () }
+| INITIALIZED { () }
 | WITH { () }
 ;
 

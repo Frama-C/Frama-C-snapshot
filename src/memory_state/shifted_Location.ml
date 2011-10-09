@@ -26,14 +26,14 @@ open Format
 type t = { l : Locations.location ; offset : Ival.t }
 
 let bottom = { l = Locations.loc_bottom ; offset = Ival.bottom }
-    
+
 let make l d =
-  if Locations.loc_equal l Locations.loc_bottom || 
-    Ival.equal d Ival.bottom
+  if Locations.loc_equal l Locations.loc_bottom ||
+    Ival.is_bottom d
   then bottom
   else { l = l ; offset = d }
-    
-let equal ls1 ls2 = 
+
+let equal ls1 ls2 =
   Locations.loc_equal ls1.l ls2.l&& Ival.equal ls1.offset ls2.offset
 
 let is_bottom ls =
@@ -48,3 +48,9 @@ let is_included ls1 ls2 =
   Int_Base.equal l1.size l2.size &&
     Location_Bits.is_included l1.loc l2.loc &&
     Ival.is_included ls1.offset ls2.offset
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

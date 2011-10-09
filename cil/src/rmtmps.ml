@@ -68,7 +68,7 @@ let clearReferencedBits file =
 
     | GEnumTag (info, _)
     | GEnumTagDecl (info, _) ->
-	(*trace (dprintf "clearing mark: %a\n" d_shortglobal global);*)
+	Kernel.debug ~level "clearing mark: %a" d_global global;
 	info.ereferenced <- false
 
     | GCompTag (info, _)
@@ -141,11 +141,11 @@ let categorizePragmas file =
   let considerPragma =
 
     let badPragma location pragma =
-      Cilmsg.warning ~source:(source location) "Invalid argument to pragma %s" pragma
+      Kernel.warning ~source:location "Invalid argument to pragma %s" pragma
     in
 
     function
-      | GPragma (Attr ("cilnoremove" as directive, args), location) ->
+      | GPragma (Attr ("cilnoremove" as directive, args), (location,_)) ->
 	  (* a very flexible pragma: can retain typedefs, enums,
 	   * structs, unions, or globals (functions or variables) *)
 	  begin
@@ -186,18 +186,21 @@ let categorizePragmas file =
       | GVarDecl (_,v, _) -> begin
           (* Look for alias attributes, e.g. Linux modules *)
           match filterAttributes "alias" v.vattr with
-              [] -> ()  (* ordinary prototype. *)
-            | [Attr("alias", [AStr othername])] ->
-                H.add keepers.defines othername ()
-            | _ ->
-		(Cil.fatal "Bad alias attribute at %a" d_loc (CurrentLoc.get ()))
-        end
+          | [] -> ()  (* ordinary prototype. *)
+          | [ Attr("alias", [AStr othername]) ] ->
+            H.add keepers.defines othername ()
+          | _ ->
+	    Kernel.fatal ~current:true
+	      "Bad alias attribute at %a"
+	      d_loc (CurrentLoc.get ())
+      end
 
       (*** Begin CCured-specific checks:  ***)
       (* these pragmas indirectly require that we keep the function named in
 	  -- the first arguments of boxmodelof and ccuredwrapperof, and
 	  -- the third argument of ccureddeepcopy*. *)
-      | GPragma (Attr("ccuredwrapper" as directive, attribute :: _), location) ->
+      | GPragma (Attr("ccuredwrapper" as directive, attribute :: _), 
+                 (location,_)) ->
 	  begin
 	    match attribute with
 	    | AStr name ->
@@ -219,7 +222,7 @@ let categorizePragmas file =
 	    | _ ->
 		()
 	  end
-      | GPragma (Attr(directive, _ :: _ :: attribute :: _), location)
+      | GPragma (Attr(directive, _ :: _ :: attribute :: _), (location,_))
            when String.length directive > ccureddeepcopystring_length
 	       && (Str.first_chars directive ccureddeepcopystring_length)
 	           = ccureddeepcopystring ->
@@ -256,7 +259,7 @@ let amputateFunctionBodies keptGlobals file =
   let considerGlobal = function
     | GFun ({svar = {vname = name} as info}, location)
       when not (H.mem keptGlobals name) ->
-	(Cilmsg.debug ~level "slicing: reducing to prototype: function %s\n" name);
+	(Kernel.debug ~level "slicing: reducing to prototype: function %s\n" name);
 	GVarDecl (empty_funspec(),info, location)
     | other ->
 	other
@@ -354,8 +357,6 @@ let isExportedRoot global =
   end
   | GVarDecl(_,v,_) when hasAttribute "alias" v.vattr ->
     true, "has GCC alias attribute"
-  | GVarDecl(spec,v,_) when not (Cil.is_empty_funspec spec) ->
-    v.vname="main", "main has formal spec"
   | GAnnot _ -> true, "global annotation"
   | _ ->
     false, "neither function nor variable nor annotation"
@@ -463,15 +464,15 @@ class markReachableVisitor
       begin
 	let name = v.vname in
 	if v.vglob then
-	  Cilmsg.debug ~level "marking transitive use: global %s" name
+	  Kernel.debug ~level "marking transitive use: global %s" name
 	else
-	  Cilmsg.debug ~level "marking transitive use: local %s" name;
+	  Kernel.debug ~level "marking transitive use: local %s" name;
 
         (* If this is a global, we need to keep everything used in its
 	 * definition and declarations. *)
 	if v.vglob then
 	  begin
-	    Cilmsg.debug ~level "descending: global %s" name;
+	    Kernel.debug ~level "descending: global %s" name;
 	    let descend global =
 	      ignore (visitCilGlobal (self :> cilVisitor) global)
 	    in
@@ -484,45 +485,56 @@ class markReachableVisitor
       end;
     SkipChildren
 
-  method vexpr (e: exp) =
-    match e.enode with
-      Const (CEnum {eihost = ei}) -> ei.ereferenced <- true; DoChildren
-    | _ -> DoChildren
+  method private mark_enum e =
+     let old = e.ereferenced in
+     if not old then
+       begin
+	 Kernel.debug ~level "marking transitive use: enum %s\n" e.ename;
+	 e.ereferenced <- true;
+	 self#visitAttrs e.eattr;
+         (* Must visit the value attributed to the enum constants *)
+         ignore (visitCilEnumInfo (self:>cilVisitor) e);
+       end
+     else 
+       Kernel.debug ~level "not marking transitive use: enum %s\n" e.ename;
+     old
 
+  method vexpr e =
+    match e.enode with
+      Const (CEnum {eihost = ei}) -> ignore (self#mark_enum ei); DoChildren
+    | _ -> DoChildren
+      
+  method vterm_node t =
+    match t with
+      TConst (CEnum {eihost = ei}) -> ignore (self#mark_enum ei); DoChildren
+    | _ -> DoChildren
+      
+  method private visitAttrs attrs =
+    ignore (visitCilAttributes (self :> cilVisitor) attrs)
+      
   method vtype typ =
     let old : bool =
-      let visitAttrs attrs =
-	ignore (visitCilAttributes (self :> cilVisitor) attrs)
-      in
       let visitType typ =
 	ignore (visitCilType (self :> cilVisitor) typ)
       in
       match typ with
       | TEnum(e, attrs) ->
-	  let old = e.ereferenced in
-	  if not old then
-	    begin
-	      (Cilmsg.debug ~level "marking transitive use: enum %s\n" e.ename);
-	      e.ereferenced <- true;
-	      visitAttrs attrs;
-	      visitAttrs e.eattr;
-              (* Must visit the value attributed to the enum constants *)
-              ignore (visitCilEnumInfo (self:>cilVisitor) e);
-	    end;
-	  old
-
+	self#visitAttrs attrs;
+        self#mark_enum e
+          
       | TComp(c, _, attrs) ->
 	  let old = c.creferenced in
           if not old then
             begin
-	      (Cilmsg.debug ~level "marking transitive use: compound %s\n" c.cname);
+	      Kernel.debug ~level "marking transitive use: compound %s\n" 
+                c.cname;
 	      c.creferenced <- true;
 
               (* to recurse, we must ask explicitly *)
 	      let recurse f = visitType f.ftype in
 	      List.iter recurse c.cfields;
-	      visitAttrs attrs;
-	      visitAttrs c.cattr
+	      self#visitAttrs attrs;
+	      self#visitAttrs c.cattr
 	    end;
 	  old
 
@@ -530,13 +542,14 @@ class markReachableVisitor
 	  let old = ti.treferenced in
           if not old then
 	    begin
-	      (Cilmsg.debug ~level "marking transitive use: typedef %s\n" ti.tname);
+	      Kernel.debug ~level "marking transitive use: typedef %s\n" 
+                ti.tname;
 	      ti.treferenced <- true;
 
 	      (* recurse deeper into the type referred-to by the typedef *)
 	      (* to recurse, we must ask explicitly *)
 	      visitType ti.ttype;
-	      visitAttrs attrs
+	      self#visitAttrs attrs
 	    end;
 	  old
 
@@ -625,7 +638,7 @@ class markUsedLabels is_removable (labelMap: (string, unit) H.t) =
   let keep_label dest =
   let (ln, _), _ = labelsToKeep is_removable !dest.labels in
   if ln = "" then
-    Cilmsg.fatal "Statement has no label:@\n%a" Cil.d_stmt !dest ;
+    Kernel.fatal "Statement has no label:@\n%a" Cil.d_stmt !dest ;
   (* Mark it as used *)
   H.replace labelMap ln ()
 in
@@ -760,7 +773,7 @@ let removeUnmarked isRoot file =
 	       begin
 	         (* along the way, record the interesting locals that were removed *)
 	         let name = local.vname in
-	         (Cilmsg.debug ~level "removing local: %s\n" name);
+	         (Kernel.debug ~level "removing local: %s\n" name);
 	         if not (Str.string_match uninteresting name 0) then
 		   removedLocals := (func.svar.vname ^ "::" ^ name) :: !removedLocals;
 	       end;
@@ -801,7 +814,7 @@ let isDefaultRoot = isExportedRoot
 let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
   if not !keepUnused then
     begin
-      Cilmsg.debug ~level "Removing unused temporaries" ;
+      Kernel.debug ~level "Removing unused temporaries" ;
 
       (* digest any pragmas that would create additional roots *)
       let keepers = categorizePragmas file in
@@ -827,9 +840,9 @@ let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
       if false && removedLocals != [] then
 	let count = List.length removedLocals in
 	if count > 2000 then
-	  (Cilmsg.warning "%d unused local variables removed" count)
+	  (Kernel.warning "%d unused local variables removed" count)
 	else
-	  (Cilmsg.warning "%d unused local variables removed:@!%a"
+	  (Kernel.warning "%d unused local variables removed:@!%a"
 	     count (Pretty_utils.pp_list ~sep:",@," Format.pp_print_string) removedLocals)
     end
 

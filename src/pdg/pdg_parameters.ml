@@ -29,13 +29,16 @@ include Plugin.Register
      let help = "Program Dependence Graph"
    end)
 
+let output = add_group "Output"
+
 module BuildAll =
-  False
+  WithOutput
     (struct
        let option_name = "-pdg"
        let help =
-         "build the dependence graph of each function for the slicing tool"
+         "build the dependence graph of each function"
        let kind = `Tuning
+       let output_by_default = false
      end)
 
 module BuildFct =
@@ -47,6 +50,8 @@ module BuildFct =
        let kind = `Tuning
      end)
 
+
+let () = Plugin.set_group output
 module PrintBw =
   False(struct
           let option_name = "-codpds"
@@ -54,6 +59,7 @@ module PrintBw =
           let kind = `Tuning
         end)
 
+let () = Plugin.set_group output
 module DotBasename =
   EmptyString
     (struct
@@ -62,13 +68,3 @@ module DotBasename =
        let help = "put the PDG of function <f> in basename.f.dot"
        let kind = `Tuning
      end)
-
-module DotPostdomBasename =
-  EmptyString
-    (struct
-       let option_name = "-dot-postdom"
-       let arg_name = "f"
-       let help = "put the postdominators of function <f> in basename.f.dot"
-       let kind = `Tuning
-     end)
-

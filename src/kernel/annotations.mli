@@ -25,40 +25,37 @@
     @plugin development guide *)
 
 open Cil_types
-open Db_types
 
-val get_code_annotation:
-  rooted_code_annotation before_after -> code_annotation
+val get_code_annotation: rooted_code_annotation -> code_annotation
 (** extract the undecorated [code_annotation] from an annotation. *)
 
 (* TODO: why a list here? *)
-val add: stmt -> State.t list -> rooted_code_annotation before_after -> unit
+val add: 
+  kernel_function -> stmt -> State.t list -> rooted_code_annotation -> unit
     (** Associate one more annotation with the given stmt.
 	The list is the states required for computing this binding.
 	See {!State_builder.DASHTBL_OUTPUT.add} for details.
+	@modify Nitrogen-20111001
 	@modify Boron-20100401 *)
 
-val add_assert: stmt -> State.t list -> before:bool -> predicate named -> unit
+val add_assert: 
+  kernel_function -> stmt -> State.t list -> predicate named -> unit
   (** Associate one more assertion annotation with the given stmt.
       The list is the states required for computing this binding.
       @modify Boron-20100401
+      @modify Nitrogen-20111001 Argument [before] suppressed: it is always
+         before
       @plugin development guide *)
 
-val add_alarm:
-  stmt -> State.t list -> before:bool -> Alarms.t -> predicate named -> unit
-  (** Associate one more alarm annotation with the given stmt.
-      The list is the states required for computing this binding.
-      @modify Boron-20100401 *)
-
-val replace:
-  reset:bool -> stmt -> State.t list -> rooted_code_annotation before_after ->
+val set_annot:
+  ?reset:bool -> kernel_function -> stmt -> State.t list ->
+  (rooted_code_annotation -> rooted_code_annotation) -> 
   unit
-  (** Associate the given annotation with the given stmt.
-      Previous annotations of this stmt disappear.
-      The list is the states required for computing this binding.
-      @modify Boron-20100401 *)
+(** [replace ~reset kf stmt f] applies [f] on each annotation [a] associated
+    to the given [stmt] of [kf] in order to replace it by [f a].
+    @since Nitrogen-20111001 *)  
 
-val reset_stmt: reset:bool -> stmt -> unit
+val reset_stmt: reset:bool -> kernel_function -> stmt -> unit
   (** Erase all the annotations associated to the given stmt.
       [reset] is [true] iff all the dependencies of all the bindings of this
       statement must be cleared.
@@ -66,83 +63,83 @@ val reset_stmt: reset:bool -> stmt -> unit
 
 val get:
   ?who: State.t list -> stmt -> State.t ->
-  (rooted_code_annotation before_after * State.t) list
+  (rooted_code_annotation * State.t) list
     (** Return all the bindings associated with the stmt and state.
-	See {!State_builder.DASHTBL_OUTPUT.find_all_local} for details.
-	@since Boron-20100401 *)
+        See {!State_builder.DASHTBL_OUTPUT.find_all_local} for details.
+        @since Boron-20100401 *)
 
 val get_annotations:
   ?who: State.t list -> stmt -> State.t ->
-  rooted_code_annotation before_after list
+  rooted_code_annotation list
     (** Return all the annotations associated with the stmt and state.
-	@since Boron-20100401 *)
+        @since Boron-20100401 *)
 
 val get_all:
   ?who: State.t list -> stmt ->
-  (rooted_code_annotation before_after * State.t) list
+  (rooted_code_annotation * State.t) list
     (** Return all the bindings associated with the stmt.
-	@modify Boron-20100401 *)
+        @modify Boron-20100401 *)
 
 val get_all_annotations:
   ?who: State.t list -> stmt ->
-  rooted_code_annotation before_after list
+  rooted_code_annotation list
     (** Return all the annotations associated with the stmt.
-	since Boron-20100401 *)
+        since Boron-20100401 *)
 
 val get_by_state:
-  stmt -> (State.t * rooted_code_annotation before_after list) list
+  stmt -> (State.t * rooted_code_annotation list) list
     (** Return all the annotations associated with the stmt
-	and sorted by states.
-	@since Boron-20100401 *)
+        and sorted by states.
+        @since Boron-20100401 *)
 
 val get_filter:
-  (code_annotation -> bool) -> stmt -> rooted_code_annotation before_after list
+  (code_annotation -> bool) -> stmt -> rooted_code_annotation list
     (** Returns all the annotation associated with the stmt that respects
         the given condition. Use it in conjunction with Logic_utils.is_*
         to retrieve a particular kind of annotations. *)
 
 val iter_stmt:
-  (State.t option -> rooted_code_annotation before_after * State.t -> unit) ->
+  (State.t option -> rooted_code_annotation * State.t -> unit) ->
   stmt -> unit
   (** Iterator on each bindings of the given statement.
       @since Boron-20100401 *)
 
 val single_iter_stmt:
-  (rooted_code_annotation before_after -> unit) -> stmt -> unit
+  (rooted_code_annotation -> unit) -> stmt -> unit
   (** Iterator on each annotations of the given statement.
       Multiple bindings are only applied once.
       @since Boron-20100401 *)
 
 val fold_stmt:
-  (State.t option -> rooted_code_annotation before_after * State.t -> 'a -> 'a)
+  (State.t option -> rooted_code_annotation * State.t -> 'a -> 'a)
   -> stmt -> 'a -> 'a
   (** Folder on each bindings of the given statement
       @since Boron-20100401 *)
 
 val single_fold_stmt:
-  (rooted_code_annotation before_after -> 'a -> 'a) -> stmt -> 'a -> 'a
+  (rooted_code_annotation -> 'a -> 'a) -> stmt -> 'a -> 'a
   (** Folder on each annotations of the given statement.
       Multiple bindings are only applied once.
       @since Boron-20100401 *)
 
 val iter:
   (stmt -> State.t option ->
-   rooted_code_annotation before_after * State.t -> unit)
+   rooted_code_annotation * State.t -> unit)
   -> unit
 (** Iterator on each bindings.
     @since Boron-20100401 *)
 
 val fold:
   (stmt -> State.t option ->
-   rooted_code_annotation before_after * State.t -> 'a -> 'a)
+   rooted_code_annotation * State.t -> 'a -> 'a)
   -> 'a -> 'a
   (** Folder on each bindings.
       @since Boron-20100401 *)
 
 val filter:
   reset:bool ->
-  (stmt -> State.t option -> rooted_code_annotation before_after -> bool) ->
-  stmt -> unit
+  (stmt -> State.t option -> rooted_code_annotation -> bool) ->
+  kernel_function -> stmt -> unit
   (** Filter the bindings associated to the given statement.
       See {!State_builder.DASHTBL_OUTPUT.filter} for details.
       @since Boron-20100401 *)

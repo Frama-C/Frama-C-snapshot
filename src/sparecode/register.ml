@@ -46,7 +46,7 @@ let () =
   Cmdline.run_after_extended_stage
     (fun () ->
        State_dependency_graph.Static.add_codependencies
-	 ~onto:Result.self
+         ~onto:Result.self
          [ !Db.Pdg.self; !Db.Outputs.self_external ])
 
 module P = Sparecode_params
@@ -66,10 +66,14 @@ let journalized_rm_unused_globals  =
        ~label1:("new_proj_name", None) Datatype.string
        ~label2:("project", Some Project.current) Project.ty
        Project.ty)
-    unjournalized_rm_unused_globals 
+    unjournalized_rm_unused_globals
 
 let rm_unused_globals ?new_proj_name ?(project=Project.current ()) () =
-  let new_proj_name = match new_proj_name with Some name -> name | None -> (Project.get_name project)^ " (without unused globals)" in 
+  let new_proj_name = 
+    match new_proj_name with 
+    | Some name -> name 
+    | None -> (Project.get_name project)^ " (without unused globals)" 
+  in
   journalized_rm_unused_globals new_proj_name project
 
 let run select_annot select_slice_pragma =
@@ -77,20 +81,22 @@ let run select_annot select_slice_pragma =
   (*let initial_file = Ast.get () in*)
   let kf_entry, _library = Globals.entry_point () in
 
-  let proj = Marks.select_usefull_things
-               ~select_annot ~select_slice_pragma kf_entry in
+  let proj =
+    Marks.select_useful_things ~select_annot ~select_slice_pragma kf_entry 
+  in
 
   let old_proj_name = Project.get_name (Project.current ()) in
   let new_proj_name = (old_proj_name^" without sparecode") in
 
-    P.feedback "remove unused global declarations...";
+  P.feedback "remove unused global declarations...";
   let tmp_prj = Transform.Info.build_cil_file "tmp_prj" proj in
   let new_prj = Project.on tmp_prj Globs.rm_unused_decl new_proj_name in
-    P.result "result in new project '%s'." (Project.get_name new_prj);
-    Project.remove ~project:tmp_prj ();
-  let ctx = Parameters.get_selection_context () in
-    Project.copy ~selection:ctx new_prj;
-    new_prj
+
+  P.result "result in new project '%s'." (Project.get_name new_prj);
+  Project.remove ~project:tmp_prj ();
+  let ctx = Plugin.get_selection_context () in
+  Project.copy ~selection:ctx new_prj;
+  new_prj
 
 let journalized_get =
   Journal.register
@@ -100,9 +106,9 @@ let journalized_get =
        ~label2:("select_slice_pragma", None) Datatype.bool
        Project.ty)
     (fun select_annot select_slice_pragma ->
-       Result.memo
-	 (fun _ -> run select_annot select_slice_pragma)
-	 (select_annot, select_slice_pragma))
+      Result.memo
+        (fun _ -> run select_annot select_slice_pragma)
+        (select_annot, select_slice_pragma))
 
 (* add labels *)
 let get ~select_annot ~select_slice_pragma =
@@ -131,7 +137,7 @@ let main () =
 let () = Db.Main.extend main
 
 (*
-Local Variables:
-compile-command: "make -C ../.."
-End:
+  Local Variables:
+  compile-command: "make -C ../.."
+  End:
 *)

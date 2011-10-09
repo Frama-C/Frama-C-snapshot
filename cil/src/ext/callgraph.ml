@@ -144,7 +144,7 @@ class cgComputer (graph: callgraph) = object
   (* begin visiting a function definition *)
   method vfunc (f:fundec) : fundec visitAction = 
     begin
-      Cilmsg.feedback ~level:2 "Callgraph for function %s" f.svar.vname ;
+      Kernel.feedback ~level:2 "Callgraph for function %s" f.svar.vname ;
       let node =  getNodeForVar graph f.svar in
       (match node.cnInfo with
 	   NIVar (_v, r) -> r := true

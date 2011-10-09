@@ -22,6 +22,7 @@
 
 include Printexc
 exception No_backtrace
+let has_backtrace = true
 let () = record_backtrace true
 
 (*

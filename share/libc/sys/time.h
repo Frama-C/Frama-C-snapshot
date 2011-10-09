@@ -24,8 +24,8 @@
 #define __FC_SYS_TIME_H__
 
 typedef struct {char __fc_fd_set;} fd_set;
-#include "__fc_define_time_t.h"
-#include "__fc_define_suseconds_t.h"
+#include "../__fc_define_time_t.h"
+#include "../__fc_define_suseconds_t.h"
 
 struct timeval {
   time_t         tv_sec;

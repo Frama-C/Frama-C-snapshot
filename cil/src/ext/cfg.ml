@@ -113,7 +113,7 @@ let findCaseLabeledStmts (b : block) : stmt list =
 let rec cfgFun (fd : fundec) =
   nodeList := [];
   cfgBlock fd.sbody None None None;
-  fd.smaxstmtid <- Some(Cil.Sid.get ());
+  fd.smaxstmtid <- Some(Cil.Sid.next ());
   fd.sallstmts <- List.rev !nodeList;
   nodeList := []
 
@@ -139,8 +139,10 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
   if s.sid = -1 then s.sid <- Cil.Sid.next ();
   nodeList := s :: !nodeList; (* Future traversals can be made in linear time. e.g.  *)
   if s.succs <> [] then
-    Cilmsg.fatal "CFG must be cleared before being computed! '%a' of %d" d_stmt s
-      (List.length s.succs);
+    Kernel.fatal 
+      "CFG must be cleared before being computed! Stmt %d (%d) '%a' \
+       has %d successors" 
+      s.sid (Obj.magic s) d_stmt s (List.length s.succs);
   let addSucc (n: stmt) =
     if not (List.memq n s.succs) then s.succs <- n::s.succs;
     if not (List.memq s n.preds) then n.preds <- s::n.preds
@@ -211,7 +213,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
   (* Since all loops have terminating condition true, we don't put
      any direct successor to stmt following the loop *)
   | TryExcept _ | TryFinally _ ->
-      Cilmsg.fatal "try/except/finally"
+      Kernel.fatal "try/except/finally"
 
 (*------------------------------------------------------------*)
 
@@ -422,7 +424,7 @@ let xform_switch_block ?(keepSwitch=false) b =
   let assert_of_clause f ca =
     match ca.annot_content with
       | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | APragma _ -> ptrue
-      | AStmtSpec s ->
+      | AStmtSpec (_bhv,s) ->
         List.fold_left
           (fun acc bhv ->
             pand
@@ -459,7 +461,7 @@ let xform_switch_block ?(keepSwitch=false) b =
       let cont_clause = Logic_utils.translate_old_label s cont_clause in
       Stack.push cont_clause old_clause;
     end else begin
-      Cilmsg.fatal "No stack where to put continues clause"
+      Kernel.fatal "No stack where to put continues clause"
     end;
     if not (Stack.is_empty breaks_stack) then begin
       let old_clause = Stack.top breaks_stack in
@@ -467,7 +469,7 @@ let xform_switch_block ?(keepSwitch=false) b =
       in
       Stack.push break_clause old_clause;
     end else begin
-      Cilmsg.fatal "No stack where to put breaks clause"
+      Kernel.fatal "No stack where to put breaks clause"
     end
   in
   let rec popn n =
@@ -500,10 +502,10 @@ let xform_switch_block ?(keepSwitch=false) b =
 	        let suffix =
 	          match isInteger e with
 	            | Some value ->
-	              if value < Int64.zero then
-		        "neg_" ^ Int64.to_string (Int64.neg value)
+	              if My_bigint.lt value My_bigint.zero then
+		        "neg_" ^ My_bigint.to_string (My_bigint.neg value)
 	              else
-		        Int64.to_string value
+		        My_bigint.to_string value
 	            | None ->
 	              "exp"
 	        in
@@ -527,42 +529,42 @@ let xform_switch_block ?(keepSwitch=false) b =
                 rest break_dest cont_dest label_index 0
             | Break(l) ->
               if Stack.is_empty breaks_stack then
-                Cilmsg.fatal "empty breaks stack";
-              let goto_stmt =  mkStmt (Goto(break_dest (),l)) in
+                Kernel.fatal "empty breaks stack";
+              s.skind <- Goto(break_dest (),l);
               let breaks = Stack.top breaks_stack in
               let assertion = ref ptrue in
               Stack.iter (fun p -> assertion := pand (p,!assertion)) breaks;
               (match !assertion with
                   { content = Ptrue } ->
                     popn popstack;
-                    goto_stmt ::
+                    s ::
                       xform_switch_stmt
                       rest break_dest cont_dest label_index 0
                 | p ->
                   let a = Logic_const.new_code_annotation (AAssert ([],p)) in
                   let assertion = mkStmt (Instr(Code_annot(a,l))) in
                   popn popstack;
-                  assertion::goto_stmt::
+                  assertion:: s ::
                     xform_switch_stmt
                     rest break_dest cont_dest label_index 0)
             | Continue(l) ->
               if Stack.is_empty continues_stack then
-                Cilmsg.fatal "empty continues stack";
-              let goto_stmt = mkStmt (Goto(cont_dest (),l)) in
+                Kernel.fatal "empty continues stack";
+              s.skind <- Goto(cont_dest (),l);
               let continues = Stack.top continues_stack in
               let assertion = ref ptrue in
               Stack.iter (fun p -> assertion := pand(p,!assertion)) continues;
               (match !assertion with
                   { content = Ptrue } ->
                     popn popstack;
-                    goto_stmt ::
+                    s ::
                       xform_switch_stmt
                       rest break_dest cont_dest label_index 0
                 | p ->
                   let a = Logic_const.new_code_annotation (AAssert([],p)) in
                   let assertion = mkStmt (Instr(Code_annot(a,l))) in
                   popn popstack;
-                  assertion::goto_stmt::
+                  assertion :: s ::
                     xform_switch_stmt
                     rest break_dest cont_dest label_index 0)
             | If(e,b1,b2,l) ->
@@ -644,7 +646,9 @@ let xform_switch_block ?(keepSwitch=false) b =
                               (* begin replacement: *)
 	                    let pred =
 		              match ce.enode with
-		                  Const (CInt64 (0L,_,_)) ->
+		                  Const (CInt64 (z,_,_)) 
+                                    when My_bigint.equal z My_bigint.zero
+                                      ->
 		                    new_exp ~loc:ce.eloc (UnOp(LNot,e,intType))
 		                | _ ->
 		                  new_exp ~loc:ce.eloc (BinOp(Eq,e,ce,intType))
@@ -732,7 +736,7 @@ let xform_switch_block ?(keepSwitch=false) b =
               s.skind <- UnspecifiedSequence seq;
               s :: xform_switch_stmt rest break_dest cont_dest label_index 0
             | TryExcept _ | TryFinally _ ->
-              Cilmsg.fatal
+              Kernel.fatal
                 "xform_switch_statement: \
                   structured exception handling not implemented"
         end
@@ -759,8 +763,8 @@ let xform_switch_block ?(keepSwitch=false) b =
     (List.concat (List.map treat_one seq))
   in
   xform_switch_block b
-    (fun () -> Cilmsg.abort "break outside of loop or switch")
-    (fun () -> Cilmsg.abort "continues outside of loop")
+    (fun () -> Kernel.abort "break outside of loop or switch")
+    (fun () -> Kernel.abort "continues outside of loop")
     (-1)
 
 (* Enter all the labels in a function into an alpha renaming table to
@@ -794,12 +798,11 @@ let prepareCFG ?(keepSwitch=false) (fd : fundec) : unit =
   fd.sbody <- b
 
 (* make the cfg and return a list of statements *)
-let computeCFGInfo (f : fundec) (global_numbering : bool) : unit =
-  if not global_numbering then Sid.reset ();
+let computeCFGInfo (f : fundec) (_global_numbering : bool) : unit =
   statements := [];
   let clear_it = new clear in
   ignore (visitCilBlock clear_it f.sbody) ;
-  f.smaxstmtid <- Some (Sid.get ()) ;
+  f.smaxstmtid <- Some (Sid.next ()) ;
   succpred_block f.sbody (None);
   let res = List.rev !statements in
   statements := [];

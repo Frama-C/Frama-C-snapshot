@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Nothing is export: just register some special hooks for Frama-C. 
+(** Nothing is export: just register some special hooks for Frama-C.
     @since Beryllium-20090601-beta1 *)
 
 (*

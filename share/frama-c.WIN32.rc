@@ -23,14 +23,14 @@
 # Default font for all widgets The first exisiting font is used.
 style "general" 
 {
-        font_name = "Lucida Sans Unicode"
+        font_name = "Sans"
 }
 widget "*" style "general"
 
 # Style for widgets displaying source code.
 style "monospace" 
 {
-        font_name = "Mono"
+        font_name = "Sans"
 }
 widget "*source" style "monospace"
 

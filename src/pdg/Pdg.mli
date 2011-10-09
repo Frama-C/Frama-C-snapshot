@@ -30,29 +30,29 @@
 module Register : sig
   (** [stmt] is a call in the [pdg] function.
   * Interprocedural information is provided to know which marks have to be
-  * propagatedfrom the called funciton. 
+  * propagatedfrom the called funciton.
   * [in_marks_to_caller] translate this [t_info_caller_inputs]
   * into a (node, mark) list where the marks are filtered by a  m2m function.
   * Ths result is added to the [rqs] list which is empty by default. *)
-  val in_marks_to_caller : 
+  val in_marks_to_caller :
     PdgTypes.Pdg.t -> Cil_types.stmt ->
     ('t_mark PdgMarks.t_m2m) ->
-    ?rqs:('t_mark PdgMarks.t_select) -> 
+    ?rqs:('t_mark PdgMarks.t_select) ->
     't_mark PdgMarks.t_info_caller_inputs ->
     't_mark PdgMarks.t_select
 
-  (** similar to [in_marks_to_caller] except that it is done 
+  (** similar to [in_marks_to_caller] except that it is done
   * for every callers of the function. *)
   val translate_in_marks :
-      PdgTypes.Pdg.t -> 't_mark PdgMarks.t_info_caller_inputs 
+      PdgTypes.Pdg.t -> 't_mark PdgMarks.t_info_caller_inputs
      -> ?m2m:'t_mark PdgMarks.t_call_m2m
      -> 't_mark PdgMarks.t_pdg_select
      -> 't_mark PdgMarks.t_pdg_select
 
   (** similar to [in_marks_to_caller] except that it is for the outputs
-  * of a function propagated into its calls *) 
+  * of a function propagated into its calls *)
   val call_out_marks_to_called : PdgTypes.Pdg.t -> 't_mark PdgMarks.t_m2m ->
-    ?rqs:('t_mark PdgMarks.t_select) -> 
+    ?rqs:('t_mark PdgMarks.t_select) ->
     (PdgIndex.Signature.t_out_key * 't_mark) list ->
     't_mark PdgMarks.t_select
 
@@ -64,10 +64,10 @@ module Register : sig
      -> 't_mark PdgMarks.t_pdg_select
      -> 't_mark PdgMarks.t_pdg_select
 
-  (** Full backward interprocedural propagation. 
+  (** Full backward interprocedural propagation.
   * Can be configured using the funtor parameter.
   * Used for instance in [Sparecode]. *)
-  module F_Proj (C : PdgMarks.T_Config) : PdgMarks.T_Proj 
-         with type t_mark = C.M.t 
-          and type t_fct = (C.M.t, C.M.t_call_info) PdgIndex.FctIndex.t
+  module F_Proj (C : PdgMarks.T_Config) : PdgMarks.T_Proj
+         with type t_mark = C.M.t
+          and type t_call_info = C.M.t_call_info
 end

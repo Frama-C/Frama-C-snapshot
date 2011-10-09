@@ -1,0 +1,1156 @@
+logic eq_unit : unit,unit -> prop
+
+logic neq_unit : unit,unit -> prop
+
+logic eq_bool : bool,bool -> prop
+
+logic neq_bool : bool,bool -> prop
+
+logic lt_int : int,int -> prop
+
+logic le_int : int,int -> prop
+
+logic gt_int : int,int -> prop
+
+logic ge_int : int,int -> prop
+
+logic eq_int : int,int -> prop
+
+logic neq_int : int,int -> prop
+
+logic add_int : int,int -> int
+
+logic sub_int : int,int -> int
+
+logic mul_int : int,int -> int
+
+logic neg_int : int -> int
+
+predicate zwf_zero(a:int,b:int) = ((0<=b) and (a<b))
+
+logic bool_and : bool,bool -> bool
+
+logic bool_or : bool,bool -> bool
+
+logic bool_xor : bool,bool -> bool
+
+logic bool_not : bool -> bool
+
+axiom bool_and_def : (forall a:bool.(forall b:bool.
+((bool_and(a,b)=true) <-> ((a=true) and (b=true)))))
+
+axiom bool_or_def : (forall a:bool.(forall b:bool.
+((bool_or(a,b)=true) <-> ((a=true) or (b=true)))))
+
+axiom bool_xor_def : (forall a:bool.(forall b:bool.
+((bool_xor(a,b)=true) <-> (a<>b))))
+
+axiom bool_not_def : (forall a:bool.
+((bool_not(a)=true) <-> (a=false)))
+
+logic ite : bool,'a1,'a1 -> 'a1
+
+axiom ite_true : (forall x:'a1.(forall y:'a1.
+(ite(true,x,y)=x)))
+
+axiom ite_false : (forall x:'a1.(forall y:'a1.
+(ite(false,x,y)=y)))
+
+logic lt_int_bool : int,int -> bool
+
+logic le_int_bool : int,int -> bool
+
+logic gt_int_bool : int,int -> bool
+
+logic ge_int_bool : int,int -> bool
+
+logic eq_int_bool : int,int -> bool
+
+logic neq_int_bool : int,int -> bool
+
+axiom lt_int_bool_axiom : (forall x:int.(forall y:int.
+((lt_int_bool(x,y)=true) <-> (x<y))))
+
+axiom le_int_bool_axiom : (forall x:int.(forall y:int.
+((le_int_bool(x,y)=true) <-> (x<=y))))
+
+axiom gt_int_bool_axiom : (forall x:int.(forall y:int.
+((gt_int_bool(x,y)=true) <-> (x>y))))
+
+axiom ge_int_bool_axiom : (forall x:int.(forall y:int.
+((ge_int_bool(x,y)=true) <-> (x>=y))))
+
+axiom eq_int_bool_axiom : (forall x:int.(forall y:int.
+((eq_int_bool(x,y)=true) <-> (x=y))))
+
+axiom neq_int_bool_axiom : (forall x:int.(forall y:int.
+((neq_int_bool(x,y)=true) <-> (x<>y))))
+
+logic abs_int : int -> int
+
+axiom abs_int_pos : (forall x:int.
+((x>=0) -> (abs_int(x)=x)))
+
+axiom abs_int_neg : (forall x:int.
+((x<=0) -> (abs_int(x)=(-x))))
+
+logic int_max : int,int -> int
+
+logic int_min : int,int -> int
+
+axiom int_max_is_ge : (forall x:int.(forall y:int.
+((int_max(x,y)>=x) and (int_max(x,y)>=y))))
+
+axiom int_max_is_some : (forall x:int.(forall y:int.
+((int_max(x,y)=x) or (int_max(x,y)=y))))
+
+axiom int_min_is_le : (forall x:int.(forall y:int.
+((int_min(x,y)<=x) and (int_min(x,y)<=y))))
+
+axiom int_min_is_some : (forall x:int.(forall y:int.
+((int_min(x,y)=x) or (int_min(x,y)=y))))
+
+logic lt_real : real,real -> prop
+
+logic le_real : real,real -> prop
+
+logic gt_real : real,real -> prop
+
+logic ge_real : real,real -> prop
+
+logic eq_real : real,real -> prop
+
+logic neq_real : real,real -> prop
+
+logic add_real : real,real -> real
+
+logic sub_real : real,real -> real
+
+logic mul_real : real,real -> real
+
+logic div_real : real,real -> real
+
+logic neg_real : real -> real
+
+logic real_of_int : int -> real
+
+axiom real_of_int_zero : (real_of_int(0)=0.0)
+
+axiom real_of_int_one : (real_of_int(1)=1.0)
+
+axiom real_of_int_add : (forall x:int.(forall y:int.
+(real_of_int((x+y))=(real_of_int(x)+real_of_int(y)))))
+
+axiom real_of_int_sub : (forall x:int.(forall y:int.
+(real_of_int((x-y))=(real_of_int(x)-real_of_int(y)))))
+
+logic truncate_real_to_int : real -> int
+
+axiom truncate_down_pos : (forall x:real.
+((x>=0.0) -> ((real_of_int(truncate_real_to_int(x))<=x) and (x<real_of_int((truncate_real_to_int(x)+1))))))
+
+axiom truncate_up_neg : (forall x:real.
+((x<=0.0) -> ((real_of_int((truncate_real_to_int(x)-1))<x) and (x<=real_of_int(truncate_real_to_int(x))))))
+
+logic floor_real_to_int : real -> int
+
+logic ceil_real_to_int : real -> int
+
+logic lt_real_bool : real,real -> bool
+
+logic le_real_bool : real,real -> bool
+
+logic gt_real_bool : real,real -> bool
+
+logic ge_real_bool : real,real -> bool
+
+logic eq_real_bool : real,real -> bool
+
+logic neq_real_bool : real,real -> bool
+
+axiom lt_real_bool_axiom : (forall x:real.(forall y:real.
+((lt_real_bool(x,y)=true) <-> (x<y))))
+
+axiom le_real_bool_axiom : (forall x:real.(forall y:real.
+((le_real_bool(x,y)=true) <-> (x<=y))))
+
+axiom gt_real_bool_axiom : (forall x:real.(forall y:real.
+((gt_real_bool(x,y)=true) <-> (x>y))))
+
+axiom ge_real_bool_axiom : (forall x:real.(forall y:real.
+((ge_real_bool(x,y)=true) <-> (x>=y))))
+
+axiom eq_real_bool_axiom : (forall x:real.(forall y:real.
+((eq_real_bool(x,y)=true) <-> (x=y))))
+
+axiom neq_real_bool_axiom : (forall x:real.(forall y:real.
+((neq_real_bool(x,y)=true) <-> (x<>y))))
+
+logic real_max : real,real -> real
+
+logic real_min : real,real -> real
+
+axiom real_max_is_ge : (forall x:real.(forall y:real.
+((real_max(x,y)>=x) and (real_max(x,y)>=y))))
+
+axiom real_max_is_some : (forall x:real.(forall y:real.
+((real_max(x,y)=x) or (real_max(x,y)=y))))
+
+axiom real_min_is_le : (forall x:real.(forall y:real.
+((real_min(x,y)<=x) and (real_min(x,y)<=y))))
+
+axiom real_min_is_some : (forall x:real.(forall y:real.
+((real_min(x,y)=x) or (real_min(x,y)=y))))
+
+function sqr_real(x:real) : real = (x*x)
+
+logic sqrt_real : real -> real
+
+axiom sqrt_pos : (forall x:real.
+((x>=0.0) -> (sqrt_real(x)>=0.0)))
+
+axiom sqrt_sqr : (forall x:real.
+((x>=0.0) -> (sqr_real(sqrt_real(x))=x)))
+
+axiom sqr_sqrt : (forall x:real.
+((x>=0.0) -> (sqrt_real((x*x))=x)))
+
+logic pow_real : real,real -> real
+
+logic abs_real : real -> real
+
+axiom abs_real_pos : (forall x:real[abs_real(x)].
+((x>=0.0) -> (abs_real(x)=x)))
+
+axiom abs_real_neg : (forall x:real[abs_real(x)].
+((x<=0.0) -> (abs_real(x)=(-x))))
+
+logic exp : real -> real
+
+logic log : real -> real
+
+logic log10 : real -> real
+
+axiom log_exp : (forall x:real.
+(log(exp(x))=x))
+
+axiom exp_log : (forall x:real.
+((x>0.0) -> (exp(log(x))=x)))
+
+logic cos : real -> real
+
+logic sin : real -> real
+
+logic tan : real -> real
+
+logic pi : real
+
+logic cosh : real -> real
+
+logic sinh : real -> real
+
+logic tanh : real -> real
+
+logic acos : real -> real
+
+logic asin : real -> real
+
+logic atan : real -> real
+
+logic atan2 : real,real -> real
+
+logic hypot : real,real -> real
+
+axiom prod_pos : (forall x:real.(forall y:real.
+((((x>0.0) and (y>0.0)) -> ((x*y)>0.0)) and (((x<0.0) and (y<0.0)) -> ((x*y)>0.0)))))
+
+axiom abs_minus : (forall x:real.
+(abs_real((-x))=abs_real(x)))
+
+
+logic access : 'a1 farray,int -> 'a1
+
+logic update : 'a1 farray,int,'a1 -> 'a1 farray
+
+axiom access_update : (forall a:'a1 farray.(forall i:int.(forall v:'a1.
+(a[i<-v][i]=v))))
+
+axiom access_update_neq : (forall a:'a1 farray.(forall i:int.(forall j:int.
+(forall v:'a1.
+((i<>j) -> (a[i<-v][j]=a[j]))))))
+
+logic array_length : 'a1 farray -> int
+
+predicate sorted_array(t:int farray,i:int,j:int) = (forall k1:int.
+(forall k2:int.
+((((i<=k1) and (k1<=k2)) and (k2<=j)) -> (t[k1]<=t[k2]))))
+
+predicate exchange(a1:'a1 farray,a2:'a1 farray,i:int,j:int) = ((array_length(a1)=array_length(a2)) and ((a1[i]=a2[j]) and ((a2[i]=a1[j]) and (
+forall k:int.
+(((k<>i) and (k<>j)) -> (a1[k]=a2[k]))))))
+
+logic permut : 'a1 farray,'a1 farray,int,int -> prop
+
+axiom permut_refl : (forall t:'a1 farray.(forall l:int.(forall u:int.
+permut(t,t,l,
+u))))
+
+axiom permut_sym : (forall t1:'a1 farray.(forall t2:'a1 farray.(forall l:int.
+(forall u:int.(permut(t1,t2,l,u) -> permut(t2,t1,l,
+u))))))
+
+axiom permut_trans : (forall t1:'a1 farray.(forall t2:'a1 farray.
+(forall t3:'a1 farray.(forall l:int.(forall u:int.(permut(t1,t2,l,
+u) -> (permut(t2,t3,l,u) -> permut(t1,t3,l,
+u))))))))
+
+axiom permut_exchange : (forall a1:'a1 farray.(forall a2:'a1 farray.
+(forall l:int.(forall u:int.(forall i:int.(forall j:int.
+(((l<=i) and (i<=u)) -> (((l<=j) and (j<=u)) -> (exchange(a1,a2,i,
+j) -> permut(a1,a2,l,
+u))))))))))
+
+axiom exchange_upd : (forall a:'a1 farray.(forall i:int.(forall j:int.
+exchange(a,a[i<-a[j]][j<-a[i]],i,
+j))))
+
+axiom permut_weakening : (forall a1:'a1 farray.(forall a2:'a1 farray.
+(forall l1:int.(forall r1:int.(forall l2:int.(forall r2:int.
+((((l1<=l2) and (l2<=r2)) and (r2<=r1)) -> (permut(a1,a2,l2,r2) -> permut(a1,
+a2,l1,
+r1)))))))))
+
+axiom permut_eq : (forall a1:'a1 farray.(forall a2:'a1 farray.(forall l:int.
+(forall u:int.((l<=u) -> (permut(a1,a2,l,u) -> (forall i:int.
+(((i<l) or (u<i)) -> (a2[i]=a1[i])))))))))
+
+predicate permutation(a1:'a1 farray,a2:'a1 farray) = permut(a1,a2,0,
+(array_length(a1)-1))
+
+axiom array_length_update : (forall a:'a1 farray.(forall i:int.(forall v:'a1.
+(array_length(a[i<-v])=array_length(a)))))
+
+axiom permut_array_length : (forall a1:'a1 farray.(forall a2:'a1 farray.
+(forall l:int.(forall u:int.(permut(a1,a2,l,
+u) -> (array_length(a1)=array_length(a2)))))))
+
+logic computer_div : int,int -> int
+
+logic computer_mod : int,int -> int
+
+logic math_div : int,int -> int
+
+logic math_mod : int,int -> int
+
+axiom math_div_mod : (forall x:int.(forall y:int.
+((y<>0) -> (x=((y*math_div(x,y))+math_mod(x,y))))))
+
+axiom math_mod_bound : (forall x:int.(forall y:int.
+((y<>0) -> ((0<=math_mod(x,y)) and (math_mod(x,y)<abs_int(y))))))
+
+axiom computer_div_mod : (forall x:int.
+(forall y:int[computer_div(x,y),computer_mod(x,y)].
+((y<>0) -> (x=((y*computer_div(x,y))+computer_mod(x,y))))))
+
+axiom computer_div_bound : (forall x:int.(forall y:int.
+(((x>=0) and (y>0)) -> ((0<=computer_div(x,y)) and (computer_div(x,y)<=x)))))
+
+axiom computer_mod_bound : (forall x:int.(forall y:int.
+((y<>0) -> (abs_int(computer_mod(x,y))<abs_int(y)))))
+
+axiom computer_mod_sign_pos : (forall x:int.(forall y:int.
+(((x>=0) and (y<>0)) -> (computer_mod(x,y)>=0))))
+
+axiom computer_mod_sign_neg : (forall x:int.(forall y:int.
+(((x<=0) and (y<>0)) -> (computer_mod(x,y)<=0))))
+
+axiom computer_rounds_toward_zero : (forall x:int.(forall y:int.
+((y<>0) -> (abs_int((computer_div(x,y)*y))<=abs_int(x)))))
+
+logic dummy : int -> prop
+
+logic assigns : int -> prop
+
+axiom positive_computer_div_div : (forall x:int.(forall y:int.
+((x>0) -> ((y>0) -> (computer_div(x,y)=math_div(x,y))))))
+
+type 'a set
+
+logic empty : 'a1 set
+
+logic singleton : 'a1 -> 'a1 set
+
+logic range : int,int -> int set
+
+logic union : 'a1 set,'a1 set -> 'a1 set
+
+logic inter : 'a1 set,'a1 set -> 'a1 set
+
+logic plus_int : int set,int set -> int set
+
+logic subset : 'a1 set,'a1 set -> prop
+
+logic range_inf : int -> int set
+
+logic range_sup : int -> int set
+
+logic integers_set : int set
+
+logic equiv : 'a1 set,'a1 set -> prop
+
+logic member : 'a1,'a1 set -> prop
+
+axiom singleton_def : (forall x:'a1.member(x,
+singleton(x)))
+
+axiom singleton_eq : (forall x:'a1.(forall y:'a1.(member(x,
+singleton(y)) <-> (x=y))))
+
+axiom union_member : (forall x:'a1.(forall s1:'a1 set.
+(forall s2:'a1 set[member(x,union(s1,s2))].(member(x,
+union(s1,s2)) <-> (member(x,s1) or member(x,
+s2))))))
+
+axiom union_of_empty : (forall x:'a1 set[union(x,empty)].
+(union(x,empty)=x))
+
+axiom inter_of_empty : (forall x:'a1 set[inter(x,empty)].
+(inter(x,empty)=empty))
+
+axiom union_comm : (forall x:'a1 set.(forall y:'a1 set.
+(union(x,y)=union(y,x))))
+
+axiom inter_comm : (forall x:'a1 set.(forall y:'a1 set.
+(inter(x,y)=inter(y,x))))
+
+axiom inter_member : (forall x:'a1.(forall s1:'a1 set.
+(forall s2:'a1 set[member(x,inter(s1,s2))].(member(x,
+inter(s1,s2)) <-> (member(x,s1) and member(x,
+s2))))))
+
+axiom plus_int_member_1 : (forall sa:int set.(forall sb:int set.
+(forall a:int.(forall b:int[member((a+b),plus_int(sa,sb))].(member(a,
+sa) -> (member(b,sb) -> member((a+b),
+plus_int(sa,sb))))))))
+
+axiom plus_int_member_2 : (forall sa:int set.(forall sb:int set.
+(forall c:int.(member(c,plus_int(sa,sb)) -> (exists a:int.(exists b:int.
+(member(a,sa) and (member(b,
+sb) and (c=(a+b))))))))))
+
+axiom subset_empty : (forall sa:'a1 set.subset(empty,
+sa))
+
+axiom subset_sym : (forall sa:'a1 set.subset(sa,
+sa))
+
+axiom subset_trans : (forall sa:'a1 set.(forall sb:'a1 set.
+(forall sc:'a1 set.(subset(sa,sb) -> (subset(sb,sc) -> subset(sa,
+sc))))))
+
+axiom subset_def : (forall sa:'a1 set.(forall sb:'a1 set[subset(sa,sb)].
+((forall a:'a1.(member(a,sa) -> member(a,sb))) <-> subset(sa,
+sb))))
+
+axiom range_def : (forall i:int.(forall j:int.(forall k:int.
+(((i<=k) and (k<=j)) <-> member(k,
+range(i,j))))))
+
+axiom range_def1 : (forall i:int.(forall j:int.(forall k:int.
+(((i<=k) and (k<=j)) -> member(k,
+range(i,j))))))
+
+axiom range_def2 : (forall i:int.(forall j:int.(forall k:int.(member(k,
+range(i,j)) -> ((i<=k) and (k<=j))))))
+
+axiom range_inf_def : (forall i:int.(forall k:int.((i<=k) <-> member(k,
+range_inf(i)))))
+
+axiom range_sup_def : (forall j:int.(forall k:int.((k<=j) <-> member(k,
+range_sup(j)))))
+
+axiom integers_set_def : (forall k:int.((k>=0) <-> member(k,
+integers_set)))
+
+axiom equiv_def : (forall s1:'a1 set.(forall s2:'a1 set[equiv(s1,s2)].
+(((forall a:'a1.(member(a,s1) -> member(a,s2))) and (forall b:'a1.(member(b,
+s2) -> member(b,s1)))) <-> equiv(s1,
+s2))))
+
+axiom equiv_refl : (forall s:'a1 set.equiv(s,
+s))
+
+axiom equiv_sym : (forall s1:'a1 set.(forall s2:'a1 set.(equiv(s1,
+s2) -> equiv(s2,
+s1))))
+
+axiom equiv_trans : (forall s1:'a1 set.(forall s2:'a1 set.(forall s3:'a1 set.
+(equiv(s1,s2) -> (equiv(s2,s3) -> equiv(s1,
+s3))))))
+
+logic as_uint8 : int -> int
+
+predicate is_uint8(x:int) = ((0<=x) and (x<256))
+
+axiom as_uint8_def : (forall x:int.
+is_uint8(as_uint8(x)))
+
+axiom as_uint8_involve : (forall x:int[as_uint8(as_uint8(x))].
+(as_uint8(as_uint8(x))=as_uint8(x)))
+
+axiom is_as_uint8 : (forall x:int[as_uint8(x)].
+(is_uint8(x) -> (as_uint8(x)=x)))
+
+logic as_sint8 : int -> int
+
+predicate is_sint8(x:int) = (((-128)<=x) and (x<128))
+
+axiom as_sint8_def : (forall x:int.
+is_sint8(as_sint8(x)))
+
+axiom as_sint8_involve : (forall x:int[as_sint8(as_sint8(x))].
+(as_sint8(as_sint8(x))=as_sint8(x)))
+
+axiom is_as_sint8 : (forall x:int[as_sint8(x)].
+(is_sint8(x) -> (as_sint8(x)=x)))
+
+logic as_uint16 : int -> int
+
+predicate is_uint16(x:int) = ((0<=x) and (x<65536))
+
+axiom as_uint16_def : (forall x:int.
+is_uint16(as_uint16(x)))
+
+axiom as_uint16_involve : (forall x:int[as_uint16(as_uint16(x))].
+(as_uint16(as_uint16(x))=as_uint16(x)))
+
+axiom is_as_uint16 : (forall x:int[as_uint16(x)].
+(is_uint16(x) -> (as_uint16(x)=x)))
+
+logic as_sint16 : int -> int
+
+predicate is_sint16(x:int) = (((-32768)<=x) and (x<32768))
+
+axiom as_sint16_def : (forall x:int.
+is_sint16(as_sint16(x)))
+
+axiom as_sint16_involve : (forall x:int[as_sint16(as_sint16(x))].
+(as_sint16(as_sint16(x))=as_sint16(x)))
+
+axiom is_as_sint16 : (forall x:int[as_sint16(x)].
+(is_sint16(x) -> (as_sint16(x)=x)))
+
+logic as_uint32 : int -> int
+
+predicate is_uint32(x:int) = ((0<=x) and (x<4294967296))
+
+axiom as_uint32_def : (forall x:int.
+is_uint32(as_uint32(x)))
+
+axiom as_uint32_involve : (forall x:int[as_uint32(as_uint32(x))].
+(as_uint32(as_uint32(x))=as_uint32(x)))
+
+axiom is_as_uint32 : (forall x:int[as_uint32(x)].
+(is_uint32(x) -> (as_uint32(x)=x)))
+
+logic as_sint32 : int -> int
+
+predicate is_sint32(x:int) = (((-2147483648)<=x) and (x<2147483648))
+
+axiom as_sint32_def : (forall x:int.
+is_sint32(as_sint32(x)))
+
+axiom as_sint32_involve : (forall x:int[as_sint32(as_sint32(x))].
+(as_sint32(as_sint32(x))=as_sint32(x)))
+
+axiom is_as_sint32 : (forall x:int[as_sint32(x)].
+(is_sint32(x) -> (as_sint32(x)=x)))
+
+logic as_uint64 : int -> int
+
+predicate is_uint64(x:int) = ((0<=x) and (x<18446744073709551616))
+
+axiom as_uint64_def : (forall x:int.
+is_uint64(as_uint64(x)))
+
+axiom as_uint64_involve : (forall x:int[as_uint64(as_uint64(x))].
+(as_uint64(as_uint64(x))=as_uint64(x)))
+
+axiom is_as_uint64 : (forall x:int[as_uint64(x)].
+(is_uint64(x) -> (as_uint64(x)=x)))
+
+logic as_sint64 : int -> int
+
+predicate is_sint64(x:int) = (((-9223372036854775808)<=x) and (x<9223372036854775808))
+
+axiom as_sint64_def : (forall x:int.
+is_sint64(as_sint64(x)))
+
+axiom as_sint64_involve : (forall x:int[as_sint64(as_sint64(x))].
+(as_sint64(as_sint64(x))=as_sint64(x)))
+
+axiom is_as_sint64 : (forall x:int[as_sint64(x)].
+(is_sint64(x) -> (as_sint64(x)=x)))
+
+logic as_float16 : real -> real
+
+logic is_float16 : real -> prop
+
+axiom as_float16_def : (forall x:real.
+is_float16(as_float16(x)))
+
+axiom as_float16_involve : (forall x:real[as_float16(as_float16(x))].
+(as_float16(as_float16(x))=as_float16(x)))
+
+axiom is_as_float16 : (forall x:real[as_float16(x)].
+(is_float16(x) -> (as_float16(x)=x)))
+
+logic as_float32 : real -> real
+
+logic is_float32 : real -> prop
+
+axiom as_float32_def : (forall x:real.
+is_float32(as_float32(x)))
+
+axiom as_float32_involve : (forall x:real[as_float32(as_float32(x))].
+(as_float32(as_float32(x))=as_float32(x)))
+
+axiom is_as_float32 : (forall x:real[as_float32(x)].
+(is_float32(x) -> (as_float32(x)=x)))
+
+logic as_float64 : real -> real
+
+logic is_float64 : real -> prop
+
+axiom as_float64_def : (forall x:real.
+is_float64(as_float64(x)))
+
+axiom as_float64_involve : (forall x:real[as_float64(as_float64(x))].
+(as_float64(as_float64(x))=as_float64(x)))
+
+axiom is_as_float64 : (forall x:real[as_float64(x)].
+(is_float64(x) -> (as_float64(x)=x)))
+
+logic as_float128 : real -> real
+
+logic is_float128 : real -> prop
+
+axiom as_float128_def : (forall x:real.
+is_float128(as_float128(x)))
+
+axiom as_float128_involve : (forall x:real[as_float128(as_float128(x))].
+(as_float128(as_float128(x))=as_float128(x)))
+
+axiom is_as_float128 : (forall x:real[as_float128(x)].
+(is_float128(x) -> (as_float128(x)=x)))
+
+type data
+
+logic data_of_uint8 : int -> data
+
+logic uint8_of_data : data -> int
+
+axiom is_uint8_of_data : (forall d:data[is_uint8(uint8_of_data(d))].
+is_uint8(uint8_of_data(d)))
+
+axiom uint8ofdata_dataofuint8 : (forall x:int[data_of_uint8(x)].
+(is_uint8(x) -> (uint8_of_data(data_of_uint8(x))=x)))
+
+logic data_of_sint8 : int -> data
+
+logic sint8_of_data : data -> int
+
+axiom is_sint8_of_data : (forall d:data[is_sint8(sint8_of_data(d))].
+is_sint8(sint8_of_data(d)))
+
+axiom sint8ofdata_dataofsint8 : (forall x:int[data_of_sint8(x)].
+(is_sint8(x) -> (sint8_of_data(data_of_sint8(x))=x)))
+
+logic data_of_uint16 : int -> data
+
+logic uint16_of_data : data -> int
+
+axiom is_uint16_of_data : (forall d:data[is_uint16(uint16_of_data(d))].
+is_uint16(uint16_of_data(d)))
+
+axiom uint16ofdata_dataofuint16 : (forall x:int[uint16_of_data(data_of_uint16(x))].
+(is_uint16(x) -> (uint16_of_data(data_of_uint16(x))=x)))
+
+logic data_of_sint16 : int -> data
+
+logic sint16_of_data : data -> int
+
+axiom is_sint16_of_data : (forall d:data[is_sint16(sint16_of_data(d))].
+is_sint16(sint16_of_data(d)))
+
+axiom sint16ofdata_dataofsint16 : (forall x:int[data_of_sint16(x)].
+(is_sint16(x) -> (sint16_of_data(data_of_sint16(x))=x)))
+
+logic data_of_uint32 : int -> data
+
+logic uint32_of_data : data -> int
+
+axiom is_uint32_of_data : (forall d:data[is_uint32(uint32_of_data(d))].
+is_uint32(uint32_of_data(d)))
+
+axiom uint32ofdata_dataofuint32 : (forall x:int[data_of_uint32(x)].
+(is_uint32(x) -> (uint32_of_data(data_of_uint32(x))=x)))
+
+logic data_of_sint32 : int -> data
+
+logic sint32_of_data : data -> int
+
+axiom is_sint32_of_data : (forall d:data[is_sint32(sint32_of_data(d))].
+is_sint32(sint32_of_data(d)))
+
+axiom sint32ofdata_dataofsint32 : (forall x:int[data_of_sint32(x)].
+(is_sint32(x) -> (sint32_of_data(data_of_sint32(x))=x)))
+
+logic data_of_uint64 : int -> data
+
+logic uint64_of_data : data -> int
+
+axiom is_uint64_of_data : (forall d:data[is_uint64(uint64_of_data(d))].
+is_uint64(uint64_of_data(d)))
+
+axiom uint64ofdata_dataofuint64 : (forall x:int[data_of_uint64(x)].
+(is_uint64(x) -> (uint64_of_data(data_of_uint64(x))=x)))
+
+logic data_of_sint64 : int -> data
+
+logic sint64_of_data : data -> int
+
+axiom is_sint64_of_data : (forall d:data[is_sint64(sint64_of_data(d))].
+is_sint64(sint64_of_data(d)))
+
+axiom sint64ofdata_dataofsint64 : (forall x:int[data_of_sint64(x)].
+(is_sint64(x) -> (sint64_of_data(data_of_sint64(x))=x)))
+
+logic data_of_float16 : real -> data
+
+logic float16_of_data : data -> real
+
+axiom is_float16_of_data : (forall d:data[is_float16(float16_of_data(d))].
+is_float16(float16_of_data(d)))
+
+axiom float16ofdata_dataoffloat16 : (forall x:real[data_of_float16(x)].
+(is_float16(x) -> (float16_of_data(data_of_float16(x))=x)))
+
+logic data_of_float32 : real -> data
+
+logic float32_of_data : data -> real
+
+axiom is_float32_of_data : (forall d:data[is_float32(float32_of_data(d))].
+is_float32(float32_of_data(d)))
+
+axiom float32ofdata_dataoffloat32 : (forall x:real[data_of_float32(x)].
+(is_float32(x) -> (float32_of_data(data_of_float32(x))=x)))
+
+logic data_of_float64 : real -> data
+
+logic float64_of_data : data -> real
+
+axiom is_float64_of_data : (forall d:data[is_float64(float64_of_data(d))].
+is_float64(float64_of_data(d)))
+
+axiom float64ofdata_dataoffloat64 : (forall x:real[data_of_float64(x)].
+(is_float64(x) -> (float64_of_data(data_of_float64(x))=x)))
+
+logic data_of_float128 : real -> data
+
+logic float128_of_data : data -> real
+
+axiom is_float128_of_data : (forall d:data[is_float128(float128_of_data(d))].
+is_float128(float128_of_data(d)))
+
+axiom float128ofdata_dataoffloat128 : (forall x:real[data_of_float128(x)].
+(is_float128(x) -> (float128_of_data(data_of_float128(x))=x)))
+
+logic set_range_index : 'a1 farray,int set,int -> 'a1 farray
+
+axiom set_range_def : (forall t:'a1 farray.(forall rg:int set.(forall k:int.
+(forall i:int[set_range_index(t,rg,k)[i]].((not member(i,
+rg)) -> (set_range_index(t,rg,k)[i]=t[i]))))))
+
+logic bnot : int -> int
+
+logic band : int,int -> int
+
+logic bor : int,int -> int
+
+logic bxor : int,int -> int
+
+logic lshift : int,int -> int
+
+logic rshift : int,int -> int
+
+logic int_not : int -> int
+
+logic int_and : int,int -> int
+
+logic int_or : int,int -> int
+
+logic int_xor : int,int -> int
+
+logic int_lsh : int,int -> int
+
+logic int_rshs : int,int -> int
+
+logic int_rshu : int,int -> int
+
+logic addr : int,int -> int
+
+logic offset : int -> int
+
+logic base : int -> int
+
+axiom addr_def : (forall a:int.(forall b:int.(forall d:int.
+((addr(b,d)=a) -> ((base(a)=b) and (offset(a)=d))))))
+
+axiom addr_id : (forall p:int[addr(base(p),offset(p))].
+(addr(base(p),offset(p))=p))
+
+logic minus_addr : int,int -> int
+
+axiom minus_addr_def : (forall a:int.(forall b:int.
+((base(a)=base(b)) -> (minus_addr(a,b)=(offset(a)-offset(b))))))
+
+predicate addr_lt(a:int,b:int) = ((base(a)=base(b)) and (offset(a)<offset(b)))
+
+function addr_lt_bool(a:int,b:int) : bool = bool_and(eq_int_bool(base(a),base(b)),lt_int_bool(offset(a),offset(b)))
+
+predicate addr_le(a:int,b:int) = ((base(a)=base(b)) and (offset(a)<=offset(b)))
+
+function addr_le_bool(a:int,b:int) : bool = bool_and(eq_int_bool(base(a),base(b)),le_int_bool(offset(a),offset(b)))
+
+predicate addr_eq(a:int,b:int) = ((base(a)=base(b)) and (offset(a)=offset(b)))
+
+function addr_eq_bool(a:int,b:int) : bool = bool_and(eq_int_bool(base(a),base(b)),eq_int_bool(offset(a),offset(b)))
+
+axiom cmp_null : (forall p:int[addr_eq(p,0)].((p=0) <-> addr_eq(p,
+0)))
+
+axiom cmp_null_bool : (forall p:int[addr_eq_bool(p,0)].
+((p=0) <-> (addr_eq_bool(p,0)=true)))
+
+axiom cmp_null_not : (forall p:int.((p<>0) <-> (not addr_eq(p,
+0))))
+
+axiom cmp_null_bool_not : (forall p:int[addr_eq_bool(p,0)].
+((p<>0) <-> (addr_eq_bool(p,0)=false)))
+
+logic addr_of_data : data -> int
+
+logic data_of_addr : int -> data
+
+axiom addrofdata_dataofaddr : (forall p:int[data_of_addr(p)].
+(addr_of_data(data_of_addr(p))=p))
+
+predicate valid(ta:int farray,p:int,n:int) = ((n>0) -> ((0<=offset(p)) and ((offset(p)+n)<=ta[base(p)])))
+
+logic global : int farray -> prop
+
+logic is_fresh : data farray,int farray,int -> prop
+
+axiom fresh : (forall mem:data farray.(forall ta:int farray.
+(forall ta':int farray.(forall x:int.(forall p:int.
+(forall n:int[valid(ta',p,n),is_fresh(mem,ta,x)].(is_fresh(mem,ta,
+x) -> ((ta[x]=0) -> ((ta[base(p)]=ta'[base(p)]) -> (valid(ta',p,
+n) -> (forall d:int.(forall sz:int.
+(addr(x,d)<>p)))))))))))))
+
+axiom fresh_access : (forall mem:data farray.(forall mem':data farray.
+(forall ta:int farray.(forall ta':int farray.(forall b:int.(forall p:int.
+(forall n:int[is_fresh(mem,ta,b),valid(ta',p,n),addr_of_data(mem'[p])].
+(is_fresh(mem,ta,b) -> ((ta[b]=0) -> (valid(ta',p,
+n) -> ((ta[base(p)]=ta'[base(p)]) -> ((mem[p]=mem'[p]) -> (forall d:int.
+(addr(b,d)<>addr_of_data(mem'[p])))))))))))))))
+
+function addr_shift(p:int,dofs:int) : int = addr(base(p),(offset(p)+dofs))
+
+predicate separated_on_addr(p:int,p':int,n1:int,n2:int) = ((base(p)=base(p')) -> (((offset(p)+n1)<=offset(p')) or (offset(p)>=(offset(p')+n2))))
+
+type zone
+
+logic zrange : int,int,int -> zone
+
+logic zempty : zone
+
+logic zunion : zone,zone -> zone
+
+logic included : zone,zone -> prop
+
+logic is_havoc : int farray,data farray,zone,data farray -> prop
+
+logic is_block : zone -> prop
+
+axiom is_block_zrange : (forall x:int.(forall ofs:int.(forall len:int.
+((len>0) -> is_block(zrange(x,ofs,len))))))
+
+axiom is_not_block_zempty : (not is_block(zempty))
+
+function zrange_of_addr(p:int) : zone = zrange(base(p),offset(p),1)
+
+function zrange_of_addr_range(p:int,dofs:int,n:int) : zone = zrange(base(p),(offset(p)+dofs),n)
+
+logic separated : zone,zone -> prop
+
+axiom sep_zrange : (forall b:int.(forall b':int.(forall d:int.(forall d':int.
+(forall sz:int.(forall sz':int[separated(zrange(b,d,sz),zrange(b',d',sz'))].
+(separated(zrange(b,d,sz),zrange(b',d',sz')) <-> separated_on_addr(addr(b,d),
+addr(b',d'),sz,
+sz'))))))))
+
+axiom separated_sym : (forall z:zone.(forall z':zone.(separated(z,
+z') -> separated(z',
+z))))
+
+axiom sep_empty : (forall z:zone.separated(zempty,
+z))
+
+axiom sep_union : (forall z:zone.(forall z':zone.
+(forall r:zone[separated(z,zunion(z',r))].(separated(z,
+zunion(z',r)) <-> (separated(z,z') and separated(z,
+r))))))
+
+axiom left_empty : (forall z:zone.
+(zunion(z,zempty)=z))
+
+axiom right_empty : (forall z:zone.
+(zunion(zempty,z)=z))
+
+axiom union_same : (forall z:zone.
+(zunion(z,z)=z))
+
+axiom union_sym : (forall z:zone.(forall z':zone.
+(zunion(z,z')=zunion(z',z))))
+
+axiom union_assoc : (forall z:zone.(forall r:zone.(forall s:zone.
+(zunion(zunion(z,r),s)=zunion(z,zunion(r,s))))))
+
+axiom inc_range_range : (forall b:int.(forall d:int.(forall sz:int.
+(forall b':int.(forall d':int.
+(forall sz':int[included(zrange(b,d,sz),zrange(b',d',sz'))].
+(included(zrange(b,d,sz),
+zrange(b',d',sz')) <-> ((d<=(d+sz)) -> ((b=b') and ((d'<=d) and ((d+sz)<=(d'+sz'))))))))))))
+
+axiom inc_empty : (forall z:zone.included(zempty,
+z))
+
+axiom inc_same : (forall z:zone.included(z,
+z))
+
+axiom inc_range_empty : (forall b:int.(forall d:int.
+(forall sz:int[included(zrange(b,d,sz),zempty)].(included(zrange(b,d,sz),
+zempty) <-> (b>(b+sz))))))
+
+axiom inc_union_right : (forall z:zone.(forall r:zone.
+(forall s:zone[included(z,zunion(r,s))].((included(z,r) or included(z,
+s)) -> included(z,
+zunion(r,s))))))
+
+axiom inc_union_left : (forall s:zone.(forall z:zone.
+(forall z':zone[included(zunion(s,z'),z)].(included(s,z) -> (included(z',
+z) -> included(zunion(s,z'),
+z))))))
+
+logic access_range : data farray,zone -> data
+
+logic update_range : data farray,zone,data -> data farray
+
+axiom access_update_range_same : (forall m:data farray.(forall z:zone.
+(forall d:data.
+(is_block(z) -> (access_range(update_range(m,z,d),z)=d)))))
+
+axiom access_update_range_sep : (forall m:data farray.(forall v:data.
+(forall z:zone.(forall z':zone[access_range(update_range(m,z,v),z')].
+(is_block(z) -> (is_block(z') -> (separated(z,
+z') -> (access_range(update_range(m,z,v),z')=access_range(m,z')))))))))
+
+axiom access_range_update_addr_sep : (forall m:data farray.(forall v:data.
+(forall z:zone.(forall p:int[access_range(m[p<-v],z)].
+(is_block(z) -> (separated(z,
+zrange_of_addr(p)) -> (access_range(m[p<-v],z)=access_range(m,z))))))))
+
+axiom access_update_range_addr_sep : (forall m:data farray.(forall v:data.
+(forall z:zone.(forall p:int[update_range(m,z,v)[p]].
+(is_block(z) -> (separated(z,
+zrange_of_addr(p)) -> (update_range(m,z,v)[p]=m[p])))))))
+
+axiom access_update_sep : (forall m:data farray.(forall v:data.(forall p:int.
+(forall q:int[m[p<-v][q]].(separated(zrange_of_addr(p),
+zrange_of_addr(q)) -> (m[p<-v][q]=m[q]))))))
+
+logic update_havoc : data farray,zone,data -> data farray
+
+axiom load_havoc : (forall m:data farray.(forall v:data.(forall z:zone.
+(forall p:int[update_havoc(m,z,v)[p]].(separated(z,
+zrange_of_addr(p)) -> (update_havoc(m,z,v)[p]=m[p]))))))
+
+axiom load_is_havoc : (forall alloc:int farray.(forall mem:data farray.
+(forall mem':data farray.(forall p:int.
+(forall z:zone[mem[p],is_havoc(alloc,mem,z,mem')].
+(included(zrange_of_addr(p),z) -> (is_havoc(alloc,mem,z,
+mem') -> (mem'[p]=mem[p]))))))))
+
+logic is_assignable : int farray,zone,zone -> prop
+
+axiom is_assignable_range_free : (forall alloc:int farray.(forall p:int.
+(forall z:zone[is_assignable(alloc,zrange_of_addr(p),z)].
+((alloc[base(p)]=0) -> is_assignable(alloc,zrange_of_addr(p),
+z)))))
+
+axiom is_assignable_included : (forall alloc:int farray.(forall z:zone.
+(forall z':zone[is_assignable(alloc,z,z')].(included(z,
+z') -> is_assignable(alloc,z,
+z')))))
+
+axiom same_havoc : (forall alloc:int farray.(forall mem:data farray.
+(forall z:zone.is_havoc(alloc,mem,z,
+mem))))
+
+axiom havoc_sym : (forall alloc:int farray.(forall m1:data farray.
+(forall m2:data farray.(forall z:zone.(is_havoc(alloc,m2,z,
+m1) -> is_havoc(alloc,m1,z,
+m2))))))
+
+axiom store_havoc : (forall alloc:int farray.(forall mem:data farray.
+(forall mem':data farray.(forall p:int.(forall v:data.
+(forall z:zone[is_havoc(alloc,mem,z,mem'[p<-v])].(is_assignable(alloc,
+zrange_of_addr(p),z) -> (is_havoc(alloc,mem,z,mem') -> is_havoc(alloc,mem,z,
+mem'[p<-v])))))))))
+
+axiom store_havoc_havoc : (forall alloc:int farray.(forall mem:data farray.
+(forall mem':data farray.(forall v:data.(forall z':zone.
+(forall z:zone[is_havoc(alloc,mem,z,update_havoc(mem',z',v))].
+(is_assignable(alloc,z',z) -> (is_havoc(alloc,mem,z,mem') -> is_havoc(alloc,
+mem,z,
+update_havoc(mem',z',v))))))))))
+
+axiom store_range_havoc : (forall alloc:int farray.(forall mem:data farray.
+(forall mem':data farray.(forall v:data.(forall z':zone.
+(forall z:zone[is_havoc(alloc,mem,z,update_range(mem',z',v))].
+(is_block(z') -> (is_assignable(alloc,z',z) -> (is_havoc(alloc,mem,z,
+mem') -> is_havoc(alloc,mem,z,
+update_range(mem',z',v)))))))))))
+
+axiom addr_base : (forall b:int.(forall d:int.
+(base(addr(b,d))=b)))
+
+axiom addr_offset : (forall b:int.(forall d:int.
+(offset(addr(b,d))=d)))
+
+axiom base_sep : (forall b:int.(forall b':int.(forall d:int.(forall d':int.
+((b<>b') -> (addr(b,d)<>addr(b',d')))))))
+
+axiom addr_inj1 : (forall b:int.(forall b':int.(forall d:int.
+((b=b') <-> (addr(b,d)=addr(b',d))))))
+
+axiom addr_inj2 : (forall b:int.(forall d:int.(forall d':int.
+((d=d') <-> (addr(b,d)=addr(b,d'))))))
+
+axiom addr_lt_eq : (forall a:int[addr_lt(a,a)].(not addr_lt(a,
+a)))
+
+axiom addr_le_eq : (forall a:int[addr_le(a,a)].addr_le(a,
+a))
+
+axiom minus_pos_lt : (forall a:int.(forall b:int[addr_lt(a,b)].
+((base(a)=base(b)) -> (((offset(b)-offset(a))>0) -> addr_lt(a,
+b)))))
+
+axiom minus_pos_le : (forall a:int.(forall b:int[addr_le(a,b)].
+((base(a)=base(b)) -> (((offset(b)-offset(a))>=0) -> addr_le(a,
+b)))))
+
+axiom addr_lt_le : (forall a:int.(forall b:int[addr_le(a,b)].(addr_lt(a,
+b) -> addr_le(a,
+b))))
+
+axiom havoc_union_update_left : (forall alloc:int farray.
+(forall m:data farray.(forall m':data farray.(forall p:int.(forall v:data.
+(forall asgns:zone.(is_havoc(alloc,m,zunion(zrange_of_addr(p),asgns),
+m') -> is_havoc(alloc,m,zunion(zrange_of_addr(p),asgns),
+m'[p<-v]))))))))
+
+axiom havoc_union_update_right : (forall alloc:int farray.
+(forall m:data farray.(forall m':data farray.(forall p:int.(forall v:data.
+(forall z:zone.(forall asgns:zone.(included(zrange_of_addr(p),
+asgns) -> (is_havoc(alloc,m,zunion(z,asgns),m') -> is_havoc(alloc,m,
+zunion(z,asgns),
+m'[p<-v]))))))))))
+
+axiom havoc_union_update_range_left : (forall alloc:int farray.
+(forall m:data farray.(forall m':data farray.(forall v:data.(forall p:int.
+(forall asgns:zone.(is_havoc(alloc,m,zunion(zrange_of_addr(p),asgns),
+m') -> is_havoc(alloc,m,zunion(zrange_of_addr(p),asgns),
+update_range(m',zrange_of_addr(p),v)))))))))
+
+axiom havoc_union_update_range_right : (forall alloc:int farray.
+(forall m:data farray.(forall m':data farray.(forall v:data.(forall p:int.
+(forall z:zone.(forall asgns:zone.(included(zrange_of_addr(p),
+asgns) -> (is_havoc(alloc,m,zunion(z,asgns),m') -> is_havoc(alloc,m,
+zunion(z,asgns),
+update_range(m',zrange_of_addr(p),v)))))))))))
+
+axiom inc_union_union : (forall z0:zone.(forall z1:zone.(forall z2:zone.
+(forall z3:zone.(included(z0,z2) -> (included(z1,
+z3) -> included(zunion(z0,z1),
+zunion(z2,z3))))))))
+
+axiom inc_sub_zone : (forall z:zone.(forall z':zone.
+included(zunion(zunion(z,z'),zunion(z',z)),
+zunion(z',z))))
+
+axiom inc_permut_union : (forall z:zone.(forall z':zone.(forall r:zone.
+included(zunion(zunion(z,z'),r),
+zunion(zunion(z,r),z')))))
+
+axiom inc_permut2 : (forall z:zone.(forall s:zone.(forall r:zone.
+included(zunion(zunion(zunion(zunion(z,s),r),r),s),
+zunion(zunion(z,r),s)))))
+
+axiom union_assoc2 : (forall z:zone.(forall z':zone.
+(zunion(z,zunion(z,z'))=zunion(z,z'))))
+
+axiom addr_shift_0 : (forall p:int[addr_shift(p,0)].
+(addr_shift(p,0)=p))
+
+axiom addr_shift_shift : (forall p:int.(forall d:int.
+(forall d':int[addr_shift(addr_shift(p,d),d')].
+(addr_shift(addr_shift(p,d),d')=addr_shift(p,(d+d'))))))
+
+axiom valid_elt : (forall ta:int farray.(forall p:int.(forall i:int.
+(forall n:int.((n>0) -> (valid(ta,p,n) -> ((0<=i) -> (((i+1)<=n) -> valid(ta,
+addr_shift(p,i),
+1)))))))))
+
+axiom separated_on_addr_sym : (forall p:int.(forall q:int.(forall n:int.
+(forall m:int.(separated_on_addr(p,q,n,m) -> separated_on_addr(q,p,m,
+n))))))
+
+axiom separated_on_addr_inc : (forall b:int.(forall d:int.(forall d':int.
+(forall sz:int.(forall sz':int.(forall b1:int.(forall d1:int.(forall sz1:int.
+(separated_on_addr(addr(b1,d1),addr(b,d),sz1,
+sz) -> ((d<=d') -> (((d'+sz')<=(d+sz)) -> separated_on_addr(addr(b1,d1),
+addr(b,d'),sz1,
+sz'))))))))))))
+
+axiom separated_inc : (forall b:int.(forall d:int.(forall d':int.
+(forall sz:int.(forall sz':int.(forall b1:int.(forall d1:int.(forall sz1:int.
+(separated(zrange(b1,d1,sz1),
+zrange(b,d,sz)) -> ((d<=d') -> (((d'+sz')<=(d+sz)) -> separated(zrange(b1,d1,sz1),
+zrange(b,d',sz')))))))))))))
+
+axiom separated_one_elt : (forall n:int.(forall m:int.(forall b:int.
+(forall d:int.(forall sz:int.(forall b':int.(forall d':int.(forall sz':int.
+((0<n) -> ((0<m) -> (separated(zrange(b,d,(sz*n)),
+zrange(b',d',(sz'*m))) -> (forall i:int.(forall j:int.
+((0<=i) -> ((0<=j) -> ((((d+i)+sz)<=(d+(sz*n))) -> ((((d'+j)+sz')<=(d'+(sz'*m))) -> separated(zrange(b,(d+i),sz),
+zrange(b',(d'+j),sz')))))))))))))))))))
+
+axiom store_pointer : (forall x:int.(forall ofs:int.(forall y:int.
+(forall ofs':int.(separated_on_addr(addr(x,ofs),addr(y,ofs'),1,
+1) or (addr(x,ofs)=addr(y,ofs')))))))
+
+

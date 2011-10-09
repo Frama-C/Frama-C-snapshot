@@ -31,10 +31,11 @@ include Plugin.Register
 
 module Analysis =
   False(struct
-          let option_name = "-sparecode-analysis"
+          let option_name = "-sparecode"
           let help = "perform a spare code analysis"
           let kind = `Tuning
         end)
+let () = Analysis.add_aliases ["-sparecode-analysis"]
 
 module Annot =
   True(struct
@@ -50,3 +51,10 @@ module GlobDecl =
                        "(automatically done by -sparecode-analysis)")
           let kind = `Correctness
         end)
+ 
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -slice-print -slice-return main -slice-undef-functions -journal-disable 
+   OPT: -check -slice-return main -slice-undef-functions -journal-disable -then-on 'Slicing export' -print
 */
 
 int x,y,z;

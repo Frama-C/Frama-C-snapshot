@@ -25,14 +25,6 @@ open Cil
 open Abstract_interp
 open Abstract_value
 
-type cell_class_attributes =
-    { cname : string ;
-      cid : int ;
-      cneverexact : bool ;
-      ctyp : Cil_types.typ ;
-      cvolatile : bool ;
-    }
-
 let name = "base"
 
 type validity =
@@ -42,20 +34,21 @@ type validity =
   | Periodic of Abstract_interp.Int.t*Abstract_interp.Int.t*
       Abstract_interp.Int.t
 
+type string_id = Cil_types.exp
+
 type base =
   | Var of varinfo * validity
   | Initialized_Var of varinfo * validity
-      (** base that is implicitely initialized. *)
+      (** base that is implicitly initialized. *)
   | Null (** base for addresses like [(int* )0x123] *)
-  | String of int * string (** String constants *)
-  | Cell_class of cell_class_attributes (** a class of memory cells *)
+  | String of int * string_id (** String constants *)
 
 let invalid = Known(Int.one, Int.zero)
 
 let id = function
   | Var (vi,_) | Initialized_Var (vi,_) -> vi.vid
   | Null -> 0
-  | String (id,_) | Cell_class {cid = id} -> id
+  | String (id,_) -> id
 
 let hash = id
 
@@ -75,24 +68,27 @@ let pretty_validity fmt v =
   | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
   | Periodic (b,e,p)  ->
       Format.fprintf fmt "Periodic %a-%a (%a)"
-	Int.pretty b Int.pretty e
-	Int.pretty p
+        Int.pretty b Int.pretty e
+        Int.pretty p
+
+type cstring = CSString of string | CSWstring of Escape.wstring
+
+let get_string exp =
+  match exp.enode with
+    Const (CStr s) -> CSString s
+  | Const (CWStr w) -> CSWstring w
+  | _ -> assert false
 
 let pretty fmt t = Format.fprintf fmt "%s"
   (match t with
-   | String (_,s) -> Format.sprintf "%S" s
-   | Cell_class c -> Format.sprintf "%S" c.cname
+   | String (_,{enode=Const (CStr s)}) -> 
+       Format.sprintf "%S" s
+   | String (_,{enode=Const (CWStr s)}) -> 
+       Format.sprintf "L\"%s\"" (Escape.escape_wstring s)
+   | String _ -> assert false
    | Var (t,_) | Initialized_Var (t,_) ->
        Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident t.vname
    | Null -> "NULL")
-
-(*
-let pretty_caml fmt t =
-  match t with
-    String (_,s) -> Format.fprintf fmt "(Base.create_string %S)" s
-  | Var (t,_) | Initialized_Var (t,_) ->
-      Base.
-*)
 
 let compare v1 v2 = Datatype.Int.compare (id v1) (id v2)
 
@@ -100,28 +96,27 @@ let typeof v =
   match v with
   | String (_,_) -> Some charConstPtrType
   | Null -> None
-  | Cell_class c ->
-      Some c.ctyp
   | Var (v,_) | Initialized_Var (v,_) -> Some (unrollType v.vtype)
+
+let cstring_bitlength e = 
+  let u, l = 
+    match e with
+      {enode=Const (CStr s)} ->
+	8 (* FIXME: CHAR_BIT *), (String.length s)
+    | {enode=Const (CWStr s)} ->
+	bitsSizeOf theMachine.wcharType, (List.length s)
+    | _ -> assert false
+  in
+  Int.of_int (u*(succ l))
 
 let bits_sizeof v =
   match v with
-    | String (_,s) ->
-        Int_Base.inject
-          (Int.mul Int.eight (Int.succ (Int.of_int (String.length s))))
+    | String (_,e) ->
+        Int_Base.inject (cstring_bitlength e)
     | Null -> Int_Base.top
-    | Cell_class c ->
-	Bit_utils.sizeof c.ctyp
     | Var (v,_) | Initialized_Var (v,_) ->
         Bit_utils.sizeof_vid v
 
-(*        match findAttribute "original_type" (typeAttr typ) with
-        | []  -> Bit_utils.sizeof_vid v
-        | [ASizeOf (TArray (_, Some _,_) as pointed_typ)] ->
-            bitsSizeOf pointed_typ
-*)
-
-(** All absolute address are invalid *)
 module MinValidAbsoluteAddress =
   State_builder.Ref
     (Abstract_interp.Int)
@@ -143,18 +138,18 @@ module MaxValidAbsoluteAddress =
      end)
 
 let () =
-  Parameters.AbsoluteValidRange.add_set_hook
+  Kernel.AbsoluteValidRange.add_set_hook
     (fun _ x ->
        try Scanf.sscanf x "%Li-%Li"
-	 (fun min max ->
-	    let mul8 = Int64.mul 8L in
+         (fun min max ->
+            let mul8 = Int64.mul 8L in
             MinValidAbsoluteAddress.set
-	      (Abstract_interp.Int.of_int64 (mul8 min));
+              (Abstract_interp.Int.of_int64 (mul8 min));
             MaxValidAbsoluteAddress.set
-	      (Abstract_interp.Int.of_int64
-		 (Int64.pred (mul8 (Int64.succ max)))))
+              (Abstract_interp.Int.of_int64
+                 (Int64.pred (mul8 (Int64.succ max)))))
        with End_of_file | Scanf.Scan_failure _ | Failure _ as e ->
-	 Kernel.abort "Invalid -absolute-valid-range integer-integer: each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and has to hold in 64 bits. A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
+         Kernel.abort "Invalid -absolute-valid-range integer-integer: each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and has to hold in 64 bits. A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
            (Printexc.to_string e))
 
 let min_valid_absolute_address = MinValidAbsoluteAddress.get
@@ -164,7 +159,7 @@ let validity v =
   match v with
   | Null -> Known (min_valid_absolute_address (), max_valid_absolute_address ())
   | Var (_,v) | Initialized_Var (_,v) -> v
-  | String _ | Cell_class _ ->
+  | String _ ->
       let max_valid = bits_sizeof v in
       match max_valid with
       | Int_Base.Bottom -> assert false
@@ -176,7 +171,14 @@ let validity v =
 
 exception Not_valid_offset
 
-let is_valid_offset size base offset =
+let is_read_only base =
+  match base with
+    String _ -> true
+  | _ -> false (* TODO: completely const types *)
+
+let is_valid_offset ~for_writing size base offset =
+  if for_writing && (is_read_only base)
+  then raise Not_valid_offset;
   match validity base with
   | Known (min_valid,max_valid)
   | Periodic (min_valid, max_valid, _)->
@@ -197,7 +199,7 @@ let is_valid_offset size base offset =
 
 let is_function base =
   match base with
-    String _ | Null | Cell_class _ | Initialized_Var _ -> false
+    String _ | Null | Initialized_Var _ -> false
   | Var(v,_) ->
       isFunctionType v.vtype
 
@@ -205,7 +207,6 @@ let is_function base =
   let is_volatile v =
   match v with
   | String _ | Null -> false
-  | Cell_class c -> c.cvolatile
   | Var vv ->
   hasAttribute "volatile" (typeAttrs vv.vtype)
 *)
@@ -220,53 +221,52 @@ let is_aligned_by b alignment =
   else
     match b with
       Var (v,_) | Initialized_Var (v,_) ->
-	Int.is_zero (Int.rem (Int.of_int (Cil.alignOf_int(v.vtype))) alignment)
+        Int.is_zero (Int.rem (Int.of_int (Cil.alignOf_int(v.vtype))) alignment)
     | Null -> true
     | String _ -> Int.is_one alignment
-    | Cell_class _ -> assert false
 
 let is_any_formal_or_local v =
   match v with
   | Var (v,_) | Initialized_Var (v,_) -> not v.vlogic && not v.vglob
-  | Null | String _ | Cell_class _  -> false
+  | Null | String _ -> false
 
 let is_any_local v =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
       not v.vlogic && not v.vglob && not v.vformal
-  | Null | String _ | Cell_class _  -> false
+  | Null | String _ -> false
 
 let is_global v =
   match v with
   | Var (v,_) | Initialized_Var (v,_) -> v.vglob
-  | Null | String _ | Cell_class _  -> true
+  | Null | String _ -> true
 
 let is_formal_or_local v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
       Ast_info.Function.is_formal_or_local v fundec
-  | Null | String _ | Cell_class _  -> false
+  | Null | String _ -> false
 
 let is_formal_of_prototype v vi =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
       Ast_info.Function.is_formal_of_prototype v vi
-  | Null | String _ | Cell_class _   -> false
+  | Null | String _ -> false
 
 let is_local v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_local v fundec
-  | Null | String _ | Cell_class _   -> false
+  | Null | String _ -> false
 
 let is_formal v fundec =
   match v with
   | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_formal v fundec
-  | Null | String _ | Cell_class _   -> false
+  | Null | String _ -> false
 
 let is_block_local v block =
   match v with
   | Var (v,_) | Initialized_Var (v,_) -> Ast_info.is_block_local v block
-  | Null | String _ | Cell_class _   -> false
+  | Null | String _ -> false
 
 let validity_from_type v =
   if isFunctionType v.vtype then invalid
@@ -276,9 +276,9 @@ let validity_from_type v =
   | Int_Base.Bottom -> assert false
   | Int_Base.Top ->
       (* TODO:
-	 if (some configuration option)
-	 then Unknown (Int.zero, Bit_utils.max_bit_address ())
-	 else *)
+         if (some configuration option)
+         then Unknown (Int.zero, Bit_utils.max_bit_address ())
+         else *)
       invalid
   | Int_Base.Value size when Int.gt size Int.zero ->
       (*Format.printf "Got %a for %s@\n" Int.pretty size v.vname;*)
@@ -294,7 +294,7 @@ module D = Datatype.Make_with_collections
     type t = base
     let name = "Base"
     let structural_descr = Structural_descr.Abstract (* TODO better *)
-    let reprs = [ Null; String(-1, "") ]
+    let reprs = [ Null ]
     let equal = equal
     let compare = compare
     let pretty = pretty
@@ -307,6 +307,11 @@ module D = Datatype.Make_with_collections
    end)
 
 include D
+
+module Hptset = Hptset.Make
+  (struct include D let id = id end)
+  (struct let v = [ [ ] ] end)
+  (struct let l = [ Ast.self ] end)
 
 module VarinfoLogic =
   Cil_state_builder.Varinfo_hashtbl
@@ -329,17 +334,17 @@ let create_varinfo varinfo =
   let validity = validity_from_type varinfo in
   let name = varinfo.vname in
   let validity =
-    if Str.string_match regexp name 0
-    then
+    if Str.string_match regexp name 0 then
       let period = Str.matched_group 1 name in
       let period = int_of_string period in
-      CilE.warn_once "Periodic variable %s of period %d@."
-	name
-	period;
+      Kernel.warning ~current:true ~once:true
+        "Periodic variable %s of period %d@."
+        name
+        period;
       match validity with
       | Known(mn, mx) ->
-	  assert (Int.is_zero mn);
-	  Periodic(mn, mx, Int.of_int period)
+          assert (Int.is_zero mn);
+          Periodic(mn, mx, Int.of_int period)
       | _ -> assert false
     else validity
   in
@@ -361,7 +366,7 @@ let find varinfo =
 
 module LiteralStrings =
   State_builder.Hashtbl
-    (Datatype.String.Hashtbl)
+    (Datatype.Int.Hashtbl)
     (D)
     (struct
        let name = "litteral strings"
@@ -370,8 +375,8 @@ module LiteralStrings =
        let kind = `Internal
      end)
 
-let create_string s =
-  LiteralStrings.memo (fun _ -> String (Cil_const.new_raw_id (), s)) s
+let create_string e =
+  LiteralStrings.memo (fun _ -> String (Cil_const.new_raw_id (), e)) e.eid
 
 (*
 Local Variables:

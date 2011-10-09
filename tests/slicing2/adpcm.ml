@@ -5,7 +5,7 @@ ledit bin/toplevel.top  -no-annot -deps -slicing_level 2 tests/slicing2/adpcm.c
 
 include LibSelect;;
 
-(* Parameters.slicing_level := 2;;  = MinimizeNbCalls *)
+(* Kernel.slicing_level := 2;;  = MinimizeNbCalls *)
 
 (*
 let resname = "tests/slicing2/adpcm.sliced" in

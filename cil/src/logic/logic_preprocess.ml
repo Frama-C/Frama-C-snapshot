@@ -1,4 +1,4 @@
-# 26 "cil/src/logic/logic_preprocess.mll"
+# 25 "cil/src/logic/logic_preprocess.mll"
  
   open Lexing
   type state = NORMAL | SLASH | INCOMMENT
@@ -26,10 +26,10 @@
   let backslash = "__BACKSLASH__"
 
   let abort_preprocess reason outfile =
-    let source = { Log.src_file = !curr_file;
-                   Log.src_line = !curr_line }
+    let source = {Lexing.dummy_pos with Lexing.pos_fname = !curr_file;
+                  pos_lnum = !curr_line;}
     in
-    Cilmsg.error ~source
+    Kernel.error ~source
       "Can't preprocess annotation: %s\nAnnotation will be kept as is"
       reason;
     Buffer.output_buffer outfile buf
@@ -38,7 +38,7 @@
     (*Printf.printf "Preprocessing annotation:\n%!";
     Buffer.output_buffer stdout buf;
     print_newline(); *)
-    let debug = Cilmsg.debug_atleast 3 in
+    let debug = Kernel.debug_atleast 3 in
     let (ppname, ppfile) = Filename.open_temp_file "ppannot" ".c" in
     Buffer.output_buffer ppfile macros;
     (* NB: the three extra spaces replace the beginning of the annotation
@@ -126,11 +126,11 @@ let __ocaml_lex_tables = {
     \004\000\001\000\001\000\253\255\252\255\115\000\252\255\014\000\
     \254\255\005\000\009\000\007\000\007\000\253\255\095\001\247\255\
     \248\255\249\255\250\255\251\255\252\255\024\000\254\255\026\000\
-    \255\255\253\255\015\000\253\255\254\255\255\255\141\000\251\255\
-    \252\255\000\000\254\255\255\255\253\255\213\000\251\255\252\255\
-    \006\000\254\255\255\255\253\255\172\000\252\255\253\255\254\255\
-    \255\255\069\001\250\255\251\255\252\255\253\255\254\255\255\255\
-    \016\000\254\255\255\255";
+    \255\255\253\255\139\000\252\255\253\255\027\000\255\255\254\255\
+    \141\000\250\255\251\255\036\000\254\255\255\255\252\255\253\255\
+    \213\000\251\255\252\255\005\000\254\255\255\255\253\255\172\000\
+    \252\255\253\255\254\255\255\255\069\001\250\255\251\255\252\255\
+    \253\255\254\255\255\255\015\000\254\255\255\255";
   Lexing.lex_backtrk = 
    "\255\255\255\255\255\255\255\255\006\000\006\000\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
@@ -140,11 +140,11 @@ let __ocaml_lex_tables = {
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\003\000\
     \255\255\000\000\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\008\000\255\255\008\000\
+    \255\255\255\255\255\255\255\255\255\255\003\000\255\255\255\255\
+    \255\255\255\255\255\255\005\000\255\255\255\255\255\255\255\255\
+    \255\255\255\255\255\255\004\000\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\004\000\255\255\255\255\255\255\255\255\255\255\255\255\
-    \004\000\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\255\255\255\255";
+    \255\255\255\255\255\255\255\255\255\255\255\255";
   Lexing.lex_default = 
    "\001\000\000\000\000\000\000\000\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\017\000\
@@ -154,71 +154,71 @@ let __ocaml_lex_tables = {
     \255\255\255\255\255\255\000\000\000\000\046\000\000\000\255\255\
     \000\000\255\255\255\255\255\255\255\255\000\000\055\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\255\255\000\000\255\255\
-    \000\000\000\000\067\000\000\000\000\000\000\000\071\000\000\000\
-    \000\000\255\255\000\000\000\000\000\000\078\000\000\000\000\000\
-    \255\255\000\000\000\000\000\000\085\000\000\000\000\000\000\000\
-    \000\000\090\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \097\000\000\000\000\000";
+    \000\000\000\000\067\000\000\000\000\000\255\255\000\000\000\000\
+    \073\000\000\000\000\000\255\255\000\000\000\000\000\000\000\000\
+    \081\000\000\000\000\000\255\255\000\000\000\000\000\000\088\000\
+    \000\000\000\000\000\000\000\000\093\000\000\000\000\000\000\000\
+    \000\000\000\000\000\000\100\000\000\000\000\000";
   Lexing.lex_trans = 
    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\039\000\002\000\008\000\016\000\026\000\049\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\026\000\000\000\029\000\
-    \000\000\069\000\098\000\000\000\000\000\000\000\000\000\000\000\
-    \039\000\000\000\008\000\005\000\026\000\049\000\025\000\076\000\
-    \083\000\000\000\000\000\031\000\026\000\000\000\025\000\004\000\
+    \000\000\101\000\000\000\000\000\000\000\000\000\000\000\000\000\
+    \039\000\000\000\008\000\005\000\026\000\049\000\025\000\086\000\
+    \000\000\000\000\000\000\031\000\026\000\000\000\025\000\004\000\
     \030\000\008\000\006\000\006\000\006\000\006\000\006\000\006\000\
     \006\000\006\000\006\000\006\000\006\000\006\000\006\000\006\000\
     \006\000\006\000\006\000\006\000\006\000\006\000\044\000\065\000\
-    \008\000\064\000\000\000\000\000\000\000\000\000\000\000\000\000\
+    \008\000\064\000\071\000\079\000\000\000\000\000\000\000\000\000\
     \255\255\028\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \006\000\006\000\006\000\006\000\006\000\006\000\006\000\006\000\
     \006\000\006\000\015\000\016\000\020\000\011\000\010\000\012\000\
     \015\000\022\000\013\000\021\000\015\000\024\000\007\000\019\000\
     \014\000\023\000\040\000\041\000\042\000\043\000\050\000\009\000\
     \051\000\015\000\052\000\053\000\049\000\048\000\000\000\000\000\
-    \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+    \078\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
-    \018\000\018\000\018\000\049\000\007\000\000\000\000\000\075\000\
+    \018\000\018\000\018\000\049\000\007\000\070\000\000\000\077\000\
     \000\000\000\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
-    \018\000\018\000\018\000\018\000\074\000\000\000\087\000\000\000\
+    \018\000\018\000\018\000\018\000\076\000\069\000\090\000\000\000\
     \018\000\000\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\000\000\039\000\038\000\000\000\
-    \000\000\000\000\047\000\088\000\000\000\016\000\000\000\082\000\
+    \000\000\000\000\047\000\091\000\000\000\016\000\000\000\085\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\073\000\000\000\000\000\039\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000\000\000\000\000\000\000\036\000\081\000\
+    \000\000\075\000\000\000\000\000\039\000\000\000\000\000\000\000\
+    \000\000\000\000\000\000\000\000\000\000\000\000\036\000\084\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \003\000\255\255\255\255\018\000\018\000\018\000\018\000\018\000\
-    \018\000\018\000\018\000\018\000\018\000\255\255\255\255\068\000\
-    \098\000\000\000\000\000\000\000\018\000\018\000\018\000\018\000\
+    \018\000\018\000\018\000\018\000\018\000\255\255\255\255\101\000\
+    \000\000\000\000\000\000\000\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\255\255\255\255\
-    \000\000\080\000\018\000\037\000\018\000\018\000\018\000\018\000\
+    \000\000\083\000\018\000\037\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
-    \018\000\018\000\018\000\018\000\018\000\018\000\024\000\095\000\
+    \018\000\018\000\018\000\018\000\018\000\018\000\024\000\098\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\255\255\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000\000\000\000\000\024\000\000\000\091\000\
-    \000\000\062\000\000\000\000\000\092\000\000\000\000\000\000\000\
+    \000\000\000\000\000\000\000\000\000\000\024\000\000\000\094\000\
+    \000\000\062\000\000\000\000\000\095\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\255\255\000\000\006\000\006\000\006\000\
     \006\000\006\000\006\000\006\000\006\000\006\000\006\000\059\000\
-    \000\000\056\000\000\000\000\000\000\000\094\000\057\000\000\000\
-    \000\000\063\000\000\000\000\000\000\000\072\000\061\000\000\000\
+    \000\000\056\000\000\000\000\000\000\000\097\000\057\000\000\000\
+    \000\000\063\000\000\000\068\000\000\000\074\000\061\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\060\000\
-    \000\000\093\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000\000\000\086\000\000\000\000\000\000\000\
+    \000\000\096\000\000\000\000\000\000\000\000\000\000\000\000\000\
+    \000\000\000\000\000\000\000\000\089\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\058\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\255\255\000\000\000\000\000\000\
-    \000\000\000\000\000\000\255\255\000\000\079\000\000\000\000\000\
+    \000\000\000\000\000\000\255\255\000\000\082\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
@@ -232,7 +232,7 @@ let __ocaml_lex_tables = {
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000\000\000\000\000\095\000\000\000\000\000\
+    \000\000\000\000\000\000\000\000\000\000\098\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\255\255\
@@ -241,62 +241,62 @@ let __ocaml_lex_tables = {
    "\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\039\000\000\000\005\000\017\000\026\000\049\000\255\255\
     \255\255\255\255\255\255\255\255\255\255\006\000\255\255\028\000\
-    \255\255\066\000\096\000\255\255\255\255\255\255\255\255\255\255\
-    \039\000\255\255\005\000\000\000\026\000\049\000\026\000\073\000\
-    \080\000\255\255\255\255\004\000\006\000\255\255\006\000\000\000\
+    \255\255\099\000\255\255\255\255\255\255\255\255\255\255\255\255\
+    \039\000\255\255\005\000\000\000\026\000\049\000\026\000\083\000\
+    \255\255\255\255\255\255\004\000\006\000\255\255\006\000\000\000\
     \004\000\008\000\005\000\005\000\005\000\005\000\005\000\005\000\
     \005\000\005\000\005\000\005\000\006\000\006\000\006\000\006\000\
     \006\000\006\000\006\000\006\000\006\000\006\000\036\000\061\000\
-    \008\000\063\000\255\255\255\255\255\255\255\255\255\255\255\255\
+    \008\000\063\000\069\000\075\000\255\255\255\255\255\255\255\255\
     \025\000\027\000\255\255\255\255\255\255\255\255\255\255\255\255\
     \008\000\008\000\008\000\008\000\008\000\008\000\008\000\008\000\
     \008\000\008\000\015\000\015\000\019\000\010\000\005\000\011\000\
     \014\000\007\000\012\000\020\000\021\000\023\000\005\000\009\000\
     \013\000\022\000\037\000\040\000\041\000\042\000\047\000\005\000\
     \050\000\015\000\051\000\052\000\045\000\045\000\255\255\255\255\
-    \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
+    \075\000\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\015\000\015\000\015\000\015\000\015\000\015\000\015\000\
-    \015\000\015\000\015\000\045\000\008\000\255\255\255\255\070\000\
+    \015\000\015\000\015\000\045\000\008\000\066\000\255\255\072\000\
     \255\255\255\255\015\000\015\000\015\000\015\000\015\000\015\000\
     \015\000\015\000\015\000\015\000\015\000\015\000\015\000\015\000\
     \015\000\015\000\015\000\015\000\015\000\015\000\015\000\015\000\
-    \015\000\015\000\015\000\015\000\070\000\255\255\084\000\255\255\
+    \015\000\015\000\015\000\015\000\072\000\066\000\087\000\255\255\
     \015\000\255\255\015\000\015\000\015\000\015\000\015\000\015\000\
     \015\000\015\000\015\000\015\000\015\000\015\000\015\000\015\000\
     \015\000\015\000\015\000\015\000\015\000\015\000\015\000\015\000\
     \015\000\015\000\015\000\015\000\255\255\034\000\034\000\255\255\
-    \255\255\255\255\045\000\084\000\255\255\018\000\255\255\077\000\
+    \255\255\255\255\045\000\087\000\255\255\018\000\255\255\080\000\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\070\000\255\255\255\255\034\000\255\255\255\255\255\255\
-    \255\255\255\255\255\255\255\255\255\255\255\255\034\000\077\000\
+    \255\255\072\000\255\255\255\255\034\000\255\255\255\255\255\255\
+    \255\255\255\255\255\255\255\255\255\255\255\255\034\000\080\000\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \000\000\030\000\017\000\018\000\018\000\018\000\018\000\018\000\
-    \018\000\018\000\018\000\018\000\018\000\028\000\031\000\066\000\
-    \096\000\255\255\255\255\255\255\018\000\018\000\018\000\018\000\
+    \018\000\018\000\018\000\018\000\018\000\028\000\031\000\099\000\
+    \255\255\255\255\255\255\255\255\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\025\000\027\000\
-    \255\255\077\000\018\000\034\000\018\000\018\000\018\000\018\000\
+    \255\255\080\000\018\000\034\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
     \018\000\018\000\018\000\018\000\018\000\018\000\018\000\018\000\
-    \018\000\018\000\018\000\018\000\018\000\018\000\024\000\089\000\
+    \018\000\018\000\018\000\018\000\018\000\018\000\024\000\092\000\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\015\000\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\255\255\255\255\255\255\255\255\024\000\255\255\089\000\
-    \255\255\054\000\255\255\255\255\089\000\255\255\255\255\255\255\
+    \255\255\255\255\255\255\255\255\255\255\024\000\255\255\092\000\
+    \255\255\054\000\255\255\255\255\092\000\255\255\255\255\255\255\
     \255\255\255\255\255\255\045\000\255\255\024\000\024\000\024\000\
     \024\000\024\000\024\000\024\000\024\000\024\000\024\000\054\000\
-    \255\255\054\000\255\255\255\255\255\255\089\000\054\000\255\255\
-    \255\255\054\000\255\255\255\255\255\255\070\000\054\000\255\255\
+    \255\255\054\000\255\255\255\255\255\255\092\000\054\000\255\255\
+    \255\255\054\000\255\255\066\000\255\255\072\000\054\000\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\054\000\
-    \255\255\089\000\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\255\255\255\255\255\255\084\000\255\255\255\255\255\255\
+    \255\255\092\000\255\255\255\255\255\255\255\255\255\255\255\255\
+    \255\255\255\255\255\255\255\255\087\000\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\054\000\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\034\000\255\255\255\255\255\255\
-    \255\255\255\255\255\255\018\000\255\255\077\000\255\255\255\255\
+    \255\255\255\255\255\255\018\000\255\255\080\000\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
@@ -310,7 +310,7 @@ let __ocaml_lex_tables = {
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
-    \255\255\255\255\255\255\255\255\255\255\089\000\255\255\255\255\
+    \255\255\255\255\255\255\255\255\255\255\092\000\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255\
     \255\255\255\255\255\255\255\255\255\255\255\255\255\255\054\000\
@@ -328,7 +328,7 @@ let __ocaml_lex_tables = {
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000";
+    \000\000\000\000\000\000\000\000\000\000\000\000";
   Lexing.lex_backtrk_code = 
    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
@@ -342,7 +342,7 @@ let __ocaml_lex_tables = {
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000";
+    \000\000\000\000\000\000\000\000\000\000\000\000";
   Lexing.lex_default_code = 
    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
@@ -356,7 +356,7 @@ let __ocaml_lex_tables = {
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
-    \000\000\000\000\000\000";
+    \000\000\000\000\000\000\000\000\000\000\000\000";
   Lexing.lex_trans_code = 
    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
     \000\000\001\000\009\000\000\000\000\000\000\000\000\000\000\000\
@@ -494,16 +494,16 @@ let __ocaml_lex_tables = {
 }
 
 let rec main cpp outfile lexbuf =
-lexbuf.Lexing.lex_mem <- Array.create 10 (-1) ;   __ocaml_lex_main_rec cpp outfile lexbuf 0
+  lexbuf.Lexing.lex_mem <- Array.create 10 (-1) ;   __ocaml_lex_main_rec cpp outfile lexbuf 0
 and __ocaml_lex_main_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.new_engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 144 "cil/src/logic/logic_preprocess.mll"
+# 143 "cil/src/logic/logic_preprocess.mll"
                                                                       m
 # 505 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_mem.(1) in
-# 146 "cil/src/logic/logic_preprocess.mll"
+# 145 "cil/src/logic/logic_preprocess.mll"
       (
         if not (List.mem m blacklisted_macros) then
           Buffer.add_string macros (lexeme lexbuf);
@@ -515,16 +515,16 @@ let
 
   | 1 ->
 let
-# 153 "cil/src/logic/logic_preprocess.mll"
+# 152 "cil/src/logic/logic_preprocess.mll"
                                                        line
 # 521 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_mem.(1)
 and
-# 154 "cil/src/logic/logic_preprocess.mll"
+# 153 "cil/src/logic/logic_preprocess.mll"
                                      file
 # 526 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(2) lexbuf.Lexing.lex_mem.(3) in
-# 155 "cil/src/logic/logic_preprocess.mll"
+# 154 "cil/src/logic/logic_preprocess.mll"
     ( (try
         curr_line := (int_of_string line) -1
        with Failure "int_of_string" -> curr_line:= -1);
@@ -537,11 +537,11 @@ and
 
   | 2 ->
 let
-# 163 "cil/src/logic/logic_preprocess.mll"
+# 162 "cil/src/logic/logic_preprocess.mll"
                 c
 # 543 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf (lexbuf.Lexing.lex_start_pos + 2) in
-# 163 "cil/src/logic/logic_preprocess.mll"
+# 162 "cil/src/logic/logic_preprocess.mll"
                    (
       if c = !Clexer.annot_char then begin
         is_newline:=CHAR;
@@ -558,11 +558,11 @@ let
 
   | 3 ->
 let
-# 175 "cil/src/logic/logic_preprocess.mll"
+# 174 "cil/src/logic/logic_preprocess.mll"
                 c
 # 564 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf (lexbuf.Lexing.lex_start_pos + 2) in
-# 175 "cil/src/logic/logic_preprocess.mll"
+# 174 "cil/src/logic/logic_preprocess.mll"
                    (
       if c = !Clexer.annot_char then begin
         Buffer.clear buf;
@@ -582,12 +582,12 @@ let
 # 583 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
-# 191 "cil/src/logic/logic_preprocess.mll"
+# 190 "cil/src/logic/logic_preprocess.mll"
          ( flush outfile )
 # 588 "cil/src/logic/logic_preprocess.ml"
 
   | 5 ->
-# 192 "cil/src/logic/logic_preprocess.mll"
+# 191 "cil/src/logic/logic_preprocess.mll"
          (
       make_newline ();
       output_char outfile '\n'; main cpp outfile lexbuf )
@@ -595,11 +595,11 @@ let
 
   | 6 ->
 let
-# 195 "cil/src/logic/logic_preprocess.mll"
+# 194 "cil/src/logic/logic_preprocess.mll"
          c
 # 601 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 195 "cil/src/logic/logic_preprocess.mll"
+# 194 "cil/src/logic/logic_preprocess.mll"
            (
       Buffer.add_char beg_of_line ' ';
       output_char outfile c; main cpp outfile lexbuf )
@@ -608,23 +608,23 @@ let
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_main_rec cpp outfile lexbuf __ocaml_lex_state
 
 and maybe_ghost cpp outfile lexbuf =
-  __ocaml_lex_maybe_ghost_rec cpp outfile lexbuf 34
+    __ocaml_lex_maybe_ghost_rec cpp outfile lexbuf 34
 and __ocaml_lex_maybe_ghost_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 200 "cil/src/logic/logic_preprocess.mll"
+# 199 "cil/src/logic/logic_preprocess.mll"
                  space
 # 619 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
-# 200 "cil/src/logic/logic_preprocess.mll"
+# 199 "cil/src/logic/logic_preprocess.mll"
                       (
      Buffer.add_string buf space;
      maybe_ghost cpp outfile lexbuf )
 # 625 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 203 "cil/src/logic/logic_preprocess.mll"
+# 202 "cil/src/logic/logic_preprocess.mll"
          (
       is_newline := NEWLINE;
       incr curr_line;
@@ -634,7 +634,7 @@ let
 # 635 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 210 "cil/src/logic/logic_preprocess.mll"
+# 209 "cil/src/logic/logic_preprocess.mll"
       ( is_ghost := true;
         Buffer.add_string buf "     ";
         annot cpp outfile lexbuf
@@ -642,40 +642,40 @@ let
 # 643 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
-# 215 "cil/src/logic/logic_preprocess.mll"
+# 214 "cil/src/logic/logic_preprocess.mll"
          ( main cpp outfile lexbuf )
 # 648 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
 let
-# 216 "cil/src/logic/logic_preprocess.mll"
+# 215 "cil/src/logic/logic_preprocess.mll"
          c
 # 654 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 216 "cil/src/logic/logic_preprocess.mll"
+# 215 "cil/src/logic/logic_preprocess.mll"
            ( Buffer.add_char buf c; is_ghost:=false; annot cpp outfile lexbuf)
 # 658 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_maybe_ghost_rec cpp outfile lexbuf __ocaml_lex_state
 
 and maybe_oneline_ghost cpp outfile lexbuf =
-  __ocaml_lex_maybe_oneline_ghost_rec cpp outfile lexbuf 45
+    __ocaml_lex_maybe_oneline_ghost_rec cpp outfile lexbuf 45
 and __ocaml_lex_maybe_oneline_ghost_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 218 "cil/src/logic/logic_preprocess.mll"
+# 217 "cil/src/logic/logic_preprocess.mll"
                  space
 # 670 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
-# 218 "cil/src/logic/logic_preprocess.mll"
+# 217 "cil/src/logic/logic_preprocess.mll"
                       (
      Buffer.add_string buf space;
      maybe_oneline_ghost cpp outfile lexbuf )
 # 676 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 221 "cil/src/logic/logic_preprocess.mll"
+# 220 "cil/src/logic/logic_preprocess.mll"
          (
       incr curr_line;
       main cpp outfile lexbuf
@@ -683,7 +683,7 @@ let
 # 684 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 226 "cil/src/logic/logic_preprocess.mll"
+# 225 "cil/src/logic/logic_preprocess.mll"
       ( is_ghost := true;
         Buffer.add_string buf "     ";
         oneline_annot cpp outfile lexbuf
@@ -692,11 +692,11 @@ let
 
   | 3 ->
 let
-# 230 "cil/src/logic/logic_preprocess.mll"
+# 229 "cil/src/logic/logic_preprocess.mll"
          c
 # 698 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 231 "cil/src/logic/logic_preprocess.mll"
+# 230 "cil/src/logic/logic_preprocess.mll"
       (
         Buffer.add_char buf c;
         is_ghost:=false;
@@ -707,16 +707,16 @@ let
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_maybe_oneline_ghost_rec cpp outfile lexbuf __ocaml_lex_state
 
 and annot cpp outfile lexbuf =
-  __ocaml_lex_annot_rec cpp outfile lexbuf 54
+    __ocaml_lex_annot_rec cpp outfile lexbuf 54
 and __ocaml_lex_annot_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 237 "cil/src/logic/logic_preprocess.mll"
+# 236 "cil/src/logic/logic_preprocess.mll"
           ( preprocess_annot cpp outfile; main cpp outfile lexbuf )
 # 717 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 238 "cil/src/logic/logic_preprocess.mll"
+# 237 "cil/src/logic/logic_preprocess.mll"
          ( is_newline := NEWLINE;
            incr curr_line;
            Buffer.add_char buf '\n';
@@ -724,13 +724,13 @@ and __ocaml_lex_annot_rec cpp outfile lexbuf __ocaml_lex_state =
 # 725 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 242 "cil/src/logic/logic_preprocess.mll"
+# 241 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_string buf "//";
            annot_comment cpp outfile lexbuf )
 # 731 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
-# 244 "cil/src/logic/logic_preprocess.mll"
+# 243 "cil/src/logic/logic_preprocess.mll"
         (
       if !is_newline = NEWLINE then is_newline:=SPACE;
       Buffer.add_char buf ' ';
@@ -738,34 +738,34 @@ and __ocaml_lex_annot_rec cpp outfile lexbuf __ocaml_lex_state =
 # 739 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
-# 248 "cil/src/logic/logic_preprocess.mll"
+# 247 "cil/src/logic/logic_preprocess.mll"
          (
       if !is_newline = NEWLINE then is_newline:=SPACE;
       Buffer.add_char buf ' '; annot cpp outfile lexbuf )
 # 746 "cil/src/logic/logic_preprocess.ml"
 
   | 5 ->
-# 255 "cil/src/logic/logic_preprocess.mll"
+# 254 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_string buf backslash; annot cpp outfile lexbuf )
 # 751 "cil/src/logic/logic_preprocess.ml"
 
   | 6 ->
-# 256 "cil/src/logic/logic_preprocess.mll"
+# 255 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_char buf '\''; char annot cpp outfile lexbuf )
 # 756 "cil/src/logic/logic_preprocess.ml"
 
   | 7 ->
-# 257 "cil/src/logic/logic_preprocess.mll"
+# 256 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_char buf '"'; string annot cpp outfile lexbuf )
 # 761 "cil/src/logic/logic_preprocess.ml"
 
   | 8 ->
 let
-# 258 "cil/src/logic/logic_preprocess.mll"
+# 257 "cil/src/logic/logic_preprocess.mll"
          c
 # 767 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 258 "cil/src/logic/logic_preprocess.mll"
+# 257 "cil/src/logic/logic_preprocess.mll"
            ( is_newline := CHAR;
              Buffer.add_char buf c; annot cpp outfile lexbuf )
 # 772 "cil/src/logic/logic_preprocess.ml"
@@ -773,35 +773,40 @@ let
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_annot_rec cpp outfile lexbuf __ocaml_lex_state
 
 and annot_comment cpp outfile lexbuf =
-  __ocaml_lex_annot_comment_rec cpp outfile lexbuf 66
+    __ocaml_lex_annot_comment_rec cpp outfile lexbuf 66
 and __ocaml_lex_annot_comment_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 262 "cil/src/logic/logic_preprocess.mll"
+# 261 "cil/src/logic/logic_preprocess.mll"
          ( incr curr_line; is_newline:=NEWLINE;
            Buffer.add_char buf '\n'; annot cpp outfile lexbuf
          )
 # 785 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 265 "cil/src/logic/logic_preprocess.mll"
-        ( abort_preprocess "eof in the middle of a comment" outfile )
+# 264 "cil/src/logic/logic_preprocess.mll"
+         ( preprocess_annot cpp outfile; main cpp outfile lexbuf )
 # 790 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
+# 265 "cil/src/logic/logic_preprocess.mll"
+        ( abort_preprocess "eof in the middle of a comment" outfile )
+# 795 "cil/src/logic/logic_preprocess.ml"
+
+  | 3 ->
 let
 # 266 "cil/src/logic/logic_preprocess.mll"
          c
-# 796 "cil/src/logic/logic_preprocess.ml"
+# 801 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
 # 266 "cil/src/logic/logic_preprocess.mll"
            ( Buffer.add_char buf c; annot_comment cpp outfile lexbuf )
-# 800 "cil/src/logic/logic_preprocess.ml"
+# 805 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_annot_comment_rec cpp outfile lexbuf __ocaml_lex_state
 
 and char annot cpp outfile lexbuf =
-  __ocaml_lex_char_rec annot cpp outfile lexbuf 70
+    __ocaml_lex_char_rec annot cpp outfile lexbuf 72
 and __ocaml_lex_char_rec annot cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
@@ -809,84 +814,90 @@ and __ocaml_lex_char_rec annot cpp outfile lexbuf __ocaml_lex_state =
          ( incr curr_line; is_newline:=NEWLINE;
            Buffer.add_char buf '\n'; char annot cpp outfile lexbuf
          )
-# 813 "cil/src/logic/logic_preprocess.ml"
+# 818 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
 # 273 "cil/src/logic/logic_preprocess.mll"
          ( is_newline:=CHAR;
            Buffer.add_char buf '\''; annot cpp outfile lexbuf )
-# 819 "cil/src/logic/logic_preprocess.ml"
+# 824 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
 # 275 "cil/src/logic/logic_preprocess.mll"
           ( is_newline:=CHAR;
             Buffer.add_string buf "\\'"; char annot cpp outfile lexbuf )
-# 825 "cil/src/logic/logic_preprocess.ml"
+# 830 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
 # 277 "cil/src/logic/logic_preprocess.mll"
-        ( abort_preprocess "eof while parsing a char literal" outfile )
-# 830 "cil/src/logic/logic_preprocess.ml"
+           ( is_newline:=CHAR;
+            Buffer.add_string buf "\\\\"; char annot cpp outfile lexbuf )
+# 836 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
+# 279 "cil/src/logic/logic_preprocess.mll"
+        ( abort_preprocess "eof while parsing a char literal" outfile )
+# 841 "cil/src/logic/logic_preprocess.ml"
+
+  | 5 ->
 let
-# 278 "cil/src/logic/logic_preprocess.mll"
+# 280 "cil/src/logic/logic_preprocess.mll"
          c
-# 836 "cil/src/logic/logic_preprocess.ml"
+# 847 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 278 "cil/src/logic/logic_preprocess.mll"
+# 280 "cil/src/logic/logic_preprocess.mll"
            ( is_newline:=CHAR;
              Buffer.add_char buf c; char annot cpp outfile lexbuf )
-# 841 "cil/src/logic/logic_preprocess.ml"
+# 852 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_char_rec annot cpp outfile lexbuf __ocaml_lex_state
 
 and string annot cpp outfile lexbuf =
-  __ocaml_lex_string_rec annot cpp outfile lexbuf 77
+    __ocaml_lex_string_rec annot cpp outfile lexbuf 80
 and __ocaml_lex_string_rec annot cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 282 "cil/src/logic/logic_preprocess.mll"
+# 284 "cil/src/logic/logic_preprocess.mll"
          ( incr curr_line; is_newline:=NEWLINE;
            Buffer.add_char buf '\n'; string annot cpp outfile lexbuf
          )
-# 854 "cil/src/logic/logic_preprocess.ml"
-
-  | 1 ->
-# 285 "cil/src/logic/logic_preprocess.mll"
-        ( is_newline:=CHAR; Buffer.add_char buf '"'; annot cpp outfile lexbuf )
-# 859 "cil/src/logic/logic_preprocess.ml"
-
-  | 2 ->
-# 286 "cil/src/logic/logic_preprocess.mll"
-           ( is_newline:=CHAR;
-             Buffer.add_string buf "\\\""; string annot cpp outfile lexbuf )
 # 865 "cil/src/logic/logic_preprocess.ml"
 
-  | 3 ->
-# 288 "cil/src/logic/logic_preprocess.mll"
-        ( abort_preprocess "eof while parsing a string literal" outfile )
+  | 1 ->
+# 287 "cil/src/logic/logic_preprocess.mll"
+        ( is_newline:=CHAR; Buffer.add_char buf '"'; annot cpp outfile lexbuf )
 # 870 "cil/src/logic/logic_preprocess.ml"
+
+  | 2 ->
+# 288 "cil/src/logic/logic_preprocess.mll"
+           ( is_newline:=CHAR;
+             Buffer.add_string buf "\\\""; string annot cpp outfile lexbuf )
+# 876 "cil/src/logic/logic_preprocess.ml"
+
+  | 3 ->
+# 290 "cil/src/logic/logic_preprocess.mll"
+        ( abort_preprocess "eof while parsing a string literal" outfile )
+# 881 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
 let
-# 289 "cil/src/logic/logic_preprocess.mll"
+# 291 "cil/src/logic/logic_preprocess.mll"
          c
-# 876 "cil/src/logic/logic_preprocess.ml"
+# 887 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 289 "cil/src/logic/logic_preprocess.mll"
+# 291 "cil/src/logic/logic_preprocess.mll"
            ( is_newline:=CHAR;
              Buffer.add_char buf c; string annot cpp outfile lexbuf )
-# 881 "cil/src/logic/logic_preprocess.ml"
+# 892 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_string_rec annot cpp outfile lexbuf __ocaml_lex_state
 
 and comment cpp outfile c lexbuf =
-  __ocaml_lex_comment_rec cpp outfile c lexbuf 84
+    __ocaml_lex_comment_rec cpp outfile c lexbuf 87
 and __ocaml_lex_comment_rec cpp outfile c lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 294 "cil/src/logic/logic_preprocess.mll"
+# 296 "cil/src/logic/logic_preprocess.mll"
         (
       Buffer.add_char beg_of_line ' ';
       output_string outfile (lexeme lexbuf);
@@ -895,104 +906,104 @@ and __ocaml_lex_comment_rec cpp outfile c lexbuf __ocaml_lex_state =
       else
         comment cpp outfile '/' lexbuf
       )
-# 899 "cil/src/logic/logic_preprocess.ml"
+# 910 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 302 "cil/src/logic/logic_preprocess.mll"
+# 304 "cil/src/logic/logic_preprocess.mll"
          ( make_newline (); output_char outfile '\n';
            comment cpp outfile '\n' lexbuf )
-# 905 "cil/src/logic/logic_preprocess.ml"
+# 916 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 304 "cil/src/logic/logic_preprocess.mll"
+# 306 "cil/src/logic/logic_preprocess.mll"
         ( abort_preprocess "eof while parsing C comment" outfile)
-# 910 "cil/src/logic/logic_preprocess.ml"
+# 921 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
 let
-# 305 "cil/src/logic/logic_preprocess.mll"
+# 307 "cil/src/logic/logic_preprocess.mll"
          c
-# 916 "cil/src/logic/logic_preprocess.ml"
+# 927 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 305 "cil/src/logic/logic_preprocess.mll"
+# 307 "cil/src/logic/logic_preprocess.mll"
            (
       Buffer.add_char beg_of_line ' ';
       output_char outfile c;
       comment cpp outfile c lexbuf)
-# 923 "cil/src/logic/logic_preprocess.ml"
+# 934 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_comment_rec cpp outfile c lexbuf __ocaml_lex_state
 
 and oneline_annot cpp outfile lexbuf =
-  __ocaml_lex_oneline_annot_rec cpp outfile lexbuf 89
+    __ocaml_lex_oneline_annot_rec cpp outfile lexbuf 92
 and __ocaml_lex_oneline_annot_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 311 "cil/src/logic/logic_preprocess.mll"
+# 313 "cil/src/logic/logic_preprocess.mll"
              (
       incr curr_line;
       preprocess_annot cpp outfile;
       main cpp outfile lexbuf )
-# 937 "cil/src/logic/logic_preprocess.ml"
+# 948 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
-# 315 "cil/src/logic/logic_preprocess.mll"
+# 317 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_char buf ' '; oneline_annot cpp outfile lexbuf )
-# 942 "cil/src/logic/logic_preprocess.ml"
+# 953 "cil/src/logic/logic_preprocess.ml"
 
   | 2 ->
-# 316 "cil/src/logic/logic_preprocess.mll"
+# 318 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_string buf backslash; oneline_annot cpp outfile lexbuf )
-# 947 "cil/src/logic/logic_preprocess.ml"
+# 958 "cil/src/logic/logic_preprocess.ml"
 
   | 3 ->
-# 317 "cil/src/logic/logic_preprocess.mll"
+# 319 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_char buf '\''; char oneline_annot cpp outfile lexbuf )
-# 952 "cil/src/logic/logic_preprocess.ml"
+# 963 "cil/src/logic/logic_preprocess.ml"
 
   | 4 ->
-# 318 "cil/src/logic/logic_preprocess.mll"
+# 320 "cil/src/logic/logic_preprocess.mll"
          ( Buffer.add_char buf '"'; string oneline_annot cpp outfile lexbuf )
-# 957 "cil/src/logic/logic_preprocess.ml"
+# 968 "cil/src/logic/logic_preprocess.ml"
 
   | 5 ->
 let
-# 319 "cil/src/logic/logic_preprocess.mll"
+# 321 "cil/src/logic/logic_preprocess.mll"
          c
-# 963 "cil/src/logic/logic_preprocess.ml"
+# 974 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 319 "cil/src/logic/logic_preprocess.mll"
+# 321 "cil/src/logic/logic_preprocess.mll"
            ( Buffer.add_char buf c; oneline_annot cpp outfile lexbuf )
-# 967 "cil/src/logic/logic_preprocess.ml"
+# 978 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_oneline_annot_rec cpp outfile lexbuf __ocaml_lex_state
 
 and oneline_comment cpp outfile lexbuf =
-  __ocaml_lex_oneline_comment_rec cpp outfile lexbuf 96
+    __ocaml_lex_oneline_comment_rec cpp outfile lexbuf 99
 and __ocaml_lex_oneline_comment_rec cpp outfile lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 324 "cil/src/logic/logic_preprocess.mll"
+# 326 "cil/src/logic/logic_preprocess.mll"
       ( make_newline();
         output_string outfile (lexeme lexbuf);
         main cpp outfile lexbuf)
-# 980 "cil/src/logic/logic_preprocess.ml"
+# 991 "cil/src/logic/logic_preprocess.ml"
 
   | 1 ->
 let
-# 327 "cil/src/logic/logic_preprocess.mll"
+# 329 "cil/src/logic/logic_preprocess.mll"
          c
-# 986 "cil/src/logic/logic_preprocess.ml"
+# 997 "cil/src/logic/logic_preprocess.ml"
 = Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 327 "cil/src/logic/logic_preprocess.mll"
+# 329 "cil/src/logic/logic_preprocess.mll"
            ( output_char outfile c; oneline_comment cpp outfile lexbuf)
-# 990 "cil/src/logic/logic_preprocess.ml"
+# 1001 "cil/src/logic/logic_preprocess.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_oneline_comment_rec cpp outfile lexbuf __ocaml_lex_state
 
 ;;
 
-# 329 "cil/src/logic/logic_preprocess.mll"
+# 331 "cil/src/logic/logic_preprocess.mll"
  
   let file cpp filename =
     reset ();
@@ -1007,4 +1018,4 @@ let
     close_out ppfile;
     ppname
 
-# 1011 "cil/src/logic/logic_preprocess.ml"
+# 1022 "cil/src/logic/logic_preprocess.ml"

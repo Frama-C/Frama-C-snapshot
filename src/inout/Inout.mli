@@ -25,7 +25,7 @@
 (** Inputs-outputs computations. *)
 
 (** No function is directly exported: they are registered in:
-    - {!Db.Inputs} for computations of non functionnal inputs; 
+    - {!Db.Inputs} for computations of non functionnal inputs;
     - {!Db.Outputs} for computations of outputs;
-    - {!Db.InOutContext} for computation of inout context; and
+    - {!Db.Operational_inputs} for computation of inout context; and
     - {!Db.Derefs}. *)

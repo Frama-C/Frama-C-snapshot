@@ -25,7 +25,6 @@ open Cil
 open Callgraph
 open Options
 
-
 let entry_point_ref = ref None
 
 module Service =
@@ -41,11 +40,9 @@ module Service =
            [ match v.cnInfo with
              | NIVar (_,b) when not !b -> `Style `Dotted
              | _ -> `Style `Bold ]
-	 let equal v1 v2 = id v1 = id v2
-	 let hash = id
-	 let entry_point () = match !entry_point_ref with
-	   | None -> assert false
-	   | Some v -> v
+         let equal v1 v2 = id v1 = id v2
+         let hash = id
+         let entry_point () = !entry_point_ref
        end
        let iter_vertex f = Hashtbl.iter (fun _ -> f)
        let iter_succ f _g v = Inthash.iter (fun _ -> f) v.cnCallees
@@ -63,37 +60,42 @@ module CG =
        let kind = `Correctness
      end)
 
-let get_init_funcs cg =
-  (* already checked that this entry point is ok *)
-  let entry_point_name = Parameters.MainFunction.get () in
-  let init_funcs = (* entry point is always a root *)
-    Datatype.String.Set.add entry_point_name (InitFunc.get ())
-  in
-  (* Add the callees of entry point as roots *)
-  Datatype.String.Set.union
-    (try
-       let callees = (Hashtbl.find cg entry_point_name).Callgraph.cnCallees in
-       Inthash.fold
-	 (fun _ v acc -> match v.Callgraph.cnInfo with
-	 | Callgraph.NIVar ({vname=n},_) -> Datatype.String.Set.add n acc
-	 | _ -> acc)
-	 callees
-	 Datatype.String.Set.empty
-     with Not_found ->
-       Datatype.String.Set.empty)
-    init_funcs
+let get_init_funcs main_name cg =
+  match main_name with
+  | None -> InitFunc.get ()
+  | Some s ->
+    (* the entry point is always a root *)
+    let init_funcs = Datatype.String.Set.add s (InitFunc.get ()) in
+    (* Add the callees of entry point as roots *)
+    Datatype.String.Set.union
+      (try
+         let callees = (Hashtbl.find cg s).Callgraph.cnCallees in
+         Inthash.fold
+           (fun _ v acc -> match v.Callgraph.cnInfo with
+           | Callgraph.NIVar ({vname=n},_) -> Datatype.String.Set.add n acc
+           | _ -> acc)
+           callees
+           Datatype.String.Set.empty
+       with Not_found ->
+         Datatype.String.Set.empty)
+      init_funcs
 
 let compute () =
   feedback "beginning analysis";
   let p = Ast.get () in
-  (* fixes bts#587: check that Parameters.MainFunction.get is valid. *)
-  ignore (Globals.entry_point ());
   let cg = computeGraph p in
-  entry_point_ref :=
-    Some
-    (try Hashtbl.find cg (Parameters.MainFunction.get ())
-     with Not_found -> assert false);
-  let init_funcs = get_init_funcs cg in
+  let main = Kernel.MainFunction.get () in
+  let main_name =
+    try
+      entry_point_ref := Some (Hashtbl.find cg main);
+      Some main
+    with Not_found ->
+      warning "no entry point available: services could be less precise. \
+Use option `-main' to improve them.";
+      entry_point_ref := None;
+      None
+  in
+  let init_funcs = get_init_funcs main_name cg in
   let cg = Service.compute cg init_funcs in
   CG.mark_as_computed ();
   feedback "analysis done";
@@ -145,6 +147,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

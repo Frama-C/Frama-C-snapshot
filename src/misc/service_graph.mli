@@ -20,16 +20,21 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Compute services from a callgraph. *)
+
+(** Generic functor implementing the services algorithm according to a graph
+    implementation. *)
 module Make
   (G: sig
      type t
      module V: sig
        include Graph.Sig.HASHABLE
        val id: t -> int
-	 (** assume is >= 0 and unique for each vertices of the graph *)
+         (** assume is >= 0 and unique for each vertices of the graph *)
        val name: t -> string
        val attributes: t -> Graph.Graphviz.DotAttributes.vertex list
-       val entry_point: unit -> t
+       val entry_point: unit -> t option
+     (** @modify Nitrogen-20111001 return an option*)
      end
      val iter_vertex : (V.t -> unit) -> t -> unit
      val iter_succ : (V.t -> unit) -> t -> V.t -> unit
@@ -53,9 +58,10 @@ sig
   val compute: G.t -> Datatype.String.Set.t -> CallG.t
   val output_graph: out_channel -> CallG.t -> unit
 
-  val entry_point: unit -> CallG.V.t
+  val entry_point: unit -> CallG.V.t option
   (** [compute] must be called before
-      @since Carbon-20101201 *)
+      @since Carbon-20101201
+      @modify Nitrogen-20111001 return an option type *)
 
   module TP: Graph.Graphviz.GraphWithDotAttrs
     with type t = CallG.t

@@ -22,6 +22,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Internal information about control dependencies *)
 type t
 
 (** Compute some information on the function in order to be able to compute
@@ -30,7 +31,7 @@ val compute : Kernel_function.t -> t
 
 (** Compute the list of the statements that should have a control dependency
 * on the given IF statement. *)
-val get_if_controled_stmts : t -> Cil_types.stmt -> Cil_types.stmt list
+val get_if_controled_stmts : t -> Cil_types.stmt -> Cil_datatype.Stmt.Hptset.t
 
 (** Compute the list of the statements that should have a control dependency
 * on the given jump statement. This statement can be a [goto] of course,
@@ -38,7 +39,8 @@ val get_if_controled_stmts : t -> Cil_types.stmt -> Cil_types.stmt list
    make them of the form {v while(true) body; v} which is equivalent to
    {v L : body ; goto L; v}
 * *)
-val get_jump_controled_stmts : t -> Cil_types.stmt -> Cil_types.stmt list
+val get_jump_controled_stmts : t -> Cil_types.stmt -> Cil_datatype.Stmt.Hptset.t
+val get_loop_controled_stmts : t -> Cil_types.stmt -> Cil_datatype.Stmt.Hptset.t
 
 (*
 Local Variables:

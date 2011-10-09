@@ -99,6 +99,7 @@ type token =
   | LBRACE
   | RBRACE
   | GHOST
+  | MODEL
   | CASE
   | VOID
   | CHAR
@@ -121,6 +122,8 @@ type token =
   | COMPLETE
   | DISJOINT
   | TERMINATES
+  | BIFF
+  | BIMPLIES
   | HAT
   | HATHAT
   | PIPE
@@ -134,6 +137,7 @@ type token =
   | BSTYPE
   | WITH
   | CONST
+  | INITIALIZED
 
 val lexpr_eof :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Logic_ptree.lexpr

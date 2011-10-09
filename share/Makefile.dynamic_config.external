@@ -21,8 +21,8 @@
 ##########################################################################
 
 export FRAMAC_INTERNAL=no
-export FRAMAC_PLUGINDIR="$(FRAMAC_LIBDIR)/plugins"
-export FRAMAC_GUI_PLUGIN="$(FRAMAC_LIBDIR)/gui"
+export FRAMAC_PLUGINDIR=$(FRAMAC_LIBDIR)/plugins
+export FRAMAC_GUI_PLUGIN=$(FRAMAC_LIBDIR)/gui
 export FRAMAC_PLUGIN_TEST=.
 export FRAMAC_GUI_PLUGIN_TEST=.
 export FRAMAC_OPT=$(BINDIR)/frama-c$(EXE)
@@ -30,3 +30,4 @@ export FRAMAC_BYTE=$(BINDIR)/frama-c.byte$(EXE)
 export FRAMAC_INCLUDES=-I "$(FRAMAC_LIBDIR)"
 export FRAMAC_LIB="$(FRAMAC_LIBDIR)"
 export PTESTS=$(BINDIR)/ptests.byte$(EXE)
+export DOC_DIR=$(FRAMAC_SHARE)/doc/code

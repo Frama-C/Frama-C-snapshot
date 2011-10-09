@@ -26,7 +26,7 @@ type t_mark = SlicingMarks.t_mark
 type t_select = t_mark PdgMarks.t_select
 
                     (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
-(** selection mode (ie which mark to associate to the node 
+(** selection mode (ie which mark to associate to the node
 * and how to propagate in the different kinds of dependencies) *)
 type t_n_or_d_marks
 
@@ -42,7 +42,7 @@ val build_node_and_dpds_selection :
   ?nd_marks:t_n_or_d_marks -> t_mark -> t_n_or_d_marks
                     (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 val translate_crit_to_select :
-  Db.Pdg.t -> ?to_select:t_select -> 
+  Db.Pdg.t -> ?to_select:t_select ->
   ((Db.Pdg.t_node * Locations.Zone.t option) list * t_n_or_d_marks) list
   -> t_select
                     (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
@@ -68,7 +68,7 @@ val mk_crit_examines_calls :
   t_fct_slice -> t_mark PdgMarks.t_info_called_outputs -> t_criterion
 val mk_appli_select_calls : t_fct_info -> t_criterion
 val mk_crit_mark_calls :
-  t_fct_info -> Db_types.kernel_function -> t_mark -> t_criterion
+  t_fct_info -> Cil_types.kernel_function -> t_mark -> t_criterion
 val mk_crit_add_output_marks :
   t_fct_slice -> t_select -> t_criterion
                     (* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)

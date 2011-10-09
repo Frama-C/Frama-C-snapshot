@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2009-2010 INRIA                                         *)
+(*  Copyright (C) 2009-2011 INRIA                                         *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)

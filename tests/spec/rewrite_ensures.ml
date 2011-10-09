@@ -1,9 +1,10 @@
 (* dynamic plug-in to test rewriting of formals in ensures clauses *)
 
-let rewrite _ =
+let rewrite () =
   Ast.compute ();
   Globals.Functions.iter
-    (fun kf -> kf.Db_types.spec <- Logic_interp.formals_in_ensures kf)
+    (fun kf -> 
+      Kernel_function.set_spec kf (fun _ -> Logic_interp.formals_in_ensures kf))
 
 include Plugin.Register
     (struct
@@ -12,6 +13,5 @@ include Plugin.Register
       let help = "test purposes only"
       let module_name = "Rewrite_ensures"
      end)
-;;
 
-Db.Main.extend rewrite;;
+let () = Db.Main.extend rewrite

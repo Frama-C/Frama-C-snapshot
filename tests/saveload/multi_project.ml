@@ -2,7 +2,7 @@ let check name test =
   Kernel.log "Checking %S@." name;
   Project.on
     (Project.from_unique_name name)
-    (fun () -> assert (test (Parameters.Files.get ()) [])) ()
+    (fun () -> assert (test (Kernel.Files.get ()) [])) ()
 
 let main () =
   ignore (Project.create_by_copy "foo");
@@ -11,7 +11,7 @@ let main () =
   check "foo" (<>);
   check "foobar" (=);
   check "default" (<>);
-  Parameters.Files.set [];
+  Kernel.Files.set [];
   Project.load_all "foo.sav";
   Extlib.safe_remove "foo.sav";
   ignore (Project.create_by_copy "bar");

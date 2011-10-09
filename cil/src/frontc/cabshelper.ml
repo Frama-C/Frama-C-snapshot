@@ -48,33 +48,77 @@ let getident () =
 
 let currentLoc () = Errorloc.getPosition ()
 
-(* TODO: use Parameters directly as soon as dependencies issues are resolved*)
-
-let continueOnAnnotError = ref false
-
-let continue_annot_error_set () = continueOnAnnotError:=true
-let continue_annot_error_unset () = continueOnAnnotError :=false
 let cabslu = Lexing.dummy_pos,Lexing.dummy_pos
 
-let continue_annot l job default msg =
+let continue_annot (l,_) job default msg =
   try
     Cilmsg.push_errors () ;
     let result = job () in
     if Cilmsg.had_errors () then failwith "Annotation has errors" ;
     Cilmsg.pop_errors () ;
     Log.with_null (fun _ -> result) msg ;
-  with exn when !continueOnAnnotError ->
-    Cilmsg.debug "Continue on annotation error (%s)" (Printexc.to_string exn) ;
+  with exn when Kernel.ContinueOnAnnotError.get () ->
+    Kernel.debug "Continue on annotation error (%s)" (Printexc.to_string exn) ;
     Cilmsg.pop_errors () ;
-    Cilmsg.with_warning (fun _ -> default ())
-      ~source:{
-	Log.src_file= (fst l).Lexing.pos_fname ;
-	Log.src_line= (fst l).Lexing.pos_lnum ;
-      } msg
+    Kernel.with_warning (fun _ -> default ()) ~source:l msg
 
-(* clexer puts comments here *)
-let commentsGA = GrowArray.make 100 (GrowArray.Elem(cabslu,"",false))
+module Comments =
+  struct
+    module MyTable = 
+      Rangemap.Make 
+        (Cil_datatype.Position)
+        (Datatype.List(Datatype.Pair(Cil_datatype.Position)(Datatype.String)))
+    module MyState =
+      State_builder.Ref
+        (MyTable)
+        (struct
+          let name = "Cabshelper.Comments"
+          let dependencies = [ ]
+          (* depends from File.self and Ast.self which add 
+             the dependency themselves. *)
+          let kind = `Internal
+          let default () = MyTable.empty
+         end)
+    let self = MyState.self
 
+    (* What matters is the beginning of the comment. *)
+    let add (first,last) comment =
+      let state = MyState.get () in
+      let acc = try MyTable.find first state with Not_found -> [] in
+      MyState.set ((MyTable.add first ((last,comment)::acc)) state)
+
+    let get (first,last) =
+      Kernel.debug "Searching for comments between positions %a and %a@."
+        Cil_datatype.Position.pretty first
+        Cil_datatype.Position.pretty last;
+      MyTable.fold_range
+        (fun pos ->
+          match Cil_datatype.Position.compare first pos with
+            | n when n > 0 -> Rangemap.Below
+            | 0 -> Rangemap.Match
+            | _ ->
+              if Cil_datatype.Position.compare pos last <= 0 then 
+                Rangemap.Match
+              else
+                Rangemap.Above)
+        (fun _ comments acc -> acc @ List.rev_map snd comments)
+        (MyState.get ())
+        []
+      
+    let iter f =
+      MyTable.iter 
+        (fun first comments ->
+          List.iter (fun (last,comment) -> f (first,last) comment) comments)
+        (MyState.get())
+
+    let fold f acc =
+      MyTable.fold
+        (fun first comments acc ->
+          List.fold_left
+            (fun acc (last,comment) -> f (first,last) comment acc) acc comments)
+        (MyState.get()) acc
+      
+end
 
 (*********** HELPER FUNCTIONS **********)
 
@@ -157,7 +201,7 @@ let valueOfDigit chr =
       '0'..'9' -> (Char.code chr) - (Char.code '0')
     | 'a'..'z' -> (Char.code chr) - (Char.code 'a') + 10
     | 'A'..'Z' -> (Char.code chr) - (Char.code 'A') + 10
-    | _ -> Cilmsg.fatal "not a digit"
+    | _ -> Kernel.fatal "not a digit"
   in
   Int64.of_int int_value
 
@@ -166,3 +210,9 @@ let d_cabsloc fmt cl =
   Format.fprintf fmt "%s:%d"
     (fst cl).Lexing.pos_fname
     (fst cl).Lexing.pos_lnum
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

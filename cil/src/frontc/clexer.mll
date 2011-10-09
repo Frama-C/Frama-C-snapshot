@@ -65,13 +65,7 @@ let is_ghost_code () = !ghost_code
 let enter_ghost_code () = ghost_code := true
 let exit_ghost_code () = ghost_code := false
 
-let keepComments = ref false
-
-(* string -> unit *)
-let addComment c =
-  let l = currentLoc() in
-  let i = GrowArray.max_init_index Cabshelper.commentsGA in
-  GrowArray.setg Cabshelper.commentsGA (i+1) (l,c,false)
+let addComment c = Cabshelper.Comments.add (currentLoc()) c
 
 (* track whitespace for the current token *)
 let white = ref ""
@@ -111,7 +105,7 @@ let rec intlist_to_string (str: int64 list):string =
 (* Some debugging support for line numbers *)
 let dbgToken (t: token) =
   if false then begin
-    let dprintf fmt = Cilmsg.debug fmt in
+    let dprintf fmt = Kernel.debug fmt in
     (match t with
          IDENT n -> dprintf "IDENT(%s)\n" n
        | LBRACE l -> dprintf "LBRACE(%d)\n" (fst l).Lexing.pos_lnum
@@ -238,6 +232,9 @@ let init_lexicon _ =
                          IDENT "__thread");
     ]
 
+
+let is_c_keyword s = Hashtbl.mem lexicon s
+
 (* Mark an identifier as a type name. The old mapping is preserved and will
  * be reinstated when we exit this context *)
 let add_type name =
@@ -251,7 +248,7 @@ let push_context _ = context := []::!context
 
 let pop_context _ =
   match !context with
-    [] -> Cilmsg.fatal "Empty context stack"
+    [] -> Kernel.fatal "Empty context stack"
   | con::sub ->
 		(context := sub;
 		List.iter (fun name ->
@@ -265,7 +262,7 @@ let pop_context _ =
  * will be reinstated when we exit this context  *)
 let add_identifier name =
   match !context with
-    [] -> Cilmsg.fatal "Empty context stack"
+    [] -> Kernel.fatal "Empty context stack"
   | con::sub ->
       (context := (name::con)::sub;
        (*Format.eprintf "adding IDENT for %s@." name;*)
@@ -375,9 +372,15 @@ let lex_comment remainder buffer lexbuf =
   (match buffer with None -> () | Some b -> Buffer.add_char b ch) ;
   remainder buffer lexbuf
 
-let do_lex_comment remainder lexbuf =
+let do_lex_comment ?first_char remainder lexbuf =
   let buffer =
-    if !keepComments then Some(Buffer.create 80) else None
+    if Kernel.PrintComments.get () then
+      Some(let b = Buffer.create 80 in
+           (match first_char with Some c ->
+             Buffer.add_char b c
+           | None -> ());
+           b)
+    else None
   in remainder buffer lexbuf ;
   match buffer with
     | Some b -> addComment (Buffer.contents b)
@@ -424,6 +427,13 @@ let wstr_to_warray wstr =
 let pragmaLine = ref false
 
 let annot_char = ref '@'
+
+let () =
+  Kernel.ReadAnnot.add_set_hook
+    (fun _ x ->
+      (* prevent the C lexer interpretation of comments *)
+      annot_char := if x then '@' else '\000')
+
 let annot_start_pos = ref Cabshelper.cabslu
 let buf = Buffer.create 1024
 
@@ -434,7 +444,6 @@ let make_annot s =
   let start = snd !annot_start_pos in
   match Logic_lexer.annot (start, s) with
     | Logic_ptree.Adecl d -> DECL d
-    | Logic_ptree.Afor_spec for_spec-> FOR_SPEC for_spec
     | Logic_ptree.Aspec -> SPEC (start,s)
         (* At this point, we only have identified a function spec. Complete
            parsing of the annotation will only occur in the cparser.mly rule.
@@ -517,7 +526,7 @@ rule initial =
 	  "Skipping annotation"
       end else
 	begin
-	  do_lex_comment comment lexbuf ;
+	  do_lex_comment ~first_char:c comment lexbuf ;
           addWhite lexbuf;
           initial lexbuf
 	end
@@ -547,7 +556,7 @@ rule initial =
 	  "Skipping annotation"
       end else
 	begin
-	  do_lex_comment onelinecomment lexbuf ;
+	  do_lex_comment ~first_char:c onelinecomment lexbuf ;
 	  E.newline();
 	  if is_oneline_ghost () then
 	    begin
@@ -729,7 +738,7 @@ and hash = parse
                    int_of_string s
                  with Failure ("int_of_string") ->
                    (* the int is too big. *)
-                   Cilmsg.warning "Bad line number in preprocessed file: %s" s;
+                   Kernel.warning "Bad line number in preprocessed file: %s" s;
                    (-1)
                  in
                  E.setCurrentLine (lineno - 1);

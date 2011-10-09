@@ -66,7 +66,10 @@ module type Location_map_bitwise = sig
   val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
   val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
       -> t -> t -> t
-  val copy_paste : f:(bool * y -> bool * y) -> location -> location -> t -> t
+  val copy_paste :
+    with_alarms:CilE.warn_mode ->
+    f:(bool * y -> bool * y) ->
+    location -> location -> t -> t
 
  exception Zone_unchanged
   val find_or_unchanged : t -> Zone.t -> y
@@ -88,9 +91,9 @@ module Make_bitwise (V:With_default) = struct
   end
 
   module LBase = struct
-    include Hptmap.Make(Base)(LOffset)(Hptmap.Comp_unused)(struct let v = [[]] end)
+    include Hptmap.Make(Base)(LOffset)(Hptmap.Comp_unused)(struct let v = [[]] end)(struct let l = [ Ast.self ] end)
     let find_or_default base m =
-      try find base m with Not_found ->	LOffset.empty
+      try find base m with Not_found -> LOffset.empty
   end
 
   type tt = Top | Map of LBase.t
@@ -113,7 +116,7 @@ module Make_bitwise (V:With_default) = struct
       Top -> Format.fprintf fmt "@[<v>FROMTOP@]"
     | Map m ->
         Format.fprintf fmt "@[<v>";
-	(LBase.iter
+        (LBase.iter
           (fun base offs ->
              Format.fprintf fmt "%a@[<v>%a@]@,"
                Base.pretty base
@@ -125,37 +128,37 @@ module Make_bitwise (V:With_default) = struct
 
   include Datatype.Make
       (struct
-	type t = tt
-	let reprs = Top :: List.map (fun b -> Map b) LBase.reprs
-	let structural_descr =
-	  Structural_descr.Structure
-	    (Structural_descr.Sum [| [| LBase.packed_descr |] |])
-	 let name = LOffset.name ^ " lmap_bitwise"
-	let hash = hash
-	let equal = equal
-	let compare = Datatype.undefined
-	let pretty = pretty
-	let internal_pretty_code = Datatype.undefined
-	let rehash = Datatype.identity
-	let copy = Datatype.undefined
-	let varname = Datatype.undefined
-	let mem_project = Datatype.never_any_project
+        type t = tt
+        let reprs = Top :: List.map (fun b -> Map b) LBase.reprs
+        let structural_descr =
+          Structural_descr.Structure
+            (Structural_descr.Sum [| [| LBase.packed_descr |] |])
+         let name = LOffset.name ^ " lmap_bitwise"
+        let hash = hash
+        let equal = equal
+        let compare = Datatype.undefined
+        let pretty = pretty
+        let internal_pretty_code = Datatype.undefined
+        let rehash = Datatype.identity
+        let copy = Datatype.undefined
+        let varname = Datatype.undefined
+        let mem_project = Datatype.never_any_project
        end)
 
   let fold f m acc =
     match m with
-      |	Top -> raise Cannot_fold
+      | Top -> raise Cannot_fold
       | Map m ->
-	  LBase.fold
-	    (fun k offsetmap acc ->
-	       LOffset.fold
-		 (fun itvs v acc ->
-		    let loc = Zone.inject k itvs in
-		      f loc v acc)
-		 offsetmap
-		 acc)
-	    m
-	    acc
+          LBase.fold
+            (fun k offsetmap acc ->
+               LOffset.fold
+                 (fun itvs v acc ->
+                    let loc = Zone.inject k itvs in
+                      f loc v acc)
+                 offsetmap
+                 acc)
+            m
+            acc
 
  let fold_base f m acc=
     match m with
@@ -165,13 +168,13 @@ module Make_bitwise (V:With_default) = struct
   let add_interval ~exact varid itv v map =
     let offsetmap_orig =
       try
-	LBase.find varid map
+        LBase.find varid map
       with Not_found ->
-	LOffset.empty
+        LOffset.empty
     in
     let new_offsetmap =
       (if exact then LOffset.add else LOffset.add_approximate)
-	 itv v offsetmap_orig
+         itv v offsetmap_orig
     in
     LBase.add varid new_offsetmap map
 
@@ -180,34 +183,34 @@ module Make_bitwise (V:With_default) = struct
    | Zone.Top (Zone.Top_Param.Top, _),_|_,Top -> Top
    | Zone.Top (Zone.Top_Param.Set s, _), Map m ->
        let result =
-	 let treat_base base acc =
-	   let offsetmap_orig =
-	     try
-	       LBase.find base m
-	     with Not_found ->
-	       LOffset.empty
-	   in
-	   let new_offsetmap =
-	     LOffset.add_iset ~exact Int_Intervals.top v offsetmap_orig
-	   in
-	   LBase.add base new_offsetmap acc
-	 in
-	 Zone.Top_Param.O.fold treat_base s (treat_base Base.null m)
+         let treat_base base acc =
+           let offsetmap_orig =
+             try
+               LBase.find base m
+             with Not_found ->
+               LOffset.empty
+           in
+           let new_offsetmap =
+             LOffset.add_iset ~exact Int_Intervals.top v offsetmap_orig
+           in
+           LBase.add base new_offsetmap acc
+         in
+         Zone.Top_Param.O.fold treat_base s (treat_base Base.null m)
        in Map result
    | Zone.Map _, Map m ->
        let result =
-	 let treat_offset varid offs m =
-	   let offsetmap_orig =
-	     try
-	       LBase.find varid m
-	     with Not_found ->
-	       LOffset.empty
-	   in
-	   let new_offsetmap =
-	     LOffset.add_iset ~exact offs v offsetmap_orig
-	   in LBase.add varid new_offsetmap m
-	 in
-	 Zone.fold_i treat_offset loc m
+         let treat_offset varid offs m =
+           let offsetmap_orig =
+             try
+               LBase.find varid m
+             with Not_found ->
+               LOffset.empty
+           in
+           let new_offsetmap =
+             LOffset.add_iset ~exact offs v offsetmap_orig
+           in LBase.add varid new_offsetmap m
+         in
+         Zone.fold_i treat_offset loc m
        in Map result
 
  let join m1 m2 =
@@ -215,29 +218,29 @@ module Make_bitwise (V:With_default) = struct
      Top, _ | _, Top -> Top
    | Map m1, Map m2 ->
        let treat_base varid offsmap1 acc =
-	 let offsmap =
-	 try
-	   let offsmap2 = LBase.find varid m2 in
-	   LOffset.join offsmap1 offsmap2
-	 with Not_found ->
-	   LOffset.joindefault offsmap1
-	 in
-	 LBase.add varid offsmap acc
+         let offsmap =
+         try
+           let offsmap2 = LBase.find varid m2 in
+           LOffset.join offsmap1 offsmap2
+         with Not_found ->
+           LOffset.joindefault offsmap1
+         in
+         LBase.add varid offsmap acc
        in
        let all_m1 = LBase.fold treat_base m1 LBase.empty in
        let result =
-	 LBase.fold
-	   (fun varid offsmap2 acc ->
-	      try
-		ignore (LBase.find varid m1);
-		acc
-	      with Not_found ->
-		LBase.add
-		  varid
-		  (LOffset.joindefault offsmap2)
-		  acc)
-	   m2
-	   all_m1
+         LBase.fold
+           (fun varid offsmap2 acc ->
+              try
+                ignore (LBase.find varid m1);
+                acc
+              with Not_found ->
+                LBase.add
+                  varid
+                  (LOffset.joindefault offsmap2)
+                  acc)
+           m2
+           all_m1
        in
        Map result
    in
@@ -253,12 +256,12 @@ module Make_bitwise (V:With_default) = struct
           Top
       | Map m1, Map m2 ->
          let treat_base varid offsmap1 acc =
-	   let offsmap_result =
+           let offsmap_result =
              try
                let offsmap2 = LBase.find varid m2 in
-		 LOffset.map2 f offsmap1 offsmap2
-	     with Not_found ->
-	       LOffset.map (fun x -> f (Some x) None) offsmap1
+                 LOffset.map2 f offsmap1 offsmap2
+             with Not_found ->
+               LOffset.map (fun x -> f (Some x) None) offsmap1
 
            in
              LBase.add varid offsmap_result acc
@@ -273,7 +276,7 @@ module Make_bitwise (V:With_default) = struct
                 with Not_found ->
                   let offsetmap =
                     LOffset.map (fun x -> f None (Some x)) offsmap2
-		  in
+                  in
                     LBase.add varid offsetmap acc)
              m2
              all_m1
@@ -299,7 +302,7 @@ module Make_bitwise (V:With_default) = struct
         with Not_found ->
           LOffset.is_included_exn LOffset.empty offs2
        in
-	 try
+         try
            LBase.iter treat_offset1 m1;
            LBase.iter treat_offset2 m2;
            true
@@ -310,12 +313,12 @@ module Make_bitwise (V:With_default) = struct
     let r1 = join x y in
     let r2 =
       map2
-	(fun x y ->
-	   match x,y with
-	     | Some (bx, x), Some (by, y) -> bx || by, V.join x y
-	     | Some (_, x), None | None, Some (_, x) -> true, x
-	     | None, None -> assert false)
-	x y
+        (fun x y ->
+           match x,y with
+             | Some (bx, x), Some (by, y) -> bx || by, V.join x y
+             | Some (_, x), None | None, Some (_, x) -> true, x
+             | None, None -> assert false)
+        x y
     in
     if not (is_included r1 r2 && is_included r2 r1)
     then begin
@@ -356,9 +359,9 @@ module Make_bitwise (V:With_default) = struct
      Top -> Top
    | Map m ->
        let result =
-	 LBase.fold (fun k v acc -> if f k then LBase.add k v acc else acc)
-	   m
-	   LBase.empty
+         LBase.fold (fun k v acc -> if f k then LBase.add k v acc else acc)
+           m
+           LBase.empty
        in
        Map result
 
@@ -372,9 +375,9 @@ module Make_bitwise (V:With_default) = struct
                 let base = Base.create_varinfo v in
                 let (i1,i2) =
                   match Base.validity base with
-		  | Base.Periodic(i1, _, p) ->
-		      assert (Int.is_zero i1);
-		      i1, Int.pred p
+                  | Base.Periodic(i1, _, p) ->
+                      assert (Int.is_zero i1);
+                      i1, Int.pred p
                   | Base.Unknown (i1,i2) | Base.Known(i1,i2) -> (i1,i2)
                   | Base.All -> assert false
                         (* not supposed to happen for a local*)
@@ -393,7 +396,7 @@ module Make_bitwise (V:With_default) = struct
        Zone.Top _, _ | _, Top -> LOffset.empty
      | Zone.Map _, Map m ->
          let treat_offset varid offs acc =
-	   let default = V.default varid in
+           let default = V.default varid in
            let offsetmap =
              try
                LBase.find varid m
@@ -410,16 +413,16 @@ module Make_bitwise (V:With_default) = struct
      | Zone.Top _, _ | _, Top -> V.top
      | Zone.Map _, Map m ->
          let treat_offset varid offs acc =
-	   let default = V.default varid in
-	   let offsetmap =
-	     try
-	       LBase.find varid m
-	     with Not_found ->
-	       LOffset.empty
-	   in
-	     V.join
-	       (LOffset.find_iset default (V.defaultall varid) offs offsetmap)
-	       acc
+           let default = V.default varid in
+           let offsetmap =
+             try
+               LBase.find varid m
+             with Not_found ->
+               LOffset.empty
+           in
+             V.join
+               (LOffset.find_iset default (V.defaultall varid) offs offsetmap)
+               acc
          in
          Zone.fold_i treat_offset loc V.bottom
 
@@ -429,34 +432,34 @@ module Make_bitwise (V:With_default) = struct
     match loc, m with
      | Zone.Top _, _ | _, Top -> V.top
      | Zone.Map _, Map m ->
-	 let treat_offset varid offs (zone,unchanged) =
-	   let default = V.default varid in
-	   let offsetmap, this_base_unchanged =
-	     try
-	       LBase.find varid m, false
-	     with Not_found ->
-	       LOffset.empty, true
-	   in
-	   let new_zone =
-	     V.join
-	       (LOffset.find_iset default (V.defaultall varid) offs offsetmap)
-	       zone
-	   in
-	   new_zone, (this_base_unchanged && unchanged)
+         let treat_offset varid offs (zone,unchanged) =
+           let default = V.default varid in
+           let offsetmap, this_base_unchanged =
+             try
+               LBase.find varid m, false
+             with Not_found ->
+               LOffset.empty, true
+           in
+           let new_zone =
+             V.join
+               (LOffset.find_iset default (V.defaultall varid) offs offsetmap)
+               zone
+           in
+           new_zone, (this_base_unchanged && unchanged)
          in
          let zone, unchanged = Zone.fold_i treat_offset loc (V.bottom, true) in
-	 if unchanged then raise Zone_unchanged;
-	 zone
+         if unchanged then raise Zone_unchanged;
+         zone
 
   let copy_offsetmap ~f src_loc m =
     let result =
       begin
-	begin
+        begin
           try
             let size = Int_Base.project src_loc.size in
-	    begin
+            begin
               let treat_src k_src i_src (acc : LOffset.t option) =
-		let validity = Base.validity k_src in
+                let validity = Base.validity k_src in
                 try
                   let offsetmap_src = LBase.find_or_default k_src m in
 (*                  Format.printf
@@ -467,25 +470,25 @@ module Make_bitwise (V:With_default) = struct
                   Ival.fold
                     (fun start acc ->
                       let stop = Int.pred (Int.add start size) in
-		      match validity with
-		      | Base.Periodic _ ->
-			  raise Bitwise_cannot_copy
-		      | (Base.Known (b,e) | Base.Unknown (b,e)) when Int.lt start b
-			    || Int.gt stop e ->
-			  acc
-		      | Base.Known _ | Base.All | Base.Unknown _ ->
-			  let default = V.default k_src in
-			  let copy =
-			    LOffset.real_copy ~f:(Some (f, default))
-			      offsetmap_src start stop
-			  in
-			  let r = match acc with
-			  | None -> Some copy
-			  | Some acc -> let r = LOffset.join copy acc in
-					if LOffset.is_empty r then
-					  raise Not_found;
+                      match validity with
+                      | Base.Periodic _ ->
+                          raise Bitwise_cannot_copy
+                      | (Base.Known (b,e) | Base.Unknown (b,e)) when Int.lt start b
+                            || Int.gt stop e ->
+                          acc
+                      | Base.Known _ | Base.All | Base.Unknown _ ->
+                          let default = V.default k_src in
+                          let copy =
+                            LOffset.real_copy ~f:(Some (f, default))
+                              offsetmap_src start stop
+                          in
+                          let r = match acc with
+                          | None -> Some copy
+                          | Some acc -> let r = LOffset.join copy acc in
+                                        if LOffset.is_empty r then
+                                          raise Not_found;
                             Some r
-			  in r)
+                          in r)
                     i_src
                     acc
                 with
@@ -504,15 +507,15 @@ module Make_bitwise (V:With_default) = struct
                 (*CilE.warn_once "reading unknown location(2)@ @[%a@]"
                            Location_Bits.pretty src_loc.loc;*)
                 LOffset.empty
-	    end
-	  with
-	  | Location_Bits.Error_Top (* from Location_Bits.fold *)
-	  | Not_less_than (* from Ival.cardinal_less_than *)
-	  | Int_Base.Error_Top  (* from Int_Base.project *)
-	  | Ival.Error_Top (* from Ival.fold *) ->
-	      LOffset.empty
+            end
+          with
+          | Location_Bits.Error_Top (* from Location_Bits.fold *)
+          | Not_less_than (* from Ival.cardinal_less_than *)
+          | Int_Base.Error_Top  (* from Int_Base.project *)
+          | Ival.Error_Top (* from Ival.fold *) ->
+              LOffset.empty
 
-	end
+        end
       end
     in
 (*    Format.printf "copy_offsetmap: m:%a src:%a result:%a@\n"
@@ -522,58 +525,59 @@ module Make_bitwise (V:With_default) = struct
     result
 
 
-(* TODO: in order for copy_paste to be able to handle a semi-valid [dst_loc],
-   this function needs to have a ~with_alarms argument *)
-  let paste_offsetmap map_to_copy dst_loc start size m =
+  let paste_offsetmap ~with_alarms map_to_copy dst_loc start size m =
     let dst_is_exact =
-      Locations.valid_cardinal_zero_or_one
-	(Locations.make_loc dst_loc (Int_Base.inject size))
+      Locations.valid_cardinal_zero_or_one ~for_writing:true
+        (Locations.make_loc dst_loc (Int_Base.inject size))
     in
     let stop = Int.pred (Int.add start size) in
     let had_non_bottom = ref false in
-    let plevel = Parameters.Dynamic.Int.get "-plevel" in
+    let plevel =                (Kernel.ArrayPrecisionLevel.get()) in
     let treat_dst k_dst i_dst (acc_lmap : LBase.t) =
-      let validity = Base.validity k_dst in
-      let offsetmap_dst = LBase.find_or_default k_dst m in
-      let new_offsetmap =
-        try
-	  ignore
-	    (Ival.cardinal_less_than i_dst plevel);
-	  Ival.fold
-            (fun start_to acc ->
-	      let stop_to = Int.pred (Int.add start_to size) in
-	      match validity with
-	      | Base.Periodic _ ->
-		  raise Bitwise_cannot_copy
-	      | Base.Known (b,e) | Base.Unknown (b,e) when Int.lt start_to b || Int.gt stop_to e ->
-		  CilE.warn_mem_write CilE.warn_all_mode;
-		  acc
-	      | Base.Known _ | Base.All | Base.Unknown _ ->
-		  had_non_bottom := true;
-		  (if dst_is_exact
-		    then LOffset.copy_paste ~f:None
-		    else LOffset.copy_merge)
-		    map_to_copy
-		    start
-		    stop
-		    start_to
-		    acc)
-            i_dst
-            offsetmap_dst
-	with Not_less_than ->
-	  raise Bitwise_cannot_copy
-      in
-      LBase.add k_dst new_offsetmap acc_lmap
+      if Base.is_read_only k_dst
+      then acc_lmap
+      else
+        let validity = Base.validity k_dst in
+        let offsetmap_dst = LBase.find_or_default k_dst m in
+        let new_offsetmap =
+          try
+            ignore
+              (Ival.cardinal_less_than i_dst plevel);
+            Ival.fold
+              (fun start_to acc ->
+                let stop_to = Int.pred (Int.add start_to size) in
+                match validity with
+                | Base.Periodic _ ->
+                    raise Bitwise_cannot_copy
+                | Base.Known (b,e) | Base.Unknown (b,e) 
+		      when Int.lt start_to b || Int.gt stop_to e ->
+                    CilE.warn_mem_write with_alarms;
+                    acc
+                | Base.Known _ | Base.All | Base.Unknown _ ->
+                    had_non_bottom := true;
+                    (if dst_is_exact
+                      then LOffset.copy_paste ~f:None
+                      else LOffset.copy_merge)
+                      map_to_copy
+                      start
+                      stop
+                      start_to
+                      acc)
+              i_dst
+              offsetmap_dst
+          with Not_less_than ->
+            raise Bitwise_cannot_copy
+        in
+        LBase.add k_dst new_offsetmap acc_lmap
     in
     try
       let result = Location_Bits.fold_i treat_dst dst_loc m in
-      if not !had_non_bottom
-      then begin
-          ignore (CilE.warn_once
-                     "all target addresses were invalid. This path is assumed to be dead.");
+      if !had_non_bottom then result
+      else begin
+          Kernel.warning ~once:true ~current:true
+            "all target addresses were invalid. This path is assumed to be dead.";
           assert false
-	end
-      else result
+        end
     with Location_Bits.Error_Top -> (* from Location_Bits.fold_i *)
       raise Bitwise_cannot_copy
 
@@ -589,18 +593,18 @@ module Make_bitwise (V:With_default) = struct
     try
       let size = Int_Base.project src_loc.size in
       let result =
-	copy_offsetmap ~f src_loc mm
+        copy_offsetmap ~f src_loc mm
       in
       paste_offsetmap result dst_loc.loc Int.zero size mm
     with
     | Int_Base.Error_Top  (* from Int_Base.project *) ->
-	raise Bitwise_cannot_copy
+        raise Bitwise_cannot_copy
 
-  let copy_paste ~f src_loc dst_loc mm =
+  let copy_paste ~with_alarms ~f src_loc dst_loc mm =
     let res =
       match mm with
-	Top -> Top
-      | Map mm -> Map (copy_paste_map ~f src_loc dst_loc mm)
+        Top -> Top
+      | Map mm -> Map (copy_paste_map ~with_alarms ~f src_loc dst_loc mm)
     in
 (*    Format.printf "Lmap.copy_paste orig: %a from src:%a to dst:%a result:%a@\n"
       pretty mm

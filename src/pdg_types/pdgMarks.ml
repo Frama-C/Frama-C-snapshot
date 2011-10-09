@@ -83,12 +83,11 @@ module type T_Fct = sig
 
   type t_mark
   type t_call_info
-  type t_idx = (t_mark, t_call_info) PdgIndex.FctIndex.t
-
-  type t = PdgTypes.Pdg.t * t_idx
+  type t_fi = (t_mark, t_call_info) PdgIndex.FctIndex.t
+  type t = PdgTypes.Pdg.t * t_fi
 
   val create : PdgTypes.Pdg.t -> t
-  val get_idx : t -> t_idx
+  val get_idx : t -> t_fi
 
   type t_mark_info_inter = t_mark t_info_inter
 
@@ -113,21 +112,20 @@ end
 module F_Fct (M : T_Mark)
   : T_Fct with type t_mark = M.t
            and type t_call_info = M.t_call_info
-           and type t_idx = (M.t, M.t_call_info) FctIndex.t
 
 = struct
 
   type t_mark = M.t
   type t_call_info = M.t_call_info
-  type t_idx = (t_mark, t_call_info) FctIndex.t
-  type t = Pdg.t * t_idx
+  type t_fi = (t_mark, t_call_info) PdgIndex.FctIndex.t
+  type t = Pdg.t * t_fi
 
   type t_mark_info_inter = t_mark t_info_inter
 
   let empty_to_prop = ([], [])
 
   let create pdg =
-    let idx = (FctIndex.create 100) (* TODO Pdg.get_index_size pdg *)
+    let idx = (PdgIndex.FctIndex.create 17) (* TODO Pdg.get_index_size pdg *)
     in (pdg, idx)
 
   let get_idx (_pdg, idx) = idx
@@ -146,11 +144,11 @@ module F_Fct (M : T_Mark)
         begin (* simple node *)
           let new_mark, mark_to_prop =
             try
-              let old_mark = FctIndex.find_info fm node_key in
+              let old_mark = PdgIndex.FctIndex.find_info fm node_key in
               let new_m, m_prop = M.combine old_mark mark in
               (new_m, m_prop)
-            with PdgIndex.NotFound -> (mark, mark)
-          in FctIndex.add_or_replace fm node_key new_mark;
+            with Not_found -> (mark, mark)
+          in PdgIndex.FctIndex.add_or_replace fm node_key new_mark;
           mark_to_prop
         end
       with PdgIndex.CallStatement -> (* call statement *) assert false
@@ -204,16 +202,16 @@ module F_Fct (M : T_Mark)
             then (c, add_out_key l out_key)::tl
             else (c, l)::(add_out tl call out_key)
     in
-            match key with
-              | Key.SigCallKey (call, Signature.Out out_key) ->
-                  let in_marks, out_marks = to_prop in
-                  let call = Key.call_from_id call in
-                  let new_out_marks = add_out out_marks call out_key in
-                    (in_marks, new_out_marks)
-              | Key.SigKey (Signature.In in_key) ->
-                  let to_prop = add_in_to_to_prop to_prop in_key mark in
-                    to_prop
-              | _ -> (* nothing to do *) to_prop
+      match key with
+        | Key.SigCallKey (call, Signature.Out out_key) ->
+            let in_marks, out_marks = to_prop in
+            let call = Key.call_from_id call in
+            let new_out_marks = add_out out_marks call out_key in
+              (in_marks, new_out_marks)
+        | Key.SigKey (Signature.In in_key) ->
+            let to_prop = add_in_to_to_prop to_prop in_key mark in
+              to_prop
+        | _ -> (* nothing to do *) to_prop
 
 
   (** mark the nodes and their dependencies with the given mark.
@@ -223,9 +221,11 @@ module F_Fct (M : T_Mark)
   * *)
   let rec add_node_mark_rec pdg fm node_marks to_prop =
     let mark_node_and_dpds to_prop (node, z_opt, mark) =
+      Kernel.debug ~level:2
+          "[pdgMark] add mark to node %a" PdgTypes.Node.pretty node;
       let node_key = PdgTypes.Node.elem_key node in
       let node_key = match z_opt with
-	| None -> node_key
+        | None -> node_key
         | Some z ->
             match node_key with
             | Key.SigCallKey (call, Signature.Out (Signature.OutLoc out_z)) ->
@@ -240,7 +240,7 @@ module F_Fct (M : T_Mark)
         to_prop
       end else begin
         Kernel.debug ~level:2
-	  "[pdgMark] mark_and_propagate = to propagate %a@\n"
+          "[pdgMark] mark_and_propagate = to propagate %a@\n"
           M.pretty mark_to_prop;
         let to_prop = add_to_to_prop to_prop node_key mark_to_prop in
         let dpds_info = PdgTypes.Pdg.get_all_direct_dpds pdg node in
@@ -256,13 +256,13 @@ module F_Fct (M : T_Mark)
     let process to_prop (sel, mark) = match sel with
       | SelNode (n, z_opt) ->
           Kernel.debug ~level:2
-	    "[pdgMark] mark_and_propagate start with %a@\n"
+            "[pdgMark] mark_and_propagate start with %a@\n"
             PdgTypes.Node.pretty_with_part (n, z_opt);
           add_node_mark_rec pdg idx [(n, z_opt, mark)] to_prop
       | SelIn loc ->
           let in_key = Key.implicit_in_key loc in
           Kernel.debug ~level:2
-	    "[pdgMark] mark_and_propagate start with %a@\n"
+            "[pdgMark] mark_and_propagate start with %a@\n"
             Key.pretty in_key;
           let mark_to_prop = add_mark pdg idx in_key mark in
           if M.is_bottom mark_to_prop then to_prop
@@ -274,8 +274,11 @@ end
 
 module type T_Proj = sig
   type t
-  type t_fct
+
   type t_mark
+  type t_call_info
+  type t_fct = (t_mark, t_call_info) PdgIndex.FctIndex.t
+
   val empty : t
   val find_marks : t -> Cil_types.varinfo -> t_fct option
   val mark_and_propagate :

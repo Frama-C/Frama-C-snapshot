@@ -102,9 +102,9 @@ let call_out_marks_to_called called_pdg m2m ?(rqs=[]) out_marks =
 
 let translate_out_mark _pdg m2m other_rqs (call, l) =
   let add_list l_out_m called_kf rqs  =
+    let called_pdg = !Db.Pdg.get called_kf in
+    let m2m = m2m (Some call) called_pdg in
     try
-      let called_pdg = !Db.Pdg.get called_kf in
-      let m2m = m2m (Some call) called_pdg in
       let node_marks =
         call_out_marks_to_called called_pdg m2m ~rqs:[] l_out_m
       in (called_pdg, PdgMarks.SelList node_marks)::rqs
@@ -147,14 +147,14 @@ let translate_out_mark _pdg m2m other_rqs (call, l) =
 * version for a source function). *)
 module F_Proj (C : PdgMarks.T_Config) :
   PdgMarks.T_Proj with type t_mark = C.M.t
-		  and type t_fct = (C.M.t, C.M.t_call_info) PdgIndex.FctIndex.t
-			 =
-struct
+                  and type t_call_info = C.M.t_call_info
+= struct
 
   module F = Db.Pdg.F_FctMarks (C.M)
 
   type t_mark = C.M.t
-  type t_fct = (C.M.t, C.M.t_call_info) PdgIndex.FctIndex.t
+  type t_call_info = C.M.t_call_info
+  type t_fct = F.t_fi
   type t_fct_info = F.t
   type t = t_fct_info Varinfo.Hashtbl.t
 

@@ -1,11 +1,13 @@
 /**************************************************************************/
 /*                                                                        */
-/*  This file is part of Frama-C.                                         */
+/*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
 /*  Copyright (C) 2007-2011                                               */
-/*    INSA  (Institut National des Sciences Appliquees)                   */
+/*    CEA (Commissariat a l'énergie atomique et aux énergies              */
+/*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
+/*    INSA  (Institut National des Sciences Appliquees)                   */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
 /*  Lesser General Public License as published by the Free Software       */
@@ -29,11 +31,13 @@ open Parsing
 open Promelaast
 open Bool3
 
-
 let observed_states=Hashtbl.create 1
-let observed_vars=Hashtbl.create 1
-let observed_funcs=Hashtbl.create 1
 
+let to_seq c = 
+  [{ condition = Some c; nested = [];
+    min_rep = Some (PCst (Logic_ptree.IntConstant "1"));
+    max_rep = Some (PCst (Logic_ptree.IntConstant "1"));
+   }]
 
 %}
 
@@ -58,7 +62,7 @@ let observed_funcs=Hashtbl.create 1
 %token EOF
 
 
-%type <(Promelaast.buchautomata * (string, string) Hashtbl.t  * (string, string) Hashtbl.t)> promela
+%type <Promelaast.parsed_automaton> promela
 %start promela
 %%
 
@@ -68,45 +72,32 @@ promela
 	      Hashtbl.fold (fun _ st l -> 
 		if st.acceptation=Undefined or st.init=Undefined then
 		  begin
-		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
-		    exit 1
+                    Aorai_option.abort 
+                      "Error: the state %s is used but never defined" st.name;
 		  end;
 		st::l
 	      ) observed_states []
-	    in 
-	    let n=ref 0 in
-	    let (transitions,_) = Logic_simplification.simplifyTrans $3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
-
-	    ((states , transitions),observed_vars,observed_funcs)
+            in
+            (states , $3)
 	}
-        | PROMELA_NEVER PROMELA_LBRACE states PROMELA_SEMICOLON PROMELA_RBRACE EOF {
-	    let states=
-	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
-		  begin
-		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
-		    exit 1
-		  end;
-		st::l
-	      ) observed_states []
-	    in
-	    let n=ref 0 in
-	    let (transitions,_) = Logic_simplification.simplifyTrans $3 in
-	    List.iter (fun t -> t.numt<-(!n); n:=!n+1) transitions;
-
-
-	    ((states , transitions),observed_vars,observed_funcs) }
+        | PROMELA_NEVER PROMELA_LBRACE states PROMELA_SEMICOLON 
+            PROMELA_RBRACE EOF {
+	      let states=
+	        Hashtbl.fold (fun _ st l -> 
+		  if st.acceptation=Undefined or st.init=Undefined then
+		    begin
+                      Aorai_option.abort 
+                        "Error: the state %s is used but never defined" st.name;
+		    end;
+		  st::l
+	        ) observed_states []
+	      in
+	      (states , $3) }
   ;
-
-
 
 states   
         : states PROMELA_SEMICOLON state { 
 	    $1@$3
-	    (*let (s1,t1)=$1 in
-	    let (s2,t2)=$3 in
-	      (s1@s2,t1@t2)*)
 	  }
 	| state { $1 }
         ;
@@ -121,7 +112,8 @@ state
 		  try 
 		    (Hashtbl.find observed_states s.name).acceptation <- True
 		  with
-		    | Not_found -> assert false (* This state has to be in the hashtable -- by construction *)
+		    | Not_found -> assert false 
+                (* This state has to be in the hashtable -- by construction *)
 		) stl
 	      end;
 	    if trl=[] then
@@ -130,15 +122,11 @@ state
 	      let tr_list=
 		List.fold_left (fun l1 (cr,stop_st)  -> 
 		  List.fold_left (fun l2 st -> 
-		    {start=st;stop=stop_st;cross=cr;numt=(-1)}::l2
+		    {start=st;stop=stop_st;cross=Seq (to_seq cr);numt=(-1)}::l2
 		  ) l1 stl
 		) [] trl 
 	      in
 	        (List.rev tr_list)@trans
-	      
-
-
-
 	}
         ;
 
@@ -163,31 +151,41 @@ label
 		Hashtbl.find observed_states $1
 	      with
 		| Not_found -> 
-		    let s={name=$1;acceptation=Undefined;init=Undefined;nums=(Hashtbl.length observed_states)} in
+		    let s = Data_for_aorai.new_state $1 in
 		    Hashtbl.add observed_states $1 s;
 		    s
 	    in
-    (* Step 1 : setting up the acceptance status *)
+            (* Step 1 : setting up the acceptance status *)
 	    (* Default status : Non acceptation state *)
  	    old.acceptation <- False;
 	    
-	    (* Accept_all state means acceptance state with a reflexive transition without cross condition *)
-	    (* This case is not exlusive with the following. Acceptation status is set in this last. *)
-	    if (String.length $1>=10) && (String.compare (String.sub $1 0 10) "accept_all")=0 then 
-	      trans:={start=old;stop=old;cross=PTrue;numt=(-1)}::!trans;
-	    
-	    (* If the name includes accept then this state is an acceptation one. *)
-	    if (String.length $1>=7) && (String.compare (String.sub $1 0 7) "accept_")=0 then
+	    (* Accept_all state means acceptance state with a 
+               reflexive transition without cross condition *)
+	    (* This case is not exclusive with the following. 
+               Acceptation status is set in this last. *)
+	    if (String.length $1>=10) && 
+              (String.compare (String.sub $1 0 10) "accept_all")=0 
+            then 
+	      trans:=
+                {start=old;stop=old;cross=Seq (to_seq PTrue);numt=(-1)} ::
+                !trans;
+	    (* If the name includes accept then 
+               this state is an acceptation one. *)
+	    if (String.length $1>=7) && 
+              (String.compare (String.sub $1 0 7) "accept_")=0 
+            then
 	      old.acceptation <- True;
 
-    (* Step 2 : setting up the init status *)
-	    (* If the state name ended with "_init" then it is an initial state. Else, it is not. *)
-	    if (String.length $1>=5) && (String.compare (String.sub $1 ((String.length $1)-5) 5) "_init" ) = 0
-	    then  
+            (* Step 2 : setting up the init status *)
+	    (* If the state name ended with "_init" then 
+               it is an initial state. Else, it is not. *)
+	    if (String.length $1>=5) && 
+              (String.compare (String.sub $1 ((String.length $1)-5) 5) 
+                 "_init" ) = 0
+	    then
 	      old.init <- True
 	    else
 	      old.init <- False;
-	    
 	    ([old],!trans)
 	  end
 	}
@@ -214,33 +212,24 @@ transition
 	      Hashtbl.find observed_states $5
 	    with
 		Not_found -> 
-		  let r={name=$5;init=Undefined;acceptation=Undefined;nums=(Hashtbl.length observed_states)}  in
-		    Hashtbl.add observed_states $5 r;
-		    r
+		  let r = Data_for_aorai.new_state $5 in
+		  Hashtbl.add observed_states $5 r;
+		  r
 	  in
-	    ($2,s)
+	  ($2,s)
 	}
         ;
 
 guard
-	: PROMELA_CALLORRETURNOF 
-	    { if not (Hashtbl.mem observed_funcs $1) then Hashtbl.add observed_funcs $1 $1 ; PCallOrReturn $1 } 
-        | PROMELA_CALLOF 
-	    { if not (Hashtbl.mem observed_funcs $1) then Hashtbl.add observed_funcs $1 $1 ; PCall $1 }
-        | PROMELA_RETURNOF 
-	    { if not (Hashtbl.mem observed_funcs $1) then Hashtbl.add observed_funcs $1 $1 ; PReturn $1 }
-	| PROMELA_TRUE
-            { PTrue }
-	| PROMELA_FALSE
-            { PFalse }
-	| PROMELA_NOT guard
-	    { PNot $2 }
-	| guard PROMELA_AND guard
-	    { PAnd ($1,$3) }
-	| guard PROMELA_OR guard
-            { POr ($1,$3) }
-	| PROMELA_LPAREN guard PROMELA_RPAREN
-	    { $2 }
-        | PROMELA_LABEL
-	    { if not (Hashtbl.mem observed_vars $1) then Hashtbl.add observed_vars $1 $1 ; PIndexedExp $1 } 
+	: PROMELA_CALLORRETURNOF { POr(PCall ($1,None), PReturn $1) } 
+        | PROMELA_CALLOF { PCall ($1,None) }
+        | PROMELA_RETURNOF { PReturn $1 }
+	| PROMELA_TRUE { PTrue }
+	| PROMELA_FALSE { PFalse }
+	| PROMELA_NOT guard { PNot $2 }
+	| guard PROMELA_AND guard { PAnd ($1,$3) }
+	| guard PROMELA_OR guard { POr ($1,$3) }
+	| PROMELA_LPAREN guard PROMELA_RPAREN { $2 }
+        | PROMELA_LABEL 
+            { PRel (Logic_ptree.Neq,PVar $1,PCst(Logic_ptree.IntConstant "0")) }
    ;

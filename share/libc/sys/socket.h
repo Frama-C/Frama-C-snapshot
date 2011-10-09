@@ -22,9 +22,10 @@
 
 #ifndef __FC_SOCKET_H__
 #define __FC_SOCKET_H__
+#include "__fc_machdep.h"
 
-typedef uint32_t socklen_t;
-typedef uint16_t sa_family_t;
+typedef __UINT_LEAST32_T socklen_t;
+typedef __UINT_LEAST16_T sa_family_t;
 
 struct sockaddr {
   sa_family_t		sa_family;	/* address family, AF_xxx	*/
@@ -125,7 +126,7 @@ struct msghdr {
 #define SO_USELOOPBACK  0x0040          /* bypass hardware when possible */
 #define SO_LINGER       0x0080          /* linger on close if data present */
 #define SO_OOBINLINE    0x0100          /* leave received OOB data in line */
-#define SO_DONTLINGER   (u_int)(~SO_LINGER)
+#define SO_DONTLINGER   (unsigned int)(~SO_LINGER)
 #define SO_PEERCRED	0x0200		/* same as getpeereid */
 
 

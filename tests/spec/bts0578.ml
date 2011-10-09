@@ -1,10 +1,9 @@
 open Cil_types
-open Db_types
 open Logic_const
 
 let main () =
-  let s, _ = Kernel_function.find_from_sid 2 in
-  let add a = Annotations.add s [] (Before (User (new_code_annotation a))) in
+  let s, kf = Kernel_function.find_from_sid 2 in
+  let add a = Annotations.add kf s [] (User (new_code_annotation a)) in
   add (AInvariant(["foo"], true, ptrue));
   add (AVariant(tinteger 0, None));
   add (AInvariant([], true, ptrue));

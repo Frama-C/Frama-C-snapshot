@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -aorai-ltl tests/aorai/test_boucle2.ltl -aorai-test 1 -aorai-acceptance
+   EXECNOW: make tests/aorai/aorai_test.cmxs
+   OPT: -aorai-ltl tests/aorai/test_boucle2.ltl -aorai-test 1 -aorai-acceptance -load-module tests/aorai/aorai_test.cmxs
 */
 
 int status=0;

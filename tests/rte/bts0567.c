@@ -1,5 +1,5 @@
 /* run.config 
-   OPT: -rte -print -journal-disable
+   OPT: -rte -rte-precond -print -journal-disable
 */
 
 int tab [2] ;

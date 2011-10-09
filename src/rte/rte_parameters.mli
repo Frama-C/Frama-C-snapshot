@@ -22,26 +22,32 @@
 
 include Plugin.S
 
-module Enabled: Plugin.BOOL
+module Enabled: Plugin.Bool
 
-module DoUnsignedOverflow : Plugin.BOOL
+module DoUnsignedOverflow : Plugin.Bool
 
-module DoAll: Plugin.BOOL
+module DoAll: Plugin.Bool
 
-module Print: Plugin.BOOL
+module Print: Plugin.Bool
 
-module DoSignedOverflow : Plugin.BOOL
+module DoSignedOverflow : Plugin.Bool
 
-module DoDownCast : Plugin.BOOL
+module DoDownCast : Plugin.Bool
 
-module DoDivMod : Plugin.BOOL
+module DoDivMod : Plugin.Bool
 
-module DoMemAccess : Plugin.BOOL
+module DoMemAccess : Plugin.Bool
 
-module ConstFold : Plugin.BOOL
+module ConstFold : Plugin.Bool
 
-module Warn : Plugin.BOOL
+module Warn : Plugin.Bool
 
-module DoCalledPrecond : Plugin.BOOL
+module DoCalledPrecond : Plugin.Bool
 
-module FunctionSelection : Plugin.STRING_SET
+module FunctionSelection : Plugin.String_set
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

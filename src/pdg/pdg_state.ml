@@ -28,8 +28,9 @@
     was last defined.
   *)
 
+let dkey = "state"
+
 module P = Pdg_parameters
-module M = Macros
 open PdgTypes
 
 exception Cannot_fold
@@ -51,7 +52,7 @@ let pretty fmt state =
     Locations.Zone.pretty state.under_outputs
 
 let add_loc_node state ~exact loc node =
-  P.debug ~level:2 "[pdg state] add_loc_node (%s) : node %a -> %a@."
+  P.debug ~dkey ~level:2 "add_loc_node (%s) : node %a -> %a@."
       (if exact then "exact" else "merge")
       PdgTypes.Node.pretty node
       Locations.Zone.pretty loc ;
@@ -61,7 +62,7 @@ let add_loc_node state ~exact loc node =
     if exact then Locations.Zone.link state.under_outputs loc
     else state.under_outputs
   in
-  P.debug ~level:2 "add_loc_node -> %a" pretty state;
+  P.debug ~dkey ~level:2 "add_loc_node -> %a" pretty state;
   make new_loc_info new_outputs
 
 (** this one is very similar to [add_loc_node] except that
@@ -81,7 +82,9 @@ let add_init_state_input state loc node =
       make new_loc_info new_outputs
 
 let test_and_merge ~old new_ =
-  if LocInfo.is_included new_.loc_info old.loc_info then (false, old)
+  if LocInfo.is_included new_.loc_info old.loc_info
+  && Locations.Zone.is_included old.under_outputs new_.under_outputs
+  then (false, old)
   else
     let new_loc_info = LocInfo.join old.loc_info new_.loc_info in
     let new_outputs =
@@ -111,15 +114,15 @@ let get_loc_nodes_and_part state loc =
       let z =
         if Locations.Zone.equal loc z
         then Some loc
-	  (* Be carreful not ot put None here, because if we have n_1 : (s1 =
-	     s2) and then n_2 : (s1.b = 3) the state looks like :
-	     s1.a -> n_1; s1.b -> n_2 ; s1.c -> n_1.  And if we
-	     look for s1.a in that state, we get n_1 but this node
-	     represent more that s1.a even if it is so in the
-	     state...  *)
+          (* Be carreful not ot put None here, because if we have n_1 : (s1 =
+             s2) and then n_2 : (s1.b = 3) the state looks like :
+             s1.a -> n_1; s1.b -> n_2 ; s1.c -> n_1.  And if we
+             look for s1.a in that state, we get n_1 but this node
+             represent more that s1.a even if it is so in the
+             state...  *)
         else Some (Locations.Zone.narrow z loc) in
       let add n acc =
-        P.debug ~level:2 "[pdg state] get_loc_nodes ->  %a@."
+        P.debug ~dkey ~level:2 "get_loc_nodes ->  %a@."
           PdgTypes.Node.pretty_with_part (n,z);
         (n,z)::acc
       in
@@ -132,14 +135,14 @@ let get_loc_nodes_and_part state loc =
 
 (** @raise Cannot_fold (see [get_loc_nodes_and_part]) *)
 let get_loc_nodes state loc =
-  P.debug ~level:2 "[pdg state] get_loc_nodes %a@.            in %a@."
+  P.debug ~dkey ~level:2 "get_loc_nodes %a@.            in %a@."
     Locations.Zone.pretty loc pretty state ;
   if Locations.Zone.equal loc Locations.Zone.bottom
   then  [], None (* nothing to do *)
   else
     let nodes = get_loc_nodes_and_part state loc in
     let undef_zone = Locations.Zone.diff loc state.under_outputs in
-    P.debug ~level:2 "[pdg state] get_loc_nodes -> undef = %a@."
+    P.debug ~dkey ~level:2 "get_loc_nodes -> undef = %a@."
       Locations.Zone.pretty undef_zone;
     let undef_zone =
       if (Locations.Zone.equal undef_zone Locations.Zone.bottom) then None

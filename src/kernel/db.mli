@@ -42,7 +42,7 @@
    - {!Stmts_graph}: the statement graph
    - {!Loop}: (natural) loops
    - {!Visitor}: frama-c visitors
-   - {!Parameters}: general parameters of Frama-C (mostly set from the command
+   - {!Kernel}: general parameters of Frama-C (mostly set from the command
    line)
 *)
 
@@ -50,7 +50,6 @@ open Cil_types
 open Cil
 open Cilutil
 open Cil_datatype
-open Db_types
 
 (* ************************************************************************* *)
 (** {2 Registering} *)
@@ -63,13 +62,13 @@ type 'a how_to_journalize =
       (** Journalize the value with the given name and type. *)
   | Journalization_not_required
       (** Journalization of this value is not required
-	  (usually because it has no effect on the Frama-C global state). *)
+          (usually because it has no effect on the Frama-C global state). *)
   | Journalization_must_not_happen of string
       (** Journalization of this value should not happen
-	  (usually because it is a low-level function: this function is always
-	  called from a journalized function).
-	  The string is the function name which is used for displaying suitable
-	  error message. *)
+          (usually because it is a low-level function: this function is always
+          called from a journalized function).
+          The string is the function name which is used for displaying suitable
+          error message. *)
 
 val register: 'a how_to_journalize -> 'a ref -> 'a -> unit
   (** Plugins must register values with this function. *)
@@ -91,12 +90,12 @@ module Main: sig
 
   val extend : (unit -> unit) -> unit
     (** Register a function to be called by the Frama-C main entry point.
-	@plugin development guide *)
+        @plugin development guide *)
 
   val play: (unit -> unit) ref
     (** Run all the Frama-C analyses. This function should be called only by
-	toplevels.
-	@since Beryllium-20090901 *)
+        toplevels.
+        @since Beryllium-20090901 *)
 
   (**/**)
   val apply: unit -> unit
@@ -109,8 +108,8 @@ module Toplevel: sig
 
   val run: ((unit -> unit) -> unit) ref
     (** Run a Frama-C toplevel playing the game given in argument (in
-	particular, applying the argument runs the analyses).
-	@since Beryllium-20090901 *)
+        particular, applying the argument runs the analyses).
+        @since Beryllium-20090901 *)
 
 end
 
@@ -138,55 +137,89 @@ end
     @see <../value/index.html> internal documentation. *)
 module Value : sig
 
-  type state = Relations_type.Model.t
+  type state = Cvalue.Model.t
       (** Internal state of the value analysis. *)
 
-  type t = Cvalue_type.V.t
+  type t = Cvalue.V.t
       (** Internal representation of a value. *)
 
   exception Aborted
 
   val self : State.t
-    (** Internal state of the value analysis from project viewpoints.
-	@plugin development guide *)
+    (** Internal state of the value analysis from projects viewpoint.
+        @plugin development guide *)
 
   val mark_as_computed: unit -> unit
     (** Indicate that the value analysis has been done already. *)
 
   val compute : (unit -> unit) ref
     (** Compute the value analysis using the entry point of the current
-	project. You may set it with {!Globals.set_entry_point}.
-	@raise Globals.No_such_entry_point if the entry point is incorrect
+        project. You may set it with {!Globals.set_entry_point}.
+        @raise Globals.No_such_entry_point if the entry point is incorrect
         @raise Db.Value.Incorrect_number_of_arguments if some arguments are
         specified for the entry point using {!Db.Value.fun_set_args}, and
         an incorrect number of them is given.
-	@plugin development guide *)
+        @plugin development guide *)
 
   val is_computed: unit -> bool
     (** Return [true] iff the value analysis has been done.
-	@plugin development guide *)
+        @plugin development guide *)
 
   module Table:
-    State_builder.Hashtbl with type key = kinstr and type data = state
-    (** Table containing the results of the value analysis. *)
+    State_builder.Hashtbl with type key = stmt and type data = state
+    (** Table containing the results of the value analysis, ie.
+        the state before the evaluation of each reachable statement. *)
+
+  module AfterTable:
+    State_builder.Hashtbl with type key = stmt and type data = state
+    (** Table containing the state of the value analysis after the evaluation
+        of each reachable and evaluable statement. Filled only if
+        [Value_parameters.ResultsAfter] is set. *)
 
   val degeneration_occurred:
     (Cil_types.kinstr -> Cil_types.lval option -> unit) ref
     (** This hook is called by the value analysis in the seldom
         case a total degeneration occurs. *)
 
+  val ignored_recursive_call: kernel_function -> bool
+  (** This functions returns true if the value analysis found and ignored
+      a recursive call to this function during the analysis. *)
+
+  val condition_truth_value: stmt -> bool * bool
+  (** Provided [stmt] is an 'if' construct, [fst (condition_truth_value stmt)]
+      (resp. snd) is true if and only if the condition of the 'if' has been
+      evaluated to true (resp. false) at least once during the analysis. *)
+
   (** {3 Parameterization} *)
 
-  val register_builtin:
-    (string ->
-      (state -> (Cil_types.exp * t * Cvalue_type.V_Offsetmap.t) list ->
-	     (Cvalue_type.V_Offsetmap.t option * state * Locations.Location_Bits.Top_Param.t)) ->
-	unit) ref
-    (** [!record_builtin name f] registers an abstract function [f] to use
-  	everytime a C function named [name] is called in the program *)
+  exception Outside_builtin_possibilities
 
-  val mem_builtin:
-    (string -> bool) ref
+  (** Type for a Value builtin function *)
+  type builtin_sig =
+      (** Memory state at the beginning of the function *)
+      state ->
+      (** Args for the function: the expressions corresponding to the formals
+          of the functions at the call site, the actual value of those formals,
+          and a more precise view of those formals using offsetmaps (for eg.
+          structs)  *)
+      (Cil_types.exp * Cvalue.V.t * Cvalue.V_Offsetmap.t) list ->
+      (** Result of the function *)
+      (Cvalue.V_Offsetmap.t option (** the value returned (ie. what is
+                                            after the 'return' C keyword). *)
+       * state (** the memory state after the function has been executed *)
+       * Locations.Location_Bits.Top_Param.t (** An over-approximation of the
+           zones in which local variables might have been written *))
+
+  val register_builtin: (string -> builtin_sig -> unit) ref
+    (** [!record_builtin name ?override f] registers an abstract function [f]
+        to use everytime a C function named [name] is called in the program.
+        See also option [-val-builtin] *)
+
+  val mem_builtin: (string -> bool) ref
+  val use_spec_instead_of_definition: (kernel_function -> bool) ref
+  (** To be called by derived analyses to determine if they must use
+      the body of the function (if available), or only its spec. Used for
+      value builtins, and option -val-use-spec. *)
 
 
   (** {4 Arguments of the main function} *)
@@ -244,6 +277,7 @@ module Value : sig
 
   val get_initial_state : kernel_function -> state
   val get_state : kinstr -> state
+  val get_stmt_state : stmt -> state
 
   val find : state -> Locations.location ->  t
 
@@ -264,7 +298,7 @@ module Value : sig
 
   val find_lv_plus :
     (with_alarms:CilE.warn_mode ->
-      Relations_type.Model.t -> Cil_types.exp ->
+      Cvalue.Model.t -> Cil_types.exp ->
       (Cil_types.lval * Ival.t) list) ref
   (** returns the list of all decompositions of [expr] into the sum an lvalue
       and an interval. *)
@@ -287,9 +321,14 @@ module Value : sig
   exception Not_a_call
   val call_to_kernel_function : stmt -> Kernel_function.Hptset.t
     (** Return the functions that can be called from this call.
-	@raise Not_a_call if the statement is not a call. *)
+        @raise Not_a_call if the statement is not a call. *)
 
   val valid_behaviors: (kernel_function -> state -> funbehavior list) ref
+
+  val add_formals_to_state: (state -> kernel_function -> exp list -> state) ref
+    (** [add_formals_to_state state kf exps] evaluates [exps] in [state]
+        and binds them to the formal arguments of [kf] in the resulting
+        state *)
 
   (** {3 Reachability} *)
 
@@ -302,13 +341,13 @@ module Value : sig
   exception Void_Function
   val find_return_loc : kernel_function -> Locations.location
     (** Return the location of the returned lvalue of the given function.
-	@raise Void_Function is the function does not return any value. *)
+        @raise Void_Function if the function does not return any value. *)
 
   val is_called: (kernel_function -> bool) ref
 
   val callers: (kernel_function -> (kernel_function*stmt list) list) ref
     (** @return the list of callers with their call sites. Each function is
-	present only once in the list. *)
+        present only once in the list. *)
 
   (** {3 State before a kinstr} *)
 
@@ -320,20 +359,20 @@ module Value : sig
 
   val access_after : (kinstr -> lval -> t) ref
     (** @raise Not_found if the kinstr has no accessible successors.
-        @deprecated since Carbon-20101202+dev  Use
+        @deprecated since Carbon-20110201  Use
           {Record_Value_After_Callbacks} or ask for a better interface if you
         need this functionality *)
 
   val access_location_after : (kinstr -> Locations.location -> t) ref
     (** @raise Not_found if the kinstr has no accessible successors.
-        @deprecated since Carbon-20101202+dev  Use
+        @deprecated since Carbon-20110201  Use
           {Record_Value_After_Callbacks} or ask for a better interface if you
         need this functionality *)
 
   val lval_to_offsetmap_after :
-    (kinstr -> lval -> Cvalue_type.V_Offsetmap.t option) ref
+    (kinstr -> lval -> Cvalue.V_Offsetmap.t option) ref
     (** @raise Not_found if the kinstr has no accessible successors.
-        @deprecated since Carbon-20101202+dev  Use
+        @deprecated since Carbon-20110201  Use
           {Record_Value_After_Callbacks} or ask for a better interface if you
         need this functionality *)
 
@@ -360,11 +399,11 @@ module Value : sig
 
   val lval_to_offsetmap :
     ( kinstr -> lval -> with_alarms:CilE.warn_mode ->
-      Cvalue_type.V_Offsetmap.t option) ref
+      Cvalue.V_Offsetmap.t option) ref
 
   val lval_to_offsetmap_state :
-    (state -> lval -> Cvalue_type.V_Offsetmap.t option) ref
-    (** @since Carbon-20101202+dev *)
+    (state -> lval -> Cvalue.V_Offsetmap.t option) ref
+    (** @since Carbon-20110201 *)
 
   val lval_to_zone :
     (kinstr -> with_alarms:CilE.warn_mode -> lval -> Locations.Zone.t) ref
@@ -378,18 +417,17 @@ module Value : sig
 
   (** {3 Callbacks} *)
 
+  type callstack = (kernel_function * kinstr) list
+
   (** Actions to perform at end of each function analysis. *)
   module Record_Value_Callbacks:
-    Hook.Iter_hook with type param = (kernel_function * kinstr) list
-    * state Kinstr.Hashtbl.t
+    Hook.Iter_hook with type param = callstack * (state Stmt.Hashtbl.t) Lazy.t
 
   module Record_Value_Superposition_Callbacks:
-    Hook.Iter_hook with type param = (kernel_function * kinstr) list
-    * State_set.t Kinstr.Hashtbl.t
+    Hook.Iter_hook with type param = callstack * (State_set.t Stmt.Hashtbl.t) Lazy.t
 
   module Record_Value_After_Callbacks:
-    Hook.Iter_hook with type param = (kernel_function * kinstr) list
-    * state Stmt.Hashtbl.t
+    Hook.Iter_hook with type param = callstack * (state Stmt.Hashtbl.t) Lazy.t
 
   (** Actions to perform at each treatment of a "call" statement.
       @plugin development guide *)
@@ -405,22 +443,32 @@ module Value : sig
   val display : Format.formatter -> kernel_function -> unit
   val display_globals : Format.formatter -> unit -> unit
 
+  (**/**)
   (** {3 Internal use only} *)
 
   val noassert_get_state : kinstr -> state
     (** To be used during the value analysis itself (instead of
-	{!get_state}). *)
+        {!get_state}). *)
+  val noassert_get_stmt_state : stmt -> state
+    (** To be used during the value analysis itself (instead of
+        {!get_stmt_state}). *)
+
+  val recursive_call_occurred: kernel_function -> unit
+
+  val merge_conditions: int Cil_datatype.Stmt.Hashtbl.t -> unit
+  val mask_then: int
+  val mask_else: int
 
   val initial_state_only_globals : (unit -> state) ref
-  val update_table : kinstr -> state -> unit
+  val update_table : stmt -> state -> unit
   val memoize : (kernel_function -> unit) ref
 (*  val compute_call :
     (kernel_function -> call_kinstr:kinstr -> state ->  (exp*t) list
-       -> Cvalue_type.V_Offsetmap.t option (** returned value of [kernel_function] *) * state) ref
+       -> Cvalue.V_Offsetmap.t option (** returned value of [kernel_function] *) * state) ref
 *)
   val merge_initial_state : kernel_function -> state -> unit
     (** Store an additional possible initial state for the given function as
-	well as its values for actuals. *)
+        well as its values for actuals. *)
 end
 
 (** Functional dependencies between function inputs and function outputs.
@@ -434,12 +482,13 @@ module From : sig
 
   val is_computed: (kernel_function -> bool) ref
     (** Check whether the from analysis has been performed for the given
-	function.
-	@return true iff the analysis has been performed *)
+        function.
+        @return true iff the analysis has been performed *)
 
   val get : (kernel_function -> Function_Froms.t) ref
-  val access : (Locations.Zone.t -> from_model -> Locations.Zone.t) ref
-  val find_deps_no_transitivity : (kinstr -> exp -> Locations.Zone.t) ref
+  val access : (Locations.Zone.t -> Lmap_bitwise.From_Model.t
+                -> Locations.Zone.t) ref
+  val find_deps_no_transitivity : (stmt -> exp -> Locations.Zone.t) ref
   val self: State.t ref
     (** @plugin development guide *)
 
@@ -451,14 +500,15 @@ module From : sig
   (** {3 Internal use only} *)
 
   val update :
-    (Locations.location -> Locations.Zone.t -> from_model -> from_model) ref
+    (Locations.location -> Locations.Zone.t -> Lmap_bitwise.From_Model.t
+     -> Lmap_bitwise.From_Model.t) ref
 
  module Record_From_Callbacks:
    Hook.Iter_hook with type param =
    Kernel_function.t Stack.t *
-     Lmap_bitwise.From_Model.t Inthash.t *
+     Lmap_bitwise.From_Model.t Stmt.Hashtbl.t *
      (Kernel_function.t * Lmap_bitwise.From_Model.t) list
-     Kinstr.Hashtbl.t
+     Stmt.Hashtbl.t
 
   module Callwise : sig
     val iter : ((kinstr -> Function_Froms.t -> unit) -> unit) ref
@@ -475,7 +525,7 @@ end
 (** Do not use yet. *)
 module Access_path : sig
   type t = (Locations.Zone.t * Locations.Location_Bits.t) Base.Map.t
-  val compute: (Relations_type.Model.t -> Base.Set.t -> t) ref
+  val compute: (Cvalue.Model.t -> Base.Set.t -> t) ref
   val filter: (t -> Locations.Zone.t -> t) ref
   val pretty: (Format.formatter -> t -> unit) ref
 end
@@ -522,11 +572,11 @@ module Properties : sig
           left values. *)
 
     val identified_term_zone_to_loc:
-      (result: Cil_types.varinfo option -> Value.state -> 
+      (result: Cil_types.varinfo option -> Value.state ->
        Cil_types.identified_term -> Locations.location) ref
       (** @return a Locations.Location
-          @raise Invalid_argument in some cases.  
-          @deprecated Carbon-20101201-beta2+dev 
+          @raise Invalid_argument in some cases.
+          @deprecated Carbon-20110201
           use [loc_to_loc (...) x.it_content] instead
        *)
 
@@ -534,7 +584,7 @@ module Properties : sig
       (result: Cil_types.varinfo option -> Value.state -> term -> Locations.location) ref
       (** @return a Locations.Location
           @raise Invalid_argument in some cases. Complain if you'd like
-	  more cases to be treated. *)
+          more cases to be treated. *)
 
     val loc_to_offset:
       (result: Cil_types.varinfo option -> term -> Cil_types.offset list) ref
@@ -568,24 +618,24 @@ module Properties : sig
 
     module To_zone : sig
       type t_ctx =
-	  {state_opt:bool option;
-	   ki_opt:(stmt * bool) option;
-	   kf:Kernel_function.t}
+          {state_opt:bool option;
+           ki_opt:(stmt * bool) option;
+           kf:Kernel_function.t}
 
       val mk_ctx_func_contrat:
-	(kernel_function -> state_opt:bool option -> t_ctx) ref
+        (kernel_function -> state_opt:bool option -> t_ctx) ref
         (** To build an interpretation context relative to function
-	    contracts. *)
+            contracts. *)
 
       val mk_ctx_stmt_contrat:
-	(kernel_function -> stmt -> state_opt:bool option -> t_ctx) ref
+        (kernel_function -> stmt -> state_opt:bool option -> t_ctx) ref
         (** To build an interpretation context relative to statement
-	    contracts. *)
+            contracts. *)
 
       val mk_ctx_stmt_annot:
-	(kernel_function -> stmt -> before:bool -> t_ctx) ref
+        (kernel_function -> stmt -> t_ctx) ref
         (** To build an interpretation context relative to statement
-	    annotations. *)
+            annotations. *)
 
       type t = {before:bool ; ki:stmt ; zone:Locations.Zone.t}
       type t_zone_info = (t list) option
@@ -594,7 +644,7 @@ module Properties : sig
 
       type t_decl = Varinfo.Set.t
       type t_pragmas =
-	  {ctrl: Stmt.Set.t ; (* related to //@ slice pragma ctrl/expr *)
+          {ctrl: Stmt.Set.t ; (* related to //@ slice pragma ctrl/expr *)
            stmt: Stmt.Set.t}  (* related to statement assign and
       //@ slice pragma stmt *)
 
@@ -615,10 +665,10 @@ module Properties : sig
             [predicates] relative to the [ctx] of interpretation. *)
 
       val from_zones:
-	(identified_term list -> t_ctx -> t_zone_info * t_decl) ref
+        (identified_term list -> t_ctx -> t_zone_info * t_decl) ref
         (** Entry point to get zones needed to evaluate the list of
-            [predicates] relative to the [ctx] of interpretation. 
-            @deprecated Carbon-20101201-beta2+dev 
+            [predicates] relative to the [ctx] of interpretation.
+            @deprecated Carbon-20110201
             use [from_terms (..) x.it_content] instead
          *)
 
@@ -627,73 +677,55 @@ module Properties : sig
             the [ctx] of interpretation. *)
 
       val from_stmt_annot:
-	(code_annotation -> before:bool -> stmt * kernel_function
-	  -> (t_zone_info * t_decl) * t_pragmas) ref
+        (code_annotation -> stmt * kernel_function
+          -> (t_zone_info * t_decl) * t_pragmas) ref
         (** Entry point to get zones needed to evaluate annotations of this
             [stmt].
-            @deprecated Carbon-20101201-beta2+dev
+            @deprecated Carbon-20110201
             use [from_terms (..) x.it_content] instead
          *)
 
       val from_stmt_annots:
-	((rooted_code_annotation before_after -> bool) option ->
-	   stmt * kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
+        ((rooted_code_annotation -> bool) option ->
+           stmt * kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
         (** Entry point to get zones needed to evaluate annotations of this
-	    [stmt]. *)
+            [stmt]. *)
 
       val from_func_annots:
-	(((stmt -> unit) -> kernel_function -> unit) ->
-	   (rooted_code_annotation before_after -> bool) option ->
-	     kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
+        (((stmt -> unit) -> kernel_function -> unit) ->
+           (rooted_code_annotation -> bool) option ->
+             kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
         (** Entry point to get zones
             needed to evaluate annotations of this [kf]. *)
 
       val code_annot_filter:
-	(rooted_code_annotation before_after ->
-	   ai:bool -> user_assert:bool -> slicing_pragma:bool ->
+        (rooted_code_annotation ->
+           ai:bool -> user_assert:bool -> slicing_pragma:bool ->
           loop_inv:bool -> loop_var:bool -> others:bool -> bool) ref
         (** To quickly build an annotation filter *)
 
     end
-      
-    (** Does the interpretation of the predicate rely on the intepretation 
-	of the term result?
-	@since Carbon-20101202+dev *)
+
+    (** Does the interpretation of the predicate rely on the intepretation
+        of the term result?
+        @since Carbon-20110201 *)
     val to_result_from_pred:
       (predicate named -> bool) ref
- 
+
     (** {3 Internal use only} *)
 
     val code_annot :
-      (kernel_function -> stmt -> before:bool -> string -> code_annotation)
+      (kernel_function -> stmt -> string -> code_annotation)
       ref
 
   end
 
-  (** {3 Alarms} *)
-
-  val synchronize_alarms : State.t list -> unit
-    (** Transform current set of alarms into code properties. This has to be
-	called at the end of an alarm generator. By example, this is
-	automatically called at the end of {!Db.Value.compute}.
-	@modify Boron-20100401 takes as additional argument the
-	computation which adds the assert. *)
-
-  val add_alarm :
-    kernel_function -> stmt -> State.t list -> Alarms.alarm
-    -> unit
-    (** Emit an alarm. {!synchronize_alarms} must be called as soon as one
-	need to see the alarms as properties to be checked on the code.
-	@modify Boron-20100401 takes as additional argument the
-	computation which adds the assert. *)
-
   (** {3 Assertions} *)
 
   val add_assert:
-    kernel_function -> stmt -> State.t list -> before:bool ->
-    string -> unit
+    kernel_function -> stmt -> State.t list -> string -> unit
     (** @modify Boron-20100401 takes as additional argument the
-	computation which adds the assert. *)
+        computation which adds the assert. *)
 
 end
 
@@ -707,29 +739,42 @@ module Syntactic_Callgraph: sig
   val dump: (unit -> unit) ref
 end
 
-(** Postdominators plugin.
-    @see <../postdominators/index.html> internal documentation. *)
-module Postdominators: sig
-  val compute: (kernel_function -> unit) ref
+
+
+(** Declarations common to the various postdominators-computing modules *)
+module PostdominatorsTypes: sig
 
   exception Top
-    (** Used for {!stmt_postdominators} when the postdominators of a statement
-	cannot be computed. It means that there is no path from this
-	statement to the function return. *)
+  (** Used for postdominators-related functions, when the
+      postdominators of a statement cannot be computed. It means that
+      there is no path from this statement to the function return. *)
 
-  val stmt_postdominators:
-    (kernel_function -> stmt -> Stmt.Set.t) ref
+  module type Sig = sig
+    val compute: (kernel_function -> unit) ref
+
+    val stmt_postdominators:
+      (kernel_function -> stmt -> Stmt.Hptset.t) ref
     (** @raise Top (see above) *)
 
-  val is_postdominator:
-    (kernel_function -> opening:stmt -> closing:stmt -> bool) ref
+    val is_postdominator:
+      (kernel_function -> opening:stmt -> closing:stmt -> bool) ref
 
-  val display: (unit -> unit) ref
+    val display: (unit -> unit) ref
 
-  val print_dot : (string -> kernel_function -> unit) ref
-    (** Print a representation of the postdominators in a dot file
-    * which name is [basename.function_name.dot]. *)
+    val print_dot : (string -> kernel_function -> unit) ref
+      (** Print a representation of the postdominators in a dot file
+          whose name is [basename.function_name.dot]. *)
+  end
 end
+
+(** Syntaxic postdominators plugin.
+    @see <../postdominators/index.html> internal documentation. *)
+module Postdominators: PostdominatorsTypes.Sig
+
+(** Postdominators using value analysis results.
+    @see <../postdominators/index.html> internal documentation. *)
+module PostdominatorsValue: PostdominatorsTypes.Sig
+
 
 (** Dominators plugin.
     @see <../postdominators/index.html> internal documentation. *)
@@ -737,11 +782,11 @@ module Dominators: sig
   val compute: (kernel_function -> unit) ref
 
   exception Top
-    (** Used for {!stmt_postdominators} when the postdominators of a statement
-	cannot be computed. It means that there is no path from this
-	statement to the function return. *)
+    (** Used for {!stmt_dominators} when the dominators of a statement
+        cannot be computed. It means that there is no path from the
+        entry point to this statement. *)
 
-  val stmt_dominators: (kernel_function -> stmt -> Stmt.Set.t) ref
+  val stmt_dominators: (kernel_function -> stmt -> Stmt.Hptset.t) ref
     (** @raise Top (see above) *)
 
   val is_dominator:
@@ -750,8 +795,8 @@ module Dominators: sig
   val display: (unit -> unit) ref
 
   val print_dot : (string -> kernel_function -> unit) ref
-    (** Print a representation of the postdominators in a dot file
-    * which name is [basename.function_name.dot]. *)
+    (** Print a representation of the dominators in a dot file
+        whose name is [basename.function_name.dot]. *)
 end
 
 (** Runtime Error Annotation Generation plugin.
@@ -764,20 +809,21 @@ module RteGen : sig
   val self: State.t ref
   val do_precond : (kernel_function -> unit) ref
   val do_all_rte : (kernel_function -> unit) ref
-  val get_all_status : 
-    (unit -> (State.t * (kernel_function -> State.t) * (kernel_function -> bool)) list) ref
-  val get_precond_status :
-    (unit -> State.t * (kernel_function -> State.t) * (kernel_function -> bool)) ref
-  val get_signedOv_status :
-    (unit -> State.t * (kernel_function -> State.t) * (kernel_function -> bool)) ref
-  val get_divMod_status :
-    (unit -> State.t * (kernel_function -> State.t) * (kernel_function -> bool)) ref
-  val get_downCast_status :
-    (unit -> State.t * (kernel_function -> State.t) * (kernel_function -> bool)) ref
-  val get_memAccess_status :
-    (unit -> State.t * (kernel_function -> State.t) * (kernel_function -> bool)) ref
-  val get_unsignedOv_status :
-    (unit -> State.t * (kernel_function -> State.t) * (kernel_function -> bool)) ref
+
+  type status_accessor =
+      State.t (* the state itself *)
+      * (kernel_function -> State.t) (* the state of the kf *)
+      * (kernel_function -> bool) (* get the value of the state of the kf *)
+      * (kernel_function -> bool -> unit) 
+  (* set the value of the state of the kf*)
+
+  val get_all_status : (unit -> status_accessor list) ref
+  val get_precond_status : (unit -> status_accessor) ref
+  val get_signedOv_status : (unit -> status_accessor) ref
+  val get_divMod_status : (unit -> status_accessor) ref
+  val get_downCast_status : (unit -> status_accessor) ref
+  val get_memAccess_status : (unit -> status_accessor) ref
+  val get_unsignedOv_status : (unit -> status_accessor) ref
 end
 
 (** Dump Properties-Status consolidation tree. *)
@@ -792,20 +838,15 @@ module Constant_Propagation: sig
   val get : (Datatype.String.Set.t -> cast_intro:bool -> Project.t) ref
     (** Propagate constant into the functions given by name.
         note: the propagation is performed into all functions when the set is
-	empty; and casts can be introduced when [cast_intro] is true. *)
+        empty; and casts can be introduced when [cast_intro] is true. *)
 
   val compute: (unit -> unit) ref
     (** Propage constant into the functions given by the parameters (in the
-	same way that {!get}. Then pretty print the resulting program.
-	@since Beryllium-20090901 *)
+        same way that {!get}. Then pretty print the resulting program.
+        @since Beryllium-20090901 *)
 
 end
 
-module Miel : sig
-  val extract_all : (unit -> unit) ref
-  val run_gui : (unit -> unit) ref
-  val gui_present : bool ref
-end
 
 (** Impact analysis.
     @see <../impact/index.html> internal documentation. *)
@@ -814,7 +855,7 @@ module Impact : sig
     (** Compute the impact analysis from the impact pragma in the program.
         Print and slice the results according to the parameters -impact-print
         and -impact-slice.
-	@plugin development guide *)
+        @plugin development guide *)
   val from_stmt: (stmt -> stmt list) ref
     (** Compute the impact analysis of the given statement.
         @return the impacted statement *)
@@ -845,18 +886,13 @@ module Pdg : sig
 
   exception Bottom
     (** Raised by most function when the PDG is Bottom because we can hardly do
-	nothing with it. It happens when the function is unreachable because we
-	have no information about it. *)
+        nothing with it. It happens when the function is unreachable because we
+        have no information about it. *)
 
   exception Top
     (** Raised by most function when the PDG is Top because we can hardly do
-	nothing with it. It happens when we didn't manage to compute it, for
-	instance for a variadic function. *)
-
-  exception NotFound
-    (** Raised by the [find_xxx] functions when the searched element is not in
-	the PDG. The most common reason is when it is an unreachable
-	statement. *)
+        nothing with it. It happens when we didn't manage to compute it, for
+        instance for a variadic function. *)
 
   type t = PdgTypes.Pdg.t
       (** PDG type *)
@@ -866,13 +902,13 @@ module Pdg : sig
 
   type t_node_key = PdgIndex.Key.t
       (** Those keys are used to identify elements of a function.
-	  See {!module:PdgIndex.Key}
-	  to know more about it and to get functions to build some keys. *)
+          See {!module:PdgIndex.Key}
+          to know more about it and to get functions to build some keys. *)
 
   type t_nodes_and_undef =
       ((t_node * Locations.Zone.t option) list * Locations.Zone.t option)
-	(** type for the return value of many [find_xxx] functions when the
-	    answer can be a list of [(node, z_part)] and an [undef zone].
+        (** type for the return value of many [find_xxx] functions when the
+            answer can be a list of [(node, z_part)] and an [undef zone].
             For each node, [z_part] can specify which part of the node
             is used in terms of zone ([None] means all).
          *)
@@ -892,139 +928,139 @@ module Pdg : sig
 
   val find_decl_var_node : (t -> Cil_types.varinfo -> t_node) ref
     (** Get the node corresponding the declaration of a local variable or a
-	formal parameter.
-	@raise NotFound if the variable is not declared in this function.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        formal parameter.
+        @raise Not_found if the variable is not declared in this function.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_ret_output_node : (t -> t_node) ref
     (** Get the node corresponding return stmt.
-	@raise NotFound if the ouptut state in unreachable
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the ouptut state in unreachable
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_output_nodes :
     (t -> PdgIndex.Signature.t_out_key -> t_nodes_and_undef) ref
     (** Get the nodes corresponding to a call output key in the called pdg.
-    	@raise NotFound if the ouptut state in unreachable
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the ouptut state in unreachable
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_input_node : (t -> int -> t_node) ref
     (** Get the node corresponding to a given input (parameter).
-        @raise NotFound if the number is not an input number.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the number is not an input number.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_all_inputs_nodes : (t -> t_node list) ref
     (** Get the nodes corresponding to all inputs.
-	{!node_key} can be used to know their numbers.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        {!node_key} can be used to know their numbers.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_stmt_node : (t -> Cil_types.stmt -> t_node) ref
     (** Get the node corresponding to the statement.
-	It shouldn't be a call statement.
+        It shouldn't be a call statement.
         See also {!find_simple_stmt_nodes} or {!find_call_stmts}.
-    	@raise NotFound if the given statement is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the given statement is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_simple_stmt_nodes : (t -> Cil_types.stmt -> t_node list) ref
     (** Get the nodes corresponding to the statement.
-	It is usualy composed of only one node (see {!find_stmt_node}),
+        It is usualy composed of only one node (see {!find_stmt_node}),
         except for call statement.
         Be careful that for block statements, it only retuns a node
         corresponding to the elementary stmt
                            (see {!find_stmt_and_blocks_nodes} for more)
-    	@raise NotFound if the given statement is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the given statement is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_stmt_and_blocks_nodes : (t -> Cil_types.stmt -> t_node list) ref
     (** Get the nodes corresponding to the statement like
     * {!find_simple_stmt_nodes} but also add the nodes of the enclosed
     * statements if [stmt] contains blocks.
-    	@raise NotFound if the given statement is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the given statement is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_top_input_node : (t -> t_node) ref
-    (** @raise NotFound if there is no top input in the PDG.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+    (** @raise Not_found if there is no top input in the PDG.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_entry_point_node : (t -> t_node) ref
     (** Find the node that represent the entry point of the function, i.e. the
-	higher level block.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        higher level block.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_location_nodes_at_stmt :
-    (t -> Cil_types.stmt -> before:bool -> Locations.Zone.t ->
-      t_nodes_and_undef) ref
+    (t -> Cil_types.stmt -> before:bool -> Locations.Zone.t
+     -> t_nodes_and_undef) ref
     (** Find the nodes that define the value of the location at the given
-	program point. Also return a zone that might be undefined at that
-	point.
-	@raise NotFound if the given statement is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        program point. Also return a zone that might be undefined at that
+        point.
+        @raise Not_found if the given statement is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_location_nodes_at_end :
     (t -> Locations.Zone.t -> t_nodes_and_undef) ref
     (** Same than {!find_location_nodes_at_stmt} for the program point located
-	at the end of the function.
-	@raise NotFound if the output state is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        at the end of the function.
+        @raise Not_found if the output state is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_location_nodes_at_begin :
     (t -> Locations.Zone.t -> t_nodes_and_undef) ref
     (** Same than {!find_location_nodes_at_stmt} for the program point located
-	at the beginning of the function.
+        at the beginning of the function.
        Notice that it can only find formal argument nodes.
        The remaining zone (implicit input) is returned as undef.
-	@raise NotFound if the output state is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Not_found if the output state is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_call_stmts:
     (kernel_function -> caller:kernel_function -> Cil_types.stmt list) ref
     (** Find the call statements to the function (can maybe be somewhere
-	else).
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        else).
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_call_ctrl_node : (t ->  Cil_types.stmt -> t_node) ref
-    (** @raise NotFound if the call is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+    (** @raise Not_found if the call is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_call_input_node : (t ->  Cil_types.stmt -> int -> t_node) ref
-    (** @raise NotFound if the call is unreachable or has no such input.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+    (** @raise Not_found if the call is unreachable or has no such input.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_call_output_node : (t ->  Cil_types.stmt -> t_node) ref
-    (** @raise NotFound if the call is unreachable or has no output node.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+    (** @raise Not_found if the call is unreachable or has no output node.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_code_annot_nodes :
-    (t -> before:bool -> Cil_types.stmt -> Cil_types.code_annotation ->
+    (t -> Cil_types.stmt -> Cil_types.code_annotation ->
        t_node list * t_node list * (t_nodes_and_undef option)) ref
     (** The result is composed of three parts :
-      * - the first part of the result are the control dependencies nodes
-      *   of the annotation,
-      * - the second part is the list of declaration nodes of the variables
-      *   used in the annotation;
-      * - the third part is similar to [find_location_nodes_at_stmt] result
-      *   but  for all the locations needed by the annotation.
-      *   When the third part  is globally [None],
-      *   it means that we were not able to compute this information.
-    * @raise NotFound if the statement is unreachable.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+       - the first part of the result are the control dependencies nodes
+         of the annotation,
+       - the second part is the list of declaration nodes of the variables
+         used in the annotation;
+       - the third part is similar to [find_location_nodes_at_stmt] result
+         but  for all the locations needed by the annotation.
+         When the third part  is globally [None],
+         it means that we were not able to compute this information.
+        @raise Not_found if the statement is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val find_fun_precond_nodes :
     (t -> Cil_types.predicate -> t_node list * (t_nodes_and_undef option)) ref
@@ -1038,114 +1074,119 @@ module Pdg : sig
     (t -> Cil_types.term -> (t_node list * t_nodes_and_undef option)) ref
     (** Similar to [find_fun_precond_nodes] *)
 
-  (** {3 Propagation} *)
+  (** {3 Propagation} 
+      See also [Pdg.mli] for more function that cannot be here because 
+        they use polymorphic types.
+  **)
 
   val find_call_out_nodes_to_select :
     (t -> t_node list -> t ->  Cil_types.stmt -> t_node list) ref
   (** [find_call_out_nodes_to_select pdg_called called_selected_nodes
-                                     pdg_caller call_stmt]
-    @return the call outputs nodes [out] such that
-            [find_output_nodes pdg_called out_key]
-            intersects [called_selected_nodes].
-  *)
+      pdg_caller call_stmt]
+      @return the call outputs nodes [out] such that
+      [find_output_nodes pdg_called out_key]
+      intersects [called_selected_nodes]. *)
 
   val find_in_nodes_to_select_for_this_call :
     (t -> t_node list -> Cil_types.stmt -> t -> t_node list) ref
     (** [find_in_nodes_to_select_for_this_call
-    *            pdg_caller caller_selected_nodes call_stmt pdg_called]
-    * @return the called input nodes such that the corresponding nodes
-    * in the caller intersect [caller_selected_nodes] *)
+        pdg_caller caller_selected_nodes call_stmt pdg_called]
+        @return the called input nodes such that the corresponding nodes
+        in the caller intersect [caller_selected_nodes]
+        @raise Not_found if the statement is unreachable.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   (** {3 Dependencies} *)
 
   val direct_dpds : (t -> t_node -> t_node list) ref
     (** Get the nodes to which the given node directly depend on.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_ctrl_dpds : (t -> t_node -> t_node list) ref
     (** Similar to {!direct_dpds}, but for control dependencies only.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_data_dpds : (t -> t_node -> t_node list) ref
     (** Similar to {!direct_dpds}, but for data dependencies only.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_addr_dpds : (t -> t_node -> t_node list) ref
     (** Similar to {!direct_dpds}, but for address dependencies only.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val all_dpds : (t -> t_node list -> t_node list) ref
     (** Transitive closure of {!direct_dpds} for all the given nodes.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val all_data_dpds : (t -> t_node list -> t_node list) ref
     (** Gives the data dependencies of the given nodes, and recursively, all
-	the dependencies of those nodes (regardless to their kind).
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        the dependencies of those nodes (regardless to their kind).
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val all_ctrl_dpds : (t -> t_node list -> t_node list) ref
     (** Similar to {!all_data_dpds} for control dependencies.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val all_addr_dpds : (t -> t_node list -> t_node list) ref
     (** Similar to {!all_data_dpds} for address dependencies.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_uses : (t -> t_node -> t_node list) ref
     (** build a list of all the nodes that have direct dependencies on the
-	given node.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        given node.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_ctrl_uses : (t -> t_node -> t_node list) ref
     (** Similar to {!direct_uses}, but for control dependencies only.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_data_uses : (t -> t_node -> t_node list) ref
     (** Similar to {!direct_uses}, but for data dependencies only.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val direct_addr_uses : (t -> t_node -> t_node list) ref
     (** Similar to {!direct_uses}, but for address dependencies only.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val all_uses : (t -> t_node list -> t_node list) ref
     (** build a list of all the nodes that have dependencies (even indirect) on
-	the given nodes.
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        the given nodes.
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val custom_related_nodes :
     ((t_node -> t_node list) -> t_node list -> t_node list) ref
     (** [custom_related_nodes get_dpds node_list] build a list, starting from
-	the node in [node_list], and recursively add the nodes given by the
-	function [get_dpds].  For this function to work well, it is important
-	that [get_dpds n] returns a subset of the nodes directly related to
-	[n], ie a subset of [direct_uses] U [direct_dpds].
-	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        the node in [node_list], and recursively add the nodes given by the
+        function [get_dpds].  For this function to work well, it is important
+        that [get_dpds n] returns a subset of the nodes directly related to
+        [n], ie a subset of [direct_uses] U [direct_dpds].
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   val iter_nodes : ((t_node -> unit) -> t -> unit) ref
     (** apply a given function to all the PDG nodes
- 	@raise Bottom if given PDG is bottom.
-	@raise Top if the given pdg is top. *)
+        @raise Bottom if given PDG is bottom.
+        @raise Top if the given pdg is top. *)
 
   (** {3 Pretty printing} *)
 
   val extract : (t -> string -> unit) ref
     (** Pretty print pdg into a dot file.
-	@see <../pdg/index.html> PDG internal documentation. *)
+        @see <../pdg/index.html> PDG internal documentation. *)
 
   val pretty_node : (bool -> Format.formatter -> t_node -> unit) ref
     (** Pretty print information on a node :
@@ -1167,7 +1208,7 @@ module Pdg : sig
       Alternatively, one can use [F_ProjMarks] below. *)
   module F_FctMarks (M:PdgMarks.T_Mark)
     : PdgMarks.T_Fct with type t_mark = M.t
-		      and type t_call_info = M.t_call_info
+                      and type t_call_info = M.t_call_info
 
   (* [F_ProjMarks] handle the full interprocedural propagation
       (cf. [Pdg.Register.F_Proj]) *)
@@ -1185,7 +1226,7 @@ module Scope : sig
   val get_data_scope_at_stmt :
     (kernel_function -> stmt -> lval ->
        Stmt.Set.t *
-	 (Stmt.Set.t * Stmt.Set.t)) ref
+         (Stmt.Set.t * Stmt.Set.t)) ref
     (**
     * @raise Kernel_function.No_Definition if [kf] has no definition.
     * @return 3 statement sets related to the value of [lval] before [stmt] :
@@ -1220,10 +1261,9 @@ module Scope : sig
 
   (** {3 Zones} *)
 
-  type t_zones = Locations.Zone.t Inthash.t
+  type t_zones = Locations.Zone.t Stmt.Hashtbl.t
   val build_zones :
-      (kernel_function -> stmt -> lval -> Stmt.Set.t * t_zones)
-ref
+    (kernel_function -> stmt -> lval -> Stmt.Set.t * t_zones) ref
   val pretty_zones : (Format.formatter -> t_zones -> unit) ref
   val get_zones : (t_zones ->  Cil_types.stmt -> Locations.Zone.t) ref
 
@@ -1243,7 +1283,7 @@ module Sparecode : sig
       * (the current one if no project given).
       * The source project is not modified.
       * The result is in the returned new project.
-      * optional argument [new_proj_name] added @since Carbon-20101202+dev 
+      * optional argument [new_proj_name] added @since Carbon-20110201
       * *)
 end
 
@@ -1253,9 +1293,9 @@ module Occurrence: sig
   type t = (kinstr * lval) list
   val get: (varinfo -> t) ref
     (** Return the occurrences of the given varinfo.
-	An occurrence [ki, lv] is a left-value [lv] which uses the location of
-	[vi] at the position [ki].
-	@plugin development guide *)
+        An occurrence [ki, lv] is a left-value [lv] which uses the location of
+        [vi] at the position [ki].
+        @plugin development guide *)
   val get_last_result: (unit -> (t * varinfo) option) ref
     (** @return the last result computed by occurrence *)
   val print_all: (unit -> unit) ref
@@ -1311,7 +1351,7 @@ module Slicing : sig
 
     val is_called : (t -> kernel_function -> bool) ref
       (** Return [true] iff the source function is called (even indirectly via
-	  transitivity) from a [Slice.t]. *)
+          transitivity) from a [Slice.t]. *)
 
     val has_persistent_selection : (t -> kernel_function -> bool) ref
       (** return [true] iff the source function has persistent selection *)
@@ -1359,7 +1399,7 @@ module Slicing : sig
 
     val is_directly_called_internal : (t -> kernel_function -> bool) ref
       (** Return [true] if the source function is directly (even via pointer
-	  function) called from a [Slice.t]. *)
+          function) called from a [Slice.t]. *)
 
   end
 
@@ -1380,27 +1420,27 @@ module Slicing : sig
 
     val compare : (t -> t -> int) ref
       (** A total ordering function similar to the generic structural
-	  comparison function [compare].
+          comparison function [compare].
           Can be used to build a map from [t] marks to, for exemple, colors for
-	  the GUI. *)
+          the GUI. *)
 
     val is_bottom : (t -> bool) ref
       (** [true] iff the mark is empty: it is the only case where the
-	  associated element is invisible. *)
+          associated element is invisible. *)
 
     val is_spare : (t -> bool) ref
       (** Smallest visible mark. Usually used to mark element that need to be
-	  visible for compilation purpose, not really for the selected
-	  computations. *)
+          visible for compilation purpose, not really for the selected
+          computations. *)
 
     val is_data : (t -> bool) ref
       (** The element is used to compute selected data.
-	  Notice that a mark can be [is_data] and/or [is_ctrl] and/or [is_addr]
-	  at the same time. *)
+          Notice that a mark can be [is_data] and/or [is_ctrl] and/or [is_addr]
+          at the same time. *)
 
     val is_ctrl : (t -> bool) ref
       (** The element is used to control the program point of a selected
-	  data. *)
+          data. *)
 
     val is_addr : (t -> bool) ref
       (** The element is used to compute the address of a selected data. *)
@@ -1422,7 +1462,7 @@ module Slicing : sig
     val dyn_t : t Type.t
         (** For dynamic type checking and journalization. *)
 
-    type t_set = SlicingTypes.Fct_user_crit.t SlicingTypes.Sl_selects.t
+    type t_set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
         (** Set of colored selections. *)
     val dyn_t_set : t_set Type.t
         (** For dynamic type checking and journalization. *)
@@ -1470,30 +1510,31 @@ module Slicing : sig
 
     val select_stmt_zone :
       (t_set -> Mark.t -> Locations.Zone.t -> before:bool -> stmt ->
-	kernel_function -> t_set) ref
+       kernel_function -> t_set) ref
       (** To select a zone value related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_term :
-      (t_set -> Mark.t -> term -> before:bool -> stmt ->
-	kernel_function -> t_set) ref
+      (t_set -> Mark.t -> term -> stmt ->
+        kernel_function -> t_set) ref
       (** To select a predicate value related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_pred :
-      (t_set -> Mark.t -> predicate named -> before:bool -> stmt ->
-	kernel_function -> t_set) ref
+      (t_set -> Mark.t -> predicate named -> stmt ->
+        kernel_function -> t_set) ref
       (** To select a predicate value related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_annot :
-      (t_set -> Mark.t -> spare:bool -> code_annotation -> before:bool -> stmt -> kernel_function -> t_set) ref
+      (t_set -> Mark.t -> spare:bool -> code_annotation ->  stmt ->
+       kernel_function -> t_set) ref
       (** To select the annotations related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_annots :
       (t_set -> Mark.t -> spare:bool -> ai:bool -> user_assert:bool ->
-	slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
+        slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
         stmt -> kernel_function -> t_set) ref
       (** To select the annotations related to a statement.
           Note: add also a transparent selection on the whole statement. *)
@@ -1534,11 +1575,11 @@ module Slicing : sig
     val select_func_calls_into :
       (t_set -> spare:bool -> kernel_function -> t_set) ref
       (** To select every calls to the given function without the selection of
-	  its inputs/outputs. *)
+          its inputs/outputs. *)
 
     val select_func_annots :
       (t_set -> Mark.t -> spare:bool -> ai:bool -> user_assert:bool ->
-	slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
+        slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
         kernel_function -> t_set) ref
       (** To select the annotations related to a function. *)
 
@@ -1578,8 +1619,8 @@ module Slicing : sig
     val select_min_call_internal :
       (kernel_function -> ?select:t -> stmt -> Mark.t -> t) ref
       (** Internally used to select a statement call without its
-	  inputs/outputs so that it doesn't select the statements computing the
-	  inputs of the called function as [select_stmt_internal] would do.
+          inputs/outputs so that it doesn't select the statements computing the
+          inputs of the called function as [select_stmt_internal] would do.
           Raise [Invalid_argument] when the [stmt] isn't a call.
           @raise SlicingTypes.NoPdg if ?
       *)
@@ -1659,7 +1700,7 @@ module Slicing : sig
 
     val create : (Project.t -> kernel_function -> t) ref
       (** Used to get an empty slice (nothing selected) related to a
-	  function. *)
+          function. *)
 
     val remove : (Project.t -> t -> unit) ref
       (** Remove the slice from the project. The slice shouldn't be called. *)
@@ -1683,7 +1724,7 @@ module Slicing : sig
           Returns None when the statement mark is bottom,
           or else the statement isn't a call
           or else the statement is a call to one or several (via pointer)
-	  source functions. *)
+          source functions. *)
 
     val get_called_funcs : (t -> stmt -> kernel_function list) ref
       (** To get the source functions called by the statement of a slice.
@@ -1733,7 +1774,7 @@ module Slicing : sig
 
     val add_persistent_selection: (Project.t -> Select.t_set -> unit) ref
       (** Add a persistent selection request to all slices (already existing or
-	  created later) of a function to the project requests. *)
+          created later) of a function to the project requests. *)
 
     val add_persistent_cmdline : (Project.t -> unit) ref
       (** Add persistent selection from the command line. *)
@@ -1767,8 +1808,8 @@ module Slicing : sig
     val add_call_min_fun:
       (Project.t -> caller:Slice.t -> to_call:kernel_function -> unit) ref
       (** For each call to [to_call] in [caller] such so that, at least, it
-	  will be visible at the end, ie. call either the source function or
-	  one of [to_call] slice (depending on the [slicing_level]). *)
+          will be visible at the end, ie. call either the source function or
+          one of [to_call] slice (depending on the [slicing_level]). *)
 
     (** {3 Internal use only} *)
 
@@ -1777,19 +1818,19 @@ module Slicing : sig
 
     val apply_next_internal: (Project.t -> unit) ref
       (** Internaly used to apply the first slicing request of the project list
-	  and remove it from the list.
+          and remove it from the list.
           That may modify the contents of the remaing list.
           For exemple, new requests may be added to the list. *)
 
     val merge_slices:
       (Project.t -> Slice.t  -> Slice.t -> replace:bool -> Slice.t) ref
         (** Build a new slice which marks is a merge of the two given slices.
-	    [choose_call] requests are added to the project in order to choose
-	    the called functions for this new slice.
+            [choose_call] requests are added to the project in order to choose
+            the called functions for this new slice.
             If [replace] is true, more requests are added to call this new
-	    slice instead of the two original slices. When these requests will
-	    be applied, the user will be able to remove those two slices using
-	    [Db.Slicing.Slice.remove]. *)
+            slice instead of the two original slices. When these requests will
+            be applied, the user will be able to remove those two slices using
+            [Db.Slicing.Slice.remove]. *)
 
     val copy_slice:
       (Project.t -> Slice.t  -> Slice.t) ref
@@ -1805,7 +1846,7 @@ module Slicing : sig
 
     val propagate_user_marks : (Project.t -> unit) ref
       (** Apply pending request then propagate user marks to callers
-	  recursively then apply pending requests *)
+          recursively then apply pending requests *)
 
     val pretty : (Format.formatter -> Project.t -> unit) ref
       (** For debugging... Pretty print the resquest list. *)
@@ -1816,9 +1857,9 @@ end
 
 (* TODO: move this sub-computation shared by from and inout to somewhere *)
 val accept_base :
-  with_formals:bool -> Db_types.kernel_function -> Base.t -> bool
+  with_formals:bool -> with_locals:bool -> kernel_function -> Base.t -> bool
 val accept_base_internal :
-  Db_types.kernel_function -> Base.t -> bool
+  kernel_function -> Base.t -> bool
 
 
 (** Signature common to inputs and outputs computations. *)
@@ -1881,30 +1922,27 @@ end
     State_builder.of sure outputs
     - under-approximation of zones written by each function.
     @see <../inout/Context.html> internal documentation. *)
-module InOutContext : INOUT with type t = Inout_type.t
+module Operational_inputs : INOUT with type t = Inout_type.t
 
 (** Metrics.
     @see <../metrics/Metrics.html> internal documentation. *)
 module Metrics : sig
   type t =
       { sloc: int;
-	call_statements: int;
-	goto_statements: int;
-	assign_statements: int;
-	if_statements: int;
-	loop_statements: int;
-	mem_access: int;
-	functions_without_source: int Varinfo.Hashtbl.t;
-	functions_with_source: int Varinfo.Hashtbl.t;
-	(* ABP added 2 fields below*)
-	function_definitions: int ;
-	cyclos:int;
+        call_statements: int;
+        goto_statements: int;
+        assign_statements: int;
+        if_statements: int;
+        loop_statements: int;
+        mem_access: int;
+        functions_without_source: int Varinfo.Map.t;
+        functions_with_source: int Varinfo.Map.t;
+        (* ABP added 2 fields below*)
+        function_definitions: int ;
+        cyclos:int;
       }
-  val compute: (unit -> unit) ref
-  val pretty: (Format.formatter -> unit) ref
-  val dump: (unit -> unit) ref
-  val last_result: (unit -> t) ref
-    (** @raise Not_found if there is no last result *)
+  val compute: (unit -> t) ref
+  val pretty: (Format.formatter -> t -> unit) ref
 end
 
 (**/**)

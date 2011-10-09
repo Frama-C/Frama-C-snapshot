@@ -23,5 +23,5 @@
 
 #ifndef __FRAMA_C_DEFINE_SUSECONDS_T
 #define __FRAMA_C_DEFINE_SUSECONDS_T
-typedef unsigned int suseconds_t;
+typedef signed int suseconds_t;
 #endif

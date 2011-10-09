@@ -34,14 +34,14 @@ include Datatype.Make
   let structural_descr =
     Structural_descr.t_record
       [| Locations.Zone.packed_descr;
-	 Locations.Zone.packed_descr;
-	 Locations.Zone.packed_descr |]
+         Locations.Zone.packed_descr;
+         Locations.Zone.packed_descr |]
   let reprs =
     List.map
       (fun z ->
-	{ over_inputs_if_termination = z;
-	  under_outputs_if_termination = z;
-	  over_inputs = z })
+        { over_inputs_if_termination = z;
+          under_outputs_if_termination = z;
+          over_inputs = z })
       Locations.Zone.reprs
   let name = "Inout_type"
   let hash

@@ -56,7 +56,7 @@ module S = (*Stats*) struct
   let time _ f c = f c
 end (*Stats*)
 
-let debug = ref (Cilmsg.debug_atleast 2)
+let debug = ref (Kernel.debug_atleast 2)
 let doTime = ref false
 
 
@@ -114,7 +114,7 @@ let lvh_pretty fmt lvh =
 (* the result must be the intersection of eh1 and eh2 *)
 (* exp IH.t -> exp IH.t -> exp IH.t *)
 let lvh_combine lvh1 lvh2 =
-  if !debug then Cilmsg.debug ~level:2 "lvh_combine: combining %a\n and\n %a"
+  if !debug then Kernel.debug ~level:2 "lvh_combine: combining %a\n and\n %a"
     lvh_pretty lvh1 lvh_pretty lvh2;
   let lvh' = LvExpHash.copy lvh1 in (* eh' gets all of eh1 *)
   LvExpHash.iter (fun lv e1 ->
@@ -127,7 +127,7 @@ let lvh_combine lvh1 lvh2 =
     List.iter (fun e -> LvExpHash.add lvh' lv e) e1l'
     with Not_found ->
       LvExpHash.remove lvh' lv) lvh1;
-  if !debug then Cilmsg.debug "with result %a" lvh_pretty lvh';
+  if !debug then Kernel.debug "with result %a" lvh_pretty lvh';
   lvh'
 
 
@@ -297,7 +297,7 @@ let lvh_handle_inst i lvh =
       end
       | _ -> begin (* e is volatile *)
 	  (* must remove mapping for lv *)
-	  if !debug then Cilmsg.debug "lvh_handle_inst: %a is volatile. killing %a"
+	  if !debug then Kernel.debug "lvh_handle_inst: %a is volatile. killing %a"
             d_exp e d_lval lv;
 	  LvExpHash.remove lvh lv;
 	  lvh_kill_lval lvh lv;
@@ -339,7 +339,7 @@ module AvailableExps =
     type t = exp LvExpHash.t
 
     module StmtStartData =
-      DF.StmtStartData(struct type t = exp LvExpHash.t let size = 64 end)
+      Dataflow.StartData(struct type t = exp LvExpHash.t let size = 64 end)
 
     let copy = LvExpHash.copy
 
@@ -367,7 +367,7 @@ module AvailableExps =
 
   end
 
-module AE = DF.ForwardsDataFlow(AvailableExps)
+module AE = Dataflow.Forwards(AvailableExps)
 
 
 (*
@@ -380,10 +380,10 @@ let computeAEs fd =
   let first_stm = List.hd slst in
   (*time "make_var_hash" make_var_hash fd;*)
   AvailableExps.StmtStartData.clear ();
-  AvailableExps.StmtStartData.add first_stm.sid (LvExpHash.create 4);
+  AvailableExps.StmtStartData.add first_stm (LvExpHash.create 4);
   time "compute" AE.compute [first_stm]
-  with Failure "hd" -> if !debug then Cilmsg.debug "fn w/ no stmts?"
-  | Not_found -> if !debug then Cilmsg.debug "no data for first_stm?"
+  with Failure "hd" -> if !debug then Kernel.debug "fn w/ no stmts?"
+  | Not_found -> if !debug then Kernel.debug "no data for first_stm?"
 
 
 (* get the AE data for a statement *)
@@ -393,7 +393,7 @@ let getAEs sid =
 
 (* get the AE data for an instruction list *)
 let instrAEs il _sid lvh _out =
-  if !debug then Cilmsg.debug "instrAEs" ;
+  if !debug then Kernel.debug "instrAEs" ;
   let proc_one hil i =
     match hil with
       [] -> let lvh' = LvExpHash.copy lvh in
@@ -408,49 +408,46 @@ let instrAEs il _sid lvh _out =
   let foldednotout = List.rev (List.tl folded) in
   foldednotout
 
-class aeVisitorClass = object
+class aeVisitorClass = object (self)
   inherit nopCilVisitor
-
-  val mutable sid = -1
 
   val mutable ae_dat_lst = []
 
   val mutable cur_ae_dat = None
 
   method vstmt stm =
-    sid <- stm.sid;
-    match getAEs sid with
-      None ->
-	if !debug then Cilmsg.debug "aeVis: stm %d has no data" sid ;
+    match getAEs stm with
+    | None ->
+	if !debug then Kernel.debug "aeVis: stm %d has no data" stm.sid ;
 	cur_ae_dat <- None;
 	DoChildren
     | Some eh ->
 	match stm.skind with
 	  Instr il ->
-	    if !debug then Cilmsg.debug "aeVist: visit il" ;
+	    if !debug then Kernel.debug "aeVist: visit il" ;
 	    ae_dat_lst <- time "instrAEs" (instrAEs [il] stm.sid eh) false;
 	    DoChildren
 	| _ ->
-	    if !debug then Cilmsg.debug "aeVisit: visit non-il" ;
+	    if !debug then Kernel.debug "aeVisit: visit non-il" ;
 	    cur_ae_dat <- None;
 	    DoChildren
 
   method vinst i =
-    if !debug then Cilmsg.debug "aeVist: before %a, ae_dat_lst is %d long"
+    if !debug then Kernel.debug "aeVist: before %a, ae_dat_lst is %d long"
       d_instr i (List.length ae_dat_lst);
     try
       let data = List.hd ae_dat_lst in
       cur_ae_dat <- Some(data);
       ae_dat_lst <- List.tl ae_dat_lst;
-      if !debug then Cilmsg.debug "aeVisit: data is %a" lvh_pretty data;
+      if !debug then Kernel.debug "aeVisit: data is %a" lvh_pretty data;
       DoChildren
     with Failure "hd" ->
-      if !debug then Cilmsg.debug "aeVis: il ae_dat_lst mismatch";
+      if !debug then Kernel.debug "aeVis: il ae_dat_lst mismatch";
       DoChildren
 
   method get_cur_eh () =
     match cur_ae_dat with
-      None -> getAEs sid
+    | None -> getAEs (Extlib.the self#current_stmt)
     | Some eh -> Some eh
 
 end

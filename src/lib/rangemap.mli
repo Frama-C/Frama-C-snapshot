@@ -169,7 +169,7 @@ module type S = sig
         for each [k] present in either [m1] and [m2], [v_i] being
         [Some (find k m_i)] if [k] is in [m_i], and [None] otherwise
         (for [i=1] or [i=2]) *)
-      
+
   val exists2: (key -> value option -> value option -> bool) -> t -> t -> bool
     (** [exists2 f m1 m2] returns true if and only there exists
         [k] present in [m1] or [m2] such that [f k v1 v2] holds,
@@ -201,7 +201,7 @@ module Make (Ord : Datatype.S) (Value : Datatype.S): sig
 
 
   val fold_range: (key -> fuzzy_order) ->
-    (key -> Value.t -> Value.t -> Value.t) -> t -> Value.t -> Value.t
+    (key -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
 
   val height: t -> int
 

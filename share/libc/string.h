@@ -25,9 +25,9 @@
 #ifndef __FC_STRING_H_
 #define __FC_STRING_H_
 
-#include <__fc_string_axiomatic.h>
-#include <stddef.h>
-#include <limits.h>
+#include "__fc_string_axiomatic.h"
+#include "stddef.h"
+#include "limits.h"
 #include "__fc_define_restrict.h"
 
 // Query memory

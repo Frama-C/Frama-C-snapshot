@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2009-2010 INRIA                                         *)
+(*  Copyright (C) 2009-2011 INRIA                                         *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -244,8 +244,10 @@ let value_raw =
   else value_raw_other
 ;;
 
-(* Note: this is buggy if we're unlucky with the GC.
-   To do it correctly, we need a primitive to add an offset to a value. *)
+(* Note: this function is 100% safe only when manipulating a pointer
+   outside the heap. Otherwise, we may be unlucky with the GC.
+   To do it correctly, we need a primitive to add an offset to a value.
+   (3.12.0 minimum) *)
 let obj_add_offset v ofs =
   value_raw (Int64.add (raw_value v) (Int64.of_int32 ofs))
 ;;
@@ -260,7 +262,11 @@ let (code_area_start, cksum) =
   let ofs = Int32.logor (Int32.shift_left (Int32.of_int c3) 24)
                         (Int32.of_int ((c2 lsl 16) lor (c1 lsl 8) lor c0))
   in
-  let start = obj_add_offset (Obj.field (Obj.repr id) 0) (Int32.neg ofs) in
+  let start = 
+    (* This call to obj_add_offset is safe because the pointer is outside
+       the heap *)
+    obj_add_offset (Obj.field (Obj.repr id) 0) (Int32.neg ofs) 
+  in
   (start, cksum)
 ;;
 
@@ -455,10 +461,16 @@ let input_val ch t =
       | 0x10 (* CODE_CODEPOINTER *) ->
           let ofs = getword ch in
           check_const ch cksum "input_value: code mismatch";
-          return stk (do_transform t (obj_add_offset code_area_start ofs))
+	  let offset_pointer = 
+	    (* This call to obj_add_offset is safe because the pointer 
+	       is outside the heap *)
+	    obj_add_offset code_area_start ofs
+	  in
+          return stk (do_transform t offset_pointer)
       | 0x11 (* CODE_INFIXPOINTER *) ->
           let ofs = getword ch in
           let clos = intern_rec [] t in
+	    (* This call to obj_add_offset is unsafe *)
           return stk (obj_add_offset clos ofs)
 
       | 0x12 (* CODE_CUSTOM *) ->

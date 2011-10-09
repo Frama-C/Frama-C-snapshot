@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -slice-return main -slice-print -calldeps -journal-disable
-   OPT: -main main2 -slice-return main2 -slice-print -calldeps -journal-disable
-   OPT: -main main3 -slice-return main3 -slice-print -journal-disable
-   OPT: -main main3 -slice-return main3 -slice-print -calldeps -journal-disable
+   OPT: -check -slice-return main -calldeps -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main main2 -slice-return main2 -calldeps -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main main3 -slice-return main3 -journal-disable -then-on 'Slicing export' -print
+   OPT: -check -main main3 -slice-return main3 -calldeps -journal-disable -then-on 'Slicing export' -print
 */
 //--------------------------------------
 // something to do to have better results...

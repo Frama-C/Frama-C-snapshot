@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -slice-pragma x  -journal-disable
+   OPT: -check -slice-pragma x  -journal-disable
  **/
 int x(int y, int z)
 {

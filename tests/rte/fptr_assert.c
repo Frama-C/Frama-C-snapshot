@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-print -journal-disable
+   OPT: -rte -rte-precond -rte-print -journal-disable
 */
 
 typedef int (*fptr)(int);

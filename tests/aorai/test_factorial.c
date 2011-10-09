@@ -1,5 +1,6 @@
 /* run.config
-   OPT: -aorai-ltl tests/aorai/test_factorial.ltl -aorai-test 1
+   EXECNOW: make tests/aorai/aorai_test.cmxs
+   OPT: -aorai-ltl tests/aorai/test_factorial.ltl -aorai-test 1 -load-module tests/aorai/aorai_test.cmxs
 */
 
 

@@ -31,28 +31,40 @@ include Plugin.Register
 module SemanticConstFolding =
   False
       (struct
-         let option_name = "-semantic-const-folding"
-	 let help = "pretty print a version of the source code where each constant expression is replaced by its value"
+         let option_name = "-scf"
+         let help = "pretty print a version of the source code where each constant expression is replaced by its value"
        let kind = `Tuning
        end)
+let () = SemanticConstFolding.add_aliases ["-semantic-const-folding"]
 
 module SemanticConstFold =
   StringSet
     (struct
-       let option_name = "-semantic-const-fold"
+       let option_name = "-scf-fct"
        let arg_name = "f1, ..., fn"
        let help = "propagate constants only into functions f1,...,fn"
        let kind = `Tuning
        end)
+let () = SemanticConstFold.add_aliases ["-semantic-const-fold"]
 
 module CastIntro =
     False
       (struct
-	let option_name = "-cast-from-constant"
-	let help = "replace expressions by constants even when doing so \
+        let option_name = "-scf-allow-cast"
+        let help = "replace expressions by constants even when doing so \
 requires a pointer cast"
         let kind = `Tuning
        end)
+let () = CastIntro.add_aliases ["-cast-from-constant"]
+
+module ExpandLogicContext =
+  False
+      (struct
+        let option_name = "-scf-logic"
+        let help = "replace values from logical context and create corresponding variables (HIGHLY EXPERIMENTAL)"
+        let kind = `Tuning
+       end)
+let () = ExpandLogicContext.add_aliases ["-semantic-const-fold-logic"]
 
 (*
 Local Variables:

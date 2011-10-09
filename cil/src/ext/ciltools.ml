@@ -43,10 +43,10 @@ open Cil_types
 open Cil
 
 (* Contributed by Nathan Cooprider *)
-
+(*
 let isOne e = 
   isInteger e = Some Int64.one
-
+*)
 
 (* written by Zach *)
 let is_volatile_tp tp =
@@ -88,23 +88,6 @@ let unbox_int_type (ye : typ) : (int * sign) =
     | _ -> raise Not_an_integer
   in
   (bitsSizeOf tp), s
-  
-(* depricated. Use isInteger directly instead *)
-let unbox_int_exp (e : exp) : int64 = 
-  match isInteger e with 
-    None -> raise Not_an_integer
-  | Some (x) -> x
-  
-let box_int_to_exp (n : int64) (ye : typ) : exp =
-  let tp = unrollType ye in
-  match tp with 
-    TInt (i, _) -> 
-      kinteger64 ~loc:Cil_datatype.Location.unknown i n 
-  | _ -> raise Not_an_integer
-
-let cil_to_ocaml_int (e : exp) : (int64 * int * sign) = 
-  let v, s = unbox_int_type (typeOf e) in
-  unbox_int_exp (e), v, s
 
 exception Weird_bitwidth
 

@@ -25,7 +25,11 @@
 open Dgraph
 
 let graph_view ~packing mk_dot =
-  let f = Extlib.temp_file_cleanup_at_exit "framac_graph_view" "dot" in
+  let f =
+    try Extlib.temp_file_cleanup_at_exit "framac_graph_view" "dot"
+    with Extlib.Temp_file_error s ->
+      Gui_parameters.abort "cannot create temporary file: %s" s
+  in
   mk_dot f;
   snd
     (DGraphContainer.Dot.from_dot_with_commands
@@ -36,9 +40,10 @@ let graph_view ~packing mk_dot =
 let state_dependency_graph ~packing () =
   graph_view ~packing State_dependency_graph.Dynamic.dump
 
-let status_dependency_graph ~packing () =
-  let g = Properties_status.Consolidation_tree.get_full_graph () in
-  graph_view ~packing (Properties_status.Consolidation_tree.dump g)
+(* [JS 2011/07/05] to be reimplemented *)
+let status_dependency_graph ~packing:_ () = assert false
+(*  let g = Properties_status.Consolidation_tree.get_full_graph () in
+  graph_view ~packing (Properties_status.Consolidation_tree.dump g)*)
 
 let graph_window main_window title mk_view =
   let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
@@ -52,19 +57,22 @@ let graph_window main_window title mk_view =
   window#show ();
   view#adapt_zoom ()
 
+open Menu_manager
+
 let () =
   Design.register_extension
     (fun window ->
       let mk_graph = graph_window window#main_window in
       ignore
-	((window#menu_manager ())#add_debug
-	    ~show:(fun () -> Kernel.debug_atleast 1)
-	    [ (let s = "State Dependency Graph" in
-	       Menu_manager.Menubar(None, s),
-	       fun () -> mk_graph s state_dependency_graph);
-	      let s = "Status Graph" in
-	      Menu_manager.Menubar(None, s),
-	      fun () -> mk_graph s status_dependency_graph ]))
+        ((window#menu_manager ())#add_debug
+            ~show:(fun () -> Kernel.debug_atleast 1)
+            [ (let s = "State Dependency Graph" in
+               menubar s
+                 (Unit_callback (fun () -> mk_graph s state_dependency_graph)));
+              (let s = "Status Graph" in
+               menubar s
+                (Unit_callback (fun () -> mk_graph s status_dependency_graph)))
+            ]))
 
 (*
 Local Variables:

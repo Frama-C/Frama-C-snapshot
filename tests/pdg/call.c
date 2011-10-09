@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -lib-entry -main g -pdg -dot-pdg tests/pdg/call  -journal-disable
+   OPT: -lib-entry -main g -pdg -dot-pdg tests/pdg/call  -journal-disable -pdg-print -pdg-verbose 2
 */
 
 /* Ne pas modifier : exemple utilisé dans le rapport. */

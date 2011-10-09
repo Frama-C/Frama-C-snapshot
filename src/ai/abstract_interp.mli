@@ -20,7 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** @plugin development guide *)
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. 
+    @plugin development guide *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
 
 (** Raised by [cardinal_less_than] *)
 exception Not_less_than
@@ -56,7 +60,7 @@ module type Lattice = sig
 
   val cardinal_less_than: t -> int -> int
     (** [cardinal_less_than t v ]
-	@raise Not_less_than whenever the cardinal of [t] is higher than [v] *)
+        @raise Not_less_than whenever the cardinal of [t] is higher than [v] *)
 
   val tag : t -> int
 
@@ -71,7 +75,7 @@ module type Lattice_With_Diff = sig
 
   val diff_if_one : t -> t -> t
     (** [diff t1 t2] is an over-approximation of [t1-t2].
-	@return t1 if [t2] is not a singleton. *)
+        @return t1 if [t2] is not a singleton. *)
 
   val fold_enum :
     split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
@@ -124,138 +128,28 @@ module type Lattice_Set = sig
   val mem : O.elt -> t -> bool
 end
 
-module type Value = Datatype.S_with_collections
-
-module type Arithmetic_Value = sig
-  include Value
-  val gt : t -> t -> bool
-  val le : t -> t -> bool
-  val ge : t -> t -> bool
-  val lt : t -> t -> bool
-  val add : t -> t -> t
-  val sub : t -> t -> t
-  val mul : t -> t -> t
-  val native_div : t -> t -> t
-  val rem : t -> t -> t
-  val pos_div : t -> t -> t
-  val c_div : t -> t -> t
-  val c_rem : t -> t -> t
-  val cast: size:t -> signed:bool -> value:t -> t
-  val abs : t -> t
-  val zero : t
-  val one : t
-  val two : t
-  val four : t
-  val onethousand : t
-  val minus_one : t
-  val is_zero : t -> bool
-  val is_one : t -> bool
-  val pgcd : t -> t -> t
-  val ppcm : t -> t -> t
-  val min : t -> t -> t
-  val max : t -> t -> t
-  val length : t -> t -> t (** b - a + 1 *)
-  val of_int : int -> t
-  val of_float : float -> t
-  val of_int64 : Int64.t -> t
-  val to_int : t -> int
-  val to_float : t -> float
-  val neg : t -> t
-  val succ : t -> t
-  val pred : t -> t
-  val round_up_to_r : min:t -> r:t -> modu:t -> t
-  val round_down_to_r : max:t -> r:t -> modu:t -> t
-  val pos_rem : t -> t -> t
-  val shift_left : t -> t -> t
-  val shift_right : t -> t -> t
-  val fold : (t -> 'a -> 'a) -> inf:t -> sup:t -> step:t -> 'a -> 'a
-  val logand : t -> t -> t
-  val logor : t -> t -> t
-  val logxor : t -> t -> t
-  val lognot : t -> t
-  val power_two : int -> t
-  val two_power : t -> t
-  val extract_bits : start:t -> stop:t -> t -> t
-end
+module type LatValue = Datatype.S_with_collections
 
 module Int : sig
-  include Arithmetic_Value with type t = My_bigint.big_int
-  val small_nums : t array
-  val zero : t
-  val four : t
-  val eight : t
-  val thirtytwo : t
-  val div : t -> t -> t
-
-  val billion_one : t
-  val tag : t -> int
-  val log_shift_right : t -> t -> t
-  val shift_right : t -> t -> t
-  val shift_left : t -> t -> t
-
-  val to_int : t -> int
-  val of_int : int -> t
-  val of_int64 : int64 -> t
-  val to_int64 : t -> int64
-  val of_string : string -> t
-  val to_string : t -> string
-  val to_float : t -> float
-  val of_float : 'a -> 'b
-  val minus_one : t
-  val pretty_debug : Format.formatter -> t -> unit
-  val is_zero : t -> bool
-  val is_one : t -> bool
-  val pos_div : t -> t -> t
-  val pos_rem : t -> t -> t
-  val native_div :
-    t -> t -> t
-  val c_div : t -> t -> t
-  val c_rem : t -> t -> t
-  val power_two : int -> t
-  val extract_bits :
-    start:t ->
-    stop:t -> t -> t
-  val is_even : t -> bool
-  val pgcd : t -> t -> t
-  val ppcm : t -> t -> t
-  val length : t -> t -> t
-  val min : t -> t -> t
-  val max : t -> t -> t
-  val round_down_to_zero :
-    t -> t -> t
-  val round_up_to_r :
-    min:t ->
-    r:t -> modu:t -> t
-  val round_down_to_r :
-    max:t ->
-    r:t -> modu:t -> t
-  val fold :
-    (t -> 'a -> 'a) ->
-    inf:t ->
-    sup:t -> step:t -> 'a -> 'a
+  include My_bigint.S
+  include LatValue with type t = My_bigint.t
+  val pretty : Format.formatter -> t -> unit
+  val fold : (t -> 'a -> 'a) -> inf:t -> sup:t -> step:t -> 'a -> 'a
 
 end
 
-module Make_Lattice_Base (V : Value) : Lattice_Base with type l = V.t
+module Make_Lattice_Base (V : LatValue) : Lattice_Base with type l = V.t
 
-module Make_Pair (V:Value)(W:Value) : Datatype.S with type t = V.t * W.t
+module Make_Pair (V:LatValue)(W:LatValue) : Datatype.S with type t = V.t * W.t
 
-module Make_Lattice_Interval_Set (V:Arithmetic_Value) : sig
-  type elt = Make_Pair(V)(V).t
-  type tt = private Top | Set of elt list
-  include Lattice with type t = tt
-  val inject_one : size:V.t -> value:V.t -> t
-  val inject_bounds : V.t -> V.t -> t
-  val inject : elt list -> t
-  val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-  val splitting_cardinal_less_than :
-    split_non_enumerable:int -> t -> int -> int
-end
+module Make_Lattice_Set (V : LatValue) : Lattice_Set with type O.elt=V.t
 
-module Make_Lattice_Set (V : Value) : Lattice_Set with type O.elt=V.t
-
-module Make_Hashconsed_Lattice_Set(V : Hptset.Id_Datatype)
+module Make_Hashconsed_Lattice_Set
+  (V : Hptset.Id_Datatype)
+  (O: Hptset.S with type elt = V.t)
   : Lattice_Set with type O.elt=V.t
+(** See e.g. Base.ml and Locations.ml to see how this functor shoudl be 
+    applied. *)
 
 module LocationSetLattice : sig
   include Lattice_Set with type O.elt = Cil_types.location

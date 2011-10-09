@@ -39,40 +39,16 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(* ************************************************************************* *)
-(* Lithitum-Compatibility Logs *)
-(* ************************************************************************* *)
+(** CIL main API.
 
-val info : ('a,Format.formatter,unit) format -> 'a
-val err  : ('a,Format.formatter,unit) format -> 'a
-val log  : ?once:bool -> ('a,Format.formatter,unit) format -> 'a
-val warn : ?once:bool -> ('a,Format.formatter,unit) format -> 'a
+    CIL original API documentation is available as
+    an html version at http://manju.cs.berkeley.edu/cil.
 
-(* ************************************************************************* *)
-(* Localized Cilmsg logging functions *)
-(* ************************************************************************* *)
-
-val source : Cil_types.location -> Log.source
-
-val warnOpt : ('a, Format.formatter, unit, unit) format4 -> 'a
-val warning : ('a, Format.formatter, unit, unit) format4 -> 'a
-val error   : ('a, Format.formatter, unit, unit) format4 -> 'a
-val abort   : ('a, Format.formatter, unit, 'b) format4 -> 'a
-val fatal   : ('a, Format.formatter, unit, 'b) format4 -> 'a
-
-val error_loc : (string*int) -> ('a, Format.formatter, unit, unit) format4 -> 'a
-val abort_loc : (string*int) -> ('a, Format.formatter, unit, 'b) format4 -> 'a
-
-(*
- * CIL: An intermediate language for analyzing C programs.
- *
- * George Necula
- *
- *)
-
-(** CIL original API documentation is available as
-  * an html version at http://manju.cs.berkeley.edu/cil.
     @plugin development guide *)
+
+(* ************************************************************************* *)
+(** {2 Localized logging functions} *)
+(* ************************************************************************* *)
 
 (** returns [true] if the given name refers to a special built-in function.
     A special built-in function can have any number of arguments. It is up to
@@ -85,7 +61,7 @@ val is_special_builtin: string -> bool
 val add_special_builtin: string -> unit
 
 (** register a new family of special built-in functions.
-    @since Boron-20100401-dev
+    @since Carbon-20101201
 *)
 val add_special_builtin_family: (string -> bool) -> unit
 
@@ -132,8 +108,6 @@ type theMachine = private
 	  the identifier. That is, will function foo() have the label "foo", or
 	  "_foo"? *)
       mutable underscore_name: bool;
-      (** Wether enum are signed or not. *)
-      mutable enum_are_signed: bool;
       mutable stringLiteralType: typ;
       (** An unsigned integer type that fits pointers. Depends on
 	  [Cil.msvcMode] *)
@@ -225,6 +199,11 @@ val compareLoc: location -> location -> int
 
 (** {b Values for manipulating globals} *)
 
+(** Make an empty function from an existing global varinfo.
+    @since Nitrogen-20111001
+*)
+val emptyFunctionFromVI: varinfo -> fundec
+
 (** Make an empty function *)
 val emptyFunction: string -> fundec
 
@@ -253,6 +232,13 @@ val setFunctionTypeMakeFormals: fundec -> typ -> unit
  * (unless you constructed those using {!Cil.makeLocalVar} or
  * {!Cil.makeTempVar}. *)
 val setMaxId: fundec -> unit
+
+(** Strip const attribute from the type. This is useful for
+    any type used as the type of a local variable which may be assigned.
+    Note that the type attributes are mutated in place.
+    @since Nitrogen-20111001 
+*)
+val stripConstLocalType : Cil_types.typ -> Cil_types.typ
 
 val selfFormalsDecl: State.t
   (** state of the table associating formals to each prototype. *)
@@ -311,19 +297,19 @@ val findOrCreateFunc: file -> string -> typ -> varinfo
 
 module Sid: sig
   val next: unit -> int
-  val get: unit -> int
-  val self: State.t
-  val reset: unit -> unit
 end
 
 module Eid: sig
   val next: unit -> int
-  val get: unit -> int
-  val self: State.t
 end
 
 (** creates an expression with a fresh id *)
 val new_exp: loc:location -> exp_node -> exp
+
+(** performs a deep copy of an expression (especially, avoid eid sharing).
+    @since Nitrogen-20111001
+*)
+val copy_exp: exp -> exp
 
 (** creates an expression with a dummy id.
     Use with caution, {i i.e.} not on expressions that may be put in the AST.
@@ -428,6 +414,30 @@ val ulongType: typ
 (** unsigned long long *)
 val ulongLongType: typ
 
+(** Any unsigned integer type of size 16 bits.
+    It is equivalent to the ISO C uint16_t type but without using the 
+    corresponding header. 
+    Shall not be called if not such type exists in the current architecture.
+    @since Nitrogen-20111001
+*)
+val uint16_t: unit -> typ
+
+(** Any unsigned integer type of size 32 bits.
+    It is equivalent to the ISO C uint32_t type but without using the 
+    corresponding header. 
+    Shall not be called if not such type exists in the current architecture.
+    @since Nitrogen-20111001
+*)
+val uint32_t: unit -> typ
+
+(** Any unsigned integer type of size 64 bits.
+    It is equivalent to the ISO C uint64_t type but without using the 
+    corresponding header. 
+    Shall not be called if not such type exists in the current architecture.
+    @since Nitrogen-20111001
+*)
+val uint64_t: unit -> typ
+
 (** char *)
 val charType: typ
 
@@ -511,6 +521,17 @@ val unrollTypeDeep: typ -> typ
 (** Separate out the storage-modifier name attributes *)
 val separateStorageModifiers: attribute list -> attribute list * attribute list
 
+(** returns the type of the result of an arithmetic operator applied to
+    values of the corresponding input types.
+    @since Nitrogen-20111001 (moved from Cabs2cil)
+*)
+val arithmeticConversion : Cil_types.typ -> Cil_types.typ -> Cil_types.typ
+
+(** performs the usual integral promotions mentioned in C reference manual.
+    @since Nitrogen-20111001 (moved from Cabs2cil)
+*)
+val integralPromotion : Cil_types.typ -> Cil_types.typ
+
 (** True if the argument is a character type (i.e. plain, signed or unsigned) *)
 val isCharType: typ -> bool
 
@@ -525,7 +546,7 @@ val isCharPtrType: typ -> bool
     (i.e. plain, signed or unsigned) *)
 val isCharArrayType: typ -> bool
 
-(** True if the argument is a logic integral type (i.e. integer or enum) *)
+(** True if the argument is an integral type (i.e. integer or enum) *)
 val isIntegralType: typ -> bool
 
 (** True if the argument is an integral type (i.e. integer or enum), either
@@ -562,12 +583,22 @@ val isTypeTagType: logic_type -> bool
     @plugin development guide *)
 val isFunctionType: typ -> bool
 
+(** True if the argument denotes the type of ... in a variadic function.
+    @since Nitrogen-20111001 moved from cabs2cil
+*)
+val isVariadicListType: typ -> bool
+
 (** Obtain the argument list ([] if None) *)
 val argsToList:
   (string * typ * attributes) list option -> (string * typ * attributes) list
 
 (** True if the argument is an array type *)
 val isArrayType: typ -> bool
+
+(** True if the argument is a variadic list.
+    @since Nitrogen-20111001
+*)
+val isVariadicListType: typ -> bool
 
 (** True if the argument is a struct of union type *)
 val isStructOrUnionType: typ -> bool
@@ -580,7 +611,7 @@ exception LenOfArray
   * integer. Raises {!Cil.LenOfArray} if not able to compute the length, such
   * as when there is no length or the length is not a constant. *)
 val lenOfArray: exp option -> int
-val lenOfArray64: exp option -> Int64.t
+val lenOfArray64: exp option -> My_bigint.t
 
 (** Return a named fieldinfo in compinfo, or raise Not_found *)
 val getCompField: compinfo -> string -> fieldinfo
@@ -672,7 +703,11 @@ val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
     Make sure you know what you are doing if you set insert=false.
     [generated] is passed to {!Cil.makeVarinfo}.
     The variable is attached to the toplevel block if [scope] is not specified.
- *)
+
+    @since Nitrogen-20111001 This function will strip const attributes
+    of its type in place in order for local variable to be assignable at
+    least once.
+*)
 val makeLocalVar:
   fundec -> ?scope:block -> ?generated:bool -> ?insert:bool
   -> string -> typ -> varinfo
@@ -710,6 +745,9 @@ val lastOffset: offset -> offset
 (** Equivalent to [lastOffset] for terms. *)
 val lastTermOffset: term_offset -> term_offset
 
+(** Is an lvalue a bitfield? *)
+val isBitfield: lval -> bool
+
 (** Add an offset at the end of an lvalue. Make sure the type of the lvalue
  * and the offset are compatible. *)
 val addOffsetLval: offset -> lval -> lval
@@ -745,6 +783,16 @@ val typeOffset: typ -> offset -> typ
 (** Equivalent to [typeOffset] for terms. *)
 val typeTermOffset: logic_type -> term_offset -> logic_type
 
+(** Returns true when some part of the lvalue has volatile attributes.
+    @since Nitrogen-20111001
+*)
+val hasSomeVolatileAttr:lval -> bool
+
+(** Returns true when some part of the type of an lvalue has volatile attributes.
+    @since Nitrogen-20111001
+*)
+val hasLvalTypeSomeVolatileAttr:typ -> bool
+
 (*******************************************************)
 (** {b Values for manipulating expressions} *)
 
@@ -764,10 +812,10 @@ val mone: loc:Location.t -> exp
 (** Construct an integer of a given kind, using OCaml's int64 type. If needed
   * it will truncate the integer to be within the representable range for the
   * given kind. The integer can have an optional literal representation. *)
-val kinteger64_repr: loc:location -> ikind -> int64 -> string option -> exp
+val kinteger64_repr: loc:location -> ikind -> My_bigint.t -> string option -> exp
 
 (** Construct an integer of a given kind without literal representation. *)
-val kinteger64: loc:location -> ikind -> int64 -> exp
+val kinteger64: loc:location -> ikind -> My_bigint.t -> exp
 
 (** Construct an integer of a given kind. Converts the integer to int64 and
   * then uses kinteger64. This might truncate the value if you use a kind
@@ -782,7 +830,7 @@ val integer: loc:location -> int -> exp
 
 (** True if the given expression is a (possibly cast'ed)
     character or an integer constant *)
-val isInteger: exp -> int64 option
+val isInteger: exp -> My_bigint.t option
 
 (** Convert a 64-bit int to an OCaml int, or raise an exception if that
     can't be done. *)
@@ -842,25 +890,37 @@ val constFoldTerm: bool -> term -> term
     will also compute compiler-dependent expressions such as [sizeof]. *)
 val constFoldBinOp: loc:location -> bool -> binop -> exp -> exp -> typ -> exp
 
+(** [true] if the two constant are equal.
+    @since Nitrogen-20111001
+*)
+val compareConstant: constant -> constant -> bool
+
 (** [true] if the two expressions are syntactically the same. *)
 val compareExp: exp -> exp -> bool
 
 (** [true] if the two lval are syntactically the same. *)
 val compareLval: lval -> lval -> bool
 
+(** [true] if the two offsets are syntactically the same. *)
+val compareOffset: offset -> offset -> bool
+
 (** Increment an expression. Can be arithmetic or pointer type *)
 val increm: exp -> int -> exp
 
 (** Increment an expression. Can be arithmetic or pointer type *)
-val increm64: exp -> int64 -> exp
+val increm64: exp -> My_bigint.t -> exp
 
 (** Makes an lvalue out of a given variable *)
 val var: varinfo -> lval
 
+(** Creates an expr representing the variable. 
+    @since Nitrogen-20111001
+ *)
+val evar: loc:location -> varinfo -> exp
+
 (** Make an AddrOf. Given an lvalue of type T will give back an expression of
     type ptr(T). It optimizes somewhat expressions like "& v" and "& v[0]"  *)
 val mkAddrOf: loc:location -> lval -> exp
-
 
 (** Like mkAddrOf except if the type of lval is an array then it uses
     StartOf. This is the right operation for getting a pointer to the start
@@ -873,6 +933,12 @@ val mkAddrOrStartOf: loc:location -> lval -> exp
     element does not apply. You must do the conversion yourself using
     StartOf *)
 val mkMem: addr:exp -> off:offset -> lval
+
+(** makes a binary operation and performs const folding.  Inserts
+    casts between arithmetic types as needed, or between pointer
+    types, but do not attempt to cast pointer to int or
+    vice-versa. Use appropriate binop (PlusPI & friends) for that.  *)
+val mkBinOp: loc:location -> binop -> exp -> exp -> exp
 
 (** Equivalent to [mkMem] for terms. *)
 val mkTermMem: addr:term -> off:term_offset -> term_lval
@@ -961,8 +1027,10 @@ val mkBlock: stmt list -> block
     wrap it into the Cfg. *)
 val mkStmtCfgBlock: stmt list -> stmt
 
-(** Construct a statement consisting of just one instruction *)
-val mkStmtOneInstr: ?ghost:bool -> instr -> stmt
+(** Construct a statement consisting of just one instruction
+    See {!Cil.mkStmt} for the signification of the optional args.
+ *)
+val mkStmtOneInstr: ?ghost:bool -> ?valid_sid:bool -> instr -> stmt
 
 (** Try to compress statements so as to get maximal basic blocks.
  * use this instead of List.@ because you get fewer basic blocks *)
@@ -1083,6 +1151,11 @@ val typeAddAttributes: attribute list -> typ -> typ
     their uses *)
 val typeRemoveAttributes: string list -> typ -> typ
 
+(** Remove all attributes relative to const, volatile and restrict attributes
+    @since Nitrogen-20111001
+ *)
+val type_remove_qualifier_attributes: typ -> typ
+
 (** Convert an expression into an attrparam, if possible. Otherwise raise
     NotAnAttrParam with the offending subexpression *)
 val expToAttrParam: exp -> attrparam
@@ -1130,14 +1203,14 @@ type 'a visitAction =
                                            function on the node *)
 
 
-val mk_behavior : 
-  ?name:string -> 
-  ?assumes:('a list) -> 
-  ?requires:('a list) -> 
-  ?post_cond:((termination_kind * 'a) list) -> 
+val mk_behavior :
+  ?name:string ->
+  ?assumes:('a list) ->
+  ?requires:('a list) ->
+  ?post_cond:((termination_kind * 'a) list) ->
   ?assigns:('b Cil_types.assigns ) ->
-  ?extended:((string * int * 'a list) list) -> 
-  unit -> 
+  ?extended:((string * int * 'a list) list) ->
+  unit ->
   ('a, 'b) Cil_types.behavior
   (** @since Carbon-20101201
       returns a dummy behavior with the default name [Cil.default_behavior_name].
@@ -1153,7 +1226,6 @@ val find_default_behavior: funspec -> funbehavior option
 
 val find_default_requires: ('a, 'b) behavior list -> 'a list
   (** @since Carbon-20101201  *)
-
 
 type visitor_behavior
   (** How the visitor should behave in front of mutable fields: in
@@ -1190,6 +1262,7 @@ val reset_behavior_typeinfo: visitor_behavior -> unit
 val reset_behavior_stmt: visitor_behavior -> unit
 val reset_behavior_logic_info: visitor_behavior -> unit
 val reset_behavior_fieldinfo: visitor_behavior -> unit
+val reset_behavior_kernel_function: visitor_behavior -> unit
 
 val get_varinfo: visitor_behavior -> varinfo -> varinfo
   (** retrieve the representative of a given varinfo in the current
@@ -1203,6 +1276,7 @@ val get_stmt: visitor_behavior -> stmt -> stmt
 val get_logic_info: visitor_behavior -> logic_info -> logic_info
 val get_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
 val get_logic_var: visitor_behavior -> logic_var -> logic_var
+val get_kernel_function: visitor_behavior -> kernel_function -> kernel_function
 
 val get_original_varinfo: visitor_behavior -> varinfo -> varinfo
   (** retrieve the original representative of a given copy of a varinfo
@@ -1216,6 +1290,8 @@ val get_original_stmt: visitor_behavior -> stmt -> stmt
 val get_original_logic_info: visitor_behavior -> logic_info -> logic_info
 val get_original_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
 val get_original_logic_var: visitor_behavior -> logic_var -> logic_var
+val get_original_kernel_function:
+  visitor_behavior -> kernel_function -> kernel_function
 
 val set_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   (** change the representative of a given varinfo in the current
@@ -1230,6 +1306,8 @@ val set_stmt: visitor_behavior -> stmt -> stmt -> unit
 val set_logic_info: visitor_behavior -> logic_info -> logic_info -> unit
 val set_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
 val set_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
+val set_kernel_function:
+  visitor_behavior -> kernel_function -> kernel_function -> unit
 
 val set_orig_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   (** change the reference of a given new varinfo in the current
@@ -1243,6 +1321,11 @@ val set_orig_stmt: visitor_behavior -> stmt -> stmt -> unit
 val set_orig_logic_info: visitor_behavior -> logic_info -> logic_info -> unit
 val set_orig_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
 val set_orig_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
+val set_orig_kernel_function: 
+  visitor_behavior -> kernel_function -> kernel_function -> unit
+
+val memo_kernel_function:
+  visitor_behavior -> kernel_function -> kernel_function
 
 (** A visitor interface for traversing CIL trees. Create instantiations of
  * this type by specializing the class {!nopCilVisitor}. Each of the
@@ -1269,20 +1352,20 @@ class type cilVisitor = object
 
   method vvdec: varinfo -> varinfo visitAction
     (** Invoked for each variable declaration. The subtrees to be traversed
-     * are those corresponding to the type and attributes of the variable.
-     * Note that variable declarations are all the [GVar], [GVarDecl], [GFun],
-     * all the [varinfo] in formals of function types, and the formals and
-     * locals for function definitions. This means that the list of formals
-     * in a function definition will be traversed twice, once as part of the
-     * function type and second as part of the formals in a function
-     * definition.
+	are those corresponding to the type and attributes of the variable.
+	Note that variable declarations are all the [GVar], [GVarDecl], [GFun],
+	all the [varinfo] in formals of function types, and the formals and
+	locals for function definitions. This means that the list of formals
+	in a function definition will be traversed twice, once as part of the
+	function type and second as part of the formals in a function
+	definition.
 	@plugin development guide *)
 
   method vvrbl: varinfo -> varinfo visitAction
     (** Invoked on each variable use. Here only the [SkipChildren] and
-     * [ChangeTo] actions make sense since there are no subtrees. Note that
-     * the type and attributes of the variable are not traversed for a
-     * variable use.
+	[ChangeTo] actions make sense since there are no subtrees. Note that
+	the type and attributes of the variable are not traversed for a
+	variable use.
 	@plugin development guide *)
 
   method vexpr: exp -> exp visitAction
@@ -1398,6 +1481,8 @@ class type cilVisitor = object
   method vterm_lhost: term_lhost -> term_lhost visitAction
 
   method vterm_offset: term_offset -> term_offset visitAction
+
+  method vlogic_label: logic_label -> logic_label visitAction
 
   method vlogic_info_decl: logic_info -> logic_info visitAction
 
@@ -1572,6 +1657,13 @@ val visitCilFunspec: cilVisitor -> funspec -> funspec
 val visitCilBehavior: cilVisitor -> funbehavior -> funbehavior
 val visitCilBehaviors: cilVisitor -> funbehavior list -> funbehavior list
 
+(** visit an extended clause of a behavior.
+    @since Nitrogen-20111001
+ *)
+val visitCilExtended: 
+  cilVisitor -> (string * int * identified_predicate list) 
+  -> (string * int * identified_predicate list)
+
 val visitCilLogicType: cilVisitor -> logic_type -> logic_type
 
 val visitCilPredicate: cilVisitor -> predicate -> predicate
@@ -1585,6 +1677,11 @@ val visitCilPredicates:
   cilVisitor -> identified_predicate list -> identified_predicate list
 
 val visitCilTerm: cilVisitor -> term -> term
+
+(** visit term_lval.
+    @since Nitrogen-20111001
+ *)
+val visitCilTermLval: cilVisitor -> term_lval -> term_lval
 
 val visitCilTermLhost: cilVisitor -> term_lhost -> term_lhost
 
@@ -1890,8 +1987,6 @@ class type cilPrinter = object
    method pFrom:
      string -> Format.formatter -> identified_term from -> unit
 
-  method pStatus : Format.formatter -> Cil_types.annot_status -> unit
-
   method pCode_annot: Format.formatter -> code_annotation -> unit
 
   method pAnnotation: Format.formatter -> global_annotation -> unit
@@ -1972,13 +2067,13 @@ val printAnnotation: cilPrinter -> Format.formatter -> global_annotation -> unit
 (** pretty prints an assigns clause. The string is the keyword used ([assigns]
     or [loop assigns])
 *)
-val printAssigns: 
+val printAssigns:
   cilPrinter -> string -> Format.formatter -> identified_term assigns -> unit
 
-(** pretty prints a functional dependencies clause. 
+(** pretty prints a functional dependencies clause.
     The string is the keyword used ([assigns] or [loop assigns])
 *)
-val printFrom: 
+val printFrom:
   cilPrinter -> string -> Format.formatter -> identified_term from -> unit
 
 (** Pretty-print a type using {!Cil.defaultCilPrinter} *)
@@ -2034,16 +2129,14 @@ val d_block: Format.formatter -> block -> unit
  * stack) for huge globals (such as arrays with lots of initializers). *)
 val d_global: Format.formatter -> global -> unit
 
+val d_relation: Format.formatter -> relation -> unit
+
 val d_term_lval: Format.formatter -> term_lval -> unit
 val d_logic_var: Format.formatter -> logic_var -> unit
 val d_logic_type: Format.formatter -> logic_type -> unit
 val d_term:  Format.formatter -> term -> unit
 val d_term_offset: Format.formatter -> term_offset -> unit
 
-val d_annotation_status: Format.formatter -> annotation_status -> unit
-  (** @since Beryllium-20090901 *)
-
-val d_status: Format.formatter -> annot_status -> unit
 val d_predicate_named: Format.formatter -> predicate named -> unit
 val d_identified_predicate: Format.formatter -> identified_predicate -> unit
 val d_code_annotation: Format.formatter -> code_annotation -> unit
@@ -2148,25 +2241,50 @@ exception SizeOfError of string * typ
 (** Create a fresh size cache with [Not_Computed] *)
 val empty_size_cache : unit -> bitsSizeofTypCache
 
+(** Give the unsigned kind corresponding to any integer kind *)
+val unsignedVersionOf : ikind -> ikind
+
+(** The signed integer kind for a given size (unsigned if second argument
+ * is true). Raises Not_found if no such kind exists *)
+val intKindForSize : int -> bool -> ikind
+
+(** The float kind for a given size. Raises Not_found
+ *  if no such kind exists *)
+val floatKindForSize : int-> fkind
+
 (** The size of a type, in bits. Trailing padding is added for structs and
  * arrays. Raises {!Cil.SizeOfError} when it cannot compute the size. This
  * function is architecture dependent, so you should only call this after you
  * call {!Cil.initCIL}. Remember that on GCC sizeof(void) is 1! *)
 val bitsSizeOf: typ -> int
 
-(* Returns the number of bytes to represent the given integer kind depending
+(** Returns the number of bytes to represent the given integer kind depending
    on the curretn machdep. *)
 val bytesSizeOfInt: ikind -> int
 
-(* Returns the signedness of the given integer kind depending
+(** Returns the signedness of the given integer kind depending
    on the curretn machdep. *)
 val isSigned: ikind -> bool
 
-(* Returns a unique number representing the integer
+(** Returns a unique number representing the integer
    conversion rank. *)
 val rank: ikind -> int
 
-val truncateInteger64: ikind -> int64 -> int64 * bool
+(** Represents an integer as for a given kind. 
+ * Returns a flag saying whether the value was changed
+ * during truncation (because it was too large to fit in k). *)
+val truncateInteger64: ikind -> My_bigint.t -> My_bigint.t * bool
+
+val max_signed_number: int -> My_bigint.t
+val min_signed_number: int -> My_bigint.t
+val max_unsigned_number: int -> My_bigint.t
+
+(** True if the integer fits within the kind's range *)
+val fitsInInt: ikind -> My_bigint.t -> bool
+
+(** Return the smallest kind that will hold the integer's value.
+ *  The kind will be unsigned if the 2nd argument is true *)
+val intKindForValue: My_bigint.t -> bool -> ikind
 
 (** The size of a type, in bytes. Returns a constant expression or a "sizeof"
  * expression if it cannot compute the size. This function is architecture
@@ -2248,6 +2366,8 @@ type formatArg =
 
 val d_formatarg : Format.formatter -> formatArg -> unit
 
+(** {b Misc} *)
+
 val stmt_of_instr_list : ?loc:location -> instr list -> stmtkind
 
 val pretty_loc : Format.formatter -> kinstr -> unit
@@ -2267,7 +2387,7 @@ val make_temp_logic_var: logic_type -> logic_var
 val lzero : ?loc:location -> unit -> term
 
 (** The given constant logic term *)
-val lconstant : ?loc:location -> Int64.t -> term
+val lconstant : ?loc:location -> My_bigint.t -> term
 
 (** Bind all free variables with an universal quantifier *)
 val close_predicate : predicate named -> predicate named
@@ -2290,7 +2410,21 @@ val extract_free_logicvars_from_predicate :
     @raise Invalid_argument if the lists have different lengths. *)
 val create_alpha_renaming: varinfo list -> varinfo list -> cilVisitor
 
-val print_utf8 : bool ref
+
+(** Provided [s] is a switch, [separate_switch_succs s] returns the
+    subset of [s.succs] that correspond to the labels of [s], and an
+    optional statement that is [None] if the switch has a default label,
+    or [Some s'] where [s'] is the syntactic successor of [s] otherwise *)
+val separate_switch_succs: stmt -> stmt list * stmt option
+
+
+(**/**)
+
+val register_ast_dependencies : State.t -> unit
+  (** Used to postpone some dependencies on [Ast.self], which is initialized
+      afterwards. *)
+
+
 
 (*
 Local Variables:

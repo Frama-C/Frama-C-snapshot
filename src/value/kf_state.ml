@@ -41,7 +41,7 @@ module Is_Called =
 let is_called =
   Is_Called.memo
     (fun kf ->
-       try Value.is_accessible (Kstmt (Kernel_function.find_first_stmt kf))
+       try Value.is_reachable_stmt (Kernel_function.find_first_stmt kf)
        with Kernel_function.No_Statement -> false)
 
 let mark_as_called kf =

@@ -1,0 +1,912 @@
+(* --- Headers for WHY --- *)
+
+include "bool.why"
+include "integer.why"
+include "real.why"
+include "arrays.why"
+include "divisions.why"
+(* -------------------------------------------------------------------------- *)
+(* --- ACSL Definitions                                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+logic dummy : int -> prop 
+logic assigns : int -> prop
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Divisions enhanced specification                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+axiom positive_computer_div_div: 
+  forall x,y:int. 
+  x >0 -> y >0 -> computer_div(x,y) = math_div(x,y)
+
+
+(**************************************************************************)
+(*** Specification of Set as First Class Value                          ***)
+(**************************************************************************)
+(* From Figure 2.6 in ACSL:ANSI/ISO C Specification Language *)
+
+type 'a set
+
+logic empty : 'a set
+logic singleton : 'a -> 'a set
+logic range : int,int -> int set
+logic union : 'a set , 'a set -> 'a set
+logic inter : 'a set , 'a set -> 'a set
+logic plus_int : int set, int set -> int set
+logic subset : 'a set,'a set -> prop
+logic range_inf: int -> int set
+logic range_sup:int->int set
+logic integers_set : int set
+logic equiv : 'a set ,'a set -> prop
+logic member : 'a,'a set -> prop
+
+axiom singleton_def :
+ forall x:'a. member (x, singleton(x))
+
+axiom singleton_eq:
+      forall x,y:'a. member(x,singleton(y)) <-> x=y
+
+axiom union_member :
+ forall x:'a. forall s1,s2:'a set [member(x, union(s1,s2))].
+  member(x, union(s1,s2)) <-> member(x,s1) or member(x,s2)
+
+axiom union_of_empty :
+ forall x:'a set [union(x,empty)]. union(x,empty) = x
+
+axiom inter_of_empty :
+ forall x:'a set [inter(x,empty)]. inter(x,empty) = empty
+
+axiom union_comm :
+ forall x,y:'a set. union(x,y) = union(y,x)
+
+axiom inter_comm :
+ forall x,y:'a set. inter(x,y) = inter(y,x)
+
+axiom inter_member :
+ forall x:'a. forall s1,s2:'a set [member(x,inter(s1,s2))].
+  member(x,inter(s1,s2)) <-> member(x,s1) and member(x,s2)
+
+axiom plus_int_member_1:
+  forall sa,sb:int set.
+  forall a,b:int [member((a+b), plus_int(sa,sb))].
+        member(a,sa) -> member(b,sb) ->
+	member((a+b), plus_int(sa,sb))
+
+axiom plus_int_member_2:
+  forall sa,sb:int set.
+  forall c:int.
+      member(c,plus_int(sa,sb)) ->
+       exists a:int. exists b:int.
+        member(a,sa) and member(b,sb) and c=a+b
+
+axiom subset_empty :
+ forall sa:'a set. subset(empty,sa)
+
+axiom subset_sym:
+ forall sa:'a set. subset(sa,sa)
+
+axiom subset_trans :
+ forall sa,sb,sc: 'a set.
+    subset(sa,sb) ->
+    subset(sb,sc) ->
+    subset(sa,sc)
+
+axiom subset_def:
+ forall sa,sb:'a set [subset(sa,sb)].
+  (forall a:'a. member(a,sa) -> member(a,sb)) <-> subset(sa,sb)
+
+
+axiom range_def:
+ forall i,j,k:int. i <= k<= j <-> member (k,range(i,j))
+
+axiom range_def1:
+ forall i,j,k:int.  i <= k<= j -> member (k,range(i,j))
+
+axiom range_def2:
+ forall i,j,k:int.member (k,range(i,j)) -> i <= k<= j
+
+axiom range_inf_def: (* range_inf(i) is [ i .. ] *)
+ forall i,k: int. i <= k <-> member (k,range_inf(i))
+
+axiom range_sup_def: (* range_sup(j) is [ .. j ] *)
+ forall j,k: int. k <= j <-> member (k,range_sup(j))
+
+axiom integers_set_def:
+ forall k:int. k >= 0 <-> member(k,integers_set)
+
+axiom equiv_def:
+ forall s1,s2:'a set [equiv(s1,s2)]. (
+ (forall a:'a. member(a,s1) -> member(a,s2)) and
+   (forall b:'a. member(b,s2) -> member(b,s1))) <->
+ equiv(s1,s2)
+
+axiom equiv_refl:
+ forall s:'a set. equiv(s,s)
+
+axiom equiv_sym:
+ forall s1,s2:'a set. equiv(s1,s2) -> equiv(s2,s1)
+
+axiom equiv_trans:
+ forall s1,s2,s3:'a set.
+  equiv(s1,s2) -> equiv(s2,s3) -> equiv(s1,s3)
+
+
+
+(**************************************************************************)
+(*** Integers and Reals                                                 ***)
+(**************************************************************************)
+
+
+logic as_uint8 :int -> int 
+predicate is_uint8(x:int) = 0 <= x < 256 
+axiom as_uint8_def : forall x:int. is_uint8(as_uint8(x))
+axiom as_uint8_involve :
+  forall x:int [as_uint8(as_uint8(x))]. as_uint8(as_uint8(x)) = as_uint8(x)
+axiom is_as_uint8: forall x:int [as_uint8(x)]. is_uint8(x) -> as_uint8(x) = x
+
+logic as_sint8 :int -> int 
+predicate is_sint8(x:int) = -128 <= x < 128
+axiom as_sint8_def : forall x:int. is_sint8(as_sint8(x))
+axiom as_sint8_involve :
+  forall x:int [as_sint8(as_sint8(x))]. as_sint8(as_sint8(x)) = as_sint8(x)
+axiom is_as_sint8: forall x:int[as_sint8(x)]. is_sint8(x) -> as_sint8(x) = x
+
+
+logic as_uint16 :int -> int 
+predicate is_uint16(x:int) = 0 <= x < 65536
+axiom as_uint16_def : forall x:int. is_uint16(as_uint16(x))
+axiom as_uint16_involve :
+  forall x:int [as_uint16(as_uint16(x))]. 
+    as_uint16(as_uint16(x)) = as_uint16(x)
+axiom is_as_uint16: forall x:int [as_uint16(x)]. is_uint16(x) -> as_uint16(x) = x
+
+logic as_sint16 :int -> int 
+predicate is_sint16(x:int) = -32768 <= x < 32768
+axiom as_sint16_def : forall x:int. is_sint16(as_sint16(x))
+axiom as_sint16_involve :
+  forall x:int [as_sint16(as_sint16(x))]. 
+    as_sint16(as_sint16(x)) = as_sint16(x)
+axiom is_as_sint16: forall x:int [as_sint16(x)]. is_sint16(x) -> as_sint16(x) = x
+
+
+logic as_uint32 :int -> int 
+predicate is_uint32(x:int) = 0 <= x < 4294967296
+axiom as_uint32_def : forall x:int. is_uint32(as_uint32(x))
+axiom as_uint32_involve :
+  forall x:int [as_uint32(as_uint32(x))]. 
+    as_uint32(as_uint32(x)) = as_uint32(x)
+axiom is_as_uint32: forall x:int [as_uint32(x)]. is_uint32(x) -> as_uint32(x) = x
+
+logic as_sint32 :int -> int 
+predicate is_sint32(x:int) = -2147483648 <= x < 2147483648
+axiom as_sint32_def : forall x:int. is_sint32(as_sint32(x))
+axiom as_sint32_involve :
+  forall x:int [as_sint32(as_sint32(x))]. 
+    as_sint32(as_sint32(x)) = as_sint32(x)
+axiom is_as_sint32: forall x:int [as_sint32(x)]. is_sint32(x) -> as_sint32(x) = x
+
+
+logic as_uint64 :int -> int 
+predicate is_uint64(x:int) = 0 <= x < 18446744073709551616
+axiom as_uint64_def : forall x:int. is_uint64(as_uint64(x))
+axiom as_uint64_involve :
+  forall x:int [as_uint64(as_uint64(x))]. 
+    as_uint64(as_uint64(x)) = as_uint64(x)
+axiom is_as_uint64: forall x:int [as_uint64(x)]. is_uint64(x) -> as_uint64(x) = x
+
+logic as_sint64 :int -> int 
+predicate is_sint64(x:int) = -9223372036854775808 <= x < 9223372036854775808
+axiom as_sint64_def : forall x:int. is_sint64(as_sint64(x))
+axiom as_sint64_involve :
+  forall x:int [as_sint64(as_sint64(x))]. 
+    as_sint64(as_sint64(x)) = as_sint64(x)
+axiom is_as_sint64: forall x:int [as_sint64(x)]. is_sint64(x) -> as_sint64(x) = x
+
+
+logic as_float16 :real -> real 
+logic is_float16 :real -> prop
+axiom as_float16_def : forall x:real. is_float16(as_float16(x))
+axiom as_float16_involve :
+  forall x:real [as_float16(as_float16(x))]. 
+    as_float16(as_float16(x)) = as_float16(x)
+axiom is_as_float16: forall x:real [as_float16(x)]. is_float16(x) -> as_float16(x) = x
+
+
+logic as_float32 :real -> real 
+logic is_float32 :real -> prop
+axiom as_float32_def : forall x:real. is_float32(as_float32(x))
+axiom as_float32_involve :
+  forall x:real [as_float32(as_float32(x))]. 
+    as_float32(as_float32(x)) = as_float32(x)
+axiom is_as_float32: 
+ forall x:real [as_float32(x)]. is_float32(x) -> as_float32(x) = x
+
+
+logic as_float64 :real -> real 
+logic is_float64 :real -> prop
+axiom as_float64_def : 
+ forall x:real. is_float64(as_float64(x))
+axiom as_float64_involve :
+  forall x:real [as_float64(as_float64(x))]. 
+    as_float64(as_float64(x)) = as_float64(x)
+axiom is_as_float64: 
+  forall x:real [as_float64(x)]. is_float64(x) -> as_float64(x) = x
+
+
+logic as_float128 :real -> real 
+logic is_float128 :real -> prop
+axiom as_float128_def : 
+ forall x:real. is_float128(as_float128(x))
+axiom as_float128_involve :
+  forall x:real [as_float128(as_float128(x))]. 
+    as_float128(as_float128(x)) = as_float128(x)
+axiom is_as_float128: 
+ forall x:real [as_float128(x)]. is_float128(x) -> as_float128(x) = x
+
+(**************************************************************************)
+(*** Memory Data Type                                                   ***)
+(**************************************************************************)
+
+type data
+
+logic data_of_uint8: int -> data
+logic uint8_of_data: data -> int
+
+axiom is_uint8_of_data: 
+  forall d:data [is_uint8(uint8_of_data(d))].is_uint8(uint8_of_data(d))
+
+axiom uint8ofdata_dataofuint8: 
+  forall x:int [data_of_uint8(x)].
+    is_uint8(x) -> uint8_of_data(data_of_uint8(x)) = x
+
+logic data_of_sint8: int -> data
+logic sint8_of_data: data -> int
+
+axiom is_sint8_of_data: 
+  forall d:data [is_sint8(sint8_of_data(d))]. is_sint8(sint8_of_data(d))
+
+axiom sint8ofdata_dataofsint8: 
+  forall x:int [data_of_sint8(x)]. 
+   is_sint8(x) -> sint8_of_data(data_of_sint8(x)) = x
+
+logic data_of_uint16: int -> data
+logic uint16_of_data: data -> int
+
+axiom is_uint16_of_data: 
+ forall d:data [is_uint16(uint16_of_data(d))]. is_uint16(uint16_of_data(d))
+
+axiom uint16ofdata_dataofuint16: 
+  forall x:int [uint16_of_data(data_of_uint16(x))]. 
+   is_uint16(x) -> uint16_of_data(data_of_uint16(x)) = x
+
+logic data_of_sint16: int -> data
+logic sint16_of_data: data -> int
+
+axiom is_sint16_of_data: 
+ forall d:data [is_sint16(sint16_of_data(d))]. is_sint16(sint16_of_data(d))
+
+axiom sint16ofdata_dataofsint16: 
+  forall x:int [data_of_sint16(x)]. 
+    is_sint16(x) -> sint16_of_data(data_of_sint16(x)) = x
+
+logic data_of_uint32: int -> data
+logic uint32_of_data: data -> int
+
+axiom is_uint32_of_data: 
+  forall d:data [is_uint32(uint32_of_data(d))]. is_uint32(uint32_of_data(d))
+
+axiom uint32ofdata_dataofuint32: 
+  forall x:int [data_of_uint32(x)]. 
+    is_uint32(x) -> uint32_of_data(data_of_uint32(x)) = x
+
+logic data_of_sint32: int -> data
+logic sint32_of_data: data -> int
+
+axiom is_sint32_of_data: 
+  forall d:data [is_sint32(sint32_of_data(d))]. is_sint32(sint32_of_data(d))
+
+axiom sint32ofdata_dataofsint32: 
+  forall x:int [data_of_sint32(x)].
+   is_sint32(x) -> sint32_of_data(data_of_sint32(x)) = x
+
+logic data_of_uint64: int -> data
+logic uint64_of_data: data -> int
+
+axiom is_uint64_of_data: 
+ forall d:data [is_uint64(uint64_of_data(d))]. is_uint64(uint64_of_data(d))
+
+axiom uint64ofdata_dataofuint64: 
+  forall x:int [data_of_uint64(x)].
+    is_uint64(x) -> uint64_of_data(data_of_uint64(x)) = x
+
+logic data_of_sint64: int -> data
+logic sint64_of_data: data -> int
+
+axiom is_sint64_of_data: 
+  forall d:data [is_sint64(sint64_of_data(d))]. is_sint64(sint64_of_data(d))
+
+axiom sint64ofdata_dataofsint64: 
+  forall x:int [data_of_sint64(x)].
+   is_sint64(x) -> sint64_of_data(data_of_sint64(x)) = x
+
+logic data_of_float16: real -> data
+logic float16_of_data: data -> real
+
+axiom is_float16_of_data: 
+  forall d:data [is_float16(float16_of_data(d))]. is_float16(float16_of_data(d))
+axiom float16ofdata_dataoffloat16: 
+  forall x:real [data_of_float16(x)]. 
+   is_float16(x) -> float16_of_data(data_of_float16(x)) = x
+
+logic data_of_float32: real -> data
+logic float32_of_data: data -> real
+
+axiom is_float32_of_data: 
+  forall d:data [is_float32(float32_of_data(d))]. is_float32(float32_of_data(d))
+axiom float32ofdata_dataoffloat32: 
+  forall x:real [data_of_float32(x)].
+    is_float32(x) -> float32_of_data(data_of_float32(x)) = x
+
+logic data_of_float64: real -> data
+logic float64_of_data: data -> real
+
+axiom is_float64_of_data: 
+  forall d:data [is_float64(float64_of_data(d))]. is_float64(float64_of_data(d))
+axiom float64ofdata_dataoffloat64: 
+  forall x:real [data_of_float64(x)].
+    is_float64(x) -> float64_of_data(data_of_float64(x)) = x
+
+logic data_of_float128: real -> data
+logic float128_of_data: data -> real
+
+axiom is_float128_of_data: 
+  forall d:data [is_float128(float128_of_data(d))]. is_float128(float128_of_data(d))
+axiom float128ofdata_dataoffloat128: 
+  forall x:real [data_of_float128(x)]. 
+    is_float128(x) -> float128_of_data(data_of_float128(x)) = x
+
+
+(**************************************************************************)
+(*** Update of Arrays over a set of Index                               ***)
+(**************************************************************************)
+
+
+logic set_range_index: 
+ 'a farray (* array*), int set (* set of index*), int (*uniq key*)  -> 'a farray
+
+axiom set_range_def :
+ forall t: 'a farray.
+  forall rg: int set.
+    forall k:int.
+     forall i:int [access(set_range_index(t,rg,k),i)]. 
+     not (member(i,rg)) ->
+      access(set_range_index(t,rg,k),i) = access(t,i)
+
+(**************************************************************************)
+(*** Bitwise Operations                                                 ***)
+(**************************************************************************)
+
+logic bnot: int -> int
+logic band: int,int -> int
+logic bor:  int,int -> int
+logic bxor: int,int -> int
+logic lshift: int,int -> int
+logic rshift: int,int -> int
+
+logic int_not: int -> int
+logic int_and: int,int -> int
+logic int_or:  int,int -> int
+logic int_xor: int,int -> int
+logic int_lsh: int,int -> int
+logic int_rshs: int,int -> int
+logic int_rshu: int,int -> int
+(* ------------------------------------------------------------------------ *)
+(* ---   Store is a basic Load/Store Memory Model                       --- *)
+(* ------------------------------------------------------------------------ *)
+
+(* Array theory version's of store memory model (store.why) *)
+
+logic addr : 
+ int(* base address*), int(* offset*) -> int(*addr *)
+
+logic offset : int(*addr*) -> int(*offset*) 
+logic base : int(*addr*) -> int(*base address*) 
+
+axiom addr_def:
+  forall a, b, d: int. 
+  addr(b,d) = a ->(base (a) = b and offset (a) = d ) 
+
+axiom addr_id:
+ forall p: int [addr(base(p),offset(p))]. 
+ addr(base(p),offset(p)) = p 
+
+logic minus_addr : int (*address*), int (*address*) -> int (*integer*)
+
+axiom minus_addr_def: 
+ forall a,b:int. 
+ base (a) = base(b) -> minus_addr(a,b) = offset(a) - offset(b)
+
+predicate addr_lt (a:int,b:int) = 
+  base(a) = base(b) and offset(a) < offset(b)
+
+function addr_lt_bool (a:int,b:int) : bool = 
+  bool_and ( eq_int_bool(base(a),base(b)) , lt_int_bool( offset(a) , offset(b) ) )
+
+predicate addr_le (a:int,b:int) = 
+  base(a) = base(b) and offset(a) <= offset(b)
+
+function addr_le_bool (a:int,b:int) : bool = 
+  bool_and ( eq_int_bool(base(a),base(b)) , le_int_bool( offset(a) , offset(b) ) )
+
+predicate addr_eq (a:int,b:int) = 
+  base(a) = base(b) and offset(a) = offset(b)
+
+function addr_eq_bool (a:int,b:int) : bool = 
+  bool_and ( eq_int_bool(base(a),base(b)) , eq_int_bool( offset(a) , offset(b) ) )
+
+
+axiom cmp_null: 
+ forall p:int [addr_eq(p,0)]. p = 0 <-> addr_eq(p,0) 
+
+axiom cmp_null_bool: 
+ forall p:int [addr_eq_bool(p,0)]. p = 0 <-> addr_eq_bool(p,0) = true 
+
+axiom cmp_null_not: 
+ forall p:int. p <> 0 <-> not addr_eq(p,0) 
+
+axiom cmp_null_bool_not: 
+ forall p:int [addr_eq_bool(p,0)]. p <> 0 <-> addr_eq_bool(p,0) = false 
+
+
+(* ------------------------------------------------------------------------ *)
+(* ---  Decoding Values                                                 --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic addr_of_data: data -> int
+logic data_of_addr: int -> data
+
+axiom addrofdata_dataofaddr: 
+ forall p:int [data_of_addr(p)]. addr_of_data(data_of_addr(p)) = p 
+
+
+(* ------------------------------------------------------------------------ *)
+(* ---  Pointer Validity                                                --- *)
+(* ------------------------------------------------------------------------ *)
+
+predicate valid (ta: int farray, p:int, n : int ) =
+ n > 0 -> ( 0 <= offset(p) and offset(p) + n <= access(ta,base(p)) )
+
+logic global : int farray -> prop
+
+(*is_fresh is the only relation between a memory state and an allocation 
+  table since we can't specify an unsucced load  *)
+logic is_fresh : data farray,int farray,int -> prop
+
+
+(** a fresh base is different of all valid bases **)
+axiom fresh :
+  forall mem: data farray. (* memory store *)
+  forall ta,ta': int farray.
+  forall x,p,n:int [valid(ta',p,n),is_fresh(mem,ta,x)].
+  is_fresh(mem,ta,x) ->
+  ta[x] = 0 -> (* ZD: keep this hypothesis*) 
+  access(ta,base(p)) = access(ta',base(p)) -> (*help alt-ergo trigger *)
+  valid(ta',p,n) ->
+      forall d,sz:int. addr(x,d)<>p
+
+(** a fresh base can't been read in memory **)
+axiom fresh_access :
+  forall mem,mem': data farray. (* memory store *)
+  forall ta,ta': int farray.
+  forall b,p,n:int 
+       [is_fresh(mem,ta,b),
+        valid(ta',p,n),
+        addr_of_data(access(mem',p))]. 
+  is_fresh(mem,ta,b) ->
+  ta[b] = 0 -> (* ZD: keep this hypothesis*) 
+  valid(ta',p,n) ->
+  access(ta,base(p)) = access(ta',base(p)) -> (*help alt-ergo trigger *)                                          
+  access(mem,p)=access(mem',p) -> (**)
+    forall d:int. addr(b,d)<>addr_of_data(access(mem',p))
+
+
+
+function addr_shift (p:int,dofs:int) : int =
+  addr( base(p),offset(p)+dofs )
+
+
+(* ------------------------------------------------------------------------ *)
+(* --- Separated                                                            --- *)
+(* ------------------------------------------------------------------------ *)
+
+
+
+predicate separated_on_addr (p:int,p':int, n1: int , n2 : int ) = 
+ base(p) = base(p') -> 
+ offset(p)+n1 <= offset(p') or offset(p) >= offset(p') + n2 
+(* ------------------------------------------------------------------------ *)
+(* --- Zone                                                             --- *)
+(* ------------------------------------------------------------------------ *)
+
+type zone 
+
+logic zrange : int,int,int -> zone
+logic zempty : zone
+logic zunion : zone,zone -> zone
+
+logic included : zone,zone -> prop
+
+logic is_havoc : int farray,data farray,zone,data farray -> prop
+
+logic is_block : zone -> prop
+
+axiom is_block_zrange : 
+ forall x,ofs,len : int. 
+  len > 0 -> is_block(zrange(x,ofs,len)) 
+
+axiom is_not_block_zempty : not (is_block(zempty))
+
+
+
+
+(*ZD: only for pointer on atomic type. *)
+function zrange_of_addr (p:int): zone =
+  zrange( base(p),offset(p),1)
+
+function zrange_of_addr_range (p:int,dofs:int,n:int) : zone =
+  zrange( base(p),offset(p)+dofs,n)
+
+logic separated : zone , zone -> prop 
+
+axiom sep_zrange : 
+ forall b,b',d,d',sz,sz':int[separated(zrange(b,d,sz),zrange(b',d',sz'))]. 
+   separated(zrange(b,d,sz),zrange(b',d',sz'))
+ <->separated_on_addr(addr(b,d),addr(b',d'),sz,sz')
+ 
+axiom separated_sym: 
+ forall z,z': zone. separated(z,z') -> separated(z',z)
+
+axiom sep_empty : 
+ forall z:zone. separated(zempty,z)
+
+axiom sep_union: 
+ forall z,z',r: zone [separated(z,zunion(z',r))]. 
+ separated(z,zunion(z',r)) <-> 
+ (separated(z,z') and separated(z,r))
+
+(* extension of included with empty and union *)
+
+axiom left_empty  : forall z:zone. zunion(z,zempty) = z
+axiom right_empty : forall z:zone. zunion(zempty,z) = z
+axiom union_same  : forall z:zone. zunion(z,z)=z
+axiom union_sym   : forall z,z':zone. zunion(z,z') = zunion(z',z)
+axiom union_assoc : forall z,r,s : zone. 
+ zunion(zunion(z,r),s) = zunion(z,zunion(r,s))  
+
+axiom inc_range_range :
+  forall b,d,sz,b',d',sz' : int 
+ [included(zrange(b,d,sz),zrange(b',d',sz'))].
+  included(zrange(b,d,sz),zrange(b',d',sz')) <-> 
+  (d<=d+sz -> ( b=b' and d'<= d and d+sz <= d'+sz' ))
+
+axiom inc_empty :
+  forall z:zone. included(zempty,z)
+
+axiom inc_same :
+  forall z:zone. included(z,z)
+
+axiom inc_range_empty :
+  forall b,d,sz:int [ included(zrange(b,d,sz),zempty) ].
+  included(zrange(b,d,sz),zempty) <-> b>b+sz
+
+axiom inc_union_right :
+  forall z,r,s:zone [included(z,zunion(r,s))].
+  (included(z,r) or included(z,s)) -> included(z,zunion(r,s))
+
+axiom inc_union_left :
+  forall s,z,z':zone [included(zunion(s,z'),z)].
+  included(s,z) -> included(z',z) -> included(zunion(s,z'),z)
+
+(* ------------------------------------------------------------------------ *)
+(* --- Access and Update with Ranges                                    --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic access_range : data farray,zone -> data
+logic update_range : data farray,zone,data -> data farray
+
+axiom access_update_range_same :
+  forall m : data farray.
+  forall z : zone.
+  forall d : data.
+  is_block (z) ->
+  access_range(update_range(m,z,d),z)=d
+
+axiom access_update_range_sep :
+  forall m : data farray.
+  forall v : data.
+  forall z,z' :zone [access_range(update_range(m,z,v),z')].
+  is_block(z) -> is_block(z') ->
+  separated(z,z') -> 
+  access_range(update_range(m,z,v),z') = access_range(m,z')
+
+axiom access_range_update_addr_sep: 
+  forall m : data farray.
+  forall v : data.
+  forall z:zone. 
+  forall p: int [access_range(update(m,p,v),z)].
+  is_block(z) -> 
+  separated(z,zrange_of_addr(p)) ->
+  access_range(update(m,p,v),z)= access_range(m,z)
+
+axiom access_update_range_addr_sep :
+  forall m : data farray.
+  forall v : data.
+  forall z: zone. 
+  forall p : int [access(update_range(m,z,v),p)].
+  is_block(z) ->
+  separated(z,zrange_of_addr(p)) ->
+  access(update_range(m,z,v),p)=access(m,p)
+
+axiom access_update_sep :
+  forall m : data farray.
+  forall v : data.
+  forall p,q : int [access(update(m,p,v),q)].
+  separated(zrange_of_addr(p),zrange_of_addr(q)) -> 
+  access(update(m,p,v),q) = access(m,q)
+
+(* ------------------------------------------------------------------------ *)
+(* --- Havoc                                                            --- *)
+(* ------------------------------------------------------------------------ *)
+
+logic update_havoc : data farray,zone,data -> data farray
+
+(* access and is_havoc *)
+
+axiom load_havoc :
+  forall m:data farray.
+  forall v:data.
+  forall z:zone. 
+  forall p:int [access(update_havoc(m,z,v),p)].
+  separated(z,zrange_of_addr(p)) -> 
+  access(update_havoc(m,z,v),p) = access(m,p)
+
+axiom load_is_havoc :
+  forall alloc:int farray.
+  forall mem,mem':data farray.
+  forall p:int.
+  forall z:zone [access(mem,p),is_havoc(alloc,mem,z,mem')].
+  included(zrange_of_addr(p),z) -> 
+  is_havoc(alloc,mem,z,mem') ->
+  access(mem',p) = access(mem,p)
+
+(* not assigned is free or in region *)
+
+logic is_assignable : int farray,zone,zone -> prop
+
+axiom is_assignable_range_free :
+  forall alloc:int farray.
+  forall p:int.
+  forall z:zone [is_assignable(alloc,zrange_of_addr(p),z)].
+  access(alloc,base(p))=0 -> 
+    is_assignable(alloc,zrange_of_addr(p),z)
+
+axiom is_assignable_included :
+  forall alloc:int farray.
+  forall z,z':zone [is_assignable(alloc,z,z')].
+  included(z,z') -> is_assignable(alloc,z,z')
+
+(* updates and is_havoc *)
+
+axiom same_havoc :
+  forall alloc:int farray.
+  forall mem:data farray.
+  forall z:zone.
+  is_havoc(alloc,mem,z,mem)
+
+axiom havoc_sym :
+  forall alloc:int farray.
+  forall m1, m2:data farray.
+  forall z:zone.
+  is_havoc(alloc,m2,z,m1) ->
+  is_havoc(alloc,m1,z,m2)
+
+axiom store_havoc :
+  forall alloc:int farray.
+  forall mem,mem':data farray.
+  forall p:int.
+  forall v:data.
+  forall z:zone [is_havoc(alloc,mem,z,update(mem',p,v))].
+  is_assignable(alloc,zrange_of_addr(p),z) ->
+  is_havoc(alloc,mem,z,mem') ->
+  is_havoc(alloc,mem,z,update(mem',p,v))
+
+axiom store_havoc_havoc :
+  forall alloc:int farray.
+  forall mem,mem':data farray.
+  forall v:data.
+  forall z',z:zone [is_havoc(alloc,mem,z,update_havoc(mem',z',v))].
+  is_assignable(alloc,z',z) ->
+  is_havoc(alloc,mem,z,mem') ->
+  is_havoc(alloc,mem,z,update_havoc(mem',z',v))
+
+
+axiom store_range_havoc :
+  forall alloc:int farray.
+  forall mem,mem':data farray.
+  forall v:data.
+  forall z',z:zone [is_havoc(alloc,mem,z,update_range(mem',z',v))].
+  is_block(z') ->
+  is_assignable(alloc,z',z) ->
+  is_havoc(alloc,mem,z,mem') ->
+  is_havoc(alloc,mem,z,update_range(mem',z',v))
+(*========================================================================*)
+(* Helper Lemmas for Store Model                                          *)
+(*------------------------------------------------------------------------*)
+
+axiom addr_base:
+ forall b,d:int.
+  base(addr(b,d)) = b
+
+axiom addr_offset:
+  forall b,d:int.
+  offset(addr(b,d)) = d
+
+
+axiom base_sep:
+  forall b,b',d,d':int.
+  b<>b' -> addr(b,d) <> addr(b',d')
+
+axiom addr_inj1:
+  forall b,b',d:int.
+  b=b' <-> addr(b,d)=addr(b',d)
+
+axiom addr_inj2:
+  forall b,d,d':int.
+  d=d' <-> addr(b,d)=addr(b,d')
+
+
+axiom addr_lt_eq: 
+ forall a:int [addr_lt(a,a)]. not (addr_lt(a,a))
+
+axiom addr_le_eq: 
+ forall a:int [addr_le(a,a)]. addr_le(a,a)
+
+axiom minus_pos_lt : 
+ forall a,b:int [addr_lt(a,b)]. 
+ base(a) = base(b) -> 
+ offset(b) - offset (a) > 0 ->
+ addr_lt(a,b)
+
+axiom minus_pos_le : 
+ forall a,b:int [addr_le(a,b)]. 
+ base(a) = base(b) -> 
+ offset(b) - offset (a) >= 0 ->
+ addr_le(a,b)
+
+axiom addr_lt_le: 
+ forall a,b:int [addr_le(a,b)]. 
+  addr_lt(a,b) -> addr_le(a,b)
+
+axiom havoc_union_update_left :   
+  forall alloc:int farray.
+  forall m,m':data farray. 
+  forall p:int.  forall v:data.
+  forall asgns:zone. 
+  is_havoc (alloc, m, zunion (zrange_of_addr(p) , asgns), m') ->
+  is_havoc (alloc, m, zunion (zrange_of_addr(p) , asgns), update(m',p, v)) 
+  
+axiom havoc_union_update_right :   
+  forall alloc:int farray.
+  forall m,m':data farray.  
+  forall p:int.  forall v:data.
+  forall z, asgns:zone. 
+  included (zrange_of_addr(p), asgns) ->
+  is_havoc (alloc, m, zunion (z , asgns), m') ->
+  is_havoc (alloc, m, zunion (z , asgns), update(m',p, v)) 
+
+axiom havoc_union_update_range_left :   
+  forall alloc:int farray.
+  forall m,m':data farray. 
+  forall v:data. forall p:int.
+  forall asgns:zone. 
+  is_havoc (alloc, m, zunion (zrange_of_addr(p) , asgns), m') ->
+  is_havoc (alloc, m, zunion (zrange_of_addr(p) , asgns), 
+            update_range (m',zrange_of_addr(p), v)) 
+  
+axiom havoc_union_update_range_right : 
+  forall alloc:int farray.
+  forall m,m':data farray.  
+  forall v:data. forall p:int.
+  forall z, asgns:zone. 
+  included (zrange_of_addr(p), asgns) ->
+  is_havoc (alloc, m, zunion (z , asgns), m') ->
+  is_havoc (alloc, m, zunion (z , asgns), 
+            update_range (m',zrange_of_addr(p), v)) 
+
+
+axiom inc_union_union : 
+ forall z0,z1,z2,z3: zone. 
+  included(z0,z2) -> included(z1,z3) -> 
+  included(zunion(z0,z1),zunion(z2,z3))   
+
+
+axiom inc_sub_zone: 
+  forall z,z':zone. 
+  included(zunion(zunion(z,z'),zunion(z',z)),zunion(z',z)) 
+
+axiom inc_permut_union: 
+ forall z,z',r: zone. 
+  included (zunion(zunion(z,z'),r),zunion(zunion(z,r),z'))
+
+
+axiom inc_permut2:
+ forall z,s,r : zone.
+  included (zunion(zunion(zunion(zunion(z,s),r),r),s) 
+           ,zunion(zunion(z,r),s))
+       
+axiom union_assoc2: 
+ forall z,z':zone. zunion(z,zunion(z,z'))= zunion(z,z') 
+
+
+axiom addr_shift_0: 
+ forall p: int [addr_shift(p,0)]. 
+  addr_shift(p,0) = p
+
+
+axiom addr_shift_shift : 
+ forall p,d,d': int 
+   [addr_shift(addr_shift(p,d),d')].
+ addr_shift(addr_shift(p,d),d') = addr_shift(p,d+d')
+
+
+axiom valid_elt :
+ forall ta:int farray.
+ forall p,i,n:int.
+ n > 0 ->  
+ valid(ta,p,n) -> 
+ 0 <= i -> 
+ i +1  <= n  -> 
+ valid(ta,addr_shift(p,i),1)
+
+
+axiom separated_on_addr_sym: 
+ forall p,q,n,m:int. 
+ separated_on_addr(p,q,n,m) -> separated_on_addr(q,p,m,n) 
+
+axiom separated_on_addr_inc: 
+  forall b,d,d',sz,sz', b1,d1,sz1 : int.  
+ separated_on_addr(addr(b1,d1),addr(b,d),sz1,sz) -> 
+ d <= d' ->
+ d'+sz' <= d+sz ->
+ separated_on_addr(addr(b1,d1),addr(b,d'),sz1,sz')
+
+
+axiom separated_inc : 
+ forall b,d,d',sz,sz', b1,d1,sz1 : int.  
+ separated(zrange(b1,d1,sz1),zrange(b,d,sz)) -> 
+ d <= d' ->
+ d'+sz' <= d+sz ->
+ separated(zrange(b1,d1,sz1),zrange(b,d',sz'))  
+
+axiom separated_one_elt: 
+ forall n,m,b,d,sz,b',d',sz' : int.
+ 0 <n -> 0 < m -> 
+ separated(zrange(b,d,sz*n),zrange(b',d',sz'*m)) -> 
+ forall i,j : int.  
+ 0 <=i -> 0<=j -> 
+ d+i+sz <= d+sz*n ->
+ d'+j+sz'<= d'+sz'*m ->
+ separated (zrange(b,d+i,sz),zrange(b',d'+j,sz')) 
+
+axiom store_pointer : 
+ forall x,ofs,y,ofs':int.
+ separated_on_addr(addr(x,ofs),addr(y,ofs'),1,1) or 
+ addr(x,ofs) = addr(y,ofs') 
+ 
+
+
+
+
+(*--------------End of Store Lemmas ---------------------------------*)

@@ -1,6 +1,7 @@
 /* run.config
-   OPT: -aorai-buchi tests/aorai/test_recursion2.promela -aorai-test 1 -aorai-acceptance
-   OPT: -aorai-buchi tests/aorai/test_recursion3.promela -aorai-test 1 -aorai-acceptance
+   EXECNOW: make tests/aorai/aorai_test.cmxs
+   OPT: -aorai-buchi tests/aorai/test_recursion2.promela -aorai-test 1 -aorai-acceptance -load-module tests/aorai/aorai_test.cmxs
+   OPT: -aorai-buchi tests/aorai/test_recursion3.promela -aorai-test 1 -aorai-acceptance -load-module tests/aorai/aorai_test.cmxs
 */
 
 /*

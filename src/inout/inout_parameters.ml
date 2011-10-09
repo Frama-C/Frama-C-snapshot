@@ -33,7 +33,7 @@ module ForceDeref =
     (struct
        let option_name = "-deref"
        let help = "force deref computation (undocumented)"
-       let kind = `Tuning
+       let output_by_default = true
      end)
 
 module ForceAccessPath =
@@ -41,47 +41,47 @@ module ForceAccessPath =
     (struct
        let option_name = "-access-path"
        let help = "force the access path information to be computed"
-       let kind = `Tuning
+       let output_by_default = true
      end)
 
 module ForceOut =
   Action
     (struct
        let option_name = "-out"
-       let help = "internal out display; this is an over-approximation of the set of written tsets"
-       let kind = `Tuning
+       let help = "Compute internal out. Those are an over-approximation of the set of written locations"
+       let output_by_default = true
      end)
 
 module ForceExternalOut =
   Action
     (struct
        let option_name = "-out-external"
-       let help = "external out display; this is an over-approximation of the set of written tsets excluding locals"
-       let kind = `Tuning
+       let help = "Compute external out. Those are an over-approximation of the set of written locations, excluding locals"
+       let output_by_default = true
      end)
 
 module ForceInput =
-   Action
+  Action
      (struct
-	let option_name = "-input"
-	let help = "display imperative inputs. Locals and function parameters are not displayed"
-        let kind = `Tuning
+        let option_name = "-input"
+        let help = "Compute imperative inputs. Locals and function parameters are not displayed"
+        let output_by_default = true
       end)
 
 module ForceInputWithFormals =
   Action
     (struct
        let option_name = "-input-with-formals"
-       let help = "display imperative inputs. Function parameters are displayed, locals are not"
-       let kind = `Tuning
+       let help = "Compute imperative inputs. Function parameters are displayed, locals are not"
+       let output_by_default = true
      end)
 
 module ForceInout =
   Action
     (struct
        let option_name = "-inout"
-       let help = "display operational inputs, an over-approximation of the set of locations whose initial value is used; and the sure outputs, an under-approximation of the set of the certainly written locations"
-       let kind = `Tuning
+       let help = "Compute operational inputs, an over-approximation of the set of locations whose initial value is used; and the sure outputs, an under-approximation of the set of the certainly written locations"
+       let output_by_default = true
      end)
 
 module ForceInoutExternalWithFormals =
@@ -89,7 +89,7 @@ module ForceInoutExternalWithFormals =
     (struct
        let option_name = "-inout-with-formals"
        let help = "same as -inout but without local variables and with function parameters"
-       let kind = `Tuning
+       let output_by_default = true
      end)
 
 (*

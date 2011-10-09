@@ -28,13 +28,14 @@ include
     (struct
        let name = "AST"
        let dependencies =
-	 [ Cil.selfMachine;
-	   Parameters.SimplifyCfg.self;
-	   Parameters.KeepSwitch.self;
-	   Parameters.UnrollingLevel.self;
-	   Parameters.Constfold.self;
-	   Parameters.ReadAnnot.self;
-	   Parameters.PreprocessAnnot.self;
+         [ Cil.selfMachine;
+           Kernel.SimplifyCfg.self;
+           Kernel.KeepSwitch.self;
+           Kernel.UnrollingLevel.self;
+           Kernel.Constfold.self;
+           Kernel.ReadAnnot.self;
+           Kernel.PreprocessAnnot.self;
+           Kernel.Files.self;
            Cil.selfFormalsDecl;
          ]
        let kind = `Internal
@@ -44,13 +45,17 @@ let mark_as_computed () = mark_as_computed () (* eta-expansion required *)
 
 let () =
   State_dependency_graph.Static.add_dependencies
-    ~from:self [ Cil.selfFormalsDecl; Alarms.self; Messages.self ];
+    ~from:self [ Cil_datatype.Stmt.Hptset.self;
+                 Cil_datatype.Varinfo.Hptset.self ];
+  Cil.register_ast_dependencies self;
   Logic_env.init_dependencies self;
 
-exception Bad_Initialisation of string
+exception Bad_Initialization of string
+
+exception NoUntypedAst
 
 let default_initialization =
-  ref (fun () -> raise (Bad_Initialisation "Cil file not initialized"))
+  ref (fun () -> raise (Bad_Initialization "Cil file not initialized"))
 
 let set_default_initialization f = default_initialization := f
 
@@ -68,23 +73,27 @@ let compute () = if not (is_computed ()) then ignore (force_compute ())
 let set_file file =
   let change old_file =
     if old_file == file then old_file
-    else raise (Bad_Initialisation "Too many initializations of the AST")
+    else raise (Bad_Initialization "Too many AST initializations")
   in
   ignore (memo ~change (fun () -> mark_as_computed (); file))
 
 module UntypedFiles = struct
+
+  let compute_untyped () =
+    if not (is_computed()) then ignore (force_compute())
+    else raise NoUntypedAst
 
   include State_builder.Option_ref
     (Initial_datatype.List(Cil_datatype.Cabs_file))
     (struct
        let name = "Untyped AST"
        let dependencies = (* the others delayed until file.ml *)
-	 [ Cil.selfMachine;
-	   self (* can't be computed without the AST *) ]
+         [ Cil.selfMachine;
+           self (* can't be computed without the AST *) ]
        let kind = `Internal
      end)
 
-  let get () = memo (fun () -> ignore (force_compute ()); get ())
+  let get () = memo (fun () -> compute_untyped (); get ())
 
 end
 

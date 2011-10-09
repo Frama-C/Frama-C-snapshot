@@ -23,10 +23,10 @@
 include Plugin.S
 
 val name: string
-module Filename: Plugin.STRING
-module InitFunc: Plugin.STRING_SET
+module Filename: Plugin.String
+module InitFunc: Plugin.String_set
 
-module ServicesOnly: Plugin.BOOL
+module ServicesOnly: Plugin.Bool
   (** @since Beryllium-20090901 *)
 
 (*

@@ -29,7 +29,7 @@ open Logic_ptree
 open Escape
 
 let print_constant fmt = function
-    IntConstant s -> pp_print_string fmt s
+  | IntConstant s -> pp_print_string fmt s
   | FloatConstant s -> pp_print_string fmt s
   | StringConstant s -> fprintf fmt "\"%s\"" s
   | WStringConstant s -> fprintf fmt "\"%s\"" s
@@ -42,11 +42,13 @@ let rec print_logic_type name fmt typ =
   match typ with
       LTvoid -> fprintf fmt "void%t" pname
     | LTinteger ->
-        let res = if !Cil.print_utf8 then Utf8_logic.integer else "integer" in
-        fprintf fmt "%s%t" res pname
+        fprintf fmt "%s%t"
+	  (if Kernel.Unicode.get () then Utf8_logic.integer else "integer")
+	  pname
     | LTreal ->
-        let res = if !Cil.print_utf8 then Utf8_logic.real else "real" in
-        fprintf fmt "%s%t" res pname
+        fprintf fmt "%s%t"
+	  (if Kernel.Unicode.get () then Utf8_logic.real else "real")
+	  pname
     | LTint i -> fprintf fmt "%a%t" Cil.d_ikind i pname
     | LTfloat f -> fprintf fmt "%a%t" Cil.d_fkind f pname
     | LTarray (t,c) ->
@@ -118,7 +120,7 @@ let getParenthLevel e =
     | PLsizeof _ | PLsizeofE _ -> 20
     | PLapp _ | PLold _ | PLat _ | PLbase_addr _ | PLblock_length _
     | PLupdate _  | PLinitField _ | PLinitIndex _
-    | PLvalid _ | PLvalid_index _ | PLvalid_range _
+    | PLvalid _ | PLvalid_index _ | PLvalid_range _ | PLinitialized _
     | PLseparated _ | PLfresh _ | PLsubtype _ | PLunion _ | PLinter _ -> 10
     | PLvar _ | PLconstant _ | PLresult | PLnull | PLtypeof _ | PLtype _
     | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLsingleton _ -> 0
@@ -127,21 +129,21 @@ let rec print_path_elt fmt = function
     | PLpathField s -> fprintf fmt ".%s" s
     | PLpathIndex i -> fprintf fmt "[@[%a@]]" print_lexpr i
 
-and print_path_val fmt (path, v) = 
+and print_path_val fmt (path, v) =
   match v with
-    | PLupdateTerm e -> 
-	fprintf fmt "@[%a@ =@ %a@]" 
-	  (pp_list ~sep:"@;" print_path_elt) path print_lexpr e 
-    | PLupdateCont path_val_list -> 
+    | PLupdateTerm e ->
+	fprintf fmt "@[%a@ =@ %a@]"
+	  (pp_list ~sep:"@;" print_path_elt) path print_lexpr e
+    | PLupdateCont path_val_list ->
 	fprintf fmt "{ \\with %a@ }"
 	  (pp_list ~sep:",@ " print_path_val) path_val_list
 
 and print_init_index fmt (i,v) =
   print_path_val fmt ([PLpathIndex i], PLupdateTerm v)
-    
+
 and print_init_field fmt (s,v) =
   print_path_val fmt ([PLpathField s], PLupdateTerm v)
-    
+
 and print_lexpr fmt e = print_lexpr_level 100 fmt e
 
 and print_lexpr_level n fmt e =
@@ -229,6 +231,8 @@ and print_lexpr_level n fmt e =
       | PLvalid_range (e,i1,i2) ->
           fprintf fmt "\\valid_range(@;@[%a,@ %a, %a@]@;)"
             print_lexpr_plain e print_lexpr_plain i1 print_lexpr_plain i2
+      | PLinitialized e ->
+          fprintf fmt "\\initialized(@;@[%a@]@;)" print_lexpr_plain e
       | PLseparated l ->
           fprintf fmt "\\separated(@;@[%a@]@;)"
             (pp_list ~sep:",@ " print_lexpr_plain) l
@@ -266,6 +270,12 @@ let print_type_annot fmt ty =
   fprintf fmt "@[type@ invariant@ %s(@;@[%a@ %s]@;)@ =@ %a;@]"
     ty.inv_name (print_logic_type None) ty.this_type ty.this_name
     print_lexpr ty.inv
+
+let print_model_annot fmt ty =
+  fprintf fmt "@[model@ %a {@;@[%a@ %s]@;}@ @]"
+    (print_logic_type None) ty.model_for_type 
+    (print_logic_type None) ty.model_type 
+    ty.model_name
 
 let rec print_decl fmt d =
   match d.decl_node with
@@ -323,27 +333,28 @@ let rec print_decl fmt d =
     | LDinvariant (s,e) ->
         fprintf fmt "@[<2>invariant@ %s:@ %a;@]" s print_lexpr e
     | LDtype_annot ty -> print_type_annot fmt ty
-    | LDvolatile(loc,(read,write)) ->
+    | LDmodel_annot ty -> print_model_annot fmt ty
+    | LDvolatile(tsets,(read,write)) ->
         fprintf fmt "@[<2>volatile@ %a%a%a;@]"
-          print_lexpr loc
+	  (pp_list ~pre:"@[" ~sep:",@ " ~suf:"@]" print_lexpr) tsets
           (pp_opt ~pre:"@ reads@ " pp_print_string) read
           (pp_opt ~pre:"@ writes@ " pp_print_string) write
 
 let print_deps fmt deps =
   match deps with
       FromAny -> ()
-    | From l -> 
+    | From l ->
       pp_list ~pre:"@ @[<2>\\from@ " ~sep:",@ " ~suf:"@]" print_lexpr fmt l
 
 let print_assigns fmt a =
   match a with
       WritesAny -> ()
     | Writes l ->
-      pp_list ~sep:"@\n" 
-        (fun fmt (loc,deps) -> 
+      pp_list ~sep:"@\n"
+        (fun fmt (loc,deps) ->
           fprintf fmt "@\nassigns@ %a%a;"
             print_lexpr loc
-            print_deps deps) 
+            print_deps deps)
         fmt l
 
 let print_clause name fmt e = fprintf fmt "@\n%s@ %a;" name print_lexpr e
@@ -407,7 +418,10 @@ let print_code_annot fmt ca =
   match ca with
       AAssert(bhvs,e) ->
         fprintf fmt "%aassert@ %a;" print_behaviors bhvs print_lexpr e
-    | AStmtSpec s -> print_spec fmt s
+    | AStmtSpec (bhvs,s) -> 
+	fprintf fmt "%a%a" 
+	  print_behaviors bhvs 
+	  print_spec s
     | AInvariant (bhvs,loop,e) ->
         fprintf fmt "%a%ainvariant@ %a;"
           print_behaviors bhvs (pp_cond loop) "loop@ " print_lexpr e
@@ -415,3 +429,9 @@ let print_code_annot fmt ca =
     | AAssigns (bhvs,a) ->
         fprintf fmt "%aloop@ %a" print_behaviors bhvs print_assigns a
     | APragma p -> print_pragma fmt p
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

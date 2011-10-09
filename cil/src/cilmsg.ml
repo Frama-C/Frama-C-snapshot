@@ -39,43 +39,25 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Cil Messages                                                       --- *)
-(* -------------------------------------------------------------------------- *)
-
-include Log.Register
-  (struct
-     let channel = Log.kernel_channel_name
-     let label = Log.kernel_label_name
-     let verbose_atleast n = !Cmdline.kernel_verbose_atleast_ref n
-     let debug_atleast n = !Cmdline.kernel_debug_atleast_ref n
-   end)
-
 let hadErrors = ref false
 let errorstack = ref []
 let had_errors () = !hadErrors
 let clear_errors () = hadErrors := false
 let set_error (_:Log.event) = hadErrors := true
 
-let push_errors () = errorstack := !hadErrors :: !errorstack ; hadErrors := false
-let pop_errors () =
-  match !errorstack with
-    | [] -> fatal "Error stack is inconsistent. Please report bug."
-    | old::stack -> errorstack := stack ; hadErrors := old
+let push_errors () =
+  errorstack := !hadErrors :: !errorstack ;
+  hadErrors := false
+
+let pop_errors () = match !errorstack with
+  | [] -> Kernel.fatal "Error stack is inconsistent."
+  | old :: stack ->
+    errorstack := stack;
+    hadErrors := old
 
 let () =
-  begin
-    register Log.Error set_error ;
-    register Log.Failure set_error ;
-  end
-
-let on_errors_abort fmt = 
-  if !hadErrors 
-  then abort fmt
-  else Log.nullprintf fmt
-    
-let warnFlag = false
-let warnOpt fmt = if warnFlag then warning fmt else Log.nullprintf fmt
+  Kernel.register Log.Error set_error;
+  Kernel.register Log.Failure set_error
 
 (*
 Local Variables:

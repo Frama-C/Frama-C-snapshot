@@ -40,7 +40,7 @@ include Datatype.Make
   let reprs =
     List.fold_left
       (fun acc n1 ->
-	List.fold_left (fun acc n2 -> (n1, n2) :: acc) acc Int.reprs)
+        List.fold_left (fun acc n2 -> (n1, n2) :: acc) acc Int.reprs)
       []
       Int.reprs
 
@@ -52,10 +52,10 @@ include Datatype.Make
         Int.equal (snd x) (snd y)
       then 0
       else begin
-	(*Format.printf "Comparaison d'intervalles non comparables [%a..%a] et [%a..%a]@\n@\n"
-	  Int.pretty (fst x) Int.pretty (snd x)
+        (*Format.printf "Comparaison d'intervalles non comparables [%a..%a] et [%a..%a]@\n@\n"
+          Int.pretty (fst x) Int.pretty (snd x)
           Int.pretty (fst y) Int.pretty (snd y);*)
-	raise Cannot_compare_intervals
+        raise Cannot_compare_intervals
       end
 
   let hash (x, y) = Int.hash x + 7 * Int.hash y
@@ -77,15 +77,15 @@ let check_coverage (bi,ei) concerned =
   ( match concerned with
         [] -> raise Is_not_included
       | ((_bj,ej),_) :: _ ->
-	  if Int.gt ei ej then raise Is_not_included);
+          if Int.gt ei ej then raise Is_not_included);
   let rec check_joint concerned =
     match concerned with
-	[] -> assert false
+        [] -> assert false
       | [(bj,_ej),_] ->
-	  if Int.lt bi bj then raise Is_not_included
+          if Int.lt bi bj then raise Is_not_included
       | ((bj,_ej),_) :: ((((_bk,ek),_)::_) as tail) ->
-	  if not (Int.equal bj (Int.succ ek)) then raise Is_not_included;
-	  check_joint tail
+          if not (Int.equal bj (Int.succ ek)) then raise Is_not_included;
+          check_joint tail
   in
   check_joint concerned
 

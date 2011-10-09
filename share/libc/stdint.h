@@ -72,9 +72,7 @@ typedef __INT_FAST64_T int_fast64_t;
 typedef __UINT_FAST64_T uint_fast64_t;
 
 /* ISO C: 7.18.1.4 */
-#ifdef __INTPTR_T
-typedef __INTPTR_T intptr_t;
-#endif
+#include "__fc_define_intptr_t.h"
 
 #ifdef __UINTPTR_T
 typedef __UINTPTR_T uintptr_t;

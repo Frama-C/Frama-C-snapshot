@@ -51,30 +51,6 @@ let ($) f g x = f (g x)
 
 let swap f x y = f y x
 
-(** Print a hash table *)
-let docHash ?(sep=format_of_string ",@ ") entry fmt h =
-  Format.fprintf fmt "@[" ;
-  ignore
-    (H.fold
-       (fun key data next ->
-	  if next then Format.fprintf fmt sep ;
-	  entry fmt key data ;
-	  true)
-       h false) ;
-  Format.fprintf fmt "@]"
-
-let hash_to_list (h: ('a, 'b) H.t) : ('a * 'b) list =
-  H.fold
-    (fun key data acc -> (key, data) :: acc)
-    h
-    []
-
-let keys (h: ('a, 'b) H.t) : 'a list =
-  H.fold
-    (fun key _data acc -> key :: acc)
-    h
-    []
-
 let hash_copy_into (hfrom: ('a, 'b) H.t) (hto: ('a, 'b) H.t) : unit =
   H.clear hto;
   H.iter (H.add hto) hfrom
@@ -111,14 +87,13 @@ let rec list_span (p : 'a -> bool) (xs : 'a list) : 'a list * 'a list =
         let (ys,zs) = list_span p xs' in (x::ys,zs)
       else ([],xs)
   end
-;;
 
 let rec list_rev_append revxs ys =
   begin match revxs with
   | [] -> ys
   | x::xs -> list_rev_append xs (x::ys)
   end
-;;
+
 let list_insert_by (cmp : 'a -> 'a -> int)
     (x : 'a) (xs : 'a list) : 'a list =
   let rec helper revhs ts =
@@ -130,14 +105,12 @@ let list_insert_by (cmp : 'a -> 'a -> int)
     end
   in
   helper [] xs
-;;
 
 let list_head_default (d : 'a) (xs : 'a list) : 'a =
   begin match xs with
   | [] -> d
   | x::_ -> x
   end
-;;
 
 let rec list_iter3 f xs ys zs =
   begin match xs, ys, zs with
@@ -145,7 +118,6 @@ let rec list_iter3 f xs ys zs =
   | x::xs, y::ys, z::zs -> f x y z; list_iter3 f xs ys zs
   | _ -> invalid_arg "Util.list_iter3"
   end
-;;
 
 let rec list_last = function
   | [] -> invalid_arg "Cilutil.list_last"
@@ -158,7 +130,6 @@ let rec get_some_option_list (xs : 'a option list) : 'a list =
   | None::xs  -> get_some_option_list xs
   | Some x::xs -> x :: get_some_option_list xs
   end
-;;
 
 (* tail-recursive append: reverses xs twice *)
 let list_append (xs: 'a list) (ys: 'a list): 'a list =
@@ -194,15 +165,12 @@ let list_fold_lefti (f: 'acc -> int -> 'a -> 'acc) (start: 'acc)
   in
   loop (0, start) l
 
-
 let list_init (len : int) (init_fun : int -> 'a) : 'a list =
   let rec loop n acc =
     if n < 0 then acc
     else loop (n-1) ((init_fun n)::acc)
   in
   loop (len - 1) []
-;;
-
 
 let rec list_find_first (l: 'a list) (f: 'a -> 'b option) : 'b option =
   match l with
@@ -482,14 +450,14 @@ let findConfigurationInt (key: string) : int =
   match findConfiguration key with
     ConfInt i -> i
   | _ ->
-      Cilmsg.warning "Configuration %s is not an integer" key;
+      Kernel.warning "Configuration %s is not an integer" key;
       raise Not_found
 
 let findConfigurationFloat (key: string) : float =
   match findConfiguration key with
     ConfFloat i -> i
   | _ ->
-      Cilmsg.warning "Configuration %s is not a float" key;
+      Kernel.warning "Configuration %s is not a float" key;
       raise Not_found
 
 let useConfigurationInt (key: string) (f: int -> unit) =
@@ -504,7 +472,7 @@ let findConfigurationString (key: string) : string =
   match findConfiguration key with
     ConfString s -> s
   | _ ->
-      Cilmsg.warning "Configuration %s is not a string" key;
+      Kernel.warning "Configuration %s is not a string" key;
       raise Not_found
 
 let useConfigurationString (key: string) (f: string -> unit) =
@@ -516,7 +484,7 @@ let findConfigurationBool (key: string) : bool =
   match findConfiguration key with
     ConfBool b -> b
   | _ ->
-      Cilmsg.warning "Configuration %s is not a boolean" key;
+      Kernel.warning "Configuration %s is not a boolean" key;
       raise Not_found
 
 let useConfigurationBool (key: string) (f: bool -> unit) =
@@ -527,7 +495,7 @@ let findConfigurationList (key: string) : configData list  =
   match findConfiguration key with
     ConfList l -> l
   | _ ->
-      Cilmsg.warning "Configuration %s is not a list" key;
+      Kernel.warning "Configuration %s is not a list" key;
       raise Not_found
 
 let useConfigurationList (key: string) (f: configData list -> unit) =
@@ -558,7 +526,7 @@ let saveConfiguration (fname: string) =
 
       | ConfString s ->
           if String.contains s '"' then
-            Cilmsg.fatal "Guilib: configuration string contains quotes";
+            Kernel.fatal "Guilib: configuration string contains quotes";
           Buffer.add_char buff '"';
           Buffer.add_string buff s;
           Buffer.add_char buff '"'; (* '"' *)
@@ -573,14 +541,14 @@ let saveConfiguration (fname: string) =
   in
   try
     let oc = open_out fname in
-    Cilmsg.debug "Saving configuration to %s@." (absoluteFilename fname);
+    Kernel.debug "Saving configuration to %s@." (absoluteFilename fname);
     H.iter (fun k c ->
       output_string oc (k ^ "\n");
       output_string oc ((configToString c) ^ "\n"))
       configurationData;
     close_out oc
   with _ ->
-    Cilmsg.warning "Cannot open configuration file %s\n" fname
+    Kernel.warning "Cannot open configuration file %s\n" fname
 
 
 (** Make some regular expressions early *)
@@ -603,14 +571,14 @@ let loadConfiguration (fname: string) : unit =
 	let p = Str.matched_group 1 s in
         (try ConfInt (int_of_string p)
 	 with Failure "int_of_string" ->
-	   Cilmsg.warning "Invalid integer configuration element %s" p;
+	   Kernel.warning "Invalid integer configuration element %s" p;
 	   raise Not_found)
       end else if Str.string_match floatRegexp s !idx then begin
         idx := Str.match_end ();
 	let p = Str.matched_group 1 s in
         (try ConfFloat (float_of_string p)
 	 with Failure "float_of_string" ->
-	   Cilmsg.warning "Invalid float configuration element %s" p;
+	   Kernel.warning "Invalid float configuration element %s" p;
 	   raise Not_found)
       end else if Str.string_match boolRegexp s !idx then begin
         idx := Str.match_end ();
@@ -623,7 +591,7 @@ let loadConfiguration (fname: string) : unit =
         incr idx;
         let rec loop (acc: configData list) : configData list =
           if !idx >= l then begin
-            Cilmsg.warning "Non-terminated list in configuration %s" s;
+            Kernel.warning "Non-terminated list in configuration %s" s;
             raise Not_found
           end;
           if String.get s !idx = ']' then begin
@@ -634,7 +602,7 @@ let loadConfiguration (fname: string) : unit =
         in
         ConfList (loop [])
       end else begin
-        Cilmsg.warning "Bad configuration element in a list: %s"
+        Kernel.warning "Bad configuration element in a list: %s"
                   (String.sub s !idx (l - !idx));
         raise Not_found
       end
@@ -643,7 +611,7 @@ let loadConfiguration (fname: string) : unit =
   in
   (try
     let ic = open_in fname in
-    Cilmsg.debug "Loading configuration from %s@." (absoluteFilename fname);
+    Kernel.debug "Loading configuration from %s@." (absoluteFilename fname);
     (try
       while true do
         let k = input_line ic in
@@ -695,7 +663,7 @@ let dumpSymbols () =
     let pp_map fmt map =
       IH.iter (fun i k -> Format.fprintf fmt " %s -> %d\n" k i) map
     in
-    Cilmsg.result "Current symbols\n%a" pp_map symbolNames ;
+    Kernel.result "Current symbols\n%a" pp_map symbolNames ;
   end
 
 let newSymbol (n: string) : symbol =
@@ -715,7 +683,7 @@ let registerSymbolName (n: string) : symbol =
 (** Register a range of symbols. The mkname function will be invoked for
  * indices starting at 0 *)
 let registerSymbolRange (count: int) (mkname: int -> string) : symbol =
-  if count < 0 then Cilmsg.fatal "registerSymbolRange: invalid counter";
+  if count < 0 then Kernel.fatal "registerSymbolRange: invalid counter";
   let first = !nextSymbolId in
   nextSymbolId := !nextSymbolId + count;
   symbolRangeNaming :=
@@ -735,38 +703,8 @@ let symbolName (id: symbol) : string =
       IH.add symbolNames id n;
       n
     with Not_found ->
-      Cilmsg.warning "Cannot find the name of symbol %d" id;
+      Kernel.warning "Cannot find the name of symbol %d" id;
       "symbol" ^ string_of_int id
-
-(************************************************************************)
-
-(** {1 Int32 Operators} *)
-
-module Int32Op = struct
-   exception IntegerTooLarge
-   let to_int (i: int32) =
-     let i' = Int32.to_int i in (* Silently drop the 32nd bit *)
-     if i = Int32.of_int i' then i'
-     else raise IntegerTooLarge
-
-   let (<%) = (fun x y -> (Int32.compare x y) < 0)
-   let (<=%) = (fun x y -> (Int32.compare x y) <= 0)
-   let (>%) = (fun x y -> (Int32.compare x y) > 0)
-   let (>=%) = (fun x y -> (Int32.compare x y) >= 0)
-   let (<>%) = (fun x y -> (Int32.compare x y) <> 0)
-
-   let (+%) = Int32.add
-   let (-%) = Int32.sub
-   let ( *% ) = Int32.mul
-   let (/%) = Int32.div
-   let (~-%) = Int32.neg
-
-   (* We cannot use the <<% because it trips camlp4 *)
-   let sll = fun i j -> Int32.shift_left i (to_int j)
-   let (>>%) = fun i j -> Int32.shift_right i (to_int j)
-   let (>>>%) = fun i j -> Int32.shift_right_logical i (to_int j)
-end
-
 
 (*********************************************************************)
 

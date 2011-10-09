@@ -26,7 +26,10 @@ open Cil_types
 open Cilutil
 open Cil
 
-let debug format = Sparecode_params.debug ~level:2 format
+let dkey = "globs"
+
+let debug format = Sparecode_params.debug ~dkey ~level:2 format
+let debug' format = Sparecode_params.debug ~dkey ~level:3 format
 
 let used_variables = Hashtbl.create 257
 let var_init = Hashtbl.create 257
@@ -53,7 +56,7 @@ class collect_visitor = object (self)
         * name... *)
         if Hashtbl.mem used_typeinfo ti.tname then SkipChildren
         else begin
-          debug "[sparecode:globs] add used typedef %s@." ti.tname;
+          debug "add used typedef %s@." ti.tname;
           Hashtbl.add used_typeinfo ti.tname ();
           ignore (visitCilType (self:>Cil.cilVisitor) ti.ttype);
           DoChildren
@@ -61,13 +64,13 @@ class collect_visitor = object (self)
     | TEnum(ei,_) ->
         if Hashtbl.mem used_enuminfo ei.ename then SkipChildren
         else begin
-          debug "[sparecode:globs] add used enum %s@." ei.ename;
+          debug "add used enum %s@." ei.ename;
           Hashtbl.add used_enuminfo ei.ename (); DoChildren
         end
     | TComp(ci,_,_) ->
         if Hashtbl.mem used_compinfo ci.cname then SkipChildren
         else begin
-          debug "[sparecode:globs] add used comp %s@." ci.cname;
+          debug "add used comp %s@." ci.cname;
           Hashtbl.add used_compinfo ci.cname ();
           List.iter
             (fun f -> ignore (visitCilType (self:>Cil.cilVisitor) f.ftype))
@@ -78,7 +81,7 @@ class collect_visitor = object (self)
 
   method vvrbl v =
     if v.vglob && not (Hashtbl.mem used_variables v) then begin
-      debug "[sparecode:globs] add used var %s@." v.vname;
+      debug "add used var %s@." v.vname;
       Hashtbl.add used_variables v ();
       ignore (visitCilType (self:>Cil.cilVisitor) v.vtype);
       try
@@ -90,14 +93,20 @@ class collect_visitor = object (self)
 
   method vglob_aux g = match g with
     | GFun (f, _) ->
-        debug "[sparecode:globs] add function %s@." f.svar.vname;
+        debug "add function %s@." f.svar.vname;
         Hashtbl.add used_variables f.svar ();
         Cil.DoChildren
     | GAnnot _ -> Cil.DoChildren
     | GVar (v, init, _) ->
-        (match init.init with None -> ()
-                            | Some i -> Hashtbl.add var_init v i);
-        Cil.SkipChildren
+        let _ = match init.init with | None -> ()
+          | Some init ->
+              begin
+                Hashtbl.add var_init v init;
+                if Hashtbl.mem used_variables v then
+                  (* already used before its initialization (see bug #758) *)
+                  ignore (visitCilInit (self:>Cil.cilVisitor) v NoOffset init)
+              end
+        in Cil.SkipChildren
     | GVarDecl(_,v,_) when isFunctionType v.vtype -> DoChildren
     | _ -> Cil.SkipChildren
 
@@ -115,27 +124,27 @@ class filter_visitor  prj = object
       | GVarDecl (_, v, _loc) -> (* variable/function declaration *)
           if Hashtbl.mem used_variables v then DoChildren
           else begin
-            debug "[sparecode:globs] remove var %s@." v.vname;
+            debug "remove var %s@." v.vname;
             ChangeTo []
           end
       | GType (ti, _loc) (* typedef *) ->
           if Hashtbl.mem used_typeinfo ti.tname then DoChildren
           else begin
-            debug "[sparecode:globs] remove typedef %s@." ti.tname;
+            debug "remove typedef %s@." ti.tname;
             ChangeTo []
           end
       | GCompTag (ci, _loc) (* struct/union definition *)
       | GCompTagDecl (ci, _loc) (* struct/union declaration *) ->
           if Hashtbl.mem used_compinfo ci.cname then DoChildren
           else begin
-            debug "[sparecode:globs] remove comp %s@." ci.cname;
+            debug "remove comp %s@." ci.cname;
             ChangeTo []
           end
       | GEnumTag (ei, _loc) (* enum definition *)
       | GEnumTagDecl (ei, _loc) (* enum declaration *) ->
           if Hashtbl.mem used_enuminfo ei.ename then DoChildren
           else begin
-            debug "[sparecode:globs] remove enum %s@." ei.ename;
+            debug "remove enum %s@." ei.ename;
             DoChildren (* ChangeTo [] *)
           end
       | _ -> Cil.DoChildren
@@ -156,7 +165,7 @@ let () =
   Cmdline.run_after_extended_stage
     (fun () ->
        State_dependency_graph.Static.add_codependencies
-	 ~onto:Result.self
+         ~onto:Result.self
          [ !Db.Pdg.self; !Db.Outputs.self_external ])
 
 let rm_unused_decl =
@@ -165,12 +174,12 @@ let rm_unused_decl =
        clear_tables ();
        let visitor = new collect_visitor in
        ignore
-	 (Visitor.visitFramacFile
-	    (visitor:>Visitor.frama_c_visitor) (Ast.get ()));
-       debug "[sparecode:globs] filtering done@.";
+         (Visitor.visitFramacFile
+            (visitor:>Visitor.frama_c_visitor) (Ast.get ()));
+       debug "filtering done@.";
        let visitor = new filter_visitor in
        let new_prj = File.create_project_from_visitor new_proj_name visitor in
-       let ctx = Parameters.get_selection_context () in
+       let ctx = Plugin.get_selection_context () in
        Project.copy ~selection:ctx new_prj;
        new_prj)
 

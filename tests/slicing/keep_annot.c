@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -context-valid-pointers -lib-entry -main f -slice-print -slice-assert f 
-   OPT: -context-valid-pointers -lib-entry -main f -slice-print -slice-assert f -slicing-keep-annotations
-   OPT: -context-valid-pointers -lib-entry -main L -slice-print -slice-pragma L -slicing-keep-annotations
-   OPT: -context-valid-pointers -lib-entry -main L -slice-print -slice-pragma L
+   OPT: -check -context-valid-pointers -lib-entry -main f -slice-assert f  -then-on 'Slicing export' -print
+   OPT: -check -context-valid-pointers -lib-entry -main f -slice-assert f -slicing-keep-annotations -then-on 'Slicing export' -print
+   OPT: -check -context-valid-pointers -lib-entry -main L -slice-pragma L -slicing-keep-annotations -then-on 'Slicing export' -print
+   OPT: -check -context-valid-pointers -lib-entry -main L -slice-pragma L -then-on 'Slicing export' -print
 */
 
 typedef struct { int a; double b; } las;

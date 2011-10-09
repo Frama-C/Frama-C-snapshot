@@ -213,7 +213,7 @@ let restoreGA ?deepCopy (ga: 'a t) : (unit -> unit) =
   in
   (fun () ->
      if ga.gaFill != old.gaFill then
-       Cilmsg.fatal "restoreGA to an array with a different fill." ;
+       Kernel.fatal "restoreGA to an array with a different fill." ;
      ga.gaMaxInitIndex <- old.gaMaxInitIndex;
      for i = 0 to max_init_index ga do 
        set ga i (getg old i)

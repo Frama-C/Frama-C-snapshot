@@ -1,6 +1,6 @@
 /* run.config
  *    GCC:
- *    OPT: -fct-pdg main -inout -journal-disable
+ *    OPT: -fct-pdg main -inout -journal-disable -pdg-print -pdg-verbose 2
  *
  */
 

@@ -105,60 +105,39 @@ let dummyinfo =
 let current = ref dummyinfo
 let first_filename_encountered = ref None
 
-let setHLine (l: int) : unit =
-    !current.hline <- l
-let setHFile (f: string) : unit =
-    !current.hfile <- f
+let setHLine l = !current.hline <- l
+let setHFile f = !current.hfile <- f
 
-let rem_quotes str = String.sub str 1 ((String.length str) - 2)
-
-(* Change \ into / in file names. To avoid complications with escapes
-   [BM] DO NOT USE this function. It mutates [str] and does not take care of its length. *)
-(*let cleanFileName str =
-  let str1 =
-    if str <> "" && String.get str 0 = '"' (* '"' ( *)
-    then rem_quotes str else str in
-  let l = String.length str1 in
-  let rec loop (copyto: int) (i: int) =
-    if i >= l then
-      String.sub str1 0 copyto
-     else
-       let c = String.get str1 i in
-       if c <> '\\' then begin
-          String.set str1 copyto c; loop (copyto + 1) (i + 1)
-       end else begin
-          String.set str1 copyto '/';
-          if i < l - 2 && String.get str1 (i + 1) = '\\' then
-              loop (copyto + 1) (i + 2)
-          else
-              loop (copyto + 1) (i + 1)
-       end
-  in
-  loop 0 0
-*)
+let rem_quotes str = String.sub str 1 (String.length str - 2)
 
 let readingFromStdin = ref false
 
-let startParsing ?(useBasename=true) (fname: string) =
+let startParsing ?(useBasename=true) fname =
   (* We only support one open file at a time *)
   if !current != dummyinfo then begin
-     (Cilmsg.abort "Errormsg.startParsing supports only one open file: You want to open %s and %s is still open@\n" fname !current.fileName);
+    Kernel.fatal
+      "[Errorloc.startParsing] supports only one open file: \
+You want to open %S and %S is still open"
+      fname !current.fileName;
   end;
   let inchan =
-    try if fname = "-" then begin
-           readingFromStdin := true;
-           stdin
-        end else begin
-           readingFromStdin := false;
-          open_in_bin fname
-        end
-    with e -> (Cilmsg.abort "Cannot find input file %s (exception %s"
-                    fname (Printexc.to_string e)) in
+    try
+      if fname = "-" then begin
+        readingFromStdin := true;
+        stdin
+      end else begin
+        readingFromStdin := false;
+        open_in_bin fname
+      end
+    with Sys_error s ->
+      Kernel.abort "Cannot find input file %S: %s" fname s
+  in
   let lexbuf = Lexing.from_channel inchan in
   let i =
     { linenum = 1; linestart = 0;
       fileName =
-        (*cleanFileName*) (if useBasename then Filename.basename fname else fname);
+        (*cleanFileName*)
+	(if useBasename then Filename.basename fname else fname);
       lexbuf = lexbuf; inchan = Some inchan;
       hfile = ""; hline = 0;
       num_errors = 0 } in
@@ -169,20 +148,6 @@ let startParsing ?(useBasename=true) (fname: string) =
       Lexing.pos_bol   = 0;
       Lexing.pos_cnum  = 0
     };
-  current := i;
-  first_filename_encountered := None;
-  lexbuf
-
-let startParsingFromString ?(file="<string>") ?(line=1) (str: string) =
-  let lexbuf = Lexing.from_string str in
-  let i =
-    { linenum = line; linestart = line - 1;
-      fileName = file;
-      hfile = ""; hline = 0;
-      lexbuf = lexbuf;
-      inchan = None;
-      num_errors = 0 }
-  in
   current := i;
   first_filename_encountered := None;
   lexbuf
@@ -250,14 +215,15 @@ let parse_error (msg: string) : 'a =
   let i = !current in
   i.num_errors <- i.num_errors + 1;
   if i.num_errors > max_errors then
-    Cilmsg.abort "Too many errors."
+    Kernel.abort "Too many errors."
   else
-    Cilmsg.with_error
+    Kernel.with_error
       (fun _ -> raise Parsing.Parse_error)
-      ~source:{
-	Log.src_file = i.fileName ;
-	Log.src_line = i.linenum ;
-      } "%s" msg
+      ~source:{Lexing.pos_fname= i.fileName ;
+	       pos_lnum = i.linenum;
+               pos_bol = i.linestart;
+               pos_cnum = 0;}
+      "%s" msg
 
 (* More parsing support functions: line, file, char count *)
 let getPosition () : Lexing.position * Lexing.position =
@@ -277,7 +243,7 @@ type location =
 
 let d_loc fmt l = Format.fprintf fmt "%s:%d" l.file l.line
 
-let d_hloc fmt l = 
+let d_hloc fmt l =
   Format.fprintf fmt "%s:%d:" l.file l.line ;
   if l.hline > 0 then Format.fprintf fmt " (%s:%d)" l.hfile l.hline
 

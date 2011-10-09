@@ -20,9 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil
-open Cil_types
-open Abstract_value
 open Cil_datatype
 
 module Widen_hint_bases = Base.Map.Make(Ival.Widen_Hints)
@@ -35,26 +32,26 @@ include Datatype.Pair
    (struct
      include Datatype.Serializable_undefined
      type t =
-	 Ival.Widen_Hints.t
-	 * Ival.Widen_Hints.t
-	 * Widen_hint_bases.t
-	 * Widen_hint_stmts.t
+         Ival.Widen_Hints.t
+         * Ival.Widen_Hints.t
+         * Widen_hint_bases.t
+         * Widen_hint_stmts.t
      let name = "widen types"
      let structural_descr =
        Structural_descr.t_tuple
-	 [| Ival.Widen_Hints.packed_descr;
-	    Ival.Widen_Hints.packed_descr;
-	    Widen_hint_bases.packed_descr;
-	    Widen_hint_stmts.packed_descr |]
+         [| Ival.Widen_Hints.packed_descr;
+            Ival.Widen_Hints.packed_descr;
+            Widen_hint_bases.packed_descr;
+            Widen_hint_stmts.packed_descr |]
      let reprs =
        List.map
-	 (fun wh -> wh, wh, Base.Map.empty, Stmt.Map.empty)
-	 Ival.Widen_Hints.reprs
+         (fun wh -> wh, wh, Base.Map.empty, Stmt.Map.empty)
+         Ival.Widen_Hints.reprs
      let mem_project = Datatype.never_any_project
     end))
 
 (* map from Base.t to Ival.Widen_Hints.t *)
-type var_key = Default | All | VarKey of Cvalue_type.V.M.key
+type var_key = Default | All | VarKey of Cvalue.V.M.key
 
 let hints_from_key (forced_hints, default_hints, var_map) var_key =
   let widen_hints =
@@ -63,10 +60,10 @@ let hints_from_key (forced_hints, default_hints, var_map) var_key =
       with Not_found -> default_hints
     in
     Ival.Widen_Hints.union forced_hints hints
-  in (* Format.printf "WIDEN_HINT widen a var_key %a -> %a @\n"
+  in (* Format.printf "WIDEN_HInt widen a var_key %a -> %a @\n"
         Base.pretty var_key
         Ival.Widen_Hints.pretty widen_hints; *)
-  Cvalue_type.V.Top_Param.O.empty, fun _ -> widen_hints
+  Cvalue.V.Top_Param.O.empty, fun _ -> widen_hints
 
 let hints_from_keys
     stmt_key
@@ -116,7 +113,7 @@ let add_num_hints
           try Base.Map.find var_key var_map
           with Not_found -> Ival.Widen_Hints.empty
         in
-	Ival.Widen_Hints.union hints previous_hints
+        Ival.Widen_Hints.union hints previous_hints
       in
       forced_hints,
       default_hints,
@@ -129,7 +126,7 @@ let add_num_hints
           try Stmt.Map.find stmt_key stmt_map
           with Not_found -> Base.Map.empty
         in
-	add_merge var_key hints previous_var_map
+        add_merge var_key hints previous_var_map
       in
       forced_hints,
       default_hints,

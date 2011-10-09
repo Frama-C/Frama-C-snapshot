@@ -22,7 +22,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(*$Id: logic_preprocess.mll,v 1.20 2008-11-20 07:44:31 uid562 Exp $*)
 {
   open Lexing
   type state = NORMAL | SLASH | INCOMMENT
@@ -50,10 +49,10 @@
   let backslash = "__BACKSLASH__"
 
   let abort_preprocess reason outfile =
-    let source = { Log.src_file = !curr_file;
-                   Log.src_line = !curr_line }
+    let source = {Lexing.dummy_pos with Lexing.pos_fname = !curr_file;
+                  pos_lnum = !curr_line;}
     in
-    Cilmsg.error ~source
+    Kernel.error ~source
       "Can't preprocess annotation: %s\nAnnotation will be kept as is"
       reason;
     Buffer.output_buffer outfile buf
@@ -62,7 +61,7 @@
     (*Printf.printf "Preprocessing annotation:\n%!";
     Buffer.output_buffer stdout buf;
     print_newline(); *)
-    let debug = Cilmsg.debug_atleast 3 in
+    let debug = Kernel.debug_atleast 3 in
     let (ppname, ppfile) = Filename.open_temp_file "ppannot" ".c" in
     Buffer.output_buffer ppfile macros;
     (* NB: the three extra spaces replace the beginning of the annotation
@@ -262,6 +261,7 @@ and annot_comment cpp outfile = parse
   | '\n' { incr curr_line; is_newline:=NEWLINE;
            Buffer.add_char buf '\n'; annot cpp outfile lexbuf
          }
+  | "*/" { preprocess_annot cpp outfile; main cpp outfile lexbuf }
   | eof { abort_preprocess "eof in the middle of a comment" outfile }
   | _ as c { Buffer.add_char buf c; annot_comment cpp outfile lexbuf }
 
@@ -274,6 +274,8 @@ and char annot cpp outfile = parse
            Buffer.add_char buf '\''; annot cpp outfile lexbuf }
   | "\\'" { is_newline:=CHAR;
             Buffer.add_string buf "\\'"; char annot cpp outfile lexbuf }
+  | "\\\\" { is_newline:=CHAR;
+            Buffer.add_string buf "\\\\"; char annot cpp outfile lexbuf }
   | eof { abort_preprocess "eof while parsing a char literal" outfile }
   | _ as c { is_newline:=CHAR;
              Buffer.add_char buf c; char annot cpp outfile lexbuf }

@@ -11,7 +11,7 @@ let main _ =
 
   (* we are interesting in having several slices,
    * so use mode PreciseSlices *)
-  (* SlicingParameters.Mode.Calls.set 3; *)
+  (* SlicingKernel.Mode.Calls.set 3; *)
 
   (*~~~~~~~~~~~~ Project 1 : *)
 

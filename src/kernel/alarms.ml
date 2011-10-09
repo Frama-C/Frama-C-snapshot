@@ -23,25 +23,13 @@
 open Cil_types
 open Cil
 
-type t =
-  | Division_alarm
-  | Memory_alarm
-  | Index_alarm
-  | Shift_alarm
-  | Pointer_compare_alarm
-  | Signed_overflow_alarm
-  | Using_nan_or_infinite_alarm
-  | Result_is_nan_or_infinite_alarm
-  | Separation_alarm
-  | Other_alarm
-
 let pretty fmt al =
   Format.fprintf fmt "alarm caused by %s"
   (match al with
   | Division_alarm -> "a division"
   | Memory_alarm -> "a memory access"
   | Index_alarm -> "a memory access" (* TODO: separate a day when
-    		     	    	    the oracles are working *)
+                                    the oracles are working *)
   | Shift_alarm -> "a shift"
   | Signed_overflow_alarm -> "an overflow in signed integer arithmetic"
   | Pointer_compare_alarm -> "a pointer comparison"
@@ -51,27 +39,30 @@ let pretty fmt al =
       "incompatible accesses to the same zone in unspecified order"
   | Other_alarm -> "a safety concern")
 
-type alarm = t * code_annotation * annot_status
+type alarm = Cil_types.alarm * code_annotation
 
 module Alarm_datatype =
   Datatype.Make
     (struct
+      open Cil_datatype
       include Datatype.Serializable_undefined
       type t = alarm
       let name = "Alarms.Alarm_datatype"
-      let reprs =
-	List.map
-	  (fun c -> Other_alarm, c, { status = Unknown })
-	  Cil_datatype.Code_annotation.reprs
-      let compare (a,l,_ : alarm) (a',l',_) =
-        let ca = Extlib.compare_basic a a' in
+      let reprs = List.map (fun c -> Other_alarm, c) Code_annotation.reprs
+
+      (* this [compare] is very inefficient. Don't use it often. *)
+      let compare (a,l : alarm) (a',l') =
+        let ca = Alarm.compare a a' in
         if ca <> 0 then ca
-        (* Do not use Cil_datatype.Code_annotation.compare because we want
-           to compare the content of the annotation themselves, not the ids
-           (to avoid duplicating annotations) *)
-        else Pervasives.compare l.annot_content l'.annot_content
+        else
+          (* Do not use Cil_datatype.Code_annotation.compare because we want
+             to compare the content of the annotation themselves, not the ids
+             (to avoid duplicating annotations)
+             [JS 2011/06/15] Ok do not use it, but neither Pervasives.compare *)
+          Datatype.String.compare
+            (Marshal.to_string l.annot_content [])
+            (Marshal.to_string l'.annot_content [])
       let equal = Datatype.from_compare
-      let copy = Datatype.identity
       let mem_project = Datatype.never_any_project
      end)
 
@@ -86,32 +77,38 @@ module Alarms =
     (Alarm_set)
     (struct
       let name = "alarms"
-      let dependencies = [] (* delayed in Ast *)
+      let dependencies = [ Ast.self ]
       let size = 7
       let kind = `Internal
      end)
 
 let self = Alarms.self
 
-let register ki to_add =
+let register ~deps ki (atyp, annot as to_add) ?(status=Property_status.Dont_know) emitter =
+  let add old = 
+    Alarms.replace ki (Alarm_set.add to_add old);
+    match ki with
+    | Kglobal -> 
+      (* [JS 2011/07/05] where should the annotation be added? *)
+      Kernel.warning ~once:true ~current:true
+	"global alarm occured. Check the log below."
+    | Kstmt s -> 
+      let kf = Kernel_function.find_englobing_kf s in
+      Annotations.add kf s deps (AI (atyp, annot));
+      let p = Property.ip_of_code_annot kf s annot in
+      List.iter
+        (fun p -> Property_status.emit emitter ~hyps:[] p ~distinct:true status)
+        p
+  in
   try
     let old = Alarms.find ki in
     if Alarm_set.mem to_add old then false
-    else (Alarms.add ki (Alarm_set.add to_add old);
-          (*(match ki with
-           |Cil_types.Kstmt k ->
-              Format.eprintf "Got Id:%d@." k.Cil_types.sid
-           | _ ->        Format.eprintf "Got GLOB@."
-          );*)
-          true)
-
+    else begin
+      add old;
+      true
+    end
   with Not_found ->
-    (*(match ki with
-           |Cil_types.Kstmt k ->
-              Format.eprintf "Got Id:%d@." k.Cil_types.sid
-           | _ -> Format.eprintf "Got GLOB@."
-          );*)
-    Alarms.add ki (Alarm_set.singleton to_add);
+    add Alarm_set.empty;
     true
 
 let clear () = Alarms.clear ()

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -out -input -deps -pdg -journal-disable
+   OPT: -val -out -input -deps -pdg -journal-disable  -pdg-print -pdg-verbose 2
 */
 
 int ** top_input() ;

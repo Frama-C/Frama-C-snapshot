@@ -23,7 +23,7 @@
 open Abstract_interp
 include Make_Lattice_Base(Int)
 
-let neg x = 
+let neg x =
   match x with
     | Value v -> inject (Int.neg v)
     | Top | Bottom -> x
@@ -31,4 +31,9 @@ let minus_one = inject Int.minus_one
 let one = inject Int.one
 let zero = inject Int.zero
 let is_zero x = equal x zero
- 
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

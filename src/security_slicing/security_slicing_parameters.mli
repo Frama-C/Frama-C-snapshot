@@ -28,11 +28,11 @@ open Plugin
 
 include S
 
-module Slicing: BOOL
+module Slicing: Bool
   (** Perform the security slicing pre-analysis. *)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

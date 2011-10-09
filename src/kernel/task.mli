@@ -21,9 +21,9 @@
 (**************************************************************************)
 
 (* ------------------------------------------------------------------------ *)
-(** 
- * High Level Interface to Command.                                         
- * @since Carbon-20101201                                                  
+(**
+ * High Level Interface to Command.
+ * @since Carbon-20101201
  **)
 (* ------------------------------------------------------------------------ *)
 
@@ -63,10 +63,10 @@ val status : 'a status -> 'a task
   (** The task that immediately finishes with provided status *)
 
 val bind : 'a task -> ('a status -> 'b task) -> 'b task
-  (** 
-      [bind t k] first runs [t]. Then, when [t] exit with status [s], 
+  (**
+      [bind t k] first runs [t]. Then, when [t] exit with status [s],
       it starts task [k s].
-      
+
       <b>Remark:</b> If [t] was cancelled, [k s] is still evaluated, but
       immediately canceled as well. This allows [finally]-like behaviors to
       be implemented. To evaluate [k r] only when [t] terminates normally,
@@ -75,7 +75,7 @@ val bind : 'a task -> ('a status -> 'b task) -> 'b task
 
 val sequence : 'a task -> ('a -> 'b task) -> 'b task
   (** [sequence t k] first runs [t]. If [t] terminates with [Result r],
-      then task [k r] is started. 
+      then task [k r] is started.
       Otherwise, failure or cancelation of [t] is returned. *)
 
 val todo : (unit -> 'a task) -> 'a task
@@ -83,7 +83,7 @@ val todo : (unit -> 'a task) -> 'a task
 
 val finally : 'a task -> ('a status -> unit) -> 'a task
   (** [finally t cb] runs task [t] and {i always} calls [cb s] when [t] exits
-      with status [s]. Then [s] is returned. If the callback [cb] 
+      with status [s]. Then [s] is returned. If the callback [cb]
       raises an exception, the returned status is emitted. *)
 
 val callback : 'a task -> ('a status -> unit) -> unit task
@@ -119,18 +119,18 @@ val command :
 
 type server
 
-val server : 
-  ?stages:int -> 
-  ?procs:int -> 
+val server :
+  ?stages:int ->
+  ?procs:int ->
   unit -> server
   (** Creates a server of commands.
-      @param stages number of queues in the server. 
+      @param stages number of queues in the server.
       Stage 0 tasks are issued first. Default is 1.
       @param procs maximum number of running tasks. Default is 4.
   *)
 
 val spawn : server -> ?stage:int -> unit task -> unit
-  (** Schedules a task on the server. 
+  (** Schedules a task on the server.
       The task is not immediately started. *)
 
 val launch : server -> unit
@@ -145,14 +145,15 @@ val set_procs : server -> int -> unit
 val on_server_activity : server -> (unit -> unit) -> unit (** Idle server callback *)
 val on_server_start    : server -> (unit -> unit) -> unit (** On-start server callback *)
 val on_server_stop     : server -> (unit -> unit) -> unit (** On-stop server callback *)
-val load : server -> int (** Number of scheduled process *)
+
+val scheduled  : server -> int (** Number of scheduled process *)
+val terminated : server -> int (** Number of terminated process *)
 
 (** {1 GUI Configuration} *)
 
 val on_idle : ((unit -> bool) -> unit) ref
   (** Typically modified by GUI.
-      [!on_idle f] should repeatedly calls [f] until it returns [false]. 
+      [!on_idle f] should repeatedly calls [f] until it returns [false].
       Default implementation rely on [Unix.sleep 1] and [Db.progress].
       See also [Gtk_helper] module implementation.
   *)
-

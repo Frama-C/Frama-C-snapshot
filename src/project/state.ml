@@ -60,6 +60,7 @@ type private_ops =
       copy: t -> t -> unit;
       commit: t -> unit;
       update: t -> unit;
+      on_update: (unit -> unit) -> unit;
       clean: unit -> unit;
       serialize: t -> state_on_disk;
       unserialize: t -> state_on_disk -> unit }
@@ -96,6 +97,7 @@ let dummy_private_ops () =
     copy = never_called;
     commit = never_called;
     update = never_called;
+    on_update = never_called;
     serialize = never_called;
     unserialize = never_called;
     clean = never_called }
@@ -124,16 +126,16 @@ include Datatype.Make_with_collections
       let structural_descr = Structural_descr.Unknown
       let reprs = [ dummy ]
       let compare x y =
-	if x == y then 0 else String.compare x.unique_name y.unique_name
+        if x == y then 0 else String.compare x.unique_name y.unique_name
       let equal = (==)
       let hash x = Hashtbl.hash x.unique_name
       let copy = Datatype.undefined
       let rehash = Datatype.undefined
       let internal_pretty_code p_caller fmt s =
-	let pp fmt =
-	  Format.fprintf fmt "@[<hv 2>State.get@;%S@]" s.unique_name
-	in
-	Type.par p_caller Type.Call fmt pp
+        let pp fmt =
+          Format.fprintf fmt "@[<hv 2>State.get@;%S@]" s.unique_name
+        in
+        Type.par p_caller Type.Call fmt pp
       let pretty fmt s = Format.fprintf fmt "state %S" s.unique_name
       let varname = Datatype.undefined
       let mem_project = Datatype.never_any_project
@@ -152,6 +154,7 @@ let private_ops s = s.private_ops
 let get_descr s = s.private_ops.descr
 
 let set_name s n = s.name <- n
+let add_hook_on_update s f = s.private_ops.on_update f
 
 (* ************************************************************************** *)
 (** {2 States are comparable values} *)
@@ -214,6 +217,13 @@ let add s is_static =
   Caml_hashtbl.add !states uname s;
   if is_static then Caml_hashtbl.add statics uname s
 
+let unique_name_from_name =
+  let module M =
+        Project_skeleton.Make_setter
+          (struct let mem s = Caml_hashtbl.mem !states s end)
+  in
+  M.make_unique_name
+
 (* ************************************************************************** *)
 (** {3 Cluster} *)
 (* ************************************************************************** *)
@@ -223,7 +233,7 @@ module Cluster = struct
   let edit_cluster c states =
     let set_cluster s =
       if s.cluster <> None then
-	Output.fatal "state %S already in a cluster." s.unique_name;
+        Output.fatal "state %S already in a cluster." s.unique_name;
       s.cluster <- Some c
     in
     List.iter set_cluster states
@@ -231,9 +241,9 @@ module Cluster = struct
   let create_and_return name states =
     if
       States.exists
-	(fun s -> match s.cluster with
-	| None -> false
-	| Some c -> c.c_name = name)
+        (fun s -> match s.cluster with
+        | None -> false
+        | Some c -> c.c_name = name)
     then
       Output.fatal "cluster %S already exists." name;
     let c = { c_name = name; states = states } in
@@ -252,9 +262,9 @@ module Cluster = struct
   let extend name states =
     try
       States.iter
-	(fun _ s -> match s.cluster with
-	| None -> ()
-	| Some c -> raise (Found c));
+        (fun _ s -> match s.cluster with
+        | None -> ()
+        | Some c -> raise (Found c));
       Output.fatal "no existing cluster %S." name;
     with Found c ->
       unsafe_extend c states
@@ -278,11 +288,11 @@ module Cluster = struct
     | Some n ->
       let l = [ state ] in
       try
-	let c = Datatype.String.Hashtbl.find h n in
-	unsafe_extend c l
+        let c = Datatype.String.Hashtbl.find h n in
+        unsafe_extend c l
       with Not_found ->
-	let c = create_and_return n l in
-	Datatype.String.Hashtbl.add h n c),
+        let c = create_and_return n l in
+        Datatype.String.Hashtbl.add h n c),
     (fun () -> Datatype.String.Hashtbl.clear h)
 
 end
@@ -311,7 +321,7 @@ let is_usable s = s.private_ops.clear != never_called
 
 let create
     ~descr ~create ~remove ~clear ~clear_some_projects ~copy
-    ~commit ~update ~clean ~serialize ~unserialize
+    ~commit ~update ~on_update ~clean ~serialize ~unserialize
     ~unique_name ~name kind =
   let ops =
     { descr = descr;
@@ -322,6 +332,7 @@ let create
       copy = copy;
       commit = commit;
       update = update;
+      on_update = on_update;
       clean = clean;
       serialize = serialize;
       unserialize = unserialize }

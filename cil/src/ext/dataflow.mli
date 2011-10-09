@@ -65,17 +65,21 @@ type 't guardaction =
 
 module type StmtStartData = sig
   type data
+  type key
   val clear: unit -> unit
-  val mem: int -> bool
-  val find: int -> data
-  val replace: int -> data -> unit
-  val add: int -> data -> unit
-  val iter: (int -> data -> unit) -> unit
+  val mem: key -> bool
+  val find: key -> data
+  val replace: key -> data -> unit
+  val add: key -> data -> unit
+  val iter: (key -> data -> unit) -> unit
   val length: unit -> int
 end
 
 module StmtStartData(X:sig type t val size: int end) :
-  StmtStartData with type data = X.t
+  StmtStartData with type data = X.t and type key = int
+
+module StartData(X:sig type t val size: int end) :
+  StmtStartData with type data = X.t and type key = Cil_types.stmt
 
 (******************************************************************
  **********
@@ -90,11 +94,6 @@ module type ForwardsTransfer = sig
 
   type t  (** The type of the data we compute for each block start. May be
            * imperative.  *)
-
-  module StmtStartData: StmtStartData with type data = t
-  (** For each statement id, the data at the start. Not found in the hash
-   * table means nothing is known about the state at this point. At the end
-   * of the analysis this means that the block is not reachable. *)
 
   val copy: t -> t
   (** Make a deep copy of the data *)
@@ -140,19 +139,36 @@ module type ForwardsTransfer = sig
 
   val stmt_can_reach : Cil_types.stmt -> Cil_types.stmt -> bool
 
-   val doEdge: Cil_types.stmt -> Cil_types.stmt -> t -> t
+  val doEdge: Cil_types.stmt -> Cil_types.stmt -> t -> t
     (** what to do when following the edge between the two given statements.
         Can default to identity if nothing special is required.
      *)
 
+  module StmtStartData: StmtStartData with type data = t
+  (** For each statement id, the data at the start. Not found in the hash
+   * table means nothing is known about the state at this point. At the end
+   * of the analysis this means that the block is not reachable. *)
+
 end
 
-module ForwardsDataFlow(T : ForwardsTransfer) : sig
+module Forwards(
+  T : ForwardsTransfer with type StmtStartData.key = Cil_types.stmt) :
+sig
   val reachedStatement : Cil_types.stmt -> Cil_types.stmt -> T.t -> unit
   val compute: Cil_types.stmt list -> unit
   (** Fill in the T.stmtStartData, given a number of initial statements to
    * start from. All of the initial statements must have some entry in
    * T.stmtStartData (i.e., the initial data should not be bottom) *)
+end
+
+(** Same dataflow as above, but with initial states indexed by statements
+    sids. Do not use.
+    @deprecated Nitrogen-20111001 *)
+module ForwardsDataFlow(
+  T : ForwardsTransfer with type StmtStartData.key = int) :
+sig
+  val reachedStatement : Cil_types.stmt -> Cil_types.stmt -> T.t -> unit
+  val compute: Cil_types.stmt list -> unit
 end
 
 (******************************************************************
@@ -170,10 +186,6 @@ module type BackwardsTransfer = sig
            * data at the block end. This is not easy to do with JVML because
            * a block has many exceptional ends. So we maintain the data for
            * the statement start. *)
-
-  module StmtStartData: StmtStartData with type data = t
-  (** For each block id, the data at the start. This data structure must be
-   * initialized with the initial data for each block *)
 
   val pretty: Format.formatter -> t -> unit (** Pretty-print the state *)
 
@@ -212,9 +224,15 @@ module type BackwardsTransfer = sig
    * predecessor and the block whose predecessor we are (and whose data has
    * changed)  *)
 
+  module StmtStartData: StmtStartData with type data = t
+  (** For each block id, the data at the start. This data structure must be
+   * initialized with the initial data for each block *)
+
 end
 
-module BackwardsDataFlow(T : BackwardsTransfer) : sig
+module Backwards(
+  T : BackwardsTransfer with type StmtStartData.key = Cil_types.stmt) :
+sig
   val compute: Cil_types.stmt list -> unit
   (** Fill in the T.stmtStartData, given a number of initial statements to
    * start from (the sinks for the backwards data flow). All of the statements
@@ -224,9 +242,29 @@ module BackwardsDataFlow(T : BackwardsTransfer) : sig
    * {!find_stmts} may be useful here. *)
 end
 
+(** Same dataflow as above, but with initial states indexed by statements
+    sids. Do not use.
+    @deprecated Nitrogen-20111001 *)
+module BackwardsDataFlow(
+  T : BackwardsTransfer with type StmtStartData.key = int) :
+sig
+  val compute: Cil_types.stmt list -> unit
+end
+
+
 (** Returns (all_stmts, sink_stmts), where all_stmts is a list of the
   statements in a function, and sink_stmts is a list of the return statments
   (including statements that fall through the end of a void function).
   Useful when you need an initial set of statements for
   BackwardsDataFlow.compute. *)
 val find_stmts: Cil_types.fundec -> (Cil_types.stmt list * Cil_types.stmt list)
+
+(**/**)
+
+val stmt_of_sid: (int -> Cil_types.stmt) ref
+
+(*
+Local Variables:
+compile-command: "LC_ALL=C make -C ../../.."
+End:
+*)

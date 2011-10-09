@@ -20,8 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. 
+    Do not use this module if you don't know what you are doing. *)
+
+(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+
 val name : string
-type cell_class_attributes
 
 type validity =
   | All
@@ -30,15 +34,17 @@ type validity =
   | Periodic of Abstract_interp.Int.t*Abstract_interp.Int.t*
       Abstract_interp.Int.t
 
+type string_id
+
 type base = private
   | Var of Cil_types.varinfo * validity (** Base for uninitialized variables *)
   | Initialized_Var of Cil_types.varinfo * validity
       (** Base for variables initialized to zero . *)
   | Null (** Base for addresses like [(int* )0x123] *)
-  | String of int * string (** String constants *)
-  | Cell_class of cell_class_attributes (** A class of memory cells *)
+  | String of int * string_id (** String constants *)
 
 include Datatype.S_with_collections with type t = base
+module Hptset: Hptset.S with type elt = t
 
 val pretty_validity : Format.formatter -> validity -> unit
 
@@ -46,13 +52,16 @@ val typeof : t -> Cil_types.typ option
 val null : t
 
 val is_null : t -> bool
+val is_read_only : t -> bool
+
 val bits_sizeof : t -> Int_Base.t
 val id : t -> int
 val is_aligned_by : t -> Abstract_interp.Int.t -> bool
 val validity : t -> validity
 
 exception Not_valid_offset
-val is_valid_offset : Abstract_interp.Int.t -> t -> Ival.t -> unit
+val is_valid_offset :
+  for_writing:bool -> Abstract_interp.Int.t -> t -> Ival.t -> unit
 
 val is_function : t -> bool
 
@@ -84,7 +93,10 @@ val find: Cil_types.varinfo -> t
   (** Return the base corresponding to a variable. *)
 
 val create_initialized :  Cil_types.varinfo -> validity -> t
-val create_string : string -> t
+val create_string : Cil_types.exp -> t
+
+type cstring = CSString of string | CSWstring of Escape.wstring
+val get_string : string_id -> cstring
 
 val min_valid_absolute_address: unit -> Abstract_interp.Int.t
 val max_valid_absolute_address: unit -> Abstract_interp.Int.t

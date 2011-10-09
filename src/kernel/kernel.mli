@@ -22,73 +22,255 @@
 
 (** Provided services for kernel developers. *)
 
+(* ************************************************************************* *)
+(** {2 Log Machinery} *)
+(* ************************************************************************* *)
+
 include Plugin.S
 
-(** Each parameter of functors used to registered a new kernel parameter must
-    have a module name. *)
+(* ************************************************************************* *)
+(** {2 Installation Information} *)
+(* ************************************************************************* *)
 
-module type Parameter_input = sig
-  include Plugin.Parameter_input
-  val module_name: string
+module PrintVersion: Plugin.Bool
+  (** Behavior of option "-version" *)
+
+module PrintShare: Plugin.Bool
+  (** Behavior of option "-print-share-path" *)
+
+module PrintLib: Plugin.Bool
+  (** Behavior of option "-print-lib-path" *)
+
+module PrintPluginPath: Plugin.Bool
+  (** Behavior of option "-print-plugin-path" *)
+
+(* ************************************************************************* *)
+(** {2 Output Messages} *)
+(* ************************************************************************* *)
+
+module GeneralVerbose: Plugin.Int
+  (** Behavior of option "-verbose" *)
+
+module GeneralDebug: Plugin.Int
+  (** Behavior of option "-debug" *)
+
+module Quiet: Plugin.Bool
+  (** Behavior of option "-quiet" *)
+
+module Unicode: sig
+  include Plugin.Bool
+  val without_unicode: ('a -> 'b) -> 'a -> 'b
+  (** Execute the given function as if the option [-unicode] was not set. *)
+end
+(** Behavior of option "-unicode" *)
+
+module UseUnicode: Plugin.Bool
+  (** Behavior of option "-unicode"
+      @deprecated since Nitrogen-20111001 use module {!Unicode} instead.
+      @plugin development guide *)
+
+module Time: Plugin.String
+  (** Behavior of option "-time" *)
+
+module Collect_messages: Plugin.Bool
+(** Behavior of option "-collect-messages" *)
+
+(* ************************************************************************* *)
+(** {2 Input / Output Source Code} *)
+(* ************************************************************************* *)
+
+module PrintCode : Plugin.Bool
+  (** Behavior of option "-print" *)
+
+module PrintComments: Plugin.Bool
+  (** Behavior of option "-keep-comments" *)
+
+(** Behavior of option "-ocode" *)
+module CodeOutput : sig
+  include Plugin.String
+  val output: (Format.formatter -> unit) -> unit
 end
 
-module type Parameter_input_with_arg = sig
-  include Plugin.Parameter_input_with_arg
-  val module_name: string
+module FloatNormal: Plugin.Bool
+  (** Behavior of option "-float-normal" *)
+
+module FloatRelative: Plugin.Bool
+  (** Behavior of option "-float-relative" *)
+
+module FloatHex: Plugin.Bool
+  (** Behavior of option "-float-hex" *)
+
+module BigIntsHex: Plugin.Int
+  (** Behavior of option "-hexadecimal-big-integers" *)
+
+(* ************************************************************************* *)
+(** {2 Save/Load} *)
+(* ************************************************************************* *)
+
+module SaveState: Plugin.String
+  (** Behavior of option "-save" *)
+
+module LoadState: Plugin.String
+  (** Behavior of option "-load" *)
+
+module AddPath: Plugin.String_list
+  (** Behavior of option "-add-path" *)
+
+module LoadModule: Plugin.String_set
+  (** Behavior of option "-load-module" *)
+
+module LoadScript: Plugin.String_set
+  (** Behavior of option "-load-script" *)
+
+module Dynlink: Plugin.Bool
+  (** Behavior of option "-dynlink" *)
+
+(** Kernel for journalization. *)
+module Journal: sig
+
+  module Enable: Plugin.Bool
+    (** Behavior of option "-journal-enable" *)
+
+  module Name: Plugin.String
+    (** Behavior of option "-journal-name" *)
+
 end
 
-module type COMPLEX_VALUE = sig
-  include Plugin.COMPLEX_VALUE
-  val module_name: string
+(* ************************************************************************* *)
+(** {2 Customizing Normalization} *)
+(* ************************************************************************* *)
+
+module UnrollingLevel: Plugin.Int
+  (** Behavior of option "-ulevel" *)
+
+(** Behavior of option "-machdep".
+    If function [set] is called, then {!File.prepare_from_c_files} must be
+    called for well preparing the AST. *)
+module Machdep: Plugin.String
+
+module CppCommand: Plugin.String
+  (** Behavior of option "-cpp-command" *)
+
+module CppExtraArgs: Plugin.String_set
+  (** Behavior of option "-cpp-extra-args" *)
+
+module ReadAnnot: Plugin.Bool
+  (** Behavior of option "-read-annot" *)
+
+module PreprocessAnnot: Plugin.Bool
+  (** Behavior of option "-pp-annot" *)
+
+module TypeCheck: Plugin.Bool
+  (** Behavior of option "-type-check" *)
+
+module ContinueOnAnnotError: Plugin.Bool
+  (** Behavior of option "-continue-annot-error" *)
+
+module SimplifyCfg: Plugin.Bool
+  (** Behavior of option "-simplify-cfg" *)
+
+module KeepSwitch: Plugin.Bool
+  (** Behavior of option "-keep-switch" *)
+
+module Constfold: Plugin.Bool
+  (** Behavior of option "-constfold" *)
+
+(** Analyzed files *)
+module Files: sig
+
+  include Plugin.String_list
+    (** List of files to analyse *)
+
+  module Check: Plugin.Bool
+    (** Behavior of option "-check" *)
+
+  module Copy: Plugin.Bool
+    (** Behavior of option "-copy" *)
+
+  module Orig_name: Plugin.Bool
+    (** Behavior of option "-orig-name" *)
+
 end
 
-module Bool
-  (X:sig 
-     include Parameter_input 
-     val default: bool
-       (** The default value of the parameter. So giving the option
-	   [option_name] to Frama-C, change the value of the parameter to
-	   [not default]. *)
-   end) : Plugin.BOOL
+val normalization_parameters: Parameter.t list
+(** All the normalization options that influence the AST (in particular,
+    changing one will reset the AST entirely *)
 
-(** Build a boolean option initialized to [false].
-    @plugin development guide *)
-module False(X: Parameter_input) : Plugin.BOOL
+(* ************************************************************************* *)
+(** {3 Customizing cabs2cil options} *)
+(* ************************************************************************* *)
 
-(** Build a boolean option initialized to [true].
-    @plugin development guide *)
-module True(X: Parameter_input) : Plugin.BOOL
+module AllowDuplication: Plugin.Bool
+  (** Behavior of option "-allow-duplication". *)
 
-(** Build an integer option.
-    @plugin development guide *)
-module Int
-  (X: sig val default: int include Parameter_input_with_arg end) : Plugin.INT
+module DoCollapseCallCast: Plugin.Bool
+  (** Behavior of option "-collapse-call-cast". *)
 
-(** Build an integer option initialized to [0].
-    @plugin development guide *)
-module Zero(X:Parameter_input_with_arg) : Plugin.INT
+module ForceRLArgEval: Plugin.Bool
+  (** Behavior of option "-force-rl-arg-eval". *)
 
-(** Build a string option.
-    @plugin development guide *)
-module String
-  (X: sig include Parameter_input_with_arg val default: string end) : 
-  Plugin.STRING
+(* ************************************************************************* *)
+(** {2 Analysis Behavior of options} *)
+(* ************************************************************************* *)
 
-(** Build a string option initialized to [""].
-    @plugin development guide *)
-module EmptyString(X: Parameter_input_with_arg) : Plugin.STRING
+(** Behavior of option "-main".
 
-(** Build an option as a set of strings, initialized to the empty set. *)
-module StringSet(X: Parameter_input_with_arg) : Plugin.STRING_SET
+    You should usually use {!Globals.entry_point} instead of
+    {!MainFunction.get} since the first one handles the case where the entry
+    point is invalid in the right way. *)
+module MainFunction: sig
 
-(** Should not be used by casual users *)
-module StringList(X: Parameter_input_with_arg) : Plugin.STRING_LIST
+  include Plugin.String
 
-(** @plugin development guide *)
-module IndexedVal (V:COMPLEX_VALUE) : Plugin.INDEXED_VAL with type value = V.t
+  (** {2 Internal functions}
+
+      Not for casual users. *)
+
+  val unsafe_set: t -> unit
+
+end
+
+(** Behavior of option "-lib-entry".
+
+    You should usually use {!Globals.entry_point} instead of
+    {!LibEntry.get} since the first one handles the case where the entry point
+    is invalid in the right way. *)
+module LibEntry: sig
+  include Plugin.Bool
+  val unsafe_set: t -> unit (** Not for casual users. *)
+end
+
+module UnspecifiedAccess: Plugin.Bool
+  (** Behavior of option "-unspecified-access" *)
+
+module ArrayPrecisionLevel: Plugin.Int
+  (** Temporary option to voluntarily approximate
+      results of accesses at an imprecise index
+      for the sake of speed. *)
+
+module PreciseUnions: Plugin.Bool
+  (** Temporary option to produce precise results
+      when accessing type-punned data. *)
+
+module Overflow: Plugin.Bool
+  (** Behavior of option "-overflow" *)
+
+module StopAtFirstAlarm: Plugin.Bool
+  (** Stop propagation at first alarm *)
+
+module SafeArrays: Plugin.Bool
+  (** Behavior of option "-safe-arrays" *)
+
+module AbsoluteValidRange: Plugin.String
+  (** Behavior of option "-absolute-valid-range" *)
+
+(*
+module FloatFlushToZero: Plugin.Bool
+  (** Behavior of option "-float-flush-to-zero" *)
+*)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

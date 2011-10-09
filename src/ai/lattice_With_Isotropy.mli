@@ -47,23 +47,11 @@ module type S = sig
 
   val singleton_zero : t
   val of_char : char -> t
-
-  (** [is_included_actual_generic bases actual generic]
-      returns [i] if the hidden variables of [generic] can
-      be instanciated with an instanciation [i] so that [actual]
-      is included in "[i(generic)]". Raises [Is_not_included]
-      if the instanciation was not found. *)
-  val is_included_actual_generic :
-    Base.Set.t ->
-    Base.Set.t ref ->
-    Locations.Location_Bytes.t Base.Map.t ref ->
-    t ->
-    t ->
-    unit
+  val of_int64 : Int64.t -> t
 
   val project : t -> Locations.Location_Bytes.t
 
-  val pretty_c_assert : string -> Int.t -> Format.formatter -> t -> unit
+  val pretty_c_assert : (unit -> unit) -> string -> int -> Format.formatter -> t -> unit
 
 end
 

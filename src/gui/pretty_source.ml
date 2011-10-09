@@ -22,10 +22,10 @@
 
 open Format
 open Cil_types
-open Db_types
 open Db
 open Gtk_helper
 open Cil_datatype
+open Cil
 
 (** The kind of object that can be selected in the source viewer *)
 (* [VP] TODO: unify all annotations related constructor into
@@ -38,9 +38,18 @@ type localizable =
   | PVDecl of (kernel_function option * varinfo)
 
   | PGlobal of global (* all globals but variable declarations and function
-			 definitions. *)
+                         definitions. *)
   | PIP of Property.t
 
+(*let localizable_to_locations l =
+  match l with
+  | PStmt (_,s) | PLval (_,Kstmt s,_)
+  | PTermLval (_,Kstmt s,_)
+    -> Stmt.loc s
+  | PVDecl (_,v) -> v.vdecl
+  | PGlobal g -> Global.loc g
+  | PIP p -> Property.loc p
+*)
 module Localizable =
   Datatype.Make
     (struct
@@ -49,18 +58,17 @@ module Localizable =
       let name = "Pretty_source.Localizable"
       let reprs = List.map (fun g -> PGlobal g) Global.reprs
       let equal l1 l2 = match l1,l2 with
-	| PStmt (_,ki1), PStmt (_,ki2) -> ki1.sid = ki2.sid
-	| PLval (_,ki1,lv1), PLval (_,ki2,lv2) ->
-	  Kinstr.equal ki1 ki2 && lv1 == lv2
-	| PTermLval (_,ki1,lv1), PTermLval (_,ki2,lv2) ->
-	  Kinstr.equal ki1 ki2 && Logic_utils.is_same_tlval lv1 lv2
-	(* [JS 2008/01/21] term_lval are not shared: cannot use == *)
-	| PVDecl (_,v1), PVDecl (_,v2) -> Varinfo.equal v1 v2
-	| PIP ip1, PIP ip2 -> Property.equal ip1 ip2
-	| PGlobal g1, PGlobal g2 -> g1 == g2
-	(* TODO: add a proper comparison between two globals *)
-	| (PStmt _ | PLval _ | PTermLval _ | PVDecl _ | PIP _ | PGlobal _), _
-	  ->  false
+        | PStmt (_,ki1), PStmt (_,ki2) -> ki1.sid = ki2.sid
+        | PLval (_,ki1,lv1), PLval (_,ki2,lv2) ->
+          Kinstr.equal ki1 ki2 && lv1 == lv2
+        | PTermLval (_,ki1,lv1), PTermLval (_,ki2,lv2) ->
+          Kinstr.equal ki1 ki2 && Logic_utils.is_same_tlval lv1 lv2
+        (* [JS 2008/01/21] term_lval are not shared: cannot use == *)
+        | PVDecl (_,v1), PVDecl (_,v2) -> Varinfo.equal v1 v2
+        | PIP ip1, PIP ip2 -> Property.equal ip1 ip2
+        | PGlobal g1, PGlobal g2 -> Cil_datatype.Global.equal g1 g2
+        | (PStmt _ | PLval _ | PTermLval _ | PVDecl _ | PIP _ | PGlobal _), _
+          ->  false
       let mem_project = Datatype.never_any_project
      end)
 
@@ -102,20 +110,32 @@ module Locs:sig
   val find : state -> int -> (int * int) * localizable
   val hilite : state -> unit
   val set_hilite : state -> (unit -> unit) -> unit
+  val add_finalizer: state -> (unit -> unit) -> unit
+  val finalize: state -> unit
 end
 =
 struct
   type state = { table : (int*int,localizable) Hashtbl.t;
-                 mutable hiliter : unit -> unit}
+                 mutable hiliter : unit -> unit;
+                 mutable finalizers: (unit -> unit) list;
+               }
 
   let create () =
     {table = Hashtbl.create 97;
-     hiliter = (fun () -> ())}
+     hiliter = (fun () -> ());
+     finalizers = [];
+    }
 
   let hilite state = state.hiliter ()
 
   let set_hilite state f =
     state.hiliter <- f
+
+  let add_finalizer state f =
+    state.finalizers <- f :: state.finalizers
+
+  let finalize state =
+    List.iter (fun f -> f ()) (List.rev state.finalizers)
 
   (* Add a location range only if it is not already there.
      Visually only the innermost pretty printed entity is kept.
@@ -130,9 +150,9 @@ struct
     let best = ref None in
     let update ((b,e) as loc) sid =
       if b <= p && p <= e then
-	match !best with
-	  | None -> best := Some (loc, sid)
-	  | Some ((b',e'),_) -> if e-b < e'-b' then best := Some (loc, sid)
+        match !best with
+          | None -> best := Some (loc, sid)
+          | Some ((b',e'),_) -> if e-b < e'-b' then best := Some (loc, sid)
     in
     Hashtbl.iter update state.table ;
     match !best with None -> raise Not_found | Some (loc,sid) -> loc, sid
@@ -147,13 +167,13 @@ struct
     do
       incr next
     done;
-    (* Parameters.debug "Char %d has next %d" p !next;*)
+    (* Kernel.debug "Char %d has next %d" p !next;*)
     !next
 
   let iter state f =
-    (*Parameters.debug "Iterate on %d locations" (Hashtbl.length locs);*)
+    (*Kernel.debug "Iterate on %d locations" (Hashtbl.length locs);*)
     Hashtbl.iter f state.table
-    (*Parameters.debug "DONE: Iterate on %d locations" (Hashtbl.length locs);*)
+    (*Kernel.debug "DONE: Iterate on %d locations" (Hashtbl.length locs);*)
 
   let size state = Hashtbl.length state.table
 
@@ -246,11 +266,11 @@ class tagPrinterClass = object(self)
     match self#current_kinstr with
     | Kglobal -> super#pLval fmt lv
         (* Do not highlight the lvals in initializers. *)
-    | Kstmt _ as ki ->
+    | Kstmt stmt as ki ->
         let alive =
           not (Value.is_computed ())
-	  || Db.Value.is_accessible self#current_kinstr
-	in
+          || Db.Value.is_reachable_stmt stmt
+        in
         if alive then
           Format.fprintf fmt "@{<%s>"
             (Tag.create (PLval (self#current_kf,ki,lv)));
@@ -269,11 +289,11 @@ class tagPrinterClass = object(self)
     match self#current_kinstr with
     | Kglobal -> super#pTerm_lval fmt lv
         (* Do not highlight the lvals in initializers. *)
-    | Kstmt _ as ki ->
+    | Kstmt stmt as ki ->
         let alive =
           not (Value.is_computed ())
-	  || Db.Value.is_accessible self#current_kinstr
-	in
+          || Db.Value.is_reachable_stmt stmt
+        in
         if alive then
           Format.fprintf fmt "@{<%s>"
             (Tag.create (PTermLval (self#current_kf,ki,lv)));
@@ -292,8 +312,11 @@ class tagPrinterClass = object(self)
 
   method pCode_annot fmt ca =
     match ca.annot_content with
-        AAssert _ | AInvariant _ | APragma _ | AVariant _ ->
-          let ip = 
+      | APragma p when not (Logic_utils.is_property_pragma p) ->
+        (* Not currently localizable. Will be linked to the next stmt *)
+        super#pCode_annot fmt ca
+      | AAssert _ | AInvariant _ | APragma _ | AVariant _ ->
+          let ip =
             Property.ip_of_code_annot_single
               (Extlib.the self#current_kf)
               (Extlib.the self#current_stmt)
@@ -328,8 +351,8 @@ class tagPrinterClass = object(self)
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
-         (PIP 
-            (Property.ip_of_requires 
+         (PIP
+            (Property.ip_of_requires
                (Extlib.the self#current_kf) self#current_kinstr b p)))
       super#pRequires p;
     localize_predicate <- true
@@ -337,9 +360,9 @@ class tagPrinterClass = object(self)
   method pBehavior fmt b =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
-         (PIP 
-            (Property.ip_of_behavior 
-	       (Extlib.the self#current_kf) self#current_kinstr b)))
+         (PIP
+            (Property.ip_of_behavior
+               (Extlib.the self#current_kf) self#current_kinstr b)))
       super#pBehavior b
 
   method pDecreases fmt t =
@@ -347,8 +370,8 @@ class tagPrinterClass = object(self)
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
-	    (Property.ip_of_decreases
-	       (Extlib.the self#current_kf) self#current_kinstr t)))
+            (Property.ip_of_decreases
+               (Extlib.the self#current_kf) self#current_kinstr t)))
       super#pDecreases t;
     localize_predicate <- true
 
@@ -357,7 +380,7 @@ class tagPrinterClass = object(self)
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
-	    (Property.ip_of_terminates
+            (Property.ip_of_terminates
                (Extlib.the self#current_kf) self#current_kinstr t)))
       super#pTerminates t;
     localize_predicate <- true
@@ -366,16 +389,16 @@ class tagPrinterClass = object(self)
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
-	    (Property.ip_of_complete
-	       (Extlib.the self#current_kf) self#current_kinstr t)))
+            (Property.ip_of_complete
+               (Extlib.the self#current_kf) self#current_kinstr t)))
       super#pComplete_behaviors t
 
   method pDisjoint_behaviors fmt t =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
-	    (Property.ip_of_disjoint
-	       (Extlib.the self#current_kf) self#current_kinstr t)))
+            (Property.ip_of_disjoint
+               (Extlib.the self#current_kf) self#current_kinstr t)))
       super#pDisjoint_behaviors t
 
   method pAssumes fmt p =
@@ -383,8 +406,8 @@ class tagPrinterClass = object(self)
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
-	 (PIP
-	    (Property.ip_of_assumes
+         (PIP
+            (Property.ip_of_assumes
                (Extlib.the self#current_kf) self#current_kinstr b p)))
       super#pAssumes p;
     localize_predicate <- true
@@ -394,14 +417,14 @@ class tagPrinterClass = object(self)
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
-         (PIP 
-            (Property.ip_of_ensures 
+         (PIP
+            (Property.ip_of_ensures
                (Extlib.the self#current_kf) self#current_kinstr b pc)))
       super#pPost_cond pc;
     localize_predicate <- true
 
   method pAssigns s fmt a =
-    match 
+    match
       Property.ip_of_assigns (Extlib.the self#current_kf) self#current_kinstr
         self#current_behavior_or_loop a
     with
@@ -410,15 +433,22 @@ class tagPrinterClass = object(self)
         Format.fprintf fmt "@{<%s>%a@}"
           (Tag.create (PIP ip)) (super#pAssigns s) a
 
-  method pFrom s fmt from =
-    match 
-      Property.ip_of_from (Extlib.the self#current_kf) self#current_kinstr
-        self#current_behavior_or_loop from
-    with
-        None -> super#pFrom s fmt from
-      | Some ip ->
-        Format.fprintf fmt "@{<%s>%a@}"
-          (Tag.create (PIP ip)) (super#pFrom s) from
+  method pFrom s fmt ((_, f) as from) =
+    match f with
+      | FromAny -> super#pFrom s fmt from
+      | From _ ->
+          let ip =
+            Property.ip_of_from (Extlib.the self#current_kf) self#current_kinstr
+              self#current_behavior_or_loop from
+          in
+              Format.fprintf fmt "@{<%s>%a@}"
+              (Tag.create (PIP ip)) (super#pFrom s) from
+
+  method pAnnotation fmt a = 
+    match Property.ip_of_global_annotation_single a with
+    | None -> super#pAnnotation fmt a
+    | Some ip ->
+      Format.fprintf fmt "@{<%s>%a@}" (Tag.create (PIP ip)) super#pAnnotation a
 
 (* Not used anymore: all identified predicates are selectable somewhere up
     - assert and loop invariants are PCodeAnnot
@@ -473,7 +503,7 @@ let localizable_from_locs state ~file ~line =
 let buffer_formatter state source =
   let starts = Stack.create () in
   let emit_open_tag s =
-    (*    Parameters.debug "EMIT TAG";*)
+    (*    Kernel.debug "EMIT TAG";*)
     Stack.push
       (source#end_iter#offset, Tag.get s)
       starts;
@@ -499,14 +529,17 @@ let buffer_formatter state source =
   Format.pp_set_margin gtk_fmt 79;
   gtk_fmt
 
-let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector =
+let display_source globals 
+    (source:GSourceView2.source_buffer) ~(host:Gtk_helper.host) 
+    ~highlighter ~selector =
   let state = Locs.create () in
   host#protect
     ~cancelable:false
     (fun () ->
        Gtk_helper.refresh_gui  ();
        source#set_text "";
-       source#remove_all_tags ~start:source#start_iter ~stop:source#end_iter;
+       source#remove_source_marks 
+         ~start:source#start_iter ~stop:source#end_iter ();
        let hiliter () =
          let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
          Gtk_helper.cleanup_all_tags source;
@@ -517,40 +550,40 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
               match v with
               | PStmt (_,ki) ->
                   (try
-	             let pb,pe = match ki with
+                     let pb,pe = match ki with
                      | {skind = Instr _ | Return _ | Goto _
                        | Break _ | Continue _} -> pb,pe
-	             | {skind = If _ | Loop _
+                     | {skind = If _ | Loop _
                        | Switch _ } ->
-		         (* These statements contain other statements.
-		            We highlight only until the start of the first
-			    included statement. *)
+                         (* These statements contain other statements.
+                            We highlight only until the start of the first
+                            included statement. *)
                          pb,
                          (try Locs.find_next_start state pb
-		            (fun p -> match p with
-		             | PStmt _ -> true
-		             | _ -> false (* Do not stop on expressions*))
+                            (fun p -> match p with
+                             | PStmt _ -> true
+                             | _ -> false (* Do not stop on expressions*))
                           with Not_found -> pb+1)
-	             | {skind = Block _ | TryExcept _ | TryFinally _
+                     | {skind = Block _ | TryExcept _ | TryFinally _
                        | UnspecifiedSequence _} ->
                          pb,
                          (try Locs.find_next_start state pb (fun _ -> true)
                           with Not_found -> pb+1)
-	             in
-	             highlighter v ~start:pb ~stop:pe
+                     in
+                     highlighter v ~start:pb ~stop:pe
                    with Not_found -> ())
               | PTermLval _ | PLval _ | PVDecl _ | PGlobal _
               | PIP _ ->
-	          highlighter v  ~start:pb ~stop:pe);
-         (*  Parameters.debug "Highlighting done (%d occurrences)" (Locs.size ());*)
+                  highlighter v  ~start:pb ~stop:pe);
+         (*  Kernel.debug "Highlighting done (%d occurrences)" (Locs.size ());*)
 
          (* React to events on the text *)
          source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
-         (*  Parameters.debug "Event tag done";*)
+         (*  Kernel.debug "Event tag done";*)
        in
        Locs.set_hilite state hiliter;
 
-       (*  Parameters.debug "Display source starts";*)
+       (*  Kernel.debug "Display source starts";*)
        let gtk_fmt = buffer_formatter state (source:>GText.buffer) in
        let tagPrinter = new tagPrinterClass in
        let display_global g =
@@ -558,7 +591,7 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
          tagPrinter#pGlobal gtk_fmt g;
          Format.pp_print_flush gtk_fmt ()
        in
-       (*  Parameters.debug "Before Display globals %d" (List.length globals);*)
+       (*  Kernel.debug "Before Display globals %d" (List.length globals);*)
        let counter = ref 0 in
        begin try
          List.iter
@@ -572,44 +605,139 @@ let display_source globals source ~(host:Gtk_helper.host) ~highlighter ~selector
            gtk_fmt
            "@.<<Cannot display more than %d globals at a time. Skipping end of file>>@."
            !counter;
-	 (*let ca = source#create_child_anchor source#end_iter in
-	   source_view#add_child_at_anchor (GButton.button
-	   ~text:"See 10 more globals"
-	   ~callback:(fun _ -> call_cc next_10)
-	   ()) ca *)
+         (*let ca = source#create_child_anchor source#end_iter in
+           source_view#add_child_at_anchor (GButton.button
+           ~text:"See 10 more globals"
+           ~callback:(fun _ -> call_cc next_10)
+           ()) ca *)
        end;
-       (*  Parameters.debug "Displayed globals";*)
+       (*  Kernel.debug "Displayed globals";*)
 
        source#place_cursor source#start_iter;
        (* Highlight the localizable *)
        hiliter ();
        let last_shown_area =
-         Gtk_helper.make_tag source ~name:"last_show_area"
+         Gtk_helper.make_tag source ~name:"last_shown_area"
            [`BACKGROUND "light green"]
        in
        let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
-       ignore
-         (event_tag#connect#event ~callback:
+       let id = event_tag#connect#event ~callback:
             (fun ~origin:_ ev it ->
                if !Gtk_helper.gui_unlocked then
                     if GdkEvent.get_type ev = `BUTTON_PRESS then begin
                       let coords = GtkText.Iter.get_offset it in
-	              try
-		        let ((pb,pe), selected) = Locs.find state coords in
-		        (* Highlight the pointed term *)
+                      try
+                        let ((pb,pe), selected) = Locs.find state coords in
+                        (* Highlight the pointed term *)
                         source#remove_tag
-		          ~start:source#start_iter
-		          ~stop:source#end_iter
-		          last_shown_area;
-		        apply_tag source last_shown_area pb pe;
-		        let event_button = GdkEvent.Button.cast ev in
-		        let button = GdkEvent.Button.button event_button in
-		        host#protect ~cancelable:false
-			  (fun () -> selector ~button selected);
-	              with Not_found -> () (* no statement at this offset *)
+                          ~start:source#start_iter
+                          ~stop:source#end_iter
+                          last_shown_area;
+                        apply_tag source last_shown_area pb pe;
+                        let event_button = GdkEvent.Button.cast ev in
+                        let button = GdkEvent.Button.button event_button in
+                        host#protect ~cancelable:false
+                          (fun () -> selector ~button selected);
+                      with Not_found -> () (* no statement at this offset *)
                     end;
-             false)));
+             false)
+       in
+       Locs.add_finalizer state
+         (fun () -> GtkSignal.disconnect event_tag#as_tag id);
+    );
   state
+
+
+module LineToLocalizable =
+  Datatype.Hashtbl(Inthash)(Datatype.Int)
+    (struct let module_name = "Pretty_source.LineToLocalizable" end)
+module FileToLines =
+  Datatype.Hashtbl(Hashtbl.Make(Datatype.String))(Datatype.String)
+    (struct let module_name = "Pretty_source.FilesToLine" end)
+
+module MappingLineLocalizable = struct
+  module LineToLocalizableAux =
+    LineToLocalizable.Make( Datatype.Pair(Location)(Localizable))
+
+  include State_builder.Hashtbl(FileToLines)(LineToLocalizableAux)
+      (struct
+        let size = 5
+        let kind = `Internal
+        let dependencies = [Ast.self]
+        let name = "Pretty_source.line_to_localizable"
+       end)
+end
+
+class pos_to_localizable =
+object (self)
+  inherit Visitor.frama_c_inplace
+
+  method add_range loc (localizable : localizable) =
+    if not (Location.equal loc Location.unknown) then (
+      let p1, p2 = loc in
+      assert (p1.Lexing.pos_fname = p2.Lexing.pos_fname);
+      let file = p1.Lexing.pos_fname in
+      let hfile =
+        try MappingLineLocalizable.find file
+        with Not_found ->
+          let h = LineToLocalizable.create 17 in
+          MappingLineLocalizable.add file h;
+          h
+      in
+      for i = p1.Lexing.pos_lnum to p2.Lexing.pos_lnum do
+        LineToLocalizable.add hfile i (loc, localizable);
+      done
+    );
+
+  method vstmt_aux s =
+    Gui_parameters.debug ~level:3 "Locs for Stmt %d" s.sid;
+    self#add_range (Stmt.loc s) (PStmt (Extlib.the self#current_kf, s));
+    Cil.DoChildren
+
+  method vglob_aux g =
+    Gui_parameters.debug ~level:3 "Locs for global %a" Cil.d_global g;
+    (match g with
+      | GFun ({ svar = vi }, loc) ->
+          self#add_range loc (PVDecl (Some (Globals.Functions.get vi), vi))
+      | GVar (vi, _, loc) ->
+          self#add_range loc (PVDecl (None, vi))
+      | GVarDecl (_, vi, loc) ->
+          if Cil.isFunctionType vi.vtype then
+            self#add_range loc (PVDecl (Some (Globals.Functions.get vi), vi))
+          else
+            self#add_range loc (PVDecl (None, vi))
+      | _ -> self#add_range (Global.loc g) (PGlobal g)
+    );
+    Cil.DoChildren
+end
+
+let loc_to_localizable loc =
+  if not (MappingLineLocalizable.is_computed ()) then (
+    Gui_parameters.debug "Computing inverse locs";
+    let vis = new pos_to_localizable in
+    Visitor.visitFramacFile (vis :> Visitor.frama_c_visitor) (Ast.get ());
+    MappingLineLocalizable.mark_as_computed ();
+  );
+  try
+    (* Find the mapping from this file to locs-by-line *)
+    let hfile = MappingLineLocalizable.find loc.Lexing.pos_fname in
+    (* Find the localizable for this line *)
+    let all = LineToLocalizable.find_all hfile loc.Lexing.pos_lnum in
+    (* Try to a find the good localizable. When we have more than one matches
+       with the exact same location, we pick the last one in the list. This
+       will be the first statement that has been encountered, and this
+       criterion seems to work well with temporaries introduced by Cil *)
+    let last l = match List.rev l with [] -> None | (_, loc) :: _ -> Some loc in
+    (match all, List.filter (fun ((loc', _), _) -> loc = loc') all with
+      | [], _ -> None
+      | _, (_ :: _ as exact) -> last exact (* a pos exactly corresponds *)
+      | (l, _) :: __, [] -> (* No exact loc. We consider the innermost
+                               statements, ie those at the top of the list *)
+          last (List.filter (fun (l', _) -> Location.equal l l') all)
+    )
+  with Not_found ->
+    Gui_parameters.debug "No pretty-printed loc found";
+    None
 
 
 (*

@@ -26,15 +26,21 @@ open Db
 open Cil_types
 open Cil_datatype
 
-module Enabled=
-  State_builder.Ref
+
+(* Show or hide the 'Occurrence' column of the gui filetree. *)
+let show_column = ref (fun () -> ())
+
+(* Are results shown? *)
+module Enabled = struct
+  include State_builder.Ref
     (Datatype.Bool)
     (struct
-      let name = "Occurrence_gui.Enabled"
-      let dependencies = []
-      let kind = `Internal
-      let default () = true
+       let name = "Occrrence_gui.State"
+       let dependencies = [!Db.Occurrence.self]
+       let kind = `Internal
+       let default () = false
      end)
+end
 
 let _ =
   Dynamic.register
@@ -55,6 +61,7 @@ let _ =
 let find_occurrence (main_ui:Design.main_window_extension_points) vi () =
   ignore (!Db.Occurrence.get vi);
   Enabled.set true;
+  !show_column ();
   main_ui#rehighlight ()
 
 (* Only these localizable interest this plugin *)
@@ -73,23 +80,23 @@ let occurrence_highlighter buffer loc ~start ~stop =
         ()
     | Some (result, vi) ->
         let highlight () =
-	  let tag = make_tag buffer "occurrence" [`BACKGROUND "yellow" ] in
+          let tag = make_tag buffer "occurrence" [`BACKGROUND "yellow" ] in
           apply_tag buffer tag start stop
         in
         match loc with
         | PLval (_, ki, lval) ->
-	    let same_lval (k, l) = Kinstr.equal k ki && Lval.equal l lval in
-	    if List.exists same_lval result then highlight ()
+            let same_lval (k, l) = Kinstr.equal k ki && Lval.equal l lval in
+            if List.exists same_lval result then highlight ()
         | PTermLval (_,ki,term_lval) ->
-	    let same_tlval (k, l) =
+            let same_tlval (k, l) =
               Logic_utils.is_same_tlval
-	        (Logic_utils.lval_to_term_lval ~cast:true l)
-	        term_lval
-	      && Kinstr.equal k ki
-	    in
-	    if List.exists same_tlval result then highlight ()
+                (Logic_utils.lval_to_term_lval ~cast:true l)
+                term_lval
+              && Kinstr.equal k ki
+            in
+            if List.exists same_tlval result then highlight ()
         | PVDecl(_, vi') when Varinfo.equal vi vi' ->
-	    highlight ()
+            highlight ()
         | PVDecl _ | PStmt _ | PGlobal _ | PIP _ -> ()
 
 module FollowFocus =
@@ -125,7 +132,7 @@ let occurrence_panel main_ui =
       localizable
   in
   ignore (set_selected#connect#pressed
-            (fun () -> Design.apply_on_selected do_select));
+            (fun () -> History.apply_on_selected do_select));
   (* check_button enabled *)
   let enabled = Enabled.get () in
   let enabled_button = GButton.check_button
@@ -139,6 +146,7 @@ let occurrence_panel main_ui =
        ~callback:
        (fun () ->
           Enabled.set enabled_button#active;
+         !show_column ();
           main_ui#rehighlight ()));
   (* check_button followFocus *)
   let followFocus = GButton.check_button
@@ -154,18 +162,21 @@ let occurrence_panel main_ui =
     let old_vi = ref (-2) in
     fun () ->
       (let sensitive_set_selected_button = ref false in
-       Design.apply_on_selected
+       History.apply_on_selected
          (apply_on_vi (fun _ -> sensitive_set_selected_button:=true));
        set_selected#misc#set_sensitive !sensitive_set_selected_button;
-       enabled_button#set_active (Enabled.get());
+       if Enabled.get () <> enabled_button#active then (
+         enabled_button#set_active (Enabled.get ());
+         !show_column ();
+       );
        let new_result = !Db.Occurrence.get_last_result () in
        (match new_result with
-	| None when !old_vi<> -1 ->
+        | None when !old_vi<> -1 ->
             old_vi := -1; e#set_label "<i>None</i>"
-	| Some (_,vi) when vi.vid<> !old_vi->
+        | Some (_,vi) when vi.vid<> !old_vi->
             old_vi := vi.vid;
             e#set_label vi.vname
-	| _ -> ()))
+        | _ -> ()))
   in
   "Occurrence",w#coerce,Some refresh
 
@@ -177,38 +188,42 @@ let occurrence_selector
          let callback = find_occurrence main_ui vi in
          ignore (popup_factory#add_item "_Occurrence" ~callback);
          if FollowFocus.get () then
-	   ignore (Glib.Idle.add (fun () -> callback (); false))
+           ignore (Glib.Idle.add (fun () -> callback (); false))
        end)
       localizable
 
 let file_tree_decorate (file_tree:Filetree.t) =
-  file_tree#append_pixbuf_column
-    "Occurrence"
-    (fun globs ->
-       match !Db.Occurrence.get_last_result () with
-       | None -> (* occurrence not computed *)
-           [`STOCK_ID ""]
-       | Some (result, _) ->
-           let in_globals (ki,_) =
-             match ki with
-               | Kglobal -> false
-               | Kstmt stmt ->
-                   let kf = Kernel_function.find_englobing_kf stmt in
-                   let {vid=v0} = Kernel_function.get_vi kf in
-                   List.exists
-                     (fun glob -> match glob with
-                        | GFun ({svar ={vid=v1}},_ ) -> v1=v0
-                        |  _ -> false)
-                     globs
-           in
-           if List.exists in_globals result then [`STOCK_ID "gtk-apply"]
-           else [`STOCK_ID ""])
+  show_column :=
+    file_tree#append_pixbuf_column
+      ~title:"Occurrence"
+      (fun globs ->
+        match !Db.Occurrence.get_last_result () with
+          | None -> (* occurrence not computed *)
+            [`STOCK_ID ""]
+          | Some (result, _) ->
+            let in_globals (ki,_) =
+              match ki with
+                | Kglobal -> false
+                | Kstmt stmt ->
+                  let kf = Kernel_function.find_englobing_kf stmt in
+                  let {vid=v0} = Kernel_function.get_vi kf in
+                  List.exists
+                    (fun glob -> match glob with
+                      | GFun ({svar ={vid=v1}},_ ) -> v1=v0
+                      |  _ -> false)
+                    globs
+            in
+            if List.exists in_globals result then [`STOCK_ID "gtk-apply"]
+            else [`STOCK_ID ""])
+      (fun () -> Enabled.get ());
+  !show_column ()
 
 let main main_ui =
   main_ui#register_source_selector occurrence_selector;
   main_ui#register_source_highlighter occurrence_highlighter;
   main_ui#register_panel occurrence_panel;
-  file_tree_decorate main_ui#file_tree
+  file_tree_decorate main_ui#file_tree;
+;;
 
 let () = Design.register_extension main
 

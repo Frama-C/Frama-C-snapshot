@@ -163,7 +163,8 @@ int vfprintf(FILE * restrict stream,
      const char * restrict format,
      va_list arg);
 
-/*@ assigns arg \from format[..], *stream; */
+/*@ assigns *stream \from format[..], *stream; 
+// TODO: assign arg too. */
 int vfscanf(FILE * restrict stream,
      const char * restrict format,
      va_list arg);
@@ -172,9 +173,8 @@ int vfscanf(FILE * restrict stream,
 int vprintf(const char * restrict format,
      va_list arg);
 
-/*@ assigns *__fc_stdin, arg \from format[..]; 
-// unsupported...
- */
+/*@ assigns *__fc_stdin \from format[..]; 
+// TODO: assign arg too. */
 int vscanf(const char * restrict format,
      va_list arg);
 
@@ -190,7 +190,7 @@ int vsprintf(char * restrict s,
      const char * restrict format,
      va_list arg);
 
-/*@ assigns arg ; */
+/* @ TODO: assigns arg ; */
 int vsscanf(const char * restrict s,
      const char * restrict format,
      va_list arg);

@@ -28,4 +28,3 @@ Local Variables:
 compile-command: "make -C ../.."
 End:
 *)
-

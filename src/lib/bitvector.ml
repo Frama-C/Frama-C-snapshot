@@ -39,7 +39,7 @@ let nbits () =
     (fun x ->
        let n = ref 0 in
        for k=0 to 7 do
-	 if x land (1 lsl k) > 0 then incr n
+         if x land (1 lsl k) > 0 then incr n
        done ; n
     )
 
@@ -68,7 +68,7 @@ let is_empty s =
 
 let set s k =
   let p = k lsr 3 in
-  if p >= String.length s then 
+  if p >= String.length s then
     raise (Invalid_argument "Bitvector.set") ;
   let r = k land 7 in
   let b = int_of_char s.[p] lor (1 lsl r) in
@@ -76,7 +76,7 @@ let set s k =
 
 let clear s k =
   let p = k lsr 3 in
-  if p >= String.length s then 
+  if p >= String.length s then
     raise (Invalid_argument "Bitvector.clear") ;
   let r = k land 7 in
   let b = int_of_char s.[p] land (lnot (1 lsl r)) in
@@ -113,20 +113,20 @@ let set_range s a b =
   if b-a < 8 then
     for i=a to b do set s i done
   else
-    let p = 
+    let p =
       let i = a land 7 in
       let p0 = a lsr 3 in
       if i=0 then p0 else
-	(* Sets bits i..7 of p0 *)
-	let x = int_of_char s.[p0] lor high.(i-1) in
-	s.[p0] <- char_of_int x ; succ p0 
+        (* Sets bits i..7 of p0 *)
+        let x = int_of_char s.[p0] lor high.(i-1) in
+        s.[p0] <- char_of_int x ; succ p0
     in
-    let q = 
+    let q =
       let j = b land 7 in
       let q0 = b lsr 3 in
       if j=7 then q0 else
-	(* Sets bits 0..j of q0 *)
-	let x = int_of_char s.[q0] lor low.(j) in
-	s.[q0] <- char_of_int x ; pred q0 
+        (* Sets bits 0..j of q0 *)
+        let x = int_of_char s.[q0] lor low.(j) in
+        s.[q0] <- char_of_int x ; pred q0
     in
     for i=p to q do s.[i] <- '\255' done

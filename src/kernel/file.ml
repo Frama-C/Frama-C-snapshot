@@ -23,7 +23,6 @@
 open Cil_types
 open Cil
 open Cilutil
-open Db_types
 open Extlib
 open Visitor
 open Pretty_utils
@@ -34,7 +33,7 @@ type file =
       string (* filename of the [.c] to preprocess *)
       * string (* Preprocessor command.
                   [filename.c -o tempfilname.i] will be appended at the
-		    end.*)
+                    end.*)
   | NoCPP of string (** filename of a preprocessed [.c] *)
   | External of string * string (* file * name of plug-in that handles it *)
 
@@ -49,13 +48,13 @@ module D =
       let mem_project = Datatype.never_any_project
       let copy = Datatype.identity (* immutable strings *)
       let internal_pretty_code p_caller fmt t =
-	let pp fmt = match t with
-	  | NoCPP s -> Format.fprintf fmt "@[File.NoCPP %S@]" s
-	  | External (f,p) ->
+        let pp fmt = match t with
+          | NoCPP s -> Format.fprintf fmt "@[File.NoCPP %S@]" s
+          | External (f,p) ->
             Format.fprintf fmt "@[File.External (%S,%S)@]" f p
-	  | NeedCPP (a,b) -> Format.fprintf fmt "@[File.NeedCPP (%S,%S)@]" a b
-	in
-	Type.par p_caller Type.Call fmt pp
+          | NeedCPP (a,b) -> Format.fprintf fmt "@[File.NeedCPP (%S,%S)@]" a b
+        in
+        Type.par p_caller Type.Call fmt pp
      end)
 include D
 
@@ -80,7 +79,7 @@ let get_name = function NeedCPP (s,_) | NoCPP s | External (s,_) -> s
    else if the CPP environment variable is set, use it
    else the built-in "gcc -C -E -I." *)
 let get_preprocessor_command () =
-  let cmdline = Parameters.CppCommand.get() in
+  let cmdline = Kernel.CppCommand.get() in
   if cmdline <> "" then cmdline
   else
     try Sys.getenv "CPP"
@@ -92,14 +91,13 @@ let from_filename ?(cpp=get_preprocessor_command ()) f =
   end else
     let suf =
       try
-	let suf_idx = String.rindex f '.' in
-	String.sub f suf_idx (String.length f - suf_idx)
+        let suf_idx = String.rindex f '.' in
+        String.sub f suf_idx (String.length f - suf_idx)
       with Not_found -> (* raised by String.rindex if '.' \notin f *)
-	""
+        ""
     in
     if Hashtbl.mem check_suffixes suf then External (f, suf)
     else NeedCPP (f, cpp)
-
 
 (* ************************************************************************* *)
 (** {2 Internal states} *)
@@ -110,24 +108,25 @@ module Files : sig
   val register: t list -> unit
   val pre_register: t -> unit
   val is_computed: unit -> bool
+  val reset: unit -> unit
 end = struct
 
   module S =
     State_builder.List_ref
       (D)
       (struct
-	 let dependencies =
-	   [ Parameters.CppCommand.self;
-             Parameters.CppExtraArgs.self;
-             Parameters.Files.self ]
-	 let name = "Files for preprocessing"
+         let dependencies =
+           [ Kernel.CppCommand.self;
+             Kernel.CppExtraArgs.self;
+             Kernel.Files.self ]
+         let name = "Files for preprocessing"
          let kind = `Internal
        end)
 
   let () =
     State_dependency_graph.Static.add_dependencies
       ~from:S.self
-      [ Ast.self; Ast.UntypedFiles.self ]
+      [ Ast.self; Ast.UntypedFiles.self; Cabshelper.Comments.self ]
 
   (* Allow to register files in advance, e.g. prolog files for plugins *)
   let pre_register file =
@@ -136,13 +135,17 @@ end = struct
 
   let register files =
     if S.is_computed () then
-      raise (Ast.Bad_Initialisation "[File.register] Too many initializations");
+      raise (Ast.Bad_Initialization "[File.register] Too many initializations");
     let prev_files = S.get () in
     S.set (prev_files @ files);
     S.mark_as_computed ()
 
   let get = S.get
   let is_computed () = S.is_computed ()
+
+  let reset () =
+    let selection = State_selection.Static.with_dependencies S.self in
+    Project.clear ~selection ()
 
 end
 
@@ -153,14 +156,25 @@ let pre_register = Files.pre_register
 (** {2 AST Integrity check}                                                  *)
 (*****************************************************************************)
 
+let is_admissible_conversion e ot nt =
+  let ots = Cil.typeSigWithAttrs (fun _ -> []) ot in
+  let nts = Cil.typeSigWithAttrs (fun _ -> []) nt in
+  Cilutil.equals ots nts ||
+    (match e.enode, Cil.unrollType nt with
+      | Const(CEnum { eihost = ei }), TEnum(ei',[]) -> ei.ename = ei'.ename
+      | _ -> false)
+
 (* performs various consistency checks over a cil file.
    Code may vary depending on current development of the kernel and/or
    identified bugs.
    what is a short string indicating which AST is checked
+
+   NB: some checks are performed on the CFG, so it must have been computed on
+   the file that is checked.
 *)
-class check_file what: Visitor.frama_c_visitor  =
+class check_file_aux is_normalized what: Visitor.frama_c_visitor  =
   let check_abort fmt =
-    Cil.fatal ("[AST Integrity Check]@ %s" ^^ fmt) what
+    Kernel.fatal ~current:true ("[AST Integrity Check]@ %s@ " ^^ fmt) what
   in
   let check_label s =
     let rec has_label = function
@@ -225,7 +239,7 @@ object(self)
     match v.vlogic_var_assoc with
         None -> DoChildren
       | Some ({ lv_origin = Some v'} as lv) when v == v' ->
-          Cilmsg.debug "var %s(%d) has an associated %s(%d)" v.vname v.vid
+          Kernel.debug "var %s(%d) has an associated %s(%d)" v.vname v.vid
             lv.lv_name lv.lv_id;
           DoChildren
       | Some lv ->
@@ -285,6 +299,9 @@ object(self)
     local_vars <- Varinfo.Set.empty;
     List.iter
       (fun x -> local_vars <- Varinfo.Set.add x local_vars) f.slocals;
+    let print_stmt fmt stmt =
+      Format.fprintf fmt "@[%a(%d)@]" !Ast_printer.d_stmt stmt stmt.sid
+    in
     let check f =
       if Stmt.Hashtbl.length switch_cases <> 0 then
         begin
@@ -294,33 +311,85 @@ object(self)
                  "In function %a, statement %a \
                   does not appear in body of switch while porting a \
                   case or default label."
-		 Cil.d_var f.svar !Ast_printer.d_stmt x)
-	    switch_cases
-	end;
+                 Cil.d_var f.svar print_stmt x)
+            switch_cases
+        end;
       List.iter
         (fun stmt ->
-           try if Stmt.Hashtbl.find known_stmts stmt != stmt then
-             (check_abort
-                  "Label %a in function %a \
+           try
+             let stmt' = Stmt.Hashtbl.find known_stmts stmt in
+             if  stmt' != stmt then
+             check_abort
+                  "Label @[%a@]@ in function %a@ \
                    is not linked to the correct statement:@\n\
-                   statement in AST is %a(%d)@\n\
-                   statement referenced in goto is %a(%d)"
-                  Cil.d_stmt
-		  {stmt with skind = Instr (Skip (Stmt.loc stmt)) }
-                  Cil.d_var f.svar
-                  Cil.d_stmt (Stmt.Hashtbl.find known_stmts stmt)
-                  (Stmt.Hashtbl.find known_stmts stmt).sid
-                  Cil.d_stmt stmt stmt.sid
-               )
+                   statement in AST is %a@\n\
+                   statement referenced in goto is %a"
+                  !Ast_printer.d_stmt
+                  {stmt with skind = Instr (Skip (Stmt.loc stmt)) }
+                  !Ast_printer.d_var f.svar print_stmt stmt' print_stmt stmt
            with Not_found ->
-             (check_abort
-                  "Label %a in function %a \
+             check_abort
+               "Label @[%a@]@ in function %a@ \
                    does not refer to an existing statement"
-                  Cil.d_stmt
-		  ({stmt with skind = Instr (Skip (Stmt.loc stmt)) })
-                  Cil.d_var f.svar))
+               !Ast_printer.d_stmt
+               ({stmt with skind = Instr (Skip (Stmt.loc stmt)) })
+               !Ast_printer.d_var f.svar)
         labelled_stmt;
       labelled_stmt <- [];
+      let check_one_stmt stmt _ =
+        let check_cfg_edge stmt' =
+          try
+            let ast_stmt = Stmt.Hashtbl.find known_stmts stmt' in
+            if  ast_stmt != stmt' then
+              check_abort
+                "cfg info of statement %a in function %a \
+                 is not linked to correct statement:@\n\
+                 statement in AST is %a@\n\
+                 statement referenced in cfg info is %a"
+                print_stmt stmt !Ast_printer.d_var f.svar
+                print_stmt ast_stmt print_stmt stmt'
+          with Not_found ->
+            check_abort
+              "cfg info of statement %a in function %a does not \
+               refer to an existing statement.@\n\
+               Referenced statement is %a"
+              print_stmt stmt !Ast_printer.d_var f.svar print_stmt stmt'
+        in
+        List.iter check_cfg_edge stmt.succs;
+        List.iter check_cfg_edge stmt.preds;
+        match stmt.skind with
+          | Return _ ->
+            if stmt.succs <> [] then
+              check_abort
+                "return statement %a in function %a \
+                 has successors:@\n%a"
+                print_stmt stmt !Ast_printer.d_var f.svar
+                (Pretty_utils.pp_list ~sep:nl_sep print_stmt) stmt.succs
+          |  Instr(Call (_, called, _, _))
+              when hasAttribute "noreturn" (typeAttrs (typeOf called)) ->
+            if stmt.succs <> [] then
+              check_abort
+                "exit statement %a in function %a \
+                 has successors:@\n%a"
+                print_stmt stmt !Ast_printer.d_var f.svar
+                (Pretty_utils.pp_list ~sep:nl_sep print_stmt) stmt.succs
+          |  Instr(Call (_, { enode = Lval(Var called,NoOffset)}, _, _))
+              when hasAttribute "noreturn" called.vattr ->
+            if stmt.succs <> [] then
+              check_abort
+                "exit statement %a in function %a \
+                 has successors:@\n%a"
+                print_stmt stmt !Ast_printer.d_var f.svar
+                (Pretty_utils.pp_list ~sep:nl_sep print_stmt) stmt.succs
+          | _ ->
+            (* unnormalized code may not contain return statement,
+               leaving perfectly normal statements without succs. *)
+            if is_normalized && stmt.succs = [] then
+              check_abort
+                "statement %a in function %a has no successor."
+                print_stmt stmt !Ast_printer.d_var f.svar
+      in
+      Stmt.Hashtbl.iter check_one_stmt known_stmts;
       Stmt.Hashtbl.clear known_stmts;
       if not (Varinfo.Set.is_empty local_vars) then begin
         check_abort
@@ -437,14 +506,14 @@ object(self)
   method vterm t =
     match t.term_node with
       | TLval _ ->
-	  begin match t.term_type with
-	    | Ctype ty ->
+          begin match t.term_type with
+            | Ctype ty ->
                 ignore
-                  (Cilmsg.verify (not (isVoidType ty))
+                  (Kernel.verify (not (isVoidType ty))
                      "logic term with void type:%a" d_term t);
                 DoChildren
-	    | _ -> DoChildren
-	  end
+            | _ -> DoChildren
+          end
       | Tat(_,StmtLabel l) ->
           check_label !l;
           labelled_stmt <- !l::labelled_stmt; DoChildren
@@ -455,7 +524,7 @@ object(self)
 
   method vglob_aux = function
       GCompTag(c,_) ->
-        Cilmsg.debug "Adding fields for type %s(%d)" c.cname c.ckey;
+        Kernel.debug "Adding fields for type %s(%d)" c.cname c.ckey;
         List.iter
           (fun x -> Fieldinfo.Hashtbl.add known_fields x x) c.cfields;
         DoChildren
@@ -535,7 +604,7 @@ object(self)
         try
           if not
             (li == Logic_var.Hashtbl.find known_logic_info li.l_var_info)
-	  then
+          then
               (check_abort "logic function %a information is \
                      not shared between declaration and use"
                  !Ast_printer.d_ident li.l_var_info.lv_name)
@@ -550,8 +619,38 @@ object(self)
       | Const (CEnum ei) -> self#check_ei ei
       | _ -> DoChildren
 
+  method vinst i =
+    match i with
+      | Call(_,{ enode = Lval(Var f, NoOffset)},args,_) ->
+        let (_,targs,is_variadic,_) = Cil.splitFunctionTypeVI f in
+        let rec aux l1 l2 =
+          match l1,l2 with
+              [],[] -> DoChildren
+            | _::_, [] ->
+              check_abort "call %a has too few arguments" !Ast_printer.d_instr i
+            | [],e::_ ->
+              if is_variadic then DoChildren
+              else
+                check_abort "call %a has too many arguments, starting from %a"
+                  !Ast_printer.d_instr i !Ast_printer.d_exp e
+            | (_,ty1,_)::l1,arg::l2 ->
+              let ty2 = Cil.typeOf arg in
+              if not (is_admissible_conversion arg ty2 ty1) then
+                check_abort "in call %a, arg %a has type %a instead of %a"
+                  !Ast_printer.d_instr i
+                  !Ast_printer.d_exp arg
+                  !Ast_printer.d_type ty2
+                  !Ast_printer.d_type ty1;
+              aux l1 l2
+        in
+        (match targs with
+            None -> DoChildren
+          | Some targs -> aux targs args)
+      | _ -> DoChildren
 
 end
+
+class check_file what = object inherit check_file_aux true what end
 
 (* ************************************************************************* *)
 (** {2 Initialisations} *)
@@ -567,49 +666,52 @@ let safe_remove_file f =
 let parse = function
   | NoCPP f ->
       if not (Sys.file_exists  f) then
-	Kernel.abort "preprocessed file %S does not exist" f;
+        Kernel.abort "preprocessed file %S does not exist" f;
       Frontc.parse f ()
   | NeedCPP (f, cmdl) ->
       if not (Sys.file_exists  f) then
-	Kernel.abort "source file %S does not exist" f;
-      let ppf = Filename.temp_file (Filename.basename f) ".i" in
+        Kernel.abort "source file %S does not exist" f;
+      let ppf =
+        try Filename.temp_file (Filename.basename f) ".i"
+        with Sys_error s -> Kernel.abort "cannot create temporary file: %s" s
+      in
       let cmd supp_args in_file out_file =
         try
           (* Format.eprintf "-cpp-command=|%s|@\n" cmdl; *)
           (* look at the command line to find two "%s" or one "%1" and a "%2"
-	  *)
+          *)
           let percent1 = String.index cmdl '%' in
-	  (* Format.eprintf "-cpp-command percent1=%d@\n" percent1;
+          (* Format.eprintf "-cpp-command percent1=%d@\n" percent1;
              Format.eprintf "-cpp-command %%%c@\n" (String.get cmdl
-	     (percent1+1)); *)
+             (percent1+1)); *)
           let percent2 = String.index_from cmdl (percent1+1) '%' in
-	  (* Format.eprintf "-cpp-command percent2=%d@\n" percent2;
+          (* Format.eprintf "-cpp-command percent2=%d@\n" percent2;
              Format.eprintf "-cpp-command %%%c@\n" (String.get cmdl
-	     (percent2+1)); *)
+             (percent2+1)); *)
           let file1, file2 =
             match String.get cmdl (percent1+1), String.get cmdl (percent2+1)
             with
             | '1', '2' ->
                 in_file, out_file
-		  (* "%1" followed by "%2" is used to printf 'ppf' after 'f' *)
+                  (* "%1" followed by "%2" is used to printf 'ppf' after 'f' *)
             | '2', '1' ->
                 out_file, in_file
             | _, _ -> raise (Invalid_argument "maybe a bad cpp command")
           in
-	  let cmd1 = String.sub cmdl 0 percent1 in
-	  (* Format.eprintf "-cpp-command cmd1=|%s|@\n" cmd1; *)
+          let cmd1 = String.sub cmdl 0 percent1 in
+          (* Format.eprintf "-cpp-command cmd1=|%s|@\n" cmd1; *)
           let cmd2 =
-	    String.sub cmdl (percent1 + 2) (percent2 - (percent1 + 2))
-	  in
-	  (* Format.eprintf "-cpp-command cmd2=|%s|@\n" cmd2; *)
-          let cmd3 =
-	    String.sub cmdl (percent2 + 2) (String.length cmdl - (percent2 + 2))
+            String.sub cmdl (percent1 + 2) (percent2 - (percent1 + 2))
           in
-	  (* Format.eprintf "-cpp-command cmd3=|%s|@\n" cmd3; *)
+          (* Format.eprintf "-cpp-command cmd2=|%s|@\n" cmd2; *)
+          let cmd3 =
+            String.sub cmdl (percent2 + 2) (String.length cmdl - (percent2 + 2))
+          in
+          (* Format.eprintf "-cpp-command cmd3=|%s|@\n" cmd3; *)
           Format.sprintf "%s%s %s %s%s%s" cmd1
             (* using Filename.quote for filenames which contain space or
-	       shell metacharacters *)
-	    (Filename.quote file1)
+               shell metacharacters *)
+            (Filename.quote file1)
             supp_args
             cmd2 (Filename.quote file2) cmd3
         with
@@ -617,35 +719,35 @@ let parse = function
         | Not_found ->
             Format.sprintf "%s %s -o %s %s" cmdl
               supp_args
-	      (* using Filename.quote for filenames which contain space or
-	         shell metacharacters *)
-	      (Filename.quote out_file) (Filename.quote in_file)
+              (* using Filename.quote for filenames which contain space or
+                 shell metacharacters *)
+              (Filename.quote out_file) (Filename.quote in_file)
       in
       let supp_args =
-	(Parameters.CppExtraArgs.get_set ~sep:" " ()) ^
-          (if Parameters.ReadAnnot.get() && Parameters.PreprocessAnnot.get()
-	   then " -dD" else "")
+        (Kernel.CppExtraArgs.get_set ~sep:" " ()) ^
+          (if Kernel.ReadAnnot.get() && Kernel.PreprocessAnnot.get()
+           then " -dD" else "")
       in
       Kernel.feedback "@{<i>preprocessing@} with \"%s %s %s\"" cmdl supp_args f;
       if Sys.command (cmd supp_args f ppf) <> 0 then begin
-	Extlib.safe_remove ppf;
-	Kernel.abort "failed to run: %s@\n\
+        Extlib.safe_remove ppf;
+        Kernel.abort "failed to run: %s@\n\
 you may set the CPP environment variable to select the proper \
 preprocessor command or use the option \"-cpp-command\"."
-	  (cmd supp_args f ppf);
+          (cmd supp_args f ppf);
       end;
       let ppf =
-        if Parameters.ReadAnnot.get() && Parameters.PreprocessAnnot.get()
+        if Kernel.ReadAnnot.get() && Kernel.PreprocessAnnot.get()
         then begin
           let ppf' =
-	    try Logic_preprocess.file (cmd "") ppf
-	    with Sys_error _ as e ->
-	      Extlib.safe_remove ppf;
-	      Kernel.abort "preprocessing of annotations failed (%s)"
-		(Printexc.to_string e)
-	  in
+            try Logic_preprocess.file (cmd "") ppf
+            with Sys_error _ as e ->
+              Extlib.safe_remove ppf;
+              Kernel.abort "preprocessing of annotations failed (%s)"
+                (Printexc.to_string e)
+          in
           safe_remove_file ppf ;
-	  ppf'
+          ppf'
         end else ppf
       in
       let (cil,(_,defs)) = Frontc.parse ppf () in
@@ -654,10 +756,10 @@ preprocessor command or use the option \"-cpp-command\"."
       (cil,(f,defs))
   | External (f,suf) ->
       if not (Sys.file_exists f) then
-	Kernel.abort "file %S does not exist." f;
+        Kernel.abort "file %S does not exist." f;
       try Hashtbl.find check_suffixes suf f
       with Not_found ->
-	Kernel.abort "could not find a suitable plugin for parsing %s." f
+        Kernel.abort "could not find a suitable plugin for parsing %s." f
 
 (** Keep defined entry point even if not defined.
     This function is meant to be passed to {!Rmtmps.removeUnusedTemps}.*)
@@ -665,26 +767,28 @@ let keep_entry_point g =
   Rmtmps.isDefaultRoot g ||
     match g with
       GVarDecl(spec,v,_) ->
-        Parameters.MainFunction.get () = v.vname &&
+        Kernel.MainFunction.get () = v.vname &&
         not (is_empty_funspec spec)
     | _ -> false
 
-
 let files_to_cil files =
+  (* BY 2011-05-10 Deactivated this mark_as_computed. Does not see to
+     do anything useful anymore, and causes problem with the self-recovering
+     gui (commit 13295)
   (* mark as computed early in case of a typing error occur: do not type check
      the erroneous program twice. *)
-  Ast.mark_as_computed ();
+     Ast.mark_as_computed (); *)
   let debug_globals files =
     let level = 6 in
     if Kernel.debug_atleast level then begin
       List.iter
-	(fun f ->
-	   (* NB: don't use frama-C printer here, as the
+        (fun f ->
+           (* NB: don't use frama-C printer here, as the
               annotations tables are not filled yet. *)
-	   List.iter
-	     (fun g -> Kernel.debug ~level "%a" Cil.d_global g)
-	     f.globals)
-	files
+           List.iter
+             (fun g -> Kernel.debug ~level "%a" Cil.d_global g)
+             f.globals)
+        files
     end
   in
   (* Parsing and merging must occur in the very same order.
@@ -693,16 +797,16 @@ let files_to_cil files =
     Kernel.feedback ~level:2 "parsing";
     let files,cabs =
       List.fold_left
-	(fun (accf,accc) f ->
+        (fun (accf,accc) f ->
            try
-	     let f,c = parse f in
-	     f::accf, c::accc
+             let f,c = parse f in
+             f::accf, c::accc
            with exn when Cilmsg.had_errors () ->
              if Kernel.Debug.get () >= 1 then raise exn
              else
-	       Kernel.abort "skipping file %S that has errors." (get_name f))
-	([],[])
-	files
+               Kernel.abort "skipping file %S that has errors." (get_name f))
+        ([],[])
+        files
     in
       Ast.UntypedFiles.set cabs;
       debug_globals files;
@@ -730,7 +834,7 @@ let files_to_cil files =
   debug_globals files;
 
   Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point merged_file;
-  if Parameters.UnspecifiedAccess.get()
+  if Kernel.UnspecifiedAccess.get()
   then begin
     let rec not_separated_offset offs1 offs2 =
       match offs1, offs2 with
@@ -743,7 +847,7 @@ let files_to_cil files =
                Cil.isInteger (Cil.constFold true i1),
                Cil.isInteger (Cil.constFold true i2) with
                  Some c1, Some c2 ->
-                   Int64.compare c1 c2 = 0 &&
+                   My_bigint.equal c1 c2 &&
                    not_separated_offset offs1 offs2
                | None, _ | _, None -> true)
         | (Index _|Field _), (Index _|Field _) ->
@@ -799,7 +903,7 @@ let files_to_cil files =
                let remove_mod m l =
                  List.filter
                    (fun x -> not (List.exists (Lval.equal x) m))
-		   l
+                   l
                in
                let not_separated_modified l1 l2 =
                  List.fold_left
@@ -821,7 +925,7 @@ let files_to_cil files =
                       end)
                    (false, [], []) seq
                  in if warn then
-		 Kernel.warning ~current:true ~once:true
+                 Kernel.warning ~current:true ~once:true
                    "Unspecified sequence with side effect:@\n%a@\n"
                    (Cil.printStmt my_stmt_print) s
            | _ -> ());
@@ -832,100 +936,123 @@ let files_to_cil files =
   end;
   merged_file
 
-let synchronize_source_annot kf =
+let synchronize_source_annot has_new_stmt kf =
   match kf.fundec with
-    | Definition (fd,_) ->
-        let (visitor:cilVisitor) = object
-          inherit nopCilVisitor as super
-          val block_with_user_annots = ref None
-          val user_annots_for_next_stmt = ref []
-          method vstmt st =
-            let stmt, father = match super#current_kinstr with
-              | Kstmt stmt ->
-                  super#pop_stmt stmt;
-                  let father = super#current_stmt in
-		  super#push_stmt stmt;
-		  stmt, father
-              | Kglobal -> assert false
-	    in
-            let is_in_same_block () = match !block_with_user_annots,father with
-              | None, None -> true
-              | Some block, Some stmt_father when block == stmt_father -> true
-              | _, _ -> false
-	    in
-            let synchronize_user_annot annot =
-	      Annotations.add st [] (Before (User annot))
-	    in
-            let synchronize_previous_user_annots () =
-              if !user_annots_for_next_stmt <> []
-              then begin
-                if is_in_same_block ()
-                then
-                  List.iter synchronize_user_annot
-                    (List.sort
-                       (fun x y -> x.annot_id - y.annot_id)
-                       !user_annots_for_next_stmt)
-                else
-                  Kernel.warning ~current:true ~once:true
-		    "Ignoring previous annotation relative to next statement effects" ;
-                block_with_user_annots := None ;
-                user_annots_for_next_stmt := []
-              end
-            in
-            let add_user_annot_for_next_stmt annot =
-              if !user_annots_for_next_stmt = []
-              then
-                (block_with_user_annots := father;
-                 user_annots_for_next_stmt := [annot])
-              else if is_in_same_block ()
-              then
-                user_annots_for_next_stmt := annot::!user_annots_for_next_stmt
-              else
-		begin
-		  Kernel.warning ~current:true ~once:true
-		    "Ignoring previous annotation relative to next statement effects" ;
-		  block_with_user_annots := father;
-                  user_annots_for_next_stmt := [annot] ;
-		end
-	    in
-            assert (stmt == st) ;
-            assert (!block_with_user_annots = None
-                || !user_annots_for_next_stmt <> []);
-
-            match st.skind with
-              | Instr (Code_annot (annot,_)) ->
-                    (* Code annotation isn't considered as a real stmt.
-                       So, previous annotations should be relative to the next stmt.
-                       Only this [annot] may be synchronised to that stmt *)
-                    (if match annot.annot_content with
-                       | AStmtSpec _
-                       | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
-                           (* Annotation relative to the effect of next statement *)
-                           true
-                       | APragma _ | AAssert _ | AAssigns _
-                       | AInvariant _ | AVariant _ (* | ALoopBehavior _ *) ->
-                           (* Annotation relative to the current control point *)
-                           false
-                     then (* To synchronize on the next statement *)
-                       add_user_annot_for_next_stmt annot
-                     else (* Synchronize this annotation on that statement *)
-                       synchronize_user_annot annot);
-                    super#vstmt st
-                | Loop (annot, _, _, _, _) ->
-		    (* Synchronize previous annotations on that statement *)
-                    synchronize_previous_user_annots () ;
-                    (* Synchronize loop annotations on that statement *)
-                    List.iter synchronize_user_annot
-                      (List.sort (fun x y -> x.annot_id - y.annot_id) annot);
-                    super#vstmt st
-                | _ ->
-		    (* Synchronize previous annotations on that statement *)
-                    synchronize_previous_user_annots () ;
-                    super#vstmt st
-        end
+  | Definition (fd,_) ->
+    let (visitor:cilVisitor) = object
+      inherit nopCilVisitor as super
+      val block_with_user_annots = ref None
+      val user_annots_for_next_stmt = ref []
+      method vstmt st =
+        let stmt, father = match super#current_kinstr with
+          | Kstmt stmt ->
+            super#pop_stmt stmt;
+            let father = super#current_stmt in
+            super#push_stmt stmt;
+            stmt, father
+          | Kglobal -> assert false
         in
-        ignore (visitCilFunction visitor fd)
-    | Declaration _ -> ()
+        let is_in_same_block () = match !block_with_user_annots,father with
+          | None, None -> true
+          | Some block, Some stmt_father when block == stmt_father -> true
+          | _, _ -> false
+        in
+        let synchronize_user_annot a = Annotations.add kf st [] (User a) in
+        let synchronize_previous_user_annots () =
+          if !user_annots_for_next_stmt <> [] then begin
+            if is_in_same_block ()
+            then begin
+              let my_annots = !user_annots_for_next_stmt in
+              let post_action st =
+                let treat_annot (has_contract,st as acc) annot =
+                  if Logic_utils.is_contract annot then begin
+                    if has_contract then begin
+                      let new_stmt = 
+                        Cil.mkStmt ~valid_sid:true (Block (Cil.mkBlock [st]))
+                      in
+                      has_new_stmt := true;
+                      Annotations.add kf new_stmt [] (User annot);
+                      (true,new_stmt)
+                    end else begin
+                      Annotations.add kf st [] (User annot);
+                      (true,st)
+                    end
+                  end else begin
+                    Annotations.add kf st [] (User annot);
+                    acc
+                  end
+                in
+                let (_,st) = List.fold_left treat_annot (false,st) my_annots in
+                st
+              in
+              block_with_user_annots:=None;
+              user_annots_for_next_stmt:=[];
+              ChangeDoChildrenPost(st,post_action)
+            end
+            else begin
+              Kernel.warning ~current:true ~once:true
+                "Ignoring previous annotation relative \
+                 to next statement effects" ;
+              block_with_user_annots := None ;
+              user_annots_for_next_stmt := [];
+              DoChildren
+            end 
+          end else begin
+            block_with_user_annots := None ;
+            user_annots_for_next_stmt := [];
+            DoChildren;
+          end            
+        in
+        let add_user_annot_for_next_stmt annot =
+          if !user_annots_for_next_stmt = [] then begin
+            block_with_user_annots := father;
+            user_annots_for_next_stmt := [annot]
+          end else if is_in_same_block () then
+              user_annots_for_next_stmt := annot::!user_annots_for_next_stmt
+            else begin
+              Kernel.warning ~current:true ~once:true
+                "Ignoring previous annotation relative to next statement \
+effects";
+              block_with_user_annots := father;
+              user_annots_for_next_stmt := [annot] ;
+            end
+        in
+        assert (stmt == st) ;
+        assert (!block_with_user_annots = None
+               || !user_annots_for_next_stmt <> []);
+        match st.skind with
+        | Instr (Code_annot (annot,_)) ->
+          (* Code annotation isn't considered as a real stmt.
+             So, previous annotations should be relative to the next stmt.
+             Only this [annot] may be synchronised to that stmt *)
+          (if match annot.annot_content with
+          | AStmtSpec _
+          | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
+            (* Annotation relative to the effect of next statement *)
+            true
+          | APragma _ | AAssert _ | AAssigns _
+          | AInvariant _ | AVariant _ (* | ALoopBehavior _ *) ->
+            (* Annotation relative to the current control point *)
+            false
+            then (* To synchronize on the next statement *)
+              add_user_annot_for_next_stmt annot
+            else (* Synchronize this annotation on that statement *)
+              synchronize_user_annot annot);
+          super#vstmt st
+        | Loop (annot, _, _, _, _) ->
+          (* Synchronize previous annotations on that statement *)
+          let res = synchronize_previous_user_annots () in
+          (* Synchronize loop annotations on that statement *)
+          List.iter synchronize_user_annot
+            (List.sort (fun x y -> x.annot_id - y.annot_id) annot);
+          res
+        | _ ->
+          (* Synchronize previous annotations on that statement *)
+          synchronize_previous_user_annots () ;
+    end
+    in
+    ignore (visitCilFunction visitor fd)
+  | Declaration _ -> ()
 
 let register_global = function
   | GFun (fundec, loc) ->
@@ -933,18 +1060,22 @@ let register_global = function
       Oneret.oneret fundec;
       (* Build the Control Flow Graph for all
          functions *)
-      if Parameters.SimplifyCfg.get () then begin
-	Cfg.prepareCFG ~keepSwitch:(Parameters.KeepSwitch.get ()) fundec;
+      if Kernel.SimplifyCfg.get () then begin
+        Cfg.prepareCFG ~keepSwitch:(Kernel.KeepSwitch.get ()) fundec;
         Cfg.clearCFGinfo fundec;
         Cfg.cfgFun fundec;
       end;
-      Globals.Functions.add (Db_types.Definition(fundec,loc))
+      Globals.Functions.add (Definition(fundec,loc))
   | GVarDecl (spec, ({vtype=typ } as f),loc) when isFunctionType typ ->
       (* global prototypes *)
       let args =
         try Some (Cil.getFormalsDecl f) with Not_found -> None
       in
-      Globals.Functions.add (Db_types.Declaration(spec,f,args,loc))
+      (* Use a copy of the spec, as the original one will be erased by
+         AST cleanup.
+       *)
+      let spec = { spec with spec_variant = spec.spec_variant } in
+      Globals.Functions.add (Declaration(spec,f,args,loc))
   | GVarDecl (_spec(*TODO*), ({vstorage=Extern} as vi),_) ->
       (* global variables declaration with no definitions *)
       Globals.Vars.add_decl vi
@@ -1009,7 +1140,7 @@ let cleanup file =
          *)
         b.battrs <- List.filter
           (function
-               (Attr("FRAMA_C_KEEP_BLOCK",[])) -> false
+               (Attr(l,[])) when l = Cabs2cil.frama_c_keep_block -> false
              | _ -> true)
           b.battrs;
         b
@@ -1019,18 +1150,17 @@ let cleanup file =
       ChangeDoChildrenPost(b,optim)
 
     method vglob_aux = function
-        GFun (f,_) -> f.sspec <- Cil.empty_funspec();
-          (* uncomment if you dont want to treat scope of locals (see above)*)
-          (* f.sbody.blocals <- f.slocals; *)
-          DoChildren
-      | GVarDecl(s,_,_) ->
-          s.spec_behavior <- [];
-          s.spec_variant <- None;
-          s.spec_terminates <- None;
-          s.spec_complete_behaviors <- [];
-          s.spec_disjoint_behaviors <- [];
-          DoChildren
-      | _ -> DoChildren
+    | GFun (f,_) ->
+      (* No need to call [Kernel_function.set_spec] yet: will be done later *)
+      f.sspec <- Cil.empty_funspec ();
+      (* uncomment if you dont want to treat scope of locals (see above)*)
+      (* f.sbody.blocals <- f.slocals; *)
+      DoChildren
+    | GVarDecl(s,_,_) ->
+      (* No need to call [Kernel_function.set_spec] yet: will be done later *)
+      Logic_utils.clear_funspec s;
+      DoChildren
+    | _ -> DoChildren
 
     method vfile f =
       ChangeDoChildrenPost
@@ -1045,7 +1175,8 @@ let print_renaming: Cil.cilVisitor = object
   inherit Cil.nopCilVisitor
   method vvdec v =
     if v.vname <> v.vorig_name then begin
-      Cil.info "Variable %s has been renamed to %s" v.vorig_name v.vname
+      Kernel.result ~current:true
+        "Variable %s has been renamed to %s" v.vorig_name v.vname
     end;
     DoChildren
 end
@@ -1053,11 +1184,11 @@ end
 let prepare_cil_file file =
   Kernel.feedback ~level:2 "preparing the AST";
   computeCFG ~clear_id:true file;
-  if Parameters.Files.Check.get() then begin
+  if Kernel.Files.Check.get() then begin
    Cil.visitCilFileSameGlobals
-     (new check_file "initial AST" :> Cil.cilVisitor) file;
+     (new check_file_aux false "initial AST" :> Cil.cilVisitor) file;
   end;
-  if Parameters.Files.Orig_name.get () then begin
+  if Kernel.Files.Orig_name.get () then begin
     Cil.visitCilFileSameGlobals print_renaming file
   end;
   (* Compute the list of functions and their CFG *)
@@ -1073,21 +1204,27 @@ let prepare_cil_file file =
      we must compute it again before annotation synchronisation *)
   Cfg.clearFileCFG ~clear_id:false file;
   Cfg.computeFileCFG file;
-  Globals.Functions.iter synchronize_source_annot;
+  let recompute = ref false in
+  Globals.Functions.iter (synchronize_source_annot recompute);
+  (* We might also introduce new blocks for synchronization. *)
+  if !recompute then begin
+    Cfg.clearFileCFG ~clear_id:false file;
+    Cfg.computeFileCFG file;
+  end;
   cleanup file;
   (* Check that normalization is correct. *)
-  if Parameters.Files.Check.get() then begin
+  if Kernel.Files.Check.get() then begin
    Cil.visitCilFileSameGlobals
      (new check_file "AST after normalization" :> Cil.cilVisitor) file;
   end;
   (* Unroll loops in file *)
-  Unroll_loops.compute (Parameters.UnrollingLevel.get ()) file;
+  Unroll_loops.compute (Kernel.UnrollingLevel.get ()) file;
   Cfg.clearFileCFG ~clear_id:false file;
   Cfg.computeFileCFG file;
   (* Annotate functions from declspec. *)
   Translate_lightweight.interprate file;
   (* Check that we start with a correct file. *)
-  if Parameters.Files.Check.get() then begin
+  if Kernel.Files.Check.get() then begin
    Cil.visitCilFileSameGlobals
      (new check_file
         "Ast as set in Frama-C's original state" :> Cil.cilVisitor) file;
@@ -1117,8 +1254,8 @@ let init_project_from_cil_file prj file =
   let selection =
     State_selection.Static.diff
       (State_selection.Static.diff
-	 State_selection.full
-	 (State_selection.Static.with_dependencies Cil.Builtin_functions.self))
+         State_selection.full
+         (State_selection.Static.with_dependencies Cil.Builtin_functions.self))
       (State_selection.Static.with_dependencies Ast.self)
   in
   Project.copy ~selection prj;
@@ -1137,7 +1274,8 @@ let init_project_from_cil_file prj file =
    - action_when_selected is the action to perform when the corresponding
    machine is set as current (i.e. defining the right architecture via
    Machdep.DEFINE) *)
-let machdeps =
+
+let default_machdeps =
   [ "x86_16",
     (true, fun () -> let module M = Machdep.DEFINE(Machdep_x86_16) in ());
     "x86_32",
@@ -1146,33 +1284,45 @@ let machdeps =
     (true, fun () -> let module M = Machdep.DEFINE(Machdep_x86_64) in ());
     "ppc_32",
     (true, fun () -> let module M = Machdep.DEFINE(Machdep_ppc_32) in ());
-    "ppc_32_diab",
-    (false, fun () -> let module M = Machdep.DEFINE(Machdep_ppc_32_diab) in ())
   ]
 
-let pretty_machdeps fmt =
+let machdeps = Datatype.String.Hashtbl.create 7
+let () =
   List.iter
-    (fun (x,(public,_)) -> if public then Format.fprintf fmt "@ %s" x)
+    (fun (s, c) -> Datatype.String.Hashtbl.add machdeps s c)
+    default_machdeps
+
+let new_machdep s p f =
+  if Datatype.String.Hashtbl.mem machdeps s then
+    invalid_arg (Format.sprintf "machdep `%s' already exists" s);
+  Datatype.String.Hashtbl.add machdeps s (p, f)
+
+let pretty_machdeps fmt =
+  Datatype.String.Hashtbl.iter
+    (fun x (public, _) -> if public then Format.fprintf fmt "@ %s" x)
     machdeps
 
-let set_machdep () = match Parameters.Machdep.get () with
-  | "" -> ()
-  | s when List.exists (fun x -> fst x = s) machdeps ->
-      (snd (List.assoc s machdeps)) ()
-  | s ->
-      if s = "help" then begin
-	Kernel.feedback "supported machines are%t." pretty_machdeps;
-      end else begin
-	Kernel.error "unsupported machine %s. Try one of%t." s
-	  pretty_machdeps;
-      end
+let set_machdep () =
+  let m = Kernel.Machdep.get () in
+  try snd (Datatype.String.Hashtbl.find machdeps m) ()
+  with Not_found ->
+    if m = "" then ()
+    else if m = "help" then
+      Kernel.feedback "supported machines are%t." pretty_machdeps
+    else
+      Kernel.error "unsupported machine %s. Try one of%t." m
+        pretty_machdeps
 
-let () = Cmdline.run_after_configuring_stage set_machdep
+let () = Cmdline.run_after_configuring_stage set_machdep 
 
-let prepare_from_c_files () =
+let init_cil () =
   Cil.initCIL (Logic_builtin.init());
   Logic_env.Builtins.apply ();
-  Logic_env.prepare_tables ();
+  Logic_env.prepare_tables ()
+
+(* Fill logic tables with builtins *)
+let prepare_from_c_files () =
+  init_cil ();
   let files = Files.get () in (* Allow pre-registration of prolog files *)
   let cil = files_to_cil files in
   prepare_cil_file cil
@@ -1182,7 +1332,8 @@ let prepare_from_visitor prj visitor =
   (* queue of visitor is filled below *)
   let set_annotation annot = visitCilAnnotation visitor annot in
   Project.on
-    ~selection:(State_selection.singleton Globals.Annotations.self)
+    ~selection:
+    (State_selection.Static.with_dependencies Globals.Annotations.self)
     prj
     (List.iter
        (fun (a,f) ->
@@ -1190,18 +1341,18 @@ let prepare_from_visitor prj visitor =
             Globals.Annotations.add_generated (set_annotation a)
           else
             Globals.Annotations.add_user (set_annotation a)))
-    (Globals.Annotations.get_all());
+    (Globals.Annotations.get_all ());
   let file = Ast.get () in
   let file' = Cil.visitCilFileCopy visitor file in
   Project.on prj Cil.initCIL (fun () -> ());
   computeCFG ~clear_id:false file';
   Project.on
     ~selection:(State_selection.singleton Ast.self) prj Ast.set_file file';
-  if Parameters.Files.Check.get() then
+  if Kernel.Files.Check.get() then
     Project.on
       prj
       (* eta-expansion required because of operations on the current project in
-	 the class construtor *)
+         the class construtor *)
       (fun f ->
         Cil.visitCilFile
           (new check_file ("AST of " ^ prj.Project.name) :> Cil.cilVisitor) f)
@@ -1211,7 +1362,7 @@ let create_project_from_visitor prj_name visitor =
   let selection =
     State_selection.Static.union
       (State_selection.Static.with_dependencies Cil.selfMachine)
-      (State_selection.Static.with_dependencies Parameters.Files.self)
+      (State_selection.Static.with_dependencies Kernel.Files.self)
   in
   let selection =
     State_selection.Static.diff
@@ -1223,62 +1374,54 @@ let create_project_from_visitor prj_name visitor =
   let temp = Project.create "File.temp" in
   Project.copy ~selection:(Plugin.get_selection ()) ~src:temp prj;
   Project.remove ~project:temp ();
-  Project.on prj Logic_env.Builtins.apply ();
+  Project.on prj init_cil ();
   prepare_from_visitor prj visitor;
   prj
 
 let init_from_c_files files =
-  (* Fill logic tables with builtins *)
-  (match files with
-   | [] -> ()
-   | _ -> Files.register files);
+  (match files with [] -> () | _ :: _ -> Files.register files);
   prepare_from_c_files ()
 
 let init_from_cmdline () =
   let prj1 = Project.current () in
-  if Parameters.Files.Copy.get () then begin
+  if Kernel.Files.Copy.get () then begin
     let selection =
       State_selection.Static.diff
         (State_selection.Static.diff
            State_selection.full
            (State_selection.of_list
-	      [ Cil.Builtin_functions.self;
-	        Logic_env.Logic_info.self;
+              [ Cil.Builtin_functions.self;
+                Logic_env.Logic_info.self;
                 Logic_env.Logic_builtin_used.self;
-	        Logic_env.Logic_type_info.self;
-	        Logic_env.Logic_ctor_info.self;
-	        Globals.Annotations.self;
-	        Globals.Vars.self;
-	        Globals.Functions.self;
-	        Ast.self;
-              ])
-        )
+                Logic_env.Logic_type_info.self;
+                Logic_env.Logic_ctor_info.self;
+                Globals.Annotations.self;
+                Globals.Vars.self;
+                Globals.Functions.self;
+                Ast.self;
+              ]))
         (State_selection.Static.with_dependencies Annotations.self)
     in
     let prj2 = Project.create_by_copy ~selection "debug_copy_prj" in
     Project.set_current prj2;
   end;
-  let files = Parameters.Files.get () in
+  let files = Kernel.Files.get () in
   if files = [] && not !Config.is_gui then Kernel.warning "no input file.";
   let files = List.map (fun s -> from_filename s) files in
   try
     init_from_c_files files;
-    if Parameters.Files.Check.get () then begin
+    if Kernel.Files.Check.get () then begin
       Cil.visitCilFile
         (new check_file "Copy of original AST" :> Cil.cilVisitor) (Ast.get())
     end;
-    if Parameters.Files.Copy.get () then begin
+    if Kernel.Files.Copy.get () then begin
       Project.on prj1 fill_built_ins ();
       prepare_from_visitor prj1 (fun prj -> new Visitor.frama_c_copy prj);
-      let selection =
-        State_selection.of_list
-          [Cil.Sid.self; Cil.Eid.self; Cil_const.Vid.self ]
-      in
-      Project.copy ~selection prj1;
       Project.set_current prj1;
     end;
-  with Ast.Bad_Initialisation s ->
-    Kernel.fatal "bad initialisation: %s" s
+  with Ast.Bad_Initialization s ->
+    Kernel.fatal "@[<v 0>Cannot initialize from C files@ \
+                        Kernel raised Bad_Initialization %s@]" s
 
 let init_from_cmdline =
   Journal.register
@@ -1307,7 +1450,7 @@ let pp_file_to fmt_opt =
   let pp_ast = Cil.d_file (new Printer.print ()) in
   let ast = Ast.get () in
   (match fmt_opt with
-    | None -> Parameters.CodeOutput.output "%a" pp_ast ast
+    | None -> Kernel.CodeOutput.output (fun fmt -> pp_ast fmt ast)
     | Some fmt -> pp_ast fmt ast)
 
 let unjournalized_pretty prj (fmt_opt:Format.formatter option) () =
@@ -1324,6 +1467,28 @@ let journalized_pretty_ast =
 
 let pretty_ast ?(prj=Project.current ()) ?fmt () =
   journalized_pretty_ast prj fmt ()
+
+let create_rebuilt_project_from_visitor ?(preprocess=false) prj_name visitor =
+  let prj = create_project_from_visitor prj_name visitor in
+  try
+    let f =
+      let name = "frama_c_project_" ^ prj_name ^ "_" in
+      let ext = if preprocess then ".c" else ".i" in
+      if Kernel.Debug.get () > 0 then Filename.temp_file name ext
+      else Extlib.temp_file_cleanup_at_exit name ext
+    in
+    let cout = open_out f in
+    let fmt = Format.formatter_of_out_channel cout in
+    unjournalized_pretty prj (Some fmt) ();
+    let redo () =
+(*      Kernel.feedback "redoing initialization on file %s" f;*)
+      Files.reset ();
+      init_from_c_files [ if preprocess then from_filename f else NoCPP f ]
+    in
+    Project.on prj redo ();
+    prj
+  with Extlib.Temp_file_error s | Sys_error s ->
+    Kernel.abort "cannot create temporary file: %s" s
 
 (*
 Local Variables:

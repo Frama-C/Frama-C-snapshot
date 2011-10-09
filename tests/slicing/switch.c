@@ -1,7 +1,7 @@
 /*  run.config
    EXECNOW: make -s tests/slicing/switch.opt
    CMD: tests/slicing/switch.opt
-   OPT: -deps -journal-disable
+   OPT: -check -deps -journal-disable
 */
 int main (char choix) {
   int x = 0, y = 0, z = 0;
