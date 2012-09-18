@@ -2,8 +2,8 @@
 (* register functions using abstract types "t" and "u" *)
 module A : sig end = struct
   type t = A of int | B of bool
-  type u = float
   let mk () = 1.05
+  let _ = B false
   let f = function A n -> n | B false -> min_int | B true -> max_int
   let t =
     Type.register ~name:"A.t" ~ml_name:None Structural_descr.Unknown [ A 1 ]

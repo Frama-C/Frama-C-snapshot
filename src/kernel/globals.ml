@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,7 +51,6 @@ module Vars = struct
        let name = "Globals.Vars"
        let dependencies = [ Ast.self ]
        let size = 17
-       let kind = `Internal
      end)
 
   exception AlreadyExists of varinfo * initinfo
@@ -106,6 +105,8 @@ module Vars = struct
 
 end
 
+let () = Ast.add_linked_state Vars.self
+
 (* ************************************************************************* *)
 (** {2 Functions} *)
 (* ************************************************************************* *)
@@ -119,7 +120,6 @@ module Functions = struct
          let name = "Functions"
          let dependencies = [ Ast.self ]
          let size = 17
-         let kind = `Internal
        end)
 
   let self = State.self
@@ -157,16 +157,10 @@ module Functions = struct
       (struct
          let name = "FunctionsOrder"
          let dependencies = [ State.self ]
-         let kind = `Internal
        end)
 
-  let set_spec = Extlib.mk_fun "Globals.Functions.set_spec"
-
   let init_kernel_function f spec =
-    let default_spec = Cil.empty_funspec () in
-    let kf = { fundec = f; return_stmt = None; spec = default_spec } in
-    !set_spec kf (fun _ -> spec);
-    kf
+    { fundec = f; return_stmt = None; spec = spec }
 
   let fundec_of_decl spec v l =
     let args =
@@ -187,13 +181,17 @@ module Functions = struct
 
   let update_kf kf fundec spec =
     kf.fundec <- fundec;
-    (*Kernel.feedback "Spec of function %a is registered as %a" 
-      Cil_datatype.Kf.pretty kf !Ast_printer.d_funspec spec; *)
-    !set_spec kf (fun old -> Logic_utils.merge_funspec spec old; spec);
+(*    Kernel.feedback "UPDATE Spec of function %a (%a)" 
+      Cil_datatype.Kf.pretty kf !Ast_printer.d_funspec spec;*)
+    let loc = match kf.fundec with
+      | Definition (_, loc) | Declaration (_, _, _, loc) -> loc 
+    in
+    Cil.CurrentLoc.set loc;
+    Logic_utils.merge_funspec kf.spec spec;
     kf.return_stmt <- None
 
   let replace_by_declaration s v l=
-    (* Kernel.feedback "replacing %a by decl" Cil_datatype.Varinfo.pretty v; *)
+(*    Kernel.feedback "replacing %a by decl" Cil_datatype.Varinfo.pretty v;*)
     if State.mem v then begin
       let fundec = fundec_of_decl s v l in
       let kf = State.find v in
@@ -203,7 +201,7 @@ module Functions = struct
         (fun f v -> Iterator.add v; State.replace v (f v)) s v l
 
   let replace_by_definition spec f l =
-    (* Kernel.feedback "replacing %a" Cil_datatype.Varinfo.pretty f.svar; *)
+(*    Kernel.feedback "replacing %a" Cil_datatype.Varinfo.pretty f.svar;*)
     Iterator.add f.svar;
     if State.mem f.svar then
       update_kf (State.find f.svar) (Definition (f,l)) spec
@@ -214,14 +212,14 @@ module Functions = struct
     match f with
     | Definition (n, l) ->
       Kernel.debug
-	"Register definition %a with specification \"%a\"@\n"
+	"@[<hov 2>Register definition %a with specification@. \"%a\"@]"
         Varinfo.pretty_vname n.svar !Ast_printer.d_funspec n.sspec ;
       replace_by_definition n.sspec n l;
-      Kernel.MainFunction.set_possible_values
-        (n.svar.vname :: Kernel.MainFunction.get_possible_values ())
+      (* Kernel.MainFunction.set_possible_values
+        (n.svar.vname :: Kernel.MainFunction.get_possible_values ()) *)
     | Declaration (spec, v,_,l) ->
       Kernel.debug
-	"Register declaration %a with specification \"%a\"@\n"
+	"@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
         Varinfo.pretty_vname v !Ast_printer.d_funspec spec;
       replace_by_declaration spec v l
 
@@ -239,9 +237,17 @@ module Functions = struct
     Project.pretty (Project.current()); *)
     if not (is_function_type vi) then raise Not_found;
     let add v = 
+      (* Builtins don't automatically get a kernel function (unless they
+         are used explicitly), but might still be accessed after AST
+         elaboration. Corresponding kf will be built according to needs.
+         Other functions must exist in the table whatever happens.
+      *)
       (*Kernel.feedback "adding empty fun for %a" 
         Cil_datatype.Varinfo.pretty vi; *)
-      add_declaration (empty_funspec ()) v v.vdecl 
+      if Cil.is_special_builtin v.vname then
+        add_declaration (empty_funspec ()) v v.vdecl
+      else
+        raise Not_found
     in
     State.memo add vi
 
@@ -292,7 +298,18 @@ module Functions = struct
     try
       iter f;
       raise Not_found
-    with Found_kf kf -> kf
+    with Found_kf kf -> 
+      kf
+
+  let () =
+    Plugin.set_function_names
+      (fun () -> 
+	State.fold
+	  (fun _ kf acc ->
+	    let f = kf.fundec in
+	    if Function.is_definition f then Function.get_name f :: acc 
+	    else acc)
+	  [])
 
   let find_englobing_kf ki =
     match ki with
@@ -327,7 +344,7 @@ module Functions = struct
         try
           iter
             (fun kf ->
-               if List.exists (fun v -> v.vname = vi.vname) (get_formals kf)
+               if List.exists (Cil_datatype.Varinfo.equal vi) (get_formals kf)
                then raise (Found kf));
           assert false
         with Found kf ->
@@ -336,7 +353,7 @@ module Functions = struct
         try
           iter
             (fun kf ->
-               if List.exists (fun v -> v.vname = vi.vname) (get_locals kf)
+               if List.exists (Cil_datatype.Varinfo.equal vi) (get_locals kf)
                then raise (Found kf));
           assert false
         with Found kf ->
@@ -344,45 +361,10 @@ module Functions = struct
       end
     end
 
-  let () = Vars.get_astinfo_ref := get_astinfo
-
-end
-
-(* ************************************************************************* *)
-(** {2 Global annotations} *)
-(* ************************************************************************* *)
-
-module Annotations = struct
-
-  let name = "GlobalAnnotations"
-
-  module State =
-    State_builder.List_ref
-      (Datatype.Pair(Global_annotation)(Datatype.Bool))
-      (struct
-         let name = name
-         let dependencies = [ Ast.self ]
-         let kind = `Internal
-       end)
-
-  let self = State.self
-
-  let () = 
-    State_dependency_graph.Static.add_dependencies
-      ~from:self 
-      [ Property_status.self ]
-
-  let get_all = State.get
-
-  let add b annot =
-    let l = State.get () in
-    State.set ((annot, b) :: l);
-    List.iter Property_status.register (Property.ip_of_global_annotation annot)
-
-  let add_user = add false
-  let add_generated = add true
-
-  let iter f = List.iter (fun (a, b) -> f a b) (State.get ())
+  let () =
+    Vars.get_astinfo_ref := get_astinfo;
+    Ast.add_linked_state State.self;
+    Ast.add_linked_state Iterator.self
 
 end
 
@@ -402,7 +384,6 @@ module FileIndex = struct
          let name = name
          let dependencies = [ Ast.self ]
          let size = 7
-         let kind = `Internal
        end)
 
   let compute, self =
@@ -418,6 +399,21 @@ module FileIndex = struct
                 ~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) f))
     in
     State_builder.apply_once "FileIndex.compute" [ S.self ] compute
+
+  let remove_global_annotations a =
+    let f = (fst (Global_annotation.loc a)).Lexing.pos_fname in
+    try 
+      let _, l = S.find f in
+      let l = 
+	List.filter
+	  (fun g -> match g with
+	  | GAnnot(a', _) -> not (Global_annotation.equal a a')
+	  | _ -> true)
+	  l
+      in
+      S.replace f (f, l)
+    with Not_found ->
+      assert false
 
   let get_files () =
     compute ();
@@ -554,9 +550,9 @@ Please use option `-main' for specifying a valid entry point."
 let set_entry_point name lib =
   let clear_from_entry_point () =
     let selection =
-      State_selection.Dynamic.union
-        (State_selection.Dynamic.only_dependencies Kernel.MainFunction.self)
-        (State_selection.Dynamic.only_dependencies Kernel.LibEntry.self)
+      State_selection.union
+        (State_selection.with_dependencies Kernel.MainFunction.self)
+        (State_selection.with_dependencies Kernel.LibEntry.self)
     in
     Project.clear ~selection ()
   in
@@ -564,10 +560,14 @@ let set_entry_point name lib =
     lib <> Kernel.LibEntry.get () || name <> Kernel.MainFunction.get ()
   in
   if has_changed then begin
+    clear_from_entry_point ();
     Kernel.MainFunction.unsafe_set name;
     Kernel.LibEntry.unsafe_set lib;
-    clear_from_entry_point ()
   end
+
+(* ************************************************************************* *)
+(** {2 Global Comments} *)
+(* ************************************************************************* *)
 
 module Comments_global_cache =
   State_builder.Hashtbl
@@ -576,7 +576,6 @@ module Comments_global_cache =
     (struct
       let name = "Comments_global_cache"
       let dependencies = [ Cabshelper.Comments.self; FileIndex.self ]
-      let kind = `Internal
       let size = 17
      end)
 
@@ -587,7 +586,6 @@ module Comments_stmt_cache =
     (struct
       let name = "Comments_stmt_cache"
       let dependencies = [ Cabshelper.Comments.self; FileIndex.self ]
-      let kind = `Internal
       let size = 17
      end)
 
@@ -620,7 +618,7 @@ let get_comments_global g =
               Lexing.pos_lnum = 1;
               Lexing.pos_cnum = 0;
               Lexing.pos_bol = 0; }, l = []
-        | g' :: g'' :: [] when Cil_datatype.Global.equal g'' g ->
+        | g' :: g'' :: l when Cil_datatype.Global.equal g'' g ->
           snd (Cil_datatype.Global.loc g'), l = []
         | _ :: l -> find_prev l
     in 

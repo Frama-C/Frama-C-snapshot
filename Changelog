@@ -12,8 +12,389 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+###################################
+Open Source Release Oxygen-20120901
+###################################
+
+-! Kernel     [2012/09/17] Remove useless negative options -no-help,
+	      -no-version, -no-print-share-path, -no-print-lib-path and
+	      -no-print-plugin-path.
+-  Kernel     [2012/09/13] All globals with attribute FC_BUILTIN are preserved
+	      even if unused.
+-  Value      [2012/09/13] Print misaligned values in a simpler way. Fixes
+	      wish #!1271.
+o!* Cil       [2012/09/12] Split constants of logic and C (fixes bts #745).
+o! Cil        [2012/09/12] Remove type Cil_type.typsig. Use the functions in
+	      Cil_datatype.Typ and Cil_datatype.Logic_typ to compare types.
+-* Kernel     [2012/09/07] Identical messages emitted in two different projects
+	      will now be visible in both projects. Fix bug #1104.
+o  Kernel     [2012/09/07] Improve signature of State_builder.Set_ref.
+o* Kernel     [2012/09/07] Correct hash function for Sets created by
+	      Datatype.Make_with_collections or Datatype.With_collections.
+o* Kernel     [2012/09/06] Datatype with structural comparison
+	      for exp and lval fixes bts #1263.
+-* Kernel     [2012/09/06] Fine tuning AST dependencies. See developer guide.
+-* Kernel     [2012/09/05] Fixed missing undefined behavior
+	      for multiple write accesses (fixes bts #1059).
+-* Metrics    [2012/09/05] Fixes count of pointer accesses.
+-  Value      [2012/09/05] Clarified message about completely indeterminate
+	      memory.
+-* Kernel     [2012/09/03] Do not accept spurious '}'. Fixes bts #1273.
+o! Kernel     [2012/09/03] Remove obsolete constructors Cabs.TRANSFORMER and
+	      Cabs.EXPRTRANSFORMER and related parsing rules.
+-  Value      [2012/09/02] Warn when 'assigns *p' points to a completely
+	      invalid location.
+-  Value      [2012/09/01] Assertions such as \valid(p) now evaluate to Invalid
+	      when p is not initialized or an escaping address.
+-* Value      [2012/08/30] Fix crash when evaluating *((int*)0+x)=v when the
+	      NULL base is invalid.
+-* Kernel     [2012/08/29] Fixed #!1267 (adds explicit casts for default
+	      argument promotions).
+o! Value      [2012/08/29] Signature change for function
+	      Db.Value.register_builtin: builtins can now return multiple
+	      states.
+o! Value      [2012/08/20] Rename Db.Value.assigns_to_zone_inputs_state to
+	      Db.Value.assigns_inputs_to_zone. Add new functions
+	      Db.Value.assigns_outputs_to_zone and
+	      Db.Value.assigns_inputs_to_locations.
+-* Kernel     [2012/08/21] Fixed bug with save/load: loading a file <f>, then
+	      quitting Frama-C can no longer modify <f> (bts #!1269).
++* Logic      [2012/08/08] Fixed bts #!1262 about logic preprocessing
+	      and string escapes.
+-  Value      [2012/08/02] Statutes 'Invalid' are now positioned on 'for behav:'
+	      assertions even when 'behav' is not the only active behavior.
+o* Cil        [2012/08/02] Fixed bts #1254: incorrect documentation of
+	      Cil.d_plaininit.
+-* Logic      [2012/08/01] Fixed bts #!1253: IndexPI and PlusPI are equivalent.
+o* Kernel     [2012/08/01] Fixed bts #!1250: setting formals of visited
+	      function is not delayed until fill_global_tables anymore.
++*  Slicing   [2012/07/31] Fixed bts #!1248 about empty slicing request.
+-* Journal    [2012/07/31] Fixed bts #932 about journalization of dynamic
+	      plug-ins in some corner cases.
+o!* Kernel    [2012/07/31] Operations that silently mutate AST should now call
+	      Ast.mark_as_changed to clear states depending on it
+	      (fixes #!1244).
+o  Kernel     [2012/07/30] API of dynamic plug-ins is now documented as
+	      well as static plug-ins (fixed bts #!171).
+-  Slicing    [2012/07/30] No more blank between -slicing-project-name and
+	      -slicing-exported-project-postfix (from #!1249 entry).
+-  Gui        [2012/07/27] Fixed bugs when the consolidation graph cannot
+	      be displayed (fixed bts #1122).
+-  Kernel     [2012/07/24] The annotation 'loop pragma UNROLL "completly", n;'
+	      unroll 'n' times the annoted loop and then add it a clause
+	      'loop invariant \false;'. The remaining loop should be death code.
+o  Kernel     [2012/07/24] Changes in interface of StringHashtbl options.
+-! Inout      [2012/07/22] Option -inout-callwise restarts Value when it is
+	      newly set
+-  Impact     [2012/07/19] Complete rewrite. Improved precision and computation
+	      time. Fixes wishes #!5 and #!6.
+-* Logic      [2012/07/18] Fixes sizeof("string_literal") in logic.
+-  Logic      [2012/07/18] Better error messages when parsing logic.
+-  Kernel     [2012/07/16] C constant expressions are now allowed as UNROLL
+	      level into loop pragmas.
+o! Cil        [2012/07/16] Ast changed: Unrool_level renamed into Unroll_specs
+	      and its argument becomes a list for next evolutions.
+o! Kernel     [2012/07/16] Add function [stmt_can_reach] to the arguments
+	      of Dataflow.Backwards, which is used to speed up the analysis.
+	      See dataflow.mli for good possible values.
+-  Kernel     [2012/07/16] linker checks that the ghost status of two merged
+	      declaration is the same, and raises an error otherwise.
+o* Kernel     [2012/07/16] -check verifies if vdefined flag is coherent with
+	      status of variable in Globals tables and AST. Fixes one of the
+	      issues of #!1241.
+-! Rte        [2012/07/16] Rename option -rte-const into
+	      -rte-no-trivial-annotations (set by default).
+-* Value      [2012/07/15] Fix crash when an undeclared function returned
+	      a pointer to a function that was later called.
+-* Rte        [2012/07/14] Prevent generation of incorrect alarms on statements
+	      whose order of execution is not completely specified.
+-  Rte        [2012/07/14] Generate simpler assertions for accesses to arrays,
+	      and discard trivial ones; improve ordering of assertions.
+	      Honor option -unsafe-arrays.
+o  Makefile   [2012/07/13] Added variables PTESTS_OPTS and PLUGIN_PTESTS_OPTS
+	      to pass options to ptests through make tests. See dev manual.
+-! Value      [2012/07/12] More thorough checks for calls through a function
+	      pointer: warn when the function type and the pointer are
+              not compatible, and stop when they cannot be reconciled.
+-! Kernel     [2012/07/12] A negative value given to -ulevel option hides all
+	      UNROLL_LOOP pragmas.
+-  Report     [2012/07/10] Display unreachable properties in a special way;
+	      identify unreachable statement more clearly.
+-  Gui        [2012/07/10] Display all properties in 'Properties' panel,
+	      including generated ones without location.
++! Kernel     [2012/07/10] Change semantics of 'reachable' properties
+	      for functions. Use intrinsic notion instead of accessibility
+	      of first statement.
+o  Kernel     [2012/07/04] Hook for handling for loop components in Cabs.
+o  Makefile   [2012/07/04] plugin is distributed iff PLUGIN_DISTRIBUTED and
+	      PLUGIN_ENABLE are not 'no' (instead of PLUGIN_DISTRIBUTED == yes).
+-* Kernel     [2012/07/03] Fixes bug #840 (inaccurate position in presence of
+	      -pp-annot).
+o+ Kernel     [2012/06/29] New functions Annotations.remove_* and .fold_* for
+	      each component of a contract and other small API changes.
+	      Better compatibility between Visitor and Annotations.
+-  Kernel     [2012/06/26] New option -keep-unused-specified-functions.
+o! Kernel     [2012/06/25] Correct (albeit slow) hash function for terms
+	      and term lvalues.
+-* Cil        [2012/06/25] Better propagatation of volatile, const and restrict
+	      type qualifiers through typedefs on arrays
+-* Cil        [2012/06/25] Preserve typedefs on global variables with an
+	      initializer
+-! Kernel     [2012/06/22] improve 'reachable' properties.
+o! Kernel     [2012/06/19] Remove module Inthash. Use Datatype.Int.Hashtbl
+	      instead, or directly carbon2nitrogen.sh migration script.
+o! Value      [2012/06/18] Made type Ival.tt private.
+-  Kernel     [2012/06/16] Consolidation from call-site preconditions to
+	      original precondition now handle calls through function pointers
+-  Value      [2012/06/16] Position call-site statuses for function
+	      preconditions, instead of the previous global status.
+-  Cil        [2012/06/13] New option -warn-undeclared-callee for calls to
+	      functions that have not been previously declared.
+-  From       [2012/06/12] Better precision for code of the form
+	      'if (c) stop(); else y = x+1;', where stop does not terminate
+-  Pdg        [2012/06/12] Improve precision in presence of provably dead
+	      code branches. Fixes issue #1194.
+o  Makefile   [2012/06/12] Use ocamldoc.opt whenever possible.
+-  Rte        [2012/06/11] Reuse behaviors names when -rte-precond is used
+	      on fonctions with multiple behaviors.
+o! Kernel     [2012/06/11] New API for Annotations which merges old
+	      Annotations, Globals.Annotations and operations of Kernel_function
+	      over function contracts.
+-  Scope      [2012/06/08] Improved computation of defs. Statements are
+	      categorized between direct and indirect accesses.
+-! Pdg        [2012/06/08] Rename option -dot-pdg into -pdg-dot
+-  Logic      [2012/06/07] Cleaner generated assertions in presence of multiple
+	      pointer casts.
+o! Kernel     [2012/05/30] Kernel.Functions.get does not silently create
+	      a kernel function if it does not already exist. This behavior
+	      is kept for Cil builtins.
+-* Kernel     [2012/05/29] Fix graph of consolidation statuses when
+	      several properties get the same name.
+-* Value      [2012/05/19] Calls (*p)() where p resolves to both valid functions
+	      and invalid addresses are now properly handled.
+-  Value      [2012/05/19] Add bzero builtin. A precise destination and size
+	      are required (wish #915).
+-* Value      [2012/05/19] In lib-entry mode, honor 'const' attributes that
+	      appear deep inside the type (bts #759).
+-* Value      [2012/05/19] Better time and space complexity for initialization
+	      of big arrays in -lib-entry mode (bts #1026).
+o* Kernel     [2012/05/16] Fix implementation of Datatype.Triple and
+	      Datatype.Quadruple (bts #!1133).
+-* Value      [2012/05/15] Re-emit alarms when Value options are changed and
+	      an analysis is restarted.
+-  Value      [2012/04/29] New option -val-ilevel, to change the frontier
+	      between sets of integers and intervals.
+-  Kernel     [2012/04/27] when printing help, display the name of the
+	      opposite boolean option (bts #1085).
+-* Kernel     [2012/04/26] Fixed bug with Type.pp_ml_name for generic sets
+	      which can lead to incorrect journal generation (bts #1127).
+o! Kernel     [2012/04/26] Plugin.set_optional_help is now deprecated.
+-* Value      [2012/04/26] Fix possible typing bugs when evaluating logic
+	      expressions with non-integral types (bts #!1175).
+-  Kernel     [2012/04/24] Use Zarith whenever possible (bts #!983).
+-  Value      [2012/04/16] Allow comparison of invalid pointers in the logic.
+-  Value      [2012/04/15] Old "Evaluate expression" menu in the GUI replaced
+              by "Evaluate ACSL term"; value of term lval is now displayed.
+	      Evaluations that may fail are flagged.
+-  Value      [2012/04/15] Errors during evaluation in the logic are now
+	      reported.
+*! Kernel     [2012/04/14] Introduce more temporaries for a call [lv = f()] if
+	      the return type of f and the type of lv do not match. Fix
+	      issue #1024.
+-* Value      [2012/04/14] Fix incorrect initialization of volatile fields
+	      or globals in presence of initializers (bts #!1112).
+o* Makefile   [2012/04/12] Fix bug #1145 about PLUGIN_LINK_GUI_OFLAGS.
+-* Kernel     [2012/04/12] Strict checking of type compatibility when merging
+	      an already called prototype without arg list and a full prototype
+	      (fixes issue #728, #!109).
+-  Kernel     [2012/04/12] New option -<plugin>-share for plug-ins to
+	      customize their specific share directories.
+-  Rte        [2012/04/06] Emit \valid_read alarms instead of \valid for
+	      read accesses.
+-  Inout      [2012/04/05] Better precision for 'if' in which only a side
+	      is reachable.
+-  Kernel     [2012/04/05] Keep all prototypes with a spec,
+	      even if not referenced.
+-  Inout      [2012/04/04] Operational inputs are now more precise for
+	      function with only an ACSL prototype.
+-* Kernel     [2012/04/04] Fixes issue in loop unrolling and annotations.
+-* Kernel     [2012/04/02] Fixed bug #1135 and bug #1139 about loop unrolling.
+-  Logic      [2012/03/29] LoopEntry and LoopCurrent built-in labels.
+-  Value      [2012/03/26] Support for \valid_read predicate; evaluation of
+	      \at(p,Pre) and \initialized{Pre}(...).
+o! Kernel     [2012/03/26] Kernel.CppExtraArgs now gets type
+	      Plugin.String_list and not Plugin.String_set (fixed bts #!1132).
+-  Value      [2012/03/24] Improved handling of conditions involving the
+	      conversion to int of a floating-point variable.
+-  Journal    [2012/03/21] Better journalisation of command line options
+	      setting a list of arguments (e.g. -slevel-function): avoid
+	      quadratic complexity in the generated code (fixed bts #!1123).
+-  Gui        [2012/03/20] Removing 'add assert before' from contextual menu.
+	                   Uses ACSL_Importer plugin for such a feature.
+-* Value      [2012/03/18] Handle 'assigns *p' where p has a typedef type
+-  Kernel     [2012/03/18] Support for model fields
+-* Kernel     [2012/03/12] Initialization of locals is correct for all sizes;
+	      uses bzero to 0 + contract (directly validated by Kernel)
+-* Value      [2012/03/12] Fixed bug where user assertions accessing
+	      uninitialized variables got the wrong status.
+-  Value      [2012/03/12] Improved handling of *(p+i) (or equivalently p[i])
+	      when p is a known pointer and i is unknown.
+-! Kernel     [2012/02/29] Adding some more supports for built-in related to
+	      memory blocks.
+-!  Cil       [2012/02/24] Functions returning a value cannot let control flow
+	      falling through the closing '}'  Fixes #685.
+-  Inout      [2012/02/24] Option -inout-callwise to compute callsite-wise
+	      operational inputs. Improves precision of -inout, of the
+	      "Modifies" clause in the gui, and of the slicing.
+-! Kernel     [2012/02/23] Sets generated assigns clauses into the default
+	      behavior.
+-  Value      [2012/02/22] New message for functions with only a specification.
+	      Changed old message for functions with neither code nor
+	      specification to "No code nor specification for function ...".
+-  Value      [2012/02/21] Evaluation of \separated predicate
+-* Value      [2012/02/21] Fix bug in evaluation of pointers to start of array.
+-* Cil        [2012/02/20] Improve label positions in presence of loop
+	      unrolling (bug #1100).
+-* Value      [2012/02/18] Fix crashes and/or missing alarms when evaluating
+	      *p=(cast)f() with p invalid (bug #!1097).
+-* Cil        [2012/02/13] Correct sharing bug on widening pragmas.
+	      Fixes #!1090.
+o* Cil        [2012/02/11] Fixed off-by-one error in
+	      foldLeftCompound ~implicit:true.
+o* Makefile   [2012/02/09] 'make doc' did not work when GUI disabled
+	      (bts #1014).
+-! Kernel     [2012/02/08] Adding supports for clause allocates and frees
+              and their version for loops.
+-  Slicing    [2012/02/07] More precise slicing when -calldeps is used
+	      (fixes wish #107).
+-* Kernel     [2012/02/07] Fixed bug about property statuses and setting
+	      parameters after -load (statuses were not cleared when required).
+-* Value      [2012/02/07] Allocate a finite space for malloc builtins; fixes
+	      some bugs when a pointer refers to a non-yet allocated space.
+-* Journal    [2012/02/07] Fixed bug #!1080: better generated journal
+	      in case of missing internal data preventing it of being runable.
+o* Makefile   [2012/02/07] Fixed bug #1082 about wrong link in
+	      generated code documentation.
+-  Scope      [2012/02/04] Improve precision of Defs computation (wish #1079).
+-  Value      [2012/02/02] Assertions of the form \valid(p+i) and \valid(&p->f)
+	      are now used to reduce p whenever possible.
+-  Value      [2012/01/30] Improve precision for code with pointer casts
+	      (fixes bug #1074).
+-* Syntactic_callgraph [2012/01/27] Fix bug #989 about difference of
+	      display between GUI and dot output.
+-* Syntactic_callgraph [2012/01/27] Fix tricky bug while computing
+	      services when a cycle depends on another cycle (most part
+	      of the fix is actually in OcamlGraph itself).
+-* Value      [2012/01/27] Evaluate ACSL && and || when they appear as terms
+	      (fixes bug #1072).
+-  From       [2012/01/25] More sharing between identical values when
+              printing results.
+-  Pdg        [2012/01/25] Improve performance, typically on arrays of structs.
+-  Logic      [2012/01/23] Better label inference in axiomatics (see bts #1068).
+-  Cil        [2012/01/20] In debug mode, pretty-print numerical constants
+	      instead of displaying the source file strings.
+-  GUI        [2012/01/19] Add filters for properties' consolidated statuses.
+-  Value      [2012/01/19] Aesthetic fix: do not display {{ &NULL }} and
+	      {{ &"foo" + {2} }} but rather {{ NULL }} and {{ "foo" + {2} }}.
+-  Occurrence [2012/01/10] Results can be filtered to display only occurrences
+	      in read or write positions.
+-  Value      [2012/01/09] FRAMA_C_MALLOC_INDIVIDUAL modelization now
+	      properly treats allocated blocks as uninitialized.
+-  Value      [2012/01/07] Reduce more aggressively invalid pointers:
+	      { p->f1 = v1; p->f2 = v2 } will usually raise at most one alarm.
+-  Value      [2012/01/03] During evaluation, reduce indexes that are detected
+	      as out-of_bounds.
+-  Value      [2012/01/03] In index out-of-bounds alarms, do not generate
+	      'assert 0 <= i' part when 'i' is always greater than 0.
+o  Kernel     [2011/12/19] Added Property.location function.
+o* Value      [2011/12/05] Fix option -absolute-valid-range being reset by
+	      project copies.
+-* Value      [2011/12/05] Fix wrong hash function, which could cause
+	      memory overuse and worse.
+o  Value      [2011/12/02] Lmap.paste_offsetmap now handles imprecise
+	      destinations.
+o! Value      [2011/12/02] Moved contents of memory_state/Abstract_value
+	      into ai/Lattice_Interval_Set. Use bin/nitrogen2oxygen for
+	      automatic migration.
+-  Project    [2011/11/28] Accept to load inconsistent project by setting
+	      to default the inconsistent states and their dependencies.
+-  Value      [2011/11/26] Minor improvements related to single-precision
+	      floating-point handling.
+-* Pdg        [2011/11/24] Option -pdg did nothing if -pdg-print was not set.
+-  Value      [2011/11/22] After emitted an alarm \initialized(lv), the
+	      value analysis tries to remember that lv is initialized.
+	      This suppresses redundant alarms that were emitted further on.
+-* Value      [2011/11/22] Fixed soundness bugs involving lval = lval;
+	      assignments targeting literal strings and automatically
+	      created S_... memory zones.
+-  Value      [2011/11/22] Suppressed confusing message "all target addresses
+	      were invalid. This path is assumed to be dead.".
+-* Value      [2011/11/21] Prevent potentially incorrect assertions from being
+	      emitted when the result a call must be cast. Fixes #997 and #1024.
+o  Kernel     [2011/11/21] New File.init_from_project function.
+-  Value      [2011/11/20] New builtin Frama_C_assert. Take advantage of
+	      existing assertions with "#define assert Frama_C_assert".
+-* Occurrence [2011/11/19] Fix bug where some occurrences were silently
+	      ignored in big asts; improve performance.
+-* Cil        [2011/11/18] Go to new line more often when printing sequence
+	      of statements. Fixes issues #1021.
+-  Value      [2011/11/17] Better evaluation of \initialized predicate when
+	      only some parts of the location are initialized.
+-  Value      [2011/11/17] New option -no-val-left-shift-negative-alarms to
+	      treat left shift of negative integers as defined.
+-* Cil        [2011/11/14] Fail when encountering a lvalue of type void (#1013).
+-  Value      [2011/11/10] Evaluate more precisely statements of the form
+	      if (*p == 1) {...} when *p is reused within the if block. This
+              also improves the handling of switches.
+-* Kernel     [2011/11/09] keep track of local variables even in presence of
+	      annotation + do not silently lose statement contract.
+	      Fixes issue #1009.
+-*! Kernel    [2011/11/07] empty list in complete/disjoint is expanded by
+	      logic type-checker to the list of behavior name of current
+	      contract. Fixes issue #1006. See bts comments for the
+	      differences that can appear in the treatment of specs.
+-  Aorai      [2011/11/07] Aorai gets a real Dataflow analysis for contract
+	      generation + various logic simplifications.
+-  Gui        [2011/11/04] Display global annotations in the filetree.
+o! Cil        [2011/11/04] Add method pFile in printers. Signature change for
+	      Cil.d_file (but you should use !Ast_printer.d_file).
+-  Inout      [2011/11/03] Major precision improvements when evaluating library
+	      functions whose assigns contains ranges.
+-  From       [2011/11/03] Major precision improvements when evaluating library
+	      functions whose assigns contains ranges.
+-* Logic      [2011/10/30] Fixes issue #1005 (earlier detection of duplicated
+	      axiom name avoids Kernel.fatal).
+o  Kernel     [2011/10/27] Plugin.Register defines a new option
+	      -plugin-debug-category that allows to enable debugging for
+	      sub-categories of messages (See Log.set_debug_keys for more info).
+-* Value      [2011/10/27] Fixed #1001: do not warn for unsigned shifts,
+	      do not end propagation on signed left shift of an address.
+o  Value      [2011/10/27] shift_left and shift_right functions now take
+	      an optional signedness boolean in addition to the optional size.
+-* Value      [2011/10/26] Generate correct assertions when using memcpy
+	      builtin. Fix #1000.
+-  Value      [2011/10/25] Improve interpretation of ACSL annotations in
+	      presence of typedefs.
+-* Value      [2011/10/24] Improve warnings and evaluation in presence of
+	      possibly infinite floats (fixes #997).
+-* From       [2011/10/21] The interpretation of explicit assigns clauses for
+	      library function "assigns *p \from x;" was wrong: every possible
+	      location was assumed to have been overwritten.
+-* Kernel     [2011/10/20] Link error aborts Frama-C (fixes #990).
+-* Kernel     [2011/10/20] Better linking behavior (fixes #672).
+o! Kernel     [2011/10/18] Logic_preprocess.file takes an additional parameter,
+	      as gcc pre-processor treats differently .c and .cxx files,
+	      and this must be reflected in annotation pre-processing.
+-  Value      [2011/10/18] Improve evaluation of logic when option
+	       -val-signed-overflow-alarms is active.
+-* Value      [2011/10/17] Fixed crash when a library function is called in
+	      a state where the function's precondition cannot be true.
+-* Value      [2011/10/10] Fixed spurious alarm \valid(p) in *p = e; when e is
+	      completely invalid. Soundness was not affected (the
+	      alarm for whatever made e invalid was present).
+
 #####################################
-Open Source Release Nitrogen_20111001
+Open Source Release Nitrogen-20111001
 #####################################
 
 -  Rte        [2011/10/07] No longer position 'Don't know' statuses
@@ -167,7 +548,7 @@ o! Value      [2011/07/11] Add argument "exact" to Lmap.paste_offsetmap (which
 -  Value      [2011/07/04] New builtin Frama_C_dump_each_file, which dumps
 	      the entire memory state into successive files.
 o* Logic      [2011/06/29] Fixes bug #751 (Cil.lconstant now returns terms of
-	      type integer and not int)
+	      type integer and not int).
 -  Metrics    [2011/06/27] Improves efficiency of metrics computation.
 o! Cil        [2011/06/24] Improve performances of Cil_datatype.Typ.{compare,
               equal, hash}.
@@ -467,7 +848,7 @@ o  Cil/Logic  [2011/02/16] New functions Clexer.is_c_keyword and
 	      Unwarranted loss of precision fixed.
 
 ###################################
-Open Source Release Carbon_20110201
+Open Source Release Carbon-20110201
 ###################################
 
 -  WP         [2011/02/07] Plug-in WP removed from kernel-releases (now an
@@ -580,7 +961,7 @@ o* Cil	      [2010/12/20] Fixed bug #645. Ast_info.constant_expr,
 	      not accurate.
 
 ###################################
-Open Source Release Carbon_20101202
+Open Source Release Carbon-20101202
 ###################################
 
 -* WP         [2010/12/16] Fixed bug #639: no more Coq compilation to shared
@@ -588,7 +969,7 @@ Open Source Release Carbon_20101202
 - WP          [2010/12/16] Accessibility of all provers from gui.
 
 ###################################
-Open Source Release Carbon_20101201
+Open Source Release Carbon-20101201
 ###################################
 
 -! Kernel     [2010/12/13] Fixed bug #548: limit.h now syntactically correct.
@@ -729,7 +1110,7 @@ o  Cil        [2010/06/04] Support for custom extension in grammar of behaviors.
 -* Cil        [2010/05/31] Extended grammar of pragma lines.
 o* Cil        [2010/05/28] Fix bug #489: constant literal present in original
 	      source are preserved in the AST. NB: this implies that they might
-	      be explicitely cast when an integer conversion occur.
+	      be explicitly cast when an integer conversion occur.
 -* Kernel     [2010/05/28] Fixed bug in handling of -cpp-command
 o! Cil        [2010/05/21] Remove deprecated annotation_status of AAssert
 	      in the AST
@@ -791,7 +1172,7 @@ o! Kernel     [2010/04/22] Ptmap (resp. Ptset) is renamed into Hptmap (Hptset)
 	      conditions
 
 ##################################
-Open Source Release Boron_20100401
+Open Source Release Boron-20100401
 ##################################
 
 -  Kernel     [2010/04/12] Preliminary standard C library in $FRAMAC_SHARE/libc
@@ -908,7 +1289,7 @@ o! Kernel     [2009/11/24] Use of global logic constants is now a
 -  Value      [2009/11/24] Handling of behavior-specific assertions now
 	      correct (albeit imprecise).
 -! Kernel     [2009/11/19] The journal is generated only if the GUI is
-	      crashing, or if the option -journal-enable is explicitely
+	      crashing, or if the option -journal-enable is explicitly
 	      set (fixed issue #!330).
 +-  Value      [2009/11/19] New option -slevel-exclude f for fine-tuning
 	      semantic unrolling.
@@ -962,7 +1343,7 @@ o! Cil        [2009/09/28] pAssigns now prints directly a whole list of assigns
 	      in -input
 
 ######################################
-Open Source Release Beryllium_20090902
+Open Source Release Beryllium-20090902
 ######################################
 
 -* Obfuscator [2009/09/23] obfuscator does not lose links between logic
@@ -1014,7 +1395,7 @@ o* Makefile   [2009/09/18] Fixed bugs with the use of PLUGIN_EXTRA_BYTE
 	      (bts #224).
 
 ######################################
-Open Source Release Beryllium_20090901
+Open Source Release Beryllium-20090901
 ######################################
 
 -! Syntactic_callgraph [2009/08/27] New design of the callgraph in the GUI.
@@ -1059,7 +1440,7 @@ o! Cil        [2009/06/24] Added 2 components to Cil_types.typ to optimize
 -* Configure  [2009/06/24] Fixed bug with --disable-gui in configure.in
 
 ######################################
-Open Source Release Beryllium_20090601
+Open Source Release Beryllium-20090601
 ######################################
 
 o  Value      [2009/06/23] New constructor Signed_overflow_alarm for type
@@ -1206,7 +1587,7 @@ o! Kernel     [2009/01/23] File.pretty does not take anymore a formatter
 -* Journal    [2009/01/19] Fixed bug with -disable-journal and type with
 	      no pretty-printer.
 -  Configure  [2009/01/19] New option -with-all-static in order to
-	      statically link all plug-ins, except those explicitely
+	      statically link all plug-ins, except those explicitly
 	      specified as dynamic (bts #?430).
 -* Journal    [2009/01/19] Fixed bug in journalisation of non-functional values.
 -* Makefile   [2009/01/19] Fixed bug whenever all plug-ins should be static.
@@ -1251,7 +1632,7 @@ o! Kernel     [2009/01/05] Some changes in API of module Type
 	      memory read.
 
 ####################################
-Open Source Release Lithium_20081201
+Open Source Release Lithium-20081201
 ####################################
 
 -! GUI        [2008/12/09] Improved consistency of some information messages.
@@ -1298,7 +1679,7 @@ o  Makefile   [2008/11/03] Support for native compilation in Makefile.template
 	      (require ocaml >= 3.11).
 
 ####################################
-Open Source Release Lithium_20081002
+Open Source Release Lithium-20081002
 ####################################
 
 -! Value      [2008/10/23] Changed behavior of option
@@ -1360,7 +1741,7 @@ o! Cil        [2008/07/17] AST changes for unspecified sequences (experimental).
 -* Jessie     [2008/07/16] Fixed path problems with binary distributions.
 
 ###################################
-Open Source Release Helium_20080701
+Open Source Release Helium-20080701
 ###################################
 
 -  Occurrence [2008/07/11] Occurrences of a variable can be computed from
@@ -1431,7 +1812,7 @@ o! Logic      [2008/06/24] AST changes for invariants.
 -* Kernel     [2008/06/02] -machdep was ignored (bts #?309).
 
 #####################################
-Open Source Release Hydrogen_20080502
+Open Source Release Hydrogen-20080502
 #####################################
 
 o* Makefile   [2008/05/21] Fixed bug in "make clean-doc" (and "make distclean").
@@ -1439,7 +1820,7 @@ o* Makefile   [2008/05/21] Fixed bug in "make clean-doc" (and "make distclean").
 	      preferences pannel.
 
 #####################################
-Open Source Release Hydrogen_20080501
+Open Source Release Hydrogen-20080501
 #####################################
 
 -! Value      [2008/04/24] Display a warning whenever an unitialized value
@@ -1467,7 +1848,7 @@ o  GUI        [2008/04/07] Project management redesigned for older Gtk and
 -  Kernel     [2008/04/01] Option -no-unicode : do not print Unicode chars.
 
 ################################
-Binary release Hydrogen_20080302
+Binary Release Hydrogen-20080302
 ################################
 
 -  Occurrence [2008/03/17] New option -occurrence.
@@ -1479,6 +1860,6 @@ Binary release Hydrogen_20080302
 -* Slicing    [2008/02/25] Fixed bug in interprocedural slicing (bts #?201).
 
 ###########################################
-First Open Source Release Hydrogen_20080301
+First Open Source Release Hydrogen-20080301
 ###########################################
 - First release

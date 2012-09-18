@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,9 @@
 (* --- Proof Environment to deal with Arrays and Record in Memory Models  --- *)
 (* -------------------------------------------------------------------------- *)
 
-open Formula
 open Cil_types
 open Ctypes
+open Formula
 
 module Create(M : Mvalues.Data) =
 struct

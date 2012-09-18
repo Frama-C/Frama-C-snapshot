@@ -39,11 +39,9 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-open Cil_types
-
 (** Utility functions for Coolaid *)
 module H = Hashtbl
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
 
 open Cil_datatype
 
@@ -186,94 +184,6 @@ let int_range_list (a: int) (b: int) =
   list_init (b - a + 1) (fun i -> a + i)
 
 
-(** Some handling of registers *)
-type 'a growArrayFill =
-    Elem of 'a
-  | Susp of (int -> 'a)
-
-type 'a growArray = {
-            gaFill: 'a growArrayFill;
-            (** Stuff to use to fill in the array as it grows *)
-
-    mutable gaMaxInitIndex: int;
-            (** Maximum index that was written to. -1 if no writes have
-             * been made.  *)
-
-    mutable gaData: 'a array;
-  }
-
-let growTheArray (ga: 'a growArray) (len: int)
-                 (toidx: int) (_why: string) : unit =
-  if toidx >= len then begin
-    (* Grow the array by 50% *)
-    let newlen = toidx + 1 + len  / 2 in
-(*
-    ignore (E.log "growing an array to idx=%d (%s)\n" toidx why);
-*)
-    let data' = begin match ga.gaFill with
-      Elem x ->
-
-	let data'' = Array.create newlen x in
-	Array.blit ga.gaData 0 data'' 0 len;
-	data''
-    | Susp f -> Array.init newlen
-	  (fun i -> if i < len then ga.gaData.(i) else f i)
-    end
-    in
-    ga.gaData <- data'
-  end
-
-let getReg (ga: 'a growArray) (r: int) : 'a =
-  let len = Array.length ga.gaData in
-  if r >= len then
-    growTheArray ga len r "get";
-
-  ga.gaData.(r)
-
-let setReg (ga: 'a growArray) (r: int) (what: 'a) : unit =
-  let len = Array.length ga.gaData in
-  if r >= len then
-    growTheArray ga len r "set";
-  if r > ga.gaMaxInitIndex then ga.gaMaxInitIndex <- r;
-  ga.gaData.(r) <- what
-
-let newGrowArray (initsz: int) (fill: 'a growArrayFill) : 'a growArray =
-  { gaFill = fill;
-    gaMaxInitIndex = -1;
-    gaData = begin match fill with
-      Elem x -> Array.create initsz x
-    | Susp f -> Array.init initsz f
-    end; }
-
-let copyGrowArray (ga: 'a growArray) : 'a growArray =
-  { ga with gaData = Array.copy ga.gaData }
-
-let deepCopyGrowArray (ga: 'a growArray) (copy: 'a -> 'a): 'a growArray =
-  { ga with gaData = Array.map copy ga.gaData }
-
-
-
-(** Iterate over the initialized elements of the array *)
-let growArray_iteri  (f: int -> 'a -> unit) (ga: 'a growArray) =
-  for i = 0 to ga.gaMaxInitIndex do
-    f i ga.gaData.(i)
-  done
-
-
-(** Fold left over the initialized elements of the array *)
-let growArray_foldl (f: 'acc -> 'a -> 'acc)
-                    (acc: 'acc) (ga: 'a growArray) : 'acc =
-  let rec loop (acc: 'acc) (idx: int) : 'acc =
-    if idx > ga.gaMaxInitIndex then
-      acc
-    else
-      loop (f acc ga.gaData.(idx)) (idx + 1)
-  in
-  loop acc 0
-
-
-
-
 let hasPrefix (prefix: string) (what: string) : bool =
   let pl = String.length prefix in
   try String.sub what 0 pl = prefix
@@ -349,19 +259,6 @@ let tryFinally
     final None;
     raise e
   end
-
-
-
-
-let valOf : 'a option -> 'a = function
-    None -> raise (Failure "Util.valOf")
-  | Some x -> x
-
-let opt_bind f = function None -> None | Some x -> f x
-
-let opt_app f default = function None -> default | Some x -> f x
-
-let opt_iter f = function None -> () | Some x -> f x
 
 (**
  * An accumulating for loop.
@@ -710,116 +607,9 @@ let symbolName (id: symbol) : string =
 
 let equals x1 x2 : bool = compare x1 x2 = 0
 
-module GenericMapl (FX: Map.OrderedType) =
-struct
-  include Map.Make(FX)
-  type 'a map = 'a list t
-  let map f m =
-    fold (fun x l m -> add x (f l) m) m empty
-  let add x v m =
-    try
-      let l = find x m in add x (v::l) m
-    with Not_found ->
-      add x [v] m
-  let find x m =
-    try find x m with Not_found -> []
-end
-
-module type Mapl=
-sig
-    type key
-    (** The type of the map keys. *)
-
-    type (+'a) t
-    (** The type of maps from type [key] to type ['a]. *)
-
-    type 'a map = 'a list t
-
-    val empty: 'a t
-    (** The empty map. *)
-
-    val is_empty: 'a t -> bool
-    (** Test whether a map is empty or not. *)
-
-    val add: key -> 'a -> 'a list t -> 'a list t
-    (** [add x y m] returns a map containing the same bindings as
-       [m], plus a binding of [x] to [y]. If [x] was already bound
-       in [m], its previous binding disappears. *)
-
-    val find: key -> 'a list t -> 'a list
-    (** [find x m] returns the current binding of [x] in [m],
-       or raises [Not_found] if no such binding exists. *)
-
-    val remove: key -> 'a t -> 'a t
-    (** [remove x m] returns a map containing the same bindings as
-       [m], except for [x] which is unbound in the returned map. *)
-
-    val mem: key -> 'a t -> bool
-    (** [mem x m] returns [true] if [m] contains a binding for [x],
-       and [false] otherwise. *)
-
-    val iter: (key -> 'a -> unit) -> 'a t -> unit
-    (** [iter f m] applies [f] to all bindings in map [m].
-       [f] receives the key as first argument, and the associated value
-       as second argument.  The bindings are passed to [f] in increasing
-       order with respect to the ordering over the type of the keys.
-       Only current bindings are presented to [f]:
-       bindings hidden by more recent bindings are not passed to [f]. *)
-
-    val map: ('a -> 'b) -> 'a t -> 'b t
-    (** [map f m] returns a map with same domain as [m], where the
-       associated value [a] of all bindings of [m] has been
-       replaced by the result of the application of [f] to [a].
-       The bindings are passed to [f] in increasing order
-       with respect to the ordering over the type of the keys. *)
-
-    val mapi: (key -> 'a -> 'b) -> 'a t -> 'b t
-    (** Same as {!Map.S.map}, but the function receives as arguments both the
-       key and the associated value for each binding of the map. *)
-
-    val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-    (** [fold f m a] computes [(f kN dN ... (f k1 d1 a)...)],
-       where [k1 ... kN] are the keys of all bindings in [m]
-       (in increasing order), and [d1 ... dN] are the associated data. *)
-
-    val compare: ('a -> 'a -> int) -> 'a t -> 'a t -> int
-    (** Total ordering between maps.  The first argument is a total ordering
-        used to compare data associated with equal keys in the two maps. *)
-
-    val equal: ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-    (** [equal cmp m1 m2] tests whether the maps [m1] and [m2] are
-       equal, that is, contain equal keys and associate them with
-       equal data.  [cmp] is the equality predicate used to compare
-       the data associated with the keys. *)
-
-end
-
-module Mapl_Make (X:Map.OrderedType) = GenericMapl(X)
-
-module IntMapl = Mapl_Make(struct type t = int let compare = Datatype.Int.compare end)
-
-let printStages = ref false
-
 (* pretty-printing *)
 
 open Format
-
-let rec print_list sep print fmt = function
-  | [] -> ()
-  | [x] -> print fmt x
-  | x :: r -> print fmt x; sep fmt (); print_list sep print fmt r
-
-let print_if test fmt print = if test then print fmt ()
-
-let comma fmt () = fprintf fmt ",@ "
-let underscore fmt () = fprintf fmt "_"
-let semi fmt () = fprintf fmt ";@ "
-let space fmt () = fprintf fmt "@ "
-let alt fmt () = fprintf fmt "|@ "
-let newline fmt () = fprintf fmt "@\n"
-let arrow fmt () = fprintf fmt "@ -> "
-let nothing _fmt () = ()
-let string fmt s = fprintf fmt "%s" s
 
 let rec pretty_list sep p fmt l =
   match l with
@@ -849,8 +639,6 @@ let nl_sep fmt = fprintf fmt "@\n"
 let space_sep s fmt = fprintf fmt "%s@ " s
 
 open Cil_types
-
-module InstrMapl = Mapl_Make(Kinstr)
 
 let out_some v = match v with
 | None -> assert false

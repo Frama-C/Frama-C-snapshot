@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,13 +21,11 @@
 (**************************************************************************)
 
 (** Utilities to pretty print source with located elements in a Gtk
-    TextBuffer.
-    @plugin development guide *)
+    TextBuffer. *)
 
 open Cil_types
 
-(** The kind of object that can be selected in the source viewer.
-    @plugin development guide *)
+(** The kind of object that can be selected in the source viewer. *)
 type localizable =
   | PStmt of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
@@ -60,8 +58,7 @@ val hilite : Locs.state -> unit
 
 val locate_localizable : Locs.state -> localizable -> (int*int) option
   (** @return Some (start,stop) in offset from start of buffer if the
-      given localizable has been displayed according to [Locs.locs].
-      @plugin development guide *)
+      given localizable has been displayed according to [Locs.locs]. *)
 
 val kf_of_localizable : localizable -> kernel_function option
 val ki_of_localizable : localizable -> kinstr

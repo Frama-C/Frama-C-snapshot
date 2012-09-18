@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -25,7 +25,6 @@
 
 open Logic_ptree
 open Promelaast
-open Aorai_utils
 
 (* [VP] Need to get rid of those global references at some point. *)
 let promela_file = ref ""
@@ -37,7 +36,6 @@ let ltl_file = ref ""
 let dot_file = ref ""
 let generatesCFile = ref true
 let ltl2ba_params = " -l -p -o "
-let toBeRemoved = ref []
 
 let ltl_to_promela = Hashtbl.create 7
 
@@ -141,13 +139,6 @@ let display_status () =
     Aorai_option.feedback "\n"
   end
 
-(** Removes temorary files if any. *)
-let cleanup_files () =
-  List.iter
-    (fun f ->
-       if String.length f > 0 && Sys.file_exists f then Extlib.safe_remove f)
-    !toBeRemoved
-
 let init_file_names () =
   (* Intermediate functions for error display or fresh name of file
      generation *)
@@ -198,7 +189,7 @@ let init_file_names () =
 	  (Filename.chop_extension
 	     (Aorai_option.promela_file ())) ".ltl";
 	promela_file:= Aorai_option.promela_file ();
-  	toBeRemoved:=(!ltl_tmp_file)::!toBeRemoved
+        Extlib.cleanup_at_exit !ltl_tmp_file
       end else begin
 	ltl_tmp_file:=
 	  (try
@@ -208,7 +199,7 @@ let init_file_names () =
 	     Aorai_option.abort "cannot create temporary file: %s" s);
 	promela_file:=
 	  freshname (Filename.chop_extension !ltl_tmp_file) ".promela";
-	toBeRemoved := !ltl_tmp_file :: !promela_file :: !toBeRemoved
+        Extlib.cleanup_at_exit !promela_file;
       end
     end else begin
       if Aorai_option.To_Buchi.get () <> "" &&
@@ -238,12 +229,130 @@ let init_test () =
 
 let printverb s = Aorai_option.feedback ~level:2 "%s" s
 
-let run () =
-  let display_op_specs =
-    (Aorai_option.Verbose.get () > 2)
-    || (Aorai_option.Output_Spec.get ()) in
+let output () =
+  (* Dot file *)
+  if (Aorai_option.Dot.get()) then
+    begin
+      Promelaoutput.output_dot_automata (Data_for_aorai.getAutomata ())
+        !dot_file;
+      printverb "Generating dot file    : done\n"
+    end;
 
-  Aorai_option.result ~level:0 "Welcome to the Aorai plugin@.";
+  (* C file *)
+  if (not !generatesCFile) then
+    printverb "C file generation      : skipped\n"
+  else
+    begin
+      let cout = open_out !output_c_file in
+      let fmt = Format.formatter_of_out_channel cout in
+      Kernel.Unicode.without_unicode
+        (fun () ->
+          File.pretty_ast ~fmt ();
+	  close_out cout;
+	  printverb "C file generation      : done\n";
+        ) ()
+    end;
+  
+  printverb "Finished.\n";
+  (* Some test traces. *)
+  Data_for_aorai.debug_computed_state ();
+  if !generatesCFile then Kernel.Files.set [!output_c_file]
+
+let work () =
+  let file = Ast.get () in
+  Aorai_utils.initFile file;
+  printverb "C file loading         : done\n";
+  if Aorai_option.Ya.get () = "" then
+    if Aorai_option.Buchi.get () = "" then begin
+      ltl_to_ltlLight !ltl_file !ltl_tmp_file;
+      printverb "LTL loading            : done\n";
+      let cmd = Format.sprintf "ltl2ba %s -F %s > %s"
+	ltl2ba_params !ltl_tmp_file !promela_file
+      in if Sys.command cmd <> 0 then
+          Aorai_option.abort "failed to run: %s" cmd ;
+      printverb "LTL ~> Promela (ltl2ba): done\n"
+    end;
+  if Aorai_option.To_Buchi.get () <> "" then
+    printverb ("Finished.\nGenerated file: '"^(!promela_file)^"'\n")
+  else
+    begin
+	(* Step 3 : Loading promela_file and checking the consistency between informations from C code and LTL property *)
+	(*          Such as functions name and global variables. *)
+
+      if Aorai_option.Buchi.get () <> "" then
+	load_promela_file_withexps !promela_file
+      else if Aorai_option.Ya.get  () <> "" then
+        load_ya_file !ya_file
+      else
+	load_promela_file !promela_file;
+      printverb "Loading promela        : done\n";
+	(* Computing the list of ignored functions *)
+	(* 	Aorai_visitors.compute_ignored_functions file; *)
+
+
+	(* Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata());  *)
+	(* Data_for_aorai.debug_ltl_expressions (); *)
+
+      (*let _ = Path_analysis.test (Data_for_aorai.getAutomata())in*)
+      let root = fst (Globals.entry_point ()) in
+      if (Aorai_option.Axiomatization.get()) then
+	begin
+	    (* Step 5 : incrementing pre/post 
+               conditions with states and transitions information *)
+	  printverb "Refining pre/post      : \n";
+          Aorai_dataflow.compute ();
+	    (* Step 6 : Removing transitions never crossed *)
+	  if (Aorai_option.AutomataSimplification.get()) then
+	    begin
+	      printverb "Removing unused trans  : done\n";
+	      Data_for_aorai.removeUnusedTransitionsAndStates ();
+	    end
+	  else
+	    printverb "Removing unused trans  : skipped\n";
+	    (* Step 7 : Labeling abstract file *)
+	    (* Finally the information is added into the Cil automata. *)
+	  Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
+ 	  Aorai_visitors.add_sync_with_buch file;
+	  Aorai_visitors.add_pre_post_from_buch file
+	    (Aorai_option.advance_abstract_interpretation ());
+	  printverb "Annotation of Cil      : done\n";
+	end
+      else
+	begin
+	    (* Step 4': Computing the set of possible pre-states and post-states of each function *)
+	    (*          And so for pre/post transitions *)
+	  printverb "Abstracting pre/post   : skipped\n";
+          
+	    (* Step 5': incrementing pre/post conditions with states and transitions information *)
+	  printverb "Refining pre/post      : skipped\n";
+
+
+	    (* Step 6 : Removing transitions never crossed *)
+          printverb "Removing unused trans  : skipped\n";
+
+	    (* Step 7 : Labeling abstract file *)
+	    (* Finally the information is added into the Cil automata. *)
+	  Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
+ 	  Aorai_visitors.add_sync_with_buch file;
+	  printverb "Annotation of Cil      : partial\n"
+	end;
+      
+      (* Step 8 : clearing tables whose information has been
+         invalidated by our transformations.
+      *)
+      Cfg.clearFileCFG ~clear_id:false file;
+      Cfg.computeFileCFG file;
+      Ast.clear_last_decl ();
+      let prj =
+        File.create_project_from_visitor "aorai"
+	  (fun prj -> new Visitor.frama_c_copy prj)
+      in
+      Project.copy ~selection:(Plugin.get_selection ()) prj;
+      Project.on prj output ()
+    end
+
+let run () =
+  Aorai_option.result "Welcome to the Aorai plugin@.";
   init_test ();
 
   (* Step 1 : Capture files names *)
@@ -253,195 +362,15 @@ let run () =
     Aorai_option.error "Generation stopped."
   else
 
-    (* Step 2 : Work in our own project, initialized by a copy of the main one. *)
+    (* Step 2 : Work in our own project, initialized by a copy of the main
+       one. *)
     let work_prj =
       File.create_project_from_visitor "aorai_tmp"
 	(fun prj -> new Visitor.frama_c_copy prj)
     in
     Project.copy ~selection:(Plugin.get_selection ()) work_prj;
-    Project.set_current work_prj;
-    let file = Ast.get () in
-    Aorai_utils.initFile file;
-    printverb "C file loading         : done\n";
-    if Aorai_option.Ya.get () = "" then
-      if Aorai_option.Buchi.get () = "" then begin
-	ltl_to_ltlLight !ltl_file !ltl_tmp_file;
-	printverb "LTL loading            : done\n";
-        let cmd = Format.sprintf "ltl2ba %s -F %s > %s"
-	  ltl2ba_params !ltl_tmp_file !promela_file
-	in if Sys.command cmd <> 0 then
-            Aorai_option.abort "failed to run: %s" cmd ;
-	  printverb "LTL ~> Promela (ltl2ba): done\n"
-      end;
-    if Aorai_option.To_Buchi.get () <> "" then
-      printverb ("Finished.\nGenerated file: '"^(!promela_file)^"'\n")
-    else
-      begin
-	(* Step 3 : Loading promela_file and checking the consistency between informations from C code and LTL property *)
-	(*          Such as functions name and global variables. *)
-
-	if Aorai_option.Buchi.get () <> "" then
-	  load_promela_file_withexps !promela_file
-        else if Aorai_option.Ya.get  () <> "" then
-          load_ya_file !ya_file
-	else
-	  load_promela_file !promela_file;
-	printverb "Loading promela        : done\n";
-	(* Computing the list of ignored functions *)
-	(* 	Aorai_visitors.compute_ignored_functions file; *)
-
-
-	(* Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata());  *)
-	(* Data_for_aorai.debug_ltl_expressions (); *)
-
-(*let _ = Path_analysis.test (Data_for_aorai.getAutomata())in*)
-        let root = fst (Globals.entry_point ()) in
-        let root_name = Kernel_function.get_name root in
-	if (Aorai_option.Axiomatization.get()) then
-	  begin
-	    (* Step 4 : Computing the set of possible pre-states and post-states of each function *)
-	    (*          And so for pre/post transitions *)
-            Aorai_visitors.compute_abstract file 
-              root_name (Aorai_option.ConsiderAcceptance.get());
-	    printverb "Abstracting pre/post   : done\n";
-
-	    (* 	(display_operations_spec ()); *)
-
-
-	    (* Step 5 : incrementing pre/post conditions with states and transitions information *)
-	    printverb "Refining pre/post      : \n";
-	    if (Aorai_option.AbstractInterpretation.get()) then
-	      begin
-		(* Repeat until reach a fix-point *)
-		while
-		  Abstract_ai.propagates_pre_post_constraints file root_name
-		do () done;
-		printverb "    Forward/backward abstract specification        : done\n";
-	      end
-	    else
-	      printverb "    Forward/backward abstract specification        : skipped\n";
-
-	    (*	(display_operations_spec ());*)
-
-            Bycase_ai.init_specification();
-	    if (Aorai_option.advance_abstract_interpretation ())
-	    then
-	      begin
-		(* Repeat until reach a fix-point *)
-		while
-		  Bycase_ai.propagates_pre_post_constraints_bycase 
-                    file root_name;
-     		do () done;
-		printverb 
-                  "    Consider links between input and output states : done\n";
-	      end
-                
-	    else
-	      begin
-		printverb "    Consider links between input and output states : skipped\n";
-		(*printverb "    Forward/backward AI according to control flow  : skipped\n";*)
-	      end;
-
-	    (*	(display_operations_spec_bycase ());*)
-
-
-	    (* Step 6 : Removing transitions never crossed *)
-	    (*Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata()); *)
-	    if (Aorai_option.AutomataSimplification.get()) then
-	      begin
-		printverb "Removing unused trans  : done\n";
-                let l = Data_for_aorai.all_action_bindings () in
-		Data_for_aorai.removeUnusedTransitionsAndStates ();
-                Data_for_aorai.clear_actions ();
-                List.iter 
-                  (fun ((kf,ki,pre,post),v) -> 
-                    Data_for_aorai.set_action_bindings kf ki pre post v) l;
-		(* Promelaoutput.print_raw_automata (Data_for_aorai.getAutomata()); *)
-	      end
-	    else
-	      printverb "Removing unused trans  : skipped\n";
-
-
-	    (* Step 7 : Labeling abstract file *)
-	    (* Finally the information is added into the Cil automata. *)
-	    Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
- 	    Aorai_visitors.add_sync_with_buch file;
-	    Aorai_visitors.add_pre_post_from_buch file
-	      (Aorai_option.advance_abstract_interpretation ());
-	    printverb "Annotation of Cil      : done\n";
-
-	    Aorai_utils.display_all_warnings_about_specs ()
-	  end
-	else
-	  begin
-	    (* Step 4': Computing the set of possible pre-states and post-states of each function *)
-	    (*          And so for pre/post transitions *)
-	    printverb "Abstracting pre/post   : skipped\n";
-
-	    (* Step 5': incrementing pre/post conditions with states and transitions information *)
-	    printverb "Refining pre/post      : skipped\n";
-
-
-	    (* Step 6 : Removing transitions never crossed *)
-            printverb "Removing unused trans  : skipped\n";
-
-	    (* Step 7 : Labeling abstract file *)
-	    (* Finally the information is added into the Cil automata. *)
-	    Aorai_utils.initGlobals root (Aorai_option.Axiomatization.get());
- 	    Aorai_visitors.add_sync_with_buch file;
-	    printverb "Annotation of Cil      : partial\n"
-	  end;
-
-	(* Step 8 : clearing tables whose information has been
-           invalidated by our transformations.
-         *)
-	Cfg.clearFileCFG ~clear_id:false file;
-	Cfg.computeFileCFG file;
-        let prj =
-          File.create_project_from_visitor "aorai"
-	    (fun prj -> new Visitor.frama_c_copy prj)
-        in
-        Project.copy ~selection:(Plugin.get_selection ()) prj;
-        Project.set_current prj;
-        Project.remove ~project:work_prj ();
-
-	(* Step 9 : Generating resulting files *)
-	(* Dot file *)
-	if (Aorai_option.Dot.get()) then
-	  begin
-	    Promelaoutput.output_dot_automata (Data_for_aorai.getAutomata ())
-              !dot_file;
-	    printverb "Generating dot file    : done\n"
-	  end;
-
-	(* C file *)
-	if (not !generatesCFile) then
-	  printverb "C file generation      : skipped\n"
-	else
-	  begin
-            let cout = open_out !output_c_file in
-	    Kernel.Unicode.without_unicode
-              (fun () ->
-	        (* [JS 2011/03/11] should use File.pretty_ast instead *)
-	        Cil.dumpFile (new Printer.print ())  cout "test_string" file;
-	        close_out cout;
-	        printverb "C file generation      : done\n";
-              ) ()
-	  end;
-
-	printverb "Finished.\n";
-
-        if display_op_specs then
-	  Aorai_utils.display_operations_spec_sorted_bycase ();
-
-	(* Some test traces. *)
-	match Aorai_option.Test.get () with
-	| 1 -> Aorai_utils.debug_display_all_specs ()
-	| _ -> () (* 0 is no test *)
-      end ;
-    if !generatesCFile then Kernel.Files.set [!output_c_file];
-    Aorai_option.reset ();
-    cleanup_files ()
+    Project.on work_prj work ();
+    Project.remove ~project:work_prj ()
 
 (* Plugin registration *)
 
@@ -453,7 +382,17 @@ let run =
     ~journalize:true
     run
 
-let main _fmt = if Aorai_option.is_on () then run ()
+let run, _ =
+  State_builder.apply_once
+    "Aorai"
+    (let module O = Aorai_option in
+     [ O.Ltl_File.self; O.To_Buchi.self; O.Buchi.self;
+      O.Ya.self; O.Axiomatization.self; O.ConsiderAcceptance.self;
+      O.AutomataSimplification.self; O.AbstractInterpretation.self;
+      O.AddingOperationNameAndStatusInSpecification.self ])
+    run
+
+let main () = if Aorai_option.is_on () then run ()
 let () = Db.Main.extend main
 
 

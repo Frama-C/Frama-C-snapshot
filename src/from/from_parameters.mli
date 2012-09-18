@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,13 +22,19 @@
 
 include Plugin.S
 
+(** Option -deps *)
+module ForceDeps: Plugin.WithOutput
 
-module ForceDeps: Plugin.Bool
-module ForceCallDeps: Plugin.Bool
-  (** @plugin development guide *)
+(** Option -calldeps.
+    @plugin development guide *)
+module ForceCallDeps: Plugin.WithOutput
 
-
+(** Option -experimental-path-deps *)
 module PathDeps: Plugin.Bool
+
+(** Option -experimental-mem-deps *)
+module MemDeps: Plugin.Bool
+
 
 (*
 Local Variables:

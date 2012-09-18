@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: BIN absorb.sav LOG absorb_sav.res LOG absorb_sav.err ./bin/toplevel.opt -memory-footprint 1 -journal-disable share/builtin.c -save ./tests/float/result/absorb.sav tests/float/absorb.c > tests/float/result/absorb_sav.res 2> tests/float/result/absorb_sav.err
-   EXECNOW: BIN absorb.sav2 LOG absorb_sav2.res LOG absorb_sav2.err ./bin/toplevel.opt -load ./tests/float/result/absorb.sav -val -journal-disable -float-hex -save ./tests/float/result/absorb.sav2 > tests/float/result/absorb_sav2.res 2> tests/float/result/absorb_sav2.err
+   EXECNOW: BIN absorb.sav LOG absorb_sav.res LOG absorb_sav.err FRAMAC_PLUGIN=tests/.empty @frama-c@ -memory-footprint 1 -journal-disable share/builtin.c -save ./tests/float/result/absorb.sav tests/float/absorb.c > tests/float/result/absorb_sav.res 2> tests/float/result/absorb_sav.err
+   EXECNOW: BIN absorb.sav2 LOG absorb_sav2.res LOG absorb_sav2.err FRAMAC_PLUGIN=tests/.empty @frama-c@ -load ./tests/float/result/absorb.sav -val -journal-disable -float-hex -save ./tests/float/result/absorb.sav2 > tests/float/result/absorb_sav2.res 2> tests/float/result/absorb_sav2.err
    OPT: -load ./tests/float/result/absorb.sav2 -deps -out -input
    OPT: -all-rounding-modes -memory-footprint 1 -val -deps -out -input -journal-disable -float-hex share/builtin.c
 */

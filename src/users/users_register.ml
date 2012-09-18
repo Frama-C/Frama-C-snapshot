@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,6 @@ module ForceUsers =
     (struct
        let option_name = "-users"
        let help = "compute function callees"
-       let kind = `Tuning
      end)
 
 open Db
@@ -48,7 +47,6 @@ module Users =
        let name = "Users"
        let size = 17
        let dependencies = [ Value.self; ForceUsers.self ]
-       let kind = `Correctness
      end)
 
 let call_for_users (_state, call_stack) =
@@ -65,7 +63,7 @@ let call_for_users (_state, call_stack) =
       in
       List.iter treat_element tail
 
-let add_value_hook () = Db.Value.Call_Value_Callbacks.extend call_for_users
+let add_value_hook () = Db.Value.Call_Value_Callbacks.extend_once call_for_users
 
 let init () = if ForceUsers.get () then add_value_hook ()
 let () = Cmdline.run_after_configuring_stage init
@@ -81,7 +79,7 @@ let get kf =
     if Db.Value.is_computed () then begin
       feedback "requiring again the computation of the value analysis";
       Project.clear
-        ~selection:(State_selection.Dynamic.with_dependencies Db.Value.self)
+	~selection:(State_selection.with_dependencies Db.Value.self)
         ()
     end else
       feedback ~level:2 "requiring the computation of the value analysis";

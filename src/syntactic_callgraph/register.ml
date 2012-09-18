@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
 open Callgraph
 open Options
 
@@ -41,13 +40,17 @@ module Service =
              | NIVar (_,b) when not !b -> `Style `Dotted
              | _ -> `Style `Bold ]
          let equal v1 v2 = id v1 = id v2
+	 let compare v1 v2 = 
+	   let i1 = id v1 in
+	   let i2 = id v2 in
+	   if i1 < i2 then -1 else if i1 > i2 then 1 else 0
          let hash = id
          let entry_point () = !entry_point_ref
        end
        let iter_vertex f = Hashtbl.iter (fun _ -> f)
-       let iter_succ f _g v = Inthash.iter (fun _ -> f) v.cnCallees
-       let iter_pred f _g v = Inthash.iter (fun _ -> f) v.cnCallers
-       let fold_pred f _g v = Inthash.fold (fun _ -> f) v.cnCallers
+       let iter_succ f _g v = Datatype.Int.Hashtbl.iter (fun _ -> f) v.cnCallees
+       let iter_pred f _g v = Datatype.Int.Hashtbl.iter (fun _ -> f) v.cnCallers
+       let fold_pred f _g v = Datatype.Int.Hashtbl.fold (fun _ -> f) v.cnCallers
        let in_degree g v = fold_pred (fun _ -> succ) g v 0
      end)
 
@@ -57,7 +60,6 @@ module CG =
     (struct
        let name = name
        let dependencies = [ Ast.self ]
-       let kind = `Correctness
      end)
 
 let get_init_funcs main_name cg =
@@ -70,7 +72,7 @@ let get_init_funcs main_name cg =
     Datatype.String.Set.union
       (try
          let callees = (Hashtbl.find cg s).Callgraph.cnCallees in
-         Inthash.fold
+         Datatype.Int.Hashtbl.fold
            (fun _ v acc -> match v.Callgraph.cnInfo with
            | Callgraph.NIVar ({vname=n},_) -> Datatype.String.Set.add n acc
            | _ -> acc)
@@ -120,7 +122,9 @@ let dump () =
       fun o -> Service.output_services o sg
     else *)
       let cg = get () in
-      fun o -> Service.output_graph o cg
+      fun o -> 
+	Service_graph.frama_c_display false;
+	Service.output_graph o cg
   in
   let file = Filename.get () in
   feedback ~level:2 "dumping the graph into file %s" file;

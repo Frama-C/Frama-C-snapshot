@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,6 @@ module Natural_Loops =
        let name = name
        let size = 97
        let dependencies = [ Ast.self ]
-       let kind = `Internal
      end)
 
 let pretty_natural_loops fmt loops =
@@ -119,7 +118,7 @@ let compute_allstmt_block block =
   let visitor = object
     val mutable allstmts = Stmt.Set.empty
     method allstmts = allstmts
-    inherit nopCilVisitor as super
+    inherit nopCilVisitor
     method vstmt s =
       allstmts <- Stmt.Set.add s allstmts;
       DoChildren
@@ -133,7 +132,7 @@ module Result = Kinstr.Hashtbl
 let compute_loops_stmts kf =
   let tbl = Result.create 17 in
   let visitor = object
-    inherit nopCilVisitor as super
+    inherit nopCilVisitor
     method vstmt s =
       (match s.skind with
        | Loop (_,block,_,_,_) ->
@@ -161,7 +160,6 @@ let get_loop_stmts =
          let name = "LoopStmts"
          let size = 97
          let dependencies = [ Ast.self ]
-         let kind = `Internal
        end)
   in
   fun kf loop_stmt ->

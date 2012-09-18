@@ -45,21 +45,24 @@
       5/28/2004
  **)
 
-val clear: unit -> unit
+(** complete rewrite in order not to rely on data flow analysis 
+    (bad time-complexity).
+    now based on "A Simple, Fast Dominance Algorithm" by K. D. Cooper et al
+*)
 
 (** Invoke on a code after filling in the CFG info and it computes the
  * immediate dominator information. We map each statement to its immediate
  * dominator (None for the start statement, and for the unreachable
  * statements). *)
-val computeIDom: Cil_types.fundec -> Cil_types.stmt option Inthash.t
+val computeIDom: Cil_types.fundec -> Cil_types.stmt option Datatype.Int.Hashtbl.t
 
 
-(** This is like Inthash.find but gives an error if the information is
+(** This is like Datatype.Int.Hashtbl.find but gives an error if the information is
  * Not_found *)
-val getIdom:  Cil_types.stmt option Inthash.t -> Cil_types.stmt -> Cil_types.stmt option
+val getIdom:  Cil_types.stmt option Datatype.Int.Hashtbl.t -> Cil_types.stmt -> Cil_types.stmt option
 
 (** Check whether one statement dominates another. *)
-val dominates: Cil_types.stmt option Inthash.t -> Cil_types.stmt -> Cil_types.stmt -> bool
+val dominates: Cil_types.stmt option Datatype.Int.Hashtbl.t -> Cil_types.stmt -> Cil_types.stmt -> bool
 
 
 (** Compute the start of the natural loops. This assumes that the "idom"
@@ -67,5 +70,5 @@ val dominates: Cil_types.stmt option Inthash.t -> Cil_types.stmt -> Cil_types.st
  * edge. The loop consists of the loop start and all predecessors of the
  * origins of back edges, up to and including the loop start *)
 val findNaturalLoops: Cil_types.fundec ->
-                      Cil_types.stmt option Inthash.t ->
+                      Cil_types.stmt option Datatype.Int.Hashtbl.t ->
                       (Cil_types.stmt * Cil_types.stmt list) list

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,12 +24,10 @@ open Cil_types
 open Cil
 open Db
 open Locations
-open Abstract_value
-open Abstract_interp
 
 
 class virtual do_it_ = object(self)
-  inherit [Zone.t] Cumulative_analysis.cumulative_visitor as super
+  inherit [Zone.t] Cumulative_analysis.cumulative_visitor
   val mutable derefs = Zone.bottom
 
   method bottom = Zone.bottom
@@ -45,7 +43,7 @@ class virtual do_it_ = object(self)
       | Mem e ->
           let state =
             Value.get_state
-              (Kstmt (Cilutil.out_some self#current_stmt))
+              (Kstmt (Extlib.the self#current_stmt))
           in
           let r = !Value.eval_expr  ~with_alarms:CilE.warn_none_mode state e in
           self#join
@@ -67,7 +65,6 @@ module Analysis = Cumulative_analysis.Make(
 
     type t = Locations.Zone.t
     module T = Locations.Zone
-    let bottom = Locations.Zone.bottom
 
     class virtual do_it = do_it_
 end)
@@ -80,11 +77,11 @@ let externalize _return fundec x =
     x
 
 module Externals =
-  Kf_state.Make
+  Kernel_function.Make_Table(Locations.Zone)
     (struct
        let name = "External derefs"
        let dependencies = [ Analysis.Memo.self ]
-       let kind = `Correctness
+       let size = 17
      end)
 
 let get_external =
@@ -105,7 +102,7 @@ let get_external =
 
 let compute_external kf = ignore (get_external kf)
 
-let pretty_internal fmt kf =
+let _pretty_internal fmt kf =
   Format.fprintf fmt "@[Derefs (internal) for function %a:@\n@[<hov 2>  %a@]@]@\n"
     Kernel_function.pretty kf
     Zone.pretty (get_internal kf)

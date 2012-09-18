@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,19 +25,16 @@
 
 open Cil_types
 
-val pp_loc : Format.formatter -> location -> unit
-(** prints "<file,line>" or "generated" *)
+val pp_stmt : bool -> Format.formatter -> stmt -> unit
+(** prints "<instruction>" or "<instruction> (<file,line>)" *)
 
-val pp_stmt : Format.formatter -> stmt -> unit
-(** prints "<instruction> (<file,line>)" *)
-
-val pp_kinstr : Format.formatter -> kinstr -> unit
+val pp_kinstr : bool -> Format.formatter -> kinstr -> unit
 (** prints nothing for global, or " at <stmt>" *)
 
-val pp_idpred : Format.formatter -> identified_predicate -> unit
+val pp_idpred : bool -> Format.formatter -> identified_predicate -> unit
 (** prints the "'<labels>'" or the "(<location>)" of the predicate *)
 
-val pp_froms : Format.formatter -> identified_term from list -> unit
+val pp_region : bool -> Format.formatter -> identified_term from list -> unit
 (** prints message "nothing" or the "'<names>'" or the "(<location>)" of the
     relation *) 
 
@@ -52,7 +49,7 @@ val pp_property : Format.formatter -> Property.t -> unit
 
 type kf = [ `Always | `Never | `Context of kernel_function ]
 
-val pp_localized : kf:kf -> ki:bool -> Format.formatter -> Property.t -> unit
+val pp_localized : kf:kf -> ki:bool -> kloc:bool -> Format.formatter -> Property.t -> unit
 (** prints more-or-less localized property *)
 
 (*

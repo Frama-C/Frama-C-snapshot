@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -107,7 +107,7 @@ let access_offsetmap_of_lval_after ki lv =
              match acc, offsetmap with
              | None, x | x , None -> x
              | Some acc, Some offsetmap ->
-                 Some (snd (Cvalue.V_Offsetmap.join acc offsetmap)))
+                 Some ((Cvalue.V_Offsetmap.join acc offsetmap)))
           None
           l
       in

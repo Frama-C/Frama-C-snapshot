@@ -74,8 +74,21 @@ void h2 () {
   //@ assert b > 0;
 }
 
+/*@
+  behavior b:
+    assumes e==0;
+  behavior c:
+    assumes e != 0;
+  complete behaviors;
+*/
+void k(void) {
+  //@ for c: assert \true;
+  //@ for b: assert \false;
+}
+
 void main(void) {
   f();
   g();
   h2();
+  k();
 }

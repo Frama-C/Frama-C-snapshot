@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -30,8 +30,8 @@ open Cil_datatype
  * a function inputs [in_marks].
  *)
 let in_marks_to_caller pdg call m2m ?(rqs=[]) in_marks =
-  let add_n_m acc n _z_opt m =
-    let select = PdgMarks.mk_select_node ~z_opt:None n in
+  let add_n_m acc n z_opt m =
+    let select = PdgMarks.mk_select_node ~z_opt n in
     match m2m select m with
       | None -> acc
       | Some m -> PdgMarks.add_to_select acc select m
@@ -150,7 +150,7 @@ module F_Proj (C : PdgMarks.T_Config) :
                   and type t_call_info = C.M.t_call_info
 = struct
 
-  module F = Db.Pdg.F_FctMarks (C.M)
+  module F = PdgMarks.F_Fct (C.M)
 
   type t_mark = C.M.t
   type t_call_info = C.M.t_call_info
@@ -158,9 +158,7 @@ module F_Proj (C : PdgMarks.T_Config) :
   type t_fct_info = F.t
   type t = t_fct_info Varinfo.Hashtbl.t
 
-  type request = (PdgTypes.Pdg.t * (PdgTypes.Node.t * F.t_mark) list)
-
-  let empty = Varinfo.Hashtbl.create 10
+  let empty () = Varinfo.Hashtbl.create 10
 
   let find_marks proj fct_var =
     try let f = Varinfo.Hashtbl.find proj fct_var in Some (F.get_idx f)
@@ -195,7 +193,7 @@ module F_Proj (C : PdgMarks.T_Config) :
                       other_rqs in
             rqs
       | PdgMarks.SelTopMarks _marks -> (* TODO #345 *)
-          Extlib.not_yet_implemented "mark propagation in Top PDG"
+          Pdg_parameters.not_yet_implemented "mark propagation in Top PDG"
 
   (** Add the marks to the pdg nodes and also apply all the produced requests
   * to do the interprocedural propagation. *)

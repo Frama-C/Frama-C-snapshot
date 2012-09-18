@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-open Cil
-open Cilutil
 open Cil_datatype
 
  type record =
@@ -103,13 +100,8 @@ open Cil_datatype
      in
      Stmt.Hashtbl.iter
        (fun k record ->
-         let sup2 =
-           State_imp.fold
-             State_set.add
-              record.superposition
-             State_set.empty
-         in
-         Stmt.Hashtbl.add r k sup2)
+         let sup = State_imp.to_list record.superposition in
+         Stmt.Hashtbl.add r k sup)
        current_table;
      r
 
@@ -120,7 +112,7 @@ open Cil_datatype
        (fun k record ->
          Stmt.Hashtbl.add r k
            (Cvalue.Model.join
-               (State_imp.join_dropping_relations record.superposition)
+               (State_imp.join record.superposition)
                 record.widening_state))
        current_table;
      r

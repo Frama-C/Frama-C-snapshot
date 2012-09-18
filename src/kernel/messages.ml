@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-open Format
-
 module DatatypeMessages =
-  Datatype.Make
+  Datatype.Make_with_collections
     (struct
        include Datatype.Serializable_undefined
        open Log
@@ -36,6 +33,9 @@ module DatatypeMessages =
              evt_source = None;
              evt_message = "" } ]
        let mem_project = Datatype.never_any_project
+       let hash (e: event)= Hashtbl.hash e
+       let compare (e1: event) e2 = Extlib.compare_basic e1 e2
+       let equal = Datatype.from_compare
      end)
 
 module Messages =
@@ -44,14 +44,14 @@ module Messages =
     (struct
        let name = "message_table"
        let dependencies = [ Ast.self ]
-       let kind = `Internal
      end)
+let () = Ast.add_monotonic_state Messages.self
+
 module NbMessages =
   State_builder.Zero_ref
     (struct
        let name = "nb_messages"
        let dependencies = [Messages.self]
-       let kind = `Internal
      end)
 
 let self = Messages.self
@@ -71,6 +71,24 @@ let enable_collect =
       Log.add_listener ~kind:[ Log.Error; Log.Warning ] add_message;
       not_yet := false
     end
+
+
+module OnceTable = State_builder.Hashtbl
+  (DatatypeMessages.Hashtbl)(Datatype.Unit)
+  (struct
+     let size = 37
+     let dependencies = []
+     let name = "Message.OnceTable"
+   end)
+
+let check_not_yet evt =
+  if OnceTable.mem evt then false
+  else ( OnceTable.add evt () ; true)
+
+let reset_once_flag () = OnceTable.clear ()
+
+let () = Log.check_not_yet := check_not_yet
+
 
 let () =
   let run () = if Kernel.Collect_messages.get () then enable_collect () in

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,12 +20,28 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type tt =
-    { over_inputs_if_termination :  Locations.Zone.t ;
-      under_outputs_if_termination : Locations.Zone.t ;
-      over_inputs : Locations.Zone.t }
+type tt = {
+  over_inputs: Locations.Zone.t;
+  over_inputs_if_termination: Locations.Zone.t;
+  under_outputs_if_termination: Locations.Zone.t;
+  over_outputs: Locations.Zone.t;
+  over_outputs_if_termination: Locations.Zone.t;
+}
 
 include Datatype.S with type t = tt
+
+val pretty_operational_inputs: t Pretty_utils.formatter
+(** Pretty-print the fields [over_inputs_if_termination], [over_inputs] and
+    [under_outputs_if_termination] *)
+
+val pretty_outputs: t Pretty_utils.formatter
+(** Pretty-print the fields [over_outputs] and [over_outputs_if_termination]. *)
+
+val map: (Locations.Zone.t -> Locations.Zone.t) -> t -> t
+
+val bottom: tt
+val join: tt -> tt -> tt
+
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,6 @@ module Enabled = Self.False
      let module_name = "Count_for.Enabled"
      let option_name = "-count-for"
      let help = "count the for loops"
-     let kind = `Tuning
    end)
 
 open Cabs

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,8 @@
 (**************************************************************************)
 
 (** Nothing is export: just register some special hooks for Frama-C.
-    @since Beryllium-20090601-beta1 *)
+    @since Beryllium-20090601-beta1
+    @plugin development guide *)
 
 (*
 Local Variables:

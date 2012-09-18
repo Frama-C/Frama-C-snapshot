@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -55,13 +55,31 @@ HAS_OCAML311 = no
 endif
 
 ifeq ($(HAS_OCAML311),yes)
-ifeq ($(findstring 3.12,$(OCAMLVERSION)),)
-HAS_OCAML312 = no
+ ifeq ($(findstring 3.12,$(OCAMLVERSION)),)
+  ifeq ($(findstring 3.13,$(OCAMLVERSION)),) # obsolete version number
+   ifeq ($(findstring 4.00,$(OCAMLVERSION)),)
+    ifeq ($(findstring 4.01,$(OCAMLVERSION)),)
+     HAS_OCAML312 = no  # Ocaml 3.11
+     HAS_OCAML400 = no
+    else
+     HAS_OCAML312 = yes
+     HAS_OCAML400 = yes
+    endif # 4.01
+   else
+    HAS_OCAML312 = yes
+    HAS_OCAML400 = yes
+   endif # 4.00
+  else
+   HAS_OCAML312 = yes
+   HAS_OCAML400 = no
+  endif # 3.13
+ else
+  HAS_OCAML312 = yes
+  HAS_OCAML400 = no
+ endif
 else
-HAS_OCAML312 = yes
-endif
-else
-HAS_OCAML312 = no
+ HAS_OCAML312 = no  # OCaml 3.10
+ HAS_OCAML400 = no
 endif
 
 # All warnings are activated by default: this could grow up the chance of
@@ -116,6 +134,7 @@ endif
 # a given rule (second argument)
 external_make = \
   $(MAKE) FRAMAC_INTERNAL=yes \
+	  FRAMAC_SRC=$(FRAMAC_TOP_SRCDIR) \
           PLUGIN_LIB_DIR="\
              $(if $(filter /%,$(PLUGIN_LIB_DIR)),$(PLUGIN_LIB_DIR),\
                     $(FRAMAC_TOP_SRCDIR)/$(PLUGIN_LIB_DIR))" \
@@ -138,7 +157,7 @@ CHMOD_RW= sh -c \
 'for f in "$$@"; do \
   if test -e $$f; then chmod u+w $$f; fi \
 done' chmod_rw
-CP      = /usr/bin/install
+CP      = install
 ECHO	= echo
 MKDIR   = mkdir -p
 MV	= mv
@@ -205,7 +224,9 @@ ML_TESTS:=$(wildcard tests/$(1)/*.ml)
 
 $(1)_TESTS_INCLUDES=$$(addprefix -I tests/, $$($(2)_TESTS_DIRS))
 
-tests/$(1)/%.cmo: tests/$(1)/%.ml $$(CMO) $$(GEN_BYTE_LIBS)
+tests/$(1)/%.cmo: BFLAGS+=$$($(2)_BFLAGS) $$($(1)_TESTS_INCLUDES)
+
+tests/$(1)/%.cmo: tests/$(1)/%.ml $$(CMO) $$($(2)_CMO) $$(GEN_BYTE_LIBS)
 	$$(OCAMLC) -c $$(BFLAGS) $$($(1)_TESTS_INCLUDES) $$<
 
 tests/$(1)/%.byte: tests/$(1)/%.cmo $(3:.cmx=.cmo) bin/toplevel.byte$$(EXE)
@@ -216,13 +237,15 @@ tests/$(1)/%.byte: tests/$(1)/%.cmo $(3:.cmx=.cmo) bin/toplevel.byte$$(EXE)
 # [JS 2009/05/29] don't use $$(CMX)
 # [VP 2010/04/22] don't call directly ocamlopt, just refine flags of generic
 # rule, which is chosen by make anyway
-tests/$(1)/%.cmx: OFLAGS+=$$($(1)_TESTS_INCLUDES)
+tests/$(1)/%.cmx: OFLAGS+= $$($(2)_OFLAGS) $$($(1)_TESTS_INCLUDES)
 
 $(patsubst %.ml,%.cmx,$(wildcard tests/$(1)/*.ml tests/$(1)/*/*.ml)): \
-           $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
+           $$(CMO:.cmo=.cmx) $$($(2)_CMX) $$(GEN_OPT_LIBS)
 
-tests/$(1)/%.cmxs: tests/$(1)/%.ml $$(CMO:.cmo=.cmx) $$(GEN_OPT_LIBS)
-	$$(OCAMLOPT) $$(OFLAGS) $$($(1)_TESTS_INCLUDES) -shared -o $$@ $$<
+tests/$(1)/%.cmxs: OFLAGS+= $$($(2)_OFLAGS) $$($(1)_TESTS_INCLUDES)
+
+$(patsubst %.ml,%.cmxs,$(wildcard tests/$(1)/*.ml tests/$(1)/*/*.ml)): \
+           $$(CMO:.cmo=.cmx) $$($(2)_CMX) $$(GEN_OPT_LIBS)
 
 tests/$(1)/%.opt: tests/$(1)/%.cmx $(3) bin/toplevel.opt$$(EXE)
 	$$(OCAMLOPT) $$(OLINKFLAGS) $$($(1)_TESTS_INCLUDES) -o $$@ \
@@ -272,7 +295,7 @@ ifdef DOT
 
 %.svg: %.dot
 	$(PRINT_DOT) $@
-	$(ISED) -e "s/\(digraph .*\)/\1 node [href=\"\\N.html\"];/" $<
+	$(ISED) -e "s/\(digraph .*\)/\1 node [href=\"\\\\N.html\"];/" $<
 	$(DOT) -Tsvg -o $@ $<
 
 %.ps: %.dot

@@ -14,7 +14,7 @@ int f() {
   y = (char**)x;
   *((char**)0x12) = &b;
   **((char**)0x12)='a';
-
+  return 0;
 }
 
 int f1() {
@@ -24,5 +24,5 @@ int f1() {
   x = c?17:19;
   b = (char*)x;
   *b = 0;
-
+  return 0;
 }

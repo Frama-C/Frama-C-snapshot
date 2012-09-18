@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,25 @@
 (**************************************************************************)
 
 (** Syntactic loop unrolling. *)
+(** Performs and closes all syntactic transformations, including syntactic
+   loop unrolling. *)
+val compute : Cil_types.file -> unit
 
-val compute : int -> Cil_types.file -> unit
+(** Hook for transformation to be applied just before unrolling loops.
+    The boolean value indicates if the CFG has to be recomputed.
+    @since Oxygen-20120901 *)
+val add_syntactic_transformation : (Cil_types.file * bool -> Cil_types.file * bool) -> unit
+
+(** Performs only unrolling transformation without using -ulevel option.
+    Loop invariant \false can be emmitted on total unrolling request.
+    Do not forget to apply  [transformations_closure] afterwards. 
+    @since Oxygen-20120901 *)
+val apply_transformation: int -> Emitter.t -> (Cil_types.file * bool) ->
+  (Cil_types.file * bool)
+    
+(** Close syntactic transformations. 
+    @since Oxygen-20120901 *)
+val transformations_closure: (Cil_types.file * bool) -> (Cil_types.file * bool)
 
 (*
 Local Variables:

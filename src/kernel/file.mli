@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -78,6 +78,10 @@ val from_filename: ?cpp:string -> string -> t
 (* ************************************************************************* *)
 
 class check_file: string -> Visitor.frama_c_visitor
+  (** visitor that performs various consistency checks over the AST.
+      The string argument will be used in the error message in case of
+      inconsistency, in order to trace the issue.
+  *)
 
 val prepare_from_c_files: unit -> unit
   (** Initialize the AST of the current project according to the current
@@ -96,6 +100,15 @@ val init_project_from_cil_file: Project.t -> Cil_types.file -> unit
       Should be called at most once per project.
       @raise File_types.Bad_Initialization if called more than once.
       @plugin development guide *)
+
+val init_project_from_visitor: Project.t -> Visitor.frama_c_visitor -> unit
+  (** [init_project_from_visitor prj vis] initialize the cil file
+      representation of [prj]. [prj] must be essentially empty: it can have
+      some options set, but not an existing cil file; [proj] is filled using
+      [vis], which must be a copy visitor that puts its results in [prj].
+      @since Oxygen-20120901
+      @plugin development guide
+   *)
 
 val create_project_from_visitor:
   string -> (Project.t -> Visitor.frama_c_visitor) -> Project.t
@@ -129,6 +142,12 @@ val init_from_cmdline: unit -> unit
     @raise File_types.Bad_Initialization if called more than once.
     @plugin development guide *)
 
+val reorder_ast: unit -> unit
+ (** reorder globals so that all uses of an identifier are preceded by its
+     declaration. This may introduce new declarations in the AST.
+     @since Oxygen-20120901
+ *)
+
 (* ************************************************************************* *)
 (** {2 Pretty printing} *)
 (* ************************************************************************* *)
@@ -137,7 +156,7 @@ val pretty_ast : ?prj:Project.t -> ?fmt:Format.formatter -> unit -> unit
   (** Print the project CIL file on the given Formatter.
       The default project is the current one.
       The default formatter is [Kernel.CodeOutput.get_fmt ()].
-      @raise File_types.Bad_Initialization if the file is no initialized. *)
+      @raise File_types.Bad_Initialization if the file is not initialized. *)
 
 (*
 Local Variables:

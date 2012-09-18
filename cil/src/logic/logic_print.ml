@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -26,7 +26,6 @@ open Format
 open Cil_types
 open Pretty_utils
 open Logic_ptree
-open Escape
 
 let print_constant fmt = function
   | IntConstant s -> pp_print_string fmt s
@@ -118,10 +117,12 @@ let getParenthLevel e =
     | PLcoercion _ | PLcoercionE _ -> 25
     | PLunop (Ustar,_) | PLdot _ | PLarrow _ | PLarrget _
     | PLsizeof _ | PLsizeofE _ -> 20
-    | PLapp _ | PLold _ | PLat _ | PLbase_addr _ | PLblock_length _
+    | PLapp _ | PLold _ | PLat _ 
+    | PLoffset _ | PLbase_addr _ | PLblock_length _
     | PLupdate _  | PLinitField _ | PLinitIndex _
-    | PLvalid _ | PLvalid_index _ | PLvalid_range _ | PLinitialized _
-    | PLseparated _ | PLfresh _ | PLsubtype _ | PLunion _ | PLinter _ -> 10
+    | PLvalid _ | PLvalid_read _ | PLinitialized _ 
+    | PLallocable _ | PLfreeable _ | PLfresh _ 
+    | PLseparated _ | PLsubtype _ | PLunion _ | PLinter _ -> 10
     | PLvar _ | PLconstant _ | PLresult | PLnull | PLtypeof _ | PLtype _
     | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLsingleton _ -> 0
 
@@ -145,6 +146,16 @@ and print_init_field fmt (s,v) =
   print_path_val fmt ([PLpathField s], PLupdateTerm v)
 
 and print_lexpr fmt e = print_lexpr_level 100 fmt e
+
+and print_label_1 fmt l =
+  match l with 
+    | None -> ()
+    | Some s -> fprintf fmt "{%s}" s
+
+and print_label_2 fmt l =
+  match l with 
+    | None -> ()
+    | Some (s1,s2) -> fprintf fmt "{%s,%s}" s1 s2
 
 and print_lexpr_level n fmt e =
   let n' = getParenthLevel e in
@@ -175,9 +186,11 @@ and print_lexpr_level n fmt e =
           fprintf fmt "%a[@;@[%a@]@;]" print_lexpr b print_lexpr i
       | PLold(e) -> fprintf fmt "\\old(@;@[%a@]@;)" print_lexpr_plain e
       | PLat(e,s) -> fprintf fmt "\\at(@;@[%a,@ %s@]@;)" print_lexpr_plain e s
-      | PLbase_addr e -> fprintf fmt "\\base_addr(@;@[%a@])" print_lexpr_plain e
-      | PLblock_length e ->
-          fprintf fmt "\\block_length(@;@[%a@])" print_lexpr_plain e
+      | PLbase_addr (l,e) -> fprintf fmt "\\base_addr%a(@;@[%a@])" print_label_1 l print_lexpr_plain e
+      | PLblock_length (l,e) ->
+          fprintf fmt "\\block_length%a(@;@[%a@])" print_label_1 l print_lexpr_plain e
+      | PLoffset (l,e) ->
+          fprintf fmt "\\offset%a(@;@[%a@])" print_label_1 l print_lexpr_plain e
       | PLresult -> pp_print_string fmt "\\result"
       | PLnull -> pp_print_string fmt "\\null"
       | PLcast (t,e) -> fprintf fmt "(@[%a@])@;%a"
@@ -224,19 +237,19 @@ and print_lexpr_level n fmt e =
       | PLexists(q,e) ->
           fprintf fmt "@[\\exists@ @[%a@];@ %a@]"
             print_quantifiers q print_lexpr e
-      | PLvalid e -> fprintf fmt "\\valid(@;@[%a@]@;)" print_lexpr_plain e
-      | PLvalid_index (e,i) ->
-          fprintf fmt "\\valid_index(@;@[%a,@ %a@]@;)"
-            print_lexpr_plain e print_lexpr_plain i
-      | PLvalid_range (e,i1,i2) ->
-          fprintf fmt "\\valid_range(@;@[%a,@ %a, %a@]@;)"
-            print_lexpr_plain e print_lexpr_plain i1 print_lexpr_plain i2
-      | PLinitialized e ->
-          fprintf fmt "\\initialized(@;@[%a@]@;)" print_lexpr_plain e
+      | PLvalid (l,e) -> fprintf fmt "\\valid%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
+      | PLvalid_read (l,e) -> fprintf fmt "\\valid_read%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
+      | PLinitialized (l,e) ->
+          fprintf fmt "\\initialized%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
       | PLseparated l ->
           fprintf fmt "\\separated(@;@[%a@]@;)"
             (pp_list ~sep:",@ " print_lexpr_plain) l
-      | PLfresh e -> fprintf fmt "\\fresh(@;@[%a@]@;)" print_lexpr_plain e
+      | PLfreeable (l,e) -> 
+	  fprintf fmt "\\freeable%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
+      | PLallocable (l,e) -> 
+	  fprintf fmt "\\allocable%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
+      | PLfresh (l2,e1,e2) -> 
+	  fprintf fmt "\\fresh%a(@;@[%a@],@[%a@]@;)" print_label_2 l2 print_lexpr_plain e1 print_lexpr_plain e2
       | PLnamed(s,e) -> fprintf fmt "%s:@ %a" s print_lexpr e
       | PLsubtype (e1,e2) ->
           fprintf fmt "%a@ <:@ %a" print_lexpr e1 print_lexpr e2
@@ -357,16 +370,31 @@ let print_assigns fmt a =
             print_deps deps)
         fmt l
 
+let print_allocation ~isloop fmt fa = 
+  match fa with
+    | FreeAllocAny -> ()
+    | FreeAlloc([],[]) -> 
+	let prefix = if isloop then "loop " else "" in
+	  fprintf fmt "@\n%sallocates@ \\nothing;" prefix 
+    | FreeAlloc(f,a) ->
+	let prefix = if isloop then "loop " else "" in
+	let pFreeAlloc kw fmt af =
+	  match af with
+	    | [] -> ()
+	    | _ -> fprintf fmt "@\n%s%s@ %a;" prefix kw (pp_list ~sep:",@ " print_lexpr) a
+        in fprintf fmt "%a%a" (pFreeAlloc "frees") f (pFreeAlloc "allocates") a
+
 let print_clause name fmt e = fprintf fmt "@\n%s@ %a;" name print_lexpr e
 
 let print_post fmt (k,e) = print_clause (Cil.get_termination_kind_name k) fmt e
 
 let print_behavior fmt bhv =
-  fprintf fmt "@[<2>behavior@ %s:%a%a%a%a@]"
+  fprintf fmt "@[<2>behavior@ %s:%a%a%a%a%a@]"
     bhv.b_name
     (pp_list ~pre:"" ~suf:"" (print_clause "assumes")) bhv.b_assumes
     (pp_list ~pre:"" ~suf:"" (print_clause "requires")) bhv.b_requires
     (pp_list ~pre:"" ~suf:"" print_post) bhv.b_post_cond
+    (print_allocation ~isloop:false) bhv.b_allocation
     print_assigns bhv.b_assigns
     (* TODO: prints extensions *)
 
@@ -388,7 +416,7 @@ let print_spec fmt spec =
 
 let print_loop_pragma fmt p =
   match p with
-      Unroll_level e -> fprintf fmt "UNROLL@ %a" print_lexpr e
+      Unroll_specs l -> fprintf fmt "UNROLL@ %a" (pp_list ~sep:",@ " print_lexpr) l
     | Widen_hints l ->
         fprintf fmt "WIDEN_HINTS@ %a" (pp_list ~sep:",@ " print_lexpr) l
     | Widen_variables l ->
@@ -428,6 +456,8 @@ let print_code_annot fmt ca =
     | AVariant e -> fprintf fmt "loop@ variant@ %a;" print_variant e
     | AAssigns (bhvs,a) ->
         fprintf fmt "%aloop@ %a" print_behaviors bhvs print_assigns a
+    | AAllocation (bhvs,fa) ->
+        fprintf fmt "%a%a" print_behaviors bhvs (print_allocation ~isloop:true) fa
     | APragma p -> print_pragma fmt p
 
 (*

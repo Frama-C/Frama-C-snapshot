@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -26,8 +26,6 @@
 
 (**/**)
 
-module T = SlicingInternals
-module M = SlicingMacros
 
 open Cil_types
 
@@ -42,15 +40,15 @@ let find_sub_stmts st = match st.skind with
 
 let str_call_sig ff call fmt =
     try
-      let _, ff_marks = ff.T.ff_marks in
+      let _, ff_marks = ff.SlicingInternals.ff_marks in
       let called, sgn = PdgIndex.FctIndex.find_call ff_marks call in
       let print_called fmt = match called with
         | None
         | Some (None) -> Format.fprintf fmt "/* undetermined call */@."
-        | Some (Some (T.CallSlice ff)) ->
+        | Some (Some (SlicingInternals.CallSlice ff)) ->
             Format.fprintf fmt "/* call to %a */@."
               Fct_slice.print_ff_sig ff
-        | Some (Some(T.CallSrc _)) ->
+        | Some (Some(SlicingInternals.CallSrc _)) ->
             Format.fprintf fmt "/* call to source function */@."
       in
         Format.fprintf fmt "/* sig call : %a */@\n%t"
@@ -87,7 +85,7 @@ class printerClass optional_ff = object(self)
             SlicingMarks.mark_to_string m
           with Not_found -> "[---]"
           in
-          if (M.is_call_stmt stmt)
+          if (SlicingMacros.is_call_stmt stmt)
           then Format.fprintf fmt "%t/* %s */" (str_call_sig ff stmt) str_m
           else Format.fprintf fmt "/* %s */" str_m
     in
@@ -130,7 +128,7 @@ let print_fct_from_pdg fmt ?ff pdg  =
 
 let print_marked_ff fmt ff =
   Format.fprintf fmt "Print slice = %a@." Fct_slice.print_ff_sig ff;
-  let pdg = M.get_ff_pdg ff in print_fct_from_pdg fmt pdg ?ff:(Some ff)
+  let pdg = SlicingMacros.get_ff_pdg ff in print_fct_from_pdg fmt pdg ?ff:(Some ff)
 
 let print_original_glob fmt glob =
   let printer = new printerClass None in
@@ -138,25 +136,25 @@ let print_original_glob fmt glob =
 
 (*----------------------------------------------------------------------------*)
 module PrintProject = struct
-  type t = string * T.t_project
+  type t = string * SlicingInternals.t_project
   type t_node =
-      Src of T.t_fct_info | Slice of T.t_fct_slice |
-      OptSlicingLevel of T.t_level_option | OptSliceCallers of bool |
-      Action of (int * T.t_criterion)
+      Src of SlicingInternals.fct_info | Slice of SlicingInternals.t_fct_slice |
+      OptSlicingLevel of SlicingInternals.t_level_option | OptSliceCallers of bool |
+      Action of (int * SlicingInternals.t_criterion)
   module V = struct
     type t = t_node
   end
   module E = struct
-    type t = (t_node * t_node) * T.t_call_id option
+    type t = (t_node * t_node) * Cil_types.stmt option
     let src (e, _) = fst e
     let dst (e, _) = snd e
   end
 
   type tfi = Undef | PersistSelect | Other
 
-  let fi_type fi = match fi.T.fi_def with
+  let fi_type fi = match fi.SlicingInternals.fi_def with
       | Some _f ->
-          if M.fi_has_persistent_selection fi
+          if SlicingMacros.fi_has_persistent_selection fi
           then PersistSelect
           else Other
       | None -> Undef
@@ -164,17 +162,17 @@ module PrintProject = struct
   let node_slice_callers () =
     (OptSliceCallers (SlicingParameters.Mode.Callers.get ()))
   let node_slice_calls () =
-    (OptSlicingLevel (M.get_default_level_option true))
+    (OptSlicingLevel (SlicingMacros.get_default_level_option true))
 
   let iter_vertex f (_, proj) =
     f (node_slice_calls ()); f (node_slice_callers ());
     let rec do_act n rq_list = match rq_list with
       | [] -> ()
       | rq :: rq_list -> f (Action (n, rq)) ; do_act (n+1) rq_list
-    in do_act 1 proj.T.actions;
+    in do_act 1 proj.SlicingInternals.actions;
     let do_kf kf =
-      let fi = M.get_kf_fi proj kf in
-      let slices = M.fi_slices fi in
+      let fi = SlicingMacros.get_kf_fi proj kf in
+      let slices = SlicingMacros.fi_slices fi in
         List.iter (fun ff -> f (Slice ff)) slices;
         f (Src fi)
     in
@@ -184,11 +182,11 @@ module PrintProject = struct
     let do_edge dest (ff_caller, call) =
       f ((Slice ff_caller, dest), Some call) in
     let do_f _f_var fi =
-      List.iter (do_edge (Src fi)) fi.T.f_called_by;
-      let do_ff ff = List.iter (do_edge (Slice ff)) ff.T.ff_called_by in
-      List.iter do_ff (M.fi_slices fi)
+      List.iter (do_edge (Src fi)) fi.SlicingInternals.f_called_by;
+      let do_ff ff = List.iter (do_edge (Slice ff)) ff.SlicingInternals.ff_called_by in
+      List.iter do_ff (SlicingMacros.fi_slices fi)
     in
-    Cil_datatype.Varinfo.Hashtbl.iter do_f proj.T.functions
+    Cil_datatype.Varinfo.Hashtbl.iter do_f proj.SlicingInternals.functions
 
   let iter_edges_actions f proj =
     let rec do_act_edge n rq_list = match rq_list with
@@ -197,20 +195,20 @@ module PrintProject = struct
       | rq1 :: rq2 :: rq_list ->
           f (((Action (n, rq1)), (Action (n+1, rq2))), None);
           do_act_edge (n+1) (rq2 :: rq_list)
-    in do_act_edge 1 proj.T.actions
+    in do_act_edge 1 proj.SlicingInternals.actions
 
   let iter_edges_src_fun f proj =
     let do_kf_calls kf =
-      let fi = M.get_kf_fi proj kf in
+      let fi = SlicingMacros.get_kf_fi proj kf in
       let doit (kf_caller,_) =
-        let fi_caller = M.get_kf_fi proj kf_caller in
+        let fi_caller = SlicingMacros.get_kf_fi proj kf_caller in
           f ((Src fi_caller, Src fi), None)
       in List.iter doit (!Db.Value.callers kf)
     in
       Globals.Functions.iter do_kf_calls
 
   let iter_edges_e f (_, proj) =
-    let _ = match proj.T.actions with [] -> ()
+    let _ = match proj.SlicingInternals.actions with [] -> ()
       | rq :: _ -> f ((node_slice_callers (), (Action (1, rq))), None) in
     let _ = iter_edges_slices f proj in
     let _ = iter_edges_actions f proj in
@@ -222,12 +220,10 @@ module PrintProject = struct
   let color_soft_blue = (0x7FAAFF)
   let color_soft_orange = (0xFFD57F)
   let color_medium_orange = (0xFFB57F)
-  let color_soft_pink = (0xFF7FAA)
   let color_green_yellow = (0xAAFF7F)
   let color_soft_yellow = (0xFFFFC3)
   let color_medium_yellow = (0xFFFF5D)
   let color_pale_orange = (0xFFE1C3)
-  let color_soft_pink = (0xFACDEF)
   let color_soft_pink = (0xFACDEF)
   let color_medium_pink = (0xF070D1)
   let color_soft_purple = (0xE2CDFA)
@@ -237,8 +233,8 @@ module PrintProject = struct
   let default_vertex_attributes _ = [`Style `Filled]
 
   let vertex_name v = match v with
-    | Src fi -> M.fi_name fi
-    | Slice ff -> M.ff_name ff
+    | Src fi -> SlicingMacros.fi_name fi
+    | Slice ff -> SlicingMacros.ff_name ff
     | Action (n, _) -> ("rq_"^(string_of_int n))
     | OptSlicingLevel _ -> "slicing_level"
     | OptSliceCallers _ -> "slice_callers"
@@ -251,20 +247,20 @@ module PrintProject = struct
           | Other -> (`Fillcolor color_soft_green)
         in color::[`Shape `Plaintext]
     |  Slice ff ->
-        let color =  match fi_type (M.ff_fi ff) with
+        let color =  match fi_type ff.SlicingInternals.ff_fct with
           | Undef -> assert false
           | PersistSelect -> (`Fillcolor color_soft_orange)
           | Other -> (`Fillcolor color_soft_green)
         in color ::[`Shape `Ellipse]
     |  Action (_, crit) ->
-        let label = M.sprintf "%a" SlicingActions.print_crit crit in
+        let label = Pretty_utils.sfprintf "%a" SlicingActions.print_crit crit in
         let attrib = [] in
         let attrib = (`Label label)::attrib in
         let attrib = (`Fillcolor color_soft_pink)::attrib in
         let attrib = (`Shape `Box)::attrib in
           attrib
     | OptSlicingLevel mode ->
-        let label = ("SliceCalls = "^(M.str_level_option mode)) in
+        let label = ("SliceCalls = "^(SlicingMacros.str_level_option mode)) in
         let attrib = [] in
         let attrib = (`Label label)::attrib in
         let attrib = (`Fillcolor color_soft_purple)::attrib in
@@ -301,7 +297,7 @@ module PrintProject = struct
                  Graph.Graphviz.DotAttributes.sg_attributes = attrib }
     in
     let f_subgraph fi =
-      let name = M.fi_name fi in
+      let name = SlicingMacros.fi_name fi in
       let attrib = [`Label ""] in
       let color = match fi_type fi with
         | Undef -> (`Fillcolor color_medium_yellow)
@@ -318,7 +314,7 @@ module PrintProject = struct
         mk_subgraph name attrib
     in match v with
       | Src fi -> f_subgraph fi
-      | Slice ff -> f_subgraph (M.ff_fi ff)
+      | Slice ff -> f_subgraph ff.SlicingInternals.ff_fct
       | Action _ -> rq_subgraph
       | OptSlicingLevel _ | OptSliceCallers _ -> rq_subgraph
 

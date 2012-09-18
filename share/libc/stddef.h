@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,8 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef __FRAMA_C_STDDEF
-#define  __FRAMA_C_STDDEF
+#ifndef __FC_STDDEF
+#define __FC_STDDEF
 #include "__fc_machdep.h"
 typedef __PTRDIFF_T ptrdiff_t;
 #include "__fc_define_size_t.h"

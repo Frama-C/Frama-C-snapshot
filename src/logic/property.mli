@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,11 +54,14 @@ type identified_code_annotation = kernel_function * stmt * code_annotation
 type identified_assigns =
     kernel_function * kinstr * behavior_or_loop * identified_term from list
 
+type identified_allocation =
+    kernel_function * kinstr * behavior_or_loop * (identified_term list * identified_term list)
+
 type identified_from =
     kernel_function
     * kinstr
     * behavior_or_loop
-    * (identified_term from (* * identified_term list *) )
+    * (identified_term from (* identified_term list *) )
 
 type identified_decrease =
     kernel_function * kinstr * code_annotation option * term variant
@@ -76,31 +79,45 @@ type predicate_kind = private
 type identified_predicate =
     predicate_kind * kernel_function * kinstr * Cil_types.identified_predicate
 
-type identified_unreachable =
-  | UStmt of kernel_function * stmt
-  | UProperty of identified_property
+type program_point = Before | After
+
+type identified_reachable = kernel_function option * kinstr * program_point
+(** [None, Kglobal] --> global property 
+    [None, Some kf] --> impossible
+    [Some kf, Kglobal] --> property of a function without code
+    [Some kf, Kstmt stmt] --> reachability of the given stmt (and the attached
+    properties *)
 
 and identified_axiomatic = string * identified_property list
 
+and identified_lemma = 
+    string * logic_label list * string list * predicate named * location
+
+and identified_axiom = identified_lemma
+
 and identified_property = private
   | IPPredicate of identified_predicate
-  | IPAxiom of string
+  | IPAxiom of identified_axiom
   | IPAxiomatic of identified_axiomatic
-  | IPLemma of string
+  | IPLemma of identified_lemma
   | IPBehavior of identified_behavior
   | IPComplete of identified_complete
   | IPDisjoint of identified_disjoint
   | IPCodeAnnot of identified_code_annotation
+  | IPAllocation of identified_allocation
   | IPAssigns of identified_assigns
   | IPFrom of identified_from
   | IPDecrease of identified_decrease
-  | IPUnreachable of identified_unreachable
+  | IPReachable of identified_reachable
   | IPOther of string * kernel_function option * kinstr
 
 include Datatype.S_with_collections with type t = identified_property
 
 (* [JS 2011/08/04] seem to be unused *)
 (*val short_pretty: Format.formatter -> t -> unit*)
+
+(** @since Oxygen-20120901 *)
+val pretty_predicate_kind: Format.formatter -> predicate_kind -> unit
 
 (**************************************************************************)
 (** {2 Smart constructors} *)
@@ -110,11 +127,11 @@ val ip_other: string -> kernel_function option -> kinstr -> identified_property
 (** Create a non-standard property.
     @since Nitrogen-20111001 *)
 
-val ip_unreachable_stmt: kernel_function -> stmt -> identified_property
-(** @since Carbon-20110201 *)
+val ip_reachable_stmt: kernel_function -> stmt -> identified_property
+(** @since Oxygen-20120901 *)
 
-val ip_unreachable_ppt: identified_property -> identified_property
-(** @since Carbon-20110201 *)
+val ip_reachable_ppt: identified_property -> identified_property
+(** @since Oxygen-20120901 *)
 
 (** IPPredicate of a single requires.
     @since Carbon-20110201 *)
@@ -149,6 +166,17 @@ val ip_of_ensures:
 val ip_ensures_of_behavior:
   kernel_function -> kinstr -> funbehavior -> identified_property list
 
+(** Builds the corresponding IPAllocation.
+    @since Oxygen-20120901 *)
+val ip_of_allocation:
+  kernel_function -> kinstr -> behavior_or_loop
+  -> identified_term allocation -> identified_property option
+
+(** Builds IPAllocation for a contract.
+    @since Oxygen-20120901 *)
+val ip_allocation_of_behavior:
+  kernel_function -> kinstr -> funbehavior -> identified_property option
+
 (** Builds the corresponding IPAssigns.
     @since Carbon-20110201 *)
 val ip_of_assigns:
@@ -181,13 +209,13 @@ val ip_assigns_of_code_annot:
 val ip_from_of_code_annot:
   kernel_function -> kinstr -> code_annotation -> identified_property list
 
-(** Builds all IP related to the post-conditions (including assigns and from)
+(** Builds all IP related to the post-conditions (including allocates, frees,
+    assigns and from)
     @since Carbon-20110201 *)
 val ip_post_cond_of_behavior:
   kernel_function -> kinstr -> funbehavior -> identified_property list
 
-(** Builds an IP for the post-conditions (including assigns and from)
-    of the behavior.
+(** Builds the IP corresponding to the behavior itself.
     @since Carbon-20110201 *)
 val ip_of_behavior:
   kernel_function -> kinstr -> funbehavior -> identified_property
@@ -247,12 +275,16 @@ val ip_of_spec:
   kernel_function -> kinstr -> funspec -> identified_property list
 
 (** Builds an IPAxiom.
-    @since Carbon-20110201 *)
-val ip_axiom: string -> identified_property
+    @since Carbon-20110201 
+    @modify Oxygen-20120901 takes an identified_axiom instead of a string
+*)
+val ip_axiom: identified_axiom -> identified_property
 
-val ip_lemma: string -> identified_property
 (** Build an IPLemma.
-    @since Nitrogen-20111001 *)
+    @since Nitrogen-20111001 
+    @modify Oxygen-20120901 takes an identified_lemma instead of a string
+*)
+val ip_lemma: identified_lemma -> identified_property
 
 (** Builds all IP related to a given code annotation.
     @since Carbon-20110201 *)
@@ -282,6 +314,34 @@ val ip_of_global_annotation_single:
 val get_kinstr: identified_property -> kinstr
 val get_kf: identified_property -> kernel_function option
 val get_behavior: identified_property -> funbehavior option
+
+val location: identified_property -> location
+(** returns the location of the property.
+    @since Oxygen-20120901 *)
+
+(**************************************************************************)
+(** {2 names} *)
+(**************************************************************************)
+
+(** @since Oxygen-20120901 *)
+module Names: sig
+
+  val self: State.t
+
+  val get_prop_name_id: identified_property -> string
+    (** returns a unique name identifying the property.
+	This name is built from the basename of the property. *)
+    
+  val get_prop_basename: identified_property -> string
+    (** returns the basename of the property. *)
+    
+  val reserve_name_id: string -> string
+(** returns the name that should be returned by the function
+    [get_prop_name_id] if the given property has [name] as basename. That name
+    is reserved so that [get_prop_name_id prop] can never return an identical
+    name. *)
+
+end
 
 (*
 Local Variables:

@@ -1,30 +1,67 @@
 /* run.config
-   STDOPT: +"-slevel-function" +"init:20" +"-then" +"-report"
+   STDOPT: +"-calldeps" +"-no-deps" +"-slevel-function" +"init:2000" +"-inout-callwise" +"-inout" +"-value-debug-category imprecision" +"-plevel 150" +"-then" +"-report"
 */
 #include "share/builtin.h"
 
-extern int b;
 extern unsigned int i;
-
 char src[20];
 char dst1[20], dst2[20], dst3[20];
-char dst4[20];
+char dst4[20], dst5[100];
 
 void init () {
-  for (int j=0;j<20;j++) {
+  int j;
+  for (j=0;j<20;j++) {
     src[j] = j+1;
     dst1[j] = -1;
     dst2[j] = -1;
     dst3[j] = -1;
     dst4[j] = -1;
   }
+  for (j=0;j<100;j++) dst5[j] = -1;
 }
 
+volatile maybe;
 
-struct t1 { int x; int y; int* p;} v1,v2, v3;
+void buggy () {
+  char c;
+  char *p = maybe ? &c: "abc";
+  Frama_C_memcpy(p,"d",1);
+}
+
+int tm[1000];
+int um[1000];
+
+typedef struct {
+  short ts;
+  int ti;
+} typ;
+
+typ ttyp[1000];
+
+void many() {
+  char s[] = "abcd";
+  unsigned int p = maybe;
+  //@ assert p < 1000;
+
+  tm[0]=0;
+  Frama_C_memcpy(&tm[p],s,4);
+  um[0]=0;
+  Frama_C_memcpy(&um[p],s,2);
+
+  typ ty = {1, 2};
+  ttyp[0] = ty;
+  Frama_C_memcpy(&ttyp[p],&ty,sizeof(typ));
+}
+
+struct t1 { int x; int y; int* p;} v1,v2, v3, v4, v5;
 struct t1 t[4];
 
+
 void main (int a, int b){
+  buggy ();
+
+  many ();
+
   init ();
 
   //@ assert 5 <= b && b <= 15;
@@ -49,5 +86,21 @@ void main (int a, int b){
 
   Frama_C_memcpy(&v3, t+(int)t, sizeof(v1));
 
-  //  Frama_C_memcpy(&v2 + (int)&v2, &v1, sizeof(v1));
+  Frama_C_memcpy(&v4 + (int)&v4, &v1, sizeof(v1));
+  v4.y = &t[0];
+  Frama_C_memcpy(&v5 + (int)&v5, &v4, sizeof(v4));
+
+  if (maybe) {
+    int x=1;
+    while(1)
+      Frama_C_memcpy((void *)&x, (void const*)&x, i);
+  }  
+
+  char *p;
+  p = maybe ? &dst5[0] : &dst5[20];
+  Frama_C_memcpy(p, &src[0], b);
+  b = maybe;
+  //@ assert 1 <= b < 20;
+  p = maybe ? &dst5[40] : &dst5[70];
+  Frama_C_memcpy(p, &src[0], b);
 }

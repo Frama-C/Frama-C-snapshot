@@ -1,4 +1,4 @@
-int G;
+int G; void pause(int);
 void main () {
   int count;
   G++;

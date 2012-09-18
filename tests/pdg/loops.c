@@ -28,7 +28,7 @@ bin/toplevel.opt -lib-entry -main $F -fct-pdg $F -dot-postdom p tests/pdg/loops.
 zgrviewer ./p.$F.dot
 
 Pour voir le PDG :
-bin/toplevel.opt -lib-entry -main $F -fct-pdg $F -dot-pdg pdg tests/pdg/loops.c ;
+bin/toplevel.opt -lib-entry -main $F -fct-pdg $F -pdg-dot pdg tests/pdg/loops.c ;
 zgrviewer ./pdg.$F.dot
 
 */

@@ -33,6 +33,8 @@ Download the auto-installer corresponding to your system from
 
 Then just run it!
 
+Note: this auto-installer is **not** provided for each Frama-C version.
+
 ----------------------------------------------------
 Debian >= Squeeze 6.0 and Ubuntu >= Lucid Lynx 10.04
 ----------------------------------------------------
@@ -94,11 +96,17 @@ The Frama-C GUI also requires:
 - GnomeCanvas 2.x
 - LablGtk >= 2.14.0
 
-If OcamlGraph 1.8 is already installed, then it will be used by Frama-C.
+If OcamlGraph 1.8.2 [1] is already installed, then it will be used by Frama-C.
 Otherwise the distributed local copy (directory ocamlgraph) will be used.
+
+If Zarith [2] is installed, it will be used by Frama-C. Otherwise another 
+equivalent less efficient library will be use.
 
 Plug-ins may have their own requirements.
 Consult their specific documentations for details.
+
+[1] OcamlGraph: http://ocamlgraph.lri.fr
+[2] Zarith: http://forge.ocamlcore.org/projects/zarith
 
 --------------------------
 Ubuntu >= Lucid Lynx 10.04
@@ -114,7 +122,10 @@ sudo apt-get install ocaml ocaml-native-compilers graphviz \
 Other Linux systems
 -------------------
 
-On any Linux systems, you may use Godi
+Some other Linux systems (e.g. Fedora) provide packages for the required tools
+and libraries. Please look at your favorite one.
+
+Anyway, on any Linux systems, you may use Godi
 (http://godi.camlcity.org/godi/index.html) for installing Frama-C with all the
 OCaml requirements (but you must install C libraries and tools before).
 
@@ -132,7 +143,7 @@ By default, all distributed plug-ins are enabled. Those who defaults to 'no'
 are not part of the Frama-C distribution (usually because they are too
 experimental to be released as is).
 
-See ./configure --help for the current list of plug-ins.
+See ./configure --help for the current list of plug-ins, and available options.
 
 Under Cygwin or MinGW:
 ----------------------
@@ -146,6 +157,7 @@ Type "make".
 
 Makefile targets of interest are:
 - doc	   generates the API documentation
+- top	   generates an OCaml toplevel embedding Frama-C as a library.
 - ptests   generates the executable that takes care of running Frama-C's tests
 - oracles  set up the tests oracle of Frama-C test suite for your own
            configuration.
@@ -171,6 +183,7 @@ Executables: (usually in /usr/local/bin)
 - frama-c.byte      bytecode version of frama-c
 - frama-c-gui.byte  bytecode version of frama-c-gui, if available
 - ptests.byte       testing tools for Frama-c
+- frama-c.toplevel  if 'make top' previously done
 
 Shared files: (usually in /usr/local/share/frama-c and subdirectories)
 -------------
@@ -240,13 +253,15 @@ Consult their specific documentations for details.
 ===============================================================================
 
 For plug-in developers, the API documentation of the Frama-C kernel and
-distributed plug-ins is available in the file frama-c-api.tar.gz.
+distributed plug-ins is available in the file frama-c-api.tar.gz, after running
+"make doc".
 
 ===============================================================================
 				 UNINSTALLATION
 ===============================================================================
 
-Type "make uninstall" to remove Frama-C and all the installed plug-ins.
+Type "make uninstall" to remove Frama-C and all the installed plug-ins
+(depending on the installation directory, may require superuser privileges). 
 That works only if you have not manually moved the installed files (see Section
 "Custom Installation").
 

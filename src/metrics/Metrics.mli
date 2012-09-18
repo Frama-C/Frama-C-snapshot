@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,9 +23,6 @@
 (* $Id: Metrics.mli,v 1.2 2008-11-04 10:05:05 uid568 Exp $ *)
 
 (** Metrics plugin. *)
-
-(** No function is directly exported: they are registered in
-    {!Db.Metrics}. *)
 
 (*
 Local Variables:

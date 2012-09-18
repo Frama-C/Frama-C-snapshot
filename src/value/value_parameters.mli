@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,8 +24,6 @@ include Plugin.S
 
 module ForceValues: Plugin.WithOutput
 
-module PropagateTop: Plugin.Bool
-
 module AutomaticContextMaxDepth: Plugin.Int
 module AutomaticContextMaxWidth: Plugin.Int
 
@@ -38,21 +36,20 @@ module AllRoundingModes: Plugin.Bool
 module NoResultsFunctions: Plugin.String_set
 module NoResultsAll: Plugin.Bool
 
-module ObviouslyTerminatesAll: Plugin.Bool
-module ObviouslyTerminatesFunctions: Plugin.String_set
-
 module ResultsAfter: Plugin.Bool
 
 module SignedOverflow: Plugin.Bool
+module LeftShiftNegative: Plugin.Bool
 
 module IgnoreRecursiveCalls: Plugin.Bool
-module ValShowProgress: Plugin.Bool
 
 module MemoryFootprint: Plugin.Int
 
 module SemanticUnrollingLevel: Plugin.Int
+module ArrayPrecisionLevel: Plugin.Int
 
 module AllocatedContextValid: Plugin.Bool
+module InitializedPaddingGlobals: Plugin.Bool
 
 module UndefinedPointerComparisonPropagateAll: Plugin.Bool
 
@@ -65,8 +62,22 @@ module RmAssert: Plugin.Bool
 
 module Subdivide_float_in_expr: Plugin.Int
 module BuiltinsOverrides: Plugin.String_hashtbl with type value = string
+module SplitReturnFunction: Plugin.String_hashtbl with type value = int list
+module SplitReturnAuto: Plugin.Bool
 
+module ValShowProgress: Plugin.Bool
+module FloatTimingStep: State_builder.Ref with type data = float
+module ShowSlevel: Plugin.Bool
 module PrintCallstacks: Plugin.Bool
+
+module MemExecAll: Plugin.Bool
+
+
+module InterpreterMode: Plugin.Bool
+module ObviouslyTerminatesAll: Plugin.Bool
+module ObviouslyTerminatesFunctions: Plugin.String_set
+module StopAtFirstAlarm: Plugin.Bool
+
 
 val parameters_correctness: Parameter.t list
 val parameters_tuning: Parameter.t list

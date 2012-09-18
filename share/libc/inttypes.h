@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,8 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef FC_INTTYPES
-#define FC_INTTYPES
+#ifndef __FC_INTTYPES
+#define __FC_INTTYPES
 /* ISO C: 7.8 */
 #include "stdint.h"
 #include "errno.h"

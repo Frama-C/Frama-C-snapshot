@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,30 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Property_status
-
 (* -------------------------------------------------------------------------- *)
 (* --- Plug-in Implementation                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-module Self = Plugin.Register
-  (struct
-     let name = "report"
-     let shortname = "report"
-     let help = "Properties Status Report (experimental)"
-   end)
-
-module Enabled =
-  Self.Action(struct
-                let option_name = "-report"
-                let help = "display a summary of properties status"
-                let kind = `Tuning
-              end)
-
-let bar = String.make 60 '-'
-
 let print () = 
-  Self.feedback "Computing properties status..." ;
+  Report_parameters.feedback "Computing properties status..." ;
   Log.print_on_output (fun fmt -> Scan.iter (Dump.create fmt))
     
 let print =
@@ -54,18 +36,19 @@ let print =
     (Datatype.func Datatype.unit Datatype.unit)
     print
 
-let main () =
-  if Enabled.get () then
-    begin
-      print () ;
-      Enabled.clear () ; (* Hack for not printing the report after -then *)
-    end
+let print, _ =
+  State_builder.apply_once
+    "Report.print_once"
+    [ Report_parameters.Enabled.self; (* reprint if we explicitly ask for *)
+      Report_parameters.PrintProperties.self; 
+      Property_status.self ]
+    print
+
+let main () = if Report_parameters.Enabled.get () then print ()
 
 let () =
-  begin
-    Db.Report.print := print ;
-    Db.Main.extend main ;
-  end
+  Db.Report.print := print;
+  Db.Main.extend main;
 
 (*
 Local Variables:

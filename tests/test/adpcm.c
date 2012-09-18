@@ -272,7 +272,7 @@ int encode(int xin1,int xin2)
     tqmf_ptr = tqmf;
     xa = (long)(*tqmf_ptr++) * (*h_ptr++);
     xb = (long)(*tqmf_ptr++) * (*h_ptr++);
-/*@ loop pragma UNROLL_LOOP 11; */
+/*@ loop pragma UNROLL 11; */
 /* main multiply accumulate loop for samples and coefficients */
     for(i = 0 ; i < 10 ; i++) {
         xa += (long)(*tqmf_ptr++) * (*h_ptr++);
@@ -284,7 +284,7 @@ int encode(int xin1,int xin2)
 
 /* update delay line tqmf */
     tqmf_ptr1 = tqmf_ptr - 2;
-/*@ loop pragma UNROLL_LOOP 23; */
+/*@ loop pragma UNROLL 23; */
     for(i = 0 ; i < 22 ; i++) *tqmf_ptr-- = *tqmf_ptr1--;
     *tqmf_ptr-- = xin1;
     *tqmf_ptr = xin2;
@@ -414,7 +414,7 @@ int filtez(int *bpl,int *dlt)
     int i;
     long int zl;
     zl = (long)(*bpl++) * (*dlt++);
-/*@ loop pragma UNROLL_LOOP 7; */
+/*@ loop pragma UNROLL 7; */
     for(i = 1 ; i < 6 ; i++)
         zl += (long)(*bpl++) * (*dlt++);
 
@@ -449,7 +449,7 @@ int quantl(int el,int detl)
         }*/
     mil = 0;
     decis = (decis_levl[mil]*(long)detl) >> 15L;
-/*@ loop pragma UNROLL_LOOP 30; */
+/*@ loop pragma UNROLL 30; */
     while(wd <= decis && mil < 29) {             /* FOR/BREAK 662 : 30 possibilities */
       mil++;
       decis = (decis_levl[mil]*(long)detl) >> 15L;
@@ -502,13 +502,13 @@ void upzero(int dlt,int *dlti,int *bli)
     int i,wd2,wd3;
 /*if dlt is zero, then no sum into bli */
     if(dlt == 0) {             /* CONDITION 711 */
-/*@ loop pragma UNROLL_LOOP 7; */
+/*@ loop pragma UNROLL 7; */
       for(i = 0 ; i < 6 ; i++) {
         bli[i] = (int)((255L*bli[i]) >> 8L); /* leak factor of 255/256 */
       }
     }
     else {
-/*@ loop pragma UNROLL_LOOP 7; */
+/*@ loop pragma UNROLL 7; */
       for(i = 0 ; i < 6 ; i++) {
         if((long)dlt*dlti[i] >= 0) wd2 = 128; else wd2 = -128;   /* CONDITION 718 : 2exp6 possibs */
         wd3 = (int)((255L*bli[i]) >> 8L);    /* leak factor of 255/256 */
@@ -603,7 +603,7 @@ int compressed[10]={0};
 void main () //(int test_data[10], int compressed[10])
 {
   int i;
-/*@ loop pragma UNROLL_LOOP 11; */
+/*@ loop pragma UNROLL 11; */
   for(i = 0 ; i < 10 ; i += 2)
     compressed[i/2] = encode(test_data[i],test_data[i+1]);
 

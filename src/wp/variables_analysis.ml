@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -306,7 +306,6 @@ module LogicParam =
     (Datatype.Bool)
      (struct let name = "WP : logic parameters"
 	    let dependencies = [Ast.self]
-	    let kind = `Internal
 	    let size = 40 
      end)
 
@@ -341,7 +340,7 @@ let pp_var_type fmt = function
   | Lv p -> !Ast_printer.d_logic_var fmt p 
   | Prop -> Format.pp_print_string fmt "Prop"
 
-let brackets_var_type_typ = function 
+let _brackets_var_type_typ = function 
   | Cv x -> brackets_typ x.vtype
   | Lv lv ->  brackets_lv_typ lv.lv_type 
   | Prop -> 0
@@ -371,7 +370,7 @@ let is_formal_var_type = function
 module VarType = 
    (Datatype.Make_with_collections
 	  (struct 
-	     include Datatype.Undefined
+	     include Datatype.Serializable_undefined
 	     let name = "WpVarType"
 	     type t = var_type
 	     let reprs = 
@@ -408,7 +407,6 @@ module AnyVar =
     (Datatype.Unit)
     (struct let name = "WP: argument multi pattern"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -431,7 +429,6 @@ module AddrTaken =
     (Datatype.Pair (Datatype.Int) (Datatype.Int))
     (struct let name = "WP: addr_taken"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -536,7 +533,6 @@ module ByPReference =
     (Datatype.Pair (Datatype.Int) (ChainCalls))
     (struct let name = "WP: by pointer reference parameters"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -547,7 +543,6 @@ module ByAReference =
      (Datatype.Pair (Datatype.Int) (ChainCalls))
     (struct let name = "WP: by array reference parameters"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -558,7 +553,6 @@ module ByValue =
     (Datatype.Unit)
     (struct let name = "WP: by value parameters"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -828,14 +822,16 @@ class parameters_call_kind_analysis : Visitor.frama_c_visitor = object
 	    
   method vterm t = 
     match t.term_node with 
-      | Tapp (_,_ , _) ->  SkipChildren
-      | Tblock_length _ -> SkipChildren 
+      | Tapp (_,_ , _) -> SkipChildren 
+      | Tblock_length (_,_)
+      | Toffset (_,_) -> SkipChildren 
       | t1 -> 
 	  if reference_parameter_usage_term t1 then SkipChildren else DoChildren
 	 
   method vpredicate = function
     | Papp (_, _, _) -> SkipChildren
-    | Pvalid _ | Pvalid_index(_,_) | Pvalid_range(_,_,_)
+    | Pvalid _ 
+    | Pvalid_read _ 
     | Pinitialized _ | Pfresh _ | Pseparated _  ->  SkipChildren
     | _ -> DoChildren
 
@@ -1067,7 +1063,6 @@ module ArgPReference =
      (Datatype.Pair (Datatype.Int) (ChainCalls))
     (struct let name = "WP: argument by pointer reference not formal"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -1078,7 +1073,6 @@ module ArgAReference =
      (Datatype.Pair (Datatype.Int) (ChainCalls))
     (struct let name = "WP: argument by array reference not formal"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 47
      end)
 
@@ -1529,15 +1523,22 @@ class calls_collection : Visitor.frama_c_visitor = object
       | Tapp (lf,_ , targs) -> 
 	  debug "[Calls_collection] app %a" !Ast_printer.d_term t;
 	  collect_apps lf targs ; SkipChildren
-      | Tblock_length ta -> 
+      | Tblock_length (_label,ta) -> (* [PB] TODO label added *)
 	  debug "[Calls_collection] block_length %a" !Ast_printer.d_term t;
 	 collect_apps_builtin [ta] ; SkipChildren
       | _ -> DoChildren
 	  
   method vpredicate = function
     | Papp (lf, _, targs) -> collect_apps lf targs ; SkipChildren
-    | Pvalid t | Pvalid_index(t,_) | Pvalid_range(t,_,_)
-    | Pinitialized t | Pfresh t ->
+    | Pfresh (_todo_label1,_todo_label2,t,n) -> (* [PB] TODO: labels and size added *)
+	debug "[Calls_collection] predicate app on %a, %a" 
+	  !Ast_printer.d_term t  !Ast_printer.d_term n ;
+	collect_apps_builtin [t;n] ; SkipChildren
+    | Pallocable (_todo_label,t) (* [PB] TODO: construct added *)
+    | Pfreeable (_todo_label,t)  (* [PB] TODO: construct added *)
+    | Pvalid_read (_todo_label,t)(* [PB] TODO: construct added *)
+    | Pvalid (_todo_label,t)     (* [PB] TODO: label added *)
+    | Pinitialized (_todo_label,t) -> (* [PB] TODO: label added *)
 	debug "[Calls_collection] predicate app on %a" !Ast_printer.d_term t;
 	collect_apps_builtin [t] ; SkipChildren
     | Pseparated lt  ->	collect_apps_builtin lt ; SkipChildren
@@ -1692,12 +1693,12 @@ let rec by_array_reference x n l =
 
 (* resolution of chain of call of formal parameters.*)	   
 let resolved_call_chain_param () = 
-  ByAReference.iter 
+  ByAReference.iter_sorted 
     (fun var (n,l) -> 
        debug "[resolve chaincall of param] array -> %a:%a"
 	 pp_var_type var pp_chaincall l;
        by_array_reference var n l) ; 
-  ByPReference.iter 
+  ByPReference.iter_sorted
     (fun var (n,l) -> 
        debug "[resolve chaincall of param] ptr -> %a:%a"
 	 pp_var_type var pp_chaincall l;
@@ -1813,12 +1814,12 @@ let rec array_reference x n calls =
 
 (* resolution of chain of call of arguments.*)
 let resolved_call_chain_arg () = 
-  ArgAReference.iter 
+  ArgAReference.iter_sorted
     (fun var (n,l) -> 
        debug "[resolve chaincall of arg] array -> %a:%a"
 	 pp_var_type var pp_chaincall l;
        array_reference var n l) ; 
-  ArgPReference.iter 
+  ArgPReference.iter_sorted
     (fun var (n,l) -> 
        debug "[resolve chaincall of arg] ptr -> %a:%a"
 	 pp_var_type var pp_chaincall l;
@@ -1848,7 +1849,7 @@ let resolved_call_chain_arg () =
       (ArgPReference.remove var; ArgAReference.remove var)
     in
     let s = "[resolves addr taken]" in
-    AddrTaken.iter
+    AddrTaken.iter_sorted
       (fun var (m,r) -> 
 	 debug "%s %a +:%d -:%d" s pp_var_type var m r ; 
 	 if m > r then 
@@ -1946,19 +1947,20 @@ let resolved_call_chain_arg () =
 	match sep_terms with
 	  | [] | [_] -> None
 	  | ts -> Some(Logic_const.new_predicate (Logic_const.pseparated ts))
+
+  let emitter = 
+    Emitter.create
+      "Wp variable analysis"
+      [ Emitter.Funspec ]
+      ~correctness:[]
+      ~tuning:[]
     
-  let add_requires hyp bhvs = 
-    debug "[add_requires] size of bhs :%d" (List.length bhvs);
-    try
-      List.iter
-	(fun b -> 
-	   if Cil.is_default_behavior b then begin
-	     b.b_requires <- hyp :: b.b_requires;
-	     raise Exit
-	   end)
-	bhvs
-    with Exit ->
-      ()
+  let add_requires hyp kf = 
+    (*[LC+JS]: This function does nothing if there is no default bhv (!) *)
+    let spec = Annotations.funspec kf in
+    Extlib.may
+      (fun b -> Annotations.add_requires emitter kf b.b_name [ hyp ])
+      (Cil.find_default_behavior spec)
 
   let kernel_functions_separation_hyps () =
     debug "[kf separation hyps]";
@@ -1968,16 +1970,12 @@ let resolved_call_chain_arg () =
 	 let formals = Kernel_function.get_formals kf in 
 	 let loc = Kernel_function.get_location kf in
 	 match collect_refparams kf loc [] [] [] formals with
-	   | Some hyp ->
-	       debug "[kf separation hyps] case hyp:%a" 
-		 Cil.d_identified_predicate hyp;
-	       Kernel_function.set_spec
-		 kf (fun fspec -> 
-		       add_requires hyp fspec.Cil_types.spec_behavior;
-		       fspec );
-	   | None -> 
-	       debug "[kf separation hyps] case None";
-	       ())
+	 | Some hyp ->
+	   debug "[kf separation hyps] case hyp:%a" 
+	     Cil.d_identified_predicate hyp;
+	   add_requires hyp kf;
+	 | None -> 
+	   debug "[kf separation hyps] case None")
       
 (**********************************************************************)
 (*** Variable Anaylisis Computation                                 ***)
@@ -2115,26 +2113,6 @@ let is_ref case vinfo =
 	    (try fst (ByPReference.find cv) = 0 with Not_found -> false)
 	  else 
 	    (try fst (ArgPReference.find cv) = 0 with Not_found -> false)
-
-(* let dumped = Cil_datatype.Varinfo.Hashtbl.create 31 *)
-(* let dump case x = *)
-(*   match case with Nothing | Half -> () | All -> *)
-(*     begin *)
-(*       compute (); *)
-(*       if not (Cil_datatype.Varinfo.Hashtbl.mem dumped x) then *)
-(* 	begin *)
-(* 	  Cil_datatype.Varinfo.Hashtbl.add dumped x () ; *)
-(* 	  let cv = Cv x in *)
-(* 	  Format.eprintf "VAR %s" x.vname ; *)
-(* 	  if AddrTaken.mem cv then Format.eprintf " addr" ; *)
-(* 	  let pp name find = try Format.eprintf " %s:%d" name (fst (find cv)) with Not_found -> () in *)
-(* 	  pp "byref" ByPReference.find ; *)
-(* 	  pp "byarr" ByAReference.find ; *)
-(* 	  pp "fref" ArgPReference.find ; *)
-(* 	  pp "farr" ArgAReference.find ; *)
-(* 	  Format.eprintf "@." ; *)
-(* 	end *)
-(*     end *)
 
 let is_to_scope vinfo = 
   let case =  case_of_optimization 

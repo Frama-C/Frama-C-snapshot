@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,10 +91,8 @@ let lval_to_zone_state state lv =
     (lval_to_loc ~with_alarms:CilE.warn_none_mode state lv)
 
 let expr_to_kernel_function_state ~with_alarms state ~deps exp =
-   try
-      let r, deps = resolv_func_vinfo ~with_alarms deps state exp in
-      Zone.out_some_or_bottom deps, r
-    with Leaf -> Zone.out_some_or_bottom deps, Kernel_function.Hptset.empty
+  let r, deps = resolv_func_vinfo ~with_alarms deps state exp in
+  Zone.out_some_or_bottom deps, r
 
 let expr_to_kernel_function kinstr ~with_alarms ~deps exp =
   CilE.start_stmt kinstr;
@@ -109,35 +107,67 @@ let expr_to_kernel_function kinstr ~with_alarms ~deps exp =
 let expr_to_kernel_function_state =
   expr_to_kernel_function_state ~with_alarms:CilE.warn_none_mode
 
-exception Top_input
+let eval_error_reason fmt e =
+  if e <> Eval_terms.CAlarm
+  then Eval_terms.pretty_logic_evaluation_error fmt e
 
-let assigns_to_zone_inputs_state state assigns =
-  try
-    let treat_one_zone acc (_,ins) =
-      match ins with
-          FromAny -> raise Top_input
-        | From l ->
+let assigns_inputs_to_zone state assigns =
+  let env = Eval_terms.env_pre_f state in
+  let treat_asgn acc (_,ins as asgn) =
+    match ins with
+      | FromAny -> Zone.top
+      | From l ->
+        try
           List.fold_left
-            (fun acc { it_content = term } ->
-              let loc_ins =
-                !Db.Properties.Interp.loc_to_loc ~result:None state term
-              in
-              Zone.join
-                acc
-                (Locations.valid_enumerate_bits ~for_writing:false loc_ins))
+            (fun acc t ->
+              let z = Eval_terms.eval_tlval_as_zone
+                ~with_alarms:Eval_terms.warn_raise_mode
+                ~for_writing:false env None t.it_content in
+              Zone.join acc z)
             acc
             l
-    in
-    match assigns with
+        with Eval_terms.LogicEvalError e ->
+          Value_parameters.warning ~current:true ~once:true
+            "Failed to interpret inputs in assigns clause '%a'%a"
+            Cil.d_from asgn eval_error_reason e;
+          Zone.top
+  in
+  match assigns with
     | WritesAny -> Zone.top
-    | Writes [] -> Zone.bottom
-    | Writes l  -> List.fold_left treat_one_zone Zone.bottom l
-  with
-  | Top_input -> Zone.top
-  | Invalid_argument "not an lvalue" ->
-    Value_parameters.warning ~current:true ~once:true
-      "Failed to interpret assigns clause in inputs";
-    Zone.top
+    | Writes l  -> List.fold_left treat_asgn Zone.bottom l
+
+let assigns_outputs_aux ~eval ~bot ~top ~join state ~result assigns =
+  let env = Eval_terms.env_pre_f state in
+  let treat_asgn acc ({it_content = out},_) =
+    if Logic_utils.is_result out && result = None
+    then acc
+    else
+      try
+        let z = eval env result out in
+        join z acc
+      with Eval_terms.LogicEvalError e ->
+        Value_parameters.warning ~current:true ~once:true
+          "Failed to interpret assigns clause '%a'%a"
+          Cil.d_term out eval_error_reason e;
+        join top acc
+  in
+  match assigns with
+    | WritesAny -> join top bot
+    | Writes l  -> List.fold_left treat_asgn bot l
+
+let assigns_outputs_to_zone =
+  assigns_outputs_aux
+    ~eval:(Eval_terms.eval_tlval_as_zone
+             ~with_alarms:Eval_terms.warn_raise_mode ~for_writing:true)
+    ~bot:Locations.Zone.bottom ~top:Locations.Zone.top ~join:Locations.Zone.join
+
+let assigns_outputs_to_locations =
+  assigns_outputs_aux
+    ~eval:(Eval_terms.eval_tlval_as_location
+             ~with_alarms:Eval_terms.warn_raise_mode)
+    ~bot:[] ~top:(Locations.make_loc Locations.Location_Bits.top Int_Base.top)
+    ~join:(fun v l -> v :: l)
+
 
 let lval_to_offsetmap kinstr lv ~with_alarms =
   CilE.start_stmt kinstr;
@@ -182,7 +212,9 @@ let () =
   Db.Value.lval_to_zone := lval_to_zone;
   Db.Value.lval_to_offsetmap := lval_to_offsetmap;
   Db.Value.lval_to_offsetmap_state := lval_to_offsetmap_state;
-  Db.Value.assigns_to_zone_inputs_state := assigns_to_zone_inputs_state;
+  Db.Value.assigns_outputs_to_zone := assigns_outputs_to_zone;
+  Db.Value.assigns_outputs_to_locations := assigns_outputs_to_locations;
+  Db.Value.assigns_inputs_to_zone := assigns_inputs_to_zone;
   Db.Value.eval_expr := eval_expr;
   Db.Value.eval_expr_with_state :=
     (fun ~with_alarms state expr ->
@@ -192,7 +224,10 @@ let () =
     (fun ~with_alarms deps state lval ->
       let _, deps, r = eval_lval ~conflate_bottom:true ~with_alarms deps state lval in
       deps, r);
-  Db.Value.find_lv_plus := find_lv_plus;
+  Db.Value.find_lv_plus :=
+    (fun ~with_alarms state e ->
+      try [find_lv_plus_offset ~with_alarms state e]
+      with Cannot_find_lv -> []);
 ;;
 
 

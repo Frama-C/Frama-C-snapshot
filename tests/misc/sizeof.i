@@ -10,5 +10,6 @@ void main()
   //@ assert sz_typ == sizeof(char);
   align_typ= __alignof(char*);
   // assert align_typ == __alignof((char*));
+  //@ assert sizeof("BLA") != sizeof("FOOBAR");
   return;
 }

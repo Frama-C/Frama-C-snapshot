@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
-open Db
 open Cil_datatype
 
 module DomKernel =
@@ -83,13 +81,12 @@ end
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 module Dom =
-  Cil_state_builder.Inthash
+  State_builder.Int_hashtbl
     (DomSet)
     (struct
        let name = "dominator"
        let dependencies = [ Ast.self ]
        let size = 503
-       let kind = `Correctness
      end)
 
 module DomComputer = struct
@@ -183,7 +180,6 @@ struct
          let name = "postdominator." ^ X.name
          let dependencies = Ast.self :: X.dependencies
          let size = 503
-         let kind = `Internal
        end)
 
   module PostComputer = struct
@@ -238,6 +234,8 @@ struct
 
 
     let funcExitData = DomSet.Value Stmt.Hptset.empty
+
+    let stmt_can_reach _ _ = true
 
   end
   module PostCompute = Dataflow.Backwards(PostComputer)

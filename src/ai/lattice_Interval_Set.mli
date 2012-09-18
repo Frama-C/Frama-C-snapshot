@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,18 +20,54 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
-
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+(** Sets of disjoint intervals with a lattice structure. Consecutive
+    intervals are automatically fused. Current implementation uses a
+    sorted list. *)
 
 open Abstract_interp
 
-type elt = Int.t * Int.t
-type tt = private Top | Set of elt list
-include Lattice with type t = tt
-val inject_one : size:Int.t -> value:Int.t -> t
-val inject_bounds : Int.t -> Int.t -> t
-val inject : elt list -> t
-val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-val splitting_cardinal_less_than : split_non_enumerable:int -> t -> int -> int
+type itv = Int.t * Int.t
+
+
+module Int_Intervals : sig
+  include Lattice_With_Diff
+
+  val is_top: t -> bool
+
+  val inject_bounds: Int.t -> Int.t -> t
+  val inject: itv list -> t
+  val from_ival_size: Ival.t -> Int_Base.t -> t
+    (** Conversion from an ival, which represents the beginning of
+        each interval. The size if taken from the [Int_Base.t] argument.
+        If the result contains more than [-plevel] arguments, it is
+        automatically approximated. *)
+
+  exception Not_a_set
+  val project_set: t -> itv list
+    (** may raise [Not_a_set] *)
+
+  val project_singleton: t -> itv option
+
+  (** Iterators *)
+  val fold: (itv -> 'a -> 'a) -> t -> 'a -> 'a
+
+  val pretty_typ: Cil_types.typ option -> t Pretty_utils.formatter
+    (** Pretty-printer that supposes the intervals are subranges of
+        a C type, and use the type to print nice offsets *)
+
+  val compare_itvs: t -> t -> int
+    (** Comparison that lifts the standard order between two intervals
+        to lattices. If you want constant-time comparison, use [compare]. *)
+
+end
+
+(**/**) (* This is automatically set by the Value plugin. Do not call. *)
+val plevel: int ref
+(**/**)
+
+
+(*
+Local Variables:
+compile-command: "make -C ../.. byte"
+End:
+*)

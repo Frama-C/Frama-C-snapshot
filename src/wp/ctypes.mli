@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,12 +68,11 @@ type c_object =
   | C_comp of compinfo
   | C_array of arrayinfo
 
-(** c_objects of elements pointed to by pointer or array. fatal error
-    if called on other type.
-*)
 val object_of_pointed: c_object -> c_object
-
 val object_of_array_elem : c_object -> c_object
+val object_of_logic_type : logic_type -> c_object
+val object_of_logic_pointed : logic_type -> c_object
+
 (** {2 Utilities} *)
 
 val imemo : (c_int -> 'a) -> c_int -> 'a
@@ -88,6 +87,7 @@ val c_float  : fkind -> c_float (** Conforms to {Cil.theMachine} *)
 val object_of : typ -> c_object
 
 val is_void : typ -> bool
+val is_pointer : c_object -> bool
 
 val char : char -> int64
 val constant : exp -> int64
@@ -97,6 +97,7 @@ val signed : c_int -> bool  (** true if ikind is signed *)
 val c_int_bounds: c_int -> Big_int.big_int * Big_int.big_int
 
 (** All sizes are in bits *)
+
 val i_sizeof  : c_int -> int
 
 val f_sizeof : c_float -> int
@@ -105,11 +106,18 @@ val sub_c_int: c_int -> c_int -> bool
 
 val sub_c_float : c_float -> c_float -> bool
 
-val sizeof_object: c_object -> int64
+val sizeof_typ : typ -> int64
+val sizeof_object : c_object -> int64
 val field_offset : fieldinfo -> int64
 
 val no_infinite_array : c_object -> bool
 val array_dim : arrayinfo -> c_object * int
+val array_size : typ -> int64 option
+val array_dimensions : arrayinfo -> c_object * int64 option list
+  (** Returns the list of dimensions the array consists of.
+      None-dimension means undefined one. *)
+val dimension_of_object : c_object -> (int * int64) option
+  (** Returns None for 1-dimension objects, and Some(d,N) for d-matrix with N cells *)
 
 val i_convert : c_int -> c_int -> c_int
 val f_convert : c_float -> c_float -> c_float
@@ -122,6 +130,7 @@ val pp_object : Format.formatter -> c_object -> unit
 val basename : c_object -> string
 val compare : c_object -> c_object -> int
 val equal : c_object -> c_object -> bool
+val merge : c_object -> c_object -> c_object
 val hash : c_object -> int
 val pretty : Format.formatter -> c_object -> unit
 

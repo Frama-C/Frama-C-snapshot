@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,7 @@ val create_proof : WpPropId.prop_id -> proof
   (** to be used only once for one of the related prop_id *)
 
 val add_proof : proof -> WpPropId.prop_id -> Property.t list -> unit
-  (** accumulate int the proof the partial proof for this prop_id *)
+  (** accumulate in the proof the partial proof for this prop_id *)
 
 val is_composed : proof -> bool
   (** whether a proof needs several lemma to be complete *)
@@ -51,65 +51,29 @@ val target : proof -> Property.t
 val dependencies : proof -> Property.t list
 val missing_rte : kernel_function -> string list
 
+val filter_status : WpPropId.prop_id -> bool
+
 (*----------------------------------------------------------------------------*)
 
+val get_called_preconditions_at : kernel_function -> stmt -> Property.t list
 val get_called_post_conditions : kernel_function -> Property.t list
 val get_called_exit_conditions : kernel_function -> Property.t list
 val get_called_assigns : kernel_function -> Property.t list
-val get_called_preconditions_at : kernel_function -> stmt -> Property.t list
-val lookup_called_preconditions_at : kernel_function -> stmt -> Property.t list
 
 (*----------------------------------------------------------------------------*)
 
 type asked_assigns = NoAssigns | OnlyAssigns | WithAssigns
 
-(**
- * Defines how annotations are applied on the Cfg during the WP.
- * - [~behaviors:bhv] : only annotations related
- *   to [b] in [bhv] are taken into account.
- *   Otherwise all behaviors are included.
- *   The default behavior is one behavior among the others.
- * - [~property:pid] : only the mentioned property id is turned into a goal.
- *   Others are only used in hypothesis.
- *   Otherwise, annotations are generally turned into goals unless
- *   they already have a valid current status.
- * - [~assigns] : filter in or out the assigns clauses.
- *
- **)
-(*
-val get_strategies : Cil2cfg.t
-  -> ?behaviors:string list
-  -> ?property:asked_prop
-  -> ?assigns:assigns
-  -> unit -> strategy list
-  *)
-
-(** Compute the strategies to prove the selected property.  *)
 val get_id_prop_strategies : 
   ?assigns:asked_assigns -> Property.t -> WpStrategy.strategy list
 
 val get_call_pre_strategies : stmt -> WpStrategy.strategy list
 
-(** Similar to [get_id_prop_strategies] but with a named property.
-* (useful for command line option).
-* The behavior list has to be the behaviors of the property.
-* TODO: it should be removed when we will be able to compute it. *)
-val get_prop_strategies : ?assigns:asked_assigns -> Kernel_function.t ->
-  (string list * string) -> WpStrategy.strategy list
-
-(** Compute the strategy to prove all the properties of the behavior.
-* Notice that is a property is related to several behaviors,
-* it might not be fully proved with this strategy.
-* Can return more strategies than names in the input list
-* because a name can be used for several (disjoint) statement spec.
-* *)
-val get_behavior_strategies :
-  ?assigns:asked_assigns -> Kernel_function.t -> string list -> WpStrategy.strategy list
-
-(** Compute the strategies to prove all the properties of the selected function.
-* *)
 val get_function_strategies : 
-  ?assigns:asked_assigns -> Kernel_function.t -> WpStrategy.strategy list
+  ?assigns:asked_assigns -> 
+  ?bhv:string list ->
+  ?prop:string list ->
+  Kernel_function.t -> WpStrategy.strategy list
 
 (*----------------------------------------------------------------------------*)
 (*

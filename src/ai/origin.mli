@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,11 @@
 
 (* [JS 2011/10/03] To the authors/users of this module: please document it. *)
 
+type kind =
+  | K_Misalign_read
+  | K_Merge
+  | K_Arith
+
 type origin =
   | Misalign_read of Abstract_interp.LocationSetLattice.t
   | Leaf of Abstract_interp.LocationSetLattice.t
@@ -33,7 +38,12 @@ type origin =
   | Well
   | Unknown
 
+val current_origin: kind -> origin
+
 include Datatype.S with type t = origin
+val pretty_as_reason: Format.formatter -> t -> unit
+(** Pretty-print [because of <origin>] if the origin is not {!Unknown}, or
+    nothing otherwise *)
 
 val top: t
 val is_top: t -> bool

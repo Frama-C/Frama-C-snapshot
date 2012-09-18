@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2009-2011 INRIA                                         *)
+(*  Copyright (C) 2009-2012 INRIA                                         *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -157,7 +157,7 @@ val t_array : t -> t;;
 
 val t_queue: t -> t;;
 
-val t_hashtbl_unchangedhashs : t -> t -> t
+val t_hashtbl_unchangedhashs :t -> t -> t
 val t_hashtbl_changedhashs :
   (int -> 'table) -> ('table -> 'key -> 'value -> unit) -> t -> t -> t
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,8 +25,6 @@
 (* -------------------------------------------------------------------------- *)
 
 open Ctypes
-open Clabels
-open Formula
 open Cil_types
 
 module type S =
@@ -40,12 +38,6 @@ sig
     (** [lvar m lv p] returns a location associated to the 
         location variable [lv] with variable root name [x].
         [x] for all model except in funvar. *)
-
-  val inner_loc : loc -> F.abstract
-    (** [inner_loc l] returns the location corresponding
-	to [l] in the inner memory model in funvar.
-	Not implemented in other models. *)
-   
 
   (** {2 Pointers} *)
 
@@ -78,7 +70,7 @@ sig
         formal parameter.*)
 
   val userdef_ref_signature : mem -> ( F.var * logic_var * formal ) list
-  val userdef_ref_apply : mem -> formal -> loc -> value
+  val userdef_ref_apply : mem -> formal -> c_object -> loc -> value
 
   type closure
   val pp_closure : Format.formatter -> closure -> unit

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -29,7 +29,6 @@
 
 exception Unknown_data of string
 open Cil
-open Cilutil
 open Cil_types
 open Db
 
@@ -80,6 +79,7 @@ struct
       method vc_initializer _ = assert false
       method vbehavior _ = assert false
       method vtype_annot _ = assert false
+      (*method vmodel_annot _ = assert false*)
       method vannotation _ = assert false
     end
     in ignore (visitCilFunction (visitor:>cilVisitor) definition)
@@ -259,9 +259,9 @@ let select_entry_point set ~spare kf ~outputs =
     in
       assert (!Db.Value.is_called kf) ; (* otherwise [!Db.Outputs.get_external kf] gives weird results *)
       select_entry_point_and_some_inputs_outputs set ~mark kf
-        ~return:outputs
-        ~outputs:(if outputs then !Db.Outputs.get_external kf else Locations.Zone.bottom)
-        ~inputs:Locations.Zone.bottom
+	~return:outputs
+	~outputs:(if outputs then !Db.Outputs.get_external kf else Locations.Zone.bottom)
+	~inputs:Locations.Zone.bottom
   else set
 
 (** Registered as a slicing selection function:
@@ -505,10 +505,18 @@ let select_ZoneAnnot_zones_decl_vars set mark (zones,decl_vars) kf =
   let set =
     Cil_datatype.Varinfo.Set.fold
       (fun vi acc -> select_decl_var acc mark vi kf)
-      decl_vars
+      decl_vars.Db.Properties.Interp.To_zone.var
       set
   in
-  List.fold_right
+  let set =
+    Cil_datatype.Logic_label.Set.fold
+      (fun l acc ->   
+	 let selection = !Db.Slicing.Select.select_label_internal kf l mark
+	 in add_to_selection acc selection)
+      decl_vars.Db.Properties.Interp.To_zone.lbl
+      set
+  in
+   List.fold_right
     (fun z acc ->
       (* selection related to the parsing/compilation of the annotation *)
       select_stmt_zone acc mark
@@ -521,8 +529,8 @@ let select_ZoneAnnot_zones_decl_vars set mark (zones,decl_vars) kf =
 let get_or_raise (info_data_opt, info_decl) = match info_data_opt with
   | None ->
       (* TODO: maybe we can know how to use [info_decl] ? *)
-      raise (Extlib.NotYetImplemented
-                     !Logic_interp.To_zone.not_yet_implemented)
+      SlicingParameters.not_yet_implemented
+	"%s" !Logic_interp.To_zone.not_yet_implemented
   | Some info_data -> info_data, info_decl
 
 (** Registered as a slicing selection function:
@@ -721,9 +729,9 @@ let add_persistent_cmdline project =
           SlicingParameters.Select.RdAccess.clear () ;
           SlicingParameters.Select.WrAccess.clear () ;
       end;
-      !Db.Slicing.Request.add_persistent_selection project !selection
+      !Db.Slicing.Request.add_persistent_selection project !selection;
   with Logic_interp.Error(_loc,msg) ->
-    SlicingParameters.error "%s. Slicing requests from the command line are ignored" msg
+    SlicingParameters.error "%s. Slicing requests from the command line are ignored." msg
   end;
   SlicingParameters.feedback ~level:2
     "done (interpreting slicing requests from the command line)."

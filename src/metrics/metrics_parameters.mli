@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ module ValueCoverage: Plugin.WithOutput
 (** Give an estimation about value analysis code penetration.
     Only works on CIL AST. *)
 
-module AST_type: Plugin.String
+module AstType: Plugin.String
 (** Set the ASTs on which the metrics should be computetd *)
 
 module OutputFile: Plugin.String

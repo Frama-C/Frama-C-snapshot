@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -journal-disable -load-script tests/scope/bts971.ml
+   OPT: -journal-disable -load-script tests/scope/bts971.ml -then -main main2
 */
 
-
+/* bug 971: */
 volatile foo;
 int v;
 
@@ -29,4 +29,22 @@ void main (int c) {
     if (foo) {f ();};
     if (foo) {g ();};
   }
+}
+
+/* bug 972 */
+typedef struct {
+  int a;
+  int b;
+} ts;
+
+ts t[10];
+
+void init() {
+  t[1].a = 1;
+  t[1].b = 2;
+}
+
+int main2 () {
+  init();
+  return t[1].a;
 }

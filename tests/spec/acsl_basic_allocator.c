@@ -13,10 +13,6 @@
 #define FRAMA_C_MALLOC_POSITION
 #include "../../share/malloc.c"
 
-// because \offset is not yet recognized as a logical token
-// But offset is not supposed to be a keyword. This is in the standard library.
-/*@ logic size_t offset(char* p); */
-
 #define DEFAULT_BLOCK_SIZE 1000
 
 typedef enum _bool { false = 0, true = 1 } bool;
@@ -28,7 +24,7 @@ typedef struct _memory_block {
 } memory_block;
 
 /*@ type invariant inv_memory_block(memory_block mb) =
-  @   0 < mb.size && offset(mb.data) == 0 && \block_length(mb.data) == mb.size ;
+  @   0 < mb.size && \offset(mb.data) == 0 && \block_length{Here}(mb.data) == mb.size ;
   @*/
 
 /*@ predicate used_memory_block{L}(memory_block mb) = 

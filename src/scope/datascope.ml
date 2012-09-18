@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -26,7 +26,7 @@
 * has the same value then a given starting program point L. *)
 
 open Cil_types
-open Cil_datatype
+(*open Cil_datatype*)
 
 module R =
   Plugin.Register
@@ -43,7 +43,7 @@ a mapping between each zone and the statements that are modifying it.
 
 (** Statement identifier *)
 module StmtDefault = struct
-  include Stmt
+  include Cil_datatype.Stmt
   let default = Cil.dummyStmt
 end
 
@@ -202,23 +202,21 @@ module GenStates (S : sig
   = struct
   type key = stmt
   type data = S.t
-  type t = data Stmt.Hashtbl.t
+  type t = data Cil_datatype.Stmt.Hashtbl.t
 
-  let states:t = Stmt.Hashtbl.create 50
-  let clear () = Stmt.Hashtbl.clear states
+  let states:t = Cil_datatype.Stmt.Hashtbl.create 50
+  let clear () = Cil_datatype.Stmt.Hashtbl.clear states
 
-  let add = Stmt.Hashtbl.add states
-  let find = Stmt.Hashtbl.find states
-  let mem = Stmt.Hashtbl.mem states
-  let find = Stmt.Hashtbl.find states
-  let replace = Stmt.Hashtbl.replace states
-  let add = Stmt.Hashtbl.add states
-  let iter f = Stmt.Hashtbl.iter f states
-  let fold f = Stmt.Hashtbl.fold f states
-  let length () = Stmt.Hashtbl.length states
+  let mem = Cil_datatype.Stmt.Hashtbl.mem states
+  let find = Cil_datatype.Stmt.Hashtbl.find states
+  let replace = Cil_datatype.Stmt.Hashtbl.replace states
+  let add = Cil_datatype.Stmt.Hashtbl.add states
+  let iter f = Cil_datatype.Stmt.Hashtbl.iter f states
+  let fold f = Cil_datatype.Stmt.Hashtbl.fold f states
+  let length () = Cil_datatype.Stmt.Hashtbl.length states
 
   let pretty fmt infos =
-    Stmt.Hashtbl.iter
+    Cil_datatype.Stmt.Hashtbl.iter
       (fun k v -> Format.fprintf fmt "Stmt:%d\n%a\n======" k.sid S.pretty v)
       infos
 end
@@ -246,6 +244,8 @@ module BackwardScope (X : sig val modified : stmt -> bool end ) = struct
   let filterStmt _stmt _next = true
 
   let funcExitData = State.NotSeen
+
+  let stmt_can_reach _ _ = true
 end
 
 let backward_data_scope allstmts modif_stmts s =
@@ -268,13 +268,16 @@ module ForwardScope (X : sig val modified : stmt -> bool end ) = struct
   let pretty = State.pretty
   let copy (s:t) = s
 
+  (* BY: the two functions below treat State.Start as a special value, and do
+     not propagate it. See tests/scope/no-effect.i for an example where it is
+     useful in [combinePredecessors]. It is not clear if this a limitation
+     of the dataflow API, or if it could be simulated using the transfer
+     function. *)
   let computeFirstPredecessor _stmt state =
     if state = State.Start then State.SameVal else state
 
   let combinePredecessors _stmt ~old new_ =
-    if new_ = State.Start then
-      R.error "forward traversal shouldn't go through Start, stmt %d, prev %a !"
-        _stmt.sid State.pretty old;
+    let new_ = if new_ = State.Start then State.SameVal else new_ in
     State.test_and_merge ~old new_
 
   let doStmt _stmt _state = Dataflow.SDefault
@@ -303,7 +306,7 @@ let add_s s acc =
   (* we add only 'simple' statements *)
   match s.skind with
     | Instr _ | Return _ | Continue _ | Break _ | Goto _
-        -> Stmt.Set.add s acc
+        -> Cil_datatype.Stmt.Set.add s acc
     | Block _ | Switch _ | If _ | UnspecifiedSequence _ | Loop _
     | TryExcept _ | TryFinally _
         -> acc
@@ -328,14 +331,14 @@ let find_scope allstmts modif_stmts s =
       | _ -> acc
   in
   let _ = backward_data_scope allstmts modif_stmts s in
-  let bw = States.fold (add false) Stmt.Set.empty in
+  let bw = States.fold (add false) Cil_datatype.Stmt.Set.empty in
 
   let _ = forward_data_scope modif_stmts s in
-  let fw = States.fold (add true) Stmt.Set.empty in
+  let fw = States.fold (add true) Cil_datatype.Stmt.Set.empty in
 
-  let fb = Stmt.Set.inter bw fw in
-  let fw = Stmt.Set.diff fw fb in
-  let bw = Stmt.Set.diff bw fb in
+  let fb = Cil_datatype.Stmt.Set.inter bw fw in
+  let fw = Cil_datatype.Stmt.Set.diff fw fb in
+  let bw = Cil_datatype.Stmt.Set.diff bw fb in
     fw, fb, bw
 
 (** Try to find the statement set where [data] has the same value than
@@ -358,12 +361,12 @@ let get_data_scope_at_stmt kf stmt lval =
       (* stmt at *)
       Locations.Zone.pretty zone stmt.sid
       (* modified by *)
-      (Cilutil.pretty_list (Cilutil.space_sep " ") Stmt.pretty_sid)
+      (Cilutil.pretty_list (Cilutil.space_sep " ") Cil_datatype.Stmt.pretty_sid)
       (StmtSetLattice.to_list ~keep_default:false modif_stmts)
       (* scope *)
-      Stmt.Set.pretty f_scope
-      Stmt.Set.pretty fb_scope
-      Stmt.Set.pretty b_scope;
+      Cil_datatype.Stmt.Set.pretty f_scope
+      Cil_datatype.Stmt.Set.pretty fb_scope
+      Cil_datatype.Stmt.Set.pretty b_scope;
     (f_scope, (fb_scope, b_scope))
 
 exception ToDo
@@ -407,22 +410,20 @@ let rec add_annot annot acc =
 
 (** Check if some assertions before [s] are identical to [pred].
   * Add them to acc if any *)
-let check_stmt_annots pred s acc =
-  let check acc annot =
-    match annot with
-      | (AI (_, ({annot_content= AAssert (_, p) } as annot))) ->
-          if Logic_utils.is_same_named_predicate p pred
-          then begin
-            let acc, added = add_annot annot acc in
-              if added then
-                R.debug "annot at stmt %d could be removed: %a"
-                  s.sid !Ast_printer.d_code_annotation annot;
-              acc
-          end
-          else acc
-      | _ -> acc
+let check_stmt_annots pred stmt acc =
+  let check _ annot acc = match annot with
+    | AI (_, ({annot_content= AAssert (_, p) } as annot)) ->
+      if Logic_utils.is_same_named_predicate p pred then
+        let acc, added = add_annot annot acc in
+        if added then
+          R.debug "annot at stmt %d could be removed: %a"
+            stmt.sid !Ast_printer.d_code_annotation annot;
+        acc
+      else 
+	acc
+    | _ -> acc
   in
-  List.fold_left check acc (Annotations.get_all_annotations s)
+  Annotations.fold_code_annot check stmt acc
 
 (** Return the set of stmts (scope) where [annot] has the same value
   * than in [stmt]
@@ -434,7 +435,7 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
     stmt.sid Kernel_function.pretty kf
     !Ast_printer.d_code_annotation annot;
 
-  let sets = (Stmt.Set.empty, to_be_removed) in
+  let sets = (Cil_datatype.Stmt.Set.empty, to_be_removed) in
     try
       let zone =  get_annot_zone kf stmt annot in
 
@@ -443,7 +444,7 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
       let _ = forward_data_scope modif_stmts stmt in
       let pred = match annot.annot_content with
         | AAssert (_, p) -> p
-        | _ -> R.abort "only 'assert' are handeled here"
+        | _ -> R.abort "only 'assert' are handled here"
       in
       let add s x ((acc_scope, acc_to_be_rm) as acc) =
         match x with
@@ -469,7 +470,7 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
 class check_annot_visitor = object(self)
 
   inherit Visitor.generic_frama_c_visitor
-            (Project.current ()) (Cil.inplace_visit ()) as super
+            (Project.current ()) (Cil.inplace_visit ())
 
   val mutable to_be_removed = []
 
@@ -479,7 +480,7 @@ class check_annot_visitor = object(self)
   method vcode_annot annot =
     let kf = Extlib.the self#current_kf in
     let stmt =
-      Cil.get_original_stmt self#behavior (Cilutil.valOf self#current_stmt)
+      Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
     in
     let before = self#is_annot_before in
     let _ = match annot.annot_content with
@@ -529,8 +530,7 @@ let get_prop_scope_at_stmt kf stmt annot = get_prop_scope_at_stmt kf stmt annot
   * *)
 class rm_annot_visitor to_be_removed = object
 
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ()) as super
+  inherit Visitor.frama_c_inplace
 
   method vcode_annot annot =
     let _, not_in = add_annot annot to_be_removed in
@@ -538,7 +538,8 @@ class rm_annot_visitor to_be_removed = object
     else (* is to be removed *)
       match annot.annot_content with
       | AAssert (_, p) ->
-          R.debug ~level:2 "[rm_asserts] removing redundant %a@." Cil.d_code_annotation annot;
+          R.debug ~level:2 
+            "[rm_asserts] removing redundant %a@." Cil.d_code_annotation annot;
           let p = { p with content = Ptrue } in
           let aassert = AAssert ([], p) in
           let annot = { annot with annot_content = aassert } in
@@ -554,26 +555,30 @@ let rm_asserts () =
     (if n > 0 then
       R.feedback "[rm_asserts] removing %d assertion(s)@." n);
   let visitor = new rm_annot_visitor to_be_removed in
-  ignore (Visitor.visitFramacFile (visitor:>Visitor.frama_c_visitor)
-            (Ast.get ()))
+  Visitor.visitFramacFileSameGlobals visitor (Ast.get ())
 
 (* let code_annotation_type = ??? TODO *)
 
 (** Register external functions into Db. *)
 let () =
   Db.register (* kernel_function -> stmt -> lval ->
-       Stmt.Set.t * Stmt.Set.t * Stmt.Set.t *)
+       Cil_datatype.Stmt.Set.t * 
+       (Cil_datatype.Stmt.Set.t * 
+        Cil_datatype.Stmt.Set.t) *)
     (Db.Journalize
        ("Scope.get_data_scope_at_stmt",
         Datatype.func3
           Kernel_function.ty
-          Stmt.ty
-          Lval.ty
-          (Datatype.pair Stmt.Set.ty (Datatype.pair Stmt.Set.ty Stmt.Set.ty))))
+          Cil_datatype.Stmt.ty
+          Cil_datatype.Lval.ty
+          (Datatype.pair 
+             Cil_datatype.Stmt.Set.ty 
+             (Datatype.pair Cil_datatype.Stmt.Set.ty 
+                            Cil_datatype.Stmt.Set.ty))))
   Db.Scope.get_data_scope_at_stmt get_data_scope_at_stmt;
 
    Db.register (* (kernel_function -> stmt -> code_annotation ->
-       Stmt.Set.t * code_annotation list *)
+       Cil_datatype.Stmt.Set.t * code_annotation list *)
       Db.Journalization_not_required (* TODO *)
      (* (Db.Journalize("Scope.get_prop_scope_at_stmt",
                     Datatype.func Kernel_type.kernel_function
@@ -592,8 +597,7 @@ let () =
   Db.register
     (Db.Journalize
        ("Scope.rm_asserts", Datatype.func Datatype.unit Datatype.unit))
-    Db.Scope.rm_asserts rm_asserts;
-
+    Db.Scope.rm_asserts rm_asserts
 
 (*
 Local Variables:

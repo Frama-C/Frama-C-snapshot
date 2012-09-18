@@ -88,46 +88,17 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
     | Node(_,_,_,_,h,_) -> h
 
   let hash = function
-    | Empty -> 13
+    | Empty -> 0
     | Node(_,_,_,_,_,h) -> h
 
-
-    let size = 4096
-    let x_table = Weak.create size
-    let d_table = Weak.create size
-
-    let mask = pred size
-
-    let create l x d r =
-      let x_h = Ord.hash x in
-      let d_h = Value.hash d in
-      let x_ind = x_h land mask in
-      let d_ind = d_h land mask in
-      let x_in_table = Weak.get x_table x_ind in
-      let d_in_table = Weak.get d_table d_ind in
-      let x = match x_in_table with
-        | Some x_in_table when Ord.equal x x_in_table ->
-            (*    Format.eprintf "cache found@." ; *)
-          x_in_table
-        | _ ->
-          (*    Format.eprintf "cache failed@." ; *)
-          Weak.set x_table x_ind (Some x);
-          x
-      in
-      let d = match d_in_table with
-        | Some d_in_table when Value.equal d d_in_table ->
-          (*    Format.eprintf "cache found@." ; *)
-          d_in_table
-        | _ ->
-        (*      Format.eprintf "cache failed@." ; *)
-          Weak.set d_table d_ind (Some d);
-          d
-      in
-      let hl = height l and hr = height r in
-      let hashl = hash l and hashr = hash r in
-      let hashbinding = Hashtbl.hash (x_h, d_h) in
-      let hashtree = 289 (* =17*17 *) * hashl + 17 * hashbinding + hashr in
-      Node(l, x, d, r, (if hl >= hr then hl + 1 else hr + 1), hashtree)
+  let create l x d r =
+    let x_h = Ord.hash x in
+    let d_h = Value.hash d in
+    let hl = height l and hr = height r in
+    let hashl = hash l and hashr = hash r in
+    let hashbinding = 31 * x_h + d_h in
+    let hashtree = hashl lxor hashbinding lxor hashr in
+    Node(l, x, d, r, (if hl >= hr then hl + 1 else hr + 1), hashtree)
 
    let bal l x d r =
       let hl = match l with Empty -> 0 | Node(_,_,_,_,h,_) -> h in

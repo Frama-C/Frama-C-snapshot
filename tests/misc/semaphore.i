@@ -2,8 +2,8 @@
   GCC:
   OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
 */
-int Sa;
-int Sb;
+int Sa, Sb;
+void P(int), V(int);
 
 
 void f (void)

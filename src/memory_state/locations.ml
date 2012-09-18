@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 open Cil_types
 open Cil
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 
 module Initial_Values = struct
   let v = [ [Base.null,Ival.singleton_zero];
@@ -53,6 +53,11 @@ module Location_Bytes = struct
 
   let inject_ival i = inject Base.null i
 
+  let inject_float f = 
+    inject_ival 
+      (Ival.inject_float
+	  (Ival.Float_abstract.inject_singleton f))
+
   let top_float = inject_ival Ival.top_float
 
   let top_single_precision_float = inject_ival Ival.top_single_precision_float
@@ -67,7 +72,7 @@ module Location_Bytes = struct
   (* [location_shift offset l] is the location [l] shifted by [offset] *)
   let location_shift offset l =
     try
-      map_offsets (Ival.add offset) l
+      map_offsets (Ival.add_int offset) l
     with Error_Top -> l
 
   let top_leaf_origin () =
@@ -82,6 +87,10 @@ module Location_Bytes = struct
    | Map m ->
        if is_bottom v then v
        else inject_top_origin o (get_bases m)
+
+ let topify_with_origin_kind ok v =
+   let o = Origin.current_origin ok in
+   topify_with_origin o v
 
  let get_bases m =
    match m with
@@ -161,8 +170,6 @@ module Location_Bytes = struct
          true
        with Not_found -> false
 
- exception Contains_local
-
  let contains_addresses_of_locals is_local =
    let f base _offsets = is_local base
    in
@@ -238,7 +245,7 @@ module Location_Bytes = struct
 
  let partially_overlaps_table = HT.create 7
  let () = 
-   Project.register_todo_before_clear 
+   Project.register_after_set_current_hook ~user_only:false 
      (fun _ -> HT.clear partially_overlaps_table)
 
  let partially_overlaps size mm1 mm2 =
@@ -255,6 +262,7 @@ module Location_Bytes = struct
 		let f = 
 		  M.generic_symetric_existential_predicate 
 		    Found_overlap
+		    (fun _s _t -> true) 
 		    ~decide_one:(fun _ _ -> ())
 		    ~decide_both:
 		    (fun x y -> 
@@ -306,6 +314,7 @@ module Zone = struct
         in
         Pretty_utils.pp_iter ~pre:"" ~suf:"" ~sep:";@,@ "
           (fun f -> M.iter (fun k v -> f (k, v))) print_binding fmt off
+
 (*
   let pretty_caml fmt m =
     match m with
@@ -333,9 +342,6 @@ module Zone = struct
 
   let tag = hash
 
-
-  exception Found_inter
-
   let valid_intersects m1 m2 =
     let result =
       match m1,m2 with
@@ -345,12 +351,12 @@ module Zone = struct
           (equal m bottom) ||
             let f base () =
               if Top_Param.is_included (Top_Param.inject_singleton base) toparam
-              then raise Found_inter
+              then raise Hptmap.Found_inter
             in
             try
               fold_bases f m ();
               false
-            with Found_inter | Error_Top -> true
+            with Hptmap.Found_inter | Error_Top -> true
     in
     result
 
@@ -511,20 +517,21 @@ let make_loc loc_bits size =
   else
     { loc = loc_bits; size = Int_Base.top }
 
+let filter_base f loc =
+  { loc with loc = Location_Bits.filter_base f loc.loc }
+
 let loc_bits_to_loc lv (loc_bits:Location_Bits.t) =
   let size = Bit_utils.sizeof_lval lv in
   make_loc loc_bits size
 
-let size_of_varinfo v =
+let int_base_size_of_varinfo v =
   try
     let s = bitsSizeOf v.vtype in
     let s = Int.of_int s in
-    s
-  with Cil.SizeOfError _ as e ->
+    Int_Base.inject s
+  with Cil.SizeOfError _ ->
     Kernel.debug ~once:true "Variable %a has no size" !Ast_printer.d_var v;
-    raise e
-
-let int_base_size_of_varinfo v = Int_Base.inject (size_of_varinfo v)
+    Int_Base.top
 
 let loc_of_varinfo v =
   let base = Base.find v in
@@ -565,11 +572,44 @@ let loc_equal { loc = loc1 ; size = size1 } { loc = loc2 ; size = size2 } =
   Int_Base.equal size1 size2 &&
   Location_Bits.equal loc1 loc2
 
+let loc_hash { loc = loc; size = size } =
+  Int_Base.hash size + 317 * Location_Bits.hash loc
+
+let loc_compare { loc = loc1 ; size = size1 } { loc = loc2 ; size = size2 } =
+  let c1 = Int_Base.compare size1 size2 in
+  if c1 <> 0 then c1
+  else Location_Bits.compare loc1 loc2
+
 let pretty fmt { loc = loc ; size = size } =
   Format.fprintf fmt "%a (size:%a)"
     Location_Bits.pretty loc
     Int_Base.pretty size
 let pretty_loc = pretty
+
+let pretty_english fmt { loc = m ; size = size } =
+  match m with
+  | Location_Bits.Top (Location_Bits.Top_Param.Top,a) ->
+      Format.fprintf fmt "somewhere unknown (origin:%a)"
+        Origin.pretty a
+  | Location_Bits.Top (s,a) ->
+      Format.fprintf fmt "somewhere in %a (origin:%a)"
+        Location_Bits.Top_Param.pretty s
+        Origin.pretty a
+  | Location_Bits.Map _ when Location_Bits.is_bottom m ->
+      Format.fprintf fmt "nowhere"
+  | Location_Bits.Map off ->
+      let print_binding fmt (k, v) =
+	( match Ival.is_zero v, Base.validity k, size with
+	  true, Base.Known (_,s1), Int_Base.Value s2 when 
+	      Int.equal (Int.succ s1) s2 ->
+	    Format.fprintf fmt "@[<h>%a@]" Base.pretty k
+        | _ ->
+            Format.fprintf fmt "@[<h>%a with offsets %a@]"
+	      Base.pretty k
+	      Ival.pretty v)
+      in
+      Pretty_utils.pp_iter ~pre:"in " ~suf:"" ~sep:";@,@ "
+	(fun f -> Location_Bits.M.iter (fun k v -> f (k, v))) print_binding fmt off
 
 let valid_enumerate_bits ~for_writing ({loc = loc_bits; size = size} as _arg)=
   (*  Format.printf "valid_enumerate_bits:%a@\n" pretty _arg; *)
@@ -636,6 +676,28 @@ let valid_enumerate_bits ~for_writing ({loc = loc_bits; size = size} as _arg)=
   in
   (*      Format.printf "valid_enumerate_bits leads to %a@\n" Zone.pretty result; *)
   result
+
+let enumerate_bits ({loc = loc_bits; size = size} as _arg)=
+  let result = match loc_bits with
+  | Location_Bits.Top (Location_Bits.Top_Param.Top, _) -> Zone.top
+  | Location_Bits.Top (Location_Bits.Top_Param.Set s, _) ->
+      let compute_offset base acc =
+        let offsets = Int_Intervals.from_ival_size Ival.top size in
+        Zone.M.add base offsets acc
+      in
+      Zone.inject_map
+        (Location_Bits.Top_Param.O.fold compute_offset s Zone.M.empty)
+  | Location_Bits.Map m ->
+      let compute_offset base offs acc =
+        let valid_offset = Int_Intervals.from_ival_size offs size in
+        Zone.M.add base valid_offset acc
+      in
+      Zone.inject_map
+        (Location_Bits.M.fold compute_offset m Zone.M.empty)
+  in
+  result
+
+
 
 let zone_of_varinfo var =
   valid_enumerate_bits ~for_writing:false (loc_of_varinfo var)
@@ -751,6 +813,8 @@ module Location =
         let name = "Locations.Location"
         let mem_project = Datatype.never_any_project
         let equal = loc_equal
+        let compare = loc_compare
+        let hash = loc_hash
         let pretty = pretty_loc
       end)
 

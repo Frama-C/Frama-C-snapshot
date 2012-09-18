@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -21,6 +21,8 @@
 /**************************************************************************/
 
 #include "ctype.h"
+#include "__fc_builtin.h"
+
 #define	ISDIGIT(_c) \
 	((_c) >= '0' && (_c) <= '9')
 

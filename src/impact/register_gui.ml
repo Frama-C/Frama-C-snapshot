@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,14 +31,11 @@ module SelectedStmt = struct
     (struct
       let name = "Impact_gui.SelectedStmt"
       let dependencies = [ Ast.self ]
-      let kind = `Internal
      end)
 
   let set s =
     set s;
-    Project.clear
-      ~selection:(State_selection.Dynamic.only_dependencies self)
-      ();
+    Project.clear ~selection:(State_selection.only_dependencies self) ();
 end
 
 let () =
@@ -63,7 +60,6 @@ end = struct
          let name = "Impact_gui.Highlighted_stmt"
          let size = 7
          let dependencies = [ SelectedStmt.self ]
-         let kind = `Internal
        end)
 
   let add kf s =
@@ -84,8 +80,24 @@ end = struct
 
 end
 
-(* Show or hide the 'Impact' column of the gui filetree. *)
-let show_column = ref (fun () -> ())
+module ImpactedNodes =
+  State_builder.Ref(Kernel_function.Map.Make(PdgTypes.NodeSet))(struct
+    let name = "Impact.Register_gui.ImpactedNodes"
+    let dependencies = [SelectedStmt.self]
+    let default () = Kernel_function.Map.empty
+  end)
+
+module InitialNodes =
+  State_builder.Ref(Datatype.List(PdgTypes.Node))(struct
+    let name = "Impact.Register_gui.InitialNodes"
+    let dependencies = [SelectedStmt.self]
+    let default () = []
+  end)
+
+let impact_in_kf kf = Compute_impact.impact_in_kf (ImpactedNodes.get ()) kf
+
+(* Update the 'Impact' column of the gui filetree. *)
+let update_column = ref (fun _ -> ())
 
 (* Are results shown? *)
 module Enabled = struct
@@ -94,7 +106,6 @@ module Enabled = struct
     (struct
        let name = "Impact_gui.State"
        let dependencies = []
-       let kind = `Internal
        let default () = false
      end)
 end
@@ -106,7 +117,6 @@ module Slicing =
     (struct
       let name = "Impact_gui.Slicing"
       let dependencies = []
-      let kind = `Internal
       let default () = false
      end)
 
@@ -117,7 +127,6 @@ module FollowFocus =
     (struct
       let name = "Impact_gui.FollowFocus"
       let dependencies = []
-      let kind = `Internal
       let default () = false
      end)
 
@@ -143,31 +152,87 @@ let impact_highlighter buffer loc ~start ~stop =
 
 
 let impact_statement s =
-  let impact = Register.from_stmt s in
+  let kf = Kernel_function.find_englobing_kf s in
+  let skip = Compute_impact.skip () in
+  let impact = Compute_impact.impacted_nodes ~skip kf [s] in
+  let init = Compute_impact.initial_nodes ~skip kf s in
   SelectedStmt.set s;
-  let add s =
-    Highlighted_stmt.add (Kernel_function.find_englobing_kf s) s
-  in
-  List.iter add impact;
+  ImpactedNodes.set impact;
+  InitialNodes.set init;
+  let stmts = ref [] in
+  Kernel_function.Map.iter
+    (fun kf s ->
+      let stmts' = Compute_impact.nodes_to_stmts s in
+      stmts := stmts' :: !stmts;
+      List.iter (Highlighted_stmt.add kf) stmts'
+    ) impact;
+  let impact = List.concat !stmts in
   if Slicing.get () then !Db.Impact.slice impact;
   Enabled.set true;
   impact
 
 let impact_statement_ui (main_ui:Design.main_window_extension_points) s =
+  let val_computed = Db.Value.is_computed () in
   ignore (!Db.Impact.from_stmt s);
-  !show_column ();
-  main_ui#rehighlight ()
+  if not val_computed then
+    main_ui#reset ()
+  else (
+    !update_column `Contents;
+    main_ui#rehighlight ()
+  )
+
+let pretty_info = ref false
 
 let impact_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
-  apply_on_stmt
-    (fun _ s ->
-       if button = 3 || FollowFocus.get () then
+  match localizable with
+    | PStmt (kf, s) ->
+       if button = 3 || FollowFocus.get () then (
          let callback () = ignore (impact_statement_ui main_ui s) in
          ignore (popup_factory#add_item "_Impact analysis" ~callback);
          if FollowFocus.get () then
-           ignore (Glib.Idle.add (fun () -> callback (); false)))
-    localizable
+           ignore (Glib.Idle.add (fun () -> callback (); false))
+       );
+      if button = 1 then
+        (* Initial nodes, at the source of the impact *)
+        (match SelectedStmt.get_option () with
+          | Some s' when Cil_datatype.Stmt.equal s s' ->
+            if !pretty_info then
+            main_ui#pretty_information "@[Impact initial nodes:@ %a@]@."
+              (Pretty_utils.pp_list ~sep:",@ " (!Db.Pdg.pretty_node false))
+              (InitialNodes.get ());
+          | _ -> ());
+        let nodes = impact_in_kf kf in
+        let nodes = PdgTypes.NodeSet.filter
+          (fun node ->
+            match PdgIndex.Key.stmt (!Pdg.node_key node) with
+              | None -> false
+              | Some s' -> Cil_datatype.Stmt.equal s s')
+          nodes
+        in
+        if not (PdgTypes.NodeSet.is_empty nodes) then
+          if !pretty_info then
+          main_ui#pretty_information "@[Impact:@ %a@]@."
+            (Pretty_utils.pp_iter ~sep:",@ " PdgTypes.NodeSet.iter
+               (!Db.Pdg.pretty_node false)) nodes;
+    | PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _))
+        when Cil.isFunctionType vi.vtype ->
+       if button = 1 then
+         let kf = Globals.Functions.get vi in
+         let nodes = impact_in_kf kf in
+         let nodes = PdgTypes.NodeSet.filter
+          (fun node ->
+            match PdgIndex.Key.stmt (!Pdg.node_key node) with
+              | None -> true
+              | Some _ -> false
+          ) nodes
+         in
+         if not (PdgTypes.NodeSet.is_empty nodes) then
+           if !pretty_info then
+           main_ui#pretty_information "@[Function global impact:@ %a@]@."
+             (Pretty_utils.pp_iter ~sep:",@ " PdgTypes.NodeSet.iter
+                (!Db.Pdg.pretty_node false)) nodes
+    | _ -> ()
 
 let impact_panel main_ui =
   let w = GPack.vbox () in
@@ -181,22 +246,18 @@ let impact_panel main_ui =
   ignore (set_selected#connect#pressed
             (fun () -> History.apply_on_selected do_select));
   (* check buttons *)
-  let add_check_button label active f =
-    let b = GButton.check_button ~label ~active ~packing:w#pack () in
-    ignore (b#connect#toggled ~callback:(fun () -> f b));
-    b
-  in
   let enabled_button =
-    add_check_button "Enable" (Enabled.get ())
-      (fun b -> Enabled.set b#active; !show_column (); main_ui#rehighlight ())
+    on_bool w "Enable" Enabled.get
+      (fun b ->
+        Enabled.set b;
+        !update_column `Visibility;
+        main_ui#rehighlight ())
   in
   let slicing_button =
-    add_check_button "Slicing after impact" (Slicing.get ())
-      (fun b -> Slicing.set b#active)
+    on_bool w "Slicing after impact" Slicing.get Slicing.set
   in
   let follow_focus_button =
-    add_check_button "Follow focus" (FollowFocus.get ())
-      (fun b -> FollowFocus.set b#active)
+    on_bool w "Follow focus" FollowFocus.get FollowFocus.set
   in
   (* panel refresh *)
   let refresh () =
@@ -204,18 +265,14 @@ let impact_panel main_ui =
     History.apply_on_selected
       (apply_on_stmt (fun _ _ -> sensitive_set_selected_button := true));
     set_selected#misc#set_sensitive !sensitive_set_selected_button;
-    if Enabled.get () <> enabled_button#active then begin
-      enabled_button#set_active (Enabled.get ());
-      !show_column ();
-      main_ui#rehighlight ()
-    end;
-    slicing_button#set_active (Slicing.get ());
-    follow_focus_button#set_active (FollowFocus.get ())
+    enabled_button ();
+    slicing_button ();
+    follow_focus_button ()
   in
   "Impact", w#coerce, Some refresh
 
 let file_tree_decorate (file_tree:Filetree.t) =
-  show_column :=
+  update_column :=
     file_tree#append_pixbuf_column
       ~title:"Impact"
       (fun globs ->
@@ -226,12 +283,13 @@ let file_tree_decorate (file_tree:Filetree.t) =
         in
         let id =
           (* lazyness of && is used for efficiency *)
-          if Enabled.get () && List.exists is_hilighted globs then "gtk-apply"
+          if Enabled.get () && SelectedStmt.get_option () <> None &&
+            List.exists is_hilighted globs then "gtk-apply"
           else ""
         in
         [ `STOCK_ID id ])
-    (fun () -> Enabled.get ());
-  !show_column ()
+    (fun () -> Enabled.get () && SelectedStmt.get_option () <> None);
+  !update_column `Visibility
 
 let main main_ui =
   main_ui#register_source_selector impact_selector;

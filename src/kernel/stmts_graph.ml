@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,9 +43,9 @@ struct
   (* this a cache containing the path tests already computed *)
   type path_checker = HptmapStmtBool.t Stmt.Hashtbl.t
 
-  let create () = Stmt.Hashtbl.create 17
+  let create () : path_checker = Stmt.Hashtbl.create 17
 
-  let find_assoc_with_default pc v =
+  let find_assoc_with_default (pc : path_checker) (v: stmt) =
     try Stmt.Hashtbl.find pc v with Not_found -> HptmapStmtBool.empty
 
   let add_to_cache pc v1 v2 b =
@@ -53,7 +53,7 @@ struct
     let assoc' = HptmapStmtBool.add v2 b assoc in
     Stmt.Hashtbl.replace pc v1 assoc'
 
-  let check_path pc v1 v2 =
+  let check_path_using_filter filterfunc pc v1 v2 =
     let assoc = find_assoc_with_default pc v1 in
     try HptmapStmtBool.find v2 assoc
     with Not_found -> 
@@ -72,7 +72,7 @@ struct
 	  else begin
 	    if not (HV.mem visited v) then begin
 	      HV.add visited v ();
-	      List.iter (fun v' -> Queue.add v' q) v.succs
+	      List.iter (fun v' -> if filterfunc v' then Queue.add v' q) v.succs
 	    end;
 	    loop ()
 	  end
@@ -81,6 +81,7 @@ struct
       Queue.add v1 q;
       loop ()
 
+  let check_path = check_path_using_filter (fun _ -> true)
 end
 
 (* The kf is no longer useful, but we need to do a partial application anyway *)
@@ -91,6 +92,18 @@ let stmt_can_reach _kf =
     (*Kernel.debug ~level:4 "CHECK PATH %d->%d@\n" s1.sid s2.sid;*)
     check s1 s2
 
+let stmt_can_reach_filtered filterfunc =
+  let cache = PathChecker.create () in
+  let check = PathChecker.check_path_using_filter filterfunc cache in
+  fun s1 s2 ->
+    (*Kernel.debug ~level:4 "CHECK PATH WITH FUNC %d->%d@\n" s1.sid s2.sid;*)
+    check s1 s2
+
+let stmt_is_in_cycle_filtered filterfunc stmt =
+  let reachable = stmt_can_reach_filtered filterfunc in
+  List.exists (fun s -> filterfunc s && reachable stmt s) stmt.preds
+
+let stmt_is_in_cycle = stmt_is_in_cycle_filtered (fun _ -> true)
 
 module SG = Graph.Imperative.Digraph.Concrete(Stmt)
 
@@ -180,7 +193,6 @@ module StmtsGraphTbl=
         end))
     (struct
       let name = "StmtsGraphTbl"
-      let kind = `Internal
       let size = 17
       let dependencies = [ Ast.self ]
      end)
@@ -200,7 +212,6 @@ module Reachable_Stmts =
        let name = "reachable_stmts"
        let size = 97
        let dependencies = [ Ast.self ]
-       let kind = `Internal
      end)
 
 let reachable_stmts kf s =
@@ -231,7 +242,6 @@ module StmtStmts =
       let name = "StmtStmts"
       let size = 142
       let dependencies = [ Ast.self ]
-      let kind = `Internal
      end)
 
 let rec get_block_stmts blk =
@@ -252,7 +262,7 @@ and get_stmt_stmts s =
           Stmt.Set.union (get_block_stmts b1)(get_block_stmts b2)
         in Stmt.Set.add s stmts
     | TryExcept (_, _, _, _) | TryFinally (_, _, _) ->
-        Extlib.not_yet_implemented "exception handling"
+        Kernel.not_yet_implemented "exception handling"
   in
   StmtStmts.memo compute_stmt_stmts s
 
@@ -293,7 +303,6 @@ module StmtWaysOut =
       let name = "StmtWaysOut"
       let size = 142
       let dependencies = [ StmtStmts.self ]
-      let kind = `Internal
      end)
 
 let compute_stmts_out_edges stmts =
@@ -376,7 +385,6 @@ module StmtWaysIn =
       let name = "StmtWaysIn"
       let size = 142
       let dependencies = [ StmtStmts.self ]
-      let kind = `Internal
      end)
 
 let compute_stmts_in_edges stmts =

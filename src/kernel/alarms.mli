@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,18 +21,17 @@
 (**************************************************************************)
 
 (** Alarms Database for the value analysis.
+    Warning: the interface of this module will probably radically change soon.
+    Do not use it on stable code
     @plugin development guide *)
-
-(** Warning: the interface of this module will probably radically change soon.
-    Do not use it on stable code *)
 
 open Cil_types
 
 type alarm = Cil_types.alarm * code_annotation
 
 module Alarm_datatype: Datatype.S with type t = alarm
-(* [compare] and [equal] in this datatype are very inefficient. Don't use it
-   often. *)
+(** [compare] and [equal] in this datatype are very inefficient. Don't use it
+    often. *)
 
 val pretty : Format.formatter -> Cil_types.alarm -> unit
 
@@ -40,14 +39,15 @@ val pretty : Format.formatter -> Cil_types.alarm -> unit
     the alarm is emitted with status [Dont_know], and by the given emitter.
     Return true if the given alarm has never been emitted before on the
     same kinstr (without taking into consideration the status or
-    the emitter) *)
+    the emitter) 
+    @modify Oxygen-20120901 remove labeled argument ~deps *)
 val register:
-  deps:State.t list ->
   kinstr ->
   alarm ->
   ?status:Property_status.emitted_status ->
   Emitter.t ->
   bool
+
 val clear: unit -> unit
 
 val iter: (kinstr -> alarm -> unit) -> unit

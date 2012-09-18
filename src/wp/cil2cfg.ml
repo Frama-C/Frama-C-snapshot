@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,22 +54,22 @@ type node_type =
 
 type node_info = { kind : node_type ; mutable reachable : bool }
 
-type node = node_info ref
+type node = node_info
 
-let node_type n = !n.kind
+let node_type n = n.kind
 
 let bkind_stmt bk = match bk with
   | Bfct -> None
   | Bstmt s | Bthen s | Belse s | Bloop s -> Some s
 
-let bkind_sid bk = match bk with
+let _bkind_sid bk = match bk with
   | Bfct -> 0
   | Bstmt s | Bthen s | Belse s | Bloop s -> s.sid
 
 type node_id = int * int
 
 (** gives a identifier to each CFG node in order to hash them *)
-let node_type_id t = match t with
+let node_type_id t : node_id = match t with
     | Vstart -> (0, 0)
     | VfctIn -> (0, 1)
     | VfctOut -> (0, 2)
@@ -123,14 +123,11 @@ let same_node v v' =
 module VL = struct
   type t = node
 
-  let hash v = let k = node_type v in Hashtbl.hash (node_type_id k)
+  let hash v = Hashtbl.hash (node_id v)
 
   let equal v v' = same_node v v'
 
-  let compare v v' =
-    let k = node_type v in
-    let k' = node_type v' in
-    Extlib.compare_basic (node_type_id k) (node_type_id k')
+  let compare v v' = Extlib.compare_basic (node_id v) (node_id v')
 
   let pretty fmt v = pp_node_type fmt (node_type v)
 end
@@ -216,9 +213,87 @@ end
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Graph} *)
 
+module OCamlgraph_hashtbl(X: Graph.Sig.COMPARABLE) = struct
+
+  module H = Hashtbl.Make(X)
+  module Keys = Set.Make(X)
+  type 'a t = 'a H.t * Keys.t ref
+
+  type key = X.t
+
+  type 'a return = unit
+  let empty = ()
+    (* never called and not visible for the user thanks to signature
+       constraints *)
+
+  let create ?(size=97) () = H.create size, ref Keys.empty
+
+  let create_from (h, _) = create ~size:(H.length h) ()
+
+  let is_empty (_,k) = Keys.is_empty !k
+
+  let clear (h,k) = H.clear h; k:= Keys.empty
+
+  let add k v (h,keys as tbl) =
+    H.replace h k v;
+    keys:=Keys.add k !keys;
+    tbl
+
+  let remove k (h,keys as tbl) =
+    H.remove h k;
+    keys:=Keys.remove k !keys;
+    tbl
+
+  let find k (h,_) = H.find h k
+
+  let mem k (h,_) = H.mem h k
+
+  let find_and_raise k t s = try find k t with Not_found -> invalid_arg s
+
+  let fold f (h,k) init =
+    let apply k acc =
+      (* Not_found indicates an issue between X.compare and X.hash/X.equal *)
+      let v = try H.find h k with Not_found -> assert false in f k v acc
+    in
+    Keys.fold apply !k init
+
+  let map f t =
+    let init = create_from t in
+    let change k v acc = let (k',v') = f k v in add k' v' acc in
+    fold change t init
+
+  let iter f t =
+    let apply k v () = f k v in
+    fold apply t ()
+
+  let copy t = map (fun k v -> (k,v)) t
+
+end
+
 (** the CFG is an ocamlgraph, but be careful to use it through the cfg function
- * because some edges doesn't have the same meaning the some others... *)
-module CFG = Graph.Imperative.Digraph.ConcreteLabeled(VL)(EL)
+ * because some edges don't have the same meaning as some others... *)
+module MyGraph = Graph.Blocks.Make(OCamlgraph_hashtbl)
+module CFG: 
+  Graph.Sig.I 
+  with type V.t = VL.t
+  and  type V.label = VL.t
+  and  type E.t = VL.t * EL.t * VL.t
+  and  type E.label = EL.t
+  = 
+  struct
+    include MyGraph.Digraph.ConcreteLabeled(VL)(EL)
+    let add_vertex g v = ignore (add_vertex g v)
+    let add_edge g v1 v2 = ignore (add_edge g v1 v2)
+    let remove_edge g v1 v2 = ignore (remove_edge g v1 v2)
+    let remove_edge_e g e = ignore (remove_edge_e g e)
+    let add_edge_e g e = ignore (add_edge_e g e)
+    let remove_vertex g v =
+      if HM.mem v g then begin
+        ignore (HM.remove v g);
+        let remove v = S.filter (fun (v2,_) -> not (V.equal v v2)) in
+        HM.iter (fun k s -> ignore (HM.add k (remove v s) g)) g
+      end
+  end
 
 (** Set of edges. *)
 module Eset = Set.Make (CFG.E)
@@ -228,14 +303,12 @@ module Nset = Set.Make (CFG.V)
 
 (** The final CFG is composed of the graph, but also :
   * the function that it represents,
-  * an hashtable to find a CFG node knowing its hashcode,
-  * and the hashcode of the start node *)
+  * an hashtable to find a CFG node knowing its hashcode *)
 type t = {
   kernel_function : kernel_function;
   graph : CFG.t;
   spec_only : bool;
   stmt_node : ((int*int), CFG.V.t) Hashtbl.t;
-  start_id : int;
   unreachables : node_type list;
   loop_nodes : (node list) option;
   mutable loop_cpt : int;
@@ -246,7 +319,6 @@ let new_cfg_env spec_only kf = {
   spec_only = spec_only ;
   graph = CFG.create ();
   stmt_node = Hashtbl.create 97;
-  start_id = Cil.Sid.next ();
   unreachables = [];
   loop_nodes = None;
   loop_cpt = 0;
@@ -271,24 +343,27 @@ let pp_edge fmt e =
   Format.fprintf fmt "%a -%a-> %a"
     pp_node (CFG.E.src e) EL.pretty (edge_type e) pp_node (CFG.E.dst e)
 
+let is_back_edge e = match (edge_type e) with
+  | Eback | EbackThen | EbackElse -> true
+  | Enone | Ethen | Eelse | Ecase _ | Enext -> false
+
+let is_next_edge e = match (edge_type e) with
+  | Enext -> true
+  | Eback | EbackThen | EbackElse | Enone | Ethen | Eelse | Ecase _ -> false
+
 let pred_e cfg n =
   try
   let edges = CFG.pred_e cfg.graph n in
-    List.filter (fun e -> (edge_type e) <> Enext) edges
+    List.filter (fun e -> not (is_next_edge e)) edges
   with Invalid_argument _ ->
     (Wp_parameters.warning "[cfg.pred_e] pb with node %a" pp_node n; [])
 
 let succ_e cfg n =
   try
     let edges = CFG.succ_e cfg.graph n in
-      List.filter (fun e -> (edge_type e) <> Enext) edges
+      List.filter (fun e -> not (is_next_edge e)) edges
   with Invalid_argument _ ->
     (Wp_parameters.warning "[cfg.succ_e] pb with node %a" pp_node n; [])
-
-
-let is_back_edge e = match (edge_type e) with
-  | Eback | EbackThen | EbackElse -> true
-  | Enone | Ethen | Eelse | Ecase _ | Enext -> false
 
 let edge_key e = (VL.hash (edge_src e)), (VL.hash (edge_dst e))
 
@@ -301,54 +376,47 @@ let iter_nodes f cfg = CFG.iter_vertex f (cfg.graph)
 let fold_nodes f cfg acc = CFG.fold_vertex f (cfg.graph) acc
 
 let iter_edges f cfg =
-  let f e = match (edge_type e) with Enext -> () | _ -> f e in
+  let f e = if is_next_edge e then () else f e in
   CFG.iter_edges_e f (cfg.graph)
 
 let iter_succ f cfg n =
-  let f e =
-    match (edge_type e) with Enext -> () | _ -> f (CFG.E.dst e)
+  let f e = if is_next_edge e then () else f (CFG.E.dst e)
   in try CFG.iter_succ_e f (cfg.graph) n
   with Invalid_argument _ -> 
     (Wp_parameters.warning "[cfg.iter_succ] pb with node %a" pp_node n)
 
 let fold_succ f cfg n acc =
-  let f e acc =
-    match (edge_type e) with Enext -> acc | _ -> f (CFG.E.dst e) acc
+  let f e acc = if is_next_edge e then acc else f (CFG.E.dst e) acc
   in try CFG.fold_succ_e f (cfg.graph) n acc
   with Invalid_argument _ -> 
     (Wp_parameters.warning "[cfg.fold_succ] pb with node %a" pp_node n; acc)
 
 let fold_pred f cfg n acc =
-  let f e acc =
-    match (edge_type e) with Enext -> acc | _ -> f (CFG.E.src e) acc
-  in try CFG.fold_pred_e f (cfg.graph) n acc
-  with Invalid_argument _ -> 
-    (Wp_parameters.warning "[cfg.fold_pred] pb with node %a" pp_node n; acc)
+  let f e acc = if is_next_edge e then acc else f (CFG.E.src e) acc in
+  try CFG.fold_pred_e f (cfg.graph) n acc
+  with Invalid_argument s -> 
+    (Wp_parameters.warning "[cfg.fold_pred] pb with node %a: %s" pp_node n s; acc)
 
-let iter_succ_e f cfg n =
-  let f e =
-    match (edge_type e) with Enext -> () | _ -> f e
+let _iter_succ_e f cfg n =
+  let f e = if is_next_edge e then () else f e
   in try CFG.iter_succ_e f (cfg.graph) n
   with Invalid_argument _ -> 
     (Wp_parameters.warning "[cfg.iter_succ_e] pb with node %a" pp_node n)
 
 let iter_pred_e f cfg n =
-  let f e =
-    match (edge_type e) with Enext -> () | _ -> f e
+  let f e = if is_next_edge e then () else f e
   in try CFG.iter_pred_e f (cfg.graph) n
   with Invalid_argument _ -> 
     (Wp_parameters.warning "[cfg.iter_pred_e] pb with node %a" pp_node n)
 
 let fold_pred_e f cfg n acc =
-  let f e acc =
-    match (edge_type e) with Enext -> acc | _ -> f e acc
+  let f e acc = if is_next_edge e then acc else f e acc
   in try CFG.fold_pred_e f (cfg.graph) n acc
   with Invalid_argument _ -> 
     (Wp_parameters.warning "[cfg.fold_pred_e] pb with node %a" pp_node n; acc)
 
 let fold_succ_e f cfg n acc =
-  let f e acc =
-    match (edge_type e) with Enext -> acc | _ -> f e acc
+  let f e acc = if is_next_edge e then acc else f e acc
   in try CFG.fold_succ_e f (cfg.graph) n acc
   with Invalid_argument _ -> 
     (Wp_parameters.warning "[cfg.fold_succ_e] pb with node %a" pp_node n; acc)
@@ -363,7 +431,7 @@ let start_edge cfg = match succ_e cfg (cfg_start cfg) with [e] -> e
   | _ -> Wp_parameters.fatal "[cfg] should have exactly ONE starting edge !"
 
 exception Found of node
-let find_stmt_node cfg stmt =
+let _find_stmt_node cfg stmt =
   let find n = match node_stmt_opt n with None -> ()
     | Some s -> if s.sid = stmt.sid then raise (Found n)
   in
@@ -440,7 +508,7 @@ let next_edge cfg n =
   let edges = match node_type n with
     | VblkIn _ | Vswitch _ | Vtest _ | Vloop _ ->
         let edges = CFG.succ_e cfg.graph n in
-          List.filter (fun e -> (edge_type e) = Enext) edges
+          List.filter is_next_edge edges
     | Vcall _ ->
         let en, _ee = get_call_out_edges cfg n in [en]
     | Vstmt _ ->
@@ -449,7 +517,7 @@ let next_edge cfg n =
           | edges -> (* this case may happen in case of a loop
                         which is not really a loop : it is then a Vstmt,
                         and the Enext is not the succ_e. *)
-              List.filter (fun e -> (edge_type e) = Enext) edges
+              List.filter is_next_edge edges
         in edges
     | _ ->
         debug "[next_edge] not found for %a@." pp_node n;
@@ -475,6 +543,7 @@ let get_post_edges cfg v =
 let get_exit_edges cfg src =
   debug "[get_exit_edges] of %a@." pp_node src;
   let do_node n acc =
+    debug "[get_exit_edges] look at %a@." pp_node n;
     let add_exit e acc =
       let dst = edge_dst e in
       match node_type dst with
@@ -484,16 +553,31 @@ let get_exit_edges cfg src =
           (* (succ_e cfg dst) @ acc *)
           e :: acc
       | _ -> acc
-    in fold_succ_e add_exit cfg n acc
+    in match node_type n with
+      | Vstart -> (* In it is a problem a domination which is not solved here *)
+	  Wp_parameters.warning "[cfg] Forget exits clause of node %a" pp_node src;
+	  raise Exit
+      | _ -> fold_succ_e add_exit cfg n acc
   in
-  let rec do_node_and_preds n acc =
-    let acc = do_node n acc in
-    if CFG.V.compare src n = 0 then acc
-    else do_preds n acc
+  let rec do_node_and_preds n (seen, edges as acc) =
+    if Nset.mem n seen then acc (* Don't loop over the same node. *)
+    else begin
+      let edges = do_node n edges in
+      if CFG.V.compare src n = 0 then (seen, edges)
+      else do_preds n (Nset.add n seen, edges)
+    end
   and do_preds n acc =
     fold_pred do_node_and_preds cfg n acc
   in
-  let edges = try do_preds (node_after cfg src) [] with Not_found -> [] in
+  let edges =
+    try 
+      let edge = next_edge cfg src in
+	if false || is_next_edge edge then
+	  (* needs to look at all node between the next node and the source *)
+ 	  snd (do_preds (edge_dst edge) (Nset.empty, []))
+	else do_node src [] 
+    with Exit -> []
+  in
     if edges = [] then
       debug "[get_exit_edges] -> empty";
     edges
@@ -537,14 +621,18 @@ let get_post_logic_label cfg v =
         | Some s ->  Some (Clabels.mk_logic_label s)
 
 let blocks_closed_by_edge cfg e =
+  debug
+    "[blocks_closed_by_edge] for %a...@." pp_edge e;
   let v_before = edge_src e in
   let blocks = match node_type v_before with
     | Vstmt s | Vtest (true, s, _) | Vloop (_, s) | Vswitch (s,_) ->
-      Cfg.clearFileCFG ~clear_id:false (Ast.get ());
-      Cfg.computeFileCFG (Ast.get ());
-
+	ignore (Ast.get ()); (* Since CIL Cfg computation is required and
+				Ast.get () have to do this well. *) 
       begin match s.succs with
-      | [s'] -> Kernel_function.blocks_closed_by_edge s s'
+      | [s'] -> (try Kernel_function.blocks_closed_by_edge s s'
+	with Not_found as e -> debug "[blocks_closed_by_edge] not found sid:%d -> sid:%d@."
+            s.sid s'.sid;
+	  raise e)
       | [] | _ :: _ ->
         let s' = get_edge_next_stmt cfg e in
         match s' with
@@ -605,10 +693,35 @@ end
 let add_node env t =
   let id = node_type_id t in
   let n = {kind = t ; reachable = false } in
-  debug "add node : %a@." VL.pretty (ref n);
-  let n = CFG.V.create (ref n) in
+  debug "add node : %a@." VL.pretty n;
+  let n = CFG.V.create n in
   Hashtbl.add env.stmt_node id n;
   n
+
+let change_node_kind env n t =
+  let id = node_id n in
+  let id' = node_type_id t in
+  let n' = { n with kind = t } in
+  debug "change node kind from %a to %a" VL.pretty n VL.pretty n';
+  let n' = CFG.V.create n' in
+  Hashtbl.remove env.stmt_node id;
+  Hashtbl.add env.stmt_node id' n';
+  let preds = CFG.fold_pred_e (fun e acc -> e::acc) env.graph n [] in
+  let succs = CFG.fold_succ_e (fun e acc -> e::acc) env.graph n [] in
+  CFG.remove_vertex env.graph n;
+  List.iter
+    (fun e ->
+       let e' = CFG.E.create (CFG.E.src e) (CFG.E.label e) n' in
+       debug "replace edge %a %a %a"
+         VL.pretty (CFG.E.src e) EL.pretty !(CFG.E.label e) VL.pretty n';
+       CFG.add_edge_e env.graph e') preds;
+  List.iter
+    (fun e ->
+       let e' = CFG.E.create n' (CFG.E.label e) (CFG.E.dst e) in
+       debug "replace edge %a %a %a"
+         VL.pretty n' EL.pretty !(CFG.E.label e) VL.pretty (CFG.E.dst e) ;
+       CFG.add_edge_e env.graph e') succs;
+  n'
 
 let add_edge env n1 edge_type n2 =
   let e = CFG.E.create n1 (ref edge_type) n2 in
@@ -646,6 +759,14 @@ let get_node env t =
     pp_node_type t (fst id) (snd id);
   try Hashtbl.find env.stmt_node id
   with Not_found -> add_node env t
+
+(** Setup the preconditions at all the call points of [e_kf], when possible *)
+let setup_preconditions_proxies e_kf =
+  match e_kf.enode with
+    | Lval (Var vkf, NoOffset) ->
+        let kf = Globals.Functions.get vkf in
+        Statuses_by_call.setup_all_preconditions_proxies kf
+    | _ -> () (* call through function pointer *)
 
 (** In some cases (goto for instance) we have to create a node before having
 * processed if through [cfg_stmt]. It is important that the created node
@@ -724,7 +845,8 @@ and cfg_switch env switch_stmt switch_exp blk case_stmts next =
 and cfg_stmt env s next =
   !Db.progress ();
   match s.skind with
-  | Instr (Call _) ->
+  | Instr (Call (_, f, _, _)) ->
+      setup_preconditions_proxies f;
       let in_call = get_stmt_node env s in
       add_edge env in_call Enone next;
       let exit_node = get_node env (Vexit) in
@@ -776,11 +898,11 @@ and cfg_stmt env s next =
 let clean_graph cfg =
   let graph = cfg_graph cfg in
   let rec reach n =
-    if !n.reachable then ()
-    else (!n.reachable <- true; iter_succ reach cfg n)
+    if n.reachable then ()
+    else (n.reachable <- true; iter_succ reach cfg n)
   in reach (cfg_start cfg);
   let clean n acc =
-    if !n.reachable then acc
+    if n.reachable then acc
     else begin
       debug "remove unreachable node %a@." VL.pretty n;
       let v = node_type n in
@@ -864,15 +986,7 @@ module type WeiMaoZouChenInput = sig
   * but it is not the loop header, and n1 is not in the loop. *)
   val add_reentry_edge : tenv -> node -> node -> tenv
 
-  val pretty_node : Format.formatter -> node -> unit
-
-  (** the unstructuredness coefficient k can be computed = 1+(xi+yi)/E
-  * when E is the number of edge in the graph.
-  * See the paper for more details.
-  * Just do nothing in [incr_xi] and [incr_yi] if you don't need k.
-  * *)
-  val incr_xi : tenv -> tenv
-  val incr_yi : tenv -> tenv
+  (* val pretty_node : Format.formatter -> node -> unit *)
 end
 
 (** Implementation of
@@ -985,16 +1099,13 @@ module LoopInfo = struct
 
   let fold_succ f env n = fold_succ (fun v env -> f env v) env.graph n env
 
-  let incr env = {env with unstruct_coef = env.unstruct_coef + 1}
-  let incr_xi = incr
-  let incr_yi = incr
   let unstructuredness env =
     let k = float_of_int env.unstruct_coef in
     let k = k /. (float_of_int (CFG.nb_edges (cfg_graph env.graph))) in
     let k = 1. +. k in
       k
 
-  let pretty_node fmt n = Format.fprintf fmt "%d" (VL.hash n)
+  (* let pretty_node fmt n = Format.fprintf fmt "%d" (VL.hash n) *)
 end
 
 module Mloop = WeiMaoZouChen (LoopInfo)
@@ -1042,8 +1153,7 @@ let mark_loops cfg =
     let loop = match node_type h with
     | Vloop (_, h_stmt) ->
         assert (back_edges_ok);
-        h := { !h with kind = Vloop (Some is_natural, h_stmt)};
-        h
+        change_node_kind cfg h (Vloop (Some is_natural, h_stmt))
     | _ -> match node_stmt_opt h with
         | Some h_stmt when back_edges_ok ->
             insert_loop_node cfg h (Vloop (Some is_natural, h_stmt))
@@ -1300,7 +1410,6 @@ module KfCfg =
                   spec_only = true;
                   graph = CFG.create ();
                   stmt_node = Hashtbl.create 0;
-                  start_id = -1;
                   unreachables = [];
                   loop_nodes = None;
                   loop_cpt = 0;
@@ -1315,7 +1424,6 @@ module KfCfg =
         end))
     (struct let name = "KfCfg"
             let dependencies = [Ast.self]
-            let kind = `Internal
             let size = 17
      end)
 
@@ -1325,6 +1433,6 @@ let get kf = KfCfg.memo create kf
 
 (*
 Local Variables:
-compile-command: "make"
+compile-command: "make -C ../.."
 End:
 *)

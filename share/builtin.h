@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -69,6 +69,12 @@ double Frama_C_double_interval(double min, double max);
 /*@ assigns ((char*)dest)[0..n-1] \from ((char*)src)[0..n-1];
     assigns \result \from dest; */
 void* Frama_C_memcpy(char *dest, const char *src, unsigned long n);
+
+/*@ assigns \result \from ((char*)s1)[0..n-1], ((char*)s2)[0..n-1]; */
+int Frama_C_memcmp(const char *s1, const char *s2, size_t n);
+
+/*@ assigns \result \from src; */
+size_t Frama_C_strlen(const char *src);
 
 /*@
   assigns \empty;

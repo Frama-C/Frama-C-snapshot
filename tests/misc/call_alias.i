@@ -31,4 +31,5 @@ int main1 () {
 
 int main2() {
   I = sum(G,H);
+  return I;
 }

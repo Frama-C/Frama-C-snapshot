@@ -1,19 +1,19 @@
 
 module AA : sig end = struct
-  type t = string
+  type _t = string
   let ty =
     Type.register ~name:"AA.t" ~ml_name:None Structural_descr.Unknown [ "" ]
-  let mk =
+  let _mk =
     Dynamic.register ~plugin:"AA" ~journalize:false "mk"
       (Datatype.func Datatype.unit ty)
       (fun () -> "a")
 end
 
 module BB : sig end = struct
-  type t = float
+  type _t = float
   let ty =
     Type.register ~name:"BB.t" ~ml_name:None Structural_descr.Unknown [ 1.0 ]
-  let print =
+  let _print =
     Dynamic.register ~plugin:"BB" ~journalize:false "print"
       (Datatype.func ty Datatype.unit)
       print_float

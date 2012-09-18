@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -28,80 +28,17 @@ open Extlib
 open Logic_const
 open Cil_types
 open Cil
-open Cil_datatype
-open Ast_info
-open Spec_tools
 
 (**************************************************************************)
 
-(**
-   This visitor does not modify the AST.
-   It just generates a first abstract specification for each function.
-   This specification is stored into Data_for_aorai and can be accessed 
-   by using get_func_pre or get_func_post.
-*)
-class visit_computing_abstract_pre_post_from_buch 
-  (auto:Promelaast.typed_automaton) (root:string) (considerAcceptance:bool)  =
-
-object (self)
-  inherit Visitor.frama_c_inplace as super
-
-  method vfunc f =
-    let kf = Extlib.the self#current_kf in
-    if not (Data_for_aorai.isIgnoredFunction f.svar.vname) then begin
-      (* Extraction of a first abstraction of pre/post condition of 
-         the current function. 
-       *)
-      let pre_st,pre_tr  = 
-        (Aorai_utils.mk_abstract_pre  auto kf) in
-      let post_st,post_tr = 
-        (Aorai_utils.mk_abstract_post auto kf) in
-      if f.svar.vname = root then
-        begin
-          (* Pre simplification for Root (only initial states) *)
-          List.iter (
-            fun tr ->
-              if 
-                (pre_tr.(tr.Promelaast.numt)) &&
-                  ((tr.Promelaast.start.Promelaast.init==Bool3.False) 
-                   || not (Aorai_utils.isCrossableAtInit tr kf))
-              then
-                begin
-                  pre_tr.(tr.Promelaast.numt)<- false;
-                  pre_st.(tr.Promelaast.stop.Promelaast.nums)<- false
-                end
-          ) (snd auto);
-
-          List.iter (
-            fun tr ->
-              if (pre_tr.(tr.Promelaast.numt)) then
-                pre_st.(tr.Promelaast.stop.Promelaast.nums) <- true
-          ) (snd auto);
-
-          if considerAcceptance then begin
-            (* Post simplification for Root (Only acceptance states) *)
-            List.iter (
-              fun tr ->
-                if (post_tr.(tr.Promelaast.numt)) &&
-                  (tr.Promelaast.stop.Promelaast.acceptation==Bool3.False)
-                then
-                  begin
-                    post_tr.(tr.Promelaast.numt)<- false;
-                    post_st.(tr.Promelaast.stop.Promelaast.nums)<- false
-                  end
-            ) (snd auto);
-            List.iter (
-              fun tr ->
-                if (post_tr.(tr.Promelaast.numt)) then
-                  post_st.(tr.Promelaast.stop.Promelaast.nums) <- true
-            ) (snd auto)
-          end
-        end;
-      Data_for_aorai.set_func_pre f.svar.vname (pre_st, pre_tr) ;
-      Data_for_aorai.set_func_post f.svar.vname (post_st, post_tr)
-    end;
-    DoChildren
-end
+let get_acceptance_pred () =
+  let (st,_) = Data_for_aorai.getAutomata () in
+  List.fold_left
+    (fun acc s ->
+      match s.acceptation with
+          Bool3.True -> Logic_const.por (acc, Aorai_utils.is_state_pred s)
+        | Bool3.False | Bool3.Undefined -> acc)
+    Logic_const.pfalse st
 
 let get_call_name exp = match exp.enode with
   | Const(CStr(s)) -> s
@@ -118,14 +55,14 @@ let get_call_name exp = match exp.enode with
    2) generating specifications for all the functions.
 
    We maintain tables from aux to orig so that the second visitor knows which
-   is which. Note that this tables are cleared after each visit, and thus need 
+   is which. Note that this tables are cleared after each visit, and thus need
    not be projectified.
 *)
 
 (* the various kinds of auxiliary functions. *)
 type func_auto_mode =
     Not_auto_func (* original C function. *)
-  | Pre_func of kernel_function (* Pre_func f denotes a function updating 
+  | Pre_func of kernel_function (* Pre_func f denotes a function updating
                                    the automaton before call to f. *)
   | Post_func of kernel_function (* Post_func f denotes a function updating
                                     the automaton when returning from f. *)
@@ -139,49 +76,47 @@ let kind_of_func vi =
 
 (**
    This visitor adds an auxiliary function for each C function which takes
-   care of setting the automaton in a correct state before calling the 
+   care of setting the automaton in a correct state before calling the
    original one, and replaces each occurrence of the original function by
    the auxiliary one. It also takes care of changing the automaton at function's
    return.
 *)
-class visit_adding_code_for_synchronisation (auto:Promelaast.typed_automaton) =
+class visit_adding_code_for_synchronisation =
 object (self)
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ()) as super
+  inherit Visitor.frama_c_inplace
 
   val aux_post_table = Kernel_function.Hashtbl.create 17
 
   method vglob_aux g =
     match g with
     | GFun (fundec,loc) ->
-        (* TODO: generate the aux_func_post *)
       let kf = Extlib.the self#current_kf in
       let vi = Kernel_function.get_vi kf in
       let vi_pre = Cil_const.copy_with_new_vid vi in
       vi_pre.vname <- Data_for_aorai.get_fresh (vi_pre.vname ^ "_pre_func");
       Cil_datatype.Varinfo.Hashtbl.add func_orig_table vi_pre (Pre_func kf);
-        (* TODO: 
-           - what about protos that have no specified args 
+        (* TODO:
+           - what about protos that have no specified args
            (NB: cannot be identified here because of implem of Kernel_function).
            - what about varargs?
          *)
       let (rettype,args,varargs,_) = Cil.splitFunctionTypeVI vi_pre in
       vi_pre.vtype <- TFun(Cil.voidType, args, varargs,[]);
-      vi_pre.vattr <- []; 
+      vi_pre.vattr <- [];
         (* in particular get rid of __no_return if set in vi*)
-      let arg = 
-        if Cil.isVoidType rettype 
+      let arg =
+        if Cil.isVoidType rettype
         then []
         else ["res",rettype,[]]
       in
-      let vi_post = 
-        Cil.makeGlobalVar 
+      let vi_post =
+        Cil.makeGlobalVar
           (Data_for_aorai.get_fresh (vi.vname ^ "_post_func"))
           (TFun(voidType,Some arg,false,[]))
       in
       Kernel_function.Hashtbl.add aux_post_table kf vi_post;
       Cil_datatype.Varinfo.Hashtbl.add func_orig_table vi_post (Post_func kf);
-      let globs = 
+      let globs =
         [ GVarDecl(Cil.empty_funspec (), vi_pre, loc);
           GVarDecl(Cil.empty_funspec (), vi_post,loc) ]
       in
@@ -192,6 +127,10 @@ object (self)
                 (Kernel_function.get_formals kf),
               loc))
       :: fundec.sbody.bstmts;
+      Globals.Functions.replace_by_declaration 
+        (Cil.empty_funspec ()) vi_pre loc;
+      Globals.Functions.replace_by_declaration
+        (Cil.empty_funspec()) vi_post loc;
       ChangeDoChildrenPost([g], fun x -> globs @ x)
     | _ -> DoChildren
 
@@ -207,7 +146,7 @@ object (self)
             | Some exp -> [Cil.copy_exp exp]
           in
           let aux_vi = Kernel_function.Hashtbl.find aux_post_table kf in
-          let call = 
+          let call =
             mkStmtOneInstr (Call (None,Cil.evar ~loc aux_vi,args,loc))
           in
           let new_return = mkStmt ~valid_sid:true stmt.skind in
@@ -221,7 +160,7 @@ end
 
 (*********************************************************************)
 
-(* update from formals of original C function to one of the auxiliary  
+(* update from formals of original C function to one of the auxiliary
    function (f_aux or f_pre)
  *)
 class change_formals old_kf new_kf =
@@ -234,7 +173,7 @@ object
     match lv.lv_origin with
       | None -> SkipChildren
       | Some vi ->
-        try 
+        try
           let vi'= List.assq vi formals in
           ChangeTo (Cil.cvar_to_lvar vi')
         with Not_found -> SkipChildren
@@ -254,120 +193,318 @@ end
 
 let post_treatment_loops = Hashtbl.create 97
 
-let get_action_invariant kf ki (status,_) =
-  let (state,_ as auto) = Data_for_aorai.getAutomata () in
-  let treat_one_state pre_state post_state =
-    let trans = Path_analysis.get_transitions_of_state pre_state auto in
-    if List.exists (fun x -> status.(x.stop.nums).(post_state.nums)) trans then
-        begin
-          let bindings =
-            Data_for_aorai.get_action_path kf ki pre_state post_state
+let get_action_post_cond kf ?init_trans return_states =
+  let to_consider pre_state int_states =
+    match init_trans with
+      | None -> true
+      | Some init_trans ->
+        try
+          let possible_states =
+            Data_for_aorai.Aorai_state.Map.find pre_state init_trans
           in
-          List.map (Aorai_utils.update_to_pred post_state) bindings
-        end 
-      else []
+          not (Data_for_aorai.Aorai_state.Set.is_empty
+                 (Data_for_aorai.Aorai_state.Set.inter
+                    int_states possible_states))
+        with Not_found -> false
   in
-  List.flatten (Extlib.product treat_one_state state state)
-
-let get_action_post_cond ?(pre_states=[]) ~post_states kf =
-  let (_, transitions) = Data_for_aorai.getAutomata () in
-  let pre_st, pre_tr = 
-    Data_for_aorai.get_func_pre (Kernel_function.get_name kf)
+  let treat_one_path pre_state post_state (int_states,_,bindings) acc =
+    if to_consider pre_state int_states then begin
+      let post_conds =
+        Aorai_utils.action_to_pred ~pre_state ~post_state bindings
+      in
+      Aorai_option.debug ~dkey:"action"
+        "Getting action post-conditions for %a, from state %s to state %s@\n%a"
+        Kernel_function.pretty kf
+        pre_state.Promelaast.name post_state.Promelaast.name
+        (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep
+           !Ast_printer.d_predicate_named)
+        post_conds;
+      post_conds @ acc
+    end
+    else acc
   in
-  let pre_states =
-    match pre_states with
-      | [] ->
-        let (states,_) = Data_for_aorai.getAutomata () in
-        List.filter (fun x -> pre_st.(x.nums)) states
-      | _ -> pre_states
+  let treat_one_pre_state pre_state map acc =
+    Data_for_aorai.Aorai_state.Map.fold (treat_one_path pre_state) map acc
   in
-  let pre_states =
-    List.fold_left
-      (fun acc tr -> 
-        if pre_tr.(tr.numt) &&
-          List.exists
-          (fun x -> Data_for_aorai.Aorai_state.equal x tr.stop) pre_states
-        then Data_for_aorai.Aorai_state.Set.add tr.start acc else acc)
-      Data_for_aorai.Aorai_state.Set.empty transitions
+  let post_cond =
+    Data_for_aorai.Aorai_state.Map.fold treat_one_pre_state return_states []
   in
-  let pre_states = Data_for_aorai.Aorai_state.Set.elements pre_states in
-  let treat_one_path pre_state post_state =
-    let post_conds = Aorai_utils.action_to_pred ~pre_state ~post_state kf in
-    Aorai_option.debug ~dkey:"action"
-      "Getting action post-conditions for %a, from state %s to state %s@\n%a"
-      Kernel_function.pretty kf
-      pre_state.Promelaast.name post_state.Promelaast.name
-      (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep 
-         !Ast_printer.d_predicate_named)
-      post_conds;
-    let pre = Aorai_utils.is_state_pred pre_state in
-    let pre = Logic_const.pold pre in
-    let post = Aorai_utils.is_state_pred post_state in
-    List.map
-      (fun p -> (Logic_const.pimplies (Logic_const.pand (pre,post), p)))
-      post_conds
-  in
-  let post_cond = 
-    List.flatten (Extlib.product treat_one_path pre_states post_states)
-  in
-  List.map 
+  List.map
     (fun post_cond -> (Normal, Logic_const.new_predicate post_cond))
     post_cond
 
+let make_zero_one_choice reachable_states =
+  let treat_one_state state _ acc =
+    (Logic_const.por
+       (Aorai_utils.is_state_pred state,
+        Aorai_utils.is_out_of_state_pred state)) :: acc
+  in
+  Data_for_aorai.Aorai_state.Map.fold treat_one_state reachable_states []
+
+let needs_zero_one_choice states =
+  let needs_choice =
+    try
+      ignore
+        (Data_for_aorai.Aorai_state.Map.fold
+           (fun _ _ flag -> if flag then raise Exit else true)
+           states false);
+      false
+    with Exit -> true
+  in
+  if needs_choice then 
+    List.map 
+      Logic_const.new_predicate 
+      (make_zero_one_choice states)
+  else []
+
+let pred_reachable reachable_states =
+  let treat_one_state (nb, reachable, unreachable) state =
+    if Data_for_aorai.Aorai_state.Map.mem state reachable_states then
+      (nb+1,
+       Logic_const.por (reachable, Aorai_utils.is_state_pred state),
+       unreachable)
+    else
+      (nb, reachable,
+       Logic_const.pand (unreachable, Aorai_utils.is_out_of_state_pred state))
+  in
+  let (states,_) = Data_for_aorai.getAutomata () in
+  let (nb, reachable, unreachable) =
+    List.fold_left treat_one_state (0,pfalse,ptrue) states
+  in
+  (nb > 1, reachable, unreachable)
+
+let possible_start kf (start,int) =
+  let auto = Data_for_aorai.getAutomata () in
+  let trans = Path_analysis.get_edges start int auto in
+  let treat_one_trans cond tr =
+    Logic_const.por
+      (cond, Aorai_utils.crosscond_to_pred (fst tr.cross) kf Promelaast.Call)
+  in
+  let cond = List.fold_left treat_one_trans Logic_const.pfalse trans in
+  Logic_const.pand (Aorai_utils.is_state_pred start, cond)
+
+let neg_trans kf trans =
+  let auto = Data_for_aorai.getAutomata () in
+  let rec aux l acc =
+    match l with
+      | [] -> acc
+      | (start,stop) :: l ->
+        let same_start, rest =
+          List.fold_left 
+            (fun (same_start, rest) (start', stop' as elt) -> 
+                  if Data_for_aorai.Aorai_state.equal start start' then 
+                    stop' :: same_start, rest
+                  else
+                    same_start, elt :: rest)
+            ([stop],[]) l
+        in
+        let cond =
+          List.fold_left
+            (fun cond stop ->
+              let trans = Path_analysis.get_edges start stop auto in
+              List.fold_left
+                (fun cond tr -> 
+                  Logic_simplification.tand 
+                    cond (Logic_simplification.tnot (fst tr.cross)))
+                cond trans)
+            TTrue same_start
+        in
+        let cond = fst (Logic_simplification.simplifyCond cond) in
+        let cond = Aorai_utils.crosscond_to_pred cond kf Promelaast.Call in
+        let cond = 
+          Logic_const.por (Aorai_utils.is_out_of_state_pred start, cond)
+        in
+        aux rest (Logic_const.pand (acc,cond))
+  in
+  aux trans Logic_const.ptrue
+
+let get_unchanged_aux_var loc current_state =
+  let partition_action state (_,_,map) (actions,possible_states) =
+    let possible_states =
+      Data_for_aorai.Aorai_state.Set.add state possible_states
+    in
+    let treat_one_action t _ acc =
+      let states =
+        try Cil_datatype.Term.Map.find t acc
+        with Not_found -> Data_for_aorai.Aorai_state.Set.empty
+      in
+      Cil_datatype.Term.Map.add t
+        (Data_for_aorai.Aorai_state.Set.add state states) acc
+    in
+    let actions =
+      Cil_datatype.Term.Map.fold treat_one_action map actions
+    in (actions,possible_states)
+  in
+  let treat_one_action pre_hyp possible_states t action_states acc =
+    if not (Data_for_aorai.Aorai_state.Set.is_empty
+              (Data_for_aorai.Aorai_state.Set.diff 
+                 possible_states action_states))
+    then begin
+      let post_hyp =
+        Data_for_aorai.Aorai_state.Set.fold
+          (fun st acc ->
+            Logic_const.pand ~loc (acc,Aorai_utils.is_out_of_state_pred st))
+          action_states Logic_const.ptrue
+      in
+      let pred =
+        Logic_const.new_predicate
+          (Logic_const.pimplies ~loc 
+             (pre_hyp,
+              Logic_const.pimplies ~loc
+                (post_hyp,
+                 Logic_const.prel ~loc (Req,t,Logic_const.told ~loc t))))
+      in
+      (Normal,pred) :: acc
+    end else acc
+  (* all possible states will update this lval, no need to
+     make a special case here.
+   *)
+  in
+  let treat_one_pre_state start map acc =
+    let pre_hyp = Logic_const.pold ~loc (Aorai_utils.is_state_pred start) in
+    let actions_map, possible_states =
+      Data_for_aorai.Aorai_state.Map.fold
+        partition_action map 
+        (Cil_datatype.Term.Map.empty, Data_for_aorai.Aorai_state.Set.empty)
+    in
+    Cil_datatype.Term.Map.fold 
+      (treat_one_action pre_hyp possible_states) actions_map acc
+  in
+  Data_for_aorai.Aorai_state.Map.fold treat_one_pre_state current_state []
+
 (**
-   This visitor add a specification to each fonction and to each loop,
+   This visitor adds a specification to each fonction and to each loop,
    according to specifications stored into Data_for_aorai.
 *)
-class visit_adding_pre_post_from_buch auto treatloops =
+class visit_adding_pre_post_from_buch treatloops =
 
   let predicate_to_invariant kf stmt pred =
     (* 4) Add new annotation *)
-    Annotations.add
-      kf
+    Annotations.add_code_annot
+      Aorai_option.emitter
+      ~kf
       stmt
-      [ (*Ast.self; *)
-        (*Aorai_option.Ltl_File.self;
-        Aorai_option.Buchi.self;
-        Aorai_option.Ya.self ;*)
-        (*Aorai_option.AbstractInterpretationOff.self ;*)
-        Aorai_option.AbstractInterpretation.self ]
-      (User
-         (Logic_const.new_code_annotation (AInvariant([],true,pred))));
+      (User (Logic_const.new_code_annotation (AInvariant([],true,pred))));
   in
-
-  (** Given a couple of bool array (States , Transitions),
-      this function computes a predicate and add it as an invariant. *)
-  let condition_to_invariant kf (st, tr as cond) stmt =
-    let pred_authorized = Aorai_utils.pre_post_to_term cond in
-    let pred_forbidden =
-      Aorai_utils.pre_post_to_term_neg (Array.map not st,tr)
+  let all_possible_states state =
+    let treat_one_state _ = Data_for_aorai.merge_end_state in
+    Data_for_aorai.Aorai_state.Map.fold
+      treat_one_state state Data_for_aorai.Aorai_state.Map.empty
+  in
+  let condition_to_invariant kf possible_states stmt =
+    (* Checks whether we have at least two possible automaton's states in the
+       invariant. *)
+    let has_multiple_choice =
+      try
+        ignore
+          (Data_for_aorai.Aorai_state.Map.fold
+             (fun _ _ b -> if b then raise Exit else true)
+             possible_states false);
+        false
+      with Exit -> 
+	true
     in
-    let pred = Logic_const.pand (pred_authorized, pred_forbidden) in
-    predicate_to_invariant kf stmt pred
+    let treat_one_state s =
+      if Data_for_aorai.Aorai_state.Map.mem s possible_states then begin
+        if has_multiple_choice then begin
+          let pred =
+            Logic_const.por
+              (Aorai_utils.is_state_pred s, Aorai_utils.is_out_of_state_pred s)
+          in
+          predicate_to_invariant kf stmt pred
+        end else begin
+          (* We can only be in one state. Since we must be in at least one
+             state, the invariant is quite simple.
+           *)
+          predicate_to_invariant kf stmt (Aorai_utils.is_state_pred s)
+        end
+      end else begin
+        let pred = Aorai_utils.is_out_of_state_pred s in
+        predicate_to_invariant kf stmt pred
+      end
+    in
+    let (states,_) = Data_for_aorai.getAutomata () in
+    List.iter treat_one_state states;
+    if has_multiple_choice then begin
+      let add_possible_state state _ acc =
+        if Data_for_aorai.is_reject_state state then acc
+        else
+          Logic_const.por (acc,Aorai_utils.is_state_pred state)
+      in
+      let pred =
+        Data_for_aorai.Aorai_state.Map.fold
+          add_possible_state possible_states Logic_const.pfalse
+      in
+      predicate_to_invariant kf stmt pred
+    end
   in
-
-  let partition_pre_state (post_bc_st,_) =
-    let check_one_state (idx, equivs) case =
-      if Spec_tools.is_empty_behavior case then (idx+1,equivs)
-      else
-        let is_equiv i1 = Spec_tools.bool_array_eq post_bc_st.(i1) case in
-        let rec aux l =
-          match l with
-            | [] -> [[idx]]
-            | eq::l ->
-              if is_equiv (List.hd eq)
-              then (idx::eq)::l
-              else eq :: aux l
+  let impossible_states_preds possible_states my_state =
+    let treat_one_start_state state start_state end_states acc =
+      if not (Data_for_aorai.Aorai_state.Map.mem state end_states) then
+        Logic_const.pimplies
+          (Logic_const.pat(Aorai_utils.is_state_pred start_state,
+                           Logic_const.pre_label),
+           Aorai_utils.is_out_of_state_pred state)
+        :: acc
+      else acc
+    in
+    let treat_one_state state _ acc =
+      Data_for_aorai.Aorai_state.Map.fold
+        (treat_one_start_state state) my_state acc
+    in
+    Data_for_aorai.Aorai_state.Map.fold treat_one_state possible_states []
+  in
+  let partition_pre_state map =
+    let (states,_) = Data_for_aorai.getAutomata () in
+    let is_equiv st1 st2 =
+      let check_one _ o1 o2 =
+        match o1, o2 with
+        | None, None | Some _, Some _ -> Some ()
+        | None, Some _ | Some _, None -> raise Not_found
+      in
+      try
+        ignore (Data_for_aorai.Aorai_state.Map.merge check_one st1 st2); true
+      with Not_found -> false
+    in
+    let find_equivs (start,state, end_states) equivs =
+      let rec aux = function
+        | [] -> [[start,state],end_states]
+        | (equiv_class,end_states2 as infos) :: l ->
+          if is_equiv end_states end_states2 then
+            ((start, state) :: equiv_class, end_states2) :: l
+          else infos :: aux l
+      in aux equivs
+    in
+    let filter equivs state =
+      let check_one_state start end_states equivs =
+        let end_states =
+          Data_for_aorai.Aorai_state.Map.filter
+            (fun _ (int_states,_,_) ->
+              Data_for_aorai.Aorai_state.Set.mem state int_states)
+            end_states
         in
-        (idx+1,aux equivs)
+        if Data_for_aorai.Aorai_state.Map.is_empty end_states then equivs
+        else find_equivs (start, state, end_states) equivs
+      in
+      Data_for_aorai.Aorai_state.Map.fold check_one_state map equivs
     in
-    let (_,equivs) = Array.fold_left check_one_state (0,[]) post_bc_st in
-    equivs
+    let res = List.fold_left filter [] states in
+    List.map fst res
   in
-  let update_assigns loc spec =
+  (* TODO: add assigns of auxiliary variables... *)
+  let update_assigns loc kf spec =
     let update_assigns bhv =
-      bhv.b_assigns <-
-        Logic_utils.concat_assigns bhv.b_assigns (Aorai_utils.aorai_assigns loc)
+      let assigns = Aorai_utils.aorai_assigns loc in
+      match kf with
+      | None -> (* stmt contract *)
+	bhv.b_assigns <- Logic_utils.concat_assigns bhv.b_assigns assigns
+      | Some kf -> (* function contract *)
+	Annotations.add_assigns
+	  ~keep_empty:true
+	  Aorai_option.emitter
+	  kf
+	  bhv.b_name
+	  assigns;
     in
     List.iter update_assigns spec.spec_behavior
   in
@@ -376,160 +513,236 @@ class visit_adding_pre_post_from_buch auto treatloops =
     Aorai_utils.auto_func_behaviors loc kf status auto_state
   in
   let mk_pre_fct_spec kf =
-    mk_auto_fct_spec kf Promelaast.Call
-      (Data_for_aorai.get_func_pre (Kernel_function.get_name kf))
+    mk_auto_fct_spec kf Promelaast.Call (Data_for_aorai.get_kf_init_state kf)
   in
   let mk_post_fct_spec kf =
-    mk_auto_fct_spec kf Promelaast.Return
-      (Spec_tools.pre_flattening
-         (Data_for_aorai.get_func_post_bycase (Kernel_function.get_name kf)))
+    mk_auto_fct_spec kf
+      Promelaast.Return (Data_for_aorai.get_kf_return_state kf)
+  in
+  let needs_post kf =
+    let loc = Kernel_function.get_location kf in
+    let return_state = Data_for_aorai.get_kf_return_state kf in
+    let possible_states =
+      Data_for_aorai.Aorai_state.Map.fold
+        (fun _ map acc ->
+          Data_for_aorai.Aorai_state.Map.fold
+            (fun st _ acc -> Data_for_aorai.Aorai_state.Set.add st acc)
+            map acc)
+        return_state Data_for_aorai.Aorai_state.Set.empty
+    in
+    let action_post = get_unchanged_aux_var loc return_state in
+    if 
+      Data_for_aorai.Aorai_state.Set.exists
+        Data_for_aorai.is_reject_state possible_states
+    then
+      (* We must ensure that there is at least one active state
+         beside the rejection state *)
+      let cond =
+        Data_for_aorai.Aorai_state.Set.fold
+          (fun st acc ->
+            if Data_for_aorai.is_reject_state st then acc
+            else Logic_const.por (Aorai_utils.is_state_pred st,acc))
+          possible_states Logic_const.pfalse
+      in
+      (Normal,Logic_const.new_predicate cond) :: action_post
+    else action_post
   in
   let mk_post kf =
-    let fct_name = Kernel_function.get_name kf in
-    let auto_state_pre = Data_for_aorai.get_func_pre fct_name in
-    (* Rewriting arrays characterizing status into predicates *)
-    let preds_post_bc = Data_for_aorai.get_func_post_bycase fct_name in
+    let return_state = Data_for_aorai.get_kf_return_state kf in
     (*   + Post-condition registration *)
     (* If several states are associated to the same post-condition,
        then their specification is factorised. *)
-    let equivs = partition_pre_state preds_post_bc in
+    let equivs = partition_pre_state return_state in
     let bhvs =
       match equivs with
-        | [ s ] -> (* we just have one possible case, no need to generate
-                      assumes and a negative behavior
-                    *)
-          let name = "Buchi_property_behavior" in
-          let i = List.hd s in
-          let p =
-            Aorai_utils.pre_post_to_term
-              ((fst preds_post_bc).(i),(snd preds_post_bc).(i))
-          in
-          let post_cond = Normal, Logic_const.new_predicate p in
-          let post_cond =
-            if Aorai_option.Deterministic.get () then [post_cond]
-            else begin
-              let p =
-                Aorai_utils.pre_post_to_term_neg
-                  ((Array.map not (fst preds_post_bc).(i)),
-                   (snd preds_post_bc).(i))
-              in
-              [Normal, Logic_const.new_predicate p; post_cond]
+      | [ e ] -> (* we just have one possible case, no need to generate
+                    assumes and a negative behavior
+                  *)
+        let name = "Buchi_property_behavior" in
+        let s = fst (List.hd e) in
+        let reachable_states =
+          Data_for_aorai.Aorai_state.Map.find s return_state
+        in
+        let (multi_choice, reachable, unreachable) =
+          pred_reachable reachable_states
+        in
+        let post_cond = Normal, Logic_const.new_predicate reachable in
+        let post_cond =
+          if Aorai_option.Deterministic.get () then [post_cond]
+          else
+            [Normal, Logic_const.new_predicate unreachable; post_cond]
+        in
+        let post_cond =
+          if multi_choice && not (Aorai_option.Deterministic.get ()) then
+            begin
+              let preds = make_zero_one_choice reachable_states in
+              List.fold_left
+                (fun acc p ->
+                  (Normal, Logic_const.new_predicate p) :: acc)
+                post_cond preds
             end
-          in
-          let post_cond =
-            match Aorai_utils.get_preds_post_bc_wrt_params kf with
-              | None -> post_cond
-              | Some p -> (Normal, Logic_const.new_predicate p) :: post_cond
-          in
-          let post_states =
-            List.filter (fun x -> (fst preds_post_bc).(i).(x.nums))
-              (fst (Data_for_aorai.getAutomata ()))
-          in
-          let post_cond =
-            post_cond @ get_action_post_cond ~post_states kf
-          in
-          [Cil.mk_behavior ~name ~post_cond ()]
-        | _ ->
-          let bhvs =
-            List.fold_left 
-              (fun acc equiv ->
-                let case = List.hd equiv in
-                let pre_states = List.map Data_for_aorai.getState equiv in
-                let post_states =
-                  List.filter (fun x -> (fst preds_post_bc).(case).(x.nums))
-                    (fst (Data_for_aorai.getAutomata ()))
+          else post_cond
+        in
+        let infos = Aorai_utils.get_preds_post_bc_wrt_params kf in
+        let post_cond =
+          if Logic_utils.is_trivially_true infos then post_cond
+          else (Normal, Logic_const.new_predicate infos) :: post_cond
+        in
+        let post_cond = post_cond @ get_action_post_cond kf return_state in
+        [Cil.mk_behavior ~name ~post_cond ()]
+      | _ ->
+        let _,bhvs =
+          List.fold_left
+            (fun (i,acc) equiv ->
+              let (case_start, case_int) = List.hd equiv in
+              let assumes_l =
+                List.map (possible_start kf) equiv
+              in
+              let name = "Buchi_behavior_in_" ^ (string_of_int i) in
+              let assumes =
+                [Logic_const.new_predicate (Logic_const.pors assumes_l)]
+              in
+              let reachable_states =
+                Data_for_aorai.Aorai_state.Map.find case_start return_state
+              in
+              let reachable_states =
+                Data_for_aorai.Aorai_state.Map.filter
+                  (fun _ (int,_,_) ->
+                    Data_for_aorai.Aorai_state.Set.mem case_int int)
+                  reachable_states
+              in
+              let (multi_choice, reachable, _) =
+                pred_reachable reachable_states
+              in
+              let post_cond =
+                [Normal, Logic_const.new_predicate reachable]
+              in
+              let post_cond =
+                if multi_choice && not (Aorai_option.Deterministic.get()) then
+                  begin
+                    let preds = make_zero_one_choice reachable_states in
+                    List.fold_left
+                      (fun acc p ->
+                        (Normal, Logic_const.new_predicate p) :: acc)
+                      post_cond preds
+                  end
+                else post_cond
+              in
+              let infos = Aorai_utils.get_preds_post_bc_wrt_params kf in
+              let post_cond =
+                if Logic_utils.is_trivially_true infos then post_cond
+                else (Normal, Logic_const.new_predicate infos) :: post_cond
+              in
+              let init_trans =
+                List.fold_left
+                  (fun acc (start, int) ->
+                    let set =
+                      try Data_for_aorai.Aorai_state.Map.find start acc
+                      with Not_found -> Data_for_aorai.Aorai_state.Set.empty
+                    in
+                    Data_for_aorai.Aorai_state.Map.add
+                      start
+                      (Data_for_aorai.Aorai_state.Set.add int set)
+                      acc)
+                  Data_for_aorai.Aorai_state.Map.empty
+                  equiv
+              in
+              let post_cond =
+                post_cond @
+                  (get_action_post_cond kf ~init_trans return_state)
+              in
+              (i+1,
+               Cil.mk_behavior ~name ~assumes ~post_cond () :: acc))
+            (0,[])
+            equivs
+        in
+        if Aorai_option.Deterministic.get () then bhvs
+        else begin
+          (* post-conditions for state in which we are not at the
+             end of the functions. They have to be grouped differently
+             than positive information because of non-determinism (if two
+             non-equivalent states are active when entering the function
+             and activate the same state at exit) *)
+          let aux (i,bhvs) state =
+            let name = "Buchi_behavior_out_" ^ (string_of_int i) in
+            let select_equivalence_class equiv =
+              let (start, int) = List.hd equiv in
+              try
+                let map =
+                  Data_for_aorai.Aorai_state.Map.find start return_state
                 in
-                let assumes_l =
-                  List.map 
-                    (fun i ->
-                      Aorai_utils.make_prev_pred
-                        kf Promelaast.Call 
-                        (Data_for_aorai.getState i) auto_state_pre)
-                    equiv
+                let (int_states, _,_) =
+                  Data_for_aorai.Aorai_state.Map.find state map
                 in
-                let name = "Buchi_property_behavior_in_"^(string_of_int case) in
-                let assumes =
-                  [Logic_const.new_predicate (Logic_const.pors assumes_l)]
-                in
-                let p =
-                  Aorai_utils.pre_post_to_term
-                    ((fst preds_post_bc).(case),(snd preds_post_bc).(case))
-                in
-                let post_cond = Normal, Logic_const.new_predicate p in
-                let post_cond =
-                  match Aorai_utils.get_preds_post_bc_wrt_params kf with
-                    | None -> [post_cond]
-                    | Some p -> [Normal, Logic_const.new_predicate p; post_cond]
-                in
-                let post_cond =
-                  post_cond @ 
-                    (get_action_post_cond ~pre_states ~post_states kf)
-                in
-                Cil.mk_behavior ~name ~assumes ~post_cond () :: acc)
-              []
-              equivs
-          in
-          if Aorai_option.Deterministic.get () then bhvs
-          else begin 
-            (* post-conditions for state in which we are not at the 
-               end of the functions. They have to be grouped differently
-               than positive information because of non-determinism (if two
-               non-equivalent states are active when entering the function
-               and activate the same state at exit)
-             *)
-            let rec aux bhvs i =
-              if i < 0 then bhvs
-              else begin
-                let name = 
-                  "Buchi_property_behavior_out_" ^ (string_of_int i) in
-                let my_preds =
-                  List.fold_left 
-                    (fun acc equiv ->
-                      if (fst preds_post_bc).(List.hd equiv).(i) then
-                        acc @ equiv
-                      else acc)
-                    [] equivs
-                in
-                let my_preds = List.map Data_for_aorai.getState my_preds in
-                let assumes =
-                  Aorai_utils.make_prev_pred_neg
-                    kf Promelaast.Call my_preds auto_state_pre
-                in
-                let assumes = [Logic_const.new_predicate assumes] in
-                let state = Data_for_aorai.getState i in
-                let p = Aorai_utils.is_out_of_state_pred state in
-                let post_cond = [Normal, Logic_const.new_predicate p] in
-                let bhvs = Cil.mk_behavior ~name ~assumes ~post_cond () :: bhvs
-                in aux bhvs (i-1)
-              end
+                Data_for_aorai.Aorai_state.Set.mem int int_states
+              with Not_found -> false
             in
-            aux bhvs (Data_for_aorai.getNumberOfStates () - 1)
-          end
+            let my_trans =
+              List.fold_left
+                (fun acc equiv ->
+                  if select_equivalence_class equiv then
+                    acc @ equiv
+                  else acc)
+                [] equivs
+            in
+            let assumes = neg_trans kf my_trans in
+            if Logic_utils.is_trivially_false assumes then (i+1,bhvs)
+            else
+              let p = Aorai_utils.is_out_of_state_pred state in
+              let post_cond = [Normal, Logic_const.new_predicate p] in
+              let bhv =
+                if Logic_utils.is_trivially_true assumes then
+                  Cil.mk_behavior ~name ~post_cond ()
+                else begin
+                  let assumes = [Logic_const.new_predicate assumes] in
+                  Cil.mk_behavior ~name ~assumes ~post_cond ()
+                end
+              in
+              (i+1,bhv :: bhvs)
+          in
+          let (states,_) = Data_for_aorai.getAutomata () in
+          List.rev (snd (List.fold_left aux (0,bhvs) states))
+        end
     in
-    (* if bycase is set*)
-    (* adding require called and behavior ensures return *)
-          
-    if Aorai_option.AddingOperationNameAndStatusInSpecification.get() 
+    (* If this is the main function, we should exit in at least one
+       acceptance state.
+     *)
+    let bhvs =
+      if Aorai_option.ConsiderAcceptance.get () &&
+        Datatype.String.equal
+        (Kernel_function.get_name kf) (Kernel.MainFunction.get())
+      then
+        let accept = Logic_const.new_predicate (get_acceptance_pred()) in
+        let post_cond = [Normal, accept] in
+        let name = "aorai_acceptance" in
+        Cil.mk_behavior ~name ~post_cond () :: bhvs
+      else bhvs
+    in
+    if Aorai_option.AddingOperationNameAndStatusInSpecification.get()
     then begin
-      let called_post = 
-        Logic_const.new_predicate 
-          (Logic_const.prel 
+      let called_post =
+        Logic_const.new_predicate
+          (Logic_const.prel
              (Req ,
-              Logic_const.tvar 
+              Logic_const.tvar
                 (Data_for_aorai.get_logic_var Data_for_aorai.curOpStatus),
-              Logic_const.term 
+              Logic_const.term
                 (TConst
-                   (Data_for_aorai.op_status_to_cenum Promelaast.Return)) 
+                   (Logic_utils.constant_to_lconstant
+		      (Data_for_aorai.op_status_to_cenum Promelaast.Return)))
                 (Ctype Cil.intType)))
       in
-      let called_post_2 = 
-        Logic_const.new_predicate 
-          (Logic_const.prel 
+      let called_post_2 =
+        Logic_const.new_predicate
+          (Logic_const.prel
              (Req,
               Logic_const.tvar
                 (Data_for_aorai.get_logic_var Data_for_aorai.curOp),
-              Logic_const.term 
-                (TConst(Data_for_aorai.func_to_cenum fct_name)) 
+              Logic_const.term
+                (TConst
+                   (Logic_utils.constant_to_lconstant
+		      (Data_for_aorai.func_to_cenum
+			 (Kernel_function.get_name kf))))
                 (Ctype Cil.intType)))
       in
       let name = "Buchi_property_behavior_function_states" in
@@ -539,13 +752,11 @@ class visit_adding_pre_post_from_buch auto treatloops =
   in
 object(self)
 
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ()) as super
+  inherit Visitor.frama_c_inplace
 
   (* We have to update assigns whenever a call occurs in the scope of
-     a statement contract (function always update the automaton's state, 
-     so assigns there have to be changed anyway.)
-  *)
+     a statement contract (function always update the automaton's state,
+     so assigns there have to be changed anyway.) *)
   val has_call = Stack.create ()
 
   method private enter_block () = Stack.push (ref false) has_call
@@ -557,87 +768,86 @@ object(self)
   method vfunc f =
     let my_kf = Extlib.the self#current_kf in
     let vi = Kernel_function.get_vi my_kf in
-    let spec = Kernel_function.get_spec my_kf in
+    let spec = Annotations.funspec my_kf in
     let loc = Kernel_function.get_location my_kf in
-    let fct_name = Kernel_function.get_name my_kf in
-    begin
-      match kind_of_func vi with
-        | Pre_func _ | Post_func _ ->
-          Aorai_option.fatal 
-            "functions managing automaton's state are \
+    (match kind_of_func vi with
+    | Pre_func _ | Post_func _ ->
+      Aorai_option.fatal
+        "functions managing automaton's state are \
              not supposed to have a body"
-        | Not_auto_func -> (* Normal C function *)
-          let bhvs = mk_post my_kf in
-          let auto_state_pre = Data_for_aorai.get_func_pre fct_name in
-          let requires = 
-            Aorai_utils.force_transition 
-              loc my_kf Promelaast.Call auto_state_pre
-          in
-          let bhvs =
-            match Cil.find_default_behavior spec with
-                Some b ->
-                  b.b_requires <- requires @ b.b_requires; bhvs
-              | None ->
-                let bhv = Cil.mk_behavior ~requires () in
-                bhv::bhvs
-          in
-          spec.spec_behavior <- bhvs @ spec.spec_behavior
-    end;
-    let after f = update_assigns f.svar.vdecl spec; f in
+    | Not_auto_func -> (* Normal C function *)
+      let bhvs = mk_post my_kf in
+      let my_state = Data_for_aorai.get_kf_init_state my_kf in
+      let requires = needs_zero_one_choice my_state in
+      let requires =
+        Aorai_utils.auto_func_preconditions 
+          loc my_kf Promelaast.Call my_state
+        @ requires
+      in
+      let post_cond = needs_post my_kf in
+      match Cil.find_default_behavior spec with
+      | Some b ->
+	Annotations.add_requires Aorai_option.emitter my_kf b.b_name requires;
+	Annotations.add_ensures Aorai_option.emitter my_kf b.b_name post_cond;
+	Annotations.add_behaviors Aorai_option.emitter my_kf bhvs
+      | None ->
+        let bhv = Cil.mk_behavior ~requires ~post_cond () in
+	Annotations.add_behaviors Aorai_option.emitter my_kf (bhv :: bhvs));
+    let after f = update_assigns f.svar.vdecl (Some my_kf) spec; f in
     ChangeDoChildrenPost(f,after)
 
   method vglob_aux g =
     match g with
-      | GVarDecl(_,v,_) when 
-          Cil.isFunctionType v.vtype
-          && not (Kernel_function.is_definition (Extlib.the self#current_kf))
+    | GVarDecl(_,v,_) when
+        Cil.isFunctionType v.vtype
+        && not (Kernel_function.is_definition (Extlib.the self#current_kf))
         ->
-        let my_kf = Extlib.the self#current_kf in
-        (* don't use get_spec, as we'd generate default assigns,
-           while we'll fill the spec just below. *)
-        let spec = my_kf.spec in
-        let vi = Kernel_function.get_vi my_kf in
-        begin
-          match kind_of_func vi with
-            | Pre_func kf ->
-              (* must advance the automaton according to current call. *)
-              let bhvs = mk_pre_fct_spec kf in
-              let bhvs =
-                Visitor.visitFramacBehaviors (new change_formals kf my_kf) bhvs
-              in
-              spec.spec_behavior <- bhvs;
-              ChangeDoChildrenPost([g],fun x -> x)
-            | Post_func kf ->
-              (* must advance the automaton according to return event. *)
-              let (rt, _, _, _) = 
-                Cil.splitFunctionTypeVI (Kernel_function.get_vi kf)
-              in
-              let bhvs = mk_post_fct_spec kf in
-              let bhvs =
-                (* if return type is not void, convert \result in the formal
-                   arg of current kf. Otherwise, there's no conversion to do.
-                 *)
-                if Cil.isVoidType rt then bhvs
-                else
-                  Visitor.visitFramacBehaviors (new change_result my_kf) bhvs
-              in
-              spec.spec_behavior <- bhvs;
-              ChangeDoChildrenPost([g], fun x -> x)
-            | Not_auto_func -> DoChildren (* they are not considered here. *)
-        end
-      | _ -> DoChildren
+      let my_kf = Extlib.the self#current_kf in
+      (* don't use get_spec, as we'd generate default assigns,
+         while we'll fill the spec just below. *)
+      let vi = Kernel_function.get_vi my_kf in
+      (match kind_of_func vi with
+      | Pre_func kf ->
+        (* must advance the automaton according to current call. *)
+        let bhvs = mk_pre_fct_spec kf in
+        let bhvs =
+          Visitor.visitFramacBehaviors (new change_formals kf my_kf) bhvs
+        in
+	Annotations.add_behaviors Aorai_option.emitter my_kf bhvs;
+        SkipChildren
+      | Post_func kf ->
+          (* must advance the automaton according to return event. *)
+        let (rt, _, _, _) =
+          Cil.splitFunctionTypeVI (Kernel_function.get_vi kf)
+        in
+        let bhvs = mk_post_fct_spec kf in
+        let bhvs =
+          (* if return type is not void, convert \result in the formal
+             arg of current kf. Otherwise, there's no conversion to do. *)
+          if Cil.isVoidType rt then bhvs
+          else Visitor.visitFramacBehaviors (new change_result my_kf) bhvs
+        in
+	Annotations.add_behaviors Aorai_option.emitter my_kf bhvs;
+        SkipChildren
+      | Not_auto_func -> DoChildren (* they are not considered here. *))
+    | _ -> DoChildren
 
   method vstmt_aux stmt =
+    let kf = Extlib.the self#current_kf in
     let treat_loop body_ref stmt =
+      let init_state = Data_for_aorai.get_loop_init_state stmt in
+      let inv_state = Data_for_aorai.get_loop_invariant_state stmt in
+      let glob_state = Data_for_aorai.merge_state init_state inv_state in
+      let possible_states = all_possible_states glob_state in
 
       (* varinfo of the init_var associated to this loop *)
-      let vi_init = 
-        Data_for_aorai.get_varinfo 
-          (Data_for_aorai.loopInit^"_"^(string_of_int stmt.sid)) 
+      let vi_init =
+        Data_for_aorai.get_varinfo
+          (Data_for_aorai.loopInit ^ "_" ^ string_of_int stmt.sid)
       in
 
-(*    1) The associated init variable is set to 0 in first position
-         (or in second position if the first stmt is a if)*)
+      (*    1) The associated init variable is set to 0 in first position
+            (or in second position if the first stmt is a if)*)
 
       let loc = Cil_datatype.Stmt.loc stmt in
       let stmt_varset =
@@ -650,34 +860,33 @@ object(self)
         (* Function adapted from the cil printer *)
         try
           let rec skipEmpty = function
-              [] -> []
+          [] -> []
             | {skind=Instr (Skip _);labels=[]} :: rest -> skipEmpty rest
             | x -> x
           in
           match skipEmpty !body_ref.bstmts with
-            | {skind=If(_,tb,fb,_)} as head:: _ ->
-                begin
-                  match skipEmpty tb.bstmts, skipEmpty fb.bstmts with
-                    | _, {skind=Break _}:: _
-                    | _, {skind=Goto _} :: _
-                    | {skind=Goto _} :: _, _
-                    | {skind=Break _} :: _, _ ->
-                      !body_ref.bstmts <- 
-			head :: stmt_varset :: List.tl !body_ref.bstmts
-                    | _ ->
-                        raise Not_found
-                end
-            | _ -> raise Not_found
-        with
-          | Not_found ->
-              !body_ref.bstmts<-stmt_varset::!body_ref.bstmts
+          | {skind=If(_,tb,fb,_)} as head:: _ ->
+            begin
+              match skipEmpty tb.bstmts, skipEmpty fb.bstmts with
+              | _, {skind=Break _}:: _
+              | _, {skind=Goto _} :: _
+              | {skind=Goto _} :: _, _
+              | {skind=Break _} :: _, _ ->
+                !body_ref.bstmts <-
+		  head :: stmt_varset :: List.tl !body_ref.bstmts
+              | _ ->
+                raise Not_found
+            end
+          | _ -> raise Not_found
+        with Not_found ->
+          !body_ref.bstmts<-stmt_varset::!body_ref.bstmts
       end;
 
-(*    2) The associated init variable is set to 1 before the loop *)
+      (*    2) The associated init variable is set to 1 before the loop *)
       let new_loop = mkStmt stmt.skind in
       new_loop.sid<-(Cil.Sid.next ());
       let stmt_varset =
-        Cil.mkStmtOneInstr 
+        Cil.mkStmtOneInstr
           (Set((Var(vi_init),NoOffset), Cil.one ~loc, loc))
       in
       stmt_varset.sid <- Cil.Sid.next ();
@@ -685,79 +894,69 @@ object(self)
       let block = mkBlock [stmt_varset;new_loop] in
       stmt.skind<-Block(block);
 
-(*    3) Generation of the loop invariant *)
+      (*    3) Generation of the loop invariant *)
       let mk_imply operator predicate =
         pimplies
           (prel(operator,
                 Aorai_utils.mk_term_from_vi vi_init,
                 Aorai_utils.zero_term()),
-               predicate)
+           predicate)
       in
-(* The loop invariant is :
-     (Global invariant)  // all never reached state are set to zero
-   & (Pre2)              // internal pre-condition
-   & (Init => Pre1)      // external pre-condition
-   & (not Init => Post2) // internal post-condition
-   & counter_invariant   // values of counters. 
-   (init : fresh variable which indicates if the iteration is the first one).
-*)
-      let kf = Extlib.the self#current_kf in
-      let global_loop_inv = Aorai_utils.get_global_loop_inv stmt in
-      condition_to_invariant kf global_loop_inv new_loop;
+      (* The loop invariant is :
+	 (Global invariant)  // all never reached state are set to zero
+	 & (Init => Pre1)      // external pre-condition
+	 & (not Init => Post2) // internal post-condition
+	 & counter_invariant   // values of counters.
+	 (init: fresh variable which indicates if the iteration is the first
+	 one). *)
+      condition_to_invariant kf possible_states new_loop;
 
-      let pre2 = Aorai_utils.get_restricted_int_pre_bc stmt in
-      if pre2.content <> Ptrue then
-        predicate_to_invariant kf new_loop pre2;
-
-      let pre1 = Aorai_utils.get_restricted_ext_pre_bc stmt in
-      if pre1.content <> Ptrue then
-        predicate_to_invariant kf new_loop (mk_imply Rneq pre1);
-
-      let post2 = Aorai_utils.get_restricted_int_post_bc stmt in
-      if post2.content <> Ptrue then
-        predicate_to_invariant kf new_loop (mk_imply Req post2);
-
-      let action_state =
-        Spec_tools.double_bool_array_or_bycase
-          (Data_for_aorai.get_loop_int_post_bycase stmt)
-          (Data_for_aorai.get_loop_ext_pre_bycase stmt)
+      let init_preds = impossible_states_preds possible_states init_state in
+      let treat_init_pred pred =
+        let pred = mk_imply Rneq pred in
+        predicate_to_invariant kf new_loop pred
       in
-      let action_inv = get_action_invariant kf (Kstmt stmt) action_state in
-      List.iter (predicate_to_invariant kf new_loop) action_inv;
+      List.iter treat_init_pred init_preds;
 
-(*    4) Keeping in mind to preserve old annotations after visitor end *)
+      let invariant_preds = impossible_states_preds possible_states inv_state in
+      let treat_inv_pred pred =
+        let pred = mk_imply Req pred in
+        predicate_to_invariant kf new_loop pred
+      in
+      List.iter treat_inv_pred invariant_preds;
+
+      let action_inv_preds = Aorai_utils.all_actions_preds glob_state in
+      List.iter (predicate_to_invariant kf new_loop) action_inv_preds;
+
+      (*    4) Keeping in mind to preserve old annotations after visitor end *)
       Hashtbl.add post_treatment_loops (ref stmt) (ref new_loop);
 
-(*    5) Updated stmt is returned *)
-          stmt
+      (*    5) Updated stmt is returned *)
+      stmt
     in
     self#enter_block ();
     let after s =
       if self#leave_block () then
-        begin
-          let annots = Annotations.get_all_annotations stmt in
-          let annots = 
-            List.map Annotations.get_code_annotation annots in
-          let specs =
-            snd (List.split (Logic_utils.extract_contract annots))
-          in
-          List.iter (update_assigns (Cil_datatype.Stmt.loc stmt)) specs;
-          s
-        end
-      else s
+        let annots = Annotations.code_annot stmt in
+        let annots = List.map Annotations.code_annotation_of_rooted annots in
+        let _, specs = List.split (Logic_utils.extract_contract annots) in
+        List.iter (update_assigns (Cil_datatype.Stmt.loc stmt) None) specs;
+        s
+      else 
+	s
     in
     if treatloops then
       match stmt.skind with
-        | Loop (_,block,_,_,_) ->
-            ChangeDoChildrenPost(stmt, after $ (treat_loop (ref block)))
+      | Loop (_,block,_,_,_) ->
+        ChangeDoChildrenPost(stmt, after $ (treat_loop (ref block)))
 
-        | _ -> ChangeDoChildrenPost(stmt, after)
+      | _ -> ChangeDoChildrenPost(stmt, after)
     else
       ChangeDoChildrenPost(stmt,after)
 
   method vinst = function
-    | Call _ -> self#call (); DoChildren
-    | _ -> DoChildren
+  | Call _ -> self#call (); DoChildren
+  | _ -> DoChildren
 
 end
 
@@ -768,7 +967,7 @@ end
 (****************************************************************************)
 (**
   This visitor computes the list of ignored functions.
-  A function is ignored if its call is present in the C program, 
+  A function is ignored if its call is present in the C program,
   while its definition is not available.
 *)
 class visit_computing_ignored_functions () =
@@ -780,8 +979,7 @@ class visit_computing_ignored_functions () =
   in
 object (*(self) *)
 
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ()) as super
+  inherit Visitor.frama_c_inplace
 
   method vfunc _f = DoChildren
 
@@ -789,7 +987,7 @@ object (*(self) *)
     match stmt.skind with
       | Instr(Call (_,funcexp,_,_)) ->
           let name = get_call_name funcexp in
-          (* If the called function is neither ignored, nor declared, 
+          (* If the called function is neither ignored, nor declared,
              then it has to be added to ignored functions. *)
           if (not (Data_for_aorai.isIgnoredFunction name))
             && (not (isDeclaredInC name)) then
@@ -799,22 +997,8 @@ object (*(self) *)
 
 end
 
-(*************************************************************************)
-(* Call of the visitors *)
-
-let compute_abstract file root (considerAcceptance:bool) =
-  let visitor = new visit_computing_abstract_pre_post_from_buch
-    (Data_for_aorai.getAutomata()) (root) considerAcceptance
-  in
-  Cil.visitCilFile (visitor :> Cil.cilVisitor) file
-
-(* This visitor requires the AI to compute loop invariants. *)
 let add_pre_post_from_buch file treatloops  =
-  let visitor =
-    new visit_adding_pre_post_from_buch
-      (Data_for_aorai.getAutomata())
-      treatloops
-  in
+  let visitor = new visit_adding_pre_post_from_buch treatloops in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file;
   (* Transfer previous annotation on the new loop statement.
      Variant clause has to be preserved at the end of the annotation.*)
@@ -823,18 +1007,21 @@ let add_pre_post_from_buch file treatloops  =
       let new_s = !new_stmt in
       let old_s = !old_stmt in
       let kf = Kernel_function.find_englobing_kf old_s in
-      let old_annots = Annotations.get_all_annotations old_s in
       (* Erasing annotations from the old statement before attaching them with
 	 the new one *)
-      Annotations.reset_stmt ?reset:true kf old_s;
-      List.iter (Annotations.add kf new_s []) old_annots;
-    )
-    post_treatment_loops
+      let annots = 
+	Annotations.fold_code_annot
+	  (fun e a acc -> 
+	    Annotations.remove_code_annot e ~kf old_s a;
+	    (e, a) :: acc)
+	  old_s
+	  [];
+      in
+      List.iter (fun (e, a) -> Annotations.add_code_annot e ~kf new_s a) annots)
+   post_treatment_loops
 
 let add_sync_with_buch file  =
-  let visitor =
-    new visit_adding_code_for_synchronisation (Data_for_aorai.getAutomata())
-  in
+  let visitor = new visit_adding_code_for_synchronisation in
   Cil.visitCilFile (visitor :> Cil.cilVisitor) file
 
 (* Call of the visitor *)

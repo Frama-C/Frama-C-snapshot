@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,6 @@ module Non_linear_assignments =
       let name = "Non linear assignments"
       let size = 37
       let dependencies = [ Ast.self ]
-       let kind = `Internal
     end)
 
 module Loc_hashtbl = Hashtbl.Make (Location_Bits)
@@ -74,21 +73,6 @@ class do_non_linear_assignments = object(self)
         | Var _v, (Index _ | Field _) -> DoChildren
         end
 
-(*
-
-    try
-
-    let deps,loc =
-      !Value.lval_to_loc_with_deps
-        ~with_alarms:CilE.warn_none_mode
-        ~deps:Zone.bottom
-        current_stmt lv
-    in
-    let bits_loc = valid_enumerate_bits loc in
-    self#join deps;
-    self#join bits_loc;
-    SkipChildren
-*)
 
   method vcode_annot _ = SkipChildren
 

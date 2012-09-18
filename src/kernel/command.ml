@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+let safe_close_out outc = try close_out outc with _ -> ()
 
 (* -------------------------------------------------------------------------- *)
 (* --- File Utilities                                                     --- *)
@@ -34,11 +35,11 @@ let pp_to_file f pp =
     pp fout ;
     Format.pp_print_newline fout () ;
     Format.pp_print_flush fout () ;
-    close_out cout
+    safe_close_out cout
   with err ->
     Format.pp_print_newline fout () ;
     Format.pp_print_flush fout () ;
-    close_out cout ;
+    safe_close_out cout ;
     raise err
 
 let pp_from_file fmt file =
@@ -63,7 +64,7 @@ let rec bincopy buffer cin cout =
   if n > 0 then
     ( Pervasives.output cout buffer 0 n ; bincopy buffer cin cout )
   else
-    ( Pervasives.output cout "\n" 0 1 ; flush cout )
+    ( flush cout )
 
 let on_inc file job =
   let inc = open_in file in
@@ -72,8 +73,8 @@ let on_inc file job =
 
 let on_out file job =
   let out = open_out file in
-  try job out ; close_out out
-  with e -> close_out out ; raise e
+  try job out ; safe_close_out out
+  with e -> safe_close_out out ; raise e
 
 let copy src tgt =
   on_inc src
@@ -82,6 +83,45 @@ let copy src tgt =
          (fun out ->
             bincopy (String.create 2048) inc out))
 
+let read_file file job =
+  let inc = open_in file in
+  try
+    let r = job inc in
+    close_in inc ; r
+  with err ->
+    close_in inc ;
+    raise err
+
+let read_lines file job =
+  read_file file 
+    (fun inc ->
+       try
+	 while true do
+	   job (input_line inc) ;
+	 done
+       with End_of_file -> ())
+
+let write_file file job =
+  assert (file <> "");
+  let out = open_out file in
+  try 
+    let r = job out in
+    flush out ;
+    close_out out ; r
+  with err ->
+    close_out out ;
+    raise err
+
+let print_file file job =
+  write_file file
+    (fun out ->
+       let fmt = Format.formatter_of_out_channel out in
+       try 
+	 let r = job fmt in
+	 Format.pp_print_flush fmt () ; r
+       with err ->
+	 Format.pp_print_flush fmt () ;
+	 raise err)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Process                                                            --- *)
@@ -158,12 +198,16 @@ let command_generic ~async ?stdout ?stderr cmd args =
     (Unix.descr_of_out_channel errc)
   in
   to_terminate:= Some pid;
-  close_out inc; close_out outc; close_out errc;
+  safe_close_out inc; 
+  safe_close_out outc; 
+  safe_close_out errc;
     (*Format.printf "Generic run: %s " cmd;
       Array.iter (fun s -> Format.printf "%s " s) args;
       Format.printf "@.";*)
   let last_result= ref (Not_ready do_terminate) in
-  let wait_flags = if async then [Unix.WNOHANG; Unix.WUNTRACED]
+  let wait_flags = 
+    if async 
+    then [Unix.WNOHANG; Unix.WUNTRACED]
     else [Unix.WUNTRACED]
   in
   (fun () ->

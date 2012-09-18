@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,7 @@ open Fol
 
 module Env = Map.Make(Fol.Var)
 
-type term = Fol.term
+type _term = Fol.term
 type pred = Fol.pred
 
 let is_zone = function
@@ -98,15 +98,20 @@ struct
     | [] -> e_app M.empty []
     | z::zs -> e_app M.union [ z ; zunion zs ]
 
+  let included_in z zbs =
+    Fol.p_disj (List.map (fun zb -> p_app M.included [z;zb]) zbs)
+
   let included a b =
     let zas = flatten [] a in
     let zbs = flatten [] b in
     let zb = zunion zbs in
     List.fold_left
       (fun acc z ->
-         if Wp_parameters.Simpl.get () && List.exists (Fol.eq_terms z) zbs
-         then acc
-         else Bag.add (p_app M.included [z;zb]) acc)
+         if Wp_parameters.Simpl.get () then
+	   if List.exists (Fol.eq_terms z) zbs
+           then acc
+           else Bag.add (included_in z zbs) acc
+	 else Bag.add (p_app M.included [z;zb]) acc)
       Bag.empty zas
 
 end
@@ -192,7 +197,7 @@ let dispatch max_depth max_split p =
 let simplify = Fol_let.compile
 
 (* [split] may deliver stronger sub-predicates *)
-let split meth p =
+let split assigns p =
   let nb = Wp_parameters.SplitDim.get()
   in let max_depth = if nb < 0 then 0 (* <- do not prune the search *) else (2 + nb)
      and max_split = (* 2**|nb| *)
@@ -203,9 +208,9 @@ let split meth p =
         0 (* <- do not split *)
   in
   let bag =
-    match meth with
-      | Mcfg.EffectAssigns -> dispatch max_depth max_split (p_unfold Env.empty p)
-      | _ -> dispatch max_depth max_split p
+    if assigns 
+    then dispatch max_depth max_split (p_unfold Env.empty p)
+    else dispatch max_depth max_split p
   in let nb = Bag.length bag
       (* TODO:
          if the bag is not full and [max_depth]<>0

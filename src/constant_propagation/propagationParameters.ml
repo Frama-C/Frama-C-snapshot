@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,6 @@ module SemanticConstFolding =
       (struct
          let option_name = "-scf"
          let help = "pretty print a version of the source code where each constant expression is replaced by its value"
-       let kind = `Tuning
        end)
 let () = SemanticConstFolding.add_aliases ["-semantic-const-folding"]
 
@@ -43,7 +42,6 @@ module SemanticConstFold =
        let option_name = "-scf-fct"
        let arg_name = "f1, ..., fn"
        let help = "propagate constants only into functions f1,...,fn"
-       let kind = `Tuning
        end)
 let () = SemanticConstFold.add_aliases ["-semantic-const-fold"]
 
@@ -53,7 +51,6 @@ module CastIntro =
         let option_name = "-scf-allow-cast"
         let help = "replace expressions by constants even when doing so \
 requires a pointer cast"
-        let kind = `Tuning
        end)
 let () = CastIntro.add_aliases ["-cast-from-constant"]
 
@@ -62,7 +59,6 @@ module ExpandLogicContext =
       (struct
         let option_name = "-scf-logic"
         let help = "replace values from logical context and create corresponding variables (HIGHLY EXPERIMENTAL)"
-        let kind = `Tuning
        end)
 let () = ExpandLogicContext.add_aliases ["-semantic-const-fold-logic"]
 

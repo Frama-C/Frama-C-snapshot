@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,20 +23,19 @@
 (** Handle Frama-C warnings in the GUI. *)
 
 type t
-  (** Type of the widget containing the warnings. *)
-
+(** Type of the widget containing the warnings. *)
+  
 val make :
-  packing:(GObj.widget -> unit) -> callback:(Lexing.position -> unit) -> t
-  (** Build a new widget for storing the warnings. *)
+  packing:(GObj.widget -> unit) -> 
+  callback:(Log.event -> GTree.view_column -> unit) -> t
+(** Build a new widget for storing the warnings. *)
 
-(*val set_font : t -> Pango.font_description -> unit*)
-
-val append: t -> Log.event -> on_select:(Log.event -> unit) -> unit
-  (** Append a new message warning. *)
-
+val append: t -> Log.event -> unit
+(** Append a new message warning. *)
+  
 val clear: t -> unit
-  (** Clear all the stored warnigns. *)
-
+(** Clear all the stored warnigns. *)
+  
 (*
 Local Variables:
 compile-command: "make -C ../.."

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -44,10 +44,16 @@ val wcharlist_of_string: string -> int64 list
 
 val is_arithmetic_type: Cil_types.logic_type -> bool
 val is_integral_type: Cil_types.logic_type -> bool
+val is_set_type: Cil_types.logic_type -> bool
+val is_array_type: Cil_types.logic_type -> bool
+val is_pointer_type: Cil_types.logic_type -> bool
 
 val type_of_pointed: logic_type -> logic_type
-
 val type_of_array_elem: logic_type -> logic_type
+val type_of_set_elem: logic_type -> logic_type
+  
+val ctype_of_pointed: logic_type -> typ
+val ctype_of_array_elem: logic_type -> typ
 
 val add_offset_lval: term_offset -> term_lval -> term_lval
 
@@ -62,6 +68,7 @@ end
 
 (** Functions that can be called when type-checking an extension of ACSL. *)
 type typing_context = {
+  is_loop: unit -> bool;
   anonCompFieldName : string;
   conditionalConversion : typ -> typ -> typ;
   find_macro : string -> Logic_ptree.lexpr;
@@ -118,6 +125,8 @@ val register_behavior_extension:
 module Make
   (C :
     sig
+      val is_loop: unit -> bool 
+      (** whether the annotation we want to type is contained in a loop. *)
       val anonCompFieldName : string
       val conditionalConversion : typ -> typ -> typ
       val find_macro : string -> Logic_ptree.lexpr
@@ -176,9 +185,11 @@ sig
     location -> Logic_ptree.type_annot -> logic_info
 
   val model_annot :
-    location -> Logic_ptree.model_annot -> logic_info
+    location -> Logic_ptree.model_annot -> model_info
 
   val annot : Logic_ptree.decl -> global_annotation
+
+  val custom : Logic_ptree.custom_tree -> Cil_types.custom_tree
 
   (** [funspec behaviors f prms typ spec] type-checks a function contract.
       @param behaviors list of existing behaviors (outside of the current
@@ -195,16 +206,13 @@ sig
 
 end
 
-(** append the Old label in the environment *)
+(** append the Old and Post labels in the environment *)
 val append_old_and_post_labels: Lenv.t -> Lenv.t
 
 (** appends the Here label in the environment *)
 val append_here_label: Lenv.t -> Lenv.t
 
-(** appends the "Pre" label in the environment
-    when [pre_is_old] is true, it adds it has a synonym for "Old".
-    (the latter should be set when typing function contracts)
-*)
+(** appends the "Pre" label in the environment *)
 val append_pre_label: Lenv.t -> Lenv.t
 
 

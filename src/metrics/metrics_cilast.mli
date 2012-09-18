@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@ class type sloc_visitor = object
   method fundef_calls: int Metrics_base.VInfoMap.t
 
   (* Get the computed metris *)
-  method get_metrics: Metrics_base.my_metrics
+  method get_metrics: Metrics_base.BasicMetrics.t
 
   (* Print the metrics of a file [string] to a formatter
      Yields a fatal error if the file does not exist (or has no metrics).
@@ -48,7 +48,9 @@ class type sloc_visitor = object
 (** Print computed metrics to a formatter *)
 end
 
-class slocVisitor: sloc_visitor
+class slocVisitor: sloc_visitor ;;
+
+val get_metrics : unit -> Metrics_base.BasicMetrics.t ;;
 
 (** Compute metrics on whole CIL AST *)
-val compute_on_cilast: unit -> Db.Metrics.t;;
+val compute_on_cilast: unit -> unit ;;

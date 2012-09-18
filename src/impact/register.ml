@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,34 +30,23 @@ open Options
 let print_results fmt a =
   List.iter (fun s -> Format.fprintf fmt "@\nsid %d: %a" s.sid Cil.d_stmt s) a
 
-let from_stmt s =
-  let kf = Kernel_function.find_englobing_kf s in
-  try
-    Dynamic.get
-      ~plugin:"Security_slicing"
-      "impact_analysis"
-      (Datatype.func2 Kernel_function.ty Stmt.ty (Datatype.list Stmt.ty))
-      kf s
-  with
-  | Dynamic.Incompatible_type _ ->
-    error "versions of plug-ins `impact' and `Security_slicing' seem \
-incompatible.\nCheck the environement variable FRAMAC_PLUGIN.\n\
-Analysis discarded.";
-    []
-  | Dynamic.Unbound_value _ ->
-    error "cannot access to plug-in `Security_slicing'.\n\
-Are you sure that it is loaded? Check the environement variable \
-FRAMAC_PLUGIN.\n\
-Analysis discarded.";
-    []
+let compute_from_stmt stmt =
+  let kf = Kernel_function.find_englobing_kf stmt in
+  let skip = Compute_impact.skip () in
+  Compute_impact.impacted_stmts ~skip kf [stmt]
 
-let compute_one_stmt s =
-  debug "computing impact of statement %d" s.sid;
-  let res = from_stmt s in
+let compute_multiple_stmts skip kf ls =
+  debug "computing impact of statement(s) %a" 
+    (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls;
+  let res = Compute_impact.impacted_nodes ~skip kf ls in
+  let res_nodes = Compute_impact.result_to_nodes res in
+  let res_stmts = Compute_impact.nodes_to_stmts res_nodes in
   if Print.get () then begin
-    result "impacted statements of stmt %d are:%a" s.sid print_results res
+    result "impacted statements of stmt(s) %a are:%a"
+      (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls
+      print_results res_stmts
   end;
-  res
+  res_nodes
 
 let slice (stmts:stmt list) =
   feedback ~level:2 "beginning slicing";
@@ -77,46 +66,69 @@ let slice (stmts:stmt list) =
   !Db.Slicing.Project.print_extracted_project ?fmt:None ~extracted_prj ;
   feedback ~level:2 "slicing done"
 
-let on_pragma f =
+(* TODO: change function to generate on-the-fly the relevant pdg nodes *)
+let all_pragmas_kf _kf l =
   List.fold_left
     (fun acc (s, a) ->
        match a with
-       | User a ->
-           (match a.annot_content with
-            | APragma (Impact_pragma IPstmt) -> f acc s
-            | APragma (Impact_pragma (IPexpr _)) ->
-                raise (Extlib.NotYetImplemented "impact pragmas: expr")
-            | _ -> assert false)
-       | _ -> assert false)
+         | User a ->
+             (match a.annot_content with
+                | APragma (Impact_pragma IPstmt) -> s :: acc
+                | APragma (Impact_pragma (IPexpr _)) ->
+                    Options.not_yet_implemented "impact pragmas: expr"
+                | _ -> assert false)
+         | _ -> assert false
+    ) [] l
+
+let is_impact_pragma a =
+  Logic_utils.is_impact_pragma (Annotations.code_annotation_of_rooted a)
 
 let compute_pragmas () =
   Ast.compute ();
   let pragmas = ref [] in
   let visitor = object
-    inherit Visitor.generic_frama_c_visitor
-      (Project.current ()) (inplace_visit ())
+    inherit Visitor.frama_c_inplace as super
+
+    method vfunc f =
+      pragmas := [];
+      super#vfunc f
+
     method vstmt_aux s =
       pragmas :=
         List.map
           (fun a -> s, a)
-          (Annotations.get_filter Logic_utils.is_impact_pragma s)
+        (Annotations.code_annot ~filter:is_impact_pragma s)
       @ !pragmas;
       DoChildren
-  end in
+  end
+  in
   (* fill [pragmas] with all the pragmas of all the selected functions *)
-  Pragma.iter
-    (fun s ->
+  let pragmas = Pragma.fold
+    (fun f acc ->
        try
-         match (Globals.Functions.find_def_by_name s).fundec with
-         | Definition(f, _) -> ignore (visitFramacFunction visitor f)
+         let kf = Globals.Functions.find_def_by_name f in
+         match kf.fundec with
+         | Definition(f, _) ->
+             ignore (visitFramacFunction visitor f);
+             if !pragmas != [] then (kf, !pragmas) :: acc else acc
          | Declaration _ -> assert false
        with Not_found ->
-         abort "function %s not found." s);
-  (* compute impact analyses on [!pragmas] *)
-  let res = on_pragma (fun acc s -> compute_one_stmt s @ acc) [] !pragmas in
-  if Options.Slicing.get () then ignore (slice res)
+         abort "function %s not found." f
+    ) []
+  in
+  let skip = Compute_impact.skip () in
+  (* compute impact analyses on each kf *)
+  let nodes = List.fold_left
+    (fun nodes (kf, pragmas) ->
+       let pragmas_stmts = all_pragmas_kf kf pragmas in
+       PdgTypes.NodeSet.union nodes
+         (compute_multiple_stmts skip kf pragmas_stmts)
+    ) PdgTypes.NodeSet.empty pragmas
+  in
+  let stmts = Compute_impact.nodes_to_stmts nodes in
+  if Options.Slicing.get () then ignore (slice stmts)
 
-let main _fmt =
+let main () =
   if is_on () then begin
     feedback "beginning analysis";
     assert (not (Pragma.is_empty ()));
@@ -138,7 +150,7 @@ let () =
       (Db.Journalize
          ("Impact.from_stmt", Datatype.func Stmt.ty (Datatype.list Stmt.ty)))
       Impact.from_stmt
-      from_stmt;
+      compute_from_stmt;
   (* slice *)
   Db.register
     (Db.Journalize
@@ -148,6 +160,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

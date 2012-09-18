@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -34,9 +34,6 @@ open Cil_datatype
 * As the PDG is not defined here anymore, look at
 * {{:../pdg/PdgTypes.html}PdgTypes} for more information about it.
 * *)
-
-(** Nodes of the PDG *)
-type t_pdg_node = PdgTypes.Node.t
 
 (** {3 About options} *)
 
@@ -58,7 +55,7 @@ type t_level_option =
 (** {3 About function slice} *)
 
 (** Kinds of elementary marks. *)
-type t_mark = Cav of PdgTypes.Dpd.t
+type mark = Cav of PdgTypes.Dpd.t
             | Spare
 
 let compare_mark m1 m2 =
@@ -71,9 +68,9 @@ let compare_mark m1 m2 =
 
 
 (** Each PDG element has 2 marks to deal with interprocedural propagation *)
-type t_pdg_mark = {m1 : t_mark ; m2 : t_mark }
+type pdg_mark = {m1 : mark ; m2 : mark }
 
-let t_pdg_mark_packed_descr = Structural_descr.p_abstract
+let pdg_mark_packed_descr = Structural_descr.p_abstract
   (* Ok: Dpd.t is in fact int *)
 
 let compare_pdg_mark p1 p2 =
@@ -82,16 +79,13 @@ let compare_pdg_mark p1 p2 =
     let r = compare_mark p1.m1 p2.m1 in
     if r = 0 then compare_mark p1.m2 p2.m2 else r
 
-
-type t_call_id =  Cil_types.stmt
-
 (** Type for all the informations related to any function,
 * even if we don't have its definition.  *)
-and t_fct_info = {
+type fct_info = {
   fi_kf : Cil_types.kernel_function;
   fi_def : Cil_types.fundec option;
   fi_project : t_project;
-  mutable fi_top : t_pdg_mark option;
+  mutable fi_top : pdg_mark option;
           (** indicates if the function is maked top (=> src visible) *)
   mutable fi_level_option : t_level_option;
           (** level of specialisation for this function *)
@@ -107,7 +101,7 @@ and t_fct_info = {
 
 and
   (** to represent where a function is called. *)
-  t_called_by = (t_fct_slice * t_call_id) list
+  t_called_by = (t_fct_slice * Cil_types.stmt) list
 
 and
 (** Function slice :
@@ -115,7 +109,7 @@ and
     even if the slice itself hasn't been computed yet.
   *)
  t_fct_slice  = {
-    ff_fct : t_fct_info ;
+    ff_fct : fct_info ;
     ff_id : int ;
     mutable ff_marks : t_ff_marks;
     mutable ff_called_by : t_called_by
@@ -124,12 +118,12 @@ and
 and
 (** [t_fct_id] is used to identify either a source function or a sliced one.*)
   t_fct_id =
-  | FctSrc of t_fct_info  (** source function *)
+  | FctSrc of fct_info  (** source function *)
   | FctSliced of t_fct_slice (** sliced function *)
 
 and
   t_called_fct =
-  | CallSrc of t_fct_info option
+  | CallSrc of fct_info option
     (** call the source function (might be unknown if the call uses pointer) *)
   | CallSlice of t_fct_slice
 
@@ -140,15 +134,15 @@ and
 and
 (** main part of a slice = mapping between the function elements
   * and information about them in the slice. *)
-  t_marks_index = (t_pdg_mark, t_call_info) PdgIndex.FctIndex.t
+  marks_index = (pdg_mark, t_call_info) PdgIndex.FctIndex.t
 
 and
-  t_ff_marks = PdgTypes.Pdg.t * t_marks_index
+  t_ff_marks = PdgTypes.Pdg.t * marks_index
 
 and
   t_project = { name : string ;
                 application : Project.t ;
-                functions : t_fct_info Varinfo.Hashtbl.t;
+                functions : fct_info Varinfo.Hashtbl.t;
                 mutable actions : t_criterion list;
               }
 
@@ -159,7 +153,7 @@ and
  t_appli_criterion =
   | CaGlobalData of Locations.Zone.t
     (** select all that is necessary to compute the given location. *)
-  | CaCall of t_fct_info
+  | CaCall of fct_info
     (** select all that is necessary to call the given function.
     * Its application generates requests to add persistent selection
     * to all the function callers. *)
@@ -172,7 +166,7 @@ and
     Note that to build such a base criterion, the PDG has to be already
     computed.
 *)
-  t_fct_base_criterion = t_pdg_mark PdgMarks.t_select
+  t_fct_base_criterion = pdg_mark PdgMarks.t_select
 
 and
   (** Used to identify a location (zone) at a given program point.
@@ -190,34 +184,34 @@ and
 and
 (** Tells which marks we want to put in the slice of a function *)
  t_fct_user_crit =
-  (* | CuNodes of (t_pdg_node list * (t_node_or_dpds * t_pdg_mark) list) list *)
-  | CuSelect of t_pdg_mark PdgMarks.t_select
-  | CuTop of t_pdg_mark (** the function has probably no PDG,
+  (* | CuNodes of (t_pdg_node list * (t_node_or_dpds * pdg_mark) list) list *)
+  | CuSelect of pdg_mark PdgMarks.t_select
+  | CuTop of pdg_mark (** the function has probably no PDG,
                             but we nonetheless give a mark to propagate *)
 and
 (** kinds of actions that can be apply to a function *)
   t_fct_crit =
   | CcUserMark of t_fct_user_crit
       (** add marks to a slice *)
-  | CcChooseCall of t_call_id
+  | CcChooseCall of Cil_types.stmt
       (** have to choose what function to call here. *)
-  | CcChangeCall of t_call_id * t_called_fct
-      (** call the [t_called_fct] for the given call [t_call_id] *)
-  | CcMissingOutputs of t_call_id * (t_pdg_mark PdgMarks.t_select) * bool
+  | CcChangeCall of Cil_types.stmt * t_called_fct
+      (** call the [t_called_fct] for the given call [Cil_types.stmt] *)
+  | CcMissingOutputs of Cil_types.stmt * (pdg_mark PdgMarks.t_select) * bool
       (** this call is affected to a function that doesn't compute enough
       * outputs : we will have to choose between adding outputs to that slice,
       * or call another one. The boolean tells if the modifications would
       * change the visibility of some outputs. *)
-  | CcMissingInputs of t_call_id * (t_pdg_mark PdgMarks.t_select) * bool
+  | CcMissingInputs of Cil_types.stmt * (pdg_mark PdgMarks.t_select) * bool
       (** the function calls a slice that has been modified :
       * and doesn't compute not enough inputs.
       * We will have to choose between adding marks to this function,
       * and call another slice.
       * The boolean tells if the modifications would
       * change the visibility of some inputs. *)
-  | CcPropagate of (t_pdg_mark PdgMarks.t_select)
+  | CcPropagate of (pdg_mark PdgMarks.t_select)
      (** simply propagate the given marks *)
-  | CcExamineCalls of t_pdg_mark PdgMarks.t_info_called_outputs
+  | CcExamineCalls of pdg_mark PdgMarks.t_info_called_outputs
 and
 (** Slicing criterion for a function.  *)
   t_fct_criterion =  {
@@ -239,12 +233,8 @@ and
 
 (** {2 Internals values} *)
 
-(** Internal function allowing creation of slicing marks
-    which can break their type invariant ! *)
-let create_sl_mark ~m1 ~m2 = { m1 = m1; m2 = m2 }
-
 (** {3 For the journalization of these internals types} *)
-let dummy_t_pdg_mark = {m1 = Spare ; m2 = Spare }
+let dummy_pdg_mark = {m1 = Spare ; m2 = Spare }
 
 (** The whole project. *)
 let dummy_t_project =
@@ -253,7 +243,7 @@ let dummy_t_project =
     functions = Varinfo.Hashtbl.create 0;
     actions = [] }
 
-let dummy_t_fct_info = {
+let dummy_fct_info = {
   fi_kf = Kernel_function.dummy () ;
   fi_def = None;
   fi_project = dummy_t_project;
@@ -265,19 +255,19 @@ let dummy_t_fct_info = {
   f_called_by = [];
 }
 
-let dummy_t_marks_index = PdgIndex.FctIndex.create 0
+let dummy_marks_index = PdgIndex.FctIndex.create 0
 
 let dummy_t_ff_marks = (PdgTypes.Pdg.top (Kernel_function.dummy ()),
-                        dummy_t_marks_index)
+                        dummy_marks_index)
 
 let dummy_t_fct_slice = {
-  ff_fct = dummy_t_fct_info ;
+  ff_fct = dummy_fct_info ;
   ff_id = 0 ;
   ff_marks = dummy_t_ff_marks ;
   ff_called_by = []
 }
 
-let dummy_t_fct_user_crit = CuTop dummy_t_pdg_mark
+let dummy_t_fct_user_crit = CuTop dummy_pdg_mark
 
 (*
 Local Variables:

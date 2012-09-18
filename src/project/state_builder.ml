@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,6 @@ open Project_skeleton.Output
 module type Info = sig
   val name: string
   val dependencies : State.t list
-  val kind: State.kind
 end
 
 module type Info_with_size = sig
@@ -40,12 +39,12 @@ end
 module type S = sig
   val self: State.t
   val name: string
-  val kind: State.kind
   val mark_as_computed: ?project:Project.t -> unit -> unit
   val is_computed: ?project:Project.t -> unit -> bool
   module Datatype: Datatype.S
   val add_hook_on_update: (Datatype.t -> unit) -> unit
   val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
+  val set_descr: 'a Type.t -> 'a Descr.t -> unit
 end
 
 (* ************************************************************************* *)
@@ -61,10 +60,10 @@ module Proxy = struct
 
   let extend_state states k s =
     let add_deps () =
-      State_dependency_graph.Dynamic.add_dependencies ~from:s states
+      State_dependency_graph.add_dependencies ~from:s states
     in
     let add_codeps () =
-      State_dependency_graph.Dynamic.add_codependencies ~onto:s states
+      State_dependency_graph.add_codependencies ~onto:s states
     in
     match k with
     | Backward -> add_deps ()
@@ -78,7 +77,7 @@ module Proxy = struct
 
   open State
 
-  let create name kind correctness states =
+  let create name kind states =
     let s =
       State.create
         ~descr:Structural_descr.p_abstract
@@ -100,9 +99,8 @@ module Proxy = struct
         ~unserialize:do_nothing_2
         ~unique_name:(State.unique_name_from_name name)
         ~name
-        (`Proxy correctness)
     in
-    State_dependency_graph.add_state_like_the_others states s;
+    State_dependency_graph.add_state s [];
     extend_state states kind s;
     { state = s; kind = kind }
 
@@ -213,7 +211,9 @@ struct
 
   let copy src dst =
     debug ~level:4 "copying state %S from %S to %S"
-      !internal_name (Project.get_unique_name src) (Project.get_unique_name dst);
+      !internal_name 
+      (Project.get_unique_name src) 
+      (Project.get_unique_name dst);
     let v = find src in
     change ~force:false dst { v with state = Datatype.copy v.state }
 
@@ -257,11 +257,11 @@ struct
           (find p).state, false
       in
       change ~force:true p { state = s; computed = computed };
-    end else
-      raise
-        (Project.IOError
-           ("project saved with incompatibles datatypes for state "
-            ^ !internal_name))
+    end else begin
+      clear p;
+      raise (State.Incompatible_datatype !internal_name)
+    end
+
   (* ********************************************************************* *)
 
   let mark_as_computed ?(project=(Project.current ())) () =
@@ -279,129 +279,18 @@ struct
       ~descr ~create ~remove ~clear ~clear_some_projects ~copy
       ~commit ~update ~on_update:(fun f -> Update_hook.extend (fun _ -> f ()))
       ~serialize ~unserialize ~clean
-      ~unique_name ~name:Info.name Info.kind
+      ~unique_name ~name:Info.name
 
   let name = State.get_name self
-  let kind = State.kind self
 
   let () =
     internal_name := State.get_unique_name self;
     (* register this state in the static graph and in projects *)
-    State_dependency_graph.Static.add_state self dependencies;
+    State_dependency_graph.add_state self dependencies;
     Project.iter_on_projects create
 
-end
-
-(* ************************************************************************* *)
-(** {3 Prebuilt states} *)
-(* ************************************************************************* *)
-
-module Prebuild
-  (D:Datatype.S)
-  (S:State.Local with type t = D.t)
-  (I:sig val name: string end) =
-  Register
-    (D)
-    (S)
-    (struct
-      let unique_name = I.name
-      let name = I.name
-      let dependencies = []
-      let kind = `Internal
-      let descr _ = Descr.unmarshable
-     end)
-
-module States =
-  Prebuild(State.States_datatype)(State.States)(struct let name = "States" end)
-
-module Vertices =
-  Prebuild
-    (State_dependency_graph.Vertices_datatype)
-    (State_dependency_graph.Vertices)
-    (struct let name = "Vertices" end)
-
-module Static =
-  Prebuild
-    (State_dependency_graph.Static_datatype)
-    (State_dependency_graph.Static)
-    (struct let name = "Static Dependency Graph" end)
-
-(* This proxy collapses all meta states (in particular states for states
-   dependency graphs).
-
-   That is required when setting project: all these states have to be
-   consistent while it potentially refers to each others.
-
-   It would be an issue with clearing which would clear to many graphs. That is
-   not the case since each registered function  `clear' does nothing actually:
-   dashtables do the job :). *)
-let states_graph_proxy =
-  Proxy.create
-    "Graph Proxy"
-    Proxy.Both
-    `Internal
-    [ States.self; Vertices.self; Static.self ]
-
-(* ************************************************************************* *)
-(** {3 Dynamic} *)
-(* ************************************************************************* *)
-
-module Dynamic(Info: sig include Info val internal_kind: State.kind end) =
-struct
-
-  let new_kind ~name unique_name clear =
-    let clear p =
-      debug ~level:4 "clearing dynamic state %S for project %S"
-        name (Project.get_unique_name p);
-      clear p
-    in
-    let s = State.unusable ~name unique_name in
-    State.update_unusable s Info.internal_kind clear;
-    s
-
-  module G = State_dependency_graph.Make_dynamic(Info)
-
-  module Graph_state =
-    Register
-      (G.Datatype)
-      (G)
-      (struct
-        include Info
-        let unique_name = name
-        let descr _ = Descr.unmarshable
-       end)
-
-  let () = Proxy.extend [ Graph_state.self ] states_graph_proxy
-
-  let self_ref = ref Graph_state.self
-
-  let remove_state ~reset s =
-(*    Format.printf "REMOVING state %S of %S@." (State.get_unique_name s)
-      Info.name; *)
-    if reset then
-      Project.clear ~selection:(State_selection.Dynamic.only_dependencies s) ();
-    G.remove_state s
-
-  module Register
-    (S: sig val clear: Project.t -> unit end)
-    (Info: sig
-      val name: string
-      val unique_name: string
-      val dependencies: State.t list
-    end ) =
-  struct
-    let self = new_kind ~name:Info.name Info.unique_name S.clear
-    let name = State.get_name self
-    let kind = State.kind self
-    let () =
-      let deps =
-        !self_ref
-        :: List.filter (fun s -> not (State.is_dummy s)) Info.dependencies
-      in
-      G.add_state self deps
-  end
-
-  let add_state s = G.add_state s []
+  let set_descr _ty (* [ty] is for safety only *) d =
+    State.set_descr self (Descr.pack d)
 
 end
 
@@ -518,14 +407,17 @@ module Int_ref(Info: sig include Info val default: unit -> int end) =
 module Zero_ref(Info: Info ) =
   Int_ref(struct include Info let default () = 0 end)
 
-module Bool_ref(Info: sig include Info val default: bool end) =
-  Ref(Datatype.Bool)(struct include Info let default () = default end)
+module Bool_ref(Info: sig include Info val default: unit -> bool end) =
+  Ref(Datatype.Bool)(struct include Info let default = Info.default end)
 
 module False_ref(Info:Info) =
-  Bool_ref(struct include Info let default = false end)
+  Bool_ref(struct include Info let default () = false end)
 
 module True_ref(Info:Info) =
-  Bool_ref(struct include Info let default = true end)
+  Bool_ref(struct include Info let default () = true end)
+
+module Float_ref(Info: sig include Info val default: unit -> float end) =
+  Ref(Datatype.Float)(Info)
 
 (* ************************************************************************* *)
 (** {3 References on a set} *)
@@ -565,7 +457,11 @@ module type Hashtbl = sig
   val clear: unit -> unit
   val length: unit -> int
   val iter: (key -> data -> unit) -> unit
+  val iter_sorted:
+    ?cmp:(key -> key -> int) -> (key -> data -> unit) -> unit
   val fold: (key -> data -> 'a -> 'a) -> 'a -> 'a
+  val fold_sorted:
+    ?cmp:(key -> key -> int) -> (key -> data -> 'a -> 'a) -> 'a -> 'a
   val memo: ?change:(data -> data) -> (key -> data) -> key -> data
   val find: key -> data
   val find_all: key -> data list
@@ -632,7 +528,9 @@ struct
   let mem key = H.mem !state key
   let remove key = H.remove !state key
   let iter f = H.iter f !state
+  let iter_sorted ?cmp f = H.iter_sorted ?cmp f !state
   let fold f acc = H.fold f !state acc
+  let fold_sorted ?cmp f acc = H.fold_sorted ?cmp f !state acc
 
   let memo ?change f key =
     try
@@ -645,6 +543,8 @@ struct
       data
 
 end
+
+module Int_hashtbl = Hashtbl(Datatype.Int.Hashtbl)
 
 (* ************************************************************************* *)
 (** {3 Weak Hashtbl} *)
@@ -775,47 +675,6 @@ struct
 
 end
 
-(* ************************************************************************* *)
-(** {3 Dashtbl} *)
-(* ************************************************************************* *)
-
-module type Dashtbl = sig
-  include S
-  type key
-  type data
-  val add: string -> key -> State.t list -> data -> unit
-  val replace: reset:bool -> string -> key -> State.t list -> data -> unit
-  val memo:
-    reset:bool -> (data list -> data) -> string -> key -> State.t list -> data
-  val clear: reset:bool -> unit -> unit
-  val remove: reset:bool -> key -> State.t -> unit
-  val remove_all: reset:bool -> key -> unit
-  val filter:
-    reset:bool -> (key -> State.t option -> data -> bool) -> key -> unit
-  val mem: key -> bool
-  val is_local: State.t -> bool
-  val find: ?who:State.t list -> key -> State.t -> data * State.t
-  val find_key: State.t -> (key * State.t) list
-  val find_data: ?who:State.t list -> key -> State.t -> data
-  val find_state: ?who:State.t list -> key -> State.t -> State.t
-  val find_all_local:
-    ?who:State.t list -> key -> State.t -> (data * State.t) list
-  val find_all_local_data: ?who:State.t list -> key -> State.t -> data list
-  val find_all_local_states: ?who:State.t list -> key -> State.t -> State.t list
-  val find_all: ?who:State.t list -> key -> (data * State.t) list
-  val find_all_data: ?who:State.t list -> key -> data list
-  val find_all_states: ?who:State.t list -> key -> State.t list
-  val iter: (key -> State.t option -> data * State.t -> unit) -> unit
-  val iter_key: (State.t option -> data * State.t -> unit) -> key -> unit
-  val fold:
-    (key -> State.t option -> data * State.t -> 'a -> 'a) -> 'a -> 'a
-  val fold_key:
-    (State.t option -> data * State.t -> 'a -> 'a) -> key -> 'a -> 'a
-  val length: unit -> int
-  module Graph: Dashtbl.Graph
-end
-
-
 (* Create a fresh, shared reference among projects.
    The projectification is only required for correct marshalling. *)
 module SharedCounter(Info : sig val name : string end) = struct
@@ -825,7 +684,6 @@ module SharedCounter(Info : sig val name : string end) = struct
     Register
       (struct
          include Datatype.Int
-         let default () = 0
          let descr =
            Descr.transform
              Descr.t_int
@@ -845,7 +703,6 @@ module SharedCounter(Info : sig val name : string end) = struct
          let name = Info.name
          let unique_name = Info.name
          let dependencies = []
-         let kind = `Internal
        end)
 
   let next () = incr cpt ; !cpt
@@ -854,7 +711,6 @@ module SharedCounter(Info : sig val name : string end) = struct
 end
 
 module Cpt = SharedCounter(struct let name = "State_builder.Cpt" end)
-
 
 module Counter(Info : sig val name : string end) = struct
 
@@ -865,7 +721,6 @@ module Counter(Info : sig val name : string end) = struct
     Register
       (struct
          include Datatype.Ref(Datatype.Int)
-         let default () = 0
          let descr =
            Descr.transform
              (Descr.t_ref Descr.t_int)
@@ -886,128 +741,10 @@ module Counter(Info : sig val name : string end) = struct
          let name = Info.name
          let unique_name = Info.name
          let dependencies = []
-         let kind = `Internal
        end)
 
   let next () = incr !cpt ; !(!cpt)
   let self = Cpt.self
-
-end
-
-
-module Dashtbl
-  (Key: Dashtbl.Key)
-  (Data: Dashtbl.Data)
-  (Info: sig include Info_with_size val internal_kind: State.kind end)
-  =
-struct
-
-  module Graph = struct
-
-    module D =
-      Dynamic
-        (struct
-          let name = Info.name ^ " Dependency Graph"
-          let dependencies = []
-          let kind = `Internal
-          let internal_kind = Info.internal_kind
-         end)
-
-    let create_and_add_state ~clear ~name ~deps =
-      let module S =
-            D.Register
-              (struct let clear = clear end)
-              (struct
-                let name = name
-                let unique_name =
-                  let n = Cpt.next () in
-                  Info.name ^ "; binding " ^ string_of_int n
-                let dependencies = deps
-               end)
-      in
-      S.self
-
-    let add_state = D.add_state
-    let remove_state = D.remove_state
-    let internal_kind = Info.internal_kind
-    let self = D.self_ref
-
-  end
-
-  module Dash = Dashtbl.Make(Graph)(Key)(Data)(Info)
-
-  let create () = Dash.create Info.size
-
-  let state = ref (create ())
-
-  include Register
-  (Dash)
-  (struct
-    type t = Dash.t
-    let create = create
-    let clear tbl =
-      Dash.clear ~reset:false tbl;
-      Graph.D.G.real_clear ()
-    let get () = !state
-    let set x = state := x
-    let clear_some_projects _ _ =
-      (* TODO: not able to handle project in dashtbl yet *)
-      assert (Data.mem_project == Datatype.never_any_project
-              || Data.mem_project == Datatype.undefined);
-      false
-   end)
-  (struct include Info let unique_name = name end)
-
-  let () =
-    Graph.self := self;
-    State_dependency_graph.Static.add_dependencies
-      ~from:self [ Graph.D.Graph_state.self ]
-
-  let () =
-    let marshal, unmarshal = Dash.marshaler in
-    howto_marshal marshal unmarshal
-
-  let () =
-    Project.register_after_load_hook
-      (fun () ->
-        Dash.iter
-          (fun _ s (_, s') ->
-            assert (not (State.is_dummy s'));
-            let from =
-              match s with
-              | None -> [ self ]
-              | Some s -> [ s; self ]
-            in
-            State_dependency_graph.Dynamic.add_codependencies ~onto:s' from)
-          !state)
-
-  type key = Dash.key
-  type data = Dash.data
-  open Dash
-  let add s k l d = add !state s k l d
-  let replace ~reset s k l d = replace ~reset !state s k l d
-  let memo ~reset f s k l = memo ~reset f !state s k l
-  let clear ~reset () = clear ~reset !state
-  let remove ~reset k s = remove ~reset !state k s
-  let remove_all ~reset k = remove_all ~reset !state k
-  let filter ~reset f k = filter ~reset f !state k
-  let mem k = mem !state k
-  let is_local s = is_local !state s
-  let find ?who k s = find ?who !state k s
-  let find_key s = find_key !state s
-  let find_data ?who k s = find_data ?who !state k s
-  let find_state ?who k s = find_state ?who !state k s
-  let find_all_local ?who k s = find_all_local ?who !state k s
-  let find_all_local_data ?who k s = find_all_local_data ?who !state k s
-  let find_all_local_states ?who k s = find_all_local_states ?who !state k s
-  let find_all ?who k = find_all ?who !state k
-  let find_all_data ?who k = find_all_data ?who !state k
-  let find_all_states ?who k = find_all_states ?who !state k
-  let iter f = iter f !state
-  let iter_key f k = iter_key f !state k
-  let fold f acc = fold f !state acc
-  let fold_key f k acc = fold_key f !state k acc
-  let length () = length !state
 
 end
 
@@ -1066,7 +803,6 @@ let apply_once name dep f =
       (struct
         let dependencies = dep
         let name = name
-        let kind = `Internal
        end)
   in
   (fun () ->
@@ -1074,7 +810,11 @@ let apply_once name dep f =
        First.set false;
        try
          f ();
-         assert (First.get () = false)
+         if First.get () then First.set false
+       (* assert
+          (verify (First.get () = false) 
+          "%s is supposed to be applied once, but resets itself its status"
+          name) *)
        with exn ->
          First.set true;
          raise exn

@@ -1,9 +1,11 @@
 /* run.config
   GCC:
-  OPT: -check -cpp-command "gcc -C -E -I. %1 -o %2" -memory-footprint 1 -val -deps -out -input -journal-disable
+  OPT: -check -cpp-command "gcc -C -E -I. %1 -o %2" -memory-footprint 1 -val -deps -out -input -journal-disable share/libc/stdio.c
 */
 
 /* This test of enums doubles with a test of the % syntax in -cpp-command */
+
+#include "share/libc/stdio.h"
 
 #define BIT_DE_SIGNE_1 (0x98765432)
 #define BIT_DE_SIGNE_0 (0x12345678)
@@ -13,7 +15,7 @@ typedef enum {
   E1_SGN0 = BIT_DE_SIGNE_0
   } E1 ;
 
-E1 f(E1 x) { return x; }
+E1 f(E1 x) { E1 y = x; return x; }
 
 unsigned char enum1_sgn1_positif (void) {
   unsigned char res = (f((E1)E1_SGN1)) > 0;

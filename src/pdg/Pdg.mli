@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -53,7 +53,7 @@ module Register : sig
   * of a function propagated into its calls *)
   val call_out_marks_to_called : PdgTypes.Pdg.t -> 't_mark PdgMarks.t_m2m ->
     ?rqs:('t_mark PdgMarks.t_select) ->
-    (PdgIndex.Signature.t_out_key * 't_mark) list ->
+    (PdgIndex.Signature.out_key * 't_mark) list ->
     't_mark PdgMarks.t_select
 
   (** translate all the interprocedural information returned by a propagation in

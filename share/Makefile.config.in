@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -51,6 +51,8 @@ FRAMAC_LIBDIR	?=$(LIBDIR)/frama-c
 FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
 FRAMAC_DATADIR 	?=$(DATADIR)/frama-c
 EMACS_DATADIR	?=$(DATADIR)/emacs/site-lisp
+FRAMAC_DEFAULT_CPP ?=@FRAMAC_DEFAULT_CPP@
+FC_MCPP ?=@FC_MCPP@
 
 ###############
 # Ocaml stuff #
@@ -64,7 +66,7 @@ OCAMLLEX	?=@OCAMLLEX@
 OCAMLYACC	?=@OCAMLYACC@
 OCAMLMKTOP	?=@OCAMLMKTOP@
 OCAMLDOC	?=@OCAMLDOC@
-OCAMLCP		?=ocamlcp
+OCAMLCP		?=@OCAMLCP@
 
 # others ocaml stuffs
 
@@ -91,17 +93,17 @@ OCAMLGRAPH_HOME   ?=@OCAMLGRAPH_HOME@
 # lablgtk
 HAS_LABLGTK	?=@HAS_LABLGTK@
 HAS_LABLGTK_CUSTOM_MODEL ?=@HAS_LABLGTK@
+LABLGTK_PATH ?=@LABLGTK_PATH@
 
 # lablgtksourceview
 HAS_GTKSOURCEVIEW ?=@HAS_GTKSOURCEVIEW@
-HAS_LEGACY_GTKSOURCEVIEW ?=@HAS_LEGACY_GTKSOURCEVIEW@
 
 # lablgnomecanvas
 HAS_GNOMECANVAS	?=@HAS_GNOMECANVAS@
 
-# lablglade
-HAS_LABLGLADECC	?=@HAS_LABLGLADECC@
-LABLGLADECC	?=@LABLGLADECC@ -hide-default
+# zarith
+HAS_ZARITH	?=@HAS_ZARITH@
+ZARITH_PATH	?=@ZARITH_PATH@
 
 ##########################
 # Miscellaneous commands #

@@ -1,6 +1,7 @@
 /* run.config
-   OPT: -debug 1 -load-script tests/misc/callsite.ml
+   OPT: -load-script tests/misc/callsite.ml
  */
+// Don't use -debug 1 option in the test command.
 
 void f(void);
 void g(void);

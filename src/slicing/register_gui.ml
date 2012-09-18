@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,16 +17,15 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Cil_types
-open Cil_datatype
 
-(* Show or hide the 'Slicing' column of the gui filetree. *)
-let show_column = ref (fun () -> ())
+(* Update the 'Slicing' column of the gui filetree. *)
+let update_column  = ref (fun _ -> ())
 
 (* Are results shown? *)
 module Enabled = struct
@@ -35,7 +34,6 @@ module Enabled = struct
     (struct
        let name = "Slicing_gui.State"
        let dependencies = [!Db.Slicing.self]
-       let kind = `Internal
        let default () = false
      end)
 end
@@ -61,8 +59,7 @@ let mk_slice selection =
   if SlicingParameters.Mode.Callers.get () then
     !Db.Slicing.Slice.remove_uncalled project;
   let sliced_project_name =
-    let postfix = SlicingParameters.ExportedProjectPostfix.get ()
-    in if postfix = "" then project_name else (project_name ^ " " ^ postfix)
+    project_name ^ (SlicingParameters.ExportedProjectPostfix.get ())
   in
   let new_project =
     !Db.Slicing.Project.extract sliced_project_name project
@@ -108,7 +105,7 @@ let gui_mk_slice (main_ui:Design.main_window_extension_points) selection ~info =
     (fun () -> "Slice exported to project: " ^ (Project.get_name new_project));
   main_ui#rehighlight ()
 
-let msg_appl_compute_values =
+let _msg_appl_compute_values =
   "Activating Slicing Plug-in by running Value Analysis first"
 let msg_help_compute_values =
   "Activates Slicing Plug-in by running Value Analysis first."
@@ -144,16 +141,6 @@ let gui_apply_action (main_ui:Design.main_window_extension_points) f x ~info =
 let get_setting_option_text txt =
   "Setting option " ^ txt ^ " for the current project"
 
-let gui_toggle_slice_undef (main_ui:Design.main_window_extension_points) =
-  let slice_undef = not (SlicingParameters.Mode.SliceUndef.get ()) in
-    gui_apply_action main_ui SlicingParameters.Mode.SliceUndef.set slice_undef
-      ~info:(fun () ->
-
-               if slice_undef then (get_setting_option_text "-slice-undef-functions" )^
-                 ". Allow the use of the slicing level for calls to undefined functions"
-               else (get_setting_option_text "-no-slice-undef-functions") ^
-                 ". Forbid the slicing of prototypes of undefined functions")
-
 let gui_set_project (main_ui:Design.main_window_extension_points) proj_opt =
   gui_apply_action main_ui !Db.Slicing.Project.set_project proj_opt
     ~info:(fun () ->
@@ -174,7 +161,7 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
             then gui_compute_values main_ui ;
             if Db.Value.is_computed ()
             then (Enabled.set true;
-                  !show_column ())
+                  !update_column `Visibility)
          ))
   else
     let slicing_project = !Db.Slicing.Project.get_project () in
@@ -225,7 +212,13 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
         new Design.protected_menu_factory (main_ui:>Gtk_helper.host) submenu
       in
       (* definitions for slicing plug-in *)
-      let add_slicing_item name = add_item slicing_factory name in
+      let add_slicing_item name ~callback v =
+        let callback v =
+          callback v;
+          !update_column `Contents
+        in
+        add_item slicing_factory name ~callback v
+        in
       let mk_slice = gui_mk_slice main_ui in
       let add_slice_menu kf_opt kf_ki_opt =
         (let callback kf =
@@ -598,7 +591,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
   (* [enabled_button] to give slicing menu available *)
   let do_refresh to_enable =
     if to_enable then gui_compute_values main_ui;
-    !show_column ();
+    !update_column `Visibility;
     main_ui#rehighlight ();
   in
   let enabled_button =
@@ -655,7 +648,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
       level_refresh ();
       if Enabled.get () <> enabled_button#active then (
         enabled_button#set_active (Enabled.get ());
-        !show_column ();
+        !update_column `Contents;
       );
       slice_undef_button#set_active (SlicingParameters.Mode.SliceUndef.get());
       refresh_combo_box combo_box_text slicing_project
@@ -665,7 +658,7 @@ let slicing_panel (main_ui:Design.main_window_extension_points) =
     "Slicing",w#coerce,Some refresh
 
 let file_tree_decorate (file_tree:Filetree.t) =
-  show_column :=
+  update_column :=
     file_tree#append_pixbuf_column
       ~title:"Slicing"
       (fun globs ->
@@ -689,7 +682,7 @@ let file_tree_decorate (file_tree:Filetree.t) =
           ~dft:[`STOCK_ID ""]
           (!Db.Slicing.Project.get_project ()))
       (fun () -> Enabled.get ());
-  !show_column ()
+  !update_column `Visibility
 
 let main (main_ui:Design.main_window_extension_points) =
   main_ui#register_source_selector slicing_selector;
@@ -697,7 +690,8 @@ let main (main_ui:Design.main_window_extension_points) =
   main_ui#register_panel slicing_panel;
   file_tree_decorate main_ui#file_tree
 
-let () = Design.register_extension main
+let () =
+  Design.register_extension main
 
 (*
 Local Variables:

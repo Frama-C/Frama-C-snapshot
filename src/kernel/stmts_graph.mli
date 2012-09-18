@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,22 @@ open Cil_datatype
 val stmt_can_reach: kernel_function -> stmt -> stmt -> bool
   (** [stmt_can_reach kf s1 s2] is [true] iff the control flow can reach
       [s2] starting at [s1] in function [kf]. *)
+
+val stmt_can_reach_filtered : (stmt -> bool) -> stmt -> stmt -> bool
+  (** Just like [stmt_can_reach] but uses a function to filter the nodes of the
+      graph it operates on.
+      Note that the output of the filter function must be functionally dependent
+      on its input *)
+
+val stmt_is_in_cycle : stmt -> bool
+  (** [stmt_is_in_cycle s] is [true] iff [s] is reachable through a non trival path
+   * starting at [s]. *)
+
+val stmt_is_in_cycle_filtered : (stmt -> bool) -> stmt -> bool
+  (** Just like [stmt_is_in_cycle] but uses a function to filter the nodes of
+      the graph it operates on.
+      Note that the output of the filter function must be functionally dependent
+      on its input *)
 
 val reachable_stmts: kernel_function -> stmt -> stmt list
 

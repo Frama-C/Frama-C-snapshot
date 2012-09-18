@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -131,6 +131,7 @@ let build_elem_opt ~addrlab ~mlab elem =
     | TLval (h, off) ->
       let mk_addr_at t = Logic_const.tat (t, addrlab) in
       let rec mk_at_off off = match off with TNoOffset -> off
+        | TModel (m, off) -> TModel (m, mk_at_off off)
         | TField (f, off) -> TField (f, mk_at_off off)
         | TIndex (i, off) -> TIndex (mk_addr_at i, mk_at_off off)
       in
@@ -322,13 +323,14 @@ let annot_for_asked_bhv b_list asked_bhv =
   b_list = [] || List.exists (fun x -> x = asked_bhv) b_list
 
 let get_loop_assigns_for_froms asked_bhv s =
-  let do_annot a acc =
+  let do_annot _ a acc =
     let ca = match a with User ca | AI (_, ca) -> ca in
     match ca.annot_content with
       | AAssigns (b_list, Writes a) when annot_for_asked_bhv b_list asked_bhv ->
           Some (ca,a)
       | _ -> acc
-  in Annotations.single_fold_stmt do_annot s None
+  in 
+  Annotations.fold_code_annot do_annot s None
 
 let add_loop_assigns_hyp kf asked_bhv s acc =
   let asgn_opt = get_loop_assigns_for_froms asked_bhv s in
@@ -382,25 +384,26 @@ let add_spec_annots kf s l_post spec (b_acc, (p_acc, e_acc)) =
     (b_acc, a_acc)
 
 let get_stmt_hyp kf asked_bhv s l_post =
-  let do_annot a acc =
-    let ca = Annotations.get_code_annotation a in
-      match ca.annot_content with
-        | AStmtSpec (b_list, spec) when annot_for_asked_bhv b_list asked_bhv ->
-            (try add_spec_annots kf s l_post spec acc
-             with NoFromForBhv -> (* TODO: not sure this is correct!*) acc)
-        | _ -> (* ignore other annotations *) acc
+  let do_annot _ a acc =
+    let ca = Annotations.code_annotation_of_rooted a in
+    match ca.annot_content with
+    | AStmtSpec (b_list, spec) when annot_for_asked_bhv b_list asked_bhv ->
+      (try add_spec_annots kf s l_post spec acc
+       with NoFromForBhv -> (* TODO: not sure this is correct!*) acc)
+    | _ -> (* ignore other annotations *) acc
   in
   let before_acc, after_acc, exits_acc =
-    WpStrategy.empty_acc, WpStrategy.empty_acc, WpStrategy.empty_acc in
+    WpStrategy.empty_acc, WpStrategy.empty_acc, WpStrategy.empty_acc 
+  in
   let acc = before_acc, (after_acc, exits_acc) in
-    Annotations.single_fold_stmt do_annot s acc
+  Annotations.fold_code_annot do_annot s acc
 
 (** Collect the \from hypotheses of the function spectication.
 * TODO: maybe we should also take the [ensures] properties ? 
 * @raise NoFromForBhv is the assigns information is missing.
 **)
 let get_called_post kf termination_kind =
-  let spec = Kernel_function.get_spec kf in
+  let spec = Annotations.funspec kf in
   Wp_parameters.debug ~dkey "[get_called_post] '%s' for %a@."
     (WpPropId.string_of_termination_kind termination_kind)
     Kernel_function.pretty  kf;
@@ -409,12 +412,13 @@ let get_called_post kf termination_kind =
     let id = WpPropId.mk_bhv_from_id kf Kglobal bhv from in
     let labels = NormAtLabels.labels_fct_post in
       WpStrategy.add_prop acc WpStrategy.AcallHyp labels id post
-  in List.fold_left mk_prop WpStrategy.empty_acc posts
+  in
+  List.fold_left mk_prop WpStrategy.empty_acc posts
 
 let get_call_hyp kf_caller s l_post fct =
   match WpStrategy.get_called_kf fct with
     | Some kf ->
-        let spec = Kernel_function.get_spec kf in
+        let spec = Annotations.funspec kf in
         let before_annots = WpStrategy.empty_acc in
         let post_annots = 
           try get_called_post kf Normal 
@@ -538,7 +542,7 @@ let get_bhv_pre kf bhv =
   let pre = add_bhv_pre_hyp bhv (WpStrategy.empty_acc) in
   let pre = (* also add the default behavior precond *)
     if (Cil.is_default_behavior bhv) then pre
-    else match Cil.find_default_behavior (Kernel_function.get_spec kf) with 
+    else match Cil.find_default_behavior (Annotations.funspec kf) with 
       | None -> pre
       | Some bdef -> add_bhv_pre_hyp bdef pre
   in
@@ -566,12 +570,12 @@ let get_strategies_for_froms kf =
       []
     end
   else
-    let stmt_bhvs = Kernel_function.internal_function_behaviors kf in
+    let stmt_bhvs = Annotations.behavior_names_of_stmt_in_kf kf in
      if stmt_bhvs <> [] then
       Wp_parameters.warning 
         "Not implemented: prove local \\from properties (skip)";
      (* TODO: \\from in loops. *)
-    let spec =  Kernel_function.get_spec kf in
+    let spec =  Annotations.funspec kf in
     let cfg = Cil2cfg.get kf in
     let add_bhv acc bhv =
       let pre = get_bhv_pre kf bhv in
@@ -592,3 +596,9 @@ let get_strategies_for_froms kf =
                   Kernel_function.pretty kf pp_err e;
                 acc
     in List.fold_left add_bhv [] spec.spec_behavior
+
+(*
+  Local Variables:
+  compile-command: "make -C ../.."
+  End:
+*)

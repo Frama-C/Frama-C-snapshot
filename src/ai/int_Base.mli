@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,20 +20,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. 
-    @plugin development guide *)
+open Abstract_interp
 
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+(** Big integers with a trivial lattice structure. An element of the lattice
+    is either, Top, Bottom, or an integer *)
 
-include Abstract_interp.Lattice_Base with type l = Abstract_interp.Int.t
+include Lattice_Base with type l = Int.t
 
 val zero: t
 val one: t
 val minus_one: t
+val neg: t -> t
 
 val is_zero: t -> bool
-val neg: t -> t
+
 
 
 (*

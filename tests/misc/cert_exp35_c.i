@@ -1,3 +1,5 @@
+void printf(const char* c,...);
+
 struct X { char a[6]; };
 
 struct X addressee(void) {

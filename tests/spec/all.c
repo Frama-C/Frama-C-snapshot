@@ -1,8 +1,8 @@
 /* Terms */
 
-/*@ lemma e: \forall int x ; (x & x) == x ; */          // KO pretty printing priority
-/*@ lemma a: \forall int x ; (x --> x) == -1 ; */       // KO pretty printing priority
-/*@ lemma b: \forall int x ; (x <--> x) == -1 ; */      // KO pretty printing priority
+/*@ lemma z: \forall int x ; (x & x) == x ; */          // OK
+/*@ lemma a: \forall int x ; (x --> x) == -1 ; */       // OK
+/*@ lemma b: \forall int x ; (x <--> x) == -1 ; */      // OK
 /*@ lemma c: (\let x = 0 ; x+1) == 1 ; */               // OK
 /*@ lemma d: (name:77) == 76+1 ; */                     // OK
 
@@ -47,7 +47,7 @@ void h(int G,int*p) ;
    requires \valid(p);
    ensures 0 == 1 ;
    assigns *p \from G = G + 77;
-*/                                                       // KO
+*/                                                       // KO (functional update
 void f(int G,int*p) {
 
   //@ for ZZZ_INEXISTENT_BEHAVIOR : assert \false ;      // OK
@@ -56,9 +56,9 @@ void f(int G,int*p) {
   /*@ assert \block_length(&G) == 4 ; */                 // OK
   /*@ assert \block_length(&G) == sizeof(G) ; */         // OK
   /*@ assert
-      \base_addr(&G) + \offset(&G+4) == &G + 4 ; */      // KO
+      \base_addr(&G)+\offset(&G+4) == (char*)(&G+4); */  // OK
   /*@ assert \null != &G ; */                            // OK
-  /*@ loop invariant &G >= \null; */                     // KO
+  /*@ loop invariant &G != \null; */                     // OK
   do
     G++;
   while (0) ;
@@ -68,13 +68,16 @@ void f(int G,int*p) {
 
 struct st { int a, b ; } ;
 /*@ axiomatic St { logic struct st fl(struct st s) ; } */ //OK
-/*@ ensures fl(s).a == \result.a ; */ // KO
+/*@ ensures fl(s).a == \result.a ; */ // OK
 struct st fc (struct st s) {return s;}
 
 void fd(char *x) { 
   /*@ assert (const char*)x == (char * const) x; */
+  x="abcdef";
+  //@ assert !\valid(x) && \valid_read(x);                 // OK
   return;
 }
+
 
 /*@ logic integer x = 1 ; */                              // OK
 /*@ axiomatic Test2 {logic integer y ;} */                // OK

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -metrics -metrics-by-function -metrics-value-cover
+   STDOPT: +"-metrics-by-function" +"-metrics-value-cover"
 **/
 
 void (*bar) (int);

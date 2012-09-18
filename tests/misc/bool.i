@@ -1,6 +1,9 @@
 /* run.config
    STDOPT: +"-print"
 */
+
+void printf(const char*,...);
+
 _Bool x;
 int y;
 

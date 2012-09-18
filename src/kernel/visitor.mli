@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -79,7 +79,8 @@ class type frama_c_visitor = object
   method current_kf: kernel_function option
     (** link to the kernel function currently being visited.
         {b NB:} for copy visitors, the link is to the original kf (anyway,
-        the new kf is created only after the visit is over) *)
+        the new kf is created only after the visit is over).
+	@plugin development guide *)
 
   method set_current_kf: kernel_function -> unit
     (** Internal use only. *)
@@ -88,34 +89,34 @@ class type frama_c_visitor = object
     (** Internal use only. *)
 end
 
-class generic_frama_c_visitor:
-  Project.t -> Cil.visitor_behavior ->  frama_c_visitor
-  (** Generic visitor. The tables are filled on the project given in argument.
-      See also {!File.init_project_from_visitor}.
-      @plugin development guide *)
+class frama_c_inplace: frama_c_visitor
+  (** in-place visitor; always act in the current project. *)
 
 class frama_c_copy: Project.t -> frama_c_visitor
-  (** Copying visitor *)
+  (** Copying visitor. The [Project.t] argument specifies in which project the
+      visitor creates the new values. (Technically, the method
+      [fill_global_tables] is called inside this project.)
+      See {!File.init_project_from_visitor} and [create_project_from_visitor]
+      for possible uses. *)
 
-class frama_c_inplace: frama_c_visitor
-  (** in-place visit. Always in the current project. *)
+class generic_frama_c_visitor:
+  Project.t -> Cil.visitor_behavior ->  frama_c_visitor
+  (** Generic class that abstracts over [frama_c_inplace] and [frama_c_copy]. 
+      @plugin development guide *)
 
 (** Visit a file. This will will re-cons all globals TWICE (so that it is
- * tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
- * not change the list of globals.
-    @plugin development guide *)
+    tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
+    not change the list of globals. *)
 val visitFramacFileCopy: frama_c_visitor -> file -> file
 
 (** Same thing, but the result is ignored. The given visitor must thus be
-    an inplace visitor. Nothing is done if the visitor is a copy visitor.
-    @plugin development guide *)
+    an inplace visitor. Nothing is done if the visitor is a copy visitor. *)
 val visitFramacFile: frama_c_visitor -> file -> unit
 
 (** A visitor for the whole file that does not change the globals (but maybe
- * changes things inside the globals). Use this function instead of
- * {!Visitor.visitFramacFile} whenever appropriate because it is more
-    efficient for long files.
-    @plugin development guide *)
+    changes things inside the globals). Use this function instead of
+    {!Visitor.visitFramacFile} whenever appropriate because it is more
+    efficient for long files. *)
 val visitFramacFileSameGlobals: frama_c_visitor -> file -> unit
 
 (** Visit a global *)
@@ -188,6 +189,11 @@ val visitFramacIdPredicate:
 val visitFramacPredicates: frama_c_visitor -> identified_predicate list
   -> identified_predicate list
 
+(** visit identified_term.
+    @since Oxygen-20120901
+ *)
+val visitFramacIdTerm: frama_c_visitor -> identified_term -> identified_term
+
 val visitFramacTerm: frama_c_visitor -> term -> term
 
 val visitFramacTermLval: frama_c_visitor -> term_lval -> term_lval
@@ -202,6 +208,8 @@ val visitFramacBehavior: frama_c_visitor -> funbehavior -> funbehavior
 
 val visitFramacBehaviors:
   frama_c_visitor -> funbehavior list -> funbehavior list
+
+val visitFramacModelInfo: frama_c_visitor -> model_info -> model_info
 
 (*
 Local Variables:

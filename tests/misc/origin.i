@@ -3,8 +3,8 @@
    OPT: -memory-footprint 1 -val -out -deps -main main -journal-disable
    OPT: -memory-footprint 1 -val -out -deps -main origin -journal-disable
 
-
 */
+char f();
 
 int a, b, aa2, *p, *pa1, *pa2, *qa2, *pa3, *q;
 

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -25,12 +25,8 @@
 #include "__fc_machdep.h"
 
 typedef __UINT_LEAST32_T socklen_t;
-typedef __UINT_LEAST16_T sa_family_t;
-
-struct sockaddr {
-  sa_family_t		sa_family;	/* address family, AF_xxx	*/
-  char			sa_data[14];	/* 14 bytes of protocol address	*/
-};
+#include "../__fc_define_sa_family_t.h"
+#include "../__fc_define_sockaddr.h"
 
 struct sockaddr_storage {
   sa_family_t   ss_family;
@@ -129,17 +125,20 @@ struct msghdr {
 #define SO_DONTLINGER   (unsigned int)(~SO_LINGER)
 #define SO_PEERCRED	0x0200		/* same as getpeereid */
 
+#define SO_ERROR        0x1000
 
-int     accept(int, struct sockaddr *restrict, socklen_t *restrict);
+#define SOMAXCONN 0xFF
+
+int     accept(int, struct sockaddr *, socklen_t *);
 int     bind(int, const struct sockaddr *, socklen_t);
 int     connect(int, const struct sockaddr *, socklen_t);
-int     getpeername(int, struct sockaddr *restrict, socklen_t *restrict);
-int     getsockname(int, struct sockaddr *restrict, socklen_t *restrict);
-int     getsockopt(int, int, int, void *restrict, socklen_t *restrict);
+int     getpeername(int, struct sockaddr *, socklen_t *);
+int     getsockname(int, struct sockaddr *, socklen_t *);
+int     getsockopt(int, int, int, void *, socklen_t *);
 int     listen(int, int);
 ssize_t recv(int, void *, size_t, int);
-ssize_t recvfrom(int, void *restrict, size_t, int,
-        struct sockaddr *restrict, socklen_t *restrict);
+ssize_t recvfrom(int, void *, size_t, int,
+        struct sockaddr *, socklen_t *);
 ssize_t recvmsg(int, struct msghdr *, int);
 ssize_t send(int, const void *, size_t, int);
 ssize_t sendmsg(int, const struct msghdr *, int);

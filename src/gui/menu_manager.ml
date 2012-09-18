@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,34 +29,32 @@ type callback_state =
   | Unit_callback of (unit -> unit)
   | Bool_callback of (bool -> unit) * (unit -> bool)
 
-type entry = {
-  e_where: where;
-  e_callback: callback_state;
-  e_sensitive: unit -> bool;
-}
+type entry = 
+    { e_where: where;
+      e_callback: callback_state;
+      e_sensitive: unit -> bool }
 
-let toolbar ?(sensitive=(fun _ -> true)) ~icon ~label ?(tooltip=label) callback = {
-  e_where = Toolbar (icon, label, tooltip);
-  e_callback = callback;
-  e_sensitive = sensitive;
-}
+let toolbar 
+    ?(sensitive=(fun _ -> true)) ~icon ~label ?(tooltip=label) callback = 
+  { e_where = Toolbar (icon, label, tooltip);
+    e_callback = callback;
+    e_sensitive = sensitive }
 
-let menubar ?(sensitive=(fun _ -> true)) ?icon text callback = {
-  e_where = Menubar (icon, text);
-  e_callback = callback;
-  e_sensitive = sensitive;
-}
+let menubar ?(sensitive=(fun _ -> true)) ?icon text callback = 
+  { e_where = Menubar (icon, text);
+    e_callback = callback;
+    e_sensitive = sensitive }
 
-let toolmenubar ?(sensitive=(fun _ -> true)) ~icon ~label ?(tooltip=label) callback = {
-  e_where = ToolMenubar (icon, label, tooltip);
-  e_callback = callback;
-  e_sensitive = sensitive;
-}
-
+let toolmenubar 
+    ?(sensitive=(fun _ -> true)) ~icon ~label ?(tooltip=label) callback = 
+  { e_where = ToolMenubar (icon, label, tooltip);
+    e_callback = callback;
+    e_sensitive = sensitive }
 
 type button_type =
   | BStandard of GButton.tool_button
   | BToggle of GButton.toggle_tool_button
+
 let bt_type_as_skel = function
   | BStandard b -> (b :> GButton.tool_button_skel)
   | BToggle b -> (b :> GButton.tool_button_skel)
@@ -64,6 +62,7 @@ let bt_type_as_skel = function
 type menu_item_type =
   | MStandard of GMenu.menu_item
   | MCheck of GMenu.check_menu_item
+
 let mitem_type_as_skel = function
   | MCheck m -> (m :> GMenu.menu_item_skel)
   | MStandard m -> (m :> GMenu.menu_item_skel)
@@ -72,15 +71,19 @@ class item ?menu ?menu_item ?button group = object (self)
 
   method menu_item =
     match menu_item with Some (MStandard m) -> Some m | _ -> None
+
   method check_menu_item =
     match menu_item with Some (MCheck m) -> Some m | _ -> None
+
   method menu_item_skel =
     match menu_item with Some m -> Some (mitem_type_as_skel m) | _ -> None
 
   method tool_button =
     match button with Some (BStandard b) -> Some b | _ -> None
+
   method toggle_tool_button =
     match button with Some (BToggle b) -> Some b | _ -> None
+
   method tool_button_skel =
     match button with Some b -> Some (bt_type_as_skel b) | None -> None
 
@@ -88,8 +91,8 @@ class item ?menu ?menu_item ?button group = object (self)
     Extlib.may
       (fun (i : GMenu.menu_item_skel) ->
         i#add_accelerator
-          ~group ~flags:[ `VISIBLE ] ~modi:[ modifier ] (int_of_char c)
-      ) self#menu_item_skel
+          ~group ~flags:[ `VISIBLE ] ~modi:[ modifier ] (int_of_char c)) 
+      self#menu_item_skel
 
   method menu: GMenu.menu option = menu
 
@@ -109,7 +112,7 @@ let add_submenu container ~pos label =
 external set_menu :  Obj.t -> unit = "ige_mac_menu_set_menu_bar"
 *)
 
-class menu_manager ?packing ~(host:Gtk_helper.host) =
+class menu_manager ?packing ~host:(_:Gtk_helper.host) =
   let menubar = GMenu.menu_bar ?packing () in
 (*  let () = set_menu (Obj.field (Obj.repr ((menubar)#as_widget)) 1) in *)
   let factory = new GMenu.factory menubar in

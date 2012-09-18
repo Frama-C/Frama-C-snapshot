@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -150,8 +150,10 @@ $(notdir $(patsubst %/,%,$(PLUGIN_DIR)))))
 
 PLUGIN_SRC:= $(patsubst %,$(PLUGIN_DIR)/%.ml*, $(PLUGIN_CMO)) \
              $(patsubst %,$(PLUGIN_DIR)/%.mli, $(PLUGIN_CMI)) \
-	     $(patsubst %,$(PLUGIN_DIR)/%.ml*, $(PLUGIN_GUI_CMO)) \
              $(patsubst %.cmo,%.ml*, $(PLUGIN_TYPES_CMO))
+ifneq ($(ENABLE_GUI),no)
+PLUGIN_SRC:= $(PLUGIN_SRC) $(patsubst %,$(PLUGIN_DIR)/%.ml*, $(PLUGIN_GUI_CMO))
+endif
 
 $(PLUGIN_NAME)_SRC:=$(PLUGIN_SRC)
 
@@ -163,7 +165,8 @@ $(PLUGIN_NAME)_ML_SRC:=$(PLUGIN_ML_SRC)
 # distribution #
 ################
 
-ifeq ($(PLUGIN_DISTRIBUTED),yes)
+ifneq ($(PLUGIN_ENABLE),no)
+ifneq ($(PLUGIN_DISTRIBUTED),no)
 PLUGIN_DISTRIBUTED_LIST += $(PLUGIN_SRC)
 
 ifeq ($(PLUGIN_HAS_MLI),yes)
@@ -188,8 +191,8 @@ ifneq ("$(strip $(PLUGIN_DISTRIB_EXTERNAL))","")
 PLUGIN_DIST_EXTERNAL_LIST += \
        $(addprefix $(PLUGIN_DIR)/,$(PLUGIN_DISTRIB_EXTERNAL))
 endif
-endif
-
+endif #PLUGIN_DISTRIBUTED
+endif #PLUGIN_ENABLE
 ifndef ($(PLUGIN_DISTRIB_BIN))
 PLUGIN_DISTRIB_BIN:=$(PLUGIN_DISTRIBUTED)
 endif
@@ -259,6 +262,8 @@ endif
 ifeq ($(HAS_GUI),yes)
 TARGET_GUI_CMO:= $(PLUGIN_LIB_DIR)/gui/$(PLUGIN_NAME).cmo
 TARGET_GUI_CMX:= $(TARGET_GUI_CMO:.cmo=.cmx)
+TARGET_GUI_CMA:= $(TARGET_GUI_CMO:.cmo=.cma)
+TARGET_GUI_CMXA:= $(TARGET_GUI_CMX:.cmx=.cmxa)
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 TARGET_GUI_CMXS:= $(TARGET_GUI_CMO:.cmo=.cmxs)
 else
@@ -267,6 +272,8 @@ endif
 else
 TARGET_GUI_CMO:=
 TARGET_GUI_CMX:=
+TARGET_GUI_CMA:=
+TARGET_GUI_CMXA:=
 endif
 
 # Some meta-variables for compilation flags
@@ -305,20 +312,18 @@ endif
 # Set the compilation flags for the plugin
 $(NAME_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS)
 $(NAME_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS)
+$(TARGET_BFLAGS):= $(PLUGIN_LINK_BFLAGS)
+$(TARGET_OFLAGS):= $(PLUGIN_LINK_OFLAGS)
 $(NAME_DOCFLAGS):= $(DOC_FLAGS) $(PLUGIN_DOCFLAGS) \
                    -I $($(PLUGIN_NAME)_DIR) -I . $(OCAMLGRAPH_INCLUDE)
 ifeq ($(HAS_GUI),yes)
-$(NAME_GUI_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS) -I +lablgtk2
-$(NAME_GUI_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS) -I +lablgtk2
+$(NAME_GUI_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS) -I $(LABLGTK_PATH)
+$(NAME_GUI_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS) -I $(LABLGTK_PATH)
 $(TARGET_GUI_BFLAGS):= $(PLUGIN_LINK_GUI_BFLAGS)
-$(TARGET_GUI_OFLAGS):=-pack $(PLUGIN_LINK_GUI_OFLAGS)
-$(NAME_DOCFLAGS) := $($(NAME_DOCFLAGS)) -I +lablgtk2
+$(TARGET_GUI_OFLAGS):= $(PLUGIN_LINK_GUI_OFLAGS)
+$(NAME_DOCFLAGS) := $($(NAME_DOCFLAGS)) -I $(LABLGTK_PATH)
 endif
 $(NAME_DEPFLAGS):= -I $(PLUGIN_DIR) $(PLUGIN_DEPFLAGS)
-
-
-$(TARGET_BFLAGS):= $(PLUGIN_LINK_BFLAGS)
-$(TARGET_OFLAGS):=-pack $(PLUGIN_LINK_OFLAGS)
 
 # Add dependencies wrt other plugins for cmx.
 $(PLUGIN_CMX): $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
@@ -368,16 +373,17 @@ $(TARGET_CMX): $(PLUGIN_CMX) $(TARGET_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_CMX)
 
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_CMXS): $(TARGET_CMX) $(PLUGIN_EXTRA_OPT)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -shared $($(basename $(notdir $@))_OFLAGS) \
-		$($(basename $(notdir $@))_EXTRA_OPT) \
-                $(@:.cmxs=.cmx)
+	$(OCAMLOPT) -o $@ -shared \
+	  $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_EXTRA_OPT) \
+          $(@:.cmxs=.cmx)
 endif
 
 #########
@@ -399,16 +405,17 @@ $(TARGET_CMX): $(PLUGIN_CMX) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_CMX)
 
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_CMXS): $(TARGET_CMX) $(PLUGIN_EXTRA_OPT)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -shared $($(basename $(notdir $@))_OFLAGS) \
-		$($(basename $(notdir $@))_EXTRA_OPT) \
-                $(@:.cmxs=.cmx)
+	$(OCAMLOPT) -o $@ -shared \
+	  $($(basename $(notdir $@))_OFLAGS) \
+	  $($(basename $(notdir $@))_EXTRA_OPT) \
+          $(@:.cmxs=.cmx)
 endif
 
 endif # PLUGIN_HAS_MLI
@@ -462,14 +469,19 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_GUI_CMI) \
 	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMX)
+
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ -shared $^
+	$(OCAMLOPT) -o $@ -shared \
+	  $($(basename $(notdir $@))_OFLAGS) \
+          $($(basename $(notdir $@))_TARGET_OFLAGS) \
+          $($(basename $(notdir $@))_EXTRA_OPT) \
+	  $^
 endif
 else
 # packing gui files without signature
@@ -492,17 +504,38 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) \
 	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) \
+	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMX)
+
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ -shared $^
+	$(OCAMLOPT) -o $@ -shared \
+	  $($(basename $(notdir $@))_OFLAGS) \
+          $($(basename $(notdir $@))_TARGET_OFLAGS) \
+	  $($(basename $(notdir $@))_EXTRA_OPT) \
+	  $^
 endif
 endif # PLUGIN_HAS_MLI
+
+ifdef PLUGIN_EXTRA_BYTE
+$(TARGET_GUI_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_GUI_CMO)
+	$(PRINT_PACKING) $@
+	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) \
+	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
+	  -a $($(basename $(notdir $@))_EXTRA_BYTE) $(@:.cma=.cmo)
+endif
+
+ifdef PLUGIN_EXTRA_OPT
+$(TARGET_GUI_CMXA): $(PLUGIN_EXTRA_OPT) $(TARGET_GUI_CMX)
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ -a $($(basename $(notdir $@))_EXTRA_OPT) \
+	  $(@:.cmxa=.cmx)
+endif
 else
+# No specific gui items
 TARGET_GUI_MLI:=
 TARGET_GUI_CMI:=
 endif # HAS_GUI
@@ -540,7 +573,9 @@ endif
 
 ifeq ($(FRAMAC_MAKE),yes)
 DOC_INTRO:= $(DOC_DIR)/intro_kernel_plugin.txt \
-            $(DOC_DIR)/intro_plugin.txt
+            $(DOC_DIR)/intro_plugin.txt \
+	    $(DOC_DIR)/intro_plugin_D_and_S.txt \
+	    $(DOC_DIR)/intro_plugin_default.txt
 else
 DOC_INTRO:=
 endif
@@ -548,10 +583,16 @@ endif
 $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt: $(DOC_INTRO) $(PLUGIN_INTRO)
 	$(PRINT_MAKING) "$@"
 	$(MKDIR) $(dir $@)
-	if test -f "$(DOC_DIR)/html/Db.$(basename $(notdir $@)).html" ; then \
-		cp -f $(DOC_DIR)/intro_kernel_plugin.txt $@ ; \
+	if [ -f "$(DOC_DIR)/html/Db.$(basename $(notdir $@)).html" ] ; then \
+	  if [ -f "$(DOC_DIR)/dynamic_plugins/Dynamic_plugins.$(basename $(notdir $@)).html" ] ; then \
+	    cp -f $(DOC_DIR)/intro_plugin_D_and_S.txt $@ ; \
+	  else \
+	    cp -f $(DOC_DIR)/intro_kernel_plugin.txt $@ ; \
+	  fi ; \
+	elif [ -f "$(DOC_DIR)/dynamic_plugins/Dynamic_plugins.$(basename $(notdir $@)).html" ] ; then \
+	  cp -f $(DOC_DIR)/intro_plugin.txt $@ ; \
 	else \
-		cp -f $(DOC_DIR)/intro_plugin.txt $@ ; \
+	  cp -f $(DOC_DIR)/intro_plugin_default.txt $@ ; \
 	fi
 	$(ISED) -e "s/_PluginName_/$(basename $(notdir $@))/g" \
                 -e "/^@ignore/d" $@
@@ -560,9 +601,16 @@ $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt: $(DOC_INTRO) $(PLUGIN_INTRO)
 ifeq ($(FRAMAC_INTERNAL),yes)
 OCAMLDOC_GEN:=$(DOC_PLUGIN)
 ifneq ($(FRAMAC_MAKE),yes)
-$(DOC_PLUGIN): $(DOC_DIR)/docgen.ml
-	$(OCAMLC) -c -I +ocamldoc $(DOC_DIR)/docgen.ml
 # not doing kernel documentation if just compiling plugin's one
+
+$(DOC_DIR)/docgen.cmo: $(DOC_DIR)/docgen.ml
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) -c -I +ocamldoc $(DOC_DIR)/docgen.ml
+
+$(DOC_DIR)/docgen.cmxs: $(DOC_DIR)/docgen.ml
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -o $@ -shared -I +ocamldoc \
+	  $(DOC_DIR)/docgen.ml
 else
 OCAMLDOC_GEN+=$(DOC_DIR)/kernel-doc.ocamldoc
 endif
@@ -570,11 +618,17 @@ else
 OCAMLDOC_GEN:=
 endif
 
+OCAMLDOC_DEPEND:= $(PLUGIN_CMO)
+ifneq ($(ENABLE_GUI),no)
+OCAMLDOC_DEPEND:= $(OCAMLDOC_DEPEND) $(PLUGIN_GUI_CMO)
+endif
+
 .PHONY: $(PLUGIN_NAME)_DOC
-$(PLUGIN_NAME)_DOC: $(PLUGIN_CMO) \
+$(PLUGIN_NAME)_DOC: $(OCAMLDOC_DEPEND) \
 		    $(OCAMLDOC_GEN) \
 		    $(PLUGIN_DOC_DIR)/$(PLUGIN_NAME).txt \
-		    $(PLUGIN_DOC_DIR)/modules.svg
+		    $(PLUGIN_DOC_DIR)/modules.svg \
+		    $(DOC_PLUGIN)
 	$(PRINT_DOC) $(patsubst %_DOC,%,$@)
 	$(MKDIR) $($@_DIR)
 	$(RM) $($@_DIR)/*.html
@@ -586,7 +640,7 @@ endif
 	$(OCAMLDOC) $($@FLAGS) \
 	  -t "$(patsubst %_DOC,%,$@) plugin" \
 	  -intro $($@_DIR)/$(patsubst %_DOC,%,$@).txt \
-	  -css-style $(DOC_DIR)/style.css \
+	  -css-style ../style.css \
 	  -d $($@_DIR) -g $(DOC_PLUGIN) -docpath $(DOC_DIR)/html \
 	  $(addprefix -load , $(wildcard $(DOC_DIR)/kernel-doc.ocamldoc)) \
 	  $(wildcard $($@_SRC))
@@ -597,12 +651,15 @@ endif
 	for f in $(foreach f,$($(patsubst %_DOC,%_TYPES_TODOC,$@)),\
 	                     $(basename $(notdir $f))); do \
 	  for g in \
-	      $(wildcard \
-	         ../html/$(shell $(ECHO) $(f) | $(SED) 's/^./\u&/').*html); \
+	    $(wildcard ../html/$(shell $(ECHO) $(f) | $(SED) 's/^./\u&/')); \
           do \
 	    ln -sf $$g; \
 	  done; \
+	done; \
+        for f in *.html; do \
+	  $(ISED) -e 's|\(doc/code/html\)|../../../\1|g' $$f ; \
 	done
+
 
 # removed dependencies:
 #		    $(PLUGIN_DOC_DIR)/modules.ps \
@@ -748,6 +805,10 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 		$(foreach f, $($(notdir $d)), \
 		$f $(f:.cmx=.cmo) $(f:.cmx=.opt) $(f:.cmx=.byte) $(f:.cmx=.o)))
 
+.PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN
+$(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN:
+	$(RM) $(dir $@)/ptests_local_config.*
+
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC $($(PLUGIN_NAME)_DOC_DIR)
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
 	$(PRINT_RM) documentation of  $(patsubst %_CLEAN_DOC, %, $(notdir $@))
@@ -767,9 +828,13 @@ PLUGIN_DYN_CMO_LIST += $(TARGET_CMO)
 endif
 PLUGIN_DYN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
 ifeq ($(HAS_GUI),yes)
-PLUGIN_DYN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
 PLUGIN_DYN_GUI_EXISTS:=yes
-endif
+ifdef PLUGIN_EXTRA_BYTE
+PLUGIN_DYN_GUI_CMO_LIST += $(TARGET_GUI_CMA)
+else
+PLUGIN_DYN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
+endif #EXTRA_BYTE
+endif #HAS_GUI
 
 ifeq ($(USABLE_NATIVE_DYNLINK),yes)
 PLUGIN_DYN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
@@ -778,39 +843,41 @@ ifeq ($(HAS_GUI),yes)
 PLUGIN_DYN_GUI_CMX_LIST += $(TARGET_GUI_CMXS)
 endif
 else # No native dynlink: use a static version
-ifdef PLUGIN_EXTRA_OPT
-.PRECIOUS: $(TARGET_CMX)
-PLUGIN_CMX_LIST += $(TARGET_CMXA)
-else
 PLUGIN_CMX_LIST += $(TARGET_CMX)
+ifdef PLUGIN_EXTRA_OPT
+EXTRA_OPT_LIBS+= $(PLUGIN_EXTRA_OPT)
 endif
 PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
+ifeq ($(HAS_GUI),yes)
 PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
-endif
+endif # HAS_GUI
+endif # USABLE_NATIVE_DYNLINK
 
 else # Normal plugin
 PLUGIN_LIST += $(PLUGIN_DIR)/$(PLUGIN_NAME)
 ifdef PLUGIN_EXTRA_BYTE
-.PRECIOUS: $(TARGET_CMO)
+.PRECIOUS: $(TARGET_CMO) $(TARGET_GUI_CMO)
 PLUGIN_CMO_LIST += $(TARGET_CMA)
+PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMA)
+PLUGIN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMA)
 else
 PLUGIN_CMO_LIST += $(TARGET_CMO)
+PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
+PLUGIN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
 endif
 #PLUGIN_CMO_LIST	+= $(TARGET_CMO)
 ifdef PLUGIN_EXTRA_OPT
-.PRECIOUS: $(TARGET_CMX)
+.PRECIOUS: $(TARGET_CMX) $(TARGET_GUI_CMX)
 PLUGIN_CMX_LIST += $(TARGET_CMXA)
+PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMXA)
 DEP_CMXS=$(TARGET_CMXA)
+PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMXA)
 else
 PLUGIN_CMX_LIST += $(TARGET_CMX)
-DEP_CMXS=$(TARGET_CMX)
-endif
-#PLUGIN_CMX_LIST	+= $(TARGET_CMX)
-PLUGIN_DEP_GUI_CMO_LIST += $(PLUGIN_GUI_CMO)
-PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMX)
-PLUGIN_GUI_CMO_LIST += $(TARGET_GUI_CMO)
 PLUGIN_GUI_CMX_LIST += $(TARGET_GUI_CMX)
-
+DEP_CMXS=$(TARGET_CMX)
+PLUGIN_DEP_GUI_CMX_LIST += $(PLUGIN_GUI_CMO)
+endif
 endif
 
 PLUGIN_INTERNAL_CMO_LIST += $(PLUGIN_CMO)

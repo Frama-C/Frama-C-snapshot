@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -27,13 +27,22 @@
 open Cil_types
 
 
-(** Node.t is the type of the PDG vertex.
-    [compare] and [pretty] are needed by [Abstract_interp.Make_Lattice_Set]. *)
-module Node = struct
+(** Node.t is the type of the PDG vertex. *)
+module Node : sig
+  include Datatype.S_with_collections
+  val id : t -> int
+  val elem_key : t -> PdgIndex.Key.t
+  val stmt : t ->  Cil_types.stmt option
+  (*val equivalent : t -> PdgIndex.Key.t -> bool*)
+  val pretty_list : Format.formatter -> t list -> unit
+  val pretty_with_part :
+    Format.formatter -> (t * Locations.Zone.t option) -> unit
+  val pretty_node: Format.formatter -> t -> unit
+  val make: PdgIndex.Key.t -> t
+end
+= struct
 
-  type key = PdgIndex.Key.t
-
-  type tt = { id : int; key : key }
+  type tt = { id : int; key : PdgIndex.Key.t }
 
   module Counter =
     State_builder.Counter(struct let name = "PdgTypes.Node.Counter" end)
@@ -42,11 +51,10 @@ module Node = struct
     {id = Counter.next ();
      key = key}
 
-  let key e = e.key
   let print_id fmt e = Format.fprintf fmt "%d" e.id
 
-  let elem_id n = n.id
-  let elem_key n = key n
+  let id n = n.id
+  let elem_key n = n.key
   let stmt n = PdgIndex.Key.stmt n.key
 
   (* BY: not sure it is a good idea to use (=) on keys, which contain
@@ -86,23 +94,19 @@ module Node = struct
                     Locations.Zone.pretty z
 
   let pretty_node fmt n =
-    Format.fprintf fmt "[Elem] %d : %a" (elem_id n)
+    Format.fprintf fmt "[Elem] %d : %a" (id n)
       PdgIndex.Key.pretty (elem_key n)
-
-  let pretty_nodes fmt nodes =
-    let pretty_node n = Format.fprintf fmt "%a@." pretty_node n in
-    List.iter pretty_node nodes
 
 end
 
-module NodeSet = Hptset.Make(struct include Node let id = elem_id end)
+module NodeSet = Hptset.Make(Node)
                    (struct let v = [ [ ] ] end)
                    (struct let l = [ Ast.self ] end)
+let () = Ast.add_monotonic_state NodeSet.self
 
 (** set of nodes of the graph *)
 module NodeSetLattice = struct
   include Abstract_interp.Make_Lattice_Set(Node)
-  type t_elt = O.elt
   let tag = hash
   let default _v _a _b : t = empty
   let defaultall _v : t = empty
@@ -123,9 +127,6 @@ module Dpd : sig
   val make_simple : td -> t
   val bottom : t
   val top : t
-
-  (** = bottom but needed to build the Graph *)
-  val default : t
 
   val adc_value : t -> bool * bool * bool
   val is_addr : t -> bool
@@ -174,7 +175,6 @@ struct
 
   let bottom = 0x000
   let top = 0x111
-  let default = bottom
 
   let is_addr d = (d land maddr) != 0
   let is_ctrl d = (d land mctrl) != 0
@@ -218,7 +218,6 @@ module DpdZone : sig
   val kind_and_zone : t -> Dpd.t * Locations.Zone.t option
   val dpd_zone : t -> Locations.Zone.t option
 
-  val default : t
   val pretty : Format.formatter -> t -> unit
 
   val tag: t -> int
@@ -231,8 +230,6 @@ end = struct
   let dpd_zone dpd = snd dpd
   let kind_and_zone dpd = dpd
   let make k z = (Dpd.make_simple k), z
-
-  let default = Dpd.default, None
 
   let is_dpd k dpd = Dpd.is_dpd k (dpd_kind dpd)
 
@@ -267,7 +264,6 @@ module G = struct
 
   (* Hashtbl to maps of nodes to dpdzone. Used to encode one-directional graphs
      whoses nodes are Node.t, and labels on edges are DpdZone. *)
-  module V = struct include Node let id = elem_id end
   module E = struct
     type t = Node.t * DpdZone.t * Node.t
     type label = DpdZone.t
@@ -276,8 +272,9 @@ module G = struct
     let label (_, l, _) = l
   end
 
-  module To = Hptmap.Make(V)(DpdZone)(Hptmap.Comp_unused)
+  module To = Hptmap.Make(Node)(DpdZone)(Hptmap.Comp_unused)
     (struct let v = [[]] end)(struct let l = [Ast.self] end)
+  let () = Ast.add_monotonic_state To.self
 
   module OneDir = Node.Hashtbl.Make(To)
 
@@ -440,21 +437,21 @@ module Pdg = struct
   exception Top
   exception Bottom
 
-  type t_fi = (Node.t, unit) PdgIndex.FctIndex.t
-  (** The nodes which are associated the each element.
+  type fi = (Node.t, unit) PdgIndex.FctIndex.t
+  (** The nodes associated to each element.
       There is only one node for simple statements,
       but there are several for a call for instance. *)
-  let t_fi_descr =
+  let fi_descr =
     PdgIndex.FctIndex.t_descr ~ni:(Descr.str Node.descr) ~ci:Structural_descr.t_unit
 
 
-  type t_def = {
+  type def = {
     graph : G.t ;
-    states : t_data_state Inthash.t ;
-    index : t_fi ;
+    states : t_data_state Datatype.Int.Hashtbl.t ;
+    index : fi ;
   }
 
-  type t_body = PdgDef of t_def | PdgTop | PdgBottom
+  type t_body = PdgDef of def | PdgTop | PdgBottom
 
   module Body_datatype =
     Datatype.Make
@@ -470,9 +467,9 @@ module Pdg = struct
               pack
                 (t_record [|
                    G.packed_descr;
-                   (let module H = Cil_datatype.Int_hashtbl.Make(Data_state) in
+                   (let module H = Datatype.Int.Hashtbl.Make(Data_state) in
                     H.packed_descr);
-                   pack t_fi_descr;
+                   pack fi_descr;
                  |])
             |] |])
 
@@ -504,6 +501,14 @@ module Pdg = struct
   let get_index pdg = let pdg = get_pdg_body pdg in  pdg.index
 
   let iter_nodes f pdg = G.iter_vertex f (get_graph pdg)
+
+  let iter_direct_dpds pdg f node =
+    let pdg = get_pdg_body pdg in
+    G.fold_one_dir (fun n () -> f n) pdg.graph.G.d_graph node ()
+
+  let iter_direct_codpds pdg f node =
+    let pdg = get_pdg_body pdg in
+    G.fold_one_dir (fun n () -> f n) pdg.graph.G.co_graph node ()
 
   let fold_call_nodes f acc pdg call =
     let _, call_pdg = PdgIndex.FctIndex.find_call (get_index pdg) call in
@@ -547,15 +552,17 @@ module Pdg = struct
   let get_all_direct_dpds pdg node = get_all_direct ~co:false pdg node
   let get_all_direct_codpds pdg node = get_all_direct ~co:true pdg node
 
-  let get_all_direct_edges pdg node =
-    let co = false in
-    let edges = get_x_direct_edges ~co None pdg node in
-    let get_info e =
+  let fold_direct ~co pdg f acc node =
+    let do_e e acc =
       let k, z = G.edge_dpd e in
       let n = edge_end co e in
-        (k, z, n)
+        f acc (k, z) n
     in
-      List.map get_info edges
+    let fold = if co then G.fold_pred_e else G.fold_succ_e  in
+      fold do_e (get_graph pdg) node acc
+
+  let fold_direct_dpds pdg f acc node = fold_direct ~co:false pdg f acc node
+  let fold_direct_codpds pdg f acc node = fold_direct ~co:true pdg f acc node
 
   let pretty_graph ?(bw=false) fmt graph =
     let all = (* Sorted print is nicer for the user *)
@@ -568,9 +575,9 @@ module Pdg = struct
     let print_dpd d =
       let dpd_kind = G.E.label d in
       if bw then Format.fprintf fmt "  <-%a- %d@." G.pretty_edge_label dpd_kind
-        (Node.elem_id (G.E.src d))
+        (Node.id (G.E.src d))
       else Format.fprintf fmt "  -%a-> %d@." G.pretty_edge_label dpd_kind
-        (Node.elem_id (G.E.dst d))
+        (Node.id (G.E.dst d))
     in
     let print_node_and_dpds n =
       print_node n;
@@ -593,11 +600,11 @@ module Pdg = struct
 
     type parent_t = t
     type t = parent_t
-    module V = G.V
+    module V = Node
     module E = struct
       type t = G.E.t * bool (** boolean to say that the edge is dynamic *)
-      let src (e, _dyn) = G.E.src e
-      let dst (e, _dyn) = G.E.dst e
+      let src (e, _d) = G.E.dst e (* We reverse the direction of edges *)
+      let dst (e, _d) = G.E.src e (* to get graphs with a correct orientation*)
     end
 
     let iter_vertex f pdg =
@@ -616,7 +623,7 @@ module Pdg = struct
     let graph_attributes _ = [`Rankdir `TopToBottom ]
 
     let default_vertex_attributes _ = [`Style `Filled]
-    let vertex_name v = string_of_int (Node.elem_id v)
+    let vertex_name v = string_of_int (Node.id v)
 
     let vertex_attributes v =
       let color_in = (`Fillcolor 0x6495ED) in
@@ -675,7 +682,7 @@ module Pdg = struct
           sh_box, color_stmt, txt
       in sh :: col :: [`Label ( String.escaped txt)]
 
-    let default_edge_attributes _ = []
+    let default_edge_attributes _ = [`Dir `Back]
 
     let edge_attributes (e, dynamic) =
       let d, z = G.edge_dpd e in
@@ -685,7 +692,7 @@ module Pdg = struct
         | Some z ->
           let txt =
             Pretty_utils.sfprintf "@[<h 1>%a@]" Locations.Zone.pretty z in
-          (`Label txt) :: attrib
+          (`Label (String.escaped txt)) :: attrib
       in
       let attrib =
         let color =
@@ -698,7 +705,8 @@ module Pdg = struct
       in
       let attrib =
         if Dpd.is_addr d then (`Style `Dotted)::attrib else attrib
-      in attrib
+      in
+        attrib
 
     let get_subgraph v =
       let mk_subgraph name attrib =
@@ -741,19 +749,11 @@ module Pdg = struct
   module PrintG = Graph.Graphviz.Dot(Printer)
 
   (*-----------------------------------------------------------------------*)
-  (** build the PDG .dot file and put it in [filename].  *)
+
   let build_dot filename pdg =
     let file = open_out filename in
     PrintG.output_graph file pdg;
     close_out file
-
-  (** build the .dot file and put it in [pdg function name.dot]  *)
-  let build_dot_file pdg =
-    let kf = get_kf pdg in
-    let fct_name = Kernel_function.get_name kf in
-    let filename = (fct_name ^ ".dot") in
-    build_dot filename pdg;
-    filename
 
 end
 

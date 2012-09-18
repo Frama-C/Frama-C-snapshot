@@ -53,4 +53,5 @@ int inputsOf_testcase_func ()
 	inp1 = nondet_int ( );
 	var1 = nondet_int ( );		// This required line is getting knocked off
 	var2 = nondet_int ( );		// This required line is getting knocked off
+        return 0;
 }

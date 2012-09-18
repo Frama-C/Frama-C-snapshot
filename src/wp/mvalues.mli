@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,6 @@
 (* -------------------------------------------------------------------------- *)
 
 open Ctypes
-open Clabels
 open Formula
 open Cil_types
 
@@ -38,11 +37,10 @@ sig
 
   type loc
 
-  val tau_of_loc :tau
+  val tau_of_loc : tau
 
   val term_of_loc : loc -> F.abstract
   val loc_of_term : c_object -> F.abstract -> loc
-
 
   (** {2 Loc arithmetics} *)
 
@@ -122,6 +120,7 @@ sig
 
   (** Conversion between internal representation of ACSL value and FOL term *)
 
+  val string : int -> string -> value
 
   val equal : c_object -> F.abstract -> F.abstract -> F.pred
   val eq_array : arrayinfo -> F.array -> F.array -> F.pred
@@ -165,11 +164,13 @@ sig
 
   type mem
 
+  val pp_mem : Format.formatter -> mem -> unit
+
   val mem : unit -> mem
 
   val global : varinfo -> unit
 
-  val cvar  : mem -> varinfo -> loc
+  val cvar : mem -> varinfo -> loc
 
   val shift : loc -> c_object -> F.integer -> loc
     (** [shift ptr tau k] computes the location

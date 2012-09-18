@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,8 @@
 (**************************************************************************)
 
 (** Provided plug-general services for plug-ins.
-    @since Beryllium-20090601-beta1 *)
+    @since Beryllium-20090601-beta1
+    @plugin development guide *)
 
 (* ************************************************************************* *)
 (** {2 Signatures} *)
@@ -72,6 +73,12 @@ module type Parameter = sig
     (** Name of the option on the command-line
         @since Carbon-20110201  *)
 
+  val print_help: Format.formatter -> unit
+  (** Print the help of the parameter in the given formatter as it would be
+      printed on the command line by -<plugin>-help. For invisible parameters,
+      the string corresponds to the one returned if it would be not invisible.
+      @since Oxygen-20120901 *)
+
   include State_builder.S
 
   val equal: t -> t -> bool
@@ -82,8 +89,8 @@ module type Parameter = sig
       @raise Invalid_argument if one of the strings is empty *)
 
   val add_alias: string list -> unit
-(** Equivalent to [add_aliases].
-    @deprecated since Carbon-20110201 *)
+  (** Equivalent to [add_aliases].
+      @deprecated since Carbon-20110201 *)
 
   (**/**)
   val is_set: unit -> bool
@@ -111,13 +118,12 @@ module type Bool = sig
 
 end
 
-(** Signature for a boolean parameter that causes something to be output.
-    @plugin development guide *)
+(** Signature for a boolean parameter that causes something to be output. *)
 module type WithOutput = sig
   include Bool
 
   val set_output_dependencies: State.t list -> unit
-  (** Set the dependecies for the output of the option. Two successive
+  (** Set the dependencies for the output of the option. Two successive
       calls to [output] below will cause only one output, unless some
       of the supplied dependencies have changed between the two calls. *)
 
@@ -125,7 +131,6 @@ module type WithOutput = sig
   (** To be used by the plugin to output the results of the option
       in a controlled way. See [set_output_dependencies] details. *)
 end
-
 
 (** Signature for an integer parameter.
     @plugin development guide *)
@@ -146,8 +151,7 @@ module type Int = sig
 
 end
 
-(** Signature for a string parameter.
-    @plugin development guide *)
+(** Signature for a string parameter. *)
 module type String = sig
 
   include Parameter with type t = string
@@ -161,6 +165,7 @@ module type String = sig
     (** What are the acceptable values for this parameter.
         If the returned list is empty, then all values are acceptable.
         @since Beryllium-20090901 *)
+
 end
 
 (** Signature for a generic set of strings option. *)
@@ -184,12 +189,27 @@ module type String_collection = sig
   val iter: (string -> unit) -> unit
     (** Iter on each string in the set. *)
 
+  val fold: (string -> 'a -> 'a) -> 'a -> 'a
+    (** Fold on each string in the set.
+        @since Oxygen-20120901 *)
+
   val exists: (string -> bool) -> bool
     (** Checks if at least one element of the set satisfies the predicate.
     @since Carbon-20101201 *)
 
+  val set_possible_values: string list -> unit
+    (** Set what are the acceptable values for this parameter.
+        If the given list is empty, then all values are acceptable.
+        @since Oxygen-20120901 *)
+
+  val get_possible_values: unit -> string list
+    (** What are the acceptable values for this parameter.
+        If the returned list is empty, then all values are acceptable.
+        @since Oxygen-20120901 *)
+
 end
 
+(** @plugin development guide *)
 module type String_set = String_collection with type t = Datatype.String.Set.t
 module type String_list = String_collection with type t = string list
 
@@ -256,8 +276,36 @@ module type S = sig
         @since Beryllium-20090901 *)
 
   module Help: Bool
+  (** @deprecated since Oxygen-20120901 *)
+
   module Verbose: Int
   module Debug: Int
+  module Debug_category: String_list
+   (** prints debug messages having the corresponding key.
+       @since Oxygen-20120901 *)
+
+  (** Handle the specific `share' directory of the plug-in.
+      @since Oxygen-20120901 *)
+  module Share: sig
+
+    exception No_dir
+
+    val dir: ?error:bool -> unit -> string
+    (** [share_dir ~error ()] returns the share directory of the plug-in, if
+        any. Otherwise, Frama-C halts on an user error if [error] orelse it
+        raises [No_dir]. Default of [error] is [true].
+        @raise No_dir if there is no share directory for this plug-in and [not
+        error]. *)
+
+    val file: ?error:bool -> string -> string
+  (** [share_file basename] returns the complete filename of a file stored in
+      the plug-in' share directory. If there is no such directory, Frama-C halts
+      on an user error if [error] orelse it raises [No_dir]. Default of [error]
+      is [true].
+      @raise No_dir if there is no share directory for this plug-in and [not
+      error].  *)
+
+  end
 
   val help: group
     (** The group containing option -*-help.
@@ -275,12 +323,14 @@ end
 
 type plugin = private
     { p_name: string;
+      p_shortname: string;
       p_help: string;
       p_parameters: (string, Parameter.t list) Hashtbl.t }
 (** Only iterable parameters (see {!do_iterate} and {!do_not_iterate}) are
     registered in the field [p_parameters].
     @since Beryllium-20090901 *)
 
+(** @plugin development guide *)
 module type General_services = sig
 
   include S
@@ -312,10 +362,9 @@ module type General_services = sig
       The results will be displayed if [X.output_by_default] is [true],
       or if option [-foo-print] is given by the user (where [foo] is
       [X.option_name]).
-      @since Nitrogen-20111001
-      @plugin development guide *)
+      @since Nitrogen-20111001 *)
   module WithOutput
-    (X: sig include Parameter_input val output_by_default: bool end) : 
+    (X: sig include Parameter_input val output_by_default: bool end) :
     WithOutput
 
   (** Build an integer option.
@@ -332,25 +381,33 @@ module type General_services = sig
   module String
     (X: sig include Parameter_input_with_arg val default: string end) : String
 
-  (** Build a string option initialized to [""].
-      @plugin development guide *)
+  (** Build a string option initialized to [""]. *)
   module EmptyString(X: Parameter_input_with_arg) : String
 
-  (** Build an option as a set of strings, initialized to the empty set. *)
+  (** Build an option as a set of strings, initialized to the empty set. 
+      @plugin development guide *)
   module StringSet(X: Parameter_input_with_arg) : String_set
 
-  (** Should not be used by casual users *)
+  (** Build an option as a set of strings, initialized with the given values. *)
+  module FilledStringSet
+    (X: sig include Parameter_input_with_arg
+            val default: Datatype.String.Set.t end)
+    : String_set
+
   module StringList(X: Parameter_input_with_arg) : String_list
 
-  (** @plugin development guide *)
   module IndexedVal (V:Indexed_val_input) : Indexed_val with type value = V.t
 
-  (** @since Boron-20100401 *)
+  (** Should not be used by casual users 
+      @since Boron-20100401 *)
   module StringHashtbl
     (X: Parameter_input_with_arg)
     (V: sig
        include Datatype.S
        val parse: string -> string * t
+
+	 (** @since Oxygen-20120901  *)
+       val redefine_binding: string -> old:t -> t -> t
        val no_binding: string -> t
      end) :
     String_hashtbl with type value = V.t
@@ -388,7 +445,8 @@ val set_negative_option_name: string -> unit
       name). The default used value prefixes the given option name by "-no".
       Assume that the given string is a valid option name or empty.
       If it is empty, no negative option is created.
-      @since Beryllium-20090601-beta1 *)
+      @since Beryllium-20090601-beta1
+      @plugin development guide *)
 
 val set_negative_option_help: string -> unit
 (** For boolean parameters, set the help message of the negative
@@ -398,7 +456,9 @@ val set_negative_option_help: string -> unit
 
 val set_optional_help: (unit, Format.formatter, unit) format -> unit
   (** Concatenate an additional description just after the default one.
-      @since Beryllium-20090601-beta1 *)
+      @since Beryllium-20090601-beta1
+      @deprecated since Oxygen-20120901: directly use the help string
+      instead. *)
 
 val set_group: group -> unit
 (** Affect a group to the parameter.
@@ -408,6 +468,14 @@ val is_invisible: unit -> unit
 (** Prevent the help to list the parameter. Also imply {!do_not_iterate}.
     @since Carbon-20101201
     @modify Nitrogen-20111001 does not appear in the help *)
+
+val argument_is_function_name: unit -> unit
+(** Indicate that the string argument of the parameter must be a valid function
+    name (or a set of valid function names). A valid function name is the name
+    of a function defined in the analysed C program.
+    Do nothing if the following applied functor has type [String], [String_set]
+    or [String_list].
+    @since Oxygen-20120901 *)
 
 val do_iterate: unit -> unit
 (** Ensure that {!iter_on_plugins} is applied to this parameter. By default
@@ -433,7 +501,9 @@ val set_module_name: string -> unit
 
 (**/**)
 
-(** Functors for generating plug-ins parameters. *)
+(** Functors for registering a new plug-in. It provides access to several
+    services.
+    @plugin development guide *)
 module Register
   (P: sig
      val name: string (** Name of the module. Arbitrary non-empty string. *)
@@ -442,24 +512,39 @@ module Register
    end) :
   General_services
 
+val is_share_visible: unit -> unit
+(** Made visible to the end-user the -<plug-in>-share option.
+    To be called just before applying {!Register} to create plug-in services.
+    @since Oxygen-20120901 *)
+
 (* ************************************************************************* *)
 (** {2 Handling groups of parameters} *)
 (* ************************************************************************* *)
 
-val get: string -> plugin
+val get_from_shortname: string -> plugin
 (** Get a plug-in from its shortname.
-    Not very efficient yet.
-    @since Nitrogen-20111001 *)
+    @since Oxygen-20120901  *)
+
+val get_from_name: string -> plugin
+(** Get a plug-in from its name.
+    @since Oxygen-20120901 *)
+
+val get: string -> plugin
+(** Get a plug-in from its name.
+    @deprecated since Oxygen-20120901 *)
 
 val iter_on_plugins: (plugin -> unit) -> unit
   (** Iterate on each registered plug-ins.
       @since Beryllium-20090901 *)
 
-val get_selection: unit -> State_selection.t
+val get_selection: ?is_set:bool -> unit -> State_selection.t
   (** Selection of all the settable parameters.
+      [is_set] is [true] by default (for backward compatibility): in such a
+      case, for each option, the extra internal state indicating whether it is
+      set also belongs to the selection.
       @plugin development guide *)
 
-val get_selection_context: unit -> State_selection.t
+val get_selection_context: ?is_set:bool -> unit -> State_selection.t
 (** Selection of all the parameters which may have an impact on some
     analysis. *)
 
@@ -480,6 +565,21 @@ val run_normal_exit_hook: unit -> unit
   (** Now replaced by {!Cmdline.run_normal_exit_hook}.
       @since Beryllium-20090901
       @deprecated since Boron-20100401 *)
+
+(**/**)
+(* ************************************************************************* *)
+(** {2 Internal kernel stuff} *)
+(* ************************************************************************* *)
+
+val set_function_names: (unit -> string list) -> unit
+(** @since Oxygen-20120901 *)
+
+val set_ast_hook: ((Cil_types.file -> unit) -> unit) -> unit
+(** @since Oxygen-20120901 *)
+
+val init_ast_hooks: (Cil_types.file -> unit) list ref
+(** @since Oxygen-20120901 *)
+(**/**)
 
 (*
 Local Variables:

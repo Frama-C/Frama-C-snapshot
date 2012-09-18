@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,11 @@
 
 type filetree_node =
     File of string * Cil_types.global list | Global of Cil_types.global
-(** Caml type for the infos on a node of the tree
+(** Caml type for the infos on a node of the tree. Not all globals appear
+    in the filetree. Currently, the visible ones are:
+    - functions definitions, or declarations if no definition exists
+    - global variables
+    - global annotations
     @since Nitrogen-20111001 *)
 
 class type t =  object
@@ -47,16 +51,22 @@ class type t =  object
     (** Manually set some attributes of the given variable. *)
 
   method add_global_filter:
-    text:string -> key:string -> (Cil_types.varinfo -> bool) -> (unit -> bool)
+    text:string ->
+    key:string ->
+    (Cil_types.global -> bool) ->
+    (unit -> bool) * GMenu.check_menu_item
     (** [add_global_filter text key f] adds a filter for the visibility of
         the globals, according to [f]. If any of the filters registered
         through this method returns true, the global is not displayed in the
         filetree. [text] is used in the filetree menu, to label the entry
         permitting to activate or deactivate the filter. [key] is used to
-        store the current state of the filter internally. The returned
-        function can be used to query the current state of the filter.
+        store the current state of the filter internally. The created
+        menu is returned.
 
-        @since Nitrogen-20111001 *)
+        @since Nitrogen-20111001
+        @modify Oxygen-20120901 Signature change for the filter argument,
+        return the menu.
+    *)
 
   method get_file_globals:
     string -> (string * bool) list
@@ -75,17 +85,18 @@ class type t =  object
     title:string ->
     (Cil_types.global list -> GTree.cell_properties_pixbuf list) ->
     (unit -> bool) ->
-    (unit -> unit)
+    ([`Visibility | `Contents] -> unit)
   (** [append_pixbuf_column title f visible] appends a new column with name
-      [title] to the file tree and register [f] as a callback computing the
+      [title] to the file tree and registers [f] as a callback computing the
       list of properties for this column. Do not forget that properties need
-      to be set and unset. The argument [visible] is used by the column
-      to decide whether it shoudl appear. The returned function
-      (of type [unit -> unit] can be used to update the visibility of the
-      column. Alternatively, the method [refresh_columns] does this on
-      all the columns.
+      to be set and unset explictely. The argument [visible] is used by the
+      column to decide whether it should appear. The returned function
+      can be used to force an update on the display of the column
+      [`Visibility] means that the column must be show or hidden. [`Contents]
+      means what it contains has changed.
 
       @modify Nitrogen-20111001 Add third argument, and change return type
+      @modify Oxygen-20120901 Change return type
   *)
 
   method select_global : Cil_types.global -> bool

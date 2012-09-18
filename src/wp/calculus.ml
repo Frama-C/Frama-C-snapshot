@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,27 +46,37 @@ module Cfg (W : Mcfg.S) = struct
     debug "add hyp %a@." WpPropId.pp_pred_info h;
     W.add_hyp wenv h obj
 
-  let add_call_hyp wenv obj h =
-    debug "add hyp %a@." WpPropId.pp_pred_info h;
-    W.add_hyp wenv h obj
-
   let add_goal wenv obj g =
+    (*[LC] Adding scopes for loop invariant preservation *)
+    let obj = match WpPropId.is_loop_preservation (fst g) with
+      | None -> obj
+      | Some stmt ->
+	  debug "add scope for loop preservation %a@." WpPropId.pp_pred_info g ;
+	  let blocks = Kernel_function.find_all_enclosing_blocks stmt in
+	  let kf = Kernel_function.find_englobing_kf stmt in
+	  let formals = Kernel_function.get_formals kf in
+	  List.fold_right
+	    (fun b obj -> W.scope wenv b.blocals Mcfg.SC_Block_out obj)
+	    blocks (W.scope wenv formals Mcfg.SC_Function_out obj)
+    in
     debug "add goal %a@." WpPropId.pp_pred_info g;
     W.add_goal wenv g obj
 
   let add_assigns_goal wenv obj g_assigns = match g_assigns with
     | WpPropId.AssignsAny _ | WpPropId.NoAssignsInfo -> obj
     | WpPropId.AssignsLocations a ->
-        debug "add assign goal (@[%s@])@."
-          (WpPropId.prop_id_name (WpPropId.assigns_info_id a));
+        debug "add assign goal (@[%a@])@."
+          WpPropId.pretty (WpPropId.assigns_info_id a);
         W.add_assigns wenv  a obj
 
-  let add_assigns_hyp  wenv obj h_assigns = match h_assigns with
+  let add_assigns_hyp wenv obj h_assigns = match h_assigns with
     | WpPropId.AssignsLocations (h_id, a) ->
-        let obj = W.use_assigns wenv (Some h_id) a obj in
+        let obj = W.use_assigns wenv a.WpPropId.a_stmt (Some h_id) a obj in
           Some (Clabels.c_label a.WpPropId.a_label), obj
     | WpPropId.AssignsAny a ->
-        let obj = W.use_assigns wenv None a obj in
+	Wp_parameters.warning ~current:true ~once:true 
+	  "Missing assigns clause (assigns 'everything' instead)" ;
+        let obj = W.use_assigns wenv a.WpPropId.a_stmt None a obj in
           Some (Clabels.c_label a.WpPropId.a_label), obj
     | WpPropId.NoAssignsInfo -> None, obj
 
@@ -245,10 +255,10 @@ module Cfg (W : Mcfg.S) = struct
             res.mode <- Pass2
           end
 
-    let collect_oblig _wenv res e obj =
+    let collect_oblig wenv res e obj =
       let labels = Cil2cfg.get_edge_labels e in
       let add obj obligs =
-        List.fold_left (fun obj o -> W.merge (*wenv*) o obj) obj obligs
+        List.fold_left (fun obj o -> W.merge wenv o obj) obj obligs
       in
       let obj =
         try
@@ -272,7 +282,7 @@ module Cfg (W : Mcfg.S) = struct
     * it means that we skip the corresponding bloc, ie. we directly compute
     * the result before the block : (forall assigns. P),
     * and continue with empty. *)
-    let use_assigns  wenv res obj h_assigns =
+    let use_assigns wenv res obj h_assigns =
       let lab, obj = add_assigns_hyp wenv obj h_assigns in
         match lab with None -> obj
           | Some label -> add_oblig res label obj; W.empty
@@ -329,7 +339,7 @@ module Cfg (W : Mcfg.S) = struct
           let obj = do_labels wenv e obj in
           let obj =
             if is_loop_head then obj (* assigns used in [wp_loop] *)
-            else use_assigns  wenv res obj h_assigns
+            else use_assigns wenv res obj h_assigns
           in
             debug "[set_wp_edge] %a@." Cil2cfg.pp_edge e;
             debug " = @[<hov2>  %a@]@." W.pretty obj;
@@ -367,7 +377,7 @@ module Cfg (W : Mcfg.S) = struct
       let obj = get_loop_head nloop (* loop should be broken by a cut *) in
       let obj =
         if Cil2cfg.is_back_edge e then obj
-        else W.tag "BeforeLoop" obj
+        else W.loop_entry obj
       in obj
     in
     let loop_with_quantif () =
@@ -398,7 +408,9 @@ module Cfg (W : Mcfg.S) = struct
             Wp_error.unsupported
                  "non-natural loop without invariant property."
 
-  let wp_call ((_, cfg, strategy, _, wenv)) v stmt res fct args p_post p_exit =
+  let wp_call ((_, cfg, strategy, _, wenv)) res v stmt 
+      lval fct args p_post p_exit 
+      =
     debug "[wp_call] %a@." !Ast_printer.d_exp fct;
     let eb = match Cil2cfg.pred_e cfg v with e::_ -> e | _ -> assert false in
     let en, ee = Cil2cfg.get_call_out_edges cfg v in
@@ -408,7 +420,7 @@ module Cfg (W : Mcfg.S) = struct
     let call_asgn = WpStrategy.get_call_asgn en_annot in
       match WpStrategy.get_called_kf fct with
         | None ->
-            let obj = W.merge p_post p_exit in
+            let obj = W.merge wenv p_post p_exit in
             let lab, obj = add_assigns_hyp wenv obj call_asgn in
             let obj = match lab with Some _ -> obj
               | None -> assert false
@@ -417,13 +429,13 @@ module Cfg (W : Mcfg.S) = struct
             in obj
         | Some kf ->
             let assigns = match call_asgn with
-              | WpPropId.AssignsLocations (_, asgn_body) ->
-                    asgn_body.WpPropId.a_assigns
+              | WpPropId.AssignsLocations (_, asgn_body) -> asgn_body.WpPropId.a_assigns
               | WpPropId.AssignsAny _ -> WritesAny
               | WpPropId.NoAssignsInfo -> assert false (* see above *)
             in
             let pre_hyp, pre_goals = WpStrategy.get_call_pre eb_annot in
-            let obj = W.call wenv stmt res kf args
+	    let pre_goals = if R.is_pass1 res then pre_goals else [] in
+            let obj = W.call wenv stmt lval kf args
                         ~pre:(pre_hyp)
                         ~post:((WpStrategy.get_call_hyp en_annot))
                         ~pexit:((WpStrategy.get_call_hyp ee_annot))
@@ -431,10 +443,10 @@ module Cfg (W : Mcfg.S) = struct
             in W.call_goal_precond wenv stmt kf args ~pre:(pre_goals) obj
 
   let wp_stmt wenv s obj = match s.skind with
-  | Return (r, _) -> W.return wenv r obj
+  | Return (r, _) -> W.return wenv s r obj
   | Instr i ->
       begin match i with
-      | (Set (lv, e, _)) -> W.assign wenv lv e obj
+      | (Set (lv, e, _)) -> W.assign wenv s lv e obj
       | (Call _) -> assert false
       | (Asm _) ->
           Wp_parameters.warning
@@ -497,7 +509,7 @@ module Cfg (W : Mcfg.S) = struct
             let add_cut_hyp (_,p) acc = add_hyp wenv acc p in
             let oblig = List.fold_right add_cut_hyp cutp wp in
             (* TODO : we could add hyp to the oblig if we have some in strategy *)
-            let oblig = W.tag "InLoop" oblig in
+            let oblig = W.loop_step oblig in
               if test_edge_loop_ok cfg None e
               then R.add_memo res e oblig
               else R.add_oblig res Clabels.Pre (W.close wenv oblig);
@@ -538,23 +550,23 @@ module Cfg (W : Mcfg.S) = struct
       | Cil2cfg.Vstmt s ->
           let obj = get_only_succ env cfg v in
           wp_stmt wenv s obj
-      | Cil2cfg.Vcall (stmt, res, fct, args) ->
+      | Cil2cfg.Vcall (stmt, lval, fct, args) ->
           let en, ee = Cil2cfg.get_call_out_edges cfg v in
           let objn = get_wp_edge env en in
           let obje = get_wp_edge env ee in
-            wp_call env v stmt res fct args objn obje
-      | Cil2cfg.Vtest (true, _, c) ->
+            wp_call env res v stmt lval fct args objn obje
+      | Cil2cfg.Vtest (true, s, c) ->
           let et, ef = Cil2cfg.get_test_edges cfg v in
           let t_obj = get_wp_edge env et in
           let f_obj = get_wp_edge env ef in
-          W.test wenv c t_obj f_obj
+          W.test wenv s c t_obj f_obj
       | Cil2cfg.Vtest (false, _, _) ->
           get_only_succ env cfg v
-      | Cil2cfg.Vswitch (_, e) ->
+      | Cil2cfg.Vswitch (s, e) ->
           let cases, def_edge = Cil2cfg.get_switch_edges cfg v in
           let cases_obj = List.map (fun (c,e) -> c, get_wp_edge env e) cases in
           let def_obj = get_wp_edge env def_edge in
-            W.switch wenv e cases_obj def_obj
+            W.switch wenv s e cases_obj def_obj
       | Cil2cfg.Vloop _ | Cil2cfg.Vloop2 _ ->
           let get_loop_head = fun n -> get_only_succ env cfg n in
             wp_loop env res v e get_loop_head
@@ -664,9 +676,6 @@ module Cfg (W : Mcfg.S) = struct
       debug "before close: %a@." W.pretty obj;
     W.close wenv obj
 
-  let add_axiom (id, (name,labels,p)) =
-    W.add_axiom id name labels p
-
   let compute cfg strategy =
     debug "[wp-cfg] start computing with the strategy for %a"
           WpStrategy.pp_info_of_strategy strategy;
@@ -693,7 +702,9 @@ module Cfg (W : Mcfg.S) = struct
         let keep = if Wp_parameters.Dot.get () then true else false in
         let res = R.empty ~keep cfg in
         let env = (kf, cfg, strategy, res, wenv) in
-          List.iter add_axiom (WpStrategy.global_axioms strategy) ;
+          List.iter 
+	    (fun (pid,thm) -> W.add_axiom pid thm) 
+	    (WpStrategy.global_axioms strategy) ;
         let goal = get_weakest_precondition cfg env in
           debug "[get_weakest_precondition] %a@." W.pretty goal;
         let pp_cfg_edges_annot res fmt e =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,6 @@
 
 open Pretty_source
 open Gtk_helper
-open Db
 open Cil_types
 
 module Make_HighlighterState(Info:sig val name: string end) =
@@ -31,7 +30,6 @@ module Make_HighlighterState(Info:sig val name: string end) =
     (struct
        let name = Info.name
        let dependencies = [ Ast.self ]
-       let kind = `Internal
      end)
 
 module ForwardHighlighterState =

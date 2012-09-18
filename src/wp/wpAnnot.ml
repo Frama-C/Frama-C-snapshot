@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,11 +33,19 @@ open Cil_datatype
 (* --- Global Status                                                      --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rte_find rte_st kf = let (_,_,status,_) = !rte_st () in status kf
+let rte_find rte_st kf =
+  let status =
+    try
+      let _, _, f = !rte_st () in f
+    with Failure _ ->
+      Wp_parameters.warning ~once:true "RTE plugin not present";
+      (fun _ -> false)
+  in status kf
+
 let rte_precond_status    = rte_find Db.RteGen.get_precond_status
 let rte_signedOv_status   = rte_find Db.RteGen.get_signedOv_status
 let rte_divMod_status     = rte_find Db.RteGen.get_divMod_status
-let rte_downCast_status   = rte_find Db.RteGen.get_downCast_status
+let _rte_downCast_status   = rte_find Db.RteGen.get_downCast_status (* Seems unused *)
 let rte_memAccess_status  = rte_find Db.RteGen.get_memAccess_status
 let rte_unsignedOv_status = rte_find Db.RteGen.get_unsignedOv_status
 
@@ -45,12 +53,9 @@ let rte_wp =
   [
     "valid pointer dereferencing" , rte_memAccess_status , "-rte-mem" ;
     "division by zero" , rte_divMod_status , "-rte-div" ;
-    "signed overflow" , rte_signedOv_status , "-rte-signed" ;
-    "unsigned overflow" , rte_unsignedOv_status , "-rte-unsigned-ov" ;
+    "signed overflow" , rte_signedOv_status , "-rte-signed" ; (* Too strong for Runtime model. *)
+    "unsigned overflow" , rte_unsignedOv_status , "-rte-unsigned-ov" ; (* Too strong for Runtime model. *)
   ]
-
-let rte_generated kf =
-  List.for_all (fun (_,rte,_) -> rte kf) rte_wp
 
 let missing_rte kf =
   List.map
@@ -60,13 +65,15 @@ let missing_rte kf =
 let compute_rte_for kf =
   begin
     Dynamic.Parameter.Bool.set "-rte" true ;
+    (* RTE is using the kernel option "-safe-arrays".
+       Its default value leeds to generation of stronger properties for the model runtime.
+       These stronger properties are necessary conditions for application of Hoare and Typed model.
+       So, the default value of this option is not modified.
+       Dynamic.Parameter.Bool.set "-safe-arrays" false ; (* Weakest RTE for Runtime model. *)
+    *)
     List.iter (fun (_,_,opt) -> Dynamic.Parameter.Bool.set opt true) rte_wp ;
     !Db.RteGen.annotate_kf kf ;
   end
-
-let ip_complete f = Property.ip_complete_of_spec f Kglobal f.spec
-
-let ip_disjoint f = Property.ip_disjoint_of_spec f Kglobal f.spec
 
 (*
 (* -------------------------------------------------------------------------- *)
@@ -96,7 +103,6 @@ module FunctionContracts = Wprop.Indexed2(Kernel_function)(Datatype.String)
      let name = "WP Function Contracts"
      type key = kernel_function * string
      let size = 81
-     let kind = `Correctness
      let dependencies = [ Kernel_function.self ]
      let property (kf,model) =
        let name = Printf.sprintf
@@ -113,86 +119,12 @@ module FunctionContracts = Wprop.Indexed2(Kernel_function)(Datatype.String)
 *)
 
 (* -------------------------------------------------------------------------- *)
-(* --- Local Preconditions for functions                                  --- *)
+(* --- Selection of relevant assigns and postconditions                   --- *)
 (* -------------------------------------------------------------------------- *)
-
-let wp_preconditions = 
-  Emitter.create "WP Call Preconditions" ~correctness:[] ~tuning:[]
-
-module PreCondAt = Wprop.Indexed2(Property)(Cil_datatype.Stmt)
-  (struct
-     let name = "WP Called Preconditions"
-     type key = Property.t * stmt
-     let size = 81
-     let kind = `Correctness
-     let dependencies = [ Kernel_function.self ]
-     let property (pid,stmt) =
-       let kf = Kernel_function.find_englobing_kf stmt in
-       let name = Pretty_utils.to_string (Description.pp_localized ~kf:`Always ~ki:false) pid in
-       Wprop.Later (Property.ip_other name (Some kf) (Kstmt stmt))
-   end)
-
-module PreCondProxyGenerated =
-  State_builder.Hashtbl(Property.Hashtbl)(Datatype.Unit)
-    (struct
-       let name = "WP Call Preconditions Generated"
-       let dependencies = [Ast.self]
-       let kind = `Internal
-       let size = 97
-     end)
-
-let pre_cond_id = function
-  | Property.IPCodeAnnot(_,_,p) -> p.annot_id
-  | Property.IPPredicate(_,_,_,p) -> p.ip_id
-  | property -> 
-    Wp_parameters.fatal "No precondition id for @[%a@]" Property.pretty property
-
-let setup_precondition_proxy called_kf precondition =
-  if not (PreCondProxyGenerated.mem precondition) then
-    begin
-      let called_preconditions =
-        List.map
-          (fun (_,stmt) -> PreCondAt.property precondition stmt)
-          (Kernel_function.find_syntactic_callsites called_kf)
-      in
-      Property_status.emit
-	wp_preconditions ~hyps:called_preconditions precondition 
-	Property_status.True ;
-      PreCondProxyGenerated.add precondition ()
-    end
-
-(* Properties for kf-preconditions at call-site stmt, IF CREATED only *)
-let lookup_called_preconditions_at kf stmt =
-  let spec = Kernel_function.get_spec kf in
-  List.fold_left
-    (fun properties bhv ->
-       List.fold_left
-         (fun properties precond ->
-            let pid_spec = Property.ip_of_requires kf Kglobal bhv precond in
-	    if PreCondAt.mem pid_spec stmt then
-              let pid_call = PreCondAt.property pid_spec stmt in
-              pid_call :: properties
-	    else 
-	      properties
-         ) properties bhv.b_requires
-    ) [] spec.spec_behavior
-
-(* Properties for kf-preconditions at call-site stmt *)
-let get_called_preconditions_at kf stmt =
-  let spec = Kernel_function.get_spec kf in
-  List.fold_left
-    (fun properties bhv ->
-       List.fold_left
-         (fun properties precond ->
-            let pid_spec = Property.ip_of_requires kf Kglobal bhv precond in
-            let pid_call = PreCondAt.property pid_spec stmt in
-            pid_call :: properties
-         ) properties bhv.b_requires
-    ) [] spec.spec_behavior
 
 (* Properties for kf-conditions of termination-kind 'tkind' *)
 let get_called_postconds (tkind:termination_kind) kf =
-  let spec = Kernel_function.get_spec kf in
+  let bhvs = Annotations.behaviors kf in
   List.fold_left
     (fun properties bhv ->
        List.fold_left
@@ -200,24 +132,26 @@ let get_called_postconds (tkind:termination_kind) kf =
 	    if tkind = fst postcond then
 	      let pid_spec = Property.ip_of_ensures kf Kglobal bhv postcond in
 	      pid_spec :: properties
-	    else properties
-	 ) properties bhv.b_post_cond
-    ) [] spec.spec_behavior
+	    else properties) 
+	 properties bhv.b_post_cond) 
+    [] 
+    bhvs
 
 let get_called_post_conditions = get_called_postconds Cil_types.Normal
 let get_called_exit_conditions = get_called_postconds Cil_types.Exits
 
 (** Properties for assigns of kf *)
 let get_called_assigns kf =
-  let spec = Kernel_function.get_spec kf in
+  let bhvs = Annotations.behaviors kf in
   List.fold_left
     (fun properties bhv ->
        if Cil.is_default_behavior bhv then
 	 match Property.ip_assigns_of_behavior kf Kglobal bhv with
 	   | None -> properties
 	   | Some ip -> ip :: properties
-       else properties
-    ) [] spec.spec_behavior
+       else properties) 
+    [] 
+    bhvs
   
 (* -------------------------------------------------------------------------- *)
 (* --- Status of Unreachable Annotations                                  --- *)
@@ -226,14 +160,24 @@ let get_called_assigns kf =
 let wp_unreachable = 
   Emitter.create
     "Unreachable Annotations"
+    [ Emitter.Property_status ]
     ~correctness:[] (* TBC *)
     ~tuning:[] (* TBC *)
 
 let set_unreachable pid =
-  debug
-    "unreachable annotation %a@." WpPropId.pp_id_name pid;
-  Property_status.emit 
-    wp_unreachable ~hyps:[] (WpPropId.property_of_id pid) Property_status.True
+  let emit p = 
+    debug
+      "unreachable annotation %a@." Property.pretty p;
+    Property_status.emit wp_unreachable ~hyps:[] p Property_status.True in
+  let pids = match WpPropId.property_of_id pid with
+    | Property.IPBehavior(kf, kinstr, bhv) -> 
+	(Property.ip_post_cond_of_behavior kf kinstr bhv) @
+	(Property.ip_requires_of_behavior kf kinstr bhv)
+    | p -> 
+	Wp_parameters.result "[WP:unreachability] Goal %a : Valid" WpPropId.pp_propid pid ;
+	[p]
+  in
+    List.iter emit pids
 
 (*----------------------------------------------------------------------------*)
 (* Proofs                                                                     *)
@@ -300,9 +244,26 @@ let mk_call_pre_id called_kf bhv s_call called_pre =
   (* TODOclean : quite dirty here ! *)
   let id = WpPropId.mk_pre_id called_kf Kglobal bhv called_pre in
   let called_pre = WpPropId.property_of_id id in
-  setup_precondition_proxy called_kf called_pre ;
-  let called_pre_p = PreCondAt.property called_pre s_call in
+  let called_pre_p =
+    Statuses_by_call.precondition_at_call called_kf called_pre s_call in
   WpPropId.mk_call_pre_id called_kf s_call called_pre called_pre_p
+
+(* -------------------------------------------------------------------------- *)
+(* --- Preconditions                                                      --- *)
+(* -------------------------------------------------------------------------- *)
+
+let call_preconditions =
+  Statuses_by_call.all_call_preconditions_at ~warn_missing:true
+
+(* Preconditiosn at call-point as WpPropId.t *)
+let preconditions_at_call s vkf =
+  let kf = Globals.Functions.get vkf in
+  let preconds = call_preconditions kf s in
+  let aux (pre, pre_call) = WpPropId.mk_call_pre_id kf s pre pre_call in
+  List.map aux preconds
+
+let get_called_preconditions_at kf stmt =
+  List.map snd (call_preconditions kf stmt)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Prop Splitter                                                      --- *)
@@ -342,8 +303,7 @@ let name_of_asked_bhv = function
 (* This is to code what properties the user asked for in a given behavior. *)
 type asked_prop =
   | AllProps
-  | OnlyPreconds
-  | NamedProp of string
+  | NamedProp of string list
   | IdProp of Property.t
   | CallPre of stmt * Property.t option (** No specified property means all *)
 
@@ -385,11 +345,11 @@ let pp_assigns_mode fmt config =
 
 let pp_asked_prop fmt config = match config.asked_prop  with
   | AllProps -> Format.fprintf fmt "all properties"
-  | OnlyPreconds -> Format.fprintf fmt "main preconditions"
-  | NamedProp s ->  Format.fprintf fmt "properties %s" s
-  | IdProp p -> Format.fprintf fmt "property %s" (WpPropId.id_prop_txt p)
+  | NamedProp names ->  Format.fprintf fmt "properties %a" 
+        (Pretty_utils.pp_list ~sep:"," Format.pp_print_string) names
+  | IdProp p -> Format.fprintf fmt "property %s" (Property.Names.get_prop_name_id p)
   | CallPre (s, Some p) -> Format.fprintf fmt "pre %s at stmt %a"
-                             (WpPropId.id_prop_txt p) Stmt.pretty_sid s
+                             (Property.Names.get_prop_name_id p) Stmt.pretty_sid s
   | CallPre (s, None) -> Format.fprintf fmt "all call preconditions at stmt %a"
                              Stmt.pretty_sid s
 
@@ -408,67 +368,66 @@ let cur_fct_default_bhv config = match config.cur_bhv with
   | FunBhv (Some bhv) -> bhv.b_name = Cil.default_behavior_name
   | _ -> false
 
-let filter_status id =
+let filter_assign config pid =
+  match config.assigns_filter, WpPropId.property_of_id pid with
+    | NoAssigns, Property.IPAssigns _ -> false
+    | (OnlyAssigns | WithAssigns), Property.IPAssigns _ -> true
+    | OnlyAssigns, _ -> false
+    | (NoAssigns | WithAssigns), _ -> true
+
+let filter_speconly config pid =
+  if Cil2cfg.cfg_spec_only config.cfg then
+    match WpPropId.property_of_id pid with
+      | Property.IPPredicate( Property.PKRequires _ , _ , Kglobal , _ ) -> true
+      | _ -> false
+  else true
+
+let filter_status pid =
   Wp_parameters.StatusAll.get () ||
-    match Property_status.get (WpPropId.property_of_id id) with
-      | Property_status.Best(Property_status.True, _) -> 
-	  Wp_parameters.StatusTrue.get ()
-      | Property_status.Best(Property_status.Dont_know, _) -> 
-	  Wp_parameters.StatusMaybe.get ()
-      | Property_status.Best((Property_status.False_if_reachable
-			     | Property_status.False_and_reachable), _) -> 
-	  Wp_parameters.StatusFalse.get ()
-      | Property_status.Never_tried -> true
-      | Property_status.Inconsistent _ -> false
-	
-let filter_precond pid =
-  match WpPropId.property_of_id pid with
-    | Property.IPPredicate( Property.PKRequires _ , _ , Kglobal , _ ) -> true
-    | _ -> false
+    begin
+      match Property_status.get (WpPropId.property_of_id pid) with
+	| Property_status.Best(Property_status.True, _) -> 
+	    Wp_parameters.StatusTrue.get ()
+	| Property_status.Best(Property_status.Dont_know, _) -> 
+	    Wp_parameters.StatusMaybe.get ()
+	| Property_status.Best((Property_status.False_if_reachable
+			       | Property_status.False_and_reachable), _) -> 
+	    Wp_parameters.StatusFalse.get ()
+	| Property_status.Never_tried -> true
+	| Property_status.Inconsistent _ -> false
+    end
+
+let filter_configstatus config pid =
+  (match config.asked_prop with IdProp _ -> true | _ -> false) ||
+    (filter_status pid)
+
+let filter_asked config pid =
+  match config.asked_prop with
+    | AllProps -> true
+    | IdProp idp -> Property.equal (WpPropId.property_of_id pid) idp
+    | CallPre (s_call, asked_pre) -> WpPropId.select_call_pre s_call asked_pre pid
+    | NamedProp names -> WpPropId.select_by_name names pid
+
+let rec filter config pid = function
+  | [] -> None
+  | (f,name)::fs -> if f config pid then filter config pid fs else Some name
 
 let goal_to_select config pid =
-  let asked, take_it =
-    match config.assigns_filter, WpPropId.property_of_id pid with
-      | NoAssigns, Property.IPAssigns _ ->
-          "no assigns", false
-      | (OnlyAssigns | WithAssigns), Property.IPAssigns _ ->
-          "", true
-      | OnlyAssigns, _ -> "only assigns", false
-      | (NoAssigns | WithAssigns), _ -> "", true
-  in
-  let asked, (take_it, msg) =
-    if take_it then begin
-      match config.asked_prop with
-      | AllProps ->
-        "all",
-        if not (filter_status pid)
-        then false, " (skipped w.r.t status)"
-        else true, " (selected)"
-      | OnlyPreconds ->
-        "main precondition",
-        if not (filter_status pid) || not (filter_precond pid)
-        then false, " (main precondition only)"
-        else true, " (selected)"
-      | IdProp idp ->
-        (* Notice that if the user has explicitly selected a property,
-         * we consider it as a goal even if it has been proved already *)
-        (WpPropId.id_prop_txt idp),
-	(Property.equal (WpPropId.property_of_id pid) idp, "")
-      | CallPre (s_call, asked_pre) ->
-        let take_it, msg = WpPropId.select_call_pre s_call asked_pre pid in 
-        let pre_txt = match asked_pre with None -> "all pre "
-          | Some pre -> WpPropId.id_prop_txt pre
-        in
-	pre_txt ^ " at stmt " ^ (string_of_int s_call.sid),
-        (take_it, msg)
-    | NamedProp str -> str, WpPropId.select_by_name str pid
-    end
-    else asked, (take_it, "")
-  in
-    debug "[goal_to_select] %s vs %a -> %s%s@."
-        asked WpPropId.pp_id_name pid (if take_it then "select" else "ignore") msg;
-    take_it
-
+  let result =
+    filter config pid [ 
+      filter_assign , "assigns/non-assigns pass" ;
+      filter_asked , "user selection" ;
+      filter_configstatus , "proved status" ;
+      filter_speconly , "no code and not main precondition" ;
+    ] in
+  match result with
+    | None -> 
+	Wp_parameters.debug ~dkey:"select" "Goal '%a' selected" WpPropId.pp_propid pid ;
+	true
+    | Some f -> 
+	Wp_parameters.debug ~dkey:"select" "Goal '%a' skipped (%s)" WpPropId.pp_propid pid f ;
+	false
+    
 (*----------------------------------------------------------------------------*)
 (* Add properties *)
 
@@ -630,17 +589,6 @@ let is_annot_for_config config node s_annot bhv_name_list =
     (match res with TBRok -> "ok" | TBRhyp -> "hyp" | TBRno -> "no" 
                   | TBRpart -> "part");
      res
-
-let get_bhv_assumes spec l =
-  let rec get_assumes bhv_names = match bhv_names with [] -> []
-    | bhv::tl ->
-        let l = match get_named_bhv bhv spec.spec_behavior with
-          | None -> Wp_parameters.warning "no %s behavior !?!?" bhv;
-                    get_assumes tl
-          | Some b ->
-                (Ast_info.behavior_assumes b)::(get_assumes tl)
-        in l
-  in get_assumes l
 
 let add_fct_pre config acc spec =
   let kf = config.kf in
@@ -837,7 +785,7 @@ let add_called_pre config called_kf s spec =
     acc
 
 let add_called_post called_kf termination_kind =
-  let spec = Kernel_function.get_spec called_kf in
+  let spec = Annotations.funspec called_kf in
   debug "[add_called_post] '%s' for %a@."
     (WpPropId.string_of_termination_kind termination_kind)
     Kernel_function.pretty  called_kf;
@@ -862,7 +810,7 @@ let get_call_annots config v s fct =
   let l_post = Cil2cfg.get_post_logic_label config.cfg v in
   match WpStrategy.get_called_kf fct with
     | Some kf ->
-        let spec = Kernel_function.get_spec kf in
+        let spec = Annotations.funspec kf in
         let before_annots =
           if rte_precond_status config.kf then WpStrategy.empty_acc
           else add_called_pre config kf s spec
@@ -956,14 +904,13 @@ let add_stmt_invariant_annot config v s ca b_list inv ((b_acc, a_acc) as acc) =
       | TBRno -> acc
   in acc
 
-
 (** Returns the annotations for the three edges of the loop node:
  * - loop_entry : goals for the edge entering in the loop
  * - loop_back  : goals for the edge looping to the entry point
  * - loop_core  : fix-point hypothesis for the edge starting the loop core
  *)
 let get_loop_annots config vloop s =
-  let do_annot a (assigns, loop_entry, loop_back , loop_core as acc) =
+  let do_annot _ a (assigns, loop_entry, loop_back , loop_core as acc) =
     let ca = match a with User ca | AI (_, ca) -> ca in
     match ca.annot_content with
       | AInvariant (b_list, true, inv) ->
@@ -996,11 +943,12 @@ let get_loop_annots config vloop s =
           in (assigns, loop_entry , loop_back , loop_core)
       | _ -> acc (* see get_stmt_annots *)
   in
-  let acc = ((None,None), 
-             WpStrategy.empty_acc, WpStrategy.empty_acc, WpStrategy.empty_acc) 
+  let acc = 
+    ((None,None), 
+     WpStrategy.empty_acc, WpStrategy.empty_acc, WpStrategy.empty_acc) 
   in
   let (h_assigns, g_assigns), loop_entry , loop_back , loop_core =
-    Annotations.single_fold_stmt do_annot s acc
+    Annotations.fold_code_annot do_annot s acc
   in
   let loop_back = match g_assigns with 
     | None -> loop_back
@@ -1011,8 +959,8 @@ let get_loop_annots config vloop s =
   in (loop_entry , loop_back , loop_core)
 
 let get_stmt_annots config v s =
-  let do_annot a ((b_acc, (a_acc, e_acc)) as acc) =
-    let ca = Annotations.get_code_annotation a in
+  let do_annot _ a ((b_acc, (a_acc, e_acc)) as acc) =
+    let ca = Annotations.code_annotation_of_rooted a in
     match ca.annot_content with
       | AInvariant (b_list, loop_inv, inv) ->
           if loop_inv then (* see get_loop_annots *) acc
@@ -1038,6 +986,8 @@ let get_stmt_annots config v s =
                 let b_acc = WpStrategy.add_prop_assert b_acc kind kf s ca p in
                   (b_acc, (a_acc, e_acc))
           in acc
+      | AAllocation (_b_list, _frees_allocates) -> 
+        (* [PB] TODO *) acc
       | AAssigns (_b_list, _assigns) -> 
         (* loop assigns: see get_loop_annots *) acc
       | AVariant (_v, _rel) -> (* see get_loop_annots *) acc
@@ -1054,10 +1004,10 @@ let get_stmt_annots config v s =
           add_stmt_spec_annots config v s spec acc
   in
   let before_acc = WpStrategy.empty_acc in
-  let  after_acc = WpStrategy.empty_acc in
-  let  exits_acc = WpStrategy.empty_acc in
+  let after_acc = WpStrategy.empty_acc in
+  let exits_acc = WpStrategy.empty_acc in
   let acc = before_acc, (after_acc, exits_acc) in
-    Annotations.single_fold_stmt do_annot s acc
+  Annotations.fold_code_annot do_annot s acc
 
 let get_fct_pre_annots config spec =
   let acc = WpStrategy.empty_acc in
@@ -1111,7 +1061,7 @@ let get_fct_post_annots config tkind spec =
 let get_behavior_annots config =
   debug "build strategy for %a@." pp_strategy_info config;
   let cfg = config.cfg in
-  let spec = Kernel_function.get_spec config.kf in
+  let spec = Annotations.funspec config.kf in
   let annots = WpStrategy.create_tbl () in
 
   let get_node_annot v =
@@ -1166,13 +1116,13 @@ let get_behavior_annots config =
 (* ---  Global Properties                                               --- *)
 (* ------------------------------------------------------------------------ *)
 
+module GS = Cil_datatype.Global_annotation.Set
+
 let add_global_annotations annots =
-  let globs = Globals.Annotations.get_all () in
-  let globs = List.map (fun (g, _generated) -> g) globs in
-  let rec do_g g =
+  let rec do_global g =
     let (source,_) = Cil_datatype.Global_annotation.loc g in
     match g with
-    | Daxiomatic (_ax_name, globs,_) -> do_globs globs 
+    | Daxiomatic (_ax_name, globs,_) -> do_globals globs 
     | Dvolatile _ ->
         (* nothing to do *) ()
     | Dfun_or_pred _ ->
@@ -1184,24 +1134,29 @@ let add_global_annotations annots =
           "Type invariant not handled yet ('%s' ignored)"
           linfo.l_var_info.lv_name;
         ()
-    | Dmodel_annot (linfo,_) ->
+    | Dmodel_annot (mf,_) ->
         Wp_parameters.warning ~source
           "Model fields not handled yet (model field '%s' ignored)"
-          linfo.l_var_info.lv_name;
+          mf.mi_name;
+        ()
+    | Dcustom_annot (_c,_n,_) ->
+        Wp_parameters.warning ~source
+          "Custom annotation not handled (ignored)";
         ()
     | Dinvariant (linfo,_) ->
         Wp_parameters.warning ~source
           "Global invariant not handled yet ('%s' ignored)"
           linfo.l_var_info.lv_name;
         ()
-    | Dlemma (name, is_axiom, labels, _, pred,_) ->
-        if not is_axiom then
-          Wp_parameters.warning ~once:true ~source
-            "Proof obligation for property '%s' not generated." name ;
-        WpStrategy.add_axiom annots name labels pred
-  and do_globs globs = List.iter do_g globs in
-    do_globs globs;
-    annots
+    | Dlemma (name,_,_,_,_,_) ->
+        WpStrategy.add_axiom annots (LogicUsage.logic_lemma name)
+
+  and do_globals gs = List.iter do_global gs in
+  (*[LC]: forcing order of iteration: hash is not the same on 32 and 64 bits *)
+  let pool = ref GS.empty in
+  Annotations.iter_global (fun _ g -> pool := GS.add g !pool);
+  GS.iter do_global !pool; 
+  annots
 
 (* ------------------------------------------------------------------------ *)
 (* --- Main functions to build the strategies                           --- *)
@@ -1253,9 +1208,12 @@ let internal_function_behaviors cfg =
           List.fold_left add_bhv_info acc spec.spec_behavior
       | _ -> Wp_parameters.fatal "filter on is_contract didn't work ?"
     in
-    let annots = Annotations.get_filter Logic_utils.is_contract stmt in
-    let annots = List.map Annotations.get_code_annotation annots in
-      List.fold_left spec_bhv_names acc annots
+    let is_contract a = 
+      Logic_utils.is_contract (Annotations.code_annotation_of_rooted a)
+    in
+    let annots = Annotations.code_annot ~filter:is_contract stmt in
+    let annots = List.map Annotations.code_annotation_of_rooted annots in
+    List.fold_left spec_bhv_names acc annots
   in
   let get_bhv n ((seen_stmts, bhvs) as l) =
     match Cil2cfg.start_stmt_of_node n with None -> l
@@ -1272,8 +1230,7 @@ let internal_function_behaviors cfg =
 
 (** empty [bhv_names] means all (whatever [ki] is) *)
 let find_behaviors kf cfg ki bhv_names =
-  let spec = Kernel_function.get_spec kf in
-  let f_bhvs = spec.spec_behavior in
+  let f_bhvs = Annotations.behaviors kf in
   let s_bhvs, def_annot_bhv = internal_function_behaviors cfg in
 
   let add_fct_bhv (def, acc) b =
@@ -1322,18 +1279,18 @@ let process_unreached_annots cfg =
   debug "collecting unreachable annotations@.";
   let unreached = Cil2cfg.unreachable_nodes cfg in
   let kf = Cil2cfg.cfg_kf cfg in
-  let spec = Kernel_function.get_spec kf in
-  let add_id id acc =
+  let spec = Annotations.funspec kf in
+  let add_id acc id =
     if filter_status id then id::acc
     else (* non-selected property : nothing to do *) acc
   in
   let do_post b tk acc (termk, _ as p) =
-    if tk = termk then add_id (WpPropId.mk_fct_post_id kf b p) acc else acc
+    if tk = termk then add_id acc (WpPropId.mk_fct_post_id kf b p) else acc
   in
   let do_bhv termk acc b = List.fold_left (do_post b termk) acc b.b_post_cond in
-  let do_annot s a acc =
+  let do_annot s _ a acc =
     let ca = match a with User ca | AI (_, ca) -> ca in
-      add_id (WpPropId.mk_code_annot_id kf s ca) acc
+      List.fold_left add_id acc (WpPropId.mk_code_annot_ids kf s ca)
   in
   let do_node acc n =
      debug
@@ -1344,10 +1301,14 @@ let process_unreached_annots cfg =
     | Cil2cfg.VfctIn -> Wp_parameters.fatal "FctIn must be reachable"
     | Cil2cfg.VfctOut  -> List.fold_left (do_bhv Normal) acc spec.spec_behavior
     | Cil2cfg.Vexit  -> List.fold_left (do_bhv Exits) acc spec.spec_behavior
+    | Cil2cfg.Vcall (s, _, {enode=Lval (Var vkf, NoOffset)}, _) ->
+        Annotations.fold_code_annot (do_annot s) s acc @
+          preconditions_at_call s vkf
+    | Cil2cfg.Vcall (s, _, _, _)
     | Cil2cfg.Vstmt s
-    | Cil2cfg.VblkIn (Cil2cfg.Bstmt s, _) | Cil2cfg.Vcall (s, _, _, _)
+    | Cil2cfg.VblkIn (Cil2cfg.Bstmt s, _)
     | Cil2cfg.Vtest (true, s, _) | Cil2cfg.Vloop (_, s) | Cil2cfg.Vswitch (s,_)
-      -> Annotations.single_fold_stmt (do_annot s) s acc
+      -> Annotations.fold_code_annot (do_annot s) s acc
     | Cil2cfg.Vtest (false, _, _) | Cil2cfg.Vloop2 _ 
     | Cil2cfg.VblkIn _ | Cil2cfg.VblkOut _ | Cil2cfg.Vend -> acc
   in
@@ -1382,10 +1343,6 @@ let build_configs assigns kf behaviors ki property =
           "[get_strategies] select stmt %d properties@." s.sid
   in
   let cfg = get_cfg kf in
-  let property = match property with
-    | AllProps -> if Cil2cfg.cfg_spec_only cfg then OnlyPreconds else AllProps
-    | _ -> property
-  in
   let def_annot_bhv, bhvs = find_behaviors kf cfg ki behaviors in
   if bhvs = [] then
     Wp_parameters.warning "[get_strategies] no behaviors found"
@@ -1408,14 +1365,24 @@ let get_strategies assigns kf behaviors ki property =
         let stg = build_bhv_strategy config in
         let stgs = stg::(add_stgs tl) in
           match config.cur_bhv, config.asked_prop with
-            | FunBhv (Some b), AllProps -> 
+            | FunBhv (Some b), AllProps 
+		when not (Cil2cfg.cfg_spec_only config.cfg) ->
                 let froms = Property.ip_from_of_behavior kf Kglobal b in
-                let add acc ip = match ip with
-                  | Property.IPFrom id_from ->
-                      (WpFroms.get_strategy_for_from id_from)::acc
-                  | _ -> acc
-                in List.fold_left add stgs froms
-
+		if froms <> [] then
+		  if Wp_parameters.Froms.get () then
+                    let add acc ip = match ip with
+                      | Property.IPFrom id_from ->
+			  (WpFroms.get_strategy_for_from id_from)::acc
+                      | _ -> acc
+                    in List.fold_left add stgs froms
+		  else
+		    begin
+		      Wp_parameters.warning ~current:false ~once:true
+			"Ignoring '\\from' part of assigns specification in function '%a'"
+			Kernel_function.pretty kf ;
+		      stgs
+		    end
+		else stgs
             | _, _ -> (* TODO *) stgs
   in add_stgs configs
 
@@ -1425,7 +1392,7 @@ let get_strategies assigns kf behaviors ki property =
 
 let get_precond_strategies p =
   debug "[get_precond_strategies] %s@."
-    (WpPropId.id_prop_txt p);
+    (Property.Names.get_prop_name_id p);
   match p with
     | Property.IPPredicate (Property.PKRequires b, kf, Kglobal, _) ->
         let strategies =
@@ -1470,7 +1437,7 @@ let get_call_pre_strategies stmt =
 
 let get_id_prop_strategies ?(assigns=WithAssigns) p =
   debug "[get_id_prop_strategies] %s@."
-    (WpPropId.id_prop_txt p);
+    (Property.Names.get_prop_name_id p);
     match p with
       | Property.IPCodeAnnot (kf,_,ca) ->
           let bhvs = match ca.annot_content with
@@ -1492,7 +1459,7 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
           let strategies = match Property.get_kf p with
             | None -> Wp_parameters.warning
                         "WP of property outside functions: ignore %s"
-                        (WpPropId.id_prop_txt p); []
+                        (Property.Names.get_prop_name_id p); []
             | Some kf ->
                 let ki = Some (Property.get_kinstr p) in
                 let bhv = match Property.get_behavior p with
@@ -1501,20 +1468,9 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
                 in get_strategies assigns kf [bhv] ki (IdProp p)
           in strategies
 
-let get_behavior_strategies ?(assigns=WithAssigns) kf bhvs =
-  let ki = None in
-  let stgs = get_strategies assigns kf bhvs ki AllProps in
-    stgs
-
-let get_function_strategies ?(assigns=WithAssigns) kf =
-  get_strategies assigns kf [] None AllProps
-
-(* TODO: it could be better to first find the property in order
- * to compute only in its functions and behaviors...
- * At the moment [p_bhvs] is given as a hint (see [get_id_prop_strategies])
- *)
-let get_prop_strategies ?(assigns=WithAssigns) kf (p_bhvs, prop_name) =
-  get_strategies assigns kf p_bhvs None (NamedProp prop_name)
+let get_function_strategies ?(assigns=WithAssigns) ?(bhv=[]) ?(prop=[]) kf =
+  let prop = match prop with [] -> AllProps | _ -> NamedProp prop in
+  get_strategies assigns kf bhv None prop
 
 (*----------------------------------------------------------------------------*)
 (*

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,17 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
-
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+(** Undocumented. The interfaces of this module may change between
+    Frama-C versions. Contact us if you need stable APIs. *)
 
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
-(** May be raised by [update_ival] when the add is completely out of bounds. *)
 exception Result_is_bottom
 exception Result_is_same
 exception Found_Top
@@ -60,7 +57,7 @@ module type S = sig
   val is_included_exn : t -> t -> unit
   val is_included_exn_generic : (y -> y -> unit) -> t -> t -> unit
 
-  val join : t -> t -> (Int.t * Int.t) list * t
+  val join : t -> t -> t
   val widen : widen_hint -> t -> t -> t
 
   val find_ival :
@@ -127,7 +124,7 @@ module type S = sig
 
   val merge_by_itv :  t -> t -> Int_Intervals.t -> t
   val shift : Int.t -> t -> t
-  val sized_zero : size_in_bits:Int.t -> t
+  val sized_isotropic : y -> size_in_bits:Int.t -> t
 
   val reciprocal_image : t -> Base.t -> Int_Intervals.t * Ival.t
     (** [reciprocal_image m b] is the set of bits in the offsetmap [m]
@@ -136,7 +133,7 @@ module type S = sig
 
   val create_initial: v:y -> modu:Int.t -> t
 
-  val reduce_by_int_intervals: t -> Abstract_value.Int_Intervals.t -> t
+  val reduce_by_int_intervals: t -> Lattice_Interval_Set.Int_Intervals.t -> t
 
   val top_stuff :
     (y -> bool) -> (y -> 'a * y) -> ('a -> 'a -> 'a) -> 'a -> t -> 'a * t
@@ -151,6 +148,11 @@ end
 
 module Make(V : Lattice_With_Isotropy.S):
   S with type y = V.t and type widen_hint = V.widen_hint
+
+
+(**/**) (* This is automatically set by the Value plugin *)
+val precise_unions: bool ref
+(**/**)
 
 (*
 Local Variables:

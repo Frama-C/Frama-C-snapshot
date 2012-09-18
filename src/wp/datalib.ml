@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,7 @@ open Format
 open Ctypes
 open Cil_types
 open Formula
+open Warning
 
 (* ------------------------------------------------------------------------ *)
 (* --- Goals information collection                                     --- *)
@@ -34,7 +35,7 @@ module Collector =
 struct
 
   type t = {
-    mutable c_warning : Wpo.warning list;
+    mutable c_warning : Warning.t list;
     mutable c_depends : Property.t list;
   }
       
@@ -53,11 +54,11 @@ struct
     let f _ =
       let msg = Format.flush_str_formatter () in
       let wrn = {
-        Wpo.wrn_loc = Log.get_current_source () ;
-        Wpo.wrn_severe = severe ;
-        Wpo.wrn_source = (match source with None -> "wp" | Some r -> r) ;
-        Wpo.wrn_reason = reason ;
-        Wpo.wrn_effect = msg ;
+        wrn_loc = Log.get_current_source () ;
+        wrn_severe = severe ;
+        wrn_source = (match source with None -> "wp" | Some r -> r) ;
+        wrn_reason = reason ;
+        wrn_effect = msg ;
       } in
       match !stack with
         | top::_ -> top.c_warning <- wrn::top.c_warning
@@ -121,7 +122,8 @@ struct
 	 PredicateDef([a],is_array_dim pool (F.var a) te n)
      end)
     
-  let has_type_int i e = F.guard i e
+  let has_type_int i e = F.i_guard i e
+  let has_type_float f e = F.f_guard f e
 
   let is_comp comp e = F.p_app1 (IsComp.get_definition comp).d_name e
   let is_array arr e = 
@@ -131,13 +133,15 @@ struct
     	
   let has_obj e = function
     | C_int i -> has_type_int i (F.unwrap e)
-    | C_float _ -> F.p_true
+    | C_float f -> has_type_float f (F.unwrap e)
     | C_pointer _ -> F.p_true
     | C_array arr -> is_array arr e
     | C_comp comp -> is_comp comp e
 
   let has_type e = function
-    | Ctype ty -> has_obj e (object_of ty)
+    | Ctype ty -> 
+	if Wp_parameters.Natural.get () then F.p_true else 
+	  has_obj e (object_of ty)
     | (Ltype _ | Linteger | Lreal | Lvar _ | Larrow _ ) -> F.p_true
 
   let () = has_type_rec := has_type
@@ -152,13 +156,13 @@ struct
     | Exists of F.var list
     | Any of F.var * F.pred
     | Let of F.var * F.abstract
-	
+(*	
   let pp_binding fmt = function
     | Forall xs -> Format.fprintf fmt "Forall @[%a@]" (Pretty_utils.pp_list F.pp_var) xs
     | Exists xs -> Format.fprintf fmt "Exists @[%a@]" (Pretty_utils.pp_list F.pp_var) xs
     | Any(x,p) -> Format.fprintf fmt "Any %a s.t. @[%a@]" F.pp_var x F.pp_pred p
     | Let(x,t) -> Format.fprintf fmt "Let %a = @[%a@]" F.pp_var x F.pp_term t
-	
+*)	
   type context = {
     pool : F.pool ;
     mutable bindings : bindings ;
@@ -166,11 +170,6 @@ struct
       
   let closed : bindings = []
   let context = ref []
-    
-  let occur_check y xs =
-    if List.exists (F.eq_var y) xs then
-      Wp_parameters.fatal
-        "Quantification of constrained variable"
 	
   let pp_vkind fmt = function
     | Formula.Model t -> F.pp_tau fmt t
@@ -215,8 +214,7 @@ struct
     then
       let ys = List.filter (fun y -> F.pred_has_var [y] p) xs in
       if ys = [] then p
-      else
-        F.p_forall ys (guards_with F.p_implies p ys)
+      else F.p_forall ys (guards_with F.p_implies p ys)
     else p
       
   let do_exists xs p =
@@ -226,6 +224,8 @@ struct
       if ys = [] then p
       else F.p_exists ys (guards_with F.p_and p ys)
     else p
+
+  let guards xs p = guards_with F.p_implies p xs
       
   let rec has_var xs bindings =
     xs <> [] &&
@@ -341,7 +341,7 @@ struct
   (* ------------------------------------------------------------------------ *)
     
     
-  let pp_sigma fmt s =
+(*  let pp_sigma fmt s =
     begin
       Format.fprintf fmt "[" ;
       List.iter (fun (x,x') -> Format.fprintf fmt " %a:=%a" F.pp_var x F.pp_var x') s ;
@@ -350,7 +350,7 @@ struct
       
   let pp_bindings fmt xts =
     List.iter (fun (x,t) -> Format.fprintf fmt "%a:= %a@\n" F.pp_var x F.pp_term t) xts
-      
+  *)    
       
   let freshen x =
     match !context with
@@ -435,8 +435,6 @@ struct
   module R = M.R
   module F = M.F
   type loc = M.loc
-  type m_cell
-  type cell = F.abstract
 
   let loc_of_term = M.loc_of_term
   let term_of_loc = M.term_of_loc
@@ -452,7 +450,7 @@ struct
     | V_union of compinfo * F.urecord
     | V_array of arrayinfo * F.array
 
-  let rec logic_of_value = function
+  let logic_of_value = function
     | V_int(_,t) -> F.wrap t
     | V_float(_,t) -> F.wrap t
     | V_pointer(_,loc) -> F.wrap (M.term_of_loc loc)
@@ -461,7 +459,7 @@ struct
     | V_array(_,t) -> F.wrap t
 
 
-  let rec value_of_logic c_obj t =
+  let value_of_logic c_obj t =
     match c_obj with
       | C_int i -> V_int(i,F.unwrap t)
       | C_float f -> V_float(f,F.unwrap t)
@@ -499,7 +497,7 @@ struct
       else t
     in apply_dim (tau_of_object obj) n
 
-  let tau_of_ctype_logic t = tau_of_object (object_of t)
+  let _tau_of_ctype_logic t = tau_of_object (object_of t)
 
   let rec pp_tau fmt = function
     | Formula.Integer -> pp_print_string fmt "int"
@@ -522,7 +520,7 @@ struct
         Format.fprintf fmt ") %s@]" s
 
 
-  let tau_of_ctype t = tau_of_object (Ctypes.object_of t)
+  let _tau_of_ctype t = tau_of_object (Ctypes.object_of t)
 
   let rec tau_of_logic_type = function
     | Ctype c -> tau_of_object (object_of c)
@@ -646,10 +644,8 @@ struct
          let body = init_value_term pool x obj in
          Formula.Axiom (F.p_forall [vx ] (F.p_iff is_init_x body))
 
-       let prefix = "IsInitDef"
        let section = S_Logic_Prop
-       let clear () = ()
-       let pp_title fmt x =
+       let _pp_title fmt x = (* Unused *)
          Format.fprintf fmt
            "Axiomatic definition of the predicate of  is initial value of type %a" F.Cobject.pp_title x
        let prefix = "IsInitRangeDef"
@@ -701,11 +697,30 @@ struct
     else None 
 
   (* ------------------------------------------------------------------------ *)
-  (* --- Pointer Arithmetics                                              --- *)
+  (* --- String Constants                                                 --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let lt_loc = M.lt_loc
-  let le_loc = M.le_loc
+  let h_string = Hashtbl.create 131
+  let h_index = ref 0
+
+  let index_of_string eid s = 
+    try Hashtbl.find h_string (eid,s)
+    with Not_found ->
+      (* SHOULD be indexed by the location *)
+      let k = !h_index in 
+      Wp_parameters.warning ~current:true ~once:true 
+	"String constant %d: %S (eid:%d)" k s eid ;
+      incr h_index ; Hashtbl.add h_string (eid,s) k ; k
+
+  let string eid s = 
+    let obj_char = C_int (Ctypes.c_char ()) in
+    let index = index_of_string eid s in
+    let addr = F.e_call "string_addr" [F.wrap (F.e_int index)] in
+    V_pointer(obj_char,M.loc_of_term obj_char addr)
+
+  (* ------------------------------------------------------------------------ *)
+  (* --- Pointer Arithmetics                                              --- *)
+  (* ------------------------------------------------------------------------ *)
 
   let minus_loc = M.minus_loc
 

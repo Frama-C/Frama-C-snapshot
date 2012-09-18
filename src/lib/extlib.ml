@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,6 +21,8 @@
 (**************************************************************************)
 
 let nop _ = ()
+
+let id x = x
 
 let adapt_filename f =
   let change_suffix ext =
@@ -41,7 +43,7 @@ let max_cpt c1 c2 = max (c1 + min_int) (c2 + min_int) - min_int
 let number_to_color n =
   let color = ref 0 in
   let number = ref n in
-  for i = 0 to 7 do
+  for _i = 0 to 7 do
     color := (!color lsl 1) +
       (if !number land 1 <> 0 then 1 else 0) +
       (if !number land 2 <> 0 then 256 else 0) +
@@ -50,16 +52,18 @@ let number_to_color n =
   done;
   !color
 
-
 (* ************************************************************************* *)
 (** {2 Function builders} *)
 (* ************************************************************************* *)
 
-exception NotYetImplemented of string
-let not_yet_implemented s = raise (NotYetImplemented s)
+exception Unregistered_function of string 
 
-let mk_fun s =
-  ref (fun _ -> failwith (Printf.sprintf "Function '%s' not registered yet" s))
+let mk_labeled_fun s =
+  raise 
+    (Unregistered_function
+       (Printf.sprintf "Function '%s' not registered yet" s))
+
+let mk_fun s = ref (fun _ -> mk_labeled_fun s)
 
 (* ************************************************************************* *)
 (** {2 Function combinators} *)
@@ -124,6 +128,12 @@ let list_of_opt =
     | None -> []
     | Some x -> [x]
 
+let opt_of_list =
+  function
+    | [] -> None
+    | [a] -> Some a
+    | _ -> raise (Invalid_argument "Extlib.opt_of_list")
+
 let rec find_opt f = function
   | [] -> raise Not_found
   | e :: q ->
@@ -132,6 +142,11 @@ let rec find_opt f = function
         | Some v -> v
 
 let iteri f l = let i = ref 0 in List.iter (fun x -> f !i x; incr i) l
+
+let mapi f l =
+  let res =
+    snd (List.fold_left (fun (i,acc) x -> (i+1,f i x :: acc)) (0,[]) l)
+  in List.rev res
 
 (* ************************************************************************* *)
 (** {2 Options} *)
@@ -155,6 +170,17 @@ let may_map f ?dft x =
 let opt_map f = function
   | None -> None
   | Some x -> Some (f x)
+
+let opt_fold f o b =
+  match o with
+    | None -> b
+    | Some a -> f a b
+
+let merge_opt f k o1 o2 =
+  match o1,o2 with
+    | None, None -> None
+    | Some x, None | None, Some x -> Some x
+    | Some x1, Some x2 -> Some (f k x1 x2)
 
 let opt_bind f = function
   | None -> None
@@ -180,6 +206,12 @@ let opt_compare f v1 v2 = match v1, v2 with
   | Some v1, Some v2 -> f v1 v2
 
 (* ************************************************************************* *)
+(** Booleans                                                                 *)
+(* ************************************************************************* *)
+
+let xor x y = if x then not y else y
+
+(* ************************************************************************* *)
 (** {2 Performance} *)
 (* ************************************************************************* *)
 
@@ -199,7 +231,7 @@ let time ?msg f x = gentime getperfcount ?msg f x
 let time1024 ?msg f x = gentime getperfcount1024 ?msg f x
 
 (* The two functions below are not exported right now *)
-let time' name f =
+let _time' name f =
   let cpt = ref 0 in
   fun x ->
     let b = getperfcount () in
@@ -210,7 +242,7 @@ let time' name f =
     Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
     res
 
-let time2 name f =
+let _time2 name f =
   let cpt = ref 0 in
   fun x y ->
     let b = getperfcount () in
@@ -256,13 +288,22 @@ let cleanup_at_exit f = at_exit (fun () -> safe_remove f)
 
 exception Temp_file_error of string
 
-let temp_file_cleanup_at_exit s1 s2 =
+let temp_file_cleanup_at_exit ?(debug=false) s1 s2 =
   let file, out =
     try Filename.open_temp_file s1 s2
     with Sys_error s -> raise (Temp_file_error s)
   in
   (try close_out out with Unix.Unix_error _ -> ());
-  at_exit (fun () -> safe_remove file) ;
+  at_exit 
+    (fun () -> 
+      if debug then begin
+        (* If the caller decided to erase this file after all, don't
+           print anything *)
+        if Sys.file_exists file then
+          Format.printf
+            "@[[extlib] Debug flag was set: not removing file %s@]@." file;
+      end else
+        safe_remove file) ;
   file
 
 let temp_dir_cleanup_at_exit base =
@@ -299,6 +340,24 @@ let string_prefix ?(strict=false) prefix s =
   String.length s >= String.length prefix + add
   && String.sub s 0 (String.length prefix) = prefix
 
+let string_del_prefix ?(strict=false) prefix s =
+  if string_prefix ~strict prefix s then
+    Some 
+      (String.sub s
+         (String.length prefix) (String.length s - String.length prefix))
+  else None
+
+let string_split s i =
+  let s1 = String.sub s 0 i in
+  let s2 = String.sub s (i+1) (String.length s - i -1) in
+  (s1,s2)
+
+let make_unique_name mem ?(sep=" ") ?(start=2) from =
+  let rec build base id =
+    let fullname = base ^ sep ^ string_of_int id in
+    if mem fullname then build base (succ id) else id,fullname
+  in
+  if mem from then build from start else (0,from)
 
 (* ************************************************************************* *)
 (** Comparison functions *)

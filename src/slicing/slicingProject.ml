@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -81,7 +81,7 @@ let call_src_and_remove_all_ff proj fi =
     in new_actions @ actions
   in
   let do_ff actions ff =
-    let calls = M.get_calls_to_ff ff in
+    let calls = ff.SlicingInternals.ff_called_by in
     let actions = List.fold_left do_call actions calls in
       remove_ff proj ff;
       actions
@@ -263,17 +263,18 @@ let apply_fct_crit ff to_select =
 
 let apply_appli_crit proj appli_crit =
   match appli_crit with
-    | T.CaCall fi_to_call ->
-        let kf_to_call = M.get_fi_kf fi_to_call in
-        let add_actions actions (kf_caller,_) =
-          let fi_caller = M.get_kf_fi proj kf_caller in
-          let mark = SlicingMarks.mk_user_spare in
-          let action =
-            SlicingActions.mk_crit_mark_calls fi_caller kf_to_call mark in
-            action :: actions
-        in List.fold_left add_actions [] (!Db.Value.callers kf_to_call)
-    | _ ->
-        Extlib.not_yet_implemented "This slicing criterion on application"
+  | T.CaCall fi_to_call ->
+    let kf_to_call = M.get_fi_kf fi_to_call in
+    let add_actions actions (kf_caller,_) =
+      let fi_caller = M.get_kf_fi proj kf_caller in
+      let mark = SlicingMarks.mk_user_spare in
+      let action =
+        SlicingActions.mk_crit_mark_calls fi_caller kf_to_call mark in
+      action :: actions
+    in List.fold_left add_actions [] (!Db.Value.callers kf_to_call)
+  | _ ->
+    SlicingParameters.not_yet_implemented
+      "This slicing criterion on application"
 
 (** Add persistent the marks [node_marks] in [fi] and also add the marks
 * to existing slices if any.
@@ -314,52 +315,52 @@ let add_persistante_marks proj fi node_marks orig propagate actions =
 let apply_fct_action proj fct_crit =
   match fct_crit.T.cf_fct with
   | T.FctSliced ff ->
-      let _ = M.get_ff_pdg ff in
-      let new_filters =
-        match fct_crit.T.cf_info with
-        | T.CcUserMark (T.CuSelect []) ->
-            SlicingParameters.debug ~level:1
-              "[apply_fct_action] ignore empty selection on existing slice";
-            []
-        | T.CcUserMark (T.CuSelect crit) -> apply_fct_crit ff crit
-        | T.CcUserMark (T.CuTop _) -> assert false (* impossible on ff ! *)
-        | T.CcChangeCall (call, f) ->
-            Fct_slice.apply_change_call proj ff call f
-        | T.CcChooseCall call ->
-            Fct_slice.apply_choose_call proj ff call
-        | T.CcMissingInputs (call, input_marks, more_inputs) ->
-            Fct_slice.apply_missing_inputs proj ff call
-                                           (input_marks, more_inputs)
-        | T.CcMissingOutputs (call, output_marks, more_outputs) ->
-            Fct_slice.apply_missing_outputs proj ff call
-                                          output_marks more_outputs
-          | T.CcPropagate _ -> assert false (* not for ff at the moment *)
-         | T.CcExamineCalls marks ->
-             Fct_slice.apply_examine_calls ff marks
-      in
-        SlicingParameters.debug ~level:4 "[slicingProject.apply_fct_action] result =@\n%a"
-            PrintSlice.print_marked_ff ff;
-        new_filters
-   | T.FctSrc fi -> (* the marks have to be added to all slices *)
-       let propagate = SlicingParameters.Mode.Callers.get () in
-       match fct_crit.T.cf_info with
-         | T.CcUserMark (T.CuSelect to_select) ->
-             add_persistante_marks proj fi to_select true propagate []
-         | T.CcUserMark (T.CuTop m) ->
-             SlicingParameters.result ~level:1 "unable to slice %s (-> TOP)"
-                 (M.fi_name fi);
-             let filters = call_src_and_remove_all_ff proj fi in
-             Fct_slice.add_top_mark_to_fi fi m propagate filters
-         | T.CcPropagate [] ->
-             SlicingParameters.debug ~level:1
-               "[apply_fct_action] nothing to propagate";
-             []
-         | T.CcPropagate node_marks ->
-             add_persistante_marks proj fi node_marks false propagate []
-         | T.CcExamineCalls _
-         | _ ->
-             Extlib.not_yet_implemented
-               "This slicing criterion on source function"
+    let _ = M.get_ff_pdg ff in
+    let new_filters =
+      match fct_crit.T.cf_info with
+      | T.CcUserMark (T.CuSelect []) ->
+        SlicingParameters.debug ~level:1
+          "[apply_fct_action] ignore empty selection on existing slice";
+        []
+      | T.CcUserMark (T.CuSelect crit) -> apply_fct_crit ff crit
+      | T.CcUserMark (T.CuTop _) -> assert false (* impossible on ff ! *)
+      | T.CcChangeCall (call, f) ->
+        Fct_slice.apply_change_call proj ff call f
+      | T.CcChooseCall call ->
+        Fct_slice.apply_choose_call proj ff call
+      | T.CcMissingInputs (call, input_marks, more_inputs) ->
+        Fct_slice.apply_missing_inputs proj ff call
+          (input_marks, more_inputs)
+      | T.CcMissingOutputs (call, output_marks, more_outputs) ->
+        Fct_slice.apply_missing_outputs proj ff call
+          output_marks more_outputs
+      | T.CcPropagate _ -> assert false (* not for ff at the moment *)
+      | T.CcExamineCalls marks ->
+        Fct_slice.apply_examine_calls ff marks
+    in
+    SlicingParameters.debug ~level:4 "[slicingProject.apply_fct_action] result =@\n%a"
+      PrintSlice.print_marked_ff ff;
+    new_filters
+  | T.FctSrc fi -> (* the marks have to be added to all slices *)
+    let propagate = SlicingParameters.Mode.Callers.get () in
+    match fct_crit.T.cf_info with
+    | T.CcUserMark (T.CuSelect to_select) ->
+      add_persistante_marks proj fi to_select true propagate []
+    | T.CcUserMark (T.CuTop m) ->
+      SlicingParameters.result ~level:1 "unable to slice %s (-> TOP)"
+        (M.fi_name fi);
+      let filters = call_src_and_remove_all_ff proj fi in
+      Fct_slice.add_top_mark_to_fi fi m propagate filters
+    | T.CcPropagate [] ->
+      SlicingParameters.debug ~level:1
+        "[apply_fct_action] nothing to propagate";
+      []
+    | T.CcPropagate node_marks ->
+      add_persistante_marks proj fi node_marks false propagate []
+    | T.CcExamineCalls _
+    | _ ->
+      SlicingParameters.not_yet_implemented
+        "This slicing criterion on source function"
 
 (** apply [filter] and return a list of generated filters *)
 let apply_action proj filter =
@@ -393,6 +394,9 @@ let apply_next_action proj =
   let filter = get_next_filter proj in
   let new_filters = apply_action proj filter in
     proj.T.actions <- new_filters @ proj.T.actions
+
+let is_request_empty proj =
+  proj.T.actions = []
 
 let apply_all_actions proj =
   let nb_actions = List.length proj.T.actions in

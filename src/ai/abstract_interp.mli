@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -111,10 +111,11 @@ module type Lattice_Base = sig
   include Lattice with type t = tt
   val project : t -> l
   val inject: l -> t
+  val transform: (l -> l -> l) -> tt -> tt -> tt
 end
 
 module type Lattice_Set = sig
-  module O: Hptset.S
+  module O: Datatype.Set
   type tt = private Set of O.t | Top
   include Lattice with type t = tt and type widen_hint = O.t
   val inject_singleton: O.elt -> t
@@ -124,6 +125,8 @@ module type Lattice_Set = sig
   val apply1: (O.elt -> O.elt) -> (t -> t)
   val fold: ( O.elt -> 'a -> 'a) -> t -> 'a -> 'a
   val iter: ( O.elt -> unit) -> t -> unit
+  val exists: (O.elt -> bool) -> t -> bool
+  val for_all: (O.elt -> bool) -> t -> bool
   val project : t -> O.t
   val mem : O.elt -> t -> bool
 end
@@ -150,6 +153,9 @@ module Make_Hashconsed_Lattice_Set
   : Lattice_Set with type O.elt=V.t
 (** See e.g. Base.ml and Locations.ml to see how this functor shoudl be 
     applied. *)
+(* The [O] module passed as argument is the same as [O] in the result. It
+   is passed here to avoid having multiple modules calling Hptset.Make on the
+   same argument (which is not forbidden by the datatype library *)
 
 module LocationSetLattice : sig
   include Lattice_Set with type O.elt = Cil_types.location

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -23,6 +23,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Cil_types
 open Promelaast
 
 (** Module of data management used in all the plugin Aorai. Operations
@@ -36,6 +37,11 @@ open Promelaast
 (** Here are some operations used for generation of LTL AST or Promela AST. *)
 
 module Aorai_state: Datatype.S_with_collections with type t = Promelaast.state
+
+module Aorai_typed_trans: 
+  Datatype.S_with_collections 
+  with 
+    type t = (Promelaast.typed_condition * Promelaast.action) Promelaast.trans
 
 (** Initializes some tables according to data from Cil AST. *)
 val setCData : unit -> unit
@@ -158,6 +164,16 @@ val macro_full   : string
 (** DEPRECATED ?*)
 val macro_pure   : string
 
+(** returns the C variable associated to a given state
+    (non-deterministic mode only).
+ *)
+val get_state_var: state -> varinfo
+
+(** returns the logic variable associated to a given state.
+    (non-deterministic mode only).
+*)
+val get_state_logic_var: state -> logic_var
+
 (* C enumeration *)
 
 (** Name of listOp C generated enumeration (List of operation names prefixed with 'op_') *)
@@ -223,6 +239,10 @@ val getState: int -> Promelaast.state
 
 val getStateName : int -> string
 
+(** [true] iff the given state is the rejection state for automaton with
+    sequences. *)
+val is_reject_state: state -> bool
+
 (** returns the transition having the corresponding id.
     @raise Not_found if this is not the case.
 *)
@@ -265,33 +285,6 @@ val set_returninfo : string -> Cil_types.varinfo -> unit
     If the variable is not found then an error message is print and an assert false is raised. *)
 val get_returninfo : string -> Cil_types.varinfo
 
-
-(* ************************************************************************* *)
-(**{b Pre and post condition of C functions} In our point of view, the pre or
-   the post condition of a C function are defined by the set of states
-   authorized just before/after the call, as such as the set of crossable
-   transitions. The following functions manages these stored informations.
-   Usually, the first array is for the authorized states, while the second one
-   is for the crossable conditions *)
-
-(** Returns the pre condition associated to the given C function *)
-val get_func_pre  : ?securised:bool -> string -> (bool array)*(bool array)
-
-(** Sets the pre condition of the given C function *)
-val set_func_pre  : string -> (bool array)*(bool array) -> unit
-
-(** Returns the post condition associated to the given C function *)
-val get_func_post : ?securised:bool -> string -> (bool array)*(bool array)
-
-(** Sets the post condition of the given C function *)
-val set_func_post : string -> (bool array)*(bool array) -> unit
-
-(** Returns the post condition associated to the given C function *)
-val get_func_post_bycase : ?securised:bool -> string -> (bool array array)*(bool array array)
-
-(** Sets the pre condition of the given C function *)
-val set_func_post_bycase : string -> (bool array array)*(bool array array) -> unit
-
 (** Given the representation of an auxiliary counter 
     (found in a {!Promelaast.Counter_incr}), returns the maximal value
     that it can take according to the automaton.
@@ -315,25 +308,6 @@ module Intervals: Datatype.S with type t = range Cil_datatype.Term.Map.t
 
 module Vals: Datatype.S with type t = Intervals.t Cil_datatype.Term.Map.t
 
-(** [get_action_path kf ki pre post] returns the possible values of the
-   auxiliary variables that may have changed in a call of [kf] starting in [pre]
-   at stmt [ki] in state [post].
-*)
-val get_action_bindings:
-  Cil_types.kernel_function ->
-  Cil_types.kinstr -> Promelaast.state -> Promelaast.state -> Vals.t
-
-val all_action_bindings:
-  unit ->
-  ((Cil_types.kernel_function * Cil_types.kinstr *
-      Promelaast.state * Promelaast.state) * Vals.t) list
-
-(** sets the possible values of auxiliary variables at a given stmt. If
-    there was a previous map, it is erased.
- *)
-val set_action_bindings:
-  Cil_types.kernel_function -> Cil_types.kinstr ->
-  Promelaast.state -> Promelaast.state -> Vals.t -> unit
 
 (** Given a term and a minimal value, returns the absolute range of variation
     of the corresponding auxiliary variable, depending on its usage in the
@@ -347,124 +321,82 @@ val absolute_range: Cil_types.term -> int -> Range.t
 val merge_range:
   Cil_types.term -> Cil_types.term -> Range.t -> Range.t -> Range.t
 
-(** sets the possible values of auxiliary variables at a given stmt. If
-    there was a previous map, the content of both maps is merged.
- *)
-val merge_action_bindings:
-  Cil_types.kernel_function -> Cil_types.kinstr ->
-  Promelaast.state -> Promelaast.state -> Vals.t -> unit
+(** {2 Dataflow analysis} *)
 
-(** [get_action_path kf ki pre post] returns the possible values of the
-   auxiliary variables that may have changed in a call of [kf] starting in [pre]
-   at stmt [ki] in state [post]. Values are of the form [base, min, max],
-   stating that the location has a value between [base+min] and [base+max].
-   For counters that are initialized during the call, [base] is [0].
+val tlval: Cil_types.term_lval -> Cil_types.term
+
+(** The propagated state: Mapping from possible start states 
+    to reachable states, with 
+     - set of states for the initial transition leading to the corresponding
+       reachable state.
+     - set of states for the last transition.
+     - possible values for intermediate variables.
+ *)
+type end_state = 
+    (Aorai_state.Set.t * Aorai_state.Set.t * Vals.t) Aorai_state.Map.t
+
+module Case_state: 
+  Datatype.S with type t = end_state Aorai_state.Map.t
+
+type state = Case_state.t
+
+val pretty_state: Format.formatter -> state -> unit
+
+(** [included_state st1 st2] is [true] iff [st1] is included in [st2], i.e:
+  - possible start states of [st1] are included in [st2]
+  - for each possible start state, reachable states in [st1] are included in
+    the one of [st2]
+  - for each possible path in [st1], range of possible values for intermediate
+    variables are included in the corresponding one in [st2].
 *)
-val get_action_path:
-  Cil_types.kernel_function ->
-  Cil_types.kinstr -> Promelaast.state -> Promelaast.state ->
-  (Cil_types.term * (Cil_types.term * range) list) list
+val included_state: state -> state -> bool
 
-(** gets a specific binding or raise Not_found if no such binding exist. *)
-val get_action_path_binding:
-  Cil_types.kernel_function ->
-  Cil_types.kinstr -> Promelaast.state -> Promelaast.state ->
-  Cil_types.term -> Cil_types.term -> range
+(** merges two sets of possible bindings for aux variables *)
+val merge_bindings: Vals.t -> Vals.t -> Vals.t
 
-(** Adds a new possible value for the given auxiliary variable in the given
-   "execution path"
+val merge_end_state: end_state -> end_state -> end_state
+
+(** Merges two state: union of possible start states, of possible paths, and
+    merge of ranges of possible values. *)
+val merge_state: state -> state -> state
+
+(** Register a new init state for kernel function.
+    If there is already an init state registered, the new one is merged with
+    the old.
  *)
-val add_action_path:
-  Cil_types.kernel_function -> Cil_types.kinstr ->
-  Promelaast.state -> Promelaast.state ->
-  Cil_types.term -> (Cil_types.term * range) -> unit
+val set_kf_init_state: Kernel_function.t -> state -> unit
 
-(** Removes an unreachable path. *)
-val remove_action_path:
-  Cil_types.kernel_function -> Cil_types.kinstr ->
-  Promelaast.state -> Promelaast.state -> unit
+(** Register a new end state for kernel function.
+    If there is already an end state registered, the new one is merged with
+    the old.
+*)
+val set_kf_return_state: Kernel_function.t -> state -> unit
 
-val clear_actions: unit -> unit
+(** sets the initial state when entering a loop (merging it if a state is
+    already present. *)
+val set_loop_init_state: Cil_types.stmt -> state -> unit
 
-(** Gives the specification of the call stmt in the given C function at the given StmtId. *)
-val get_func_pre_call : string -> int -> (bool array)*(bool array)
+(** sets the invariant of a loop. *)
+val set_loop_invariant_state: Cil_types.stmt -> state -> unit
 
-(** Sets the specification of the call stmt in the given C function at the given StmtId. *)
-val set_func_pre_call : string -> int -> (bool array)*(bool array) -> unit
+val replace_kf_init_state: Kernel_function.t -> state -> unit
 
-(** Sets the specification of the call stmt in the given C function at the given StmtId. *)
-val set_func_pre_call_bycase : string -> int -> (bool array array)*(bool array array) -> unit
+val replace_kf_return_state: Kernel_function.t -> state -> unit
 
+val replace_loop_init_state: Cil_types.stmt -> state -> unit
 
+val replace_loop_invariant_state: Cil_types.stmt -> state -> unit
 
+val get_kf_init_state: Kernel_function.t -> state
 
-(* ************************************************************************* *)
-(**{b Pre and post condition of loops} In our point of view, the pre or
-   the post condition are defined by the set of states authorized just
-   before/after the loop (external pre/post), and by the set of states
-   authorized just before/after the execution of the internal block of the
-   loop (internal pre/post).
-   The following functions manages these stored informations.
-   Usually, the first array is for the authorized states, while the second one
-   is for the crossable conditions. *)
+val get_kf_return_state: Kernel_function.t -> state
 
-(** Returns the pre condition associated to the given C function *)
-val get_loop_ext_pre  : Cil_types.stmt -> (bool array)*(bool array)
+val get_loop_init_state: Cil_types.stmt -> state
 
-(** Returns the pre condition associated to the given C function *)
-val get_loop_int_pre  : Cil_types.stmt -> (bool array)*(bool array)
+val get_loop_invariant_state: Cil_types.stmt -> state
 
-(** Sets the external or the block pre condition of the given loop *)
-val set_loop_ext_pre  : Cil_types.stmt -> (bool array)*(bool array) -> unit
-
-(** Sets the external or the block pre condition of the given loop *)
-val set_loop_int_pre  : Cil_types.stmt -> (bool array)*(bool array) -> unit
-
-(** Returns the post condition associated to the given C function *)
-val get_loop_ext_post : Cil_types.stmt -> (bool array)*(bool array)
-
-(** Returns the post condition associated to the given C function *)
-val get_loop_int_post : Cil_types.stmt -> (bool array)*(bool array)
-
-(** Sets the external or the block post condition of the given loop *)
-val set_loop_ext_post : Cil_types.stmt -> (bool array)*(bool array) -> unit
-
-(** Sets the external or the block post condition of the given loop *)
-val set_loop_int_post : Cil_types.stmt -> (bool array)*(bool array) -> unit
-
-(** Returns the pre condition associated to the given C function *)
-val get_loop_ext_pre_bycase  : Cil_types.stmt -> (bool array array)*(bool array array)
-
-(** Returns the pre condition associated to the given C function *)
-val get_loop_int_pre_bycase  : Cil_types.stmt -> (bool array array)*(bool array array)
-
-(** Sets the external or the block pre condition of the given loop *)
-val set_loop_ext_pre_bycase  :
-  Cil_types.stmt -> (bool array array)*(bool array array) -> unit
-
-(** Sets the external or the block pre condition of the given loop *)
-val set_loop_int_pre_bycase  :
-  Cil_types.stmt -> (bool array array)*(bool array array) -> unit
-
-(** Returns the external post-condition of the given loop *)
-val get_loop_ext_post_bycase :
-  Cil_types.stmt -> (bool array array)*(bool array array)
-
-(** Returns the block post condition of the given loop *)
-val get_loop_int_post_bycase :
-  Cil_types.stmt -> (bool array array)*(bool array array)
-
-(** Sets the external or the block post condition of the given loop *)
-val set_loop_ext_post_bycase :
-  Cil_types.stmt -> (bool array array)*(bool array array) -> unit
-
-(** Sets the external or the block post condition of the given loop *)
-val set_loop_int_post_bycase :
-  Cil_types.stmt -> (bool array array)*(bool array array) -> unit
-
-(** Returns a stmt list. It is the set of all registered
-    loops in loop_specs hashtables *)
-val get_loops_index : unit -> Cil_types.stmt list
+val debug_computed_state: unit -> unit
+(** Pretty-prints all computed states. Depends on dataflow debug category. *) 
 
 (* ************************************************************************* *)
 (**{b Enumeration management}*)
@@ -494,10 +426,7 @@ val set_usedinfo : string -> Cil_types.enuminfo -> unit
 (** These functions are direct accesses to the table memorizing the enuminfo data associated to the name of an enumeration structure, from which cenum info are computed.*)
 val get_usedinfo : string -> Cil_types.enuminfo
 
-
 val removeUnusedTransitionsAndStates : unit -> unit
-
-
 
 (*
 Local Variables:

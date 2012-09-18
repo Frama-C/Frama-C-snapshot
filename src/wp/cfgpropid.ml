@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-
 type dnode = {
   dn_id : int;
-  dn_warn : Wpo.warning list;
+  dn_warn : Warning.t list;
   dn_depends : Property.t list;
   dn_source : dnode list;
 }
@@ -45,7 +43,7 @@ let pp_list pp fmt xs =
 let pp_dnode fmt d =
   iter_dnodes
     (fun d ->
-       pp_list Wpo.pp_warning fmt d.dn_warn ;
+       pp_list Warning.pretty fmt d.dn_warn ;
        pp_list Wpo.pp_depend fmt d.dn_depends ;
     ) d
 
@@ -67,7 +65,7 @@ struct
 
   let pp_goal fmt name g =
     begin
-      Format.fprintf fmt "@[<v 0>Proof Obligation %a:@]@\n" WpPropId.pp_id_name g.g_id ;
+      Format.fprintf fmt "@[<v 0>Proof Obligation %a:@]@\n" WpPropId.pp_propid g.g_id ;
       pp_dnode fmt g.g_descr ;
       Format.fprintf fmt "@[<v 2>Goal %s:@ %a@]@." name W.pretty g.g_prop ;
     end
@@ -114,20 +112,20 @@ struct
       g_descr = dn ;
     }
 
-  let rec merge goals1 goals2 =
+  let rec merge wenv goals1 goals2 =
     (* List.merge sort_obligs opl1 opl2 : no, because keeps duplicates *)
     match goals1, goals2 with
       | _, [] -> goals1
       | [], _ -> goals2
       | g1::tl1, g2::tl2 ->
           let cmp = WpPropId.compare_prop_id g1.g_id g2.g_id in
-            if cmp < 0 then g1::(merge tl1 goals2)
-            else if cmp > 0 then g2::(merge goals1 tl2)
+            if cmp < 0 then g1::(merge wenv tl1 goals2)
+            else if cmp > 0 then g2::(merge wenv goals1 tl2)
             else
               let g = make_goal g1.g_id
-                        (fun () -> W.merge g1.g_prop g2.g_prop)
+                        (fun () -> W.merge wenv g1.g_prop g2.g_prop)
                         [g1.g_descr; g2.g_descr]
-              in g::(merge tl1 tl2)
+              in g::(merge wenv tl1 tl2)
 
   let add_hyp env h goals =
     let f p () = W.add_hyp env h p in
@@ -137,20 +135,21 @@ struct
     let f p () = W.build_prop_of_from env pre p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
-  let add_goal env g goals =
-    let new_prop () = W.add_goal env g W.empty in
+  let add_goal wenv g goals =
+    let new_prop () = W.add_goal wenv g W.empty in
     let g = make_goal (WpPropId.pred_info_id g) new_prop [] in
-    merge [g] goals
+    merge wenv [g] goals
 
-  let add_axiom id name labels axiom  =
+  let add_axiom id lem =
     let collect = Datalib.Collector.push () in
-    W.add_axiom id name labels axiom;
+    W.add_axiom id lem ;
+    let name = lem.LogicUsage.lem_name in
     let warns, depends = Datalib.Collector.pop collect in
     begin
       List.iter
         (fun w ->
            Wp_parameters.warning "Warning for Axiom %s:@\nFrom %s: %s@\nEffect: %s"
-             name w.Wpo.wrn_source w.Wpo.wrn_reason w.Wpo.wrn_effect)
+             name w.Warning.wrn_source w.Warning.wrn_reason w.Warning.wrn_effect)
         warns ;
       List.iter
         (fun d ->
@@ -163,9 +162,7 @@ struct
     let f () = W.add_assigns env assigns W.empty in
     let new_goal = make_goal (WpPropId.assigns_info_id assigns) f [] in
     if new_goal.g_prop = W.empty then goals
-    else merge [new_goal] goals
-
-  let assigns_method = W.assigns_method
+    else merge env [new_goal] goals
 
   let init_value env lv ty e_opt goals =
     let f p () = W.init_value env lv ty e_opt p in
@@ -175,16 +172,16 @@ struct
     let f p () = W.init_range env lv ty ka kb p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
-  let assign env lv e goals =
-    let f p () = W.assign env lv e p in
+  let assign env s lv e goals =
+    let f p () = W.assign env s lv e p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
-  let return env e goals =
-    let f p () = W.return env e p in
+  let return env s e goals =
+    let f p () = W.return env s e p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
-  let test env c goals_t goals_f =
-    let test pt pf () = W.test env c pt pf in
+  let test env s c goals_t goals_f =
+    let test pt pf () = W.test env s c pt pf in
     let rec merge lt lf = match lt, lf with
     | [], [] -> []
     | g::lt, [] ->
@@ -221,7 +218,7 @@ struct
   * - we then process each id but getting the wp for this id in each branch,
   * - and we then put back things together.
   *)
-  let switch env e cases p_def =
+  let switch env s e cases p_def =
     let rec add_id ids new_id = match ids with [] -> [new_id]
       | id::other_ids -> let cmp =  WpPropId.compare_prop_id new_id id in
           if cmp = 0 then ids (* new_id already in *)
@@ -254,7 +251,7 @@ struct
       let id_cases =
         List.map (fun (cond, lp) -> (cond, get_p_id id lp)) cases
       in
-      let f () = W.switch env e id_cases id_p_def in
+      let f () = W.switch env s e id_cases id_p_def in
       let d = get_descr_id id in
         make_goal id f d
     in List.map process_id ids (* ids are sorted => goals are also sorted *)
@@ -271,7 +268,7 @@ struct
       List.map 
         (fun p -> make_goal (WpPropId.pred_info_id p) (new_prop p) []) pre
     in
-    merge preconds goals
+    merge wenv preconds goals
 
   let call wenv stmt lv kf args ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
     let wp ~post ~pexit p_post p_exit () =
@@ -292,10 +289,10 @@ struct
              [g.g_descr])
         p_exit
     in
-    merge g_post g_exit
+    merge wenv g_post g_exit
 
-  let use_assigns env id assigns goals =
-    let f p () = W.use_assigns env id assigns p in
+  let use_assigns env s id assigns goals =
+    let f p () = W.use_assigns env s id assigns p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
   let label env l goals =
@@ -310,8 +307,12 @@ struct
     let f p () = W.close env p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
-  let tag t goals =
-    let f p () = W.tag t p in
+  let loop_entry goals =
+    let f p () = W.loop_entry p in
+    List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
+
+  let loop_step goals =
+    let f p () = W.loop_step p in
     List.map (fun g -> make_goal g.g_id (f g.g_prop) [g.g_descr]) goals
 
 end

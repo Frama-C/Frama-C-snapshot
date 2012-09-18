@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -96,11 +96,18 @@ let load_binary () =
   end
 let () = Cmdline.run_after_loading_stage load_binary
 
+(* This hook cannot be registered directly  in Kernel or Cabs2cil, as
+   it depends on Ast_info *)
+let warn_for_call_to_undeclared_function vi =
+  let name = vi.Cil_types.vname in
+  if Kernel.WarnUndeclared.get () && not (Ast_info.is_frama_c_builtin name)
+  then
+    Kernel.warning ~current:true ~once:true
+      "Calling undeclared function %s. Old style K&R code?" name
+
 let () =
-  Cmdline.at_normal_exit
-    (fun _ -> match Kernel.Files.get () with
-     | [] -> ()
-     | _ :: _ -> Ast.compute ())
+  Cabs2cil.register_implicit_prototype_hook warn_for_call_to_undeclared_function
+
 
 (*
 Local Variables:

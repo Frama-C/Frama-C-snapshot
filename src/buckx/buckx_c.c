@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -28,8 +28,9 @@
 #include "caml/mlvalues.h"
 #include "caml/alloc.h"
 #include "caml/bigarray.h"
+#include "caml/fail.h"
 #include <assert.h>
-
+#include <stdlib.h>
 
 // Some BSD flavors do not implement all of C99
 #if defined(__OpenBSD__) || defined(__NetBSD__) 
@@ -109,6 +110,20 @@ value set_round_nearest_even(value dummy)
 {
   fesetround(FE_TONEAREST);
   return Val_unit;
+}
+
+/* Some compilers apply the C90 standard stricly and do not
+   prototype strtof() although it is available in the C library. */
+float strtof(const char *, char **);
+
+value single_precision_of_string(value str)
+{
+  char *end;
+  float f = strtof((const char *)str, &end);
+  if (end != (char *)str + caml_string_length(str))
+    caml_failwith("single_precision_of_string");
+  double d = f;
+  return caml_copy_double(d);
 }
 
 #include <signal.h>

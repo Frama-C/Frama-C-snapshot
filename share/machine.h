@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -19,8 +19,6 @@
 /*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
 /**************************************************************************/
-
-/* $Id: machine.h,v 1.5 2008-07-01 12:02:37 uid562 Exp $ */
 
 #ifdef FRAMA_C_LYNX
 typedef unsigned int size_t;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,15 +17,16 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Cil
 open Cil_types
-open Db
 open Logic_const
+
+let emitter = Emitter.create "Inferred annotations" [Emitter.Funspec] [] []
 
 let assigns_from_prototype vi =
   let formals = try let formals = getFormalsDecl vi in
@@ -53,8 +54,9 @@ let assigns_from_prototype vi =
     let loc = v.vdecl in
     match get_length typ with
         [AInt length] ->
-          let low = Logic_const.tinteger ~loc ~ikind:IInt 0 in
-          let high = Logic_const.tinteger ~loc ~ikind:IInt (length - 1) in
+          let low = Logic_const.tinteger ~loc 0 in
+          let high = Logic_const.tint ~loc (My_bigint.pred length) 
+	  in
           let range = Logic_const.trange ~loc (Some low,Some high) in
           let shift = Logic_const.term ~loc
             (TBinOp(PlusPI,tvar(cvar_to_lvar v),range))
@@ -113,173 +115,88 @@ let assigns_from_prototype vi =
              (Logic_const.tresult ~loc rtyp,
 	      Logic_const.post_label)),From inputs):: arguments)
 
+(* [JS 2012/05/15] Frama-C Kernel should never depend on a Plug-in, even
+   Value. *)
 let is_frama_c_builtin name =
-  (Ast_info.is_frama_c_builtin name)
-  || (!Db.Value.mem_builtin name)
+  Ast_info.is_frama_c_builtin name || !Db.Value.mem_builtin name
 
-(* No need to call [Kernel_function.set_spec] here: update manually done *)
-let populate_funspec kf =
+let populate_funspec kf spec =
   assert (not (Kernel_function.is_definition kf));
   let name = Kernel_function.get_name kf in
-  let generated_assigns =
-    lazy (assigns_from_prototype (Kernel_function.get_vi kf))
+  let generated_assigns () = 
+    assigns_from_prototype (Kernel_function.get_vi kf)
   in
-  let default_behavior = lazy (Cil.find_default_behavior kf.spec) in
-  (* Do not call Kernel_function.get_spec: this would make an infinite
-     recursion. *) 
-  let generated_behavior () =
-    { b_name = "generated";
-      b_post_cond = [] ;
-      b_assumes = [];
-      b_requires = [];
-      b_assigns = Lazy.force generated_assigns;
-      b_extended = [] }
-  in
-  let modify_spec (spec:funspec) =
-    let spec_behavior = spec.spec_behavior in
-    (match spec_behavior with
-    | [] ->
-    (* there is no initial specification -> use generated_behavior *)
-      if not (is_frama_c_builtin name) then begin
-	Kernel.warning ~once:true
-          "No code for function %a, default assigns generated"
-          Kernel_function.pretty kf;
-      end;
-      spec.spec_behavior <- [ generated_behavior () ]
-    | _ :: _ ->
-      let assigns_of_behaviors bhvs_set =
-        let res =
-          List.fold_left
-            (List.fold_left
-               (fun acc a -> match a.b_assigns, acc with
-                 | WritesAny, a | a, WritesAny -> a
-	         | Writes l1, Writes l2 -> Writes (l1 @ l2)))
-            WritesAny
-            bhvs_set
-        in
-        match res with
-            | WritesAny -> Lazy.force generated_assigns
-            | Writes _ -> res
+  match spec.spec_behavior with
+  | [] -> 
+    (* case 1: there is no initial specification -> use generated_behavior *)
+    if not (is_frama_c_builtin name) then begin
+      Kernel.warning ~once:true
+        "Neither code nor specification for function %a, \
+generating default assigns from the prototype"
+        Kernel_function.pretty kf;
+    end;
+    let assigns = generated_assigns () in
+    let bhv = Cil.mk_behavior ~assigns () in
+    Annotations.add_behaviors emitter kf [ bhv ]
+
+  | _ :: _ -> 
+    (* case 2: there is a specification, so look at assigns clause *)
+    let bhv = match Cil.find_default_behavior spec with
+      | None -> Cil.mk_behavior ()
+      | Some bhv -> bhv
+    in
+    match bhv with 
+    | { b_assigns = Writes _} -> 
+      (* case 2.1: nothing more has to be done *)
+      ()
+    | _ -> 
+      (* case 2.2 : some assigns have to be generated *)
+      (* step 2.1: looks at ungarded behaviors and then at complete
+	 behaviors *)
+      let warn_if_builtin explicit_name name orig_name =
+	if not (is_frama_c_builtin name) then
+	  Kernel.warning ~once:true
+	    "No code nor %s assigns clause for function %a, \
+generating default assigns from the %s"
+	    explicit_name Kernel_function.pretty kf orig_name
       in
-      (* Note-1:
-         looking at sets of complete behaviors:
-         if there is one of these sets
-         such that all of its behaviors have an assigns clause,
-         no assigns clause (equivalent to assigns everything)
-         shoud be generated. *)
-      let complete_behaviors_with_assigns =
-        List.fold_left
-          (fun acc bhv_names ->
-	    try
-	      let bhvs = match bhv_names with
-		| [] -> 
-		  (* clause: complete behaviors; *)
-		  List.filter
-                    (fun b ->
-                      if not (Cil.is_default_behavior b) then
-                        if (b.b_assigns = WritesAny) then
-		          (* there is one behavior without assigns clause *)
-			  raise Not_found
-                        else true
-                      else false)
-		    spec_behavior
-		| _ :: _ ->  
-		  (* clause: complete behaviors bhvs; *)
-		  List.map
-                    (fun x ->
-		      let b = List.find (fun b -> b.b_name = x) spec_behavior in
-                      if (b.b_assigns = WritesAny) then
-			(* there is one behavior without any assigns clause *)
-			raise Not_found;
-		      b) 
-		    bhv_names
-	      in 
-	      (* all behaviors of bhvs have an assigns clause *)
-	      bhvs :: acc
+      let assigns = Ast_info.merge_assigns_from_spec ~warn:false spec in
+      let assigns = 
+	if assigns <> WritesAny then begin
+	  (* case 2.2.1. A correct assigns clause has been found *)  
+	  warn_if_builtin "explicit" name "specification";
+	  assigns
+	end else begin 
+	  (* case 2.2.1. No correct assigns clause can be found *)
+	  let assigns = 
+	    try (* Takes the union the assigns clauses, even if it 
+		   is not advertised as complete behaviors. 
+		   Not more arbitrary than using prototype to infer
+		   assigns.*)
+	      List.fold_left
+		(fun acc bhv -> 
+		  if Cil.is_default_behavior bhv then acc 
+		  else match acc, bhv.b_assigns with
+		  | _, WritesAny -> raise Not_found
+		  | WritesAny, a -> a
+		  | Writes l1, Writes l2 -> Writes (l1 @ l2))
+		WritesAny
+		spec.spec_behavior
 	    with Not_found -> 
-	      acc)
-	  []
-	  kf.spec.spec_complete_behaviors
+	      WritesAny
+	  in
+	  if assigns <> WritesAny then begin
+	    warn_if_builtin "implicit" name "specification" ;
+	    assigns 
+	  end else begin (* The union gave WritesAny, so use the prototype *)
+	    warn_if_builtin "implicit" name "prototype";
+	    generated_assigns ()
+	  end
+	end
       in
-      (* Note-2: If in such case a more accurate assigns clauses needs to be
-	 generated, it can be done without using the prototype, but only from
-	 the union of the assigns clauses of that set. 
-       *)
-      let generated_assigns,new_assigns =
-        match complete_behaviors_with_assigns with
-	| [] ->
-          let assigns_of_behavior =
-            lazy (assigns_of_behaviors [ spec_behavior ])
-          in
-          let generated_assigns =
-            (* If all named behaviors have assigns clause, take the union 
-               of locations as the assigns clause, even if it is not
-               advertised as complete behaviors. Not more arbitrary than
-               using prototype to infer assigns.
-             *)
-            if 
-              List.for_all 
-                (fun b -> 
-                  Cil.is_default_behavior b || b.b_assigns <> WritesAny) 
-                spec_behavior
-            then assigns_of_behavior
-            else generated_assigns
-          in
-          generated_assigns, assigns_of_behavior
-        | _ ->
-          let new_assigns =
-            lazy (assigns_of_behaviors complete_behaviors_with_assigns)
-	  in 
-	  new_assigns, new_assigns
-      in
-      let register_assigns b a = b.b_assigns <- a in
-      if not (is_frama_c_builtin name) then begin
-	(* Generates an "assigns" clause to behaviors without "assigns" 
-	   clause *) 
-        let set_assigns behavior = match behavior.b_assigns with
-	  | WritesAny ->
-	    let new_assigns =
-              if Cil.is_default_behavior behavior then begin
-	        Kernel.warning ~once:true
-		  "No code for function %a, default assigns generated for \
-default behavior"
-		  Kernel_function.pretty kf;
-	        Lazy.force generated_assigns
-	      end else begin
-		match Lazy.force default_behavior with
-		| None ->
-		  Kernel.warning ~once:true
-		    "No code for function %a, default assigns generated \
-                         for behavior %s"
-		    Kernel_function.pretty kf behavior.b_name;
-		  Lazy.force generated_assigns
-		| Some a ->
-		  Kernel.warning ~once:true
-		    "No code for function %a, default assigns used \
-                         for behavior %s"
-		    Kernel_function.pretty kf
-		    behavior.b_name;
-		  a.b_assigns
-	      end
-	    in
-	    register_assigns behavior new_assigns
-	  | _ -> ()
-	in
-	List.iter set_assigns spec_behavior;
-      end;
-      if List.for_all (fun {b_assumes=a} -> a <> []) spec_behavior then begin
-	match Lazy.force new_assigns with
-          | WritesAny -> ()
-	  | l ->
-            let generated_behavior = generated_behavior () in
-            register_assigns generated_behavior l;
-	    spec.spec_behavior <- generated_behavior :: spec.spec_behavior
-      end);
-    spec
-  in
-  Kernel_function.set_spec kf modify_spec
+      Annotations.add_assigns ~keep_empty:false emitter kf bhv.b_name assigns
 	
-let () = Kernel_function.populate_spec := populate_funspec
+let () = Annotations.populate_spec_ref := populate_funspec
 
 (*
 Local Variables:

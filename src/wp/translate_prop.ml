@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies        *)
+(*  Copyright (C) 2007-2012                                               *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 (* ------------------------------------------------------------------------ *)
-(* ---  Translation of Term and Predicats                               --- *)
+(* ---  Translation of Terms and Predicates                             --- *)
 (* ------------------------------------------------------------------------ *)
 
 module WpLog = Wp_parameters
@@ -61,29 +61,32 @@ struct
     d_formals : user_formal list ;
   }
 
-  type axiomlabel = {
+  type trigger = (F.abstract,F.pred) Formula.trigger
+      
+  type axiomdef = {
     a_name : string ;
     a_defname : string ;
+    a_trigger : (F.var list * trigger list) option ;
     a_property : F.pred ;
     a_memory : user_formal list ;
   }
 
+  let trigger : trigger list ref = ref [] (* last trigger found *)
+
   module Hdef = Logic_var.Hashtbl
 
   (* Memoization of axioms compilation tables *)
-  let user_axioms : (string,F.pred option) Hashtbl.t = Hashtbl.create 131
-  let user_axiomlabels : (string,axiomlabel option) Hashtbl.t =
-    Hashtbl.create 131
+  let user_axioms : (string,axiomdef option) Hashtbl.t = Hashtbl.create 131
   let user_definitions = Hdef.create 131
 
   let () = F.on_clear
     (fun () ->
+       trigger := [] ;
        Hashtbl.clear user_axioms ;
-       Hashtbl.clear user_axiomlabels ;
        Hdef.clear user_definitions ;
     )
 
-  let rec pp_closures fmt (xs,cs) =
+(*  let rec pp_closures fmt (xs,cs) =
     match xs , cs with
       | [] , [] -> ()
       | x::xs , (c,l)::cs ->
@@ -109,7 +112,7 @@ struct
            (F.name_of_var x)
            M.pp_tau (F.tau_of_var x) ;
       ) xs
-
+*)
   module UserDefinition =
   struct
     let lock : unit Hdef.t = Hdef.create 131
@@ -169,7 +172,7 @@ struct
 	   let section = 
 	     match item with
 	       | Function _ | Predicate _ -> S_User_Sig
-	       | Axiom _ -> S_User_Prop
+	       | Axiom _ | Trigger _ -> S_User_Prop
 	       | _ -> assert false
 	   in
            F.add_declaration {
@@ -194,42 +197,16 @@ struct
 
   end
 
-  module UserAxiom = F.DRegister
-    (struct
-       type t = string
-       module H = Hashtbl.Make
-         (struct
-            type t = string
-            let hash = Hashtbl.hash
-            let equal: string -> string -> bool = (=)
-          end)
-       let section = S_User_Prop
-       let source = None
-       let prefix = "Hyp"
-       let clear () = ()
-       let index x = x
-       let basename x = x
-       let location _x = None
-       let declare x _ =
-         try
-           match Hashtbl.find user_axioms x with
-             | Some p -> Formula.Axiom p
-             | None -> raise Not_found
-         with Not_found -> Wp_parameters.fatal "Uncompiled axiom (%s)" x
-       let pp_title fmt x = Format.fprintf fmt "User-defined axiom %s" x
-       let pp_descr fmt _x = Format.fprintf fmt "No labels."
-     end)
-
   module UserAxiomDefs =
   struct
 
-    let pp_labels fmt = function
+(*    let pp_labels fmt = function
       | [] -> ()
       | x::xs ->
           Format.fprintf fmt "@[{%s" x ;
           List.iter (fun x -> Format.fprintf fmt ",%s" x) xs ;
           Format.fprintf fmt "}@]"
-
+*)
     let pp_axiomdef_title fmt a =
       Format.fprintf fmt "User defined axiom %s" a.a_name
 
@@ -241,13 +218,20 @@ struct
 	end
 
     let define axdef =
+      let item =
+	match axdef.a_trigger with
+	  | None -> Formula.Axiom axdef.a_property
+	  | Some(xs,tg) ->
+            assert (xs <> []);
+            Formula.Trigger(xs , tg , axdef.a_property)
+      in
       F.add_declaration {
         d_name = axdef.a_defname ;
         d_section = S_User_Prop ;
         d_title = (fun fmt -> pp_axiomdef_title fmt axdef) ;
         d_descr = (fun fmt -> pp_axiomdef_descr fmt axdef) ;
         d_source = None ;
-        d_item = Formula.Axiom axdef.a_property ;
+        d_item = item ;
       }
 
     let is_defined name = F.has_declaration ("Hyp_" ^ name)
@@ -269,6 +253,7 @@ struct
     mutable result : F.var option ;
     mutable status : F.var option ;
     mutable return : Cil_types.typ option ;
+    mutable laddr : F.var Logic_var.Map.t ;
   }
 
   let new_frame kf ?m_here ?m_pre ?m_post ?x_result ?x_status () =
@@ -283,6 +268,7 @@ struct
       result = x_result ;
       status = x_status ;
       return = Some(Kernel_function.get_return_type kf) ;
+      laddr = Logic_var.Map.empty ;
     }
 
   let user_frame () =
@@ -291,6 +277,7 @@ struct
       result = None ;
       status = None ;
       return = None ;
+      laddr = Logic_var.Map.empty ;
     }
 
   let result frame =
@@ -331,11 +318,14 @@ struct
     (* maping of logic_vars when lv_origin<>None *)
     lvars : lvar_kind Logic_var.Map.t ; 
     (* lvar_kind of logic_vars when lv_origin=None *)
-    mutable laddr : F.var Logic_var.Map.t ;
-    (* addresses of by-reference user formal *)
   }
 
-
+  let pp_env fmt env =
+    Varinfo.Map.iter
+      (fun x value ->
+	 Format.fprintf fmt " * %a:%d = Value(%a)@\n" !Ast_printer.d_var x x.vid 
+	   M.pp_value value
+      ) env.xvars
 
   let fresh_addr lv : F.var =  
     debug "[fresh_addr] of %a" !Ast_printer.d_logic_var lv;
@@ -347,7 +337,7 @@ struct
   let addr_of_ref env lv = 
     debug "[addr_of_ref] of %a" !Ast_printer.d_logic_var lv;
     try 
-      let x = Logic_var.Map.find lv env.laddr in  
+      let x = Logic_var.Map.find lv env.frame.laddr in  
       debug "[addr_of_ref] of %a already recorded :%a"
 	!Ast_printer.d_logic_var lv F.pp_var x ; x
     with 
@@ -355,7 +345,7 @@ struct
 	  debug "[addr_of_ref] %a not yet in" 
 	    !Ast_printer.d_logic_var lv;
 	  let x = fresh_addr lv in 
-	  env.laddr <-Logic_var.Map.add lv x env.laddr ; 
+	  env.frame.laddr <- Logic_var.Map.add lv x env.frame.laddr ; 
 	  debug "[addr_of_ref] of %a recorded with %a"
 	    !Ast_printer.d_logic_var lv F.pp_var x ; x
 	  
@@ -455,7 +445,6 @@ struct
     label = label ;
     lvars = e.lvars ;
     xvars = e.xvars ;
-    laddr = e.laddr;
   }
 
   let find_mem env label =
@@ -469,6 +458,57 @@ struct
       env.frame.states <- Lmap.add label m env.frame.states ; m
 
   let mem_at_env env = mem_at env env.label
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Profile & Signatures                                               --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let collect_signature profile filter env =
+    let closures = ref [] in
+    let references = ref Logic_var.Map.empty in
+    let get_refs lv refs =
+      try Logic_var.Map.find lv refs
+      with Not_found -> []
+    in
+    Lmap.iter
+      (fun label mem ->
+	 let label = Clabels.lookup_name label in
+	 (* Collecting reference parameters *)
+	 List.iter
+	   (fun (x,lv,formal) -> 
+	      if filter x then
+		let refs = 
+		  (x,formal,label) :: (get_refs lv !references) in
+		references := Logic_var.Map.add lv refs !references)
+	   (M.userdef_ref_signature mem) ;
+	 (* Collecting memory parameters *)
+	 List.iter
+	   (fun (x,clos) -> if filter x then
+	      closures := UF_closure(x,clos,label) :: !closures)
+	   (M.userdef_mem_signature mem)
+      ) env.frame.states ;
+    begin
+      List.rev !closures @
+	List.map
+	(function
+	   | (UF_logic _ | UF_closure _) as p -> p
+	   | UF_references(lv,opt_cx,_) -> 
+	       UF_references(lv, opt_cx, List.rev (get_refs lv !references))
+	) profile
+    end
+
+  (* WARNING: should be the same order of binding that apply_formals *)
+  let rec flatten_formals = function
+    | [] -> []
+    | UF_logic(_,x)::ufs -> x :: flatten_formals ufs
+    | UF_closure(x,_,_)::ufs -> x :: flatten_formals ufs
+    | UF_references(_,None,refs)::ufs -> flatten_references refs ufs
+    | UF_references(_,Some x,refs)::ufs -> x :: flatten_references refs ufs
+
+  and flatten_references refs ufs =
+    match refs with
+      | [] -> flatten_formals ufs
+      | (x,_,_)::refs -> x :: flatten_references refs ufs
 
 (* -------------------------------------------------------------------------- *)
 (* ---  Return & Exit-Status variables                                    --- *)
@@ -500,7 +540,6 @@ struct
       label = Here ;
       lvars = Logic_var.Map.empty ;
       xvars = Varinfo.Map.empty ;
-      laddr = Logic_var.Map.empty;
     }
 
 (* -------------------------------------------------------------------------- *)
@@ -524,7 +563,6 @@ struct
       label = Here ;
       lvars = caller_env.lvars ;
       xvars = bind_formals called_kf vs ;
-      laddr = caller_env.laddr ; 
     }
 
   let call_post caller_env called_kf vs m_pre m_post x_result =
@@ -537,7 +575,6 @@ struct
       label = Here ;
       lvars = caller_env.lvars ;
       xvars = bind_formals called_kf vs ;
-      laddr = caller_env.laddr
     }
 
   let call_exit caller_env called_kf vs m_pre m_post x_status =
@@ -550,7 +587,6 @@ struct
       label = Here ;
       lvars = caller_env.lvars ;
       xvars = bind_formals called_kf vs ;
-      laddr = caller_env.laddr ; 
     }
 
   (* ----------------------------------------------------------------------- *)
@@ -629,7 +665,6 @@ struct
   let boolean_of_data d : F.boolean = extract_from_data d
   let array_of_data d : F.array = extract_from_data d
   let record_of_data d : F.record = extract_from_data d
-  let urecord_of_data d : F.urecord = extract_from_data d
 
   let loc_of_data obj d =
     match d with
@@ -714,7 +749,7 @@ struct
   (* --- Logic Types                                                     --- *)
   (* ----------------------------------------------------------------------- *)
 
-  let rec object_of_pointed = function
+  let object_of_pointed = function
     | Kptr te | Kset(Kptr te) ->  Ctypes.object_of te
     | _ -> WpLog.fatal "Dereferencing a non-pointer value"
 
@@ -739,19 +774,6 @@ struct
     | Ltype( {lt_name=adt} , args ) -> Kadt(adt,List.map kind_of args)
     | Lvar _ -> WpLog.not_yet_implemented "logic type variables"
     | Larrow _ -> WpLog.not_yet_implemented "type of logic function"
-
-  let typ_of_elements = function
-    | Ctype c ->
-        let o = object_of c in
-        begin
-          match o with
-            | C_pointer te -> te
-            | C_array arr -> arr.arr_element
-            | _ ->
-                WpLog.fatal "elements of non-pointer type %a" Ctypes.pp_object o
-        end
-    | t -> WpLog.fatal "elements of non-pointer type: %a"
-        !Ast_printer.d_logic_type t
 
   (* ----------------------------------------------------------------------- *)
   (* --- Global Recursions                                               --- *)
@@ -881,6 +903,7 @@ struct
 
   let rec logic_offset env a = function
     | TNoOffset -> Data a
+    | TModel _ -> Wp_parameters.not_yet_implemented "Model field"
     | TField(f,off) ->
         let fieldvalue = F.acc_field (F.unwrap a) f in
         logic_offset env fieldvalue off
@@ -890,6 +913,7 @@ struct
 
   let rec loc_offset env loc ty = function
     | TNoOffset -> loc
+    | TModel _ -> Wp_parameters.not_yet_implemented "Model field"
     | TField(f,off) ->
         loc_offset env (M.field loc f) (Ctypes.object_of f.ftype) off
     | TIndex(t,off) ->
@@ -903,6 +927,7 @@ struct
 
   let rec memory_offset env ty (dp:data) = function
     | TNoOffset -> ty,dp
+    | TModel _ -> Wp_parameters.not_yet_implemented "Model field"
     | TIndex(t,off) ->
         let kp = kind_of_data ty dp in
         let ki = kind_of t.term_type in
@@ -948,9 +973,6 @@ struct
 		     !Ast_printer.d_logic_type ty
 	  end
 	  
-    
-   
-
   let gaddress_of_mem tenv e off : (typ * data) =
     let g = !data_rec tenv e in
     let te =
@@ -989,7 +1011,7 @@ struct
               | Kcint j ->
                   if Ctypes.sub_c_int i j then v
                   else
-                    Value (M.V_int(j,F.modulo j vi))
+                    Value (M.V_int(j,F.i_modulo j vi))
               | Kint -> Data(F.wrap vi)
               | Kreal -> Data(F.wrap (F.real_of_integer vi))
               | Kptr te -> Loc (M.cast_int_to_loc i vi te)
@@ -999,7 +1021,7 @@ struct
         | Kint ->
             let vi = integer_of_data ty_from v in
             begin match ty_to with
-              | Kcint j -> Value (M.V_int(j,F.modulo j vi))
+              | Kcint j -> Value (M.V_int(j,F.i_modulo j vi))
               | Kint -> Data(F.wrap vi)
               | Kptr te -> Loc (M.cast_int_to_loc (Ctypes.c_ptr()) vi te)
               | Kreal -> Data(F.wrap (F.real_of_integer vi))
@@ -1009,7 +1031,7 @@ struct
         | Kreal ->
             let vr = real_of_data ty_from v in
             begin match ty_to with
-              | Kcint j -> Value(M.V_int(j,F.modulo j
+              | Kcint j -> Value(M.V_int(j,F.i_modulo j
                                                (F.integer_of_real vr)))
               | Kint -> Data(F.wrap (F.integer_of_real vr))
               | Kreal -> Data(F.wrap vr)
@@ -1025,6 +1047,19 @@ struct
                   "logic cast from pointer over %a to %a"
                     !Ast_printer.d_type tfrom pp_kind k
             end
+	| Karray afrom ->
+	    begin match ty_to with
+	      | Karray ato ->
+		  let cta = object_of afrom.arr_element in
+		  let ctb = object_of ato.arr_element in
+		  if Ctypes.equal cta ctb 
+		  then v
+		  else WpLog.not_yet_implemented
+		    "logic cast between %a[] to %a[]"
+		    Ctypes.pretty cta Ctypes.pretty ctb
+	      | _ -> WpLog.not_yet_implemented
+		  "logic cast from %a to %a" pp_kind ty_from pp_kind ty_to
+	    end
         | k -> WpLog.not_yet_implemented "logic cast from %a to %a"
                  pp_kind k pp_kind ty_to
 
@@ -1254,16 +1289,16 @@ struct
   (* ------------------------------------------------------------------------ *)
 
   let data_const = function
-    | CInt64(k,_,_) ->
+    | Integer(k,_) ->
         data_of_integer (F.e_icst (My_bigint.to_string k))
 
-    | CChr c ->
+    | LChr c ->
         data_of_integer (F.e_icst (Int64.to_string (Ctypes.char c)))
 
-    | CReal(f,_,_) ->
-        data_of_real (F.e_rcst (string_of_float f))
+    | LReal(_,s) ->
+        data_of_real (F.e_rcst s)
 
-    | CEnum e ->
+    | LEnum e ->
         let machdep = true in
         let e' = Cil.constFold machdep e.eival in
         begin
@@ -1274,16 +1309,25 @@ struct
                 data_of_integer (F.e_icst (string_of_int (Char.code c)))
             | _ -> WpLog.fatal "unrecognized sizeof/alignof "
         end
-    | CWStr _        ->
+    | LWStr _ ->
         WpLog.not_yet_implemented "wide character string constant"
-    | CStr s         ->
-        WpLog.not_yet_implemented "character string constant (%S)" s
+    | LStr s ->
+	Value (M.string 0 s)
+
 
   (* ------------------------------------------------------------------------ *)
   (* --- Terms                                                            --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let rec data_of_term env term =
+  let rec data_of_term env term = 
+    let d = data_of_node env term in
+    if List.mem "TRIGGER" term.term_name then
+      begin
+	let tg = F.trigger_of_term (term_of_data d) in
+	trigger := tg :: !trigger ; 
+      end ; d
+
+  and data_of_node env term =
     match term.term_node with
 
       (* Constants *)
@@ -1388,23 +1432,26 @@ struct
 
       (* Memory call *)
 
-      | Tbase_addr t ->
+      | Tbase_addr (label, t) ->
           let obj = match t.term_type with
             | Ctype ty -> object_of ty
             | _ -> WpLog.fatal "Base-address of logic type object"
           in
           Loc (M.base_address
-                 (mem_at_env env)
+                 (mem_at_env (env_at env (c_label label)))
                  (loc_of_data  obj (data_of_term env t)))
 
-      | Tblock_length t ->
+      | Toffset (_label,_t) ->
+          WpLog.not_yet_implemented "Offset construct"
+
+      | Tblock_length (label, t) ->
           let obj = match t.term_type with
             | Ctype ty -> object_of ty
             | _ -> WpLog.fatal "Block-length of logic type object"
           in
           data_of_integer
             (M.block_length
-               (mem_at_env env)
+               (mem_at_env (env_at env (c_label label)))
                (loc_of_data obj (data_of_term env t)))
 
       (* Range *)
@@ -1594,7 +1641,7 @@ struct
     | TUpdate (_, _, _)|Tblock_length _
     | TDataCons (_, _)|Tlambda (_, _)
     | TUnOp (_, _)|TAlignOfE _|TAlignOf _|TSizeOfStr _|TSizeOfE _|TSizeOf _
-    | TConst _ | Tnull | Tbase_addr _
+    | TConst _ | Tnull | Tbase_addr _ | Toffset _
     | TBinOp(
         (LOr|LAnd|BOr|BXor|BAnd|Ne|Eq|Ge|Le|Gt|Lt|
              Shiftrt|Shiftlt|Mod|Div|Mult|
@@ -1648,7 +1695,16 @@ struct
           end
 
   let rec prop env p =
-    List.fold_right F.p_named p.name (prop_body env p)
+    List.fold_right 
+      (fun name p ->
+	 if name = "TRIGGER" then
+	   begin
+	     let tg = F.trigger_of_pred p in
+	     trigger := tg :: !trigger ; p
+	   end
+	 else
+	   F.p_named name p)
+      p.name (prop_body env p)
 
   and prop_body env p =
     match p.content with
@@ -1689,54 +1745,22 @@ struct
           let m2 = data_of_term env t2 in
           pred_cmp (rel_op rel) ct1 m1 ct2 m2
 
-      | Pvalid t ->
+      | Pvalid (label,t)
+      | Pvalid_read (label, t) ->
+	  (*TODO[LC] warning in doc ?
+          (match p.content with Pvalid_read _ ->
+               Wp_parameters.warning ~once:true ~current:false
+                 "predicate \\valid_read treated as \\valid"
+             | _ -> ());
+	  *)
           let k = kind_of t.term_type in
           let d  = data_of_term env t in
-          data_valid (mem_at_env env) k d
+          data_valid (mem_at_env (env_at env (c_label label))) k d
 
-      | Pvalid_index(tp,ti) ->
-          let ty = match tp.term_type with
-            | Ctype te -> te
-            | _ -> WpLog.fatal "expected a non logic type"
-          in
-          let kp = kind_of_typ ty in
-          let ki = kind_of ti.term_type in
-          let dp = data_of_term env tp in
-          let di = data_of_term env ti in
-          if Cil.isArrayType ty then
-            let te = Cil.typeOf_array_elem ty in
-            let ta = object_of te in
-            let d = data_index ta kp dp ki di in
-            data_valid (mem_at_env env) kp d
-          else
-            if Cil.isPointerType ty then
-              let d = data_shift kp dp ki di ~is_pos:true in
-              data_valid (mem_at_env env) kp d
-            else WpLog.fatal "unexepected type for valid index"
-
-      | Pvalid_range(b,l,h) ->
-          let tb = b.term_type in
-          let k = kind_of tb in
-          begin
-            match k with
-              | Kptr _ ->
-                  let ty = typ_of_elements tb in
-                  let obj = object_of ty in
-                  let loc = loc_of_data obj (data_of_term env b) in
-                  let rg = {
-                    F.inf = Some (integer_of_data (kind_of l.term_type)
-                                    (data_of_term env l));
-                    F.sup = Some (integer_of_data (kind_of h.term_type)
-                                    (data_of_term env h));
-                  } in
-                  M.valid (mem_at_env env) (F.Arange(obj,loc,rg))
-              | _ -> WpLog.fatal "unsuitable argument for [valid_range]"
-          end
-
-      | Pfresh _t -> WpLog.not_yet_implemented "fresh"
-
-      | Pinitialized _t -> WpLog.not_yet_implemented "initialized"
-
+      | Pallocable (_l,_t) -> WpLog.not_yet_implemented "allocable"
+      | Pfreeable (_l,_t) -> WpLog.not_yet_implemented "freeable"
+      | Pfresh (_l1,_l2,_t,_n) -> WpLog.not_yet_implemented "fresh"
+      | Pinitialized (_l,_t) -> WpLog.not_yet_implemented "initialized"
       | Psubtype (_t1,_t2) ->  WpLog.not_yet_implemented "subtype"
 
       | Plet(def, p) ->
@@ -1788,10 +1812,7 @@ struct
             Wp_parameters.not_yet_implemented "Built-ins symbol %a (%d)"
               !Ast_printer.d_logic_var predicate.l_var_info predicate.l_var_info.lv_id
           else
-            !rec_apply_predicate env predicate labels args
-
-
-
+	    !rec_apply_predicate env predicate labels args
 
   (* ------------------------------------------------------------------------ *)
   (* --- Accessing User-Definitions                                       --- *)
@@ -1860,67 +1881,17 @@ struct
 	     end) 
 	pdef.l_profile
       in
+      frame.laddr <- !laddr ;
       let env = {
 	formals_in_pre = false ;
         frame = frame ;
         label = user_default_label pdef.l_labels ;
         lvars = !lvars ;
         xvars = Varinfo.Map.empty ;
-	laddr = !laddr;
       }
       in ( context , profile , env )
     with err ->
       kill_context "user env" context; raise err
-
-  let collect_signature profile filter env =
-    let closures = ref [] in
-    let references = ref Logic_var.Map.empty in
-    let get_refs lv refs =
-      try Logic_var.Map.find lv refs
-      with Not_found -> []
-    in
-    Lmap.iter
-      (fun label mem ->
-	 match label with
-	   | LabelParam label ->
-	       begin
-		 (* Collecting reference parameters *)
-		 List.iter
-		   (fun (x,lv,formal) -> if filter x then
-		      let refs = 
-			(x,formal,label) :: (get_refs lv !references) in
-		      references := Logic_var.Map.add lv refs !references)
-		   (M.userdef_ref_signature mem) ;
-		 (* Collecting memory parameters *)
-		 List.iter
-		   (fun (x,clos) -> if filter x then
-		      closures := UF_closure(x,clos,label) :: !closures)
-		   (M.userdef_mem_signature mem) ;
-	       end
-	   | _ -> ())
-      env.frame.states ;
-    begin
-      List.rev !closures @
-	List.map
-	(function
-	   | (UF_logic _ | UF_closure _) as p -> p
-	   | UF_references(lv,opt_cx,_) -> 
-	       UF_references(lv, opt_cx, List.rev (get_refs lv !references))
-	) profile
-    end
-
-  (* WARNING: should be the same order of binding that apply_formals *)
-  let rec flatten_formals = function
-    | [] -> []
-    | UF_logic(_,x)::ufs -> x :: flatten_formals ufs
-    | UF_closure(x,_,_)::ufs -> x :: flatten_formals ufs
-    | UF_references(_,None,refs)::ufs -> flatten_references refs ufs
-    | UF_references(_,Some x,refs)::ufs -> x :: flatten_references refs ufs
-
-  and flatten_references refs ufs =
-    match refs with
-      | [] -> flatten_formals ufs
-      | (x,_,_)::refs -> x :: flatten_references refs ufs
 
   let all_filter (_:F.var) = true
   let term_filter t x = F.term_has_var [x] t
@@ -1964,13 +1935,15 @@ struct
         match body with
           | None -> kill_context "compile" context ; []
           | Some body ->
-              let p_axiom =
-                L.forall formals
-                  (F.p_iff
-                     (F.p_call p_name (List.map F.var formals))
-                     (flush_context "compile" context body))
-              in
-              [ d_name , Formula.Axiom p_axiom ]
+	    let p_trigger = F.p_call p_name (List.map F.var formals) in
+ 	    let p_body = flush_context "compile" context body in
+            let p_axiom = (*L.guards formals*) (F.p_iff p_trigger p_body) in
+            (match formals with
+              | [] -> (* Constant predicate. Can't have trigger over
+                         non-quantified axioms. *)
+                [ d_name, Axiom p_axiom]
+              | _ ->
+                [ d_name , Formula.Trigger(formals,[TgProp p_trigger],p_axiom) ])
       in
       {
         d_info = pdef ;
@@ -2018,21 +1991,32 @@ struct
       let signature = collect_signature profile filter env in
       let formals = flatten_formals signature in
       let declaration =
-        f_name , Formula.Function(List.map F.tau_of_var formals,t_result) in
-      let call_f = F.e_call f_name (List.map F.var formals) in
+        f_name , Formula.Function(List.map F.tau_of_var formals,t_result) 
+      in
+      let f_call = F.e_call f_name (List.map F.var formals) in
       let definitions =
         match body with
           | None -> kill_context "compile" context ; []
           | Some def ->
-              let f_axiom = F.p_forall formals
-                (flush_context "compile" context (F.p_eq call_f def))
-              in
-              [ d_name , Formula.Axiom f_axiom ]
+	      let f_body = flush_context "compile" context (F.p_eq f_call def) in
+	      let f_axiom = (*L.guards formals*) f_body in
+              (match formals with 
+                (* don't pull trigger if there's no quantification *)
+                | [] -> [d_name, Formula.Axiom f_axiom]
+                | _ ->
+                  [ d_name , Formula.Trigger(formals,[TgTerm f_call],f_axiom) ])
       in
       let guards = 
-	let cond = L.has_type call_f ltyp in
-	if F.is_true cond then []
-	else [ f_name ^ "_result" , Formula.Axiom (L.forall formals cond) ]
+	let f_cond = L.guards formals (L.has_type f_call ltyp) in
+	if F.is_true f_cond then []
+	else begin
+          let name = f_name ^ "_result" in
+          match formals with
+            | [] -> (* don't define trigger if there's no quantification *)
+                [ name, Formula.Axiom f_cond ]
+            | _ ->
+              [ name, Formula.Trigger(formals,[TgTerm f_call],f_cond) ]
+        end
       in
       {
         d_info = fdef ;
@@ -2057,41 +2041,49 @@ struct
       label = here ;
       lvars = Logic_var.Map.empty ;
       xvars = Varinfo.Map.empty ;
-      laddr = Logic_var.Map.empty ;
     }
 
-  let compile_user_axiom _name predicate =
-    let context = push_context "axiom" in
-    try
-      let env = axiom_env "WP_nowhere" in
-      let def = prop env predicate in
-      flush_context "axiom" context def
-    with err ->
-      kill_context "axiom" context ;
-      raise err
-
-  let compile_user_axiom_labels name (labels,predicate) =
+  let compile_user_axiom name (labels,predicate) =
     let d_name = "Hyp_" ^ name in
-    let context = push_context "axiom-labels" in
+    let context = push_context "axiom" in
     try
       let here =
         match labels with
           | LogicLabel (None, l)::_ -> l
-          | _ -> Wp_parameters.fatal "No logic label for Axiom '%s'" name
+          | _ -> "WP_nowhere"
       in
+      trigger := [] ;
       let env = axiom_env here in
       let body = prop env predicate in
       let signature = collect_signature [] (pred_filter body) env in
       let formals = flatten_formals signature in
-      let property = L.forall formals (flush_context "axiom-labels" context body)
-      in {
-        a_name = name ;
-        a_defname = d_name ;
-	a_memory = signature ;
-        a_property = property ;
-      }
+      let compiled = L.forall formals (flush_context "axiom" context body) in 
+      let vars,lemma = F.p_binders compiled in
+      match !trigger with
+	| [] ->
+	    {
+              a_name = name ;
+              a_defname = d_name ;
+	      a_memory = signature ;
+	      a_trigger = None ;
+              a_property = F.p_forall vars lemma ;
+	    }
+	| tgs ->
+	    trigger := [] ;
+	    let xs,ys = List.partition 
+	      (fun x -> List.exists (F.trigger_has_var [x]) tgs) vars 
+	    in
+	    {
+	      a_name = name ;
+	      a_defname = d_name ;
+	      a_memory = signature ;
+	      a_trigger = Some(xs,tgs) ;
+	      a_property = F.p_forall ys lemma ;
+	    }
+
+
     with err ->
-      kill_context "axiom-labels" context ;
+      kill_context "axiom" context ;
       raise err
 
   let compile_and_define hdefs name data compiler definer =
@@ -2108,14 +2100,9 @@ struct
 
   let add_axiom name labels predicate =    
     if not (UserAxiomDefs.is_defined name) then
-      if labels = [] then
-	compile_and_define user_axioms name predicate
-          compile_user_axiom
-          (fun name _ -> UserAxiom.define name)
-      else
-	compile_and_define user_axiomlabels name (labels,predicate)
-          compile_user_axiom_labels
-          (fun _ axdef -> UserAxiomDefs.define axdef)
+      compile_and_define user_axioms name (labels,predicate)
+        compile_user_axiom
+        (fun _ axdef -> UserAxiomDefs.define axdef)
 
   (* ------------------------------------------------------------------------ *)
   (* --- Applying Definitions                                             --- *)
@@ -2129,20 +2116,18 @@ struct
   (* WARNING: apply_formals must bind formals in the same way that
      flatten_formals collect the formals *)
 
-  let bool_of_option = function Some _ -> true | None -> false 
+  let object_of_logic_pointed = function
+    | Ctype ty -> Ctypes.object_of_pointed (Ctypes.object_of ty)
+    | lt -> Wp_parameters.fatal "non-reference logic-type: %a" !Ast_printer.d_logic_type lt
 
   let rec apply_formals env labels ufs dargs =
-    let s = "[apply_formals]" in
     match ufs , dargs with
       | [] , [] -> []
       | [] , d :: _ ->
 	  Wp_parameters.fatal 
 	    "WP.UserDefs: signature mismatch (args) to much args %a"
-	    pp_data d ;
-      | UF_logic (lv,_) :: ufs_tail , data :: dargs_tail -> 
-	  debug "%s : %a binds to %a, ufs_tail:%d, darg_tail:%d"
-	    s !Ast_printer.d_logic_var lv pp_data data 
-	    (List.length ufs_tail) (List.length dargs_tail);
+	    pp_data d
+      | UF_logic _ :: ufs_tail , data :: dargs_tail -> 
 	  term_of_data data :: apply_formals env labels ufs_tail dargs_tail
       | UF_logic (lv,_) :: _ , [] ->
 	  Wp_parameters.fatal 
@@ -2157,24 +2142,25 @@ struct
       | UF_references(_,_,_)::_ , [] ->
 	  Wp_parameters.fatal "WP.UserDefs: signature mismatch (refs)"
 
-      | UF_references(_,None,refs)::ufs_tail , data::dargs ->
-	  apply_references env labels refs data ufs_tail dargs
+      | UF_references(lv,None,refs)::ufs_tail , data::dargs ->
+	  let obj = object_of_logic_pointed lv.lv_type in
+	  apply_references env labels obj refs data ufs_tail dargs
 
-      | UF_references(_,Some _,refs)::ufs_tail , data::dargs ->
+      | UF_references(lv,Some _,refs)::ufs_tail , data::dargs ->
 	  let loc = 
 	    match data with
 	      | Value(M.V_pointer(_,loc)) -> loc
 	      | Loc loc -> loc
-	      | _ -> Wp_parameters.fatal "WP.UserDefs: no reference found"
+	      | d -> Wp_parameters.fatal 
+		  "WP.UserDefs:[apply_formal] no reference found %a"
+		  pp_data d
 	  in
-	  let inner_loc = M.inner_loc loc in
-	  debug "%s the location of %a : %a the C loc : %a" s 
-	    pp_data data M.pp_loc loc F.pp_term inner_loc; 
-
-	  inner_loc :: apply_references env labels refs data ufs_tail dargs
+	  let inner_loc = M.term_of_loc loc in
+	  let obj = object_of_logic_pointed lv.lv_type in
+	  inner_loc :: apply_references env labels obj refs data ufs_tail dargs
 
 
-  and apply_references env labels refs data ufs dargs =
+  and apply_references env labels obj refs data ufs dargs =
     match refs with
       | [] -> apply_formals env labels ufs dargs
 
@@ -2183,12 +2169,14 @@ struct
 	    match data with
 	      | Value(M.V_pointer(_,loc)) -> loc
 	      | Loc loc -> loc
-	      | _ -> Wp_parameters.fatal "WP.UserDefs: no reference found"
+	      | d -> Wp_parameters.fatal 
+		  "WP.UserDefs:[apply_reference] no reference found %a"
+		    pp_data d
 	  in
 	  let label = Clabels.lookup labels at in
 	  let mem = mem_at env label in
-	  let value = M.logic_of_value (M.userdef_ref_apply mem formal loc) in
-	  value :: apply_references env labels refs_tail data ufs dargs
+	  let value = M.logic_of_value (M.userdef_ref_apply mem formal obj loc) in
+	  value :: apply_references env labels obj refs_tail data ufs dargs
 
   let apply_predicate env def labels args =
     let definition = get_definition compile_predicate def in

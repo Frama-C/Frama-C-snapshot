@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,25 +20,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Metrics_base
 open Metrics_parameters
+;;
 
 let () = Enabled.set_output_dependencies
-  [Ast.self; AST_type.self; OutputFile.self; SyntacticallyReachable.self]
+  [ Ast.self; AstType.self; OutputFile.self; SyntacticallyReachable.self; ]
+;;
 
 let syntactic () =
   begin
-    match AST_type.get () with
-      | "cil" ->
-        let r = !Db.Metrics.compute () in
-        Metrics.result
-          "@[<v 0>Syntactic metrics@ \
-                  -----------------@ %a@]"
-          !Db.Metrics.pretty r
-
+    match AstType.get () with
+      | "cil" -> Metrics_cilast.compute_on_cilast ()
       (* Cabs metrics are experimental. unregistered, unjournalized *)
       | "cabs" -> Metrics_cabs.compute_on_cabs ()
-
       | _ -> assert false (* the possible values are checked by the kernel*)
   end;
 
@@ -49,7 +43,6 @@ let syntactic () =
       with Not_found -> Metrics.error "Unknown function %s" s
     );
 ;;
-
 
 let () = ValueCoverage.set_output_dependencies [Db.Value.self]
 
@@ -68,23 +61,10 @@ let main () =
   if ValueCoverage.get () then ValueCoverage.output value;
 ;;
 
-
-(* Main entry points *)
+(* Register main entry points *)
 let () = Db.Main.extend main
 
-(* Register some functions in Frama-C's DB *)
-let () =
-   Db.register
-    (Db.Journalize
-       ("Metrics.compute", Datatype.func Datatype.unit DatatypeMetrics.ty))
-    Db.Metrics.compute Metrics_cilast.compute_on_cilast;
 
-  Db.register
-    (Db.Journalize
-       ("Metrics.pretty", Datatype.func Datatype.formatter
-         (Datatype.func DatatypeMetrics.ty  Datatype.unit)))
-    Db.Metrics.pretty pretty;
-;;
 (*
 Local Variables:
 compile-command: "make -C ../.."

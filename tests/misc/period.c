@@ -1,11 +1,18 @@
 #define t Frama_C_periodic_t_320
-#define u Frama_C_periodic_u_32
-#define v Frama_C_periodic_v_32
 
+
+
+
+typedef struct {
+  short s1;
+  short s2;
+  short s3;
+} ts;
 
 int t[60]= {1};
-int u[60]= {-1,-2,-3};
-int v[3]= {-1,-2,-3};
+int (u __attribute__ ((Frama_C_periodic)))[60]= {-1,-2,-3};
+int v[3] __attribute__ ((Frama_C_periodic)) = {-1,-2,-3};
+ts w[10] __attribute__ ((Frama_C_periodic));
 
 int Au,Bu,Cu,Du,Eu,Fu,Gu = 12, Hu;
 int At,Bt,Ct,Dt,Et,Ft,Gt = 12, Ht;
@@ -33,6 +40,10 @@ int main()
   Hu = 2 * u[25] + 1;
 
   v[1] = 1;
+
+  w[0].s1 = 1;
+  w[1].s2 = 2;
+  w[2].s3 = w[0].s1 + w[1].s2;
 
   Frama_C_dump_each();
 

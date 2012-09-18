@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,6 +30,12 @@ module Print: Plugin.Bool
 
 module Slicing: Plugin.Bool
   (** Slicing from the impacted stmt. *)
+
+module Skip: Plugin.String_set
+  (** Consider that the variables in the string are not impacted *)
+
+module Upward: Plugin.Bool
+  (** Also compute impact within callers *)
 
 val is_on: unit -> bool
 

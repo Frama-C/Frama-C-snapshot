@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,6 @@ module WP = State_builder.Ref
   (Datatype.Unit)
   (struct
      let name = "WP"
-     let kind = `Internal
      let dependencies = [Ast.self]
      let default () = ()
    end)
@@ -73,8 +72,6 @@ module Indexed
   (Key:Datatype.S_with_collections)
   (Info:Info with type key = Key.t) =
 struct
-
-  open Cil_types
 
   type key = Key.t
 

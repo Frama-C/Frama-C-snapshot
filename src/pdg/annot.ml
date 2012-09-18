@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -69,9 +69,11 @@ let get_decl_nodes pdg decl_info =
 
 let find_nodes_for_function_contract pdg f_interpret =
   let kf =  Pdg.get_kf pdg in
-  let (data_info, decl_info) = f_interpret kf in
+  let (data_info, decl_label_info) = f_interpret kf in
   let data_dpds = zone_info_nodes pdg data_info in
-  let decl_nodes = get_decl_nodes pdg decl_info in
+  let decl_nodes = (* No way to get stmt from labels of at construct into function contracts *)
+    get_decl_nodes pdg decl_label_info.Db.Properties.Interp.To_zone.var
+  in
     decl_nodes, data_dpds
 
 let find_fun_precond_nodes (pdg:Pdg.t) p =
@@ -114,11 +116,12 @@ let find_code_annot_nodes pdg stmt annot =
     try
       begin
         let kf =  Pdg.get_kf pdg in
-        let (data_info, decl_info), pragmas =
+        let (data_info, decl_label_info), pragmas =
           !Db.Properties.Interp.To_zone.from_stmt_annot annot (stmt, kf)
         in
         let data_dpds = zone_info_nodes pdg data_info in
-        let decl_nodes = get_decl_nodes pdg decl_info in
+        let decl_nodes = get_decl_nodes pdg decl_label_info.Db.Properties.Interp.To_zone.var in
+	let labels = decl_label_info.Db.Properties.Interp.To_zone.lbl in
         let stmt_key = Key.stmt_key stmt in
         let stmt_node = match stmt_key with
           | Key.Stmt _ -> !Db.Pdg.find_stmt_node pdg stmt
@@ -132,6 +135,24 @@ let find_code_annot_nodes pdg stmt annot =
          * because we already have the ctrl dpds from the stmt node. *)
         let stmt_pragmas = pragmas.Db.Properties.Interp.To_zone.stmt in
         let ctrl_dpds = Stmt.Set.fold add_stmt_nodes stmt_pragmas ctrl_dpds in
+        let add_label_nodes l acc = match l with
+            | StmtLabel stmt -> 
+                (* TODO: we could be more precise here if we knew which label 
+                * is really useful... *)
+                let add acc l =
+                  try (Sets.find_label_node pdg !stmt l)::acc
+                  with Not_found -> acc
+                in List.fold_left add acc (!stmt).labels
+            | LogicLabel (Some stmt, str) -> 
+                let add acc l = match l with 
+                  | Label (sl, _, _) when sl = str ->
+                      (try (Sets.find_label_node pdg stmt l)::acc
+                       with Not_found -> acc)
+                  | _ -> acc
+                in List.fold_left add acc stmt.labels
+            | LogicLabel (None, _) -> acc
+        in
+        let ctrl_dpds = Logic_label.Set.fold add_label_nodes labels ctrl_dpds in
         if Pdg_parameters.debug_atleast 2 then begin
           let p fmt (n,z) = match z with
             | None -> Node.pretty fmt n
@@ -158,8 +179,8 @@ let find_code_annot_nodes pdg stmt annot =
         end;
         ctrl_dpds, decl_nodes, data_dpds
       end
-    with Extlib.NotYetImplemented msg ->
-      raise (Extlib.NotYetImplemented
+    with Logic_interp.To_zone.NYI msg ->
+      raise (Logic_interp.To_zone.NYI
                ("[pdg:find_code_annot_nodes] to_zone : "^msg))
   else begin
     Pdg_parameters.debug ~level:2

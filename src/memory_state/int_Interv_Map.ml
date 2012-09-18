@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,11 +23,7 @@
 (** Undocumented. 
     Do not use this module if you don't know what you are doing. *)
 
-(* [JS 2011/10/03] To the authors/users of this module: please write a .mli and
-   document it. *)
-
 open Abstract_interp
-open Abstract_value
 
 module Make(Value: Datatype.S) = struct
 

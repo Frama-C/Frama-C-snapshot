@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,8 @@
     @plugin development guide *)
 
 open Cil_types
-open Cil
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 
 (** Association between varids and offsets in byte.
     @plugin development guide *)
@@ -34,13 +33,7 @@ module Location_Bytes : sig
 
   module M : sig
     type key = Base.t
-    type leaf_annot
-    type branch_annot
-    type tt = private
-              | Empty
-              | Leaf of key * Ival.t * leaf_annot
-              | Branch of int * int * tt * tt * branch_annot
-    type t = tt
+    type t
     val iter : (Base.t -> Ival.t -> unit) -> t -> unit
     val find :  key -> t -> Ival.t
     val fold : (Base.t -> Ival.t -> 'a -> 'a) -> t -> 'a -> 'a
@@ -81,6 +74,7 @@ module Location_Bytes : sig
 
   val inject : Base.t -> Ival.t -> t
   val inject_ival : Ival.t -> t
+  val inject_float : Ival.F.t -> t
 
   val inject_top_origin : Origin.t -> Top_Param.O.t -> t
     (** [inject_top_origin origin p] creates a top with origin [origin]
@@ -109,7 +103,8 @@ module Location_Bytes : sig
   val fold_bases : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
   val top_leaf_origin : unit -> t
 
-  val topify_with_origin : Origin.t -> t -> t
+  val topify_with_origin: Origin.t -> t -> t
+  val topify_with_origin_kind: Origin.kind -> t -> t
 
   val may_reach : Base.t -> t -> bool
     (** [may_reach base loc] is true if [base] might be accessed from [loc]. *)
@@ -295,7 +290,6 @@ module Zone : sig
   val is_included_exn : t -> t -> unit
   val cardinal_zero_or_one : t -> bool
   val cardinal_less_than : t -> int -> int
-  val diff : t -> t -> t
 
   (** {3 Folding} *)
 
@@ -328,8 +322,8 @@ module Zone : sig
   val cached_fold :
     cache:string * int ->
     temporary:bool ->
-    f:(Base.t -> Abstract_value.Int_Intervals.t -> 'b) ->
-    projection:(Base.t -> Abstract_value.Int_Intervals.t) ->
+    f:(Base.t -> Lattice_Interval_Set.Int_Intervals.t -> 'b) ->
+    projection:(Base.t -> Lattice_Interval_Set.Int_Intervals.t) ->
     joiner:('b -> 'b -> 'b) -> empty:'b -> t -> 'b
 
   (** {3 Lmap_bitwise utilities} *)
@@ -351,6 +345,7 @@ type location = private {
   size : Int_Base.t;
 }
 
+(** @plugin development guide *)
 module Location: Datatype.S with type t = location
 
 val loc_bottom : location
@@ -368,7 +363,11 @@ val valid_cardinal_zero_or_one : for_writing:bool -> location -> bool
 val valid_part : for_writing:bool -> location -> location
 val invalid_part : location -> location
 
+val filter_base: (Base.t -> bool) -> location -> location
+val filter_loc : location -> Zone.t -> location
+
 val pretty : Format.formatter -> location -> unit
+val pretty_english : Format.formatter -> location -> unit
 
 (** {2 Conversion functions} *)
 
@@ -382,15 +381,14 @@ val loc_bits_to_loc : Cil_types.lval -> Location_Bits.t -> location
 
 val valid_enumerate_bits : for_writing:bool -> location -> Zone.t
   (** @plugin development guide *)
+
+val enumerate_bits : location -> Zone.t
 val zone_of_varinfo : varinfo -> Zone.t
   (** @since Carbon-20101201 *)
 
-val size_of_varinfo : varinfo -> Int.t
-val int_base_size_of_varinfo : varinfo -> Int_Base.t
 val loc_of_varinfo : varinfo -> location
 val loc_of_base : Base.t -> location
 val loc_of_typoffset : Base.t -> typ -> offset -> location
-val filter_loc : location -> Zone.t -> location
 
 (*
 Local Variables:

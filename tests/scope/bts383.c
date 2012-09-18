@@ -5,27 +5,27 @@
    echo '!Db.Scope.check_asserts();;' \
    | bin/toplevel.top -val tests/scope/bts383.c 
 */
-
+int v;
 void if1 (int * p) {
   if (*p > 0) 
-    (*p)++;
+    v = *p;
 }
 int if2 (int c, int * p) {
   if (c)
-    (*p)++;
+    v = *p;
   return *p;
 }
 void loop1 (int * p) {
   int i;
   int n = *p;
   for (i = 0; i < n; i++) {
-    (*p)++;
+    v = *p;
   }
 }
 int loop2 (int n, int * p) {
   int i;
   for (i = 0; i < n; i++) {
-    (*p)++;
+    v = *p;
   }
   return *p;
 }
@@ -40,17 +40,21 @@ int fstruct (Tstruct * ps) {
   int x;
   ps->a = 3;
   ps->b = 5;
+  ps->a = ps->b;
+  ps->b = ps->a;
   x = ps->a + ps->b;
   ps++;
   ps->a = 3;
   ps->b = 5;
+  ps->a = ps->b;
+  ps->b = ps->a;
   x += ps->a + ps->b;
   return x;
 }
 int main (int * p, Tstruct * ps) {
   int x;
   x = *p;
-  *p = 3;
+  v = *p;
   if1(p);
   if2(x,p);
   loop1(p);

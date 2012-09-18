@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,11 +45,13 @@ let fresh sigma x =
 
 let alpha sigma x =
   try Vmap.find x sigma.var
-  with Not_found -> Wp_parameters.fatal "Unbound fol-variable %s (let)" (Var.var_name x)
+  with Not_found -> 
+    Wp_parameters.failure "Unbound fol-variable %s (let)" (Var.var_name x) ;
+    e_app (Printf.sprintf "<let?%s>" (Var.var_name x)) []
 
 let rec def = function Pnamed(_,p) -> def p | p -> p
 let rec redef p p' = match p with Pnamed(a,p0) -> Pnamed(a,redef p0 p') | _ -> p'
-let rec is_simple = function (Tvar _ | Tconst _ | Tapp(_,[])) -> true | _ -> false
+let is_simple = function (Tvar _ | Tconst _ | Tapp(_,[])) -> true | _ -> false
 let bind x v sigma = { sigma with var = Vmap.add x v sigma.var }
 
 let rec term sigma = function
@@ -127,4 +129,13 @@ let rec fresh_params ys sigma = function
 let compile_def xs p =
   let ys,sigma = fresh_params [] empty xs in
   ys , pred sigma p
-  
+
+type trigger = (Fol.term,Fol.pred) Formula.trigger
+
+let trigger sigma = function
+  | Formula.TgTerm t -> Formula.TgTerm (term sigma t)
+  | Formula.TgProp p -> Formula.TgProp (pred sigma p)
+
+let compile_trigger xs tg p =
+  let ys,sigma = fresh_params [] empty xs in
+  ys , List.map (trigger sigma) tg , pred sigma p

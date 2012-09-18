@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -33,7 +33,6 @@ module Analysis =
   False(struct
           let option_name = "-sparecode"
           let help = "perform a spare code analysis"
-          let kind = `Tuning
         end)
 let () = Analysis.add_aliases ["-sparecode-analysis"]
 
@@ -41,7 +40,6 @@ module Annot =
   True(struct
          let option_name = "-sparecode-annot"
          let help = "select more things to keep every reachable annotation"
-          let kind = `Correctness
        end)
 
 module GlobDecl =
@@ -49,7 +47,6 @@ module GlobDecl =
           let option_name = "-rm-unused-globals"
           let help = ("only remove unused global types and variables "^
                        "(automatically done by -sparecode-analysis)")
-          let kind = `Correctness
         end)
  
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -145,7 +145,10 @@ let i_one = e_int 1
 let i_sub = e_iop Isub
 let i_add = e_iop Iadd
 let i_mult = e_iop Imul
-  
+let i_eq = p_icmp Formula.Ceq
+let i_lt = p_icmp Formula.Clt  
+let i_leq = p_icmp Formula.Cleq  
+
 let r_zero = e_float 0.0
   
 (* --------------------------------------------------------------------- *)
@@ -178,7 +181,7 @@ let part_of_item = function
   | Formula.PredicateDef _
   | Formula.Function _ 
   | Formula.Predicate _ -> 3
-  | Formula.Axiom _ -> 4
+  | Formula.Axiom _ | Formula.Trigger _ -> 4
   | Formula.Trecord _ -> 5
       
 let compare_item d1 d2 =
@@ -264,6 +267,9 @@ let compile_let_item = function
       let xs,p = Fol_let.compile_def xs p in
       Formula.PredicateDef(xs,p)
   | Formula.Axiom p -> Formula.Axiom (Fol_let.compile p)
+  | Formula.Trigger(xs,tg,p) -> 
+      let xs,tg,p = Fol_let.compile_trigger xs tg p in
+      Formula.Trigger(xs,tg,p)
       
 let compile_let_decl d =
   {
@@ -275,7 +281,7 @@ let compile_let_decl d =
     Formula.d_item = compile_let_item d.Formula.d_item ;
   }
 
-let rec add_declaration d =
+let add_declaration d =
   try
     Wp_parameters.debug ~dkey:"logic" "Adding declaration %s (%t)@."
       d.Formula.d_name d.Formula.d_title ;
@@ -319,7 +325,7 @@ let rec do_export f d =
     ( f d ; exported_macros := Mset.add d.d_name !exported_macros )
 
 and export_depends_for_item f = function
-  | Type _ | Cons _ | Function _ | Predicate _ | Trecord _ | Axiom _ -> ()
+  | Type _ | Cons _ | Function _ | Predicate _ | Trecord _ | Axiom _ | Trigger _ -> ()
   | FunctionDef(_,_,exp) -> export_depends_for_term f exp
   | PredicateDef(_,prop) -> export_depends_for_pred f prop
 
@@ -389,7 +395,7 @@ let iter_all section f =
 module type Identifiable =
 sig
   type t
-  module H : Hashtbl.S
+  module H : Hashtbl_common_interface.S
   val index : t -> H.key
   val prefix : string
   val basename : t -> string
@@ -549,7 +555,7 @@ module Arrayinfo : Identifiable with type t = arrayinfo =
 struct
   type t = arrayinfo
   let prefix = "A"
-  module H = Hashtbl.Make(AinfoComparable)
+  module H = Hashtbl_common_interface.Make(AinfoComparable)
   let index a = a
   let location _ = None
   let basename a = Ctypes.basename (C_array a)
@@ -614,7 +620,7 @@ struct
   let index t = t
   let basename x = Ctypes.basename x
   let location _ = None
-  module H = Hashtbl.Make(HC_object)
+  module H = Hashtbl_common_interface.Make(HC_object)
   let pp_title fmt x = Format.fprintf fmt "C type '%a'" Ctypes.pp_object x
   let pp_descr fmt _ = Format.fprintf fmt "Declaration"
 end
@@ -635,10 +641,10 @@ struct
     if n > 1 then Printf.sprintf "%s_d%d" (Ctypes.basename te) n
     else Ctypes.basename te
   let location _ = None
-  module H = Hashtbl.Make(HC_ArrayDim)
+  module H = Hashtbl_common_interface.Make(HC_ArrayDim)
   let pp_title fmt (te,n) = 
     Format.fprintf fmt "Array %a" Ctypes.pp_object te ;
-    for i = 1 to n do Format.fprintf fmt "[]" done
+    for _i = 1 to n do Format.fprintf fmt "[]" done
   let pp_descr fmt _ = Format.fprintf fmt "Declaration"
 end
 
@@ -651,7 +657,7 @@ struct
   type t = logic_type_info
   let compare t1 t2 = String.compare t1.lt_name t2.lt_name
   let hash v = Hashtbl.hash v.lt_name
-  let equal t1 t2 = t1.lt_name = t2.lt_name
+  let equal t1 t2 = compare t1 t2 = 0
 end
 
 module LTinfoId : Identifiable with type t = logic_type_info  =
@@ -661,7 +667,7 @@ struct
   let index t = t
   let basename c = c.lt_name
   let location _c = None
-  module H = Hashtbl.Make(LTinfo)
+  module H = Hashtbl_common_interface.Make(LTinfo)
   let pp_title fmt x =
     Format.fprintf fmt "Logic type '%s'" x.lt_name
   let pp_descr fmt _x =
@@ -765,7 +771,19 @@ let p_forall xs p =
     
 let p_exists xs p =
   List.fold_right Fol.p_exists xs p
+
+let rec get_binders xs = function
+  | Fol.Pforall(x,p) -> get_binders (x::xs) p
+  | Fol.Pimplies(h,p) -> 
+      let xs,p = get_binders xs p in
+      xs,p_implies h p
+  | p -> List.rev xs , p
+
+let p_binders p = get_binders [] p
     
+let trigger_of_term t = Formula.TgTerm (Fol_eval.elet_expansion t)
+let trigger_of_pred p = Formula.TgProp (Fol_eval.plet_expansion p)
+
 let p_subst alpha x v p =
   match v with
     | Fol.Tvar y when (Fol.Var.equal x y) -> p (* v is equal to x *)
@@ -803,6 +821,10 @@ let rec e_rename s t =
 	  
 let term_has_var = Fol.e_has_var
 let pred_has_var = Fol.p_has_var
+
+let trigger_has_var xs = function
+  | Formula.TgTerm t -> term_has_var xs t
+  | Formula.TgProp p -> pred_has_var xs p
   
 let term_calls = Fol.term_calls
 let pred_calls = Fol.pred_calls
@@ -892,6 +914,9 @@ let pp_section = Fol_pretty.pp_section
 let pp_term fmt t = pp_term fmt t
 let pp_decl fmt d = Fol_pretty.fpp_decl pp_term pp_pred fmt d
 let pp_goal fmt x g = Fol_pretty.fpp_goal pp_pred fmt x g
+let pp_trigger fmt = function
+  | Formula.TgTerm t -> pp_term fmt t
+  | Formula.TgProp p -> pp_pred fmt p
   
 let pp_var fmt x = pp_term fmt (Fol.e_var x)
   
@@ -959,10 +984,11 @@ let dummy () = incr gdummy; p_app1 "dummy" (e_int !gdummy)
 (* --- Logic Integer Cast                                               --- *)
 (* ------------------------------------------------------------------------ *)
   
-let modulo ti e = e_app1 (mk_imodulo ti) e
-let guard ti e = p_app1 (mk_iguard ti) e
+let i_modulo ti e = e_app1 (mk_imodulo ti) e
+let i_guard ti e = p_app1 (mk_iguard ti) e
+let f_guard tf e = p_app1 (mk_fguard tf) e
 let i_convert tfrom tto e =
-  if Ctypes.sub_c_int tfrom tto then e else modulo tto e
+  if Ctypes.sub_c_int tfrom tto then e else i_modulo tto e
         
 (* ------------------------------------------------------------------------ *)
 (* --- Set Interface                                                    --- *)
@@ -1032,12 +1058,20 @@ module RecName = DRegister
      let pp_title _fmt _x = ()
    end)
 
+let rec define_comp comp = 
+  RecName.define comp ;
+  List.iter
+    (fun f ->
+       match Ctypes.object_of f.ftype with
+	 | C_comp c -> define_comp c
+	 | _ -> ()
+    ) comp.cfields
+
 let acc_field (s:record) (f:Cil_types.fieldinfo) =
-  RecName.define f.Cil_types.fcomp ; e_getfield f s
+  define_comp f.Cil_types.fcomp ; e_getfield f s
     
 let upd_field (s:record) f v : record  =
-  RecName.define f.Cil_types.fcomp ; e_setfield f s v
-    
+  define_comp f.Cil_types.fcomp ; e_setfield f s v
 
 let acc_index = e_access
 let upd_index = e_update

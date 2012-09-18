@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -116,7 +116,7 @@ class virtual do_it_ = object(self)
     let state = self#specialize_state_on_call kf in
     let behaviors = !Value.valid_behaviors kf state in
     let assigns = Ast_info.merge_assigns behaviors in
-    !Value.assigns_to_zone_inputs_state state assigns
+    !Value.assigns_inputs_to_zone state assigns
 
   method clean_kf_result (_ : kernel_function) (r: Locations.Zone.t) = r
 end
@@ -128,7 +128,6 @@ module Analysis = Cumulative_analysis.Make(
 
     type t = Locations.Zone.t
     module T = Locations.Zone
-    let bottom = Locations.Zone.bottom
 
     class virtual do_it = do_it_
 end)
@@ -136,41 +135,24 @@ end)
 let get_internal = Analysis.kernel_function
 
 module Externals =
-  Kf_state.Make
+  Kernel_function.Make_Table(Locations.Zone)
     (struct
        let name = "External inputs"
        let dependencies = [ Analysis.Memo.self ]
-       let kind = `Correctness
+       let size = 17
      end)
 
 let get_external =
   Externals.memo
     (fun kf ->
       Zone.filter_base
-        (Db.accept_base ~with_formals:false ~with_locals:false kf)
+        (Value_aux.accept_base ~with_formals:false ~with_locals:false kf)
         (get_internal kf))
 
-let remove_locals_keep_formals fundec =
-  match fundec with
-  | Definition (fundec,_) ->
-      Zone.filter_base
-         (fun v -> not (Base.is_local v fundec))
-  | Declaration _ -> (fun v -> v)
-
-module With_formals =
-  Kf_state.Make
-    (struct
-       let name = "Inputs with formals"
-       let dependencies = [ Analysis.Memo.self ]
-       let kind = `Correctness
-     end)
-
-let get_with_formals =
-  Externals.memo
-    (fun kf ->
-      Zone.filter_base
-        (fun z -> Db.accept_base ~with_formals:true ~with_locals:false kf z)
-        (get_internal kf))
+let get_with_formals kf =
+  Zone.filter_base
+    (Value_aux.accept_base ~with_formals:true ~with_locals:false kf)
+    (get_internal kf)
 
 let compute_external kf = ignore (get_external kf)
 
@@ -187,7 +169,7 @@ let pretty_with_formals fmt kf =
 let () =
   Db.Inputs.self_internal := Analysis.Memo.self;
   Db.Inputs.self_external := Externals.self;
-  Db.Inputs.self_with_formals := With_formals.self;
+  Db.Inputs.self_with_formals := Analysis.Memo.self;
   Db.Inputs.get_internal := get_internal;
   Db.Inputs.get_external := get_external;
   Db.Inputs.get_with_formals := get_with_formals;

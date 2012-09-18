@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,10 +56,28 @@ val is_non_null_expr: exp -> bool
 (** {2 Logical terms} *)
 (* ************************************************************************** *)
 
+val is_integral_logic_const: logic_constant -> bool
+(** @return [true] if the constant has integral type [(integer, char,
+    enum)]. [false] otherwise.
+    @since Oxygen-20120901 *)
+
+val possible_value_of_integral_logic_const: logic_constant -> My_bigint.t option
+(** @return [Some n] if the constant has integral type [(integer, char,
+    enum)]. [None] otherwise.
+    @since Oxygen-20120901 *)
+
+val value_of_integral_logic_const: logic_constant -> My_bigint.t
+(** @return the value of the constant.
+    Assume the argument is an integral constant.
+    @since Oxygen-20120901 *)
+
 val possible_value_of_integral_term: term -> My_bigint.t option
+(** @return [Some n] if the term has integral type [(integer, char,
+    enum)]. [None] Otherwise.
+    @since Oxygen-20120901 *)
 
 val term_lvals_of_term: term -> term_lval list
-  (** Return the list of all the term lvals of a given term.
+  (** @return the list of all the term lvals of a given term.
       Purely syntactic function. *)
 
 val is_trivial_predicate: predicate -> bool
@@ -67,31 +85,52 @@ val is_trivial_rooted_assertion: rooted_code_annotation -> bool
 val is_trivial_named_predicate: predicate named -> bool
 
 val precondition : funspec -> predicate named
-  (** @since Carbon-20101201
-      Builds the precondition from [b_assumes] and [b_requires] clauses. *)
+  (** Builds the precondition from [b_assumes] and [b_requires] clauses. 
+      @since Carbon-20101201 *)
 
 val behavior_assumes : funbehavior -> predicate named
-  (** @since Nitrogen-20111001
-      Builds the conjonction of the [b_assumes] *)
+  (** Builds the conjonction of the [b_assumes].
+      @since Nitrogen-20111001 *)
                                         
 val behavior_precondition : funbehavior -> predicate named
-  (** @since Carbon-20101201
-      Builds the precondition from [b_assumes] and [b_requires] clauses. *)
+  (** Builds the precondition from [b_assumes] and [b_requires] clauses. 
+      @since Carbon-20101201 *)
 
 val behavior_postcondition : funbehavior -> termination_kind -> predicate named
-  (** @modify Boron-20100401 added termination kind as filtering argument.
-      Builds the postcondition from [b_assumes] and [b_post_cond] clauses. *)
+  (** Builds the postcondition from [b_assumes] and [b_post_cond] clauses. 
+      @modify Boron-20100401 added termination kind as filtering argument. *)
 
 val disjoint_behaviors : funspec -> string list -> predicate named
-  (** @since Nitrogen-20111001
-      Builds the [disjoint_behaviors] property for the behavior names *)
+  (** Builds the [disjoint_behaviors] property for the behavior names.
+      @since Nitrogen-20111001 *)
 
 val complete_behaviors : funspec -> string list -> predicate named
-  (** @since Nitrogen-20111001
-      Builds the [disjoint_behaviors] property for the behavior names *)
+  (** Builds the [disjoint_behaviors] property for the behavior names.
+      @since Nitrogen-20111001 *)
 
-val merge_assigns: funbehavior list -> identified_term assigns
-  (** Returns the assigns of an unguarded behavior. *)
+val merge_assigns_from_complete_bhvs: 
+  ?warn:bool -> ?ungarded:bool -> funbehavior list -> string list list -> identified_term assigns
+  (** @return the assigns of an unguarded behavior (when [ungarded]=true) 
+      or a set of complete behaviors.
+      - the funbehaviors can come from either a statement contract or a function
+      contract. 
+      - the list of sets of behavior names can come from the contract of the
+      related function.
+      Optional [warn] argument can be used to force emmiting or cancelation of 
+      warnings.
+      @since Oxygen-20120901 *)
+
+val merge_assigns_from_spec: ?warn:bool -> funspec -> identified_term assigns
+(** It is a shortcut for [merge_assigns_from_complete_bhvs
+    spec.spec_complete_behaviors spec.spec_behavior].  Optional [warn] argument
+    can be used to force emmiting or cancelation of warnings 
+    @return the assigns of an unguarded behavior or a set of complete behaviors.
+    @since Oxygen-20120901 *) 
+
+val merge_assigns: ?warn:bool -> funbehavior list -> identified_term assigns
+(** Returns the assigns of an unguarded behavior. 
+    @modify Oxygen-20120901 Optional [warn] argument added which can be used to
+    force emmiting or cancelation of warnings. *) 
 
 val variable_term: location -> logic_var -> term
 val constant_term: location -> My_bigint.t -> term
@@ -163,11 +202,8 @@ end
 val can_be_cea_function : string -> bool
 val is_cea_function : string -> bool
 val is_cea_dump_function : string -> bool
-val is_cea_alloc_with_validity : string -> bool
-val is_cea_dump_function : string -> bool
 val is_cea_dump_file_function : string -> bool
 val is_frama_c_builtin : string -> bool
-
 
 (*
 Local Variables:

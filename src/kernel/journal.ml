@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,8 +87,32 @@ module Sentences = struct
     Queue.transfer !journal_copy sentences
 
 end
-let save = Sentences.save
-let restore = Sentences.restore
+
+module Abstract_modules = struct
+  let tbl: (string, string) Hashtbl.t = Hashtbl.create 7
+  let () = Type.add_abstract_types := Hashtbl.replace tbl
+  let write fmt =
+    Hashtbl.iter
+      (fun k v -> 
+	Format.fprintf fmt
+	  "@[<hv 2>let module %s=@;@[<hv 0>Type.Abstract\
+(struct let name = %S end) in@]@]@;"
+	  k v)
+      tbl
+  let tbl_copy = ref (Hashtbl.create 7)
+  let save () = tbl_copy := Hashtbl.copy tbl
+  let restore () =
+    Hashtbl.clear tbl;
+    Hashtbl.iter (fun k v -> Hashtbl.add tbl k v) !tbl_copy
+end
+
+let save () =
+  Sentences.save ();
+  Abstract_modules.save ()
+
+let restore () =
+  Sentences.restore ();
+  Abstract_modules.restore ()
 
 let now () = Unix.localtime (Unix.time ())
 
@@ -146,7 +170,7 @@ let print_trailer fmt =
 let preserved_files = ref []
 let keep_file s = preserved_files := s :: !preserved_files
 
-let rec get_filename =
+let get_filename =
   let cpt = ref 0 in
   let rec get_filename first =
     let name = !filename ^ ".ml" in
@@ -174,6 +198,7 @@ let rec get_filename =
 let write () =
   let write fmt =
     print_header fmt;
+    Abstract_modules.write fmt;
     Sentences.write fmt;
     Format.fprintf fmt "@]@]@;@;";
     print_trailer fmt;
@@ -214,6 +239,7 @@ module Binding: sig
     (** Same as function [add] above but raise the exception [Already_exists]
         if the binding previously exists *)
   val find: 'a Type.t -> 'a -> string
+  val iter: ('a Type.t -> 'a -> string -> unit) -> unit
 end = struct
 
   let bindings : string Type.Obj_tbl.t = Type.Obj_tbl.create ()
@@ -232,13 +258,37 @@ end = struct
       Format.eprintf "[Type] A value of name %s already exists@." s;
       raise (Name_already_exists s)
     in
-    Type.Obj_tbl.iter bindings (fun s' -> if s = s' then error ())
+    Type.Obj_tbl.iter bindings (fun _ _ s' -> if s = s' then error ())
 
   let add_once ty x s =
     check_name s;
     add ty x s
 
   let find ty v = Type.Obj_tbl.find bindings ty v (* eta-expansion required *)
+  let iter f = Type.Obj_tbl.iter bindings f (* eta-expansion required *)
+
+  (* predefined bindings *)
+  let () = 
+    add Datatype.formatter Format.std_formatter "Format.std_formatter";
+    add Datatype.formatter Format.err_formatter "Format.err_formatter"
+
+end
+
+(* JS 2012/02/07: useful only for BM introspection testing ;-) *)
+module Reverse_binding = struct
+  module Tbl = Type.String_tbl(struct type 'a t = 'a end)
+  exception Unbound_value = Tbl.Unbound_value
+  exception Incompatible_type = Tbl.Incompatible_type
+
+  let tbl = Tbl.create 97
+  let fill () = Binding.iter (fun ty v name -> Tbl.add tbl name ty v)
+  let find name ty = Tbl.find tbl name ty
+  let iter f = Tbl.iter f tbl
+
+  let pretty fmt () =
+    iter
+      (fun name ty v -> 
+	Format.fprintf fmt "%s --> %a@." name (Datatype.pretty ty) v)
 
 end
 
@@ -258,20 +308,22 @@ let pp ty fmt (o:Obj.t) =
   let x = Obj.obj o in
   try Format.fprintf fmt "%s" (Binding.find ty x);
   with Not_found ->
-    let pp = Datatype.internal_pretty_code ty in
-    if pp == Datatype.undefined then
-      fatal
-        "no printer registered for value of type %s.@\n\
-Journalisation is not possible. Aborting"
-        (Type.name ty);
-    if pp == Datatype.pp_fail then
-      Format.fprintf
-        fmt
-        "@[<hov 2>failwith @[<hov 2>\"no@ code@ for@ pretty@ printer@ of@ type@ @[%s@]:@ running@ the@ journal@ will@ fail.\"@]@]"
-(*        (Type.pp_ml_name ty Type.NoPar)*)
-        (Type.name ty)
-    else
-      pp Type.Call fmt x
+    let pp_error msg =
+      Format.fprintf fmt "@[<hov 2>(failwith @[<hov 2>\"%s:@ running the journal will fail.\"@])@;@]" msg
+    in
+      let pp = Datatype.internal_pretty_code ty in
+      if pp == Datatype.undefined then
+	pp_error 
+	  (Pretty_utils.sfprintf
+	     "no printer registered for value of type %s"
+             (Type.name ty))
+      else if pp == Datatype.pp_fail then
+	pp_error
+	  (Pretty_utils.sfprintf
+             "no code for pretty printer of type %s"
+             (Type.name ty))
+      else
+	pp Type.Call fmt x
 
 let gen_binding =
   let ids = Hashtbl.create 7 in
@@ -307,7 +359,8 @@ let print_sentence f_acc is_dyn comment ?value ty fmt =
   (* open a new box for the sentence *)
   Format.fprintf fmt "@[<hv 2>";
   (* add a let binding whenever the return type is not unit *)
-  if not (Type.equal ty Datatype.unit) then
+  let is_unit = Type.equal ty Datatype.unit in
+  if not is_unit then
     Format.fprintf fmt "let %t=@;"
       (fun fmt ->
          let binding =
@@ -324,12 +377,12 @@ let print_sentence f_acc is_dyn comment ?value ty fmt =
          in
          Format.fprintf fmt "%s" binding;
          (* add the return type for dynamic application *)
-         if is_dyn then Format.fprintf fmt "@;: %s" (Type.name ty)
+         if is_dyn then Format.fprintf fmt "@;: %s " (Type.name ty)
          else Format.fprintf fmt " ");
   (* pretty print the sentence itself in a box *)
   Format.fprintf fmt "@[<hv 2>%t@]" f_acc;
   (* close the sentence *)
-  if Type.equal ty Datatype.unit then Format.fprintf fmt ";@]@;"
+  if is_unit then Format.fprintf fmt ";@]@;"
   else Format.fprintf fmt "@;<1 -2>in@]@;"
 
 let add_sentence f_acc is_dyn comment ?value ty =

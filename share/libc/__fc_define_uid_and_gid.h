@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,12 +20,9 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef __FRAMA_C_DEFINE_UID_AND_GID
-#define __FRAMA_C_DEFINE_UID_AND_GID
-
-
+#ifndef __FC_DEFINE_UID_AND_GID
+#define __FC_DEFINE_UID_AND_GID
 typedef unsigned int gid_t;
 typedef unsigned int uid_t;
-
 #endif
 

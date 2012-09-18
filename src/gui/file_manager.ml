@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,15 +38,14 @@ let filename: string option ref = ref None
      [Some f] for saving in file [f] *)
 
 let reparse (host_window: Design.main_window_extension_points) =
-  ignore (host_window#full_protect ~cancelable:true
-            (fun () ->
-              let files = Kernel.Files.get () in
-              Kernel.Files.set [];
-              Kernel.Files.set files;
-              Ast.compute ();
-              !Db.Main.play ();
-              Source_manager.clear host_window#original_source_viewer;
-            ));
+  host_window#protect ~cancelable:true
+    (fun () ->
+      let files = Kernel.Files.get () in
+      Kernel.Files.set [];
+      Kernel.Files.set files;
+      Ast.compute ();
+      !Db.Main.play ();
+      Source_manager.clear host_window#original_source_viewer);
   host_window#reset ()
 
 let save_in (host_window: Design.main_window_extension_points) parent name =
@@ -147,6 +146,6 @@ let () = Design.register_extension insert
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

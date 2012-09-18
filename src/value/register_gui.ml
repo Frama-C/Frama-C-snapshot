@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,62 +22,77 @@
 
 open Cil_types
 open Cil
-open CilE
-open Format
 open Db
 open Pretty_source
 open Gtk_helper
 
 
-let select_kf tree_view kf =
-  let vi = Kernel_function.get_vi kf in
-  tree_view#select_global vi
-
-
-type lval_or_absolute = LVal of lval | AbsoluteMem
+type lval_or_absolute = TLVal of term | LVal of lval | AbsoluteMem
 
 let pretty_lval_or_absolute fmt = function
+  | TLVal tlv -> !Ast_printer.d_term fmt tlv
   | LVal lv -> !Ast_printer.d_lval fmt lv
   | AbsoluteMem -> Format.pp_print_string fmt "[MEMORY]"
 
-let pretty_offsetmap lva fmt offsetmap =
+let pretty_offsetmap lv fmt offsetmap =
   begin match offsetmap with
   | None ->  Format.fprintf fmt "<BOTTOM>"
   | Some off ->
-      let typ = match lva with
+      let typ = match lv with
         | LVal lv -> Some (typeOfLval lv)
+        | TLVal tlv -> Some (Logic_utils.logicCType tlv.term_type)
         | AbsoluteMem -> None
       in
       Format.fprintf fmt "%a%a"
-        pretty_lval_or_absolute lva
+        pretty_lval_or_absolute lv
         (Cvalue.V_Offsetmap.pretty_typ typ) off
   end
 
-let lval_or_absolute_to_offsetmap state lva =
-  match lva with
-    | LVal lv -> !Db.Value.lval_to_offsetmap_state state lv
+(* special [with_alarms] value that log important alarms, but allow execution
+   to continue *)
+let log_alarms () =
+  let ok = ref true in
+  let not_ok () = ok := false in
+  let with_alarms = {
+    CilE.others = CilE.Acall not_ok;
+    unspecified = CilE.Acall not_ok;
+    defined_logic =       CilE.Aignore;
+    imprecision_tracing = CilE.Aignore;
+  } in
+  with_alarms, ok
+
+let pp_eval_ok fmt ok =
+  if not ok then
+    Format.fprintf fmt " (evaluation may have failed in some cases) "
+
+
+let lval_or_absolute_to_offsetmap state lv =
+  let with_alarms, ok = log_alarms () in
+  let r = match lv with
+    | LVal lv ->
+        let loc = Eval_exprs.lval_to_loc ~with_alarms state lv in
+        Cvalue.Model.copy_offsetmap ~with_alarms loc state
+    | TLVal tlv ->
+        let env = Eval_terms.env_annot ~pre:Cvalue.Model.top ~here:state in
+        let loc = Eval_terms.eval_tlval_as_location env ~with_alarms None tlv in
+        Cvalue.Model.copy_offsetmap ~with_alarms loc state
     | AbsoluteMem ->
         try Some (Cvalue.Model.find_base Base.null state)
         with Not_found -> None
+  in
+  r, !ok
 
-let pretty_lval_or_absolute (annot : GText.buffer) ki lva =
+
+let pretty_lval_or_absolute (main_ui: Design.main_window_extension_points) ki lva =
+  (match ki with
+    | Kstmt stmt -> Cil.CurrentLoc.set (Cil_datatype.Stmt.loc stmt)
+    | Kglobal -> ());
+  let pp fmt = main_ui#pretty_information fmt in
   begin (* State before ki *)
-    annot#insert "Before statement:\n";
     let state = Value.get_state ki in
-    try
-      let offsetmap = lval_or_absolute_to_offsetmap state lva in
-      annot#insert (Pretty_utils.sfprintf "%a@\n"
-                      (pretty_offsetmap lva) offsetmap);
-    with Lmap.Cannot_copy ->
-      match lva with
-        | LVal lv ->
-            let value = !Db.Value.access ki lv in
-            let inset_utf8 = Unicode.inset_string () in
-            annot#insert (Pretty_utils.sfprintf "%a %s %a@\n"
-                            !Ast_printer.d_lval lv
-                            inset_utf8
-                            Db.Value.pretty value)
-        | AbsoluteMem -> annot#insert "<>"
+    let offsetmap, ok = lval_or_absolute_to_offsetmap state lva in
+    pp "Before statement%a:@." pp_eval_ok ok;
+    pp "%a@." (pretty_offsetmap lva) offsetmap;
   end;
   begin (* State after ki *)
     if Value_parameters.ResultsAfter.get () then
@@ -87,24 +102,22 @@ let pretty_lval_or_absolute (annot : GText.buffer) ki lva =
             try Value.AfterTable.find stmt
             with Not_found -> Cvalue.Model.bottom
           in
-          let offsetmap_after = lval_or_absolute_to_offsetmap state lva in
-          annot#insert (Pretty_utils.sfprintf "After statement:\n%a\n"
-                          (pretty_offsetmap lva) offsetmap_after);
+          let offsetmap_after, ok = lval_or_absolute_to_offsetmap state lva in
+          pp "After statement%a:@." pp_eval_ok ok;
+          pp "%a@." (pretty_offsetmap lva) offsetmap_after;
         | Kglobal | Kstmt _ -> ()
     else
       try
         (match lva with
           | LVal lv ->
               let offsetmap_after = !Db.Value.lval_to_offsetmap_after ki lv in
-              annot#insert (Pretty_utils.sfprintf "At next statement:@\n%a@\n"
-                              (pretty_offsetmap lva) offsetmap_after)
-          | AbsoluteMem -> ())
+              pp "At next statement:@.";
+              pp "%a@." (pretty_offsetmap lva) offsetmap_after;
+          | TLVal _ | AbsoluteMem ->
+  	      () (*TODO, but this needs an equivalent to l_val_to_offsetmap
+                   for the NULL base and for terms. *))
       with Not_found -> ()
   end
-
-let gui_annot_action (main_ui:Design.main_window_extension_points) txt =
-  let tag_style_italic = Gtk_helper.make_tag main_ui#annot_window#buffer ~name:"slicing:style italic" [`STYLE `ITALIC] in
-  main_ui#annot_window#buffer#insert ~tags:[tag_style_italic] ((txt ()) ^ "\n")
 
 
 let gui_compute_values  (main_ui:Design.main_window_extension_points) =
@@ -114,14 +127,53 @@ let gui_compute_values  (main_ui:Design.main_window_extension_points) =
 let cleant_outputs kf s =
   let outs = Db.Outputs.kinstr (Kstmt s) in
   let filter = Locations.Zone.filter_base
-    (Db.accept_base ~with_formals:true ~with_locals:true kf) in
+    (Value_aux.accept_base ~with_formals:true ~with_locals:true kf) in
   Extlib.opt_map filter outs
 
-let rec to_do_on_select
+(* Evaluate the user-supplied term contained in the string [txt] *)
+let eval_user_term main_ui kf stmt txt =
+  Cil.CurrentLoc.set (Cil_datatype.Stmt.loc stmt);
+  let ki = Kstmt stmt in
+  try
+    if txt = "[MEM]" then
+      pretty_lval_or_absolute main_ui (Kstmt stmt) AbsoluteMem
+    else
+      let term = !Db.Properties.Interp.expr kf stmt txt in
+      let env = Eval_terms.env_annot ~pre:(Db.Value.get_initial_state kf)
+	~here:(Db.Value.get_stmt_state stmt)
+      in
+      begin match term.term_node with
+        | TLval _ | TStartOf _ ->
+            pretty_lval_or_absolute main_ui ki (TLVal term)
+        | _ ->
+            let with_alarms, ok = log_alarms () in
+            let evaled =
+              Eval_terms.eval_term ~with_alarms env None term in
+	    let v = List.fold_left
+	      (fun acc (_,v) -> Cvalue.V.join acc v)
+	      Cvalue.V.bottom evaled
+	    in
+            main_ui#pretty_information
+              "Before the selected statement, all the values \
+              taken by the term %a are contained in %a%a@."
+              !Ast_printer.d_term term Cvalue.V.pretty v pp_eval_ok (!ok)
+      end
+  with
+    | Logic_interp.Error (_, mess) ->
+        main_ui#error "Invalid expression: %s" mess
+    | Parsing.Parse_error ->
+        main_ui#error "Invalid term: Parse error"
+    | Eval_terms.LogicEvalError ee ->
+        main_ui#error "Cannot evaluate term (%a)"
+          Eval_terms.pretty_logic_evaluation_error ee
+    | e ->
+        main_ui#error "Invalid expression: %s" (Cmdline.protect e)
+
+
+let to_do_on_select
     (popup_factory:GMenu.menu GMenu.factory)
     (main_ui:Design.main_window_extension_points) button_nb selected
     =
-  let annot = main_ui#annot_window#buffer in
   if button_nb = 1 then
     begin
       if Db.Value.is_computed ()
@@ -132,18 +184,20 @@ let rec to_do_on_select
             if Db.Value.is_reachable_stmt stmt then
               (* Out for this statement *)
               let outs = cleant_outputs kf stmt in
-              let n = ( match outs with
+              match outs with
                 | Some outs ->
-                  Pretty_utils.sfprintf
-                    "Modifies @[<hov>%a@]@\n" Db.Outputs.pretty outs
-                | _ -> "\n");
-              in annot#insert n
-            else annot#insert "This code is dead\n";
+                  main_ui#pretty_information
+                    "Modifies @[<hov>%a@]@." Db.Outputs.pretty outs
+                | _ -> ()
+            else main_ui#pretty_information "This code is dead@.";
           end
           | PLval (_kf, ki,lv) ->
               if not (isFunctionType (typeOfLval lv)) then
-                pretty_lval_or_absolute annot ki (LVal lv)
-          | PTermLval _ -> () (* JS: TODO (?) *)
+                pretty_lval_or_absolute main_ui ki (LVal lv)
+          | PTermLval (_kf, ki, tlv) ->
+              let ltyp = Cil.typeOfTermLval tlv in
+              let term = Logic_const.term (TLval tlv) ltyp in
+              pretty_lval_or_absolute main_ui ki (TLVal term)
           | PVDecl (_kf,_vi) -> ()
           | PGlobal _  | PIP _ -> ()
         end
@@ -198,59 +252,29 @@ let rec to_do_on_select
 
       | PStmt (kf,stmt) ->
           if Db.Value.is_computed ()
-          then begin
-              let eval_expr () =
-                let txt =
-                  GToolbox.input_string
-                    ~title:"Evaluate"
-                    "  Enter an ACSL expression to evaluate  "
-                    (* the spaces at beginning and end should not be necessary
-                       but are the quickest fix for an aesthetic GTK problem *)
-                in
-                match txt with
-                | None -> ()
-                | Some txt ->
-                  try
-                    if txt = "[MEM]" then
-                      pretty_lval_or_absolute annot (Kstmt stmt) AbsoluteMem
-                    else
-                      let exp =
-                        !Db.Properties.Interp.term_to_exp ~result:None
-                          (!Db.Properties.Interp.expr kf stmt txt)
-                      in
-                      begin match exp.enode with
-                      | Lval lv | StartOf lv ->
-                          pretty_lval_or_absolute annot (Kstmt stmt) (LVal lv)
-                      | _ ->
-                          let loc = !Db.Value.access_expr (Kstmt stmt) exp in
-                          let txt =
-                            Format.sprintf
-                              "Before the selected statement, all the values taken by the expression %s are contained in %s@\n"
-                              (Pretty_utils.sfprintf "%a" !Ast_printer.d_exp exp)
-                              (Pretty_utils.sfprintf "%a" Cvalue.V.pretty loc)
-                          in
-                          annot#insert txt
-                      end
-                  with
-                    | Logic_interp.Error (_, mess) ->
-                      main_ui#error "Invalid expression: %s" mess
-                    | Parsing.Parse_error ->
-                      main_ui#error "Invalid expression: %s" "Parse error"
-                    | e ->
-                      main_ui#error "Invalid expression: %s" (Cmdline.protect e)
+          then
+            let eval_expr () =
+              let txt =
+                GToolbox.input_string ~title:"Evaluate"
+                  "  Enter an ACSL expression to evaluate  "
+                  (* the spaces at beginning and end should not be necessary
+                     but are the quickest fix for an aesthetic GTK problem *)
               in
-              begin
-                try
-                  ignore
-                    (popup_factory#add_item "_Evaluate expression"
-                        ~callback:eval_expr)
-                with Not_found -> ()
-              end
+              match txt with
+                | None -> ()
+                | Some txt -> eval_user_term main_ui kf stmt txt
+            in
+            begin
+              try
+                ignore
+                  (popup_factory#add_item "_Evaluate ACSL term"
+                     ~callback:eval_expr)
+              with Not_found -> ()
             end
           else
             ignore
               (popup_factory#add_item
-                  "_Evaluate expression ..."
+                  "_Evaluate ACSL term ..."
                   ~callback:
                   (fun () -> (gui_compute_values main_ui)))
       | PLval (_kf, ki, lv) ->
@@ -323,7 +347,6 @@ module UsedVarState =
        let name = "Value.Gui.UsedVarState"
        let dependencies = [ !Db.Inputs.self_external;
                             !Db.Outputs.self_external; ]
-       let kind = `Internal
      end)
 
 let no_memoization_enabled () =
@@ -390,13 +413,17 @@ let sync_filetree (filetree:Filetree.t) =
     ()
 
 
-let hide_unused_function_or_var vi =
+let hide_unused_function_or_var g =
   !hide_unused () && Value.is_computed () &&
-  (try
-     let kf = Globals.Functions.get vi in
-     not (!Value.is_called kf)
-   with Not_found ->
-     not (used_var vi)
+  (match g with
+    | GFun ({svar = vi}, _)
+    | GVarDecl (_, vi, _) ->
+      (try
+         let kf = Globals.Functions.get vi in
+         not (!Value.is_called kf)
+       with Not_found ->
+         not (used_var vi))
+    | _ -> false
   )
 
 module DegeneratedHighlighted =
@@ -405,15 +432,55 @@ module DegeneratedHighlighted =
     (struct
        let name = "Value_gui.DegeneratedHighlightedState"
        let dependencies = [ Ast.self ]
-       let kind = `Internal
      end)
+
+let value_panel (main_ui:Design.main_window_extension_points) =
+  let box = GPack.vbox () in
+
+  let run_button =
+    GButton.button ~label:"Run" ~packing:(box#pack) ()
+  in
+  let w =
+    GPack.table ~packing:(box#pack  ~expand:true ~fill:true) ~columns:2 () 
+  in
+  let box_1_1 = GPack.hbox ~packing:(w#attach ~left:1 ~top:1) () in
+  let slevel_refresh = Gtk_helper.on_int ~lower:0 ~upper:1000000
+    ~tooltip:(Pretty_utils.sfprintf "%s"
+               Value_parameters.SemanticUnrollingLevel.parameter.Parameter.help)
+    box_1_1
+    "slevel"
+     Value_parameters.SemanticUnrollingLevel.get
+     Value_parameters.SemanticUnrollingLevel.set
+  in
+  let box_1_2 = GPack.hbox ~packing:(w#attach ~left:1 ~top:2) () in
+  let main_refresh = Gtk_helper.on_string
+    ~tooltip:(Pretty_utils.sfprintf "%s"
+                Kernel.MainFunction.parameter.Parameter.help) 
+    ~validator:(fun s->List.mem s (Kernel.MainFunction.get_possible_values ()))
+    box_1_2
+    "main"
+    Kernel.MainFunction.get
+    Kernel.MainFunction.set
+  in
+
+  let refresh () = slevel_refresh (); main_refresh()
+  in
+  ignore (run_button#connect#pressed 
+	    (fun () ->
+              main_ui#protect ~cancelable:true
+                (fun () -> refresh (); !Db.Value.compute (); main_ui#reset ());
+              ));
+  "Value", box#coerce, Some refresh
+
 
 let main (main_ui:Design.main_window_extension_points) =
   (* Hide unused functions and variables. Must be registered only once *)
-  hide_unused :=
+  let hide, _filter_menu =
     main_ui#file_tree#add_global_filter
-      ~text:"Hide unused according to\nvalue analysis"
-      ~key:"value_hide_unused" hide_unused_function_or_var;
+      ~text:"Analyzed by Value only"
+      ~key:"value_hide_unused" hide_unused_function_or_var
+  in
+  hide_unused := hide;
 
   main_ui#file_tree#register_reset_extension sync_filetree;
 
@@ -437,7 +504,7 @@ let main (main_ui:Design.main_window_extension_points) =
     (* highlight the degeneration point *)
     Extlib.may
       (fun loc ->
-         if Cilutil.equals localizable loc then
+         if Pretty_source.Localizable.equal localizable loc then
            let orange_area = make_tag
              buffer
              ~name:"degeneration"
@@ -460,7 +527,9 @@ let main (main_ui:Design.main_window_extension_points) =
         in
         apply_tag buffer dead_code_area start stop
   in
-  main_ui#register_source_highlighter highlighter
+  main_ui#register_source_highlighter highlighter;
+  main_ui#register_panel value_panel
+  
 
 let degeneration_occurred _ki _lv =
 (*

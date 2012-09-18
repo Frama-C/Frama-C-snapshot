@@ -1,8 +1,8 @@
 /* run.config
-   EXECNOW: make -s tests/pdg/sets.opt
-   CMD: tests/pdg/sets.opt
-   OPT: -lib-entry -main f -pdg -inout -journal-disable  -pdg-print -pdg-verbose 2
+   OPT: -load-script tests/pdg/sets.ml -lib-entry -main f -pdg -inout -journal-disable  -pdg-print -pdg-verbose 2
 */
+
+
 
 int b, c, x, y, z, t;
 void f(int a) {

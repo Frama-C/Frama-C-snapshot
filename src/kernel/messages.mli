@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,12 @@ val dump_messages: unit -> unit
 
 val self: State.t
   (** Internal state of stored messages *)
+
+val reset_once_flag : unit -> unit
+  (** Reset the [once] flag of pretty-printers. Messages already printed
+      will be printed again.
+      @since Boron-20100401 *)
+
 
 (*
 Local Variables:

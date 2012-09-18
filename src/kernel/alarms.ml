@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
 
 let pretty fmt al =
   Format.fprintf fmt "alarm caused by %s"
@@ -33,8 +32,9 @@ let pretty fmt al =
   | Shift_alarm -> "a shift"
   | Signed_overflow_alarm -> "an overflow in signed integer arithmetic"
   | Pointer_compare_alarm -> "a pointer comparison"
+  | Float_overflow_alarm -> "an overflow in float computation"
   | Using_nan_or_infinite_alarm -> "an unknown float value"
-  | Result_is_nan_or_infinite_alarm -> "an overflow or nan float computation"
+  | Result_is_nan_or_infinite_alarm -> "an infinite or nan float computation"
   | Separation_alarm ->
       "incompatible accesses to the same zone in unspecified order"
   | Other_alarm -> "a safety concern")
@@ -79,12 +79,13 @@ module Alarms =
       let name = "alarms"
       let dependencies = [ Ast.self ]
       let size = 7
-      let kind = `Internal
      end)
+let () = Ast.add_monotonic_state Alarms.self
 
 let self = Alarms.self
 
-let register ~deps ki (atyp, annot as to_add) ?(status=Property_status.Dont_know) emitter =
+let register 
+    ki (atyp, annot as to_add) ?(status=Property_status.Dont_know) emitter =
   let add old = 
     Alarms.replace ki (Alarm_set.add to_add old);
     match ki with
@@ -93,8 +94,8 @@ let register ~deps ki (atyp, annot as to_add) ?(status=Property_status.Dont_know
       Kernel.warning ~once:true ~current:true
 	"global alarm occured. Check the log below."
     | Kstmt s -> 
+      Annotations.add_code_annot emitter s (AI (atyp, annot));
       let kf = Kernel_function.find_englobing_kf s in
-      Annotations.add kf s deps (AI (atyp, annot));
       let p = Property.ip_of_code_annot kf s annot in
       List.iter
         (fun p -> Property_status.emit emitter ~hyps:[] p ~distinct:true status)

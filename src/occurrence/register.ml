@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,21 +26,26 @@ open Cil
 open Visitor
 open Options
 
+module Occurrence_datatype =
+  Datatype.Triple(Datatype.Option(Kernel_function))(Kinstr)(Lval)
+
 module Occurrences: sig
-  val add: varinfo -> kinstr -> lval -> unit
-  val get: varinfo -> (kinstr * lval) list
+  val add: varinfo -> kernel_function option -> kinstr -> lval -> unit
+  val get: varinfo -> (kernel_function option * kinstr * lval) list
   val self: State.t
-  val iter: (varinfo -> (kinstr * lval) list -> unit) -> unit
+  val iter: (varinfo ->
+             (kernel_function option * kinstr * lval) list -> unit) -> unit
+  val iter_sorted: (varinfo ->
+             (kernel_function option * kinstr * lval) list -> unit) -> unit
 end = struct
 
   module IState =
     Cil_state_builder.Varinfo_hashtbl
-      (Datatype.Pair(Kinstr)(Lval))
+      (Occurrence_datatype)
       (struct
          let size = 17
          let name = "Occurrences.State"
          let dependencies = [ Db.Value.self ]
-         let kind = `Internal
        end)
 
   module LastResult =
@@ -49,10 +54,9 @@ end = struct
       (struct
          let name = "Occurrences.LastResult"
          let dependencies = [ Ast.self; IState.self ]
-         let kind = `Internal
        end)
 
-  let add vi ki lv = IState.add vi (ki, lv)
+  let add vi kf ki lv = IState.add vi (kf, ki, lv)
 
   let unsafe_get vi = try IState.find_all vi with Not_found -> []
 
@@ -71,9 +75,9 @@ end = struct
     Db.register Db.Journalization_not_required
       Db.Occurrence.get_last_result get_last_result
 
-  let iter f =
+  let iter_aux fold f =
     let old, l =
-      IState.fold
+      fold
         (fun v elt (old, l) -> match v, old with
         | v, None ->
           assert (l = []);
@@ -87,6 +91,13 @@ end = struct
     in
     Extlib.may (fun v -> f v l) old
 
+  let fold_sorted f init =
+    let map = IState.fold Varinfo.Map.add Varinfo.Map.empty in
+    Varinfo.Map.fold f map init       
+
+  let iter = iter_aux IState.fold
+  let iter_sorted = iter_aux fold_sorted
+
   let self = IState.self
 
 end
@@ -96,31 +107,24 @@ class occurrence = object (self)
   inherit Visitor.generic_frama_c_visitor
     (Project.current ()) (inplace_visit ()) as super
 
-  val mutable decls = []
-
   method private current_ki =
     match self#current_stmt with None -> Kglobal | Some s -> Kstmt s
-
-  method vvdec vi =
-    let ki = self#current_ki in
-    if Db.Value.is_accessible ki then begin
-      let z =
-        !Db.Value.lval_to_zone
-          ki ~with_alarms:CilE.warn_none_mode (Var vi, NoOffset)
-      in
-      decls <-  (vi, z) :: decls
-    end;
-    DoChildren
 
   method vlval lv =
     let ki = self#current_ki in
     if Db.Value.is_accessible ki then begin
       let z = !Db.Value.lval_to_zone ki ~with_alarms:CilE.warn_none_mode lv in
-      if not (Locations.Zone.equal Locations.Zone.bottom z) then
-        List.iter
-          (fun (vi, zvi) ->
-             if Locations.Zone.intersects z zvi then Occurrences.add vi ki lv)
-          decls
+      try
+        Locations.Zone.fold_topset_ok
+          (fun b _ () ->
+            match b with
+              | Base.Var (vi, _) | Base.Initialized_Var (vi, _) ->
+                  Occurrences.add vi self#current_kf ki lv
+              | _ -> ()
+          ) z ()
+      with Locations.Zone.Error_Top ->
+        error ~current:true "Found completely imprecise value (%a). Ignoring@."
+          d_lval lv
     end;
     DoChildren
 
@@ -128,8 +132,9 @@ class occurrence = object (self)
     (try
        let lv = !Db.Properties.Interp.term_lval_to_lval ~result:None tlv in
        ignore (self#vlval lv)
-     with Invalid_argument msg ->
-       error ~current:true "%s@." msg);
+     with
+       | Invalid_argument "not an lvalue" -> () (* Translation to lval failed.*)
+       | Invalid_argument msg -> error ~current:true "%s@." msg);
     DoChildren
 
   method vstmt_aux s =
@@ -139,6 +144,53 @@ class occurrence = object (self)
   initializer !Db.Value.compute ()
 
 end
+
+type access_type = Read | Write | Both
+
+(** Try to find [lv] somewhere within a Cil value *)
+class is_sub_lval lv = object
+  inherit Cil.nopCilVisitor
+
+  method vlval lv' =
+    if Cil_datatype.Lval.equal lv lv' then raise Exit;
+    DoChildren
+end
+
+(** Occurrence has found the given [lv] somewhere inside [ki]. We try to find
+    whether this was inside a read or a write operation. This is difficult to
+    do directly inside the {!occurrence} class, as the [vlval] method cannot
+    has no information about the origin of the lval it was called on *)
+let classify_accesses (_kf, ki, lv) =
+  let vis = new is_sub_lval lv in
+  let aux f v = try ignore (f vis v); false with Exit -> true in
+  let is_lv = Cil_datatype.Lval.equal lv in
+  let contained_exp = aux Cil.visitCilExpr in
+  match ki with
+    | Kglobal -> (* Probably initializers *) Read
+
+    | Kstmt { skind = Instr i } ->
+      (match i with
+        | Set (lv', e, _) ->
+            if is_lv lv' then
+              if contained_exp e then Both
+              else Write
+            else Read
+
+        | Call (Some lv', f, args, _) ->
+            if is_lv lv' then
+              if contained_exp f || List.exists contained_exp args then Both
+              else Write
+            else Read
+
+        | Asm (_, _, out, inp, _, _) ->
+            if List.exists (fun (_, _, out) -> is_lv out) out then
+              if List.exists (fun (_, _, inp) -> contained_exp inp) inp
+              then Both
+              else Write
+            else Read
+
+        | _ -> Read)
+    | _ -> Read
 
 let compute, _self =
   let run () =
@@ -153,8 +205,10 @@ let get vi =
   try Occurrences.get vi with Not_found -> assert false
 
 let d_ki fmt = function
-  | Kglobal -> Format.fprintf fmt "Global"
-  | Kstmt s -> Format.fprintf fmt "%d" s.sid
+  | None, Kglobal -> Format.fprintf fmt "global"
+  | Some kf, Kglobal ->
+      Format.fprintf fmt "specification of %a" Kernel_function.pretty kf
+  | _, Kstmt s -> Format.fprintf fmt "sid %d" s.sid
 
 let print_one fmt v l =
   Format.fprintf fmt "variable %s (%s):@\n" 
@@ -162,19 +216,21 @@ let print_one fmt v l =
     (if v.vglob then "global"
      else 
 	let kf_name = match l with
-	  | [] | (Kglobal, _) :: _ -> assert false
-	  | (Kstmt s, _) :: _ ->
-	    Kernel_function.get_name (Kernel_function.find_englobing_kf s)
+	  | [] -> assert false
+          | (Some kf, _, _) :: _ -> Kernel_function.get_name kf
+          | (None,Kstmt _,_)::_ -> assert false
+          | (None,Kglobal,_)::_ ->
+              fatal "inconsistent context for occurence of variable %s" v.vname
 	in
 	if v.vformal then "parameter of " ^ kf_name
 	else "local of " ^ kf_name);
   List.iter
-    (fun (ki, lv) ->
-       Format.fprintf fmt "  sid %a: %a@\n" d_ki ki d_lval lv) l
+    (fun (kf, ki, lv) ->
+       Format.fprintf fmt "  %a: %a@\n" d_ki (kf,ki) d_lval lv) l
 
 let print_all () =
   compute ();
-  result "%t" (fun fmt -> Occurrences.iter (print_one fmt))
+  result "%t" (fun fmt -> Occurrences.iter_sorted (print_one fmt))
 
 let main _fmt = if Print.get () then !Db.Occurrence.print_all ()
 let () = Db.Main.extend main
@@ -188,8 +244,7 @@ let () =
         (* [JS 2011/04/01] Datatype.list buggy in presence of journalisation.
            See comment in datatype.ml *)
         (*(Datatype.list (Datatype.pair Kinstr.ty Lval.ty))*)
-          (let module L = Datatype.List(Datatype.Pair(Kinstr)(Lval)) in
-           L.ty)))
+          (let module L = Datatype.List(Occurrence_datatype) in L.ty)))
     Db.Occurrence.get
     get;
   Db.register

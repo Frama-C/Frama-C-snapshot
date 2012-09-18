@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -31,10 +31,12 @@
 #define WNOWAIT 5
 
 #include "../__fc_define_pid_t.h"
+
 enum idtype_t { P_ALL, P_PID, P_PGID };
+
 pid_t  wait(int *);
 
-#if 0
+#if 0 //TODO
 pid_t  wait3(int *, int, struct rusage *);
 int    waitid(idtype_t, id_t, siginfo_t *, int);
 pid_t  waitpid(pid_t, int *, int);

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -31,16 +31,18 @@ void* memcpy(void* region1, const void* region2, size_t n)
   return region1;
 }
 #else
-static int cpt = 0;
 void* memcpy(void* region1, const void* region2, size_t n)
 {
   const char* first = (const char*)region2;
   const char* last = ((const char*)region2) + n;
-  char* result = (char*)region1;
+  char* dest = (char*)region1;
   while (first != last)
-    *region1++ = *first++;
-  if (cpt++ % 100) Frama_C_dump_each();
-  return result;
+    {
+      *dest = *first;
+      dest++;
+      first++;
+    }
+  return region1;
 }
 #endif
 
@@ -303,10 +305,12 @@ int *_errno()
   return &my_errno;
 }
 
+#if 0
 int fprintf(FILE *restrict stream, const char *restrict format, ...)
 {
   return any;
 }
+#endif
 
 int printf(const char *restrict format, ...)
 {
@@ -350,10 +354,12 @@ int abs (int i)
   return i;
 }
 
+#if 0
 int vsprintf(char *restrict s, const char *restrict format, .../*va_list va_arg*/)
 {
   return sprintf(s,format/*,va_arg*/);
 }
+#endif
 
 ssize_t read(int fd, void *buf, size_t count)
 {

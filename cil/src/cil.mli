@@ -47,8 +47,23 @@
     @plugin development guide *)
 
 (* ************************************************************************* *)
-(** {2 Localized logging functions} *)
+(** {2 Builtins management} *)
 (* ************************************************************************* *)
+
+(** This module associates the name of a built-in function that
+    might be used during elaboration with the corresponding varinfo.
+    This is done when parsing ${FRAMAC_SHARE}/libc/__fc_builtins.h, which is always
+    performed before processing the actual list of files provided on the command
+    line (see {!File.init_from_c_files}).
+    Actual list of such built-ins is managed in {!Cabs2cil}
+*)
+module Frama_c_builtins: 
+  State_builder.Hashtbl with type key = string and type data = Cil_types.varinfo
+
+(** returns [true] if the given variable refers to a Frama-C builtin that
+    is not used in the current program. Plugins may (and in fact should)
+    hide this builtin from their outputs *)
+val is_unused_builtin: Cil_types.varinfo -> bool
 
 (** returns [true] if the given name refers to a special built-in function.
     A special built-in function can have any number of arguments. It is up to
@@ -253,10 +268,19 @@ val makeFormalsVarDecl: (string * typ * attributes) -> varinfo
  *)
 val setFormalsDecl: varinfo -> typ -> unit
 
+(** remove a binding from the table.
+    @since Oxygen-20120901 *)
+val removeFormalsDecl: varinfo -> unit
+
 (** replace to formals of a function declaration with the given
     list of varinfo.
 *)
 val unsafeSetFormalsDecl: varinfo -> varinfo list -> unit
+
+(** iters the given function on declared prototypes.
+    @since Oxygen-20120901 
+*)
+val iterFormalsDecl: (varinfo -> varinfo list -> unit) -> unit
 
 (** Get the formals of a function declaration registered with
     {!Cil.setFormalsDecl}.
@@ -318,10 +342,6 @@ val dummy_exp: exp_node -> exp
 
 (** Return [true] on case and default labels, [false] otherwise. *)
 val is_case_label: label -> bool
-
-(** Create a deep copy of a function. There should be no sharing between the
- * copy and the original function *)
-val copyFunction: fundec -> string -> fundec
 
 
 (** CIL keeps the types at the beginning of the file and the variables at the
@@ -433,7 +453,7 @@ val uint32_t: unit -> typ
 (** Any unsigned integer type of size 64 bits.
     It is equivalent to the ISO C uint64_t type but without using the 
     corresponding header. 
-    Shall not be called if not such type exists in the current architecture.
+    Shall not be called if no such type exists in the current architecture.
     @since Nitrogen-20111001
 *)
 val uint64_t: unit -> typ
@@ -468,11 +488,15 @@ val doubleType: typ
 (** long double *)
 val longDoubleType: typ
 
-(** Returns true if and only if the given integer type is signed. *)
-val isSigned: ikind -> bool
-
 (** Returns true if and only if the given type is a signed integer type. *)
 val isSignedInteger: typ -> bool
+(** Returns true if and only if the given type is an unsigned integer type.
+    @since Oxygen-20120901 *)
+val isUnsignedInteger: typ -> bool
+
+(** Returns true if and only if the given type is a pointer to another type
+    @since Oxygen-20120901 *)
+val isPtrType: typ -> bool
 
 
 (** Creates a a (potentially recursive) composite type. The arguments are:
@@ -484,7 +508,8 @@ val isSignedInteger: typ -> bool
  * composite type. The resulting compinfo has the field "cdefined" only if
  * the list of fields is non-empty. *)
 val mkCompInfo: bool ->      (* whether it is a struct or a union *)
-               string ->     (* name of the composite type; cannot be empty *)
+               string -> (* name of the composite type; cannot be empty *)
+               ?norig:string -> (* original name of the composite type, empty when anonymous *)
                (compinfo ->
                   (string * typ * int option * attributes * location) list) ->
                (* a function that when given a forward
@@ -579,13 +604,11 @@ val isPointerType: typ -> bool
 (** True if the argument is the type for reified C types *)
 val isTypeTagType: logic_type -> bool
 
-(** True if the argument is a function type.
-    @plugin development guide *)
+(** True if the argument is a function type. *)
 val isFunctionType: typ -> bool
 
 (** True if the argument denotes the type of ... in a variadic function.
-    @since Nitrogen-20111001 moved from cabs2cil
-*)
+    @since Nitrogen-20111001 moved from cabs2cil *)
 val isVariadicListType: typ -> bool
 
 (** Obtain the argument list ([] if None) *)
@@ -594,11 +617,6 @@ val argsToList:
 
 (** True if the argument is an array type *)
 val isArrayType: typ -> bool
-
-(** True if the argument is a variadic list.
-    @since Nitrogen-20111001
-*)
-val isVariadicListType: typ -> bool
 
 (** True if the argument is a struct of union type *)
 val isStructOrUnionType: typ -> bool
@@ -647,30 +665,6 @@ val splitFunctionTypeVI:
   varinfo ->
   typ * (string * typ * attributes) list option * bool * attributes
 
-
-(** {b Type signatures} *)
-
-(** Type signatures. Two types are identical iff they have identical
- * signatures. These contain the same information as types but canonicalized.
- * For example, two function types that are identical except for the name of
- * the formal arguments are given the same signature. Also, [TNamed]
- * constructors are unrolled. You shoud use [Cilutil.equals] to compare type
- * signatures because they might still contain circular structures (through
- * attributes, and sizeof) *)
-
-(** Compute a type signature *)
-val typeSig: typ -> typsig
-
-(** Like {!Cil.typeSig} but customize the incorporation of attributes.
-    Use ~ignoreSign:true to convert all signed integer types to unsigned,
-    so that signed and unsigned will compare the same. *)
-val typeSigWithAttrs: ?ignoreSign:bool -> (attributes -> attributes) -> typ -> typsig
-
-(** Replace the attributes of a signature (only at top level) *)
-val setTypeSigAttrs: attributes -> typsig -> typsig
-
-(** Get the top-level attributes of a signature *)
-val typeSigAttrs: typsig -> attributes
 
 (*********************************************************)
 (**  LVALUES *)
@@ -738,27 +732,29 @@ val makeGlobalVar: ?logic:bool -> ?generated:bool -> string -> typ -> varinfo
  *)
 val copyVarinfo: varinfo -> string -> varinfo
 
+(** Is an lvalue a bitfield? *)
+val isBitfield: lval -> bool
 
 (** Returns the last offset in the chain. *)
 val lastOffset: offset -> offset
-
-(** Equivalent to [lastOffset] for terms. *)
-val lastTermOffset: term_offset -> term_offset
-
-(** Is an lvalue a bitfield? *)
-val isBitfield: lval -> bool
 
 (** Add an offset at the end of an lvalue. Make sure the type of the lvalue
  * and the offset are compatible. *)
 val addOffsetLval: offset -> lval -> lval
 
-(** Equivalent to [addOffsetLval] for terms. *)
-val addTermOffsetLval: term_offset -> term_lval -> term_lval
-
 (** [addOffset o1 o2] adds [o1] to the end of [o2]. *)
 val addOffset:     offset -> offset -> offset
 
-(** Equivalent to [addOffset] for terms. *)
+(** Equivalent to [lastOffset] for terms.
+        @deprecated Oxygen-20120901  use Logic_const.addTermOffsetLval *)
+val lastTermOffset: term_offset -> term_offset
+
+(** Equivalent to [addOffsetLval] for terms.
+        @deprecated Oxygen-20120901  use Logic_const.addTermOffsetLval *)
+val addTermOffsetLval: term_offset -> term_lval -> term_lval
+
+(** Equivalent to [addOffset] for terms.
+        @deprecated Oxygen-20120901  use Logic_const. *)
 val addTermOffset:     term_offset -> term_offset -> term_offset
 
 (** Remove ONE offset from the end of an lvalue. Returns the lvalue with the
@@ -774,6 +770,9 @@ val removeOffset:   offset -> offset * offset
 (** Compute the type of an lvalue *)
 val typeOfLval: lval -> typ
 
+(** Compute the type of an lhost (with no offset) *)
+val typeOfLhost: lhost -> typ
+
 (** Equivalent to [typeOfLval] for terms. *)
 val typeOfTermLval: term_lval -> logic_type
 
@@ -783,15 +782,9 @@ val typeOffset: typ -> offset -> typ
 (** Equivalent to [typeOffset] for terms. *)
 val typeTermOffset: logic_type -> term_offset -> logic_type
 
-(** Returns true when some part of the lvalue has volatile attributes.
-    @since Nitrogen-20111001
-*)
-val hasSomeVolatileAttr:lval -> bool
+(** Compute the type of an initializer *)
+val typeOfInit: init -> typ
 
-(** Returns true when some part of the type of an lvalue has volatile attributes.
-    @since Nitrogen-20111001
-*)
-val hasLvalTypeSomeVolatileAttr:typ -> bool
 
 (*******************************************************)
 (** {b Values for manipulating expressions} *)
@@ -827,6 +820,10 @@ val kinteger: loc:location -> ikind -> int -> exp
     OCaml integers are 31 bits and are guaranteed to fit in an IInt *)
 val integer: loc:location -> int -> exp
 
+(** Constructs a floating point constant.
+    @since Oxygen-20120901 
+*)
+val kfloat: loc:location -> fkind -> float -> exp
 
 (** True if the given expression is a (possibly cast'ed)
     character or an integer constant *)
@@ -895,13 +892,19 @@ val constFoldBinOp: loc:location -> bool -> binop -> exp -> exp -> typ -> exp
 *)
 val compareConstant: constant -> constant -> bool
 
-(** [true] if the two expressions are syntactically the same. *)
+(** [true] if the two expressions are syntactically the same. 
+    @deprecated Oxygen-20120901 use {!Cil_datatype.ExpStructEq.compare}
+*)
 val compareExp: exp -> exp -> bool
 
-(** [true] if the two lval are syntactically the same. *)
+(** [true] if the two lval are syntactically the same. 
+    @deprecated Oxygen-20120901 use {!Cil_datatype.LvalStructEq.compare}
+*)
 val compareLval: lval -> lval -> bool
 
-(** [true] if the two offsets are syntactically the same. *)
+(** [true] if the two offsets are syntactically the same. 
+    @deprecated Oxygen-20120901 use {!Cil_datatype.OffsetStructEq.compare}
+*)
 val compareOffset: offset -> offset -> bool
 
 (** Increment an expression. Can be arithmetic or pointer type *)
@@ -916,11 +919,15 @@ val var: varinfo -> lval
 (** Creates an expr representing the variable. 
     @since Nitrogen-20111001
  *)
-val evar: loc:location -> varinfo -> exp
+val evar: ?loc:location -> varinfo -> exp
 
 (** Make an AddrOf. Given an lvalue of type T will give back an expression of
     type ptr(T). It optimizes somewhat expressions like "& v" and "& v[0]"  *)
 val mkAddrOf: loc:location -> lval -> exp
+
+(** Creates an expression corresponding to "&v".
+    @since Oxygen-20120901 *)
+val mkAddrOfVi: varinfo -> exp
 
 (** Like mkAddrOf except if the type of lval is an array then it uses
     StartOf. This is the right operation for getting a pointer to the start
@@ -986,30 +993,34 @@ val map_under_info: (exp -> exp) -> exp -> exp
 (** Apply some function on underlying expression if Info or else on expression *)
 val app_under_info: (exp -> unit) -> exp -> unit
 
-(** Compute the type of an expression.
-    @plugin development guide *)
 val typeOf: exp -> typ
+(** Compute the type of an expression. *)
 
 val typeOf_pointed : typ -> typ
-  (** Returns the type pointed by the given type. Asserts it is a pointer
-      type. *)
+(** Returns the type pointed by the given type. Asserts it is a pointer type. *)
 
 val typeOf_array_elem : typ -> typ
-  (** Returns the type of the array elements of the given type.
-  * Asserts it is an array type. *)
+(** Returns the type of the array elements of the given type.
+    Asserts it is an array type. *)
 
 val is_fully_arithmetic: typ -> bool
   (** Returns [true] whenever the type contains only arithmetic types *)
 
 (** Convert a string representing a C integer literal to an expression.
- * Handles the prefixes 0x and 0 and the suffixes L, U, UL, LL, ULL *)
-val parseInt: loc:location -> string -> exp
+    Handles the prefixes 0x and 0 and the suffixes L, U, UL, LL, ULL.
+*)
+val parseIntExp: loc:location -> string -> exp
+val parseIntLogic: loc:location -> string -> term
 
-(** true if the given variable appears in the expression. *)
+(** Convert a string representing a C integer literal to an expression.
+    Handles the prefixes 0x and 0 and the suffixes L, U, UL, LL, ULL *)
+
 val appears_in_expr: varinfo -> exp -> bool
+(** @return true if the given variable appears in the expression. *)
 
 (**********************************************)
-(** {b Values for manipulating statements} *)
+(** {3 Values for manipulating statements} *)
+(**********************************************)
 
 (** Construct a statement, given its kind. Initialize the [sid] field to -1
     if [valid_sid] is false (the default),
@@ -1042,7 +1053,8 @@ val mkEmptyStmt: ?ghost:bool -> ?loc:location -> unit -> stmt
 (** A instr to serve as a placeholder *)
 val dummyInstr: instr
 
-(** A statement consisting of just [dummyInstr] *)
+(** A statement consisting of just [dummyInstr].
+    @plugin development guide *)
 val dummyStmt: stmt
 
 (** Make a while loop. Can contain Break or Continue *)
@@ -1113,11 +1125,20 @@ val dropAttribute: string -> attributes -> attributes
  *  Maintains the attributes in sorted order *)
 val dropAttributes: string list -> attributes -> attributes
 
+(** Remove attributes whose name appears in the first argument that are
+    present anywhere in the fully expanded version of the type.
+    @since Oxygen-20120901
+*)
+val typeDeepDropAttributes: string list -> typ -> typ
+
+(** Remove any attribute appearing somewhere in the fully expanded 
+    version of the type.
+    @since Oxygen-20120901 
+*)
+val typeDeepDropAllAttributes: typ -> typ
+
 (** Retains attributes with the given name *)
 val filterAttributes: string -> attributes -> attributes
-
-(** retains attributes corresponding to type qualifiers (6.7.3) *)
-val filter_qualifier_attributes: attributes -> attributes
 
 (** True if the named attribute appears in the attribute list. The list of
     attributes must be sorted.  *)
@@ -1140,8 +1161,9 @@ val typeAttrs: typ -> attribute list
 (** Returns the attributes of a type. *)
 val typeAttr: typ -> attribute list
 
-val setTypeAttrs: typ -> attributes -> typ (* Resets the attributes *)
-
+(** Sets the attributes of the type to the given list. Previous attributes
+    are discarded. *)
+val setTypeAttrs: typ -> attributes -> typ
 
 (** Add some attributes to a type *)
 val typeAddAttributes: attribute list -> typ -> typ
@@ -1151,17 +1173,42 @@ val typeAddAttributes: attribute list -> typ -> typ
     their uses *)
 val typeRemoveAttributes: string list -> typ -> typ
 
+val typeHasAttributeDeep: string -> typ -> bool
+(** Does the type or one of its subtypes have the given attribute. Does
+    not recurse through pointer types, nor inside function prototypes.
+    @since Oxygen-20120901 *)
+
 (** Remove all attributes relative to const, volatile and restrict attributes
     @since Nitrogen-20111001
  *)
 val type_remove_qualifier_attributes: typ -> typ
 
+(** Remove all attributes relative to const, volatile and restrict attributes
+    when building a C cast
+    @since Oxygen-20120901
+ *)
+val type_remove_attributes_for_c_cast: typ -> typ
+
+(** Remove all attributes relative to const, volatile and restrict attributes
+    when building a logic cast
+    @since Oxygen-20120901
+ *)
+val type_remove_attributes_for_logic_type: typ -> typ
+
+(** retains attributes corresponding to type qualifiers (6.7.3) *)
+val filter_qualifier_attributes: attributes -> attributes
+
+(** given some attributes on an array type, split them into those that belong
+    to the type of the elements of the array (currently, qualifiers such as
+    const and volatile), and those that must remain on the array, in that
+    order
+    @since Oxygen-20120901 *)
+val splitArrayAttributes: attributes -> attributes * attributes
+
+
 (** Convert an expression into an attrparam, if possible. Otherwise raise
     NotAnAttrParam with the offending subexpression *)
 val expToAttrParam: exp -> attrparam
-
-(** @return the list of field names leading to the wanted attributes *)
-val exists_attribute_deep: (attribute -> bool) -> typ -> string list option
 
 exception NotAnAttrParam of exp
 
@@ -1174,34 +1221,31 @@ exception NotAnAttrParam of exp
     etc.
     @plugin development guide *)
 type 'a visitAction =
-    SkipChildren                        (** Do not visit the children. Return
-                                            the node as it is. *)
-  | DoChildren                          (** Continue with the children of this
-                                            node. Rebuild the node on return
-                                            if any of the children changes
-                                            (use == test) *)
-  | JustCopy                            (** visit the children, but only
-                                            to make the necessary copies
-                                            (only useful for copy visitor)
-                                         *)
-  | JustCopyPost of ('a -> 'a)            (** same as JustCopy +
-                                            applies the given function to the
-                                            result. *)
-  | ChangeTo of 'a                      (** Replace the expression with the
-                                            given one *)
+  | SkipChildren (** Do not visit the children. Return the node as it is. 
+		     @plugin development guide *)
+  | DoChildren (** Continue with the children of this node. Rebuild the node on
+		   return if any of the children changes (use == test).
+		   @plugin development guide *)
+  | DoChildrenPost of ('a -> 'a)
+  (** visit the children, and apply the given function to the result.
+      @plugin development guide *)
+  | JustCopy (** visit the children, but only to make the necessary copies
+                 (only useful for copy visitor).
+		 @plugin development guide *)
+  | JustCopyPost of ('a -> 'a) 
+  (** same as JustCopy + applies the given function to the result. 
+      @plugin development guide*)
+  | ChangeTo of 'a  (** Replace the expression with the given one.
+			@plugin development guide *)
   | ChangeToPost of 'a * ('a -> 'a)
-      (** applies the expression to the function
-          and gives back the result. Useful to insert some actions in
-          an inheritance chain
-       *)
-  | ChangeDoChildrenPost of 'a * ('a -> 'a) (** First consider that the entire
-                                           exp is replaced by the first
-                                           parameter. Then continue with
-                                           the children. On return rebuild
-                                           the node if any of the children
-                                           has changed and then apply the
-                                           function on the node *)
-
+  (** applies the expression to the function and gives back the result.
+      Useful to insert some actions in an inheritance chain.
+      @plugin development guide *)
+  | ChangeDoChildrenPost of 'a * ('a -> 'a)
+(** First consider that the entire exp is replaced by the first parameter. Then
+    continue with the children. On return rebuild the node if any of the
+    children has changed and then apply the function on the node. 
+    @plugin development guide *)
 
 val mk_behavior :
   ?name:string ->
@@ -1209,13 +1253,14 @@ val mk_behavior :
   ?requires:('a list) ->
   ?post_cond:((termination_kind * 'a) list) ->
   ?assigns:('b Cil_types.assigns ) ->
+  ?allocation:('b  Cil_types.allocation option) ->
   ?extended:((string * int * 'a list) list) ->
   unit ->
   ('a, 'b) Cil_types.behavior
-  (** @since Carbon-20101201
-      returns a dummy behavior with the default name [Cil.default_behavior_name].
-      invariant: [b_assumes] must always be
-      empty for behavior named [Cil.default_behavior_name] *)
+(** @since Carbon-20101201
+    returns a dummy behavior with the default name [Cil.default_behavior_name].
+    invariant: [b_assumes] must always be
+    empty for behavior named [Cil.default_behavior_name] *)
 
 val default_behavior_name: string
   (** @since Carbon-20101201  *)
@@ -1227,6 +1272,9 @@ val find_default_behavior: funspec -> funbehavior option
 val find_default_requires: ('a, 'b) behavior list -> 'a list
   (** @since Carbon-20101201  *)
 
+(** {2 Visitor mechanism} *)
+
+(** {3 Visitor behavior} *)
 type visitor_behavior
   (** How the visitor should behave in front of mutable fields: in
       place modification or copy of the structure. This type is abstract.
@@ -1251,47 +1299,62 @@ val copy_visit: unit -> visitor_behavior
 val is_copy_behavior: visitor_behavior -> bool
 
 val reset_behavior_varinfo: visitor_behavior -> unit
-  (** resets the internal tables used by the given visitor_behavior.
-      If you use fresh instances of visitor for each round of transformation,
-      this should not be needed. In place modifications do not need that at all.
-  *)
+(** resets the internal tables used by the given visitor_behavior.  If you use
+    fresh instances of visitor for each round of transformation, this should
+    not be needed. In place modifications do not need that at all. *)
+
 val reset_behavior_compinfo: visitor_behavior -> unit
 val reset_behavior_enuminfo: visitor_behavior -> unit
 val reset_behavior_enumitem: visitor_behavior -> unit
 val reset_behavior_typeinfo: visitor_behavior -> unit
 val reset_behavior_stmt: visitor_behavior -> unit
 val reset_behavior_logic_info: visitor_behavior -> unit
+val reset_behavior_logic_type_info: visitor_behavior -> unit
 val reset_behavior_fieldinfo: visitor_behavior -> unit
+val reset_behavior_model_info: visitor_behavior -> unit
+val reset_logic_var: visitor_behavior -> unit
 val reset_behavior_kernel_function: visitor_behavior -> unit
+val reset_behavior_fundec: visitor_behavior -> unit
 
 val get_varinfo: visitor_behavior -> varinfo -> varinfo
-  (** retrieve the representative of a given varinfo in the current
-      state of the visitor
-  *)
+(** retrieve the representative of a given varinfo in the current
+    state of the visitor *)
+
 val get_compinfo: visitor_behavior -> compinfo -> compinfo
 val get_enuminfo: visitor_behavior -> enuminfo -> enuminfo
 val get_enumitem: visitor_behavior -> enumitem -> enumitem
 val get_typeinfo: visitor_behavior -> typeinfo -> typeinfo
 val get_stmt: visitor_behavior -> stmt -> stmt
+(** @plugin development guide *)
+
 val get_logic_info: visitor_behavior -> logic_info -> logic_info
+val get_logic_type_info: visitor_behavior -> logic_type_info -> logic_type_info
 val get_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
+val get_model_info: visitor_behavior -> model_info -> model_info
 val get_logic_var: visitor_behavior -> logic_var -> logic_var
 val get_kernel_function: visitor_behavior -> kernel_function -> kernel_function
+(** @plugin development guide *)
+  
+val get_fundec: visitor_behavior -> fundec -> fundec
 
 val get_original_varinfo: visitor_behavior -> varinfo -> varinfo
   (** retrieve the original representative of a given copy of a varinfo
-      in the current state of the visitor.
-  *)
+      in the current state of the visitor. *)
+
 val get_original_compinfo: visitor_behavior -> compinfo -> compinfo
 val get_original_enuminfo: visitor_behavior -> enuminfo -> enuminfo
 val get_original_enumitem: visitor_behavior -> enumitem -> enumitem
 val get_original_typeinfo: visitor_behavior -> typeinfo -> typeinfo
 val get_original_stmt: visitor_behavior -> stmt -> stmt
 val get_original_logic_info: visitor_behavior -> logic_info -> logic_info
+val get_original_logic_type_info:
+  visitor_behavior -> logic_type_info -> logic_type_info
 val get_original_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
+val get_original_model_info: visitor_behavior -> model_info -> model_info
 val get_original_logic_var: visitor_behavior -> logic_var -> logic_var
 val get_original_kernel_function:
   visitor_behavior -> kernel_function -> kernel_function
+val get_original_fundec: visitor_behavior -> fundec -> fundec
 
 val set_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   (** change the representative of a given varinfo in the current
@@ -1304,10 +1367,14 @@ val set_enumitem: visitor_behavior -> enumitem -> enumitem -> unit
 val set_typeinfo: visitor_behavior -> typeinfo -> typeinfo -> unit
 val set_stmt: visitor_behavior -> stmt -> stmt -> unit
 val set_logic_info: visitor_behavior -> logic_info -> logic_info -> unit
+val set_logic_type_info:
+  visitor_behavior -> logic_type_info -> logic_type_info -> unit
 val set_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
+val set_model_info: visitor_behavior -> model_info -> model_info -> unit
 val set_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
 val set_kernel_function:
   visitor_behavior -> kernel_function -> kernel_function -> unit
+val set_fundec: visitor_behavior -> fundec -> fundec -> unit
 
 val set_orig_varinfo: visitor_behavior -> varinfo -> varinfo -> unit
   (** change the reference of a given new varinfo in the current
@@ -1319,36 +1386,126 @@ val set_orig_enumitem: visitor_behavior -> enumitem -> enumitem -> unit
 val set_orig_typeinfo: visitor_behavior -> typeinfo -> typeinfo -> unit
 val set_orig_stmt: visitor_behavior -> stmt -> stmt -> unit
 val set_orig_logic_info: visitor_behavior -> logic_info -> logic_info -> unit
+val set_orig_logic_type_info:
+  visitor_behavior -> logic_type_info -> logic_type_info -> unit
 val set_orig_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo -> unit
+val set_orig_model_info: visitor_behavior -> model_info -> model_info -> unit
 val set_orig_logic_var: visitor_behavior -> logic_var -> logic_var -> unit
 val set_orig_kernel_function: 
   visitor_behavior -> kernel_function -> kernel_function -> unit
+val set_orig_fundec: visitor_behavior -> fundec -> fundec -> unit
 
+val memo_varinfo: visitor_behavior -> varinfo -> varinfo
+  (** finds a binding in new project for the given varinfo, creating one
+      if it does not already exists. *)
+val memo_compinfo: visitor_behavior -> compinfo -> compinfo
+val memo_enuminfo: visitor_behavior -> enuminfo -> enuminfo
+val memo_enumitem: visitor_behavior -> enumitem -> enumitem
+val memo_typeinfo: visitor_behavior -> typeinfo -> typeinfo
+val memo_stmt: visitor_behavior -> stmt -> stmt
+val memo_logic_info: visitor_behavior -> logic_info -> logic_info
+val memo_logic_type_info: visitor_behavior -> logic_type_info -> logic_type_info
+val memo_fieldinfo: visitor_behavior -> fieldinfo -> fieldinfo
+val memo_model_info: visitor_behavior -> model_info -> model_info
+val memo_logic_var: visitor_behavior -> logic_var -> logic_var
 val memo_kernel_function:
   visitor_behavior -> kernel_function -> kernel_function
+val memo_fundec: visitor_behavior -> fundec -> fundec
+
+(** [iter_visitor_varinfo vis f] iterates [f] over each pair of 
+    varinfo registered in [vis]. Varinfo for the old AST is presented 
+    to [f] first.
+    @since Oxygen-20120901 
+*)
+val iter_visitor_varinfo:
+  visitor_behavior -> (varinfo -> varinfo -> unit) -> unit
+val iter_visitor_compinfo:
+  visitor_behavior -> (compinfo -> compinfo -> unit) -> unit
+val iter_visitor_enuminfo: 
+  visitor_behavior -> (enuminfo -> enuminfo -> unit) -> unit
+val iter_visitor_enumitem:
+  visitor_behavior -> (enumitem -> enumitem -> unit) -> unit
+val iter_visitor_typeinfo:
+  visitor_behavior -> (typeinfo -> typeinfo -> unit) -> unit
+val iter_visitor_stmt:
+  visitor_behavior -> (stmt -> stmt -> unit) -> unit
+val iter_visitor_logic_info:
+  visitor_behavior -> (logic_info -> logic_info -> unit) -> unit
+val iter_visitor_logic_type_info:
+  visitor_behavior -> (logic_type_info -> logic_type_info -> unit) -> unit
+val iter_visitor_fieldinfo: 
+  visitor_behavior -> (fieldinfo -> fieldinfo -> unit) -> unit
+val iter_visitor_model_info: 
+  visitor_behavior -> (model_info -> model_info -> unit) -> unit
+val iter_visitor_logic_var: 
+  visitor_behavior -> (logic_var -> logic_var -> unit) -> unit
+val iter_visitor_kernel_function:
+  visitor_behavior -> (kernel_function -> kernel_function -> unit) -> unit
+val iter_visitor_fundec: 
+  visitor_behavior -> (fundec -> fundec -> unit) -> unit
+
+(** [fold_visitor_varinfo vis f] folds [f] over each pair of varinfo registered
+    in [vis]. Varinfo for the old AST is presented to [f] first.
+    @since Oxygen-20120901 
+*)
+val fold_visitor_varinfo:
+  visitor_behavior -> (varinfo -> varinfo -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_compinfo:
+  visitor_behavior -> (compinfo -> compinfo -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_enuminfo: 
+  visitor_behavior -> (enuminfo -> enuminfo -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_enumitem:
+  visitor_behavior -> (enumitem -> enumitem -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_typeinfo:
+  visitor_behavior -> (typeinfo -> typeinfo -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_stmt:
+  visitor_behavior -> (stmt -> stmt -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_logic_info:
+  visitor_behavior -> (logic_info -> logic_info -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_logic_type_info:
+  visitor_behavior -> 
+  (logic_type_info -> logic_type_info -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_fieldinfo: 
+  visitor_behavior -> (fieldinfo -> fieldinfo -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_model_info: 
+  visitor_behavior -> (model_info -> model_info -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_logic_var: 
+  visitor_behavior -> (logic_var -> logic_var -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_kernel_function:
+  visitor_behavior -> 
+  (kernel_function -> kernel_function -> 'a -> 'a) -> 'a -> 'a
+val fold_visitor_fundec: 
+  visitor_behavior -> (fundec -> fundec -> 'a -> 'a) -> 'a -> 'a
+
+(** {3 Visitor class} *)
 
 (** A visitor interface for traversing CIL trees. Create instantiations of
- * this type by specializing the class {!nopCilVisitor}. Each of the
- * specialized visiting functions can also call the [queueInstr] to specify
- * that some instructions should be inserted before the current instruction
- * or statement. Use syntax like [self#queueInstr] to call a method
- * associated with the current object.
- *
- * {b Important Note for Frama-C Users:} Unless you really know what you are
- * doing, you should probably inherit from the
- * {!Visitor.generic_frama_c_visitor} instead of {!genericCilVisitor} or
- *   {!nopCilVisitor}
+  this type by specializing the class {!nopCilVisitor}. Each of the
+  specialized visiting functions can also call the [queueInstr] to specify
+  that some instructions should be inserted before the current instruction
+  or statement. Use syntax like [self#queueInstr] to call a method
+  associated with the current object.
+ 
+  {b Important Note for Frama-C Users:} Unless you really know what you are
+  doing, you should probably inherit from the
+  {!Visitor.generic_frama_c_visitor} instead of {!genericCilVisitor} or
+    {!nopCilVisitor}
+    
     @plugin development guide *)
 class type cilVisitor = object
   method behavior: visitor_behavior
-    (** the kind of behavior expected for the behavior *)
+  (** the kind of behavior expected for the behavior.
+      @plugin development guide *)
+
+  method project: Project.t option
+    (** Project the visitor operates on. Non-nil for copy visitor.
+        @since Oxygen-20120901 *)
 
   method plain_copy_visitor: cilVisitor
     (** a visitor who only does copies of the nodes according to [behavior] *)
 
   method vfile: file -> file visitAction
-    (** visit a whole file.
-	@plugin development guide *)
+  (** visit a whole file. *)
 
   method vvdec: varinfo -> varinfo visitAction
     (** Invoked for each variable declaration. The subtrees to be traversed
@@ -1362,60 +1519,62 @@ class type cilVisitor = object
 	@plugin development guide *)
 
   method vvrbl: varinfo -> varinfo visitAction
-    (** Invoked on each variable use. Here only the [SkipChildren] and
-	[ChangeTo] actions make sense since there are no subtrees. Note that
-	the type and attributes of the variable are not traversed for a
-	variable use.
-	@plugin development guide *)
+  (** Invoked on each variable use. Here only the [SkipChildren] and
+      [ChangeTo] actions make sense since there are no subtrees. Note that
+      the type and attributes of the variable are not traversed for a
+      variable use.
+      @plugin development guide *)
 
   method vexpr: exp -> exp visitAction
-    (** Invoked on each expression occurrence. The subtrees are the
-     * subexpressions, the types (for a [Cast] or [SizeOf] expression) or the
-     * variable use.
-	@plugin development guide *)
+  (** Invoked on each expression occurrence. The subtrees are the
+      subexpressions, the types (for a [Cast] or [SizeOf] expression) or the
+      variable use.
+      @plugin development guide *)
 
   method vlval: lval -> lval visitAction
-    (** Invoked on each lvalue occurrence *)
+  (** Invoked on each lvalue occurrence *)
 
   method voffs: offset -> offset visitAction
-    (** Invoked on each offset occurrence that is *not* as part
-      * of an initializer list specification, i.e. in an lval or
-      * recursively inside an offset.
-	@plugin development guide *)
+  (** Invoked on each offset occurrence that is *not* as part of an
+      initializer list specification, i.e. in an lval or recursively inside an
+      offset.  
+      @plugin development guide *)
 
   method vinitoffs: offset -> offset visitAction
-    (** Invoked on each offset appearing in the list of a
-      * CompoundInit initializer.  *)
+  (** Invoked on each offset appearing in the list of a
+      CompoundInit initializer.  *)
 
   method vinst: instr -> instr list visitAction
-    (** Invoked on each instruction occurrence. The [ChangeTo] action can
-     * replace this instruction with a list of instructions *)
+  (** Invoked on each instruction occurrence. The [ChangeTo] action can
+      replace this instruction with a list of instructions *)
 
   method vstmt: stmt -> stmt visitAction
-    (** Control-flow statement. The default [DoChildren] action does not
-     * create a new statement when the components change. Instead it updates
-     * the contents of the original statement. This is done to preserve the
-     * sharing with [Goto] and [Case] statements that point to the original
-     * statement. If you use the [ChangeTo] action then you should take care
-     * of preserving that sharing yourself.
-	@plugin development guide *)
+  (** Control-flow statement. The default [DoChildren] action does not create a
+      new statement when the components change. Instead it updates the contents
+      of the original statement. This is done to preserve the sharing with
+      [Goto] and [Case] statements that point to the original statement. If you
+      use the [ChangeTo] action then you should take care of preserving that
+      sharing yourself.  
+      @plugin development guide *)
 
-  method vblock: block -> block visitAction     (** Block. *)
-  method vfunc: fundec -> fundec visitAction    (** Function definition.
-                                                    Replaced in place. *)
+  method vblock: block -> block visitAction
+  (** Block. *)
+  
+  method vfunc: fundec -> fundec visitAction    
+  (** Function definition. Replaced in place. *)
+
   method vglob: global -> global list visitAction
-    (** Global (vars, types, etc.)
-	@plugin development guide *)
+  (** Global (vars, types, etc.)
+      @plugin development guide *)
 
   method vinit: varinfo -> offset -> init -> init visitAction
-                                                (** Initializers for globals,
-                                                 * pass the global where this
-                                                 * occurs, and the offset *)
+  (** Initializers for globals, pass the global where this occurs, and the
+      offset *)
+
   method vtype: typ -> typ visitAction
-    (** Use of some type. For typedef, struct, union and enum, the visit is
-        done once at the global defining the type. Thus, children of
-        [TComp], [TEnum] and [TNamed] are not visited again.
-     *)
+  (** Use of some type. For typedef, struct, union and enum, the visit is
+      done once at the global defining the type. Thus, children of
+      [TComp], [TEnum] and [TNamed] are not visited again. *)
 
   method vcompinfo: compinfo -> compinfo visitAction
     (** declaration of a struct/union *)
@@ -1430,34 +1589,34 @@ class type cilVisitor = object
     (** visit the declaration of an enumeration item *)
 
   method vattr: attribute -> attribute list visitAction
-    (** Attribute. Each attribute can be replaced by a list *)
+  (** Attribute. Each attribute can be replaced by a list *)
+
   method vattrparam: attrparam -> attrparam visitAction
-    (** Attribute parameters. *)
+  (** Attribute parameters. *)
 
-    (** Add here instructions while visiting to queue them to preceede the
-     * current statement or instruction being processed. Use this method only
-     * when you are visiting an expression that is inside a function body, or
-     * a statement, because otherwise there will no place for the visitor to
-     * place your instructions. *)
   method queueInstr: instr list -> unit
+  (** Add here instructions while visiting to queue them to preceede the
+      current statement or instruction being processed. Use this method only
+      when you are visiting an expression that is inside a function body, or a
+      statement, because otherwise there will no place for the visitor to place
+      your instructions. *)
 
-    (** Gets the queue of instructions and resets the queue. This is done
-     * automatically for you when you visit statments. *)
+  (** Gets the queue of instructions and resets the queue. This is done
+      automatically for you when you visit statments. *)
   method unqueueInstr: unit -> instr list
 
   method current_stmt: stmt option
-    (** link to the current statement being visited.
+  (** link to the current statement being visited.
 
-        {b NB:} for copy visitor, the stmt is the original one (use
-        [get_stmt] to obtain the corresponding copy)
-        @deprecated Carbon-20101201 use current_kinstr instead
-     *)
+      {b NB:} for copy visitor, the stmt is the original one (use
+      [get_stmt] to obtain the corresponding copy)
+      @deprecated Carbon-20101201 use current_kinstr instead *)
 
   method current_kinstr: kinstr
     (** [Kstmt stmt] when visiting statement stmt, [Kglobal] when called outside
         of a statement.
-        @since Carbon-20101201
-     *)
+        @since Carbon-20101201 
+	@plugin development guide *)
 
   method push_stmt : stmt -> unit
   method pop_stmt : stmt -> unit
@@ -1465,79 +1624,80 @@ class type cilVisitor = object
   method current_func: fundec option
     (** link to the current function being visited.
 
-        {b NB:} for copy visitors, the fundec is the original one.
-     *)
+        {b NB:} for copy visitors, the fundec is the original one. *)
   method set_current_func: fundec -> unit
   method reset_current_func: unit -> unit
 
   method vlogic_type: logic_type -> logic_type visitAction
-
+  method vmodel_info: model_info -> model_info visitAction
   method vterm: term -> term visitAction
-
   method vterm_node: term_node -> term_node visitAction
-
   method vterm_lval: term_lval -> term_lval visitAction
-
   method vterm_lhost: term_lhost -> term_lhost visitAction
-
   method vterm_offset: term_offset -> term_offset visitAction
-
   method vlogic_label: logic_label -> logic_label visitAction
-
   method vlogic_info_decl: logic_info -> logic_info visitAction
+  (** @plugin development guide *)
 
   method vlogic_info_use: logic_info -> logic_info visitAction
+  (** @plugin development guide *)
 
   method vlogic_type_info_decl: logic_type_info -> logic_type_info visitAction
+  (** @plugin development guide *)
 
   method vlogic_type_info_use: logic_type_info -> logic_type_info visitAction
+  (** @plugin development guide *)
 
   method vlogic_type_def: logic_type_def -> logic_type_def visitAction
-
   method vlogic_ctor_info_decl: logic_ctor_info -> logic_ctor_info visitAction
+  (** @plugin development guide *)
 
   method vlogic_ctor_info_use: logic_ctor_info -> logic_ctor_info visitAction
+  (** @plugin development guide *)
 
   method vlogic_var_decl: logic_var -> logic_var visitAction
+  (** @plugin development guide *)
 
   method vlogic_var_use: logic_var -> logic_var visitAction
+  (** @plugin development guide *)
 
   method vquantifiers: quantifiers -> quantifiers visitAction
-
   method vpredicate: predicate -> predicate visitAction
-
   method vpredicate_named: predicate named -> predicate named visitAction
-
   method vbehavior: funbehavior -> funbehavior visitAction
-
   method vspec: funspec -> funspec visitAction
-
   method vassigns:
     identified_term assigns -> identified_term assigns visitAction
 
-  method vloop_pragma: term loop_pragma -> term loop_pragma visitAction
+  method vfrees:
+    identified_term list -> identified_term list visitAction
+  (**	@since Oxygen-20120901 *)
 
+  method vallocates:
+    identified_term list -> identified_term list visitAction
+  (**	@since Oxygen-20120901 *)
+
+  method vallocation:
+    identified_term allocation -> identified_term allocation visitAction
+  (**	@since Oxygen-20120901 *)
+
+  method vloop_pragma: term loop_pragma -> term loop_pragma visitAction
   method vslice_pragma: term slice_pragma -> term slice_pragma visitAction
   method vimpact_pragma: term impact_pragma -> term impact_pragma visitAction
 
-  method vdeps:
-    identified_term deps -> identified_term deps visitAction
-
-  method vfrom:
-    identified_term from -> identified_term from visitAction
-
+  method vdeps: identified_term deps -> identified_term deps visitAction
+  method vfrom: identified_term from -> identified_term from visitAction
   method vcode_annot: code_annotation -> code_annotation visitAction
-
   method vannotation: global_annotation -> global_annotation visitAction
 
+  method fill_global_tables: unit
   (** fill the global environment tables at the end of a full copy in a
       new project.
       @plugin development guide *)
-  method fill_global_tables: unit
 
+  method get_filling_actions: (unit -> unit) Queue.t
   (** get the queue of actions to be performed at the end of a full copy.
       @plugin development guide *)
-  method get_filling_actions: (unit -> unit) Queue.t
 
 end
 
@@ -1548,6 +1708,7 @@ class genericCilVisitor: ?prj:(Project.t) -> visitor_behavior -> cilVisitor
 (** Default in place visitor doing nothing and operating on current project. *)
 class nopCilVisitor: cilVisitor
 
+(** {3 Generic visit functions} *)
 (** [doVisit vis deepCopyVisitor copy action children node]
     visits a [node]
     (or its copy according to the result of [copy]) and if needed
@@ -1578,6 +1739,8 @@ val doVisitList:
   ('visitor -> 'a -> 'a) -> 'a -> 'a list
 
 (* other cil constructs *)
+
+(** {3 Visitor's entry points} *)
 
 (** Visit a file. This will will re-cons all globals TWICE (so that it is
  * tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
@@ -1652,6 +1815,21 @@ val visitCilFrom:
 val visitCilAssigns:
   cilVisitor -> identified_term assigns -> identified_term assigns
 
+(** @since Oxygen-20120901
+ *)
+val visitCilFrees:
+  cilVisitor -> identified_term list -> identified_term list
+
+(** @since Oxygen-20120901
+ *)
+val visitCilAllocates:
+  cilVisitor -> identified_term list -> identified_term list
+
+(** @since Oxygen-20120901
+ *)
+val visitCilAllocation:
+  cilVisitor -> identified_term allocation -> identified_term allocation
+
 val visitCilFunspec: cilVisitor -> funspec -> funspec
 
 val visitCilBehavior: cilVisitor -> funbehavior -> funbehavior
@@ -1663,6 +1841,8 @@ val visitCilBehaviors: cilVisitor -> funbehavior list -> funbehavior list
 val visitCilExtended: 
   cilVisitor -> (string * int * identified_predicate list) 
   -> (string * int * identified_predicate list)
+
+val visitCilModelInfo: cilVisitor -> model_info -> model_info
 
 val visitCilLogicType: cilVisitor -> logic_type -> logic_type
 
@@ -1677,6 +1857,11 @@ val visitCilPredicates:
   cilVisitor -> identified_predicate list -> identified_predicate list
 
 val visitCilTerm: cilVisitor -> term -> term
+
+(** visit identified_term.
+    @since Oxygen-20120901
+ *)
+val visitCilIdTerm: cilVisitor -> identified_term -> identified_term
 
 (** visit term_lval.
     @since Nitrogen-20111001
@@ -1693,10 +1878,14 @@ val visitCilLogicVarUse: cilVisitor -> logic_var -> logic_var
 
 val visitCilLogicVarDecl: cilVisitor -> logic_var -> logic_var
 
+(** {3 Visiting children of a node} *)
+
+val childrenBehavior: cilVisitor -> funbehavior -> funbehavior
+
 (* And some generic visitors. The above are built with these *)
 
 
-(** {b Utility functions} *)
+(** {2 Utility functions} *)
 
 val is_skip: stmtkind -> bool
 
@@ -1710,7 +1899,7 @@ val constFoldVisitor: bool -> cilVisitor
  *  to do lossless transformations when CIL is the consumer *)
 val forgcc: string -> string
 
-(** {b Debugging support} *)
+(** {2 Debugging support} *)
 
 (** A reference to the current location. If you are careful to set this to
  * the current location then you can use some built-in logging functions that
@@ -1719,29 +1908,6 @@ module CurrentLoc: State_builder.Ref with type data = location
 
 (** A reference to the current global being visited *)
 val currentGlobal: global ref
-
-
-(** CIL has a fairly easy to use mechanism for printing error messages. This
- * mechanism is built on top of the pretty-printer mechanism (see
- * {!Pretty.doc}) and the error-message modules (see {!Errormsg.error}).
-
- Here is a typical example for printing a log message: {v
-ignore (Errormsg.log "Expression %a is not positive (at %s:%i)\n"
-                        d_exp e loc.file loc.line)
- v}
-
- and here is an example of how you print a fatal error message that stop the
-* execution: {v
-Errormsg.s (Errormsg.bug "Why am I here?")
- v}
-
- Notice that you can use C format strings with some extension. The most
-useful extension is "%a" that means to consumer the next two argument from
-the argument list and to apply the first to [unit] and then to the second
-and to print the resulting {!Pretty.doc}. For each major type in CIL there is
-a corresponding function that pretty-prints an element of that type:
-*)
-
 
 (** Pretty-print a location *)
 val d_loc: Format.formatter -> location -> unit
@@ -1936,6 +2102,8 @@ class type cilPrinter = object
   method pLogic_type_def:
     Format.formatter -> logic_type_def -> unit
 
+  method pModel_info: Format.formatter -> model_info -> unit
+
   method pTerm: Format.formatter -> term -> unit
 
   method pTerm_node: Format.formatter -> term -> unit
@@ -1983,6 +2151,13 @@ class type cilPrinter = object
    method pAssigns:
      string -> Format.formatter -> identified_term assigns -> unit
 
+    (** pAllocation is parameterized by its introducing keyword
+        (i.e. loop_allocates, loop_frees, allocates or free)
+	@since Oxygen-20120901
+     *)
+   method pAllocation:
+     isloop:bool -> Format.formatter -> identified_term allocation -> unit
+
   (** prints an assignment with its dependencies. *)
    method pFrom:
      string -> Format.formatter -> identified_term from -> unit
@@ -1994,6 +2169,8 @@ class type cilPrinter = object
   method pDecreases: Format.formatter -> term variant -> unit
 
   method pLoop_variant: Format.formatter -> term variant -> unit
+
+  method pFile: Format.formatter -> file -> unit
 end
 
 class defaultCilPrinterClass: cilPrinter
@@ -2052,6 +2229,11 @@ val printBlock: cilPrinter -> Format.formatter -> block -> unit
  * (or even overflow the stack) for huge initializers. *)
 val printInit: cilPrinter -> Format.formatter -> init -> unit
 
+val printFile: cilPrinter -> Format.formatter -> file -> unit
+
+(** @since Oxygen-20120901 *)
+val printModel_info: cilPrinter -> Format.formatter -> model_info -> unit
+
 val printTerm_lval: cilPrinter -> Format.formatter -> term_lval -> unit
 val printLogic_var: cilPrinter -> Format.formatter -> logic_var -> unit
 val printLogic_type: cilPrinter -> Format.formatter -> logic_type -> unit
@@ -2062,6 +2244,7 @@ val printPredicate_named:
 val printCode_annotation:
   cilPrinter -> Format.formatter -> code_annotation -> unit
 val printFunspec: cilPrinter -> Format.formatter -> funspec -> unit
+val printBehavior: cilPrinter -> Format.formatter -> funbehavior ->unit 
 val printAnnotation: cilPrinter -> Format.formatter -> global_annotation -> unit
 
 (** pretty prints an assigns clause. The string is the keyword used ([assigns]
@@ -2069,6 +2252,13 @@ val printAnnotation: cilPrinter -> Format.formatter -> global_annotation -> unit
 *)
 val printAssigns:
   cilPrinter -> string -> Format.formatter -> identified_term assigns -> unit
+
+(** pretty prints an allocation clause. ([allocates/frees] or 
+    [loop frees/loop allocates])
+	@since Oxygen-20120901
+*)
+val printAllocation:
+  cilPrinter -> isloop:bool -> Format.formatter -> identified_term allocation -> unit
 
 (** pretty prints a functional dependencies clause.
     The string is the keyword used ([assigns] or [loop assigns])
@@ -2129,7 +2319,12 @@ val d_block: Format.formatter -> block -> unit
  * stack) for huge globals (such as arrays with lots of initializers). *)
 val d_global: Format.formatter -> global -> unit
 
+val d_file: Format.formatter -> file -> unit
+
 val d_relation: Format.formatter -> relation -> unit
+
+(** @since Oxygen-20120901 *)
+val d_model_info: Format.formatter -> model_info -> unit
 
 val d_term_lval: Format.formatter -> term_lval -> unit
 val d_logic_var: Format.formatter -> logic_var -> unit
@@ -2141,13 +2336,21 @@ val d_predicate_named: Format.formatter -> predicate named -> unit
 val d_identified_predicate: Format.formatter -> identified_predicate -> unit
 val d_code_annotation: Format.formatter -> code_annotation -> unit
 val d_funspec: Format.formatter -> funspec -> unit
+val d_behavior: Format.formatter -> funbehavior -> unit
 val d_annotation: Format.formatter -> global_annotation -> unit
 val d_decreases: Format.formatter -> term variant -> unit
 val d_loop_variant: Format.formatter -> term variant -> unit
-val d_assigns: Format.formatter -> identified_term assigns -> unit
 val d_from: Format.formatter -> identified_term from -> unit
-val d_loop_assigns: Format.formatter -> identified_term assigns -> unit
+val d_assigns: Format.formatter -> identified_term assigns -> unit
+
+(**	@since Oxygen-20120901 *)
+val d_allocation: Format.formatter -> identified_term allocation -> unit
+
 val d_loop_from: Format.formatter -> identified_term from -> unit
+val d_loop_assigns: Format.formatter -> identified_term assigns -> unit
+
+(**	@since Oxygen-20120901 *)
+val d_loop_allocation: Format.formatter -> identified_term allocation -> unit
 
 (** Versions of the above pretty printers, that don't print #line directives *)
 val dn_exp       : Format.formatter -> exp -> unit
@@ -2166,7 +2369,6 @@ val dn_instr     : Format.formatter -> instr -> unit
 (** Pretty-print an entire file. Here you give the channel where the printout
  * should be sent. *)
 val dumpFile: cilPrinter -> out_channel -> string -> file -> unit
-val d_file: cilPrinter -> Format.formatter -> file -> unit
 
 (** Sometimes you do not want to see the syntactic sugar that the above
  * pretty-printing functions add. In that case you can use the following
@@ -2181,7 +2383,7 @@ val d_file: cilPrinter -> Format.formatter -> file -> unit
 (** Pretty-print the internal representation of an expression *)
 val d_plainexp: Format.formatter -> exp -> unit
 
-(** Pretty-print the internal representation of an integer *)
+(** Pretty-print the internal representation of an initializer *)
 val d_plaininit: Format.formatter -> init -> unit
 
 (** Pretty-print the internal representation of an lvalue *)
@@ -2259,37 +2461,61 @@ val floatKindForSize : int-> fkind
 val bitsSizeOf: typ -> int
 
 (** Returns the number of bytes to represent the given integer kind depending
-   on the curretn machdep. *)
+   on the current machdep. *)
 val bytesSizeOfInt: ikind -> int
 
 (** Returns the signedness of the given integer kind depending
-   on the curretn machdep. *)
+   on the current machdep. *)
 val isSigned: ikind -> bool
 
 (** Returns a unique number representing the integer
    conversion rank. *)
 val rank: ikind -> int
 
+(** [intTypeIncluded i1 i2] returns [true] iff the range of values
+    representable in [i1] is included in the one of [i2] *)
+val intTypeIncluded: ikind -> ikind -> bool
+
+(** Returns a unique number representing the floating-point conversion rank.
+    @since Oxygen-20120901 *)
+val frank: fkind -> int
+
 (** Represents an integer as for a given kind. 
  * Returns a flag saying whether the value was changed
  * during truncation (because it was too large to fit in k). *)
 val truncateInteger64: ikind -> My_bigint.t -> My_bigint.t * bool
 
+(** Returns the maximal value representable in a signed integer type of the
+    given size (in bits)
+ *)
 val max_signed_number: int -> My_bigint.t
+
+(** Returns the smallest value representable in a signed integer type of the
+    given size (in bits)
+ *)
 val min_signed_number: int -> My_bigint.t
+
+(** Returns the maximal value representable in a unsigned integer type of the
+    given size (in bits)
+ *)
 val max_unsigned_number: int -> My_bigint.t
 
 (** True if the integer fits within the kind's range *)
 val fitsInInt: ikind -> My_bigint.t -> bool
 
 (** Return the smallest kind that will hold the integer's value.
- *  The kind will be unsigned if the 2nd argument is true *)
+    The kind will be unsigned if the 2nd argument is true.
+    @raise Not_found if the bigint is not representable. *)
 val intKindForValue: My_bigint.t -> bool -> ikind
 
 (** The size of a type, in bytes. Returns a constant expression or a "sizeof"
  * expression if it cannot compute the size. This function is architecture
  * dependent, so you should only call this after you call {!Cil.initCIL}.  *)
 val sizeOf: loc:location -> typ -> exp
+
+exception SizeOfError of string * typ
+(** [SizeOfError(reason, typ)] is raised when the size of [typ] for some
+    [reason] *)
 
 (** The size of a type, in bytes. Raises {!Cil.SizeOfError} when it cannot
     compute the size. *)
@@ -2386,6 +2612,12 @@ val make_temp_logic_var: logic_type -> logic_var
     @plugin development guide *)
 val lzero : ?loc:location -> unit -> term
 
+(** The constant logic term 1. *)
+val lone : ?loc:location -> unit -> term
+
+(** The constant logic term -1. *)
+val lmone : ?loc:location -> unit -> term
+
 (** The given constant logic term *)
 val lconstant : ?loc:location -> My_bigint.t -> term
 
@@ -2404,6 +2636,21 @@ val extract_free_logicvars_from_term : term -> Logic_var.Set.t
 (** extract [logic_var] elements from a [predicate] *)
 val extract_free_logicvars_from_predicate :
   predicate named -> Logic_var.Set.t
+
+(** extract [logic_label] elements from a [code_annotation] *)
+val extract_labels_from_annot:
+  code_annotation -> Cil_datatype.Logic_label.Set.t 
+
+(** extract [logic_label] elements from a [term] *)
+val extract_labels_from_term: term -> Cil_datatype.Logic_label.Set.t 
+
+(** extract [logic_label] elements from a [pred] *)
+val extract_labels_from_pred: 
+  predicate named -> Cil_datatype.Logic_label.Set.t 
+
+(** extract [stmt] elements from [logic_label] elements *)
+val extract_stmts_from_labels:
+ Cil_datatype.Logic_label.Set.t -> Cil_datatype.Stmt.Set.t
 
 (** creates a visitor that will replace in place uses of var in the first
     list by their counterpart in the second list.

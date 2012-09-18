@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -26,7 +26,7 @@ open Pretty_source
 open Cil_types
 open Cil_datatype
 
-let update_visibility = ref (fun () -> ())
+let update_column = ref (fun _ -> ())
 
 let add_tag buffer (name, tag_prop) start stop =
   let tag = Gtk_helper.make_tag buffer ~name tag_prop in
@@ -34,7 +34,8 @@ let add_tag buffer (name, tag_prop) start stop =
 
 let scope_start_tag = ("startscope", [`UNDERLINE `DOUBLE])
 let zones_used_tag = ("zones",  [`BACKGROUND "#FFeeCC"])
-let show_def_tag = ("show_def", [`BACKGROUND "#FFca63"])
+let show_def_direct_tag = ("show_def", [`BACKGROUND "#FFca63"])
+let show_def_indirect_tag = ("show_def_indirect", [`BACKGROUND "#FFdb74"])
 let scope_b_tag = ("b_scope",   [`BACKGROUND "#CCFFff"])
 let scope_fb_tag = ("fb_scope", [`BACKGROUND "#CCFFee"])
 let scope_f_tag = ("f_scope",   [`BACKGROUND "#CCFFbb"])
@@ -91,15 +92,16 @@ let get_lval_opt main_ui kf_stmt_opt localizable =
 
 module Kf_containing_highlighted_stmt =
   Kernel_function.Make_Table
-      (Datatype.Unit)
+      (Datatype.String.Set)
       (struct
         let name = "Dpds_gui.Kf_containing_highlighted_stmt"
         let size = 7
         let dependencies = 
 	  [ (*Dependencies are managed manually by Make_StmtSetState*) ]
-        let kind = `Internal
        end)
 
+let default_icon_name = "gtk-apply"
+let default_icon = Datatype.String.Set.singleton default_icon_name
 
 module Make_StmtSetState (Info:sig val name: string end) =
   struct include State_builder.Ref
@@ -107,7 +109,6 @@ module Make_StmtSetState (Info:sig val name: string end) =
     (struct
        let name = Info.name
        let dependencies = [ Db.Value.self ]
-       let kind = `Internal
        let default () = Stmt.Set.empty
      end)
 	
@@ -117,11 +118,41 @@ module Make_StmtSetState (Info:sig val name: string end) =
      Stmt.Set.iter 
        (fun stmt -> 
 	 Kf_containing_highlighted_stmt.replace 
-	   (Kernel_function.find_englobing_kf stmt) ())
+	   (Kernel_function.find_englobing_kf stmt) default_icon)
        s;
-     !update_visibility ()
+     !update_column `Contents
 
   end
+
+module Make_StmtMapState (Info:sig val name: string end) =
+  struct
+    module D = Datatype
+    include State_builder.Ref
+    (Stmt.Map.Make(Datatype.String.Set))
+    (struct
+       let name = Info.name
+       let dependencies = [ Db.Value.self ]
+       let default () = Stmt.Map.empty
+     end)
+
+   let set s =
+     set s;
+     Kf_containing_highlighted_stmt.clear ();
+     Stmt.Map.iter
+       (fun stmt s ->
+         let kf = Kernel_function.find_englobing_kf stmt in
+         let prev =
+           try Kf_containing_highlighted_stmt.find kf
+           with Not_found -> D.String.Set.empty
+         in
+         let union = D.String.Set.union prev s in
+	 Kf_containing_highlighted_stmt.replace kf union)
+       s;
+     !update_column `Contents
+
+  end
+
+
 module type DpdCmdSig = sig
   type t_in
   val help : string
@@ -188,7 +219,6 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
       (struct
         let name = "Dpds_gui.Highlighter.Pscope_warn"
         let dependencies = [ Db.Value.self ]
-        let kind = `Internal
        end)
 
   let clear () = Pscope.clear(); Pscope_warn.clear()
@@ -223,7 +253,7 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
   type t_in = lval
 
   module ShowDefState =
-    Make_StmtSetState
+    Make_StmtMapState
       (struct let name = "Dpds_gui.Highlighter.ShowDef" end)
 
   let clear () = ShowDefState.clear()
@@ -236,25 +266,44 @@ module ShowDef : (DpdCmdSig with type t_in = lval) = struct
 
 
   let get_info _kf_stmt_opt =
-    if Stmt.Set.is_empty (ShowDefState.get()) then  ""
+    if Stmt.Map.is_empty (ShowDefState.get()) then  ""
     else "[show_def] selected"
-      
+
+  let indirect_icon = Datatype.String.Set.singleton "gtk-jump-to"
+
+  let conv m =
+    let aux stmt (direct, indirect) acc =
+      let empty = Datatype.String.Set.empty in
+      let direct = if direct then default_icon else empty in
+      let indirect = if indirect then indirect_icon else empty in
+      let s = Datatype.String.Set.union direct indirect in
+      if Datatype.String.Set.is_empty s then acc else Stmt.Map.add stmt s acc
+    in
+    Stmt.Map.fold aux m Stmt.Map.empty
+
   let compute kf stmt lv =
-    match !Db.Scope.get_defs kf stmt lv with
-      | None -> clear (); "[show_def] nothing found..."
+    let r = !Db.Scope.get_defs_with_type kf stmt lv in
+    Datascope.R.feedback "Defs computed";
+    match r with
+      | None -> clear ();
+        "[Show Defs] nothing found. The information about some functions \
+           may be missing."
       | Some (defs, undef) ->
           let msg = match undef with
-            | None -> "[show_def] computed"
+            | None -> ""
             | Some undef ->
-                Pretty_utils.sfprintf "[show_def] notice that %a %s"
+                Pretty_utils.sfprintf "[Show Defs] notice that %a %s"
                   pretty_zone undef
-                  "can be undefined by this function at this point"
+                  "may not be defined by this function at this point"
           in
-            ShowDefState.set defs; msg
+          ShowDefState.set (conv defs); msg
 
   let tag_stmt stmt =
-    if Stmt.Set.mem stmt (ShowDefState.get())
-    then show_def_tag else empty_tag
+    try
+      let s = Stmt.Map.find stmt (ShowDefState.get()) in
+      if Datatype.String.Set.mem default_icon_name s
+      then show_def_direct_tag else show_def_indirect_tag
+    with Not_found -> empty_tag
 
 end
 
@@ -270,7 +319,6 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
       (struct
          let name = "Dpds_gui.Highlighter.ZonesState"
          let dependencies = [ Db.Value.self ]
-         let kind = `Internal
        end)
     let set s = 
       set s;
@@ -278,9 +326,9 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
       Stmt.Set.iter 
 	(fun stmt -> 
 	  Kf_containing_highlighted_stmt.replace 
-	    (Kernel_function.find_englobing_kf stmt) ())
+	    (Kernel_function.find_englobing_kf stmt) default_icon)
 	(snd s);
-     !update_visibility ()
+     !update_column `Contents
     end
   let clear () = ZonesState.clear ()
 
@@ -341,7 +389,6 @@ module DpdsState =
     (struct
        let name = "Dpds_gui.Highlighter.DpdsState"
        let dependencies = [ Db.Value.self ]
-       let kind = `Internal
      end)
 
 let reset () =
@@ -351,7 +398,7 @@ let reset () =
   DataScope.clear ();
   Pscope.clear ();
   Kf_containing_highlighted_stmt.clear ();
-  !update_visibility ()
+  !update_column `Contents
 
 
 let print_info main_ui kf_stmt_opt =
@@ -372,8 +419,6 @@ let print_info main_ui kf_stmt_opt =
                 get DataScope.get_info;
                 get Pscope.get_info
               end
-            else add_msg main_ui
-                   "[dependencies] no information in this function"
   with Not_found -> ()
 
 let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
@@ -489,7 +534,10 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
       in
       let add_zones_item name cb =
         add_item main_ui ~use_values:true
-          submenu_factory name arg (cb main_ui) in
+          submenu_factory name arg
+          (fun arg ->
+             main_ui#protect ~cancelable:true (fun () -> cb main_ui arg))
+      in
 
         add_zones_item "Show defs" (callbacks ~defs:true);
         add_zones_item "Zones"     (callbacks ~zones:true);
@@ -509,25 +557,39 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
 let filetree_decorate main_ui = 
   main_ui#file_tree#append_pixbuf_column
     ~title:"Scope"
-    (fun globs -> 
-      let is_hilighted = function
+    (fun globs ->
+      let icons = function
         | GFun ({svar = v }, _) ->
-          Kf_containing_highlighted_stmt.mem (Globals.Functions.get v)
-        |  _ -> false
+          (try Kf_containing_highlighted_stmt.find  (Globals.Functions.get v)
+           with Not_found -> Datatype.String.Set.empty)
+        |  _ -> Datatype.String.Set.empty
       in
-      let id =
-          (* lazyness of && is used for efficiency *)
-        if (Kf_containing_highlighted_stmt.length () <> 0)
-	  && List.exists is_hilighted globs 
-	then "gtk-apply"
-        else ""
+      let ids =
+        if Kf_containing_highlighted_stmt.length () <> 0 then
+          let icons = List.fold_left
+            (fun acc glob -> Datatype.String.Set.union (icons glob) acc)
+            Datatype.String.Set.empty globs
+          in
+          if Datatype.String.Set.is_empty icons
+          then Datatype.String.Set.singleton ""
+          else icons
+        else
+          Datatype.String.Set.singleton ""
       in
-      [ `STOCK_ID id ])
+      let icons =
+        if Datatype.String.Set.mem default_icon_name ids then
+          [default_icon_name]
+        else
+          Datatype.String.Set.elements
+            (Datatype.String.Set.remove default_icon_name ids)
+      in
+      List.map (fun icon -> `STOCK_ID icon) icons
+    )
     (fun _ -> Kf_containing_highlighted_stmt.length () <>0)
     
 let main main_ui =
   main_ui#register_source_selector selector;
   main_ui#register_source_highlighter highlighter;
-  update_visibility := (filetree_decorate main_ui)
+  update_column := (filetree_decorate main_ui)
     
 let () = Design.register_extension main

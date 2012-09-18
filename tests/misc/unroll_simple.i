@@ -4,7 +4,7 @@ void main (int c) {
   int JMAX=5;
   int j=3;
 
-//@ loop pragma UNROLL_LOOP 128;
+//@ loop pragma UNROLL 128;
   do {
     G += i;
     i++;
@@ -12,7 +12,7 @@ void main (int c) {
     }
   while (i<=256 || j>=0);
 
-//@ loop pragma UNROLL_LOOP 10;
+//@ loop pragma UNROLL 10;
  do
     { if(c) continue;
 

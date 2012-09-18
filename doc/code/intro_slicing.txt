@@ -2,7 +2,7 @@
 @ignore                                                                        
 @ignore  This file is part of Frama-C.                                         
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2011                                               
+@ignore  Copyright (C) 2007-2012                                               
 @ignore    CEA   (Commissariat à l'énergie atomique et aux énergies            
 @ignore           alternatives)                                                
 @ignore    INRIA (Institut National de Recherche en Informatique et en         
@@ -17,7 +17,7 @@
 @ignore  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
 @ignore  GNU Lesser General Public License for more details.                   
 @ignore                                                                        
-@ignore  See the GNU Lesser General Public License version v2.1                
+@ignore  See the GNU Lesser General Public License version 2.1                 
 @ignore  for more details (enclosed in the file licenses/LGPLv2.1).            
 @ignore                                                                        
 @ignore                                                                        

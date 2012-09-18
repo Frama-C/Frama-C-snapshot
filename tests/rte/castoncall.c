@@ -17,7 +17,7 @@ void *nondet_ptr(void *a, void *b) {
   return (void*) nondet((int)a, (int)b);
 }
 
-//@ ensures \result == 1;
+//@ ensures \result == 1; assigns \nothing;
 int f();
 
 void g() {

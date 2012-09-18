@@ -5,6 +5,8 @@
    OPT: -check -slice-return g -journal-disable -then-on 'Slicing export' -print
  */
 
+#include "share/libc/stdio.h"
+
 int X1, X2 ;
 void f1() {
   int x1;

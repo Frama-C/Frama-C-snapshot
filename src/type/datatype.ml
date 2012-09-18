@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -136,6 +136,7 @@ module Serializable_undefined = struct
   include Partial_undefined
   let structural_descr = Structural_descr.Abstract
   let rehash = identity
+  let mem_project = never_any_project
 end
 
 (* ********************************************************************** *)
@@ -268,7 +269,7 @@ end
 
 let is_module_name s =
   let l = Str.split (Str.regexp "\\.") s in
-  List.for_all (fun x -> x.[0] = (String.capitalize x).[0]) l
+  List.for_all(fun x -> String.length x > 0 && x.[0] = Char.uppercase x.[0]) l
 
 module Make(X: Make_input) = struct
 
@@ -306,8 +307,13 @@ module type Map = sig
   module Make(Data: S) : S with type t = Data.t t
 end
 
+module type Hashtbl_with_descr = sig
+  include Hashtbl_common_interface.S
+  val structural_descr: Structural_descr.t -> Structural_descr.t
+end
+
 module type Hashtbl = sig
-  include Hashtbl.S
+  include Hashtbl_with_descr
   val memo: 'a t -> key -> (key -> 'a) -> 'a
   module Key: S with type t = key
   module Make(Data: S) : S with type t = Data.t t
@@ -323,8 +329,6 @@ end
 (* ****************************************************************************)
 (** {2 Polymorphic signature} *)
 (* ****************************************************************************)
-
-let get_info = info
 
 module type Polymorphic = sig
   include Type.Polymorphic
@@ -371,7 +375,7 @@ module Polymorphic2(P: Polymorphic2_input) = struct
 
     module T = struct
       type t = (T1.t, T2.t) P.t
-      let ty, is_new = instantiate T1.ty T2.ty
+      let ty, _is_new = instantiate T1.ty T2.ty
     end
 
     include T
@@ -424,6 +428,260 @@ module Polymorphic2(P: Polymorphic2_input) = struct
         (Descr.of_structural
            ty
            (P.structural_descr (Descr.str T1.descr) (Descr.str T2.descr)))
+
+  end
+
+end
+
+(* ****************************************************************************)
+(** {2 Polymorphic3 } *)
+(* ****************************************************************************)
+
+module type Polymorphic3 = sig
+  include Type.Polymorphic3
+  module Make(T1:S)(T2:S)(T3:S) : S with type t = (T1.t, T2.t, T3.t) poly
+end
+
+module Polymorphic3
+  (P: sig
+    include Type.Polymorphic3_input
+    val mk_equal:
+      ('a -> 'a -> bool) -> ('b -> 'b -> bool) -> ('c -> 'c -> bool) ->
+      ('a, 'b, 'c) t -> ('a, 'b, 'c) t ->
+      bool
+    val mk_compare:
+      ('a -> 'a -> int) -> ('b -> 'b -> int) -> ('c -> 'c -> int) ->
+      ('a, 'b, 'c) t -> ('a, 'b, 'c) t -> int
+    val mk_hash: 
+      ('a -> int) -> ('b -> int) -> ('c -> int) -> ('a, 'b, 'c) t -> int
+    val map: 
+      ('a -> 'a) -> ('b -> 'b) -> ('c -> 'c) -> ('a, 'b, 'c) t -> ('a, 'b, 'c) t
+    val mk_internal_pretty_code:
+      (Type.precedence -> Format.formatter -> 'a -> unit) ->
+      (Type.precedence -> Format.formatter -> 'b -> unit) ->
+      (Type.precedence -> Format.formatter -> 'c -> unit) ->
+      Type.precedence -> Format.formatter -> ('a, 'b, 'c) t -> unit
+    val mk_pretty:
+      (Format.formatter -> 'a -> unit) -> 
+      (Format.formatter -> 'b -> unit) ->
+      (Format.formatter -> 'c -> unit) ->
+      Format.formatter -> ('a, 'b, 'c) t -> unit
+    val mk_varname: 
+      ('a -> string) -> ('b -> string) -> ('c -> string) -> 
+      ('a, 'b, 'c) t -> string
+    val mk_mem_project:
+      ((Project_skeleton.t -> bool) -> 'a -> bool) ->
+      ((Project_skeleton.t -> bool) -> 'b -> bool) ->
+      ((Project_skeleton.t -> bool) -> 'c -> bool) ->
+      (Project_skeleton.t -> bool) -> ('a, 'b, 'c) t -> bool
+  end) =
+struct
+
+  include Type.Polymorphic3(P)
+
+  module Make(T1: S)(T2: S)(T3: S) = struct
+
+    module T = struct
+      type t = (T1.t, T2.t, T3.t) P.t
+      let ty, _is_new = instantiate T1.ty T2.ty T3.ty
+    end
+
+    include T
+    include Build
+      (struct
+        include T
+	let reprs = 
+	  if Type.may_use_obj () then Type.reprs ty 
+	  else P.reprs (List.hd T1.reprs) (List.hd T2.reprs) (List.hd T3.reprs)
+        let build mk f1 f2 f3 =
+          if mk == undefined || f1 == undefined || f2 == undefined || 
+	    f3 == undefined
+	  then
+            undefined
+          else
+            mk f1 f2 f3
+        let compare = build P.mk_compare T1.compare T2.compare T3.compare
+        let equal = build P.mk_equal T1.equal T2.equal T3.equal
+        let hash = build P.mk_hash T1.hash T2.hash T3.hash
+        let rehash = identity
+        let copy =
+          let mk f1 f2 f3 =
+            if P.map == undefined then undefined
+            else
+            (* [JS 2011/05/31] No optimisation for the special case of identity,
+               since we really want to perform a DEEP copy. *)
+            (*if f1 == identity && f2 == identity then identity
+              else*) P.map f1 f2 f3
+          in
+          build mk T1.copy T2.copy T3.copy
+        let internal_pretty_code =
+          let mk f1 f2 f3 =
+            if f1 == pp_fail || f2 == pp_fail || f3 == pp_fail then pp_fail
+            else fun p fmt x -> P.mk_internal_pretty_code f1 f2 f3 p fmt x
+          in
+          build mk 
+	    T1.internal_pretty_code 
+	    T2.internal_pretty_code
+	    T3.internal_pretty_code
+        let pretty = build P.mk_pretty T1.pretty T2.pretty T3.pretty
+        let varname = build P.mk_varname T1.varname T2.varname T3.varname
+        let mem_project =
+          let mk f1 f2 f3 =
+            if P.mk_mem_project == undefined then undefined
+            else if f1 == never_any_project && f2 == never_any_project 
+		&& f3 == never_any_project 
+	    then
+              never_any_project
+            else
+              P.mk_mem_project f1 f2 f3
+          in
+          build mk T1.mem_project T2.mem_project T3.mem_project
+       end)
+
+    let descr, packed_descr =
+      mk_full_descr
+        (Descr.of_structural
+           ty
+           (P.structural_descr
+	      (Descr.str T1.descr) 
+	      (Descr.str T2.descr)
+	      (Descr.str T3.descr)))
+
+  end
+
+end
+
+(* ****************************************************************************)
+(** {2 Polymorphic4 } *)
+(* ****************************************************************************)
+
+module type Polymorphic4 = sig
+  include Type.Polymorphic4
+  module Make(T1:S)(T2:S)(T3:S)(T4:S) 
+    : S with type t = (T1.t, T2.t, T3.t, T4.t) poly
+end
+
+module Polymorphic4
+  (P: sig
+    include Type.Polymorphic4_input
+    val mk_equal:
+      ('a -> 'a -> bool) -> ('b -> 'b -> bool) -> 
+      ('c -> 'c -> bool) -> ('d -> 'd -> bool) ->
+      ('a, 'b, 'c, 'd) t -> ('a, 'b, 'c, 'd) t ->
+      bool
+    val mk_compare:
+      ('a -> 'a -> int) -> ('b -> 'b -> int) -> 
+      ('c -> 'c -> int) -> ('d -> 'd -> int) ->
+      ('a, 'b, 'c, 'd) t -> ('a, 'b, 'c, 'd) t -> int
+    val mk_hash: 
+      ('a -> int) -> ('b -> int) -> ('c -> int) -> ('d -> int) -> 
+      ('a, 'b, 'c, 'd) t -> int
+    val map: 
+      ('a -> 'a) -> ('b -> 'b) -> ('c -> 'c) -> ('d -> 'd) ->
+      ('a, 'b, 'c, 'd) t -> ('a, 'b, 'c, 'd) t
+    val mk_internal_pretty_code:
+      (Type.precedence -> Format.formatter -> 'a -> unit) ->
+      (Type.precedence -> Format.formatter -> 'b -> unit) ->
+      (Type.precedence -> Format.formatter -> 'c -> unit) ->
+      (Type.precedence -> Format.formatter -> 'd -> unit) ->
+      Type.precedence -> Format.formatter -> ('a, 'b, 'c, 'd) t -> unit
+    val mk_pretty:
+      (Format.formatter -> 'a -> unit) -> 
+      (Format.formatter -> 'b -> unit) ->
+      (Format.formatter -> 'c -> unit) ->
+      (Format.formatter -> 'd -> unit) ->
+      Format.formatter -> ('a, 'b, 'c, 'd) t -> unit
+    val mk_varname: 
+      ('a -> string) -> ('b -> string) -> ('c -> string) -> ('d -> string) -> 
+      ('a, 'b, 'c, 'd) t -> string
+    val mk_mem_project:
+      ((Project_skeleton.t -> bool) -> 'a -> bool) ->
+      ((Project_skeleton.t -> bool) -> 'b -> bool) ->
+      ((Project_skeleton.t -> bool) -> 'c -> bool) ->
+      ((Project_skeleton.t -> bool) -> 'd -> bool) ->
+      (Project_skeleton.t -> bool) -> ('a, 'b, 'c, 'd) t -> bool
+  end) =
+struct
+
+  include Type.Polymorphic4(P)
+
+  module Make(T1: S)(T2: S)(T3: S)(T4: S) = struct
+
+    module T = struct
+      type t = (T1.t, T2.t, T3.t, T4.t) P.t
+      let ty, _is_new = instantiate T1.ty T2.ty T3.ty T4.ty
+    end
+
+    include T
+    include Build
+      (struct
+        include T
+	let reprs = 
+	  if Type.may_use_obj () then Type.reprs ty 
+	  else 
+	    P.reprs
+	      (List.hd T1.reprs) 
+	      (List.hd T2.reprs) 
+	      (List.hd T3.reprs)
+	      (List.hd T4.reprs)
+        let build mk f1 f2 f3 f4 =
+          if mk == undefined || f1 == undefined || f2 == undefined || 
+	    f3 == undefined || f4 == undefined
+	  then
+            undefined
+          else
+            mk f1 f2 f3 f4
+        let compare = 
+	  build P.mk_compare T1.compare T2.compare T3.compare T4.compare
+        let equal = build P.mk_equal T1.equal T2.equal T3.equal T4.equal
+        let hash = build P.mk_hash T1.hash T2.hash T3.hash T4.hash
+        let rehash = identity
+        let copy =
+          let mk f1 f2 f3 f4 =
+            if P.map == undefined then undefined
+            else
+            (* [JS 2011/05/31] No optimisation for the special case of identity,
+               since we really want to perform a DEEP copy. *)
+            (*if f1 == identity && f2 == identity then identity
+              else*) P.map f1 f2 f3 f4
+          in
+          build mk T1.copy T2.copy T3.copy T4.copy
+        let internal_pretty_code =
+          let mk f1 f2 f3 f4 =
+            if f1 == pp_fail || f2 == pp_fail || f3 == pp_fail || f4 == pp_fail
+	    then pp_fail
+            else fun p fmt x -> P.mk_internal_pretty_code f1 f2 f3 f4 p fmt x
+          in
+          build mk 
+	    T1.internal_pretty_code 
+	    T2.internal_pretty_code
+	    T3.internal_pretty_code
+	    T4.internal_pretty_code
+        let pretty = build P.mk_pretty T1.pretty T2.pretty T3.pretty T4.pretty
+        let varname = 
+	  build P.mk_varname T1.varname T2.varname T3.varname T4.varname
+        let mem_project =
+          let mk f1 f2 f3 f4 =
+            if P.mk_mem_project == undefined then undefined
+            else if f1 == never_any_project && f2 == never_any_project 
+		&& f3 == never_any_project && f4 == never_any_project
+	    then
+              never_any_project
+            else
+              P.mk_mem_project f1 f2 f3 f4
+          in
+          build mk T1.mem_project T2.mem_project T3.mem_project T4.mem_project
+       end)
+
+    let descr, packed_descr =
+      mk_full_descr
+        (Descr.of_structural
+           ty
+           (P.structural_descr
+	      (Descr.str T1.descr) 
+	      (Descr.str T2.descr)
+	      (Descr.str T3.descr)
+	      (Descr.str T4.descr)))
 
   end
 
@@ -492,7 +750,6 @@ and Poly_pair : sig
     val mem_project: (Project_skeleton.t -> bool) -> t -> bool
     val copy: t -> t
       (* End of copy of S *)
-    val rehash: t -> t
   end
 end =
   struct
@@ -514,7 +771,7 @@ module Function
 struct
   module T = struct
     type t = T1.t -> T2.t
-    let ty, is_new = Type.Function.instantiate ?label:T1.label T1.ty T2.ty
+    let ty, _is_new = Type.Function.instantiate ?label:T1.label T1.ty T2.ty
     let compare = undefined
     let equal = (==)
     let hash = undefined
@@ -567,15 +824,36 @@ module type Polymorphic_input = sig
     (Project_skeleton.t -> bool) -> 'a t -> bool
 end
 
+let poly_name_ref = ref "" (* local argument of below functor: 
+			      not visible from outside *)
 module Polymorphic(P: Polymorphic_input) = struct
 
   include Type.Polymorphic(P)
+
+  (* cannot declare [name] locally in instantiate since it prevents OCaml
+     generalization *)
+  let name = !poly_name_ref 
+  let instantiate ty =
+    let res, first = instantiate ty in
+    if first && name <> "" then begin
+      let ml_name = 
+	Type.sfprintf
+	  "Datatype.%s %a" 
+	  name
+	  (fun fmt ty -> Type.pp_ml_name ty Type.Call fmt)
+	  ty
+      in
+      Type.set_ml_name res (Some ml_name)
+    end;
+    res, first
+
+  let () = poly_name_ref := ""
 
   module Make(X: S) = struct
 
     module T = struct
       type t = X.t P.t
-      let ty, is_new = instantiate X.ty
+      let ty, _is_new = instantiate X.ty
     end
 
     include T
@@ -631,6 +909,7 @@ end
 (** {3 Reference} *)
 (* ****************************************************************************)
 
+let () = poly_name_ref := "t_ref"
 module Poly_ref =
   Polymorphic
     (struct
@@ -659,6 +938,7 @@ let t_ref ty = fst (Poly_ref.instantiate ty)
 (** {3 Option} *)
 (* ****************************************************************************)
 
+let () = poly_name_ref := "option"
 module Poly_option =
   Polymorphic
     (struct
@@ -700,6 +980,7 @@ let option ty = fst (Poly_option.instantiate ty)
 (** {3 List} *)
 (* ****************************************************************************)
 
+let () = poly_name_ref := "list"
 module Poly_list =
   Polymorphic
     (struct
@@ -776,6 +1057,7 @@ let list ty = fst (Poly_list.instantiate ty)
 (** {3 Queue} *)
 (* ****************************************************************************)
 
+let () = poly_name_ref := "queue"
 module Poly_queue =
   Polymorphic
     (struct
@@ -826,7 +1108,9 @@ module Set(S: Set.S)(E: S with type t = S.elt)(Info: Functor_info) = struct
       let reprs = empty :: Caml_list.map (fun r -> singleton r) E.reprs
       let compare = S.compare
       let equal = S.equal
-      let hash = Hashtbl.hash (* Don't know how to do better *)
+      let hash =
+        if E.hash == undefined then undefined
+        else (fun s -> S.fold (fun e h -> 67 * E.hash e + h) s 189)
       let rehash = identity
       let copy =
         (* [JS 2011/05/31] No optimisation for the special case of
@@ -861,8 +1145,10 @@ module Set(S: Set.S)(E: S with type t = S.elt)(Info: Functor_info) = struct
         try S.iter (fun x -> if E.mem_project p x then raise Exit) s; false
         with Exit -> true
      end)
-
   include S
+
+  let () = Type.set_ml_name P.ty (Some (Info.module_name ^ ".ty"))
+
   let ty = P.ty
   let name = P.name
   let descr = P.descr
@@ -883,6 +1169,8 @@ end
 (* ****************************************************************************)
 (** {3 Map} *)
 (* ****************************************************************************)
+
+module Initial_caml_map = Map
 
 module Map(M: Map_common_interface.S)
           (Key: S with type t = M.key)(Info: Functor_info) = struct
@@ -967,10 +1255,11 @@ end
 (** {3 Hashtbl} *)
 (* ****************************************************************************)
 
-module Initial_caml_hashtbl = Hashtbl
+module Initial_caml_hashtbl = Hashtbl_common_interface
 
 (* ocaml functors are generative *)
-module Hashtbl(H: Hashtbl.S)(Key: S with type t = H.key)(Info : Functor_info) =
+module Hashtbl
+  (H: Hashtbl_with_descr)(Key: S with type t = H.key)(Info : Functor_info) =
 struct
 
   let () = check Key.equal "equal" Key.name Info.module_name
@@ -982,9 +1271,7 @@ struct
       let name ty =
         Info.module_name ^ "(" ^ Key.name ^ ", " ^ Type.name ty ^ ")"
       let module_name = Info.module_name
-      let structural_descr d =
-        Structural_descr.t_hashtbl_unchanged_hashs (Descr.str Key.descr) d
-      open Hashtbl
+      let structural_descr = H.structural_descr
       let reprs x =
         [ let h = H.create 7 in
           Caml_list.iter (fun k -> H.add h k x) Key.reprs; h ]
@@ -1071,7 +1358,7 @@ end
 (** {2 Simple type values} *)
 (* ****************************************************************************)
 
-module Generic_make_with_collections(X: S)(Info: Functor_info) = struct
+module With_collections(X: S)(Info: Functor_info) = struct
 
   module D = X
   include D
@@ -1090,14 +1377,33 @@ module Generic_make_with_collections(X: S)(Info: Functor_info) = struct
 
   module Hashtbl =
     Hashtbl
-      (Initial_caml_hashtbl.Make(D))
+      (struct
+	include Initial_caml_hashtbl.Make(D)
+
+        (* Override "sorted" iterators by using the datatype comparison
+           function if it has been supplied *)
+        let iter_sorted ?cmp = match cmp with
+          | None ->
+              if D.compare == undefined then iter_sorted ?cmp:None
+              else iter_sorted ~cmp:D.compare
+          | Some cmp -> iter_sorted ~cmp
+
+        let fold_sorted ?cmp = match cmp with                                  
+          | None ->
+              if D.compare == undefined then fold_sorted ?cmp:None
+              else fold_sorted ~cmp:D.compare
+          | Some cmp -> fold_sorted ~cmp
+
+        let structural_descr =
+          Structural_descr.t_hashtbl_unchanged_hashs (Descr.str D.descr)
+       end)
       (D)
       (struct let module_name = Info.module_name ^ ".Hashtbl" end)
 
 end
 
 module Make_with_collections(X: Make_input) =
-  Generic_make_with_collections
+  With_collections
     (Make(X))
     (struct let module_name = String.capitalize X.name end)
 
@@ -1120,7 +1426,7 @@ struct
 
   let module_name = "Datatype." ^ String.capitalize X.name
 
-  include Generic_make_with_collections
+  include With_collections
   (Make(struct
           type t = X.t
           let name = X.name
@@ -1139,7 +1445,7 @@ struct
         end))
   (struct let module_name = module_name end)
 
-  let () = Type.set_ml_name ty (Some (module_name ^ ".ty"))
+  let () = Type.set_ml_name ty (Some ("Datatype." ^ name))
 
 end
 
@@ -1148,7 +1454,6 @@ module Unit =
     (struct
       type t = unit
       let name = "unit"
-      let is_marshalable = true
       let reprs = [ () ]
       let copy = identity
       let compare () () = 0
@@ -1163,7 +1468,6 @@ module Bool =
     (struct
       type t = bool
       let name = "bool"
-      let is_marshalable = true
       let reprs = [ true ]
       let copy = identity
       let compare : bool -> bool -> int = Pervasives.compare
@@ -1178,7 +1482,6 @@ module Int = struct
     (struct
       type t = int
       let name = "int"
-      let is_marshalable = true
       let reprs = [ 2 ]
       let copy = identity
       let compare : int -> int -> int = Pervasives.compare
@@ -1195,7 +1498,6 @@ module Int32 =
     (struct
       type t = int32
       let name = "int32"
-      let is_marshalable = true
       let reprs = [ Int32.zero ]
       let copy = identity
       let compare = Int32.compare
@@ -1210,7 +1512,6 @@ module Int64 =
     (struct
       type t = int64
       let name = "int64"
-      let is_marshalable = true
       let reprs = [ Int64.zero ]
       let copy = identity
       let compare = Int64.compare
@@ -1225,7 +1526,6 @@ module Nativeint =
     (struct
       type t = nativeint
       let name = "nativeint"
-      let is_marshalable = true
       let reprs = [ Nativeint.zero ]
       let copy = identity
       let compare = Nativeint.compare
@@ -1240,7 +1540,6 @@ module Float =
     (struct
       type t = float
       let name = "float"
-      let is_marshalable = true
       let reprs = [ 0.1 ]
       let copy = identity
       let compare : float -> float -> int = Pervasives.compare
@@ -1255,7 +1554,6 @@ module Char =
     (struct
       type t = char
       let name = "char"
-      let is_marshalable = true
       let reprs = [ ' ' ]
       let copy = identity
       let compare = Char.compare
@@ -1270,7 +1568,6 @@ module String =
     (struct
       type t = string
       let name = "string"
-      let is_marshalable = true
       let reprs = [ "" ]
       let copy = String.copy
       let compare = String.compare
@@ -1325,236 +1622,193 @@ module Big_int =
      end)
 let big_int = Big_int.ty
 
-module Triple(T1: S)(T2: S)(T3: S) =
-  Make
-    (struct
-      type t = T1.t * T2.t * T3.t
-      let name = "(" ^ T1.name ^ ", " ^ T2.name ^ ", " ^ T3.name ^ ")"
-      let reprs =
-        Caml_list.fold_left
-          (fun acc x1 ->
-            Caml_list.fold_left
-              (fun acc x2 ->
-                Caml_list.fold_left
-                  (fun acc x3 -> (x1, x2, x3) :: acc)
-                  acc
-                  T3.reprs)
-              acc
-              T2.reprs)
-          []
-          T1.reprs
-      let structural_descr =
-        Structural_descr.t_tuple
-          [| T1.packed_descr; T2.packed_descr; T3.packed_descr |]
-      let equal =
-        if T1.equal == undefined
-          || T2.equal == undefined
-          || T3.equal == undefined
-        then undefined
-        else
-          fun (x1, x2, x3) (y1, y2, y3) ->
-            T1.equal x1 y1 && T2.equal x2 y2 && T3.equal x3 y3
-      let compare =
-        if T1.compare == undefined
-          || T2.compare == undefined
-          || T3.compare == undefined
-        then undefined
-        else
-          fun (x1, x2, x3 as x) (y1, y2, y3 as y) ->
-            if x == y then 0
-            else
-              let n = T1.compare x1 y1 in
-              if n = 0 then
-                let n = T2.compare x2 y2 in
-                if n = 0 then T3.compare x3 y3 else n
-              else n
-      let hash =
-        if T1.hash == undefined || T2.hash == undefined || T3.hash == undefined
-        then undefined
-        else
-          fun (x1, x2, x3) ->
-            Initial_caml_hashtbl.hash (T1.hash x1, T2.hash x2, T3.hash x3)
-      let copy =
-        if T1.copy == undefined || T2.copy == undefined || T3.copy == undefined
-        then undefined
-        else fun (x1, x2, x3) -> T1.copy x1, T2.copy x2, T3.copy x3
-      let rehash = identity
-      let varname = undefined
-      let mem_project =
-        if T1.mem_project == undefined
-          || T2.mem_project == undefined
-          || T3.mem_project == undefined
-        then undefined
-        else
-          if T1.mem_project == never_any_project
-            && T2.mem_project == never_any_project
-            && T3.mem_project == never_any_project
-          then never_any_project
-          else
-            fun f (x1, x2, x3) ->
-              T1.mem_project f x1 && T2.mem_project f x2 && T3.mem_project f x3
-      let pretty = from_pretty_code
-      let internal_pretty_code =
-        if T1.internal_pretty_code == undefined
-          || T2.internal_pretty_code == undefined
-          || T3.internal_pretty_code == undefined
-        then undefined
-        else
-          if T1.internal_pretty_code == pp_fail
-            || T2.internal_pretty_code == pp_fail
-            || T3.internal_pretty_code == pp_fail
-          then pp_fail
-          else
-            fun par fmt (x1, x2, x3) ->
-              let pp fmt =
-                Format.fprintf
-                  fmt
-                  "%a, %a, %a"
-                  (T1.internal_pretty_code Type.Tuple) x1
-                  (T2.internal_pretty_code Type.Tuple) x2
-                  (T3.internal_pretty_code Type.Tuple) x3
-              in
-              Type.par par Type.Tuple fmt pp
-     end)
+module Triple_arg = struct
+  type ('a, 'b, 'c) t = 'a * 'b * 'c
+  let module_name = "Datatype.Triple"
+  let reprs a b c = [ a, b, c ]
+  let structural_descr d1 d2 d3 =
+    Structural_descr.t_tuple
+      [| Structural_descr.pack d1; 
+	 Structural_descr.pack d2;
+	 Structural_descr.pack d3 |]
+  let mk_equal f1 f2 f3 (x1,x2,x3) (y1,y2,y3) = f1 x1 y1 && f2 x2 y2 && f3 x3 y3
+  let mk_compare f1 f2 f3 (x1,x2,x3 as x) (y1,y2,y3 as y) =
+    if x == y then 0 
+    else 
+      let n = f1 x1 y1 in 
+      if n = 0 then let n = f2 x2 y2 in if n = 0 then f3 x3 y3 else n
+      else n
+  let mk_hash f1 f2 f3 (x1,x2,x3) = f1 x1 + 1351 * f2 x2 + 257 * f3 x3
+  let map f1 f2 f3 (x1,x2,x3) = f1 x1, f2 x2, f3 x3
+  let mk_internal_pretty_code f1 f2 f3 p fmt (x1, x2, x3) =
+    let pp fmt =
+      Format.fprintf
+        fmt "@[<hv 2>%a,@;%a,@;%a@]" 
+	(f1 Type.Tuple) x1 
+	(f2 Type.Tuple) x2
+	(f3 Type.Tuple) x3
+    in
+    Type.par p Type.Tuple fmt pp
+  let mk_pretty f1 f2 f3 fmt p =
+    Format.fprintf fmt "@[(%a)@]"
+      (mk_internal_pretty_code 
+	 (fun _ -> f1) (fun _ -> f2) (fun _ -> f3) Type.Basic) 
+      p
+  let mk_varname = undefined
+  let mk_mem_project mem1 mem2 mem3 f (x1, x2, x3) = 
+    mem1 f x1 && mem2 f x2 && mem3 f x3
+end
 
-module Quadruple(T1: S)(T2: S)(T3: S)(T4:S) =
-  Make
-    (struct
-      type t = T1.t * T2.t * T3.t * T4.t
-      let name = 
-        Printf.sprintf "(%s, %s, %s, %s)"
-          T1.name T2.name T3.name T4.name
-      let reprs =
-        Caml_list.fold_left
-          (fun acc x1 ->
-            Caml_list.fold_left
-              (fun acc x2 ->
-                Caml_list.fold_left
-                  (fun acc x3 -> 
-                    Caml_list.fold_left
-                      (fun acc x4 ->
-                        (x1, x2, x3, x4) :: acc)
-                      acc
-                      T4.reprs)
-                  acc
-                  T3.reprs)
-              acc
-              T2.reprs)
-          []
-          T1.reprs
-      let structural_descr =
-        Structural_descr.t_tuple
-          [| T1.packed_descr; T2.packed_descr; T3.packed_descr; 
-             T4.packed_descr |]
-      let equal =
-        if T1.equal == undefined
-          || T2.equal == undefined
-          || T3.equal == undefined
-          || T4.equal == undefined
-        then undefined
-        else
-          fun (x1, x2, x3, x4) (y1, y2, y3, y4) ->
-            T1.equal x1 y1 && T2.equal x2 y2 && T3.equal x3 y3 && T4.equal x4 y4
-      let compare =
-        if T1.compare == undefined
-          || T2.compare == undefined
-          || T3.compare == undefined
-          || T4.compare == undefined
-        then undefined
-        else
-          fun (x1, x2, x3, x4 as x) (y1, y2, y3, y4 as y) ->
-            if x == y then 0
-            else
-              let n = T1.compare x1 y1 in
-              if n = 0 then
-                let n = T2.compare x2 y2 in
-                if n = 0 then 
-                  let n = T3.compare x3 y3 in
-                  if n = 0 then T4.compare x4 y4
-                  else n
-                else n
-              else n
-      let hash =
-        if T1.hash == undefined 
-          || T2.hash == undefined 
-          || T3.hash == undefined
-          || T4.hash == undefined
-        then undefined
-        else
-          fun (x1, x2, x3, x4) ->
-            Initial_caml_hashtbl.hash 
-              (T1.hash x1, T2.hash x2, T3.hash x3, T4.hash x4)
-      let copy =
-        if T1.copy == undefined 
-          || T2.copy == undefined 
-          || T3.copy == undefined
-          || T4.copy == undefined
-        then undefined
-        else fun (x1, x2, x3,x4) -> 
-          T1.copy x1, T2.copy x2, T3.copy x3, T4.copy x4
-      let rehash = identity
-      let varname = undefined
-      let mem_project =
-        if T1.mem_project == undefined
-          || T2.mem_project == undefined
-          || T3.mem_project == undefined
-          || T4.mem_project == undefined
-        then undefined
-        else
-          if T1.mem_project == never_any_project
-            && T2.mem_project == never_any_project
-            && T3.mem_project == never_any_project
-            && T4.mem_project == never_any_project
-          then never_any_project
-          else
-            fun f (x1, x2, x3, x4) ->
-              T1.mem_project f x1 
-              && T2.mem_project f x2 
-              && T3.mem_project f x3
-              && T4.mem_project f x4
-      let pretty = from_pretty_code
-      let internal_pretty_code =
-        if T1.internal_pretty_code == undefined
-          || T2.internal_pretty_code == undefined
-          || T3.internal_pretty_code == undefined
-          || T4.internal_pretty_code == undefined
-        then undefined
-        else
-          if T1.internal_pretty_code == pp_fail
-            || T2.internal_pretty_code == pp_fail
-            || T3.internal_pretty_code == pp_fail
-            || T4.internal_pretty_code == pp_fail
-          then pp_fail
-          else
-            fun par fmt (x1, x2, x3, x4) ->
-              let pp fmt =
-                Format.fprintf
-                  fmt
-                  "%a, %a, %a, %a"
-                  (T1.internal_pretty_code Type.Tuple) x1
-                  (T2.internal_pretty_code Type.Tuple) x2
-                  (T3.internal_pretty_code Type.Tuple) x3
-                  (T4.internal_pretty_code Type.Tuple) x4
-              in
-              Type.par par Type.Tuple fmt pp
-     end)
+module rec Triple_name: sig 
+  val name: 'a Type.t -> 'b Type.t -> 'c Type.t -> string 
+end =
+struct
+  let name ty1 ty2 ty3 =
+    let arg ty =
+      Type.par_ty_name
+        (fun ty ->
+          Type.Function.is_instance_of ty || Poly_pair.is_instance_of ty
+	  || Poly_triple.is_instance_of ty)
+        ty
+    in
+    arg ty1 ^ " * " ^ arg ty2 ^ " * " ^ arg ty3
+end
+
+and Poly_triple : sig
+  include Type.Polymorphic3 with type ('a,'b,'c) poly = 'a * 'b * 'c
+  module Make(T1: S)(T2: S)(T3:S) : sig
+    (* include S with type t = (T1.t, T2.t) poly *)
+    (* Copy of S to overcome 3.10.2 bug. Replace it with the line above
+       when support of 3.10.2 is dropped... *)
+    type t = (T1.t, T2.t, T3.t) poly
+    val ty: t Type.t
+    val name: string
+    val descr: t Descr.t
+    val packed_descr: Structural_descr.pack
+    val reprs: t list
+    val equal: t -> t -> bool
+    val compare: t -> t -> int
+    val hash: t -> int
+    val pretty_code: Format.formatter -> t -> unit
+    val internal_pretty_code: Type.precedence -> Format.formatter -> t -> unit
+    val pretty: Format.formatter -> t -> unit
+    val varname: t -> string
+    val mem_project: (Project_skeleton.t -> bool) -> t -> bool
+    val copy: t -> t
+      (* End of copy of S *)
+  end
+end =
+  struct
+  (* Split the functor argument in 2 modules such that ocaml is able to safely
+     evaluate the recursive modules *)
+    include Polymorphic3(struct include Triple_arg include Triple_name end)
+  end
+
+module Triple = Poly_triple.Make
+
+module Quadruple_arg = struct
+  type ('a, 'b, 'c, 'd) t = 'a * 'b * 'c * 'd
+  let module_name = "Datatype.Quadruple"
+  let reprs a b c d = [ a, b, c, d ]
+  let structural_descr d1 d2 d3 d4 =
+    Structural_descr.t_tuple
+      [| Structural_descr.pack d1; 
+	 Structural_descr.pack d2;
+	 Structural_descr.pack d3;
+	 Structural_descr.pack d4 |]
+  let mk_equal f1 f2 f3 f4 (x1,x2,x3,x4) (y1,y2,y3,y4) = 
+    f1 x1 y1 && f2 x2 y2 && f3 x3 y3 && f4 x4 y4
+  let mk_compare f1 f2 f3 f4 (x1,x2,x3,x4 as x) (y1,y2,y3,y4 as y) =
+    if x == y then 0 
+    else 
+      let n = f1 x1 y1 in 
+      if n = 0 then 
+	let n = f2 x2 y2 in 
+	if n = 0 then let n = f3 x3 y3 in if n = 0 then f4 x4 y4 else n
+	else n
+      else n
+  let mk_hash f1 f2 f3 f4 (x1,x2,x3,x4) = 
+    f1 x1 + 1351 * f2 x2 + 257 * f3 x3 + 997 * f4 x4
+  let map f1 f2 f3 f4 (x1,x2,x3,x4) = f1 x1, f2 x2, f3 x3, f4 x4
+  let mk_internal_pretty_code f1 f2 f3 f4 p fmt (x1, x2, x3, x4) =
+    let pp fmt =
+      Format.fprintf
+        fmt "@[<hv 2>%a,@;%a,@;%a,@;%a@]" 
+	(f1 Type.Tuple) x1 
+	(f2 Type.Tuple) x2
+	(f3 Type.Tuple) x3
+	(f4 Type.Tuple) x4
+    in
+    Type.par p Type.Tuple fmt pp
+  let mk_pretty f1 f2 f3 f4 fmt p =
+    Format.fprintf fmt "@[(%a)@]"
+      (mk_internal_pretty_code 
+	 (fun _ -> f1) (fun _ -> f2) (fun _ -> f3) (fun _ -> f4) Type.Basic) 
+      p
+  let mk_varname = undefined
+  let mk_mem_project mem1 mem2 mem3 mem4 f (x1, x2, x3, x4) = 
+    mem1 f x1 && mem2 f x2 && mem3 f x3 && mem4 f x4
+end
+
+module rec Quadruple_name: sig 
+  val name: 'a Type.t -> 'b Type.t -> 'c Type.t -> 'd Type.t -> string 
+end =
+struct
+  let name ty1 ty2 ty3 ty4 =
+    let arg ty =
+      Type.par_ty_name
+        (fun ty ->
+          Type.Function.is_instance_of ty || Poly_pair.is_instance_of ty
+	  || Poly_triple.is_instance_of ty || Poly_quadruple.is_instance_of ty)
+        ty
+    in
+    arg ty1 ^ " * " ^ arg ty2 ^ " * " ^ arg ty3 ^ " * " ^ arg ty4
+end
+
+and Poly_quadruple : sig
+  include Type.Polymorphic4 with type ('a,'b,'c,'d) poly = 'a * 'b * 'c * 'd
+  module Make(T1: S)(T2: S)(T3:S)(T4:S) : sig
+    (* include S with type t = (T1.t, T2.t) poly *)
+    (* Copy of S to overcome 3.10.2 bug. Replace it with the line above
+       when support of 3.10.2 is dropped... *)
+    type t = (T1.t, T2.t, T3.t, T4.t) poly
+    val ty: t Type.t
+    val name: string
+    val descr: t Descr.t
+    val packed_descr: Structural_descr.pack
+    val reprs: t list
+    val equal: t -> t -> bool
+    val compare: t -> t -> int
+    val hash: t -> int
+    val pretty_code: Format.formatter -> t -> unit
+    val internal_pretty_code: Type.precedence -> Format.formatter -> t -> unit
+    val pretty: Format.formatter -> t -> unit
+    val varname: t -> string
+    val mem_project: (Project_skeleton.t -> bool) -> t -> bool
+    val copy: t -> t
+      (* End of copy of S *)
+  end
+end =
+  struct
+    (* Split the functor argument in 2 modules such that ocaml is able to safely
+       evaluate the recursive modules *)
+    include Polymorphic4
+      (struct include Quadruple_arg include Quadruple_name end)
+  end
+
+module Quadruple = Poly_quadruple.Make
 
 module Pair_with_collections(T1: S)(T2: S)(Info:Functor_info) =
-  Generic_make_with_collections
-    (struct
-       include Pair(T1)(T2)
-       let structural_descr = Type.structural_descr ty
-     end)
-    (Info)
+  With_collections(Pair(T1)(T2))(Info)
 
 module Triple_with_collections(T1: S)(T2: S)(T3: S)(Info:Functor_info) =
-  Generic_make_with_collections(Triple(T1)(T2)(T3))(Info)
+  With_collections(Triple(T1)(T2)(T3))(Info)
 
 module Quadruple_with_collections(T1:S)(T2:S)(T3:S)(T4:S)(Info:Functor_info) =
-  Generic_make_with_collections(Quadruple(T1)(T2)(T3)(T4))(Info)
+  With_collections(Quadruple(T1)(T2)(T3)(T4))(Info)
 
 module Option_with_collections(T:S)(Info:Functor_info) =
-  Generic_make_with_collections (Option(T))(Info)
+  With_collections (Option(T))(Info)
 
 (*
 Local Variables:

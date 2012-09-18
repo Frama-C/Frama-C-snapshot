@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,68 +29,74 @@ include Plugin.Register
 
 
 module ForceDeref =
-  Action
+  False
     (struct
        let option_name = "-deref"
        let help = "force deref computation (undocumented)"
-       let output_by_default = true
      end)
 
 module ForceAccessPath =
-  Action
+  False
     (struct
        let option_name = "-access-path"
        let help = "force the access path information to be computed"
-       let output_by_default = true
      end)
 
 module ForceOut =
-  Action
+  False
     (struct
        let option_name = "-out"
        let help = "Compute internal out. Those are an over-approximation of the set of written locations"
-       let output_by_default = true
      end)
 
 module ForceExternalOut =
-  Action
+  False
     (struct
        let option_name = "-out-external"
        let help = "Compute external out. Those are an over-approximation of the set of written locations, excluding locals"
-       let output_by_default = true
      end)
 
 module ForceInput =
-  Action
+  False
      (struct
         let option_name = "-input"
         let help = "Compute imperative inputs. Locals and function parameters are not displayed"
-        let output_by_default = true
       end)
 
 module ForceInputWithFormals =
-  Action
+  False
     (struct
        let option_name = "-input-with-formals"
        let help = "Compute imperative inputs. Function parameters are displayed, locals are not"
-       let output_by_default = true
      end)
 
 module ForceInout =
-  Action
+  False
     (struct
        let option_name = "-inout"
        let help = "Compute operational inputs, an over-approximation of the set of locations whose initial value is used; and the sure outputs, an under-approximation of the set of the certainly written locations"
-       let output_by_default = true
+     end)
+
+module ForceCallwiseInout =
+  False
+    (struct
+       let option_name = "-inout-callwise"
+       let help = "Compute callsite-wide operational inputs; this results in more precise results for -inout and -out options"
      end)
 
 module ForceInoutExternalWithFormals =
-  Action
+  False
     (struct
        let option_name = "-inout-with-formals"
        let help = "same as -inout but without local variables and with function parameters"
-       let output_by_default = true
      end)
+
+let () = Plugin.set_group messages
+module Output =
+  True(struct
+    let option_name = "-inout-print"
+    let help = "print the results of all the analyzes"
+  end)
 
 (*
 Local Variables:

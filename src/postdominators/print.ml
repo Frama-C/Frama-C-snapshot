@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,7 +124,7 @@ let reduce kf graph s =
   with Db.PostdominatorsTypes.Top ->
     ()
 
-let rec build_reduced_graph kf graph stmts =
+let build_reduced_graph kf graph stmts =
   List.iter (reduce kf graph) stmts
 
 let build_dot filename kf =

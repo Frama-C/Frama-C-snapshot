@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ sig
   val pp_descr :  Format.formatter -> t_goal -> unit
 
   val iter_description :
-    (Wpo.warning -> unit) ->
+    (Warning.t -> unit) ->
     (Property.t -> unit) ->
     description -> unit
 

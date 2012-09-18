@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -38,8 +38,8 @@ int            dirfd(DIR *);
 DIR           *fdopendir(int);
 DIR           *opendir(const char *);
 struct dirent *readdir(DIR *);
-int            readdir_r(DIR *restrict, struct dirent *restrict,
-                   struct dirent **restrict);
+int            readdir_r(DIR * dirp, struct dirent * entry,
+			 struct dirent ** result);
 void           rewinddir(DIR *);
 int            scandir(const char *, struct dirent ***,
                    int (*)(const struct dirent *),

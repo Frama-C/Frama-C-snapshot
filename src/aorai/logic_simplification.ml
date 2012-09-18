@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -25,7 +25,6 @@
 
 open Cil_types
 open Promelaast
-open Bool3
 
 let pretty_clause fmt l =
   Format.fprintf fmt "@[<2>[%a@]]@\n"
@@ -34,6 +33,15 @@ let pretty_clause fmt l =
 let pretty_dnf fmt l =
   Format.fprintf fmt "@[<2>[%a@]]@\n"
     (Pretty_utils.pp_list pretty_clause) l
+
+let opposite_rel = 
+  function
+    | Rlt -> Rge
+    | Rgt -> Rle
+    | Rge -> Rlt
+    | Rle -> Rgt
+    | Req -> Rneq
+    | Rneq -> Req
 
 let rec condToDNF cond = 
   (*Typage : condition --> liste de liste de termes (disjonction de conjonction de termes)
@@ -59,8 +67,13 @@ let rec condToDNF cond =
 	    | TOr  (c1, c2) -> condToDNF (TAnd(TNot(c1),TNot(c2)))
 	    | TAnd (c1, c2) -> condToDNF (TOr (TNot(c1),TNot(c2)))
 	    | TNot (c1) -> condToDNF c1
+            | TTrue -> condToDNF TFalse
+            | TFalse -> condToDNF TTrue
+            | TRel(rel,t1,t2) -> [[TRel(opposite_rel rel,t1,t2)]]
 	    | _ as t -> [[TNot(t)]]
 	end
+    | TTrue -> [[TTrue]]
+    | TFalse -> []
     | _ as t -> [[t]]
 
 let removeTerm term lterm = 
@@ -186,17 +199,19 @@ let rel_are_equals (rel1,t11,t12) (rel2,t21,t22) =
   && Logic_utils.is_same_term t11 t21 
   && Logic_utils.is_same_term t12 t22
 
-let opposite_rel = 
-  function
-    | Rlt -> Rge
-    | Rgt -> Rle
-    | Rge -> Rlt
-    | Rle -> Rgt
-    | Req -> Rneq
-    | Rneq -> Req
+let swap_rel (rel,t1,t2) =
+  let rel = match rel with
+    | Rlt -> Rgt
+    | Rle -> Rge
+    | Rge -> Rle
+    | Rgt -> Rlt
+    | Req -> Req
+    | Rneq -> Rneq
+  in (rel,t2,t1)
 
-let contradict_rel (rel1,t11,t12) (rel2,t21,t22) =
-  rel_are_equals (rel1,t11,t12) (opposite_rel rel2, t21,t22)
+let contradict_rel r1 (rel2,t21,t22) =
+  rel_are_equals r1 (opposite_rel rel2, t21,t22)
+  || rel_are_equals (swap_rel r1) (opposite_rel rel2, t21, t22)
 
 (** Simplify redundant relations. *)
 let simplify clause =
@@ -342,20 +357,6 @@ let tors l = List.fold_left tor TFalse l
 *)
 let dnfToCond d = tors (List.map tands d)
 
-let dnfToParametrized clausel =
-  List.fold_left
-    (fun cll cl -> 
-       let onlypcond_cl = 
-	 List.fold_left
-	   (fun res term -> match term with TRel _ -> term::res | _ -> res)
-	   []
-	   cl 
-       in
-       if onlypcond_cl=[] then cll else onlypcond_cl::cll
-    )
-    []
-    clausel
-
 let simplClause dnf clause =
   match clause with
     | [] | [TTrue] | [TNot TFalse]-> [[]]
@@ -391,7 +392,8 @@ let simplifyCond condition =
   Aorai_option.debug "after step 4: %a" pretty_dnf res;
   ((dnfToCond res), res)
 
-(** Given a list of transitions, this function returns the same list of transition with simplifyCond done on its cross condition *)
+(** Given a list of transitions, this function returns the same list of
+   transition with simplifyCond done on its cross condition *) 
 let simplifyTrans transl =
   List.fold_left 
     (fun (ltr,lpcond) tr -> 
@@ -408,7 +410,8 @@ let simplifyTrans transl =
         Promelaoutput.print_condition crossCond pretty_dnf pcond;
       if tr'.cross <> TFalse then (tr'::ltr,pcond::lpcond) else (ltr,lpcond)
     ) 
-    ([],[]) (List.rev transl)
+    ([],[]) 
+    (List.rev transl)
 
 (** Given a DNF condition, it returns the same condition simplified according 
     to the context (function name and status). Hence, the returned condition 
@@ -426,7 +429,7 @@ let simplifyDNFwrtCtx dnf kf1 status =
         if Kernel_function.equal kf1 kf2 && status = Promelaast.Call then
           c
         else TFalse
-      | TReturn kf2 -> 
+      | TReturn kf2 ->
         if Kernel_function.equal kf1 kf2 && status = Promelaast.Return then 
           TTrue
         else TFalse
@@ -435,7 +438,7 @@ let simplifyDNFwrtCtx dnf kf1 status =
       | TOr (c1,c2) -> tor (simplCondition c1) (simplCondition c2)
       | TTrue | TFalse | TRel _ -> c
   in
-  let rec simplCNFwrtCtx cnf =
+  let simplCNFwrtCtx cnf =
     tands (List.map simplCondition cnf)
   in
   let res = tors (List.map simplCNFwrtCtx dnf) in

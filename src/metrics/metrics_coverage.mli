@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,26 @@
 (*                                                                        *)
 (**************************************************************************)
 
+type reachable_functions = {
+  syntactic : Cil_datatype.Varinfo.Set.t;
+  semantic : Cil_datatype.Varinfo.Set.t;
+}
+;;
+
+val percent_coverage : reachable_functions -> float ;;
+
+val compute : unit ->
+  reachable_functions * (Cil_datatype.Varinfo.Hashtbl.key * Cil_types.init) list
+;;
+
 val compute_syntactic: Kernel_function.t -> Cil_datatype.Varinfo.Set.t
 (** List of functions that can be syntactically reached from the function *)
 
 val compute_semantic: unit -> Cil_datatype.Varinfo.Set.t
 (** Functions analyzed by the value analysis *)
+
+val compute_coverage_by_fun:  Cil_datatype.Varinfo.Set.t ->
+  (Cil_types.kernel_function * int * int * float) list
 
 val pp_reached_from_function: Format.formatter -> Kernel_function.t -> unit
 (** Pretty-print the functions that can be syntactically reached from the

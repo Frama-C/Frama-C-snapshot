@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,7 +82,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
   (* module Old = Offsetmap.Build(V) (* Uncomment for testing purposes *)*)
 
   type y = V.t
-  type widen_hint = V.widen_hint
+  type _widen_hint = V.widen_hint
 
   type tt =
     | Empty
@@ -104,7 +104,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
 
   let equal t1 t2 = t1 == t2
 
-  let pretty_node ppf min max r m v  =
+  let _pretty_node ppf min max r m v  =
    Format.fprintf ppf "@[@[[%a..%a] -> (%a, %a, %a);@]@;@ @]"
      Int.pretty min
      Int.pretty max
@@ -218,8 +218,8 @@ module Make (V : Lattice_With_Isotropy.S) = struct
           let name = name
           let dependencies = [ Ast.self ]
           let size = 137
-          let kind = `Internal
         end)
+    let () = Ast.add_monotonic_state NewoHashconsTbl.self
 
     let counter = ref 0
 
@@ -260,7 +260,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
         rem, modu, v
   ;;
 
-  let get_v = function
+  let _get_v = function
     | Empty -> assert false
     | Node (_, _, _, _, _, _, _, v, _) ->
         v
@@ -307,7 +307,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
     printf "[/Zipper]---@.@.";
   ;;
 
- let pout_zipper = pr_zipper std_formatter;;
+ let _pout_zipper = pr_zipper std_formatter;;
 
  (** Returns an absolute position and an associated new tree *)
  let rec rezip zipper curr_off node =
@@ -347,7 +347,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
  (** Move to the right of the current node.
      Uses a zipper for that.
   *)
- let rec move_right curr_off node zipper =
+ let move_right curr_off node zipper =
    match node with
    | Node (_, _, _, offr, ((Node _ ) as subr), _, _, _, _) ->
        let new_offset = Int.add curr_off offr in
@@ -659,12 +659,12 @@ module Make (V : Lattice_With_Isotropy.S) = struct
 
  (** Translation functions to and fro old offstemaps, *)
 
- let to_list t =
+ let _to_list t =
    List.rev (fold (fun min max r m v y -> (min, max, r, m, v) :: y) t [])
 
  (** Checks that [tree] is sanely built  *)
 
- let rec check curr_off tree =
+ let rec _check curr_off tree =
    match tree with
    | Empty -> ()
    | Node (max, offl, subl, offr, subr, rem, modu, _v, _) ->
@@ -682,8 +682,8 @@ module Make (V : Lattice_With_Isotropy.S) = struct
              let nabs_max = Int.add nmax nabs_min in
              assert (is_above abs_min abs_max nabs_min nabs_max)
        in aux offl subl; aux offr subr;
-       check (Int.add curr_off offl) subl;
-       check (Int.add curr_off offr) subr;
+       _check (Int.add curr_off offl) subl;
+       _check (Int.add curr_off offr) subr;
  ;;
 
  (** Inclusion functions *)
@@ -693,7 +693,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
      The offset is absolute.
   *)
 
- let nc_is _included_generic_exn v_is_included_exn o1 t1 o2 t2 =
+ let _nc_is _included_generic_exn v_is_included_exn o1 t1 o2 t2 =
    assert ( o1 = o2);
 
    (* Is n1 included in n2 ? *)
@@ -1168,7 +1168,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
    Assumes the ival we look for
    is greater than what we have in the first node
 *)
- let fforward_bit b zipper offset node  =
+ let _fforward_bit b zipper offset node  =
    assert (
      (Int.gt b (Int.add offset (get_max node))) ||
        Int.lt b offset
@@ -1208,7 +1208,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
        let mmodu = Abstract_interp.Int.pred modu in
        Abstract_interp.Int.sub mmodu stop,Abstract_interp.Int.sub mmodu start
    in
-   V.extract_bits ~start ~stop v
+   V.extract_bits ~start ~stop ~size:modu v
  ;;
 
  let extract_bits ~start ~stop ~modu v =
@@ -1248,7 +1248,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
    [curr_off] and [node] refers to the current node to be read.
    [acc] is the current state of accumulated reads.
  *)
- let extract_bits_and_stitch ~conflate_bottom ~offset ~size curr_off node acc =
+ let extract_bits_and_stitch ~topify ~conflate_bottom ~offset ~size curr_off node acc =
    let r=
      let rem, modu, v = get_vv node curr_off in
      let abs_max = Int.add curr_off (get_max node) in
@@ -1285,10 +1285,10 @@ module Make (V : Lattice_With_Isotropy.S) = struct
          curr_off rem modu V.pretty v ;*)
 
        let _inform_extract_pointer_bits, read_bits =
-         extract_bits ~start ~stop ~modu v
+         extract_bits ~topify ~start ~stop ~modu v
        in
        let result = 
-	 merge_bits ~conflate_bottom
+	 merge_bits ~topify ~conflate_bottom
            ~offset:merge_offset ~length:(Int.length start stop)
            ~value:read_bits ~total_length:(Int.to_int size) acc
        in
@@ -1300,7 +1300,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
        let interval_offset = Int.sub rem start (* ? *) in
        let merge_offset =
          if Int.lt interval_offset Int.zero then Int.zero else interval_offset
-       in merge_bits ~conflate_bottom ~offset:merge_offset
+       in merge_bits ~topify ~conflate_bottom ~offset:merge_offset
             ~length:(Int.length start stop)
             ~value:v ~total_length:(Int.to_int size) acc
      else
@@ -1356,7 +1356,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
    Assumes the rangemap is rooted at offset 0.
 *)
 
- let find ~with_alarms ~conflate_bottom offset size tree period_read_ahead =
+ let find ~topify ~with_alarms ~conflate_bottom offset size tree period_read_ahead =
    ignore(with_alarms); (* FIXME *)
    let offset64 = Int.from_big_int offset in
    let size64 = Int.from_big_int size in
@@ -1388,7 +1388,9 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            let impz = { node = root; offset = cur_off; zipper = z; } in
            while (Int.le impz.offset isize) do
              let (* _inform_extract_pointer_bits,*) v =
-               extract_bits_and_stitch ~conflate_bottom
+               extract_bits_and_stitch
+                 ~topify
+                 ~conflate_bottom
                  ~offset:offset64 ~size:size64
                  impz.offset impz.node !acc
              in
@@ -1421,7 +1423,8 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            let pred_size = Abstract_interp.Int.pred size in
            while Abstract_interp.Int.le !mn mx do
              let read_ahead, v =
-               find ~conflate_bottom ~with_alarms !mn size tree m
+               find ~topify:Origin.K_Misalign_read ~conflate_bottom
+                 ~with_alarms !mn size tree m
              in
              acc := V.join v !acc;
              let naive_next = Abstract_interp.Int.add !mn m in
@@ -1439,8 +1442,8 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            Ival.O.fold
              (fun offset acc ->
                 let _, new_value =
-                  find ~conflate_bottom ~with_alarms
-                    offset size tree Abstract_interp.Int.zero
+                  find ~topify:Origin.K_Misalign_read ~conflate_bottom
+                    ~with_alarms offset size tree Abstract_interp.Int.zero
                 in
                 let result = V.join acc new_value in
                 if V.equal result V.top then raise Not_found;
@@ -1520,7 +1523,12 @@ module Make (V : Lattice_With_Isotropy.S) = struct
 (*   let offset64 = Int.from_big_int offset in
    let size64 = Int.from_big_int size in
 *)
-   assert( abs_max = Int.pred (Int.add size offset)) ; (* TODO: remove *)
+   assert( abs_max = Int.pred (Int.add size offset) ||
+       (Format.printf "Update unhappy. abs_max:%Ld size:%Ld offset:%Ld %a@."
+       abs_max size offset
+       pretty tree;
+	   false)
+) ; (* TODO: remove *)
    let off1, t1 = keep_above abs_max curr_off tree
    and off2, t2 = keep_below offset curr_off tree in
    let rabs = Int.pos_rem offset size in
@@ -1605,7 +1613,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
  end
 
 module UpdateIvalCache = Binary_cache.Make_Het1_1_4(T)(Vs)(Int)(OT)
-let () = Project.register_todo_before_clear (fun _ -> UpdateIvalCache.clear ())
+let () = Project.register_after_set_current_hook ~user_only:false (fun _ -> UpdateIvalCache.clear ())
 
 (** Update a set of intervals in a given rangemap
     all offsets starting from mn ending in mx must be updated
@@ -1614,8 +1622,9 @@ let () = Project.register_todo_before_clear (fun _ -> UpdateIvalCache.clear ())
  let update_ival ~left_cover ~right_cover ~exact
      ~mn ~mx ~period ~size tree v =
    assert(mx >= mn);
-(*   Format.printf "update_ival tree: %a %Ld %Ld exact:%B v:%a@."
-     (pretty_offset curr_off) tree mn mx exact
+(*   Format.printf "update_ival@\ntree:@\n%a@\nmn:%Ld mx:%Ld exact:%B v:%a@."
+     pretty tree 
+     mn mx exact
      V.pretty v;  *)
    let r = Int.pos_rem mn period in
    let rec aux_update_ival left_cover right_cover mn mx curr_off tree =
@@ -1629,7 +1638,7 @@ let () = Project.register_todo_before_clear (fun _ -> UpdateIvalCache.clear ())
          | Empty -> curr_off, empty
          | Node (max, offl, subl, offr, subr, r_node, m_node, v_node, _) ->
                (* Look at the cache if min_cover and max_cover are true *)
-(*           Format.printf "aux_update_ival: %Ld %Ld %B %B@."
+(*           Format.printf "aux_update_ival (2): %Ld %Ld %B %B@."
                mn mx left_cover right_cover; *)
            let abs_offl = Int.add offl curr_off in
            let abs_offr = Int.add offr curr_off in
@@ -1641,7 +1650,7 @@ let () = Project.register_todo_before_clear (fun _ -> UpdateIvalCache.clear ())
                  ~max:last_read_max_offset
                  ~r ~modu:period in
                let new_mx, right_cover, undone =
-                 if Int.gt new_mx mx
+                 if Int.ge new_mx mx
                  then mx, false, None
                  else new_mx, true, Some (Int.add new_mx period)
                in
@@ -1657,7 +1666,7 @@ let () = Project.register_todo_before_clear (fun _ -> UpdateIvalCache.clear ())
                let new_mn = Int.round_up_to_r ~min:first_read_min_offset ~r
                  ~modu:period in
                let new_mn, left_cover, undone =
-                 if Int.lt new_mn mn then
+                 if Int.le new_mn mn then
                    mn, false, None
                  else new_mn, true, Some (Int.sub new_mn period)
                in
@@ -1679,10 +1688,6 @@ let () = Project.register_todo_before_clear (fun _ -> UpdateIvalCache.clear ())
              | Some min, Some max ->
                begin
                  let update = if exact then update else update_imprecise in
-(*                 Format.printf "Update tree %a min:%Ld max:%Ld size:%Ld@."
-                   (pretty_offset !o) !t
-                   min
-                   max size; *)
                  if Int.equal size period
                  then
                    let abs_max = Int.pred (Int.add size max) in
@@ -2095,8 +2100,10 @@ end
  * ok b;;
  * *\)
  *
- * (\*
- * Local Variables:
- * compile-command: "make -C ../..  src/memory_state/new_offsetmap.cmo "
- * End:
- * *\) *)
+ *)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

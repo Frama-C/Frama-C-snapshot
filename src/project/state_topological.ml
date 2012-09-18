@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*                                                                        *)
 (*  Ocamlgraph: a generic graph library for ocaml                         *)
-(*  Copyright (C) 2004-2011                                               *)
+(*  Copyright (C) 2004-2012                                               *)
 (*  Sylvain Conchon, Jean-Christophe Filliâtre and Julien Signoles        *)
 (*                                                                        *)
 (*  This library is free software; you can redistribute it and/or         *)
@@ -33,15 +33,10 @@ module Make(G: G) = struct
 
   let fold f g acc =
     let degree = H.create 997 in
-    let in_cluster = H.create 17 in
     let todo = Queue.create () in
     let push x =
       H.remove degree x;
       Queue.push x todo
-    in
-    let do_cluster x =
-      H.remove in_cluster x;
-      List.iter (fun s -> H.replace in_cluster s ()) (State.Cluster.states x)
     in
     let rec walk acc =
       if Queue.is_empty todo then
@@ -70,7 +65,6 @@ module Make(G: G) = struct
                (* [x] already visited *)
                ())
           g v;
-        do_cluster v;
         walk acc
     in
     G.iter_vertex
@@ -79,8 +73,7 @@ module Make(G: G) = struct
          if d = 0 then Queue.push v todo
          else H.add degree v d)
       g;
-    let acc = walk acc in
-    H.fold (fun v () acc -> f v acc) in_cluster acc
+    walk acc
 
   let iter f g = fold (fun v () -> f v) g ()
 

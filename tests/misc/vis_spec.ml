@@ -15,7 +15,7 @@ object(self)
               Cil.d_funspec sp;
 	    Format.printf "It is '%a' through get_spec@."
               Cil.d_funspec
-              (Kernel_function.get_spec (Globals.Functions.get f.svar));
+              (Annotations.funspec (Globals.Functions.get f.svar));
           )
       | None -> 
         Format.printf "Function prototype; Funspec is '%a'@."

@@ -1,8 +1,6 @@
 # 30 "src/aorai/promelalexer.mll"
  
-
   open Promelaparser
-  open Promelaast
   open Lexing
 
   exception Error of (Lexing.position * Lexing.position) * string
@@ -18,7 +16,7 @@
     lexbuf.lex_curr_p <-
       { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 
-# 22 "src/aorai/promelalexer.ml"
+# 20 "src/aorai/promelalexer.ml"
 let __ocaml_lex_tables = {
   Lexing.lex_base = 
    "\000\000\224\255\225\255\226\255\078\000\160\000\235\000\001\000\
@@ -1177,172 +1175,172 @@ let rec token lexbuf =
 and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 55 "src/aorai/promelalexer.mll"
+# 53 "src/aorai/promelalexer.mll"
                             ( PROMELA_TRUE )
-# 1183 "src/aorai/promelalexer.ml"
+# 1181 "src/aorai/promelalexer.ml"
 
   | 1 ->
-# 56 "src/aorai/promelalexer.mll"
+# 54 "src/aorai/promelalexer.mll"
                             ( PROMELA_NEVER )
-# 1188 "src/aorai/promelalexer.ml"
+# 1186 "src/aorai/promelalexer.ml"
 
   | 2 ->
-# 57 "src/aorai/promelalexer.mll"
+# 55 "src/aorai/promelalexer.mll"
                             ( PROMELA_IF )
-# 1193 "src/aorai/promelalexer.ml"
+# 1191 "src/aorai/promelalexer.ml"
 
   | 3 ->
-# 58 "src/aorai/promelalexer.mll"
+# 56 "src/aorai/promelalexer.mll"
                             ( PROMELA_FI )
-# 1198 "src/aorai/promelalexer.ml"
+# 1196 "src/aorai/promelalexer.ml"
 
   | 4 ->
-# 59 "src/aorai/promelalexer.mll"
+# 57 "src/aorai/promelalexer.mll"
                             ( PROMELA_GOTO )
-# 1203 "src/aorai/promelalexer.ml"
+# 1201 "src/aorai/promelalexer.ml"
 
   | 5 ->
-# 60 "src/aorai/promelalexer.mll"
+# 58 "src/aorai/promelalexer.mll"
                             ( PROMELA_SKIP )
-# 1208 "src/aorai/promelalexer.ml"
+# 1206 "src/aorai/promelalexer.ml"
 
   | 6 ->
-# 61 "src/aorai/promelalexer.mll"
+# 59 "src/aorai/promelalexer.mll"
                             ( PROMELA_DOUBLE_COLON )
-# 1213 "src/aorai/promelalexer.ml"
+# 1211 "src/aorai/promelalexer.ml"
 
   | 7 ->
-# 62 "src/aorai/promelalexer.mll"
+# 60 "src/aorai/promelalexer.mll"
                             ( PROMELA_COLON )
-# 1218 "src/aorai/promelalexer.ml"
+# 1216 "src/aorai/promelalexer.ml"
 
   | 8 ->
-# 63 "src/aorai/promelalexer.mll"
+# 61 "src/aorai/promelalexer.mll"
                             ( PROMELA_SEMICOLON )
-# 1223 "src/aorai/promelalexer.ml"
+# 1221 "src/aorai/promelalexer.ml"
 
   | 9 ->
-# 64 "src/aorai/promelalexer.mll"
+# 62 "src/aorai/promelalexer.mll"
                             ( PROMELA_LPAREN )
-# 1228 "src/aorai/promelalexer.ml"
+# 1226 "src/aorai/promelalexer.ml"
 
   | 10 ->
-# 65 "src/aorai/promelalexer.mll"
+# 63 "src/aorai/promelalexer.mll"
                             ( PROMELA_RPAREN )
-# 1233 "src/aorai/promelalexer.ml"
+# 1231 "src/aorai/promelalexer.ml"
 
   | 11 ->
-# 66 "src/aorai/promelalexer.mll"
+# 64 "src/aorai/promelalexer.mll"
                             ( PROMELA_LBRACE )
-# 1238 "src/aorai/promelalexer.ml"
+# 1236 "src/aorai/promelalexer.ml"
 
   | 12 ->
-# 67 "src/aorai/promelalexer.mll"
+# 65 "src/aorai/promelalexer.mll"
                             ( PROMELA_RBRACE )
-# 1243 "src/aorai/promelalexer.ml"
+# 1241 "src/aorai/promelalexer.ml"
 
   | 13 ->
-# 68 "src/aorai/promelalexer.mll"
+# 66 "src/aorai/promelalexer.mll"
                             ( PROMELA_RIGHT_ARROW )
-# 1248 "src/aorai/promelalexer.ml"
+# 1246 "src/aorai/promelalexer.ml"
 
   | 14 ->
-# 69 "src/aorai/promelalexer.mll"
+# 67 "src/aorai/promelalexer.mll"
                             ( PROMELA_FALSE )
-# 1253 "src/aorai/promelalexer.ml"
+# 1251 "src/aorai/promelalexer.ml"
 
   | 15 ->
-# 70 "src/aorai/promelalexer.mll"
+# 68 "src/aorai/promelalexer.mll"
                             ( PROMELA_OR )
-# 1258 "src/aorai/promelalexer.ml"
+# 1256 "src/aorai/promelalexer.ml"
 
   | 16 ->
-# 71 "src/aorai/promelalexer.mll"
+# 69 "src/aorai/promelalexer.mll"
                             ( PROMELA_AND )
-# 1263 "src/aorai/promelalexer.ml"
+# 1261 "src/aorai/promelalexer.ml"
 
   | 17 ->
-# 72 "src/aorai/promelalexer.mll"
+# 70 "src/aorai/promelalexer.mll"
                             ( PROMELA_NOT )
-# 1268 "src/aorai/promelalexer.ml"
+# 1266 "src/aorai/promelalexer.ml"
 
   | 18 ->
-# 73 "src/aorai/promelalexer.mll"
+# 71 "src/aorai/promelalexer.mll"
                             ( token lexbuf )
-# 1273 "src/aorai/promelalexer.ml"
+# 1271 "src/aorai/promelalexer.ml"
 
   | 19 ->
-# 74 "src/aorai/promelalexer.mll"
+# 72 "src/aorai/promelalexer.mll"
                             ( newline lexbuf; token lexbuf )
-# 1278 "src/aorai/promelalexer.ml"
+# 1276 "src/aorai/promelalexer.ml"
 
   | 20 ->
-# 75 "src/aorai/promelalexer.mll"
+# 73 "src/aorai/promelalexer.mll"
                             ( comment lexbuf; token lexbuf )
-# 1283 "src/aorai/promelalexer.ml"
+# 1281 "src/aorai/promelalexer.ml"
 
   | 21 ->
-# 76 "src/aorai/promelalexer.mll"
+# 74 "src/aorai/promelalexer.mll"
                             ( newline lexbuf; token lexbuf )
-# 1288 "src/aorai/promelalexer.ml"
+# 1286 "src/aorai/promelalexer.ml"
 
   | 22 ->
-# 79 "src/aorai/promelalexer.mll"
+# 77 "src/aorai/promelalexer.mll"
                             ( let s=(lexeme lexbuf) in
                               let s=String.sub s 7 ((String.length s)-7) in
                               PROMELA_CALLOF s )
-# 1295 "src/aorai/promelalexer.ml"
+# 1293 "src/aorai/promelalexer.ml"
 
   | 23 ->
-# 83 "src/aorai/promelalexer.mll"
+# 81 "src/aorai/promelalexer.mll"
                             ( let s=(lexeme lexbuf) in
                               let s=String.sub s 9 ((String.length s)-9) in
                               PROMELA_RETURNOF s )
-# 1302 "src/aorai/promelalexer.ml"
+# 1300 "src/aorai/promelalexer.ml"
 
   | 24 ->
-# 87 "src/aorai/promelalexer.mll"
+# 85 "src/aorai/promelalexer.mll"
                             ( let s=(lexeme lexbuf) in
                               let s=String.sub s 15 ((String.length s)-15) in
                               PROMELA_CALLORRETURNOF s )
-# 1309 "src/aorai/promelalexer.ml"
+# 1307 "src/aorai/promelalexer.ml"
 
   | 25 ->
-# 92 "src/aorai/promelalexer.mll"
+# 90 "src/aorai/promelalexer.mll"
                             ( raise_located (loc lexbuf) "Illegal fonction name in Promela file." )
-# 1314 "src/aorai/promelalexer.ml"
+# 1312 "src/aorai/promelalexer.ml"
 
   | 26 ->
-# 93 "src/aorai/promelalexer.mll"
+# 91 "src/aorai/promelalexer.mll"
                             ( raise_located (loc lexbuf) "Illegal fonction name in Promela file." )
-# 1319 "src/aorai/promelalexer.ml"
+# 1317 "src/aorai/promelalexer.ml"
 
   | 27 ->
-# 94 "src/aorai/promelalexer.mll"
+# 92 "src/aorai/promelalexer.mll"
                             ( raise_located (loc lexbuf) "Illegal fonction name in Promela file." )
-# 1324 "src/aorai/promelalexer.ml"
+# 1322 "src/aorai/promelalexer.ml"
 
   | 28 ->
-# 98 "src/aorai/promelalexer.mll"
+# 96 "src/aorai/promelalexer.mll"
                             ( let s = lexeme lexbuf in
                                 PROMELA_LABEL s )
-# 1330 "src/aorai/promelalexer.ml"
+# 1328 "src/aorai/promelalexer.ml"
 
   | 29 ->
-# 100 "src/aorai/promelalexer.mll"
+# 98 "src/aorai/promelalexer.mll"
                             ( EOF )
-# 1335 "src/aorai/promelalexer.ml"
+# 1333 "src/aorai/promelalexer.ml"
 
   | 30 ->
-# 102 "src/aorai/promelalexer.mll"
+# 100 "src/aorai/promelalexer.mll"
                             ( PROMELA_TRUE )
-# 1340 "src/aorai/promelalexer.ml"
+# 1338 "src/aorai/promelalexer.ml"
 
   | 31 ->
-# 103 "src/aorai/promelalexer.mll"
+# 101 "src/aorai/promelalexer.mll"
                             ( Aorai_option.error "Illegal_character : '%s'\n" (lexeme lexbuf);
                               raise Parsing.Parse_error)
-# 1346 "src/aorai/promelalexer.ml"
+# 1344 "src/aorai/promelalexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_token_rec lexbuf __ocaml_lex_state
 
@@ -1351,30 +1349,30 @@ and comment lexbuf =
 and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 110 "src/aorai/promelalexer.mll"
+# 108 "src/aorai/promelalexer.mll"
          ( () )
-# 1357 "src/aorai/promelalexer.ml"
+# 1355 "src/aorai/promelalexer.ml"
 
   | 1 ->
-# 111 "src/aorai/promelalexer.mll"
+# 109 "src/aorai/promelalexer.mll"
          (  Aorai_option.error "Unterminated_comment\n"  (*lex_error lexbuf "Unterminated_comment"*) )
-# 1362 "src/aorai/promelalexer.ml"
+# 1360 "src/aorai/promelalexer.ml"
 
   | 2 ->
-# 112 "src/aorai/promelalexer.mll"
+# 110 "src/aorai/promelalexer.mll"
          ( newline lexbuf; comment lexbuf )
-# 1367 "src/aorai/promelalexer.ml"
+# 1365 "src/aorai/promelalexer.ml"
 
   | 3 ->
-# 113 "src/aorai/promelalexer.mll"
+# 111 "src/aorai/promelalexer.mll"
          ( comment lexbuf )
-# 1372 "src/aorai/promelalexer.ml"
+# 1370 "src/aorai/promelalexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_comment_rec lexbuf __ocaml_lex_state
 
 ;;
 
-# 116 "src/aorai/promelalexer.mll"
+# 114 "src/aorai/promelalexer.mll"
  
   let parse c =
     let lb = from_channel c in
@@ -1400,4 +1398,4 @@ and __ocaml_lex_comment_rec lexbuf __ocaml_lex_state =
 
 
 
-# 1404 "src/aorai/promelalexer.ml"
+# 1402 "src/aorai/promelalexer.ml"

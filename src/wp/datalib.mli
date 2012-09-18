@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-open Ctypes
-open Formula
-
 
 module Cvalues(M : Mvalues.Model) : Mvalues.Values
   with type loc = M.loc
@@ -36,7 +32,7 @@ module Collector : sig
   type t
 
   val push : unit -> t
-  val pop : t -> Wpo.warning list * Property.t list
+  val pop : t -> Warning.t list * Property.t list
 
   (**
    * When adding a warning, one has to provide :

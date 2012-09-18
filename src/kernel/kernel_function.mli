@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Operations on kernel function.
+(** Operations to get info from a kernel function. This module does
+    not give access to information about the set of all the registered kernel
+    functions (like iterators over kernel functions). This kind of operations is
+    stored in module {!Globals.Functions}.
+
     @plugin development guide *)
 
 open Cil_types
@@ -65,8 +69,7 @@ val find_from_sid : int -> stmt * t
   (** @return the stmt and its kernel function from its identifier.
       Complexity: the first call to this function is linear in the size of
       the cil file.
-      @raise Not_found if there is no statement with such an identifier.
-      @plugin development guide *)
+      @raise Not_found if there is no statement with such an identifier. *)
 
 val find_englobing_kf : stmt -> t
   (** @return the function to which the statement belongs. Same
@@ -86,10 +89,23 @@ val blocks_closed_by_edge: stmt -> stmt -> block list
       same function or [s2] is not a successor of [s1] in the cfg.
       @since Carbon-20101201 *)
 
+val stmt_in_loop: t -> stmt -> bool
+  (** [stmt_in_loop kf stmt] is [true] iff [stmt] strictly 
+      occurs in a loop of [kf].
+      @since Oxygen-20120901 *)
+
+val find_enclosing_loop: t -> stmt -> stmt
+  (** [find_enclosing_loop kf stmt] returns the statement corresponding
+      to the innermost loop containing [stmt] in [kf]. If [stmt] itself is
+      a loop, returns [stmt]
+      @raise Not_found if [stmt] is not part of a loop of [kf]
+      @since Oxygen-20120901 *)
+
 val find_syntactic_callsites : t -> (t * stmt) list
   (** [callsites f] collect the statements where [f] is called.  Same
       complexity as [find_from_sid].
-      @return a list of [f',s] where function [f'] calls [f] at statement [stmt].
+      @return a list of [f',s] where function [f'] calls [f] at statement
+      [stmt].
       @since Carbon-20110201 *)
 
 (* ************************************************************************* *)
@@ -104,6 +120,8 @@ val returns_void : t -> bool
 (* ************************************************************************* *)
 
 val dummy: unit -> t
+(** @plugin development guide *)
+
 val get_vi : t -> varinfo
 val get_id: t -> int
 val get_name : t -> string
@@ -141,48 +159,6 @@ val is_formal_or_local: varinfo -> t -> bool
       variable of the given function.
       If possible, use this function instead of
       {!Ast_info.Function.is_formal_or_local}. *)
-
-(* ************************************************************************* *)
-(** {2 Specifications} *)
-(* ************************************************************************* *)
-
-val get_spec: ?populate:bool -> t -> funspec
-(** [get_spec f] returns the spec of the function. You should use it instead of
-    [f.spec]. If [populate] is set to [false] (default is [true]), then you get
-    the spec without the default behavior generated when expected by the Frama-C
-    kernel (assuming that this behavior was not already generated). *)
-
-val set_spec: t -> (funspec -> funspec) -> unit
-(** [set_spec kf how_to_modify] replaces the old spec [s] of [kf] by [f s].
-    The function [s] is allowed to modify [s] in place and to return [s] at the
-    end. You must call this function to modify a spec and you must not modify
-    directly the 'spec' field of the record yourself.
-    @since Nitrogen-20111001 *)
-
-val postcondition : t -> Cil_types.termination_kind -> predicate named
-(** @modify Boron-20100401 added argument to select desired termination kind *)
-
-val precondition: t -> predicate named
-
-val code_annotations: t -> (stmt * rooted_code_annotation) list
-
-val internal_function_behaviors: t -> string list
-(** @return the list of behavior names that are defined in statement contracts
-    within the function. *)
-
-val spec_function_behaviors: t -> string list
-(** @return the list of behavior names defined in the spec of the function. *)
-
-val all_function_behaviors: t -> string list
-  (** @return the list of all behavior names defined in the function
-      (either in the spec or in statement contracts) *)
-
-val fresh_behavior_name: t -> string -> string
-(** @return a behavior name based on the 2nd argument which is guaranteed not
-    to clash with an existing behavior. *)
-
-val populate_spec: (t -> unit) ref
-(** Should not be used by casual users. *)
 
 (* ************************************************************************* *)
 (** {2 Collections} *)

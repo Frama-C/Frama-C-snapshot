@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,8 +40,6 @@ struct
   type m_pointer
   type pointer = m_pointer F.term
 
-  type decl = F.decl
-
   let unsupported = Wp_error.unsupported
 
   type m_alloc = Formula.m_array
@@ -50,14 +48,10 @@ struct
 
   let model_ptr    = F.e_app2 "ptr"
   let model_base   = F.e_app1 "base"
-  let model_offset = F.e_app1 "offset"
   let model_shift  = F.e_app2 "shift"
 
   let model_range   = F.e_app3 "range_ptr"
-  let model_rbase   = F.e_app1 "rbase"
-  let model_roffset = F.e_app1 "roffset"
   let model_range_of_ptr = F.e_app2 "range_of_ptr"
-  let model_range_of_ptr_range = F.e_app3 "range_of_ptr_range"
   let model_separated = F.p_app2 "separated"
   let model_valid = F.p_app2 "valid" 
 
@@ -98,15 +92,11 @@ struct
       | Addr(b,_) -> b
       | Ptr p -> model_base p
 
-    let offset = function
-      | Addr(_,d) -> d
-      | Ptr p -> model_offset p
-
     let loc_of_term _ p = Ptr (F.unwrap p)
     let term_of_loc loc = F.wrap (ptr loc)
 
 
-    let rec pp_loc fmt l = match l with
+    let pp_loc fmt l = match l with
       | Addr (x,i) -> Format.fprintf fmt "@@ptr(%a,%a)"
           F.pp_term x F.pp_term i
       | Ptr p -> Format.fprintf fmt "%a" F.pp_term p
@@ -176,8 +166,6 @@ struct
     if vi.vglob then global vi ;
     Addr (F.Xindex.get_ind vi,F.i_zero )
       
-	
- let inner_loc _ = Wp_parameters.fatal "[inner_loc] reserved to funvar"
 
   let lvar _m lv x =
     let ty = 
@@ -222,7 +210,12 @@ struct
       x_alloc = x_t ; 
       alloc = F.var x_t;
     }
-      
+  
+  let pp_mem fmt m =
+    Varinfo.Hashtbl.iter
+      (fun v x -> Format.fprintf fmt " * %a:%d => %a@\n" !Ast_printer.d_var v v.vid F.pp_var x)
+      m.vars
+    
   (************************************************************************************)
       
   (** Get the wp variable of the C variable. *)
@@ -412,7 +405,7 @@ struct
   let pp_formal (_:Format.formatter) _ = () 
   let userdef_is_ref_param (_:logic_var) : bool = false
   let userdef_ref_signature (_:mem) : ( F.var * logic_var * formal ) list = []
-  let userdef_ref_apply (_:mem) (_:formal) (_:loc) : value = 
+  let userdef_ref_apply (_:mem) (_:formal) (_:Ctypes.c_object) (_:loc) : value = 
     Wp_parameters.fatal "[userdef_ref_apply] of model Hoare"
   let userdef_ref_has_cvar (_ : logic_var) : bool = false 
 

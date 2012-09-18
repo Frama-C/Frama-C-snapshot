@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Generic Gtk helpers.
-    @plugin development guide *)
+(** Generic Gtk helpers. *)
 
 val framac_logo: GdkPixbuf.pixbuf option
   (** @since Boron-20100401 *)
@@ -32,32 +31,27 @@ val framac_icon: GdkPixbuf.pixbuf option
 (** Some generic icon management tools.
     @since Carbon-20101201 *)
 module Icon: sig
+
+  type kind = Frama_C | Unmark
+              | Custom of string
+	      | Feedback of Property_status.Feedback.t
     (** Generic icons available in every proper install of Frama-C.
         To be able to use [Custom s] you must have called
         [register ~name:s ~file] orelse you will get an generic icon
-        placeholder.
-    *)
-  type kind = Frama_C | Left | Right
-	      | Failed | Maybe | Check | Unmark
-              | Custom of string
-	      | Feedback of Property_status.Feedback.t
+        placeholder. *)
 
-
+  val register: name:string -> file:string -> unit
   (** [register ~name ~file] registers the kind [Custom name] associated
       to the filename [file].
       [$FRAMAC_SHARE/f] should point to an existing file containing
-      an image loadable by GdkPixbuf.
-  *)
-  val register: name:string -> file:string -> unit
+      an image loadable by GdkPixbuf. *)
 
-
+  val get: kind -> GdkPixbuf.pixbuf
   (** @return the pixbuf associated to the given kind.
       If the given kind is [Custom s] and no one ever called
       [register ~name:s ~file] where [file] is such that
       [$(FRAMAC_SHARE)/f] is not a real image file loadable by GdkPixbuf,
-      a generic icon placeholder is returned.
-  *)
-  val get: kind -> GdkPixbuf.pixbuf
+      a generic icon placeholder is returned. *)
 
   val default: unit -> GdkPixbuf.pixbuf
 
@@ -65,7 +59,6 @@ end
 
 (** Configuration module for the GUI: all magic visual constants should
     use this mechanism (window width, ratios, ...).
-
     @since Carbon-20101201 *)
 module Configuration: sig
   type configData =
@@ -78,55 +71,64 @@ module Configuration: sig
   val load : unit -> unit
   val save : unit -> unit
 
-  (** Set a configuration element, with a key. Overwrites the previous values *)
   val set : string -> configData -> unit
+  (** Set a configuration element, with a key. Overwrites the previous values *)
 
+  val find: string -> configData
   (** Find a configuration elements, given a key. Raises Not_found if it cannot
       find it *)
-  val find: string -> configData
 
+  val find_int: ?default:int -> string -> int
   (** Like find but extracts the integer.
       Raises Not_found if the key is found but is not an integer.
       Raises Not_found if no default is given and the key is not found.
       If a default is given and the key is not found then the default value
       is stored for the given key and returned. *)
-  val find_int: ?default:int -> string -> int
 
+  val use_int: string -> (int -> unit) -> unit
   (** Looks for an integer configuration element, and if it is found, it is
       given to the given function. Otherwise, does nothing *)
-  val use_int: string -> (int -> unit) -> unit
 
   val find_bool : ?default:bool -> string -> bool
+  (** Same as {find_int}. *)
+
   val use_bool: string -> (bool -> unit) -> unit
+  (** Same as {!use_int}. *)
 
   val find_float : ?default:float -> string -> float
-  val use_float: string -> (float -> unit) -> unit
+  (** Same as {!find_int}. *)
 
-  val find_string: string -> string
+  val use_float: string -> (float -> unit) -> unit
+  (** Same as {!use_int}. *)
+
+  val find_string: ?default:string -> string -> string
+  (** Same as {!find_int}. *)
+
   val use_string: string -> (string -> unit) -> unit
+  (** Same as {!use_int}. *)
 
   val find_list: string -> configData list
   val use_list: string -> (configData list -> unit) -> unit
 end
+
+(* ************************************************************************** *)
 (** {2 Tags} *)
+(* ************************************************************************** *)
 
 val make_tag :
   < tag_table : Gtk.text_tag_table;
     create_tag : ?name:string -> GText.tag_property list -> GText.tag ; .. >
       -> name:string -> GText.tag_property list -> GText.tag
-  (** @plugin development guide *)
 
 val apply_tag : GSourceView2.source_buffer -> GText.tag -> int -> int -> unit
-  (** @plugin development guide *)
-
 val remove_tag : GSourceView2.source_buffer -> GText.tag -> int -> int -> unit
-
 val cleanup_tag : GSourceView2.source_buffer -> GText.tag -> unit
-  (** @plugin development guide *)
 
 val cleanup_all_tags : GSourceView2.source_buffer -> unit
 
+(* ************************************************************************** *)
 (** {2 Channels} *)
+(* ************************************************************************** *)
 
 val make_formatter: ?flush:(unit -> unit) -> #GText.buffer -> Format.formatter
   (** Build a formatter that redirects its output to the given buffer.
@@ -143,7 +145,9 @@ val log_redirector: ?flush:(unit->unit) -> (string -> unit) -> unit
 val redirect : Format.formatter -> #GText.buffer -> unit
   (** Redirect the given formatter to the given buffer *)
 
+(* ************************************************************************** *)
 (** {2 Asynchronous command execution} *)
+(* ************************************************************************** *)
 
 val spawn_command:
   ?timeout:int ->
@@ -157,10 +161,11 @@ val spawn_command:
       If timeout is > 0 (the default) then the process will be killed if it does
       not end before timeout seconds.
       In this case the returned process status will be
-      [Unix.WSIGNALED Sys.sigalrm].
-  *)
+      [Unix.WSIGNALED Sys.sigalrm]. *)
 
+(* ************************************************************************** *)
 (** {2 Locks} *)
+(* ************************************************************************** *)
 
 val gui_unlocked: bool ref
   (** This is a mutex you may use to prevent running some code while the GUI
@@ -178,24 +183,35 @@ val register_locking_machinery:
       @modify Boron-20100401 new optional argument [lock_last] and new
       argument [()] *)
 
+(* ************************************************************************** *)
 (** 2 Tooltips *)
+(* ************************************************************************** *)
 
 val do_tooltip: ?tooltip:string -> < coerce: GObj.widget; .. > -> unit
   (** Add the given tooltip to the given widget.
-      It has no effect if no tooltip is given.
-  *)
+      It has no effect if no tooltip is given. *)
 
+(* ************************************************************************** *)
 (** {2 Chooser} *)
+(* ************************************************************************** *)
 
 type 'a chooser =
     GPack.box -> string -> (unit -> 'a) -> ('a -> unit) -> (unit -> unit)
+(** The created widget is packed in the box. 
+    The two following functions are supposed to be accessors(get and set) 
+    for the value to be displayed.
+    The returned closure may be called to resynchronize the value in the widget 
+    from the get function. *)
 
 val on_bool: ?tooltip:string -> ?use_markup:bool -> bool chooser
   (** Pack a check button *)
 
-val on_bool_radio:
-  ?tooltip:string -> ?use_markup:bool -> GPack.box -> string -> string
-  -> (unit -> bool) -> (bool -> unit) -> (unit -> unit)
+val range_selector:
+  ?tooltip:string ->
+  ?use_markup:bool ->
+  GPack.box ->
+  label:string ->
+  lower:int -> upper:int -> (int -> unit) -> (unit -> int) -> unit -> unit
 
 val on_int:
   ?tooltip:string -> ?use_markup:bool -> ?lower:int -> ?upper:int ->
@@ -205,11 +221,13 @@ val on_int:
         By default, sensitivity is set to true when this function is called. *)
 
 val on_string:
-  ?tooltip:string -> ?use_markup:bool -> ?validator:(string -> bool)
+  ?tooltip:string -> ?use_markup:bool -> ?validator:(string -> bool) ->
+  ?width:int
   -> string chooser
   (** Pack a string chooser *)
 
-val on_string_set: ?tooltip:string -> ?use_markup:bool -> string chooser
+val on_string_set: ?tooltip:string -> ?use_markup:bool -> ?width:int
+  -> string chooser
   (** Pack a string-set chooser *)
 
 val on_string_completion:
@@ -221,7 +239,9 @@ val on_combo:
   -> string chooser
   (** Pack a string-selector *)
 
+(* ************************************************************************** *)
 (** {2 Error manager} *)
+(* ************************************************************************** *)
 
 (**  A utility class to catch exceptions and report proper error messages. *)
 class type host = object
@@ -239,7 +259,9 @@ end
      @since Beryllium-20090901 *)
 class error_manager : GWindow.window_skel -> host
 
+(* ************************************************************************** *)
 (** {2 Source files chooser} *)
+(* ************************************************************************** *)
 
 (** @since Boron-20100401 *)
 class type source_files_chooser_host = object
@@ -257,7 +279,9 @@ val source_files_chooser:
   (string list -> unit) ->
   unit
 
+(* ************************************************************************** *)
 (** {2 Miscellaneous} *)
+(* ************************************************************************** *)
 
 val refresh_gui: unit -> unit
   (** Process pending events in the main Glib loop.
@@ -297,6 +321,8 @@ val make_text_page:
       @since Beryllium-20090901 *)
 
 (** A functor to build custom Gtk lists.
+    You'll probably prefer to use the highlevel custom models in 
+    the next module named Custom.List.
     It may be part of a future lablgtk release.
     Do not change anything without changing lablgtk svn.*)
 module MAKE_CUSTOM_LIST(A : sig type t end)
@@ -333,6 +359,64 @@ module MAKE_CUSTOM_LIST(A : sig type t end)
         title:string ->
         GTree.view_column
     end
+
+(* Simple and high level custom model interface *)
+module Custom: sig
+
+  type ('a,'b) column =
+      ?title:string -> 'b list -> ('a -> 'b list) -> GTree.view_column
+      
+  class type virtual ['a] custom = ['a,'a,unit,unit] GTree.custom_tree_model
+    
+  class ['a] columns : 
+    ?packing:(GObj.widget -> unit) -> GTree.view -> 'a #custom ->
+  object
+    method view : GTree.view
+    method reload : unit (** Structure has changed *)
+    method update_all : unit (** (only) Content of rows has changed *)
+    method update_row : 'a -> unit
+    method insert_row : 'a -> unit
+    method set_focus : 'a -> GTree.view_column -> unit
+    method on_click : ('a -> GTree.view_column -> unit) -> unit
+    method on_double_click : ('a -> GTree.view_column -> unit) -> unit
+    method add_column_text   : ('a,GTree.cell_properties_text) column
+    method add_column_pixbuf : ('a,GTree.cell_properties_pixbuf) column
+    method add_column_toggle : ('a,GTree.cell_properties_toggle) column
+  end
+
+  module List: sig 
+    
+    class type ['a] model =
+    object
+      method size : int
+      method index : 'a -> int
+      method get : int -> 'a
+    end
+      
+    class ['a] view : 
+      ?packing:(GObj.widget->unit) 
+      -> ?headers:bool -> ?rules:bool -> 'a model ->
+    object
+      inherit ['a] columns
+    end
+  end
+
+  module Tree: sig
+    class type ['a] model =
+    object
+      method has_child : 'a -> bool
+      method children : 'a option -> int
+      method child_at : 'a option -> int -> 'a
+      method parent : 'a -> 'a option
+      method index : 'a -> int
+    end
+      
+    class ['a] view : ?headers:bool -> ?rules:bool -> 'a model ->
+    object
+      inherit ['a] columns
+    end
+  end
+end
 
 (*
 Local Variables:

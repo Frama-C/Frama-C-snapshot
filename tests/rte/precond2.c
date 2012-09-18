@@ -1,10 +1,10 @@
 /* run.config
-   EXECNOW: make -s tests/rte/compute_annot/compute_annot.opt
-   EXECNOW: make -s tests/rte/rte_api/rte_api.opt
-   CMD: ./tests/rte/compute_annot/compute_annot.opt
-   OPT: -journal-disable
-   CMD: ./tests/rte/rte_api/rte_api.opt
-   OPT: -journal-disable
+
+
+
+   OPT: -load-script tests/rte/compute_annot/compute_annot.ml -journal-disable
+
+   OPT: -load-script tests/rte/rte_api/rte_api.ml -journal-disable
 */
 
 int global = 15;

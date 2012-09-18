@@ -21,6 +21,13 @@ int h(int i)
 
 int func(int x, int y) { return x + y; }
 
+volatile int c;
+
+int ub_ret(void) {
+  int d = 5;
+  return d + (d=0);
+}
+
 int main (int a) {
   int x, *y, i,j;
   x = 0;
@@ -32,15 +39,17 @@ int main (int a) {
   i=j=0;
   while (j<10 && i<10) G[j++] += G[i++];
   i=j=0;
-  while(j<10 && i<10) {
-    G[j] = G[j++]; // UB
-    G[i++] = G[i]; // UB
-  }
+  if (c) {
+    while(j<9 && i<9) {
+      G[j] = G[j++]; // UB
+      G[i++] = G[i]; // UB
+    }}
   i=j=0;
-  while(j<10 && i<10) {
-    G[j] += G[j++]; // UB
-    G[i++] += G[i]; // UB
-  } 
+  if (c) {
+    while(j<9 && i<9) {
+      G[j] += G[j++]; // UB
+      G[i++] += G[i]; // UB
+    }}
   i = f(g(3)+x) + x++; //UB
   *y = f(g(3)+x); // no UB: x is read to write to x (through an alias)
   if (a)
@@ -52,5 +61,8 @@ int main (int a) {
          (((G[2] ^ G[2]) <= G[2]) < ((*y) || G[2]))), 5)));
 
   int (*my_f) (int) = f;
+  
+  G[9] = ub_ret();
+  
   return (my_f=g, f(1)) + my_f(2);
 }

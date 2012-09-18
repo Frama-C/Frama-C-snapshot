@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Dynamic plug-ins: registration and use. *)
+(** Dynamic plug-ins: registration and use. 
+    @plugin development guide *)
 
 val default_path: unit -> string list
 
@@ -29,12 +30,15 @@ val default_path: unit -> string list
 (* ************************************************************************* *)
 
 val register:
-  plugin:string -> string -> 'a Type.t -> journalize:bool -> 'a -> 'a
+  ?comment:string -> 
+  plugin:string -> 
+  string -> 'a Type.t -> journalize:bool -> 'a -> 'a
   (** [register ~plugin name ty v] registers [v] with the name
       [name], the type [ty] and the plug-in [plugin].
       @raise Type.AlreadyExists if [name] already exists. In other words you
       cannot register a value with the same name twice.
       @modify Boron-20100401 add the labeled argument "plugin"
+      @modify Oxygen-20120901 add the optional labeled argument "comment"
       @plugin development guide *)
 
 (* ************************************************************************* *)
@@ -43,6 +47,12 @@ val register:
 
 exception Incompatible_type of string
 exception Unbound_value of string
+
+exception Unloadable of string
+(** Exception that a plug-in can throw if it detects that it
+    can't be loaded. It is caught by {!Dynamic.load_module} and
+   {!Dynamic.load_script}
+    @since Oxygen-20120901 *)
 
 val get: plugin:string -> string -> 'a Type.t -> 'a
   (** [get ~plugin name ty] returns the value registered with the name
@@ -53,6 +63,10 @@ val get: plugin:string -> string -> 'a Type.t -> 'a
       with a compatible type
       @plugin development guide *)
 
+val iter: (string -> 'a Type.t -> 'a -> unit) -> unit
+val iter_comment : (string -> string -> unit) -> unit
+(** @since Oxygen-20120901 *)
+
 val is_plugin_present: string -> bool
 (** @return true iff the given plug-in is loaded and usable.
     @since Nitrogen-20111001 *)
@@ -62,7 +76,8 @@ val is_plugin_present: string -> bool
 (* ************************************************************************* *)
 
 (** Module to use for accessing parameters of plug-ins.
-    Assume that the plug-in is already loaded. *)
+    Assume that the plug-in is already loaded. 
+    @plugin development guide *)
 module Parameter : sig
 
   (** Set of common operations on parameters. *)
@@ -78,12 +93,19 @@ module Parameter : sig
   (** retrieve the representation of the corresponding parameter. *)
   val get_parameter: string -> Parameter.t
 
+  (** retrieve the state related to the corresponding parameter.
+      @raise Not_found if the option does not correspond to an actual
+      parameter
+      @since Oxygen-20120901 *)
+  val get_state: string -> State.t
+
   (**/**)
   val get_name: string -> string -> string -> string
   (** Not for casual users *)
   (**/**)
 
-  (** Boolean parameters. *)
+  (** Boolean parameters. 
+      @plugin development guide *)
   module Bool: sig
     include Common with type t = bool
     val on: string -> unit -> unit

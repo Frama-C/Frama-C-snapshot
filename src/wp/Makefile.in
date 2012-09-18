@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat a l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -54,6 +54,18 @@ MODELS:= share/wp.v \
 	share/runtime_model.v \
 	share/runtime_model.why \
 	share/runtime_ergo.why \
+	share/qed.mlw \
+	share/cint.mlw \
+	share/cfloat.mlw \
+	share/cmath.mlw \
+	share/vset.mlw \
+	share/memory.mlw \
+	share/Qedlib.v \
+	share/Cint.v \
+	share/Cfloat.v \
+	share/Cmath.v \
+	share/Vset.v \
+	share/Memory.v \
 
 # Extension of the GUI for wp is compilable
 # only if gnomecanvas is available
@@ -68,43 +80,56 @@ PLUGIN_ENABLE:=@ENABLE_WP@
 PLUGIN_DYNAMIC:=@DYNAMIC_WP@
 PLUGIN_NAME:=Wp
 PLUGIN_CMO:= \
-	wprop \
+	rformat wprop \
 	wp_parameters wp_error \
 	ctypes clabels \
+	LogicUsage VarUsage variables_analysis \
 	cil2cfg normAtLabels \
 	wpPropId wpStrategy wpFroms wpAnnot \
-	script proof \
-	wpo prover \
-	variables_analysis datalib \
-	fol fol_let fol_decl fol_pretty \
+	Context Warning Model Lang Matrix Passive Splitter \
+	Hypotheses \
+	Definitions Cint Cfloat Vset Region Cvalues \
+	CodeSemantics \
+	LogicCompiler LogicBuiltins \
+	LogicSemantics LogicAssigns  \
+	Sigma MemEmpty MemVar MemTyped \
+	VCS script proof wpo wpReport \
+	ProverTask ProverErgo ProverCoq \
+	ProverVCD prover \
+	datalib fol fol_let fol_decl fol_pretty \
 	data_mem \
 	mint_natural mfloat_natural \
-	funvar_mem runtime_mem store_mem hoare_mem \
+	logic_mem funvar_mem runtime_mem store_mem hoare_mem heap_mem \
 	fol_cc fol_eqs fol_eval fol_norm \
 	fol_split fol_why fol_ergo kreal fol_coq \
 	fol_formula \
-	LogicId LogicTau LogicRaw LogicPretty LogicLang \
-	LogicLib LogicHavoc LogicDef \
-	ACSL \
 	translate_expr \
 	translate_prop \
 	calculus cfgpropid \
 	cfgWeakestPrecondition \
-	cfgProof \
+	cfgProof cfgDump cfgWP \
+	Generator \
 	register
 
 PLUGIN_CMI:= \
-	mcfg formula \
-	mint mfloat mvalues mlogic mwp
+	mcfg Memory \
+	formula mint mfloat mvalues mlogic mwp
 
-PLUGIN_GENERATED:= $(PLUGIN_DIR)/script.ml 
+PLUGIN_GENERATED:= $(PLUGIN_DIR)/script.ml $(PLUGIN_DIR)/rformat.ml
 # $(PLUGIN_DIR)/wp_version.ml
 
-PLUGIN_UNDOC+= fol_qed.mli fol_qed.ml
+PLUGIN_UNDOC+=
+PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin -I $(PLUGIN_DIR)/qed/src
 PLUGIN_INTRO:=$(FRAMAC_SRC)/doc/code/intro_wp.txt
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
-PLUGIN_DISTRIB_EXTERNAL:= Makefile.in configure.ac configure $(MODELS)
+PLUGIN_DISTRIB_EXTERNAL:=Makefile.in configure.ac configure $(MODELS)
+
+CEA_WP+= $(addprefix $(PLUGIN_DIR)/, \
+             $(filter-out configure,$(PLUGIN_DISTRIB_EXTERNAL))) \
+	 $(addprefix $(PLUGIN_DIR)/, script.mll rformat.mll) \
+         $(addprefix $(PLUGIN_DIR)/, *.ml) \
+	 $(addprefix $(PLUGIN_DIR)/, *.mli) \
 
 ifeq ("$(OCAMLGRAPH_LOCAL)","")
 OFLAGS+=-I +ocamlgraph
@@ -112,10 +137,53 @@ BFLAGS+=-I +ocamlgraph
 endif
 
 # --------------------------------------------------------------------------
+# --- Qed Dependencies                                                   ---
+# --------------------------------------------------------------------------
+
+QED_LIB = $(PLUGIN_DIR)/qed/bin
+QED_CMO = $(QED_LIB)/Qed.cmo
+QED_CMX = $(QED_LIB)/Qed.cmx
+
+QED_LIB_ML = z r range intmap intset idxset idxmap \
+	 listset listmap mergeset mergemap collection \
+         hcons plib topology
+
+QED_SRC_ML = kind pool term pretty depends \
+	 linker export export_coq export_whycore export_why3 export_altergo \
+	 input ast parser \
+	 unify typechecker compiler \
+	 simplifier \
+
+QED_SRC_MLI = logic engine syntax
+
+# removed lexer -> lexer.mll only
+
+QED_SRC = $(PLUGIN_DIR)/qed/src
+QED_FILES = Makefile MakeOcaml ocamldoc.css lexer.mll \
+  $(addsuffix .mli,$(QED_LIB_ML) $(QED_SRC_ML) $(QED_SRC_MLI)) \
+  $(addsuffix .ml,$(QED_LIB_ML) $(QED_SRC_ML))
+QED_SOURCES:= $(addprefix $(QED_SRC)/,$(QED_FILES))
+
+PLUGIN_BFLAGS:= -I $(QED_LIB)
+PLUGIN_OFLAGS:= -I $(QED_LIB)
+
+PLUGIN_EXTRA_BYTE:=$(QED_CMO)
+PLUGIN_EXTRA_OPT:=$(QED_CMX)
+
+QED_DISTRIB_SRC:=$(addprefix qed/src/,$(QED_FILES))
+
+CEA_WP+=$(QED_SOURCES)
+PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
+
+# --------------------------------------------------------------------------
 # --- Tests                                                              ---
 # --------------------------------------------------------------------------
 
-PLUGIN_TESTS_DIRS:= wp wp_plugin wp_acsl wp_store wp_hoare wp_runtime wp_bts wp_engine
+PLUGIN_TESTS_DIRS:= \
+  wp wp_plugin wp_acsl wp_bts wp_engine \
+  wp_store wp_hoare wp_runtime wp_typed
+
+#Do not add wp_typed to this list: require provers
 #PLUGIN_NO_TESTS:=no
 #PLUGIN_NO_DEFAULT_TEST:=yes
 
@@ -147,6 +215,45 @@ endif
 $(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(CONFIG_STATUS_DIR)/config.status
 	@cd $(CONFIG_STATUS_DIR) && ./config.status
 	@make depend
+
+.PHONY: qed
+
+qed: 
+	@echo "Cleaning     Qed"
+	@rm -f $(QED_LIB)/*
+	@rm -f $(Wp_DIR)/qed/src/*.cm?
+	$(MAKE) $(QED_CMO) $(QED_CMX)
+
+clean::
+	@echo "Cleaning     Qed"
+	@rm -f $(QED_LIB)/*
+	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src clean
+
+
+$(Wp_DIR)/Memory.cmi: $(QED_CMO)
+$(Wp_DIR)/Splitter.cmi: $(QED_CMO)
+$(Wp_DIR)/Splitter.cmo: $(QED_CMO)
+$(Wp_DIR)/Splitter.cmx: $(QED_CMX)
+$(Wp_DIR)/Lang.cmi:   $(QED_CMO)
+$(Wp_DIR)/Lang.cmo:   $(QED_CMO)
+$(Wp_DIR)/Lang.cmx:   $(QED_CMX)
+$(Wp_DIR)/Vset.cmo:   $(QED_CMO)
+$(Wp_DIR)/Vset.cmx:   $(QED_CMX)
+
+ifeq ($(OCAMLOPT),ocamlopt.opt)
+QEDOPT=.opt
+else
+QEDOPT=
+endif
+
+$(QED_CMO): $(QED_SOURCES)
+	@echo "Compiling    Qed (byte$(QEDOPT))"
+	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend
+	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src byte
+
+$(QED_CMX): $(QED_CMO) #- To avoid parallel invocation of Qed makefile
+	@echo "Compiling    Qed (opt$(QEDOPT))"
+	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src opt
 
 install::
 	$(MKDIR) $(FRAMAC_DATADIR)/wp

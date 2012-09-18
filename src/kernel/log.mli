@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
 (** Logging Services for Frama-C Kernel and Plugins.
-    @since Beryllium-20090601-beta1 *)
-(* -------------------------------------------------------------------------- *)
+    @since Beryllium-20090601-beta1
+    @plugin development guide *)
 
 open Format
 
@@ -88,11 +87,11 @@ exception FeatureRequest of string * string
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Plugin Interface}
-    @plugin development guide
     @since Beryllium-20090601-beta1 *)
 (* -------------------------------------------------------------------------- *)
 
-(** @since Beryllium-20090601-beta1 *)
+(** @since Beryllium-20090601-beta1
+    @plugin development guide *)
 module type Messages = sig
 
   val verbose_atleast : int -> bool
@@ -112,39 +111,47 @@ module type Messages = sig
 
   val result  : ?level:int -> 'a pretty_printer
     (** Results of analysis. Default level is 1.
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1
+	@plugin development guide *)
 
   val feedback : ?level:int -> 'a pretty_printer
     (** Progress and feedback. Level is tested against the verbose.
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1
+	@plugin development guide *)
 
   val debug   : ?level:int -> ?dkey:string -> 'a pretty_printer
     (** Debugging information dedicated to Plugin developpers.
         Default level is 1. The debugging key is used in message headers.
 	See also [set_debug_keys] and [set_debug_keyset].
         @since Beryllium-20090601-beta1
-	@modify Nitrogen-20111001 Optional parameter [dkey] *)
+	@modify Nitrogen-20111001 Optional parameter [dkey]
+	@plugin development guide *)
 
   val warning : 'a pretty_printer
     (** Hypothesis and restrictions.
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1
+	@plugin development guide *)
 
   val error   : 'a pretty_printer
     (** user error: syntax/typing error, bad expected input, etc.
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1
+	@plugin development guide *)
 
   val abort   : ('a,'b) pretty_aborter
     (** user error stopping the plugin.
         @raise AbortError with the channel name.
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1
+	@plugin development guide *)
 
   val failure : 'a pretty_printer
-    (** internal error of the plug-in. *)
+    (** internal error of the plug-in.
+	@plugin development guide *)
 
   val fatal   : ('a,'b) pretty_aborter
     (** internal error of the plug-in.
         @raise AbortFatal with the channel name.
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1
+	@plugin development guide *)
 
   val verify : bool -> ('a,bool) pretty_aborter
     (** If the first argument is [true], return [true] and do nothing else,
@@ -152,7 +159,8 @@ module type Messages = sig
         [false].
 
         The intended usage is: [assert (verify e "Bla...") ;].
-        @since Beryllium-20090601-beta1 *)
+        @since Beryllium-20090601-beta1 
+	@plugin development guide *)
 
   val not_yet_implemented : ('a,formatter,unit,'b) format4 -> 'a
     (** raises [FeatureRequest] but {i do not} send any message.
@@ -188,10 +196,12 @@ module type Messages = sig
         at least [n].
         - [log ~verbose:n ~debug:m]: any debugging or verbosity level is
         sufficient.
-        @since Beryllium-20090901 *)
+        @since Beryllium-20090901
+	@plugin development guide *)
 
   val with_log : (event -> 'b) -> ?kind:kind -> ('a,'b) pretty_aborter
-    (** @since Beryllium-20090901 *)
+    (** @since Beryllium-20090901
+	@plugin development guide *)
 
   val register : kind -> (event -> unit) -> unit
     (** Local registry for listeners. *)
@@ -220,13 +230,15 @@ module Register
 val set_echo : ?plugin:string -> ?kind:kind list -> bool -> unit
   (** Turns echo on or off. Applies to all channel unless specified,
       and all kind of messages unless specified.
-      @since Beryllium-20090601-beta1 *)
+      @since Beryllium-20090601-beta1 
+      @plugin development guide *)
 
 val add_listener : ?plugin:string -> ?kind:kind list -> (event -> unit) -> unit
   (** Register a hook that is called each time an event is
       emitted. Applies to all channel unless specified,
       and all kind of messages unless specified.
-      @since Beryllium-20090601-beta1 *)
+      @since Beryllium-20090601-beta1 
+      @plugin development guide *)
 
 val echo : event -> unit
   (** Display an event of the terminal, unless echo has been turned off.
@@ -235,11 +247,6 @@ val echo : event -> unit
 val notify : event -> unit
   (** Send an event over the associated listeners.
       @since Beryllium-20090601-beta1 *)
-
-val reset_once_flag : unit -> unit
-  (** Reset the [once] flag of pretty-printers. Messages already printed
-      will be printed again.
-      @since Boron-20100401 *)
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Channel interface}
@@ -252,7 +259,8 @@ type channel
   (** @since Beryllium-20090601-beta1 *)
 
 val new_channel : string -> channel
-  (** @since Beryllium-20090901 *)
+  (** @since Beryllium-20090901 
+      @plugin development guide *)
 
 type prefix =
   | Label of string
@@ -262,12 +270,14 @@ type prefix =
 val log_channel : channel ->
   ?kind:kind -> ?prefix:prefix -> 'a pretty_printer
   (** logging function to user-created channel.
-      @since Beryllium-20090901 *)
+      @since Beryllium-20090901
+      @plugin development guide *)
 
 val with_log_channel : channel -> (event -> 'b) ->
   ?kind:kind -> ?prefix:prefix -> ('a,'b) pretty_aborter
   (** logging function to user-created channel.
-      @since Beryllium-20090901 *)
+      @since Beryllium-20090901
+      @plugin development guide *)
 
 val kernel_channel_name: string
   (** the reserved channel name used by the Frama-C kernel.
@@ -276,13 +286,6 @@ val kernel_channel_name: string
 val kernel_label_name: string
   (** the reserved label name used by the Frama-C kernel.
       @since Beryllium-20090601-beta1 *)
-
-(**/**)
-val set_current_source : (unit -> Lexing.position) -> unit
-  (* Forward reference to the function returning the current location,
-      used when [~current:true] is set on printers. Currently set
-      in {Cil}. Not for the casual user. *)
-(**/**)
 
 val get_current_source : unit -> Lexing.position
 
@@ -306,7 +309,8 @@ val with_null : (unit -> 'b) -> ('a,formatter,unit,'b) format4 -> 'a
 
 val set_output : (string -> int -> int -> unit) -> (unit -> unit) -> unit
   (** This function has the same parameters as Format.make_formatter.
-      @since Beryllium-20090901 *)
+      @since Beryllium-20090901 
+      @plugin development guide *)
 
 val print_on_output : (Format.formatter -> unit) -> unit
   (** Direct printing on output.
@@ -316,7 +320,8 @@ val print_on_output : (Format.formatter -> unit) -> unit
 
       Can not be recursively invoked.
       @since Beryllium-20090901 
-      @modify Nitrogen-20111001 signature changed *)
+      @modify Nitrogen-20111001 signature changed 
+      @plugin development guide *)
 
 val print_delayed : (Format.formatter -> unit) -> unit
   (** Direct printing on output.  Same as [print_on_output], except
@@ -326,7 +331,20 @@ val print_delayed : (Format.formatter -> unit) -> unit
 
       Can not be recursively invoked.
       @since Beryllium-20090901
-      @modify Nitrogen-20111001 signature changed *)
+      @modify Nitrogen-20111001 signature changed 
+      @plugin development guide *)
+
+(**/**)
+val set_current_source : (unit -> Lexing.position) -> unit
+  (* Forward reference to the function returning the current location,
+      used when [~current:true] is set on printers. Currently set
+      in {Cil}. Not for the casual user. *)
+
+val check_not_yet: (event -> bool) ref
+  (* Checks whether a message been emitted already, in which case it is
+     not reprinted. Currently set in {Messages}. Not for the casual user.
+  *)
+(**/**)
 
 (*
 Local Variables:

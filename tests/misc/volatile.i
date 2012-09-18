@@ -10,6 +10,9 @@ struct sv { int a; volatile int b; };
 
 volatile struct sv sv1, sv2={1,1};
 
+struct sv sv3 = {3};
+struct sv sv4 = {4, 5};
+
 int main () {
   G = G;
   k = G;

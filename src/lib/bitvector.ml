@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,15 +33,6 @@ let create n =
   if s > max_size then raise (Invalid_argument "Bitvector.create") ;
   let r = n land 7 in
   String.make (if r > 0 then succ s else s) '\000'
-
-let nbits () =
-  Array.init 256
-    (fun x ->
-       let n = ref 0 in
-       for k=0 to 7 do
-         if x land (1 lsl k) > 0 then incr n
-       done ; n
-    )
 
 let pp_bits fmt x =
   for k=7 downto 0 do

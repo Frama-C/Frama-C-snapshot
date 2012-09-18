@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 module type S = sig
   type elt
-  include Datatype.S
+  include Datatype.S_with_collections
   val empty: t
   val is_empty: t -> bool
   val mem: elt -> t -> bool
@@ -46,6 +46,7 @@ module type S = sig
   val contains_single_elt: t -> elt option
   val choose: t -> elt
   val split: elt -> t -> t * bool * t
+  val intersects: t -> t -> bool
 end
 
 module type Id_Datatype = sig
@@ -155,6 +156,19 @@ module Make(X: Id_Datatype)
   let split key t =
     let l, pres, r = split key t in
     l, pres <> None, r
+
+  let intersects =
+    let aux =
+      generic_symetric_existential_predicate
+	Hptmap.Found_inter
+	do_it_intersect
+	~decide_one:(fun _ _ -> ())
+	~decide_both:(fun _ _ -> raise Hptmap.Found_inter)
+    in
+    fun s1 s2 ->
+      try  aux s1 s2;  false
+      with Hptmap.Found_inter -> true
+
 
 end
 

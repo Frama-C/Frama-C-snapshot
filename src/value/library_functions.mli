@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,10 +31,12 @@ val add_retres_to_state:
 
 val returned_value:
   kernel_function ->
-  Cil_types.typ ->
   Cvalue.Model.t ->
   Cvalue.V.t * Cvalue.Model.t
 
+(** Auxiliary function that registers a new variable declared by Value
+    within the kernel internal tables *)
+val register_new_var: varinfo -> typ -> unit
 
 (*
 Local Variables:

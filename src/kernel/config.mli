@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,6 +64,13 @@ val compilation_unit_names: string list
   (** List of names of all kernel compilation units.
       @since Boron-20100401 *)
 
+val preprocessor: string
+  (** Name of the default command to call the preprocessor.
+      If the CPP environment variable is set, use it
+      else use the built-in default from autoconf. Usually this is
+      "gcc -C -E -I."
+      @since Oxygen-20120901 *)
+  
 val dot: string option
 (** Dot command name.
     @return [None] if `dot' is not installed.

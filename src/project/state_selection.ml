@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,6 +71,8 @@ module type S = sig
   val with_codependencies: State.t -> t
   val only_codependencies: State.t -> t
   val union: t -> t -> t
+  val list_union: t list -> t
+  val list_state_union: ?deps:(State.t -> t) -> State.t list -> t
   val diff: t -> t -> t
   val cardinal: t -> int
   val pretty: Format.formatter -> t -> unit
@@ -80,10 +82,9 @@ module type S = sig
   val fold: (State.t -> 'a -> 'a) -> t -> 'a -> 'a
   val iter_in_order: (State.t -> unit) -> t -> unit
   val fold_in_order: (State.t -> 'a -> 'a) -> t -> 'a -> 'a
-  val remove_useless_states: t -> t
 end
 
-module Make(G: State_dependency_graph.S) = struct
+module Static = struct
 
   let transitive_closure next_vertices s =
     let rec visit acc v =
@@ -92,45 +93,52 @@ module Make(G: State_dependency_graph.S) = struct
           let e = v, v' in
           if Selection.mem_edge_e acc e then acc
           else visit (Selection.add_edge_e acc e) v')
-        G.graph v acc
+        State_dependency_graph.graph v acc
     in
     (* add [s] in the selection even if it has no ingoing/outgoing edges *)
     visit (Selection.add_vertex Selection.empty s) s
 
-  let with_dependencies s = Subset (transitive_closure G.G.fold_succ s)
-  let with_codependencies s = Subset (transitive_closure G.G.fold_pred s)
+  let with_dependencies s = 
+    Subset (transitive_closure State_dependency_graph.G.fold_succ s)
+
+  let with_codependencies s = 
+    Subset (transitive_closure State_dependency_graph.G.fold_pred s)
 
   let only_dependencies s =
-    let g = transitive_closure G.G.fold_succ s in
+    let g = transitive_closure State_dependency_graph.G.fold_succ s in
     Subset (Selection.remove_vertex g s)
 
   let only_codependencies s =
-    let g = transitive_closure G.G.fold_pred s in
+    let g = transitive_closure State_dependency_graph.G.fold_pred s in
     Subset (Selection.remove_vertex g s)
 
   let diff sel1 sel2 =
-    Subset
-      (match sel1, sel2 with
-      | _, Full -> Selection.empty
+    match sel1, sel2 with
+      | _, Full -> Subset Selection.empty
+      | Full, sel2 when is_empty sel2 -> Full
       | Full, Subset sel2 ->
         let selection =
-          G.G.fold_vertex
+          State_dependency_graph.G.fold_vertex
             (fun v acc ->
               if Selection.mem_vertex sel2 v then acc
               else Selection.add_vertex acc v)
-            G.graph
+            State_dependency_graph.graph
             Selection.empty
         in
-        G.G.fold_edges
-          (fun v1 v2 acc ->
-            if Selection.mem_vertex sel2 v1 || Selection.mem_vertex sel2 v2
-            then acc
-            else Selection.add_edge acc v1 v2)
-          G.graph
-          selection
+        let sel =
+          State_dependency_graph.G.fold_edges
+            (fun v1 v2 acc ->
+              if Selection.mem_vertex sel2 v1 || Selection.mem_vertex sel2 v2
+              then acc
+              else Selection.add_edge acc v1 v2)
+            State_dependency_graph.graph
+            selection
+        in
+        Subset sel
       | Subset sel1, Subset sel2 ->
-        Selection.fold_vertex
-          (fun v acc -> Selection.remove_vertex acc v) sel2 sel1)
+        Subset
+          (Selection.fold_vertex
+             (fun v acc -> Selection.remove_vertex acc v) sel2 sel1)
 
   let union =
     let module O = Graph.Oper.P(Selection) in
@@ -138,42 +146,52 @@ module Make(G: State_dependency_graph.S) = struct
     | Full, _ | _, Full -> Full
     | Subset sel1, Subset sel2 -> Subset (O.union sel1 sel2)
 
+  let list_union l = List.fold_left union (Subset Selection.empty) l
+    
+  let list_state_union ?(deps=singleton) l =
+    List.fold_left
+      (fun acc state -> union acc (deps state)) (Subset Selection.empty) l
+
   let cardinal = function
-    | Full -> G.G.nb_vertex G.graph
+    | Full -> State_dependency_graph.G.nb_vertex State_dependency_graph.graph
     | Subset sel -> Selection.nb_vertex sel
 
   let iter_succ f sel v = match sel with
-    | Full -> G.G.iter_succ f G.graph v
+    | Full -> 
+      State_dependency_graph.G.iter_succ f State_dependency_graph.graph v
     | Subset sel -> Selection.iter_succ f sel v
 
   let fold_succ f sel v acc = match sel with
-    | Full -> G.G.fold_succ f G.graph v acc
+    | Full -> 
+      State_dependency_graph.G.fold_succ f State_dependency_graph.graph v acc
     | Subset sel -> Selection.fold_succ f sel v acc
 
   let iter f = function
-    | Full -> G.G.iter_vertex f G.graph
+    | Full -> 
+      State_dependency_graph.G.iter_vertex f State_dependency_graph.graph
     | Subset sel -> Selection.iter_vertex f sel
 
   let fold f s acc = match s with
-    | Full -> G.G.fold_vertex f G.graph acc
+    | Full -> 
+      State_dependency_graph.G.fold_vertex f State_dependency_graph.graph acc
     | Subset sel -> Selection.fold_vertex f sel acc
 
-  module TG = State_topological.Make(G.G)
+  module TG = State_topological.Make(State_dependency_graph.G)
   module TS = State_topological.Make(Selection)
 
   let iter_in_order f = function
-    | Full -> TG.iter f G.graph
+    | Full -> TG.iter f State_dependency_graph.graph
     | Subset sel -> TS.iter f sel
 
   let fold_in_order f s acc = match s with
-    | Full -> TG.fold f G.graph acc
+    | Full -> TG.fold f State_dependency_graph.graph acc
     | Subset sel -> TS.fold f sel acc
 
   let pretty fmt sel =
     Format.fprintf fmt "contents of the selection:@\n";
     let mem s =
-      State_dependency_graph.Static.G.mem_vertex
-        State_dependency_graph.Static.graph
+      State_dependency_graph.G.mem_vertex
+        State_dependency_graph.graph
         s
     in
     iter_in_order
@@ -184,37 +202,9 @@ module Make(G: State_dependency_graph.S) = struct
       sel;
     Format.pp_print_flush fmt ()
 
-  let remove_useless_states = function
-    | Full -> assert false
-    | Subset sel ->
-      let module R =
-            State_dependency_graph.Remove_useless_states(Selection)(State)
-      in
-      Subset (R.get sel)
-
 end
 
-module Static = Make(State_dependency_graph.Static)
-
-module Dynamic = struct
-
-  include Make(State_dependency_graph.Dynamic)
-
-  module Dot(A:State_dependency_graph.Attributes) = struct
-    module DG = State_dependency_graph.Dynamic.Dot(A)
-    module DS = Graph.Graphviz.Dot(struct include A include Selection end)
-    let dump s filename =
-      match s with
-      | Full -> DG.dump filename
-      | Subset s ->
-        let cout = open_out filename in
-        DS.output_graph cout s;
-        close_out cout
-  end
-
-  include Dot(State_dependency_graph.Dynamic.Attributes)
-
-end
+include Static
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -69,9 +69,37 @@ val compute: unit -> unit
 val is_computed: unit -> bool
   (** @return true if the AST has been computed. *)
 
+val mark_as_changed: unit -> unit
+  (** call this function whenever you've made some changes in place
+      inside the AST
+      @since Oxygen-20120901
+      @plugin development guide
+  *)
+
+val mark_as_grown: unit -> unit
+  (** call this function whenever you have added something to the AST,
+      without modifying the existing nodes
+      @since Oxygen-20120901
+      @plugin development guide
+  *)
+
+val add_monotonic_state: State.t -> unit
+(** indicates that the given state (which must depend on Ast.self) is robust
+    against additions to the AST, that is, it will be able to compute
+    information on the new nodes whenever needed. {!Ast.mark_as_grown} will
+    not erase such states, while {!Ast.mark_as_changed} and clearing Ast.self
+    itself will.
+    @since Oxygen-20120901
+    @plugin development guide
+ *)
+
 val self: State.t
   (** The state kind associated to the cil AST.
       @plugin development guide *)
+
+val apply_after_computed: (Cil_types.file -> unit) -> unit
+(** Apply the given hook just after building the AST. 
+    @since Oxygen-20120901 *)
 
 (*****************************************************************************)
 (** {2 Internals}
@@ -79,10 +107,25 @@ val self: State.t
     Functions below should not be called by casual users. *)
 (*****************************************************************************)
 
+val is_last_decl: Cil_types.global -> bool
+  (** [true] if the global is the last one in the AST to introduce a given
+      variable. Used by visitor and printer to relate funspec with appropriate
+      global.
+      @since Oxygen-20120901
+   *)
+
+val clear_last_decl : unit -> unit
+  (** reset the mapping between a varinfo and the last global introducing it.
+      @since Oxygen-20120901
+   *)
+
 val set_file: Cil_types.file -> unit
 val set_default_initialization: (unit -> unit) -> unit
 val mark_as_computed: unit -> unit
   (** @since Beryllium-20090901 *)
+
+(**/**)
+val add_linked_state: State.t -> unit
 
 (*
 Local Variables:

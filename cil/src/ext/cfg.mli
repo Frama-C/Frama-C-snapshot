@@ -45,13 +45,12 @@
     This is required for several other extensions, such as {!Dataflow}.
     @plugin development guide *)
 
-open Cil
 open Cil_types
 
 (** Compute the CFG for an entire file, by calling cfgFun on each function. *)
 val computeFileCFG: file -> unit
 
-(** clear the sid (except when clear_id is explicitely set to false),
+(** clear the sid (except when clear_id is explicitly set to false),
     succs, and preds fields of each statement. *)
 val clearFileCFG: ?clear_id:bool -> file -> unit
 

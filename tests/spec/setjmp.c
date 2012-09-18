@@ -1,5 +1,5 @@
 /* run.config
-   DONTRUN: syntactically incorrect include
+   DONTRUN: syntactically incorrect include + no spec here...
 */
 #ifndef PTEST
 #include <stdio.h>

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ open Abstract_interp
 open Cil
 open Locations
 open Value_util
-open Cil_types
+open Cvalue_convert
 
 let table = Hashtbl.create 17
 
@@ -40,25 +40,11 @@ let find_builtin name =
 let mem_builtin name = Hashtbl.mem table name
 
 let () = Db.Value.mem_builtin := mem_builtin
+
 let overridden_by_builtin s =
   try ignore (Value_parameters.BuiltinsOverrides.find s); true
   with Not_found -> false
 
-let offsetmap_of_value ~typ v =
-  V_Offsetmap.update_ival
-       ~with_alarms:CilE.warn_none_mode
-       ~validity:Base.All
-       ~offsets:Ival.zero
-       ~exact:true
-       ~size:(Int.of_int (bitsSizeOf typ))
-       V_Offsetmap.empty
-       (V_Or_Uninitialized.initialized v)
-
-let wrap_int i = Some (offsetmap_of_value ~typ:intType i)
-let wrap_ptr p = Some (offsetmap_of_value ~typ:intPtrType p)
-let wrap_double d = Some (offsetmap_of_value ~typ:doubleType d)
-
-exception Found_misaligned_base
 
 let double_double_fun name caml_fun state actuals =
   match actuals with
@@ -75,7 +61,8 @@ let double_double_fun name caml_fun state actuals =
               ("Builtin " ^ name ^ " applied to address");
             Cvalue.V.topify_arith_origin arg
         in
-        (wrap_double r), state, Location_Bits.Top_Param.bottom
+        { Db.Value.builtin_values = [ (wrap_double r), state ];
+	  Db.Value.builtin_clobbered = Location_Bits.Top_Param.bottom }
       end
   | _ ->
       Value_parameters.error "%s"
@@ -129,13 +116,13 @@ let frama_C_compare_cos state actuals =
 (*          crlibm_init();
             let lref = cos_rd uarg in (* cos is decreasing *)
             let uref = cos_ru larg in (* cos is decreasing *) *)
-            Ival.set_round_nearest_even();
+            Floating_point.set_round_nearest_even();
               (* system cos probably isn't designed for non-default rounding *)
             let lref = cos uarg in
             let uref = cos larg in
-            Ival.set_round_upward();
+            Floating_point.set_round_upward();
             let lallow = uref -. ueps in
-            Ival.set_round_downward();
+            Floating_point.set_round_downward();
             let uallow = lref +. ueps in
             if lallow <= lres && ures <= uallow
             then
@@ -148,7 +135,8 @@ let frama_C_compare_cos state actuals =
                 larg uarg
                 lres ures
                 lref uref;
-            None, state, Location_Bits.Top_Param.bottom
+            { Db.Value.builtin_values = [ None, state ];
+	      builtin_clobbered = Location_Bits.Top_Param.bottom }
           with _ -> Value_parameters.error
             "Invalid argument for Frama_C_compare_cos function";
             do_degenerate None;
@@ -189,7 +177,8 @@ let frama_C_sqrt state actuals =
               "sqrt: TODO -- a proper alarm";
             V.bottom
         in
-        (wrap_double r), state, Location_Bits.Top_Param.bottom
+	{ Db.Value.builtin_values = [ wrap_double r, state] ; 
+	  builtin_clobbered = Location_Bits.Top_Param.bottom }
       end
   | _ -> Value_parameters.error
       "Invalid argument for Frama_C_sqrt function";
@@ -198,154 +187,119 @@ let frama_C_sqrt state actuals =
 
 let () = register_builtin "Frama_C_sqrt" frama_C_sqrt
 
-
-
-exception Invalid_CEA_alloc_infinite
-exception Not_found_lonely_key
-
-module Dynamic_Alloc_Table =
-  State_builder.Hashtbl
-    (Datatype.String.Hashtbl)
-    (Locations.Location_Bytes)
-    (struct
-       let dependencies = [Db.Value.self]
-       let size = 79
-       let name = "Dynamic_Alloc_Table"
-       let kind = `Internal
-     end)
-
-let frama_c_alloc_infinite state actuals =
-  try
-    let file = match actuals with
-    | [_,file,_] -> file
-    | _ -> raise Invalid_CEA_alloc_infinite
-    in
-    let file_base,_file_offset =
-      try
-        Cvalue.V.find_lonely_key file
-      with Not_found -> raise Not_found_lonely_key
-    in
-    let file = match file_base with
-    | Base.String (_,e) -> 
-	( match Base.get_string e with
-	  Base.CSString s -> s
-	| Base.CSWstring _ -> assert false )
-    | Base.Var (s,_) | Base.Initialized_Var (s,_) -> s.Cil_types.vname
-    | Base.Null -> raise Invalid_CEA_alloc_infinite
-
-    in
-    let loc =
-      Dynamic_Alloc_Table.memo
-        (fun file ->
-          let new_name =
-            if Extlib.string_prefix ~strict:true "Frama_C_alloc_" file
-            then file
-            else Format.sprintf "Frama_C_alloc_%s" file
-          in
-          let new_name = Cabs2cil.fresh_global new_name in
-          let unbounded_type =
-            Cil_types.TArray
-              (intType,
-               Some (new_exp ~loc:Cil_datatype.Location.unknown
-                       (Cil_types.Const (Cil_types.CStr "NOSIZE"))),
-               empty_size_cache (),[])
-          in
-          let new_varinfo =
-            makeGlobalVar ~logic:true new_name unbounded_type
-          in
-          let new_offsetmap =
-            Cvalue.V_Offsetmap.sized_zero (Bit_utils.memory_size ())
-          in
-          let new_base =
-            Cvalue.Default_offsetmap.create_initialized_var
-              new_varinfo
-              Base.All
-              new_offsetmap
-          in
-          Location_Bytes.inject new_base Ival.zero)
-        file
-    in
-    wrap_ptr loc, state, Location_Bits.Top_Param.bottom
-  with
-  | Ival.Error_Top | Invalid_CEA_alloc_infinite
-  | Not_found_lonely_key (* from [find_lonely_key] *)
-    -> Value_parameters.error
-      "Invalid argument for Frama_C_alloc_infinite function";
+let frama_C_assert state actuals =
+  let do_bottom () =
+    warning_once_current "Frama_C_assert: false";
+    Cvalue.Model.bottom
+  in
+  match actuals with
+    [arg_exp, arg, _arg_offsm] -> begin
+        let state =
+	  if Cvalue.V.is_zero arg 
+	  then do_bottom ()
+	  else if Cvalue.V.contains_zero arg 
+	  then begin
+	      try
+		let state =
+		  Eval_exprs.reduce_by_cond 
+		    ~with_alarms:CilE.warn_none_mode
+		    state
+		    { Eval_exprs.exp = arg_exp ; positive = true }
+		in
+		warning_once_current "Frama_C_assert: unknown";
+		state
+	      with Eval_exprs.Reduce_to_bottom -> 
+		do_bottom ()
+	    end
+	  else begin
+	      warning_once_current "Frama_C_assert: true";
+	      state
+	    end
+        in
+	{ Db.Value.builtin_values = [ None, state ] ;
+	  builtin_clobbered = Location_Bits.Top_Param.bottom }
+      end
+  | _ -> Value_parameters.error
+      "Invalid argument for Frama_C_assert function";
       do_degenerate None;
       raise Db.Value.Aborted
-  | Not_found -> assert false
 
-let () = register_builtin "Frama_C_alloc_infinite" frama_c_alloc_infinite
+let () = register_builtin "Frama_C_assert" frama_C_assert
 
 let frama_c_dump_assert state _actuals =
   Value_parameters.result ~current:true "Frama_C_dump_assert_each called:@\n(%a)@\nEnd of Frama_C_dump_assert_each output"
     Cvalue.Model.pretty_c_assert state;
-  None, state, Location_Bits.Top_Param.bottom
+  { Db.Value.builtin_values = [None, state];
+    builtin_clobbered = Location_Bits.Top_Param.bottom }
 
 let () = register_builtin "Frama_C_dump_assert_each" frama_c_dump_assert
 
+let found_split state _ = 
+ { Db.Value.builtin_values = [None, state];
+    builtin_clobbered = Location_Bits.Top_Param.bottom }
+let () = register_builtin "Frama_C_split" found_split
+let found_merge state _ = 
+ { Db.Value.builtin_values = [None, state];
+    builtin_clobbered = Location_Bits.Top_Param.bottom }
+let () = register_builtin "Frama_C_merge" found_merge
+
+
+let frama_c_bzero state actuals =
+  if Value_parameters.ValShowProgress.get () then
+    Value_parameters.feedback "Call to builtin bzero(%a)%t"
+      pretty_actuals actuals Value_util.pp_callstack;
+    match actuals with
+    | [(exp_dst, dst, _); (exp_size, size, _)] ->
+        let with_alarms = warn_all_quiet_mode () in
+        let size =
+          try
+	    let size = Cvalue.V.project_ival size in
+            Int.mul Int.eight (Ival.project_int size)
+          with V.Not_based_on_null | Ival.Not_Singleton_Int ->
+            raise Db.Value.Outside_builtin_possibilities
+        in
+        let term_size = Logic_utils.expr_to_term ~cast:true exp_size in
+        let array_dst = Logic_utils.array_with_range exp_dst term_size in
+        CilE.set_syntactic_context (CilE.SyMemLogic array_dst);
+        if not (Cvalue.V.cardinal_zero_or_one dst)
+        then raise Db.Value.Outside_builtin_possibilities;
+        let left = loc_bytes_to_loc_bits dst
+        and offsm_repeat =
+          V_Offsetmap.create_initial
+            ~v:(V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
+            ~modu:Int.eight
+        in
+        let state =
+          if Int.gt size Int.zero then
+            Cvalue.Model.paste_offsetmap ~with_alarms
+              ~from:offsm_repeat ~dst_loc:left ~start:Int.zero ~size:size
+              ~exact:true state
+          else state
+        in
+        { Db.Value.builtin_values = [ None, state ] ;
+	  builtin_clobbered = Location_Bits.Top_Param.bottom }
+    | _ ->
+        raise Db.Value.Outside_builtin_possibilities
+
+let () = register_builtin "Frama_C_bzero" frama_c_bzero
+
 
 (* -------------------------------------------------------------------------- *)
-(* --- Builtins not registered in the table                               --- *)
+(* --- Multi-names builtins, not registered in the table                  --- *)
 (* -------------------------------------------------------------------------- *)
 
-exception Invalid_CEA_alloc
-
-let alloc_with_validity initial_state actuals =
-  try
-    let size = match actuals with
-      | [_,size,_] -> size
-      | _ -> raise Invalid_CEA_alloc
-    in
-    let size =
-      try
-        let size = Cvalue.V.project_ival size in
-        Ival.project_int size
-      with Ival.Not_Singleton_Int | V.Not_based_on_null ->
-        raise Invalid_CEA_alloc
-    in
-    if Int.le size Int.zero then raise Invalid_CEA_alloc;
-    let new_name = Format.sprintf "Frama_C_alloc" in
-    let new_name = Cabs2cil.fresh_global new_name in
-    let bounded_type =
-      TArray(
-        charType,
-        Some (new_exp ~loc:Cil_datatype.Location.unknown
-                (Const (CInt64 (size,IInt ,None)))),
-        empty_size_cache (),
-        [])
-    in
-    let new_varinfo = makeGlobalVar ~logic:true new_name bounded_type in
-    let size_in_bits = Int.mul (Bit_utils.sizeofchar()) size in
-    let new_offsetmap = Cvalue.V_Offsetmap.sized_zero ~size_in_bits in
-    let new_base =
-      Cvalue.Default_offsetmap.create_initialized_var
-        new_varinfo
-        (Base.Known (Int.zero, Int.pred size_in_bits))
-        new_offsetmap
-    in
-    let loc_without_size = Location_Bytes.inject new_base Ival.zero in
-    (wrap_ptr loc_without_size),
-    initial_state,
-    Location_Bits.Top_Param.bottom
-  with Ival.Error_Top | Invalid_CEA_alloc ->
-    Value_parameters.error
-      "Invalid argument for Frama_C_alloc_size function";
-    do_degenerate None;
-    raise Db.Value.Aborted
-
-let dump_state initial_state =
+let dump_state initial_state _ =
   let l = fst (CurrentLoc.get ()) in
   Value_parameters.result
     "DUMPING STATE of file %s line %d@\n%a=END OF DUMP=="
     l.Lexing.pos_fname l.Lexing.pos_lnum
     Cvalue.Model.pretty initial_state;
-  None, initial_state, Location_Bits.Top_Param.bottom
+       { Db.Value.builtin_values = [None, initial_state];
+	 builtin_clobbered = Location_Bits.Top_Param.bottom}
 
 module DumpFileCounters =
   State_builder.Hashtbl (Datatype.String.Hashtbl)(Datatype.Int)
     (struct let size = 3
-            let kind = `Correctness
             let dependencies = [Db.Value.self]
             let name = "Builtins.DumpFileCounters"
      end)
@@ -353,7 +307,9 @@ let dump_state_file name initial_state args =
   (try
      let size = String.length name in
      let name = 
-       if size > 23 (* Frama_C_dump_each_file_ + 'something' *) then
+       if size > 23 
+	 (* 0    5    1    5    2    5 *)
+	 (*  Frama_C_dump_each_file_ + 'something' *) then
          String.sub name 23 (size - 23)
        else failwith "no filename specified"
      in
@@ -375,14 +331,18 @@ let dump_state_file name initial_state args =
        "Error during, or invalid call to Frama_C_dump_each_file (%s). Ignoring"
        (Printexc.to_string e)
   );
-  None, initial_state, Location_Bits.Top_Param.bottom
+  { Db.Value.builtin_values = [None, initial_state];
+    builtin_clobbered = Location_Bits.Top_Param.bottom}
+
 
 let dump_args name initial_state actuals =
   Value_parameters.result "Called %s%a%t"
     name
     pretty_actuals actuals
     Value_util.pp_callstack;
-  None, initial_state, Location_Bits.Top_Param.bottom
+     { Db.Value.builtin_values = [ None, initial_state] ;
+       builtin_clobbered = Location_Bits.Top_Param.bottom }
+
 
 
 (*

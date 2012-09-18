@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,8 +47,9 @@ type strategy =
   | Scall of strategy_call
 
 let kind_of_property = function
+  | Property.IPLemma _ -> "lemma"
   | Property.IPCodeAnnot _ -> "annotation"
-  | Property.IPPredicate( Property.PKRequires _ , _ , Kglobal , _ ) -> "preconditions for callers"
+  | Property.IPPredicate( Property.PKRequires _ , _ , Kglobal , _ ) -> "precondition for callers"
   | _ -> "property"
 
 let get_strategy localizable : strategy =
@@ -71,14 +72,6 @@ let get_strategy localizable : strategy =
                         }
                 end
             | _ -> Snone
-(*
-                Scode {
-                  sp_target = "function contract" ;
-                  sp_kf = Some kf ;
-                  sp_bhv = [] ;
-                  sp_ip = None ;
-                }
-*)
         end
 
     | Pretty_source.PVDecl (Some kf,{vglob=true}) ->
@@ -90,15 +83,15 @@ let get_strategy localizable : strategy =
         }
 
     | Pretty_source.PIP ip ->
+	let bhvs = Extlib.may_map ~dft:[] 
+	  (fun x -> [ x.b_name ]) 
+	  (Property.get_behavior ip) 
+	in
         Scode {
           sp_target = kind_of_property ip ;
-          sp_kf   = Property.get_kf ip ;
-          sp_bhv  = 
-	    Extlib.may_map
-	      ~dft:[] 
-	      (fun x -> [ x.b_name ]) 
-	      (Property.get_behavior ip) ;
-          sp_ip   = Some ip ;
+          sp_kf = Property.get_kf ip ;
+          sp_bhv = bhvs ;
+          sp_ip = Some ip ;
         }
 
     | Pretty_source.PVDecl _
@@ -107,80 +100,87 @@ let get_strategy localizable : strategy =
     | Pretty_source.PGlobal _ ->
         Snone
 
+module Rte_generated =
+  Kernel_function.Make_Table
+    (Datatype.Unit)
+    (struct
+      let name = "Wp_gui.Rte_generated"
+      let size = 7
+      let dependencies = [ Ast.self ]
+     end)
+
 let run_and_prove (main_ui:Design.main_window_extension_points) strategy =
   try
+    let rehighlight = ref main_ui#rehighlight in
+    let kf = ref None in
     begin
       match strategy with
         | Snone -> raise Stop
         | Scode s ->
-            Register.wp_compute
-              s.sp_kf s.sp_bhv s.sp_ip
+	    begin match main_ui#reactive_buffer,s.sp_ip with 
+	      | Some b,Some p -> 
+		  rehighlight:=
+		    (fun () -> Design.Feedback.update b p)
+	      | _ -> ()
+	    end;
+	    kf := s.sp_kf;
+            Register.wp_compute s.sp_kf s.sp_bhv s.sp_ip
         | Scall s ->
-            Register.wp_compute_call
-              ~kf_caller:s.sc_caller
-              ~kf_called:s.sc_called
-              s.sc_callat
+	    kf := Some s.sc_caller;
+            Register.wp_compute_call s.sc_callat
     end ;
-    main_ui#rehighlight () ;
-    Po_navigator.refresh_panel () ;
-    Task.on_server_stop
-      (Prover.server ())
-      (fun () -> 
-	 Po_navigator.refresh_status () ; 
-	 if Wp_parameters.RTE.get () (* TODO[LC] can be optimized *)
-	 then main_ui#redisplay ()
-	 else main_ui#rehighlight () ) ;
-  with Stop -> ()
-
-(* ------------------------------------------------------------------------ *)
-(* ---  Source Highlighter                                              --- *)
-(* ------------------------------------------------------------------------ *)
-
-let wp_highlight
-    (buffer:GSourceView2.source_buffer)
-    (localizable:Pretty_source.localizable)
-    ~(start:int) ~(stop:int) =
-  match localizable with
-    | Pretty_source.PStmt(_,({ skind=Instr(Call(_,e,_,_)) } as stmt)) ->
-	(match WpStrategy.get_called_kf e with
-	   | Some kg ->
-	       let ips = WpAnnot.lookup_called_preconditions_at kg stmt in
-	       if ips <> [] then
-		 let validity = Property_status.Feedback.get_conjunction ips in
-		 Design.Feedback.mark buffer ~start ~stop validity
-	   | None -> ())
-    | _ -> ()
+    Po_navigator.refresh_panel () ; (* To display the "computing..." state *)
+    if Wp_parameters.RTE.get () then 
+      begin
+	match !kf with
+	  | Some kf when not(Rte_generated.mem kf) ->
+	      (* Redisplay only if wp's rte are generated for 
+		 the first time *)
+	      Rte_generated.add kf ();
+	      main_ui#redisplay ()
+	  | _ ->
+	      !rehighlight () ;
+      end
+    else 
+      !rehighlight ()
+  with Stop -> () (* the strategy is Snone *)
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Source Callback                                                 --- *)
 (* ------------------------------------------------------------------------ *)
 
 let is_rte_generated kf =
-  List.for_all
-    (fun (_,_,lookup,_) -> lookup kf)
-    (!Db.RteGen.get_all_status ())
+  List.for_all (fun (_, _, lookup) -> lookup kf) (!Db.RteGen.get_all_status ())
   
 let is_rte_precond kf =
-  let (_,_,lookup,_) = !Db.RteGen.get_precond_status () in (lookup kf)
+  let _, _, lookup = !Db.RteGen.get_precond_status () in 
+  lookup kf
 
 let add_rte_menu
     (popup_factory:GMenu.menu GMenu.factory)
     (main_ui:Design.main_window_extension_points) localizable =
-  begin
-    match localizable with
-      | Pretty_source.PVDecl (Some kf,{vglob=true}) ->
-	  if not (is_rte_generated kf) then
-	    ignore (popup_factory#add_item "Insert WP-safety guards"
-		      ~callback:(fun () -> !Db.RteGen.do_all_rte kf ; main_ui#redisplay ())) ;
-	  if not (is_rte_precond kf) then
-	    ignore (popup_factory#add_item "Insert all callees contract"
-		      ~callback:(fun () -> !Db.RteGen.do_precond kf ; main_ui#redisplay ())) ;
-      | Pretty_source.PStmt(kf,({ skind=Instr(Call _) })) ->
-	  if not (is_rte_precond kf) then
-	    ignore (popup_factory#add_item "Insert callees contract (all calls)"
-		      ~callback:(fun () -> !Db.RteGen.do_precond kf ; main_ui#redisplay ())) ;
-      | _ -> ()
-  end
+  match localizable with
+  | Pretty_source.PVDecl (Some kf,{vglob=true}) ->
+    if not (is_rte_generated kf) then
+      ignore 
+	(popup_factory#add_item "Insert WP-safety guards"
+	   ~callback:(fun () -> 
+	     !Db.RteGen.do_all_rte kf; 
+	     main_ui#redisplay ())) ;
+    if not (is_rte_precond kf) then
+      ignore 
+	(popup_factory#add_item "Insert all callees contract"
+	   ~callback:(fun () -> 
+	     !Db.RteGen.do_precond kf; 
+	     main_ui#redisplay ())) ;
+  | Pretty_source.PStmt(kf,({ skind=Instr(Call _) })) ->
+    if not (is_rte_precond kf) then
+      ignore 
+	(popup_factory#add_item "Insert callees contract (all calls)"
+	   ~callback:(fun () -> 
+	     !Db.RteGen.do_precond kf; 
+	     main_ui#redisplay ())) ;
+  | _ -> ()
 
 let add_wp_menu
     (popup_factory:GMenu.menu GMenu.factory)
@@ -214,7 +214,10 @@ let wp_select
 let wp_model_menu = [
   "Hoare" , "Hoare" ;
   "Store" , "Store" ;
+  "Logic" , "Logic" ;
   "Runtime" , "Runtime" ;
+  "Pure" , "Pure" ;
+  "Typed" , "Typed" ;
 ]
 
 type p_select =
@@ -234,17 +237,24 @@ let wp_prover_menu = [
 ]
 
 let wp_prover_get () =
-  match Wp_parameters.Prover.get () with
-    | "alt-ergo" -> Prover "alt-ergo"
-    | "coqide"   -> Prover "coqide"
-    | "coq"      -> Wp_parameters.Prover.set "coqide" ; Prover "coqide"
-    | "simplify" -> Prover "simplify"
-    | "vampire"  -> Prover "vampire"
-    | "z3"       -> Prover "z3"
-    | "cvc3"     -> Prover "cvc3"
-    | "yices"    -> Prover "yices"
-    | "zenon"    -> Prover "zenon"
-    | _ -> NoProver
+  match Datatype.String.Set.elements 
+    (Wp_parameters.Provers.get ()) 
+  with
+    | [] -> Prover "alt-ergo"
+    | pname :: _ ->
+	match pname with
+	  | "alt-ergo" -> Prover "alt-ergo"
+	  | "coqide"   -> Prover "coqide"
+	  | "coq"      -> 
+	      let u = Datatype.String.Set.singleton "coqide" in
+	      Wp_parameters.Provers.set u ; Prover "coqide"
+	  | "simplify" -> Prover "simplify"
+	  | "vampire"  -> Prover "vampire"
+	  | "z3"       -> Prover "z3"
+	  | "cvc3"     -> Prover "cvc3"
+	  | "yices"    -> Prover "yices"
+	  | "zenon"    -> Prover "zenon"
+	  | _ -> NoProver
 
 let wp_dir = ref
   (try
@@ -262,13 +272,9 @@ let wp_script () =
     | Some f -> Wp_parameters.Script.set f
     | None -> ()
 
-let wp_prover_set = function
-  | Prover p ->
-      if p="coqide" && Wp_parameters.Script.get() = ""
-      then wp_script () ;
-      Wp_parameters.Prover.set p
-  | NoProver ->
-      Wp_parameters.Prover.set "none"
+let wp_prover_set pi =
+  let p = match pi with Prover p -> p | NoProver -> "none" in
+    Wp_parameters.Provers.set (Datatype.String.Set.singleton p)
 
 let wp_panel (main_ui:Design.main_window_extension_points) =
   let vbox = GPack.vbox () in
@@ -295,48 +301,74 @@ let wp_panel (main_ui:Design.main_window_extension_points) =
     Wp_parameters.RTE.get Wp_parameters.RTE.set demon ;
 
   Gtk_form.check ~label:"Split"
-    ~tooltip:"Split cunjunctions into sub-goals"
+    ~tooltip:"Split conjunctions into sub-goals"
     ~packing:options#pack
     Wp_parameters.Split.get Wp_parameters.Split.set
     demon ;
-
-  Gtk_form.check ~label:"Invariants"
-    ~tooltip:"Alternative WP for loop with arbitrary invariants"
-    ~packing:options#pack
-    Wp_parameters.Invariants.get Wp_parameters.Invariants.set demon ;
 
   Gtk_form.check ~label:"Trace"
     ~tooltip:"Report proof information from the provers"
     ~packing:options#pack
     Wp_parameters.ProofTrace.get Wp_parameters.ProofTrace.set demon ;
 
-  let control = GPack.hbox ~packing () in
+  Gtk_form.check ~label:"Model"
+    ~tooltip:"Report model information from the provers"
+    ~packing:options#pack
+    Wp_parameters.UnsatModel.get Wp_parameters.UnsatModel.set demon ;
 
-  Gtk_form.button ~label:"Scripts"
+  let options = GPack.hbox ~spacing:8 ~packing () in
+
+  Gtk_form.check ~label:"Invariants"
+    ~tooltip:"Alternative WP for loop with arbitrary invariants"
+    ~packing:options#pack
+    Wp_parameters.Invariants.get Wp_parameters.Invariants.set demon ;
+
+  Gtk_form.check ~label:"References"
+    ~tooltip:"Detection of by reference parameters"
+    ~packing:options#pack
+    Wp_parameters.RefVar.get Wp_parameters.RefVar.set demon ;
+
+  Gtk_form.button ~label:"Scripts..."
     ~tooltip:"Script file for saving Coq proofs"
-    ~callback:wp_script ~packing:control#pack () ;
+    ~callback:wp_script ~packing:options#pack () ;
 
-  Gtk_form.label ~text:"Timeout" ~packing:control#pack () ;
+  let control = GPack.table ~columns:4 ~col_spacings:8 ~rows:2 ~packing () in
+  let addcontrol line col w = control#attach ~left:(col-1) ~top:(line-1) ~expand:`NONE w in
+
+  Gtk_form.label ~text:"Steps" ~packing:(addcontrol 1 1) () ;
+  Gtk_form.spinner ~lower:0 ~upper:100000
+    ~tooltip:"Search steps for alt-ergo prover"
+    ~packing:(addcontrol 1 2)
+    Wp_parameters.Steps.get Wp_parameters.Steps.set demon ;
+
+  Gtk_form.label ~text:"Depth" ~packing:(addcontrol 1 3) () ;
+  Gtk_form.spinner ~lower:0 ~upper:100000
+    ~tooltip:"Search space bound for alt-ergo prover"
+    ~packing:(addcontrol 1 4)
+    Wp_parameters.Depth.get Wp_parameters.Depth.set demon ;
+
+  Gtk_form.label ~text:"Timeout" ~packing:(addcontrol 2 1) () ;
   Gtk_form.spinner ~lower:0 ~upper:100000
     ~tooltip:"Timeout for proving one proof obligation"
-    ~packing:control#pack
+    ~packing:(addcontrol 2 2)
     Wp_parameters.Timeout.get Wp_parameters.Timeout.set demon ;
 
-  Gtk_form.label ~text:"Process" ~packing:control#pack () ;
+  Gtk_form.label ~text:"Process" ~packing:(addcontrol 2 3) () ;
   Gtk_form.spinner ~lower:1 ~upper:32
     ~tooltip:"Maximum number of parallel running provers"
-    ~packing:control#pack
+    ~packing:(addcontrol 2 4)
     Wp_parameters.Procs.get
     (fun n ->
        Wp_parameters.Procs.set n ;
-       ignore (Prover.server ()) (* to make server procs updated is server exists *)
+       ignore (ProverTask.server ()) 
+	 (* to make server procs updated is server exists *)
     ) demon ;
 
   let pbox = GPack.hbox ~packing ~show:false () in
   let progress = GRange.progress_bar ~packing:(pbox#pack ~expand:true ~fill:true) () in
   let cancel = GButton.button ~packing:(pbox#pack ~expand:false) ~stock:`STOP () in
   cancel#misc#set_sensitive false ;
-  let server = Prover.server () in
+  let server = ProverTask.server () in
   ignore (cancel#connect#released (fun () -> Task.cancel_all server)) ;
   let inactive = (0,0) in
   let state = ref inactive in
@@ -366,6 +398,11 @@ let wp_panel (main_ui:Design.main_window_extension_points) =
 
            state := (terminated,remaining) ;
          end) ;
+  Task.on_server_stop server
+    (fun () ->
+       Po_navigator.refresh_status () ; 
+       main_ui#rehighlight () ; (* refresh consolidation of status *)
+    ) ;
   "WP" , vbox#coerce , Some (Gtk_form.refresh demon)
 
 (* ------------------------------------------------------------------------ *)
@@ -374,12 +411,15 @@ let wp_panel (main_ui:Design.main_window_extension_points) =
 
 let main main_ui =
   begin
-    main_ui#register_source_highlighter wp_highlight ;
     main_ui#register_source_selector wp_select ;
     main_ui#register_panel wp_panel ;
   end
 
-let () = Design.register_extension main
+let () = 
+  begin
+    Design.register_extension main ;
+    Design.register_reset_extension (fun _ -> Po_navigator.refresh_panel ()) ;
+  end
 
 (* ------------------------------------------------------------------------ *)
 

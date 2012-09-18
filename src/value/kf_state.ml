@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Db
-open Cil_types
 open Cil_datatype
 
 (* ************************************************************************* *)
@@ -35,7 +34,6 @@ module Is_Called =
        let name = "is_called"
        let dependencies = [ Value.self ]
        let size = 17
-       let kind = `Internal
      end)
 
 let is_called =
@@ -58,7 +56,6 @@ module Callers =
        let name = "Callers"
        let dependencies = [ Value.self ]
        let size = 17
-       let kind = `Internal
      end)
 
 let add_caller ~caller:(caller_kf, call_site) kf =

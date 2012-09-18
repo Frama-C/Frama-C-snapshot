@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,6 @@ open Extlib
 open Cil
 open Cil_types
 
-let is_definition v =
-  Ast_info.Function.is_definition (Globals.Functions.get v).fundec
-
 (* ************************************************************************* *)
 (** {2 Visitors} *)
 (* ************************************************************************* *)
@@ -42,6 +39,8 @@ class type frama_c_visitor = object
     rooted_code_annotation list visitAction
   method is_annot_before: bool
   method current_kf: kernel_function option
+  (** @plugin development guide *)
+
   method set_current_kf: kernel_function -> unit
   method reset_current_kf: unit -> unit
 end
@@ -51,7 +50,7 @@ end
     redefined in inherited classes, while the corresponding ones from
     {!Cil.cilVisitor} {b must} retain their values as defined here. Otherwise,
     annotations may not be visited properly. *)
-class internal_generic_frama_c_visitor 
+class internal_generic_frama_c_visitor
   current_kf prj behavior: frama_c_visitor =
 
   let childrenRooted_code_annotation (vis:frama_c_visitor) rca =
@@ -69,12 +68,12 @@ class internal_generic_frama_c_visitor
       vis#vrooted_code_annotation childrenRooted_code_annotation ca
   in
 object(self)
-  inherit genericCilVisitor ~prj behavior as super
+  inherit genericCilVisitor ~prj behavior
   (* top of the stack indicates if we are before or after the current
      statement. *)
   val before = Stack.create ()
 
-  method frama_c_plain_copy = 
+  method frama_c_plain_copy =
     new internal_generic_frama_c_visitor current_kf prj behavior
 
   method plain_copy_visitor = (self#frama_c_plain_copy :> Cil.cilVisitor)
@@ -91,21 +90,23 @@ object(self)
   method vrooted_code_annotation _ = DoChildren
 
   method private vstmt stmt =
-    let annots = Annotations.get_all_annotations stmt in
+    let annots =
+      Annotations.fold_code_annot (fun e a acc -> (e, a) :: acc) stmt []
+    in
     let res = self#vstmt_aux stmt in
-    let compare_rooted x y =
+    (* Annotations will be visited and more importantly added in the
+       same order as they were in the original AST.  *)
+    let compare_rooted (_, x) (_, y) =
       let id1 = match x with User ca | AI(_,ca) -> ca.annot_id in
       let id2 = match y with User ca | AI(_,ca) -> ca.annot_id in
       if id1 < id2 then -1 else if id2 < id1 then 1 else 0
-    (* Annotations will be visited and more importantly added in the
-       same order as they were in the original AST.  *)
     in
     let abefore = List.sort compare_rooted annots in
     let make_children_annot vis =
       Stack.push true before;
       let res_before, remove_before =
         List.fold_left
-          (fun (res,remove) x ->
+          (fun (res,remove) (e, x) ->
             let curr_res, keep_curr =
                (* only keeps non-trivial non-already existing annotations *)
               List.fold_left
@@ -119,12 +120,12 @@ object(self)
                        || (Ast_info.is_trivial_rooted_assertion x))
                       &&
                       (not current || Cil.is_copy_behavior vis#behavior)
-                    then y::res else res
+                    then (e, y) :: res else res
                   in (res, keep || current))
                 ([],false)
                 (visitRooted_code_annotation (vis:>frama_c_visitor) x)
             in
-            (res @ curr_res, if keep_curr then remove else x::remove)
+            (res @ curr_res, if keep_curr then remove else (e, x) :: remove)
           )
           ([],[])
           abefore
@@ -134,36 +135,34 @@ object(self)
     in
     let change_stmt stmt (res_before, remove) =
       if (res_before <> [] || remove <> []) then begin
-	let kf = Extlib.the self#current_kf in
+        let kf = Extlib.the self#current_kf in
         let new_kf = Cil.get_kernel_function self#behavior kf in
         Queue.add
           (fun () ->
-	    let add_annot = Annotations.add new_kf stmt [] in
-            if remove <> [] then 
-              Annotations.filter
-                ~reset:true
-                (fun _ _ annot -> not (List.memq annot remove))
-		kf
-                stmt;
-	List.iter add_annot (List.rev res_before))
+	    let apply f = List.iter (fun (e, a) -> f e ~kf:new_kf stmt a) in
+	    (* eta-expansions below required to OCaml type system *)
+	    apply (fun e ~kf -> Annotations.remove_code_annot e ~kf) remove;
+	    apply (fun e ~kf -> Annotations.add_code_annot e ~kf) res_before)
           self#get_filling_actions
       end
     in
     let post_action f stmt =
       let annots = make_children_annot self in
       let stmt = f stmt in
-      change_stmt stmt annots; stmt
+      change_stmt stmt annots;
+      stmt
     in
     let copy stmt =
-      change_stmt stmt
-        (make_children_annot self#frama_c_plain_copy); stmt
+      change_stmt stmt(make_children_annot self#frama_c_plain_copy);
+      stmt
     in
     let plain_post = post_action (fun x -> x) in
     match res with
     | SkipChildren -> res
     | JustCopy -> JustCopyPost copy
     | JustCopyPost f -> JustCopyPost (f $ copy)
-    | DoChildren -> ChangeDoChildrenPost (stmt, plain_post)
+    | DoChildren -> DoChildrenPost plain_post
+    | DoChildrenPost f -> DoChildrenPost (f $ plain_post)
     | ChangeTo _ | ChangeToPost _ -> res
     | ChangeDoChildrenPost (stmt,f) ->
       ChangeDoChildrenPost (stmt, post_action f)
@@ -171,11 +170,455 @@ object(self)
   method vstmt_aux _ = DoChildren
   method vglob_aux _ = DoChildren
 
+  method private vbehavior_annot ?e b =
+    let kf = Extlib.the self#current_kf in
+    let treat_elt emit elt acc =
+      match e with
+        | None -> (emit, elt) :: acc
+        | Some e when Emitter.equal e emit -> (emit, elt) :: acc
+        | Some _ -> acc
+    in
+    let fold_elt fold = fold treat_elt kf b.b_name [] in
+    let old_requires = fold_elt Annotations.fold_requires in
+    let old_assumes = fold_elt Annotations.fold_assumes in
+    let old_ensures = fold_elt Annotations.fold_ensures in
+    let old_assigns = fold_elt Annotations.fold_assigns in
+    let old_allocates = fold_elt Annotations.fold_allocates in
+    let res = self#vbehavior b in
+    let new_kf = Cil.get_kernel_function self#behavior kf in
+    let add_queue a = Queue.add a self#get_filling_actions in
+    let visit_clauses vis f =
+      (* Ensures that we have a table associated to new_kf in Annotations. *)
+      add_queue
+        (fun () ->
+          ignore (Annotations.behaviors ~populate:false new_kf));
+      let module Fold =
+          struct
+            type 'a t =
+                { apply: 'b. (Emitter.t -> 'a -> 'b -> 'b) ->
+                         Kernel_function.t -> string -> 'b -> 'b }
+          end
+      in
+      let visit_elt visit e elt (f,acc) =
+        let new_elt = visit (vis:>Cil.cilVisitor) elt in
+        (* We'll add the elts afterwards, so as to keep lists in their
+           original order as much as we can. see fold_elt below.
+        *)
+        f ||  new_elt != elt || new_kf != kf,
+        (e,new_elt) :: acc
+      in
+      let check_elt visit e' elt acc =
+        match e with
+          | None -> visit_elt visit e' elt acc
+          | Some e when Emitter.equal e e' -> visit_elt visit e' elt acc
+          | Some _ -> acc
+      in
+      let fold_elt fold visit remove add append dft =
+        let (changed, res) =
+          fold.Fold.apply (check_elt visit) kf b.b_name (false,[])
+        in
+        if changed then begin
+          add_queue
+            (fun () ->
+              fold.Fold.apply
+                (fun e' x () ->
+                  match e with
+                    | None -> remove e' new_kf x
+                    | Some e when Emitter.equal e e' -> remove e' new_kf x
+                    | _ -> ())
+                new_kf b.b_name ();
+              List.iter (fun (e,x) -> add e new_kf b.b_name x) res)
+        end;
+        List.fold_left (fun acc (_,x) -> append x acc) dft res
+      in
+      let req =
+        fold_elt
+          { Fold.apply = Annotations.fold_requires }
+          Cil.visitCilIdPredicate
+          Annotations.remove_requires
+          (fun e kf b r -> Annotations.add_requires e kf b [r])
+          (fun x l -> x :: l) []
+      in
+      b.b_requires <- req;
+      let assumes =
+        fold_elt
+          { Fold.apply = Annotations.fold_assumes }
+          Cil.visitCilIdPredicate
+          Annotations.remove_assumes
+          (fun e kf b a -> Annotations.add_assumes e kf b [a])
+          (fun x l -> x :: l) []
+      in
+      b.b_assumes <- assumes;
+      let visit_ensures vis (k,p as e) =
+        let new_p = Cil.visitCilIdPredicate (vis:>Cil.cilVisitor) p in
+        if p != new_p then (k,new_p) else e
+      in
+      let ensures =
+        fold_elt
+          { Fold.apply = Annotations.fold_ensures }
+          visit_ensures
+          Annotations.remove_ensures
+          (fun e kf b p -> Annotations.add_ensures e kf b [p])
+          (fun x l -> x :: l) []
+      in
+      b.b_post_cond <- ensures;
+      let add_assigns e kf b a =
+        match a with
+          | WritesAny -> ()
+          | _ -> Annotations.add_assigns ~keep_empty:false e kf b a
+      in
+      let concat_assigns new_a a =
+        match new_a, a with
+          | WritesAny, a | a, WritesAny -> a
+          | Writes a1, Writes a2 -> Writes (a2 @ a1)
+      in
+      let a =
+        fold_elt
+          { Fold.apply = Annotations.fold_assigns }
+          Cil.visitCilAssigns
+          Annotations.remove_assigns
+          add_assigns
+          concat_assigns
+          WritesAny
+      in
+      b.b_assigns <- a;
+      let concat_allocation new_a a =
+        match new_a, a with
+          | FreeAllocAny, a | a, FreeAllocAny -> a
+          | FreeAlloc(a1,a2), FreeAlloc(a3,a4) -> FreeAlloc (a3@a1,a4@a2)
+      in
+      let a =
+        fold_elt
+          { Fold.apply = Annotations.fold_allocates }
+          Cil.visitCilAllocation
+          Annotations.remove_allocates
+          Annotations.add_allocates
+          concat_allocation
+          FreeAllocAny
+      in
+      b.b_allocation <- a;
+      f b
+    in
+    let remove_and_add get remove add fold old b =
+      let emitter = match e with None -> Emitter.end_user | Some e -> e in
+      let elts = get b in
+      List.iter
+        (fun (e,x) ->
+          if not (List.memq x elts) then
+            add_queue (fun () -> remove e new_kf x))
+        old;
+      let module M = struct exception Found of Emitter.t end in
+      let already_there x =
+        fold (fun e y () -> if x == y then raise (M.Found e)) new_kf b.b_name ()
+      in
+      List.iter
+        (fun x ->
+          add_queue
+            (fun () ->
+              try
+                already_there x;
+                add emitter new_kf b.b_name x
+              with M.Found e ->
+                (* We keep x at its right place inside b. *)
+                remove e new_kf x;
+                add e new_kf b.b_name x))
+        (List.rev elts);
+    in
+    let register_annots b f =
+      add_queue
+        (fun () -> ignore (Annotations.behaviors ~populate:false new_kf));
+      remove_and_add
+        (fun b -> b.b_requires)
+        Annotations.remove_requires
+        (fun e kf b r -> Annotations.add_requires e kf b [r])
+        Annotations.fold_requires
+        old_requires b;
+      remove_and_add
+        (fun b -> b.b_assumes)
+        Annotations.remove_assumes
+        (fun e kf b r -> Annotations.add_assumes e kf b [r])
+        Annotations.fold_assumes
+        old_assumes b;
+      remove_and_add
+        (fun b -> b.b_post_cond)
+        Annotations.remove_ensures
+        (fun e kf b r -> Annotations.add_ensures e kf b [r])
+        Annotations.fold_ensures
+        old_ensures b;
+      remove_and_add
+        (fun b -> match b.b_assigns with WritesAny -> [] | a -> [a])
+        Annotations.remove_assigns
+        (fun e kf b a ->
+          match a with
+            | WritesAny -> ()
+            | Writes _ -> Annotations.add_assigns ~keep_empty:false e kf b a)
+        Annotations.fold_assigns
+        old_assigns b;
+      remove_and_add
+        (fun b -> match b.b_allocation with FreeAllocAny -> [] | a -> [a])
+        Annotations.remove_allocates
+        Annotations.add_allocates
+        Annotations.fold_allocates
+        old_allocates b;
+      f b
+    in
+    match res with
+      | SkipChildren -> b
+      | JustCopy -> visit_clauses self#plain_copy_visitor Extlib.id
+      | JustCopyPost f -> visit_clauses self#plain_copy_visitor f
+      | ChangeTo b -> register_annots b Extlib.id
+      | ChangeToPost (b,f) -> register_annots b f
+      | ChangeDoChildrenPost (b,f) ->
+          register_annots (Cil.childrenBehavior (self:>Cil.cilVisitor) b) f
+      | DoChildren -> visit_clauses self Extlib.id
+      | DoChildrenPost f -> visit_clauses self f
+
+  method private vfunspec_annot () =
+    let kf = Extlib.the self#current_kf in
+    let new_kf = Cil.get_kernel_function self#behavior kf in
+    let old_behaviors =
+      Annotations.fold_behaviors (fun e b acc -> (e,b)::acc) kf []
+    in
+    let old_complete =
+      Annotations.fold_complete (fun e c acc -> (e,c)::acc) kf []
+    in
+    let old_disjoint =
+      Annotations.fold_disjoint (fun e d acc -> (e,d)::acc) kf []
+    in
+    let old_terminates =
+      Annotations.fold_terminates (fun e t _ -> Some (e,t)) kf None
+    in
+    let old_decreases =
+      Annotations.fold_decreases (fun e d _ -> Some (e,d)) kf None
+    in
+    let spec =
+      { spec_behavior = snd (List.split old_behaviors);
+        spec_complete_behaviors = snd (List.split old_complete);
+        spec_disjoint_behaviors = snd (List.split old_disjoint);
+        spec_terminates =
+          (Extlib.opt_map snd) old_terminates;
+        spec_variant = 
+          (Extlib.opt_map snd) old_decreases
+      }
+    in
+    let res = self#vspec spec in
+    let do_children () =
+      let new_behaviors =
+        List.rev_map
+          (fun (e,b) ->
+            let b' = self#vbehavior_annot ~e b in
+            if b != b' || kf != new_kf then begin
+              Queue.add
+                (fun () ->
+                  Annotations.add_behaviors
+                    ~register_children:false e new_kf [b'])
+                self#get_filling_actions;
+            end;
+            b')
+          old_behaviors
+      in
+      let new_terminates =
+        Extlib.opt_map
+          (fun (e,t) ->
+            let t' = Cil.visitCilIdPredicate (self:>Cil.cilVisitor) t in
+            if t != t' || kf != new_kf then
+              Queue.add (fun () ->
+                Annotations.remove_terminates e new_kf;
+                Annotations.add_terminates e new_kf t')
+                self#get_filling_actions
+            ;
+          t')
+          old_terminates
+      in
+      let new_decreases =
+        Extlib.opt_map
+          (fun (e,(d,s as acc)) ->
+            let d' = Cil.visitCilTerm (self:>Cil.cilVisitor) d in
+            if d != d' || kf != new_kf then begin
+              let res = (d',s) in
+              Queue.add
+                (fun () ->
+                  Annotations.remove_decreases e new_kf;
+                  Annotations.add_decreases e new_kf res;
+                )
+                self#get_filling_actions;
+              res
+            end else acc
+          )
+          old_decreases
+      in
+      if kf != new_kf then begin
+        List.iter
+          (fun (e,c) ->
+            Queue.add (fun () -> Annotations.add_complete e new_kf c)
+              self#get_filling_actions)
+          (List.rev old_complete);
+        List.iter
+          (fun (e,d) ->
+            Queue.add (fun () -> Annotations.add_disjoint e new_kf d)
+              self#get_filling_actions)
+          (List.rev old_disjoint)
+      end;
+      { spec with
+        spec_behavior = new_behaviors;
+        spec_terminates = new_terminates;
+        spec_variant = new_decreases }
+    in
+    let change_do_children spec =
+      let new_behaviors =
+        Cil.mapNoCopy self#vbehavior_annot spec.spec_behavior
+      in
+      let new_terminates =
+        Cil.optMapNoCopy (Cil.visitCilIdPredicate (self:>Cil.cilVisitor))
+          spec.spec_terminates
+      in
+      let new_decreases =
+       Cil.optMapNoCopy
+          (fun (d,s as acc) ->
+            let d' = Cil.visitCilTerm (self:>Cil.cilVisitor) d in
+            if d != d' then (d',s) else acc)
+          spec.spec_variant
+      in
+      { spec with
+        spec_behavior = new_behaviors;
+        spec_terminates = new_terminates;
+        spec_variant = new_decreases }
+    in
+    let register_new_components new_spec =
+      let add_spec_components () =
+        let populate = false in
+        let new_behaviors = Annotations.behaviors ~populate new_kf in
+        List.iter
+          (fun b ->
+            if
+              (List.for_all
+                 (fun x -> x.b_name <> b.b_name || Cil.is_empty_behavior x)
+                 new_behaviors)
+            then begin
+              Annotations.add_behaviors ~register_children:false 
+                Emitter.end_user new_kf [b]
+            end)
+          new_spec.spec_behavior;
+        let new_complete = Annotations.complete ~populate new_kf in
+        List.iter
+          (fun c ->
+            if not (List.memq c new_complete) then begin
+              Annotations.add_complete Emitter.end_user new_kf c
+            end)
+          new_spec.spec_complete_behaviors;
+        let new_disjoint = Annotations.disjoint ~populate new_kf in
+        List.iter
+          (fun d ->
+            if not (List.memq d new_disjoint) then
+              Annotations.add_disjoint Emitter.end_user new_kf d)
+          new_spec.spec_disjoint_behaviors;
+        let new_terminates = Annotations.terminates ~populate new_kf in
+        (match new_terminates, new_spec.spec_terminates with
+          | None, None -> ()
+          | Some _, None -> ()
+          | None, Some p ->
+              Annotations.add_terminates Emitter.end_user new_kf p
+          | Some p1, Some p2 when p1 == p2 -> ()
+          | Some p1, Some p2 ->
+              Kernel.fatal
+                "Visit of spec of function %a gives \
+                 inconsistent terminates clauses@\n\
+                 Registered @[%a@]@\nReturned @[%a@]"
+                Kernel_function.pretty new_kf
+                Cil.d_identified_predicate p1
+                Cil.d_identified_predicate p2);
+        let new_decreases = Annotations.decreases ~populate new_kf in
+        (match new_decreases, new_spec.spec_variant with
+          | None, None -> ()
+          | Some _, None -> ()
+          | None, Some p ->
+              Annotations.add_decreases Emitter.end_user new_kf p
+          | Some p1, Some p2 when p1 == p2 -> ()
+          | Some p1, Some p2 ->
+              Kernel.fatal
+                "Visit of spec of function %a gives \
+                 inconsistent variant clauses@\n\
+                 Registered %d@\n%a@\nReturned %d@\n%a"
+                Kernel_function.pretty new_kf
+                (Obj.magic p1)
+                Cil.d_decreases p1
+                (Obj.magic p2)
+                Cil.d_decreases p2)
+      in
+      List.iter
+        (fun (e,c) ->
+          if not (List.memq c new_spec.spec_complete_behaviors) then
+            Queue.add
+              (fun () -> Annotations.remove_complete e new_kf c)
+              self#get_filling_actions)
+        old_complete;
+      List.iter
+        (fun (e,d) ->
+          if not (List.memq d new_spec.spec_disjoint_behaviors) then
+            Queue.add
+              (fun () -> Annotations.remove_disjoint e new_kf d)
+              self#get_filling_actions)
+        old_disjoint;
+      List.iter
+        (fun (e,b) ->
+          if not (List.memq b new_spec.spec_behavior) then begin
+            Queue.add
+              (fun () ->
+                if
+                  List.exists (fun x -> x.b_name = b.b_name)
+                    new_spec.spec_behavior
+                then Annotations.remove_behavior_components e new_kf b
+                else Annotations.remove_behavior e new_kf b)
+              self#get_filling_actions
+          end
+        )
+        old_behaviors;
+      Extlib.may
+        (fun (e,t) ->
+          if not (Extlib.may_map
+                    ~dft:false (fun t' -> t == t') new_spec.spec_terminates)
+          then
+            Queue.add
+              (fun () -> Annotations.remove_terminates e new_kf)
+              self#get_filling_actions)
+        old_terminates;
+      Extlib.may
+        (fun (e,d) ->
+          if not (Extlib.may_map
+                    ~dft:false (fun d' -> d == d') new_spec.spec_variant)
+          then
+            Queue.add
+              (fun () -> Annotations.remove_decreases e new_kf)
+              self#get_filling_actions)
+        old_decreases;
+      Queue.add add_spec_components self#get_filling_actions;
+    in
+    match res with
+      | SkipChildren -> register_new_components spec
+      | ChangeTo spec -> register_new_components spec
+      | ChangeToPost (spec,f) -> 
+          register_new_components spec; ignore (f spec)
+      | JustCopy ->
+          register_new_components
+            (Cil.visitCilFunspec self#plain_copy_visitor spec)
+      | JustCopyPost f ->
+          (register_new_components
+             (Cil.visitCilFunspec self#plain_copy_visitor spec));
+          ignore (f spec)
+      | DoChildren -> ignore (do_children ())
+      | DoChildrenPost f -> ignore (f (do_children ()))
+      | ChangeDoChildrenPost(spec, f) ->
+          let res = change_do_children spec in
+          register_new_components res;
+          ignore (f res)
+
   method vglob g =
     let fundec, has_kf = match g with
       | GVarDecl(_,v,_) when isFunctionType v.vtype ->
         let v = Cil.get_original_varinfo self#behavior v in
-        let kf = Globals.Functions.get v in
+        let kf = try Globals.Functions.get v with Not_found ->
+          Kernel.fatal "No kernel function for %s(%d)" v.vname v.vid
+        in
         (* Just make a copy of current kernel function in case it is needed *)
         let new_kf = Cil.memo_kernel_function self#behavior kf in
         if Cil.is_copy_behavior self#behavior then
@@ -193,100 +636,153 @@ object(self)
       | _ -> None, false
     in
     let res = self#vglob_aux g in
-    let make_funspec () =
-      match g with
-      | GVarDecl(_,v,_) when isFunctionType v.vtype ->
-        let v = Cil.get_original_varinfo self#behavior v in
-        if not (is_definition v) then begin
-          let spec = (Extlib.the self#current_kf).spec in
-          let spec' = visitCilFunspec (self:> cilVisitor) spec in
-          Some spec'
-        end else
-          None
-      | GFun _ ->
-        let spec' = visitCilFunspec (self:> cilVisitor)
-          (Extlib.the self#current_kf).spec
-        in
-        Some spec'
-      | _ -> None
+    let make_funspec () = match g with
+      | GVarDecl(_,v,_)
+          when isFunctionType v.vtype && Ast.is_last_decl g ->
+          self#vfunspec_annot ();
+      | GFun _ when Ast.is_last_decl g ->
+          self#vfunspec_annot ()
+      | _ -> ()
     in
-    let get_spec () =
-      match g with
-        GVarDecl(_,v,_) when isFunctionType v.vtype ->
-          let v = Cil.get_original_varinfo self#behavior v in
-          if not (is_definition v) then begin
-            Some (Extlib.the self#current_kf).spec
-          end
-          else None (* visited in the corresponding definition *)
-      | GFun _ -> Some (Extlib.the self#current_kf).spec
+    (* NB: we'll loose track of the emitter of an annotation.
+       Anyway, this is only used for SkipChildren and JustCopy/JustCopyPost
+       (and for a copy visitor)
+       If user sticks to DoChildren, s/he'll still have the proper
+       correspondance between annotations and emitters.
+    *)
+    let get_spec () = match g with
+      | GVarDecl(_,v,_)
+          when isFunctionType v.vtype && Ast.is_last_decl g ->
+	let spec =
+	  Annotations.funspec ~populate:false (Extlib.the self#current_kf)
+	in
+        Some (Cil.visitCilFunspec self#plain_copy_visitor spec)
+      | GFun _ when Ast.is_last_decl g ->
+	let spec =
+	  Annotations.funspec ~populate:false (Extlib.the self#current_kf)
+	in
+	Some (Cil.visitCilFunspec self#plain_copy_visitor spec)
       | _ -> None
     in
     let change_glob ng spec =
       let cond = is_copy_behavior self#behavior in
       match ng with
-      | GVar(vi,init,_) ->
-          if cond then
-            Queue.add
-              (fun () -> Globals.Vars.add vi init)
-              self#get_filling_actions
-      | GVarDecl(_,v,l) when isFunctionType v.vtype ->
-        let spec = match spec with
-            None -> Cil.empty_funspec ()
-          | Some spec -> spec
-        in
-        let kf = Extlib.the self#current_kf in
-        let orig_spec = kf.spec in
-        let new_kf = Cil.get_kernel_function self#behavior kf in
-        if cond || (not (Cil.is_empty_funspec spec) &&
-                      not (Cil.is_empty_funspec orig_spec) &&
-                      spec != orig_spec)
-        then
-          Queue.add
-            (fun () ->
-              (* NB: we can't really know whether v is associated to new_kf,
-                 but if this is not the case, it is the responsibility of the
-                 child visitor to properly update kf table while doing its
-                 own transformations.
-               *)
-              Globals.Functions.register new_kf;
-              Globals.Functions.replace_by_declaration spec v l)
-            self#get_filling_actions;
+        | GVar(vi,init,_) ->
+            if cond then
+              Queue.add
+                (fun () ->
+                  try
+                    Globals.Vars.add vi init
+                  with Globals.Vars.AlreadyExists (vi,_) ->
+                    Kernel.fatal
+                      "Visitor is trying to insert global variable %a that \
+                     already exists in current project"
+                      Cil_datatype.Varinfo.pretty vi)
+                self#get_filling_actions
+        | GVarDecl(_,v,l) when isFunctionType v.vtype ->
+            let kf = Extlib.the self#current_kf in
+            let new_kf = Cil.get_kernel_function self#behavior kf in
+            if cond then begin
+              Queue.add
+                (fun () ->
+		(* NB: we can't really know whether v is associated to new_kf,
+                   but if this is not the case, it is the responsibility of the
+                   child visitor to properly update kf table while doing its
+                   own transformations. *)
+                  if Cil.hasAttribute "FC_BUILTIN" v.vattr then
+                    Cil.Frama_c_builtins.add v.vname v;
+                  if Cil_datatype.Varinfo.equal v
+                       (Kernel_function.get_vi new_kf)
+                  then begin
+                    let dft = Annotations.funspec ~populate:false new_kf in
+                    let dft = { dft with spec_behavior = dft.spec_behavior } in
+                    let spec = Extlib.may_map Extlib.id ~dft spec in
+                    Globals.Functions.register new_kf;
+                    Globals.Functions.replace_by_declaration spec v l;
+                  (* Format.printf "registered spec:@\n%a@." Cil.d_funspec
+                     (Annotations.funspec ~populate:false new_kf) *)
+                  end else begin
+                    Globals.Functions.replace_by_declaration
+                      (Cil.empty_funspec()) v l
+                  end)
+                self#get_filling_actions;
+              if
+                Cil_datatype.Varinfo.equal v
+                  (Kernel_function.get_vi new_kf) && Extlib.has_some spec
+              then
+                Queue.add
+                  (fun () -> Annotations.register_funspec ~force:true new_kf)
+                  self#get_filling_actions;
+            end
 
       | GVarDecl (_,({vstorage=Extern} as v),_) (* when not (isFunctionType
-                                                   v.vtype *) ->
+                                                   v.vtype) *) ->
         if cond then
           Queue.add
-            (fun () -> Globals.Vars.add_decl v)
+            (fun () ->
+              try
+                Globals.Vars.add_decl v
+              with Globals.Vars.AlreadyExists (vi,_) ->
+                Kernel.fatal
+                  "Visitor is trying to insert global variable %a that \
+                     already exists in current project"
+                  Cil_datatype.Varinfo.pretty vi)
             self#get_filling_actions
       | GFun(f,l) ->
         if cond then begin
-          let spec =
-            match spec with
-              None -> Cil.empty_funspec ()
-            | Some spec -> spec
-          in
-          let new_kf = 
-            Cil.get_kernel_function self#behavior (Extlib.the self#current_kf)
-          in
-          Queue.add
-            (fun () ->
-              Kernel.debug
-                "@[Adding definition %s (vid: %d) for project %s@\n\
+          let new_kf =
+           Cil.get_kernel_function self#behavior (Extlib.the self#current_kf)
+         in
+         Queue.add
+           (fun () ->
+             Kernel.debug
+               "@[Adding definition %s (vid: %d) for project %s@\n\
                       body: %a@\n@]@."
-                f.svar.vname f.svar.vid
-                (Project.get_name (Project.current()))
-                !Ast_printer.d_block f.sbody
-              ;
-              Globals.Functions.register new_kf;
-              Globals.Functions.replace_by_definition spec f l)
-            self#get_filling_actions
+               f.svar.vname f.svar.vid
+               (Project.get_name (Project.current()))
+               !Ast_printer.d_block f.sbody;
+             if cond && Cil.hasAttribute "FC_BUILTIN" f.svar.vattr then
+               Cil.Frama_c_builtins.add f.svar.vname f.svar;
+             if  Cil_datatype.Varinfo.equal f.svar
+               (Kernel_function.get_vi new_kf)
+             then begin
+               Globals.Functions.register new_kf;
+               let spec =
+                 Extlib.may_map Extlib.id
+                   ~dft:(Annotations.funspec ~populate:false new_kf) spec
+               in
+               Globals.Functions.replace_by_definition spec f l
+             end else
+               Globals.Functions.replace_by_definition
+                 (Cil.empty_funspec ()) f l
+           )
+           self#get_filling_actions;
+          if Cil_datatype.Varinfo.equal f.svar (Kernel_function.get_vi new_kf)
+            && Extlib.has_some spec
+          then
+            Queue.add
+              (fun () -> Annotations.register_funspec ~force:true new_kf)
+              self#get_filling_actions;
         end
+      | GAnnot (na,_) when cond ->
+	let e = match g with
+          | GAnnot (a,_) -> Annotations.emitter_of_global a
+          | _ -> Emitter.end_user
+        in
+        Queue.add
+	  (fun () ->
+            try
+              (* Annotations might have already been added by the user. *)
+              ignore (Annotations.emitter_of_global na)
+            with Not_found ->
+              Annotations.unsafe_add_global e na)
+          self#get_filling_actions
       | _ -> ()
     in
     let post_action g =
-      let spec = lazy (make_funspec ()) in
       Extlib.may self#set_current_func fundec;
-      List.iter (fun g -> change_glob g (Lazy.force spec)) g;
+      let spec = get_spec () in
+      List.iter (fun g -> change_glob g spec) g;
       if has_kf then self#reset_current_kf();
       Extlib.may (fun _ -> self#reset_current_func ()) fundec;
       g
@@ -296,16 +792,28 @@ object(self)
       if has_kf then self#reset_current_kf();
       g
     in
+    let post_do_children f g =
+      Extlib.may self#set_current_func fundec;
+      make_funspec ();
+      let res = f g in
+      (* Spec registration is already handled at the vfunspec level. *)
+      List.iter (fun g -> change_glob g None) res;
+      if has_kf then self#reset_current_kf();
+      Extlib.may (fun _ -> self#reset_current_func ()) fundec;
+      res
+    in
     match res with
-      SkipChildren ->
-        change_glob g (get_spec());
-        if has_kf then self#reset_current_kf(); res
+    | SkipChildren ->
+        change_glob g None;
+        if has_kf then self#reset_current_kf();
+        res
     | JustCopy -> JustCopyPost post_action
     | JustCopyPost f -> JustCopyPost (f $ post_action)
-    | DoChildren -> ChangeDoChildrenPost([g],post_action)
+    | DoChildren -> DoChildrenPost (post_do_children Extlib.id)
+    | DoChildrenPost f -> DoChildrenPost (post_do_children f)
     | ChangeTo l -> ChangeToPost (l,post_change_to)
     | ChangeToPost (l,f) -> ChangeToPost (l, f $ post_change_to)
-    | ChangeDoChildrenPost (g,f) -> ChangeDoChildrenPost (g, post_action $ f)
+    | ChangeDoChildrenPost (l,f) -> ChangeDoChildrenPost (l, post_do_children f)
 end
 
 class generic_frama_c_visitor prj bhv =
@@ -422,6 +930,10 @@ let visitFramacPredicates vis p =
   let p' = visitCilPredicates (vis:>cilVisitor) p in
   vis#fill_global_tables; p'
 
+let visitFramacIdTerm  vis t =
+  let t' = visitCilIdTerm (vis:>cilVisitor) t in
+  vis#fill_global_tables; t'
+
 let visitFramacTerm  vis t =
   let t' = visitCilTerm (vis:>cilVisitor) t in
   vis#fill_global_tables; t'
@@ -449,6 +961,10 @@ let visitFramacBehavior vis b =
 let visitFramacBehaviors vis b =
   let b' = visitCilBehaviors (vis:>cilVisitor) b in
   vis#fill_global_tables; b'
+
+let visitFramacModelInfo vis m =
+  let m' = visitCilModelInfo (vis:>cilVisitor) m in
+  vis#fill_global_tables; m'
 
 (*
 Local Variables:

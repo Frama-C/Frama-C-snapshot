@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ module type S = sig
     type elt
     (** The type of the set elements. *)
 
-    include Datatype.S
+    include Datatype.S_with_collections
     (** The datatype of sets. *)
 
     val empty: t
@@ -136,6 +136,10 @@ module type S = sig
           strictly greater than [x];
           [present] is [false] if [s] contains no element equal to [x],
           or [true] if [s] contains an element equal to [x]. *)
+
+    val intersects: t -> t -> bool
+    (** [intersects s1 s2] returns [true] if and only if [s1] and [s2]
+        have an element in common *)
 end
 
 module Make(X: Id_Datatype)

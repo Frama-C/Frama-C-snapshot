@@ -39,7 +39,6 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-open Cabs
 open Cabshelper
 
 (* This isn't the most efficient way to do things.
@@ -69,8 +68,6 @@ let cabsloc_to_str cabsloc =
   (fst cabsloc).Lexing.pos_fname ^ ":" ^
     string_of_int (fst cabsloc).Lexing.pos_lnum ^ ":" ^
     string_of_int (fst cabsloc).Lexing.pos_cnum
-
-let lastline = ref 0
 
 let wraplexer_enabled lexer lexbuf =
     let white,lexeme,token,cabsloc = lexer lexbuf in

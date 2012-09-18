@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -49,13 +49,13 @@ val find_all_input_nodes : Pdg.t -> Node.t list
 val find_entry_point_node : Pdg.t -> Node.t
 val find_top_input_node : Pdg.t -> Node.t
 val find_output_nodes :
-  Pdg.t -> PdgIndex.Signature.t_out_key -> t_nodes_and_undef
+  Pdg.t -> PdgIndex.Signature.out_key -> t_nodes_and_undef
 
 
 val find_call_ctrl_node : Pdg.t -> Cil_types.stmt -> Node.t
 val find_call_num_input_node : Pdg.t -> Cil_types.stmt -> int -> Node.t
 val find_call_input_nodes :
-  Pdg.t -> Cil_types.stmt -> PdgIndex.Signature.t_in_key -> t_nodes_and_undef
+  Pdg.t -> Cil_types.stmt -> PdgIndex.Signature.in_key -> t_nodes_and_undef
 val find_call_output_node : Pdg.t -> Cil_types.stmt -> Node.t
 
 val find_call_stmts:
@@ -63,9 +63,9 @@ val find_call_stmts:
   Cil_types.stmt list
 
 val find_call_out_nodes_to_select :
-  Pdg.t -> Node.t list -> Pdg.t ->  Cil_types.stmt -> Node.t list
+  Pdg.t -> NodeSet.t -> Pdg.t ->  Cil_types.stmt -> Node.t list
 val find_in_nodes_to_select_for_this_call :
-  Pdg.t -> Node.t list -> Cil_types.stmt -> Pdg.t -> Node.t list
+  Pdg.t -> NodeSet.t -> Cil_types.stmt -> Pdg.t -> Node.t list
 
 (* direct dependencies only :
  * This means the nodes that have an edge to the given node. *)

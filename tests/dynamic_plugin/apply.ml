@@ -6,16 +6,13 @@ module Param =
        let name = "apply"
        let shortname = "apply"
        let help = "testing purpose"
-       let module_name = "Apply.Param"
      end)
 
 module Test =
   Param.False
     (struct
        let option_name = "-dynamic-test"
-       let module_name = "Apply.Test"
        let help = "print dynamic test"
-       let kind = `Irrelevant
      end)
 
 

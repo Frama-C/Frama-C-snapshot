@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Useful high-level system operations. *)
+(** Useful high-level system operations. 
+    @plugin development guide *)
 
 (* ************************************************************************* *)
-(** File Utilities *)
+(** {2 File Utilities} *)
 (* ************************************************************************* *)
 
 val filename : string -> string -> string
@@ -46,8 +47,17 @@ val bincopy : string -> in_channel -> out_channel -> unit
 val copy : string -> string -> unit
   (** [copy source target] copies source file to target file using [bincopy]. *)
 
+val read_file : string -> (in_channel -> 'a) -> 'a
+  (** Properly close the channel and re-raise exceptions *)
+val read_lines : string -> (string -> unit) -> unit
+  (** Iter over all text lines in the file *)
+val write_file : string -> (out_channel -> 'a) -> 'a
+  (** Properly close the channel and re-raise exceptions *)
+val print_file : string -> (Format.formatter -> 'a) -> 'a
+  (** Properly flush and close the channel and re-raise exceptions *)
+
 (* ************************************************************************* *)
-(** System commands *)
+(** {2 System commands} *)
 (* ************************************************************************* *)
 
 val full_command :
@@ -91,8 +101,7 @@ val command_async :
       to prevent Zombie processes.
       When this function returns a Result, the stdout and stderr of the child
       process will be filled into the arguments buffer.
-      @raise Sys_error when a system error occurs
-  *)
+      @raise Sys_error when a system error occurs *)
 
 val command :
   ?timeout:int ->

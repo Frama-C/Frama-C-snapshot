@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,7 +56,7 @@ let d_rooted_code_annotation =
 let d_funspec = ref Cil.d_funspec
 let d_annotation = ref Cil.d_annotation
 
-let d_file = ref (Cil.d_file Cil.defaultCilPrinter)
+let d_file = ref Cil.d_file
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,6 @@ open Cil_datatype
 type constant =
   | ConstInt of string
   | ConstBool of bool
-  | ConstUnit
   | ConstFloat of string
 
 let c_bool b = ConstBool b
@@ -332,10 +331,6 @@ let e_app f args =
 
 let e_let x exp t = if e_has_var [x] t then Tlet (x, exp, t) else t
 
-let case_of = function
-  | Tconst(ConstInt s) -> Some s
-  | _ -> None
-
 let e_update t i v = Tupdate(t,i,v)
 let e_access t i =
     match t with
@@ -412,7 +407,7 @@ let apply_alpha alpha v =
 
 let rec term_alpha_cv alpha t =
   let do_term alpha t = term_alpha_cv alpha t in
-  let rec do_terms alpha l = terms_alpha_cv alpha l in
+  let do_terms alpha l = terms_alpha_cv alpha l in
     match t with
       | Tconst _ -> alpha, t
       | Tvar v ->
@@ -508,8 +503,7 @@ let rec p_closed xs = function
       e_closed xs t && p_closed xs p && p_closed xs q
   | Pnot p | Pnamed(_,p) -> p_closed xs p
   | Pforall(x,p) | Pexists(x,p) -> p_closed (x::xs) p
-  | Plet(x,a,p) ->
-      e_closed xs a && p_closed (x::xs) p
+  | Plet(x,a,p) -> e_closed xs a && p_closed (x::xs) p
 
 (* -----------------------------------*)
 (** {3 Predicates smart constructors} *)
@@ -551,13 +545,19 @@ let rec is_false = function
   | Pnamed(_,p) -> is_false p
   | _ -> false
 
-let p_not p = match val_of p with
+let rec p_not p = match val_of p with
   | Ptrue -> cut Pfalse p
   | Pfalse -> cut Ptrue p
   | Papp( "eq" , w ) -> p_app "neq" w
   | Papp( "neq" , w ) -> p_app "eq" w
   | Papp( "le_int" , [a;b] ) -> p_app "lt_int" [b;a]
   | Papp( "lt_int" , [a;b] ) -> p_app "le_int" [b;a]
+  | Pforall(x,p) -> Pexists(x,p_not p)
+  | Pexists(x,p) -> Pforall(x,p_not p)
+  | Pand(a,b) -> Por(p_not a,p_not b)
+  | Por(a,b) -> Pand(p_not a,p_not b)
+  | Pimplies(a,b) -> Pand(a,p_not b)
+  | Pnot p -> p
   | _ -> Pnot p
 
 let p_and p1 p2 = match val_of p1, val_of p2 with
@@ -634,6 +634,8 @@ let p_let x v p =
 
 let p_named name p = Pnamed(name,p)
 
+let rec quantify xs p = match xs with [] -> p | x::xs -> Pforall(x,quantify xs p)
+
 (* ------------------------------------------------------------------------ *)
 (* ---  Propagation of transformations                                  --- *)
 (* ------------------------------------------------------------------------ *)
@@ -689,10 +691,10 @@ let change_data_in_pred do_data_rec p =
 
 let rec pred_alpha_cv alpha p =
   let do_pred alpha p = pred_alpha_cv alpha p in
-  let rec do_preds alpha l = match l with [] -> alpha, l
+  let rec _do_preds alpha l = match l with [] -> alpha, l
     | p::l ->
         let alpha, p = do_pred alpha p in
-        let alpha, l = do_preds alpha l in
+        let alpha, l = _do_preds alpha l in
           alpha, p::l
   in
   match p with
@@ -760,7 +762,7 @@ let change_exp_in_pred do_exp = change_exp_in_pred do_exp no_quantif_do_exp
 * variables (and that they are different from bounded ones).
 *)
 let subst_vars_in_pred var_subst p =
-  let rec do_exp exp = change_in_exp var_subst exp
+  let do_exp exp = change_in_exp var_subst exp
   in change_exp_in_pred do_exp p
 
 (** Specialized version of [subst_vars_in_pred] to substitute one variable [v]

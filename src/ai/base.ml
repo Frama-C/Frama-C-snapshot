@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,16 +23,39 @@
 open Cil_types
 open Cil
 open Abstract_interp
-open Abstract_value
-
-let name = "base"
 
 type validity =
+  | Known of Int.t * Int.t
+  | Unknown of Int.t * Int.t
+  | Periodic of Int.t * Int.t * Int.t
   | All
-  | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
-  | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
-  | Periodic of Abstract_interp.Int.t*Abstract_interp.Int.t*
-      Abstract_interp.Int.t
+
+let pretty_validity fmt v =
+  match v with
+  | All -> Format.fprintf fmt "All"
+  | Unknown (b,e)  -> Format.fprintf fmt "Unknown %a-%a" Int.pretty b Int.pretty e
+  | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
+  | Periodic (b,e,p)  ->
+      Format.fprintf fmt "Periodic %a-%a (%a)"
+        Int.pretty b Int.pretty e
+        Int.pretty p
+
+module Validity = Datatype.Make
+  (struct
+    type t = validity
+    let name = "Base.validity"
+    let structural_descr = Structural_descr.Abstract
+    let reprs = [ All; Known (Int.zero, Int.one) ]
+    let equal = Datatype.undefined
+    let compare = Datatype.undefined
+    let hash = Datatype.undefined
+    let pretty = pretty_validity
+    let mem_project = Datatype.never_any_project
+    let internal_pretty_code = Datatype.pp_fail
+    let rehash = Datatype.identity
+    let copy (x:t) = x
+    let varname _ = "v"
+   end)
 
 type string_id = Cil_types.exp
 
@@ -61,16 +84,6 @@ let is_hidden_variable v =
     Var (s,_) when s.vlogic -> true
   | _ -> false
 
-let pretty_validity fmt v =
-  match v with
-  | All -> Format.fprintf fmt "All"
-  | Unknown (b,e)  -> Format.fprintf fmt "Unknown %a-%a" Int.pretty b Int.pretty e
-  | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
-  | Periodic (b,e,p)  ->
-      Format.fprintf fmt "Periodic %a-%a (%a)"
-        Int.pretty b Int.pretty e
-        Int.pretty p
-
 type cstring = CSString of string | CSWstring of Escape.wstring
 
 let get_string exp =
@@ -79,7 +92,8 @@ let get_string exp =
   | Const (CWStr w) -> CSWstring w
   | _ -> assert false
 
-let pretty fmt t = Format.fprintf fmt "%s"
+let pretty fmt t = 
+  Format.fprintf fmt "%s"
   (match t with
    | String (_,{enode=Const (CStr s)}) -> 
        Format.sprintf "%S" s
@@ -89,6 +103,13 @@ let pretty fmt t = Format.fprintf fmt "%s"
    | Var (t,_) | Initialized_Var (t,_) ->
        Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident t.vname
    | Null -> "NULL")
+
+let pretty_addr fmt t =
+  ( match t with
+    Var _ | Initialized_Var _ ->
+      Format.fprintf fmt "&"
+  | String _ | Null -> ());
+  pretty fmt t
 
 let compare v1 v2 = Datatype.Int.compare (id v1) (id v2)
 
@@ -117,13 +138,14 @@ let bits_sizeof v =
     | Var (v,_) | Initialized_Var (v,_) ->
         Bit_utils.sizeof_vid v
 
+let dep_absolute = [Kernel.AbsoluteValidRange.self]
+
 module MinValidAbsoluteAddress =
   State_builder.Ref
     (Abstract_interp.Int)
     (struct
        let name = "MinValidAbsoluteAddress"
-       let dependencies = []
-       let kind = `Internal
+       let dependencies = dep_absolute
        let default () = Abstract_interp.Int.zero
      end)
 
@@ -132,8 +154,7 @@ module MaxValidAbsoluteAddress =
     (Abstract_interp.Int)
     (struct
        let name = "MaxValidAbsoluteAddress"
-       let dependencies = []
-       let kind = `Internal
+       let dependencies = dep_absolute
        let default () = Abstract_interp.Int.minus_one
      end)
 
@@ -213,8 +234,6 @@ let is_function base =
 
 let equal v w = (id v) = (id w)
 
-let hash = id
-
 let is_aligned_by b alignment =
   if Int.is_zero alignment
   then false
@@ -289,7 +308,8 @@ let validity_from_type v =
 
 exception Not_a_variable
 
-module D = Datatype.Make_with_collections
+module BaseDatatype = struct
+  include Datatype.Make_with_collections
   (struct
     type t = base
     let name = "Base"
@@ -305,23 +325,26 @@ module D = Datatype.Make_with_collections
     let copy = Datatype.undefined
     let varname = Datatype.undefined
    end)
+  let id = id
+end
 
-include D
+include BaseDatatype
 
 module Hptset = Hptset.Make
-  (struct include D let id = id end)
+  (BaseDatatype)
   (struct let v = [ [ ] ] end)
   (struct let l = [ Ast.self ] end)
+let () = Ast.add_monotonic_state Hptset.self
 
 module VarinfoLogic =
   Cil_state_builder.Varinfo_hashtbl
-    (D)
+    (BaseDatatype)
     (struct
        let name = "Base.VarinfoLogic"
        let dependencies = [ Ast.self ]
-       let size = 257
-       let kind = `Internal
+       let size = 89
      end)
+let () = Ast.add_monotonic_state VarinfoLogic.self
 
 let get_varinfo t = match t with
   | Var (t,_) | Initialized_Var (t,_) -> t
@@ -333,22 +356,45 @@ let create_varinfo varinfo =
   assert (not varinfo.vlogic);
   let validity = validity_from_type varinfo in
   let name = varinfo.vname in
+  let periodic period =
+    Kernel.feedback ~current:true ~once:true
+      "Periodic variable %s of period %d@." name period;
+    match validity with
+    | Known(mn, mx) ->
+        assert (Int.is_zero mn);
+        Periodic(mn, mx, Int.of_int period)
+    | _ -> assert false
+  in
   let validity =
     if Str.string_match regexp name 0 then
       let period = Str.matched_group 1 name in
       let period = int_of_string period in
-      Kernel.warning ~current:true ~once:true
-        "Periodic variable %s of period %d@."
-        name
-        period;
-      match validity with
-      | Known(mn, mx) ->
-          assert (Int.is_zero mn);
-          Periodic(mn, mx, Int.of_int period)
-      | _ -> assert false
-    else validity
+      periodic period
+    else
+      match Cil.unrollType varinfo.vtype with
+        | TArray (typ, _, _, attrs) when
+            Cil.hasAttribute "Frama_C_periodic" varinfo.vattr ||
+            Cil.hasAttribute "Frama_C_periodic" attrs ->
+          (try
+             let size = Cil.bitsSizeOf typ in
+             periodic size
+           with Cil.SizeOfError _ -> validity)
+        | _ -> validity
   in
   Var (varinfo, validity)
+
+module Validities =
+  Cil_state_builder.Varinfo_hashtbl
+    (BaseDatatype)
+    (struct
+       let name = "Base.Validities"
+       let dependencies = [ Ast.self ]
+       let size = 117
+     end)
+let () = Ast.add_monotonic_state Validities.self
+
+let create_varinfo = Validities.memo create_varinfo
+
 
 let create_logic varinfo validity =
   assert (varinfo.vlogic && not (VarinfoLogic.mem varinfo));
@@ -367,13 +413,13 @@ let find varinfo =
 module LiteralStrings =
   State_builder.Hashtbl
     (Datatype.Int.Hashtbl)
-    (D)
+    (BaseDatatype)
     (struct
        let name = "litteral strings"
        let dependencies = [ Ast.self ]
        let size = 17
-       let kind = `Internal
      end)
+let () = Ast.add_monotonic_state LiteralStrings.self
 
 let create_string e =
   LiteralStrings.memo (fun _ -> String (Cil_const.new_raw_id (), e)) e.eid

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,8 +28,6 @@
     | Proof of string
     | Word
     | Eof
-
-  let keywords = [ "Goal" ; "Hint" ]
 
   let fill buffer lexbuf =
     Buffer.add_string buffer (Lexing.lexeme lexbuf)
@@ -60,15 +58,13 @@ rule token = parse
         proof buffer 0 lexbuf ;
         Proof (Buffer.contents buffer)
       }
-  | [ 'a'-'z' 'A'-'Z' '0'-'9' '_' ]+
+  | [ 'a'-'z' 'A'-'Z' '0'-'9' '_' '-' ]+
       {
-        let a = Lexing.lexeme lexbuf in
-        if List.mem a keywords then Key a else Id a
+        Id (Lexing.lexeme lexbuf)
       }
   | [ '.' ':' ',' ';' ] { Key(Lexing.lexeme lexbuf) }
   | "(*" { comment 0 lexbuf }
   | eof { Eof }
-  | [ ',' '.' ] { Key(Lexing.lexeme lexbuf) }
   | _ { Word }
 
 and comment n = parse
@@ -83,15 +79,29 @@ and proof buffer n = parse
       {
         if n > 0 then proof buffer (pred n) lexbuf
       }
-  | "(*" { fill buffer lexbuf ; proof buffer (succ n) lexbuf }
-  | "*)" { fill buffer lexbuf ;
-           if n>0 then proof buffer (pred n) lexbuf
-           else failwith "Non-terminated comment (inside proof)" }
+  | "(*@" { skip 0 lexbuf ; proof buffer n lexbuf }
+  | "(*"  { fill buffer lexbuf ; proof buffer (succ n) lexbuf }
+  | "*)"  { fill buffer lexbuf ;
+            if n>0 then proof buffer (pred n) lexbuf
+            else failwith "Non-terminated comment (inside proof)" }
   | eof  { failwith "Non-terminated proof" }
   | '\n' { fill buffer lexbuf ; newline lexbuf ; proof buffer n lexbuf }
   | _    { fill buffer lexbuf ; proof buffer n lexbuf }
 
+and skip n = parse
+  | "(*" { skip (succ n) lexbuf }
+  | "*)" { if n>0 then skip (pred n) lexbuf }
+  | eof  { () }
+  | "\n" { newline lexbuf ; skip n lexbuf }
+  | _ { skip n lexbuf }
+
 {
+
+  let filter key =
+    let lexbuf = Lexing.from_string key in
+    match token lexbuf with
+      | Id a -> Some a
+      | _ -> None
 
   type input = {
     src : string ;
@@ -135,13 +145,9 @@ and proof buffer n = parse
          failwith (Buffer.contents buffer)
       ) fmt text
 
-  let eraise input = function
-    | Failure msg -> error input "Failure '%s'" msg
-    | exn -> error input "Failure '%s'" (Printexc.to_string exn)
-
   let key input k =
     match input.token with
-      | Key a when a=k -> skip input ; true
+      | (Key a) | (Id a) when a=k -> skip input ; true
       | _ -> false
 
   let eat input k =

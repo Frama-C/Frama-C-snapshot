@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
@@ -31,7 +31,9 @@ struct
   open Abstract_interp
 
   module V_bool = struct
-    include Datatype.Pair(Datatype.Bool)(V)
+    include Datatype.Pair_with_collections(Datatype.Bool)(V)
+      (struct let module_name =
+                Format.sprintf "Offsetmap_bitwise(%s).Make.V_bool" V.name end)
     let hash (b,v) =
       let h = V.tag v in
       if b then h else 100000 + h
@@ -76,32 +78,71 @@ struct
           | Map _, Degenerate _ -> -1
           | Degenerate _, Map _ -> 1
 
+  (* Print a map by fusing together intervals that map to the same value *)
+  let fold_fuse_same_aux f m acc =
+    let h = V_bool.Hashtbl.create 17 in
+    (* Map the various values in m to the intervals they appear in*)
+    let sort_by_content itv v () =
+      let cur = try V_bool.Hashtbl.find h v
+        with Not_found -> Int_Intervals.bottom
+      in
+      let itvs = Int_Intervals.inject [itv] in
+      let new_ = Int_Intervals.join itvs cur in
+      V_bool.Hashtbl.replace h v new_
+    in
+    M.fold sort_by_content m ();
+    (* Now sort the contents of h by increasing intervals *)
+    let module M = Map.Make(struct
+      type t = Int_Intervals.t
+      let compare = Int_Intervals.compare_itvs
+    end) in
+    let m = V_bool.Hashtbl.fold
+      (fun v itvs acc -> M.add itvs v acc)
+      h M.empty
+    in
+    (* Call f on those intervals *)
+    M.fold (fun itvs v acc -> f itvs v acc) m acc
+
+  let fold_fuse_same f offsm acc =
+    match offsm with
+      | Degenerate v ->
+          f Int_Intervals.top (true,v) acc
+      | Map offsm -> fold_fuse_same_aux f offsm acc
+
+  let range_covers_whole_type typ itvs =
+    match typ with
+      | None -> false
+      | Some typ ->
+          match Int_Intervals.project_singleton itvs with
+            | Some (b, e) ->
+                (try
+                   let s = Cil.bitsSizeOf typ in
+                   Int.equal b Int.zero && Int.equal e (Int.of_int (pred s))
+                 with Cil.SizeOfError _ -> false)
+            | None -> false
+
   let pretty_with_type typ fmt m =
     match m with
-      Degenerate v ->
+    | Degenerate v ->
         Format.fprintf fmt "@[[..] FROM @[%a@]@]"
           V.pretty v
     | Map m ->
+        let pp_itv = Int_Intervals.pretty_typ typ in
         let first = ref true in
-        let pretty_binding fmt (bi,ei) (default,v) =
-          let pp_left fmt = function
-            | None ->
-                Format.fprintf fmt ":%a..%a"
-                  Int.pretty bi Int.pretty ei
-            | Some typ ->
-                ignore (Bit_utils.pretty_bits typ
-                          ~use_align:false ~align:Int.zero ~rh_size:Int.one
-                          ~start:bi ~stop:ei fmt)
-          in
+        let pretty_binding fmt itvs (default,v) () =
           if !first then first := false else Format.fprintf fmt "@," ;
-          Format.fprintf fmt "@[%a FROM @[%a@]%s@]"
-            pp_left typ V.pretty v
+          Format.fprintf fmt "@[<hv>@[%a@]%(%)@[FROM @[%a%s@]@]@]"
+            pp_itv itvs
+            (if range_covers_whole_type typ itvs
+             then (" ": (unit,Format.formatter,unit) format) else "@ ")
+            V.pretty v
             (if default then " (and SELF)" else "")
 
         in
         Format.fprintf fmt "@[<v>";
-        M.iter (pretty_binding fmt) m;
+        fold_fuse_same_aux (pretty_binding fmt) m ();
         Format.fprintf fmt "@]"
+
 
   let pretty = pretty_with_type None
 
@@ -548,7 +589,7 @@ struct
 (*    check_contiguity(result);*)
     result
 
-  let rec check_inter offs1 offs2 =
+  let check_inter offs1 offs2 =
     let check bi ei =
       let concerned_intervals =
         M.concerned_intervals

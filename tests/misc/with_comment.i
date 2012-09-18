@@ -16,7 +16,7 @@ int main2 () {
   G = 0;
 
 /* Commentaire avant loop comment*/
- /*@ loop pragma UNROLL_LOOP 0; */
+ /*@ loop pragma UNROLL 0; */
   for(i=0; i<=10; i++)
     G++;
 

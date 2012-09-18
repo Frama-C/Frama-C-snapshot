@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,6 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
+open LogicUsage
 
 (** Beside the property identification, it can be found in different contexts
  * depending on which part of the computation is involved.
@@ -36,9 +37,11 @@ type prop_id
  *)
 val property_of_id : prop_id -> Property.t
 
+val source_of_id : prop_id -> Lexing.position
+
 (*----------------------------------------------------------------------------*)
 
-module Prop_id_datatype: Datatype.S with type t = prop_id
+module PropId : Datatype.S with type t = prop_id
 
 (*----------------------------------------------------------------------------*)
 
@@ -46,32 +49,29 @@ val compare_prop_id : prop_id -> prop_id -> int
 
 val is_assigns : prop_id -> bool
 val is_requires : Property.t -> bool
+val is_loop_preservation : prop_id -> stmt option
 
 (** test if the prop_id has to be selected for the asked name.
 * Also returns a debug message to explain then answer. *)
-val select_by_name : string -> prop_id -> bool * string
+val select_by_name : string list -> prop_id -> bool
 
 (** test if the prop_id has to be selected when we want to select the call
 * precondition the the [stmt] call (None means all the call preconditions).
 * Also returns a debug message to explain then answer. *)
-val select_call_pre : stmt -> Property.t option -> prop_id -> bool * string
+val select_call_pre : stmt -> Property.t option -> prop_id -> bool
 
 (*----------------------------------------------------------------------------*)
 
-val prop_id_name : prop_id -> string
-val pp_id_name : Format.formatter -> prop_id -> unit
+val prop_id_keys : prop_id -> string list * string list (* required , hints *)
+
+val get_propid : prop_id -> string (** Unique identifier of [prop_id] *)
+val pp_propid : Format.formatter -> prop_id -> unit (** Print unique id of [prop_id] *)
 
 val pretty : Format.formatter -> prop_id -> unit
-val pretty_context : Kernel_function.t -> Format.formatter -> prop_id -> unit
+val pretty_context : Description.kf -> Format.formatter -> prop_id -> unit
 
 (** Short description of the kind of PO *)
 val label_of_prop_id: prop_id -> string
-
-(** Short description of the PO *)
-val name_of_prop_id: prop_id -> string
-
-(** TODO: this one should be in Properties_status. *)
-val id_prop_txt : Property.t -> string
 
 (** TODO: should probably be somewhere else *)
 val string_of_termination_kind : termination_kind -> string
@@ -79,7 +79,7 @@ val string_of_termination_kind : termination_kind -> string
 val num_of_bhv_from : funbehavior -> identified_term from -> int
 (*----------------------------------------------------------------------------*)
 
-val mk_code_annot_id : kernel_function -> stmt -> code_annotation -> prop_id
+val mk_code_annot_ids : kernel_function -> stmt -> code_annotation -> prop_id list
 
 val mk_assert_id : kernel_function -> stmt -> code_annotation -> prop_id
 
@@ -118,7 +118,7 @@ val mk_compl_bhv_id : kernel_function * kinstr * string list -> prop_id
 val mk_decrease_id : kernel_function * kinstr * term variant -> prop_id
 
 (** axiom identification *)
-val mk_axiom_id : string -> prop_id
+val mk_lemma_id : logic_lemma -> prop_id
 
 val mk_stmt_assigns_id : kernel_function -> stmt -> funbehavior ->
   identified_term from list -> prop_id option
@@ -148,6 +148,7 @@ val mk_call_pre_id : kernel_function -> stmt ->
 type a_kind = LoopAssigns | StmtAssigns
 type assigns_desc = private {
   a_label : Cil_types.logic_label ;
+  a_stmt : Cil_types.stmt option ;
   a_kind : a_kind ;
   a_assigns : Cil_types.identified_term Cil_types.assigns ;
 }
@@ -179,11 +180,9 @@ val mk_kf_assigns_desc : identified_term from list -> assigns_desc
 
 (*----------------------------------------------------------------------------*)
 
-type t_axiom = string * Cil_types.logic_label list * Cil_types.predicate named
-type axiom_info = prop_id * t_axiom
+type axiom_info = prop_id * LogicUsage.logic_lemma
 
-val mk_axiom_info : 
-  string -> Cil_types.logic_label list -> Cil_types.predicate named -> axiom_info
+val mk_axiom_info : LogicUsage.logic_lemma -> axiom_info
 val pp_axiom_info : Format.formatter -> axiom_info -> unit
 
 type pred_info = (prop_id * Cil_types.predicate named)

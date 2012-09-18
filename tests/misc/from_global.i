@@ -4,6 +4,7 @@ int f(int x)
 {
   B = A;
   C = x;
+  return C;
 }
 
 int main(void)

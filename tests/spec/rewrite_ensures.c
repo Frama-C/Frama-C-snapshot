@@ -1,7 +1,7 @@
 /* run.config
-   EXECNOW: make -s tests/spec/rewrite_ensures.cmxs
-   CMD: bin/toplevel.opt
-   OPT: -print -load-module tests/spec/rewrite_ensures.cmxs
+
+
+   OPT: -print -load-script tests/spec/rewrite_ensures.ml
 */
 
 /*@

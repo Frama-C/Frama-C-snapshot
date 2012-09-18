@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,7 +23,7 @@
 /* ISO C: 7.19 */
 #ifndef __FC_STDIO
 #define __FC_STDIO
-
+#include "__fc_machdep.h"
 #include "stdarg.h"
 #include "errno.h"
 #include "__fc_define_size_t.h"
@@ -46,24 +46,15 @@ typedef struct __fc_FILE FILE;
 #define _IOLBF 1
 #define _IONBF 2
 
-/* TODO: This chould be customizable */
-#define BUFSIZ 0xFFFFFFFF
+#define BUFSIZ __FC_BUFSIZ
+#define EOF __FC_EOF
+#define FOPEN_MAX __FC_FOPEN_MAX
+#define FILENAME_MAX __FC_FILENAME_MAX
+#define L_tmpnam __FC_L_tmpnam
 
-#define EOF (-1)
+#include "__fc_define_seek_macros.h"
 
-/* TODO: This chould be customizable */
-#define FOPEN_MAX 512
-/* TODO: This chould be customizable */
-#define FILENAME_MAX 2048
-/* TODO: This chould be customizable */
-#define L_tmpnam 2048
-
-#define SEEK_CUR 0
-#define SEEK_END 1
-#define SEEK_SET 2
-
-/* TODO: This could be customizable */
-#define TMP_MAX 0xFFFFFFFF
+#define TMP_MAX __FC_TMP_MAX
 
 extern FILE * __fc_stderr;
 #define stderr __fc_stderr
@@ -81,7 +72,7 @@ int remove(const char *filename);
 int rename(const char *old, const char *new);
 
 /*@ assigns \nothing; 
-  ensures \result==\null || (\valid(\result) && \fresh(\result)) ; */ 
+  ensures \result==\null || (\valid(\result) && \fresh(\result,sizeof(FILE))) ; */ 
 FILE *tmpfile(void);
 
 /*@ 
@@ -91,22 +82,28 @@ FILE *tmpfile(void);
 */
 char *tmpnam(char *s);
 
-/*@ assigns *stream; 
+/*@ assigns *stream \from \nothing; 
   ensures \result == 0 || \result == (-1);  // -1 expanded manually to EOF
   // TODO: more precise behaviors from ISO C 7.19.4.1 
 */
 int fclose(FILE *stream);
 
-/*@ assigns *stream;
+/*@ assigns *stream \from \nothing;
    ensures \result == 0 || \result == (-1);  // -1 expanded manually from EOF
   // TODO: more precise behaviors from ISO C 7.19.5.2
  */
 int fflush(FILE *stream);
 
-/*@ assigns \nothing; 
-  ensures \result==\null || (\valid(\result) && \fresh(\result)) ; */ 
-FILE *fopen(const char * __restrict filename,
-     const char * __restrict mode);
+/*@ assigns \result \from filename[..],mode[..]; 
+  ensures \result==\null || (\valid(\result) && \fresh(\result,sizeof(FILE))) ;
+*/ 
+FILE *fopen(const char * restrict filename,
+     const char * restrict mode);
+
+/*@ assigns \result \from fildes,mode[..]; 
+  ensures \result==\null || (\valid(\result) && \fresh(\result,sizeof(FILE)));
+ */
+FILE *fdopen(int fildes, const char *mode);
 
 /*@ 
   assigns *stream; 
@@ -134,7 +131,8 @@ int fprintf(FILE * restrict stream,
 int fscanf(FILE * restrict stream,
      const char * restrict format, ...);
 
-/*@ assigns *__fc_stdout; */
+// TODO: \from ...
+/*@ assigns *__fc_stdout \from format[..]; */
 int printf(const char * restrict format, ...);
 
 /*@ assigns *__fc_stdin; 
@@ -211,11 +209,10 @@ int fputc(int c, FILE *stream);
 int fputs(const char * restrict s,
      FILE * restrict stream);
 
-/*@ assigns *stream; */
+/*@ assigns \result,*stream \from *stream; */
 int getc(FILE *stream);
 
-/*@ assigns \result \from *__fc_stdin ;
- */
+/*@ assigns \result \from *__fc_stdin ; */
 int getchar(void);
 
 /*@ assigns s[..] \from *__fc_stdin ;
@@ -223,7 +220,7 @@ int getchar(void);
  */
 char *gets(char *s);
 
-/*@ assigns *stream ; */
+/*@ assigns *stream \from c; */
 int putc(int c, FILE *stream);
 
 /*@ assigns *__fc_stdout \from c; */
@@ -261,6 +258,7 @@ long int ftell(FILE *stream);
 
 /*@  assigns *stream \from \nothing; */
 void rewind(FILE *stream);
+
 /*@  assigns *stream  \from \nothing; */
 void clearerr(FILE *stream);
 
@@ -268,10 +266,50 @@ void clearerr(FILE *stream);
 int feof(FILE *stream);
 
 /*@ assigns \result \from *stream ;*/
+int fileno(FILE *stream);
+
+/*@ assigns *stream \from \nothing ;*/
+void flockfile(FILE *stream);
+
+/*@ assigns *stream \from \nothing ;*/
+void funlockfile(FILE *stream);
+
+/*@ assigns \result,*stream \from \nothing ;*/
+int ftrylockfile(FILE *stream);
+
+/*@ assigns \result \from *stream ;*/
 int ferror(FILE *stream);
 
 /*@ assigns __fc_stdout \from __FC_errno, s[..]; */
 void perror(const char *s);
+
+/*@ assigns \result,*stream \from *stream; */
+int getc_unlocked(FILE *stream);
+/*@ assigns \result \from *__fc_stdin ; */
+int getchar_unlocked(void);
+/*@ assigns *stream \from c; */
+int putc_unlocked(int c, FILE *stream);
+/*@ assigns *__fc_stdout \from c; */
+int putchar_unlocked(int c);
+
+/*@  assigns *stream  \from \nothing; */
+void clearerr_unlocked(FILE *stream);
+/*@ assigns \result \from *stream ;*/
+int feof_unlocked(FILE *stream);
+/*@ assigns \result \from *stream ;*/
+int ferror_unlocked(FILE *stream);
+/*@ assigns \result \from *stream ;*/
+int fileno_unlocked(FILE *stream);
+int fflush_unlocked(FILE *stream);
+int fgetc_unlocked(FILE *stream);
+int fputc_unlocked(int c, FILE *stream);
+size_t fread_unlocked(void *ptr, size_t size, size_t n,
+                             FILE *stream);
+size_t fwrite_unlocked(const void *ptr, size_t size, size_t n,
+		       FILE *stream);
+
+char *fgets_unlocked(char *s, int n, FILE *stream);
+int fputs_unlocked(const char *s, FILE *stream);
 
 
 #endif

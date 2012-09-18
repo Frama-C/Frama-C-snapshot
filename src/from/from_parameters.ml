@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,19 +28,19 @@ include Plugin.Register
    end)
 
 module ForceDeps =
-  False
+  WithOutput
     (struct
        let option_name = "-deps"
        let help = "force dependencies display"
-       let kind = `Tuning
+       let output_by_default = true
      end)
 
 module ForceCallDeps =
-  False
+  WithOutput
     (struct
        let option_name = "-calldeps"
        let help = "force callsite-wise dependencies"
-       let kind = `Tuning
+       let output_by_default = true
      end)
 
 module PathDeps =
@@ -48,7 +48,13 @@ False
     (struct
        let option_name = "-experimental-path-deps"
        let help = "experimental"
-       let kind = `Tuning
+     end)
+
+module MemDeps =
+False
+    (struct
+       let option_name = "-experimental-mem-deps"
+       let help = "experimental"
      end)
 
 

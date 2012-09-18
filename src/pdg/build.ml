@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -38,7 +38,7 @@ let debug fmt = Pdg_parameters.debug ~dkey fmt
 let debug2 fmt = Pdg_parameters.debug ~dkey fmt ~level:2
 
 open Cil_types
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
 open Cil_datatype
 
 module G = PdgTypes.G
@@ -86,8 +86,6 @@ module BuildPdg : sig
 
   val get_kf : t -> kernel_function
 
-  val pretty : Format.formatter -> t -> unit
-
   (** type of the state that is propagated by the forward dataflow analysis *)
   type t_state
 
@@ -98,6 +96,7 @@ module BuildPdg : sig
   val print_state : Format.formatter -> t_state -> unit
 
   val empty_state : t_state
+  val bottom_state: t_state
 
   (** type to describe the data locations (to store information in [t_state]) *)
   type t_loc = Locations.Zone.t
@@ -109,6 +108,7 @@ module BuildPdg : sig
   val process_declarations : t -> formals:Cil_types.varinfo list ->
                              locals:Cil_types.varinfo list ->
                              t_state
+
 
   (** for assign statement.
    * @param l_loc assigned location(s)
@@ -142,6 +142,8 @@ module BuildPdg : sig
    *)
   val process_jump : t -> Cil_types.stmt -> 
     bool * Cil_datatype.Stmt.Hptset.t -> unit
+
+  val process_stmt_labels : t -> Cil_types.stmt -> unit
 
   val process_block : t -> Cil_types.stmt -> Cil_types.block -> unit
 
@@ -214,7 +216,7 @@ module BuildPdg : sig
                (PdgTypes.Node.t * Dpd.td * Locations.Zone.t) list;
              graph : G.t;
              states : Pdg_state.t_states;
-             index : PdgTypes.Pdg.t_fi;
+             index : PdgTypes.Pdg.fi;
 
              ctrl_dpds : BoolNodeSet.t Stmt.Hashtbl.t ;
                        (** The nodes to which each stmt control-depend on.
@@ -225,6 +227,7 @@ module BuildPdg : sig
             }
 
   let empty_state = Pdg_state.empty
+  let bottom_state = Pdg_state.bottom
 
   let create kf =
     let nb_stmts =
@@ -248,7 +251,7 @@ module BuildPdg : sig
   let add_to_inputs pdg n dk zone =
     pdg.other_inputs <- (n, dk, zone) :: pdg.other_inputs
 
-  let pretty fmt pdg = PdgTypes.Pdg.pretty_graph fmt pdg.graph
+  let _pretty fmt pdg = PdgTypes.Pdg.pretty_graph fmt pdg.graph
 
     (** add a node to the PDG, but if it is associated with a stmt,
         check before if it doesn't exist already (useful for loops).
@@ -276,14 +279,6 @@ module BuildPdg : sig
               *)
           | _ -> FI.add index key new_node in
           new_node
-
-
-  let topinput pdg = match pdg.topinput with
-    | None ->
-        let topinput = add_elem pdg Key.top_input in
-          pdg.topinput <- Some topinput;
-          topinput
-    | Some top -> top
 
   let decl_var pdg var =
     let new_node = add_elem pdg (Key.decl_var_key var) in
@@ -491,8 +486,7 @@ module BuildPdg : sig
     let _ = add_dpds pdg new_node Dpd.Data state_before deps in
       state
 
-  let process_call_ouput pdg state_before_call state
-                         stmt numout out default from_out fct_dpds =
+  let process_call_ouput pdg state_before_call state stmt numout out default from_out fct_dpds =
     let exact =
       (* TODO : Check this with Pascal !
       * (Locations.Zone.cardinal_zero_or_one out) && *)
@@ -537,16 +531,27 @@ module BuildPdg : sig
   let process_unreachable _pdg _state _stmt =
     (* let key = Key.stmt_key stmt in
     let _new_node = add_elem pdg key in *)
-      Some Pdg_state.empty 
+      Some Pdg_state.bottom 
 
   let process_unreachable_call _pdg _state _call_stmt =
     (* let key = Key.call_ctrl_key call_stmt in
     let _new_node = add_elem pdg key in *)
-      Some Pdg_state.empty 
+      Some Pdg_state.bottom
 
-  let add_label pdg label label_stmt jump_node =
-    let label_node = add_elem pdg (Key.label_key label_stmt label) in
-    add_ctrl_dpd pdg jump_node label_node
+  let add_label pdg label label_stmt =
+    let key = Key.label_key label_stmt label in
+      try FI.find_info (nodes_index pdg) key
+      with Not_found -> add_elem pdg key
+
+  let process_stmt_labels pdg stmt =
+    let add label = match label with 
+      | Label _ -> ignore (add_label pdg label stmt)
+      | _ -> (* see [add_dpd_switch_cases] *) ()
+    in List.iter add stmt.labels
+
+  let add_label_and_dpd pdg label label_stmt jump_node =
+    let label_node = add_label pdg label label_stmt in
+      add_ctrl_dpd pdg jump_node label_node
 
   let add_dpd_goto_label pdg goto_node dest_goto =
     let rec pickLabel = function
@@ -562,7 +567,7 @@ module BuildPdg : sig
         let label = Label (lname, Cil_datatype.Stmt.loc dest_goto, false) in
           dest_goto.labels <- label::dest_goto.labels;
           label
-    in add_label pdg label dest_goto goto_node
+    in add_label_and_dpd pdg label dest_goto goto_node
 
   let add_dpd_switch_cases pdg switch_node case_stmts =
     let add_case stmt =
@@ -573,7 +578,7 @@ module BuildPdg : sig
         | _ :: rest -> pickLabel rest
       in
       match pickLabel stmt.labels with
-      | Some label -> add_label pdg label stmt switch_node
+      | Some label -> add_label_and_dpd pdg label stmt switch_node
       | None -> assert false (* switch sans case ou default ??? *)
     in List.iter add_case case_stmts
 
@@ -727,18 +732,25 @@ module BuildPdg : sig
       in
       let from_table = froms.Function_Froms.deps_table in
       let new_state =
-        try Lmap_bitwise.From_Model.fold process_out from_table state
-        with Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
-          process_out Locations.Zone.top (false, Locations.Zone.top) state
+        if Lmap_bitwise.From_Model.is_bottom from_table then
+          bottom_state
+        else
+          let new_state =
+            try Lmap_bitwise.From_Model.fold_fuse_same
+                  process_out from_table state
+            with Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
+              process_out Locations.Zone.top (false, Locations.Zone.top) state
+          in
+          if not (Kernel_function.returns_void pdg.fct) then begin
+            let from0 = froms.Function_Froms.deps_return in
+            ignore
+              (create_fun_output_node
+                 pdg
+                 (Some new_state)
+                 (Lmap_bitwise.From_Model.LOffset.collapse from0))
+          end;
+          new_state
       in
-      if not (Kernel_function.returns_void pdg.fct) then begin
-        let from0 = froms.Function_Froms.deps_return in
-        ignore
-          (create_fun_output_node
-             pdg
-             (Some new_state)
-             (Lmap_bitwise.From_Model.LOffset.collapse from0))
-      end;
       store_last_state pdg new_state);
     let init_state = process_other_inputs pdg in
     store_init_state pdg init_state;
@@ -810,9 +822,12 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
                                   numout out default from_out fct_dpds in
       (new_state, numout+1)
   in
+  if Lmap_bitwise.From_Model.is_bottom from_table then
+    BuildPdg.bottom_state
+  else
   let (state_with_outputs, _num) =
     try 
-      Lmap_bitwise.From_Model.fold process_out from_table (state_before_call, 1)
+      Lmap_bitwise.From_Model.fold_fuse_same process_out from_table (state_before_call, 1)
     with  Lmap_bitwise.From_Model.Cannot_fold -> (* TOP in from_table *)
       process_out Locations.Zone.top (false, Locations.Zone.top) 
                                                    (state_before_call, 1)
@@ -873,8 +888,8 @@ let process_call pdg state stmt lvaloption funcexp argl =
     match state_for_each_call with
     | [] ->
        let stmt_str = Pretty_utils.sfprintf "%a" !Ast_printer.d_stmt stmt in
-       Extlib.not_yet_implemented
-         ("pdg with an unknown function call : " ^ stmt_str)
+       Pdg_parameters.not_yet_implemented
+         "pdg with an unknown function call: %s" stmt_str
     | st :: [] -> st
     | st :: other_states ->
         let merge s1 s2 =
@@ -1030,9 +1045,12 @@ module Computer (Param:sig
           process_call current_pdg state stmt lvaloption funcexp argl
       | Code_annot _
       | Skip _ -> BuildPdg.process_skip current_pdg state stmt
-      | Asm  _ -> Extlib.not_yet_implemented "inline assembly instruction"
-    in match state with None -> Dataflow.Default
-      | Some state -> Dataflow.Done state
+      | Asm  _ -> 
+	Pdg_parameters.not_yet_implemented "inline assembly instruction"
+    in 
+    match state with
+    | None -> Dataflow.Default
+    | Some state -> Dataflow.Done state
 
   (** Called before processing the successors of the statements.
    *)
@@ -1040,6 +1058,7 @@ module Computer (Param:sig
       pdg_debug "doStmt %d @." stmt.sid ;
 
     (* Notice that the stmt labels are processed while processing the jumps. *)
+    BuildPdg.process_stmt_labels current_pdg stmt;
 
     match stmt.skind with
       | Instr _
@@ -1167,43 +1186,31 @@ let degenerated top kf =
 
 let compute_pdg kf =
   if not (Db.Value.is_computed ()) then !Db.Value.compute ();
-
   Pdg_parameters.feedback "computing for function %a" Kernel_function.pretty kf;
-
   try
-
     if is_variadic kf then
-      Extlib.not_yet_implemented "variadic function";
-
+      Pdg_parameters.not_yet_implemented "variadic function";
     let pdg = compute_pdg_for_f kf in
-
     Pdg_parameters.feedback "done for function %a" Kernel_function.pretty kf;
-
     pdg
-
   with
     | Err_Bot what ->
         Pdg_parameters.warning "%s" what ;
         degenerated false kf
-
     | Log.AbortFatal what ->
+	(* [JS 2012/08/24] nobody should catch this exception *)
         Pdg_parameters.warning "internal error: %s" what ;
         degenerated true kf
-
     | Log.AbortError what ->
+	(* [JS 2012/08/24] nobody should catch this exception *)
         Pdg_parameters.warning "user error: %s" what ;
         degenerated true kf
-
     | Pdg_state.Cannot_fold ->
         Pdg_parameters.warning "too imprecise value analysis : abort" ;
         degenerated true kf
-
-    | Extlib.NotYetImplemented what ->
-        Pdg_parameters.warning "not implemented by PDG yet: %s" what ;
-        degenerated true kf
-
     | Log.FeatureRequest (who, what) ->
-        Pdg_parameters.warning "not implemented by [%s] yet: %s" who what ;
+	(* [JS 2012/08/24] nobody should catch this exception *)
+        Pdg_parameters.warning "not implemented by %s yet: %s" who what ;
         degenerated true kf
 
 (*

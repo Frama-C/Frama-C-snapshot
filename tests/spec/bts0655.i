@@ -1,5 +1,4 @@
 /* run.config
-   DONTRUN: bug fix in progress
    OPT: -load-script tests/spec/bts0655.ml
 */
 /*@

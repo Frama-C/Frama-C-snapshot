@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,6 +22,11 @@
 
 open Abstract_interp
 
+type kind =
+  | K_Misalign_read
+  | K_Merge
+  | K_Arith
+
 type origin =
   | Misalign_read of LocationSetLattice.t
   | Leaf of LocationSetLattice.t
@@ -29,6 +34,11 @@ type origin =
   | Arith of LocationSetLattice.t
   | Well
   | Unknown
+
+let current_origin = function
+  | K_Misalign_read -> Misalign_read (LocationSetLattice.currentloc_singleton())
+  | K_Merge -> Merge (LocationSetLattice.currentloc_singleton())
+  | K_Arith -> Arith (LocationSetLattice.currentloc_singleton())
 
 let equal o1 o2 = match o1, o2 with
   | Well, Well | Unknown, Unknown -> true
@@ -68,6 +78,8 @@ let compare o1 o2 = match o1, o2 with
   | Leaf _, Misalign_read _
       -> 1
 
+let top = Unknown
+let is_top x = equal top x
 
 
 let pretty fmt o = match o with
@@ -86,6 +98,11 @@ let pretty fmt o = match o with
       Format.fprintf fmt "Arithmetic@ %a"
         LocationSetLattice.pretty o
   | Well ->       Format.fprintf fmt "Well"
+
+let pretty_as_reason fmt org =
+  if not (is_top org) then
+    Format.fprintf fmt " because of %a" pretty org
+
 
 let hash o = match o with
   | Misalign_read o ->
@@ -115,10 +132,6 @@ include Datatype.Make
       let varname = Datatype.undefined
       let mem_project = Datatype.never_any_project
      end)
-
-
-let top = Unknown
-let is_top x = equal top x
 
 let bottom = Arith(LocationSetLattice.bottom)
 

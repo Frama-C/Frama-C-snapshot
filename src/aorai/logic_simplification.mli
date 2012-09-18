@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -36,13 +36,14 @@ val tnot: typed_condition -> typed_condition
 (** {2 simplifications} *)
 
 (** Given a condition, this function does some logical simplifications
-    and returns an equivalent DNF form together with the simplified version
-*)
+    and returns an equivalent DNF form together with the simplified version *)
 val simplifyCond: 
   Promelaast.typed_condition -> 
   Promelaast.typed_condition *(Promelaast.typed_condition list list)
 
-(** Given a transition list, this function returns the same transition list with simplifyCond done on each cross condition. Uncrossable transition are removed. *)
+(** Given a transition list, this function returns the same transition list with
+    simplifyCond done on each cross condition. Uncrossable transition are
+    removed. *) 
 val simplifyTrans: 
   Promelaast.typed_condition Promelaast.trans list -> 
   (Promelaast.typed_condition Promelaast.trans list)*

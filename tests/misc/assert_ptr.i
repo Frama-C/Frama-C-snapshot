@@ -9,7 +9,7 @@ int main(int c, int d, int e)
   Frama_C_show_each_ptr(ptr);
   if (ptr != 0) (*ptr)++;
 
-  /*@ assert *q != 0 ; */
+  /*@ assert \valid(*q) && *q != 0 ; */
   Frama_C_show_each_q(s_q);
 
   return 0;

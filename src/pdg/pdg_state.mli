@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -30,6 +30,7 @@ type t = PdgTypes.t_data_state
 
 val make : PdgTypes.LocInfo.t -> Locations.Zone.t -> t
 val empty : t
+val bottom: t
 
 val add_loc_node : t -> exact:bool -> Locations.Zone.t -> t_node -> t
 val add_init_state_input : t -> Locations.Zone.t -> t_node -> t
@@ -46,7 +47,7 @@ val pretty : Format.formatter -> t -> unit
 
 (* ~~~~~~~~~~~~~~~~~~~ *)
 
-type t_states = t Inthash.t
+type t_states = t Datatype.Int.Hashtbl.t
 
 val store_init_state : t_states -> t -> unit
 val store_last_state : t_states -> t -> unit

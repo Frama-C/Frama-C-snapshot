@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,77 +20,104 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* This is the panel to control the status of properties. 
-   [JS 2011/07/28] TODO: move it in the plug-in `report' *)
-
 open Design
 open Cil_types
 open Property_status
+
+(* Collect all properties that have a status *)
+let all_properties () =
+  let globals = ref Property.Set.empty in
+  let functions = ref Kernel_function.Map.empty in
+  (* Dispatch properties into globals and per-function map *)
+  Property_status.iter
+    (fun ip ->
+       match Property.get_kf ip with
+	 | None -> globals := Property.Set.add ip !globals
+	 | Some kf ->
+	     if not (Ast_info.is_frama_c_builtin (Kernel_function.get_name kf))
+	     then try
+ 	       let fips = Kernel_function.Map.find kf !functions in
+	       fips := Property.Set.add ip !fips
+	     with Not_found ->
+	       let ips = Property.Set.singleton ip in
+	       functions := Kernel_function.Map.add kf (ref ips) !functions
+      );
+  !functions, !globals
+
 
 type property = {
   module_name:string;
   function_name:string;
   kind:string;
   status_name:string;
+  consolidated_status:Consolidation.consolidated_status option;
   consolidated_status_name:string;
   status_icon:Gtk_helper.Icon.kind;
   visible:bool;
   ip: Property.t;
 }
 
-let rec make_property ~ip ~status_name ~module_name ~function_name =
-  try
-    let status = Consolidation.get ip in
-    let function_name = match Property.get_kf ip with
-      | None -> 
-	(* [JS 2011/07/28] TODO: is it still possible?
-	   some properties may have lost this information*) 
-	function_name
-      | Some kf -> Pretty_utils.sfprintf "%a" Kernel_function.pretty kf
-    in
-    let kind = 
-      Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip 
-    in
-    let consolidated_status_name = 
-      Pretty_utils.sfprintf "%a" Consolidation.pretty status
-    in
-    let status_icon = Gtk_helper.Icon.Feedback (Feedback.get ip) in
-    { 
-      module_name = module_name;
-      function_name = function_name;
-      visible = true;
-      ip=ip; kind=kind;
-      status_name = status_name ;
-      consolidated_status_name = consolidated_status_name ;
-      status_icon = status_icon ;
-    }
-  with Not_found ->
-    make_property ~ip ~status_name ~module_name ~function_name
+let kf_name_and_module kf =
+  let name = Kernel_function.get_name kf in
+  let loc = Kernel_function.get_location kf in
+  let file = Filename.basename (fst loc).Lexing.pos_fname in
+  name, file
+
+let make_property ip =
+  let status = Property_status.get ip in
+  let status_name = Pretty_utils.sfprintf "%a" Property_status.pretty status in
+  let con_status = Consolidation.get ip in
+  let consolidated_status_name = 
+    Pretty_utils.sfprintf "%a" Consolidation.pretty con_status
+  in
+  let function_name, module_name = match Property.get_kf ip with
+    | None -> "", "" (* TODO: it would be great to find the location
+                        of global invariants or lemmas, but there isn't
+                        enough information in the ast *)
+    | Some kf -> kf_name_and_module kf
+  in
+  let kind = 
+    Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip 
+  in
+  let status_icon = Gtk_helper.Icon.Feedback (Feedback.get ip) in
+  { 
+    module_name = module_name;
+    function_name = function_name;
+    visible = true;
+    ip=ip; kind=kind;
+    status_name = status_name ;
+    consolidated_status = Some con_status ;
+    consolidated_status_name = consolidated_status_name ;
+    status_icon = status_icon ;
+  }
 
 let graph_window main_window title ip = 
-  let state_dependency_graph ~packing =
-    let f =
-      try
-        Extlib.temp_file_cleanup_at_exit
-          "framac_property_status_navigator_graph" "dot"
-      with Extlib.Temp_file_error s ->
-        Gui_parameters.abort "cannot create temporary file: %s" s
+  try
+    let state_dependency_graph ~packing =
+      let f =
+	try
+          Extlib.temp_file_cleanup_at_exit
+            "framac_property_status_navigator_graph" "dot"
+	with Extlib.Temp_file_error s ->
+          Gui_parameters.abort "cannot create temporary file: %s" s
+      in
+      Consolidation_graph.dump (Consolidation_graph.get ip) f;
+      snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing f)
     in
-    Property_status.Consolidation_graph.dump
-      (Property_status.Consolidation_graph.get ip)
-      f;
-    snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing f)
-  in
-  let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
-  let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
-  let window =
-    GWindow.window
-      ~width ~height ~title ~allow_shrink:true ~allow_grow:true
-      ~position:`CENTER ()
-  in
-  let view = state_dependency_graph ~packing:window#add in
-  window#show ();
-  view#adapt_zoom ()
+    let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
+    let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
+    let window =
+      GWindow.window
+	~width ~height ~title ~allow_shrink:true ~allow_grow:true
+	~position:`CENTER ()
+    in
+    let view = state_dependency_graph ~packing:window#add in
+    window#show ();
+    view#adapt_zoom ()
+  with Dgraph.DGraphModel.DotError _ as exn ->
+    Gui_parameters.error
+      "@[cannot display consolidation graph:@ %s@]"
+      (Printexc.to_string exn)
 
 module Refreshers: sig
   module OnlyCurrent: State_builder.Ref with type data = bool
@@ -98,6 +125,7 @@ module Refreshers: sig
   module Ensures: State_builder.Ref with type data = bool
   module Preconditions: State_builder.Ref with type data = bool
   module Behaviors: State_builder.Ref with type data = bool
+  module Allocations: State_builder.Ref with type data = bool
   module Assigns: State_builder.Ref with type data = bool
   module From: State_builder.Ref with type data = bool
   module Assert: State_builder.Ref with type data = bool
@@ -105,12 +133,22 @@ module Refreshers: sig
   module Variant: State_builder.Ref with type data = bool
   module Terminates: State_builder.Ref with type data = bool
   module StmtSpec: State_builder.Ref with type data = bool
-  module Unreachable: State_builder.Ref with type data = bool
+  module Reachable: State_builder.Ref with type data = bool
   module Other: State_builder.Ref with type data = bool
   module Axiomatic: State_builder.Ref with type data = bool
 (*module Pragma: State_builder.Ref with type data = bool*)
   module RteNotGenerated: State_builder.Ref with type data = bool
   module RteGenerated: State_builder.Ref with type data = bool
+
+  module Valid: State_builder.Ref with type data = bool
+  module ValidHyp: State_builder.Ref with type data = bool
+  module Unknown: State_builder.Ref with type data = bool
+  module Invalid: State_builder.Ref with type data = bool
+  module InvalidHyp: State_builder.Ref with type data = bool
+  module Considered_valid: State_builder.Ref with type data = bool
+  module Untried: State_builder.Ref with type data = bool
+  module Dead: State_builder.Ref with type data = bool
+  module Inconsistent: State_builder.Ref with type data = bool
 
   val pack: GPack.box -> unit
   val apply: unit -> unit
@@ -139,7 +177,6 @@ struct
       (struct
         let name = "show " ^ X.name
         let dependencies = []
-        let kind = `Internal
         let default () =
           let v = Configuration.find_bool ~default:true key_name in
           v
@@ -164,6 +201,9 @@ struct
   module Behaviors = Add(
     struct let name = "Behaviors"
            let hint = "Show functions behaviors" end)
+  module Allocations = Add(
+    struct let name = "Allocations"
+           let hint = "Show functions assigns" end)
   module Assigns = Add(
     struct let name = "Assigns"
            let hint = "Show functions assigns" end)
@@ -188,9 +228,9 @@ struct
   module Axiomatic = Add(
     struct let name = "Axiomatic"
            let hint = "Show global axiomatics" end)
-  module Unreachable = Add(
-    struct let name = "Unreachable"
-           let hint = "Show 'unreachable' hypotheses" end)
+  module Reachable = Add(
+    struct let name = "Reachable"
+           let hint = "Show 'reachable' hypotheses" end)
   module Other = Add(
     struct let name = "Other"
            let hint = "Show other properties" end)
@@ -202,27 +242,103 @@ struct
     struct let name = "Generated"
            let hint = "Show RTEs assertions that have been generated" end)
 
+
+  module Valid = Add(
+    struct let name = "Valid"
+           let hint = "Show properties that are proven valid" end)
+  module ValidHyp = Add(
+    struct let name = "Valid under hyp."
+           let hint = "Show properties that are are valid, but depend on \
+                       some hypotheses" end)
+  module Unknown = Add(
+    struct let name = "Unknown"
+           let hint = "Show properties with an 'unknown' status" end)
+  module Invalid = Add(
+    struct let name = "Invalid"
+           let hint = "Show properties that are proven invalid" end)
+  module InvalidHyp = Add(
+    struct let name = "Invalid under hyp."
+           let hint = "Show properties that are are invalid, but depend on \
+                       some hypotheses" end)
+  module Considered_valid = Add(
+    struct let name = "Considered valid"
+           let hint = "Show properties that are considered valid because \
+                       the platform has no way to prove them" end)
+  module Untried = Add(
+    struct let name = "Untried"
+           let hint = "Show properties whose proof have not been attempted" end)
+  module Dead = Add(
+    struct let name = "Dead"
+           let hint = "Show properties on unreachable code" end)
+  module Inconsistent = Add(
+    struct let name = "Inconsistent"
+           let hint = "Show properties that have an inconsistent status" end)
+
   let pack hb =
     OnlyCurrent.add hb;
     Preconditions.add hb;
     Ensures.add hb;
     Behaviors.add hb;
+    Allocations.add hb;
     Assigns.add hb;
     From.add hb;
     Assert.add hb;
     Invariant.add hb;
     Variant.add hb;
     Terminates.add hb;
-    Unreachable.add hb;
+    Reachable.add hb;
     StmtSpec.add hb;
     Axiomatic.add hb;
     Other.add hb;
   (*Pragma.add hb;*)
     RteNotGenerated.add hb;
     RteGenerated.add hb;
+    ignore (GMisc.separator ~packing:hb#pack `HORIZONTAL ());
+    Valid.add hb;
+    ValidHyp.add hb;
+    Unknown.add hb;
+    Invalid.add hb;
+    InvalidHyp.add hb;
+    Considered_valid.add hb;
+    Untried.add hb;
+    Dead.add hb;
+    Inconsistent.add hb;
+
 end
 
 open Refreshers
+
+(* Process the rte statuses for the given kf, and add the result in the
+   accumulator. Filter the statuses according to user-selected filters*)
+let aux_rte kf acc (rte_emitter, _, rte_status_get: Db.RteGen.status_accessor) =
+  let st = rte_status_get kf in
+  match st, RteGenerated.get (), RteNotGenerated.get () with
+    | true, true, _
+    | false, _, true ->
+        let name = Emitter.get_name rte_emitter in
+        (* Considered that leaf functions are not verified internally *)
+	let status_name, status = 
+	  if st then
+            if Kernel_function.is_definition kf
+            then "Generated", Feedback.Valid
+            else "Considered generated", Feedback.Considered_valid
+          else "Not generated", Feedback.Invalid
+	in
+        let function_name, module_name = kf_name_and_module kf in
+        let status_icon = Gtk_helper.Icon.Feedback status in
+        let ip = Property.ip_other name None Kglobal in { 
+          module_name = module_name;
+          function_name = function_name;
+          visible = true;
+          ip=ip;
+          kind=Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip;
+          status_name = status_name ;
+          consolidated_status = None ;
+          consolidated_status_name = status_name ;
+          status_icon = status_icon ;
+        } :: acc
+    | true, false, _
+    | false, _, false -> acc
 
 let make_panel (main_ui:main_window_extension_points) =
   let container = GPack.hbox () in
@@ -283,15 +399,15 @@ let make_panel (main_ui:main_window_extension_points) =
     ignore (view#append_column cview)
   in
 
-  (* Module name column viewer *)
-  make_view_column (GTree.cell_renderer_text [top])
-    (function{module_name=m} -> [`TEXT m])
-    ~title:"Module";
-
   (* Function name column viewer *)
   make_view_column (GTree.cell_renderer_text [top])
     (function{function_name=m} -> [`TEXT m])
     ~title:"Function";
+
+  (* Module name column viewer *)
+  make_view_column (GTree.cell_renderer_text [top])
+    (function{module_name=m} -> [`TEXT m])
+    ~title:"File";
 
   (* Kind name column viewer *)
   make_view_column (GTree.cell_renderer_text [top])
@@ -304,29 +420,21 @@ let make_panel (main_ui:main_window_extension_points) =
       [`PIXBUF (Gtk_helper.Icon.get status_icon)])
     ~title:"Status";
 
-  (* (Local) status name column viewer *)
-  make_view_column (GTree.cell_renderer_text [top])
-    (function{status_name=k}-> [`TEXT k])
-    ~title:"Local Status";
-
   (* Consolidated status name column viewer *)
   make_view_column (GTree.cell_renderer_text [top])
     (function{consolidated_status_name=k}-> [`TEXT k])
     ~title:"Consolidated Status";
 
+  (* (Local) status name column viewer *)
+  make_view_column (GTree.cell_renderer_text [top])
+    (function{status_name=k}-> [`TEXT k])
+    ~title:"Local Status";
+
   view#set_model (Some model#coerce);
 
-  (* [JS 2011-08-29] Be careful: that it is incorrect to mask some properties
-     when they are the only not-valid ones. In such a case, all is green in the
-     property panel implying that the verification task successfully ended,
-     while that is not true actually.
-     [BY 2011-09-31] JS: I'm not sure what you mean. Do you want a check
-     that supersedes all the other settings, and displays everything which
-     is not green?
-  *)
   let visible ip = match ip with
     | Property.IPOther _ -> Other.get ()
-    | Property.IPUnreachable _ -> Unreachable.get ()
+    | Property.IPReachable _ -> Reachable.get ()
     | Property.IPBehavior (_,Kglobal,_) -> Behaviors.get ()
     | Property.IPBehavior (_,Kstmt _,_) -> Behaviors.get () && StmtSpec.get ()
     | Property.IPPredicate(Property.PKRequires _,_,Kglobal,_) ->
@@ -340,7 +448,7 @@ let make_panel (main_ui:main_window_extension_points) =
     | Property.IPPredicate(Property.PKTerminates,_,_,_) -> Terminates.get ()
     | Property.IPAxiom _ -> false
     | Property.IPAxiomatic _ -> Axiomatic.get () && not (OnlyCurrent.get ())
-    | Property.IPLemma _ -> Axiomatic.get ()
+    | Property.IPLemma _ -> Axiomatic.get () && not (OnlyCurrent.get ())
     | Property.IPComplete _ -> Behaviors.get ()
     | Property.IPDisjoint _ -> Behaviors.get ()
     | Property.IPCodeAnnot(_,_,{annot_content = AAssert _}) -> Assert.get ()
@@ -349,6 +457,12 @@ let make_panel (main_ui:main_window_extension_points) =
     | Property.IPCodeAnnot(_,_,{annot_content = APragma p}) ->
         Logic_utils.is_property_pragma p (* currently always false. *)
     | Property.IPCodeAnnot(_, _, _) -> assert false
+    | Property.IPAllocation (_,Kglobal,_,_) -> Allocations.get ()
+    | Property.IPAllocation (_,Kstmt _,Property.Id_code_annot _,_) ->
+        Allocations.get ()
+    | Property.IPAllocation (_,Kstmt _,Property.Id_behavior _,_) ->
+        Allocations.get() && StmtSpec.get()
+
     | Property.IPAssigns (_,Kglobal,_,_) -> Assigns.get ()
     | Property.IPAssigns (_,Kstmt _,Property.Id_code_annot _,_) ->
         Assigns.get ()
@@ -357,101 +471,74 @@ let make_panel (main_ui:main_window_extension_points) =
     | Property.IPFrom _ -> From.get ()
     | Property.IPDecrease _ -> Variant.get ()
   in
+  let visible_status_aux = function
+    | Consolidation.Never_tried -> Untried.get ()
+    | Consolidation.Considered_valid -> Considered_valid.get ()
+    | Consolidation.Valid _ -> Valid.get ()
+    | Consolidation.Valid_under_hyp _ -> ValidHyp.get ()
+    | Consolidation.Unknown _ -> Unknown.get ()
+    | Consolidation.Invalid _ -> Invalid.get ()
+    | Consolidation.Invalid_under_hyp _ -> InvalidHyp.get ()
+    | Consolidation.Invalid_but_dead _
+    | Consolidation.Valid_but_dead _
+    | Consolidation.Unknown_but_dead _ -> Dead.get ()
+    | Consolidation.Inconsistent _ -> Inconsistent.get ()
+  in
+  let visible_status = Extlib.may_map visible_status_aux ~dft:true in
   let fill_model () =
-    let status_string s = Pretty_utils.sfprintf "%a" Property_status.pretty s in
-    let files = Globals.FileIndex.get_files () in
-    (* add global annotations *)
-    let annot_by_files =
-      List.map
-	(fun f -> 
-	  Globals.FileIndex.get_global_annotations f, Filename.basename f)
-	files
-    in
-    let add_ip module_name function_name ip =
+    let add_ip ip =
       if visible ip then
-	let status = Property_status.get ip in
-	append
-	  (make_property 
-	     ~module_name
-	     ~function_name
-	     ~status_name:(status_string status)
-	     ~ip)
+        let p = make_property ip in
+        if visible_status p.consolidated_status then append p
     in
-    List.iter
-      (fun (l, f) -> 
-	List.iter 
-	  (fun a -> 
-	    List.iter (add_ip f "") (Property.ip_of_global_annotation a))
-	  l)
-      annot_by_files;
-    (* We only display the name of the file *)
-    let files = List.map
-      (fun file->(Globals.FileIndex.get_functions file,Filename.basename file))
-      files
+    let by_kf, globals = all_properties () in
+    (* Add global properties at the top of the list *)
+    Property.Set.iter add_ip globals;
+
+    (* Will the results for this kf be ultimately displayed *)
+    let display kf =
+      not (Cil.is_unused_builtin (Kernel_function.get_vi kf)) &&
+       not (OnlyCurrent.get ()) ||
+         (let kfvi = Kernel_function.get_vi kf in
+          List.exists
+            (function
+               | GFun ({svar = fvi},_) | GVarDecl (_, fvi, _) ->
+                   Cil_datatype.Varinfo.equal fvi kfvi
+               | _ -> false
+            ) main_ui#file_tree#selected_globals)
     in
-    List.iter
-      (fun (kfs, file_base) ->
-        let add_ip ip = 
-          let function_name =
-            (Extlib.may_map
-	       (fun f -> Kernel_function.get_name f ^ ": ") ~dft:""
-	       (Property.get_kf ip))
-            ^ (Extlib.may_map
-                 (fun b -> "behavior " ^ b.b_name ^ ": ") ~dft:""
-                 (Property.get_behavior ip))
+
+    let rte_get_all_statuses = !Db.RteGen.get_all_status () in
+    (* All non-filtered RTE statuses for a given function *)
+    let rte_kf kf = List.fold_left (aux_rte kf) [] rte_get_all_statuses in
+    (* Add RTE statuses for all functions. We cannot simply iterate over
+       [by_kf], as functions without any property will not be present in it *)
+    let with_rte =
+      let aux kf acc =
+        if display kf then
+          let props =
+            try !(Kernel_function.Map.find kf by_kf)
+            with Not_found -> Property.Set.empty
           in
-	  add_ip file_base function_name ip
-	in
-	List.iter
-          (fun kf ->
-            if (not (OnlyCurrent.get ()) ||
-                  let kfvi = Kernel_function.get_vi kf in
-                  List.exists
-                    (fun g -> match g with
-                      | GFun (f,_) -> Cil_datatype.Varinfo.equal f.svar kfvi
-                      | _ -> false)
-                    main_ui#file_tree#selected_globals)
-            then begin
-	      let rte_get_all_status = !Db.RteGen.get_all_status in
-	      let kf_name = Kernel_function.get_name kf in
-	      List.iter
-		(fun (rte_status, _, rte_status_get,_) ->
-                  let st = rte_status_get kf in
-                  match st, RteGenerated.get (), RteNotGenerated.get ()
-                  with
-                    | true, true, _
-                    | false, _, true ->
-		      append
-		        (make_property
-			   ~module_name:file_base
-			   ~function_name:kf_name
-			   ~status_name:(if st then "Generated"
-			                 else "not Generated")
-                           ~ip:(Property.ip_other
-				  (State.get_name rte_status)
-				  None Kglobal))
-                    | true, false, _
-                    | false, _, false -> ()
-                )
-		(rte_get_all_status ());
-              let add_spec spec code_annotations =
-                let ip_spec = Property.ip_of_spec kf Kglobal spec in
-                let ip_annot =
-                  List.fold_right
-                    (fun (stmt,loc_ca) acc ->
-                      let ca = match loc_ca with | User ca|AI(_,ca) -> ca in
-                      Property.ip_of_code_annot kf stmt ca @ acc)
-                    code_annotations []
-                in
-                List.iter add_ip ip_spec;
-                List.iter add_ip ip_annot;
-              in
-	      add_spec
-                (Kernel_function.get_spec kf)
-                (Kernel_function.code_annotations kf)
-	    end)
-	  kfs)
-      (List.sort (fun (_, f1) (_, f2) -> String.compare f1 f2) files)
+          (kf, (props, rte_kf kf)) :: acc
+        else acc
+      in
+      Globals.Functions.fold aux []
+    in
+    (* Sort functions by names *)
+    let cmp (k1, _) (k2, _) =
+      String.compare (Kernel_function.get_name k1) (Kernel_function.get_name k2)
+    in
+    let by_kf = List.sort cmp with_rte in
+
+    (* Add the properties for all the relevant functions *)
+    List.iter
+      (fun (kf, (ips, rtes)) ->
+        if display kf then begin
+          Property.Set.iter add_ip ips;
+          List.iter append rtes;
+        end
+      ) by_kf
   in
   ignore
     (let callback _ =
@@ -481,9 +568,45 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
     ()
   | Pretty_source.PIP ppt ->
       Design.Feedback.mark buffer ~start ~stop (Property_status.Feedback.get ppt)
+  | Pretty_source.PStmt(_,({ skind=Instr(Call(_,e,_,_)) } as stmt)) ->
+    let display ips =
+      if ips <> [] then
+        let ips = List.map snd ips in
+	let validity = Property_status.Feedback.get_conjunction ips in
+        (* Use [start=stop] for a call with a statement contract. Without this,
+           the bullet is put at the beginning of the spec, instead of in front
+           of the call itself *)
+	Design.Feedback.mark buffer ~start:stop ~stop validity
+    in
+    (match e.enode with
+      | Lval (Var vkf, NoOffset) ->
+          let kf = Globals.Functions.get vkf in
+	  let ips = Statuses_by_call.all_call_preconditions_at
+            ~warn_missing:false kf stmt in
+          display ips
+
+      | _ ->
+          (* Try to resolve which functions were called through Value. *)
+          if Db.Value.is_computed () then
+            let _, fs = !Db.Value.expr_to_kernel_function (Kstmt stmt)
+              ~with_alarms:CilE.warn_none_mode ~deps:None e
+            in
+            let ips = Kernel_function.Hptset.fold
+              (fun kf ips ->
+                Statuses_by_call.all_call_preconditions_at
+                  ~warn_missing:false kf stmt @ ips)
+              fs []
+            in
+            display ips
+          else
+            ()
+    )
+
+  | Pretty_source.PStmt _
   | Pretty_source.PGlobal _| Pretty_source.PVDecl _
-  | Pretty_source.PTermLval _| Pretty_source.PLval _
-  | Pretty_source.PStmt _ -> ()
+  | Pretty_source.PTermLval _| Pretty_source.PLval _ -> ()
+
+
 
 let extend (main_ui:main_window_extension_points) =
   make_panel main_ui;

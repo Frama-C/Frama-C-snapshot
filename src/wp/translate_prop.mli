@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,9 +24,7 @@
 (* ---  Translation of Term and Predicates                              --- *)
 (* ------------------------------------------------------------------------ *)
 
-open Ctypes
 open Clabels
-open Formula
 open Cil_types
 
 module Create
@@ -45,6 +43,8 @@ sig
     ?m_post:M.mem ->
     ?x_result:M.F.var ->
     unit -> env
+
+  val pp_env : Format.formatter -> env -> unit
 
   val env_at : env -> c_label -> env
   val mem_at : env -> c_label -> M.mem

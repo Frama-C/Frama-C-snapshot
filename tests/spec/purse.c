@@ -65,7 +65,7 @@ int test1(purse *p1, purse *p2) {
 }
 
 /*@ assigns \empty;
-  @ ensures \fresh(\result) && purse_inv(\result) && \result->balance == 0;
+  @ ensures \fresh(\result,sizeof(purse)) && purse_inv(\result) && \result->balance == 0;
   @*/
 purse *new_purse() {
   purse* p = (purse*) malloc(1 * sizeof(purse));

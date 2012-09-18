@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,7 +76,8 @@ let convert r =
          | (Integral|Fraction) , Minus -> e.sign <- Negative
          | Integral , Digit -> Buffer.add_char e.mantiss c
          | Fraction , Digit -> Buffer.add_char e.mantiss c ; e.coma <- succ e.coma
-         | Exponent , (Plus|Minus|Digit) -> Buffer.add_char e.exponent c
+         | Exponent , (Minus|Digit) -> Buffer.add_char e.exponent c
+	 | Exponent , Plus -> ()
     ) r ;
   let m = Buffer.contents e.mantiss in
   begin

@@ -18,3 +18,16 @@ void f() {
 
 /*@ ensures foo(\result); */
 int g() { return 0; }
+
+
+typedef int T, T4[4], *T_PTR;
+const T X, Tab[4];
+typedef T_PTR T_PTR_T4[4];
+const T_PTR_T4  Tab_Ptr = { &X, &X, &X, &X};
+
+
+/*@ axiomatic useless_logic_cast {
+  @ logic int vX = (int) X;
+  @ logic int[4] vTab = (T4) Tab;
+  @ logic T_PTR_T4 * vTab_Ptr = (T_PTR_T4 *)(&Tab_Ptr);
+  @ } */

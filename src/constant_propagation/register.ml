@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -203,7 +203,7 @@ class propagate project fnames ~cast_intro = object(self)
     if v.vglob then known_globals <- Varinfo.Set.add v known_globals;
     DoChildren
 
-  method vglob_aux g =
+  method vglob_aux _ =
     must_add_decl <- Varinfo.Set.empty;
     let add_decl l =
       Varinfo.Set.fold
@@ -212,7 +212,7 @@ class propagate project fnames ~cast_intro = object(self)
             "Adding declaration of global %a" !Ast_printer.d_var x;
           GVarDecl(Cil.empty_funspec(),x,x.vdecl)::l)
         must_add_decl l
-    in ChangeDoChildrenPost([g],add_decl)
+    in DoChildrenPost add_decl
 
   method vlval lv =
     let simplify (host,offs as lv) = match host with
@@ -222,11 +222,13 @@ class propagate project fnames ~cast_intro = object(self)
 
 end
 
-module Result_pair = Datatype.Pair(Datatype.String.Set)(Datatype.Bool)
+module Result_pair =
+  Datatype.Pair_with_collections(Datatype.String.Set)(Datatype.Bool)
+    (struct let module_name = "Constant_propagation.Register.Result_pair.t" end)
 module Result =
   State_builder.Hashtbl
     (Datatype.Hashtbl
-       (Hashtbl.Make(Result_pair))
+       (Result_pair.Hashtbl)
        (Result_pair)
        (struct let module_name = "Semantical constant propagation" end))
     (Project.Datatype)
@@ -235,7 +237,6 @@ module Result =
        let name = "Semantical constant propagation"
        let dependencies =
          [ Value.self; PropagationParameters.CastIntro.self ]
-       let kind = `Correctness
      end)
 
 let journalized_get =

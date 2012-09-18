@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ open Cil_types
 type called_function =
     { called_kf : kernel_function;
       call_site : kinstr;
-      called_merge_current : degenerate:bool -> unit}
+      mutable called_merge_current : degenerate:bool -> unit}
 
 let call_stack : called_function list ref = ref []
 let call_stack_for_callbacks : (kernel_function * kinstr) list ref = ref []
@@ -44,6 +44,15 @@ let push_call_stack cf =
   call_stack := cf :: !call_stack;
   call_stack_for_callbacks :=
     (cf.called_kf, cf.call_site) :: !call_stack_for_callbacks
+
+let push_call_stack kf ki =
+  let cf = { called_kf = kf; call_site = ki;
+             called_merge_current = fun ~degenerate:_ -> () }
+  in
+  push_call_stack cf
+
+let call_stack_set_merge_current mc =
+  (List.hd !call_stack).called_merge_current <- mc
 
 let current_kf () = (List.hd !call_stack).called_kf
 
@@ -92,21 +101,34 @@ let do_degenerate lv =
 let emitter_value = 
   Emitter.create
     "value analysis"
+    [ Emitter.Property_status; Emitter.Code_annot ] 
     ~correctness:Value_parameters.parameters_correctness
     ~tuning:Value_parameters.parameters_tuning
 
-let emit_status ppt s =
-  Property_status.emit ~distinct:true emitter_value ~hyps:[] ppt s
+let warn_all_mode = CilE.warn_all_mode emitter_value pp_callstack
 
-let warn_all_mode =
-  CilE.warn_all_mode { CilE.warn_emitter = emitter_value;
-                       warn_deps = [Db.Value.self] }
+let stop_at_first_alarm () =
+  exit 0 (* TODO: same mechanism as do_degenerate *)
+
+let stop_if_stop_at_first_alarm_mode () =
+  if Value_parameters.StopAtFirstAlarm.get ()
+  then stop_at_first_alarm ()
+
+let with_alarm_stop_at_first =
+  let stop = CilE.Acall stop_at_first_alarm in {
+    CilE.imprecision_tracing = CilE.Aignore;
+    defined_logic = stop;
+    unspecified =   stop;
+    others =        stop;
+}
 
 let warn_all_quiet_mode () =
-  if Value_parameters.verbose_atleast 1 then
-    warn_all_mode
+  if Value_parameters.StopAtFirstAlarm.get () then with_alarm_stop_at_first
   else
-    { warn_all_mode with CilE.imprecision_tracing = CilE.Aignore }
+    if Value_parameters.verbose_atleast 1 then
+      warn_all_mode
+    else
+      { warn_all_mode with CilE.imprecision_tracing = CilE.Aignore }
 
 let get_slevel kf =
   let name = Kernel_function.get_name kf in
@@ -123,7 +145,6 @@ module Got_Imprecise_Value =
     (struct
        let name = "Eval.Got_Imprecise_Value"
        let dependencies = [ Db.Value.self ]
-       let kind = `Internal
        let default () = false
      end)
 
@@ -136,6 +157,54 @@ let pretty_current_cfunction_name fmt =
 
 let warning_once_current fmt =
   Value_parameters.warning ~current:true ~once:true fmt
+
+
+(* Cached versions of [Stmts_graph.stmt_can_reach] *)
+
+module StmtCanReachCache =
+  Kernel_function.Make_Table
+    (Datatype.Function
+       (struct include Cil_datatype.Stmt let label = None end)
+       (Datatype.Function
+          (struct include Cil_datatype.Stmt let label = None end)
+          (Datatype.Bool)))
+    (struct
+      let name = "Eval_funs.StmtCanReachCache"
+      let size = 17
+      let dependencies = [ Ast.self ]
+     end)
+
+let stmt_can_reach_memo = StmtCanReachCache.memo Stmts_graph.stmt_can_reach
+let stmt_can_reach kf =
+  if Value_parameters.MemoryFootprint.get () >= 3
+  then stmt_can_reach_memo kf
+  else Stmts_graph.stmt_can_reach kf
+
+
+
+let debug_result kf (last_ret,_,last_clob) =
+  Value_parameters.debug
+    "@[RESULT FOR %a <-%a:@\n\\result -> %t@\nClobered set:%a@]"
+    Kernel_function.pretty kf
+    pretty_call_stack (call_stack ())
+    (fun fmt ->
+      match last_ret with
+        | None -> ()
+        | Some v -> Cvalue.V_Offsetmap.pretty fmt v)
+    Locations.Location_Bits.Top_Param.pretty last_clob
+
+
+let map_outputs f =
+  List.map
+    (fun ((res: Cvalue.V_Offsetmap.t option), (out: Cvalue.Model.t)) -> (res, f out))
+
+
+let remove_formals_from_state formals state =
+  if formals != [] then
+    let formals = List.map Base.create_varinfo formals in
+    let cleanup acc v = Cvalue.Model.remove_base v acc in
+    List.fold_left cleanup state formals
+  else state
 
 
 (*

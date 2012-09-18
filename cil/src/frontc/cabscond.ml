@@ -66,34 +66,41 @@ type info = {
   cond : cond ;
 }
 
-module A = Cabs
-
 type lazy_cond =
   | LzAnd  of lazy_cond * lazy_cond
   | LzOr   of lazy_cond * lazy_cond
   | LzNot  of lazy_cond
-  | LzAtom of A.expression
+  | LzAtom of Cabs.expression
 
 let rec lazy_cond e = match e.expr_node with
-  | A.BINARY(A.AND,e1,e2) -> LzAnd(lazy_cond e1,lazy_cond e2)
-  | A.BINARY(A.OR,e1,e2) -> LzOr(lazy_cond e1,lazy_cond e2)
-  | A.UNARY(A.NOT,e) -> LzNot(lazy_cond e)
+  | Cabs.BINARY(Cabs.AND,e1,e2) -> LzAnd(lazy_cond e1,lazy_cond e2)
+  | Cabs.BINARY(Cabs.OR,e1,e2) -> LzOr(lazy_cond e1,lazy_cond e2)
+  | Cabs.UNARY(Cabs.NOT,e) -> LzNot(lazy_cond e)
   | _ -> LzAtom e
 
 type binding =
   | Lazy of int * lazy_cond
   | Info of info
 
+type context = {
+  c_kind : kind ;
+  c_loc : Cabs.cabsloc ;
+  mutable c_binder : binding ;
+  mutable c_if : string option ;
+  mutable c_then : string option ;
+  mutable c_else : string option ;
+}
+
 let c_info = ref 0
 let active = ref false
-let c_stack = ref []
+let c_stack : context list ref = ref []
 
 let inconsistent from =
   match !c_stack with
-    | (_,_,loc)::_ ->
+    | context::_ ->
 	Kernel.warning
 	  "[%s] Inconsistent state when binding condition at %a"
-	  from Cabshelper.d_cabsloc loc ;
+	  from Cabshelper.d_cabsloc context.c_loc ;
 	active := false
     | _ ->
 	Kernel.warning
@@ -101,27 +108,32 @@ let inconsistent from =
 	  from ;
 	active := false
 
-module M = Hashtbl.Make
+module Emap = Hashtbl.Make
   (struct
-     type t = A.expression
+     type t = Cabs.expression
      let equal = (==)
      let hash = Hashtbl.hash
    end)
 
-let atoms : Cil_types.exp M.t = M.create 371
-let conditions : (int,binding ref) Hashtbl.t = Hashtbl.create 371
+let atoms : Cil_types.exp Emap.t = Emap.create 371
+let conditions : (int,context) Hashtbl.t = Hashtbl.create 371
 
 let rec cond = function
   | LzAnd(x,y) -> And(cond x,cond y)
   | LzOr(x,y) -> Or(cond x,cond y)
   | LzNot x -> Not(cond x)
-  | LzAtom a -> try Atom(M.find atoms a) with Not_found -> Blob
+  | LzAtom a -> try Atom(Emap.find atoms a) with Not_found -> Blob
 
-let push_condition descr loc a =
+let push_condition kind loc a =
   if !active then
-    let k = let k = !c_info in incr c_info ; k in
-    let binder = ref (Lazy(k,lazy_cond a)) in
-    c_stack := (binder,descr,loc) :: !c_stack ;
+    let k = !c_info in 
+    incr c_info ;
+    let context = {
+      c_loc = loc ; c_kind = kind ;
+      c_binder = Lazy(k,lazy_cond a) ;
+      c_if = None ; c_then = None ; c_else = None ;
+    } in
+    c_stack := context :: !c_stack ;
     true
   else
     false
@@ -129,43 +141,47 @@ let push_condition descr loc a =
 let pop_condition () =
   if !active then
     match !c_stack with
-      | ({contents=Lazy(id,lzc)} as binder,descr,loc) :: stk ->
+      | ({ c_binder=Lazy(id,lzc) } as context) :: stk ->
 	  begin
-	    try
-	      c_stack := stk ;
-	      binder := Info {
-		id = id ;
-		kind = descr ;
-		file = (fst loc).Lexing.pos_fname ;
-		line = (fst loc).Lexing.pos_lnum ;
-		cond = cond lzc ;
-	      } ;
-	    with Not_found -> inconsistent "pop-condition"
+	    c_stack := stk ;
+	    context.c_binder <- Info {
+	      id = id ;
+	      kind = context.c_kind ;
+	      file = (fst context.c_loc).Lexing.pos_fname ;
+	      line = (fst context.c_loc).Lexing.pos_lnum ;
+	      cond = cond lzc ;
+	    } ;
 	  end
       | _ -> inconsistent "pop-condition"
 
-let top_binder () =
+let top_context () =
   match !c_stack with
-    | (binder,_,_) :: _ when !active -> binder
+    | context :: _ when !active -> context
     | _ -> raise Not_found
-
-let id = function Lazy(id,_) | Info {id=id} -> id
 
 let bind (a : Cabs.expression) (e : Cil_types.exp) =
   try
-    let b = top_binder () in
+    let context = top_context () in
     begin
-      M.replace atoms a e ;
-      Hashtbl.replace conditions e.Cil_types.eid b ;
+      Emap.replace atoms a e ;
+      Hashtbl.replace conditions e.Cil_types.eid context ;
     end
   with Not_found -> ()
+
+(* -------------------------------------------------------------------------- *)
+(* --- Retrieving Conditions                                              --- *)
+(* -------------------------------------------------------------------------- *)
 
 let lookup e =
   try
     match Hashtbl.find conditions e.Cil_types.eid with
-      | {contents=Info c} -> Some c
+      | {c_binder=Info info} -> Some info
       | _ -> None
   with Not_found -> None
+
+(* -------------------------------------------------------------------------- *)
+(* --- Pretty-Print                                                       --- *)
+(* -------------------------------------------------------------------------- *)
 
 let pp_kind fmt kd =
   Format.pp_print_string fmt
@@ -196,9 +212,8 @@ let pp_comment fmt s =
 	  begin
 	    match lookup e with
 	      | Some info ->
-		  Format.fprintf fmt "/*[CID:%d EXP:%d] %a @[%a@] */@ "
-		    info.id e.Cil_types.eid
-		    pp_kind info.kind pp_where ("here",e,info.cond)
+		  Format.fprintf fmt "/*[CID:%d] %a @[%a@] */@ "
+		    info.id pp_kind info.kind pp_where ("here",e,info.cond)
 	      | None -> ()
 	  end
       | _ -> ()

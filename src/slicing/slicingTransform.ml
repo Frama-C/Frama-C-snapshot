@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -25,18 +25,10 @@
 (** Export the slicing project *)
 
 (**/**)
-open Cilutil
 open Cil_types
 open Cil
 
-module T = SlicingInternals
-module M = SlicingMacros
-
 (**/**)
-
-let is_fi_top fi =
-  (*let m = Fct_slice.get_top_input_mark fi in*)
-  fi.T.fi_top (* || not (!Db.Slicing.Mark.is_bottom m) *)
 
 (* Look at (only once) the callers of [kf] ([kf] included). *)
 let exists_fun_callers fpred kf =
@@ -56,14 +48,14 @@ let exists_fun_callers fpred kf =
   in
   exists_fun_callers kf
 
-let is_src_fun_visible prj = exists_fun_callers (M.is_src_fun_visible prj)
+let is_src_fun_visible prj = exists_fun_callers (SlicingMacros.is_src_fun_visible prj)
 
 let is_src_fun_called prj kf =
   let kf_entry, _library = Globals.entry_point () in
   let fpred f =
     if (kf_entry == f)
-    then M.is_src_fun_visible prj f (* for the entry point *)
-    else M.is_src_fun_called  prj f (* for the others *)
+    then SlicingMacros.is_src_fun_visible prj f (* for the entry point *)
+    else SlicingMacros.is_src_fun_called  prj f (* for the others *)
   in exists_fun_callers fpred kf
 
 module Visibility (SliceName : sig
@@ -71,18 +63,19 @@ module Visibility (SliceName : sig
                    end) = struct
 
   exception EraseAssigns
+  exception EraseAllocation
 
-  type t_proj = T.t_project
+  type t_proj = SlicingInternals.t_project
   type t_fct =
-      Iff of (T.t_fct_slice * bool)
+      Iff of (SlicingInternals.t_fct_slice * bool)
                  (* the boolean says if the src function of the slice is visible
                  * and can be used to give names *)
     | Isrc
     | Iproto
 
   let fct_info project kf =
-    let fi = M.get_kf_fi project kf in
-    let slices = M.fi_slices fi in
+    let fi = SlicingMacros.get_kf_fi project kf in
+    let slices = SlicingMacros.fi_slices fi in
     let src_visible = is_src_fun_visible project kf in
       SlicingParameters.debug ~level:1 "[SlicingTransform.Visibility.fct_info] processing %a (%d slices/src %svisible)"
           Kernel_function.pretty kf (List.length slices)
@@ -100,8 +93,8 @@ module Visibility (SliceName : sig
     | Iproto ->
         svar.vname
     | Iff (ff, src_visible) ->
-        let kf = M.get_ff_kf ff in
-        let ff_num = ff.T.ff_id in
+        let kf = SlicingMacros.get_ff_kf ff in
+        let ff_num = ff.SlicingInternals.ff_id in
           SliceName.get kf src_visible ff_num
     in
       SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.fct_name] get fct_name = %s" name;
@@ -202,7 +195,7 @@ module Visibility (SliceName : sig
    in case we end up with NotImplemented somewhere, we keep the annotation
    iff all C variables occuring in there are visible.
  *)
-  let all_logic_var_visible, all_logic_var_visible_term,
+  let all_logic_var_visible, all_logic_var_visible_identified_term, all_logic_var_visible_term,
       all_logic_var_visible_assigns, all_logic_var_visible_deps =
     let module Exn = struct exception Invisible end in
     let vis ff = object
@@ -216,7 +209,7 @@ module Visibility (SliceName : sig
                 (visible_mark
                    (Fct_slice.get_param_mark ff
                       (Kernel_function.get_formal_position v
-                         (M.get_ff_kf ff)+1)))
+                         (SlicingMacros.get_ff_kf ff)+1)))
                          (* For some reason, pdg counts parameters starting
                             from 1 *)
               -> raise Exn.Invisible
@@ -229,6 +222,10 @@ module Visibility (SliceName : sig
     in (fun ff pred ->
           try
             ignore (Visitor.visitFramacPredicate (vis ff) pred); true
+          with Exn.Invisible -> false),
+    (fun ff term ->
+          try
+            ignore (Visitor.visitFramacIdTerm (vis ff) term); true
           with Exn.Invisible -> false),
     (fun ff term ->
           try
@@ -246,11 +243,12 @@ module Visibility (SliceName : sig
   let annotation_visible ff_opt stmt annot =
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.annotation_visible] ?";
+    Db.Value.is_reachable_stmt stmt &&
     match ff_opt with
     | Isrc -> true
     | Iproto -> false
     | Iff (ff,_) ->
-        let kf = M.get_ff_kf ff  in
+        let kf = SlicingMacros.get_ff_kf ff  in
         let pdg = !Db.Pdg.get kf in
         try
         let ctrl_nodes, decl_nodes, data_info =
@@ -262,10 +260,19 @@ module Visibility (SliceName : sig
             "[SlicingTransform.Visibility.annotation_visible] -> %s"
               (if visible then "yes" else "no");
           visible
-        with NoDataInfo ->
-          (SlicingParameters.debug ~level:2
-             "[SlicingTransform.Visibility.annotation_visible] not implemented -> invisible";
-            false)
+        with
+          | NoDataInfo ->
+            SlicingParameters.debug ~level:2
+             "[SlicingTransform.Visibility.annotation_visible] \
+                not implemented -> invisible"; false
+          | Logic_interp.To_zone.NYI msg ->
+            SlicingParameters.warning ~current:true ~once:true
+              "Dropping unsupported ACSL annotation";
+            SlicingParameters.debug ~level:2
+             "[SlicingTransform.Visibility.annotation_visible] \
+                %s -> invisible" msg;
+            false
+
 
   let fun_precond_visible ff_opt p =
     SlicingParameters.debug ~level:2
@@ -276,7 +283,7 @@ module Visibility (SliceName : sig
       | Isrc -> true
       | Iproto -> true
       | Iff (ff,_) ->
-          let kf = M.get_ff_kf ff  in
+          let kf = SlicingMacros.get_ff_kf ff  in
           let pdg = !Db.Pdg.get kf in
             try
               let nodes = !Db.Pdg.find_fun_precond_nodes pdg p in
@@ -297,7 +304,7 @@ module Visibility (SliceName : sig
       | Isrc -> true
       | Iproto -> true
       | Iff (ff,_) ->
-          let kf = M.get_ff_kf ff  in
+          let kf = SlicingMacros.get_ff_kf ff  in
           let pdg = !Db.Pdg.get kf in
             try
               let nodes = !Db.Pdg.find_fun_postcond_nodes pdg p in
@@ -316,13 +323,45 @@ module Visibility (SliceName : sig
       | Isrc -> true
       | Iproto -> true
       | Iff (ff,_) ->
-          let kf = M.get_ff_kf ff  in
+          let kf = SlicingMacros.get_ff_kf ff  in
           let pdg = !Db.Pdg.get kf in
             try
               let nodes = !Db.Pdg.find_fun_variant_nodes pdg v in
                 data_nodes_visible ff nodes
             with NoDataInfo -> all_logic_var_visible_term ff v
     in SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.fun_variant_visible] -> %s"
+              (if visible then "yes" else "no");
+       visible
+
+  let fun_frees_visible ff_opt v =
+    let keep_annots = SlicingParameters.Mode.KeepAnnotations.get () in
+    SlicingParameters.debug ~level:2
+      "[SlicingTransform.Visibility.fun_frees_visible \
+       (with keep_annots = %B)] ?"
+      keep_annots;
+    if not keep_annots then raise EraseAllocation;
+    let visible =
+      match ff_opt with
+        | Isrc -> true
+        | Iproto -> true
+        | Iff (ff,_) -> all_logic_var_visible_identified_term ff v
+    in SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.fun_frees_visible] -> %s"
+              (if visible then "yes" else "no");
+       visible
+
+  let fun_allocates_visible ff_opt v =
+    let keep_annots = SlicingParameters.Mode.KeepAnnotations.get () in
+    SlicingParameters.debug ~level:2
+      "[SlicingTransform.Visibility.fun_allocates_visible \
+       (with keep_annots = %B)] ?"
+      keep_annots;
+    if not keep_annots then raise EraseAllocation;
+    let visible =
+      match ff_opt with
+        | Isrc -> true
+        | Iproto -> true
+        | Iff (ff,_) -> all_logic_var_visible_identified_term ff v
+    in SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.fun_allocates_visible] -> %s"
               (if visible then "yes" else "no");
        visible
 
@@ -371,7 +410,7 @@ module Visibility (SliceName : sig
     | Iproto -> false
     | Iff (slice, _) ->
         let key = PdgIndex.Key.call_outret_key call_stmt in
-        let _, ff_marks = slice.T.ff_marks in
+        let _, ff_marks = slice.SlicingInternals.ff_marks in
           try
             let m = PdgIndex.FctIndex.find_info ff_marks key in
             visible_mark m
@@ -381,7 +420,7 @@ module Visibility (SliceName : sig
     | Isrc | Iproto -> true
     | Iff (slice, _) ->
         let key = PdgIndex.Key.output_key in
-        let _, ff_marks = slice.T.ff_marks in
+        let _, ff_marks = slice.SlicingInternals.ff_marks in
           try
             let m = PdgIndex.FctIndex.find_info ff_marks key in
             visible_mark m
@@ -392,17 +431,17 @@ module Visibility (SliceName : sig
       | Isrc | Iproto -> None
       | Iff (slice, _) ->
           try
-            let _, ff_marks = slice.T.ff_marks in
+            let _, ff_marks = slice.SlicingInternals.ff_marks in
             let called, _ =
               PdgIndex.FctIndex.find_call ff_marks call_stmt in
           match called with
             | None | Some (None) ->
                 SlicingParameters.error "Undefined called function call-%d\n"
                   call_stmt.sid;
-                  M.bug "unknown call"
-              | Some (Some (T.CallSrc _)) -> None
-              | Some (Some (T.CallSlice ff)) ->
-                  let kf_ff = M.get_ff_kf ff in
+                assert false
+              | Some (Some (SlicingInternals.CallSrc _)) -> None
+              | Some (Some (SlicingInternals.CallSlice ff)) ->
+                  let kf_ff = SlicingMacros.get_ff_kf ff in
                   let src_visible = is_src_fun_visible project kf_ff in
                     (Some (kf_ff, Iff (ff, src_visible)))
           with Not_found ->
@@ -412,13 +451,17 @@ module Visibility (SliceName : sig
      SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.called_info] called_info stmt %d -> %s@."
         call_stmt.sid (if info = None then "src" else "some slice");
     info
+
+  let cond_edge_visible _ff_opt s =
+    Db.Value.condition_truth_value s
+
 end
 
 let default_slice_names kf _src_visible ff_num =
   let fname = Kernel_function.get_name kf in
   let kf_entry,_ = Globals.entry_point () in
   if Kernel_function.equal kf kf_entry then fname
-  else (fname ^ "_slice_" ^ (string_of_int (ff_num)))
+  else Printf.sprintf "%s_slice_%d" fname ff_num
 
 let extract ~f_slice_names new_proj_name slicing_project =
   SlicingParameters.feedback ~level:1

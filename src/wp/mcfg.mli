@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,11 +30,6 @@ type scope =
   | SC_Block_in
   | SC_Block_out
 
-type assigns_method =
-  | NoAssigns
-  | NormalAssigns
-  | EffectAssigns
-
 module type Export =
 sig
   type pred
@@ -48,7 +43,7 @@ module type Splitter =
 sig
   type pred
   val simplify : pred -> pred
-  val split : assigns_method -> pred -> pred Bag.t
+  val split : bool -> pred -> pred Bag.t
 end
 
 (**
@@ -60,17 +55,17 @@ end
  **)
 module type S = sig
 
-  type t_prop
-  val pretty : Format.formatter -> t_prop -> unit
-  val merge : t_prop -> t_prop -> t_prop
-  val empty : t_prop
-
   type t_env
+  type t_prop
+
+  val pretty : Format.formatter -> t_prop -> unit
+  val merge : t_env -> t_prop -> t_prop -> t_prop
+  val empty : t_prop
 
   (** optionally init env with user logic variables *)
   val new_env : ?lvars:Cil_types.logic_var list -> kernel_function -> t_env
 
-  val add_axiom : WpPropId.prop_id -> string -> logic_label list -> predicate named -> unit
+  val add_axiom : WpPropId.prop_id -> LogicUsage.logic_lemma -> unit
   val add_hyp  : t_env -> WpPropId.pred_info -> t_prop -> t_prop
   val add_goal : t_env -> WpPropId.pred_info -> t_prop -> t_prop
 
@@ -79,16 +74,14 @@ module type S = sig
   (** [use_assigns env hid kind assgn goal] performs the havoc on the goal.  
   * [hid] should be [None] iff [assgn] is [WritesAny], 
   * and tied to the corresponding identified_property otherwise.*)
-  val use_assigns : t_env -> WpPropId.prop_id option ->
+  val use_assigns : t_env -> stmt option -> WpPropId.prop_id option ->
     WpPropId.assigns_desc -> t_prop -> t_prop
 
-  val assigns_method : unit -> assigns_method
-
   val label  : t_env -> Clabels.c_label -> t_prop -> t_prop
-  val assign : t_env -> lval -> exp -> t_prop -> t_prop
-  val return : t_env -> exp option -> t_prop -> t_prop
-  val test : t_env -> exp -> t_prop -> t_prop -> t_prop
-  val switch : t_env -> exp -> (exp list * t_prop) list -> t_prop -> t_prop
+  val assign : t_env -> stmt -> lval -> exp -> t_prop -> t_prop
+  val return : t_env -> stmt -> exp option -> t_prop -> t_prop
+  val test : t_env -> stmt -> exp -> t_prop -> t_prop -> t_prop
+  val switch : t_env -> stmt -> exp -> (exp list * t_prop) list -> t_prop -> t_prop
   val init_value : t_env -> lval -> typ -> exp option -> t_prop -> t_prop
     (** init_value env lv t v_opt wp:
         put value of type t (or default if None) in lv *)
@@ -96,7 +89,8 @@ module type S = sig
     (** init_range env lv t_elt a b wp :
         put default values of type t_elt in lv[k] with a <= k < b *)
 
-  val tag : string -> t_prop -> t_prop
+  val loop_entry : t_prop -> t_prop
+  val loop_step : t_prop -> t_prop
 
   (* -------------------------------------------------------------------------- *)
   (* --- Call Rules                                                         --- *)
@@ -122,10 +116,13 @@ module type S = sig
   (* -------------------------------------------------------------------------- *)
 
   val scope : t_env -> varinfo list -> scope -> t_prop -> t_prop
+  val close : t_env -> t_prop -> t_prop
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- FROM                                                               --- *)
+  (* -------------------------------------------------------------------------- *)
 
   (** build [p => alpha(p)] for functional dependencies verification. *)
   val build_prop_of_from : t_env -> WpPropId.pred_info list -> t_prop -> t_prop
-
-  val close : t_env -> t_prop -> t_prop
 
 end

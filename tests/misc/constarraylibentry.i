@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -lib-entry
+   OPT: -val -lib-entry
 */
 
 const int t[] = { 1, 2, 3, 4, 5 } ;
@@ -10,7 +10,18 @@ typedef const int tt3[3];
 
 tt3 t3[3] = { 10, 20, 30, 40, 50, 60, 70, 80, 90 } ;
 
-main()
-{
-  Frama_C_dump_each();
-}
+typedef struct {
+  int f1;
+  const int f2;
+} ss;
+
+typedef struct {
+  int f0;
+  const char f2;
+} ss2;
+
+const int t4[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+ss t5[7] = {{1, 2}, {3}, 5, 6, 7, 8, 9, 10};
+ss2 t6[6] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+void main(){}

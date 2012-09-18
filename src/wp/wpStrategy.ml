@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,6 +24,7 @@ let dkey = "strategy" (* debugging key *)
 let debug fmt = Wp_parameters.debug ~dkey fmt
 
 open Cil_types
+open LogicUsage
 
 (* -------------------------------------------------------------------------- *)
 (** An annotation can be used for different purpose. *)
@@ -77,24 +78,26 @@ let empty_acc =
   in { has_asgn_goal = false; has_prop_goal = false; info = a; }
 
 let add_prop acc kind labels id p =
-  let get_p () =
-    let txt = WpPropId.prop_id_name id in
-      try
-        let p = NormAtLabels.preproc_annot labels p in
-        let _ =
-          debug "take (@[%s:@ %a@])@." txt !Ast_printer.d_predicate_named p
-        in Some (WpPropId.mk_pred_info id p)
-      with e -> NormAtLabels.catch_label_error e txt "annotation"; None
+  let get_p debug_txt =
+    try
+      let p = NormAtLabels.preproc_annot labels p in
+      let _ =
+        debug "take as %s (@[%a:@ %a@])@." debug_txt
+	  WpPropId.pretty id !Ast_printer.d_predicate_named p
+      in Some (WpPropId.mk_pred_info id p)
+    with e -> NormAtLabels.catch_label_error e 
+      (WpPropId.get_propid id) "annotation"; None
   in
-  let add_hyp l = match get_p () with None -> l | Some p -> p::l in
+  let add_hyp l = match get_p "hyp" with None -> l | Some p -> p::l in
   let add_goal l =
     (* if goal_to_select config id
-    then *) match get_p () with None -> l
+    then *) match get_p "goal" with None -> l
       | Some p -> ( (* has_prop_goal := true; *) p::l )
         (* else l *)
   in
   let add_both goal l =
-    match get_p () with None -> l
+    match get_p ("both goal=" ^ if goal then "true" else "false") with 
+      | None -> l
       | Some p ->
             (* if goal then has_prop_goal := true;*)
             (goal, p)::l
@@ -224,7 +227,7 @@ let fold_bhv_post_cond ~warn f_normal f_exits acc b =
 
 let add_assigns acc kind id a_desc =
   let take_assigns () =
-    debug "take %a %a" WpPropId.pp_id_name id WpPropId.pp_assigns_desc a_desc;
+    debug "take %a %a" WpPropId.pp_propid id WpPropId.pp_assigns_desc a_desc;
     WpPropId.mk_assigns_info id a_desc
   in
   let info = acc.info in
@@ -450,6 +453,7 @@ let add_on_edges tbl new_acc edges =
   in List.iter add_on_edge edges
 
 let add_node_annots tbl cfg v (before, (post, exits)) =
+  debug "[add_node_annots] on %a@." Cil2cfg.pp_node v;
   add_on_edges tbl before (Cil2cfg.get_pre_edges cfg v);
   if post <> empty_acc then
     begin
@@ -468,7 +472,7 @@ let add_node_annots tbl cfg v (before, (post, exits)) =
     end
 
 let add_loop_annots tbl cfg vloop ~entry ~back ~core =
-  debug "[add_loop_annots]@.";
+  debug "[add_loop_annots] on %a@."Cil2cfg.pp_node vloop;
   let edges_to_head = Cil2cfg.succ_e cfg vloop in
     debug "[add_loop_annots] %d edges_to_head" (List.length edges_to_head);
   let edges_to_loop = Cil2cfg.pred_e cfg vloop in
@@ -485,31 +489,28 @@ let add_loop_annots tbl cfg vloop ~entry ~back ~core =
       add_on_edges tbl core edges_to_head;
   debug "[add_loop_annots on edges_to_head ok]@."
 
-let add_axiom tbl name labels a =
+let add_axiom tbl lemma =
   try
-    let a = NormAtLabels.preproc_annot NormAtLabels.labels_axiom a in
-    let labels =
-      List.map (NormAtLabels.preproc_label NormAtLabels.labels_axiom) labels in
-    let axiom = WpPropId.mk_axiom_info name labels a in
-      debug "take %a@." WpPropId.pp_axiom_info axiom;
-      tbl.tbl_axioms <- axiom::tbl.tbl_axioms 
+    (* Labels does not need normalization *)
+    let axiom = WpPropId.mk_axiom_info lemma in
+    debug "take %a@." WpPropId.pp_axiom_info axiom;
+    tbl.tbl_axioms <- axiom::tbl.tbl_axioms 
   with e -> 
-    NormAtLabels.catch_label_error e ("axiom "^name) "axiom"
+    NormAtLabels.catch_label_error e ("axiom "^lemma.lem_name) "axiom"
 
 let add_all_axioms tbl =
-  let globs = Globals.Annotations.get_all () in
-  let globs = List.map (fun (g, _generated) -> g) globs in
   let rec do_g g =
       match g with
         | Daxiomatic (_ax_name, globs,_) -> do_globs globs
-        | Dlemma (name, _is_axiom, labels, _, pred,_) ->
-            add_axiom tbl name labels pred
+        | Dlemma (name,_,_,_,_,_) ->
+	    let lem = LogicUsage.logic_lemma name in
+	    add_axiom tbl lem
       | _ -> ()
   and do_globs globs = List.iter do_g globs in
-    do_globs globs
+  Annotations.iter_global (fun _ -> do_g)
   
 let get_annots tbl e =
-  try (* TODOclean : this is not very nice ! *)
+  try (* TODO clean : this is not very nice ! *)
     let info = Hannots.find tbl.tbl_annots e in { empty_acc with info = info}
   with Not_found -> empty_acc
 
@@ -539,6 +540,10 @@ type strategy = {
   strategy_kind : strategy_kind;
   annots : annots_tbl;
 }
+
+
+let get_kf s = Cil2cfg.cfg_kf s.cfg
+let get_bhv s = s.behavior_name
 
 let mk_strategy desc cfg bhv_name new_loops kind tbl = {
   desc = desc; cfg = cfg; behavior_name = bhv_name; new_loops = new_loops; 
@@ -590,3 +595,9 @@ let mk_variant_properties kf s ca v =
   (vpos_id, vpos), (vdecr_id, vdecr)
 
 (* -------------------------------------------------------------------------- *)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

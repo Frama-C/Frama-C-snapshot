@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -94,7 +94,7 @@ struct lconv
 #define LC_TIME 5
 
 extern struct lconv* __frama_c_locale;
-extern const char*__frama_c_locale_names[];
+extern char*__frama_c_locale_names[];
 
 /*@ 
   requires \valid(locale);

@@ -46,7 +46,6 @@
 *)
 {
 open Cparser
-exception Eof
 exception InternalError of string
 module H = Hashtbl
 module E = Errorloc
@@ -83,24 +82,6 @@ let addLexeme lexbuf =
     lexeme := !lexeme ^ l
 let clear_lexeme () = lexeme := ""
 let get_extra_lexeme () = !lexeme
-
-let int64_to_char value =
-  if (Int64.compare value (Int64.of_int 255) > 0) ||
-    (Int64.compare value Int64.zero < 0) then
-    begin
-      let msg = Printf.sprintf "clexer:intlist_to_string: character 0x%Lx too big" value in
-      E.parse_error msg;
-    end
-  else
-    Char.chr (Int64.to_int value)
-
-(* takes a not-nul-terminated list, and converts it to a string. *)
-let rec intlist_to_string (str: int64 list):string =
-  match str with
-    [] -> ""  (* add nul-termination *)
-  | value::rest ->
-      let this_char = int64_to_char value in
-      (String.make 1 this_char) ^ (intlist_to_string rest)
 
 (* Some debugging support for line numbers *)
 let dbgToken (t: token) =
@@ -386,16 +367,6 @@ let do_lex_comment ?first_char remainder lexbuf =
     | Some b -> addComment (Buffer.contents b)
     | None -> ()
 
-let make_char (i:int64):char =
-  let min_val = Int64.zero in
-  let max_val = Int64.of_int 255 in
-  (* if i < 0 || i > 255 then error*)
-  if Int64.compare i min_val < 0 || Int64.compare i max_val > 0 then begin
-    let msg = Printf.sprintf "clexer:make_char: character 0x%Lx too big" i in
-    error msg
-  end;
-  Char.chr (Int64.to_int i)
-
 
 (* ISO standard locale-specific function to convert a wide character
  * into a sequence of normal characters. Here we work on strings.
@@ -440,9 +411,14 @@ let buf = Buffer.create 1024
 let save_current_pos () =
   annot_start_pos := currentLoc ()
 
-let make_annot s =
+let make_annot ~one_line lexbuf s =
   let start = snd !annot_start_pos in
-  match Logic_lexer.annot (start, s) with
+  let stop, token = Logic_lexer.annot (start, s) in
+  lexbuf.Lexing.lex_curr_p <- stop; 
+  E.setCurrentFile stop.Lexing.pos_fname;
+  E.setCurrentLine stop.Lexing.pos_lnum;
+  if one_line then E.newline ();
+  match token with
     | Logic_ptree.Adecl d -> DECL d
     | Logic_ptree.Aspec -> SPEC (start,s)
         (* At this point, we only have identified a function spec. Complete
@@ -451,6 +427,8 @@ let make_annot s =
     | Logic_ptree.Acode_annot (loc,a) -> CODE_ANNOT (a, loc)
     | Logic_ptree.Aloop_annot (loc,a) -> LOOP_ANNOT (a,loc)
     | Logic_ptree.Aattribute_annot (loc,a) -> ATTRIBUTE_ANNOT (a, loc)
+    | Logic_ptree.Acustom(loc,id, a) -> CUSTOM_ANNOT(a, id, loc)
+
 }
 
 let decdigit = ['0'-'9']
@@ -678,13 +656,6 @@ rule initial =
                                           initial lexbuf
                                         }
 
-(* sm: tree transformation keywords *)
-|               "@transform"            {AT_TRANSFORM (currentLoc ())}
-|               "@transformExpr"        {AT_TRANSFORMEXPR (currentLoc ())}
-|               "@specifier"            {AT_SPECIFIER (currentLoc ())}
-|               "@expr"                 {AT_EXPR (currentLoc ())}
-|               "@name"                 {AT_NAME}
-
 (* __extension__ is a black. The parser runs into some conflicts if we let it
  * pass *)
 |               "__extension__"         {addWhite lexbuf; initial lexbuf }
@@ -825,7 +796,7 @@ and annot_first_token = parse
   | "" { annot_token lexbuf }
 and annot_token = parse
   | "*/" { let s = Buffer.contents buf in
-           make_annot s }
+           make_annot ~one_line:false lexbuf s }
   | eof  { E.parse_error "Unterminated annotation" }
   | '\n' {E.newline(); Buffer.add_char buf '\n'; annot_token lexbuf }
   | _ as c { Buffer.add_char buf c; annot_token lexbuf }
@@ -838,7 +809,7 @@ and annot_one_line = parse
   | ' '|'@'|'\t'|'\r' as c { Buffer.add_char buf c; annot_one_line lexbuf }
   | "" { annot_one_line_logic lexbuf }
 and annot_one_line_logic = parse
-  | '\n' { E.newline (); make_annot (Buffer.contents buf) }
+  | '\n' { make_annot ~one_line:true lexbuf (Buffer.contents buf) }
   | _ as c { Buffer.add_char buf c; annot_one_line_logic lexbuf }
 
 {

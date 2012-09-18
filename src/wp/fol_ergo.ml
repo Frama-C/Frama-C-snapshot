@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,6 @@ let constant fmt = function
       then Format.fprintf fmt "(%s)" n
       else pp_print_string fmt n
   | Fol.ConstBool b -> pp_print_string fmt (if b then "true" else "false")
-  | Fol.ConstUnit -> pp_print_string fmt "void"
   | Fol.ConstFloat f -> 
       if f.[0] = '-' 
       then Format.fprintf fmt "(%s)" f
@@ -326,8 +325,31 @@ let export_generated_axiomatics tau_of_ctype_logic fmt f =
 
 let pp_param tau_of_ctype_logic fmt x =
   Format.fprintf fmt "%a:%a" pp_var x (export_tau tau_of_ctype_logic) (Fol.Var.var_type x)
+
+let ftrigger term pred fmt = function 
+  | Formula.TgTerm t -> term fmt t 
+  | Formula.TgProp p -> pred fmt p
+
+let ftriggers term pred fmt = function
+  | [] -> ()
+  | tg::tgs -> 
+      ftrigger term pred fmt tg ;
+      List.iter (fun tg -> fprintf fmt ",@," ; ftrigger term pred fmt tg) tgs
+
+let rec fpp_triggers term predicate tau_of_ctype_logic fmt (xs,tg,p) =
+  match xs with
+    | [] -> predicate fmt p
+    | [x] -> 
+	Format.fprintf fmt "forall %a@ [@[%a@]].@ %a" 
+	  (pp_param tau_of_ctype_logic) x (ftriggers term predicate) tg predicate p
+    | x::xs ->
+	Format.fprintf fmt "forall %a.@ " (pp_param tau_of_ctype_logic) x ;
+	fpp_triggers term predicate tau_of_ctype_logic fmt (xs,tg,p)
     
-let fpp_item term predicate tau_of_ctype_logic fmt x =
+let fpp_item 
+    (term:formatter -> Fol.term -> unit) 
+    (predicate:formatter -> Fol.pred -> unit)
+    tau_of_ctype_logic fmt x =
   function	
     | Formula.Cons k ->
         fprintf fmt "function %s (): int = %d@\n" x k
@@ -347,6 +369,9 @@ let fpp_item term predicate tau_of_ctype_logic fmt x =
     | Formula.PredicateDef (xs,prop) ->
 	Format.fprintf fmt "@[<hv 2>predicate %s (%a) =@ @[<hov 0>%a@]@]@\n"
 	  x (pp_list (pp_param tau_of_ctype_logic)) xs predicate prop
+    | Formula.Trigger(xs,tg,p) ->
+	Format.fprintf fmt "@[<hv 2>axiom %s:@ %a@]@\n" x 
+	  (fpp_triggers term predicate tau_of_ctype_logic) (xs,tg,p)
     | Formula.Axiom p ->
        begin
          match Fol_norm.compile p with
@@ -412,8 +437,8 @@ let export_pred  tau_of_ctype_logic fmt p =
     pp_pred = pp_pred_atom  tau_of_ctype_logic;
   } fmt p
 
-let export_item  tau_of_ctype_logic fmt name item =
-fpp_item (export_pred tau_of_ctype_logic) fmt name item
+let export_item tau_of_ctype_logic fmt name item =
+  fpp_item export_term (export_pred tau_of_ctype_logic) fmt name item
 
 let export_decl tau_of_ctype_logic fmt d =
   Pretty_utils.pp_trail fpp_header fmt d ;

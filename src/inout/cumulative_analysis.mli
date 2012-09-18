@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,13 @@ open Cil_types
     all its statements), and mostly non-contextual (all the informations
     can be gathered using a Cil visitor).
 *)
+
+
+val specialize_state_on_call: ?stmt:stmt -> kernel_function -> Db.Value.state
+  (** If the given statement is a call to the given function,
+      enrich the superposed memory state at this statement with
+      the formal arguments of this function. This is usually more precise
+      than the superposition of all initial states of the function  *)
 
 
 (** Frama-C visitor for cumulative analyses: we add a few useful methods.

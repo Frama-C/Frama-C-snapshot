@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,7 +51,6 @@ struct
       | C_int i -> i
       | _ -> WpLog.fatal "non-integer offset"
 
-
   let int_of_value = function
     | M.V_int(_,t) -> t
     | v -> WpLog.fatal "[int_of_value] of non integer value %a" M.pp_value v
@@ -94,11 +93,10 @@ struct
 
   let not_of_loc p = F.p_bool (M.is_null p)
   let not_of_integer z = F.p_icmp Formula.Ceq z F.i_zero
-  let not_of_int z = not_of_integer z
   let not_of_float r = F.p_rcmp Formula.Ceq r F.r_zero
 
   let not_of_value = function
-    | M.V_int(_,t) -> not_of_int t
+    | M.V_int(_,t) -> not_of_integer t
     | M.V_float(_,t) -> not_of_float t
     | M.V_pointer(_,loc) -> not_of_loc loc
     | v -> WpLog.fatal "[not_of_value] %a" M.pp_value v
@@ -144,7 +142,7 @@ struct
       | C_float _ , C_int i2 ->
           let r = float_of_value v in
           let z = F.integer_of_real r in
-          M.V_int(i2,M.F.modulo i2 z)
+          M.V_int(i2,M.F.i_modulo i2 z)
             (* TODO : specify non-modulo Cf. ISO-C 6.3.1.4 *)
       | C_pointer t1 , C_pointer t2 ->
 	  M.V_pointer
@@ -173,7 +171,7 @@ struct
       | C_float _ , C_int i2 ->
           let r = float_of_value v in
           let z = F.integer_of_real r in
-          prop_of_int (F.modulo i2 z)
+          prop_of_int (F.i_modulo i2 z)
             (* TODO : specify non-modulo Cf. ISO-C 6.3.1.4 *)
       | C_pointer t1 , C_pointer t2 ->
           prop_of_loc (M.cast_loc_to_loc t1 t2 (loc_of_value v))
@@ -192,7 +190,7 @@ struct
   (* ----------------------------------------------------------------------- *)
 
   (* [expr_const m c] interprets a constant [c] in memory [m].*)
-  let expr_const mem = function
+  let expr_const eid mem = function
     | CInt64(k,ik,_) ->
         M.V_int(Ctypes.c_int ik,F.e_icst (My_bigint.to_string k))
     | CChr c ->
@@ -201,10 +199,11 @@ struct
         M.V_float(Ctypes.c_float fk, F.e_float f)
     | CEnum e ->
         !expr_rec mem e.eival
-    | CWStr _        ->
+    | CWStr _ ->
         WpLog.not_yet_implemented "wide character string constant"
-    | CStr s         ->
-        WpLog.not_yet_implemented "character string constant (%S)" s
+    | CStr s ->
+	(*TODO: Incomplete Modelisation*)
+	M.string eid s
 
   let prop_const mem = function
     | CInt64(k,_,_) ->
@@ -233,11 +232,6 @@ struct
         let k = int_of_value v in
         let typ_elt = Cil.typeOf_array_elem typ_l in
         shift_loc mem (M.index l (Ctypes.object_of typ_elt) k) typ_elt next
-
-  let typeOf_array_elem = function
-    | C_array arr -> object_of arr.arr_element
-    | t -> WpLog.fatal 
-	"[typeOf_array_elem] of non array type %a" Ctypes.pp_object t
 
   (* [addr mem l] interprets the left-value [l] as memory path
      (address) in the memory of [mem].*)
@@ -620,8 +614,8 @@ struct
           begin
             match ctr,ct1 with
               | C_int ir , C_int i1 ->
-                  M.V_int(ir,expr_int mem i1 ir e)
-              | _ -> WpLog.fatal "non intger argument"
+                  M.V_int(ir,A.bits_not ir (expr_int mem i1 ir e))
+              | _ -> WpLog.fatal "non integer argument"
           end
       | LNot ->
           let term = !expr_rec mem e in
@@ -655,7 +649,7 @@ struct
       | BNot ->
           begin
             match ctr,ct1 with
-              | C_int ir , C_int i1 -> not_of_int (expr_int mem i1 ir e)
+              | C_int ir , C_int i1 -> not_of_integer (expr_int mem i1 ir e)
               | _ -> WpLog.fatal "non integer argument"
           end
       | LNot -> let term = !expr_rec mem e in not_of_value term
@@ -667,7 +661,7 @@ struct
   let rec expr mem e =
     match (Cil.stripInfo e).enode with
       | Info _ -> WpLog.fatal "non translation for info type expression"
-      | Const (cnst) -> expr_const mem cnst
+      | Const (cnst) -> expr_const e.eid mem cnst
       | CastE (ty,e) ->
           if Cil.isPointerType ty && Cil.isZero e then
             (let t = Ctypes.object_of_pointed (Ctypes.object_of ty) in

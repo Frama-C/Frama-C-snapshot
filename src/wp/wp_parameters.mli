@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,18 +45,29 @@ val job : unit -> job
 (** {2 Model Selection} *)
 
 type model_kind =
+  | M_Q of string
   | M_Hoare
+  | M_Logic
   | M_Store
   | M_Runtime
 
+type assigns_method =
+  | NoAssigns
+  | NormalAssigns
+  | EffectAssigns
+
 val get_model : unit -> model_kind
-val get_models : unit -> string list
-val get_assigns_method : unit -> Mcfg.assigns_method
+val get_assigns_method : unit -> assigns_method
+val has_dkey : string -> bool
 
 module Model : Plugin.String
 module LogicVar : Plugin.Bool
 module RefVar : Plugin.Bool
+module Fits : Plugin.Bool
 module Assigns : Plugin.String
+module Natural : Plugin.Bool
+module ExternArrays: Plugin.Bool
+module ExtEqual : Plugin.Bool
 
 (** {2 Computation Strategies} *)
 
@@ -65,6 +76,7 @@ val get_norm : unit -> norm
 
 module RTE: Plugin.Bool
 module Simpl: Plugin.Bool
+module Qed: Plugin.Bool
 module Split: Plugin.Bool
 module Invariants: Plugin.Bool
 module SplitDim: Plugin.Int
@@ -73,19 +85,36 @@ module Huge: Plugin.Int
 
 (** {2 Prover Interface} *)
 
-module Prover: Plugin.String
-module Check : Plugin.String
-module Script : Plugin.String
+module Provers: Plugin.String_set
+module Check: Plugin.String
+module Includes: Plugin.String_list
+module Script: Plugin.String
+module UpdateScript: Plugin.Bool
 module Timeout: Plugin.Int
+module CoqTimeout: Plugin.Int
+module Depth: Plugin.Int
+module Steps: Plugin.Int
 module Procs: Plugin.Int
 module Trace: Plugin.Bool
 module ProofTrace: Plugin.Bool
+module UnsatModel: Plugin.Bool
+module ProverSwitch: Plugin.String
+module CoqLibs: Plugin.String_list
+module CoqTactic: Plugin.String
+module Hints: Plugin.Int
+module TryHints: Plugin.Bool
+module WhyLibs: Plugin.String_list
+module AltErgoLibs: Plugin.String_list
+
+val get_provers : unit -> string list
 
 (** {2 Proof Obligations} *)
 
 module Dot: Plugin.Bool
 module Print: Plugin.Bool
 module Details: Plugin.Bool
+module Report: Plugin.String_list
+module ReportName: Plugin.String
 
 (** {2 Experimental} *)
 
@@ -96,8 +125,7 @@ module Froms: Plugin.Bool
 val get_env : ?default:string -> string -> string
 val is_out : unit -> bool (* -wp-out <dir> positionned *)
 val get_output : unit -> string
-val get_share : unit -> string
-
+val get_output_dir : string -> string
 
 (*
 Local Variables:

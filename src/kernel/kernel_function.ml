@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Extlib
 open Cil_types
 open Cil_datatype
 
@@ -29,10 +28,9 @@ open Cil_datatype
 (* ************************************************************************* *)
 
 let dummy () =
-  { fundec =
-      Definition (Cil.emptyFunction "@dummy@", Location.unknown);
+  { fundec = Definition (Cil.emptyFunction "@dummy@", Location.unknown);
     return_stmt = None;
-    spec = Cil.empty_funspec ()}
+    spec = List.hd Funspec.reprs }
 
 let get_vi kf = Ast_info.Function.get_vi kf.fundec
 let get_id kf = (get_vi kf).vid
@@ -76,19 +74,13 @@ include Cil_datatype.Kf
 
 module Kf =
   State_builder.Option_ref
-    (Int_hashtbl.Make(Datatype.Triple(Kf)(Stmt)(Datatype.List(Block))))
+    (Datatype.Int.Hashtbl.Make(Datatype.Triple(Kf)(Stmt)(Datatype.List(Block))))
     (struct
        let name = "KF"
        let dependencies = [ Ast.self ]
-       let kind = `Internal
      end)
 
 let self = Kf.self
-
-let () = 
-  State_dependency_graph.Static.add_dependencies
-    ~from:Kf.self 
-    [ Property_status.self ]
 
 let clear_sid_info () = Kf.clear ()
 
@@ -96,7 +88,7 @@ let compute () =
   Kf.memo
     (fun () ->
        let p = Ast.get () in
-       let h = Inthash.create 97 in
+       let h = Datatype.Int.Hashtbl.create 97 in
        let visitor = object(self)
          inherit Cil.nopCilVisitor
          val mutable current_kf = None
@@ -107,13 +99,17 @@ let compute () =
            Cil.ChangeDoChildrenPost
              (b,fun b -> opened_blocks <- List.tl opened_blocks; b)
 	 method vstmt s =
-	   Inthash.add h s.sid (self#kf, s, opened_blocks);
+	   Datatype.Int.Hashtbl.add h s.sid (self#kf, s, opened_blocks);
 	   Cil.DoChildren
 	 method vglob g =
 	   begin match g with
 	   | GFun (fd, _) ->
-	       let kf = Globals.Functions.get fd.svar in
-	       current_kf <- Some kf;
+	       (try
+                  let kf = Globals.Functions.get fd.svar in
+	          current_kf <- Some kf;
+                with Not_found ->
+                  Kernel.fatal "No kernel function for function %a"
+                    Cil_datatype.Varinfo.pretty fd.svar)
 	   | _ ->
 	       ()
 	   end;
@@ -125,27 +121,26 @@ let compute () =
 
 let find_from_sid sid =
   let table = compute () in
-  let kf, s, _ = Inthash.find table sid in
+  let kf, s, _ = Datatype.Int.Hashtbl.find table sid in
   s, kf
 
 let () = Dataflow.stmt_of_sid := (fun sid -> fst (find_from_sid sid))
 
-let find_englobing_kf stmt =
-  snd (find_from_sid stmt.sid)
+let find_englobing_kf stmt = snd (find_from_sid stmt.sid)
 
 let blocks_closed_by_edge s1 s2 =
   if not (List.exists (Stmt.equal s2) s1.succs) then
     raise (Invalid_argument "Kernel_function.edge_exits_block");
   let table = compute () in
   try
-  let _,_,b1 = Inthash.find table s1.sid in
-  let _,_,b2 = Inthash.find table s2.sid in
-  Kernel.debug ~level:2
+  let _,_,b1 = Datatype.Int.Hashtbl.find table s1.sid in
+  let _,_,b2 = Datatype.Int.Hashtbl.find table s2.sid in
+(*  Kernel.debug ~level:2
     "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
     !Ast_printer.d_stmt s1 
     (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b1 
     !Ast_printer.d_stmt s2 
-    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b2;
+    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b2;*)
   let rec aux acc = function
       [] -> acc
     | inner_block::others ->
@@ -159,14 +154,67 @@ let blocks_closed_by_edge s1 s2 =
 
 let find_enclosing_block s =
   let table = compute () in
-  let (_,_,b) = Inthash.find table s.sid in
+  let (_,_,b) = Datatype.Int.Hashtbl.find table s.sid in
   List.hd b
 
 let () = Globals.find_enclosing_block:= find_enclosing_block
 
 let find_all_enclosing_blocks s =
    let table = compute () in
-  let (_,_,b) = Inthash.find table s.sid in b
+  let (_,_,b) = Datatype.Int.Hashtbl.find table s.sid in b
+
+let stmt_in_loop kf stmt =
+  let blocks = find_all_enclosing_blocks stmt in
+  let vis = object
+    inherit Cil.nopCilVisitor
+    method vstmt s =
+      match s.skind with
+        | Loop (_,b,_,_,_) ->
+            if List.memq b blocks then raise Exit;
+            Cil.SkipChildren 
+            (* Don't need to inspect nested loops if it's already
+               outside the outermost one. *)
+        | _ -> Cil.DoChildren
+  end
+  in
+  try
+    ignore 
+      (Cil.visitCilFunction vis (get_definition kf));
+    false
+  with
+    | Exit -> true
+    | No_Definition -> false (* Not the good kf obviously. *)
+
+let find_enclosing_loop kf stmt =
+  let blocks = find_all_enclosing_blocks stmt in
+  let innermost = ref None in
+  let vis = object
+    inherit Cil.nopCilVisitor
+    method vstmt s =
+      match s.skind with
+        | Loop (_,b,_,_,_) ->
+            if List.memq b blocks then
+              begin innermost:= Some s; Cil.DoChildren end
+            else
+              Cil.SkipChildren 
+              (* Don't need to inspect nested loops if it's already
+                 outside the outermost one. *)
+        | _ -> Cil.DoChildren
+  end
+  in
+  try
+    (match stmt.skind with
+      | Loop _ -> stmt
+      | _ ->
+          ignore
+            (Cil.visitCilFunction vis (get_definition kf));
+          (match !innermost with
+            | Some s -> s
+            | None -> raise Not_found))
+    
+  with
+    | No_Definition -> raise Not_found (* Not the good kf obviously. *)
+          
 
 exception Got_return of stmt
 exception No_Statement
@@ -176,7 +224,7 @@ let find_return kf =
   | None ->
       let find_return fd =
         let visitor = object
-          inherit Cil.nopCilVisitor as super
+          inherit Cil.nopCilVisitor
           method vstmt s =
             match s.skind with
               | Return _ -> raise (Got_return s)
@@ -244,7 +292,6 @@ module KfCallers =
     (struct
       let name = "Kf.CallSites"
       let dependencies = [ Ast.self ]
-      let kind = `Internal
      end)
 
 let called_kernel_function fct =
@@ -273,7 +320,10 @@ class callsite_visitor hmap = object (self)
             match called_kernel_function fct with
               | None -> Cil.SkipChildren
               | Some ckf ->
-                  let sites = try CallSites.find hmap ckf with Not_found -> [] in
+                  let sites = 
+		    try CallSites.find hmap ckf
+		    with Not_found -> [] 
+		  in
                   CallSites.replace hmap ckf ((self#kf,stmt)::sites) ;
                   Cil.SkipChildren
           end
@@ -333,86 +383,6 @@ let is_formal_or_local v kf =
 (** {2 Specifications} *)
 (* ************************************************************************* *)
 
-let populate_spec = Extlib.mk_fun "Kernel_function.populate_spec"
-
-let get_spec ?(populate=true) f =
-  if is_definition f || not populate then
-    f.spec
-  else begin
-    (* Do not overwrite an existing assigns clause*)
-    !populate_spec f;
-    (* Kernel.feedback 
-       "Getting spec of %a: %a" pretty f !Ast_printer.d_funspec f.spec; *)
-    f.spec
-  end
-
-let set_spec kf f =
-  let get_ppts kf = Property.ip_of_spec kf Kglobal kf.spec in
-  let old = get_ppts kf in
-  kf.spec <- f kf.spec;
-  Property_status.merge ~old (get_ppts kf)
-
-let () = Globals.Functions.set_spec := set_spec
-
-let postcondition kf k =
-  Logic_const.pands
-    (List.map
-       (fun b -> Ast_info.behavior_postcondition b k)
-       (get_spec kf).spec_behavior)
-
-let precondition kf =
-  Logic_const.pands
-    (List.map
-       (fun b -> Ast_info.behavior_precondition b)
-       (get_spec kf).spec_behavior)
-
-let code_annotations kf =
-  try
-    let def = get_definition kf in
-    List.fold_left
-      (fun acc stmt ->
-         Annotations.single_fold_stmt
-           (fun a acc -> (stmt, a) :: acc)
-           stmt
-           acc)
-      []
-      def.sallstmts
-  with No_Definition ->
-    []
-
-let internal_function_behaviors kf =
-  try
-    let def = get_definition kf in
-    List.fold_left
-      (fun known_names stmt ->
-         List.fold_left
-           (fun known_names (_bhv,spec) ->
-              (List.map (fun x -> x.b_name) spec.spec_behavior) @ known_names)
-           known_names
-           (Logic_utils.extract_contract
-              (List.map
-                 Annotations.get_code_annotation
-                 (Annotations.get_all_annotations stmt))))
-      []
-      def.sallstmts
-  with No_Definition -> 
-    []
-
-let spec_function_behaviors kf =
-  List.map (fun x -> x.b_name) (get_spec kf).spec_behavior
-
-let all_function_behaviors kf =
-  (internal_function_behaviors kf) @ (spec_function_behaviors kf)
-
-let fresh_behavior_name kf name =
-  let existing_behaviors = all_function_behaviors kf in
-  let rec aux i =
-    let name = name ^ "_" ^ (string_of_int i) in
-    if List.mem name existing_behaviors then aux (i+1)
-    else name
-  in
-  if List.mem name existing_behaviors then aux 0 else name
-
 (* ************************************************************************* *)
 (** {2 Pretty printer} *)
 (* ************************************************************************* *)
@@ -436,6 +406,7 @@ module Hptset = struct
   (Cil_datatype.Kf)
   (struct let v = [ [ ] ] end)
   (struct let l = [ Ast.self ] end)
+  let () = Ast.add_monotonic_state self
 
   let pretty fmt = Pretty_utils.pp_iter iter pretty_kf fmt
 end
@@ -446,7 +417,7 @@ end
 
 let register_stmt kf s b =
   let tbl = try Kf.get () with Not_found -> assert false in
-  Inthash.add tbl s.sid (kf,s,b)
+  Datatype.Int.Hashtbl.add tbl s.sid (kf,s,b)
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,8 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef __FRAMA_C_DEFINE_IOVEC
-#define __FRAMA_C_DEFINE_IOVEC
+#ifndef __FC_DEFINE_IOVEC
+#define __FC_DEFINE_IOVEC
 #include "__fc_define_size_t.h"
 struct iovec {
   void   *iov_base;

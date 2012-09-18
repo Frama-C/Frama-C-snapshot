@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -394,18 +394,20 @@ let current_default_cmds = ref [!Ptests_config.toplevel_path,default_options]
 let make_custom_opts stdopts s =
   let rec aux opts s =
     try
-      Scanf.sscanf s "%_[ ]%1[+\\-]%_[ ]\"%s@\"%_[ ]%s@\n"
+      Scanf.sscanf s "%_[ ]%1[+#\\-]%_[ ]%S%_[ ]%s@\n"
         (fun c opt rem ->
-           match c with
-             | "+" -> aux (opt :: opts) rem
-             | "-" -> aux (List.filter (fun x -> x <> opt) opts) rem
-             | _ -> assert false (* format of scanned string disallow it *))
+	  let opt = replace_toplevel opt in
+	  match c with
+          | "+" -> aux (opt :: opts) rem
+          | "#" -> aux (opts @ [ opt ]) rem
+          | "-" -> aux (List.filter (fun x -> x <> opt) opts) rem
+          | _ -> assert false (* format of scanned string disallow it *))
     with
-        Scanf.Scan_failure _ ->
-          if s <> "" then
-            lock_eprintf "unknown STDOPT configuration string: %s\n%!" s;
-          opts
-      | End_of_file -> opts
+    | Scanf.Scan_failure _ ->
+      if s <> "" then
+	lock_eprintf "unknown STDOPT configuration string: %s\n%!" s;
+      opts
+    | End_of_file -> opts
   in
   (* NB: current settings does not allow to remove a multiple-argument
      option (e.g. -verbose 2).
@@ -564,6 +566,7 @@ type shared =
       (* cmp that showed some difference *)
       mutable commands_finished : bool ;
       mutable cmp_finished : bool ;
+      mutable summary_time : float ;
       mutable summary_run : int ;
       mutable summary_ok : int ;
       mutable summary_log : int;
@@ -581,6 +584,7 @@ let shared =
     diffs = Queue.create () ;
     commands_finished = false ;
     cmp_finished = false ;
+    summary_time = (Unix.times()).Unix.tms_cutime ;
     summary_run = 0 ;
     summary_ok = 0 ;
     summary_log = 0 }
@@ -610,14 +614,39 @@ let log_prefix = gen_prefix result_dirname
 let oracle_prefix = gen_prefix oracle_dirname
 
 let basic_command_string command =
-  let is_framac_toplevel =
-    Str.string_match (Str.regexp ".*toplevel.*") command.toplevel 0
-    || Str.string_match (Str.regexp ".*frama-c.*") command.toplevel 0
+  let ptest_file_token = "@PTEST_FILE@" in
+  let ptest_file_rexp = Str.regexp ptest_file_token in
+  let ptest_file = Filename.concat command.directory command.file in
+  let basic_command = 
+    let make_command s =
+      command.toplevel ^ " " ^ s ^ " " ^ command.options
+    in 
+    let basic_command = make_command "" in
+      if Str.string_match (Str.regexp (".*" ^ ptest_file_token ^ ".*")) basic_command 0
+      then (* At least one occurence for the test file is specified. *)
+	Str.global_replace ptest_file_rexp ptest_file basic_command
+      else (* Using default position for the test file (between CMD: and OPT:). *)
+	make_command ptest_file
   in
-  command.toplevel ^ " " ^
-    (Filename.concat command.directory command.file) ^ " " ^
-    command.options ^
-    (if is_framac_toplevel then " " ^ !additional_options else "")
+  let basic_command = (* Additional options... *)
+    let is_framac_toplevel =
+      Str.string_match (Str.regexp ".*toplevel.*") command.toplevel 0
+      || Str.string_match (Str.regexp ".*frama-c.*") command.toplevel 0
+    in basic_command ^
+	 (if is_framac_toplevel then " " ^ 
+	    (Str.global_replace ptest_file_rexp ptest_file !additional_options)
+	  else "")
+  in
+  let basic_command = 
+    let ptest_name =
+      let ptest_name = Filename.basename command.file
+      in
+	try 
+	  Filename.chop_extension ptest_name 
+	with _ -> ptest_name
+    in Str.global_replace (Str.regexp "@PTEST_NAME@") ptest_name basic_command
+  in 
+    Str.global_replace (Str.regexp "@PTEST_NUMBER@") (string_of_int command.n) basic_command
 
 let command_string command =
   let log_prefix = log_prefix command in
@@ -734,7 +763,7 @@ module Make_Report(M:sig type t end)=struct
   let remove k = H.remove tbl k
 
 end
-module Report_run=Make_Report(struct type t=int
+module Report_run=Make_Report(struct type t=int*float
 (* At some point will contain the running time*)
 end)
 
@@ -743,10 +772,10 @@ module Report_cmp=Make_Report(struct type t=int*int end)
 let report_cmp = Report_cmp.record
 let pretty_report fmt =
   Report_run.iter
-    (fun test _run_result ->
+    (fun test (_run_result,time_result) ->
       Format.fprintf fmt
-        "<testcase classname=%S name=%S>%s</testcase>@."
-        (Filename.basename test.directory) test.file
+        "<testcase classname=%S name=%S time=\"%f\">%s</testcase>@."
+        (Filename.basename test.directory) test.file time_result
         (let res,err = Report_cmp.find test in
          Report_cmp.remove test;
          (if res=0 && err=0 then "" else
@@ -756,7 +785,7 @@ let pretty_report fmt =
                 else if err=1 then "Stderr oracle difference"
                 else if err=2 then "Stderr System Error (missing oracle?)"
                 else "Unexpected errror"))));
-  (* Test that were compared bu not runned *)
+  (* Test that were compared but not runned *)
   Report_cmp.iter
     (fun test (res,err) ->
       Format.fprintf fmt
@@ -775,11 +804,12 @@ let xunit_report () =
     let fmt = Format.formatter_of_out_channel out in
     Format.fprintf fmt
       "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\
-      <testsuite errors=\"0\" failures=\"%d\" name=\"%s\" tests=\"%d\" time=\"0.0\" timestamp=\"%f\">%t@\n\
-       </testsuite>@."
+      @\n<testsuite errors=\"0\" failures=\"%d\" name=\"%s\" tests=\"%d\" time=\"%f\" timestamp=\"%f\">\
+      @\n%t</testsuite>@."
       (shared.summary_log-shared.summary_ok)
       "Frama-C"
       shared.summary_log
+      ((Unix.times()).Unix.tms_cutime -. shared.summary_time)
       (Unix.gettimeofday ())
       pretty_report;
     close_out out;
@@ -788,7 +818,7 @@ let xunit_report () =
 
 let do_command command =
   match command with
-    Toplevel command ->
+  | Toplevel command ->
       (* Update : copy the logs. Do not enqueue any cmp
          Run | Show: launch the command, then enqueue the cmp
          Examine : just enqueue the cmp *)
@@ -798,10 +828,13 @@ let do_command command =
           (* Run, Show or Examine *)
           if !behavior <> Examine
           then begin
-              let command_string = command_string command in
-              if !verbosity >= 1
-              then lock_printf "%% launch %s@." command_string ;
-              report_run command (launch command_string)
+            let command_string = command_string command in
+            if !verbosity >= 1
+            then lock_printf "%% launch %s@." command_string ;
+            let launch_result = launch command_string in
+            let time = 0. (* Individual time is difficult to compute correctly
+                             for now, and currently unused *) in
+            report_run command (launch_result, time)
           end;
           lock ();
           shared.summary_run <- succ shared.summary_run ;
@@ -1235,8 +1268,9 @@ let () =
   Thread.join diff_id;
   if !behavior = Run
   then
-    lock_printf "%% Diffs finished. Summary:@\nRun = %d@\nOk  = %d of %d@."
-      shared.summary_run shared.summary_ok shared.summary_log;
+    lock_printf "%% Diffs finished. Summary:@\nRun = %d@\nOk   = %d of %d@\nTime = %f s.@."
+      shared.summary_run shared.summary_ok shared.summary_log
+      ((Unix.times()).Unix.tms_cutime -. shared.summary_time);
   xunit_report ();
   let error_code = 
     if !do_error_code && shared.summary_log <> shared.summary_ok

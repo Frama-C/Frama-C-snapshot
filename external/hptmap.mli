@@ -14,6 +14,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+
+exception Found_inter
+
 module type Tagged_type = sig
   include Datatype.S
   val tag : t -> int
@@ -59,7 +62,7 @@ sig
 	    | Leaf of key * V.t * bool
 	    | Branch of int * int * tt * tt * Tag_comp.t
 
-  include Datatype.S with type t = tt
+  include Datatype.S_with_collections with type t = tt
 
   val self : State.t 
 
@@ -71,18 +74,38 @@ this function will be renamed "hash" in the future *)
   val hash_debug : t -> int
 
   val is_empty : t -> bool
-  val comp : t -> bool
+  (** [is_empty m] returns [true] if and only if the map [m] defines no
+      bindings at all. *)
 
   val add : key -> V.t -> t -> t
+  (** [add k d m] returns a map whose bindings are all bindings in [m], plus
+      a binding of the key [k] to the datum [d]. If a binding already exists
+      for [k], it is overridden. *)
+
   val find : key -> t -> V.t
   val remove : key -> t -> t
+  (** [remove k m] returns the map [m] deprived from any binding involving
+      [k]. *)
+
   val mem :  key -> t -> bool
   val iter : (Key.t -> V.t -> unit) -> t -> unit
 
   val map : (V.t -> V.t) -> t -> t
-  (*val mapi : (int -> 'a -> 'b) -> t -> 'b t*)
+  (** [map f m] returns the map obtained by composing the map [m] with the
+      function [f]; that is, the map $k\mapsto f(m(k))$. *)
 
   val fold : (Key.t -> V.t -> 'b -> 'b) -> t -> 'b -> 'b
+  (** [fold f m seed] invokes [f k d accu], in turn, for each binding from
+      key [k] to datum [d] in the map [m]. Keys are presented to [f] in
+      increasing order according to the map's ordering. The initial value of
+      [accu] is [seed]; then, at each new call, its value is the value
+      returned by the previous invocation of [f]. The value returned by
+      [fold] is the final value of [accu]. *)
+
+  val fold_rev : (Key.t -> V.t -> 'b -> 'b) -> t -> 'b -> 'b
+  (** [fold_rev] performs exactly the same job as [fold], but presents keys
+      to [f] in the opposite order. *)
+
 
   val comp_prefixes : t -> t -> unit
   val pretty_prefix : prefix -> Format.formatter -> t -> unit
@@ -106,8 +129,11 @@ this function will be renamed "hash" in the future *)
     decide_both:(V.t -> V.t -> unit) -> t -> t -> unit
 
   val generic_symetric_existential_predicate : exn -> 
+    (t -> t -> bool) ->
     decide_one:(Key.t -> V.t  -> unit) ->
     decide_both:(V.t -> V.t -> unit) -> t -> t -> unit
+
+  val do_it_intersect : t -> t -> bool
 
   val cached_fold :
     cache:string * int ->
@@ -119,7 +145,16 @@ this function will be renamed "hash" in the future *)
     cache:string * int ->     temporary:bool ->
     f:(key -> V.t -> V.t) -> t -> t
 
+  val singleton: key -> V.t -> t
+  (** [singleton k d] returns a map whose only binding is from [k] to [d]. *)
+
   val is_singleton: t -> (key * V.t) option
+  (** [is_singleton m] returns [Some (k, d)] if [m] is a singleton map
+      that maps [k] to [d]. Otherwise, it returns [None]. *)
+
+  val cardinal: t -> int
+  (** [cardinal m] returns [m]'s cardinal, that is, the number of keys it
+      binds, or, in other words, its domain's cardinal. *)
 
   val min_binding: t -> key * V.t
   val max_binding: t -> key * V.t

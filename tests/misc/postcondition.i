@@ -27,6 +27,7 @@ int get_index(int /* in */ cmd)
 int bound(int cmd)
 {
   cmd = 2;  /* vicious */
+  return 0;
 }
 
 //@ ensures G == 6;
@@ -64,6 +65,7 @@ void t3 () {
 //@ ensures x<=y;
 void t4(int x, int y) {
   x++; y--;
+  return 0;
 }
 
 /*@ ensures x == \old(x);

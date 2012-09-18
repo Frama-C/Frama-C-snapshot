@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -39,7 +39,6 @@ module Logic_builtin =
        let name = "built-in logic functions table"
        let dependencies = []
        let size = 17
-       let kind = `Internal
      end)
 
 module Logic_info =
@@ -50,7 +49,6 @@ module Logic_info =
        let name = "logic functions table"
        let dependencies = [ Logic_builtin.self ]
        let size = 17
-       let kind = `Internal
      end)
 
 module Logic_builtin_used = struct
@@ -59,7 +57,6 @@ module Logic_builtin_used = struct
     (struct
       let name = "used built-in logic functions"
       let dependencies = [ Logic_builtin.self; Logic_info.self ]
-      let kind = `Internal
       let default () = Cil_datatype.Logic_info.Set.empty
      end)
   let add li = set (Cil_datatype.Logic_info.Set.add li (get()))
@@ -75,7 +72,6 @@ module Logic_type_builtin =
        let name = "built-in logic types table"
        let dependencies = []
        let size = 17
-       let kind = `Internal
      end)
 
 
@@ -89,7 +85,6 @@ module Logic_type_info =
        let name = "logic types table"
        let dependencies = [ Logic_type_builtin.self ]
        let size = 17
-       let kind = `Internal
      end)
 
 module Logic_ctor_builtin =
@@ -100,7 +95,6 @@ module Logic_ctor_builtin =
        let name = "built-in logic contructors table"
        let dependencies = []
        let size = 17
-       let kind = `Internal
      end)
 
 module Logic_ctor_info =
@@ -111,14 +105,38 @@ module Logic_ctor_info =
        let name = "logic contructors table"
        let dependencies = [ Logic_ctor_builtin.self ]
        let size = 17
-       let kind = `Internal
+     end)
+
+module Lemmas =
+  State_builder.Hashtbl
+    (Datatype.String.Hashtbl)
+    (Cil_datatype.Global_annotation)
+    (struct
+        let name = "lemmas"
+        let dependencies = []
+        let size = 17
+     end)
+
+module Model_info =
+  State_builder.Hashtbl
+    (Datatype.String.Hashtbl)
+    (Cil_datatype.Model_info)
+    (struct
+      let name = "model fields table"
+      let dependencies = []
+      let size = 17
      end)
 
 (* We depend from ast, but it is initialized after Logic_typing... *)
 let init_dependencies from =
-  State_dependency_graph.Dynamic.add_dependencies
+  State_dependency_graph.Static.add_dependencies
     ~from
-    [ Logic_info.self; Logic_type_info.self; Logic_ctor_info.self ]
+    [ Logic_info.self; 
+      Logic_type_info.self;
+      Logic_ctor_info.self;
+      Lemmas.self;
+      Model_info.self;
+    ]
 
 let builtin_to_logic b =
   let params =
@@ -197,13 +215,42 @@ let add_logic_ctor c infos =
   else Logic_ctor_info.add c infos
 let remove_logic_ctor = Logic_ctor_info.remove
 
+let is_model_field = Model_info.mem
+
+let find_all_model_fields s = Model_info.find_all s
+
+let find_model_field s typ =
+  let l = Model_info.find_all s in
+  let rec find_cons typ =
+    try
+      List.find (fun x -> Cil_datatype.Typ.equal x.mi_base_type typ) l
+    with Not_found as e ->
+      (* Don't use Cil.unrollType here:
+         unrollType will unroll until it finds something other
+         than TNamed. We want to go step by step.
+      *)
+      (match typ with
+        | TNamed(ti,_) -> find_cons ti.ttype
+        | _ -> raise e)
+  in find_cons typ
+
+let add_model_field m = 
+  try
+    ignore (find_model_field m.mi_name m.mi_base_type);
+    error (CurrentLoc.get())
+      "Cannot add model field %s to type %a: it already exists."
+      m.mi_name Cil_datatype.Typ.pretty m.mi_base_type
+  with Not_found -> Model_info.add m.mi_name m
+
+let remove_model_field = Model_info.remove
+
 let is_builtin_logic_ctor = Logic_ctor_builtin.mem
 
 let builtin_states =
   [ Logic_builtin.self; Logic_type_builtin.self; Logic_ctor_builtin.self ]
 
 module Builtins= struct
-  include Hook.Make(struct type t = unit end)
+  include Hook.Make(struct end)
     (* ensures we do not apply the hooks twice *)
   module Applied =
     State_builder.False_ref
@@ -211,7 +258,6 @@ module Builtins= struct
         let name = "Application of logic built-ins hook"
         let dependencies = builtin_states
          (* if the built-in states are not kept, hooks must be replayed. *)
-        let kind = `Internal
        end)
 
   let apply () =
@@ -221,12 +267,12 @@ module Builtins= struct
     else begin Applied.set true; apply () end
 end
 
-let called = ref false
-
 let prepare_tables () =
   Logic_ctor_info.clear ();
   Logic_type_info.clear ();
   Logic_info.clear ();
+  Lemmas.clear ();
+  Model_info.clear ();
   Logic_type_builtin.iter Logic_type_info.add;
   Logic_ctor_builtin.iter Logic_ctor_info.add;
   Logic_builtin_used.iter (fun x -> Logic_info.add x.l_var_info.lv_name x)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,50 +26,36 @@ type history_elt =
   | Global of global
   | Localizable of Pretty_source.localizable
 
-(* Two history elements belong to the same function *)
-let history_elt_in_same_fun e1 e2 =
-  let f = function
-    | Global (GVarDecl (_, vi, _) | GFun ({svar = vi}, _)) ->
-        (try Some (Globals.Functions.get vi)
-         with Not_found -> None)
-    | Localizable l ->
-        Pretty_source.kf_of_localizable l
-    | _ -> None
-  in
-  match f e1 with
-    | None -> false
-    | Some f1 -> match f e2 with
-        | None -> false
-        | Some f2 -> Kernel_function.equal f1 f2
-
-let key_collapse_nearby = "history.collapse_nearby"
-
-let collapse_nearby_clicks () =
-  Gtk_helper.Configuration.find_bool ~default:true key_collapse_nearby
-
-let set_collapse_nearby v =
-  Gtk_helper.Configuration.set
-    key_collapse_nearby (Gtk_helper.Configuration.ConfBool v)
-
-module HistoryElt =
-  Datatype.Make
+module HistoryElt = struct
+  include Datatype.Make
     (struct
        include Datatype.Undefined
        type t = history_elt
        let name = "History.history_elt"
        let reprs = List.map (fun g -> Global g) Cil_datatype.Global.reprs
        let mem_project = Datatype.never_any_project
-       let equal e1 e2 =
-         let b = match e1, e2 with
-           | Global g1, Global g2 -> Cil_datatype.Global.equal g1 g2
-           | Localizable l1, Localizable l2 ->
-               Pretty_source.Localizable.equal l1 l2
-           | (Global _ | Localizable _), __ -> false
-         in
-         b || if collapse_nearby_clicks ()
-              then history_elt_in_same_fun e1 e2
-              else false
+       let equal e1 e2 = match e1, e2 with
+         | Global g1, Global g2 -> Cil_datatype.Global.equal g1 g2
+         | Localizable l1, Localizable l2 ->
+             Pretty_source.Localizable.equal l1 l2
+         | (Global _ | Localizable _), __ -> false
      end)
+  (* Identify two elements that belong to the same function *)
+  let in_same_fun e1 e2 =
+    let f = function
+      | Global (GVarDecl (_, vi, _) | GFun ({svar = vi}, _)) ->
+          (try Some (Globals.Functions.get vi)
+           with Not_found -> None)
+      | Localizable l ->
+          Pretty_source.kf_of_localizable l
+      | _ -> None
+    in
+    match f e1 with
+      | None -> false
+      | Some f1 -> match f e2 with
+          | None -> false
+          | Some f2 -> Kernel_function.equal f1 f2
+end
 
 type history = {
   back: history_elt list;
@@ -104,7 +90,6 @@ module CurrentHistory =
     (struct
        let name = "History.CurrentHistory"
        let dependencies = [Ast.self]
-       let kind = `Irrelevant
        let default _ = default_history
      end)
 
@@ -163,7 +148,10 @@ let push cur =
     | Some prev ->
         if HistoryElt.equal cur prev
         then h
-        else { back = prev :: h.back; current = Some cur; forward = [] }
+        else if HistoryElt.in_same_fun cur prev then
+          { h with current = Some cur }
+        else
+          { back = prev :: h.back; current = Some cur; forward = [] }
   in
   CurrentHistory.set h'
 
@@ -184,13 +172,6 @@ let create_buttons (menu_manager : Menu_manager.menu_manager) =
          ~sensitive:can_go_forward ~icon:`GO_FORWARD
          ~label:"Forward" ~tooltip:"Go to next visited source location"
          (Menu_manager.Unit_callback (fun () -> forward (); refresh ()));
-       Menu_manager.menubar
-         "Collapse nearby clicks"
-         (Menu_manager.Bool_callback
-            ((fun v -> set_collapse_nearby v; refresh ()),
-             collapse_nearby_clicks))
-         (* TODO: the callback should set the tooltips of the buttons, but I
-            cannot find a lablgtk way to do this *);
      ]
 
 

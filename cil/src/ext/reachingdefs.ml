@@ -62,7 +62,11 @@ open Cil
 module DF = Dataflow
 module UD = Usedef
 module L = Liveness
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
+  (* This module always uses "int = varinfo.vid", but generate some new ids
+     at some point. Thus, it cannot be easily be replaced by
+     Cil_datatype.Varinfo.Hashtbl... *)
+
 module S = (*Stats*) struct
   let time _ f c = f c
 end
@@ -90,7 +94,7 @@ module IOS =
 let debug = ref false
 
 (* return the intersection of
-   Inthashes ih1 and ih2 *)
+   Datatype.Int.Hashtbles ih1 and ih2 *)
 let ih_inter ih1 ih2 =
   let ih' = IH.copy ih1 in
   IH.iter (fun id _vi ->
@@ -304,15 +308,15 @@ module ReachingDef =
     (* entries for starting statements must
        be added before calling compute *)
 
-    let copy (_, i, iosh) = ((), i, Inthash.copy iosh)
+    let copy (_, i, iosh) = ((), i, Datatype.Int.Hashtbl.copy iosh)
 
     (* a mapping from definition ids to
        the statement corresponding to that id *)
-    let defIdStmtHash = Inthash.create 32
+    let defIdStmtHash = Datatype.Int.Hashtbl.create 32
 
     (* mapping from statement ids to statements
        for better performance of ok_to_replace *)
-    let sidStmtHash = Inthash.create 64
+    let sidStmtHash = Datatype.Int.Hashtbl.create 64
 
     (* pretty printer *)
     let pretty _fmt _ = () (* prettyprint defIdStmtHash stmtStartData*)
@@ -343,12 +347,12 @@ module ReachingDef =
 	then ()
 	else
 	  (Kernel.debug "RD: defId %d -> stm %d\n" (startDefId + n) stm.sid ;
-	   Inthash.add defIdStmtHash (startDefId + n) stm;
+	   Datatype.Int.Hashtbl.add defIdStmtHash (startDefId + n) stm;
 	   loop (n-1))
       in
       loop (numds - 1);
       nextDefId := startDefId + numds;
-      ((), startDefId, Inthash.copy iosh)
+      ((), startDefId, Datatype.Int.Hashtbl.copy iosh)
 
 
     let combinePredecessors (_stm:stmt) ~(old:t) ((_, _s, iosh):t) =
@@ -371,8 +375,8 @@ module ReachingDef =
 
     (* all the work gets done at the instruction level *)
     let doStmt stm (_, _s, iosh) =
-      if not(Inthash.mem sidStmtHash stm.sid) then
-	Inthash.add sidStmtHash stm.sid stm;
+      if not(Datatype.Int.Hashtbl.mem sidStmtHash stm.sid) then
+	Datatype.Int.Hashtbl.add sidStmtHash stm.sid stm;
       if !debug then Kernel.debug "RD: looking at %a\n" d_stmt stm;
       match L.getLiveSet stm with
       | None -> DF.SDefault
@@ -532,7 +536,7 @@ let getSimpRhs defId =
 (* instr -> int -> bool *)
 let isDefInstr i defId =
   match getSimpRhs defId with
-    Some(RDCall i') -> Cilutil.equals i i'
+    Some(RDCall i') -> Cil_datatype.Instr.equal i i'
   | _ -> false
 
 (*

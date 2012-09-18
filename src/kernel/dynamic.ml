@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,6 +154,7 @@ end = struct
     Datatype.String.Hashtbl.replace t name details
 
   let print () =
+    let once = true in
     Datatype.String.Hashtbl.iter
       (fun msg tbl ->
          let len = Datatype.String.Hashtbl.length tbl in
@@ -165,7 +166,7 @@ end = struct
                   if verbose_atleast 2 then
                     Format.fprintf fmt " The exact failure is: %s." details
                 in
-                warning ~append "cannot load plug-in `%s' (%s)." name msg)
+                warning ~once ~append "cannot load plug-in `%s' (%s)." name msg)
              tbl
          else
            let append fmt =
@@ -185,7 +186,7 @@ end = struct
              in
              List.iter print (List.sort Extlib.compare_basic l)
            in
-           warning ~append "cannot load %d plug-ins (%s).@\n" len msg)
+           warning ~once ~append "cannot load %d plug-ins (%s).@\n" len msg)
       tbl;
     Datatype.String.Hashtbl.clear tbl
 
@@ -236,6 +237,8 @@ let is_plugin_present = Modules.mem
 (** {2 Loading of dynamic modules} *)
 (* ************************************************************************* *)
 
+exception Unloadable of string
+
 (* Distinction between native and bytecode versions *)
 let object_file_extension =
   if Dynlink_common_interface.is_native then ".cmxs" else ".cm[oa]"
@@ -276,6 +279,8 @@ let dynlink_file path module_name =
     | Dynlink_common_interface.Unsafe_file -> assert false)
   | Sys_error _ as e ->
     error "system error" (Printexc.to_string e)
+  | Unloadable s ->
+    error "incompatible with current set-up" s
   | Log.AbortError _ | Log.AbortFatal _ | Log.FeatureRequest _ as e ->
     raise e
   | e ->
@@ -299,7 +304,8 @@ let load_module_from_unknown_path name =
 	  dynlink_file p name
 	end) 
       paths;
-    if not !tried then 
+    if not !tried then begin
+      Modules.unregister name;
       Loading_error_messages.add 
 	name
 	"plug-in not found" 
@@ -311,38 +317,41 @@ let load_module_from_unknown_path name =
 	  Pretty_utils.sfprintf "plug-in not found in directories %a"
 	    (Pretty_utils.pp_list Format.pp_print_string)
 	    paths);
+    end;
     Loading_error_messages.print ()
 
 let extract_filename f =
   try Filename.chop_extension f with Invalid_argument _ -> f
 
-let load_module =
+let load_module f =
   let load f =
-    let name = Filename.basename (extract_filename f) in
+    let name = String.capitalize (Filename.basename (extract_filename f)) in
     let dir = Filename.dirname f in
     if dir = Filename.current_dir_name && Filename.is_implicit f then
-      load_module_from_unknown_path f
+      load_module_from_unknown_path (String.capitalize f)
     else
       if Modules.register_once name then dynlink_file dir name;
     Loading_error_messages.print ()
   in
-  dynlink_available load
+  dynlink_available load f
 
 let load_script =
   let load f =
     let name = extract_filename f in
     let dir = Filename.dirname f in
     let ml_name = name ^ ".ml" in
-    let gen_name =
-      if Dynlink_common_interface.is_native then name ^ ".cmxs"
-      else name ^ ".cmo"
+    let mk_name ext = 
+      dir ^ "/" ^ String.capitalize (Filename.basename name) ^ ext 
+    in
+    let gen_name = 
+      mk_name (if Dynlink_common_interface.is_native then ".cmxs" else ".cmo")
     in
     let cmd =
       Format.sprintf "%s -w Ly -warn-error A -I %s%s%t -I %s %s"
         (if Dynlink_common_interface.is_native then
            Config.ocamlopt ^ " -shared -o " ^ gen_name
          else
-           Config.ocamlc ^ " -c")
+            Config.ocamlc ^ " -c -o " ^ gen_name)
         Config.libdir
         (if !Config.is_gui then " -I +lablgtk2"
          else "")
@@ -360,10 +369,10 @@ let load_script =
       let cleanup () =
         feedback ~level:2 "Removing files generated when compiling %S" ml_name;
         Extlib.safe_remove gen_name (* .cmo or .cmxs *);
-        Extlib.safe_remove (name ^ ".cmi");
+        Extlib.safe_remove (mk_name ".cmi");
         if Dynlink_common_interface.is_native then begin
-          Extlib.safe_remove (name ^ ".o");
-          Extlib.safe_remove (name ^ ".cmx")
+          Extlib.safe_remove (mk_name ".o");
+          Extlib.safe_remove (mk_name ".cmx")
         end
       in
       at_exit cleanup
@@ -397,8 +406,9 @@ let load_all_modules =
 
 module Tbl = Type.String_tbl(struct type 'a t = 'a end)
 let dynamic_values = Tbl.create 97
+let comments_fordoc = Hashtbl.create 97
 
-let register ~plugin name ty ~journalize f =
+let register ?(comment="") ~plugin name ty ~journalize f =
   if Cmdline.use_type then begin
     debug ~level:5 "registering dynamic function %s" name;
     let f =
@@ -412,7 +422,7 @@ let register ~plugin name ty ~journalize f =
         let jname =
           Format.fprintf
             Format.str_formatter
-            "@[<hov 2>Dynamic.get@;~plugin:%S@;%S@;%t@]"
+            "@[<hv 2>Dynamic.get@;~plugin:%S@;%S@;%t@]"
             plugin name
             (Type.pp_ml_name ty Type.Call);
           Format.flush_str_formatter ()
@@ -421,7 +431,9 @@ let register ~plugin name ty ~journalize f =
       else
         f
     in
-    Tbl.add dynamic_values (plugin ^ "." ^ name) ty f;
+    let key = plugin ^ "." ^ name in
+    Tbl.add dynamic_values key ty f;
+    if comment <> "" then Hashtbl.add comments_fordoc key comment ;
     f
   end else
     f
@@ -435,6 +447,9 @@ let get ~plugin name ty =
     Tbl.find dynamic_values (plugin ^ "." ^ name) ty
   end else
     abort "cannot access value %s in the 'no obj' mode" name
+
+let iter f = Tbl.iter f dynamic_values
+let iter_comment f = Hashtbl.iter f comments_fordoc 
 
 (* ************************************************************************* *)
 (** {2 Specialised interface for parameters} *)
@@ -457,6 +472,10 @@ module Parameter = struct
 
   let get_parameter option_name = 
     get ~plugin:"" option_name Parameter.ty
+
+  let get_state option_name =
+    let prm = get ~plugin:"" option_name Parameter.ty in
+    State.get prm.Parameter.name
 
   let apply modname name s ty1 ty2 =
     get ~plugin:""  (get_name modname s name) (Datatype.func ty1 ty2)

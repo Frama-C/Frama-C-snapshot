@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,9 +25,11 @@
 
 let run_plugins () =
   if Kernel.TypeCheck.get () then
-    Ast.compute ();
-  (* Printing files before anything else (in debug mode only) *)
-  if Kernel.debug_atleast 1 then File.pretty_ast ();
+    if Kernel.Files.get () <> [] || Kernel.TypeCheck.is_set () then begin
+      Ast.compute ();
+      (* Printing files before anything else (in debug mode only) *)
+      if Kernel.debug_atleast 1 then File.pretty_ast ()
+    end;
   (* Syntactic constant folding before analysing files if required *)
   if Kernel.Constfold.get () then
     Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) (Ast.get ());
@@ -55,8 +57,7 @@ let () = Db.Main.play := run_plugins
    (projectified CIL parameters must be initialised with {!Cil.initCIL}). *)
 let boot_cil () =
   Cil.miscState.Cil.lineDirectiveStyle <- None;
-  Cil.miscState.Cil.printCilAsIs <- Kernel.debug_atleast 1;
-  Mergecil.ignore_merge_conflicts := true;;
+  Cil.miscState.Cil.printCilAsIs <- Kernel.debug_atleast 1;;
 
 (* Main: let's go! *)
 let () =
@@ -70,7 +71,7 @@ let () =
             on_from_name (fun () -> !Db.Toplevel.run) run_plugins)
     ~at_normal_exit:Cmdline.run_normal_exit_hook
     ~quit:true
-    ~on_error:Cmdline.run_error_exit_hook
+    ~on_error:Cmdline.run_error_exit_hook;
 
 (*
 Local Variables:

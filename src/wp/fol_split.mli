@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ val p_unfold : Fol.term Env.t -> Fol.pred -> Fol.pred
 
 type pred = Fol.pred
 val simplify : pred -> pred
-val split : Mcfg.assigns_method -> pred -> pred Bag.t
+val split : bool -> pred -> pred Bag.t
   (** First, unfold zones when method is effect-assigns.
       Then applies [dispatch].
       Note: [split] may deliver stronger sub-predicates *)

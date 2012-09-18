@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,18 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-open Cfgpropid
+open LogicUsage
 
 let dkey = "cfgproof" (* debugging key *)
-
-class type computer =
-object
-
-  method add : WpStrategy.strategy list -> unit
-  method compute : Wpo.t list
-
-end
 
 module type Description =
 sig
@@ -58,100 +49,85 @@ struct
     (struct
        let dependencies = [Ast.self]
        let name = "WP-" ^ Descr.updater
-       let kind = `Correctness
        let default () = ()
      end)
 
   module F = WpModel.F
   module L = WpModel.L
-  module CV =
+  module VC =
     CfgWeakestPrecondition.Create
       (struct
          include WpModel
          let model = Descr.updater
        end)
-  module PO = Cfgpropid.Create(CV)
+  module PO = Cfgpropid.Create(VC)
   module WP = Calculus.Cfg(PO)
+
+  let emitter =
+    Emitter.create
+      Me.name 
+      [ Emitter.Property_status ]
+      ~correctness:[] 
+      ~tuning:[ Wp_parameters.Provers.parameter ]
 
   (* ------------------------------------------------------------------------ *)
   (* --- Proof Obligations : Export to WHY                                --- *)
   (* ------------------------------------------------------------------------ *)
 
   type exportation = {
-    env : string ;
+    envkey : string ;
     mutable goals : Wpo.t list ;
   }
-
-  let assigns_method = PO.assigns_method
 
   (* ------------------------------------------------------------------------ *)
   (* --- Goal Registering                                                 --- *)
   (* ------------------------------------------------------------------------ *)
 
+  open Wpo
+ 
   let active_lgg () =
-    match Wpo.language_of_prover_name (Wp_parameters.Prover.get ()) with
-      | None ->
-          (match Wpo.language_of_name (Wp_parameters.Check.get ()) with
-             | None -> None
-             | Some l -> Some l
-          )
-      | Some l -> Some l
+    if !Config.is_gui || Wp_parameters.debug_atleast 2 then
+      [ VCS.L_why ; VCS.L_coq ; VCS.L_altergo ]
+    else
+      let lgs = ref [] in
+      let add f x =
+	match f x with None -> () | Some lg -> 
+	  if not (List.mem lg !lgs) then lgs := lg :: !lgs in
+      begin
+	List.iter (add VCS.language_of_prover_name) (Wp_parameters.get_provers()) ;
+	add VCS.language_of_name (Wp_parameters.Check.get ()) ; !lgs
+      end
 
-  let export_wpo export kf bhv wrn dep propid gpred =
-    let gname = WpPropId.prop_id_name propid in
-    let gid = Wpo.gid ~context:Descr.context ~kf ~bhv ~propid in
+  let export_wpo export index wrn dep propid gpred =
+    let gname = WpPropId.get_propid propid in
+    let context = Wpo.kf_context index in
+    let gid = Wpo.gid ~model:Descr.context ~propid in
     (* --- HEADER --- *)
     Wp_parameters.debug ~dkey "Export PO %s " gname;
-    let fhead = Wpo.file_for_head ~gid in
-     Wp_parameters.debug ~dkey "DO HEADER in %s" fhead ;
-    Command.pp_to_file fhead
+    Command.pp_to_file (VC_Legacy.file_for_head ~gid)
       (fun fmt ->
          Format.fprintf fmt "@[<v 0>Proof Obligation %s:@]@\n" gname ;
-         Format.fprintf fmt "Environment: %s@\n" export.env ;
-         List.iter (fun d -> Format.fprintf fmt "%a@\n" (Wpo.pp_dependency kf) d) dep ;
-         List.iter (fun w -> Format.fprintf fmt "%a@\n" Wpo.pp_warning w) wrn ;
+         Format.fprintf fmt "Environment: %s@\n" export.envkey ;
+         Wpo.pp_dependencies context fmt dep ;
+	 Wpo.pp_warnings fmt wrn ;
       ) ;
-    Wp_parameters.debug ~dkey "DONE HEADER in %s" fhead;
     (* --- BODY --- *)
-    let fbody = Wpo.file_for_body ~gid in
-     Wp_parameters.debug ~dkey "DO BODY in %s" fbody ;
-    Command.pp_to_file fbody
+    Command.pp_to_file (VC_Legacy.file_for_body ~gid)
       (fun fmt ->
 	 Format.fprintf fmt "@[<v 2>Goal %s:@ %a@]" gid F.pp_pred gpred ;
       ) ;
-    Wp_parameters.debug ~dkey "DONE BODY in %s" fbody ;
     (* --- WHY Others --- *)
     let export_lgg l =
-      Wp_parameters.debug ~dkey "DO export goal in language %a"
-        Wpo.pp_language l;
-    Command.pp_to_file (Wpo.file_for_goal ~gid l )
-      (fun fmt ->
-         match l with
-           | Wpo.L_why -> Why.export_goal fmt gid gpred
-           | Wpo.L_coq -> Coq.export_goal fmt gid gpred
-           | Wpo.L_altergo -> Ergo.export_goal fmt gid gpred
-      ) ;
-    Wp_parameters.debug ~dkey "DONE export goal in language %a"
-      Wpo.pp_language l;
+      Command.pp_to_file (VC_Legacy.file_for_goal ~gid l)
+	(fun fmt ->
+           match l with
+             | VCS.L_why -> Why.export_goal fmt gid gpred
+             | VCS.L_coq -> Coq.export_goal fmt gid gpred
+             | VCS.L_altergo -> Ergo.export_goal fmt gid gpred
+	) ;
     in
-
-    let export_all () =
-      export_lgg Wpo.L_why ;
-      export_lgg Wpo.L_coq ;
-      export_lgg Wpo.L_altergo;
-    in
-    (
-      if !Config.is_gui || (Wp_parameters.debug_atleast 2) then
-        (Wp_parameters.debug ~dkey
-          "Into gui config, goal has to be produce in all languages";
-        export_all () )
-      else
-        (match active_lgg () with
-          | None -> ()
-          | Some l ->export_lgg l
-        )
-    );
-
+    List.iter export_lgg (active_lgg ()) ;
+    
     (* --- Warnings --- *)
     if wrn <> [] then
       begin
@@ -160,7 +136,7 @@ struct
           then Format.pp_print_string fmt "1 warning"
           else Format.fprintf fmt "%d warnings" n
         in
-        let degenerated = List.exists (fun w -> w.Wpo.wrn_severe) wrn in
+        let degenerated = List.exists (fun w -> w.Warning.wrn_severe) wrn in
         if not (Wp_parameters.Details.get ()) then
           Wp_parameters.warning ~current:false ~once:true
             "Use -wp-warnings for details about 'Stronger' and 'Degenerated' goals" ;
@@ -172,158 +148,143 @@ struct
           List.iter
             (fun w ->
                Log.print_on_output 
-		 (fun fmt -> Wpo.pp_warning fmt w ; Format.pp_print_newline fmt ())
+		 (fun fmt -> Warning.pretty fmt w ; Format.pp_print_newline fmt ())
             ) wrn ;
       end ;
-
-    let emitter =
-      Emitter.create Me.name 
-        ~correctness:[] ~tuning:[ Wp_parameters.Prover.parameter ]
-    in
-	
+    
     (* --- WPO --- *)
     let wpo = {
-      Wpo.po_fun    = kf ;
-      Wpo.po_bhv    = bhv ;
-      Wpo.po_name   = gname ;
-      Wpo.po_gid    = gid ;
-      Wpo.po_model  = Descr.shared ;
-      Wpo.po_env    = export.env ;
-      Wpo.po_pid    = propid ;
-      Wpo.po_dep    = dep ;
-      Wpo.po_warn   = wrn ;
-      Wpo.po_updater = emitter;
-    } 
-    in
+      po_idx    = index ;
+      po_name   = gname ;
+      po_gid    = gid ;
+      po_pid    = propid ;
+      po_updater = emitter ;
+      po_formula = Legacy {
+	VC_Legacy.mid = Descr.shared ;
+	VC_Legacy.env = export.envkey ;
+	VC_Legacy.wrn = wrn ;
+	VC_Legacy.dep = dep ;
+      } ;
+    } in
     Wpo.add wpo ;
-    if F.is_true gpred then
-      Wpo.set_result wpo Wpo.WP Wpo.Valid ;
+    if F.is_true gpred then Wpo.set_result wpo VCS.WP VCS.valid ;
     export.goals <- wpo :: export.goals
 
   (* ------------------------------------------------------------------------ *)
   (* --- Goal Splitting                                                   --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let build_wpos export kf bhv wrn dep propid gpred =
+  let build_wpos export index wrn dep propid gpred =
     let gpred = Splitter.simplify gpred in
-    if Wp_parameters.Split.get () || Wp_parameters.Invariants.get () ||
-      (WpPropId.is_assigns propid && PO.assigns_method() = Mcfg.EffectAssigns)
+    if Wp_parameters.Split.get () 
+      || Wp_parameters.Invariants.get () 
+      || WpPropId.is_assigns propid
     then
-      let goals = Splitter.split (PO.assigns_method ()) gpred in
+      let goals = Splitter.split (WpPropId.is_assigns propid) gpred in
       if Bag.is_empty goals then
-        export_wpo export kf bhv wrn dep propid F.p_true
+        export_wpo export index wrn dep propid F.p_true
       else
-        WpAnnot.split (export_wpo export kf bhv wrn dep) propid goals
+        WpAnnot.split (export_wpo export index wrn dep) propid goals
     else
-      export_wpo export kf bhv wrn dep propid gpred
+      export_wpo export index wrn dep propid gpred
 
-  let add_goal export kf bhv po =
-    let gpred = CV.zip po.PO.g_prop in
+  let add_goal export index po =
+    let gpred = VC.zip po.PO.g_prop in
     let wrn = ref [] in
     let dep = ref [] in
     PO.iter_description
       (fun w -> wrn := w :: !wrn)
       (fun d -> dep := d :: !dep)
       po.PO.g_descr ;
-    build_wpos export kf bhv (List.rev !wrn) (List.rev !dep) po.PO.g_id gpred
+    build_wpos export index (List.rev !wrn) (List.rev !dep) po.PO.g_id gpred
 
   (* ------------------------------------------------------------------------ *)
-  (* --- Proof Obilgation Generation                                      --- *)
+  (* --- Proof Obligation Generation                                      --- *)
   (* ------------------------------------------------------------------------ *)
 
   class computer =
   object
 
     val mutable wptasks = []
-    val mutable exported = None
 
-    method add strategies =
-      wptasks <- strategies :: wptasks
+    method lemma = false
+
+    method add_strategy strategy =
+      wptasks <- strategy :: wptasks
+
+    method add_lemma (thm : logic_lemma) =
+      Wp_parameters.warning ~once:true ~source:thm.lem_position
+        "Proof obligation for lemma '%s' not generated." thm.lem_name
 
     method compute =
       begin
 
-        exported <- None ;
         Wp_error.set_model Descr.name ;
         F.clear () ;
         let env = Wpo.new_env ~context:Descr.context in
-        let export = { env=env ; goals=[] } in
+        let export = { envkey=env ; goals=[] } in
 
         (* Generates Wpos and accumulate exported goals *)
         List.iter
-          (fun (strategies) ->
-             List.iter
-               (fun strategy ->
-                  let cfg = WpStrategy.cfg_of_strategy strategy in
-                  let kf = Cil2cfg.cfg_kf cfg in
-                  let names = WpAnnot.missing_rte kf in
-                    if names <> [] then
-                      Wp_parameters.warning ~current:false ~once:true
-                        "Missing RTE guards" ;
-                  !Db.progress ();
-                  let bhv = WpStrategy.behavior_name_of_strategy strategy in
-                  let goals,annotations = WP.compute cfg strategy in
-                  if Wp_parameters.Dot.get () then
-                    ignore (Cil2cfg.dot_wp_res cfg Descr.shared annotations) ;
-                  List.iter
-                    (List.iter
-                       (add_goal export kf bhv))
-                    goals
-               ) strategies
-          ) wptasks ;
+          (fun strategy ->
+	     let cfg = WpStrategy.cfg_of_strategy strategy in
+	     let kf = Cil2cfg.cfg_kf cfg in
+	     let names = WpAnnot.missing_rte kf in
+	     if names <> [] then
+	       Wp_parameters.warning ~current:false ~once:true
+                 "Missing RTE guards" ;
+	     !Db.progress ();
+	     let bhv = WpStrategy.behavior_name_of_strategy strategy in
+	     let goals,annotations = WP.compute cfg strategy in
+	     if Wp_parameters.Dot.get () then
+	       ignore (Cil2cfg.dot_wp_res cfg Descr.shared annotations) ;
+	     let index = Wpo.Function(kf,bhv) in
+	     List.iter (List.iter (add_goal export index)) goals
+	  ) wptasks ;
+	wptasks <- [] ;
 
         if export.goals <> [] then
           begin
 
             (* --- Env Description --- *)
-            let ctxt = Wpo.file_for_ctxt ~env in
+            let ctxt = VC_Legacy.file_for_ctxt ~env in
             Wp_parameters.debug ~dkey "DO ENV DESCP %s" ctxt ;
             Command.pp_to_file ctxt
               (fun fmt -> F.iter_all (F.pp_section fmt) (F.pp_decl fmt)) ;
              Wp_parameters.debug ~dkey "DONE ENV DESCP %s" ctxt ;
 
             let export_env_lgg l =
-              Wp_parameters.debug ~dkey "DO export env for %a" Wpo.pp_language l ;
-              Command.pp_to_file (Wpo.file_for_env ~env l)
+              Wp_parameters.debug ~dkey "DO export env for %a" VCS.pp_language l ;
+              Command.pp_to_file (VC_Legacy.file_for_env ~env l)
                 (fun fmt ->
                    match l with
-                     | Wpo.L_coq -> Format.fprintf fmt
+                     | VCS.L_coq -> Format.fprintf fmt
                          "Require Import Reals.@\n\
                           Require Import wp.@\n\
                           Require Import %s.@\n"
-                           (Wpo.coq_for_model Descr.shared) ;
+                           (VC_Legacy.coq_for_model Descr.shared) ;
                          F.iter_all (Coq.export_section fmt) (Coq.export_decl fmt)
-                     | Wpo.L_why ->
+                     | VCS.L_why ->
                          F.iter_all (Why.export_section fmt) (Why.export_decl fmt)
-                     | Wpo.L_altergo -> 
+                     | VCS.L_altergo -> 
 			 F.iter_all (Ergo.export_section fmt) (Ergo.export_decl fmt)
                 )
             in
-            if !Config.is_gui || Wp_parameters.debug_atleast 2 then
-              begin
-                export_env_lgg Wpo.L_why ;
-                export_env_lgg Wpo.L_coq ;
-                export_env_lgg Wpo.L_altergo ;
-              end
-            else
-              begin
-                match active_lgg () with
-                  | None -> ()
-                  | Some l -> export_env_lgg l
-              end
-
+	    List.iter export_env_lgg (active_lgg()) ;
+	    
           end
         else
           Wpo.release_env env ;
 
         (* --- Generated Goals --- *)
-        export.goals
+	wptasks <- [] ;
+        Bag.list export.goals
 
       end (* method compute *)
 
   end (* class computer *)
 
-  let create () = (new computer :> computer)
+  let create () = (new computer :> Generator.computer)
 
 end
 

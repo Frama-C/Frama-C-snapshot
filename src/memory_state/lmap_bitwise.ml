@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 open Locations
 
 exception Bitwise_cannot_copy
@@ -38,17 +38,24 @@ module type Location_map_bitwise = sig
     val map: ((bool * y) -> (bool * y)) -> t -> t
     val fold :
       (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
+    val fold_fuse_same :
+      (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
     val join: t -> t -> t
     val pretty_with_type:
       Cil_types.typ option -> Format.formatter -> t -> unit
     val collapse : t -> y
     val empty : t
+    val degenerate: y -> t
     val is_empty: t->bool
     val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
     val tag : t -> int
   end
 
   val empty : t
+  val bottom: t
+  val is_empty : t -> bool
+  val is_bottom : t -> bool
+  val top : t
   val join : t -> t -> t
 
   val is_included : t -> t -> bool
@@ -64,6 +71,7 @@ module type Location_map_bitwise = sig
 
   val fold : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
   val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_fuse_same : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
   val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
       -> t -> t -> t
   val copy_paste :
@@ -92,28 +100,38 @@ module Make_bitwise (V:With_default) = struct
 
   module LBase = struct
     include Hptmap.Make(Base)(LOffset)(Hptmap.Comp_unused)(struct let v = [[]] end)(struct let l = [ Ast.self ] end)
+    let () = Ast.add_monotonic_state self
     let find_or_default base m =
       try find base m with Not_found -> LOffset.empty
   end
 
-  type tt = Top | Map of LBase.t
+  type tt = Top | Map of LBase.t | Bottom
   type y = V.t
   let empty = Map LBase.empty
+  let bottom = Bottom
 
   exception Cannot_fold
 
   let hash = function
     | Top -> 0
+    | Bottom -> 17
     | Map x -> LBase.tag x
 
   let equal a b = match a,b with
     | Top,Top -> true
-    | Top,_|_,Top -> false
     | Map m1, Map m2 -> LBase.equal m1 m2
+    | Bottom, Bottom -> true
+    | (Top | Bottom | Map _),  _ -> false
+
+  let is_empty x = equal empty x
+  let is_bottom x = x = Bottom
+
+  let top = Top
 
   let pretty fmt m =
     match m with
-      Top -> Format.fprintf fmt "@[<v>FROMTOP@]"
+    | Top -> Format.fprintf fmt "@[<v>FROMTOP@]"
+    | Bottom -> Format.fprintf fmt "@[<v>UNREACHABLE_B@]"
     | Map m ->
         Format.fprintf fmt "@[<v>";
         (LBase.iter
@@ -147,14 +165,15 @@ module Make_bitwise (V:With_default) = struct
 
   let fold f m acc =
     match m with
-      | Top -> raise Cannot_fold
+      | Top
+      | Bottom -> acc
       | Map m ->
           LBase.fold
             (fun k offsetmap acc ->
                LOffset.fold
                  (fun itvs v acc ->
-                    let loc = Zone.inject k itvs in
-                      f loc v acc)
+                    let z = Zone.inject k itvs in
+                      f z v acc)
                  offsetmap
                  acc)
             m
@@ -162,21 +181,17 @@ module Make_bitwise (V:With_default) = struct
 
  let fold_base f m acc=
     match m with
+    | Bottom
     | Top -> raise Cannot_fold
     | Map m -> LBase.fold f m acc
 
-  let add_interval ~exact varid itv v map =
-    let offsetmap_orig =
-      try
-        LBase.find varid map
-      with Not_found ->
-        LOffset.empty
+  let fold_fuse_same f m acc =
+    let f' b offs acc =
+      LOffset.fold_fuse_same
+        (fun itvs v acc -> f (Zone.inject b itvs) v acc)
+        offs acc
     in
-    let new_offsetmap =
-      (if exact then LOffset.add else LOffset.add_approximate)
-         itv v offsetmap_orig
-    in
-    LBase.add varid new_offsetmap map
+    fold_base f' m acc
 
  let add_binding ~exact m (loc:Zone.t) v  =
    match loc, m with
@@ -212,10 +227,12 @@ module Make_bitwise (V:With_default) = struct
          in
          Zone.fold_i treat_offset loc m
        in Map result
+   | _, Bottom -> assert false
 
  let join m1 m2 =
    let result = match m1, m2 with
-     Top, _ | _, Top -> Top
+   | Top, _ | _, Top -> Top
+   | Bottom, m | m, Bottom -> m
    | Map m1, Map m2 ->
        let treat_base varid offsmap1 acc =
          let offsmap =
@@ -282,11 +299,28 @@ module Make_bitwise (V:With_default) = struct
              all_m1
          in
          Map result
+      | Bottom, Bottom -> Bottom
+      | Bottom, Map m ->
+          Map (LBase.fold
+                 (fun base offs acc ->
+                    let offs = LOffset.map (fun x -> f None (Some x)) offs in
+                    LBase.add base offs acc)
+                 m LBase.empty)
+      | Map m, Bottom ->
+          Map (LBase.fold
+                 (fun base offs acc ->
+                    let offs = LOffset.map (fun x -> f (Some x) None) offs in
+                    LBase.add base offs acc)
+                 m LBase.empty)
+
+          
 
  let is_included m1 m2 =
    match m1, m2 with
     | _, Top -> true
     | Top ,_ -> false
+    | Bottom, _ -> true
+    | _, Bottom -> false
     | Map m1, Map m2 ->
         let treat_offset1 varid offs1  =
         let offs2 =
@@ -308,7 +342,7 @@ module Make_bitwise (V:With_default) = struct
            true
          with
              Is_not_included -> false
-
+(*
   let join x y =
     let r1 = join x y in
     let r2 =
@@ -326,10 +360,20 @@ module Make_bitwise (V:With_default) = struct
         pretty x pretty y pretty r1 pretty r2;
     end;
     r1
+*)
 
  let map_and_merge f (m_1:t) (m_2:t) =
    match m_1,m_2 with
    | Top,_ | _, Top -> Top
+   | Bottom, Bottom -> Bottom
+   | Bottom, Map _ -> m_2
+   | Map m, Bottom ->
+       Map
+         (LBase.fold
+            (fun b m acc ->
+               let m = LOffset.map (fun (b, v) -> b, f v) m in
+               LBase.add b m acc
+            ) m LBase.empty)
    | Map m1, Map m2 ->
        let result = LBase.fold
          (fun k1 v1 acc ->
@@ -356,7 +400,8 @@ module Make_bitwise (V:With_default) = struct
 
  let filter_base f m =
    match m with
-     Top -> Top
+   | Top -> Top
+   | Bottom -> Bottom
    | Map m ->
        let result =
          LBase.fold (fun k v acc -> if f k then LBase.add k v acc else acc)
@@ -367,7 +412,8 @@ module Make_bitwise (V:With_default) = struct
 
  let uninitialize_locals locals m =
    match m with
-       Top -> Top
+     | Top -> Top
+     | Bottom -> Bottom
      | Map m ->
          let result =
            List.fold_left
@@ -393,7 +439,7 @@ module Make_bitwise (V:With_default) = struct
 
  let find_base m loc =
    match loc, m with
-       Zone.Top _, _ | _, Top -> LOffset.empty
+     | Zone.Top _, _ | _, (Top | Bottom) -> LOffset.empty
      | Zone.Map _, Map m ->
          let treat_offset varid offs acc =
            let default = V.default varid in
@@ -411,6 +457,7 @@ module Make_bitwise (V:With_default) = struct
  let find m loc =
    match loc, m with
      | Zone.Top _, _ | _, Top -> V.top
+     | _, Bottom -> V.bottom
      | Zone.Map _, Map m ->
          let treat_offset varid offs acc =
            let default = V.default varid in
@@ -431,6 +478,7 @@ module Make_bitwise (V:With_default) = struct
  let find_or_unchanged m loc =
     match loc, m with
      | Zone.Top _, _ | _, Top -> V.top
+     | _, Bottom -> V.bottom
      | Zone.Map _, Map m ->
          let treat_offset varid offs (zone,unchanged) =
            let default = V.default varid in
@@ -502,7 +550,7 @@ module Make_bitwise (V:With_default) = struct
                     raise Bitwise_cannot_copy
               in
               try
-                Cilutil.out_some (Location_Bits.fold_i treat_src src_loc.loc None)
+                Extlib.the (Location_Bits.fold_i treat_src src_loc.loc None)
               with Location_Bits.Error_Top ->
                 (*CilE.warn_once "reading unknown location(2)@ @[%a@]"
                            Location_Bits.pretty src_loc.loc;*)
@@ -532,7 +580,7 @@ module Make_bitwise (V:With_default) = struct
     in
     let stop = Int.pred (Int.add start size) in
     let had_non_bottom = ref false in
-    let plevel =                (Kernel.ArrayPrecisionLevel.get()) in
+    let plevel = !Lattice_Interval_Set.plevel in
     let treat_dst k_dst i_dst (acc_lmap : LBase.t) =
       if Base.is_read_only k_dst
       then acc_lmap
@@ -603,7 +651,8 @@ module Make_bitwise (V:With_default) = struct
   let copy_paste ~with_alarms ~f src_loc dst_loc mm =
     let res =
       match mm with
-        Top -> Top
+      | Top -> Top
+      | Bottom -> Bottom
       | Map mm -> Map (copy_paste_map ~with_alarms ~f src_loc dst_loc mm)
     in
 (*    Format.printf "Lmap.copy_paste orig: %a from src:%a to dst:%a result:%a@\n"
@@ -615,7 +664,10 @@ module Make_bitwise (V:With_default) = struct
 
 end
 
-module From_Model = Make_bitwise(Locations.Zone)
+module From_Model = struct 
+  include Make_bitwise(Locations.Zone)
+
+end
 
 (*
 Local Variables:

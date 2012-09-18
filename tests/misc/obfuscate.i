@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -obfuscate
+   OPT: -load-module lib/plugins/Obfuscator -obfuscate
 */
 
 int my_var = 0;

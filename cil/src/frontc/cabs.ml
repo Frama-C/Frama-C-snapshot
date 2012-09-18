@@ -170,13 +170,9 @@ and definition =
  | GLOBASM of string * cabsloc
  | PRAGMA of expression * cabsloc
  | LINKAGE of string * cabsloc * definition list (* extern "C" { ... } *)
- (* toplevel form transformer, from the first definition to the *)
- (* second group of definitions *)
- | TRANSFORMER of definition * definition list * cabsloc
- (* expression transformer: source and destination *)
- | EXPRTRANSFORMER of expression * expression * cabsloc
  | GLOBANNOT of Logic_ptree.decl list
      (** Logical declaration (axiom, logic, etc.)*)
+ | CUSTOM of Logic_ptree.custom_tree * string * cabsloc
 
 (* the string is a file name, and then the list of toplevel forms *)
 and file = string * (bool * definition) list

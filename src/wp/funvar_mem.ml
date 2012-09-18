@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,6 @@ open Cil_types
 open Cil_datatype
 open Formula
 open Ctypes
-open Clabels
 
 
 let debug = WpLog.debug ~dkey:"funvar"
@@ -372,8 +371,6 @@ struct
   include Datalib.Cvalues(Model)
 
   module L = M.L
-
-  type decl = M.F.decl
  
   (* ------------------------------------------------------------------------ *)
   (* ---  Values Coersion                                                 --- *)
@@ -454,8 +451,14 @@ struct
     mutable formals : byrefparam Lmap.t ; 
   }
 
-  let mem () = { mem = M.mem () ; vars = Xmap.empty ; formals = Lmap.empty}
+  let mem () = { mem = M.mem () ; vars = Xmap.empty ; formals = Lmap.empty }
 
+  let pp_mem fmt m =
+    Xmap.iter
+      (fun (v:varinfo) (x:var_info) -> 
+	 Format.fprintf fmt " * %a:%d => %a@\n" !Ast_printer.d_var v v.vid F.pp_var x.v_var)
+      m.vars ;
+    M.pp_mem fmt m.mem
  
  (* ------------------------------------------------------------------------ *)
  (* --- Locations                                                        --- *)
@@ -534,7 +537,7 @@ struct
     {p_root= r ; p_mem = m; p_off=[] ; p_arity=n ;
      p_type=object_array_of_root r ; p_cvar = opt_cv;}
 
-  let cvar m vi =
+   let cvar m vi =
     let r = Cvar vi in 
     match Variables_analysis.dispatch_cvar vi with 
       | Variables_analysis.Fvar ->
@@ -569,7 +572,6 @@ struct
 	  if vi.vglob then global vi;
 	  ARpar (mk_aref r m.mem n None, n0)
 
-      
   let lvar m lv x= 
     let r = Lvar lv in 
     match Variables_analysis.dispatch_lvar lv with 
@@ -604,8 +606,6 @@ struct
 	    !Ast_printer.d_logic_var lv n;
 	  let (n0,_) = brackets_and_stars_lv_typ lv.lv_type in 
 	  ARpar (mk_aref r m.mem n (Some x), n0) 
-	    
-  let inner_loc loc = M.term_of_loc (mloc_of_loc loc)
 
   (* [add_index p i ty] makes the path of the l-value of the path (p] and 
      the index [i] with type [ty].*)
@@ -745,8 +745,7 @@ struct
       | Faref n ->
 	  Format.fprintf fmt "%s%t"
 	    lv.lv_name
-	    (fun fmt -> for i=1 to n do Format.pp_print_string fmt "[]" done)
-
+	    (fun fmt -> for _i=1 to n do Format.pp_print_string fmt "[]" done)
 
   let userdef_ref_has_cvar (lv : logic_var) : bool = 
     Variables_analysis.is_user_formal_in_builtin lv
@@ -771,7 +770,7 @@ struct
       ) mem.formals []
       
       
-  let userdef_ref_apply m fml loc =
+  let userdef_ref_apply m fml _obj loc =
     debug "[userdef_ref_apply] calls with formal %a and loc %a"
       pp_formal_simple fml pp_loc loc ; 
     begin
@@ -820,7 +819,7 @@ struct
 	  (* array *)
 	  Format.fprintf fmt "value of %s%t"
 	    vinfo.vname (* C-original name *)
-	    (fun fmt -> for i=1 to k do Format.pp_print_string fmt "[]" done)
+	    (fun fmt -> for _i=1 to k do Format.pp_print_string fmt "[]" done)
 	else
 	  (* ref. *)
 	  Format.fprintf fmt "value of %s%s" 
@@ -828,13 +827,14 @@ struct
 
   let userdef_mem_signature m =
     Xmap.fold
-      (fun v vi fs -> (vi.v_var,Fclos(vi.v_arity,vi.v_is_array,v))::fs)
+      (fun v vi fs -> 
+	 (vi.v_var,Fclos(vi.v_arity,vi.v_is_array,v))::fs)
       m.vars
       (List.map (fun (y,c) -> y,Mclos c) (M.userdef_mem_signature m.mem))
 
   let userdef_mem_apply m = function
     | Fclos(k,ap,vinfo) -> F.var (get_c_funvar m k vinfo ap)
-    | Mclos  mc -> M.userdef_mem_apply m.mem mc
+    | Mclos mc -> M.userdef_mem_apply m.mem mc
 
   (* ------------------------------------------------------------------------ *)
   (* ---  Labels & Quantification                                         --- *)

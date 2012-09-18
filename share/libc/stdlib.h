@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -48,9 +48,9 @@ typedef struct __fc_lldiv_t {
 #define EXIT_SUCCESS 0
 
 #include "limits.h"
-/* These could be customizable */
-#define RAND_MAX INT_MAX
-#define MB_CUR_MAX ((size_t)MB_LEN_MAX)
+
+#define RAND_MAX __FC_RAND_MAX
+#define MB_CUR_MAX __FC_MB_CUR_MAX
 
 /*@ assigns \result \from nptr[..] ; */
 double atof(const char *nptr);
@@ -95,13 +95,16 @@ unsigned long long int strtoull(
      char ** restrict endptr,
      int base);
 
+int __fc_random_counter __attribute__((unused));
+const unsigned long __fc_rand_max = __FC_RAND_MAX;
 /* ISO C: 7.20.2 */
-/*@ assigns \result \from \nothing ;
-  ensures 0 <= \result <= 0x7FFF ; // TODO should expanded from RAND_MAX
+/*@ assigns \result \from __fc_random_counter ;
+  assigns __fc_random_counter ;
+  ensures 0 <= \result <= __fc_rand_max ;
 */
 int rand(void);
 
-/*@ assigns \nothing ; */
+/*@ assigns __fc_random_counter \from seed ; */
 void srand(unsigned int seed);
 
 /* ISO C: 7.20.3.1 */

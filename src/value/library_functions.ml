@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,8 +33,8 @@ module Retres =
       let name = "retres_variable"
       let size = 9
       let dependencies = [Ast.self]
-      let kind = `Internal
      end)
+let () = Ast.add_monotonic_state Retres.self
 
 let () =
   State_dependency_graph.Static.add_dependencies
@@ -71,13 +71,19 @@ module Returned_Val =
        let dependencies = [Ast.self]
        let size = 7
        let name = "Leaf_Table"
-       let kind = `Internal
      end)
+let () = Ast.add_monotonic_state Returned_Val.self
+
+let register_new_var v typ =
+  if isFunctionType typ then
+    Globals.Functions.replace_by_declaration (Cil.empty_funspec()) v v.vdecl
+  else
+    Globals.Vars.add_decl v
 
 
-let returned_value kf return_type state =
+let returned_value kf state =
   (* Process return of function *)
-  let return_type = unrollType return_type in
+  let return_type = unrollType (Kernel_function.get_return_type kf) in
   match return_type with
   | TComp _ when is_fully_arithmetic return_type ->
       Cvalue.V.top_int, state
@@ -95,12 +101,17 @@ let returned_value kf return_type state =
                     ("alloced_return_" ^ Kernel_function.get_name kf))
                  typ
              in
+             register_new_var new_varinfo typ;
+	     let validity = Base.Known (Int.zero, max_bit_address ()) in
+	     ignore (Base.create_logic new_varinfo validity);
              let new_offsetmap =
-               Cvalue.V_Offsetmap.sized_zero (memory_size ())
+               Cvalue.V_Offsetmap.sized_isotropic 
+		 Cvalue.V_Or_Uninitialized.singleton_zero
+		 (memory_size ())
              in
              Cvalue.Default_offsetmap.create_initialized_var
                new_varinfo
-               (Base.Known (Int.zero, max_bit_address ()))
+	       validity
                new_offsetmap)
           kf
       in

@@ -1,5 +1,15 @@
+/* run.config
+   STDOPT: +"-val"
+   STDOPT: +"-val -no-val-left-shift-negative-alarms"
+*/
+
 int a,b,d,e,f,g,h;
 unsigned int ua,ub,uc,ud,ue,uf;
+
+void printf(const char* c,...);
+
+char t[10];
+
 
 int main(int c, int z, int zz) {
   a=5024;
@@ -14,10 +24,10 @@ int main(int c, int z, int zz) {
     f = f >> c;
     }
 
-  if (z) z=1<<32;
+  if (z & 1) z=1<<32;
   if (zz) zz=1>>5555;
 
-  if (c) {
+  if (z & 16) {
     b = 66;
     b = b << b;
     };
@@ -29,5 +39,10 @@ int main(int c, int z, int zz) {
   ub >>= 2;
   printf("ua:%u\nub:%u\n",ua,ub);
 
+  if (z & 32)
+  {
+    int r = (unsigned long)t << 8;
+    r += (long)t << 8;
+  }
   return b;
 }

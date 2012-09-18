@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -25,8 +25,6 @@
 (** *)
 
 open Cil_types
-
-let debug = false
 
 exception AddError
 exception CallStatement
@@ -36,9 +34,9 @@ let is_call_stmt stmt =
   match stmt.skind with Instr (Call _) -> true | _ -> false
 
 module Signature = struct
-  type t_in_key = InCtrl | InNum of int | InImpl of Locations.Zone.t
-  type t_out_key = OutRet | OutLoc of Locations.Zone.t
-  type t_key = In of t_in_key | Out of t_out_key
+  type in_key = InCtrl | InNum of int | InImpl of Locations.Zone.t
+  type out_key = OutRet | OutLoc of Locations.Zone.t
+  type key = In of in_key | Out of out_key
 
   type 'info t =
       { in_ctrl : 'info option ;
@@ -81,8 +79,6 @@ module Signature = struct
 
   let mk_undef_in_key loc = InImpl loc
 
-  let out_loc (_, out) = out
-
   let copy sgn = sgn
 
   (** InCtrl < InNum < InImpl *)
@@ -106,11 +102,6 @@ module Signature = struct
 
   let equal_out_key k1 k2 =
     try (0 = cmp_out_key k1 k2) with Not_equal -> false
-
-  let equal_key k1 k2 = match k1, k2 with
-    | In k1, In k2 -> (try (0 = cmp_in_key k1 k2) with Not_equal -> false)
-    | Out k1, Out k2 -> equal_out_key k1 k2
-    | _ -> false
 
   (** add a mapping between [num] and [info] in [lst].
   * if we already have something for [num], use function [merge] *)
@@ -163,9 +154,6 @@ module Signature = struct
     let new_info = match sgn.in_ctrl with None -> info
       | Some old -> add_replace replace old info
     in { sgn with in_ctrl = Some new_info }
-
-  let add_in_top sgn info ~replace =
-    add_impl_input sgn (Locations.Zone.top) info replace
 
   let add_out_ret sgn info ~replace =
     let new_info = match sgn.out_ret with None -> info
@@ -308,21 +296,19 @@ module Signature = struct
 end
 
 module Key = struct
-  type t_call_id = Cil_types.stmt
-  let t_call_id_packed_descr = Cil_datatype.Stmt.packed_descr
 
   type key =
-    | SigKey of Signature.t_key
+    | SigKey of Signature.key
         (** input/output nodes of the function *)
     | VarDecl of Cil_types.varinfo
         (** local, parameter or global variable definition *)
     | Stmt of Cil_types.stmt
         (** simple statement (not call) excluding its label (stmt.id) *)
-    | CallStmt of t_call_id
+    | CallStmt of Cil_types.stmt
         (** call statement *)
-    | Label of int * Cil_types.label
+    | Label of stmt * Cil_types.label
         (** Labels are considered as function elements by themselves. *)
-    | SigCallKey of t_call_id * Signature.t_key
+    | SigCallKey of Cil_types.stmt * Signature.key
         (** Key for an element of a call (input or output).
          * The call is identified by the statement. *)
 
@@ -336,7 +322,7 @@ module Key = struct
   let out_from_key loc = SigKey (Signature.out_key loc)
 
   let decl_var_key var = VarDecl var
-  let label_key label_stmt label = Label (label_stmt.sid,label)
+  let label_key label_stmt label = Label (label_stmt,label)
   let call_key call = CallStmt call
   let stmt_key stmt = if is_call_stmt stmt then call_key stmt else Stmt stmt
 
@@ -354,6 +340,7 @@ module Key = struct
       | SigCallKey (call, _) -> Some call
       | CallStmt call -> Some call
       | Stmt stmt -> Some stmt
+      | Label (stmt, _) -> Some stmt
       | _ -> None
 
   (* see PrintPdg.pretty_key : can't be here because it uses Db... *)
@@ -410,9 +397,9 @@ module Key = struct
                    [| p_key |];
                    [| Varinfo.packed_descr |];
                    [| Stmt.packed_descr |];
-                   [| t_call_id_packed_descr |];
-                   [| p_int; Label.packed_descr |];
-                   [| t_call_id_packed_descr; p_key |];
+                   [| Cil_datatype.Stmt.packed_descr |];
+                   [| Cil_datatype.Stmt.packed_descr; Label.packed_descr |];
+                   [| Cil_datatype.Stmt.packed_descr; p_key |];
                  |])
           let rehash = Datatype.identity
           let pretty = pretty_node
@@ -424,18 +411,19 @@ end
 module Hkey = struct
   type tt = Hdecl of Cil_types.varinfo
     | Hstmt of int | Hlabel of int * Cil_types.label
+   (* Check the structural_descr for H.t below if this type changes *)
 
   let hkey k =
     match k with
       | Key.Stmt stmt -> Hstmt stmt.sid
       | Key.VarDecl var -> Hdecl var
-      | Key.Label (sid,l) -> Hlabel (sid,l)
+      | Key.Label (s,l) -> Hlabel (s.sid,l)
       | _ -> assert false
 
   let key hk = match hk with
     | Hdecl v -> Key.VarDecl v
     | Hstmt sid -> Key.Stmt (fst (Kernel_function.find_from_sid sid))
-    | Hlabel (sid,l) -> Key.Label (sid,l)
+    | Hlabel (sid,l) -> Key.Label (fst (Kernel_function.find_from_sid sid),l)
 
   include Datatype.Make(struct
     include Datatype.Serializable_undefined
@@ -456,7 +444,11 @@ module Hkey = struct
   end)
 end
 
-module H = Hashtbl.Make(Hkey)
+module H = struct
+  include Hashtbl.Make(Hkey)
+  let structural_descr =
+    Structural_descr.t_hashtbl_unchanged_hashs (Descr.str Hkey.descr)
+end
 
 module FctIndex = struct
  
@@ -465,7 +457,7 @@ module FctIndex = struct
     mutable sgn : 'node_info Signature.t ;
     (** calls signatures *)
     mutable calls : 
-      (Key.t_call_id * ('call_info option * 'node_info Signature.t)) list ;
+      (Cil_types.stmt * ('call_info option * 'node_info Signature.t)) list ;
     (** everything else *)
     other : 'node_info H.t
   }
@@ -474,13 +466,13 @@ module FctIndex = struct
   let t_descr ~ni:d_ninfo ~ci:d_cinfo =
     t_record
       [| pack (Signature.Str_descr.t d_ninfo);
-         pack (t_list (t_tuple [| Key.t_call_id_packed_descr;
+         pack (t_list (t_tuple [| Cil_datatype.Stmt.packed_descr;
                                   pack (t_tuple [|
                                           pack (t_option d_cinfo);
                                           pack (Signature.Str_descr.t d_ninfo);
                                         |])
                                |]));
-         pack (t_hashtbl_unchanged_hashs (Descr.str Hkey.descr) d_ninfo);
+         pack (H.structural_descr d_ninfo);
       |]
 
   let sgn idx = idx.sgn
@@ -573,9 +565,6 @@ module FctIndex = struct
     | Key.CallStmt call -> find_call idx call
         | _ -> assert false
 
-  let find_call_sig idx call =
-    let (_e1, sgn1) = find_call idx call in sgn1
-
   let find_info_call idx call =
     let (e1, _sgn1) = find_call idx call in
       match e1 with Some e -> e | None -> raise Not_found
@@ -624,7 +613,6 @@ module FctIndex = struct
       | Key.CallStmt call -> find_all_info_sig_call idx call
       | _ -> let info = find_info idx key in [info]
 
-  (** Similar to [find_info] for a label *)
   let find_label idx lab =
     let collect k info res = match k with
       | Hkey.Hlabel (_,k_lab) -> 

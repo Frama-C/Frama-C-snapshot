@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*                                                                        *)
 (*  Ocamlgraph: a generic graph library for ocaml                         *)
-(*  Copyright (C) 2004-2011                                               *)
+(*  Copyright (C) 2004-2012                                               *)
 (*  Sylvain Conchon, Jean-Christophe Filliâtre and Julien Signoles        *)
 (*                                                                        *)
 (*  This library is free software; you can redistribute it and/or         *)

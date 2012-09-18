@@ -1,6 +1,5 @@
 
 open LibSelect;;
-open Cil_types;;
 
 let f_slice_names kf src_called fnum =
   let fname = Kernel_function.get_name kf in

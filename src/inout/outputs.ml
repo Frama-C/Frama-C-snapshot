@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,6 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* Hidden by open Db *)
+let get_external_aux = Operational_inputs.get_external_aux
 open Cil_types
 open Visitor
 open Db
@@ -84,40 +86,24 @@ class virtual do_it_ = object(self)
               exp
           in
           Kernel_function.Hptset.iter
-            (fun kf -> self#join (self#compute_kf kf)) callees
+            (fun kf ->
+               let { Inout_type.over_outputs = z } =
+                 get_external_aux ?stmt:self#current_stmt kf in
+               self#join z
+            ) callees
       | _ -> ()
     end;
     Cil.SkipChildren
 
   method clean_kf_result kf r =
-    Zone.filter_base (Db.accept_base_internal kf) r
+    Zone.filter_base
+      (Value_aux.accept_base ~with_formals:true ~with_locals:true kf) r
 
   method compute_funspec kf =
     let state = self#specialize_state_on_call kf in
     let behaviors = !Value.valid_behaviors kf state in
     let assigns = Ast_info.merge_assigns behaviors in
-    (match assigns with
-       | WritesAny -> Zone.top
-       | Writes assigns ->
-           try
-             List.fold_left
-               (fun acc (loc,_) ->
-                  let c = loc.it_content in
-                  if (Logic_utils.is_result c)
-                  then acc
-                  else
-                    let loc =
-                      !Properties.Interp.loc_to_loc ~result:None state c
-                    in
-                    Zone.join acc
-                      (Locations.valid_enumerate_bits ~for_writing:true loc))
-               Zone.bottom
-               assigns
-           with Invalid_argument "not an lvalue" ->
-             Inout_parameters.warning ~current:true
-               "unsupported assigns clause for function %a; Ignoring it."
-               Kernel_function.pretty kf;
-             Zone.bottom)
+    !Db.Value.assigns_outputs_to_zone state ~result:None assigns
 end
 
 module Analysis = Cumulative_analysis.Make(
@@ -126,7 +112,6 @@ module Analysis = Cumulative_analysis.Make(
 
     type t = Locations.Zone.t
     module T = Locations.Zone
-    let bottom = Locations.Zone.bottom
 
     class virtual do_it = do_it_
 end)
@@ -134,14 +119,15 @@ end)
 let get_internal = Analysis.kernel_function
 
 let externalize kf x =
-  Zone.filter_base (Db.accept_base ~with_formals:false ~with_locals:false kf) x
+  Zone.filter_base
+    (Value_aux.accept_base ~with_formals:false ~with_locals:false kf) x
 
 module Externals =
-  Kf_state.Make
+  Kernel_function.Make_Table(Locations.Zone)
     (struct
        let name = "External outs"
        let dependencies = [ Analysis.Memo.self ]
-       let kind = `Correctness
+       let size = 17
      end)
 
 let get_external =
@@ -175,6 +161,6 @@ let () =
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

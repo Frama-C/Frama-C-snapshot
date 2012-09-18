@@ -46,11 +46,10 @@
 
 open Cil_types
 open Cil
-open Expcompare
 
 module DF = Dataflow
 module UD = Usedef
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
 module H = Hashtbl
 module S = (*Stats*) struct
   let time _ f c = f c
@@ -85,12 +84,7 @@ let registerIgnoreCall (f : instr -> bool) : unit =
   ignore_call := (fun i -> (f i) || (f' i))
 
 
-module LvExpHash =
-  H.Make(struct
-    type t = lval
-    let equal lv1 lv2 = compareLval lv1 lv2
-    let hash = H.hash
-  end)
+module LvExpHash = Cil_datatype.LvalStructEq.Hashtbl
 
 (* exp LvExpHash.t -> exp LvExpHash.t -> bool *)
 let lvh_equals lvh1 lvh2 =
@@ -99,7 +93,7 @@ let lvh_equals lvh1 lvh2 =
   else LvExpHash.fold (fun lv e b ->
     if not b then b else
     try let e2 = LvExpHash.find lvh2 lv in
-    if not(compareExpStripCasts e e2)
+    if not (Expcompare.compareExpStripCasts e e2)
     then false
     else true
     with Not_found -> false)
@@ -119,10 +113,12 @@ let lvh_combine lvh1 lvh2 =
   let lvh' = LvExpHash.copy lvh1 in (* eh' gets all of eh1 *)
   LvExpHash.iter (fun lv e1 ->
     try let e2l = LvExpHash.find_all lvh2 lv in
-    if not(List.exists (fun e2 -> compareExpStripCasts e1 e2) e2l)
+    if not(List.exists (fun e2 -> Expcompare.compareExpStripCasts e1 e2) e2l)
     (* remove things from eh' that eh2 doesn't have *)
     then let e1l = LvExpHash.find_all lvh' lv in
-    let e1l' = List.filter (fun e -> not(compareExpStripCasts e e1)) e1l in
+    let e1l' =
+      List.filter (fun e -> not(Expcompare.compareExpStripCasts e e1)) e1l
+    in
     LvExpHash.remove lvh' lv;
     List.iter (fun e -> LvExpHash.add lvh' lv e) e1l'
     with Not_found ->
@@ -288,7 +284,7 @@ let lvh_handle_inst i lvh =
       end
       | _ when not (exp_is_volatile e) -> begin
 	  (* ignore x = x *)
-	  if compareExpStripCasts (dummy_exp (Lval lv)) e then lvh
+	  if Expcompare.compareExpStripCasts (dummy_exp (Lval lv)) e then lvh
 	  else begin
 	    LvExpHash.replace lvh lv e;
 	    lvh_kill_lval lvh lv;

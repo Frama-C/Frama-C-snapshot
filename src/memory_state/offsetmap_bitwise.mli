@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,7 @@
 (* [JS 2011/10/03] To the authors/users of this module: please document it. *)
 
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
@@ -55,6 +55,7 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
   val join : t -> t -> t
   val joindefault :  t -> t
   val is_included_exn : t -> t -> unit
+  val is_included : t -> t -> bool
   val map_and_merge : (V.t -> V.t) -> t -> t -> t
   val map :  (bool * V.t -> bool * V.t) -> t -> t
   val map2 :
@@ -62,6 +63,12 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
     -> t -> t -> t
   val fold :
     (Int_Intervals.t -> bool * V.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_fuse_same:
+    (Int_Intervals.t -> bool * V.t -> 'a -> 'a) -> t -> 'a -> 'a
+  (** Same behavior as [fold], except if two disjoint intervals [r1] and [r2]
+      are mapped to the same value and boolean. In this case, [fold] will call
+      its argument [f] on [r1], then on [r2]. [fold_fuse_same] will call it
+      directly on [r1 U r2], where U is the join on sets of intervals. *)
 
   val copy_paste :
     f:((bool*V.t -> bool*V.t) * (Int.t -> Int.t -> V.t)) option ->

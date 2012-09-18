@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -122,8 +122,7 @@ class type main_window_extension_points = object
   (** {4 Source viewers}  *)
 
   method source_viewer : GSourceView2.source_view
-    (** The [GText.view] showing the AST.
-        @plugin development guide *)
+  (** The [GText.view] showing the AST. *)
 
   method reactive_buffer: reactive_buffer option
   (** The buffer containing the AST.
@@ -256,6 +255,7 @@ sig
     -> start:int -> stop:int 
     -> Property_status.Feedback.t -> unit
 
+  val update: reactive_buffer -> Property.t -> unit
 end
 
 

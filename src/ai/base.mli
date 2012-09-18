@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,19 +20,21 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
+(** Validity of variables seen as memory bases. The validity is expressed in
+    bytes *)
 
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
-
-val name : string
+open Abstract_interp
 
 type validity =
-  | All
-  | Unknown of Abstract_interp.Int.t*Abstract_interp.Int.t
-  | Known of Abstract_interp.Int.t*Abstract_interp.Int.t
-  | Periodic of Abstract_interp.Int.t*Abstract_interp.Int.t*
-      Abstract_interp.Int.t
+  | Known of Int.t * Int.t (** Valid between those two bytes *)
+  | Unknown of Int.t * Int.t (** Potentially valid between those two bytes.
+                  Accesses will not succeed, but will also raise an alarm *)
+  | Periodic of Int.t * Int.t (** min-max bounds*) * Int.t (** Period *)
+      (** Valid between the two bounds, and considered as a repetition
+          of the given period. Only one period is stored; consequently,
+          strong updates are impossible. *)
+  | All (** Always valid. Do not use unless you know very well what you are
+            doing *)
 
 type string_id
 
@@ -48,6 +50,10 @@ module Hptset: Hptset.S with type elt = t
 
 val pretty_validity : Format.formatter -> validity -> unit
 
+(** [pretty_addr fmt base] pretty-prints [base] on [fmt] with 
+    a leading ampersand if it is a variable *)
+val pretty_addr : Format.formatter -> t -> unit
+
 val typeof : t -> Cil_types.typ option
 val null : t
 
@@ -56,12 +62,11 @@ val is_read_only : t -> bool
 
 val bits_sizeof : t -> Int_Base.t
 val id : t -> int
-val is_aligned_by : t -> Abstract_interp.Int.t -> bool
+val is_aligned_by : t -> Int.t -> bool
 val validity : t -> validity
 
 exception Not_valid_offset
-val is_valid_offset :
-  for_writing:bool -> Abstract_interp.Int.t -> t -> Ival.t -> unit
+val is_valid_offset : for_writing:bool -> Int.t -> t -> Ival.t -> unit
 
 val is_function : t -> bool
 
@@ -80,10 +85,11 @@ val create_varinfo : Cil_types.varinfo -> t
   (** Return the base corresponding to a program variable. This function's name
       is short for "create_from_varinfo". The validity of the base is inferred
       from the type of the variable. *)
+
 exception Not_a_variable
 val get_varinfo: t -> Cil_types.varinfo
   (** If the base corresponds to a variable, return the variable's varinfo.
-      *raise Not_a_variable if the base is not a variable. *)
+      @raise Not_a_variable if the base is not a variable. *)
 
 val create_logic :  Cil_types.varinfo -> validity -> t
   (** Return the base corresponding to a logic variable. This function's name
@@ -98,8 +104,9 @@ val create_string : Cil_types.exp -> t
 type cstring = CSString of string | CSWstring of Escape.wstring
 val get_string : string_id -> cstring
 
-val min_valid_absolute_address: unit -> Abstract_interp.Int.t
-val max_valid_absolute_address: unit -> Abstract_interp.Int.t
+val min_valid_absolute_address: unit -> Int.t
+val max_valid_absolute_address: unit -> Int.t
+(** Bounds for option absolute-valid-range *)
 
 (*
 Local Variables:

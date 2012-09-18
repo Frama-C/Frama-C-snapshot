@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,6 @@
 (** Cil extensions for Frama-C *)
 
 open Cil_types
-open Cilutil
 open Cil
 
 (* ************************************************************************* *)
@@ -48,6 +47,7 @@ let current_stmt () =
 
 type syntactic_context =
   | SyNone
+  | SyCallResult
   | SyBinOp of Cil_types.binop * Cil_types.exp * Cil_types.exp
   | SyUnOp of  Cil_types.exp
   | SyMem of  Cil_types.lval
@@ -90,38 +90,37 @@ let sc_kinstr_loc ki =
         CurrentLoc.get ()
     | Kstmt s -> Cil_datatype.Stmt.loc s
 
+type alarm_behavior = 
+  | Aignore
+  | Alog of Emitter.t * (Format.formatter -> unit)
+  | Acall of (unit -> unit)
 
-type warn_origin = {
-  warn_emitter: Emitter.t;
-  warn_deps: State.t list;
-}
+type warn_mode = {imprecision_tracing:alarm_behavior;
+                  defined_logic: alarm_behavior;
+                  unspecified: alarm_behavior;
+                  others: alarm_behavior;}
 
-let register_alarm ki alarm wo =
-  Alarms.register ~deps:wo.warn_deps ki alarm wo.warn_emitter
+let warn_all_mode emitter suffix =
+  let alog = Alog(emitter, suffix) in
+  { imprecision_tracing = alog;
+    defined_logic = alog;
+    unspecified = alog; 
+    others = alog; }
 
-
-type alarm_behavior = Aignore | Alog of warn_origin | Acall of (unit -> unit)
-type warn_mode = {unspecified:alarm_behavior; others: alarm_behavior;
-                  imprecision_tracing:alarm_behavior}
-
-let warn_all_mode wo =
-  {unspecified=Alog wo; others=Alog wo; imprecision_tracing=Alog wo}
 let warn_none_mode =
-  {unspecified=Aignore; others=Aignore; imprecision_tracing=Aignore}
-
-let stop_if_stop_at_first_alarm_mode () =
-  if (Kernel.StopAtFirstAlarm.get ())
-  then exit 0 (* TODO: same mechanism as do_degenerate *)
+  { imprecision_tracing = Aignore; defined_logic = Aignore;
+    unspecified = Aignore; others=Aignore; }
 
 let warn_div warn_mode =
   match warn_mode.others with
     Aignore -> ()
-  | Acall f -> f()
-  | Alog wo ->
+  | Acall f -> f ()
+  | Alog(emitter, suffix) ->
       begin
         match get_syntactic_context () with
         | _,SyNone -> ()
-        | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _) -> assert false
+        | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _ | SyCallResult) ->
+            assert false
         | ki,SyBinOp ((Div|Mod),_,exp_d) ->
             let loc = exp_d.eloc in
             let lexpr = Logic_utils.expr_to_term ~cast:true exp_d in
@@ -130,11 +129,10 @@ let warn_div warn_mode =
                 (AAssert ([],
                           Logic_const.unamed ~loc (Prel (Rneq,lexpr, lzero()))))
             in
-            if register_alarm ki (Division_alarm,annotation) wo then
+            if Alarms.register ki (Division_alarm, annotation) emitter then
               Kernel.warning ~current:true
-                "@[division by zero:@ %a@]"
-                !Ast_printer.d_code_annotation annotation;
-	    stop_if_stop_at_first_alarm_mode ()
+                "@[division by zero:@ %a@]%t"
+                !Ast_printer.d_code_annotation annotation suffix;
         |_,SyBinOp (_,_,_) -> assert false
       end
 
@@ -142,34 +140,68 @@ let warn_signed_overflow warn_mode mn mx =
   match warn_mode.others with
   | Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
-      let aux ki loc exp_l =
-        (match mn with
-           | Some mn ->
-               let lexpr = Logic_const.tinteger_s64 mn in
-               let p = Logic_const.prel ~loc (Rle, lexpr, exp_l) in
-               let annotation =
-                 Logic_const.new_code_annotation (AAssert ([],p))
-               in
-               if register_alarm ki (Signed_overflow_alarm,annotation)wo then
-                 Kernel.warning ~current:true
-                   "@[Signed overflow.@ %a@]"
-                   !Ast_printer.d_code_annotation annotation;
-	       stop_if_stop_at_first_alarm_mode ()
-           | None -> ());
-        ( match mx with
-            | Some mx ->
-                let rexpr = Logic_const.tinteger_s64 mx in
-                let p = Logic_const.prel ~loc (Rle, exp_l, rexpr) in
-                let annotation =
-                  Logic_const.new_code_annotation (AAssert ([],p))
-                in
-                if register_alarm ki (Signed_overflow_alarm,annotation)wo then
-                  Kernel.warning ~current:true
-                    "@[Signed overflow.@ %a@]"
-                    !Ast_printer.d_code_annotation annotation;
-		stop_if_stop_at_first_alarm_mode ()
-            | None -> ());
+  | Alog(emitter, suffix) ->
+    let aux ki loc exp_l =
+      (match mn with
+      | Some mn ->
+        let lexpr = Logic_const.tinteger_s64 mn in
+        let p = Logic_const.prel ~loc (Rle, lexpr, exp_l) in
+        let annotation =
+          Logic_const.new_code_annotation (AAssert ([],p))
+        in
+        if Alarms.register ki (Signed_overflow_alarm,annotation) emitter then
+          Kernel.warning ~current:true
+            "@[Signed overflow.@ %a@]%t"
+            !Ast_printer.d_code_annotation annotation suffix
+      | None -> ());
+      (match mx with
+      | Some mx ->
+        let rexpr = Logic_const.tinteger_s64 mx in
+        let p = Logic_const.prel ~loc (Rle, exp_l, rexpr) in
+        let annotation =
+          Logic_const.new_code_annotation (AAssert ([],p))
+        in
+        if Alarms.register ki (Signed_overflow_alarm,annotation) emitter then
+          Kernel.warning ~current:true
+            "@[Signed overflow.@ %a@]%t"
+            !Ast_printer.d_code_annotation annotation suffix
+      | None -> ());
+    in
+    (match get_syntactic_context () with
+    | ki, SyUnOp e ->
+      let te = Logic_utils.expr_to_term ~cast:false e in
+      aux ki e.eloc te
+    | ki, SyBinOp (op, l, r) ->
+      let loc = l.eloc in
+      let l_l = Logic_utils.expr_to_term ~cast:true l in
+      let r_l = Logic_utils.expr_to_term ~cast:true r in
+      let t = Logic_const.term ~loc (TBinOp (op, l_l, r_l)) Linteger in
+      aux ki loc t
+    | _ ->
+      assert false
+    )
+
+let warn_float_overflow warn_mode f =
+  match warn_mode.others with
+  | Aignore -> ()
+  | Acall f -> f()
+  | Alog(emitter, suffix) ->
+      let aux ki loc exp =
+        let lexpr = Logic_const.treal ~loc 
+	  Floating_point.most_negative_single_precision_float 
+	in
+        let rexpr = Logic_const.treal ~loc
+          Floating_point.max_single_precision_float in
+        let pl = Logic_const.prel ~loc (Rle, lexpr, exp) in
+        let pr = Logic_const.prel ~loc (Rle, exp, rexpr) in
+        let p = Logic_const.pand ~loc (pl, pr) in
+        let annotation =
+          Logic_const.new_code_annotation (AAssert ([],p))
+        in
+        if Alarms.register ki (Float_overflow_alarm, annotation) emitter then
+          Kernel.warning ~current:true
+            "@[overflow in float (%s).@ %a@]%t" (f ())
+            !Ast_printer.d_code_annotation annotation suffix
       in
       ( match get_syntactic_context () with
       | ki, SyUnOp e ->
@@ -181,7 +213,11 @@ let warn_signed_overflow warn_mode mn mx =
           let r_l = Logic_utils.expr_to_term ~cast:true r in
           let t = Logic_const.term ~loc (TBinOp (op, l_l, r_l)) Linteger in
           aux ki loc t
-      | _ ->
+      | _, SyCallResult ->
+          Kernel.warning ~current:true ~once:true
+            "@[overflow in float being returned:@ \
+                assert(\\is_finite(\\returned_value))@]%t" suffix; ()
+      | _, (SyNone | SyMem _ | SyMemLogic _ | SySep _) ->
           assert false
       )
 
@@ -189,11 +225,11 @@ let warn_shift warn_mode size =
   match warn_mode.others with
     Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
-      begin
+  | Alog(emitter, suffix) ->
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _)-> assert false
+    | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _ | SyCallResult) ->
+      assert false
     | ki,SyBinOp ((Shiftrt | Shiftlt),_,exp_d) ->
         let loc = exp_d.eloc in
         let lexpr = Logic_utils.expr_to_term ~cast:true exp_d in
@@ -206,23 +242,22 @@ let warn_shift warn_mode size =
                     Logic_const.unamed ~loc
                       (Prel (Rlt,lexpr, lconstant (My_bigint.of_int size))))))
         in
-        if register_alarm ki (Shift_alarm,annotation) wo then
+        if Alarms.register ki (Shift_alarm,annotation) emitter then
           Kernel.warning ~current:true
-            "@[invalid RHS operand for shift.@ %a@]" !Ast_printer.d_code_annotation annotation;
-        stop_if_stop_at_first_alarm_mode ()
+            "@[invalid RHS operand for shift.@ %a@]%t"
+            !Ast_printer.d_code_annotation annotation suffix;
     | _,SyBinOp(_,_,_) ->
-        assert false
-      end
+      assert false
 
 let warn_shift_left_positive warn_mode =
   match warn_mode.others with
     Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
-      begin
+  | Alog(emitter, suffix) ->
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _)-> assert false
+    | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _ | SyCallResult) ->
+        assert false
     | ki,SyBinOp ((Shiftrt | Shiftlt),exp_l,_) ->
         let loc = exp_l.eloc in
         let lexpr = Logic_utils.expr_to_term ~cast:true exp_l in
@@ -232,33 +267,42 @@ let warn_shift_left_positive warn_mode =
                 ([],
                 Logic_const.unamed ~loc (Prel (Rge,lexpr, lzero()))))
         in
-        if register_alarm ki (Shift_alarm,annotation) wo then
+        if Alarms.register ki (Shift_alarm,annotation) emitter then
           Kernel.warning ~current:true
-            "@[invalid LHS operand for left shift.@ %a@]" !Ast_printer.d_code_annotation annotation;
-        stop_if_stop_at_first_alarm_mode ()
+            "@[invalid LHS operand for left shift.@ %a@]%t"
+            !Ast_printer.d_code_annotation annotation suffix
     | _,SyBinOp(_,_,_) ->
         assert false
-      end
 
-let warn_mem warn_mode msg =
+type warn_mem_mode = WMRead | WMWrite
+
+let pretty_warn_mem_mode fmt m =
+  Format.pp_print_string fmt
+    (match m with WMRead -> "read" | WMWrite -> "write")
+
+let warn_mem warn_mode wmm =
   match warn_mode.others with
-    Aignore -> ()
+  | Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
+  | Alog(emitter, suffix) ->
       begin
         let warn_term ki loc term =
+          let valid =
+            if wmm = WMRead then Logic_const.pvalid_read
+            else Logic_const.pvalid
+          in
           let annotation =
             Logic_const.new_code_annotation
-              (AAssert ([], Logic_const.unamed ~loc (Pvalid term)))
+              (AAssert ([], valid ~loc (Logic_const.here_label,term)))
           in
-          if register_alarm ki (Memory_alarm, annotation) wo then
-            Kernel.warning ~current:true "@[out of bounds %s.@ %a@]" msg
-              !Ast_printer.d_code_annotation annotation;
-	  stop_if_stop_at_first_alarm_mode ()
+          if Alarms.register ki (Memory_alarm, annotation) emitter then
+            Kernel.warning ~current:true "@[out of bounds %a.@ %a@]%t"
+              pretty_warn_mem_mode wmm
+              !Ast_printer.d_code_annotation annotation suffix;
         in
         match get_syntactic_context () with
           | _,SyNone -> ()
-          | _,(SyBinOp _ | SyUnOp _ | SySep _) -> assert false
+          | _,(SyBinOp _ | SyUnOp _ | SySep _ | SyCallResult) -> assert false
           | ki,SyMem lv_d ->
               let loc = sc_kinstr_loc ki in
               let exp = mkAddrOrStartOf ~loc lv_d in
@@ -271,33 +315,47 @@ let warn_mem warn_mode msg =
               warn_term ki term.term_loc term
       end
 
-let warn_index warn_mode msg index =
+let warn_mem_read warn_mode = warn_mem warn_mode WMRead
+let warn_mem_write warn_mode = warn_mem warn_mode WMWrite
+
+
+let warn_index warn_mode ~positive ~range =
   match warn_mode.others with
-    Aignore -> ()
+  | Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
-      begin
+  | Alog(emitter, suffix) ->
     match get_syntactic_context () with
     | _,SyNone -> ()
-    | _,(SyMem _ | SyMemLogic _ | SyUnOp _ | SySep _) -> assert false
+    | _,(SyMem _ | SyMemLogic _ | SyUnOp _ | SySep _ | SyCallResult) ->
+      assert false
     | ki ,SyBinOp (IndexPI,e1,e2) ->
-        let loc = e1.eloc in
-        let lexpr = Logic_utils.expr_to_term ~cast:true e1 in
-        let rexpr = Logic_utils.expr_to_term ~cast:true e2 in
-        let p0 = Logic_const.prel ~loc:lexpr.term_loc (Rle, lzero(), lexpr) in
-        let p1 = Logic_const.prel ~loc:rexpr.term_loc (Rlt, lexpr, rexpr) in
-        let p = Logic_const.pand ~loc (p0,p1) in
-        let annotation = Logic_const.new_code_annotation (AAssert ([],p)) in
-        if register_alarm ki (Index_alarm,annotation) wo then
-          Kernel.warning ~current:true "@[%s out of bounds index %s.@ %a@]"
-            msg index !Ast_printer.d_code_annotation annotation;
-	stop_if_stop_at_first_alarm_mode ()
+        let expr = Logic_utils.expr_to_term ~cast:true e1 in
+        let loc = expr.term_loc in
+        let bound = Logic_utils.expr_to_term ~cast:true e2 in
+        let p_pos = Logic_const.prel ~loc (Rlt, expr, bound) in
+        let emit p =
+          let annotation = Logic_const.new_code_annotation (AAssert ([],p)) in
+          Alarms.register ki (Index_alarm,annotation) emitter
+        in
+        let pos = emit p_pos in
+        let neg =
+          if not positive then
+            let p_neg = Logic_const.prel ~loc (Rle, lzero(), expr) in
+            emit p_neg
+          else false
+        in
+        if pos || neg then
+          Kernel.warning ~current:true
+            "@[accessing out of bounds index %s.@ @[assert@ %t;@]@]%t" range
+            (fun fmt ->
+              if neg then
+                Format.fprintf fmt "0 %a@ " Cil.d_relation Rle;
+              Cil.d_term fmt expr;
+              if pos then
+                Format.fprintf fmt "@ < %a" Cil.d_term bound;
+            ) suffix
     | _,SyBinOp(_,_,_) ->
-        assert false
-      end
-
-let warn_mem_read warn_mode = warn_mem warn_mode "read"
-let warn_mem_write warn_mode = warn_mem warn_mode "write"
+      assert false
 
 let comparable_pointers t1 t2 =
   let preds = Logic_env.find_all_logic_functions "\\pointer_comparable" in
@@ -337,34 +395,32 @@ let comparable_pointers t1 t2 =
   Papp (pi, [], [t1;t2])
 
 let warn_pointer_comparison warn_mode =
-  match warn_mode.others with
+  match warn_mode.defined_logic with
     Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
-      begin
-  match get_syntactic_context () with
-  | _,SyNone -> ()
-  | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _) -> assert false
-  | ki,SyBinOp ((Eq|Ne|Ge|Le|Gt|Lt),exp_l,exp_r) ->
+  | Alog(emitter, suffix) ->
+    match get_syntactic_context () with
+    | _,SyNone -> ()
+    | _,(SyUnOp _ | SyMem _ | SyMemLogic _ | SySep _ | SyCallResult) ->
+      assert false
+    | ki,SyBinOp ((Eq|Ne|Ge|Le|Gt|Lt),exp_l,exp_r) ->
       let loc = exp_l.eloc in
       let lexpr_l = Logic_utils.expr_to_term ~cast:true exp_l in
       let lexpr_r = Logic_utils.expr_to_term ~cast:true exp_r in
       let t = Logic_const.unamed ~loc (comparable_pointers lexpr_l lexpr_r) in
       let annotation = Logic_const.new_code_annotation (AAssert ([], t)) in
-      if register_alarm ki (Pointer_compare_alarm,annotation) wo then
+      if Alarms.register ki (Pointer_compare_alarm,annotation) emitter then
         Kernel.warning ~current:true
-          "@[pointer comparison:@ %a@]"
-          !Ast_printer.d_code_annotation annotation;
-      stop_if_stop_at_first_alarm_mode ()
-  | _,SyBinOp(_,_,_) ->
+          "@[pointer comparison:@ %a@]%t"
+          !Ast_printer.d_code_annotation annotation suffix;
+    | _,SyBinOp(_,_,_) ->
       assert false
-end
 
 let result_nan_infinite t =
   let pi =
     match Logic_env.find_all_logic_functions "\\is_finite" with
-      | i :: _ -> i
-      | [] -> assert false
+    | i :: _ -> i
+    | [] -> assert false
   in
   let op = Logic_utils.expr_to_term ~cast:true t in
   Papp (pi, [], [op])
@@ -373,81 +429,87 @@ let warn_result_nan_infinite warn_mode =
   match warn_mode.others with
     Aignore -> ()
   | Acall f -> f()
-  | Alog wo ->
-      begin
-  match get_syntactic_context () with
-  | _,SyNone -> ()
-  | _,(SyBinOp _ | SyMem _ | SyMemLogic _ | SySep _) -> assert false
-  | ki,SyUnOp (exp_r) ->
+  | Alog(emitter, suffix) ->
+    match get_syntactic_context () with
+    | _,SyNone -> ()
+    | _,(SyBinOp _ | SyMem _ | SyMemLogic _ | SySep _) -> assert false
+    | _, SyCallResult -> (* cf. bug 997 *)
+      Kernel.warning ~current:true ~once:true
+        "@[non-finite float being returned:@ \
+              assert(\\is_finite(\\returned_value))@]%t" suffix;
+    | ki,SyUnOp (exp_r) ->
       let loc = exp_r.eloc in
       let t = Logic_const.unamed ~loc (result_nan_infinite exp_r) in
       let annotation = Logic_const.new_code_annotation (AAssert ([], t)) in
-      if register_alarm ki (Result_is_nan_or_infinite_alarm,annotation) wo then
+      if Alarms.register ki (Result_is_nan_or_infinite_alarm,annotation) emitter
+      then
         Kernel.warning ~current:true ~once:true
           "@[float operation:@ %a@]"
-          !Ast_printer. d_code_annotation annotation;
-      stop_if_stop_at_first_alarm_mode ()
-end
+          !Ast_printer. d_code_annotation annotation
 
-let warn_uninitialized warn_mode =
-  match warn_mode.unspecified with
+let warn_uninitialized warn_mode = match warn_mode.unspecified with
   | Aignore -> ()
-  | Acall f -> f()
-  | Alog wo ->
+  | Acall f -> f ()
+  | Alog(emitter, suffix) ->
     match get_syntactic_context () with
-    | _,SyNone -> ()
-    | _,(SyBinOp _ | SyUnOp _ | SySep _ | SyMemLogic _) -> assert false
-    | ki,SyMem lv_d ->
+    | _, SyNone
+    | _, (SyBinOp _ | SyUnOp _ | SySep _ | SyMemLogic _) -> assert false
+    | _, SyCallResult ->
+      Kernel.warning ~once:true ~current:true
+          "@[returned value may be uninitialized:@ \
+              assert \\initialized(\\returned_value)@]%t" suffix;
+    | ki, SyMem lv_d ->
       let loc = sc_kinstr_loc ki in
       let e = Cil.mkAddrOrStartOf ~loc lv_d in
       let term = Logic_utils.expr_to_term ~cast:false e in
       let annotation =
         Logic_const.new_code_annotation
-          (AAssert ([], Logic_const.unamed ~loc (Pinitialized term)))
+          (AAssert ([], Logic_const.pinitialized ~loc 
+	    (Logic_const.here_label,term)))
       in
-      if register_alarm ki (Other_alarm, annotation) wo then
+      if Alarms.register ki (Other_alarm, annotation) emitter then
         Kernel.warning ~current:true
           "@[accessing uninitialized left-value:@ %a@]"
-          !Ast_printer.d_code_annotation annotation;
-      stop_if_stop_at_first_alarm_mode ()
+          !Ast_printer.d_code_annotation annotation
 
 let warn_escapingaddr warn_mode =
   match warn_mode.unspecified with
   | Aignore -> ()
   | Acall f -> f()
-  | Alog _ ->
+  | Alog(_emitter, suffix) ->
     match get_syntactic_context () with
     | _,SyNone -> ()
     | _,(SyBinOp _ | SyUnOp _ | SySep _ | SyMemLogic _) -> assert false
+    | _, SyCallResult ->
+      Kernel.warning ~once:true ~current:true
+          "@[returned value may be contain escaping addresses:@ \
+              assert \\defined(\\returned_value)@]%t" suffix;
     | _,SyMem lv_d ->
 	Kernel.warning ~once:true ~current:true
-          "@[accessing left-value %a@ that contains escaping addresses;@ assert(Ook)@]"
-          d_lval lv_d;
-	stop_if_stop_at_first_alarm_mode ()
+          "@[accessing left-value %a@ that contains escaping addresses;\
+               @ assert(Ook)@]%t" d_lval lv_d suffix
 
 let warn_separated warn_mode =
-  match warn_mode.unspecified with
-      Aignore -> ()
-    | Acall f -> f()
-    | Alog wo ->
-        begin
-          match get_syntactic_context () with
-            | _,SyNone -> ()
-            | _,(SyBinOp _ | SyUnOp _ | SyMem _ | SyMemLogic _) -> assert false
-            | ki,SySep(lv1,lv2) ->
-                let loc = sc_kinstr_loc ki in
-                let llv1 = Logic_utils.expr_to_term ~cast:true lv1 in
-                let llv2 = Logic_utils.expr_to_term ~cast:true lv2 in
-                let alarm = Logic_const.pseparated ~loc [ llv1; llv2 ] in
-                let annotation =
-                  Logic_const.new_code_annotation (AAssert([],alarm))
-                in
-                if register_alarm ki (Separation_alarm, annotation) wo then
-                  Kernel.warning ~current:true
-                    "@[undefined multiple accesses in expression.@ %a;@]"
-                    !Ast_printer.d_code_annotation annotation;
-		stop_if_stop_at_first_alarm_mode ()
-        end
+  match warn_mode.others with
+  | Aignore -> ()
+  | Acall f -> f()
+  | Alog(emitter, suffix) ->
+    match get_syntactic_context () with
+    | _,SyNone -> ()
+    | _,(SyBinOp _ | SyUnOp _ | SyMem _ | SyMemLogic _| SyCallResult) ->
+      assert false
+    | ki,SySep(lv1,lv2) ->
+      let loc = sc_kinstr_loc ki in
+      let llv1 = Logic_utils.expr_to_term ~cast:true lv1 in
+      let llv2 = Logic_utils.expr_to_term ~cast:true lv2 in
+      let alarm = Logic_const.pseparated ~loc [ llv1; llv2 ] in
+      let annotation =
+        Logic_const.new_code_annotation (AAssert([],alarm))
+      in
+      if Alarms.register ki (Separation_alarm, annotation) emitter then
+        Kernel.warning ~current:true
+          "@[undefined multiple accesses in expression.@ %a;@]%t"
+          !Ast_printer.d_code_annotation annotation suffix
 
 (*
 Local Variables:

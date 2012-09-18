@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,6 +28,12 @@
 val nop: 'a -> unit
   (** Do nothing. *)
 
+val id: 'a -> 'a
+  (** identity function.
+      @since Oxygen-20120901
+   *)
+
+
 val adapt_filename: string -> string
   (** Ensure that the given filename has the extension "cmo" in bytecode
       and "cmxs" in native *)
@@ -44,18 +50,20 @@ val number_to_color: int -> int
 (** {2 Function builders} *)
 (* ************************************************************************* *)
 
-exception NotYetImplemented of string
-(** Use function {!not_yet_implemented} to raise this exception.
-    Do never catch it yourself: let the kernel do the job.
+exception Unregistered_function of string
+(** Do never catch it yourself: let the kernel do the job.
+    @since Oxygen-20120901 
     @plugin development guide *)
 
-val not_yet_implemented: string -> 'a
-  (** @raise NotYetImplemented with the given string. *)
+val mk_labeled_fun: string -> 'a
+(** to be used to initialized a reference over a labeled function.
+    @since Oxygen-20120901
+    @raise Unregistered_function when not properly initialized *)
 
 val mk_fun: string -> ('a -> 'b) ref
-  (** build a reference to an unitialized function (which raises
-      [NotYetImplemented] if it is called).
-      @deprecated since Beryllium-20090901 *)
+  (** build a reference to an unitialized function
+      @raise Unregistered_function when not properly initialized
+      @plugin development guide *)
 
 (* ************************************************************************* *)
 (** {2 Function combinators} *)
@@ -78,9 +86,7 @@ val as_singleton: 'a list -> 'a
 val last: 'a list -> 'a
   (** returns the last element of a list.
       @raise Invalid_argument on an empty list
-      @since Nitrogen-20111001
-   *)
-
+      @since Nitrogen-20111001 *)
 
 val filter_out: ('a -> bool) -> 'a list -> 'a list
   (** Filter out elements that pass the test *)
@@ -112,31 +118,36 @@ val list_compare : ('a -> 'a -> int) -> 'a list -> 'a list -> int
 
 val list_of_opt: 'a option -> 'a list
   (** converts an option into a list with 0 or 1 elt.
-      @since Carbon-20111201-beta2+dev
-   *)
+      @since Carbon-20111201-beta2+dev *)
+
+val opt_of_list: 'a list -> 'a option
+  (** converts a list with 0 or 1 element into an option.
+      @raise Invalid_argument on lists with more than one argument
+      @since Oxygen-20120901 *)
 
 val find_opt : ('a -> 'b option) -> 'a list -> 'b
   (** [find_option p l] returns the value [p e], [e] being the first
       element of [l] such that [p e] is not [None]. Raise [Not_found] if there
       is no such value the list l.
 
-      @since Nitrogen-20111001
-  *)
+      @since Nitrogen-20111001 *)
 
 val iteri: (int -> 'a -> unit) -> 'a list -> unit
   (** Same as iter, but the function to be applied take also as argument the
-      index of the element (starting from 0)
-      @since Nitrogen-20111001
-   *)
+      index of the element (starting from 0). Tail-recursive
+      @since Nitrogen-20111001 *)
 
+val mapi: (int -> 'a -> 'b) -> 'a list -> 'b list
+  (** Same as map, but the function to be applied take also as argument the
+      index of the element (starting from 0). Tail-recursive
+      @since Oxygen-20120901 *)
 
 (* ************************************************************************* *)
 (** {2 Options} *)
 (* ************************************************************************* *)
 
 (** [true] iff its argument is [Some x] 
-    @since Nitrogen-20111001
-*)
+    @since Nitrogen-20111001 *)
 val has_some: 'a option -> bool
 
 val may: ('a -> unit) -> 'a option -> unit
@@ -147,6 +158,23 @@ val may_map: ('a -> 'b) -> ?dft:'b -> 'a option -> 'b
       Assume that either [x] or [dft] is defined. *)
 
 val opt_map: ('a -> 'b) -> 'a option -> 'b option
+
+val opt_fold: ('a -> 'b -> 'b) -> 'a option -> 'b -> 'b
+(** @since Oxygen-20120901 *)
+
+(** [merge f k a b]  returns
+    - [None] if both [a] and [b] are [None]
+    - [Some a'] (resp. [b'] if [b] (resp [a]) is [None] 
+      and [a] (resp. [b]) is [Some]
+    - [f k a' b'] if both [a] and [b] are [Some]
+    
+    It is mainly intended to be used with Map.merge
+    
+    @since Oxygen-20120901
+
+*)
+val merge_opt: ('a -> 'b -> 'b -> 'b) -> 'a -> 
+  'b option -> 'b option -> 'b option
 
 (** [opt_bind f x] returns [None] if [x] is [None] and [f y] if is [Some y]
     (monadic bind)
@@ -168,6 +196,13 @@ val opt_compare : ('a -> 'a -> int) -> 'a option -> 'a option -> int
   (** @since Boron-20100401 *)
 
 (* ************************************************************************* *)
+(** {2 Booleans} *)
+(* ************************************************************************* *)
+
+val xor: bool -> bool -> bool
+(** exclusive-or. @since Oxygen-20120901 *)
+
+(* ************************************************************************* *)
 (** {2 Strings} *)
 (* ************************************************************************* *)
 
@@ -176,8 +211,25 @@ val string_prefix: ?strict:bool -> string -> string -> bool
       prefix of the string [s]. If [strict] is true, the prefix must be strict
       (that is, [s] must moreover be strictly longer than [p]. [strict]
       is false by default.
-
       @since Boron-20100401 *)
+
+val string_del_prefix: ?strict:bool -> string -> string -> string option
+  (** [string_del_prefix ~strict p s] returns [None] if [p] is not a prefix of
+      [s] and Some [s1] iff [s=p^s1].
+      @since Oxygen-20120901 *)
+
+val string_split: string -> int -> string * string
+(** [string_split s i] returns the beginning of [s] up to char [i-1] and the 
+    end of [s] starting from char [i+1]
+    @raise Invalid_argument if [i] is not in the range [[0,(length s -1)]]
+    @since Oxygen-20120901 *)
+
+val make_unique_name: 
+  (string -> bool) -> ?sep:string -> ?start:int -> string -> int*string
+  (** [make_unique_name mem s] returns [(0, s)] when [(mem s)=false]
+      otherwise returns [(n,new_string)] such that [new_string] is 
+      derived from [(s,sep,start)] and [(mem new_string)=false] and [n<>0] 
+      @since Oxygen-20120901 *)
 
 (* ************************************************************************* *)
 (** {2 Performance} *)
@@ -208,11 +260,15 @@ val cleanup_at_exit: string -> unit
 
 exception Temp_file_error of string
 
-val temp_file_cleanup_at_exit: string -> string -> string
+val temp_file_cleanup_at_exit: ?debug:bool -> string -> string -> string
   (** Similar to [Filename.temp_file] except that the temporary file will be
-      deleted at the end of the execution (see above).
+      deleted at the end of the execution (see above), unless [debug] is set
+      to true, in which case a message with the name of the kept file will be
+      printed.
       @raise Temp_file_error if the temp file cannot be created.
-      @modify Nitrogen-20111001 may now raise Temp_file_error *)
+      @modify Nitrogen-20111001 may now raise Temp_file_error
+      @modify Oxygen-20120901 optional debug argument
+*)
 
 val temp_dir_cleanup_at_exit: string -> string
 (** @raise Temp_file_error if the temp dir cannot be created.

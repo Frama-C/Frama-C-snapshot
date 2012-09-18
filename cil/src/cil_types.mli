@@ -284,7 +284,7 @@ and attributes = attribute list
 
 (** The type of parameters of attributes *)
 and attrparam =
-  | AInt of int                          (** An integer constant *)
+  | AInt of My_bigint.t                  (** An integer constant *)
   | AStr of string                       (** A string constant *)
   | ACons of string * attrparam list 
   (** Constructed attributes. These are printed [foo(a1,a2,...,an)]. The list
@@ -292,12 +292,8 @@ and attrparam =
       printed. *)
   | ASizeOf of typ                       (** A way to talk about types *)
   | ASizeOfE of attrparam
-  | ASizeOfS of typsig                 
-  (** Replacement for ASizeOf in type signatures. Only used for attributes
-      inside typsigs.*)
   | AAlignOf of typ
   | AAlignOfE of attrparam
-  | AAlignOfS of typsig
   | AUnOp of unop * attrparam
   | ABinOp of binop * attrparam * attrparam
   | ADot of attrparam * string           (** a.foo **)
@@ -603,7 +599,8 @@ and storage =
     This way the integer 15 can be printed as 0xF if that is how it occurred in
     the source.
 
-    CIL uses 64 bits to represent the integer constants and also stores the
+    CIL uses arbitrary precision integers 
+    to represent the integer constants and also stores the
     width of the integer type. Care must be taken to ensure that the constant is
     representable with the given width. Use the functions {!Cil.kinteger},
     {!Cil.kinteger64} and {!Cil.integer} to construct constant expressions. CIL
@@ -619,7 +616,7 @@ and storage =
     Another unusual aspect of CIL is that the implicit conversion between an
     expression of array type and one of pointer type is made explicit, using the
     [StartOf] expression constructor (which is not printed). If you apply the
-    [AddrOf}]constructor to an lvalue of type [T] then you will be getting an
+    [AddrOf]constructor to an lvalue of type [T] then you will be getting an
     expression of type [TPtr(T)].
 
     You can find the type of an expression with {!Cil.typeOf}.
@@ -659,7 +656,8 @@ and exp_node =
 
   | BinOp      of binop * exp * exp * typ
   (** Binary operation. Includes the type of the result. The arithmetic
-      conversions are made explicit for the arguments. *)
+      conversions are made explicit for the arguments.
+      @plugin development guide *)
 
   | CastE      of typ * exp
   (** Use {!Cil.mkCast} to make casts.  *)
@@ -745,8 +743,10 @@ and binop =
   | MinusPI  (** pointer - integer *)
   | MinusPP  (** pointer - pointer *)
   | Mult     (** * *)
-  | Div      (** / *)
-  | Mod      (** % *)
+  | Div      (** /      
+		 @plugin development guide *)
+  | Mod      (** % 
+		 @plugin development guide *)
   | Shiftlt  (** shift left *)
   | Shiftrt  (** shift right *)
 
@@ -900,8 +900,7 @@ and initinfo = { mutable init : init option }
     to manipulate formals you should use the provided functions
     {!Cil.makeFormalVar} and {!Cil.setFormals}.  *)
 
-(** Function definitions.
-    @plugin development guide *)
+(** Function definitions. *)
 and fundec = { 
   mutable svar:     varinfo;
   (** Holds the name and type as a variable, so we can refer to it easily
@@ -1151,17 +1150,18 @@ and instr =
 (** Describes a location in a source file *)
 and location = Lexing.position * Lexing.position
 
-(** Type signatures. Two types are identical iff they have identical
-    signatures *)
-and typsig =
-  | TSArray of typsig * string option (* stands for the size *) * attribute list
-  | TSPtr of typsig * attribute list
-  | TSComp of bool * string * attribute list
-  | TSFun of typsig * typsig list * bool * attribute list
-  | TSEnum of string * attribute list
-  | TSBase of typ
-
 (** {1 Abstract syntax trees for annotations} *)
+
+and logic_constant =
+  | Integer of My_bigint.t * string option 
+  (** Integer constant with a textual representation.  *)
+  | LStr of string (** String constant. *)
+  | LWStr of int64 list (** Wide character string constant. *)
+  | LChr of char (** Character constant. *)
+  | LReal of float * string
+  (** Real constants. Only a textual representation should be available.
+      The floating point constant is an approximation of this representation. *)
+  | LEnum of enumitem (** An enumeration constant.*)
 
 (** Types of logic terms. *)
 and logic_type =
@@ -1204,7 +1204,7 @@ and term = {
 (** the various kind of terms. *)
 and term_node =
   (* same constructs as exp *)
-  | TConst of constant (** a constant. *)
+  | TConst of logic_constant (** a constant. *)
   | TLval of term_lval (** an L-value *)
   | TSizeOf of typ (** size of a given C type. *)
   | TSizeOfE of term (** size of the type of an expression. *)
@@ -1227,8 +1227,9 @@ and term_node =
       (** conditional operator*)
   | Tat of term * logic_label
       (** term refers to a particular program point. *)
-  | Tbase_addr of term (** base address of a pointer. *)
-  | Tblock_length of term (** length of the block pointed to by the term. *)
+  | Tbase_addr of logic_label * term (** base address of a pointer. *)
+  | Toffset of logic_label * term (** offset from the base address of a pointer. *)
+  | Tblock_length of logic_label * term (** length of the block pointed to by the term. *)
   | Tnull (** the null pointer. *)
   | TCoerce of term * typ (** coercion to a given C type. *)
   | TCoerceE of term * term (** coercion to the type of a given term. *)
@@ -1257,13 +1258,22 @@ and term_lhost =
                     *)
   | TMem of term (** memory access. *)
 
+(** model field. *)
+and model_info = {
+  mi_name: string; (** name *)
+  mi_field_type: logic_type; (** type of the field *)
+  mi_base_type: typ; (** type to which the field is associated. *)
+  mi_decl: location; (** where the field has been declared. *)
+}
+
 (** offset of an lvalue. *)
 and term_offset =
   | TNoOffset (** no further offset. *)
   | TField of fieldinfo * term_offset
       (** access to the field of a compound type. *)
+  | TModel of model_info * term_offset (** access to a model field. *)
   | TIndex of term * term_offset
-      (** index. Note that a range is denoted by [TIndex(t,Trange(i1,i2))] *)
+      (** index. Note that a range is denoted by [TIndex(Trange(i1,i2),ofs)] *)
 
 (** description of a logic function or predicate.
 @plugin development guide *)
@@ -1299,7 +1309,8 @@ and logic_body =
       (string * logic_label list * string list * predicate named) list
 	(** inductive definition *)
 
-(** description of a logic type*)
+(** Description of a logic type.
+    @plugin development guide *)
 and logic_type_info = { 
   lt_name: string;
   lt_params : string list; (** type parameters*)
@@ -1323,11 +1334,12 @@ and logic_var = {
     variable.  *)
 }
 
-(** description of a constructor of a logic sum-type*)
+(** Description of a constructor of a logic sum-type.
+    @plugin development guide *)
 and logic_ctor_info =
  { ctor_name: string; (** name of the constructor. *)
    ctor_type: logic_type_info; (** type to which the constructor belongs. *)
-   ctor_params: logic_type list
+   ctor_params: logic_type list 
  (** types of the parameters of the constructor. *)
  }
 
@@ -1339,7 +1351,14 @@ and logic_ctor_info =
 and quantifiers = logic_var list
 
 (** comparison relations*)
-and relation = Rlt | Rgt | Rle | Rge | Req | Rneq
+and relation = 
+  | Rlt
+  | Rgt
+  | Rle
+  | Rge
+  | Req 
+  | Rneq (** @plugin development guide *)
+
 
 (** predicates *)
 and predicate =
@@ -1361,20 +1380,21 @@ and predicate =
   | Pexists of quantifiers * predicate named (** existential quantification. *)
   | Pat of predicate named * logic_label
   (** predicate refers to a particular program point. *)
-  | Pvalid of term   (** the given locations are valid. *)
-  | Pvalid_index of term * term
-      (** {b deprecated:} Use [Pvalid(TLval(TBinOp(PlusPI,p,i)))] instead.
-
+  | Pvalid_read of logic_label * term   (** the given locations are valid for reading. *)
+  | Pvalid of logic_label * term   (** the given locations are valid. *)
+  (** | Pvalid_index of term * term
+      {b deprecated:} Use [Pvalid(TBinOp(PlusPI,p,i))] instead.
           [Pvalid_index(p,i)] indicates that accessing the [i]th element
-          of [p] is valid. *)
-  | Pvalid_range of term * term * term
-      (** {b deprecated:} Use [Pvalid(TLVal(TBinOp(PlusPI(p,Trange(i1,i2)))))]
-          instead.
-
+          of [p] is valid.
+      | Pvalid_range of term * term * term
+       {b deprecated:} Use [Pvalid(TBinOp(PlusPI(p,Trange(i1,i2))))] instead.
           similar to [Pvalid_index] but for a range of indices.*)
-  | Pinitialized of term   (** the given locations are initialized. *)
-  | Pfresh of term
-      (** The given term is newly allocated in the post-state of a function.*)
+  | Pinitialized of logic_label * term   (** the given locations are initialized. *)
+  | Pallocable of logic_label * term   (** the given locations can be allocated. *)
+  | Pfreeable of logic_label * term   (** the given locations can be free. *)
+  | Pfresh of logic_label * logic_label * term * term
+      (** \fresh(pointer, n)
+	  A memory block of n bytes is newly allocated to the pointer.*)
   | Psubtype of term * term
       (** First term is a type tag that is a subtype of the second. *)
 
@@ -1390,6 +1410,13 @@ and identified_predicate = {
 (*  Polymorphic types shared with parsed trees (Logic_ptree) *)
 (** variant of a loop or a recursive function. Type shared with Logic_ptree. *)
 and 'term variant = 'term * string option
+
+(** allocates and frees. 
+    @since Oxygen-20120901  *)
+and 'locs allocation =
+  | FreeAlloc of 'locs list * 'locs list (** tsets. Empty list means \nothing. *)
+  | FreeAllocAny (** Nothing specified. Semantics depends on where it 
+		     is written. *)
 
 (** dependencies of an assigned location. Shared with Logic_ptree. *)
 and 'locs deps =
@@ -1432,6 +1459,7 @@ and ('term,'pred,'locs) spec = {
 }
 
 (** Behavior of a function. Type shared with Logic_ptree.
+    @since Oxygen-20120901 [b_allocation] has been added.
     @since Carbon-20101201 [b_requires] has been added.
     @modify Boron-20100401 [b_ensures] is replaced by [b_post_cond].
     Old [b_ensures] represent the [Normal] case of [b_post_cond]. *)
@@ -1441,6 +1469,7 @@ and ('pred,'locs) behavior = {
   mutable b_assumes : 'pred list; (** assume clauses. *)
   mutable b_post_cond : (termination_kind * 'pred) list; (** post-condition. *)
   mutable b_assigns : 'locs assigns; (** assignments. *)
+  mutable b_allocation : 'locs allocation; (** frees, allocates. *)
   mutable b_extended : (string * int * 'pred list) list
 (** Grammar extensions *)
 }
@@ -1448,7 +1477,7 @@ and ('pred,'locs) behavior = {
 (** Pragmas for the value analysis plugin of Frama-C.
     Type shared with Logic_ptree.*)
 and 'term loop_pragma =
-  | Unroll_level of 'term
+  | Unroll_specs of 'term list
   | Widen_hints of 'term list
   | Widen_variables of 'term list
 
@@ -1495,6 +1524,11 @@ and ('term, 'pred, 'spec_pred, 'locs) code_annot =
   (** loop assigns.  (see [b_assigns] in the behaviors for other assigns).  At
       most one clause associated to a given (statement, behavior) couple.  *)
 
+  | AAllocation of string list * 'locs allocation
+  (** loop allocation clause.  (see [b_allocation] in the behaviors for other allocation clauses).
+      At most one clause associated to a given (statement, behavior) couple.
+      @since Oxygen-20120901 when [b_allocation] has been added.  *)
+
   | APragma of 'term pragma (** pragma. *)
 
 (** function contract. *)
@@ -1530,9 +1564,18 @@ and global_annotation =
   (** global invariant. The predicate does not have any argument. *)
   | Dtype_annot of logic_info * location
   (** type invariant. The predicate has exactly one argument. *)
-  | Dmodel_annot of logic_info * location
+  | Dmodel_annot of model_info * location
   (** Model field for a type t, seen as a logic function with one 
       argument of type t *)
+  | Dcustom_annot of custom_tree * string* location
+      (*Custom declaration*)
+
+and custom_tree = CustomDummy
+(*
+  | CustomType of logic_type
+  | CustomLexpr of lexpr
+  | CustomOther of string * (custom_tree list)
+*)
 
 type kinstr =
   | Kstmt of stmt
@@ -1555,6 +1598,7 @@ type alarm =
   | Shift_alarm
   | Pointer_compare_alarm
   | Signed_overflow_alarm
+  | Float_overflow_alarm
   | Using_nan_or_infinite_alarm
   | Result_is_nan_or_infinite_alarm
   | Separation_alarm
@@ -1565,9 +1609,8 @@ type rooted_code_annotation =
   | AI of alarm*code_annotation
 
 (** Except field [fundec], do not use the other fields directly.
-    Prefer to use {!Kernel_function.find_return}, {!Kernel_function.get_spec}
-    or {!Kernel_function.set_spec}.
-    @plugin development guide *)
+    Prefer to use {!Kernel_function.find_return}, {!Annotations.funspec},
+    [Annotations.add_*] or [Annotations.remove_*]. *)
 type kernel_function = {
   mutable fundec : cil_function;
   mutable return_stmt : stmt option;

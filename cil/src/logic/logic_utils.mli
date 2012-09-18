@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,10 +17,13 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
+
+(** Utilities for ACSL constructs.
+    @plugin development guide *)
 
 open Cil_types
 
@@ -52,10 +55,6 @@ val instantiate :
     [true] (this is the default), C typedef will be expanded as well. *)
 val unroll_type : ?unroll_typedef:bool -> logic_type -> logic_type
 
-(** computes a type signature for a C type and removes attributes that
-    are not meaningful for the logic. See {!Cil.typeSig} for more information.
- *)
-val type_sig_logic : ?drop_attributes:bool -> typ -> typsig
 
 (** [isLogicType test typ] is [false] for pure logic types and the result
     of test for C types.
@@ -91,10 +90,6 @@ val translate_old_label: stmt -> predicate named -> predicate named
 
 (** {2 Terms} *)
 
-(** creates a cast. *)
-val insert_logic_cast :
-  typ -> term_node -> term_node
-
 (** [true] if the term denotes a C array. *)
 val is_C_array : term -> bool
 
@@ -107,9 +102,22 @@ val isLogicPointer : term -> bool
 (** creates either a TStartOf or the corresponding TLval. *)
 val mk_logic_pointer_or_StartOf : term -> term
 
+(** creates a logic cast if required, with some automatic simplifications being
+    performed automatically *)
+val mk_cast: ?loc:location -> typ -> term -> term
+
+
 (** [array_with_range arr size] returns the logic term [array'+{0..(size-1)}],
     [array'] being [array] cast to a pointer to char *)
 val array_with_range: exp -> term -> term
+
+(** {2 Predicates} *)
+
+(** \valid_index *)
+(* val mk_pvalid_index: ?loc:location -> term * term -> predicate named *)
+
+(** \valid_range *)
+(* val mk_pvalid_range: ?loc:location -> term * term * term -> predicate named *)
 
 
 (** {3 Conversion from exp to term}*)
@@ -124,6 +132,9 @@ val lval_to_term_lval : cast:bool -> lval -> term_lval
 val host_to_term_host : cast:bool -> lhost -> term_lhost
 val offset_to_term_offset :
   cast:bool -> offset -> term_offset
+
+val constant_to_lconstant: constant -> logic_constant
+val lconstant_to_constant: logic_constant-> constant
 
 (** [remove_term_offset o] returns [o] without its last offset and
     this last offset. *)
@@ -172,7 +183,7 @@ val is_same_logic_label :
 *)
 val is_same_pconstant: Logic_ptree.constant -> Logic_ptree.constant -> bool
 
-val is_same_type : ?drop_attributes:bool -> logic_type -> logic_type -> bool
+val is_same_type : logic_type -> logic_type -> bool
 val is_same_var : logic_var -> logic_var -> bool
 val is_same_logic_signature :
   logic_info -> logic_info -> bool
@@ -207,6 +218,8 @@ val is_same_identified_term :
 val is_same_deps :
   identified_term deps ->
   identified_term deps -> bool
+val is_same_allocation :
+  identified_term allocation -> identified_term allocation -> bool
 val is_same_assigns :
   identified_term assigns -> identified_term assigns -> bool
 val is_same_variant : term variant -> term variant -> bool
@@ -234,6 +247,8 @@ val is_same_code_annotation : code_annotation -> code_annotation -> bool
 val is_same_global_annotation : global_annotation -> global_annotation -> bool
 val is_same_axiomatic :
   global_annotation list -> global_annotation list -> bool
+(** @since Oxygen-20120901 *)
+val is_same_model_info: model_info -> model_info -> bool
 
 val is_same_lexpr: Logic_ptree.lexpr -> Logic_ptree.lexpr -> bool
 
@@ -258,6 +273,20 @@ val merge_assigns :
   identified_term assigns ->
   identified_term assigns -> identified_term assigns
 
+(** Concatenates two allocation clauses if both are defined, 
+    returns FreeAllocAny if one (or both) of them is FreeAllocAny. 
+    @since Nitrogen-20111001 *)
+val concat_allocation:
+  identified_term allocation ->
+  identified_term allocation -> identified_term allocation
+
+(** merge allocation: take the one that is defined and select an arbitrary one
+    if both are, emitting a warning unless both are syntactically the same. 
+    @since Oxygen-20120901 *)
+val merge_allocation :
+  identified_term allocation ->
+  identified_term allocation -> identified_term allocation
+
 val merge_behaviors :
   silent:bool -> funbehavior list -> funbehavior list -> funbehavior list
 
@@ -268,8 +297,6 @@ val merge_funspec :
   ?silent_about_merging_behav:bool -> funspec -> funspec -> unit
 
 (** Reset the given funspec to empty. 
-    If the funspec belongs to a kernel function, do not forget to call
-    {!Kernel_function.set_spec} after clearing.
     @since Nitrogen-20111001 *)
 val clear_funspec: funspec -> unit
 

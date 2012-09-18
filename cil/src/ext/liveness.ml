@@ -52,7 +52,7 @@ open Cil
 
 module DF = Dataflow
 module UD = Usedef
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
 (* module E = Errormsg *)
 
 let debug = ref false
@@ -121,6 +121,8 @@ module LiveFlow = struct
     DF.Post transform
 
   let filterStmt _stm1 _stm2 = true
+
+  let stmt_can_reach _ _ = true
 
 end
 

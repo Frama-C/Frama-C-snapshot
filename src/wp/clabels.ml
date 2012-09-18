@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,6 +35,11 @@ type c_label =
   | CallAt of int
   | LabelParam of string
 
+let equal = (=)
+
+module T = struct type t = c_label let compare = Pervasives.compare end
+module LabelMap = Map.Make(T)
+module LabelSet = Set.Make(T)
 
 let has_prefix p s =
   let rec scan k p s =
@@ -107,6 +112,15 @@ let label f a x =
              then f (Printf.sprintf "Stmt%d" sid) x else x)
             labels
   else x
+
+let lookup_name = function
+  | Pre  -> "Pre"
+  | Here -> "Here"
+  | Post -> "Post"
+  | Exit -> "Exit"
+  | LabelParam p -> p
+  | CallAt sid -> Printf.sprintf "<call:%d>" sid
+  | At(_,sid) -> Printf.sprintf "<stmt:%d>" sid
 
 let lookup labels param =
   try

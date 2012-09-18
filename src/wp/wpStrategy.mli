@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -197,9 +197,7 @@ val add_node_annots : annots_tbl -> Cil2cfg.t -> Cil2cfg.node ->
 val add_loop_annots : annots_tbl -> Cil2cfg.t -> Cil2cfg.node -> 
   entry:t_annots -> back:t_annots -> core:t_annots -> unit
 
-val add_axiom : annots_tbl -> 
-  string -> logic_label list -> predicate named ->
-  unit
+val add_axiom : annots_tbl -> LogicUsage.logic_lemma -> unit
 
 val add_all_axioms : annots_tbl -> unit
 
@@ -230,6 +228,9 @@ val global_axioms : strategy -> WpPropId.axiom_info list
 val behavior_name_of_strategy : strategy -> string option
 
 val cfg_of_strategy : strategy -> Cil2cfg.t
+
+val get_kf : strategy -> kernel_function
+val get_bhv : strategy -> string option
 
 val pp_info_of_strategy : Format.formatter -> strategy -> unit
 

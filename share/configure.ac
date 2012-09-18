@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -20,6 +20,16 @@
 #                                                                        #
 ##########################################################################
 
+# AC_ARG_WITH(frama-c,
+#   AC_HELP_STRING([Frama-C executable name (default is 'frama-c')]),
+#   [FRAMA_C=$withval],
+#   [FRAMA_C=frama-c])
+
+# AC_ARG_WITH(frama-c-gui,
+#     AC_HELP_STRING([Frama-C executable name (default is 'frama-c')]),
+#     [FRAMA_C_GUI=$withval],
+#     [FRAMA_C_GUI=frama-c-gui])
+
 m4_ifdef([FRAMAC_MAIN_AUTOCONF],,
          [m4_ifdef([plugin_file],
              [AC_INIT(plugin_file)],
@@ -31,8 +41,12 @@ m4_ifdef([FRAMAC_MAIN_AUTOCONF],,
             tr "a-z- " "A-Z__")
           for plugin in ${KNOWN_PLUGINS}; do
             export $(echo ENABLE_$plugin)=yes
-          done]
-          AC_CHECK_PROG(ENABLE_GUI,[frama-c-gui],[yes],[no])])
+          done
+          ]
+          AC_SUBST([FRAMAC_VERSION],
+                   [`frama-c -version | sed -n -e "s|^Version: *\(.*\)$|\1|p"`])
+          AC_CHECK_PROG(ENABLE_GUI,[frama-c-gui],[yes],[no])
+         ])
 
 m4_define([PLUGIN_RELATIVE_PATH],
 	  [m4_ifdef([plugin_prefix],plugin_prefix/$1,$1)])

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,21 +29,34 @@ module type S = sig
   (** Are the bits independent? *)
   val is_isotropic : t -> bool
   val cast : with_alarms:CilE.warn_mode -> size:Int.t -> signed:bool -> t -> t
-  val extract_bits : start:Int.t -> stop:Int.t -> t -> bool * t
+  val extract_bits :
+    topify:Origin.kind ->
+    start:Int.t -> stop:Int.t -> size:Int.t ->
+    t ->
+    bool * t
+
   val little_endian_merge_bits :
-    conflate_bottom:bool -> total_length:int -> value:t -> offset:Int.t -> t -> t
+    topify:Origin.kind ->
+    conflate_bottom:bool ->
+    total_length:int -> value:t -> offset:Int.t -> t -> t
+
   val big_endian_merge_bits :
-    conflate_bottom:bool -> total_length:int -> length:Int.t -> value:t -> offset:Int.t -> t -> t
+    topify:Origin.kind ->
+    conflate_bottom:bool ->
+    total_length:int -> length:Int.t -> value:t -> offset:Int.t -> t -> t
 
   (* Make isotropic *)
   val topify_merge_origin : t -> t
   val topify_arith_origin : t -> t
-  val inject_top_origin : Origin.t -> Top_Param.O.t -> t
   val topify_misaligned_read_origin : t -> t
-  val under_topify : t -> t
-  val anisotropic_cast : size:Int.t -> t -> t
-
   val topify_with_origin : Origin.t -> t -> t
+
+  val topify_with_origin_kind: Origin.kind -> t -> t
+
+  val inject_top_origin : Origin.t -> Top_Param.O.t -> t
+  val under_topify : t -> t
+
+  val anisotropic_cast : size:Int.t -> t -> t
 
   val singleton_zero : t
   val of_char : char -> t

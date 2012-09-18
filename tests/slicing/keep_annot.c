@@ -3,6 +3,9 @@
    OPT: -check -context-valid-pointers -lib-entry -main f -slice-assert f -slicing-keep-annotations -then-on 'Slicing export' -print
    OPT: -check -context-valid-pointers -lib-entry -main L -slice-pragma L -slicing-keep-annotations -then-on 'Slicing export' -print
    OPT: -check -context-valid-pointers -lib-entry -main L -slice-pragma L -then-on 'Slicing export' -print
+   OPT: -slice-return bts1110 -main bts1110 -then-on 'Slicing export' -print
+
+
 */
 
 typedef struct { int a; double b; } las;
@@ -39,4 +42,15 @@ void L (float u,int nn, float dabs[], float *y) {
     //@ assert (\forall integer k; u<=dabs[k]);
   }
   //@slice pragma expr *y;
+}
+
+int bts1110(int x) {
+  int y = 3;
+  int z;
+  //@ assert y == 3;
+  y = 2;
+  //@ assert x == 5;
+  z = 5;
+  x = x+1;
+  return x;
 }

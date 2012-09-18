@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -58,6 +58,7 @@ module Dpd :
     val combine : t -> t -> t
     val add : t -> td -> t
     val inter : t -> t -> t
+    val intersect : t -> t -> bool
     val minus : t -> t -> t
 
     val pretty_td : Format.formatter -> td -> unit
@@ -67,8 +68,8 @@ module Dpd :
 (** A node of the PDG : includes some information to know where it comes
     from. *)
 module Node : sig
-  include Datatype.S
-  val elem_id : t -> int
+  include Datatype.S_with_collections
+  val id : t -> int
   val elem_key : t -> PdgIndex.Key.t
   val stmt : t ->  Cil_types.stmt option
   (*val equivalent : t -> PdgIndex.Key.t -> bool*)
@@ -86,7 +87,6 @@ module NodeSet : Hptset.S with type elt = Node.t
 module G : sig
 (*  include Datatype.S*)
   type t
-  module V : sig type t = Node.t end
   module E : sig
     type t
     type label
@@ -160,6 +160,9 @@ module Pdg : sig
   val fold_call_nodes :
     ('a -> Node.t -> 'a) -> 'a -> t -> Cil_types.stmt -> 'a
 
+  val iter_direct_dpds : t -> (Node.t -> unit) -> Node.t -> unit
+  val iter_direct_codpds : t -> (Node.t -> unit) -> Node.t -> unit
+
   (** a dependency to another node. The dependency can be restricted to a zone.
   * (None means no restriction ie. total dependency) *)
   type dpd_info = (Node.t * Locations.Zone.t option)
@@ -170,28 +173,37 @@ module Pdg : sig
   val get_all_direct_codpds : t -> Node.t -> dpd_info list
   val get_x_direct_codpds : Dpd.td -> t -> Node.t -> dpd_info list
 
+  val fold_direct_dpds : t ->
+      ('a -> Dpd.t * Locations.Zone.t option -> Node.t -> 'a) ->
+      'a -> Node.t -> 'a
+
+  val fold_direct_codpds : t ->
+      ('a -> Dpd.t * Locations.Zone.t option -> Node.t -> 'a) ->
+      'a -> Node.t -> 'a
+
   val pretty_bw : ?bw:bool -> Format.formatter -> t -> unit
   val pretty_graph : ?bw:bool -> Format.formatter -> G.t -> unit
 
-  type t_fi = (Node.t, unit) PdgIndex.FctIndex.t
+  type fi = (Node.t, unit) PdgIndex.FctIndex.t
 
-  val get_index : t -> t_fi
+  val get_index : t -> fi
 
   (** [make fundec graph states index] *)
   val make :
-    Kernel_function.t -> G.t -> t_data_state Inthash.t -> t_fi -> t
-  val get_states : t -> t_data_state Inthash.t
+    Kernel_function.t -> G.t -> t_data_state Datatype.Int.Hashtbl.t -> fi -> t
+  val get_states : t -> t_data_state Datatype.Int.Hashtbl.t
 
+  (** build the PDG .dot file and put it in [filename].  *)
   val build_dot: string -> t -> unit
 
   module Printer : sig
-    val iter_vertex : (G.V.t -> unit) -> t -> unit
+    val iter_vertex : (Node.t -> unit) -> t -> unit
     val iter_edges_e : (G.E.t * bool -> unit) -> t -> unit
     val graph_attributes : t -> Graph.Graphviz.DotAttributes.graph list
     val default_vertex_attributes : t -> Graph.Graphviz.DotAttributes.vertex list
-    val vertex_name : G.V.t -> string
-    val vertex_attributes : G.V.t -> Graph.Graphviz.DotAttributes.vertex list
-    val get_subgraph : G.V.t -> Graph.Graphviz.DotAttributes.subgraph option
+    val vertex_name : Node.t -> string
+    val vertex_attributes : Node.t -> Graph.Graphviz.DotAttributes.vertex list
+    val get_subgraph : Node.t -> Graph.Graphviz.DotAttributes.subgraph option
     val default_edge_attributes : 'a -> Graph.Graphviz.DotAttributes.edge list
     val edge_attributes : G.E.t * bool -> Graph.Graphviz.DotAttributes.edge list
   end

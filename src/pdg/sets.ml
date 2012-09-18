@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -123,7 +123,7 @@ let find_location_nodes_at_stmt pdg stmt ~before loc =
   let get_stmts_nodes stmts =
     let add (acc_nodes, acc_loc) stmt =
       let nodes, undef = get_stmt_nodes stmt in
-      let acc_nodes = acc_nodes @ nodes in
+      let acc_nodes = nodes @ acc_nodes in
       let acc_loc = match acc_loc, undef with
         | _, None -> acc_loc
         | None, _ -> undef
@@ -205,12 +205,6 @@ let find_output_nodes called_pdg out_key =
   | PdgIndex.Signature.OutRet -> [ find_output_node called_pdg, None ], None
   | PdgIndex.Signature.OutLoc out -> find_location_nodes_at_end called_pdg out
 
-let is_call_to_f stmt f_varinfo =
-  match stmt.skind with
-  | Instr (Call (_, {enode = Lval (Var v, NoOffset)}, _, _)) ->
-    v.vid = f_varinfo.vid
-  | _ -> false
-
 let find_call_stmts kf ~caller =
   match
     List.filter
@@ -271,9 +265,6 @@ let custom_related_nodes get_dpds nodes =
 (** we ignore z_part for the moment. TODO ? *)
 let filter_nodes l =  List.map (fun (n,_) -> n) l
 
-let get_both_dpds pdg n =
-  filter_nodes (Pdg.get_all_direct_codpds pdg n @ Pdg.get_all_direct_dpds pdg n)
-
 (** {3 Backward} build sets of the dependencies of given nodes *)
 
 (** gives the list of nodes that the given node depends on,
@@ -292,20 +283,12 @@ let direct_addr_dpds = direct_x_dpds Dpd.Addr
 (** accumulates in [node_list] the results of [add_node_and_dpds_or_codpds]
     for all the [nodes] *)
 
-(** @return a list containing the initial nodes and all their dependencies. *)
-let all_rec_dpds pdg nodes = custom_related_nodes (direct_dpds pdg) nodes
-
 let find_nodes_all_x_dpds dpd_type pdg nodes =
   let merge_dpds node_list node =
     let node_dpds = direct_x_dpds dpd_type pdg node in
     add_nodes_and_custom_dpds (direct_dpds pdg) node_list node_dpds
   in
   List.fold_left merge_dpds [] nodes
-
-(** gives the [dpd_type] dependencies of the node,
-    and recursively, all the dependencies of those nodes
-    (regardless to their kind) *)
-let all_x_dpds dpd_type pdg node = find_nodes_all_x_dpds dpd_type pdg [node]
 
 let find_nodes_all_dpds pdg nodes =
   let merge_dpds node_list node =
@@ -341,14 +324,11 @@ let all_uses pdg nodes =
   List.fold_left add_codpds [] nodes
 
 (** {3 Others} *)
-
+(* VP: unused function *)
+(*
 let node_set_of_list l =
   List.fold_left (fun acc n -> NodeSet.add n acc) NodeSet.empty l
-
-(** build a list of all the nodes that are related 'somehow' to the given
-    nodes. It is a kind of transitive closure of [all_uses] U [all_dpds]. *)
-let all_related_nodes pdg nodes =
-  custom_related_nodes (get_both_dpds pdg) nodes
+*)
 
 (** @return the call outputs nodes [out] such that
     [find_output_nodes pdg_called out_key]
@@ -362,14 +342,13 @@ let find_call_out_nodes_to_select
   let _, call_sgn =
     FctIndex.find_call (Pdg.get_index pdg_caller) call_stmt
   in
-  let called_selected_nodes_set = node_set_of_list called_selected_nodes in
   let test_out acc (out_key, call_out_node) =
     let called_out_nodes, _undef = find_output_nodes pdg_called out_key in
     (* undef can be ignored in this case because it is taken into account in
      * the call part. *)
     let intersect =
       List.exists
-        (fun (n,_z) -> NodeSet.mem n called_selected_nodes_set)
+        (fun (n,_z) -> NodeSet.mem n called_selected_nodes)
         called_out_nodes
     in
     if intersect then begin
@@ -387,7 +366,6 @@ let find_in_nodes_to_select_for_this_call
     "[pdg:find_in_nodes_to_select_for_this_call] for call sid:%d@."
     call_stmt.sid;
   let sgn = FctIndex.sgn (Pdg.get_index pdg_called) in
-  let caller_selected_nodes_set = node_set_of_list caller_selected_nodes in
   let test_in acc (in_key, in_node) =
     let caller_nodes, _undef =
       find_call_input_nodes pdg_caller call_stmt in_key in
@@ -395,7 +373,7 @@ let find_in_nodes_to_select_for_this_call
      * the call part. *)
     let intersect =
       List.exists
-        (fun (n,_z) -> NodeSet.mem n caller_selected_nodes_set)
+        (fun (n,_z) -> NodeSet.mem n caller_selected_nodes)
         caller_nodes
     in
     if intersect then begin

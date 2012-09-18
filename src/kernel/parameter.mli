@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,8 @@
 (**************************************************************************)
 
 (** Parameter settable through a command line option. 
-    @since Nitrogen-20111001 *)
+    @since Nitrogen-20111001 
+    @plugin development guide *)
 
 type ('a, 'b) gen_accessor = 
     { get: unit -> 'a; 

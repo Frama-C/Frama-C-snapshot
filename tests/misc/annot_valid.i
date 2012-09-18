@@ -49,6 +49,9 @@ int main (int u) {
   case 14:
   //@ assert (\valid((char*)5));
     break;
+  case 15:
+  //@ assert p != \null;
+    break;
   }
 
   return 0;

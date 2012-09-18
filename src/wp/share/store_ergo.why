@@ -1,3 +1,25 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2012                                               *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
 logic eq_unit : unit,unit -> prop
 
 logic neq_unit : unit,unit -> prop
@@ -646,6 +668,20 @@ axiom is_as_float128 : (forall x:real[as_float128(x)].
 
 type data
 
+logic data_of_int : int -> data
+
+logic int_of_data : data -> int
+
+axiom intofdata_dataofint : (forall x:int[data_of_int(x)].
+(int_of_data(data_of_int(x))=x))
+
+logic data_of_real : real -> data
+
+logic real_of_data : data -> real
+
+axiom realofdata_dataofreal : (forall x:real[data_of_real(x)].
+(real_of_data(data_of_real(x))=x))
+
 logic data_of_uint8 : int -> data
 
 logic uint8_of_data : data -> int
@@ -784,19 +820,7 @@ logic lshift : int,int -> int
 
 logic rshift : int,int -> int
 
-logic int_not : int -> int
-
-logic int_and : int,int -> int
-
-logic int_or : int,int -> int
-
-logic int_xor : int,int -> int
-
-logic int_lsh : int,int -> int
-
-logic int_rshs : int,int -> int
-
-logic int_rshu : int,int -> int
+logic string_addr : int -> int
 
 logic addr : int,int -> int
 
@@ -809,6 +833,15 @@ axiom addr_def : (forall a:int.(forall b:int.(forall d:int.
 
 axiom addr_id : (forall p:int[addr(base(p),offset(p))].
 (addr(base(p),offset(p))=p))
+
+axiom addr_id2 : (forall p:int.(forall q:int[base(p),offset(q)].
+((base(p)=base(q)) -> ((offset(p)=offset(q)) -> (p=q)))))
+
+axiom addr_id3 : (forall p:int.(forall q:int[base(p),base(q)].
+((base(p)=base(q)) -> ((offset(p)=offset(q)) -> (p=q)))))
+
+axiom addr_id4 : (forall p:int.(forall q:int[offset(p),offset(q)].
+((base(p)=base(q)) -> ((offset(p)=offset(q)) -> (p=q)))))
 
 logic minus_addr : int,int -> int
 
@@ -823,21 +856,7 @@ predicate addr_le(a:int,b:int) = ((base(a)=base(b)) and (offset(a)<=offset(b)))
 
 function addr_le_bool(a:int,b:int) : bool = bool_and(eq_int_bool(base(a),base(b)),le_int_bool(offset(a),offset(b)))
 
-predicate addr_eq(a:int,b:int) = ((base(a)=base(b)) and (offset(a)=offset(b)))
-
 function addr_eq_bool(a:int,b:int) : bool = bool_and(eq_int_bool(base(a),base(b)),eq_int_bool(offset(a),offset(b)))
-
-axiom cmp_null : (forall p:int[addr_eq(p,0)].((p=0) <-> addr_eq(p,
-0)))
-
-axiom cmp_null_bool : (forall p:int[addr_eq_bool(p,0)].
-((p=0) <-> (addr_eq_bool(p,0)=true)))
-
-axiom cmp_null_not : (forall p:int.((p<>0) <-> (not addr_eq(p,
-0))))
-
-axiom cmp_null_bool_not : (forall p:int[addr_eq_bool(p,0)].
-((p<>0) <-> (addr_eq_bool(p,0)=false)))
 
 logic addr_of_data : data -> int
 
@@ -856,15 +875,16 @@ axiom fresh : (forall mem:data farray.(forall ta:int farray.
 (forall ta':int farray.(forall x:int.(forall p:int.
 (forall n:int[valid(ta',p,n),is_fresh(mem,ta,x)].(is_fresh(mem,ta,
 x) -> ((ta[x]=0) -> ((ta[base(p)]=ta'[base(p)]) -> (valid(ta',p,
-n) -> (forall d:int.(forall sz:int.
+n) -> ((n>0) -> (forall d:int[addr(x,d)].
 (addr(x,d)<>p)))))))))))))
 
 axiom fresh_access : (forall mem:data farray.(forall mem':data farray.
 (forall ta:int farray.(forall ta':int farray.(forall b:int.(forall p:int.
 (forall n:int[is_fresh(mem,ta,b),valid(ta',p,n),addr_of_data(mem'[p])].
 (is_fresh(mem,ta,b) -> ((ta[b]=0) -> (valid(ta',p,
-n) -> ((ta[base(p)]=ta'[base(p)]) -> ((mem[p]=mem'[p]) -> (forall d:int.
-(addr(b,d)<>addr_of_data(mem'[p])))))))))))))))
+n) -> ((n>0) -> ((ta[base(p)]=ta'[base(p)]) -> ((mem[p]=mem'[p]) -> (
+forall d:int[addr(b,d)].
+(addr(b,d)<>addr_of_data(mem'[p]))))))))))))))))
 
 function addr_shift(p:int,dofs:int) : int = addr(base(p),(offset(p)+dofs))
 
@@ -932,7 +952,7 @@ axiom inc_range_range : (forall b:int.(forall d:int.(forall sz:int.
 (forall b':int.(forall d':int.
 (forall sz':int[included(zrange(b,d,sz),zrange(b',d',sz'))].
 (included(zrange(b,d,sz),
-zrange(b',d',sz')) <-> ((d<=(d+sz)) -> ((b=b') and ((d'<=d) and ((d+sz)<=(d'+sz'))))))))))))
+zrange(b',d',sz')) <-> ((d<(d+sz)) -> ((b=b') and ((d'<=d) and ((d+sz)<=(d'+sz'))))))))))))
 
 axiom inc_empty : (forall z:zone.included(zempty,
 z))
@@ -942,7 +962,7 @@ z))
 
 axiom inc_range_empty : (forall b:int.(forall d:int.
 (forall sz:int[included(zrange(b,d,sz),zempty)].(included(zrange(b,d,sz),
-zempty) <-> (b>(b+sz))))))
+zempty) <-> (sz<=0)))))
 
 axiom inc_union_right : (forall z:zone.(forall r:zone.
 (forall s:zone[included(z,zunion(r,s))].((included(z,r) or included(z,
@@ -1148,6 +1168,11 @@ axiom separated_one_elt : (forall n:int.(forall m:int.(forall b:int.
 zrange(b',d',(sz'*m))) -> (forall i:int.(forall j:int.
 ((0<=i) -> ((0<=j) -> ((((d+i)+sz)<=(d+(sz*n))) -> ((((d'+j)+sz')<=(d'+(sz'*m))) -> separated(zrange(b,(d+i),sz),
 zrange(b',(d'+j),sz')))))))))))))))))))
+
+axiom separated_same_base : (forall b:int.(forall d:int.(forall d':int.
+(forall sz:int[separated(zrange(b,d,sz),zrange(b,d',1))].
+(separated(zrange(b,d,sz),
+zrange(b,d',1)) <-> ((((d+sz)-1)<d') or (d'<d)))))))
 
 axiom store_pointer : (forall x:int.(forall ofs:int.(forall y:int.
 (forall ofs':int.(separated_on_addr(addr(x,ofs),addr(y,ofs'),1,

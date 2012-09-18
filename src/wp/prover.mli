@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,23 +20,23 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open VCS
+
 (* -------------------------------------------------------------------------- *)
 (* --- Prover Implementation against Task API                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-val server : unit -> Task.server
+val prove : Wpo.t ->
+  ?interactive:bool -> 
+  ?callback:(Wpo.t -> prover -> result -> unit) ->
+  prover -> bool Task.task
 
-(** {1 Prover Implementations} *)
+val spawn : Wpo.t ->
+  ?callback:(Wpo.t -> prover -> result -> unit) ->
+  (bool * prover) list -> unit
 
-type verdict = Valid | Invalid | Unknown
-
-val prove :
-  ?callin:(Wpo.t -> Wpo.prover -> unit) ->
-  ?callout:(Wpo.t -> Wpo.prover -> Wpo.result -> unit) ->
-  Wpo.t -> interactive:bool -> Wpo.prover -> unit Task.task
-
-(** The task will run the prover and update the Wpo base accordingly. *)
-
-val check :
-  ?callout:(Wpo.t -> Wpo.language -> Wpo.result -> unit) ->
-  Wpo.t -> Wpo.language -> unit Task.task
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

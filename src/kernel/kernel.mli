@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Provided services for kernel developers. *)
+(** Provided services for kernel developers.
+    @plugin development guide *)
 
 (* ************************************************************************* *)
 (** {2 Log Machinery} *)
@@ -57,17 +58,18 @@ module GeneralDebug: Plugin.Int
 module Quiet: Plugin.Bool
   (** Behavior of option "-quiet" *)
 
+(** @plugin development guide *)
 module Unicode: sig
   include Plugin.Bool
   val without_unicode: ('a -> 'b) -> 'a -> 'b
   (** Execute the given function as if the option [-unicode] was not set. *)
 end
-(** Behavior of option "-unicode" *)
+(** Behavior of option "-unicode".
+    @plugin development guide *)
 
 module UseUnicode: Plugin.Bool
   (** Behavior of option "-unicode"
-      @deprecated since Nitrogen-20111001 use module {!Unicode} instead.
-      @plugin development guide *)
+      @deprecated since Nitrogen-20111001 use module {!Unicode} instead. *)
 
 module Time: Plugin.String
   (** Behavior of option "-time" *)
@@ -85,7 +87,8 @@ module PrintCode : Plugin.Bool
 module PrintComments: Plugin.Bool
   (** Behavior of option "-keep-comments" *)
 
-(** Behavior of option "-ocode" *)
+(** Behavior of option "-ocode".
+    @plugin development guide *)
 module CodeOutput : sig
   include Plugin.String
   val output: (Format.formatter -> unit) -> unit
@@ -151,7 +154,7 @@ module Machdep: Plugin.String
 module CppCommand: Plugin.String
   (** Behavior of option "-cpp-command" *)
 
-module CppExtraArgs: Plugin.String_set
+module CppExtraArgs: Plugin.String_list
   (** Behavior of option "-cpp-extra-args" *)
 
 module ReadAnnot: Plugin.Bool
@@ -172,8 +175,14 @@ module SimplifyCfg: Plugin.Bool
 module KeepSwitch: Plugin.Bool
   (** Behavior of option "-keep-switch" *)
 
+module Keep_unused_specified_functions: Plugin.Bool
+(** Behavior of option -keep-unused-specified-function. *)
+
 module Constfold: Plugin.Bool
   (** Behavior of option "-constfold" *)
+
+module InitializedPaddingLocals: Plugin.Bool
+  (** Behavior of option "-initialized-padding-locals" *)
 
 (** Analyzed files *)
 module Files: sig
@@ -196,6 +205,13 @@ val normalization_parameters: Parameter.t list
 (** All the normalization options that influence the AST (in particular,
     changing one will reset the AST entirely *)
 
+module WarnDecimalFloat: Plugin.String
+  (** Behavior of option "-warn-decimal-float" *)
+
+module WarnUndeclared: Plugin.Bool
+  (** Behavior of option "-warn-call-to-undeclared" *)
+
+
 (* ************************************************************************* *)
 (** {3 Customizing cabs2cil options} *)
 (* ************************************************************************* *)
@@ -204,7 +220,19 @@ module AllowDuplication: Plugin.Bool
   (** Behavior of option "-allow-duplication". *)
 
 module DoCollapseCallCast: Plugin.Bool
-  (** Behavior of option "-collapse-call-cast". *)
+  (** Behavior of option "-collapse-call-cast". 
+
+      If false, the destination of a Call instruction should always have the
+      same type as the function's return type.  Where needed, CIL will insert a
+      temporary to make this happen.
+
+      If true, the destination type may differ from the return type, so there
+      is an implicit cast.  This is useful for analyses involving [malloc],
+      because the instruction "T* x = malloc(...);" won't be broken into
+      two instructions, so it's easy to find the allocation type.
+
+      This is false by default.  Set to true to replicate the behavior
+      of CIL 1.3.5 and earlier. *)
 
 module ForceRLArgEval: Plugin.Bool
   (** Behavior of option "-force-rl-arg-eval". *)
@@ -243,23 +271,12 @@ end
 module UnspecifiedAccess: Plugin.Bool
   (** Behavior of option "-unspecified-access" *)
 
-module ArrayPrecisionLevel: Plugin.Int
-  (** Temporary option to voluntarily approximate
-      results of accesses at an imprecise index
-      for the sake of speed. *)
-
-module PreciseUnions: Plugin.Bool
-  (** Temporary option to produce precise results
-      when accessing type-punned data. *)
-
 module Overflow: Plugin.Bool
   (** Behavior of option "-overflow" *)
 
-module StopAtFirstAlarm: Plugin.Bool
-  (** Stop propagation at first alarm *)
-
 module SafeArrays: Plugin.Bool
-  (** Behavior of option "-safe-arrays" *)
+  (** Behavior of option "-safe-arrays".
+      @plugin development guide *)
 
 module AbsoluteValidRange: Plugin.String
   (** Behavior of option "-absolute-valid-range" *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-open Cil_types
 
 exception Not_less_than
 exception Is_not_included
@@ -99,10 +97,11 @@ module type Lattice_Base = sig
   include Lattice with type t = tt
   val project : t -> l
   val inject: l -> t
+  val transform: (l -> l -> l) -> tt -> tt -> tt
 end
 
 module type Lattice_Set = sig
-  module O: Hptset.S
+  module O: Datatype.Set
   type tt = private Set of O.t | Top
   include Lattice with type t = tt and type widen_hint = O.t
   val inject_singleton: O.elt -> t
@@ -112,6 +111,8 @@ module type Lattice_Set = sig
   val apply1: (O.elt -> O.elt) -> (t -> t)
   val fold: ( O.elt -> 'a -> 'a) -> t -> 'a -> 'a
   val iter: ( O.elt -> unit) -> t -> unit
+  val exists: (O.elt -> bool) -> t -> bool
+  val for_all: (O.elt -> bool) -> t -> bool
   val project : t -> O.t
   val mem : O.elt -> t -> bool
 end
@@ -128,20 +129,9 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
       (Set.Make(V))
       (V)
       (struct let module_name = "Make_lattice_set" end)
-    (* TODO: really unchangedcompares? *)
-    let contains_single_elt s =
-      try
-        let mi = min_elt s in
-        let ma = max_elt s in
-        if mi == ma
-        then (* exactly one elt *) Some mi
-        else None
-      with Not_found ->
-        None
   end
 
   type tt = Set of O.t | Top
-  type y = O.t
   type widen_hint = O.t
 
   let bottom = Set O.empty
@@ -171,7 +161,7 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
             | _, Top -> -1
             | Set e1,Set e2 -> O.compare e1 e2
 
-  let rec equal v1 v2 =
+  let equal v1 v2 =
     if v1 == v2 then true
     else
       match v1, v2 with
@@ -291,6 +281,14 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
     | Top -> raise Error_Top
     | Set v -> O.iter f v
 
+  let exists f = function
+    | Top -> true
+    | Set s -> O.exists f s
+
+  let for_all f = function
+    | Top -> false
+    | Set s -> O.for_all f s
+
   let project o = match o with
     | Top -> raise Error_Top
     | Set v -> v
@@ -331,7 +329,6 @@ struct
   module O = O
 
   type tt = Set of O.t | Top
-  type y = O.t
   type widen_hint = O.t
 
   let bottom = Set O.empty
@@ -474,10 +471,17 @@ struct
     | Top -> raise Error_Top
     | Set v -> O.fold f v init
 
-
   let iter f elt = match elt with
     | Top -> raise Error_Top
     | Set v -> O.iter f v
+
+  let exists f = function
+    | Top -> true
+    | Set s -> O.exists f s
+
+  let for_all f = function
+    | Top -> false
+    | Set s -> O.for_all f s
 
   let project o = match o with
     | Top -> raise Error_Top
@@ -515,7 +519,6 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
 
   type l = V.t
   type tt = Top | Bottom | Value of l
-  type y = l
   type widen_hint = V.t list
 
   let bottom = Bottom
@@ -821,9 +824,6 @@ struct
           L1.is_included_exn l1 l2;
           L2.is_included_exn ll1 ll2
 
-  let transform _f (_l1,_ll1) (_l2,_ll2) =
-    raise (Invalid_argument "Abstract_interp.Make_Lattice_Product.transform")
-
   include Datatype.Make
       (struct
         type t = tt (*= Product of t1*t2 | Bottom*)
@@ -919,9 +919,6 @@ struct
         | T1 t1,T1 t1' -> L1.equal t1 t1'
         | T2 t2,T2 t2' -> L2.equal t2 t2'
 
-
-  let inject _ = assert false
-
   (** Forbid [L1 Bottom] *)
   let inject_t1 x =
     if L1.equal x L1.bottom then Bottom
@@ -987,8 +984,6 @@ struct
 
   let is_included_exn v1 v2 =
     if not (is_included v1 v2) then raise Is_not_included
-
-  let transform _f _u _v = assert false
 
   include Datatype.Make
   (struct

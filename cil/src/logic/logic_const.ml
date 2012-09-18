@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -58,16 +58,24 @@ let new_identified_term t =
 
 let fresh_term_id = TermId.next
 
+let refresh_identified_term d = new_identified_term d.it_content
+
+let refresh_identified_term_list = List.map refresh_identified_term
+
 let refresh_deps = function
   | FromAny -> FromAny
   | From l ->
-    From (List.map (fun d -> new_identified_term d.it_content) l)
+    From(refresh_identified_term_list l)
 
 let refresh_from (a,d) = (new_identified_term a.it_content, refresh_deps d)
 
-let refresh_assigns a =
-  match a with
-      WritesAny -> WritesAny
+let refresh_allocation = function
+    | FreeAllocAny -> FreeAllocAny
+    | FreeAlloc(f,a) -> 
+	FreeAlloc((refresh_identified_term_list f),refresh_identified_term_list a)
+
+let refresh_assigns = function
+    | WritesAny -> WritesAny
     | Writes l ->
       Writes(List.map refresh_from l)
 
@@ -78,11 +86,10 @@ let refresh_behavior b =
     b_post_cond =
       List.map (fun (k,p) -> (k, refresh_predicate p)) b.b_post_cond;
     b_assigns = refresh_assigns b.b_assigns;
+    b_allocation = refresh_allocation b.b_allocation;
     b_extended =
       List.map (fun (s,n,p) -> (s,n,List.map refresh_predicate p)) b.b_extended
   }
-
-let refresh_variant (t,s) = (new_identified_term t.it_content,s)
 
 let refresh_spec s =
   { spec_behavior = List.map refresh_behavior s.spec_behavior;
@@ -95,9 +102,10 @@ let refresh_spec s =
 let refresh_code_annotation annot =
   let content =
     match annot.annot_content with
-      | AAssert _ | AInvariant _ | AVariant _ | APragma _ as c -> c
+      | AAssert _ | AInvariant _ | AAllocation _ | AVariant _ | APragma _ as c -> c
       | AStmtSpec(l,spec) -> AStmtSpec(l, refresh_spec spec)
       | AAssigns(l,a) -> AAssigns(l, refresh_assigns a)
+      
   in
   new_code_annotation content
 
@@ -114,110 +122,9 @@ let here_label = LogicLabel (None, "Here")
 
 let old_label = LogicLabel (None, "Old")
 
-(** {2 Predicate constructors} *)
-(* empty line for ocamldoc *)
+let loop_current_label = LogicLabel (None, "LoopCurrent")
 
-let unamed ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p =
-  {content = p ; loc = loc; name = [] }
-
-let ptrue = unamed Ptrue
-let pfalse = unamed Pfalse
-
-let pold ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p = match p.content with
-  | Ptrue | Pfalse -> p
-  | _ -> {p with content = Pat(p, old_label); loc = loc}
-
-let papp ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,lab,a) =
-  unamed ~loc (Papp(p,lab,a))
-
-let pand ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p1, p2) =
-  match p1.content, p2.content with
-  | Ptrue, _ -> p2
-  | _, Ptrue -> p1
-  | Pfalse, _ -> p1
-  | _, Pfalse -> p2
-  | _, _ -> unamed ~loc (Pand (p1, p2))
-
-let por ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p1, p2) =
-  match p1.content, p2.content with
-  | Ptrue, _ -> p1
-  | _, Ptrue -> p2
-  | Pfalse, _ -> p2
-  | _, Pfalse -> p1
-  | _, _ -> unamed ~loc (Por (p1, p2))
-
-let pxor ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p1, p2) =
-  match p1.content, p2.content with
-  | Ptrue, Ptrue -> unamed ~loc Pfalse
-  | Ptrue, _ -> p1
-  | _, Ptrue -> p2
-  | Pfalse, _ -> p2
-  | _, Pfalse -> p1
-  | _,_ -> unamed ~loc (Pxor (p1,p2))
-
-let pnot ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p2 = match p2.content with
-  | Ptrue -> {p2 with content = Pfalse; loc = loc }
-  | Pfalse ->  {p2 with content = Ptrue; loc = loc }
-  | Pnot p -> p
-  | _ -> unamed ~loc (Pnot p2)
-
-let pands l = List.fold_right (fun p1 p2 -> pand (p1, p2)) l ptrue
-let pors l = List.fold_right (fun p1 p2 -> por (p1, p2)) l pfalse
-
-let plet ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p = match p.content with
-  | (_, ({content = Ptrue} as p)) -> p
-  | (v, p) -> unamed ~loc (Plet (v, p))
-
-let pimplies ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p1,p2) =
-  match p1.content, p2.content with
-  | Ptrue, _ | _, Ptrue -> p2
-  | Pfalse, _ -> { name = p1.name; loc = loc; content = Ptrue }
-  | _, _ -> unamed ~loc (Pimplies (p1, p2))
-
-let pif ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (t,p2,p3) =
-  match (p2.content, p3.content) with
-  | Ptrue, Ptrue  -> ptrue
-  | Pfalse, Pfalse -> pfalse
-  | _,_ -> unamed ~loc (Pif (t,p2,p3))
-
-let piff ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p2,p3) =
-  match p2.content, p3.content with
-  | Pfalse, Pfalse -> ptrue
-  | Ptrue, _  -> p3
-  | _, Ptrue -> p2
-  | _,_ -> unamed ~loc (Piff (p2,p3))
-
-(** @plugin development guide *)
-let prel ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (a,b,c) =
-  unamed ~loc (Prel(a,b,c))
-
-let pforall ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (l,p) = match l with
-  | [] -> p
-  | _ :: _ ->
-    match p.content with
-    | Ptrue -> p
-    | _ -> unamed ~loc (Pforall (l,p))
-
-let pexists ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (l,p) = match l with
-  | [] -> p
-  | _ :: _ -> match p.content with
-    | Pfalse -> p
-    | _ -> unamed ~loc (Pexists (l,p))
-
-let pfresh ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p = unamed ~loc (Pfresh p)
-let pvalid ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p = unamed ~loc (Pvalid p)
-let pat ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,q) = unamed ~loc (Pat (p,q))
-let pvalid_index ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,q) =
-  unamed ~loc (Pvalid_index (p,q))
-let pvalid_range ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,q,r) =
-  unamed ~loc (Pvalid_range (p,q,r))
-let pinitialized ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) p =
-  unamed ~loc (Pinitialized p)
-let psubtype ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (p,q) =
-  unamed ~loc (Psubtype (p,q))
-
-let pseparated  ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) seps =
-  unamed ~loc (Pseparated seps)
+let loop_entry_label = LogicLabel (None, "LoopEntry")
 
 (** {2 Types} *)
 
@@ -256,6 +163,25 @@ let is_boolean_type = function
   | Ltype ({ lt_name = s }, []) when s = Utf8_logic.boolean -> true
   | _ -> false
 
+(** {2 Offsets} *)
+
+let rec lastTermOffset (off: term_offset) : term_offset =
+   match off with
+   | TNoOffset | TField(_,TNoOffset) | TIndex(_,TNoOffset) 
+   | TModel(_,TNoOffset)-> off
+   | TField(_,off) | TIndex(_,off) | TModel(_,off) -> lastTermOffset off
+
+let rec addTermOffset (toadd: term_offset) (off: term_offset) : term_offset =
+  match off with
+  | TNoOffset -> toadd
+  | TField(fid', offset) -> TField(fid', addTermOffset toadd offset)
+  | TIndex(t, offset) -> TIndex(t, addTermOffset toadd offset)
+  | TModel(m,offset) -> TModel(m,addTermOffset toadd offset)
+
+let addTermOffsetLval toadd (b, off) : term_lval =
+  b, addTermOffset toadd off
+
+
 (** {2 Terms} *)
 (* empty line for ocamldoc *)
 
@@ -278,23 +204,31 @@ let trange ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) (low,high) =
     (Ltype(Logic_env.find_logic_type "set",[Linteger]))
 
 (** An integer constant (of type integer). *)
-let tinteger ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) ?(ikind=ILongLong) i =
-  term ~loc (TConst (CInt64 (My_bigint.of_int i,ikind,None))) Linteger
+let tinteger ?(loc=Cil_datatype.Location.unknown) i =
+  term ~loc (TConst (Integer (My_bigint.of_int i,None))) Linteger
 
 (** An integer constant (of type integer) from an int64 . *)
 let tinteger_s64
-    ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) ?(ikind=ILongLong) i64 =
-  term ~loc (TConst (CInt64 (My_bigint.of_int64 i64,ikind,None))) Linteger
+    ?(loc=Cil_datatype.Location.unknown) i64 =
+  term ~loc (TConst (Integer (My_bigint.of_int64 i64,None))) Linteger
 
-let tat ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) (t,label) =
+let tint ?(loc=Cil_datatype.Location.unknown) i =
+  term ~loc (TConst (Integer (i,None))) Linteger
+
+(** A real constant (of type real) from a Caml float . *)
+let treal ?(loc=Cil_datatype.Location.unknown) f =
+  term ~loc 
+    (TConst (LReal (f,Pretty_utils.to_string Floating_point.pretty f))) Lreal
+
+let tat ?(loc=Cil_datatype.Location.unknown) (t,label) =
   term ~loc (Tat(t,label)) t.term_type
 
-let told ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) t = tat ~loc (t,old_label)
+let told ?(loc=Cil_datatype.Location.unknown) t = tat ~loc (t,old_label)
 
-let tvar ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) lv =
+let tvar ?(loc=Cil_datatype.Location.unknown) lv =
   term ~loc (TLval(TVar lv,TNoOffset)) lv.lv_type
 
-let tresult ?(loc=Lexing.dummy_pos,Lexing.dummy_pos) typ =
+let tresult ?(loc=Cil_datatype.Location.unknown) typ =
   term ~loc (TLval(TResult typ,TNoOffset)) (Ctype typ)
 
 (* needed by Cil, upon which Logic_utils depends.
@@ -309,6 +243,126 @@ let rec is_exit_status t = match t.term_node with
   | TLval (TVar n,_) when n.lv_name = "\\exit_status" -> true
   | Tat(t,_) -> is_exit_status t
   | _ -> false
+
+(** {2 Predicate constructors} *)
+(* empty line for ocamldoc *)
+
+let unamed ?(loc=Cil_datatype.Location.unknown) p =
+  {content = p ; loc = loc; name = [] }
+
+let ptrue = unamed Ptrue
+let pfalse = unamed Pfalse
+
+let pold ?(loc=Cil_datatype.Location.unknown) p = match p.content with
+  | Ptrue | Pfalse -> p
+  | _ -> {p with content = Pat(p, old_label); loc = loc}
+
+let papp ?(loc=Cil_datatype.Location.unknown) (p,lab,a) =
+  unamed ~loc (Papp(p,lab,a))
+
+let pand ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
+  match p1.content, p2.content with
+  | Ptrue, _ -> p2
+  | _, Ptrue -> p1
+  | Pfalse, _ -> p1
+  | _, Pfalse -> p2
+  | _, _ -> unamed ~loc (Pand (p1, p2))
+
+let por ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
+  match p1.content, p2.content with
+  | Ptrue, _ -> p1
+  | _, Ptrue -> p2
+  | Pfalse, _ -> p2
+  | _, Pfalse -> p1
+  | _, _ -> unamed ~loc (Por (p1, p2))
+
+let pxor ?(loc=Cil_datatype.Location.unknown) (p1, p2) =
+  match p1.content, p2.content with
+  | Ptrue, Ptrue -> unamed ~loc Pfalse
+  | Ptrue, _ -> p1
+  | _, Ptrue -> p2
+  | Pfalse, _ -> p2
+  | _, Pfalse -> p1
+  | _,_ -> unamed ~loc (Pxor (p1,p2))
+
+let pnot ?(loc=Cil_datatype.Location.unknown) p2 = match p2.content with
+  | Ptrue -> {p2 with content = Pfalse; loc = loc }
+  | Pfalse ->  {p2 with content = Ptrue; loc = loc }
+  | Pnot p -> p
+  | _ -> unamed ~loc (Pnot p2)
+
+let pands l = List.fold_right (fun p1 p2 -> pand (p1, p2)) l ptrue
+let pors l = List.fold_right (fun p1 p2 -> por (p1, p2)) l pfalse
+
+let plet ?(loc=Cil_datatype.Location.unknown) p = match p.content with
+  | (_, ({content = Ptrue} as p)) -> p
+  | (v, p) -> unamed ~loc (Plet (v, p))
+
+let pimplies ?(loc=Cil_datatype.Location.unknown) (p1,p2) =
+  match p1.content, p2.content with
+  | Ptrue, _ | _, Ptrue -> p2
+  | Pfalse, _ -> { name = p1.name; loc = loc; content = Ptrue }
+  | _, _ -> unamed ~loc (Pimplies (p1, p2))
+
+let pif ?(loc=Cil_datatype.Location.unknown) (t,p2,p3) =
+  match (p2.content, p3.content) with
+  | Ptrue, Ptrue  -> ptrue
+  | Pfalse, Pfalse -> pfalse
+  | _,_ -> unamed ~loc (Pif (t,p2,p3))
+
+let piff ?(loc=Cil_datatype.Location.unknown) (p2,p3) =
+  match p2.content, p3.content with
+  | Pfalse, Pfalse -> ptrue
+  | Ptrue, _  -> p3
+  | _, Ptrue -> p2
+  | _,_ -> unamed ~loc (Piff (p2,p3))
+
+(** @plugin development guide *)
+let prel ?(loc=Cil_datatype.Location.unknown) (a,b,c) =
+  unamed ~loc (Prel(a,b,c))
+
+let pforall ?(loc=Cil_datatype.Location.unknown) (l,p) = match l with
+  | [] -> p
+  | _ :: _ ->
+    match p.content with
+    | Ptrue -> p
+    | _ -> unamed ~loc (Pforall (l,p))
+
+let pexists ?(loc=Cil_datatype.Location.unknown) (l,p) = match l with
+  | [] -> p
+  | _ :: _ -> match p.content with
+    | Pfalse -> p
+    | _ -> unamed ~loc (Pexists (l,p))
+
+let pfresh ?(loc=Cil_datatype.Location.unknown) (l1,l2,p,n) = unamed ~loc (Pfresh (l1,l2,p,n))
+let pallocable ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pallocable (l,p))
+let pfreeable ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pfreeable (l,p))
+let pvalid_read ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pvalid_read (l,p))
+let pvalid ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pvalid (l,p))
+(* the index should be an integer or a range of integers *)
+let pvalid_index ?(loc=Cil_datatype.Location.unknown) (l,t1,t2) =
+  let ty1 = t1.term_type in
+  let ty2 = t2.term_type in
+  let t, ty =(match t1.term_node with
+		| TStartOf lv -> 
+		    TAddrOf (addTermOffsetLval (TIndex(t2,TNoOffset)) lv)
+		| _ -> TBinOp (PlusPI, t1, t2)),
+    set_conversion ty1 ty2 in
+  let t = term ~loc t ty in
+    pvalid ~loc (l,t)
+(* the range should be a range of integers *)
+let pvalid_range ?(loc=Cil_datatype.Location.unknown) (l,t1,b1,b2) =
+  let t2 = trange ((Some b1), (Some b2)) in
+    pvalid_index ~loc (l,t1,t2)
+let pat ?(loc=Cil_datatype.Location.unknown) (p,q) = unamed ~loc (Pat (p,q))
+let pinitialized ?(loc=Cil_datatype.Location.unknown) (l,p) =
+  unamed ~loc (Pinitialized (l,p))
+let psubtype ?(loc=Cil_datatype.Location.unknown) (p,q) =
+  unamed ~loc (Psubtype (p,q))
+
+let pseparated  ?(loc=Cil_datatype.Location.unknown) seps =
+  unamed ~loc (Pseparated seps)
+
 
 (*
 Local Variables:

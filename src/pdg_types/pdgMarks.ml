@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -42,10 +42,10 @@ type 'tm t_select = (t_select_elem * 'tm) list
 type 'tm t_pdg_select_info = SelList of  'tm t_select | SelTopMarks of 'tm list
 type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_pdg_select_info) list
 
-type 'tm t_info_caller_inputs = (Signature.t_in_key * 'tm) list
+type 'tm t_info_caller_inputs = (Signature.in_key * 'tm) list
 
 type 'tm t_info_called_outputs =
-    (Cil_types.stmt * (Signature.t_out_key * 'tm) list) list
+    (Cil_types.stmt * (Signature.out_key * 'tm) list) list
 
 type 'tm t_info_inter = 'tm t_info_caller_inputs * 'tm t_info_called_outputs
 
@@ -279,7 +279,7 @@ module type T_Proj = sig
   type t_call_info
   type t_fct = (t_mark, t_call_info) PdgIndex.FctIndex.t
 
-  val empty : t
+  val empty : unit -> t
   val find_marks : t -> Cil_types.varinfo -> t_fct option
   val mark_and_propagate :
              t -> PdgTypes.Pdg.t -> t_mark t_select -> unit

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,39 +21,14 @@
 (**************************************************************************)
 
 (** A state is a project-compliant mutable value.
-    @since Carbon-20101201 *)
+    @since Carbon-20101201
+    @plugin development guide *)
 
 open Project_skeleton
 
 (* ************************************************************************** *)
 (** {2 Type declarations} *)
 (* ************************************************************************** *)
-
-type standard_kind =
-  [
-  | `Correctness (** The state has an impact on the correctness of a result. *)
-  | `Internal    (** The state is for internal purpose only:
-                     it is hidden to the external user. *)
-  ]
-
-(** Type of state kinds.
-    @since Carbon-20101201 *)
-type user_kind =
-  [
-  | standard_kind
-  | `Tuning      (** The state has an impact on a result,
-                     but it does not change its correctness.
-                     For instance, it just improves the preciseness. *)
-  | `Irrelevant  (** The state has no impact on any result.
-                     If any analyser is run, then its result is not modified by
-                     setting this state. *)
-  ]
-
-type kind =
-  [
-  | user_kind
-  | `Proxy of standard_kind
-  ]
 
 include Datatype.S_with_collections
 
@@ -74,8 +49,7 @@ module type Local = sig
   val clear: t -> unit
     (** How to clear a state. After clearing, the state should be
         observationaly the same that after its creation (see invariant 2
-        below).
-        @plugin development guide *)
+        below). *)
 
   val get: unit -> t
     (** How to access to the current state. Be aware of invariants 3 and 4
@@ -123,13 +97,10 @@ val unique_name_from_name: string -> string
 (** @return a fresh unique state name from the given name.
     @since Nitrogen-20111001 *)
 
-val kind: t -> kind
-(** Kind of a state.
-    @since Carbon-20101201 *)
-
 val dummy: t
 (** A dummy state.
-    @since Carbon-20101201 *)
+    @since Carbon-20101201
+    @plugin development guide *)
 
 val dummy_unique_name: string
 
@@ -152,48 +123,6 @@ val add_hook_on_update: t -> (unit -> unit) -> unit
     @since Nitrogen-20111001 *)
 
 (* ************************************************************************** *)
-(** {2 Clusters} *)
-(* ************************************************************************** *)
-
-(** Cluster of states for grouping some states together.
-    @since Carbon-20101201 *)
-module Cluster: sig
-
-  val create: string -> t list -> unit
-  (** Group togethers a list of states. Such a group is a so-called `cluster'.
-      The given string is the cluster name. It must be distinct of each other
-      cluster name. When one state of the cluster is updated, all the others are
-      also automatically updated.
-      @since Carbon-20101201 *)
-
-  val extend: string -> t list -> unit
-  (** Extend a cluster with some additional states.
-      @since Carbon-20101201 *)
-
-  val states: t -> t list
-  (** @return all the states (included [s]) in the same
-      cluster of [s], if any. Otherwise, returns the empty list.
-      @since Carbon-20101201 *)
-
-  val name: t -> string option
-    (** [cluster_name s] returns the name of cluster of [s], if any.
-        @since Carbon-20101201 *)
-
-  (** {2 Internal Stuff} *)
-
-  val unmarshal: string option -> t -> unit
-    (** How to unmarshal a cluster stored in a state, previously marshaled with
-        its name.
-        @since Carbon-20101201 *)
-
-  val after_load: unit -> unit
-    (** Must be called after each project loading.
-        Exported for breaking mutual dependencies with [Project].
-        @since Carbon-20101201 *)
-
-end
-
-(* ************************************************************************** *)
 (** {2 Internals}
 
     All this stuff should not be used outside of the Project library.*)
@@ -208,7 +137,7 @@ type state_on_disk =
 
 (** @since Carbon-20101201 *)
 type private_ops = private
-    { descr: Structural_descr.pack;
+    { mutable descr: Structural_descr.pack;
       create: project -> unit;
       remove: project -> unit;
       mutable clear: project -> unit;
@@ -219,38 +148,23 @@ type private_ops = private
       on_update: (unit -> unit) -> unit;
       clean: unit -> unit;
       serialize: project -> state_on_disk;
-      unserialize: project -> state_on_disk -> unit }
+      unserialize: project -> state_on_disk -> unit
+      (** @raise Incompatible_datatype if [state_on_disk] is not 
+                 compatible with the datatype expected by Frama-C's state *) 
+    }
+
+exception Incompatible_datatype of string
 
 val dummy_state_on_disk: state_on_disk
 
 val private_ops: t -> private_ops
 (** @since Carbon-20101201 *)
 
-(* ************************************************************************** *)
-(** {3 Managing the set of known states} *)
-(* ************************************************************************** *)
-
-module States: Local
-(** @since Carbon-20101201 *)
-
-module States_datatype: Datatype.S with type t = States.t
-
-val delete: t -> unit
-(** @since Carbon-20101201 *)
+val set_descr: t -> Structural_descr.pack -> unit
 
 (* ************************************************************************** *)
 (** {3 State generators} *)
 (* ************************************************************************** *)
-
-val unusable: name:string -> string -> t
-(** @return a fresh named version of {!dummy}.
-    @since Carbon-20101201 *)
-
-val is_usable: t -> bool
-(** @since Carbon-20101201 *)
-
-val update_unusable: t -> kind -> (project -> unit) -> unit
-(** @since Carbon-20101201 *)
 
 val create:
   descr:Structural_descr.pack ->
@@ -267,10 +181,12 @@ val create:
   unserialize:(project -> state_on_disk -> unit) ->
   unique_name:string ->
   name:string ->
-  kind ->
   t
 (** @since Carbon-20101201
     @modify Nitrogen-20111001 add the [on_update] argument *)
+
+val delete: t -> unit
+(** @since Carbon-20101201 *)
 
 (*
 Local Variables:

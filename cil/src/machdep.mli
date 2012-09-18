@@ -51,7 +51,7 @@ type t = private
 
 val state: t
 
-(** Apply this funtor to set all the above references at once.
+(** Apply this functor to set all the above references at once.
     Set the machine of the current project only after the call of
     {!Cil.initCIL}: this functor application has no effect if {!Cil.initCIL}
     is not called after the application. *)

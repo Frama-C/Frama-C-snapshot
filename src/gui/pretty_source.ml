@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,6 @@ open Cil_types
 open Db
 open Gtk_helper
 open Cil_datatype
-open Cil
 
 (** The kind of object that can be selected in the source viewer *)
 (* [VP] TODO: unify all annotations related constructor into
@@ -70,6 +69,20 @@ module Localizable =
         | (PStmt _ | PLval _ | PTermLval _ | PVDecl _ | PIP _ | PGlobal _), _
           ->  false
       let mem_project = Datatype.never_any_project
+      let pretty fmt = function
+        | PStmt (_, s) -> Format.fprintf fmt "LocalizableStmt %d (%a)"
+            s.sid Cil.d_loc (Cil_datatype.Stmt.loc s)
+        | PLval (_, ki, lv) -> Format.fprintf fmt "LocalizableLval %a (%a)"
+            Cil.d_lval lv Cil.pretty_loc_simply ki
+        | PTermLval (_, ki, tlv) ->
+            Format.fprintf fmt "LocalizableTermLval %a (%a)"
+            Cil.d_term_lval tlv Cil.pretty_loc_simply ki
+        | PVDecl (_, vi) ->
+            Format.fprintf fmt "LocalizableVDecl %a" Cil.d_var vi
+        | PGlobal g ->
+            Format.fprintf fmt "LocalizableGlobal %a" Cil.d_global g
+        | PIP ip ->
+            Format.fprintf fmt "LocalizableIP %a" Description.pp_property ip
      end)
 
 let kf_of_localizable loc = match loc with
@@ -106,12 +119,12 @@ module Locs:sig
   val add: state -> int * int -> localizable -> unit
   val iter : state -> (int * int -> localizable -> unit) -> unit
   val create : unit -> state
-  val find_next_start :  state -> int -> (localizable -> bool) -> int
   val find : state -> int -> (int * int) * localizable
   val hilite : state -> unit
   val set_hilite : state -> (unit -> unit) -> unit
   val add_finalizer: state -> (unit -> unit) -> unit
   val finalize: state -> unit
+  val size : state -> int
 end
 =
 struct
@@ -157,19 +170,6 @@ struct
     Hashtbl.iter update state.table ;
     match !best with None -> raise Not_found | Some (loc,sid) -> loc, sid
 
-  (* Find the closest localizable q after position p such that [predicate q]. *)
-  let find_next_start state p predicate =
-    let current,_localized = find state p in
-    let next = ref (p+1) in
-    while
-      let next_start,next_item = find state !next in
-      next_start = current || not (predicate next_item)
-    do
-      incr next
-    done;
-    (* Kernel.debug "Char %d has next %d" p !next;*)
-    !next
-
   let iter state f =
     (*Kernel.debug "Iterate on %d locations" (Hashtbl.length locs);*)
     Hashtbl.iter f state.table
@@ -181,8 +181,69 @@ end
 
 let hilite state = Locs.hilite state
 
+module LocsArray:sig
+  type t
+  val create: Locs.state -> t
+  val length : t -> int
+  val get : t -> int -> (int * int) * localizable
+  val find_next : t -> int -> (localizable -> bool) -> int
+end
+=
+struct
+(* computes an ordered array containing all the elements of a Locs.state,
+   the order (<) being such that loc1 < loc2 if either loc1 starts
+   before loc2, or loc1 and loc2 start at the same position but
+   loc1 spawns further than loc2.
+*)
+   
+  type t = ((int*int) * localizable option) array
+      
+  let create state = 
+    let arr = Array.make (Locs.size state) ((0,0), None) in
+    let index = ref 0 in 
+    Locs.iter 
+      state
+      (fun (pb,pe) v ->
+	Array.set arr !index ((pb,pe), Some v) ;
+	incr index
+      )
+    ;
+    Array.sort 
+      (fun ((pb1,pe1),_) ((pb2,pe2),_) ->
+	if (pb1 = pb2) then 
+	  if (pe1 = pe2) then 0
+	  else 
+	    (* most englobing comes first *)
+	    Pervasives.compare pe2 pe1 
+	else Pervasives.compare pb1 pb2
+      ) arr
+    ;
+    arr
+
+  let length arr = Array.length arr
+
+  (* get loc at index i;
+     raises Not_found if none exists *)
+  let get arr i = 
+    if i >= Array.length arr then raise Not_found
+    else 
+      match Array.get arr i with
+	| ((_,_),None) -> raise Not_found
+	| ((pb,pe),Some v) -> ((pb,pe),v)
+	  
+  (* find the next loc in array starting at index i
+     which satifies the predicate; 
+     raises Not_found if none exists *)
+  let find_next arr i predicate = 
+    let rec fnext i = 
+      let ((pb',_pe'),v) = get arr i in
+      if predicate v then pb'
+      else fnext (i+1)
+    in fnext i
+
+end
+
 module Tag = struct
-  type t = localizable
   exception Wrong_decoder
   let make_modem charcode =
     let h = Hashtbl.create 17 in
@@ -330,6 +391,7 @@ class tagPrinterClass = object(self)
       | AStmtSpec _ ->
         (* tags will be set in the inner nodes. *)
         super#pCode_annot fmt ca
+      | AAllocation _ 
       | AAssigns _  ->
         (* tags will be set in the inner nodes. *)
         current_ca <- Some ca;
@@ -450,6 +512,19 @@ class tagPrinterClass = object(self)
     | Some ip ->
       Format.fprintf fmt "@{<%s>%a@}" (Tag.create (PIP ip)) super#pAnnotation a
 
+  method pAllocation ~isloop fmt a =
+    match
+      Property.ip_of_allocation (Extlib.the self#current_kf) self#current_kinstr
+        self#current_behavior_or_loop a
+    with
+        None -> super#pAllocation ~isloop fmt a
+      | Some ip ->
+          localize_predicate <- true;
+          Format.fprintf fmt "@{<%s>%a@}"
+            (Tag.create (PIP ip)) (super#pAllocation ~isloop) a;
+          localize_predicate <- false;
+
+
 (* Not used anymore: all identified predicates are selectable somewhere up
     - assert and loop invariants are PCodeAnnot
     - contracts members have a dedicated tag.
@@ -465,11 +540,28 @@ end
 
 exception Found of int*int
 
+(* This function identifies two distinct localizable that happen to have
+   the same location in the source code, typically because one of them
+   is not printed. Feel free to add other heuristics if needed. *)
+let equal_or_same_loc loc1 loc2 =
+  Localizable.equal loc1 loc2 ||
+    match loc1, loc2 with
+      | PIP (Property.IPReachable (_, Kstmt s, _)), PStmt (_, s')
+      | PStmt (_, s'), PIP (Property.IPReachable (_, Kstmt s, _)) when
+          Cil_datatype.Stmt.equal s s' -> true
+      | PIP (Property.IPReachable (Some kf, Kglobal, _)),
+          (PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _)))
+      | (PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _))),
+          PIP (Property.IPReachable (Some kf, Kglobal, _))
+         when Kernel_function.get_vi kf = vi
+           -> true
+      | _ -> false
+
 let locate_localizable state loc =
   try
     Locs.iter
       state
-      (fun (b,e) v -> if Localizable.equal v loc then raise (Found(b,e)));
+      (fun (b,e) v -> if equal_or_same_loc v loc then raise (Found(b,e)));
     None
   with Found (b,e) -> Some (b,e)
 
@@ -533,6 +625,7 @@ let display_source globals
     (source:GSourceView2.source_buffer) ~(host:Gtk_helper.host) 
     ~highlighter ~selector =
   let state = Locs.create () in
+(*  let highlighter _ ~start:_ ~stop:_ = () in *)
   host#protect
     ~cancelable:false
     (fun () ->
@@ -543,40 +636,46 @@ let display_source globals
        let hiliter () =
          let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
          Gtk_helper.cleanup_all_tags source;
-         Locs.iter
-           state
-           (fun (pb,pe) v ->
-              Gtk_helper.refresh_gui  ();
-              match v with
-              | PStmt (_,ki) ->
-                  (try
-                     let pb,pe = match ki with
-                     | {skind = Instr _ | Return _ | Goto _
-                       | Break _ | Continue _} -> pb,pe
-                     | {skind = If _ | Loop _
-                       | Switch _ } ->
-                         (* These statements contain other statements.
-                            We highlight only until the start of the first
-                            included statement. *)
-                         pb,
-                         (try Locs.find_next_start state pb
-                            (fun p -> match p with
-                             | PStmt _ -> true
-                             | _ -> false (* Do not stop on expressions*))
-                          with Not_found -> pb+1)
-                     | {skind = Block _ | TryExcept _ | TryFinally _
-                       | UnspecifiedSequence _} ->
-                         pb,
-                         (try Locs.find_next_start state pb (fun _ -> true)
-                          with Not_found -> pb+1)
-                     in
-                     highlighter v ~start:pb ~stop:pe
-                   with Not_found -> ())
-              | PTermLval _ | PLval _ | PVDecl _ | PGlobal _
-              | PIP _ ->
-                  highlighter v  ~start:pb ~stop:pe);
+	 let locs_array = LocsArray.create state in
+	 let index_max =  LocsArray.length locs_array in
+	 let index = ref 0 in
+	 while(!index < index_max) do (
+	   try	     
+	     let ((pb,pe),v) = LocsArray.get locs_array !index in
+	     Gtk_helper.refresh_gui  ();
+             match v with
+	       | PStmt (_,ki) ->
+                 (try
+                    let pb,pe = match ki with
+		      | {skind = Instr _ | Return _ | Goto _
+			    | Break _ | Continue _} -> pb,pe
+		      | {skind = If _ | Loop _
+			    | Switch _ } ->
+                          (* These statements contain other statements.
+                             We highlight only until the start of the first
+                             included statement. *)
+                        pb,
+			(try LocsArray.find_next locs_array (!index+1)
+			       (fun p -> match p with
+				 | PStmt _ -> true
+				 | _ -> false (* Do not stop on expressions*))
+			 with Not_found -> pb+1)
+		      | {skind = Block _ | TryExcept _ | TryFinally _
+			    | UnspecifiedSequence _} ->
+                          pb,
+                        (try LocsArray.find_next locs_array (!index+1) (fun _ -> true)
+                         with Not_found -> pb+1)
+                    in
+                    highlighter v ~start:pb ~stop:pe
+                  with Not_found -> ())
+	       | PTermLval _ | PLval _ | PVDecl _ | PGlobal _
+	       | PIP _ ->
+                 highlighter v  ~start:pb ~stop:pe	       
+	   with Not_found -> () ) ;
+	   incr index
+	 done;
          (*  Kernel.debug "Highlighting done (%d occurrences)" (Locs.size ());*)
-
+	 
          (* React to events on the text *)
          source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
          (*  Kernel.debug "Event tag done";*)
@@ -649,10 +748,10 @@ let display_source globals
 
 
 module LineToLocalizable =
-  Datatype.Hashtbl(Inthash)(Datatype.Int)
+  Datatype.Hashtbl(Datatype.Int.Hashtbl)(Datatype.Int)
     (struct let module_name = "Pretty_source.LineToLocalizable" end)
 module FileToLines =
-  Datatype.Hashtbl(Hashtbl.Make(Datatype.String))(Datatype.String)
+  Datatype.Hashtbl(Datatype.String.Hashtbl)(Datatype.String)
     (struct let module_name = "Pretty_source.FilesToLine" end)
 
 module MappingLineLocalizable = struct
@@ -662,7 +761,6 @@ module MappingLineLocalizable = struct
   include State_builder.Hashtbl(FileToLines)(LineToLocalizableAux)
       (struct
         let size = 5
-        let kind = `Internal
         let dependencies = [Ast.self]
         let name = "Pretty_source.line_to_localizable"
        end)

@@ -1,7 +1,6 @@
 /* run.config
-EXECNOW: make -s tests/rte/my_annotation/my_annotation.opt
-CMD: ./tests/rte/my_annotation/my_annotation.opt
-OPT: -journal-disable
+
+OPT: -load-script tests/rte/my_annotation/my_annotation.ml -journal-disable
 */
 
 

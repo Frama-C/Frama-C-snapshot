@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,28 @@ module type S = sig
   include Map.S
   val merge: 
     (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+
+  val filter: (key -> 'a -> bool) -> 'a t -> 'a t
+    (** @since Oxygen-20120901 *)
+
+  val exists: (key -> 'a -> bool) -> 'a t -> bool
+    (** @since Oxygen-20120901 *)
+
+  val max_binding: 'a t -> (key * 'a)
+  (** @raise Not_found if the map is empty
+      @since Oxygen-20120901 *)
+
+  val min_binding: 'a t -> (key * 'a)
+  (** @raise Not_found if the map is empty
+      @since Oxygen-20120901 *)
+
+  val choose: 'a t -> (key * 'a)
+  (** @raise Not_found if the map is empty
+      @since Oxygen-20120901 *)
+
+  val cardinal: 'a t -> int
+  (** @since Oxygen-20120901 *)
+
 end
 
 module Make(Ord:Map.OrderedType): S with type key = Ord.t

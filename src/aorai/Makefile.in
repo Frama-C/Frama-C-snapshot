@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat a l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -48,9 +48,7 @@ PLUGIN_GENERATED:= $(addprefix ${PLUGIN_DIR}/, \
 		ltllexer.ml ltlparser.ml ltlparser.mli \
 		yalexer.ml yaparser.ml yaparser.mli)
 PLUGIN_CMO:= bool3 \
-	spec_tools \
 	aorai_option \
-	cil_manipulation \
 	path_analysis \
 	promelaoutput \
 	logic_simplification \
@@ -66,8 +64,7 @@ PLUGIN_CMO:= bool3 \
 	promelalexer \
 	promelaparser_withexps \
 	promelalexer_withexps \
-	abstract_ai \
-	bycase_ai \
+	aorai_dataflow \
 	aorai_visitors \
 	aorai_register
 PLUGIN_CMI:= ltlast promelaast
@@ -84,6 +81,8 @@ ifneq (@HAS_LTLTOBA@,yes)
 PLUGIN_NO_TEST:=yes
 PLUGIN_NO_DEFAULT_TEST:=yes
 endif
+
+PLUGIN_TESTS_DIRS:=aorai
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 

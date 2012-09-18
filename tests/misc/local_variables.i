@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -inout
+   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -inout -inout-callwise
 */
-
+int w(int *, int*); int unkn(void);
 int A,B,C,D,R,S;
 
 int u()

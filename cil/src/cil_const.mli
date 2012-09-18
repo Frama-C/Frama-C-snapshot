@@ -61,8 +61,18 @@ end
 (** set the vid to a fresh number. *)
 val set_vid: varinfo -> unit
 
-(** returns a copy of the varinfo with a fresh vid. *)
+(** returns a copy of the varinfo with a fresh vid.
+    If the varinfo has an associated logic var, a copy of the logic var
+    is made as well.
+    @modify Oxygen-20120901 take logic var into account
+*)
 val copy_with_new_vid: varinfo -> varinfo
+
+(** [change_varinfo_name vi name] changes the name of [vi] to [name]. Takes
+    care of renaming the associated logic_var if any.
+    @since Oxygen-20120901
+*)
+val change_varinfo_name: varinfo -> string -> unit
 
 val new_raw_id: unit -> int
   (** Generate a new ID. This will be different than any variable ID

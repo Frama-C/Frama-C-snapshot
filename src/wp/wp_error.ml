@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,7 +124,7 @@ let rec protect_map f = function
                 | Warning _ as w -> w )
         | Warning(m,p) -> Warning(m,p)
 
-let rec name = function
+let name = function
   | [] -> ""
   | [x] -> x
   | x::xs ->

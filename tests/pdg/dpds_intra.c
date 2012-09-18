@@ -12,7 +12,7 @@
    OPT: -fct-pdg multiple_global_inputs -journal-disable -pdg-print -pdg-verbose 2
 */
 /* bin/toplevel.opt -deps -main g tests/slicing/dpds_intra.c */
-/* bin/toplevel.opt -fct-pdg test_goto_simple tests/slicing/dpds_intra.c -dot-pdg*/
+/* bin/toplevel.opt -fct-pdg test_goto_simple tests/slicing/dpds_intra.c -pdg-dot */
 
 extern int G;
 

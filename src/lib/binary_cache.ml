@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,6 @@ module MemoryFootprint =
     (struct
        let name = "Binary_cache.MemoryFootprint"
        let dependencies = []
-       let kind = `Internal
        let default () = 2
      end)
 
@@ -336,6 +335,10 @@ struct
 	oldcontents land mask 
     in
     s.[c] <- Char.chr newcontents
+
+  let clear s =
+    let zero = char_of_int 0 in
+    String.fill s 0 (String.length s) zero
 end
 
 module Make_Binary (H0: Cacheable) (H1: Cacheable) =
@@ -346,7 +349,8 @@ struct
   let mask = pred size
 
   let clear () =
-    Array_2.clear cache H0.sentinel H1.sentinel
+    Array_2.clear cache H0.sentinel H1.sentinel;
+    Array_Bit.clear result
 
   let merge f a0 a1 =
     let has =
@@ -378,7 +382,8 @@ struct
   let mask = pred size
 
   let clear () =
-    Array_2.clear cache H0.sentinel H0.sentinel
+    Array_2.clear cache H0.sentinel H0.sentinel;
+    Array_Bit.clear result
 
   let hash = H0.hash
 

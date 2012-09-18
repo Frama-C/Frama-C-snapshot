@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,8 @@
 (** Frama-C GUI early initialization. *)
 
 let () = Config.is_gui := true
+
+let () = Unix.putenv "UBUNTU_MENUPROXY" "0"
 
 (*
 Local Variables:

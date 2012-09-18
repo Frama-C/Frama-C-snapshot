@@ -290,7 +290,7 @@ and checkPointerType (t: typ) =
 
 
 and typeMatch (t1: typ) (t2: typ) =
-  if typeSig t1 <> typeSig t2 then
+  if not (Cil_datatype.Typ.equal t1 t2) then
     match unrollType t1, unrollType t2 with
     (* Allow free interchange of TInt and TEnum *)
       TInt (IInt, _), TEnum _ -> ()
@@ -440,7 +440,7 @@ and checkExpType (isconst: bool) (e: exp) (t: typ) =
   let t' = checkExp isconst e in (* compute the type *)
   if isconst then begin (* For initializers allow a string to initialize an
                          * array of characters  *)
-    if typeSig t' <> typeSig t then
+    if not (Cil_datatype.Typ.equal  t' t) then
       match e, t with
       | _ -> typeMatch t' t
   end else
@@ -677,7 +677,10 @@ and checkStmt (s: stmt) =
             if H.mem labels ln then
               ignore (warn "Multiply defined label %s" ln);
             H.add labels ln ()
-        | Case (e, _) -> checkExpType true e intType
+        | Case (e, _) ->
+            let t = checkExp true e in
+            if not (isIntegralType t) then
+              E.s (bug "Type of case expression is not integer");
         | _ -> () (* Not yet implemented *)
       in
       List.iter checkLabel s.labels;
@@ -721,6 +724,9 @@ and checkStmt (s: stmt) =
           checkBlock bf
       | Switch (e, b, cases, l) ->
           currentLoc := l;
+          let t = checkExp false e in
+          if not (isIntegralType t) then
+            E.s (bug "Type of switch expression is not integer");
           checkExpType false e intType;
           (* Remember the statements so far *)
           let prevStatements = !statements in
@@ -788,7 +794,7 @@ and checkInstr (i: instr) =
       | None, _ -> () (* "Call of function is not assigned" *)
       | Some destlv, rt' ->
           let desttyp = checkLval false destlv in
-          if typeSig desttyp <> typeSig rt then begin
+          if not (Cil_datatype.Typ.equal desttyp rt) then begin
             (* Not all types can be assigned to *)
             (match unrollType desttyp with
               TFun _ -> ignore (warn "Assignment to a function type")

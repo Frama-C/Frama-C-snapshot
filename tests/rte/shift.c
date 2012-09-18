@@ -46,5 +46,7 @@ int main() {
   z = -2 >> 1;
   uz = ((unsigned int) -2) >> 1;
 
+  z = 0 << 10;
+  z = 0 >> 10;
   return 0;
 }

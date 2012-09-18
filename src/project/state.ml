@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,25 +26,6 @@ open Project_skeleton
 (** {2 Type declarations} *)
 (* ************************************************************************** *)
 
-type standard_kind =
-  [
-  | `Correctness
-  | `Internal
-  ]
-
-type user_kind =
-  [
-  | standard_kind
-  | `Tuning
-  | `Irrelevant
-  ]
-
-type kind =
-  [
-  | user_kind
-  | `Proxy of [ `Correctness | `Internal ]
-  ]
-
 type state_on_disk =
     { on_disk_value: Obj.t;
       on_disk_computed: bool;
@@ -52,7 +33,7 @@ type state_on_disk =
       on_disk_digest: Digest.t }
 
 type private_ops =
-    { descr: Structural_descr.pack;
+    { mutable descr: Structural_descr.pack;
       create: t -> unit;
       remove: t -> unit;
       mutable clear: t -> unit;
@@ -68,11 +49,7 @@ type private_ops =
 type state =
     { unique_name: string;
       mutable name: string;
-      mutable kind: kind;
-      mutable cluster: cluster option;
       private_ops: private_ops }
-
-and cluster = { c_name: string; mutable states: state list }
 
 module type Local = sig
   type t
@@ -113,8 +90,6 @@ let dummy_unique_name = ""
 let dummy =
   { name = "";
     unique_name = dummy_unique_name;
-    kind = `Irrelevant;
-    cluster = None;
     private_ops = dummy_private_ops () }
 
 module Caml_hashtbl = Hashtbl
@@ -147,9 +122,10 @@ let is_dummy = equal dummy
 (** {2 Getters} *)
 (* ************************************************************************** *)
 
+exception Incompatible_datatype of string
+
 let get_name s = s.name
 let get_unique_name s = s.unique_name
-let kind s = s.kind
 let private_ops s = s.private_ops
 let get_descr s = s.private_ops.descr
 
@@ -170,159 +146,42 @@ let add_hook_on_update s f = s.private_ops.on_update f
 (** {3 Managing the set of known states} *)
 (* ************************************************************************** *)
 
-module States = struct
-  type state = t
-  type t = (string, state) Caml_hashtbl.t
-  let states = ref (Caml_hashtbl.create 997)
-  let statics = Caml_hashtbl.create 997
-  let create () = Caml_hashtbl.copy statics
-  let clear _h = () (* will be done by dynamic graphs *)
-  let get () = !states
-  let set s = states := s
-  let clear_some_projects _ _  = false
-  let iter f = Caml_hashtbl.iter f !states
-  let exists f =
-    try
-      Caml_hashtbl.iter (fun _ s -> if f s then raise Exit) !states;
-      false
-    with Exit ->
-      true
-end
-open States
-
-module States_datatype =
-  Datatype.Make
-    (struct
-      include Datatype.Undefined
-      type t = States.t
-      let name = "State.States_datatype"
-      let reprs = [ States.statics ]
-     end)
+let states : t Datatype.String.Hashtbl.t = Datatype.String.Hashtbl.create 997
 
 exception Unknown
-let get s = try Caml_hashtbl.find !states s with Not_found -> raise Unknown
+let get s = 
+  try Datatype.String.Hashtbl.find states s 
+  with Not_found -> raise Unknown
 
 let delete s =
   let uname = s.unique_name in
-  assert (Caml_hashtbl.mem !states uname);
-  Caml_hashtbl.remove !states uname
+  assert (Datatype.String.Hashtbl.mem states uname);
+  Datatype.String.Hashtbl.remove states uname
 
-let add s is_static =
+let add s =
   let uname = s.unique_name in
   assert
     (Project_skeleton.Output.verify
-       (not (Caml_hashtbl.mem !states uname))
+       (not (Datatype.String.Hashtbl.mem states uname))
        "state %S already exists."
        uname);
-  Caml_hashtbl.add !states uname s;
-  if is_static then Caml_hashtbl.add statics uname s
+  Datatype.String.Hashtbl.add states uname s
 
 let unique_name_from_name =
   let module M =
         Project_skeleton.Make_setter
-          (struct let mem s = Caml_hashtbl.mem !states s end)
+          (struct let mem s = Datatype.String.Hashtbl.mem states s end)
   in
   M.make_unique_name
-
-(* ************************************************************************** *)
-(** {3 Cluster} *)
-(* ************************************************************************** *)
-
-module Cluster = struct
-
-  let edit_cluster c states =
-    let set_cluster s =
-      if s.cluster <> None then
-        Output.fatal "state %S already in a cluster." s.unique_name;
-      s.cluster <- Some c
-    in
-    List.iter set_cluster states
-
-  let create_and_return name states =
-    if
-      States.exists
-        (fun s -> match s.cluster with
-        | None -> false
-        | Some c -> c.c_name = name)
-    then
-      Output.fatal "cluster %S already exists." name;
-    let c = { c_name = name; states = states } in
-    edit_cluster c states;
-    c
-
-  let create name states = ignore (create_and_return name states)
-
-  exception Found of cluster
-
-  let unsafe_extend c states =
-    edit_cluster c states;
-    (* assume there are less given states than the existing ones. *)
-    c.states <- states @ c.states
-
-  let extend name states =
-    try
-      States.iter
-        (fun _ s -> match s.cluster with
-        | None -> ()
-        | Some c -> raise (Found c));
-      Output.fatal "no existing cluster %S." name;
-    with Found c ->
-      unsafe_extend c states
-
-  let states s = match s.cluster with
-    | None -> []
-    | Some c -> c.states
-
-  let name s = match s.cluster with
-    | None -> None
-    | Some c -> Some c.c_name
-
-  (* Cluster unmarshalling does not work if there is a cluster of name [n] of
-     disk and another one with the same name in RAM.
-     If such a case appear in practice, must implement a full rehashconsing
-     heavier technic. *)
-  let unmarshal, after_load =
-    let h = Datatype.String.Hashtbl.create 7 in
-    (fun name state -> match name with
-    | None -> ()
-    | Some n ->
-      let l = [ state ] in
-      try
-        let c = Datatype.String.Hashtbl.find h n in
-        unsafe_extend c l
-      with Not_found ->
-        let c = create_and_return n l in
-        Datatype.String.Hashtbl.add h n c),
-    (fun () -> Datatype.String.Hashtbl.clear h)
-
-end
 
 (* ************************************************************************** *)
 (** {3 State generators} *)
 (* ************************************************************************** *)
 
-let unusable ~name unique_name =
-  let s =
-    { unique_name = unique_name;
-      kind = `Internal;
-      name = name;
-      cluster = None;
-      private_ops = dummy_private_ops () }
-  in
-  add s false;
-  s
-
-let update_unusable s k clear =
-  s.kind <- k;
-  s.private_ops.clear <- clear;
-  s.private_ops.clear_some_projects <- fun _ _ -> false
-
-let is_usable s = s.private_ops.clear != never_called
-
 let create
     ~descr ~create ~remove ~clear ~clear_some_projects ~copy
     ~commit ~update ~on_update ~clean ~serialize ~unserialize
-    ~unique_name ~name kind =
+    ~unique_name ~name =
   let ops =
     { descr = descr;
       create = create;
@@ -340,12 +199,12 @@ let create
   let self =
     { name = name;
       unique_name = unique_name;
-      kind = kind;
-      cluster = None;
       private_ops = ops }
   in
-  add self true;
+  add self;
   self
+
+let set_descr s d = s.private_ops.descr <- d
 
 (*
 Local Variables:

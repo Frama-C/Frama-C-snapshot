@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ let graph_view ~packing mk_dot =
        f)
 
 let state_dependency_graph ~packing () =
-  graph_view ~packing State_dependency_graph.Dynamic.dump
+  graph_view ~packing State_dependency_graph.dump
 
 (* [JS 2011/07/05] to be reimplemented *)
 let status_dependency_graph ~packing:_ () = assert false

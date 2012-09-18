@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -94,9 +94,6 @@ and lexpr_node =
   | PLarrget of lexpr * lexpr (** array access. *)
   | PLold of lexpr (** expression refers to pre-state of a function. *)
   | PLat of lexpr * string (** expression refers to a given program point. *)
-  | PLbase_addr of lexpr (** base address of a pointer. *)
-  | PLblock_length of lexpr (** length of the block pointed to by an
-                                expression. *)
   | PLresult (** value returned by a function. *)
   | PLnull (** null pointer. *)
   | PLcast of logic_type * lexpr (** cast. *)
@@ -126,18 +123,18 @@ and lexpr_node =
   | PLif of lexpr * lexpr * lexpr (** conditional operator. *)
   | PLforall of quantifiers * lexpr (** universal quantification. *)
   | PLexists of quantifiers * lexpr (** existential quantification. *)
-  | PLvalid of lexpr (** pointer is valid. *)
-  | PLvalid_index of lexpr * lexpr
-      (** [PLvalid_index(p,i)] indicates that accessing the [i]th element
-          of [p] is valid.
-       *)
-  | PLvalid_range of lexpr * lexpr * lexpr
-      (** same as [PLvalid_index], but for a range of indices. *)
+  | PLbase_addr of string option * lexpr (** base address of a pointer. *)
+  | PLoffset of string option * lexpr (** base address of a pointer. *)
+  | PLblock_length of string option * lexpr (** length of the block pointed to by an
+                                expression. *)
+  | PLvalid of string option * lexpr (** pointer is valid. *)
+  | PLvalid_read of string option * lexpr (** pointer is valid for reading. *)
+  | PLallocable of string option * lexpr (** pointer is valid for malloc. *)
+  | PLfreeable of string option * lexpr (** pointer is valid for free. *)
+  | PLinitialized of string option * lexpr (** l-value is guaranteed to be initalized *)
+  | PLfresh of (string * string) option * lexpr * lexpr (** expression points to a newly allocated block. *)
   | PLseparated of lexpr list
       (** separation predicate. *)
-  | PLinitialized of lexpr
-      (** l-value is guaranteed to be initalized *)
-  | PLfresh of lexpr (** expression points to a newly allocated block. *)
   | PLnamed of string * lexpr (** named expression. *)
   | PLsubtype of lexpr * lexpr
       (** first type tag is a subtype of second one. *)
@@ -250,6 +247,13 @@ type assigns = lexpr Cil_types.assigns
 (** variant for loop or recursive function. *)
 type variant = lexpr Cil_types.variant
 
+(** custom trees *)
+
+type custom_tree =
+  | CustomType of logic_type
+  | CustomLexpr of lexpr
+  | CustomOther of string * (custom_tree list)
+
 (** all kind of annotations*)
 type annot =
   | Adecl of decl list (** global annotation. *)
@@ -260,7 +264,7 @@ type annot =
   | Acode_annot of location * code_annot (** code annotation. *)
   | Aloop_annot of location * code_annot list (** loop annotation. *)
   | Aattribute_annot of location * string (** attribute annotation. *)
-
+  | Acustom of location * string * custom_tree
 
 (** ACSL extension for external spec file **)
 type ext_decl =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,6 @@
 (** Undocumented. 
     Do not use this module if you don't know what you are doing. *)
 
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
-
 open Abstract_interp
 open Locations
 
@@ -33,13 +31,7 @@ module V :
     module M :
       sig
         type key = Base.t
-        type leaf_annot = Location_Bytes.M.leaf_annot
-        type branch_annot = Location_Bytes.M.branch_annot
-        type tt = Location_Bytes.M.tt = private
-          | Empty
-          | Leaf of key * Ival.t * leaf_annot
-          | Branch of int * int * tt * tt * branch_annot
-        type t = tt
+        type t = Location_Bytes.M.t
         val iter : (Base.t -> Ival.t -> unit) -> t -> unit
         val find : key -> t -> Ival.t
         val fold : (Base.t -> Ival.t -> 'a -> 'a) -> t -> 'a -> 'a
@@ -74,12 +66,14 @@ module V :
     val add_or_bottom : Base.t -> Ival.t -> M.t -> M.t
     val inject : Base.t -> Ival.t -> t
     val inject_ival : Ival.t -> t
+    val inject_float : Ival.F.t -> t
     val inject_top_origin : Origin.t -> Location_Bytes.Top_Param.O.t -> t
     val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
     val splitting_cardinal_less_than :
       split_non_enumerable:int -> t -> int -> int
     val cardinal_zero_or_one : t -> bool
     val cardinal_less_than : t -> int -> int
+    val cardinal_zero_or_one_or_isotropic: t -> bool
     val find_exclusive : Base.t -> t -> Ival.t
     val split : Base.t -> t -> Ival.t * t
     exception Not_all_keys
@@ -109,6 +103,7 @@ module V :
       (Base.t -> string -> int -> int -> unit) -> t -> unit
     exception Not_based_on_null
     val project_ival : t -> Ival.t
+    val min_and_max_float : t -> Ival.F.t * Ival.F.t
     val types :
       (int,
        (t * string *
@@ -130,7 +125,6 @@ module V :
     val contains_non_zero : t -> bool
     val of_char : char -> t
     val subdiv_float_interval : size:int -> t -> t * t
-    val compare_bound : (Ival.t -> Ival.t -> 'a) -> t -> t -> 'a
     val compare_min_float : t -> t -> int
     val compare_max_float : t -> t -> int
     val compare_min_int : t -> t -> int
@@ -173,12 +167,12 @@ module V :
       signed:bool ->
       (Int.t option -> Int.t option -> Int.t option -> Int.t option -> t) ->
       t -> t -> t
-    val cast_float : t -> bool * bool * t
+    val cast_float : rounding_mode:Ival.Float_abstract.rounding_mode -> t -> bool * bool * t
     val cast :
       with_alarms:CilE.warn_mode ->
       size:Int.t -> signed:bool -> t -> t
     val import_function :
-      topify_arith_origin:(t -> t) ->
+      topify:Origin.kind ->
       with_alarms:CilE.warn_mode ->
       string -> (Ival.t -> Ival.t -> Ival.t) -> t -> t -> t
     val arithmetic_function :
@@ -187,6 +181,7 @@ module V :
     val unary_arithmetic_function :
       with_alarms:CilE.warn_mode -> string -> (Ival.t -> Ival.t) -> t -> t
     val cast_float_to_int : signed:bool -> size:int -> t -> bool * bool * t
+    val cast_float_to_int_inverse : single_precision:bool -> t -> t
     val cast_int_to_float :
       with_alarms:CilE.warn_mode ->
       Ival.Float_abstract.rounding_mode -> t -> t
@@ -199,16 +194,21 @@ module V :
        Int.t -> Int.t ) ->
       t -> t -> t 
     val shift_right :
-      with_alarms:CilE.warn_mode -> size:int option -> t -> z -> t
+      with_alarms:CilE.warn_mode -> size:(bool*int) option -> t -> z -> t
+    val shift_left :
+      with_alarms:CilE.warn_mode -> size:(bool*int) option -> z -> z -> t
     val bitwise_and : signed:bool -> size:int -> t -> t -> t
     val extract_bits :
+      topify:Origin.kind ->
       start:Int.t ->
-      stop:Int.t -> t -> bool * t
+      stop:Int.t -> size:Int.t -> t -> bool * t
     val big_endian_merge_bits :
+      topify:Origin.kind ->
       conflate_bottom:bool ->
       total_length:int ->
       length:My_bigint.t -> value:t -> offset:My_bigint.t -> t -> t
     val little_endian_merge_bits :
+      topify:Origin.kind ->
       conflate_bottom:bool ->
       total_length:int -> value:t -> offset:Int.t -> t -> t
     val all_values : size:Int.t -> t -> bool
@@ -216,8 +216,6 @@ module V :
     val create_all_values :
       modu:Int.t -> signed:bool -> size:int -> t
     val bitwise_or : size:int -> t -> t -> t
-    val shift_left :
-      with_alarms:CilE.warn_mode -> size:int option -> z -> z -> t
     val has_sign_problems : t -> bool
   end
 
@@ -229,18 +227,19 @@ module V_Or_Uninitialized :
       | C_uninit_noesc of V.t
       | C_init_esc of V.t
       | C_init_noesc of V.t
-    include Lattice_With_Isotropy.S with type t = un_t
-				    and
-    type widen_hint = Locations.Location_Bytes.widen_hint
-
+    include Lattice_With_Isotropy.S
+      with type t = un_t
+      and  type widen_hint = Locations.Location_Bytes.widen_hint
+    val uninitialized : un_t
     val initialized : V.t -> un_t
     val change_initialized : bool -> un_t -> un_t
     val get_v : un_t -> V.t
     val get_flags : un_t -> int
     val unspecify_escaping_locals : 
-      (V.M.key -> bool) -> un_t -> Location_Bytes.Top_Param.t * un_t
+      exact:bool -> (V.M.key -> bool) -> un_t -> Location_Bytes.Top_Param.t * un_t
     val is_initialized : int -> bool
     val is_noesc : int -> bool
+    val cardinal_zero_or_one_or_isotropic: t -> bool
  end
 
 module V_Offsetmap:
@@ -253,35 +252,33 @@ module V_Offsetmap_ext:
               and type widen_hint = V_Or_Uninitialized.widen_hint
               and type t = Offsetmap.Make(V_Or_Uninitialized).t
 
-(*
-module Partial_lmap : Lmap.Location_map
-  with type y = V_Or_Uninitialized.t
-  and type widen_hint_offsetmap = V_Or_Uninitialized.widen_hint
-  and type loffset = V_Offsetmap_ext.t
-  and module Make = Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap_ext).Make
-*)
-
+(** Values bound by default to a variable *)
 module Default_offsetmap :
   sig
-    val initialized_var_table : V_Offsetmap.t Cil_datatype.Varinfo.Hashtbl.t
     val create_initialized_var :
-      Cil_datatype.Varinfo.Hashtbl.key ->
-      Base.validity -> V_Offsetmap.t -> Base.t
+      Cil_types.varinfo -> Base.validity -> V_Offsetmap.t -> Base.t
     val default_offsetmap : Base.t -> V_Offsetmap.t
   end
 
 module Model :
   sig
+    (* Use this instead of what is below as soon as OCaml 3.12 is mandatory *)
+(*    include Lmap.Location_map
+    with type y = V_Or_Uninitialized.t
+    and type loffset = V_Offsetmap.t
+    and type widen_hint_y = V_Or_Uninitialized.widen_hint *)
+
+(* *)
     module LBase :
       sig
-        type t (* = Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap_ext).Make(Default_offsetmap).LBase.t *)
+        type t 
         val iter : (Base.base -> V_Offsetmap_ext.t -> unit) -> t -> unit
       end
-    type tt = (* Partial_lmap.Make(Default_offsetmap).tt = *) private
+    type tt = private
       | Bottom
       | Top
       | Map of LBase.t
-    include Datatype.S with type t = tt
+    include Datatype.S_with_collections with type t = tt
     type widen_hint =
         bool * Base.Set.t * (Base.t -> V_Or_Uninitialized.widen_hint)
     val inject : Base.t -> V_Offsetmap_ext.t -> t
@@ -299,9 +296,10 @@ module Model :
     val widen : widen_hint -> t -> t -> bool * t
     val filter_base : (Base.t -> bool) -> t -> t
     val find_base : Base.t -> t -> V_Offsetmap_ext.t
+    val find_base_or_default : Base.t -> t -> V_Offsetmap_ext.t
     val remove_base : Base.t -> t -> t
-    val copy_paste :
-      with_alarms:CilE.warn_mode -> location -> location -> t -> t
+(*  val copy_paste :
+      with_alarms:CilE.warn_mode -> location -> location -> t -> t *)
     val paste_offsetmap :
       with_alarms:CilE.warn_mode ->      
       from:V_Offsetmap_ext.t ->
@@ -323,8 +321,6 @@ module Model :
       (Base.t -> V_Offsetmap_ext.t -> 'a -> 'a) -> t -> 'a -> 'a
     val find_offsetmap_for_location :
       Location_Bits.t -> t -> V_Offsetmap_ext.t
-    val add_whole : location -> V_Or_Uninitialized.t -> t -> t
-    val remove_whole : location -> t -> t
     val comp_prefixes : t -> t -> unit
     type subtree (* =
         Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap_ext).Make(Default_offsetmap).subtree *)
@@ -342,15 +338,21 @@ module Model :
       f:(Base.t -> V_Offsetmap_ext.t -> V_Offsetmap_ext.t) ->
       cache:string * int -> temporary:bool -> t -> t
     exception Found_prefix of Hptmap.prefix * subtree * subtree
-    type y = V.t
+(* *)
+
     val join : t -> t -> t
     val reduce_equality : t -> location -> location -> t
     val pretty_c_assert : Format.formatter -> t -> unit
     val find_unspecified :
       with_alarms:CilE.warn_mode -> t -> location -> V_Or_Uninitialized.t
+    val reduce_by_initialized_defined_loc :
+    (V_Or_Uninitialized.t -> V_Or_Uninitialized.t) ->
+           Locations.Location_Bits.t -> Int.t -> t -> t
     val find :
       conflate_bottom:bool ->
       with_alarms:CilE.warn_mode -> t -> location -> V.t
+    val find_and_reduce_indeterminate :
+      with_alarms:CilE.warn_mode -> t -> location -> t * V.t
     val has_been_initialized : Base.t -> t -> bool
     val add_binding_not_initialized : t -> location -> t
     val add_binding_unspecified :
@@ -358,6 +360,8 @@ module Model :
     val add_binding :
       with_alarms:CilE.warn_mode ->
       exact:bool -> t -> location -> V.t -> t
+    val reduce_previous_binding :
+      with_alarms:CilE.warn_mode -> t -> location -> V.t -> t
     val reduce_binding :
       with_alarms:CilE.warn_mode -> t -> location -> V.t -> t
     val create_initial :

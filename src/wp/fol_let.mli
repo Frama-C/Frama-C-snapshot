@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,5 +24,10 @@
 (* --- FOL Alpha-Normalization                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
+type trigger = (Fol.term,Fol.pred) Formula.trigger
+
 val compile : Fol.pred -> Fol.pred
 val compile_def : Fol.Var.t list -> Fol.pred -> Fol.Var.t list * Fol.pred
+val compile_trigger : 
+  Fol.Var.t list -> trigger list -> Fol.pred -> 
+  Fol.Var.t list * trigger list * Fol.pred

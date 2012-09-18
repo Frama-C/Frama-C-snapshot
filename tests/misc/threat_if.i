@@ -3,6 +3,8 @@ int l,m;
 int i;
 int X=-992;
 
+void printf(const char* c,...);
+
 void main(int i) {
   int G = 258+128;
   signed char c;

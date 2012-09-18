@@ -9,7 +9,7 @@ void g() { return; }
 int f(int x) { return x; }
 int h(int x) { return x; }
 
-int main ()
+int main (int i)
 {
   void (*fp1)();
   fptr fp2;
@@ -21,5 +21,6 @@ int main ()
   (*fp1)();
   (*fp2)(3);
   (*ma[1])(5);
+  (*ma[i])(5);
   return 0;  
 }

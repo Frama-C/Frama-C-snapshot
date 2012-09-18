@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Journalization of functions *)
+(** Journalization of functions.
+    @plugin development guide *)
 
 (* ****************************************************************************)
 (** {2 Journalization} *)
@@ -63,6 +64,19 @@ module Binding: sig
   val add_once: 'a Type.t -> 'a -> string -> unit
     (** Same as function [add] above but raise the exception [Already_exists]
         if the binding previously exists *)
+end
+
+(* JS 2012/02/07: useful only for BM introspection testing ;-) *)
+module Reverse_binding: sig
+  
+  (* Raised by [find] *)
+  exception Unbound_value of string
+  exception Incompatible_type of string
+
+  val fill: unit -> unit
+  val find: string -> 'a Type.t -> 'a
+  val iter: (string -> 'a Type.t -> 'a -> unit) -> unit
+  val pretty: Format.formatter -> unit -> unit
 end
 
 (* ****************************************************************************)

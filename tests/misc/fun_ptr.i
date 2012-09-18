@@ -34,10 +34,23 @@ void test3(int nd)
   R3 = ((fptr3)(t[nd]))(5);
 }
 
+double h(short a, short b) {
+  return a + b;
+}
+
+volatile int v;
+
 main(int c){
   test1(!(c&1));
   test2(!(c&2));
   if (c&4) test3(!(c&8));
+  double (*ph)() = h;
+  if (c&16)
+    ph(1., 2.);
+  if (c&32)
+    ph();
+  if (c&64)
+    ph((short)1, (short)2);
 
   return 0;
 }

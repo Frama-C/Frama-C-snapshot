@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -36,7 +36,6 @@ module Ltl_File =
        let option_name = "-aorai-ltl"
        let arg_name = ""
        let help = "specifies file name for LTL property"
-       let kind = `Correctness
      end)
 
 module To_Buchi =
@@ -46,7 +45,6 @@ module To_Buchi =
        let arg_name = "f"
        let help =
          "only generates the buchi automata (in Promela language) in file <s>"
-       let kind = `Tuning
      end)
 
 module Buchi =
@@ -56,7 +54,6 @@ module Buchi =
        let arg_name = "f"
        let help = "considers the property described by the buchi automata \
                    (in Promela language) from file <f>."
-       let kind = `Correctness
      end)
 
 module Ya =
@@ -66,7 +63,6 @@ module Ya =
        let arg_name = "f"
        let help = "considers the property described by the ya automata \
                    (in Ya language) from file <f>."
-       let kind = `Correctness
      end)
 
 
@@ -75,7 +71,6 @@ module Output_Spec =
           let option_name = "-aorai-show-op-spec"
           let help =
             "displays computed pre and post-condition of each operation"
-       let kind = `Tuning
         end)
 
 module Output_C_File =
@@ -84,35 +79,30 @@ module Output_C_File =
        let option_name = "-aorai-output-c-file"
        let arg_name = ""
        let help = "specifies generated file name for annotated C code"
-       let kind = `Tuning
      end)
 
 module Dot =
   False(struct
           let option_name = "-aorai-dot"
           let help = "generates a dot file of the Buchi automata"
-          let kind = `Tuning
         end)
 
 module DotSeparatedLabels =
   False(struct
           let option_name = "-aorai-dot-sep-labels"
           let help = "tells dot to not output guards directly over the edges"
-          let kind = `Tuning
         end)
 
 module AbstractInterpretation =
   False(struct
           let option_name = "-aorai-simple-AI"
           let help = "use simple abstract interpretation"
-          let kind = `Tuning
         end)
 
 module AbstractInterpretationOff  =
   False(struct
           let option_name = "-aorai-AI-off"
           let help = "does not use abstract interpretation"
-          let kind = `Tuning
         end)
 
 let () = Plugin.set_negative_option_name "-aorai-spec-off"
@@ -120,14 +110,12 @@ module Axiomatization =
   True(struct
          let option_name = "-aorai-spec-on"
          let help = "if set, does not axiomatize automata"
-       let kind = `Correctness
        end)
 
 module ConsiderAcceptance =
   False(struct
          let option_name = "-aorai-acceptance"
          let help = "if set, considers acceptation states"
-         let kind = `Correctness
        end)
 
 let () = Plugin.set_negative_option_name "-aorai-raw-auto"
@@ -136,7 +124,6 @@ module AutomataSimplification=
     (struct
        let option_name = "-aorai-simplified-auto"
        let help = "If set, does not simplify automata"
-       let kind = `Tuning
      end)
 
 module Test =
@@ -144,7 +131,6 @@ module Test =
          let option_name = "-aorai-test"
          let arg_name = ""
          let help = "Testing mode (0 = no test)"
-       let kind = `Tuning
        end)
 
 module AddingOperationNameAndStatusInSpecification =
@@ -153,7 +139,6 @@ module AddingOperationNameAndStatusInSpecification =
       let option_name = "-aorai-add-oper"
       let help = "Adding current operation name (and statut) in pre/post \
 conditions"
-      let kind = `Correctness
      end)
 
 module Deterministic=
@@ -162,20 +147,8 @@ module Deterministic=
     (struct
         let name = "Aorai_option.Deterministic"
         let dependencies = []
-        let kind = `Correctness
         let default () = false
      end)
-
-let reset () =
-  let my_opts = parameters () in
-  let select acc p =
-    let state = State.get p.Parameter.name in
-    State_selection.Dynamic.union
-      (State_selection.Dynamic.with_dependencies state)
-      acc
-  in
-  let selection = List.fold_left select State_selection.empty my_opts in
-  Project.clear ~selection ()
 
 let is_on () =
   not (Ltl_File.is_default () && To_Buchi.is_default () &&
@@ -197,6 +170,18 @@ let promela_file () =
 
 let advance_abstract_interpretation () =
   not (AbstractInterpretationOff.get ()) && not (AbstractInterpretation.get ())
+
+let emitter = 
+  Emitter.create
+    "Aorai"
+    [ Emitter.Code_annot; Emitter.Funspec; Emitter.Global_annot ] 
+    ~correctness:
+    [ Ltl_File.parameter; To_Buchi.parameter; Buchi.parameter;
+      Ya.parameter; Axiomatization.parameter; ConsiderAcceptance.parameter;
+      AutomataSimplification.parameter ]
+    ~tuning:
+    [ AbstractInterpretation.parameter;
+      AddingOperationNameAndStatusInSpecification.parameter ]
 
 (*
   Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -79,6 +79,7 @@
          if flag then Hashtbl.add c_kw i t
       )
       [
+        "allocates", ALLOCATES, false;
         "assert", ASSERT, false;
         "assigns", ASSIGNS, false;
         "assumes", ASSUMES, false;
@@ -94,6 +95,7 @@
         "const", CONST, true;
         "continues", CONTINUES, false;
         "contract", CONTRACT, false;(* ACSL extension for external spec file *)
+	"custom", CUSTOM, false; (* ACSL extension for custom annotations *)
         "decreases", DECREASES, false;
         "disjoint", DISJOINT, false;
         "double", DOUBLE, true;
@@ -101,6 +103,7 @@
         "ensures", ENSURES, false ;
         "enum", ENUM, true;
         "exits", EXITS, false;
+        "frees", FREES, false;
         "function", FUNCTION, false;(* ACSL extension for external spec file *)
         "float", FLOAT, true;
         "for", FOR, true;
@@ -117,7 +120,7 @@
         "logic", LOGIC, false;
         "long", LONG, true;
         "loop", LOOP, false;
-        "modelfield", MODEL, false;(* ACSL extension for model fields *)
+        "model", MODEL, false;(* ACSL extension for model fields *)
         "module", MODULE, false;(* ACSL extension for external spec file *)
         "pragma", PRAGMA, false;
         "predicate", PREDICATE, false;
@@ -157,13 +160,18 @@
     let h = Hashtbl.create 97 in
     List.iter (fun (i,t) -> Hashtbl.add h i t)
       [
+        "\\allocation", ALLOCATION;
+        "\\allocable", ALLOCABLE;
+        "\\automatic", AUTOMATIC;
         "\\at", AT;
         "\\base_addr", BASE_ADDR;
         "\\block_length", BLOCK_LENGTH;
+        "\\dynamic", DYNAMIC;
         "\\empty", EMPTY;
         "\\exists", EXISTS;
         "\\false", FALSE;
         "\\forall", FORALL;
+        "\\freeable", FREEABLE;
         "\\fresh", FRESH;
         "\\from", FROM;
         "\\initialized", INITIALIZED;
@@ -172,14 +180,19 @@
         "\\let", LET;
         "\\nothing", NOTHING;
         "\\null", NULL;
+        "\\offset", OFFSET;
         "\\old", OLD;
+        "\\register", REGISTER;
         "\\result", RESULT;
         "\\separated", SEPARATED;
+        "\\static", STATIC;
         "\\true", TRUE;
         "\\type", BSTYPE;
         "\\typeof", TYPEOF;
+        "\\unallocated", UNALLOCATED;
         "\\union", BSUNION;
         "\\valid", VALID;
+        "\\valid_read", VALID_READ;
         "\\valid_index", VALID_INDEX;
         "\\valid_range", VALID_RANGE;
         "\\with", WITH;
@@ -210,25 +223,20 @@
     let pos = lexbuf.Lexing.lex_curr_p in
     lexbuf.Lexing.lex_curr_p <-
       { pos with
-	Lexing.pos_lnum = if absolute then line else pos.Lexing.pos_lnum + line;
+	Lexing.pos_lnum =
+          if absolute then line else pos.Lexing.pos_lnum + line;
 	Lexing.pos_bol = pos.Lexing.pos_cnum - chars;
       }
 
   (* Update lexer buffer. *)
   let update_file_loc lexbuf file =
-    let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <-
-      { pos with
-	Lexing.pos_fname = file;
-      }
+   let pos = lexbuf.Lexing.lex_curr_p in
+    lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_fname = file }
 
   (* Update lexer buffer. *)
   let update_bol_loc lexbuf bol =
     let pos = lexbuf.Lexing.lex_curr_p in
-    lexbuf.Lexing.lex_curr_p <-
-      { pos with
-	Lexing.pos_bol = bol;
-      }
+    lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_bol = bol}
 }
 
 let space = [' ' '\t' '\012' '\r' '@' ]
@@ -425,9 +433,6 @@ and endline = parse
 |	_			{ endline lexbuf}
 
 {
-
-  open Format
-
   let copy_lexbuf dest_lexbuf src_loc =
     update_file_loc dest_lexbuf src_loc.pos_fname;
     update_line_loc dest_lexbuf src_loc.pos_lnum true 0;
@@ -446,7 +451,8 @@ and endline = parse
     let lb = from_string s in
     copy_lexbuf lb loc;
     try
-      f token lb
+      let res = f token lb in
+      lb.Lexing.lex_curr_p, res
     with
       | Parsing.Parse_error as _e ->
         Kernel.error
@@ -462,6 +468,11 @@ and endline = parse
         Kernel.error ~source:(fst loc) "%s" m;
         Logic_utils.exit_kw_c_mode ();
         raise Parsing.Parse_error
+     | exn ->
+        Kernel.error ~source:lb.lex_curr_p "Unknown error (%s)"
+          (Printexc.to_string exn);
+        Logic_utils.exit_kw_c_mode ();
+        raise exn
 
   let lexpr = parse_from_location Logic_parser.lexpr_eof
 

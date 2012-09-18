@@ -44,11 +44,8 @@
    a dot graph is mine *)
 
 open Cil
-open Cil_const
 open Cil_types
 open Cil_datatype
-open Logic_utils
-open Logic_const
 
 (* entry points: cfgFun, printCfgChannel, printCfgFilename *)
 
@@ -220,7 +217,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
 (**************************************************************)
 (* do something for all stmts in a fundec *)
 
-let rec forallStmts todo (fd : fundec) =
+let forallStmts todo (fd : fundec) =
   let vis = object
     inherit nopCilVisitor
     method vstmt stmt = ignore (todo stmt); DoChildren
@@ -311,7 +308,6 @@ let computeFileCFG (f : file) =
 (* Cfg computation *)
 
 open Cil_types
-open Logic_utils
 open Logic_const
 open Cil_const
 open Cil
@@ -423,7 +419,7 @@ let xform_switch_block ?(keepSwitch=false) b =
   let () = Stack.push (Stack.create()) continues_stack in
   let assert_of_clause f ca =
     match ca.annot_content with
-      | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | APragma _ -> ptrue
+      | AAssert _ | AInvariant _ | AVariant _ | AAssigns _ | AAllocation _ | APragma _ -> ptrue
       | AStmtSpec (_bhv,s) ->
         List.fold_left
           (fun acc bhv ->
@@ -575,10 +571,11 @@ let xform_switch_block ?(keepSwitch=false) b =
               popn popstack;
               s.skind <- If(e,b1,b2,l);
               s:: xform_switch_stmt rest break_dest cont_dest label_index 0
-            | Switch(e,b,sl,l) ->
+            | Switch(e,b,sl,(_, snd_l as l)) ->
+              let loc = snd_l, snd_l in
               if keepSwitch then begin
                 let label_index = label_index + 1 in
-                let break_stmt = mkStmt (Instr (Skip Location.unknown)) in
+                let break_stmt = mkStmt (Instr (Skip loc)) in
                 break_stmt.labels <-
                   [Label
                       (freshLabel
@@ -617,7 +614,7 @@ let xform_switch_block ?(keepSwitch=false) b =
 	          *
 	          *)
                 let label_index = label_index + 1 in
-                let break_stmt = mkStmt (Instr (Skip Location.unknown)) in
+                let break_stmt = mkStmt (Instr (Skip loc)) in
                 break_stmt.labels <-
 	          [Label(freshLabel
                            (Printf.sprintf
@@ -693,16 +690,16 @@ let xform_switch_block ?(keepSwitch=false) b =
                 s :: break_stmt ::
                   xform_switch_stmt rest break_dest cont_dest label_index 0
               end
-            | Loop(a,b,l,_,_) ->
+            | Loop(a,b,(fst_l, snd_l as l),_,_) ->
 	      let label_index = label_index + 1 in
-	      let break_stmt =
-	        mkStmt (Instr (Skip Location.unknown))
-	      in
+              let loc_break = snd_l, snd_l in
+	      let break_stmt = mkStmt (Instr (Skip loc_break)) in
               break_stmt.labels <-
 	        [Label(freshLabel
                          (Printf.sprintf
                             "while_%d_break" label_index),l,false)] ;
-              let cont_stmt = mkStmt (Instr (Skip Location.unknown)) in
+              let cont_loc = fst_l, fst_l in
+              let cont_stmt = mkStmt (Instr (Skip cont_loc)) in
               cont_stmt.labels <-
 	        [Label
                     (freshLabel

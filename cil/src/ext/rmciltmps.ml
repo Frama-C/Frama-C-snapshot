@@ -45,22 +45,15 @@
 
 open Cil_types
 open Cil
-open Expcompare
 
 module RD = Reachingdefs
 module AELV = Availexpslv
 module UD = Usedef
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
+module IS = Datatype.Int.Set
 module S = (*Stats*) struct
   let time _ f c = f c
 end
-
-
-module IS =
-  Set.Make(struct
-    type t = int
-    let compare = Datatype.Int.compare
-  end)
 
 let debug = RD.debug
 
@@ -506,7 +499,7 @@ let lvalXformClass action data sid fd nofrm = object
 
   method vexpr e =
     let castrm e =
-      stripCastsDeepForPtrArith e
+      Expcompare.stripCastsDeepForPtrArith e
     in
     match e.enode with
     | Lval((Mem e', off) as lv)-> begin
@@ -517,7 +510,7 @@ let lvalXformClass action data sid fd nofrm = object
               match e.enode with
               | Lval(Mem({enode = Const _}),off') ->
                   new_exp ~loc:e.eloc (Lval(Mem e', off'))
-              | _ -> stripCastsDeepForPtrArith e
+              | _ -> Expcompare.stripCastsDeepForPtrArith e
             in
             ChangeDoChildrenPost(new_exp ~loc:e.eloc (Lval(Mem e', off)), post)
         | Some e ->
@@ -712,7 +705,7 @@ let tmp_to_const iosh sid vi fd nofrm =
                       match time "getDefRhs" getDefRhs defid with
                         None -> false
                       | Some(RD.RDExp({enode = Const c'}),_,defiosh) ->
-                          if Cilutil.equals c c' then
+                          if Cil_datatype.Constant.equal c c' then
                             match RD.getDefIdStmt defid with
                               None -> (Kernel.fatal "tmp_to_const: defid has no statement")
                             | Some(stm) ->

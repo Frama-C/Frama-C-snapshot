@@ -1,0 +1,64 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2012                                               *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* -------------------------------------------------------------------------- *)
+(* --- C-Integer Arithmetics for Alt-Ergo                                 --- *)
+(* -------------------------------------------------------------------------- *)
+
+(* C-Float Conversion *)
+
+logic to_float16  : real -> real 
+logic to_float32  : real -> real 
+logic to_float64  : real -> real 
+logic to_float96  : real -> real 
+logic to_float128 : real -> real 
+
+(* C-Float Conversions are projections *)
+
+axiom proj_float16 : forall x:real [ to_float16(to_float16(x)) ]. to_float16(to_float16(x))=to_float16(x) 
+axiom proj_float32 : forall x:real [ to_float32(to_float32(x)) ]. to_float32(to_float32(x))=to_float32(x) 
+axiom proj_float64 : forall x:real [ to_float64(to_float64(x)) ]. to_float64(to_float64(x))=to_float64(x) 
+axiom proj_float96 : forall x:real [ to_float96(to_float96(x)) ]. to_float96(to_float96(x))=to_float96(x) 
+axiom proj_float128 : forall x:real [ to_float128(to_float128(x)) ]. to_float128(to_float128(x))=to_float128(x) 
+
+(* C-Float Comparisons as Integers *)
+
+logic feq : real,real -> int
+logic flt : real,real -> int
+logic fneq : real,real -> int
+logic fleq : real,real -> int
+
+axiom feq : forall x,y:real [feq(x,y)]. (x=y and feq(x,y)=1) or (x<>y and feq(x,y)=0)
+axiom flt : forall x,y:real [flt(x,y)]. (x<y and flt(x,y)=1) or (x>=y and flt(x,y)=0)
+axiom fneq : forall x,y:real [fneq(x,y)]. (x=y and fneq(x,y)=0) or (x<>y and fneq(x,y)=1)
+axiom fleq : forall x,y:real [fleq(x,y)]. (x<=y and fleq(x,y)=1) or (x>y and fleq(x,y)=0)
+
+type float32
+type float64
+type float_format = Single | Double | Quad
+type rounding_mode = Up | Down | ToZero | NearestAway | NearestEven
+type sign = Positive | Negative
+logic round_double : rounding_mode,real -> real
+logic round_float : rounding_mode,real -> real
+logic is_finite32 : float32 -> prop
+logic is_finite64 : float64 -> prop
+

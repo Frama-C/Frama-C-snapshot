@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -37,7 +37,7 @@ PLUGIN_DIR ?=.
 PLUGIN_ENABLE:=@ENABLE_REPORT@
 PLUGIN_DYNAMIC:=@DYNAMIC_REPORT@
 PLUGIN_NAME:=Report
-PLUGIN_CMO:= scan dump register
+PLUGIN_CMO:= report_parameters scan dump register
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= Makefile.in configure.ac configure

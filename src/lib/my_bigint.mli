@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Sane abstract interface to module [Big_int]. *)
+(** Extension of [Big_int] compatible with [Zarith]. 
+    @since Nitrogen-20111001 *)
 
 type t
 
@@ -56,6 +57,7 @@ module type S = sig
   val of_int : int -> t
   val of_float : float -> t
   val of_int64 : Int64.t -> t
+  val of_int32 : Int32.t -> t
   val to_int64 : t -> int64
   val to_int : t -> int
   val to_float : t -> float

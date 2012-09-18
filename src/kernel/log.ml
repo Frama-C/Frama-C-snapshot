@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,8 +50,9 @@ let null = Format.make_formatter (fun _ _ _ -> ()) (fun _ -> ())
 let with_null k msg = Format.kfprintf (fun _ -> k ()) null msg
 let nullprintf msg = Format.ifprintf null msg
 
-let min_buffer = 123     (* initial size of buffer *)
-let max_buffer = 4096    (* buffer resized after useage if larger than max *)
+let min_buffer = 128    (* initial size of buffer *)
+let max_buffer = 262144 (* maximal size of buffer *)
+let tgr_buffer = 327680 (* elasticity (internal overhead) *)
 
 type lock =
   | Ready
@@ -187,6 +188,38 @@ let trim_end buffer =
     if k >= 0 && is_blank text.[k] then lookup_bwd text (pred k) else k
   in lookup_bwd buffer.text (pred buffer.pos)
 
+let reduce_buffer buffer =
+  if String.length buffer.text > min_buffer then
+    buffer.text <- String.create min_buffer
+
+let truncate_text buffer size =
+  if buffer.pos > size then
+    begin
+      let p = trim_begin buffer in
+      let q = trim_end buffer in
+      let n = q+1-p in
+      if n <= 0 then
+	begin
+	  reduce_buffer buffer ;
+	  buffer.pos <- 0 ;
+	end
+      else
+	if n <= size then
+	  begin
+	    String.blit buffer.text p buffer.text 0 n ;
+	    buffer.pos <- n ;
+	  end
+	else
+	  begin
+	    let n_left = size / 2 - 3 in
+	    let n_right = size - n_left - 5 in
+	    if p > 0 then String.blit buffer.text p buffer.text 0 n_left ;
+	    String.blit "[...]" 0 buffer.text n_left 5 ;
+	    String.blit buffer.text (q-n_right+1) buffer.text (n_left + 5) n_right ;
+	    buffer.pos <- size ;
+	  end
+    end
+
 let append_text buffer text k n =
   begin
     let req = buffer.pos + n in
@@ -200,13 +233,8 @@ let append_text buffer text k n =
       end ;
     String.blit text k buffer.text buffer.pos n ;
     buffer.pos <- buffer.pos + n ;
+    if buffer.pos > tgr_buffer then truncate_text buffer max_buffer ;
   end
-
-let rec count_lines n t p q =
-  if p < q then
-    let k = try String.index_from t p '\n' with Not_found -> -1 in
-    if k < 0 then n else count_lines (succ n) t (succ k) q
-  else n
 
 let append buffer text k n =
   if n > 0 then
@@ -220,17 +248,6 @@ let new_buffer () =
   } in
   let fmt = Format.make_formatter (append buffer) (fun () -> ()) in
   buffer.formatter <- fmt ; buffer
-
-let reduce_buffer buffer =
-  if String.length buffer.text > min_buffer then
-    buffer.text <- String.create min_buffer
-
-let bprintf buffer fmt = Format.fprintf buffer.formatter fmt
-
-let contents buffer =
-  let p = trim_begin buffer in
-  let q = trim_end buffer in
-  if p <= q then String.sub buffer.text p (q+1-p) else ""
 
 (* -------------------------------------------------------------------------- *)
 (* --- Echo Buffer                                                        --- *)
@@ -380,15 +397,10 @@ let new_channel plugin =
     create_with_emitters plugin ems
 
 (* -------------------------------------------------------------------------- *)
-(* --- Once Table                                                         --- *)
+(* --- Already emitted messages                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let oncetable = Hashtbl.create 371
-let check_not_yet evt =
-  if Hashtbl.mem oncetable evt then false
-  else ( Hashtbl.add oncetable evt () ; true )
-
-let reset_once_flag () = Hashtbl.clear oncetable
+let check_not_yet = ref (fun _evt -> false)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Listeners                                                          --- *)
@@ -456,6 +468,7 @@ let logtext c ~kind ~once ~prefix ~source ~append ~emitwith ~echo text =
          (match append with None -> () | Some k -> k fmt) ;
          Format.pp_print_newline fmt () ;
          Format.pp_print_flush fmt () ;
+	 truncate_text buffer max_buffer ;
          let p = trim_begin buffer in
          let q = trim_end buffer in
          if p <= q then
@@ -466,7 +479,7 @@ let logtext c ~kind ~once ~prefix ~source ~append ~emitwith ~echo text =
                evt_message = String.sub buffer.text p (q+1-p) ;
                evt_source = source ;
              } in
-             if not once || check_not_yet (Lazy.force event) then
+             if not once || !check_not_yet (Lazy.force event) then
                begin
                  let e = c.emitters.(nth_kind kind) in
                  if echo && e.echo then
@@ -487,6 +500,7 @@ let logwith c ~kind ~prefix ~source ~append ~echo f text =
        try
          (match append with None -> () | Some k -> k fmt) ;
          Format.pp_print_flush fmt () ;
+	 truncate_text buffer max_buffer ;
          let p = trim_begin buffer in
          let q = trim_end buffer in
          let event = lazy {

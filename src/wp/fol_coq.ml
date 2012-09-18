@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,6 @@ let constant fmt = function
        pp_print_string fmt ("( "^n^" )")
      else pp_print_string fmt n
   | ConstBool b -> pp_print_string fmt (if b then "true" else "false")
-  | ConstUnit -> pp_print_string fmt "void"
   | ConstFloat f -> fprintf fmt "%s%%R" (Kreal.convert f)
 
 let pp_list pp fmt = function
@@ -97,10 +96,20 @@ let fpp_term term fmt t =
         let xs = collect_assoc "add_int" [] ts in
         pp_flow fmt "0" "+" term xs
     | Tapp ("sub_int", [a;b]) ->
-        fprintf fmt "@[<hov 1>(%a@ -%a)@]" term a term b
+        fprintf fmt "@[<hov 2>(%a@ - %a)@]" term a term b
     | Tapp ("mul_int", ts) ->
         let xs = collect_assoc "mul_int" [] ts in
         pp_flow fmt "1" "*" term xs
+    | Tapp ("add_real",ts) ->
+	let xs = collect_assoc "add_real" [] ts in
+	fprintf fmt "(%t)%%R" (fun fmt -> pp_flow fmt "0" "+" term xs)
+    | Tapp ("mul_real",ts) ->
+	let xs = collect_assoc "mul_real" [] ts in
+	fprintf fmt "(%t)%%R" (fun fmt -> pp_flow fmt "1" "*" term xs)
+    | Tapp ("sub_real", [a;b] ) ->
+	fprintf fmt "@[<hov 2>(%a@ - %a)%%R@]" term a term b
+    | Tapp ("div_real", [a;b] ) ->
+	fprintf fmt "@[<hov 2>(%a@ / %a)%%R@]" term a term b
     | Tapp (id, t::ts) ->
         fprintf fmt "@[<hov 2>(%s@, %a" id term t ;
         List.iter (fun t -> fprintf fmt " @, %a" term t) ts ;
@@ -201,6 +210,8 @@ let rec epp_pred_vbox env fmt p =
     | (Ptrue | Pfalse | Papp _ | Pnot _ | Pnamed _) ->
         env.pp_pred fmt p
 
+let pp_scope fmt = function None -> () | Some s -> fprintf fmt "%%%s" s
+
 let rec epp_pred_atom env fmt p =
   match p with
     | Pand _ | Por _ | Pimplies _ | Piff _ | Pif _
@@ -213,18 +224,24 @@ let rec epp_pred_atom env fmt p =
     | Ptrue -> pp_print_string fmt "True"
     | Pfalse -> pp_print_string fmt "False"
     | Papp(id,[]) -> pp_print_string fmt id
-    | Papp (("eq" | "eq_int" | "eq_real"), [t1; t2]) ->
-        fprintf fmt "@[<hov 1>(%a@ =@ %a)@]" env.pp_term t1 env.pp_term t2
-    | Papp (("neq" | "neq_int" | "neq_real"), [t1; t2]) ->
-        fprintf fmt "@[<hov 1>(%a@ <>@ %a)@]" env.pp_term t1 env.pp_term t2
-    | Papp (("lt_int"| "lt_real"), [t1; t2]) ->
-        fprintf fmt "@[<hov 1>(%a@ <@ %a)@]" env.pp_term t1 env.pp_term t2
-    | Papp (("le_int"| "le_real"), [t1; t2]) ->
-        fprintf fmt "@[<hov 1>(%a@ <=@ %a)@]" env.pp_term t1 env.pp_term t2
+    | Papp("eq",[t1;t2]) -> epp_compare env fmt "=" t1 t2
+    | Papp("eq_int",[t1;t2]) -> epp_compare env fmt "=" t1 t2
+    | Papp("eq_real",[t1;t2]) -> epp_compare env fmt "=" ~scope:"R" t1 t2
+    | Papp("neq",[t1;t2]) -> epp_compare env fmt "<>" t1 t2
+    | Papp("neq_int",[t1;t2]) -> epp_compare env fmt "<>" t1 t2
+    | Papp("neq_real",[t1;t2]) -> epp_compare env fmt "<>" ~scope:"R" t1 t2
+    | Papp("lt_int",[t1;t2]) -> epp_compare env fmt "<" t1 t2
+    | Papp("lt_real",[t1;t2]) -> epp_compare env fmt "<" ~scope:"R" t1 t2
+    | Papp("le_int",[t1;t2]) -> epp_compare env fmt "<=" t1 t2
+    | Papp("le_real",[t1;t2]) -> epp_compare env fmt "<=" ~scope:"R" t1 t2
     | Papp(id,t::ts) ->
         fprintf fmt "@[<hov 2>(%s @,%a" id env.pp_term t ;
         List.iter (fun t -> fprintf fmt "@ %a" env.pp_term t) ts ;
         fprintf fmt ")@]"
+
+and epp_compare env fmt ?scope op t1 t2 =
+  fprintf fmt "@[<hov 1>(%a@ %s@ %a)%a@]" 
+    env.pp_term t1 op env.pp_term t2 pp_scope scope
 
 let fpp_pred predicate pp_term pp_type fmt p =
   match p with
@@ -293,11 +310,20 @@ let fpp_item predicate pp_tau tau_of_ctype_logic pp_term fmt x =
                 fpp_lf_let pp_tau pp_term fmt defs  ;
                 fprintf fmt "@[<hv 2>Axiom %s:@ %a.@\n@]@\n" x predicate p'
         end
+    | Formula.Trigger(xs,_,p) ->
+	let p = quantify xs p in
+	begin
+          match Fol_norm.compile p with
+            | Pred p' -> fprintf fmt "@[<hv 2>Axiom %s:@ %a.@\n@]@\n" x predicate p'
+            | Conv (defs,p') ->
+                fpp_lf_let pp_tau pp_term fmt defs  ;
+                fprintf fmt "@[<hv 2>Axiom %s:@ %a.@\n@]@\n" x predicate p'
+        end
     | Formula.Type 0 ->
         fprintf fmt "Definition %s:=Set.@\n" x
     | Formula.Type n ->
         fprintf fmt "@[<hov 2>Definition %s:=Set" x;
-        for k=1 to n do fprintf fmt " -> Set" done ;
+        for _k=1 to n do fprintf fmt " -> Set" done ;
         fprintf fmt ".@]@\n"
     | Formula.Trecord c ->
         let rname = String.capitalize c.Cil_types.cname in

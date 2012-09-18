@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,8 +42,7 @@ type project = Project_skeleton.t =
       { pid : int;
         mutable name : string;
         mutable unique_name : string }
-      (** Type of a project.
-          @plugin development guide *)
+      (** Type of a project. *)
 
 (* ************************************************************************* *)
 (** {2 Operations on all projects} *)
@@ -53,8 +52,7 @@ val create: string -> t
   (** Create a new project with the given name and attach it after the existing
       projects (so the current project, if existing, is unchanged).
       The given name may be already used by another project.
-      If there is no other project, then the new one is the current one.
-      @plugin development guide *)
+      If there is no other project, then the new one is the current one. *)
 
 val register_create_hook: (t -> unit) -> unit
   (** [register_create_hook f] adds a hook on function [create]: each time a
@@ -143,14 +141,13 @@ val copy: ?selection:State_selection.t -> ?src:t -> t -> unit
       For each state to copy, the function [copy] given at state registration
       time must be fully implemented.
       @modify Carbon-20101201 replace the optional arguments [only] and
-      [except] by a single one [selection].
-      @plugin development guide *)
+      [except] by a single one [selection]. *)
 
 val create_by_copy: ?selection:State_selection.t -> ?src:t -> string -> t
   (** Return a new project with the given name by copying some states from the
       project [src]. All the other states are initialized with their default
       values.
-      Use the same/load mechanism for copying. Thus it does not require that
+      Use the save/load mechanism for copying. Thus it does not require that
       the copy function of the copied state is implemented. All the hooks
       applied when loading a project are applied (see {!load}).
       @modify Carbon-20101201 replace the optional arguments [only] and
@@ -166,7 +163,8 @@ val clear: ?selection:State_selection.t -> ?project:t -> unit -> unit
       internal states of the given project are now empty (wrt the action
       registered with {!register_todo_on_clear}).
       @modify Carbon-20101201 replace the optional arguments [only] and
-      [except] by a single one [selection]. *)
+      [except] by a single one [selection]. 
+      @plugin development guide *)
 
 val register_todo_on_clear: (t -> unit) -> unit
   (** @deprecated since Boron-20100401.
@@ -199,7 +197,6 @@ val register_before_remove_hook: (t -> unit) -> unit
 (* ************************************************************************* *)
 
 exception IOError of string
-  (** @plugin development guide *)
 
 val save: ?selection:State_selection.t -> ?project:t -> string -> unit
   (** Save a given project in a file. Default project is [current ()].
@@ -241,9 +238,9 @@ val load_all: ?selection:State_selection.t -> string -> unit
 
 val register_before_load_hook: (unit -> unit) -> unit
   (** [register_before_load_hook f] adds a hook called just before loading
-      **each project** (more precisely, the project exists but is empty while
-      the hook is applied): if [n] projects are on disk, the same hook will be
-      called [n] times (one call by project).
+      **each project** (more precisely, the project exists and but is empty
+      while the hook is applied): if [n] projects are on disk, the same hook
+      will be called [n] times (one call by project).
 
       Besides, for each project, the order in which the hooks are applied is
       the same than the order in which hooks are registered. *)

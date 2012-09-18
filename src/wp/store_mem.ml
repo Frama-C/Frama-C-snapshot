@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,6 @@ module WpLog = Wp_parameters
 open Cil_types
 open Formula
 open Ctypes
-open Clabels
 
 module Create
   (F:Formula.S)
@@ -43,9 +42,6 @@ struct
   (* ------------------------------------------------------------------------ *)
   (* --- Term Types                                                       --- *)
   (* ------------------------------------------------------------------------ *)
-
-  type decl = F.decl
-
  
   let t_data: tau = Formula.ADT("data",[])
 
@@ -66,14 +62,30 @@ struct
   (* ----------------------------------------------------------------------- *)
 
   (* Data and basic typed Data conversions *)
-  let data_of_int (i: Ctypes.c_int) = 
-    F.e_app1 ((Pretty_utils.sfprintf "data_of_%a") Ctypes.pp_int i)
+  let data_of_int (i: Ctypes.c_int) =
+    let f =
+      if Wp_parameters.Natural.get () then "data_of_int"
+      else  (Pretty_utils.sfprintf "data_of_%a") Ctypes.pp_int i 
+    in F.e_app1 f 
+
   let int_of_data (i:Ctypes.c_int) = 
-     F.e_app1 ((Pretty_utils.sfprintf "%a_of_data") Ctypes.pp_int i)
-  let data_of_float (f: Ctypes.c_float) = 
-    F.e_app1 ((Pretty_utils.sfprintf "data_of_%a") Ctypes.pp_float f)
-  let float_of_data (f:Ctypes.c_float) = 
-    F.e_app1 ((Pretty_utils.sfprintf "%a_of_data") Ctypes.pp_float f)
+    let f = 
+      if Wp_parameters.Natural.get () then "int_of_data"
+      else (Pretty_utils.sfprintf "%a_of_data") Ctypes.pp_int i
+    in F.e_app1 f
+
+  let data_of_float (f: Ctypes.c_float) =
+    let f = 
+      if Wp_parameters.Natural.get () then "data_of_real"
+      else (Pretty_utils.sfprintf "data_of_%a") Ctypes.pp_float f
+    in F.e_app1 f
+
+  let float_of_data (f:Ctypes.c_float) =
+    let f = 
+      if Wp_parameters.Natural.get () then "real_of_data"
+      else (Pretty_utils.sfprintf "%a_of_data") Ctypes.pp_float f
+    in F.e_app1 f
+
   let addr_of_data  = F.e_app1 "addr_of_data"
   let data_of_addr  = F.e_app1 "data_of_addr"
 
@@ -85,7 +97,6 @@ struct
 
   let model_addr : F.integer -> F.integer -> F.integer = F.e_app2 "addr"
   let model_base : F.integer -> F.integer = F.e_app1 "base"
-  let model_offset : F.integer -> F.integer = F.e_app1 "offset"
 
   let model_addr_shift : F.integer -> F.integer -> F.integer =
     F.e_app2 "addr_shift"
@@ -104,9 +115,6 @@ struct
 
   let model_free (talloc : alloc) (p: F.integer) : alloc =
     F.e_update talloc p (F.wrap F.i_zero)
-
-  let model_block (talloc : alloc) (p: F.integer) : F.integer =
-    F.unwrap (F.e_access talloc p)
 
    (* Zone *)
 
@@ -143,8 +151,9 @@ struct
     alloc : alloc ;
   }
 
-  let encode fmt v = F.e_app2 "encode" fmt v
-  let decode fmt x = F.e_app2 "decode" fmt x
+  let pp_mem fmt m =
+    Format.fprintf fmt " * heap : %a@\n * alloc : %a@\n" 
+      F.pp_var m.x_store F.pp_var m.x_alloc
 
   (* ----------------------------------------------------------------------- *)
   (* --- Instanciation of MVALUE and MLOGIC : Store implemantation       --- *)
@@ -161,7 +170,10 @@ struct
             | Some a -> F.i_mult
                 (sizeof (object_of a.arr_cell))
                   (F.e_int64 a.arr_cell_nbr)
-            | None -> WpLog.not_yet_implemented "[Store] Sizeof unknown-size array"
+            | None -> 
+		if WpLog.ExternArrays.get () 
+		then (F.e_int64 Int64.max_int)
+		else WpLog.not_yet_implemented "[Store] Sizeof unknown-size array"
         end
     | _ -> F.i_one
 	
@@ -193,7 +205,6 @@ struct
 	  off:F.integer ; 
 	  obj : Ctypes.c_object}
 
-    let upd_base l b = {base = b; off=l.off; obj = l.obj}
     let upd_off l d = {base = l.base ; off = d ; obj = l.obj}
     let upd_obj l cv = {base = l.base ; off = l.off ; obj = cv}
 
@@ -204,14 +215,6 @@ struct
     let addr = function
       | Loc l -> model_addr l.base l.off
       | Addr (p,_) -> p
-
-    let base = function
-      | Loc l -> l.base
-      | Addr (p,_) -> model_base p
-
-    let offset = function
-      | Loc l -> l.off
-      | Addr (p,_) -> model_offset p
 
     let object_of_loc = function 
       | Loc l -> l.obj
@@ -231,10 +234,10 @@ struct
       let null_obj = Ctypes.C_pointer Cil.charType  in 
       Addr (F.i_zero,null_obj)
 
-    let is_null l = F.e_app2 "addr_eq" (addr l) (F.i_zero)
+    let is_null l = F.e_app2 "eq" (*"addr_eq"*) (addr l) (F.i_zero)
     let lt_loc l1 l2 = F.p_app2 "addr_lt" (addr l1) (addr l2)
     let le_loc l1 l2 =  F.p_app2 "addr_le" (addr l1) (addr l2)
-    let equal_loc l1 l2 = F.p_app2 "addr_eq" (addr l1) (addr l2)
+    let equal_loc l1 l2 = F.p_app2 "eq" (*"addr_eq"*) (addr l1) (addr l2)
     let lt_loc_bool l1 l2 = F.e_app2 "addr_lt_bool" (addr l1) (addr l2)
     let le_loc_bool l1 l2 =  F.e_app2 "addr_le_bool" (addr l1) (addr l2)
     let equal_loc_bool l1 l2 = F.e_app2 "addr_eq_bool" (addr l1) (addr l2)
@@ -320,9 +323,7 @@ struct
 	 obj    = (Ctypes.object_of (vinfo.vtype))}
 
     let cvar _mem vinfo = cvar_of_var vinfo
- 
-    let inner_loc _ = Wp_parameters.fatal "[inner_loc] reserved to funvar"
-      
+       
     let lvar _m lv x =
       let ty = 
 	match lv.lv_type with 
@@ -574,12 +575,8 @@ struct
 
 
   (* ------------------------------------------------------------------------ *)
-  (* --- Lod                                                             --- *)
+  (* --- Load                                                             --- *)
   (* ------------------------------------------------------------------------ *)
-
-
-  let load_with fmt mem loc =
-    decode fmt (F.e_access mem (addr loc))
 
   let load_mem mem te loc =
     match te with
@@ -600,9 +597,6 @@ struct
           let z = zrange loc  (sizeof te) in
           let d = model_access_range mem z in
           V_array(arr,a_of_data arr d)
-
-  let store_with mem loc fmt v =
-    F.e_update mem (addr loc) (encode fmt v)
 
   let store_mem mem te loc v =
     match v with
@@ -782,19 +776,14 @@ struct
     then F.p_implies (F.p_app1 "global" m.alloc) p
     else p
 
-  let filter_scope p vars = 
-    List.filter (fun x -> F.Xindex.has_ind x p) vars
-
   let local_scope m vars scope p =
     match scope with
       | Mcfg.SC_Function_frame -> (* nothing to do *) p
       | Mcfg.SC_Block_in | Mcfg.SC_Function_in ->
-	  let vars = filter_scope p vars in
           notexists_vars m vars
             (fresh_vars m vars
                (alloc_vars m vars p))
       | Mcfg.SC_Block_out | Mcfg.SC_Function_out  ->
-	  let vars = filter_scope p vars in
           free_vars m vars
             (fresh_vars m vars p)
       | Mcfg.SC_Global ->
@@ -845,7 +834,7 @@ struct
   let pp_formal (_:Format.formatter) _ = () 
   let userdef_is_ref_param (_:logic_var) : bool = false
   let userdef_ref_signature (_:mem) :( F.var * logic_var * formal ) list = []
-  let userdef_ref_apply (_:mem) (_:formal) (_:loc) : value = 
+  let userdef_ref_apply (_:mem) (_:formal) (_:c_object) (_:loc) : value = 
     Wp_parameters.fatal "[userdef_ref_apply] of model Store"
   let userdef_ref_has_cvar (_ : logic_var) : bool = false
 

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -24,7 +24,7 @@
 #define __FC_SYS_TYPES_H__
 
 #include "../__fc_machdep.h"
-
+#include "../__fc_define_id_t.h"
 #include "../__fc_define_pid_t.h"
 #include "../__fc_define_ssize_t.h"
 #include "../__fc_define_uid_and_gid.h"
@@ -37,5 +37,6 @@
 #include "../__fc_define_mode_t.h"
 #include "../__fc_define_nlink_t.h"
 #include "../__fc_define_off_t.h"
-
+typedef unsigned int u_int;
+typedef unsigned char u_char;
 #endif

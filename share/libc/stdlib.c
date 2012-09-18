@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -35,7 +35,7 @@
 */
 
 /* define a safe default if nothing is selected */
-#ifndef FRAMA_C_MALLOC_HEAP
+#ifndef FRAMA_C_MALLOC_INFINITE
 #ifndef FRAMA_C_MALLOC_CHUNKS
 #ifndef FRAMA_C_MALLOC_INDIVIDUAL
 #ifndef FRAMA_C_MALLOC_POSITION

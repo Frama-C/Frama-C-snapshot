@@ -26,6 +26,8 @@
 type prefix = int * int
 let sentinel_prefix = (-1) , (-1)    
 
+exception Found_inter
+
 module Big_Endian = struct
 
   type mask = int
@@ -115,8 +117,6 @@ struct
     type leaf_annot = bool
     type branch_annot = Tag_comp.t
 
-    type tag = int
-
     (* A tree is either empty, or a leaf node, containing both
        the integer key and a piece of data, or a binary node.
        Each binary node carries two integers. The first one is
@@ -134,14 +134,14 @@ struct
       if Key.compare == Datatype.undefined ||
         V.compare == Datatype.undefined 
       then (
-(*          Kernel.debug "(%s, %s) ptmap, missing comparison function: %b %b"
+          Kernel.debug "(%s, %s) ptmap, missing comparison function: %b %b"
             (Type.name Key.ty) (Type.name V.ty)
             (Key.compare == Datatype.undefined)
-            (V.compare == Datatype.undefined); *)
+            (V.compare == Datatype.undefined);
           Datatype.undefined
         )
       else 
-	let rec compare t1 t2 = 
+	let compare t1 t2 = 
 	  match t1, t2 with
           | Empty, Empty -> 0
           | Empty, _ -> -1
@@ -166,13 +166,6 @@ struct
                   compare r1 r2
 		*)
 	in compare
-
-
-    let contains_single_binding t =
-      match t with
-      | Empty
-      | Branch _ -> None
-      | Leaf (key, data, _) -> Some (key, data)
 
     let comp t = 
       match t with
@@ -243,16 +236,6 @@ struct
 
     let current_tag_before_initial_values = 1
     let current_tag = ref current_tag_before_initial_values
-    let current_table = ref 0
-
-(*
-    let project_offset () =
-      try
-	100000 * (1 + ((Project.hash (Project.current ())) mod 999))
-      with
-	Project.NoProject -> 0
-*)
-
 
     let initial_values =
       List.map
@@ -264,7 +247,7 @@ struct
     let rehash_ref = ref (fun _ -> assert false)
 
     module Datatype =
-      Datatype.Make
+      Datatype.Make_with_collections
 	(struct
 	  type t = tt
 	  let name = "(" ^ Type.name Key.ty ^ ", " ^ Type.name V.ty ^ ") ptmap"
@@ -294,7 +277,7 @@ struct
     let () = Type.set_ml_name Datatype.ty None
     include Datatype
 
-    module PatriciaHashtbl = Hashtbl.Make(Datatype)
+    module PatriciaHashtbl = Hashtbl
 
     module PatriciaHashconsTbl =
       State_builder.Hashconsing_tbl
@@ -308,7 +291,6 @@ struct
           let name = Type.name ty ^ " hashconsing table"
           let dependencies = Datatype_deps.l
           let size = 137
-          let kind = `Internal
 	end)
 
     let self = PatriciaHashconsTbl.self
@@ -429,7 +411,7 @@ struct
 	let v = v lor v2 in
 	(* then get highest bit *)
 	(succ v) lsr 1
-      in      
+      in
       let p = Big_Endian.mask p0 (* for instance *) m in
       if (p0 land m) = 0 then
 	wrap_Branch p m t0 t1
@@ -541,8 +523,6 @@ struct
        [k] to [d0] already exists, then the resulting map contains a binding
        from [k] to [decide d0 d]. *)
 
-    type 'a decision = 'a -> 'a -> 'a
-
     exception Unchanged
 
     let basic_add decide k d m =
@@ -569,27 +549,18 @@ struct
       in
       add m
 
-    let strict_add k d m =
-      basic_add (fun _ _ -> raise Unchanged) k d m
-
     let fine_add decide k d m =
       try
 	basic_add decide k d m
       with Unchanged ->
 	m
 
-    (** [add k d m] returns a map whose bindings are all bindings in [m], plus
-	a binding of the key [k] to the datum [d]. If a binding already exists
-	for [k], it is overridden. *)
     let add k d m =
       fine_add (fun _ _old_binding new_binding -> new_binding) k d m
 
-    (** [singleton k d] returns a map whose only binding is from [k] to [d]. *)
     let singleton k d =
       wrap_Leaf k d
 
-    (** [is_singleton m] returns [Some (k, d)] if [m] is a singleton map
-       that maps [k] to [d]. Otherwise, it returns [None]. *)
     let is_singleton htr = match htr with
     | Leaf (k, d, _) ->
 	Some (k, d)
@@ -597,8 +568,6 @@ struct
     | Branch _ ->
 	None
 
-    (** [is_empty m] returns [true] if and only if the map [m] defines no
-	bindings at all. *)
     let is_empty htr = match htr with
     | Empty ->
 	true
@@ -606,8 +575,6 @@ struct
     | Branch _ ->
 	false
 
-    (** [cardinal m] returns [m]'s cardinal, that is, the number of keys it
-	binds, or, in other words, its domain's cardinal. *)
     let rec cardinal htr = match htr with
     | Empty ->
 	0
@@ -616,8 +583,6 @@ struct
     | Branch (_, _, t0, t1,  _) ->
 	cardinal t0 + cardinal t1
 
-    (** [remove k m] returns the map [m] deprived from any binding involving
-	[k]. *)
     let remove key m =
       let id = Key.id key in
       let rec remove htr  = match htr with
@@ -739,12 +704,6 @@ struct
     let union m1 m2 =
       fine_union (fun _ _ d' -> d') m1 m2
 
-    (** [fold f m seed] invokes [f k d accu], in turn, for each binding from
-	key [k] to datum [d] in the map [m]. Keys are presented to [f] in
-	increasing order according to the map's ordering. The initial value of
-	[accu] is [seed]; then, at each new call, its value is the value
-	returned by the previous invocation of [f]. The value returned by
-	[fold] is the final value of [accu]. *)
     let rec fold f m accu =
       match m with
       | Empty ->
@@ -754,8 +713,6 @@ struct
       | Branch (_, _, tree0, tree1, _) ->
 	  fold f tree1 (fold f tree0 accu)
 
-    (** [fold_rev] performs exactly the same job as [fold], but presents keys
-	to [f] in the opposite order. *)
     let rec fold_rev f m accu =
       match m with
       | Empty ->
@@ -765,8 +722,6 @@ struct
       | Branch (_, _, tree0, tree1, _) ->
 	  fold_rev f tree0 (fold_rev f tree1 accu)
 
-    (** [map f m] returns the map obtained by composing the map [m] with the
-	function [f]; that is, the map $k\mapsto f(m(k))$. *)
     let rec map f htr = match htr with
       | Empty ->
 	  Empty
@@ -775,6 +730,8 @@ struct
       | Branch (p, m, tree0, tree1, _) ->
 	  wrap_Branch p m (map f tree0) (map f tree1)
 
+    (* The comment below is outdated: [map] and [endo_map] do not have the
+       same signature for [f] *)
     (** [endo_map] is similar to [map], but attempts to physically share its
 	result with its input. This saves memory when [f] is the identity
 	function. *)
@@ -848,8 +805,6 @@ struct
 	let sentinel = Empty
       end
 
-      exception Found of t
-
       let symetric_merge ~cache ~decide_none ~decide_some =
 	let symetric_fine_add k d m =
 	  (* this function to be called when one of the trees
@@ -892,7 +847,7 @@ struct
 	let module SymetricCache =
 	  Binary_cache.Make_Symetric(Cacheable)(R)
 	in
-	Project.register_todo_before_clear (fun _ -> SymetricCache.clear ());
+	Project.register_after_set_current_hook ~user_only:false (fun _ -> SymetricCache.clear ());
 	let rec union s t =
 	  if s==t then s else
 	    SymetricCache.merge uncached_union s t
@@ -953,7 +908,7 @@ struct
 	  else begin
 	      let module Cache = Binary_cache.Make_Asymetric(Cacheable)(R)
 	      in
-	      Project.register_todo_before_clear (fun _ -> Cache.clear ());
+	      Project.register_after_set_current_hook ~user_only:false (fun _ -> Cache.clear ());
 	      Cache.merge
 	    end
 	in
@@ -1015,13 +970,20 @@ struct
 	in
 	union
 
+      let do_it_intersect s t =
+	match s, t with
+	  Empty, _
+	| _, Empty -> false
+	| _ ->
+	    if s == t 
+	    then raise Found_inter
+	    else true
+
       let make_predicate 
-	  cache_merge exn use_comp ~decide_fst ~decide_snd ~decide_both 
+	  cache_merge exn do_it ~decide_fst ~decide_snd ~decide_both 
 	  =
       let rec inclusion s t =
-	if s!=t then
-	  if use_comp && comp t 
-	  then raise exn;
+	if do_it s t then
         match s, t with
         | Empty, _ ->
 	    iter decide_snd t
@@ -1057,8 +1019,11 @@ struct
 		inclusion l Empty;
 		inclusion r t;
 	      end
-        | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
-	    let compute s t =
+        | Branch _, Branch _ ->
+          (* Beware that [compute] may swap its arguments. Do not use
+             the result of an earlier match *)
+          let compute s t = match s, t with
+            | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) -> begin
 	      try
 		if (p = q) & (m = n) then
 		  begin
@@ -1103,6 +1068,8 @@ struct
 		true
 	      with e when e = exn -> false
 	      | _ -> assert false
+              end
+            | _ -> assert false (* Branch/Branch comparison *)
 	    in
 	    let result = cache_merge compute s t in
 	    if not result then raise exn
@@ -1111,34 +1078,39 @@ struct
 
     let generic_is_included exn ~cache ~decide_fst ~decide_snd ~decide_both =
       let _name, _cache = cache in
-      let use_comp = _name = "lmap" in
+      let use_comp = 
+	if _name = "lmap" 
+	then (fun s t ->
+	  if s==t then
+	    false
+	  else
+	    ((if comp t then raise exn); true))
+	else (fun s t -> s != t)
+      in
       let module Cache =
 	Binary_cache.Make_Binary(Cacheable)(Cacheable)
       in
-      Project.register_todo_before_clear (fun _ -> Cache.clear ());
+      Project.register_after_set_current_hook ~user_only:false (fun _ -> Cache.clear ());
       make_predicate 
 	Cache.merge
 	exn
 	use_comp
 	~decide_fst ~decide_snd ~decide_both 
 
-    let generic_symetric_existential_predicate exn ~decide_one ~decide_both =
-      let use_comp = false in
+    let generic_symetric_existential_predicate exn do_it
+	~decide_one ~decide_both =
       let module Cache =
 	Binary_cache.Make_Symetric_Binary(Cacheable)
-      in
-      Project.register_todo_before_clear (fun _ -> Cache.clear ());
-      make_predicate 
-	Cache.merge
-	exn
-	use_comp
+      in 
+      Project.register_after_set_current_hook ~user_only:false (fun _ -> Cache.clear ()); 
+      make_predicate Cache.merge exn do_it
 	~decide_fst:decide_one ~decide_snd:decide_one ~decide_both 
 
     let cached_fold ~cache ~temporary ~f ~joiner ~empty =
       let _name, cache = cache in
       let table = PatriciaHashtbl.create cache in
       if not temporary then
-	Project.register_todo_before_clear 
+	Project.register_after_set_current_hook ~user_only:false 
 	  (fun _-> PatriciaHashtbl.clear table);
       let counter = ref 0 in
       fun m ->
@@ -1173,7 +1145,7 @@ struct
       let _name, cache = cache in
       let table = PatriciaHashtbl.create cache in
       if not temporary then
-	Project.register_todo_before_clear
+	Project.register_after_set_current_hook ~user_only:false
 	  (fun _ -> PatriciaHashtbl.clear table);
       let counter = ref 0 in
       fun m ->
@@ -1204,7 +1176,7 @@ struct
 	in
 	traverse m
 
-    let rec split key htr =
+    let split key htr =
       let id = Key.id key in
       let rec aux = function
         | Empty ->

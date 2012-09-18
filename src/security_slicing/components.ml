@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,10 +21,8 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
 open Cil_datatype
 open Db
-open Extlib
 
 (* ************************************************************************* *)
 (** {2 Searching security annotations} *)
@@ -108,7 +106,7 @@ let get_node_stmt node = Key.stmt (!Pdg.node_key node)
 
 module NodeKf = Datatype.Pair(PdgTypes.Node)(Kernel_function)
 
-type bwd_kind = Direct | Indirect
+(* type bwd_kind = Direct | Indirect
 type fwd_kind = Impact | Security
 type kind =
   | Backward of bwd_kind
@@ -120,7 +118,9 @@ let pretty_kind fmt = function
   | Backward Indirect -> Format.fprintf fmt "backward indirect"
   | Forward Security -> Format.fprintf fmt "forward"
   | Forward Impact -> Format.fprintf fmt "impact"
+*)
 
+(* Never plugged in. To be tested.
 module Memo : sig
   val init: kind -> kernel_function -> unit
   val push_function: stmt -> kernel_function -> unit
@@ -243,22 +243,23 @@ end = struct
       value
 
 end
+*)
 
 (* used to enforce an invariant on [add] *)
 module Todolist : sig
   type todo = private
-      { node: Pdg.t_node;
+      { node: PdgTypes.Node.t;
         kf: kernel_function;
         pdg: Pdg.t;
         callstack_length: int;
         from_deep: bool }
   type t = todo list
-  val mk_init: kernel_function -> Pdg.t -> Pdg.t_node list -> todo list
-  val add: Pdg.t_node -> kernel_function -> Pdg.t -> int -> bool -> t -> t
+  val mk_init: kernel_function -> Pdg.t -> PdgTypes.Node.t list -> todo list
+  val add: PdgTypes.Node.t -> kernel_function -> Pdg.t -> int -> bool -> t -> t
 end = struct
 
   type todo =
-      { node: Pdg.t_node;
+      { node: PdgTypes.Node.t;
         kf: kernel_function;
         pdg: Pdg.t;
         callstack_length: int;
@@ -319,7 +320,7 @@ module Component = struct
       - [found] is [true] iff [elt] was previously added for [kind]
       - [new_already] is [already] updated with [elt] and its (new) associated
       value. *)
-  let check_and_add first elt kind pdg len already =
+  let check_and_add first elt kind pdg len (already: t) =
     try
       (*        Format.printf "[security] check node %a (in %s, kind %a)@."
                 (!Pdg.pretty_node true) (fst elt)
@@ -391,7 +392,7 @@ module Component = struct
            (fun todolist callsite ->
               let nodes =
                 !Pdg.find_call_out_nodes_to_select
-                  pdg [ node ] (!Pdg.get caller) callsite
+                  pdg (PdgTypes.NodeSet.singleton node) (!Pdg.get caller) callsite
               in
               List.fold_left
                 (add_from_deep caller)
@@ -579,7 +580,7 @@ Ignoring this function in the analysis (potentially incorrect results)."
                           let from_stmt =
                             compute_from_stmt M.fold result [] in
                           let from_stmt =
-                                  (* initial nodes may be not in results *)
+                            (* initial nodes may be not in results *)
                             compute_from_stmt
                               (fun f e acc ->
                                 List.fold_left
@@ -587,6 +588,9 @@ Ignoring this function in the analysis (potentially incorrect results)."
                               initial_nodes
                               from_stmt
                           in
+                          let from_stmt = List.fold_left
+                            (fun s n -> PdgTypes.NodeSet.add n s)
+                            PdgTypes.NodeSet.empty from_stmt in
                           let called_pdg = !Pdg.get called_kf in
                           let nodes =
                             try
@@ -725,10 +729,10 @@ Ignoring this function in the analysis (potentially incorrect results)."
     in
     Stmt.Set.elements set
 
-  let iter use_ctrl_dpds f kf stmt =
+(*  let iter use_ctrl_dpds f kf stmt =
     let action = if use_ctrl_dpds then whole else direct in
     M.iter (fun elt _ -> f elt) (action kf stmt)
-
+*)
 end
 
 (* ************************************************************************ *)
@@ -761,17 +765,18 @@ let impact_analysis =
 
 (* ************************************************************************ *)
 
-type t = stmt
+(* type t = stmt *)
 
 (** Security component table: a security component is represented by the
     statement at which a security verification should occur.  It is associated
     with the list of its statements. *)
 module Components : sig
-  val add: t -> stmt -> unit
+  (*val add: t -> stmt -> unit
   val find: t -> stmt list
   val self: State.t
   val fold_fold:
     ('b -> t -> 'a -> 'b) -> ('a -> Cil_types.stmt -> 'a) -> 'b -> 'a -> 'b
+   *)
 end = struct
 
   module S =
@@ -782,7 +787,6 @@ end = struct
          let name = "Components"
          let size = 7
          let dependencies = [ Ast.self; Db.Value.self ]
-         let kind = `Internal
        end)
 
   let () =
@@ -791,7 +795,7 @@ end = struct
         State_dependency_graph.Static.add_codependencies
           ~onto:S.self
           [ !Db.Pdg.self ])
-
+(*
   let add c =
     let l = S.memo (fun _ -> ref []) c in
     fun s -> l := s :: !l
@@ -802,7 +806,7 @@ end = struct
 
   let fold_fold f g init_f init_g =
     S.fold (fun c l acc -> f acc c (List.fold_left g init_g !l)) init_f
-
+*)
 end
 (*
 module Nodes =

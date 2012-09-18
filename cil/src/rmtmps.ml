@@ -50,7 +50,6 @@ module U = Cilutil
 let keepUnused = ref false
 let rmUnusedInlines = ref false
 let rmUnusedStatic = ref false
-let rmEmptyInlines = ref true
 
 (***********************************************************************
  *
@@ -310,7 +309,7 @@ let traceNonRoot _reason _global =
   false
 *)
 let hasExportingAttribute funvar =
-  let rec isExportingAttribute = function
+  let isExportingAttribute = function
     | Attr ("constructor", []) -> true
     | Attr ("destructor", []) -> true
     | _ -> false
@@ -421,7 +420,8 @@ class markReachableVisitor
     | GVar (varinfo, _, _)
     | GVarDecl (_,varinfo, _)
     | GFun ({svar = varinfo}, _) ->
-	varinfo.vreferenced <- true;
+	if not (hasAttribute "FC_BUILTIN" varinfo.vattr) then
+          varinfo.vreferenced <- true;
 	DoChildren
     | GAnnot _ -> DoChildren
     | _ ->
@@ -470,6 +470,7 @@ class markReachableVisitor
 
         (* If this is a global, we need to keep everything used in its
 	 * definition and declarations. *)
+        v.vreferenced <- true;
 	if v.vglob then
 	  begin
 	    Kernel.debug ~level "descending: global %s" name;
@@ -479,9 +480,6 @@ class markReachableVisitor
 	    let globals = Hashtbl.find_all globalMap name in
 	    List.iter descend globals
 	  end
-	else begin
-	  v.vreferenced <- true;
-	end
       end;
     SkipChildren
 
@@ -506,7 +504,7 @@ class markReachableVisitor
       
   method vterm_node t =
     match t with
-      TConst (CEnum {eihost = ei}) -> ignore (self#mark_enum ei); DoChildren
+      TConst (LEnum {eihost = ei}) -> ignore (self#mark_enum ei); DoChildren
     | _ -> DoChildren
       
   method private visitAttrs attrs =
@@ -753,22 +751,30 @@ let removeUnmarked isRoot file =
   let removedLocals = ref [] in
 
   let filterGlobal global =
-    (match global with
-         (* unused global types, variables, and functions are simply removed *)
-       | GType ({treferenced = false}, _)
-       | GCompTag ({creferenced = false}, _)
-       | GCompTagDecl ({creferenced = false}, _)
-       | GEnumTag ({ereferenced = false}, _)
-       | GEnumTagDecl ({ereferenced = false}, _)
-       | GVar ({vreferenced = false}, _, _)
-       | GFun ({svar = {vreferenced = false}}, _) ->
-           (*	trace (dprintf "removing global: %a\n" d_shortglobal global);*)
-	   false
-       | GVarDecl (_,{vreferenced = false}, _) -> false
-
+    match global with
+      (* unused global types, variables, and functions are simply removed *)
+      | GType (t, _) ->
+          t.treferenced ||
+          Cil.hasAttribute "FC_BUILTIN" (Cil.typeAttr t.ttype) 
+          || isRoot global
+      | GCompTag (c,_) | GCompTagDecl (c,_) ->
+          c.creferenced ||
+            Cil.hasAttribute "FC_BUILTIN" c.cattr || isRoot global
+      | GEnumTag (e, _) | GEnumTagDecl (e,_) ->
+          e.ereferenced ||
+            Cil.hasAttribute "FC_BUILTIN" e.eattr || isRoot global
+      | GVar (v, _, _) ->
+          v.vreferenced || 
+            Cil.hasAttribute "FC_BUILTIN" v.vattr || isRoot global
+      | GVarDecl (_,({vreferenced = false} as v), _) ->
+          Cil.hasAttribute "FC_BUILTIN" v.vattr ||
+            (Cil.removeFormalsDecl v; isRoot global)
+       (* keep FC_BUILTIN, as some plug-ins might want to use them later
+          for semi-legitimate reasons. *)
+            
        (* retained functions may wish to discard some unused locals *)
-       | GFun (func, _) ->
-	   let rec filterLocal local =
+      | GFun (func, _) ->
+	   let filterLocal local =
 	     if not local.vreferenced then
 	       begin
 	         (* along the way, record the interesting locals that were removed *)
@@ -787,14 +793,15 @@ let removeUnmarked isRoot file =
                DoChildren
            end
            in
-           ignore (visitCilBlock remove_blocals func.sbody);
-           remove_unused_labels func;
-	   true
+           (func.svar.vreferenced 
+            || Cil.hasAttribute "FC_BUILTIN" func.svar.vattr
+            || isRoot global) &&
+             (ignore (visitCilBlock remove_blocals func.sbody);
+              remove_unused_labels func;
+	      true)
 
-    (* all other globals are retained *)
-    | _ ->
-(*	trace (dprintf "keeping global: %a\n" d_shortglobal global);*)
-	true) || (isRoot global)
+      (* all other globals are retained *)
+      | _ -> true
   in
   file.globals <- List.filter filterGlobal file.globals;
   !removedLocals
@@ -811,7 +818,7 @@ type rootsFilter = global -> bool
 
 let isDefaultRoot = isExportedRoot
 
-let rec removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
+let removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
   if not !keepUnused then
     begin
       Kernel.debug ~level "Removing unused temporaries" ;

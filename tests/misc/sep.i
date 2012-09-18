@@ -1,10 +1,10 @@
 /* run.config
-   OPT: -memory-footprint 1  -val -slevel 10 -lib-entry -main f1 -separate-n 0 -separate-of 3
-   OPT: -memory-footprint 1  -val -slevel 10 -lib-entry -main f1 -separate-n 1 -separate-of 3 
-   OPT: -memory-footprint 1  -val -slevel 10 -lib-entry -main f1 -separate-n 2 -separate-of 3 
-   OPT: -memory-footprint 1  -val -slevel 10 -lib-entry -main f1 -separate-n 3 -separate-of 3 
+   OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 0 -separate-of 3
+   OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 1 -separate-of 3 
+   OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 2 -separate-of 3 
+   OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 3 -separate-of 3 
+   OPT: -val -slevel 10 -lib-entry -main f1 -val-split-return-auto
 */
-
 int index;
 int tab[5];
 
@@ -42,4 +42,5 @@ int f1(int n)
 
 	if (res == 0)
 		return tab[index+n];
+        return -1;
 }

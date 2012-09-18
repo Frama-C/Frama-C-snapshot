@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -34,21 +34,20 @@ let from_unichar n =
   (* this function is not exported, so it's OK to do a few 'unsafe' things *)
   let write_unichar s ~pos c =
     let len = utf8_storage_len c in
-    let p = !pos in
     if len = 1 then
-      String.unsafe_set s p (Char.unsafe_chr c)
+      String.unsafe_set s pos (Char.unsafe_chr c)
     else begin
-      String.unsafe_set s p (Char.unsafe_chr (((1 lsl len - 1) lsl (8-len)) lor (c lsr ((len-1)*6))));
+      String.unsafe_set s pos (Char.unsafe_chr (((1 lsl len - 1) lsl (8-len)) lor (c lsr ((len-1)*6))));
       for i = 1 to len-1 do
-	String.unsafe_set s (p+i)
+	String.unsafe_set s (pos+i)
 	  (Char.unsafe_chr (((c lsr ((len-1-i)*6)) land 0x3f) lor 0x80))
       done ;
     end ;
-    pos := p + len
+    len
   in
-  let s = String.create 6 and pos = ref 0 in
-  write_unichar s ~pos n;
-  String.sub s 0 !pos
+  let s = String.create 6 in
+  let len = write_unichar s ~pos:0 n in
+  String.sub s 0 len
 
 
 let forall =  from_unichar 0x2200

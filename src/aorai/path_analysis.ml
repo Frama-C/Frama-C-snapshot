@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -23,9 +23,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Graph.Pack.Digraph
 open Promelaast
-(*
+(*open Graph.Pack.Digraph
+
 let st_array = ref (Array.make 1 (V.create 0)) ;;
 
 let auto2digraph (stl,trl) =
@@ -156,6 +156,11 @@ let get_transitions_to_state st (_,tr) =
     (fun acc tr ->
       if tr.stop.nums = st.nums then tr::acc else acc)
     [] tr
+
+let get_edges st1 st2 (_,tr) =
+  List.find_all
+    (fun tr -> tr.start.nums = st1.nums && tr.stop.nums = st2.nums)
+    tr
 
 let get_init_states (st,_) = List.filter (fun x -> x.init = Bool3.True) st
 

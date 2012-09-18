@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -26,7 +26,6 @@
 open Logic_ptree
 open Cil
 open Cil_types
-open Spec_tools
 open Promelaast
 open Logic_simplification
 
@@ -52,6 +51,43 @@ module Aorai_state =
     end
   )
 
+module Aorai_typed_trans =
+  Datatype.Make_with_collections(
+    struct
+      let name = "Aorai_typed_trans"
+      type t =
+          (Promelaast.typed_condition * Promelaast.action) Promelaast.trans
+      let structural_descr = Structural_descr.Abstract
+      let reprs = [ { numt = -1; start = List.hd (Aorai_state.reprs);
+                      stop = List.hd (Aorai_state.reprs);
+                      cross = (TTrue,[]); } ]
+      let equal x y = Datatype.Int.equal x.numt y.numt
+      let hash x = x.numt
+      let rehash = Extlib.id
+      let compare x y = Datatype.Int.compare x.numt y.numt
+      let copy = Extlib.id
+      let internal_pretty_code = Datatype.undefined
+      let pretty = Promelaoutput.print_transition
+      let varname _ = assert false
+      let mem_project = Datatype.never_any_project
+    end)
+
+module State_var =
+  State_builder.Hashtbl
+    (Aorai_state.Hashtbl)
+    (Cil_datatype.Varinfo)
+    (struct
+        let name = "Data_for_aorai.State_var"
+        let dependencies = [ Ast.self; Aorai_option.Ya.self ]
+        let size = 7
+     end)
+
+let get_state_var =
+  let add_var state = Cil.makeVarinfo true false state.name Cil.intType in
+  State_var.memo add_var
+
+let get_state_logic_var state = Cil.cvar_to_lvar (get_state_var state)
+
 module Max_value_counter =
   State_builder.Hashtbl
     (Cil_datatype.Term.Hashtbl)
@@ -59,7 +95,6 @@ module Max_value_counter =
     (struct
         let name = "Data_for_aorai.Max_value_counter"
         let dependencies = [ Ast.self; Aorai_option.Ya.self ]
-        let kind = `Internal
         let size = 7
      end)
 
@@ -112,14 +147,7 @@ let rec is_same_expression e1 e2 =
 
 let declared_logics = Hashtbl.create 97
 
-let add_logic name log_info =
-  begin
-    (* [VP 20110627] I don't understand the meaning of this test. If it's not
-       in the table, why do we delete it? *)
-    if not (Hashtbl.mem declared_logics name) then
-      Hashtbl.remove declared_logics name;
-    Hashtbl.add declared_logics name log_info
-  end
+let add_logic name log_info = Hashtbl.replace declared_logics name log_info
 
 let get_logic name =
   try Hashtbl.find declared_logics name
@@ -127,12 +155,8 @@ let get_logic name =
 
 let declared_predicates = Hashtbl.create 97
 
-let add_predicate name pred_info =
-  begin
-    if not (Hashtbl.mem declared_predicates name) then
-      Hashtbl.remove declared_predicates name;
-    Hashtbl.add declared_predicates name pred_info
-  end
+let add_predicate name pred_info = 
+  Hashtbl.replace declared_predicates name pred_info
 
 let get_predicate name =
   try Hashtbl.find declared_predicates name
@@ -232,7 +256,6 @@ module AuxVariables =
       let dependencies =
         [ Aorai_option.Ltl_File.self; Aorai_option.Buchi.self;
           Aorai_option.Ya.self; Ast.self ]
-      let kind = `Internal
      end)
 
 module AbstractLogicInfo =
@@ -243,7 +266,6 @@ module AbstractLogicInfo =
         let dependencies =
         [ Aorai_option.Ltl_File.self; Aorai_option.Buchi.self;
           Aorai_option.Ya.self; Ast.self ]
-        let kind = `Internal
      end)
 
 class change_var vi1 vi2 =
@@ -256,9 +278,6 @@ class change_var vi1 vi2 =
 let change_var_term vi1 vi2 t =
   Visitor.visitFramacTerm (new change_var vi1 vi2) t
 
-let change_var_lval vi1 vi2 lv =
-  Visitor.visitFramacTermLval (new change_var vi1 vi2) lv
-
 let update_condition vi1 vi2 cond =
   let rec aux e =
     match e with
@@ -269,11 +288,6 @@ let update_condition vi1 vi2 cond =
       | TRel(rel,t1,t2) ->
         TRel(rel,change_var_term vi1 vi2 t1,change_var_term vi1 vi2 t2)
   in aux cond
-
-let update_action vi1 vi2 action =
-  List.map
-    (fun (lv,t) -> change_var_lval vi1 vi2 lv, change_var_term vi1 vi2 t)
-    action
 
 let pebble_set_at li lab =
   assert (li.l_profile = []);
@@ -309,8 +323,6 @@ let add_aux_variable vi = AuxVariables.add vi
 
 let aux_variables = AuxVariables.get
 
-let add_abstract_logic_info li = AbstractLogicInfo.add li
-
 let abstract_logic_info = AbstractLogicInfo.get
 
 module StateIndex =
@@ -330,37 +342,33 @@ let new_intermediate_state () = new_state "aorai_intermediate_state"
 let new_trans start stop cond =
   { start = start; stop = stop; cross = cond; numt = TransIndex.next () }
 
-let cleanup_name state = { state with name = get_fresh state.name }
-
-let cleanup_state_names (states,trans) =
-  let assoc = List.map (fun state -> state, cleanup_name state) states in
-  let sync_trans tr =
-    { tr with
-      start = List.assq tr.start assoc;
-      stop = List.assq tr.stop assoc }
-  in
-  let trans = List.map sync_trans trans in
-  let states = snd (List.split assoc) in
-  (states,trans)
-
-let check_states () =
+let check_states s =
   let states,trans = getAutomata() in
   let max = getNumberOfStates () in
   List.iter
     (fun x -> if x.nums >= max then
-        Aorai_option.fatal "State %d found while max id is supposed to be %d"
-          x.nums max)
+        Aorai_option.fatal "%s: State %d found while max id is supposed to be %d"
+          s x.nums max)
+    states;
+  List.iter
+    (fun x ->
+      try 
+        let y = List.find (fun y -> x.nums = y.nums && not (x==y)) states in
+        Aorai_option.fatal "%s: State %s and %s share same id %d"
+          s x.name y.name x.nums
+      with Not_found -> ()
+    )
     states;
   List.iter
     (fun x ->
       if not (List.memq x.start states) then
         Aorai_option.fatal
-          "Start state %d of transition %d is not among known states"
-          x.start.nums x.numt;
+          "%s: Start state %d of transition %d is not among known states"
+          s x.start.nums x.numt;
       if not (List.memq x.stop states) then
         Aorai_option.fatal
-          "End state %d of transition %d is not among known states"
-          x.start.nums x.numt;)
+          "%s: End state %d of transition %d is not among known states"
+          s x.start.nums x.numt;)
     trans
 
 let cst_one = PCst (Logic_ptree.IntConstant "1")
@@ -508,7 +516,7 @@ let get_bindings st my_var =
       None -> my_lval
     | Some st ->
       let (_,idx) = memo_multi_state st in
-      Cil.addTermOffsetLval (TIndex (Logic_const.tvar idx,TNoOffset)) my_lval
+      Logic_const.addTermOffsetLval (TIndex (Logic_const.tvar idx,TNoOffset)) my_lval
 
 let get_bindings_term st my_var typ =
   Logic_const.term (TLval (get_bindings st my_var)) typ
@@ -548,7 +556,7 @@ let check_one top info counter s =
          if top then Some (Logic_const.tvar (Cil.cvar_to_lvar vi))
          else Some (memo_aux_variable tr counter used_prms vi)
        with Not_found -> None)
-    | EReturn kf when top && ( Datatype.String.equal s "return" 
+    | EReturn kf when top && ( Datatype.String.equal s "return"
                                || Datatype.String.equal s "\\result") ->
       let rt = Kernel_function.get_return_type kf in
       if Cil.isVoidType rt then
@@ -586,7 +594,7 @@ let find_prm_in_env env ?tr counter f x =
     try Globals.Functions.find_by_name f
     with Not_found -> Aorai_option.abort "Unknown function %s" f
   in
-  if Datatype.String.equal x "return" || 
+  if Datatype.String.equal x "return" ||
     Datatype.String.equal x "\\result" then begin
     (* Return event *)
     let rt = Kernel_function.get_return_type kf in
@@ -640,6 +648,7 @@ module C_logic_env =
 struct
   let anonCompFieldName = Cabs2cil.anonCompFieldName
   let conditionalConversion = Cabs2cil.logicConditionalConversion
+  let is_loop () = false
   let find_macro _ = raise Not_found
   let find_var _ = raise Not_found
   let find_enum_tag _ = raise Not_found
@@ -671,13 +680,8 @@ let type_expr env ?tr ?current e =
           env, var, cond
       | PPrm(f,x) -> find_prm_in_env env ?tr current f x
       | PCst (Logic_ptree.IntConstant s) ->
-        let e =
-          match (Cil.parseInt ~loc s).enode with
-            | Const (CInt64 _ as c) -> TConst c
-            | Const (CChr _ as c) -> TConst c
-            | _ -> assert false
-        in
-        env, Logic_const.term e Linteger, cond
+        let e = Cil.parseIntLogic ~loc s in
+        env, e, cond
       | PCst (Logic_ptree.FloatConstant str) ->
         let e,t =
           let hasSuffix str =
@@ -686,7 +690,7 @@ let type_expr env ?tr ?current e =
               let ls = String.length s in
               l >= ls && s = String.uppercase (String.sub str (l - ls) ls)
           in
-          (* Maybe it ends in U or UL. Strip those *)
+          (* Maybe it ends in F or L. Strip those *)
           let l = String.length str in
           let hasSuffix = hasSuffix str in
           let baseint, kind =
@@ -701,7 +705,18 @@ let type_expr env ?tr ?current e =
           in
           begin
 	    try
-	      TConst(CReal(float_of_string baseint, kind, Some str)),
+              let convert =
+                match kind with
+                    FFloat ->
+                      Floating_point.single_precision_of_string
+                  | FDouble | FLongDouble ->
+		      Floating_point.double_precision_of_string
+              in
+              Floating_point.set_round_nearest_even ();
+	      let f = match convert baseint with
+		Floating_point.Exact f | Floating_point.Inexact f -> f
+	      in
+	      TConst(LReal(f,str)),
 	      Lreal
 	    with Failure _ as e ->
 	      Aorai_option.abort ~current:true
@@ -711,13 +726,13 @@ let type_expr env ?tr ?current e =
       | PCst (Logic_ptree.StringConstant s) ->
         let t =
           Logic_const.term
-            (TConst(CStr (Logic_typing.unescape s))) (Ctype Cil.charPtrType)
+            (TConst(LStr (Logic_typing.unescape s))) (Ctype Cil.charPtrType)
         in
         env,t,cond
       | PCst (Logic_ptree.WStringConstant s) ->
         let t =
           Logic_const.term
-            (TConst (CWStr (Logic_typing.wcharlist_of_string s)))
+            (TConst (LWStr (Logic_typing.wcharlist_of_string s)))
             (Ctype (TPtr(Cil.theMachine.wcharType,[])))
         in env,t,cond
       | PBinop(bop,e1,e2) ->
@@ -905,19 +920,15 @@ let type_cond needs_pebble env tr cond =
       | PNot c ->
         let env, c = aux (not pos) env c in env, TNot c
       | PCall (s,b) ->
-        let kf = 
-          try
-            Globals.Functions.find_by_name s
+        let kf =
+          try Globals.Functions.find_by_name s
           with Not_found -> Aorai_option.abort "No such function: %s" s
         in
-        let b = 
-          Extlib.opt_map 
+        let b =
+          Extlib.opt_map
             (fun b ->
-              let bhvs = 
-                (Kernel_function.get_spec ~populate:false kf).spec_behavior
-              in
-              try
-                List.find (fun x -> x.b_name = b) bhvs
+              let bhvs = Annotations.behaviors ~populate:false kf in
+              try List.find (fun x -> x.b_name = b) bhvs
               with Not_found ->
                 Aorai_option.abort "Function %a has no behavior named %s"
                   Kernel_function.pretty kf b)
@@ -929,7 +940,7 @@ let type_cond needs_pebble env tr cond =
             (TCall (kf,b))
           else env, TCall (kf,b)
       | PReturn s ->
-        let kf = 
+        let kf =
           try
             Globals.Functions.find_by_name s
           with Not_found -> Aorai_option.abort "No such function %s" s
@@ -946,18 +957,19 @@ module Reject_state =
         let dependencies =
           [ Ast.self; Aorai_option.Ltl_File.self; Aorai_option.Buchi.self;
             Aorai_option.Ya.self]
-        let kind = `Internal
      end)
 
 let get_reject_state () =
   let create () = new_state "aorai_reject" in
   Reject_state.memo create
 
+let add_if_needed states st =
+  if List.for_all (fun x -> not (Aorai_state.equal x st)) states
+  then st::states
+  else states
+
 let rec type_seq default_state tr env needs_pebble curr_start curr_end seq =
-  let add_if_needed states st =
-    if List.for_all (fun x -> x.nums <> st.nums) states
-    then st::states else states
-  in
+  let loc = Cil_datatype.Location.unknown in
   match seq with
     | [] -> (* We identify start and end. *)
       (env, [], [], curr_end, curr_end)
@@ -1016,7 +1028,13 @@ let rec type_seq default_state tr env needs_pebble curr_start curr_end seq =
       in
       let guard_loop env current counter =
         match elt.max_rep with
-          | None -> TTrue
+          | None ->
+            (* We're using an int: adds an (somewhat artificial) requirements
+               that the counter itself does not overflow...
+             *)
+            let i = Cil.max_signed_number (Cil.bitsSizeOf Cil.intType) in
+            let e = Logic_const.tint ~loc i in
+            TRel(Cil_types.Rlt, counter, e)
           | Some e ->
             let _,e,_ = type_expr env ?current e in
             Max_value_counter.replace counter e;
@@ -1109,7 +1127,7 @@ let rec type_seq default_state tr env needs_pebble curr_start curr_end seq =
           let base = TVar (Cil.cvar_to_lvar vi), TNoOffset in
           if needs_pebble then
             let (_,idx) = memo_multi_state st in
-            Cil.addTermOffsetLval
+            Logic_const.addTermOffsetLval
               (TIndex (Logic_const.tvar idx,TNoOffset)) base
           else base
         in
@@ -1179,13 +1197,13 @@ let rec type_seq default_state tr env needs_pebble curr_start curr_end seq =
                 let zero_cond =
                   if is_opt then TTrue
                   else
-                    let current = 
+                    let current =
                       if needs_pebble then Some curr_start else None
                     in
                     let _,t,_ =
                       type_expr env ?current (Extlib.the elt.min_rep)
                     in
-                    TRel (Cil_types.Req, t, Logic_const.tinteger ~ikind:IInt 0)
+                    TRel (Cil_types.Req, t, Logic_const.tinteger ~loc 0)
                 in
                 let no_seq = new_trans st oth_start (Epsilon (zero_cond,[])) in
                 no_seq :: loop_trans
@@ -1269,6 +1287,13 @@ let find_otherwise_trans auto st =
 
 let type_trans auto env tr =
   let needs_pebble = not (single_path auto tr) in
+  let has_siblings =
+    match Path_analysis.get_transitions_of_state tr.start auto with
+      | [] -> Aorai_option.fatal "Ill-formed automaton"
+              (* at least tr should be there *)
+      | [ _ ] -> false (* We only have one sequence to exit from there anyway *)
+      | _::_::_ -> true
+  in
   Aorai_option.debug
     "Analyzing transition %s -> %s: %a (needs pebble: %B)"
     tr.start.name tr.stop.name Promelaoutput.print_parsed tr.cross needs_pebble;
@@ -1279,7 +1304,7 @@ let type_trans auto env tr =
       let _,states, transitions,_,_ =
         type_seq has_default_state tr env needs_pebble tr.start tr.stop seq
       in
-      let (states, transitions as auto) =
+      let (states, transitions) =
         if List.exists (fun st -> st.multi_state <> None) states then begin
         (* We have introduced some multi-state somewhere, we have to introduce
            pebbles and propagate them from state to state. *)
@@ -1315,51 +1340,48 @@ let type_trans auto env tr =
         end else
           states, transitions
       in
-      if has_default_state then begin
         (* For each intermediate state, add a transition
-           to the end of the sequence *)
-        let default_state = Extlib.the default_state in
-        let treat_one_state acc st =
-          if st.nums = tr.stop.nums || st.nums = tr.start.nums then acc
-          else begin
-            let trans = Path_analysis.get_transitions_of_state st auto in
-            let cond =
-              List.fold_left
-                (fun acc tr ->
-                  match tr.cross with
-                    | Epsilon (cond,_) | Normal(cond,_) ->
-                      let cond = change_bound_var tr.stop st cond in
-                      tor cond acc)
-                TFalse trans
-            in
-            let cond =
-              tnot (fst (Logic_simplification.simplifyCond cond))
-            in
-            match cond with
-                TFalse -> acc
-              | _ ->
-                Aorai_option.debug
-                  "Adding default transition %s -> %s: %a"
-                  st.name default_state.name Promelaoutput.print_condition cond;
-                new_trans st default_state (Normal (cond,[])) :: acc
-          end
-        in
-        let default_trans = List.fold_left treat_one_state transitions states in
-        Aorai_option.debug "Resulting transitions:@\n%a"
-          (Pretty_utils.pp_list ~sep:"@\n"
-             (fun fmt tr -> Format.fprintf fmt "%s -> %s:@[%a@]"
-               tr.start.name tr.stop.name print_epsilon_trans tr.cross))
-          default_trans;
-        states, default_trans
-      end else begin
-        Aorai_option.debug "Resulting transitions:@\n%a"
+           to either the default state or a rejection state (in which we will
+           stay until the end of the execution, while another branch might
+           succeed in an acceptance state.
+           )*)
+      let needs_default =
+        has_siblings &&
+          match transitions with
+            | [] | [ _ ] -> false
+            | _::_::_ -> true
+      in
+      Aorai_option.debug "Resulting transitions:@\n%a"
           (Pretty_utils.pp_list ~sep:"@\n"
              (fun fmt tr -> Format.fprintf fmt "%s -> %s:@[%a@]"
                tr.start.name tr.stop.name print_epsilon_trans tr.cross))
           transitions;
-        states, transitions
-      end
-    | Otherwise -> [],[] (* treated directly by type_seq *)
+        states, transitions, needs_default
+    | Otherwise -> [],[], false (* treated directly by type_seq *)
+
+let add_reject_trans auto intermediate_states =
+  let treat_one_state (states, trans) st =
+    let my_trans = Path_analysis.get_transitions_of_state st auto in
+    let reject_state = get_reject_state () in
+    let states = add_if_needed states reject_state in
+    let cond =
+      List.fold_left
+        (fun acc tr ->
+          let cond,_ = tr.cross in
+          let cond = change_bound_var tr.stop st cond in
+          tor cond acc)
+        TFalse my_trans
+    in
+    let cond = fst (Logic_simplification.simplifyCond (tnot cond)) in
+    match cond with
+        TFalse -> states,trans
+      | _ ->
+        Aorai_option.debug
+          "Adding default transition %s -> %s: %a"
+          st.name reject_state.name Promelaoutput.print_condition cond;
+        states, new_trans st reject_state (cond,[]) :: trans
+  in
+  List.fold_left treat_one_state auto intermediate_states
 
 let propagate_epsilon_transitions (states, _ as auto) =
   let rec transitive_closure start (conds,actions) known_states curr =
@@ -1428,8 +1450,8 @@ let type_cond_auto (st,tr as auto) =
   let add_if_needed acc st =
     if List.memq st acc then acc else st::acc
   in
-  let type_trans (states,transitions) tr =
-    let (intermediate_states, trans) = type_trans auto [] tr in
+  let type_trans (states,transitions,add_reject) tr =
+    let (intermediate_states, trans, needs_reject) = type_trans auto [] tr in
     Aorai_option.debug
       "Considering parsed transition %s -> %s" tr.start.name tr.stop.name;
     Aorai_option.debug
@@ -1439,21 +1461,37 @@ let type_cond_auto (st,tr as auto) =
            Format.fprintf fmt "%s -> %s: %a"
              tr.start.name tr.stop.name print_epsilon_trans tr.cross))
       trans;
+    let add_reject =
+      if needs_reject then
+        (List.filter 
+           (fun x -> not (Aorai_state.equal tr.start x || 
+                            Aorai_state.equal tr.stop x))
+           intermediate_states) @ add_reject
+      else add_reject
+    in
     (List.fold_left add_if_needed states intermediate_states,
-     transitions @ trans)
+     transitions @ trans,
+     add_reject)
   in
-  let auto =
-    List.fold_left type_trans (st,[]) tr
+  let (states, trans, add_reject) =
+    List.fold_left type_trans (st,[],[]) tr
   in
-  let auto = propagate_epsilon_transitions auto in
+  let auto = propagate_epsilon_transitions (states, trans) in
+  let auto = add_reject_trans auto add_reject in
   let (states, transitions as auto) = add_default_trans auto otherwise in
   (* nums (and in the past numt) are used as indices in arrays. Therefore, we
      must ensure that we use consecutive numbers starting from 0, or we'll
      have needlessly long arrays.
    *)
+  let (states, transitions as auto) =
+    match Reject_state.get_option () with
+      | Some state -> 
+          (states, (new_trans state state (TTrue,[])):: transitions)
+      | None -> auto
+  in
   if Aorai_option.debug_atleast 1 then
     Promelaoutput.output_dot_automata auto "aorai_debug_typed.dot";
-  let (nb_trans,trans) =
+  let (_,trans) =
     List.fold_left
       (fun (i,l as acc) t ->
         let cond, action = t.cross in
@@ -1463,7 +1501,7 @@ let type_cond_auto (st,tr as auto) =
           | _ -> (i+1,{ t with cross = (cond,action); numt = i } :: l))
       (0,[]) transitions
   in
-  let nb_state, states =
+  let _, states =
     List.fold_left
       (fun (i,l as acc) s ->
         if
@@ -1476,16 +1514,14 @@ let type_cond_auto (st,tr as auto) =
         end else acc)
       (0,[]) states
   in
-  setNumberOfStates nb_state;
-  setNumberOfTransitions nb_trans;
-  (List.rev states, List.rev trans)
+   (List.rev states, List.rev trans)
 
 (** Stores the buchi automaton and its variables and
     functions as it is returned by the parsing *)
 let setAutomata auto =
   let auto = type_cond_auto auto in
   automata:=auto;
-  check_states ();
+  check_states "typed automata";
   if Aorai_option.debug_atleast 1 then
     Promelaoutput.output_dot_automata auto "aorai_debug_reduced.dot";
   if (Array.length !cond_of_parametrizedTransitions) <
@@ -1543,6 +1579,11 @@ let isIgnoredFunction fname =
     (fun s -> (String.compare fname s)=0)
     (!ignored_functions)
 
+let is_reject_state state =
+  match Reject_state.get_option () with
+      None -> false
+    | Some state' -> Aorai_state.equal state state'
+
 (* ************************************************************************* *)
 (* Table giving the varinfo structure associated to a given variable name *)
 (* In practice it contains all variables (from promela and globals from C file) and only variables *)
@@ -1552,7 +1593,6 @@ let paraminfos = Hashtbl.create 97
 (* Add a new variable into the association table name -> varinfo *)
 let set_varinfo name vi =
   Hashtbl.add varinfos name vi
-
 
 (* Given a variable name, it returns its associated varinfo.
     If the variable is not found then an error message is print and an assert false is raised. *)
@@ -1595,60 +1635,6 @@ let get_returninfo funcname =
   try
     Hashtbl.find paraminfos (funcname,"\\return")
   with _ -> raise_error ("Return varinfo not declared for function '"^funcname^"'.")
-
-(* ************************************************************************* *)
-(**{b Pre and post condition of C functions} In our point of view, the pre or
-   the post condition of a C function are defined by the set of states
-   authorized just before/after the call, as such as the set of crossable
-   transitions. The following functions manages these stored informations.
-   Usually, the first array is for the authorized states, while the second one
-   is for the crossable conditions *)
-
-(* Private data, for memorization of current specification of each function *)
-let pre_status = Hashtbl.create 97 (* bool array * bool array *)
-let post_status = Hashtbl.create 97 (* bool array * bool array *)
-let post_status_bycase = Hashtbl.create 97 (* bool array array * bool array array *)
-
-(** Returns the pre condition associated to the given C function *)
-let get_func_pre ?(securised=false) func =
-  try Hashtbl.find pre_status func
-  with _ ->
-    if securised  then mk_full_pre_or_post()
-    else raise_error "Function pre-condition not found"
-
-(** Sets the pre condition of the given C function *)
-let set_func_pre func status =
-  Hashtbl.replace pre_status func status
-
-
-(** Returns the post condition associated to the given C function *)
-let get_func_post ?(securised=false) func =
-  try let (s,t) = (Hashtbl.find post_status func) in (Array.copy s,Array.copy t)
-  with _ ->
-    if securised  then mk_full_pre_or_post()
-    else raise_error ("(data_for_aorai.get_func_post). Status : Function '"^func^"' postcondition not found")
-
-(** Sets the pre condition of the given C function *)
-let set_func_post func status =
-  Hashtbl.replace post_status func status
-
-
-
-(** Returns the post condition associated to the given C function *)
-let get_func_post_bycase ?(securised=false) func =
-  try Hashtbl.find post_status_bycase  func
-  with _ ->
-    if securised  then mk_full_pre_or_post_bycase()
-    else raise_error ("(data_for_aorai.get_func_post_bycase). Status : Function '"^func^"' postcondition not found")
-
-(** Sets the pre condition of the given C function *)
-let set_func_post_bycase  func status =
-  Hashtbl.replace post_status_bycase func status
-
-module Actions_key =
-Datatype.Quadruple_with_collections
-  (Kernel_function) (Cil_datatype.Kinstr) (Aorai_state) (Aorai_state)
-  (struct let module_name = "Data_for_aorai.Actions_key" end)
 
 type range =
   | Fixed of int (** constant value *)
@@ -1699,14 +1685,6 @@ module Range = Datatype.Make_with_collections
           Bounded(Datatype.Int.copy c1, Cil_datatype.Term.copy c2)
         | Unbounded c1 -> Unbounded (Datatype.Int.copy c1)
       let internal_pretty_code _ = Datatype.from_pretty_code
-      let pretty_code fmt = function
-        | Fixed c1 -> Format.fprintf fmt "Fixed@ %d" c1
-        | Interval (c1,c2) ->
-          Format.fprintf fmt "Interval@ (%d,@;%d)" c1 c2
-        | Bounded(c1,c2) ->
-          Format.fprintf fmt "Bounded@ (%d,@;%a)" c1
-            Cil_datatype.Term.pretty_code c2
-        | Unbounded c1 -> Format.fprintf fmt "Unbounded@ %d" c1
       let pretty fmt = function
         | Fixed c1 -> Format.fprintf fmt "%d" c1
         | Interval (c1,c2) ->
@@ -1723,94 +1701,16 @@ module Intervals = Cil_datatype.Term.Map.Make(Range)
 
 module Vals = Cil_datatype.Term.Map.Make(Intervals)
 
-module Actions =
-  struct
-    include
-      State_builder.Hashtbl
-      (Actions_key.Hashtbl)
-      (Vals)
-      (struct
-        let name = "Data_for_aorai.Actions"
-        let dependencies = 
-          [ Ast.self; Kernel.MainFunction.self; Aorai_option.Ya.self ]
-        let kind = `Internal
-        let size = 117
-       end)
-  end
-
-let test_action_bindings kf ki pre post fmt =
-  Format.fprintf fmt "All known action bindings@\n";
-  Actions.iter 
-    (fun (kf',ki',pre',post' as key) m ->
-      if Kernel_function.equal kf kf' && Cil_datatype.Kinstr.equal ki ki' &&
-        Aorai_state.equal pre pre' && 
-        Aorai_state.equal post post'
-      then begin
-        Format.fprintf fmt "Found an equal key(%B)!"
-          (Actions_key.equal (kf,ki,pre,post) key);
-        try ignore (Actions.find key) with Not_found -> 
-          Format.fprintf fmt "Key itself has no binding!@\n";
-      end;
-      Format.fprintf fmt 
-        "@[<2>%a (statement %a), from state %s to state %s"
-        Kernel_function.pretty kf' Cil_datatype.Kinstr.pretty ki'
-        pre'.name post'.name;
-      Cil_datatype.Term.Map.iter
-        (fun l _ -> Format.fprintf fmt "@\nfound binding for %a" 
-          Cil_datatype.Term.pretty l) m;
-      Format.fprintf fmt "@]@\n")
-
-let get_action_bindings kf ki pre post =
-  try Actions.find (kf, ki, pre, post)
-  with Not_found -> Cil_datatype.Term.Map.empty
-
-let set_action_bindings kf ki pre post vals =
-  Actions.replace (kf,ki,pre,post) vals
-
-let all_action_bindings () =
-  Actions.fold (fun k v l -> (k,v) :: l) []
-
-let get_action_path kf ki pre post =
-  Aorai_option.debug "Getting actions@\n";
-  try
-    let actions = Actions.find (kf,ki,pre,post) in
-    Aorai_option.debug "Actions have been found@\n";
-    Cil_datatype.Term.Map.fold
-      (fun v map acc ->
-        let assoc =
-          Cil_datatype.Term.Map.fold 
-            (fun x r acc -> 
-              Aorai_option.debug ~dkey:"action" "found binding for %a"
-                Cil_datatype.Term.pretty v;
-              (x,r) :: acc)
-            map []
-        in (v,assoc) :: acc)
-      actions []
-  with Not_found ->
-    Aorai_option.debug ~dkey:"action" 
-      "Nothing to do for %a (statement %a), from state %s to state %s@\n%t"
-      Kernel_function.pretty kf Cil_datatype.Kinstr.pretty ki
-      pre.name post.name (test_action_bindings kf ki pre post);
-    []
-
-let get_action_path_binding kf ki pre post loc base =
-  let actions = Actions.find (kf,ki,pre,post) in
-  let bindings = Cil_datatype.Term.Map.find loc actions in
-  Cil_datatype.Term.Map.find base bindings
-
 (* If we have a bound for the number of iteration, the counter cannot grow
-   more than 1 + bound (we go to a rejection state otherwise). 
+   more than bound (we go to a rejection state otherwise).
 *)
 let absolute_range loc min =
   let max = find_max_value loc in
   match max with
-    | Some { term_node = TConst(CInt64 (t,_,_)) } ->
-      Interval(min,My_bigint.to_int t + 1)
-    | Some x -> 
-      Bounded
-        (min, 
-         Logic_const.term 
-           (TBinOp(PlusA,x,Logic_const.tinteger ~ikind:IInt 1)) Linteger)
+    | Some { term_node = TConst(Integer (t,_)) } ->
+      Interval(min,My_bigint.to_int t)
+    | Some x ->
+      Bounded (min, Logic_const.term x.term_node x.term_type)
     | None -> Unbounded min
 
 let merge_range loc base r1 r2 =
@@ -1839,10 +1739,10 @@ let merge_range loc base r1 r2 =
           else Unbounded min
         end else r1
     | Interval(min1,max1), Interval(min2,max2) ->
-      if Datatype.Int.compare min2 min1 < 0 
+      if Datatype.Int.compare min2 min1 < 0
         || Datatype.Int.compare max2 max1 > 0 then
         begin
-          let min = 
+          let min =
             if Datatype.Int.compare min2 min1 < 0 then min2 else min1
           in
           if Cil.isLogicZero base then
@@ -1860,7 +1760,7 @@ let merge_range loc base r1 r2 =
       Bounded(min,max1)
     | Bounded(min1,_),
       (Fixed min2 | Interval(min2,_) | Bounded (min2,_) | Unbounded min2) ->
-      let min = 
+      let min =
         if Datatype.Int.compare min2 min1 < 0 then min2 else min1
       in Unbounded min
     | Unbounded min1,
@@ -1869,393 +1769,346 @@ let merge_range loc base r1 r2 =
         if Datatype.Int.compare min2 min1 < 0 then min2 else min1
       in Unbounded min
 
-let merge_action_bindings kf ki pre post vals =
-  let actions =
-    try
-      let my_vals = Actions.find (kf,ki,pre,post) in
-      let merge_range loc base r1 r2 =
-        match r1,r2 with
-          | None, None -> None
-          | Some r, None | None, Some r -> Some r
-          | Some r1, Some r2 -> Some (merge_range loc base r1 r2)
-      in
-      let merge_bindings loc b1 b2 =
-        match b1, b2 with
-          | None, None -> None
-          | Some b, None | None, Some b -> Some b
-          | Some b1, Some b2 ->
-            let b =
-              Cil_datatype.Term.Map.merge (merge_range loc) b1 b2 in
-            Some b
-      in
-      Cil_datatype.Term.Map.merge merge_bindings my_vals vals
-    with Not_found -> vals
+let tlval lv = Logic_const.term (TLval lv) (Cil.typeOfTermLval lv)
+
+let included_range range1 range2 =
+  match range1, range2 with
+    | Fixed c1, Fixed c2 -> Datatype.Int.equal c1 c2
+    | Fixed c, Interval(l,h) ->
+      Datatype.Int.compare l c <= 0 && Datatype.Int.compare c h <= 0
+    | Fixed _, Bounded _ -> false
+    | Fixed c1, Unbounded c2 -> Datatype.Int.compare c1 c2 >= 0
+    | Interval (l1,h1), Interval(l2,h2) ->
+      Datatype.Int.compare l1 l2 >= 0 && Datatype.Int.compare h1 h2 <= 0
+    | Interval (l1,_), Unbounded l2 ->
+      Datatype.Int.compare l1 l2 >= 0
+    | Interval _, (Fixed _ | Bounded _ ) -> false
+    | Bounded _, (Fixed _ | Interval _) -> false
+    | Bounded(l1,h1), Bounded(l2,h2) ->
+      Datatype.Int.compare l1 l2 >= 0 && Cil_datatype.Term.equal h1 h2
+    | Bounded(l1,_), Unbounded l2 -> Datatype.Int.compare l1 l2 <= 0
+    | Unbounded l1, Unbounded l2 -> Datatype.Int.compare l1 l2 <= 0
+    | Unbounded _, (Fixed _ | Interval _ | Bounded _) -> false
+
+let unchanged loc =
+  Cil_datatype.Term.Map.add loc (Fixed 0) Cil_datatype.Term.Map.empty
+
+let merge_bindings tbl1 tbl2 =
+  let merge_range loc = Extlib.merge_opt (merge_range loc) in
+  let merge_vals loc tbl1 tbl2 =
+    match tbl1, tbl2 with
+        | None, None -> None
+        | Some tbl, None | None, Some tbl ->
+            Some
+              (Cil_datatype.Term.Map.merge 
+                 (merge_range loc) tbl (unchanged loc))
+        | Some tbl1, Some tbl2 ->
+          Some (Cil_datatype.Term.Map.merge (merge_range loc) tbl1 tbl2)
   in
-  Aorai_option.debug ~dkey:"action"
-    "Merging actions of %a (statement %a), from state %s to state %s"
-    Kernel_function.pretty kf Cil_datatype.Kinstr.pretty ki
-    pre.name post.name;
-  Cil_datatype.Term.Map.iter
-    (fun l _ -> Aorai_option.debug ~dkey:"action"
-      "Got binding for %a" Cil_datatype.Term.pretty l)
-    actions;
-  Actions.replace (kf,ki,pre,post) actions
+  Cil_datatype.Term.Map.merge merge_vals tbl1 tbl2
 
-let add_action_path kf ki pre post v (b,r1) =
-  let actions =
-    try Actions.find (kf, ki, pre, post)
-    with Not_found -> Cil_datatype.Term.Map.empty
-  in
-  let bindings =
-    try Cil_datatype.Term.Map.find v actions
-    with Not_found -> Cil_datatype.Term.Map.empty
-  in
-  let range =
-    try
-      let r2 = Cil_datatype.Term.Map.find b bindings in
-      merge_range v b r2 r1
-    with Not_found -> r1
-  in
-  let bindings = Cil_datatype.Term.Map.add b range bindings in
-  let actions = Cil_datatype.Term.Map.add v bindings actions in
-  Actions.replace (kf, ki, pre, post) actions
+module End_state = 
+  Aorai_state.Map.Make(Datatype.Triple(Aorai_state.Set)(Aorai_state.Set)(Vals))
 
-let remove_action_path kf ki pre post =
-  Aorai_option.debug ~dkey:"action" 
-    "Removing action of %a (statement %a), from state %s to state %s"
-    Kernel_function.pretty kf Cil_datatype.Kinstr.pretty ki
-    pre.name post.name;
-  Actions.remove (kf,ki,pre,post)
+type end_state = End_state.t
 
-let clear_actions = Actions.clear
+(** The data associated to each statement: We have a mapping from each
+    possible state at the entrance to the function (before actual transition)
+    to the current state possibles, associated to any action that has occured
+    on that path.
+ *)
+module Case_state = Aorai_state.Map.Make(End_state)
 
-(* Private data, for memorization of current specification of each function *)
-let pre_call_status = Hashtbl.create 97 (* (String cur_op * int StmtId) -> bool array * bool array *)
-(*let pre_call_status_bc = Hashtbl.create 97 (* (String cur_op * int StmtId) -> bool array * bool array *)*)
+type state = Case_state.t
 
+let pretty_state fmt cases =
+  Aorai_state.Map.iter
+    (fun start tbl ->
+      Aorai_state.Map.iter
+        (fun stop (fst,last, actions) ->
+          Format.fprintf fmt
+            "Possible path from %s to %s@\n  Initial trans:@\n"
+            start.Promelaast.name stop.Promelaast.name;
+          Aorai_state.Set.iter
+            (fun state ->
+              Format.fprintf fmt "    %s -> %s@\n" 
+                start.Promelaast.name
+                state.Promelaast.name)
+            fst;
+          Format.fprintf fmt "  Final trans:@\n";
+          Aorai_state.Set.iter
+            (fun state ->
+              Format.fprintf fmt "    %s -> %s@\n"
+                state.Promelaast.name stop.Promelaast.name)
+          last;
+          Format.fprintf fmt "  Related actions:@\n";
+          Cil_datatype.Term.Map.iter
+            (fun loc tbl ->
+              Cil_datatype.Term.Map.iter
+                (fun base itv ->
+                  Format.fprintf fmt "  %a <- %a + %a@\n"
+                    Cil_datatype.Term.pretty loc
+                    Cil_datatype.Term.pretty base
+                    Range.pretty itv)
+                tbl)
+            actions)
+        tbl)
+    cases
 
-(** Gives the specification of the call stmt in the given C function at the given StmtId.
-    if the key (caller,sid) is not in table, then a full spec is returned.
-*)
-let get_func_pre_call caller sid =
+let included_state tbl1 tbl2 =
   try
-    Hashtbl.find pre_call_status (caller,sid)
-  with
-    | _ -> (Array.make (!numberOfStates) true,
-	    Array.make (!numberOfTransitions) true)
-	(*Format.printf "Aorai plugin internal error. Status : Function pre-condition not found. \n"; assert false*)
+    Aorai_state.Map.iter
+      (fun s1 tbl1 ->
+        let tbl2 = Aorai_state.Map.find s1 tbl2 in
+        Aorai_state.Map.iter
+          (fun s2 (fst1, last1, tbl1) ->
+            let (fst2, last2, tbl2) = Aorai_state.Map.find s2 tbl2 in
+            if not (Aorai_state.Set.subset fst1 fst2)
+              || not (Aorai_state.Set.subset last1 last2)
+            then raise Not_found;
+            Cil_datatype.Term.Map.iter
+              (fun base bindings1 ->
+                let bindings2 =
+                  Cil_datatype.Term.Map.find base tbl2
+                in
+                Cil_datatype.Term.Map.iter
+                  (fun loc range1 ->
+                    let range2 = Cil_datatype.Term.Map.find loc bindings2 in
+                    if not 
+                      (included_range range1 range2) then raise Not_found)
+                  bindings1)
+              tbl1)
+          tbl1)
+      tbl1;
+    true
+  with Not_found -> false
 
-(** Sets the specification of the call stmt in the given C function at the given StmtId. *)
-let set_func_pre_call caller sid status =
-  Hashtbl.replace pre_call_status (caller,sid) status
+let merge_end_state tbl1 tbl2 =
+  let merge_stop_state _ (fst1, last1, tbl1) (fst2, last2, tbl2) = 
+    let fst = Aorai_state.Set.union fst1 fst2 in
+    let last = Aorai_state.Set.union last1 last2 in
+    let tbl = merge_bindings tbl1 tbl2 in
+    (fst, last, tbl)
+  in
+  Aorai_state.Map.merge (Extlib.merge_opt merge_stop_state) tbl1 tbl2
 
+let merge_state tbl1 tbl2 =
+  let merge_state _ = merge_end_state in
+  Aorai_state.Map.merge (Extlib.merge_opt merge_state) tbl1 tbl2
 
-(** Sets the specification of the call stmt in the given C function at the given StmtId. *)
-let set_func_pre_call_bycase caller sid status =
-  Hashtbl.replace pre_call_status (caller,sid)
-    (Spec_tools.pre_flattening status)
+module Pre_state = 
+  Kernel_function.Make_Table
+    (Case_state)
+    (struct
+        let name = "Data_for_aorai.Pre_state"
+        let dependencies = 
+          [ Ast.self; Aorai_option.Ya.self; Aorai_option.Ltl_File.self;
+            Aorai_option.To_Buchi.self; Aorai_option.Deterministic.self ]
+        let size = 17
+     end)
 
+let set_kf_init_state kf state =
+  let change old_state = merge_state old_state state in
+  let set _ = state in
+  ignore (Pre_state.memo ~change set kf)
 
+let replace_kf_init_state kf state = 
+  Aorai_option.debug ~dkey:"dataflow" 
+    "Replacing pre-state of %a:@\n  @[%a@]"
+    Kernel_function.pretty kf pretty_state state;
+  Pre_state.replace kf state
 
+let get_kf_init_state kf =
+  try
+    Pre_state.find kf
+  with Not_found -> Aorai_state.Map.empty
 
+module Post_state = 
+  Kernel_function.Make_Table
+    (Case_state)
+    (struct
+        let name = "Data_for_aorai.Post_state"
+        let dependencies = 
+          [ Ast.self; Aorai_option.Ya.self; Aorai_option.Ltl_File.self;
+            Aorai_option.To_Buchi.self; Aorai_option.Deterministic.self ]
+        let size = 17
+     end)
 
-(* ************************************************************************* *)
-(**{b Pre and post condition of loops} In our point of view, the pre or
-   the post condition are defined by the set of states authorized just
-   before/after the loop (external pre/post), and by the set of states
-   authorized just before/after the execution of the internal block of the
-   loop (internal pre/post).
-   The following functions manages these stored informations.
-   Usually, the first array is for the authorized states, while the second one
-   is for the crossable conditions. *)
+let set_kf_return_state kf state =
+  let change old_state = merge_state old_state state in
+  let set _ = state in
+  ignore (Post_state.memo ~change set kf)
 
-(* Private data, for memorization of current specification of each loop *)
-let loop_ext_pre  = Hashtbl.create 97
-let loop_int_pre  = Hashtbl.create 97
-let loop_ext_post = Hashtbl.create 97
-let loop_int_post = Hashtbl.create 97
+let replace_kf_return_state = Post_state.replace
 
+let get_kf_return_state kf =
+  try
+    Post_state.find kf
+  with Not_found -> Aorai_state.Map.empty
 
-(* Returns the pre condition associated to the given C function *)
-let get_loop_ext_pre stmt =
-  try Hashtbl.find loop_ext_pre stmt with _ -> mk_full_pre_or_post()
-let get_loop_int_pre stmt =
-  try Hashtbl.find loop_int_pre stmt with _ -> mk_full_pre_or_post()
+module Loop_init_state =
+  State_builder.Hashtbl
+    (Cil_datatype.Stmt.Hashtbl)
+    (Case_state)
+    (struct
+        let name = "Data_for_aorai.Loop_init_state"
+        let dependencies =
+          [ Ast.self; Aorai_option.Ya.self; Aorai_option.Ltl_File.self;
+            Aorai_option.To_Buchi.self; Aorai_option.Deterministic.self ]
+        let size = 17
+     end)
 
-(* Sets the external or the block pre condition of the given loop *)
-let set_loop_ext_pre stmt pre = Hashtbl.replace loop_ext_pre stmt pre
-let set_loop_int_pre stmt pre = Hashtbl.replace loop_int_pre stmt pre
+let set_loop_init_state stmt state =
+  let change old_state = merge_state old_state state in
+  let set _ = state in
+  ignore (Loop_init_state.memo ~change set stmt)
 
+let replace_loop_init_state = Loop_init_state.replace
 
-(* Returns the post condition associated to the given C function *)
-let get_loop_ext_post stmt =
-  try Hashtbl.find loop_ext_post stmt with _ -> mk_full_pre_or_post()
-let get_loop_int_post stmt =
-  try Hashtbl.find loop_int_post stmt with _ -> mk_full_pre_or_post()
+let get_loop_init_state stmt =
+  try
+    Loop_init_state.find stmt
+  with Not_found -> Aorai_state.Map.empty
 
-(* Sets the external or the block post condition of the given loop *)
-let set_loop_ext_post stmt post = Hashtbl.replace loop_ext_post stmt post
-let set_loop_int_post stmt post = Hashtbl.replace loop_int_post stmt post
+module Loop_invariant_state =
+  State_builder.Hashtbl
+    (Cil_datatype.Stmt.Hashtbl)
+    (Case_state)
+    (struct
+        let name = "Data_for_aorai.Loop_invariant_state"
+        let dependencies =
+          [ Ast.self; Aorai_option.Ya.self; Aorai_option.Ltl_File.self;
+            Aorai_option.To_Buchi.self; Aorai_option.Deterministic.self ]
+        let size = 17
+     end)
 
-(* Private data, for memorization of current specification of each loop *)
-let loop_ext_pre_bycase  = Hashtbl.create 97
-let loop_int_pre_bycase  = Hashtbl.create 97
-let loop_ext_post_bycase = Hashtbl.create 97
-let loop_int_post_bycase = Hashtbl.create 97
+let set_loop_invariant_state stmt state =
+  let change old_state = merge_state old_state state in
+  let set _ = state in
+  ignore (Loop_invariant_state.memo ~change set stmt)
 
+let replace_loop_invariant_state = Loop_invariant_state.replace
 
-(* Returns the pre condition associated to the given C function *)
-let get_loop_ext_pre_bycase stmt =
-  try Hashtbl.find loop_ext_pre_bycase stmt
-  with _ -> mk_full_pre_or_post_bycase()
+let get_loop_invariant_state stmt =
+  try Loop_invariant_state.find stmt
+  with Not_found -> Aorai_state.Map.empty
 
-let get_loop_int_pre_bycase stmt =
-  try Hashtbl.find loop_int_pre_bycase stmt
-  with _ -> mk_full_pre_or_post_bycase()
+let pretty_pre_state fmt =
+  Pre_state.iter
+    (fun kf state -> 
+      Format.fprintf fmt "Function %a:@\n  @[%a@]@\n"
+        Kernel_function.pretty kf pretty_state state)
 
-(* Sets the external or the block pre condition of the given loop *)
-let set_loop_ext_pre_bycase stmt pre =
-  Hashtbl.replace loop_ext_pre_bycase stmt pre
-let set_loop_int_pre_bycase stmt pre =
-  Hashtbl.replace loop_int_pre_bycase stmt pre
+let pretty_post_state fmt =
+  Post_state.iter
+    (fun kf state -> 
+      Format.fprintf fmt "Function %a:@\n  @[%a@]@\n"
+        Kernel_function.pretty kf pretty_state state)
 
-(* Returns the post condition associated to the given C function *)
-let get_loop_ext_post_bycase stmt =
-  try Hashtbl.find loop_ext_post_bycase stmt
-  with _ -> mk_full_pre_or_post_bycase()
+let pretty_loop_init fmt =
+  Loop_init_state.iter
+    (fun stmt state -> 
+      let kf = Kernel_function.find_englobing_kf stmt in
+      Format.fprintf fmt "Function %a, sid %d:@\n  @[%a@]@\n"
+        Kernel_function.pretty kf stmt.sid pretty_state state)
 
-let get_loop_int_post_bycase stmt =
-  try Hashtbl.find loop_int_post_bycase stmt
-  with _ -> mk_full_pre_or_post_bycase()
+let pretty_loop_invariant fmt =
+  Loop_invariant_state.iter
+    (fun stmt state -> 
+      let kf = Kernel_function.find_englobing_kf stmt in
+      Format.fprintf fmt "Function %a, sid %d:@\n  @[%a@]@\n"
+        Kernel_function.pretty kf stmt.sid pretty_state state)
 
-(* Sets the external or the block post condition of the given loop *)
-let set_loop_ext_post_bycase stmt post =
-  Hashtbl.replace loop_ext_post_bycase stmt post
-let set_loop_int_post_bycase stmt post =
-  Hashtbl.replace loop_int_post_bycase stmt post
-
-
-(** Returns a stmt list. It is the set of all
-    registered loop in loop_specs hashtables *)
-let get_loops_index () =
-  Hashtbl.fold (fun key _ lk-> key::lk ) loop_int_pre_bycase []
+let debug_computed_state () =
+  Aorai_option.debug ~dkey:"dataflow" 
+    "Computed state:@\nPre-states:@\n  @[%t@]@\nPost-states:@\n  @[%t@]@\n\
+     Loop init:@\n  @[%t@]@\nLoop invariants:@\n  @[%t@]"
+    pretty_pre_state pretty_post_state pretty_loop_init pretty_loop_invariant
 
 (* ************************************************************************* *)
 
 let removeUnusedTransitionsAndStates () =
   (* Step 1 : computation of reached states and crossed transitions *)
-  let crossedTransitions = ref (Array.make(getNumberOfTransitions()) false) in
-  let reachedStates = ref (Array.make(getNumberOfStates()) false) in
-  let addHash htbl =
-    Hashtbl.iter
-      (fun _ (_,tr) ->
-	 crossedTransitions:= bool_array_or !crossedTransitions tr;
-      )
-      htbl
+  let treat_one_state state map set =
+    Aorai_state.Map.fold
+      (fun state (fst, last, _) set -> 
+          Aorai_state.Set.add state 
+            (Aorai_state.Set.union last
+               (Aorai_state.Set.union fst set)))
+      map
+      (Aorai_state.Set.add state set)
   in
-
-  let addHash_bycase htbl_bc =
-    let htbl = Hashtbl.create (Hashtbl.length htbl_bc) in
-    Hashtbl.iter
-      (fun key dbaa ->
-	 Hashtbl.add htbl key (Spec_tools.pre_flattening dbaa)
-      )
-      htbl_bc;
-    addHash htbl
+  let reached _ state set = Aorai_state.Map.fold treat_one_state state set in
+  let reached_states = Pre_state.fold reached Aorai_state.Set.empty in
+  let reached_states = Post_state.fold reached reached_states in
+  let reached_states = Loop_init_state.fold reached reached_states in
+  let reached_states = Loop_invariant_state.fold reached reached_states in
+  (* Step 2 : computation of translation tables *)
+  let state_list =
+    List.sort 
+      (fun x y -> Datatype.String.compare x.Promelaast.name y.Promelaast.name)
+      (Aorai_state.Set.elements reached_states)
   in
-
-  addHash pre_status;
-(*   addHash post_status; *)
-  addHash_bycase post_status_bycase;
-
-  addHash_bycase loop_ext_pre_bycase;
-  addHash_bycase loop_int_pre_bycase;
-(*   addHash_bycase loop_ext_post_bycase;  Always empty*)
- addHash_bycase loop_int_post_bycase;
-
-  List.iter
-    (fun tr ->
-       if !crossedTransitions.(tr.numt) then
-	 begin
-	   !reachedStates.(tr.start.nums)<-true;
-	   !reachedStates.(tr.stop.nums)<-true
-	 end
-    )
-    (snd !automata);
-
-(* Verification pass because of a plugin limitation *)
-(*  List.iter
-    (fun tr ->
-       if not !reachedStates.(tr.start.nums) && !crossedTransitions.(tr.numt) then
-	 begin
-	   Format.printf "Aorai plugin internal error. Status : States/Transitions simplification try to remove an unreachable state wich is the starting point for a crossable transition. \n";
-	   assert false
-	 end
-    )
-    (snd !automata);
-*)
-
-
-(* DEBUG : Displaying information *)
-(*  Format.printf "\n\n Used states and transitions:\n";
-  debug_display_stmt_all_pre (!reachedStates,!crossedTransitions) ;
-  Format.printf "\n\n" ;*)
-
-(* Step 2 : computation of translation tables *)
-  let newNbTrans = Array.fold_left
-    (fun nb tr -> if tr then nb+1 else nb ) 0 !crossedTransitions in
-  let newNbStates =
-    Array.fold_left (fun nb st -> if st then nb+1 else nb ) 0 !reachedStates
+  let (_, translate_table) =
+    List.fold_left
+      (fun (i,map) x ->
+        let map = Aorai_state.Map.add x { x with nums = i } map in (i+1,map))
+      (0,Aorai_state.Map.empty) state_list
   in
-  let replaceTransitions = Array.make(getNumberOfTransitions()) 0 in
-  let replaceStates = Array.make(getNumberOfStates()) 0 in
-  let nextTr = ref 0 in
-  let nextSt = ref 0 in
-  Array.iteri
-    (fun i _ -> if !crossedTransitions.(i) then
-       begin
-	 replaceTransitions.(i) <- !nextTr;
-	 nextTr:=!nextTr+1
-       end
-     else
-       replaceTransitions.(i) <- (-1)
-    )
-    replaceTransitions;
-  Array.iteri
-    (fun i _ -> if !reachedStates.(i) then
-       begin
-	 replaceStates.(i) <- !nextSt;
-	 nextSt:=!nextSt+1
-       end
-     else
-       replaceStates.(i) <- (-1)
-    )
-    replaceStates ;
-
-
-(* DEBUG : Displaying information *)
-  (* Format.printf "\n\n New nb trans :%d \n New nb states :%d  \n" newNbTrans newNbStates; *)
-  (* Format.printf "\n\n Transitions replacement:\n"; *)
-  (* Array.iteri *)
-  (*   (fun i v -> *)
-  (*      Format.printf "   tr%s ~> tr%s\n" (string_of_int i) (string_of_int v) *)
-  (*   ) *)
-  (*   replaceTransitions; *)
-  (* Format.printf "\n\n States replacement:\n"; *)
-  (* Array.iteri *)
-  (*   (fun i v -> *)
-  (*      Format.printf "   st%s ~> st%s\n" (string_of_int i) (string_of_int v) *)
-  (*   ) *)
-  (*   replaceStates; *)
-  (* Format.printf "\n\n"; *)
-
-
-(* Step 3 : rewriting stored information *)
-  (* Rewriting automata and parameterized conditions *)
-  let sts =
-    List.filter (fun st -> replaceStates.(st.nums) <> -1) (fst !automata)
+  let new_state s = Aorai_state.Map.find s translate_table in
+  let (_, trans_list) =
+    List.fold_left
+      (fun (i,list as acc) trans ->
+        try
+          let new_start = new_state trans.start in
+          let new_stop = new_state trans.stop in
+          (i+1,
+           { trans with start = new_start; stop = new_stop; numt = i } :: list)
+        with Not_found -> acc)
+      (0,[]) (snd (getAutomata()))
   in
-  let trs =
-    List.filter (fun tr -> replaceTransitions.(tr.numt) <> -1) (snd !automata)
-  in
-  let cds = Array.make (newNbTrans) [[]] in
-  (match sts with
-      [] ->
-        Aorai_option.abort
-          "No states left after simplification: the code is not compatible \
-           with the automaton";
-    | _ ->
-      (* [VP] we sort the states by their name, giving results that are
-         more robust wrt internal changes, especially for regression tests.
-       *)
-      let sts =
-        List.sort (fun x1 x2 -> String.compare x1.name x2.name) sts
+  let state_list = List.map new_state state_list in
+  Reject_state.may
+    (fun reject_state ->
+      try
+        let new_reject = Aorai_state.Map.find reject_state translate_table in
+        Reject_state.set new_reject
+      with Not_found -> Reject_state.clear ());
+  (* Step 3 : rewriting stored information *)
+  automata:= (state_list,trans_list);
+  check_states "reduced automata";
+
+  let rewrite_state state =
+    let rewrite_set set =
+      Aorai_state.Set.fold 
+        (fun s set -> Aorai_state.Set.add (new_state s) set) 
+        set Aorai_state.Set.empty
+    in
+    let rewrite_bindings (fst_states, last_states, bindings) =
+      (rewrite_set fst_states, rewrite_set last_states, bindings)
+    in
+    let rewrite_curr_state s bindings acc =
+      let new_s = new_state s in
+      let bindings = rewrite_bindings bindings in
+      Aorai_state.Map.add new_s bindings acc
+    in
+    let rewrite_one_state s map acc =
+      let new_s = new_state s in
+      let new_map =
+        Aorai_state.Map.fold rewrite_curr_state map Aorai_state.Map.empty
       in
-      Extlib.iteri
-        (fun i st -> replaceStates.(st.nums) <- i; st.nums <- i) sts
-  );
-  (* Now, sort transitions according to their start and stop state *)
-  let trs =
-    List.sort
-      (fun tr1 tr2 ->
-        match Aorai_state.compare tr1.start tr2.start with
-          | 0 -> Aorai_state.compare tr1.stop tr2.stop
-          | n -> n)
-      trs
+      Aorai_state.Map.add new_s new_map acc
+    in
+    Aorai_state.Map.fold rewrite_one_state state Aorai_state.Map.empty
   in
-  Extlib.iteri
-    (fun i tr ->
-      replaceTransitions.(tr.numt) <- i;
-      cds.(i) <- !cond_of_parametrizedTransitions.(tr.numt);
-      tr.numt <- i)
-    trs;
-  automata:= (sts,trs);
-  check_states();
-  cond_of_parametrizedTransitions := cds;
-  (* Rewriting size of automata cached in Spec_tools *)
-  setNumberOfStates newNbStates;
-  setNumberOfTransitions newNbTrans;
-
-  (* Rewritting pre/post conditions and loops specification *)
-  let rewriteHashtblSpec htbl =
-    Hashtbl.iter
-      (fun key (ost,otr) ->
-	 let nst,ntr=mk_empty_pre_or_post () in
-	 Array.iteri (fun i b -> if b then nst.(replaceStates.(i))<-true) ost;
-	 Array.iteri (fun i b -> if b then ntr.(replaceTransitions.(i))<-true) otr;
-	 Hashtbl.replace htbl key (nst,ntr)
-      )
-      htbl
-  in
-  let rewriteHashtblSpec_bycase htbl =
-    Hashtbl.iter
-      (fun key (ost,otr) ->
-	 let nst,ntr=mk_empty_pre_or_post_bycase () in
-	 Array.iteri
-	   (fun iniSt sp ->
-	      let newIniSt = replaceStates.(iniSt) in
-	      if newIniSt <> -1 then
-		Array.iteri
-		  (fun i b -> if b then nst.(newIniSt).(replaceStates.(i))<-true)
-		  sp
-	   )
-	   ost;
-	 Array.iteri
-	   (fun iniSt sp ->
-	      let newIniSt = replaceStates.(iniSt) in
-	      if newIniSt <> -1 then
-		Array.iteri
-		  (fun i b -> if b then ntr.(newIniSt).(replaceTransitions.(i))<-true)
-		  sp
-	   )
-	   otr;
-	 Hashtbl.replace htbl key (nst,ntr)
-      )
-      htbl
-  in
-
-  rewriteHashtblSpec pre_status;
-(*   rewriteHashtblSpec post_status; *)
-  rewriteHashtblSpec_bycase post_status_bycase;
-
-(*   rewriteHashtblSpec loop_ext_pre; *)
-(*   rewriteHashtblSpec loop_int_pre; *)
-(*   rewriteHashtblSpec loop_ext_post; *)
-(*   rewriteHashtblSpec loop_int_post; *)
-
-  rewriteHashtblSpec_bycase loop_ext_pre_bycase;
-  rewriteHashtblSpec_bycase loop_int_pre_bycase;
-(*   rewriteHashtblSpec_bycase loop_ext_post_bycase; *)
-  rewriteHashtblSpec_bycase loop_int_post_bycase
-
-
-
-
-
+  Pre_state.iter (fun kf state -> Pre_state.replace kf (rewrite_state state));
+  Post_state.iter (fun kf state -> Post_state.replace kf (rewrite_state state));
+  Loop_init_state.iter 
+    (fun s state -> Loop_init_state.replace s (rewrite_state state));
+  Loop_invariant_state.iter
+    (fun s state -> Loop_invariant_state.replace s (rewrite_state state))
 
 (* ************************************************************************* *)
-
-
 (* Given the name of a function, it return the name of the associated element in the operation list. *)
 let func_to_op_func f = "op_"^f
 
@@ -2303,8 +2156,6 @@ let func_to_cenum func =
       (*    CEnum(ex,s,ei)*)
   with _ -> raise_error ("Operation not found")
 
-
-
 let op_status_to_cenum status =
   try
     let ei = Hashtbl.find used_enuminfo listStatus in
@@ -2317,61 +2168,6 @@ let op_status_to_cenum status =
       search ei.eitems
   with _ -> raise_error ("Status not found")
 
-
-let rec is_in_vi_list name = function
-  | [] -> false
-  | vi :: _ when name=vi.vname-> true
-  | _ :: l -> is_in_vi_list name l
-
-
-let get_fresh_name vi_list name =
-  if not (is_in_vi_list name vi_list) then name
-  else
-    let n = ref 0 in
-    while is_in_vi_list (name^"_"^(string_of_int !n)) vi_list do
-      n:=!n+1
-    done;
-    (name^"_"^(string_of_int !n))
-
-
-
-let local_tmp_vars = Hashtbl.create 97
-let make_local_tmp func_name =
-  try
-    Hashtbl.find local_tmp_vars func_name
-  with
-    | Not_found ->
-	let typ = TInt (IInt,[]) in
-	let name = "_buch_tmp" in
-	let func = Kernel_function.get_definition (Globals.Functions.find_by_name func_name) in
-	let fresh_name = get_fresh_name (func.sformals@func.slocals) name in
-	let vi = Cil.makeLocalVar func fresh_name typ in
-	Hashtbl.add local_tmp_vars func_name vi;
-	vi
-
-
-let get_local_tmp_name func_name =
-  try (Hashtbl.find local_tmp_vars func_name).vname
-  with Not_found -> raise_error "This function seems to not have tmp var"
-
-
-
-let local_iter_vars = Hashtbl.create 97
-let make_local_iter func_name  =
-  try Hashtbl.find local_iter_vars func_name
-  with
-    | Not_found ->
-	let typ = TInt (IInt,[]) in
-	let name = "_buch_iter" in
-	let func = Kernel_function.get_definition (Globals.Functions.find_by_name func_name) in
-	let fresh_name = get_fresh_name (func.sformals@func.slocals) name in
-	let vi = Cil.makeLocalVar func fresh_name typ in
-	Hashtbl.add local_iter_vars func_name vi;
-	vi
-
-let get_local_iter_name func_name =
-  try (Hashtbl.find local_iter_vars func_name).vname
-  with Not_found -> raise_error "This function seems to not have iter var"
 
 (*
 Local Variables:

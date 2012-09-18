@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,10 +37,10 @@ class annotateFunFromDeclspec =
     let rec aux = function
       | AInt i ->
         Ast_info.constant_term 
-	  Cil_datatype.Location.unknown (My_bigint.of_int i)
+	  Cil_datatype.Location.unknown i
       | AUnOp(Neg,AInt i) ->
         Ast_info.constant_term
-	  Cil_datatype.Location.unknown (My_bigint.of_int (-i))
+	  Cil_datatype.Location.unknown (My_bigint.neg i)
       | AStr s
       | ACons(s,[]) ->
         begin try
@@ -55,10 +55,8 @@ class annotateFunFromDeclspec =
       | ACons _
       | ASizeOf _
       | ASizeOfE _
-      | ASizeOfS _
       | AAlignOf _
       | AAlignOfE _
-      | AAlignOfS _
       | AUnOp _
       | ADot _
       | AStar _
@@ -85,21 +83,21 @@ class annotateFunFromDeclspec =
         | None -> acc
         | Some(name,args) ->
           if name = "valid" || name = "valid_range" then
+            let t1 = term_of_var v in
+	    let t1 = Logic_utils.mk_logic_pointer_or_StartOf t1 in
             let p = match name with
               | "valid" ->
                 assert (args = []);
-                let ts = Logic_const.tvar (cvar_to_lvar v) in
-                Pvalid(ts)
+                Logic_const.pvalid (Logic_const.here_label,t1)
               | "valid_range" ->
-                let t1,t2 = match args with
-                  | [ t1; t2 ] -> t1,t2
-                  | _ -> assert false
-                in
-                Pvalid_range(term_of_var v,t1,t2)
+		let args = match args with
+		  | [ b1; b2 ] -> (Logic_const.here_label,t1,b1,b2)
+		  | _ -> assert false
+		in Logic_const.pvalid_range args
               | _ -> assert false
             in
             let app =
-              Logic_const.new_predicate (Logic_const.unamed p)
+              Logic_const.new_predicate p
             in
             app :: acc
           else
@@ -108,17 +106,19 @@ class annotateFunFromDeclspec =
                 match Logic_env.find_all_logic_functions name with
                 | [i] -> i
                 | _ -> raise Not_found
-                 (*
-                   error "[Jessie] Rewrite: cannot find logic function %s@." name;
-                   raise Exit
-                  *)
               in
               assert (List.length p.l_profile = List.length(args) + 1);
               assert (List.length p.l_labels <= 1);
+              let labels = 
+                match p.l_labels with
+                | [] -> []
+                | [l] -> [ l, Logic_const.here_label ]
+                | _ -> assert false
+              in
               let args = term_of_var v :: args in
               let app =
                 Logic_const.new_predicate
-                  (Logic_const.unamed (Papp(p,[],args)))
+                  (Logic_const.unamed (Papp(p,labels,args)))
               in
               app :: acc
             with Not_found -> acc
@@ -128,73 +128,74 @@ class annotateFunFromDeclspec =
   let annotate_fun v =
     let kf = Globals.Functions.get v in
     let params = Globals.Functions.get_params kf in
-    let req = List.fold_left (annotate_var params) [] params in
-    if req <> [] then
-      (* add [req] to [b_requires] of default behavior *)
+    let requires = List.fold_left (annotate_var params) [] params in
+    if requires <> [] then
+      (* add [requires] to [b_requires] of default behavior *)
       let return_ty = getReturnType v.vtype in
       let loc = v.vdecl in
-      let behavior = Cil.mk_behavior ~requires:req () in
-      Kernel_function.set_spec
-	kf
-	(fun spec ->
-	  spec.spec_behavior <-
-            Logic_utils.merge_behaviors
-            ~silent:false spec.spec_behavior [ behavior ] ;
-	  let insert_spec behavior =
-            let ens =
-              List.fold_left
-		(fun acc attr ->
-		  match recover_from_attribute params attr with
-		  | None -> acc
-		  | Some(name,args) ->
-                    if name = "valid" || name = "valid_range" then
-                      let p = match name with
-			| "valid" ->
-                          assert (args = []);
-                          let ts = Logic_const.tresult ~loc return_ty in
-                          Pvalid(ts)
-			| "valid_range" ->
-                          let t1,t2 = match args with
-                            | [ t1; t2 ] -> t1,t2
-                            | _ -> assert false
-                          in
-                          let res = Logic_const.tresult ~loc return_ty in
-                          Pvalid_range(res,t1,t2)
+      Annotations.add_requires 
+	Emitter.end_user kf Cil.default_behavior_name requires;
+      (* modify 'ensures' clauses *)
+      let insert_spec behavior =
+        let ens =
+          List.fold_left
+	    (fun acc attr ->
+	      match recover_from_attribute params attr with
+	      | None -> acc
+	      | Some(name,args) ->
+                if name = "valid" || name = "valid_range" then
+		  let t1 = Logic_const.tresult ~loc return_ty in
+		  let t1 = Logic_utils.mk_logic_pointer_or_StartOf t1 in
+		  let p = match name with
+		    | "valid" ->
+		      assert (args = []);
+		      Logic_const.pvalid (Logic_const.here_label,t1)
+		    | "valid_range" ->
+		      let args = match args with
+			| [ b1; b2 ] -> (Logic_const.here_label,t1,b1,b2)
 			| _ -> assert false
-                      in
-                      let app =
-			Logic_const.new_predicate (Logic_const.unamed p)
-                      in
-                      (Normal, app) :: acc
-                    else
-                      try
-			let p =
-                          match Logic_env.find_all_logic_functions name with
-                          | [i] -> i
-                          | _ -> assert false
-			in
-			assert (List.length p.l_profile = List.length args + 1);
-			assert (List.length p.l_labels <= 1);
-			let res = Logic_const.tresult ~loc return_ty in
-			let args = res :: args in
-			let app =
-                          Logic_const.new_predicate
-                            (Logic_const.unamed (Papp(p,[],args)))
-			in
-			(Normal,app) :: acc
-                      with Not_found -> acc)
-		behavior.b_post_cond
-		(typeAttrs return_ty)
-            in
-            behavior.b_post_cond <- ens;
-	  in
-	  List.iter insert_spec spec.spec_behavior;
-	  spec)
+		      in 
+		      Logic_const.pvalid_range args
+		    | _ -> assert false
+		  in
+                  let app =
+		    Logic_const.new_predicate p
+                  in
+                  (Normal, app) :: acc
+                else
+                  try
+		    let p =
+                      match Logic_env.find_all_logic_functions name with
+                      | [i] -> i
+                      | _ -> assert false
+		    in
+		    assert (List.length p.l_profile = List.length args + 1);
+		    assert (List.length p.l_labels <= 1);
+		    let res = Logic_const.tresult ~loc return_ty in
+		    let args = res :: args in
+		    let app =
+                      Logic_const.new_predicate
+                        (Logic_const.unamed (Papp(p,[],args)))
+		    in
+		    (Normal,app) :: acc
+                  with Not_found -> acc)
+	    behavior.b_post_cond
+	    (typeAttrs return_ty)
+        in
+	let ppt_ensures b = 
+	  Property.ip_ensures_of_behavior kf Kglobal b 
+	in
+	List.iter Property_status.remove (ppt_ensures behavior);
+        behavior.b_post_cond <- ens;
+	List.iter Property_status.register (ppt_ensures behavior);
+      in
+      let spec = Annotations.funspec ~populate:false kf in
+      List.iter insert_spec spec.spec_behavior
   in
 object
 
   inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ()) as super
+    (Project.current ()) (Cil.inplace_visit ())
 
   method vglob_aux = function
   | GFun(f,_) ->
@@ -205,27 +206,27 @@ object
     if isFunctionType v.vtype && not v.vdefined then
       annotate_fun v;
     SkipChildren
-    (* )
-       else
-       let inv = annotate_var [] [] v in
-       let postaction gl =
-       match inv with [] -> gl | _ ->
-    (* Define a global string invariant *)
-       let inv =
-       List.map (fun p -> Logic_const.unamed p.ip_content) inv
-       in
-       let p = Logic_const.new_predicate (Logic_const.pands inv) in
-       let globinv =
-       Cil_const.make_logic_info (unique_logic_name ("valid_" ^ v.vname))
-       in
-       globinv.l_labels <- [ LogicLabel "Here" ];
-       globinv.l_body <- LBpred (predicate v.vdecl p.ip_content);
-       attach_globaction
-       (fun () -> Logic_utils.add_logic_function globinv);
-       gl @ [GAnnot(Dinvariant globinv,v.vdecl)]
-       in
-       ChangeDoChildrenPost ([g], postaction)
-     *)
+  (* )
+     else
+     let inv = annotate_var [] [] v in
+     let postaction gl =
+     match inv with [] -> gl | _ ->
+  (* Define a global string invariant *)
+     let inv =
+     List.map (fun p -> Logic_const.unamed p.ip_content) inv
+     in
+     let p = Logic_const.new_predicate (Logic_const.pands inv) in
+     let globinv =
+     Cil_const.make_logic_info (unique_logic_name ("valid_" ^ v.vname))
+     in
+     globinv.l_labels <- [ LogicLabel "Here" ];
+     globinv.l_body <- LBpred (predicate v.vdecl p.ip_content);
+     attach_globaction
+     (fun () -> Logic_utils.add_logic_function globinv);
+     gl @ [GAnnot(Dinvariant globinv,v.vdecl)]
+     in
+     ChangeDoChildrenPost ([g], postaction)
+   *)
   | GAnnot _ -> DoChildren
   | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
   | GEnumTag _ | GAsm _ | GPragma _ | GText _ ->

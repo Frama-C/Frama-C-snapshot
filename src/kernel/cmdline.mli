@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,16 +20,22 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Command line parsing. *)
+(** Command line parsing. 
+    @plugin development guide *)
 
 (** {2 Stage configurations}
 
     Frama-C uses several stages for parsing its command line.
     Each of them may be customized. *)
 
-type stage = Early | Extending | Extended | Exiting | Loading | Configuring
+type stage = 
+  | Early       (** @plugin development guide *)
+  | Extending   (** @plugin development guide *)
+  | Extended    (** @plugin development guide *) 
+  | Exiting     (** @plugin development guide *)
+  | Loading     (** @plugin development guide *)
+  | Configuring (** @plugin development guide *)
     (** The different stages, from the first to be executed to the last one.
-        @plugin development guide
         @since Beryllium-20090601-beta1 *)
 
 val run_after_early_stage: (unit -> unit) -> unit
@@ -71,7 +77,7 @@ val run_after_loading_stage: (unit -> unit) -> unit
 
 val is_going_to_load: unit -> unit
   (** To be call if one action is going to run after the loading stage.
-      It is not necessary to call this function if the running action if set by
+      It is not necessary to call this function if the running action is set by
       an option put on the command line.
       @since Beryllium-20090601-beta1
       @plugin development guide *)
@@ -159,23 +165,6 @@ val use_cmdline_files: (string list -> unit) -> unit
   (** What to do with the list of files put on the command lines.
       @since Beryllium-20090601-beta1 *)
 
-val help: unit -> exit
-  (** Display the help of Frama-C
-      @since Beryllium-20090601-beta1 *)
-
-val plugin_help: string -> exit
-  (** Display the help of the given plug-in (given by its shortname).
-      @since Beryllium-20090601-beta1 *)
-
-val add_plugin: ?short:string -> string -> help:string -> unit
-  (** [add_plugin ~short name ~help] adds a new plug-in recognized by the
-      command line of Frama-C. If the shortname is not specified, then the name
-      is used as the shortname. By convention, if the name and the shortname
-      are equal to "", then the register "plug-in" is the Frama-C kernel
-      itself.
-      @raise Invalid_argument if the same shortname is registered twice
-      @since Beryllium-20090601-beta1 *)
-
 (** @since Beryllium-20090901 *)
 module Group : sig
   type t (** @since Beryllium-20090901 *)
@@ -191,6 +180,29 @@ module Group : sig
     (** @since Beryllium-20090901 *)
 end
 
+val help: unit -> exit
+  (** Display the help of Frama-C
+      @since Beryllium-20090601-beta1 *)
+
+val plugin_help: string -> exit
+  (** Display the help of the given plug-in (given by its shortname).
+      @since Beryllium-20090601-beta1 *)
+
+val print_option_help: 
+  Format.formatter -> plugin:string -> group:Group.t -> string -> unit
+(** Pretty print the help of the option (given by its plug-in, its group and its
+    name) in the provided formatter.
+    @since Oxygen-20120901 *)
+
+val add_plugin: ?short:string -> string -> help:string -> unit
+  (** [add_plugin ~short name ~help] adds a new plug-in recognized by the
+      command line of Frama-C. If the shortname is not specified, then the name
+      is used as the shortname. By convention, if the name and the shortname
+      are equal to "", then the register "plug-in" is the Frama-C kernel
+      itself.
+      @raise Invalid_argument if the same shortname is registered twice
+      @since Beryllium-20090601-beta1 *)
+
 (** @since Beryllium-20090601-beta1 *)
 type option_setting =
   | Unit of (unit -> unit)
@@ -204,7 +216,8 @@ val add_option:
   group:Group.t ->
   stage ->
   ?argname:string ->
-  help:string option ->
+  help:string ->
+  visible:bool ->
   ext_help:(unit,Format.formatter,unit) format ->
   option_setting ->
   unit
@@ -217,14 +230,16 @@ val add_option:
         registered option. If [help] is [None], then the option is not shown
         in the help.
         @since Beryllium-20090601-beta1
-        @modify Carbon-20101201 *)
+        @modify Carbon-20101201 
+	@modify Oxygen-20120901 change type of ~help and add ~visible. *)
 
 val add_option_without_action:
   string ->
   plugin:string ->
   group:Group.t ->
   ?argname:string ->
-  help:string option ->
+  help:string ->
+  visible:bool ->
   ext_help:(unit,Format.formatter,unit) format ->
   unit ->
   unit
@@ -274,7 +289,7 @@ val journal_enable: bool
   (** @since Beryllium-20090601-beta1 *)
 
 val journal_isset: bool
-  (** -journal-enable/disable explicitely set on the command line.
+  (** -journal-enable/disable explicitly set on the command line.
       @since Boron-20100401 *)
 
 val journal_name: string

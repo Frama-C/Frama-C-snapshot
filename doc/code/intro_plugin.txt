@@ -2,7 +2,7 @@
 @ignore                                                                        
 @ignore  This file is part of Frama-C.                                         
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2011                                               
+@ignore  Copyright (C) 2007-2012                                               
 @ignore    CEA (Commissariat à l'énergie atomique et aux énergies              
 @ignore         alternatives)                                                  
 @ignore                                                                        
@@ -22,11 +22,13 @@
 
 {2 API Documentation}
 
-The _PluginName_ API is dynamically registered.
+The _PluginName_ API is dynamically registered:
+ - {{:../dynamic_plugins/Dynamic_plugins._PluginName_.html} _PluginName_} API
+ - {{:../dynamic_plugins/Dynamic_plugins.html} Dynamically registered plugins} index
 
-{b Main entry points:}
  - {{:../index.html}Frama-C} complete kernel API
  - {{:../html/Dynamic.html}Dynamic} kernel registry for plugins' API
+
 
 {2 Plugin Internal Documentation}
 

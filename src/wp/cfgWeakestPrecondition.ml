@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,12 +27,7 @@
 open Cil_types
 open Wp_error
 
-module Create
-  (WpModel:
-    sig
-      include Mwp.S
-      val model : string
-    end)
+module Create (WpModel: Mwp.S)
   =
 struct
 
@@ -46,6 +41,8 @@ struct
   let addr = Wp_error.protect_translation E.addr
   let cond = Wp_error.protect_translation E.prop
   let cast = Wp_error.protect_translation3 E.expr_cast
+  let load = Wp_error.protect_translation3 
+    (fun mem obj loc -> WpModel.logic_of_value (WpModel.load mem obj loc))
 
   type t_env = F.pool * L.env
 
@@ -66,7 +63,6 @@ struct
     a_effect : F.var ; (* accumulated zones for effects *)
     a_locals : F.var ; (* accumulated zones for local variables *)
   }
-
 
   let empty = NoAssigns , {
     bindings = D.closed ;
@@ -94,7 +90,7 @@ struct
 
   let is_empty (_,p) = F.is_true p.property
 
-  let merge (s1,p1) (s2,p2) =
+  let merge _wenv (s1,p1) (s2,p2) =
     if F.is_true p2.property then (s1,p1) else
       if F.is_true p1.property then (s2,p2) else
         merge_assigns s1 s2 , merge_property F.p_and p1 p2
@@ -117,7 +113,7 @@ struct
 
   (* --- Utilities --- *)
 
-  let pp_vars fmt = function
+(*  let pp_vars fmt = function
     | [] -> Format.pp_print_string fmt "-"
     | x::xs ->
         Format.fprintf fmt "@[<hov 2>%s" x.vname ;
@@ -125,7 +121,7 @@ struct
           (fun x -> Format.fprintf fmt ",@,%s" x.vname)
           xs ;
         Format.fprintf fmt "@]"
-
+*)
   (* ------------------------------------------------------------------------ *)
   (* ---  Context Management                                              --- *)
   (* ------------------------------------------------------------------------ *)
@@ -200,12 +196,12 @@ struct
 
   let tag t (akind,p) = (akind,{ p with property = F.p_named t p.property })
 
+  let loop_entry w = tag "BeforeLoop" w
+  let loop_step w = tag "InLoop" w
+
   (* ------------------------------------------------------------------------ *)
   (* ---  Hypotheses and Goal Management                                  --- *)
   (* ------------------------------------------------------------------------ *)
-
-  let merge_with f (a,p) (a',p') =
-    merge_assigns a a' , merge_property f p p'
 
   let add_hyp env h wp =
     on_context env "add_hyp" wp Keep_opened Keep_assigns
@@ -238,14 +234,18 @@ struct
   (* ---  Axiom Rule                                                      --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let add_axiom _id name labels pn =
+  let add_axiom _id thm =
     match
-      Wp_error.protect_translation3 L.add_axiom name labels pn
+      Wp_error.protect_translation3 L.add_axiom 
+	thm.LogicUsage.lem_name 
+	thm.LogicUsage.lem_labels 
+	thm.LogicUsage.lem_property
     with
       | Result () -> ()
       | Warning(source,reason) ->
           Datalib.Collector.add_warning ~source ~reason
-            "Ignored user-defined axiom '%s'" name
+            "Ignored user-defined axiom '%s'"
+	    thm.LogicUsage.lem_name
 
   (* ------------------------------------------------------------------------ *)
   (* ---  Initialisation Rule                                             --- *)
@@ -270,6 +270,14 @@ struct
           raise SkipInit
       | Result value -> value
 
+  let compute_init_loaded mem obj loc =
+    match load mem obj loc with
+      | Warning(source,reason) ->
+          Datalib.Collector.add_warning ~source ~reason
+            "Ignored initializer" ;
+          raise SkipInit
+      | Result value -> value
+
   let init_value env lv typ e_opt wp =
     on_context env "init_value" wp Keep_opened Keep_assigns
       (fun env _assigns p ->
@@ -277,7 +285,7 @@ struct
            let mem = L.mem_at env Clabels.Here in
            let obj = Ctypes.object_of typ in
            let loc = compute_init_loc mem lv in
-           let loaded = WpModel.logic_of_value (WpModel.load mem obj loc) in
+           let loaded = compute_init_loaded mem obj loc in
            match e_opt with
              | None ->
                  begin 
@@ -287,9 +295,7 @@ struct
 		 end
 
              | Some vexp ->
-                 let value =
-                   WpModel.logic_of_value (compute_init_value mem vexp)
-                 in
+                 let value = WpModel.logic_of_value (compute_init_value mem vexp) in
                  F.p_implies (WpModel.equal obj loaded value) p
 
          with SkipInit -> p)
@@ -301,7 +307,7 @@ struct
            let mem = L.mem_at env Clabels.Here in
            let obj = Ctypes.object_of typ_elt in
            let loc = compute_init_loc mem lv in
-           let loaded = WpModel.logic_of_value (WpModel.load mem obj loc) in
+           let loaded = compute_init_loaded mem obj loc in
            match WpModel.symb_is_init_range obj with 
 	     | Some p_range ->
 		 F.p_implies 
@@ -313,7 +319,7 @@ struct
   (* ---  Assignment Rule                                                 --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let assign env lv e wp =
+  let assign env _stmt lv e wp =
     on_context env "assign" wp Keep_opened Keep_assigns
       (fun env assigns p ->
          let mem = L.mem_at env Clabels.Here in
@@ -350,7 +356,7 @@ struct
   (* ---  Return Rule                                                     --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let return env e wp =
+  let return env _stmt e wp =
     on_context env "return" wp Keep_opened Keep_assigns
       (fun env _assigns p ->
          match e with
@@ -381,7 +387,7 @@ struct
   (* ---  Conditional Rule                                                --- *)
   (* ------------------------------------------------------------------------ *)
 
-  let test env e wpt wpf =
+  let test env _stmt e wpt wpf =
     let pt = zip wpt in
     let pf = zip wpf in
     let wpe = merge_assigns (fst wpt) (fst wpf) , snd empty in
@@ -421,7 +427,7 @@ struct
                   !Ast_printer.d_exp e ;
                 raise Failed
 
-  let switch env e wp_cases wp_def =
+  let switch env _stmt e wp_cases wp_def =
     let cases = List.map (fun (es,wp) -> es , zip wp) wp_cases in
     let p_def = zip wp_def in
     let assigns =
@@ -597,20 +603,6 @@ struct
           end
 
   (* ------------------------------------------------------------------------ *)
-  (* --- Assigns Method                                                   --- *)
-  (* ------------------------------------------------------------------------ *)
-
-  let assigns_method () =
-    let mth = Wp_parameters.get_assigns_method () in
-    match mth with
-      | Mcfg.NoAssigns -> mth
-      | Mcfg.EffectAssigns when WpModel.effect_supported -> mth
-      | _ ->
-          if WpModel.assigns_supported
-          then Mcfg.NormalAssigns
-          else Mcfg.NoAssigns
-
-  (* ------------------------------------------------------------------------ *)
   (* --- Generate Observational Assigns Goal                              --- *)
   (* ------------------------------------------------------------------------ *)
 
@@ -671,6 +663,17 @@ struct
   (* --- Dispatch Assigns Goal against selected method                    --- *)
   (* ------------------------------------------------------------------------ *)
 
+  let assigns_method () =
+    let mth = Wp_parameters.get_assigns_method () in
+    match mth with
+      | Wp_parameters.NoAssigns -> Wp_parameters.NoAssigns
+      | Wp_parameters.EffectAssigns when WpModel.effect_supported -> 
+	  Wp_parameters.EffectAssigns
+      | _ ->
+          if WpModel.effect_supported
+          then Wp_parameters.NormalAssigns
+          else Wp_parameters.NoAssigns
+
   let add_assigns env assigns wp =
     let pid, a_desc = assigns in
     let label = a_desc.WpPropId.a_label in
@@ -682,14 +685,14 @@ struct
             (Goal_assigns (ref NoAssigns))
             (fun _ _ _ -> F.p_true) (* Nothing to prove *)
       | Writes assigns ->
-        match assigns_method () with
-          | Mcfg.NoAssigns ->
-            Wp_parameters.abort "Unsupported assigns with the model"
-          | Mcfg.NormalAssigns ->
-            add_normal_assigns env pid label kind assigns wp
-          | Mcfg.EffectAssigns ->
-            add_effect_assigns env pid label kind assigns wp
-
+          match assigns_method () with
+            | Wp_parameters.NoAssigns ->
+		Wp_parameters.abort "Unsupported assigns with the model"
+            | Wp_parameters.NormalAssigns ->
+		add_normal_assigns env pid label kind assigns wp
+            | Wp_parameters.EffectAssigns ->
+		add_effect_assigns env pid label kind assigns wp
+		
   (* Assigns Hypothesis *)
 
   let check_assigns m goal region wp =
@@ -710,7 +713,7 @@ struct
           in
           D.subst a.a_effect ze wp
 
-  let use_assigns env hid a_desc wp =
+  let use_assigns env _stmt hid a_desc wp =
     on_context env "use_assigns" wp Close_context Keep_assigns
       (fun env assignsgoal p ->
          let kind = a_desc.WpPropId.a_kind in
@@ -728,7 +731,6 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   type callenv = {
-    callsite : Clabels.c_label ; (* Clabels.CallAt stmt *)
     m_pre  : WpModel.mem ;
     m_post : WpModel.mem ;
     v_args : WpModel.value list ;
@@ -748,7 +750,6 @@ struct
             raise Failed
         | Result v -> v
     in {
-      callsite = pre_label ;
       m_pre  = m_pre ;
       m_post = m_post ;
       v_args = List.map translate_arg args ;
@@ -781,6 +782,7 @@ struct
       let x_result = D.fresh "result"
         (Formula.Acsl ((WpModel.tau_of_object (Ctypes.object_of t_result)),
                       Ctype t_result)) in
+
       match lvopt with
         | None -> p_after , Some x_result
         | Some lv ->
@@ -827,12 +829,16 @@ struct
 
   let add_dependencies = List.iter Datalib.Collector.add_depend
 
+(*  let pp_assigned fmt = function
+    | A_everything -> Format.fprintf fmt "Everything"
+    | A_region locs -> Format.fprintf fmt "Region %d" (List.length locs)
+*)
   let call_normal_only caller_env stmt lv kf args ~pre ~post ~assigns ~p_post =
     on_context caller_env "call_normal" p_post Keep_opened Keep_assigns
       (fun env assigns_method p_post ->
 	 add_dependencies (WpAnnot.get_called_assigns kf) ;
 	 add_dependencies (WpAnnot.get_called_post_conditions kf) ;
-	 add_dependencies (WpAnnot.get_called_preconditions_at kf stmt) ;
+	 add_dependencies (WpAnnot.get_called_preconditions_at kf stmt);
          let call = callenv env stmt args in
          let p_after , x_result = do_return call kf lv p_post in
          let env_pre = L.call_pre env kf call.v_args call.m_pre in
@@ -852,7 +858,7 @@ struct
       (fun env assigns_method p_exit ->
 	 add_dependencies (WpAnnot.get_called_assigns kf) ;
 	 add_dependencies (WpAnnot.get_called_exit_conditions kf) ;
-	 add_dependencies (WpAnnot.get_called_preconditions_at kf stmt) ;
+	 add_dependencies (WpAnnot.get_called_preconditions_at kf stmt);
          let call = callenv env stmt args in
          let x_status = L.exit_status env in
          let env_pre = L.call_pre env kf call.v_args call.m_pre in
@@ -873,7 +879,7 @@ struct
       if is_empty p_exit then p_exit
       else call_exit_only caller_env stmt kf args ~pre ~pexit ~assigns ~p_exit
     in
-    merge wp_post wp_exit
+    merge caller_env wp_post wp_exit
 
 (* --- End of Weakest Precondition Rules --- *)
 

@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -metrics -metrics-value-cover -metrics-cover main
-   OPT: -metrics -metrics-value-cover -main foobar -metrics-cover foobar
+   STDOPT: +"-metrics-value-cover" +"-metrics-cover main"
+   STDOPT: +"-metrics-value-cover" +"-main foobar" +"-metrics-cover foobar"
 **/
 
 void (*bar) (int);

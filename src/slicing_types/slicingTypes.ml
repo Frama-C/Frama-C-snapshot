@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -74,7 +74,7 @@ module Fct_user_crit =
 type sl_fct_slice = SlicingInternals.t_fct_slice
 
 (** Marks : used to put 'colors' in the result *)
-type sl_mark = SlicingInternals.t_pdg_mark
+type sl_mark = SlicingInternals.pdg_mark
 
 (** {3 For the journalization of values of these types} *)
 
@@ -172,10 +172,10 @@ let pp_sl_mark p fmt m =
 module Sl_mark =
   Datatype.Make_with_collections
     (struct
-      type t = SlicingInternals.t_pdg_mark
+      type t = SlicingInternals.pdg_mark
       let name = "SlicingTypes.Sl_mark"
       let structural_descr = Structural_descr.Unknown
-      let reprs = [ SlicingInternals.dummy_t_pdg_mark ]
+      let reprs = [ SlicingInternals.dummy_pdg_mark ]
       let compare = SlicingInternals.compare_pdg_mark
       let equal : t -> t -> bool = ( = )
       let hash = Hashtbl.hash

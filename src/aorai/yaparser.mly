@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat a l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -28,10 +28,8 @@
 /* Originated from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip  */
 %{
 open Logic_ptree
-open Parsing
 open Promelaast
 open Bool3
-open Format
 
 let to_seq c =
   [{ condition = Some c;
@@ -46,12 +44,6 @@ let is_no_repet (min,max) =
 
 let observed_states      = Hashtbl.create 1
 let prefetched_states    = Hashtbl.create 1
-
-let ident_count=ref 0
-let get_fresh_ident () =
-  ident_count:=!ident_count+1;
-  ("buchfreshident"^(string_of_int !ident_count))
-;;
 
 let fetch_and_create_state name =
   Hashtbl.remove prefetched_states name ;

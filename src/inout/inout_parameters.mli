@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,15 +23,16 @@
 include Plugin.S
 
 module ForceAccessPath: Plugin.Bool
-(** undocumented *)
-
 module ForceOut: Plugin.Bool
 module ForceExternalOut: Plugin.Bool
 module ForceInput: Plugin.Bool
 module ForceInputWithFormals: Plugin.Bool
 module ForceInout: Plugin.Bool
+module ForceCallwiseInout: Plugin.Bool
 module ForceInoutExternalWithFormals: Plugin.Bool
 module ForceDeref: Plugin.Bool
+
+module Output: Plugin.Bool
 
 (*
 Local Variables:

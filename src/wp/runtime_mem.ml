@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,6 @@
 let dkey = "runtime" (* debugging key *)
 
 open Cil_types
-open Cil_datatype
 
 let unsupported = Wp_error.unsupported
 
@@ -41,8 +40,6 @@ module Create
   (R:Mfloat.S with module F = F)
   =
 struct
-
-  type decl = F.decl   
 
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
   (** The memory is composed of 2 parts: one that deals with the values,
@@ -59,11 +56,11 @@ struct
   let t_alloc : Formula.tau = Formula.ADT ("memalloc", [])
   type mem_alloc = m_alloc F.term
 
-  type m_mem
-  let t_mem : Formula.tau = Formula.ADT ("memory", [])
   type mem = { vbits : F.var ; valloc : F.var ;}
 
-
+  let pp_mem fmt m =
+    Format.fprintf fmt " * heap : %a@\n * alloc : %a@\n" 
+      F.pp_var m.vbits F.pp_var m.valloc
 
   type m_format 
   type format = m_format F.term
@@ -71,8 +68,6 @@ struct
 
   let mk_iformat i = Pretty_utils.sfprintf "%a_format" Ctypes.pp_int i
   let mk_fformat f = Pretty_utils.sfprintf "%a_format" Ctypes.pp_float f
-  let int_format = F.e_app0 "int_format"
-  let real_format = F.e_app0 "real_format"
   let i_format i = F.e_app0 (mk_iformat i)
   let f_format f = F.e_app0 (mk_fformat f)
   let format_of_addr _ty =
@@ -129,8 +124,6 @@ struct
 
     val to_term : 'a t -> 'a tint
 
-    val eq_pred : 'a t -> 'a t -> F.pred
-
   end = struct
 
     let compute = (compute_int_mode = CIMcompute)
@@ -160,10 +153,6 @@ struct
       | AIterm t -> t
 
     let cnst_is_zero i = 0 = Int64.compare i (Int64.zero)
-
-    let is_zero ai = match ai with
-      | AIcnst i -> cnst_is_zero i
-      | _ -> false
 
     let add_cnst ai i = match ai with
       | AIcnst i' when compute -> AIcnst (Int64.add i i')
@@ -208,13 +197,6 @@ struct
           let t2 = to_term ai2 in
             AIterm (term_of_sub t1 t2)
 
-    let eq_cnst i1 i2 = 0 = Int64.compare i1 i2
-
-    let eq_pred ai1 ai2 = match ai1, ai2 with
-      | AIcnst i1, AIcnst i2 when compute ->
-          if eq_cnst i1 i2 then F.p_true else F.p_false
-      | _, _ ->  (* TODO: develop other cases ? *)
-          F.p_eq (to_term ai1) (to_term ai2)
   end
 
   (** Phantom types to tag the terms *)
@@ -235,7 +217,6 @@ struct
     val xaddr_of_var : mem_alloc -> varinfo -> x_addr
     val xaddr_of_integer : F.integer -> x_addr
     val integer_of_xaddr : x_addr -> F.integer
-    val varinfo_of_xaddr : x_addr -> varinfo option
     val pp_addr : Format.formatter -> x_addr -> unit
     val base : mem_alloc -> x_addr -> x_addr
     val term_of_xaddr : x_addr -> t_addr
@@ -255,10 +236,8 @@ struct
 
     type x_zone
     val mk_xzone : x_addr -> x_size -> x_zone
-    val xzone_of_var : mem_alloc -> varinfo -> x_size -> x_zone
-    val pp_xzone : Format.formatter -> x_zone -> unit
+    (* val pp_xzone : Format.formatter -> x_zone -> unit *)
     val term_of_xzone : x_zone -> m_zone F.term
-    val eq_zone : x_zone -> x_zone -> F.pred
     val xzone_disj : x_zone -> x_zone -> F.pred
 
   end = struct
@@ -303,10 +282,6 @@ struct
     let aint_of_xaddr a : m_addr Aint.t = match a with
       | Laddr a -> a
       | _ -> Aint.of_term (term_of_xaddr a)
-
-    let varinfo_of_xaddr a = match a with
-      | Lvaddr (_, vi) -> Some vi
-      | _ -> None
 
     let pp_addr fmt a = F.pp_term fmt (term_of_xaddr a)
 
@@ -371,10 +346,7 @@ struct
       | Zterm t -> t
       | Zpair (a, sz) -> L.zone (term_of_xaddr a) (term_of_xsize sz)
 
-    let pp_xzone fmt xz = F.pp_term fmt (term_of_xzone xz)
-
-    let eq_zone z1 z2 = (* TODO: SMP *)
-      F.p_eq (term_of_xzone z1) (term_of_xzone z2)
+(*    let pp_xzone fmt xz = F.pp_term fmt (term_of_xzone xz) *)
 
     let xzone_disj z1 z2 = (* TODO: SMP *)
       L.disj (term_of_xzone z1) (term_of_xzone z2)
@@ -544,16 +516,10 @@ struct
 
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
-  let int_format_for_hyp t = match t with
+  let _int_format_for_hyp t = match t with
     | Ctypes.C_int cint -> Some (i_format cint)
     | Ctypes.C_pointer ty -> Some (format_of_addr ty)
     | _ -> None
-
-  let add_int_format_hyp vformat t h = match int_format_for_hyp t with
-    | None -> h
-    | Some fmt ->
-        let h_format =  F.p_eq vformat fmt in
-          F.p_and h_format h
 
   module VarDecl = F.DRegister
     (struct
@@ -637,8 +603,6 @@ struct
     let cvar m vi =
       VarDecl.define vi ;
       Tint.xaddr_of_var (F.var m.valloc) vi
-
-    let inner_loc _ = Wp_parameters.fatal "[inner_loc] reserved to funvar"
 		     
     let lvar _m lv x = 
       let ty = 
@@ -718,15 +682,8 @@ struct
 
   let format_of_array arr = DF.array_format arr
 
-  let rt_format_of_ctype t = match t with
-    | Ctypes.C_int c_int -> i_format c_int
-    | Ctypes.C_float c_float ->  f_format c_float
-    | Ctypes.C_comp comp -> format_of_compinfo comp
-    | Ctypes.C_array arr -> format_of_array arr
-    | Ctypes.C_pointer ty -> format_of_addr ty
-
   (** Compute the logic value from bits interpreted with type [t]. *)
-  let rec value_of_bits t bits : Data.value = match t with
+  let value_of_bits t bits : Data.value = match t with
     | Ctypes.C_int c_int ->
         let c_val = z_from_bits bits (i_format c_int) in
         V_int (c_int, c_val)
@@ -751,7 +708,7 @@ struct
 
   (* TODO: is it normal that we don't use t?
   * Maybe we should check that it is the same than in the value ??? *)
-  let rec bits_of_value _t value : t_bits = match value with
+  let bits_of_value _t value : t_bits = match value with
     | V_int (c_int, i) ->
         let ft = i_format c_int in
           RtLib.to_bits ft (F.wrap i)
@@ -794,8 +751,6 @@ struct
 
   let separated _m z1 z2 =
     Tint.xzone_disj (xzone_assigned z1) (xzone_assigned z2)
-
-  let tbits_of_var a : t_bits = F.var a
 
   let subst_havoc m a =
     let xzone = xzone_assigned a in
@@ -854,7 +809,7 @@ struct
   let pp_formal _ _ = () 
   let userdef_is_ref_param (_:logic_var): bool = false
   let userdef_ref_signature (_:mem) : ( F.var * logic_var * formal ) list = []
-  let userdef_ref_apply (_:mem) (_:formal) (_:loc) : value = assert false
+  let userdef_ref_apply (_:mem) (_:formal) (_:Ctypes.c_object) (_:loc) : value = assert false
   let userdef_ref_has_cvar (_ : logic_var) : bool = false
 
 

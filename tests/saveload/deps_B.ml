@@ -4,7 +4,6 @@ module StateABis =
     (struct
       let name = "Project.Test.StateABis"
       let dependencies = []
-      let kind = `Internal
      end)
 
 module StateB =
@@ -13,7 +12,6 @@ module StateB =
     (struct
        let name = "Project.Test.StateB"
        let dependencies = [ StateABis.self ]
-       let kind = `Internal
      end)
 
 let () = StateABis.set 10

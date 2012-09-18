@@ -39,8 +39,6 @@
 (*                        énergies alternatives).                         *)
 (**************************************************************************)
 
-open Cilutil
-open Format
 open Cil_types
 
 module CurrentLoc =
@@ -49,7 +47,6 @@ module CurrentLoc =
     (struct
        let dependencies = []
        let name = "CurrentLoc"
-       let kind = `Internal
        let default () = Cil_datatype.Location.unknown
      end)
 
@@ -76,8 +73,20 @@ let set_vid v =
 
 let copy_with_new_vid v =
   let n = Vid.next () in
-  { v with vid = n }
-;;
+  let new_v = { v with vid = n } in
+  (match v.vlogic_var_assoc with
+    | None -> ()
+    | Some lv ->
+      let new_lv = { lv with lv_id = n } in
+      new_v.vlogic_var_assoc <- Some new_lv;
+      new_lv.lv_origin <- Some new_v);
+  new_v
+
+let change_varinfo_name vi name =
+  vi.vname <- name;
+  match vi.vlogic_var_assoc with
+    | None -> ()
+    | Some lv -> lv.lv_name <- name
 
 let new_raw_id = Vid.next
 

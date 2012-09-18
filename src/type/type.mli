@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,15 +26,6 @@
 
     @plugin development guide *)
 
-val no_obj: unit -> unit
-  (** Deactivate all the black magic.
-      Roughly, in this mode, nothing is done by this module. *)
-
-(**/**)
-val may_use_obj: unit -> bool
-(** Internal use only. Please, do not use it yourself. *)
-(**/**)
-
 (* ****************************************************************************)
 (** {2 Type declaration} *)
 (* ****************************************************************************)
@@ -54,8 +45,8 @@ type 'a ty = 'a t
 (** Precedences used for generating the minimal number of parenthesis in
     combination with function {!par} below. *)
 type precedence =
-  | Basic
-  | Call
+  | Basic (** @plugin development guide *)
+  | Call (** @plugin development guide *)
   | Tuple
   | List
   | NoPar
@@ -69,7 +60,9 @@ type precedence =
     [let pretty_print p_caller fmt x =
     let pp fmt = Format.fprintf "..." ... x ... in
     let myself = Call in
-    par p_caller myself fmt pp] *)
+    par p_caller myself fmt pp]
+
+    @plugin development guide *)
 val par:
   precedence -> precedence -> Format.formatter -> (Format.formatter -> unit) ->
   unit
@@ -84,7 +77,8 @@ val par_ty_name: ('a t -> bool) -> 'a t -> string
 (* ****************************************************************************)
 
 exception AlreadyExists of string
-(** May be raised by {!register}. *)
+(** May be raised by {!register}. 
+    @plugin development guide *)
 
 val register:
   ?closure:bool ->
@@ -96,6 +90,10 @@ val register:
 (** [register ?closure ~name ~ml_name descr reprs] registers
     a new type value. Should not be used directly. Use one of functors of
     module {!Datatype} instead.
+    [closure] is true iff the type is a function type.
+    [name] is the name of the type. Must be a valid OCaml type name (eventually
+    prefixed by a module path).
+    [ml_name] is the OCaml name of the registered type value.
     @raise AlreadyExists if the given name is already used by another type.
     @raise Invalid_argument if [reprs] is the empty list
     @modify Boron-20100401 request a list of representant, not only a single
@@ -104,18 +102,28 @@ val register:
     structural descriptor. Argument [pp] does not exist anymore. *)
 
 (** Apply this functor to access to the abstract type of the given name.
-    @since Nitrogen-20111001 *)
+    @since Nitrogen-20111001 
+    @plugin development guide *)
 module Abstract(T: sig val name: string end): sig
   type t
   val ty: t ty
 end
 
 val name: 'a t -> string
+(** @plugin development name *)
+
 val structural_descr: 'a t -> Structural_descr.t
 val reprs: 'a t -> 'a list
 (** Not usable in the "no-obj" mode *)
 
 val digest: 'a t -> Digest.t
+
+val get_embedded_type_names: 'a t -> string list
+(** Get the list of names containing in the type represented by the given type
+    value. For instance [get_embedded_type_names (Datatype.func Datatype.unit
+    (Datatype.list Datatype.int))] returns [ "unit -> int list"; "unit"; "int
+    list"; "int" ]. 
+    @since Oxygen-20120901 *)
 
 val ml_name: 'a t -> string
 val pp_ml_name: 'a t -> precedence -> Format.formatter -> unit
@@ -150,8 +158,8 @@ module type Polymorphic_input = sig
       @since Carbon-20101201 *)
 
   type 'a t
-     (** Static polymorphic type corresponding to its dynamic counterpart to
-         register. *)
+  (** Static polymorphic type corresponding to its dynamic counterpart to
+      register. *)
 
   val reprs: 'a -> 'a t list
 (** How to make the representant of each monomorphic instance of the
@@ -217,7 +225,7 @@ module Polymorphic2(T:Polymorphic2_input)
 module Function : sig
   type ('a, 'b) poly
   val instantiate:
-    ?label:string * (unit -> 'a) option -> 'a t -> 'b t -> ('a -> 'b) t * bool
+    ?label:(string * (unit -> 'a) option) -> 'a t -> 'b t -> ('a -> 'b) t * bool
     (** Possibility to add a label for the parameter.
          - [~label:(p,None)] for a mandatory labelized parameter [p];
          - [~label:(p,Some f)] for an optional labelized parameter [p],
@@ -226,6 +234,63 @@ module Function : sig
   val get_instance: ('a, 'b) poly t -> 'a t * 'b t * string option
   val get_optional_argument: ('a, 'b) poly t ->  (unit -> 'a) option
 end
+
+(** See module {!Polymorphic_input}: very same functions with two additional
+    arguments corresponding to the second and third type variables. 
+    @since Oxygen-20120901 *)
+module type Polymorphic3_input = sig
+  val name: 'a t -> 'b t -> 'c t -> string
+  val module_name: string
+  val structural_descr:
+    Structural_descr.t -> Structural_descr.t -> Structural_descr.t ->
+    Structural_descr.t
+  type ('a, 'b, 'c) t
+  val reprs: 'a -> 'b -> 'c -> ('a, 'b, 'c) t list
+end
+
+(** Same as {!Polymorphic} for polymorphic types with three type variables. 
+    @since Oxygen-20120901 *)
+module type Polymorphic3 = sig
+  type ('a, 'b, 'c) poly
+  val instantiate: 'a t -> 'b t -> 'c t -> ('a, 'b, 'c) poly t * bool
+  val is_instance_of: 'a t -> bool
+  val get_instance: ('a, 'b, 'c) poly t -> 'a t * 'b t * 'c t
+end
+
+(** Generic implementation of polymorphic type value with three type
+    variables. 
+    @since Oxygen-20120901 *)
+module Polymorphic3(T:Polymorphic3_input)
+  : Polymorphic3 with type ('a, 'b, 'c) poly = ('a, 'b, 'c) T.t
+
+(** See module {!Polymorphic_input}: very same functions with three additional
+    arguments corresponding to the additional type variables. 
+    @since Oxygen-20120901 *)
+module type Polymorphic4_input = sig
+  val name: 'a t -> 'b t -> 'c t -> 'd t -> string
+  val module_name: string
+  val structural_descr:
+    Structural_descr.t -> Structural_descr.t -> Structural_descr.t ->
+    Structural_descr.t -> Structural_descr.t
+  type ('a, 'b, 'c, 'd) t
+  val reprs: 'a -> 'b -> 'c -> 'd -> ('a, 'b, 'c, 'd) t list
+end
+
+(** Same as {!Polymorphic} for polymorphic types with four type variables. 
+    @since Oxygen-20120901 *)
+module type Polymorphic4 = sig
+  type ('a, 'b, 'c, 'd) poly
+  val instantiate: 
+    'a t -> 'b t -> 'c t -> 'd t -> ('a, 'b, 'c, 'd) poly t * bool
+  val is_instance_of: 'a t -> bool
+  val get_instance: ('a, 'b, 'c, 'd) poly t -> 'a t * 'b t * 'c t * 'd t
+end
+
+(** Generic implementation of polymorphic type value with four type
+    variables. 
+    @since Oxygen-20120901 *)
+module Polymorphic4(T:Polymorphic4_input)
+  : Polymorphic4 with type ('a, 'b, 'c, 'd) poly = ('a, 'b, 'c, 'd) T.t
 
 (* ****************************************************************************)
 (** {2 Heterogeneous Tables}
@@ -257,13 +322,15 @@ module type Heterogeneous_table = sig
 
   exception Unbound_value of string
   exception Incompatible_type of string
-    (** @plugin development guide *)
 
   val find: t -> key -> 'a ty -> 'a info
     (** [find tbl s ty] returns the binding of [s] in the table [tbl].
         @raise Unbound_value if [s] is not bound in [tbl].
         @raise Incompatible_Type if [ty] was not the type value used to add
         the binding of [s] in [tbl]. *)
+
+  val iter: (key -> 'a ty -> 'a info -> unit) -> t -> unit
+(** @since Oxygen-20120901 *)
 
 end
 
@@ -295,8 +362,26 @@ module Obj_tbl: sig
   val add: 'a t -> 'b ty -> 'b -> 'a -> unit
   val find: 'a t -> 'b ty -> 'b -> 'a
   val mem: 'a t -> 'b ty -> 'b -> bool
-  val iter: 'a t -> ('a -> unit) -> unit
+  val iter: 'b t -> ('a ty -> 'a -> 'b -> unit) -> unit
 end
+
+(**/**)
+(* ****************************************************************************)
+(** {2 Internal API} *)
+(* ****************************************************************************)
+
+val no_obj: unit -> unit
+  (** Deactivate all the black magic.
+      Roughly, in this mode, nothing is done by this module. *)
+
+val may_use_obj: unit -> bool
+(** Internal use only. Please, do not use it yourself. *)
+
+val add_abstract_types: (string -> string -> unit) ref
+
+val sfprintf: ('a,Format.formatter,unit,string) format4 -> 'a
+(** similar as Format.sprintf, but %a are allowed in the formatting string*)
+(**/**)
 
 (*
   Local Variables:

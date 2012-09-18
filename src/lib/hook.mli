@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: hook.mli,v 1.4 2008-11-04 10:05:05 uid568 Exp $ *)
-
 (** Hook builder. A hook is a bunch of functions which can be extended and
     applied at any program point. *)
 
@@ -37,7 +35,17 @@ module type S = sig
      *)
 
   val extend: (param -> result) -> unit
-    (** Add a new function to the hook. *)
+    (** Add a new function to the hook. If [once] is true, the hook
+        is added if and only if it was not already present. Comparison
+        is done using [(==)]. Default is false. *)
+
+  val extend_once: (param -> result) -> unit
+    (** Same as [extend], but the hook is added only if is is not already
+        present; the comparison is made using [(==)]
+
+        @since Oxygen-20120901
+    *)
+
 
   val apply: param -> result
     (** Apply all the functions of the hook on the given parameter.
@@ -67,6 +75,6 @@ module Fold(P: sig type t end): S with type param = P.t and type result = P.t
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

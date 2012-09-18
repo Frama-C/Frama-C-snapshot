@@ -1,9 +1,9 @@
 /*  run.config
 OPT: -check -slice-rd y
 */
+int z1(void);
 
-int x(int y, int z)
-{
+int x(int y, int z){
 /*@ slice pragma expr y == 1; */
 //@ assert y == 1;
 //@ assert y + z == 3;

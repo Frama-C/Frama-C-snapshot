@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Format
 open Cil_types
-open Cil
 open Cil_datatype
 open Extlib
 
@@ -144,20 +142,27 @@ module Operational_inputs = struct
   let compute = mk_fun "Operational_inputs.compute"
   let display = mk_fun "Operational_inputs.display"
   let get_internal = mk_fun "Operational_inputs.get_internal"
+  let get_internal_precise = ref (fun ?stmt:_ _ ->
+    failwith ("Db.Operational_inputs.get_internal_precise not implemented"))
   let get_external = mk_fun "Operational_inputs.get_external"
   let statement = mk_fun "Operational_inputs.statement"
-  let expr = mk_fun "Operational_inputs.expr"
   let kinstr ki = match ki with
     | Kstmt s -> Some (!statement s)
     | Kglobal -> None
 
+  module Record_Inout_Callbacks =
+    Hook.Build (struct type t = Value_aux.callstack * Inout_type.t end)
+
+
   let pretty fmt x =
-    Format.fprintf fmt "@[Operational inputs: %a@]@."
+    Format.fprintf fmt "@[<v>";
+    Format.fprintf fmt "@[<v 2>Operational inputs:@ @[<hov>%a@]@]@ "
       Locations.Zone.pretty (x.Inout_type.over_inputs);
-    Format.fprintf fmt "@[Operational inputs on termination: %a@]@."
+    Format.fprintf fmt "@[<v 2>Operational inputs on termination:@ @[<hov>%a@]@]@ "
       Locations.Zone.pretty (x.Inout_type.over_inputs_if_termination);
-    Format.fprintf fmt "@[Sure outputs: %a@]"
-      Locations.Zone.pretty (x.Inout_type.under_outputs_if_termination)
+    Format.fprintf fmt "@[<v 2>Sure outputs:@ @[<hov>%a@]@]"
+      Locations.Zone.pretty (x.Inout_type.under_outputs_if_termination);
+    Format.fprintf fmt "@]";
 
 end
 
@@ -171,7 +176,6 @@ module Derefs = struct
   let get_internal = mk_fun "Derefs.get_internal"
   let get_external = mk_fun "Derefs.get_external"
   let statement = mk_fun "Derefs.statement"
-  let expr = mk_fun "Derefs.expr"
   let kinstr ki = match ki with
     | Kstmt s -> Some (!statement s)
     | Kglobal -> None
@@ -188,8 +192,10 @@ module Value = struct
   type state = Cvalue.Model.t
   type t = Cvalue.V.t
 
-  let reset_deps self =
-    Project.clear ~selection:(State_selection.Dynamic.only_dependencies self) ()
+  (* This function is responsible for clearing completely Value's state
+     when the user-supplied initial state or main arguments are changed.
+     It is set deep inside Value  for technical reasons *)
+  let initial_state_changed = mk_fun "Value.initial_state_changed"
 
   (* Arguments of the root function of the value analysis *)
   module ListArgs = Datatype.List(Cvalue.V)
@@ -200,8 +206,8 @@ module Value = struct
         let name = "Db.Value.fun_args"
         let dependencies =
           [ Ast.self; Kernel.LibEntry.self; Kernel.MainFunction.self]
-        let kind = `Internal
        end)
+  let () = Ast.add_monotonic_state FunArgs.self
 
 
   exception Incorrect_number_of_arguments
@@ -219,7 +225,7 @@ module Value = struct
            not
              (Extlib.opt_equal ListArgs.equal (Some l) (FunArgs.get_option ()))
          then begin
-           reset_deps FunArgs.self;
+           !initial_state_changed ();
            FunArgs.set l
          end)
 
@@ -229,7 +235,7 @@ module Value = struct
       (Datatype.func Datatype.unit Datatype.unit)
       (fun () ->
          if FunArgs.get_option () <> None then
-           (reset_deps FunArgs.self; FunArgs.clear ()))
+           (!initial_state_changed (); FunArgs.clear ()))
 
 
   (* Initial memory state of the value analysis *)
@@ -239,7 +245,6 @@ module Value = struct
       (struct
          let name = "Db.Value.Vglobals"
          let dependencies = [Ast.self]
-         let kind = `Internal
        end)
 
   (* This function is *not* journalized *)
@@ -252,7 +257,7 @@ module Value = struct
                    (Some state)
                    (VGlobals.get_option ()))
          then begin
-           reset_deps VGlobals.self;
+           !initial_state_changed ();
            VGlobals.set state
          end)
 
@@ -262,7 +267,7 @@ module Value = struct
       "Db.Value.globals_use_default_initial_state"
       (Datatype.func Datatype.unit Datatype.unit)
       (fun () -> if VGlobals.get_option () <> None then
-         (reset_deps VGlobals.self; VGlobals.clear ()))
+         (!initial_state_changed (); VGlobals.clear ()))
 
   let initial_state_only_globals = mk_fun "Value.initial_state_only_globals"
 
@@ -278,10 +283,9 @@ module Value = struct
   let dependencies =
     [ Ast.self;
       Alarms.self;
-      Annotations.self;
+      Annotations.code_annot_state;
       FunArgs.self;
-      VGlobals.self;
-    ]
+      VGlobals.self ]
 
   let size = 1789
   module Table =
@@ -291,7 +295,6 @@ module Value = struct
          let name = "Value analysis results"
          let size = size
          let dependencies = dependencies
-         let kind = `Correctness
        end)
 
 
@@ -300,7 +303,6 @@ module Value = struct
     (struct
        let name = "Value analysis after states"
        let dependencies = [Table.self]
-       let kind = `Correctness
        let size = size
      end)
 
@@ -322,7 +324,6 @@ module Value = struct
          let name = "Conditions statuses"
          let size = 101
          let dependencies = only_self
-         let kind = `Correctness
        end)
 
   let merge_conditions h =
@@ -350,7 +351,6 @@ module Value = struct
       (struct
         let name = "Db.Value.RecursiveCallsFound"
         let dependencies = only_self
-        let kind = `Correctness
        end)
 
   let ignored_recursive_call kf =
@@ -366,7 +366,6 @@ module Value = struct
          let name = "called_functions"
          let size = 11
          let dependencies = only_self
-         let kind = `Internal
        end)
 
 (*
@@ -395,6 +394,13 @@ module Value = struct
          type t = (kernel_function * kinstr) list * (state Stmt.Hashtbl.t) Lazy.t
        end)
 
+  module Record_Value_Callbacks_New =
+    Hook.Build
+      (struct
+         type t = (kernel_function * kinstr) list *
+                  (state Stmt.Hashtbl.t) Lazy.t Value_aux.callback_result
+       end)
+
   module Record_Value_After_Callbacks =
     Hook.Build
       (struct
@@ -404,12 +410,14 @@ module Value = struct
   module Record_Value_Superposition_Callbacks =
     Hook.Build
       (struct
-         type t = (kernel_function * kinstr) list * (State_set.t Stmt.Hashtbl.t) Lazy.t
+         type t = (kernel_function * kinstr) list * (state list Stmt.Hashtbl.t) Lazy.t
        end)
 
   module Call_Value_Callbacks =
     Hook.Build
       (struct type t = state * (kernel_function * kinstr) list end)
+
+  let no_results = mk_fun "Value.no_results"
 
   let update_table s v =
     try
@@ -420,15 +428,6 @@ module Value = struct
       Table.replace s joined;
     with
       Not_found -> Table.add s v
-
-  let map2_while_possible f l1 l2 =
-    let rec go l1 l2 acc =
-      match l1,l2 with
-      | [],_ | _, [] -> acc
-      | x1::r1, x2::r2 ->
-          go r1 r2 ((f x1 x2)::acc)
-    in
-    List.rev (go l1 l2 [])
 
   let merge_initial_state kf state =
     let vi = Kernel_function.get_vi kf in
@@ -489,13 +488,18 @@ module Value = struct
   let access_after = mk_fun "Value.access_after"
   let lval_to_offsetmap_after = mk_fun "Value.lval_to_offsetmap_after"
   let access_location_after = mk_fun "Value.access_location_after"
-  let update = mk_fun "Value.update"
 
   (** Type for a Value builtin function *)
+
+  type builtin_result = {
+    builtin_values: (Cvalue.V_Offsetmap.t option * state) list;
+    builtin_clobbered: Locations.Location_Bits.Top_Param.t
+  }
+
   type builtin_sig =
       state ->
       (Cil_types.exp * Cvalue.V.t * Cvalue.V_Offsetmap.t) list ->
-      (Cvalue.V_Offsetmap.t option * state * Locations.Location_Bits.Top_Param.t)
+      builtin_result
 
   exception Outside_builtin_possibilities
   let register_builtin = mk_fun "Value.record_builtin"
@@ -505,18 +509,16 @@ module Value = struct
     mk_fun "Value.use_spec_instead_of_definition"
 
   let eval_lval =
-    ref (fun ~with_alarms:_ _ -> not_yet_implemented "Value.eval_lval")
+    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_lval")
   let eval_expr =
-    ref (fun ~with_alarms:_ _ -> not_yet_implemented "Value.eval_expr")
+    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr")
 
   let eval_expr_with_state =
-    ref (fun ~with_alarms:_ _ -> not_yet_implemented "Value.eval_expr_with_state")
+    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr_with_state")
 
   let find_lv_plus =
-    ref (fun ~with_alarms:_ _ -> not_yet_implemented "Value.find_lv_plus")
+    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.find_lv_plus")
 
-
-  let pretty_filter =  mk_fun "Value.pretty_filter"
   let pretty_state = Cvalue.Model.pretty
   let pretty_state_without_null = Cvalue.Model.pretty_without_null
 
@@ -537,12 +539,12 @@ module Value = struct
     try
       let values = get_stmt_state (Kernel_function.find_return kf) in
       let fst_values = get_stmt_state (Kernel_function.find_first_stmt kf) in
-      if Cvalue.Model.is_reachable fst_values 
-	&& not (Cvalue.Model.is_top fst_values)
+      if Cvalue.Model.is_reachable fst_values
+        && not (Cvalue.Model.is_top fst_values)
       then begin
-        Format.fprintf fmt "@[<hov 2>Values for function %s:@\n"
+        Format.fprintf fmt "@[<hov 2>Values at end of function %s:@\n"
           (Kernel_function.get_name kf);
-            if Cvalue.Model.is_top values 
+            if Cvalue.Model.is_top values
             then Format.fprintf fmt "NO INFORMATION"
             else
               let outs = !Outputs.get_internal kf in
@@ -571,8 +573,8 @@ module Value = struct
 
   let call_to_kernel_function call_stmt = match call_stmt.skind with
     | Instr (Call (_, fexp, _, _)) ->
-        let _, called_functions = 
-	  !expr_to_kernel_function
+        let _, called_functions =
+          !expr_to_kernel_function
             ~with_alarms:CilE.warn_none_mode ~deps:None
             (Kstmt call_stmt) fexp
         in called_functions
@@ -587,7 +589,9 @@ module Value = struct
   let lval_to_loc_state = mk_fun "Value.lval_to_loc_state"
   let lval_to_zone = mk_fun "Value.lval_to_zone"
   let lval_to_zone_state = mk_fun "Value.lval_to_zone_state"
-  let assigns_to_zone_inputs_state = mk_fun "Value.assigns_to_zone_inputs_state"
+  let assigns_inputs_to_zone = mk_fun "Value.assigns_inputs_to_zone"
+  let assigns_outputs_to_zone = mk_fun "Value.assigns_outputs_to_zone"
+  let assigns_outputs_to_locations = mk_fun "Value.assigns_outputs_to_locations"
 
   exception Void_Function
 
@@ -612,10 +616,7 @@ module Value = struct
   exception Aborted
 
   let degeneration_occurred =
-    ref
-      (fun _kf _lv ->
-        if not (Dynamic.Parameter.Bool.get "-propagate-top" ())
-        then raise Aborted)
+    ref (fun _kf _lv -> raise Aborted)
 
 end
 
@@ -623,6 +624,8 @@ module From = struct
   let access = mk_fun "From.access"
   let update = mk_fun "From.update"
   let find_deps_no_transitivity = mk_fun "From.find_deps_no_transitivity"
+  let find_deps_no_transitivity_state =
+    mk_fun "From.find_deps_no_transitivity_state"
   let compute = mk_fun "From.compute"
   let compute_all = mk_fun "From.compute_all"
   let compute_all_calldeps = mk_fun "From.compute_all_calldeps"
@@ -665,10 +668,9 @@ end
 
 module Pdg = struct
   type t = PdgTypes.Pdg.t
-  type t_node = PdgTypes.Node.t
-  type t_node_key = PdgIndex.Key.t
+
   type t_nodes_and_undef =
-      ((t_node * Locations.Zone.t option) list * Locations.Zone.t option)
+      ((PdgTypes.Node.t * Locations.Zone.t option) list * Locations.Zone.t option)
 
   exception Top = PdgTypes.Pdg.Top
   exception Bottom = PdgTypes.Pdg.Bottom
@@ -684,22 +686,18 @@ module Pdg = struct
 
   let node_key = mk_fun "Pdg.node_key"
 
-  let synchronize_annotations = mk_fun "Pdg.synchronize_annotations"
-
   let find_decl_var_node = mk_fun "Pdg.find_decl_var_node"
   let find_input_node = mk_fun "Pdg.find_input_nodes"
   let find_ret_output_node = mk_fun "Pdg.find_ret_output_node"
   let find_output_nodes = mk_fun "Pdg.find_output_nodes"
-  let find_all_outputs_nodes = mk_fun "Pdg.find_all_outputs_nodes"
   let find_all_inputs_nodes = mk_fun "Pdg.find_all_inputs_nodes"
   let find_stmt_and_blocks_nodes = mk_fun "Pdg.find_stmt_and_blocks_nodes"
   let find_simple_stmt_nodes = mk_fun "Pdg.find_simplestmt_nodes"
   let find_stmt_node = mk_fun "Pdg.find_stmt_node"
+  let find_label_node = mk_fun "Pdg.find_label_node"
   let find_entry_point_node = mk_fun "Pdg.find_entry_point_node"
   let find_top_input_node = mk_fun "Pdg.find_top_input_node"
-  let find_call_topin_node = mk_fun "Pdg.find_call_topin_node"
   let find_call_ctrl_node = mk_fun "Pdg.find_call_ctrl_node"
-  let find_stmt_id_nodes = mk_fun "Pdg.find_stmt_id_nodes"
   let find_location_nodes_at_stmt = mk_fun "Pdg.find_location_nodes_at_stmt"
   let find_location_nodes_at_end = mk_fun "Pdg.find_location_nodes_at_end"
   let find_location_nodes_at_begin = mk_fun "Pdg.find_location_nodes_at_begin"
@@ -731,7 +729,6 @@ module Pdg = struct
 
   let all_uses = mk_fun "Pdg.all_uses"
 
-  let all_related_nodes = mk_fun "Pdg.all_related_nodes"
   let custom_related_nodes = mk_fun "Pdg.custom_related_nodes"
 
   let find_call_stmts = mk_fun "Pdg.find_call_stmts"
@@ -739,17 +736,12 @@ module Pdg = struct
   let iter_nodes = mk_fun "Pdg.iter_nodes"
 
   let extract = mk_fun "Pdg.extract"
-  let pretty = ref (fun ?(bw:_) _ _ ->
-                      ignore(bw);
-                      not_yet_implemented "Pdg.pretty")
+  let pretty = ref (fun ?bw:_ _ _ -> mk_labeled_fun "Pdg.pretty")
   let pretty_node = mk_fun "Pdg.pretty_node"
   let pretty_key = mk_fun "Pdg.pretty_key"
 
-  module F_FctMarks = PdgMarks.F_Fct
+(*  module F_FctMarks = PdgMarks.F_Fct *)
   (* module F_ProjMarks = PdgMarks.F_Proj *)
-
-  type 't_mark t_info_caller_inputs = 't_mark PdgMarks.t_info_caller_inputs
-  type 't_mark t_info_inter = 't_mark PdgMarks.t_info_inter
 
 end
 
@@ -764,6 +756,7 @@ module Scope = struct
   let check_asserts = mk_fun "Datascope.check_asserts"
   let rm_asserts = mk_fun "Datascope.rm_asserts"
   let get_defs = mk_fun "Datascope.get_defs"
+  let get_defs_with_type = mk_fun "Datascope.get_defs_with_type"
 
   type t_zones = Locations.Zone.t Stmt.Hashtbl.t
   let build_zones = mk_fun "Pdg.build_zones"
@@ -778,9 +771,9 @@ end
 (** Detection of the unused code of an application. *)
 module Sparecode = struct
   let get =
-    ref (fun ~select_annot:_  -> not_yet_implemented "Sparecode.run")
+    ref (fun ~select_annot:_  -> mk_labeled_fun "Sparecode.run")
   let rm_unused_globals =
-    ref (fun ?new_proj_name:_ -> not_yet_implemented "Sparecode.rm_unused_globals")
+    ref (fun ?new_proj_name:_ -> mk_labeled_fun "Sparecode.rm_unused_globals")
 end
 
 (* ************************************************************************* *)
@@ -792,13 +785,12 @@ module Slicing = struct
 
   exception No_Project
   exception Existing_Project
-  exception Unable_to_process_annotations
 
   let self = ref State.dummy
 
   let set_modes =
     ref (fun ?calls:_ ?callers:_ ?sliceUndef:_ ?keepAnnotations:_
-           ?print:_ _ -> not_yet_implemented "Slicing.set_modes")
+           ?print:_ _ -> mk_labeled_fun "Slicing.set_modes")
 
   (* TODO: merge with frama-c projects (?) *)
   module Project = struct
@@ -810,10 +802,10 @@ module Slicing = struct
     let pretty = mk_fun "Slicing.Project.pretty"
     let print_extracted_project =
       ref (fun ?fmt:_ ~extracted_prj:_ ->
-             not_yet_implemented "Slicing.Project.print_extracted_project")
+             mk_labeled_fun "Slicing.Project.print_extracted_project")
     let print_dot =
       ref (fun ~filename:_ ~title:_ _ ->
-             not_yet_implemented "Slicing.Project.print_dot")
+             mk_labeled_fun "Slicing.Project.print_dot")
 
     let get_all = mk_fun "Slicing.Project.get_all"
     let get_project = mk_fun "Slicing.Project.get_project"
@@ -837,8 +829,7 @@ module Slicing = struct
     let compare = mk_fun "Slicing.Mark.compare"
     let pretty = mk_fun "Slicing.Mark.pretty"
     let make =
-      ref
-        (fun ~data:_ ~addr:_ ~ctrl:_ -> not_yet_implemented "Slicing.Mark.make")
+      ref (fun ~data:_ ~addr:_ ~ctrl:_ -> mk_labeled_fun "Slicing.Mark.make")
     let is_bottom = mk_fun "Slicing.Mark.is_bottom"
     let is_spare = mk_fun "Slicing.Mark.is_spare"
     let is_ctrl = mk_fun "Slicing.Mark.is_ctrl"
@@ -872,6 +863,7 @@ module Slicing = struct
     let select_func_zone = mk_fun "Slicing.Select.select_func_zone"
     let select_func_annots = mk_fun "Slicing.Select.select_func_annots"
     let select_stmt_internal = mk_fun "Slicing.Select.select_stmt_internal"
+    let select_label_internal = mk_fun "Slicing.Select.select_label_internal"
     let empty_selects =
       Journal.register
         "Db.Slicing.Select.empty_selects"
@@ -910,8 +902,6 @@ module Slicing = struct
       mk_fun "Slicing.Select.select_modified_output_zone_internal"
     let select_zone_at_end_internal =
       mk_fun "Slicing.Select.select_zone_at_end_internal"
-    let select_func_zone_internal =
-      mk_fun "Slicing.Select.select_func_zone_internal"
     let pretty = mk_fun "Slicing.Select.pretty"
   end
 
@@ -960,6 +950,7 @@ module Slicing = struct
     let apply_all = mk_fun "Slicing.Request.apply_all"
     let apply_all_internal = mk_fun "Slicing.Request.apply_all_internal"
     let apply_next_internal = mk_fun "Slicing.Request.apply_next_internal"
+    let is_request_empty_internal = mk_fun "Slicing.Request.is_request_empty_internal"
     let pretty = mk_fun "Slicing.Request.pretty"
   end
 
@@ -1008,7 +999,10 @@ module Properties = struct
       mk_fun "Properties.Interp.from_comprehension_to_range"
     let term_to_lval = mk_resultfun "Properties.Interp.term_to_lval"
     let loc_to_lval = mk_resultfun "Properties.Interp.loc_to_lval"
+    (* loc_to_loc and loc_to_locs are defined in Value/Eval_logic, not
+       in Logic_interp *)
     let loc_to_loc = mk_resultfun "Properties.Interp.loc_to_loc"
+    let loc_to_locs = mk_resultfun "Properties.Interp.loc_to_locs"
     let identified_term_zone_to_loc =
       mk_resultfun "Properties.Interp.identified_term_to_loc"
     let loc_to_offset = mk_resultfun "Properties.Interp.loc_to_offset"
@@ -1026,7 +1020,9 @@ module Properties = struct
       let mk_ctx_stmt_annot = mk_fun "Interp.To_zone.mk_ctx_stmt_annot"
       type t = {before:bool ; ki:stmt ; zone:Locations.Zone.t}
       type t_zone_info = (t list) option
-      type t_decl = Varinfo.Set.t
+      type t_decl =
+          { var: Varinfo.Set.t;
+            lbl: Logic_label.Set.t }
       type t_pragmas =
           { ctrl: Stmt.Set.t;
             stmt: Stmt.Set.t }
@@ -1046,9 +1042,12 @@ module Properties = struct
       mk_fun "Properties.Interp.to_result_from_pred"
   end
 
-  let add_assert kf kinstr states prop =
-    let interp_prop = User (!Interp.code_annot kf kinstr prop) in
-    Annotations.add kf kinstr states interp_prop
+  let add_assert emitter kf kinstr prop =
+    Kernel.deprecated "Db.Properties.add_assert" ~now:"ACSL_importer plug-in" 
+      (fun () ->
+	let interp_prop = User (!Interp.code_annot kf kinstr prop) in
+	Annotations.add_code_annot emitter kinstr interp_prop)
+      ()
 
 end
 
@@ -1070,7 +1069,7 @@ module Security = struct
 end
 
 module Occurrence = struct
-  type t = (kinstr * lval) list
+  type t = (kernel_function option * kinstr * lval) list
   let get = mk_fun "Occurrence.get"
   let get_last_result = mk_fun "Occurrence.get_last_result"
   let print_all = mk_fun "Occurrence.print_all"
@@ -1078,18 +1077,14 @@ module Occurrence = struct
 end
 
 module RteGen = struct
-  type status_accessor =
-      State.t 
-      * (kernel_function -> State.t) 
-      * (kernel_function -> bool)
-      * (kernel_function -> bool -> unit)
+  type status_accessor = 
+      Emitter.t * (kernel_function -> bool -> unit) * (kernel_function -> bool)
   let compute = mk_fun "RteGen.compute"
-  let is_computed = mk_fun "RteGen.is_computed"
   let annotate_kf = mk_fun "RteGen.annotate_kf"
-  let is_computed_kf = mk_fun "RteGen.is_computed_kf"
   let self = ref State.dummy
   let do_precond = mk_fun "RteGen.do_precond"
   let do_all_rte = mk_fun "RteGen.do_all_rte"
+  let do_rte = mk_fun "RteGen.do_rte"
   let get_all_status = mk_fun "RteGen.get_all_status"
   let get_precond_status = mk_fun "RteGen.get_precond_status"
   let get_signedOv_status = mk_fun "RteGen.get_signedOv_status"
@@ -1097,6 +1092,7 @@ module RteGen = struct
   let get_downCast_status = mk_fun "RteGen.get_downCast_status"
   let get_memAccess_status = mk_fun "RteGen.get_memAccess_status"
   let get_unsignedOv_status = mk_fun "RteGen.get_unsignedOv_status"
+  let get_unsignedDownCast_status = mk_fun "RteGen.get_unsignedDownCast_status"
 end
 
 module Report = struct
@@ -1159,24 +1155,6 @@ module Dominators = struct
   let print_dot = mk_fun "Dominators.print_dot"
 end
 
-module Metrics = struct
-  type t =
-      { sloc: int;
-        call_statements: int;
-        goto_statements: int;
-        assign_statements: int;
-        if_statements: int;
-        loop_statements: int;
-        mem_access: int;
-        functions_without_source: int Varinfo.Map.t;
-        functions_with_source: int Varinfo.Map.t;
-        (* ABP added 2 fields below for plugin metrics *)
-        function_definitions: int;
-        cyclos: int;
-      }
-  let compute = mk_fun "Metrics.compute"
-  let pretty = mk_fun "Metrics.pretty"
-end
 
 (* ************************************************************************* *)
 (** {2 Graphs} *)
@@ -1190,59 +1168,6 @@ module Semantic_Callgraph = struct
     mk_fun "Semantic_Callgraph.iter_on_callers"
 end
 
-(* TODO: move from here *)
-exception Stop
-
-let is_local_or_formal_of_caller v kf =
-  try
-    !Semantic_Callgraph.iter_on_callers
-      (fun caller ->
-         let formal_or_local =
-           (Base.is_formal_or_local v (Kernel_function.get_definition caller))
-         in
-         (*Format.printf "Caller of %s: %s variable %a formal_or_local: %b@."
-           (Kernel_function.get_name kf)
-           (Kernel_function.get_name f)
-           Base.pretty v
-           formal_or_local ;*)
-         if formal_or_local then raise Stop)
-      kf;
-    false
-  with Stop -> true
-
-  let accept_base_internal kf v =
-    Base.is_global v
-    ||
-      (let fol =
-        match kf.fundec with
-        | Definition (fundec,_) ->
-            Base.is_formal_or_local v fundec
-        | Declaration (_,vd,_,_) ->
-            (Base.is_formal_of_prototype v vd)
-        in
-(*       Format.printf "accept_base_internal %s: variable %a formal_or_local: %b@."
-           (Kernel_function.get_name kf)
-           Base.pretty v
-         fol;*)
-      fol
-
-)
-    || is_local_or_formal_of_caller v kf
-
-  let accept_base ~with_formals ~with_locals kf v =
-    Base.is_global v
-    ||
-    (match with_formals, with_locals, kf.fundec with
-      | false, false, _ -> false
-
-      | true,  false, Definition (fundec,_) -> Base.is_formal v fundec
-      | false, true, Definition (fundec, _) -> Base.is_local v fundec
-      | true,  true, Definition (fundec, _) -> Base.is_formal_or_local v fundec
-      | false, _, Declaration _ -> false
-      | true , _, Declaration (_, vd, _, _) -> Base.is_formal_of_prototype v vd
-    )
-    || is_local_or_formal_of_caller v kf
-(* to here *)
 
 (* ************************************************************************* *)
 (** {2 GUI} *)

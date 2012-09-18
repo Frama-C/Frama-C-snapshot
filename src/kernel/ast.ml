@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,6 +19,8 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
+
+open Cil_types
 
 module Initial_datatype = Datatype
 
@@ -38,20 +40,58 @@ include
            Kernel.Files.self;
            Cil.selfFormalsDecl;
          ]
-       let kind = `Internal
      end)
 
 let mark_as_computed () = mark_as_computed () (* eta-expansion required *)
+
+let linked_states = 
+  ref
+    [ 
+      Logic_env.Logic_info.self;
+      Logic_env.Logic_type_info.self;
+      Logic_env.Logic_ctor_info.self;
+      Logic_env.Model_info.self;
+      Logic_env.Lemmas.self;
+      Cil.selfFormalsDecl;
+    ]
+
+let add_linked_state state = linked_states := state :: !linked_states
+
+let monotonic_states = ref []
+
+let add_monotonic_state state = monotonic_states := state :: !monotonic_states
+
+let mark_as_changed () =
+  let depends = State_selection.only_dependencies self in
+  let no_remove = State_selection.list_state_union !linked_states in
+  let selection = State_selection.diff depends no_remove in
+  Project.clear ~selection ()
+
+let mark_as_grown () =
+  let depends = State_selection.only_dependencies self in
+  let no_remove = State_selection.list_state_union !linked_states in
+  let no_remove =
+    State_selection.union no_remove
+      (State_selection.list_state_union !monotonic_states)
+  in
+  let selection = State_selection.diff depends no_remove in
+  Project.clear ~selection ()
 
 let () =
   State_dependency_graph.Static.add_dependencies
     ~from:self [ Cil_datatype.Stmt.Hptset.self;
                  Cil_datatype.Varinfo.Hptset.self ];
+  add_monotonic_state Cil_datatype.Stmt.Hptset.self;
+  add_monotonic_state Cil_datatype.Varinfo.Hptset.self;
   Cil.register_ast_dependencies self;
   Logic_env.init_dependencies self;
 
-exception Bad_Initialization of string
+module After_building = Hook.Build(struct type t = Cil_types.file end)
+let apply_after_computed = After_building.extend
+let () = Plugin.set_ast_hook apply_after_computed
+let () = List.iter apply_after_computed !Plugin.init_ast_hooks
 
+exception Bad_Initialization of string
 exception NoUntypedAst
 
 let default_initialization =
@@ -62,7 +102,9 @@ let set_default_initialization f = default_initialization := f
 let force_compute () =
   Kernel.feedback ~level:2 "computing the AST";
   !default_initialization ();
-  get ()
+  let s = get () in
+  After_building.apply s;
+  s
 
 let get () = memo (fun () -> force_compute ())
 
@@ -75,7 +117,9 @@ let set_file file =
     if old_file == file then old_file
     else raise (Bad_Initialization "Too many AST initializations")
   in
-  ignore (memo ~change (fun () -> mark_as_computed (); file))
+  ignore 
+    (memo ~change
+       (fun () -> mark_as_computed (); After_building.apply file; file))
 
 module UntypedFiles = struct
 
@@ -90,12 +134,53 @@ module UntypedFiles = struct
        let dependencies = (* the others delayed until file.ml *)
          [ Cil.selfMachine;
            self (* can't be computed without the AST *) ]
-       let kind = `Internal
      end)
 
   let get () = memo (fun () -> compute_untyped (); get ())
 
 end
+
+module LastDecl =
+  State_builder.Hashtbl
+    (Cil_datatype.Varinfo.Hashtbl)
+    (Cil_datatype.Global)
+    (struct
+      let name = "Ast.LastDecl"
+      let dependencies = [ self ]
+      let size = 47
+     end)
+
+let compute_last_decl () =
+  (* Only meaningful when we have definitely computed the AST. *)
+  if is_computed () && not (LastDecl.is_computed ()) then begin
+    let globs = (get ()).globals in
+    let update_one_global g =
+      match g with
+        | GVarDecl(_,v,_) when Cil.isFunctionType v.vtype ->
+          LastDecl.replace v g
+        | GFun (f,_) -> LastDecl.replace f.svar g
+        | _ -> ()
+    in
+    List.iter update_one_global globs;
+    LastDecl.mark_as_computed ()
+  end
+
+let is_last_decl g =
+  (* Not_found mainly means that the information is irrelevant at this stage,
+     not that there is a dangling varinfo.
+   *)
+  let is_eq v =
+    compute_last_decl ();
+    try (LastDecl.find v == g) with Not_found -> false
+  in
+  match g with
+    | GVarDecl(_,v,_) -> is_eq v
+    | GFun(f,_) -> is_eq f.svar
+    | _ -> false
+
+let clear_last_decl () =
+  let selection = State_selection.Static.with_dependencies LastDecl.self in
+  Project.clear ~selection ()
 
 (*
 Local Variables:

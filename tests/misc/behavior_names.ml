@@ -6,11 +6,9 @@ let run () =
       ~sep:Pretty_utils.space_sep Format.pp_print_string fmt l
   in
   Format.printf
-    "@[external: %a@\ninternal: %a@\nall: %a@\nnew1: %s@\nnew2: %s@]@."
-    pretty_list (Kernel_function.spec_function_behaviors kf)
-    pretty_list (Kernel_function.internal_function_behaviors kf)
-    pretty_list (Kernel_function.all_function_behaviors kf)
-    (Kernel_function.fresh_behavior_name kf "foo")
-    (Kernel_function.fresh_behavior_name kf "bla")
+    "@[stmt: %a@\nnew1: %s@\nnew2: %s@]@."
+    pretty_list (Annotations.behavior_names_of_stmt_in_kf kf)
+    (Annotations.fresh_behavior_name kf "foo")
+    (Annotations.fresh_behavior_name kf "bla")
 
 let () = Db.Main.extend run

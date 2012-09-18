@@ -8,6 +8,8 @@ for instance).
 
 Thus it is useless in any other context.
 
+Note: such a file is **not** provided for each Frama-C version.
+
 ===============================================================================
 				    SUMMARY
 ===============================================================================

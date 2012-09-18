@@ -22,9 +22,9 @@ int main() {
   uz = ((int) ux) / ((int) uy); // floating point exception
   uz = ux / uy; // correct if uy != 0
   uz = 0x80000000 / (0xffffffff + 1);
-  uz = ((int) 0x80000000) / ((int) 0xffffffff);
-  uz = ((int) 0x80000000) /  0xffffffff;
-  uz =  0x80000000 / (int) 0xffffffff;
+  uz = ((int) (-0x7fffffff -1)) / ((int) -1);
+  uz = ((int) (-0x7fffffff -1)) /  0xffffffff;
+  uz =  0x80000000 / (int) -1;
   uz = (int) (0x80000000 / 0xffffffff);
 
   z = 1 / (x + y) ;

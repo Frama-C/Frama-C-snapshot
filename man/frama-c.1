@@ -2,7 +2,7 @@
 .\"                                                                        
 .\"  This file is part of Frama-C.                                         
 .\"                                                                        
-.\"  Copyright (C) 2007-2011                                               
+.\"  Copyright (C) 2007-2012                                               
 .\"    CEA   (Commissariat à l'énergie atomique et aux énergies            
 .\"           alternatives)                                                
 .\"    INRIA (Institut National de Recherche en Informatique et en         
@@ -17,7 +17,7 @@
 .\"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
 .\"  GNU Lesser General Public License for more details.                   
 .\"                                                                        
-.\"  See the GNU Lesser General Public License version v2.1                
+.\"  See the GNU Lesser General Public License version 2.1                 
 .\"  for more details (enclosed in the file licenses/LGPLv2.1).            
 .\"                                                                        
 .\"                                                                        
@@ -99,10 +99,12 @@ Sets verbosity level (default is 1). Setting it to 0 will output less
 progress messages. This level can also be set on a per \fIplugin\fP basis,
 with option \fB-\fP\fIplugin\fP\fB-verbose\fP \fIn\fP.
 Verbosity level of the kernel can be controlled with option
-\fB-kernel\-verbose\fP \fIn\fP. Level of debug is controlled by the
+\fB-kernel\-verbose\fP \fIn\fP.
+.TP
 .BI \-debug\ n
-option, which has the same per plugin specializations.
-The default debugging level is 0.
+Sets debugging level (default is 0, meaning no debugging messages). 
+This option has the same per plugin (and kernel) specializations 
+as \fB-verbose\fP.
 .TP
 .B -quiet
 Sets verbosity and debugging level to 0.
@@ -137,6 +139,9 @@ integers larger than
 .I max
 are displayed in hexadecimal (by default, all integers are displayed in decimal)
 .TP
+.B -check
+performs integrity checks on the internal AST (for developers only).
+.TP
 .B [-no]-collapse-call-cast
 allows implicit cast between the value returned by a function and the lval
 it is assigned to. Otherwise, a temporary variable is used and the cast is
@@ -152,7 +157,8 @@ When analyzing an annotation, the default behavior (the
 version of this option) when a typechecking error occurs is to reject the
 source file as is the case for typechecking errors within the C code. With
 this option on, the typechecker will only output a warning and discard the
-annotation but typechecking will continue.
+annotation but typechecking will continue 
+(errors in C code are still fatal, though).
 .TP
 .BI -cpp-command\  cmd
 Uses
@@ -166,7 +172,11 @@ gcc \-C \-E \-I.
 if it is not set. In order to preserve ACSL annotations, the preprocessor must
 keep comments (the
 .B -E
-option for gcc).
+option for gcc). 
+.IR %1 \ and\  %2
+can be used in
+.I cmd
+to denote the original source file and the pre-processed file respectively
 .TP
 .BI -cpp-extra-args\  args
 Gives additional arguments to the pre-processor. This is only useful when
@@ -236,6 +246,10 @@ no).
 When
 .B -simplify-cfg
 is set, keeps switch statements. Defaults to no.
+.TP
+.B -keep-unused-specified-functions
+See
+.B -remove-unused-specified-functions
 .TP
 .B [-no]-lib-entry
 Indicates that the entry point is called during program execution. This
@@ -330,7 +344,8 @@ alias of
 .B -print-share-path
 .TP
 .B -print-plugin-path
-outputs the directory where Frama-C searches its plugins (can be overidden by the
+outputs the directory where Frama-C searches its plugins
+(can be overidden by the
 .B FRAMAC_PLUGIN
 variable and the
 .B -add-path
@@ -340,6 +355,12 @@ option)
 outputs the directory where Frama-C stores its data (can be overidden by the
 .B FRAMAC_SHARE
 variable)
+.TP
+.B -remove-unused-specified-functions
+keeps function prototypes that have an ACSL specification but are not used
+in the code. This is the default. Functions having the attribute
+.B FRAMAC_BUILTIN
+are always kept.
 .TP
 .B -safe-arrays
 For structure fields that are arrays, assumes that all accesses must be in bound
@@ -371,7 +392,7 @@ except that the second run is performed in project
 If no such project exists, Frama-C exits with an error.
 .TP
 .BI -time\  file
-outputs user time and date in the given
+appends user time and date in the given
 .I file
 when Frama-C exits.
 .TP
@@ -385,7 +406,12 @@ syntactically unroll loops
 .I n
 times before the analysis. This can be quite costly and some plugins (e.g.
 the value analysis) provide more efficient ways to perform the same thing.
-See their respective manuals for more information.
+See their respective manuals for more information. This can also be activated
+on a per-loop basis via the
+.B loop pragma unroll <m>
+directive. A negative value for
+.I n
+will inhibit such pragmas.
 .TP
 .B [-no]-unicode
 outputs ACSL formulas with utf8 characters. This is the default. When given the
@@ -400,12 +426,22 @@ see
 .B [-no]-unspecified-access
 checks the that read/write accesses occuring in unspecified order (according to
 the C standard's notion of sequence point) are performed on separate locations.
-This  is the default. With
-.B -no-unspecified-access ,
-assumes that it is always the case.
+With
+.BR -no-unspecified-access ,
+assumes that it is always the case (this is the default).
 .TP
 .B \-version
 outputs the version string of Frama-C
+.TP
+.BI -warn-decimal-float\  <freq>
+warns when a floating-point constant cannot be exactly represented (e.g. 0.1).
+.I <freq>
+can be one of
+.BR none ,\  once ,\ or\  all
+.TP
+.B [-no]-warn-undeclared-callee
+warns when a function is called before it has been declared (set by default).
+Frama-C
 .P
 .B Plugins specific options
 .P

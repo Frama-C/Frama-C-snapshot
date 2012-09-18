@@ -1,14 +1,17 @@
+/* run.config
+   STDOPT:  +"-inout-callwise"
+*/
 
-f(int *p){
+void f(int *p){
   p[1]=12;
 }
 
-int g(int x){
+void g(int x){
   int t[2];
   f(t);
 }
 
-main(){
+void main(){
   int lmain[2];
   f(lmain);
   g(2);

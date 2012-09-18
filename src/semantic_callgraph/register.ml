@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,33 +22,34 @@
 
 open Db
 open Options
-open Cil_types
+
+module KfSorted = struct
+  type t =  Kernel_function.t
+      (* Basic comparison of kernel function compares on vid.
+         As this has an impact to results shown to the user, it's better
+         to use an ordering which depends only on the input itself, not
+         how the numbering of varinfo is done internally
+      *)
+  let equal = Kernel_function.equal
+  let hash kf = Hashtbl.hash (Kernel_function.get_name kf)
+  let compare kf1 kf2 =
+    if kf1 == kf2 then 0
+    else
+      let res =
+        String.compare
+          (Kernel_function.get_name kf1)
+          (Kernel_function.get_name kf2)
+      in
+      if res <> 0 then res
+      else (* Backup solution, will compare underlying varinfos ids *)
+        Kernel_function.compare kf1 kf2
+end
+
+module SetKfSorted = Set.Make(KfSorted)
 
 module SGraph =
   Graph.Imperative.Digraph.ConcreteLabeled
-    (struct
-       type t =  Kernel_function.t
-         (* Basic comparison of kernel function compares on vid.
-            As this has an impact to results shown to the user, it's better
-            to use an ordering which depends only on the input itself, not
-            how the numbering of varinfo is done internally
-          *)
-       let equal = Kernel_function.equal
-       let hash kf = Hashtbl.hash (Kernel_function.get_name kf)
-       let compare kf1 kf2 =
-         if kf1 == kf2 then 0
-         else
-           let res =
-             String.compare
-               (Kernel_function.get_name kf1)
-               (Kernel_function.get_name kf2)
-           in
-           if res <> 0 then res
-           else
-             String.compare
-               (Kernel_function.get_vi kf1).vname
-               (Kernel_function.get_vi kf2).vname
-     end)
+    (KfSorted)
     (struct include Cil_datatype.Stmt let default = Cil.dummyStmt end)
 
 module SGState =
@@ -65,7 +66,6 @@ module SGState =
     (struct
       let name = "SGState"
       let dependencies = [ Value.self ]
-      let kind = `Correctness
      end)
 
 module SCQueue =
@@ -74,7 +74,6 @@ module SCQueue =
     (struct
       let name = "SCQueue"
       let dependencies = [ SGState.self ]
-      let kind = `Internal
      end)
 
 let callgraph () =
@@ -99,15 +98,13 @@ module Service =
        let datatype_name = name
        type t = SGraph.t
        module V = struct
-         type t = Kernel_function.t
+	 include Kernel_function
          let id v = (Kernel_function.get_vi v).Cil_types.vid
          let name = Kernel_function.get_name
          let attributes v =
            [ `Style
                (if Kernel_function.is_definition v then `Bold
                 else `Dotted) ]
-         let equal = Kernel_function.equal
-         let hash = Kernel_function.hash
          let entry_point () =
            try Some (fst (Globals.entry_point ()))
            with Globals.No_such_entry_point _ -> None
@@ -126,7 +123,6 @@ module ServiceState =
        let name = "SemanticsServicestate"
        let dependencies =
          [ SGState.self; Kernel.MainFunction.self; InitFunc.self ]
-       let kind = `Internal
      end)
 
 let get_init_funcs () =
@@ -189,7 +185,7 @@ let () =
   Db.Main.extend (fun _fmt -> !Db.Semantic_Callgraph.dump ())
 
 let topologically_iter_on_functions =
-  let module T = Graph.Topological.Make(SGraph) in
+  let module T = Graph.Topological.Make_stable(SGraph) in
   fun f ->
     (* compute on need *)
     if SCQueue.is_empty () then T.iter SCQueue.add (callgraph ());
@@ -220,7 +216,11 @@ let iter_on_callers f kf =
 let () =
   Db.Semantic_Callgraph.topologically_iter_on_functions :=
     topologically_iter_on_functions;
-  Db.Semantic_Callgraph.iter_on_callers := iter_on_callers
+
+  let tf = Datatype.func Kernel_function.ty Datatype.Unit.ty in
+  Db.Semantic_Callgraph.iter_on_callers :=
+    Dynamic.register ~plugin:"Semantic_callgraph" "iter_on_callers"
+      (Datatype.func tf tf) ~journalize:false iter_on_callers;
 
 
 (*

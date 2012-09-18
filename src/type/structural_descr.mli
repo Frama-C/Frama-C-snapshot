@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,15 +55,16 @@ type pack = private
 type t =
   | Unknown
   (** Use it either for unmarshable types or if you don't know its internal
-      representation. In any case, values of types with such a descriptor
-      will be never write on disk. *)
+      representation. In any case, values of types with this descriptor
+      will never be written on disk. *)
 
   | Abstract
   (** The data is marshable as an usual OCaml value. No specific processing
       will be applied on any part of such a data. *)
 
   | Structure of structure
-  (** Provide a description of the representation of data. *)
+  (** Provide a description of the representation of data. 
+      @plugin development guide *)
 
   | T_pack of single_pack (** Internal use only.
                               Do not use it outside the library *)
@@ -71,11 +72,12 @@ type t =
 (** Description with details. *)
 and structure =
   | Sum of pack array array
-  (** [Sum c] Describing a non-array type where [c] is an array describing
+  (** [Sum c] describes a non-array type where [c] is an array describing
       the non-constant constructors of the type being described (in the order
       of their declarations in that type).  Each element of this latter array
       is an array of [t] that describes (in order) the fields of the
-      corresponding constructor. *)
+      corresponding constructor. 
+      @plugin development guide *)
 
   | Array of pack (** The data is an array of values of the same type, each
                       value being described by the pack. *)
@@ -85,7 +87,8 @@ and structure =
 (* ********************************************************************** *)
 
 val pack: t -> pack
-(** Pack a structural descriptor in order to embed it inside another one. *)
+(** Pack a structural descriptor in order to embed it inside another one. 
+    @plugin development guide *)
 
 val recursive_pack: recursive -> pack
 (** Pack a recursive descriptor.
@@ -126,7 +129,7 @@ val t_option : t -> t
 val t_array : t -> t
 val t_queue: t -> t
 
-(** Use the below functions only if the compare/hash functions cannot change by
+(** Use the functions below only if the compare/hash functions cannot change by
     marshalling. *)
 
 val t_set_unchanged_compares: t -> t
@@ -136,10 +139,12 @@ val t_hashtbl_unchanged_hashs: t -> t -> t
 (** Packed versions of predefined descriptors. *)
 
 val p_abstract: pack
-(** equivalent to [pack Abstract] *)
+(** Equivalent to [pack Abstract] *)
 
 val p_unit : pack
 val p_int : pack
+(** @plugin development guide *)
+
 val p_string : pack
 val p_float : pack
 val p_bool : pack

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -142,11 +142,22 @@ module IntSet = Set.Make(Int)
 (* --- Pretty Printing                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
+type types =
+  | NoneYet
+  | SomeType of typ
+  | Mixed
+
+let update_types types t = match types with
+  | NoneYet -> SomeType t
+  | Mixed -> Mixed
+  | SomeType t' -> if Cil_datatype.Typ.equal t t' then types else Mixed
+
 type ppenv = {
   fmt : Format.formatter ;
   use_align : bool ;
   rh_size : Int.t ;
   mutable misaligned : bool ;
+  mutable types: types ;
 }
 type bfinfo = Other | Bitfield of int64
 type fieldpart =
@@ -168,6 +179,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                Int.pretty start
                Int.pretty stop;
              false) else true);
+  let update_types typ = env.types <- update_types env.types typ in
 
   let req_size = Int.length start stop in
   (*    Format.printf "align:%Ld size: %Ld start:%Ld stop:%Ld req_size:%Ld@\n"
@@ -194,7 +206,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 
   match (unrollType typ) with
     | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
-    | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) ->
+    | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) as typ ->
         let size =
           match bfinfo with
             | Other -> Int.of_int (bitsSizeOf typ)
@@ -205,20 +217,23 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
              (** pretty print a full offset *)
              (if not env.use_align ||
                 (Int.equal start align && Int.equal env.rh_size size)
-              then ()
-              else (env.misaligned <- true ;
+              then update_types typ
+              else (env.types <- Mixed;
+                    env.misaligned <- true ;
                     Format.pp_print_char env.fmt '#'))
-         else
+         else (
+           env.types <- Mixed;
            raw_bits 'b' start stop)
+        )
 
-    | TComp (compinfo, _, _) -> begin
+    | TComp (compinfo, _, _) as typ -> begin
         let size = Int.of_int (try bitsSizeOf typ
                                with SizeOfError _ -> 0)
         in
         if (not env.use_align) && Int.compare req_size size = 0
         then
-          () (* do not print sub-fields if the size is exactly the right one
-                and the alignement is not important *)
+          update_types typ (* do not print sub-fields if the size is exactly
+                            the right one and the alignement is not important *)
         else
           let full_fields_to_print = List.fold_left
             (fun acc field ->
@@ -286,6 +301,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                 Format.fprintf env.fmt ".%a" !Ast_printer.d_ident name ;
                 pretty_bits_internal env bf ftyp ~align ~start ~stop
             | RawField(c,start,stop) ->
+                env.types <- Mixed;
                 Format.pp_print_char env.fmt '.' ;
                 raw_bits c start stop
           in
@@ -379,7 +395,8 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                       Format.pp_print_char env.fmt '{' ;
                       do_all_parts ps ;
                       Format.pp_print_char env.fmt '}' ;
-            else raw_bits 'a' start stop
+            else (env.types <- Mixed;
+                  raw_bits 'a' start stop)
 
 
 let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
@@ -388,16 +405,20 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
   if Int.lt start Int.zero then
     (Format.fprintf fmt "[%sbits %a to %a]#(negative offsets)"
        (if Kernel.debug_atleast 1 then "?" else "")
-       Int.pretty start Int.pretty stop ; true)
+       Int.pretty start Int.pretty stop ; true, None)
   else
     let env = {
       fmt = fmt ;
       rh_size = rh_size ;
       use_align = use_align ;
       misaligned = false ;
+      types = NoneYet ;
     } in
     pretty_bits_internal env Other typ ~align ~start ~stop ;
-    env.misaligned
+    env.misaligned,
+    (match env.types with
+      | Mixed | NoneYet -> None
+      | SomeType t -> Some t)
 
 
 (*

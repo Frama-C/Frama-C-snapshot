@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,12 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: hook.ml,v 1.4 2008-11-04 10:05:05 uid568 Exp $ *)
-
 module type S = sig
   type param
   type result
   val extend: (param -> result) -> unit
+  val extend_once: (param -> result) -> unit
   val apply: param -> result
   val is_empty: unit -> bool
   val clear: unit -> unit
@@ -34,11 +33,16 @@ end
 
 module type Iter_hook = S with type result = unit
 
+let add_once v queue =
+  let already = Queue.fold (fun b v' -> b || v' == v) false queue in
+  if not already then Queue.add v queue
+
 module Build(P:sig type t end) = struct
   type param = P.t
   type result = unit
   let hooks = Queue.create ()
   let extend f = Queue.add f hooks
+  let extend_once f = add_once f hooks
 
   let apply arg = Queue.iter (fun f -> f arg) hooks
     (* [JS 06 October 2008] the following code iter in reverse order without
@@ -58,6 +62,7 @@ module Fold(P:sig type t end) = struct
   type result = P.t
   let hooks = Queue.create ()
   let extend f = Queue.add f hooks
+  let extend_once f = add_once f hooks
   let apply arg = Queue.fold (fun arg f -> f arg) arg hooks
   let is_empty () = Queue.is_empty hooks
   let clear () = Queue.clear hooks
@@ -68,6 +73,6 @@ module Make(X:sig end) = Build(struct type t = unit end)
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

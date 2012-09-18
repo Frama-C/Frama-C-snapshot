@@ -5,7 +5,7 @@
 int main() {
   int x, y,z ;
   int *p;
-  int tab[0];
+  int tab[10];
 
   x = sizeof(*p);
 

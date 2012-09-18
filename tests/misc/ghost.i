@@ -12,7 +12,7 @@ int main () {
   G = 0;
 /*@ghost GHOST=G+G ; */
 /* Commentaire avant loop */
- /*@ loop pragma UNROLL_LOOP 0; */
+ /*@ loop pragma UNROLL 0; */
   for(i=0; i<=10; i++)
     G++;
 

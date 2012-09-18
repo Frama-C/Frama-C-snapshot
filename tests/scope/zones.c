@@ -1,7 +1,7 @@
 /* run.config
-   EXECNOW: make -s tests/scope/zones.opt
-   CMD: tests/scope/zones.opt
-   OPT: -val -journal-disable
+
+
+   OPT: -load-script tests/scope/zones.ml -val -journal-disable
 */
 
 /* bin/viewer.opt -val tests/scope/zones.c */

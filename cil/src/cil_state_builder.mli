@@ -48,6 +48,7 @@ module Stmt_set_ref(Info: State_builder.Info) :
 module Kinstr_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
   State_builder.Hashtbl with type key = Cil_types.kinstr and type data = Data.t
 
+(** @plugin development guide *)
 module Stmt_hashtbl(Data:Datatype.S)(Info: State_builder.Info_with_size) :
   State_builder.Hashtbl with type key = Cil_types.stmt and type data = Data.t
 
@@ -60,9 +61,6 @@ module Code_annotation_hashtbl
   State_builder.Hashtbl
   with type key = Cil_types.code_annotation and type data = Data.t
  *)
-
-module Inthash(Data: Datatype.S)(Info:State_builder.Info_with_size):
-  State_builder.Hashtbl with type key = int and type data = Data.t
 
 (*
 Local Variables:

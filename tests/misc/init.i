@@ -1,3 +1,8 @@
+/* run.config
+STDOPT: +"-initialized-padding-globals"
+STDOPT: +"-no-initialized-padding-globals"
+*/
+
 const char S[5] = "12345";
 
 struct t1 { int x; int y; int name[10];} v1;

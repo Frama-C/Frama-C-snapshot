@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -float-normal -val -deps -out -input tests/idct/idct.c share/math.c -journal-disable -remove-redundant-alarms
+   OPT: -float-normal -val -deps -out -input tests/idct/idct.c share/libc/stdio.c share/math.c -journal-disable -remove-redundant-alarms -memexec-all -then -report -report-print-properties
 */
 /* IEEE_1180_1990: a testbed for IDCT accuracy
  * Copyright (C) 2001  Renaud Pacalet
@@ -34,7 +34,7 @@
 
 
 
-
+#include "share/libc/stdio.h"
 #include "share/math.h"
 
 
@@ -173,7 +173,7 @@ int main()
   long i, j, k, m1[8][8], m2[8][8], m3[8][8], m4[8][8], succ, omse, ome, err;
 
   succ = 1;
-/*@ loop pragma UNROLL_LOOP 7; */
+/*@ loop pragma UNROLL 7; */
   for(i = 0; i < 6; i++)
     for(j = 0; j < 8; j++)
       for(k = 0; k < 8; k++)
@@ -198,7 +198,7 @@ int main()
     }
   /*fprintf(stderr, "------------------------------------------------->\n");*/
 
-/* loop pragma UNROLL_LOOP 0 */
+/* loop pragma UNROLL 0 */
   for(i = 0; i < 10000; i++)
     {
     if((i + 1) % 200 == 0)

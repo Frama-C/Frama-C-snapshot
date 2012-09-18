@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,13 +17,12 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Cil_types
-open Cilutil
 open Cil
 
 let dkey = "globs"
@@ -46,8 +45,7 @@ let clear_tables () =
 
 class collect_visitor = object (self)
 
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current()) (Cil.inplace_visit ())
+  inherit Visitor.frama_c_inplace
 
   method vtype t = match t with
     | TNamed(ti,_) ->
@@ -158,7 +156,6 @@ module Result =
        let name = "Sparecode without unused globals"
        let size = 7
        let dependencies = [ Ast.self ] (* delayed, see below *)
-       let kind = `Correctness
      end)
 
 let () =
@@ -173,9 +170,7 @@ let rm_unused_decl =
     (fun new_proj_name ->
        clear_tables ();
        let visitor = new collect_visitor in
-       ignore
-         (Visitor.visitFramacFile
-            (visitor:>Visitor.frama_c_visitor) (Ast.get ()));
+       Visitor.visitFramacFileSameGlobals visitor (Ast.get ());
        debug "filtering done@.";
        let visitor = new filter_visitor in
        let new_prj = File.create_project_from_visitor new_proj_name visitor in

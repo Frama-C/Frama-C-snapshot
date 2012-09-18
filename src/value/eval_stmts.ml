@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,10 +32,11 @@ open Cvalue
 open Ast_printer
 open Value_util
 open Eval_exprs
-open Eval_logic
+open Eval_terms
 open Locals_scoping
 
-exception Wrong_function_type (* in function call *)
+
+exception Recursive_call
 
 let need_cast t1 t2 =
   match unrollType t1, unrollType t2 with
@@ -46,268 +47,274 @@ let need_cast t1 t2 =
          with SizeOfError _ -> true)
     | _ -> true
 
-let offsetmap_of_lv ~with_alarms state lv =
-  CilE.set_syntactic_context (CilE.SyMem lv);
-  let loc_to_read =
-    lval_to_loc ~with_alarms state lv
-  in
-  Cvalue.Model.copy_offsetmap
-    ~with_alarms:CilE.warn_none_mode
-    loc_to_read
-    state
 
-exception Got_bottom
-  
-let compute_actual ~with_alarms (one_library_fun, all_library_funs) state e =
-  let interpreted_expr, o = match e with
-    | { enode = Lval l }
-        when (* make sure not a bit-field *) not (is_bitfield l ()) ->
-        let _, _, interpreted_expr =
-          eval_lval ~conflate_bottom:false ~with_alarms None state l
-        in
-        if one_library_fun then
-          ignore (eval_lval ~conflate_bottom:true ~with_alarms None state l);
-        if V.is_bottom interpreted_expr
-        then begin
-          if not one_library_fun then (* alarm *)
-            ignore (eval_lval ~conflate_bottom:true ~with_alarms None state l);
-          if all_library_funs
-          then begin
-            Value_parameters.result ~current:true
-              "Non-termination@ in@ evaluation@ of@ library function@ call@ lvalue@ argument@ @[%a@]" (!d_lval) l;
-          end;
-          raise Got_bottom;
-        end;
-        let r = do_cast ~with_alarms (typeOf e) interpreted_expr in
-        let o = offsetmap_of_lv ~with_alarms state l in
-        (match o with
-           | Some o -> r, o
-           | None ->
-               Format.printf "failure in evaluation of function arguments@\n\
-                   lval %a -> %a@." !d_lval l V.pretty interpreted_expr;
-               assert false)
-    | _ ->
-        let interpreted_expr = eval_expr ~with_alarms state e in
-        if V.is_bottom interpreted_expr
-        then begin
-          Value_parameters.result ~current:true
-            "Non-termination@ in@ evaluation@ of@ function@ call@ expression@ argument@ @[%a@]"
-	    (!d_exp) e;
-            raise Got_bottom
-          end;
-          let typ = Cil.typeOf e in
-          interpreted_expr,
-          Builtins.offsetmap_of_value ~typ interpreted_expr
-    in
-    e, interpreted_expr, o
+ (* Forward reference to [Eval_funs.compute_call] *)
+ let compute_call_ref = ref (fun _ -> assert false)
+
+ module Computer
+   (AnalysisParam:sig
+     val kf: kernel_function
+     val slevel: int
+     val initial_states : State_set.t
+     val active_behaviors: Eval_annots.ActiveBehaviors.t
+     val local_slevel_info : Local_slevel_types.local_slevel_info
+     end) =
+
+ struct
+   let debug = ref false
+   let name = "Values analysis"
+
+   let current_kf = AnalysisParam.kf
+   let current_fundec = Kernel_function.get_definition current_kf
+   let return = Kernel_function.find_return current_kf
+   let return_lv =
+     match return.skind with
+       | Return (Some ({enode = Lval lv}),_) -> Some lv
+       | Return (None,_) -> None
+       | _ -> assert false (* Cil invariant *)
 
 
-(* Forward reference to {Eval_calls.compute_call} *)
-let compute_call_ref = ref (fun _ -> assert false)
+   let stmt_can_reach = Value_util.stmt_can_reach current_kf
+   let is_natural_loop = Loop.is_natural current_kf
 
-module Computer
-  (AnalysisParam:sig
-    val stmt_can_reach : stmt -> stmt -> bool
-    val is_natural_loop : stmt -> bool
-    val slevel: int
-    val initial_state : State_set.t
-    val active_behaviors: Eval_logic.ActiveBehaviors.t
-    end) =
+   let obviously_terminates = 
+     Value_parameters.ObviouslyTerminatesAll.get() (* TODO: by function *)      
 
-struct
-  let debug = ref false
-  let name = "Values analysis"
+   let slevel = 
+     if obviously_terminates
+     then max_int
+     else
+       AnalysisParam.slevel
 
-  let stmt_can_reach = AnalysisParam.stmt_can_reach
+   let fused_initial_state = lazy (State_set.join AnalysisParam.initial_states)
 
-  let obviously_terminates = 
-    Value_parameters.ObviouslyTerminatesAll.get() (* TODO: by function *)      
+   let current_table = Current_table.create ()
 
-  let slevel = 
-    if obviously_terminates
-    then max_int
-    else
-      AnalysisParam.slevel
+   let states_after = Cil_datatype.Stmt.Hashtbl.create 5
 
-  let debug = ref false
+   (* During the dataflow analysis, if required by a callback, we store the
+      state after a statement, but only if either the following conditions 
+      is met ([succ] being a successor of [s])
+      - [s] is an instr (the control flow statements such as [goto] and [if]
+	do not change the state (union of the states in the case of if))
+	AND there is a control-flow join on [succ]
+      - [s] is the last instruction of a block that contains
+	local variables
+      For statements for which the function below returns false, we deduce
+      the state after by the state before [succ] or another successor of [s].
+      This avoids potentially useless computations
+   *)
+   let store_state_after_during_dataflow s succ =
+     ((match s.skind with Instr _ -> true | _ -> false) &&
+	(match succ.preds with [_] -> false | _ -> true))
+     || (let b1 = Kernel_function.find_enclosing_block s
+	and b2 = Kernel_function.find_enclosing_block succ in
+	not (Cil_datatype.Block.equal b1 b2) && b1.blocals <> [])
 
-  let fused_initial_state = lazy (State_set.join AnalysisParam.initial_state)
+   (* Computation of the per-function 'after statement' states *)
+   let local_after_states superposed =
+     lazy (
+       let superposed = Lazy.force superposed in
+       Stmt.Hashtbl.iter
+	 (fun stmt state ->
+	    List.iter
+	      (fun pred ->
+		 if not (store_state_after_during_dataflow pred stmt) then
+		   try
+		     let cur = Stmt.Hashtbl.find states_after pred in
+		     Stmt.Hashtbl.replace states_after pred
+		       (Cvalue.Model.join state cur)
+		   with Not_found -> Stmt.Hashtbl.add states_after pred state
+	      ) stmt.preds;
+	 ) superposed;
+       (* Since the return instruction has no successor, it is not visited
+	  by the iter above. We fill it manually *)
+       (try
+	  let ret = Kernel_function.find_return current_kf in
+	  let s = Stmt.Hashtbl.find superposed ret in
+	  Stmt.Hashtbl.add states_after ret s
+	with Kernel_function.No_Statement | Not_found -> ()
+       );
+       states_after
+     )
 
-  let current_table = Current_table.create ()
+   (* Merging of 'after statement' states in the global table *)
+   let merge_after after_full =
+     Cil_datatype.Stmt.Hashtbl.iter
+       (fun stmt st ->
+	  try
+	    let prev = Db.Value.AfterTable.find stmt in
+	    Db.Value.AfterTable.replace stmt (Cvalue.Model.join prev st)
+	  with Not_found ->
+	    Db.Value.AfterTable.add stmt st
+       ) (Lazy.force after_full)
 
-  let states_after = Cil_datatype.Stmt.Hashtbl.create 5
+   (* Table storing whether conditions on 'if' have been evaluated
+      to true or false *)
+   let conditions_table = Cil_datatype.Stmt.Hashtbl.create 5
 
-  (* During the dataflow analysis, if required by a callback, we store the
-     state after a statement, but only if the following conditions are met
-     ([succ] being a successor of [s])
-     - if [s] is an instr (which almost always change the state, unlike
-       the other kind of statements)
-     - if there is a control-flow join on [succ]
-     - if [s] is the last instruction of a block that contains
-       local variables
-     For statements for which the function below returns false, we deduce
-     the state after by the state before [succ] or another successor of [s].
-     This avoids potentially useless computations
-  *)
-  let store_state_after_during_dataflow s succ =
-    ((match s.skind with Instr _ -> true | _ -> false) &&
-       (match succ.preds with [_] -> false | _ -> true))
-    || (let b1 = Kernel_function.find_enclosing_block s
-       and b2 = Kernel_function.find_enclosing_block succ in
-       not (Cil_datatype.Block.equal b1 b2) && b1.blocals <> [])
+   let merge_current ~degenerate =
+     let superposed = lazy (Current_table.states current_table) in
+     let after_full = local_after_states superposed in
+     Current_table.merge_db_table superposed;
+     Db.Value.merge_conditions conditions_table;
+     if Value_parameters.ResultsAfter.get () then merge_after after_full;
+     if not degenerate then begin
+       let stack_for_callbacks = for_callbacks_stack () in
 
-  (* Computation of the per-function 'after statement' states *)
-  let local_after_states superposed =
-    lazy (
-      let superposed = Lazy.force superposed in
-      Stmt.Hashtbl.iter
-        (fun stmt state ->
-           List.iter
-             (fun pred ->
-                if not (store_state_after_during_dataflow pred stmt) then
-                  try
-                    let cur = Stmt.Hashtbl.find states_after pred in
-                    Stmt.Hashtbl.replace states_after pred
-                      (Cvalue.Model.join state cur)
-                  with Not_found -> Stmt.Hashtbl.add states_after pred state
-             ) stmt.preds;
-        ) superposed;
-      (* Since the return instruction has no successor, it is not visited
-         by the iter above. We fill it manually *)
-      (try
-         let ret = Kernel_function.find_return (current_kf ()) in
-         let s = Stmt.Hashtbl.find superposed ret in
-         Stmt.Hashtbl.add states_after ret s
-       with Kernel_function.No_Statement | Not_found -> ()
-      );
-      states_after
-    )
+       if not (Db.Value.Record_Value_Superposition_Callbacks.is_empty ())
+       then begin
+	 let current_superpositions =
+	   lazy (Current_table.superpositions current_table)
+	 in
+	 if Value_parameters.ValShowProgress.get () then
+	   Value_parameters.feedback
+	     "now calling Record_Value_Superposition callbacks";
+	 Db.Value.Record_Value_Superposition_Callbacks.apply
+	   (stack_for_callbacks, current_superpositions);
+       end ;
 
-  (* Merging of 'after statement' states in the global table *)
-  let merge_after after_full =
-    Cil_datatype.Stmt.Hashtbl.iter
-      (fun stmt st ->
-         try
-           let prev = Db.Value.AfterTable.find stmt in
-           Db.Value.AfterTable.replace stmt (Cvalue.Model.join prev st)
-         with Not_found ->
-           Db.Value.AfterTable.add stmt st
-      ) (Lazy.force after_full)
+       if not (Db.Value.Record_Value_Callbacks.is_empty ())
+       then begin
+	 if Value_parameters.ValShowProgress.get () then
+	   Value_parameters.feedback "now calling Record_Value callbacks";
+	 Db.Value.Record_Value_Callbacks.apply
+	   (stack_for_callbacks, superposed)
+       end;
 
-  (* Table storing whether conditions on 'if' have been evaluated
-     to true or false *)
-  let conditions_table = Cil_datatype.Stmt.Hashtbl.create 5
+       if not (Db.Value.Record_Value_Callbacks_New.is_empty ())
+       then begin
+	 if Value_parameters.ValShowProgress.get () then
+	   Value_parameters.debug ~dkey:"callbacks"
+             "now calling Record_Value_New callbacks";
+	 Db.Value.Record_Value_Callbacks_New.apply
+          (stack_for_callbacks,
+           Value_aux.NormalStore (superposed, (Mem_exec.new_counter ())))
 
-  let merge_current ~degenerate =
-    let superposed = lazy (Current_table.states current_table) in
-    let after_full = local_after_states superposed in
-    Current_table.merge_db_table superposed;
-    Db.Value.merge_conditions conditions_table;
-    if Value_parameters.ResultsAfter.get () then merge_after after_full;
-    if not degenerate then begin
-      let stack_for_callbacks = for_callbacks_stack () in
+       end;
 
-      if not (Db.Value.Record_Value_Superposition_Callbacks.is_empty ())
-      then begin
-        let current_superpositions =
-          lazy (Current_table.superpositions current_table)
-        in
-        if Value_parameters.ValShowProgress.get() then
-          Value_parameters.feedback
-            "now calling Record_Value_Superposition callbacks";
-        Db.Value.Record_Value_Superposition_Callbacks.apply
-          (stack_for_callbacks, current_superpositions);
-      end ;
+       if not (Db.Value.Record_Value_After_Callbacks.is_empty ())
+       then begin
+	 if Value_parameters.ValShowProgress.get () then
+	   Value_parameters.feedback "now calling Record_After_Value callbacks";
+	 Db.Value.Record_Value_After_Callbacks.apply
+	   (stack_for_callbacks, after_full);
+       end;
 
-      if not (Db.Value.Record_Value_Callbacks.is_empty ())
-      then begin
-        if Value_parameters.ValShowProgress.get() then
-          Value_parameters.feedback "now calling Record_Value callbacks";
-        Db.Value.Record_Value_Callbacks.apply
-          (stack_for_callbacks, superposed)
-      end;
+     end;
+     Current_table.clear current_table
 
-      if not (Db.Value.Record_Value_After_Callbacks.is_empty ())
-      then begin
-        if Value_parameters.ValShowProgress.get() then
-          Value_parameters.feedback "now calling Record_After_Value callbacks";
-        Db.Value.Record_Value_After_Callbacks.apply
-          (stack_for_callbacks, after_full);
-      end;
+   type u =
+       { counter_unroll : int; (* how many times this state has been crossed *)
+	 mutable value : State_set.t ; }
 
-    end;
-    Current_table.clear current_table
+   module StmtStartData =
+     Dataflow.StartData(struct type t = u let size = 107 end)
 
-  type u =
-      { counter_unroll : int; (* how many times this state has been crossed *)
-        mutable value : State_set.t ; }
+   type t = u
 
-  module StmtStartData =
-    Dataflow.StartData(struct type t = u let size = 107 end)
+   let copy (d: t) = d
 
-  type t = u
+   let display_one fmt v =
+     State_set.iter (fun value ->
+       if not (Cvalue.Model.is_reachable value) then
+	 Format.fprintf fmt "Statement (x%d): UNREACHABLE@\n" v.counter_unroll
+       else
+	 Format.fprintf fmt "Statement (x%d)@\n%a"
+	   v.counter_unroll
+	   Cvalue.Model.pretty
+	   value)
+       v.value
 
-  let copy (d: t) = d
+   let pretty fmt (d: t) = display_one fmt d
 
-  let display_one fmt v =
-    State_set.iter (fun value ->
-      if not (Cvalue.Model.is_reachable value) then
-        Format.fprintf fmt "Statement (x%d): UNREACHABLE@\n" v.counter_unroll
-      else
-        Format.fprintf fmt "Statement (x%d)@\n%a"
-          v.counter_unroll
-          Cvalue.Model.pretty
-          value)
-      v.value
+   let computeFirstPredecessor (_s: stmt) state =
+     { counter_unroll = 0; value = state.value;}
 
-  let pretty fmt (d: t) = display_one fmt d
+   let counter_unroll_target = ref 100
 
-  let computeFirstPredecessor (_s: stmt) state =
-    { counter_unroll = 0; value = state.value;}
+   let combinePredecessors (_s: stmt) ~old new_ =
+     if State_set.is_empty (new_.value)
+     then None
+     else begin
+	 if old.counter_unroll >= slevel
+	 then
+	   let sum =
+	     Cvalue.Model.join
+	       (State_set.join new_.value)
+	       (State_set.join old.value)
+	   in
+	   Some {counter_unroll = old.counter_unroll ;
+		 value = State_set.singleton sum;}
+	 else begin try
+	   let merged = State_set.merge_into new_.value old.value in
+	   let length_new = State_set.length new_.value in
+	   let new_counter_unroll = old.counter_unroll + length_new in
+	   if new_counter_unroll >= !counter_unroll_target
+	     && Value_parameters.ShowSlevel.get()
+	   then begin
+	     Value_parameters.result ~once:true
+	       "Semantic level unrolling superposing up to %d states"
+	       !counter_unroll_target;
+	     counter_unroll_target := !counter_unroll_target + 100;
+	   end;
+	   let result =
+	     Some
+	       { value =  merged ;
+		 counter_unroll = new_counter_unroll }
+	   in
+	   result
+	 with State_set.Unchanged -> None
+	 end
+     end
 
-  let getWidenHints (s: stmt) =
-    Widen.getWidenHints (current_kf()) s
+   (** Clobber list for bases containing addresses of local variables. *)
+   let bases_containing_locals = ref Location_Bits.Top_Param.bottom
+   let remember_bases_with_locals =
+     remember_bases_with_locals bases_containing_locals
+   let remember_bases_with_locals_offm =
+     remember_bases_with_locals_offsetmap bases_containing_locals
 
-  let counter_unroll_target = ref 100
+   let top_addresses_of_locals fundec =
+     let entry_point = Globals.entry_point () in
+     if snd entry_point (* lib *) ||
+       current_kf != fst entry_point (* not entry point *)
+     then
+       let offsetmap_top_addresses_of_locals =
+	 offsetmap_top_addresses_of_locals
+	   (Cilutil.swap Base.is_formal_or_local fundec)
+       in
+       let state_top_addresses_of_locals =
+	 state_top_addresses_of_locals 
+	   (warn_locals_escape false fundec)
+	   offsetmap_top_addresses_of_locals !bases_containing_locals
+       in
+       (offsetmap_top_addresses_of_locals ~exact:true,
+        state_top_addresses_of_locals ~exact:true)
+     else (fun x -> Location_Bytes.Top_Param.bottom, x),(fun x -> x)
 
-  let combinePredecessors (_s: stmt) ~old new_ =
-    if State_set.is_empty (new_.value)
-    then None
-    else begin
-        if old.counter_unroll >= slevel
-        then
-          let sum =
-            Cvalue.Model.join
-              (State_set.join new_.value)
-              (State_set.join old.value)
-          in
-          Some {counter_unroll = old.counter_unroll ;
-                value = State_set.singleton sum;}
-        else begin try
-          let merged = State_set.merge_into new_.value old.value in
-          let length_new = State_set.length new_.value in
-          let new_counter_unroll = old.counter_unroll + length_new in
-          if new_counter_unroll >= !counter_unroll_target
-          then begin
-            Value_parameters.result ~once:true
-              "Semantic level unrolling superposing up to %d states"
-              !counter_unroll_target;
-            counter_unroll_target := !counter_unroll_target + 100;
-          end;
-          let result =
-            Some
-              { value =  merged ;
-                counter_unroll = new_counter_unroll }
-          in
-          result
-        with State_set.Unchanged -> None
-        end
-    end
+   let block_top_addresses_of_locals blocks =
+     if List.for_all (fun b -> List.for_all (fun v -> v.vgenerated) b.blocals)
+       blocks
+     then
+       fun x -> x (* no need to change the state if there is no local
+		     variable or if all the variable have been generated
+		     by Cil (in which case we know that they are correctly
+		     initialized and used, don't we)
+		  *)
+     else
+       let offsetmap_top_addresses_of_locals =
+	 offsetmap_top_addresses_of_locals
+	   (fun v -> List.exists (Base.is_block_local v) blocks)
+       in
+       let state_top_addresses_of_locals =
+	 state_top_addresses_of_locals
+	   (warn_locals_escape true current_fundec)
+	   offsetmap_top_addresses_of_locals
+	   !bases_containing_locals
+       in
+       state_top_addresses_of_locals ~exact:true
 
-  (** Clobber list for bases containing addresses of local variables. *)
-  let bases_containing_locals = ref Location_Bits.Top_Param.bottom
-  let remember_bases_with_locals =
-    remember_bases_with_locals bases_containing_locals
 
 (** Precondition: the type of [exp] and the type [loc_lv] may be different
     only if the cast from [typeOf exp] and [typeOf loc_lv] is a truncation
@@ -348,9 +355,6 @@ struct
           (* from [project]: size is not known  *)
           exp
     in
-    let pretty_org fmt org = if not (Origin.is_top org) then
-      Format.fprintf fmt " because of %a" Origin.pretty org
-    in
     (match loc_lv.loc with
     | Location_Bits.Top (Location_Bits.Top_Param.Top, orig) ->
         Value_parameters.result
@@ -358,14 +362,14 @@ struct
           Cvalue.Model.pretty state;
 	warning_once_current
           "writing at a completely unknown address@[%a@].@\nAborting."
-          pretty_org orig;
+          Origin.pretty_as_reason orig;
         do_degenerate (Some lv)
 
     | Location_Bits.Top((Location_Bits.Top_Param.Set _) as param,orig) ->
         Value_parameters.result ~current:true ~once:true
           "writing somewhere in @[%a@]@[%a@]."
           Location_Bits.Top_Param.pretty param
-          pretty_org orig
+          Origin.pretty_as_reason orig
     | Location_Bits.Map _ -> (* everything is normal *) ());
     let exact = valid_cardinal_zero_or_one ~for_writing:true loc_lv in
     let value =
@@ -380,318 +384,184 @@ struct
       This function will not perform any conversion (float->int, int->float,..)
   *)
   let do_assign_abstract_value ~with_alarms state lv exp =
-    let loc_lv = lval_to_loc ~with_alarms state lv in
+    let state, loc_lv = lval_to_loc_state ~with_alarms state lv in
+    let exp =
+      if hasAttribute  "volatile" (typeAttrs (typeOfLval lv))
+      then V.top_int
+      else exp
+    in
     remember_bases_with_locals loc_lv exp;
     CilE.set_syntactic_context (CilE.SyMem lv);
     do_assign_abstract_value_to_loc ~with_alarms state lv loc_lv exp
 
 
-  let offsetmap_top_addresses_of_locals is_local =
-    let is_local_bytes = Location_Bytes.contains_addresses_of_locals is_local in
-    fun offsetmap ->
-      if Cvalue.V_Offsetmap.is_empty offsetmap
-      then Location_Bytes.Top_Param.top, offsetmap
-      else
-        let loc_contains_addresses_of_locals t =
-          let v = Cvalue.V_Or_Uninitialized.get_v t in
-          is_local_bytes v
-        in
-        let locals, result =
-          Cvalue.V_Offsetmap.top_stuff
-            loc_contains_addresses_of_locals
-            (fun v ->
-               Cvalue.V_Or_Uninitialized.unspecify_escaping_locals
-                 is_local v)
-            Location_Bytes.Top_Param.join
-            Location_Bytes.Top_Param.bottom
-            offsetmap
-        in
-        locals, result
-
-  let state_top_addresses_of_locals ~is_block offsetmap_top_addresses_of_locals fundec =
-    let f k offsm =
-      let locals, r = offsetmap_top_addresses_of_locals offsm in
-      let found_locals = not (Cvalue.V_Offsetmap.equal r offsm) in
-      if found_locals then
-        warn_locals_escape is_block fundec k locals;
-      r
-    in
-    (fun (state:Cvalue.Model.t) ->
-       (* let's forget relations *)
-       let simple_state = state in
-       let f base acc =
-         try
-           let offset_to_clean = Cvalue.Model.find_base base simple_state
-           in
-           let cleaned_offsetmap = f base offset_to_clean in
-           Cvalue.Model.add_offsetmap base cleaned_offsetmap acc
-         with Not_found -> acc
-       in
-       try
-           (Location_Bits.Top_Param.fold
-              f
-              !bases_containing_locals
-              (f Base.null simple_state))
-       with Location_Bits.Top_Param.Error_Top ->
-         begin
-           let f k offsm acc =
-             let locals, r = offsetmap_top_addresses_of_locals offsm in
-             let found_locals = not (Cvalue.V_Offsetmap.equal r offsm) in
-             if found_locals then
-               warn_locals_escape is_block fundec k locals;
-             Cvalue.Model.add_offsetmap k r acc
-           in
-           let result =
-             try
-                 (Cvalue.Model.fold_base_offsetmap
-                    f
-                    state
-                    Cvalue.Model.empty_map)
-             with Cvalue.Model.Error_Bottom -> Cvalue.Model.bottom
-           in
-           result
-         end)
-
-  let top_addresses_of_locals fundec =
-    let entry_point = Globals.entry_point () in
-    if snd entry_point (* lib *) ||
-      current_kf() != fst entry_point (* not entry point *)
-    then
-      let offsetmap_top_addresses_of_locals =
-        offsetmap_top_addresses_of_locals
-          (Cilutil.swap Base.is_formal_or_local fundec)
-      in
-      let state_top_addresses_of_locals =
-        state_top_addresses_of_locals ~is_block:false
-          offsetmap_top_addresses_of_locals fundec
-      in
-      offsetmap_top_addresses_of_locals, state_top_addresses_of_locals
-    else (fun x -> Location_Bytes.Top_Param.bottom, x),(fun x -> x)
-
-  let block_top_addresses_of_locals blocks =
-    if List.for_all (fun b -> List.for_all (fun v -> v.vgenerated) b.blocals)
-      blocks
-    then
-      fun x -> x (* no need to change the state if there is no local
-                    variable or if all the variable have been generated
-                    by Cil (in which case we know that they are correctly
-                    initialized and used, don't we)
-                 *)
-    else
-      let offsetmap_top_addresses_of_locals =
-        offsetmap_top_addresses_of_locals
-          (fun v -> List.exists (Base.is_block_local v) blocks)
-      in
-      let state_top_addresses_of_locals =
-        state_top_addresses_of_locals ~is_block:true
-          offsetmap_top_addresses_of_locals
-          (Kernel_function.get_definition (current_kf()))
-      in
-      state_top_addresses_of_locals
-
- (* Assigns [exp] to [lv] in [state] *)
-  let do_assign ~with_alarms old_state lv exp =
-    assert (Cvalue.Model.is_reachable old_state);
-    let fresh_flags () =
-      let flag = ref false in
-      (fun () -> flag := true),
-      fun () -> !flag
-    in
-    let set_alarm, get_alarm = fresh_flags () in
-    let logger v =
-      if v <> CilE.Aignore
-      then CilE.Acall set_alarm
-      else CilE.Aignore
-    in
-    let warn_remember_mode =
-      { CilE.imprecision_tracing = logger with_alarms.CilE.imprecision_tracing;
-        others = with_alarms.CilE.others;
-        unspecified = logger with_alarms.CilE.unspecified}
-    in
-    let reduced_state, _, evaled_exp =
-      eval_expr_with_deps_state_subdiv ~with_alarms:warn_remember_mode None
-        old_state
-        exp
-    in
-(*    Value_parameters.debug ~level:2 "do_assign %a = (%a)(%a)"
-      !d_lval lv
-      !d_exp exp
-      V.pretty evaled_exp; *)
-    let left_loc = lval_to_loc ~with_alarms old_state lv in
-    let is_bitfield = is_bitfield lv ~sizebf:left_loc.size () in
-    remember_bases_with_locals left_loc evaled_exp;
-    let warn_right_exp_imprecision () =
-      (match with_alarms.CilE.imprecision_tracing with
-       | CilE.Aignore -> ()
-       | CilE.Acall f -> f ()
-       | CilE.Alog _ ->
-           match evaled_exp with
-           | Cvalue.V.Top(_topparam,origin) ->
-               Value_parameters.result ~once:true ~current:true
-                 "@[<v>@[Assigning imprecise value to %a%t.@]%a%t@]"
-                 !Ast_printer.d_lval lv
-                 (fun fmt -> match lv with
-                  | (Mem _, _) ->
-                      Format.fprintf fmt "@ (i.e. %a)"
-                        Locations.pretty left_loc
-                  | (Var _, _) -> ())
-                 (fun fmt org ->
+  (* Auxiliary function for [do_assign] below. When computing the
+     result of [lv = exp], warn if the evaluation of [exp] results in
+     an imprecision. [loc_lv] is the location pointed to by [lv].
+     [exp_val] is the part of the evaluation of [exp] that is imprecise. *)
+  let warn_right_exp_imprecision ~with_alarms lv loc_lv exp_val =
+    match with_alarms.CilE.imprecision_tracing with
+      | CilE.Aignore -> ()
+      | CilE.Acall f -> f ()
+      | CilE.Alog _ ->
+          match exp_val with
+            | Cvalue.V.Top(_topparam,origin) ->
+                Value_parameters.result ~once:true ~current:true
+                  "@[<v>@[Assigning imprecise value to %a%t.@]%a%t@]"
+                  !Ast_printer.d_lval lv
+                  (fun fmt -> match lv with
+                    | (Mem _, _) ->
+                        Format.fprintf fmt "@ (i.e. %a)" Locations.pretty loc_lv
+                    | (Var _, _) -> ())
+                  (fun fmt org ->
                     if not (Origin.is_top origin) then
                       Format.fprintf fmt
                         "@ @[The imprecision@ originates@ from@ %a@]"
                         Origin.pretty org)
-                 origin
-                 pp_callstack
-           | Cvalue.V.Map _ ->
-               if not (Got_Imprecise_Value.get ()) &&
-                 not (Cvalue.V.cardinal_zero_or_one evaled_exp)
-               then begin
-                   Got_Imprecise_Value.set true;
-                   if (Value_parameters.ValShowProgress.get())
-                   then
-                     Value_parameters.result ~current:true
-                       "assigning non deterministic value for the first time";
-               end)
-    in
-    let reduced_state =
-      match lv with
-      | Mem mem_e,NoOffset ->
-          let new_reduced_state =
-            reduce_by_valid_expr
-              ~positive:true ~for_writing:true
-              mem_e
-              reduced_state
-          in
-          if not (Cvalue.Model.is_reachable new_reduced_state)
-          then begin
-            CilE.set_syntactic_context (CilE.SyMem lv);
-            CilE.warn_mem_write with_alarms ;
-            Value_parameters.result ~current:true
-              "all target addresses were invalid. This path is assumed to be dead.";
-          end;
-          new_reduced_state
-            (*      | Var _ , Index _ -> assert false
-                    TODO: do something for "TAB[i] = expr"
-            *)
-      | _ -> reduced_state
-    in
-      let default () =
-        warn_right_exp_imprecision ();
-        if get_alarm() then
-          (* log alarms that have not been logged the first time *)
-          ignore
-            (eval_expr
-               ~with_alarms:
-               {CilE.imprecision_tracing=with_alarms.CilE.imprecision_tracing;
-                others=CilE.Aignore;
-                unspecified=with_alarms.CilE.unspecified}
-               old_state
-               exp);
+                  origin
+                  pp_callstack
+            | Cvalue.V.Map _ ->
+                if not (Got_Imprecise_Value.get ()) &&
+                  not (Cvalue.V.cardinal_zero_or_one exp_val)
+                then begin
+                  Got_Imprecise_Value.set true;
+                  if (Value_parameters.ValShowProgress.get())
+                  then
+                    Value_parameters.result ~current:true
+                      "assigning non deterministic value for the first time";
+                end
 
-        if Cvalue.V.is_bottom evaled_exp ||
-          Location_Bits.equal left_loc.loc Location_Bits.bottom  ||
-          not (Cvalue.Model.is_reachable reduced_state)
-        then Cvalue.Model.bottom
-        else begin
-          CilE.set_syntactic_context (CilE.SyMem lv);
-          do_assign_abstract_value_to_loc ~with_alarms
-            reduced_state
-            lv
-            left_loc
-            evaled_exp
-          end
+  (* Auxiliary function for do_assign (currently), that warns when the
+     left-hand side and the right-hand side of an assignment overlap *)
+  let warn_overlap ~with_alarms (lv, left_loc) (exp_lv, right_loc) =
+    if with_alarms.CilE.others != CilE.Aignore then
+      match right_loc.size with
+        | Int_Base.Value size when Int.to_int size > Cil.bitsSizeOf intType ->
+    	    if Location_Bits.partially_overlaps size right_loc.loc left_loc.loc
+	    then begin
+              match with_alarms.CilE.others with
+                | CilE.Aignore -> assert false
+                | CilE.Acall f -> f ()
+                | CilE.Alog(_, suffix) ->
+  	            warning_once_current
+                      "Partially overlapping lvalue assignment \"%a=%a;\". \
+                         Left address in bits: %a. Right address in bits: %a. \
+                         assert(separated or same)@ %t"
+	              !d_lval lv !d_lval exp_lv
+	              Location_Bits.pretty left_loc.loc
+                      Location_Bits.pretty right_loc.loc
+                      suffix;
+            end
+        | _ -> ()
+
+
+  (* Returns an eventual imprecised part contained in an offsetmap *)
+  let offsetmap_contains_imprecision offs size =
+    let module Exn = struct exception Got_imprecise of Cvalue.V.t end in
+    try
+      Cvalue.V_Offsetmap.iter_contents
+        (fun v ->
+          match Cvalue.V_Or_Uninitialized.get_v v with
+            | Location_Bytes.Map _ -> ()
+            | Location_Bytes.Top _ as v -> raise (Exn.Got_imprecise v)
+        ) offs size;
+      None
+    with Exn.Got_imprecise v -> Some v
+
+
+  (* Assigns [exp] to [lv] in [state] *)
+  let do_assign ~with_alarms state lv exp =
+    assert (Cvalue.Model.is_reachable state);
+    let module Exn = struct exception Do_assign_default end in
+    let state, left_loc = lval_to_loc_state ~with_alarms state lv in
+    let state = Eval_exprs.reduce_by_accessed_loc ~with_alarms
+      ~for_writing:true state left_loc lv
+    in
+    if not (Cvalue.Model.is_reachable state) then state
+    else
+    (* First mode, used when [exp] is not a lval, when a conversion is
+       needed between [exp] and [lv], or as backup *)
+    let default () =
+      let state, _, exp_v =
+        eval_expr_with_deps_state_subdiv ~with_alarms None state exp
       in
-      let default_lval exp_lv =
-        (* directly copy the old value without trying to recompose it.
-           Useful for structs assignment. *)
-        let right_loc = lval_to_loc ~with_alarms old_state exp_lv in
-	( match right_loc.size, left_loc.size with 
-	  Int_Base.Value rsize, Int_Base.Value lsize when
-	      Int.equal rsize lsize &&
-		Int.to_int(rsize) > bitsSizeOf (TInt (IInt, [])) ->
-		  if
-		    Location_Bits.partially_overlaps 
-		      rsize
-		      right_loc.loc
-		      left_loc.loc
-		  then begin
-		      warning_once_current "Partially overlapping lvalue assignment \"%a=%a;\". Left address in bits: %a. Right address in bits: %a. assert(separated or same)"
-			!d_lval lv
-			!d_lval exp_lv
-			Location_Bits.pretty left_loc.loc
-		      	Location_Bits.pretty right_loc.loc;
-		      CilE.stop_if_stop_at_first_alarm_mode ()
-		    end
-	| _ -> () );
+      remember_bases_with_locals left_loc exp_v;
+      warn_right_exp_imprecision ~with_alarms lv left_loc exp_v;
+      if Cvalue.V.is_bottom exp_v ||
+        Location_Bits.equal left_loc.loc Location_Bits.bottom  ||
+        not (Cvalue.Model.is_reachable state)
+      then Cvalue.Model.bottom
+      else begin
+        CilE.set_syntactic_context (CilE.SyMem lv);
+	  let exp_v =
+	    if hasAttribute  "volatile" (typeAttrs (typeOfLval lv))
+	    then V.top_int
+	    else exp_v
+	  in
+        do_assign_abstract_value_to_loc ~with_alarms state lv left_loc exp_v
+      end
+    in
 
-
-        CilE.set_syntactic_context (CilE.SyMem exp_lv);
-        let full_val =
-          Cvalue.Model.find_unspecified
-            ~with_alarms:CilE.warn_none_mode
-            old_state
-            right_loc
+    (* More precise copy, in case exp is in fact an lval. We copy the entire
+       lval in one operation. This is typically useful for struct assignment *)
+    let right_is_lval exp_lv =
+      if Location_Bits.equal left_loc.loc Location_Bits.bottom ||
+        not (Cvalue.Model.is_reachable state)
+      then Model.bottom
+      else
+        let state, right_loc = lval_to_loc_state ~with_alarms state exp_lv in
+        let state =
+	  Eval_exprs.reduce_by_accessed_loc ~for_writing:false ~with_alarms
+	    state right_loc exp_lv
         in
-        if Location_Bits.equal left_loc.loc Location_Bits.bottom  ||
-          not (Cvalue.Model.is_reachable reduced_state) ||
-          V_Or_Uninitialized.equal full_val V_Or_Uninitialized.bottom
+
+        (* Size mismatch between left and right size. This cannot be done by
+           copies, but require a conversion *)
+        if not (Int_Base.equal right_loc.size left_loc.size) then
+          raise Exn.Do_assign_default;
+
+        (* Warn if right_loc is imprecise *)
+        Eval_exprs.warn_imprecise_lval_read ~with_alarms
+          exp_lv right_loc (* Dummy value:*)V.bottom;
+        (* Warn if both sides overlap *)
+        warn_overlap ~with_alarms (lv, left_loc) (exp_lv, right_loc);
+
+        if Location_Bits.equal left_loc.loc Location_Bits.bottom ||
+          not (Cvalue.Model.is_reachable state)
         then Cvalue.Model.bottom
         else begin
-            match right_loc.size, left_loc.size with
-          | Int_Base.Value size, Int_Base.Value other_size
-              when Int.equal other_size size ->
-              let offsetmap_relations =
-                  Cvalue.V_Offsetmap.empty (* TODO: cleanup *)
-              in
-              CilE.set_syntactic_context (CilE.SyMem exp_lv);
-              let offsetmap_memory =
-                match Cvalue.Model.copy_offsetmap ~with_alarms right_loc old_state with
-                  | Some v -> v
-                  | None -> raise Lmap.Cannot_copy (* invalid copy paste *)
-              in
-              let offsetmap =
-                Cvalue.V_Offsetmap.over_intersection
-                  offsetmap_relations
-                  offsetmap_memory
-              in
-              if not (Cvalue.V_Offsetmap.is_empty offsetmap)
-              then begin
-                CilE.set_syntactic_context (CilE.SyMem lv);
-                let copy_paste_succeeded =
-                  Cvalue.Model.paste_offsetmap with_alarms
-                    offsetmap left_loc.loc Int.zero size true reduced_state
-                in
-                (* Shall we warn about imprecise contents just copied? *)
-                let module L = struct exception Got_imprecise end in
-                (try
-                   Cvalue.V_Offsetmap.iter_contents
-                     (fun v ->
-                        match Cvalue.V_Or_Uninitialized.get_v v with
-                        | Location_Bytes.Map _ -> ()
-                        | _ -> raise L.Got_imprecise)
-                     offsetmap
-                     size
-                 with L.Got_imprecise ->
-                   warn_right_exp_imprecision ());
-                copy_paste_succeeded
-              end
-              else raise Lmap.Cannot_copy
-          | _ -> raise Lmap.Cannot_copy
+          match right_loc.size with
+            | Int_Base.Value size ->
+                CilE.set_syntactic_context (CilE.SyMem exp_lv);
+                let offsetmap = Cvalue.Model.copy_offsetmap ~with_alarms
+                  right_loc state in
+                begin match offsetmap with
+                  | None -> Model.bottom
+                  | Some offsetmap ->
+                      assert (not (Cvalue.V_Offsetmap.is_empty offsetmap));
+                      remember_bases_with_locals_offm left_loc offsetmap size;
+                      (* TODO: message "assigning non deterministic value for
+                         the first time" *)
+                      (match offsetmap_contains_imprecision offsetmap size with
+                        | Some v ->
+                           warn_right_exp_imprecision ~with_alarms lv left_loc v
+                        | _ -> ());
+                      CilE.set_syntactic_context (CilE.SyMem lv);
+                      Cvalue.Model.paste_offsetmap with_alarms
+                        offsetmap left_loc.loc Int.zero size true state
+                end
+	    | Int_Base.Bottom | Int_Base.Top -> assert false
         end
-      in
-      let new_main_memory_state =
-        try
-          if is_bitfield then default()
-          else
-            (* An lval assignement might be hidden by a dummy cast *)
-            let lv = find_lv ~with_alarms old_state exp in
-            default_lval lv
-        with Cannot_find_lv | Lmap.Cannot_copy
-            (* from Cvalue.Model.paste_offsetmap
-               or directly default_lval *) ->
-              default ()
-      in
-      new_main_memory_state
+    in
+    try
+      if is_bitfield lv ~sizebf:left_loc.size ()
+	|| (hasAttribute  "volatile" (typeAttrs (typeOfLval lv)))
+      then default ()
+      else
+        (* An lval assignement might be hidden by a dummy cast *)
+        let lv = find_lv ~with_alarms state exp in
+        right_is_lval lv
+    with Cannot_find_lv | Exn.Do_assign_default -> default ()
 
 
   let do_assign ~with_alarms old_state lv exp =
@@ -726,7 +596,6 @@ struct
                 Cvalue.V.pretty value; *)
               let treat_subdiv subvalue acc =
                 let sub_oldstate =
-                  (* FIXME: should be relation-aware primitive *)
                   Cvalue.Model.add_binding
                     ~with_alarms:CilE.warn_none_mode
                     ~exact:true
@@ -754,163 +623,154 @@ struct
     None, Cvalue.Model.bottom, Location_Bits.Top_Param.bottom
 
   let assign_return_to_lv ~with_alarms funcexp lv return new_state =
-    let loc = lval_to_loc ~with_alarms new_state lv in
-    let rtype = getReturnType (typeOf funcexp) in
-    let lvtyp = typeOfLval lv in
-    let is_bitfield = is_bitfield lv ~sizebf:loc.size ~sizelv:(sizeof lvtyp) () in
-    let default () =
-      let value_with_init =
-        V_Offsetmap.find_ival
-          ~conflate_bottom:false
-          ~validity:Base.All
-          ~with_alarms:CilE.warn_none_mode
-          Ival.zero
-          return
-          (Int.of_int (bitsSizeOf rtype))
-      in
-      let flags = V_Or_Uninitialized.get_flags value_with_init in
-      let init = V_Or_Uninitialized.is_initialized flags in
-      let no_esc = V_Or_Uninitialized.is_noesc flags in
-      let value = V_Or_Uninitialized.get_v value_with_init in
-      if not init then CilE.warn_uninitialized with_alarms;
-      if not no_esc then CilE.warn_escapingaddr with_alarms;
-      if Cvalue.V.is_bottom value && not (init && no_esc)
-      then
-        Value_parameters.result ~current:true
-          "Function call returned an unspecified value. \
-              This path is assumed to be dead.";
-      let exact = valid_cardinal_zero_or_one ~for_writing:true loc in
-      let evaled_exp =
-        (* fix http://bts.frama-c.com/view.php?id=798 *)
-        do_cast ~with_alarms:CilE.warn_none_mode rtype value in
-      let evaled_exp =
-        if is_bitfield
-        then cast_lval_bitfield lv (Int_Base.project loc.size) evaled_exp
-        else do_cast ~with_alarms:CilE.warn_none_mode lvtyp evaled_exp
-      in
-      remember_bases_with_locals loc evaled_exp;
-      Cvalue.Model.add_binding
-        ~with_alarms:CilE.warn_none_mode
-        ~exact
-        new_state
-        loc
-        evaled_exp
-    in
-    if is_bitfield || (need_cast lvtyp rtype)
-    then default ()
+    let new_state, loc = lval_to_loc_state ~with_alarms new_state lv in
+    if Model.equal Model.bottom new_state then
+      new_state
     else
-      (try
-         let result =
-           Cvalue.Model.paste_offsetmap with_alarms
-             return
-             loc.loc
-             Int.zero
-             (Int_Base.project loc.size)
-             true
-             new_state
-         in
-         let evaled_exp=
-           Cvalue.V_Or_Uninitialized.get_v
-             (V_Offsetmap.find_ival
-                ~conflate_bottom:false
-                ~validity:Base.All
-                ~with_alarms:CilE.warn_none_mode
-                Ival.zero
-                return
-                (Int.of_int (bitsSizeOf rtype))
-             )
-         in
-         remember_bases_with_locals loc evaled_exp;
-         result
-       with Lmap.Cannot_copy -> default ())
+      let rtype = getReturnType (typeOf funcexp) in
+      let lvtyp = typeOfLval lv in
+      let is_bitfield =
+        is_bitfield lv ~sizebf:loc.size ~sizelv:(sizeof lvtyp) ()
+      in
+      if not (is_bitfield) && not (need_cast lvtyp rtype) then
+        (* Direct paste *)
+        let size = Int_Base.project loc.size in
+        CilE.set_syntactic_context (CilE.SyMem lv);
+        let result =
+          Cvalue.Model.paste_offsetmap with_alarms
+            return loc.loc Int.zero size true new_state
+        in
+        remember_bases_with_locals_offm loc return size;
+        result
+      else (* Size mismatch. We read then cast the returned value *)
+        let value_with_init =
+          V_Offsetmap.find_ival
+            ~conflate_bottom:false
+            ~validity:Base.All
+            ~with_alarms:CilE.warn_none_mode
+            Ival.zero
+            return
+            (Int.of_int (bitsSizeOf rtype))
+        in
+        let flags = V_Or_Uninitialized.get_flags value_with_init in
+        let init = V_Or_Uninitialized.is_initialized flags in
+        let no_esc = V_Or_Uninitialized.is_noesc flags in
+        let value = V_Or_Uninitialized.get_v value_with_init in
+        (* Cf. bts #997 and #1024 for the syntactic context below *)
+        CilE.set_syntactic_context CilE.SyCallResult;
+        if not init then CilE.warn_uninitialized with_alarms;
+        if not no_esc then CilE.warn_escapingaddr with_alarms;
+        if Cvalue.V.is_bottom value && not (init && no_esc)
+        then
+          Value_parameters.result ~current:true
+            "Function call returned an unspecified value. \
+                This path is assumed to be dead.";
+        let exact = valid_cardinal_zero_or_one ~for_writing:true loc in
+        let evaled_exp = do_cast ~with_alarms rtype value
+          (* fix http://bts.frama-c.com/view.php?id=798 *) in
+        let evaled_exp =
+          if is_bitfield
+          then cast_lval_bitfield lv (Int_Base.project loc.size) evaled_exp
+          else do_cast ~with_alarms lvtyp evaled_exp
+        in
+        remember_bases_with_locals loc evaled_exp;
+        CilE.set_syntactic_context (CilE.SyMem lv);
+        Cvalue.Model.add_binding ~with_alarms ~exact new_state loc evaled_exp
 
   let interp_call stmt lval_to_assign funcexp argl d_value =
     let call_site_loc = CurrentLoc.get () in
     let with_alarms = warn_all_quiet_mode () in
-    let return_type_funcexp =
-      match unrollType (typeOf funcexp) with
-	TFun (t, _, _, _) -> t
-      | _ -> assert false
-    in
-    let bitssizeofreturntypefuncexp =
-      bitsSizeOf return_type_funcexp
-    in
     let state_after_call state =
       try
         let functions, _ = resolv_func_vinfo ~with_alarms None state funcexp in
-        let is_library_function kf = not (Kernel_function.is_definition kf) in
+        let is_library_function kf = 
+	  not 
+	    (Kernel_function.is_definition kf
+	      || let name = Kernel_function.get_name kf in
+		 (name >= "Frama_C" && name < "Frama_D")
+		 || Builtins.mem_builtin name)	    
+	in
         let calling_at_least_one_library_function =
           Kernel_function.Hptset.exists is_library_function functions
         in
+	if calling_at_least_one_library_function && 
+	  Value_parameters.InterpreterMode.get()
+	then begin
+	    warning_once_current "Library function call. Stopping.";
+	    exit 0
+	  end;
         let calling_only_library_functions =
           calling_at_least_one_library_function &&
             (Kernel_function.Hptset.for_all is_library_function functions)
         in
-        let compute_actual = compute_actual ~with_alarms
+        let compute_actual = Function_args.compute_actual ~with_alarms
           (calling_at_least_one_library_function,
            calling_only_library_functions)
         in
         let actuals = List.map (compute_actual state) argl in
-        let treat_one_call f (acc_rt,acc_res,acc_clobbered_set as acc) =
-	  try
-	    let return_type = Kernel_function.get_return_type f in
-	    if bitsSizeOf return_type <> bitssizeofreturntypefuncexp
-	    then raise Wrong_function_type;
 
-            let return, result, clobbered_set =
+        let treat_one_call f acc_rt_res =
+	  try
+            let results, clobbered_set =
               !compute_call_ref f ~call_kinstr:(Kstmt stmt) state actuals
             in
-            let caller = current_kf (), stmt in
+            CurrentLoc.set call_site_loc; (* Changed by compute_call_ref *)
+            let caller = current_kf, stmt in
             Kf_state.add_caller f ~caller;
-            CurrentLoc.set call_site_loc;
-            (match acc_rt,return with
-            | None,_ -> return
-            | Some _, None -> acc_rt
-            | Some acc_rt, Some return ->
-		Some (snd (V_Offsetmap.join acc_rt return))),
-            Cvalue.Model.join acc_res result,
-            Location_Bits.Top_Param.join acc_clobbered_set clobbered_set
-	  with Wrong_function_type ->
-	    warning_once_current
-	      "Pointed function type must match function pointer type when dereferenced: assert(Ook)";
-	    CilE.stop_if_stop_at_first_alarm_mode ();
-	    acc
+
+            bases_containing_locals :=
+              Location_Bits.Top_Param.join !bases_containing_locals
+              clobbered_set;
+            results @ acc_rt_res;
+
+	  with
+            | Recursive_call ->
+                (match lval_to_assign with
+                  | None ->  [None, state]
+                  | Some lv ->
+                      let v = V.top_leaf_origin () in
+                      let v = Cvalue.V_Or_Uninitialized.initialized v in
+                      let size = Int_Base.project (Bit_utils.sizeof_lval lv) in
+                      let offsm = Cvalue.V_Offsetmap_ext.create_initial ~v
+                        ~modu:size in
+                      [Some offsm, state])
+            | Function_args.WrongFunctionType ->
+                warning_once_current
+                  "Function type must match type at call site: \
+                     assert(function type matches)";
+                Value_util.stop_if_stop_at_first_alarm_mode ();
+                acc_rt_res
         in
-        let return,new_state,clobbered_set =
-          Kernel_function.Hptset.fold treat_one_call
-            functions
-            empty_interpretation_result
-        in
-        bases_containing_locals :=
-          Location_Bits.Top_Param.join !bases_containing_locals clobbered_set;
-        match lval_to_assign with
-          | None -> new_state
-          | Some lv ->
-              match return with
-                | Some return ->
-                    assign_return_to_lv ~with_alarms funcexp lv return new_state
-                | None ->
-                  if Cvalue.Model.is_reachable new_state
-                  then
-                    warning_once_current
-                      "In function %t: called function returns void but \
-                        returned value is assigned; ignoring assignment"
-                      pretty_current_cfunction_name;
-                  new_state
-      with
-        | Got_bottom ->
-            CurrentLoc.set call_site_loc;
-            Cvalue.Model.bottom
-        | Leaf ->
-            CurrentLoc.set call_site_loc;
-            (match lval_to_assign with
-              | None ->  state
+
+        let results = Kernel_function.Hptset.fold treat_one_call functions [] in
+
+        let treat_one_result filtered (return, new_state) =
+          if not (Cvalue.Model.is_reachable new_state)
+          then filtered
+          else
+            match lval_to_assign with
+              | None -> new_state :: filtered
               | Some lv ->
-                  let evaled_exp = V.top_leaf_origin () in
-                  do_assign_abstract_value ~with_alarms state lv evaled_exp)
+                let new_state =
+                  match return with
+                    | Some return ->
+                        assign_return_to_lv ~with_alarms
+                          funcexp lv return new_state
+                    | None -> assert false
+                in
+                new_state :: filtered
+        in
+        List.fold_left treat_one_result [] results
+
+      with
+        | Function_args.Actual_is_bottom -> (* from compute_actual *)
+            CurrentLoc.set call_site_loc;
+            []
     in
     State_set.fold
-      (fun acc state -> State_set.add (state_after_call state) acc)
+      (fun acc state ->
+        let results = state_after_call state in
+        List.fold_left (fun acc state -> State_set.add state acc) acc results)
       State_set.empty
       d_value
 
@@ -923,6 +783,7 @@ struct
       if unreachable then
         Dataflow.Done d
       else begin
+          let with_alarms = warn_all_quiet_mode () in
           let apply_each_state f =
             let modified_states =
               State_set.fold
@@ -936,33 +797,21 @@ struct
           match i with
           | Set (lv,exp,_loc) ->
               apply_each_state
-                (fun state_value ->
-                  do_assign
-                    ~with_alarms:(warn_all_quiet_mode ())
-                    state_value
-                    lv
-                    exp)
+                (fun state_value -> do_assign ~with_alarms state_value lv exp)
           | Call (lval_to_assign,
                  {enode = Lval (Var {vname=("__builtin_va_start"|"__builtin_va_arg"|"__builtin_va_end" as _builtin_name) },NoOffset)},
                  [{enode = Lval lv}],_loc) ->
 (*            Format.printf "builtin: %s@." _builtin_name; *)
               apply_each_state
                 (fun state ->
-                  let state =
-                    do_assign_abstract_value
-                      ~with_alarms:(warn_all_quiet_mode ())
-                      state
-                      lv
-                      Cvalue.V.top_int
+                  let state = do_assign_abstract_value
+                    ~with_alarms state lv V.top_int
                   in
                   ( match lval_to_assign with
                     None -> state
                   | Some lval_assign ->
                       do_assign_abstract_value
-                        ~with_alarms:(warn_all_quiet_mode ())
-                        state
-                        lval_assign
-                        Cvalue.V.top_int))
+                        ~with_alarms state lval_assign V.top_int))
           | Call (lval_to_assign,funcexp,argl,_loc) ->
               Dataflow.Done
                 { counter_unroll = 0;
@@ -980,79 +829,6 @@ struct
     in
     CilE.end_stmt ();
     result
-
-  (* Reduce the given states according to the given code annotations.
-     If [record] is true, update the proof state of the code annotation.
-     DO NOT PASS record=false unless you known what your are doing *)
-  let interp_annot state stmt ca record =
-    let aux text behav p =
-      let in_behavior =
-        match behav with
-          | [] -> True
-          | behavs ->
-              let ab = AnalysisParam.active_behaviors in
-              let all_active = Extlib.filter_map'
-                (ActiveBehaviors.behavior_from_name ab)
-                (ActiveBehaviors.is_active ab)
-                behavs
-              in
-              if all_active = [] then False
-              else
-                if List.exists (ActiveBehaviors.only_active ab) all_active
-                then True
-                else Unknown
-      in
-      if in_behavior = False
-      then state
-      else
-        let result = fold_join_predicate State_set.fold
-          (fun here ->
-             let env = env_annot ~pre:!!fused_initial_state ~here in
-             eval_predicate ~result:None env p)
-          state
-        in
-        let ip = Property.ip_of_code_annot (current_kf()) stmt ca in
-        let change_status st =
-          if record then List.iter (fun p -> emit_status p st) ip 
-	in
-        let message, result =
-          (match result, in_behavior with
-             | Unknown, _ | False, Unknown ->
-                 if State_set.is_empty state then begin
-                   change_status Property_status.False_if_reachable;
-                   "invalid (stopping propagation)", State_set.empty
-                 end else begin
-                   change_status Property_status.Dont_know;
-                   "unknown", state
-                 end
-             | True, _ ->
-                 change_status Property_status.True;
-                 "valid", state
-             | False, True ->
-                 change_status Property_status.False_if_reachable;
-                 "invalid (stopping propagation)", State_set.empty
-             | _, False -> assert false)
-        in
-        if record then
-	  Value_parameters.result ~once:true ~current:true
-	    "%s got status %s.%t" text message pp_callstack;
-        if in_behavior = True then
-          let env = env_annot ~pre:!!fused_initial_state
-            ~here:(State_set.join result) in
-          reduce_by_disjunction ~result:None ~env
-            result
-            slevel
-            p
-        else
-	  result
-    in
-    match ca.annot_content with
-    | AAssert (behav,p) -> aux "Assertion" behav p
-    | AInvariant (behav, true, p) -> aux "Loop invariant" behav p
-    | APragma _
-    | AInvariant (_, false, _)
-    | AVariant _ | AAssigns _
-    | AStmtSpec _ (*TODO*) -> state
 
   let check_non_overlapping state lvs1 lvs2 =
     List.iter
@@ -1098,19 +874,62 @@ struct
     in
     List.iter (fun x -> check_one_stmt x seq) seq
 
+  (* This function is later used to insert a stmt to the worklist manually.
+   * Needed for manual split/merge zones
+   * Will be filled by Local_slevel_compute.compute_sub_function
+   * after Dataflow.Forwards initialization
+   *)
+  let add_to_worklist = ((ref (fun _ -> assert false)) : (stmt -> unit) ref)
+
   let doStmt (s: stmt) (d: t) =
+
     let states = d.value in
     d.value <- State_set.empty;
     let kinstr = Kstmt s in
 
+    (* This function handles local_slevel. *)
+    let ret =
+      match Local_slevel.determine_mode
+        current_kf
+        s
+        AnalysisParam.local_slevel_info
+      with
+        | Local_slevel_types.Normal -> fun x -> x
+        | Local_slevel_types.Merge ->
+            fun _ -> Dataflow.SDone
+        (* FIXME [SCM] strict mode only - will have to work in split mode as
+         * well f.e. while(1) { foo() } as split and merge stmt *)
+        | Local_slevel_types.MergeSplit _ -> assert false
+        | Local_slevel_types.Split info ->
+            let new_state, clobbered_set =
+              Local_slevel.compute_sub_function
+                current_kf
+                s
+                info
+                states
+            in
+            bases_containing_locals := Locations.Location_Bits.Top_Param.join
+              clobbered_set
+              !bases_containing_locals;
+            List.iter (fun stmt ->
+              StmtStartData.add stmt { counter_unroll = 0
+                                     ; value = State_set.singleton new_state };
+              !add_to_worklist stmt)
+            (* FIXME [SCM] strict mode *)
+            (Cil_datatype.Stmt.Hptset.elements
+            info.Local_slevel_types.merges);
+            (*(List.hd (Cil_datatype.Stmt.Hptset.elements
+            info.Local_slevel_types.merges)).succs;*)
+            fun _ -> Dataflow.SDone
+    in
+
     if State_set.is_empty states
     then
-      Dataflow.SDefault
+      ret Dataflow.SDefault
     else
       let annots_before =
-        Annotations.single_fold_stmt
-          (fun a acc ->
-            match a with
+        Annotations.fold_code_annot
+          (fun _ a acc -> match a with
             | User { annot_content = AStmtSpec _ }
             | AI (_,{annot_content = AStmtSpec _ }) -> acc
             | AI (_, b) | User b -> b :: acc)
@@ -1118,6 +937,9 @@ struct
           []
       in
       CilE.start_stmt kinstr;
+      let interp_annot = Eval_annots.interp_annot
+        current_kf !!fused_initial_state slevel AnalysisParam.active_behaviors
+      in
       let states =
         List.fold_left
           (fun states annot -> interp_annot states s annot true)
@@ -1131,7 +953,7 @@ struct
 	else Current_table.update_and_tell_if_changed current_table s states
       in
       if State_set.is_empty not_already_states
-      then Dataflow.SDefault
+      then ret Dataflow.SDefault
       else
 	let is_return = match s.skind with Return _ -> true | _ -> false in
         let new_states =
@@ -1149,8 +971,8 @@ struct
 	    end
 	    else
               let r =
-		if AnalysisParam.is_natural_loop s && curr_wcounter = 0 then
-                  let wh_key_set, wh_hints = getWidenHints s in
+		if is_natural_loop s && curr_wcounter = 0 then
+                  let wh_key_set, wh_hints = Widen.getWidenHints current_kf s in
                   let widen_hints =
                     true, wh_key_set(* no longer used thanks to 0/1 widening*),
                     wh_hints
@@ -1194,7 +1016,7 @@ struct
          ( match s.skind with
          | Loop _ ->
              if d.counter_unroll >= slevel &&
-              (Value_parameters.ValShowProgress.get())
+              (Value_parameters.ShowSlevel.get())
             then
               Value_parameters.result ~level:1 ~once:true ~current:true
                 "entering loop for the first time"
@@ -1207,7 +1029,7 @@ struct
               CilE.end_stmt ()
 	    end
         | _ -> ());
-        Dataflow.SUse d
+        ret (Dataflow.SUse d)
 
   let doEdge s succ d =
     let kinstr = Kstmt s in
@@ -1249,75 +1071,69 @@ struct
 
   let filterStmt _stmt = true
 
-  (* Remove all local variables and formals from table *)
-  let externalize return kf =
-    match kf.fundec with
-    | Declaration _ -> assert false
-    | Definition (fundec,_loc) ->
-        assert
-          (StmtStartData.iter
-              (fun k v ->
-                if State_set.is_empty (v.value)
-                then ()
-                else (Value_parameters.fatal "sid:%d@\n%a@\n"
-                         k.sid
-                         State_set.pretty (v.value)));
-                true);
-        let superpos =
-          Current_table.find_superposition current_table return
-        in
-        let init_state =
-          Current_table.find_superposition
-            current_table
-            (Kernel_function.find_first_stmt kf)
-        in
-        let superpos =
-          let result =
-            match return with
-            | {skind = Return (Some ({enode = Lval (Var v,_)}),_)} ->
-                Some v
-            | _ -> None
-          in
-          check_fct_postconditions ~result
-            kf
-            ~init_state
-            ~active_behaviors:AnalysisParam.active_behaviors
-            ~post_state:superpos
-            Normal
-        in
-        let state = State_set.join_dropping_relations superpos in
+  (* Get access to current_table in case of split/merge zone.
+   * Without explicit merging, this is done via externalize
+   *)
+  let getStateSet stmt = Current_table.find_superposition current_table stmt
 
-       if Value_parameters.ValShowProgress.get() then
-        Value_parameters.feedback "Recording results for %a"
-          Kernel_function.pretty kf;
+  let mergeResults () =
+    if Value_parameters.ValShowProgress.get() then
+      Value_parameters.feedback "Recording results for %a"
+        Kernel_function.pretty AnalysisParam.kf;
+    merge_current ~degenerate:false
 
-        merge_current ~degenerate:false;
-        let ret_val =
-          (match return with
-           | {skind = Return (Some ({enode = Lval lv}),_)} ->
-               offsetmap_of_lv ~with_alarms:(warn_all_quiet_mode ()) state lv
-           | {skind = Return (None,_)} -> None
-           | _ -> assert false)
-        in
-        let state =
-          Cvalue.Model.clear_state_from_locals fundec state
-        in
-        let offsetmap_top_addresses_of_locals, state_top_addresses_of_locals =
-          top_addresses_of_locals fundec
-        in
-        let result =
-          (match ret_val with
-           | None -> ret_val
-           | Some ret_val ->
-               let locals, r = offsetmap_top_addresses_of_locals ret_val in
-               let warn = not (Cvalue.V_Offsetmap.equal r ret_val)
-               in
-               if warn then warn_locals_escape_result fundec locals;
-               Some r),
-          state_top_addresses_of_locals state,
-          !bases_containing_locals
-        in
-        result
+  (* Check that the dataflow is indeed finished *)
+  let checkConvergence () =
+    StmtStartData.iter (fun k v ->
+      if not (State_set.is_empty (v.value)) then
+        Value_parameters.fatal "sid:%d@\n%a@\n" k.sid State_set.pretty v.value)
+
+  (* Final states of the function, reduced by the post-condition *)
+  let finalStates () =
+    if !debug then checkConvergence ();
+    let states = Current_table.find_superposition current_table return in
+    (* Reduce final states according to the function postcondition *)
+    let result = match return_lv with
+      | Some (Var v, NoOffset) -> Some v
+      | Some _ -> assert false
+      | None -> None
+    in
+    Eval_annots.check_fct_postconditions ~result current_kf
+      ~init_state:AnalysisParam.initial_states
+      ~active_behaviors:AnalysisParam.active_behaviors
+      ~post_state:states
+      Normal (* termination kind*)
+
+  (* Remove locals from the given, and extract the content of \result *)
+  let externalizeOneState state =
+    let state, ret_val =
+      match return_lv with
+        | Some lv ->
+            Eval_exprs.offsetmap_of_lv
+              ~with_alarms:(warn_all_quiet_mode ()) state lv
+        | None -> state, None
+    in
+    let state = Cvalue.Model.clear_state_from_locals current_fundec state in
+    let offsetmap_top_addresses_of_locals, state_top_addresses_of_locals =
+      top_addresses_of_locals current_fundec
+    in
+    let ret_val = match ret_val with
+      | None -> ret_val
+      | Some ret_val ->
+        let locals, r = offsetmap_top_addresses_of_locals ret_val in
+        if not (Cvalue.V_Offsetmap.equal r ret_val) then
+          warn_locals_escape_result current_fundec locals;
+        Some r
+    in
+    ret_val,
+    state_top_addresses_of_locals state
+
+  let externalize states =
+    let states =
+      Split_return.join_final_states current_kf ~lv_return:return_lv states in
+    let res = List.map externalizeOneState states in
+    res, !bases_containing_locals
+
 
   let doGuardOneCond stmt exp t =
     if State_set.is_empty (t.value)
@@ -1328,10 +1144,8 @@ struct
         let new_values =
           State_set.fold
             (fun acc state ->
-              let test =
-                eval_expr
-                  ~with_alarms
-                  state exp
+              let state, _, test =
+                eval_expr_with_deps_state None ~with_alarms state exp
               in
               CilE.set_syntactic_context
                 (CilE.SyBinOp (Ne, Cil.zero ~loc:exp.eloc, exp));
@@ -1368,30 +1182,36 @@ struct
 
   let mask_then = Db.Value.mask_then
   let mask_else = Db.Value.mask_else
+  let mask_both = mask_then lor mask_else
 
   let doGuard stmt exp t =
     let not_exp = new_exp ~loc:exp.eloc (UnOp(LNot, exp, intType)) in
     let th, el as thel =
       doGuardOneCond stmt exp t, doGuardOneCond stmt not_exp t
     in
+    let th_reachable =
+      match th with
+        Dataflow.GUse _ | Dataflow.GDefault -> mask_then
+      | Dataflow.GUnreachable -> 0
+    in
+    let el_reachable =
+      match el with
+        Dataflow.GUse _ | Dataflow.GDefault -> mask_else
+      | Dataflow.GUnreachable -> 0
+    in
+    let reachable = th_reachable lor el_reachable in
+    if Value_parameters.InterpreterMode.get() && (reachable = mask_both)
+    then begin
+	warning_once_current "Do not know which branch to take. Stopping.";
+	exit 0
+      end;
     let current_condition_status =
       try
         Cil_datatype.Stmt.Hashtbl.find conditions_table stmt
       with Not_found -> 0
     in
-    let new_status =
-      ( if (current_condition_status land mask_then) <> 0
-        then mask_then
-        else
-          match th with
-            Dataflow.GUse _ | Dataflow.GDefault -> mask_then
-          | Dataflow.GUnreachable -> 0) lor
-      ( if (current_condition_status land mask_else) <> 0
-        then mask_else
-        else
-          match el with
-            Dataflow.GUse _ | Dataflow.GDefault -> mask_else
-          | Dataflow.GUnreachable -> 0)
+    let new_status = 
+      current_condition_status lor reachable 
     in
     if new_status <> 0
     then Cil_datatype.Stmt.Hashtbl.replace conditions_table stmt new_status;

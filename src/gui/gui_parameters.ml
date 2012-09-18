@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,11 +27,14 @@ include Plugin.Register
      let help = "Graphical User Interface"
    end)
 
+
+(* Used mainly for debugging purposes. No need to show it to the user *)
+let () = Plugin.is_invisible ()
+
 module Undo =
   True
     (struct
-      let kind = `Irrelevant
-      let option_name = "-undo"
+      let option_name = "-gui-undo"
       let help = "possible to click on the `undo' button (set by default)"
      end)
 

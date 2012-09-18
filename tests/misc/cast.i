@@ -1,3 +1,5 @@
+void printf(const char*c, ...);
+
 char * X= "NULL";
 void MC3_COM_ARRET_68040(int i , char *c, int j) {
   X = c;
@@ -23,8 +25,8 @@ unsigned long long ull, ugg;
 int any_int(void)
 { volatile int i = 0;
  int j;
- i =(int*)0 + i;
- return (i/4);};
+ j =(int*)0 + i;
+ return (j/4);};
 
 void all_cast() {
   G=258;

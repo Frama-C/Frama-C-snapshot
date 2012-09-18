@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,8 @@
 
 (** A state selection is a set of states with operations for easy handling of
     state dependencies.
-    @since Carbon-20101201 *)
+    @since Carbon-20101201
+    @plugin development guide *)
 
 (* ************************************************************************** *)
 (** {2 Type declarations} *)
@@ -109,6 +110,17 @@ module type S = sig
   (** Union of two selections.
       @since Carbon-20101201 *)
 
+  val list_union: t list -> t
+    (** Union of an arbitrary number of selection (0 gives an empty selection)
+        @since Oxygen-20120901
+     *)
+
+  val list_state_union: ?deps:(State.t -> t) -> State.t list -> t
+    (** Union of an arbitrary number of states (0 gives an empty selection).
+        Optional [deps] arguments indicates how to handle dependencies. Defaults
+        to {! State_selection.singleton}
+        @since Oxygen-20120901 *)
+
   val diff: t -> t -> t
   (** Difference between two selections.
       @since Carbon-20101201 *)
@@ -155,26 +167,15 @@ module type S = sig
       State Dependency Graph. Less efficient that {!iter}.
       @since Carbon-20101201 *)
 
-  val remove_useless_states: t -> t
-(** @since Carbon-20101201 *)
-
 end
 
 (** Operations over selections which depend on
     {!State_dependency_graph.Static.graph}.
-    @since Carbon-20101201 *)
+    @since Carbon-20101201
+    @deprecated Oxygen-20120901 directly use equivalent top-level function
+    instead. *)
 module Static: S
-
-(** Operations over selections which depend on
-    {!State_dependency_graph.Dynamic.graph}.
-    @since Carbon-20101201 *)
-module Dynamic: sig
-  include S
-  val dump: t -> string -> unit
-  module Dot(A: State_dependency_graph.Attributes) : sig
-    val dump: t -> string -> unit
-  end
-end
+include S
 
 (*
 Local Variables:

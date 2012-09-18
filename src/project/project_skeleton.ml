@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,12 +48,7 @@ let dummy = { pid = 0; name = ""; unique_name = ""}
 
 module Make_setter(X: sig val mem: string -> bool end) = struct
 
-  let make_unique_name from =
-    let rec build base id =
-      let fullname = base ^ " " ^ string_of_int id in
-      if X.mem fullname then build base (succ id) else fullname
-    in
-    if X.mem from then build from 2 else from
+  let make_unique_name s = snd (Extlib.make_unique_name X.mem ~sep:" " s)
 
   let make =
     let pid = ref 0 in

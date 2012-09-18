@@ -174,25 +174,3 @@ let docCList sep elt fmt xs =
 	      false xs) ;
     Format.fprintf fmt "@]" ;
   end
-    
-(* let debugCheck (lst: 'a clist) : unit =*)
-(*   (* use a hashtable to store values encountered *)*)
-(*   let tbl : 'a bool H.t = (H.create 13) in*)
-
-(*   letrec recurse (node: 'a clist) =*)
-(*     (* have we seen*)*)
-
-(*     match node with*)
-(*     | CList*)
-
-
-(* --------------- testing ----------------- *)
-type boxedInt =
-  | BI of int
-  | SomethingElse
-
-let d_boxedInt fmt b =
-  match b with
-  | BI(i) -> Format.fprintf fmt "%d" i
-  | SomethingElse -> Format.fprintf fmt "somethingElse"
-

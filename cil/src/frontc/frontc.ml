@@ -52,26 +52,9 @@ let close_output _ =
       close_me := false
   end
 
-let set_output filename =
-  close_output ();
-  let out_chan = try open_out filename
-    with Sys_error msg ->
-    (output_string stderr ("Error while opening output: " ^ msg); exit 1) in
-  out := Some out_chan;
-  Whitetrack.setOutput out_chan;
-  close_me := true
-
    (* Signal that we are in MS VC mode *)
 let setMSVCMode () =
   Cprint.msvcMode := true
-
-(* whether to print a file of prototypes after parsing *)
-let doPrintProtos : bool ref = ref false
-
-(* this seems like something that should be built-in.. *)
-let isNone (o : 'a option) : bool = match o with
-  | Some _ -> false
-  | None -> true
 
 let printNotice = ref false
 

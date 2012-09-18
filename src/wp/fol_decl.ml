@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,8 +43,6 @@ let set_range_index = "set_range_index"
 
 let mk_imodulo i = Pretty_utils.sfprintf  "as_%a"  Ctypes.pp_int i
 let mk_iguard i =  Pretty_utils.sfprintf "is_%a" Ctypes.pp_int i
-
-
 let mk_fguard f =  Pretty_utils.sfprintf "is_%a" Ctypes.pp_float f 
 
 (* -------------------------------------------------------------------------- *)

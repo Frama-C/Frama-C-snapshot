@@ -138,6 +138,12 @@ module type ForwardsTransfer = sig
    * block would normally be put in the worklist. *)
 
   val stmt_can_reach : Cil_types.stmt -> Cil_types.stmt -> bool
+  (** Must return [true] if ther is a path in the control-flow graph of the
+      function from the first statement to the second. Used to choose a "good"
+      node in the worklist. Suggested use is [let stmt_can_reach =
+      Stmts_graph.stmt_can_reach kf], where [kf] is the kernel_function
+      being analyzed; [let stmt_can_reach _ _ = true] is also correct,
+      albeit less efficient *)
 
   val doEdge: Cil_types.stmt -> Cil_types.stmt -> t -> t
     (** what to do when following the edge between the two given statements.
@@ -159,6 +165,9 @@ sig
   (** Fill in the T.stmtStartData, given a number of initial statements to
    * start from. All of the initial statements must have some entry in
    * T.stmtStartData (i.e., the initial data should not be bottom) *)
+
+  (*FIXME ?*)
+  val worklist: Cil_types.stmt Queue.t
 end
 
 (** Same dataflow as above, but with initial states indexed by statements
@@ -223,6 +232,18 @@ module type BackwardsTransfer = sig
   (** Whether to put this predecessor block in the worklist. We give the
    * predecessor and the block whose predecessor we are (and whose data has
    * changed)  *)
+
+  val stmt_can_reach : Cil_types.stmt -> Cil_types.stmt -> bool
+  (** Must return [true] if ther is a path in the control-flow graph of the
+      function from the first statement to the second. Used to choose a "good"
+      node in the worklist.
+
+      Suggested use is [let stmt_can_reach = Stmts_graph.stmt_can_reach kf],
+      where [kf] is the kernel_function being analyzed;
+      [let stmt_can_reach _ _ = true] is also correct, albeit less efficient
+
+      @since Oxygen-20120901 *)
+
 
   module StmtStartData: StmtStartData with type data = t
   (** For each block id, the data at the start. This data structure must be

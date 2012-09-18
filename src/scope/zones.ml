@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -50,7 +50,7 @@ module Ctx = struct
       try let old_d = find ctx k in Data.merge old_d d with Not_found -> d
     in Stmt.Hashtbl.replace ctx k d
   (* let mem = Stmt.Hashtbl.mem : useless because Ctx has to be initialized to bot *)
-  let pretty fmt infos =
+  let _pretty fmt infos =
     Stmt.Hashtbl.iter
       (fun k d -> Format.fprintf fmt "Stmt:%d -> %a@\n" k.sid Data.pretty d)
       infos
@@ -227,6 +227,8 @@ module Computer (Param:sig val states : Ctx.t end) = struct
 
   let funcExitData = Data.bottom
 
+  let stmt_can_reach _ _ = true
+
 end
 
 let compute_ctrl_info pdg ctrl_part used_stmts =
@@ -307,8 +309,11 @@ let get stmt_zones stmt =
   try Ctx.find stmt_zones stmt with Not_found -> Data.bottom
 
 let pretty fmt stmt_zones =
-  let pp s d = Format.fprintf fmt "Stmt:%d -> %a@." s.sid Data.pretty d
-  in Stmt.Hashtbl.iter pp stmt_zones
+  let pp s d = Format.fprintf fmt "Stmt:%d -> %a@." s.sid Data.pretty d in
+  (* Sort output so that it does not depend on the OCaml hash function.
+     Can be removed when OCaml 3.13 is mandatory *)
+  let sorted = Stmt.Hashtbl.fold Stmt.Map.add stmt_zones Stmt.Map.empty in
+  Stmt.Map.iter pp sorted
 
        (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 

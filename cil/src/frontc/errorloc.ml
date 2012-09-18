@@ -108,8 +108,6 @@ let first_filename_encountered = ref None
 let setHLine l = !current.hline <- l
 let setHFile f = !current.hfile <- f
 
-let rem_quotes str = String.sub str 1 (String.length str - 2)
-
 let readingFromStdin = ref false
 
 let startParsing ?(useBasename=true) fname =

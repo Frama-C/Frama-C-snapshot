@@ -82,7 +82,7 @@ end
 module StmtStartData(X: sig type t val size: int end) = struct
   type data = X.t
   type key = int
-  open Inthash
+  open Datatype.Int.Hashtbl
   let stmtStartData = create X.size
   let clear () = clear stmtStartData
   let mem = mem stmtStartData
@@ -126,6 +126,13 @@ struct
   let iter f = SSD.iter (fun sid -> f (stmt_of_sid sid))
   let length () = SSD.length ()
 end
+
+exception True
+let qexists f q =
+  try
+    Queue.iter (fun v -> if f v then raise True) q;
+    false
+  with True -> true
 
 
 (******************************************************************
@@ -430,12 +437,6 @@ module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struc
 
       end
 
-    exception True
-    let qexists f q =
-      try
-        Queue.iter (fun v -> if f v then raise True) q;
-        false
-      with True -> true
     exception Good of stmt
 
     let find_next_in_queue worklist =
@@ -467,11 +468,7 @@ module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struc
             Queue.transfer nok_queue worklist;
             r
 
-          (** Compute the data flow. Must have the CFG initialized *)
-
-
-
-          (** Compute the data flow. Must have the CFG initialized *)
+    (** Compute the data flow. Must have the CFG initialized *)
     let compute (sources: stmt list) =
       Queue.clear worklist;
       List.iter (fun s -> Queue.add s worklist) sources;
@@ -570,6 +567,8 @@ module type BackwardsTransferAux = sig
    * predecessor and the block whose predecessor we are (and whose data has
    * changed)  *)
 
+  val stmt_can_reach : stmt -> stmt -> bool
+
 end
 
 module type BackwardsTransfer = sig
@@ -656,8 +655,34 @@ struct
           T.StmtStartData.replace s d';
           true
 
+    exception Good of stmt
+    (* This function is the exact dual to the one in the forward dataflow *)
+    let find_next_in_queue worklist =
+      let nok_queue = Queue.create () in
+      try
+        while true do
+          let s = Queue.take worklist in
+          if
+            (let nb_succs = List.length s.succs in
+             nb_succs > 1
+             || (nb_succs = 1 && List.length (List.hd s.succs).preds > 1))
+            &&
+              qexists (fun v -> T.stmt_can_reach s v &&
+                         not (T.stmt_can_reach v s))
+              worklist
+          then Queue.add s nok_queue
+          else raise (Good s)
+        done;
+        assert false
+      with
+        | Not_found ->
+            assert false
+        | Good r ->
+            Queue.transfer nok_queue worklist;
+            r
 
-          (** Compute the data flow. Must have the CFG initialized *)
+
+    (** Compute the data flow. Must have the CFG initialized *)
     let compute (sinks: stmt list) =
       let worklist: stmt Queue.t = Queue.create () in
       List.iter (fun s -> Queue.add s worklist) sinks;
@@ -668,10 +693,10 @@ struct
         if !T.debug &&  not (Queue.is_empty worklist) then
           (Kernel.debug "BF(%s): worklist= %a\n"
                     T.name
-                    (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "%d" s.sid))
+                    (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "%d " s.sid))
                     (List.rev
                        (Queue.fold (fun acc s -> s :: acc) [] worklist)));
-          let s = Queue.take worklist in
+          let s = find_next_in_queue worklist in
           let changes = processStmt s in
           if changes then begin
             (* We must add all predecessors of block b, only if not already

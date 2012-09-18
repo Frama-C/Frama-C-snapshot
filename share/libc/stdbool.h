@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,8 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef __FRAMA_C_STDBOOL
-#define __FRAMA_C_STDBOOL
+#ifndef __FC_STDBOOL
+#define __FC_STDBOOL
 #define bool _Bool
 #define true 1
 #define false 0

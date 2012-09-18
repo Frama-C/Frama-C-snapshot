@@ -8,7 +8,7 @@ let fmt =  Format.std_formatter;;
 (*
 let old_debug = Kernel.Debug.get ();;
 Kernel.Debug.set 1;; (* to see sid *)
-Format.fprintf fmt "@[%a@]" (Cil.d_file (new Printer.print())) ( Ast.get ());;
+Format.fprintf fmt "@[%a@]" !Ast_printer.d_file ( Ast.get ());;
 Kernel.Debug.set old_debug;;
 *)
 

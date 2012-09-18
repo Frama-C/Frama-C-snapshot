@@ -22,7 +22,7 @@ void sort4_1() {
 
 
 
-/*@ requires \valid_range(t,0,4);
+/*@ requires \valid_range(t,0,3);
     ensures t[0] <= t[1] <= t[2] <= t[3]; */
 void sort4_4(int t[4]) {
   int tmp;

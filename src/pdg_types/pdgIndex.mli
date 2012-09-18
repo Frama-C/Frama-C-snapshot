@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -56,53 +56,53 @@ module Signature : sig
   type 'a t
 
   (** key for input elements *)
-  type t_in_key =
+  type in_key =
       private
     | InCtrl (** input control point *)
     | InNum of int (** parameters numbered from 1 *)
     | InImpl of Locations.Zone.t (** key for implicit inputs.
                                      Used in function signatures only *)
 
-  type t_out_key =
+  type out_key =
       private
     | OutRet (** key for the output corresponding to the [return] *)
     | OutLoc of Locations.Zone.t (** key for output locations.
                                      used in call signatures only  *)
 
   (** a key represents either an input or an output of a function. *)
-  type t_key = private In of t_in_key | Out of t_out_key
+  type key = private In of in_key | Out of out_key
 
   val empty : 'a t
   (** build a new, empty signature *)
 
-  val mk_undef_in_key : Locations.Zone.t -> t_in_key
+  val mk_undef_in_key : Locations.Zone.t -> in_key
 
-  val cmp_in_key : t_in_key -> t_in_key -> int
-  val cmp_out_key : t_out_key -> t_out_key -> int
-  val equal_out_key : t_out_key -> t_out_key -> bool
+  val cmp_in_key : in_key -> in_key -> int
+  val cmp_out_key : out_key -> out_key -> int
+  val equal_out_key : out_key -> out_key -> bool
 
-  val find_info : 'a t -> t_key -> 'a
+  val find_info : 'a t -> key -> 'a
   val find_input : 'a t -> int -> 'a
   val find_in_ctrl : 'info t -> 'info
   val find_in_top : 'info t -> 'info
-  val find_in_info : 'info t -> t_in_key -> 'info
+  val find_in_info : 'info t -> in_key -> 'info
   val find_out_ret : 'a t -> 'a
-  val find_out_info : 'info t -> t_out_key -> 'info
+  val find_out_info : 'info t -> out_key -> 'info
 
-  val fold : ('a -> t_key * 'b -> 'a) -> 'a -> 'b t -> 'a
+  val fold : ('a -> key * 'b -> 'a) -> 'a -> 'b t -> 'a
   val fold_num_inputs : ('a -> int * 'b -> 'a) -> 'a -> 'b t -> 'a
   val fold_impl_inputs :
     ('a -> Locations.Zone.t * 'b -> 'a) -> 'a -> 'b t -> 'a
   val fold_matching_impl_inputs : Locations.Zone.t ->
     ('a -> Locations.Zone.t * 'b -> 'a) -> 'a -> 'b t -> 'a
-  val fold_all_inputs : ('a -> t_in_key * 'b -> 'a) -> 'a -> 'b t -> 'a
-  val fold_all_outputs : ('a -> t_out_key * 'b -> 'a) -> 'a -> 'b t -> 'a
+  val fold_all_inputs : ('a -> in_key * 'b -> 'a) -> 'a -> 'b t -> 'a
+  val fold_all_outputs : ('a -> out_key * 'b -> 'a) -> 'a -> 'b t -> 'a
 
   val pretty :
     (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a t -> unit
-  val pretty_key : Format.formatter -> t_key -> unit
-  val pretty_in_key : Format.formatter -> t_in_key -> unit
-
+  val pretty_key : Format.formatter -> key -> unit
+  val pretty_in_key : Format.formatter -> in_key -> unit
+  val pretty_out_key : Format.formatter -> out_key -> unit
 end
 
 (** The keys can be used to identify an element of a function.
@@ -110,18 +110,15 @@ end
     identified.*)
 module Key : sig
 
-  (** type to identify a call statement *)
-  type t_call_id = Cil_types.stmt
-
   type key =
       private
-    | SigKey of Signature.t_key
+    | SigKey of Signature.key
     (** key for an element of the function signature *)
     | VarDecl of Cil_types.varinfo   (** variable declaration *)
     | Stmt of Cil_types.stmt         (** any statement, except a call *)
-    | CallStmt of t_call_id          (** call statement *)
-    | Label of int * Cil_types.label (** program label *)
-    | SigCallKey of t_call_id * Signature.t_key
+    | CallStmt of Cil_types.stmt     (** call statement *)
+    | Label of Cil_types.stmt * Cil_types.label (** program label *)
+    | SigCallKey of Cil_types.stmt * Signature.key
     (** key for an element of a call signature *)
 
   include Datatype.S with type t = key
@@ -146,7 +143,7 @@ module Key : sig
   val call_topin_key : Cil_types.stmt -> t
 
   val stmt : t -> Cil_types.stmt option
-  val call_from_id : t_call_id -> Cil_types.stmt
+  val call_from_id : Cil_types.stmt -> Cil_types.stmt
 
 end
 
@@ -191,6 +188,9 @@ module FctIndex : sig
       list of all the information in the signature of the call. *)
   val find_all :  ('ni, 'ci) t -> Key.t-> 'ni list
 
+  (** Similar to [find_info] for a label *)
+  val find_label: ('ni, 'ci) t -> Cil_types.label -> 'ni
+
   (** find the information stored for the call and its signature *)
   val find_call :
     ('ni, 'ci) t -> Cil_types.stmt -> 'ci option * 'ni Signature.t
@@ -201,7 +201,7 @@ module FctIndex : sig
   val find_info_call_key : ('ni, 'ci) t -> Key.t -> 'ci
 
   val fold_calls :
-    (Key.t_call_id-> 'ci option * 'ni Signature.t -> 'c -> 'c) ->
+    (Cil_types.stmt -> 'ci option * 'ni Signature.t -> 'c -> 'c) ->
     ('ni, 'ci) t -> 'c -> 'c
 
   val fold : (Key.key -> 'ni -> 'a -> 'a) -> ('ni, 'ci) t -> 'a -> 'a
@@ -213,7 +213,7 @@ module FctIndex : sig
       information if any. *)
   val add_or_replace :  ('ni, 'ci) t -> Key.t-> 'ni -> unit
   val add_info_call :
-    ('ni, 'ci) t -> Key.t_call_id -> 'ci -> replace:bool -> unit
+    ('ni, 'ci) t -> Cil_types.stmt -> 'ci -> replace:bool -> unit
   val add_info_call_key :  ('ni, 'ci) t -> Key.t -> 'ci -> replace:bool -> unit
 
 

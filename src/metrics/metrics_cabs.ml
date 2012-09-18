@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,8 +22,8 @@
 
 (** Implementation of cyclomatic complexity measures on CAbs' AST *)
 open Cabs
-open Cil_datatype
 open Metrics_base
+open Metrics_base.BasicMetrics
 open Metrics_parameters
 ;;
 
@@ -42,11 +42,11 @@ class metricsCabsVisitor = object(self)
   (* Local metrics are kept stored after computation in this map of maps.
      Its storing hierachy is as follows: filename -> function_name -> metrics *)
   val mutable metrics_map:
-      (my_metrics Datatype.String.Map.t) Datatype.String.Map.t =
+      (BasicMetrics.t Datatype.String.Map.t) Datatype.String.Map.t =
     Datatype.String.Map.empty
 
-  val functions_no_source: (string, int)Hashtbl.t = Hashtbl.create 97
-  val functions_with_source: (string, int)Hashtbl.t = Hashtbl.create 97
+  val functions_no_source: (string, int) Hashtbl.t = Hashtbl.create 97
+  val functions_with_source: (string, int) Hashtbl.t = Hashtbl.create 97
   val mutable standalone = true
 
   (* Getters/setters *)
@@ -58,39 +58,9 @@ class metricsCabsVisitor = object(self)
     metrics_map <- Datatype.String.Map.add filename strmap metrics_map
 
   (* Utility methods to increase metrics counts *)
-  method private incr_slocs metrics =
-    metrics := {!metrics with cslocs = succ !metrics.cslocs;}
-
-  method private incr_assigns metrics =
-    metrics := {!metrics with cassigns = succ !metrics.cassigns;}
-
-  method private incr_calls metrics =
-    metrics := {!metrics with ccalls = succ !metrics.ccalls;}
-
-  method private incr_exits metrics =
-    metrics := {!metrics with cexits = succ !metrics.cexits;}
-
-  method private incr_funcs metrics =
-    metrics := {!metrics with cfuncs = succ !metrics.cfuncs;}
-
-  method private incr_gotos metrics =
-    metrics := {!metrics with cgotos = succ !metrics.cgotos;}
-
-  method private incr_ifs metrics =
-    metrics := {!metrics with cifs = succ !metrics.cifs;}
-
-  method private incr_loops metrics =
-    metrics := {!metrics with cloops = succ !metrics.cloops;}
-
-  method private incr_ptrs metrics =
-    metrics := {!metrics with cptrs = succ !metrics.cptrs;}
-
-  method private incr_dpoints metrics =
-    metrics := {!metrics with cdecision_points = succ !metrics.cdecision_points;}
-
   method private incr_both_metrics f =
-    f global_metrics;
-    f local_metrics
+    apply_then_set f global_metrics;
+    apply_then_set f local_metrics
 
   method add_to_functions_with_source (funcname:string) =
     Hashtbl.add functions_with_source funcname 0;
@@ -123,7 +93,7 @@ class metricsCabsVisitor = object(self)
               cfuncs = 1; (* Only one function is indeed being defined here *)};
           Metrics.debug
             ~level:1 "Definition of function %s encountered@." funcname;
-          self#incr_funcs global_metrics;
+          apply_then_set incr_funcs global_metrics;
           self#add_to_functions_with_source funcname;
           (* On return record the analysis of the function. *)
           Cil.ChangeDoChildrenPost
@@ -142,8 +112,7 @@ class metricsCabsVisitor = object(self)
       | GLOBASM _
       | PRAGMA _
       | LINKAGE _
-      | TRANSFORMER _
-      | EXPRTRANSFORMER _
+      | CUSTOM _
       | GLOBANNOT _ -> Cil.DoChildren;
 
   method vexpr expr =
@@ -155,12 +124,12 @@ class metricsCabsVisitor = object(self)
             | PREINCR
             | POSINCR
             | PREDECR
-            | POSDECR -> self#incr_both_metrics self#incr_assigns
+            | POSDECR -> self#incr_both_metrics incr_assigns
             | MINUS
             | PLUS
             | NOT
             | BNOT -> ()
-            | MEMOF -> self#incr_both_metrics self#incr_ptrs
+            | MEMOF -> self#incr_both_metrics incr_ptrs
             | ADDROF -> ()
         end
       | LABELADDR _ -> ()
@@ -171,19 +140,19 @@ class metricsCabsVisitor = object(self)
             | BAND | BOR | XOR
             | SHL | SHR | EQ | NE | LT
             | GT | LE | GE -> ()
-            | AND | OR -> self#incr_both_metrics self#incr_dpoints
+            | AND | OR -> self#incr_both_metrics incr_dpoints
             | ASSIGN
             | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN
             | DIV_ASSIGN | BOR_ASSIGN | XOR_ASSIGN
             | SHL_ASSIGN | SHR_ASSIGN | BAND_ASSIGN
             | MOD_ASSIGN ->
-              self#incr_both_metrics self#incr_assigns;
+              self#incr_both_metrics incr_assigns;
         end
       | CAST _ -> ()
-      | CALL  _ -> self#incr_both_metrics self#incr_calls;
+      | CALL  _ -> self#incr_both_metrics incr_calls;
       | QUESTION _ ->
-        self#incr_both_metrics self#incr_dpoints;
-        self#incr_both_metrics self#incr_ifs;
+        self#incr_both_metrics incr_dpoints;
+        self#incr_both_metrics incr_ifs;
       | COMMA _
       | CONSTANT _
       | PAREN _
@@ -207,16 +176,16 @@ class metricsCabsVisitor = object(self)
       | _ -> was_case := false
 
   method vstmt stmt =
-    self#incr_both_metrics self#incr_slocs;
+    self#incr_both_metrics incr_slocs;
     (match stmt.stmt_node with
       | DEFAULT _ -> () (* The default case is not counted as a path choice
                            point *)
       | CASERANGE _
       | CASE _ ->
-        if not !was_case then self#incr_both_metrics self#incr_dpoints;
+        if not !was_case then self#incr_both_metrics incr_dpoints;
       | IF _ ->
-        self#incr_both_metrics self#incr_ifs;
-        self#incr_both_metrics self#incr_dpoints;
+        self#incr_both_metrics incr_ifs;
+        self#incr_both_metrics incr_dpoints;
       | NOP _
       | COMPUTATION _
       | BLOCK _ -> ()
@@ -224,15 +193,15 @@ class metricsCabsVisitor = object(self)
       | WHILE _
       | DOWHILE _
       | FOR _ ->
-        self#incr_both_metrics self#incr_loops;
-        self#incr_both_metrics self#incr_dpoints;
+        self#incr_both_metrics incr_loops;
+        self#incr_both_metrics incr_dpoints;
       | BREAK _
       | CONTINUE _ -> ()
-      | RETURN _ -> self#incr_both_metrics self#incr_exits;
+      | RETURN _ -> self#incr_both_metrics incr_exits;
       | SWITCH _ -> ()
       | LABEL _ -> ()
       | GOTO _
-      | COMPGOTO _ -> self#incr_both_metrics self#incr_gotos;
+      | COMPGOTO _ -> self#incr_both_metrics incr_gotos;
       | DEFINITION _
       | ASM _
       | SEQUENCE _
@@ -254,7 +223,7 @@ class metricsCabsVisitor = object(self)
       (fun fmt filename ->
         let fun_tbl = self#stats_of_filename filename in
         Datatype.String.Map.iter (fun _fun_name fmetrics ->
-          Format.fprintf fmt "@ %a" pp_my_metrics fmetrics)
+          Format.fprintf fmt "@ %a" pp_base_metrics fmetrics)
           fun_tbl;
       ) filename
 
@@ -295,14 +264,6 @@ type operator_tbl = {
   otherop_tbl  : (string, int) Hashtbl.t;
   reserved_tbl : (string, int) Hashtbl.t;
   tspec_tbl : (Cabs.typeSpecifier, int) Hashtbl.t;
-}
-;;
-
-type halstead_metrics = {
-  distinct_operators: int;
-  distinct_operands: int;
-  total_operators: int;
-  total_operands: int;
 }
 ;;
 
@@ -532,8 +493,22 @@ let compute_operands operand_tbl =
   in (float_of_int x), (float_of_int y)
 ;;
 
-let pp_metrics ppf cabs_visitor =
-  (* Compute the metrics from the informations gathered by the visitor. *)
+type halstead_metrics = {
+  distinct_operators : float;
+  total_operators : float;
+  distinct_operands : float;
+  total_operands : float;
+  program_length : float;
+  program_volume : float;
+  program_level : float;
+  vocabulary_size : float;
+  difficulty_level : float;
+  effort_to_implement : float;
+  time_to_implement : float;
+  bugs_delivered : float;
+}
+
+let get_metrics cabs_visitor =
   let operator_tbl = cabs_visitor#get_operator_tbl () in
   let operand_tbl = cabs_visitor#get_operand_tbl () in
   let distinct_operators, total_operators = compute_operators operator_tbl
@@ -548,8 +523,45 @@ let pp_metrics ppf cabs_visitor =
   let effort_to_implement = program_volume *. difficulty_level in
   let time_to_implement = effort_to_implement /. 18. in
   let bugs_delivered = (effort_to_implement ** (2./.3.)) /. 3000. in
-  let minutes = (int_of_float time_to_implement) / 60 in
-  let hours, minutes = minutes / 60, minutes mod 60 in
+  { distinct_operators = distinct_operators;
+    total_operators = total_operators;
+    distinct_operands = distinct_operands;
+    total_operands = total_operands;
+    program_length = program_length;
+    program_volume = program_volume;
+    program_level = program_level;
+    vocabulary_size = vocabulary_size;
+    difficulty_level = difficulty_level;
+    effort_to_implement = effort_to_implement;
+    time_to_implement = time_to_implement;
+    bugs_delivered = bugs_delivered;
+  }
+;;
+
+let to_list hmetrics =
+ [ [ "Total operators"; float_to_string hmetrics.total_operators; ];
+   [ "Distinct operators"; float_to_string hmetrics.distinct_operators; ];
+   [ "Total_operands"; float_to_string hmetrics.total_operands; ];
+   [ "Distinct operands"; float_to_string hmetrics.distinct_operands; ];
+   [ "Program length"; float_to_string hmetrics.program_length; ];
+   [ "Vocabulary size"; float_to_string hmetrics.vocabulary_size; ];
+   [ "Program volume"; float_to_string hmetrics.program_volume; ];
+   [ "Effort"; float_to_string hmetrics.effort_to_implement; ];
+   [ "Program level"; float_to_string hmetrics.program_level; ];
+   [ "Difficulty level"; float_to_string hmetrics.difficulty_level; ];
+   [ "Time to implement"; float_to_string hmetrics.time_to_implement; ];
+   [ "Bugs delivered"; float_to_string hmetrics.bugs_delivered; ];
+ ]
+;;
+
+let pp_metrics ppf cabs_visitor =
+  let metrics = get_metrics cabs_visitor in
+  (* Compute the metrics from the informations gathered by the visitor. *)
+  let minutes = (int_of_float metrics.time_to_implement) / 60 in
+  let _hours, _minutes = minutes / 60, minutes mod 60 in
+
+  let operator_tbl = cabs_visitor#get_operator_tbl () in
+  let operand_tbl = cabs_visitor#get_operand_tbl () in
 
   let dummy_cst cst =
     { expr_loc = (Lexing.dummy_pos, Lexing.dummy_pos);
@@ -561,40 +573,30 @@ let pp_metrics ppf cabs_visitor =
      for C. Hence the "lower bound" commentary on the output next to "bugs
      delivered".
   *)
+  let title = "Halstead metrics"
+  and stats = "Global statistics (Halstead)"
+  and operator_sec = "Operators"
+  and operand_sec = "Operands" in
   Format.fprintf ppf
-    "@[<v 0>\
-       Halstead metrics@ \
-       ----------------@ \
-       Distinct operators: %d@ \
-       Total operators: %d@ \
-       Distinct operands: %d@ \
-       Total operands: %d@ \
-       Program length: %d@ \
-       Vocabulary size: %d@ \
-       Program volume: %.2f@ \
-       Difficulty level: %.2f@ \
-       Program level: %.2f@ \
-       Effort to implement: %.2f@ \
-       Time to implement (s): %.2f  (%dh %dmin)@ \
-       Bugs delivered (lower bound): %.2f@ @ \
-       \
-       Global statistics (Halstead)@ \
-       ----------------------------@ \
-       @[<v 2>** Operators@ \
-               %a%a%a%a@]@ \
-       @[<v 2>** Operands @ \
-       %a%a@]@ \
+    "@[<v 0>%a@ %a@ @ \
+       %a@ \
+       @[<v 2>%a@ %a%a%a%a@]@ \
+       @[<v 2>%a@ %a%a@]@ \
      @]"
-    (int_of_float distinct_operators)
-    (int_of_float total_operators)
-    (int_of_float distinct_operands)
-    (int_of_float total_operands)
-    (int_of_float program_length)
-    (int_of_float vocabulary_size)
-    program_volume difficulty_level
-    program_level effort_to_implement time_to_implement
-    hours minutes
-    bugs_delivered
+    (mk_hdr 1) title
+    (fun ppf l ->
+      List.iter (fun rowl ->
+        Format.fprintf ppf "@[<hov>";
+        (match rowl with
+          | title :: contents ->
+            Format.fprintf ppf "%s:@ " title;
+            List.iter (fun s -> Format.fprintf ppf "%s@ " s) contents;
+          | [] -> ());
+        Format.fprintf ppf "@]@ ";
+      ) l) (to_list metrics)
+    (mk_hdr 1) stats
+
+    (mk_hdr 2) operator_sec
     (* Operators table *)
     simple_pp_htbl operator_tbl.reserved_tbl
     simple_pp_htbl operator_tbl.otherop_tbl
@@ -604,6 +606,8 @@ let pp_metrics ppf cabs_visitor =
         (fun k v ->
           Format.fprintf ppf "%a: %d@ " Cprint.print_type_spec k v) htbl)
     operator_tbl.tspec_tbl
+    (* Operands *)
+    (mk_hdr 2) operand_sec
     simple_pp_htbl operand_tbl.var_tbl
     (fun ppf htbl ->
       Hashtbl.iter
@@ -619,10 +623,19 @@ let compute_metrics () =
   let cabs_visitor = new halsteadCabsVisitor in
   List.iter (fun file ->
     ignore (Cabsvisit.visitCabsFile (cabs_visitor:>Cabsvisit.cabsVisitor) file))
-    cabs_files
-  ;
+    cabs_files ;
   Metrics.result "%a" pp_metrics cabs_visitor;
 ;;
+
+let get_metrics () =
+  let cabs_files = Ast.UntypedFiles.get () in
+  let cabs_visitor = new halsteadCabsVisitor in
+  List.iter (fun file ->
+    ignore (Cabsvisit.visitCabsFile (cabs_visitor:>Cabsvisit.cabsVisitor) file))
+    cabs_files ;
+  get_metrics cabs_visitor
+;;
+
 end
 
 let compute_on_cabs () =

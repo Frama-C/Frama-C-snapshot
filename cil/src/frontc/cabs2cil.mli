@@ -94,6 +94,39 @@ val register_ignore_side_effect_hook:
 val register_conditional_side_effect_hook:
   (Cabs.expression -> Cabs.expression -> unit) -> unit
 
+(** new hook that will be called when processing a for loop. 
+    Arguments are the four elements of the for clause 
+    (init, test, increment, body)
+    @since Oxygen-20120901 
+*)
+val register_for_loop_all_hook:
+  (Cabs.for_clause ->
+   Cabs.expression -> Cabs.expression -> Cabs.statement -> unit) -> unit
+
+(** new hook that will be called when processing a for loop. Argument is
+    the initializer of the for loop.
+    @since Oxygen-20120901 
+*)
+val register_for_loop_init_hook: (Cabs.for_clause -> unit) -> unit
+
+(** new hook that will be called when processing a for loop. Argument is
+    the test of the loop.
+    @since Oxygen-20120901
+*)
+val register_for_loop_test_hook: (Cabs.expression -> unit) -> unit
+
+(** new hook that will called when processing a for loop. Argument is the
+    body of the loop.
+    @since Oxygen-20120901
+*)
+val register_for_loop_body_hook: (Cabs.statement -> unit) -> unit
+
+(** new hook that will be called when processing a for loop. Argument is
+    the increment part of the loop.
+    @since Oxygen-20120901
+*)
+val register_for_loop_incr_hook: (Cabs.expression -> unit) -> unit
+
 val convFile: Cabs.file -> Cil_types.file
 
 
@@ -201,6 +234,27 @@ val setDoAlternateConditional : unit -> unit
 
 (** Raise Failure *)
 val integral_cast: Cil_types.typ -> Cil_types.term -> Cil_types.term
+
+(** Given a call [lv = f()], if [tf] is the return type of [f] and [tlv]
+    the type of [lv], [allow_return_collapse ~tlv ~tf] returns false
+    if a temporary must be introduced to hold the result of [f], and
+    true otherwise.
+
+    Currently, implicit cast between pointers or cast from an scalar type
+    or a strictly bigger one are accepted without cast. This is subject
+    to change without notice.
+
+    @since Oxygen-20120901
+*)
+val allow_return_collapse: tlv:Cil_types.typ -> tf:Cil_types.typ -> bool
+
+val compatibleTypes: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
+(** Check that the two given types are compatible (C99, 6.2.7), and
+    return their composite type. Raise [Failure] with an explantion
+    if the two types are not compatible
+
+    @since Oxygen-20120901
+*)
 
 (*
 Local Variables:

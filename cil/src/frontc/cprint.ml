@@ -596,19 +596,13 @@ and print_def fmt def =
       fprintf fmt "@[/*@@@ @[%a@]@ */@]@\n"
         (pp_list ~sep:nl_sep Logic_print.print_decl) annot
 
+  | CUSTOM _ -> fprintf fmt "<custom annot>"
+
   | PRAGMA (a,_) ->
       fprintf fmt "@[#pragma %a@]@\n" print_expression a
 
   | LINKAGE (n, _, dl) ->
       fprintf fmt "@[<2>extern@ %s@ {%a@;}@]" n (pp_list print_def) dl
-
-  | TRANSFORMER(srcdef, destdeflist, _) ->
-      fprintf fmt "@[<2>@@transform@ {%a@;}@\nto@ {%a@;}@\n@]"
-        print_def srcdef (pp_list print_def) destdeflist
-
-  | EXPRTRANSFORMER(srcexpr, destexpr, _) ->
-      fprintf fmt "@[<2>@@transformExpr@ {%a@;}@\nto@ {%a@;}@\n@]"
-        print_expression srcexpr print_expression destexpr
 
 (*  print abstrac_syntax -> ()
 **		Pretty printing the given abstract syntax program.

@@ -8,7 +8,7 @@ int main() {
 
   z = (int) 0x7fffffff + (int) 0x7fffffff; /* false */
   z =  - 0x7fffffff - 0x7fffffff; /* false */
-  z = (- (int) 0x80000000) - 1; /* false */
+  z = (- (int) (-0x7fffffff -1)) - 1; /* false */
 
   z = (int) 0x7fffffff + 0; /* true */
   z = - (int) 0x7fffffff - 1; /* true */

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -31,11 +31,11 @@
 
 
 /* Minimum and maximum values a `signed char' can hold.  */
-#  define SCHAR_MIN	__smin(1,)
-#  define SCHAR_MAX	__smax(1,)
+#  define SCHAR_MIN	__FC_SCHAR_MIN
+#  define SCHAR_MAX	__FC_SCHAR_MAX
 
 /* Maximum value an `unsigned char' can hold.  (Minimum is 0.)  */
-#  define UCHAR_MAX	__umax(unsigned char)
+#  define UCHAR_MAX	__FC_UCHAR_MAX
 
 /* Minimum and maximum values a `char' can hold.  */
 #  ifdef __CHAR_UNSIGNED__
@@ -49,32 +49,32 @@
 #define MB_LEN_MAX 16
 
 /* Minimum and maximum values a `signed short int' can hold.  */
-#  define SHRT_MIN	__smin(__SIZEOF_SHORT,)
-#  define SHRT_MAX	__smax(__SIZEOF_SHORT,)
+#  define SHRT_MIN	__FC_SHRT_MIN
+#  define SHRT_MAX	__FC_SHRT_MAX
 
 /* Maximum value an `unsigned short int' can hold.  (Minimum is 0.)  */
-#  define USHRT_MAX	__umax(unsigned short)
+#  define USHRT_MAX     __FC_USHRT_MAX
 
 /* Minimum and maximum values a `signed int' can hold.  */
-#  define INT_MIN	__smin(__SIZEOF_INT,)
-#  define INT_MAX	__smax(__SIZEOF_INT,)
+#  define INT_MIN	__FC_INT_MIN
+#  define INT_MAX	__FC_INT_MAX
 
 /* Maximum value an `unsigned int' can hold.  (Minimum is 0.)  */
-#  define UINT_MAX	__umax(unsigned int)
+#  define UINT_MAX	__FC_UINT_MAX
 
 /* Minimum and maximum values a `signed long int' can hold.  */
-#  define LONG_MAX	__smax(__SIZEOF_LONG,L)
-#  define LONG_MIN	__smin(__SIZEOF_LONG,L)
+#  define LONG_MAX	__FC_LONG_MAX
+#  define LONG_MIN	__FC_LONG_MIN
 
 /* Maximum value an `unsigned long int' can hold.  (Minimum is 0.)  */
-#define ULONG_MAX	__umax(unsigned long)
+#define ULONG_MAX	__FC_ULONG_MAX
 
 /* Minimum and maximum values a `signed long long int' can hold.  */
-#   define LLONG_MAX	__smax(__SIZEOF_LONGLONG,LL)
-#   define LLONG_MIN	__smin(__SIZEOF_LONGLONG,LL)
+#   define LLONG_MAX	__FC_LLONG_MAX
+#   define LLONG_MIN	__FC_LLONG_MIN
 
 /* Maximum value an `unsigned long long int' can hold.  (Minimum is 0.)  */
-#   define ULLONG_MAX	__umax(unsigned long long)
+#   define ULLONG_MAX	__FC_ULLONG_MAX
 
 #endif
 

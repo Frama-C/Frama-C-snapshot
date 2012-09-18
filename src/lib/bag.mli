@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,7 @@ type 'a t
 val empty : 'a t
 val elt : 'a -> 'a t
 val add : 'a -> 'a t -> 'a t
+val append : 'a t -> 'a -> 'a t
 val list : 'a list -> 'a t
 val ulist : 'a t list -> 'a t
 val concat : 'a t -> 'a t -> 'a t
@@ -47,3 +48,4 @@ val length : 'a t -> int
 
 val is_empty : 'a t -> bool
 val singleton : 'a t -> 'a option
+val elements : 'a t -> 'a list

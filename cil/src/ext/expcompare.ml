@@ -137,28 +137,6 @@ let rec stripCastsForPtrArith (e:exp): exp =
     end
   | _ -> e
 
-let compareTypes ?(ignoreSign=true) (t1 : typ) (t2 : typ) : bool =
-  let typeSigNC (t : typ) : typsig =
-    let attrFilter (attr : attribute) : bool =
-      match attr with
-      | Attr ("poly", _) (* TODO: hack hack! *)
-      | Attr ("assumeconst", _)
-      | Attr ("_ptrnode", _)
-      | Attr ("missing_annot", _)
-      | Attr ("const", [])
-      | Attr ("aligned", _)
-      | Attr ("volatile", [])
-      | Attr ("deprecated", [])
-      | Attr ("always_inline", []) -> false
-      | _ -> true
-    in
-    typeSigWithAttrs ~ignoreSign (List.filter attrFilter) t
-  in
-  (typeSigNC t1) = (typeSigNC t2)
-
-let compareTypesNoAttributes ?(ignoreSign=true) (t1 : typ) (t2 : typ) : bool =
-  let typSig = typeSigWithAttrs ~ignoreSign:ignoreSign (fun _ -> []) in
-  Cilutil.equals (typSig t1) (typSig t2)
 
 class volatileFinderClass br = object
   inherit nopCilVisitor
@@ -202,8 +180,7 @@ let rec stripCastsDeepForPtrArith (e:exp): exp =
   | BinOp(MinusPP,e1,e2,t) ->
       let e1 = stripCastsDeepForPtrArith e1 in
       let e2 = stripCastsDeepForPtrArith e2 in
-      if not(compareTypesNoAttributes ~ignoreSign:false
-	       (typeOf e1) (typeOf e2))
+      if not(Cil_datatype.Typ.equal (typeOf e1) (typeOf e2))
       then new_exp ~loc:e.eloc 
         (BinOp(MinusPP, mkCast ~e:e1 ~newt:(typeOf e2), e2, t))
       else new_exp ~loc:e.eloc (BinOp(MinusPP, e1, e2, t))

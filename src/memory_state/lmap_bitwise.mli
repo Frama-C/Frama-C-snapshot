@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@
     @plugin development guide *)
 
 open Abstract_interp
-open Abstract_value
+open Lattice_Interval_Set
 open Locations
 
 exception Bitwise_cannot_copy
@@ -42,17 +42,24 @@ module type Location_map_bitwise = sig
     val map: ((bool * y) -> (bool * y)) -> t -> t
     val fold :
       (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
+    val fold_fuse_same :
+      (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
     val join: t -> t -> t
     val pretty_with_type:
       Cil_types.typ option-> Format.formatter -> t -> unit
     val collapse : t -> y
     val empty : t
+    val degenerate: y -> t
     val is_empty: t->bool
     val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
     val tag : t -> int
   end
 
   val empty : t
+  val bottom: t
+  val is_empty : t -> bool
+  val is_bottom : t -> bool
+  val top: t
   val join : t -> t -> t
   val is_included : t -> t -> bool
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
@@ -77,6 +84,17 @@ module type Location_map_bitwise = sig
         [Cannot_fold]. *)
   val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
 
+  val fold_fuse_same : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
+    (** Same behavior as [fold], except if two disjoint ranges [r1] and [r2] of
+        a given base are mapped to the same value and boolean. In this
+        case, [fold] will call its argument [f] on [r1], then on [r2].
+        [fold_fuse_same] will call it directly on [r1 U r2], where U
+        is the join on sets of intervals.
+
+        May raise [Cannot_fold].
+    *)
+
+
   val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
     -> t -> t -> t
     (** like for [fold], the boolean in [bool * y] indicates if it is possible
@@ -97,6 +115,7 @@ module type Location_map_bitwise = sig
 
 end
 
+(** Lattice with default values on a range or on an entire base *)
 module type With_default = sig
   include Abstract_interp.Lattice
   val default : Base.t -> Int.t -> Int.t -> t

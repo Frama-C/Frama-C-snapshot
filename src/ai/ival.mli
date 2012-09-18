@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,17 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. 
+(** Arithmetic lattices.
+    The interfaces of this module may change between
+    Frama-C versions. Contact us if you need stable APIs. 
     @plugin development guide *)
-
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
-
-exception Can_not_subdiv
-
-external set_round_downward: unit -> unit = "set_round_downward"
-external set_round_upward: unit -> unit = "set_round_upward"
-external set_round_nearest_even: unit -> unit = "set_round_nearest_even"
 
 module F : sig
   type t
@@ -41,6 +34,8 @@ module F : sig
   val pretty :  Format.formatter -> t -> unit
   val pretty_normal :  use_hex:bool -> Format.formatter -> t -> unit
 end
+
+exception Can_not_subdiv
 
 module Float_abstract : sig
   type t
@@ -59,6 +54,7 @@ module Float_abstract : sig
         the returned boolean is true if there was reduction *)
   val inject_r : F.t -> F.t -> bool * t
 
+  val inject_singleton : F.t -> t
   val min_and_max_float : t -> F.t * F.t
   val top : t
   val add_float : rounding_mode -> t -> t -> bool * t
@@ -70,13 +66,13 @@ module Float_abstract : sig
   val pretty : Format.formatter -> t -> unit
   val hash : t -> int
   val zero : t
+  val is_zero : t -> bool
     (*    val rounding_inject : F.t -> F.t -> t *)
   val is_included : t -> t -> bool
   val join : t -> t -> t
   val meet : t -> t -> t
 
   val contains_a_zero : t -> bool
-  val is_zero : t -> bool
   val is_singleton : t -> bool
   val neg_float : t -> t
   val sqrt_float : rounding_mode -> t -> bool * t
@@ -127,7 +123,7 @@ module O : sig
   val split : elt -> t -> t * bool * t
 end
 
-type tt =
+type tt = private
   | Set of Abstract_interp.Int.t array
   | Float of Float_abstract.t
   | Top of Abstract_interp.Int.t option * Abstract_interp.Int.t option *
@@ -233,7 +229,7 @@ val widen : widen_hint -> t -> t -> t
 val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
 val diff : t -> t -> t
 val diff_if_one : t -> t -> t
-val add : t -> t -> t
+val add_int : t -> t -> t
 val neg : t -> t
 val sub : t -> t -> t
 
@@ -250,12 +246,11 @@ val min_and_max :
 val bitwise_and : size:int -> signed:bool -> t -> t -> t
 val bitwise_or : size:int -> t -> t -> t
 
+val min_and_max_float : t -> F.t * F.t
 val inject_range :
   Abstract_interp.Int.t option -> Abstract_interp.Int.t option -> t
   (** [None] means unbounded. The interval is inclusive. *)
 
-val all_positives : Abstract_interp.Int.t option -> bool
-val all_negatives : Abstract_interp.Int.t option -> bool
 val cardinal_zero_or_one : t -> bool
 val is_singleton_int : t -> bool
 val inject_singleton : Abstract_interp.Int.t -> t
@@ -315,6 +310,7 @@ val zero_or_one : t
 (** The lattice element that contains only the integers zero and one. *)
 val contains_non_zero : t -> bool
 val subdiv_float_interval : size:int -> t -> t * t
+val subdiv : size:int -> t -> t * t
 val scale : Abstract_interp.Int.t -> t -> t
 val scale_div : pos:bool -> Abstract_interp.Int.t -> t -> t
 val negative : t
@@ -326,16 +322,11 @@ val shift_left : size:Abstract_interp.Int.t option -> t -> t -> t
 val shift_right : size:Abstract_interp.Int.t option -> t -> t -> t
 val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
 
-(*
-val filter_set : (int -> bool) -> Abstract_interp.Int.t -> O.t -> t
-(** return the smallest lattice element that contains the elements of [s]
-   that are in relation [f] ([<=],[>=],...) to [bound] *)
-*)
-
 val set_of_array : Abstract_interp.Int.t array -> O.t
 
 val extract_bits :
-  start:Abstract_interp.Int.t -> stop:Abstract_interp.Int.t -> t -> t
+  start:Abstract_interp.Int.t -> stop:Abstract_interp.Int.t ->
+  size:Abstract_interp.Int.t -> t -> t
 val create_all_values :
   modu:Abstract_interp.Int.t -> signed:bool -> size:int -> t
 val all_values : size:Abstract_interp.Int.t -> t -> bool
@@ -362,16 +353,23 @@ val max_max :
 val scale_int64base : Int_Base.tt -> t -> t
 val cast_float_to_int :
     signed:bool -> size:int -> t -> bool * bool * t
+val cast_float_to_int_inverse : single_precision:bool -> tt -> tt
 val of_int : int -> t
 val of_int64 : int64 -> t
 val cast_int_to_float : Float_abstract.rounding_mode -> t -> bool * t
 val cast : size:Abstract_interp.Int.t -> signed:bool -> value:t -> t
-val cast_float : t -> bool * t
+val cast_float : rounding_mode:Float_abstract.rounding_mode -> t -> bool * t
 val tag : t -> int
 val pretty_debug : Format.formatter -> t -> unit
 
+
+(**/**) (* This is automatically set by the Value plugin. Do not use. *)
+val set_small_cardinal: int -> unit
+(**/**)
+
+
 (*
 Local Variables:
-compile-command: "make -C ../.. byte"
+compile-command: "make -C ../.."
 End:
 *)

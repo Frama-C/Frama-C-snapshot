@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -46,6 +46,11 @@ val refresh_code_annotation: code_annotation -> code_annotation
 (** creates a new identified predicate with a fresh id. *)
 val new_predicate: predicate named -> identified_predicate
 
+(** Gives a new id to an existing predicate. 
+    @since Oxygen-20120901
+*)
+val refresh_predicate: identified_predicate -> identified_predicate
+
 (** @return a fresh id for predicates *)
 val fresh_predicate_id: unit -> int
 
@@ -54,6 +59,10 @@ val pred_of_id_pred: identified_predicate -> predicate named
 
 (** creates a new identified term with a fresh id*)
 val new_identified_term: term -> identified_term
+
+(** Gives a new id to an existing predicate 
+    @since Oxygen-20120901 *)
+val refresh_identified_term: identified_term -> identified_term
 
 (** @return a fresh id from an identified term*)
 val fresh_term_id: unit -> int
@@ -66,6 +75,8 @@ val pre_label: logic_label
 val post_label: logic_label
 val here_label: logic_label
 val old_label: logic_label
+val loop_current_label: logic_label
+val loop_entry_label: logic_label
 
 (* ************************************************************************** *)
 (** {2 Predicates} *)
@@ -121,7 +132,8 @@ val pif:
 (** <==> *)
 val piff: ?loc:location -> predicate named * predicate named -> predicate named
 
-(** binary relation*)
+(** Binary relation.
+    @plugin development guide *)
 val prel: ?loc:location -> relation * term * term -> predicate named
 
 (** \forall *)
@@ -130,23 +142,32 @@ val pforall: ?loc:location -> quantifiers * predicate named -> predicate named
 (** \exists *)
 val pexists: ?loc:location -> quantifiers * predicate named -> predicate named
 
-(** \fresh *)
-val pfresh: ?loc:location -> term -> predicate named
+(** \fresh(pt,size) *)
+val pfresh: ?loc:location -> logic_label * logic_label * term * term -> predicate named
+
+(** \allocable *)
+val pallocable: ?loc:location -> logic_label * term -> predicate named
+
+(** \freeable *)
+val pfreeable: ?loc:location -> logic_label * term -> predicate named
+
+(** \valid_read *)
+val pvalid_read: ?loc:location -> logic_label * term -> predicate named
 
 (** \valid *)
-val pvalid: ?loc:location -> term -> predicate named
+val pvalid: ?loc:location -> logic_label * term -> predicate named
 
 (** \initialized *)
-val pinitialized: ?loc:location -> term -> predicate named
+val pinitialized: ?loc:location -> logic_label * term -> predicate named
 
 (** \at *)
 val pat: ?loc:location -> predicate named * logic_label -> predicate named
 
-(** \valid_index *)
-val pvalid_index: ?loc:location -> term * term -> predicate named
+(** \valid_index: requires index having integer type or set of integers *)
+val pvalid_index: ?loc:location -> logic_label * term * term -> predicate named
 
-(** \valid_range *)
-val pvalid_range: ?loc:location -> term * term * term -> predicate named
+(** \valid_range: requires bounds having integer type *)
+val pvalid_range: ?loc:location -> logic_label * term * term * term -> predicate named
 
 (** subtype relation *)
 val psubtype: ?loc:location -> term * term -> predicate named
@@ -191,21 +212,27 @@ val is_boolean_type: logic_type -> bool
 (** {1 Logic Terms} *)
 (* ************************************************************************** *)
 
-(** returns a anonymous term of the given type. 
-    @plugin development guide *)
+(** returns a anonymous term of the given type. *)
 val term : ?loc:Location.t -> term_node -> logic_type -> term
 
 (** & *)
 val taddrof: ?loc:Location.t -> term_lval -> logic_type -> term
 
-(** [..] *)
+(** [..] of integers *)
 val trange: ?loc:Location.t -> term option * term option -> term
 
 (** integer constant *)
-val tinteger: ?loc:Location.t -> ?ikind:ikind -> int -> term
+val tinteger: ?loc:Location.t -> int -> term
 
 (** integer constant *)
-val tinteger_s64: ?loc:Location.t -> ?ikind:ikind -> int64 -> term
+val tinteger_s64: ?loc:Location.t -> int64 -> term
+
+(** integer constant 
+    @since Oxygen-20120901 *)
+val tint: ?loc:Location.t -> My_bigint.t -> term
+
+(** real constant *)
+val treal: ?loc:Location.t -> float -> term
 
 (** \at *)
 val tat: ?loc:Location.t -> term * logic_label -> term
@@ -228,6 +255,22 @@ val is_result: term -> bool
     @since Nitrogen-20111001
 *)
 val is_exit_status: term -> bool
+
+(* ************************************************************************** *)
+(** {1 Logic Offsets} *)
+(* ************************************************************************** *)
+
+(** Equivalent to [lastOffset] for terms.
+        @since Oxygen-20120901 *)
+val lastTermOffset: term_offset -> term_offset
+
+(** Equivalent to [addOffset] for terms.
+        @since Oxygen-20120901 *)
+val addTermOffset:     term_offset -> term_offset -> term_offset
+
+(** Equivalent to [addOffsetLval] for terms.
+        @since Oxygen-20120901 *)
+val addTermOffsetLval: term_offset -> term_lval -> term_lval
 
 (*
 Local Variables:

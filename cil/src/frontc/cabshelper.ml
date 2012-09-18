@@ -76,7 +76,6 @@ module Comments =
           let dependencies = [ ]
           (* depends from File.self and Ast.self which add 
              the dependency themselves. *)
-          let kind = `Internal
           let default () = MyTable.empty
          end)
     let self = MyState.self
@@ -153,11 +152,10 @@ let get_definitionloc (d : definition) : cabsloc =
   | ONLYTYPEDEF(_, l) -> l
   | GLOBASM(_, l) -> l
   | PRAGMA(_, l) -> l
-  | TRANSFORMER(_, _, l) -> l
-  | EXPRTRANSFORMER(_, _, l) -> l
   | LINKAGE (_, l, _) -> l
   | GLOBANNOT({Logic_ptree.decl_loc = l }::_) -> l
   | GLOBANNOT [] -> assert false
+  | CUSTOM (_,_,l) -> l
 
 let get_statementloc (s : statement) : cabsloc =
 begin

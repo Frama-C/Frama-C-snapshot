@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -92,7 +92,9 @@ let iter (inspector:inspector) =
     (* Collect noticeable properties (tried + their pending) *)
     let properties = ref Property.Set.empty in
     Property_status.iter
-      (fun ip -> if not (never_tried ip) then add_property properties ip) ;
+      (fun ip -> 
+	if not (never_tried ip) then 
+	  add_property properties ip) ;
     let globals = ref Property.Set.empty in
     let functions = ref Kernel_function.Map.empty in
     (* Dispatch properties into globals and per-function map *)
@@ -120,8 +122,10 @@ let iter (inspector:inspector) =
 	inspector#started ;
 	report (fun () -> inspector#global_section) inspector#property !globals ;
 	Kernel_function.Map.iter
-	  (fun kf ips -> 
-	     report (fun () -> inspector#function_section kf) inspector#property !ips) 
+	  (fun kf ips ->
+            let vi = Kernel_function.get_vi kf in
+            if not (Cil.is_unused_builtin vi) then
+	      report (fun () -> inspector#function_section kf) inspector#property !ips) 
 	  !functions ;
 	inspector#finished ;
       end

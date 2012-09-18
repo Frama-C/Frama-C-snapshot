@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,6 +35,12 @@ module type T_RemoveInfo = sig
       the corresponding assigns clause should be erased entirely
    *)
   exception EraseAssigns
+
+  (** exception that fun_frees_visible or fun_allocates_visible should 
+      raise to indicate that the corresponding allocation clause should 
+      be erased entirely
+   *)
+  exception EraseAllocation
 
   (** some type for the whole project information *)
   type t_proj
@@ -77,6 +83,9 @@ module type T_RemoveInfo = sig
   val fun_postcond_visible : t_fct -> predicate -> bool
   val fun_variant_visible : t_fct -> term -> bool
 
+  val fun_frees_visible : t_fct -> identified_term -> bool
+  val fun_allocates_visible : t_fct -> identified_term -> bool
+
   val fun_assign_visible : t_fct -> identified_term from -> bool
     (** true if the assigned value (first component of the from) is visible
         @raise EraseAssigns to indicate that the corresponding assigns clause
@@ -109,6 +118,12 @@ module type T_RemoveInfo = sig
   *   if [result_visible] returns false on the called function.
   *)
   val result_visible : kernel_function -> t_fct -> bool
+
+  (** [cond_edge_visible f s] emplies that [s] is an 'if' in [f]. The
+      first returned boolean indicates that the 'then' edge is useful,
+      the second one the 'else' is. Setting one or both to true will
+      lead to the simplification in the 'if'. *)
+  val cond_edge_visible: t_fct -> stmt -> bool * bool
 
 end
 

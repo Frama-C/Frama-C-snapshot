@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,6 +39,12 @@ type c_label =
   | LabelParam of string (** Logic label name in user-defined
                              function or predicate *)
 
+val equal : c_label -> c_label -> bool
+
+module T : sig type t = c_label val compare : t -> t -> int end
+module LabelMap : Map.S with type key = c_label
+module LabelSet : Set.S with type elt = c_label
+
 (** @return a label that represent the first point of a loop body. *)
 val loop_head_label : Cil_types.stmt -> Cil_types.logic_label
 
@@ -62,6 +68,7 @@ val label : (string -> 'a -> 'a) -> c_label -> 'a -> 'a
 
 open Cil_types
 
+val lookup_name : c_label -> string
 val lookup : (logic_label * logic_label) list -> string -> c_label
   (** [lookup bindings lparam] retrieves the actual label
       for the label in [bindings] for label parameter [lparam]. *)

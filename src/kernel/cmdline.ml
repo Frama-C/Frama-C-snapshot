@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -74,7 +74,8 @@ let long_plugin_name s =
 
 let additional_info () =
   if !Config.is_gui then
-    "\nLook at the console for additional information (if any)."
+    "\nReverting to previous state.\n\
+Look at the console for additional information (if any)."
   else
     ""
 
@@ -88,13 +89,15 @@ let request_crash_report =
   Format.sprintf
     "Please report as 'crash' at http://bts.frama-c.com/.\n\
    Your Frama-C version is %s.\n\
-   Note that a version and a backtrace alone often does not have information\n\
-   to understand the bug. Guidelines for reporting bugs are at:\n\
+   Note that a version and a backtrace alone often do not contain enough\n\
+   information to understand the bug. Guidelines for reporting bugs are at:\n\
    http://bts.frama-c.com/dokuwiki/doku.php?id=mantis:frama-c:bug_reporting_guidelines\n"
     Config.version
 
 let protect = function
-  | Sys.Break -> "User Interruption (Ctrl-C)"
+  | Sys.Break -> 
+    "User Interruption (Ctrl-C)" 
+    ^ if !kernel_debug_level_ref > 0 then "\n" ^ get_backtrace () else ""
   | Sys_error s -> Printf.sprintf "System error: %s" s
   | Unix.Unix_error(err, a, b) ->
     let error = Printf.sprintf "System error: %s" (Unix.error_message err) in
@@ -103,11 +106,11 @@ let protect = function
     | "", t | t, "" -> Printf.sprintf "%s (%s)" error t
     | f, x -> Printf.sprintf "%s (%s %S)" error f x)
   | Log.AbortError p ->
-    Printf.sprintf "%s aborted because of invalid user input.%s"
+    Printf.sprintf "%s aborted: invalid user input.%s"
       (long_plugin_name p) (additional_info ())
   | Log.AbortFatal p ->
     Printf.sprintf
-      "%s\n%s aborted because of internal error.%s\n%s"
+      "%s\n%s aborted: internal error.%s\n%s"
       (get_backtrace ())
       (long_plugin_name p)
       (additional_info ())
@@ -115,16 +118,10 @@ let protect = function
   | Log.FeatureRequest(p, m) ->
     let name = long_plugin_name p in
     Printf.sprintf
-      "%s aborted because of unimplemented feature.%s\n\
-         Please send a feature request at http://bts.frama-c.com with:\n\
+      "%s aborted: unimplemented feature.%s\n\
+         You may send a feature request at http://bts.frama-c.com with:\n\
          '[%s] %s'."
       name (additional_info ()) name m
-  | Extlib.NotYetImplemented m ->
-    Printf.sprintf
-      "State_builder.aborted because of unimplemented feature.\n\
-         Please send a feature request at http://bts.frama-c.com with:\n\
-         '%s'."
-      m
   | e ->
     Printf.sprintf
       "%s\nUnexpected error (%s).\n%s"
@@ -158,7 +155,7 @@ let catch_at_toplevel = function
 let exit_code = function
   | Log.AbortError _ -> 1
   | Sys.Break -> 2
-  | Log.FeatureRequest _ | Extlib.NotYetImplemented _ -> 3
+  | Log.FeatureRequest _ -> 3
   | Log.AbortFatal _ -> 4
   | _ -> 125
 
@@ -355,8 +352,6 @@ let () =
     ~at_normal_exit:(fun () -> ())
     ~on_error:run_error_exit_hook
 
-let non_initial_options = !non_initial_options_ref
-
 let () =
   if not !use_obj_ref then use_type_ref := false;
   if not !use_type_ref then begin
@@ -368,8 +363,6 @@ let () =
   end
 
 let quiet = !quiet_ref
-let debug_level = !debug_level_ref
-let verbose_level = !verbose_level_ref
 
 let kernel_debug_level = !kernel_debug_level_ref
 let kernel_verbose_level = !kernel_verbose_level_ref
@@ -387,7 +380,8 @@ let use_type = !use_type_ref
 type cmdline_option =
     { oname: string;
       argname: string;
-      ohelp: string option;
+      ohelp: string;
+      ovisible: bool;
       ext_help: (unit,Format.formatter,unit) format;
       setting: option_setting }
 
@@ -536,15 +530,17 @@ struct
 
   let add_for_parsing option = Hashtbl.add options option.oname option
 
-  let add name plugin ?(argname="") help ext_help setting =
+  let add name plugin ?(argname="") help visible ext_help setting =
     L.debug ~level:4 "Cmdline: [%s] registers %S for stage %s."
       plugin name S.name;
-    let help =
-      Extlib.opt_map (fun x -> if x = "" then "undocumented" else x) help
-    in
+    let help = if help = "" then "undocumented" else help in
     let o =
-      { oname = name; argname = argname;
-        ohelp = help; ext_help = ext_help; setting = setting }
+      { oname = name; 
+	argname = argname;
+        ohelp = help; 
+	ext_help = ext_help; 
+	ovisible = visible; 
+	setting = setting }
     in
     add_for_parsing o;
     Plugin.add_option plugin o
@@ -628,7 +624,8 @@ let run_after_setting_files = After_setting.extend
 
 type stage = Early | Extending | Extended | Exiting | Loading | Configuring
 
-let add_option name ~plugin ~group stage ?argname ~help ~ext_help setting =
+let add_option 
+    name ~plugin ~group stage ?argname ~help ~visible ~ext_help setting =
   if name <> "" then
     let add = match stage with
       | Early -> Early_Stage.add
@@ -638,15 +635,15 @@ let add_option name ~plugin ~group stage ?argname ~help ~ext_help setting =
       | Loading -> Loading_Stage.add
       | Configuring -> Configuring_Stage.add
     in
-    add name plugin ~group ?argname help ext_help setting
+    add name plugin ~group ?argname help visible ext_help setting
 
 let add_option_without_action
-    name ~plugin ~group ?(argname="") ~help ~ext_help () =
+    name ~plugin ~group ?(argname="") ~help ~visible ~ext_help () =
   Plugin.add_option
     plugin
     ~group
     { oname = name; argname = argname;
-      ohelp = help; ext_help = ext_help;
+      ohelp = help; ext_help = ext_help; ovisible = visible;
       setting = Unit (fun () -> assert false) }
 
 let add_aliases orig ~plugin ~group stage aliases =
@@ -783,7 +780,7 @@ let print_helpline fmt head help ext_help =
         (* the extended description *)
     (fun fmt -> Format.fprintf fmt ext_help)
 
-let print_option_help fmt o =
+let low_print_option_help fmt print_invisible o =
   if Plugin.is_option_alias o then begin
     false
   end else
@@ -799,15 +796,29 @@ let print_option_help fmt o =
         " <" ^ s ^ ">"
     in
     let name = o.oname in
-    Extlib.may
-      (fun h ->
-        print_helpline fmt (name ^ ty) h o.ext_help;
-        List.iter
-          (fun o ->
-            print_helpline fmt (o.oname ^ ty) (" alias for option " ^ name) "")
-          (Plugin.find_option_aliases o))
-      o.ohelp;
+    if print_invisible || o.ovisible then begin
+      print_helpline fmt (name ^ ty) o.ohelp o.ext_help;
+      List.iter
+        (fun o ->
+          print_helpline fmt (o.oname ^ ty) (" alias for option " ^ name) "")
+        (Plugin.find_option_aliases o)
+    end;
     true
+
+let print_option_help fmt ~plugin ~group name =
+  let p = Plugin.find plugin in
+  let options = 
+    try Hashtbl.find p.Plugin.groups group 
+    with Not_found -> fatal "[Cmdline.print_option_help] no group %s" group
+  in
+  (* linear search... *)
+  let rec find_then_print = function
+    | [] -> fatal "[Cmdline.print_option_help] no option %s" name
+    | o :: tl -> 
+      if o.oname = name then ignore (low_print_option_help fmt true o)
+      else find_then_print tl
+  in
+  find_then_print !options
 
 let option_intro short =
   let first =
@@ -822,7 +833,9 @@ parameter@ have an opposite with the name '%s-no-option-name'.@\n@\n"
   in
   Format.sprintf
     "%sMost options of the form '-option-name' and without any parameter@ \
-have an opposite with the name '-no-option-name'."
+have an opposite with the name '-no-option-name'.@\n@\n\
+Options taking a string as argument should preferably be written@ \
+-option-name=\"argument\"."
     first
 
 let plugin_help shortname =
@@ -846,8 +859,8 @@ let plugin_help shortname =
 	    let print_options l =
               List.fold_left
 		(fun b o ->
-		   let b' = print_option_help fmt o in
-		   b || b')
+		  let b' = low_print_option_help fmt false o in
+		  b || b')
 		false
 		(List.sort (fun o1 o2 -> String.compare o1.oname o2.oname) l)
 	    in
@@ -863,15 +876,14 @@ let plugin_help shortname =
 	    in
 	    match sorted_groups with
 	      | [] -> ()
-	      | (s, o) :: l ->
+	      | g :: l ->
+		let print_group newline (s, o) =
+		  if newline then Format.pp_print_newline fmt ();
 		  Format.fprintf fmt "@[*** %s@]@\n@\n" (String.uppercase s);
-		  ignore (print_options !o);
-		  List.iter
-		    (fun (s, l) ->
-                       Format.fprintf fmt "@\n@[*** %s@]@\n@\n" 
-			 (String.uppercase s);
-                       ignore (print_options !l))
-		    l));
+		  ignore (print_options !o)
+		in
+		print_group false g;
+		List.iter (print_group true) l));
   raise Exit
 
 let help () =

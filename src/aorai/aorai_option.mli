@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -45,14 +45,13 @@ module AddingOperationNameAndStatusInSpecification:Bool
 (** [true] if the user declares that its ya automaton is deterministic. *)
 module Deterministic: State_builder.Ref with type data = bool
 
-val reset: unit -> unit
-(** Resets all options
-    @since Nitrogen-20111001
- *)
-
 val is_on : unit -> bool
 val promela_file: unit -> string
 val advance_abstract_interpretation: unit -> bool
+
+val emitter: Emitter.t
+(** The emitter which emits Aorai annotations.
+    @since Oxygen-20120901 *)
 
 (*
   Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,6 @@ module Filename =
        let arg_name = "filename"
        let help = "dump the semantic stratified callgraph to the file \
 <filename> in dot format"
-       let kind = `Tuning
      end)
 
 module InitFunc =
@@ -48,7 +47,6 @@ module InitFunc =
        let help = "use the given functions as a root service for the scg \
 (you can add as many comma-separated functions as you want; if no function is \
 declared, then root services are initialized with functions with no callers)"
-       let kind = `Correctness
      end)
 
 (*

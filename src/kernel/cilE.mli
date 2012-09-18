@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,6 +30,7 @@
 
 type syntactic_context =
   | SyNone
+  | SyCallResult
   | SyBinOp of Cil_types.binop * Cil_types.exp * Cil_types.exp
   | SyUnOp of  Cil_types.exp
   | SyMem of  Cil_types.lval
@@ -44,15 +45,10 @@ val current_stmt : unit -> Cil_types.kinstr
 val set_syntactic_context : syntactic_context -> unit
 val get_syntactic_context : unit -> Cil_types.kinstr*syntactic_context
 
-type warn_origin = {
-  warn_emitter: Emitter.t;
-  warn_deps: State.t list;
-}
-
 type alarm_behavior =
   | Aignore
       (** pretend that the problematic values do not happen *)
-  | Alog of warn_origin
+  | Alog of Emitter.t * (Format.formatter -> unit)
       (** log the alarm using the global variable that has been set
           with set_syntactic_context, and continue,
           pretending that the problematic values do not happen *)
@@ -60,12 +56,14 @@ type alarm_behavior =
       (** call function -- in a future version, more information will be
           passed to the function *)
 
-val stop_if_stop_at_first_alarm_mode : unit -> unit
-
 type warn_mode =
-    { unspecified: alarm_behavior;
-      others: alarm_behavior;
-      imprecision_tracing: alarm_behavior }
+    { imprecision_tracing: alarm_behavior
+         (** informative messages for garbled values *);
+      defined_logic: alarm_behavior
+         (** operations that raise an error only in the C, not in the logic *);
+      unspecified: alarm_behavior (** defined but unspecified behaviors *);
+      others: alarm_behavior (** all the remaining undefined behaviors *);
+       }
       (** An argument of type [warn_mode] is required by some of the access
           functions in {!Db.Value}  (the interface to the value analysis). This
           argument tells what should be done with the various messages
@@ -77,7 +75,7 @@ type warn_mode =
           {!warn_none_mode} below when you have to provide an argument of type
           [warn_mode]. *)
 
-val warn_all_mode : warn_origin -> warn_mode
+val warn_all_mode : Emitter.t -> (Format.formatter -> unit) -> warn_mode
   (** Emit all messages, including alarms and informative messages
       regarding the loss of precision. *)
 
@@ -91,9 +89,15 @@ val warn_mem_read : warn_mode -> unit
 val warn_mem_write : warn_mode -> unit
 val warn_signed_overflow : warn_mode -> Int64.t option -> Int64.t option -> unit
 
-val warn_index : warn_mode -> string -> string -> unit
-(** [warn_index w kind index] emite a warning signaling an out of bound
-    access of kind [kind] at the index [index].
+val warn_float_overflow : warn_mode -> (unit -> string) -> unit
+
+val warn_index : warn_mode -> positive:bool -> range:string -> unit
+(** [warn_index w ~positive ~range] emits a warning signaling an out of bounds
+    access. The expression used as index is taken from the syntactic context.
+    [range] is used to display the inferred values for the index.
+    If [positive] is true, the generated assertion is of the form
+    [e < upper_bound]; otherwise, two assertions are generated: [0 <= e]
+    and [e < upper_bound].
 *)
 val warn_pointer_comparison : warn_mode -> unit
 val warn_result_nan_infinite : warn_mode -> unit

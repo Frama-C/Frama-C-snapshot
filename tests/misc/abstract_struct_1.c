@@ -1,6 +1,7 @@
 /* run.config
    STDOPT: +"tests/misc/abstract_struct_2.c" +"-lib-entry"
 */
+#include "share/libc/stdlib.h"
 
 struct abstracttype;
 struct something {

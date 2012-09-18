@@ -7,7 +7,7 @@
 
 #include "share/builtin.h"
 
-FLOAT a, b, c, r1, r2, d, i, s, zf;
+FLOAT a, b, c, r1, r2, d, i, s, zf, s2, sq, h;
 
 int t[10]={1,2,3,4,5,6,7,8,9,10},r,z;
 
@@ -63,6 +63,8 @@ main()
   r = 1 + t[(int)(i*i+2.0)];
   z = (int)(10000.0 * (s - s));
   zf = s - s;
-
+  s2 = s + s;
+  sq = s * s;
+  h = s * (1 - s);
   rbits2 = access_bits(i);
 }

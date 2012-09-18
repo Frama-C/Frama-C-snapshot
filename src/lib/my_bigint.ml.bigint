@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,11 +24,14 @@ type t = Big_int.big_int
 module M = struct
 let my_int64_of_big_int i = Int64.of_string (Big_int.string_of_big_int i)
 let my_big_int_of_int64 i = Big_int.big_int_of_string (Int64.to_string i)
+
+@BEG_ONLY_OCAML_310@
 (* Will be used if Big_int.int64_of_big_int does not exist. This is the case
    in OCaml <= 3.10.2. Otherwise the [include Big_int] at the end of this file
    will redefine it to the standard optimal version... *)
 let int64_of_big_int = my_int64_of_big_int
 let big_int_of_int64 = my_big_int_of_int64
+@END_ONLY_OCAML_310@
 
 include Big_int
 (* ...except these functions are buggy before Ocaml 3.11.1 with 32bits wordsize:
@@ -150,17 +153,12 @@ let bitwise_extraction first_bit last_bit x =
   let r = mod_big_int q (power_int_positive_int 2 (1 + last_bit - first_bit)) in
   r
 
-let minus_one_big_int = minus_big_int unit_big_int
-let thirty_two_big_int = big_int_of_int 32
-
-
 (* To export *)
 
   let small_nums = Array.init 33 (fun i -> big_int_of_int i)
 
   let zero = zero_big_int
   let one = unit_big_int
-  let minus_one = minus_big_int unit_big_int
   let two = small_nums.(2)
   let four = small_nums.(4)
   let eight = small_nums.(8)
@@ -213,12 +211,9 @@ let thirty_two_big_int = big_int_of_int 32
     then small_nums.(i)
     else big_int_of_int i
 
-      (* for the two functions below wait until the minimum supported
-         OCaml version is after:
-         http://caml.inria.fr/mantis/print_bug_page.php?bug_id=4792
-      *)
-  let of_int64 i = big_int_of_string (Int64.to_string i)
-  let to_int64 i = Int64.of_string (string_of_big_int i)
+  let of_int64 i = big_int_of_int64 i
+  let to_int64 i = int64_of_big_int i
+  let of_int32 i = big_int_of_string (Int32.to_string i)
   let max_int64 = of_int64 Int64.max_int
   let min_int64 = of_int64 Int64.min_int
   let bits_of_max_float = of_int64 (Int64.bits_of_float max_float)
@@ -378,6 +373,7 @@ module type S = sig
   val of_int : int -> t
   val of_float : float -> t
   val of_int64 : Int64.t -> t
+  val of_int32 : Int32.t -> t
   val to_int64 : t -> int64
   val to_int : t -> int
   val to_float : t -> float

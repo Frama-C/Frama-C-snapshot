@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 open Cil_types
 
 class mark_visitor = object(_self)
-  inherit Cil.nopCilVisitor as super
+  inherit Cil.nopCilVisitor
 
   method vstmt s =
     Db.Value.update_table s Cvalue.Model.top;
@@ -46,6 +46,9 @@ let run () =
          if not (should_memorize_function afundec)
          then
            ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) afundec))
+
+let () = Db.Value.no_results :=
+  (fun fd -> not (should_memorize_function fd))
 
 (*
 Local Variables:

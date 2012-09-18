@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -26,12 +26,16 @@
     annotations.
 *)
 
-(* $Id: logic_preprocess.mli,v 1.7 2008-05-23 12:39:23 uid528 Exp $ *)
-
-(** [file cpp file] takes the file to preprocess,
+(** [file suffix cpp file] takes the file to preprocess,
     and the pre-processing directive, and returns the name of the file
-    containing the completely pre-processed source.
+    containing the completely pre-processed source. suffix will be appended
+    to the name of intermediate files generated for pre-processing annotations
+    (gcc pre-processing differs between .c and .cxx files)
 
-    @raises Sys_error if the file cannot be opened. *)
+    @raises Sys_error if the file cannot be opened. 
 
-val file: (string -> string -> string) -> string -> string
+    @modifies Oxygen-20120901: added suffix argument
+
+*)
+
+val file: string -> (string -> string -> string) -> string -> string

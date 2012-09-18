@@ -64,7 +64,7 @@ let smooth_expression lst =
 
 (* To be called only inside a grammar rule. *)
 let make_expr e =
-  { expr_loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos ();
+  { expr_loc = symbol_start_pos (), symbol_end_pos ();
     expr_node = e }
 
 let currentFunctionName = ref "<outside any function>"
@@ -140,7 +140,7 @@ let doDeclaration logic_spec (loc: cabsloc) (specs: spec_elem list) (nl: init_na
           | Some ls ->
 	      Cabshelper.continue_annot loc
 		(fun () ->
-                   let spec = Logic_lexer.spec ls in
+                   let (_,spec) = Logic_lexer.spec ls in
                    let name =
                      match nl with
                          [ (n,_,_,_),_ ] -> n
@@ -186,13 +186,6 @@ let doOldParDecl (names: string list)
   let args = List.map findOneName names in
   (args, isva)
 
-let checkConnective (s : string) : unit =
-begin
-  (* checking this means I could possibly have more connectives, with *)
-  (* different meaning *)
-  if (s <> "to") then parse_error "transformer connective must be 'to'";
-end
-
 let int64_to_char value =
   if (Int64.compare value (Int64.of_int 255) > 0) ||
     (Int64.compare value Int64.zero < 0) then
@@ -209,7 +202,6 @@ let rec intlist_to_string (str: int64 list):string =
       (String.make 1 this_char) ^ (intlist_to_string rest)
 
 let fst3 (result, _, _) = result
-let snd3 (_, result, _) = result
 let trd3 (_, _, result) = result
 
 let fourth4 (_,_,_,result) = result
@@ -286,6 +278,7 @@ let in_block l =
 %token <Logic_ptree.code_annot * Cabs.cabsloc> CODE_ANNOT
 %token <Logic_ptree.code_annot list * Cabs.cabsloc> LOOP_ANNOT
 %token <string * Cabs.cabsloc> ATTRIBUTE_ANNOT
+%token <Logic_ptree.custom_tree  * string * Cabs.cabsloc> CUSTOM_ANNOT
 
 %token <string> IDENT
 %token <int64 list * Cabs.cabsloc> CST_CHAR
@@ -347,10 +340,6 @@ let in_block l =
 %token<string * Cabs.cabsloc> PRAGMA_LINE
 %token<Cabs.cabsloc> PRAGMA
 %token PRAGMA_EOL
-
-/* sm: cabs tree transformation specification keywords */
-%token<Cabs.cabsloc> AT_TRANSFORM AT_TRANSFORMEXPR AT_SPECIFIER AT_EXPR
-%token AT_NAME
 
 /*Frama-C: ghost bracketing */
 %token LGHOST RGHOST
@@ -437,11 +426,10 @@ let in_block l =
 %type <Cabs.spec_elem * cabsloc> cvspec
 %%
 
-interpret:
-  file EOF				{$1}
-;
-file: globals				{$1}
-;
+interpret: file { $1 }
+
+file: globals EOF			{$1}
+
 globals:
   /* empty */                           { [] }
 | global globals                        { (false,$1) :: $2 }
@@ -462,15 +450,17 @@ ghost_globals:
 
 /*** Global Definition ***/
 global:
-| DECL                                  { GLOBANNOT $1 }
-| declaration                           { $1 }
-| function_def                          { $1 }
+| DECL             { GLOBANNOT $1 }
+| CUSTOM_ANNOT     { let (x,y,z) = $1 in CUSTOM(x,y,z) }
+| declaration      { $1 }
+| function_def     { $1 }
 
-/*(* Some C header files ar shared with the C++ compiler and have linkage
+/*(* Some C header files are shared with the C++ compiler and have linkage
    * specification *)*/
-| EXTERN string_constant declaration    { LINKAGE (fst $2, (*handleLoc*) (snd $2), [ $3 ]) }
+| EXTERN string_constant declaration
+    { LINKAGE (fst $2, (*handleLoc*) (snd $2), [ $3 ]) }
 | EXTERN string_constant LBRACE globals RBRACE
-      { LINKAGE (fst $2, (*handleLoc*) (snd $2),
+    { LINKAGE (fst $2, (*handleLoc*) (snd $2),
                  List.map
                    (fun (x,y) ->
                       if x then parse_error "invalid ghost in extern linkage specification"
@@ -489,7 +479,8 @@ global:
       let pardecl, isva = doOldParDecl $3 $5 in
       (* Make the function declarator *)
       doDeclaration None loc []
-        [(($1, PROTO(JUSTBASE, pardecl,isva), [], loc), NO_INIT)]
+        [(($1, PROTO(JUSTBASE, pardecl,isva), 
+           ["FC_OLDSTYLEPROTO",[]], loc), NO_INIT)]
     }
 /* (* Old style function prototype, but without any arguments *) */
 | IDENT LPAREN RPAREN  SEMICOLON
@@ -498,22 +489,6 @@ global:
       doDeclaration None loc []
         [(($1, PROTO(JUSTBASE,[],false), [], loc), NO_INIT)]
     }
-/* transformer for a toplevel construct */
-| AT_TRANSFORM LBRACE global RBRACE  IDENT/*to*/  LBRACE globals RBRACE {
-    checkConnective $5;
-    TRANSFORMER($3,
-                  List.map
-                    (fun (x,y) ->
-                       if x then parse_error "invalid ghost transformer"
-                       else y)
-                    $7,
-                $1)
-  }
-/* transformer for an expression */
-| AT_TRANSFORMEXPR LBRACE expression RBRACE  IDENT/*to*/  LBRACE expression RBRACE {
-    checkConnective $5;
-    EXPRTRANSFORMER($3, $7, $1)
-  }
 | location error SEMICOLON { PRAGMA (make_expr (VARIABLE "parse_error"), $1) }
 ;
 
@@ -524,8 +499,6 @@ id_or_typename_as_id:
 
 id_or_typename:
     id_or_typename_as_id		{ $1 }
-|   AT_NAME LPAREN IDENT RPAREN         { "@name(" ^ $3 ^ ")" }
-      /* pattern variable name */
 ;
 
 maybecomma:
@@ -541,8 +514,6 @@ primary_expression:                     /*(* 6.5.1. *)*/
 |		paren_comma_expression
 		        { make_expr (PAREN (smooth_expression $1)) }
 |		LPAREN block RPAREN { make_expr (GNU_BODY (fst3 $2)) }
-     /*(* Next is Scott's transformer *)*/
-|               AT_EXPR LPAREN IDENT RPAREN { make_expr (EXPR_PATTERN $3) }
 ;
 
 postfix_expression:                     /*(* 6.5.2 *)*/
@@ -875,12 +846,12 @@ bracket_comma_expression:
 /*** statements ***/
 block: /* ISO 6.8.2 */
     block_begin local_labels block_attrs block_element_list RBRACE
-                                         {!Lexerhack.pop_context();
-                                          { blabels = $2;
-                                            battrs = $3;
-                                            bstmts = $4 },
-					    $1, $5
-                                         }
+      {!Lexerhack.pop_context();
+       { blabels = $2;
+         battrs = $3;
+         bstmts = $4 },
+       $1, $5
+      }
 |   error location RBRACE                { { blabels = [];
                                              battrs  = [];
                                              bstmts  = [] },
@@ -888,7 +859,7 @@ block: /* ISO 6.8.2 */
                                          }
 ;
 block_begin:
-    LBRACE      		         {!Lexerhack.push_context (); $1}
+    LBRACE  { !Lexerhack.push_context (); $1 }
 ;
 
 block_attrs:
@@ -906,7 +877,7 @@ block_element_list:
             { $1 @ $2 @ $3 }
 |   annot_list_opt pragma block_element_list            { $1 @ $3 }
 /*(* GCC accepts a label at the end of a block *)*/
-|   annot_list_opt id_or_typename_as_id COLON
+|   annot_list_opt id_or_typename_as_id COLON 
     { let loc = Parsing.rhs_start_pos 2, Parsing.rhs_end_pos 3 in
       $1 @ no_ghost [LABEL ($2, no_ghost_stmt (NOP loc), loc)] }
 ;
@@ -945,7 +916,7 @@ statement:
         Cabshelper.continue_annot
 	  (currentLoc())
 	  (fun () ->
-             let spec = Logic_lexer.spec $1 in
+             let (_,spec) = Logic_lexer.spec $1 in
              let spec = no_ghost [Cabs.CODE_SPEC spec] in
              spec @ $2)
 	  (fun () -> bs)
@@ -1079,6 +1050,7 @@ declaration:                                /* ISO 6.7.*/
 |   SPEC decl_spec_list SEMICOLON
       { doDeclaration (Some $1) ((snd $2)) (fst $2) [] }
 ;
+
 init_declarator_list:                       /* ISO 6.7 */
     init_declarator                              { [$1] }
 |   init_declarator COMMA init_declarator_list   { $1 :: $3 }
@@ -1103,8 +1075,6 @@ decl_spec_list:                         /* ISO 6.7 */
 |   INLINE decl_spec_list_opt           { SpecInline :: $2, $1 }
 |   cvspec decl_spec_list_opt           { (fst $1) :: $2, snd $1 }
 |   attribute_nocv decl_spec_list_opt   { SpecAttr (fst $1) :: $2, snd $1 }
-/* specifier pattern variable (must be last in spec list) */
-|   AT_SPECIFIER LPAREN IDENT RPAREN    { [ SpecPattern $3 ], $1 }
 ;
 /* (* In most cases if we see a NAMED_TYPE we must shift it. Thus we declare
     * NAMED_TYPE to have right associativity  *) */
@@ -1285,8 +1255,8 @@ parameter_decl: /* (* ISO 6.7.5 *) */
 /* (* Old style prototypes. Like a declarator *) */
 old_proto_decl:
   pointer_opt direct_old_proto_decl   { let (n, decl, a) = $2 in
-					  (n, applyPointer (fst $1) decl,
-                                           a, snd $1)
+                                        (n, applyPointer (fst $1) decl,
+                                         a, snd $1)
                                       }
 
 ;
@@ -1295,7 +1265,7 @@ direct_old_proto_decl:
   direct_decl LPAREN old_parameter_list_ne RPAREN old_pardef_list {
     let par_decl, isva = doOldParDecl $3 $5 in
     let n, decl = $1 in
-    (n, PROTO(decl, par_decl, isva), [])
+    (n, PROTO(decl, par_decl, isva), ["FC_OLDSTYLEPROTO",[]])
   }
 | direct_decl LPAREN RPAREN {
     let n, decl = $1 in (n, PROTO(decl, [], false), [])
@@ -1383,7 +1353,7 @@ function_def:  /* (* ISO 6.9.1 *) */
             let (loc, specs, decl) = $2 in
             let spec =
               Cabshelper.continue_annot loc
-                (fun () -> Some (Logic_lexer.spec $1 ))
+                (fun () -> Some (snd (Logic_lexer.spec $1 )))
                 (fun () -> None)
                 "Ignoring specification of function %s" !currentFunctionName
             in

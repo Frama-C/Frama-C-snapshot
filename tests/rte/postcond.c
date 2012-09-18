@@ -6,12 +6,12 @@
   ensures \result == -x ;
 
   behavior pos:
-    assumes x >= 0 ;
+    assumes first_bhv:(x >= 0) ;
     ensures \result <= 0;
     assigns *y;
 
   behavior neg:
-    assumes x < 0 ;
+    assumes second_bhv:(x < 0 );
     ensures \result > 0;
     assigns \nothing;
 

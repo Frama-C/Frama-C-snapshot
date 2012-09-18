@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,8 @@ module Enabled: Plugin.Bool
 
 module DoUnsignedOverflow : Plugin.Bool
 
+module DoUnsignedDownCast: Plugin.Bool
+
 module DoAll: Plugin.Bool
 
 module Print: Plugin.Bool
@@ -38,7 +40,7 @@ module DoDivMod : Plugin.Bool
 
 module DoMemAccess : Plugin.Bool
 
-module ConstFold : Plugin.Bool
+module Trivial : Plugin.Bool
 
 module Warn : Plugin.Bool
 

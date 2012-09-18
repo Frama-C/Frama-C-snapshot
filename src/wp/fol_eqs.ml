@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,6 +45,13 @@ let alpha sigma x =
 (* --- Removal of lets                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
+(* "\let x=e; P" is equivalent
+   to  "\forall T x; x==e ==> P"
+   and "\exists T x; x==e &&  P".
+   If the \let has a positive polarity then the \forall form is used.
+   Otherwise, the \exists form is used.
+   Provers such Alt-ergo give better result with this heuristic. *)
+
 let rec term global defs sigma = function
   | Tconst _ as c -> c
   | Tvar v -> alpha sigma v
@@ -60,44 +67,53 @@ let rec term global defs sigma = function
       defs := (x,v) :: !defs ;
       term global defs sigma t
 
-let flush defs p =
-  List.fold_left
-    (fun p (x,_) -> p_forall x p)
-    (List.fold_left
-       (fun p (x,v) ->
-          p_implies (p_eq (e_var x) v) p
-       ) p defs)
-    defs
-
-let rec pred global sigma = function
+let flush pol defs p =
+  if pol then
+    List.fold_left
+      (fun p (x,_) -> p_forall x p)
+      (List.fold_left
+	 (fun p (x,v) ->
+            p_implies (p_eq (e_var x) v) p
+	 ) p defs)
+      defs
+  else
+    List.fold_left
+      (fun p (x,_) -> p_exists x p)
+      (List.fold_left
+	 (fun p (x,v) ->
+            p_and (p_eq (e_var x) v) p
+	 ) p defs)
+      defs
+ 
+let rec pred pol global sigma = function
   | Ptrue -> Ptrue
   | Pfalse -> Pfalse
-  | Pimplies(p,q) -> p_implies (pred global sigma p) (pred global sigma q)
-  | Pand(p,q) -> p_and (pred global sigma p) (pred global sigma q)
-  | Por(p,q) -> p_or (pred global sigma p) (pred global sigma q)
-  | Piff(p,q) -> p_iff (pred global sigma p) (pred global sigma q)
-  | Pnot p -> p_not (pred global sigma p)
-  | Pnamed(a,p) -> p_named a (pred global sigma p)
-  | Pforall(x,p) -> let x,sigma = fresh global sigma x in p_forall x (pred global sigma p)
-  | Pexists(x,p) -> let x,sigma = fresh global sigma x in p_exists x (pred global sigma p)
+  | Pimplies(p,q) -> p_implies (pred (not pol) global sigma p) (pred pol global sigma q)
+  | Pand(p,q) -> p_and (pred pol global sigma p) (pred pol global sigma q)
+  | Por(p,q) -> p_or (pred pol global sigma p) (pred pol global sigma q)
+  | Piff(p,q) -> p_iff (pred pol global sigma p) (pred pol global sigma q)
+  | Pnot p -> p_not (pred (not pol) global sigma p)
+  | Pnamed(a,p) -> p_named a (pred pol global sigma p)
+  | Pforall(x,p) -> let x,sigma = fresh global sigma x in p_forall x (pred pol global sigma p)
+  | Pexists(x,p) -> let x,sigma = fresh global sigma x in p_exists x (pred pol global sigma p)
 
   | Papp(f,es) ->
       let defs = ref [] in
       let es = List.map (term global defs sigma) es in
-      flush !defs (p_app f es)
+      flush pol !defs (p_app f es)
 
   | Pif(e,p,q) ->
       let defs = ref [] in
       let e = term global defs sigma e in
-      let p = pred global sigma p in
-      let q = pred global sigma q in
-      flush !defs (p_if e p q)
+      let p = pred pol global sigma p in
+      let q = pred pol global sigma q in
+      flush pol !defs (p_if e p q)
 
   | Plet(x,v,p) ->
       let defs = ref [] in
       let v = term global defs sigma v in
       let x,sigma = fresh global sigma x in
-      let p = pred global sigma p in
-      flush ( (x,v)::!defs ) p
+      let p = pred pol global sigma p in
+      flush pol ( (x,v)::!defs ) p
 
-let compile p = pred (ref Smap.empty) Vmap.empty p
+let compile p = pred true (ref Smap.empty) Vmap.empty p

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -44,7 +44,6 @@ module Tbl =
        let name = "Pdg.State"
        let dependencies = [] (* postponed *)
        let size = 97
-       let kind = `Correctness
     end)
 
 let () =
@@ -66,6 +65,7 @@ let () =
   Db.Pdg.find_simple_stmt_nodes := Sets.find_simple_stmt_nodes;
   Db.Pdg.find_stmt_and_blocks_nodes := Sets.find_stmt_and_blocks_nodes;
   Db.Pdg.find_stmt_node := Sets.find_stmt_node;
+  Db.Pdg.find_label_node := Sets.find_label_node;
   Db.Pdg.find_location_nodes_at_stmt := Sets.find_location_nodes_at_stmt;
   Db.Pdg.find_location_nodes_at_begin := Sets.find_location_nodes_at_begin;
   Db.Pdg.find_location_nodes_at_end := Sets.find_location_nodes_at_end;
@@ -122,45 +122,59 @@ let translate_in_marks = Marks.translate_in_marks
 
 module F_Proj (C : PdgMarks.T_Config) = Marks.F_Proj (C)
 
-(* Didn't manage to make it work. Got message : run: couldn't run the server
-let _ =
-  Format.printf "try to run ocamlviz@.";
-  Ocamlviz.init ()
-*)
 
-let output () =
-    Pdg_parameters.set_debug_keys ["?"];
-    let do_kf_pdg kf =
-      let fname = Kernel_function.get_name kf in
-      if Pdg_parameters.BuildAll.get () ||
-        Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
-      then
-        let pdg = !Db.Pdg.get kf in
-        let bw  = Pdg_parameters.PrintBw.get () in
-        Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
-        let dot_basename = Pdg_parameters.DotBasename.get () in
-        if dot_basename <> "" then
-          !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
-    in
-    !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
-    let ks = Pdg_parameters.get_debug_keyset () in
-    let pp_keys =
-      Pretty_utils.pp_flowlist ~left:"" ~sep:", " ~right:"." 
-        Format.pp_print_string
-    in Pdg_parameters.debug ~level:1 "Logging keys : %a" pp_keys ks ;
-    if Pdg_parameters.BuildAll.get () then
-      Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======"
-
-let () = Pdg_parameters.BuildAll.set_output_dependencies
+let deps =
   [!Db.Pdg.self; Pdg_parameters.BuildAll.self; Pdg_parameters.BuildFct.self]
 
-let main () =
-  let force_pdg =
-    Pdg_parameters.BuildAll.get ()
-    || not (Datatype.String.Set.is_empty (Pdg_parameters.BuildFct.get ()))
-  in
-  if force_pdg then Pdg_parameters.BuildAll.output output
+let () = Pdg_parameters.BuildAll.set_output_dependencies deps
 
+let compute () =
+  let all = Pdg_parameters.BuildAll.get () in
+  let do_kf_pdg kf =
+    let fname = Kernel_function.get_name kf in
+    if all || Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
+    then
+      let pdg = !Db.Pdg.get kf in
+      let dot_basename = Pdg_parameters.DotBasename.get () in
+      if dot_basename <> "" then
+        !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
+  in
+  !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
+  let ks = Pdg_parameters.get_debug_keyset () in
+  let pp_keys =
+    Pretty_utils.pp_flowlist ~left:"" ~sep:", " ~right:"."
+      Format.pp_print_string
+  in Pdg_parameters.debug ~level:1 "Logging keys : %a" pp_keys ks ;
+  if Pdg_parameters.BuildAll.get () then
+    Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======"
+
+let compute_once, _ =
+  State_builder.apply_once "Pdg.Register.compute_once" deps compute
+
+let output () =
+  let bw  = Pdg_parameters.PrintBw.get () in
+  let all = Pdg_parameters.BuildAll.get () in
+  let do_kf_pdg kf =
+    let fname = Kernel_function.get_name kf in
+    if all || Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
+    then
+      let pdg = !Db.Pdg.get kf in
+      Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
+  in
+  !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg
+
+
+let something_to_do () =
+  Pdg_parameters.BuildAll.get ()
+  || not (Datatype.String.Set.is_empty (Pdg_parameters.BuildFct.get ()))
+
+
+let main () =
+  if something_to_do () then
+    (compute_once ();
+     Pdg_parameters.BuildAll.output output)
+
+let () = Pdg_parameters.set_debug_keys ["?"]
 
 let () = Db.Main.extend main
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -25,8 +25,6 @@
 (** Everything related with the marks. Mainly quite low level function. *)
 
 (**/**)
-
-module T = SlicingInternals
 
 let debug = false
 
@@ -36,57 +34,47 @@ let debug = false
  * a PDF element in a slice.
  *)
 module Mark : sig
-  type t = T.t_mark
-  val bottom : t
-  val top : t
-  val spare : t
-  val data : t
-  val ctrl : t
-  val addr : t
-  val mk_adc : bool -> bool -> bool -> t
+  val bottom : SlicingInternals.mark
+  val spare : SlicingInternals.mark
+  val data : SlicingInternals.mark
+  val ctrl : SlicingInternals.mark
+  val addr : SlicingInternals.mark
+  val mk_adc : bool -> bool -> bool -> SlicingInternals.mark
 
-  val is_bottom : t -> bool
-  val is_top : t -> bool
-  val is_included : t -> t -> bool
+  val is_bottom : SlicingInternals.mark -> bool
+  val is_top : SlicingInternals.mark -> bool
+  val is_included : SlicingInternals.mark -> SlicingInternals.mark -> bool
 
-  (** Total order over the marks. Used only for sorting...
-  * Use rather [is_included] to make a clever comparison. *)
-  val compare : t -> t -> int
-
-  (** this operation has to be commutative.
+   (** this operation has to be commutative.
     It is used to merge two slices into one.
    *)
-  val merge : t -> t -> t
+  val merge : SlicingInternals.mark -> SlicingInternals.mark -> SlicingInternals.mark
 
-  val inter : t -> t -> t
+  val inter : SlicingInternals.mark -> SlicingInternals.mark -> SlicingInternals.mark
 
   (** this operation add a new information to the old value.
    * @return (new_mark, is_new)
              where is_new=true if the new_mark is not included in the old one.
    *)
-  val combine : old:t -> t -> bool * t
+  val combine : old:SlicingInternals.mark -> SlicingInternals.mark -> bool * SlicingInternals.mark
 
   (** [minus m1 m2] provides the mark [m] that you have to merge with [m2] to
     * get at least [m1]. So : [m1 <= m U m2]
     * If [m1 <= m2] then [m = bot].
     * *)
-  val minus : t -> t -> t
+  val minus : SlicingInternals.mark -> SlicingInternals.mark -> SlicingInternals.mark
 
-  val pretty : Format.formatter -> t -> unit
+  val pretty : Format.formatter -> SlicingInternals.mark -> unit
 
 end = struct
-  module D = PdgTypes.Dpd
 
-  type t = T.t_mark
-
-
-  let spare = T.Spare
+  let spare = SlicingInternals.Spare
 
   (* Internal constructor *)
-  let create_adc a d c =  T.Cav (D.make ~a ~d ~c ())
+  let create_adc a d c =  SlicingInternals.Cav (PdgTypes.Dpd.make ~a ~d ~c ())
 
-  let bottom = T.Cav D.bottom
-  let top = T.Cav D.top
+  let bottom = SlicingInternals.Cav PdgTypes.Dpd.bottom
+  let top = SlicingInternals.Cav PdgTypes.Dpd.top
 
   let addr = create_adc true false  false
   let data = create_adc false true  false
@@ -109,142 +97,138 @@ end = struct
 
   (* External constructor sharing same values *)
   let mk_adc a d c = create (a, d, c)
-  let mk_mark dpd = create (D.adc_value dpd)
+  let mk_mark dpd = create (PdgTypes.Dpd.adc_value dpd)
 
   let is_bottom m = (m = bottom)
   let is_top m = (m = top)
 
-  (** Total order over the marks. Used only for sorting... *)
-  let compare : t -> t -> int = T.compare_mark
-
   let is_included m1 m2 =
      match m1,m2 with
-       | T.Spare, T.Spare -> true
-       | T.Spare, T.Cav _ -> if is_bottom m2 then false else true
-       | T.Cav _, T.Spare -> if is_bottom m1 then true else false
-       | T.Cav d1, T.Cav d2 -> D.is_included d1 d2
+       | SlicingInternals.Spare, SlicingInternals.Spare -> true
+       | SlicingInternals.Spare, SlicingInternals.Cav _ -> not (is_bottom m2)
+       | SlicingInternals.Cav _, SlicingInternals.Spare -> is_bottom m1 
+       | SlicingInternals.Cav d1, SlicingInternals.Cav d2 -> PdgTypes.Dpd.is_included d1 d2
 
    let merge m1 m2 =
      match m1,m2 with
-       | T.Spare, T.Spare -> m1
-       | T.Spare, T.Cav _ -> if is_bottom m2 then m1 else m2
-       | T.Cav _,  T.Spare -> if is_bottom m1 then m2 else m1
-       | T.Cav d1, T.Cav d2 -> mk_mark (D.combine d1 d2)
+       | SlicingInternals.Spare, SlicingInternals.Spare -> m1
+       | SlicingInternals.Spare, SlicingInternals.Cav _ -> if is_bottom m2 then m1 else m2
+       | SlicingInternals.Cav _,  SlicingInternals.Spare -> if is_bottom m1 then m2 else m1
+       | SlicingInternals.Cav d1, SlicingInternals.Cav d2 -> mk_mark (PdgTypes.Dpd.combine d1 d2)
 
   let inter m1 m2 =
     if is_bottom m1 then m1
     else if is_bottom m2 then m2
     else (* m1 and m2 are not bottom => the result cannot be bottom *)
       match m1,m2 with
-        | T.Spare, _ -> m1
-        | _, T.Spare -> m2
-        | T.Cav d1, T.Cav d2 ->
-            let m = mk_mark (D.inter d1 d2) in
+        | SlicingInternals.Spare, _ -> m1
+        | _, SlicingInternals.Spare -> m2
+        | SlicingInternals.Cav d1, SlicingInternals.Cav d2 ->
+            let m = mk_mark (PdgTypes.Dpd.inter d1 d2) in
               if is_bottom m then spare else m
 
    let combine ~old m =
      match old, m with
-     | T.Spare, T.Spare -> (false, old)
-     | T.Cav old_d, T.Spare ->
-         if D.is_bottom old_d then (true, m) else (false, old)
-     | T.Spare, T.Cav new_d ->
-         if D.is_bottom new_d then (false, old) else (true, m)
-     | T.Cav old_d, T.Cav new_d ->
-         let new_d = D.combine old_d new_d in
+     | SlicingInternals.Spare, SlicingInternals.Spare -> (false, old)
+     | SlicingInternals.Cav old_d, SlicingInternals.Spare ->
+         if PdgTypes.Dpd.is_bottom old_d then (true, m) else (false, old)
+     | SlicingInternals.Spare, SlicingInternals.Cav new_d ->
+         if PdgTypes.Dpd.is_bottom new_d then (false, old) else (true, m)
+     | SlicingInternals.Cav old_d, SlicingInternals.Cav new_d ->
+         let new_d = PdgTypes.Dpd.combine old_d new_d in
          if old_d = new_d then (false, old) else (true, mk_mark new_d)
 
   let minus m1 m2 =
      match m1,m2 with
-       | T.Spare, T.Spare -> bottom
-       | T.Spare, T.Cav d2 -> if D.is_bottom d2 then m1 else bottom
-       | T.Cav _, T.Spare -> m1 (* even if [D.is_bottom d1] because m1 = bot *)
-       | T.Cav d1, T.Cav d2 -> mk_mark (D.minus d1 d2)
+       | SlicingInternals.Spare, SlicingInternals.Spare -> bottom
+       | SlicingInternals.Spare, SlicingInternals.Cav d2 -> if PdgTypes.Dpd.is_bottom d2 then m1 else bottom
+       | SlicingInternals.Cav _, SlicingInternals.Spare -> m1 (* even if [PdgTypes.Dpd.is_bottom d1] because m1 = bot *)
+       | SlicingInternals.Cav d1, SlicingInternals.Cav d2 -> mk_mark (PdgTypes.Dpd.minus d1 d2)
 
   let pretty fmt m =
     match m with
-    | T.Cav d -> D.pretty fmt d
-    | T.Spare -> Format.fprintf fmt "[ S ]"
-
-  let to_string m = Pretty_utils.sfprintf "%a" pretty m
+    | SlicingInternals.Cav d -> PdgTypes.Dpd.pretty fmt d
+    | SlicingInternals.Spare -> Format.fprintf fmt "[ S ]"
 
 end
 
-(** a [MarkPair] is associated with each element of the PDG in a slice.
+(** a [SlicingInternals.pdg_mark] is associated with each element of the PDG in a slice.
   * The first component gives the mark propagated from a user request, while
   * the second one is used to propagate informations to the called functions.
   *)
+
+let mk_m1 m1 = { SlicingInternals.m1 = m1 ; m2 = Mark.bottom } 
+
+let mk_m2 m2 = { SlicingInternals.m1 = Mark.bottom ; m2 = m2} 
+
+let bottom_mark = { SlicingInternals.m1 = Mark.bottom ; m2 = Mark.bottom } 
+let user_mark m = Mark.merge m.SlicingInternals.m1 m.SlicingInternals.m2
+let is_bottom_mark m = (Mark.is_bottom (user_mark m))
+
 module MarkPair = struct
-  type t = T.t_pdg_mark
 
-  (* To do hash-consing *)
-  let create = SlicingInternals.create_sl_mark
 
-  let mk_m1 m1 = create ~m1 ~m2:Mark.bottom
-  let mk_m2 m2 = create ~m1:Mark.bottom ~m2
-  let mk_m m1 m2 = create ~m1 ~m2
 
-  let mk_m1_data = mk_m1 Mark.data
-  let mk_m1_addr = mk_m1 Mark.addr
-  let mk_m1_ctrl = mk_m1 Mark.ctrl
-  let mk_m1_cav = mk_m1 (Mark.mk_adc true true true)
+
   let mk_m1_spare = mk_m1 Mark.spare
 
   let mk_gen_spare = mk_m2 Mark.spare
 
-  let bottom = create ~m1:Mark.bottom ~m2:Mark.bottom
 
-  let user_mark m = Mark.merge m.T.m1 m.T.m2
 
-  let is_bottom m = (Mark.is_bottom (user_mark m))
-  let is_top m = (Mark.is_top m.T.m1) && (Mark.is_top m.T.m2)
+
+
+
+  let is_top m = (Mark.is_top m.SlicingInternals.m1) && (Mark.is_top m.SlicingInternals.m2)
 
   let is_ctrl m = (Mark.is_included Mark.ctrl (user_mark m))
   let is_addr m = (Mark.is_included Mark.addr (user_mark m))
   let is_data m = (Mark.is_included Mark.data (user_mark m))
 
   let is_spare m =
-    not (is_bottom m) && not (is_ctrl m || is_addr m || is_data m)
+    not (is_bottom_mark m) && not (is_ctrl m || is_addr m || is_data m)
 
-  let compare = T.compare_pdg_mark
+  let compare = SlicingInternals.compare_pdg_mark
 
-  let is_included ma mb =
-    (Mark.is_included ma.T.m1 mb.T.m1) && (Mark.is_included ma.T.m2 mb.T.m2)
+  let _is_included ma mb =
+    (Mark.is_included ma.SlicingInternals.m1 mb.SlicingInternals.m1) && (Mark.is_included ma.SlicingInternals.m2 mb.SlicingInternals.m2)
 
   let pretty fmt m =
     let pm fmt m = Format.fprintf fmt "%a" Mark.pretty m
-    in Format.fprintf fmt "<%a,%a>" pm m.T.m1 pm m.T.m2
+    in Format.fprintf fmt "<%a,%a>" pm m.SlicingInternals.m1 pm m.SlicingInternals.m2
 
   let to_string m =
     Pretty_utils.sfprintf "%a" pretty m
 
   let minus ma mb =
-    mk_m (Mark.minus ma.T.m1 mb.T.m1) (Mark.minus ma.T.m2 mb.T.m2)
+    { SlicingInternals.m1 = Mark.minus ma.SlicingInternals.m1 mb.SlicingInternals.m1;
+      m2 = Mark.minus ma.SlicingInternals.m2 mb.SlicingInternals.m2 }
 
   (** see {! Mark.merge} *)
   let merge ma mb =
-    let m1 = Mark.merge ma.T.m1 mb.T.m1 in
-    let m2 = Mark.merge ma.T.m2 mb.T.m2 in
-      mk_m m1 m2
+    let m1 = Mark.merge ma.SlicingInternals.m1 mb.SlicingInternals.m1 in
+    let m2 = Mark.merge ma.SlicingInternals.m2 mb.SlicingInternals.m2 in
+      { SlicingInternals.m1 = m1 ; m2 = m2 }
 
   (** merge only ma_1 et mb_1, m_2 is always bottom *)
   let merge_user_marks ma mb =
-    let m1 = Mark.merge ma.T.m1 mb.T.m1 in
-      mk_m m1 Mark.bottom
+    let m1 = Mark.merge ma.SlicingInternals.m1 mb.SlicingInternals.m1 in
+      { SlicingInternals.m1 = m1 ; m2 = Mark.bottom }
 
   let rec merge_all marks =
     match marks with
-      | [] -> bottom
+      | [] -> bottom_mark
       | m :: [] -> m (* to avoid merging with bottom every time ! *)
       | m :: tl -> merge m (merge_all tl)
 
   let inter ma mb =
-    let m1 = Mark.inter ma.T.m1 mb.T.m1 in
-    let m2 = Mark.inter ma.T.m2 mb.T.m2 in
-      mk_m m1 m2
+    let m1 = Mark.inter ma.SlicingInternals.m1 mb.SlicingInternals.m1 in
+    let m2 = Mark.inter ma.SlicingInternals.m2 mb.SlicingInternals.m2 in
+      { SlicingInternals.m1 = m1 ; m2 = m2 }
 
   let rec inter_all marks =
     match marks with
-      | [] -> bottom
+      | [] -> bottom_mark
       |  m :: [] -> m
       | m :: tl -> inter m (inter_all tl)
 
@@ -260,9 +244,10 @@ module MarkPair = struct
       let m_to_prop = if is_new then mr else Mark.bottom in
         mr, m_to_prop
     in
-    let new_m1, prop1 = combine_m ma.T.m1 mb.T.m1 in
-    let new_m2, prop2 = combine_m ma.T.m2 mb.T.m2 in
-      (mk_m new_m1 new_m2), (mk_m prop1  prop2)
+    let new_m1, prop1 = combine_m ma.SlicingInternals.m1 mb.SlicingInternals.m1 in
+    let new_m2, prop2 = combine_m ma.SlicingInternals.m2 mb.SlicingInternals.m2 in
+    { SlicingInternals.m1 = new_m1 ; m2 = new_m2 }, 
+    { SlicingInternals.m1 = prop1 ; m2 = prop2 }
 
   (** we want to know if the called function [g] with output marks
   * [m_out_called] compute enough things to be used in [f] call
@@ -276,10 +261,10 @@ module MarkPair = struct
     if debug then
       Format.printf "check_out : call=%a called=%a\n" pretty m_out_call
                                                     pretty m_out_called;
-    let mf1 = m_out_call.T.m1 in
-    let mf2 = m_out_call.T.m2 in
-    let mg1 = m_out_called.T.m1 in
-    let mg2 = m_out_called.T.m2 in
+    let mf1 = m_out_call.SlicingInternals.m1 in
+    let mf2 = m_out_call.SlicingInternals.m2 in
+    let mg1 = m_out_called.SlicingInternals.m1 in
+    let mg2 = m_out_called.SlicingInternals.m2 in
     let needed_mg2 = (* we need (mf1 + mf2) for this out in the call *)
       Mark.merge mf1 mf2 in
     let min_mg2 = (* let remove from needed_mg2 what we have in mg1 *)
@@ -294,56 +279,29 @@ module MarkPair = struct
   * Remember that [mg1] has to be propagated as [mf1],
   * but [mg2] has to be propagated as [mf2=spare] *)
   let missing_input ~call:m_in_call ~called:m_in_called =
-    let mf1 = m_in_call.T.m1 in
-    let mf2 = m_in_call.T.m2 in
-    let mg1 = m_in_called.T.m1 in
-    let mg2 = m_in_called.T.m2 in
+    let mf1 = m_in_call.SlicingInternals.m1 in
+    let mf2 = m_in_call.SlicingInternals.m2 in
+    let mg1 = m_in_called.SlicingInternals.m1 in
+    let mg2 = m_in_called.SlicingInternals.m2 in
     let new_mf1 = if Mark.is_included mg1 mf1 then Mark.bottom else mg1 in
     let new_mf2 =
       if (not (Mark.is_bottom mg2)) && (Mark.is_bottom mf2) then
         Mark.spare
       else Mark.bottom
-    in let new_m = mk_m new_mf1 new_mf2 in
-      if is_bottom new_m then None else Some new_m
+    in let new_m =     { SlicingInternals.m1 = new_mf1 ; m2 = new_mf2 } in
+      if is_bottom_mark new_m then None else Some new_m
 
-end
-
-(** Signature to define what we have to be able to do on marks to
- * use {!module:F_SigMarks} *)
-module type T_Mark = sig
-  type t
-  val bottom : t
-  val is_bottom : t -> bool
-  val merge : t -> t -> t
-  val inter_all : t list -> t
-  val merge_user_marks : t -> t -> t
-
-  (** returns the mark that is missing in the [call] input (if any)
-   * to be able to call the called function. *)
-  val missing_input : call:t -> called:t -> t option
-
-  (** returns the mark that is missing in [called] output (if any)
-   * to be able to call that function for this [call]. *)
-  val missing_output : call:t -> called:t -> t option
-
-  (** generated [spare] = the smallest visible mark *)
-  val mk_gen_spare : t
-
-  val pretty : Format.formatter -> t -> unit
 end
 
 (** [SigMarks] works on the marks in function signatures.
   *)
-module F_SigMarks (M : T_Mark) = struct
+module SigMarks = struct
 
   open PdgIndex
 
-  type tm = M.t
-  type t = tm Signature.t
+  type t = SlicingInternals.pdg_mark Signature.t
 
-  let empty = Signature.empty
-
-  let pretty = Signature.pretty M.pretty
+  let pretty = Signature.pretty MarkPair.pretty
 
   let get_input_mark (sgn:t) n = Signature.find_input sgn n
   let get_in_ctrl_mark (sgn:t) = Signature.find_in_ctrl sgn
@@ -352,9 +310,19 @@ module F_SigMarks (M : T_Mark) = struct
   let get_all_input_marks (sgn:t) =
     Signature.fold_all_inputs (fun acc (k, m) -> (k, m)::acc) [] sgn
 
+  let get_matching_input_marks (sgn:t) z =
+    Signature.fold_all_inputs
+      (fun acc (k, m) ->
+        match k with
+          | PdgIndex.Signature.InCtrl | PdgIndex.Signature.InNum _ ->
+              (k, m) :: acc
+          | PdgIndex.Signature.InImpl z' ->
+              if Locations.Zone.intersects z z' then (k, m) :: acc else acc
+      ) [] sgn
+
   exception Visible
   let raise_if_visible () (_, m) =
-    if M.is_bottom m then () else raise Visible
+    if is_bottom_mark m then () else raise Visible
 
   let some_visible_out cm =
     try Signature.fold_all_outputs raise_if_visible () cm ; false
@@ -363,13 +331,13 @@ module F_SigMarks (M : T_Mark) = struct
   let is_topin_visible cm =
     try
       let m = get_in_top_mark cm in
-        if M.is_bottom m then false else true
+        not (is_bottom_mark m)
     with Not_found -> false
 
   let ctrl_visible cm =
     try
       let ctrl_m = get_in_ctrl_mark cm in
-        if M.is_bottom ctrl_m then false else true
+        not (is_bottom_mark ctrl_m)
     with Not_found -> false
 
   let some_visible_in cm =
@@ -377,8 +345,8 @@ module F_SigMarks (M : T_Mark) = struct
     with Visible -> true
 
   let merge_inputs_m1_mark cm =
-    Signature.fold_all_inputs (fun acc (_, m) -> M.merge_user_marks acc m)
-                   M.bottom cm
+    Signature.fold_all_inputs (fun acc (_, m) -> MarkPair.merge_user_marks acc m)
+                   bottom_mark cm
 
   (** @return an under-approxamation of the mark for the given location.
   * If the location is not included in the union of the implicit inputs,
@@ -391,7 +359,7 @@ module F_SigMarks (M : T_Mark) = struct
         Locations.Zone.pretty loc;
     assert (not (Locations.Zone.equal Locations.Zone.bottom loc));
     let do_in (marked_inputs, marks) (in_loc, m) =
-      if M.is_bottom m then (marked_inputs, [])
+      if is_bottom_mark m then (marked_inputs, [])
       else if Locations.Zone.intersects in_loc loc
       then
         let marked_inputs = Locations.Zone.link marked_inputs in_loc in
@@ -405,130 +373,20 @@ module F_SigMarks (M : T_Mark) = struct
       Signature.fold_impl_inputs do_in (marked_inputs, []) cm in
     let m =
       if Locations.Zone.is_included loc marked_inputs
-      then M.inter_all marks
-      else M.bottom
+      then MarkPair.inter_all marks
+      else bottom_mark
     in
       if debug then
         Format.printf "get_input_loc_under_mark : m = %a@."
-          M.pretty m;
+          MarkPair.pretty m;
       m
 
   let something_visible cm =
     some_visible_out cm || some_visible_in cm || ctrl_visible cm
 
-  (** @return the mark that has to be associated to the call statement.
-   * It summarize the marks of all nodes.
-   *)
-  let rec combined_marks cm =
-    let add_m m (_, m2) = M.merge m m2 in
-    Signature.fold add_m M.bottom cm
-
-  let add_spare out_marks max_out =
-    let rec add_out lst n =
-      if n < 0 then lst
-      else if not (List.mem_assoc n lst) then
-        (n, M.mk_gen_spare) :: (add_out lst (n-1))
-      else add_out lst (n-1)
-    in add_out out_marks max_out
-
-         (*
-  let same_output_visibility sig1 sig2 =
-    let check sig_b () (num_out, m_a) =
-      let m_b =
-        try Signature.find_output sig_b num_out
-        with Not_found -> M.bottom
-      in if (M.is_bottom m_a) <> (M.is_bottom m_b)
-      then raise SlicingMacros.Break
-    in
-    let same =
-      try
-        Signature.fold_outputs (check sig2) () sig1;
-        Signature.fold_outputs (check sig1) () sig2;
-        true
-      with SlicingMacros.Break -> false
-    in same
-    *)
-
-  (** check if the output marks in [called_marks] are enough for the
-  * [call_marks].
-  * @return a list of (output number, mark) that are missing,
-  * and a boolean that says if the modification of the called function
-  * would make more visible outputs.
-  * *)
-         (*
-  let check_output called_marks (new_marks, more_outputs) (num_out, m_call) =
-    let m_called =
-      try Signature.find_output called_marks num_out
-      with Not_found -> M.bottom
-    in
-    let missing_m = M.missing_output ~call:m_call ~called:m_called in
-    let new_marks, more_outputs = match missing_m with
-      | None -> new_marks, more_outputs
-      | Some missing_m ->
-          let new_output = M.is_bottom m_called in
-            (num_out, missing_m) :: new_marks, more_outputs || new_output
-    in new_marks, more_outputs
-    *)
-
-  let get_called_marks called_marks_opt =
-    let called_marks = match called_marks_opt with
-      | Some called_marks -> called_marks
-      | None -> empty
-    in
-      if debug then
-        Format.printf "with called = %a\n" pretty called_marks;
-      called_marks
-
-        (*
-  let check_output_marks new_call_marks called_marks_opt =
-    let called_marks = get_called_marks called_marks_opt in
-      List.fold_left (check_output called_marks) ([], false) new_call_marks
-
-  let check_called_output_marks call_marks called_marks_opt =
-    if debug then
-      Format.printf "check_called_output_marks : call = %a\n"
-      pretty call_marks;
-    let called_marks = get_called_marks called_marks_opt in
-      Signature.fold_outputs (check_output called_marks) ([], false) call_marks
-      *)
-
-  let check_input sgn result (in_key, mark) =
-    let add_if_needed m_sgn (in_key, m_input) (marks, more) =
-      if debug then
-        Format.printf "check_input : sgn=%a ; needed=%a\n"
-          M.pretty m_sgn M.pretty m_input;
-      let missing_m = M.missing_input ~call:m_sgn ~called:m_input in
-        match missing_m with
-          | None -> marks, more
-          | Some missing_m ->
-              let new_input = M.is_bottom m_sgn in
-                (in_key, missing_m) :: marks, more || new_input
-    in
-    let m_sgn =
-      try Signature.find_in_info sgn in_key
-      with Not_found -> M.bottom
-    in add_if_needed m_sgn (in_key, mark) result
-
-  let check_input_marks sgn input_marks =
-    List.fold_left (check_input sgn) ([], false) input_marks
-
-  (** check if the input marks in [call_marks] are enough to call a slice with
-   * [called_marks].
-   * @return a list of (input number, mark) that are missing,
-   * and a boolean that says if the propagation in the call
-   * would make more visible inputs in the call signature.
-   * *)
-  let check_called_input_marks call_marks called_marks_opt =
-    match called_marks_opt with
-        | Some called_marks ->
-            let result = Signature.fold_all_inputs (check_input call_marks)
-                                               ([], false) called_marks in
-              result (*missing_marks, more_inputs*)
-        | None -> (* called function need no inputs ? *) ([], false)
-
   let get_marked_out_zone call_marks =
     let add (out0, out_zone) (out_key, m_out)  =
-      if MarkPair.is_bottom m_out then (out0, out_zone)
+      if is_bottom_mark m_out then (out0, out_zone)
       else match out_key with
             | PdgIndex.Signature.OutRet -> true, out_zone
             | PdgIndex.Signature.OutLoc z ->
@@ -541,22 +399,18 @@ end
 (** The mark associated with a call stmt is composed of
  * marks for the call inputs (numbered form 1 to [max_in])
  * and marks for the call outputs (numbered from 0 to [max_out] *)
-module SigMarks = F_SigMarks (MarkPair)
 
 (** {2 Exported things} *)
 
 (** {3 on marks} *)
-type t_mark = MarkPair.t
 
-let bottom_mark = MarkPair.bottom
 let mk_gen_spare = MarkPair.mk_gen_spare
 let mk_user_spare = MarkPair.mk_m1_spare
 let mk_user_mark ~data ~addr ~ctrl =
   if addr || data || ctrl then
-    MarkPair.mk_m1 (Mark.mk_adc  addr data ctrl)
+    mk_m1 (Mark.mk_adc  addr data ctrl)
   else mk_user_spare
 
-let is_bottom_mark = MarkPair.is_bottom
 let is_top_mark = MarkPair.is_top
 let is_spare_mark = MarkPair.is_spare
 let is_ctrl_mark = MarkPair.is_ctrl
@@ -578,9 +432,10 @@ let missing_output_mark = MarkPair.missing_output
 
 type t_sig_marks = SigMarks.t
 
-let empty_sig = SigMarks.empty
+let empty_sig = PdgIndex.Signature.empty
 let get_input_mark = SigMarks.get_input_mark
 let get_all_input_marks = SigMarks.get_all_input_marks
+let get_matching_input_marks = SigMarks.get_matching_input_marks
 let merge_inputs_m1_mark = SigMarks.merge_inputs_m1_mark
 let get_input_loc_under_mark = SigMarks.get_input_loc_under_mark
 (*let same_output_visibility = SigMarks.same_output_visibility*)
@@ -588,11 +443,5 @@ let get_in_ctrl_mark = SigMarks.get_in_ctrl_mark
 let something_visible = SigMarks.something_visible
 let some_visible_out = SigMarks.some_visible_out
 let is_topin_visible = SigMarks.is_topin_visible
-                         (*
-let check_output_marks = SigMarks.check_output_marks
-let check_called_output_marks = SigMarks.check_called_output_marks
-*)
-let check_input_marks = SigMarks.check_input_marks
-let check_called_input_marks = SigMarks.check_called_input_marks
 let get_marked_out_zone = SigMarks.get_marked_out_zone
 let pretty_sig = SigMarks.pretty

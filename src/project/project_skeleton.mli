@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,8 @@ module Output : Log.Messages
 
 type t = private
     { pid: int; mutable name: string; mutable unique_name: string }
-(** @since Carbon-20101201 *)
+(** @since Carbon-20101201
+    @plugin development guide *)
 
 type project = t
 (** @since Carbon-20101201 *)

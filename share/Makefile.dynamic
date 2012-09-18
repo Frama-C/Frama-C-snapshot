@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2011                                               #
+#  Copyright (C) 2007-2012                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -117,7 +117,8 @@ PTESTS_DEP=$(PLUGIN_DIR)/Makefile
 ifeq ($(FRAMAC_INTERNAL),yes)
 $(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS=-I $(FRAMAC_SRC)/ptests -g
 $(PLUGIN_DIR)/ptests_local_config.cmo: $(FRAMAC_SRC)/bin/ptests.byte
-PTESTS_DEP+=$(PTESTS) $(FRAMAC_SHARE)/Makefile.dynamic $(FRAMAC_SHARE)/Makefile.dynamic_config
+PTESTS_DEP+=$(FRAMAC_SHARE)/Makefile.dynamic \
+	    $(FRAMAC_SHARE)/Makefile.dynamic_config
 else
 $(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS=$(FRAMAC_INCLUDES)
 endif #FRAMAC_INTERNAL
@@ -146,11 +147,14 @@ $(PLUGIN_DIR)/ptests_local_config.ml: $(PTESTS_DEP)
 	"Ptests_config.framac_lib :=\"$(FRAMAC_LIB)\";;" >> $@
 	$(CHMOD_RO) $@
 
+$(PLUGIN_NAME)_PTESTS_OPTS:=$(PLUGIN_PTESTS_OPTS)
+
 .PHONY: plugin-test/$(PLUGIN_NAME)
 plugin-test/$(PLUGIN_NAME): $(TARGETS) $(TARGETS_GUI) \
                             $(PLUGIN_DIR)/ptests_local_config.cmo
 	$(PRINT) TESTING PLUG-IN $(notdir $@)
-	cd $($(notdir $@)_DIR) && time -p $(PTESTS)
+	cd $($(notdir $@)_DIR) && \
+        time -p $(PTESTS) $(PTESTS_OPTS) $($(notdir $@)_PTESTS_OPTS)
 
 tests:: plugin-test/$(PLUGIN_NAME)
 
@@ -185,7 +189,7 @@ PLUGIN_DOCFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DOCFLAGS)
 include $(MAKECONFIG_DIR)/Makefile.plugin
 
 TARGETS	:= $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA) $(TARGET_CMXS)
-TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) $(TARGET_GUI_CMXS)
+TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) $(TARGET_GUI_CMX) $(TARGET_GUI_CMXS)
 
 TARGETS_BYTE:= $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA)
 TARGETS_OPT:=$(TARGET_CMI) $(TARGET_CMX) $(TARGET_CMXS)
@@ -198,17 +202,25 @@ gui:: $(TARGETS_GUI)
 # do not define additional targets if you come from the Frama-C Makefile
 ifneq ($(FRAMAC_MAKE),yes)
 
+##########
+# Zarith #
+##########
+
+ifeq ($(HAS_ZARITH),yes)
+ZARITH_INCLUDES= -I $(ZARITH_PATH)
+endif
+
 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_CMO)
 	$(PRINT_LINKING) $@
-	$(OCAMLC) $(DYN_BLINKFLAGS) -o $@ \
-	  $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
+	$(OCAMLC) $(PLUGIN_LINK_BFLAGS) $(DYN_BLINKFLAGS) $(ZARITH_INCLUDES) \
+	  -o $@ $(DYN_BYTE_LIBS) $(DYN_GEN_BYTE_LIBS) \
 	  $(patsubst %boot.cmo, $(PLUGIN_EXTRA_BYTE) $(TARGET_CMO) %boot.cmo, \
 	    $(DYN_ALL_BATCH_CMO))
 
 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE): $(TARGET_CMX)
 	$(PRINT_LINKING) $@
-	$(OCAMLOPT) $(DYN_OLINKFLAGS) -o $@ \
-	  $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
+	$(OCAMLOPT) $(PLUGIN_LINK_OFLAGS) $(DYN_OLINKFLAGS) $(ZARITH_INCLUDES) \
+	  -o $@ $(DYN_OPT_LIBS) $(DYN_GEN_OPT_LIBS) \
 	  $(patsubst %boot.cmx, $(PLUGIN_EXTRA_OPT) $(TARGET_CMX) %boot.cmx, \
             $(DYN_ALL_BATCH_CMX))
 
@@ -217,11 +229,18 @@ static.opt:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE)
 static:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE) \
 	 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)
 
-.PHONY: tests all install uninstall clean depend
+.PHONY: tests all install uninstall clean depend $(PLUGIN_NAME)_CLEAN_DYNAMIC
 
-clean::
-	$(RM) ptests_local_config.ml
-	$(RM) frama-c-$(PLUGIN_NAME) frama-c-$(PLUGIN_NAME).byte
+clean:: $(PLUGIN_NAME)_CLEAN_DYNAMIC
+
+$(PLUGIN_NAME)_CLEAN_DYNAMIC:
+	$(RM) $($(patsubst %_CLEAN_DYNAMIC,%_DIR,$@))/ptests_local_config.ml
+	$(RM) frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)) \
+              frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)).byte
+
+ifneq ($(FRAMAC_MAKE),yes)
+dist-clean distclean: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN
+endif
 
 ifeq ($(USABLE_NATIVE_DYNLINK),no)
 STATIC=static
@@ -269,6 +288,8 @@ depend:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
 include $(PLUGIN_DIR)/.depend
 
 endif # FRAMAC_MAKE <> yes
+
+PLUGIN_PTESTS_OPTS:=
 
 ###############################################################################
 # Local Variables:

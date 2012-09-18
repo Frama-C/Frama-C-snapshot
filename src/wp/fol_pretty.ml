@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cilutil
-
-
-
-
 let f_suffixe f = (f.Cil_types.fname)^"_"^(f.Cil_types.fcomp.Cil_types.cname)
 let get_field f = "get_"^(f_suffixe f)
 let set_field f = "set_"^(f_suffixe f)
@@ -40,7 +35,6 @@ let set_field f = "set_"^(f_suffixe f)
 let constant fmt = function
   | Fol.ConstInt n -> Format.pp_print_string fmt n
   | Fol.ConstBool b ->  Format.pp_print_string fmt (if b then "true" else "false")
-  | Fol.ConstUnit ->  Format.pp_print_string fmt "void"
   | Fol.ConstFloat f ->  Format.pp_print_string fmt f
 
 let pp_list pp fmt = function
@@ -314,26 +308,46 @@ let pp_section fmt title =
 let pp_param pp_tau fmt x =
   Format.fprintf fmt "%a:%a" pp_var x pp_tau (Fol.Var.var_type x)
   
-let fpp_item term predicate pp_tau fmt x =
+let fpp_trigger term predicate fmt = function
+  | Formula.TgTerm t -> term fmt t
+  | Formula.TgProp p -> predicate fmt p
+
+let fpp_triggers t p fmt = function
+  | [] -> ()
+  | tg::tgs ->
+      fpp_trigger t p fmt tg ;
+      List.iter (fun tg -> Format.fprintf fmt ",@," ; fpp_trigger t p fmt tg) tgs
+
+let fpp_foralls tau fmt xs =
+  Pretty_utils.pp_list ~sep:".@ "
+    (fun fmt v -> Format.fprintf fmt "forall %a:%a" pp_var v tau (Fol.Var.var_type v))
+    fmt xs
+    
+let fpp_item term predicate tau fmt x =
   function
     | Formula.Cons k ->
 	Format.fprintf fmt "function %s () : int = %d@\n" x k
     | Formula.Function ([], t) ->
-	Format.fprintf fmt "logic %s: %a@\n" x pp_tau t
+	Format.fprintf fmt "logic %s: %a@\n" x tau t
     | Formula.Function (tl, t) ->
-	Format.fprintf fmt "logic %s: @[<hov 0>%a -> %a@]@\n" x (pp_list pp_tau) tl pp_tau t
+	Format.fprintf fmt "logic %s: @[<hov 0>%a -> %a@]@\n" x (pp_list tau) tl pp_tau t
     | Formula.Predicate([]) ->
 	Format.fprintf fmt "logic %s: prop@\n" x
     | Formula.Predicate(tl) ->
-	Format.fprintf fmt "logic %s: @[<hov 0>%a -> prop@]@\n" x (pp_list pp_tau) tl
+	Format.fprintf fmt "logic %s: @[<hov 0>%a -> prop@]@\n" x (pp_list tau) tl
     | Formula.FunctionDef (xs,tr,exp) ->
 	Format.fprintf fmt "@[<hv 2>function %s (%a) : %a =@ @[<hov 0>%a@]@]@\n"
-	  x (pp_list (pp_param pp_tau)) xs pp_tau tr term exp
+	  x (pp_list (pp_param tau)) xs pp_tau tr term exp
     | Formula.PredicateDef(xs,p) ->
 	Format.fprintf fmt "@[<hv 2>predicate %s (%a) =@ @[<hov 0>%a@]@]@\n"
-	  x (pp_list (pp_param pp_tau)) xs predicate p
+	  x (pp_list (pp_param tau)) xs predicate p
     | Formula.Axiom p ->
 	Format.fprintf fmt "@[<hv 2>axiom %s:@ %a@]@\n" x predicate p
+    | Formula.Trigger(xs,tg,p) ->
+	Format.fprintf fmt "@[<hv 2>axiom %s:%a@ [@[<hov 2>%a@]].@ %a@]@\n" x 
+	  (fpp_foralls tau) xs
+	  (fpp_triggers term predicate) tg
+	  predicate p
     | Formula.Type 0 ->
 	Format.fprintf fmt "type %s@\n" x
     | Formula.Type 1 ->
@@ -346,8 +360,8 @@ let fpp_item term predicate pp_tau fmt x =
 	begin
 	  Format.fprintf fmt "type %s@\n" c.Cil_types.cname ;
 	  let l = c.Cil_types.cfields in 
-	  List.iter (fun f -> export_get_set_field fmt pp_tau f) l ; 
-	  List.iter (fun f -> export_generated_axiomatics fmt pp_tau f) l 
+	  List.iter (fun f -> export_get_set_field fmt tau f) l ; 
+	  List.iter (fun f -> export_generated_axiomatics fmt tau f) l 
 	end
 
 let fpp_header fmt d =

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,7 +20,13 @@
 /*                                                                        */
 /**************************************************************************/
 
+/* POSIX header */
+
 /* c_iflag bits */
+#ifndef _TERMIOS_H
+#define _TERMIOS_H
+
+#include "__fc_define_pid_t.h"
 #define IGNBRK	0000001
 #define BRKINT	0000002
 #define IGNPAR	0000004
@@ -104,6 +110,7 @@
 #define ECHONL	0000100
 #define NOFLSH	0000200
 #define TOSTOP	0000400
+#define IEXTEN  0001000
 
 /* tcflow() and TCXONC use these */
 #define	TCOOFF		0
@@ -120,6 +127,30 @@
 #define	TCSANOW		0
 #define	TCSADRAIN	1
 #define	TCSAFLUSH	2
+
+typedef unsigned int tcflag_t;
+typedef unsigned char cc_t;
+typedef unsigned int speed_t;
+
+// cc_c characters
+#define NCCS 32
+#define VINTR 0
+#define VQUIT 1
+#define VERASE 2
+#define VKILL 3
+#define VEOF 4
+#define VTIME 5
+#define VMIN 6
+#define VSWTC 7
+#define VSTART 8
+#define VSTOP 9
+#define VSUSP 10
+#define VEOL 11
+#define VREPRINT 12
+#define VDISCARD 13
+#define VWERASE 14
+#define VLNEXT 15
+#define VEOL2 16
 
 struct termios {
   tcflag_t c_iflag;    /* input specific flags (bitmask) */

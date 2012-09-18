@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,7 +49,8 @@ struct
       (V)
       (Hptmap.Comp_unused)
       (struct let v = [] :: [K.null,V.top]::L.v end)
-      (struct let l = [ Ast.self ] end)
+      (struct let l = [ Ast.self ] end) (* TODO: this should be an argument of the functor *)
+  let () = Ast.add_monotonic_state M.self
 
 
   module Top_Param = Top_Param
@@ -474,14 +475,13 @@ let narrow =
         in
         Map map
 
-  exception Found_inter
-
   let intersects = 
     let map_intersects =
       M.generic_symetric_existential_predicate 
-	Found_inter 
+	Hptmap.Found_inter
+	M.do_it_intersect
 	~decide_one:(fun _ _ -> ())
-	~decide_both:(fun x y -> if V.intersects x y then raise Found_inter)
+	~decide_both:(fun x y -> if V.intersects x y then raise Hptmap.Found_inter)
     in    
     fun mm1 mm2 ->
       match mm1, mm2 with
@@ -492,7 +492,7 @@ let narrow =
 	    map_intersects m1 m2;
 	    false
           with
-            Found_inter -> true
+            Hptmap.Found_inter -> true
 
   (** if there is only one key [k] in map [m], then returns the pair [k,v]
       where [v] is the value associated to [k].
@@ -502,7 +502,7 @@ let narrow =
     | Top _ -> raise Not_found
     | Map m ->
         let elt = ref None in
-        let rec check_one k v already_seen =
+        let check_one k v already_seen =
           if already_seen
           then raise Not_found
           else begin

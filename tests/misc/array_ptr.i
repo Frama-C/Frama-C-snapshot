@@ -5,6 +5,7 @@ typedef int param_check[20];
 int f(param_check **x) {
   G=(**x)[0];
   (**x)[0] = 2;
+  return 2;
 }
 
 param_check l={1};

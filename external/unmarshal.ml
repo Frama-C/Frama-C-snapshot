@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (C) 2009-2011 INRIA                                         *)
+(*  Copyright (C) 2009-2012 INRIA                                         *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
 (*                                                                        *)
@@ -44,8 +44,6 @@
    If you are new to OCaml, don't take this as an example of good code.
 
 *)
-
-open Printf;;
 
 type t =
   | Abstract
@@ -325,7 +323,7 @@ module LA = struct
   let inner_sz = 1 lsl inner_sz_log;;
   let mask = inner_sz - 1;;
 
-  let make size init =
+  let make size init : _ t =
     let outer_sz = size / inner_sz + 1 in
     let res = Array.make outer_sz [| |] in
     let rec loop sz i =
@@ -734,18 +732,34 @@ let t_queue a = t_record [| t_int; t_list a |]
 
 (**** Hash tables ****)
 
-type ('a, 'b) caml_hashtable =
+type ('a, 'b) _caml_hashtable =
   { mutable size: int;                        (* number of elements *)
-    mutable data: ('a, 'b) bucketlist array } (* the buckets *)
+    mutable data: ('a, 'b) _bucketlist array } (* the buckets *)
 
-and ('a, 'b) bucketlist =
+and ('a, 'b) _caml_hashtable_3_13 =
+  { mutable _size: int;                        (* number of entries *)
+    mutable _data: ('a, 'b) _bucketlist array;  (* the buckets *)
+    mutable _seed: int }                       (* for randomization *)
+
+and ('a, 'b) _bucketlist =
     Empty
-  | Cons of 'a * 'b * ('a, 'b) bucketlist
+  | Cons of 'a * 'b * ('a, 'b) _bucketlist
+
+let ge_ocaml_4 =
+  let major, _minor =
+    Scanf.sscanf Sys.ocaml_version "%d.%d" (fun ma mi -> ma, mi) in
+  major >= 4
+
+let t_hashtbl bucket =
+  if not (ge_ocaml_4) then
+    t_record [| Abstract ; t_array bucket |]
+  else
+    t_record [| Abstract ; t_array bucket; Abstract; Abstract |]
 
 (* version 1: loading keys do not change their hash value *)
 let t_hashtbl_unchangedhashs key value =
   let rec bucket = Structure (Sum [| [| key; value; bucket |] |]) in
-  t_record [| Abstract ; t_array bucket |]
+  t_hashtbl bucket
 
 (* version 2: keys change hash value in the unmarshalling+transformation *)
 let t_hashtbl_changedhashs create add key value =
@@ -764,12 +778,12 @@ let t_hashtbl_changedhashs create add key value =
 	    Obj.repr Empty
 	  )
       in
-      Return (t_record [| Abstract ; t_array bucket |], return_new_hashtbl))
+      Return (t_hashtbl bucket, return_new_hashtbl))
 
 (**** Sets ****)
 
 type elt
-type caml_set = Empty | Node of caml_set * elt * caml_set * int
+type _caml_set = Empty | Node of _caml_set * elt * _caml_set * int
 
 let t_set_unchangedcompares t_elt =
   let rec t_set =  Structure (Sum [| [| t_set; t_elt; t_set; Abstract |] |] ) in
@@ -779,7 +793,7 @@ let t_set_unchangedcompares t_elt =
 
 type key
 
-type 'a caml_map = Empty | Node of 'a caml_map * key * 'a * 'a caml_map * int
+type 'a _caml_map = Empty | Node of 'a _caml_map * key * 'a * 'a _caml_map * int
 
 let t_map_unchangedcompares t_key t_elt =
   let rec t_map =

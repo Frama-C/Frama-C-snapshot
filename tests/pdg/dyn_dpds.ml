@@ -20,7 +20,7 @@ let main _ =
   let memo_debug = Kernel.Debug.get () in
   Kernel.Debug.set 1;
   let files = Ast.get () in
-  Format.printf "@[%a@]" (Cil.d_file (new Printer.print ())) files;
+  Format.printf "@[%a@]" !Ast_printer.d_file files;
 
   Kernel.Debug.set memo_debug ;
 

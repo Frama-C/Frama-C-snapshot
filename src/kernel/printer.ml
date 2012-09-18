@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,12 +22,10 @@
 
 open Cil_types
 open Cil
-open Extlib
-open Pretty_utils
 
 let compare_annotations la1 la2 =
-  let la1 = Annotations.get_code_annotation la1 in
-  let la2 = Annotations.get_code_annotation la2 in
+  let la1 = Annotations.code_annotation_of_rooted la1 in
+  let la2 = Annotations.code_annotation_of_rooted la2 in
   let total_order = Datatype.Int.compare la1.annot_id la2.annot_id in
   match la1.annot_content,la2.annot_content with
       AAssert _, AAssert _ -> total_order
@@ -39,22 +37,44 @@ let compare_annotations la1 la2 =
     | AInvariant _, AStmtSpec _ -> 1
     | AInvariant ([],_,_), AInvariant ([],_,_) -> total_order
     | AInvariant ([],_,_), AAssigns ([],_) -> total_order
+    | AInvariant ([],_,_), AAllocation ([],_) -> total_order
     | AInvariant ([],_,_),_ -> -1
     | AInvariant _, AInvariant([],_,_) -> 1
     | AInvariant _, AAssigns([],_) -> 1
+    | AInvariant _, AAllocation([],_) -> 1
     | AInvariant _, AInvariant _ -> total_order
     | AInvariant _, AAssigns _ -> total_order
+    | AInvariant _, AAllocation _ -> total_order
     | AInvariant _, _ -> -1
+
     | AAssigns _, AAssert _ -> 1
     | AAssigns _, AStmtSpec _ -> 1
     | AAssigns([],_),  AInvariant ([],_,_) -> total_order
     | AAssigns([],_), AAssigns ([],_) -> total_order
+    | AAssigns([],_), AAllocation ([],_) -> total_order
     | AAssigns ([],_), _ -> -1
     | AAssigns _, AInvariant([],_,_) -> 1
     | AAssigns _, AAssigns([],_) -> 1
+    | AAssigns _, AAllocation([],_) -> 1
     | AAssigns _, AInvariant _ -> total_order
     | AAssigns _, AAssigns _ -> total_order
+    | AAssigns _, AAllocation _ -> total_order
     | AAssigns _, _ -> -1
+
+    | AAllocation _, AAssert _ -> 1
+    | AAllocation _, AStmtSpec _ -> 1
+    | AAllocation([],_),  AInvariant ([],_,_) -> total_order
+    | AAllocation([],_), AAssigns ([],_) -> total_order
+    | AAllocation([],_), AAllocation ([],_) -> total_order
+    | AAllocation ([],_), _ -> -1
+    | AAllocation _, AInvariant([],_,_) -> 1
+    | AAllocation _, AAssigns([],_) -> 1
+    | AAllocation _, AAllocation([],_) -> 1
+    | AAllocation _, AInvariant _ -> total_order
+    | AAllocation _, AAssigns _ -> total_order
+    | AAllocation _, AAllocation _ -> total_order
+    | AAllocation _, _ -> -1
+
     | AVariant _, APragma _ -> -1
     | AVariant _, AVariant _ -> total_order
     | AVariant _, _ -> 1
@@ -69,11 +89,14 @@ let compare_annotations la1 la2 =
 class print () = object(self)
   inherit defaultCilPrinterClass as super
 
-  val mutable first_function_definition = true
-
   val mutable declared_globs = Datatype.Int.Set.empty
 
-  val mutable is_fun_def = false
+  val mutable print_spec = false
+
+  (* Are we printing ghost code? If yes, specifications are introduced by
+     /@ and closed by @/. Not really tested currently, as this is not
+     parseable yet.*)
+  val mutable is_ghost = false
 
   method pVar fmt v =
     super#pVar fmt v;
@@ -108,28 +131,21 @@ class print () = object(self)
     | Some st -> st.sid
 
   method private pretty_funspec fmt kf =
-    if not (Cil.is_empty_funspec kf.spec) then begin
+    let spec = Annotations.funspec ~populate:false kf in
+    if not (Cil.is_empty_funspec spec) then begin
       Pretty_utils.pp_open_block fmt "/*@@ ";
-      Format.fprintf fmt "%a@ " self#pSpec kf.spec;
+      Format.fprintf fmt "%a@ " self#pSpec spec;
       Pretty_utils.pp_close_block fmt "*/@\n";
     end
 
-  method private pretty_global_annot fmt =
-    Globals.Annotations.iter
-      (fun annot is_generated ->
-         if is_generated then begin
-           Format.fprintf fmt "@[/*@@ %a@ @]*/@\n" self#pAnnotation annot
-         end)
-
   (**  Do not compact statements with annotations *)
   method may_be_skipped stmt =
-    Annotations.get_all stmt = [] && stmt.labels = []
+    not (Annotations.has_code_annot stmt) && stmt.labels = []
 
   method pVDecl fmt vi =
     (try
        let kf = Globals.Functions.get vi in
-       if not (Datatype.Int.Set.mem vi.vid declared_globs) &&
-         (is_fun_def || not (Ast_info.Function.is_definition kf.fundec))
+       if not (Datatype.Int.Set.mem vi.vid declared_globs) && print_spec
        then begin
          declared_globs <- Datatype.Int.Set.add vi.vid declared_globs;
          (* pretty prints the spec, but not for built-ins*)
@@ -137,7 +153,7 @@ class print () = object(self)
            self#pretty_funspec fmt kf
        end
      with Not_found -> ());
-    is_fun_def <- false;
+    print_spec <- false;
     super#pVDecl fmt vi
 
   method pGlobal fmt glob =
@@ -150,16 +166,7 @@ class print () = object(self)
     (* Out of tree global annotations are pretty printed before the first
        variable declaration of the first function definition. *)
     (match glob with
-     | GVarDecl _ when first_function_definition ->
-         first_function_definition <- false;
-         self#pretty_global_annot fmt
-     | GFun _ ->
-       if first_function_definition then
-         begin
-           first_function_definition <- false;
-           self#pretty_global_annot fmt
-         end;
-       is_fun_def <- true
+     | GVarDecl _ | GFun _ -> print_spec <- Ast.is_last_decl glob;
      | _ -> ());
     super#pGlobal fmt glob
 
@@ -172,16 +179,23 @@ class print () = object(self)
     | AI(_,ca) ->
         Format.fprintf fmt "%a@\n    // synthesized@\n" self#pCode_annot ca
 
+  method private pBeginAnnotation fmt =
+    if is_ghost then Format.fprintf fmt "/@@" else Format.fprintf fmt "/*@@"
+
+  method private pEndAnnotation fmt =
+    if is_ghost then Format.fprintf fmt "@/" else Format.fprintf fmt "*/"
+
+
   method private pLoopAnnotations fmt annots =
     if annots <> [] then
       begin
         let annots = List.sort compare_annotations annots in
-        Pretty_utils.pp_open_block fmt "/*@@ " ;
+        Pretty_utils.pp_open_block fmt "%t " self#pBeginAnnotation;
         Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep
           self#pInsertedAnnotation
           fmt
           annots ;
-        Pretty_utils.pp_close_block fmt "*/@\n" ;
+        Pretty_utils.pp_close_block fmt "%t@\n" self#pEndAnnotation;
       end
 
   method private pAnnotations fmt annots =
@@ -189,9 +203,9 @@ class print () = object(self)
     Pretty_utils.pp_list
       ~pre:Pretty_utils.no_sep ~sep:Pretty_utils.no_sep ~suf:Pretty_utils.no_sep
       (fun fmt annot ->
-         Pretty_utils.pp_open_block fmt "/*@@ " ;
+         Pretty_utils.pp_open_block fmt "%t " self#pBeginAnnotation;
          self#pInsertedAnnotation fmt annot;
-         Pretty_utils.pp_close_block fmt "*/@\n")
+         Pretty_utils.pp_close_block fmt "%t@\n" self#pEndAnnotation)
       fmt
       annots
 
@@ -205,6 +219,7 @@ class print () = object(self)
 
     (* print the Cabscond, if any *)
     Cabscond.pp_comment fmt s ;
+    Cabsbranches.pp_comment fmt s ;
     if Kernel.PrintComments.get () then begin
       let comments = Globals.get_comments_stmt s in
       Pretty_utils.pp_list 
@@ -216,11 +231,24 @@ class print () = object(self)
     let all_annot =
       List.sort
         Cil_datatype.Rooted_code_annotation.compare
-        (Annotations.get_all_annotations s)
+        (Annotations.code_annot s)
     in
+    let pGhost fmt s =
+      let was_ghost = is_ghost in
+      if not was_ghost && s.ghost then (
+        Pretty_utils.pp_open_block fmt "/*@@ ghost " ;
+        is_ghost <- true
+      );
+      self#pStmtKind next fmt s.skind;
+      if not was_ghost && s.ghost then (
+        Pretty_utils.pp_close_block fmt "@,*/";
+        is_ghost <- false;
+      )
+    in
+
     match all_annot with
-    | [] -> self#pStmtKind next fmt s.skind
-    | [ a ] when is_skip s.skind ->
+    | [] -> pGhost fmt s
+    | [ a ] when is_skip s.skind && not s.ghost ->
         Format.fprintf fmt "@[/*@@@ %a */@] %a"
           (self#pInsertedAnnotation) a
           (self#pStmtKind next) s.skind ;
@@ -233,23 +261,20 @@ class print () = object(self)
         begin
           self#pAnnotations fmt stmt_annot ;
           self#pLoopAnnotations fmt loop_annot ;
-          if s.ghost then Pretty_utils.pp_open_block fmt "/*@@ ghost " ;
-          self#pStmtKind next fmt s.skind;
-          if s.ghost then Pretty_utils.pp_close_block fmt "@ */@\n" ;
+          pGhost fmt s
         end
 
   method requireBraces blk =
     match blk.blocals with
-        [] ->
-          begin
-            match blk.bstmts with
-              | [ _ ] | [] when blk.battrs = [] && blk.blocals = [] -> false
-              | _ ->
-                  match self#current_stmt with
-                    | None -> false
-                    | Some stmt -> Annotations.get_all stmt <> []
-          end
-      | _ -> true
+    | [] ->
+      (match blk.bstmts with
+      | [ _ ] | [] when blk.battrs = [] && blk.blocals = [] -> false
+      | _ ->
+	match self#current_stmt with
+        | None -> false
+        | Some stmt -> Annotations.has_code_annot stmt)
+    | _ -> 
+      true
 
   initializer
     logic_printer_enabled <- false;
@@ -280,7 +305,7 @@ Ast_printer.d_predicate_named:= fun fmt x -> Cil.printPredicate_named (new print
 Ast_printer.d_code_annotation:= fun fmt x -> Cil.printCode_annotation (new print()) fmt x;;
 Ast_printer.d_funspec:= fun fmt x -> Cil.printFunspec (new print()) fmt x;;
 Ast_printer.d_annotation:= fun fmt x -> Cil.printAnnotation (new print()) fmt x;;
-Ast_printer.d_file:= fun fmt x -> Cil.d_file (new print()) fmt x;;
+Ast_printer.d_file:= fun fmt x -> Cil.printFile (new print()) fmt x;;
 
 (*
 Local Variables:

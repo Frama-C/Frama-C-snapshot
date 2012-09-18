@@ -1,6 +1,7 @@
 /* This is a C file */
 #define FRAMA_C_MALLOC_HEAP
 #include "../../share/malloc.c"
+#include "share/libc/stdio.h"
 
 struct list_el {
    int val;

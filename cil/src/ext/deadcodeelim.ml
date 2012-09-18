@@ -48,10 +48,7 @@ open Cil
 
 module RD = Reachingdefs
 module UD = Usedef
-module IH = Inthash
-module S = (*Stats*) struct
-  let time _ f c = f c
-end
+module IH = Datatype.Int.Hashtbl
 
 
 module IS = Set.Make(
@@ -61,13 +58,6 @@ module IS = Set.Make(
   end)
 
 let debug = RD.debug
-
-let doTime = ref false
-
-let time s f a =
-  if !doTime then
-    S.time s f a
-  else f a
 
 (* This function should be set by the client if it
  * knows of functions returning a result that have
@@ -226,9 +216,20 @@ class usedDefsCollectorClass = object(self)
 
 end
 
+let is_volatile_tp tp =
+  List.exists (function (Attr("volatile",_)) -> true
+    | _ -> false) (typeAttrs tp)
+
+let is_volatile_vi vi =
+  let vi_vol =
+    List.exists (function (Attr("volatile",_)) -> true
+      | _ -> false) vi.vattr in
+  vi_vol || is_volatile_tp vi.vtype
+
+
 (***************************************************
  * Also need to find reads from volatiles
- * uses two functions I've put in ciltools which
+ * uses two functions above which
  * are basically what Zach wrote, except one is for
  * types and one is for vars. Another difference is
  * they filter out pointers to volatiles. This
@@ -238,7 +239,7 @@ class hasVolatile flag = object
   inherit nopCilVisitor
   method vlval l =
     let tp = typeOfLval l in
-    if (Ciltools.is_volatile_tp tp) then flag := true;
+    if (is_volatile_tp tp) then flag := true;
     DoChildren
   method vexpr _e =
     DoChildren
@@ -253,39 +254,6 @@ let el_has_volatile =
   List.fold_left (fun b e ->
     b || (exp_has_volatile e)) false
  (***************************************************)
-
-let rec compareExp (e1: exp) (e2: exp) : bool =
-(*   log "CompareExp %a and %a.\n" d_plainexp e1 d_plainexp e2; *)
-  e1 == e2 ||
-  match e1.enode, e2.enode with
-  | Lval lv1, Lval lv2
-  | StartOf lv1, StartOf lv2
-  | AddrOf lv1, AddrOf lv2 -> compareLval lv1 lv2
-  | BinOp(bop1, l1, r1, _), BinOp(bop2, l2, r2, _) ->
-      bop1 = bop2 && compareExp l1 l2 && compareExp r1 r2
-  | _ -> begin
-      match isInteger (constFold true e1), isInteger (constFold true e2) with
-        Some i1, Some i2 -> i1 = i2
-      | _ -> false
-    end
-
-and compareLval (lv1: lval) (lv2: lval) : bool =
-  let rec compareOffset (off1: offset) (off2: offset) : bool =
-    match off1, off2 with
-    | Field (fld1, off1'), Field (fld2, off2') ->
-        fld1 == fld2 && compareOffset off1' off2'
-    | Index (e1, off1'), Index (e2, off2') ->
-        compareExp e1 e2 && compareOffset off1' off2'
-    | NoOffset, NoOffset -> true
-    | _ -> false
-  in
-  lv1 == lv2 ||
-  match lv1, lv2 with
-  | (Var vi1, off1), (Var vi2, off2) ->
-      vi1 == vi2 && compareOffset off1 off2
-  | (Mem e1, off1), (Mem e2, off2) ->
-      compareExp e1 e2 && compareOffset off1 off2
-  | _ -> false
 
 let rec stripNopCasts (e:exp): exp =
   match e.enode with
@@ -372,7 +340,7 @@ class uselessInstrElim : cilVisitor = object
 	    true
 	  end else begin
 	    if !debug then Kernel.debug "found call w/o side effects: %a\n" d_instr i;
-	    (vi.vglob || (Ciltools.is_volatile_vi vi) || (el_has_volatile el) ||
+	    (vi.vglob || (is_volatile_vi vi) || (el_has_volatile el) ||
 	    let uses, defd = UD.computeUseDefInstr i in
 	    let rec loop n =
 	      n >= 0 &&
@@ -384,7 +352,7 @@ class uselessInstrElim : cilVisitor = object
       | Set(lh,e,_) when compareExpStripCasts (dummy_exp (Lval lh)) e ->
           false (* filter x = x *)
       | Set((Var vi,NoOffset),e,_) ->
-	  vi.vglob || (Ciltools.is_volatile_vi vi) || (exp_has_volatile e) ||
+	  vi.vglob || (is_volatile_vi vi) || (exp_has_volatile e) ||
 	  let uses, defd = UD.computeUseDefInstr i in
 	  let rec loop n =
 	    n >= 0 &&
@@ -426,10 +394,9 @@ let elim_dead_code_fp (fd : fundec) :  fundec =
     IH.clear defUseSetHash;
     IH.clear sidUseSetHash;
     removedCount := 0;
-    time "reaching definitions" RD.computeRDs fd;
-    ignore(time "ud-collector"
-	     (visitCilFunction (new usedDefsCollectorClass :> cilVisitor)) fd);
-    let fd' = time "useless-elim" (visitCilFunction (new uselessInstrElim)) fd in
+    RD.computeRDs fd;
+    ignore(visitCilFunction (new usedDefsCollectorClass :> cilVisitor) fd);
+    let fd' = visitCilFunction (new uselessInstrElim) fd in
     if !removedCount = 0 then fd' else loop fd'
   in
   loop fd
@@ -441,23 +408,21 @@ let elim_dead_code (fd : fundec) :  fundec =
   IH.clear defUseSetHash;
   IH.clear sidUseSetHash;
   removedCount := 0;
-  time "reaching definitions" RD.computeRDs fd;
+  RD.computeRDs fd;
   if !debug then (Kernel.debug "DCE: collecting used definitions\n");
-  ignore(time "ud-collector"
-	   (visitCilFunction (new usedDefsCollectorClass :> cilVisitor)) fd);
+  ignore(visitCilFunction (new usedDefsCollectorClass :> cilVisitor) fd);
   if !debug then (Kernel.debug "DCE: eliminating useless instructions\n");
-  let fd' = time "useless-elim" (visitCilFunction (new uselessInstrElim)) fd in
-  fd'
+  visitCilFunction (new uselessInstrElim) fd
 
-class deadCodeElimClass : cilVisitor = object
+class deadCodeElimClass full : cilVisitor = object
     inherit nopCilVisitor
 
   method vfunc fd =
-    let fd' = elim_dead_code(*_fp*) fd in
+    let fd' = (if full then elim_dead_code_fp else elim_dead_code) fd in
     ChangeTo(fd')
 
 end
 
-let dce f =
+let dce ~full f =
   if !debug then (Kernel.debug "DCE: starting dead code elimination\n");
-  visitCilFile (new deadCodeElimClass) f
+  visitCilFile (new deadCodeElimClass full) f

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -21,5 +21,7 @@
 /**************************************************************************/
 
 /* ISO C: 7.24 */
-#error "Frama-C: unsupported uchar.h"
+#ifndef __FC_UCHAR
+#define __FC_UCHAR
 
+#endif

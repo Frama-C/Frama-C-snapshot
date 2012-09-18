@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,6 @@
 open Cil_types
 open Ctypes
 
-
 (* -------------------------------------------------------------------------- *)
 (** Logic Formulae                                                            *)
 (* -------------------------------------------------------------------------- *)
@@ -45,8 +44,6 @@ type kind =
   | Model of tau
   | Acsl of tau * Cil_types.logic_type
 
-
-
 (** {2 Pure types} *)
 
 type m_boolean  (** The set of two elements [{true,false}]. *)
@@ -62,8 +59,6 @@ type m_record  (** type record [data_lib.why] *)
 type m_urecord (** type urecord [data_lib.why] *)
 type m_set     (** type 'a set [data_lib.why] *)
 type m_zone    (** type of elementary regions *)
-
-
 
 (** {2 Arithmetics Operators} *)
 
@@ -85,6 +80,8 @@ type section =
   | S_User_Sig     (** Signature of User-defined function and predicates *)
   | S_User_Prop    (** Axioms on User-defined function and predicates *)
 
+type ('t,'p) trigger = TgTerm of 't | TgProp of 'p
+
 type ('x,'t,'p) item =
   | Type of int
   | Cons of int
@@ -93,6 +90,7 @@ type ('x,'t,'p) item =
   | FunctionDef of 'x list * tau * 't
   | PredicateDef of 'x list * 'p
   | Axiom of 'p
+  | Trigger of 'x list * ('t,'p) trigger list * 'p
   | Trecord of compinfo
 
 type ('x,'t,'p) declaration =
@@ -147,7 +145,7 @@ sig
   module type Identifiable =
   sig
     type t
-    module H : Hashtbl.S
+    module H : Hashtbl_common_interface.S
     val index : t -> H.key
     val prefix : string
     val basename : t -> string
@@ -292,6 +290,7 @@ sig
 
   val term_has_var : var list -> 'a term -> bool (* any of vars *)
   val pred_has_var : var list -> pred -> bool    (* any of vars *)
+  val trigger_has_var : var list -> ('a term,pred) trigger -> bool
 
   val term_calls : string -> 'a term -> bool
   val pred_calls : string -> pred -> bool
@@ -304,6 +303,11 @@ sig
   val p_exists : var list -> pred -> pred
   val p_subst  : (var -> var option) -> var -> 'a term -> pred -> pred
   val e_subst  : (var -> var option) -> var -> 'a term -> 'b term -> 'b term
+
+  val p_binders : pred -> var list * pred
+
+  val trigger_of_term : 'a term -> (abstract,pred) trigger
+  val trigger_of_pred : pred -> (abstract,pred) trigger
 
   (** Requires domain to be disjoint from co-domain *)
   val e_rename : (var * var) list -> 'a term -> 'a term
@@ -333,6 +337,7 @@ sig
 
   val pp_var : Format.formatter -> var -> unit
   val pp_section : Format.formatter -> string -> unit
+  val pp_trigger : Format.formatter -> ('a term,pred) trigger -> unit
   val pp_term : Format.formatter -> 'a term -> unit
   val pp_pred : Format.formatter -> pred -> unit
   val pp_decl : Format.formatter -> decl -> unit
@@ -369,12 +374,15 @@ sig
   val i_add  : integer -> integer -> integer
   val i_mult : integer -> integer -> integer
   val i_sub  : integer -> integer -> integer
-
+  val i_eq   : integer -> integer -> pred
+  val i_lt   : integer -> integer -> pred
+  val i_leq  : integer -> integer -> pred
 
   (** {2 Integer Logic Cast} *)
 
-  val guard : Ctypes.c_int -> integer -> pred
-  val modulo : Ctypes.c_int -> integer -> integer
+  val i_guard : Ctypes.c_int -> integer -> pred
+  val f_guard : Ctypes.c_float -> real -> pred
+  val i_modulo : Ctypes.c_int -> integer -> integer
   val i_convert: Ctypes.c_int -> Ctypes.c_int -> integer -> integer
 
  (**{2 Fol data } *)
@@ -490,6 +498,7 @@ sig
 
   val term_such_that : tau -> ('a F.term -> F.pred) -> 'a F.term
 
+  val guards : F.var list -> F.pred -> F.pred
   val forall : F.var list -> F.pred -> F.pred
   val exists : F.var list -> F.pred -> F.pred
   val subst : F.var -> 'a F.term -> F.pred -> F.pred

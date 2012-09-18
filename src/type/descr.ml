@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -97,7 +97,7 @@ let of_structural ty d =
 
 (** {3 Builders mapping transformers of {!Unmarshal}} *)
 
-let rec dependent_pair a fb = match a with
+let dependent_pair a fb = match a with
   | Nopack -> unmarshable
   | Recursive _ -> raise Invalid_descriptor
   | Pack a ->
@@ -125,7 +125,8 @@ module Unmarshal_tbl =
     (struct
       type t = Unmarshal.t
       let equal = (==)
-      let hash = Hashtbl.hash
+      let hash = Hashtbl.hash (* [JS 2012/07/10] what about recursive datatypes?
+				 Look like [hash] could loop... *)
      end)
 
 let visited = Unmarshal_tbl.create 7
@@ -158,7 +159,7 @@ and transform_unmarshal term x = function
     assert (x != y);
     transform_unmarshal term x d
 
-let rec transform descr f = match descr with
+let transform descr f = match descr with
   | Nopack -> raise Cannot_pack
   | Recursive _ -> raise Invalid_descriptor
   | Pack d ->

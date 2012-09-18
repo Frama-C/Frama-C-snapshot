@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,7 @@
 (* This is the panel to control the status of proof obligations. *)
 
 open Design
-open Cil_types
-open Wpo
+open VCS
 
 type row = {
   wpo: Wpo.t;
@@ -47,7 +46,7 @@ let refresh_panel_callback = ref (fun () -> ())
 let refresh_status_callback = ref (fun () -> ())
 
 let make_panel (main_ui:main_window_extension_points) =
-  let container = GPack.vbox () in
+  let container = GPack.vbox ~show:true () in
   let paned = GPack.paned `VERTICAL
     ~packing:(container#pack ~expand:true ~fill:true)
     ()
@@ -57,6 +56,8 @@ let make_panel (main_ui:main_window_extension_points) =
     ~callback:(fun _ ->
       Gtk_helper.save_paned_ratio "po_navigator_paned" paned; false)
   in
+  let upper_frame = GBin.frame ~packing:paned#add1 () in
+  let lower_frame = GBin.frame ~packing:paned#add2 () in
   let module MODEL =  Gtk_helper.MAKE_CUSTOM_LIST(struct type t = row end) in
   let model = MODEL.custom_list () in
 
@@ -70,7 +71,7 @@ let make_panel (main_ui:main_window_extension_points) =
     GBin.scrolled_window
       ~vpolicy:`AUTOMATIC
       ~hpolicy:`AUTOMATIC
-      ~packing:paned#add1
+      ~packing:upper_frame#add
       ()
   in
   let view =
@@ -85,11 +86,10 @@ let make_panel (main_ui:main_window_extension_points) =
              (* copy to prevent Gtk to free it too soon.
                 Bug in all pre 2.14 versions of Lablgtk2 *)
            let path = GtkTree.TreePath.copy path in
-
-           Gui_parameters.debug "Activate %s prover:%a"
-             wpo.Wpo.po_name Wpo.pp_prover prover ;
+           Wpo.set_result wpo prover VCS.computing ;
+           model#custom_row_changed path custom ;
            let current_model_age = !model_age in
-           let callout _wpo _prover _result =
+           let callback _wpo _prover _result =
              if current_model_age = !model_age then
                begin
                  model#custom_row_changed path custom;
@@ -97,13 +97,9 @@ let make_panel (main_ui:main_window_extension_points) =
                end;
              main_ui#rehighlight ()
            in
-           Wpo.set_result wpo prover Wpo.Computing ;
-           model#custom_row_changed path custom ;
-           let server = Prover.server () in
-           let task =
-             Prover.prove ~callout wpo ~interactive:true prover
-           in
-           Task.spawn server task ;
+           let task = Prover.prove wpo ~interactive:true ~callback prover in
+           let server = ProverTask.server () in
+           Task.spawn server (Task.job task) ;
            Task.launch server
          | _ -> ()));
   view#selection#set_select_function
@@ -111,8 +107,10 @@ let make_panel (main_ui:main_window_extension_points) =
       if not currently_selected then
         begin match model#custom_get_iter path with
           | Some {MODEL.finfo = {wpo=wpo};} ->
-              Gui_parameters.debug "Select %s@." wpo.Wpo.po_name;
-              SelectionHook.apply wpo
+              SelectionHook.apply wpo;
+              let prop = Wpo.get_property wpo in
+              main_ui#scroll (Pretty_source.PIP prop)
+              
           | None -> ()
         end;
       true);
@@ -132,45 +130,36 @@ let make_panel (main_ui:main_window_extension_points) =
 
   add_text_column
     ~title:"Module"
-    (fun wpo ->
-      ((fst(Kernel_function.get_location wpo.Wpo.po_fun)).Lexing.pos_fname)) ;
-
-  add_text_column
-    ~title:"Function"
-    (fun wpo -> (Kernel_function.get_name wpo.Wpo.po_fun));
-
-  add_text_column
-    ~title:"Behavior"
-    (fun wpo -> match wpo.Wpo.po_bhv with
-    | None -> ""
-    | Some b -> b);
-
-  add_text_column
-    ~title:"Model"
-    (fun wpo -> wpo.Wpo.po_model);
+    (fun wpo -> 
+       match Wpo.get_index wpo with
+	 | Wpo.Lemma s -> Printf.sprintf "Lemma '%s'" s
+	 | Wpo.Function(kf,_) -> Printf.sprintf "Function '%s'" 
+	     (Kernel_function.get_name kf)
+    );
 
   add_text_column
     ~title:"Property"
-    (fun wpo -> WpPropId.name_of_prop_id wpo.Wpo.po_pid) ;
+    (fun wpo -> 
+       let context = Wpo.kf_context (Wpo.get_index wpo) in
+       let property = Wpo.get_property wpo in
+       Pretty_utils.to_string 
+	 (Description.pp_localized ~kf:context ~ki:false ~kloc:false) 
+	 property) ;
 
-  add_text_column
-    ~title:"Kind"
-    (fun wpo -> WpPropId.label_of_prop_id wpo.Wpo.po_pid);
+  add_text_column ~title:"Kind" Wpo.get_label ;
 
-  let icon_of_result = function
-    | Wpo.Valid -> "gtk-yes"
-    | Wpo.Failed _ -> "gtk-dialog-error"
-    | Wpo.Unknown -> "gtk-dialog-question"
-    | Wpo.Timeout -> "gtk-cut"
-    | Wpo.Invalid -> "gtk-no"
-    | Wpo.Computing -> "gtk-execute"
-  in
+  add_text_column ~title:"Model" Wpo.get_model ;
 
-  let name_of_prover = function
-    | Why s -> String.capitalize s
-    | AltErgo -> "Alt-Ergo"
-    | Coq -> "Coq"
-    | WP -> "WP"
+  let icon_of_result r = 
+    match r.verdict with
+      | VCS.NoResult -> ""
+      | VCS.Valid -> "gtk-yes"
+      | VCS.Failed -> "gtk-dialog-error"
+      | VCS.Unknown -> "gtk-dialog-question"
+      | VCS.Timeout -> "gtk-cut"
+      | VCS.Stepout -> "gtk-cut"
+      | VCS.Invalid -> "gtk-no"
+      | VCS.Computing -> "gtk-execute"
   in
 
   (* Prover columns *)
@@ -179,22 +168,20 @@ let make_panel (main_ui:main_window_extension_points) =
       (GTree.cell_renderer_pixbuf [top])
       (fun {wpo=wpo} ->
         match Wpo.get_result wpo prover with
-          | Some r -> [ `STOCK_ID (icon_of_result r) ]
-          | None -> 
-	      if prover=WP 
-	      then [ `PIXBUF(Gtk_helper.Icon.get Gtk_helper.Icon.Unmark) ] 
-	      else [ `STOCK_ID "" ])
-      ~title:(name_of_prover prover)
+          | { verdict=NoResult } when prover=WP ->
+	      [ `PIXBUF(Gtk_helper.Icon.get Gtk_helper.Icon.Unmark) ] 
+          | r -> [ `STOCK_ID (icon_of_result r) ]
+      ) ~title:(VCS.name_of_prover prover)
     in
     cview#set_resizable true;
     cview#set_clickable true;
     ignore (cview#connect#clicked
               (fun () ->
-                Gui_parameters.debug "Clicked on column %a" Wpo.pp_prover prover)) ;
+                Gui_parameters.debug "Clicked on column %a" VCS.pp_prover prover)) ;
     ignore (view#append_column cview);
     Prover_Column.register cview prover
   in
-  List.iter make_prover_status Wpo.gui_provers ;
+  List.iter make_prover_status VCS.gui_provers ;
 
      (* Last column is empty and juste uses the extra white space *)
   let last_column = GTree.view_column ~title:"" () in
@@ -202,33 +189,30 @@ let make_panel (main_ui:main_window_extension_points) =
 
   view#set_model (Some model#coerce);
 
-  let information_window = Source_manager.make ~packing:paned#add2 ~tab_pos:`RIGHT () in
+  let information_window = 
+    Source_manager.make ~packing:lower_frame#add ~tab_pos:`RIGHT () 
+  in
   SelectionHook.extend
     (fun wpo ->
        let results = Wpo.get_results wpo in
        match !refresh_current_wpo with
 	 | Some (wold,rold) when 
-	     (wold.po_gid = wpo.po_gid) && (Pervasives.compare rold results = 0) -> ()
+	     (Wpo.get_gid wold = Wpo.get_gid wpo) && 
+	       (Pervasives.compare rold results = 0) -> ()
 	 | _ ->
 	     begin
 	       refresh_current_wpo := Some (wpo,results) ;
 	       Source_manager.clear information_window ;
+	       let files = Wpo.get_files wpo in
 	       List.iter
 		 (fun (title,filename) ->
-		    Source_manager.load_file information_window ~title ~filename ~line:1 ())
-		 [
-		   "Obligation"  , Wpo.file_for_body ~gid:wpo.po_gid ;
-		   "Description" , Wpo.file_for_head ~gid:wpo.po_gid ;
-		   "Environment" , Wpo.file_for_ctxt ~env:wpo.po_env ;
-		 ] ;
-	       List.iter
-		 (fun (prover,result) ->
-		    if prover <> Wpo.WP && result <> Wpo.Computing then
-		      let title = name_of_prover prover in
-		      let filename = Wpo.file_for_log_proof ~gid:wpo.Wpo.po_gid prover in
-		      Source_manager.load_file information_window ~title ~filename ()
-		 ) results ;
-	       Source_manager.select_name information_window "Obligation" ;
+		    Source_manager.load_file information_window 
+		      ~title ~filename ~line:1 ())
+		 files ;
+	       match files with
+		 | [] -> ()
+		 | (title,_)::_ ->
+		     Source_manager.select_name information_window title ;
 	     end
     ) ;
 

@@ -50,7 +50,6 @@ module Varinfo_hashtbl = Hashtbl(Varinfo.Hashtbl)
 module Code_annotation_hashtbl =
   State_builder.Hashtbl(Cil_datatype.Code_Annotation)
  *)
-module Inthash = Hashtbl(Int_hashtbl)
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,8 +27,6 @@ module Metrics = Plugin.Register
        let help = "syntactic metrics"
      end)
 
-let plugin_name = "Metrics";;
-
 module Enabled =
   Metrics.WithOutput
     (struct
@@ -38,7 +36,7 @@ module Enabled =
      end)
 
 module ByFunction =
-  Metrics.False
+  Metrics.WithOutput
     (struct
       let option_name = "-metrics-by-function"
       let help = "also compute metrics on a per-function basis"
@@ -63,7 +61,7 @@ module ValueCoverage =
       let output_by_default = true
     end)
 
-module AST_type =
+module AstType =
   Metrics.String
     (struct
       let option_name = "-metrics-ast"
@@ -73,7 +71,7 @@ module AST_type =
      end
     )
 
-let () = AST_type.set_possible_values ["cil"; "cabs"]
+let () = AstType.set_possible_values ["cil"; "cabs"]
 
 module SyntacticallyReachable =
   Metrics.StringSet

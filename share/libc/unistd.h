@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -19,6 +19,9 @@
 /*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
 /**************************************************************************/
+
+#ifndef __FC_UNISTD
+#define __FC_UNISTD
 
 #include "__fc_define_size_t.h"
 #include "__fc_define_null.h"
@@ -41,18 +44,13 @@
 #define	STDOUT_FILENO	1	/* Standard output.  */
 #define	STDERR_FILENO	2	/* Standard error output.  */
 
-/* Values for the WHENCE argument to lseek.  */
-#ifndef __FC_STDIO		/* <stdio.h> has the same definitions.  */
-# define SEEK_SET	0	/* Seek from beginning of file.  */
-# define SEEK_CUR	1	/* Seek from current position.  */
-# define SEEK_END	2	/* Seek from end of file.  */
-#endif
+#include "__fc_define_seek_macros.h"
 
 int          access(const char *, int);
 unsigned int alarm(unsigned int);
 int          brk(void *);
-int          chdir(const char *);
-int          chroot(const char *);
+int          chdir(const char *path);
+int          chroot(const char *path);
 int          chown(const char *, uid_t, gid_t);
 int          close(int);
 size_t       confstr(int, char *, size_t);
@@ -118,7 +116,7 @@ pid_t        setpgrp(void);
 int          setregid(gid_t, gid_t);
 int          setreuid(uid_t, uid_t);
 pid_t        setsid(void);
-int          setuid(uid_t);
+int          setuid(uid_t uid);
 unsigned int sleep(unsigned int);
 void         swab(const void *, void *, ssize_t);
 int          symlink(const char *, const char *);

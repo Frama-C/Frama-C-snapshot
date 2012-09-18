@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -41,7 +41,7 @@ module BoolMark = struct
 
   let visible (b,_) = b
 
-  let mk glob = if glob then (true,Glob) else (true, Loc)
+  let mk glob = if glob then top else (true, Loc)
 
   let merge (b1,p1) (b2,p2) =
     let b = b1 || b2 in
@@ -128,7 +128,7 @@ module ProjBoolMarks = Pdg.Register.F_Proj (Config)
 type t_proj = ProjBoolMarks.t * unit KfTopVisi.t
 type t_fct = ProjBoolMarks.t_fct
 
-let new_project () = (ProjBoolMarks.empty, KfTopVisi.create 10)
+let new_project () = (ProjBoolMarks.empty (), KfTopVisi.create 10)
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** Get stored information *)
@@ -305,7 +305,7 @@ class annot_visitor ~filter pdg = object (self)
     let () =
       if filter annot then
       try
-        let stmt = Cilutil.valOf self#current_stmt in
+        let stmt = Extlib.the self#current_stmt in
         debug 1 "selecting annotation : %a @."
           !Ast_printer.d_code_annotation annot;
         let info = !Db.Pdg.find_code_annot_nodes pdg stmt annot in

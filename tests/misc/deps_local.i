@@ -3,6 +3,7 @@ int G,H;
 int h(int *argh) {
 //  G = *argh;
   *argh = H;
+  return H;
 }
 
 int g() {

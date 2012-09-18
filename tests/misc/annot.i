@@ -6,7 +6,9 @@ int u, v, w;
     assigns u, v, w \from u;
     ensures u != \result;
 */
-int main(int argf, int en1, int en2, int en3, int en4) {
+
+int main(int argf, int en1, int en2, int en3, int en4, unsigned int uc, int m, int n) 
+{
   int x,y,z,t;
 
   x = 1;
@@ -36,6 +38,17 @@ int main(int argf, int en1, int en2, int en3, int en4) {
       //@ assert A == 0 <==> B == A ;
       Frama_C_show_each_else_A_B(A,B);
     }
+
+//@ assert 0 <= m <= n <= 9;
+   Frama_C_show_each_mn(m, n);
+
+  int a = 0, b = 1;
+  /*@ assert (a || b) == b; */
+  /*@ assert (a && a) == a; */
+ 
+  int tt[3];
+  tt[0] = 1;
+  //@ assert (uc > 0 || tt[uc] == 1) == \true;
 
   /*@ assert y == z; */
   return z;

@@ -1,7 +1,3 @@
-/* run.config
-  GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
-*/
 
 extern int any_int(void);
 
@@ -12,4 +8,24 @@ void g() {
   G = t;
   t = t+1;
 
+}
+
+unsigned char G = (unsigned char)(-1);
+
+void h() {
+  G = -255;
+}
+
+void passcast() {
+  int i = (char)(any_int());
+
+  if ((char) i <= 100) {
+    Frama_C_show_each(i);
+  } else while(1);
+}
+
+void main() {
+  g();
+  h();
+  passcast();
 }

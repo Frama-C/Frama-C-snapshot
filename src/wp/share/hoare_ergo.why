@@ -1,3 +1,25 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2012                                               *)
+(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
 logic eq_unit : unit,unit -> prop
 
 logic neq_unit : unit,unit -> prop
@@ -646,6 +668,20 @@ axiom is_as_float128 : (forall x:real[as_float128(x)].
 
 type data
 
+logic data_of_int : int -> data
+
+logic int_of_data : data -> int
+
+axiom intofdata_dataofint : (forall x:int[data_of_int(x)].
+(int_of_data(data_of_int(x))=x))
+
+logic data_of_real : real -> data
+
+logic real_of_data : data -> real
+
+axiom realofdata_dataofreal : (forall x:real[data_of_real(x)].
+(real_of_data(data_of_real(x))=x))
+
 logic data_of_uint8 : int -> data
 
 logic uint8_of_data : data -> int
@@ -784,21 +820,9 @@ logic lshift : int,int -> int
 
 logic rshift : int,int -> int
 
-logic int_not : int -> int
-
-logic int_and : int,int -> int
-
-logic int_or : int,int -> int
-
-logic int_xor : int,int -> int
-
-logic int_lsh : int,int -> int
-
-logic int_rshs : int,int -> int
-
-logic int_rshu : int,int -> int
-
 type pointer
+
+logic string_addr : int -> pointer
 
 logic ptr : int,int -> pointer
 

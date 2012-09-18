@@ -76,9 +76,6 @@
  *
  *)
 
-(** Set this to true to ignore the merge conflicts *)
-val ignore_merge_conflicts: bool ref
-
 (** Merge a number of CIL files *)
 val merge: Cil_types.file list -> string -> Cil_types.file
 

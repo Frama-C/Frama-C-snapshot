@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,17 +80,17 @@ module States_operations = struct
 
   let iter f x =
     current_selection := State_selection.full;
-    State_dependency_graph.Static.G.iter_vertex
+    State_dependency_graph.G.iter_vertex
       (fun s -> f s x)
-      State_dependency_graph.Static.graph
+      State_dependency_graph.graph
 
   let iter_on_selection ?(selection=State_selection.full) f x =
     current_selection := selection;
-    State_selection.Static.iter (fun s -> f s x) selection
+    State_selection.iter (fun s -> f s x) selection
 
   let fold_on_selection ?(selection=State_selection.full) f x =
     current_selection := selection;
-    State_selection.Static.fold (fun s -> f s x) selection
+    State_selection.fold (fun s -> f s x) selection
 
   let create = iter (fun s -> (private_ops s).create)
   let remove = iter (fun s -> (private_ops s).remove)
@@ -108,7 +108,7 @@ module States_operations = struct
       iter clear p (* clearing the static states also clears the dynamic ones *)
     else begin
       current_selection := selection;
-      State_selection.Dynamic.iter (fun s -> clear s p) selection
+      State_selection.iter (fun s -> clear s p) selection
     end
 
   let clear_some_projects ?selection f p =
@@ -118,8 +118,8 @@ module States_operations = struct
         (fun s p acc ->
            let is_cleared = (private_ops s).clear_some_projects f p in
            if is_cleared then
-             State_selection.Dynamic.union
-               (State_selection.Dynamic.with_dependencies s)
+             State_selection.union
+               (State_selection.with_dependencies s)
                acc
            else
              acc)
@@ -148,46 +148,77 @@ module States_operations = struct
       []
 
   let unserialize ?selection dst loaded_states =
-    let pp_err fmt n =
+    let pp_err fmt n msg_sing msg_plural =
       if n > 0 then begin
         warning ~once:true
           fmt
-          n
-          (if n = 1 then "" else "s") (if n = 1 then "is" else "are")
-          (if n = 1 then "It does not exist in" else "They do not exist in")
+	  n
+          (if n = 1 then "" else "s")
+          (if n = 1 then msg_sing else msg_plural)
       end
     in
     let tbl = Hashtbl.create 97 in
     List.iter (fun (k, v) -> Hashtbl.add tbl k v) loaded_states;
+    let invalid_on_disk = State.Hashtbl.create 7 in
     iter_on_selection
       ?selection
       (fun s () ->
          try
            let n = get_unique_name s in
            let d = Hashtbl.find tbl n in
-           (try (private_ops s).unserialize dst d
-            with Not_found -> assert false);
-           Hashtbl.remove tbl n;
+           (try
+	      (private_ops s).unserialize dst d;
+	      (* do not remove if [State.Incompatible_datatype] occurs *)
+              Hashtbl.remove tbl n
+            with 
+	    | Not_found -> assert false
+	    | State.Incompatible_datatype _ ->
+	      (* datatype of [s] on disk is incompatible with the one in RAM: as
+		 [dst] is a new project, [s] is already equal to its default
+		 value. However must clear the dependencies for consistency, but
+		 it is doable only when all states are loaded. *)
+	      State.Hashtbl.add invalid_on_disk s ())
          with Not_found ->
            (* [s] is in RAM but not on disk: silently ignore it!
-              As [dst] is a new project, [s] is already equal to its default
-              value. Furthermore, all the dependencies of [s] are consistent
+	      Furthermore, all the dependencies of [s] are consistent 
               with this default value. So no need to clear them. Whenever
               the value of [s] in [dst] changes, the dependencies will be
-              cleared (if required by the user of Project.clear). *)
+              cleared (if required by the user). *)
            ())
       ();
-    (* warns for the saved states that cannot be loaded. *)
+    (* warns for the saved states that cannot be loaded
+       (either they are not in RAM or they are incompatible). *)
     let nb_ignored =
       Hashtbl.fold (fun _ s n -> if s.on_disk_saved then succ n else n) tbl 0
     in
     pp_err
-      "%n state%s in saved file %s ignored. \
-%s this Frama-C configuration"
-      nb_ignored;
-    Hashtbl.iter
-      (fun k s -> if s.on_disk_saved then debug "ignoring state %s" k)
-      tbl
+      "%d state%s in saved file ignored. \
+%s this Frama-C configuration."
+      nb_ignored
+      "It is invalid in"
+      "They are invalid in";
+    if debug_atleast 1 then
+      Hashtbl.iter
+        (fun k s -> if s.on_disk_saved then debug "ignoring state %s" k)
+        tbl;
+    (* after loading, reset dependencies of incompatible states *)
+    let to_be_cleared =
+      State.Hashtbl.fold
+	(fun s () -> 
+	  State_selection.union
+	    (State_selection.only_dependencies s))
+	invalid_on_disk
+	State_selection.empty
+    in
+    let nb_cleared = State_selection.cardinal to_be_cleared in
+    if nb_cleared > 0 then begin
+      pp_err "%d state%s in memory reset to their default value. \
+%s this Frama_C configuration."
+	nb_cleared
+	"It is inconsistent in"
+	"They are inconsistent in";
+      clear ~selection:to_be_cleared dst
+    end
 
 end
 
@@ -215,8 +246,8 @@ let generic_guarded_feedback pp_selection get_size selection level fmt_msg =
 let guarded_feedback selection level fmt_msg =
   (* eta-expansion required *)
   generic_guarded_feedback
-    State_selection.Static.pretty
-    State_selection.Static.cardinal
+    State_selection.pretty
+    State_selection.cardinal
     selection
     level
     fmt_msg
@@ -224,8 +255,8 @@ let guarded_feedback selection level fmt_msg =
 let full_guarded_feedback selection level fmt_msg =
   (* eta-expansion required *)
   generic_guarded_feedback
-    State_selection.Dynamic.pretty
-    State_selection.Dynamic.cardinal
+    State_selection.pretty
+    State_selection.cardinal
     selection
     level
     fmt_msg
@@ -331,18 +362,20 @@ let set_current ?(on=false) ?(selection=State_selection.full) p =
 let on ?selection p f x =
   let old_current = current () in
   let set p = set_current ~on:true ?selection p in
-  try
+  let go () =
     set p;
     let r = f x in
     set old_current;
     r
-  with e ->
-    set old_current;
-    raise e
+  in
+  if debug_atleast 1 then go ()
+  else begin try go () with e -> set old_current; raise e end
 
 (* [set_current] must never be called internally. *)
 module Hide_set_current = struct let set_current () = assert false end
 open Hide_set_current
+(* Silence warning on unused functions in OCaml >= 3.13 *)
+let () = if false then set_current ()
 
 exception Cannot_remove of string
 
@@ -446,7 +479,6 @@ let register_before_load_hook = Before_load.extend
 
 module After_load = Hook.Make(struct end)
 let register_after_load_hook = After_load.extend
-let () = register_after_load_hook State.Cluster.after_load
 
 module After_global_load = Hook.Make(struct end)
 let register_after_global_load_hook = After_global_load.extend
@@ -713,8 +745,8 @@ let unjournalized_create_by_copy selection src name =
   guarded_feedback selection 2 "creating project %S by copying project %S"
     name (src.unique_name);
   let filename =
-    try Filename.temp_file "frama_c_create_by_copy" ".sav"
-    with Sys_error s -> abort "cannot create temporary file: %s" s
+    try Extlib.temp_file_cleanup_at_exit "frama_c_create_by_copy" ".sav"
+    with Extlib.Temp_file_error s -> abort "cannot create temporary file: %s" s
   in
   save ~selection ~project:src filename;
   try
@@ -765,8 +797,9 @@ module Undo = struct
     if Cmdline.use_obj then begin
       clear_breakpoint ();
       filename :=
-        (try Filename.temp_file short_filename ".sav"
-         with Sys_error s -> abort "cannot create temporary file: %s" s);
+        (try Extlib.temp_file_cleanup_at_exit short_filename ".sav"
+         with Extlib.Temp_file_error s ->
+           abort "cannot create temporary file: %s" s);
       Journal.prevent save_all !filename;
       Journal.save ()
     end

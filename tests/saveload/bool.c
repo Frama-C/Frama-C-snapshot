@@ -5,6 +5,7 @@
  */
 
 #include "stdbool.h"
+#include "share/libc/stdio.h"
 
 bool x;
 int y;

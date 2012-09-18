@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -20,8 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef FC_CTYPE
-#define FC_CTYPE
+#ifndef __FC_CTYPE
+#define __FC_CTYPE
 /* ISO C : 7.4.1 */
 
 /*@ assigns \result \from c ; */
@@ -67,4 +67,9 @@ int tolower(int c);
 
 /*@ assigns \result \from c ; */
 int toupper(int c);
+
+/* POSIX */
+/*@ assigns \result \from c ; */
+int isascii(int c);
+
 #endif

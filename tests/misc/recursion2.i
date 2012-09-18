@@ -1,5 +1,5 @@
 /*run.config
-  OPT: -journal-disable -input -val
+  OPT: -journal-disable -input -val -out -inout
  */
 int x, y;
 

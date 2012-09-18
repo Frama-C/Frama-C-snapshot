@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,15 +24,21 @@ open Cil_types
 open Db
 open Visitor
 
+let specialize_state_on_call ?stmt kf =
+  match stmt with
+    | Some ({ skind = Instr (Call (_, _, l, _)) } as stmt) ->
+        let at_stmt = Db.Value.get_stmt_state stmt in
+        if Cvalue.Model.is_top at_stmt then
+          Cvalue.Model.top (* can occur with -no-results-function option *)
+        else !Db.Value.add_formals_to_state at_stmt kf l
+    | _ -> Value.get_initial_state kf
+
+
 class virtual ['a] cumulative_visitor = object
   inherit frama_c_inplace as self
 
   method specialize_state_on_call kf =
-    match self#current_stmt with
-      | Some ({ skind = Instr (Call (_, _, l, _)) } as stmt) ->
-          let at_stmt = Db.Value.get_stmt_state stmt in
-          !Db.Value.add_formals_to_state at_stmt kf l
-      | _ -> Value.get_initial_state kf
+    specialize_state_on_call ?stmt:self#current_stmt kf
 
   method virtual compute_kf: kernel_function -> 'a
 
@@ -68,15 +74,14 @@ struct
       (struct
          let name = "Memo " ^ X.analysis_name
          let dependencies = [ Value.self ]
-         let kind = `Correctness
          let size = 97
        end)
 
   class do_it_cached call_stack = object(self)
     inherit X.do_it
 
-    (* The cycle variables holds the list of functions that are
-       involved in a cycle As long as it is not empty, we known that
+    (* The cycle variable holds the list of functions that are
+       involved in a cycle. As long as it is not empty, we known that
        the results we are computing are not complete, and we do not memorize
        them *)
     val mutable cycle = Kernel_function.Hptset.empty
@@ -161,6 +166,6 @@ end
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

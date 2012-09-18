@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,6 @@ module Pragma =
        let option_name = "-impact-pragma"
        let arg_name = "f1, ..., fn"
        let help = "use the impact pragmas in the code of functions f1,...,fn"
-       let kind = `Correctness
      end)
 
 module Print =
@@ -41,7 +40,6 @@ module Print =
     (struct
        let option_name = "-impact-print"
        let help = "print the impacted stmt"
-       let kind = `Tuning
      end)
 
 module Slicing =
@@ -49,7 +47,22 @@ module Slicing =
     (struct
        let option_name = "-impact-slicing"
        let help = "slice from the impacted stmt"
-       let kind = `Tuning
+     end)
+
+module Skip =
+  StringSet
+    (struct
+       let arg_name = "v1,...,vn"
+       let help = "consider that those variables are not impacted"
+       let option_name = "-impact-skip"
+     end)
+
+let () = Plugin.set_negative_option_name "-impact-not-in-callers"
+module Upward =
+  True
+    (struct
+       let  option_name = "-impact-in-callers"
+       let help = "compute compute impact in callers as well as in callees"
      end)
 
 let is_on () = not (Pragma.is_empty ())

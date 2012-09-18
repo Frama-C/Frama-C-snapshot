@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -43,10 +43,7 @@ struct tm {
   int tm_isdst; // Daylight Saving Time flag
 };
 
-struct timespec {
-  time_t  tv_sec;
-  long    tv_nsec;
-};
+#include "__fc_define_timespec.h"
 
 struct itimerspec {
   struct timespec  it_interval;
@@ -80,5 +77,9 @@ size_t strftime(char * restrict s,
 		size_t maxsize,
 		const char * restrict format,
 		const struct tm * restrict timeptr);
+
+/* POSIX */
+int nanosleep(const struct timespec *, struct timespec *);
+
 
 #endif

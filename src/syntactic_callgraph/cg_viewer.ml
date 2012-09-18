@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Printf
 open Register
 open Dgraph
 
@@ -143,6 +142,7 @@ let graph_window (main_window: Design.main_window_extension_points) =
         ~height ~width ~title:"Syntactic Callgraph"
         ~allow_shrink:true ~allow_grow:true ()
     in
+    Service_graph.frama_c_display true;
     let _, view =
       View.from_graph_with_commands
         ~packing:window#add

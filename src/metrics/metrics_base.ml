@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cabs
 open Cil_types (* vname, vaddrof *)
 open Cil_datatype
-open Db.Metrics (* sloc, call_statements, .... *)
-open Format
 ;;
 
 (* Formatting html with Format.formatters *)
@@ -45,6 +42,186 @@ let html_tag_functions =
     Format.print_close_tag = print_close_tag;
   }
 ;;
+
+(* Utility function to have underlines the same length as the title.
+   Underlines follow reStructuredText header conventions.
+*)
+let mk_hdr level ppf hdr_strg =
+  let c = match level with
+    | 1 -> '='
+    | 2 -> '-'
+    | 3 -> '~'
+    | _ -> assert false
+  in
+  let len = String.length hdr_strg in
+  let underline = String.make len c in
+  Format.fprintf ppf "@[<v 0>%s@ %s@]" hdr_strg underline ;
+;;
+
+(** Defining base metrics and operations on those *)
+module BasicMetrics = struct
+(** Record type to compute cyclomatic complexity *)
+
+  type t = {
+    cfile_name : string;
+    cfunc_name : string;
+    cslocs: int;
+    cifs: int;
+    cloops: int;
+    ccalls: int;
+    cgotos: int;
+    cassigns: int;
+    cexits: int;
+    cfuncs: int;
+    cptrs: int;
+    cdecision_points: int;
+    cglob_vars: int;
+  }
+  ;;
+
+  let empty_metrics =
+    { cfile_name = "";
+      cfunc_name = "";
+      cslocs = 0;
+      cifs = 0;
+      cloops = 0;
+      ccalls = 0;
+      cgotos = 0;
+      cassigns = 0;
+      cexits = 0;
+      cfuncs = 0;
+      cptrs = 0;
+      cdecision_points = 0;
+      cglob_vars = 0;
+    }
+  ;;
+
+
+  let apply_then_set f metrics = metrics := f !metrics ;;
+
+  let incr_slocs metrics = { metrics with cslocs = succ metrics.cslocs ;} ;;
+
+  let incr_assigns metrics =
+    { metrics with cassigns = succ metrics.cassigns ;}
+  ;;
+
+  let incr_calls metrics = { metrics with ccalls = succ metrics.ccalls ;} ;;
+
+  let incr_exits metrics = { metrics with cexits = succ metrics.cexits ;} ;;
+
+  let incr_funcs metrics = { metrics with cfuncs = succ metrics.cfuncs ;} ;;
+
+  let incr_gotos metrics = { metrics with cgotos = succ metrics.cgotos ;} ;;
+
+  let incr_ifs metrics = { metrics with cifs = succ metrics.cifs ;} ;;
+
+  let incr_loops metrics = { metrics with cloops = succ metrics.cloops ;} ;;
+
+  let incr_ptrs metrics = { metrics with cptrs = succ metrics.cptrs ;} ;;
+
+  let incr_dpoints metrics =
+    { metrics with cdecision_points = succ metrics.cdecision_points ;}
+  ;;
+
+  let incr_glob_vars metrics = { metrics with cglob_vars = succ metrics.cglob_vars ;} ;;
+
+
+
+  (* Compute cyclomatic complexity of a given metrics record *)
+  let cyclo metrics =
+    metrics.cdecision_points - metrics.cexits + 2
+  ;;
+
+  let labels =
+      [ "Sloc"; "Decision point"; "Global variables"; "If"; "Loop";  "Goto";
+        "Assignment"; "Exit point"; "Function"; "Function call";
+        "Pointer dereferencing";
+        "Cyclomatic complexity";
+      ]
+  ;;
+
+  let str_values metrics =
+    List.map string_of_int
+      [ metrics.cslocs; metrics.cdecision_points; metrics.cglob_vars; metrics.cifs;
+        metrics.cloops; metrics.cgotos; metrics.cassigns;
+        metrics.cexits; metrics.cfuncs; metrics.ccalls;
+        metrics.cptrs; cyclo metrics;
+      ]
+  ;;
+
+  let to_list metrics =
+    List.map2 (fun x y -> [ x; y; ]) labels (str_values metrics)
+  ;;
+
+(* Pretty print metrics as text eg. in stdout *)
+  let pp_base_metrics fmt metrics =
+    let heading =
+      if metrics.cfile_name = "" && metrics.cfunc_name = "" then
+      (* It is a global metrics *)
+        "Global metrics"
+      else Format.sprintf "Stats for function <%s/%s>"
+        metrics.cfile_name metrics.cfunc_name
+    in
+    Format.fprintf fmt "@[<v 0>%a @ %a@]"
+      (mk_hdr 1) heading
+      ((fun l1 ppf l2 ->
+        List.iter2 (fun x y -> Format.fprintf ppf "%s = %s@ " x y)
+          l1 l2) labels)
+      (str_values metrics)
+  ;;
+
+(* Dummy utility functions for pretty printing simple types *)
+  let pp_strg fmt s = Format.fprintf fmt "%s" s
+  and pp_int fmt n = Format.fprintf fmt "%d" n
+  ;;
+
+  type cell_type =
+    | Classic
+    | Entry
+    | Result
+  ;;
+
+  let cell_type_to_string = function
+    | Entry -> "entry"
+    | Result -> "result"
+    | Classic -> "classic"
+  ;;
+
+  let pp_cell_type_html fmt cell_type =
+    Format.fprintf fmt "class=\"%s\"" (cell_type_to_string cell_type)
+  ;;
+
+  (* Pretty print a HTML cell given a pretty printing function [pp_fun]
+     and a value [pp_arg]
+  *)
+  let pp_cell cell_type pp_fun fmt pp_arg =
+    Format.fprintf fmt "@{<td %a>%a@}"
+      pp_cell_type_html cell_type
+      pp_fun pp_arg
+  ;;
+
+  let pp_cell_default = pp_cell Classic;;
+
+  let pp_base_metrics_as_html_row fmt metrics =
+    Format.fprintf fmt "\
+   @[<v 0>\
+   @{<tr>@[<v 2>@ \
+     @[<v 0>%a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ @]@]\
+   @}@ @]"
+      (pp_cell Entry pp_strg) metrics.cfunc_name
+      (pp_cell_default pp_int) metrics.cifs
+      (pp_cell_default pp_int) metrics.cassigns
+      (pp_cell_default pp_int) metrics.cloops
+      (pp_cell_default pp_int) metrics.ccalls
+      (pp_cell_default pp_int) metrics.cgotos
+      (pp_cell_default pp_int) metrics.cptrs
+      (pp_cell_default pp_int) metrics.cexits
+      (pp_cell Result pp_int) (cyclo metrics)
+  ;;
+
+end (* End of BasicMetrics *)
+
+(** {3 Filename utilities} *)
 
 exception No_suffix;;
 let get_suffix filename =
@@ -97,155 +274,6 @@ module VInfoMap = struct
 end
 ;;
 
-(** Record type to compute cyclomatic complexity *)
-type my_metrics = {
-  cfile_name : string;
-  cfunc_name : string;
-  cslocs: int;
-  cifs: int;
-  cloops: int;
-  ccalls: int;
-  cgotos: int;
-  cassigns: int;
-  cexits: int;
-  cfuncs: int;
-  cptrs: int;
-  cdecision_points: int;
-}
-;;
-
-let empty_metrics =
-  { cfile_name = "";
-    cfunc_name = "";
-    cslocs = 0;
-    cifs = 0;
-    cloops = 0;
-    ccalls = 0;
-    cgotos = 0;
-    cassigns = 0;
-    cexits = 0;
-    cfuncs = 0;
-    cptrs = 0;
-    cdecision_points = 0;
-  }
-;;
-
-(* Compute cyclomatic complexity of a given metrics record *)
-let cyclo metrics =
-  metrics.cdecision_points - metrics.cexits + 2
-(*  metrics.cifs - metrics.cexits + metrics.cloops + (2 * metrics.cfuncs) *)
-;;
-
-(* Pretty print metrics as text eg. in stdout *)
-let pp_my_metrics fmt metrics =
-  let format_heading fmt () =
-    if metrics.cfile_name = "" && metrics.cfunc_name = "" then
-      (* It is a global metrics *)
-      Format.fprintf fmt "Global metrics"
-    else Format.fprintf fmt "Stats for function <%s/%s>"
-      metrics.cfile_name metrics.cfunc_name
-  in
-  Format.fprintf fmt "@[<v 0>\
-    %a @ \
-    ----------------------@ \
-    #assigns = %d@ \
-    #calls = %d@ \
-    #exits = %d@ \
-    #funcs = %d@ \
-    #gotos = %d@ \
-    #ifs = %d@ \
-    #loops = %d@ \
-    #pointer dereferencings = %d@ \
-    #decision points = %d@ \
-    #slocs = %d@ \
-    cyclomatic complexity = %d@ \
-    @]"
-    format_heading ()
-    metrics.cassigns metrics.ccalls
-    metrics.cexits metrics.cfuncs
-    metrics.cgotos metrics.cifs
-    metrics.cloops metrics.cptrs
-    metrics.cdecision_points
-    metrics.cslocs (cyclo metrics)
- ;;
-
-(* Dummy utility functions for pretty printing simple types *)
-let pp_strg fmt s = Format.fprintf fmt "%s" s
-and pp_int fmt n = Format.fprintf fmt "%d" n
-;;
-
-type cell_type =
-  | Classic
-  | Entry
-  | Stat
-  | Result
-;;
-
-let cell_type_to_string = function
-  | Entry -> "entry"
-  | Stat -> "stat"
-  | Result -> "result"
-  | Classic -> "classic"
-;;
-
-let pp_cell_type_html fmt cell_type =
-  Format.fprintf fmt "class=\"%s\"" (cell_type_to_string cell_type)
-;;
-
-(* Pretty print a HTML cell given a pretty printing function [pp_fun]
-   and a value [pp_arg]
-*)
-let pp_cell cell_type pp_fun fmt pp_arg =
-  Format.fprintf fmt "@{<td %a>%a@}"
-    pp_cell_type_html cell_type
-    pp_fun pp_arg
-;;
-
-let pp_cell_default = pp_cell Classic;;
-
-let pp_metrics_as_html_row fmt metrics =
-  Format.fprintf fmt "\
-   @[<v 0>\
-   @{<tr>@[<v 2>@ \
-     @[<v 0>%a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ %a@ @]@]\
-   @}@ @]"
-    (pp_cell Entry pp_strg) metrics.cfunc_name
-    (pp_cell_default pp_int) metrics.cifs
-    (pp_cell_default pp_int) metrics.cassigns
-    (pp_cell_default pp_int) metrics.cloops
-    (pp_cell_default pp_int) metrics.ccalls
-    (pp_cell_default pp_int) metrics.cgotos
-    (pp_cell_default pp_int) metrics.cptrs
-    (pp_cell_default pp_int) metrics.cexits
-    (pp_cell Result pp_int) (cyclo metrics)
-;;
-
-
-(* Storing and sharing metrics result *)
-let name = "metrics";;
-
-module DatatypeMetrics =
-  Datatype.Make
-    (struct
-      include Datatype.Serializable_undefined
-      type t = Db.Metrics.t
-      let name = name
-      let structural_descr = Structural_descr.Abstract
-      let reprs =
-        [ { sloc = -1;
-            call_statements = -1;
-            goto_statements = -1;
-            assign_statements = -1;
-            if_statements = -1;
-            loop_statements = -1;
-            mem_access = -1;
-            functions_without_source = Varinfo.Map.empty;
-            functions_with_source = Varinfo.Map.empty;
-            function_definitions = -1;
-            cyclos = -1 } ]
-      let mem_project = Datatype.never_any_project
-     end)
-
 
 (** Other pretty-printing and formatting utilities *)
 let pretty_set iter fmt s =
@@ -260,17 +288,6 @@ let pretty_set iter fmt s =
   Format.fprintf fmt "@]"
 ;;
 
-let pretty_varinfomap fmt s =
-  Format.fprintf fmt "@[";
-  VInfoMap.iter
-    (fun f n ->
-      Format.fprintf fmt "%s %s (%d call%s);@ "
-        f.Cil_types.vname
-        (if f.vaddrof then "(address taken) " else "")
-        n (if n > 1 then "s" else ""))
-    s;
-  Format.fprintf fmt "@]"
-;;
 let is_entry_point vinfo times_called =
   times_called = 0 && not vinfo.vaddrof
 ;;
@@ -295,37 +312,6 @@ let map_cardinal_varinfomap (map:'a Varinfo.Map.t) =
     Varinfo.Map.fold
       (fun _funcname _ cardinal -> succ cardinal)
       map 0
-;;
-
-let pretty fmt m =
-  Format.fprintf fmt
-    "@[<v 0>@[<v 1>** Defined functions (%d):@ \
-            @[%a@]@]@ @ \
-            @[<v 1>** Undefined functions (%d):@ \
-            @[%a@]@]@ @ \
-            @[<v 1>** Potential entry points (%d):@ \
-            @[%a@]@]@ @ \
-            SLOC: %d@ \
-            Number of if statements: %d@ \
-            Number of assignments: %d@ \
-            Number of loops: %d@ \
-            Number of calls: %d@ \
-            Number of gotos: %d@ \
-            Number of pointer access: %d@ \
-      @]"
-    (map_cardinal_varinfomap m.functions_with_source)
-    (pretty_set Varinfo.Map.iter) m.functions_with_source
-    (map_cardinal_varinfomap m.functions_without_source)
-    (pretty_set Varinfo.Map.iter) m.functions_without_source
-    (number_entry_points Varinfo.Map.fold m.functions_with_source)
-    (pretty_entry_points Varinfo.Map.iter) m.functions_with_source
-    m.sloc
-    m.if_statements
-    m.assign_statements
-    m.loop_statements
-    m.call_statements
-    m.goto_statements
-    m.mem_access
 ;;
 
 (* Utilities for CIL ASTs *)
@@ -358,4 +344,13 @@ let get_filename fdef =
 
 let consider_function vinfo =
   not (!Db.Value.mem_builtin vinfo.vname
-       || Ast_info.is_frama_c_builtin vinfo.vname)
+       || Ast_info.is_frama_c_builtin vinfo.vname
+       || Cil.is_unused_builtin vinfo
+  )
+
+let float_to_string f =
+  let s = Format.sprintf "%F" f in
+  let len = String.length s in
+  let plen = pred len in
+  if s.[plen] = '.' then String.sub s 0 plen else Format.sprintf "%.2f" f
+;;

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat a l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -28,9 +28,6 @@
 /* Originated from http://www.ltl2dstar.de/down/ltl2dstar-0.4.2.zip  */
 %{
 open Promelaast
-open Parsing
-open Cil_types
-open Cil
 open Logic_ptree
 
 let observed_expressions=Hashtbl.create 97
@@ -39,8 +36,6 @@ let ident_count=ref 0
 let get_fresh_ident () =
   ident_count:=!ident_count+1;
   ("buchfreshident"^(string_of_int !ident_count))
-
-let new_exp =  new_exp ~loc:(CurrentLoc.get())(*TODO: give a proper loc*)
 %}
 
 

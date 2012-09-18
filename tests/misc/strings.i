@@ -1,10 +1,10 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main1 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main6 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main7 -journal-disable
+  OPT: -val -deps -out -input  -main main1 -journal-disable
+  OPT: -val -deps -out -input  -main main6 -journal-disable
+  OPT: -val -deps -out -input  -main main7 -journal-disable
+  OPT: -val -deps -out -input  -main main8 -slevel-function strcmp:50 -journal-disable
 */
-
 char s1[]="hello\000 world";
 char s2[]="hello";
 char *s5, *s6;
@@ -17,7 +17,7 @@ char Q, R, S, T, U, V, W, X, Y, Z;
 char *strcpy(char*dst, char*src)
 {
   char* ldst=dst;
-  /*@ loop pragma UNROLL_LOOP 20; */
+  /*@ loop pragma UNROLL 20; */
   while (*ldst++ = *src++)
     ;
   return dst;
@@ -26,7 +26,7 @@ char *strcpy(char*dst, char*src)
 unsigned int strlen(char *s)
 {
   unsigned int l=0;
- /*@ loop pragma UNROLL_LOOP 20; */
+ /*@ loop pragma UNROLL 20; */
   while(*s++ != 0)
     l++;
   return l;
@@ -105,4 +105,27 @@ int main7(int d, int e, int f)
   *s6=cc;
   c=*s4;
   return c;
+}
+
+int strcmp(const char *s1, const char *s2)
+{
+  if (s1 == s2)
+    return (0);
+  while (*s1 == *s2++)
+    if (*s1++ == '\0')
+      return (0);
+  return (*(unsigned char *)s1 - *(unsigned char *)--s2);
+}
+
+
+//@ assigns p[0..s-1]; ensures \initialized(&p[0..s-1]);
+void assigns(char *p, unsigned int s);
+
+int main8() {
+  char tc[30];
+  char long_chain[] = "really really really long chain";
+  assigns(&tc[0],30);
+  int x = strcmp(long_chain, tc);
+  int x = strcmp(long_chain, tc);
+  return x;
 }

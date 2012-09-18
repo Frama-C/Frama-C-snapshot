@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -37,14 +37,16 @@ exception Cannot_fold
 
 type t_loc = Locations.Zone.t
 type t_node = Node.t
-type t_info = NodeSetLattice.t
 type t = PdgTypes.t_data_state
-        (* { loc_info : LocInfo.t ; under_outputs : Locations.Zone.t } *)
 
 let make loc_info under_outputs =
   { loc_info = loc_info; under_outputs = under_outputs }
 
 let empty = make LocInfo.empty Locations.Zone.bottom
+(* Convention: bottom is used for statements that are not reachable,
+   and for calls that never terminate. In this case, the second field
+   must be ignored *)
+let bottom = make LocInfo.bottom Locations.Zone.bottom
 
 let pretty fmt state =
   Format.fprintf fmt "state = %a@.with under_outputs = %a@."
@@ -56,14 +58,19 @@ let add_loc_node state ~exact loc node =
       (if exact then "exact" else "merge")
       PdgTypes.Node.pretty node
       Locations.Zone.pretty loc ;
-  let new_info = NodeSetLattice.inject_singleton node in
-  let new_loc_info = LocInfo.add_binding exact state.loc_info loc new_info in
-  let new_outputs = (* Zone.link in the under-approx version of Zone.join *)
-    if exact then Locations.Zone.link state.under_outputs loc
-    else state.under_outputs
-  in
-  P.debug ~dkey ~level:2 "add_loc_node -> %a" pretty state;
-  make new_loc_info new_outputs
+  if LocInfo.is_bottom state.loc_info then
+    (* Do not add anything to a bottom state (which comes from an unreachable
+       statement *)
+    state
+  else
+    let new_info = NodeSetLattice.inject_singleton node in
+    let new_loc_info = LocInfo.add_binding exact state.loc_info loc new_info in
+    let new_outputs = (* Zone.link in the under-approx version of Zone.join *)
+      if exact then Locations.Zone.link state.under_outputs loc
+      else state.under_outputs
+    in
+    P.debug ~dkey ~level:2 "add_loc_node -> %a" pretty state;
+    make new_loc_info new_outputs
 
 (** this one is very similar to [add_loc_node] except that
 * we want to accumulate the nodes (exact = false) but nonetheless
@@ -86,23 +93,18 @@ let test_and_merge ~old new_ =
   && Locations.Zone.is_included old.under_outputs new_.under_outputs
   then (false, old)
   else
-    let new_loc_info = LocInfo.join old.loc_info new_.loc_info in
-    let new_outputs =
-      Locations.Zone.meet old.under_outputs new_.under_outputs
-    in
-    let new_state =
-      { loc_info = new_loc_info ; under_outputs = new_outputs }
-    in
-    true, new_state
-
-(** @raise Cannot_fold when the state is Top. *)
-let get_all_nodes state =
-  let add _z (_def, nodes) acc = NodeSetLattice.join acc nodes in
-  let node_set =
-    try LocInfo.fold add state.loc_info NodeSetLattice.empty
-    with LocInfo.Cannot_fold -> raise Cannot_fold
-  in
-  NodeSetLattice.fold (fun n acc -> (n,None)::acc) node_set []
+    (* Catch Bottom states, as under_outputs get a special value *)
+    if LocInfo.is_bottom old.loc_info then true, new_
+    else if LocInfo.is_bottom new_.loc_info then true, old
+    else
+      let new_loc_info = LocInfo.join old.loc_info new_.loc_info in
+      let new_outputs =
+        Locations.Zone.meet old.under_outputs new_.under_outputs
+      in
+      let new_state =
+        { loc_info = new_loc_info ; under_outputs = new_outputs }
+      in
+      true, new_state
 
 (** returns pairs of (n, z_opt) where n is a node that computes a part of [loc]
 * and z is the intersection between [loc] and the zone computed by the node.
@@ -150,11 +152,11 @@ let get_loc_nodes state loc =
     in
     nodes, undef_zone
 
-type t_states = t Inthash.t
+type t_states = t Datatype.Int.Hashtbl.t
 
-let store_init_state states state = Inthash.add states (-1) state
-let store_last_state states state = Inthash.add states 0 state
+let store_init_state states state = Datatype.Int.Hashtbl.add states (-1) state
+let store_last_state states state = Datatype.Int.Hashtbl.add states 0 state
 
-let get_init_state states = Inthash.find states (-1)
-let get_last_state states = Inthash.find states 0
-let get_stmt_state states stmt = Inthash.find states stmt.Cil_types.sid
+let get_init_state states = Datatype.Int.Hashtbl.find states (-1)
+let get_last_state states = Datatype.Int.Hashtbl.find states 0
+let get_stmt_state states stmt = Datatype.Int.Hashtbl.find states stmt.Cil_types.sid

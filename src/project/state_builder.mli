@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,7 @@
 (**************************************************************************)
 
 (** State builders.
-    Provide ways to implement signature [Project.State_builder.OUTPUT] without
-    directly apply functor [Project.State_builder.Register].
+    Provide ways to implement signature [State_builder.S].
     Depending on the builder, also provide some additional useful
     information.
     @plugin development guide *)
@@ -37,7 +36,6 @@
 module type Info = sig
   val name: string (** Name of the internal state. *)
   val dependencies : State.t list (** Dependencies of this internal state. *)
-  val kind: State.kind (** @since Carbon-20101201 *)
 end
 
 module type Info_with_size = sig
@@ -49,11 +47,9 @@ end
 module type S = sig
 
   val self: State.t
-    (** The kind of the registered state.
-        @plugin development guide *)
+    (** The kind of the registered state. *)
 
   val name: string
-  val kind: State.kind
 
   val mark_as_computed: ?project:Project.t -> unit -> unit
   (** Indicate that the registered state will not change again for the
@@ -73,12 +69,16 @@ module type S = sig
       @since Nitrogen-20111001 *)
 
   val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
-(** [howto_marshal marshal unmarshal] registers a custom couple of
-    countions [(marshal, unmarshal)] to be used for serialization.
-    Default functions are identities. In particular, calling this
-    function must be used if [Datatype.t] is not marshallable and
-    [do_not_save] is not called.
-    @since Boron-20100401 *)
+  (** [howto_marshal marshal unmarshal] registers a custom couple of
+      countions [(marshal, unmarshal)] to be used for serialization.
+      Default functions are identities. In particular, calling this
+      function must be used if [Datatype.t] is not marshallable and
+      [do_not_save] is not called.
+      @since Boron-20100401 *)
+
+  val set_descr: 'a Type.t -> 'a Descr.t -> unit
+(** Modified the descriptor of this state. 
+    @since Oxygen-20120901 *)
 
 end
 
@@ -166,6 +166,11 @@ module Int_ref(Info:sig include Info val default: unit -> int end) :
     @since Carbon-20101201 *)
 module Zero_ref(Info:Info) : Ref with type data = int
 
+(** Build a reference on a boolean.
+    @since Oxygen-20120901 *)
+module Bool_ref(Info:sig include Info val default: unit -> bool end) :
+  Ref with type data = bool
+
 (** Build a reference on a boolean, initialized with [false].
     @since Carbon-20101201 *)
 module False_ref(Info:Info): Ref with type data = bool
@@ -174,71 +179,10 @@ module False_ref(Info:Info): Ref with type data = bool
     @since Carbon-20101201 *)
 module True_ref(Info:Info): Ref with type data = bool
 
-(* ************************************************************************* *)
-(** {3 Dashtables}
-
-    IMPORTANT:
-    - it is usually INCORRECT to add the [self] value of a dashtbl into a
-    selection without also adding its dependencies.
-    - If keys or values have a custom [rehash] function (see
-    {!Project.DATATYPE_OUTPUT.rehash}), it **must** be used in the
-    corresponding provided (un)marshaler. *)
-(* ************************************************************************* *)
-
-(** Output signature of dashtables.
-    @since Boron-20100401 *)
-module type Dashtbl = sig
-  include S
-    (** A dashtable is a standard computation.
-        BUT:
-        - that is INCORRECT to add the [self] value of a dashtbl into a
-        selection without also adding all the {!selection}.
-        - that is INCORRECT to use dashtable if keys or values have a custom
-        [rehash] function (see {!Project.DATATYPE_OUTPUT.rehash})
-        @since Boron-20100401 *)
-
-  type key
-  type data
-  val add: string -> key -> State.t list -> data -> unit
-  val replace: reset:bool -> string -> key -> State.t list -> data -> unit
-  val memo:
-    reset:bool -> (data list -> data) -> string -> key -> State.t list -> data
-  val clear: reset:bool -> unit -> unit
-  val remove: reset:bool -> key -> State.t -> unit
-  val remove_all: reset:bool -> key -> unit
-  val filter:
-    reset:bool -> (key -> State.t option -> data -> bool) -> key -> unit
-  val mem: key -> bool
-  val is_local: State.t -> bool
-  val find: ?who:State.t list -> key -> State.t -> data * State.t
-  val find_key: State.t -> (key * State.t) list
-  val find_data: ?who:State.t list -> key -> State.t -> data
-  val find_state: ?who:State.t list -> key -> State.t -> State.t
-  val find_all_local:
-    ?who:State.t list -> key -> State.t -> (data * State.t) list
-  val find_all_local_data: ?who:State.t list -> key -> State.t -> data list
-  val find_all_local_states: ?who:State.t list -> key -> State.t -> State.t list
-  val find_all: ?who:State.t list -> key -> (data * State.t) list
-  val find_all_data: ?who:State.t list -> key -> data list
-  val find_all_states: ?who:State.t list -> key -> State.t list
-  val iter: (key -> State.t option -> data * State.t -> unit) -> unit
-  val iter_key: (State.t option -> data * State.t  -> unit) -> key -> unit
-  val fold: (key -> State.t option -> data * State.t -> 'a -> 'a) -> 'a -> 'a
-  val fold_key:
-    (State.t option -> data * State.t -> 'a -> 'a) -> key -> 'a -> 'a
-  val length: unit -> int
-  module Graph: Dashtbl.Graph
-end
-
-(** Build a dashtable from hashable keys, a datatype for values and usual
-    additionnal information.
-    @since Boron-20100401
-    @modify Carbon-20101201 *)
-module Dashtbl
-  (Key: Dashtbl.Key)
-  (Data: Dashtbl.Data)
-  (Info: sig include Info_with_size val internal_kind: State.kind end)
-  : Dashtbl with type key = Key.t and type data = Data.t
+(** Build a reference on a float.
+    @since Oxygen-20120901 *)
+module Float_ref(Info:sig include Info val default: unit -> float end) :
+  Ref with type data = float
 
 (* ************************************************************************* *)
 (** {3 Weak Hashtbl} *)
@@ -358,7 +302,11 @@ module type Hashtbl = sig
   val length: unit -> int
     (** Length of the table. *)
   val iter: (key -> data -> unit) -> unit
+  val iter_sorted:
+    ?cmp:(key -> key -> int) -> (key -> data -> unit) -> unit
   val fold: (key -> data -> 'a -> 'a) -> 'a -> 'a
+  val fold_sorted:
+    ?cmp:(key -> key -> int) -> (key -> data -> 'a -> 'a) -> 'a -> 'a
   val memo: ?change:(data -> data) -> (key -> data) -> key -> data
     (** Memoization. Compute on need the data associated to a given key using
         the given function.
@@ -380,6 +328,9 @@ module Hashtbl
   Hashtbl with type key = H.key and type data = Data.t
           and module Datatype = H.Make(Data)
 
+module Int_hashtbl(Data: Datatype.S)(Info:Info_with_size):
+  Hashtbl with type key = int and type data = Data.t
+
 (* ************************************************************************* *)
 (** {3 References on a set} *)
 (* ************************************************************************* *)
@@ -395,7 +346,8 @@ module type Set_ref = sig
   val iter: (elt -> unit) -> unit
 end
 
-module Set_ref(S: Datatype.Set)(Info: Info) : Set_ref with type elt = S.elt
+module Set_ref(S: Datatype.Set)(Info: Info) 
+  : Set_ref with type elt = S.elt and type data = S.t
 
 (* ************************************************************************* *)
 (** {3 Queue} *)
@@ -429,7 +381,7 @@ module Proxy : sig
     | Both     (** States in the proxy and the proxy itself are mutually
                    dependent. *)
 
-  val create: string -> kind -> State.standard_kind -> State.t list -> t
+  val create: string -> kind -> State.t list -> t
   (** [create s k sk l] creates a new proxy with the given name, kinds and
       states inside it. *)
 
@@ -453,14 +405,19 @@ val apply_once:
         be used partially applied. If [f] raises an exception, then it is
         considered as not applied. *)
 
-(** Creates a shared counter which is marshalling compliant.
+(** Creates a counter that is shared among all projects, but which is
+    marshalling-compliant.
     @since Carbon-20101201 *)
 module SharedCounter(Info : sig val name : string end) : sig
   val next : unit -> int
     (** Increments the counter and returns a fresh value *)
+
+  val self: State.t
+  (** @since Oxygen-20120901 *)
 end
 
-(** Creates a shared counter which is marshalling compliant.
+(** Creates a projectified counter.
+
     @since Nitrogen-20111001 *)
 module Counter(Info : sig val name : string end) : sig
   val next : unit -> int

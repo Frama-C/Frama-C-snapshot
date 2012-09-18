@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,18 +42,20 @@ module Enabled =
     (struct
        let option_name = "-hello"
        let help = "pretty print \"Hello world!\""
-       let kind = `Correctness
      end)
 
 let print () = Self.result "Hello world!"
 
-(** The code below is not mandatory: you can ignore it in a first reading. It
-    provides an API for the plug-in, so that the function [run] is callable by
-    another plug-in and journalized: first, each plug-in can call [Dynamic.get
-    "Hello.run" (Datatype.func Datatype.unit Datatype.unit)] in order to call [run]
-    and second, each call to [run] is written in the Frama-C journal. *)
+(** The function [print] below is not mandatory: you can ignore it in a first
+    reading. It provides an API for the plug-in, so that the function [run] is
+    callable by another plug-in and journalized: first, each plug-in can call
+    [Dynamic.get "Hello.run" (Datatype.func Datatype.unit Datatype.unit)] in
+    order to call [print] and second, each call to [print] is written in the
+    Frama-C journal. *)
 let print =
   Dynamic.register
+    ~comment:"[Dynamic.get \"Hello.run\" (Datatype.func Datatype.unit \
+Datatype.unit)] calls [run] and pretty prints \"Hello world!\""
     ~plugin:"Hello"
     "run"
     ~journalize:true

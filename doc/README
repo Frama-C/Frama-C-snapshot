@@ -1,8 +1,11 @@
 This is the main source of documentation for the Frama-C distribution.
 
 The manuals directory contains the following manuals
- * acsl-implementation is a copy of the ACSL design document enhanced with
+ * acsl is the reference manual of the specification manual
+ * acsl-implementation is a copy of the ACSL reference manual with
    some implementation-specific remarks. In particular, it explains which
    features are not currently supported by Frama-C
- * frama-c-manual-en describes the use of frama-c
- * plugin-dev gives all the information needed to develop a plugin for Frama-C
+ * user-manal describes the use of frama-c
+ * plugin-development-guide provides information needed to develop a Frama-C 
+   plugin
+ * the other manuals document specific plug-ins

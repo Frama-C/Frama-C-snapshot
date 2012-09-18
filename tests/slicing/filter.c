@@ -1,9 +1,9 @@
 /* run.config
    OPT: -check -slice-return main -journal-disable -then-on 'Slicing export' -print
  **/
-
 /* TESTS: this is about [filter] optimisations since sometimes, 
  * slicing results are ok, but the generated new project is not correct. */
+int f(int);
 
 int T[10];
 

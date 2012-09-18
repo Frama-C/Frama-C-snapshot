@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2012                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -17,13 +15,14 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
 (** Status of properties.
-    @since Nitrogen-20111001 *)
+    @since Nitrogen-20111001
+    @plugin development guide *)
 
 (* ************************************************************************ *)
 (** {2 Local status} 
@@ -64,13 +63,12 @@ val emit:
     emitted another status [s'], it must be emitted with the same hypotheses and
     a consistency check is performed between [s] and [s'] and the best (by
     default the strongest) status is kept. If [distinct] is [true] (default is
-    [false]), then we consider than the given property may merge into one single
-    point several distinct statuses. The strategy for computing the best
-    status is changed accordingly. One example when [~distinct:true] is required
-    is when emitting a status for a pre-condition of a function [f] since the
-    status  associated to a pre-condition [p] merges all statuses of [p] at each
-    callsite of the function [f].
-    @return the kept status. 
+    [false]), then we consider than the given status actually merges several
+    statuses coming from distinct execution paths. The strategy for computing
+    the best status is changed accordingly. One example when [~distinct:true]
+    may be required is when emitting a status for a pre-condition of a function
+    [f] since the status associated to a pre-condition [p] merges all statuses
+    of [p] at each callsite of the function [f].  @return the kept status.
     @raise Inconsistent_emitted_status when emiting False after emiting True or
     conversely *)
 
@@ -86,6 +84,11 @@ val logical_consequence: Emitter.t -> Property.t -> Property.t list -> unit
     functions [emit*] itself on this property, but the kernel ensures that the
     status will be up-to-date when getting it. *)
 
+val legal_dependency_cycle: Emitter.t -> Property.Set.t -> unit
+(** The given properties may define a legal dependency cycle for the given
+    emitter. 
+    @since Oxygen-20120901 *)
+
 val self: State.t
 (** The state which stores the computed status. *)
 
@@ -95,7 +98,7 @@ val self: State.t
 
 type emitter_with_properties = private
     { emitter: Emitter.Usable_emitter.t; 
-      properties: Property.t list;
+      mutable properties: Property.t list;
       logical_consequence: bool (** Is the emitted status automatically
 				    infered? *) }
 

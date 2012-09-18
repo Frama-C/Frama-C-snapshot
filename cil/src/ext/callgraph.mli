@@ -59,10 +59,10 @@ type callnode = {
   cnInfo: nodeinfo;
 
   (** set of functions this one calls, indexed by the node id *)
-  cnCallees: callnode Inthash.t;
+  cnCallees: callnode Datatype.Int.Hashtbl.t;
 
   (** set of functions that call this one , indexed by the node id *)
-  cnCallers: callnode Inthash.t;
+  cnCallers: callnode Datatype.Int.Hashtbl.t;
 }
 
 and nodeinfo =

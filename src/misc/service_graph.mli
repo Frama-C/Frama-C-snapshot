@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,13 +22,19 @@
 
 (** Compute services from a callgraph. *)
 
+val frama_c_display: bool -> unit
+(** must be set to [false] before output the graph in dot format
+    and must be set to [true] in order to display the graph in the Frama-C GUI.
+    @since Oxygen-20120901 *)
+
 (** Generic functor implementing the services algorithm according to a graph
     implementation. *)
 module Make
   (G: sig
      type t
      module V: sig
-       include Graph.Sig.HASHABLE
+       (** @modify Oxygen-20120901 require [compare] *)
+       include Graph.Sig.COMPARABLE
        val id: t -> int
          (** assume is >= 0 and unique for each vertices of the graph *)
        val name: t -> string

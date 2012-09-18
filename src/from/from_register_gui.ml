@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,17 +20,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-
-(* $Id: register_gui.ml,v 1.2 2008-08-26 17:52:02 uid528 Exp $ *)
-
 open Db
-open Cil_types
-open Cil
-open Gtk_helper
 
 let main (main_ui:Design.main_window_extension_points) =
-  let filetree_selector
-      ~was_activated ~activating globals =
+  let filetree_selector ~was_activated ~activating globals =
     if Value.is_computed () then begin
       if not was_activated && activating then begin match globals with
 (* [JS 2009/30/03] GUI may become too slow if froms are displayed *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,7 +17,7 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
@@ -30,6 +30,7 @@ module BoolInfo = struct
   type t_fct = Marks.t_fct option * Kernel_function.t
 
   exception EraseAssigns
+  exception EraseAllocation
 
   let fct_info project kf =
     match Marks.get_marks project kf with
@@ -80,9 +81,9 @@ module BoolInfo = struct
     let lab_key = PdgIndex.Key.label_key stmt label in
       key_visible "label_visible" fm lab_key
 
-  let annotation_visible _ _stmt _annot =
-    (* all the annotation should have been selected by the analysis *)
-    true
+  let annotation_visible _ stmt _annot =
+    Db.Value.is_reachable_stmt stmt
+    (* all the reachable annotation should have been selected by the analysis *)
 
   let fun_precond_visible _ _p =
     (* TODO : we say that they are removed in order to get correct results,
@@ -99,6 +100,15 @@ module BoolInfo = struct
     * but in fact, we should select them ! *)
     false
 
+ let fun_frees_visible _ _b =
+    (* TODO : we say that they are removed in order to get correct results,
+    * but in fact, we should select them ! *)
+    false
+  let fun_allocates_visible _ _b =
+    (* TODO : we say that they are removed in order to get correct results,
+    * but in fact, we should select them ! *)
+    false
+ 
   let fun_assign_visible fm_kf (b,_) =
     (* [VP 2011-02-01] Removing all assigns is incorrect! this would lead
        to say assigns \nothing for all functions. *)
@@ -143,6 +153,9 @@ module BoolInfo = struct
   let result_visible kf fm_kf =
     try inst_visible fm_kf (Kernel_function.find_return kf)
     with Kernel_function.No_Statement -> true
+
+  let cond_edge_visible _ s =
+    Db.Value.condition_truth_value s
 end
 
 module Info = Filter.F (BoolInfo)

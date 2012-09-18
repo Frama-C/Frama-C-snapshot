@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,6 @@ open Locations
 exception Reduce_to_bottom
 exception Cannot_find_lv
 exception Too_linear
-exception Leaf
 
 type cond = { exp : exp; positive : bool; }
 
@@ -50,6 +49,7 @@ val eval_binop_int :
   Cvalue.V.t -> binop -> Cvalue.V.t -> Cvalue.V.t
 
 val eval_unop:
+  check_overflow:bool ->
   with_alarms:CilE.warn_mode ->
   Cvalue.V.t ->
   typ (** Type of the expression under the unop *) ->
@@ -62,8 +62,9 @@ val is_bitfield :
 val lval_to_loc :
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> lval -> location
-val exp_lval_to_loc :
-  Cvalue.Model.t -> exp -> lval * location
+val lval_to_loc_state :
+  with_alarms:CilE.warn_mode ->
+  Cvalue.Model.t -> lval -> Cvalue.Model.t * location
 val lval_to_loc_deps_option :
   with_alarms:CilE.warn_mode ->
   deps:Zone.t option ->
@@ -90,15 +91,15 @@ val lval_to_loc_with_offset_deps_only_option :
   Cvalue.Model.t ->
   lval ->
   Cvalue.Model.t * Zone.t option * location
-val pass_cast :
-  with_alarms:CilE.warn_mode ->
-  Cvalue.Model.t -> exn -> typ -> exp -> unit
+
 val find_lv :
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> exp -> lval
-val find_lv_plus :
+
+val find_lv_plus_offset :
   with_alarms:CilE.warn_mode ->
-  Cvalue.Model.t -> exp -> (lval * Ival.t) list
+  Cvalue.Model.t -> exp -> (lval * Ival.t)
+
 val base_to_loc :
   with_alarms:CilE.warn_mode ->
   ?deps:Zone.t ->
@@ -111,15 +112,11 @@ val eval_expr :
 val get_influential_vars :
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> exp -> location list
-val reduce_by_valid_expr :
-  positive:bool ->
-  for_writing:bool -> exp -> Cvalue.Model.t -> Cvalue.Model.t
 val reduce_by_valid_loc :
   positive:bool ->
   for_writing:bool -> location -> typ -> Cvalue.Model.t -> Cvalue.Model.t
-val reduce_by_initialized_loc :
-  with_alarms:'a ->
-  positive:bool ->
+val reduce_by_initialized_defined :
+  (Cvalue.V_Or_Uninitialized.t -> Cvalue.V_Or_Uninitialized.t ) ->
   typ * Location_Bytes.t ->
   Cvalue.Model.t -> Cvalue.Model.t
 val eval_BinOp :
@@ -148,18 +145,16 @@ val cast_lval_bitfield :
 val cast_lval_when_bitfield :
   lval ->
   ?sizelv:Int_Base.t -> ?sizebf:Int_Base.t -> Cvalue.V.t -> Cvalue.V.t
-val eval_lval_using_main_memory :
-  conflate_bottom:bool ->
-  with_alarms:CilE.warn_mode ->
-  Zone.t option ->
-  Cvalue.Model.t ->
-  lval -> Cvalue.Model.t * Zone.t option * Cvalue.V.t
 val eval_lval :
   conflate_bottom:bool ->
   with_alarms:CilE.warn_mode ->
   Zone.t option ->
   Cvalue.Model.t ->
   lval -> Cvalue.Model.t * Zone.t option * Cvalue.V.t
+val reduce_by_accessed_loc : 
+  with_alarms:CilE.warn_mode ->
+  for_writing:bool ->
+  Cvalue.Model.t -> Locations.location -> Cil_types.lval -> Cvalue.Model.t
 val eval_offset :
   reduce_valid_index:bool ->
   with_alarms:CilE.warn_mode ->
@@ -171,19 +166,19 @@ val eval_as_exact_loc :
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t ->
   exp -> location * Cvalue.V.t * typ
-type eval_int_float = {
-  eval_symetric :
+type reduce_rel_int_float = {
+  reduce_rel_symetric :
     bool -> binop -> Cvalue.V.t -> Cvalue.V.t -> Cvalue.V.t;
-  eval_antisymetric :
+  reduce_rel_antisymetric :
     typ_loc:typ ->
     bool -> binop -> Cvalue.V.t -> Cvalue.V.t -> Cvalue.V.t;
 }
-val eval_int : eval_int_float
-val eval_float : bool -> eval_int_float
-val eval_from_type : typ -> bool -> eval_int_float
+val reduce_rel_int : reduce_rel_int_float
+val reduce_rel_float : bool -> reduce_rel_int_float
+val reduce_rel_from_type : typ -> reduce_rel_int_float
 val reduce_by_comparison :
   with_alarms:CilE.warn_mode ->
-  eval_int_float ->
+  reduce_rel_int_float ->
   bool ->
   exp ->
   binop -> exp -> Cvalue.Model.t -> Cvalue.Model.t
@@ -195,3 +190,10 @@ val resolv_func_vinfo :
   Cvalue.Model.t ->
   exp -> Kernel_function.Hptset.t * Zone.t option
 
+val warn_imprecise_lval_read:
+  with_alarms:CilE.warn_mode ->
+  lval -> location -> Location_Bytes.t -> unit
+
+val offsetmap_of_lv:
+  with_alarms:CilE.warn_mode ->
+  Cvalue.Model.t -> lval -> Cvalue.Model.t * Cvalue.V_Offsetmap_ext.t option

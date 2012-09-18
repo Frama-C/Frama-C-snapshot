@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,6 @@ module P = Plugin.Register
   (struct
      let name = ""
      let shortname = ""
-     let module_name = ""
      let help = "General options provided by the Frama-C kernel"
    end)
 
@@ -88,6 +87,7 @@ module StringList(X: Parameter_input_with_arg) =
 let () = Plugin.set_group help
 let () = Plugin.set_cmdline_stage Cmdline.Exiting
 let () = Plugin.do_not_journalize ()
+let () = Plugin.set_negative_option_name ""
 module GeneralHelp =
   False
     (struct
@@ -102,6 +102,7 @@ let () = GeneralHelp.add_aliases [ "--help"; "-h" ]
 
 let () = Plugin.set_group help
 let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.set_negative_option_name ""
 module PrintVersion =
   False
     (struct
@@ -113,28 +114,29 @@ let () = PrintVersion.add_aliases [ "-v"; "--version" ]
 
 let () = Plugin.set_group help
 let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.set_negative_option_name ""
 module PrintShare =
   False(struct
           let option_name = "-print-share-path"
           let module_name = "PrintShare"
           let help = "print the Frama-C share path"
-          let kind = Parameter.Other
         end)
 let () = PrintShare.add_aliases [ "-print-path" ]
 
 let () = Plugin.set_group help
 let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.set_negative_option_name ""
 module PrintLib =
   False(struct
           let option_name = "-print-lib-path"
           let module_name = "PrintLib"
           let help = "print the path of the Frama-C kernel library"
-          let kind = Parameter.Other
         end)
 let () = PrintLib.add_aliases [ "-print-libpath" ]
 
 let () = Plugin.set_group help
 let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Plugin.set_negative_option_name ""
 module PrintPluginPath =
   False
     (struct
@@ -142,7 +144,6 @@ module PrintPluginPath =
        let module_name = "PrintPluginPath"
        let help =
          "print the path where the Frama-C dynamic plug-ins are searched into"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group help
@@ -154,13 +155,12 @@ module DumpDependencies =
        let option_name = "-dump-dependencies"
        let help = ""
        let arg_name = ""
-       let kind = Parameter.Other
      end)
 let () =
   at_exit
     (fun () ->
        if not (DumpDependencies.is_default ()) then
-         State_dependency_graph.Dynamic.dump (DumpDependencies.get ()))
+         State_dependency_graph.dump (DumpDependencies.get ()))
 
 (* ************************************************************************* *)
 (** {2 Output Messages} *)
@@ -179,7 +179,6 @@ module GeneralVerbose =
          let arg_name = "n"
          let help = "general level of verbosity"
          let module_name = "GeneralVerbose"
-         let kind = Parameter.Other
        end)
 let () =
   (* line order below matters *)
@@ -199,7 +198,6 @@ module GeneralDebug =
        let arg_name = "n"
        let help = "general level of debug"
        let module_name = "GeneralDebug"
-       let kind = Parameter.Other
      end)
 let () =
   (* line order below matters *)
@@ -224,7 +222,6 @@ module Quiet =
        let option_name = "-quiet"
        let module_name = "Quiet"
        let help = "sets -verbose and -debug to 0"
-       let kind = Parameter.Other
      end)
 let () =
   Quiet.add_set_hook
@@ -239,7 +236,6 @@ module Unicode = struct
        let option_name = "-unicode"
        let module_name = "Unicode"
        let help = "use utf8 in messages"
-       let kind = Parameter.Other
      end)
   (* This function behaves nicely with the Gui, that detects if command-line
      arguments have been set by the user at some point. One possible improvment
@@ -269,7 +265,6 @@ module Time =
        let option_name = "-time"
        let arg_name = "filename"
        let help = "append user time and date to <filename> at exit"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group messages
@@ -283,7 +278,6 @@ module Collect_messages =
       let option_name = "-collect-messages"
       let help = "collect warning and error messages for displaying them in \
 the GUI (set by default iff the GUI is launched)"
-      let kind = Parameter.Other
       let default = !Config.is_gui
      (* ok: Config.is_gui already initialised by Gui_init *)
      end)
@@ -301,7 +295,6 @@ module PrintCode =
       let module_name = "PrintCode"
       let option_name = "-print"
       let help = "pretty print original code with its comments"
-      let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group inout_source
@@ -312,7 +305,6 @@ module PrintComments =
       let module_name = "PrintComments"
       let option_name = "-keep-comments"
       let help = "try to keep comments in C code"
-      let kind = Parameter.Other
      end)
 
 module CodeOutput = struct
@@ -325,7 +317,6 @@ module CodeOutput = struct
        let arg_name = "filename"
        let help =
          "when printing code, redirects the output to file <filename>"
-       let kind = Parameter.Other
      end)
 
   let streams = Hashtbl.create 7
@@ -373,7 +364,6 @@ module FloatNormal =
        let option_name = "-float-normal"
        let module_name = "FloatNormal"
        let help = "display floats with internal routine"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group inout_source
@@ -383,7 +373,6 @@ module FloatRelative =
        let option_name = "-float-relative"
        let module_name = "FloatRelative"
        let help = "display float intervals as [lower_bound ++ width]"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group inout_source
@@ -393,7 +382,6 @@ module FloatHex =
        let option_name = "-float-hex"
        let module_name = "FloatHex"
        let help = "display floats as hexadecimal"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group inout_source
@@ -404,7 +392,6 @@ module BigIntsHex =
          let arg_name = "max"
 	 let help = "display integers larger than <max> using hexadecimal \
 notation"
-         let kind = Parameter.Other
          let default = -1
        end)
 
@@ -415,6 +402,7 @@ notation"
 let saveload = add_group "Saving or Loading Data"
 
 let () = Plugin.set_group saveload
+let () = Plugin.do_not_projectify ()
 module SaveState =
   EmptyString
     (struct
@@ -422,11 +410,13 @@ module SaveState =
        let option_name = "-save"
        let arg_name = "filename"
        let help = "at exit, save the session into file <filename>"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group saveload
 let () = Plugin.set_cmdline_stage Cmdline.Loading
+(* must be projectified: when loading, this option will be automatically 
+   reset *) 
+(*let () = Plugin.do_not_projectify ()*)
 module LoadState =
   EmptyString
     (struct
@@ -434,11 +424,11 @@ module LoadState =
        let option_name = "-load"
        let arg_name = "filename"
        let help = "load a previously-saved session from file <filename>"
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group saveload
 let () = Plugin.set_cmdline_stage Cmdline.Extending
+let () = Plugin.do_not_projectify ()
 module AddPath =
   StringList
     (struct
@@ -446,7 +436,6 @@ module AddPath =
        let module_name = "AddPath"
        let arg_name = "p1, ..., pn"
        let help = "prepend paths to dynamic plugins search path"
-       let kind = Parameter.Other
      end)
 let () =
   AddPath.add_set_hook
@@ -454,6 +443,7 @@ let () =
 
 let () = Plugin.set_group saveload
 let () = Plugin.set_cmdline_stage Cmdline.Extending
+let () = Plugin.do_not_projectify ()
 module LoadModule =
   StringSet
     (struct
@@ -461,26 +451,25 @@ module LoadModule =
        let module_name = "LoadModule"
        let arg_name = "m1, ..., mn"
        let help = "load the given modules dynamically"
-       let kind = Parameter.Other
      end)
 let () =
   LoadModule.add_set_hook (fun _ _ -> LoadModule.iter Dynamic.load_module)
 
 let () = Plugin.set_group saveload
 let () = Plugin.set_cmdline_stage Cmdline.Extending
+let () = Plugin.do_not_projectify ()
 module Dynlink =
   True
     (struct
       let option_name = "-dynlink"
       let module_name = "Dynlink"
-      let help = "load all the found dynamic plug-ins (default); \
-otherwise, ignore all plug-ins in default directories"
-      let kind = Parameter.Other
+      let help = "if set, load all the found dynamic plug-ins"
      end)
 let () = Dynlink.add_set_hook (fun _ -> Dynamic.set_default)
 
 let () = Plugin.set_group saveload
 let () = Plugin.set_cmdline_stage Cmdline.Extending
+let () = Plugin.do_not_projectify ()
 module LoadScript =
   StringSet
     (struct
@@ -488,7 +477,6 @@ module LoadScript =
       let module_name = "LoadScript"
       let arg_name = "m1, ..., mn"
       let help = "load the given OCaml scripts dynamically"
-      let kind = Parameter.Other
      end)
 let () =
   LoadScript.add_set_hook (fun _ _ -> LoadScript.iter Dynamic.load_script)
@@ -497,6 +485,7 @@ module Journal = struct
   let () = Plugin.set_negative_option_name "-journal-disable"
   let () = Plugin.set_cmdline_stage Cmdline.Early
   let () = Plugin.set_group saveload
+  let () = Plugin.do_not_projectify ()
   module Enable = struct
     include Bool
       (struct
@@ -504,11 +493,11 @@ module Journal = struct
          let default = Cmdline.journal_enable
          let option_name = "-journal-enable"
          let help = "dump a journal while Frama-C exit"
-         let kind = Parameter.Other
        end)
     let is_set () = Cmdline.journal_isset
   end
   let () = Plugin.set_group saveload
+  let () = Plugin.do_not_projectify ()
   module Name =
     String
       (struct
@@ -518,7 +507,6 @@ module Journal = struct
          let arg_name = "s"
          let help =
            "set the filename of the journal (do not write any extension)"
-         let kind = Parameter.Other
        end)
 end
 
@@ -535,8 +523,8 @@ module UnrollingLevel =
        let module_name = "UnrollingLevel"
        let option_name = "-ulevel"
        let arg_name = "l"
-       let help = "unroll loops n times (defaults to 0) before analyzes"
-       let kind = Parameter.Tuning
+       let help = "unroll loops n times (defaults to 0) before analyzes. A negative value hides UNROLL loop pragmas."
+
      end)
 
 let () = Plugin.set_group normalisation
@@ -547,7 +535,6 @@ module Machdep =
        let option_name = "-machdep"
        let arg_name = "machine"
        let help = "use <machine> as the current machine dependent configuration. Use -machdep help to see the list of available machines"
-       let kind = Parameter.Correctness
      end)
 
 let () = Plugin.set_group normalisation
@@ -556,7 +543,6 @@ module ReadAnnot =
          let module_name = "ReadAnnot"
          let option_name = "-annot"
          let help = "read annotation"
-         let kind = Parameter.Other
        end)
 
 let () = Plugin.set_group normalisation
@@ -565,7 +551,6 @@ module PreprocessAnnot =
           let module_name = "PreprocessAnnot"
           let option_name = "-pp-annot"
           let help = "pre-process annotations (if they are read)"
-          let kind = Parameter.Other
         end)
 
 let () = Plugin.set_group normalisation
@@ -581,29 +566,26 @@ If unset, the command is built as follow:\n\
   CPP -o <preprocessed file> <source file>\n\
 %1 and %2 can be used into CPP string to mark the position of <source file> \
 and <preprocessed file> respectively"
-       let kind = Parameter.Correctness
      end)
 
 let () = Plugin.set_group normalisation
 module CppExtraArgs =
-  StringSet
+  StringList
     (struct
        let module_name = "CppExtraArgs"
        let option_name = "-cpp-extra-args"
        let arg_name = "args"
        let help = "additional arguments passed to the preprocessor while \
 preprocessing the C code but not while preprocessing annotations"
-       let kind = Parameter.Correctness
      end)
 
 let () = Plugin.set_group normalisation
 let () = Plugin.set_negative_option_name ""
 module TypeCheck =
-  False(struct
+  True(struct
           let module_name = "TypeCheck"
           let option_name = "-typecheck"
           let help = "only typechecks the source files"
-          let kind = Parameter.Other
         end)
 
 let () = Plugin.set_group normalisation
@@ -614,7 +596,6 @@ module ContinueOnAnnotError =
           let help = "When an annotation fails to type-check, just emits \
                          a warning and discards the annotation instead of \
                          generating an error (errors in C are still fatal)"
-          let kind = Parameter.Other
         end)
 
 let () = Plugin.set_group normalisation
@@ -625,7 +606,6 @@ module SimplifyCfg =
        let option_name = "-simplify-cfg"
        let help =
          "remove break, continue and switch statement before analyzes"
-       let kind = Parameter.Tuning
      end)
 
 let () = Plugin.set_group normalisation
@@ -634,7 +614,15 @@ module KeepSwitch =
           let option_name = "-keep-switch"
           let module_name = "KeepSwitch"
           let help = "keep switch statements despite -simplify-cfg"
-          let kind = Parameter.Tuning
+        end)
+
+let () = Plugin.set_group normalisation
+let () = Plugin.set_negative_option_name "-remove-unused-specified-functions"
+module Keep_unused_specified_functions =
+  True(struct
+          let option_name = "-keep-unused-specified-functions"
+          let module_name = "Keep_unused_specified_functions"
+          let help = "keep specified-but-unused functions"
         end)
 
 let () = Plugin.set_group normalisation
@@ -644,7 +632,17 @@ module Constfold =
        let option_name = "-constfold"
        let module_name = "Constfold"
        let help = "fold all constant expressions in the code before analysis"
-       let kind = Parameter.Tuning
+     end)
+
+let () = Plugin.set_group normalisation
+module InitializedPaddingLocals =
+  True
+    (struct
+       let option_name = "-initialized-padding-locals"
+       let module_name = "InitializedPaddingLocals"
+       let help = "Implicit initialization of locals sets padding bits to 0 \
+                   If false, padding bits will be left uninitialized. \
+                   Defaults to true."
      end)
 
 module Files = struct
@@ -656,7 +654,6 @@ module Files = struct
        let module_name = "Files"
        let arg_name = ""
        let help = ""
-       let kind = Parameter.Correctness
      end)
   let () = Cmdline.use_cmdline_files set
 
@@ -666,7 +663,6 @@ module Files = struct
             let option_name = "-check"
             let module_name = "Files.Check"
             let help = "performs consistency checks over cil files"
-            let kind = Parameter.Other
           end)
 
   let () = Plugin.set_group normalisation
@@ -676,7 +672,6 @@ module Files = struct
             let module_name = "Files.Copy"
             let help =
               "always perform a copy of the original AST before analysis begin"
-            let kind = Parameter.Other
           end)
 
   let () = Plugin.set_group normalisation
@@ -685,7 +680,6 @@ module Files = struct
             let option_name = "-orig-name"
             let module_name = "Files.Orig_name"
             let help = "prints a message each time a variable is renamed"
-            let kind = Parameter.Other
           end)
 
 end
@@ -697,29 +691,16 @@ module AllowDuplication =
     let module_name = "AllowDuplication"
     let help =
       "allow duplication of small blocks during normalization"
-    let kind = Parameter.Tuning
   end)
 
-(** If false, the destination of a Call instruction should always have the
-    same type as the function's return type.  Where needed, CIL will insert
-    a temporary to make this happen.
-
-    If true, the destination type may differ from the return type, so there
-    is an implicit cast.  This is useful for analyses involving [malloc],
-    because the instruction "T* x = malloc(...);" won't be broken into
-    two instructions, so it's easy to find the allocation type.
-
-    This is false by default.  Set to true to replicate the behavior
-    of CIL 1.3.5 and earlier. *)
 let () = Plugin.set_group normalisation
 module DoCollapseCallCast =
   True(struct
     let option_name = "-collapse-call-cast"
     let module_name = "DoCollapseCallCast"
     let help =
-      "Allow implicit cast between returned value of a function \
+      "Allow some implicit casts between returned value of a function \
                    and the lval it is assigned to."
-    let kind = Parameter.Tuning
   end)
 
 let () = Plugin.set_group normalisation
@@ -729,8 +710,27 @@ module ForceRLArgEval =
     let module_name = "ForceRLArgEval"
     let help = "Force right to left evaluation order for \
                               arguments of function calls"
-    let kind = Parameter.Tuning
   end)
+
+let () = Plugin.set_group normalisation
+module WarnUndeclared =
+  True(struct
+    let option_name = "-warn-undeclared-callee"
+    let help = "Warn when a function is called before it has been declared."
+    let module_name = "WarnUndeclared"
+  end)
+
+let () = Plugin.set_group normalisation
+module WarnDecimalFloat = 
+  String(struct
+    let option_name = "-warn-decimal-float"
+    let arg_name = "freq"
+    let help = "Warn when floating-point constants cannot be exactly \
+              represented; freq must be one of none, once or all"
+    let default = "once"
+    let module_name = "WarnDecimalFloat"
+  end)
+let () = WarnDecimalFloat.set_possible_values ["none"; "once"; "all"]
 
 let normalization_parameters = [
   ForceRLArgEval.parameter;
@@ -740,6 +740,7 @@ let normalization_parameters = [
   CppExtraArgs.parameter;
   SimplifyCfg.parameter;
   KeepSwitch.parameter;
+  Keep_unused_specified_functions.parameter;
   Constfold.parameter;
   AllowDuplication.parameter;
   DoCollapseCallCast.parameter;
@@ -752,6 +753,7 @@ let normalization_parameters = [
 let analysis_options = add_group "Analysis Options"
 
 let () = Plugin.set_group analysis_options
+let () = Plugin.argument_is_function_name ()
 module MainFunction =
   String
     (struct
@@ -761,7 +763,6 @@ module MainFunction =
        let arg_name = "f"
        let help = "set to name the entry point for analysis. Use -lib-entry \
 if this is not for a complete application. Defaults to main"
-       let kind = Parameter.Correctness
      end)
 
 let () = Plugin.set_group analysis_options
@@ -771,7 +772,6 @@ module LibEntry =
        let module_name = "LibEntry"
        let option_name = "-lib-entry"
        let help ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point name"
-       let kind = Parameter.Correctness
      end)
 
 let () = Plugin.set_group analysis_options
@@ -779,8 +779,8 @@ module UnspecifiedAccess =
   False(struct
          let module_name = "UnspecifiedAccess"
          let option_name = "-unspecified-access"
-         let help = "assume that all read/write accesses occuring in unspecified order are not separated"
-         let kind = Parameter.Correctness
+         let help = "assume that all read/write accesses occuring in \
+unspecified order are not separated"
        end)
 
 let () = Plugin.set_group analysis_options
@@ -789,39 +789,7 @@ module Overflow =
          let module_name = "Overflow"
          let option_name = "-overflow"
          let help = "assume that arithmetic operations overflow"
-         let kind = Parameter.Correctness
        end)
-
-let () = Plugin.set_group analysis_options
-module StopAtFirstAlarm =
-  False(struct
-         let module_name = "StopAtFirstAlarm"
-         let option_name = "-stop-at-first-alarm"
-         let help = ""
-         let kind = Parameter.Correctness
-       end)
-
-let () = Plugin.set_group analysis_options
-module PreciseUnions =
-  False
-    (struct
-      let module_name = "PreciseUnions"
-       let option_name = "-precise-unions"
-       let help = ""
-       let kind = Parameter.Tuning
-     end)
-
-let () = Plugin.set_group analysis_options
-module ArrayPrecisionLevel =
-  Int
-    (struct
-      let module_name = "ArrayPrecisionLevel"
-       let default = 200
-       let option_name = "-plevel"
-       let arg_name = "n"
-       let help = "use <n> as the precision level for arrays accesses. Array accesses are precise as long as the interval for the index contains less than n values. (defaults to 200)"
-       let kind = Parameter.Tuning
-     end)
 
 let () = Plugin.set_negative_option_name "-unsafe-arrays"
 let () = Plugin.set_group analysis_options
@@ -830,8 +798,8 @@ module SafeArrays =
     (struct
        let module_name = "SafeArrays"
        let option_name = "-safe-arrays"
-       let help = "for arrays that are fields inside structs, assume that accesses are in bounds"
-       let kind = Parameter.Correctness
+       let help = "for arrays that are fields inside structs, assume that \
+accesses are in bounds"
      end)
 
 let () = Plugin.set_group analysis_options
@@ -842,23 +810,13 @@ module AbsoluteValidRange = struct
     let help = "min and max must be integers in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and fit in 64 bits. Assume that that all absolute addresses outside of the [min-max] range are invalid. In the absence of this option, all absolute addresses are assumed to be invalid"
     let default = ""
     let module_name = "AbsoluteValidRange"
-    let kind = Parameter.Correctness
   end
   include String(Info)
-  let is_set _x = assert false
+(* [JS 2012/05/10] the following line cannot be correct. Ask me if you have any
+   doubt ;-). *)
+(*  let is_set _x = assert false*)
 end
 
-(*
-let () = Plugin.set_group analysis_options
-module FloatFlushToZero =
-  False
-    (struct
-      let option_name = "-float-flush-to-zero"
-      let help = "Floating-point operations flush to zero"
-      let module_name = "FloatFlushToZero"
-      let kind = Parameter.Correctness
-    end)
-*)
 
 (* ************************************************************************* *)
 (** {2 Others options} *)
@@ -871,8 +829,9 @@ let () =
     "-then"
     ~plugin:""
     ~group:(misc :> Cmdline.Group.t)
-    ~help:(Some "parse options before `-then' and execute Frama-C \
-accordingly, then parse options after `-then' and re-execute Frama-C")
+    ~help:"parse options before `-then' and execute Frama-C \
+accordingly, then parse options after `-then' and re-execute Frama-C"
+    ~visible:true
     ~ext_help:""
     ()
 
@@ -882,8 +841,9 @@ let () =
     ~plugin:""
     ~argname:"p"
     ~group:(misc :> Cmdline.Group.t)
-    ~help:(Some "like `-then', but the second group of actions is executed \
-on project <p>")
+    ~help:"like `-then', but the second group of actions is executed \
+on project <p>"
+    ~visible:true
     ~ext_help:""
     ()
 
@@ -897,7 +857,6 @@ module NoType =
        let default = not Cmdline.use_type
        let option_name = "-no-type"
        let help = ""
-       let kind = Parameter.Other
      end)
 
 let () = Plugin.set_group misc
@@ -910,7 +869,6 @@ module NoObj =
        let default = not Cmdline.use_obj
        let option_name = "-no-obj"
        let help = ""
-       let kind = Parameter.Other
      end)
 
 (*

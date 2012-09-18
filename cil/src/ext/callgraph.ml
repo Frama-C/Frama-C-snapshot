@@ -46,7 +46,7 @@
 
 open Cil_types
 open Cil
-module IH = Inthash
+module IH = Datatype.Int.Hashtbl
 module H = Hashtbl
 
 (* ------------------- interface ------------------- *)

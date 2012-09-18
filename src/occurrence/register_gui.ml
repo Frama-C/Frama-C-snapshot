@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,25 +22,54 @@
 
 open Pretty_source
 open Gtk_helper
-open Db
 open Cil_types
 open Cil_datatype
 
 
-(* Show or hide the 'Occurrence' column of the gui filetree. *)
-let show_column = ref (fun () -> ())
+(* Update the 'Occurrence' column of the gui filetree. *)
+let update_column = ref (fun _ -> ())
 
 (* Are results shown? *)
-module Enabled = struct
-  include State_builder.Ref
+module Enabled = State_builder.Ref
     (Datatype.Bool)
     (struct
        let name = "Occrrence_gui.State"
        let dependencies = [!Db.Occurrence.self]
-       let kind = `Internal
        let default () = false
      end)
-end
+
+module ShowRead = State_builder.Ref
+  (Datatype.Bool)
+  (struct
+    let name = "Occrrence_gui.ShowRead"
+    let dependencies = []
+    let default () = true
+   end)
+
+module ShowWrite = State_builder.Ref
+  (Datatype.Bool)
+  (struct
+    let name = "Occrrence_gui.ShowWrite"
+    let dependencies = []
+    let default () = true
+   end)
+
+let consider_access () =
+  match ShowRead.get (), ShowWrite.get () with
+    | false, false -> (fun _ -> false)
+    | true,  true -> (fun _ -> true)
+    | true,  false ->
+        (fun ak -> ak = Register.Read  || ak = Register.Both)
+    | false, true ->
+        (fun ak -> ak = Register.Write || ak = Register.Both)
+
+let filter_accesses l =
+  match ShowRead.get (), ShowWrite.get () with
+    | false, false -> []
+    | true,  true -> l
+    | true,  false | false, true ->
+        let f = consider_access () in
+        List.filter (fun access -> f (Register.classify_accesses access)) l
 
 let _ =
   Dynamic.register
@@ -61,10 +90,9 @@ let _ =
 let find_occurrence (main_ui:Design.main_window_extension_points) vi () =
   ignore (!Db.Occurrence.get vi);
   Enabled.set true;
-  !show_column ();
+  !update_column `Contents;
   main_ui#rehighlight ()
 
-(* Only these localizable interest this plugin *)
 let apply_on_vi f localizable = match localizable with
   | PVDecl(_,vi)
   | PLval(_, _, (Var vi, NoOffset))
@@ -79,16 +107,19 @@ let occurrence_highlighter buffer loc ~start ~stop =
     | None -> (* occurrence not computed *)
         ()
     | Some (result, vi) ->
+        let result = filter_accesses result in
         let highlight () =
           let tag = make_tag buffer "occurrence" [`BACKGROUND "yellow" ] in
           apply_tag buffer tag start stop
         in
         match loc with
         | PLval (_, ki, lval) ->
-            let same_lval (k, l) = Kinstr.equal k ki && Lval.equal l lval in
+            let same_lval (_kf, k, l) = 
+              Kinstr.equal k ki && Lval.equal l lval
+            in
             if List.exists same_lval result then highlight ()
         | PTermLval (_,ki,term_lval) ->
-            let same_tlval (k, l) =
+            let same_tlval (_kf, k, l) =
               Logic_utils.is_same_tlval
                 (Logic_utils.lval_to_term_lval ~cast:true l)
                 term_lval
@@ -105,7 +136,6 @@ module FollowFocus =
     (struct
       let name = "Occurrence_gui.FollowFocus"
       let dependencies = []
-      let kind = `Internal
       let default () = false
      end)
 
@@ -134,41 +164,44 @@ let occurrence_panel main_ui =
   ignore (set_selected#connect#pressed
             (fun () -> History.apply_on_selected do_select));
   (* check_button enabled *)
-  let enabled = Enabled.get () in
-  let enabled_button = GButton.check_button
-    ~label:"Enable"
-    ~packing:w#pack
-    ~active:enabled
-    ()
+  let refresh_enabled_button = on_bool
+    w
+    "Enable"
+    Enabled.get
+    (fun v -> Enabled.set v;
+      !update_column `Visibility;
+      main_ui#rehighlight ())
   in
-  ignore
-    (enabled_button#connect#toggled
-       ~callback:
-       (fun () ->
-          Enabled.set enabled_button#active;
-         !show_column ();
-          main_ui#rehighlight ()));
   (* check_button followFocus *)
-  let followFocus = GButton.check_button
-    ~label:"Follow focus"
-    ~packing:w#pack
-    ~active:(FollowFocus.get ())
-    ()
+  let refresh_followFocus = on_bool w "Follow focus"
+    FollowFocus.get
+    FollowFocus.set
   in
-  ignore
-    (followFocus#connect#toggled
-       ~callback:(fun () -> FollowFocus.set followFocus#active));
+  let h_read_write = GPack.hbox ~packing:w#pack () in
+  let refresh_rw_aux f v =
+    f v;
+    main_ui#file_tree#reset();
+    main_ui#rehighlight ()
+  in
+  let refresh_read =
+    Gtk_helper.on_bool
+    ~tooltip:"Show only occurrences where the zone is read"
+      h_read_write "Read" ShowRead.get (refresh_rw_aux ShowRead.set) in
+  let refresh_write =
+    Gtk_helper.on_bool
+    ~tooltip:"Show only occurrences where the zone is written"
+      h_read_write "Write" ShowWrite.get (refresh_rw_aux ShowWrite.set) in
   let refresh =
     let old_vi = ref (-2) in
-    fun () ->
-      (let sensitive_set_selected_button = ref false in
+    (fun () ->
+       refresh_read();
+       refresh_write ();
+       refresh_followFocus ();
+       refresh_enabled_button ();
+       let sensitive_set_selected_button = ref false in
        History.apply_on_selected
          (apply_on_vi (fun _ -> sensitive_set_selected_button:=true));
        set_selected#misc#set_sensitive !sensitive_set_selected_button;
-       if Enabled.get () <> enabled_button#active then (
-         enabled_button#set_active (Enabled.get ());
-         !show_column ();
-       );
        let new_result = !Db.Occurrence.get_last_result () in
        (match new_result with
         | None when !old_vi<> -1 ->
@@ -193,7 +226,7 @@ let occurrence_selector
       localizable
 
 let file_tree_decorate (file_tree:Filetree.t) =
-  show_column :=
+  update_column :=
     file_tree#append_pixbuf_column
       ~title:"Occurrence"
       (fun globs ->
@@ -201,22 +234,25 @@ let file_tree_decorate (file_tree:Filetree.t) =
           | None -> (* occurrence not computed *)
             [`STOCK_ID ""]
           | Some (result, _) ->
-            let in_globals (ki,_) =
+            let in_globals (kf,ki,_ as access) =
+              (let ak = Register.classify_accesses access in
+               consider_access () ak)
+              &&
               match ki with
                 | Kglobal -> false
-                | Kstmt stmt ->
-                  let kf = Kernel_function.find_englobing_kf stmt in
-                  let {vid=v0} = Kernel_function.get_vi kf in
+                | Kstmt _ ->
+                  let kf = Extlib.the kf in
+                  let v0 = Kernel_function.get_vi kf in
                   List.exists
                     (fun glob -> match glob with
-                      | GFun ({svar ={vid=v1}},_ ) -> v1=v0
+                      | GFun ({svar =v1},_ ) -> Varinfo.equal v1 v0
                       |  _ -> false)
                     globs
             in
             if List.exists in_globals result then [`STOCK_ID "gtk-apply"]
             else [`STOCK_ID ""])
       (fun () -> Enabled.get ());
-  !show_column ()
+  !update_column `Visibility
 
 let main main_ui =
   main_ui#register_source_selector occurrence_selector;

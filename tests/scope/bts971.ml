@@ -26,13 +26,24 @@ let compute_and_print pp str_data =
   in Format.printf "@]@]@.@."
 ;;
 
+open Cil_types
+
 let tests () =
-  let pp = find_pp "f1" in compute_and_print pp "v";
-  let stmt, kf as pp = find_pp "g1" in compute_and_print pp "v";
-  let stmt = match stmt.Cil_types.succs with s::_ -> s | _ -> assert false in
+  let main = fst (Globals.entry_point ()) in
+  if Kernel_function.get_name main = "main" then
+    let pp = find_pp "f1" in compute_and_print pp "v";
+    let stmt, kf as pp = find_pp "g1" in compute_and_print pp "v";
+    let stmt = match stmt.succs with s::_ -> s | _ -> assert false in
     Format.printf "Current program point = 2d one in function '%s'@\n" "g1";
     compute_and_print (stmt, kf) "v";
-  let pp = find_pp "f" in compute_and_print pp "v"
+    let pp = find_pp "f" in
+    compute_and_print pp "v"
+  else if Kernel_function.get_name main = "main2" then
+    let s = Kernel_function.find_return main in
+    let s = List.hd s.preds in
+    compute_and_print (s, main) "t[1].a"
+  else
+    Kernel.result "Unknown main %a@." Kernel_function.pretty main
 
 let main _ =
   Format.printf "=== Tests for Scope.Defs@.";

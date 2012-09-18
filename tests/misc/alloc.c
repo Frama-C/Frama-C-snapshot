@@ -21,7 +21,7 @@ void main(int c)
   t[0] = t[9] = 'o';
   *p = 'k';
 
-  q = malloc(4);
+  q = malloc(4);*q=0;
   r = - (int) q;
   *r = *(r+1);
 
@@ -33,7 +33,7 @@ void main(int c)
 void main_abs(int c)
 {
 
-  q = malloc(4);
+  q = malloc(4);*q=0;
   r = - (int) q;
 
   *(int*)0x104=0;

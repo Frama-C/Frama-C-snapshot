@@ -1,5 +1,5 @@
 /* run.config
-   DONTRUN: change pretty printing of ghost statements before
+   OPT: -print -then -no-print -rte -rte-precond -then -print
 */
 //@ assigns *p;
 float g(float* p);

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -17,21 +17,20 @@
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version v2.1                *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-open Cil
-
 (** {2 Internal State} *)
 
-module Result_pair = Datatype.Pair(Datatype.Bool)(Datatype.Bool)
+module Result_pair =
+  Datatype.Pair_with_collections(Datatype.Bool)(Datatype.Bool)
+    (struct let module_name = "Sparecode.Register.Result_pair.t" end)
 module Result =
   State_builder.Hashtbl
     (Datatype.Hashtbl
-       (Hashtbl.Make(Result_pair))
+       (Result_pair.Hashtbl)
        (Result_pair)
        (struct let module_name = "Sparecode" end))
     (Project.Datatype)
@@ -39,7 +38,6 @@ module Result =
        let name = "Sparecode"
        let size = 7
        let dependencies = [ Ast.self; Db.Value.self ] (* delayed, see below *)
-       let kind = `Correctness
      end)
 
 let () =

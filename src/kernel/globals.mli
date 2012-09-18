@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,11 +25,6 @@
 
 open Cil_types
 
-(* Forward reference to functions defined in Kernel_function. Do not
-   use outside of this module.
- *)
-val find_first_stmt: (kernel_function -> stmt) ref
-val find_enclosing_block: (stmt -> block) ref
 
 (** Globals variables.
     The AST should be computed before using this module
@@ -77,7 +72,9 @@ module Functions: sig
   (** {2 Getters} *)
 
   val get: varinfo -> kernel_function
-    (** @raise Not_found if the given varinfo has not a function type. *)
+    (** @raise Not_found if the given varinfo has no associated kernel function
+        and is not a built-in.
+    *)
   val get_params: kernel_function -> varinfo list
   val get_vi: kernel_function -> varinfo
 
@@ -111,35 +108,7 @@ module Functions: sig
   val replace_by_definition: funspec -> fundec -> location -> unit
     (**TODO: do not take a funspec as argument *)
 
-  val set_spec: (kernel_function -> (funspec -> funspec) -> unit) ref
-
   val register: kernel_function -> unit
-end
-
-(* ************************************************************************* *)
-(** Globals annotations.
-    The AST should be computed before using this module
-    (cf. {! Ast.compute}). *)
-module Annotations: sig
-
-  val self: State.t
-    (** The state kind corresponding to the table of global annotations. *)
-
-  (** {2 Getters} *)
-
-  val get_all: unit -> (global_annotation * bool) list
-
-  (** {2 Iterators} *)
-
-  val iter: (global_annotation -> bool -> unit) -> unit
-    (** The boolean parameter of the given function is [true] iff the
-        annotation was generated. *)
-
-  (** {2 Setters} *)
-
-  val add_user: global_annotation -> unit
-  val add_generated: global_annotation -> unit
-
 end
 
 (* ************************************************************************* *)
@@ -185,6 +154,9 @@ module FileIndex : sig
         declared. The boolean result is true for a formal parameter.
         @raise Not_found if the varinfo is a global one. *)
 
+  val remove_global_annotations: global_annotation -> unit
+(** @since Oxygen-20120901 *)
+
 end
 
 (* ************************************************************************* *)
@@ -202,8 +174,8 @@ val entry_point : unit -> kernel_function * bool
       you don't have to catch it yourself, except if you do a specific work. *)
 
 val set_entry_point : string -> bool -> unit
-(** [set_entry_point name lib] sets [Kernel.MainFunction] to [name] if
-    [lib] is [false] and [Kernel.LibEntry] to [name] if [lib] is [true].
+(** [set_entry_point name lib] sets [Kernel.MainFunction] to [name] and 
+    [Kernel.LibEntry] to [lib] is [true].
     Moreover, clear the results of all the analysis which depend on
     [Kernel.MainFunction] or [Kernel.LibEntry].
     @plugin development guide *)
@@ -241,6 +213,15 @@ val get_comments_stmt: stmt -> string list
 
     @since Nitrogen-20111001
 *)
+
+
+(* **/** *)
+(* Forward reference to functions defined in Kernel_function. Do not
+   use outside of this module.
+ *)
+val find_first_stmt: (kernel_function -> stmt) ref
+val find_enclosing_block: (stmt -> block) ref
+
 
 (*
 Local Variables:

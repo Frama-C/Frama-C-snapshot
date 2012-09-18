@@ -14,7 +14,7 @@ int main() {
   z = (- 0x1000) * y;
   z = x * (- 0x1000);
 
-  z = (int) 0xffffffff * y;
+  z = (int) (-1) * y;
   z = x * 1;
   z = 1 * y;
   z = x * 0xffffffff;

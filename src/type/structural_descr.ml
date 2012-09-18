@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2011                                               *)
+(*  Copyright (C) 2007-2012                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -157,7 +157,7 @@ let poly2 f a b =
   with Cannot_pack -> Unknown
 
 let t_map_unchanged_compares = poly2 Unmarshal.t_map_unchangedcompares
-let t_hashtbl_unchanged_hashs = poly2 Unmarshal.t_hashtbl_unchangedhashs
+let t_hashtbl_unchanged_hashs = poly2 (Unmarshal.t_hashtbl_unchangedhashs)
 
 (* ********************************************************************** *)
 (** {2 Internals} *)

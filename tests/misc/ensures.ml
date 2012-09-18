@@ -6,7 +6,7 @@ let run () =
   Globals.Functions.iter
     (fun kf ->
        let kf_name = Kernel_function.get_name kf in
-       let spec = Kernel_function.get_spec kf in
+       let spec = Annotations.funspec kf in
        let ip = Property.ip_of_spec kf Kglobal spec in
        List.iter
          (fun ip ->

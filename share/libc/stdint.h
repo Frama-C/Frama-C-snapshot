@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2011                                               */
+/*  Copyright (C) 2007-2012                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -83,18 +83,18 @@ typedef __INT_MAX_T intmax_t;
 typedef __UINT_MAX_T uintmax_t;
 
 /* ISO C: 7.18.2.1 */
-#define INT8_MIN __smin(8)
-#define INT8_MAX __smax(8)
-#define UINT8_MAX __umax(8)
-#define INT16_MIN __smin(16)
-#define INT16_MAX  __smax(16)
-#define UINT16_MAX __umax(16)
-#define INT32_MIN __smin(32)
-#define INT32_MAX __smax(32)
-#define UINT32_MAX __umax(32)
-#define INT64_MIN __smin(64)
-#define INT64_MAX __smax(64)
-#define UINT64_MAX __umax(64)
+#define INT8_MIN __FC_INT8_MIN
+#define INT8_MAX __FC_INT8_MAX
+#define UINT8_MAX __FC_UINT8_MAX
+#define INT16_MIN __FC_INT16_MIN
+#define INT16_MAX __FC_INT16_MAX
+#define UINT16_MAX __FC_UINT16_MAX
+#define INT32_MIN __FC_INT32_MIN
+#define INT32_MAX __FC_INT32_MAX
+#define UINT32_MAX __FC_UINT32_MAX
+#define INT64_MIN __FC_INT64_MIN
+#define INT64_MAX __FC_INT64_MAX
+#define UINT64_MAX __FC_UINT64_MAX
 
 /* ISO C: 7.18.2.3-5 : TODO */
 
